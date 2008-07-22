@@ -1,5 +1,12 @@
 2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
+	* nsgui.h:
+	* nsfont.m:
+	* nsmenu.m:
+	* nsterm.m: Change PENDINGS to FIXME / TODO / XXX.
+
+2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
 	* nsterm.m (syms_of_nsterm): Remove debugging println.
 
 2008-07-22  David Reitter  <david.reitter@gmail.com>

@@ -78,7 +78,7 @@ EmacsMenu *mainMenu, *svcsMenu;
    ========================================================================== */
 
 
-/*23: PENDING: not currently used, but should normalize with other terms. */
+/*23: FIXME: not currently used, but should normalize with other terms. */
 void
 x_activate_menubar (struct frame *f)
 {
@@ -197,9 +197,9 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 	}
       set_buffer_internal_1 (XBUFFER (buffer));
 
-      /* PENDING: for some reason this is not needed in other terms,
-         but some menu updates call Info-extract-pointer which causes
-         abort-on-error if waiting-for-input.  Needs further investigation. */
+      /* TODO: for some reason this is not needed in other terms,
+           but some menu updates call Info-extract-pointer which causes
+           abort-on-error if waiting-for-input.  Needs further investigation. */
       owfi = waiting_for_input;
       waiting_for_input = 0;
 
@@ -239,10 +239,10 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 	  if (NILP (string))
 	    break;
 
-          /* PENDING: we'd like to only parse the needed submenu, but this
-             was causing crashes in the _common parsing code.. need to make
-             sure proper initialization done.. */
-/*             if (submenu && strcmp (submenuTitle, SDATA (string)))
+          /* FIXME: we'd like to only parse the needed submenu, but this
+               was causing crashes in the _common parsing code.. need to make
+               sure proper initialization done.. */
+/*        if (submenu && strcmp (submenuTitle, SDATA (string)))
              continue; */
 
 	  submenu_start[i] = menu_items_used;
@@ -298,16 +298,16 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       set_buffer_internal_1 (prev);
 
       /* Compare the new menu items with previous, and leave off if no change */
-      /* PENDING: following other terms here, but seems like this should be
-         done before parse stage 2 above, since its results aren't used */
+      /* FIXME: following other terms here, but seems like this should be
+           done before parse stage 2 above, since its results aren't used */
       if (previous_menu_items_used
           && (!submenu || (submenu && submenu == last_submenu))
           && menu_items_used == previous_menu_items_used)
         {
           for (i = 0; i < previous_menu_items_used; i++)
-            /* PENDING: this ALWAYS fails on Buffers menu items.. something
-               about their strings causes them to change every time, so we
-               double-check failures */
+            /* FIXME: this ALWAYS fails on Buffers menu items.. something
+                 about their strings causes them to change every time, so we
+                 double-check failures */
             if (!EQ (previous_items[i], XVECTOR (menu_items)->contents[i]))
               if (!(STRINGP (previous_items[i])
                     && STRINGP (XVECTOR (menu_items)->contents[i])
@@ -333,7 +333,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
             }
         }
       /* The menu items are different, so store them in the frame */
-      /* PENDING: this is not correct for single-submenu case */
+      /* FIXME: this is not correct for single-submenu case */
       f->menu_bar_vector = menu_items;
       f->menu_bar_items_used = menu_items_used;
 
@@ -830,7 +830,7 @@ ns_popup_menu (Lisp_Object position, Lisp_Object menu)
     }
   else
     {      /* no position given */
-      /* PENDING: if called during dump, we need to stop precomputation of
+      /* FIXME: if called during dump, we need to stop precomputation of
          key equivalents (see below) because the keydefs in ns-win.el have
          not been loaded yet. */
       if (noninteractive)
@@ -934,7 +934,7 @@ ns_popup_menu (Lisp_Object position, Lisp_Object menu)
   specpdl_count2 = SPECPDL_INDEX ();
 
 #if 0
-  /*PENDING: a couple of one-line differences prevent reuse */
+  /* FIXME: a couple of one-line differences prevent reuse */
   wv = digest_single_submenu (0, menu_items_used, Qnil);
 #else
   {

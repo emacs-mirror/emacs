@@ -78,8 +78,8 @@ typedef unichar XChar2b;
 #define FACE_DEFAULT (~0)
 
 
-/* PENDING: xfaces requires these structures, but the question is are we
-            forced to use them? */
+/* XXX: xfaces requires these structures, but the question is are we
+        forced to use them? */
 typedef struct _XGCValues
 {
 #ifdef __OBJC__

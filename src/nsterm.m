@@ -140,7 +140,7 @@ Lisp_Object ns_input_color, ns_input_text, ns_working_text;
 Lisp_Object ns_input_spi_name, ns_input_spi_arg;
 Lisp_Object Vx_toolkit_scroll_bars;
 static Lisp_Object Qmodifier_value;
-/*PENDING: unsure why these defined in term files, anyway we need in keymap.c */
+/* TODO: unsure why these defined in term files, anyway we need in keymap.c */
 Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns;
 
@@ -215,8 +215,8 @@ static int ns_window_num =0;
 static NSRect uRect;
 static BOOL gsaved = NO;
 BOOL ns_in_resize = NO;
-int ns_tmp_flags; /*PENDING */
-struct nsfont_info *ns_tmp_font; /*PENDING */
+int ns_tmp_flags; /* FIXME */
+struct nsfont_info *ns_tmp_font; /* FIXME */
 /*static int debug_lock = 0; */
 
 #ifdef NS_IMPL_COCOA
@@ -297,13 +297,13 @@ static BOOL inNsSelect = 0;
   ns_send_appdefined (-1);                                    \
   }
 
-/*PENDING: get rid of need for these forward declarations */
+/* TODO: get rid of need for these forward declarations */
 static void ns_condemn_scroll_bars (struct frame *f),
             ns_judge_scroll_bars (struct frame *f);
 
 /* unused variables needed for compatibility reasons */
 int x_use_underline_position_properties, x_underline_at_descent_line;
-/* PENDING: figure out what to do with underline_minimum_offset. */
+/* FIXME: figure out what to do with underline_minimum_offset. */
 
 
 /* ==========================================================================
@@ -413,7 +413,6 @@ ns_init_paths ()
         }
     }
 
-  /*PENDING: append to INFOPATH... */
   if (!getenv ("INFOPATH"))
     {
       resourcePath = [resourceDir stringByAppendingPathComponent: @"info"];
@@ -847,7 +846,7 @@ ns_ring_bell ()
           r.origin.y += (r.size.height - dim.y) / 2;
           r.size.width = dim.x;
           r.size.height = dim.y;
-          /* PENDING: cacheImageInRect under GNUSTEP does not account for
+          /* XXX: cacheImageInRect under GNUSTEP does not account for
              offset in x_set_window_size, so overestimate (4 fine on Cocoa) */
           surr = NSInsetRect (r, -10, -10);
           ns_focus (frame, &surr, 1);
@@ -987,7 +986,7 @@ x_make_frame_visible (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   NSTRACE (x_make_frame_visible);
-  /* PENDING: at some points in past this was not needed, as the only place that
+  /* XXX: at some points in past this was not needed, as the only place that
      called this (frame.c:Fraise_frame ()) also called raise_lower;
      if this ends up the case again, comment this out again. */
   if (!FRAME_VISIBLE_P (f))
@@ -1158,8 +1157,8 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   
   /* If we have a change in toolbar display, calculate height */
   if (tb)
-    /* PENDING: GNUstep has not yet implemented the first method below, added
-                in Panther, however the second is incorrect under Cocoa. */
+    /* XXX: GNUstep has not yet implemented the first method below, added
+           in Panther, however the second is incorrect under Cocoa. */
 #ifdef NS_IMPL_GNUSTEP
     FRAME_NS_TOOLBAR_HEIGHT (f)
       = NSHeight ([NSWindow frameRectForContentRect: NSMakeRect (0, 0, 0, 0)
@@ -1359,9 +1358,9 @@ ns_get_color (const char *name, NSColor **col)
       return 0;
     }
 
-  /* 23: PENDING: emacs seems to downcase everything before passing it here,
-     which we can work around, except for GRAY, since gray##, where ## is
-     decimal between 0 and 99, is also an X11 colorname. */
+  /* 23: FIXME: emacs seems to downcase everything before passing it here,
+      which we can work around, except for GRAY, since gray##, where ## is
+      decimal between 0 and 99, is also an X11 colorname. */
   if (name[0] == '#')             /* X11 format */
     {
       hex = name + 1;
@@ -1460,7 +1459,7 @@ ns_get_color (const char *name, NSColor **col)
     NSString *name;
     NSColorList *clist;
 #ifdef NS_IMPL_GNUSTEP
-    /* PENDING: who is wrong, the requestor or the implementation? */
+    /* XXX: who is wrong, the requestor or the implementation? */
     if ([nsname compare: @"Highlight" options: NSCaseInsensitiveSearch]
         == NSOrderedSame)
       nsname = @"highlightColor";
@@ -1638,7 +1637,7 @@ x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
   NSTRACE (x_set_mouse_pixel_position);
   ns_raise_frame (f);
 #if 0
-  /*PENDING: this does not work, and what about GNUstep? */
+  /* FIXME: this does not work, and what about GNUstep? */
 #ifdef NS_IMPL_COCOA
   [FRAME_NS_VIEW (f) lockFocus];
   PSsetmouse ((float)pix_x, (float)pix_y);
@@ -1732,8 +1731,8 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
   if (last_mouse_scroll_bar != nil && insist == 0)
     {
-      /* PENDING: we do not use this path at the moment because drag events will
-         go directly to the EmacsScroller.  Leaving code in for now. */
+      /* TODO: we do not use this path at the moment because drag events will
+           go directly to the EmacsScroller.  Leaving code in for now. */
       [last_mouse_scroll_bar getMouseMotionPart: (int *)part window: bar_window
                                               x: x y: y];
       if (time) *time = last_mouse_movement_time;
@@ -1754,7 +1753,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
         f = dpyinfo->x_focus_frame ? dpyinfo->x_focus_frame
                                     : SELECTED_FRAME ();
 
-      if (f && f->output_data.ns)  /*PENDING: 2nd check no longer needed? */
+      if (f && f->output_data.ns)  /* TODO: 2nd check no longer needed? */
         {
           view = FRAME_NS_VIEW (*fp);
 
@@ -2422,7 +2421,7 @@ show_hourglass (struct atimer *timer)
 
   BLOCK_INPUT;
 
-  /*PENDING: add NSProgressIndicator to selected frame (see macfns.c) */
+  /* TODO: add NSProgressIndicator to selected frame (see macfns.c) */
 
   hourglass_shown_p = 1;
   UNBLOCK_INPUT;
@@ -2435,7 +2434,7 @@ hide_hourglass ()
   if (!hourglass_shown_p)
     return;
 
-  /*PENDING: remove NSProgressIndicator from all frames */
+  /* TODO: remove NSProgressIndicator from all frames */
 
   hourglass_shown_p = 0;
   UNBLOCK_INPUT;
@@ -2563,7 +2562,7 @@ ns_draw_relief (NSRect r, int thickness, char raised_p,
   if (newBaseCol == nil)
     newBaseCol = [NSColor grayColor];
 
-  if (newBaseCol != baseCol)  /* PENDING: better check */
+  if (newBaseCol != baseCol)  /* TODO: better check */
     {
       [baseCol release];
       baseCol = [newBaseCol retain];
@@ -2843,7 +2842,7 @@ ns_draw_glyph_string (struct glyph_string *s)
       External (RIF): Main draw-text call.
    -------------------------------------------------------------------------- */
 {
-  /*PENDING (optimize): focus for box and contents draw */
+  /* TODO (optimize): focus for box and contents draw */
   NSRect r[2];
   int n;
   char box_drawn_p = 0;
@@ -2894,11 +2893,11 @@ ns_draw_glyph_string (struct glyph_string *s)
                                     - WINDOW_RIGHT_FRINGE_WIDTH (s->w)));
               r[0].size.width -= overrun;
 
-              /* PENDING: Try to work between problem where a stretch glyph on
-                 a partially-visible bottom row will clear part of the
-                 modeline, and another where list-buffers headers and similar
-                 rows erroneously have visible_height set to 0.  Not sure
-                 where this is coming from as other terms seem not to show. */
+              /* XXX: Try to work between problem where a stretch glyph on
+                  a partially-visible bottom row will clear part of the
+                  modeline, and another where list-buffers headers and similar
+                  rows erroneously have visible_height set to 0.  Not sure
+                  where this is coming from as other terms seem not to show. */
               r[0].size.height = min (s->height, s->row->visible_height);
             }
 
@@ -3089,7 +3088,7 @@ ns_read_socket (struct terminal *terminal, int expected,
          to ourself, otherwise [NXApp run] will never exit.  */
       send_appdefined = YES;
 
-      /*PENDING: from termhooks.h: */
+      /* TODO: from termhooks.h: */
       /* XXX Please note that a non-zero value of EXPECTED only means that
      there is available input on at least one of the currently opened
      terminal devices -- but not necessarily on this device.
@@ -3596,7 +3595,7 @@ static struct redisplay_interface ns_redisplay_interface =
   x_get_glyph_overhangs, /*23: generic OK */
   x_fix_overlapping_area, /*generic OK */
   ns_draw_fringe_bitmap, /*23 */
-  0, /* define_fringe_bitmap */ /*PENDING: simplify ns_draw_fringe_bitmap? */
+  0, /* define_fringe_bitmap */ /* FIXME: simplify ns_draw_fringe_bitmap */
   0, /* destroy_fringe_bitmap */
   ns_compute_glyph_string_overhangs, /*23 */
   ns_draw_glyph_string, /*23: interface to nsfont.m */
@@ -3611,7 +3610,7 @@ static struct redisplay_interface ns_redisplay_interface =
 static void
 ns_delete_display (struct ns_display_info *dpyinfo)
 {
-  /*PENDING... */
+  /* TODO... */
 }
 
 
@@ -4050,7 +4049,7 @@ or shrunk (negative).  Zero (the default) means standard line height.\n\
   Qcontrol = intern ("control");
   Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
 
-  /*PENDING: move to common code */
+  /* FIXME: move to common code */
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
@@ -4083,8 +4082,8 @@ baseline level.  The default value is nil.  */);
 
   /* Tell emacs about this window system. */
   Fprovide (intern ("ns-windowing"), Qnil);
-  /* PENDING: try to move this back into lisp,  ns-win.el loaded too late
-              right now */
+  /* TODO: try to move this back into lisp,  ns-win.el loaded too late
+           right now */
   {
     Lisp_Object args[3] = { intern ("ns-version-string"), build_string ("9.0"),
                     build_string ("NS Window system port version number.") };
@@ -4279,7 +4278,7 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); // FIXME
   return YES;
 }
 
-/*PENDING: these may help w/IO switching btwn terminal and NSApp */
+/* TODO: these may help w/IO switching btwn terminal and NSApp */
 - (void)applicationDidBecomeActive: (NSNotification *)notification
 {
 }
@@ -4497,13 +4496,13 @@ extern void update_window_cursor (struct window *w, int on);
 /*#if defined (COCOA_EXPERIMENTAL_CTRL_G) */
  if (![[self window] isKeyWindow])
    {
-     /* PENDING: Using NO_SOCK_SIGIO like Carbon causes a condition in which,
-        when Emacs display updates a different frame from the current one,
-        and temporarily selects it, then processes some interrupt-driven
-        input (dispnew.c:3878), OS will send the event to the correct NSWindow,
-        but for some reason that window has its first responder set to the
-        NSView most recently updated (I guess), which is not the correct one.
-        UPDATE: After multi-TTY merge this happens even w/o NO_SOCK_SIGIO */
+     /* XXX: Using NO_SOCK_SIGIO like Carbon causes a condition in which,
+         when Emacs display updates a different frame from the current one,
+         and temporarily selects it, then processes some interrupt-driven
+         input (dispnew.c:3878), OS will send the event to the correct NSWindow,
+         but for some reason that window has its first responder set to the
+         NSView most recently updated (I guess), which is not the correct one.
+         UPDATE: After multi-TTY merge this happens even w/o NO_SOCK_SIGIO */
      if ([[theEvent window] isKindOfClass: [EmacsWindow class]])
          [[(EmacsView *)[theEvent window] delegate] keyDown: theEvent];
      return;
@@ -4558,7 +4557,7 @@ extern void update_window_cursor (struct window *w, int on);
               && !fnKeysym
               && [[theEvent characters] length] != 0)
             {
-              /* PENDING: the code we get will be unshifted, so if we have
+              /* XXX: the code we get will be unshifted, so if we have
                  a shift modifier, must convert ourselves */
               if (!(flags & NSShiftKeyMask))
                 code = [[theEvent characters] characterAtIndex: 0];
@@ -4667,7 +4666,7 @@ if (NS_KEYLOG) NSLog (@"insertText '%@'\tlen = %d", aString, len);
   for (i =0; i<len; i++)
     {
       code = [aString characterAtIndex: i];
-      /* PENDING: still need this? */
+      /* TODO: still need this? */
       if (code == 0x2DC)
         code = '~'; /* 0x7E */
       emacs_event->modifiers = 0;
@@ -4790,7 +4789,7 @@ if (NS_KEYLOG) NSLog (@"firstRectForCharRange request");
   return (long)self;
 }
 
-/*PENDING: below here not yet implemented correctly, but may not be needed */
+/* TODO: below here not yet implemented correctly, but may not be needed */
 
 - (void)doCommandBySelector: (SEL)aSelector
 {
@@ -5725,8 +5724,8 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 
 + (float) scrollerWidth
 {
-  /* PENDING: if we want to allow variable widths, this is the place to do it,
-     however neither GNUstep nor Cocoa support it very well */
+  /* TODO: if we want to allow variable widths, this is the place to do it,
+           however neither GNUstep nor Cocoa support it very well */
   return [NSScroller scrollerWidth];
 }
 
@@ -5869,8 +5868,8 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
   return self;
 }
 
-/* PENDING: unused at moment (see ns_mouse_position) at the moment because
-   drag events will go directly to the EmacsScroller.  Leaving in for now. */
+/* FIXME: unused at moment (see ns_mouse_position) at the moment because
+     drag events will go directly to the EmacsScroller.  Leaving in for now. */
 -(void)getMouseMotionPart: (int *)part window: (Lisp_Object *)window
                         x: (Lisp_Object *)x y: ( Lisp_Object *)y
 {
@@ -6180,7 +6179,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   if (expandSpace != prevExpandSpace)
     {
       ns_expand_space = make_float (expandSpace);
-      /* PENDING: more needed: store needed metrics in nsfont_info, update
+      /* TODO: more needed: store needed metrics in nsfont_info, update
          frame default font max_bounds and fontp, recompute faces */
 /*         FRAME_LINE_HEIGHT (frame) *= (expandSpace / prevExpandSpace);
            x_set_window_size (frame, 0, frame->text_cols, frame->text_lines); */
@@ -6409,7 +6408,7 @@ ns_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames)
       pattFam = patt;
   else
       pattFam = ns_xlfd_to_fontname (patt);
-  /*PENDING: '*' at beginning matches literally.. */
+  /* XXX: '*' at beginning matches literally.. */
   if (pattFam[0] == '*')
     pattFam[0] = '.';
 
