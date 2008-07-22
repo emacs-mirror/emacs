@@ -1,5 +1,7 @@
 2008-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* terminfo.c (UP, BC, PC): Undo previous change.
+	
 	* nsfns.m: Rename ns prefixed functions/variables to the
 	corresponding x versions.  Update references.
 
