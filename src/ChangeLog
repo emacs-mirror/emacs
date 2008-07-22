@@ -1,3 +1,7 @@
+2008-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dispnew.c (init_display): Remove code for X10.
+
 2008-07-22  Jason Rumney  <jasonr@gnu.org>
 
         * w32proc.c (Fw32_long_file_name): Don't append dir separator to
