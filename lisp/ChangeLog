@@ -1,3 +1,8 @@
+2008-07-22  Miles Bader  <miles@gnu.org>
+
+	* progmodes/sh-script.el (sh-newline-and-indent): Remove.
+	(sh-mode-map): Remove remapping of newline-and-indent.
+
 2008-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (Todo): Update.
@@ -7,7 +12,7 @@
 	* vc-git.el (vc-git-status-printer): Update the directory display
 	to match the default.
 
-	* vc-dir.el (vc-dir-recompute-file-state): Add workaround for CVS.	
+	* vc-dir.el (vc-dir-recompute-file-state): Add workaround for CVS.
 
 2008-07-21  Chong Yidong  <cyd@stupidchicken.com>
 
