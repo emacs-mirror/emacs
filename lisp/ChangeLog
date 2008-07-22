@@ -1,5 +1,8 @@
 2008-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-git.el (vc-git-status-printer): Update the directory display
+	to match the default.
+
 	* vc-dir.el (vc-dir-recompute-file-state): Add workaround for CVS.	
 
 2008-07-21  Chong Yidong  <cyd@stupidchicken.com>
