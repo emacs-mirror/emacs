@@ -5,6 +5,10 @@
 
 ** remove aliases from x- to ns- in ns-win.el and replace by function renames
 
+** remove all the /* 23 */ comments from the source code
+
+** replace all references to PENDING: with something else
+
 
 * CURSOR BUGS:
 
