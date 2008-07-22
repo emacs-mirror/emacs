@@ -1,5 +1,14 @@
 2008-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* nsfns.m (x_set_menu_bar_lines, x_set_tool_bar_lines): Remove
+	forwarding functions.
+	(ns_set_menu_bar_lines): Rename to x_set_menu_bar_lines, make
+	non-static.
+	(ns_set_tool_bar_lines): Rename to x_set_tool_bar_lines, make
+	non-static.
+	(ns_frame_parm_handlers): Use the new names.
+	(syms_of_nsfns): Move to the end of file.
+
 	* nsterm.m (syms_of_nsterm): Move to the end of file.
 
 	* dispnew.c (init_display): Remove code for X10.

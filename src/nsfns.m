@@ -712,8 +712,8 @@ ns_set_doc_edited (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 
-static void
-ns_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
+void
+x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int nlines;
   int olines = FRAME_MENU_BAR_LINES (f);
@@ -729,30 +729,22 @@ ns_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (nlines)
     {
       FRAME_EXTERNAL_MENU_BAR (f) = 1;
-/* does for all frames, whereas we just want for one frame
-        [NSMenu setMenuBarVisible: YES]; */
+      /* does for all frames, whereas we just want for one frame
+	 [NSMenu setMenuBarVisible: YES]; */
     }
   else
     {
       if (FRAME_EXTERNAL_MENU_BAR (f) == 1)
         free_frame_menubar (f);
-/*      [NSMenu setMenuBarVisible: NO]; */
+      /*      [NSMenu setMenuBarVisible: NO]; */
       FRAME_EXTERNAL_MENU_BAR (f) = 0;
     }
 }
 
 
-/* 23: XXX: there is an erroneous direct call in window.c to this fn */
-void
-x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
-{
-  ns_set_menu_bar_lines (f, value, oldval);
-}
-
-
 /* 23: toolbar support */
-static void
-ns_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
+void
+x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int nlines;
   Lisp_Object root_window;
@@ -780,14 +772,6 @@ ns_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     }
 
   x_set_window_size (f, 0, f->text_cols, f->text_lines);
-}
-
-
-/* 23: XXX: there is an erroneous direct call in window.c to this fn */
-void
-x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
-{
-  ns_set_tool_bar_lines (f, value, oldval);
 }
 
 
@@ -1023,7 +1007,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
   ns_set_icon_name,
   ns_set_icon_type,
   x_set_internal_border_width, /* generic OK */
-  ns_set_menu_bar_lines,
+  x_set_menu_bar_lines,
   ns_set_mouse_color,
   ns_explicitly_set_name,
   x_set_scroll_bar_width, /* generic OK */
@@ -1031,7 +1015,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
   x_set_unsplittable, /* generic OK */
   x_set_vertical_scroll_bars, /* generic OK */
   x_set_visibility, /* generic OK */
-  ns_set_tool_bar_lines,
+  x_set_tool_bar_lines,
   0, /* x_set_scroll_bar_foreground, will ignore (not possible on NS) */
   0, /* x_set_scroll_bar_background,  will ignore (not possible on NS) */
   x_set_screen_gamma, /* generic OK */
@@ -2592,6 +2576,78 @@ Value is t if tooltip was open, nil otherwise.  */)
 
 /* ==========================================================================
 
+    Class implementations
+
+   ========================================================================== */
+
+
+@implementation EmacsSavePanel
+#ifdef NS_IMPL_COCOA
+/* --------------------------------------------------------------------------
+   These are overridden to intercept on OS X: ending panel restarts NSApp
+   event loop if it is stopped.  Not sure if this is correct behavior,
+   perhaps should check if running and if so send an appdefined.
+   -------------------------------------------------------------------------- */
+- (void) ok: (id)sender
+{
+  [super ok: sender];
+  panelOK = 1;
+  [NSApp stop: self];
+}
+- (void) cancel: (id)sender
+{
+  [super cancel: sender];
+  [NSApp stop: self];
+}
+#endif
+@end
+
+
+@implementation EmacsOpenPanel
+#ifdef NS_IMPL_COCOA
+/* --------------------------------------------------------------------------
+   These are overridden to intercept on OS X: ending panel restarts NSApp
+   event loop if it is stopped.  Not sure if this is correct behavior,
+   perhaps should check if running and if so send an appdefined.
+   -------------------------------------------------------------------------- */
+- (void) ok: (id)sender
+{
+  [super ok: sender];
+  panelOK = 1;
+  [NSApp stop: self];
+}
+- (void) cancel: (id)sender
+{
+  [super cancel: sender];
+  [NSApp stop: self];
+}
+#endif
+@end
+
+
+@implementation EmacsFileDelegate
+/* --------------------------------------------------------------------------
+   Delegate methods for Open/Save panels
+   -------------------------------------------------------------------------- */
+- (BOOL)panel: (id)sender isValidFilename: (NSString *)filename
+{
+  return YES;
+}
+- (BOOL)panel: (id)sender shouldShowFilename: (NSString *)filename
+{
+  return YES;
+}
+- (NSString *)panel: (id)sender userEnteredFilename: (NSString *)filename
+          confirmed: (BOOL)okFlag
+{
+  return filename;
+}
+@end
+
+#endif
+
+/* ==========================================================================
+
     Lisp interface declaration
 
    ========================================================================== */
@@ -2683,79 +2739,5 @@ be used as the image of the icon representing the frame.  */);
   check_window_system_func = check_ns;
 
 }
-
-
-
-/* ==========================================================================
-
-    Class implementations
-
-   ========================================================================== */
-
-
-@implementation EmacsSavePanel
-#ifdef NS_IMPL_COCOA
-/* --------------------------------------------------------------------------
-   These are overridden to intercept on OS X: ending panel restarts NSApp
-   event loop if it is stopped.  Not sure if this is correct behavior,
-   perhaps should check if running and if so send an appdefined.
-   -------------------------------------------------------------------------- */
-- (void) ok: (id)sender
-{
-  [super ok: sender];
-  panelOK = 1;
-  [NSApp stop: self];
-}
-- (void) cancel: (id)sender
-{
-  [super cancel: sender];
-  [NSApp stop: self];
-}
-#endif
-@end
-
-
-@implementation EmacsOpenPanel
-#ifdef NS_IMPL_COCOA
-/* --------------------------------------------------------------------------
-   These are overridden to intercept on OS X: ending panel restarts NSApp
-   event loop if it is stopped.  Not sure if this is correct behavior,
-   perhaps should check if running and if so send an appdefined.
-   -------------------------------------------------------------------------- */
-- (void) ok: (id)sender
-{
-  [super ok: sender];
-  panelOK = 1;
-  [NSApp stop: self];
-}
-- (void) cancel: (id)sender
-{
-  [super cancel: sender];
-  [NSApp stop: self];
-}
-#endif
-@end
-
-
-@implementation EmacsFileDelegate
-/* --------------------------------------------------------------------------
-   Delegate methods for Open/Save panels
-   -------------------------------------------------------------------------- */
-- (BOOL)panel: (id)sender isValidFilename: (NSString *)filename
-{
-  return YES;
-}
-- (BOOL)panel: (id)sender shouldShowFilename: (NSString *)filename
-{
-  return YES;
-}
-- (NSString *)panel: (id)sender userEnteredFilename: (NSString *)filename
-          confirmed: (BOOL)okFlag
-{
-  return filename;
-}
-@end
-
-#endif
 
 // arch-tag: dc2a3f74-1123-4daa-8eed-fb78db6a5642
