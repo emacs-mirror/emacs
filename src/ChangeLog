@@ -1,5 +1,7 @@
 2008-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* nsterm.m (syms_of_nsterm): Move to the end of file.
+
 	* dispnew.c (init_display): Remove code for X10.
 
 2008-07-22  Jason Rumney  <jasonr@gnu.org>

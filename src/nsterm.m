@@ -3716,7 +3716,7 @@ ns_term_init (Lisp_Object display_name)
   /* count object allocs (About, click icon); on OS X use ObjectAlloc tool */
   /*GSDebugAllocationActive (YES); */
   BLOCK_INPUT;
-handling_signal = 0;
+  handling_signal = 0;
 
   if (!ns_initialized)
     {
@@ -3945,152 +3945,6 @@ ns_term_shutdown (int sig)
   ns_shutdown_properly = YES;
   [NSApp terminate: NSApp];
 }
-
-
-void
-syms_of_nsterm ()
-{
-  NSTRACE (syms_of_nsterm);
-  DEFVAR_LISP ("ns-input-file", &ns_input_file,
-              "The file specified in the last NS event.");
-  ns_input_file =Qnil;
-
-  DEFVAR_LISP ("ns-input-text", &ns_input_text,
-              "The data received in the last NS text drag event.");
-  ns_input_text =Qnil;
-
-  DEFVAR_LISP ("ns-working-text", &ns_working_text,
-              "String for visualizing working composition sequence.");
-  ns_working_text =Qnil;
-
-  DEFVAR_LISP ("ns-input-font", &ns_input_font,
-              "The font specified in the last NS event.");
-  ns_input_font =Qnil;
-
-  DEFVAR_LISP ("ns-input-fontsize", &ns_input_fontsize,
-              "The fontsize specified in the last NS event.");
-  ns_input_fontsize =Qnil;
-
-  DEFVAR_LISP ("ns-input-line", &ns_input_line,
-               "The line specified in the last NS event.");
-  ns_input_line =Qnil;
-
-  DEFVAR_LISP ("ns-input-color", &ns_input_color,
-               "The color specified in the last NS event.");
-  ns_input_color =Qnil;
-
-  DEFVAR_LISP ("ns-input-spi-name", &ns_input_spi_name,
-               "The service name specified in the last NS event.");
-  ns_input_spi_name =Qnil;
-
-  DEFVAR_LISP ("ns-input-spi-arg", &ns_input_spi_arg,
-               "The service argument specified in the last NS event.");
-  ns_input_spi_arg =Qnil;
-
-  DEFVAR_LISP ("ns-alternate-modifier", &ns_alternate_modifier,
-               "This variable describes the behavior of the alternate or option key.\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
-Set to none means that the alternate / option key is not interpreted by Emacs\n\
-at all, allowing it to be used at a lower level for accented character entry.");
-
-  DEFVAR_LISP ("ns-command-modifier", &ns_command_modifier,
-               "This variable describes the behavior of the command key.\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.");
-
-  DEFVAR_LISP ("ns-control-modifier", &ns_control_modifier,
-               "This variable describes the behavior of the control key.\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.");
-
-  DEFVAR_LISP ("ns-function-modifier", &ns_function_modifier,
-               "This variable describes the behavior of the function key (on laptops).\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
-Set to none means that the function key is not interpreted by Emacs at all,\n\
-allowing it to be used at a lower level for accented character entry.");
-
-  DEFVAR_LISP ("ns-cursor-blink-rate", &ns_cursor_blink_rate,
-               "Rate at which the Emacs cursor blinks (in seconds).\n\
-Set to nil to disable blinking.");
-
-  DEFVAR_LISP ("ns-cursor-blink-mode", &ns_cursor_blink_mode,
-               "Internal variable -- use M-x blink-cursor-mode or preferences\n\
-panel to control this setting.");
-
-  DEFVAR_LISP ("ns-expand-space", &ns_expand_space,
-               "Amount by which spacing between lines is expanded (positive)\n\
-or shrunk (negative).  Zero (the default) means standard line height.\n\
-(This variable should only be read, never set.)");
-
-  DEFVAR_LISP ("ns-antialias-text", &ns_antialias_text,
-               "Non-nil (the default) means to render text antialiased. Only has an effect on OS X Panther and above.");
-
-  DEFVAR_LISP ("ns-use-qd-smoothing", &ns_use_qd_smoothing,
-               "Whether to render text using QuickDraw (less heavy) antialiasing. Only has an effect on OS X Panther and above.  Default is nil (use Quartz smoothing).");
-
-  DEFVAR_LISP ("ns-use-system-highlight-color",
-               &ns_use_system_highlight_color,
-               "Whether to use the system default (on OS X only) for the highlight color.  Nil means to use standard emacs (prior to version 21) 'grey'.");
-
-  staticpro (&ns_display_name_list);
-  ns_display_name_list = Qnil;
-
-  staticpro (&last_mouse_motion_frame);
-  last_mouse_motion_frame = Qnil;
-
-/*23: now apparently we need to tell emacs what modifiers there are.. */
-  Qmodifier_value = intern ("modifier-value");
-  Qalt = intern ("alt");
-  Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
-  Qhyper = intern ("hyper");
-  Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
-  Qmeta = intern ("meta");
-  Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
-  Qsuper = intern ("super");
-  Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
-  Qcontrol = intern ("control");
-  Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
-
-  /* FIXME: move to common code */
-  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
-	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
-#ifdef USE_TOOLKIT_SCROLL_BARS
-  Vx_toolkit_scroll_bars = Qt; 
-#else
-  Vx_toolkit_scroll_bars = Qnil;
-#endif
-
-  /* these are unsupported but we need the declarations to avoid whining
-     messages from cus-start.el */
-  DEFVAR_BOOL ("x-use-underline-position-properties",
-	       &x_use_underline_position_properties,
-     doc: /* NOT SUPPORTED UNDER NS.
-*Non-nil means make use of UNDERLINE_POSITION font properties.
-A value of nil means ignore them.  If you encounter fonts with bogus
-UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
-to 4.1, set this to nil.
-
-NOTE: Not supported on Mac yet.  */);
-  x_use_underline_position_properties = 0;
-
-  DEFVAR_BOOL ("x-underline-at-descent-line",
-	       &x_underline_at_descent_line,
-     doc: /* NOT SUPPORTED UNDER NS.
-*Non-nil means to draw the underline at the same place as the descent line.
-A value of nil means to draw the underline according to the value of the
-variable `x-use-underline-position-properties', which is usually at the
-baseline level.  The default value is nil.  */);
-  x_underline_at_descent_line = 0;
-
-  /* Tell emacs about this window system. */
-  Fprovide (intern ("ns-windowing"), Qnil);
-  /* TODO: try to move this back into lisp,  ns-win.el loaded too late
-           right now */
-  {
-    Lisp_Object args[3] = { intern ("ns-version-string"), build_string ("9.0"),
-                    build_string ("NS Window system port version number.") };
-    Fdefconst (Flist (3, args));
-  }
-}
-
 
 
 /* ==========================================================================
@@ -6598,5 +6452,150 @@ ns_xlfd_to_fontname (const char *xlfd)
   xfree (name);
   return ret;
 }
+
+void
+syms_of_nsterm ()
+{
+  NSTRACE (syms_of_nsterm);
+  DEFVAR_LISP ("ns-input-file", &ns_input_file,
+              "The file specified in the last NS event.");
+  ns_input_file =Qnil;
+
+  DEFVAR_LISP ("ns-input-text", &ns_input_text,
+              "The data received in the last NS text drag event.");
+  ns_input_text =Qnil;
+
+  DEFVAR_LISP ("ns-working-text", &ns_working_text,
+              "String for visualizing working composition sequence.");
+  ns_working_text =Qnil;
+
+  DEFVAR_LISP ("ns-input-font", &ns_input_font,
+              "The font specified in the last NS event.");
+  ns_input_font =Qnil;
+
+  DEFVAR_LISP ("ns-input-fontsize", &ns_input_fontsize,
+              "The fontsize specified in the last NS event.");
+  ns_input_fontsize =Qnil;
+
+  DEFVAR_LISP ("ns-input-line", &ns_input_line,
+               "The line specified in the last NS event.");
+  ns_input_line =Qnil;
+
+  DEFVAR_LISP ("ns-input-color", &ns_input_color,
+               "The color specified in the last NS event.");
+  ns_input_color =Qnil;
+
+  DEFVAR_LISP ("ns-input-spi-name", &ns_input_spi_name,
+               "The service name specified in the last NS event.");
+  ns_input_spi_name =Qnil;
+
+  DEFVAR_LISP ("ns-input-spi-arg", &ns_input_spi_arg,
+               "The service argument specified in the last NS event.");
+  ns_input_spi_arg =Qnil;
+
+  DEFVAR_LISP ("ns-alternate-modifier", &ns_alternate_modifier,
+               "This variable describes the behavior of the alternate or option key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to none means that the alternate / option key is not interpreted by Emacs\n\
+at all, allowing it to be used at a lower level for accented character entry.");
+
+  DEFVAR_LISP ("ns-command-modifier", &ns_command_modifier,
+               "This variable describes the behavior of the command key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.");
+
+  DEFVAR_LISP ("ns-control-modifier", &ns_control_modifier,
+               "This variable describes the behavior of the control key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.");
+
+  DEFVAR_LISP ("ns-function-modifier", &ns_function_modifier,
+               "This variable describes the behavior of the function key (on laptops).\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to none means that the function key is not interpreted by Emacs at all,\n\
+allowing it to be used at a lower level for accented character entry.");
+
+  DEFVAR_LISP ("ns-cursor-blink-rate", &ns_cursor_blink_rate,
+               "Rate at which the Emacs cursor blinks (in seconds).\n\
+Set to nil to disable blinking.");
+
+  DEFVAR_LISP ("ns-cursor-blink-mode", &ns_cursor_blink_mode,
+               "Internal variable -- use M-x blink-cursor-mode or preferences\n\
+panel to control this setting.");
+
+  DEFVAR_LISP ("ns-expand-space", &ns_expand_space,
+               "Amount by which spacing between lines is expanded (positive)\n\
+or shrunk (negative).  Zero (the default) means standard line height.\n\
+(This variable should only be read, never set.)");
+
+  DEFVAR_LISP ("ns-antialias-text", &ns_antialias_text,
+               "Non-nil (the default) means to render text antialiased. Only has an effect on OS X Panther and above.");
+
+  DEFVAR_LISP ("ns-use-qd-smoothing", &ns_use_qd_smoothing,
+               "Whether to render text using QuickDraw (less heavy) antialiasing. Only has an effect on OS X Panther and above.  Default is nil (use Quartz smoothing).");
+
+  DEFVAR_LISP ("ns-use-system-highlight-color",
+               &ns_use_system_highlight_color,
+               "Whether to use the system default (on OS X only) for the highlight color.  Nil means to use standard emacs (prior to version 21) 'grey'.");
+
+  staticpro (&ns_display_name_list);
+  ns_display_name_list = Qnil;
+
+  staticpro (&last_mouse_motion_frame);
+  last_mouse_motion_frame = Qnil;
+
+/*23: now apparently we need to tell emacs what modifiers there are.. */
+  Qmodifier_value = intern ("modifier-value");
+  Qalt = intern ("alt");
+  Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
+  Qhyper = intern ("hyper");
+  Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
+  Qmeta = intern ("meta");
+  Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
+  Qsuper = intern ("super");
+  Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
+  Qcontrol = intern ("control");
+  Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
+
+  /*PENDING: move to common code */
+  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
+	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  Vx_toolkit_scroll_bars = Qt;
+#else
+  Vx_toolkit_scroll_bars = Qnil;
+#endif
+
+  /* these are unsupported but we need the declarations to avoid whining
+     messages from cus-start.el */
+  DEFVAR_BOOL ("x-use-underline-position-properties",
+	       &x_use_underline_position_properties,
+     doc: /* NOT SUPPORTED UNDER NS.
+*Non-nil means make use of UNDERLINE_POSITION font properties.
+A value of nil means ignore them.  If you encounter fonts with bogus
+UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
+to 4.1, set this to nil.
+
+NOTE: Not supported on Mac yet.  */);
+  x_use_underline_position_properties = 0;
+
+  DEFVAR_BOOL ("x-underline-at-descent-line",
+	       &x_underline_at_descent_line,
+     doc: /* NOT SUPPORTED UNDER NS.
+*Non-nil means to draw the underline at the same place as the descent line.
+A value of nil means to draw the underline according to the value of the
+variable `x-use-underline-position-properties', which is usually at the
+baseline level.  The default value is nil.  */);
+  x_underline_at_descent_line = 0;
+
+  /* Tell emacs about this window system. */
+  Fprovide (intern ("ns-windowing"), Qnil);
+  /* PENDING: try to move this back into lisp,  ns-win.el loaded too late
+              right now */
+  {
+    Lisp_Object args[3] = { intern ("ns-version-string"), build_string ("9.0"),
+                    build_string ("NS Window system port version number.") };
+    Fdefconst (Flist (3, args));
+  }
+}
+
 
 // arch-tag: 6eaa8f7d-a69b-4e1c-b43d-ab31defbe0d2
