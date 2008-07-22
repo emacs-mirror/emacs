@@ -1,3 +1,8 @@
+2008-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* nsfns.m: Rename ns prefixed functions/variables to the
+	corresponding x versions.  Update references.
+
 2008-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (char_quoted): Check "charpos > beg" before decrementing.

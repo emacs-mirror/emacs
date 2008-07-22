@@ -961,7 +961,7 @@ ns_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
 
 static void
-ns_icon (struct frame *f, Lisp_Object parms)
+x_icon (struct frame *f, Lisp_Object parms)
 /* --------------------------------------------------------------------------
    Strangely-named function to set icon position parameters in frame.
    This is irrelevant under OS X, but might be needed under GNUstep,
@@ -1268,7 +1268,7 @@ be shared by the new frame.  */)
 
   [[EmacsView alloc] initFrameFromEmacs: f];
 
-  ns_icon (f, parms);
+  x_icon (f, parms);
 
   /* It is now ok to make the frame official even if we get an error below.
      The frame needs to be on Vframe_list or making it visible won't work. */
@@ -1557,8 +1557,8 @@ transparency and 1 is opaque.  */)
 }
 
 
-DEFUN ("ns-server-max-request-size", Fns_server_max_request_size,
-       Sns_server_max_request_size,
+DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
+       Sx_server_max_request_size,
        0, 1, 0,
        doc: /* This function is a no-op.  It is only present for completeness.  */)
      (display)
@@ -1840,7 +1840,7 @@ DEFUN ("ns-emacs-info-panel", Fns_emacs_info_panel, Sns_emacs_info_panel,
 }
 
 
-DEFUN ("x-list-fonts", Fns_list_fonts, Sns_list_fonts, 1, 4, 0,
+DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 4, 0,
        doc: /* Return a list of the names of available fonts matching PATTERN.
 If optional arguments FACE and FRAME are specified, return only fonts
 the same size as FACE on FRAME.
@@ -2264,7 +2264,7 @@ t.  In case the execution fails, an error is signaled. */)
 }
 #endif
 
-DEFUN ("xw-color-defined-p", Fns_color_defined_p, Sns_color_defined_p, 1, 2, 0,
+DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* Return t if the current Nextstep display supports the color COLOR.
 The optional argument FRAME is currently ignored.  */)
      (color, frame)
@@ -2276,7 +2276,7 @@ The optional argument FRAME is currently ignored.  */)
 }
 
 
-DEFUN ("xw-color-values", Fns_color_values, Sns_color_values, 1, 2, 0,
+DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
        doc: /* Return a description of the color named COLOR.
 The value is a list of integer RGBA values--(RED GREEN BLUE ALPHA).
 These values appear to range from 0 to 65280; white is (65280 65280 65280 0).
@@ -2343,7 +2343,7 @@ If omitted or nil, that stands for the selected frame's display. */)
 }
 
 
-DEFUN ("x-display-pixel-width", Fns_display_pixel_width, Sns_display_pixel_width,
+DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
        0, 1, 0,
        doc: /* Returns the width in pixels of the Nextstep display DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
@@ -2357,8 +2357,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 
-DEFUN ("x-display-pixel-height", Fns_display_pixel_height,
-       Sns_display_pixel_height, 0, 1, 0,
+DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
+       Sx_display_pixel_height, 0, 1, 0,
        doc: /* Returns the height in pixels of the Nextstep display DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame, a display name (a string), or terminal ID.
@@ -2398,7 +2398,7 @@ that stands for the selected frame's display. */)
 }
 
 
-DEFUN ("x-display-planes", Fx_display_planes, Sns_display_planes,
+DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
        0, 1, 0,
        doc: /* Returns the number of bitplanes of the Nextstep display DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
@@ -2413,8 +2413,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 
-DEFUN ("x-display-color-cells", Fns_display_color_cells,
-       Sns_display_color_cells, 0, 1, 0,
+DEFUN ("x-display-color-cells", Fx_display_color_cells,
+       Sx_display_color_cells, 0, 1, 0,
        doc: /* Returns the number of color cells of the Nextstep display DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame, a display name (a string), or terminal ID.
@@ -2693,25 +2693,25 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sns_set_resource);
   defsubr (&Sxw_display_color_p); /* this and next called directly by C code */
   defsubr (&Sx_display_grayscale_p);
-  defsubr (&Sns_list_fonts);
+  defsubr (&Sx_list_fonts);
   defsubr (&Sns_font_name);
   defsubr (&Sns_list_colors);
 #ifdef NS_IMPL_COCOA
   defsubr (&Sdo_applescript);
 #endif
-  defsubr (&Sns_color_defined_p);
-  defsubr (&Sns_color_values);
-  defsubr (&Sns_server_max_request_size);
+  defsubr (&Sxw_color_defined_p);
+  defsubr (&Sxw_color_values);
+  defsubr (&Sx_server_max_request_size);
   defsubr (&Sx_server_vendor);
   defsubr (&Sx_server_version);
-  defsubr (&Sns_display_pixel_width);
-  defsubr (&Sns_display_pixel_height);
+  defsubr (&Sx_display_pixel_width);
+  defsubr (&Sx_display_pixel_height);
   defsubr (&Sns_display_usable_bounds);
   defsubr (&Sx_display_mm_width);
   defsubr (&Sx_display_mm_height);
   defsubr (&Sx_display_screens);
-  defsubr (&Sns_display_planes);
-  defsubr (&Sns_display_color_cells);
+  defsubr (&Sx_display_planes);
+  defsubr (&Sx_display_color_cells);
   defsubr (&Sx_display_visual_class);
   defsubr (&Sx_display_backing_store);
   defsubr (&Sx_display_save_under);
