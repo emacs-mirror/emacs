@@ -3810,7 +3810,6 @@ handling_signal = 0;
   ns_antialias_threshold = NILP (tmp) ? 10.0 : XFLOATINT (tmp);
   ns_default ("UseQuickdrawSmoothing", &ns_use_qd_smoothing,
              Qt, Qnil, NO, NO);
-fprintf(stderr, "qd smoothing: %d (%d, %d)\n", ns_use_qd_smoothing, EQ(ns_use_qd_smoothing, Qt), NILP(ns_use_qd_smoothing));
   ns_default ("UseSystemHighlightColor", &ns_use_system_highlight_color,
              Qt, Qnil, NO, NO);
   if (EQ (ns_use_system_highlight_color, Qt))
