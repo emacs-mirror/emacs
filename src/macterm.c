@@ -422,10 +422,7 @@ XDrawLine (display, p, gc, x1, y1, x2, y2)
       color_space = NULL;
       alpha_info = kCGImageAlphaOnly;
     }
-  if (color_space == NULL)
-    return;
-  context = CGBitmapContextCreate (ximg->data, ximg->width,
-				   ximg->height, 8,
+  context = CGBitmapContextCreate (ximg->data, ximg->width, ximg->height, 8,
 				   ximg->bytes_per_line, color_space,
 				   alpha_info);
   if (ximg->bits_per_pixel == 32)
