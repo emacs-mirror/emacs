@@ -16,14 +16,13 @@
 
 2008-07-22  David Reitter  <david.reitter@gmail.com>
 
-	* nsfns.m: (do_applescript, F_do_applescript): NS version of the
+	* nsfns.m (do_applescript, F_do_applescript): NS version of the
 	Carbon implementation of the same functionality: execute arbitrary
 	AppleScript code.
 
 2008-07-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* nsfns.m
-	(Fx_create_frame, Fx_read_file_name, Fx_get_resource)
+	* nsfns.m (Fx_create_frame, Fx_read_file_name, Fx_get_resource)
 	(Fx_set_resource, Fx_set_alpha, Fx_server_max_request_size)
 	(Fx_server_vendor, Fx_server_version, Fx_display_screens)
 	(Fx_display_mm_height, Fx_display_mm_width)
@@ -11531,6 +11530,7 @@
 	* w32fns.c (globals_of_w32fns): Init common controls.
 
 2007-10-08  Richard Stallman  <rms@gnu.org>
+
 	* image.c (our_memory_buffer): Rename from omfib_buffer.
 
 2007-10-08  Richard Stallman  <rms@gnu.org>
