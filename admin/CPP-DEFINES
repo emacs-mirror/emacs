@@ -431,7 +431,6 @@ logb
 lseek
 m68k
 malloc
-mips
 mkdir
 mktemp
 open
@@ -458,7 +457,6 @@ stricmp
 strnicmp
 strupr
 subprocesses
-sun
 sys_nerr
 system
 temacs
