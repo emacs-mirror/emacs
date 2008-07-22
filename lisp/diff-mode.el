@@ -219,7 +219,7 @@ when editing big diffs)."
   "Automatically highlight changes in detail as the user visits hunks.
 When transitioning from disabled to enabled,
 try to refine the current hunk, as well."
-  :group 'diff-mode :init-value t :lighter " Auto-Refine"
+  :group 'diff-mode :init-value t :lighter nil ;; " Auto-Refine"
   (when diff-auto-refine-mode
     (condition-case-no-debug nil (diff-refine-hunk) (error nil))))
 

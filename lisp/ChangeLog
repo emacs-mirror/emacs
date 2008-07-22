@@ -1,5 +1,8 @@
 2008-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* diff-mode.el (diff-auto-refine-mode): Remove lighter, since it's
+	otherwise displayed in every buffer.
+
 	* vc-arch.el (vc-arch-trim-make-sentinel): Use a closure.
 	(vc-arch-trim-one-revlib): Delete temp directories as well.
 
