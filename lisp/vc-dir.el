@@ -776,7 +776,7 @@ If it is a file, return the corresponding cons for the file itself."
 	  (when (eq vc-dir-backend 'CVS)
 	    ;; FIXME: Warning: UGLY HACK.  The CVS backend caches the state
 	    ;; info, this forces the backend to update it.
-	    (vc-call-backend vc-dir-backend 'registered fname))
+	    (vc-call-backend vc-dir-backend 'registered fname)))
 	 (state (vc-call-backend vc-dir-backend 'state fname))
 	 (extra (vc-call-backend vc-dir-backend
 				 'status-fileinfo-extra fname)))
