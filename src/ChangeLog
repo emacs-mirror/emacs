@@ -1,3 +1,7 @@
+2008-07-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (XDrawLine) [USE_MAC_IMAGE_IO]: Remove spurious return.
+
 2008-07-21  Ami Fischman  <ami@fischman.org>  (tiny change)
 
 	* print.c (print_object): Check print_depth before searching for
