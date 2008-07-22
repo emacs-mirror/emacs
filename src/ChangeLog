@@ -1,3 +1,9 @@
+2008-07-22  David Reitter  <david.reitter@gmail.com>
+
+	* nsfns.m: (do_applescript, F_do_applescript): NS version of the
+	Carbon implementation of the same functionality: execute arbitrary
+	AppleScript code.
+
 2008-07-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfns.m
