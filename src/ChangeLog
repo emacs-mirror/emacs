@@ -1,3 +1,8 @@
+2008-07-22  Jason Rumney  <jasonr@gnu.org>
+
+        * w32proc.c (Fw32_long_file_name): Don't append dir separator to
+        bare drive.
+
 2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsgui.h:
@@ -11526,7 +11531,6 @@
 	* w32fns.c (globals_of_w32fns): Init common controls.
 
 2007-10-08  Richard Stallman  <rms@gnu.org>
-
 	* image.c (our_memory_buffer): Rename from omfib_buffer.
 
 2007-10-08  Richard Stallman  <rms@gnu.org>
