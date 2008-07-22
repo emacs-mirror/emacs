@@ -1,7 +1,19 @@
+2008-07-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (Fx_rotate_cut_buffers_internal): Doc fix.
+
+	* nsselect.m (Fns_selection_exists_p, Fns_selection_owner_p)
+	(Fx_get_selection_internal, Fns_rotate_cut_buffers_internal)
+	(Fns_own_selection_internal, Fx_disown_selection_internal)
+	(Fns_get_cut_buffer_internal, Fns_store_cut_buffer_internal):
+
+	* nsmenu.m (Fns_reset_menu, Fx_popup_menu): Change to use 'doc: /*
+	... */' style of docstrings.  Doc fixes.
+
 2008-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* terminfo.c (UP, BC, PC): Undo previous change.
-	
+
 	* nsfns.m: Rename ns prefixed functions/variables to the
 	corresponding x versions.  Update references.
 
