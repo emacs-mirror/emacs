@@ -1,12 +1,15 @@
+2008-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-trim-make-sentinel): Use a closure.
+	(vc-arch-trim-one-revlib): Delete temp directories as well.
+
 2008-07-22  Stephen Eglen  <stephen@gnu.org>
 
-	* iswitchb.el (iswitchb-delim): New variable, suggested by Ted
-	Roden.
+	* iswitchb.el (iswitchb-delim): New variable, suggested by Ted Roden.
 
 2008-07-22  Sven Joachim <svenjoac@gmx.de>  (tiny change)
 
-	* vc-dir.el (vc-dir-recompute-file-state): Fix mismatched
-	paenthesis.
+	* vc-dir.el (vc-dir-recompute-file-state): Fix mismatched paenthesis.
 
 2008-07-22  Miles Bader  <miles@gnu.org>
 
@@ -29,8 +32,7 @@
 	* menu-bar.el (menu-bar-line-wrapping-menu): Use Visual Line mode
 	for "word wrap" command.
 
-	* simple.el (visual-line-mode): Disable
-	truncate-partial-width-windows.
+	* simple.el (visual-line-mode): Disable truncate-partial-width-windows.
 
 2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
