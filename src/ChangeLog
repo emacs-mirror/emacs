@@ -1,7 +1,11 @@
+2008-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (char_quoted): Check "charpos > beg" before decrementing.
+
 2008-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* nsfns.m (x_set_menu_bar_lines, x_set_tool_bar_lines): Remove
-	forwarding functions.
+	* nsfns.m (x_set_menu_bar_lines, x_set_tool_bar_lines):
+	Remove forwarding functions.
 	(ns_set_menu_bar_lines): Rename to x_set_menu_bar_lines, make
 	non-static.
 	(ns_set_tool_bar_lines): Rename to x_set_tool_bar_lines, make
@@ -15,8 +19,8 @@
 
 2008-07-22  Jason Rumney  <jasonr@gnu.org>
 
-        * w32proc.c (Fw32_long_file_name): Don't append dir separator to
-        bare drive.
+	* w32proc.c (Fw32_long_file_name): Don't append dir separator to
+	bare drive.
 
 2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 

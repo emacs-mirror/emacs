@@ -298,23 +298,10 @@ char_quoted (charpos, bytepos)
   register int quoted = 0;
   int orig = charpos;
 
-#ifdef HAVE_NS
-  /* For some reason keeps getting called w/both 1, then segfaulting
-     due to the definitions of DEC_BOTH and DEC_POS in character.h,
-     which lead to decrementing below initial address and then examining
-     character there.  Need to investigate further.. */
-  if (charpos < 2 || bytepos < 2)
-    {
-      //fprintf(stderr,"Returning because charpos = %d, bytepos = %d\n",charpos, bytepos);
-      return 0;
-    }
-#endif
-
-  DEC_BOTH (charpos, bytepos);
-
-  while (charpos >= beg)
+  while (charpos > beg)
     {
       int c;
+      DEC_BOTH (charpos, bytepos);
 
       UPDATE_SYNTAX_TABLE_BACKWARD (charpos);
       c = FETCH_CHAR_AS_MULTIBYTE (bytepos);
@@ -322,7 +309,6 @@ char_quoted (charpos, bytepos)
       if (! (code == Scharquote || code == Sescape))
 	break;
 
-      DEC_BOTH (charpos, bytepos);
       quoted = !quoted;
     }
 
