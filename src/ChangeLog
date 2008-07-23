@@ -1,3 +1,8 @@
+2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* nsterm.m (syms_of_nsterm): Provide ns, not ns-windowing,
+	similarly to what X does.
+
 2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfns.m (x-list-fonts): Remove.

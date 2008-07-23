@@ -6542,7 +6542,7 @@ or shrunk (negative).  Zero (the default) means standard line height.\n\
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 
-/*23: now apparently we need to tell emacs what modifiers there are.. */
+  /*23: now apparently we need to tell emacs what modifiers there are.. */
   Qmodifier_value = intern ("modifier-value");
   Qalt = intern ("alt");
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
@@ -6587,7 +6587,7 @@ baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = 0;
 
   /* Tell emacs about this window system. */
-  Fprovide (intern ("ns-windowing"), Qnil);
+  Fprovide (intern ("ns"), Qnil);
   /* PENDING: try to move this back into lisp,  ns-win.el loaded too late
               right now */
   {
