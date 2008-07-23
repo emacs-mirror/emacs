@@ -702,7 +702,6 @@ ELCFILES = \
 	$(lisp)/international/robin.elc \
 	$(lisp)/international/titdic-cnv.elc \
 	$(lisp)/international/utf-7.elc \
-	$(lisp)/isearch-multi.elc \
 	$(lisp)/isearch.elc \
 	$(lisp)/isearchb.elc \
 	$(lisp)/iswitchb.elc \
@@ -807,6 +806,7 @@ ELCFILES = \
 	$(lisp)/minibuf-eldef.elc \
 	$(lisp)/minibuffer.elc \
 	$(lisp)/misc.elc \
+	$(lisp)/misearch.elc \
 	$(lisp)/mouse-copy.elc \
 	$(lisp)/mouse-drag.elc \
 	$(lisp)/mouse-sel.elc \
