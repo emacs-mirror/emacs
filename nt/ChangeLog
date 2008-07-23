@@ -1,3 +1,8 @@
+2008-07-23  Jason Rumney  <jasonr@gnu.org>
+
+        * configure.bat: New option --profile.
+        * gmake.defs: Set cflags and ldflags for profiling when specified.
+
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.nt (C_SWITCH_SITE, LD_SWITCH_SITE): Do not undefine.
