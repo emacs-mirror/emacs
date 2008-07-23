@@ -2049,7 +2049,9 @@ Part of the job of this function is setting `buffer-undo-list' appropriately."
   (save-restriction
     (narrow-to-region start end)
     (encode-coding-region (point-min) (point-max) coding)
-    (decode-coding-region (point-min) (point-max) new-coding)))
+    (decode-coding-region (point-min) (point-max) new-coding))
+  (if (region-active-p)
+      (deactivate-mark)))
 
 (defun make-translation-table (&rest args)
   "Make a translation table from arguments.
