@@ -2,6 +2,9 @@
 
         * w32font.c (w32_enumfont_pattern_entity): Return height consistent
         with opened font.
+        (w32font_open): Set font type to gdi.
+
+        * w32uniscribe.c (uniscribe_open): Set font type to uniscribe.
 
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 

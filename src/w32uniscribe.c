@@ -125,6 +125,8 @@ uniscribe_open (f, font_entity, pixel_size)
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) XFONT_OBJECT (font_object);
 
+  ASET (font_object, FONT_TYPE_INDEX, Quniscribe);
+
   if (!w32font_open_internal (f, font_entity, pixel_size, font_object))
     {
       return Qnil;

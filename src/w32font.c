@@ -238,6 +238,7 @@ w32font_open (f, font_entity, pixel_size)
 
   font_object = font_make_object (VECSIZE (struct w32font_info),
 				  font_entity, pixel_size);
+  ASET (font_object, FONT_TYPE_INDEX, Qgdi);
 
   if (!w32font_open_internal (f, font_entity, pixel_size, font_object))
     {
