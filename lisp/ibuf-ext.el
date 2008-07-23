@@ -408,6 +408,24 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
    :modifier-p :maybe)
   (revert-buffer t t))
 
+;;;###autoload (autoload 'ibuffer-do-isearch "ibuf-ext")
+(define-ibuffer-op ibuffer-do-isearch ()
+  "Perform a `isearch-forward' in marked buffers."
+  (:interactive ()
+   :opstring "searched in"
+   :complex t
+   :modifier-p :maybe)
+  (multi-isearch-buffers (ibuffer-get-marked-buffers)))
+
+;;;###autoload (autoload 'ibuffer-do-isearch-regexp "ibuf-ext")
+(define-ibuffer-op ibuffer-do-isearch-regexp ()
+  "Perform a `isearch-forward-regexp' in marked buffers."
+  (:interactive ()
+   :opstring "searched regexp in"
+   :complex t
+   :modifier-p :maybe)
+  (multi-isearch-buffers-regexp (ibuffer-get-marked-buffers)))
+
 ;;;###autoload (autoload 'ibuffer-do-replace-regexp "ibuf-ext")
 (define-ibuffer-op replace-regexp (from-str to-str)
   "Perform a `replace-regexp' in marked buffers."
