@@ -1,3 +1,11 @@
+2008-07-22  Seiji Zenitani  <zenitani@mac.com>
+
+	* Cocoa/Emacs.base/Contents/Info.plist: Import document icon settings
+	and minor configurations from Carbon port.
+	* Cocoa/Emacs.base/Contents/PkgInfo: Change CFBundleSignature to 'EMAx'.
+	* Cocoa/Emacs.base/Contents/Resources/document.icns: New file:
+	copied from Carbon port.
+
 2008-07-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* README: Consolidate credits.  Copyedits.
