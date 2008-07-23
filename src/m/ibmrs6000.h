@@ -48,7 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define TEXT_START 0x10000000
 #define TEXT_END 0
 #define DATA_START 0x20000000
-#define DATA_END 0
 #define WORDS_BIG_ENDIAN
 #define DATA_SEG_BITS 0x20000000
 #define C_SWITCH_MACHINE -D_BSD

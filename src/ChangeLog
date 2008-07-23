@@ -1,5 +1,12 @@
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/darwin.h (DATA_END):
+	* m/intel386.h (DATA_END):
+	* m/ibmrs6000.h (DATA_END):
+	* m/alpha.h (DATA_END): Remove, unused.
+	(LINUX_SBRK_BUG): Remove, move condition to the only use ...
+	* emacs.c (main): ... here.
+
 	* config.in: Regenerate.
 	* s/ms-w32.h (subprocesses): Define unconditionally.
 	* s/template.h (subprocesses): Update comment.

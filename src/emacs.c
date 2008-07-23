@@ -827,7 +827,7 @@ main (argc, argv
       heap_bss_diff = (char *)my_heap_start - max (my_endbss, my_endbss_static);
     }
 
-#ifdef LINUX_SBRK_BUG
+#if (GNU_LINUX) && __GNU_LIBRARY__ - 0 < 6
   __sbrk (1);
 #endif
 

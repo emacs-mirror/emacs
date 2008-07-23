@@ -159,9 +159,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This seems to be right for end_of_text, but it may not be used anyway.  */
 #define TEXT_END get_etext()
 
-/* This seems to be right for end_of_data, but it may not be used anyway.  */
-#define DATA_END get_edata()
-
 /* Definitions for how to compile & link.  */
 
 /* Link in the Carbon or AppKit lib. */
