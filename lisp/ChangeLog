@@ -1,3 +1,10 @@
+2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dired.el (dired-mode-map): Show the key binding for wdired.
+
+	* menu-bar.el (menu-bar-file-menu): Show the key binding for
+	exiting emacs.
+
 2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el (x-list-fonts): Drop alias.

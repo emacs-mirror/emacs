@@ -1433,6 +1433,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar immediate wdired-mode]
       '(menu-item "Edit File Names" wdired-change-to-wdired-mode
 		  :help "Put a dired buffer in a mode in which filenames are editable"
+		  :keys "C-x C-q"
 		  :filter (lambda (x) (if (eq major-mode 'dired-mode) x))))
 
     (define-key map [menu-bar regexp]
