@@ -2111,6 +2111,7 @@ If there is no completion possible, say so and continue searching."
 		   (if isearch-wrapped "wrapped ")
 		   (if isearch-word "word " "")
 		   (if isearch-regexp "regexp " "")
+		   (if multi-isearch-next-buffer-current-function "multi " "")
 		   (if nonincremental "search" "I-search")
 		   (if isearch-forward "" " backward")
 		   (if current-input-method
@@ -2179,9 +2180,9 @@ Can be changed via `isearch-search-fun-function' for special needs."
     (when pos1
       ;; When using multiple buffers isearch, switch to the new buffer here,
       ;; because `save-excursion' above doesn't allow doing it inside funcall.
-      (if (and isearch-buffers-next-buffer-function
-	       (buffer-live-p isearch-buffers-current-buffer))
-	  (switch-to-buffer isearch-buffers-current-buffer))
+      (if (and multi-isearch-next-buffer-current-function
+	       (buffer-live-p multi-isearch-current-buffer))
+	  (switch-to-buffer multi-isearch-current-buffer))
       (goto-char pos1))
     pos1))
 
