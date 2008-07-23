@@ -1,3 +1,8 @@
+2008-07-23  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+
+	* progmodes/flymake.el (flymake-errline, flymake-warnline): Use
+	more suitable colors on dark displays.
+
 2008-07-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* shell.el (shell-dynamic-complete-functions): Use
