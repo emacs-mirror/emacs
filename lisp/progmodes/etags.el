@@ -1865,7 +1865,8 @@ See also the documentation of the variable `tags-file-name'."
 			      ;; to the beginning of it so perform-replace
 			      ;; will see it.
 			      (goto-char (match-beginning 0))))
-	tags-loop-operate `(perform-replace ',from ',to t t ',delimited))
+	tags-loop-operate `(perform-replace ',from ',to t t ',delimited
+					    nil multi-query-replace-map))
   (tags-loop-continue (or file-list-form t)))
 
 (defun tags-complete-tags-table-file (string predicate what) ; Doc string?
