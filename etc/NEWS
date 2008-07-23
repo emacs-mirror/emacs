@@ -601,6 +601,20 @@ diff-auto-refine-mode.  It is bound to `C-c C-b'.
 buffer and tries to create ChangeLog entries for each change.
 It is bound to `C-x 4 A'.
 
+** Dired
+
+*** In Dired, C-x C-q now runs the command wdired-change-to-wdired-mode,
+and C-x C-q in wdired-mode exits it with asking a question about
+saving changes.
+
+*** `Q' in Dired provides two new keys for multi-file replacement.
+The upper case key `Y' replaces all remaining matches in all remaining files
+with no more questions.  The upper case key `N' stops doing replacements
+in the current file and skips to the next file.  These multi-file keys
+are available for all commands that use `tags-query-replace'
+including `dired-do-query-replace-regexp', `vc-dir-query-replace-regexp',
+`reftex-query-replace-document'.
+
 ** Fortran
 *** The variable `fortran-line-length' can change the fixed-form line-length.
 
@@ -761,10 +775,6 @@ to update it to the new VC.
 *** comint-mode uses `start-file-process' now (see Lisp Changes).
 If `default-directory' is a remote file name, subprocesses are started
 on the corresponding remote system.
-
-*** In Dired, C-x C-q now runs the command wdired-change-to-wdired-mode,
-and C-x C-q in wdired-mode exits it with asking a question about
-saving changes.
 
 *** Eldoc highlights the function argument under point
 with the face `eldoc-highlight-function-argument'.
@@ -1057,6 +1067,9 @@ to use for searching in query-replace and replace-string.
 function to use for searching in `query-replace-regexp',
 `replace-regexp', `query-replace-regexp-eval', and
 `map-query-replace-regexp'.
+
+*** The new keymap `multi-query-replace-map' contains additonal keys bound
+to `automatic-all' and `exit-current' for multi-buffer interactive replacement.
 
 *** The variable `inhibit-changing-match-data', if non-nil, prevents
 the search and match primitives from changing the match data.
