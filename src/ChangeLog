@@ -1,3 +1,9 @@
+2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (x-list-fonts): Remove.
+	(syms_of_nsfns): Drop the x-list-fonts declaration.
+	* nsterm.m: Get rid of remaining "//" comments.
+
 2008-07-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xselect.c (Fx_rotate_cut_buffers_internal): Doc fix.

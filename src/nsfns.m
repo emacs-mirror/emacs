@@ -1840,6 +1840,7 @@ DEFUN ("ns-emacs-info-panel", Fns_emacs_info_panel, Sns_emacs_info_panel,
 }
 
 
+#if 0
 DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 4, 0,
        doc: /* Return a list of the names of available fonts matching PATTERN.
 If optional arguments FACE and FRAME are specified, return only fonts
@@ -1895,6 +1896,7 @@ The font names are _NOT_ X names.  */)
 
   return olist;
 }
+#endif
 
 
 DEFUN ("ns-font-name", Fns_font_name, Sns_font_name, 1, 1, 0,
@@ -2693,7 +2695,6 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sns_set_resource);
   defsubr (&Sxw_display_color_p); /* this and next called directly by C code */
   defsubr (&Sx_display_grayscale_p);
-  defsubr (&Sx_list_fonts);
   defsubr (&Sns_font_name);
   defsubr (&Sns_list_colors);
 #ifdef NS_IMPL_COCOA

@@ -1302,7 +1302,6 @@ PROMPT is the prompt string."
 
 ;;;; Font support.
 
-(defalias 'x-list-fonts 'ns-list-fonts)
 ;; Needed for font listing functions under both backend and normal
 (setq scalable-fonts-allowed t)
 

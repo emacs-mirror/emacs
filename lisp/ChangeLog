@@ -1,3 +1,7 @@
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (x-list-fonts): Drop alias.
+
 2008-07-23  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (multi-query-replace-map): New variable.

@@ -1584,7 +1584,7 @@ ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
     return 0;
 
   if (makeIndex && alloc)
-      color_def->pixel = ns_index_color(temp, f);//[temp retain];
+      color_def->pixel = ns_index_color(temp, f); /* [temp retain]; */
 
   [temp getRed: &r green: &g blue: &b alpha: &a];
   color_def->red   = r * 256;
@@ -4068,7 +4068,7 @@ ns_term_shutdown (int sig)
       Fcons (build_string ("Cancel"), Qnil),
       Fcons (build_string ("Save and Exit"), Qt));
   Lisp_Object res = ns_popup_dialog (Qt, contents, Qnil);
-fprintf (stderr, "res = %d\n", EQ (res, Qt)); // FIXME
+fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
   if (EQ (res, Qt))
     {
       Feval (Fcons (intern ("save-buffers-kill-emacs"), Qnil));
