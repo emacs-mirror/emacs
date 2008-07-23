@@ -1,3 +1,8 @@
+2008-07-23  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.c (w32_enumfont_pattern_entity): Return height consistent
+        with opened font.
+
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/usg5-4.h (ADDR_CORRECT): Remove, unused.
