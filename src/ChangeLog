@@ -1,5 +1,9 @@
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/netbsd.h (A_TEXT_OFFSET, A_TEXT_SEEK):
+	* s/freebsd.h (A_TEXT_OFFSET, A_TEXT_SEEK): Remove, unused.
+	(LD_SWITCH_SYSTEM_1): Remove, update users.
+
 	* s/darwin.h (DATA_END):
 	* m/intel386.h (DATA_END):
 	* m/ibmrs6000.h (DATA_END):

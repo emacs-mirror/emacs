@@ -41,9 +41,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define TABDLY OXTABS
 #define TAB3 OXTABS
 
-#define A_TEXT_OFFSET(x) (sizeof (struct exec))
-#define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
-
 #define HAVE_TERMIOS
 #define NO_TERMIO
 
