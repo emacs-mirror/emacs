@@ -1,5 +1,12 @@
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/usg5-4.h (ADDR_CORRECT): Remove, unused.
+	* unexaix.c (ADDR_CORRECT): Remove conditional, the only user
+	defines it.
+	* unexec.c (ADDR_CORRECT): Define unconditionally.
+
+	* m/ibmrs6000.h (C_SWITCH_MACHINE): Remove.
+
 	* unexec.c: Remove code depending on !COFF and USG, the file is
 	not used for such systems.
 

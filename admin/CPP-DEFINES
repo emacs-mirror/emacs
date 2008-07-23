@@ -52,7 +52,6 @@ subprocesses    System can use subprocesses (for M-x shell for example).  Define
 ** Defines from src/m/*.h and src/s/*.h.  Some of these might not be used in the code anymore, so they can be removed.  The HAVE_* definitions are probably handled by autoconf, so it might be possible to just remove them from src/[sm]/*.h.
 
 
-ADDR_CORRECT
 AIX
 AMPERSAND_FULL_NAME
 A_TEXT_OFFSET

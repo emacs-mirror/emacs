@@ -83,9 +83,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_MACHINE
 #endif /* USG5_4 */
 
-#undef ADDR_CORRECT
-#define ADDR_CORRECT(x) ((int)(x))
-
 #define START_FILES
 /*** BUILD 9008 - FIONREAD problem still exists in X-Windows. ***/
 #define BROKEN_FIONREAD

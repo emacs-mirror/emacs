@@ -117,15 +117,6 @@ the bits that must be zero on such a boundary.
 This macro can be used to generate statements to adjust or
 initialize nonstandard fields in the file header
 
-* ADDR_CORRECT(ADDR)
-
-Macro to correct an int which is the bit pattern of a pointer to a byte
-into an int which is the number of a byte.
-
-This macro has a default definition which is usually right.
-This default definition is a no-op on most machines (where a
-pointer looks like an int) but not on all machines.
-
 */
 
 #ifndef emacs
@@ -209,9 +200,7 @@ static int pagemask;
    into an int which is the number of a byte.
    This is a no-op on ordinary machines, but not on all.  */
 
-#ifndef ADDR_CORRECT   /* Let m-*.h files override this definition */
 #define ADDR_CORRECT(x) ((char *)(x) - (char*)0)
-#endif
 
 #ifdef emacs
 

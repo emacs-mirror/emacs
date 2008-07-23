@@ -85,10 +85,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define rindex strrchr
 #endif /* ! defined (HAVE_RINDEX) */
 
-/* Compiler bug bites on many systems when default ADDR_CORRECT is used.  */
-
-#define ADDR_CORRECT(x) (x)
-
 /* Use terminfo instead of termcap.  */
 
 #define TERMINFO
