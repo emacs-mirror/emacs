@@ -23,6 +23,7 @@
 @alias expr=math
 @alias tfn=code
 @alias mathit=expr
+@alias summarykey=key
 @macro cpi{}
 @math{@pi{}}
 @end macro
@@ -39,6 +40,9 @@
 @alias expr=samp
 @alias tfn=t
 @alias mathit=i
+@macro summarykey{ky}
+\ky\
+@end macro
 @macro cpi{}
 @expr{pi}
 @end macro
@@ -10024,9 +10028,9 @@ During numeric entry, the only editing key available is @key{DEL}.
 @pindex calc-algebraic-entry
 @cindex Algebraic notation
 @cindex Formulas, entering
-Calculations can also be entered in algebraic form.  This is accomplished
-by typing the apostrophe key, ', followed by the expression in
-standard format:  
+The @kbd{'} (@code{calc-algebraic-entry}) command can be used to enter
+calculations in algebraic form.  This is accomplished by typing the
+apostrophe key, ', followed by the expression in standard format:  
 
 @example
 ' 2+3*4 @key{RET}.
@@ -10042,9 +10046,9 @@ expressions in this way.  You may want to use @key{DEL} every so often to
 clear previous results off the stack.
 
 You can press the apostrophe key during normal numeric entry to switch
-the half-entered number into Algebraic entry mode.  One reason to do this
-would be to use the full Emacs cursor motion and editing keys, which are
-available during algebraic entry but not during numeric entry.
+the half-entered number into Algebraic entry mode.  One reason to do
+this would be to fix a typo, as the full Emacs cursor motion and editing
+keys are available during algebraic entry but not during numeric entry.
 
 In the same vein, during either numeric or algebraic entry you can
 press @kbd{`} (backquote) to switch to @code{calc-edit} mode, where
@@ -11842,11 +11846,12 @@ any portion of a vector or formula on the stack.
 @pindex calc-edit
 @pindex calc-edit-finish
 @cindex Editing the stack with Emacs
-The backquote, @kbd{`} (@code{calc-edit}) command creates a temporary
-buffer (@samp{*Calc Edit*}) for editing the top-of-stack value using
-regular Emacs commands.  With a numeric prefix argument, it edits the
-specified number of stack entries at once.  (An argument of zero edits
-the entire stack; a negative argument edits one specific stack entry.)
+The @kbd{`} (@code{calc-edit}) command creates a temporary buffer
+(@samp{*Calc Edit*}) for editing the top-of-stack value using regular
+Emacs commands.  Note that @kbd{`} is a backquote, not a quote. With a
+numeric prefix argument, it edits the specified number of stack entries
+at once.  (An argument of zero edits the entire stack; a negative
+argument edits one specific stack entry.)
 
 When you are done editing, press @kbd{C-c C-c} to finish and return
 to Calc.  The @key{RET} and @key{LFD} keys also work to finish most
@@ -34842,7 +34847,7 @@ and @code{calc-embedded-open-close-mode-alist}.
 @defvarx calc-embedded-open-close-formula-alist
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-formula} and
-@code{calc-embedded-open-formula} control the region that Calc will
+@code{calc-embedded-close-formula} control the region that Calc will
 activate as a formula when Embedded mode is entered with @kbd{C-x * e}.
 They are regular expressions; 
 Calc normally scans backward and forward in the buffer for the
@@ -35172,14 +35177,14 @@ keystrokes are not listed in this summary.
 @r{      a@:      M-%   @:             @:        @:percent@:(a)  a%}
 
 @c
-@r{  ... a@:      @key{RET}   @:             @:     1  @:@:... a a}
-@r{  ... a@:      @key{SPC}   @:             @:     1  @:@:... a a}
-@r{... a b@:      @key{TAB}   @:             @:     3  @:@:... b a}
-@r{. a b c@:      M-@key{TAB} @:             @:     3  @:@:... b c a}
-@r{... a b@:      @key{LFD}   @:             @:     1  @:@:... a b a}
-@r{  ... a@:      @key{DEL}   @:             @:     1  @:@:...}
-@r{... a b@:      M-@key{DEL} @:             @:     1  @:@:... b}
-@r{       @:      M-@key{RET} @:             @:     4  @:calc-last-args@:}
+@r{  ... a@:      @summarykey{RET}   @:             @:     1  @:@:... a a}
+@r{  ... a@:      @summarykey{SPC}   @:             @:     1  @:@:... a a}
+@r{... a b@:      @summarykey{TAB}   @:             @:     3  @:@:... b a}
+@r{. a b c@:      M-@summarykey{TAB} @:             @:     3  @:@:... b c a}
+@r{... a b@:      @summarykey{LFD}   @:             @:     1  @:@:... a b a}
+@r{  ... a@:      @summarykey{DEL}   @:             @:     1  @:@:...}
+@r{... a b@:      M-@summarykey{DEL} @:             @:     1  @:@:... b}
+@r{       @:      M-@summarykey{RET} @:             @:     4  @:calc-last-args@:}
 @r{      a@:      `     @:editing      @:  1,30  @:calc-edit@:}
 
 @c
@@ -35411,8 +35416,8 @@ keystrokes are not listed in this summary.
 @r{       @:      d [   @:             @:     4  @:calc-truncate-up@:}
 @r{       @:      d ]   @:             @:     4  @:calc-truncate-down@:}
 @r{       @:      d "   @:             @: 12,50  @:calc-display-strings@:}
-@r{       @:      d @key{SPC} @:             @:        @:calc-refresh@:}
-@r{       @:      d @key{RET} @:             @:     1  @:calc-refresh-top@:}
+@r{       @:      d @summarykey{SPC} @:             @:        @:calc-refresh@:}
+@r{       @:      d @summarykey{RET} @:             @:     1  @:calc-refresh-top@:}
 
 @c
 @r{       @:      d 0   @:             @:    50  @:calc-decimal-radix@:}
@@ -35549,8 +35554,8 @@ keystrokes are not listed in this summary.
 
 @c
 @r{       @:      j 1-9 @:             @:        @:calc-select-part@:}
-@r{       @:      j @key{RET} @:             @:    27  @:calc-copy-selection@:}
-@r{       @:      j @key{DEL} @:             @:    27  @:calc-del-selection@:}
+@r{       @:      j @summarykey{RET} @:             @:    27  @:calc-copy-selection@:}
+@r{       @:      j @summarykey{DEL} @:             @:    27  @:calc-del-selection@:}
 @r{       @:      j '   @:formula      @:    27  @:calc-enter-selection@:}
 @r{       @:      j `   @:editing      @: 27,30  @:calc-edit-selection@:}
 @r{       @:      j "   @:             @:  7,27  @:calc-sel-expand-formula@:}
