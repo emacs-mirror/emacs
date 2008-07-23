@@ -1,5 +1,21 @@
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* config.in: Regenerate.
+	* s/ms-w32.h (subprocesses): Define unconditionally.
+	* s/template.h (subprocesses): Update comment.
+	* s/vms.h (subprocesses):
+	* s/usg5-4.h (subprocesses):
+	* s/hpux10-20.h (subprocesses):
+	* s/gnu-linux.h (subprocesses):
+	* s/cygwin.h (subprocesses):
+	* s/bsd-common.h (subprocesses):
+	* s/aix4-2.h (subprocesses):
+	* s/darwin.h (subprocesses): Do not define, defined by default now.
+
+	* Makefile.in (C_SWITCH_SITE, LD_SWITCH_SITE): Remove, unused.
+	Remove all references.
+	(temacs): Add GNUStep specific ld flags.
+
 	* nsterm.m (syms_of_nsterm): Provide ns, not ns-windowing,
 	similarly to what X does.
 

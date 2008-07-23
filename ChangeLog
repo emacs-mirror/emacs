@@ -1,3 +1,10 @@
+2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (LD_SWITCH_SITE): Remove, set the values directly
+	in src/Makefile.in.
+	(static): Remove, autoconf would always comment it out anyway.
+	(subprocesses): Define unconditionally.
+
 2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* configure.in: Apply patch from Yavor Doganov <yavor <at> gnu.org> to

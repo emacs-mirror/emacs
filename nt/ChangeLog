@@ -1,3 +1,7 @@
+2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (C_SWITCH_SITE, LD_SWITCH_SITE): Do not undefine.
+
 2008-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.nt (HAVE_FACES): Remove, unused.

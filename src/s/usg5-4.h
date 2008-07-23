@@ -52,13 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 #define SYSV_SYSTEM_DIR
 
-/* subprocesses should be defined if you want to
- have code for asynchronous subprocesses
- (as used in M-x compile and M-x shell).
- This is supposed to work now on system V release 2.  */
-
-#define subprocesses
-
 /* The file containing the kernel's symbol table is called /unix.  */
 
 #define KERNEL_FILE "/unix"

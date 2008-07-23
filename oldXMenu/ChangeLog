@@ -1,3 +1,7 @@
+2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (ALL_CFLAGS): Remove reference to C_SWITCH_SITE.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.

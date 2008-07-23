@@ -68,8 +68,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 /* subprocesses should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
-   This is generally OS dependent, and not supported
-   under most USG systems. */
+   This is the only system that needs this.  */
 
 #undef subprocesses
 

@@ -66,14 +66,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define BSTRING
 
-/* subprocesses should be defined if you want to
- have code for asynchronous subprocesses
- (as used in M-x compile and M-x shell).
- This is generally OS dependent, and not supported
- under most USG systems.  */
-
-#define subprocesses
-
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
