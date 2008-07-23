@@ -1,5 +1,8 @@
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* unexec.c: Remove code depending on !COFF and USG, the file is
+	not used for such systems.
+
 	* s/netbsd.h (A_TEXT_OFFSET, A_TEXT_SEEK):
 	* s/freebsd.h (A_TEXT_OFFSET, A_TEXT_SEEK): Remove, unused.
 	(LD_SWITCH_SYSTEM_1): Remove, update users.
