@@ -178,6 +178,8 @@ Letters do not insert themselves; instead, they are commands.
 \\[Buffer-menu-1-window] -- select that buffer in full-frame window.
 \\[Buffer-menu-2-window] -- select that buffer in one window,
   together with buffer selected before this one in another window.
+\\[Buffer-menu-isearch-buffers] -- Do incremental search in the marked buffers.
+\\[Buffer-menu-isearch-buffers-regexp] -- Isearch for regexp in the marked buffers.
 \\[Buffer-menu-visit-tags-table] -- visit-tags-table this buffer.
 \\[Buffer-menu-not-modified] -- clear modified-flag on that buffer.
 \\[Buffer-menu-save] -- mark that buffer to be saved, and move down.
