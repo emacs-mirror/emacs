@@ -83,7 +83,12 @@ See the list at the end of etc/MACHINES for details.
 
 *** Solaris versions 2.6 and below.
 
-*** Compilation using the NO_SHARED_LIBS flag.
+*** Solaris on IBM RS6000 machines.
+
+*** UNIX System V (the original SysV, not later platforms based on it).
+
+*** Platforms not supporting shared libraries (i.e., requiring the
+NO_SHARED_LIBS compilation flag).
 
 ---
 ** The configure options `--with-gcc', `--without-gcc' have been removed.
