@@ -410,6 +410,8 @@ directory, like `default-directory'."
     (define-key map (kbd "=") 'ibuffer-diff-with-file)
     (define-key map (kbd "j") 'ibuffer-jump-to-buffer)
     (define-key map (kbd "M-g") 'ibuffer-jump-to-buffer)
+    (define-key map (kbd "M-s a C-s") 'ibuffer-do-isearch)
+    (define-key map (kbd "M-s a M-C-s") 'ibuffer-do-isearch-regexp)
     (define-key map (kbd "DEL") 'ibuffer-unmark-backward)
     (define-key map (kbd "M-DEL") 'ibuffer-unmark-all)
     (define-key map (kbd "* *") 'ibuffer-unmark-all)
@@ -2376,6 +2378,8 @@ Operations on marked buffers:
   '\\[ibuffer-do-revert]' - Revert the marked buffers.
   '\\[ibuffer-do-toggle-read-only]' - Toggle read-only state of marked buffers.
   '\\[ibuffer-do-delete]' - Kill the marked buffers.
+  '\\[ibuffer-do-isearch]' - Do incremental search in the marked buffers.
+  '\\[ibuffer-do-isearch-regexp]' - Isearch for regexp in the marked buffers.
   '\\[ibuffer-do-replace-regexp]' - Replace by regexp in each of the marked
           buffers.
   '\\[ibuffer-do-query-replace]' - Query replace in each of the marked buffers.
