@@ -50,7 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DATA_START 0x20000000
 #define WORDS_BIG_ENDIAN
 #define DATA_SEG_BITS 0x20000000
-#define C_SWITCH_MACHINE -D_BSD
 
 /* sfreed@unm.edu says add -bI:/usr/lpp/X11/bin/smt.exp for AIX 3.2.4.  */
 /* marc@sti.com (Marc Pawliger) says ibmrs6000.inp is needed to avoid
