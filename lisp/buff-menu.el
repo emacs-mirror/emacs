@@ -151,6 +151,8 @@ Auto Revert Mode.")
     (define-key map "T" 'Buffer-menu-toggle-files-only)
     (define-key map [mouse-2] 'Buffer-menu-mouse-select)
     (define-key map [follow-link] 'mouse-face)
+    (define-key map (kbd "M-s a C-s")   'Buffer-menu-isearch-buffers)
+    (define-key map (kbd "M-s a M-C-s") 'Buffer-menu-isearch-buffers-regexp)
     map)
   "Local keymap for `Buffer-menu-mode' buffers.")
 
@@ -455,6 +457,23 @@ in the selected frame."
       (other-window 1)  			;back to the beginning!
 )))
 
+(defun Buffer-menu-marked-buffers ()
+  "Return a list of buffers marked with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] command."
+  (let (buffers)
+    (Buffer-menu-beginning)
+    (while (re-search-forward "^>" nil t)
+      (setq buffers (cons (Buffer-menu-buffer t) buffers)))
+    (nreverse buffers)))
+
+(defun Buffer-menu-isearch-buffers ()
+  "Search for a string through all marked buffers using Isearch."
+  (interactive)
+  (multi-isearch-buffers (Buffer-menu-marked-buffers)))
+
+(defun Buffer-menu-isearch-buffers-regexp ()
+  "Search for a regexp through all marked buffers using Isearch."
+  (interactive)
+  (multi-isearch-buffers-regexp (Buffer-menu-marked-buffers)))
 
 
 (defun Buffer-menu-visit-tags-table ()
@@ -778,7 +797,7 @@ For more information, see the function `buffer-menu'."
 			  (t
 			   (setq file (concat "("
 					      (file-name-nondirectory file)
-					      ")"
+					      ") "
 					      Info-current-node)))))))
 		(push (list buffer bits name (buffer-size) mode file)
 		      list))))))
