@@ -1,3 +1,8 @@
+2008-07-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* shell.el (shell-dynamic-complete-functions): Use
+	comint-dynamic-complete-filename as well (bug#361).
+
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/ns-win.el:
