@@ -39,7 +39,7 @@
 ;;; Code:
 
 
-(if (not (featurep 'ns-windowing))
+(if (not (featurep 'ns))
     (error "%s: Loading ns-win.el but not compiled for GNUStep/MacOS"
 	   (invocation-name)))
 

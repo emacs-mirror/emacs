@@ -611,7 +611,7 @@ is not considered (see `next-frame')."
   "Make a frame on X display DISPLAY.
 The optional second argument PARAMETERS specifies additional frame parameters."
   (interactive "sMake frame on display: ")
-  (if (featurep 'ns-windowing)
+  (if (featurep 'ns)
       (progn
 	(when (and (boundp 'ns-initialized) (not ns-initialized))
 	  (setq x-display-name display)

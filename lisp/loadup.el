@@ -214,7 +214,7 @@
 (if (featurep 'mac-carbon)
     (progn
       (load "term/mac-win")))
-(if (featurep 'ns-windowing)
+(if (featurep 'ns)
     (progn
       (load "emacs-lisp/easymenu")  ;; for platform-related menu adjustments
       (load "term/ns-win")))

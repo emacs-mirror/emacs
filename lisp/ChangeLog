@@ -1,5 +1,11 @@
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* term/ns-win.el:
+	* version.el (emacs-version):
+	* loadup.el:
+	* frame.el (make-frame-on-display): Check for ns instead of
+	ns-windowing.
+
 	* dired.el (dired-mode-map): Show the key binding for wdired.
 
 	* menu-bar.el (menu-bar-file-menu): Show the key binding for
