@@ -1,3 +1,16 @@
+2008-07-23  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (multi-query-replace-map): New variable.
+	(perform-replace): Add processing of new multi-buffer keys bound
+	to `automatic-all' and `exit-current'.  Set `query-flag' to nil
+	if last input char was `automatic-all'.  Set new local variable
+	`multi-buffer' to t when one of new two keys were typed.  Return
+	non-nil value of `multi-buffer' that tells to calling functions
+	to continue replacement on the next file.
+
+	* progmodes/etags.el (tags-query-replace): Set arg `map' of
+	`perform-replace' to `multi-query-replace-map'.
+
 2008-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-auto-refine-mode): Remove lighter, since it's
