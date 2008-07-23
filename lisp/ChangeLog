@@ -1,3 +1,15 @@
+2008-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Add "-q" for "scp", "scp1",
+	"scp2", "ssh", "ssh1", "ssh2", "scpc", "scpx", "sshx".
+	(tramp-temp-buffer-name): New defconst.
+	(tramp-handle-start-file-process): Use it.  Apply "exec", for the
+	command.  No trailing prompt.
+	(tramp-process-sentinel): Remove temporary buffer, if existing.
+	Don't handle trailing prompt.
+	(tramp-open-connection-setup-interactive-shell): Use
+	`tramp-temp-buffer-name'.
+
 2008-07-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* shell.el (shell-dynamic-complete-functions): Use
