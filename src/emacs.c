@@ -827,7 +827,7 @@ main (argc, argv
       heap_bss_diff = (char *)my_heap_start - max (my_endbss, my_endbss_static);
     }
 
-#if (GNU_LINUX) && __GNU_LIBRARY__ - 0 < 6
+#if defined(GNU_LINUX) && __GNU_LIBRARY__ - 0 < 6
   __sbrk (1);
 #endif
 
