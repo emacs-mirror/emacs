@@ -1,3 +1,8 @@
+2008-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add ns-emacs.
+	($(infodir)/ns-emacs, ns-emacs.dvi): New targets.
+
 2008-07-23  Vincent Belaïche  <vincent.b.1@hotmail.fr>
 
 	* calc.texi (Editing Stack Entries):
@@ -10,7 +15,7 @@
 	* calc.texi (summarykey): New macro.  Use to correctly format keys in
 	the summary.
 
-2008-07-20  Adrian Robert <adrian.b.robert@gmail.com>
+2008-07-20  Adrian Robert  <adrian.b.robert@gmail.com>
 
 	* ns-emacs.texi (Customization): Corrected documentation on color
 	specification formats.
@@ -504,7 +509,6 @@
 	* gnus-news.texi: Mention gnus-article-wide-reply-with-original.
 
 2008-01-18  Carsten Dominik  <dominik@science.uva.nl>
-
 	* org.texi (Property inheritance): New section.
 	(Conventions): New section.
 	(Structure editing): Document C-RET, the prefix arg to the cut/copy

@@ -44,7 +44,7 @@ INFO_TARGETS = $(infodir)/ccmode \
 		$(infodir)/tramp $(infodir)/ses $(infodir)/smtpmail \
 		$(infodir)/flymake $(infodir)/newsticker $(infodir)/rcirc \
 		$(infodir)/erc $(infodir)/remember $(infodir)/nxml-mode \
-		$(infodir)/epa
+		$(infodir)/epa $(infodir)/ns-emacs
 DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dbus.dvi dired-x.dvi \
 		ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
 		gnus.dvi message.dvi sieve.dvi pgg.dvi mh-e.dvi \
@@ -53,7 +53,7 @@ DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dbus.dvi dired-x.dvi \
 		pcl-cvs.dvi woman.dvi eshell.dvi org.dvi url.dvi \
 		speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
 		newsticker.dvi rcirc.dvi erc.dvi remember.dvi nxml-mode.dvi \
-		epa.dvi
+		epa.dvi ns-emacs.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -298,6 +298,11 @@ $(infodir)/epa: epa.texi
 epa.dvi: epa.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/epa.texi
 
+$(infodir)/ns-emacs: ns-emacs.texi
+	$(MAKEINFO) ns-emacs.texi
+ns-emacs.dvi: ns-emacs.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/ns-emacs.texi
+
 mostlyclean:
 	- $(DEL) *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
 
@@ -322,7 +327,7 @@ clean: mostlyclean
 		 $(infodir)/sieve* $(infodir)/pgg* \
 		 $(infodir)/erc* $(infodir)/rcirc* \
 		 $(infodir)/remember* $(infodir)/nxml-mode* \
-		 $(infodir)/epa*
+		 $(infodir)/epa* $(infodir)/ns-emacs*
 
 distclean: clean
 	- $(DEL) makefile
