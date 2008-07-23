@@ -1372,6 +1372,20 @@ The valid answers include `act', `skip', `act-and-show',
 `exit', `act-and-exit', `edit', `delete-and-edit', `recenter',
 `automatic', `backup', `exit-prefix', and `help'.")
 
+(defvar multi-query-replace-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map query-replace-map)
+    (define-key map "Y" 'automatic-all)
+    (define-key map "N" 'exit-current)
+    map)
+  "Keymap that defines additional bindings for multi-buffer replacements.
+It extends its parent map `query-replace-map' with new bindings to
+operate on a set of buffers/files.  The difference with its parent map
+is the additional answers `automatic-all' to replace all remaining
+matches in all remaining buffers with no more questions, and
+`exit-current' to skip remaining matches in the current buffer
+and to continue with the next buffer in the sequence.")
+
 (defun replace-match-string-symbols (n)
   "Process a list (and any sub-lists), expanding certain symbols.
 Symbol  Expands To
@@ -1527,6 +1541,7 @@ make, or the user didn't cancel the call."
          (stack nil)
          (replace-count 0)
          (nonempty-match nil)
+	 (multi-buffer nil)
 
          ;; If non-nil, it is marker saying where in the buffer to stop.
          (limit nil)
@@ -1547,6 +1562,11 @@ make, or the user didn't cancel the call."
       (setq limit (copy-marker (max start end)))
       (goto-char (min start end))
       (deactivate-mark))
+
+    ;; If last typed key in previous call of multi-buffer perform-replace
+    ;; was `automatic-all', don't ask more questions in next files
+    (when (eq (lookup-key map (vector last-input-char)) 'automatic-all)
+      (setq query-flag nil multi-buffer t))
 
     ;; REPLACEMENTS is either a string, a list of strings, or a cons cell
     ;; containing a function and its first argument.  The function is
@@ -1705,6 +1725,8 @@ make, or the user didn't cancel the call."
 			((eq def 'exit)
 			 (setq keep-going nil)
 			 (setq done t))
+			((eq def 'exit-current)
+			 (setq multi-buffer t keep-going nil done t))
 			((eq def 'backup)
 			 (if stack
 			     (let ((elt (pop stack)))
@@ -1744,14 +1766,15 @@ make, or the user didn't cancel the call."
 				   real-match-data (replace-match-data
 						    t real-match-data)
 				   replaced t)))
-			((eq def 'automatic)
+			((or (eq def 'automatic) (eq def 'automatic-all))
 			 (or replaced
 			     (setq noedit
 				   (replace-match-maybe-edit
 				    next-replacement nocasify literal
 				    noedit real-match-data)
 				   replace-count (1+ replace-count)))
-			 (setq done t query-flag nil replaced t))
+			 (setq done t query-flag nil replaced t)
+			 (if (eq def 'automatic-all) (setq multi-buffer t)))
 			((eq def 'skip)
 			 (setq done t))
 			((eq def 'recenter)
@@ -1838,7 +1861,7 @@ make, or the user didn't cancel the call."
 	(message "Replaced %d occurrence%s"
 		 replace-count
 		 (if (= replace-count 1) "" "s")))
-    (and keep-going stack)))
+    (or (and keep-going stack) multi-buffer)))
 
 (defvar replace-overlay nil)
 
