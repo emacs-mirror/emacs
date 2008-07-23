@@ -1840,65 +1840,6 @@ DEFUN ("ns-emacs-info-panel", Fns_emacs_info_panel, Sns_emacs_info_panel,
 }
 
 
-#if 0
-DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 4, 0,
-       doc: /* Return a list of the names of available fonts matching PATTERN.
-If optional arguments FACE and FRAME are specified, return only fonts
-the same size as FACE on FRAME.
-If optional argument MAX is specified, return at most MAX matches.
-
-PATTERN is a regular expression; FACE is a face name - a symbol.
-
-The return value is a list of strings, suitable as arguments to
-set-face-font.
-
-The font names are _NOT_ X names.  */)
-     (pattern, face, frame, max)
-     Lisp_Object pattern, face, frame, max;
-{
-  Lisp_Object flist, olist = Qnil, tem;
-  struct frame *f;
-  int maxnames;
-
-  /* We can't simply call check_x_frame because this function may be
-     called before any frame is created.  */
-  if (NILP (frame))
-    f = SELECTED_FRAME ();
-  else
-    {
-      CHECK_LIVE_FRAME (frame);
-      f = XFRAME (frame);
-    }
-  if (! FRAME_WINDOW_P (f))
-    {
-      /* Perhaps we have not yet created any frame.  */
-      f = NULL;
-    }
-
-  if (NILP (max))
-    maxnames = 4;
-  else
-    {
-      CHECK_NATNUM (max);
-      maxnames = XFASTINT (max);
-    }
-
-  /* get XLFD names */
-  flist = ns_list_fonts (f, pattern, 0, maxnames);
-
-  /* convert list into regular names */
-  for (tem = flist; CONSP (tem); tem = XCDR (tem))
-    {
-      Lisp_Object fname = XCAR (tem);
-      olist = Fcons (build_string (ns_xlfd_to_fontname (SDATA (fname))),
-                    olist);
-    }
-
-  return olist;
-}
-#endif
-
-
 DEFUN ("ns-font-name", Fns_font_name, Sns_font_name, 1, 1, 0,
        doc: /* Determine font postscript or family name for font NAME.
 NAME should be a string containing either the font name or an XLFD
