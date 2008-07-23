@@ -994,13 +994,12 @@ Runs `change-log-mode-hook'.
   (set (make-local-variable 'adaptive-fill-regexp) "\\s *")
   (set (make-local-variable 'font-lock-defaults)
        '(change-log-font-lock-keywords t nil nil backward-paragraph))
-  (set (make-local-variable 'isearch-buffers-next-buffer-function)
+  (set (make-local-variable 'multi-isearch-next-buffer-function)
        'change-log-next-buffer)
   (set (make-local-variable 'beginning-of-defun-function) 
        'change-log-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function) 
-       'change-log-end-of-defun)
-  (isearch-buffers-minor-mode))
+       'change-log-end-of-defun))
 
 (defun change-log-next-buffer (&optional buffer wrap)
   "Return the next buffer in the series of ChangeLog file buffers.
