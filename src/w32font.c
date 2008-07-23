@@ -1032,7 +1032,9 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
   FONT_SET_STYLE (entity, FONT_WIDTH_INDEX, make_number (100));
 
   if (font_type & RASTER_FONTTYPE)
-    ASET (entity, FONT_SIZE_INDEX, make_number (physical_font->ntmTm.tmHeight));
+    ASET (entity, FONT_SIZE_INDEX,
+          make_number (physical_font->ntmTm.tmHeight
+                       + physical_font->ntmTm.tmExternalLeading));
   else
     ASET (entity, FONT_SIZE_INDEX, make_number (0));
 
