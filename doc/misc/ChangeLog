@@ -1,3 +1,15 @@
+2008-07-23  Vincent Belaïche  <vincent.b.1@hotmail.fr>
+
+	* calc.texi (Editing Stack Entries):
+	(Algebraic Entry): Rewrite introductory sentences so it can be used by
+	Calc's help functions.  Mention fixing typos.
+	(Customizing Calc): Fix typo.
+
+2008-07-23  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (summarykey): New macro.  Use to correctly format keys in
+	the summary.
+
 2008-07-20  Adrian Robert <adrian.b.robert@gmail.com>
 
 	* ns-emacs.texi (Customization): Corrected documentation on color
