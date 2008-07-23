@@ -509,6 +509,7 @@
 	* gnus-news.texi: Mention gnus-article-wide-reply-with-original.
 
 2008-01-18  Carsten Dominik  <dominik@science.uva.nl>
+
 	* org.texi (Property inheritance): New section.
 	(Conventions): New section.
 	(Structure editing): Document C-RET, the prefix arg to the cut/copy
