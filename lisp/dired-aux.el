@@ -1195,7 +1195,9 @@ Special value `always' suppresses confirmation."
 	    (if (file-exists-p to)
 		(or top (dired-handle-overwrite to))
 	      (condition-case err
-		  ;; Create the directory with correct permissions.
+		  ;; We used to call set-file-modes here, but on some
+		  ;; Linux kernels, that returns an error on vfat
+		  ;; filesystems
 		  (let ((default-mode (default-file-modes)))
 		    (unwind-protect
 			(progn
