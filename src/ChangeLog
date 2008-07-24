@@ -1,5 +1,8 @@
 2008-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* syntax.c (struct lisp_parse_state, char_quoted, inc_bytepos)
+	(dec_bytepos, find_defun_start): Use EMACS_INT for buffer positions.
+
 	* puresize.h (PURESIZE_CHECKING_RATIO): New macro.
 	(PURESIZE): Use it.
 
