@@ -1,5 +1,7 @@
 2008-07-24  Michael Albinus  <michael.albinus@gmx.de>
 
+	* Makefile.in (ELCFILES): Add net/xesam.el.
+
 	* net/tramp.el (tramp-handle-start-file-process): Make NAME a unique
 	process name.  Reported by Markus Triska <markus.triska@gmx.at>.
 
