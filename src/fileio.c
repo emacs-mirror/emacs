@@ -4670,15 +4670,16 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	}
     }
 
-  /* Decode file format */
+  /* Decode file format.  */
   if (inserted > 0)
     {
-      /* Don't run point motion or modification hooks when decoding. */
+      /* Don't run point motion or modification hooks when decoding.  */
       int count = SPECPDL_INDEX ();
+      int old_inserted = inserted;
       specbind (Qinhibit_point_motion_hooks, Qt);
       specbind (Qinhibit_modification_hooks, Qt);
 
-      /* Save old undo list and don't record undo for decoding. */
+      /* Save old undo list and don't record undo for decoding.  */
       old_undo = current_buffer->undo_list;
       current_buffer->undo_list = Qt;
 
@@ -4692,14 +4693,14 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       else
 	{
 	  /* If REPLACE is non-nil and we succeeded in not replacing the
-	  beginning or end of the buffer text with the file's contents,
-	  call format-decode with `point' positioned at the beginning of
-	  the buffer and `inserted' equalling the number of characters
-	  in the buffer.  Otherwise, format-decode might fail to
-	  correctly analyze the beginning or end of the buffer.  Hence
-	  we temporarily save `point' and `inserted' here and restore
-	  `point' iff format-decode did not insert or delete any text.
-	  Otherwise we leave `point' at point-min. */
+	     beginning or end of the buffer text with the file's contents,
+	     call format-decode with `point' positioned at the beginning
+	     of the buffer and `inserted' equalling the number of
+	     characters in the buffer.  Otherwise, format-decode might
+	     fail to correctly analyze the beginning or end of the buffer.
+	     Hence we temporarily save `point' and `inserted' here and
+	     restore `point' iff format-decode did not insert or delete
+	     any text.  Otherwise we leave `point' at point-min.  */
 	  int opoint = PT;
 	  int opoint_byte = PT_BYTE;
 	  int oinserted = ZV - BEGV;
@@ -4712,16 +4713,16 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  if (ochars_modiff == CHARS_MODIFF)
 	    /* format_decode didn't modify buffer's characters => move
 	       point back to position before inserted text and leave
-	       value of inserted alone. */
+	       value of inserted alone.  */
 	    SET_PT_BOTH (opoint, opoint_byte);
 	  else
 	    /* format_decode modified buffer's characters => consider
-	       entire buffer changed and leave point at point-min. */
+	       entire buffer changed and leave point at point-min.  */
 	    inserted = XFASTINT (insval);
 	}
 
       /* For consistency with format-decode call these now iff inserted > 0
-	 (martin 2007-06-28) */
+	 (martin 2007-06-28).  */
       p = Vafter_insert_file_functions;
       while (CONSP (p))
 	{
@@ -4736,7 +4737,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	    }
 	  else
 	    {
-	      /* For the rationale of this see the comment on format-decode above. */
+	      /* For the rationale of this see the comment on
+		 format-decode above.  */
 	      int opoint = PT;
 	      int opoint_byte = PT_BYTE;
 	      int oinserted = ZV - BEGV;
@@ -4751,12 +4753,12 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 		    /* after_insert_file_functions didn't modify
 		       buffer's characters => move point back to
 		       position before inserted text and leave value of
-		       inserted alone. */
+		       inserted alone.  */
 		    SET_PT_BOTH (opoint, opoint_byte);
 		  else
 		    /* after_insert_file_functions did modify buffer's
 	               characters => consider entire buffer changed and
-	               leave point at point-min. */
+	               leave point at point-min.  */
 		    inserted = XFASTINT (insval);
 		}
 	    }
@@ -4767,22 +4769,21 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       if (NILP (visit))
 	{
-	  Lisp_Object lbeg, lend;
-	  XSETINT (lbeg, PT);
-	  XSETINT (lend, PT + inserted);
-	  if (CONSP (old_undo))
+	  current_buffer->undo_list = old_undo;
+	  if (CONSP (old_undo) && inserted != old_inserted)
 	    {
+	      /* Adjust the last undo record for the size change during
+		 the format conversion.  */
 	      Lisp_Object tem = XCAR (old_undo);
-	      if (CONSP (tem) && INTEGERP (XCAR (tem)) &&
-		  INTEGERP (XCDR (tem)) && EQ (XCAR (tem), lbeg))
-		/* In the non-visiting case record only the final insertion. */
-		current_buffer->undo_list =
-		  Fcons (Fcons (lbeg, lend), Fcdr (old_undo));
+	      if (CONSP (tem) && INTEGERP (XCAR (tem))
+		  && INTEGERP (XCDR (tem))
+		  && XFASTINT (XCDR (tem)) == PT + old_inserted)
+		XSETCDR (tem, make_number (PT + inserted));
 	    }
 	}
       else
 	/* If undo_list was Qt before, keep it that way.
-	   Otherwise start with an empty undo_list. */
+	   Otherwise start with an empty undo_list.  */
 	current_buffer->undo_list = EQ (old_undo, Qt) ? Qt : Qnil;
 
       unbind_to (count, Qnil);
