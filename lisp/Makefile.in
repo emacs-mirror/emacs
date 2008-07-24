@@ -34,7 +34,7 @@ EMACS = ../src/emacs
 EMACSOPT = -batch --no-site-file --multibyte
 
 # Extra flags to pass to the byte compiler
-BYTE_COMPILE_EXTRA_FLAGS = 
+BYTE_COMPILE_EXTRA_FLAGS =
 # For example to not display the undefined function warnings you can use this:
 # BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq byte-compile-warnings (quote (not unresolved)))'
 # The example above is just for developers, it should not be used by default.
@@ -864,6 +864,7 @@ ELCFILES = \
 	$(lisp)/net/tramp.elc \
 	$(lisp)/net/trampver.elc \
 	$(lisp)/net/webjump.elc \
+	$(lisp)/net/xesam.elc \
 	$(lisp)/net/zeroconf.elc \
 	$(lisp)/newcomment.elc \
 	$(lisp)/novice.elc \
