@@ -1,3 +1,8 @@
+2008-07-24  Sven Joachim  <svenjoac@gmx.de>
+
+	* dired-aux.el (dired-copy-file-recursive): Avoid calling
+	set-file-modes when creating target directories.
+
 2008-07-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/enriched.el (enriched-mode-map): Bind C-a and C-j via
