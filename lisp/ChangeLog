@@ -1,5 +1,7 @@
 2008-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* Makefile.in (ELCFILES): Add term/common-win.elc.
+
 	* vc-dir.el (vc-dir-search, vc-dir-isearch)
 	(vc-dir-isearch-regexp): New functions.
 	(vc-dir-mode-map, vc-dir-menu-map): Bind them.
