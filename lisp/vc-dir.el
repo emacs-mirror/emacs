@@ -157,11 +157,17 @@ See `run-hooks'."
 
     (define-key map [sepopn] '("--"))
     (define-key map [qr]
-      '(menu-item "Query Replace in Files" vc-dir-query-replace-regexp
+      '(menu-item "Query Replace in Files..." vc-dir-query-replace-regexp
 		  :help "Replace a string in the marked files"))
     (define-key map [se]
-      '(menu-item "Search Files" vc-dir-search
+      '(menu-item "Search Files..." vc-dir-search
 		  :help "Search a regexp in the marked files"))
+    (define-key map [ires]
+      '(menu-item "Isearch Regexp Files..." vc-dir-isearch-regexp
+		  :help "Incremental search a regexp in the marked files"))
+    (define-key map [ise]
+      '(menu-item "Isearch Files..." vc-dir-isearch
+		  :help "Incremental search a string in the marked files"))
     (define-key map [open-other]
       '(menu-item "Open in other window" vc-dir-find-file-other-window
 		  :help "Find the file on the current line, in another window"))
@@ -255,6 +261,8 @@ See `run-hooks'."
     (define-key map "x" 'vc-dir-hide-up-to-date)
     (define-key map "S" 'vc-dir-search) ;; FIXME: Maybe use A like dired?
     (define-key map "Q" 'vc-dir-query-replace-regexp)
+    (define-key map (kbd "M-s a C-s")   'vc-dir-isearch)
+    (define-key map (kbd "M-s a M-C-s") 'vc-dir-isearch-regexp)
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -682,6 +690,18 @@ that share the same state."
   "Find the file on the current line, in another window."
   (interactive)
   (find-file-other-window (vc-dir-current-file)))
+
+(defun vc-dir-isearch ()
+  "Search for a string through all marked buffers using Isearch."
+  (interactive)
+  (multi-isearch-files
+   (mapcar 'car (vc-dir-marked-only-files-and-states))))
+
+(defun vc-dir-isearch-regexp ()
+  "Search for a regexp through all marked buffers using Isearch."
+  (interactive)
+  (multi-isearch-files-regexp
+   (mapcar 'car (vc-dir-marked-only-files-and-states))))
 
 (defun vc-dir-search (regexp)
   "Search through all marked files for a match for REGEXP.
