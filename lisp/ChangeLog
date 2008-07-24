@@ -1,3 +1,8 @@
+2008-07-24  Sven Joachim  <svenjoac@gmx.de>
+
+	* dired-aux.el (dired-copy-file-recursive): Avoid calling
+	set-file-modes when creating target directories.
+
 2008-07-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* play/solitaire.el (solitaire-mode): Fix typo in docstring.
