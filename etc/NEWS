@@ -504,6 +504,10 @@ visualization is made via faces and/or display table. Also it is possible to
 select which kind of blanks should be visualized, for example, trailing blanks,
 leading blanks, spaces, tabs, newlines, etc.
 
+** xesam.el is an implementation of Xesam, an interface to (desktop)
+search engines like Beagle, Strigi, and Tracker.  The Xesam API
+requires D-Bus for communication.
+
 ** zeroconf.el offers service discovery and service publishing
 interfaces according to the zeroconf specification.  It communicates
 with Avahi, a zeroconf implementation, via D-Bus messages on systems
