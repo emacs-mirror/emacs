@@ -251,9 +251,10 @@ Commands:
 	  (cons (cons 'enriched-mode enriched-mode-map)
 		minor-mode-map-alist)))
 
-(define-key enriched-mode-map "\C-a" 'beginning-of-line-text)
+(define-key enriched-mode-map [remap move-beginning-of-line] 'beginning-of-line-text)
 (define-key enriched-mode-map "\C-m" 'reindent-then-newline-and-indent)
-(define-key enriched-mode-map "\C-j" 'reindent-then-newline-and-indent)
+(define-key enriched-mode-map
+  [remap newline-and-indent] 'reindent-then-newline-and-indent)
 (define-key enriched-mode-map "\M-j" 'facemenu-justification-menu)
 (define-key enriched-mode-map "\M-S" 'set-justification-center)
 (define-key enriched-mode-map "\C-x\t" 'increase-left-margin)
