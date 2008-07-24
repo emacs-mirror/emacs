@@ -1,3 +1,10 @@
+2008-07-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* play/solitaire.el (solitaire-mode): Fix typo in docstring.
+	Set `show-trailing-whitespace' to nil.
+	(solitaire, solitaire-mode-map, solitaire-mode-hook, solitaire-solve):
+	Fix typos in docstrings.
+
 2008-07-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/enriched.el (enriched-mode-map): Bind C-a and C-j via
