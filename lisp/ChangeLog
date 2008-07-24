@@ -1,5 +1,7 @@
 2008-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* progmodes/cc-mode.el (auto-mode-alist): Add .i and .ii files.
+
 	* Makefile.in (ELCFILES): Add term/common-win.elc.
 
 	* vc-dir.el (vc-dir-search, vc-dir-isearch)
