@@ -1,3 +1,9 @@
+2008-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: New version 11.2.
+	(whitespace-newline-mode, global-whitespace-newline-mode): New newline
+	minor mode visualization.
+
 2008-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/cc-mode.el (auto-mode-alist): Add .i and .ii files.

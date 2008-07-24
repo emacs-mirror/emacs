@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 11.1
+;; Version: 11.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -159,6 +159,12 @@
 ;;         M-x global-whitespace-mode RET
 ;;
 ;; There are also the following useful commands:
+;;
+;; `whitespace-newline-mode'
+;;    Toggle newline minor mode visualization ("nl" on modeline).
+;;
+;; `global-whitespace-newline-mode'
+;;    Toggle newline global minor mode visualization ("NL" on modeline).
 ;;
 ;; `whitespace-report'
 ;;    Report some blank problems in buffer.
@@ -1016,6 +1022,26 @@ Only useful with a windowing system."
    (t					; whitespace-mode off
     (whitespace-turn-off))))
 
+
+;;;###autoload
+(define-minor-mode whitespace-newline-mode
+  "Toggle newline minor mode visualization (\"nl\" on modeline).
+
+If ARG is null, toggle newline visualization.
+If ARG is a number greater than zero, turn on visualization;
+otherwise, turn off visualization.
+Only useful with a windowing system.
+
+See also `whitespace-newline'."
+  :lighter    " nl"
+  :init-value nil
+  :global     nil
+  :group      'whitespace
+  (let ((whitespace-style '(newline-mark newline)))
+    (whitespace-mode whitespace-newline-mode)
+    ;; sync states (running a batch job)
+    (setq whitespace-newline-mode whitespace-mode)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; User commands - Global mode
@@ -1073,6 +1099,26 @@ Only useful with a windowing system."
 	    (not (string= (buffer-name) "*scratch*")))
        ;; Otherwise, turn on whitespace mode.
        (whitespace-turn-on)))))
+
+
+;;;###autoload
+(define-minor-mode global-whitespace-newline-mode
+  "Toggle newline global minor mode visualization (\"NL\" on modeline).
+
+If ARG is null, toggle newline visualization.
+If ARG is a number greater than zero, turn on visualization;
+otherwise, turn off visualization.
+Only useful with a windowing system.
+
+See also `whitespace-newline'."
+  :lighter    " NL"
+  :init-value nil
+  :global     t
+  :group      'whitespace
+  (let ((whitespace-style '(newline-mark newline)))
+    (global-whitespace-mode global-whitespace-newline-mode)
+    ;; sync states (running a batch job)
+    (setq global-whitespace-newline-mode global-whitespace-mode)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
