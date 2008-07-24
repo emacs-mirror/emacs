@@ -1,3 +1,8 @@
+2008-07-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/enriched.el (enriched-mode-map): Bind C-a and C-j via
+	key remapping, not directly.
+
 2008-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: New version 11.2.
