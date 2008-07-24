@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{6.05a}
+\def\orgversionnumber{6.06a}
 \def\versionyear{2008}          % latest update
 \def\year{2008}                 % latest copyright year
 
@@ -635,10 +635,10 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{toggle inclusion of diary entries}{D}
 \key{toggle time grid for daily schedule}{G}
 \key{toggle display of logbook entries}{l}
+\key{toggle inclusion of archived trees/files}{v / C-u v}
 \key{refresh agenda buffer with any changes}{r / g}
 \key{save all org-mode buffers}{s}
-\key{display the following \kbd{org-agenda-ndays}}{RIGHT}
-\key{display the previous \kbd{org-agenda-ndays}}{LEFT}
+\key{display next/previous day,week,...}{RIGHT/LEFT}
 \key{goto today}{.}
 
 {\bf Remote editing}
@@ -739,7 +739,7 @@ some other place.
 %\key{turn on/off fixed width sections}{::t}
 %\key{turn on/off tables}{|:t}
 %\key{turn on/off \TeX\ syntax for sub/super-scripts}{\^{}:t}
-%\key{turn on/off emphasized text}{*:nil}
+%\key{turn on/off emphasised text}{*:nil}
 %\key{turn on/off \TeX\ macros}{TeX:t}
 
 {\bf Comments: Text not being exported}
@@ -758,7 +758,7 @@ Subtrees whose header starts with COMMENT are never exported.
 
 \section{Notes}
 $^1$ This is only a suggestion for a binding of this command.  Choose
-you own key as shown under INSTALLATION.
+your own key as shown under INSTALLATION.
 
 $^2$ After changing a \kbd{\#+KEYWORD} or \kbd{<<<target>>>} line,
 press \kbd{C-c C-c} with the cursor still in the line to update.
