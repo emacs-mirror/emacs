@@ -29,7 +29,7 @@
 2008-07-23  Juri Linkov  <juri@jurta.org>
 
 	* isearch-multi.el: Remove file to avoid dos file name clashes
-	with isearch-x.el.  Move most content to isearch-multi.el.
+	with isearch-x.el.  Move most content to misearch.el.
 
 	* misearch.el: New file with most content from isearch-multi.el.
 	Rename `isearch-buffers' name prefixes to `multi-isearch'.
@@ -81,13 +81,12 @@
 
 2008-07-23  Chong Yidong  <cyd@stupidchicken.com>
 
-	* international/mule.el (recode-region): Deactivate mark at the
-	end.
+	* international/mule.el (recode-region): Deactivate mark at the end.
 
 2008-07-23  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
 
-	* progmodes/flymake.el (flymake-errline, flymake-warnline): Use
-	more suitable colors on dark displays.
+	* progmodes/flymake.el (flymake-errline, flymake-warnline):
+	Use more suitable colors on dark displays.
 
 2008-07-23  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -98,13 +97,13 @@
 	command.  No trailing prompt.
 	(tramp-process-sentinel): Remove temporary buffer, if existing.
 	Don't handle trailing prompt.
-	(tramp-open-connection-setup-interactive-shell): Use
-	`tramp-temp-buffer-name'.
+	(tramp-open-connection-setup-interactive-shell):
+	Use `tramp-temp-buffer-name'.
 
 2008-07-23  Chong Yidong  <cyd@stupidchicken.com>
 
-	* shell.el (shell-dynamic-complete-functions): Use
-	comint-dynamic-complete-filename as well (bug#361).
+	* shell.el (shell-dynamic-complete-functions):
+	Use comint-dynamic-complete-filename as well (bug#361).
 
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -117,7 +116,7 @@
 	* dired.el (dired-mode-map): Show the key binding for wdired.
 
 	* menu-bar.el (menu-bar-file-menu): Show the key binding for
-	exiting emacs.
+	exiting Emacs.
 
 2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
