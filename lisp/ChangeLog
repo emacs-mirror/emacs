@@ -1,3 +1,56 @@
+2008-07-23  Juri Linkov  <juri@jurta.org>
+
+	* isearch-multi.el: Remove file to avoid dos file name clashes
+	with isearch-x.el.  Move most content to isearch-multi.el.
+
+	* misearch.el: New file with most content from isearch-multi.el.
+	Rename `isearch-buffers' name prefixes to `multi-isearch'.
+	Remove `isearch-buffers-minor-mode'.  Add new function
+	`multi-isearch-setup' to `isearch-mode-hook'.  New top-level
+	commands `multi-isearch-buffers', `multi-isearch-buffers-regexp',
+	`multi-isearch-files', `multi-isearch-files-regexp'.
+
+	* Makefile.in (ELCFILES): Remove isearch-multi.elc.  Add misearch.elc.
+
+	* isearch.el (isearch-message-prefix): Display "Multi" when
+	`multi-isearch-next-buffer-current-function' is non-nil.
+	(isearch-search-string): Replace `isearch-buffers-next-buffer-function'
+	with `multi-isearch-next-buffer-current-function', and
+	`isearch-buffers-current-buffer' with `multi-isearch-current-buffer'.
+
+	* add-log.el (change-log-mode): Set `change-log-next-buffer' to
+	`multi-isearch-next-buffer-function' instead of
+	`isearch-buffers-next-buffer-function'.  Remove call to
+	`isearch-buffers-minor-mode'.
+
+	* buff-menu.el (Buffer-menu-marked-buffers)
+	(Buffer-menu-isearch-buffers)
+	(Buffer-menu-isearch-buffers-regexp): New functions.
+	(Buffer-menu-mode-map): Bind "M-s a C-s" to
+	`Buffer-menu-isearch-buffers', and "M-s a M-C-s" to
+	`Buffer-menu-isearch-buffers-regexp'.
+	(Buffer-menu-mode): Document new commands in docstring.
+	(list-buffers-noselect): Add one space after Info file name
+	according to the Info address convention.
+
+	* ibuf-ext.el (ibuffer-do-isearch, ibuffer-do-isearch-regexp):
+	New functions.
+
+	* ibuffer.el (ibuffer-mode-map): Bind "M-s a C-s" to
+	`ibuffer-do-isearch' and "M-s a M-C-s" to `ibuffer-do-isearch-regexp'.
+	(ibuffer-mode): Document new commands in docstring.
+
+	* filesets.el (filesets-commands): Add commands for "Isearch" and
+	"Isearch (regexp)".  Replace `query-replace' and `query-replace-regexp'
+	with `perform-replace' using `filesets-cmd-query-replace-regexp-getargs'.
+	(filesets-run-cmd): Call `fn' only once if it is `multi-isearch-files'
+	or `multi-isearch-files-regexp'.
+	(filesets-cmd-query-replace-getargs): Call standard function
+	`query-replace-read-args' to read `query-replace' arguments.
+	Add `multi-query-replace-map'.
+	(filesets-cmd-query-replace-regexp-getargs)
+	(filesets-cmd-isearch-getargs): New functions.
+
 2008-07-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* international/mule.el (recode-region): Deactivate mark at the
