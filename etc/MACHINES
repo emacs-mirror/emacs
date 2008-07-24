@@ -84,27 +84,6 @@ Cubix QBx/386 (i386-cubix-sysv)
   Changes merged in 19.1.  Systems before 2/A/0 may fail to compile etags.c
   due to a compiler bug.
 
-DECstation (mips-dec-ultrix or mips-dec-osf)
-
-  This machine is the older Mips-based DECstation.
-  Emacs should now work on the Alpha CPU.
-
-  19.25 works on Ultrix 4.2.  The 19.26 pretest was reported to work
-  on Ultrix 4.2a and on 4.4.
-
-  One user reported 19.25 did not work at all with --with-x-toolkit
-  using X11R5 patch level 10, but worked ok with X11R5 pl26.
-
-  See under Ultrix for problems using X windows on Ultrix.
-  Note that this is a MIPS machine.
-
-  For Ultrix versions 4.1 or earlier, you may need to define
-  SYSTEM_MALLOC in `src/m/pmax.h', because XvmsAlloc.o in libX11.a seems
-  to insist on defining malloc itself.
-
-  For Ultrix versions prior to 4.0, you may need to delete
-  the definition of START_FILES from `src/m/pmax.h'.
-
 Motorola Delta 147 (m68k-motorola-sysv)
 
   The EMacs 19.26 pretest was reported to work.
@@ -120,12 +99,6 @@ Motorola Delta 147 (m68k-motorola-sysv)
 Fujitsu DS/90 (sparc-fujitsu-sysv4)
 
   Changes merged in 20.3.
-
-HP 9000 series 500: not supported.
-
-  The series 500 has a seriously incompatible memory architecture
-  which relocates data in memory during execution of a program,
-  and support for it would be difficult to implement.
 
 HP 9000 series 700 or 800 (Spectrum) (hppa1.0-hp-hpux or hppa1.1-hp-hpux
 				      or ...hpux9shr)
@@ -221,10 +194,6 @@ IBM RS/6000 (rs6000-ibm-aix*)
 
   As of 19.11, if you strip the Emacs executable, it ceases to work.
 
-  If you are using AIX 3.2.3, you may get a core dump when loading
-  ange-ftp.  You may be able to fix the problem by defining LIBS_TERMCAP
-  as -ltermcap -lcurses.  Please tell us if this fails to work.
-
   If anyone can fix the above problems, or confirm that they don't happen
   with certain versions of various programs, we would appreciate it.
 
@@ -233,11 +202,9 @@ IBM System/390 running GNU/Linux (s390-*-linux-gnu)
   As of Emacs 21.2, a 31-bit only version is supported on this
   system.
 
-Intel 386 (i386-*-bsdi2,        i386-*-freebsd,  i386-*-linux-gnu,
-	   i386-*-sol2.4,	i386-*-sysv3,    i386-intsys-sysv,
-	   i386-*-sysv4,	i386-*-sysv4.2,
-	   i386-*-sysv5.3,	i386-*-bsd4.2,   i386-*-cygwin,
-	   i386-*-bsd386,   i386-*-386bsd,
+Intel 386 (i386-*-freebsd,      i386-*-linux-gnu,
+	   i386-*-sol2.4,	i386-intsys-sysv,
+	   i386-*-sysv4,	i386-*-sysv4.2,  i386-*-cygwin,
 	   i386-*-msdos,	i386-*-windowsnt.
 	   i386... can be replaced with i486... or i586...)
 
@@ -245,9 +212,6 @@ Intel 386 (i386-*-bsdi2,        i386-*-freebsd,  i386-*-linux-gnu,
   you specify does not matter, and you can use any name you like
   (but it should not contain any dashes or stars).
 
-  When using the ISC configurations, be sure to specify the isc
-	version number - for example, if you're running ISC 3.0, use
-	i386-unknown-isc3.0 as your configuration name.
   Use i386-*-linux-gnu for GNU/Linux systems; Emacs runs as of version 19.26.
   Use i386-*-cygwin for Cygwin; Emacs builds as of version 22.1, in both X11
   and non-X11 modes.  (The Cygwin site has source and binaries for 21.2.)
@@ -274,19 +238,12 @@ Intel 386 (i386-*-bsdi2,        i386-*-freebsd,  i386-*-linux-gnu,
   19.29 is reported to crash when using Motif on Solaris 2.5.
   The reasons are not yet known.
 
-  Use i386-*-bsdiN for BSDI BSD/OS version N; Emacs runs as of version 19.23.
-  In some system versions, `make' is broken; use GNU make instead.
-  Shell bugs in version 1.0 of BSD/OS cause configure
-  to do the wrong thing with --with-x-toolkit; the workaround is to edit
-  configure to run another shell such as bash.
-
-  For System V release 3, use i386-*-sysv3.
   For System V release 4, use i386-*-sysv4.
   For System V release 4.2, use i386-*-sysv4.2.
 
   If you are using SCO Unix, see notes at end under SCO.
 
-  On 386bsd, NetBSD and FreeBSD, at one time, it was necessary to use
+  On NetBSD and FreeBSD, at one time, it was necessary to use
   GNU make, not the system's make.  Assuming it's installed as gmake,
   do `gmake install MAKE=gmake'.  However, more recently it is
   reported that using the system Make on NetBSD 1.3.1 works ok.
@@ -302,28 +259,6 @@ Intel 386 (i386-*-bsdi2,        i386-*-freebsd,  i386-*-linux-gnu,
   requires including `/usr/src/linux/include/linux' in buffer.c
   but no coherent explanation of why that might be so.  If it is so,
   in current versions of Linux, something else should probably be changed.
-
-  Some sysV.3 systems seem to have bugs in `opendir';
-  for them, alter `config.h' to define NONSYSTEM_DIR_LIBRARY
-  and undefine SYSV_SYSTEM_DIR.
-
-  If you use optimization on V.3, you may need the option -W2,'-y 0'
-  to prevent certain faulty optimization.
-
-  On 386/ix, to link with shared libraries, add #define USG_SHARED_LIBRARIES
-  to config.h.
-
-  On SCO, there are problems in regexp matching when Emacs is compiled
-  with the system compiler.  The compiler version is "Microsoft C
-  version 6", SCO 4.2.0h Dev Sys Maintenance Supplement 01/06/93;
-  Quick C Compiler Version 1.00.46 (Beta).  The solution is to compile
-  with GCC.
-
-  On ISC systems (2.02 and more recent), don't try to use the versions
-  of X that come with the system; use XFree86 instead.
-
-  There is no consistency in the handling of certain system header files
-  on V.3.
 
   Some versions have sys/sioctl.h, and require it in sysdep.c.
   But some versions do not have sys/sioctl.h.
@@ -342,7 +277,7 @@ Intel 386 (i386-*-bsdi2,        i386-*-freebsd,  i386-*-linux-gnu,
   but define `struct tc' instead; add `#define tchars tc'
   to config.h to solve this problem.
 
-Iris 4D (mips-sgi-irix[456].*)
+Iris 4D (mips-sgi-irix6.*)
 
   Emacs 21.3 is reported to work on IRIX 6.5.x.
 
@@ -357,45 +292,6 @@ Iris 4D (mips-sgi-irix[456].*)
   from upgrading the operating system without reinstalling GCC; so you
   could also try reinstalling the same version of GCC, and telling us
   whether that fixes the problem.
-
-Mips (mips-mips-riscos, mips-mips-riscos4.0, or mips-mips-bsd)
-
-  The C compiler on Riscos 4.51 dumps core trying to optimize
-  parts of Emacs.  Try without optimization or try GCC.
-
-  Meanwhile, the linker on that system returns success even if
-  there are undefined symbols; as a result, configure gets the
-  wrong answers to various questions.  No work-around is known
-  except to edit src/config.h by hand to indicate which functions
-  don't exist.
-
-  Use mips-mips-riscos4.0 for RISCOS version 4.
-  Use mips-mips-bsd with the BSD world.
-
-  Note that the proper configuration names for DECstations are
-  mips-dec-ultrix and mips-dec-osf.
-
-  If you are compiling with GCC, then you must run fixincludes;
-  the alternative of using -traditional won't work because
-  the definition of SIGN_EXTEND_CHAR uses the keyword `signed'.
-
-  If the SYSV world is the default, then you probably need the following
-  line in etc/Makefile:
-
-    CFLAGS= -g -systype bsd43
-
-  Some operating systems on MIPS machines give SIGTRAP for division by
-  zero instead of the usual signals.  The only real solution is to fix
-  the system to give a proper signal.
-
-  In the meantime, you can change init_data in data.c if you wish.
-  Change it to handle SIGTRAP as well as SIGFPE.  But this will have a
-  great disadvantage: you will not be able to run Emacs under a
-  debugger.  I think crashing on division by zero is a lesser problem.
-
-  dsg@mitre.org reported needing to use --x-libraries=/bsd43/usr/lib
-  on a riscos4bsd site.  But it is not clear whether this is needed in
-  general or only because of quirks on a particular site.
 
 NCR Intel system (i386-ncr-sysv4.2)
 
@@ -512,14 +408,6 @@ Sun 4 (sparc), Sun 386 (sparc-sun-solaris2.*,
   LD_SWITCH_SYSTEM if your X11 libraries are not in /usr/openwin/lib.
   You must make sure that /usr/ucblib is not in your LD_LIBRARY_PATH.
 
-  On Solaris 2.2, with a multiprocessor SparcCenter 1000, Emacs 19.17 is
-  reported to hang sometimes if it exits while it has one or more
-  subprocesses (e.g. the `wakeup' subprocess used by `display-time').
-  Emacs and its subprocesses become zombies, and in their zombie state
-  slow down their host and disable rlogin and telnet.  This is most
-  likely due to a bug in Solaris 2.2's multiprocessor support,
-  rather than an Emacs bug.
-
   On Solaris, do not use /usr/ucb/cc.  Use /opt/SUNWspro/bin/cc.  Make
   sure that /usr/ccs/bin and /opt/SUNWspro/bin are in your PATH before
   /usr/ucb.  (Most free software packages have the same requirement on
@@ -551,17 +439,9 @@ Tadpole 68K (m68k-tadpole-sysv)
     chmod 2755 etc/movemail; chgrp mail etc/movemail
 
 Vaxen running Berkeley Unix (vax-dec-bsd4.1, vax-dec-bsd4.2, vax-dec-bsd4.3),
-	      Ultrix (vax-dec-ultrix),
-              System V (vax-dec-sysv0, vax-dec-sysv2), or
               VMS (vax-dec-vms)
 
   Works.
-
-  See under Ultrix for problems using X windows on Ultrix (vax-dec-ultrix).
-
-  18.27 worked on System V rel 2 (vax-dec-sysv2).
-
-  18.36 worked on System V rel 0 (vax-dec-sysv0).
 
   Richard Levitte <levitte@e.kth.se> distributes a set of patches to
   Emacs 18.59 to make it work nicely under VMS.  Emacs 19 probably
@@ -599,16 +479,6 @@ MSDOS
   For installation on MSDOS, see the file INSTALL (search for `MSDOG',
   near the end of the file).  See the "MS-DOS" chapter of the manual
   for information about using Emacs on MSDOS.
-
-SCO Unix
-
-  If you are using MMDF instead of sendmail, you need to remove
-  /usr/lib/sendmail or modify lisp/paths.el before compiling.
-  lisp/paths.el (which is loaded during the build) will attempt to use
-  sendmail if it exists.
-
-  If you are using SMAIL, you need to define the macro
-  SMAIL in config.h.
 
 System V rel 4.0.3 and 4.0.4 (usg5.4)
 
