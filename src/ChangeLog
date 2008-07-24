@@ -1,3 +1,12 @@
+2008-07-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_font_name): Cast w to GTK_FONT_SELECTION_DIALOG.
+	(menu_nav_ended): Remove.
+	(create_menus): Remove signal connect for menu_nav_ended.
+	(xg_update_menubar): Also take deactivate_cb as parameter, pass it to
+	create_menus.
+	(xg_modify_menubar_widgets): Pass deactivate_cb to xg_update_menubar.
+
 2008-07-23  Jason Rumney  <jasonr@gnu.org>
 
         * w32font.c (w32_enumfont_pattern_entity): Return height consistent
