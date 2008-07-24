@@ -1,3 +1,8 @@
+2008-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* puresize.h (PURESIZE_CHECKING_RATIO): New macro.
+	(PURESIZE): Use it.
+
 2008-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* m/amdx86-64.h (HAVE_LIB64_DIR): Consolidate ifdefs.
@@ -33,11 +38,11 @@
 
 2008-07-23  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32_enumfont_pattern_entity): Return height consistent
-        with opened font.
-        (w32font_open): Set font type to gdi.
+	* w32font.c (w32_enumfont_pattern_entity): Return height consistent
+	with opened font.
+	(w32font_open): Set font type to gdi.
 
-        * w32uniscribe.c (uniscribe_open): Set font type to uniscribe.
+	* w32uniscribe.c (uniscribe_open): Set font type to uniscribe.
 
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -216,8 +221,7 @@
 
 	* syntax.c (find_start_pos, find_start_value)
 	(find_start_value_byte, find_start_begv, find_defun_start)
-	(back_comment, scan_sexps_forward): Use EMACS_INT for buffer
-	positions.
+	(back_comment, scan_sexps_forward): Use EMACS_INT for buffer positions.
 
 2008-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -227,8 +231,7 @@
 
 2008-07-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* nsterm.m (ns_get_color): Recognize HSB,AHSB be synonyms for
-	HSV,AHSV.
+	* nsterm.m (ns_get_color): Recognize HSB,AHSB be synonyms for HSV,AHSV.
 
 2008-07-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
