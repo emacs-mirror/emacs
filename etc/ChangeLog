@@ -1,3 +1,7 @@
+2008-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add xesam.el.
+
 2008-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* NEWS: Add information about whitespace package.
