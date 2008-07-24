@@ -50,10 +50,6 @@ NOTE-END */
 
 #define CRT0_DUMMIES bogus_fp,
 
-/* crt0.c should define a symbol `start' and do .globl with a dot.  */
-
-#define DOT_GLOBAL_START
-
 #ifdef SOLARIS2
 /* Data type of load average, as read out of kmem.  */
 #define LOAD_AVE_TYPE long

@@ -1,5 +1,11 @@
 2008-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* ecrt0.c (NODOT_GLOBAL_START): Remove code, unused.
+	(DOT_GLOBAL_START): Remove conditional, redundant for CRT0_DUMMIES.
+	* m/intel386.h (DOT_GLOBAL_START):
+	* m/vax.h (DOT_GLOBAL_START): Remove, redundant with CRT0_DUMMIES.
+	(USG): Remove, file not used on USG platforms.
+
 	* Makefile.in (HAVE_X11): Remove empty #else.
 
 2008-07-24  Andreas Schwab  <schwab@suse.de>

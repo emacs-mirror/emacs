@@ -78,17 +78,9 @@ static start1 ();
 #ifdef CRT0_DUMMIES
 
 /* Define symbol "start": here; some systems want that symbol.  */
-#ifdef DOT_GLOBAL_START
 asm("	.text		");
 asm("	.globl start	");
 asm("	start:		");
-#endif /* DOT_GLOBAL_START */
-
-#ifdef NODOT_GLOBAL_START
-asm("	text		");
-asm("	global start	");
-asm("	start:		");
-#endif /* NODOT_GLOBAL_START */
 
 _start ()
 {
