@@ -35,10 +35,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
 
-#if defined (GNU_LINUX) || defined (__NetBSD__) || defined (__OpenBSD__)
-# define TEXT_END ({ extern int _etext; &_etext; })
-#endif
-
 #if (defined (__NetBSD__) || defined (__OpenBSD__)) && defined (__ELF__)
 #define HAVE_TEXT_START
 #endif

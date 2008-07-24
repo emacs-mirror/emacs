@@ -1,5 +1,14 @@
 2008-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/amdx86-64.h (HAVE_LIB64_DIR): Consolidate ifdefs.
+	* m/alpha.h (TEXT_END):
+	* m/ibmrs6000.h (TEXT_END):
+	* m/macppc.h (TEXT_END):
+	* s/darwin.h (TEXT_END):
+	* s/msdos.h (TEXT_END): Remove, unused.
+	* s/gnu-linux.h (BSD_PGRPS): Add a comment.
+	* s/cygwin.h: Remove comment.
+
 	* ecrt0.c (NODOT_GLOBAL_START): Remove code, unused.
 	(DOT_GLOBAL_START): Remove conditional, redundant for CRT0_DUMMIES.
 	* m/intel386.h (DOT_GLOBAL_START):

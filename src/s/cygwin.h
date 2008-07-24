@@ -116,9 +116,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define TERMINFO
 
 #define HAVE_SOCKETS
-/* Xaw3d causes problems -- might have been fixed by NARROWPROTO
-   above, but I haven't tried it */
-/*#undef HAVE_XAW3D*/
 
 /* vfork() interacts badly with setsid(), causing ptys to fail to
    change their controlling terminal */

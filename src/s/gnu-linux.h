@@ -227,7 +227,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Use BSD process groups, but use setpgid() instead of setpgrp() to
    actually set a process group. */
-
+/* Interesting: only GNU/Linux defines this,  but the BSDs do not... */
 #define BSD_PGRPS
 
 #define NARROWPROTO 1

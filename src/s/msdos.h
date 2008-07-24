@@ -112,7 +112,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 #define DATA_START  (&etext + 1)
 #define TEXT_START  &start
-#define TEXT_END    &etext
 
 #define _NAIVE_DOS_REGS
 

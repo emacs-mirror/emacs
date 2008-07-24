@@ -156,9 +156,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* start_of_text isn't actually used, so make it compile without error.  */
 #define TEXT_START (0)
 
-/* This seems to be right for end_of_text, but it may not be used anyway.  */
-#define TEXT_END get_etext()
-
 /* Definitions for how to compile & link.  */
 
 /* Link in the Carbon or AppKit lib. */
