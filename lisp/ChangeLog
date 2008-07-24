@@ -1,3 +1,10 @@
+2008-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-start-file-process): Make NAME a unique
+	process name.  Reported by Markus Triska <markus.triska@gmx.at>.
+
+	* net/xesam.el: New file.
+
 2008-07-24  Sven Joachim  <svenjoac@gmx.de>
 
 	* dired-aux.el (dired-copy-file-recursive): Avoid calling
