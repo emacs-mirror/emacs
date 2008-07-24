@@ -1180,9 +1180,15 @@ Special value `always' suppresses confirmation."
 	    (if (file-exists-p to)
 		(or top (dired-handle-overwrite to))
 	      (condition-case err
-		  (progn
-		    (make-directory to)
-		    (set-file-modes to #o700))
+		  ;; We used to call set-file-modes here, but on some
+		  ;; Linux kernels, that returns an error on vfat
+		  ;; filesystems
+		  (let ((default-mode (default-file-modes)))
+		    (unwind-protect
+			(progn
+			  (set-default-file-modes #o700)
+			  (make-directory to))
+		      (set-default-file-modes default-mode)))
 		(file-error
 		 (push (dired-make-relative from)
 		       dired-create-files-failures)
