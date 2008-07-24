@@ -3677,11 +3677,17 @@ beginning of local filename are not substituted."
   "Like `start-file-process' for Tramp files."
   (with-parsed-tramp-file-name default-directory nil
     (unwind-protect
-	(progn
+	(let ((name1 name)
+	      (i 0))
 	  (unless buffer
 	    ;; BUFFER can be nil.  We use a temporary buffer, which is
 	    ;; killed in `tramp-process-sentinel'.
 	    (setq buffer (generate-new-buffer tramp-temp-buffer-name)))
+	  (while (get-process name1)
+	    ;; NAME must be unique as process name.
+	    (setq i (1+ i)
+		  name1 (format "%s<%d>" name i)))
+	  (setq name name1)
 	  ;; Set the new process properties.
 	  (tramp-set-connection-property v "process-name" name)
 	  (tramp-set-connection-property v "process-buffer" buffer)
