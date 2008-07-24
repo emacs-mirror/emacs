@@ -1,3 +1,7 @@
+2008-07-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: New version 6.06a.
+
 2008-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add ns-emacs.
