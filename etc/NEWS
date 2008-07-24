@@ -661,8 +661,11 @@ runs `occur' with the current search string.
 When running isearch in a ChangeLog file, if the search fails,
 then another C-s tries searching the previous ChangeLog,
 if there is one (e.g. go from ChangeLog to ChangeLog.12).
+This is enabled if multi-isearch-search is non-nil.
 
-This is enabled if isearch-buffers-multi is non-nil.
+*** Two new commands to start Isearch on a list of marked buffers
+for buff-menu.el and ibuffer.el are bound to the keys "M-s a C-s" and
+"M-s a M-C-s".
 
 *** The part of an isearch that failed to match is highlighted in `isearch-fail'
 face.
@@ -1400,11 +1403,13 @@ declare-function macros (see Lisp Changes, above).
 
 ** find-cmd.el can build `find' commands using lisp syntax.
 
-** The package isearch-multi.el has been added.  It implements a new mode
-`isearch-buffers-minor-mode' that allows isearch to search through
-multiple buffers.  In this mode a new variable
-`isearch-buffers-next-buffer-function' defines the function to call
-to get the next buffer to search in the series of multiple buffers.
+** The package misearch.el has been added.  It allows Isearch to search
+through multiple buffers.  A variable `multi-isearch-next-buffer-function'
+defines the function to call to get the next buffer to search in the series
+of multiple buffers.  Top-level commands `multi-isearch-buffers',
+`multi-isearch-buffers-regexp', `multi-isearch-files' and
+`multi-isearch-files-regexp' accept a single argument that specifies
+a list of buffers/files to search for a string/regexp.
 
 ** The new major mode `special-mode' is intended as a parent for
 major modes such as those that set the "'mode-class 'special" property.
