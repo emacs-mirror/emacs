@@ -498,7 +498,11 @@ lines.  This is a more reliable replacement for longlines-mode.
 
 ** A new `whitespace' package has been installed, and the pre-existing one
 renamed to `old-whitespace'.
-[FIXME someone explain why this is good, if it is...]
+Now, besides reporting bogus blanks, whitespace package has a minor mode and a
+global minor mode to visualize blanks (TAB, (HARD) SPACE and NEWLINE).  The
+visualization is made via faces and/or display table. Also it is possible to
+select which kind of blanks should be visualized, for example, trailing blanks,
+leading blanks, spaces, tabs, newlines, etc.
 
 ** zeroconf.el offers service discovery and service publishing
 interfaces according to the zeroconf specification.  It communicates
