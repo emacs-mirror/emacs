@@ -4,7 +4,7 @@
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 6.05a
+;; Version: 6.06a
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -263,7 +263,12 @@ index of files or summary page for a given project.
   :index-function        Plugin function to use for generation of index.
                          Defaults to `org-publish-org-index', which
                          generates a plain list of links to all files
-                         in the project."
+                         in the project.
+  :index-style           Can be `list' (index is just an itemized list
+                         of the titles of the files involved) or 
+                         `tree' (the directory structure of the source
+                         files is reflected in the index).  Defaults to
+                         `tree'."
   :group 'org-publish
   :type 'alist)
 
@@ -297,24 +302,29 @@ If functions in this hook modify the buffer, it will be saved."
 
 (defun org-publish-timestamp-filename (filename)
   "Return path to timestamp file for filename FILENAME."
-  (while (string-match
-	  (if (eq system-type 'windows-nt) "~\\|/\\|:" "~\\|/") filename)
-    (setq filename (replace-match "_" nil t filename)))
-  (concat org-publish-timestamp-directory filename ".timestamp"))
+  (concat (file-name-as-directory org-publish-timestamp-directory)
+         "X" (if (fboundp 'sha1) (sha1 filename) (md5 filename))))
 
 (defun org-publish-needed-p (filename)
   "Return `t' if FILENAME should be published."
-  (if org-publish-use-timestamps-flag
-      (if (file-exists-p org-publish-timestamp-directory)
-	  ;; first handle possible wrong timestamp directory
-	  (if (not (file-directory-p org-publish-timestamp-directory))
-	      (error "Org publish timestamp: %s is not a directory"
-		     org-publish-timestamp-directory)
-	    ;; there is a timestamp, check if FILENAME is newer
-	    (file-newer-than-file-p
-	     filename (org-publish-timestamp-filename filename))))
-    ;; don't use timestamps, always return t
-    t))
+  (let ((rtn
+	 (if org-publish-use-timestamps-flag
+	     (if (file-exists-p org-publish-timestamp-directory)
+		 ;; first handle possible wrong timestamp directory
+		 (if (not (file-directory-p org-publish-timestamp-directory))
+		     (error "Org publish timestamp: %s is not a directory"
+			    org-publish-timestamp-directory)
+		   ;; there is a timestamp, check if FILENAME is newer
+		   (file-newer-than-file-p
+		    filename (org-publish-timestamp-filename filename)))
+	       (make-directory org-publish-timestamp-directory)
+	       t)
+	   ;; don't use timestamps, always return t
+	   t)))
+    (if rtn
+	(message "Publishing file %s" filename)
+      (message   "Skipping unmodified file %s" filename))
+    rtn))
 
 (defun org-publish-update-timestamp (filename)
   "Update publishing timestamp for file FILENAME.
@@ -602,6 +612,8 @@ Default for INDEX-FILENAME is 'index.org'."
 	 (index-filename (concat dir (or index-filename "index.org")))
 	 (index-title (or (plist-get project-plist :index-title)
 			  (concat "Index for project " (car project))))
+	 (index-style (or (plist-get project-plist :index-style)
+			  'tree))
 	 (index-buffer (find-buffer-visiting index-filename))
 	 (ifn (file-name-nondirectory index-filename))
 	 file)
@@ -616,25 +628,32 @@ Default for INDEX-FILENAME is 'index.org'."
 	      (oldlocal localdir))
 	  ;; index shouldn't index itself
 	  (unless (string= fn ifn)
-	    (setq localdir (concat (file-name-as-directory dir)
-				   (file-name-directory link)))
-	    (unless (string= localdir oldlocal)
-	      (if (string= localdir dir)
-		  (setq indent-str (make-string 2 ?\ ))
-		(let ((subdirs
-		       (split-string
-			(directory-file-name
-			 (file-name-directory
-			  (file-relative-name localdir dir))) "/"))
-		      (subdir ""))
-		  (setq indent-str (make-string 2 ?\ ))
-		  (dolist (d subdirs)
-		    (setq subdir (concat subdir d "/"))
-		    (insert (concat indent-str " + [[file:" subdir "][" d "/]]\n"))
-		    (setq indent-str (make-string (+ (length indent-str) 2) ?\ ))))))
+	    (if (eq index-style 'list)
+		(message "Generating list-style index for %s" index-title)
+	      (message "Generating tree-style index for %s" index-title)
+	      (setq localdir (concat (file-name-as-directory dir)
+				     (file-name-directory link)))
+	      (unless (string= localdir oldlocal)
+		(if (string= localdir dir)
+		    (setq indent-str (make-string 2 ?\ ))
+		  (let ((subdirs
+			 (split-string
+			  (directory-file-name
+			   (file-name-directory
+			    (file-relative-name localdir dir))) "/"))
+			(subdir ""))
+		    (setq indent-str (make-string 2 ?\ ))
+		    (dolist (d subdirs)
+		      (setq subdir (concat subdir d "/"))
+		      (insert (concat indent-str " + [[file:" 
+				      subdir "][" d "/]]\n"))
+		      (setq indent-str (make-string 
+					(+ (length indent-str) 2) ?\ )))))))
+	    ;; This is common to 'flat and 'tree
 	    (insert (concat indent-str " + [[file:" link "]["
-			    (file-name-sans-extension fn)
-			    "]]\n")))))
+			    (org-publish-find-title file)
+			    "]]\n"))
+	    )))
       (write-file index-filename)
       (kill-buffer (current-buffer)))))
 
@@ -648,7 +667,8 @@ Default for INDEX-FILENAME is 'index.org'."
  	  (and (not
  		(plist-get opt-plist :skip-before-1st-heading))
  	       (org-export-grab-title-from-buffer))
- 	  (file-name-sans-extension file)))))
+	  (file-name-nondirectory (file-name-sans-extension file))))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Interactive publishing functions
