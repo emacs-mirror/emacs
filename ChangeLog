@@ -1,3 +1,9 @@
+2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Check for getrlimit.
+
+	* configure: Regenerate.
+
 2008-05-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* configure.in: Check availability of AvailabilityMacros.h
