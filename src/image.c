@@ -9021,12 +9021,13 @@ svg_load_image (f, img, contents, size)
   fn_rsvg_handle_close (rsvg_handle, &error);
   if (error)
     goto rsvg_error;
+
   /* We can now get a valid pixel buffer from the svg file, if all
      went ok.  */
   pixbuf = fn_rsvg_handle_get_pixbuf (rsvg_handle);
+  fn_rsvg_handle_free (rsvg_handle);
   if (!pixbuf)
     goto rsvg_error;
-  fn_rsvg_handle_free (rsvg_handle);
 
   /* Extract some meta data from the svg handle.  */
   width     = fn_gdk_pixbuf_get_width (pixbuf);
