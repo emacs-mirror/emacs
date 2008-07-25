@@ -2047,7 +2047,11 @@ for the error messages."
 		    (with-syntax-table tex-error-parse-syntax-table
 		      (backward-up-list 1)
 		      (skip-syntax-forward "(_")
-		      (while (not (file-readable-p (thing-at-point 'filename)))
+		      (while (not 
+			      (and (setq try-filename (thing-at-point
+						       'filename))
+				   (not (string= "" try-filename))
+				   (file-readable-p try-filename)))
 			(skip-syntax-backward "(_")
 			(backward-up-list 1)
 			(skip-syntax-forward "(_"))
