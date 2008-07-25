@@ -1,3 +1,8 @@
+2008-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* diff-mode.el (diff-show-trailing-blanks): New fun.  Show trailing
+	blanks in modified lines for diff-mode.
+
 2008-07-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* Makefile.in (ELCFILES): Add net/xesam.el.
