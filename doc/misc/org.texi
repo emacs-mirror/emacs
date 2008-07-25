@@ -3,7 +3,7 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.06a
+@set VERSION 6.06b
 @set DATE July 2008
 
 @dircategory Emacs
@@ -7125,6 +7125,7 @@ TeX:       @r{turn on/off simple @TeX{} macros in plain text}
 LaTeX:     @r{turn on/off La@TeX{} fragments}
 skip:      @r{turn on/off skipping the text before the first heading}
 author:    @r{turn on/off inclusion of author name/email into exported file}
+creator:   @r{turn on/off inclusion of creator info into exported file}
 timestamp: @r{turn on/off inclusion creation time into exported file}
 d:         @r{turn on/off inclusion of drawers}
 @end example

@@ -1,3 +1,7 @@
+2008-07-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Export options): Document the use of the creator flag.
+
 2008-07-24  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: New version 6.06a.
