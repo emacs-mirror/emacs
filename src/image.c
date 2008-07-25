@@ -5597,7 +5597,7 @@ x_from_xcolors (f, img, colors)
 {
   int x, y;
   XImagePtr oimg = NULL;
-  Pixmap pixmap = NULL;
+  Pixmap pixmap;
   XColor *p;
 
   init_color_table ();
