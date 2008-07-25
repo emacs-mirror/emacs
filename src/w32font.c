@@ -292,6 +292,8 @@ w32font_has_char (entity, c)
     return -1;
 
   supported_scripts = assq_no_quit (QCscript, extra);
+  /* If font doesn't claim to support any scripts, then we can't be certain
+     until we open it.  */
   if (!CONSP (supported_scripts))
     return -1;
 
@@ -299,7 +301,16 @@ w32font_has_char (entity, c)
 
   script = CHAR_TABLE_REF (Vchar_script_table, c);
 
-  return (memq_no_quit (script, supported_scripts)) ? -1 : 0;
+  /* If we don't know what script the character is from, then we can't be
+     certain until we open it.  Also if the font claims support for the script
+     the character is from, it may only have partial coverage, so we still
+     can't be certain until we open the font.  */
+  if (NILP (script) || memq_no_quit (script, supported_scripts))
+    return -1;
+
+  /* Font reports what scripts it supports, and none of them are the script
+     the character is from, so it is a definite no.  */
+  return 0;
 }
 
 /* w32 implementation of encode_char for font backend.
