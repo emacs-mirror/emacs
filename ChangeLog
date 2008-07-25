@@ -1,3 +1,9 @@
+2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Check for getrlimit.
+
+	* configure: Regenerate.
+
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (LD_SWITCH_SITE): Remove, set the values directly
