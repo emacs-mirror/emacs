@@ -11423,6 +11423,7 @@
 
 	* diff-mode.el (diff-add-change-log-entries-other-window): Avoid the
 	splitter in context hunks.
+
 2008-02-08  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/fontset.el (setup-default-fontset): Fix arabic otf
