@@ -2782,6 +2782,9 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   defsubr (&Stty_no_underline);
 
   fullscreen_hook = NULL;
+  default_orig_pair = NULL;
+  default_set_foreground = NULL;
+  default_set_background = NULL;
 }
 
 /* arch-tag: 498e7449-6f2e-45e2-91dd-b7d4ca488193
