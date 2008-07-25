@@ -327,8 +327,13 @@ w32font_encode_char (font, c)
 
   if (c > 0xFFFF)
     {
-      /* TODO: Encode as surrogate pair and lookup the glyph.  */
-      return FONT_INVALID_CODE;
+      DWORD surrogate = c - 0x10000;
+
+      /* High surrogate: U+D800 - U+DBFF.  */
+      in[0] = 0xD800 + ((surrogate >> 10) & 0x03FF);
+      /* Low surrogate: U+DC00 - U+DFFF.  */
+      in[1] = 0xDC00 + (surrogate & 0x03FF);
+      len = 2;
     }
   else
     {
@@ -394,7 +399,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
   HDC dc = NULL;
   struct frame * f;
   int total_width = 0;
-  WORD *wcode = NULL;
+  WORD *wcode;
   SIZE size;
 
   struct w32font_info *w32_font = (struct w32font_info *) font;
@@ -484,19 +489,27 @@ w32font_text_extents (font, code, nglyphs, metrics)
   /* For non-truetype fonts, GetGlyphOutlineW is not supported, so
      fallback on other methods that will at least give some of the metric
      information.  */
-  if (!wcode) {
-    wcode = alloca (nglyphs * sizeof (WORD));
-    for (i = 0; i < nglyphs; i++)
-      {
-	if (code[i] < 0x10000)
-	  wcode[i] = code[i];
-	else
-	  {
-	    /* TODO: Convert to surrogate, reallocating array if needed */
-	    wcode[i] = 0xffff;
-	  }
-      }
-  }
+  
+  /* Make array big enough to hold surrogates.  */
+  wcode = alloca (nglyphs * sizeof (WORD) * 2);
+  for (i = 0; i < nglyphs; i++)
+    {
+      if (code[i] < 0x10000)
+        wcode[i] = code[i];
+      else
+        {
+          DWORD surrogate = code[i] - 0x10000;
+
+          /* High surrogate: U+D800 - U+DBFF.  */
+          wcode[i++] = 0xD800 + ((surrogate >> 10) & 0x03FF);
+          /* Low surrogate: U+DC00 - U+DFFF.  */
+          wcode[i] = 0xDC00 + (surrogate & 0x03FF);
+          /* An extra glyph. wcode is already double the size of code to
+             cope with this.  */
+          nglyphs++;
+        }
+    }
+
   if (dc == NULL)
     {
       /* TODO: Frames can come and go, and their fonts outlive

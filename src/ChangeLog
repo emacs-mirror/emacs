@@ -1,3 +1,13 @@
+2008-07-25  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.c (w32font_encode_char): Encode characters outside BMP as
+        surrogates before looking up glyph index.
+        (w32font_text_extents): Encode as surrogates if falling back to
+        functions that need UTF-16 wide chars.
+
+        * w32uniscribe.c (uniscribe_encode_char): Encode characters outside
+        BMP as surrogates before looking up glyph index.
+
 2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (svg_load_image): Check for failure in return value of

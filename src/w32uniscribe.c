@@ -411,25 +411,36 @@ uniscribe_encode_char (font, c)
      struct font *font;
      int c;
 {
-  wchar_t chars[1];
+  wchar_t chars[2];
+  int len;
   WORD indices[1];
   HDC context;
   struct frame *f;
   HFONT old_font;
   DWORD retval;
 
-  /* TODO: surrogates.  */
   if (c > 0xFFFF)
-    return FONT_INVALID_CODE;
+    {
+      DWORD surrogate = c - 0x10000;
 
-  chars[0] = (wchar_t) c;
+      /* High surrogate: U+D800 - U+DBFF.  */
+      chars[0] = 0xD800 + ((surrogate >> 10) & 0x03FF);
+      /* Low surrogate: U+DC00 - U+DFFF.  */
+      chars[1] = 0xDC00 + (surrogate & 0x03FF);
+      len = 2;
+    }
+  else
+    {
+      chars[0] = (wchar_t) c;
+      len = 1;
+    }
 
   /* Use selected frame until API is updated to pass the frame.  */
   f = XFRAME (selected_frame);
   context = get_frame_dc (f);
   old_font = SelectObject (context, FONT_HANDLE(font));
 
-  retval = GetGlyphIndicesW (context, chars, 1, indices,
+  retval = GetGlyphIndicesW (context, chars, len, indices,
 			     GGI_MARK_NONEXISTING_GLYPHS);
 
   SelectObject (context, old_font);
