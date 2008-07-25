@@ -1,3 +1,8 @@
+2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/tex-mode.el (tex-compilation-parse-errors): Check for
+	invalid filename strings when parsing tex errors (bug#376).
+
 2008-07-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* menu-bar.el (menu-bar-file-menu): Fix typo.
