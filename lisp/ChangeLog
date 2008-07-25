@@ -1,3 +1,10 @@
+2008-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char): Don't overwrite local variable char
+	when describing characters with display-table entries.  Display font
+	backend when describing composed characters.  Simplify: use `let'
+	instead of `let*', and `or x y' instead of `if x x y'.
+
 2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-minor-mode): Set up winprops.
