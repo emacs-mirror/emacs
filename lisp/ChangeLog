@@ -1,3 +1,7 @@
+2008-07-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* menu-bar.el (menu-bar-file-menu): Fix typo.
+
 2008-07-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* play/solitaire.el (solitaire-mode-map): Define within defvar.
