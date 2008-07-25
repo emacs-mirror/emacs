@@ -1,5 +1,13 @@
 2008-07-25  Juanma Barranquero  <lekktu@gmail.com>
 
+	* play/solitaire.el (solitaire-mode-map): Define within defvar.
+	(solitaire-mode): Define with `define-derived-mode'.
+	(solitaire-insert-board, solitaire-right, solitaire-left, solitaire-up)
+	(solitaire-down): Use "?\s" instead of "?\ "; use `when'.
+	(solitaire-undo, solitaire-check): Use `when'.
+	(solitaire-solve): Err out if the solitaire is already in progress.
+	Use `when'.
+
 	* descr-text.el (describe-char): Don't overwrite local variable char
 	when describing characters with display-table entries.  Display font
 	backend when describing composed characters.  Simplify: use `let'
@@ -11415,7 +11423,6 @@
 
 	* diff-mode.el (diff-add-change-log-entries-other-window): Avoid the
 	splitter in context hunks.
-
 2008-02-08  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/fontset.el (setup-default-fontset): Fix arabic otf
