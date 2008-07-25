@@ -2328,10 +2328,10 @@ DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
 Return fontconfig style font string corresponding to the selection.
 
 If FRAME is omitted or nil, it defaults to the selected frame.
-If INCLUDE-PROPORTIONAL is non-nil, include proportional fonts
+If EXCLUDE-PROPORTIONAL is non-nil, exclude proportional fonts
 in the font selection dialog. */)
-  (frame, include_proportional)
-     Lisp_Object frame, include_proportional;
+  (frame, exclude_proportional)
+     Lisp_Object frame, exclude_proportional;
 {
   FRAME_PTR f = check_x_frame (frame);
   CHOOSEFONT cf;
@@ -2348,9 +2348,9 @@ in the font selection dialog. */)
   cf.hwndOwner = FRAME_W32_WINDOW (f);
   cf.Flags = CF_FORCEFONTEXIST | CF_SCREENFONTS | CF_NOVERTFONTS;
 
-  /* Unless include_proportional is non-nil, limit the selection to
+  /* If exclude_proportional is non-nil, limit the selection to
      monospaced fonts.  */
-  if (NILP (include_proportional))
+  if (!NILP (exclude_proportional))
     cf.Flags |= CF_FIXEDPITCHONLY;
 
   cf.lpLogFont = &lf;
