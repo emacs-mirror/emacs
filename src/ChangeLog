@@ -1,6 +1,9 @@
 2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (svg_load_image): Fix last change.
+	(svg_load_image): Use rsvg_handle_get_dimensions to check that
+	image size is valid.  Use g_object_unref instead of deprecated
+	rsvg_handle_free to free rsvg handle.
 
 2008-07-25  Jason Rumney  <jasonr@gnu.org>
 
