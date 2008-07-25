@@ -1,5 +1,8 @@
 2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* term.c (syms_of_term): Initialize default_orig_pair,
+	default_set_foreground, and default_set_background.
+
 	* getloadavg.c (nl): Rename to name_list to avoid ncurses.h
 	clash (bug#86).
 	(getloadavg): Callers changed.
