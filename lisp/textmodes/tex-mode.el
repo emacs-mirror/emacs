@@ -2188,6 +2188,7 @@ for the error messages."
       (let* ((this-error (copy-marker begin-of-error))
 	     (linenum (string-to-number (match-string 1)))
 	     (error-text (regexp-quote (match-string 3)))
+	     try-filename
 	     (filename
 	      ;; Prefer --file-liner-error filename if we have it.
 	      (or errfilename
@@ -2195,7 +2196,11 @@ for the error messages."
 		    (with-syntax-table tex-error-parse-syntax-table
 		      (backward-up-list 1)
 		      (skip-syntax-forward "(_")
-		      (while (not (file-readable-p (thing-at-point 'filename)))
+		      (while (not 
+			      (and (setq try-filename (thing-at-point
+						       'filename))
+				   (not (string= "" try-filename))
+				   (file-readable-p try-filename)))
 			(skip-syntax-backward "(_")
 			(backward-up-list 1)
 			(skip-syntax-forward "(_"))
