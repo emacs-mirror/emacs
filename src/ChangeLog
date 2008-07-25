@@ -1,3 +1,8 @@
+2008-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term.c (syms_of_term): Don't initialize default_orig_pair,
+	default_set_foreground and default_set_background on Windows.
+
 2008-07-25  Jason Rumney  <jasonr@gnu.org>
 
         * w32uniscribe.c (uniscribe_shape): Pass NULL for control arg to
