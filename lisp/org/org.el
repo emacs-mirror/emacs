@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06a
+;; Version: 6.06b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -91,7 +91,7 @@
 
 ;;; Version
 
-(defconst org-version "6.06a"
+(defconst org-version "6.06b"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)
@@ -2650,7 +2650,7 @@ collapsed state."
 (org-autoload (if (featurep 'xemacs) "org-colview-xemacs" "org-colview")
  '(org-columns-number-to-string org-columns-get-format-and-top-level
    org-columns-compute org-agenda-columns org-columns-remove-overlays
-   org-columns org-insert-columns-dblock))
+   org-columns org-insert-columns-dblock org-dblock-write:columnview))
 
 ;; Autoload ID code
 
@@ -5513,7 +5513,8 @@ the language, a switch telling of the content should be in a single line."
     (when font-lock-mode
       (font-lock-unfontify-region (point-min) (point-max)))
     (put-text-property (point-min) (point-max) 'font-lock-fontified t))
-  (kill-buffer (current-buffer)))
+  (kill-buffer (current-buffer))
+  (and (org-mode-p) (org-restart-font-lock)))
 
 ;;;; Plain list items, including checkboxes
 

@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06a
+;; Version: 6.06b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -5120,12 +5120,11 @@ All the standard commands work: block, weekly etc."
       (unwind-protect
 	  (progn
 	    (fset 'calendar-cursor-to-date
-		  (lambda (&optional error)
+		  (lambda (&optional error dummy)
 		    (calendar-gregorian-from-absolute
 		     (get-text-property point 'day))))
 	      (call-interactively cmd))
 	(fset 'calendar-cursor-to-date oldf)))))
-
 
 (defun org-agenda-execute-calendar-command (cmd)
   "Execute a calendar command from the agenda, with the date associated to
@@ -5144,7 +5143,7 @@ the cursor position."
       (unwind-protect
 	  (progn
 	    (fset 'calendar-cursor-to-date
-		  (lambda (&optional error)
+		  (lambda (&optional error dummy)
 		    (calendar-gregorian-from-absolute
 		     (get-text-property point 'day))))
 	    (call-interactively cmd))

@@ -4,7 +4,7 @@
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 6.06a
+;; Version: 6.06b
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -554,6 +554,7 @@ See `org-publish-org-to' to the list of arguments."
 					  (abbreviate-file-name filename))))
 		      (error "Can't publish file outside of a project")))))
 	   (project-plist (cdr project))
+	   (ftname (file-truename filename))
 	   (publishing-function
 	    (or (plist-get project-plist :publishing-function)
 		'org-publish-org-to-html))
@@ -565,8 +566,8 @@ See `org-publish-org-to' to the list of arguments."
       (setq tmp-pub-dir
 	    (file-name-directory
 	     (concat pub-dir
-		     (and (string-match (regexp-quote base-dir) filename)
-			  (substring filename (match-end 0))))))
+		     (and (string-match (regexp-quote base-dir) ftname)
+			  (substring ftname (match-end 0))))))
       (if (listp publishing-function)
 	  ;; allow chain of publishing functions
 	  (mapc (lambda (f)

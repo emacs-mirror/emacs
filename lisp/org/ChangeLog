@@ -1,3 +1,20 @@
+2008-07-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-publish.el (org-publish-file): Use the true name of the
+	file.
+
+	* org-jsinfo.el (org-infojs-handle-options): Use :style-extra
+	instead of :style.
+
+	* org-exp.el (org-export-plist-vars)
+	(org-export-add-options-to-plist): Handle creator setting flag.
+	(org-export-as-html): Handle attributes also for ftp and mailto
+	links.
+
+	* org-agenda.el (org-agenda-diary-entry)
+	(org-agenda-execute-calendar-command): Cater for the second
+	argument of `calendar-cursor-to-date'.
+
 2008-07-24  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-exp.el (org-export-region-as-html, org-export-as-html): Make

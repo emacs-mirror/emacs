@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06a
+;; Version: 6.06b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -883,6 +883,7 @@ modified) list.")
 		  ("LaTeX" . :LaTeX-fragments)
 		  ("skip"  . :skip-before-1st-heading)
 		  ("author" . :author-info)
+		  ("creator" . :creator-info)
 		  ("timestamp" . :time-stamp-file)))
 	    o)
 	(while (setq o (pop op))
@@ -3072,7 +3073,7 @@ lang=\"%s\" xml:lang=\"%s\">
 	     ((member type '("ftp" "mailto" "news"))
 	      ;; standard URL
 	      (setq link (concat type ":" path))
-	      (setq rpl (concat "<a href=\"" link "\">" desc "</a>")))
+	      (setq rpl (concat "<a href=\"" link "\"" attr ">" desc "</a>")))
 
 	     ((functionp (setq fnc (nth 2 (assoc type org-link-protocols))))
 	      ;; The link protocol has a function for format the link
