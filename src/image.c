@@ -8841,7 +8841,7 @@ svg_image_p (object)
 
 /* SVG library functions.  */
 DEF_IMGLIB_FN (rsvg_handle_new);
-DEF_IMGLIB_FN (rsvg_handle_set_size_callback);
+DEF_IMGLIB_FN (rsvg_handle_get_dimensions);
 DEF_IMGLIB_FN (rsvg_handle_write);
 DEF_IMGLIB_FN (rsvg_handle_close);
 DEF_IMGLIB_FN (rsvg_handle_get_pixbuf);
@@ -8873,7 +8873,7 @@ init_svg_functions (Lisp_Object libraries)
     return 0;
 
   LOAD_IMGLIB_FN (library, rsvg_handle_new);
-  LOAD_IMGLIB_FN (library, rsvg_handle_set_size_callback);
+  LOAD_IMGLIB_FN (library, rsvg_handle_get_dimensions);
   LOAD_IMGLIB_FN (library, rsvg_handle_write);
   LOAD_IMGLIB_FN (library, rsvg_handle_close);
   LOAD_IMGLIB_FN (library, rsvg_handle_get_pixbuf);
@@ -8898,7 +8898,7 @@ init_svg_functions (Lisp_Object libraries)
 /* The following aliases for library functions allow dynamic loading
    to be used on some platforms.  */
 #define fn_rsvg_handle_new		rsvg_handle_new
-#define fn_rsvg_handle_set_size_callback rsvg_handle_set_size_callback
+#define fn_rsvg_handle_get_dimensions   rsvg_handle_get_dimensions
 #define fn_rsvg_handle_write		rsvg_handle_write
 #define fn_rsvg_handle_close		rsvg_handle_close
 #define fn_rsvg_handle_get_pixbuf	rsvg_handle_get_pixbuf
@@ -8993,6 +8993,7 @@ svg_load_image (f, img, contents, size)
      unsigned int size;
 {
   RsvgHandle *rsvg_handle;
+  RsvgDimensionData dimension_data;
   GError *error = NULL;
   GdkPixbuf *pixbuf;
   int width;
@@ -9013,21 +9014,22 @@ svg_load_image (f, img, contents, size)
 
   /* Parse the contents argument and fill in the rsvg_handle.  */
   fn_rsvg_handle_write (rsvg_handle, contents, size, &error);
-  if (error)
-    goto rsvg_error;
+  if (error) goto rsvg_error;
 
   /* The parsing is complete, rsvg_handle is ready to used, close it
      for further writes.  */
   fn_rsvg_handle_close (rsvg_handle, &error);
-  if (error)
+  if (error) goto rsvg_error;
+
+  fn_rsvg_handle_get_dimensions (rsvg_handle, &dimension_data);
+  if (! check_image_size (f, dimension_data.width, dimension_data.height))
     goto rsvg_error;
 
   /* We can now get a valid pixel buffer from the svg file, if all
      went ok.  */
   pixbuf = fn_rsvg_handle_get_pixbuf (rsvg_handle);
-  fn_rsvg_handle_free (rsvg_handle);
-  if (!pixbuf)
-    goto rsvg_error;
+  if (!pixbuf) goto rsvg_error;
+  fn_g_object_unref (rsvg_handle);
 
   /* Extract some meta data from the svg handle.  */
   width     = fn_gdk_pixbuf_get_width (pixbuf);
@@ -9148,6 +9150,7 @@ svg_load_image (f, img, contents, size)
   return 1;
 
  rsvg_error:
+  fn_g_object_unref (rsvg_handle);
   /* FIXME: Use error->message so the user knows what is the actual
      problem with the image.  */
   image_error ("Error parsing SVG image `%s'", img->spec, Qnil);
