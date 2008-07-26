@@ -1,3 +1,26 @@
+2008-07-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-start-file-process): Set
+	query-on-exit flag. Kill temporary buffer.
+	(tramp-process-sentinel): Remove defun.
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-maybe-open-connection):Don't call it.
+
+	* net/tramp-fish.el (tramp-fish-maybe-open-connection): Don't call
+	`tramp-process-sentinel'.
+
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection): Don't call
+	`tramp-process-sentinel'.
+
+	* net/xesam.el (xesam-from): Remove defvar.
+	(xesam-mode): Derive from `special-mode'.  Extend `xesam-mode-map'
+	and `mode-line-position'.
+	(xesam-refresh-entry): Remove argument `hit-number'.  Add debug
+	information to the widgets.  Don't set `mode-line-position'.
+	(xesam-refresh-search-buffer): Correct hit number computing.
+	Don't set `mode-line-position'.
+	(xesam-new-search): Add debug information to the mode line.
+
 2008-07-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* diff-mode.el (diff-show-trailing-blanks): Renamed to
