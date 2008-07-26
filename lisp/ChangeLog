@@ -1,3 +1,8 @@
+2008-07-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* diff-mode.el (diff-show-trailing-blanks): Renamed to
+	diff-show-trailing-whitespaces.
+
 2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/tex-mode.el (tex-compilation-parse-errors): Check for

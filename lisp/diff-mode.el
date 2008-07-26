@@ -1881,8 +1881,8 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
         ;; When there's no more hunks, diff-hunk-next signals an error.
 	(error nil)))))
 
-(defun diff-show-trailing-blanks ()
-  "Show trailing blanks in modified lines for diff-mode."
+(defun diff-show-trailing-whitespaces ()
+  "Show trailing whitespaces in modified lines for diff-mode."
   (interactive)
   (let ((whitespace-style '(trailing))
         (whitespace-trailing-regexp "^[-\+!<>].*?\\([\t ]+\\)$"))
