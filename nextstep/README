@@ -1,87 +1,66 @@
 Copyright (C) 2008 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
-Emacs.app
-=========
+This directory contains the files needed to build Emacs on
+Nextstep-based platforms, including GNUStep and Mac OS X.
 
-This file introduces the NeXTstep-based port of GNU Emacs, known as
-Emacs.app, which runs on on many POSIX systems and possibly W32 using
-the GNUstep libraries and on MacOS X systems using the Cocoa
-libraries.  The directory "nextstep" and its subdirectories "Cocoa"
-and "GNUstep" contain files relevant to building and running on these
-systems.
+The Nextstep support code works on many POSIX systems (and possibly
+W32) using the GNUstep libraries, and on MacOS X systems using the
+Cocoa libraries.
 
-Those primarily responsible for the port (in chronological order) were:
+See the INSTALL file in this directory for compilaton instructions.
 
-Michael Brouwer
-Carl Edman
-Christian Limpach
-Scott Bender
-Christophe de Dinechin
-Adrian Robert
+Those primarily responsible for the port were, in chronological order:
+Michael Brouwer, Carl Edman, Christian Limpach, Scott Bender,
+Christophe de Dinechin, and Adrian Robert.
 
+Peter Dyballa assisted in a variety of ways to improve text rendering
+and keyboard handling, Adam Ratcliffe documented the Preferences
+panel, David M. Cooke contributed fixes to XPM handling, and Carsten
+Bormann helped get dired working for non-ASCII filenames.  People who
+provided additional assistance include Adam Fedor, Fred Kiefer, M. Uli
+Klusterer, Alexander Malmberg, Jonas Matton, and Riccardo Mottola.
 See AUTHORS file and "Release History" below for more information.
-
-GNU Emacs is due to Richard Stallman and company.
-
-The GNUstep port was made possible through the assistance of Adam Fedor, Fred
-Kiefer, M. Uli Klusterer, Alexander Malmberg, Jonas Matton, and Riccardo
-Mottola.
-
-Peter Dyballa assisted in a variety of ways to improve text rendering and
-keyboard handling.  Adam Ratcliffe documented the Preferences panel.  David
-M. Cooke contributed fixes to XPM handling.  Carsten Bormann helped get dired
-working for non-ASCII filenames.
 
 
 Requirements
 ------------
 MacOS X 10.3 or later
+
 - or -
+
 GNUstep "Startup 0.13" or later
-Tested on linux, should work on other systems, perhaps with minor build
-tweaking.
-
-
-Compilation
------------
-
-See INSTALL.
-
-
-Usage
------
-
-Please use the first entry under the help menu within Emacs.app, do
-"M-x info-ns-emacs".
+Tested on GNU/Linux, should work on other systems, perhaps with minor
+build tweaking.
 
 
 Background
 ----------
+Within Emacs, the port and its code are referred to using the term
+"Nextstep", despite the fact that no system or API has been released
+under this name in more than 10 years.  Here's some background on why:
 
-Internally to emacs, the port and its code are referred to using the term
-"NeXTstep", despite the fact that no system or API has been released under
-this name in more than 10 years.  Here's some background on why..
+NeXT, Inc. introduced the NeXTstep API with its computer and operating
+system in the late 1980's.  Later on, in collaboration with Sun, this
+API was published as a specification called OpenStep.  The GNUstep
+project started in the early 1990's to provide a free implementation
+of this API.  Later on, Apple bought NeXT (some would say "NeXT bought
+Apple") and made OpenStep the basis of OS X, calling the API "Cocoa".
+Since then, Cocoa has evolved beyond the OpenStep specification, and
+GNUstep has followed it.
 
-NeXT, Inc. introduced the NeXTstep API with its computer and operating system
-in the late 1980's.  Later on in collaboration with Sun, this API was
-published as a specification called OpenStep.  The GNUstep project started in
-the early 1990's to provide a free implementation of this API.  Later on,
-Apple bought NeXT (some would say "NeXT bought Apple") and made OpenStep the
-basis of OS X, calling the API "Cocoa".  Since then, Cocoa has evolved beyond
-the OpenStep specification, and GNUstep has followed it.
-
-Thus, calling this port "OpenStep" is not technically accurate, and in the
-absence of any other determinant, we are using the term "NeXTstep", both
-because it signifies the original inspiration that created these APIs, and
-because all of the classes and functions still begin with the letters "NS".
+Thus, calling this port "OpenStep" is not technically accurate, and in
+the absence of any other determinant, we are using the term
+"Nextstep", both because it signifies the original inspiration that
+created these APIs, and because all of the classes and functions still
+begin with the letters "NS".
 
 (See http://en.wikipedia.org/wiki/Nextstep)
 
-This Emacs port was first released in the early 1990's on the NeXT computer,
-and was successively updated to OpenStep, Rhapsody, OS X, and then finally
-GNUstep, tracking GNU emacs core releases in the meantime.
-
+This Emacs port was first released in the early 1990's on the NeXT
+computer, and was successively updated to OpenStep, Rhapsody, OS X,
+and then finally GNUstep, tracking GNU emacs core releases in the
+meantime.
 
 
 Release History

@@ -1,8 +1,28 @@
-2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* NEWS: New function `diff-show-trailing-blanks' in diff-mode.el.
+
+2008-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add xesam.el.
+
+2008-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* NEWS: Add information about whitespace package.
+
+2008-07-19  Juri Linkov  <juri@jurta.org>
+
+	* tutorials/TUTORIAL: Add information about C-g to the introduction.
+
+2008-07-18  Francesc Rocher  <rocher@member.fsf.org>
+
+	* images/splash8.xpm: Remove.
+
+2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* NEWS: Add entry about NS port.
 
-2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Emacs.clr: New file, add support for X color names to NS display
 	implementations.

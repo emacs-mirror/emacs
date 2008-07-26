@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.05a
+;; Version: 6.06b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -180,8 +180,8 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
 	   (setq s (replace-match s t t template))
 	   (setq exp-plist
 		 (plist-put
-		  exp-plist :style
-		  (concat (or (plist-get exp-plist :style) "") "\n" s)))))
+		  exp-plist :style-extra
+		  (concat (or (plist-get exp-plist :style-extra) "") "\n" s)))))
     ;; This script absolutely needs the table of contents, to we change that
     ;; setting
     (if (not (plist-get exp-plist :table-of-contents))

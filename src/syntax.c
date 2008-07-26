@@ -65,18 +65,20 @@ int open_paren_in_column_0_is_defun_start;
 
 struct lisp_parse_state
   {
-    int depth;		/* Depth at end of parsing.  */
-    int instring;	/* -1 if not within string, else desired terminator.  */
-    int incomment;	/* -1 if in unnestable comment else comment nesting */
-    int comstyle;	/* comment style a=0, or b=1, or ST_COMMENT_STYLE.  */
-    int quoted;		/* Nonzero if just after an escape char at end of parsing */
-    int thislevelstart;	/* Char number of most recent start-of-expression at current level */
-    int prevlevelstart; /* Char number of start of containing expression */
-    int location;	/* Char number at which parsing stopped.  */
-    int mindepth;	/* Minimum depth seen while scanning.  */
-    int comstr_start;	/* Position just after last comment/string starter.  */
-    Lisp_Object levelstarts;	/* Char numbers of starts-of-expression
-				   of levels (starting from outermost).  */
+    int depth;	   /* Depth at end of parsing.  */
+    int instring;  /* -1 if not within string, else desired terminator.  */
+    int incomment; /* -1 if in unnestable comment else comment nesting */
+    int comstyle;  /* comment style a=0, or b=1, or ST_COMMENT_STYLE.  */
+    int quoted;	   /* Nonzero if just after an escape char at end of parsing */
+    int mindepth;  /* Minimum depth seen while scanning.  */
+    /* Char number of most recent start-of-expression at current level */
+    EMACS_INT thislevelstart;
+    /* Char number of start of containing expression */
+    EMACS_INT prevlevelstart;
+    EMACS_INT location;	     /* Char number at which parsing stopped.  */
+    EMACS_INT comstr_start;  /* Position of last comment/string starter.  */
+    Lisp_Object levelstarts; /* Char numbers of starts-of-expression
+				of levels (starting from outermost).  */
   };
 
 /* These variables are a cache for finding the start of a defun.
@@ -87,23 +89,19 @@ struct lisp_parse_state
    find_start_begv is the BEGV value when it was found.
    find_start_modiff is the value of MODIFF when it was found.  */
 
-static int find_start_pos;
-static int find_start_value;
-static int find_start_value_byte;
+static EMACS_INT find_start_pos;
+static EMACS_INT find_start_value;
+static EMACS_INT find_start_value_byte;
 static struct buffer *find_start_buffer;
-static int find_start_begv;
+static EMACS_INT find_start_begv;
 static int find_start_modiff;
 
 
-static int find_defun_start P_ ((int, int));
-static int back_comment P_ ((EMACS_INT, EMACS_INT, EMACS_INT, int, int,
-			     EMACS_INT *, EMACS_INT *));
-static int char_quoted P_ ((int, int));
 static Lisp_Object skip_chars P_ ((int, Lisp_Object, Lisp_Object, int));
 static Lisp_Object skip_syntaxes P_ ((int, Lisp_Object, Lisp_Object));
 static Lisp_Object scan_lists P_ ((EMACS_INT, EMACS_INT, EMACS_INT, int));
 static void scan_sexps_forward P_ ((struct lisp_parse_state *,
-				    int, int, int, int,
+				    EMACS_INT, EMACS_INT, EMACS_INT, int,
 				    int, Lisp_Object, int));
 static int in_classes P_ ((int, Lisp_Object));
 
@@ -290,31 +288,17 @@ update_syntax_table (charpos, count, init, object)
    or after.  On return global syntax data is good for lookup at CHARPOS. */
 
 static int
-char_quoted (charpos, bytepos)
-     register int charpos, bytepos;
+char_quoted (EMACS_INT charpos, EMACS_INT bytepos)
 {
   register enum syntaxcode code;
-  register int beg = BEGV;
+  register EMACS_INT beg = BEGV;
   register int quoted = 0;
-  int orig = charpos;
+  EMACS_INT orig = charpos;
 
-#ifdef HAVE_NS
-  /* For some reason keeps getting called w/both 1, then segfaulting
-     due to the definitions of DEC_BOTH and DEC_POS in character.h,
-     which lead to decrementing below initial address and then examining
-     character there.  Need to investigate further.. */
-  if (charpos < 2 || bytepos < 2)
-    {
-      //fprintf(stderr,"Returning because charpos = %d, bytepos = %d\n",charpos, bytepos);
-      return 0;
-    }
-#endif
-
-  DEC_BOTH (charpos, bytepos);
-
-  while (charpos >= beg)
+  while (charpos > beg)
     {
       int c;
+      DEC_BOTH (charpos, bytepos);
 
       UPDATE_SYNTAX_TABLE_BACKWARD (charpos);
       c = FETCH_CHAR_AS_MULTIBYTE (bytepos);
@@ -322,7 +306,6 @@ char_quoted (charpos, bytepos)
       if (! (code == Scharquote || code == Sescape))
 	break;
 
-      DEC_BOTH (charpos, bytepos);
       quoted = !quoted;
     }
 
@@ -333,9 +316,9 @@ char_quoted (charpos, bytepos)
 /* Return the bytepos one character after BYTEPOS.
    We assume that BYTEPOS is not at the end of the buffer.  */
 
-INLINE int
+INLINE EMACS_INT
 inc_bytepos (bytepos)
-     int bytepos;
+     EMACS_INT bytepos;
 {
   if (NILP (current_buffer->enable_multibyte_characters))
     return bytepos + 1;
@@ -347,9 +330,9 @@ inc_bytepos (bytepos)
 /* Return the bytepos one character before BYTEPOS.
    We assume that BYTEPOS is not at the start of the buffer.  */
 
-INLINE int
+INLINE EMACS_INT
 dec_bytepos (bytepos)
-     int bytepos;
+     EMACS_INT bytepos;
 {
   if (NILP (current_buffer->enable_multibyte_characters))
     return bytepos - 1;
@@ -372,11 +355,11 @@ dec_bytepos (bytepos)
    valid on return from the subroutine, so the caller should explicitly
    update the global data.  */
 
-static int
+static EMACS_INT
 find_defun_start (pos, pos_byte)
-     int pos, pos_byte;
+     EMACS_INT pos, pos_byte;
 {
-  int opoint = PT, opoint_byte = PT_BYTE;
+  EMACS_INT opoint = PT, opoint_byte = PT_BYTE;
 
   if (!open_paren_in_column_0_is_defun_start)
     {
@@ -505,14 +488,14 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
      inside another comment).
      Test case:  { a (* b } c (* d *) */
   int comment_lossage = 0;
-  int comment_end = from;
-  int comment_end_byte = from_byte;
-  int comstart_pos = 0;
-  int comstart_byte;
+  EMACS_INT comment_end = from;
+  EMACS_INT comment_end_byte = from_byte;
+  EMACS_INT comstart_pos = 0;
+  EMACS_INT comstart_byte;
   /* Place where the containing defun starts,
      or 0 if we didn't come across it yet.  */
-  int defun_start = 0;
-  int defun_start_byte = 0;
+  EMACS_INT defun_start = 0;
+  EMACS_INT defun_start_byte = 0;
   register enum syntaxcode code;
   int nesting = 1;		/* current comment nesting */
   int c;
@@ -2921,9 +2904,9 @@ static void
 scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
 		    stopbefore, oldstate, commentstop)
      struct lisp_parse_state *stateptr;
-     register int from;
-     int from_byte;
-     int end, targetdepth, stopbefore;
+     register EMACS_INT from;
+     EMACS_INT from_byte, end;
+     int targetdepth, stopbefore;
      Lisp_Object oldstate;
      int commentstop;
 {
@@ -2942,8 +2925,8 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
   int mindepth;		/* Lowest DEPTH value seen.  */
   int start_quoted = 0;		/* Nonzero means starting after a char quote */
   Lisp_Object tem;
-  int prev_from;		/* Keep one character before FROM.  */
-  int prev_from_byte;
+  EMACS_INT prev_from;		/* Keep one character before FROM.  */
+  EMACS_INT prev_from_byte;
   int prev_from_syntax;
   int boundary_stop = commentstop == -1;
   int nofence;

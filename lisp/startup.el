@@ -1249,10 +1249,7 @@ If this is nil, no message will be displayed."
 	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
 	 '("GNU" (lambda (button) (describe-gnu-project))
 	   "Display info on the GNU project")))
-     " operating system.\n"
-     :face variable-pitch "To quit a partially entered command, type "
-     :face default "Control-g"
-     :face variable-pitch ".\n\n"
+     " operating system.\n\n"
      :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
      "\tLearn basic keystroke commands"
      (lambda ()
@@ -1276,7 +1273,7 @@ If this is nil, no message will be displayed."
      :link ("Emacs Guided Tour"
 	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
 	    "Browse http://www.gnu.org/software/emacs/tour/")
-     "\tOverview of Emacs features\n"
+     "\tOverview of Emacs features at gnu.org\n"
      :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
      "\tView the Emacs manual using Info\n"
      :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
@@ -1442,15 +1439,17 @@ a face or button specification."
   (let* ((image-file (cond ((stringp fancy-splash-image)
 			    fancy-splash-image)
 			   ((display-color-p)
-			    (cond ((image-type-available-p 'svg)
+			    (cond ((<= (display-planes) 8)
+				   (if (image-type-available-p 'xpm)
+				       "splash.xpm"
+				     "splash.pbm"))
+				  ((image-type-available-p 'svg)
 				   "splash.svg")
 				  ((image-type-available-p 'png)
 				   "splash.png")
 				  ((image-type-available-p 'xpm)
-				   (if (and (fboundp 'x-display-planes)
-					    (= (funcall 'x-display-planes) 8))
-				       "splash8.xpm"
-				     "splash.xpm"))))
+				   "splash.xpm")
+				  (t "splash.pbm")))
 			   (t "splash.pbm")))
 	 (img (create-image image-file))
 	 (image-width (and img (car (image-size img))))
@@ -1495,6 +1494,10 @@ a face or button specification."
 	       (lambda (button) (customize-group 'initialization))
 	       "Change initialization settings including this screen")
        "\n"))
+    (fancy-splash-insert
+     :face 'variable-pitch "To quit a partially entered command, type "
+     :face 'default "Control-g"
+     :face 'variable-pitch ".\n")
     (fancy-splash-insert :face `(variable-pitch (:foreground ,fg))
 			 "\nThis is "
 			 (emacs-version)
@@ -2202,10 +2205,10 @@ A fancy display is used on graphic displays, normal otherwise."
 		   (setq command-line-args-left
 			 (nthcdr (nth 1 tem) command-line-args-left)))
 
-		((setq tem (assoc argi command-line-ns-option-alist))
-		 ;; Ignore NS-windows options and their args if not using NS.
-		 (setq command-line-args-left
-		       (nthcdr (nth 1 tem) command-line-args-left)))
+		  ((setq tem (assoc argi command-line-ns-option-alist))
+		   ;; Ignore NS-windows options and their args if not using NS.
+		   (setq command-line-args-left
+			 (nthcdr (nth 1 tem) command-line-args-left)))
 
 		  ((member argi '("-find-file" "-file" "-visit"))
 		   (setq inhibit-startup-screen t)

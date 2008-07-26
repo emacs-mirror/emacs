@@ -66,14 +66,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define BSTRING
 
-/* subprocesses should be defined if you want to
- have code for asynchronous subprocesses
- (as used in M-x compile and M-x shell).
- This is generally OS dependent, and not supported
- under most USG systems.  */
-
-#define subprocesses
-
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
@@ -112,10 +104,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Note GCC automatically passes -a archive to ld, and it has its own
    conflicting -a.  */
 #define LD_SWITCH_SYSTEM_TEMACS
-
-/* Some hpux 8 machines seem to have TIOCGWINSZ,
-   and none have sioctl.h, so might as well define this.  */
-#define NO_SIOCTL_H
 
 #ifndef HAVE_LIBXMU
 /* HP-UX doesn't supply Xmu.  */

@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.05a
+;; Version: 6.06b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -211,9 +211,8 @@ you can \"misuse\" it to also add other text to the header.  However,
 			     (const :tag "no deadline" 'notdeadline))))))
 	    (list :tag "Non-standard skipping condition"
 		  :value (org-agenda-skip-function)
-		  (list
-		   (const org-agenda-skip-function)
-		   (sexp :tag "Function or form (quoted!)")))))
+		  (const org-agenda-skip-function)
+		  (sexp :tag "Function or form (quoted!)"))))
   "Selection of examples for agenda command settings.
 This will be spliced into the custom type of
 `org-agenda-custom-commands'.")
@@ -391,6 +390,13 @@ or `C-c a #' to produce the list."
  "Options concerning skipping parts of agenda files."
  :tag "Org Agenda Skip"
  :group 'org-agenda)
+
+(defvar org-agenda-archives-mode nil
+  "Non-nil means, the agenda will include archived items.
+If this is the symbol `trees', trees in the selected agenda scope
+that are marked with the ARCHIVE tag will be included anyway.  When this is
+t, also all archive files associated with the current selection of agenda
+files will be included.")
 
 (defcustom org-agenda-skip-comment-trees t
   "Non-nil means, skip trees that start with teh COMMENT keyword.
@@ -1105,6 +1111,7 @@ The following commands are available:
 (org-defkey org-agenda-mode-map "f" 'org-agenda-follow-mode)
 (org-defkey org-agenda-mode-map "R" 'org-agenda-clockreport-mode)
 (org-defkey org-agenda-mode-map "l" 'org-agenda-log-mode)
+(org-defkey org-agenda-mode-map "v" 'org-agenda-archives-mode)
 (org-defkey org-agenda-mode-map "D" 'org-agenda-toggle-diary)
 (org-defkey org-agenda-mode-map "G" 'org-agenda-toggle-time-grid)
 (org-defkey org-agenda-mode-map "r" 'org-agenda-redo)
@@ -1234,14 +1241,25 @@ The following commands are available:
      ["Year View" org-agenda-year-view :active (org-agenda-check-type nil 'agenda)
       :style radio :selected (member org-agenda-ndays '(365 366))]
      "--"
-     ["Show Logbook entries" org-agenda-log-mode
-      :style toggle :selected org-agenda-show-log :active (org-agenda-check-type nil 'agenda 'timeline)]
-     ["Show clock report" org-agenda-clockreport-mode
-     :style toggle :selected org-agenda-clockreport-mode :active (org-agenda-check-type nil 'agenda)]
      ["Include Diary" org-agenda-toggle-diary
-      :style toggle :selected org-agenda-include-diary :active (org-agenda-check-type nil 'agenda)]
+      :style toggle :selected org-agenda-include-diary
+      :active (org-agenda-check-type nil 'agenda)]
      ["Use Time Grid" org-agenda-toggle-time-grid
-      :style toggle :selected org-agenda-use-time-grid :active (org-agenda-check-type nil 'agenda)])
+      :style toggle :selected org-agenda-use-time-grid
+      :active (org-agenda-check-type nil 'agenda)]
+     "--"
+     ["Show clock report" org-agenda-clockreport-mode
+      :style toggle :selected org-agenda-clockreport-mode
+      :active (org-agenda-check-type nil 'agenda)]
+    "--"
+     ["Show Logbook entries" org-agenda-log-mode
+      :style toggle :selected org-agenda-show-log
+      :active (org-agenda-check-type nil 'agenda 'timeline)]
+     ["Include archived trees" org-agenda-archives-mode 
+      :style toggle :selected org-agenda-archives-mode :active t]
+     ["Include archive files" (org-agenda-archives-mode t)
+      :style toggle :selected (eq org-agenda-archives-mode t) :active t
+      :keys "C-u v"])
     ["Write view to file" org-write-agenda t]
     ["Rebuild buffer" org-agenda-redo t]
     ["Save all Org-mode Buffers" org-save-all-org-buffers t]
@@ -1475,7 +1493,7 @@ Pressing `<' twice means to restrict to the current subtree or region
 	(insert (eval-when-compile
 		  (let ((header
 "
-Press key for an agenda command:        <   Buffer,subtree/region restriction
+Press key for an agenda command:        <   Buffer, subtree/region restriction
 --------------------------------        >   Remove restriction
 a   Agenda for current week or day      e   Export agenda views
 t   List of all TODO entries            T   Entries with special TODO kwd
@@ -1790,7 +1808,7 @@ so the export commands can easily use it."
   (let ((cmds (org-agenda-normalize-custom-commands org-agenda-custom-commands))
 	(pop-up-frames nil)
 	(dir default-directory)
-	pars cmd thiscmdkey files opts)
+	pars cmd thiscmdkey files opts cmd-or-set)
     (while parameters
       (push (list (pop parameters) (if parameters (pop parameters))) pars))
     (setq pars (reverse pars))
@@ -1798,8 +1816,9 @@ so the export commands can easily use it."
       (while cmds
 	(setq cmd (pop cmds)
 	      thiscmdkey (car cmd)
-	      opts (nth 4 cmd)
-	      files (nth 5 cmd))
+	      cmd-or-set (nth 2 cmd)
+	      opts (nth (if (listp cmd-or-set) 3 4) cmd)
+	      files (nth (if (listp cmd-or-set) 4 5) cmd))
 	(if (stringp files) (setq files (list files)))
 	(when files
 	  (eval (list 'let (append org-agenda-exporter-settings opts pars)
@@ -1855,7 +1874,8 @@ higher priority settings."
 		   (org-agenda-collect-markers)))
 		 (org-icalendar-verify-function 'org-check-agenda-marker-table)
 		 (org-combined-agenda-icalendar-file file))
-	     (apply 'org-export-icalendar 'combine (org-agenda-files))))
+	     (apply 'org-export-icalendar 'combine
+		    (org-agenda-files nil 'ifmode))))
 	  (t
 	   (let ((bs (buffer-string)))
 	     (find-file file)
@@ -1937,7 +1957,7 @@ higher priority settings."
     (org-agenda-reset-markers)
     (setq org-agenda-contributing-files nil)
     (setq org-agenda-columns-active nil)
-    (org-prepare-agenda-buffers (org-agenda-files))
+    (org-prepare-agenda-buffers (org-agenda-files nil 'ifmode))
     (setq org-todo-keywords-for-agenda
 	  (org-uniquify org-todo-keywords-for-agenda))
     (setq org-done-keywords-for-agenda
@@ -2032,7 +2052,7 @@ it is through options in org-agenda-custom-commands.")
 Also moves point to the end of the skipped region, so that search can
 continue from there."
   (let ((p (point-at-bol)) to fp)
-    (and org-agenda-skip-archived-trees
+    (and org-agenda-skip-archived-trees (not org-agenda-archives-mode)
 	 (get-text-property p :org-archived)
 	 (org-end-of-subtree t)
 	 (throw :skip t))
@@ -2255,7 +2275,7 @@ given in `org-agenda-start-on-weekday'."
   (let* ((org-agenda-start-on-weekday
 	  (if (or (equal ndays 7) (and (null ndays) (equal 7 org-agenda-ndays)))
 	      org-agenda-start-on-weekday nil))
-	 (thefiles (org-agenda-files))
+	 (thefiles (org-agenda-files nil 'ifmode))
 	 (files thefiles)
 	 (today (time-to-days
 		 (time-subtract (current-time)
@@ -2373,7 +2393,7 @@ given in `org-agenda-start-on-weekday'."
 	    (put-text-property s (1- (point)) 'day d)
 	    (put-text-property s (1- (point)) 'org-day-cnt day-cnt))))
     (when (and org-agenda-clockreport-mode clocktable-start)
-      (let ((org-agenda-files (org-agenda-files))
+      (let ((org-agenda-files (org-agenda-files nil 'ifmode))
 	    ;; the above line is to ensure the restricted range!
 	    (p org-agenda-clockreport-parameter-plist)
 	    tbl)
@@ -2502,7 +2522,7 @@ in `org-agenda-text-search-extra-files'."
       (setq regexp (pop regexps+))
       (if hdl-only (setq regexp (concat "^" org-outline-regexp ".*?"
 					regexp))))
-    (setq files (org-agenda-files))
+    (setq files (org-agenda-files nil 'ifmode))
     (when (eq (car org-agenda-text-search-extra-files) 'agenda-archives)
       (pop org-agenda-text-search-extra-files)
       (setq files (org-add-archive-files files)))
@@ -2633,7 +2653,7 @@ for a keyword.  A numeric prefix directly selects the Nth keyword in
     (org-set-local 'org-last-arg arg)
     (setq org-agenda-redo-command
 	  '(org-todo-list (or current-prefix-arg org-last-arg)))
-    (setq files (org-agenda-files)
+    (setq files (org-agenda-files nil 'ifmode)
 	  rtnall nil)
     (while (setq file (pop files))
       (catch 'nextfile
@@ -2690,7 +2710,7 @@ The prefix arg TODO-ONLY limits the search to TODO entries."
     (setq org-agenda-redo-command
 	  (list 'org-tags-view (list 'quote todo-only)
 		(list 'if 'current-prefix-arg nil 'org-agenda-query-string)))
-    (setq files (org-agenda-files)
+    (setq files (org-agenda-files nil 'ifmode)
 	  rtnall nil)
     (while (setq file (pop files))
       (catch 'nextfile
@@ -2827,7 +2847,8 @@ MATCH is being ignored."
 	 (todo (nth 1 org-stuck-projects))
 	 (todo-wds (if (member "*" todo)
 		       (progn
-			 (org-prepare-agenda-buffers (org-agenda-files))
+			 (org-prepare-agenda-buffers (org-agenda-files
+						      nil 'ifmode))
 			 (org-delete-all
 			  org-done-keywords-for-agenda
 			  (copy-sequence org-todo-keywords-for-agenda)))
@@ -4002,7 +4023,8 @@ If ERROR is non-nil, throw an error, otherwise just return nil."
       (if (not (one-window-p)) (delete-window))
       (kill-buffer buf)
       (org-agenda-reset-markers)
-      (org-columns-remove-overlays))
+      (org-columns-remove-overlays)
+      (setq org-agenda-archives-mode nil))
     ;; Maybe restore the pre-agenda window configuration.
     (and org-agenda-restore-windows-after-quit
 	 (not (eq org-agenda-window-setup 'other-frame))
@@ -4340,6 +4362,24 @@ so that the date SD will be in that range."
   (message "Log mode is %s"
 	   (if org-agenda-show-log "on" "off")))
 
+(defun org-agenda-archives-mode (&optional with-files)
+  "Toggle log mode in an agenda buffer."
+  (interactive "P")
+  (setq org-agenda-archives-mode
+	(if with-files t (if org-agenda-archives-mode nil 'trees)))
+  (org-agenda-set-mode-name)
+  (org-agenda-redo)
+  (message
+   "%s"
+   (cond
+    ((eq org-agenda-archives-mode nil)
+     "No archives are included")
+    ((eq org-agenda-archives-mode 'trees)
+     (format "Trees with :%s: tag are included" org-archive-tag))
+    ((eq org-agenda-archives-mode t)
+     (format "Trees with :%s: tag and all active archive files are included"
+	     org-archive-tag)))))
+
 (defun org-agenda-toggle-diary ()
   "Toggle diary inclusion in an agenda buffer."
   (interactive)
@@ -4370,6 +4410,11 @@ so that the date SD will be in that range."
 		(if org-agenda-include-diary   " Diary"  "")
 		(if org-agenda-use-time-grid   " Grid"   "")
 		(if org-agenda-show-log        " Log"    "")
+		(if org-agenda-archives-mode
+		    (if (eq org-agenda-archives-mode t)
+			" Archives"
+		      (format " :%s:" org-archive-tag))
+		  "")
 		(if org-agenda-clockreport-mode " Clock"   "")))
   (force-mode-line-update))
 
@@ -5075,12 +5120,11 @@ All the standard commands work: block, weekly etc."
       (unwind-protect
 	  (progn
 	    (fset 'calendar-cursor-to-date
-		  (lambda (&optional error)
+		  (lambda (&optional error dummy)
 		    (calendar-gregorian-from-absolute
 		     (get-text-property point 'day))))
 	      (call-interactively cmd))
 	(fset 'calendar-cursor-to-date oldf)))))
-
 
 (defun org-agenda-execute-calendar-command (cmd)
   "Execute a calendar command from the agenda, with the date associated to
@@ -5099,7 +5143,7 @@ the cursor position."
       (unwind-protect
 	  (progn
 	    (fset 'calendar-cursor-to-date
-		  (lambda (&optional error)
+		  (lambda (&optional error dummy)
 		    (calendar-gregorian-from-absolute
 		     (get-text-property point 'day))))
 	    (call-interactively cmd))

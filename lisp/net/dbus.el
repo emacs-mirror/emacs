@@ -59,6 +59,9 @@
   (concat dbus-interface-dbus ".Introspectable")
   "The interface supported by introspectable objects.")
 
+(defconst dbus-interface-properties (concat dbus-interface-dbus ".Properties")
+  "The interface for property objects.")
+
 (defmacro dbus-ignore-errors (&rest body)
   "Execute BODY; signal D-Bus error when `dbus-debug' is non-nil.
 Otherwise, return result of last form in BODY, or all other errors."
@@ -91,8 +94,8 @@ hash table."
 (defun dbus-unregister-object (object)
   "Unregister OBJECT from D-Bus.
 OBJECT must be the result of a preceding `dbus-register-method'
-or `dbus-register-signal' call.  It returns t if OBJECT has been
-unregistered, nil otherwise."
+or `dbus-register-signal' call.  It returns `t' if OBJECT has
+been unregistered, `nil' otherwise."
   ;; Check parameter.
   (unless (and (consp object) (not (null (car object))) (consp (cdr object)))
     (signal 'wrong-type-argument (list 'D-Bus object)))
@@ -183,7 +186,7 @@ EVENT is a list which starts with symbol `dbus-event':
 BUS identifies the D-Bus the message is coming from.  It is
 either the symbol `:system' or the symbol `:session'.  SERIAL is
 the serial number of the received D-Bus message if it is a method
-call, or nil.  SERVICE and PATH are the unique name and the
+call, or `nil'.  SERVICE and PATH are the unique name and the
 object path of the D-Bus object emitting the message.  INTERFACE
 and MEMBER denote the message which has been sent.  HANDLER is
 the function which has been registered for this message.  ARGS
@@ -224,7 +227,7 @@ part of the event, is called with arguments ARGS."
       (dbus-check-event event)
       (setq result (apply (nth 7 event) (nthcdr 8 event)))
       (unless (consp result) (setq result (cons result nil)))
-      ;; Return a message when serial is not nil.
+      ;; Return a message when serial is not `nil'.
       (when (not (null (nth 2 event)))
 	(apply 'dbus-method-return-internal
 	       (nth 1 event) (nth 2 event) (nth 3 event) result)))))
@@ -241,7 +244,7 @@ formed."
 (defun dbus-event-serial-number (event)
   "Return the serial number of the corresponding D-Bus message.
 The result is a number in case the D-Bus message is a method
-call, or nil for all other mesage types.  The serial number is
+call, or `nil' for all other mesage types.  The serial number is
 needed for generating a reply message.  EVENT is a D-Bus event,
 see `dbus-check-event'.  This function raises a `dbus-error'
 signal in case the event is not well formed."
@@ -286,7 +289,7 @@ well formed."
 
 (defun dbus-list-activatable-names ()
   "Return the D-Bus service names which can be activated as list.
-The result is a list of strings, which is nil when there are no
+The result is a list of strings, which is `nil' when there are no
 activatable service names at all."
   (dbus-ignore-errors
     (dbus-call-method
@@ -295,10 +298,10 @@ activatable service names at all."
 
 (defun dbus-list-names (bus)
   "Return the service names registered at D-Bus BUS.
-The result is a list of strings, which is nil when there are no
-registered service names at all.  Well known names are strings like
-\"org.freedesktop.DBus\".  Names starting with \":\" are unique names
-for services."
+The result is a list of strings, which is `nil' when there are no
+registered service names at all.  Well known names are strings
+like \"org.freedesktop.DBus\".  Names starting with \":\" are
+unique names for services."
   (dbus-ignore-errors
     (dbus-call-method
      bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus "ListNames")))
@@ -312,9 +315,9 @@ A service has a known name if it doesn't start with \":\"."
 	(add-to-list 'result name 'append)))))
 
 (defun dbus-list-queued-owners (bus service)
-"Return the unique names registered at D-Bus BUS and queued for SERVICE.
-The result is a list of strings, or nil when there are no queued name
-owners service names at all."
+  "Return the unique names registered at D-Bus BUS and queued for SERVICE.
+The result is a list of strings, or `nil' when there are no
+queued name owners service names at all."
   (dbus-ignore-errors
     (dbus-call-method
      bus dbus-service-dbus dbus-path-dbus
@@ -322,7 +325,7 @@ owners service names at all."
 
 (defun dbus-get-name-owner (bus service)
   "Return the name owner of SERVICE registered at D-Bus BUS.
-The result is either a string, or nil if there is no name owner."
+The result is either a string, or `nil' if there is no name owner."
   (dbus-ignore-errors
     (dbus-call-method
      bus dbus-service-dbus dbus-path-dbus
@@ -337,67 +340,333 @@ The result is either a string, or nil if there is no name owner."
        (dbus-call-method bus service dbus-path-dbus dbus-interface-peer "Ping"))
     (dbus-error nil)))
 
+
+;;; D-Bus introspection.
+
 (defun dbus-introspect (bus service path)
-  "Return the introspection data of SERVICE in D-Bus BUS at object path PATH.
-The data are in XML format.
+  "This function returns all interfaces and sub-nodes of SERVICE,
+registered at object path PATH at bus BUS.
 
-Example:
-
-\(dbus-introspect
-  :system \"org.freedesktop.Hal\"
-  \"/org/freedesktop/Hal/devices/computer\")"
+BUS must be either the symbol `:system' or the symbol `:session'.
+SERVICE must be a known service name, and PATH must be a valid
+object path.  The last two parameters are strings.  The result,
+the introspection data, is a string in XML format."
+  ;; We don't want to raise errors.
   (dbus-ignore-errors
     (dbus-call-method
      bus service path dbus-interface-introspectable "Introspect")))
 
-(if nil ;; Must be reworked.  Shall we offer D-Bus signatures at all?
-(defun dbus-get-signatures (bus interface signal)
-  "Retrieve SIGNAL's type signatures from D-Bus.
-The result is a list of SIGNAL's type signatures.  Example:
+(defun dbus-introspect-xml (bus service path)
+  "Return the introspection data of SERVICE in D-Bus BUS at object path PATH.
+The data are a parsed list.  The root object is a \"node\",
+representing the object path PATH.  The root object can contain
+\"interface\" and further \"node\" objects."
+  ;; We don't want to raise errors.
+  (xml-node-name
+   (ignore-errors
+     (with-temp-buffer
+       (insert (dbus-introspect bus service path))
+       (xml-parse-region (point-min) (point-max))))))
 
-  \(\"s\" \"b\" \"ai\"\)
+(defun dbus-introspect-get-attribute (object attribute)
+  "Return the ATTRIBUTE value of D-Bus introspection OBJECT.
+ATTRIBUTE must be a string according to the attribute names in
+the D-Bus specification."
+  (xml-get-attribute-or-nil object (intern attribute)))
 
-This list represents 3 parameters of SIGNAL.  The first parameter
-is of type string, the second parameter is of type boolean, and
-the third parameter is of type array of integer.
+(defun dbus-introspect-get-node-names (bus service path)
+  "Return all node names of SERVICE in D-Bus BUS at object path PATH.
+It returns a list of strings.  The node names stand for further
+object paths of the D-Bus service."
+  (let ((object (dbus-introspect-xml bus service path))
+	result)
+    (dolist (elt (xml-get-children object 'node) result)
+      (add-to-list
+       'result (dbus-introspect-get-attribute elt "name") 'append))))
 
-If INTERFACE or SIGNAL do not exist, or if they do not support
-the D-Bus method org.freedesktop.DBus.Introspectable.Introspect,
-the function returns nil."
+(defun dbus-introspect-get-all-nodes (bus service path)
+  "Return all node names of SERVICE in D-Bus BUS at object path PATH.
+It returns a list of strings, which are further object paths of SERVICE."
+  (let ((result (list path)))
+    (dolist (elt
+             (dbus-introspect-get-node-names bus service path)
+             result)
+      (setq elt (expand-file-name elt path))
+      (setq result
+            (append result (dbus-introspect-get-all-nodes bus service elt))))))
+
+(defun dbus-introspect-get-interface-names (bus service path)
+  "Return all interface names of SERVICE in D-Bus BUS at object path PATH.
+It returns a list of strings.
+
+There will be always the default interface
+\"org.freedesktop.DBus.Introspectable\".  Another default
+interface is \"org.freedesktop.DBus.Properties\".  If present,
+\"interface\" objects can also have \"property\" objects as
+children, beside \"method\" and \"signal\" objects."
+  (let ((object (dbus-introspect-xml bus service path))
+	result)
+    (dolist (elt (xml-get-children object 'interface) result)
+      (add-to-list
+       'result (dbus-introspect-get-attribute elt "name") 'append))))
+
+(defun dbus-introspect-get-interface (bus service path interface)
+  "Return the INTERFACE of SERVICE in D-Bus BUS at object path PATH.
+The return value is an XML object.  INTERFACE must be a string,
+element of the list returned by
+`dbus-introspect-get-interface-names'.  The resulting
+\"interface\" object can contain \"method\", \"signal\",
+\"property\" and \"annotation\" children."
+  (let ((elt (xml-get-children
+	      (dbus-introspect-xml bus service path) 'interface)))
+    (while (and elt
+		(not (string-equal
+		      interface
+		      (dbus-introspect-get-attribute (car elt) "name"))))
+      (setq elt (cdr elt)))
+    (car elt)))
+
+(defun dbus-introspect-get-method-names (bus service path interface)
+  "Return a list of strings of all method names of INTERFACE.
+SERVICE is a service of D-Bus BUS at object path PATH."
+  (let ((object (dbus-introspect-get-interface bus service path interface))
+	result)
+    (dolist (elt (xml-get-children object 'method) result)
+      (add-to-list
+       'result (dbus-introspect-get-attribute elt "name") 'append))))
+
+(defun dbus-introspect-get-method (bus service path interface method)
+  "Return method METHOD of interface INTERFACE as XML object.
+It must be located at SERVICE in D-Bus BUS at object path PATH.
+METHOD must be a string, element of the list returned by
+`dbus-introspect-get-method-names'.  The resulting \"method\"
+object can contain \"arg\" and \"annotation\" children."
+  (let ((elt (xml-get-children
+	      (dbus-introspect-get-interface bus service path interface)
+	      'method)))
+    (while (and elt
+		(not (string-equal
+		      method (dbus-introspect-get-attribute (car elt) "name"))))
+      (setq elt (cdr elt)))
+    (car elt)))
+
+(defun dbus-introspect-get-signal-names (bus service path interface)
+  "Return a list of strings of all signal names of INTERFACE.
+SERVICE is a service of D-Bus BUS at object path PATH."
+  (let ((object (dbus-introspect-get-interface bus service path interface))
+	result)
+    (dolist (elt (xml-get-children object 'signal) result)
+      (add-to-list
+       'result (dbus-introspect-get-attribute elt "name") 'append))))
+
+(defun dbus-introspect-get-signal (bus service path interface signal)
+  "Return signal SIGNAL of interface INTERFACE as XML object.
+It must be located at SERVICE in D-Bus BUS at object path PATH.
+SIGNAL must be a string, element of the list returned by
+`dbus-introspect-get-signal-names'.  The resulting \"signal\"
+object can contain \"arg\" and \"annotation\" children."
+  (let ((elt (xml-get-children
+	      (dbus-introspect-get-interface bus service path interface)
+	      'signal)))
+    (while (and elt
+		(not (string-equal
+		      signal (dbus-introspect-get-attribute (car elt) "name"))))
+      (setq elt (cdr elt)))
+    (car elt)))
+
+(defun dbus-introspect-get-property-names (bus service path interface)
+  "Return a list of strings of all property names of INTERFACE.
+SERVICE is a service of D-Bus BUS at object path PATH."
+  (let ((object (dbus-introspect-get-interface bus service path interface))
+	result)
+    (dolist (elt (xml-get-children object 'property) result)
+      (add-to-list
+       'result (dbus-introspect-get-attribute elt "name") 'append))))
+
+(defun dbus-introspect-get-property (bus service path interface property)
+  "This function returns PROPERTY of INTERFACE as XML object.
+It must be located at SERVICE in D-Bus BUS at object path PATH.
+PROPERTY must be a string, element of the list returned by
+`dbus-introspect-get-property-names'.  The resulting PROPERTY
+object can contain \"annotation\" children."
+  (let ((elt (xml-get-children
+	      (dbus-introspect-get-interface bus service path interface)
+	      'property)))
+    (while (and elt
+		(not (string-equal
+		      property
+		      (dbus-introspect-get-attribute (car elt) "name"))))
+      (setq elt (cdr elt)))
+    (car elt)))
+
+(defun dbus-introspect-get-annotation-names
+  (bus service path interface &optional name)
+  "Return all annotation names as list of strings.
+If NAME is `nil', the annotations are children of INTERFACE,
+otherwise NAME must be a \"method\", \"signal\", or \"property\"
+object, where the annotations belong to."
+  (let ((object
+	 (if name
+	     (or (dbus-introspect-get-method bus service path interface name)
+		 (dbus-introspect-get-signal bus service path interface name)
+		 (dbus-introspect-get-property bus service path interface name))
+	   (dbus-introspect-get-interface bus service path interface)))
+	result)
+    (dolist (elt (xml-get-children object 'annotation) result)
+      (add-to-list
+       'result (dbus-introspect-get-attribute elt "name") 'append))))
+
+(defun dbus-introspect-get-annotation
+  (bus service path interface name annotation)
+  "Return ANNOTATION as XML object.
+If NAME is `nil', ANNOTATION is a child of INTERFACE, otherwise
+NAME must be the name of a \"method\", \"signal\", or
+\"property\" object, where the ANNOTATION belongs to."
+  (let ((elt (xml-get-children
+	      (if name
+		  (or (dbus-introspect-get-method
+		       bus service path interface name)
+		      (dbus-introspect-get-signal
+		       bus service path interface name)
+		      (dbus-introspect-get-property
+		       bus service path interface name))
+		(dbus-introspect-get-interface bus service path interface))
+	      'annotation)))
+    (while (and elt
+		(not (string-equal
+		      annotation
+		      (dbus-introspect-get-attribute (car elt) "name"))))
+      (setq elt (cdr elt)))
+    (car elt)))
+
+(defun dbus-introspect-get-argument-names (bus service path interface name)
+  "Return a list of all argument names as list of strings.
+NAME must be a \"method\" or \"signal\" object.
+
+Argument names are optional, the function can return `nil'
+therefore, even if the method or signal has arguments."
+  (let ((object
+	 (or (dbus-introspect-get-method bus service path interface name)
+	     (dbus-introspect-get-signal bus service path interface name)))
+	result)
+    (dolist (elt (xml-get-children object 'arg) result)
+      (add-to-list
+       'result (dbus-introspect-get-attribute elt "name") 'append))))
+
+(defun dbus-introspect-get-argument (bus service path interface name arg)
+  "Return argument ARG as XML object.
+NAME must be a \"method\" or \"signal\" object.  ARG must be a
+string, element of the list returned by `dbus-introspect-get-argument-names'."
+  (let ((elt (xml-get-children
+	      (or (dbus-introspect-get-method bus service path interface name)
+		  (dbus-introspect-get-signal bus service path interface name))
+	      'arg)))
+    (while (and elt
+		(not (string-equal
+		      arg (dbus-introspect-get-attribute (car elt) "name"))))
+      (setq elt (cdr elt)))
+    (car elt)))
+
+(defun dbus-introspect-get-signature
+  (bus service path interface name &optional direction)
+  "Return signature of a `method' or `signal', represented by NAME, as string.
+If NAME is a `method', DIRECTION can be either \"in\" or \"out\".
+If DIRECTION is `nil', \"in\" is assumed.
+
+If NAME is a `signal', and DIRECTION is non-`nil', DIRECTION must
+be \"out\"."
+  ;; For methods, we use "in" as default direction.
+  (let ((object (or (dbus-introspect-get-method
+		     bus service path interface name)
+		    (dbus-introspect-get-signal
+		     bus service path interface name))))
+    (when (and (string-equal
+		"method" (dbus-introspect-get-attribute object "name"))
+	       (not (stringp direction)))
+      (setq direction "in"))
+    ;; In signals, no direction is given.
+    (when (string-equal "signal" (dbus-introspect-get-attribute object "name"))
+      (setq direction nil))
+    ;; Collect the signatures.
+    (mapconcat
+     '(lambda (x)
+	(let ((arg (dbus-introspect-get-argument
+		    bus service path interface name x)))
+	  (if (or (not (stringp direction))
+		  (string-equal
+		   direction
+		   (dbus-introspect-get-attribute arg "direction")))
+	      (dbus-introspect-get-attribute arg "type")
+	    "")))
+     (dbus-introspect-get-argument-names bus service path interface name)
+     "")))
+
+
+;;; D-Bus properties.
+
+(defun dbus-get-property (bus service path interface property)
+  "Return the value of PROPERTY of INTERFACE.
+It will be checked at BUS, SERVICE, PATH.  The result can be any
+valid D-Bus value, or `nil' if there is no PROPERTY."
   (dbus-ignore-errors
-    (let ((introspect-xml
-	   (with-temp-buffer
-	     (insert (dbus-introspect bus interface))
-	     (xml-parse-region (point-min) (point-max))))
-	  node interfaces signals args result)
-      ;; Get the root node.
-      (setq node (xml-node-name introspect-xml))
-      ;; Get all interfaces.
-      (setq interfaces (xml-get-children node 'interface))
-      (while interfaces
-	(when (string-equal (xml-get-attribute (car interfaces) 'name)
-			    interface)
-	  ;; That's the requested interface.  Check for signals.
-	  (setq signals (xml-get-children (car interfaces) 'signal))
-	  (while signals
-	    (when (string-equal (xml-get-attribute (car signals) 'name) signal)
-	      ;; The signal we are looking for.
-	      (setq args (xml-get-children (car signals) 'arg))
-	      (while args
-		(unless (xml-get-attribute (car args) 'type)
-		  ;; This shouldn't happen, let's escape.
-		  (signal 'dbus-error nil))
-		;; We append the signature.
-		(setq
-		 result (append result
-				(list (xml-get-attribute (car args) 'type))))
-		(setq args (cdr args)))
-	      (setq signals nil))
-	    (setq signals (cdr signals)))
-	  (setq interfaces nil))
-	(setq interfaces (cdr interfaces)))
-      result)))
-) ;; (if nil ...
+    ;; We must check, whether the "org.freedesktop.DBus.Properties"
+    ;; interface is supported; otherwise the call blocks.
+    (when
+	(member
+	 "Get"
+	 (dbus-introspect-get-method-names
+	  bus service path "org.freedesktop.DBus.Properties"))
+      ;; "Get" returns a variant, so we must use the car.
+      (car
+       (dbus-call-method
+	bus service path dbus-interface-properties
+	"Get" interface property)))))
+
+(defun dbus-set-property (bus service path interface property value)
+  "Set value of PROPERTY of INTERFACE to VALUE.
+It will be checked at BUS, SERVICE, PATH.  When the value has
+been set successful, the result is VALUE.  Otherwise, `nil' is
+returned."
+  (dbus-ignore-errors
+    (when
+	(and
+	 ;; We must check, whether the
+	 ;; "org.freedesktop.DBus.Properties" interface is supported;
+	 ;; otherwise the call blocks.
+	 (member
+	  "Set"
+	  (dbus-introspect-get-method-names
+	   bus service path "org.freedesktop.DBus.Properties"))
+	 ;; PROPERTY must be writable.
+	 (string-equal
+	  "readwrite"
+	  (dbus-introspect-get-attribute
+	   bus service path interface property)
+	  "access"))
+      ;; "Set" requires a variant.
+      (dbus-call-method
+       bus service path dbus-interface-properties
+       "Set" interface property (list :variant value))
+      ;; Return VALUE.
+      (dbus-get-property bus service path interface property))))
+
+(defun dbus-get-all-properties (bus service path interface)
+  "Return all properties of INTERFACE at BUS, SERVICE, PATH.
+The result is a list of entries.  Every entry is a cons of the
+name of the property, and its value.  If there are no properties,
+`nil' is returned."
+  ;; "org.freedesktop.DBus.Properties.GetAll" is not supported at
+  ;; all interfaces.  Therefore, we do it ourselves.
+  (dbus-ignore-errors
+    (let (result)
+      (dolist (property
+	       (dbus-introspect-get-property-names
+		bus service path interface)
+	       result)
+	(add-to-list
+	 'result
+	 (cons property (dbus-get-property bus service path interface property))
+	 'append)))))
 
 (provide 'dbus)
 

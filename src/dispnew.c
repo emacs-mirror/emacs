@@ -6865,8 +6865,6 @@ init_display ()
       Vinitial_window_system = intern ("x");
 #ifdef HAVE_X11
       Vwindow_system_version = make_number (11);
-#else
-      Vwindow_system_version = make_number (10);
 #endif
 #if defined (GNU_LINUX) && defined (HAVE_LIBNCURSES)
       /* In some versions of ncurses,

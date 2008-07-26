@@ -1,20 +1,24 @@
+2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (mac-fix-env): Remove #ifdef around rule.
+
 2008-07-17  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (INSTALL_SCRIPT): Remove duplicate definition.
 	(LIB_STANDARD_LIBSRC): Don't define.
 	(LOADLIBES): Remove LIB_STANDARD_LIBSRC.
 
-2008-07-16  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Makefile.in: Change GNUSTEP to NS_IMPL_GNUSTEP, COCOA to
 	NS_IMPL_COCOA.
 
 2008-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* ntlib.h (fcloseall, fgetchar, flushall, fputchar, putw): Remove,
-	unused.
+	* ntlib.h (fcloseall, fgetchar, flushall, fputchar, putw):
+	Remove, unused.
 
-2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* .cvsignore: Add mac-fix-env.
 	* mac-fix-env.m: New file, automatically update

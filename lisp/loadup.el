@@ -182,8 +182,9 @@
 (if (featurep 'x)
     (progn
       (load "x-dnd")
+      (load "term/common-win")
       (load "term/x-win")))
-      
+
 (message "%s" (garbage-collect))
 
 (if (eq system-type 'vax-vms)
@@ -192,6 +193,7 @@
 (if (eq system-type 'windows-nt)
     (progn
       (load "w32-vars")
+      (load "term/common-win")
       (load "term/w32-win")
       (load "ls-lisp")
       (load "disp-table") ; needed to setup ibm-pc char set, see internal.el
@@ -212,7 +214,7 @@
 (if (featurep 'mac-carbon)
     (progn
       (load "term/mac-win")))
-(if (featurep 'ns-windowing)
+(if (featurep 'ns)
     (progn
       (load "emacs-lisp/easymenu")  ;; for platform-related menu adjustments
       (load "term/ns-win")))

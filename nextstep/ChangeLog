@@ -1,21 +1,42 @@
-2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-22  Seiji Zenitani  <zenitani@mac.com>
 
-	* README.txt
+	* Cocoa/Emacs.base/Contents/Info.plist: Import document icon settings
+	and minor configurations from Carbon port.
+	* Cocoa/Emacs.base/Contents/PkgInfo: Change CFBundleSignature to 'EMAx'.
+	* Cocoa/Emacs.base/Contents/Resources/document.icns: New file:
+	copied from Carbon port.
+
+2008-07-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* README: Consolidate credits.  Copyedits.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* FOR-RELEASE: Updates.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Cocoa/Emacs.base/Contents/Resources/Emacs.icns: Update with latest
+	from mac/Emacs.app/Contents/Resources.
+
+2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* README.txt:
 	* compile: Remove.
-	* README
+	* README:
 	* INSTALL: New files.
 	* FOR_RELEASE: Updated.
 
-2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* Cocoa/Contents/Resources/Credits.html: Change URL from sf.net to
-	GNU.org.
+	* Cocoa/Emacs.base/Contents/Resources/Credits.html: Change URL from
+	sf.net to GNU.org.
 
-2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* FOR-RELEASE: Remove historical info.
 
-2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	New directory with support files to support NeXTstep window system.
 
@@ -25,23 +46,21 @@
 	* ChangeLog: New file: recent history of the NS port itself.
 	* Cocoa: New directory: support files for building .app
 	package on OS X systems.
-	* Cocoa/Emacs.base
+	* Cocoa/Emacs.base:
 	* Cocoa/Emacs.base/Contents: New directories.
-	* Cocoa/Emacs.base/Contents/Info.plist
+	* Cocoa/Emacs.base/Contents/Info.plist:
 	* Cocoa/Emacs.base/Contents/PkgInfo: New files.
 	* Cocoa/Emacs.base/Contents/Resources: New directory.
 	* Cocoa/Emacs.base/Contents/Resources/Credits.html: New file:
 	About popup support.
 	* Cocoa/Emacs.base/Contents/Resources/Emacs.icns: New file:
 	copied from Carbon port.
-	* Cocoa/Emacs.base/Contents/Resources/English.lproj: New
-	directory.
+	* Cocoa/Emacs.base/Contents/Resources/English.lproj: New directory.
 	* Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:
 	New file.
-	* Cocoa/Emacs.base/Contents/Resources/preferences.nib: New
-	directory.
-	* Cocoa/Emacs.base/Contents/Resources/preferences.nib/classes.nib
-	* Cocoa/Emacs.base/Contents/Resources/preferences.nib/info.nib
+	* Cocoa/Emacs.base/Contents/Resources/preferences.nib: New directory.
+	* Cocoa/Emacs.base/Contents/Resources/preferences.nib/classes.nib:
+	* Cocoa/Emacs.base/Contents/Resources/preferences.nib/info.nib:
 	* Cocoa/Emacs.base/Contents/Resources/preferences.nib/keyedobjects.nib:
 	New files.
 	* Cocoa/Emacs.xcodeproj: New directory: build support.
@@ -49,17 +68,15 @@
 	* GNUstep: New directory: support files for building .app
 	package on GNUstep systems.
 	* GNUstep/Resources: New directory.
-	* GNUstep/Resources/Emacs.desktop
-	* GNUstep/Resources/Info-gnustep.plist
+	* GNUstep/Resources/Emacs.desktop:
+	* GNUstep/Resources/Info-gnustep.plist:
 	* GNUstep/Resources/emacs.tiff: New files.
 	* GNUstep/Resources/preferences.gorm: New directory.
-	* GNUstep/Resources/preferences.gorm/data.classes
-	* GNUstep/Resources/preferences.gorm/data.info
-	* GNUstep/Resources/preferences.gorm/objects.gorm: New
-	files.
+	* GNUstep/Resources/preferences.gorm/data.classes:
+	* GNUstep/Resources/preferences.gorm/data.info:
+	* GNUstep/Resources/preferences.gorm/objects.gorm: New files.
 	* compile: New file: utility script for building Emacs.app.
-	* FOR_RELEASE: New file: release tasks specific to NeXTstep
-	port.
+	* FOR_RELEASE: New file: release tasks specific to NeXTstep port.
 	* README.txt: New file: descriptive info for NeXTstep port.
 
 ;; Local Variables:

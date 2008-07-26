@@ -123,10 +123,8 @@ NOTE-END
 #define NO_TERMIO
 
 #if defined (GNU_LINUX) || defined (__NetBSD__) || defined (__OpenBSD__)
-# define TEXT_END ({ extern int _etext; &_etext; })
 # ifndef __ELF__
 #  define COFF
-#  define DATA_END ({ extern int _EDATA; &_EDATA; })
 # endif /* notdef __ELF__ */
 #endif
 

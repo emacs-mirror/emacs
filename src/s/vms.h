@@ -45,14 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NONSYSTEM_DIR_LIBRARY
 
-/* subprocesses should be defined if you want to
-   have code for asynchronous subprocesses
-   (as used in M-x compile and M-x shell).
-   This is generally OS dependent, and not supported
-   under most USG systems. */
-
-#define subprocesses
-
 /* Define the maximum record length for print strings, if needed. */
 
 #define MAX_PRINT_CHARS 300

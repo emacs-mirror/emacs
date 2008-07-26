@@ -16,7 +16,6 @@ DOS_NT		Compiling for either the MS-DOS or native MS-Windows port.
 WINDOWSNT	Compiling the native MS-Windows (W32) port.
 __MINGW32__	Compiling the W32 port with the MinGW port of GCC.
 _MSC_VER	Compiling the W32 port with the Microsoft C compiler.
-IRIX6_5         Compiling on Irix-6.5
 USE_LISP_UNION_TYPE Define it in lisp.h to make Lisp_Object be a union type instead of the default int.
 
 ** Distinguishing GUIs **
@@ -46,18 +45,15 @@ FRAME_WINDOW_P	A GUI frame (like X, w32, etc.)
 ** Compile-time options **
 REL_ALLOC	Compile in the relocatable memory allocator ralloc.c.
 SYSTEM_MALLOC	Use the system library's malloc.
+subprocesses    System can use subprocesses (for M-x shell for example).  Defined by default, only MSDOS undefines it.
 
 ** Replace, the definition is trivial: SWITCH_ENUM_CAST
 
 ** Defines from src/m/*.h and src/s/*.h.  Some of these might not be used in the code anymore, so they can be removed.  The HAVE_* definitions are probably handled by autoconf, so it might be possible to just remove them from src/[sm]/*.h.
 
 
-ADDR_CORRECT
-ADJUST_EXEC_HEADER
 AIX
 AMPERSAND_FULL_NAME
-A_TEXT_OFFSET
-A_TEXT_SEEK
 BCOPY_DOWNWARD_SAFE
 BCOPY_UPWARD_SAFE
 BITS_PER_EMACS_INT
@@ -87,7 +83,6 @@ C_SWITCH_MACHINE
 C_SWITCH_SYSTEM
 C_SWITCH_SYSTEM_TEMACS
 C_SWITCH_X_SYSTEM
-DATA_END
 DATA_SEG_BITS
 DATA_START
 DBL_MIN_REPLACEMENT
@@ -96,7 +91,6 @@ DEFAULT_SOUND_DEVICE
 DEVICE_SEP
 DIRECTORY_SEP
 DONT_REOPEN_PTY
-DOT_GLOBAL_START
 DOUG_LEA_MALLOC
 DebPrint
 EMACSDEBUG
@@ -116,7 +110,6 @@ GC_LISP_OBJECT_ALIGNMENT
 GC_MARK_SECONDARY_STACK
 GC_MARK_STACK
 GC_SETJMP_WORKS
-GETPGRP_NO_ARG
 GMALLOC_INHIBIT_VALLOC
 GNU_LIBRARY_PENDING_OUTPUT_COUNT
 GNU_LINUX
@@ -211,23 +204,17 @@ IBMR2AIX
 INHIBIT_X11R6_XIM
 INTERNAL_TERMINAL
 INTERRUPT_INPUT
-IRIS
-IRIS_4D
 IS_ANY_SEP
 IS_DIRECTORY_SEP
 KERNEL_FILE
 LDAV_SYMBOL
 LD_SWITCH_MACHINE
 LD_SWITCH_MACHINE_TEMACS
-LD_SWITCH_SITE
 LD_SWITCH_SYSTEM
-LD_SWITCH_SYSTEM_1
 LD_SWITCH_SYSTEM_TEMACS
 LD_SWITCH_SYSTEM_tmp
 LD_SWITCH_X_DEFAULT
-LIBS_CARBON
 LIBS_DEBUG
-LIBS_IMAGE
 LIBS_MACHINE
 LIBS_SYSTEM
 LIBS_TERMCAP
@@ -239,7 +226,6 @@ LIB_MOTIF
 LIB_STANDARD
 LINKER
 LINK_CRTL_SHARE
-LINUX_SBRK_BUG
 LINUX_VERSION_CODE
 LISP_FLOAT_TYPE
 LNOFLSH
@@ -273,16 +259,12 @@ NO_HYPHENS_IN_FILENAMES
 NO_MATHERR
 NO_REMAP
 NO_SHARED_LIBS
-NO_SIOCTL_H
 NO_SOCK_SIGIO
 NO_TERMIO
 NSIG
 NSIG_MINIMUM
 NULL
 NULL_DEVICE
-N_BADMAG
-N_TRELOFF
-N_TXTOFF
 ORDINARY_LINK
 OTHER_FILES
 O_APPEND
@@ -296,7 +278,6 @@ O_TRUNC
 O_WRONLY
 PAGESIZE
 PENDING_OUTPUT_COUNT
-PNTR_COMPARISON_TYPE
 POSIX
 POSIX_SIGNALS
 PREFER_VSUSP
@@ -305,7 +286,6 @@ PTY_NAME_SPRINTF
 PTY_OPEN
 PTY_TTY_NAME_SPRINTF
 PURESIZE
-PURE_SEG_BITS
 RUN_TIME_REMAP
 SA_RESTART
 SECTION_ALIGNMENT
@@ -330,8 +310,8 @@ STDC_HEADERS
 SYMS_SYSTEM
 SYSTEM_PURESIZE_EXTRA
 SYSTEM_TYPE
+SYSTEM_MALLOC
 SYSV_SYSTEM_DIR
-S_IFLNK
 Srandom
 TAB3
 TABDLY
@@ -379,6 +359,7 @@ __ELF__
 __FreeBSD__
 __FreeBSD_version
 __GNUC__
+__GNU_LIBRARY__
 __GNUC_MINOR__
 __NetBSD__
 __OpenBSD__
@@ -440,7 +421,6 @@ logb
 lseek
 m68k
 malloc
-mips
 mkdir
 mktemp
 open
@@ -466,8 +446,6 @@ strerror
 stricmp
 strnicmp
 strupr
-subprocesses
-sun
 sys_nerr
 system
 temacs

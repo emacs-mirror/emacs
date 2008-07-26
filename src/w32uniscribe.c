@@ -125,6 +125,8 @@ uniscribe_open (f, font_entity, pixel_size)
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) XFONT_OBJECT (font_object);
 
+  ASET (font_object, FONT_TYPE_INDEX, Quniscribe);
+
   if (!w32font_open_internal (f, font_entity, pixel_size, font_object))
     {
       return Qnil;
@@ -132,6 +134,7 @@ uniscribe_open (f, font_entity, pixel_size)
 
   /* Initialize the cache for this font.  */
   uniscribe_font->cache = NULL;
+
   /* Mark the format as opentype  */
   uniscribe_font->w32_font.font.props[FONT_FORMAT_INDEX] = Qopentype;
   uniscribe_font->w32_font.font.driver = &uniscribe_font_driver;
@@ -148,7 +151,7 @@ uniscribe_close (f, font)
     = (struct uniscribe_font_info *) font;
 
   if (uniscribe_font->cache)
-    ScriptFreeCache (&uniscribe_font->cache);
+    ScriptFreeCache (&(uniscribe_font->cache));
 
   w32font_close (f, font);
 }
@@ -204,12 +207,10 @@ uniscribe_shape (lgstring)
   wchar_t *chars;
   WORD *glyphs, *clusters;
   SCRIPT_ITEM *items;
-  SCRIPT_CONTROL control;
   SCRIPT_VISATTR *attributes;
   int *advances;
   GOFFSET *offsets;
   ABC overall_metrics;
-  MAT2 transform;
   HDC context;
   HFONT old_font;
   HRESULT result;
@@ -237,9 +238,8 @@ uniscribe_shape (lgstring)
      can be treated together.  First try a single run.  */
   max_items = 2;
   items = (SCRIPT_ITEM *) xmalloc (sizeof (SCRIPT_ITEM) * max_items + 1);
-  bzero (&control, sizeof (control));
 
-  while ((result = ScriptItemize (chars, nchars, max_items, &control, NULL,
+  while ((result = ScriptItemize (chars, nchars, max_items, NULL, NULL,
 				  items, &nitems)) == E_OUTOFMEMORY)
     {
       /* If that wasn't enough, keep trying with one more run.  */
@@ -248,8 +248,7 @@ uniscribe_shape (lgstring)
 					sizeof (SCRIPT_ITEM) * max_items + 1);
     }
 
-  /* 0 = success in Microsoft's backwards world.  */
-  if (result)
+  if (!SUCCEEDED (result))
     {
       xfree (items);
       return Qnil;
@@ -267,9 +266,6 @@ uniscribe_shape (lgstring)
   attributes = alloca (max_glyphs * sizeof (SCRIPT_VISATTR));
   advances = alloca (max_glyphs * sizeof (int));
   offsets = alloca (max_glyphs * sizeof (GOFFSET));
-  bzero (&transform, sizeof (transform));
-  transform.eM11.value = 1;
-  transform.eM22.value = 1;
 
   for (i = 0; i < nitems; i++)
     {
@@ -302,7 +298,7 @@ uniscribe_shape (lgstring)
 	  result = ScriptPlace (context, &(uniscribe_font->cache),
 				glyphs, nglyphs, attributes, &(items[i].a),
 				advances, offsets, &overall_metrics);
-	  if (result == 0) /* Success.  */
+	  if (SUCCEEDED (result))
 	    {
 	      int j, nclusters, from, to;
 
@@ -362,7 +358,7 @@ uniscribe_shape (lgstring)
 						   &(uniscribe_font->cache),
 						   glyphs[j], &char_metric);
 
-		  if (result == 0) /* Success.  */
+		  if (SUCCEEDED (result))
 		    {
 		      LGLYPH_SET_LBEARING (lglyph, char_metric.abcA);
 		      LGLYPH_SET_RBEARING (lglyph, (char_metric.abcA
@@ -409,34 +405,68 @@ uniscribe_encode_char (font, c)
      struct font *font;
      int c;
 {
-  wchar_t chars[1];
-  WORD indices[1];
   HDC context;
   struct frame *f;
   HFONT old_font;
-  DWORD retval;
-
-  /* TODO: surrogates.  */
-  if (c > 0xFFFF)
-    return FONT_INVALID_CODE;
-
-  chars[0] = (wchar_t) c;
+  unsigned code = FONT_INVALID_CODE;
 
   /* Use selected frame until API is updated to pass the frame.  */
   f = XFRAME (selected_frame);
   context = get_frame_dc (f);
   old_font = SelectObject (context, FONT_HANDLE(font));
 
-  retval = GetGlyphIndicesW (context, chars, 1, indices,
-			     GGI_MARK_NONEXISTING_GLYPHS);
+  /* There are a number of ways to get glyph indices for BMP characters.
+     The GetGlyphIndices GDI function seems to work best for detecting
+     non-existing glyphs.  */
+  if (c < 0x10000)
+    {
+      wchar_t ch = (wchar_t) c;
+      WORD index;
+      DWORD retval = GetGlyphIndicesW (context, &ch, 1, &index,
+                                       GGI_MARK_NONEXISTING_GLYPHS);
+      if (retval == 1 && index != 0xFFFF)
+        code = index;
+    }
+
+  /* Non BMP characters must be handled by the uniscribe shaping
+     engine as GDI functions (except blindly displaying lines of
+     unicode text) and the promising looking ScriptGetCMap do not
+     convert surrogate pairs to glyph indexes correctly.  */
+  else
+    {
+      wchar_t ch[2];
+      SCRIPT_ITEM* items;
+      int nitems;
+      struct uniscribe_font_info *uniscribe_font
+        = (struct uniscribe_font_info *)font;
+      DWORD surrogate = c - 0x10000;
+
+      /* High surrogate: U+D800 - U+DBFF.  */
+      ch[0] = 0xD800 + ((surrogate >> 10) & 0x03FF);
+      /* Low surrogate: U+DC00 - U+DFFF.  */
+      ch[1] = 0xDC00 + (surrogate & 0x03FF);
+
+      items = (SCRIPT_ITEM *) alloca (sizeof (SCRIPT_ITEM) * 2 + 1);
+      if (SUCCEEDED (ScriptItemize (ch, 2, 2, NULL, NULL, items, &nitems)))
+        {
+          WORD glyphs[2], clusters[2];
+          SCRIPT_VISATTR attrs[2];
+          int nglyphs;
+
+          if (SUCCEEDED (ScriptShape (context, &(uniscribe_font->cache),
+                                      ch, 2, 2, &(items[0].a),
+                                      glyphs, clusters, attrs, &nglyphs))
+              && nglyphs == 1)
+            {
+              code = glyphs[0];
+            }
+        }
+    }
 
   SelectObject (context, old_font);
   release_frame_dc (f, context);
 
-  if (retval == 1)
-    return indices[0] == 0xFFFF ? FONT_INVALID_CODE : indices[0];
-  else
-    return FONT_INVALID_CODE;
+  return code;
 }
 
 /*

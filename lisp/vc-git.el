@@ -268,9 +268,8 @@
 
 (defun vc-git-status-printer (info)
   "Pretty-printer for the vc-dir-fileinfo structure."
-  (let* ((state (if (vc-dir-fileinfo->directory info)
-		    'DIRECTORY
-		  (vc-dir-fileinfo->state info)))
+  (let* ((isdir (vc-dir-fileinfo->directory info))
+	 (state (if isdir "" (vc-dir-fileinfo->state info)))
          (extra (vc-dir-fileinfo->extra info))
          (old-perm (when extra (vc-git-extra-fileinfo->old-perm extra)))
          (new-perm (when extra (vc-git-extra-fileinfo->new-perm extra))))

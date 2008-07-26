@@ -1,3 +1,56 @@
+2008-07-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Saving Articles): Describe the 2nd argument of
+	gnus-summary-save-in-pipe.
+	(SpamAssassin): Use it.
+
+2008-07-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (SpamAssassin): Fix gnus-summary-save-in-pipe usage.
+
+2008-07-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Export options): Document the use of the creator flag.
+
+2008-07-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: New version 6.06a.
+
+2008-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add ns-emacs.
+	($(infodir)/ns-emacs, ns-emacs.dvi): New targets.
+
+2008-07-23  Vincent Belaïche  <vincent.b.1@hotmail.fr>
+
+	* calc.texi (Editing Stack Entries):
+	(Algebraic Entry): Rewrite introductory sentences so it can be used by
+	Calc's help functions.  Mention fixing typos.
+	(Customizing Calc): Fix typo.
+
+2008-07-23  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (summarykey): New macro.  Use to correctly format keys in
+	the summary.
+
+2008-07-20  Adrian Robert  <adrian.b.robert@gmail.com>
+
+	* ns-emacs.texi (Customization): Corrected documentation on color
+	specification formats.
+
+2008-07-19  Andreas Schwab  <schwab@suse.de>
+
+	* ns-emacs.texi: Moved from ../emacs.  Add @direntry.
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add ns-emacs.
+	(ns-emacs, $(infodir)/ns-emacs, ns-emacs.dvi): New rules.
+
+2008-07-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Inspection): Rework, introduce submenus.
+	(Bus names, Introspection, Nodes and Interfaces, Methods and Signal)
+	(Properties and Annotations, Arguments and Signatures): New nodes.
+
 2008-07-13  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Receiving Method Calls): Fix description of

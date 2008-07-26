@@ -1,7 +1,12 @@
 \input texinfo @c -*-texinfo-*-
 
-@setfilename ../info/ns-emacs
+@setfilename ../../info/ns-emacs
 @settitle Emacs.app
+
+@dircategory Emacs
+@direntry
+* NS-Emacs: (ns-emacs).   Emacs.app for GNUstep and MacOS X.
+@end direntry
 
 @iftex
 @finalout
@@ -480,9 +485,9 @@ a list of all available colors pull up the color panel and look at the color
 list called ``Emacs''.  Emacs also accepts color specifications of the form
 @samp{ARGBaarrggbb} where @var{aa}, @var{rr}, @var{gg}, and @var{bb} are two
 hexadecimal digits describing the alpha, red, green, and blue content of the
-color respectively.  @samp{HSBhhssbbaa}, @samp{CMYKccmmyykkaa} and
-@samp{GRAYggaa} are the equivalents in @samp{HSB}, @samp{CMYK} and gray
-scales.
+color respectively.  @samp{HSBhhssbb}, @samp{CMYKccmmyykk} and
+@samp{GRAYgg} are the equivalents in @samp{HSB}, @samp{CMYK} and gray
+scales.  (For HSB, @samp{AHSBaahhssbb} is also accepted.)
 
 @table @samp
 @item InternalBorderWidth

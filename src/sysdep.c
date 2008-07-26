@@ -1360,7 +1360,7 @@ init_sys_modes (tty_out)
 					   of C-z */
 #endif /* VSWTCH */
   
-#if defined (mips) || defined (HAVE_TCATTR)
+#if defined (__mips__) || defined (HAVE_TCATTR)
 #ifdef VSUSP
   tty.main.c_cc[VSUSP] = CDISABLE;	/* Turn off mips handling of C-z.  */
 #endif /* VSUSP */
@@ -3295,7 +3295,7 @@ closedir (dirp)
   /* Some systems (like Solaris) allocate the buffer and the DIR all
      in one block.  Why in the world are we freeing this ourselves
      anyway?  */
-#if ! (defined (sun) && defined (USG5_4))
+#if ! defined (SOLARIS2)
   xfree ((char *) dirp->dd_buf); /* directory block defined in <dirent.h> */
 #endif
   xfree ((char *) dirp);

@@ -1,7 +1,30 @@
 -*- outline -*-
 
-* BUGS
-* NON-SPECIFIC
+
+* POST_MERGE CLEANUP
+
+** remove aliases from x- to ns- in ns-win.el and replace by function renames
+
+** remove all the /* 23 */ comments from the source code
+
+** replace all references to PENDING: with something else
+
+
+* CURSOR BUGS:
+
+** ns_cursor_blink_rate: change to use generic code; also, when set in
+   preferences, somehow save the option (but calling custom-save-all
+   from this causes error)
+
+** cursor nonerase on certain Leopard and Tiger installations
+
+** (mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back up
+   on top of all others
+
+** cursor-over bugs w/some scripts (move around in HELLO to see)
+
+
+* OTHER BUGS
 
 ** Find out why char_quoted() in syntax.c gets called with charpos < 2 ||
    bytepos < 2 only under NS port.
@@ -10,14 +33,12 @@
 
 ** free_frame_resources, face colors
 
-** look at nsfont_char_width and nsfont_string_width utils (Dan C.)
-
-** config improvements (Dan C.)
-
 ** numeric keysetting bug
 
+** http://emacsbugs.donarmstrong.com/cgi-bin/pkgreport.cgi?pkg=openstep
 
-* Mac-related:
+
+* MAC-RELATED:
 
 ** open file:/// URLs
 
@@ -31,22 +52,11 @@
 
 ** Ctrl-F2 won't pull up menus
 
-
-* Cursor:
-
-** ns_cursor_blink_rate: change to use generic code; also, when set in
-   preferences, somehow save the option (but calling custom-save-all
-   from this causes error)
-
-** cursor nonerase on certain Leopard and Tiger installations
-
-** if I do:  (mouse-avoidance-mode 'banish) and then minimize Emacs, it pops back immediately.
-  Also, it insists on being on top of other windows if they overlap.
-
-** cursor-over bugs w/some scripts (move around in HELLO to see)
+** set were-is-preferred-modifier to Qsuper when ns-extended-platform-support
+   mode on (and recompute menubar bindings if needed)
 
 
-* Other:
+* OTHER / LOW PRIORITY:
 
 ** better recog of unicode scripts / Greek / composition
 
@@ -56,5 +66,4 @@
 
 ** undo for color-drag face customization
 
-
-
+** look at nsfont_char_width and nsfont_string_width utils (Dan C.)

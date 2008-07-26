@@ -34,7 +34,7 @@ EMACS = ../src/emacs
 EMACSOPT = -batch --no-site-file --multibyte
 
 # Extra flags to pass to the byte compiler
-BYTE_COMPILE_EXTRA_FLAGS = 
+BYTE_COMPILE_EXTRA_FLAGS =
 # For example to not display the undefined function warnings you can use this:
 # BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq byte-compile-warnings (quote (not unresolved)))'
 # The example above is just for developers, it should not be used by default.
@@ -709,7 +709,6 @@ ELCFILES = \
 	$(lisp)/international/robin.elc \
 	$(lisp)/international/titdic-cnv.elc \
 	$(lisp)/international/utf-7.elc \
-	$(lisp)/isearch-multi.elc \
 	$(lisp)/isearch.elc \
 	$(lisp)/isearchb.elc \
 	$(lisp)/iswitchb.elc \
@@ -814,6 +813,7 @@ ELCFILES = \
 	$(lisp)/minibuf-eldef.elc \
 	$(lisp)/minibuffer.elc \
 	$(lisp)/misc.elc \
+	$(lisp)/misearch.elc \
 	$(lisp)/mouse-copy.elc \
 	$(lisp)/mouse-drag.elc \
 	$(lisp)/mouse-sel.elc \
@@ -871,11 +871,10 @@ ELCFILES = \
 	$(lisp)/net/tramp.elc \
 	$(lisp)/net/trampver.elc \
 	$(lisp)/net/webjump.elc \
+	$(lisp)/net/xesam.elc \
 	$(lisp)/net/zeroconf.elc \
 	$(lisp)/newcomment.elc \
 	$(lisp)/novice.elc \
-	$(lisp)/ns-grabenv.elc \
-	$(lisp)/ns-carbon-compat.elc \
 	$(lisp)/nxml/nxml-enc.elc \
 	$(lisp)/nxml/nxml-glyph.elc \
 	$(lisp)/nxml/nxml-maint.elc \
@@ -1118,6 +1117,7 @@ ELCFILES = \
 	$(lisp)/tar-mode.elc \
 	$(lisp)/tempo.elc \
 	$(lisp)/term.elc \
+	$(lisp)/term/common-win.elc \
 	$(lisp)/term/mac-win.elc \
 	$(lisp)/term/ns-win.elc \
 	$(lisp)/term/pc-win.elc \

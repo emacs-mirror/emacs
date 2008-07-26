@@ -172,9 +172,6 @@ For m17n-lib, if you have problems with making the whole package
 because you lack some other packages on which m17n-lib depends, try to
 configure it with the option "--without-gui".
 
-Please note that Emacs must be configured with the arg
-"--enable-font-backend" to get the benefit of those libraries.
-
 * Extra fonts
 
 The Emacs distribution does not include fonts and does not install

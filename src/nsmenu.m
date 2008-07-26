@@ -78,7 +78,7 @@ EmacsMenu *mainMenu, *svcsMenu;
    ========================================================================== */
 
 
-/*23: PENDING: not currently used, but should normalize with other terms. */
+/*23: FIXME: not currently used, but should normalize with other terms. */
 void
 x_activate_menubar (struct frame *f)
 {
@@ -197,9 +197,9 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 	}
       set_buffer_internal_1 (XBUFFER (buffer));
 
-      /* PENDING: for some reason this is not needed in other terms,
-         but some menu updates call Info-extract-pointer which causes
-         abort-on-error if waiting-for-input.  Needs further investigation. */
+      /* TODO: for some reason this is not needed in other terms,
+           but some menu updates call Info-extract-pointer which causes
+           abort-on-error if waiting-for-input.  Needs further investigation. */
       owfi = waiting_for_input;
       waiting_for_input = 0;
 
@@ -239,10 +239,10 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 	  if (NILP (string))
 	    break;
 
-          /* PENDING: we'd like to only parse the needed submenu, but this
-             was causing crashes in the _common parsing code.. need to make
-             sure proper initialization done.. */
-/*             if (submenu && strcmp (submenuTitle, SDATA (string)))
+          /* FIXME: we'd like to only parse the needed submenu, but this
+               was causing crashes in the _common parsing code.. need to make
+               sure proper initialization done.. */
+/*        if (submenu && strcmp (submenuTitle, SDATA (string)))
              continue; */
 
 	  submenu_start[i] = menu_items_used;
@@ -298,16 +298,16 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       set_buffer_internal_1 (prev);
 
       /* Compare the new menu items with previous, and leave off if no change */
-      /* PENDING: following other terms here, but seems like this should be
-         done before parse stage 2 above, since its results aren't used */
+      /* FIXME: following other terms here, but seems like this should be
+           done before parse stage 2 above, since its results aren't used */
       if (previous_menu_items_used
           && (!submenu || (submenu && submenu == last_submenu))
           && menu_items_used == previous_menu_items_used)
         {
           for (i = 0; i < previous_menu_items_used; i++)
-            /* PENDING: this ALWAYS fails on Buffers menu items.. something
-               about their strings causes them to change every time, so we
-               double-check failures */
+            /* FIXME: this ALWAYS fails on Buffers menu items.. something
+                 about their strings causes them to change every time, so we
+                 double-check failures */
             if (!EQ (previous_items[i], XVECTOR (menu_items)->contents[i]))
               if (!(STRINGP (previous_items[i])
                     && STRINGP (XVECTOR (menu_items)->contents[i])
@@ -333,7 +333,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
             }
         }
       /* The menu items are different, so store them in the frame */
-      /* PENDING: this is not correct for single-submenu case */
+      /* FIXME: this is not correct for single-submenu case */
       f->menu_bar_vector = menu_items;
       f->menu_bar_items_used = menu_items_used;
 
@@ -830,7 +830,7 @@ ns_popup_menu (Lisp_Object position, Lisp_Object menu)
     }
   else
     {      /* no position given */
-      /* PENDING: if called during dump, we need to stop precomputation of
+      /* FIXME: if called during dump, we need to stop precomputation of
          key equivalents (see below) because the keydefs in ns-win.el have
          not been loaded yet. */
       if (noninteractive)
@@ -934,7 +934,7 @@ ns_popup_menu (Lisp_Object position, Lisp_Object menu)
   specpdl_count2 = SPECPDL_INDEX ();
 
 #if 0
-  /*PENDING: a couple of one-line differences prevent reuse */
+  /* FIXME: a couple of one-line differences prevent reuse */
   wv = digest_single_submenu (0, menu_items_used, Qnil);
 #else
   {
@@ -1860,7 +1860,7 @@ void process_dialog (id window, Lisp_Object list)
    ========================================================================== */
 
 DEFUN ("ns-reset-menu", Fns_reset_menu, Sns_reset_menu, 0, 0, 0,
-       "Cause the NS menu to be re-calculated.")
+       doc: /* Cause the NS menu to be re-calculated.  */)
      ()
 {
   set_frame_menubar (SELECTED_FRAME (), 1, 0);
@@ -1869,30 +1869,38 @@ DEFUN ("ns-reset-menu", Fns_reset_menu, Sns_reset_menu, 0, 0, 0,
 
 
 DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
-       "Pop up a deck-of-cards menu and return user's selection.\n\
-POSITION is a position specification.  This is either a mouse button event\n\
-or a list ((XOFFSET YOFFSET) WINDOW)\n\
-where XOFFSET and YOFFSET are positions in pixels from the top left\n\
-corner of WINDOW's frame. (WINDOW may be a frame object instead of a window.)\n\
-This controls the position of the center of the first line\n\
-in the first pane of the menu, not the top left of the menu as a whole.\n\
-\n\
-MENU is a specifier for a menu.  For the simplest case, MENU is a keymap.\n\
-The menu items come from key bindings that have a menu string as well as\n\
-a definition; actually, the \"definition\" in such a key binding looks like\n\
-\(STRING . REAL-DEFINITION).  To give the menu a title, put a string into\n\
-the keymap as a top-level element.\n\n\
-You can also use a list of keymaps as MENU.\n\
-  Then each keymap makes a separate pane.\n\
-When MENU is a keymap or a list of keymaps, the return value\n\
-is a list of events.\n\n\
-Alternatively, you can specify a menu of multiple panes\n\
-  with a list of the form (TITLE PANE1 PANE2...),\n\
-where each pane is a list of form (TITLE ITEM1 ITEM2...).\n\
-Each ITEM is normally a cons cell (STRING . VALUE);\n\
-but a string can appear as an item--that makes a nonselectable line\n\
-in the menu.\n\
-With this form of menu, the return value is VALUE from the chosen item.")
+       doc: /* Pop up a deck-of-cards menu and return user's selection.
+POSITION is a position specification.  This is either a mouse button event
+or a list ((XOFFSET YOFFSET) WINDOW)
+where XOFFSET and YOFFSET are positions in pixels from the top left
+corner of WINDOW.  (WINDOW may be a window or a frame object.)
+This controls the position of the top left of the menu as a whole.
+If POSITION is t, it means to use the current mouse position.
+
+MENU is a specifier for a menu.  For the simplest case, MENU is a keymap.
+The menu items come from key bindings that have a menu string as well as
+a definition; actually, the \"definition\" in such a key binding looks like
+\(STRING . REAL-DEFINITION).  To give the menu a title, put a string into
+the keymap as a top-level element.
+
+If REAL-DEFINITION is nil, that puts a nonselectable string in the menu.
+Otherwise, REAL-DEFINITION should be a valid key binding definition.
+
+You can also use a list of keymaps as MENU.
+  Then each keymap makes a separate pane.
+
+When MENU is a keymap or a list of keymaps, the return value is the
+list of events corresponding to the user's choice. Note that
+`x-popup-menu' does not actually execute the command bound to that
+sequence of events.
+
+Alternatively, you can specify a menu of multiple panes
+  with a list of the form (TITLE PANE1 PANE2...),
+where each pane is a list of form (TITLE ITEM1 ITEM2...).
+Each ITEM is normally a cons cell (STRING . VALUE);
+but a string can appear as an item--that makes a nonselectable line
+in the menu.
+With this form of menu, the return value is VALUE from the chosen item.  */)
      (position, menu)
      Lisp_Object position, menu;
 {

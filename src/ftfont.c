@@ -1480,9 +1480,11 @@ adjust_anchor (FT_Face ft_face, OTF_Anchor *anchor,
     }
   else if (anchor->AnchorFormat == 3)
     {
-      if (anchor->f.f2.XDeviceTable.offset)
+      if (anchor->f.f2.XDeviceTable.offset
+	  && anchor->f.f2.XDeviceTable.DeltaValue)
 	*x += DEVICE_DELTA (anchor->f.f2.XDeviceTable, x_ppem);
-      if (anchor->f.f2.YDeviceTable.offset)
+      if (anchor->f.f2.YDeviceTable.offset
+	  && anchor->f.f2.YDeviceTable.DeltaValue)
 	*y += DEVICE_DELTA (anchor->f.f2.YDeviceTable, y_ppem);
     }
 }

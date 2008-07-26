@@ -65,6 +65,7 @@
 ;; The "File" menu items
 (define-key menu-bar-file-menu [exit-emacs]
   '(menu-item "Exit Emacs" save-buffers-kill-emacs
+	      :keys "C-x C-c"
 	      :help "Save unsaved buffers, then exit"))
 
 (define-key menu-bar-file-menu [separator-exit]
@@ -1057,30 +1058,38 @@ mail status in mode line"))
 
 (defvar menu-bar-line-wrapping-menu (make-sparse-keymap "Line Wrapping"))
 
+(define-key menu-bar-line-wrapping-menu [word-wrap]
+  '(menu-item "Word Wrap (Visual Line mode)"
+	      (lambda ()
+		(interactive)
+		(unless visual-line-mode
+		  (visual-line-mode 1))
+		(message "Visual-Line mode enabled"))
+	      :help "Wrap long lines at word boundaries"
+	      :button (:radio . (and (null truncate-lines)
+				     (not (truncated-partial-width-window-p))
+				     word-wrap))
+	      :visible (menu-bar-menu-frame-live-and-visible-p)))
+
 (define-key menu-bar-line-wrapping-menu [truncate]
   '(menu-item "Truncate Long Lines"
-	      toggle-truncate-lines
+	      (lambda ()
+		(interactive)
+		(if visual-line-mode (visual-line-mode 0))
+		(setq word-wrap nil)
+		(toggle-truncate-lines 1))
 	      :help "Truncate long lines at window edge"
 	      :button (:radio . (or truncate-lines
 				    (truncated-partial-width-window-p)))
 	      :visible (menu-bar-menu-frame-live-and-visible-p)
 	      :enable (not (truncated-partial-width-window-p))))
 
-(define-key menu-bar-line-wrapping-menu [word-wrap]
-  '(menu-item "Wrap at Word Boundaries"
-	      (lambda () (interactive) (setq truncate-lines nil
-					     word-wrap t))
-	      :help "Wrap long lines at word boundaries"
-	      :button (:radio . (and (null truncate-lines)
-				     (not (truncated-partial-width-window-p))
-				     word-wrap))
-	      :visible (menu-bar-menu-frame-live-and-visible-p)
-	      :enable (not (truncated-partial-width-window-p))))
-
 (define-key menu-bar-line-wrapping-menu [window-wrap]
   '(menu-item "Wrap at Window Edge"
-	      (lambda () (interactive) (setq truncate-lines nil
-					     word-wrap nil))
+	      (lambda () (interactive)
+		(if visual-line-mode (visual-line-mode 0))
+		(setq word-wrap nil)
+		(if truncate-lines (toggle-truncate-lines -1)))
 	      :help "Wrap long lines at window edge"
 	      :button (:radio . (and (null truncate-lines)
 				     (not (truncated-partial-width-window-p))

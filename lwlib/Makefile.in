@@ -52,7 +52,7 @@ TOOLKIT_DEFINES =
            OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 
 # ../src is needed to find config.h.
-ALL_CFLAGS= $(C_SWITCH_SITE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
+ALL_CFLAGS= $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(C_SWITCH_X_SYSTEM) $(C_SWITCH_MACHINE) $(CFLAGS) \
   -DHAVE_CONFIG_H -Demacs -I. -I../src -I${srcdir} -I${srcdir}/../src
 

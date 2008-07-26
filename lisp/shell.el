@@ -184,7 +184,8 @@ This is a fine thing to set in your `.emacs' file.")
     shell-dynamic-complete-environment-variable
     shell-dynamic-complete-command
     shell-replace-by-expanded-directory
-    shell-dynamic-complete-filename)
+    shell-dynamic-complete-filename
+    comint-dynamic-complete-filename)
   "List of functions called to perform completion.
 This variable is used to initialize `comint-dynamic-complete-functions' in the
 shell buffer.

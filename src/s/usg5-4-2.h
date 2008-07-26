@@ -34,7 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_SYSV_SIGPAUSE
 
 /* Motif needs -lgen.  */
-#undef LIBS_SYSTEM
 #define LIBS_SYSTEM -lsocket -lnsl -lelf -lgen
 
 /* This is the same definition as in usg5-4.h, but with sigblock/sigunblock

@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This is a quick'n'dirty, low performance, implementation of RFC2104.
+;; This is a high performance implementation of RFC2104.
 ;;
 ;; Example:
 ;;
@@ -31,8 +31,8 @@
 ;; (rfc2104-hash 'md5 64 16 "Jefe" "what do ya want for nothing?")
 ;; "750c783e6ab0b503eaa86e310a5db738"
 ;;
-;; (require 'sha-1)
-;; (rfc2104-hash 'sha1-encode 64 20 "Jefe" "what do ya want for nothing?")
+;; (require 'sha1)
+;; (rfc2104-hash 'sha1 64 20 "Jefe" "what do ya want for nothing?")
 ;; "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79"
 ;;
 ;; 64 is block length of hash function (64 for MD5 and SHA), 16 is
@@ -52,6 +52,7 @@
 ;; 2000-08-15  `rfc2104-hexstring-to-bitstring'
 ;; 2000-05-12  added sha-1 example, added test case reference
 ;; 2003-11-13  change rfc2104-hexstring-to-bitstring to ...-byte-list
+;; 2008-04-25  rewrite rfc2104-hash for speed
 
 ;;; Code:
 
@@ -63,55 +64,52 @@
 ;; Magic character for outer HMAC round. 0x5C == 92 == '\'
 (defconst rfc2104-opad ?\x5C)
 
-;; Not so magic character for padding the key. 0x00
-(defconst rfc2104-zero ?\x00)
-
-;; Alist for converting hex to decimal.
-(defconst rfc2104-hex-alist
-  '((?0 . 0)	      (?a . 10)	      (?A . 10)
-    (?1 . 1)	      (?b . 11)	      (?B . 11)
-    (?2 . 2)	      (?c . 12)	      (?C . 12)
-    (?3 . 3)	      (?d . 13)	      (?D . 13)
-    (?4 . 4)	      (?e . 14)	      (?E . 14)
-    (?5 . 5)	      (?f . 15)	      (?F . 15)
-    (?6 . 6)
-    (?7 . 7)
-    (?8 . 8)
-    (?9 . 9)))
-
-(defun rfc2104-hex-to-int (str)
-  (if str
-      (if (listp str)
-	  (+ (* 16 (rfc2104-hex-to-int (cdr str)))
-	     (cdr (assoc (car str) rfc2104-hex-alist)))
-	(rfc2104-hex-to-int (reverse (append str nil))))
-    0))
-
-(defun rfc2104-hexstring-to-bitstring (str)
-  (let (out)
-    (while (< 0 (length str))
-      (push (rfc2104-hex-to-int (substring str -2)) out)
-      (setq str (substring str 0 -2)))
-    (apply (if (fboundp 'unibyte-string) 'unibyte-string 'string) out)))
+(defconst rfc2104-nybbles
+  (let ((v (make-vector
+            ;; Find upper bound to save some space.
+            (1+ (max ?0 ?9 ?a ?f ?A ?F))
+            ;; Use non-numeric default to catch bogus hex strings.
+            nil))
+        (ls '((?0 . 0)	 (?a . 10)   (?A . 10)
+              (?1 . 1)	 (?b . 11)   (?B . 11)
+              (?2 . 2)	 (?c . 12)   (?C . 12)
+              (?3 . 3)	 (?d . 13)   (?D . 13)
+              (?4 . 4)	 (?e . 14)   (?E . 14)
+              (?5 . 5)	 (?f . 15)   (?F . 15)
+              (?6 . 6)
+              (?7 . 7)
+              (?8 . 8)
+              (?9 . 9))))
+    (while ls
+      (aset v (caar ls) (cdar ls))
+      (setq ls (cdr ls)))
+    v))
 
 (defun rfc2104-hash (hash block-length hash-length key text)
   (let* (;; if key is longer than B, reset it to HASH(key)
 	 (key (if (> (length key) block-length)
 		  (funcall hash key) key))
-	 (k_ipad (append key nil))
-	 (k_opad (append key nil)))
-    ;; zero pad k_ipad/k_opad
-    (while (< (length k_ipad) block-length)
-      (setq k_ipad (append k_ipad (list rfc2104-zero))))
-    (while (< (length k_opad) block-length)
-      (setq k_opad (append k_opad (list rfc2104-zero))))
-    ;; XOR key with ipad/opad into k_ipad/k_opad
-    (setq k_ipad (mapcar (lambda (c) (logxor c rfc2104-ipad)) k_ipad))
-    (setq k_opad (mapcar (lambda (c) (logxor c rfc2104-opad)) k_opad))
-    ;; perform outer hash
-    (funcall hash (concat k_opad (rfc2104-hexstring-to-bitstring
-			      ;; perform inner hash
-				  (funcall hash (concat k_ipad text)))))))
+         (len (length key))
+	 (ipad (make-string    block-length              rfc2104-ipad))
+	 (opad (make-string (+ block-length hash-length) rfc2104-opad))
+         c partial)
+    ;; Prefix *pad with key, appropriately XORed.
+    (do ((i 0 (1+ i)))
+        ((= len i))
+      (setq c (aref key i))
+      (aset ipad i (logxor rfc2104-ipad c))
+      (aset opad i (logxor rfc2104-opad c)))
+    ;; Perform inner hash.
+    (setq partial (string-make-unibyte (funcall hash (concat ipad text))))
+    ;; Pack latter part of opad.
+    (do ((r 0 (+ 2 r))
+         (w block-length (1+ w)))
+        ((= (* 2 hash-length) r))
+      (aset opad w
+            (+ (* 16 (aref rfc2104-nybbles (aref partial     r)))
+               (      aref rfc2104-nybbles (aref partial (1+ r))))))
+    ;; Perform outer hash.
+    (string-make-unibyte (funcall hash opad))))
 
 (provide 'rfc2104)
 

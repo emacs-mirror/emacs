@@ -50,10 +50,6 @@ NOTE-END */
 
 #define CRT0_DUMMIES bogus_fp,
 
-/* crt0.c should define a symbol `start' and do .globl with a dot.  */
-
-#define DOT_GLOBAL_START
-
 #ifdef SOLARIS2
 /* Data type of load average, as read out of kmem.  */
 #define LOAD_AVE_TYPE long
@@ -82,11 +78,10 @@ NOTE-END */
 
 #define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
 #define FSCALE 256.0
-#endif
+#endif /* USG5_4 */
 #endif /* not SOLARIS2 */
 
 #ifdef USG
-#define NO_REMAP
 #define TEXT_START 0
 #endif /* USG */
 
@@ -96,7 +91,6 @@ NOTE-END */
 
 #ifdef WINDOWSNT
 #define VIRT_ADDR_VARIES
-#define DATA_END 	get_data_end ()
 #define DATA_START 	get_data_start ()
 #define NO_ARG_ARRAY
 #endif

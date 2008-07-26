@@ -2,7 +2,7 @@
 
 	* admin.el (set-version, set-copyright): Add nextstep/ files.
 
-2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* CPP_DEFINES: Add NS port related defines.
 

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.05a
+;; Version: 6.06b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1013,13 +1013,13 @@ of fields."
     (let* ((title (mapcar 'cadr org-columns-current-fmt-compiled))
 	   (n (length title)) row tbl)
       (goto-char (point-min))
-      (while (and (re-search-forward "^\\(\\*+\\) " nil t)
-		  (or (null maxlevel)
-		      (>= maxlevel
-			  (if org-odd-levels-only
-			      (/ (1+ (length (match-string 1))) 2)
-			    (length (match-string 1))))))
-	(when (get-char-property (match-beginning 0) 'org-columns-key)
+      (while (re-search-forward "^\\(\\*+\\) " nil t)
+	(when (and (or (null maxlevel)
+                       (>= maxlevel
+                           (if org-odd-levels-only
+                               (/ (1+ (length (match-string 1))) 2)
+                             (length (match-string 1)))))
+                   (get-char-property (match-beginning 0) 'org-columns-key))
 	  (setq row nil)
 	  (loop for i from 0 to (1- n) do
 		(push (or (get-char-property (+ (match-beginning 0) i) 'org-columns-value-modified)

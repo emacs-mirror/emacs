@@ -46,12 +46,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef USG5_4
 #define TEXT_START 0x10000000
-#define TEXT_END 0
 #define DATA_START 0x20000000
-#define DATA_END 0
 #define WORDS_BIG_ENDIAN
 #define DATA_SEG_BITS 0x20000000
-#define C_SWITCH_MACHINE -D_BSD
 
 /* sfreed@unm.edu says add -bI:/usr/lpp/X11/bin/smt.exp for AIX 3.2.4.  */
 /* marc@sti.com (Marc Pawliger) says ibmrs6000.inp is needed to avoid
@@ -62,11 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef THIS_IS_MAKEFILE /* Don't use this in configure.  */
 #define LD_SWITCH_MACHINE -Wl,-bnodelcsect
 #endif /* THIS_IS_MAKEFILE */
-
-/* Avoid gcc 2.7.x collect2 bug by using /bin/ld instead.  */
-#if __GNUC__ == 2 && __GNUC_MINOR__ == 7
-#define LD_SWITCH_SITE -B/bin/
-#endif
 
 #ifndef NLIST_STRUCT
 /* AIX supposedly doesn't use this interface, but on the RS/6000
@@ -88,9 +80,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DATA_SEG_BITS 0
 #define LIBS_MACHINE
 #endif /* USG5_4 */
-
-#undef ADDR_CORRECT
-#define ADDR_CORRECT(x) ((int)(x))
 
 #define START_FILES
 /*** BUILD 9008 - FIONREAD problem still exists in X-Windows. ***/

@@ -1314,6 +1314,7 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
   DBusConnection *connection;
   int i;
   char rule[DBUS_MAXIMUM_MATCH_RULE_LENGTH];
+  char x[DBUS_MAXIMUM_MATCH_RULE_LENGTH];
   DBusError derror;
 
   /* Check parameters.  */
@@ -1366,17 +1367,24 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
 
       /* Add unique name and path to the rule if they are non-nil.  */
       if (!NILP (uname))
-	sprintf (rule, "%s,sender='%s'", rule, SDATA (uname));
+	{
+	  sprintf (x, ",sender='%s'", SDATA (uname));
+	  strcat (rule, x);
+	}
 
       if (!NILP (path))
-	sprintf (rule, "%s,path='%s'", rule, SDATA (path));
+	{
+	  sprintf (x, ",path='%s'", SDATA (path));
+	  strcat (rule, x);
+	}
 
       /* Add arguments to the rule if they are non-nil.  */
       for (i = 6; i < nargs; ++i)
 	if (!NILP (args[i]))
 	  {
 	    CHECK_STRING (args[i]);
-	    sprintf (rule, "%s,arg%d='%s'", rule, i-6, SDATA (args[i]));
+	    sprintf (x, ",arg%d='%s'", i-6, SDATA (args[i]));
+	    strcat (rule, x);
 	  }
 
       /* Add the rule to the bus.  */

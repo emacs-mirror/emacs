@@ -1,4 +1,11 @@
-2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-19  Juri Linkov  <juri@jurta.org>
+
+	* quail/cyrillic.el ("cyrillic-translit"): Add two rules "//'" and
+	"//`" for combining accents as a separate character.  Keep two
+	rules "i`" and "I`" for characters where accent is not a separate
+	character.  Revert changes that added postfix combining accents.
+
+2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Makefile.in (install): Perform post-install cleanup inside NS app
 	bundle.

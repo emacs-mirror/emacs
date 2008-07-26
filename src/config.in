@@ -1053,7 +1053,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # ifdef NS_IMPL_GNUSTEP
 /* See also .m.o rule in Makefile.in */
 #  define C_SWITCH_X_SYSTEM -MMD -MP -D_REENTRANT -fPIC -fno-strict-aliasing
-#  define LD_SWITCH_SITE -lgnustep-gui -lgnustep-base -lobjc $(CONFIG_SYSTEM_LIBS) -lpthread
 #  define GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE
 #  define OTHER_FILES ns-app
 # else /* NS_IMPL_COCOA */
@@ -1062,25 +1061,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # endif /* NS_IMPL_COCOA */
 #endif /* HAVE_NS */
 
-
-
-/* If no remapping takes place, static variables cannot be dumped as
-   pure, so don't worry about the `static' keyword. */
-#ifdef NO_REMAP
-#undef static
-#endif
-
 /* Define `subprocesses' should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
-   These do not work for some USG systems yet;
-   for the ones where they work, the s/SYSTEM.h file defines this flag.  */
+   Only MSDOS does not support this.  */
 
-#ifndef VMS
-#ifndef USG
-/* #define subprocesses */
-#endif
-#endif
+#define subprocesses
 
 /* SIGTYPE is the macro we actually use.  */
 #ifndef SIGTYPE

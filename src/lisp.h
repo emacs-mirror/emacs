@@ -28,11 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define P_(proto) ()
 #endif
 
-#ifdef NS_IMPL_GNUSTEP
-/* This conflicts with functions in the GNUstep libraries. */
-#define hash_remove emacs_hash_remove
-#endif  /* NS_IMPL_GNUSTEP */
-
 #if 0
 /* Define this temporarily to hunt a bug.  If defined, the size of
    strings is redundantly recorded in sdata structures so that it can

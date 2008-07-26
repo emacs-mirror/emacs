@@ -112,38 +112,10 @@ boundary is sufficient.  That is the default.  When a larger
 boundary is needed, define SEGMENT_MASK to a mask of
 the bits that must be zero on such a boundary.
 
-* A_TEXT_OFFSET(HDR)
-
-Some machines count the a.out header as part of the size of the text
-segment (a_text); they may actually load the header into core as the
-first data in the text segment.  Some have additional padding between
-the header and the real text of the program that is counted in a_text.
-
-For these machines, define A_TEXT_OFFSET(HDR) to examine the header
-structure HDR and return the number of bytes to add to `a_text'
-before writing it (above and beyond the number of bytes of actual
-program text).  HDR's standard fields are already correct, except that
-this adjustment to the `a_text' field has not yet been made;
-thus, the amount of offset can depend on the data in the file.
-
-* A_TEXT_SEEK(HDR)
-
-If defined, this macro specifies the number of bytes to seek into the
-a.out file before starting to write the text segment.
-
 * ADJUST_EXEC_HEADER
 
 This macro can be used to generate statements to adjust or
 initialize nonstandard fields in the file header
-
-* ADDR_CORRECT(ADDR)
-
-Macro to correct an int which is the bit pattern of a pointer to a byte
-into an int which is the number of a byte.
-
-This macro has a default definition which is usually right.
-This default definition is a no-op on most machines (where a
-pointer looks like an int) but not on all machines.
 
 */
 
@@ -156,7 +128,7 @@ pointer looks like an int) but not on all machines.
 
 #ifndef CANNOT_DUMP  /* all rest of file!  */
 
-#if defined(COFF) && defined(HAVE_COFF_H)
+#ifdef HAVE_COFF_H
 #include <coff.h>
 #ifdef MSDOS
 #if __DJGPP__ > 1
@@ -182,9 +154,9 @@ struct aouthdr
   unsigned long	 	data_start;/* base of data used for this file */
 };
 #endif /* not MSDOS */
-#else  /* not COFF */
+#else  /* not HAVE_COFF_H */
 #include <a.out.h>
-#endif /* not COFF */
+#endif /* not HAVE_COFF_H */
 
 /* Define getpagesize if the system does not.
    Note that this may depend on symbols defined in a.out.h.  */
@@ -197,11 +169,7 @@ struct aouthdr
 #include <sys/stat.h>
 #include <errno.h>
 
-#include <sys/file.h>	/* Must be after sys/types.h for USG*/
-
-#ifdef USG5
-#include <fcntl.h>
-#endif
+#include <sys/file.h>
 
 #ifndef O_RDONLY
 #define O_RDONLY 0
@@ -214,7 +182,6 @@ struct aouthdr
 extern char *start_of_text ();		/* Start of text */
 extern char *start_of_data ();		/* Start of initialized data */
 
-#ifdef COFF
 static long block_copy_start;		/* Old executable start point */
 static struct filehdr f_hdr;		/* File header */
 static struct aouthdr f_ohdr;		/* Optional file header (a.out) */
@@ -227,45 +194,13 @@ static long data_scnptr;
 
 static long coff_offset;
 
-#else /* not COFF */
-
-extern char *sbrk ();
-
-#define SYMS_START ((long) N_SYMOFF (ohdr))
-
-#if defined (USG)
-static struct bhdr hdr, ohdr;
-#define a_magic fmagic
-#define a_text tsize
-#define a_data dsize
-#define a_bss bsize
-#define a_syms ssize
-#define a_trsize rtsize
-#define a_drsize rdsize
-#define a_entry entry
-#define	N_BADMAG(x) \
-    (((x).fmagic)!=OMAGIC && ((x).fmagic)!=NMAGIC &&\
-     ((x).fmagic)!=FMAGIC && ((x).fmagic)!=IMAGIC)
-#define NEWMAGIC FMAGIC
-#else /* not USG */
-static struct exec hdr, ohdr;
-#define NEWMAGIC ZMAGIC
-#endif /* not USG */
-
-static int unexec_text_start;
-static int unexec_data_start;
-
-#endif /* not COFF */
-
 static int pagemask;
 
 /* Correct an int which is the bit pattern of a pointer to a byte
    into an int which is the number of a byte.
    This is a no-op on ordinary machines, but not on all.  */
 
-#ifndef ADDR_CORRECT   /* Let m-*.h files override this definition */
 #define ADDR_CORRECT(x) ((char *)(x) - (char*)0)
-#endif
 
 #ifdef emacs
 
@@ -320,13 +255,11 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
      char *new_name;
 {
   int tem;
-#ifdef COFF
   auto struct scnhdr f_thdr;		/* Text section header */
   auto struct scnhdr f_dhdr;		/* Data section header */
   auto struct scnhdr f_bhdr;		/* Bss section header */
   auto struct scnhdr scntemp;		/* Temporary section header */
   register int scns;
-#endif /* COFF */
   unsigned int bss_end;
 
   pagemask = getpagesize () - 1;
@@ -370,7 +303,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
 	      data_start, bss_start);
     }
 
-#ifdef COFF
   coff_offset = 0L;		/* stays zero, except in DJGPP */
 
   /* Salvage as much info from the existing file as possible */
@@ -529,69 +461,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
 
   return (0);
 
-#else /* if not COFF */
-
-  /* Get symbol table info from header of a.out file if given one. */
-  if (a_out >= 0)
-    {
-      if (read (a_out, &ohdr, sizeof hdr) != sizeof hdr)
-	{
-	  PERROR (a_name);
-	}
-
-      if (N_BADMAG (ohdr))
-	{
-	  ERROR1 ("invalid magic number in %s", a_name);
-	}
-      hdr = ohdr;
-    }
-  else
-    {
-#ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
-      bzero ((void *)&hdr, sizeof hdr);
-#else
-      bzero (&hdr, sizeof hdr);
-#endif
-    }
-
-  unexec_text_start = (long) start_of_text ();
-  unexec_data_start = data_start;
-
-  /* Machine-dependent fixup for header, or maybe for unexec_text_start */
-#ifdef ADJUST_EXEC_HEADER
-  ADJUST_EXEC_HEADER;
-#endif /* ADJUST_EXEC_HEADER */
-
-  hdr.a_trsize = 0;
-  hdr.a_drsize = 0;
-  if (entry_address != 0)
-    hdr.a_entry = entry_address;
-
-  hdr.a_bss = bss_end - bss_start;
-  hdr.a_data = bss_start - data_start;
-#ifdef NO_REMAP
-  hdr.a_text = ohdr.a_text;
-#else /* not NO_REMAP */
-  hdr.a_text = data_start - unexec_text_start;
-
-#ifdef A_TEXT_OFFSET
-  hdr.a_text += A_TEXT_OFFSET (ohdr);
-#endif
-
-#endif /* not NO_REMAP */
-
-  if (write (new, &hdr, sizeof hdr) != sizeof hdr)
-    {
-      PERROR (new_name);
-    }
-
-#ifdef A_TEXT_OFFSET
-  hdr.a_text -= A_TEXT_OFFSET (ohdr);
-#endif
-
-  return 0;
-
-#endif /* not COFF */
 }
 
 write_segment (new, ptr, end)
@@ -661,8 +530,6 @@ copy_text_and_data (new, a_out)
   register char *end;
   register char *ptr;
 
-#ifdef COFF
-
 #ifdef MSDOS
 #if __DJGPP__ >= 2
   /* Dump the original table of exception handlers, not the one
@@ -696,35 +563,6 @@ copy_text_and_data (new, a_out)
 #endif
 #endif
 
-#else /* if not COFF */
-
-/* Some machines count the header as part of the text segment.
-   That is to say, the header appears in core
-   just before the address that start_of_text returns.
-   For them, N_TXTOFF is the place where the header goes.
-   We must adjust the seek to the place after the header.
-   Note that at this point hdr.a_text does *not* count
-   the extra A_TEXT_OFFSET bytes, only the actual bytes of code.  */
-
-#ifdef A_TEXT_SEEK
-  lseek (new, (long) A_TEXT_SEEK (hdr), 0);
-#else
-  lseek (new, (long) N_TXTOFF (hdr), 0);
-#endif /* no A_TEXT_SEEK */
-
-  ptr = (char *) unexec_text_start;
-  end = ptr + hdr.a_text;
-  write_segment (new, ptr, end);
-
-  ptr = (char *) unexec_data_start;
-  end = ptr + hdr.a_data;
-/*  This lseek is certainly incorrect when A_TEXT_OFFSET
-    and I believe it is a no-op otherwise.
-    Let's see if its absence ever fails.  */
-/*  lseek (new, (long) N_TXTOFF (hdr) + hdr.a_text, 0); */
-  write_segment (new, ptr, end);
-
-#endif /* not COFF */
 
   return 0;
 }
@@ -745,19 +583,13 @@ copy_sym (new, a_out, a_name, new_name)
   if (a_out < 0)
     return 0;
 
-#ifdef COFF
   if (SYMS_START == 0L)
     return 0;
-#endif  /* COFF */
 
-#ifdef COFF
   if (lnnoptr)			/* if there is line number info */
     lseek (a_out, coff_offset + lnnoptr, 0);	/* start copying from there */
   else
     lseek (a_out, coff_offset + SYMS_START, 0);	/* Position a.out to symtab. */
-#else  /* not COFF */
-  lseek (a_out, SYMS_START, 0);	/* Position a.out to symtab. */
-#endif /* not COFF */
 
   while ((n = read (a_out, page, sizeof page)) > 0)
     {
@@ -797,7 +629,6 @@ mark_x (name)
     PERROR (name);
 }
 
-#ifdef COFF
 #ifndef COFF_BSD_SYMBOLS
 
 /*
@@ -869,8 +700,6 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
 
 #endif /* COFF_BSD_SYMBOLS */
 
-#endif /* COFF */
-
 /* ****************************************************************
  * unexec
  *
@@ -894,10 +723,8 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   if (make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name) < 0
       || copy_text_and_data (new, a_out) < 0
       || copy_sym (new, a_out, a_name, new_name) < 0
-#ifdef COFF
 #ifndef COFF_BSD_SYMBOLS
       || adjust_lnnoptrs (new, a_out, new_name) < 0
-#endif
 #endif
       )
     {

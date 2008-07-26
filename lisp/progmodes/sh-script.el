@@ -475,7 +475,6 @@ This is buffer-local in every such buffer.")
     (define-key map "\"" 'skeleton-pair-insert-maybe)
 
     (define-key map [remap complete-tag] 'comint-dynamic-complete)
-    (define-key map [remap newline-and-indent] 'sh-newline-and-indent)
     (define-key map [remap delete-backward-char]
       'backward-delete-char-untabify)
     (define-key map "\C-c:" 'sh-set-shell)
@@ -1510,7 +1509,7 @@ buffer indents as it currently is indented.
 
 
 \\[backward-delete-char-untabify]	 Delete backward one position, even if it was a tab.
-\\[sh-newline-and-indent]	 Delete unquoted space and indent new line same as this one.
+\\[newline-and-indent]	 Delete unquoted space and indent new line same as this one.
 \\[sh-end-of-command]	 Go to end of successive commands.
 \\[sh-beginning-of-command]	 Go to beginning of successive commands.
 \\[sh-set-shell]	 Set this buffer's shell, and maybe its magic number.
@@ -3779,18 +3778,6 @@ The document is bounded by `sh-here-document-word'."
   "Dynamically complete the environment variable at point." t)
 
 
-
-(defun sh-newline-and-indent ()
-  "Strip unquoted whitespace, insert newline, and indent like current line."
-  (interactive "*")
-  (indent-to (prog1 (current-indentation)
-	       (delete-region (point)
-			      (progn
-				(or (zerop (skip-chars-backward " \t"))
-				    (if (sh-quoted-p)
-					(forward-char)))
-				(point)))
-	       (newline))))
 
 (defun sh-beginning-of-command ()
   "Move point to successive beginnings of commands."

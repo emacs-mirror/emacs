@@ -565,12 +565,18 @@ including directory trees to the menu can take a lot of memory."
   :group 'filesets)
 
 (defcustom filesets-commands
-  `(("Query Replace"
-     query-replace
+  `(("Isearch"
+     multi-isearch-files
+     (filesets-cmd-isearch-getargs))
+    ("Isearch (regexp)"
+     multi-isearch-files-regexp
+     (filesets-cmd-isearch-getargs))
+    ("Query Replace"
+     perform-replace
      (filesets-cmd-query-replace-getargs))
     ("Query Replace (regexp)"
-     query-replace-regexp
-     (filesets-cmd-query-replace-getargs))
+     perform-replace
+     (filesets-cmd-query-replace-regexp-getargs))
     ("Grep <<selection>>"
      "grep"
      ("-n " filesets-get-quoted-selection " " "<<file-name>>"))
@@ -1623,38 +1629,40 @@ Replace <file-name> or <<file-name>> with filename."
 	(when files
 	  (let ((fn   (filesets-cmd-get-fn cmd-name))
 		(args (filesets-cmd-get-args cmd-name)))
-	    (dolist (this files nil)
-	      (save-excursion
-		(save-restriction
-		  (let ((buffer (filesets-find-file this)))
-		    (when buffer
-		      (goto-char (point-min))
-		      (let ()
-			(cond
-			 ((stringp fn)
-			  (let* ((args
-				  (let ((txt ""))
-				    (dolist (this args txt)
-				      (setq txt
-					    (concat txt
-						    (filesets-run-cmd--repl-fn
-						     this
-						     (lambda (this)
-						       (if (equal txt "") "" " ")
-						       (format "%s" this))))))))
-				 (cmd (concat fn " " args)))
-			    (filesets-cmd-show-result
-			     cmd (shell-command-to-string cmd))))
-			 ((symbolp fn)
-			  (let ((args
-				 (let ((argl nil))
-				   (dolist (this args argl)
-				     (setq argl
-					   (append argl
-						   (filesets-run-cmd--repl-fn
-						    this
-						    'list)))))))
-			    (apply fn args))))))))))))))))
+	    (if (memq fn '(multi-isearch-files multi-isearch-files-regexp))
+		(apply fn args)
+	      (dolist (this files nil)
+		(save-excursion
+		  (save-restriction
+		    (let ((buffer (filesets-find-file this)))
+		      (when buffer
+			(goto-char (point-min))
+			(let ()
+			  (cond
+			   ((stringp fn)
+			    (let* ((args
+				    (let ((txt ""))
+				      (dolist (this args txt)
+					(setq txt
+					      (concat txt
+						      (filesets-run-cmd--repl-fn
+						       this
+						       (lambda (this)
+							 (if (equal txt "") "" " ")
+							 (format "%s" this))))))))
+				   (cmd (concat fn " " args)))
+			      (filesets-cmd-show-result
+			       cmd (shell-command-to-string cmd))))
+			   ((symbolp fn)
+			    (let ((args
+				   (let ((argl nil))
+				     (dolist (this args argl)
+				       (setq argl
+					     (append argl
+						     (filesets-run-cmd--repl-fn
+						      this
+						      'list)))))))
+			      (apply fn args)))))))))))))))))
 
 (defun filesets-get-cmd-menu ()
   "Create filesets command menu."
@@ -1668,16 +1676,19 @@ Replace <file-name> or <<file-name>> with filename."
 ;;; sample commands
 (defun filesets-cmd-query-replace-getargs ()
   "Get arguments for `query-replace' and `query-replace-regexp'."
-  (let* ((from-string (read-string "Filesets query replace: "
-				   ""
-				   'query-replace-history))
-	 (to-string  (read-string
-		      (format "Filesets query replace %s with: " from-string)
-		      ""
-		      'query-replace-history))
-	 (delimited  (y-or-n-p
-		      "Filesets query replace: respect word boundaries? ")))
-    (list from-string to-string delimited)))
+  (let ((common (query-replace-read-args "Filesets query replace" nil t)))
+    (list (nth 0 common) (nth 1 common) t nil (nth 2 common) nil
+	  multi-query-replace-map)))
+
+(defun filesets-cmd-query-replace-regexp-getargs ()
+  "Get arguments for `query-replace' and `query-replace-regexp'."
+  (let ((common (query-replace-read-args "Filesets query replace" t t)))
+    (list (nth 0 common) (nth 1 common) t t (nth 2 common) nil
+	  multi-query-replace-map)))
+
+(defun filesets-cmd-isearch-getargs ()
+  "Get arguments for `multi-isearch-files' and `multi-isearch-files-regexp'."
+  (list files))
 
 (defun filesets-cmd-shell-command-getargs ()
   "Get arguments for `filesets-cmd-shell-command'."

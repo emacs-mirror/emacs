@@ -606,21 +606,20 @@ is not considered (see `next-frame')."
 (declare-function x-initialize-window-system "term/x-win" ())
 (declare-function ns-initialize-window-system "term/ns-win" ())
 (defvar x-display-name)                 ; term/x-win
-(defvar ns-display-name)                ; term/ns-win
 
 (defun make-frame-on-display (display &optional parameters)
   "Make a frame on X display DISPLAY.
 The optional second argument PARAMETERS specifies additional frame parameters."
   (interactive "sMake frame on display: ")
-  (if (featurep 'ns-windowing)
+  (if (featurep 'ns)
       (progn
 	(when (and (boundp 'ns-initialized) (not ns-initialized))
-	  (setq ns-display-name display)
+	  (setq x-display-name display)
 	  (ns-initialize-window-system))
 	(make-frame `((window-system . ns) (display . ,display) . ,parameters)))
     (progn
-      (or (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
-	  (error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
+      (unless (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
+	(error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
       (when (and (boundp 'x-initialized) (not x-initialized))
 	(setq x-display-name display)
 	(x-initialize-window-system))

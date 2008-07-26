@@ -1,7 +1,7 @@
 ;;; esh-arg.el --- argument processing
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -282,8 +282,10 @@ Point is left at the end of the arguments."
   "Intelligently backslash the character occurring in STRING at INDEX.
 If the character is itself a backslash, it needs no escaping."
   (let ((char (aref string index)))
-    (if (and (eq char ?\\) 
-	     (not (and (featurep 'mswindows)
+    (if (and (eq char ?\\)
+	     ;; In Emacs directory-sep-char is always ?/, so this does nothing.
+	     (not (and (featurep 'xemacs)
+		       (featurep 'mswindows)
 		       (eq directory-sep-char ?\\)
 		       (eq (1- (string-width string))
 			   index))))

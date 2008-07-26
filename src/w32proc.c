@@ -1799,8 +1799,13 @@ All path elements in FILENAME are converted to their long names.  */)
      Lisp_Object filename;
 {
   char longname[ MAX_PATH ];
+  int drive_only = 0;
 
   CHECK_STRING (filename);
+
+  if (SBYTES (filename) == 2
+      && *(SDATA (filename) + 1) == ':')
+    drive_only = 1;
 
   /* first expand it.  */
   filename = Fexpand_file_name (filename, Qnil);
@@ -1809,6 +1814,12 @@ All path elements in FILENAME are converted to their long names.  */)
     return Qnil;
 
   CORRECT_DIR_SEPS (longname);
+
+  /* If we were passed only a drive, make sure that a slash is not appended
+     for consistency with directories.  Allow for drive mapping via SUBST
+     in case expand-file-name is ever changed to expand those.  */
+  if (drive_only && longname[1] == ':' && longname[2] == '/' && !longname[3])
+    longname[2] = '\0';
 
   return build_string (longname);
 }

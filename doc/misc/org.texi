@@ -3,8 +3,8 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.05a
-@set DATE June 2008
+@set VERSION 6.06b
+@set DATE July 2008
 
 @dircategory Emacs
 @direntry
@@ -42,8 +42,9 @@ Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
-and with the Back-Cover Texts as in (a) below.  A copy of the license
-is included in the section entitled ``GNU Free Documentation License.''
+and with the Back-Cover Texts as in (a) below.    A copy of the
+ license is included in the section entitled ``GNU Free Documentation
+-License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
 modify this GNU manual.  Buying copies from the FSF supports it in
@@ -93,8 +94,8 @@ license to the document, as described in section 6 of the license.
 * Exporting::                   Sharing and publishing of notes
 * Publishing::                  Create a web site of linked Org files
 * Miscellaneous::               All the rest which did not fit elsewhere
-* Extensions::                 
-* Hacking::                     
+* Extensions::                  Add-ons for Org mode
+* Hacking::                     How hack your way around
 * History and Acknowledgments::  How Org came into being
 * Main Index::                  An index of Org's concepts and features
 * Key Index::                   Key bindings and where they are described
@@ -528,7 +529,7 @@ make install-info
 
 @iftex
 @b{Important:} @i{If you use copy-and-paste to copy lisp code from the
-PDF documentation as viewed by Acrobat reader to your .emacs file, the
+PDF documentation as viewed by some PDF viewers to your .emacs file, the
 single quote character comes out incorrectly and the code will not work.
 You need to fix the single quotes by hand, or copy from Info
 documentation.}
@@ -1005,7 +1006,9 @@ archived subtrees are not exposed, unless you configure the option
 @item
 During agenda view construction (@pxref{Agenda Views}), the content of
 archived trees is ignored unless you configure the option
-@code{org-agenda-skip-archived-trees}.
+@code{org-agenda-skip-archived-trees}, in which case these trees will always
+be included.  In the agenda you can press the @kbd{v} key to get archives
+temporarily included.
 @item
 Archived trees are not exported (@pxref{Exporting}), only the headline
 is.  Configure the details using the variable
@@ -1037,14 +1040,14 @@ Cycle a tree even if it is tagged with ARCHIVE.
 @cindex external archiving
 
 Once an entire project is finished, you may want to move it to a different
-location.  Org can move it to an @emph{Attic Sibling} in the same tree, to a
+location.  Org can move it to an @emph{Archive Sibling} in the same tree, to a
 different tree in the current file, or to a different file, the archive file.
 
 @table @kbd
 @kindex C-c C-x A
 @item C-c C-x A
-Move the current entry to the @emph{Attic Sibling}.  This is a sibling of the
-entry with the heading @samp{Attic} and the tag @samp{ARCHIVE}
+Move the current entry to the @emph{Archive Sibling}.  This is a sibling of
+the entry with the heading @samp{Archive} and the tag @samp{ARCHIVE}
 (@pxref{ARCHIVE tag}).  The entry becomes a child of that sibling and in this
 way retains a lot of its original context, including inherited tags and
 approximate position in the outline.
@@ -1564,7 +1567,7 @@ separator.
 @item C-c |
 Tables can also be imported by pasting tabular text into the Org
 buffer, selecting the pasted text with @kbd{C-x C-x} and then using the
-@kbd{C-c |} command (see above under @i{Creation and conversion}.
+@kbd{C-c |} command (see above under @i{Creation and conversion}).
 @c
 @item M-x org-table-export
 Export the table, by default as a TAB-separated file.  Useful for data
@@ -1658,7 +1661,7 @@ marked with vertical lines.  Here is an example:
 | # |  2 |   4 |   8 |  16 |  1.4142 |     1.1892 |
 | # |  3 |   9 |  27 |  81 |  1.7321 |     1.3161 |
 |---+----+-----+-----+-----+---------+------------|
-#+TBLFM: $3=$2^2::$4=$2^3::$5=$2^4::$6=sqrt($2)::$7=sqrt(sqrt(($2))
+#+TBLFM: $3=$2^2::$4=$2^3::$5=$2^4::$6=sqrt($2)::$7=sqrt(sqrt(($2)))
 @end example
 
 It is also sufficient to just insert the column group starters after
@@ -1864,7 +1867,7 @@ like @samp{vmean} and @samp{vsum}.
 A formula can contain an optional mode string after a semicolon.  This
 string consists of flags to influence Calc and other modes during
 execution.  By default, Org uses the standard Calc modes (precision
-12, angular units degrees, fraction and symbolic modes off.  The display
+12, angular units degrees, fraction and symbolic modes off).  The display
 format, however, has been changed to @code{(float 5)} to keep tables
 compact.  The default settings can be configured using the variable
 @code{org-calc-default-modes}.
@@ -2396,12 +2399,14 @@ the colon.  The following list shows examples for each link type.
 @example
 http://www.astro.uva.nl/~dominik          @r{on the web}
 file:/home/dominik/images/jupiter.jpg     @r{file, absolute path}
+/home/dominik/images/jupiter.jpg          @r{same as above}
 file:papers/last.pdf                      @r{file, relative path}
+./papers/last.pdf                         @r{same as above}
 news:comp.emacs                           @r{Usenet link}
-mailto:adent@@galaxy.net                  @r{Mail link}
+mailto:adent@@galaxy.net                 @r{Mail link}
 vm:folder                                 @r{VM folder link}
 vm:folder#id                              @r{VM message link}
-vm://myself@@some.where.org/folder#id     @r{VM on remote machine}
+vm://myself@@some.where.org/folder#id    @r{VM on remote machine}
 wl:folder                                 @r{WANDERLUST folder link}
 wl:folder#id                              @r{WANDERLUST message link}
 mhe:folder                                @r{MH-E folder link}
@@ -2708,19 +2713,19 @@ to be added to the hook variables
 @code{org-execute-file-search-functions}.  See the docstring for these
 variables for more information.  Org actually uses this mechanism
 for Bib@TeX{} database files, and you can use the corresponding code as
-an implementation example.  Search for @samp{BibTeX links} in the source
-file.
+an implementation example.  See the file @file{org-bibtex.el}.
 
 @node TODO Items, Tags, Hyperlinks, Top
 @chapter TODO Items
 @cindex TODO items
 
-Org mode does not maintain TODO lists as separate documents.  Instead,
-TODO items are an integral part of the notes file, because TODO items
-usually come up while taking notes!  With Org mode, simply mark any
-entry in a tree as being a TODO item.  In this way, information is not
-duplicated, and the entire context from which the TODO item emerged is
-always present.
+Org mode does not maintain TODO lists as separate documents@footnote{Of
+course, you can make a document that contains inly long lists of TODO items,
+but this is not required.}.  Instead, TODO items are an integral part of the
+notes file, because TODO items usually come up while taking notes!  With Org
+mode, simply mark any entry in a tree as being a TODO item.  In this way,
+information is not duplicated, and the entire context from which the TODO
+item emerged is always present.
 
 Of course, this technique for managing TODO items scatters them
 throughout your notes file.  Org mode compensates for this by providing
@@ -2838,7 +2843,7 @@ buffer.}:
 @end lisp
 
 The vertical bar separates the TODO keywords (states that @emph{need
-action}) from the DONE states (which need @emph{no further action}.  If
+action}) from the DONE states (which need @emph{no further action}).  If
 you don't provide the separator bar, the last state is used as the DONE
 state.
 @cindex completion, of TODO keywords
@@ -3318,8 +3323,8 @@ support for tags.
 Every headline can contain a list of tags; they occur at the end of the
 headline.  Tags are normal words containing letters, numbers, @samp{_},
 and @samp{@@}.  Tags must be preceded and followed by a single colon,
-e.g., @samp{:WORK:}.  Several tags can be specified, as in
-@samp{:work:URGENT:}.
+e.g., @samp{:work:}.  Several tags can be specified, as in
+@samp{:work:urgent:}.
 
 @menu
 * Tag inheritance::             Tags use the tree structure of the outline
@@ -3752,22 +3757,40 @@ the same commands are used as for tag searches (@pxref{Tag searches}), and
 the same logic applies.  For example, here is a search string:
 
 @example
-+work-boss+PRIORITY="A"+Coffee="unlimited"+Effort<2+With=@{Sarah\|Denny@}
++work-boss+PRIORITY="A"+Coffee="unlimited"+Effort<2         \
+         +With=@{Sarah\|Denny@}+SCHEDULED>="<2008-10-11>"
 @end example
 
 @noindent
+The type of comparison will depend on how the comparison value is written:
+@itemize @minus
+@item
 If the comparison value is a plain number, a numerical comparison is done,
 and the allowed operators are @samp{<}, @samp{=}, @samp{>}, @samp{<=},
-@samp{>=}, and @samp{<>}.  If the comparison value is enclosed in double
-quotes, a string comparison is done, and the same operators are allowed.  If
-the comparison value is enclosed in curly braces, a regexp match is
-performed, with @samp{=} meaning that the regexp matches the property value,
-and @samp{<>} meaning that it does not match.  So the search string in the
-example finds entries tagged @samp{:work:} but not @samp{:boss:}, which also
-have a priority value @samp{A}, a @samp{:Coffee:} property with the value
-@samp{unlimited}, an @samp{Effort} property that is numerically smaller than
-2, and a @samp{:With:} property that is matched by the regular expression
-@samp{Sarah\|Denny}.
+@samp{>=}, and @samp{<>}.
+@item
+If the comparison value is enclosed in double
+quotes, a string comparison is done, and the same operators are allowed.  
+@item
+If the comparison value is enclosed in double quotes @emph{and} angular
+brackets (like @samp{DEADLINE<="<2008-12-24 18:30>"}), both values are
+assumed to be date/time specifications in the standard Org way@footnote{The
+only special values that will be recognized are @samp{"<now>"} for now, and
+@samp{"<today"} today at 0:00 hours, i.e. without a time specification.}, and
+the comparison will be done accordingly.
+@item
+If the comparison value is enclosed
+in curly braces, a regexp match is performed, with @samp{=} meaning that the
+regexp matches the property value, and @samp{<>} meaning that it does not
+match.  
+@end itemize
+
+So the search string in the example finds entries tagged @samp{:work:} but
+not @samp{:boss:}, which also have a priority value @samp{A}, a
+@samp{:Coffee:} property with the value @samp{unlimited}, an @samp{Effort}
+property that is numerically smaller than 2, a @samp{:With:} property that is
+matched by the regular expression @samp{Sarah\|Denny}, and that are scheduled
+on or after October 11, 2008.
 
 You can configure Org mode to use property inheritance during a search, but
 beware that this can slow down searches considerably.  See @ref{Property
@@ -4947,7 +4970,7 @@ When you are finished preparing a note with @i{remember}, you have to press
 remember buffer, you will first be asked if you want to clock out
 now@footnote{To avoid this query, configure the variable
 @code{org-remember-clock-out-on-exit}.}.  If you answer @kbd{n}, the clock
-will continue to run after the note is filed away.
+will continue to run after the note was filed away.
 
 The handler will then store the note in the file and under the headline
 specified in the template, or it will use the default file and headlines.
@@ -5554,7 +5577,7 @@ ranges can be specified with two time stamps, like
 @w{@samp{<2005-05-10 Tue 20:30>--<2005-05-10 Tue 22:15>}}.
 
 In the headline of the entry itself, a time(range) may also appear as
-plain text (like @samp{12:45} or a @samp{8:30-1pm}.  If the agenda
+plain text (like @samp{12:45} or a @samp{8:30-1pm}).  If the agenda
 integrates the Emacs diary (@pxref{Weekly/daily agenda}), time
 specifications in diary entries are recognized as well.
 
@@ -5687,9 +5710,16 @@ previously used indirect buffer.
 @c
 @kindex l
 @item l
-Toggle Logbook mode.  In Logbook mode, entries that were marked DONE while
+Toggle Logbook mode.  In Logbook mode, entries that where marked DONE while
 logging was on (variable @code{org-log-done}) are shown in the agenda,
 as are entries that have been clocked on that day.
+@c
+@kindex v
+@item v
+Toggle Archives mode.  In archives mode, trees that are marked are also
+scanned when producing the agenda.  When you call this command with a
+@kbd{C-u} prefix argument, even all archive files are included.  To exit
+archives mode, press @kbd{v} again.
 @c
 @kindex R
 @item R
@@ -6911,7 +6941,14 @@ The optional second and third parameter are the markup (@samp{quote},
 @samp{example}, or @samp{src}), and, if the markup is @samp{src}, the
 language for formatting the contents.  The markup is optional, if it is not
 given, the text will be assumed to be in Org mode format and will be
-processed normally.
+processed normally.  The include line will also allow additional keyword
+parameters @code{:prefix1} and @code{:prefix} to specify prefixes for the
+first line and for each following line.  For example, to include a file as an
+item, use
+
+@example
+#+INCLUDE: "~/snippets/xx" :prefix1 "   + " :prefix "     "
+@end example
 
 @table @kbd
 @kindex C-c '
@@ -7088,6 +7125,7 @@ TeX:       @r{turn on/off simple @TeX{} macros in plain text}
 LaTeX:     @r{turn on/off La@TeX{} fragments}
 skip:      @r{turn on/off skipping the text before the first heading}
 author:    @r{turn on/off inclusion of author name/email into exported file}
+creator:   @r{turn on/off inclusion of creator info into exported file}
 timestamp: @r{turn on/off inclusion creation time into exported file}
 d:         @r{turn on/off inclusion of drawers}
 @end example
@@ -7291,6 +7329,14 @@ HTML version also exists of the linked file.  For information related to
 linking files while publishing them to a publishing directory see
 @ref{Publishing links}.
 
+If you want to specify attributes for links, you can do so using a special
+syntax.  Here is an example that sets @code{alt} and @code{title} attributes
+for an inlined image:
+
+@example
+[[./img/a.jpg@{@{alt="This is image A" title="Image with no action"@}@}]]
+@end example
+
 @node Images, CSS support, Links, HTML export
 @subsection Images
 
@@ -7332,28 +7378,31 @@ document - your style specifications may change these:
 .target         @r{target for links}
 @end example
 
-The default style specification can be configured through the option
-@code{org-export-html-style}.  If you want to use a file-local style,
-you may use file variables, best wrapped into a COMMENT section at the
-end of the outline tree.  For example@footnote{Under Emacs 21, the
-continuation lines for a variable value should have no @samp{#} at the
-start of the line.}:
+Each exported files contains a compact default style that defines these
+classes in a basic way.  You may overwrite these settings, or add to them by
+using the variables @code{org-export-html-style} (for Org-wide settings) and
+@code{org-export-html-style-extra} (for more granular settings, like
+file-local settings).  If you want to use a file-local style, you may use
+file variables, best wrapped into a COMMENT section at the end of the outline
+tree.  For example@footnote{Under Emacs 21, the continuation lines for a
+variable value should have no @samp{#} at the start of the line.}:
 
 @example
 * COMMENT html style specifications
 
 # Local Variables:
-# org-export-html-style: "   <style type=\"text/css\">
-#       p @{font-weight: normal; color: gray; @}
-#       h1 @{color: black; @}
+# org-export-html-style-extra: 
+#  "<style>
+#   p  @{font-weight: normal; color: gray; @}
+#   h1 @{color: black; @}
 #   </style>"
 # End:
 @end example
 
-Remember to execute @kbd{M-x normal-mode} after changing this to make
-the new style visible to Emacs.  This command restarts Org mode for the
-current buffer and forces Emacs to re-evaluate the local variables
-section in the buffer.
+Remember to execute @kbd{M-x normal-mode} after changing this to make the new
+style immediately visible to Emacs.  This command restarts Org mode for the
+current buffer and forces Emacs to re-evaluate the local variables section in
+the buffer.
 
 @c FIXME: More about header and footer styles
 @c FIXME: Talk about links and targets.
@@ -7536,13 +7585,18 @@ Export only the visible part of the document.
 @section iCalendar export
 @cindex iCalendar export
 
-Some people like to use Org mode for keeping track of projects, but
-still prefer a standard calendar application for anniversaries and
-appointments.  In this case it can be useful to have deadlines and
-other time-stamped items in Org files show up in the calendar
-application.  Org mode can export calendar information in the standard
-iCalendar format.  If you also want to have TODO entries included in the
-export, configure the variable @code{org-icalendar-include-todo}.
+Some people like to use Org mode for keeping track of projects, but still
+prefer a standard calendar application for anniversaries and appointments.
+In this case it can be useful to have deadlines and other time-stamped items
+in Org files show up in the calendar application.  Org mode can export
+calendar information in the standard iCalendar format.  If you also want to
+have TODO entries included in the export, configure the variable
+@code{org-icalendar-include-todo}.  iCalendar export will export plain time
+stamps as VEVENT, and TODO items as VTODO.  It will also create events from
+deadlines that are in non-TODO items.  Deadlines and scheduling dates in TODO
+items will be used to set the start and due dates for the todo
+entry@footnote{See the variables @code{org-icalendar-use-deadline} and
+@code{org-icalendar-use-scheduled}.}.
 
 The iCalendar standard requires each entry to have a globally unique
 identifier (UID).  Org creates these identifiers during export.  If you set
@@ -7576,7 +7630,7 @@ the selected entries have them.  If not, the summary will be derived
 from the headline, and the description from the body (limited to
 @code{org-icalendar-include-body} characters).
 
-How this calendar is best read and updated, depends on the application
+How this calendar is best read and updated, that depends on the application
 you are using.  The FAQ covers this issue.
 
 @node Publishing, Miscellaneous, Exporting, Top
@@ -7744,11 +7798,14 @@ respective variable for details.
 @item @code{:TeX-macros}            @tab @code{org-export-with-TeX-macros}
 @item @code{:LaTeX-fragments}       @tab @code{org-export-with-LaTeX-fragments}
 @item @code{:fixed-width}           @tab @code{org-export-with-fixed-width}
-@item @code{:timestamps}           .@tab @code{org-export-with-timestamps}
-@item @code{:tags}                 .@tab @code{org-export-with-tags}
+@item @code{:timestamps}            @tab @code{org-export-with-timestamps}
+@item @code{:author-info}           @tab @code{org-export-author-info}
+@item @code{:creator-info}          @tab @code{org-export-creator-info}
+@item @code{:tags}                  @tab @code{org-export-with-tags}
 @item @code{:tables}                @tab @code{org-export-with-tables}
 @item @code{:table-auto-headline}   @tab @code{org-export-highlight-first-table-line}
 @item @code{:style}                 @tab @code{org-export-html-style}
+@item @code{:style-extra}           @tab @code{org-export-html-style-extra}
 @item @code{:convert-org-links}     @tab @code{org-export-html-link-org-files-as-html}
 @item @code{:inline-images}         @tab @code{org-export-html-inline-images}
 @item @code{:expand-quoted-html}    @tab @code{org-export-html-expand}
@@ -9584,3 +9641,4 @@ and contributed various ideas and code snippets.
 @c ispell-local-pdict: "./.aspell.org.pws"
 @c fill-column: 77
 @c End:
+

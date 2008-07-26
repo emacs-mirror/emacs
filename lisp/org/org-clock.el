@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.05a
+;; Version: 6.06b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -54,8 +54,8 @@ reaches or exceeds this number, a drawer will be created."
 	  (integer :tag "When at least N clock entries")))
 
 (defcustom org-clock-out-when-done t
-  "When t, the clock will be stopped when the relevant entry is marked DONE.
-When nil, clock will keep running until stopped explicitly with
+  "When non-nil, the clock will be stopped when the relevant entry is marked DONE.
+A nil value means, clock will keep running until stopped explicitly with
 `C-c C-x C-o', or until the clock is started in a different item."
   :group 'org-clock
   :type 'boolean)
@@ -136,7 +136,7 @@ of a different task.")
   "Select a task that recently was associated with clocking."
   (interactive)
   (let (sel-list rpl file task (i 0) s)
-    (save-window-excursion
+    (save-window-excursion 
       (org-switch-to-buffer-other-window
        (get-buffer-create "*Clock Task Select*"))
       (erase-buffer)
@@ -190,7 +190,7 @@ of a different task.")
       (when (and cat task)
 	(insert (format "[%c] %-15s %s\n" i cat task))
 	(cons i marker)))))
-
+  
 (defun org-update-mode-line ()
   (let* ((delta (- (time-to-seconds (current-time))
                    (time-to-seconds org-clock-start-time)))
@@ -207,7 +207,7 @@ of a different task.")
 (defun org-clock-in (&optional select)
   "Start the clock on the current item.
 If necessary, clock-out of the currently active clock.
-With prefix arg SELECT, offer a list of recently clocked ta sks to
+With prefix arg SELECT, offer a list of recently clocked tasks to
 clock into.  When SELECT is `C-u C-u', clock into the current task and mark
 is as the default task, a special task that will always be offered in
 the clocking selection, associated with the letter `d'."
@@ -226,13 +226,13 @@ the clocking selection, associated with the letter `d'."
 		   (marker-position org-clock-marker)
 		   (marker-buffer org-clock-marker))
       (org-clock-out t))
-
+    
     (when (equal select '(16))
       ;; Mark as default clocking task
       (save-excursion
 	(org-back-to-heading t)
 	(move-marker org-clock-default-task (point))))
-
+    
     (setq target-pos (point))  ;; we want to clock in at this location
     (save-excursion
       (when (and selected-task (marker-buffer selected-task))
@@ -261,7 +261,7 @@ the clocking selection, associated with the letter `d'."
 	      (setq org-clock-heading "???")))
 	  (setq org-clock-heading (propertize org-clock-heading 'face nil))
 	  (org-clock-find-position)
-
+	  
 	  (insert "\n") (backward-char 1)
 	  (indent-relative)
 	  (insert org-clock-string " ")
@@ -638,7 +638,7 @@ the returned times will be formatted strings."
      ((string-match "\\([-+][0-9]+\\)$" skey)
       (setq shift (string-to-number (match-string 1 skey))
 	    key (intern (substring skey 0 (match-beginning 1))))))
-    (unless shift
+    (when (= shift 0)
       (cond ((eq key 'yesterday) (setq key 'today shift -1))
 	    ((eq key 'lastweek)  (setq key 'week  shift -1))
 	    ((eq key 'lastmonth) (setq key 'month shift -1))
@@ -690,6 +690,11 @@ the currently selected interval size."
 	     (s (match-string 1))
 	     block shift ins y mw d date wp m)
 	(cond
+	 ((equal s "yesterday") (setq s "today-1"))
+	 ((equal s "lastweek") (setq s "thisweek-1"))
+	 ((equal s "lastmonth") (setq s "thismonth-1"))
+	 ((equal s "lastyear") (setq s "thisyear-1")))
+	(cond
 	 ((string-match "^\\(today\\|thisweek\\|thismonth\\|thisyear\\)\\([-+][0-9]+\\)?$" s)
 	  (setq block (match-string 1 s)
 		shift (if (match-end 2)
@@ -735,9 +740,9 @@ the currently selected interval size."
 	   (ins (make-marker))
 	   (total-time nil)
 	   (scope (plist-get params :scope))
-	   (tostring (plist-get params :tostring))
-	   (multifile (plist-get params :multifile))
-	   (header (plist-get params :header))
+	   (tostring (plist-get  params :tostring))
+	   (multifile (plist-get  params :multifile))
+	   (header (plist-get  params :header))
 	   (maxlevel (or (plist-get params :maxlevel) 3))
 	   (step (plist-get params :step))
 	   (emph (plist-get params :emphasize))

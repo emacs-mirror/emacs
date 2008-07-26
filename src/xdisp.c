@@ -19955,7 +19955,7 @@ left_overwriting (s)
 
 
 /* Return the index of the last glyph following glyph string S that is
-   not overwritten by S because of S's right overhang.  Value is -1 if
+   overwritten by S because of S's right overhang.  Value is -1 if
    no such glyph is found.  */
 
 static int

@@ -331,7 +331,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     IBOutlet NSButton *smoothFontsCheck;
     IBOutlet NSButton *useQuickdrawCheck;
     IBOutlet NSButton *useSysHiliteCheck;
-    BOOL prevUseHighlightColor;
+    Lisp_Object prevUseHighlightColor;
 #endif
     float prevExpandSpace;
     float prevBlinkRate;
@@ -477,8 +477,6 @@ struct ns_display_info
   /* Minimum font height over all fonts in font_table.  */
   int smallest_font_height;
 
-  struct kboard *kboard;
-
   /*/23 */
   struct ns_bitmap_record *bitmaps;
   int bitmaps_size;
@@ -527,17 +525,12 @@ struct ns_display_info
   int mouse_face_hidden;
   int mouse_face_image_state;
 
-  /* these are general, but we redefine due to Xism */
-  struct frame *ns_highlight_frame;
-  struct frame *ns_focus_frame;
-#define x_highlight_frame ns_highlight_frame
-#define x_focus_frame ns_focus_frame
+  struct frame *x_highlight_frame;
+  struct frame *x_focus_frame;
 };
 
 /* This is a chain of structures for all the NS displays currently in use.  */
-extern struct ns_display_info *ns_display_list;
-/* handle Xism */
-#define x_display_list ns_display_list
+extern struct ns_display_info *x_display_list;
 
 extern Lisp_Object ns_display_name_list;
 extern struct ns_display_info *ns_display_info_for_name ();

@@ -4208,7 +4208,7 @@ hash_put (h, key, value, hash)
 /* Remove the entry matching KEY from hash table H, if there is one.  */
 
 static void
-hash_remove (h, key)
+hash_remove_from_table (h, key)
      struct Lisp_Hash_Table *h;
      Lisp_Object key;
 {
@@ -4869,7 +4869,7 @@ DEFUN ("remhash", Fremhash, Sremhash, 2, 2, 0,
      Lisp_Object key, table;
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  hash_remove (h, key);
+  hash_remove_from_table (h, key);
   return Qnil;
 }
 

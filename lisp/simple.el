@@ -4466,6 +4466,11 @@ the variable `line-move-visual'."
     (with-no-warnings
       (previous-line arg try-vscroll))))
 
+(defgroup visual-line nil
+  "Editing based on visual lines."
+  :group 'convenience
+  :version "23.1")
+
 (defvar visual-line-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap kill-line] 'kill-visual-line)
@@ -4475,16 +4480,53 @@ the variable `line-move-visual'."
     (define-key map "\M-]" 'next-logical-line)
     map))
 
+(defcustom visual-line-fringe-indicators '(nil nil)
+  "How fringe indicators are shown for wrapped lines in `visual-line-mode'.
+The value should be a list of the form (LEFT RIGHT), where LEFT
+and RIGHT are symbols representing the bitmaps to display, to
+indicate wrapped lines, in the left and right fringes respectively.
+See also `fringe-indicator-alist'.
+The default is not to display fringe indicators for wrapped lines.
+This variable does not affect fringe indicators displayed for
+other purposes."
+  :type '(list (choice (const :tag "Hide left indicator" nil)
+		       (const :tag "Left curly arrow" left-curly-arrow)
+		       (symbol :tag "Other bitmap"))
+	       (choice (const :tag "Hide right indicator" nil)
+		       (const :tag "Right curly arrow" right-curly-arrow)
+		       (symbol :tag "Other bitmap")))
+  :set (lambda (symbol value)
+	 (dolist (buf (buffer-list))
+	   (with-current-buffer buf
+	     (when (and (boundp 'visual-line-mode)
+			(symbol-value 'visual-line-mode))
+	       (setq fringe-indicator-alist
+		     (cons (cons 'continuation value)
+			   (assq-delete-all
+			    'continuation
+			    (copy-tree fringe-indicator-alist)))))))
+	 (set-default symbol value)))
+
 (define-minor-mode visual-line-mode
-  "Define key binding for visual line moves."
+  "Redefine simple editing commands to act on visual lines, not logical lines.
+This also turns on `word-wrap' in the buffer."
   :keymap visual-line-mode-map
-  :group 'convenience
+  :group 'visual-line
+  :lighter " wrap"
   (if visual-line-mode
       (progn
 	(set (make-local-variable 'line-move-visual) t)
-	(setq word-wrap t))
+	(set (make-local-variable 'truncate-partial-width-windows) nil)
+	(setq truncate-lines nil
+	      word-wrap t
+	      fringe-indicator-alist
+	      (cons (cons 'continuation visual-line-fringe-indicators)
+		    fringe-indicator-alist)))
     (kill-local-variable 'line-move-visual)
-    (kill-local-variable 'word-wrap)))
+    (kill-local-variable 'word-wrap)
+    (kill-local-variable 'truncate-lines)
+    (kill-local-variable 'truncate-partial-width-windows)
+    (kill-local-variable 'fringe-indicator-alist)))
 
 (defun turn-on-visual-line-mode ()
   (visual-line-mode 1))

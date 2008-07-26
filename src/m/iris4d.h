@@ -28,13 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NO_ARG_ARRAY
 
-/* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically.  */
-
-#ifndef mips
-#define mips
-#endif
-
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the bit field into an int.  In other words, if bit fields
    are always unsigned.
@@ -42,13 +35,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    This flag only matters if you use USE_LISP_UNION_TYPE.  */
 
 #define EXPLICIT_SIGN_EXTEND
-
-/* Define NO_REMAP if memory segmentation makes it not work well
-   to change the boundary between the text section and data section
-   when Emacs is dumped.  If you define this, the preloaded Lisp
-   code will not be sharable; but that's better than failing completely.  */
-
-#define NO_REMAP
 
 /* This machine requires completely different unexec code
    which lives in a separate file.  Specify the file name.  */

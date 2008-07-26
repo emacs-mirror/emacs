@@ -282,7 +282,7 @@ files conditionalize this setup based on the TERM environment variable."
 	     (tramp-copy-keep-date       t)
 	     (tramp-password-end-of-line nil))
     ("scp"   (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
+             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p") ("-q")
 					  ("-e" "none")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
@@ -295,7 +295,7 @@ files conditionalize this setup based on the TERM environment variable."
 					  ("-o" "StrictHostKeyChecking=no")))
 	     (tramp-default-port         22))
     ("scp1"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
+             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p") ("-q")
 					  ("-1" "-e" "none")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
@@ -309,7 +309,7 @@ files conditionalize this setup based on the TERM environment variable."
 					  ("-o" "StrictHostKeyChecking=no")))
 	     (tramp-default-port         22))
     ("scp2"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
+             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p") ("-q")
 					  ("-2" "-e" "none")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
@@ -371,7 +371,7 @@ files conditionalize this setup based on the TERM environment variable."
 	     (tramp-copy-keep-date       nil)
 	     (tramp-password-end-of-line nil))
     ("ssh"   (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
+             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p") ("-q")
 					  ("-e" "none")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
@@ -384,7 +384,7 @@ files conditionalize this setup based on the TERM environment variable."
 					  ("-o" "StrictHostKeyChecking=no")))
 	     (tramp-default-port         22))
     ("ssh1"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
+             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p") ("-q")
 					  ("-1" "-e" "none")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
@@ -397,7 +397,7 @@ files conditionalize this setup based on the TERM environment variable."
 					  ("-o" "StrictHostKeyChecking=no")))
 	     (tramp-default-port         22))
     ("ssh2"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
+             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p") ("-q")
 					  ("-2" "-e" "none")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
@@ -459,7 +459,7 @@ files conditionalize this setup based on the TERM environment variable."
 	     (tramp-copy-keep-date       nil)
 	     (tramp-password-end-of-line nil))
     ("scpc"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
+             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p") ("-q")
 					  ("-o" "ControlPath=%t.%%r@%%h:%%p")
 					  ("-o" "ControlMaster=yes")
 					  ("-e" "none")))
@@ -476,7 +476,7 @@ files conditionalize this setup based on the TERM environment variable."
 					  ("-o" "StrictHostKeyChecking=no")))
 	     (tramp-default-port         22))
     ("scpx"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
+             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p") ("-q")
 					  ("-e" "none" "-t" "-t" "/bin/sh")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
@@ -489,7 +489,7 @@ files conditionalize this setup based on the TERM environment variable."
 					  ("-o" "StrictHostKeyChecking=no")))
 	     (tramp-default-port         22))
     ("sshx"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
+             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p") ("-q")
 					  ("-e" "none" "-t" "-t" "/bin/sh")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
@@ -1075,6 +1075,10 @@ absolute file name; don't forget to include a prefix for the filename
 part, though."
   :group 'tramp
   :type 'string)
+
+(defconst tramp-temp-buffer-name " *tramp temp*"
+  "Buffer name for a temporary buffer.
+It shall be used in combination with `generate-new-buffer-name'.")
 
 (defcustom tramp-sh-extra-args '(("/bash\\'" . "-norc -noprofile"))
   "*Alist specifying extra arguments to pass to the remote shell.
@@ -3673,13 +3677,20 @@ beginning of local filename are not substituted."
   "Like `start-file-process' for Tramp files."
   (with-parsed-tramp-file-name default-directory nil
     (unwind-protect
-	(progn
+	(let ((name1 name)
+	      (i 0))
+	  (unless buffer
+	    ;; BUFFER can be nil.  We use a temporary buffer, which is
+	    ;; killed in `tramp-process-sentinel'.
+	    (setq buffer (generate-new-buffer tramp-temp-buffer-name)))
+	  (while (get-process name1)
+	    ;; NAME must be unique as process name.
+	    (setq i (1+ i)
+		  name1 (format "%s<%d>" name i)))
+	  (setq name name1)
 	  ;; Set the new process properties.
 	  (tramp-set-connection-property v "process-name" name)
-	  (tramp-set-connection-property
-	   v "process-buffer"
-	   ;; BUFFER can be nil.
-	   (get-buffer-create (or buffer (current-buffer))))
+	  (tramp-set-connection-property v "process-buffer" buffer)
 	  ;; Activate narrowing in order to save BUFFER contents.
 	  ;; Clear also the modification time; otherwise we might be
 	  ;; interrupted by `verify-visited-file-modtime'.
@@ -3693,10 +3704,9 @@ beginning of local filename are not substituted."
 	  ;; Send the command.
 	  (tramp-send-command
 	   v
-	   (format "%s; echo %s; exit"
+	   (format "exec %s"
 		   (mapconcat 'tramp-shell-quote-argument
-			      (cons program args) " ")
-		   (tramp-shell-quote-argument tramp-end-of-output))
+			      (cons program args) " "))
 	   nil t) ; nooutput
 	  ;; Return process.
 	  (tramp-get-connection-process v))
@@ -5747,18 +5757,11 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
   "Process sentinel for Tramp processes."
   (when (memq (process-status proc) '(stop exit signal))
     (tramp-flush-connection-property proc)
-    ;; The "Connection closed" and "exit" messages disturb the output
-    ;; for asynchronous processes.  That's why we have echoed the
-    ;; Tramp prompt at the end.  Trailing messages can be removed.
+    ;; Asynchronous processes might have a temporary buffer.  Kill it.
     (let ((buf (process-buffer proc)))
-      (when (buffer-live-p buf)
-        (with-current-buffer buf
-          (goto-char (point-max))
-          (re-search-backward
-           (mapconcat 'identity (split-string tramp-end-of-output "\n")
-                      "\r?\n")
-           (line-beginning-position -8) t)
-          (delete-region (point) (point-max)))))))
+      (when (and (buffer-live-p buf)
+		 (string-match tramp-temp-buffer-name (buffer-name buf)))
+	(kill-buffer buf)))))
 
 (defun tramp-open-connection-setup-interactive-shell (proc vec)
   "Set up an interactive shell.
@@ -5857,7 +5860,8 @@ process to set up.  VEC specifies the connection."
     (when (and (stringp old-uname) (not (string-equal old-uname new-uname)))
       (with-current-buffer (tramp-get-debug-buffer vec)
 	;; Keep the debug buffer
-	(rename-buffer " *temp*" 'unique)
+	(rename-buffer
+	 (generate-new-buffer-name tramp-temp-buffer-name) 'unique)
 	(funcall (symbol-function 'tramp-cleanup-connection) vec)
 	(if (= (point-min) (point-max))
 	    (kill-buffer nil)
@@ -6351,7 +6355,7 @@ connection if a previous connection has died for some reason."
 		      l-host (match-string 1 l-host)))
 
 	      ;; Set variables for computing the prompt for reading
-	      ;; password.  They can also be derived from a gatewy.
+	      ;; password.  They can also be derived from a gateway.
 	      (setq tramp-current-method (or g-method l-method)
 		    tramp-current-user   (or g-user   l-user)
 		    tramp-current-host   (or g-host   l-host))
@@ -7533,6 +7537,11 @@ Only works for Bourne-like shells."
 ;;   detects that the process "has died". (David Reitter)
 ;; * How can I interrupt the remote process with a signal
 ;;   (interrupt-process seems not to work)? (Markus Triska)
+;; * Avoid the local shell entirely for starting remote processes.  If
+;;   so, I think even a signal, when delivered directly to the local
+;;   SSH instance, would correctly be propagated to the remote process
+;;   automatically; possibly SSH would have to be started with
+;;   "-t". (Markus Triska)
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el

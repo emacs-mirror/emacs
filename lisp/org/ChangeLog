@@ -1,3 +1,149 @@
+2008-07-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-exp.el (org-export-html-style)
+	(org-export-html-style-extra): Declare as safe-local-variable.
+
+2008-07-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-publish.el (org-publish-file): Use the true name of the
+	file.
+
+	* org-jsinfo.el (org-infojs-handle-options): Use :style-extra
+	instead of :style.
+
+	* org-exp.el (org-export-plist-vars)
+	(org-export-add-options-to-plist): Handle creator setting flag.
+	(org-export-as-html): Handle attributes also for ftp and mailto
+	links.
+
+	* org-agenda.el (org-agenda-diary-entry)
+	(org-agenda-execute-calendar-command): Cater for the second
+	argument of `calendar-cursor-to-date'.
+
+2008-07-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-exp.el (org-export-region-as-html, org-export-as-html): Make
+	sure that calls from `org-export-region-as-html' do not do the
+	special check for a subtree.
+
+	* org-agenda.el (org-batch-store-agenda-views): Fix parsing bug.
+
+	* org.el (org-open-file): Use
+	`org-open-directory-means-index-dot-org'.
+	(org-open-directory-means-index-dot-org): New option.
+
+	* org.el (org-make-link-string): Remove link attributes from
+	description.
+	(org-open-at-point): Remove link attributes bevore using the path.
+
+	* org-exp.el (org-export-as-html): Handle link attributes.
+
+	* org.el (org-extract-attributes, org-attributes-to-string): New functions.
+
+	* org-table.el (org-table-to-lisp): New function.
+
+	* org.el (org-narrow-to-subtree): Do not include the final newline
+	into the narrowed region.
+
+	* org-agenda.el (org-agenda-custom-commands-local-options): Fixed
+	bug with user-define skipping condition.
+
+	* org-agenda.el (org-agenda-get-restriction-and-command): Fixed typo.
+
+	* org-exp.el (org-export-html-style-default): Automatic overflow
+	handling for pre fields.
+	(org-export-as-ascii, org-export-as-html): Change default format
+	for time stamp.
+
+	* org-table.el (org-table-export): Offer completion for translator
+	functions, and do not require a heading above the table.
+
+	* org.el (org-renumber-ordered-list, org-beginning-of-item-list):
+	Cater for the case of a list starting in the first line of the
+	buffer.
+
+	* org-publish.el (org-publish-find-title): Bug fix.
+	(org-publish-org-index): Implement new :index-style option.
+
+	* org-publish.el (org-publish-timestamp-filename): Use
+	SHA1-encoded file names in the timestamp directory.
+
+	* org-publish.el (org-publish-needed-p): Be verbose about files
+	published and files skipped.
+
+	* org-exp.el (org-export-preprocess-string): Swap link
+	normalization and inernal link targeting.
+
+	* org-publish.el (org-publish-needed-p): Create timestamp
+	directory when it does not exist.
+
+	* org-clock.el (org-clock-out-when-done): Doc fix.
+
+	* org.el (org-agenda-skip-unavailable-files): Doc fix.
+
+	* org-exp.el (org-export-remove-comment-blocks-and-subtrees):
+	Ignore case when searching for the COMMENT cookie at export time.
+
+	* org-exp.el (org-get-file-contents)
+	(org-get-and-remove-property): New functions.
+	(org-export-handle-include-files): Handle the new prefix options.
+	(org-export-as-html): Fix the verse environment.
+
+	* org.el (org-time=, org-time<, org-time<=, org-time>)
+	(org-time>=, org-time<>, org-2ft): New functions.
+	(org-op-to-function): Also provide for the time testing fucntions.
+
+	* org-exp.el (org-export-html-style-default): New constant.
+
+	* org-exp.el (org-export-html-style-extra): New variable.
+	(org-export-splice-style): New function.
+
+	* org-exp.el (org-export-plist-vars, org-export-as-html):
+	Implement `org-export-creator-info'.
+	(org-export-creator-info): New option.
+
+	* org.el (org-clock-drawer-start-re, org-clock-drawer-end-re)
+	(org-property-drawer-re, org-clock-drawer-re): New constants.
+
+	* org-exp.el (org-icalendar-use-deadline)
+	(org-icalendar-use-scheduled): New options.
+	(org-icalendar-include-todo): Default changed to t.
+	(org-print-icalendar-entries): Implement better utilization of
+	scheduling and deadline time stamps.
+	(org-export-target-internal-links, org-export-as-html): Allow file
+	lines without the "file:" prefix if the file path is an absolute
+	path or starts with ".".
+
+	* org-clock.el (org-clocktable-shift): Also undertand yesterday,
+	lastweek etc.
+	(org-clock-special-range): Also undertand yesterday, lastweek etc.
+
+	* org.el (org-agenda-skip-archived-trees): Docstring now
+	discourages using this.
+	(org-scan-tags): Check for org-agenda-archives-mode.
+	(org-map-entries): Make sure org-agenda-archives-mode is nil.
+	(org-agenda-files): Functionality of second arg changed.
+
+	* org-agenda.el (org-agenda-archives-mode): New variable
+	(org-write-agenda, org-prepare-agenda, org-agenda-list)
+	(org-search-view, org-todo-list, org-tags-view)
+	(org-agenda-list-stuck-projects): Call `org-agenda-files' with
+	`ifmode' argument.
+	(org-agenda-quit): Reset the archives mode.
+	(org-agenda-archives-mode): New command.
+	(org-agenda-set-mode-name): Include archives info.
+
+	* org.el (org-paste-subtree): Make sure the yanked headline is
+	visible if it was yanked at a visible point.
+	(org-move-item-up): Fix the bug with moving white space at the end
+	of the item.
+	(org-show-empty-lines-in-parent): New function.
+
+2008-07-19  Juri Linkov  <juri@jurta.org>
+
+	* org.el (narrow-map): Bind `org-narrow-to-subtree' to "s" on the
+	new keymap `narrow-map' instead of binding "\C-xns".
+
 2008-07-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.el (org-agenda-skip-unavailable-files):

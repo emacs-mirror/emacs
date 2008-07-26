@@ -3055,8 +3055,8 @@ menu, where each existing fileset is represented by a submenu.
 
    Emacs uses the concept of a fileset elsewhere @pxref{Version
 Control} to describe sets of files to be treated as a group for
-purposes of version-control operations.  Those filesets are 
-unnamed and do not persist across Emacs essions.
+purposes of version-control operations.  Those filesets are
+unnamed and do not persist across Emacs sessions.
 
 @ignore
    arch-tag: 768d32cb-e15a-4cc1-b7bf-62c00ee12250

@@ -2785,9 +2785,7 @@ usage: (serial-process-configure &rest ARGS)  */)
   UNGCPRO;
   return Qnil;
 }
-#endif /* HAVE_SERIAL  */
 
-#ifdef HAVE_SERIAL
 /* Used by make-serial-process to recover from errors.  */
 Lisp_Object make_serial_process_unwind (Lisp_Object proc)
 {
@@ -2796,9 +2794,7 @@ Lisp_Object make_serial_process_unwind (Lisp_Object proc)
   remove_process (proc);
   return Qnil;
 }
-#endif /* HAVE_SERIAL  */
 
-#ifdef HAVE_SERIAL
 DEFUN ("make-serial-process", Fmake_serial_process, Smake_serial_process,
        0, MANY, 0,
        doc: /* Create and return a serial port process.
@@ -4911,19 +4907,6 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	  FD_ZERO (&Available);
 	  IF_NON_BLOCKING_CONNECT (check_connect = 0);
 	}
-
-#if defined(sun) && !defined(USG5_4)
-      if (nfds > 0 && keyboard_bit_set (&Available)
-	  && interrupt_input)
-	/* System sometimes fails to deliver SIGIO.
-
-	   David J. Mackenzie says that Emacs doesn't compile under
-	   Solaris if this code is enabled, thus the USG5_4 in the CPP
-	   conditional.  "I haven't noticed any ill effects so far.
-	   If you find a Solaris expert somewhere, they might know
-	   better." */
-	kill (getpid (), SIGIO);
-#endif
 
 #if 0 /* When polling is used, interrupt_input is 0,
 	 so get_input_pending should read the input.
@@ -7704,7 +7687,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	  else
 	    error ("select error: %s", emacs_strerror (xerrno));
 	}
-#ifdef sun
+#ifdef SOLARIS2
       else if (nfds > 0 && (waitchannels & 1)  && interrupt_input)
 	/* System sometimes fails to deliver SIGIO.  */
 	kill (getpid (), SIGIO);

@@ -65,11 +65,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* freebsd has POSIX-style pgrp behavior. */
 #undef BSD_PGRPS
-#define GETPGRP_NO_ARG
 
 #ifdef __ELF__
 
-#define LD_SWITCH_SYSTEM_1
+/* Let `ld' find image libs and similar things in /usr/local/lib.  The
+   system compiler, GCC, has apparently been modified to not look
+   there, contrary to what a stock GCC would do.  */
+
+#define LD_SWITCH_SYSTEM  -L/usr/local/lib
 #define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o /usr/lib/crtbegin.o
 #define UNEXEC unexelf.o
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o /usr/lib/crtn.o
@@ -79,7 +82,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #else /* not __ELF__ */
 
 #ifndef NO_SHARED_LIBS
-#define LD_SWITCH_SYSTEM_1 -e start -dc -L/usr/local/lib
+#define LD_SWITCH_SYSTEM -e start -dc -L/usr/local/lib
 #define HAVE_TEXT_START		/* No need to define `start_of_text'. */
 #if __FreeBSD_version >= 300002
 #define START_FILES pre-crt0.o /usr/lib/aout/crt0.o
@@ -90,25 +93,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define RUN_TIME_REMAP
 #define LIB_GCC -lgcc
 
-#ifndef N_TRELOFF
-#define N_TRELOFF(x) N_RELOFF(x)
-#endif
 #else /* NO_SHARED_LIBS */
 #ifdef __FreeBSD__  /* shared libs are available, but the user prefers
                      not to use them.  */
-#define LD_SWITCH_SYSTEM_1 -Bstatic -L/usr/local/lib
-#define A_TEXT_OFFSET(x) (sizeof (struct exec))
-#define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
+#define LD_SWITCH_SYSTEM -Bstatic -L/usr/local/lib
 #endif /* __FreeBSD__ */
 #endif /* NO_SHARED_LIBS */
 
 #endif /* not __ELF__ */
-
-/* Let `ld' find image libs and similar things in /usr/local/lib.  The
-   system compiler, GCC, has apparently been modified to not look
-   there, contrary to what a stock GCC would do.  */
-
-#define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_1 -L/usr/local/lib
 
 #define HAVE_GETLOADAVG 1
 #define HAVE_TERMIOS

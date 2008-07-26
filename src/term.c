@@ -3986,6 +3986,12 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
 
   staticpro (&mouse_face_window);
 #endif /* HAVE_GPM */
+
+#ifndef WINDOWSNT
+  default_orig_pair = NULL;
+  default_set_foreground = NULL;
+  default_set_background = NULL;
+#endif /* WINDOWSNT */
 }
 
 

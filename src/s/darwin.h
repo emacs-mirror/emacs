@@ -102,14 +102,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define BSTRING
 
-/* subprocesses should be defined if you want to
-   have code for asynchronous subprocesses
-   (as used in M-x compile and M-x shell).
-   This is generally OS dependent, and not supported
-   under most USG systems. */
-
-#define subprocesses
-
 /* define MAIL_USE_FLOCK if the mailer uses flock
    to interlock access to /usr/spool/mail/$USER.
    The alternative is that a lock file named
@@ -163,12 +155,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* start_of_text isn't actually used, so make it compile without error.  */
 #define TEXT_START (0)
-
-/* This seems to be right for end_of_text, but it may not be used anyway.  */
-#define TEXT_END get_etext()
-
-/* This seems to be right for end_of_data, but it may not be used anyway.  */
-#define DATA_END get_edata()
 
 /* Definitions for how to compile & link.  */
 

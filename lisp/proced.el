@@ -307,7 +307,7 @@ JUSTIFY is 'left or 'right for left or right-justified output of ps(1).")
 
 (define-derived-mode proced-mode nil "Proced"
   "Mode for displaying UNIX system processes and sending signals to them.
-Type \\[proced-mark-process] to mark a process for later commands.
+Type \\<proced-mode-map>\\[proced-mark] to mark a process for later commands.
 Type \\[proced-send-signal] to send signals to marked processes.
 
 \\{proced-mode-map}"
@@ -327,7 +327,7 @@ Type \\[proced-send-signal] to send signals to marked processes.
 ;;;###autoload
 (defun proced (&optional arg)
   "Mode for displaying UNIX system processes and sending signals to them.
-Type \\[proced-mark-process] to mark a process for later commands.
+Type \\<proced-mode-map>\\[proced-mark] to mark a process for later commands.
 Type \\[proced-send-signal] to send signals to marked processes.
 
 If invoked with optional ARG the window displaying the process
@@ -346,8 +346,9 @@ information will be displayed but not selected.
     (if arg
 	(display-buffer buffer)
       (pop-to-buffer buffer)
-      (message (substitute-command-keys
-                "type \\[quit-window] to quit, \\[proced-help] for help")))))
+      (message
+       (substitute-command-keys
+        "Type \\<proced-mode-map>\\[quit-window] to quit, \\[proced-help] for help")))))
 
 (defun proced-next-line (arg)
   "Move down lines then position at `proced-goal-column'.

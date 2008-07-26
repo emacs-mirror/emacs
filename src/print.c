@@ -1560,6 +1560,10 @@ print_object (obj, printcharfun, escapeflag)
 
   QUIT;
 
+  /* See similar code in print_preprocess.  */
+  if (print_depth >= PRINT_CIRCLE)
+    error ("Apparently circular structure being printed");
+
   /* Detect circularities and truncate them.  */
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
       || FUNVECP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
@@ -1610,9 +1614,6 @@ print_object (obj, printcharfun, escapeflag)
 
   print_depth++;
 
-  /* See similar code in print_preprocess.  */
-  if (print_depth > PRINT_CIRCLE)
-    error ("Apparently circular structure being printed");
 #ifdef MAX_PRINT_CHARS
   if (max_print && print_chars > max_print)
     {

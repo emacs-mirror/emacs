@@ -1,10 +1,14 @@
+2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (ALL_CFLAGS): Remove reference to C_SWITCH_SITE.
+
 2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* lwlib.c: Remove references to obsolete variables.
 
 2008-06-02  Jim Meyering  <meyering@redhat.com>
 
-	remove useless if-before-free tests
+	Remove useless if-before-free tests.
 	* lwlib-Xm.c (xm_update_one_value): Likewise.
 	* lwlib.c (safe_free_str, free_widget_value_tree): Likewise.
 

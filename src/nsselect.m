@@ -374,7 +374,11 @@ ns_string_to_pasteboard (id pb, Lisp_Object str)
 
 
 DEFUN ("ns-own-selection-internal", Fns_own_selection_internal,
-       Sns_own_selection_internal, 2, 2, 0, "Assert a selection.")
+       Sns_own_selection_internal, 2, 2, 0,
+       doc: /* Assert a selection.
+SELECTION-NAME is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+VALUE is typically a string, or a cons of two markers, but may be
+anything that the functions on `selection-converter-alist' know about.  */)
      (selection_name, selection_value)
      Lisp_Object selection_name, selection_value;
 {
@@ -407,9 +411,9 @@ DEFUN ("ns-own-selection-internal", Fns_own_selection_internal,
 }
 
 
-DEFUN ("ns-disown-selection-internal", Fns_disown_selection_internal,
-       Sns_disown_selection_internal, 1, 2, 0,
-       "If we own the selection SELECTION, disown it.")
+DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
+       Sx_disown_selection_internal, 1, 2, 0,
+       doc: /* If we own the selection SELECTION, disown it.  */)
      (selection_name, time)
      Lisp_Object selection_name, time;
 {
@@ -425,12 +429,12 @@ DEFUN ("ns-disown-selection-internal", Fns_disown_selection_internal,
 
 
 DEFUN ("ns-selection-exists-p", Fns_selection_exists_p, Sns_selection_exists_p,
-       0, 1, 0, "Whether there is an owner for the given selection.\n\
-The arg should be the name of the selection in question, typically one of\n\
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
-\(Those are literal upper-case symbol names.)\n\
-For convenience, the symbol nil is the same as `PRIMARY',\n\
-and t is the same as `SECONDARY'.)")
+       0, 1, 0, doc: /* Whether there is an owner for the given selection.
+The arg should be the name of the selection in question, typically one of
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names.)
+For convenience, the symbol nil is the same as `PRIMARY',
+and t is the same as `SECONDARY'.)  */)
      (selection)
      Lisp_Object selection;
 {
@@ -449,12 +453,12 @@ and t is the same as `SECONDARY'.)")
 
 DEFUN ("ns-selection-owner-p", Fns_selection_owner_p, Sns_selection_owner_p,
        0, 1, 0,
-       "Whether the current Emacs process owns the given selection.\n\
-The arg should be the name of the selection in question, typically one of\n\
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
-\(Those are literal upper-case symbol names.)\n\
-For convenience, the symbol nil is the same as `PRIMARY',\n\
-and t is the same as `SECONDARY'.)")
+       doc: /* Whether the current Emacs process owns the given selection.
+The arg should be the name of the selection in question, typically one of
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names.)
+For convenience, the symbol nil is the same as `PRIMARY',
+and t is the same as `SECONDARY'.)  */)
      (selection)
      Lisp_Object selection;
 {
@@ -466,12 +470,12 @@ and t is the same as `SECONDARY'.)")
 }
 
 
-DEFUN ("ns-get-selection-internal", Fns_get_selection_internal,
-       Sns_get_selection_internal, 2, 2, 0,
-       "Return text selected from some pasteboard.\n\
-SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
-\(Those are literal upper-case symbol names.)\n\
-TYPE is the type of data desired, typically `STRING'.")
+DEFUN ("x-get-selection-internal", Fx_get_selection_internal,
+       Sx_get_selection_internal, 2, 2, 0,
+       doc: /* Return text selected from some pasteboard.
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names.)
+TYPE is the type of data desired, typically `STRING'.  */)
      (selection_name, target_type)
      Lisp_Object selection_name, target_type;
 {
@@ -497,7 +501,7 @@ TYPE is the type of data desired, typically `STRING'.")
 #ifdef CUT_BUFFER_SUPPORT
 DEFUN ("ns-get-cut-buffer-internal", Fns_get_cut_buffer_internal,
        Sns_get_cut_buffer_internal, 1, 1, 0,
-       "Returns the value of the named cut buffer.")
+       doc: /* Returns the value of the named cut buffer.  */)
      (buffer)
      Lisp_Object buffer;
 {
@@ -510,8 +514,9 @@ DEFUN ("ns-get-cut-buffer-internal", Fns_get_cut_buffer_internal,
 
 DEFUN ("ns-rotate-cut-buffers-internal", Fns_rotate_cut_buffers_internal,
        Sns_rotate_cut_buffers_internal, 1, 1, 0,
-       "Rotate the values of the cut buffers by the given number of steps;\n\
- positive means move values forward, negative means backward. CURRENTLY NOT IMPLEMENTED UNDER NeXTstep.")
+       doc: /* Rotate the values of the cut buffers by N steps.
+Positive N means move values forward, negative means
+backward. CURRENTLY NOT IMPLEMENTED UNDER NEXTSTEP. */ )
      (n)
      Lisp_Object n;
 {
@@ -524,7 +529,7 @@ DEFUN ("ns-rotate-cut-buffers-internal", Fns_rotate_cut_buffers_internal,
 
 DEFUN ("ns-store-cut-buffer-internal", Fns_store_cut_buffer_internal,
        Sns_store_cut_buffer_internal, 2, 2, 0,
-       "Sets the value of the named cut buffer (typically CUT_BUFFER0).")
+       doc: /* Sets the value of the named cut buffer (typically CUT_BUFFER0).  */)
      (buffer, string)
      Lisp_Object buffer, string;
 {
@@ -551,8 +556,8 @@ syms_of_nsselect (void)
   QTEXT      = intern ("TEXT"); 	staticpro (&QTEXT);
   QFILE_NAME = intern ("FILE_NAME"); 	staticpro (&QFILE_NAME);
 
-  defsubr (&Sns_disown_selection_internal);
-  defsubr (&Sns_get_selection_internal);
+  defsubr (&Sx_disown_selection_internal);
+  defsubr (&Sx_get_selection_internal);
   defsubr (&Sns_own_selection_internal);
   defsubr (&Sns_selection_exists_p);
   defsubr (&Sns_selection_owner_p);

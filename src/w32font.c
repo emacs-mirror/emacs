@@ -238,6 +238,7 @@ w32font_open (f, font_entity, pixel_size)
 
   font_object = font_make_object (VECSIZE (struct w32font_info),
 				  font_entity, pixel_size);
+  ASET (font_object, FONT_TYPE_INDEX, Qgdi);
 
   if (!w32font_open_internal (f, font_entity, pixel_size, font_object))
     {
@@ -291,6 +292,8 @@ w32font_has_char (entity, c)
     return -1;
 
   supported_scripts = assq_no_quit (QCscript, extra);
+  /* If font doesn't claim to support any scripts, then we can't be certain
+     until we open it.  */
   if (!CONSP (supported_scripts))
     return -1;
 
@@ -298,7 +301,16 @@ w32font_has_char (entity, c)
 
   script = CHAR_TABLE_REF (Vchar_script_table, c);
 
-  return (memq_no_quit (script, supported_scripts)) ? -1 : 0;
+  /* If we don't know what script the character is from, then we can't be
+     certain until we open it.  Also if the font claims support for the script
+     the character is from, it may only have partial coverage, so we still
+     can't be certain until we open the font.  */
+  if (NILP (script) || memq_no_quit (script, supported_scripts))
+    return -1;
+
+  /* Font reports what scripts it supports, and none of them are the script
+     the character is from, so it is a definite no.  */
+  return 0;
 }
 
 /* w32 implementation of encode_char for font backend.
@@ -326,8 +338,13 @@ w32font_encode_char (font, c)
 
   if (c > 0xFFFF)
     {
-      /* TODO: Encode as surrogate pair and lookup the glyph.  */
-      return FONT_INVALID_CODE;
+      DWORD surrogate = c - 0x10000;
+
+      /* High surrogate: U+D800 - U+DBFF.  */
+      in[0] = 0xD800 + ((surrogate >> 10) & 0x03FF);
+      /* Low surrogate: U+DC00 - U+DFFF.  */
+      in[1] = 0xDC00 + (surrogate & 0x03FF);
+      len = 2;
     }
   else
     {
@@ -393,7 +410,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
   HDC dc = NULL;
   struct frame * f;
   int total_width = 0;
-  WORD *wcode = NULL;
+  WORD *wcode;
   SIZE size;
 
   struct w32font_info *w32_font = (struct w32font_info *) font;
@@ -483,19 +500,27 @@ w32font_text_extents (font, code, nglyphs, metrics)
   /* For non-truetype fonts, GetGlyphOutlineW is not supported, so
      fallback on other methods that will at least give some of the metric
      information.  */
-  if (!wcode) {
-    wcode = alloca (nglyphs * sizeof (WORD));
-    for (i = 0; i < nglyphs; i++)
-      {
-	if (code[i] < 0x10000)
-	  wcode[i] = code[i];
-	else
-	  {
-	    /* TODO: Convert to surrogate, reallocating array if needed */
-	    wcode[i] = 0xffff;
-	  }
-      }
-  }
+  
+  /* Make array big enough to hold surrogates.  */
+  wcode = alloca (nglyphs * sizeof (WORD) * 2);
+  for (i = 0; i < nglyphs; i++)
+    {
+      if (code[i] < 0x10000)
+        wcode[i] = code[i];
+      else
+        {
+          DWORD surrogate = code[i] - 0x10000;
+
+          /* High surrogate: U+D800 - U+DBFF.  */
+          wcode[i++] = 0xD800 + ((surrogate >> 10) & 0x03FF);
+          /* Low surrogate: U+DC00 - U+DFFF.  */
+          wcode[i] = 0xDC00 + (surrogate & 0x03FF);
+          /* An extra glyph. wcode is already double the size of code to
+             cope with this.  */
+          nglyphs++;
+        }
+    }
+
   if (dc == NULL)
     {
       /* TODO: Frames can come and go, and their fonts outlive
@@ -1032,7 +1057,9 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
   FONT_SET_STYLE (entity, FONT_WIDTH_INDEX, make_number (100));
 
   if (font_type & RASTER_FONTTYPE)
-    ASET (entity, FONT_SIZE_INDEX, make_number (physical_font->ntmTm.tmHeight));
+    ASET (entity, FONT_SIZE_INDEX,
+          make_number (physical_font->ntmTm.tmHeight
+                       + physical_font->ntmTm.tmExternalLeading));
   else
     ASET (entity, FONT_SIZE_INDEX, make_number (0));
 
@@ -2325,10 +2352,10 @@ DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
 Return fontconfig style font string corresponding to the selection.
 
 If FRAME is omitted or nil, it defaults to the selected frame.
-If INCLUDE-PROPORTIONAL is non-nil, include proportional fonts
+If EXCLUDE-PROPORTIONAL is non-nil, exclude proportional fonts
 in the font selection dialog. */)
-  (frame, include_proportional)
-     Lisp_Object frame, include_proportional;
+  (frame, exclude_proportional)
+     Lisp_Object frame, exclude_proportional;
 {
   FRAME_PTR f = check_x_frame (frame);
   CHOOSEFONT cf;
@@ -2345,9 +2372,9 @@ in the font selection dialog. */)
   cf.hwndOwner = FRAME_W32_WINDOW (f);
   cf.Flags = CF_FORCEFONTEXIST | CF_SCREENFONTS | CF_NOVERTFONTS;
 
-  /* Unless include_proportional is non-nil, limit the selection to
+  /* If exclude_proportional is non-nil, limit the selection to
      monospaced fonts.  */
-  if (NILP (include_proportional))
+  if (!NILP (exclude_proportional))
     cf.Flags |= CF_FIXEDPITCHONLY;
 
   cf.lpLogFont = &lf;

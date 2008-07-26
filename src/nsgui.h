@@ -30,15 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef init_process
 #endif  /* NS_IMPL_COCOA */
 
-#ifdef NS_IMPL_GNUSTEP
-#undef hash_remove
-#endif
-
 #import <AppKit/AppKit.h>
-
-#ifdef NS_IMPL_GNUSTEP
-#define hash_remove emacs_hash_remove
-#endif
 
 #ifdef NS_IMPL_COCOA
 #undef Cursor
@@ -86,8 +78,8 @@ typedef unichar XChar2b;
 #define FACE_DEFAULT (~0)
 
 
-/* PENDING: xfaces requires these structures, but the question is are we
-            forced to use them? */
+/* XXX: xfaces requires these structures, but the question is are we
+        forced to use them? */
 typedef struct _XGCValues
 {
 #ifdef __OBJC__

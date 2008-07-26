@@ -52,13 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 #define SYSV_SYSTEM_DIR
 
-/* subprocesses should be defined if you want to
- have code for asynchronous subprocesses
- (as used in M-x compile and M-x shell).
- This is supposed to work now on system V release 2.  */
-
-#define subprocesses
-
 /* The file containing the kernel's symbol table is called /unix.  */
 
 #define KERNEL_FILE "/unix"
@@ -91,10 +84,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef HAVE_RINDEX
 #define rindex strrchr
 #endif /* ! defined (HAVE_RINDEX) */
-
-/* Compiler bug bites on many systems when default ADDR_CORRECT is used.  */
-
-#define ADDR_CORRECT(x) (x)
 
 /* Use terminfo instead of termcap.  */
 
@@ -221,10 +210,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This definition was suggested for next release.
    So give it a try.  */
 #define HAVE_SOCKETS
-
-/* Markus Weiand <weiand@khof.com> says this is needed for Motif on
-   SINIX.  */
-#define LIBS_SYSTEM -lgen
 
 /* arch-tag: 1a0ed909-5faa-434b-b7c3-9d86c63d53a6
    (do not change this comment) */

@@ -1071,23 +1071,6 @@ Used in `find-file-not-found-functions'."
 (defun vc-default-extra-menu (backend)
   nil)
 
-;; These are not correct and it's not currently clear how doing it
-;; better (with more complicated expressions) might slow things down
-;; on older systems.
-
-;;(put 'vc-rename-file 'menu-enable 'vc-mode)
-;;(put 'vc-annotate 'menu-enable '(eq (vc-buffer-backend) 'CVS))
-;;(put 'vc-revision-other-window 'menu-enable 'vc-mode)
-;;(put 'vc-diff 'menu-enable 'vc-mode)
-;;(put 'vc-update-change-log 'menu-enable
-;;     '(member (vc-buffer-backend) '(RCS CVS)))
-;;(put 'vc-print-log 'menu-enable 'vc-mode)
-;;(put 'vc-rollback 'menu-enable 'vc-mode)
-;;(put 'vc-revert 'menu-enable 'vc-mode)
-;;(put 'vc-insert-headers 'menu-enable 'vc-mode)
-;;(put 'vc-next-action 'menu-enable 'vc-mode)
-;;(put 'vc-register 'menu-enable '(and buffer-file-name (not vc-mode)))
-
 (provide 'vc-hooks)
 
 ;; arch-tag: 2e5a6fa7-1d30-48e2-8bd0-e3d335f04f32

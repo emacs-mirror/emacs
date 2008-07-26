@@ -1,3 +1,393 @@
+2008-07-26 YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (XDrawLine) [USE_MAC_IMAGE_IO]: Remove spurious return.
+
+2008-07-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.h (kCGBitmapByteOrder32Host): New define for
+	non-universal SDKs.
+
+	* image.c (mac_create_cg_image_from_image, image_load_image_io)
+	[USE_MAC_IMAGE_IO]: Remove conditionals for kCGBitmapByteOrder32Host.
+
+	* macterm.c (XDrawLine, XCreatePixmapFromBitmapData)
+	[USE_MAC_IMAGE_IO]: Remove conditionals for kCGBitmapByteOrder32Host.
+
+2008-07-26  David Robinow  <drobinow@gmail.com>  (tiny change)
+
+        * w32inevt.c: Include dispextern.h.
+
+2008-07-26  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_object): Fix off-by-one in last change.
+
+2008-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term.c (syms_of_term): Don't initialize default_orig_pair,
+	default_set_foreground and default_set_background on Windows.
+
+2008-07-25  Jason Rumney  <jasonr@gnu.org>
+
+        * w32uniscribe.c (uniscribe_shape): Pass NULL for control arg to
+        ScriptItemize. Clean up return value checking. Remove unused
+        variables.
+        (uniscribe_encode_char): Encode non-BMP characters with uniscribe
+        shaping engine.
+
+        * w32font.c (w32font_has_char): Handle the case where we can't
+        determine the script for a character.
+
+2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term.c (syms_of_term): Initialize default_orig_pair,
+	default_set_foreground, and default_set_background.
+
+	* getloadavg.c (nl): Rename to name_list to avoid ncurses.h
+	clash (bug#86).
+	(getloadavg): Callers changed.
+
+	* image.c (svg_load_image): Fix last change.
+	(svg_load_image): Use rsvg_handle_get_dimensions to check that
+	image size is valid.  Use g_object_unref instead of deprecated
+	rsvg_handle_free to free rsvg handle.
+	(x_from_xcolors): Don't initialize pixmap (silence compiler).
+
+2008-07-25  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.c (w32font_encode_char): Encode characters outside BMP as
+        surrogates before looking up glyph index.
+        (w32font_text_extents): Encode as surrogates if falling back to
+        functions that need UTF-16 wide chars.
+
+        * w32uniscribe.c (uniscribe_encode_char): Encode characters outside
+        BMP as surrogates before looking up glyph index.
+
+2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (svg_load_image): Check for failure in return value of
+	rsvg_handle_get_pixbuf.  Free rsvg handle when done.
+
+2008-07-25  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.c (Fx_select_font): Reverse sense of second arg.
+
+2008-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (struct lisp_parse_state, char_quoted, inc_bytepos)
+	(dec_bytepos, find_defun_start): Use EMACS_INT for buffer positions.
+
+	* puresize.h (PURESIZE_CHECKING_RATIO): New macro.
+	(PURESIZE): Use it.
+
+2008-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/amdx86-64.h (HAVE_LIB64_DIR): Consolidate ifdefs.
+	* m/alpha.h (TEXT_END):
+	* m/ibmrs6000.h (TEXT_END):
+	* m/macppc.h (TEXT_END):
+	* s/darwin.h (TEXT_END):
+	* s/msdos.h (TEXT_END): Remove, unused.
+	* s/gnu-linux.h (BSD_PGRPS): Add a comment.
+	* s/cygwin.h: Remove comment.
+
+	* ecrt0.c (NODOT_GLOBAL_START): Remove code, unused.
+	(DOT_GLOBAL_START): Remove conditional, redundant for CRT0_DUMMIES.
+	* m/intel386.h (DOT_GLOBAL_START):
+	* m/vax.h (DOT_GLOBAL_START): Remove, redundant with CRT0_DUMMIES.
+	(USG): Remove, file not used on USG platforms.
+
+	* Makefile.in (HAVE_X11): Remove empty #else.
+
+2008-07-24  Andreas Schwab  <schwab@suse.de>
+
+	* fileio.c (Finsert_file_contents): Properly adjust undo list
+	after format conversion.
+
+2008-07-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_font_name): Cast w to GTK_FONT_SELECTION_DIALOG.
+	(menu_nav_ended): Remove.
+	(create_menus): Remove signal connect for menu_nav_ended.
+	(xg_update_menubar): Also take deactivate_cb as parameter, pass it to
+	create_menus.
+	(xg_modify_menubar_widgets): Pass deactivate_cb to xg_update_menubar.
+
+2008-07-23  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32_enumfont_pattern_entity): Return height consistent
+	with opened font.
+	(w32font_open): Set font type to gdi.
+
+	* w32uniscribe.c (uniscribe_open): Set font type to uniscribe.
+
+2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/usg5-4.h (ADDR_CORRECT): Remove, unused.
+	* unexaix.c (ADDR_CORRECT): Remove conditional, the only user
+	defines it.
+	* unexec.c (ADDR_CORRECT): Define unconditionally.
+
+	* m/ibmrs6000.h (C_SWITCH_MACHINE): Remove.
+
+	* unexec.c: Remove code depending on !COFF and USG, the file is
+	not used for such systems.
+
+	* s/netbsd.h (A_TEXT_OFFSET, A_TEXT_SEEK):
+	* s/freebsd.h (A_TEXT_OFFSET, A_TEXT_SEEK): Remove, unused.
+	(LD_SWITCH_SYSTEM_1): Remove, update users.
+
+	* s/darwin.h (DATA_END):
+	* m/intel386.h (DATA_END):
+	* m/ibmrs6000.h (DATA_END):
+	* m/alpha.h (DATA_END): Remove, unused.
+
+	* config.in: Regenerate.
+	* s/ms-w32.h (subprocesses): Define unconditionally.
+	* s/template.h (subprocesses): Update comment.
+	* s/vms.h (subprocesses):
+	* s/usg5-4.h (subprocesses):
+	* s/hpux10-20.h (subprocesses):
+	* s/gnu-linux.h (subprocesses):
+	* s/cygwin.h (subprocesses):
+	* s/bsd-common.h (subprocesses):
+	* s/aix4-2.h (subprocesses):
+	* s/darwin.h (subprocesses): Do not define, defined by default now.
+
+	* Makefile.in (C_SWITCH_SITE, LD_SWITCH_SITE): Remove, unused.
+	Remove all references.
+	(temacs): Add GNUStep specific ld flags.
+
+	* nsterm.m (syms_of_nsterm): Provide ns, not ns-windowing,
+	similarly to what X does.
+
+2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (x-list-fonts): Remove.
+	(syms_of_nsfns): Drop the x-list-fonts declaration.
+	* nsterm.m: Get rid of remaining "//" comments.
+
+2008-07-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (Fx_rotate_cut_buffers_internal): Doc fix.
+
+	* nsselect.m (Fns_selection_exists_p, Fns_selection_owner_p)
+	(Fx_get_selection_internal, Fns_rotate_cut_buffers_internal)
+	(Fns_own_selection_internal, Fx_disown_selection_internal)
+	(Fns_get_cut_buffer_internal, Fns_store_cut_buffer_internal):
+
+	* nsmenu.m (Fns_reset_menu, Fx_popup_menu): Change to use 'doc: /*
+	... */' style of docstrings.  Doc fixes.
+
+2008-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* terminfo.c (UP, BC, PC): Undo previous change.
+
+	* nsfns.m: Rename ns prefixed functions/variables to the
+	corresponding x versions.  Update references.
+
+2008-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (char_quoted): Check "charpos > beg" before decrementing.
+
+2008-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* nsfns.m (x_set_menu_bar_lines, x_set_tool_bar_lines):
+	Remove forwarding functions.
+	(ns_set_menu_bar_lines): Rename to x_set_menu_bar_lines, make
+	non-static.
+	(ns_set_tool_bar_lines): Rename to x_set_tool_bar_lines, make
+	non-static.
+	(ns_frame_parm_handlers): Use the new names.
+	(syms_of_nsfns): Move to the end of file.
+
+	* nsterm.m (syms_of_nsterm): Move to the end of file.
+
+	* dispnew.c (init_display): Remove code for X10.
+
+2008-07-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32proc.c (Fw32_long_file_name): Don't append dir separator to
+	bare drive.
+
+2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsgui.h:
+	* nsfont.m:
+	* nsmenu.m:
+	* nsterm.m: Change PENDINGS to FIXME / TODO / XXX.
+
+2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (syms_of_nsterm): Remove debugging println.
+
+2008-07-22  David Reitter  <david.reitter@gmail.com>
+
+	* nsfns.m (do_applescript, F_do_applescript): NS version of the
+	Carbon implementation of the same functionality: execute arbitrary
+	AppleScript code.
+
+2008-07-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (Fx_create_frame, Fx_read_file_name, Fx_get_resource)
+	(Fx_set_resource, Fx_set_alpha, Fx_server_max_request_size)
+	(Fx_server_vendor, Fx_server_version, Fx_display_screens)
+	(Fx_display_mm_height, Fx_display_mm_width)
+	(Fx_display_backing_store, Fx_display_visual_class)
+	(Fx_display_save_under, Fx_open_connection)
+	(Fx_close_connection, Fx_hide_emacs, Fx_font_name)
+	(Fx_list_colors, Fx_perform_service, Fx_color_defined_p)
+	(Fx_color_values, Fxw_display_color_p, Fx_display_grayscale_p)
+	(Fx_display_pixel_width, Fx_display_pixel_height)
+	(Fx_display_usable_bounds, Fx_display_planes)
+	(Fx_display_color_cells, Vns_icon_type_alist): Change to use 'doc: /*
+	... */' style of docstrings.
+
+2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/mips.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Do not define, not used
+	on this platform.
+	(mips):
+	* m/iris4d.h (mips): Do not define.
+	* sysdep.c (init_sys_modes): Use __mips__ instead of mips.
+
+	* m/ibmrs6000.h (LD_SWITCH_SITE): Remove.
+
+	* image.c:
+	* nsfns.m:
+	* nsselect.m:
+	* nsterm.h:
+	* nsterm.m: Rename ns prefixed functions/variables to the
+	corresponding x versions.  Update references.
+
+	* m/ibms390x.h (NO_REMAP): Do not undefine.
+
+	* m/amdx86-64.h: Use SOLARIS2 instead of sun.
+
+2008-07-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m: Change NS to Nextstep in docstrings and error messages.
+	(Fns_create_frame, Fns_read_file_name, Fns_get_resource)
+	(Fns_set_resource, Fns_set_alpha, Fns_server_max_request_size)
+	(Fns_server_vendor, Fns_server_version, Fns_display_screens)
+	(Fns_display_mm_height, Fns_display_mm_width)
+	(Fns_display_backing_store, Fns_display_visual_class)
+	(Fns_display_save_under, Fns_open_connection)
+	(Fns_close_connection, Fns_hide_emacs, Fns_font_name)
+	(Fns_list_colors, Fns_perform_service, Fns_color_defined_p)
+	(Fns_color_values, Fxw_display_color_p, Fx_display_grayscale_p)
+	(Fns_display_pixel_width, Fns_display_pixel_height)
+	(Fns_display_usable_bounds, Fx_display_planes)
+	(Fns_display_color_cells, Vns_icon_type_alist): Doc fixes.
+
+2008-07-21  Ami Fischman  <ami@fischman.org>  (tiny change)
+
+	* print.c (print_object): Check print_depth before searching for
+	circularities.
+
+2008-07-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_register_signal): Use sprintf + strcat instead
+	only sprintf.
+
+2008-07-21  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (adjust_anchor): Check if DetalValue is not NULL.
+
+2008-07-20  Andreas Schwab  <schwab@suse.de>
+
+	* syntax.c (find_start_pos, find_start_value)
+	(find_start_value_byte, find_start_begv, find_defun_start)
+	(back_comment, scan_sexps_forward): Use EMACS_INT for buffer positions.
+
+2008-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/sol2-3.h: Insert contents of s/sol2.h.
+	(LD_SWITCH_SYSTEM): Remove redundant definition.
+	* s/sol2.h: Remove, unused.
+
+2008-07-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_get_color): Recognize HSB,AHSB be synonyms for HSV,AHSV.
+
+2008-07-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Makefile.in (ns_appdir): Fix typo in find command.
+
+2008-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/intel386.h (NO_REMAP): Do no define for USG, not used.
+
+	* s/usg5-4.h (LIBS_SYSTEM): Remove, system for which this was
+	added not supported anymore.
+
+	* s/usg5-4-2.h (LIBS_SYSTEM):
+	* s/sol2.h (LIBS_SYSTEM): Do not undefine.
+
+	* s/netbsd.h (GETPGRP_NO_ARG, N_TRELOFF):
+	* s/lynxos.h (GETPGRP_NO_ARG):
+	* s/hpux10-20.h (NO_SIOCTL_H):
+	* s/gnu.h (GETPGRP_NO_ARG):
+	* s/gnu-linux.h (NO_SIOCTL_H):
+	* s/freebsd.h (GETPGRP_NO_ARG, N_TRELOFF):
+	* s/cygwin.h (GETPGRP_NO_ARG):
+	* s/irix6-5.h (LIBS_SYSTEM, GETPGRP_NO_ARG): Remove, unused.
+	(C_DEBUG_SWITCH): Remove duplicate definition.
+
+	* m/ibms390.h: Remove boilerplate comments.
+
+	* sysdep.c (closedir): Use SOLARIS2 instead of sun && USG5_4.
+
+	* process.c (HAVE_SERIAL): Consolidate ifdefs.
+	(wait_reading_process_output): Remove code for SunOS, platform not
+	supported anymore.  Use SOLARIS2 instead of sun.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* font.c (font_open_by_name): Under NS, default lface height to zero.
+	(font_open_for_lface): Under NS, set size based on frame fontsize.
+	* nsterm.m (EmacsView-changeFont:): Remove some commented code.
+	* frame.c (x_set_frame_parameters): Remove HAVE_NS ifdef.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_antialias_text, ns_use_qd_smoothing)
+	(ns_use_system_highlight_color): Switch these from DEFVAR_BOOL to
+	DEFVAR_LISP and change all code accordingly to use Qt/Qnil instead of
+	YES/NO.
+	* nsterm.h (prevUseHighlightColor): Make a Lisp_Object.
+	* nsfont.m (nsfont_draw): Treat ns_use_qd_smoothing as Lisp_Object.
+	* Makefile.in (clean): Clear out build destination dir.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Makefile.in (nsgui.h-related dependencies): Remove abbrev, xfns,
+	xterm, xselect.
+	* lisp.h: Remove declaration of hash_remove.
+	* nsgui.h: Remove redefinitions of hash_remove.
+	* fns.c (hash_remove): Rename to hash_remove_from_table.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfont.m (nsfont_fmember_to_entity, nsfont_make_fontset_for_font):
+	strdup() the family UTF8String before modifying it.  Patch due to
+	Seiji Zenitani.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (ns_set_background_color): Apply patch from Chong Yidong to
+	fix crash.
+	* nsterm.m (ns_maybe_dumpglyphs_background): Compare result from
+	NS_FACE_BACKGROUND with 0 instead of nil.
+	* nsfont.m (nsfont_draw): Same.
+
+2008-07-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (SOME_MACHINE_LISP): Remove ns-carbon-compat.elc.
+
+2008-07-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1240000.
+
 2008-07-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* gtkutil.c: Include <config.h> instead of "config.h".
@@ -30,15 +420,15 @@
 
 2008-07-17  David Robinow  <drobinow@gmail.com>  (tiny change)
 
-        * w32inevt.c (change_frame_size): Remove extern declaration.
-        (resize_event, maybe_generate_resize_event): Pass SAFE arg to
-        change_frame_size.
+	* w32inevt.c (change_frame_size): Remove extern declaration.
+	(resize_event, maybe_generate_resize_event): Pass SAFE arg to
+	change_frame_size.
 
-2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* getloadavg.c: Revert last change (2008-07-15).
 
-2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Makefile.in: Replace emacsapp, emacsbindir, emacsappsrc variables
 	set here with ns_appdir, ns_appresdir, ns_appbindir, ns_appsrc) set
@@ -65,21 +455,20 @@
 
 	* s/darwin.h: Reorganize ifdefs.
 
-2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* config.in
-	* dispextern.h
-	* frame.c
-	* image.c
-	* nsfns.m
-	* nsfont.m
-	* nsgui.h
-	* nsmenu.m
-	* nsterm.h
-	* nsterm.m
-	* s/darwin.h
-	* xdisp.c: Change most cases of PENDING to TODO, some to FIXME or
-	XXX.
+	* config.in:
+	* dispextern.h:
+	* frame.c:
+	* image.c:
+	* nsfns.m:
+	* nsfont.m:
+	* nsgui.h:
+	* nsmenu.m:
+	* nsterm.h:
+	* nsterm.m:
+	* s/darwin.h:
+	* xdisp.c: Change most cases of PENDING to TODO, some to FIXME or XXX.
 
 2008-07-17  Andreas Schwab  <schwab@suse.de>
 
@@ -117,7 +506,7 @@
 	* frame.h: Include dispextern.h for Display_Info.
 	(display_x_get_resource): Declare.
 
-2008-07-16  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* syntax.c: Remove stdio.h include accidentally introduced in
 	Emacs.app commit.
@@ -261,10 +650,10 @@
 	USER_FULL_NAME with its value.
 	* config.in: Regenerate.
 
-2008-07-16  David Reitter <david.reitter@gmail.com>
+2008-07-16  David Reitter  <david.reitter@gmail.com>
 
-	* Makefile.in: add ns-win, ns-carbon-compat, easy-mmode and
-	easy-menu to SOME_MACHINE_LISP for the new NeXTstep port
+	* Makefile.in: Add ns-win, ns-carbon-compat, easy-mmode and
+	easy-menu to SOME_MACHINE_LISP for the new NeXTstep port.
 
 2008-07-16  Glenn Morris  <rgm@gnu.org>
 
@@ -275,17 +664,17 @@
 	* keyboard.c (parse_menu_item): Don't use cachelist, even under NS.
 	If the cache doesn't work, let's fix it, rather than work around it.
 
-2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Makefile.in: Correct additions for nsfont.o in last commit.
 	* nsfont.m: New file (forgot last commit).
 
-2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	Changes and additions for NeXTstep windowing system (Cocoa and
 	GNUstep) support.
 
-	* Makefile.in
+	* Makefile.in:
 	* config.in: Support defines and build commands for NS port.
 	* blockinput.h (BLOCK_INPUT, UNBLOCK_INPUT, TOTALLY_UNBLOCK_INPUT)
 	(UNBLOCK_INPUT_TO): Don't use under NS unless EXPERIMENTAL_CONTROL_G.
@@ -366,12 +755,12 @@
 	(free_menubar_widget_tree_value, update_submenu_strings)
 	(find_and_call_menu_selection): Treat NS as X and NT.
 	(find_and_return_menu_selection): New function, used for popup menus.
-	* nsgui.h
-	* nsterm.h
-	* nsfns.m
-	* nsimage.m
-	* nsmenu.m
-	* nsselect.m
+	* nsgui.h:
+	* nsterm.h:
+	* nsfns.m:
+	* nsimage.m:
+	* nsmenu.m:
+	* nsselect.m:
 	* nsterm.m: New files.
 	* process.c (wait_reading_process_output): Under NS, call ns_select()
 	instead of plain select().
@@ -565,8 +954,7 @@
 
 2008-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xdisp.c (move_it_to): Backtrack if past the edge of a wrapped
-	line.
+	* xdisp.c (move_it_to): Backtrack if past the edge of a wrapped line.
 
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -955,9 +1343,9 @@
 	Add hfont member.
 	(FONT_COMPAT): Remove obsolete macro.
 
-	* w32font.c (w32font_close): Remove compat code. Delete hfont member.
+	* w32font.c (w32font_close): Remove compat code.  Delete hfont member.
 	(w32font_encode_char, w32font_text_extents): Use new hfont member.
-	(w32font_open_internal): Remove compat code. Set new hfont member.
+	(w32font_open_internal): Remove compat code.  Set new hfont member.
 	(Fx_select_font): Use new hfont member.
 
 	* w32uniscribe.c (uniscribe_otf_capability, uniscribe_shape)
@@ -1119,7 +1507,7 @@
 	replacing truncate_partial_width_windows.
 	(init_iterator): If Vtruncate_partial_width_windows is an integer,
 	truncate only if the window width is below that integer.
-	(start_display. resize_mini_window, produce_stretch_glyph)
+	(start_display, resize_mini_window, produce_stretch_glyph)
 	(display_string, move_it_in_display_line_to): Use line_wrap.
 	(back_to_previous_visible_line_start, reseat_1): Reset
 	string_from_display_prop_p.

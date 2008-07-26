@@ -91,11 +91,6 @@ when editing big diffs)."
   :type 'boolean
   :group 'diff-mode)
 
-(defcustom diff-auto-refine t
-  "Automatically highlight changes in detail as the user visits hunks."
-  :type 'boolean
-  :group 'diff-mode)
-
 (defcustom diff-mode-hook nil
   "Run after setting up the `diff-mode' major mode."
   :type 'hook
@@ -220,6 +215,13 @@ when editing big diffs)."
   `((,diff-minor-mode-prefix . ,diff-mode-shared-map))
   "Keymap for `diff-minor-mode'.  See also `diff-mode-shared-map'.")
 
+(define-minor-mode diff-auto-refine-mode
+  "Automatically highlight changes in detail as the user visits hunks.
+When transitioning from disabled to enabled,
+try to refine the current hunk, as well."
+  :group 'diff-mode :init-value t :lighter nil ;; " Auto-Refine"
+  (when diff-auto-refine-mode
+    (condition-case-no-debug nil (diff-refine-hunk) (error nil))))
 
 ;;;;
 ;;;; font-lock support
@@ -528,7 +530,7 @@ but in the file header instead, in which case move forward to the first hunk."
 ;; Define diff-{hunk,file}-{prev,next}
 (easy-mmode-define-navigation
  diff-hunk diff-hunk-header-re "hunk" diff-end-of-hunk diff-restrict-view
- (if diff-auto-refine
+ (if diff-auto-refine-mode
      (condition-case-no-debug nil (diff-refine-hunk) (error nil))))
 
 (easy-mmode-define-navigation
@@ -1878,6 +1880,13 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
               (add-change-log-entry nil nil t nil t)))
         ;; When there's no more hunks, diff-hunk-next signals an error.
 	(error nil)))))
+
+(defun diff-show-trailing-whitespaces ()
+  "Show trailing whitespaces in modified lines for diff-mode."
+  (interactive)
+  (let ((whitespace-style '(trailing))
+        (whitespace-trailing-regexp "^[-\+!<>].*?\\([\t ]+\\)$"))
+    (whitespace-mode 1)))     ; display trailing blanks in diff buffer
 
 ;; provide the package
 (provide 'diff-mode)

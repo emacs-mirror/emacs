@@ -1,13 +1,386 @@
+2008-07-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* diff-mode.el (diff-show-trailing-blanks): Renamed to
+	diff-show-trailing-whitespaces.
+
+2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/tex-mode.el (tex-compilation-parse-errors): Check for
+	invalid filename strings when parsing tex errors (bug#376).
+
+2008-07-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* menu-bar.el (menu-bar-file-menu): Fix typo.
+
+2008-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* play/solitaire.el (solitaire-mode-map): Define within defvar.
+	(solitaire-mode): Define with `define-derived-mode'.
+	(solitaire-insert-board, solitaire-right, solitaire-left, solitaire-up)
+	(solitaire-down): Use "?\s" instead of "?\ "; use `when'.
+	(solitaire-undo, solitaire-check): Use `when'.
+	(solitaire-solve): Err out if the solitaire is already in progress.
+	Use `when'.
+
+	* descr-text.el (describe-char): Don't overwrite local variable char
+	when describing characters with display-table entries.  Display font
+	backend when describing composed characters.  Simplify: use `let'
+	instead of `let*', and `or x y' instead of `if x x y'.
+
+2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-minor-mode): Set up winprops.
+
+2008-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* diff-mode.el (diff-show-trailing-blanks): New fun.  Show trailing
+	blanks in modified lines for diff-mode.
+
+2008-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* Makefile.in (ELCFILES): Add net/xesam.el.
+
+	* net/tramp.el (tramp-handle-start-file-process): Make NAME a unique
+	process name.  Reported by Markus Triska <markus.triska@gmx.at>.
+
+	* net/xesam.el: New file.
+
+2008-07-24  Sven Joachim  <svenjoac@gmx.de>
+
+	* dired-aux.el (dired-copy-file-recursive): Avoid calling
+	set-file-modes when creating target directories.
+
+2008-07-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* play/solitaire.el (solitaire-mode): Fix typo in docstring.
+	Set `show-trailing-whitespace' to nil.
+	(solitaire, solitaire-mode-map, solitaire-mode-hook, solitaire-solve):
+	Fix typos in docstrings.
+
+2008-07-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/enriched.el (enriched-mode-map): Bind C-a and C-j via
+	key remapping, not directly.
+
+2008-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: New version 11.2.
+	(whitespace-newline-mode, global-whitespace-newline-mode): New newline
+	minor mode visualization.
+
+2008-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/cc-mode.el (auto-mode-alist): Add .i and .ii files.
+
+	* Makefile.in (ELCFILES): Add term/common-win.elc.
+
+	* vc-dir.el (vc-dir-search, vc-dir-isearch)
+	(vc-dir-isearch-regexp): New functions.
+	(vc-dir-mode-map, vc-dir-menu-map): Bind them.
+
+2008-07-23  Juri Linkov  <juri@jurta.org>
+
+	* isearch-multi.el: Remove file to avoid dos file name clashes
+	with isearch-x.el.  Move most content to misearch.el.
+
+	* misearch.el: New file with most content from isearch-multi.el.
+	Rename `isearch-buffers' name prefixes to `multi-isearch'.
+	Remove `isearch-buffers-minor-mode'.  Add new function
+	`multi-isearch-setup' to `isearch-mode-hook'.  New top-level
+	commands `multi-isearch-buffers', `multi-isearch-buffers-regexp',
+	`multi-isearch-files', `multi-isearch-files-regexp'.
+
+	* Makefile.in (ELCFILES): Remove isearch-multi.elc.  Add misearch.elc.
+
+	* isearch.el (isearch-message-prefix): Display "Multi" when
+	`multi-isearch-next-buffer-current-function' is non-nil.
+	(isearch-search-string): Replace `isearch-buffers-next-buffer-function'
+	with `multi-isearch-next-buffer-current-function', and
+	`isearch-buffers-current-buffer' with `multi-isearch-current-buffer'.
+
+	* add-log.el (change-log-mode): Set `change-log-next-buffer' to
+	`multi-isearch-next-buffer-function' instead of
+	`isearch-buffers-next-buffer-function'.  Remove call to
+	`isearch-buffers-minor-mode'.
+
+	* buff-menu.el (Buffer-menu-marked-buffers)
+	(Buffer-menu-isearch-buffers)
+	(Buffer-menu-isearch-buffers-regexp): New functions.
+	(Buffer-menu-mode-map): Bind "M-s a C-s" to
+	`Buffer-menu-isearch-buffers', and "M-s a M-C-s" to
+	`Buffer-menu-isearch-buffers-regexp'.
+	(Buffer-menu-mode): Document new commands in docstring.
+	(list-buffers-noselect): Add one space after Info file name
+	according to the Info address convention.
+
+	* ibuf-ext.el (ibuffer-do-isearch, ibuffer-do-isearch-regexp):
+	New functions.
+
+	* ibuffer.el (ibuffer-mode-map): Bind "M-s a C-s" to
+	`ibuffer-do-isearch' and "M-s a M-C-s" to `ibuffer-do-isearch-regexp'.
+	(ibuffer-mode): Document new commands in docstring.
+
+	* filesets.el (filesets-commands): Add commands for "Isearch" and
+	"Isearch (regexp)".  Replace `query-replace' and `query-replace-regexp'
+	with `perform-replace' using `filesets-cmd-query-replace-regexp-getargs'.
+	(filesets-run-cmd): Call `fn' only once if it is `multi-isearch-files'
+	or `multi-isearch-files-regexp'.
+	(filesets-cmd-query-replace-getargs): Call standard function
+	`query-replace-read-args' to read `query-replace' arguments.
+	Add `multi-query-replace-map'.
+	(filesets-cmd-query-replace-regexp-getargs)
+	(filesets-cmd-isearch-getargs): New functions.
+
+2008-07-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/mule.el (recode-region): Deactivate mark at the end.
+
+2008-07-23  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+
+	* progmodes/flymake.el (flymake-errline, flymake-warnline):
+	Use more suitable colors on dark displays.
+
+2008-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Add "-q" for "scp", "scp1",
+	"scp2", "ssh", "ssh1", "ssh2", "scpc", "scpx", "sshx".
+	(tramp-temp-buffer-name): New defconst.
+	(tramp-handle-start-file-process): Use it.  Apply "exec", for the
+	command.  No trailing prompt.
+	(tramp-process-sentinel): Remove temporary buffer, if existing.
+	Don't handle trailing prompt.
+	(tramp-open-connection-setup-interactive-shell):
+	Use `tramp-temp-buffer-name'.
+
+2008-07-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* shell.el (shell-dynamic-complete-functions):
+	Use comint-dynamic-complete-filename as well (bug#361).
+
+2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/ns-win.el:
+	* version.el (emacs-version):
+	* loadup.el:
+	* frame.el (make-frame-on-display): Check for ns instead of
+	ns-windowing.
+
+	* dired.el (dired-mode-map): Show the key binding for wdired.
+
+	* menu-bar.el (menu-bar-file-menu): Show the key binding for
+	exiting Emacs.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (x-list-fonts): Drop alias.
+
+2008-07-23  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (multi-query-replace-map): New variable.
+	(perform-replace): Add processing of new multi-buffer keys bound
+	to `automatic-all' and `exit-current'.  Set `query-flag' to nil
+	if last input char was `automatic-all'.  Set new local variable
+	`multi-buffer' to t when one of new two keys were typed.  Return
+	non-nil value of `multi-buffer' that tells to calling functions
+	to continue replacement on the next file.
+
+	* progmodes/etags.el (tags-query-replace): Set arg `map' of
+	`perform-replace' to `multi-query-replace-map'.
+
+2008-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-auto-refine-mode): Remove lighter, since it's
+	otherwise displayed in every buffer.
+
+	* vc-arch.el (vc-arch-trim-make-sentinel): Use a closure.
+	(vc-arch-trim-one-revlib): Delete temp directories as well.
+
+2008-07-22  Stephen Eglen  <stephen@gnu.org>
+
+	* iswitchb.el (iswitchb-delim): New variable, suggested by Ted Roden.
+
+2008-07-22  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* vc-dir.el (vc-dir-recompute-file-state): Fix mismatched parenthesis.
+
+2008-07-22  Miles Bader  <miles@gnu.org>
+
+	* progmodes/sh-script.el (sh-newline-and-indent): Remove.
+	(sh-mode-map): Remove remapping of newline-and-indent.
+
+2008-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (Todo): Update.
+
+	* vc-hooks.el: Remove obsolete comment.
+
+	* vc-git.el (vc-git-status-printer): Update the directory display
+	to match the default.
+
+	* vc-dir.el (vc-dir-recompute-file-state): Add workaround for CVS.
+
+2008-07-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-line-wrapping-menu): Use Visual Line mode
+	for "word wrap" command.
+
+	* simple.el (visual-line-mode): Disable truncate-partial-width-windows.
+
+2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/ns-win.el: Rename ns- functions/variables to the
+	corresponding x- versions.
+	(x-select-text, x-cut-buffer-or-selection-value)
+	(x-disown-selection-internal, x-get-selection-internal)
+	(x-own-selection-internal, x-defined-colors, xw-defined-colors)
+	(x-display-mm-width, x-display-mm-height)
+	(x-display-backing-store, x-display-save-under)
+	(x-display-visual-class, x-display-screens, x-focus-frame): Remove
+	defaliases.
+
+	* frame.el (ns-display-name): Remove declaration.
+	(make-frame-on-display): Use x-display-name instead
+	ns-display-name.  Use unless.
+
+	* startup.el (command-line-1): Fix indentation.
+
+	* term/ns-win.el (up-one, down-one, left-one, right-one): Remove,
+	checked in inadvertently.
+
+2008-07-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/ns-win.el: Standardize references to "Nextstep" in
+	comments, messages, and docstrings.
+	(ns-handle-args, x-parse-geometry)
+	(ns-extended-platform-support-mode, x-setup-function-keys)
+	(ns-select-overlay, ns-unselect-line, ns-yes-or-no-p)
+	(ns-set-pasteboard, ns-scroll-bar-move, ns-defined-colors)
+	(ns-initialized, ns-initialize-window-system): Doc fixes.
+
+2008-07-21  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* diff-mode.el (diff-auto-refine): Delete defcustom.
+	(diff-auto-refine-mode): New func/var via define-minor-mode.
+	Update var ref to use diff-auto-refine-mode.
+	* smerge-mode.el (diff-mode): Require when compiling.
+	(smerge-auto-refine): Delete defcustom.
+	Update smerge-auto-refine ref to use diff-auto-refine-mode.
+
+2008-07-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (visual-line): New custom group.
+	(visual-line-fringe-indicators): New var.
+	(visual-line-mode): Set fringe-indicator-alist based on
+	visual-line-fringe-indicators.  Add lighter.
+
+2008-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/x-win.el (x-handle-switch, x-handle-numeric-switch)
+	(x-handle-initial-switch, x-handle-iconic, x-handle-xrm-switch)
+	(x-handle-geometry, x-handle-name-switch, x-display-name)
+	(x-handle-display, x-handle-args, x-colors): Move ...
+	* term/common-win.el: ... here.  New file.
+	* term/w32-win.el (x-handle-switch, x-handle-numeric-switch)
+	(x-handle-initial-switch, x-handle-iconic, x-handle-xrm-switch)
+	(x-handle-geometry, x-handle-name-switch, x-display-name)
+	(x-handle-display, x-handle-args, x-colors): Remove.
+	* loadup.el: Load term/common-win before term/x-win and term/w32-win.
+
+2008-07-19  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (fancy-startup-text): Move the line "To quit
+	a partially entered command, type Control-g" a few lines below
+	to be after the line "To start".  Add text "at gnu.org" to
+	"Overview of Emacs features".
+
+	* dired.el (dired-mode-map): Fix menu text of
+	image-dired-display-thumbs.
+
+	* image-dired.el (image-dired-cmd-create-thumbnail-options)
+	(image-dired-cmd-create-temp-image-options)
+	(image-dired-cmd-create-standard-thumbnail-command): Add > to the
+	ImageMagick command line to change the dimensions of the image
+	only if its width or height exceeds the geometry specification.
+
+	* longlines.el: Add coding cookie utf-8 for the pilcrow sign.
+
+	* proced.el (proced-mode, proced): Add \\<proced-mode-map>
+	to docstrings.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-ps-print-menu-map): Fix typo pointed out by
+	Vinicius Jose Latorre.
+
+2008-07-19  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (ns-make-command-string): Use mapconcat.
+	(ns-save-preferences): Fix typo in previous change.  (Bug#573)
+
+2008-07-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-interface-properties): New defconst.
+	(dbus-introspect): Update docstring.
+	(dbus-introspect-xml, dbus-introspect-get-attribute)
+	(dbus-introspect-get-node-names, dbus-introspect-get-all-nodes)
+	(dbus-introspect-get-interface-names)
+	(dbus-introspect-get-interface, dbus-introspect-get-method-names)
+	(dbus-introspect-get-method, dbus-introspect-get-signal-names)
+	(dbus-introspect-get-signal, dbus-introspect-get-property-names)
+	(dbus-introspect-get-property)
+	(dbus-introspect-get-annotation-names)
+	(dbus-introspect-get-annotation)
+	(dbus-introspect-get-argument-names, dbus-introspect-get-argument)
+	(dbus-introspect-get-signature, dbus-get-property)
+	(dbus-set-property, dbus-get-all-properties): New defuns.
+
+2008-07-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (ELCFILES): Remove ns-carbon-compat.elc.  and
+	ns-grabenv.elc.
+
+	* ns-carbon-compat.el: File removed.
+
+	* ns-grabenv.el: File removed.
+
+	* term/ns-win.el: Contents of ns-carbon-compat.el and
+	ns-grabenv.el moved here.
+	(ns-grabenv, ns-open-file-select-line): Doc fixes.
+	(ns-submit-bug-report): Function removed.  Reports go to the main
+	Emacs bug list.
+	(ns-handle-args, ns-spi-service-call): Doc fixes.
+	(info-ns-emacs): Function removed.  Nextstep port manual will be
+	merged into the Emacs manual, so no separate link needed.
+
+2008-07-18  Francesc Rocher  <rocher@member.fsf.org>
+
+	* startup.el (fancy-splash-head): Fix change of 2008-07-02.
+
+2008-07-18  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-arg.el (eshell-quote-backslash): Restrict previous change
+	to XEmacs, since it does nothing for Emacs.
+
+2008-07-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/tls.el (open-tls-stream): Make it work with the 2nd argument
+	BUFFER that is a string but does not exist as a buffer object, as
+	mentioned in the doc-string.
+
 2008-07-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-visual): Make it a defcustom.
 	(line-move-1): Convert temporary-goal-column back to an integer if
 	it was set as a float by a previous call to line-move-visual.
-	(end-of-visual-line, beginning-of-visual-line, kill-visual-line)
-	(next-logical-line, previous-logical-line)
-	(turn-on-visual-line-mode): New functions.
-	(visual-line-mode-map): New variable.
+	(end-of-visual-line, beginning-of-visual-line)
+	(next-logical-line, previous-logical-line):  New functions.
+
+2008-07-17  David Reitter  <david.reitter@gmail.com>
+
+	* simple.el (kill-visual-line, turn-on-visual-line-mode): New
+	functions.
 	(visual-line-mode, global-visual-line-mode): New minor mode.
+	(visual-line-mode-map): New variable.
 
 2008-07-17  Glenn Morris  <rgm@gnu.org>
 
@@ -83,7 +456,7 @@
 	* frame.el (ns-initialize-window-system): Declare for compiler.
 
 	* term/ns-win.el: Add numerous declarations for compiler.
-	(ns-pop-up-frames): Move definition before use. Doc fix.
+	(ns-pop-up-frames): Move definition before use.  Doc fix.
 
 	* emacs-lisp/check-declare.el (check-declare-locate)
 	(check-declare-verify): Handle .m files.
@@ -95,13 +468,13 @@
 	* ns-grabenv.el: New file: functionality useful on OS X platform to
 	expose environment variables inside Emacs started from icon.
 	* Makefile.in (ELCFILES): Add ns-carbon-compat, ns-grabenv, ns-win.
-	* cus-edit.el
-	* cus-face.el
-	* disp-table.el
-	* faces.el
-	* info.el
-	* mouse.el
-	* mwheel.el
+	* cus-edit.el:
+	* cus-face.el:
+	* disp-table.el:
+	* faces.el:
+	* info.el:
+	* mouse.el:
+	* mwheel.el:
 	* simple.el: Add ns to window systems treated as GUIs.
 	* facemenu.el (facemenu-read-color): Don't require a name match under
 	NS, to allow numeric color entry.
@@ -130,11 +503,11 @@
 
 2008-07-14  Jason Rumney  <jasonr@gnu.org>
 
-        * term/w32-win.el (x-handle-switch, x-handle-name-switch)
-        (x-handle-numeric-switch, x-handle-initial-switch)
-        (x-handle-xrm-switch, x-handle-args, x-handle-display)
-        (xw-defined-colors, w32-initialize-window-system):
-        Avoid use of cl pop and push macros.
+	* term/w32-win.el (x-handle-switch, x-handle-name-switch)
+	(x-handle-numeric-switch, x-handle-initial-switch)
+	(x-handle-xrm-switch, x-handle-args, x-handle-display)
+	(xw-defined-colors, w32-initialize-window-system):
+	Avoid use of cl pop and push macros.
 
 2008-07-14  Martin Rudalics  <rudalics@gmx.at>
 
@@ -143,7 +516,8 @@
 
 2008-07-13  Martin Rudalics  <rudalics@gmx.at>
 
-	* add-log.el (change-log-search-file-name): Use match-string-no-properties.
+	* add-log.el (change-log-search-file-name):
+	Use match-string-no-properties.
 	(change-log-search-tag-name-1, change-log-search-tag-name)
 	(change-log-goto-source-1, change-log-goto-source): New functions.
 	(change-log-tag-re, change-log-find-head, change-log-find-tail):
@@ -162,13 +536,12 @@
 
 2008-07-12  Chong Yidong  <cyd@stupidchicken.com>
 
-	* simple.el (line-move-visual): Handle null pixel position
-	gracefully.
+	* simple.el (line-move-visual): Handle null pixel position gracefully.
 
 2008-07-11  Jason Rumney  <jasonr@gnu.org>
 
-        * files.el (file-truename): Get truename of ancestors if file does
-        not exist on Windows.
+	* files.el (file-truename): Get truename of ancestors if file does
+	not exist on Windows.
 
 2008-07-11  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -193,8 +566,7 @@
 
 	* window.el (truncated-partial-width-window-p): New function.
 
-	* menu-bar.el: Remove Longlines mode from menu.  Add word-wrap
-	option.
+	* menu-bar.el: Remove Longlines mode from menu.  Add word-wrap option.
 
 	* faces.el (x-create-frame-with-faces): Don't pass parameters that
 	are set later to x-create-frame.
@@ -219,7 +591,7 @@
 
 	* net/newst-backend.el (newsticker--get-news-by-url): Catch errors
 	from url-retrieve.
-	(newsticker--sentinel-work): Fixed xerror typo.
+	(newsticker--sentinel-work): Fix xerror typo.
 
 2008-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
 

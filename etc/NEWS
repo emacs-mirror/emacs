@@ -54,8 +54,13 @@ a GIF library.
 +++
 *** Emacs now supports the SVG image format through librsvg2.
 
-** The Mac Carbon port is no longer supported.
-Instead, use... [FIXME what?]
+** New NeXTSTEP-based port
+This provides support for GNUStep (via the GNUStep libraries) and Mac
+OS X (via the Cocoa libraries).  See nextstep/README and
+nextstep/INSTALL in the Emacs source directory.
+
+** Mac OS X is no longer supported via Carbon.
+Use the NeXTSTEP port, described above.
 
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
@@ -68,6 +73,22 @@ See the list at the end of etc/MACHINES for details.
 *** Support for Sun windows has been removed.
 ---
 *** The `emacstool' utility has been removed.
+
+** The following platforms will be removed in a future Emacs version:
+
+*** Libc version 5 on GNU/Linux.
+
+*** Old FreeBSD and NetBSD systems based on the COFF executable
+    format.
+
+*** Solaris versions 2.6 and below.
+
+*** Solaris on IBM RS6000 machines.
+
+*** UNIX System V (the original SysV, not later platforms based on it).
+
+*** Platforms not supporting shared libraries (i.e., requiring the
+NO_SHARED_LIBS compilation flag).
 
 ---
 ** The configure options `--with-gcc', `--without-gcc' have been removed.
@@ -470,9 +491,22 @@ Manual.
 
 ** RST mode is a major mode for editing ReSTructured-Text files.
 
+** Visual Line mode provides support for editing by visual lines.
+It turns on word-wrapping in the current buffer, and rebinds C-a, C-e,
+and C-k to commands that operate by visual lines instead of logical
+lines.  This is a more reliable replacement for longlines-mode.
+
 ** A new `whitespace' package has been installed, and the pre-existing one
 renamed to `old-whitespace'.
-[FIXME someone explain why this is good, if it is...]
+Now, besides reporting bogus blanks, whitespace package has a minor mode and a
+global minor mode to visualize blanks (TAB, (HARD) SPACE and NEWLINE).  The
+visualization is made via faces and/or display table. Also it is possible to
+select which kind of blanks should be visualized, for example, trailing blanks,
+leading blanks, spaces, tabs, newlines, etc.
+
+** xesam.el is an implementation of Xesam, an interface to (desktop)
+search engines like Beagle, Strigi, and Tracker.  The Xesam API
+requires D-Bus for communication.
 
 ** zeroconf.el offers service discovery and service publishing
 interfaces according to the zeroconf specification.  It communicates
@@ -481,6 +515,9 @@ which have installed this software.
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
+
+** Diff mode
+*** New function `diff-show-trailing-blanks'.
 
 ** Abbrev has been rewritten in Elisp and extended with more flexibility.
 *** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
@@ -574,11 +611,25 @@ set a variable's `safe-local-variable' and `risky-local-variable' property.
 
 *** diff-refine-hunk highlights word-level details of changes in a diff hunk.
 It's used automatically as you move through hunks, see
-diff-auto-refine.  It is bound to `C-c C-b'.
+diff-auto-refine-mode.  It is bound to `C-c C-b'.
 
 *** diff-add-change-log-entries-other-window iterates through the diff
 buffer and tries to create ChangeLog entries for each change.
 It is bound to `C-x 4 A'.
+
+** Dired
+
+*** In Dired, C-x C-q now runs the command wdired-change-to-wdired-mode,
+and C-x C-q in wdired-mode exits it with asking a question about
+saving changes.
+
+*** `Q' in Dired provides two new keys for multi-file replacement.
+The upper case key `Y' replaces all remaining matches in all remaining files
+with no more questions.  The upper case key `N' stops doing replacements
+in the current file and skips to the next file.  These multi-file keys
+are available for all commands that use `tags-query-replace'
+including `dired-do-query-replace-regexp', `vc-dir-query-replace-regexp',
+`reftex-query-replace-document'.
 
 ** Fortran
 *** The variable `fortran-line-length' can change the fixed-form line-length.
@@ -621,8 +672,11 @@ runs `occur' with the current search string.
 When running isearch in a ChangeLog file, if the search fails,
 then another C-s tries searching the previous ChangeLog,
 if there is one (e.g. go from ChangeLog to ChangeLog.12).
+This is enabled if multi-isearch-search is non-nil.
 
-This is enabled if isearch-buffers-multi is non-nil.
+*** Two new commands to start Isearch on a list of marked buffers
+for buff-menu.el and ibuffer.el are bound to the keys "M-s a C-s" and
+"M-s a M-C-s".
 
 *** The part of an isearch that failed to match is highlighted in `isearch-fail'
 face.
@@ -741,10 +795,6 @@ to update it to the new VC.
 If `default-directory' is a remote file name, subprocesses are started
 on the corresponding remote system.
 
-*** In Dired, C-x C-q now runs the command wdired-change-to-wdired-mode,
-and C-x C-q in wdired-mode exits it with asking a question about
-saving changes.
-
 *** Eldoc highlights the function argument under point
 with the face `eldoc-highlight-function-argument'.
 
@@ -779,7 +829,8 @@ It is used to configure wireless interfaces.
 *** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
 *** smerge-refine highlights word-level details of changes in conflict.
-It's used automatically as you move through conflicts, see smerge-auto-refine.
+It's used automatically as you move through conflicts, see
+smerge-auto-refine-mode.
 
 *** talk.el has been extended for multiple tty support.
 
@@ -1035,6 +1086,9 @@ to use for searching in query-replace and replace-string.
 function to use for searching in `query-replace-regexp',
 `replace-regexp', `query-replace-regexp-eval', and
 `map-query-replace-regexp'.
+
+*** The new keymap `multi-query-replace-map' contains additonal keys bound
+to `automatic-all' and `exit-current' for multi-buffer interactive replacement.
 
 *** The variable `inhibit-changing-match-data', if non-nil, prevents
 the search and match primitives from changing the match data.
@@ -1360,11 +1414,13 @@ declare-function macros (see Lisp Changes, above).
 
 ** find-cmd.el can build `find' commands using lisp syntax.
 
-** The package isearch-multi.el has been added.  It implements a new mode
-`isearch-buffers-minor-mode' that allows isearch to search through
-multiple buffers.  In this mode a new variable
-`isearch-buffers-next-buffer-function' defines the function to call
-to get the next buffer to search in the series of multiple buffers.
+** The package misearch.el has been added.  It allows Isearch to search
+through multiple buffers.  A variable `multi-isearch-next-buffer-function'
+defines the function to call to get the next buffer to search in the series
+of multiple buffers.  Top-level commands `multi-isearch-buffers',
+`multi-isearch-buffers-regexp', `multi-isearch-files' and
+`multi-isearch-files-regexp' accept a single argument that specifies
+a list of buffers/files to search for a string/regexp.
 
 ** The new major mode `special-mode' is intended as a parent for
 major modes such as those that set the "'mode-class 'special" property.

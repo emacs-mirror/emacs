@@ -96,8 +96,8 @@ nsfont_get_family (Lisp_Object font_spec)
       char *tmp = strdup (SDATA (SYMBOL_NAME (tem)));
       NSString *family;
       nsfont_unescape_name (tmp);
-      /* PENDING: this seems to be needed only for font names that are
-         hard-coded into emacs, like 'helvetica' for splash screen */
+      /* TODO: this seems to be needed only for font names that are
+               hard-coded into emacs, like 'helvetica' for splash screen */
       if (tmp)
         tmp[0] = toupper (tmp[0]);
       family = [NSString stringWithUTF8String: tmp];
@@ -108,7 +108,7 @@ nsfont_get_family (Lisp_Object font_spec)
 
 
 /* Converts FONT_WEIGHT, FONT_SLANT, FONT_WIDTH to NSFont traits. */
-/* PENDING (20080601): The font backend's strategy for handling font
+/* TODO (20080601): The font backend's strategy for handling font
            styles continues to evolve.  When/if this stabilizes, we
            can change the code here to be more sophisticated and accurate.
            For now, we rely on "normal/plain" style being numeric 100. */
@@ -150,7 +150,7 @@ nsfont_fmember_to_entity (NSString *family, NSArray *famMember)
   unsigned int traits = [[famMember objectAtIndex: 3] unsignedIntValue];
 /*   NSString *psName = [famMember objectAtIndex: 0]; */
   NSMutableString *suffix = [[famMember objectAtIndex: 1] mutableCopy];
-  char *escapedFamily = [family UTF8String];
+  char *escapedFamily = strdup ([family UTF8String]);
 
   nsfont_escape_name (escapedFamily);
   [suffix replaceOccurrencesOfString: @" " withString: @"" options: 0
@@ -181,6 +181,7 @@ nsfont_fmember_to_entity (NSString *family, NSArray *famMember)
      }
 
   [suffix release];
+  free (escapedFamily);
   return font_entity;
 }
 
@@ -412,7 +413,7 @@ nsfont_match (Lisp_Object frame, Lisp_Object font_spec)
     if (fontNames && [fontNames count]  > 0)
       {
         NSString *fontName = [fontNames objectAtIndex: 0];
-        /*PENDING: is there a more efficient way to get family name? */
+        /* XXX: is there a more efficient way to get family name? */
         NSFont *font = [NSFont fontWithName: fontName size: 0];
         if (font != nil)
           {
@@ -452,7 +453,7 @@ nsfont_list_family (Lisp_Object frame)
   NSString *family;
   while (family = [families nextObject])
       list = Fcons (intern ([family UTF8String]), list);
-  /*PENDING: escape the name? */
+  /* FIXME: escape the name? */
 
   if (NSFONT_TRACE)
     fprintf (stderr, "nsfont: list families returning %d entries\n",
@@ -518,7 +519,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   font_info = (struct nsfont_info *) XFONT_OBJECT (font_object);
   font = (struct font *)font_info;
   if (!font)
-    return Qnil; /*PENDING: this copies w32, but causes a segfault */
+    return Qnil; /* FIXME: this copies w32, but causes a segfault */
 
   if (NSFONT_TRACE)
     {
@@ -626,7 +627,7 @@ BLOCK_INPUT;
   font->relative_compose = 0;
   font->font_encoder = NULL;
 
-  /*PENDING: does anything care about this? */
+  /* TODO: does anything care about this? */
   font->props[FONT_FORMAT_INDEX] = Qns;
   font->props[FONT_FILE_INDEX] = Qnil;
 
@@ -722,7 +723,7 @@ BLOCK_INPUT;
     /* set up metrics portion of font struct */
     font->ascent = [sfont ascender];
     font->descent = -[sfont descender];
-    font->min_width = [sfont widthOfString: @"|"]; /* PENDING */
+    font->min_width = [sfont widthOfString: @"|"]; /* FIXME */
     font->space_width = lrint (nsfont_char_width (sfont, ' '));
     font->average_width = lrint (font_info->width);
     font->max_width = lrint (font_info->max_bounds.width);
@@ -747,9 +748,9 @@ nsfont_close (FRAME_PTR f, struct font *font)
   struct nsfont_info *font_info = (struct nsfont_info *)font;
   int i;
 
-  /* PENDING: this occurs apparently due to same failure to detect same font
-     that causes need for cache in nsfont_open ()
-     (came after unicode-2 -> trunk) */
+  /* FIXME: this occurs apparently due to same failure to detect same font
+            that causes need for cache in nsfont_open ()
+            (came after unicode-2 -> trunk) */
   if (!font_info)
       return;
 
@@ -819,8 +820,8 @@ nsfont_text_extents (struct font *font, unsigned int *code, int nglyphs,
   for (i =0; i<nglyphs; i++)
     {
       /* get metrics for this glyph, filling cache if need be */
-      /* PENDING: get metrics for whole string from an NSLayoutManager
-                 (if not too slow) */
+      /* TODO: get metrics for whole string from an NSLayoutManager
+               (if not too slow) */
       high = (code[i] & 0xFF00) >> 8;
       low = code[i] & 0x00FF;
       if (!font_info->metrics[high])
@@ -902,7 +903,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     int cwidth, twidth = 0;
     int hi, lo;
     char isComposite = 0; /* s->first_glyph->type == COMPOSITE_GLYPH; */
-    /* PENDING: composition: no vertical displacement is considered. */
+    /* FIXME: composition: no vertical displacement is considered. */
     t+= s->gidx; /* advance into composition */
     for (i =0; i<s->nchars - s->gidx; i++, t++)
       {
@@ -914,7 +915,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
           }
         else
           {
-            if (!font->metrics[hi]) /*PENDING: why/how can we need this now? */
+            if (!font->metrics[hi]) /* FIXME: why/how can we need this now? */
               ns_glyph_metrics (font, hi);
             cwidth = font->metrics[hi][lo].width;
           }
@@ -968,7 +969,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
         }
 
       if (!s->face->stipple)
-        [(NS_FACE_BACKGROUND (face) != nil
+        [(NS_FACE_BACKGROUND (face) != 0
           ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
           : FRAME_BACKGROUND_COLOR (s->f)) set];
       else
@@ -986,9 +987,9 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   col = (NS_FACE_FOREGROUND (face) != nil
          ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f)
          : FRAME_FOREGROUND_COLOR (s->f));
-  /*PENDING: find another way to pass this */
+  /* FIXME: find another way to pass this */
   bgCol = (ns_tmp_flags != NS_DUMPGLYPH_FOREGROUND ? nil
-           : (NS_FACE_BACKGROUND (face) != nil
+           : (NS_FACE_BACKGROUND (face) != 0
               ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
               : FRAME_BACKGROUND_COLOR (s->f)));
 
@@ -1059,7 +1060,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       CGContextSetShouldAntialias (gcontext, 0);
     else
       CGContextSetShouldAntialias (gcontext, 1);
-    if (ns_use_qd_smoothing)
+    if (EQ (ns_use_qd_smoothing, Qt))
       CGContextSetFontRenderingMode (gcontext, 2); /* 0 is Cocoa, 2 is QD */
 
     CGContextSetTextMatrix (gcontext, fliptf);
@@ -1226,7 +1227,7 @@ void nsfont_make_fontset_for_font (Lisp_Object name, Lisp_Object font_object)
 
         if (cfont != nil)
           {
-            char *family = [[cfont familyName] UTF8String];
+            char *family = strdup([[cfont familyName] UTF8String]);
             Lisp_Object famAndReg;
 
             nsfont_escape_name (family);
@@ -1238,6 +1239,7 @@ void nsfont_make_fontset_for_font (Lisp_Object name, Lisp_Object font_object)
                        SDATA (SYMBOL_NAME (scripts[i])));
 
             Fset_fontset_font (name, scripts[i], famAndReg, Qnil, Qnil);
+            free (family);
           }
         else
           {
@@ -1318,7 +1320,7 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
         g = unichars[i];
 #else
         g = glyphStorage->cglyphs[i];
-        /*PENDING: is this a good check?  maybe need to use coveredChars.. */
+        /* TODO: is this a good check?  maybe need to use coveredChars.. */
         if (g > numGlyphs)
           g = 0xFFFF; /* hopefully unused... */
 #endif

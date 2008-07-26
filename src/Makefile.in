@@ -200,16 +200,6 @@ SHELL=/bin/sh
 #define LD_SWITCH_X_DEFAULT
 #endif
 
-/* These can be passed in from config.h to define special load and
-   compile switches needed by individual sites */
-#ifndef LD_SWITCH_SITE
-#define LD_SWITCH_SITE
-#endif
-
-#ifndef C_SWITCH_SITE
-#define C_SWITCH_SITE
-#endif
-
 #ifndef ORDINARY_LINK
 
 #ifndef CRT0_COMPILE
@@ -263,7 +253,7 @@ DBUS_OBJ = dbusbind.o
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@
 .SUFFIXES: .m
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
@@ -409,7 +399,6 @@ LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIBTIFF LIBJPEG LIBPNG LIBGIF LIBXPM L
 #else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE
 #endif /* not HAVE_X11 */
-#else /* not HAVE_X_WINDOWS */
 #endif /* not HAVE_X_WINDOWS */
 
 #if HAVE_GPM
@@ -492,7 +481,7 @@ LD=ld
 /* Flags to pass to LD only for temacs.  */
 /* Do not split this line with a backslash.  That can cause trouble with
    some cpps.  */
-TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE LD_SWITCH_MACHINE_TEMACS LD_SWITCH_SITE
+TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE LD_SWITCH_MACHINE_TEMACS
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they are passed to LD.  This is helpful if you have
@@ -895,8 +884,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/international/fontset.elc \
   ../lisp/mouse.elc \
   ../lisp/term/x-win.elc \
-  ../lisp/term/ns-win.elc \
-  ../lisp/ns-carbon-compat.elc
+  ../lisp/term/ns-win.elc
 
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get
@@ -966,7 +954,7 @@ ${libsrc}make-docfile${EXEEXT}:
 temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
 	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
 #ifdef NS_IMPL_GNUSTEP
-	$(CC) -rdynamic YMF_PASS_LDFLAGS (${TEMACS_LDFLAGS}) -o temacs ${obj} ${otherobj} OBJECTS_MACHINE ${LIBES}
+	$(CC) -rdynamic YMF_PASS_LDFLAGS (${TEMACS_LDFLAGS} -lgnustep-gui -lgnustep-base -lobjc $(CONFIG_SYSTEM_LIBS) -lpthread ) -o temacs ${obj} ${otherobj} OBJECTS_MACHINE ${LIBES}
 #else
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
@@ -994,7 +982,6 @@ stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU)
    so we can use $(...) to substitute their values within "...".  */
 C_SWITCH_MACHINE_1 = C_SWITCH_MACHINE
 C_SWITCH_SYSTEM_1 = C_SWITCH_SYSTEM
-C_SWITCH_SITE_1 = C_SWITCH_SITE
 C_SWITCH_X_SITE_1 = C_SWITCH_X_SITE
 C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
 C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
@@ -1008,7 +995,6 @@ really-lwlib:
     "C_SWITCH_X_SITE=$(C_SWITCH_X_SITE_1)" \
     "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
     "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)" \
-    "C_SWITCH_SITE=$(C_SWITCH_SITE_1)" \
     "C_SWITCH_MACHINE=$(C_SWITCH_MACHINE_1)" \
     "C_SWITCH_SYSTEM=$(C_SWITCH_SYSTEM_1)"
 	@true  /* make -t should not create really-lwlib.  */
@@ -1022,7 +1008,6 @@ really-oldXMenu:
     "C_SWITCH_X_SITE=$(C_SWITCH_X_SITE_1)" \
     "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
     "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)" \
-    "C_SWITCH_SITE=$(C_SWITCH_SITE_1)" \
     "C_SWITCH_MACHINE=$(C_SWITCH_MACHINE_1)" \
     "C_SWITCH_SYSTEM=$(C_SWITCH_SYSTEM_1)"
 	@true  /* make -t should not create really-oldXMenu.  */
@@ -1315,10 +1300,9 @@ ${emacsapp}Contents/MacOS/Emacs: emacs${EXEEXT}
 #endif /* HAVE_CARBON */
 
 #ifdef HAVE_NS
-abbrev.o buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
+buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
   fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
-  scroll.o sysdep.o term.o widget.o window.o xdisp.o xfaces.o xfns.o \
-  xterm.o xselect.o sound.o: nsgui.h
+  scroll.o sysdep.o term.o widget.o window.o xdisp.o xfaces.o sound.o: nsgui.h
 nsfns.o: nsfns.m charset.h nsterm.h nsgui.h frame.h window.h buffer.h \
   dispextern.h nsgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
   atimer.h systime.h epaths.h termhooks.h coding.h systime.h $(config_h)
@@ -1337,7 +1321,7 @@ ${ns_appdir}: ${ns_appsrc}
 	rm -fr ${ns_appdir}
 	mkdir -p ${ns_appdir}
 	( cd ${ns_appsrc} ; tar cfh - . ) | ( cd ${ns_appdir} ; tar xf - )
-	( cd ${ns_appdir} ; for subdir in `find $${dest} -type d ! -name CVS -print` ; do \
+	( cd ${ns_appdir} ; for subdir in `find . -type d ! -name CVS -print` ; do \
 		chmod a+rx $${subdir} ; \
 		rm -rf $${subdir}/CVS ; \
 		rm -f  $${subdir}/.cvsignore ; done ; )
@@ -1357,8 +1341,11 @@ mostlyclean:
 	rm -f buildobj.lst
 clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
+#ifdef HAVE_NS
+	rm -fr ${ns_appdir}
 #ifdef NS_IMPL_GNUSTEP
 	rm -f *.d
+#endif
 #endif
 /* bootstrap-clean is used to clean up just before a bootstrap.
    It should remove all files generated during a compilation/bootstrap,

@@ -361,6 +361,7 @@ See the command `image-mode' for more information on this mode."
     (if (image-get-display-property)
 	(setq cursor-type nil truncate-lines t)
       (setq image-type "text"))
+    (image-mode-setup-winprops)
     (add-hook 'change-major-mode-hook (lambda () (image-minor-mode -1)) nil t)
     (message "%s" (concat (substitute-command-keys
 			   "Type \\[image-toggle-display] to view the image as ")

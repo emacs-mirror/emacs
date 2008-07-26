@@ -101,29 +101,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* LIB_STANDARD and START_FILES set correctly in s/netbsd.h */
 
-#elif defined(sun)
+#elif defined(SOLARIS2)
 
 #undef START_FILES
 #undef LIB_STANDARD
 
-#else /* !__OpenBSD__ && !__FreeBSD__ && !__NetBSD__ && !sun */
-
-#undef START_FILES
-#ifdef HAVE_LIB64_DIR
-#define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o
-#else
-#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
-#endif
-
+#else /* !__OpenBSD__ && !__FreeBSD__ && !__NetBSD__ && !SOLARIS2 */
 /* The duplicate -lgcc is intentional in the definition of LIB_STANDARD.
    The reason is that some functions in libgcc.a call functions from libc.a,
    and some libc.a functions need functions from libgcc.a.  Since most
    versions of ld are one-pass linkers, we need to mention -lgcc twice,
    or else we risk getting unresolved externals.  */
+#undef START_FILES
 #undef LIB_STANDARD
 #ifdef HAVE_LIB64_DIR
+#define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
 #else
+#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
 #endif
 

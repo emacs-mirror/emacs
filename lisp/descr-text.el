@@ -335,7 +335,7 @@ This function is semi-obsolete.  Use `get-char-code-property'."
       (let ((char-font-info (internal-char-font pos char)))
 	(if char-font-info
 	    (let ((type (font-get (car char-font-info) :type))
-		  (name (font-xlfd-name  (car char-font-info)))
+		  (name (font-xlfd-name (car char-font-info)))
 		  (code (cdr char-font-info)))
 	       (if (integerp code)
 		   (format "%s:%s (#x%02X)" type name code)
@@ -461,10 +461,10 @@ as well as widgets, buttons, overlays, and text properties."
 	       (disp-vector
 		(setq disp-vector (copy-sequence disp-vector))
 		(dotimes (i (length disp-vector))
-		  (setq char (aref disp-vector i))
 		  (aset disp-vector i
-			(cons char (describe-char-display
-				    pos (glyph-char char)))))
+			(cons (aref disp-vector i)
+			      (describe-char-display
+			       pos (glyph-char (aref disp-vector i))))))
 		(format "by display table entry [%s] (see below)"
 			(mapconcat
 			 #'(lambda (x)
@@ -544,7 +544,7 @@ as well as widgets, buttons, overlays, and text properties."
 	  (save-excursion
 	    (goto-char (point-min))
 	    (re-search-forward "character:[ \t\n]+")
-	    (let* ((end (+ (point) (length char-description))))
+	    (let ((end (+ (point) (length char-description))))
 	      (mapc #'(lambda (props)
 			(let ((o (make-overlay (point) end)))
 			  (while props
@@ -561,9 +561,7 @@ as well as widgets, buttons, overlays, and text properties."
 		(dotimes (i (length disp-vector))
 		  (insert (glyph-char (car (aref disp-vector i))) ?:
 			  (propertize " " 'display '(space :align-to 5))
-			  (if (cdr (aref disp-vector i))
-			      (cdr (aref disp-vector i))
-			    "-- no font --")
+			  (or (cdr (aref disp-vector i)) "-- no font --")
 			  "\n")
 		  (let ((face (glyph-face (car (aref disp-vector i)))))
 		    (when face
@@ -600,16 +598,17 @@ as well as widgets, buttons, overlays, and text properties."
 			"\"")))
 	  (if (and (vectorp (nth 2 composition))
 		   (vectorp (aref (nth 2 composition) 0)))
-	      (progn
+	      (let ((font (aref (aref (nth 2 composition) 0) 0)))
 		(insert " using this font:\n  "
-			(aref (query-font (aref (aref (nth 2 composition) 0) 0))
-			      0)
+			(symbol-name (font-get font :type))
+			?:
+			(aref (query-font font) 0)
 			"\nby these glyphs:\n")
 		(mapc (lambda (x) (insert (format "  %S\n" x)))
 		      (nth 2 composition)))
 	    (insert " by the rule:\n\t(")
 	    (let ((first t))
-	      (mapc (lambda (x) 
+	      (mapc (lambda (x)
 		      (if first (setq first nil)
 			(insert " "))
 		      (if (consp x) (insert (format "%S" x))
@@ -623,7 +622,7 @@ as well as widgets, buttons, overlays, and text properties."
 		  (insert "these fonts (glyph codes):")
 		  (dolist (elt component-chars)
 		    (if (/= (car elt) ?\t)
-			(insert "\n " 
+			(insert "\n "
 				(describe-char-padded-string (car elt))
 				?:
 				(propertize " " 'display '(space :align-to 5))

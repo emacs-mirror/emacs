@@ -103,14 +103,6 @@ static int adjust_lnnoptrs (int, int, char *);
 
 static int pagemask;
 
-/* Correct an int which is the bit pattern of a pointer to a byte
-   into an int which is the number of a byte.
-   This is a no-op on ordinary machines, but not on all.  */
-
-#ifndef ADDR_CORRECT   /* Let m-*.h files override this definition */
-#define ADDR_CORRECT(x) ((char *)(x) - (char*)0)
-#endif
-
 #ifdef emacs
 #include "lisp.h"
 

@@ -315,20 +315,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define `subprocesses' should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
-   These do not work for some USG systems yet;
-   for the ones where they work, the s/SYSTEM.h file defines this flag.  */
+   Only MSDOS does not support this.  */
 
-#ifndef VMS
-#ifndef USG
-/* #define subprocesses */
-#endif
-#endif
-
-/* Define LD_SWITCH_SITE to contain any special flags your loader may need.  */
-#undef LD_SWITCH_SITE
-
-/* Define C_SWITCH_SITE to contain any special flags your compiler needs.  */
-#undef C_SWITCH_SITE
+#define subprocesses
 
 /* Define LD_SWITCH_X_SITE to contain any special flags your loader
    may need to deal with X Windows.  For instance, if you've defined

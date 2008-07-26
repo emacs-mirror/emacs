@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "keyboard.h"
 #include "frame.h"
+#include "dispextern.h"
 #include "blockinput.h"
 #include "termhooks.h"
 #include "w32heap.h"

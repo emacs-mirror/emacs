@@ -1,4 +1,29 @@
-2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Check for getrlimit.
+
+	* configure: Regenerate.
+
+2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (LD_SWITCH_SITE): Remove, set the values directly
+	in src/Makefile.in.
+	(static): Remove, autoconf would always comment it out anyway.
+	(subprocesses): Define unconditionally.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* configure.in: Apply patch from Yavor Doganov <yavor <at> gnu.org> to
+	fix typo in GNUSTEP_MAKEFILES setting for HAVE_NS compilation under
+	GNUstep.
+	* configure: Regenerate.
+
+2008-07-18  Kenichi Handa  <handa@m17n.org>
+
+	* INSTALL (Complex Text Layout support libraries): Delete the
+	paragraph about --enable-font-backend.
+
+2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* configure.in: Print out some info to user for NeXTstep builds.
 	(ns-app): Remove enable option.
@@ -13,7 +38,7 @@
 
 	* configure.in: Extract and substitute GNUSTEP_MAKEFILES.
 
-2008-07-16  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* configure.in: Change GNUSTEP to NS_IMPL_GNUSTEP, COCOA to
 	NS_IMPL_COCOA.
@@ -35,7 +60,7 @@
 	(USER_FULL_NAME): Remove, not used anymore.
 	* configure: Regenerate.
 
-2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	Changes and additions for NeXTstep windowing system (Cocoa and
 	GNUstep) support.

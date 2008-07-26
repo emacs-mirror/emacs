@@ -140,7 +140,7 @@ Lisp_Object ns_input_color, ns_input_text, ns_working_text;
 Lisp_Object ns_input_spi_name, ns_input_spi_arg;
 Lisp_Object Vx_toolkit_scroll_bars;
 static Lisp_Object Qmodifier_value;
-/*PENDING: unsure why these defined in term files, anyway we need in keymap.c */
+/* TODO: unsure why these defined in term files, anyway we need in keymap.c */
 Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns;
 
@@ -180,7 +180,7 @@ Lisp_Object ns_cursor_blink_mode;
 Lisp_Object ns_expand_space;
 
 /* Control via default 'GSFontAntiAlias' on OS X and GNUstep. */
-int ns_antialias_text;
+Lisp_Object ns_antialias_text;
 
 /* On OS X picks up the default NSGlobalDomain AppleAntiAliasingThreshold,
    the maximum font size to NOT antialias.  On GNUstep there is currently
@@ -189,17 +189,17 @@ float ns_antialias_threshold;
 
 /* Controls use of an undocumented CG function to do Quickdraw-style font
    smoothing (less heavy) instead of regular Quartz smoothing. */
-int ns_use_qd_smoothing;
+Lisp_Object ns_use_qd_smoothing;
 
 /* Used to pick up AppleHighlightColor on OS X */
-int ns_use_system_highlight_color;
+Lisp_Object ns_use_system_highlight_color;
 NSString *ns_selection_color;
 
 
 NSArray *ns_send_types =0, *ns_return_types =0, *ns_drag_types =0;
 
 /* Display variables */
-struct ns_display_info *ns_display_list; /* Chain of existing displays */
+struct ns_display_info *x_display_list; /* Chain of existing displays */
 Lisp_Object ns_display_name_list;
 long context_menu_value = 0;
 
@@ -215,8 +215,8 @@ static int ns_window_num =0;
 static NSRect uRect;
 static BOOL gsaved = NO;
 BOOL ns_in_resize = NO;
-int ns_tmp_flags; /*PENDING */
-struct nsfont_info *ns_tmp_font; /*PENDING */
+int ns_tmp_flags; /* FIXME */
+struct nsfont_info *ns_tmp_font; /* FIXME */
 /*static int debug_lock = 0; */
 
 #ifdef NS_IMPL_COCOA
@@ -297,13 +297,13 @@ static BOOL inNsSelect = 0;
   ns_send_appdefined (-1);                                    \
   }
 
-/*PENDING: get rid of need for these forward declarations */
+/* TODO: get rid of need for these forward declarations */
 static void ns_condemn_scroll_bars (struct frame *f),
             ns_judge_scroll_bars (struct frame *f);
 
 /* unused variables needed for compatibility reasons */
 int x_use_underline_position_properties, x_underline_at_descent_line;
-/* PENDING: figure out what to do with underline_minimum_offset. */
+/* FIXME: figure out what to do with underline_minimum_offset. */
 
 
 /* ==========================================================================
@@ -413,7 +413,6 @@ ns_init_paths ()
         }
     }
 
-  /*PENDING: append to INFOPATH... */
   if (!getenv ("INFOPATH"))
     {
       resourcePath = [resourceDir stringByAppendingPathComponent: @"info"];
@@ -847,7 +846,7 @@ ns_ring_bell ()
           r.origin.y += (r.size.height - dim.y) / 2;
           r.size.width = dim.x;
           r.size.height = dim.y;
-          /* PENDING: cacheImageInRect under GNUSTEP does not account for
+          /* XXX: cacheImageInRect under GNUSTEP does not account for
              offset in x_set_window_size, so overestimate (4 fine on Cocoa) */
           surr = NSInsetRect (r, -10, -10);
           ns_focus (frame, &surr, 1);
@@ -944,26 +943,26 @@ ns_frame_rehighlight (struct frame *frame)
    -------------------------------------------------------------------------- */
 {
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (frame);
-  struct frame *old_highlight = dpyinfo->ns_highlight_frame;
+  struct frame *old_highlight = dpyinfo->x_highlight_frame;
 
   NSTRACE (ns_frame_rehighlight);
-  if (dpyinfo->ns_focus_frame)
+  if (dpyinfo->x_focus_frame)
     {
-      dpyinfo->ns_highlight_frame
-	= (FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->ns_focus_frame))
-           ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->ns_focus_frame))
-           : dpyinfo->ns_focus_frame);
-      if (!FRAME_LIVE_P (dpyinfo->ns_highlight_frame))
+      dpyinfo->x_highlight_frame
+	= (FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame))
+           ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame))
+           : dpyinfo->x_focus_frame);
+      if (!FRAME_LIVE_P (dpyinfo->x_highlight_frame))
         {
-          FRAME_FOCUS_FRAME (dpyinfo->ns_focus_frame) = Qnil;
-          dpyinfo->ns_highlight_frame = dpyinfo->ns_focus_frame;
+          FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame) = Qnil;
+          dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame;
         }
     }
   else
-      dpyinfo->ns_highlight_frame = 0;
+      dpyinfo->x_highlight_frame = 0;
 
-  if (dpyinfo->ns_highlight_frame &&
-         dpyinfo->ns_highlight_frame != old_highlight)
+  if (dpyinfo->x_highlight_frame &&
+         dpyinfo->x_highlight_frame != old_highlight)
     {
       /* as of 20080602 the lower and raise are superfluous */
       if (old_highlight)
@@ -971,10 +970,10 @@ ns_frame_rehighlight (struct frame *frame)
           /*ns_lower_frame (old_highlight); */
           x_update_cursor (old_highlight, 1);
         }
-      if (dpyinfo->ns_highlight_frame)
+      if (dpyinfo->x_highlight_frame)
         {
-          /*ns_raise_frame (dpyinfo->ns_highlight_frame); */
-          x_update_cursor (dpyinfo->ns_highlight_frame, 1);
+          /*ns_raise_frame (dpyinfo->x_highlight_frame); */
+          x_update_cursor (dpyinfo->x_highlight_frame, 1);
         }
     }
 }
@@ -987,7 +986,7 @@ x_make_frame_visible (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   NSTRACE (x_make_frame_visible);
-  /* PENDING: at some points in past this was not needed, as the only place that
+  /* XXX: at some points in past this was not needed, as the only place that
      called this (frame.c:Fraise_frame ()) also called raise_lower;
      if this ends up the case again, comment this out again. */
   if (!FRAME_VISIBLE_P (f))
@@ -1019,8 +1018,8 @@ x_iconify_frame (struct frame *f)
   NSTRACE (x_iconify_frame);
   check_ns ();
 
-  if (dpyinfo->ns_highlight_frame == f)
-    dpyinfo->ns_highlight_frame = 0;
+  if (dpyinfo->x_highlight_frame == f)
+    dpyinfo->x_highlight_frame = 0;
 
   if ([[view window] windowNumber] <= 0)
     {
@@ -1058,10 +1057,10 @@ x_destroy_window (struct frame *f)
   if (FRAME_FACE_CACHE (f))
     free_frame_faces (f);
 
-  if (f == dpyinfo->ns_focus_frame)
-    dpyinfo->ns_focus_frame = 0;
-  if (f == dpyinfo->ns_highlight_frame)
-    dpyinfo->ns_highlight_frame = 0;
+  if (f == dpyinfo->x_focus_frame)
+    dpyinfo->x_focus_frame = 0;
+  if (f == dpyinfo->x_highlight_frame)
+    dpyinfo->x_highlight_frame = 0;
   if (f == dpyinfo->mouse_face_mouse_frame)
     {
       dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
@@ -1158,8 +1157,8 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   
   /* If we have a change in toolbar display, calculate height */
   if (tb)
-    /* PENDING: GNUstep has not yet implemented the first method below, added
-                in Panther, however the second is incorrect under Cocoa. */
+    /* XXX: GNUstep has not yet implemented the first method below, added
+           in Panther, however the second is incorrect under Cocoa. */
 #ifdef NS_IMPL_GNUSTEP
     FRAME_NS_TOOLBAR_HEIGHT (f)
       = NSHeight ([NSWindow frameRectForContentRect: NSMakeRect (0, 0, 0, 0)
@@ -1328,7 +1327,8 @@ ns_get_color (const char *name, NSColor **col)
    of colors found in the file Emacs.clr. Color formats include:
    - #rrggbb or RGBrrggbb where rr, gg, bb specify red, green and blue in hex
    - ARGBaarrggbb is similar, with aa being the alpha channel (FF = opaque)
-   - HSVhhssvv and AHSVaahhssvv are similar for hue, saturation, value
+   - HSVhhssvv and AHSVaahhssvv (or HSB/AHSB) are similar for hue, saturation,
+     value;
    - CMYKccmmyykk is similar for cyan, magenta, yellow, black. */
 {
   NSColor * new = nil;
@@ -1358,9 +1358,9 @@ ns_get_color (const char *name, NSColor **col)
       return 0;
     }
 
-  /* 23: PENDING: emacs seems to downcase everything before passing it here,
-     which we can work around, except for GRAY, since gray##, where ## is
-     decimal between 0 and 99, is also an X11 colorname. */
+  /* 23: FIXME: emacs seems to downcase everything before passing it here,
+      which we can work around, except for GRAY, since gray##, where ## is
+      decimal between 0 and 99, is also an X11 colorname. */
   if (name[0] == '#')             /* X11 format */
     {
       hex = name + 1;
@@ -1376,12 +1376,14 @@ ns_get_color (const char *name, NSColor **col)
       hex = name + 4;
       color_space = argb;
     }
-  else if (!memcmp (name, "HSV", 3) || !memcmp (name, "hsv", 3))
+  else if (!memcmp (name, "HSV", 3) || !memcmp (name, "hsv", 3) || 
+           !memcmp (name, "HSB", 3) || !memcmp (name, "hsb", 3))
     {
       hex = name + 3;
       color_space = hsv;
     }
-  else if (!memcmp (name, "AHSV", 4) || !memcmp (name, "ahsv", 4))
+  else if (!memcmp (name, "AHSV", 4) || !memcmp (name, "ahsv", 4) ||
+           !memcmp (name, "AHSB", 4) || !memcmp (name, "ahsb", 4))
     {
       hex = name + 4;
       color_space = ahsv;
@@ -1457,7 +1459,7 @@ ns_get_color (const char *name, NSColor **col)
     NSString *name;
     NSColorList *clist;
 #ifdef NS_IMPL_GNUSTEP
-    /* PENDING: who is wrong, the requestor or the implementation? */
+    /* XXX: who is wrong, the requestor or the implementation? */
     if ([nsname compare: @"Highlight" options: NSCaseInsensitiveSearch]
         == NSOrderedSame)
       nsname = @"highlightColor";
@@ -1582,7 +1584,7 @@ ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
     return 0;
 
   if (makeIndex && alloc)
-      color_def->pixel = ns_index_color(temp, f);//[temp retain];
+      color_def->pixel = ns_index_color(temp, f); /* [temp retain]; */
 
   [temp getRed: &r green: &g blue: &b alpha: &a];
   color_def->red   = r * 256;
@@ -1635,7 +1637,7 @@ x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
   NSTRACE (x_set_mouse_pixel_position);
   ns_raise_frame (f);
 #if 0
-  /*PENDING: this does not work, and what about GNUstep? */
+  /* FIXME: this does not work, and what about GNUstep? */
 #ifdef NS_IMPL_COCOA
   [FRAME_NS_VIEW (f) lockFocus];
   PSsetmouse ((float)pix_x, (float)pix_y);
@@ -1729,8 +1731,8 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
   if (last_mouse_scroll_bar != nil && insist == 0)
     {
-      /* PENDING: we do not use this path at the moment because drag events will
-         go directly to the EmacsScroller.  Leaving code in for now. */
+      /* TODO: we do not use this path at the moment because drag events will
+           go directly to the EmacsScroller.  Leaving code in for now. */
       [last_mouse_scroll_bar getMouseMotionPart: (int *)part window: bar_window
                                               x: x y: y];
       if (time) *time = last_mouse_movement_time;
@@ -1748,10 +1750,10 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
       if (last_mouse_frame && FRAME_LIVE_P (last_mouse_frame))
         f = last_mouse_frame;
       else
-        f = dpyinfo->ns_focus_frame ? dpyinfo->ns_focus_frame
+        f = dpyinfo->x_focus_frame ? dpyinfo->x_focus_frame
                                     : SELECTED_FRAME ();
 
-      if (f && f->output_data.ns)  /*PENDING: 2nd check no longer needed? */
+      if (f && f->output_data.ns)  /* TODO: 2nd check no longer needed? */
         {
           view = FRAME_NS_VIEW (*fp);
 
@@ -2419,7 +2421,7 @@ show_hourglass (struct atimer *timer)
 
   BLOCK_INPUT;
 
-  /*PENDING: add NSProgressIndicator to selected frame (see macfns.c) */
+  /* TODO: add NSProgressIndicator to selected frame (see macfns.c) */
 
   hourglass_shown_p = 1;
   UNBLOCK_INPUT;
@@ -2432,7 +2434,7 @@ hide_hourglass ()
   if (!hourglass_shown_p)
     return;
 
-  /*PENDING: remove NSProgressIndicator from all frames */
+  /* TODO: remove NSProgressIndicator from all frames */
 
   hourglass_shown_p = 0;
   UNBLOCK_INPUT;
@@ -2560,7 +2562,7 @@ ns_draw_relief (NSRect r, int thickness, char raised_p,
   if (newBaseCol == nil)
     newBaseCol = [NSColor grayColor];
 
-  if (newBaseCol != baseCol)  /* PENDING: better check */
+  if (newBaseCol != baseCol)  /* TODO: better check */
     {
       [baseCol release];
       baseCol = [newBaseCol retain];
@@ -2692,7 +2694,7 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
           else
             face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
           if (!face->stipple)
-            [(NS_FACE_BACKGROUND (face) != nil
+            [(NS_FACE_BACKGROUND (face) != 0
               ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
               : FRAME_BACKGROUND_COLOR (s->f)) set];
           else
@@ -2840,7 +2842,7 @@ ns_draw_glyph_string (struct glyph_string *s)
       External (RIF): Main draw-text call.
    -------------------------------------------------------------------------- */
 {
-  /*PENDING (optimize): focus for box and contents draw */
+  /* TODO (optimize): focus for box and contents draw */
   NSRect r[2];
   int n;
   char box_drawn_p = 0;
@@ -2891,11 +2893,11 @@ ns_draw_glyph_string (struct glyph_string *s)
                                     - WINDOW_RIGHT_FRINGE_WIDTH (s->w)));
               r[0].size.width -= overrun;
 
-              /* PENDING: Try to work between problem where a stretch glyph on
-                 a partially-visible bottom row will clear part of the
-                 modeline, and another where list-buffers headers and similar
-                 rows erroneously have visible_height set to 0.  Not sure
-                 where this is coming from as other terms seem not to show. */
+              /* XXX: Try to work between problem where a stretch glyph on
+                  a partially-visible bottom row will clear part of the
+                  modeline, and another where list-buffers headers and similar
+                  rows erroneously have visible_height set to 0.  Not sure
+                  where this is coming from as other terms seem not to show. */
               r[0].size.height = min (s->height, s->row->visible_height);
             }
 
@@ -3086,7 +3088,7 @@ ns_read_socket (struct terminal *terminal, int expected,
          to ourself, otherwise [NXApp run] will never exit.  */
       send_appdefined = YES;
 
-      /*PENDING: from termhooks.h: */
+      /* TODO: from termhooks.h: */
       /* XXX Please note that a non-zero value of EXPECTED only means that
      there is available input on at least one of the currently opened
      terminal devices -- but not necessarily on this device.
@@ -3187,15 +3189,15 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
     {
       if (NUMBERP (ns_cursor_blink_rate))
           ns_cursor_blink_rate = Qnil;
-      struct ns_display_info *dpyinfo = ns_display_list; /* HACK */
+      struct ns_display_info *dpyinfo = x_display_list; /* HACK */
       [cursor_blink_entry invalidate];
       [cursor_blink_entry release];
       cursor_blink_entry = 0;
-      if (dpyinfo->ns_highlight_frame)
+      if (dpyinfo->x_highlight_frame)
         {
           Lisp_Object tem
-	    = get_frame_param (dpyinfo->ns_highlight_frame, Qcursor_type);
-          dpyinfo->ns_highlight_frame->output_data.ns->desired_cursor
+	    = get_frame_param (dpyinfo->x_highlight_frame, Qcursor_type);
+          dpyinfo->x_highlight_frame->output_data.ns->desired_cursor
 	    = ns_lisp_to_cursor_type (tem);
         }
     }
@@ -3488,10 +3490,10 @@ ns_set_default_prefs ()
   ns_cursor_blink_rate = Qnil;
   ns_cursor_blink_mode = Qnil;
   ns_expand_space = make_float (0.0);
-  ns_antialias_text = YES;
-  ns_antialias_threshold = 10.0;
-  ns_use_qd_smoothing = NO;
-  ns_use_system_highlight_color = YES;
+  ns_antialias_text = Qt;
+  ns_antialias_threshold = 10.0; /* not exposed to lisp side */
+  ns_use_qd_smoothing = Qnil;
+  ns_use_system_highlight_color = Qt;
 }
 
 
@@ -3560,7 +3562,7 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
     dpyinfo->mouse_face_mouse_x = dpyinfo->mouse_face_mouse_y = 0;
     dpyinfo->mouse_face_defer = 0;
 
-    dpyinfo->ns_highlight_frame = dpyinfo->ns_focus_frame = NULL;
+    dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame = NULL;
 
     dpyinfo->n_fonts = 0;
     dpyinfo->smallest_font_height = 1;
@@ -3593,7 +3595,7 @@ static struct redisplay_interface ns_redisplay_interface =
   x_get_glyph_overhangs, /*23: generic OK */
   x_fix_overlapping_area, /*generic OK */
   ns_draw_fringe_bitmap, /*23 */
-  0, /* define_fringe_bitmap */ /*PENDING: simplify ns_draw_fringe_bitmap? */
+  0, /* define_fringe_bitmap */ /* FIXME: simplify ns_draw_fringe_bitmap */
   0, /* destroy_fringe_bitmap */
   ns_compute_glyph_string_overhangs, /*23 */
   ns_draw_glyph_string, /*23: interface to nsfont.m */
@@ -3608,7 +3610,7 @@ static struct redisplay_interface ns_redisplay_interface =
 static void
 ns_delete_display (struct ns_display_info *dpyinfo)
 {
-  /*PENDING... */
+  /* TODO... */
 }
 
 
@@ -3714,7 +3716,7 @@ ns_term_init (Lisp_Object display_name)
   /* count object allocs (About, click icon); on OS X use ObjectAlloc tool */
   /*GSDebugAllocationActive (YES); */
   BLOCK_INPUT;
-handling_signal = 0;
+  handling_signal = 0;
 
   if (!ns_initialized)
     {
@@ -3757,8 +3759,8 @@ handling_signal = 0;
     current_kboard = terminal->kboard;
   terminal->kboard->reference_count++;
 
-  dpyinfo->next = ns_display_list;
-  ns_display_list = dpyinfo;
+  dpyinfo->next = x_display_list;
+  x_display_list = dpyinfo;
 
   /* Put it on ns_display_name_list */
   ns_display_name_list = Fcons (Fcons (display_name, Qnil),
@@ -3809,7 +3811,7 @@ handling_signal = 0;
              Qt, Qnil, NO, NO);
   ns_default ("UseSystemHighlightColor", &ns_use_system_highlight_color,
              Qt, Qnil, NO, NO);
-  if (ns_use_system_highlight_color == YES)
+  if (EQ (ns_use_system_highlight_color, Qt))
     {
       ns_selection_color = [[NSUserDefaults standardUserDefaults]
                                stringForKey: @"AppleHighlightColor"];
@@ -3945,152 +3947,6 @@ ns_term_shutdown (int sig)
 }
 
 
-void
-syms_of_nsterm ()
-{
-  NSTRACE (syms_of_nsterm);
-  DEFVAR_LISP ("ns-input-file", &ns_input_file,
-              "The file specified in the last NS event.");
-  ns_input_file =Qnil;
-
-  DEFVAR_LISP ("ns-input-text", &ns_input_text,
-              "The data received in the last NS text drag event.");
-  ns_input_text =Qnil;
-
-  DEFVAR_LISP ("ns-working-text", &ns_working_text,
-              "String for visualizing working composition sequence.");
-  ns_working_text =Qnil;
-
-  DEFVAR_LISP ("ns-input-font", &ns_input_font,
-              "The font specified in the last NS event.");
-  ns_input_font =Qnil;
-
-  DEFVAR_LISP ("ns-input-fontsize", &ns_input_fontsize,
-              "The fontsize specified in the last NS event.");
-  ns_input_fontsize =Qnil;
-
-  DEFVAR_LISP ("ns-input-line", &ns_input_line,
-               "The line specified in the last NS event.");
-  ns_input_line =Qnil;
-
-  DEFVAR_LISP ("ns-input-color", &ns_input_color,
-               "The color specified in the last NS event.");
-  ns_input_color =Qnil;
-
-  DEFVAR_LISP ("ns-input-spi-name", &ns_input_spi_name,
-               "The service name specified in the last NS event.");
-  ns_input_spi_name =Qnil;
-
-  DEFVAR_LISP ("ns-input-spi-arg", &ns_input_spi_arg,
-               "The service argument specified in the last NS event.");
-  ns_input_spi_arg =Qnil;
-
-  DEFVAR_LISP ("ns-alternate-modifier", &ns_alternate_modifier,
-               "This variable describes the behavior of the alternate or option key.\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
-Set to none means that the alternate / option key is not interpreted by Emacs\n\
-at all, allowing it to be used at a lower level for accented character entry.");
-
-  DEFVAR_LISP ("ns-command-modifier", &ns_command_modifier,
-               "This variable describes the behavior of the command key.\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.");
-
-  DEFVAR_LISP ("ns-control-modifier", &ns_control_modifier,
-               "This variable describes the behavior of the control key.\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.");
-
-  DEFVAR_LISP ("ns-function-modifier", &ns_function_modifier,
-               "This variable describes the behavior of the function key (on laptops).\n\
-Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
-Set to none means that the function key is not interpreted by Emacs at all,\n\
-allowing it to be used at a lower level for accented character entry.");
-
-  DEFVAR_LISP ("ns-cursor-blink-rate", &ns_cursor_blink_rate,
-               "Rate at which the Emacs cursor blinks (in seconds).\n\
-Set to nil to disable blinking.");
-
-  DEFVAR_LISP ("ns-cursor-blink-mode", &ns_cursor_blink_mode,
-               "Internal variable -- use M-x blink-cursor-mode or preferences\n\
-panel to control this setting.");
-
-  DEFVAR_LISP ("ns-expand-space", &ns_expand_space,
-               "Amount by which spacing between lines is expanded (positive)\n\
-or shrunk (negative).  Zero (the default) means standard line height.\n\
-(This variable should only be read, never set.)");
-
-  DEFVAR_BOOL ("ns-antialias-text", &ns_antialias_text,
-               "Non-nil (the default) means to render text antialiased. Only has an effect on OS X Panther and above.");
-
-  DEFVAR_BOOL ("ns-use-qd-smoothing", &ns_use_qd_smoothing,
-               "Whether to render text using QuickDraw (less heavy) antialiasing. Only has an effect on OS X Panther and above.  Default is nil (use Quartz smoothing).");
-
-  DEFVAR_BOOL ("ns-use-system-highlight-color",
-               &ns_use_system_highlight_color,
-               "Whether to use the system default (on OS X only) for the highlight color.  Nil means to use standard emacs (prior to version 21) 'grey'.");
-
-  staticpro (&ns_display_name_list);
-  ns_display_name_list = Qnil;
-
-  staticpro (&last_mouse_motion_frame);
-  last_mouse_motion_frame = Qnil;
-
-/*23: now apparently we need to tell emacs what modifiers there are.. */
-  Qmodifier_value = intern ("modifier-value");
-  Qalt = intern ("alt");
-  Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
-  Qhyper = intern ("hyper");
-  Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
-  Qmeta = intern ("meta");
-  Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
-  Qsuper = intern ("super");
-  Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
-  Qcontrol = intern ("control");
-  Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
-
-  /*PENDING: move to common code */
-  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
-	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
-#ifdef USE_TOOLKIT_SCROLL_BARS
-  Vx_toolkit_scroll_bars = Qt; 
-#else
-  Vx_toolkit_scroll_bars = Qnil;
-#endif
-
-  /* these are unsupported but we need the declarations to avoid whining
-     messages from cus-start.el */
-  DEFVAR_BOOL ("x-use-underline-position-properties",
-	       &x_use_underline_position_properties,
-     doc: /* NOT SUPPORTED UNDER NS.
-*Non-nil means make use of UNDERLINE_POSITION font properties.
-A value of nil means ignore them.  If you encounter fonts with bogus
-UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
-to 4.1, set this to nil.
-
-NOTE: Not supported on Mac yet.  */);
-  x_use_underline_position_properties = 0;
-
-  DEFVAR_BOOL ("x-underline-at-descent-line",
-	       &x_underline_at_descent_line,
-     doc: /* NOT SUPPORTED UNDER NS.
-*Non-nil means to draw the underline at the same place as the descent line.
-A value of nil means to draw the underline according to the value of the
-variable `x-use-underline-position-properties', which is usually at the
-baseline level.  The default value is nil.  */);
-  x_underline_at_descent_line = 0;
-
-  /* Tell emacs about this window system. */
-  Fprovide (intern ("ns-windowing"), Qnil);
-  /* PENDING: try to move this back into lisp (ns-win.el loaded too late
-              right now */
-  {
-    Lisp_Object args[3] = { intern ("ns-version-string"), build_string ("9.0"),
-                    build_string ("NS Window system port version number.") };
-    Fdefconst (Flist (3, args));
-  }
-}
-
-
-
 /* ==========================================================================
 
     EmacsApp implementation
@@ -4212,7 +4068,7 @@ baseline level.  The default value is nil.  */);
       Fcons (build_string ("Cancel"), Qnil),
       Fcons (build_string ("Save and Exit"), Qt));
   Lisp_Object res = ns_popup_dialog (Qt, contents, Qnil);
-fprintf (stderr, "res = %d\n", EQ (res, Qt)); // FIXME
+fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
   if (EQ (res, Qt))
     {
       Feval (Fcons (intern ("save-buffers-kill-emacs"), Qnil));
@@ -4276,7 +4132,7 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); // FIXME
   return YES;
 }
 
-/*PENDING: these may help w/IO switching btwn terminal and NSApp */
+/* TODO: these may help w/IO switching btwn terminal and NSApp */
 - (void)applicationDidBecomeActive: (NSNotification *)notification
 {
 }
@@ -4310,8 +4166,8 @@ extern void update_window_cursor (struct window *w, int on);
      Flash the cursor
    -------------------------------------------------------------------------- */
 {
-  struct ns_display_info *dpyinfo = ns_display_list; /*HACK, but OK for now */
-  struct frame *f = dpyinfo->ns_highlight_frame;
+  struct ns_display_info *dpyinfo = x_display_list; /*HACK, but OK for now */
+  struct frame *f = dpyinfo->x_highlight_frame;
   NSTRACE (cursor_blink_handler);
 
   if (!f)
@@ -4440,11 +4296,7 @@ extern void update_window_cursor (struct window *w, int on);
       emacs_event->code = KEY_NS_CHANGE_FONT;
 
       size = [newFont pointSize];
-      /* PENDING: stick w/integer sizes for now. */
-/*        if (size == lrint (size)) */
-        ns_input_fontsize = make_number (lrint (size));
-/*          else
-            ns_input_fontsize = make_float (size); */
+      ns_input_fontsize = make_number (lrint (size));
       ns_input_font = build_string ([[newFont familyName] UTF8String]);
       EV_TRAILER (e);
     }
@@ -4498,13 +4350,13 @@ extern void update_window_cursor (struct window *w, int on);
 /*#if defined (COCOA_EXPERIMENTAL_CTRL_G) */
  if (![[self window] isKeyWindow])
    {
-     /* PENDING: Using NO_SOCK_SIGIO like Carbon causes a condition in which,
-        when Emacs display updates a different frame from the current one,
-        and temporarily selects it, then processes some interrupt-driven
-        input (dispnew.c:3878), OS will send the event to the correct NSWindow,
-        but for some reason that window has its first responder set to the
-        NSView most recently updated (I guess), which is not the correct one.
-        UPDATE: After multi-TTY merge this happens even w/o NO_SOCK_SIGIO */
+     /* XXX: Using NO_SOCK_SIGIO like Carbon causes a condition in which,
+         when Emacs display updates a different frame from the current one,
+         and temporarily selects it, then processes some interrupt-driven
+         input (dispnew.c:3878), OS will send the event to the correct NSWindow,
+         but for some reason that window has its first responder set to the
+         NSView most recently updated (I guess), which is not the correct one.
+         UPDATE: After multi-TTY merge this happens even w/o NO_SOCK_SIGIO */
      if ([[theEvent window] isKindOfClass: [EmacsWindow class]])
          [[(EmacsView *)[theEvent window] delegate] keyDown: theEvent];
      return;
@@ -4559,7 +4411,7 @@ extern void update_window_cursor (struct window *w, int on);
               && !fnKeysym
               && [[theEvent characters] length] != 0)
             {
-              /* PENDING: the code we get will be unshifted, so if we have
+              /* XXX: the code we get will be unshifted, so if we have
                  a shift modifier, must convert ourselves */
               if (!(flags & NSShiftKeyMask))
                 code = [[theEvent characters] characterAtIndex: 0];
@@ -4668,7 +4520,7 @@ if (NS_KEYLOG) NSLog (@"insertText '%@'\tlen = %d", aString, len);
   for (i =0; i<len; i++)
     {
       code = [aString characterAtIndex: i];
-      /* PENDING: still need this? */
+      /* TODO: still need this? */
       if (code == 0x2DC)
         code = '~'; /* 0x7E */
       emacs_event->modifiers = 0;
@@ -4791,7 +4643,7 @@ if (NS_KEYLOG) NSLog (@"firstRectForCharRange request");
   return (long)self;
 }
 
-/*PENDING: below here not yet implemented correctly, but may not be needed */
+/* TODO: below here not yet implemented correctly, but may not be needed */
 
 - (void)doCommandBySelector: (SEL)aSelector
 {
@@ -5095,12 +4947,12 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 {
   int val = ns_lisp_to_cursor_type (get_frame_param (emacsframe, Qcursor_type));
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (emacsframe);
-  struct frame *old_focus = dpyinfo->ns_focus_frame;
+  struct frame *old_focus = dpyinfo->x_focus_frame;
 
   NSTRACE (windowDidBecomeKey);
 
   if (emacsframe != old_focus)
-    dpyinfo->ns_focus_frame = emacsframe;
+    dpyinfo->x_focus_frame = emacsframe;
   /*/last_mouse_frame = emacsframe;? */
 
   if (val >= 0)
@@ -5131,10 +4983,10 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
       FRAME_LAST_INACTIVE (emacsframe) = YES;
     }
 
-  if (dpyinfo->ns_highlight_frame == emacsframe)
-    dpyinfo->ns_highlight_frame = 0;
-  if (dpyinfo->ns_focus_frame == emacsframe)
-    dpyinfo->ns_focus_frame = 0;
+  if (dpyinfo->x_highlight_frame == emacsframe)
+    dpyinfo->x_highlight_frame = 0;
+  if (dpyinfo->x_focus_frame == emacsframe)
+    dpyinfo->x_focus_frame = 0;
 
   if (dpyinfo->mouse_face_mouse_frame == emacsframe)
     {
@@ -5726,8 +5578,8 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 
 + (float) scrollerWidth
 {
-  /* PENDING: if we want to allow variable widths, this is the place to do it,
-     however neither GNUstep nor Cocoa support it very well */
+  /* TODO: if we want to allow variable widths, this is the place to do it,
+           however neither GNUstep nor Cocoa support it very well */
   return [NSScroller scrollerWidth];
 }
 
@@ -5870,8 +5722,8 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
   return self;
 }
 
-/* PENDING: unused at moment (see ns_mouse_position) at the moment because
-   drag events will go directly to the EmacsScroller.  Leaving in for now. */
+/* FIXME: unused at moment (see ns_mouse_position) at the moment because
+     drag events will go directly to the EmacsScroller.  Leaving in for now. */
 -(void)getMouseMotionPart: (int *)part window: (Lisp_Object *)window
                         x: (Lisp_Object *)x y: ( Lisp_Object *)y
 {
@@ -6158,9 +6010,9 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 		     parse_solitary_modifier (ns_control_modifier));
   selectItemWithTag (functionModMenu,
 		     parse_solitary_modifier (ns_function_modifier));
-  [smoothFontsCheck setState: ns_antialias_text ? YES : NO];
-  [useQuickdrawCheck setState: ns_use_qd_smoothing ? YES : NO];
-  [useSysHiliteCheck setState: prevUseHighlightColor ? YES : NO];
+  [smoothFontsCheck setState: (NILP (ns_antialias_text) ? NO : YES)];
+  [useQuickdrawCheck setState: (NILP (ns_use_qd_smoothing) ? NO : YES)];
+  [useSysHiliteCheck setState: (NILP (prevUseHighlightColor) ? NO : YES)];
 #endif
 }
 
@@ -6181,7 +6033,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   if (expandSpace != prevExpandSpace)
     {
       ns_expand_space = make_float (expandSpace);
-      /* PENDING: more needed: store needed metrics in nsfont_info, update
+      /* TODO: more needed: store needed metrics in nsfont_info, update
          frame default font max_bounds and fontp, recompute faces */
 /*         FRAME_LINE_HEIGHT (frame) *= (expandSpace / prevExpandSpace);
            x_set_window_size (frame, 0, frame->text_cols, frame->text_lines); */
@@ -6209,11 +6061,11 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
           [cursor_blink_entry invalidate];
           [cursor_blink_entry release];
           cursor_blink_entry = 0;
-          if (dpyinfo->ns_highlight_frame)
+          if (dpyinfo->x_highlight_frame)
             {
               Lisp_Object tem
-		= get_frame_param (dpyinfo->ns_highlight_frame, Qcursor_type);
-              dpyinfo->ns_highlight_frame->output_data.ns->desired_cursor
+		= get_frame_param (dpyinfo->x_highlight_frame, Qcursor_type);
+              dpyinfo->x_highlight_frame->output_data.ns->desired_cursor
 		= ns_lisp_to_cursor_type (tem);
             }
         }
@@ -6230,13 +6082,13 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 #ifdef NS_IMPL_COCOA
   ns_control_modifier = ns_mod_to_lisp (ctrlTag);
   ns_function_modifier = ns_mod_to_lisp (fnTag);
-  ns_antialias_text = [smoothFontsCheck state];
-  ns_use_qd_smoothing = [useQuickdrawCheck state];
-  ns_use_system_highlight_color = [useSysHiliteCheck state];
-  if (ns_use_system_highlight_color != prevUseHighlightColor)
+  ns_antialias_text = [smoothFontsCheck state] ? Qt : Qnil;
+  ns_use_qd_smoothing = [useQuickdrawCheck state] ? Qt : Qnil;
+  ns_use_system_highlight_color = [useSysHiliteCheck state] ? Qt : Qnil;
+  if (! EQ (ns_use_system_highlight_color, prevUseHighlightColor))
     {
       prevUseHighlightColor = ns_use_system_highlight_color;
-      if (ns_use_system_highlight_color == YES)
+      if (EQ (ns_use_system_highlight_color, Qt))
         {
           ns_selection_color = [[NSUserDefaults standardUserDefaults]
                                  stringForKey: @"AppleHighlightColor"];
@@ -6410,7 +6262,7 @@ ns_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames)
       pattFam = patt;
   else
       pattFam = ns_xlfd_to_fontname (patt);
-  /*PENDING: '*' at beginning matches literally.. */
+  /* XXX: '*' at beginning matches literally.. */
   if (pattFam[0] == '*')
     pattFam[0] = '.';
 
@@ -6600,5 +6452,150 @@ ns_xlfd_to_fontname (const char *xlfd)
   xfree (name);
   return ret;
 }
+
+void
+syms_of_nsterm ()
+{
+  NSTRACE (syms_of_nsterm);
+  DEFVAR_LISP ("ns-input-file", &ns_input_file,
+              "The file specified in the last NS event.");
+  ns_input_file =Qnil;
+
+  DEFVAR_LISP ("ns-input-text", &ns_input_text,
+              "The data received in the last NS text drag event.");
+  ns_input_text =Qnil;
+
+  DEFVAR_LISP ("ns-working-text", &ns_working_text,
+              "String for visualizing working composition sequence.");
+  ns_working_text =Qnil;
+
+  DEFVAR_LISP ("ns-input-font", &ns_input_font,
+              "The font specified in the last NS event.");
+  ns_input_font =Qnil;
+
+  DEFVAR_LISP ("ns-input-fontsize", &ns_input_fontsize,
+              "The fontsize specified in the last NS event.");
+  ns_input_fontsize =Qnil;
+
+  DEFVAR_LISP ("ns-input-line", &ns_input_line,
+               "The line specified in the last NS event.");
+  ns_input_line =Qnil;
+
+  DEFVAR_LISP ("ns-input-color", &ns_input_color,
+               "The color specified in the last NS event.");
+  ns_input_color =Qnil;
+
+  DEFVAR_LISP ("ns-input-spi-name", &ns_input_spi_name,
+               "The service name specified in the last NS event.");
+  ns_input_spi_name =Qnil;
+
+  DEFVAR_LISP ("ns-input-spi-arg", &ns_input_spi_arg,
+               "The service argument specified in the last NS event.");
+  ns_input_spi_arg =Qnil;
+
+  DEFVAR_LISP ("ns-alternate-modifier", &ns_alternate_modifier,
+               "This variable describes the behavior of the alternate or option key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to none means that the alternate / option key is not interpreted by Emacs\n\
+at all, allowing it to be used at a lower level for accented character entry.");
+
+  DEFVAR_LISP ("ns-command-modifier", &ns_command_modifier,
+               "This variable describes the behavior of the command key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.");
+
+  DEFVAR_LISP ("ns-control-modifier", &ns_control_modifier,
+               "This variable describes the behavior of the control key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.");
+
+  DEFVAR_LISP ("ns-function-modifier", &ns_function_modifier,
+               "This variable describes the behavior of the function key (on laptops).\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to none means that the function key is not interpreted by Emacs at all,\n\
+allowing it to be used at a lower level for accented character entry.");
+
+  DEFVAR_LISP ("ns-cursor-blink-rate", &ns_cursor_blink_rate,
+               "Rate at which the Emacs cursor blinks (in seconds).\n\
+Set to nil to disable blinking.");
+
+  DEFVAR_LISP ("ns-cursor-blink-mode", &ns_cursor_blink_mode,
+               "Internal variable -- use M-x blink-cursor-mode or preferences\n\
+panel to control this setting.");
+
+  DEFVAR_LISP ("ns-expand-space", &ns_expand_space,
+               "Amount by which spacing between lines is expanded (positive)\n\
+or shrunk (negative).  Zero (the default) means standard line height.\n\
+(This variable should only be read, never set.)");
+
+  DEFVAR_LISP ("ns-antialias-text", &ns_antialias_text,
+               "Non-nil (the default) means to render text antialiased. Only has an effect on OS X Panther and above.");
+
+  DEFVAR_LISP ("ns-use-qd-smoothing", &ns_use_qd_smoothing,
+               "Whether to render text using QuickDraw (less heavy) antialiasing. Only has an effect on OS X Panther and above.  Default is nil (use Quartz smoothing).");
+
+  DEFVAR_LISP ("ns-use-system-highlight-color",
+               &ns_use_system_highlight_color,
+               "Whether to use the system default (on OS X only) for the highlight color.  Nil means to use standard emacs (prior to version 21) 'grey'.");
+
+  staticpro (&ns_display_name_list);
+  ns_display_name_list = Qnil;
+
+  staticpro (&last_mouse_motion_frame);
+  last_mouse_motion_frame = Qnil;
+
+  /*23: now apparently we need to tell emacs what modifiers there are.. */
+  Qmodifier_value = intern ("modifier-value");
+  Qalt = intern ("alt");
+  Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
+  Qhyper = intern ("hyper");
+  Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
+  Qmeta = intern ("meta");
+  Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
+  Qsuper = intern ("super");
+  Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
+  Qcontrol = intern ("control");
+  Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
+
+  /*PENDING: move to common code */
+  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
+	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  Vx_toolkit_scroll_bars = Qt;
+#else
+  Vx_toolkit_scroll_bars = Qnil;
+#endif
+
+  /* these are unsupported but we need the declarations to avoid whining
+     messages from cus-start.el */
+  DEFVAR_BOOL ("x-use-underline-position-properties",
+	       &x_use_underline_position_properties,
+     doc: /* NOT SUPPORTED UNDER NS.
+*Non-nil means make use of UNDERLINE_POSITION font properties.
+A value of nil means ignore them.  If you encounter fonts with bogus
+UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
+to 4.1, set this to nil.
+
+NOTE: Not supported on Mac yet.  */);
+  x_use_underline_position_properties = 0;
+
+  DEFVAR_BOOL ("x-underline-at-descent-line",
+	       &x_underline_at_descent_line,
+     doc: /* NOT SUPPORTED UNDER NS.
+*Non-nil means to draw the underline at the same place as the descent line.
+A value of nil means to draw the underline according to the value of the
+variable `x-use-underline-position-properties', which is usually at the
+baseline level.  The default value is nil.  */);
+  x_underline_at_descent_line = 0;
+
+  /* Tell emacs about this window system. */
+  Fprovide (intern ("ns"), Qnil);
+  /* PENDING: try to move this back into lisp,  ns-win.el loaded too late
+              right now */
+  {
+    Lisp_Object args[3] = { intern ("ns-version-string"), build_string ("9.0"),
+                    build_string ("NS Window system port version number.") };
+    Fdefconst (Flist (3, args));
+  }
+}
+
 
 // arch-tag: 6eaa8f7d-a69b-4e1c-b43d-ab31defbe0d2

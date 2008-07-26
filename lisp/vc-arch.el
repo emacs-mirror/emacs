@@ -488,16 +488,20 @@ Return non-nil if FILE is unchanged."
 
 (defun vc-arch-trim-make-sentinel (revs)
   (if (null revs) (lambda (proc msg) (message "VC-Arch trimming ... done"))
-    `(lambda (proc msg)
-       (message "VC-Arch trimming %s..." ',(file-name-nondirectory (car revs)))
-       (rename-file ,(car revs) ,(concat (car revs) "*rm*"))
+    (lexical-let ((revs revs))
+      (lambda (proc msg)
+        (message "VC-Arch trimming %s..." (file-name-nondirectory (car revs)))
+        (rename-file (car revs) (concat (car revs) "*rm*"))
        (setq proc (start-process "vc-arch-trim" nil
-                                 "rm" "-rf" ',(concat (car revs) "*rm*")))
-       (set-process-sentinel proc (vc-arch-trim-make-sentinel ',(cdr revs))))))
+                                  "rm" "-rf" (concat (car revs) "*rm*")))
+        (set-process-sentinel proc (vc-arch-trim-make-sentinel (cdr revs)))))))
 
 (defun vc-arch-trim-one-revlib (dir)
   "Delete half of the revisions in the revision library."
   (interactive "Ddirectory: ")
+  (let ((garbage (directory-files dir 'full "\\`,," 'nosort)))
+    (when garbage
+      (funcall (vc-arch-trim-make-sentinel garbage) nil nil)))
   (let ((revs
          (sort (delq nil
                      (mapcar

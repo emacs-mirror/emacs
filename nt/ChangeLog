@@ -1,3 +1,12 @@
+2008-07-23  Jason Rumney  <jasonr@gnu.org>
+
+        * configure.bat: New option --profile.
+        * gmake.defs: Set cflags and ldflags for profiling when specified.
+
+2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (C_SWITCH_SITE, LD_SWITCH_SITE): Do not undefine.
+
 2008-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.nt (HAVE_FACES): Remove, unused.
@@ -71,7 +80,7 @@
 2008-04-09  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (clean-other-dirs-nmake): Don't clean lisp dir.
-	(clean-other-dirs-gmake): Likewise. Clean doc dirs.
+	(clean-other-dirs-gmake): Likewise.  Clean doc dirs.
 	(top-distclean, distclean, distclean-other-dirs-nmake)
 	(distclean-other-dirs-gmake, maintainer-clean-other-dirs-nmake)
 	(maintainer-clean-other-dirs-gmake, maintainer-clean): New targets.

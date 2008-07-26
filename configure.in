@@ -1240,7 +1240,7 @@ if test "${with_ns}" != no; then
      ns_appbindir=`pwd`/nextstep/Emacs.app
      ns_appresdir=`pwd`/nextstep/Emacs.app/Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
-     GNUSTEP_MAKEFILES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_MAKEFILES)"
+     GNUSTEP_MAKEFILES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_MAKEFILES)"
      GNUSTEP_SYSTEM_HEADERS="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
@@ -2148,7 +2148,7 @@ AC_CHECK_FUNCS(gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
-utimes setrlimit setpgid getcwd getwd shutdown getaddrinfo \
+utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap memmove fsync sync bzero \
@@ -2589,7 +2589,7 @@ AH_BOTTOM([
 #define CANNOT_DUMP
 #endif
 
-/* PENDING: These are used for the Carbon port only. */
+/* TODO: These are used for the Carbon port only. */
 #undef MAC_OS
 #undef MAC_OSX
 
@@ -2645,7 +2645,6 @@ AH_BOTTOM([
 # ifdef NS_IMPL_GNUSTEP
 /* See also .m.o rule in Makefile.in */
 #  define C_SWITCH_X_SYSTEM -MMD -MP -D_REENTRANT -fPIC -fno-strict-aliasing
-#  define LD_SWITCH_SITE -lgnustep-gui -lgnustep-base -lobjc $(CONFIG_SYSTEM_LIBS) -lpthread
 #  define GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE
 #  define OTHER_FILES ns-app
 # else /* NS_IMPL_COCOA */
@@ -2654,25 +2653,12 @@ AH_BOTTOM([
 # endif /* NS_IMPL_COCOA */
 #endif /* HAVE_NS */
 
-
-
-/* If no remapping takes place, static variables cannot be dumped as
-   pure, so don't worry about the `static' keyword. */
-#ifdef NO_REMAP
-#undef static
-#endif
-
 /* Define `subprocesses' should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
-   These do not work for some USG systems yet;
-   for the ones where they work, the s/SYSTEM.h file defines this flag.  */
+   Only MSDOS does not support this.  */
 
-#ifndef VMS
-#ifndef USG
-/* #define subprocesses */
-#endif
-#endif
+#define subprocesses
 
 /* SIGTYPE is the macro we actually use.  */
 #ifndef SIGTYPE

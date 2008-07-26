@@ -82,9 +82,6 @@
 ;; vc's back is turned, or move/rename master files while vc is running,
 ;; vc may get seriously confused.  Don't do these things!
 ;;
-;; Developer's notes on some concurrency issues are included at the end of
-;; the file.
-;;
 ;; ADDING SUPPORT FOR OTHER BACKENDS
 ;;
 ;; VC can use arbitrary version control systems as a backend.  To add
@@ -619,9 +616,6 @@
 ;;   `diff-add-change-log-entries-other-window' to create a detailed
 ;;   skeleton for the log...
 ;;
-;; - The *vc-dir* buffer needs to be updated properly after VC
-;;   operations on directories that change the file VC state.
-;;
 ;; - most vc-dir backends need more work.  They might need to
 ;;   provide custom headers, use the `extra' field and deal with all
 ;;   possible VC states.
@@ -642,6 +636,8 @@
 ;;   as well,
 ;;
 ;; - vc-dir toolbar needs more icons.
+;;
+;; - The backends should avoid using `vc-file-setprop' and `vc-file-getprop'.
 ;;
 ;;; Code:
 
@@ -1299,7 +1295,7 @@ After check-out, runs the normal hook `vc-checkout-hook'."
   (with-vc-properties
    files
    (vc-call-backend backend 'mark-resolved files)
-   ;; XXX: Is this TRTD?  Might not be.
+   ;; FIXME: Is this TRTD?  Might not be.
    `((vc-state . edited))))
 
 (defun vc-steal-lock (file rev owner)

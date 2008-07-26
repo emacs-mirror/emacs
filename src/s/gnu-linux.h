@@ -105,14 +105,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define BSTRING
 
-/* subprocesses should be defined if you want to
-   have code for asynchronous subprocesses
-   (as used in M-x compile and M-x shell).
-   This is generally OS dependent, and not supported
-   under most USG systems. */
-
-#define subprocesses
-
 /* define MAIL_USE_FLOCK if the mailer uses flock
    to interlock access to /usr/spool/mail/$USER.
    The alternative is that a lock file named
@@ -190,10 +182,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define INTERRUPT_INPUT
 #endif
 
-/* This is needed for sysdep.c */
-
-#define NO_SIOCTL_H           /* don't have sioctl.h */
-
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
 
 #define POSIX                 /* affects getpagesize.h and systty.h */
@@ -239,7 +227,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Use BSD process groups, but use setpgid() instead of setpgrp() to
    actually set a process group. */
-
+/* Interesting: only GNU/Linux defines this,  but the BSDs do not... */
 #define BSD_PGRPS
 
 #define NARROWPROTO 1

@@ -1433,6 +1433,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar immediate wdired-mode]
       '(menu-item "Edit File Names" wdired-change-to-wdired-mode
 		  :help "Put a dired buffer in a mode in which filenames are editable"
+		  :keys "C-x C-q"
 		  :filter (lambda (x) (if (eq major-mode 'dired-mode) x))))
 
     (define-key map [menu-bar regexp]
@@ -1547,8 +1548,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
                   :help "Add image comment to current or marked files"))
     (define-key map
       [menu-bar operate image-dired-display-thumbs]
-      '(menu-item "Display Image-Dired" image-dired-display-thumbs
-                  :help "Display image-dired for current or marked image files"))
+      '(menu-item "Display image thumbnails" image-dired-display-thumbs
+                  :help "Display image thumbnails for current or marked image files"))
 
     (define-key map [menu-bar operate dashes-3]
       '("--"))

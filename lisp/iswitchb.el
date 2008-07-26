@@ -368,6 +368,11 @@ See also `iswitchb-newbuffer'."
   :type 'hook
   :group 'iswitchb)
 
+(defcustom iswitchb-delim ","
+  "Delimiter to put between buffer names when displaying results."
+  :type 'string
+  :group 'iswitchb)
+
 (defvar iswitchb-all-frames 'visible
   "*Argument to pass to `walk-windows' when finding visible buffers.
 See documentation of `walk-windows' for useful values.")
@@ -1340,7 +1345,7 @@ Modified from `icomplete-completions'."
 		  most-is-exact
 		  (alternatives
 		   (mapconcat (if most 'iswitchb-output-completion
-				'identity) comps ",")))
+				'identity) comps iswitchb-delim)))
 
 	     (concat
 
@@ -1363,7 +1368,7 @@ Modified from `icomplete-completions'."
 	      ;; list all alternatives
 	      open-bracket-prospects
 	      (if most-is-exact
-		  (concat "," alternatives)
+		  (concat iswitchb-delim alternatives)
 		alternatives)
 	      close-bracket-prospects))))))
 

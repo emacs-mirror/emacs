@@ -157,8 +157,17 @@ See `run-hooks'."
 
     (define-key map [sepopn] '("--"))
     (define-key map [qr]
-      '(menu-item "Query Replace in Files" vc-dir-query-replace-regexp
+      '(menu-item "Query Replace in Files..." vc-dir-query-replace-regexp
 		  :help "Replace a string in the marked files"))
+    (define-key map [se]
+      '(menu-item "Search Files..." vc-dir-search
+		  :help "Search a regexp in the marked files"))
+    (define-key map [ires]
+      '(menu-item "Isearch Regexp Files..." vc-dir-isearch-regexp
+		  :help "Incremental search a regexp in the marked files"))
+    (define-key map [ise]
+      '(menu-item "Isearch Files..." vc-dir-isearch
+		  :help "Incremental search a string in the marked files"))
     (define-key map [open-other]
       '(menu-item "Open in other window" vc-dir-find-file-other-window
 		  :help "Find the file on the current line, in another window"))
@@ -250,7 +259,10 @@ See `run-hooks'."
     (define-key map [down-mouse-3] 'vc-dir-menu)
     (define-key map [mouse-2] 'vc-dir-toggle-mark)
     (define-key map "x" 'vc-dir-hide-up-to-date)
+    (define-key map "S" 'vc-dir-search) ;; FIXME: Maybe use A like dired?
     (define-key map "Q" 'vc-dir-query-replace-regexp)
+    (define-key map (kbd "M-s a C-s")   'vc-dir-isearch)
+    (define-key map (kbd "M-s a M-C-s") 'vc-dir-isearch-regexp)
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -679,8 +691,29 @@ that share the same state."
   (interactive)
   (find-file-other-window (vc-dir-current-file)))
 
+(defun vc-dir-isearch ()
+  "Search for a string through all marked buffers using Isearch."
+  (interactive)
+  (multi-isearch-files
+   (mapcar 'car (vc-dir-marked-only-files-and-states))))
+
+(defun vc-dir-isearch-regexp ()
+  "Search for a regexp through all marked buffers using Isearch."
+  (interactive)
+  (multi-isearch-files-regexp
+   (mapcar 'car (vc-dir-marked-only-files-and-states))))
+
+(defun vc-dir-search (regexp)
+  "Search through all marked files for a match for REGEXP.
+For marked directories, use the files displayed from those directories.
+Stops when a match is found.
+To continue searching for next match, use command \\[tags-loop-continue]."
+  (interactive "sSearch marked files (regexp): ")
+  (tags-search regexp '(mapcar 'car (vc-dir-marked-only-files-and-states))))
+
 (defun vc-dir-query-replace-regexp (from to &optional delimited)
   "Do `query-replace-regexp' of FROM with TO, on all marked files.
+For marked directories, use the files displayed from those directories.
 If a directory is marked, then use the files displayed for that directory.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
@@ -772,6 +805,11 @@ If it is a file, return the corresponding cons for the file itself."
 
 (defun vc-dir-recompute-file-state (fname def-dir)
   (let* ((file-short (file-relative-name fname def-dir))
+	 (remove-me-when-CVS-works
+	  (when (eq vc-dir-backend 'CVS)
+	    ;; FIXME: Warning: UGLY HACK.  The CVS backend caches the state
+	    ;; info, this forces the backend to update it.
+	    (vc-call-backend vc-dir-backend 'registered fname)))
 	 (state (vc-call-backend vc-dir-backend 'state fname))
 	 (extra (vc-call-backend vc-dir-backend
 				 'status-fileinfo-extra fname)))
