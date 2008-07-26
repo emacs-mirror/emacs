@@ -526,6 +526,8 @@ you can \"misuse\" it to add arbitrary text to the header.
 See also the variable `org-export-html-style-extra'."
   :group 'org-export-html
   :type 'string)
+;;;###autoload
+(put 'org-export-html-style 'safe-local-variable 'stringp)
 
 (defcustom org-export-html-style-extra ""
   "Additional style information for HTML export.
@@ -535,6 +537,8 @@ settings of style information, and do not forget to surround the style
 settings with <style>...</style> tags."
   :group 'org-export-html
   :type 'string)
+;;;###autoload
+(put 'org-export-html-style-extra 'safe-local-variable 'stringp)
 
 (defcustom org-export-html-title-format "<h1 class=\"title\">%s</h1>\n"
   "Format for typesetting the document title in HTML export."
