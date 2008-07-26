@@ -1,3 +1,8 @@
+2008-07-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-exp.el (org-export-html-style)
+	(org-export-html-style-extra): Declare as safe-local-variable.
+
 2008-07-25  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-publish.el (org-publish-file): Use the true name of the
