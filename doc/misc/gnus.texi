@@ -8619,14 +8619,23 @@ reader to use this setting.
 
 @item gnus-summary-save-in-pipe
 @findex gnus-summary-save-in-pipe
-Pipe the article to a shell command.  This function takes optional one
-argument; if it is a string, it is used as the command; if it is
-@code{nil} or omitted, you will be prompted for the command; if it is
-the symbol @code{default}, the command which the
-@code{gnus-summary-pipe-output-default-command} variable holds or the
-command last used for saving will be used if it is non-@code{nil}.  The
-command should be a string that the shell can interpret (e.g. the
-executable command name and the arguments).
+Pipe the article to a shell command.  This function takes optional two
+arguments COMMAND and RAW.  Valid values for COMMAND include:
+
+@itemize @bullet
+@item a string@*
+The executable command name and possibly arguments.
+@item @code{nil}@*
+You will be prompted for the command in the minibuffer.
+@item the symbol @code{default}@*
+It will be replaced with the command which the variable
+@code{gnus-summary-pipe-output-default-command} holds or the command
+last used for saving.
+@end itemize
+
+Non-@code{nil} value for RAW overrides @code{:decode} and
+@code{:headers} properties (see below) and the raw article including all
+headers will be piped.
 @end table
 
 The symbol of each function may have the following properties:
@@ -24678,11 +24687,10 @@ might want to have a nifty function to call when you happen to read
 spam.  And here is the nifty function:
 
 @lisp
- (defun my-gnus-raze-spam ()
+(defun my-gnus-raze-spam ()
   "Submit SPAM to Vipul's Razor, then mark it as expirable."
   (interactive)
-  (gnus-summary-show-raw-article)
-  (gnus-summary-save-in-pipe "razor-report -f -d")
+  (gnus-summary-save-in-pipe "razor-report -f -d" t)
   (gnus-summary-mark-as-expirable 1))
 @end lisp
 

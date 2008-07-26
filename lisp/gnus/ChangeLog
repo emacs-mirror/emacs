@@ -1,3 +1,12 @@
+2008-07-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-summary-save-in-pipe): Add optional argument `raw'.
+
+2008-07-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-summary-save-in-pipe): Consider
+	gnus-save-all-headers.
+
 2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* gnus-util.el (ns-focus-frame): Remove declaration.

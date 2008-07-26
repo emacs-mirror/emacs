@@ -3942,8 +3942,19 @@ The directory to save in defaults to `gnus-article-save-directory'."
 
 (put 'gnus-summary-save-in-pipe :decode t)
 (put 'gnus-summary-save-in-pipe :headers 'gnus-saved-headers)
-(defun gnus-summary-save-in-pipe (&optional command)
-  "Pipe this article to subprocess."
+(defun gnus-summary-save-in-pipe (&optional command raw)
+  "Pipe this article to subprocess COMMAND.
+Valid values for COMMAND include:
+  a string
+    The executable command name and possibly arguments.
+  nil
+    You will be prompted for the command in the minibuffer.
+  the symbol `default'
+    It will be replaced with the command which the variable
+    `gnus-summary-pipe-output-default-command' holds or the command
+    last used for saving.
+Non-nil value for RAW overrides `:decode' and `:headers' properties
+and the raw article including all headers will be piped."
   (let ((save-buffer gnus-save-article-buffer)
 	(default (or gnus-summary-pipe-output-default-command
 		     gnus-last-shell-command)))
@@ -3953,7 +3964,8 @@ The directory to save in defaults to `gnus-article-save-directory'."
     ;; means this function is called independently.
     (unless (gnus-buffer-live-p save-buffer)
       (let ((article (gnus-summary-article-number))
-	    (decode (get 'gnus-summary-save-in-pipe :decode)))
+	    (decode (unless raw
+		      (get 'gnus-summary-save-in-pipe :decode))))
 	(if article
 	    (if (vectorp (gnus-summary-article-header article))
 		(save-window-excursion
@@ -3973,12 +3985,15 @@ The directory to save in defaults to `gnus-article-save-directory'."
 		     (setq save-buffer
 			   (nnheader-set-temp-buffer " *Gnus Save*"))))
 		  ;; Remove unwanted headers.
-		  (let ((gnus-visible-headers
-			 (or (symbol-value (get gnus-default-article-saver
-						:headers))
-			     gnus-saved-headers gnus-visible-headers))
-			(gnus-summary-buffer nil))
-		    (article-hide-headers 1 t)))
+		  (when (and (not raw)
+			     (or (get 'gnus-summary-save-in-pipe :headers)
+				 (not gnus-save-all-headers)))
+		    (let ((gnus-visible-headers
+			   (or (symbol-value (get 'gnus-summary-save-in-pipe
+						  :headers))
+			       gnus-saved-headers gnus-visible-headers))
+			  (gnus-summary-buffer nil))
+		      (article-hide-headers 1 t))))
 	      (error "%d is not a real article" article))
 	  (error "No article to pipe"))))
     (unless (stringp command)
