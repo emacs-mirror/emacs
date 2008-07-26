@@ -1,3 +1,7 @@
+2008-07-26  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_object): Fix off-by-one in last change.
+
 2008-07-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term.c (syms_of_term): Don't initialize default_orig_pair,
