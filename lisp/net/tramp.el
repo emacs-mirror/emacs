@@ -3311,7 +3311,6 @@ be a local filename.  The method used must be an out-of-band method."
 				(append copy-args (list source target))))))
 		(tramp-message
 		 v 6 "%s" (mapconcat 'identity (process-command p) " "))
-		(set-process-sentinel p 'tramp-process-sentinel)
 		(tramp-set-process-query-on-exit-flag p nil)
 		(tramp-process-actions p v tramp-actions-copy-out-of-band))))
 
@@ -3680,8 +3679,7 @@ beginning of local filename are not substituted."
 	(let ((name1 name)
 	      (i 0))
 	  (unless buffer
-	    ;; BUFFER can be nil.  We use a temporary buffer, which is
-	    ;; killed in `tramp-process-sentinel'.
+	    ;; BUFFER can be nil.  We use a temporary buffer.
 	    (setq buffer (generate-new-buffer tramp-temp-buffer-name)))
 	  (while (get-process name1)
 	    ;; NAME must be unique as process name.
@@ -3708,12 +3706,19 @@ beginning of local filename are not substituted."
 		   (mapconcat 'tramp-shell-quote-argument
 			      (cons program args) " "))
 	   nil t) ; nooutput
+	  ;; Set query flag for this process.
+	  (tramp-set-process-query-on-exit-flag
+	   (tramp-get-connection-process v) t)
 	  ;; Return process.
 	  (tramp-get-connection-process v))
       ;; Save exit.
       (with-current-buffer (tramp-get-connection-buffer v)
-	(widen)
-	(goto-char (point-max)))
+	(if (string-match tramp-temp-buffer-name (buffer-name))
+	    (progn
+	      (set-process-buffer (tramp-get-connection-process v) nil)
+	      (kill-buffer (current-buffer)))
+	  (widen)
+	  (goto-char (point-max))))
       (tramp-set-connection-property v "process-name" nil)
       (tramp-set-connection-property v "process-buffer" nil))))
 
@@ -5753,16 +5758,6 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
 		     'tramp-password-end-of-line)
 		    tramp-default-password-end-of-line))))
 
-(defun tramp-process-sentinel (proc event)
-  "Process sentinel for Tramp processes."
-  (when (memq (process-status proc) '(stop exit signal))
-    (tramp-flush-connection-property proc)
-    ;; Asynchronous processes might have a temporary buffer.  Kill it.
-    (let ((buf (process-buffer proc)))
-      (when (and (buffer-live-p buf)
-		 (string-match tramp-temp-buffer-name (buffer-name buf)))
-	(kill-buffer buf)))))
-
 (defun tramp-open-connection-setup-interactive-shell (proc vec)
   "Set up an interactive shell.
 Mainly sets the prompt and the echo correctly.  PROC is the shell
@@ -6306,7 +6301,6 @@ connection if a previous connection has died for some reason."
 	   vec 6 "%s" (mapconcat 'identity (process-command p) " "))
 
 	  ;; Check whether process is alive.
-	  (set-process-sentinel p 'tramp-process-sentinel)
 	  (tramp-set-process-query-on-exit-flag p nil)
 	  (tramp-message vec 3 "Waiting 60s for local shell to come up...")
 	  (tramp-barf-if-no-shell-prompt
