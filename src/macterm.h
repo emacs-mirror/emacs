@@ -601,7 +601,13 @@ enum {
   kEventParamWindowMouseLocation = 'wmou'
 };
 #endif
+
+/* kCGBitmapByteOrder32Host is defined in Universal SDK for 10.4 but
+   not in PPC SDK for 10.4.0.  */
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1050 && !defined (kCGBitmapByteOrder32Host)
+#define kCGBitmapByteOrder32Host 0
 #endif
+#endif	/* MAC_OSX */
 
 struct frame;
 struct face;
