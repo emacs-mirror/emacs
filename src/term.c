@@ -75,9 +75,6 @@ extern int tgetnum P_ ((char *id));
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
-#ifdef MAC_OS
-#include "macterm.h"
-#endif
 
 #ifndef O_RDWR
 #define O_RDWR 2

@@ -857,9 +857,6 @@ extern struct font_driver xftfont_driver;
 extern struct font_driver w32font_driver;
 extern struct font_driver uniscribe_font_driver;
 #endif	/* WINDOWSNT */
-#ifdef MAC_OS
-extern struct font_driver atmfont_driver;
-#endif	/* MAC_OS */
 #ifdef HAVE_NS
 extern struct font_driver nsfont_driver;
 #endif	/* HAVE_NS */

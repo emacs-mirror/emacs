@@ -982,8 +982,7 @@ Also a number of others have contributed code.  Steve Nygard
 <nygard@@telusplanet.net> got emacs to dump under OpenStep.  The font panel
 code was Andrew Athan's <athan@@object.com> work.  Joe Reiss
 <jreiss@@magnus.acs.ohio-state.edu> both created the beautiful icons you see
-and wrote the popup menu and dialog box code as well as much else.  (Actually,
-Joe's icon became the one used for the Mac Carbon port..)
+and wrote the popup menu and dialog box code as well as much else.
 
 Finally, suggestions from Darcy Brockbank, Timothy Bissell, Scott Byer, David
 Griffiths, Scott Hess, Eberhard Mandler, John C. Randolph, and Bradley Taylor

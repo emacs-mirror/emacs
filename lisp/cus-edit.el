@@ -447,13 +447,6 @@
   :link '(custom-manual "(emacs)Windows")
   :group 'environment)
 
-(defgroup mac nil
-  "Mac specific features."
-  :link '(custom-manual "(emacs)Mac OS")
-  :group 'environment
-  :version "22.1"
-  :prefix "mac-")
-
 ;;; Custom mode keymaps
 
 (defvar custom-mode-map
@@ -2068,7 +2061,7 @@ and `face'."
 ;;; The `custom' Widget.
 
 (defface custom-button
-  '((((type x w32 mac ns) (class color))	; Like default modeline
+  '((((type x w32 ns) (class color))	; Like default modeline
      (:box (:line-width 2 :style released-button)
 	   :background "lightgrey" :foreground "black"))
     (t
@@ -2080,7 +2073,7 @@ and `face'."
 (put 'custom-button-face 'face-alias 'custom-button)
 
 (defface custom-button-mouse
-  '((((type x w32 mac ns) (class color))
+  '((((type x w32 ns) (class color))
      (:box (:line-width 2 :style released-button)
 	   :background "grey90" :foreground "black"))
     (t
@@ -2102,7 +2095,7 @@ and `face'."
       (if custom-raised-buttons 'custom-button-mouse 'highlight))
 
 (defface custom-button-pressed
-  '((((type x w32 mac ns) (class color))
+  '((((type x w32 ns) (class color))
      (:box (:line-width 2 :style pressed-button)
 	   :background "lightgrey" :foreground "black"))
     (t
@@ -3161,10 +3154,6 @@ OS/2 Presentation Manager.")
 					   :sibling-args (:help-echo "\
 Windows NT/9X.")
 					   w32)
-				    (const :format "MAC "
-					   :sibling-args (:help-echo "\
-Macintosh OS (Carbon interface).")
-					   mac)
 				    (const :format "NS "
 					   :sibling-args (:help-echo "\
 GNUstep or Macintosh OS Cocoa interface.")

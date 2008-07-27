@@ -733,7 +733,6 @@ C_SWITCH_X_SITE
 X_TOOLKIT_TYPE
 machfile
 opsysfile
-carbon_appdir
 ns_appdir
 ns_appbindir
 ns_appresdir
@@ -1334,9 +1333,6 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-carbon-app[=DIR]
-                          specify install directory for Emacs.app on Mac OS X
-                          [DIR=/Application]
   --enable-cocoa-experimental-ctrl-g        enable experimental improved ctrl-g recognition
   --disable-ns-self-contained        disable self contained build under NS
   --enable-asserts        compile code with asserts enabled
@@ -1373,7 +1369,6 @@ Optional Packages:
                           don't use Motif or Xaw3d scroll bars
   --without-xaw3d         don't use Xaw3d
   --without-xim           don't use X11 XIM
-  --with-carbon           use Carbon GUI on Mac OS X. This is unsupported!
   --with-ns               use nextstep (Cocoa or GNUstep) windowing system
   --without-gpm           don't use -lgpm for mouse support on a GNU/Linux
                           console
@@ -2087,14 +2082,6 @@ else
 fi
 
 
-# Check whether --with-carbon was given.
-if test "${with_carbon+set}" = set; then
-  withval=$with_carbon;
-else
-      with_carbon=no
-fi
-
-
 # Check whether --with-ns was given.
 if test "${with_ns+set}" = set; then
   withval=$with_ns;
@@ -2164,12 +2151,6 @@ if test "X${with_pkg_config_prog}" != X; then
       PKG_CONFIG="${with_pkg_config_prog}"
    fi
 fi
-
-# Check whether --enable-carbon-app was given.
-if test "${enable_carbon_app+set}" = set; then
-  enableval=$enable_carbon_app;  carbon_appdir_x=${enableval}
-fi
-
 
 # Check whether --enable-cocoa-experimental-ctrl-g was given.
 if test "${enable_cocoa_experimental_ctrl_g+set}" = set; then
@@ -9193,141 +9174,6 @@ else
   fi
 fi
 
-HAVE_CARBON=no
-if test "${with_carbon}" != no; then
-  if test "${ac_cv_header_Carbon_Carbon_h+set}" = set; then
-  { echo "$as_me:$LINENO: checking for Carbon/Carbon.h" >&5
-echo $ECHO_N "checking for Carbon/Carbon.h... $ECHO_C" >&6; }
-if test "${ac_cv_header_Carbon_Carbon_h+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-fi
-{ echo "$as_me:$LINENO: result: $ac_cv_header_Carbon_Carbon_h" >&5
-echo "${ECHO_T}$ac_cv_header_Carbon_Carbon_h" >&6; }
-else
-  # Is the header compilable?
-{ echo "$as_me:$LINENO: checking Carbon/Carbon.h usability" >&5
-echo $ECHO_N "checking Carbon/Carbon.h usability... $ECHO_C" >&6; }
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-#include <Carbon/Carbon.h>
-_ACEOF
-rm -f conftest.$ac_objext
-if { (ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_compile") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest.$ac_objext; then
-  ac_header_compiler=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_header_compiler=no
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-{ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
-echo "${ECHO_T}$ac_header_compiler" >&6; }
-
-# Is the header present?
-{ echo "$as_me:$LINENO: checking Carbon/Carbon.h presence" >&5
-echo $ECHO_N "checking Carbon/Carbon.h presence... $ECHO_C" >&6; }
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <Carbon/Carbon.h>
-_ACEOF
-if { (ac_try="$ac_cpp conftest.$ac_ext"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       }; then
-  ac_header_preproc=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-  ac_header_preproc=no
-fi
-
-rm -f conftest.err conftest.$ac_ext
-{ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
-echo "${ECHO_T}$ac_header_preproc" >&6; }
-
-# So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
-  yes:no: )
-    { echo "$as_me:$LINENO: WARNING: Carbon/Carbon.h: accepted by the compiler, rejected by the preprocessor!" >&5
-echo "$as_me: WARNING: Carbon/Carbon.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
-    { echo "$as_me:$LINENO: WARNING: Carbon/Carbon.h: proceeding with the compiler's result" >&5
-echo "$as_me: WARNING: Carbon/Carbon.h: proceeding with the compiler's result" >&2;}
-    ac_header_preproc=yes
-    ;;
-  no:yes:* )
-    { echo "$as_me:$LINENO: WARNING: Carbon/Carbon.h: present but cannot be compiled" >&5
-echo "$as_me: WARNING: Carbon/Carbon.h: present but cannot be compiled" >&2;}
-    { echo "$as_me:$LINENO: WARNING: Carbon/Carbon.h:     check for missing prerequisite headers?" >&5
-echo "$as_me: WARNING: Carbon/Carbon.h:     check for missing prerequisite headers?" >&2;}
-    { echo "$as_me:$LINENO: WARNING: Carbon/Carbon.h: see the Autoconf documentation" >&5
-echo "$as_me: WARNING: Carbon/Carbon.h: see the Autoconf documentation" >&2;}
-    { echo "$as_me:$LINENO: WARNING: Carbon/Carbon.h:     section \"Present But Cannot Be Compiled\"" >&5
-echo "$as_me: WARNING: Carbon/Carbon.h:     section \"Present But Cannot Be Compiled\"" >&2;}
-    { echo "$as_me:$LINENO: WARNING: Carbon/Carbon.h: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: Carbon/Carbon.h: proceeding with the preprocessor's result" >&2;}
-    { echo "$as_me:$LINENO: WARNING: Carbon/Carbon.h: in the future, the compiler will take precedence" >&5
-echo "$as_me: WARNING: Carbon/Carbon.h: in the future, the compiler will take precedence" >&2;}
-
-    ;;
-esac
-{ echo "$as_me:$LINENO: checking for Carbon/Carbon.h" >&5
-echo $ECHO_N "checking for Carbon/Carbon.h... $ECHO_C" >&6; }
-if test "${ac_cv_header_Carbon_Carbon_h+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_cv_header_Carbon_Carbon_h=$ac_header_preproc
-fi
-{ echo "$as_me:$LINENO: result: $ac_cv_header_Carbon_Carbon_h" >&5
-echo "${ECHO_T}$ac_cv_header_Carbon_Carbon_h" >&6; }
-
-fi
-if test $ac_cv_header_Carbon_Carbon_h = yes; then
-  HAVE_CARBON=yes
-fi
-
-
-  test "${HAVE_CARBON}" = yes && window_system=mac
-fi
-
 HAVE_NS=no
 NS_IMPL_COCOA=no
 NS_IMPL_GNUSTEP=no
@@ -9488,7 +9334,6 @@ fi
 
 fi
 if test "${HAVE_NS}" = yes; then
-  test "${window_system}" = mac && HAVE_CARBON=no
   window_system=nextstep
   with_xft=no
   with_freetype=no
@@ -9515,7 +9360,7 @@ case "${window_system}" in
       * ) USE_X_TOOLKIT=maybe ;;
     esac
   ;;
-  nextstep | mac | none )
+  nextstep | none )
     HAVE_X_WINDOWS=no
     HAVE_X11=no
     USE_X_TOOLKIT=none
@@ -10908,7 +10753,7 @@ fi
 
 ### Use -lrsvg-2 if available, unless `--with-rsvg=no' is specified.
 HAVE_RSVG=no
-if test "${HAVE_X11}" = "yes" || test "${HAVE_CARBON}" = "yes"; then
+if test "${HAVE_X11}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.0.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
@@ -12496,12 +12341,6 @@ _ACEOF
       USE_TOOLKIT_SCROLL_BARS=yes
     fi
   elif test "${HAVE_GTK}" = "yes"; then
-    cat >>confdefs.h <<\_ACEOF
-#define USE_TOOLKIT_SCROLL_BARS 1
-_ACEOF
-
-    USE_TOOLKIT_SCROLL_BARS=yes
-  elif test "${HAVE_CARBON}" = "yes"; then
     cat >>confdefs.h <<\_ACEOF
 #define USE_TOOLKIT_SCROLL_BARS 1
 _ACEOF
@@ -14982,164 +14821,6 @@ fi
 
 
 
-### Use Mac OS X Carbon API to implement GUI.
-if test "${HAVE_CARBON}" = "yes"; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_CARBON 1
-_ACEOF
-
-
-for ac_header in AvailabilityMacros.h
-do
-as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  { echo "$as_me:$LINENO: checking for $ac_header" >&5
-echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-fi
-ac_res=`eval echo '${'$as_ac_Header'}'`
-	       { echo "$as_me:$LINENO: result: $ac_res" >&5
-echo "${ECHO_T}$ac_res" >&6; }
-else
-  # Is the header compilable?
-{ echo "$as_me:$LINENO: checking $ac_header usability" >&5
-echo $ECHO_N "checking $ac_header usability... $ECHO_C" >&6; }
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-#include <$ac_header>
-_ACEOF
-rm -f conftest.$ac_objext
-if { (ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_compile") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest.$ac_objext; then
-  ac_header_compiler=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_header_compiler=no
-fi
-
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-{ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
-echo "${ECHO_T}$ac_header_compiler" >&6; }
-
-# Is the header present?
-{ echo "$as_me:$LINENO: checking $ac_header presence" >&5
-echo $ECHO_N "checking $ac_header presence... $ECHO_C" >&6; }
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <$ac_header>
-_ACEOF
-if { (ac_try="$ac_cpp conftest.$ac_ext"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } >/dev/null && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       }; then
-  ac_header_preproc=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-  ac_header_preproc=no
-fi
-
-rm -f conftest.err conftest.$ac_ext
-{ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
-echo "${ECHO_T}$ac_header_preproc" >&6; }
-
-# So?  What about this header?
-case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
-  yes:no: )
-    { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
-echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the compiler's result" >&5
-echo "$as_me: WARNING: $ac_header: proceeding with the compiler's result" >&2;}
-    ac_header_preproc=yes
-    ;;
-  no:yes:* )
-    { echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
-echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header:     check for missing prerequisite headers?" >&5
-echo "$as_me: WARNING: $ac_header:     check for missing prerequisite headers?" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: see the Autoconf documentation" >&5
-echo "$as_me: WARNING: $ac_header: see the Autoconf documentation" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&5
-echo "$as_me: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
-echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
-    { echo "$as_me:$LINENO: WARNING: $ac_header: in the future, the compiler will take precedence" >&5
-echo "$as_me: WARNING: $ac_header: in the future, the compiler will take precedence" >&2;}
-
-    ;;
-esac
-{ echo "$as_me:$LINENO: checking for $ac_header" >&5
-echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6; }
-if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  eval "$as_ac_Header=\$ac_header_preproc"
-fi
-ac_res=`eval echo '${'$as_ac_Header'}'`
-	       { echo "$as_me:$LINENO: result: $ac_res" >&5
-echo "${ECHO_T}$ac_res" >&6; }
-
-fi
-if test `eval echo '${'$as_ac_Header'}'` = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-
-done
-
-  ## Specify the install directory
-  carbon_appdir=
-  if test "${carbon_appdir_x}" != ""; then
-    case ${carbon_appdir_x} in
-      y | ye | yes)  carbon_appdir=/Applications ;;
-      * ) carbon_appdir=${carbon_appdir_x} ;;
-    esac
-  fi
-  # We also have mouse menus.
-  HAVE_MENUS=yes
-fi
 ### Use NeXTstep API to implement GUI.
 if test "${HAVE_NS}" = "yes"; then
 
@@ -24191,7 +23872,6 @@ fi
 
 
 
-
 cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIGURATION "${canonical}"
 _ACEOF
@@ -24358,16 +24038,6 @@ if test "$USE_X_TOOLKIT" = GTK; then
   toolkit for Emacs.  See etc/PROBLEMS for more information."
   ;;
   esac
-fi
-
-
-if test "$HAVE_CARBON" = "yes"; then
-   echo
-   echo "Warning: The Mac Carbon port is currently unsupported and has
-known problems.  It is not recommended for use by non-developers.
-The NeXTstep port (--with-ns) is an alternative.
-Read the emacs-devel archives for more information."
-   echo
 fi
 
 if test "$HAVE_NS" = "yes"; then
@@ -25228,7 +24898,6 @@ C_SWITCH_X_SITE!$C_SWITCH_X_SITE$ac_delim
 X_TOOLKIT_TYPE!$X_TOOLKIT_TYPE$ac_delim
 machfile!$machfile$ac_delim
 opsysfile!$opsysfile$ac_delim
-carbon_appdir!$carbon_appdir$ac_delim
 ns_appdir!$ns_appdir$ac_delim
 ns_appbindir!$ns_appbindir$ac_delim
 ns_appresdir!$ns_appresdir$ac_delim
@@ -25237,7 +24906,7 @@ GNUSTEP_MAKEFILES!$GNUSTEP_MAKEFILES$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 27; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 26; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

@@ -67,8 +67,6 @@ to the system configuration; look at `system-configuration' instead."
 		       ((featurep 'x-toolkit) ", X toolkit")
 		       ((featurep 'ns)
 			(format ", *Step %s" ns-version-string))
-		       ((boundp 'mac-carbon-version-string)
-			(concat ", Carbon Version " mac-carbon-version-string))
 		       (t ""))
 		 (if (and (boundp 'x-toolkit-scroll-bars)
 			  (memq x-toolkit-scroll-bars '(xaw xaw3d)))

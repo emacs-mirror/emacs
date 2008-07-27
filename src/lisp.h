@@ -157,7 +157,7 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 #endif
 
 /* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
-#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined MAC_OSX || defined(NS_IMPL_COCOA)
+#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined(NS_IMPL_COCOA)
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
 /* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
@@ -3325,28 +3325,8 @@ extern void syms_of_xterm P_ ((void));
 EXFUN (Fmsdos_downcase_filename, 1);
 #endif
 
-#ifdef MAC_OS
-/* Defined in macfns.c */
-extern void syms_of_macfns P_ ((void));
-
-/* Defined in macselect.c */
-extern void syms_of_macselect P_ ((void));
-
-/* Defined in macterm.c */
-extern void syms_of_macterm P_ ((void));
-
-/* Defined in macmenu.c */
-extern void syms_of_macmenu P_ ((void));
-
-/* Defined in mac.c */
-extern void syms_of_mac P_ ((void));
-#ifdef MAC_OSX
-extern void init_mac_osx_environment P_ ((void));
-#endif /* MAC_OSX */
-#endif /* MAC_OS */
-
 #ifdef HAVE_MENUS
-/* Defined in (x|mac|w32)fns.c...  */
+/* Defined in (x|w32)fns.c...  */
 extern int have_menus_p P_ ((void));
 #endif
 

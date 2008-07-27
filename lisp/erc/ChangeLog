@@ -1,3 +1,7 @@
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* erc.el: Remove code for Carbon.
+
 2008-06-07  Glenn Morris  <rgm@gnu.org>
 
 	* erc/erc-autoaway.el, erc/erc-ibuffer.el, erc/erc-menu.el:

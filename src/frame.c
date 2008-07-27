@@ -29,9 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #include "w32term.h"
 #endif
-#ifdef MAC_OS
-#include "macterm.h"
-#endif
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
@@ -206,7 +203,6 @@ DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
 Value is t for a termcap frame (a character-only terminal),
 `x' for an Emacs frame that is really an X window,
 `w32' for an Emacs frame that is a window on MS-Windows display,
-`mac' for an Emacs frame on a Macintosh Carbon display,
 `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
 `pc' for a direct-write MS-DOS frame.
 See also `frame-live-p'.  */)
@@ -702,16 +698,9 @@ affects all frames on the same terminal device.  */)
     abort ();
 #else /* not MSDOS */
 
-#if 0
-  /* This can happen for multi-tty when using both terminal frames and
-     Carbon frames. */
-  if (sf->output_method != output_mac)
-    error ("Not running on a Macintosh screen; cannot make a new Macintosh frame");
-#else
 #if 0                           /* This should work now! */
   if (sf->output_method != output_termcap)
     error ("Not using an ASCII terminal now; cannot make a new ASCII frame");
-#endif
 #endif
 #endif /* not MSDOS */
 
@@ -1468,10 +1457,6 @@ But FORCE inhibits this too.  */)
   /* Clear any X selections for this frame.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
-    x_clear_frame_selections (f);
-#endif
-#ifdef MAC_OS
-  if (FRAME_MAC_P (f))
     x_clear_frame_selections (f);
 #endif
 
@@ -4500,7 +4485,7 @@ Setting this variable does not affect existing frames, only new ones.  */);
   DEFVAR_LISP ("default-frame-scroll-bars", &Vdefault_frame_scroll_bars,
 	       doc: /* Default position of scroll bars on this window-system.  */);
 #ifdef HAVE_WINDOW_SYSTEM
-#if defined(HAVE_NTGUI) || defined(MAC_OS) || defined(NS_IMPL_COCOA)
+#if defined(HAVE_NTGUI) || defined(NS_IMPL_COCOA)
   /* MS-Windows and Mac OS X have scroll bars on the right by default.  */
   Vdefault_frame_scroll_bars = Qright;
 #else
@@ -4567,7 +4552,7 @@ You should set this variable to tell Emacs how your window manager
 handles focus, since there is no way in general for Emacs to find out
 automatically.  */);
 #ifdef HAVE_WINDOW_SYSTEM
-#if defined(HAVE_NTGUI) || defined(MAC_OS) || defined(HAVE_NS)
+#if defined(HAVE_NTGUI) || defined(HAVE_NS)
   focus_follows_mouse = 0;
 #else
   focus_follows_mouse = 1;

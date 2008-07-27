@@ -1667,8 +1667,6 @@ Scroll-bar or mode-line events are processed appropriately."
 ;; Scroll-bar functions:
 (if (fboundp 'scroll-bar-toolkit-scroll)
     (put 'scroll-bar-toolkit-scroll 'isearch-scroll t))
-(if (fboundp 'mac-handle-scroll-bar-event)
-    (put 'mac-handle-scroll-bar-event 'isearch-scroll t))
 (if (fboundp 'w32-handle-scroll-bar-event)
     (put 'w32-handle-scroll-bar-event 'isearch-scroll t))
 

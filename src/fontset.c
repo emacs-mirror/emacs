@@ -50,9 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
-#ifdef MAC_OS
-#include "macterm.h"
-#endif
 #include "termhooks.h"
 
 #include "font.h"

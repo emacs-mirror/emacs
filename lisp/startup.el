@@ -886,7 +886,7 @@ opening the first frame (e.g. open a connection to an X server).")
   ;; only because all other settings of no-blinking-cursor are here.
   (unless (or noninteractive
 	      emacs-basic-display
-	      (and (memq window-system '(x w32 mac ns))
+	      (and (memq window-system '(x w32 ns))
 		   (not (member (x-get-resource "cursorBlink" "CursorBlink")
 				'("off" "false")))))
     (setq no-blinking-cursor t))

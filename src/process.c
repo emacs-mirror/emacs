@@ -7268,7 +7268,7 @@ init_process ()
  }
 #endif /* HAVE_SOCKETS */
 
-#if defined (DARWIN) || defined (MAC_OSX)
+#if defined (DARWIN)
   /* PTYs are broken on Darwin < 6, but are sometimes useful for interactive
      processes.  As such, we only change the default value.  */
  if (initialized)

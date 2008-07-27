@@ -351,8 +351,8 @@ int fatal_error_in_progress;
 void (*fatal_error_signal_hook) P_ ((void));
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-/* When compiled with GTK and running under Gnome, or Carbon under Mac
-   OS X, multiple threads may be created.  Keep track of our main
+/* When compiled with GTK and running under Gnome,
+   multiple threads may be created.  Keep track of our main
    thread to make sure signals are delivered to it (see syssignal.h).  */
 
 pthread_t main_thread;
@@ -837,7 +837,7 @@ main (argc, argv
     run_time_remap (argv[0]);
 #endif
 
-#if defined (MAC_OSX) || defined (NS_IMPL_COCOA)
+#if defined (NS_IMPL_COCOA)
   if (!initialized)
     unexec_init_emacs_zone ();
 #endif
@@ -920,19 +920,6 @@ main (argc, argv
       skip_args = 0;
     }
 #endif
-
-#ifdef MAC_OSX
-  /* Skip process serial number passed in the form -psn_x_y as
-     command-line argument.  The WindowServer adds this option when
-     Emacs is invoked from the Finder or by the `open' command.  In
-     these cases, the working directory becomes `/', so we change it
-     to the user's home directory.  */
-  if (argc > skip_args + 1 && strncmp (argv[skip_args+1], "-psn_", 5) == 0)
-    {
-      chdir (getenv ("HOME"));
-      skip_args++;
-    }
-#endif /* MAC_OSX */
 
 #ifdef VMS
   /* If -map specified, map the data file in.  */
@@ -1284,27 +1271,6 @@ main (argc, argv
 	 CANNOT_DUMP is defined.  */
       syms_of_keyboard ();
 
-#ifdef MAC_OS8
-      /* init_window_once calls make_terminal_frame which on Mac OS
-         creates a full-fledge output_mac type frame.  This does not
-         work correctly before syms_of_textprop, syms_of_macfns,
-         syms_of_ccl, syms_of_fontset, syms_of_xterm, syms_of_search,
-         syms_of_frame, mac_term_init, and init_keyboard have already
-         been called.  */
-      syms_of_textprop ();
-      syms_of_macfns ();
-      syms_of_ccl ();
-      syms_of_fontset ();
-      syms_of_macterm ();
-      syms_of_macmenu ();
-      syms_of_macselect ();
-      syms_of_search ();
-      syms_of_frame ();
-
-      init_atimer ();
-      mac_term_init (build_string ("Mac"), NULL, NULL);
-      init_keyboard ();
-#endif
       /* Called before syms_of_fileio, because it sets up Qerror_condition.  */
       syms_of_data ();
       syms_of_fileio ();
@@ -1508,11 +1474,6 @@ main (argc, argv
   init_ntproc ();	/* must precede init_editfns.  */
 #endif
 
-#if defined (MAC_OSX) && defined (HAVE_CARBON)
-  if (initialized)
-    init_mac_osx_environment ();
-#endif
-
 #ifdef HAVE_NS
 #ifndef CANNOT_DUMP
   if (initialized)
@@ -1558,7 +1519,6 @@ main (argc, argv
       /* The basic levels of Lisp must come first.  */
       /* And data must come first of all
 	 for the sake of symbols like error-message.  */
-      /* Called before init_window_once for Mac OS Classic.  */
       syms_of_data ();
       syms_of_chartab ();
       syms_of_lread ();
@@ -1640,14 +1600,6 @@ main (argc, argv
       syms_of_w32menu ();
       syms_of_fontset ();
 #endif /* HAVE_NTGUI */
-
-#if defined (MAC_OSX) && defined (HAVE_CARBON)
-      syms_of_macterm ();
-      syms_of_macfns ();
-      syms_of_macmenu ();
-      syms_of_macselect ();
-      syms_of_fontset ();
-#endif /* MAC_OSX && HAVE_CARBON */
 
 #ifdef HAVE_NS
       syms_of_nsterm ();

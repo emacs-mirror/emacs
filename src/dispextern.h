@@ -61,14 +61,6 @@ typedef XImage *XImagePtr;
 typedef HDC XImagePtr_or_DC;
 #endif
 
-#ifdef MAC_OS
-#include "macgui.h"
-typedef struct mac_display_info Display_Info;
-/* Mac equivalent of XImage.  */
-typedef Pixmap XImagePtr;
-typedef XImagePtr XImagePtr_or_DC;
-#endif
-
 #ifdef HAVE_NS
 #include "nsgui.h"
 /* following typedef needed to accomodate the MSDOS port, believe it or not */
@@ -1220,7 +1212,7 @@ struct glyph_string
   unsigned padding_p : 1;
 
   /* The GC to use for drawing this glyph string.  */
-#if defined(HAVE_X_WINDOWS) || defined(MAC_OS)
+#if defined(HAVE_X_WINDOWS)
   GC gc;
 #endif
 #if defined(HAVE_NTGUI)
@@ -2814,10 +2806,6 @@ void compute_fringe_widths P_ ((struct frame *, int));
 void w32_init_fringe P_ ((struct redisplay_interface *));
 void w32_reset_fringes P_ ((void));
 #endif
-#ifdef MAC_OS
-void mac_init_fringe P_ ((struct redisplay_interface *));
-#endif
-
 /* Defined in image.c */
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2922,9 +2910,6 @@ void gamma_correct P_ ((struct frame *, XColor *));
 #endif
 #ifdef WINDOWSNT
 void gamma_correct P_ ((struct frame *, COLORREF *));
-#endif
-#ifdef MAC_OS
-void gamma_correct P_ ((struct frame *, unsigned long *));
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM

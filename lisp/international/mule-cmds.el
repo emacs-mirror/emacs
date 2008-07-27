@@ -35,7 +35,6 @@
 (autoload 'widget-value "wid-edit")
 
 (defvar mac-system-coding-system)
-(defvar mac-system-locale)
 
 ;;; MULE related key bindings and menus.
 
@@ -148,7 +147,7 @@
   t)
 (define-key-after set-coding-system-map [set-terminal-coding-system]
   '(menu-item "For Terminal" set-terminal-coding-system
-	      :enable (null (memq initial-window-system '(x w32 mac ns)))
+	      :enable (null (memq initial-window-system '(x w32 ns)))
 	      :help "How to encode terminal output")
   t)
 (define-key-after set-coding-system-map [separator-3]
@@ -2502,18 +2501,6 @@ See also `locale-charset-language-names', `locale-language-names',
 		    (= 0 (length locale))) ; nil or empty string
 	  (setq locale (getenv (pop vars) frame)))))
 
-    (unless locale
-      ;; The two tests are kept separate so the byte-compiler sees
-      ;; that mac-get-preference is only called after checking its existence.
-      (when (fboundp 'mac-get-preference)
-        (setq locale (mac-get-preference "AppleLocale"))
-        (unless locale
-          (let ((languages (mac-get-preference "AppleLanguages")))
-            (unless (= (length languages) 0) ; nil or empty vector
-              (setq locale (aref languages 0)))))))
-    (unless (or locale (not (boundp 'mac-system-locale)))
-      (setq locale mac-system-locale))
-
     (when locale
       (setq locale (locale-translate locale))
 
@@ -2546,8 +2533,7 @@ See also `locale-charset-language-names', `locale-language-names',
 		 (when locale
 		   (if (string-match "\\.\\([^@]+\\)" locale)
 		       (locale-charset-to-coding-system
-			(match-string 1 locale))))
-		 (and (eq system-type 'macos) mac-system-coding-system))))
+			(match-string 1 locale)))))))
 
 	(if (consp language-name)
 	    ;; locale-language-names specify both lang-env and coding.

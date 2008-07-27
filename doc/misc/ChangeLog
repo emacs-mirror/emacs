@@ -1,3 +1,8 @@
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ns-emacs.texi:
+	* faq.texi: Remove mentions of Mac Carbon.
+
 2008-07-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Saving Articles): Describe the 2nd argument of

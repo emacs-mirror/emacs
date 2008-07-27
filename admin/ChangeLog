@@ -1,3 +1,10 @@
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* make-tarball.txt:
+	* admin.el:
+	* FOR-RELEASE:
+	* CPP-DEFINES: Remove mentions of Mac Carbon.
+
 2008-07-16  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-version, set-copyright): Add nextstep/ files.

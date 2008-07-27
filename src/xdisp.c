@@ -196,9 +196,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #include "w32term.h"
 #endif
-#ifdef MAC_OS
-#include "macterm.h"
-#endif
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
@@ -211,7 +208,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define INFINITY 10000000
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined(HAVE_NS) || defined (USE_GTK)
 extern void set_frame_menubar P_ ((struct frame *f, int, int));
 extern int pending_menu_activation;
@@ -1760,9 +1757,7 @@ glyph_to_pixel_coords (w, hpos, vpos, frame_x, frame_y)
    text, or we can't tell because W's current matrix is not up to
    date.  */
 
-#ifndef HAVE_CARBON
 static
-#endif
 struct glyph *
 x_y_to_hpos_vpos (w, x, y, hpos, vpos, dx, dy, area)
      struct window *w;
@@ -9603,9 +9598,6 @@ prepare_menu_bars ()
 	  menu_bar_hooks_run = update_menu_bar (f, 0, menu_bar_hooks_run);
 #ifdef HAVE_WINDOW_SYSTEM
 	  update_tool_bar (f, 0);
-#ifdef MAC_OS
-	  mac_update_title_bar (f, 0);
-#endif
 #endif
 	  UNGCPRO;
 	}
@@ -9618,9 +9610,6 @@ prepare_menu_bars ()
       update_menu_bar (sf, 1, 0);
 #ifdef HAVE_WINDOW_SYSTEM
       update_tool_bar (sf, 1);
-#ifdef MAC_OS
-      mac_update_title_bar (sf, 1);
-#endif
 #endif
     }
 
@@ -9672,7 +9661,7 @@ update_menu_bar (f, save_match_data, hooks_run)
 
   if (FRAME_WINDOW_P (f)
       ?
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined (HAVE_NS) || defined (USE_GTK)
       FRAME_EXTERNAL_MENU_BAR (f)
 #else
@@ -9731,11 +9720,11 @@ update_menu_bar (f, save_match_data, hooks_run)
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 
 	  /* Redisplay the menu bar in case we changed it.  */
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined (HAVE_NS) || defined (USE_GTK)
 	  if (FRAME_WINDOW_P (f))
             {
-#if defined (MAC_OS) || defined (HAVE_NS)
+#if defined (HAVE_NS)
               /* All frames on Mac OS share the same menubar.  So only
                  the selected frame should be allowed to set it.  */
               if (f == SELECTED_FRAME ())
@@ -9746,11 +9735,11 @@ update_menu_bar (f, save_match_data, hooks_run)
 	    /* On a terminal screen, the menu bar is an ordinary screen
 	       line, and this makes it get updated.  */
 	    w->update_mode_line = Qt;
-#else /* ! (USE_X_TOOLKIT || HAVE_NTGUI || MAC_OS || HAVE_NS || USE_GTK) */
+#else /* ! (USE_X_TOOLKIT || HAVE_NTGUI || HAVE_NS || USE_GTK) */
 	  /* In the non-toolkit version, the menu bar is an ordinary screen
 	     line, and this makes it get updated.  */
 	  w->update_mode_line = Qt;
-#endif /* ! (USE_X_TOOLKIT || HAVE_NTGUI || MAC_OS || HAVE_NS || USE_GTK) */
+#endif /* ! (USE_X_TOOLKIT || HAVE_NTGUI || HAVE_NS || USE_GTK) */
 
 	  unbind_to (count, Qnil);
 	  set_buffer_internal_1 (prev);
@@ -11357,7 +11346,7 @@ redisplay_internal (preserve_echo_area)
 	return;
     }
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   if (popup_activated ())
     return;
 #endif
@@ -13962,7 +13951,7 @@ redisplay_window (window, just_this_one_p)
 
       if (FRAME_WINDOW_P (f))
 	{
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined (HAVE_NS) || defined (USE_GTK)
 	  redisplay_menu_p = FRAME_EXTERNAL_MENU_BAR (f);
 #else
@@ -17115,10 +17104,6 @@ display_menu_bar (w)
 #endif
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   if (FRAME_X_P (f))
-    return;
-#endif
-#ifdef MAC_OS
-  if (FRAME_MAC_P (f))
     return;
 #endif
 
@@ -22816,9 +22801,7 @@ cursor_in_mouse_face_p (w)
 	 in 20.x as well, and I think it's too risky to install
 	 so near the release of 21.1.  2001-09-25 gerd.  */
 
-#ifndef HAVE_CARBON
 static
-#endif
 int
 fast_find_position (w, charpos, hpos, vpos, x, y, stop)
      struct window *w;
@@ -23530,7 +23513,7 @@ note_mouse_highlight (f, x, y)
   struct buffer *b;
 
   /* When a menu is active, don't highlight because this looks odd.  */
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   if (popup_activated ())
     return;
 #endif

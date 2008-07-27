@@ -76,10 +76,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32term.h"
 #endif /* HAVE_NTGUI */
 
-#ifdef MAC_OS
-#include "macterm.h"
-#endif
-
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
@@ -479,14 +475,11 @@ Lisp_Object Qmouse_fixup_help_message;
 /* Symbols to denote kinds of events.  */
 Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
-#if defined (WINDOWSNT) || defined (MAC_OS)
+#if defined (WINDOWSNT)
 Lisp_Object Qlanguage_change;
 #endif
 Lisp_Object Qdrag_n_drop;
 Lisp_Object Qsave_session;
-#ifdef MAC_OS
-Lisp_Object Qmac_apple_event;
-#endif
 #ifdef HAVE_DBUS
 Lisp_Object Qdbus_event;
 #endif
@@ -4149,7 +4142,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 #endif
 	}
 
-#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+#if defined (HAVE_X11) || defined (HAVE_NTGUI) \
     || defined (HAVE_NS)
       else if (event->kind == DELETE_WINDOW_EVENT)
 	{
@@ -4159,7 +4152,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
-#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+#if defined (HAVE_X11) || defined (HAVE_NTGUI) \
     || defined (HAVE_NS)
       else if (event->kind == ICONIFY_EVENT)
 	{
@@ -4182,7 +4175,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	  XSETBUFFER (obj, current_buffer);
 	  kbd_fetch_ptr = event + 1;
 	}
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined(HAVE_NS) || defined (USE_GTK)
       else if (event->kind == MENU_BAR_ACTIVATE_EVENT)
 	{
@@ -4192,16 +4185,11 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	    x_activate_menubar (XFRAME (event->frame_or_window));
 	}
 #endif
-#if defined (WINDOWSNT) || defined (MAC_OS)
+#if defined (WINDOWSNT)
       else if (event->kind == LANGUAGE_CHANGE_EVENT)
 	{
-#ifdef MAC_OS
-	  /* Make an event (language-change (KEY_SCRIPT)).  */
-	  obj = Fcons (make_number (event->code), Qnil);
-#else
 	  /* Make an event (language-change (FRAME CHARSET LCID)).  */
 	  obj = Fcons (event->frame_or_window, Qnil);
-#endif
 	  obj = Fcons (Qlanguage_change, Fcons (obj, Qnil));
 	  kbd_fetch_ptr = event + 1;
 	}
@@ -4292,7 +4280,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	    {
 	      obj = make_lispy_event (event);
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined(MAC_OS) \
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined(HAVE_NS) || defined (USE_GTK)
 	      /* If this was a menu selection, then set the flag to inhibit
 		 writing to last_nonmenu_event.  Don't do this if the event
@@ -6095,7 +6083,7 @@ make_lispy_event (event)
       }
 #endif /* HAVE_MOUSE */
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined(HAVE_NS) || defined (USE_GTK)
     case MENU_BAR_EVENT:
       if (EQ (event->arg, event->frame_or_window))
@@ -6133,19 +6121,6 @@ make_lispy_event (event)
 
     case SAVE_SESSION_EVENT:
       return Qsave_session;
-
-#ifdef MAC_OS
-    case MAC_APPLE_EVENT:
-      {
-	Lisp_Object spec[2];
-
-	spec[0] = event->x;
-	spec[1] = event->y;
-	return Fcons (Qmac_apple_event,
-		      Fcons (Fvector (2, spec),
-			     Fcons (event->arg, Qnil)));
-      }
-#endif
 
 #ifdef HAVE_DBUS
     case DBUS_EVENT:
@@ -11767,7 +11742,7 @@ syms_of_keyboard ()
   staticpro (&Qfunction_key);
   Qmouse_click = intern ("mouse-click");
   staticpro (&Qmouse_click);
-#if defined (WINDOWSNT) || defined (MAC_OS)
+#if defined (WINDOWSNT)
   Qlanguage_change = intern ("language-change");
   staticpro (&Qlanguage_change);
 #endif
@@ -11776,11 +11751,6 @@ syms_of_keyboard ()
 
   Qsave_session = intern ("save-session");
   staticpro (&Qsave_session);
-
-#ifdef MAC_OS
-  Qmac_apple_event = intern ("mac-apple-event");
-  staticpro (&Qmac_apple_event);
-#endif
 
 #ifdef HAVE_DBUS
   Qdbus_event = intern ("dbus-event");

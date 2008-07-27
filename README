@@ -84,8 +84,6 @@ There are several subdirectories:
 `vms'       holds instructions and useful files for running Emacs under VMS.
 `nt'        holds various command files and documentation files that pertain
             to building and running Emacs on Windows 9X/ME/NT/2000/XP.
-`mac'       holds instructions, sources, and other useful files for building
-            and running Emacs on the Mac.
 `test'      holds tests for various aspects of Emacs's functionality.
 
    Building Emacs on non-Posix platforms requires to install tools

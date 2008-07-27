@@ -1,3 +1,7 @@
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xresources.texi: Remove mentions of Mac Carbon.
+
 2008-07-19  Andreas Schwab  <schwab@suse.de>
 
 	* ns-emacs.texi: Move to ../misc.

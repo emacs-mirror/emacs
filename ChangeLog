@@ -1,3 +1,14 @@
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove support for Mac Carbon.
+	* mac: Remove directory.
+	* make-dist:
+	* configure.in:
+	* README:
+	* Makefile.in:
+	* INSTALL:  Remove code for Carbon.
+	* configure: Regenerate.
+
 2008-07-26  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Makefile.in (install-arch-dep): Fix typo in NS installation

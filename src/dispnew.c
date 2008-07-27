@@ -59,10 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32term.h"
 #endif /* HAVE_NTGUI */
 
-#ifdef MAC_OS
-#include "macterm.h"
-#endif /* MAC_OS */
-
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
@@ -6886,16 +6882,6 @@ init_display ()
       return;
     }
 #endif /* HAVE_NTGUI */
-
-#ifdef MAC_OS
-  if (!inhibit_window_system)
-    {
-      Vinitial_window_system = intern ("mac");
-      Vwindow_system_version = make_number (1);
-      adjust_frame_glyphs_initially ();
-      return;
-    }
-#endif /* MAC_OS */
 
 #ifdef HAVE_NS
   if (!inhibit_window_system

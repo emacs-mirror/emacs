@@ -1,3 +1,46 @@
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove support for Mac Carbon.
+	* mactoolbox.c:
+	* macterm.h:
+	* macterm.c:
+	* macselect.c:
+	* macmenu.c:
+	* macgui.h:
+	* macfns.c:
+	* mac.c: Remove file.
+	* s/darwin.h:
+	* m/intel386.h:
+	* xfaces.c:
+	* xdisp.c:
+	* window.c:
+	* tparam.c:
+	* termhooks.h:
+	* termcap.c:
+	* term.c:
+	* syssignal.h:
+	* sysselect.h:
+	* sysdep.c:
+	* process.c:
+	* lread.c:
+	* lisp.h:
+	* keyboard.c:
+	* image.c:
+	* fringe.c:
+	* frame.h:
+	* frame.c:
+	* fontset.c:
+	* font.h:
+	* font.c:
+	* fns.c:
+	* fileio.c:
+	* emacs.c:
+	* dispnew.c:
+	* dispextern.h:
+	* config.in:
+	* atimer.c:
+	* Makefile.in: Remove code for Carbon
+
 2008-07-26 YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (XDrawLine) [USE_MAC_IMAGE_IO]: Remove spurious return.

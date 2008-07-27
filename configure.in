@@ -141,7 +141,6 @@ OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
 OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
-OPTION_DEFAULT_OFF([carbon],[use Carbon GUI on Mac OS X.  This is unsupported!])
 OPTION_DEFAULT_OFF([ns],[use nextstep (Cocoa or GNUstep) windowing system])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
@@ -169,12 +168,6 @@ if test "X${with_pkg_config_prog}" != X; then
       PKG_CONFIG="${with_pkg_config_prog}"
    fi
 fi
-
-AC_ARG_ENABLE(carbon-app,
-[AS_HELP_STRING([--enable-carbon-app@<:@=DIR@:>@],
-                [specify install directory for Emacs.app on Mac OS X
-		 [DIR=/Application]])],
-[ carbon_appdir_x=${enableval}])
 
 AC_ARG_ENABLE(cocoa-experimental-ctrl-g,
 [  --enable-cocoa-experimental-ctrl-g        enable experimental improved ctrl-g recognition],
@@ -1214,12 +1207,6 @@ else
   fi
 fi
 
-HAVE_CARBON=no
-if test "${with_carbon}" != no; then
-  AC_CHECK_HEADER(Carbon/Carbon.h, HAVE_CARBON=yes)
-  test "${HAVE_CARBON}" = yes && window_system=mac
-fi
-
 HAVE_NS=no
 NS_IMPL_COCOA=no
 NS_IMPL_GNUSTEP=no
@@ -1251,7 +1238,6 @@ if test "${with_ns}" != no; then
   AC_CHECK_HEADER(AppKit/AppKit.h, HAVE_NS=yes)
 fi
 if test "${HAVE_NS}" = yes; then
-  test "${window_system}" = mac && HAVE_CARBON=no
   window_system=nextstep
   with_xft=no
   with_freetype=no
@@ -1282,7 +1268,7 @@ dnl use the toolkit if we have gtk, or X11R5 or newer.
       * ) USE_X_TOOLKIT=maybe ;;
     esac
   ;;
-  nextstep | mac | none )
+  nextstep | none )
     HAVE_X_WINDOWS=no
     HAVE_X11=no
     USE_X_TOOLKIT=none
@@ -1475,7 +1461,7 @@ fi
 
 ### Use -lrsvg-2 if available, unless `--with-rsvg=no' is specified.
 HAVE_RSVG=no
-if test "${HAVE_X11}" = "yes" || test "${HAVE_CARBON}" = "yes"; then
+if test "${HAVE_X11}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.0.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
@@ -1749,9 +1735,6 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
       USE_TOOLKIT_SCROLL_BARS=yes
     fi
   elif test "${HAVE_GTK}" = "yes"; then
-    AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
-    USE_TOOLKIT_SCROLL_BARS=yes
-  elif test "${HAVE_CARBON}" = "yes"; then
     AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
     USE_TOOLKIT_SCROLL_BARS=yes
   elif test "${HAVE_NS}" = "yes"; then
@@ -2051,21 +2034,6 @@ fi
 dnl Check for malloc/malloc.h on darwin
 AC_CHECK_HEADER(malloc/malloc.h, [AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.])])
 
-### Use Mac OS X Carbon API to implement GUI.
-if test "${HAVE_CARBON}" = "yes"; then
-  AC_DEFINE(HAVE_CARBON, 1, [Define to 1 if you are using the Carbon API on Mac OS X.])
-  AC_CHECK_HEADERS(AvailabilityMacros.h)
-  ## Specify the install directory
-  carbon_appdir=
-  if test "${carbon_appdir_x}" != ""; then
-    case ${carbon_appdir_x} in
-      y | ye | yes)  carbon_appdir=/Applications ;;
-      * ) carbon_appdir=${carbon_appdir_x} ;;
-    esac
-  fi
-  # We also have mouse menus.
-  HAVE_MENUS=yes
-fi
 ### Use NeXTstep API to implement GUI.
 if test "${HAVE_NS}" = "yes"; then
   AC_DEFINE(HAVE_NS, 1, [Define to 1 if you are using the NeXTstep API, either GNUstep or Cocoa on Mac OS X.])
@@ -2476,7 +2444,6 @@ AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
 AC_SUBST(GETLOADAVG_LIBS)
-AC_SUBST(carbon_appdir)
 AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
 AC_SUBST(ns_appresdir)
@@ -2572,7 +2539,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 AH_BOTTOM([
 /* If we're using X11/Carbon/GNUstep, define some consequences.  */
-#if defined HAVE_X_WINDOWS || defined(HAVE_CARBON) || defined(HAVE_NS)
+#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
 #define HAVE_WINDOW_SYSTEM
 #define MULTI_KBOARD
 #define HAVE_MOUSE
@@ -2588,10 +2555,6 @@ AH_BOTTOM([
 #ifdef NS_IMPL_GNUSTEP
 #define CANNOT_DUMP
 #endif
-
-/* TODO: These are used for the Carbon port only. */
-#undef MAC_OS
-#undef MAC_OSX
 
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
@@ -2636,7 +2599,7 @@ AH_BOTTOM([
 
 /* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
   (There is probably a better place to do this, but right now the Cocoa
-   side does this in s/darwin.h, following the Carbon port, and we cannot
+   side does this in s/darwin.h and we cannot
    parallel this exactly since GNUstep is multi-OS. */
 #ifdef HAVE_NS
 # ifdef C_SWITCH_SYSTEM
@@ -2891,16 +2854,6 @@ if test "$USE_X_TOOLKIT" = GTK; then
   toolkit for Emacs.  See etc/PROBLEMS for more information."
   ;;
   esac
-fi
-
-
-if test "$HAVE_CARBON" = "yes"; then
-   echo
-   echo "Warning: The Mac Carbon port is currently unsupported and has
-known problems.  It is not recommended for use by non-developers.
-The NeXTstep port (--with-ns) is an alternative.
-Read the emacs-devel archives for more information."
-   echo
 fi
 
 if test "$HAVE_NS" = "yes"; then

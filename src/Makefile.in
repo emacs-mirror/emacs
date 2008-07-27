@@ -513,13 +513,6 @@ MSDOS_OBJ = dosfns.o msdos.o w16select.o
 CYGWIN_OBJ = sheap.o
 #endif
 
-#ifdef HAVE_CARBON
-mac = ../mac/
-MAC_OBJ = mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o fringe.o image.o mactoolbox.o
-emacsapp = $(PWD)/$(mac)Emacs.app/
-emacsappsrc = ${srcdir}/../mac/Emacs.app/
-#endif
-
 #ifdef HAVE_NS
 ns_appdir=@ns_appdir@/
 ns_appbindir=@ns_appbindir@/
@@ -557,14 +550,14 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
-	$(MSDOS_OBJ) $(MAC_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_DRIVERS)
+	$(MSDOS_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_DRIVERS)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
    in case they are needed there.  */
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
-  mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o \
+  fontset.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_DRIVERS)
@@ -1089,7 +1082,7 @@ filelock.o: filelock.c buffer.h character.h charset.h coding.h systime.h \
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    blockinput.h atimer.h systime.h buffer.h character.h fontset.h font.h    \
-   msdos.h dosfns.h dispextern.h w32term.h macterm.h macgui.h termchar.h    \
+   msdos.h dosfns.h dispextern.h w32term.h termchar.h    \
    $(config_h)
 fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhooks.h $(config_h)
 font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \
@@ -1099,7 +1092,7 @@ fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h character.h \
    charset.h frame.h keyboard.h termhooks.h font.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 image.o: image.c frame.h window.h dispextern.h blockinput.h atimer.h \
-   systime.h xterm.h w32term.h w32gui.h macterm.h macgui.h font.h \
+   systime.h xterm.h w32term.h w32gui.h font.h \
    nsterm.h nsgui.h $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h character.h category.h composite.h \
@@ -1109,7 +1102,7 @@ insdel.o: insdel.c window.h buffer.h $(INTERVAL_SRC) blockinput.h character.h \
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h character.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systime.h dispextern.h syntax.h $(INTERVAL_SRC) blockinput.h atimer.h     \
-   xterm.h puresize.h msdos.h keymap.h w32term.h macterm.h macgui.h nsterm.h \
+   xterm.h puresize.h msdos.h keymap.h w32term.h nsterm.h \
    $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
    atimer.h systime.h puresize.h character.h intervals.h keymap.h window.h \
@@ -1176,15 +1169,15 @@ widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    disptab.h keyboard.h dispextern.h msdos.h composite.h \
    keymap.h blockinput.h atimer.h systime.h $(INTERVAL_SRC) \
-   xterm.h w32term.h macterm.h macgui.h nsterm.h $(config_h)
+   xterm.h w32term.h nsterm.h $(config_h)
 xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h \
    coding.h termchar.h frame.h window.h disptab.h termhooks.h character.h     \
    charset.h $(config_h) keyboard.h $(INTERVAL_SRC) region-cache.h xterm.h    \
-   w32term.h macterm.h macgui.h nsterm.h msdos.h composite.h fontset.h	      \
+   w32term.h nsterm.h msdos.h composite.h fontset.h	      \
    blockinput.h atimer.h systime.h keymap.h font.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h	\
    window.h character.h charset.h msdos.h dosfns.h composite.h atimer.h	\
-   systime.h keyboard.h fontset.h w32term.h macterm.h macgui.h nsterm.h	\
+   systime.h keyboard.h fontset.h w32term.h nsterm.h	\
    $(INTERVAL_SRC) termchar.h termhooks.h font.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
@@ -1251,53 +1244,6 @@ composite.o: composite.c buffer.h  character.h $(INTERVAL_SRC) $(config_h)
 /* System-specific programs to be made.
    OTHER_FILES and OBJECTS_MACHINE
    select which of these should be compiled.  */
-
-#ifdef HAVE_CARBON
-buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
-  fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
-  scroll.o sysdep.o term.o terminal.o widget.o window.o xdisp.o xfaces.o xfns.o xmenu.o \
-  xterm.o xselect.o sound.o: macgui.h
-mac.o: mac.c process.h sysselect.h blockinput.h atimer.h systime.h charset.h \
-  coding.h ccl.h $(config_h)
-macfns.o: macfns.c charset.h macterm.h macgui.h frame.h window.h buffer.h \
-  dispextern.h macgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
-  atimer.h systime.h epaths.h termhooks.h coding.h $(config_h)
-macmenu.o: macmenu.c termhooks.h frame.h window.h dispextern.h macgui.h \
-  keyboard.h blockinput.h atimer.h systime.h buffer.h macterm.h $(config_h)
-macterm.o: blockinput.h atimer.h systime.h syssignal.h macterm.h macgui.h \
-  frame.h charset.h ccl.h dispextern.h fontset.h termhooks.h termopts.h \
-  termchar.h disptab.h buffer.h window.h keyboard.h $(INTERVAL_SRC) \
-  process.h coding.h $(config_h)
-macselect.o: blockinput.h atimer.h systime.h macterm.h macgui.h frame.h \
-  keymap.h $(config_h)
-mactoolbox.o: blockinput.h atimer.h systime.h macterm.h macgui.h frame.h \
-  charset.h coding.h ccl.h dispextern.h fontset.h termhooks.h buffer.h \
-  window.h keyboard.h $(config_h)
-
-${emacsapp}Contents/Resources/English.lproj:
-	mkdir -p $@
-
-ifneq (${emacsapp},${emacsappsrc})
-${emacsapp}Contents/Info.plist: ${emacsappsrc}Contents/Info.plist
-	cp $< $@
-${emacsapp}Contents/PkgInfo: ${emacsappsrc}Contents/PkgInfo
-	cp $< $@
-${emacsapp}Contents/Resources/Emacs.icns: ${emacsappsrc}Contents/Resources/Emacs.icns
-	mkdir -p ${emacsapp}Contents/Resources
-	cp $< $@
-${emacsapp}Contents/Resources/English.lproj/InfoPlist.strings: ${emacsappsrc}Contents/Resources/English.lproj/InfoPlist.strings
-	cp $< $@
-endif
-
-macosx-bundle: ${emacsapp}Contents/Resources/English.lproj \
-	${emacsapp}Contents/Info.plist ${emacsapp}Contents/PkgInfo \
-	${emacsapp}Contents/Resources/Emacs.icns \
-	${emacsapp}Contents/Resources/English.lproj/InfoPlist.strings
-macosx-app: macosx-bundle ${emacsapp}Contents/MacOS/Emacs
-${emacsapp}Contents/MacOS/Emacs: emacs${EXEEXT}
-	mkdir -p ${emacsapp}Contents/MacOS/;
-	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs${EXEEXT} Emacs${EXEEXT}
-#endif /* HAVE_CARBON */
 
 #ifdef HAVE_NS
 buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \

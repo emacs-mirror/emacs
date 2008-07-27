@@ -1,3 +1,24 @@
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove support for Mac Carbon.
+	* term/mac-win.el: Remove file
+	* international/mule-cmds.el:
+	* version.el:
+	* startup.el:
+	* simple.el:
+	* mwheel.el:
+	* mouse.el:
+	* loadup.el:
+	* isearch.el:
+	* info.el:
+	* frame.el:
+	* faces.el:
+	* disp-table.el:
+	* cus-start.el:
+	* cus-face.el:
+	* cus-edit.el:
+	* Makefile.in: Remove code for Carbon.
+
 2008-07-26  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el (ns-extended-platform-support-mode): Get rid of

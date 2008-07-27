@@ -1163,7 +1163,7 @@ machines, as well as support for the Mac OS X and Cygwin operating
 systems.
 
 @item
-The native MS-Windows, Mac OS 9 and Mac OS X builds include full support
+The native MS-Windows, and Mac OS X builds include full support
 for images, toolbar, and tooltips.
 
 @item
@@ -1359,7 +1359,7 @@ customize, with completion.
 
 In Emacs 21.1 and later, colors and faces are supported in non-windowed mode,
 i.e.@: on Unix and GNU/Linux text-only terminals and consoles, and when
-invoked as @samp{emacs -nw} on X, MS-Windows, and Mac.  (Colors and faces were
+invoked as @samp{emacs -nw} on X, and MS-Windows.  (Colors and faces were
 supported in the MS-DOS port since Emacs 19.29.)  Emacs automatically
 detects color support at startup and uses it if available.  If you think
 that your terminal supports colors, but Emacs won't use them, check the
@@ -3817,10 +3817,6 @@ menus, and multiple frames.  You can get it from
 @section Where can I get Emacs for my Apple computer?
 @cindex Apple computers, Emacs for
 @cindex Macintosh, Emacs for
-
-Beginning with version 21.1, the Macintosh is supported in the official
-Emacs distribution; see the files @file{mac/README} and
-@file{mac/INSTALL} in the Emacs distribution for build instructions.
 
 Beginning with version 22.1, Emacs supports Mac OS X natively.
 

@@ -92,9 +92,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if ALSA is available. */
 #undef HAVE_ALSA
 
-/* Define to 1 if you have the <AvailabilityMacros.h> header file. */
-#undef HAVE_AVAILABILITYMACROS_H
-
 /* Define to 1 if you have the `bcmp' function. */
 #undef HAVE_BCMP
 
@@ -103,9 +100,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `bzero' function. */
 #undef HAVE_BZERO
-
-/* Define to 1 if you are using the Carbon API on Mac OS X. */
-#undef HAVE_CARBON
 
 /* Define to 1 if you have the `cbrt' function. */
 #undef HAVE_CBRT
@@ -980,7 +974,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* If we're using X11/Carbon/GNUstep, define some consequences.  */
-#if defined HAVE_X_WINDOWS || defined(HAVE_CARBON) || defined(HAVE_NS)
+#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
 #define HAVE_WINDOW_SYSTEM
 #define MULTI_KBOARD
 #define HAVE_MOUSE
@@ -996,10 +990,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef NS_IMPL_GNUSTEP
 #define CANNOT_DUMP
 #endif
-
-/* TODO: These are used for the Carbon port only. */
-#undef MAC_OS
-#undef MAC_OSX
 
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
@@ -1044,7 +1034,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
   (There is probably a better place to do this, but right now the Cocoa
-   side does this in s/darwin.h, following the Carbon port, and we cannot
+   side does this in s/darwin.h and we cannot
    parallel this exactly since GNUstep is multi-OS. */
 #ifdef HAVE_NS
 # ifdef C_SWITCH_SYSTEM

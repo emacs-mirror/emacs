@@ -569,7 +569,7 @@ decode_options (argc, argv)
 
   if (!tty && display)
     window_system = 1;
-#if !defined (WINDOWSNT) && !defined (HAVE_CARBON)
+#if !defined (WINDOWSNT)
   else if (!current_frame)
     tty = 1;
 #endif

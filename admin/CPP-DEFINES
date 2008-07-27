@@ -3,8 +3,6 @@ of their use.  Feel free to add more macros and more categories.
 
 ** Distinguishing OSes **
 
-MAC_OS8		Compiling for Mac OS Classic (v8 or v9). No longer supported, all code using it can be removed.
-MAC_OSX		Compiling for Mac OS X.  Not bare Darwin.
 CYGWIN		Compiling the Cygwin port.
 __CYGWIN__	Ditto
 MSDOS		Compiling the MS-DOS port.
@@ -21,8 +19,6 @@ USE_LISP_UNION_TYPE Define it in lisp.h to make Lisp_Object be a union type inst
 ** Distinguishing GUIs **
 
 HAVE_NTGUI	Use the native W32 GUI for windows, frames, menus&scrollbars.
-MAC_OS		Compiling for the `mac' window-system.
-HAVE_CARBON	Compile support for the Carbon GUI.  Requires MAC_OS?
 HAVE_NS	Use the NeXT/OpenStep/Cocoa UI under Mac OS X or GNUstep.
 NS_IMPL_GNUSTEP	Compile support for GNUSTEP implementation of NS GUI API.
 NS_IMPL_COCOA	Compile support for Cocoa (Apple) implementation of NS GUI API.
@@ -38,7 +34,6 @@ USE_GTK		Use the Gtk   toolkit for menus&scrollbars.  Requires HAVE_X11.
 FRAME_TERMCAP_P	A tty (character terminal) frame.
 FRAME_X_P	A frame on X Window system.
 FRAME_MSDOS_P	An MS-DOS frame (used only by the DOS port).
-FRAME_MAC_P	A Mac frame.
 FRAME_W32_P	A frame using native MS-Windows GUI.
 FRAME_WINDOW_P	A GUI frame (like X, w32, etc.)
 

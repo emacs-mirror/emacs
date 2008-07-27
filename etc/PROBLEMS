@@ -1859,36 +1859,6 @@ is actually Xlib which won't work with libc.so.5.2.16.
 
 Using the old library version is a workaround.
 
-** Mac OS X
-
-*** Mac OS X (Carbon): Environment Variables from dotfiles are ignored.
-
-When starting Emacs from the Dock or the Finder on Mac OS X, the
-environment variables that are set up in dotfiles, such as .cshrc or
-.profile, are ignored.  This is because the Finder and Dock are not
-started from a shell, but instead from the Window Manager itself.
-
-The workaround for this is to create a .MacOSX/environment.plist file to
-setup these environment variables.  These environment variables will
-apply to all processes regardless of where they are started.
-For me information, see http://developer.apple.com/qa/qa2001/qa1067.html.
-
-*** Mac OS X (Carbon): Process output truncated when using ptys.
-
-There appears to be a problem with the implementation of pty's on the
-Mac OS X that causes process output to be truncated.  To avoid this,
-leave process-connection-type set to its default value of nil.
-
-*** Mac OS X 10.3.9 (Carbon): QuickTime updater breaks build.
-
-Some QuickTime updaters such as 7.0.4 and 7.2.0 are known to break
-build at the link stage with the message like "Undefined symbols:
-_HICopyAccessibilityActionDescription referenced from QuickTime
-expected to be defined in Carbon".  A workaround is to use a QuickTime
-reinstaller.  Alternatively, you can link with the frameworks in the
-corresponding SDK by specifying LDFLAGS as
-"-Wl,-F/Developer/SDKs/MacOSX10.3.0.sdk/System/Library/Frameworks".
-
 ** FreeBSD
 
 *** FreeBSD 2.1.5: useless symbolic links remain in /tmp or other

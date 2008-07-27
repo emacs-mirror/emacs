@@ -1,3 +1,9 @@
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* os.texi:
+	* frames.texi:
+	* display.texi: Remove mentions of Mac Carbon.
+
 2008-07-01  Miles Bader  <miles@gnu.org>
 
 	* text.texi (Special Properties):

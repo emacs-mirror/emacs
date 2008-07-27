@@ -50,10 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif /* HAVE_NS */
 
-#ifdef MAC_OS
-#include "macterm.h"
-#endif /* MAC_OS */
-
 Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
  
 #ifdef HAVE_NS
@@ -5146,9 +5142,6 @@ EMACS_FONT_LOG is set.  Otherwise, it is set to t.  */);
 #ifdef HAVE_NS
   syms_of_nsfont ();
 #endif	/* HAVE_NS */
-#ifdef MAC_OS
-  syms_of_atmfont ();
-#endif	/* MAC_OS */
 #endif	/* HAVE_WINDOW_SYSTEM */
 }
 

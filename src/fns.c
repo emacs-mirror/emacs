@@ -25,15 +25,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #include <time.h>
 
-#ifndef MAC_OS
-/* On Mac OS, defining this conflicts with precompiled headers.  */
-
 /* Note on some machines this defines `vector' as a typedef,
    so make sure we don't use that name in this file.  */
 #undef vector
 #define vector *****
-
-#endif  /* ! MAC_OSX */
 
 #include "lisp.h"
 #include "commands.h"
