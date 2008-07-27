@@ -1,3 +1,7 @@
+2008-07-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* DEV-NOTES: New file.
+
 2008-07-22  Seiji Zenitani  <zenitani@mac.com>
 
 	* Cocoa/Emacs.base/Contents/Info.plist: Import document icon settings
