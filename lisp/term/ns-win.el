@@ -336,12 +336,8 @@ this defaults to \"printenv\"."
   :group 'ns
   (if ns-extended-platform-support-mode
       (progn
-        (global-set-key [M-up] 'down-one)
-        (global-set-key [M-down] 'up-one)
-        ;; These conflict w/word-left, word-right.
-        ;;(global-set-key [M-left] 'left-one)
-        ;;(global-set-key [M-right] 'right-one)
-
+	(defun ns-show-manual () "Show Emacs.app manual" (interactive) (info "ns-emacs"))
+	(setq where-is-preferred-modifier 'super)
         (setq scroll-preserve-screen-position t)
         (transient-mark-mode 1)
 
@@ -349,16 +345,20 @@ this defaults to \"printenv\"."
         ;; Nextstep-specific items
         (easy-menu-remove-item global-map '("menu-bar") 'file)
         (easy-menu-add-item global-map '(menu-bar)
-                            (cons "File" menu-bar-ns-file-menu) 'edit))
+                            (cons "File" menu-bar-ns-file-menu) 'edit)
+	(define-key menu-bar-help-menu [ns-manual]
+	  '(menu-item "Emacs.app Manual" ns-show-manual)))
     (progn
       ;; Undo everything above.
-      (global-unset-key [M-up])
-      (global-unset-key [M-down])
+      (fmakunbound 'ns-show-manual)
+      (setq where-is-preferred-modifier 'nil)
       (setq scroll-preserve-screen-position nil)
       (transient-mark-mode 0)
       (easy-menu-remove-item global-map '("menu-bar") 'file)
       (easy-menu-add-item global-map '(menu-bar)
-                          (cons "File" menu-bar-file-menu) 'edit))))
+                          (cons "File" menu-bar-file-menu) 'edit)
+      (easy-menu-remove-item global-map '("menu-bar" "help-menu") 'ns-manual)
+)))
 
 
 (defun x-setup-function-keys (frame)

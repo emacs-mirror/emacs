@@ -1,3 +1,9 @@
+2008-07-26  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-extended-platform-support-mode): Get rid of
+	bindings for functions deleted by Dan N. 2008-07-21. Set
+	where-is-preferred-modifier.  Add show-manual option to Help menu.
+
 2008-07-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-start-file-process): Set
