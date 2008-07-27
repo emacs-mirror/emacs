@@ -1,3 +1,8 @@
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Makefile.in (install-arch-dep): Fix typo in NS installation
+	commands.
+
 2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Check for getrlimit.
