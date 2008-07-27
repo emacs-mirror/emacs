@@ -1,3 +1,7 @@
+2008-07-27  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-install.el: New file.
+
 2008-07-26  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-exp.el (org-export-html-style)
