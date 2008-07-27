@@ -319,6 +319,8 @@ this defaults to \"printenv\"."
 (defvaralias 'mac-control-modifier 'ns-control-modifier)
 (defvaralias 'mac-option-modifier 'ns-option-modifier)
 (defvaralias 'mac-function-modifier 'ns-function-modifier)
+(defalias 'do-applescript 'ns-do-applescript)
+
 
 (defvar menu-bar-ns-file-menu)		; below
 
@@ -328,7 +330,6 @@ this defaults to \"printenv\"."
   "Toggle Nextstep extended platform support features.
    When this mode is active (no modeline indicator):
    - File menu is altered slightly in keeping with conventions.
-   - Meta-up, meta-down are bound to scroll window up and down one line.
    - Screen position is preserved in scrolling.
    - Transient mark mode is activated"
   :init-value nil

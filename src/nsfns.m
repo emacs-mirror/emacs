@@ -1999,6 +1999,93 @@ DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
 }
 
 
+#ifdef NS_IMPL_COCOA
+
+/* Compile and execute the AppleScript SCRIPT and return the error
+   status as function value.  A zero is returned if compilation and
+   execution is successful, in which case *RESULT is set to a Lisp
+   string or a number containing the resulting script value.  Otherwise,
+   1 is returned. */
+static int
+ns_do_applescript (script, result)
+     Lisp_Object script, *result;
+{
+  NSAppleEventDescriptor *desc;
+  NSDictionary* errorDict;
+  NSAppleEventDescriptor* returnDescriptor = NULL;
+
+  NSAppleScript* scriptObject =
+    [[NSAppleScript alloc] initWithSource:
+			     [NSString stringWithUTF8String: SDATA (script)]];
+
+  returnDescriptor = [scriptObject executeAndReturnError: &errorDict];
+  [scriptObject release];
+  
+  *result = Qnil;
+  
+  if (returnDescriptor != NULL)
+    {
+      // successful execution
+      if (kAENullEvent != [returnDescriptor descriptorType])
+        {
+	  *result = Qt;
+	  // script returned an AppleScript result
+	  if ((typeUnicodeText == [returnDescriptor descriptorType]) ||
+	      (typeUTF16ExternalRepresentation 
+	       == [returnDescriptor descriptorType]) ||
+	      (typeUTF8Text == [returnDescriptor descriptorType]) ||
+	      (typeCString == [returnDescriptor descriptorType]))
+	    {
+	      desc = [returnDescriptor coerceToDescriptorType: typeUTF8Text];
+	      if (desc)
+		*result = build_string([[desc stringValue] UTF8String]);
+	    }
+	  else
+            {
+	      /* use typeUTF16ExternalRepresentation? */
+	      // coerce the result to the appropriate ObjC type
+	      desc = [returnDescriptor coerceToDescriptorType: typeUTF8Text];
+	      if (desc)
+		*result = make_number([desc int32Value]);
+            }
+        }
+    }
+  else
+    {
+      // no script result, return error
+      return 1;
+    }
+  return 0;
+}
+
+DEFUN ("ns-do-applescript", Fns_do_applescript, Sns_do_applescript, 1, 1, 0,
+       doc: /* Execute AppleScript SCRIPT and return the result.  If
+compilation and execution are successful, the resulting script value
+is returned as a string, a number or, in the case of other constructs,
+t.  In case the execution fails, an error is signaled. */)
+    (script)
+    Lisp_Object script;
+{
+  Lisp_Object result;
+  long status;
+
+  CHECK_STRING (script);
+  check_ns ();
+
+  BLOCK_INPUT;
+  status = ns_do_applescript (script, &result);
+  UNBLOCK_INPUT;
+  if (status == 0)
+    return result;
+  else if (!STRINGP (result))
+    error ("AppleScript error %d", status);
+  else
+    error ("%s", SDATA (result));
+}
+#endif
+
+
+
 /* ==========================================================================
 
     Miscellaneous functions not called through hooks
@@ -2121,92 +2208,6 @@ x_sync (Lisp_Object frame)
    ========================================================================== */
 
 
-#ifdef NS_IMPL_COCOA
-
-/* Compile and execute the AppleScript SCRIPT and return the error
-   status as function value.  A zero is returned if compilation and
-   execution is successful, in which case *RESULT is set to a Lisp
-   string or a number containing the resulting script value.  Otherwise,
-   1 is returned. */
-
-static int
-do_applescript (script, result)
-     Lisp_Object script, *result;
-{
-  NSAppleEventDescriptor *desc;
-  NSDictionary* errorDict;
-  NSAppleEventDescriptor* returnDescriptor = NULL;
-
-  NSAppleScript* scriptObject =
-    [[NSAppleScript alloc] initWithSource:
-			     [NSString stringWithUTF8String: SDATA (script)]];
-
-  returnDescriptor = [scriptObject executeAndReturnError: &errorDict];
-  [scriptObject release];
-  
-  *result = Qnil;
-  
-  if (returnDescriptor != NULL)
-    {
-      // successful execution
-      if (kAENullEvent != [returnDescriptor descriptorType])
-        {
-	  *result = Qt;
-	  // script returned an AppleScript result
-	  if ((typeUnicodeText == [returnDescriptor descriptorType]) ||
-	      (typeUTF16ExternalRepresentation 
-	       == [returnDescriptor descriptorType]) ||
-	      (typeUTF8Text == [returnDescriptor descriptorType]) ||
-	      (typeCString == [returnDescriptor descriptorType]))
-	    {
-	      desc = [returnDescriptor coerceToDescriptorType: typeUTF8Text];
-	      if (desc)
-		*result = build_string([[desc stringValue] UTF8String]);
-	    }
-	  else
-            {
-	      /* use typeUTF16ExternalRepresentation? */
-	      // coerce the result to the appropriate ObjC type
-	      desc = [returnDescriptor coerceToDescriptorType: typeUTF8Text];
-	      if (desc)
-		*result = make_number([desc int32Value]);
-            }
-        }
-    }
-  else
-    {
-      // no script result, return error
-      return 1;
-    }
-  return 0;
-}
-
-DEFUN ("do-applescript", Fdo_applescript, Sdo_applescript, 1, 1, 0,
-       doc: /* Execute AppleScript SCRIPT and return the result.  If
-compilation and execution are successful, the resulting script value
-is returned as a string, a number or, in the case of other constructs,
-t.  In case the execution fails, an error is signaled. */)
-    (script)
-    Lisp_Object script;
-{
-  Lisp_Object result;
-  long status;
-
-  CHECK_STRING (script);
-  check_ns ();
-
-  BLOCK_INPUT;
-  status = do_applescript (script, &result);
-  UNBLOCK_INPUT;
-  if (status == 0)
-    return result;
-  else if (!STRINGP (result))
-    error ("AppleScript error %d", status);
-  else
-    error ("%s", SDATA (result));
-}
-#endif
-
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* Return t if the current Nextstep display supports the color COLOR.
 The optional argument FRAME is currently ignored.  */)
@@ -2312,6 +2313,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
   check_ns ();
   return make_number ((int) [ns_get_screen (display) frame].size.height);
 }
+
 
 DEFUN ("display-usable-bounds", Fns_display_usable_bounds,
        Sns_display_usable_bounds, 0, 1, 0,
@@ -2639,7 +2641,7 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sns_font_name);
   defsubr (&Sns_list_colors);
 #ifdef NS_IMPL_COCOA
-  defsubr (&Sdo_applescript);
+  defsubr (&Sns_do_applescript);
 #endif
   defsubr (&Sxw_color_defined_p);
   defsubr (&Sxw_color_values);
