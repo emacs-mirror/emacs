@@ -1,3 +1,11 @@
+2008-07-28  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-do-isearch, dired-do-isearch-regexp):
+	New functions.
+
+	* dired.el (dired-mode-map): Bind dired-do-isearch to `M-s a C-s'
+	and dired-do-isearch-regexp to `M-s a M-C-s'.  Add menu items.
+
 2008-07-28  Seiji Zenitani  <zenitani <at> mac.com>
 
 	* help-fns.el (help-C-file-name): Add .m (Obj-C code) for Cocoa port.
