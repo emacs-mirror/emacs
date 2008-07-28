@@ -432,24 +432,24 @@ w32font_text_extents (font, code, nglyphs, metrics)
 	      if (!w32_font->cached_metrics)
 		w32_font->cached_metrics
 		  = xmalloc ((block + 1)
-			     * sizeof (struct w32_cached_metric *));
+			     * sizeof (struct w32_metric_cache *));
 	      else
 		w32_font->cached_metrics
 		  = xrealloc (w32_font->cached_metrics,
 			      (block + 1)
-			      * sizeof (struct w32_cached_metric *));
+			      * sizeof (struct w32_metric_cache *));
 	      bzero (w32_font->cached_metrics + w32_font->n_cache_blocks,
 		     ((block + 1 - w32_font->n_cache_blocks)
-		      * sizeof (struct w32_cached_metric *)));
+		      * sizeof (struct w32_metric_cache *)));
 	      w32_font->n_cache_blocks = block + 1;
 	    }
 
 	  if (!w32_font->cached_metrics[block])
 	    {
 	      w32_font->cached_metrics[block]
-		= xmalloc (CACHE_BLOCKSIZE * sizeof (struct font_metrics));
+		= xmalloc (CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
 	      bzero (w32_font->cached_metrics[block],
-		     CACHE_BLOCKSIZE * sizeof (struct font_metrics));
+		     CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
 	    }
 
 	  char_metric = w32_font->cached_metrics[block] + pos_in_block;

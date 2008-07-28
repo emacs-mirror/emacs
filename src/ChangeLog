@@ -6,6 +6,8 @@
 
 2008-07-28  Jason Rumney  <jasonr@gnu.org>
 
+        * w32font.c (w32font_text_extents): Use w32_metric_cache consistently.
+
         * w32term.c: (w32_enable_unicode_output, cleartype_active): Remove
         obsolete display options.
         (x_draw_glyph_string_background): Don't use old cleartype_active
