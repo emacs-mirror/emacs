@@ -1,3 +1,8 @@
+2008-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-perl-directory-files-and-attributes)
+	(tramp-get-device): Make device number a cons cell.
+
 2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/tex-mode.el (tex-compilation-parse-errors): Check for
