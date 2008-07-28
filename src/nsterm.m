@@ -4347,7 +4347,6 @@ extern void update_window_cursor (struct window *w, int on);
   if (!emacs_event)
     return;
 
-/*#if defined (COCOA_EXPERIMENTAL_CTRL_G) */
  if (![[self window] isKeyWindow])
    {
      /* XXX: Using NO_SOCK_SIGIO like Carbon causes a condition in which,
@@ -4361,7 +4360,6 @@ extern void update_window_cursor (struct window *w, int on);
          [[(EmacsView *)[theEvent window] delegate] keyDown: theEvent];
      return;
    }
-/*#endif */
 
   if (nsEvArray == nil)
     nsEvArray = [[NSMutableArray alloc] initWithCapacity: 1];

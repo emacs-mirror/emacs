@@ -78,7 +78,6 @@ extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
 extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
 
 Lisp_Object Qnone;
-Lisp_Object Qns_frame_parameter;
 Lisp_Object Qbuffered;
 Lisp_Object Qfontsize;
 
@@ -1057,6 +1056,10 @@ be shared by the new frame.  */)
 
   check_ns ();
 
+  /* Seems a little strange, but other terms do it. Perhaps the code below
+     is modifying something? */
+  parms = Fcopy_alist (parms);
+
   display = x_get_arg (dpyinfo, parms, Qterminal, 0, 0, RES_TYPE_STRING);
   if (EQ (display, Qunbound))
     display = Qnil;
@@ -1075,6 +1078,8 @@ be shared by the new frame.  */)
 
   if (STRINGP (name))
     Vx_resource_name = name;
+  else
+    Vx_resource_name = Vinvocation_name;
 
   parent = x_get_arg (dpyinfo, parms, Qparent_id, 0, 0, RES_TYPE_NUMBER);
   if (EQ (parent, Qunbound))
@@ -1136,7 +1141,7 @@ be shared by the new frame.  */)
 
   f->icon_name = x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title",
                             RES_TYPE_STRING);
-  if (EQ (f->icon_name, Qunbound) || (XTYPE (f->icon_name) != Lisp_String))
+  if (! STRINGP (f->icon_name))
     f->icon_name = Qnil;
 
   FRAME_NS_DISPLAY_INFO (f) = dpyinfo;
@@ -1275,18 +1280,18 @@ be shared by the new frame.  */)
   Vframe_list = Fcons (frame, Vframe_list);
   /*FRAME_NS_DISPLAY_INFO (f)->reference_count++; */
 
+  x_default_parameter (f, parms, Qicon_type, Qnil, "bitmapIcon", "BitmapIcon",
+                      RES_TYPE_SYMBOL);
+  x_default_parameter (f, parms, Qauto_raise, Qnil, "autoRaise", "AutoRaiseLower",
+                      RES_TYPE_BOOLEAN);
+  x_default_parameter (f, parms, Qauto_lower, Qnil, "autoLower", "AutoLower",
+                      RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qcursor_type, Qbox, "cursorType", "CursorType",
                       RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil, "scrollBarWidth",
                       "ScrollBarWidth", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qicon_type, Qnil, "bitmapIcon", "BitmapIcon",
-                      RES_TYPE_SYMBOL);
-  x_default_parameter (f, parms, Qauto_raise, Qnil, "autoRaise", "AutoRaise",
-                      RES_TYPE_BOOLEAN);
-  x_default_parameter (f, parms, Qauto_lower, Qnil, "autoLower", "AutoLower",
-                      RES_TYPE_BOOLEAN);
-  x_default_parameter (f, parms, Qbuffered, Qt, "buffered", "Buffered",
-                      RES_TYPE_BOOLEAN);
+  x_default_parameter (f, parms, Qalpha, Qt, "alpha", "Alpha",
+                      RES_TYPE_NUMBER);
 
   width = FRAME_COLS (f);
   height = FRAME_LINES (f);
@@ -2603,8 +2608,6 @@ syms_of_nsfns ()
 {
   int i;
 
-  Qns_frame_parameter = intern ("ns-frame-parameter");
-  staticpro (&Qns_frame_parameter);
   Qnone = intern ("none");
   staticpro (&Qnone);
   Qbuffered = intern ("bufferd");

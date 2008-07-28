@@ -1,5 +1,15 @@
 2008-07-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
+	* nsfns.m (x-create-frame): Add copy of parms argument to beginning.
+	Set Vx_resource_name to a fallback.  Replace read of 'buffered'
+	parameter with read of 'alpha' one.
+	(Qns_frame_parameter): Remove.
+	* nsselection.m (selection-coding-system)
+	(next-selection-coding-system, Vselection_coding_system)
+	(Vnext_selection_coding_system): Drop.
+
+2008-07-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
 	* nsfns.m (do-applescript, do_applescript): Rename to
 	ns-do-applescript, ns_do_applescript, and move within file.
 

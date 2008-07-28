@@ -40,10 +40,6 @@ static Lisp_Object Vselection_alist;
 static Lisp_Object Vselection_converter_alist;
 
 /* 23: new */
-/* Coding system for communicating with other programs. */
-static Lisp_Object Vselection_coding_system;
-/* Coding system for the next communicating with other programs. */
-static Lisp_Object Vnext_selection_coding_system;
 static Lisp_Object Qforeign_selection;
 
 NSString *NXSecondaryPboard;
@@ -608,21 +604,6 @@ The functions are called with one argument, the selection type\n\
   Vns_lost_selection_hooks = Qnil;
 
 /* 23: { */
-  DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
-	       doc: /* Coding system for communicating with other programs.
-When sending or receiving text via cut_buffer, selection, and clipboard,
-the text is encoded or decoded by this coding system.
-The default value is determined by the system script code.  */);
-  Vselection_coding_system = Qnil;
-
-  DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
-	       doc: /* Coding system for the next communication with other programs.
-Usually, `selection-coding-system' is used for communicating with
-other programs.  But, if this variable is set, it is used for the
-next communication only.  After the communication, this variable is
-set to nil.  */);
-  Vnext_selection_coding_system = Qnil;
-
   Qforeign_selection = intern ("foreign-selection");
   staticpro (&Qforeign_selection);
 /* } */
