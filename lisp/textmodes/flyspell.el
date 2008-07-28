@@ -1004,6 +1004,7 @@ Mostly we check word delimiters."
 (defun flyspell-word (&optional following)
   "Spell check a word."
   (interactive (list ispell-following-word))
+  (ispell-maybe-find-aspell-dictionaries)
   (save-excursion
     ;; use the correct dictionary
     (flyspell-accept-buffer-local-defs)
@@ -1512,7 +1513,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
     ;; this is done, we can start checking...
     (if flyspell-issue-message-flag (message "Checking region..."))
     (set-buffer curbuf)
-    (ispell-check-version)
+    (ispell-maybe-find-aspell-dictionaries)
     (let ((c (apply 'ispell-call-process-region beg
 		    end
 		    ispell-program-name
@@ -1558,6 +1559,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 (defun flyspell-region (beg end)
   "Flyspell text between BEG and END."
   (interactive "r")
+  (ispell-maybe-find-aspell-dictionaries)
   (if (= beg end)
       ()
     (save-excursion
