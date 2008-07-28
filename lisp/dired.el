@@ -1295,6 +1295,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ;; hiding
     (define-key map "$" 'dired-hide-subdir)
     (define-key map "\M-$" 'dired-hide-all)
+    ;; isearch
+    (define-key map (kbd "M-s a C-s")   'dired-do-isearch)
+    (define-key map (kbd "M-s a M-C-s") 'dired-do-isearch-regexp)
     ;; misc
     (define-key map "\C-x\C-q" 'dired-toggle-read-only)
     (define-key map "?" 'dired-summary)
@@ -1560,6 +1563,12 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar operate search]
       '(menu-item "Search Files..." dired-do-search
 		  :help "Search marked files for regexp"))
+    (define-key map [menu-bar operate isearch-regexp]
+      '(menu-item "Isearch Regexp Files..." dired-do-isearch-regexp
+		  :help "Incrementally search marked files for regexp"))
+    (define-key map [menu-bar operate isearch]
+      '(menu-item "Isearch Files..." dired-do-isearch
+		  :help "Incrementally search marked files for string"))
     (define-key map [menu-bar operate chown]
       '(menu-item "Change Owner..." dired-do-chown
 		  :visible (not (memq system-type '(ms-dos windows-nt)))
