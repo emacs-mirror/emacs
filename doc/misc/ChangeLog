@@ -1,6 +1,9 @@
 2008-07-28  Stephen Leake  <stephen_leake@stephe-leake.org>
 
-	* ada-mode.texi: Update to Ada mode version 4.0.
+	* ada-mode.texi: Document using GNAT project files as Emacs Ada mode
+	project files.  Delete 'main_unit' project variable; not needed.  Allow
+	process environment variables wherever project variables are allowed.
+	Add tutorial section on multiple GNAT project files.
 
 2008-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
