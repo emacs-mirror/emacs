@@ -1,3 +1,8 @@
+2008-07-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (menu_nav_ended): Revert change from 2008-07-24.
+	(create_menus): Connect selection-done to menu_nav_ended.
+
 2008-07-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfns.m (x-create-frame): Add copy of parms argument to beginning.
