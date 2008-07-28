@@ -2350,7 +2350,7 @@ int hash_lookup P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned *));
 int hash_put P_ ((struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		  unsigned));
 void hash_clear P_ ((struct Lisp_Hash_Table *));
-void remove_hash_entry P_ ((struct Lisp_Hash_Table *, int));
+void init_weak_hash_tables P_ ((void));
 extern void init_fns P_ ((void));
 EXFUN (Fsxhash, 1);
 EXFUN (Fmake_hash_table, MANY);
@@ -3285,6 +3285,9 @@ extern void fatal P_ ((const char *msgid, ...)) NO_RETURN;
 EXFUN (Fdelete_terminal, 2);
 extern void syms_of_terminal P_ ((void));
 
+/* Defined in font.c */
+extern void syms_of_font P_ ((void));
+
 #ifdef HAVE_WINDOW_SYSTEM
 /* Defined in fontset.c */
 extern void syms_of_fontset P_ ((void));
@@ -3328,6 +3331,12 @@ EXFUN (Fmsdos_downcase_filename, 1);
 #ifdef HAVE_MENUS
 /* Defined in (x|w32)fns.c...  */
 extern int have_menus_p P_ ((void));
+#endif
+
+#ifdef HAVE_DBUS
+/* Defined in dbusbind.c */
+void xd_read_queued_messages P_ ((void));
+void syms_of_dbusbind P_ ((void));
 #endif
 
 /* Nonzero means Emacs has already been initialized.

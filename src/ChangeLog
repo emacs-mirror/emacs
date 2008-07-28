@@ -1,3 +1,13 @@
+2008-07-28  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h (init_weak_hash_tables, syms_of_font)
+	(xd_read_queued_messages, syms_of_dbusbind): Declare.
+	(remove_hash_entry): Don't declare.
+	* eval.c (maybe_call_debugger): Make static and move before use.
+	* gtkutil.c: Include <X11/Xft/Xft.h> if HAVE_XFT.
+	* xdisp.c: Include "gtkutil.h" if USE_GTK.
+	* xterm.h (x_set_frame_alpha): Declare.
+
 2008-07-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (menu_nav_ended): Revert change from 2008-07-24.

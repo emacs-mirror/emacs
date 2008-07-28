@@ -199,6 +199,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
+#ifdef USE_GTK
+#include "gtkutil.h"
+#endif
 
 #include "font.h"
 
