@@ -2282,6 +2282,20 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 ;; Functions for searching in tags style among marked files.
 
 ;;;###autoload
+(defun dired-do-isearch ()
+  "Search for a string through all marked files using Isearch."
+  (interactive)
+  (multi-isearch-files
+   (dired-get-marked-files nil nil 'dired-nondirectory-p)))
+
+;;;###autoload
+(defun dired-do-isearch-regexp ()
+  "Search for a regexp through all marked files using Isearch."
+  (interactive)
+  (multi-isearch-files-regexp
+   (dired-get-marked-files nil nil 'dired-nondirectory-p)))
+
+;;;###autoload
 (defun dired-do-search (regexp)
   "Search through all marked files for a match for REGEXP.
 Stops when a match is found.
