@@ -13239,19 +13239,14 @@ redisplay_window (window, just_this_one_p)
 	  && NILP (do_mouse_tracking)
 	  && CHARPOS (startp) > BEGV
 	  && CHARPOS (startp) > BEG + save_beg_unchanged
-	  && CHARPOS (startp) <= Z - save_end_unchanged
-	  /* Even if w->start_at_line_beg is nil, a new window may
-	     start at a line_beg, since that's how set_buffer_window
-	     sets it.  So, we need to check the return value of
-	     compute_window_start_on_continuation_line.  (See also
-	     bug#197).  */
-	  && XMARKER (w->start)->buffer == current_buffer
-	  && compute_window_start_on_continuation_line (w))
+	  && CHARPOS (startp) <= Z - save_end_unchanged)
 	{
 	  w->force_start = Qt;
+	  if (XMARKER (w->start)->buffer == current_buffer)
+	    compute_window_start_on_continuation_line (w);
 	  SET_TEXT_POS_FROM_MARKER (startp, w->start);
 	  goto force_start;
-      	}
+	}
 
 #if GLYPH_DEBUG
       debug_method_add (w, "same window start");
