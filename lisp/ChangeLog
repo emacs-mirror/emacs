@@ -1,3 +1,8 @@
+2008-07-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (next-error): Do a redisplay to prevent incorrect
+	recentering (workaround for bug#197).
+
 2008-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-perl-directory-files-and-attributes)
