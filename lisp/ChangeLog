@@ -1,3 +1,13 @@
+2008-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.14.
+
+	* net/tramp.el (tramp-perl-directory-files-and-attributes)
+	(tramp-get-device): Make device number a cons cell.
+	(tramp-convert-file-attributes): Make inode a cons cell.
+
+	* net/trampver.el: Update release number.
+
 2008-07-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* faces.el (face-set-after-frame-default): Treat 'ns as all other
@@ -40,7 +50,7 @@
 	query-on-exit flag. Kill temporary buffer.
 	(tramp-process-sentinel): Remove defun.
 	(tramp-do-copy-or-rename-file-out-of-band)
-	(tramp-maybe-open-connection):Don't call it.
+	(tramp-maybe-open-connection): Don't call it.
 
 	* net/tramp-fish.el (tramp-fish-maybe-open-connection): Don't call
 	`tramp-process-sentinel'.
