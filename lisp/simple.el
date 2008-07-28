@@ -306,7 +306,10 @@ See variables `compilation-parse-errors-function' and
     ;; we know here that next-error-function is a valid symbol we can funcall
     (with-current-buffer next-error-last-buffer
       (funcall next-error-function (prefix-numeric-value arg) reset)
-      (run-hooks 'next-error-hook))))
+      (run-hooks 'next-error-hook)))
+  ;; This is a workaround for a redisplay bug (bug#197).  The proper
+  ;; fix is in the trunk: see the 2008-07-28 change to xdisp.c by cyd.
+  (redisplay))
 
 (defun next-error-internal ()
   "Visit the source code corresponding to the `next-error' message at point."
