@@ -1,9 +1,3 @@
-2008-07-28  Chong Yidong  <cyd@stupidchicken.com>
-
-	* xdisp.c (redisplay_window): Check return value of
-	compute_window_start_on_continuation_line before forcing a window
-	start.
-
 2008-07-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (syms_of_term): Fix last change.
