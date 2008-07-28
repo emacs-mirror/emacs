@@ -6,14 +6,14 @@
 
 2008-07-28  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32font_text_extents): Use w32_metric_cache consistently.
+	* w32font.c (w32font_text_extents): Use w32_metric_cache consistently.
 
-        * w32term.c: (w32_enable_unicode_output, cleartype_active): Remove
-        obsolete display options.
-        (x_draw_glyph_string_background): Don't use old cleartype_active
-        workaround.
-        (w32_initialize): Remove cleartype_active initialization.
-        (syms_of_w32term): Remove w32_enable_unicode_output initialization.
+	* w32term.c (w32_enable_unicode_output, cleartype_active):
+	Remove obsolete display options.
+	(x_draw_glyph_string_background): Don't use old cleartype_active
+	workaround.
+	(w32_initialize): Remove cleartype_active initialization.
+	(syms_of_w32term): Remove w32_enable_unicode_output initialization.
 
 2008-07-28  Andreas Schwab  <schwab@suse.de>
 
@@ -105,7 +105,7 @@
 
 2008-07-26  David Robinow  <drobinow@gmail.com>  (tiny change)
 
-        * w32inevt.c: Include dispextern.h.
+	* w32inevt.c: Include dispextern.h.
 
 2008-07-26  Andreas Schwab  <schwab@suse.de>
 
@@ -118,14 +118,14 @@
 
 2008-07-25  Jason Rumney  <jasonr@gnu.org>
 
-        * w32uniscribe.c (uniscribe_shape): Pass NULL for control arg to
-        ScriptItemize. Clean up return value checking. Remove unused
-        variables.
-        (uniscribe_encode_char): Encode non-BMP characters with uniscribe
-        shaping engine.
+	* w32uniscribe.c (uniscribe_shape): Pass NULL for control arg to
+	ScriptItemize.  Clean up return value checking.  Remove unused
+	variables.
+	(uniscribe_encode_char): Encode non-BMP characters with uniscribe
+	shaping engine.
 
-        * w32font.c (w32font_has_char): Handle the case where we can't
-        determine the script for a character.
+	* w32font.c (w32font_has_char): Handle the case where we can't
+	determine the script for a character.
 
 2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -144,13 +144,13 @@
 
 2008-07-25  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32font_encode_char): Encode characters outside BMP as
-        surrogates before looking up glyph index.
-        (w32font_text_extents): Encode as surrogates if falling back to
-        functions that need UTF-16 wide chars.
+	* w32font.c (w32font_encode_char): Encode characters outside BMP as
+	surrogates before looking up glyph index.
+	(w32font_text_extents): Encode as surrogates if falling back to
+	functions that need UTF-16 wide chars.
 
-        * w32uniscribe.c (uniscribe_encode_char): Encode characters outside
-        BMP as surrogates before looking up glyph index.
+	* w32uniscribe.c (uniscribe_encode_char): Encode characters outside
+	BMP as surrogates before looking up glyph index.
 
 2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -159,7 +159,7 @@
 
 2008-07-25  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (Fx_select_font): Reverse sense of second arg.
+	* w32font.c (Fx_select_font): Reverse sense of second arg.
 
 2008-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 

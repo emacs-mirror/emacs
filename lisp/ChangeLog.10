@@ -2968,7 +2968,7 @@
 	Split the `newbuffile' arg into `base' and `dirname'.
 	Reuse old uniquify-items to avoid recomputing their base&dirname.
 	(uniquify-buffer-file-name): Only return the directory part.
-	(uniquify-rerationalize-w/o-cb): Don't bother reseting proposed names.
+	(uniquify-rerationalize-w/o-cb): Don't bother resetting proposed names.
 	(rename-buffer): Use the `newname' arg as base.
 	(create-file-buffer): Split the file name into base and dirname.
 
