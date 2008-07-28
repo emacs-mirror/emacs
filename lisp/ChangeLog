@@ -1,5 +1,8 @@
 2008-07-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* textmodes/flyspell.el (flyspell-word, flyspell-large-region)
+	(flyspell-region): Call ispell-maybe-find-aspell-dictionaries.
+
 	* simple.el (next-error): Do a redisplay to prevent incorrect
 	recentering (workaround for bug#197).
 
