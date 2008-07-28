@@ -122,7 +122,8 @@ If the current value of FIELD is the default value, returns an empty string."
 (defun ada-prj-save ()
   "Save the edited project file."
   (interactive)
-  (let ((file-name (plist-get ada-prj-current-values 'filename))
+  (let ((file-name (or (plist-get ada-prj-current-values 'filename)
+		       (read-file-name "Save project as: ")))
 	output)
     (set 'output
 	 (concat
@@ -141,7 +142,6 @@ If the current value of FIELD is the default value, returns an empty string."
 
 	  ;;  Always save the fields that depend on the current buffer
 	  "main="      (plist-get ada-prj-current-values 'main) "\n"
-	  "main_unit=" (plist-get ada-prj-current-values 'main_unit) "\n"
 	  "build_dir=" (plist-get ada-prj-current-values 'build_dir) "\n"
 	  (ada-prj-set-list "check_cmd"
 			    (plist-get ada-prj-current-values 'check_cmd)) "\n"
@@ -288,26 +288,22 @@ The current buffer must be the project editing buffer."
     (widget-insert "Project file name:\n")
     (widget-insert (plist-get ada-prj-current-values 'filename))
     (widget-insert "\n\n")
-;     (ada-prj-field 'filename "Project file name"
-; "Enter the name and directory of the project
-; file. The name of the file should be the
-; name of the project itself. The extension
-; must be .adp")
-;     (ada-prj-field 'casing "Casing Exceptions Dictionnaries"
-; "List of files that contain casing exception
-; dictionnaries. All these files contain one
-; identifier per line, with a special casing.
-; The first file has the highest priority."
-;      t)
+    (ada-prj-field 'casing "Casing Exceptions"
+"List of files that contain casing exception
+dictionaries. All these files contain one
+identifier per line, with a special casing.
+The first file has the highest priority."
+      t nil
+      (mapconcat (lambda(x)
+		   (concat "           " x))
+		 (ada-xref-get-project-field 'casing)
+		 "\n")
+      )
     (ada-prj-field 'main "Executable file name"
 "Name of the executable generated when you
 compile your application. This should include
 the full directory name, using ${build_dir} if
 you wish.")
-    (ada-prj-field 'main_unit "File name of the main unit"
-"Name of the file to pass to the gnatmake command,
-and that will create the executable.
-This should not include any directory specification.")
     (ada-prj-field 'build_dir  "Build directory"
 		   "Reference directory for relative paths in
 src_dir and obj_dir below. This is also the directory
@@ -513,10 +509,8 @@ If FILENAME is given, edit that file."
 	    (ada-reread-prj-file ada-prj-default-project-file)
 	  (ada-reread-prj-file)))
 
-      ;;  Else start the interactive editor
       (switch-to-buffer "*Edit Ada Mode Project*")
 
-      (ada-xref-set-default-prj-values 'ada-prj-default-values ada-buffer)
       (ada-prj-initialize-values 'ada-prj-current-values
 				 ada-buffer
 				 ada-prj-default-project-file)

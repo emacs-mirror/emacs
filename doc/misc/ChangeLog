@@ -1,3 +1,7 @@
+2008-07-28  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* ada-mode.texi: Update to Ada mode version 4.0.
+
 2008-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.14.

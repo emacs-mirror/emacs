@@ -1,3 +1,29 @@
+2008-07-28  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-mode.el (ada-mode): Clean up XEmacs handling.
+	Add support for add-log.
+	(ada-end-stmt-re): Fix bug - allow comment after 'when'.
+
+	* progmodes/ada-prj.el: Delete 'main_unit' project variable.
+	(ada-prj-save): Prompt for file name if not given.
+	(ada-prj-display-page): Display casing exceptions.
+
+	* progmodes/ada-xref.el: Add support for GNAT project files as Emacs
+	Ada mode project files.  Delete 'main_unit' project variable;
+	only need 'main'.  Simplify handling of default project values.
+	Use cross-prefix consistently.
+	(ada-find-executable): Throw error if not found.
+	(ada-initialize-runtime-library): Improve error handling when
+	gnatls not found.
+	(ada-gnat-parse-gpr): New.
+	(ada-treat-cmd-string): Allow process environment variables.
+	(ada-xref-set-default-prj-values): Delete; replace with
+	ada-default-prj-properties.
+	(ada-parse-prj-file): Handle GNAT project files.
+	(ada-parse-prj-file-1): New, factored out of ada-parse-prj-file.
+	(ada-select-prj-file): New.
+	(ada-get-absolute-dir-list): Allow project and environment variables.
+
 2008-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.14.

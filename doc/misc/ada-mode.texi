@@ -30,7 +30,7 @@ developing GNU and promoting software freedom.''
 @title{Ada Mode}
 @sp 2
 @subtitle An Emacs major mode for programming in Ada
-@subtitle Ada Mode Version 3.7
+@subtitle Ada Mode Version 4.00
 @sp 2
 @page
 @vskip 0pt plus 1filll
@@ -57,7 +57,7 @@ developing GNU and promoting software freedom.''
 * Automatic Casing::            Adjusting the case of words automatically
 * Statement Templates::         Inserting code templates
 * Comment Handling::            Reformatting comments easily
-* GNU Free Documentation License:: The license for this documentation.
+* GNU Free Documentation License::  The license for this documentation.
 * Index::
 @end menu
 
@@ -268,7 +268,7 @@ Here are the commands for building and using an Ada project, as
 listed in the Ada menu.
 
 In multi-file projects, there must be one file that is the main
-program. That is given by the @code{main_unit} project file variable;
+program. That is given by the @code{main} project file variable;
 it defaults to the current file if not yet set, but is also set by the
 ``set main and build'' command.
 
@@ -280,26 +280,26 @@ Compiles the current file in syntax check mode, by running
 runs faster than full compile mode, speeding up finding and fixing
 compilation errors.
 
-This sets @code{main_unit} only if it has not been set yet.
+This sets @code{main} only if it has not been set yet.
 
 @item Compile file
 Compiles the current file, by running @code{comp_cmd} from the current
 project file.
 
-This does not set @code{main_unit}.
+This does not set @code{main}.
 
 @item Set main and Build
-Sets @code{main_unit} to the current file, then executes the Build
+Sets @code{main} to the current file, then executes the Build
 command.
 
 @item Show main
-Display @code{main_unit} in the message buffer.
+Display @code{main} in the message buffer.
 
 @item Build
-Compiles all obsolete units of the current @code{main_unit}, and links
-@code{main_unit}, by running @code{make_cmd} from the current project.
+Compiles all obsolete units of the current @code{main}, and links
+@code{main}, by running @code{make_cmd} from the current project.
 
-This sets @code{main_unit} only if it has not been set yet.
+This sets @code{main} only if it has not been set yet.
 
 @item Run
 Executes the main program in a shell, displayed in a separate Emacs
@@ -313,7 +313,7 @@ This command is not available for a cross-compilation toolchain.
 
 @end table
 It is important when using these commands to understand how
-@code{main_unit} is used and changed.
+@code{main} is used and changed.
 
 Build runs 'gnatmake' on the main unit. During a typical edit/compile
 session, this is the only command you need to invoke, which is why it
@@ -328,19 +328,19 @@ Novices and students typically work on single-file Ada projects. In
 this case, @key{C-c C-m} will normally be the only command needed; it
 will build the current file, rather than the last-built main.
 
-There are three ways to change @code{main_unit}:
+There are three ways to change @code{main}:
 
 @enumerate
 @item
-Invoke @key{Ada | Set main and Build}, which sets @code{main_unit} to
+Invoke @key{Ada | Set main and Build}, which sets @code{main} to
 the current file.
 
 @item
-Invoke @key{Ada | Project | Edit}, edit @code{main_unit} and
+Invoke @key{Ada | Project | Edit}, edit @code{main} and
 @code{main}, and click @key{[save]}
 
 @item
-Invoke @key{Ada | Project | Load}, and load a project file that specifies @code{main_unit}
+Invoke @key{Ada | Project | Load}, and load a project file that specifies @code{main}
 
 @end enumerate
 
@@ -372,7 +372,10 @@ for your project, and allows you to customize the compilation commands
 and other things on a per-project basis.
 
 Note that Ada mode project files @samp{*.adp} are different than GNAT
-compiler project files @samp{*.gpr}.
+compiler project files @samp{*.gpr}. However, Emacs Ada mode can use a
+GNAT project project file to specify the project directories. If no
+other customization is needed, a GNAT project file can be used without
+an Emacs Ada mode project file.
 
 @menu
 * Project File Overview::
@@ -436,8 +439,14 @@ when the file does not actually exist.
 To change the project file before or after the first one is found,
 invoke @key{Ada | Project | Load ...}.
 
-Or, in lisp, evaluate @code{ada-set-default-project-file "/path/file.adp"}.
+Or, in lisp, evaluate @code{(ada-set-default-project-file "/path/file.adp")}.
 This sets @code{ada-prj-default-project-file}, and reads the project file.
+
+You can also specify a GNAT project file to @key{Ada | Project | Load
+...} or @code{ada-set-default-project-file}. Emacs Ada mode checks the
+file extension; if it is @code{.gpr}, the file is treated as a GNAT
+project file. Any other extension is treated as an Emacs Ada mode
+project file.
 
 @node GUI Editor, Project file variables, Project File Overview, Project files
 @section GUI Editor
@@ -465,30 +474,68 @@ using a shell-like notation. For instance, if the variable
 @code{comp_opt} variable will be substituted when @code{comp_cmd} is
 used.
 
+In addition, process environment variables can be referenced using the
+same syntax, or the normal @code{$var} syntax.
+
 Most project variables have defaults that can be changed by setting
 lisp variables; the table below identifies the lisp variable for each
 project variable. Lisp variables corresponding to project variables
 that are lists are lisp lists.
 
+In general, project variables are evaluated when referenced in
+Emacs Ada mode commands. Relative file paths are expanded to
+absolute relative to @code{$@{build_dir@}}.
+
 Here is the list of variables. In the default values, the current
 directory @code{"."} is the project file directory.
 
-@c defined in ada-xref-set-default-prj-values; same order here
 @table @asis
+@c defined in ada-default-prj-properties; alphabetical order
+
+@item @code{ada_project_path_sep}   [default: @code{":" or ";"}]
+Path separator for @code{ADA_PROJECT_PATH}. It defaults to the correct
+value for a native implementation of GNAT for the current operating
+system. The user must override this when using Windows native GNAT
+with Cygwin Emacs, and perhaps in other cases.
+
+Lisp variable: @code{ada-prj-ada-project-path-sep}.
+
+@item @code{ada_project_path}   [default: @code{""}]
+A list of directories to search for GNAT project files.
+
+If set, the @code{ADA_PROJECT_PATH} process environment variable is
+set to this value in the Emacs process when the Emacs Ada mode project
+is selected via menu @samp{Ada | Project | Load}.
+
+For @code{ada_project_path}, relative file paths are expanded to
+absolute when the Emacs Ada project file is read, rather than when the
+project file is selected.
+
+For example if the project file is in the directory
+@file{/home/myproject}, the environment variable @code{GDS_ROOT} is
+set to @code{/home/shared}, and the project file contains:
+@example
+ada_project_path_sep=:
+ada_project_path=$GDS_ROOT/makerules
+ada_project_path=../opentoken
+@end example
+the environment variable @code{ADA_PROJECT_PATH} will be set to
+@code{"/home/shared/makerules:/home/opentoken/"}.
+
+The default value is not the current value of this environment
+variable, because that will typically have been set by another
+project, and will therefore be incorrect for this project.
+
+If you have the environment variable set correctly for all of your
+projects, you do not need to set this project variable.
+
+@item @code{bind_opt}       [default: @code{""}]
+Holds user binder options; used in the default build commands.
+
+Lisp variable: @code{ada-prj-default-bind-opt}.
+
 @item @code{build_dir}      [default: @code{"."}]
 The compile commands will be issued in this directory.
-
-@item @code{src_dir}        [default: @code{"."}]
-A list of directories to search for source files, both for compile
-commands and source navigation.
-
-@item @code{obj_dir}        [default: @code{"."}]
-A list of directories to search for library files. Ada mode searches
-this list for the @samp{.ali} files generated by GNAT that contain
-cross-reference information.
-
-The compiler commands must place the @samp{.ali} files in one of these
-directories; the default commands do that.
 
 @item @code{casing}         [default: @code{("~/.emacs_case_exceptions")}
 List of files containing casing exceptions. See the help on
@@ -496,6 +543,18 @@ List of files containing casing exceptions. See the help on
 @c FIXME: section on case exceptions
 
 Lisp variable: @code{ada-case-exception-file}.
+
+@item @code{check_cmd}      [default: @code{"$@{cross_prefix@}gnatmake -u -c -gnatc $@{gnatmake_opt@} $@{full_current@} -cargs $@{comp_opt@}"}]
+Command used to syntax check a single file.
+The name of the file is substituted for @code{full_current}.
+
+Lisp variable: @code{ada-prj-default-check-cmd}
+
+@item @code{comp_cmd}       [default: @code{"$@{cross_prefix@}gnatmake -u -c $@{gnatmake_opt@} $@{full_current@} -cargs $@{comp_opt@}"}]
+Command used to compile a single file.
+The name of the file is substituted for @code{full_current}.
+
+Lisp variable: @code{ada-prj-default-comp-cmd}.
 
 @item @code{comp_opt}       [default: @code{"-gnatq -gnatQ"}]
 Holds user compiler options; used in the default compile commands. The
@@ -509,68 +568,9 @@ be used; @ref{Use GNAT project file}.
 
 Lisp variable: @code{ada-prj-default-comp-opt}.
 
-@item @code{bind_opt}       [default: @code{""}]
-Holds user binder options; used in the default build commands.
-
-Lisp variable: @code{ada-prj-default-bind-opt}.
-
-@item @code{link_opt}       [default: @code{""}]
-Holds user linker options; used in the default build commands.
-
-Lisp variable: @code{ada-prj-default-link-opt}.
-
-@item @code{gnatmake_opt}   [default: @code{"-g"}]
-Holds user gnatmake options; used in the default build commands.
-
-If a GNAT project file is used (for example @file{project.gpr}), this
-option should be set to @code{-Pproject.gpr}.
-
-Lisp variable: @code{ada-prj-default-gnatmake-opt}.
-
-@item @code{gnatfind_opt}   [default: @code{"-rf"}]
-Holds user gnatfind options; used in the default find commands.
-
-Lisp variable: @code{ada-prj-gnatfind-switches}.
-
-@item @code{main}           [default: current file]
-Specifies the name of the executable file for the project; used in the
-default build commands.
-
-@item @code{main_unit}      [default: current Ada unit]
-Specifies the name of the main Ada unit for the project; used in the
-default build commands.
-
 @item @code{cross_prefix}   [default: @code{""}]
 Name of target machine in a cross-compilation environment. Used in
 default compile and build commands.
-
-@item @code{remote_machine} [default: @code{""}]
-Name of the machine to log into before issuing the compile and build
-commands. If this variable is empty, the command will be run on the
-local machine.
-
-@item @code{comp_cmd}       [default: @code{"$@{cross_prefix@}gnatmake -u -c $@{gnatmake_opt@} $@{full_current@} -cargs $@{comp_opt@}"}]
-Command used to compile a single file.
-The name of the file is substituted for @code{full_current}.
-
-Lisp variable: @code{ada-prj-default-comp-cmd}.
-
-@item @code{check_cmd}      [default: @code{"$@{cross_prefix@}gnatmake -u -c -gnatc $@{gnatmake_opt@} $@{full_current@} -cargs $@{comp_opt@}"}]
-Command used to syntax check a single file.
-The name of the file is substituted for @code{full_current}.
-
-Lisp variable: @code{ada-prj-default-check-cmd}
-
-@item @code{make_cmd}       [default: @code{"$@{cross_prefix@}gnatmake -o $@{main@} $@{main_unit@} $@{gnatmake_opt@} -cargs $@{comp_opt@} -bargs $@{bind_opt@} -largs $@{link_opt@}"}]
-Command used to build the application.
-
-Lisp variable: @code{ada-prj-default-make-cmd}.
-
-@item @code{run_cmd}        [default: @code{"./$@{main@}"}]
-Command used to run the application.
-
-@item @code{debug_pre_cmd}  [default: @code{"cd $@{build_dir@}"}]
-Command executed before @code{debug_cmd}.
 
 @item @code{debug_cmd}      [default: @code{"$@{cross_prefix@}gdb $@{main@}"}]
 Command used to debug the application
@@ -579,6 +579,70 @@ Lisp variable: @code{ada-prj-default-debugger}.
 
 @item @code{debug_post_cmd} [default: @code{""}]
 Command executed after @code{debug_cmd}.
+
+@item @code{debug_pre_cmd}  [default: @code{"cd $@{build_dir@}"}]
+Command executed before @code{debug_cmd}.
+
+@item @code{gnatfind_opt}   [default: @code{"-rf"}]
+Holds user gnatfind options; used in the default find commands.
+
+Lisp variable: @code{ada-prj-gnatfind-switches}.
+
+@item @code{gnatmake_opt}   [default: @code{"-g"}]
+Holds user gnatmake options; used in the default build commands.
+
+Lisp variable: @code{ada-prj-default-gnatmake-opt}.
+
+@item @code{gpr_file}   [default: @code{""}]
+Specify GNAT project file.
+
+If set, the source and object directories specified in the GNAT
+project file are appended to @code{src_dir} and @code{obj_dir}. This
+allows specifying Ada source directories with a GNAT project file, and
+other source directories with the Emacs project file.
+
+In addition, @code{-P@{gpr_file@}} is added to the project variable
+@code{gnatmake_opt} whenever it is referenced. With the default
+project variables, this passes the project file to all gnatmake
+commands.
+
+Lisp variable: @code{ada-prj-default-gpr-file}.
+
+@c FIXME: add gnatstub-opts
+
+@item @code{link_opt}       [default: @code{""}]
+Holds user linker options; used in the default build commands.
+
+Lisp variable: @code{ada-prj-default-link-opt}.
+
+@item @code{main}           [default: current file]
+Specifies the name of the executable file for the project; used in the
+default build commands.
+
+@item @code{make_cmd}       [default: @code{"$@{cross_prefix@}gnatmake -o $@{main@} $@{main@} $@{gnatmake_opt@} -cargs $@{comp_opt@} -bargs $@{bind_opt@} -largs $@{link_opt@}"}]
+Command used to build the application.
+
+Lisp variable: @code{ada-prj-default-make-cmd}.
+
+@item @code{obj_dir}        [default: @code{"."}]
+A list of directories to search for library files. Ada mode searches
+this list for the @samp{.ali} files generated by GNAT that contain
+cross-reference information.
+
+The compiler commands must place the @samp{.ali} files in one of these
+directories; the default commands do that.
+
+@item @code{remote_machine} [default: @code{""}]
+Name of the machine to log into before issuing the compile and build
+commands. If this variable is empty, the command will be run on the
+local machine.
+
+@item @code{run_cmd}        [default: @code{"./$@{main@}"}]
+Command used to run the application.
+
+@item @code{src_dir}        [default: @code{"."}]
+A list of directories to search for source files, both for compile
+commands and source navigation.
 
 @end table
 
@@ -601,6 +665,7 @@ website mentioned in @xref{Installation}.
 * Set compiler options::        A basic Ada mode project file
 * Set source search path::      Source in multiple directories
 * Use GNAT project file::
+* Use multiple GNAT project files::
 @end menu
 
 @node No project files, Set compiler options, Compiling Examples, Compiling Examples
@@ -632,6 +697,8 @@ is begin
 end Hello_2;
 @end example
 
+This file has no errors.
+
 @file{hello_pkg.ads}:
 
 @example
@@ -639,6 +706,8 @@ package Hello_Pkg is
    procedure Say_Hello;
 end Hello_Pkg;
 @end example
+
+This file has no errors.
 
 @file{hello_pkg.adb}:
 
@@ -683,7 +752,7 @@ To fix the error, change the line to be
     Ada.Text_IO.Put_Line ("hello from hello.adb"):
 @end example
 
-Now invoke @key{Ada | Show main}; this displays @file{Ada mode main_unit: hello}.
+Now invoke @key{Ada | Show main}; this displays @file{Ada mode main: hello}.
 
 Now (in buffer @file{hello.adb}), invoke @key{Ada | Build}. You are
 prompted to save the file (if you haven't already). Then the
@@ -729,7 +798,7 @@ unless you use an Emacs Ada mode project file to specify the other directories;
 @xref{Set source search path}, or a GNAT project file; @ref{Use GNAT
 project file}.
 
-Invoke @key{Ada | Show main}; this displays @file{Ada mode main_unit: hello_2}.
+Invoke @key{Ada | Show main}; this displays @file{Ada mode main: hello_2}.
 
 Move to the error with @key{C-x `}, and fix the error by adding @code{body}:
 
@@ -740,29 +809,29 @@ package body Hello_Pkg is
 Now, while still in @file{hello_pkg.adb}, invoke @key{Ada | Build}.
 gnatmake successfully builds @file{hello_2}. This demonstrates that
 Emacs has remembered the main file, in the project variable
-@code{main_unit}, and used it for the Build command.
+@code{main}, and used it for the Build command.
 
 Finally, again while in @file{hello_pkg.adb}, invoke @key{Ada | Run}.
 The @code{*run*} buffer displays @code{Hello from hello_pkg.adb}.
 
 One final point. If you switch back to buffer @file{hello.adb}, and
 invoke @key{Ada | Run}, @file{hello_2.exe} will be run. That is
-because @code{main_unit} is still set to @code{hello_2}, as you can
+because @code{main} is still set to @code{hello_2}, as you can
 see when you invoke @key{Ada | Project | Edit}.
 
-There are three ways to change @code{main_unit}:
+There are three ways to change @code{main}:
 
 @enumerate
 @item
-Invoke @key{Ada | Set main and Build}, which sets @code{main_unit} to
+Invoke @key{Ada | Set main and Build}, which sets @code{main} to
 the current file.
 
 @item
-Invoke @key{Ada | Project | Edit}, edit @code{main_unit} and
+Invoke @key{Ada | Project | Edit}, edit @code{main} and
 @code{main}, and click @key{[save]}
 
 @item
-Invoke @key{Ada | Project | Load}, and load a project file that specifies @code{main_unit}
+Invoke @key{Ada | Project | Load}, and load a project file that specifies @code{main}
 
 @end enumerate
 
@@ -832,8 +901,8 @@ project files}.
 @section Set source search path
 
 In this example, we show how to deal with files in more than one
-directory. We start with the same code as in @ref{No project files}; create those
-files (with the errors present)
+directory. We start with the same code as in @ref{No project files};
+create those files (with the errors present)
 
 Create the directory @file{Example_3}, containing:
 
@@ -912,10 +981,11 @@ compiler error message.
 Fixing the error, linking and running the code proceed as in @ref{No
 project files}.
 
-@node Use GNAT project file,  , Set source search path, Compiling Examples
+@node Use GNAT project file, Use multiple GNAT project files, Set source search path, Compiling Examples
 @section Use GNAT project file
 
-In this example, we show how to use a GNAT project file.
+In this example, we show how to use a GNAT project file, with no Ada
+mode project file.
 
 Create the directory @file{Example_4}, containing:
 
@@ -945,7 +1015,7 @@ error on line 2.
 In addition, create a directory @file{Example_4/Gnat_Project},
 containing these files:
 
-@file{Other/hello_4.adb}:
+@file{Gnat_Project/hello_4.adb}:
 
 @example
 with Hello_Pkg;
@@ -959,13 +1029,6 @@ end Hello_4;
 
 There are no errors in this file.
 
-@file{Gnat_Project/hello_4.adp}:
-
-@example
-src_dir=..
-gnatmake_opt=-Phello_4.gpr
-@end example
-
 @file{Gnat_Project/hello_4.gpr}:
 
 @example
@@ -975,7 +1038,7 @@ end Hello_4;
 @end example
 
 In buffer @file{hello_4.adb}, invoke @key{Ada | Project | Load...}, and
-select @file{Example_4/Gnat_Project/hello_4.adp}.
+select @file{Example_4/Gnat_Project/hello_4.gpr}.
 
 Then, again in @file{hello_4.adb}, invoke @key{Ada | Set main and
 Build}. You should get a @code{*compilation*} buffer containing
@@ -997,9 +1060,72 @@ set the compiler options.
 Fixing the error, linking and running the code proceed as in @ref{No
 project files}.
 
+@node Use multiple GNAT project files,  , Use GNAT project file, Compiling Examples
+@section Use multiple GNAT project files
+
+In this example, we show how to use multiple GNAT project files,
+specifying the GNAT project search path in an Ada mode project file.
+
+Create the directory @file{Example_4} as specified in @ref{Use GNAT
+project file}.
+
+Create the directory @file{Example_5}, containing:
+
+@file{hello_5.adb}:
+
+@example
+with Hello_Pkg;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Hello_5
+is begin
+   Hello_Pkg.Say_Hello;
+   Put_Line ("From hello_5");
+end Hello_5;
+@end example
+
+There are no errors in this file.
+
+@file{hello_5.adp}:
+
+@example
+ada_project_path=../Example_4/Gnat_Project
+gpr_file=hello_5.gpr
+@end example
+
+@file{hello_5.gpr}:
+
+@example
+with "hello_4";
+Project Hello_5 is
+   for Source_Dirs use (".");
+   package Compiler is
+      for Default_Switches ("Ada") use ("-g", "-gnatyt");
+   end Compiler;
+end Hello_5;
+@end example
+
+In buffer @file{hello_5.adb}, invoke @key{Ada | Project | Load...}, and
+select @file{Example_5/hello_5.adp}.
+
+Then, again in @file{hello_5.adb}, invoke @key{Ada | Set main and
+Build}. You should get a @code{*compilation*} buffer containing
+something like (the directory paths will be different):
+
+@example
+cd c:/Examples/Example_5/
+gnatmake -o hello_5 hello_5 -Phello_5.gpr -g -cargs -gnatq -gnatQ -bargs  -largs
+gcc -c -g -gnatyt -g -gnatq -gnatQ -I- -gnatA c:\Examples\Example_5\hello_5.adb
+gcc -c -g -gnatyt -g -gnatq -gnatQ -I- -gnatA c:\Examples\Example_4\hello_pkg.adb
+hello_pkg.adb:2:08: keyword "body" expected here [see file name]
+gnatmake: "c:\examples\example_4\hello_pkg.adb" compilation error
+@end example
+
+Now type @key{C-x `}. @file{Example_4/hello_pkg.adb} is shown,
+demonstrating that @file{hello_5.gpr} and @file{hello_4.gpr} are being
+used to set the compilation search path.
+
 @node Moving Through Ada Code, Identifier completion, Compiling Examples, Top
 @chapter Moving Through Ada Code
-@c -----------------------------------------------------------------------
 
 There are several easy to use commands to navigate through Ada code. All
 these functions are available through the Ada menu, and you can also
