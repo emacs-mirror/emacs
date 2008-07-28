@@ -239,7 +239,7 @@ The search is done in the source for library LIBRARY."
   ;; that defines something else.
   (while (and (symbolp symbol) (get symbol 'definition-name))
     (setq symbol (get symbol 'definition-name)))
-  (if (string-match "\\`src/\\(.*\\.c\\)\\'" library)
+  (if (string-match "\\`src/\\(.*\\.\\(c\\|m\\)\\)\\'" library)
       (find-function-C-source symbol (match-string 1 library) type)
     (when (string-match "\\.el\\(c\\)\\'" library)
       (setq library (substring library 0 (match-beginning 1))))
