@@ -623,6 +623,10 @@ It is bound to `C-x 4 A'.
 and C-x C-q in wdired-mode exits it with asking a question about
 saving changes.
 
+*** `M-s a C-s' and `M-s a M-C-s' run multi-file Isearch on the marked files.
+They visit the first marked file in the sequence and display the usual Isearch
+prompt for a string or a regexp where all Isearch commands are available.
+
 *** `Q' in Dired provides two new keys for multi-file replacement.
 The upper case key `Y' replaces all remaining matches in all remaining files
 with no more questions.  The upper case key `N' stops doing replacements
@@ -675,8 +679,8 @@ if there is one (e.g. go from ChangeLog to ChangeLog.12).
 This is enabled if multi-isearch-search is non-nil.
 
 *** Two new commands to start Isearch on a list of marked buffers
-for buff-menu.el and ibuffer.el are bound to the keys "M-s a C-s" and
-"M-s a M-C-s".
+for buff-menu.el and ibuffer.el are bound to the keys `M-s a C-s' and
+`M-s a M-C-s'.
 
 *** The part of an isearch that failed to match is highlighted in `isearch-fail'
 face.
