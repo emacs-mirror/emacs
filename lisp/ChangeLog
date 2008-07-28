@@ -1,5 +1,10 @@
 2008-07-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
+	* faces.el (face-set-after-frame-default): Treat 'ns as all other
+	window systems.
+
+2008-07-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
 	* term/ns-win.el (do-applescript): New alias in carbon-compat section.
 
 2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>

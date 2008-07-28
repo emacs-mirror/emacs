@@ -2027,7 +2027,7 @@ frame parameters in PARAMETERS and `default-frame-alist'."
 	  ;; X resouces for the default face are applied during
 	  ;; x-create-frame.
 	  (and (not (eq face 'default))
-	       (memq (window-system frame) '(x w32)) 	 
+	       (memq (window-system frame) '(x w32 ns)) 	 
 	       (make-face-x-resource-internal face frame))
 	  ;; Apply attributes specified by face-new-frame-defaults
 	  (internal-merge-in-global-face face frame))
