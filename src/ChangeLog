@@ -1,9 +1,3 @@
-2008-07-28  Chong Yidong  <cyd@stupidchicken.com>
-
-	* xdisp.c (redisplay_window): Check return value of
-	compute_window_start_on_continuation_line before forcing a window
-	start.
-
 2008-07-28  Jason Rumney  <jasonr@gnu.org>
 
         * w32term.c: (w32_enable_unicode_output, cleartype_active): Remove
