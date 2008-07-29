@@ -1068,6 +1068,7 @@ If HDR is non-nil, insert a header line with the directory name."
 		 (dired-move-to-end-of-filename)
 		 (point))
 	       '(mouse-face highlight
+		 dired-filename t
 		 help-echo "mouse-2: visit this file in other window")))
 	(error nil))
       (forward-line 1))))
@@ -1298,6 +1299,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ;; isearch
     (define-key map (kbd "M-s a C-s")   'dired-do-isearch)
     (define-key map (kbd "M-s a M-C-s") 'dired-do-isearch-regexp)
+    (define-key map (kbd "M-s f C-s")   'dired-isearch-filenames)
+    (define-key map (kbd "M-s f M-C-s") 'dired-isearch-filenames-regexp)
     ;; misc
     (define-key map "\C-x\C-q" 'dired-toggle-read-only)
     (define-key map "?" 'dired-summary)
@@ -1409,6 +1412,12 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar immediate dashes]
       '("--"))
 
+    (define-key map [menu-bar immediate isearch-filenames-regexp]
+      '(menu-item "Isearch Regexp in File Names..." dired-isearch-filenames-regexp
+		  :help "Incrementally search for regexp in file names only"))
+    (define-key map [menu-bar immediate isearch-filenames]
+      '(menu-item "Isearch in File Names..." dired-isearch-filenames
+		  :help "Incrementally search for string in file names only."))
     (define-key map [menu-bar immediate compare-directories]
       '(menu-item "Compare Directories..." dired-compare-directories
 		  :help "Mark files with different attributes in two dired buffers"))
@@ -1723,6 +1732,7 @@ Keybindings:
   (when (featurep 'dnd)
     (set (make-local-variable 'dnd-protocol-alist)
 	 (append dired-dnd-protocol-alist dnd-protocol-alist)))
+  (add-hook 'isearch-mode-hook 'dired-isearch-filenames-setup nil t)
   (run-mode-hooks 'dired-mode-hook))
 
 ;; Idiosyncratic dired commands that don't deal with marks.
