@@ -1,3 +1,7 @@
+2008-07-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (ELCFILES): Add mairix.elc.
+
 2008-07-29  David Engster  <deng@randomsample.de>
 
 	* net/mairix.el: New file.
