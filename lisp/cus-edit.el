@@ -3211,7 +3211,7 @@ Only match frames that support the specified face attributes.")
 ;;; The `custom-face' Widget.
 
 (defface custom-face-tag
-  `((t (:weight bold :height 1.2 :inherit variable-pitch)))
+  `((t :inherit custom-variable-tag))
   "Face used for face tags."
   :group 'custom-faces)
 ;; backward-compatibility alias
