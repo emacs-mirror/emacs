@@ -1,3 +1,7 @@
+2008-07-29  David Engster  <deng@randomsample.de>
+
+	* net/mairix.el: New file.
+
 2008-07-29  Juri Linkov  <juri@jurta.org>
 
 	* cus-edit.el (custom-face-tag): Inherit from custom-variable-tag
