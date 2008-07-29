@@ -1,3 +1,11 @@
+2008-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (Fx_menu_bar_open_internal): Use activate_item signal to
+	open menu.
+
+	* gtkutil.c (menu_nav_ended): Remove.
+	(create_menus): Remove signal connect for menu_nav_ended.
+
 2008-07-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Check return value of
