@@ -2279,6 +2279,54 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 ;;;###end dired-ins.el
 
 
+;; Search only in file names in the Dired buffer.
+
+(defcustom dired-isearch-filenames nil
+  "*If non-nil, Isearch in Dired matches only file names."
+  :type '(choice (const :tag "No restrictions" nil)
+		 (const :tag "Isearch only in file names" dired-filename))
+  :group 'dired
+  :version "23.1")
+
+(defvar dired-isearch-orig-success-function nil)
+
+(defun dired-isearch-filenames-setup ()
+  "Set up isearch to search in Dired file names.
+Intended to be added to `isearch-mode-hook'."
+  (when dired-isearch-filenames
+    (setq dired-isearch-orig-success-function
+	  (default-value 'isearch-success-function))
+    (setq-default isearch-success-function 'dired-isearch-success-function)
+    (add-hook 'isearch-mode-end-hook 'dired-isearch-filenames-end nil t)))
+
+(defun dired-isearch-filenames-end ()
+  "Clean up the Dired file name search after terminating isearch."
+  (setq-default isearch-success-function dired-isearch-orig-success-function)
+  (remove-hook 'isearch-mode-end-hook 'dired-isearch-filenames-end t))
+
+(defun dired-isearch-success-function (beg end)
+  "Match only at visible regions with the text property `dired-filename'."
+  (and (isearch-success-function-default beg end)
+       (if dired-isearch-filenames
+	   (text-property-not-all (min beg end) (max beg end)
+				  'dired-filename nil)
+	 t)))
+
+;;;###autoload
+(defun dired-isearch-filenames ()
+  "Search for a string using Isearch only in file names in the Dired buffer."
+  (interactive)
+  (let ((dired-isearch-filenames t))
+    (isearch-forward)))
+
+;;;###autoload
+(defun dired-isearch-filenames-regexp ()
+  "Search for a regexp using Isearch only in file names in the Dired buffer."
+  (interactive)
+  (let ((dired-isearch-filenames t))
+    (isearch-forward-regexp)))
+
+
 ;; Functions for searching in tags style among marked files.
 
 ;;;###autoload
