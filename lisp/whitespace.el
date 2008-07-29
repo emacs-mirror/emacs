@@ -308,6 +308,10 @@
 ;; Acknowledgements
 ;; ----------------
 ;;
+;; Thanks to David Reitter <david.reitter@gmail.com> for suggesting a
+;; `whitespace-newline' initialization with low contrast relative to
+;; the background color.
+;;
 ;; Thanks to Stephen Deasey <sdeasey@gmail.com> for the
 ;; `indent-tabs-mode' usage suggestion.
 ;;
