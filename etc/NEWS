@@ -623,6 +623,11 @@ It is bound to `C-x 4 A'.
 and C-x C-q in wdired-mode exits it with asking a question about
 saving changes.
 
+*** `M-s f C-s' and `M-s f M-C-s' run Isearch that matches only at file names.
+When a new user option `dired-isearch-filenames' is non-nil, then even
+ordinary Isearch started with `C-s' and `C-M-s' matches only at file names
+in the Dired buffer.
+
 *** `M-s a C-s' and `M-s a M-C-s' run multi-file Isearch on the marked files.
 They visit the first marked file in the sequence and display the usual Isearch
 prompt for a string or a regexp where all Isearch commands are available.
