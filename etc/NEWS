@@ -253,6 +253,9 @@ following arguments.
 
 * Incompatible Editing Changes in Emacs 23.1
 
+** In Dired, `dired-flag-garbage-files' is rebound from `&' to `%&'
+on the regexp command prefix map.
+
 +++
 ** In Dired-x, all command guesses for ! are now added to the default
 list accessible by M-n instead of pushing all guesses temporarily into
@@ -622,6 +625,11 @@ It is bound to `C-x 4 A'.
 *** In Dired, C-x C-q now runs the command wdired-change-to-wdired-mode,
 and C-x C-q in wdired-mode exits it with asking a question about
 saving changes.
+
+*** `&' runs the command `dired-do-async-shell-command' that executes
+the command asynchronously without the need to manually add ampersand
+to the end of the command.  Its output appears in the buffer `*Async Shell
+Command*'.
 
 *** `M-s f C-s' and `M-s f M-C-s' run Isearch that matches only at file names.
 When a new user option `dired-isearch-filenames' is non-nil, then even
