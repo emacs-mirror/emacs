@@ -1,3 +1,8 @@
+2008-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add mairix-el.
+	($(infodir)/mairix-el), mairix-el.dvi): New targets.
+
 2008-07-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in: Add mairix-el targets.
