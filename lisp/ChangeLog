@@ -1,5 +1,12 @@
 2008-07-29  Juri Linkov  <juri@jurta.org>
 
+	* dired-aux.el (dired-do-async-shell-command): New command.
+
+	* dired.el (dired-mode-map): Rebind `dired-flag-garbage-files'
+	from `&' to `%&'.  Bind `&' to `dired-do-async-shell-command'.
+
+2008-07-29  Juri Linkov  <juri@jurta.org>
+
 	* international/mule-cmds.el (ucs-names): New internal variable.
 	(ucs-names): New function.
 	(ucs-completions): New lazy completion variable.
