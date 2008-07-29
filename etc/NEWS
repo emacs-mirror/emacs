@@ -468,6 +468,12 @@ details, see the EasyPG Assistant User's Manual.
 ** linum.el is a new minor mode to display line numbers for the
 current buffer.
 
+** mairix.el is an interface to mairix, a free tool for indexing and
+searching locally stored mail.  It allows you to query mairix and
+display the search results with Rmail, Gnus and VM.  Note that there
+is an existing Gnus back end, nnmairix.el, which should be used with
+Maildir/MH setups.
+
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
 ** nXML Mode
