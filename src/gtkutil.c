@@ -2142,34 +2142,6 @@ xg_create_one_menuitem (item, f, select_cb, highlight_cb, cl_data, group)
   return w;
 }
 
-/* Callback called when keyboard traversal (started by x-menu-bar-open) ends.
-   WMENU is the menu for which traversal has been done.  DATA points to the
-   frame for WMENU.  We must release grabs, some bad interaction between GTK
-   and Emacs makes the menus keep the grabs.  */
-
-static void
-menu_nav_ended (wmenu, data)
-     GtkMenuShell *wmenu;
-     gpointer data;
-{
-  FRAME_PTR f = (FRAME_PTR) data;
-
-  if (FRAME_X_OUTPUT (f)->menubar_widget)
-    {
-      GtkMenuShell *w = GTK_MENU_SHELL (FRAME_X_OUTPUT (f)->menubar_widget);
-      Display *dpy = FRAME_X_DISPLAY (f);
-
-      BLOCK_INPUT;
-      gtk_menu_shell_deactivate (w);
-      gtk_menu_shell_deselect (w);
-
-      XUngrabKeyboard (dpy, CurrentTime);
-      XUngrabPointer (dpy, CurrentTime);
-      UNBLOCK_INPUT;
-    }
-}
-
-
 static GtkWidget *create_menus P_ ((widget_value *, FRAME_PTR, GCallback,
 				    GCallback, GCallback, int, int, int,
 				    GtkWidget *, xg_menu_cb_data *, char *));
@@ -2234,12 +2206,6 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
                           NULL);
       }
       else wmenu = gtk_menu_bar_new ();
-
-      /* Fix up grabs after keyboard traversal ends.  */
-      g_signal_connect (G_OBJECT (wmenu),
-                        "selection-done",
-                        G_CALLBACK (menu_nav_ended),
-                        f);
 
       /* Put cl_data on the top menu for easier access.  */
       cl_data = make_cl_data (cl_data, f, highlight_cb);
