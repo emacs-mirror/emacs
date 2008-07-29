@@ -1,3 +1,11 @@
+2008-07-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in: Add mairix-el targets.
+
+2008-07-29  David Engster  <deng@randomsample.de>
+
+	* mairix-el.texi: New file.
+
 2008-07-28  Stephen Leake  <stephen_leake@stephe-leake.org>
 
 	* ada-mode.texi: Document using GNAT project files as Emacs Ada mode
