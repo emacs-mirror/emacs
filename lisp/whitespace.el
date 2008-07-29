@@ -570,10 +570,10 @@ and `newline'."
 
 (defface whitespace-newline
   '((((class color) (background dark))
-     (:background "grey26" :foreground "aquamarine3" :bold t))
+     (:foreground "darkgray" :bold nil))
     (((class color) (background light))
-     (:background "linen"  :foreground "aquamarine3" :bold t))
-    (t (:bold t :underline t)))
+     (:foreground "lightgray" :bold nil))
+    (t (:underline t :bold nil)))
   "Face used to visualize NEWLINE char mapping.
 
 See `whitespace-display-mappings'."

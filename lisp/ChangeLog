@@ -1,3 +1,9 @@
+2008-07-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el (whitespace-newline): Change initialization to have a
+	low contrast relative to the background color.  Suggested by David
+	Reitter <david.reitter@gmail.com>.
+
 2008-07-28  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-do-isearch, dired-do-isearch-regexp):
