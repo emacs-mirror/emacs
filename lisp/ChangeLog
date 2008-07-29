@@ -1,5 +1,8 @@
 2008-07-29  Juri Linkov  <juri@jurta.org>
 
+	* cus-edit.el (custom-face-tag): Inherit from custom-variable-tag
+	instead of variable-pitch with bold and 1.2 height.
+
 	* dired-aux.el (dired-do-async-shell-command): New command.
 
 	* dired.el (dired-mode-map): Rebind `dired-flag-garbage-files'
