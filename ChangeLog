@@ -1,3 +1,7 @@
+2008-07-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info/dir (File): Add mairix-el.
+
 2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove support for Mac Carbon.
