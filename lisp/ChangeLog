@@ -1,3 +1,27 @@
+2008-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ada-mode.el (ada-batch-reformat): Doc fix.
+	(ada-create-case-exception): Fix typo in docstring.
+	(ada-no-auto-case): Return nil, not the docstring.
+	(ada-indent-current): Reflow docstring.
+
+	* progmodes/ada-prj.el (ada-prj-edit, ada-prj-initialize-values)
+	(ada-prj-save-specific-option, ada-prj-field): Fix typos in docstrings.
+	(ada-prj-load-from-file): Reflow docstring.
+	(ada-prj-display-page): Fix typo in widget.
+
+	* progmodes/ada-stmt.el (ada-case, ada-package-body, ada-private):
+	Fix typos in docstrings.
+
+	* progmodes/ada-xref.el (ada-find-executable, ada-gnat-parse-gpr)
+	(ada-compile-current, ada-check-current, ada-run-application)
+	(ada-get-ali-file-name): Fix typos in docstrings.
+	(ada-xref-confirm-compile, ada-find-references)
+	(ada-find-local-references, ada-find-any-references): Doc fixes.
+	(ada-get-all-references): Fix typo in error message.
+	(ada-xref-current-project): Use `let', not `let*'.
+	(ada-do-file-completion, ada-xref-change-buffer): Reflow docstring.
+
 2008-07-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el (whitespace-newline): Change initialization to have a

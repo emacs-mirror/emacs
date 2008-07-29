@@ -1432,7 +1432,7 @@ Casing exception lists are `ada-case-exception' and `ada-case-exception-substrin
 (defun ada-create-case-exception (&optional word)
   "Define WORD as an exception for the casing system.
 If WORD is not given, then the current word in the buffer is used instead.
-The new words is added to the first file in `ada-case-exception-file'.
+The new word is added to the first file in `ada-case-exception-file'.
 The standard casing rules will no longer apply to this word."
   (interactive)
   (let ((previous-syntax-table (syntax-table))
@@ -1752,7 +1752,7 @@ adapt to unusal auto-casing schemes.  Since it does nothing, you can for
 instance use it for `ada-case-identifier' if you don't want any special
 auto-casing for identifiers, whereas keywords have to be lower-cased.
 See also `ada-auto-case' to disable auto casing altogether."
-  )
+  nil)
 
 (defun ada-capitalize-word (&optional arg)
   "Upcase first letter and letters following '_', lower case other letters.
@@ -2189,7 +2189,7 @@ The original line is indented first if `ada-indent-after-return' is non-nil."
 
 (defun ada-batch-reformat ()
   "Re-indent and re-case all the files found on the command line.
-This function should be used from the Unix/Windows command line, with a
+This function should be used from the command line, with a
 command like:
   emacs -batch -l ada-mode -f ada-batch-reformat file1 file2 ..."
 
@@ -2211,8 +2211,8 @@ Return the new position of point or nil if not found."
 
 (defun ada-indent-current ()
   "Indent current line as Ada code.
-Return the calculation that was done, including the reference point and the
-offset."
+Return the calculation that was done, including the reference point
+and the offset."
   (interactive)
   (let ((previous-syntax-table (syntax-table))
 	(orgpoint (point-marker))

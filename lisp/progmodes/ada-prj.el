@@ -86,7 +86,7 @@
 
 (defun ada-prj-edit ()
   "Editing the project file associated with the current Ada buffer.
-If there is none, opens a new project file"
+If there is none, opens a new project file."
   (interactive)
   (if ada-prj-default-project-file
       (ada-customize)
@@ -94,8 +94,8 @@ If there is none, opens a new project file"
 
 (defun ada-prj-initialize-values (symbol ada-buffer filename)
   "Set SYMBOL to the property list of the project file FILENAME.
-If FILENAME is null, read the file associated with ADA-BUFFER. If no
-project file is found, returns the default values."
+If FILENAME is null, read the file associated with ADA-BUFFER.
+If no project file is found, return the default values."
 ;; FIXME: rationalize arguments; make ada-buffer optional?
   (if (and filename
 	   (not (string= filename ""))
@@ -112,7 +112,7 @@ project file is found, returns the default values."
 
 (defun ada-prj-save-specific-option (field)
   "Return the string to print in the project file to save FIELD.
-If the current value of FIELD is the default value, returns an empty string."
+If the current value of FIELD is the default value, return an empty string."
   (if (string= (plist-get ada-prj-current-values field)
 	       (plist-get ada-prj-default-values field))
       ""
@@ -184,7 +184,8 @@ If the current value of FIELD is the default value, returns an empty string."
   )
 
 (defun ada-prj-load-from-file (symbol)
-  "Load SYMBOL value from file. One item per line should be found in the file."
+  "Load SYMBOL value from file.
+One item per line should be found in the file."
   (save-excursion
     (let ((file (read-file-name "File name: " nil nil t))
 	  (buffer (current-buffer))
@@ -397,7 +398,7 @@ ignored by gnatfind and you don't see the references within.")
    ((= tab-num 4)
     (widget-insert "/_____________\\/______________\\/______________\\/              \\/______________\\\n")
     (widget-insert
-"All the fields below can use variable substitution The syntax is ${name},
+"All the fields below can use variable substitution. The syntax is ${name},
 where name is the name that appears after the Help buttons in this buffer. As
 a special case, ${current} is replaced with the name of the file currently
 edited, with directory name but no extension, whereas ${full_current} is
@@ -611,9 +612,9 @@ Parameters WIDGET-MODIFIED, EVENT match :notify for the widget."
   "Create a widget to edit FIELD in the current buffer.
 TEXT is a short explanation of what the field means, whereas HELP-TEXT
 is the text displayed when the user pressed the help button.
-If IS-LIST is non-nil, the field contains a list. Otherwise, it contains
+If IS-LIST is non-nil, the field contains a list.  Otherwise, it contains
 a single string.
-if IS-PATHS is true, some special buttons are added to load paths,...
+If IS-PATHS is true, some special buttons are added to load paths,...
 AFTER-TEXT is inserted just after the widget."
   (let ((value (plist-get ada-prj-current-values field))
 	(inhibit-read-only t)

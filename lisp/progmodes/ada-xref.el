@@ -60,7 +60,7 @@ If nil, the cross-reference mode never runs gcc."
   :type 'boolean :group 'ada)
 
 (defcustom ada-xref-confirm-compile nil
-  "*Non-nil means ask for confirmation before compiling or running the application."
+  "*If non-nil, ask for confirmation before compiling or running the application."
   :type 'boolean :group 'ada)
 
 (defcustom ada-krunch-args "0"
@@ -282,7 +282,7 @@ project file, a (nil . default-properties) entry is created.")
 (defun ada-find-executable (exec-name)
   "Find the full path to the executable file EXEC-NAME.
 If not found, throw an error.
-On Windows systems, this will properly handle .exe extension as well"
+On Windows systems, this will properly handle .exe extension as well."
   (let ((result (or (ada-find-file-in-dir exec-name exec-path)
 		    (ada-find-file-in-dir (concat exec-name ".exe") exec-path))))
     (if result
@@ -351,7 +351,7 @@ CROSS-PREFIX is the prefix to use for the `gnatls' command."
 
 (defun ada-gnat-parse-gpr (plist gpr-file)
   "Set gpr_file, src_dir and obj_dir properties in PLIST by parsing GPR-FILE.
-Returns new value of PLIST.
+Return new value of PLIST.
 GPR_FILE must be full path to file, normalized.
 src_dir, obj_dir will include compiler runtime.
 Assumes environment variable ADA_PROJECT_PATH is set properly."
@@ -571,8 +571,8 @@ All the directories are returned as absolute directories."
 
 (defun ada-do-file-completion (string predicate flag)
   "Completion function when reading a file from the minibuffer.
-Completion is attempted in all the directories in the source path, as
-defined in the project file."
+Completion is attempted in all the directories in the source path,
+as defined in the project file."
   ;; FIXME: doc arguments
 
   ;; This function is not itself interactive, but it is called as part
@@ -625,7 +625,7 @@ Call `ada-require-project-file' first if a project must exist."
 (defun ada-xref-current-project ()
   "Return the current project.
 Call `ada-require-project-file' first to ensure a project exists."
-  (let* ((file-name (ada-xref-current-project-file)))
+  (let ((file-name (ada-xref-current-project-file)))
     (assoc file-name ada-xref-project-files)))
 
 (defun ada-show-current-project ()
@@ -968,8 +968,8 @@ Return new value of PROJECT."
 (defun ada-find-references (&optional pos arg local-only)
   "Find all references to the entity under POS.
 Calls gnatfind to find the references.
-If ARG is t, the contents of the old *gnatfind* buffer is preserved.
-If LOCAL-ONLY is t, only the declarations in the current file are returned."
+If ARG is non-nil, the contents of the old *gnatfind* buffer is preserved.
+If LOCAL-ONLY is non-nil, only declarations in the current file are returned."
   (interactive "d\nP")
   (ada-require-project-file)
 
@@ -994,7 +994,7 @@ If LOCAL-ONLY is t, only the declarations in the current file are returned."
 (defun ada-find-local-references (&optional pos arg)
   "Find all references to the entity under POS.
 Calls `gnatfind' to find the references.
-If ARG is t, the contents of the old *gnatfind* buffer is preserved."
+If ARG is non-nil, the contents of the old *gnatfind* buffer is preserved."
   (interactive "d\nP")
   (ada-find-references pos arg t))
 
@@ -1004,10 +1004,10 @@ If ARG is t, the contents of the old *gnatfind* buffer is preserved."
   (entity &optional file line column local-only append)
   "Search for references to any entity whose name is ENTITY.
 ENTITY was first found the location given by FILE, LINE and COLUMN.
-If LOCAL-ONLY is t, then list only the references in FILE, which
-is much faster.
-If APPEND is t, then append the output of the command to the existing
-buffer `*gnatfind*', if there is one."
+If LOCAL-ONLY is non-nil, then list only the references in FILE,
+which is much faster.
+If APPEND is non-nil, then append the output of the command to the
+existing buffer `*gnatfind*', if there is one."
   (interactive "sEntity name: ")
   (ada-require-project-file)
 
@@ -1263,7 +1263,7 @@ If ARG is not nil, ask for user confirmation."
 
 (defun ada-compile-current (&optional arg prj-field)
   "Recompile the current file.
-If ARG is not nil, ask for user confirmation of the command.
+If ARG is non-nil, ask for user confirmation of the command.
 PRJ-FIELD is the name of the field to use in the project file to get the
 command, and should be either `comp_cmd' (default) or `check_cmd'."
   (interactive "P")
@@ -1288,13 +1288,13 @@ command, and should be either `comp_cmd' (default) or `check_cmd'."
 
 (defun ada-check-current (&optional arg)
   "Check the current file for syntax errors.
-If ARG is not nil, ask for user confirmation of the command."
+If ARG is non-nil, ask for user confirmation of the command."
   (interactive "P")
   (ada-compile-current arg 'check_cmd))
 
 (defun ada-run-application (&optional arg)
   "Run the application.
-if ARG is not-nil, ask for user confirmation."
+If ARG is non-nil, ask for user confirmation."
   (interactive)
   (ada-require-project-file)
 
@@ -1523,7 +1523,7 @@ to gnatmake's behavior."
   (ada-find-file-in-dir file (ada-xref-get-src-dir-field)))
 
 (defun ada-get-ali-file-name (file)
-  "Create the ali file name for the ada-file FILE.
+  "Create the ali file name for the Ada file FILE.
 The file is searched for in every directory shown in the obj_dir lines of
 the project file."
 
@@ -1812,7 +1812,7 @@ Information is extracted from the ali file."
 	  (progn
 	    (kill-buffer ali-buffer)
 
-	    (error "No declaration of %s found." (ada-name-of identlist))
+	    (error "No declaration of %s found" (ada-name-of identlist))
 	    )))
       )
 
@@ -2147,8 +2147,8 @@ the declaration and documentation of the subprograms one is using."
 (defun ada-xref-change-buffer
   (file line column identlist &optional other-frame)
   "Select and display FILE, at LINE and COLUMN.
-If we do not end on the same identifier as IDENTLIST, find the closest
-match.  Kills the .ali buffer at the end.
+If we do not end on the same identifier as IDENTLIST, find the
+closest match.  Kills the .ali buffer at the end.
 If OTHER-FRAME is non-nil, creates a new frame to show the file."
 
   (let (declaration-buffer)
