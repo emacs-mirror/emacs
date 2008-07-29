@@ -2832,10 +2832,46 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
 (defvar nonascii-insert-offset 0 "This variable is obsolete.")
 (defvar nonascii-translation-table nil "This variable is obsolete.")
 
+(defvar ucs-names nil
+  "Alist of cached (CHAR-NAME . CHAR-CODE) pairs.")
+
+(defun ucs-names ()
+  "Return alist of (CHAR-NAME . CHAR-CODE) pairs cached in `ucs-names'."
+  (or ucs-names
+      (setq ucs-names
+	    (let (name names)
+	      (dotimes (c #xEFFFF)
+		(unless (or
+			 (and (>= c #x3400 ) (<= c #x4dbf )) ; CJK Ideograph Extension A
+			 (and (>= c #x4e00 ) (<= c #x9fff )) ; CJK Ideograph
+			 (and (>= c #xd800 ) (<= c #xfaff )) ; Private/Surrogate
+			 (and (>= c #x20000) (<= c #x2ffff)) ; CJK Ideograph Extension B
+			 )
+		  (if (setq name (get-char-code-property c 'name))
+		      (setq names (cons (cons name c) names)))
+		  (if (setq name (get-char-code-property c 'old-name))
+		      (setq names (cons (cons name c) names)))))
+	      names))))
+
+(defvar ucs-completions (lazy-completion-table ucs-completions ucs-names)
+  "Lazy completion table for completing on Unicode character names.")
+
+(defun read-char-by-name (prompt)
+  "Read a character by its Unicode name or hex number string.
+Display PROMPT and read a string that represents a character
+by its Unicode property `name' or `old-name'.  It also accepts
+a hexadecimal number of Unicode code point.  Returns a character
+as a number."
+  (let* ((completion-ignore-case t)
+	 (input (completing-read prompt ucs-completions)))
+    (or (and (string-match "^[0-9a-fA-F]+$" input)
+	     (string-to-number input 16))
+	(cdr (assoc input (ucs-names))))))
+
 (defun ucs-insert (arg)
   "Insert a character of the given Unicode code point.
 Interactively, prompts for a hex string giving the code."
-  (interactive "sUnicode (hex): ")
+  (interactive (list (read-char-by-name "Unicode (name or hex): ")))
   (or (integerp arg)
       (setq arg (string-to-number arg 16)))
   (if (or (< arg 0) (> arg #x10FFFF))
