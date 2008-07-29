@@ -1,3 +1,10 @@
+2008-07-29  Jason Rumney  <jasonr@gnu.org>
+
+        * w32uniscribe.c (uniscribe_shape): Avoid using context if cache
+        is populated.
+        (uniscribe_encode_char): Always use uniscribe.
+        Avoid using context if cache is populated.
+
 2008-07-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (Fx_menu_bar_open_internal): Use activate_item signal to

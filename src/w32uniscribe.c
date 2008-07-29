@@ -211,10 +211,10 @@ uniscribe_shape (lgstring)
   int *advances;
   GOFFSET *offsets;
   ABC overall_metrics;
-  HDC context;
-  HFONT old_font;
   HRESULT result;
-  struct frame * f;
+  struct frame * f = NULL;
+  HDC context = NULL;
+  HFONT old_font = NULL;
 
   CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring), font);
   uniscribe_font = (struct uniscribe_font_info *) font;
@@ -248,7 +248,7 @@ uniscribe_shape (lgstring)
 					sizeof (SCRIPT_ITEM) * max_items + 1);
     }
 
-  if (!SUCCEEDED (result))
+  if (FAILED (result))
     {
       xfree (items);
       return Qnil;
@@ -256,10 +256,6 @@ uniscribe_shape (lgstring)
 
   /* TODO: When we get BIDI support, we need to call ScriptLayout here.
      Requires that we know the surrounding context.  */
-
-  f = XFRAME (selected_frame);
-  context = get_frame_dc (f);
-  old_font = SelectObject (context, FONT_HANDLE(font));
 
   glyphs = alloca (max_glyphs * sizeof (WORD));
   clusters = alloca (nchars * sizeof (WORD));
@@ -272,17 +268,35 @@ uniscribe_shape (lgstring)
       int nglyphs, nchars_in_run, rtl = items[i].a.fRTL ? -1 : 1;
       nchars_in_run = items[i+1].iCharPos - items[i].iCharPos;
 
+      /* Context may be NULL here, in which case the cache should be
+         used without needing to select the font.  */
       result = ScriptShape (context, &(uniscribe_font->cache),
 			    chars + items[i].iCharPos, nchars_in_run,
 			    max_glyphs - done_glyphs, &(items[i].a),
 			    glyphs, clusters, attributes, &nglyphs);
+
+      if (result == E_PENDING && !context)
+	{
+	  /* This assumes the selected frame is on the same display as the
+	     one we are drawing.  It would be better for the frame to be
+	     passed in.  */
+	  f = XFRAME (selected_frame);
+	  context = get_frame_dc (f);
+	  old_font = SelectObject (context, FONT_HANDLE(font));
+
+	  result = ScriptShape (context, &(uniscribe_font->cache),
+				chars + items[i].iCharPos, nchars_in_run,
+				max_glyphs - done_glyphs, &(items[i].a),
+				glyphs, clusters, attributes, &nglyphs);
+	}
+
       if (result == E_OUTOFMEMORY)
 	{
 	  /* Need a bigger lgstring.  */
 	  lgstring = Qnil;
 	  break;
 	}
-      else if (result) /* Failure.  */
+      else if (FAILED (result))
 	{
 	  /* Can't shape this run - return results so far if any.  */
 	  break;
@@ -298,7 +312,18 @@ uniscribe_shape (lgstring)
 	  result = ScriptPlace (context, &(uniscribe_font->cache),
 				glyphs, nglyphs, attributes, &(items[i].a),
 				advances, offsets, &overall_metrics);
-	  if (SUCCEEDED (result))
+	  if (result == E_PENDING && !context)
+	    {
+	      /* Cache not complete...  */
+	      f = XFRAME (selected_frame);
+	      context = get_frame_dc (f);
+	      old_font = SelectObject (context, FONT_HANDLE(font));
+
+	      result = ScriptPlace (context, &(uniscribe_font->cache),
+				    glyphs, nglyphs, attributes, &(items[i].a),
+				    advances, offsets, &overall_metrics);
+	    }
+          if (SUCCEEDED (result))
 	    {
 	      int j, nclusters, from, to;
 
@@ -357,6 +382,16 @@ uniscribe_shape (lgstring)
 		  result = ScriptGetGlyphABCWidth (context,
 						   &(uniscribe_font->cache),
 						   glyphs[j], &char_metric);
+		  if (result == E_PENDING && !context)
+		    {
+		      /* Cache incomplete... */
+		      f = XFRAME (selected_frame);
+		      context = get_frame_dc (f);
+		      old_font = SelectObject (context, FONT_HANDLE(font));
+		      result = ScriptGetGlyphABCWidth (context,
+						       &(uniscribe_font->cache),
+						       glyphs[j], &char_metric);
+		    }
 
 		  if (SUCCEEDED (result))
 		    {
@@ -382,14 +417,19 @@ uniscribe_shape (lgstring)
 		    }
 		  else
 		    LGLYPH_SET_ADJUSTMENT (lglyph, Qnil);
-		}	    }
+		}
+	    }
 	}
       done_glyphs += nglyphs;
     }
 
   xfree (items);
-  SelectObject (context, old_font);
-  release_frame_dc (f, context);
+
+  if (context)
+    {
+      SelectObject (context, old_font);
+      release_frame_dc (f, context);
+    }
 
   if (NILP (lgstring))
     return Qnil;
@@ -405,68 +445,90 @@ uniscribe_encode_char (font, c)
      struct font *font;
      int c;
 {
-  HDC context;
-  struct frame *f;
-  HFONT old_font;
+  HDC context = NULL;
+  struct frame *f = NULL;
+  HFONT old_font = NULL;
   unsigned code = FONT_INVALID_CODE;
+  wchar_t ch[2];
+  int len;
+  SCRIPT_ITEM* items;
+  int nitems;
+  struct uniscribe_font_info *uniscribe_font
+    = (struct uniscribe_font_info *)font;
 
-  /* Use selected frame until API is updated to pass the frame.  */
-  f = XFRAME (selected_frame);
-  context = get_frame_dc (f);
-  old_font = SelectObject (context, FONT_HANDLE(font));
-
-  /* There are a number of ways to get glyph indices for BMP characters.
-     The GetGlyphIndices GDI function seems to work best for detecting
-     non-existing glyphs.  */
   if (c < 0x10000)
     {
-      wchar_t ch = (wchar_t) c;
-      WORD index;
-      DWORD retval = GetGlyphIndicesW (context, &ch, 1, &index,
-                                       GGI_MARK_NONEXISTING_GLYPHS);
-      if (retval == 1 && index != 0xFFFF)
-        code = index;
+      ch[0] = (wchar_t) c;
+      len = 1;
     }
-
-  /* Non BMP characters must be handled by the uniscribe shaping
-     engine as GDI functions (except blindly displaying lines of
-     unicode text) and the promising looking ScriptGetCMap do not
-     convert surrogate pairs to glyph indexes correctly.  */
   else
     {
-      wchar_t ch[2];
-      SCRIPT_ITEM* items;
-      int nitems;
-      struct uniscribe_font_info *uniscribe_font
-        = (struct uniscribe_font_info *)font;
       DWORD surrogate = c - 0x10000;
 
       /* High surrogate: U+D800 - U+DBFF.  */
       ch[0] = 0xD800 + ((surrogate >> 10) & 0x03FF);
       /* Low surrogate: U+DC00 - U+DFFF.  */
       ch[1] = 0xDC00 + (surrogate & 0x03FF);
+      len = 2;
+    }
 
+  /* Non BMP characters must be handled by the uniscribe shaping
+     engine as GDI functions (except blindly displaying lines of
+     unicode text) and the promising looking ScriptGetCMap do not
+     convert surrogate pairs to glyph indexes correctly.  */
+    {
       items = (SCRIPT_ITEM *) alloca (sizeof (SCRIPT_ITEM) * 2 + 1);
-      if (SUCCEEDED (ScriptItemize (ch, 2, 2, NULL, NULL, items, &nitems)))
-        {
-          WORD glyphs[2], clusters[2];
-          SCRIPT_VISATTR attrs[2];
+      if (SUCCEEDED (ScriptItemize (ch, len, 2, NULL, NULL, items, &nitems)))
+	{
+	  HRESULT result;
+          /* Some Indic characters result in more than 1 glyph.  */
+          WORD glyphs[1], clusters[1];
+          SCRIPT_VISATTR attrs[1];
           int nglyphs;
 
-          if (SUCCEEDED (ScriptShape (context, &(uniscribe_font->cache),
-                                      ch, 2, 2, &(items[0].a),
-                                      glyphs, clusters, attrs, &nglyphs))
-              && nglyphs == 1)
+          result = ScriptShape (context, &(uniscribe_font->cache),
+                                ch, len, 20, &(items[0].a),
+                                glyphs, clusters, attrs, &nglyphs);
+
+          if (result == E_PENDING)
+            {
+              /* Use selected frame until API is updated to pass
+                 the frame.  */
+              f = XFRAME (selected_frame);
+              context = get_frame_dc (f);
+              old_font = SelectObject (context, FONT_HANDLE(font));
+              result = ScriptShape (context, &(uniscribe_font->cache),
+                                    ch, len, 2, &(items[0].a),
+                                    glyphs, clusters, attrs, &nglyphs);
+            }
+
+          if (SUCCEEDED (result) && nglyphs == 1)
             {
               code = glyphs[0];
             }
-        }
+          else if (SUCCEEDED (result) || result == E_OUTOFMEMORY)
+            {
+              /* This character produces zero or more than one glyph
+                 when shaped. But we still need the return from here
+                 to be valid for the shaping engine to be invoked
+                 later.  */
+              result = ScriptGetCMap (context, &(uniscribe_font->cache),
+                                      ch, len, 0, glyphs);
+              if (SUCCEEDED (result))
+                return glyphs[0];
+              else
+                return 0; /* notdef - enough in some cases to get the script
+                             engine working, but not others... */
+            }
+	}
     }
+    if (context)
+      {
+	SelectObject (context, old_font);
+	release_frame_dc (f, context);
+      }
 
-  SelectObject (context, old_font);
-  release_frame_dc (f, context);
-
-  return code;
+    return code;
 }
 
 /*
