@@ -1,3 +1,34 @@
+2008-07-29  Juri Linkov  <juri@jurta.org>
+
+	* international/mule-cmds.el (ucs-names): New internal variable.
+	(ucs-names): New function.
+	(ucs-completions): New lazy completion variable.
+	(read-char-by-name): New function.
+	(ucs-insert): Replace interactive spec letter "s" with the call to
+	`read-char-by-name'.
+
+	* replace.el (read-regexp): Add second arg `default'.  Doc fix.
+
+	* replace.el (occur-read-primary-args):
+	* hi-lock.el (hi-lock-line-face-buffer, hi-lock-face-buffer)
+	(hi-lock-face-phrase-buffer): Use `(car regexp-history)' as the
+	second arg of `read-regexp'.
+
+	* dired-aux.el (dired-isearch-filenames): New user option.
+	(dired-isearch-orig-success-function): New internal variable.
+	(dired-isearch-filenames-setup, dired-isearch-filenames-end)
+	(dired-isearch-success-function): New functions.
+	(dired-isearch-filenames, dired-isearch-filenames-regexp):
+	New commands.
+
+	* dired.el (dired-insert-set-properties): Add new text property
+	`dired-filename' to put on file names.
+	(dired-mode-map): Bind `M-s f C-s' to `dired-isearch-filenames'
+	and `M-s f M-C-s' to `dired-isearch-filenames-regexp'.
+	Add menu items.
+	(dired-mode): Add hook `dired-isearch-filenames-setup' to
+	buffer-local `isearch-mode-hook'.
+
 2008-07-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/ada-mode.el (ada-batch-reformat): Doc fix.
