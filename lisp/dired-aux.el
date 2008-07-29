@@ -490,6 +490,26 @@ FILES are affected."
      (format prompt (dired-mark-prompt arg files))
      nil nil)))
 
+;;;###autoload
+(defun dired-do-async-shell-command (command &optional arg file-list)
+  "Run a shell command COMMAND on the marked files asynchronously.
+
+Like `dired-do-shell-command' but if COMMAND doesn't end in ampersand,
+adds `* &' surrounded by whitespace and executes the command asynchronously.
+The output appears in the buffer `*Async Shell Command*'."
+  (interactive
+   (let ((files (dired-get-marked-files t current-prefix-arg)))
+     (list
+      ;; Want to give feedback whether this file or marked files are used:
+      (dired-read-shell-command "& on %s: " current-prefix-arg files)
+      current-prefix-arg
+      files)))
+  (unless (string-match "[*?][ \t]*\\'" command)
+    (setq command (concat command " *")))
+  (unless (string-match "&[ \t]*\\'" command)
+    (setq command (concat command " &")))
+  (dired-do-shell-command command arg file-list))
+
 ;; The in-background argument is only needed in Emacs 18 where
 ;; shell-command doesn't understand an appended ampersand `&'.
 ;;;###autoload
