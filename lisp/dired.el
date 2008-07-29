@@ -1195,7 +1195,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "#" 'dired-flag-auto-save-files)
     (define-key map "." 'dired-clean-directory)
     (define-key map "~" 'dired-flag-backup-files)
-    (define-key map "&" 'dired-flag-garbage-files)
     ;; Upper case keys (except !) for operating on the marked files
     (define-key map "A" 'dired-do-search)
     (define-key map "C" 'dired-do-copy)
@@ -1214,6 +1213,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "X" 'dired-do-shell-command)
     (define-key map "Z" 'dired-do-compress)
     (define-key map "!" 'dired-do-shell-command)
+    (define-key map "&" 'dired-do-async-shell-command)
     ;; Comparison commands
     (define-key map "=" 'dired-diff)
     (define-key map "\M-=" 'dired-backup-diff)
@@ -1241,6 +1241,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "%H" 'dired-do-hardlink-regexp)
     (define-key map "%R" 'dired-do-rename-regexp)
     (define-key map "%S" 'dired-do-symlink-regexp)
+    (define-key map "%&" 'dired-flag-garbage-files)
     ;; Commands for marking and unmarking.
     (define-key map "*" nil)
     (define-key map "**" 'dired-mark-executables)
