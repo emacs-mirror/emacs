@@ -354,6 +354,12 @@ element, it wraps to the last history element, and the forward search
 wraps to the first history element.  When the search is terminated, the
 history element containing the search string becomes the current.
 
+*** The variable read-file-name-completion-ignore-case overrides
+completion-ignore-case for file name completion.
+
+*** The variable read-buffer-completion-ignore-case overrides
+completion-ignore-case for buffer name completion.
+
 ** Face changes
 
 *** S-down-mouse-1 now pops up a menu for changing the font and text
