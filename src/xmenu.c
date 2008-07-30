@@ -1412,11 +1412,12 @@ If FRAME is nil or not given, use the selected frame.  */)
       /* Activate the first menu.  */
       GList *children = gtk_container_get_children (GTK_CONTAINER (menubar));
 
-      gtk_menu_shell_select_item (GTK_MENU_SHELL (menubar),
-                                  GTK_WIDGET (children->data));
-
-      popup_activated_flag = 1;
-      g_list_free (children);
+      if (children)
+        {
+          g_signal_emit_by_name (children->data, "activate_item");
+          popup_activated_flag = 1;
+          g_list_free (children);
+        }
     }
   UNBLOCK_INPUT;
 
