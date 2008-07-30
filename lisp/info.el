@@ -543,7 +543,9 @@ appended to the Info buffer name.
 
 The search path for Info files is in the variable `Info-directory-list'.
 The top-level Info directory is made by combining all the files named `dir'
-in all the directories in that path."
+in all the directories in that path.
+
+See a list of available Info commands in `Info-mode'."
   (interactive (list
                 (if (and current-prefix-arg (not (numberp current-prefix-arg)))
                     (read-file-name "Info file name: " nil nil t))
@@ -3432,6 +3434,7 @@ Advanced commands:
 \\[Info-search-case-sensitively]	Search through this Info file for specified regexp case-sensitively.
 \\[Info-search-next]	Search for another occurrence of regexp
 	  from a previous \\<Info-mode-map>\\[Info-search] command.
+\\[isearch-forward], \\[isearch-forward-regexp]	Use Isearch to search through multiple Info nodes.
 \\[Info-index]	Search for a topic in this manual's Index and go to index entry.
 \\[Info-index-next]	(comma) Move to the next match from a previous \\<Info-mode-map>\\[Info-index] command.
 \\[info-apropos]	Look for a string in the indices of all manuals.
