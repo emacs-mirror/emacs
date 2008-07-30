@@ -2038,34 +2038,6 @@ xg_create_one_menuitem (item, f, select_cb, highlight_cb, cl_data, group)
   return w;
 }
 
-/* Callback called when keyboard traversal (started by x-menu-bar-open) ends.
-   WMENU is the menu for which traversal has been done.  DATA points to the
-   frame for WMENU.  We must release grabs, some bad interaction between GTK
-   and Emacs makes the menus keep the grabs.  */
-
-static void
-menu_nav_ended (wmenu, data)
-     GtkMenuShell *wmenu;
-     gpointer data;
-{
-  FRAME_PTR f = (FRAME_PTR) data;
-
-  if (FRAME_X_OUTPUT (f)->menubar_widget)
-    {
-      GtkMenuShell *w = GTK_MENU_SHELL (FRAME_X_OUTPUT (f)->menubar_widget);
-      Display *dpy = FRAME_X_DISPLAY (f);
-
-      BLOCK_INPUT;
-      gtk_menu_shell_deactivate (w);
-      gtk_menu_shell_deselect (w);
-
-      XUngrabKeyboard (dpy, CurrentTime);
-      XUngrabPointer (dpy, CurrentTime);
-      UNBLOCK_INPUT;
-    }
-}
-
-
 static GtkWidget *create_menus P_ ((widget_value *, FRAME_PTR, GCallback,
 				    GCallback, GCallback, int, int, int,
 				    GtkWidget *, xg_menu_cb_data *, char *));
@@ -2130,12 +2102,6 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
                           NULL);
       }
       else wmenu = gtk_menu_bar_new ();
-
-      /* Fix up grabs after keyboard traversal ends.  */
-      g_signal_connect (G_OBJECT (wmenu),
-                        "selection-done",
-                        G_CALLBACK (menu_nav_ended),
-                        f);
 
       /* Put cl_data on the top menu for easier access.  */
       cl_data = make_cl_data (cl_data, f, highlight_cb);
@@ -2356,7 +2322,7 @@ xg_destroy_widgets (list)
 
 static void
 xg_update_menubar (menubar, f, list, iter, pos, val,
-                   select_cb, highlight_cb, cl_data)
+                   select_cb, deactivate_cb, highlight_cb, cl_data)
      GtkWidget *menubar;
      FRAME_PTR f;
      GList **list;
@@ -2364,6 +2330,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
      int pos;
      widget_value *val;
      GCallback select_cb;
+     GCallback deactivate_cb;
      GCallback highlight_cb;
      xg_menu_cb_data *cl_data;
 {
@@ -2381,7 +2348,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
   else if (! iter && val)
     {
       /* Item(s) added.  Add all new items in one call.  */
-      create_menus (val, f, select_cb, 0, highlight_cb,
+      create_menus (val, f, select_cb, deactivate_cb, highlight_cb,
                     0, 1, 0, menubar, cl_data, 0);
 
       /* All updated.  */
@@ -2488,7 +2455,8 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
           /* Create a possibly empty submenu for menu bar items, since some
              themes don't highlight items correctly without it. */
           GtkWidget *submenu = create_menus (NULL, f,
-                                             select_cb, NULL, highlight_cb,
+                                             select_cb, deactivate_cb,
+					     highlight_cb,
                                              0, 0, 0, 0, cl_data, 0);
           gtk_widget_set_name (w, MENU_ITEM_NAME);
           gtk_menu_shell_insert (GTK_MENU_SHELL (menubar), w, pos);
@@ -2526,7 +2494,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
 
   /* Update the rest of the menu bar.  */
   xg_update_menubar (menubar, f, list, iter, pos, val,
-                     select_cb, highlight_cb, cl_data);
+                     select_cb, deactivate_cb, highlight_cb, cl_data);
 }
 
 /* Update the menu item W so it corresponds to VAL.
@@ -2831,7 +2799,7 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
                                                   XG_FRAME_DATA);
 
   xg_update_menubar (menubar, f, &list, list, 0, val->contents,
-                     select_cb, highlight_cb, cl_data);
+                     select_cb, deactivate_cb, highlight_cb, cl_data);
 
   if (deep_p)
     {
