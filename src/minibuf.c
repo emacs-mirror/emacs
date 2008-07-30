@@ -113,6 +113,7 @@ Lisp_Object Vread_buffer_function;
 
 int completion_ignore_case;
 Lisp_Object Qcompletion_ignore_case;
+int read_buffer_completion_ignore_case;
 
 /* List of regexps that should restrict possible completions.  */
 
@@ -1178,16 +1179,24 @@ Optional second arg DEF is value to return if user enters an empty line.
  If DEF is a list of default values, return its first element.
 If optional third arg REQUIRE-MATCH is non-nil,
  only existing buffer names are allowed.
-The argument PROMPT should be a string ending with a colon and a space.  */)
+The argument PROMPT should be a string ending with a colon and a space.
+If `read-buffer-completion-ignore-case' is non-nil, completion ignores
+case while reading the buffer name.
+If `read-buffer-function' is non-nil, this works by calling it as a
+function, instead of the usual behavior.  */)
      (prompt, def, require_match)
      Lisp_Object prompt, def, require_match;
 {
-  Lisp_Object args[4];
+  Lisp_Object args[4], result;
   unsigned char *s;
   int len;
+  int count = SPECPDL_INDEX ();
 
   if (BUFFERP (def))
     def = XBUFFER (def)->name;
+
+  specbind (Qcompletion_ignore_case,
+	    read_buffer_completion_ignore_case ? Qt : Qnil);
 
   if (NILP (Vread_buffer_function))
     {
@@ -1218,9 +1227,9 @@ The argument PROMPT should be a string ending with a colon and a space.  */)
 	  prompt = Fformat (3, args);
 	}
 
-      return Fcompleting_read (prompt, intern ("internal-complete-buffer"),
-			       Qnil, require_match, Qnil, Qbuffer_name_history,
-			       def, Qnil);
+      result = Fcompleting_read (prompt, intern ("internal-complete-buffer"),
+				 Qnil, require_match, Qnil, Qbuffer_name_history,
+				 def, Qnil);
     }
   else
     {
@@ -1228,8 +1237,9 @@ The argument PROMPT should be a string ending with a colon and a space.  */)
       args[1] = prompt;
       args[2] = def;
       args[3] = require_match;
-      return Ffuncall(4, args);
+      result = Ffuncall(4, args);
     }
+  return unbind_to (count, result);
 }
 
 static Lisp_Object
@@ -2110,6 +2120,11 @@ syms_of_minibuf ()
   DEFVAR_LISP ("read-buffer-function", &Vread_buffer_function,
 	       doc: /* If this is non-nil, `read-buffer' does its work by calling this function.  */);
   Vread_buffer_function = Qnil;
+
+  DEFVAR_BOOL ("read-buffer-completion-ignore-case",
+	       &read_buffer_completion_ignore_case,
+	       doc: /* *Non-nil means completion ignores case when reading a buffer name.  */);
+  read_buffer_completion_ignore_case = 0;
 
   DEFVAR_LISP ("minibuffer-setup-hook", &Vminibuffer_setup_hook,
 	       doc: /* Normal hook run just after entry to minibuffer.  */);
