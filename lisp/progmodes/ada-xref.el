@@ -157,7 +157,7 @@ this string is not empty.  It is set whenever a project file is found."
   :type '(file :must-match t) :group 'ada)
 
 (defcustom ada-gnatstub-opts "-q -I${src_dir}"
-  "*List of the options to pass to `gnatsub' to generate the body of a package.
+  "*Options to pass to `gnatsub' to generate the body of a package.
 This has the same syntax as in the project file (with variable substitution)."
   :type 'string :group 'ada)
 
@@ -2276,7 +2276,7 @@ Return the position of the declaration in the buffer, or nil if not found."
   "Determine the filename in which ADANAME is found.
 This is a GNAT specific function that uses gnatkrunch."
   (let ((krunch-buf (generate-new-buffer "*gkrunch*"))
-	(cross-prefix (plist-get plist 'cross_prefix)))
+        (cross-prefix (plist-get (cdr (ada-xref-current-project)) 'cross_prefix)))
     (save-excursion
       (set-buffer krunch-buf)
       ;; send adaname to external process `gnatkr'.

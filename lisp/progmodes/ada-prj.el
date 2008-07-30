@@ -104,7 +104,7 @@ If no project file is found, return the default values."
 
     ;;  Set default values (except for the file name if this was given
     ;;  in the buffer
-    (ada-xref-set-default-prj-values symbol ada-buffer)
+    (set symbol (ada-default-prj-properties))
     (if (and filename (not (string= filename "")))
 	(set symbol (plist-put (eval symbol) 'filename filename)))
     ))
@@ -463,8 +463,7 @@ connect to the target when working with cross-environments" t)
   (widget-insert "______________________________________________________________________\n\n       ")
   (widget-create 'push-button
 		 :notify (lambda (&rest ignore)
-			   (ada-xref-set-default-prj-values
-			    'ada-prj-current-values ada-prj-ada-buffer)
+			   (setq ada-prj-current-values (ada-default-prj-properties))
 			   (ada-prj-display-page 1))
 		 "Reset to Default Values")
   (widget-insert "         ")

@@ -1,3 +1,12 @@
+2008-07-30  Stepehen Leake <stephen_leake@stephe-leake.org>
+
+	* lisp/ada-prj.el (ada-prj-initialize-values): Fix use of deleted
+	ada-xref-set-default-prj-values.
+	(ada-prj-display-page): Ditto.
+
+	* list/ada-xref.el (ada-gnatstub-opts): Fix doc string.
+	(ada-make-filename-from-adaname): Fix free variable.
+
 2008-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-status-printer): Synchronize with the default.
@@ -17,12 +26,11 @@
 	tasks, as well as extern declarations of tasks for indenting and
 	for foward/backward expression.
 
-2008-07-30  Wilson Snyder <wsnyder@wsnyder.org>
+2008-07-30  Wilson Snyder  <wsnyder@wsnyder.org>
 
         * verilog-mode (verilog-read-decls): Allow AUTORESET to work with
 	SV 'logic' signals.  [Julian Gorfajn]
-	(verilog-auto-inst-column): Make verilog-auto-inst-column
-	customizable.
+	(verilog-auto-inst-column): Make verilog-auto-inst-column customizable.
 	(verilog-string-replace-matches): Avoid recursion with small
 	replacements.
 	(verilog-auto-inst-param-value, verilog-mode-version)
@@ -31,10 +39,9 @@
 	(verilog-auto-inst-port, verilog-simplify-range-expression): Add
 	verilog-auto-inst-param-value option for AUTOINST.  [David Rogoff]
 	This allows parameters to be replaced with their values, on the
-	expansion of an AUTOINST with Verilog 2001 style parameter
-	settings.
+	expansion of an AUTOINST with Verilog 2001 style parameter settings.
 
-2008-07-30  David Lord <david.lord@phonecoop.coop>
+2008-07-30  David Lord  <david.lord@phonecoop.coop>
 
 	* calendar/timeclock.el (timeclock-day-projects): Change a `cdr'
 	to `cddr'.
