@@ -1,3 +1,8 @@
+2008-07-30  John Paul Wallington  <jpw@pobox.com>
+
+	* minibuf.c (read_buffer_completion_ignore_case): New var.
+	(Fread_buffer): Use it.
+
 2008-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* systty.h (sensemode): Remove empty #if.  Remove reference to
