@@ -234,16 +234,21 @@ w32font_open (f, font_entity, pixel_size)
      Lisp_Object font_entity;
      int pixel_size;
 {
-  Lisp_Object font_object;
+  Lisp_Object font_object
+    = font_make_object (VECSIZE (struct w32font_info),
+                        font_entity, pixel_size);
+  struct w32font_info *w32_font
+    = (struct w32font_info *) XFONT_OBJECT (font_object);
 
-  font_object = font_make_object (VECSIZE (struct w32font_info),
-				  font_entity, pixel_size);
   ASET (font_object, FONT_TYPE_INDEX, Qgdi);
 
   if (!w32font_open_internal (f, font_entity, pixel_size, font_object))
     {
       return Qnil;
     }
+
+  /* GDI backend does not use glyph indices.  */
+  w32_font->glyph_idx = 0;
 
   return font_object;
 }
@@ -315,82 +320,24 @@ w32font_has_char (entity, c)
 
 /* w32 implementation of encode_char for font backend.
    Return a glyph code of FONT for characer C (Unicode code point).
-   If FONT doesn't have such a glyph, return FONT_INVALID_CODE.  */
+   If FONT doesn't have such a glyph, return FONT_INVALID_CODE.
+
+   For speed, the gdi backend uses unicode (Emacs calls encode_char
+   far too often for it to be efficient). But we still need to detect
+   which characters are not supported by the font.
+  */
 static unsigned
 w32font_encode_char (font, c)
      struct font *font;
      int c;
 {
-  struct frame *f;
-  HDC dc;
-  HFONT old_font;
-  DWORD retval;
-  GCP_RESULTSW result;
-  wchar_t in[2];
-  wchar_t out[2];
-  int len;
-  struct w32font_info *w32_font = (struct w32font_info *) font;
+  struct w32font_info * w32_font = (struct w32font_info *)font;
 
-  /* If glyph indexing is not working for this font, just return the
-     unicode code-point.  */
-  if (!w32_font->glyph_idx)
+  if (c < w32_font->metrics.tmFirstChar
+      || c > w32_font->metrics.tmLastChar)
+    return FONT_INVALID_CODE;
+  else
     return c;
-
-  if (c > 0xFFFF)
-    {
-      DWORD surrogate = c - 0x10000;
-
-      /* High surrogate: U+D800 - U+DBFF.  */
-      in[0] = 0xD800 + ((surrogate >> 10) & 0x03FF);
-      /* Low surrogate: U+DC00 - U+DFFF.  */
-      in[1] = 0xDC00 + (surrogate & 0x03FF);
-      len = 2;
-    }
-  else
-    {
-      in[0] = (wchar_t) c;
-      len = 1;
-    }
-
-  bzero (&result, sizeof (result));
-  result.lStructSize = sizeof (result);
-  result.lpGlyphs = out;
-  result.nGlyphs = 2;
-
-  f = XFRAME (selected_frame);
-
-  dc = get_frame_dc (f);
-  old_font = SelectObject (dc, w32_font->hfont);
-
-  /* GetCharacterPlacement is used here rather than GetGlyphIndices because
-     it is supported on Windows NT 4 and 9x/ME.  But it cannot reliably report
-     missing glyphs, see below for workaround.  */
-  retval = GetCharacterPlacementW (dc, in, len, 0, &result, 0);
-
-  SelectObject (dc, old_font);
-  release_frame_dc (f, dc);
-
-  if (retval)
-    {
-      if (result.nGlyphs != 1 || !result.lpGlyphs[0]
-          /* GetCharacterPlacementW seems to return 3, which seems to be
-             the space glyph in most/all truetype fonts, instead of 0
-             for unsupported glyphs.  */
-          || (result.lpGlyphs[0] == 3 && !iswspace (in[0])))
-        return FONT_INVALID_CODE;
-      return result.lpGlyphs[0];
-    }
-  else
-    {
-      int i;
-      /* Mark this font as not supporting glyph indices. This can happen
-         on Windows9x, and maybe with non-Truetype fonts on NT etc.  */
-      w32_font->glyph_idx = 0;
-      /* Clear metrics cache.  */
-      clear_cached_metrics (w32_font);
-
-      return c;
-    }
 }
 
 /* w32 implementation of text_extents for font backend.
@@ -820,7 +767,7 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   Lisp_Object val, extra;
   struct w32font_info *w32_font;
   struct font * font;
-  OUTLINETEXTMETRIC* metrics = NULL;
+  OUTLINETEXTMETRICW* metrics = NULL;
 
   w32_font = (struct w32font_info *) XFONT_OBJECT (font_object);
   font = (struct font *) w32_font;
@@ -852,24 +799,20 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   old_font = SelectObject (dc, hfont);
 
   /* Try getting the outline metrics (only works for truetype fonts).  */
-  len = GetOutlineTextMetrics (dc, 0, NULL);
+  len = GetOutlineTextMetricsW (dc, 0, NULL);
   if (len)
     {
-      metrics = (OUTLINETEXTMETRIC *) alloca (len);
-      if (GetOutlineTextMetrics (dc, len, metrics))
+      metrics = (OUTLINETEXTMETRICW *) alloca (len);
+      if (GetOutlineTextMetricsW (dc, len, metrics))
         bcopy (&metrics->otmTextMetrics, &w32_font->metrics,
-               sizeof (TEXTMETRIC));
+               sizeof (TEXTMETRICW));
       else
         metrics = NULL;
-
-      /* If it supports outline metrics, it should support Glyph Indices.  */
-      w32_font->glyph_idx = ETO_GLYPH_INDEX;
     }
 
   if (!metrics)
     {
-      GetTextMetrics (dc, &w32_font->metrics);
-      w32_font->glyph_idx = 0;
+      GetTextMetricsW (dc, &w32_font->metrics);
     }
 
   w32_font->cached_metrics = NULL;

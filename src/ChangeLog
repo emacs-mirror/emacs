@@ -1,3 +1,14 @@
+2008-07-30  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.h (struct w32font_info): Use unicode version of textmetrics.
+
+        * w32font.c (w32font_encode_char): Leave as unicode if in range.
+        (w32font_open_internal): Get unicode version of textmetrics.
+        Don't enable or disable glyph indices here.
+        (w32font_open): Disable use of glyph indices.
+
+        * w32uniscribe.c (uniscribe_open): Enable use of glyph indices.
+
 2008-07-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.c (Vread_buffer_function): Doc fix.

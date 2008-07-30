@@ -49,7 +49,7 @@ struct w32_metric_cache
 struct w32font_info
 {
   struct font font;
-  TEXTMETRIC metrics;
+  TEXTMETRICW metrics;
   unsigned int glyph_idx;
   struct w32_metric_cache **cached_metrics;
   int n_cache_blocks;

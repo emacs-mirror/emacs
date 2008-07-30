@@ -135,6 +135,9 @@ uniscribe_open (f, font_entity, pixel_size)
   /* Initialize the cache for this font.  */
   uniscribe_font->cache = NULL;
 
+  /* Uniscribe backend uses glyph indices.  */
+  uniscribe_font->w32_font.glyph_idx = ETO_GLYPH_INDEX;
+
   /* Mark the format as opentype  */
   uniscribe_font->w32_font.font.props[FONT_FORMAT_INDEX] = Qopentype;
   uniscribe_font->w32_font.font.driver = &uniscribe_font_driver;
