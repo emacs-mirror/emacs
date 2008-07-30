@@ -1,3 +1,7 @@
+2008-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el (vc-git-status-printer): Synchronize with the default.
+
 2008-07-30  Michael McNamara  <mac@mail.brushroad.com>
 
 	* verilog-mode.el (verilog-do-indent): Remove special indent for

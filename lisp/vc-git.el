@@ -287,8 +287,12 @@
      "  " (vc-git-permissions-as-string old-perm new-perm)
      "     "
      (propertize (vc-git-escape-file-name (vc-dir-fileinfo->name info))
-                 'face 'font-lock-function-name-face
-                 'mouse-face 'highlight)
+                 'face (if isdir 'font-lock-comment-delimiter-face 'font-lock-function-name-face)
+		 'help-echo
+		 (if isdir
+		     "Directory\nVC operations can be applied to it\nmouse-3: Pop-up menu"
+		   "File\nmouse-3: Pop-up menu")
+		 'mouse-face 'highlight)
      (vc-git-file-type-as-string old-perm new-perm)
      (vc-git-rename-as-string state extra))))
 
