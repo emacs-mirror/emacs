@@ -2310,6 +2310,7 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 
 (defvar dired-isearch-orig-success-function nil)
 
+;;;###autoload
 (defun dired-isearch-filenames-setup ()
   "Set up isearch to search in Dired file names.
 Intended to be added to `isearch-mode-hook'."
