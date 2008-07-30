@@ -221,6 +221,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `getpt' function. */
 #undef HAVE_GETPT
 
+/* Define to 1 if you have the `getrlimit' function. */
+#undef HAVE_GETRLIMIT
+
 /* Define to 1 if you have the `getrusage' function. */
 #undef HAVE_GETRUSAGE
 
@@ -995,9 +998,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
-
-/* We have blockinput.h.  */
-#define DO_BLOCK_INPUT
 
 /* Define HAVE_SOUND if we have sound support.  We know it works
    and compiles only on the specified platforms.   For others,

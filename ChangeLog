@@ -1,3 +1,7 @@
+2008-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (DO_BLOCK_INPUT): Remove, unused.
+
 2008-07-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* info/dir (File): Add mairix-el.

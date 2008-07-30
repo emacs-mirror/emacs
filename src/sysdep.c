@@ -1213,7 +1213,7 @@ int old_fcntl_owner[MAXDESC];
    but if so, this does no harm,
    and using the same name avoids wasting the other one's space.  */
 
-#if defined (USG) || defined (DGUX)
+#if defined (USG)
 unsigned char _sobuf[BUFSIZ+8];
 #else
 char _sobuf[BUFSIZ];
@@ -3273,11 +3273,10 @@ croak (badfunc)
 
 #include <dirent.h>
 
-#if defined (BROKEN_CLOSEDIR) || !defined (HAVE_CLOSEDIR)
+#if !defined (HAVE_CLOSEDIR)
 
 int
-closedir (dirp)
-     register DIR *dirp;              /* stream from opendir */
+closedir (DIR *dirp /* stream from opendir */)
 {
   int rtnval;
 
@@ -3293,7 +3292,7 @@ closedir (dirp)
 
   return rtnval;
 }
-#endif /* BROKEN_CLOSEDIR or not HAVE_CLOSEDIR */
+#endif /* not HAVE_CLOSEDIR */
 #endif /* SYSV_SYSTEM_DIR */
 
 #ifdef NONSYSTEM_DIR_LIBRARY

@@ -2561,9 +2561,6 @@ AH_BOTTOM([
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
 
-/* We have blockinput.h.  */
-#define DO_BLOCK_INPUT
-
 /* Define HAVE_SOUND if we have sound support.  We know it works
    and compiles only on the specified platforms.   For others,
    it probably doesn't make sense to try.  */

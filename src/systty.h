@@ -174,42 +174,34 @@ static struct sensemode {
    EMACS_SET_TTY_PGRP(int FD, int *PGID) sets the terminal FD's
    current process group to *PGID.  Return -1 if there is an error.  */
 
-#ifdef HPUX
 /* HPUX tty process group stuff doesn't work, says the anonymous voice
    from the past.  */
-#else
+#ifndef HPUX
 #ifdef TIOCGPGRP
 #define EMACS_HAVE_TTY_PGRP
 #else
 #ifdef HAVE_TERMIOS
 #define EMACS_HAVE_TTY_PGRP
-#endif
-#endif
-#endif
+#endif /* HAVE_TERMIOS */
+#endif /* TIOCGPGRP */
+#endif /* not HPUX */
 
 #ifdef EMACS_HAVE_TTY_PGRP
 
-#if defined (HAVE_TERMIOS) && ! defined (BSD_TERMIOS)
-
-#define EMACS_GET_TTY_PGRP(fd, pgid) (*(pgid) = tcgetpgrp ((fd)))
-#define EMACS_SET_TTY_PGRP(fd, pgid) (tcsetpgrp ((fd), *(pgid)))
-
-#else
 #ifdef TIOCSPGRP
 
 #define EMACS_GET_TTY_PGRP(fd, pgid) (ioctl ((fd), TIOCGPGRP, (pgid)))
 #define EMACS_SET_TTY_PGRP(fd, pgid) (ioctl ((fd), TIOCSPGRP, (pgid)))
 
-#endif
-#endif
+#endif /* TIOCSPGRP */
 
-#else
+#else /* not EMACS_SET_TTY_PGRP */
 
 /* Just ignore this for now and hope for the best */
 #define EMACS_GET_TTY_PGRP(fd, pgid) 0
 #define EMACS_SET_TTY_PGRP(fd, pgif) 0
 
-#endif
+#endif /* not EMACS_SET_TTY_PGRP */
 
 /* EMACS_GETPGRP (arg) returns the process group of the process.  */
 

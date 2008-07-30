@@ -1,3 +1,13 @@
+2008-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* systty.h (sensemode): Remove empty #if.  Remove reference to
+	BSD_TERMIOS, unused.
+
+	* sysdep.c: Remove reference to DGUX.
+	(closedir): Remove reference to BROKEN_CLOSEDIR, unused.
+
+	* config.in: Regenerate.
+
 2008-07-30  Jason Rumney  <jasonr@gnu.org>
 
         * w32uniscribe.c (uniscribe_encode_char): Fix glyph buffer size.
