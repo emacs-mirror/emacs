@@ -2156,8 +2156,9 @@ history list, so it is possible to do this afterwards by calling
 
   DEFVAR_BOOL ("completion-ignore-case", &completion_ignore_case,
 	       doc: /* Non-nil means don't consider case significant in completion.
-
-For file-name completion, the variable `read-file-name-completion-ignore-case'
+For file-name completion, `read-file-name-completion-ignore-case'
+controls the behavior, rather than this variable.
+For buffer name completion, `read-buffer-completion-ignore-case'
 controls the behavior, rather than this variable.  */);
   completion_ignore_case = 0;
 
