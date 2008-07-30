@@ -208,13 +208,14 @@ to toggle between display as an image and display as text."
   (setq mode-name "Image")
   (setq major-mode 'image-mode)
   (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
-  (if (and (display-images-p)
-	   (not (get-text-property (point-min) 'display)))
-      (image-toggle-display)
-    ;; Set next vars when image is already displayed but local
-    ;; variables were cleared by kill-all-local-variables
-    (use-local-map image-mode-map)
-    (setq cursor-type nil truncate-lines t))
+  (if (display-images-p)
+      (if (not (image-get-display-property))
+	  (image-toggle-display)
+	;; Set next vars when image is already displayed but local
+	;; variables were cleared by kill-all-local-variables
+	(use-local-map image-mode-map)
+	(setq cursor-type nil truncate-lines t))
+    (use-local-map image-mode-text-map))
   (run-mode-hooks 'image-mode-hook)
   (if (display-images-p)
       (message "%s" (concat
