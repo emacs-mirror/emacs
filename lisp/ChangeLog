@@ -1,3 +1,7 @@
+2008-07-30  Sam Steingold  <sds@gnu.org>
+
+	* vc-dir.el (vc-dir): Call file-truename on the dir argument.
+
 2008-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-dir.el (vc-dir-menu-map, vc-at-event): Fix docstring.
