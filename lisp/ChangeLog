@@ -1,10 +1,10 @@
-2008-07-30  Stepehen Leake <stephen_leake@stephe-leake.org>
+2008-07-30  Stepehen Leake  <stephen_leake@stephe-leake.org>
 
-	* lisp/ada-prj.el (ada-prj-initialize-values): Fix use of deleted
+	* progmodes/ada-prj.el (ada-prj-initialize-values): Fix use of deleted
 	ada-xref-set-default-prj-values.
 	(ada-prj-display-page): Ditto.
 
-	* list/ada-xref.el (ada-gnatstub-opts): Fix doc string.
+	* progmodes/ada-xref.el (ada-gnatstub-opts): Fix doc string.
 	(ada-make-filename-from-adaname): Fix free variable.
 
 2008-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
