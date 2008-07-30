@@ -755,12 +755,15 @@ Return nil if there is nothing appropriate in the buffer near point."
              ;; M4 Macro Index entries are without "AS_" prefixes, and
              ;; mostly without "m4_" prefixes.  "dnl" is an exception, not
              ;; wanting any prefix.  So AS_ is added back to upper-case
-             ;; names, m4_ to others which don't already an m4_.
+             ;; names (if needed), m4_ to others which don't already an m4_.
              ("(autoconf)M4 Macro Index"
               (lambda (item)
                 (let ((case-fold-search nil))
                   (cond ((or (string-equal item "dnl")
-                             (string-match "^m4_" item))
+                             (string-match "^m4_" item)
+                             ;; Autoconf 2.62 index includes some macros
+                             ;; (e.g., AS_HELP_STRING), so avoid prefixing.
+                             (string-match "^AS_" item))
                          item)
                         ((string-match "^[A-Z0-9_]+$" item)
                          (concat "AS_" item))
