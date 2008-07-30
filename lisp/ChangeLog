@@ -1,5 +1,7 @@
 2008-07-30  Juri Linkov  <juri@jurta.org>
 
+	* info.el (info, Info-mode): Doc fix.
+
 	* isearch.el (isearch-mode-map): Bind `M-s r' to
 	`isearch-toggle-regexp' and `M-s w' to `isearch-toggle-word'.
 	(search-map): Bind `M-s w' to `isearch-forward-word' globally
