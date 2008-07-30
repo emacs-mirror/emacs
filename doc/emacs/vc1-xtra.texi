@@ -16,12 +16,12 @@ specifically for CVS, is called PCL-CVS.  @xref{Top, , About PCL-CVS,
 pcl-cvs, PCL-CVS --- The Emacs Front-End to CVS}.
 
 @kindex C-x v d
-@findex vc-directory
+@findex vc-dir
   When you are working on a large program, it is often useful to find
 out which files have changed within an entire directory tree, or to view
 the status of all files under version control at once, and to perform
 version control operations on collections of files.  You can use the
-command @kbd{C-x v d} (@code{vc-directory}) to make a directory listing
+command @kbd{C-x v d} (@code{vc-dir}) to make a directory listing
 that includes only files relevant for version control.
 
   @kbd{C-x v d} creates a buffer which uses VC directory mode. This 
@@ -42,9 +42,9 @@ output is used.  Here is an example using RCS:
 
 @smallexample
 @group
-    DIRECTORY            ./
-    (modified)           file1.c
-    (update)            file2.c
+                       ./
+    modified           file1.c
+    update             file2.c
 @end group
 @end smallexample
 

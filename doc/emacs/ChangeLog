@@ -1,3 +1,8 @@
+2008-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc1-xtra.texi (VC Directory Mode): Update the display format and fix
+	the vc-dir command name.
+
 2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xresources.texi: Remove mentions of Mac Carbon.
