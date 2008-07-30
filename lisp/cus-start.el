@@ -216,6 +216,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			     (choice (const :tag "Infinite" t) integer)
 			     "22.1")
 	     (history-delete-duplicates minibuffer boolean "22.1")
+	     (read-buffer-completion-ignore-case minibuffer boolean "23.1")
+
 	     (minibuffer-prompt-properties
 	      minibuffer
 	      (list
