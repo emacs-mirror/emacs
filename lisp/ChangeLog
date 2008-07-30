@@ -1,3 +1,8 @@
+2008-07-30  David Lord <david.lord@phonecoop.coop>
+
+	* calendar/timeclock.el (timeclock-day-projects): Change a `cdr'
+	to `cddr'.
+
 2008-07-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in (ELCFILES): Add mairix.elc.
