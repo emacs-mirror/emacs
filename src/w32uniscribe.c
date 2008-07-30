@@ -487,7 +487,7 @@ uniscribe_encode_char (font, c)
           int nglyphs;
 
           result = ScriptShape (context, &(uniscribe_font->cache),
-                                ch, len, 20, &(items[0].a),
+                                ch, len, 1, &(items[0].a),
                                 glyphs, clusters, attrs, &nglyphs);
 
           if (result == E_PENDING)
