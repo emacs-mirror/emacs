@@ -1,3 +1,8 @@
+2008-07-30  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-isearch-filenames-setup): Add autoload cookie
+	for the sake of isearch-mode-hook in dired-mode in dired.el.
+
 2008-07-19  Markus Triska  <markus.triska@gmx.at>
 
 	* image-mode.el (image-mode): Set image-mode-text-map when image
