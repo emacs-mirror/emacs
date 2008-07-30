@@ -491,6 +491,9 @@ This is like `describe-bindings', but displays only isearch keys."
     (define-key map "\M-r" 'isearch-toggle-regexp)
     (define-key map "\M-e" 'isearch-edit-string)
 
+    (define-key map "\M-sr" 'isearch-toggle-regexp)
+    (define-key map "\M-sw" 'isearch-toggle-word)
+
     (define-key map [?\M-%] 'isearch-query-replace)
     (define-key map [?\C-\M-%] 'isearch-query-replace-regexp)
     (define-key map "\M-so" 'isearch-occur)
@@ -596,6 +599,7 @@ Each set is a vector of the form:
 (define-key esc-map "\C-s" 'isearch-forward-regexp)
 (define-key global-map "\C-r" 'isearch-backward)
 (define-key esc-map "\C-r" 'isearch-backward-regexp)
+(define-key search-map "w" 'isearch-forward-word)
 
 ;; Entry points to isearch-mode.
 
@@ -630,13 +634,9 @@ Type \\[isearch-quote-char] to quote control character to search for it.
 If you try to exit with the search string still empty, it invokes
  nonincremental search.
 
-Type \\[isearch-query-replace] to start `query-replace' with string to\
- replace from last search string.
-Type \\[isearch-query-replace-regexp] to start `query-replace-regexp'\
- with string to replace from last search string.
-
 Type \\[isearch-toggle-case-fold] to toggle search case-sensitivity.
 Type \\[isearch-toggle-regexp] to toggle regular-expression mode.
+Type \\[isearch-toggle-word] to toggle word mode.
 Type \\[isearch-edit-string] to edit the search string in the minibuffer.
 
 Also supported is a search ring of the previous 16 search strings.
@@ -644,6 +644,15 @@ Type \\[isearch-ring-advance] to search for the next item in the search ring.
 Type \\[isearch-ring-retreat] to search for the previous item in the search\
  ring.
 Type \\[isearch-complete] to complete the search string using the search ring.
+
+Type \\[isearch-query-replace] to run `query-replace' with string to\
+ replace from last search string.
+Type \\[isearch-query-replace-regexp] to run `query-replace-regexp'\
+ with the last search string.
+Type \\[isearch-occur] to run `occur' that shows\
+ the last search string.
+Type \\[isearch-highlight-regexp] to run `highlight-regexp'\
+ that highlights the last search string.
 
 Type \\[isearch-describe-bindings] to display all isearch key bindings.
 Type \\[isearch-describe-key] to display documentation of isearch key.
@@ -683,6 +692,16 @@ precisely what that means).  If you want to search for a literal space
 and nothing else, enter C-q SPC."
   (interactive "P\np")
   (isearch-mode t (null not-regexp) nil (not no-recursive-edit)))
+
+(defun isearch-forward-word (&optional not-word no-recursive-edit)
+  "\
+Do incremental search forward for a sequence of words.
+With a prefix argument, do a regular string search instead.
+Like ordinary incremental search except that your input
+is treated as a sequence of words without regard to how the
+words are separated.  See \\[isearch-forward] for more info."
+  (interactive "P\np")
+  (isearch-mode t nil nil (not no-recursive-edit) (null not-word)))
 
 (defun isearch-backward (&optional regexp-p no-recursive-edit)
   "\
@@ -1300,6 +1319,13 @@ Use `isearch-exit' to quit without signaling."
   (interactive)
   (setq isearch-regexp (not isearch-regexp))
   (if isearch-regexp (setq isearch-word nil))
+  (setq isearch-success t isearch-adjusted t)
+  (isearch-update))
+
+(defun isearch-toggle-word ()
+  "Toggle word searching on or off."
+  (interactive)
+  (setq isearch-word (not isearch-word))
   (setq isearch-success t isearch-adjusted t)
   (isearch-update))
 
