@@ -1,3 +1,7 @@
+2008-07-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (syms_of_minibuf): Doc fix.
+
 2008-07-30  John Paul Wallington  <jpw@pobox.com>
 
 	* minibuf.c (read_buffer_completion_ignore_case): New var.
