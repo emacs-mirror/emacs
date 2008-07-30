@@ -1,3 +1,15 @@
+2008-07-30  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-map): Bind `M-s r' to
+	`isearch-toggle-regexp' and `M-s w' to `isearch-toggle-word'.
+	(search-map): Bind `M-s w' to `isearch-forward-word' globally
+	in the global map `search-map'.
+	(isearch-forward): Doc fix.
+	(isearch-forward-word, isearch-toggle-case-fold): New commands.
+
+	* simple.el (quoted-insert): Comment out code that treats
+	0240-0377 specially.
+
 2008-07-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-start.el: Add customization info for
