@@ -1,3 +1,10 @@
+2008-07-31  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-before-hack-hook): New function
+	(Top Level): Install c-before-hack-hook on
+	before-hack-local-variables-hook, rather than
+	c-postprocess-file-styles on hack-local-variables-hook.
+
 2008-07-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (normal-mode): Move call to hack-project-variables into
