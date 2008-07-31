@@ -255,9 +255,20 @@ List has a form of (file-name full-file-name (attribute-list))"
 Symbolic modes like `g+w' are allowed."
   (interactive "P")
   (let* ((files (dired-get-marked-files t arg))
+	 (modestr (and (stringp (car files))
+		       (nth 8 (file-attributes (car files)))))
+	 (default
+	   (and (stringp modestr)
+		(string-match "^.\\(...\\)\\(...\\)\\(...\\)$" modestr)
+		(replace-regexp-in-string
+		 "-" ""
+		 (format "u=%s,g=%s,o=%s"
+			 (match-string 1 modestr)
+			 (match-string 2 modestr)
+			 (match-string 3 modestr)))))
 	 (modes (dired-mark-read-string
 		 "Change mode of %s to: " nil
-		 'chmod arg files))
+		 'chmod arg files default))
 	 (num-modes (if (string-match "^[0-7]+" modes)
 			(string-to-number modes 8))))
     (dolist (file files)
@@ -358,14 +369,14 @@ Uses the shell command coming from variables `lpr-command' and
 ;; If the current file was used, the list has but one element and ARG
 ;; does not matter. (It is non-nil, non-integer in that case, namely '(4)).
 
-(defun dired-mark-read-string (prompt initial op-symbol arg files)
-  ;; PROMPT for a string, with INITIAL input.
+(defun dired-mark-read-string (prompt initial op-symbol arg files &optional default)
+  ;; PROMPT for a string, with INITIAL input and DEFAULT value.
   ;; Other args are used to give user feedback and pop-up:
   ;; OP-SYMBOL of command, prefix ARG, marked FILES.
   (dired-mark-pop-up
    nil op-symbol files
    (function read-string)
-   (format prompt (dired-mark-prompt arg files)) initial))
+   (format prompt (dired-mark-prompt arg files)) initial nil default))
 
 ;;; Cleaning a directory: flagging some backups for deletion.
 
