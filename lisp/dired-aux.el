@@ -2308,11 +2308,26 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 
 (defvar dired-isearch-orig-success-function nil)
 
+(defun dired-isearch-filenames-toggle ()
+  "Toggle file names searching on or off.
+When on, Isearch checks the success of the current matching point
+using the function `dired-isearch-success-function' that matches only
+at file names.  When off, it uses the default function
+`isearch-success-function-default'."
+  (interactive)
+  (setq isearch-success-function
+	(if (eq isearch-success-function 'dired-isearch-success-function)
+	    'isearch-success-function-default
+	  'dired-isearch-success-function))
+  (setq isearch-success t isearch-adjusted t)
+  (isearch-update))
+
 ;;;###autoload
 (defun dired-isearch-filenames-setup ()
   "Set up isearch to search in Dired file names.
 Intended to be added to `isearch-mode-hook'."
   (when dired-isearch-filenames
+    (define-key isearch-mode-map "\M-sf" 'dired-isearch-filenames-toggle)
     (setq dired-isearch-orig-success-function
 	  (default-value 'isearch-success-function))
     (setq-default isearch-success-function 'dired-isearch-success-function)
@@ -2320,6 +2335,7 @@ Intended to be added to `isearch-mode-hook'."
 
 (defun dired-isearch-filenames-end ()
   "Clean up the Dired file name search after terminating isearch."
+  (define-key isearch-mode-map "\M-sf" nil)
   (setq-default isearch-success-function dired-isearch-orig-success-function)
   (remove-hook 'isearch-mode-end-hook 'dired-isearch-filenames-end t))
 
