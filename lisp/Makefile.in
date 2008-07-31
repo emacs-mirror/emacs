@@ -1311,6 +1311,7 @@ compile-last:
 	  test -f $$el || continue; \
 	  test -f $${el}c && continue; \
 	  grep 'no-byte-compile: t' $$el > /dev/null && continue; \
+	  head -n 1 $$el | grep '^;; Automatically generated from UnicodeData.txt.' > /dev/null && continue; \
 	  sel=`echo $$el | sed "s|^$(lisp)|\\$$(lisp)|"`; \
 	  echo "Maintainer warning: $$sel missing from \$$ELCFILES?"; \
 	  echo "Compiling $$el"; \
