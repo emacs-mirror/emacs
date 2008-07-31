@@ -4,8 +4,15 @@
 
 2008-07-31  Chong Yidong  <cyd@stupidchicken.com>
 
-	* minibuffer.el (read-file-name-completion-ignore-case):
-	Add cygwin to the list.
+	* apropos.el (apropos-symbol): Don't set button skip by default.
+	(apropos-print): Set button skip iff searching for multiple types.
+	(apropos-print-doc): Insert blank label button when searching for
+	a single type.
+
+	* button.el (forward-button): Avoid infloop.
+
+	* minibuffer.el (read-file-name-completion-ignore-case): Add
+	cygwin to the list.
 
 2008-07-31  Sven Joachim  <svenjoac@gmx.de>
 
