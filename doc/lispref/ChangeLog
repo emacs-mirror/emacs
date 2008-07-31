@@ -1,3 +1,7 @@
+2008-07-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* os.texi: Fix previous change.
+
 2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* os.texi:

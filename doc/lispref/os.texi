@@ -632,6 +632,7 @@ convenient way to test parts of this string is with
 The value of this variable is a symbol indicating the type of operating
 system Emacs is operating on.  Here is a table of the possible values:
 
+@table @code
 @item aix-v3
 AIX.
 
