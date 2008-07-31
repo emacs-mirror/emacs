@@ -351,6 +351,7 @@ Controlling the Display
 * Cursor Display::         Features for displaying the cursor.
 * Line Truncation::        Truncating lines to fit the screen width instead
                              of continuing them to multiple screen lines.
+* Visual Line Mode::       Word wrap and screen line-based editing.
 * Display Custom::         Information on variables for customizing display.
 
 Searching and Replacement
