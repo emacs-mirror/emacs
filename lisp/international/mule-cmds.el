@@ -2858,26 +2858,37 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
 
 (defun read-char-by-name (prompt)
   "Read a character by its Unicode name or hex number string.
-Display PROMPT and read a string that represents a character
-by its Unicode property `name' or `old-name'.  It also accepts
-a hexadecimal number of Unicode code point.  Returns a character
-as a number."
+Display PROMPT and read a string that represents a character by its
+Unicode property `name' or `old-name'.  You can type a few of first
+letters of the Unicode name and use completion.  This function also
+accepts a hexadecimal number of Unicode code point or a number in
+hash notation, e.g. #o21430 for octal, #x2318 for hex, or #10r8984
+for decimal.  Returns a character as a number."
   (let* ((completion-ignore-case t)
 	 (input (completing-read prompt ucs-completions)))
-    (or (and (string-match "^[0-9a-fA-F]+$" input)
-	     (string-to-number input 16))
-	(cdr (assoc input (ucs-names))))))
+    (cond
+     ((string-match "^[0-9a-fA-F]+$" input)
+      (string-to-number input 16))
+     ((string-match "^#" input)
+      (read input))
+     (t
+      (cdr (assoc input (ucs-names)))))))
 
 (defun ucs-insert (arg)
   "Insert a character of the given Unicode code point.
-Interactively, prompts for a hex string giving the code."
+Interactively, prompts for a Unicode character name or a hex number
+using `read-char-by-name'."
   (interactive (list (read-char-by-name "Unicode (name or hex): ")))
-  (or (integerp arg)
+  (if (stringp arg)
       (setq arg (string-to-number arg 16)))
-  (if (or (< arg 0) (> arg #x10FFFF))
-      (error "Not a Unicode character code: 0x%X" arg))
+  (cond
+   ((not (integerp arg))
+    (error "Not a Unicode character code: %S" arg))
+   ((or (< arg 0) (> arg #x10FFFF))
+    (error "Not a Unicode character code: 0x%X" arg)))
   (insert-and-inherit arg))
 
+(define-key ctl-x-map "8\r" 'ucs-insert)
 
 ;; arch-tag: b382c432-4b36-460e-bf4c-05efd0bb18dc
 ;;; mule-cmds.el ends here
