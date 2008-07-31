@@ -162,16 +162,15 @@
     ("ellemtel"
      (c-basic-offset . 3)
      (c-comment-only-line-offset . 0)
-     (c-hanging-braces-alist     . ((substatement-open before after)))
+     (c-hanging-braces-alist     . ((substatement-open before after)
+				    (arglist-cont-nonempty)))
      (c-offsets-alist . ((topmost-intro        . 0)
 			 (substatement         . +)
 			 (substatement-open    . 0)
                          (case-label           . +)
                          (access-label         . -)
-                         (inclass              . ++)
-			 (inline-open          . 0)
-			 (arglist-cont-nonempty))))
-
+			 (inclass              . +)
+			 (inline-open          . 0))))
     ("linux"
      (c-basic-offset  . 8)
      (c-comment-only-line-offset . 0)
