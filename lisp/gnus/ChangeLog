@@ -1,3 +1,9 @@
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* message.el:
+	* gnus-start.el:
+	* gnus-registry.el: Remove VMS support.
+
 2008-07-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-summary-save-in-pipe): Add optional argument `raw'.
