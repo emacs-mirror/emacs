@@ -31,6 +31,7 @@ their values only make a difference at the time of redisplay.
 * Cursor Display::         Features for displaying the cursor.
 * Line Truncation::        Truncating lines to fit the screen width instead
                              of continuing them to multiple screen lines.
+* Visual Line Mode::       Word wrap and screen line-based editing.
 * Temporary Face Changes:: Commands to temporarily modify the default text face
 * Display Custom::         Information on variables for customizing display.
 @end menu
@@ -1171,6 +1172,50 @@ non-@code{nil} on a graphical display, then Emacs does not continue or
 truncate a line which is exactly as wide as the window.  Instead, the
 newline overflows into the right fringe, and the cursor appears in the
 fringe when positioned on that newline.
+
+@node Visual Line Mode
+@section Visual Line Mode
+
+@cindex word wrap
+  Another alternative to ordinary line continuation is to use
+@dfn{word wrap}.  Here, each long logical line is divided into two or
+more screen lines, like in ordinary line continuation.  However, Emacs
+attempts to wrap the line at word boundaries near the right window
+edge.  This makes the text easier to read, as wrapping does not occur
+in the middle of words.
+
+@cindex Visual Line mode
+@findex visual-line-mode
+@findex global-visual-line-mode
+  Word wrap is enabled by Visual Line mode, an optional minor mode.
+To turn on Visual Line mode in the current buffer, type @kbd{M-x
+visual-line-mode}; repeating this command turns it off.  You can also
+turn on Visual Line mode using the menu bar: in the Options menu,
+select the @samp{Line Wrapping in this Buffer} submenu, followed by
+the @samp{Word Wrap (Visual Line Mode)} menu item.  While Visual Line
+mode is enabled, the mode-line shows the string @samp{wrap} in the
+mode display.  The command @kbd{M-x global-visual-line-mode} toggles
+Visual Line mode in all buffers.
+
+@findex beginning-of-visual-line
+@findex end-of-visual-line
+@findex next-logical-line
+@findex previous-logical-line
+  In Visual Line mode, some editing commands work on screen lines
+instead of logical lines: @kbd{C-a} (@code{beginning-of-visual-line})
+moves to the beginning of the screen line, @kbd{C-e}
+(@code{end-of-visual-line}) moves to the end of the screen line, and
+@kbd{C-k} (@code{kill-visual-line}) kills text to the end of the
+screen line.  Furthermore, the commands @kbd{M-]}
+(@code{next-logical-line}) and @kbd{M-[}
+(@code{previous-logical-line}) move point to the next logical line and
+previous logical line respectively.
+
+  By default, word-wrapped lines do not display fringe indicators.
+Visual Line mode is often used to edit files that contain many long
+logical lines, so having a fringe indicator for each wrapped line
+would be visually distracting.  You can change this by customizing the
+variable @code{visual-line-fringe-indicators}.
 
 @node Temporary Face Changes
 @section Temporary Face Changes
