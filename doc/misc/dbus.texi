@@ -45,6 +45,7 @@ be found at @uref{http://dbus.freedesktop.org/}.
 * Inspection::                  Inspection of D-Bus services.
 * Type Conversion::             Mapping Lisp types and D-Bus types.
 * Synchronous Methods::         Calling methods in a blocking way.
+* Asynchronous Methods::        Calling methods non-blocking.
 * Receiving Method Calls::      Offering own methods.
 * Signals::                     Sending and receiving signals.
 * Errors and Events::           Errors and events.
@@ -825,7 +826,7 @@ non-@code{nil}, @var{direction} must be @samp{out}.  Example:
   "/org/freedesktop/xesam/searcher/main"
   "org.freedesktop.xesam.Search" "HitsAdded")
 
-@result{} \"su\""
+@result{} "su"
 @end lisp
 @end defun
 
@@ -997,8 +998,7 @@ The signal @code{PropertyModified}, discussed as example in
 @cindex synchronous method calls
 
 Methods can be called synchronously (@dfn{blocking}) or asynchronously
-(@dfn{non-blocking}).  Currently, just synchronous methods are
-implemented.
+(@dfn{non-blocking}).
 
 At D-Bus level, a method call consist of two messages: one message
 which carries the input parameters to the object owning the method to
@@ -1014,7 +1014,7 @@ D-Bus object path, @var{service} is registered at.  @var{interface} is
 an interface offered by @var{service}.  It must provide @var{method}.
 
 If the parameter @code{:timeout} is given, the following integer
-@var{timeout} specifies the maximun number of milliseconds the method
+@var{timeout} specifies the maximum number of milliseconds the method
 call must return.  The default value is 25.000.  If the method call
 doesn't return in time, a D-Bus error is raised (@pxref{Errors and
 Events}).
@@ -1089,6 +1089,70 @@ emulate the @code{lshal} command on GNU/Linux systems:
       system.chassis.type = \"Notebook\"
       system.firmware.release_date = \"03/19/2005\"
       @dots{}"
+@end lisp
+@end defun
+
+@defun dbus-call-method-non-blocking bus service path interface method &optional :timeout timeout &rest args
+Call @var{method} on the D-Bus @var{bus}, but don't block the event queue.
+This is necessary for communicating to registered D-Bus methods,
+which are running in the same Emacs process.
+
+The arguments are the same as in @code{dbus-call-method}.  Example:
+
+@lisp
+(dbus-call-method-non-blocking
+  :system "org.freedesktop.Hal"
+  "/org/freedesktop/Hal/devices/computer"
+  "org.freedesktop.Hal.Device" "GetPropertyString"
+  "system.kernel.machine")
+
+@result{} "i686"
+@end lisp
+@end defun
+
+
+@node Asynchronous Methods
+@chapter Calling methods non-blocking.
+@cindex method calls, asynchronous
+@cindex asynchronous method calls
+
+@defun dbus-call-method-asynchronously bus service path interface method handler &optional :timeout timeout &rest args
+This function calls @var{method} on the D-Bus @var{bus}
+asynchronously.  @var{bus} is either the symbol @code{:system} or the
+symbol @code{:session}.
+
+@var{service} is the D-Bus service name to be used.  @var{path} is the
+D-Bus object path, @var{service} is registered at.  @var{interface} is
+an interface offered by @var{service}.  It must provide @var{method}.
+
+@var{handler} is a Lisp function, which is called when the
+corresponding return message has arrived.
+
+If the parameter @code{:timeout} is given, the following integer
+@var{timeout} specifies the maximum number of milliseconds a reply
+message must arrive.  The default value is 25.000.  If there is no
+reply message in time, a D-Bus error is raised (@pxref{Errors and
+Events}).
+
+All other arguments args are passed to @var{method} as arguments.
+They are converted into D-Bus types as described in @ref{Type
+Conversion}.
+
+The function returns a key into the hash table
+@code{dbus-registered-functions-table}.  The corresponding entry in
+the hash table is removed, when the return message has been arrived,
+and @var{handler} is called.  Example:
+
+@lisp
+(dbus-call-method-asynchronously
+  :system "org.freedesktop.Hal"
+  "/org/freedesktop/Hal/devices/computer"
+  "org.freedesktop.Hal.Device" "GetPropertyString" 'message
+  "system.kernel.machine")
+
+@result{} (:system 2)
+
+@print{} i686
 @end lisp
 @end defun
 
@@ -1283,7 +1347,9 @@ has been unregistered, @code{nil} otherwise.
 @cindex errors
 @cindex events
 
-Input parameters of @code{dbus-call-method} and
+Input parameters of @code{dbus-call-method},
+@code{dbus-call-method-non-blocking},
+@code{dbus-call-method-asynchronously}, and
 @code{dbus-register-signal} are checked for correct D-Bus types. If
 there is a type mismatch, the Lisp error @code{wrong-type-argument}
 @code{D-Bus ARG} is raised.
@@ -1303,14 +1369,19 @@ Incoming D-Bus messages are handled as Emacs events (see @pxref{Misc
 Events, , , elisp}).  The generated event has this form:
 
 @lisp
-(dbus-event @var{bus} @var{serial} @var{service} @var{path} @var{interface} @var{member} @var{handler} &rest @var{args})
+(dbus-event @var{bus} @var{type} @var{serial} @var{service} @var{path} @var{interface} @var{member} @var{handler}
+        &rest @var{args})
 @end lisp
 
-@var{bus} identifies the D-Bus the signal is coming from.  It is
+@var{bus} identifies the D-Bus the message is coming from.  It is
 either the symbol @code{:system} or the symbol @code{:session}.
 
-@var{serial} is the serial number of the received D-Bus message if it
-is a method call, or @code{nil}.
+@var{type} is the D-Bus message type which has caused the event.  It
+can be @code{dbus-message-type-invalid},
+@code{dbus-message-type-method-call},
+@code{dbus-message-type-method-return},
+@code{dbus-message-type-error}, or @code{dbus-message-type-signal}.
+@var{serial} is the serial number of the received D-Bus message.
 
 @var{service} and @var{path} are the unique name and the object path
 of the D-Bus object emitting the message.  @var{interface} and
@@ -1336,10 +1407,14 @@ Returns the bus name @var{event} is coming from.
 The result is either the symbol @code{:system} or the symbol @code{:session}.
 @end defun
 
+@defun dbus-event-message-type event
+Returns the message type of the corresponding D-Bus message.  The
+result is a number.
+@end defun
+
 @defun dbus-event-serial-number event
 Returns the serial number of the corresponding D-Bus message.
-The result is a number in case the D-Bus message is a method
-call, or @code{nil} for all other mesage types.
+The result is a number.
 @end defun
 
 @defun dbus-event-service-name event
