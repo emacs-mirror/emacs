@@ -509,6 +509,7 @@ This is like `describe-bindings', but displays only isearch keys."
     (define-key map "\M-\t" 'isearch-complete-edit)
     (define-key map "\C-s"  'isearch-forward-exit-minibuffer)
     (define-key map "\C-r"  'isearch-reverse-exit-minibuffer)
+    (define-key map "\C-w"  'isearch-edit-string-set-word)
     (define-key map "\C-f"  'isearch-yank-char-in-minibuffer)
     (define-key map [right] 'isearch-yank-char-in-minibuffer)
     map)
@@ -1111,31 +1112,11 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	  ;; that can change their values.
 	  (setq old-point (point) old-other-end isearch-other-end)
 
-	  (isearch-message) ;; for read-char
 	  (unwind-protect
-	      (let* (;; Why does following read-char echo?
-		     ;;(echo-keystrokes 0) ;; not needed with above message
-		     (e (let ((cursor-in-echo-area t))
-			  (read-event)))
+	      (let* ((message-log-max nil)
 		     ;; Binding minibuffer-history-symbol to nil is a work-around
 		     ;; for some incompatibility with gmhist.
-		     (minibuffer-history-symbol)
-		     (message-log-max nil))
-		;; If the first character the user types when we prompt them
-		;; for a string is the yank-word character, then go into
-		;; word-search mode.  Otherwise unread that character and
-		;; read a key the normal way.
-		;; Word search does not apply (yet) to regexp searches,
-		;; no check is made here.
-		(message "%s" (isearch-message-prefix nil nil t))
-		(if (memq (lookup-key isearch-mode-map (vector e))
-			  '(isearch-yank-word
-			    isearch-yank-word-or-char))
-		    (setq isearch-word t;; so message-prefix is right
-			  isearch-new-word t)
-		  (cancel-kbd-macro-events)
-		  (isearch-unread e))
-		(setq cursor-in-echo-area nil)
+		     (minibuffer-history-symbol))
 		(setq isearch-new-string
                       (read-from-minibuffer
                        (isearch-message-prefix nil nil isearch-nonincremental)
@@ -1208,6 +1189,15 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
     (quit  ; handle abort-recursive-edit
      (isearch-abort)  ;; outside of let to restore outside global values
      )))
+
+;; Obsolete usage of `C-s M-e C-w'.  Remove after 23.1.
+(defvar isearch-new-word)
+(defun isearch-edit-string-set-word ()
+  "Do word search after exiting `isearch-edit-string'."
+  (interactive)
+  (message "This feature is obsolete since 23.1; use `M-s w' instead.")
+  (setq isearch-word t isearch-new-word t))
+
 
 (defun isearch-nonincremental-exit-minibuffer ()
   (interactive)
