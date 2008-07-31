@@ -1,3 +1,11 @@
+2008-07-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Arguments and Signatures): Fix example.
+	(Synchronous Methods): New defun `dbus-call-method-non-blocking'.
+	(Asynchronous Methods): New node.
+	(Errors and Events): Describe extended layout of `dbus-event'.  New
+	defun `dbus-event-message-type'.
+
 2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ediff.texi: Remove VMS support.
