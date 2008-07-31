@@ -1,3 +1,7 @@
+2008-07-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (gobble_input): Fix previous change.
+
 2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* bitmaps/README:
@@ -60,14 +64,14 @@
 
 2008-07-30  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.h (struct w32font_info): Use unicode version of textmetrics.
+	* w32font.h (struct w32font_info): Use unicode version of textmetrics.
 
-        * w32font.c (w32font_encode_char): Leave as unicode if in range.
-        (w32font_open_internal): Get unicode version of textmetrics.
-        Don't enable or disable glyph indices here.
-        (w32font_open): Disable use of glyph indices.
+	* w32font.c (w32font_encode_char): Leave as unicode if in range.
+	(w32font_open_internal): Get unicode version of textmetrics.
+	Don't enable or disable glyph indices here.
+	(w32font_open): Disable use of glyph indices.
 
-        * w32uniscribe.c (uniscribe_open): Enable use of glyph indices.
+	* w32uniscribe.c (uniscribe_open): Enable use of glyph indices.
 
 2008-07-30  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -90,14 +94,14 @@
 
 2008-07-30  Jason Rumney  <jasonr@gnu.org>
 
-        * w32uniscribe.c (uniscribe_encode_char): Fix glyph buffer size.
+	* w32uniscribe.c (uniscribe_encode_char): Fix glyph buffer size.
 
 2008-07-29  Jason Rumney  <jasonr@gnu.org>
 
-        * w32uniscribe.c (uniscribe_shape): Avoid using context if cache
-        is populated.
-        (uniscribe_encode_char): Always use uniscribe.
-        Avoid using context if cache is populated.
+	* w32uniscribe.c (uniscribe_shape): Avoid using context if cache
+	is populated.
+	(uniscribe_encode_char): Always use uniscribe.
+	Avoid using context if cache is populated.
 
 2008-07-29  Jan Djärv  <jan.h.d@swipnet.se>
 

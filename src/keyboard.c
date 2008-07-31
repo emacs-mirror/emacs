@@ -6923,8 +6923,8 @@ gobble_input (expected)
     }
   else
 #endif
-    read_avail_input (expected);
 #endif
+    read_avail_input (expected);
 }
 
 /* Put a BUFFER_SWITCH_EVENT in the buffer
