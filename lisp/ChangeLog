@@ -1,3 +1,29 @@
+2008-07-31  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-isearch-filenames-toggle): New command.
+	(dired-isearch-filenames-setup): Bind "\M-sf" to
+	dired-isearch-filenames-toggle in isearch-mode-map.
+	(dired-isearch-filenames-end): Bind "\M-sf" to nil
+	in isearch-mode-map.
+
+	* isearch.el (isearch-edit-string-set-word): New command.
+	(minibuffer-local-isearch-map): Bind "\C-w" to
+	isearch-edit-string-set-word.
+	(isearch-new-word): Temporary internal variable.
+	(isearch-edit-string): Remove special case of reading the
+	first character and checking it for C-w.
+
+	* simple.el (read-shell-command, shell-command):
+	Move code that uses minibuffer-with-setup-hook to set
+	minibuffer-default-add-function to minibuffer-default-add-shell-commands
+	from the interactive spec of `shell-command' to `read-shell-command'.
+
+	* international/mule-cmds.el (read-char-by-name):
+	Accept hash notation.  Doc fix.
+	(ucs-insert): Doc fix.  Convert to number only when `arg' is
+	a string.  Use separate error message when `arg' is not an integer.
+	Bind `ucs-insert' to `C-x 8 RET'.
+
 2008-07-31  Joachim Nilsson  <joachim.nilsson@member.fsf.org> (tiny change)
 
 	* progmodes/cc-styles.el (c-style-alist): For the Ellemtel style,
