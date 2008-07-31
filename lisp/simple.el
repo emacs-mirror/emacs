@@ -2012,11 +2012,15 @@ to the end of the list of defaults just after the default value."
 The arguments are the same as the ones of `read-from-minibuffer',
 except READ and KEYMAP are missing and HIST defaults
 to `shell-command-history'."
-  (apply 'read-from-minibuffer prompt initial-contents
-         minibuffer-local-shell-command-map
-         nil
-         (or hist 'shell-command-history)
-         args))
+  (minibuffer-with-setup-hook
+      (lambda ()
+	(set (make-local-variable 'minibuffer-default-add-function)
+	     'minibuffer-default-add-shell-commands))
+    (apply 'read-from-minibuffer prompt initial-contents
+	   minibuffer-local-shell-command-map
+	   nil
+	   (or hist 'shell-command-history)
+	   args)))
 
 (defun shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
@@ -2070,13 +2074,9 @@ specifies the value of ERROR-BUFFER."
 
   (interactive
    (list
-    (minibuffer-with-setup-hook
-	(lambda ()
-	  (set (make-local-variable 'minibuffer-default-add-function)
-	       'minibuffer-default-add-shell-commands))
-      (read-shell-command "Shell command: " nil nil
-			  (and buffer-file-name
-			       (file-relative-name buffer-file-name))))
+    (read-shell-command "Shell command: " nil nil
+			(and buffer-file-name
+			     (file-relative-name buffer-file-name)))
     current-prefix-arg
     shell-command-default-error-buffer))
   ;; Look for a handler in case default-directory is a remote file name.
