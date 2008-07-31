@@ -1984,8 +1984,6 @@ in that case, this function acts as if `enable-local-variables' were t."
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
     (report-errors "File mode specification error: %s"
       (set-auto-mode))
-    (report-errors "Project local-variables error: %s"
-      (hack-project-variables))
     (report-errors "File local-variables error: %s"
       (hack-local-variables)))
   ;; Turn font lock off and on, to make sure it takes account of
@@ -2521,7 +2519,8 @@ Otherwise, return nil; point may be changed."
 ;;; Handling file local variables
 
 (defvar ignored-local-variables
-  '(ignored-local-variables safe-local-variable-values)
+  '(ignored-local-variables safe-local-variable-values
+    file-local-variables-alist)
   "Variables to be ignored in a file's local variable spec.")
 
 (defvar hack-local-variables-hook nil
@@ -2636,13 +2635,31 @@ asking you for confirmation."
 
 (put 'c-set-style 'safe-local-eval-function t)
 
+(defvar file-local-variables-alist nil
+  "Alist of file-local variable settings in the current buffer.
+Each element in this list has the form (VAR . VALUE), where VAR
+is a file-local variable (a symbol) and VALUE is the value
+specified.  The actual value in the buffer may differ from VALUE,
+if it is changed by the major or minor modes, or by the user.")
+(make-variable-buffer-local 'file-local-variables-alist)
+
+(defvar before-hack-local-variables-hook nil
+  "Normal hook run before setting file-local variables.
+It is called after checking for unsafe/risky variables and
+setting `file-local-variables-alist', and before applying the
+variables stored in `file-local-variables-alist'.  A hook
+function is allowed to change the contents of this alist.
+
+This hook is called only if there is at least one file-local
+variable to set.")
+
 (defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars project)
   "Get confirmation before setting up local variable values.
 ALL-VARS is the list of all variables to be set up.
 UNSAFE-VARS is the list of those that aren't marked as safe or risky.
 RISKY-VARS is the list of those that are marked as risky.
 PROJECT is a directory name if these settings come from directory-local
-settings; nil otherwise."
+settings, or nil otherwise."
   (if noninteractive
       nil
     (let ((name (if buffer-file-name
@@ -2787,20 +2804,27 @@ and VAL is the specified value."
 	  mode-specified
 	result))))
 
-(defun hack-local-variables-apply (result project)
-  "Apply an alist of local variable settings.
-RESULT is the alist.
-Will query the user when necessary."
+(defun hack-local-variables-filter (variables project)
+  "Filter local variable settings, querying the user if necessary.
+VARIABLES is the alist of variable-value settings.  This alist is
+ filtered based on the values of `ignored-local-variables',
+ `enable-local-eval', `enable-local-variables', and (if necessary)
+ user interaction.  The results are added to
+ `file-local-variables-alist', without applying them.
+PROJECT is a directory name if these settings come from
+ directory-local settings, or nil otherwise."
+  ;; Strip any variables that are in `ignored-local-variables'.
   (dolist (ignored ignored-local-variables)
-    (setq result (assq-delete-all ignored result)))
+    (setq variables (assq-delete-all ignored variables)))
+  ;; If `enable-local-eval' is nil, strip eval "variables".
   (if (null enable-local-eval)
-      (setq result (assq-delete-all 'eval result)))
-  (when result
-    (setq result (nreverse result))
+      (setq variables (assq-delete-all 'eval variables)))
+  (setq variables (nreverse variables))
+  (when variables
     ;; Find those variables that we may want to save to
     ;; `safe-local-variable-values'.
     (let (risky-vars unsafe-vars)
-      (dolist (elt result)
+      (dolist (elt variables)
 	(let ((var (car elt))
 	      (val (cdr elt)))
 	  ;; Don't query about the fake variables.
@@ -2814,22 +2838,21 @@ Will query the user when necessary."
 		   (push elt risky-vars))
 	      (push elt unsafe-vars))))
       (if (eq enable-local-variables :safe)
-	  ;; If caller wants only the safe variables,
-	  ;; install only them.
-	  (dolist (elt result)
+	  ;; If caller wants only safe variables, store only these.
+	  (dolist (elt variables)
 	    (unless (or (member elt unsafe-vars)
 			(member elt risky-vars))
-	      (hack-one-local-variable (car elt) (cdr elt))))
-	;; Query, except in the case where all are known safe
-	;; if the user wants no query in that case.
+	      (push elt file-local-variables-alist)))
+	;; Query, unless all are known safe or the user wants no
+	;; querying.
 	(if (or (and (eq enable-local-variables t)
 		     (null unsafe-vars)
 		     (null risky-vars))
 		(eq enable-local-variables :all)
 		(hack-local-variables-confirm
-		 result unsafe-vars risky-vars project))
-	    (dolist (elt result)
-	      (hack-one-local-variable (car elt) (cdr elt))))))))
+		 variables unsafe-vars risky-vars project))
+	    (dolist (elt variables)
+	      (push elt file-local-variables-alist)))))))
 
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
@@ -2838,6 +2861,10 @@ is specified, returning t if it is specified."
   (let ((enable-local-variables
 	 (and local-enable-local-variables enable-local-variables))
 	result)
+    (unless mode-only
+      (setq file-local-variables-alist nil)
+      (report-errors "Project local-variables error: %s"
+	(hack-project-variables)))
     (when (or mode-only enable-local-variables)
       (setq result (hack-local-variables-prop-line mode-only))
       ;; Look for "Local variables:" line in last page.
@@ -2918,15 +2945,20 @@ is specified, returning t if it is specified."
 					  (indirect-variable var))
 					val) result)
 			  (error nil)))))
-		  (forward-line 1)))))))
-
-      ;; We've read all the local variables.  Now, return whether the
-      ;; mode is specified (if MODE-ONLY is non-nil), or set the
-      ;; variables (if MODE-ONLY is nil.)
-      (if mode-only
-	  result
-	(hack-local-variables-apply result nil)
-	(run-hooks 'hack-local-variables-hook)))))
+		  (forward-line 1))))))))
+    ;; Now we've read all the local variables.
+    ;; If MODE-ONLY is non-nil, return whether the mode was specified.
+    (cond (mode-only result)
+	  ;; Otherwise, set the variables.
+	  (enable-local-variables
+	   (hack-local-variables-filter result nil)
+	   (when file-local-variables-alist
+	     (setq file-local-variables-alist
+		   (nreverse file-local-variables-alist))
+	     (run-hooks 'before-hack-local-variables-hook)
+	     (dolist (elt file-local-variables-alist)
+	       (hack-one-local-variable (car elt) (cdr elt))))
+	   (run-hooks 'hack-local-variables-hook)))))
 
 (defun safe-local-variable-p (sym val)
   "Non-nil if SYM is safe as a file-local variable with value VAL.
@@ -3168,8 +3200,12 @@ is found.  Returns the new class name."
 (declare-function c-postprocess-file-styles "cc-mode" ())
 
 (defun hack-project-variables ()
-  "Set local variables in a buffer based on project settings."
-  (when (and (buffer-file-name) (not (file-remote-p (buffer-file-name))))
+  "Read local variables for the current buffer based on project settings.
+Store the project variables in `file-local-variables-alist',
+without applying them."
+  (when (and enable-local-variables
+	     (buffer-file-name)
+	     (not (file-remote-p (buffer-file-name))))
     ;; Find the settings file.
     (let ((settings (project-find-settings-file (buffer-file-name)))
 	  (class nil)
@@ -3186,14 +3222,7 @@ is found.  Returns the new class name."
 	       (project-collect-binding-list (project-get-alist class)
 					     root-dir nil)))
 	  (when bindings
-	    (hack-local-variables-apply bindings root-dir)
-	    ;; Special case C and derived modes.  Note that CC-based
-	    ;; modes don't work with derived-mode-p.  In general I
-	    ;; think modes could use an auxiliary method which is
-	    ;; called after local variables are hacked.
-	    (and (boundp 'c-buffer-is-cc-mode)
-		 c-buffer-is-cc-mode
-		 (c-postprocess-file-styles))))))))
+	    (hack-local-variables-filter bindings root-dir)))))))
 
 
 (defcustom change-major-mode-with-file-name t
