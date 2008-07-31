@@ -5765,7 +5765,19 @@ PROMPT is used as the prompt, default to `File modes (octal or symbolic): '.
 ORIG-FILE is the original file of which modes will be change."
   (let* ((modes (or (if orig-file (file-modes orig-file) 0)
 		    (error "File not found")))
-	 (value (read-string (or prompt "File modes (octal or symbolic): "))))
+	 (modestr (and (stringp orig-file)
+		       (nth 8 (file-attributes orig-file))))
+	 (default
+	   (and (stringp modestr)
+		(string-match "^.\\(...\\)\\(...\\)\\(...\\)$" modestr)
+		(replace-regexp-in-string
+		 "-" ""
+		 (format "u=%s,g=%s,o=%s"
+			 (match-string 1 modestr)
+			 (match-string 2 modestr)
+			 (match-string 3 modestr)))))
+	 (value (read-string (or prompt "File modes (octal or symbolic): ")
+			     nil nil default)))
     (save-match-data
       (if (string-match "^[0-7]+" value)
 	  (string-to-number value 8)
