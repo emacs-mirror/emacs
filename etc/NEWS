@@ -189,6 +189,10 @@ Sinhala, and TaiViet.
 *** The minor modes unify-8859-on-encoding-mode and
 unify-8859-on-decoding-mode are obsolete.
 
+*** `ucs-insert' is bound to `C-x 8 RET' and in addition to hex numbers
+accepts numbers in hash notation (e.g. #o21430 for octal, or #10r8984 for
+decimal).  It also accepts Unicode character names with completion.
+
 ** Emacs now supports serial port access on GNU/Linux, Unix, and
 Windows.  The new command `serial-term' starts an interactive terminal
 on a serial port.  The serial port can be configured at runtime with
@@ -260,6 +264,12 @@ on the regexp command prefix map.
 ** In Dired-x, all command guesses for ! are now added to the default
 list accessible by M-n instead of pushing all guesses temporarily into
 the history list.
+
+** In Isearch mode, a special case of typing `C-w' at the beginning of
+the minibuffer that toggles word search (i.e. using key sequences
+`C-s RET C-w' or `C-s M-e C-w') is obsolete.  You can use the global key
+`M-s w' to start word search, or type `M-s w' in Isearch mode to
+toggle word search.
 
 ---
 ** The following input methods were removed in Emacs 22.2, but this was
@@ -476,7 +486,7 @@ display the search results with Rmail, Gnus and VM.  Note that there
 is an existing Gnus back end, nnmairix.el, which should be used with
 Maildir/MH setups.
 
-** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
+** minibuffer-depth-indicate-mode shows the minibuffer depth in the prompt.
 
 ** nXML Mode
 This is a new mode for editing XML documents.  It allows a schema to
@@ -642,7 +652,8 @@ Command*'.
 *** `M-s f C-s' and `M-s f M-C-s' run Isearch that matches only at file names.
 When a new user option `dired-isearch-filenames' is non-nil, then even
 ordinary Isearch started with `C-s' and `C-M-s' matches only at file names
-in the Dired buffer.
+in the Dired buffer.  You can toggle file names matching on or off
+by typing `M-s f' in Isearch mode.
 
 *** `M-s a C-s' and `M-s a M-C-s' run multi-file Isearch on the marked files.
 They visit the first marked file in the sequence and display the usual Isearch
