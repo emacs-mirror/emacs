@@ -923,6 +923,16 @@ Emacs has focus.  To enable them, set the variable
 w32-pass-multimedia-buttons to nil.  See the doc string of that variable
 for the list of extra keys that are available.
 
+** BDF fonts no longer supported on MS-Windows.
+The font backend was completely rewritten for this release. The focus
+on Windows has been getting acceptable performance and full unicode
+support, including complex script shaping for native Windows fonts.  A
+rewrite of the BDF font support has not happened due to lack of time
+and developers.  If demand still exists for such a backend even with
+the improved language support for native Windows fonts, future
+development in this direction will most likely be based on the
+freetype library, giving access to a wider range of font formats.
+
 
 * Incompatible Lisp Changes in Emacs 23.1
 
