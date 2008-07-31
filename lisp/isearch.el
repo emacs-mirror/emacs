@@ -684,8 +684,8 @@ the calling function until the search is done."
   "\
 Do incremental search forward for regular expression.
 With a prefix argument, do a regular string search instead.
-Like ordinary incremental search except that your input
-is treated as a regexp.  See \\[isearch-forward] for more info.
+Like ordinary incremental search except that your input is treated
+as a regexp.  See the command `isearch-forward' for more information.
 
 In regexp incremental searches, a space or spaces normally matches
 any whitespace (the variable `search-whitespace-regexp' controls
@@ -698,9 +698,9 @@ and nothing else, enter C-q SPC."
   "\
 Do incremental search forward for a sequence of words.
 With a prefix argument, do a regular string search instead.
-Like ordinary incremental search except that your input
-is treated as a sequence of words without regard to how the
-words are separated.  See \\[isearch-forward] for more info."
+Like ordinary incremental search except that your input is treated
+as a sequence of words without regard to how the words are separated.
+See the command `isearch-forward' for more information."
   (interactive "P\np")
   (isearch-mode t nil nil (not no-recursive-edit) (null not-word)))
 
@@ -708,7 +708,7 @@ words are separated.  See \\[isearch-forward] for more info."
   "\
 Do incremental search backward.
 With a prefix argument, do a regular expression search instead.
-See \\[isearch-forward] for more information."
+See the command `isearch-forward' for more information."
   (interactive "P\np")
   (isearch-mode nil (not (null regexp-p)) nil (not no-recursive-edit)))
 
@@ -716,8 +716,8 @@ See \\[isearch-forward] for more information."
   "\
 Do incremental search backward for regular expression.
 With a prefix argument, do a regular string search instead.
-Like ordinary incremental search except that your input
-is treated as a regexp.  See \\[isearch-forward] for more info."
+Like ordinary incremental search except that your input is treated
+as a regexp.  See the command `isearch-forward' for more information."
   (interactive "P\np")
   (isearch-mode nil (null not-regexp) nil (not no-recursive-edit)))
 
@@ -1384,22 +1384,23 @@ string.  NLINES has the same meaning as in `occur'."
 (declare-function hi-lock-regexp-okay "hi-lock" (regexp))
 (declare-function hi-lock-read-face-name "hi-lock" ())
 
-(defun isearch-highlight-regexp (regexp &optional face)
+(defun isearch-highlight-regexp ()
   "Run `highlight-regexp' with regexp from the current search string.
-Interactively, REGEXP is the current search regexp or a quoted search
-string.  FACE has the same meaning as in `highlight-regexp'."
-  (interactive
-   (list
-    (progn
-      (require 'hi-lock nil t)
-      (hi-lock-regexp-okay
-       (if isearch-regexp isearch-string (regexp-quote isearch-string))))
-    (hi-lock-read-face-name)))
+It exits Isearch mode and calls `hi-lock-face-buffer' with its regexp
+argument from the last search regexp or a quoted search string,
+and reads its face argument using `hi-lock-read-face-name'."
+  (interactive)
   (isearch-done)
   (isearch-clean-overlays)
+  (require 'hi-lock nil t)
   ;; (add-to-history 'hi-lock-regexp-history regexp)
-  (let ((case-fold-search isearch-case-fold-search))
-    (hi-lock-face-buffer regexp face)))
+  (let ((case-fold-search isearch-case-fold-search)
+	;; TODO: add `search-upper-case' as in `isearch-occur'
+	)
+    (hi-lock-face-buffer
+     (hi-lock-regexp-okay
+      (if isearch-regexp isearch-string (regexp-quote isearch-string)))
+     (hi-lock-read-face-name))))
 
 
 (defun isearch-delete-char ()
