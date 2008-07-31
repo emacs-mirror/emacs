@@ -1,3 +1,13 @@
+2008-07-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (read-file-name-completion-ignore-case): Add
+	cygwin to the list.
+
+2008-07-31  Sven Joachim  <svenjoac@gmx.de>
+
+	* files.el (abbreviate-file-name): When replacing $HOME with ~,
+	turn off case-fold-search.
+
 2008-07-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (top): Don't register for "NameOwnerChanged".
