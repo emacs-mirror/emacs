@@ -1,3 +1,8 @@
+2008-07-31  Sven Joachim  <svenjoac@gmx.de>
+
+	* files.el (abbreviate-file-name): When replacing $HOME with ~,
+	turn off case-fold-search.
+
 2008-07-31  Joachim Nilsson  <joachim.nilsson@member.fsf.org> (tiny change)
 
 	* progmodes/cc-styles.el (c-style-alist): For the Ellemtel style,
