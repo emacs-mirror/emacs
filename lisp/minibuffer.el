@@ -1068,7 +1068,7 @@ specified by COMMON-SUBSTRING."
   "Current predicate used by `read-file-name-internal'.")
 
 (defcustom read-file-name-completion-ignore-case
-  (if (memq system-type '(ms-dos windows-nt darwin))
+  (if (memq system-type '(ms-dos windows-nt darwin cygwin))
       t nil)
   "Non-nil means when reading a file name completion ignores case."
   :group 'minibuffer
