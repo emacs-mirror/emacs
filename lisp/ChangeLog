@@ -1,3 +1,27 @@
+2008-07-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (top): Don't register for "NameOwnerChanged".
+	(dbus-message-type-invalid, dbus-message-type-method-call)
+	(dbus-message-type-method-return, dbus-message-type-error)
+	(dbus-message-type-signal): New defconst.
+	(dbus-ignore-errors): Fix `edebug-form-spec' property.
+	(dbus-return-values-table): New defvar.
+	(dbus-call-method-non-blocking-handler, dbus-event-message-type):
+	New defun.
+	(dbus-check-event, dbus-handle-event, dbus-event-serial-number, ):
+	Extend docstring.  Adapt implementation according to new
+	`dbus-event' layout.
+	(dbus-event-service-name, dbus-event-path-name)
+	(dbus-event-interface-name, dbus-event-member-name): Adapt
+	implementation according to new `dbus-event' layout.
+	(dbus-set-property): Correct `dbus-introspect-get-attribute' call.
+
+	* net/xesam.el (xesam-type, xesam-query, xesam-xml-string): New
+	defvar.
+	(xesam-mode): Rework implementation.
+	(xesam-new-search): Additional parameter TYPE.
+	(xesam-search): Adapt call of `xesam-new-search'.
+
 2008-07-31  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-do-chmod): Set default value to the original
