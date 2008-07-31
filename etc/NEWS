@@ -516,6 +516,7 @@ Manual.
 
 ** RST mode is a major mode for editing ReSTructured-Text files.
 
++++
 ** Visual Line mode provides support for editing by visual lines.
 It turns on word-wrapping in the current buffer, and rebinds C-a, C-e,
 and C-k to commands that operate by visual lines instead of logical
