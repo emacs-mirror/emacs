@@ -1,3 +1,24 @@
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/ms-w32.h (MULTI_KBOARD): Remove.
+	* xterm.c:
+	* xselect.c:
+	* xfns.c:
+	* window.c:
+	* w32term.c:
+	* w32fns.c:
+	* terminal.c:
+	* termhooks.h:
+	* term.c:
+	* sysdep.c:
+	* keyboard.h:
+	* keyboard.c:
+	* frame.h:
+	* frame.c:
+	* frame.c: Remove references to MULTI_KBOARD, it is now the
+	default.
+	* config.in: Regenerate.
+
 2008-07-30  Jason Rumney  <jasonr@gnu.org>
 
         * w32font.h (struct w32font_info): Use unicode version of textmetrics.

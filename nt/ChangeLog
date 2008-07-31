@@ -1,3 +1,7 @@
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (MULTI_KBOARD): Remove.
+
 2008-07-23  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat: New option --profile.

@@ -95,14 +95,10 @@ int interrupt_input_pending;
 
 #define KBD_BUFFER_SIZE 4096
 
-#ifdef MULTI_KBOARD
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
 KBOARD *all_kboards;
 int single_kboard;
-#else
-KBOARD the_only_kboard;
-#endif
 
 /* Non-nil disable property on a command means
    do not execute it; call disabled-command-function's value instead.  */
@@ -635,9 +631,7 @@ static void save_getcjmp ();
 static void restore_getcjmp P_ ((jmp_buf));
 static Lisp_Object apply_modifiers P_ ((int, Lisp_Object));
 static void clear_event P_ ((struct input_event *));
-#ifdef MULTI_KBOARD
 static Lisp_Object restore_kboard_configuration P_ ((Lisp_Object));
-#endif
 static SIGTYPE interrupt_signal P_ ((int signalnum));
 static void handle_interrupt P_ ((void));
 static void timer_start_idle P_ ((void));
@@ -1031,7 +1025,6 @@ recursive_edit_unwind (buffer)
 static void
 any_kboard_state ()
 {
-#ifdef MULTI_KBOARD
 #if 0 /* Theory: if there's anything in Vunread_command_events,
 	 it will right away be read by read_key_sequence,
 	 and then if we do switch KBOARDS, it will go into the side
@@ -1045,7 +1038,6 @@ any_kboard_state ()
   Vunread_command_events = Qnil;
 #endif
   single_kboard = 0;
-#endif
 }
 
 /* Switch to the single-kboard state, making current_kboard
@@ -1054,9 +1046,7 @@ any_kboard_state ()
 void
 single_kboard_state ()
 {
-#ifdef MULTI_KBOARD
   single_kboard = 1;
-#endif
 }
 #endif
 
@@ -1067,10 +1057,8 @@ void
 not_single_kboard_state (kboard)
      KBOARD *kboard;
 {
-#ifdef MULTI_KBOARD
   if (kboard == current_kboard)
     single_kboard = 0;
-#endif
 }
 
 /* Maintain a stack of kboards, so other parts of Emacs
@@ -1089,7 +1077,6 @@ void
 push_kboard (k)
      struct kboard *k;
 {
-#ifdef MULTI_KBOARD
   struct kboard_stack *p
     = (struct kboard_stack *) xmalloc (sizeof (struct kboard_stack));
 
@@ -1098,13 +1085,11 @@ push_kboard (k)
   kboard_stack = p;
 
   current_kboard = k;
-#endif
 }
 
 void
 pop_kboard ()
 {
-#ifdef MULTI_KBOARD
   struct terminal *t;
   struct kboard_stack *p = kboard_stack;
   int found = 0;
@@ -1125,7 +1110,6 @@ pop_kboard ()
     }
   kboard_stack = p->next;
   xfree (p);
-#endif
 }
 
 /* Switch to single_kboard mode, making current_kboard the only KBOARD
@@ -1142,7 +1126,6 @@ void
 temporarily_switch_to_single_kboard (f)
      struct frame *f;
 {
-#ifdef MULTI_KBOARD
   int was_locked = single_kboard;
   if (was_locked)
     {
@@ -1167,7 +1150,6 @@ temporarily_switch_to_single_kboard (f)
   single_kboard = 1;
   record_unwind_protect (restore_kboard_configuration,
                          (was_locked ? Qt : Qnil));
-#endif
 }
 
 #if 0 /* This function is not needed anymore.  */
@@ -1181,7 +1163,6 @@ record_single_kboard_state ()
 }
 #endif
 
-#ifdef MULTI_KBOARD
 static Lisp_Object
 restore_kboard_configuration (was_locked)
      Lisp_Object was_locked;
@@ -1199,7 +1180,6 @@ restore_kboard_configuration (was_locked)
     }
   return Qnil;
 }
-#endif
 
 
 /* Handle errors that are not handled at inner levels
@@ -1249,10 +1229,8 @@ cmd_error (data)
 
   Vinhibit_quit = Qnil;
 #if 0 /* This shouldn't be necessary anymore. --lorentey */
-#ifdef MULTI_KBOARD
   if (command_loop_level == 0 && minibuf_level == 0)
     any_kboard_state ();
-#endif
 #endif
 
   return make_number (0);
@@ -1532,9 +1510,7 @@ command_loop_1 ()
   int prev_modiff = 0;
   struct buffer *prev_buffer = NULL;
 #if 0 /* This shouldn't be necessary anymore.  --lorentey  */
-#ifdef MULTI_KBOARD
   int was_locked = single_kboard;
-#endif
 #endif
   int already_adjusted = 0;
 
@@ -1987,10 +1963,8 @@ command_loop_1 ()
 	  && NILP (current_kboard->Vprefix_arg))
 	finalize_kbd_macro_chars ();
 #if 0 /* This shouldn't be necessary anymore.  --lorentey  */
-#ifdef MULTI_KBOARD
       if (!was_locked)
         any_kboard_state ();
-#endif
 #endif
     }
 }
@@ -2780,7 +2754,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       if (!NILP (Vinhibit_quit))
 	Vquit_flag = Qnil;
 
-#ifdef MULTI_KBOARD
       {
 	KBOARD *kb = FRAME_KBOARD (XFRAME (selected_frame));
 	if (kb != current_kboard)
@@ -2808,7 +2781,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
             return make_number (-2); /* wrong_kboard_jmpbuf */
 	  }
       }
-#endif
       goto non_reread;
     }
 
@@ -2984,7 +2956,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	}
     }
 
-#ifdef MULTI_KBOARD
   /* If current_kboard's side queue is empty check the other kboards.
      If one of them has data that we have not yet seen here,
      switch to it and process the data waiting for it.
@@ -3006,7 +2977,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
             return make_number (-2); /* wrong_kboard_jmpbuf */
 	  }
     }
-#endif
 
  wrong_kboard:
 
@@ -3036,7 +3006,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       c = kbd_buffer_get_event (&kb, used_mouse_menu, end_time);
       restore_getcjmp (save_jump);
 
-#ifdef MULTI_KBOARD
       if (! NILP (c) && (kb != current_kboard))
 	{
 	  Lisp_Object link = kb->kbd_queue;
@@ -3061,7 +3030,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	  UNGCPRO;
           return make_number (-2);
 	}
-#endif
     }
 
   /* Terminate Emacs in batch mode if at eof.  */
@@ -3704,7 +3672,6 @@ readable_events (flags)
 /* Set this for debugging, to have a way to get out */
 int stop_character;
 
-#ifdef MULTI_KBOARD
 static KBOARD *
 event_to_kboard (event)
      struct input_event *event;
@@ -3724,7 +3691,6 @@ event_to_kboard (event)
   else
     return FRAME_KBOARD (XFRAME (frame));
 }
-#endif
 
 
 Lisp_Object Vthrow_on_input;
@@ -3774,7 +3740,6 @@ kbd_buffer_store_event_hold (event, hold_quit)
 
       if (c == quit_char)
 	{
-#ifdef MULTI_KBOARD
 	  KBOARD *kb = FRAME_KBOARD (XFRAME (event->frame_or_window));
 	  struct input_event *sp;
 
@@ -3798,7 +3763,6 @@ kbd_buffer_store_event_hold (event, hold_quit)
 		}
 	      return;
 	    }
-#endif
 
 	  if (hold_quit)
 	    {
@@ -4109,13 +4073,9 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 
       last_event_timestamp = event->timestamp;
 
-#ifdef MULTI_KBOARD
       *kbp = event_to_kboard (event);
       if (*kbp == 0)
 	*kbp = current_kboard;  /* Better than returning null ptr?  */
-#else
-      *kbp = &the_only_kboard;
-#endif
 
       obj = Qnil;
 
@@ -9399,14 +9359,11 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       else
 	{
 	  {
-#ifdef MULTI_KBOARD
 	    KBOARD *interrupted_kboard = current_kboard;
 	    struct frame *interrupted_frame = SELECTED_FRAME ();
-#endif
 	    key = read_char (NILP (prompt), nmaps,
 			     (Lisp_Object *) submaps, last_nonmenu_event,
 			     &used_mouse_menu, NULL);
-#ifdef MULTI_KBOARD
 	    if (INTEGERP (key) && XINT (key) == -2) /* wrong_kboard_jmpbuf */
 	      {
 		int found = 0;
@@ -9455,7 +9412,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
 		goto replay_sequence;
 	      }
-#endif
 	  }
 
 	  /* read_char returns t when it shows a menu and the user rejects it.
@@ -11541,8 +11497,6 @@ wipe_kboard (kb)
   xfree (kb->kbd_macro_buffer);
 }
 
-#ifdef MULTI_KBOARD
-
 /* Free KB and memory referenced from it.  */
 
 void
@@ -11571,8 +11525,6 @@ delete_kboard (kb)
   xfree (kb);
 }
 
-#endif /* MULTI_KBOARD */
-
 void
 init_keyboard ()
 {
@@ -11599,9 +11551,7 @@ init_keyboard ()
   internal_last_event_frame = Qnil;
   Vlast_event_frame = internal_last_event_frame;
 
-#ifdef MULTI_KBOARD
   current_kboard = initial_kboard;
-#endif
   /* Re-initialize the keyboard again.  */
   wipe_kboard (current_kboard);
   init_kboard (current_kboard);
@@ -12444,14 +12394,12 @@ Help functions bind this to allow help on disabled menu items
 and tool-bar buttons.  */);
   Venable_disabled_menus_and_buttons = Qnil;
 
-#ifdef MULTI_KBOARD
   /* Create the initial keyboard. */
   initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (initial_kboard);
   /* Vwindow_system is left at t for now.  */
   initial_kboard->next_kboard = all_kboards;
   all_kboards = initial_kboard;
-#endif
 }
 
 void

@@ -4290,11 +4290,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
-#ifdef MULTI_KBOARD
   kb = dpyinfo->terminal->kboard;
-#else
-  kb = &the_only_kboard;
-#endif
 
   if (!dpyinfo->terminal->name)
     error ("Terminal is not live, can't create new frames on it");
@@ -5411,11 +5407,7 @@ x_create_tip_frame (dpyinfo, parms, text)
      this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
 
-#ifdef MULTI_KBOARD
   kb = dpyinfo->terminal->kboard;
-#else
-  kb = &the_only_kboard;
-#endif
 
   /* Get the name of the frame to use for resource lookup.  */
   name = x_get_arg (dpyinfo, parms, Qname, "name", "Name", RES_TYPE_STRING);
@@ -5464,9 +5456,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
-#ifdef MULTI_KBOARD
   FRAME_KBOARD (f) = kb;
-#endif
   f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
   f->output_data.w32->explicit_parent = 0;
 

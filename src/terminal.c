@@ -284,13 +284,11 @@ delete_terminal (struct terminal *terminal)
   xfree (terminal->terminal_coding);
   terminal->terminal_coding = NULL;
   
-#ifdef MULTI_KBOARD
   if (terminal->kboard && --terminal->kboard->reference_count == 0)
     {
       delete_kboard (terminal->kboard);
       terminal->kboard = NULL;
     }
-#endif
 }
 
 Lisp_Object Qrun_hook_with_args;
@@ -535,9 +533,7 @@ init_initial_terminal (void)
   initial_terminal = create_terminal ();
   initial_terminal->type = output_initial;
   initial_terminal->name = xstrdup ("initial_terminal");
-#ifdef MULTI_KBOARD
   initial_terminal->kboard = initial_kboard;
-#endif
   initial_terminal->delete_terminal_hook = &delete_initial_terminal;
   /* All other hooks are NULL. */
 

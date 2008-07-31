@@ -3571,7 +3571,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   tty->TF_teleray = tgetflag ("xt");
 
 #endif /* !WINDOWSNT  */
-#ifdef MULTI_KBOARD
   terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
   terminal->kboard->Vwindow_system = Qnil;
@@ -3585,10 +3584,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     current_kboard = terminal->kboard;
 #ifndef WINDOWSNT
   term_get_fkeys (address, terminal->kboard);
-#endif
-#endif
 
-#ifndef WINDOWSNT
   /* Get frame size from system, or else from termcap.  */
   {
     int height, width;

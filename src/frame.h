@@ -498,11 +498,7 @@ struct frame
   unsigned long foreground_pixel;
 };
 
-#ifdef MULTI_KBOARD
 #define FRAME_KBOARD(f) ((f)->terminal->kboard)
-#else
-#define FRAME_KBOARD(f) (&the_only_kboard)
-#endif
 
 /* Return a pointer to the image cache of frame F.  */
 #define FRAME_IMAGE_CACHE(F) ((F)->terminal->image_cache)

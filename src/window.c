@@ -2533,7 +2533,6 @@ void
 replace_buffer_in_all_windows (buffer)
      Lisp_Object buffer;
 {
-#ifdef MULTI_KBOARD
   Lisp_Object tail, frame;
 
   /* A single call to window_loop won't do the job
@@ -2541,9 +2540,6 @@ replace_buffer_in_all_windows (buffer)
      So loop manually over frames, and handle each one.  */
   FOR_EACH_FRAME (tail, frame)
     window_loop (UNSHOW_BUFFER, buffer, 1, frame);
-#else
-  window_loop (UNSHOW_BUFFER, buffer, 1, Qt);
-#endif
 }
 
 /* Set the height of WINDOW and all its inferiors.  */

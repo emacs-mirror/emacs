@@ -9859,7 +9859,6 @@ static int x_initialized;
 static int x_session_initialized;
 #endif
 
-#ifdef MULTI_KBOARD
 /* Test whether two display-name strings agree up to the dot that separates
    the screen number from the server number.  */
 static int
@@ -9906,7 +9905,6 @@ same_x_server (name1, name2)
 	  && (*name1 == '.' || *name1 == '\0')
 	  && (*name2 == '.' || *name2 == '\0'));
 }
-#endif
 
 /* Count number of set bits in mask and number of bits to shift to
    get to the first bit.  With MASK 0x7e0, *BITS is set to 6, and *OFFSET
@@ -10105,7 +10103,6 @@ x_term_init (display_name, xrm_option, resource_name)
 
   terminal = x_create_terminal (dpyinfo);
 
-#ifdef MULTI_KBOARD
   {
     struct x_display_info *share;
     Lisp_Object tail;
@@ -10142,7 +10139,6 @@ x_term_init (display_name, xrm_option, resource_name)
       }
     terminal->kboard->reference_count++;
   }
-#endif
 
   /* Put this display on the chain.  */
   dpyinfo->next = x_display_list;

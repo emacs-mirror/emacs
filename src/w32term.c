@@ -6108,7 +6108,6 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->memory_below_frame = 0;   /* We don't remember what scrolls
                                         off the bottom. */
 
-#ifdef MULTI_KBOARD
   /* We don't yet support separate terminals on W32, so don't try to share
      keyboards between virtual terminals that are on the same physical
      terminal like X does.  */
@@ -6123,7 +6122,6 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   if (current_kboard == initial_kboard)
     current_kboard = terminal->kboard;
   terminal->kboard->reference_count++;
-#endif
 
   return terminal;
 }

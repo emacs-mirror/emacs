@@ -342,10 +342,8 @@ struct terminal
      times. */
   char *name;
 
-#ifdef MULTI_KBOARD
   /* The terminal's keyboard object. */
   struct kboard *kboard;
-#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* Cache of images.  */

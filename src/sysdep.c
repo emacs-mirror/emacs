@@ -3176,8 +3176,7 @@ rename (from, to)
 #endif
 
 
-#ifdef HPUX
-#ifndef HAVE_PERROR
+#if defined(HPUX) && !defined(HAVE_PERROR)
 
 /* HPUX curses library references perror, but as far as we know
    it won't be called.  Anyway this definition will do for now.  */
@@ -3185,9 +3184,7 @@ rename (from, to)
 perror ()
 {
 }
-
-#endif /* not HAVE_PERROR */
-#endif /* HPUX */
+#endif /* HPUX and not HAVE_PERROR */
 
 #ifndef HAVE_DUP2
 

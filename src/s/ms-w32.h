@@ -206,8 +206,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_MOUSE 1
 #define HAVE_H_ERRNO 1
 
-#define MULTI_KBOARD 1
-
 #ifdef HAVE_NTGUI
 #define HAVE_WINDOW_SYSTEM 1
 #define HAVE_MENUS 1

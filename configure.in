@@ -2541,14 +2541,7 @@ AH_BOTTOM([
 /* If we're using X11/Carbon/GNUstep, define some consequences.  */
 #if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
 #define HAVE_WINDOW_SYSTEM
-#define MULTI_KBOARD
 #define HAVE_MOUSE
-#endif
-
-/* Multi-tty support relies on MULTI_KBOARD.  It seems safe to turn it
-   on unconditionally. */
-#ifndef MULTI_KBOARD
-#define MULTI_KBOARD
 #endif
 
 /* Sadly for now, GNUstep dump does not work.  */

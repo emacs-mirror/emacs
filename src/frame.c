@@ -433,11 +433,9 @@ make_frame_without_minibuffer (mini_window, kb, display)
   if (!NILP (mini_window))
     CHECK_LIVE_WINDOW (mini_window);
 
-#ifdef MULTI_KBOARD
   if (!NILP (mini_window)
       && FRAME_KBOARD (XFRAME (XWINDOW (mini_window)->frame)) != kb)
     error ("Frame and minibuffer must be on the same terminal");
-#endif
 
   /* Make a frame containing just a root window.  */
   f = make_frame (0);
@@ -1513,10 +1511,8 @@ But FORCE inhibits this too.  */)
         kb = NULL;
 	Fdelete_terminal (tmp, NILP (force) ? Qt : force);
       }
-#ifdef MULTI_KBOARD
     else
       kb = terminal->kboard;
-#endif
   }
 
   /* If we've deleted the last_nonminibuf_frame, then try to find

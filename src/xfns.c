@@ -3143,11 +3143,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
-#ifdef MULTI_KBOARD
   kb = dpyinfo->terminal->kboard;
-#else
-  kb = &the_only_kboard;
-#endif
 
   if (!dpyinfo->terminal->name)
     error ("Terminal is not live, can't create new frames on it");
