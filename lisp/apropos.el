@@ -179,8 +179,7 @@ term, and the rest of the words are alternative terms.")
   'face apropos-symbol-face
   'help-echo "mouse-2, RET: Display more help on this symbol"
   'follow-link t
-  'action #'apropos-symbol-button-display-help
-  'skip t)
+  'action #'apropos-symbol-button-display-help)
 
 (defun apropos-symbol-button-display-help (button)
   "Display further help for the `apropos-symbol' button BUTTON."
@@ -980,6 +979,7 @@ If non-nil TEXT is a string that will be printed as a heading."
 			  (cons nil (cdr apropos-item)))))
 	  (insert-text-button (symbol-name symbol)
 			      'type 'apropos-symbol
+			      'skip apropos-multi-type
 			      ;; Can't use default, since user may have
 			      ;; changed the variable!
 			      ;; Just say `no' to variables containing faces!
@@ -1068,9 +1068,14 @@ If non-nil TEXT is a string that will be printed as a heading."
     (if apropos-compact-layout
         (insert (propertize "\t" 'display '(space :align-to 32)) " ")
       (insert "  "))
-    ;; If the query is only for a single type, there's
-    ;; no point writing it over and over again.
-    (when apropos-multi-type
+    (if (null apropos-multi-type)
+    	;; If the query is only for a single type, there's no point
+    	;; writing it over and over again.  Insert a blank button, and
+    	;; put the 'apropos-label property there (needed by
+    	;; apropos-symbol-button-display-help).
+    	(insert-text-button
+	 " " 'type type 'skip t
+	 'face 'default 'apropos-symbol (car apropos-item))
       (insert-text-button
        (if apropos-compact-layout
            (button-type-get type 'apropos-label)
@@ -1081,7 +1086,7 @@ If non-nil TEXT is a string that will be printed as a heading."
        'face apropos-label-face
        'apropos-symbol (car apropos-item))
       (insert (if apropos-compact-layout " " ": ")))
-	(insert (if do-keys (substitute-command-keys i) i))
+    (insert (if do-keys (substitute-command-keys i) i))
     (or (bolp) (terpri))))
 
 (defun apropos-follow ()
