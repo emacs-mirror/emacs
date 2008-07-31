@@ -1207,6 +1207,9 @@ a character code property.
 
 *** New variables:
 
+**** file-local-variables-alist stores an alist of file-local
+variables defined in the current buffer.
+
 **** `find-word-boundary-function-table' is a char-table of functions to
 search for a word boundary.
 
@@ -1340,6 +1343,10 @@ a new variable.  This inherits from the global variable function-key-map,
 which is not used directly any more.
 
 *** New hooks:
+
+**** before-hack-local-variables-hook is called after setting new
+variable file-local-variables-alist, and before actually applying the
+file-local variables.
 
 **** `suspend-tty-functions' and `resume-tty-functions' are called
 after a tty frame has been suspended or resumed, respectively.  The
