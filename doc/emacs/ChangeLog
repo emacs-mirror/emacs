@@ -1,3 +1,17 @@
+2008-07-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* basic.texi (Inserting Text): Move DEL to deletion node.
+	(Moving Point): Add additional alternative key bindings.  Describe
+	line-move-visual.
+	(Erasing): Describe DEL.
+	(Basic Undo, Blank Lines, Arguments): Copyedit.
+	(Continuation Lines): Mention Visual Line mode.
+	(Position Info): Move extended discussion to mule.texi.
+
+	* mule.texi (International Chars): Describe C-x =.
+
+	* emacs.texi (Top): Add Visual Line Mode node.
+
 2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs.texi: Remove VMS support.
