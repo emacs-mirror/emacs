@@ -1,5 +1,37 @@
 2008-07-31  Juri Linkov  <juri@jurta.org>
 
+	* dired-aux.el (dired-do-chmod): Set default value to the original
+	mode string using absolute notation like u=rwx,g=rx,o=rx.
+	Use it as a new arg `default' of `dired-mark-read-string'.
+	(dired-mark-read-string): Add new optional arg `default'.
+
+	* files.el (read-file-modes): Set default value to the original
+	mode string using absolute notation like u=rwx,g=rx,o=rx.
+	Use it as the `default' arg of `read-string'.
+
+	* filesets.el (filesets-cmd-isearch-getargs): Check if the
+	variable `files' is bound to avoid warnings.
+
+	* isearch.el (isearch-forward-regexp, isearch-forward-word)
+	(isearch-backward, isearch-backward-regexp): Doc fix - make a link
+	to the command `isearch-forward' instead of displaying "See C-s".
+	(isearch-highlight-regexp): Remove arguments `regexp' and `face'
+	with their interactive specifictions.  Move reading the face name to
+	the main body after calls to isearch-done and isearch-clean-overlays.
+
+	* mb-depth.el: Unify all names under one common name prefix
+	`minibuffer-depth-'.
+	(minibuffer-depth-indicator-function): Renamed from
+	`minibuf-depth-indicator-function'.
+	(minibuffer-depth-overlay): Renamed from
+	`minibuf-depth-overlay'.
+	(minibuffer-depth-setup): Renamed from
+	`minibuf-depth-setup-minibuffer'.
+	(minibuffer-depth-indicate-mode): Renamed from
+	`minibuffer-indicate-depth-mode'.
+
+2008-07-31  Juri Linkov  <juri@jurta.org>
+
 	* dired-aux.el (dired-isearch-filenames-toggle): New command.
 	(dired-isearch-filenames-setup): Bind "\M-sf" to
 	dired-isearch-filenames-toggle in isearch-mode-map.
