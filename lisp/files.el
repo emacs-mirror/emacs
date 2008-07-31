@@ -102,15 +102,15 @@ But it is local only if you make it local.")
 (defcustom backup-by-copying nil
  "Non-nil means always use copying to create backup files.
 See documentation of variable `make-backup-files'."
- :type 'boolean
- :group 'backup)
+  :type 'boolean
+  :group 'backup)
 
 (defcustom backup-by-copying-when-linked nil
  "Non-nil means use copying to create backups for files with multiple names.
 This causes the alternate names to refer to the latest version as edited.
 This variable is relevant only if `backup-by-copying' is nil."
- :type 'boolean
- :group 'backup)
+  :type 'boolean
+  :group 'backup)
 
 (defcustom backup-by-copying-when-mismatch nil
   "Non-nil means create backups by copying if this preserves owner or group.
@@ -2519,7 +2519,7 @@ in order to initialize other data structure based on them.")
 Each element is a cons cell (VAR . VAL), where VAR is a variable
 symbol and VAL is a value that is considered safe."
   :group 'find-file
-  :type  'alist)
+  :type 'alist)
 
 (defcustom safe-local-eval-forms '((add-hook 'write-file-hooks 'time-stamp))
   "Expressions that are considered safe in an `eval:' local variable.
@@ -5766,7 +5766,7 @@ FROM (or 0 if nil) is the orginal modes of the file to be chmod'ed."
 (defun read-file-modes (&optional prompt orig-file)
   "Read file modes in octal or symbolic notation.
 PROMPT is used as the prompt, default to `File modes (octal or symbolic): '.
-ORIG-FILE is the original file of which modes will be change."
+ORIG-FILE is the original file of which modes will be changed."
   (let* ((modes (or (if orig-file (file-modes orig-file) 0)
 		    (error "File not found")))
 	 (modestr (and (stringp orig-file)

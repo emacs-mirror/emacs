@@ -1,7 +1,11 @@
+2008-07-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (read-file-modes): Fix tpo in docstring.
+
 2008-07-31  Chong Yidong  <cyd@stupidchicken.com>
 
-	* minibuffer.el (read-file-name-completion-ignore-case): Add
-	cygwin to the list.
+	* minibuffer.el (read-file-name-completion-ignore-case):
+	Add cygwin to the list.
 
 2008-07-31  Sven Joachim  <svenjoac@gmx.de>
 
@@ -18,7 +22,7 @@
 	(dbus-return-values-table): New defvar.
 	(dbus-call-method-non-blocking-handler, dbus-event-message-type):
 	New defun.
-	(dbus-check-event, dbus-handle-event, dbus-event-serial-number, ):
+	(dbus-check-event, dbus-handle-event, dbus-event-serial-number):
 	Extend docstring.  Adapt implementation according to new
 	`dbus-event' layout.
 	(dbus-event-service-name, dbus-event-path-name)
@@ -26,8 +30,7 @@
 	implementation according to new `dbus-event' layout.
 	(dbus-set-property): Correct `dbus-introspect-get-attribute' call.
 
-	* net/xesam.el (xesam-type, xesam-query, xesam-xml-string): New
-	defvar.
+	* net/xesam.el (xesam-type, xesam-query, xesam-xml-string): New defvar.
 	(xesam-mode): Rework implementation.
 	(xesam-new-search): Additional parameter TYPE.
 	(xesam-search): Adapt call of `xesam-new-search'.
@@ -231,7 +234,7 @@
 
 2008-07-30  Wilson Snyder  <wsnyder@wsnyder.org>
 
-        * verilog-mode (verilog-read-decls): Allow AUTORESET to work with
+	* verilog-mode (verilog-read-decls): Allow AUTORESET to work with
 	SV 'logic' signals.  [Julian Gorfajn]
 	(verilog-auto-inst-column): Make verilog-auto-inst-column customizable.
 	(verilog-string-replace-matches): Avoid recursion with small
