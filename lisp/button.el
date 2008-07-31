@@ -437,15 +437,22 @@ Returns the button found."
 	    (goto-char (button-start button)))
       ;; Move to Nth next button
       (let ((iterator (if (> n 0) #'next-button #'previous-button))
-	    (wrap-start (if (> n 0) (point-min) (point-max))))
+	    (wrap-start (if (> n 0) (point-min) (point-max)))
+	    opoint fail)
 	(setq n (abs n))
 	(setq button t)			; just to start the loop
-	(while (and (> n 0) button)
+	(while (and (null fail) (> n 0) button)
 	  (setq button (funcall iterator (point)))
 	  (when (and (not button) wrap)
 	    (setq button (funcall iterator wrap-start t)))
 	  (when button
 	    (goto-char (button-start button))
+	    ;; Avoid looping forever (e.g., if all the buttons have
+	    ;; the `skip' property).
+	    (cond ((null opoint)
+		   (setq opoint (point)))
+		  ((= opoint (point))
+		   (setq fail t)))
 	    (unless (button-get button 'skip)
 	      (setq n (1- n)))))))
     (if (null button)
