@@ -1417,14 +1417,18 @@ home directory is a root directory) and removes automounter prefixes
 	     (file-exists-p (file-name-directory
 			     (substring filename (1- (match-end 0))))))
 	(setq filename (substring filename (1- (match-end 0)))))
-    (let ((tail directory-abbrev-alist))
+    ;; Avoid treating /home/foo as /home/Foo during `~' substitution.
+    ;; To fix this right, we need a `file-name-case-sensitive-p'
+    ;; function, but we don't have that yet, so just guess.
+    (let ((case-fold-search 
+	   (memq system-type '(ms-dos windows-nt darwin cygwin))))
       ;; If any elt of directory-abbrev-alist matches this name,
       ;; abbreviate accordingly.
-      (while tail
-	(if (string-match (car (car tail)) filename)
+      (dolist (dir-abbrev directory-abbrev-alist)
+	(if (string-match (car dir-abbrev) filename)
 	    (setq filename
-		  (concat (cdr (car tail)) (substring filename (match-end 0)))))
-	(setq tail (cdr tail)))
+		  (concat (cdr dir-abbrev)
+			  (substring filename (match-end 0))))))
       ;; Compute and save the abbreviated homedir name.
       ;; We defer computing this until the first time it's needed, to
       ;; give time for directory-abbrev-alist to be set properly.
