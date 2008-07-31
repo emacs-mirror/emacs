@@ -75,17 +75,21 @@ See the list at the end of etc/MACHINES for details.
 *** The `emacstool' utility has been removed.
 
 ** The following platforms will be removed in a future Emacs version:
+If you are still using Emacs on one of these platforms, please email
+emacs-devel@gnu.org to inform the Emacs developers.
 
-*** Libc version 5 on GNU/Linux.
+*** Old GNU/Linux systems based on libc version 5.
 
-*** Old FreeBSD and NetBSD systems based on the COFF executable
-    format.
+*** Old FreeBSD, NetBSD, and OpenBSD systems based on the COFF
+    executable format.
 
 *** Solaris versions 2.6 and below.
 
 *** Solaris on IBM RS6000 machines.
 
 *** UNIX System V (the original SysV, not later platforms based on it).
+
+*** Unixware on non-x86 machines.
 
 *** Platforms not supporting shared libraries (i.e., requiring the
 NO_SHARED_LIBS compilation flag).
