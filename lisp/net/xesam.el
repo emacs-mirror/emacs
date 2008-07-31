@@ -28,7 +28,7 @@
 ;;
 ;; xesam-glib 0.3.4, xesam-tools 0.6.1
 ;; beagle 0.3.7, beagle-xesam 0.2
-;; strigi 0.5.10
+;; strigi 0.5.11
 
 ;; The precondition for this package is a D-Bus aware Emacs.  This is
 ;; configured per default, when Emacs is built on a machine running
@@ -281,6 +281,9 @@ from VALUE, depending on what the search engine accepts."
 ;; Pacify byte compiler.
 (defvar xesam-engine nil)
 (defvar xesam-search nil)
+(defvar xesam-type nil)
+(defvar xesam-query nil)
+(defvar xesam-xml-string nil)
 (defvar xesam-current nil)
 (defvar xesam-count nil)
 (defvar xesam-to nil)
@@ -368,42 +371,62 @@ If there is no registered search engine at all, the function returns `nil'."
 
 ;;; Search buffers.
 
-(define-derived-mode xesam-mode special-mode "Xesam"
+(define-derived-mode xesam-mode nil "Xesam"
   "Major mode for presenting search results of a Xesam search.
 In this mode, widgets represent the search results.
 
 \\{xesam-mode-map}
 Turning on Xesam mode runs the normal hook `xesam-mode-hook'."
+  ;; Keymap.
+  (setq xesam-mode-map (copy-keymap special-mode-map))
+  (set-keymap-parent xesam-mode-map widget-keymap)
+  (define-key xesam-mode-map "z" 'kill-this-buffer)
+
+  ;; Maybe we implement something useful, later on.
+  (set (make-local-variable 'revert-buffer-function) 'ignore)
+  ;; `xesam-engine', `xesam-search', `xesam-type', `xesam-query', and
+  ;; `xesam-xml-string' will be set in `xesam-new-search'.
+  (set (make-local-variable 'xesam-engine) nil)
+  (set (make-local-variable 'xesam-search) nil)
+  (set (make-local-variable 'xesam-type) "")
+  (set (make-local-variable 'xesam-query) "")
+  (set (make-local-variable 'xesam-xml-string) "")
+  ;; `xesam-current' is the last hit put into the search buffer,
+  (set (make-local-variable 'xesam-current) 0)
+  ;; `xesam-count' is the number of hits reported by the search engine.
+  (set (make-local-variable 'xesam-count) 0)
+  ;; `xesam-to' is the upper hit number to be presented.
+  (set (make-local-variable 'xesam-to) xesam-hits-per-page)
+  ;; `xesam-refreshing' is an indicator, whether the buffer is just
+  ;; being updated.  Needed, because `xesam-refresh-search-buffer'
+  ;; can be triggered by an event.
+  (set (make-local-variable 'xesam-refreshing) nil)
+  ;; Mode line position returns hit counters.
+  (set (make-local-variable 'mode-line-position)
+       (list '(-3 "%p%")
+	     '(10 (:eval (format " (%d/%d)" xesam-current xesam-count)))))
+  ;; Header line contains the query string.
+  (set (make-local-variable 'header-line-format)
+       (list '(20
+	       (:eval
+		(list "Type: "
+		      (propertize xesam-type 'face 'font-lock-type-face))))
+	     '(10
+	       (:eval
+		(list " Query: "
+		      (propertize
+		       xesam-query
+		       'face 'font-lock-type-face
+		       'help-echo xesam-xml-string))))))
+
   (when (not (interactive-p))
     ;; Initialize buffer.
     (setq buffer-read-only t)
     (let ((inhibit-read-only t))
-      (erase-buffer))
+      (erase-buffer))))
 
-    ;; Keymap.
-    (setq xesam-mode-map (copy-keymap special-mode-map))
-    (set-keymap-parent xesam-mode-map widget-keymap)
-    (define-key xesam-mode-map "z" 'kill-this-buffer)
-
-    ;; Maybe we implement something useful, later on.
-    (set (make-local-variable 'revert-buffer-function) 'ignore)
-    ;; `xesam-engine' and `xesam-search' will be set in `xesam-new-search'.
-    (set (make-local-variable 'xesam-engine) nil)
-    (set (make-local-variable 'xesam-search) nil)
-    ;; `xesam-current' is the last hit put into the search buffer,
-    (set (make-local-variable 'xesam-current) 0)
-    ;; `xesam-count' is the number of hits reported by the search engine.
-    (set (make-local-variable 'xesam-count) 0)
-    ;; `xesam-to' is the upper hit number to be presented.
-    (set (make-local-variable 'xesam-to) xesam-hits-per-page)
-    ;; `xesam-refreshing' is an indicator, whether the buffer is just
-    ;; being updated.  Needed, because `xesam-refresh-search-buffer'
-    ;; can be triggered by an event.
-    (set (make-local-variable 'xesam-refreshing) nil)
-    ;; Mode line position returns hit counters.
-    (set (make-local-variable 'mode-line-position)
-	 (list '(-3 "%p%")
-	       '(10 (:eval (format " (%d/%d)" xesam-current xesam-count)))))))
+;; It doesn't make sense to call it interactively.
+(put 'xesam-mode 'disabled t)
 
 (defun xesam-buffer-name (service search)
   "Return the buffer name where to present search results.
@@ -583,16 +606,21 @@ SEARCH is the search identification in that engine.  Both must be strings."
 		(propertize " Done" 'face 'font-lock-type-face))
 	  (force-mode-line-update)))))))
 
-(defun xesam-new-search (engine query)
+(defun xesam-new-search (engine type query)
   "Create a new search session.
-ENGINE identifies the search engine.  QUERY is a string in the
-Xesam user query language.  A string, identifying the search, is
-returned."
+ENGINE identifies the search engine.  TYPE is the query type, it
+can be either `fulltext-query', or `user-query'.  QUERY is a
+string in the Xesam query language.  A string, identifying the
+search, is returned."
   (let* ((service (car engine))
 	 (session (cdr engine))
+	 (xml-string
+	  (format
+	   (if (eq type 'user-query) xesam-user-query xesam-fulltext-query)
+	   query))
 	 (search (dbus-call-method
 		  :session service xesam-path-search
-		  xesam-interface-search "NewSearch" session query)))
+		  xesam-interface-search "NewSearch" session xml-string)))
 
     ;; Let us notify for relevant signals.  We ignore "HitsRemoved",
     ;; "HitsModified" and "StateChanged"; there is nothing to do for
@@ -605,9 +633,6 @@ returned."
      :session service xesam-path-search
      xesam-interface-search "SearchDone"
      'xesam-signal-handler search)
-    (dbus-call-method
-     :session (car engine) xesam-path-search
-     xesam-interface-search "StartSearch" search)
 
     ;; Create the search buffer.
     (with-current-buffer
@@ -616,6 +641,11 @@ returned."
       (xesam-mode)
       (setq xesam-engine engine
 	    xesam-search search
+	    ;; `xesam-type', `xesam-query' and `xesam-xml-string'
+	    ;; are displayed in the header line.
+	    xesam-type (symbol-name type)
+	    xesam-query query
+	    xesam-xml-string xml-string
 	    ;; The buffer identification shall indicate the search
 	    ;; engine.  The `help-echo' property is used for debug
 	    ;; information, when applicable.
@@ -632,7 +662,13 @@ returned."
 		  "vendor.ontology.fields" "vendor.ontology.contents"
 		  "vendor.ontology.sources" "vendor.extensions"
 		  "vendor.ontologies" "vendor.maxhits")
-		"\n")))))
+		"\n"))))
+	  (force-mode-line-update))
+
+    ;; Start the search.
+    (dbus-call-method
+     :session (car engine) xesam-path-search
+     xesam-interface-search "StartSearch" search)
 
     ;; Return search id.
     search))
@@ -670,18 +706,20 @@ Example:
 	 "Enter search string: " nil nil nil
 	 'xesam-minibuffer-query-history)))))
 
-  (if (and engine (stringp query))
-      (if (eq xesam-query-type 'user-query)
-	  (xesam-new-search engine (format xesam-user-query query))
-	(xesam-new-search engine (format xesam-fulltext-query query)))
-    ;; There might be no search engine available ATM.
-    (message "No query applied")))
+  (if (null engine)
+      (message "No search engine running")
+    (if (zerop (length query))
+	(message "No query applied")
+      (xesam-new-search engine xesam-query-type query))))
 
 (provide 'xesam)
 
 ;;; TODO:
 
+;; * Solve error, that xesam-mode does not work the very first time.
 ;; * Retrieve several results at once.
+;; * Retrieve hits for the next page in advance.
+;; * With prefix, let's chosse search engine.
 ;; * Improve mode-line handling. Show search string etc.
 ;; * Minibuffer completion for user queries.
 ;; * `revert-buffer-function' implementation.
