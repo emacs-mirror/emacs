@@ -1,3 +1,9 @@
+2008-07-31  Joachim Nilsson  <joachim.nilsson@member.fsf.org> (tiny change)
+
+	* progmodes/cc-styles.el (c-style-alist): For the Ellemtel style,
+	move the (arglist-cont-nonempty) from c-offsets-alist to
+	c-hanging-braces-alist like other styles already have.
+
 2008-07-19  Markus Triska  <markus.triska@gmx.at>
 
 	* image-mode.el (image-mode): Set image-mode-text-map when image
