@@ -622,12 +622,6 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
 #endif
 #endif
 
-#ifdef VMS
-#define VMS_SUPPORT ${lispsource}vmsproc.elc ${lispsource}vms-patch.elc
-#else
-#define VMS_SUPPORT
-#endif
-
 #ifdef MSDOS
 #define MSDOS_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
  ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc \
@@ -762,7 +756,6 @@ lisp= \
 	${lispsource}ediff-hook.elc \
 	${lispsource}epa-hook.elc \
 	TOOLTIP_SUPPORT \
-	VMS_SUPPORT \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
 	WINDOW_SUPPORT \
@@ -864,7 +857,6 @@ shortlisp= \
    for the sake of systems which can''t handle large ones.  */
 SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/select.elc ../lisp/scroll-bar.elc \
-  VMS_SUPPORT \
   ../lisp/ls-lisp.elc ../lisp/dos-fns.elc \
   ../lisp/w32-fns.elc ../lisp/dos-w32.elc \
   ../lisp/disp-table.elc ../lisp/dos-vars.elc \

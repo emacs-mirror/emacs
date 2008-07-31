@@ -331,12 +331,11 @@ Don't put `-c' here, as it is added automatically."
   (cond (ex-unix-type-shell 'viper-glob-unix-files)
 	((eq system-type 'emx) 'viper-glob-mswindows-files) ; OS/2
 	(viper-ms-style-os-p 'viper-glob-mswindows-files) ; Microsoft OS
-	(viper-vms-os-p 'viper-glob-unix-files) ; VMS
 	(t  'viper-glob-unix-files) ; presumably UNIX
 	)
   "Expand the file spec containing wildcard symbols.
 The default tries to set this variable to work with Unix, Windows,
-OS/2, and VMS.
+and OS/2.
 
 However, if it doesn't work right for some types of Unix shells or some OS,
 the user should supply the appropriate function and set this variable to the

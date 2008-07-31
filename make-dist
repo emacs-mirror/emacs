@@ -337,7 +337,7 @@ for subdir in lisp site-lisp \
 	      etc/images/smilies/medium etc/images/tree-widget \
 	      etc/images/tree-widget/default etc/images/tree-widget/folder \
 	      etc/refcards etc/schema etc/tutorials info doc doc/emacs \
-	      doc/misc doc/man doc/lispref doc/lispintro m4 msdos vms \
+	      doc/misc doc/man doc/lispref doc/lispintro m4 msdos \
 	      nextstep nextstep/Cocoa nextstep/Cocoa/Emacs.base \
 	      nextstep/Cocoa/Emacs.base/Contents \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources \
@@ -578,8 +578,7 @@ echo "Making links to \`nextstep/GNUstep/Emacs.base/Resources/preferences.gorm'"
 echo "Making links to \`oldXMenu'"
 (cd oldXMenu
  ln *.c *.h *.in ../${tempdir}/oldXMenu
- ln README ChangeLog ../${tempdir}/oldXMenu
- ln compile.com descrip.mms ../${tempdir}/oldXMenu)
+ ln README ChangeLog ../${tempdir}/oldXMenu)
 
 echo "Making links to \`lwlib'"
 (cd lwlib
@@ -727,12 +726,6 @@ echo "Making links to \`doc/lispintro'"
 echo "Making links to \`doc/man'"
 (cd doc/man
  ln *.1 ../../${tempdir}/doc/man)
-
-echo "Making links to \`vms'"
-(cd vms
- test -f README && ln README ../${tempdir}/vms
- cd ../${tempdir}/vms
- rm -f *~)
 
 ### It would be nice if they could all be symlinks to top-level copy, but
 ### you're not supposed to have any symlinks in distribution tar files.

@@ -40,7 +40,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 #define DOS_NT	/* MSDOS or WINDOWSNT */
 #undef BSD_SYSTEM
-#undef VMS
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */

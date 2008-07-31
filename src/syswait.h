@@ -24,8 +24,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_SYSWAIT_H
 #define EMACS_SYSWAIT_H
 
-#ifndef VMS
-
 #include <sys/types.h>
 
 #ifdef HAVE_SYS_WAIT_H	/* We have sys/wait.h with POSIXoid definitions. */
@@ -57,21 +55,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef WRETCODE
 #define WRETCODE(status) WEXITSTATUS (status)
 
-#else /* VMS */
-
-#define WIFSTOPPED(w) 0
-#define WIFSIGNALED(w) 0
-#define WIFEXITED(w) ((w) != -1)
-#define WRETCODE(w) (w)
-#define WSTOPSIG(w) (w)
-#define WCOREDUMP(w) 0
-#define WTERMSIG(w) (w)
-#include <ssdef.h>
-#include <iodef.h>
-#include <clidef.h>
-#include "vmsproc.h"
-
-#endif /* VMS */
 
 #endif /* EMACS_SYSWAIT_H */
 

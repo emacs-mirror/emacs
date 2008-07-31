@@ -1056,13 +1056,12 @@ Customizable Self-Documenting Display Editor}, available from
 @url{ftp://publications.ai.mit.edu/ai-publications/pdf/AIM-519A.pdf}.
 
 This edition of the manual is intended for use with GNU Emacs
-installed on GNU and Unix systems.  GNU Emacs can also be used on VMS,
+installed on GNU and Unix systems.  GNU Emacs can also be used on
 MS-DOS (also called MS-DOG), Microsoft Windows, and Macintosh systems.
-Those systems use different file name syntax; in addition, VMS and
-MS-DOS do not support all GNU Emacs features.  @xref{Microsoft
+Those systems use different file name syntax; in addition
+MS-DOS does not support all GNU Emacs features.  @xref{Microsoft
 Windows}, for information about using Emacs on Windows.
-@xref{Mac OS}, for information about using Emacs on Macintosh.  We
-don't try to describe VMS usage in this manual.
+@xref{Mac OS}, for information about using Emacs on Macintosh.
 @end iftex
 
 @node Distrib, Intro, Top, Top

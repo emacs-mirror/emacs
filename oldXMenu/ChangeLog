@@ -1,3 +1,9 @@
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* descrip.mms:
+	* compile.com: Remove file.
+	* Create.c: Remove VMS support.
+
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (ALL_CFLAGS): Remove reference to C_SWITCH_SITE.

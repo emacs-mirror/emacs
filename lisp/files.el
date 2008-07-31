@@ -70,8 +70,7 @@ the name it is linked to."
   :group 'abbrev
   :group 'find-file)
 
-;; Turn off backup files on VMS since it has version numbers.
-(defcustom make-backup-files (not (eq system-type 'vax-vms))
+(defcustom make-backup-files t
   "Non-nil means make a backup of a file the first time it is saved.
 This can be done by renaming the file or by copying.
 
@@ -190,8 +189,6 @@ If the buffer is visiting a new file, the value is nil.")
   (file-name-as-directory
    (cond ((memq system-type '(ms-dos windows-nt))
 	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
-	 ((memq system-type '(vax-vms axp-vms))
-	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "SYS$SCRATCH:"))
 	 (t
 	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
   "The directory for writing temporary files."
@@ -216,7 +213,6 @@ have fast storage with limited space, such as a RAM disk."
 (declare-function dired-unmark "dired" (arg))
 (declare-function dired-do-flagged-delete "dired" (&optional nomessage))
 (declare-function dos-8+3-filename "dos-fns" (filename))
-(declare-function vms-read-directory "vms-patch" (dirname switches buffer))
 (declare-function view-mode-disable "view" ())
 
 (defvar file-name-invalid-regexp
@@ -625,8 +621,7 @@ Directories are separated by occurrences of `path-separator'
   "Change current directory to given absolute file name DIR."
   ;; Put the name into directory syntax now,
   ;; because otherwise expand-file-name may give some bad results.
-  (if (not (eq system-type 'vax-vms))
-      (setq dir (file-name-as-directory dir)))
+  (setq dir (file-name-as-directory dir))
   (setq dir (abbreviate-file-name (expand-file-name dir)))
   (if (not (file-directory-p dir))
       (if (file-exists-p dir)
@@ -1461,11 +1456,7 @@ home directory is a root directory) and removes automounter prefixes
       filename)))
 
 (defcustom find-file-not-true-dirname-list nil
-  "List of logical names for which visiting shouldn't save the true dirname.
-On VMS, when you visit a file using a logical name that searches a path,
-you may or may not want the visited file name to record the specific
-directory where the file was found.  If you *do not* want that, add the logical
-name to this list as a string."
+  "List of logical names for which visiting shouldn't save the true dirname."
   :type '(repeat (string :tag "Name"))
   :group 'find-file)
 
@@ -1765,15 +1756,6 @@ Do you want to revisit the file normally now? ")
 	(setq buffer-file-truename
 	      (abbreviate-file-name (file-truename buffer-file-name))))
       (setq buffer-file-number number)
-      ;; On VMS, we may want to remember which directory in a search list
-      ;; the file was found in.
-      (and (eq system-type 'vax-vms)
-	   (let (logical)
-	     (if (string-match ":" (file-name-directory filename))
-		 (setq logical (substring (file-name-directory filename)
-					  0 (match-beginning 0))))
-	     (not (member logical find-file-not-true-dirname-list)))
-	   (setq buffer-file-name buffer-file-truename))
       (if find-file-visit-truename
 	  (setq buffer-file-name (expand-file-name buffer-file-truename)))
       ;; Set buffer's default directory to that of the file.
@@ -2412,7 +2394,7 @@ we don't actually set it to the same mode the buffer already has."
 	    (while name
 	      ;; Find first matching alist entry.
 	      (setq mode
-		    (if (memq system-type '(vax-vms windows-nt cygwin))
+		    (if (memq system-type '(windows-nt cygwin))
 			;; System is case-insensitive.
 			(let ((case-fold-search t))
 			  (assoc-default name auto-mode-alist
@@ -3279,8 +3261,6 @@ the old visited file has been renamed to the new name FILENAME."
     (setq buffer-file-name filename)
     (if filename			; make buffer name reflect filename.
 	(let ((new-name (file-name-nondirectory buffer-file-name)))
-	  (if (eq system-type 'vax-vms)
-	      (setq new-name (downcase new-name)))
 	  (setq default-directory (file-name-directory buffer-file-name))
 	  ;; If new-name == old-name, renaming would add a spurious <2>
 	  ;; and it's considered as a feature in rename-buffer.
@@ -3519,22 +3499,11 @@ we do not remove backup version numbers, only true file version numbers."
     (if handler
 	(funcall handler 'file-name-sans-versions name keep-backup-version)
       (substring name 0
-		 (if (eq system-type 'vax-vms)
-		     ;; VMS version number is (a) semicolon, optional
-		     ;; sign, zero or more digits or (b) period, option
-		     ;; sign, zero or more digits, provided this is the
-		     ;; second period encountered outside of the
-		     ;; device/directory part of the file name.
-		     (or (string-match ";[-+]?[0-9]*\\'" name)
-			 (if (string-match "\\.[^]>:]*\\(\\.[-+]?[0-9]*\\)\\'"
-					   name)
-			     (match-beginning 1))
-			 (length name))
-		   (if keep-backup-version
-		       (length name)
-		     (or (string-match "\\.~[-[:alnum:]:#@^._]+~\\'" name)
-			 (string-match "~\\'" name)
-			 (length name))))))))
+		 (if keep-backup-version
+		     (length name)
+		   (or (string-match "\\.~[-[:alnum:]:#@^._]+~\\'" name)
+		       (string-match "~\\'" name)
+		       (length name)))))))
 
 (defun file-ownership-preserved-p (file)
   "Return t if deleting FILE and rewriting it would preserve the owner."
@@ -3737,8 +3706,6 @@ the index in the name where the version number begins."
       (string-to-number (substring fn backup-extract-version-start -1))
       0))
 
-;; I believe there is no need to alter this behavior for VMS;
-;; since backup files are not made on VMS, it should not get called.
 (defun find-backup-file-name (fn)
   "Find a file name for a backup file FN, and suggestions for deletions.
 Value is a list whose car is the name for the backup file
@@ -3984,19 +3951,6 @@ Before and after saving the buffer, this function runs
     (if (buffer-modified-p)
 	(let ((recent-save (recent-auto-save-p))
 	      setmodes)
-	  ;; On VMS, rename file and buffer to get rid of version number.
-	  (if (and (eq system-type 'vax-vms)
-		   (not (string= buffer-file-name
-				 (file-name-sans-versions buffer-file-name))))
-	      (let (buffer-new-name)
-		;; Strip VMS version number before save.
-		(setq buffer-file-name
-		      (file-name-sans-versions buffer-file-name))
-		;; Construct a (unique) buffer name to correspond.
-		(let ((buf (create-file-buffer (downcase buffer-file-name))))
-		  (setq buffer-new-name (buffer-name buf))
-		  (kill-buffer buf))
-		(rename-buffer buffer-new-name)))
 	  ;; If buffer has no file name, ask user for one.
 	  (or buffer-file-name
 	      (let ((filename
@@ -5036,15 +4990,13 @@ by `sh' are supported."
     (concat "\\`" result "\\'")))
 
 (defcustom list-directory-brief-switches
-  (if (eq system-type 'vax-vms) "" "-CF")
+  "-CF"
   "Switches for `list-directory' to pass to `ls' for brief listing."
   :type 'string
   :group 'dired)
 
 (defcustom list-directory-verbose-switches
-  (if (eq system-type 'vax-vms)
-      "/PROTECTION/SIZE/DATE/OWNER/WIDTH=(OWNER:10)"
-    "-l")
+    "-l"
   "Switches for `list-directory' to pass to `ls' for verbose listing."
   :type 'string
   :group 'dired)
@@ -5328,8 +5280,6 @@ normally equivalent short `-D' option is just passed on to
     (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)
-      (if (eq system-type 'vax-vms)
-	  (vms-read-directory file switches (current-buffer))
 	(let (result (beg (point)))
 
 	  ;; Read the actual directory using `insert-directory-program'.
@@ -5558,7 +5508,7 @@ normally equivalent short `-D' option is just passed on to
 		      ;; Replace "total" with "used", to avoid confusion.
 		      (replace-match "total used in directory" nil nil nil 1)
 		      (end-of-line)
-		      (insert " available " available)))))))))))
+		      (insert " available " available))))))))))
 
 (defun insert-directory-adj-pos (pos error-lines)
   "Convert `ls --dired' file name position value POS to a buffer position.
@@ -5610,7 +5560,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 				(buffer-list))))
 	   (yes-or-no-p "Modified buffers exist; exit anyway? "))
        (or (not (fboundp 'process-list))
-	   ;; process-list is not defined on VMS.
+	   ;; process-list is not defined on MSDOS.
 	   (let ((processes (process-list))
 		 active)
 	     (while processes

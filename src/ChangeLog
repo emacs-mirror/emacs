@@ -1,5 +1,44 @@
 2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* bitmaps/README:
+	* xfns.c:
+	* termcap.c:
+	* term.c:
+	* syswait.h:
+	* systty.h:
+	* systime.h:
+	* syssignal.h:
+	* sysdep.c:
+	* process.h:
+	* process.c:
+	* print.c:
+	* ndir.h:
+	* lread.c:
+	* keyboard.c:
+	* getpagesize.h:
+	* floatfns.c:
+	* fileio.c:
+	* emacs.c:
+	* doc.c:
+	* dispnew.c:
+	* dired.c:
+	* data.c:
+	* callproc.c:
+	* buffer.c:
+	* README:
+	* Makefile.in:
+	* s/template.h:
+	* s/msdos.h:
+	* m/vax.h: Remove VMS support.
+	* s/vms.h:
+	* vlimit.h:
+	* uaf.h:
+	* temacs.opt:
+	* param.h:
+	* ioctl.h: Remove file.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	* s/ms-w32.h (MULTI_KBOARD): Remove.
 	* xterm.c:
 	* xselect.c:

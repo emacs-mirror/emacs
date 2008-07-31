@@ -27,10 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <sys/file.h>
 
-#ifdef VMS
-#include <ssdef.h>
-#endif
-
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -378,9 +374,6 @@ fatal_error_signal (sig)
       shut_down_emacs (sig, 0, Qnil);
     }
 
-#ifdef VMS
-  LIB$STOP (SS$_ABORT);
-#else
   /* Signal the same code; this time it will really be fatal.
      Remember that since we're in a signal handler, the signal we're
      going to send is probably blocked, so we have to unblock it if we
@@ -393,7 +386,6 @@ fatal_error_signal (sig)
     fatal_error_signal_hook ();
 
   kill (getpid (), fatal_error_code);
-#endif /* not VMS */
 }
 
 #ifdef SIGDANGER
@@ -591,14 +583,6 @@ DEFUN ("invocation-directory", Finvocation_directory, Sinvocation_directory,
 }
 
 
-#ifdef VMS
-#ifdef LINK_CRTL_SHARE
-#ifdef SHARABLE_LIB_BUG
-extern noshare char **environ;
-#endif /* SHARABLE_LIB_BUG */
-#endif /* LINK_CRTL_SHARE */
-#endif /* VMS */
-
 #ifdef HAVE_TZSET
 /* A valid but unlikely value for the TZ environment value.
    It is OK (though a bit slower) if the user actually chooses this value.  */
@@ -785,16 +769,7 @@ bug_reporting_address ()
 
 /* ARGSUSED */
 int
-main (argc, argv
-#ifdef VMS
-, envp
-#endif
-)
-     int argc;
-     char **argv;
-#ifdef VMS
-     char **envp;
-#endif
+main (int argc, char **argv)
 {
 #if GC_MARK_STACK
   Lisp_Object dummy;
@@ -920,29 +895,6 @@ main (argc, argv
       skip_args = 0;
     }
 #endif
-
-#ifdef VMS
-  /* If -map specified, map the data file in.  */
-  {
-    char *file;
-    if (argmatch (argv, argc, "-map", "--map-data", 3, &file, &skip_args))
-      mapin_data (file);
-  }
-
-#ifdef LINK_CRTL_SHARE
-#ifdef SHARABLE_LIB_BUG
-  /* Bletcherous shared libraries!  */
-  if (!stdin)
-    stdin = fdopen (0, "r");
-  if (!stdout)
-    stdout = fdopen (1, "w");
-  if (!stderr)
-    stderr = fdopen (2, "w");
-  if (!environ)
-    environ = envp;
-#endif /* SHARABLE_LIB_BUG */
-#endif /* LINK_CRTL_SHARE */
-#endif /* VMS */
 
 #if defined (HAVE_SETRLIMIT) && defined (RLIMIT_STACK)
   /* Extend the stack space available.
@@ -1565,9 +1517,6 @@ main (argc, argv
 #endif
       syms_of_textprop ();
       syms_of_composite ();
-#ifdef VMS
-      syms_of_vmsproc ();
-#endif /* VMS */
 #ifdef WINDOWSNT
       syms_of_ntproc ();
 #endif /* WINDOWSNT */
@@ -1644,16 +1593,8 @@ main (argc, argv
   init_editfns (); /* init_process uses Voperating_system_release. */
   init_process (); /* init_display uses add_keyboard_wait_descriptor. */
   init_keyboard ();	/* This too must precede init_sys_modes.  */
-#ifdef VMS
-  init_vmsproc ();	/* And this too.  */
-#endif /* VMS */
   if (!noninteractive)
-    {
-#ifdef VMS
-      init_vms_input ();/* init_display calls get_tty_size, that needs this.  */
-#endif /* VMS */
-      init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
-    }
+    init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
   init_fns ();
   init_xdisp ();
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1662,9 +1603,6 @@ main (argc, argv
 #endif /* HAVE_WINDOW_SYSTEM */
   init_macros ();
   init_floatfns ();
-#ifdef VMS
-  init_vmsfns ();
-#endif /* VMS */
 #ifdef HAVE_SOUND
   init_sound ();
 #endif
@@ -1769,9 +1707,6 @@ struct standard_args standard_args[] =
   { "-version", "--version", 150, 0 },
 #ifdef HAVE_SHM
   { "-nl", "--no-shared-memory", 140, 0 },
-#endif
-#ifdef VMS
-  { "-map", "--map-data", 130, 0 },
 #endif
   { "-t", "--terminal", 120, 1 },
   { "-nw", "--no-window-system", 110, 0 },
@@ -2051,12 +1986,6 @@ all of which are called before Emacs is actually killed.  */)
 
   UNGCPRO;
 
-/* Is it really necessary to do this deassign
-   when we are going to exit anyway?  */
-/* #ifdef VMS
-  stop_vms_input ();
- #endif  */
-
   shut_down_emacs (0, 0, STRINGP (arg) ? arg : Qnil);
 
   /* If we have an auto-save list file,
@@ -2122,10 +2051,6 @@ shut_down_emacs (sig, no_x, stuff)
 
 #ifdef CLASH_DETECTION
   unlock_all_files ();
-#endif
-
-#ifdef VMS
-  kill_vms_processes ();
 #endif
 
 #if 0 /* This triggers a bug in XCloseDisplay and is not needed.  */
@@ -2264,9 +2189,6 @@ You must run Emacs in batch mode in order to dump it.  */)
 #endif
 
   fflush (stdout);
-#ifdef VMS
-  mapout_data (SDATA (filename));
-#else
   /* Tell malloc where start of impure now is.  */
   /* Also arrange for warnings when nearly out of space.  */
 #ifndef SYSTEM_MALLOC
@@ -2297,7 +2219,6 @@ You must run Emacs in batch mode in order to dump it.  */)
 #ifdef DOUG_LEA_MALLOC
   free (malloc_state_ptr);
 #endif
-#endif /* not VMS */
 
   Vpurify_flag = tem;
 
@@ -2455,7 +2376,6 @@ Special values:
   `ms-dos'      compiled as an MS-DOS application.
   `windows-nt'  compiled as a native W32 application.
   `cygwin'      compiled using the Cygwin library.
-  `vax-vms'     compiled for a (Open)VMS system.
 Anything else indicates some sort of Unix system.  */);
   Vsystem_type = intern (SYSTEM_TYPE);
 

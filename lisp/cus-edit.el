@@ -292,10 +292,6 @@
   "Front-ends/assistants for, or emulators of, UNIX features."
   :group 'environment)
 
-(defgroup vms nil
-  "Support code for vms."
-  :group 'environment)
-
 (defgroup i18n nil
   "Internationalization and alternate character-set support."
   :link '(custom-manual "(emacs)International")

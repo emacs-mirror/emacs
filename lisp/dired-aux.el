@@ -1108,7 +1108,6 @@ See Info node `(emacs)Subdir switches' for more details."
   ;; or wildcard lines.
   ;; Important: never moves into the next subdir.
   ;; DIR is assumed to be unhidden.
-  ;; Will probably be redefined for VMS etc.
   (save-excursion
     (or (dired-goto-subdir dir) (error "This cannot happen"))
     (forward-line 1)
@@ -1936,7 +1935,6 @@ This function takes some pains to conform to `ls -lR' output."
     (save-excursion (dired-mark-remembered mark-alist))
     (restore-buffer-modified-p modflag)))
 
-;; This is a separate function for dired-vms.
 (defun dired-insert-subdir-validate (dirname &optional switches)
   ;; Check that it is valid to insert DIRNAME with SWITCHES.
   ;; Signal an error if invalid (e.g. user typed `i' on `..').

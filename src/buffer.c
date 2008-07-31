@@ -5312,7 +5312,6 @@ init_buffer ()
   if (!pwd)
     fatal ("`get_current_dir_name' failed: %s\n", strerror (errno));
 
-#ifndef VMS
   /* Maybe this should really use some standard subroutine
      whose definition is filename syntax dependent.  */
   len = strlen (pwd);
@@ -5323,7 +5322,6 @@ init_buffer ()
       pwd[len] = DIRECTORY_SEP;
       pwd[len + 1] = '\0';
     }
-#endif /* not VMS */
 
   current_buffer->directory = make_unibyte_string (pwd, strlen (pwd));
   if (! NILP (buffer_defaults.enable_multibyte_characters))

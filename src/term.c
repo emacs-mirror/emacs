@@ -3489,12 +3489,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   Down (tty) = tgetstr ("do", address);
   if (!Down (tty))
     Down (tty) = tgetstr ("nl", address); /* Obsolete name for "do" */
-#ifdef VMS
-  /* VMS puts a carriage return before each linefeed,
-     so it is not safe to use linefeeds.  */
-  if (Down (tty) && Down (tty)[0] == '\n' && Down (tty)[1] == '\0')
-    Down (tty) = 0;
-#endif /* VMS */
   if (tgetflag ("bs"))
     Left (tty) = "\b";		  /* can't possibly be longer! */
   else				  /* (Actually, "bs" is obsolete...) */
@@ -3609,15 +3603,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 #endif
 
   TabWidth (tty) = tgetnum ("tw");
-
-#ifdef VMS
-  /* These capabilities commonly use ^J.
-     I don't know why, but sending them on VMS does not work;
-     it causes following spaces to be lost, sometimes.
-     For now, the simplest fix is to avoid using these capabilities ever.  */
-  if (Down (tty) && Down (tty)[0] == '\n')
-    Down (tty) = 0;
-#endif /* VMS */
 
   if (!tty->TS_bell)
     tty->TS_bell = "\07";
@@ -3734,13 +3719,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     {
       maybe_fatal (must_succeed, NULL, terminal,
                    "Terminal type \"%s\" is not powerful enough to run Emacs",
-#ifdef VMS
-                   "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
-It lacks the ability to position the cursor.\n\
-If that is not the actual type of terminal you have, use either the\n\
-DCL command `SET TERMINAL/DEVICE= ...' for DEC-compatible terminals,\n\
-or `define EMACS_TERM \"terminal type\"' for non-DEC terminals.",
-#else /* not VMS */
 # ifdef TERMINFO
                    "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
 It lacks the ability to position the cursor.\n\
@@ -3756,7 +3734,6 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 # endif /* TERMINFO */
-#endif /*VMS */
                    terminal_type);
     }
 

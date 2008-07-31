@@ -349,13 +349,8 @@ char PC;
 
 static int speeds[] =
   {
-#ifdef VMS
-    0, 50, 75, 110, 134, 150, -3, -6, -12, -18,
-    -20, -24, -36, -48, -72, -96, -192
-#else /* not VMS */
     0, 50, 75, 110, 135, 150, -2, -3, -6, -12,
     -18, -24, -48, -96, -192, -288, -384, -576, -1152
-#endif /* not VMS */
   };
 
 #endif /* not emacs */
@@ -441,34 +436,6 @@ static char *gobble_line ();
 static int compare_contin ();
 static int name_match ();
 
-#ifdef VMS
-
-#include <rmsdef.h>
-#include <fab.h>
-#include <nam.h>
-#include <starlet.h>
-
-static int
-valid_filename_p (fn)
-     char *fn;
-{
-  struct FAB fab = cc$rms_fab;
-  struct NAM nam = cc$rms_nam;
-  char esa[NAM$C_MAXRSS];
-
-  fab.fab$l_fna = fn;
-  fab.fab$b_fns = strlen(fn);
-  fab.fab$l_nam = &nam;
-  fab.fab$l_fop = FAB$M_NAM;
-
-  nam.nam$l_esa = esa;
-  nam.nam$b_ess = sizeof esa;
-
-  return SYS$PARSE(&fab, 0, 0) == RMS$_NORMAL;
-}
-
-#else /* !VMS */
-
 #ifdef MSDOS /* MW, May 1993 */
 static int
 valid_filename_p (fn)
@@ -479,8 +446,6 @@ valid_filename_p (fn)
 #else
 #define valid_filename_p(fn) (*(fn) == '/')
 #endif
-
-#endif /* !VMS */
 
 /* Find the termcap entry data for terminal type NAME
    and store it in the block that BP points to.

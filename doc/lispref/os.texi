@@ -632,10 +632,6 @@ convenient way to test parts of this string is with
 The value of this variable is a symbol indicating the type of operating
 system Emacs is operating on.  Here is a table of the possible values:
 
-@table @code
-@item alpha-vms
-VMS on the Alpha.
-
 @item aix-v3
 AIX.
 
@@ -666,9 +662,6 @@ MS-Windows.
 
 @item usg-unix-v
 AT&T System V.
-
-@item vax-vms
-VAX VMS.
 
 @item windows-nt
 Microsoft windows NT.  The same executable supports Windows 9X, but the
@@ -861,19 +854,6 @@ This variable holds the erase character that was selected
 in the system's terminal driver, before Emacs was started.
 The value is @code{nil} if Emacs is running under a window system.
 @end defvar
-
-@defun setprv privilege-name &optional setp getprv
-This function sets or resets a VMS privilege.  (It does not exist on
-other systems.)  The first argument is the privilege name, as a string.
-The second argument, @var{setp}, is @code{t} or @code{nil}, indicating
-whether the privilege is to be turned on or off.  Its default is
-@code{nil}.  The function returns @code{t} if successful, @code{nil}
-otherwise.
-
-If the third argument, @var{getprv}, is non-@code{nil}, @code{setprv}
-does not change the privilege, but returns @code{t} or @code{nil}
-indicating whether the privilege is currently enabled.
-@end defun
 
 @node User Identification
 @section User Identification

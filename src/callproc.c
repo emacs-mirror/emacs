@@ -90,12 +90,8 @@ extern int errno;
 #include "msdos.h"
 #endif
 
-#ifdef VMS
-extern noshare char **environ;
-#else
 #ifndef USE_CRT_DLL
 extern char **environ;
-#endif
 #endif
 
 #ifdef HAVE_SETPGID
@@ -141,8 +137,6 @@ int synch_process_retcode;
 static int call_process_exited;
 
 EXFUN (Fgetenv_internal, 2);
-
-#ifndef VMS  /* VMS version is in vmsproc.c.  */
 
 static Lisp_Object
 call_process_kill (fdpid)
@@ -843,7 +837,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 					 Vlocale_coding_system, 0);
   return make_number (synch_process_retcode);
 }
-#endif
 
 static Lisp_Object
 delete_temp_file (name)
@@ -999,8 +992,6 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   RETURN_UNGCPRO (unbind_to (count, Fcall_process (nargs, args)));
 }
 
-#ifndef VMS /* VMS version is in vmsproc.c.  */
-
 static int relocate_fd ();
 
 static char **
@@ -1448,7 +1439,6 @@ egetenv (var)
     return 0;
 }
 
-#endif /* not VMS */
 
 /* This is run before init_cmdargs.  */
 
@@ -1551,16 +1541,9 @@ init_callproc ()
     dir_warning ("Warning: arch-independent data dir (%s) does not exist.\n",
 		 Vdata_directory);
 
-#ifdef VMS
-  Vshell_file_name = build_string ("*dcl*");
-#else
   sh = (char *) getenv ("SHELL");
   Vshell_file_name = build_string (sh ? sh : "/bin/sh");
-#endif
 
-#ifdef VMS
-  Vtemp_file_name_pattern = build_string ("tmp:emacsXXXXXX.");
-#else
   if (getenv ("TMPDIR"))
     {
       char *dir = getenv ("TMPDIR");
@@ -1570,7 +1553,6 @@ init_callproc ()
     }
   else
     Vtemp_file_name_pattern = build_string ("/tmp/emacsXXXXXX");
-#endif
 
 #ifdef DOS_NT
   Vshared_game_score_directory = Qnil;
@@ -1686,10 +1668,8 @@ use.
 See `setenv' and `getenv'.  */);
   Vprocess_environment = Qnil;
 
-#ifndef VMS
   defsubr (&Scall_process);
   defsubr (&Sgetenv_internal);
-#endif
   defsubr (&Scall_process_region);
 }
 

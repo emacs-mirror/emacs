@@ -1,3 +1,10 @@
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* termcap.src: Remove file.
+	* README:
+	* PROBLEMS:
+	* MACHINES: Remove VMS info.
+
 2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* PROBLEMS:

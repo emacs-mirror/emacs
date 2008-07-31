@@ -1,3 +1,42 @@
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/texinfmt.el:
+	* nxml/nxml-enc.el:
+	* mail/feedmail.el:
+	* international/mule.el:
+	* international/latexenc.el:
+	* emulation/viper-util.el:
+	* emulation/viper-init.el:
+	* emulation/viper-ex.el:
+	* emacs-lisp/bytecomp.el:
+	* version.el:
+	* subr.el:
+	* startup.el:
+	* sort.el:
+	* shadowfile.el:
+	* recentf.el:
+	* printing.el:
+	* paths.el:
+	* minibuffer.el:
+	* ls-lisp.el:
+	* loadup.el:
+	* hippie-exp.el:
+	* finder.el:
+	* files.el:
+	* ediff-util.el:
+	* ediff-ptch.el:
+	* ediff-init.el:
+	* ediff-diff.el:
+	* dired.el:
+	* dired-aux.el:
+	* cus-edit.el:
+	* bindings.el:
+	* arc-mode.el:
+	* add-log.el: Remove VMS support.
+	* obsolete/vmsproc.el:
+	* obsolete/vms-pmail.el:
+	* obsolete/vms-patch.el: Remove file.
+
 2008-07-31  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-before-hack-hook): New function

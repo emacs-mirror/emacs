@@ -31,7 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #define BSD4_2 */
 /* #define BSD4_3 */
 /* #define BSD_SYSTEM */
-/* #define VMS */
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
@@ -92,13 +91,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 
 #define HAVE_PTYS
-
-/*
- *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
- *      The 4.2 opendir, etc., library functions.
- */
-
-#define NONSYSTEM_DIR_LIBRARY
 
 /* Define this symbol if your system has the functions bcopy, etc. */
 

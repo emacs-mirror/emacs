@@ -40,46 +40,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define INCLUDED_FCNTL
 #include <fcntl.h>
 #else /* neither HAVE_TERMIO nor HAVE_TERMIOS */
-#ifndef VMS
 #ifndef DOS_NT
 #include <sgtty.h>
 #endif /* not DOS_NT */
-#else /* VMS */
-#include <descrip.h>
-static struct iosb
-{
-  short status;
-  short offset;
-  short termlen;
-  short term;
-} input_iosb;
-
-extern int waiting_for_ast;
-extern int stop_input;
-extern int input_ef;
-extern int timer_ef;
-extern int process_ef;
-extern int input_eflist;
-extern int timer_eflist;
-
-static $DESCRIPTOR (input_dsc, "TT");
-static int terminator_mask[2] = { 0, 0 };
-
-static struct sensemode {
-  short status;
-  unsigned char xmit_baud;
-  unsigned char rcv_baud;
-  unsigned char crfill;
-  unsigned char lffill;
-  unsigned char parity;
-  unsigned char unused;
-  char class;
-  char type;
-  short scr_wid;
-  unsigned long tt_char : 24, scr_len : 8;
-  unsigned long tt2_char;
-} sensemode_iosb;
-#endif /* VMS */
 #endif /* not HAVE_TERMIOS */
 #endif /* not HAVE_TERMIO */
 
@@ -250,15 +213,11 @@ struct emacs_tty {
 #ifdef HAVE_TERMIO
   struct termio main;
 #else
-#ifdef VMS
-  struct sensemode main;
-#else
 #ifdef DOS_NT
   int main;
 #else  /* not DOS_NT */
   struct sgttyb main;
 #endif /* not DOS_NT */
-#endif
 #endif
 #endif
 
@@ -306,11 +265,6 @@ extern int emacs_set_tty P_ ((int, struct emacs_tty *, int));
 #define EMACS_TTY_TABS_OK(p) (((p)->main.c_oflag & TABDLY) != TAB3)
 
 #else /* neither HAVE_TERMIO nor HAVE_TERMIOS */
-#ifdef VMS
-
-#define EMACS_TTY_TABS_OK(p) (((p)->main.tt_char & TT$M_MECHTAB) != 0)
-
-#else
 
 #ifdef DOS_NT
 #define EMACS_TTY_TABS_OK(p) 0
@@ -318,7 +272,6 @@ extern int emacs_set_tty P_ ((int, struct emacs_tty *, int));
 #define EMACS_TTY_TABS_OK(p) (((p)->main.sg_flags & XTABS) != XTABS)
 #endif /* not DOS_NT */
 
-#endif /* not def VMS */
 #endif /* not def HAVE_TERMIO */
 #endif /* not def HAVE_TERMIOS */
 

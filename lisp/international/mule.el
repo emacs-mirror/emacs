@@ -1662,7 +1662,7 @@ This is used for loading and byte-compiling Emacs Lisp files.")
 (defun auto-coding-alist-lookup (filename)
   "Return the coding system specified by `auto-coding-alist' for FILENAME."
   (let ((alist auto-coding-alist)
-	(case-fold-search (memq system-type '(vax-vms windows-nt ms-dos cygwin)))
+	(case-fold-search (memq system-type '(windows-nt ms-dos cygwin)))
 	coding-system)
     (while (and alist (not coding-system))
       (if (string-match (car (car alist)) filename)

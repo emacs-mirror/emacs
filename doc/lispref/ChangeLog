@@ -1,3 +1,9 @@
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* os.texi:
+	* intro.texi:
+	* files.texi: Remove VMS support.
+
 2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* os.texi:

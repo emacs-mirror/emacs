@@ -3271,10 +3271,6 @@ arith_error (signo)
      must reestablish each time */
   signal (signo, arith_error);
 #endif /* USG */
-#ifdef VMS
-  /* VMS systems are like USG.  */
-  signal (signo, arith_error);
-#endif /* VMS */
   sigsetmask (SIGEMPTYMASK);
 
   SIGNAL_THREAD_CHECK (signo);

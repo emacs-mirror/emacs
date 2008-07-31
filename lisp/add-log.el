@@ -556,9 +556,7 @@ If t, use universal time.")
 (defun change-log-name ()
   "Return (system-dependent) default name for a change log file."
   (or change-log-default-name
-      (if (eq system-type 'vax-vms)
-	  "$CHANGE_LOG$.TXT"
-	"ChangeLog")))
+      "ChangeLog"))
 
 (defun add-log-edit-prev-comment (arg)
   "Cycle backward through Log-Edit mode comment history.

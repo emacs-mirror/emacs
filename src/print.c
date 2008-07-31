@@ -167,11 +167,6 @@ extern int noninteractive_need_newline;
 
 extern int minibuffer_auto_raise;
 
-#ifdef MAX_PRINT_CHARS
-static int print_chars;
-static int max_print;
-#endif /* MAX_PRINT_CHARS */
-
 void print_interval ();
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
@@ -309,11 +304,6 @@ printchar (ch, fun)
      unsigned int ch;
      Lisp_Object fun;
 {
-#ifdef MAX_PRINT_CHARS
-  if (max_print)
-    print_chars++;
-#endif /* MAX_PRINT_CHARS */
-
   if (!NILP (fun) && !EQ (fun, Qt))
     call1 (fun, make_number (ch));
   else
@@ -382,11 +372,6 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
       bcopy (ptr, print_buffer + print_buffer_pos_byte, size_byte);
       print_buffer_pos += size;
       print_buffer_pos_byte += size_byte;
-
-#ifdef MAX_PRINT_CHARS
-      if (max_print)
-        print_chars += size;
-#endif /* MAX_PRINT_CHARS */
     }
   else if (noninteractive && EQ (printcharfun, Qt))
     {
@@ -419,11 +404,6 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
 	      insert_char (ch);
 	    }
 	}
-
-#ifdef MAX_PRINT_CHARS
-      if (max_print)
-        print_chars += size;
-#endif /* MAX_PRINT_CHARS */
     }
   else
     {
@@ -764,9 +744,6 @@ is used instead.  */)
 {
   PRINTDECLARE;
 
-#ifdef MAX_PRINT_CHARS
-  max_print = 0;
-#endif /* MAX_PRINT_CHARS */
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
   PRINTPREPARE;
@@ -900,10 +877,6 @@ is used instead.  */)
   PRINTDECLARE;
   struct gcpro gcpro1;
 
-#ifdef MAX_PRINT_CHARS
-  print_chars = 0;
-  max_print = MAX_PRINT_CHARS;
-#endif /* MAX_PRINT_CHARS */
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
   GCPRO1 (object);
@@ -912,10 +885,6 @@ is used instead.  */)
   print (object, printcharfun, 1);
   PRINTCHAR ('\n');
   PRINTFINISH;
-#ifdef MAX_PRINT_CHARS
-  max_print = 0;
-  print_chars = 0;
-#endif /* MAX_PRINT_CHARS */
   UNGCPRO;
   return object;
 }
@@ -1613,14 +1582,6 @@ print_object (obj, printcharfun, escapeflag)
     }
 
   print_depth++;
-
-#ifdef MAX_PRINT_CHARS
-  if (max_print && print_chars > max_print)
-    {
-      PRINTCHAR ('\n');
-      print_chars = 0;
-    }
-#endif /* MAX_PRINT_CHARS */
 
   switch (XTYPE (obj))
     {

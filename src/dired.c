@@ -27,17 +27,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
-#ifndef VMS
 #include <grp.h>
-#endif
 
 #include <errno.h>
-
-#ifdef VMS
-#include <string.h>
-#include <rms.h>
-#include <rmsdef.h>
-#endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -62,15 +54,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #else /* not SYSV_SYSTEM_DIR */
 
-#ifdef NONSYSTEM_DIR_LIBRARY
-#include "ndir.h"
-#else /* not NONSYSTEM_DIR_LIBRARY */
 #ifdef MSDOS
 #include <dirent.h>
 #else
 #include <sys/dir.h>
 #endif
-#endif /* not NONSYSTEM_DIR_LIBRARY */
 
 #include <sys/stat.h>
 
@@ -174,10 +162,6 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
 	 compile_pattern to do the work for us.  */
       /* Pass 1 for the MULTIBYTE arg
 	 because we do make multibyte strings if the contents warrant.  */
-#ifdef VMS
-      bufp = compile_pattern (match, 0,
-			      buffer_defaults.downcase_table, 0, 1);
-#else  /* !VMS */
 # ifdef WINDOWSNT
       /* Windows users want case-insensitive wildcards.  */
       bufp = compile_pattern (match, 0,
@@ -185,7 +169,6 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
 # else	/* !WINDOWSNT */
       bufp = compile_pattern (match, 0, Qnil, 0, 1);
 # endif	 /* !WINDOWSNT */
-#endif	 /* !VMS */
     }
 
   /* Note: ENCODE_FILE and DECODE_FILE can GC because they can run
@@ -215,11 +198,9 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
   re_match_object = Qt;
 
   /* Decide whether we need to add a directory separator.  */
-#ifndef VMS
   if (directory_nbytes == 0
       || !IS_ANY_SEP (SREF (directory, directory_nbytes - 1)))
     needsep = 1;
-#endif /* not VMS */
 
   /* Loop reading blocks until EOF or error.  */
   for (;;)
@@ -483,21 +464,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 
   elt = Qnil;
 
-#ifdef VMS
-  extern DIRENTRY * readdirver ();
-
-  DIRENTRY *((* readfunc) ());
-
-  /* Filename completion on VMS ignores case, since VMS filesys does.  */
-  specbind (Qcompletion_ignore_case, Qt);
-
-  readfunc = readdir;
-  if (ver_flag)
-    readfunc = readdirver;
-  file = Fupcase (file);
-#else  /* not VMS */
   CHECK_STRING (file);
-#endif /* not VMS */
 
 #ifdef FILE_SYSTEM_CASE
   file = FILE_SYSTEM_CASE (file);
@@ -535,9 +502,6 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
       int len;
       int canexclude = 0;
 
-#ifdef VMS
-      dp = (*readfunc) (d);
-#else
       errno = 0;
       dp = readdir (d);
       if (dp == NULL && (0
@@ -549,7 +513,6 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 # endif
 			 ))
 	{ QUIT; continue; }
-#endif
 
       if (!dp) break;
 
@@ -830,10 +793,8 @@ file_name_completion_stat (dirname, dp, st_addr)
 #endif /* MSDOS */
 
   bcopy (SDATA (dirname), fullname, pos);
-#ifndef VMS
   if (!IS_DIRECTORY_SEP (fullname[pos - 1]))
     fullname[pos++] = DIRECTORY_SEP;
-#endif
 
   bcopy (dp->d_name, fullname + pos, len);
   fullname[pos + len] = 0;
@@ -855,47 +816,6 @@ file_name_completion_stat (dirname, dp, st_addr)
   return value;
 #endif /* S_IFLNK */
 }
-
-#ifdef VMS
-
-DEFUN ("file-name-all-versions", Ffile_name_all_versions,
-       Sfile_name_all_versions, 2, 2, 0,
-       doc: /* Return a list of all versions of file name FILE in directory DIRECTORY.  */)
-     (file, directory)
-     Lisp_Object file, directory;
-{
-  return file_name_completion (file, directory, 1, 1, Qnil);
-}
-
-DEFUN ("file-version-limit", Ffile_version_limit, Sfile_version_limit, 1, 1, 0,
-       doc: /* Return the maximum number of versions allowed for FILE.
-Returns nil if the file cannot be opened or if there is no version limit.  */)
-     (filename)
-     Lisp_Object filename;
-{
-  Lisp_Object retval;
-  struct FAB    fab;
-  struct RAB    rab;
-  struct XABFHC xabfhc;
-  int status;
-
-  filename = Fexpand_file_name (filename, Qnil);
-  fab      = cc$rms_fab;
-  xabfhc   = cc$rms_xabfhc;
-  fab.fab$l_fna = SDATA (filename);
-  fab.fab$b_fns = strlen (fab.fab$l_fna);
-  fab.fab$l_xab = (char *) &xabfhc;
-  status = sys$open (&fab, 0, 0);
-  if (status != RMS$_NORMAL)	/* Probably non-existent file */
-    return Qnil;
-  sys$close (&fab, 0, 0);
-  if (xabfhc.xab$w_verlimit == 32767)
-    return Qnil;		/* No version limit */
-  else
-    return make_number (xabfhc.xab$w_verlimit);
-}
-
-#endif /* VMS */
 
 Lisp_Object
 make_time (time)
@@ -1132,10 +1052,6 @@ syms_of_dired ()
   defsubr (&Sdirectory_files);
   defsubr (&Sdirectory_files_and_attributes);
   defsubr (&Sfile_name_completion);
-#ifdef VMS
-  defsubr (&Sfile_name_all_versions);
-  defsubr (&Sfile_version_limit);
-#endif /* VMS */
   defsubr (&Sfile_name_all_completions);
   defsubr (&Sfile_attributes);
   defsubr (&Sfile_attributes_lessp);

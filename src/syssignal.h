@@ -192,13 +192,11 @@ extern SIGMASKTYPE sigprocmask_set;
 
 /* Define SIGCHLD as an alias for SIGCLD.  There are many conditionals
    testing SIGCHLD.  */
-#ifndef VMS
 #ifdef SIGCLD
 #ifndef SIGCHLD
 #define SIGCHLD SIGCLD
 #endif /* SIGCHLD */
 #endif /* ! defined (SIGCLD) */
-#endif /* VMS */
 
 #ifndef HAVE_STRSIGNAL
 /* strsignal is in sysdep.c */

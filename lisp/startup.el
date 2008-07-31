@@ -491,20 +491,19 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
         ;; the end, because the subdirs.el files may add elements to the end
         ;; of load-path and we want to take it into account.
         (setq tail (cdr tail))))
-    (unless (eq system-type 'vax-vms)
-      ;; If the PWD environment variable isn't accurate, delete it.
-      (let ((pwd (getenv "PWD")))
-	(and (stringp pwd)
-	     ;; Use FOO/., so that if FOO is a symlink, file-attributes
-	     ;; describes the directory linked to, not FOO itself.
-	     (or (equal (file-attributes
-			 (concat (file-name-as-directory pwd) "."))
-			(file-attributes
-			 (concat (file-name-as-directory default-directory)
-				 ".")))
-		 (setq process-environment
-		       (delete (concat "PWD=" pwd)
-			       process-environment))))))
+    ;; If the PWD environment variable isn't accurate, delete it.
+    (let ((pwd (getenv "PWD")))
+      (and (stringp pwd)
+	   ;; Use FOO/., so that if FOO is a symlink, file-attributes
+	   ;; describes the directory linked to, not FOO itself.
+	   (or (equal (file-attributes
+		       (concat (file-name-as-directory pwd) "."))
+		      (file-attributes
+		       (concat (file-name-as-directory default-directory)
+			       ".")))
+	       (setq process-environment
+		     (delete (concat "PWD=" pwd)
+			     process-environment)))))
     (setq default-directory (abbreviate-file-name default-directory))
     (let ((menubar-bindings-done nil))
       (unwind-protect
@@ -1007,8 +1006,6 @@ opening the first frame (e.g. open a connection to an X server).")
 				   "~/_emacs"
 				 ;; But default to .emacs if _emacs does not exist.
 				 "~/.emacs")))
-			    ((eq system-type 'vax-vms)
-			     "sys$login:.emacs")
 			    (t
 			     (concat "~" init-file-user "/.emacs")))))
 		      ;; This tells `load' to store the file name found

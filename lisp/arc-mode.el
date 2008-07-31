@@ -1731,7 +1731,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			 str archive-file-name-coding-system)))
 	     (isdir   (and (= ucsize 0)
 			   (string= (file-name-nondirectory efnname) "")))
-	     (mode    (cond ((memq creator '(2 3)) ; Unix + VMS
+	     (mode    (cond ((memq creator '(2 3)) ; Unix
 			     (archive-l-e (+ p 40) 2))
 			    ((memq creator '(0 5 6 7 10 11 15)) ; Dos etc.
 			     (logior ?\444
@@ -1800,7 +1800,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	       (oldmode (aref fil 3))
 	       (newval  (archive-calc-mode oldmode newmode t))
 	       (inhibit-read-only t))
-	  (cond ((memq creator '(2 3)) ; Unix + VMS
+	  (cond ((memq creator '(2 3)) ; Unix
 		 (goto-char (+ p 40))
 		 (delete-char 2)
 		 (insert-unibyte (logand newval 255) (lsh newval -8)))

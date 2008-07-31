@@ -1342,11 +1342,7 @@ complete_filename_p (pathname)
   register const unsigned char *s = SDATA (pathname);
   return (IS_DIRECTORY_SEP (s[0])
 	  || (SCHARS (pathname) > 2
-	      && IS_DEVICE_SEP (s[1]) && IS_DIRECTORY_SEP (s[2]))
-#ifdef VMS
-	  || index (s, ':')
-#endif /* VMS */
-	  );
+	      && IS_DEVICE_SEP (s[1]) && IS_DIRECTORY_SEP (s[2])));
 }
 
 DEFUN ("locate-file-internal", Flocate_file_internal, Slocate_file_internal, 2, 4, 0,
@@ -3719,9 +3715,7 @@ oblookup (obarray, ptr, size, size_byte)
     }
   /* This is sometimes needed in the middle of GC.  */
   obsize &= ~ARRAY_MARK_FLAG;
-  /* Combining next two lines breaks VMS C 2.3.  */
-  hash = hash_string (ptr, size_byte);
-  hash %= obsize;
+  hash = hash_string (ptr, size_byte) % obsize;
   bucket = XVECTOR (obarray)->contents[hash];
   oblookup_last_bucket_number = hash;
   if (EQ (bucket, make_number (0)))

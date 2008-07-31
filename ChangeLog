@@ -1,5 +1,11 @@
 2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* make-dist:
+	* README: Remove VMS support.
+	* vms: Remove directory.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	* configure.in (MULTI_KBOARD): Remove.
 
 2008-07-30  Dan Nicolaescu  <dann@ics.uci.edu>

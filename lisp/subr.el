@@ -2406,14 +2406,10 @@ passing the command to the shell.
 Wildcards and redirection are handled as usual in the shell.
 
 \(fn NAME BUFFER COMMAND &rest COMMAND-ARGS)"
-  (cond
-   ((eq system-type 'vax-vms)
-    (apply 'start-process name buffer args))
    ;; We used to use `exec' to replace the shell with the command,
    ;; but that failed to handle (...) and semicolon, etc.
-   (t
-    (start-process name buffer shell-file-name shell-command-switch
-		   (mapconcat 'identity args " ")))))
+  (start-process name buffer shell-file-name shell-command-switch
+		 (mapconcat 'identity args " ")))
 
 (defun start-file-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
@@ -2445,16 +2441,12 @@ If BUFFER is 0, `call-process-shell-command' returns immediately with value nil.
 Otherwise it waits for COMMAND to terminate and returns a numeric exit
 status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
-  (cond
-   ((eq system-type 'vax-vms)
-    (apply 'call-process command infile buffer display args))
-   ;; We used to use `exec' to replace the shell with the command,
-   ;; but that failed to handle (...) and semicolon, etc.
-   (t
-    (call-process shell-file-name
-		  infile buffer display
-		  shell-command-switch
-		  (mapconcat 'identity (cons command args) " ")))))
+  ;; We used to use `exec' to replace the shell with the command,
+  ;; but that failed to handle (...) and semicolon, etc.
+  (call-process shell-file-name
+		infile buffer display
+		shell-command-switch
+		(mapconcat 'identity (cons command args) " ")))
 
 (defun process-file-shell-command (command &optional infile buffer display
 					   &rest args)

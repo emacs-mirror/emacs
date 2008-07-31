@@ -719,7 +719,6 @@ for a remote directory.  This feature is used by Auto Revert Mode."
 	 (file-readable-p dirname)
 	 (dired-directory-changed-p dirname))))
 
-;; Separate function from dired-noselect for the sake of dired-vms.el.
 (defun dired-internal-noselect (dir-or-list &optional switches mode)
   ;; If there is an existing dired buffer for DIRNAME, just leave
   ;; buffer as it is (don't even call dired-revert).
@@ -1987,8 +1986,7 @@ Optional arg GLOBAL means to replace all matches."
   ;;"Convert FILE (a file name relative to DIR) to an absolute file name."
   ;; We can't always use expand-file-name as this would get rid of `.'
   ;; or expand in / instead default-directory if DIR=="".
-  ;; This should be good enough for ange-ftp, but might easily be
-  ;; redefined (for VMS?).
+  ;; This should be good enough for ange-ftp.
   ;; It should be reasonably fast, though, as it is called in
   ;; dired-get-filename.
   (concat (or dir default-directory) file))
@@ -2554,7 +2552,7 @@ non-empty directories is allowed."
 (defun dired-internal-do-deletions (l arg)
   ;; L is an alist of files to delete, with their buffer positions.
   ;; ARG is the prefix arg.
-  ;; Filenames are absolute (VMS needs this for logical search paths).
+  ;; Filenames are absolute.
   ;; (car L) *must* be the *last* (bottommost) file in the dired buffer.
   ;; That way as changes are made in the buffer they do not shift the
   ;; lines still to be changed, so the (point) values in L stay valid.
@@ -3442,9 +3440,6 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 	     '(dired-mode . dired-restore-desktop-buffer))
 
 
-(if (eq system-type 'vax-vms)
-    (load "dired-vms"))
-
 (provide 'dired)
 
 (run-hooks 'dired-load-hook)		; for your customizations

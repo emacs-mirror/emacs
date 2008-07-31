@@ -69,11 +69,6 @@
   :type 'boolean
   :tag "Is it Microsoft-made OS?"
   :group 'viper-misc)
-(defcustom viper-vms-os-p (memq system-type '(vax-vms axp-vms))
-  "Tells if Emacs is running under VMS."
-  :type 'boolean
-  :tag "Is it VMS?"
-  :group 'viper-misc)
 
 (defcustom viper-suppress-input-method-change-message nil
   "If t, the message notifying about changes in the input method is not displayed.

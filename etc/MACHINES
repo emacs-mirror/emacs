@@ -437,16 +437,9 @@ Tadpole 68K (m68k-tadpole-sysv)
 
     chmod 2755 etc/movemail; chgrp mail etc/movemail
 
-Vaxen running Berkeley Unix (vax-dec-bsd4.1, vax-dec-bsd4.2, vax-dec-bsd4.3),
-              VMS (vax-dec-vms)
+Vaxen running Berkeley Unix (vax-dec-bsd4.1, vax-dec-bsd4.2, vax-dec-bsd4.3)
 
   Works.
-
-  Richard Levitte <levitte@e.kth.se> distributes a set of patches to
-  Emacs 18.59 to make it work nicely under VMS.  Emacs 19 probably
-  won't work very well, or even compile.  Levitte is working on a
-  port, so these problems should be fixed in the near future.
-
 
 Here are notes about some of the systems supported:
 
@@ -514,17 +507,6 @@ System V rel 4.0.3 and 4.0.4 (usg5.4)
   exists, your system supports them.  If yours does not, you must add
   #undef HAVE_SOCKETS in config.h, after the inclusion of s-usg5-4.h.
   (Any system that supports Internet should implement sockets.)
-
-VMS (vmsM.N)
-
-  Richard Levitte <levitte@e.kth.se> distributes a set of patches to
-  Emacs 18.59 to make it work nicely under VMS.  Emacs 19 probably
-  won't work very well, or even compile.  Levitte is working on a
-  port, so these problems should be fixed in the near future.
-
-  Note that Emacs for VMS is usually distributed in a special VMS
-  distribution.  See the file ../vms/VMSINSTALL for info on moving
-  Unix distributions to VMS, and other VMS-related topics.
 
 Windows NT/95/98/ME/2000
 
@@ -630,6 +612,7 @@ Support for the following obsolete platforms was removed in Emacs 23.1
   System V rel 2.2 -- usg5.2.2
   System V rel 3 -- usg5.3
   Ultrix -- bsd4.3
+  VMS (s/vms.h)
 
 
 Local variables:

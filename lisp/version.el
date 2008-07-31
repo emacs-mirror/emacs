@@ -85,7 +85,7 @@ to the system configuration; look at `system-configuration' instead."
 (defalias 'version 'emacs-version)
 
 ;; We put version info into the executable in the form that `ident' uses.
-(or (memq system-type '(vax-vms windows-nt))
+(or (eq system-type 'windows-nt)
     (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
 		      " $\n")))
 

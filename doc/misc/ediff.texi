@@ -1152,7 +1152,7 @@ packages also use this method).
 Regular files are treated by the @code{patch} utility in the usual manner,
 i.e., the original is renamed into @file{source-name.orig} and the result
 of the patch is placed into the file source-name (@file{_orig} is used
-on systems like VMS, DOS, etc.)
+on systems like DOS, etc.)
 
 @node Customization, Credits, Remote and Compressed Files, Top
 @chapter Customization

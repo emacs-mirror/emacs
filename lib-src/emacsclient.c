@@ -64,15 +64,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
-#ifdef VMS
-# include "vms-pwd.h"
-#else /* not VMS */
 #ifdef WINDOWSNT
 # include <io.h>
 #else /* not WINDOWSNT */
 # include <pwd.h>
 #endif /* not WINDOWSNT */
-#endif /* not VMS */
 #include <sys/stat.h>
 
 #include <signal.h>

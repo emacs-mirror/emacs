@@ -2672,7 +2672,7 @@ or
 *** Fatal signal in the command  temacs -l loadup inc dump.
 
 This command is the final stage of building Emacs.  It is run by the
-Makefile in the src subdirectory, or by build.com on VMS.
+Makefile in the src subdirectory.
 
 It has been known to get fatal errors due to insufficient swapping
 space available on the machine.
@@ -3642,25 +3642,6 @@ floating point option: -fsoft.
 ** HPUX 10.20: Emacs crashes during dumping on the HPPA machine.
 
 This seems to be due to a GCC bug; it is fixed in GCC 2.8.1.
-
-** VMS: Compilation errors on VMS.
-
-You will get warnings when compiling on VMS because there are
-variable names longer than 32 (or whatever it is) characters.
-This is not an error.  Ignore it.
-
-VAX C does not support #if defined(foo).  Uses of this construct
-were removed, but some may have crept back in.  They must be rewritten.
-
-There is a bug in the C compiler which fails to sign extend characters
-in conditional expressions.  The bug is:
-	char c = -1, d = 1;
-	int i;
-
-	i = d ? c : d;
-The result is i == 255;  the fix is to typecast the char in the
-conditional expression as an (int).  Known occurrences of such
-constructs in Emacs have been fixed.
 
 ** Vax C compiler bugs affecting Emacs.
 

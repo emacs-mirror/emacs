@@ -5296,7 +5296,7 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 	   (* 25 25)))
   (let ((tm (current-time)))
     (concat
-     (if (or (memq system-type '(ms-dos emx vax-vms))
+     (if (or (memq system-type '(ms-dos emx))
 	     ;; message-number-base36 doesn't handle bigints.
 	     (floatp (user-uid)))
 	 (let ((user (downcase (user-login-name))))
@@ -6858,14 +6858,13 @@ header line with the old Message-ID."
   (interactive)
   (let ((file-name (make-auto-save-file-name)))
     (cond ((save-window-excursion
-	     (if (not (eq system-type 'vax-vms))
-		 (with-output-to-temp-buffer "*Directory*"
-		   (with-current-buffer standard-output
-		     (fundamental-mode)) ; for Emacs 20.4+
-		   (buffer-disable-undo standard-output)
-		   (let ((default-directory "/"))
-		     (call-process
-		      "ls" nil standard-output nil "-l" file-name))))
+	     (with-output-to-temp-buffer "*Directory*"
+	       (with-current-buffer standard-output
+		 (fundamental-mode))	; for Emacs 20.4+
+	       (buffer-disable-undo standard-output)
+	       (let ((default-directory "/"))
+		 (call-process
+		  "ls" nil standard-output nil "-l" file-name)))
 	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
 	   (let ((buffer-read-only nil))
 	     (erase-buffer)

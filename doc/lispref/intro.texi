@@ -55,7 +55,7 @@ but not flawless.  There are a few topics that are not covered, either
 because we consider them secondary (such as most of the individual
 modes) or because they are yet to be written.  Because we are not able
 to deal with them completely, we have left out several parts
-intentionally.  This includes most information about usage on VMS.
+intentionally.
 
   The manual should be fully correct in what it does cover, and it is
 therefore open to criticism on anything it says---from specific examples

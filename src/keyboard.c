@@ -51,9 +51,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #include <time.h>
 #else /* not MSDOS */
-#ifndef VMS
 #include <sys/ioctl.h>
-#endif
 #endif /* not MSDOS */
 
 #include "syssignal.h"
@@ -4015,9 +4013,6 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
       /* One way or another, wait until input is available; then, if
 	 interrupt handlers have not read it, read it now.  */
 
-#ifdef OLDVMS
-      wait_for_kbd_input ();
-#else
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
 #ifdef SIGIO
       gobble_input (0);
@@ -4048,7 +4043,6 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
       if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
 	/* Pass 1 for EXPECT since we just waited to have input.  */
 	read_avail_input (1);
-#endif /* not VMS */
     }
 
   if (CONSP (Vunread_command_events))
@@ -6907,7 +6901,6 @@ gobble_input (expected)
   xd_read_queued_messages ();
 #endif /* HAVE_DBUS */
 
-#ifndef VMS
 #ifdef SIGIO
   if (interrupt_input)
     {
@@ -6929,7 +6922,6 @@ gobble_input (expected)
       sigsetmask (mask);
     }
   else
-#endif
 #endif
     read_avail_input (expected);
 #endif
@@ -6980,16 +6972,10 @@ record_asynch_buffer_change ()
     }
 }
 
-#ifndef VMS
-
 /* Read any terminal input already buffered up by the system
    into the kbd_buffer, but do not wait.
 
    EXPECTED should be nonzero if the caller knows there is some input.
-
-   Except on VMS, all input is read by this function.
-   If interrupt_input is nonzero, this function MUST be called
-   only when SIGIO is blocked.
 
    Returns the number of keyboard chars read, or -1 meaning
    this is a bad time to try to read input.  */
@@ -7238,7 +7224,6 @@ tty_read_avail_input (struct terminal *terminal,
 
   return nread;
 }
-#endif /* not VMS */
 
 void
 handle_async_input ()
@@ -11011,19 +10996,11 @@ handle_interrupt ()
  */
       sys_suspend ();
 #else
-#ifdef VMS
-      if (sys_suspend () == -1)
-	{
-	  printf ("Not running as a subprocess;\n");
-	  printf ("you can continue or abort.\n");
-	}
-#else /* not VMS */
       /* Perhaps should really fork an inferior shell?
 	 But that would not provide any way to get back
 	 to the original shell, ever.  */
       printf ("No support for stopping a process on this operating system;\n");
       printf ("you can continue or abort.\n");
-#endif /* not VMS */
 #endif /* not SIGTSTP */
 #ifdef MSDOS
       /* We must remain inside the screen area when the internal terminal
@@ -11062,11 +11039,7 @@ handle_interrupt ()
 #ifdef MSDOS
       printf ("\r\nAbort?  (y or n) ");
 #else /* not MSDOS */
-#ifdef VMS
-      printf ("Abort (and enter debugger)? (y or n) ");
-#else /* not VMS */
       printf ("Abort (and dump core)? (y or n) ");
-#endif /* not VMS */
 #endif /* not MSDOS */
       fflush (stdout);
       if (((c = getchar ()) & ~040) == 'Y')
@@ -11168,11 +11141,6 @@ See also `current-input-mode'.  */)
 #else /* not SIGIO */
   new_interrupt_input = 0;
 #endif /* not SIGIO */
-
-/* Our VMS input only works by interrupts, as of now.  */
-#ifdef VMS
-  new_interrupt_input = 1;
-#endif
 
   if (new_interrupt_input != interrupt_input)
     {
@@ -11587,11 +11555,6 @@ init_keyboard ()
   interrupt_input = 1;
 #else
   interrupt_input = 0;
-#endif
-
-/* Our VMS input only works by interrupts, as of now.  */
-#ifdef VMS
-  interrupt_input = 1;
 #endif
 
   sigfree ();

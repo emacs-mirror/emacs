@@ -152,7 +152,7 @@ extern int synch_process_termsig;
 extern int synch_process_retcode;
 
 /* The name of the file open to get a null file, or a data sink.
-   VMS, MS-DOS, and OS/2 redefine this.  */
+   MS-DOS, and OS/2 redefine this.  */
 #ifndef NULL_DEVICE
 #define NULL_DEVICE "/dev/null"
 #endif

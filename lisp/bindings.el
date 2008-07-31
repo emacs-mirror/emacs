@@ -583,10 +583,6 @@ is okay.  See `mode-line-format'.")
        (cond ((memq system-type '(ms-dos windows-nt))
 	      '(".o" "~" ".bin" ".bak" ".obj" ".map" ".ico" ".pif" ".lnk"
 		".a" ".ln" ".blg" ".bbl" ".dll" ".drv" ".vxd" ".386"))
-	     ((eq system-type 'vax-vms)
-	      '(".obj" ".exe" ".bin" ".lbin" ".sbin"
-		".brn" ".rnt" ".lni"
-		".olb" ".tlb" ".mlb" ".hlb"))
 	     (t
 	      '(".o" "~" ".bin" ".lbin" ".so"
 		".a" ".ln" ".blg" ".bbl")))

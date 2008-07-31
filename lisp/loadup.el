@@ -166,9 +166,6 @@
 (message "%s" (garbage-collect))
 
 (load "replace")
-(if (eq system-type 'vax-vms)
-    (progn
-      (load "vmsproc")))
 (load "buff-menu")
 
 (if (fboundp 'x-create-frame)
@@ -187,9 +184,6 @@
 
 (message "%s" (garbage-collect))
 
-(if (eq system-type 'vax-vms)
-    (progn
-      (load "vms-patch")))
 (if (eq system-type 'windows-nt)
     (progn
       (load "w32-vars")
@@ -230,7 +224,7 @@
 ;doc strings kept in the DOC file rather than in core,
 ;you may load them with a "site-load.el" file.
 ;But you must also cause them to be scanned when the DOC file
-;is generated.  For VMS, you must edit ../vms/makedoc.com.
+;is generated.
 ;For other systems, you must edit ../src/Makefile.in.
 (if (load "site-load" t)
     (garbage-collect))
@@ -341,11 +335,7 @@
 
 (if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
 	(member (nth 4 command-line-args) '("dump" "bootstrap")))
-    (if (eq system-type 'vax-vms)
-	(progn
-	  (message "Dumping data as file temacs.dump")
-	  (dump-emacs "temacs.dump" "temacs")
-	  (kill-emacs))
+    (progn
       (if (memq system-type '(ms-dos windows-nt cygwin))
           (message "Dumping under the name emacs")
         (message "Dumping under the name emacs"))

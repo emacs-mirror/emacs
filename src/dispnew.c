@@ -6836,12 +6836,7 @@ init_display ()
   if (! inhibit_window_system && ! display_arg)
     {
       char *display;
-#ifdef VMS
-      display = getenv ("DECW$DISPLAY");
-#else
       display = getenv ("DISPLAY");
-#endif
-
       display_arg = (display != 0 && *display != 0);
 
       if (display_arg && !x_display_ok (display))
@@ -6912,39 +6907,14 @@ init_display ()
 #endif
   if (!terminal_type)
     {
-#ifdef VMS
-      fprintf (stderr, "Please specify your terminal type.\n\
-For types defined in VMS, use  set term /device=TYPE.\n\
-For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
-\(The quotation marks are necessary since terminal types are lower case.)\n");
-#else /* not VMS */
-
 #ifdef HAVE_WINDOW_SYSTEM
       if (! inhibit_window_system)
 	fprintf (stderr, "Please set the environment variable DISPLAY or TERM (see `tset').\n");
       else
 #endif /* HAVE_WINDOW_SYSTEM */
 	fprintf (stderr, "Please set the environment variable TERM; see `tset'.\n");
-#endif /* not VMS */
       exit (1);
     }
-
-#ifdef VMS
-  /* VMS DCL tends to up-case things, so down-case term type.
-     Hardly any uppercase letters in terminal types; should be none.  */
-  {
-    char *new = (char *) xmalloc (strlen (terminal_type) + 1);
-    char *p;
-
-    strcpy (new, terminal_type);
-
-    for (p = new; *p; p++)
-      if (isupper (*p))
-	*p = tolower (*p);
-
-    terminal_type = new;
-  }
-#endif /* VMS */
 
   {
     struct terminal *t;

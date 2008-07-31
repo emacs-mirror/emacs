@@ -197,9 +197,7 @@
   "Emacs Lisp byte-compiler."
   :group 'lisp)
 
-(defcustom emacs-lisp-file-regexp (if (eq system-type 'vax-vms)
-				      "\\.EL\\(;[0-9]+\\)?$"
-				    "\\.el$")
+(defcustom emacs-lisp-file-regexp "\\.el$"
   "*Regexp which matches Emacs Lisp source files.
 You may want to redefine the function `byte-compile-dest-file'
 if you change this variable."
@@ -225,9 +223,7 @@ If FILENAME matches `emacs-lisp-file-regexp' (by default, files
 with the extension `.el'), add `c' to it; otherwise add `.elc'."
       (setq filename (byte-compiler-base-file-name filename))
       (setq filename (file-name-sans-versions filename))
-      (cond ((eq system-type 'vax-vms)
-	     (concat (substring filename 0 (string-match ";" filename)) "c"))
-	    ((string-match emacs-lisp-file-regexp filename)
+      (cond ((string-match emacs-lisp-file-regexp filename)
 	     (concat (substring filename 0 (match-beginning 0)) ".elc"))
 	    (t (concat filename ".elc")))))
 
@@ -1788,7 +1784,6 @@ The value is non-nil if there were no errors, nil if errors."
 	(with-current-buffer output-buffer
 	  (goto-char (point-max))
 	  (insert "\n")			; aaah, unix.
-	  (let ((vms-stmlf-recfm t))
 	    (if (file-writable-p target-file)
 		;; We must disable any code conversion here.
 		(let ((coding-system-for-write 'no-conversion))
@@ -1808,7 +1803,7 @@ The value is non-nil if there were no errors, nil if errors."
 			    (if (file-exists-p target-file)
 				"cannot overwrite file"
 			      "directory not writable or nonexistent")
-			    target-file))))
+			    target-file)))
 	  (kill-buffer (current-buffer)))
 	(if (and byte-compile-generate-call-tree
 		 (or (eq t byte-compile-generate-call-tree)

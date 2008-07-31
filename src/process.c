@@ -159,11 +159,7 @@ extern Lisp_Object QCfilter;
 #endif /* HAVE_SOCKETS */
 
 /* Define first descriptor number available for subprocesses.  */
-#ifdef VMS
-#define FIRST_PROC_DESC 1
-#else /* Not VMS */
 #define FIRST_PROC_DESC 3
-#endif
 
 /* Define SIGCHLD as an alias for SIGCLD.  There are many conditionals
    testing SIGCHLD.  */
@@ -191,9 +187,6 @@ extern void serial_configure (struct Lisp_Process *p, Lisp_Object contact);
 
 #ifndef USE_CRT_DLL
 extern int errno;
-#endif
-#ifdef VMS
-extern char *sys_errlist[];
 #endif
 
 #ifndef HAVE_H_ERRNO
@@ -1417,12 +1410,7 @@ list_processes_1 (query_only)
 	{
 	  Lisp_Object tem;
 	  tem = Fcar (Fcdr (p->status));
-#ifdef VMS
-	  if (XINT (tem) < NSIG)
-	    write_string (sys_errlist [XINT (tem)], -1);
-	  else
-#endif
-	    Fprinc (symbol, Qnil);
+	  Fprinc (symbol, Qnil);
 	}
       else if (NETCONN1_P (p) || SERIALCONN1_P (p))
 	{
@@ -1587,12 +1575,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
      register Lisp_Object *args;
 {
   Lisp_Object buffer, name, program, proc, current_dir, tem;
-#ifdef VMS
-  register unsigned char *new_argv;
-  int len;
-#else
   register unsigned char **new_argv;
-#endif
   register int i;
   int count = SPECPDL_INDEX ();
 
@@ -1709,28 +1692,6 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     XPROCESS (proc)->encode_coding_system = val;
   }
 
-#ifdef VMS
-  /* Make a one member argv with all args concatenated
-     together separated by a blank.  */
-  len = SBYTES (program) + 2;
-  for (i = 3; i < nargs; i++)
-    {
-      tem = args[i];
-      CHECK_STRING (tem);
-      len += SBYTES (tem) + 1;	/* count the blank */
-    }
-  new_argv = (unsigned char *) alloca (len);
-  strcpy (new_argv, SDATA (program));
-  for (i = 3; i < nargs; i++)
-    {
-      tem = args[i];
-      CHECK_STRING (tem);
-      strcat (new_argv, " ");
-      strcat (new_argv, SDATA (tem));
-    }
-  /* Need to add code here to check for program existence on VMS */
-
-#else /* not VMS */
   new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
 
   /* If program file name is not absolute, search our path for it.
@@ -1782,7 +1743,6 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       new_argv[i - 2] = SDATA (tem);
     }
   new_argv[i - 2] = 0;
-#endif /* not VMS */
 
   XPROCESS (proc)->decoding_buf = make_uninit_string (0);
   XPROCESS (proc)->decoding_carryover = 0;
@@ -1841,7 +1801,6 @@ create_process_sigchld ()
 #endif
 #endif
 
-#ifndef VMS /* VMS version of this function is in vmsproc.c.  */
 void
 create_process (process, new_argv, current_dir)
      Lisp_Object process;
@@ -2285,7 +2244,6 @@ create_process (process, new_argv, current_dir)
   if (pid < 0)
     report_file_error ("Doing vfork", Qnil);
 }
-#endif /* not VMS */
 
 
 #ifdef HAVE_SOCKETS
@@ -4098,19 +4056,9 @@ deactivate_process (proc)
     {
       /* Beware SIGCHLD hereabouts. */
       flush_pending_output (inchannel);
-#ifdef VMS
-      {
-	VMS_PROC_STUFF *get_vms_process_pointer (), *vs;
-	sys$dassgn (outchannel);
-	vs = get_vms_process_pointer (p->pid);
-	if (vs)
-	  give_back_vms_process_stuff (vs);
-      }
-#else
       emacs_close (inchannel);
       if (outchannel >= 0 && outchannel != inchannel)
  	emacs_close (outchannel);
-#endif
 
       p->infd  = -1;
       p->outfd = -1;
@@ -5231,37 +5179,6 @@ read_process_output (proc, channel)
   int carryover = p->decoding_carryover;
   int readmax = 4096;
 
-#ifdef VMS
-  VMS_PROC_STUFF *vs, *get_vms_process_pointer();
-
-  vs = get_vms_process_pointer (p->pid);
-  if (vs)
-    {
-      if (!vs->iosb[0])
-	return (0);		/* Really weird if it does this */
-      if (!(vs->iosb[0] & 1))
-	return -1;		/* I/O error */
-    }
-  else
-    error ("Could not get VMS process pointer");
-  chars = vs->inputBuffer;
-  nbytes = clean_vms_buffer (chars, vs->iosb[1]);
-  if (nbytes <= 0)
-    {
-      start_vms_process_read (vs); /* Crank up the next read on the process */
-      return 1;			/* Nothing worth printing, say we got 1 */
-    }
-  if (carryover > 0)
-    {
-      /* The data carried over in the previous decoding (which are at
-         the tail of decoding buffer) should be prepended to the new
-         data read to decode all together.  */
-      chars = (char *) alloca (nbytes + carryover);
-      bcopy (SDATA (p->decoding_buf), buf, carryover);
-      bcopy (vs->inputBuffer, chars + carryover, nbytes);
-    }
-#else /* not VMS */
-
   chars = (char *) alloca (carryover + readmax);
   if (carryover)
     /* See the comment above.  */
@@ -5318,7 +5235,6 @@ read_process_output (proc, channel)
       else
 	nbytes = nbytes + 1;
     }
-#endif /* not VMS */
 
   p->decoding_carryover = 0;
 
@@ -5441,9 +5357,6 @@ read_process_output (proc, channel)
 	if (waiting_for_user_input_p == -1)
 	  record_asynch_buffer_change ();
 
-#ifdef VMS
-      start_vms_process_read (vs);
-#endif
       unbind_to (count, Qnil);
       return nbytes;
     }
@@ -5566,9 +5479,6 @@ read_process_output (proc, channel)
       SET_PT_BOTH (opoint, opoint_byte);
       set_buffer_internal (old);
     }
-#ifdef VMS
-  start_vms_process_read (vs);
-#endif
   return nbytes;
 }
 
@@ -5619,10 +5529,6 @@ send_process (proc, buf, len, object)
   SIGTYPE (*volatile old_sigpipe) ();
 
   GCPRO1 (object);
-
-#ifdef VMS
-  VMS_PROC_STUFF *vs, *get_vms_process_pointer();
-#endif /* VMS */
 
   if (p->raw_status_new)
     update_status (p);
@@ -5703,14 +5609,6 @@ send_process (proc, buf, len, object)
       len = coding->produced;
       buf = SDATA (coding->dst_object);
     }
-
-#ifdef VMS
-  vs = get_vms_process_pointer (p->pid);
-  if (vs == 0)
-    error ("Could not find this process: %x", p->pid);
-  else if (write_to_vms_process (vs, buf, len))
-    ;
-#else /* not VMS */
 
   if (pty_max_bytes == 0)
     {
@@ -5873,23 +5771,16 @@ send_process (proc, buf, len, object)
 	    Fprocess_send_eof (proc);
 	}
     }
-#endif /* not VMS */
   else
     {
       signal (SIGPIPE, old_sigpipe);
-#ifndef VMS
       proc = process_sent_to;
       p = XPROCESS (proc);
-#endif
       p->raw_status_new = 0;
       p->status = Fcons (Qexit, Fcons (make_number (256), Qnil));
       p->tick = ++process_tick;
       deactivate_process (proc);
-#ifdef VMS
-      error ("Error writing to process %s; closed it", SDATA (p->name));
-#else
       error ("SIGPIPE raised on process %s; closed it", SDATA (p->name));
-#endif
     }
 
   UNGCPRO;
@@ -6193,20 +6084,8 @@ process_send_signal (process, signo, current_group, nomsg)
       break;
 #endif /* ! defined (SIGCONT) */
     case SIGINT:
-#ifdef VMS
-      send_process (proc, "\003", 1, Qnil);	/* ^C */
-      goto whoosh;
-#endif
     case SIGQUIT:
-#ifdef VMS
-      send_process (proc, "\031", 1, Qnil);	/* ^Y */
-      goto whoosh;
-#endif
     case SIGKILL:
-#ifdef VMS
-      sys$forcex (&(p->pid), 0, 1);
-      whoosh:
-#endif
       flush_pending_output (p->infd);
       break;
     }
@@ -6547,9 +6426,6 @@ process has been transmitted to the serial port.  */)
       send_process (proc, "", 0, Qnil);
     }
 
-#ifdef VMS
-  send_process (proc, "\032", 1, Qnil); 	/* ^z */
-#else
   if (XPROCESS (proc)->pty_flag)
     send_process (proc, "\004", 1, Qnil);
   else if (EQ (XPROCESS (proc)->type, Qserial))
@@ -6594,7 +6470,6 @@ process has been transmitted to the serial port.  */)
 
       XPROCESS (proc)->outfd = new_outfd;
     }
-#endif /* VMS */
   return process;
 }
 
