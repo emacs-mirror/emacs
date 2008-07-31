@@ -1,3 +1,18 @@
+2008-07-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (normal-mode): Move call to hack-project-variables into
+	hack-local-variables.
+	(file-local-variables-alist, before-hack-local-variables-hook):
+	New vars.
+	(ignored-local-variables): Add file-local-variables-alist.
+	(hack-local-variables-filter): Renamed from
+	hack-local-variables-apply.  Add the result to
+	file-local-variables-alist, without applying them.
+	(hack-local-variables): Set file-local-variables-alist to nil.
+	Call hack-project-variables and before-hack-local-variables-hook.
+	Apply variables here, instead of hack-local-variables-apply.
+	Based on a patch by Alan Mackenzie.
+
 2008-07-30  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* info-look.el (autoconf-mode :doc-spec): For
