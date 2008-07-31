@@ -1,3 +1,10 @@
+2008-07-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_call_method_asynchronously)
+	(Fdbus_method_error_internal): New defuns.
+	(xd_read_message): Handle also reply messages.
+	(Vdbus_registered_functions_table): Extend docstring.
+
 2008-07-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* keyboard.c (gobble_input): Fix previous change.
