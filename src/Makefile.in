@@ -1056,7 +1056,7 @@ dispnew.o: dispnew.c systime.h commands.h process.h frame.h \
    window.h buffer.h dispextern.h termchar.h termopts.h termhooks.h cm.h \
    disptab.h indent.h intervals.h \
    xterm.h blockinput.h atimer.h character.h msdos.h composite.h keyboard.h \
-   $(config_h)
+   syssignal.h $(config_h)
 doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h keymap.h character.h
 doprnt.o: doprnt.c character.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h blockinput.h window.h \
@@ -1136,7 +1136,8 @@ sysdep.o: sysdep.c syssignal.h systty.h systime.h syswait.h blockinput.h \
    frame.h atimer.h window.h msdos.h dosfns.h keyboard.h cm.h $(config_h)
 term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
    disptab.h dispextern.h keyboard.h character.h charset.h coding.h ccl.h \
-   msdos.h window.h keymap.h blockinput.h atimer.h systime.h
+   msdos.h window.h keymap.h blockinput.h atimer.h systime.h systty.h \
+   syssignal.h  $(INTERVAL_SRC)
 termcap.o: termcap.c $(config_h)
 terminal.o: terminal.c frame.h termchar.h termhooks.h charset.h coding.h \
    keyboard.h $(config_h)
@@ -1198,12 +1199,12 @@ xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h xterm.h \
   lisp.h termopts.h
 gtkutil.o: gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
   blockinput.h window.h atimer.h systime.h termhooks.h keyboard.h \
-  charset.h coding.h
+  charset.h coding.h syssignal.h
 dbusbind.o: dbusbind.c termhooks.h $(config_h)
 
 hftctl.o: hftctl.c $(config_h)
-sound.o: sound.c dispextern.h $(config_h)
-atimer.o: atimer.c atimer.h systime.h $(config_h)
+sound.o: sound.c dispextern.h syssignal.h $(config_h)
+atimer.o: atimer.c atimer.h syssignal.h systime.h $(config_h)
 
 /* The files of Lisp proper */
 
@@ -1216,7 +1217,7 @@ data.o: data.c buffer.h puresize.h character.h syssignal.h keyboard.h frame.h \
    termhooks.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h \
   dispextern.h $(config_h)
-floatfns.o: floatfns.c $(config_h)
+floatfns.o: floatfns.c syssignal.h $(config_h)
 fns.o: fns.c commands.h $(config_h) frame.h buffer.h character.h keyboard.h \
  keymap.h frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h md5.h \
  blockinput.h atimer.h systime.h xterm.h termhooks.h

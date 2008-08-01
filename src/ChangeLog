@@ -1,4 +1,5 @@
 2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
 	Warning clearing and clean-up in NS port.
 	* keyboard.h (xmalloc_widget_value, digest_single_submenu): Add
 	prototypes.
@@ -43,6 +44,10 @@
 	* xfaces.c (ns_list_fonts, w32_list_fonts): Remove, unused.
 
 2008-08-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (dispnew.o, gtkutil.o, sound.o, atimer.o)
+	(floatfns.o): Depend on syssignal.h.
+	(term.o): Depend on syssignal.h, systty.h, and $(INTERVAL_SRC).
 
 	* systty.h: Fix previous change that removed BSD_TERMIOS.  Add
 	comments to #ifdefs.
