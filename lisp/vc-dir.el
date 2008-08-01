@@ -206,7 +206,7 @@ See `run-hooks'."
       '(menu-item "Register" vc-register
 		  :help "Register file set into the version control system"))
     map)
-  "Menu for dispatcher status")
+  "Menu for VC dir")
 
 ;; VC backends can use this to add mode-specific menu items to
 ;; vc-dir-menu-map.
@@ -231,8 +231,9 @@ See `run-hooks'."
     (define-key map "+" 'vc-update)	   ;; C-x v +
     (define-key map "l" 'vc-print-log)	   ;; C-x v l
     ;; More confusing than helpful, probably
-    ;;(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
-    ;;(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher refresh
+    ;;(define-key map "R" 'vc-revert) ;; u is taken by vc-dir-unmark.
+    ;;(define-key map "A" 'vc-annotate) ;; g is taken by revert-buffer
+    ;;                                     bound by `special-mode'.
     ;; Marking.
     (define-key map "m" 'vc-dir-mark)
     (define-key map "M" 'vc-dir-mark-all-files)
@@ -285,7 +286,7 @@ If `body' uses `event', it should be a variable,
          ,@body))))
 
 (defun vc-dir-menu (e)
-  "Popup the dispatcher status menu."
+  "Popup the VC dir menu."
   (interactive "e")
   (vc-at-event e (popup-menu vc-dir-menu-map e)))
 
@@ -871,7 +872,7 @@ If it is a file, return the corresponding cons for the file itself."
 (defvar use-vc-backend)  ;; dynamically bound
 
 (define-derived-mode vc-dir-mode special-mode "VC dir"
-  "Major mode for dispatcher directory buffers.
+  "Major mode for VC directory buffers.
 Marking/Unmarking key bindings and actions:
 m - marks a file/directory or if the region is active, mark all the files
      in region.
@@ -889,6 +890,19 @@ U - if the cursor is on a file: unmark all the files with the same state
   - if the cursor is on a directory: unmark all child files
   - with a prefix argument: unmark all files
 
+VC commands
+VC commands in the `C-x v' can be used, they act on the marked
+entries, or on the current entry if nothing is marked.
+
+Search & Replace
+S - searches the marked files
+Q - does a query replace on the marked files
+M-s a C-s - does an isearch on the marked files
+M-s a C-M-s - does an isearch on the marked files
+If nothing is marked, these commands act on the current entry.
+When a directory is current or marked, the Search & Replace
+commands act on the files in those directories displayed in the
+*vc-dir* buffer.
 
 \\{vc-dir-mode-map}"
   (set (make-local-variable 'vc-dir-backend) use-vc-backend)
