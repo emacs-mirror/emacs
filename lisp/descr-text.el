@@ -341,10 +341,11 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 		   (format "%s:%s (#x%02X)" type name code)
 		 (format "%s:%s (#x%04X%04X)"
 			 type name (car code) (cdr code))))))
-    (let* ((coding (terminal-coding-system))
-	   (encoded (encode-coding-char char coding)))
+    (let* ((charset (get-text-property pos 'charset))
+	   (coding (terminal-coding-system))
+	   (encoded (encode-coding-char char coding charset)))
       (if encoded
-	  (encoded-string-description encoded coding)))))
+	  (encoded-string-description encoded coding charset)))))
 
 
 ;; Return a string of CH with composition for padding on both sides.
@@ -363,7 +364,7 @@ as well as widgets, buttons, overlays, and text properties."
   (if (>= pos (point-max))
       (error "No character follows specified position"))
   (let* ((char (char-after pos))
-	 (charset (char-charset char))
+	 (charset (or (get-text-property pos 'charset) (char-charset char)))
 	 (composition (find-composition pos nil nil t))
 	 (component-chars nil)
 	 (display-table (or (window-display-table)
@@ -388,7 +389,9 @@ as well as widgets, buttons, overlays, and text properties."
 	      (kill-buffer tmp-buf))))
 	 item-list max-width code)
 
-    (setq code (encode-char char charset))
+    (or (setq code (encode-char char charset))
+	(setq charset (char-charset char)
+	      code (encode-char char charset)))
     (setq item-list
 	  `(("character"
 	     ,(format "%s (%d, #o%o, #x%x)"
@@ -450,7 +453,7 @@ as well as widgets, buttons, overlays, and text properties."
 	       (string-as-unibyte (char-to-string char)) nil))
 	    ("file code"
 	     ,@(let* ((coding buffer-file-coding-system)
-		      (encoded (encode-coding-char char coding)))
+		      (encoded (encode-coding-char char coding charset)))
 		 (if encoded
 		     (list (encoded-string-description encoded coding)
 			   (format "(encoded by coding system %S)" coding))
