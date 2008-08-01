@@ -1,5 +1,7 @@
 2008-08-01  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xmenu.c: Revert last change.
+
 	* keyboard.h: Fix last change.
 
 2008-08-01  Juanma Barranquero  <lekktu@gmail.com>
