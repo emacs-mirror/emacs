@@ -1,3 +1,7 @@
+2008-08-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.h: Fix last change.
+
 2008-08-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xfaces.c (x-load-color-file): Use RGB() instead of manually shifting
