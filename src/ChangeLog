@@ -1,5 +1,7 @@
 2008-08-01  Chong Yidong  <cyd@stupidchicken.com>
 
+	* nsfns.m (ns_frame_parm_handlers): Add empty entry for
+	x_set_alpha.
 
 	* nsterm.m (EmacsApp -application:openFiles:): GNUStep does not
 	define NSApplicationDelegateReplySuccess.
