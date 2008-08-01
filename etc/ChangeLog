@@ -1,3 +1,8 @@
+2008-08-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* NEWS: Add entries about the new auth-source integration and
+	about the cyrillic-translit modifications.
+
 2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Emacs.clr: Remove.

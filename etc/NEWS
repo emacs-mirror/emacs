@@ -156,6 +156,11 @@ active frame and INACTIVE is the opactity of non-active frames.
 The variable `frame-alpha-lower-limit' defines a lower bound for the
 opacity; the default is 20.
 
+*** Emacs can now use `auth-source' for authentication.
+`smtpmail' and `url' (Tramp and Gnus also) use `auth-source' to obtain
+login names and passwords.  The match, if found, is reported
+in *Messages* with the password blanked out.
+
 ** Internationalization changes
 
 *** The Emacs character set is now a superset of Unicode.
@@ -196,6 +201,11 @@ unify-8859-on-decoding-mode are obsolete.
 *** `ucs-insert' is bound to `C-x 8 RET' and in addition to hex numbers
 accepts numbers in hash notation (e.g. #o21430 for octal, or #10r8984 for
 decimal).  It also accepts Unicode character names with completion.
+
+*** The `cyrillic-translit' input method supports many new characters.
+Common typographical characters available from Unicode were added to
+`cyrillic-translit': punctuation marks, accented characters, fractions,
+and others.
 
 ** Emacs now supports serial port access on GNU/Linux, Unix, and
 Windows.  The new command `serial-term' starts an interactive terminal
@@ -691,6 +701,11 @@ GNUS-NEWS or the node "No Gnus" in the Gnus manual for details.
 saving articles drafts and ~/.newsrc.eld.  These file may not be read
 correctly in Emacs 22 and below.  If you want to Gnus across different Emacs
 versions, you may set `mm-auto-save-coding-system' to `emacs-mule'.
+
+*** Password are consistently loaded through `auth-source'
+Gnus can use `auth-source' for POP and IMAP passwords.  Also see that
+`smtpmail' and `url' support `auth-source' for SMTP and HTTP/HTTPS/RSS
+authentication respectively.
 
 ** Help mode
 *** New macro `with-help-window' should set up help windows better
