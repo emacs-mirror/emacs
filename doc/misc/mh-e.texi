@@ -1601,6 +1601,14 @@ Display message (@code{mh-show}).
 @item , (comma)
 Display message with all header fields (@code{mh-header-display}).
 @c -------------------------
+@cindex @samp{Message > Show Message with Preferred Alternative} menu item
+@cindex menu item, @samp{Message > Show Message with Preferred Alternative}
+@kindex : (colon)
+@findex mh-show-preferred-alternative
+@item : (colon)
+Display message with the default preferred alternative
+(@code{mh-show-preferred-alternative}).
+@c -------------------------
 @kindex ; (semicolon)
 @findex mh-toggle-mh-decode-mime-flag
 @item ; (semicolon)
@@ -2478,6 +2486,15 @@ Many people prefer to see the @samp{text/plain} alternative rather
 than the @samp{text/html} alternative. To do this in MH-E, customize
 the option @code{mm-discouraged-alternatives}, and add
 @samp{text/html}. The next best alternative, if any, will be shown.
+
+@findex mh-show-preferred-alternative
+@kindex : (colon)
+
+Occasionally, though, you might want to see the preferred alternative.
+The command @kbd{:} (@code{mh-show-preferred-alternative}) displays
+the message with the default preferred alternative. This is as if
+@code{mm-discouraged-alternatives} is set to @samp{nil}. Use the
+command @key{RET} (@code{mh-show}) to show the message normally again.
 
 @kindex K i
 @findex mh-folder-inline-mime-part
@@ -3536,6 +3553,7 @@ you want to process refiles or deletes first and then either run
 @kindex x
 @vindex mh-after-commands-processed-hook
 @vindex mh-before-commands-processed-hook
+@vindex mh-current-folder
 
 The command @kbd{x} runs @code{mh-before-commands-processed-hook}
 before the commands are processed and
@@ -3928,6 +3946,10 @@ On means the MH-Show buffer is displayed using @kbd{r}
 The following hooks are available.
 
 @vtable @code
+@item mh-annotate-msg-hook
+Hook run by @code{mh-annotate-msg} after annotation (default:
+@code{nil}).
+@c -------------------------
 @item mh-forward-hook
 Hook run by @code{mh-forward} on a forwarded letter (default:
 @code{nil}).
@@ -3937,8 +3959,19 @@ Hook run by @code{mh-letter-mode} on a new letter (default:
 @code{nil}).
 @end vtable
 
-The functions and options introduced here are explained in more detail
-in the following sections.
+@findex mh-annotate-msg
+@vindex mh-annotate-list
+@vindex mh-annotate-msg-hook
+@vindex mh-current-folder
+
+A hook that is called whenever a message is sent and after the scan
+lines and message are annotated is @code{mh-annotate-msg-hook}. Hook
+functions can access the current folder name with
+@code{mh-current-folder} and obtain the message numbers of the
+annotated messages with @code{mh-annotate-list}.
+
+The rest of the functions and options introduced here are explained in
+more detail in the following sections.
 
 @menu
 * Composing::
@@ -4267,6 +4300,9 @@ which is the case if @command{send}@footnote{See the section
 in the MH book.} is compiled with the @sc{berk} option (which many
 people abhor). If you find that MH will not allow you to redistribute
 a message that has been redistributed before, turn off this option.
+
+The hook @code{mh-annotate-msg-hook} is run after annotating the
+message and scan line (@pxref{Sending Mail}).
 
 @node Editing Again,  , Redistributing, Sending Mail
 @section Editing Old Drafts and Bounced Messages
@@ -5619,6 +5655,9 @@ In case the MH @command{send} program@footnote{See the section
 @uref{@value{MH-BOOK-HOME}/sensen.html, Sending Some Mail: comp send}
 in the MH book.} is installed under a different name, use
 @code{mh-send-prog} to tell MH-E the name.
+
+The hook @code{mh-annotate-msg-hook} is run after annotating the
+message and scan line (@pxref{Sending Mail}).
 
 @node Killing Draft,  , Sending Message, Editing Drafts
 @section Killing the Draft
