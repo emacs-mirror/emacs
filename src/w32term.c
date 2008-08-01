@@ -1631,9 +1631,6 @@ x_draw_composite_glyph_string_foreground (s)
   SetBkMode (s->hdc, TRANSPARENT);
   SetTextAlign (s->hdc, TA_BASELINE | TA_LEFT);
 
-  if (s->font && s->font->hfont)
-    old_font = SelectObject (s->hdc, s->font->hfont);
-
   /* Draw a rectangle for the composition if the font for the very
      first character of the composition could not be loaded.  */
   if (s->font_not_found_p)
@@ -1644,6 +1641,13 @@ x_draw_composite_glyph_string_foreground (s)
     }
   else
     {
+      if (s->font && s->font->hfont)
+        old_font = SelectObject (s->hdc, s->font->hfont);
+
+      /* Because of the way Emacs encodes composite glyphs, the font_type
+         may not be set up yet.  Always use unicode for composite glyphs.  */
+      s->first_glyph->font_type = UNICODE_FONT;
+
       for (i = 0; i < s->nchars; i++, ++s->gidx)
 	{
 	  w32_text_out (s, x + s->cmp->offsets[s->gidx * 2],
@@ -1654,10 +1658,10 @@ x_draw_composite_glyph_string_foreground (s)
 			  s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
 			  s->char2b + i, 1);
 	}
-    }
 
-  if (s->font && s->font->hfont)
-    SelectObject (s->hdc, old_font);
+      if (s->font && s->font->hfont)
+        SelectObject (s->hdc, old_font);
+    }
 }
 
 

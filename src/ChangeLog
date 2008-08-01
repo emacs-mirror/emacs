@@ -1,3 +1,8 @@
+2008-08-01  Jason Rumney  <jasonr@gnu.org>
+
+        * w32term.c (x_draw_composite_glyph_string_foreground): Force
+        use of Unicode output.
+
 2008-07-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (Fx_menu_bar_open_internal): Use activate_item signal to
