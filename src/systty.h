@@ -151,12 +151,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef EMACS_HAVE_TTY_PGRP
 
+#if defined (HAVE_TERMIOS)
+
+#define EMACS_GET_TTY_PGRP(fd, pgid) (*(pgid) = tcgetpgrp ((fd)))
+#define EMACS_SET_TTY_PGRP(fd, pgid) (tcsetpgrp ((fd), *(pgid)))
+
+#else /* not HAVE_TERMIOS */
 #ifdef TIOCSPGRP
 
 #define EMACS_GET_TTY_PGRP(fd, pgid) (ioctl ((fd), TIOCGPGRP, (pgid)))
 #define EMACS_SET_TTY_PGRP(fd, pgid) (ioctl ((fd), TIOCSPGRP, (pgid)))
 
 #endif /* TIOCSPGRP */
+#endif /* HAVE_TERMIOS */
 
 #else /* not EMACS_SET_TTY_PGRP */
 
@@ -170,7 +177,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #if defined (GETPGRP_VOID)
 #  define EMACS_GETPGRP(x) getpgrp()
-#else
+#else /* !GETPGRP_VOID */
 #  define EMACS_GETPGRP(x) getpgrp(x)
 #endif /* !GETPGRP_VOID */
 
@@ -209,30 +216,30 @@ struct emacs_tty {
    for dummy get and set definitions.  */
 #ifdef HAVE_TCATTR
   struct termios main;
-#else
+#else /* not HAVE_TCATTR */
 #ifdef HAVE_TERMIO
   struct termio main;
-#else
+#else /* not HAVE_TERMIO */
 #ifdef DOS_NT
   int main;
 #else  /* not DOS_NT */
   struct sgttyb main;
 #endif /* not DOS_NT */
-#endif
-#endif
+#endif /* not HAVE_TERMIO */
+#endif /* not HAVE_TCATTR */
 
 /* If we have TERMIOS, we don't need to do this - they're taken care of
    by the tc*attr calls.  */
 #ifndef HAVE_TERMIOS
 #ifdef HAVE_LTCHARS
   struct ltchars ltchars;
-#endif
+#endif /* HAVE_LTCHARS */
 
 #ifdef HAVE_TCHARS
   struct tchars tchars;
   int lmode;
-#endif
-#endif
+#endif /* HAVE_TCHARS */
+#endif /* not defined HAVE_TERMIOS */
 };
 
 /* Define EMACS_GET_TTY and EMACS_SET_TTY,
@@ -255,9 +262,9 @@ extern int emacs_set_tty P_ ((int, struct emacs_tty *, int));
 
 #ifdef TABDLY
 #define EMACS_TTY_TABS_OK(p) (((p)->main.c_oflag & TABDLY) != TAB3)
-#else
+#else /* not TABDLY */
 #define EMACS_TTY_TABS_OK(p) 1
-#endif
+#endif /* not TABDLY */
 
 #else /* not def HAVE_TERMIOS */
 #ifdef HAVE_TERMIO
