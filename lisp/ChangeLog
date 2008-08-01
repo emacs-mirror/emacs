@@ -1,3 +1,26 @@
+2008-08-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-check-event, dbus-handle-event): Handle D-Bus
+	error messages.
+	(dbus-set-property): Call `dbus-introspect-get-property' instead
+	of `dbus-get-property'.
+
+	* net/xesam.el (xesam-all-fields): Remove source and content
+	identifiers.
+	(xesam-dbus-unique-names): New defvar.
+	(xesam-dbus-call-method): New defun.  Replace all calls of
+	`dbus-call-method' by `xesam-dbus-call-method'.
+	(xesam-get-cached-property, xesam-set-cached-property): New
+	defuns.
+	(xesam-get-property, xesam-set-property, xesam-refresh-entry)
+	(xesam-new-search, xesam-search): Apply
+	`xesam-get-cached-property'.
+	(xesam-search-engines): Make it an association list.  Take changed
+	layout into account in the corresponding function.
+	(xesam-delete-search-engine): Remove check for consistency of
+	`xesam-search-engines', not needed anymore.
+	(xesam-mode): Show XML query string only in the debug case.
+
 2008-07-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (read-file-modes): Fix tpo in docstring.
