@@ -1,5 +1,11 @@
 2008-08-01  Chong Yidong  <cyd@stupidchicken.com>
 
+
+	* nsterm.m (EmacsApp -application:openFiles:): GNUStep does not
+	define NSApplicationDelegateReplySuccess.
+	(EmacsView -converstationIdentifier): Use long instead of
+	NSInteger for GNUStep, since it doesn't have NSInteger.
+
 	* xmenu.c: Revert last change.
 
 	* keyboard.h: Fix last change.
