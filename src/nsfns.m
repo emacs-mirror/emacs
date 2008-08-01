@@ -280,7 +280,7 @@ interpret_services_menu (NSMenu *menu, Lisp_Object prefix, Lisp_Object old)
    -------------------------------------------------------------------------- */
 {
   int i, count;
-  id<NSMenuItem> item;
+  NSMenuItem *item;
   const char *name;
   Lisp_Object nameStr;
   unsigned short key;

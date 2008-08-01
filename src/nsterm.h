@@ -36,8 +36,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 @interface EmacsApp : NSApplication
 {
 }
+- (void)logNotification: (NSNotification *)notification;
 - (void)sendEvent: (NSEvent *)theEvent;
 - (void)showPreferencesWindow: (id)sender;
+- (BOOL) openFile: (NSString *)fileName;
+- (void)fd_handler: (NSTimer *) fdEntry;
+- (void)cursor_blink_handler: (NSTimer *)cursorEntry;
+- (void)timeout_handler: (NSTimer *)timedEntry;
+- (BOOL)fulfillService: (NSString *)name withArg: (NSString *)arg;
 @end
 
 
@@ -104,7 +110,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (void)setFrame: (struct frame *)f;
 - (void)menuNeedsUpdate: (NSMenu *)menu; /* (delegate method) */
 - (NSString *)parseKeyEquiv: (char *)key;
-- (id <NSMenuItem>)addItemWithWidgetValue: (void *)wvptr;
+- (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr;
 - (void)fillWithWidgetValue: (void *)wvptr;
 - (EmacsMenu *)addSubmenuWithTitle: (char *)title forFrame: (struct frame *)f;
 - (void) clear;
@@ -727,10 +733,6 @@ extern Lisp_Object ns_list_fonts (FRAME_PTR f, Lisp_Object pattern,
                                   int size, int maxnames);
 extern void ns_clear_frame (struct frame *f);
 
-#ifdef __OBJC__
-extern const char *ns_font_to_xlfd (NSFont *font);
-#endif
-extern const char *ns_fontname_to_xlfd (const char *name);
 extern const char *ns_xlfd_to_fontname (const char *xlfd);
 
 extern void check_ns (void);

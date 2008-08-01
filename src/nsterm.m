@@ -785,7 +785,7 @@ ns_unfocus (struct frame *f)
 
 
 static void
-ns_clip_to_row (struct window *w, struct glyph_row *row, int area, GC gc)
+ns_clip_to_row (struct window *w, struct glyph_row *row, int area, BOOL gc)
 /* --------------------------------------------------------------------------
      23: Internal (but parallels other terms): Focus drawing on given row
    -------------------------------------------------------------------------- */
@@ -2212,7 +2212,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       int oldVH = row->visible_height;
       row->visible_height = p->h;
       row->y -= rowY - p->y;
-      ns_clip_to_row (w, row, -1, NULL);
+      ns_clip_to_row (w, row, -1, NO);
       row->y = oldY;
       row->visible_height = oldVH;
     }
@@ -2329,7 +2329,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 
   /* TODO: only needed in rare cases with last-resort font in HELLO..
      should we do this more efficiently? */
-  ns_clip_to_row (w, glyph_row, -1, NULL);
+  ns_clip_to_row (w, glyph_row, -1, NO);
 /*  ns_focus (f, &r, 1); */
 
   if (FRAME_LAST_INACTIVE (f))
@@ -2943,8 +2943,8 @@ ns_draw_glyph_string (struct glyph_string *s)
                      (s->for_overlaps ? NS_DUMPGLYPH_FOREGROUND :
                       NS_DUMPGLYPH_NORMAL));
       ns_tmp_font = (struct nsfont_info *)s->face->font;
-      if (ns_tmp_font == ~0 || ns_tmp_font == NULL)
-          ns_tmp_font = FRAME_FONT (s->f);
+      if (ns_tmp_font == NULL)
+          ns_tmp_font = (struct nsfont_info *)FRAME_FONT (s->f);
 
       ns_tmp_font->font.driver->draw
         (s, 0, s->nchars, s->x, s->y,
@@ -3078,8 +3078,9 @@ ns_read_socket (struct terminal *terminal, int expected,
     }
   /* Deal with pending service requests. */
   else if (ns_pending_service_names && [ns_pending_service_names count] != 0
-    && [NSApp fulfillService: [ns_pending_service_names objectAtIndex: 0]
-                     withArg: [ns_pending_service_args objectAtIndex: 0]])
+    && [(EmacsApp *)
+         NSApp fulfillService: [ns_pending_service_names objectAtIndex: 0]
+                      withArg: [ns_pending_service_args objectAtIndex: 0]])
     {
       [ns_pending_service_names removeObjectAtIndex: 0];
       [ns_pending_service_args removeObjectAtIndex: 0];
@@ -3437,7 +3438,7 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 
    ========================================================================== */
 
-static Lisp_Object ns_string_to_lispmod (char *s)
+static Lisp_Object ns_string_to_lispmod (const char *s)
 /* --------------------------------------------------------------------------
      Convert modifier name to lisp symbol
    -------------------------------------------------------------------------- */
@@ -3876,7 +3877,7 @@ ns_term_init (Lisp_Object display_name)
 #ifdef NS_IMPL_COCOA
   {
     NSMenu *appMenu;
-    id<NSMenuItem> item;
+    NSMenuItem *item;
     /* set up the application menu */
     svcsMenu = [[EmacsMenu alloc] initWithTitle: @"Services"];
     [svcsMenu setAutoenablesItems: NO];
@@ -4029,6 +4030,26 @@ ns_term_shutdown (int sig)
 }
 
 
+/* Open a file (used by below, after going into queue read by ns_read_socket) */
+- (BOOL) openFile: (NSString *)fileName
+{
+  struct frame *emacsframe = SELECTED_FRAME ();
+  NSEvent *theEvent = [NSApp currentEvent];
+
+  if (!emacs_event)
+    return NO;
+
+  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->code = KEY_NS_OPEN_FILE_LINE;
+  ns_input_file = append2 (ns_input_file, build_string ([fileName UTF8String]));
+  ns_input_line = Qnil; /* can be start or cons start,end */
+  emacs_event->modifiers =0;
+  EV_TRAILER (theEvent);
+
+  return YES;
+}
+
+
 /* **************************************************************************
 
       EmacsApp delegate implementation
@@ -4080,26 +4101,6 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
 }
 
 
-/* Open a file (used by below, after going into queue read by ns_read_socket) */
--(BOOL) openFile: (NSString *)fileName
-{
-  struct frame *emacsframe = SELECTED_FRAME ();
-  NSEvent *theEvent = [NSApp currentEvent];
-
-  if (!emacs_event)
-    return NO;
-
-  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
-  emacs_event->code = KEY_NS_OPEN_FILE_LINE;
-  ns_input_file = append2 (ns_input_file, build_string ([fileName UTF8String]));
-  ns_input_line = Qnil; /* can be start or cons start,end */
-  emacs_event->modifiers =0;
-  EV_TRAILER (theEvent);
-
-  return YES;
-}
-
-
 /*   Notification from the Workspace to open a file */
 - (BOOL)application: sender openFile: (NSString *)file
 {
@@ -4131,7 +4132,7 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
   NSString *file;
   while ((file = [files nextObject]) != nil)
     [ns_pending_files addObject: file];
-  return YES;
+  [self replyToOpenOrPrint: NSApplicationDelegateReplySuccess];
 }
 
 /* TODO: these may help w/IO switching btwn terminal and NSApp */
@@ -4359,7 +4360,7 @@ extern void update_window_cursor (struct window *w, int on);
          NSView most recently updated (I guess), which is not the correct one.
          UPDATE: After multi-TTY merge this happens even w/o NO_SOCK_SIGIO */
      if ([[theEvent window] isKindOfClass: [EmacsWindow class]])
-         [[(EmacsView *)[theEvent window] delegate] keyDown: theEvent];
+         [(EmacsView *)[[theEvent window] delegate] keyDown: theEvent];
      return;
    }
 
@@ -4638,9 +4639,9 @@ if (NS_KEYLOG) NSLog (@"firstRectForCharRange request");
   return rect;
 }
 
-- (long)conversationIdentifier
+- (NSInteger)conversationIdentifier
 {
-  return (long)self;
+  return (NSInteger)self;
 }
 
 /* TODO: below here not yet implemented correctly, but may not be needed */
@@ -5239,7 +5240,8 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
     context_menu_value = [sender tag];
   else
     find_and_call_menu_selection (emacsframe, emacsframe->menu_bar_items_used,
-                                  emacsframe->menu_bar_vector, [sender tag]);
+                                  emacsframe->menu_bar_vector,
+                                  (void *)[sender tag]);
   ns_send_appdefined (-1);
   return self;
 }
@@ -6156,6 +6158,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 /* ==========================================================================
 
    Font-related functions; these used to be in nsfaces.m
+   The XLFD functions (115 lines) are an abomination that should be removed.
 
    ========================================================================== */
 
@@ -6204,141 +6207,9 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 }
 
 
-Lisp_Object
-ns_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames)
-/* --------------------------------------------------------------------------
-     This is used by the xfaces system.  It is expected to speak XLFD.
-   -------------------------------------------------------------------------- */
-{
-  Lisp_Object list = Qnil,
-    rpattern,
-    key,
-    tem,
-    args[2];
-  struct re_pattern_buffer *bufp;
-  id fm = [NSFontManager sharedFontManager];
-  NSEnumerator *fenum, *senum;
-  NSArray *membInfo;
-  NSString *fontname;
-  const char *xlfdName;
-  char *pattFam;
-  char *patt;
-  NSString *famName;
-
-  NSTRACE (ns_list_fonts);
-
-  CHECK_STRING (pattern);
-  patt = SDATA (pattern);
-
-#if 0
-/* temporary: for font_backend, we use fontsets, and when these are defined,
-   the old XLFD-based system is used; eventually this will be replaced by
-   backend code, but for now we allow specs that are just family names */
-      /* if pattern is not XLFD, panic now */
-      if (patt[0] != '-')
-        error ("ns_list_fonts: X font name (XLFD) expected.");
-
-      /* if unicode encoding not requested, also die */
-      if (!strstr (patt, "iso10646") && patt[strlen (patt)-3] != '*')
-        return Qnil;
-#endif /* 0 */
-
-  key = f ? Fcons (pattern, make_number (maxnames)) : Qnil;
-  tem = f ? XCDR (FRAME_NS_DISPLAY_INFO (f)->name_list_element) : Qnil;
-
-  /* See if we cached the result for this particular query.
-     The cache is an alist of the form:
-     ((((PATTERN . MAXNAMES) FONTNAME) ...) ...)
-  */
-  if (f && !NILP (list = Fassoc (key, tem)))
-    {
-      list = Fcdr_safe (list);
-      /* We have a cached list.  Don't have to get the list again.  */
-      if (!NILP (list))
-        return list;
-    }
-
-  if (patt[0] != '-')
-      pattFam = patt;
-  else
-      pattFam = ns_xlfd_to_fontname (patt);
-  /* XXX: '*' at beginning matches literally.. */
-  if (pattFam[0] == '*')
-    pattFam[0] = '.';
-
-  /* must start w/family name, but can have other stuff afterwards
-    (usually bold and italic specifiers) */
-  args[0] = build_string ("^");
-  args[1] = build_string (pattFam);
-  rpattern = Fconcat (2, args);
-  bufp = compile_pattern (rpattern, 0, Vascii_canon_table, 0, 0);
-
-  list = Qnil;
-  fenum = [[fm availableFontFamilies] objectEnumerator];
-  while ( (famName = [fenum nextObject]) )
-    {
-      NSMutableString *tmp = [famName mutableCopy];
-      const char *fname;
-      NSRange r;
-
-      /* remove spaces, to look like postscript name */
-      while ((r = [tmp rangeOfString: @" "]).location != NSNotFound)
-        [tmp deleteCharactersInRange: r];
-
-      fname = [tmp UTF8String];
-      int len = strlen (fname);
-      BOOL foundItal;
-      const char *synthItalFont;
-
-      if (re_search (bufp, fname, len, 0, len, 0) >= 0)
-        {
-          /* Found a family.  Add all variants.  If we have no italic variant,
-             add a synthItal. */
-          senum =[[fm availableMembersOfFontFamily: famName] objectEnumerator];
-          foundItal = NO;
-          synthItalFont = NULL;
-          while (membInfo = [senum nextObject])
-            {
-              xlfdName
-		= ns_fontname_to_xlfd ([[membInfo objectAtIndex: 0]
-					 UTF8String]);
-              list = Fcons (build_string (xlfdName), list);
-              if (!synthItalFont)
-                {
-                  NSString *synthName
-		    = [[membInfo objectAtIndex: 0]
-			stringByAppendingString: @"-synthItal"];
-                  synthItalFont = [synthName UTF8String];
-                }
-              else if ([[membInfo objectAtIndex: 3] intValue]
-                         & NSItalicFontMask)
-                foundItal = YES;
-            }
-          if (foundItal == NO)
-            {
-              xlfdName = ns_fontname_to_xlfd (synthItalFont);
-              list = Fcons (build_string (xlfdName), list);
-            }
-        }
-      [tmp release];
-    }
-
-  /* fallback */
-  if (XFASTINT (Flength (list)) == 0)
-      list = Fcons (build_string (ns_fontname_to_xlfd ("Monaco")), list);
-
-  /* store result in cache */
-  if (f != NULL)
-    XCDR_AS_LVALUE (FRAME_NS_DISPLAY_INFO (f)->name_list_element)
-      = Fcons (Fcons (key, list),
-               XCDR (FRAME_NS_DISPLAY_INFO (f)->name_list_element));
-  return list;
-}
-
-
 /* XLFD: -foundry-family-weight-slant-swidth-adstyle-pxlsz-ptSz-resx-resy-spc-avgWidth-rgstry-encoding */
 
-const char *
+static const char *
 ns_font_to_xlfd (NSFont *nsfont)
 /* --------------------------------------------------------------------------
     Convert an NS font name to an X font name (XLFD).
@@ -6347,7 +6218,7 @@ ns_font_to_xlfd (NSFont *nsfont)
 {
   NSFontManager *mgr = [NSFontManager sharedFontManager];
   NSString *sname = [nsfont /*familyName*/fontName];
-  char *famName = [sname UTF8String];
+  char *famName = (char *)[sname UTF8String];
   char *weightStr = [mgr fontNamed: sname hasTraits: NSBoldFontMask] ?
       "bold" : "medium";
   char *slantStr = [mgr fontNamed: sname hasTraits: NSItalicFontMask] ?
@@ -6358,7 +6229,7 @@ ns_font_to_xlfd (NSFont *nsfont)
   int i, len;
 
   /* change '-' to '$' to avoid messing w/XLFD separator */
-  for (len =strlen (famName), i =0; i<len; i++)
+  for (len = strlen (famName), i =0; i<len; i++)
     if (famName[i] == '-')
       {
         famName[i] = '\0';
@@ -6373,7 +6244,7 @@ ns_font_to_xlfd (NSFont *nsfont)
   return xlfd;
 }
 
-const char *
+static const char *
 ns_fontname_to_xlfd (const char *name)
 /* --------------------------------------------------------------------------
     Convert an NS font name to an X font name (XLFD).
@@ -6452,6 +6323,7 @@ ns_xlfd_to_fontname (const char *xlfd)
   xfree (name);
   return ret;
 }
+
 
 void
 syms_of_nsterm ()

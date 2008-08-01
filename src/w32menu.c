@@ -103,10 +103,6 @@ static Lisp_Object w32_menu_show P_ ((FRAME_PTR, int, int, int, int,
 
 void w32_free_menu_strings P_((HWND));
 
-static int next_menubar_widget_id;
-
-extern widget_value *xmalloc_widget_value P_ ((void));
-extern widget_value *digest_single_submenu P_ ((int, int, int));
 
 /* This is set nonzero after the user activates the menu bar, and set
    to zero again after the menu bars are redisplayed by prepare_menu_bar.

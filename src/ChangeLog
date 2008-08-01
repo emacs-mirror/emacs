@@ -1,3 +1,47 @@
+2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+	Warning clearing and clean-up in NS port.
+	* keyboard.h (xmalloc_widget_value, digest_single_submenu): Add
+	prototypes.
+	* nsgui.h (FACE_DEFAULT): Remove, unused.
+	(XGCValues): Change colors to unsigned long.
+	* nsterm.h (EmacsApp): Add declaration of all methods implemented in
+	nsterm.m.
+	(EmacsMenu -addItemWithWidgetValue:): Change to use NSMenuItem class.
+	(ns_list_fonts): Remove, unused.
+	(ns_font_to_xlfd, ns_fontname_to_xlfd): Drop prototypes.
+	* nsfns.m (interpret_services_menu): Use NSMenuItem class.
+	* nsfont.m (nsfont_open): Fix cast error in glyphs,metrics alloc.
+	(nsfont_draw): Compare face colors to 0, not nil.
+	* nsmenu.m (struct widget_value): Drop unneeded declaration.
+	(EmacsMenu -addItemWithWidgetValue:, -fillWithWidgetValue:)
+	(-addSubmenuWithTitle:): Use NSMenuItem class.
+	(ns_popup_menu): Use NO, not NULL, for enabled setting.
+	* nsterm.m (ns_draw_glyph_string): Don't compare font to ~0.
+	(ns_clip_to_row): Make gc arg a BOOL.
+	(ns_draw_fringe_bitmap, ns_draw_window_cursor): Use YES, NO in
+	ns_clip_to_row() call.
+	(ns_draw_glyph_string): Drop face comparison to ~0 (no longer
+	used). Cast FRAME_FONT assignments.
+	(ns_read_socket): Cast call to EmacsApp-fulfillService:withArg:.
+	(ns_string_to_lispmod): Change arg to const char.
+	(ns_term_init): Use NSMenuItem class.
+	(EmacsApp -openFile:): Move to different section of file.
+	(EmacsApp -application:openFiles:): Don't return a value, call
+	-replyToOpenOrPrint:.
+	(EmacsView -keyDown:): Fix up cast.
+	(EmacsView -converstationIdentifier): Use NSInteger instead of long.
+	(EmacsView -menuDown:): Cast tag in call to
+	find_and_call_menu_selection().
+	(ns_list_fonts): Remove, unused.
+	(ns_font_to_xlfd): Make static.  Cast result of UTF8String.
+	(ns_fontname_to_xlfd): Make static.
+	* w32menu.c (xmalloc_widget_value, digest_single_submenu): Remove
+	prototypes (now in keyboard.h).
+	(next_menubar_widget_id): Remove, unused.
+	* xmenu.c (xmalloc_widget_value, digest_single_submenu): Remove
+	prototypes (now in keyboard.h).
+	* xfaces.c (ns_list_fonts, w32_list_fonts): Remove, unused.
+
 2008-08-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* systty.h: Fix previous change that removed BSD_TERMIOS.  Add

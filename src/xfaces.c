@@ -234,7 +234,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define x_display_info w32_display_info
 #define FRAME_X_FONT_TABLE FRAME_W32_FONT_TABLE
 #define check_x check_w32
-#define x_list_fonts w32_list_fonts
 #define GCGraphicsExposures 0
 #endif /* WINDOWSNT */
 
@@ -245,7 +244,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define x_display_info ns_display_info
 #define FRAME_X_FONT_TABLE FRAME_NS_FONT_TABLE
 #define check_x check_ns
-#define x_list_fonts ns_list_fonts
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
 
@@ -556,14 +554,6 @@ static void uncache_face P_ ((struct face_cache *, struct face *));
 
 static GC x_create_gc P_ ((struct frame *, unsigned long, XGCValues *));
 static void x_free_gc P_ ((struct frame *, GC));
-
-#ifdef WINDOWSNT
-extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
-#endif /* WINDOWSNT */
-
-#ifdef HAVE_NS
-extern Lisp_Object ns_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
-#endif /* HAVE_NS */
 
 #ifdef USE_X_TOOLKIT
 static void x_update_menu_appearance P_ ((struct frame *));

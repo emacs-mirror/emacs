@@ -367,6 +367,11 @@ typedef struct _widget_value
 } widget_value;
 #endif
 
+#if defined (HAVE_NS) || defined (HAVE_NTGUI) || defined (USE_X_TOOLKIT) || defined (USE_GTK)
+extern widget_value *xmalloc_widget_value P_ ((void));
+extern widget_value *digest_single_submenu P_ ((int, int, int));
+#endif
+
 
 /* Macros for dealing with lispy events.  */
 

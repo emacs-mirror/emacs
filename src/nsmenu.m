@@ -53,8 +53,6 @@ int menu_trace_num = 0;
 #include "nsmenu_common.c"
 #endif
 
-extern struct widget_value;
-
 extern Lisp_Object Qundefined, Qmenu_enable, Qmenu_bar_update_hook;
 extern Lisp_Object QCtoggle, QCradio;
 
@@ -594,9 +592,9 @@ name_is_separator (name)
   return [NSString stringWithFormat: @"%c", tpos[2]];
 }
 
-- (id <NSMenuItem>)addItemWithWidgetValue: (void *)wvptr
+- (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr
 {
-  id <NSMenuItem> item;
+  NSMenuItem *item;
   widget_value *wv = (widget_value *)wvptr;
 
   if (name_is_separator (wv->name))
@@ -663,7 +661,7 @@ name_is_separator (name)
   /* add new contents */
   for (; wv != NULL; wv = wv->next)
     {
-      id <NSMenuItem> item = [self addItemWithWidgetValue: wv];
+      NSMenuItem *item = [self addItemWithWidgetValue: wv];
 
       if (wv->contents)
         {
@@ -691,10 +689,9 @@ name_is_separator (name)
 - (EmacsMenu *)addSubmenuWithTitle: (char *)title forFrame: (struct frame *)f
 {
   NSString *titleStr = [NSString stringWithUTF8String: title];
-  id <NSMenuItem> item
-      = [self addItemWithTitle: titleStr
-                        action: nil /*@selector (menuDown:) */
-	         keyEquivalent: @""];
+  NSMenuItem *item = [self addItemWithTitle: titleStr
+                                     action: nil /*@selector (menuDown:) */
+                              keyEquivalent: @""];
   EmacsMenu *submenu = [[EmacsMenu alloc] initWithTitle: titleStr frame: f];
   [self setSubmenu: submenu forItem: item];
   [submenu release];
@@ -1107,7 +1104,7 @@ ns_popup_menu (Lisp_Object position, Lisp_Object menu)
 #endif
 
       wv_title->name = (char *) SDATA (title);
-      wv_title->enabled = NULL;
+      wv_title->enabled = NO;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->help = Qnil;
       wv_title->next = wv_sep;

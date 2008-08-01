@@ -146,11 +146,6 @@ static int popup_activated_flag;
 
 static int next_menubar_widget_id;
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-extern widget_value *xmalloc_widget_value P_ ((void));
-extern widget_value *digest_single_submenu P_ ((int, int, int));
-#endif
-
 /* This is set nonzero after the user activates the menu bar, and set
    to zero again after the menu bars are redisplayed by prepare_menu_bar.
    While it is nonzero, all calls to set_frame_menubar go deep.

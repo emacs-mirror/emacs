@@ -597,9 +597,9 @@ fprintf (stderr, "*** CACHE HIT!\n");
   }
 #endif
 
-  font_info->glyphs = (unsigned short *)
+  font_info->glyphs = (unsigned short **)
     xmalloc (0x100 * sizeof (unsigned short *));
-  font_info->metrics = (struct font_metrics *)
+  font_info->metrics = (struct font_metrics **)
     xmalloc (0x100 * sizeof (struct font_metrics *));
   if (!font_info->glyphs || !font_info->metrics)
     return Qnil;
@@ -984,7 +984,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   /* set up for character rendering */
   r.origin.y += font->voffset + (s->height - font->height)/2;
 
-  col = (NS_FACE_FOREGROUND (face) != nil
+  col = (NS_FACE_FOREGROUND (face) != 0
          ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f)
          : FRAME_FOREGROUND_COLOR (s->f));
   /* FIXME: find another way to pass this */
@@ -1077,7 +1077,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
     if (face->underline_p)
       {
-        if (face->underline_color != nil)
+        if (face->underline_color != 0)
           [ns_lookup_indexed_color (face->underline_color, s->f) set];
         else
           [col set];
@@ -1087,7 +1087,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
         CGContextAddLineToPoint (gcontext, r.origin.x + r.size.width,
                                 r.origin.y + font->underpos);
         CGContextStrokePath (gcontext);
-        if (face->underline_color != nil)
+        if (face->underline_color != 0)
           [col set];
       }
     else
