@@ -10,11 +10,10 @@
 	(xesam-dbus-unique-names): New defvar.
 	(xesam-dbus-call-method): New defun.  Replace all calls of
 	`dbus-call-method' by `xesam-dbus-call-method'.
-	(xesam-get-cached-property, xesam-set-cached-property): New
-	defuns.
+	(xesam-get-cached-property, xesam-set-cached-property):
+	New defuns.
 	(xesam-get-property, xesam-set-property, xesam-refresh-entry)
-	(xesam-new-search, xesam-search): Apply
-	`xesam-get-cached-property'.
+	(xesam-new-search, xesam-search): Apply `xesam-get-cached-property'.
 	(xesam-search-engines): Make it an association list.  Take changed
 	layout into account in the corresponding function.
 	(xesam-delete-search-engine): Remove check for consistency of
@@ -23,7 +22,7 @@
 
 2008-07-31  Juanma Barranquero  <lekktu@gmail.com>
 
-	* files.el (read-file-modes): Fix tpo in docstring.
+	* files.el (read-file-modes): Fix typo in docstring.
 
 2008-07-31  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -37,8 +36,8 @@
 
 	* button.el (forward-button): Avoid infloop.
 
-	* minibuffer.el (read-file-name-completion-ignore-case): Add
-	cygwin to the list.
+	* minibuffer.el (read-file-name-completion-ignore-case):
+	Add cygwin to the list.
 
 2008-07-31  Sven Joachim  <svenjoac@gmx.de>
 
