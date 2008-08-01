@@ -57,8 +57,6 @@
                  mh-clean-message-header-flag))
     (funcall mh-show-xface-function)))
 
-;; Shush compiler.
-
 (defun mh-face-display-function ()
   "Display a Face, X-Face, or X-Image-URL header field.
 If more than one of these are present, then the first one found
