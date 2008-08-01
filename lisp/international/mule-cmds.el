@@ -2788,9 +2788,11 @@ If there's no description string for VALUE, return nil."
      (function (lambda (x) (format "#x%02X" x))))
    str " "))
 
-(defun encode-coding-char (char coding-system)
+(defun encode-coding-char (char coding-system &optional charset)
   "Encode CHAR by CODING-SYSTEM and return the resulting string.
-If CODING-SYSTEM can't safely encode CHAR, return nil."
+If CODING-SYSTEM can't safely encode CHAR, return nil.
+The 3rd optional argument CHARSET, if non-nil, is a charset preferred
+on encoding."
   (let* ((str1 (string-as-multibyte (string char)))
 	 (str2 (string-as-multibyte (string char char)))
 	 (found (find-coding-systems-string str1))
@@ -2806,6 +2808,9 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
 	;; string and two-char string, then check how many bytes at the
 	;; tail of both encoded strings are the same.
 
+	(when charset
+	  (put-text-property 0 1 'charset charset str1)
+	  (put-text-property 0 2 'charset charset str2))
 	(setq enc1 (encode-coding-string str1 coding-system)
 	      i1 (length enc1)
 	      enc2 (encode-coding-string str2 coding-system)
