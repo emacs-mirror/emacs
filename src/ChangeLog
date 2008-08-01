@@ -1,3 +1,7 @@
+2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.h (NSInteger, NSUInteger): Add defines for non-Leopard.
+
 2008-08-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsfns.m (ns_frame_parm_handlers): Add empty entry for

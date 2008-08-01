@@ -364,6 +364,11 @@ extern EmacsMenu *mainMenu, *svcsMenu;
 @end
 #endif
 
+#if defined (NS_IMPL_GNUSTEP) || ( defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4)
+typedef long NSInteger;
+typedef unsigned long NSUInteger;
+#endif /* NS_IMPL_GNUSTEP || (NS_IMPL_COCOA and <= 10.4) */
+
 #endif  /* __OBJC__ */
 
 
