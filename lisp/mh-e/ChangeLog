@@ -1,3 +1,11 @@
+2008-08-01  Bill Wohler  <wohler@newt.com>
+
+	* mh-show.el (mh-show-preferred-alternative)
+	* mh-e.el (mh-annotate-msg-hook): Sync docstring with manual.
+
+	* mh-comp.el (mh-send-letter, mh-redistribute): Mention
+	mh-annotate-msg-hook in docstring.
+
 2008-06-29  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Add invisible
