@@ -1,3 +1,11 @@
+2008-08-01  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Reading Mail)
+	(Viewing Attachments):  Describe new function
+	mh-show-preferred-alternative.
+	(Sending Mail, Redistributing, Sending Message): Describe new hook
+	mh-annotate-msg-hook.
+
 2008-07-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Arguments and Signatures): Fix example.
