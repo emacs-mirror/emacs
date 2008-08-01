@@ -1,3 +1,8 @@
+2008-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (x-load-color-file): Use RGB() instead of manually shifting
+	on Windows.
+
 2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	Warning clearing and clean-up in NS port.

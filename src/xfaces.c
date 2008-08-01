@@ -6600,7 +6600,11 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
 	    if (name[num] == '\n')
 	      name[num] = 0;
 	    cmap = Fcons (Fcons (build_string (name),
-                                make_number ((red << 16) | (green << 8) | blue)),
+#ifdef WINDOWS_NT
+                                make_number (RGB (red, green, blue))),
+#else
+                          	make_number ((red << 16) | (green << 8) | blue)),
+#endif
 			  cmap);
 	  }
       }
