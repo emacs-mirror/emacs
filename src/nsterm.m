@@ -2313,7 +2313,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   r.size.height = h;
   r.size.width = w->phys_cursor_width;
 
-  /* PENDING: if we overwrite the internal border area, it does not get erased;
+  /* FIXME: if we overwrite the internal border area, it does not get erased;
      fix by truncating cursor, but better would be to erase properly */
   overspill = r.origin.x + r.size.width -
     WINDOW_TEXT_TO_FRAME_PIXEL_X (w, WINDOW_BOX_RIGHT_EDGE_X (w) 
@@ -2321,13 +2321,13 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   if (overspill > 0)
     r.size.width -= overspill;
 
-  /* PENDING: 23: use emacs stored f->cursor_type instead of ns-specific */
+  /* TODO: 23: use emacs stored f->cursor_type instead of ns-specific */
   oldCursorType = FRAME_CURSOR (f);
   cursorType = FRAME_CURSOR (f) = FRAME_NEW_CURSOR (f);
   f->output_data.ns->current_cursor_color
     = f->output_data.ns->desired_cursor_color;
 
-  /* PENDING: only needed in rare cases with last-resort font in HELLO..
+  /* TODO: only needed in rare cases with last-resort font in HELLO..
      should we do this more efficiently? */
   ns_clip_to_row (w, glyph_row, -1, NULL);
 /*  ns_focus (f, &r, 1); */
@@ -2433,6 +2433,8 @@ hide_hourglass ()
 {
   if (!hourglass_shown_p)
     return;
+
+  BLOCK_INPUT;
 
   /* TODO: remove NSProgressIndicator from all frames */
 
@@ -3822,37 +3824,37 @@ ns_term_init (Lisp_Object display_name)
     ns_selection_color = NS_SELECTION_COLOR_DEFAULT;
 
   {
-    id cl;
-    Lisp_Object tem, tem1;
-    extern Lisp_Object Vsource_directory;
-
-    cl = [NSColorList colorListNamed: @"Emacs"];
+    NSColorList *cl = [NSColorList colorListNamed: @"Emacs"];
 
     if ( cl == nil )
       {
-        /* first try data_dir, then invocation-dir
-           and finally source-directory/etc */
-        tem1 = tem
-	  = Fexpand_file_name (build_string ("Emacs.clr"), Vdata_directory);
-        if (NILP (Ffile_exists_p (tem)))
-          {
-            tem = Fexpand_file_name (build_string ("Emacs.clr"),
-                                     Vinvocation_directory);
-            if (NILP (Ffile_exists_p (tem)))
-              {
-                Lisp_Object newdir
-		  = Fexpand_file_name (build_string ("etc/"),
-				       Vsource_directory);
-                tem = Fexpand_file_name (build_string ("Emacs.clr"),
-                                         newdir);
-              }
-          }
+        Lisp_Object color_file, color_map, color;
+        int r,g,b;
+        unsigned long c;
+        char *name;
 
-        cl = [[NSColorList alloc]
-               initWithName: @"Emacs"
-                   fromFile: [NSString stringWithCString: SDATA (tem)]];
-        if (cl ==nil)
-          fatal ("Could not find %s.\n", SDATA (tem1));
+        color_file = Fexpand_file_name (build_string ("rgb.txt"),
+                         Fsymbol_value (intern ("data-directory")));
+        if (NILP (Ffile_readable_p (color_file)))
+          fatal ("Could not find %s.\n", SDATA (color_file));
+
+        color_map = Fx_load_color_file (color_file);
+        if (NILP (color_map))
+          fatal ("Could not read %s.\n", SDATA (color_file));
+
+        cl = [[NSColorList alloc] initWithName: @"Emacs"];
+        for ( ; CONSP (color_map); color_map = XCDR (color_map))
+          {
+            color = XCAR (color_map);
+            name = SDATA (XCAR (color));
+            c = XINT (XCDR (color));
+            [cl setColor:
+                  [NSColor colorWithCalibratedRed: RED_FROM_ULONG (c) / 255.0
+                                            green: GREEN_FROM_ULONG (c) / 255.0
+                                             blue: BLUE_FROM_ULONG (c) / 255.0
+                                            alpha: 1.0]
+                  forKey: [NSString stringWithUTF8String: name]];
+          }
         [cl writeToFile: nil];
       }
   }
@@ -6553,7 +6555,7 @@ or shrunk (negative).  Zero (the default) means standard line height.\n\
   Qcontrol = intern ("control");
   Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
 
-  /*PENDING: move to common code */
+  /* TODO: move to common code */
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
@@ -6586,8 +6588,8 @@ baseline level.  The default value is nil.  */);
 
   /* Tell emacs about this window system. */
   Fprovide (intern ("ns"), Qnil);
-  /* PENDING: try to move this back into lisp,  ns-win.el loaded too late
-              right now */
+  /* TODO: try to move this back into lisp,  ns-win.el loaded too late
+           right now */
   {
     Lisp_Object args[3] = { intern ("ns-version-string"), build_string ("9.0"),
                     build_string ("NS Window system port version number.") };

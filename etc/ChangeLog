@@ -1,3 +1,7 @@
+2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Emacs.clr: Remove.
+
 2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* termcap.src: Remove file.

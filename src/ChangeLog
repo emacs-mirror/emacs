@@ -1,3 +1,13 @@
+2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* w32fns.c (w32-load-color-file): Remove.
+	(x-open-connection): Use renamed Fx_load_color_file.
+	* xfaces.c (x-load-color-file): Add.
+	* nsterm.m (ns_initialize): Load colors from etc/rgb.txt instead of
+	Emacs.clr.
+	(ns_draw_window_cursor): Change PENDING to TODO or FIXME.
+	(hide_hourglass): BLOCK_INPUT before UNBLOCK.
+
 2008-07-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (Fdbus_call_method_asynchronously)

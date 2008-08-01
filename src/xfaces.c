@@ -6574,6 +6574,56 @@ merge_faces (f, face_name, face_id, base_face_id)
 }
 
 
+
+#ifndef HAVE_X_WINDOWS
+DEFUN ("x-load-color-file", Fx_load_color_file,
+       Sx_load_color_file, 1, 1, 0,
+       doc: /* Create an alist of color entries from an external file.
+
+The file should define one named RGB color per line like so:
+  R G B   name
+where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
+    (filename)
+    Lisp_Object filename;
+{
+  FILE *fp;
+  Lisp_Object cmap = Qnil;
+  Lisp_Object abspath;
+
+  CHECK_STRING (filename);
+  abspath = Fexpand_file_name (filename, Qnil);
+
+  fp = fopen (SDATA (filename), "rt");
+  if (fp)
+    {
+      char buf[512];
+      int red, green, blue;
+      int num;
+
+      BLOCK_INPUT;
+
+      while (fgets (buf, sizeof (buf), fp) != NULL) {
+	if (sscanf (buf, "%u %u %u %n", &red, &green, &blue, &num) == 3)
+	  {
+	    char *name = buf + num;
+	    num = strlen (name) - 1;
+	    if (name[num] == '\n')
+	      name[num] = 0;
+	    cmap = Fcons (Fcons (build_string (name),
+                                make_number ((red << 16) | (green << 8) | blue)),
+			  cmap);
+	  }
+      }
+      fclose (fp);
+
+      UNBLOCK_INPUT;
+    }
+
+  return cmap;
+}
+#endif
+
+
 /***********************************************************************
 				Tests
  ***********************************************************************/
@@ -6829,6 +6879,9 @@ syms_of_xfaces ()
 #endif
   defsubr (&Scolor_gray_p);
   defsubr (&Scolor_supported_p);
+#ifndef HAVE_X_WINDOWS
+  defsubr (&Sx_load_color_file);
+#endif
   defsubr (&Sface_attribute_relative_p);
   defsubr (&Smerge_face_attribute);
   defsubr (&Sinternal_get_lisp_face_attribute);

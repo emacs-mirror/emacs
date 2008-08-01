@@ -502,53 +502,6 @@ if the entry is new.  */)
   return (oldrgb);
 }
 
-DEFUN ("w32-load-color-file", Fw32_load_color_file,
-       Sw32_load_color_file, 1, 1, 0,
-       doc: /* Create an alist of color entries from an external file.
-Assign this value to `w32-color-map' to replace the existing color map.
-
-The file should define one named RGB color per line like so:
-  R G B   name
-where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
-    (filename)
-    Lisp_Object filename;
-{
-  FILE *fp;
-  Lisp_Object cmap = Qnil;
-  Lisp_Object abspath;
-
-  CHECK_STRING (filename);
-  abspath = Fexpand_file_name (filename, Qnil);
-
-  fp = fopen (SDATA (filename), "rt");
-  if (fp)
-    {
-      char buf[512];
-      int red, green, blue;
-      int num;
-
-      BLOCK_INPUT;
-
-      while (fgets (buf, sizeof (buf), fp) != NULL) {
-	if (sscanf (buf, "%u %u %u %n", &red, &green, &blue, &num) == 3)
-	  {
-	    char *name = buf + num;
-	    num = strlen (name) - 1;
-	    if (name[num] == '\n')
-	      name[num] = 0;
-	    cmap = Fcons (Fcons (build_string (name),
-				 make_number (RGB (red, green, blue))),
-			  cmap);
-	  }
-      }
-      fclose (fp);
-
-      UNBLOCK_INPUT;
-    }
-
-  return cmap;
-}
-
 /* The default colors for the w32 color map */
 typedef struct colormap_t
 {
@@ -4995,7 +4948,7 @@ terminate Emacs if we can't open the connection.  */)
 	Fexpand_file_name (build_string ("rgb.txt"),
 			   Fsymbol_value (intern ("data-directory")));
 
-    Vw32_color_map = Fw32_load_color_file (color_file);
+    Vw32_color_map = Fx_load_color_file (color_file);
 
     UNGCPRO;
   }
@@ -7226,7 +7179,6 @@ only be necessary if the default setting causes problems.  */);
 
   defsubr (&Sw32_define_rgb_color);
   defsubr (&Sw32_default_color_map);
-  defsubr (&Sw32_load_color_file);
   defsubr (&Sw32_send_sys_command);
   defsubr (&Sw32_shell_execute);
   defsubr (&Sw32_register_hot_key);
