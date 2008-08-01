@@ -1,3 +1,7 @@
+2008-08-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_read_message): Handle D-Bus error messages.
+
 2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.h (NSInteger, NSUInteger): Add defines for non-Leopard.
