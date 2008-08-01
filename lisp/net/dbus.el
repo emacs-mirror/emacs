@@ -266,15 +266,19 @@ not well formed."
 	       (natnump (nth 3 event))
 	       ;; Service.
 	       (or (= dbus-message-type-method-return (nth 2 event))
+		   (= dbus-message-type-error (nth 2 event))
 		   (stringp (nth 4 event)))
 	       ;; Object path.
 	       (or (= dbus-message-type-method-return (nth 2 event))
+		   (= dbus-message-type-error (nth 2 event))
 		   (stringp (nth 5 event)))
 	       ;; Interface.
 	       (or (= dbus-message-type-method-return (nth 2 event))
+		   (= dbus-message-type-error (nth 2 event))
 		   (stringp (nth 6 event)))
 	       ;; Member.
 	       (or (= dbus-message-type-method-return (nth 2 event))
+		   (= dbus-message-type-error (nth 2 event))
 		   (stringp (nth 7 event)))
 	       ;; Handler.
 	       (functionp (nth 8 event)))
@@ -287,11 +291,14 @@ EVENT is a D-Bus event, see `dbus-check-event'.  HANDLER, being
 part of the event, is called with arguments ARGS.
 If the HANDLER returns an `dbus-error', it is propagated as return message."
   (interactive "e")
-  ;; By default, we don't want to raise an error, because this
-  ;; function is called in the event handling loop.
   (condition-case err
       (let (result)
+	;; We ignore not well-formed events.
 	(dbus-check-event event)
+	;; Error messages must be propagated.
+	(when (= dbus-message-type-error (nth 2 event))
+	  (signal 'dbus-error (nthcdr 9 event)))
+	;; Apply the handler.
 	(setq result (apply (nth 8 event) (nthcdr 9 event)))
 	;; Return a message when it is a message call.
 	(when (= dbus-message-type-method-call (nth 2 event))
@@ -305,8 +312,9 @@ If the HANDLER returns an `dbus-error', it is propagated as return message."
        (dbus-ignore-errors
 	 (dbus-method-error-internal
 	  (nth 1 event) (nth 3 event) (nth 4 event) (cadr err))))
-     ;; Propagate D-Bus error in the debug case.
-     (when dbus-debug (signal (car err) (cdr err))))))
+     ;; Propagate D-Bus error messages.
+     (when (or dbus-debug (= dbus-message-type-error (nth 2 event)))
+       (signal (car err) (cdr err))))))
 
 (defun dbus-event-bus-name (event)
   "Return the bus name the event is coming from.
@@ -724,7 +732,7 @@ returned."
 	 (string-equal
 	  "readwrite"
 	  (dbus-introspect-get-attribute
-	   (dbus-get-property bus service path interface property)
+	   (dbus-introspect-get-property bus service path interface property)
 	   "access")))
       ;; "Set" requires a variant.
       (dbus-call-method
