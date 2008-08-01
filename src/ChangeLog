@@ -1,3 +1,8 @@
+2008-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Fx_load_color_file): Fix previous change;
+	it is #ifdef WINDOWSNT, not WINDOWS_NT.
+
 2008-08-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_read_message): Handle D-Bus error messages.
@@ -8,8 +13,7 @@
 
 2008-08-01  Chong Yidong  <cyd@stupidchicken.com>
 
-	* nsfns.m (ns_frame_parm_handlers): Add empty entry for
-	x_set_alpha.
+	* nsfns.m (ns_frame_parm_handlers): Add empty entry for x_set_alpha.
 
 	* nsterm.m (EmacsApp -application:openFiles:): GNUStep does not
 	define NSApplicationDelegateReplySuccess.
@@ -28,8 +32,8 @@
 2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	Warning clearing and clean-up in NS port.
-	* keyboard.h (xmalloc_widget_value, digest_single_submenu): Add
-	prototypes.
+	* keyboard.h (xmalloc_widget_value, digest_single_submenu):
+	Add prototypes.
 	* nsgui.h (FACE_DEFAULT): Remove, unused.
 	(XGCValues): Change colors to unsigned long.
 	* nsterm.h (EmacsApp): Add declaration of all methods implemented in
@@ -63,11 +67,11 @@
 	(ns_list_fonts): Remove, unused.
 	(ns_font_to_xlfd): Make static.  Cast result of UTF8String.
 	(ns_fontname_to_xlfd): Make static.
-	* w32menu.c (xmalloc_widget_value, digest_single_submenu): Remove
-	prototypes (now in keyboard.h).
+	* w32menu.c (xmalloc_widget_value, digest_single_submenu):
+	Remove prototypes (now in keyboard.h).
 	(next_menubar_widget_id): Remove, unused.
-	* xmenu.c (xmalloc_widget_value, digest_single_submenu): Remove
-	prototypes (now in keyboard.h).
+	* xmenu.c (xmalloc_widget_value, digest_single_submenu):
+	Remove prototypes (now in keyboard.h).
 	* xfaces.c (ns_list_fonts, w32_list_fonts): Remove, unused.
 
 2008-08-01  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -76,8 +80,8 @@
 	(floatfns.o): Depend on syssignal.h.
 	(term.o): Depend on syssignal.h, systty.h, and $(INTERVAL_SRC).
 
-	* systty.h: Fix previous change that removed BSD_TERMIOS.  Add
-	comments to #ifdefs.
+	* systty.h: Fix previous change that removed BSD_TERMIOS.
+	Add comments to #ifdefs.
 
 2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -14138,7 +14142,6 @@
 2007-06-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (mac_window): Replace WindowPtr with WindowRef.
-
 	* macgui.h: Replace WindowPtr with WindowRef.
 
 	* macmenu.c: Replace MenuHandle and GetMenuHandle with MenuRef and
