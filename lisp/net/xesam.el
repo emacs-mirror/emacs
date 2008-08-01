@@ -163,20 +163,11 @@
   "The D-Bus Xesam search interface.")
 
 (defconst xesam-all-fields
-  '("xesam:35mmEquivalent" "xesam:Alarm" "xesam:Archive" "xesam:Audio"
-    "xesam:AudioList" "xesam:Content" "xesam:DataObject" "xesam:DeletedFile"
-    "xesam:Document" "xesam:Email" "xesam:EmailAttachment" "xesam:Event"
-    "xesam:File" "xesam:FileSystem" "xesam:FreeBusy" "xesam:IMMessage"
-    "xesam:Image" "xesam:Journal" "xesam:Mailbox" "xesam:Media"
-    "xesam:MediaList" "xesam:Message" "xesam:PIM" "xesam:Partition"
-    "xesam:Photo" "xesam:Presentation" "xesam:Project" "xesam:RemoteResource"
-    "xesam:Software" "xesam:SourceCode" "xesam:Spreadsheet" "xesam:Storage"
-    "xesam:Task" "xesam:TextDocument" "xesam:Video" "xesam:Visual"
-    "xesam:aimContactMedium" "xesam:aperture" "xesam:aspectRatio"
-    "xesam:attachmentEncoding" "xesam:attendee" "xesam:audioBirate"
-    "xesam:audioChannels" "xesam:audioCodec" "xesam:audioCodecType"
-    "xesam:audioSampleFormat" "xesam:audioSampleRate" "xesam:author"
-    "xesam:bcc" "xesam:birthDate" "xesam:blogContactURL"
+  '("xesam:35mmEquivalent" "xesam:aimContactMedium" "xesam:aperture"
+    "xesam:aspectRatio" "xesam:attachmentEncoding" "xesam:attendee"
+    "xesam:audioBirate" "xesam:audioChannels" "xesam:audioCodec"
+    "xesam:audioCodecType" "xesam:audioSampleFormat" "xesam:audioSampleRate"
+    "xesam:author" "xesam:bcc" "xesam:birthDate" "xesam:blogContactURL"
     "xesam:cameraManufacturer" "xesam:cameraModel" "xesam:cc" "xesam:ccdWidth"
     "xesam:cellPhoneNumber" "xesam:characterCount" "xesam:charset"
     "xesam:colorCount" "xesam:colorSpace" "xesam:columnCount" "xesam:comment"
@@ -247,13 +238,32 @@ fields are supported.")
 </request>"
   "The Xesam fulltext query XML.")
 
+(defvar xesam-dbus-unique-names
+  (list (cons :system (dbus-get-unique-name :system))
+	(cons :session (dbus-get-unique-name :session)))
+  "The unique names, under which Emacs is registered at D-Bus.")
+
+(defun xesam-dbus-call-method (&rest args)
+  "Apply a D-Bus method call.
+`dbus-call-method' is to be preferred, because it is more
+performant.  If the target D-Bus service is owned by Emacs, this
+is not applicable, and `dbus-call-method-non-blocking' must be
+used instead.  ARGS are identical to the argument list of both
+functions."
+  (apply
+   ;; The first argument is the bus, the second argument the targt service.
+   (if (string-equal (cdr (assoc (car args) xesam-dbus-unique-names))
+		     (cadr args))
+       'dbus-call-method-non-blocking 'dbus-call-method)
+   args))
+
 (defun xesam-get-property (engine property)
   "Return the PROPERTY value of ENGINE."
   ;; "GetProperty" returns a variant, so we must use the car.
-  (car (dbus-call-method
+  (car (xesam-dbus-call-method
 	:session (car engine) xesam-path-search
 	xesam-interface-search  "GetProperty"
-	(cdr engine) property)))
+	(xesam-get-cached-property engine "session") property)))
 
 (defun xesam-set-property (engine property value)
   "Set the PROPERTY of ENGINE to VALUE.
@@ -262,10 +272,10 @@ value (nil or t), or a list of them.  It returns the new value of
 PROPERTY in the search engine.  This new value can be different
 from VALUE, depending on what the search engine accepts."
   ;; "SetProperty" returns a variant, so we must use the car.
-  (car (dbus-call-method
+  (car (xesam-dbus-call-method
 	:session (car engine) xesam-path-search
 	xesam-interface-search  "SetProperty"
-	(cdr engine) property
+	(xesam-get-cached-property engine "session") property
 	;; The value must be a variant.  It can be only a string, an
 	;; unsigned int, a boolean, or an array of them.  So we need
 	;; no type keyword; we let the type check to the search
@@ -294,21 +304,39 @@ from VALUE, depending on what the search engine accepts."
 
 (defvar xesam-search-engines nil
   "List of available Xesam search engines.
-Every entry is a triple of the unique D-Bus service name of the
-engine, the session identifier, and the display name.  Example:
+Every entry is an association list, with a car denoting the
+unique D-Bus service name of the engine.  The rest of the entry
+are cached associations of engine attributes, like the session
+identifier, and the display name.  Example:
 
-  \(\(\":1.59\" \"0t1214948020ut358230u0p2698r3912347765k3213849828\" \"Tracker Xesam Service\")
-   \(\":1.27\" \"strigisession1369133069\" \"Strigi Desktop Search\"))
+  \(\(\":1.59\"
+    \(\"session\" . \"0t1214948020ut358230u0p2698r3912347765k3213849828\")
+    \(\"vendor.display\" . \"Tracker Xesam Service\"))
+   \(\":1.27\"
+    \(\"session\" . \"strigisession1369133069\")
+    \(\"vendor.display\" . \"Strigi Desktop Search\")))
 
 A Xesam-compatible search engine is identified as a queued D-Bus
-service of `xesam-service-search'.")
+service of the known service `xesam-service-search'.")
+
+(defun xesam-get-cached-property (engine property)
+  "Return the PROPERTY value of ENGINE from the cache.
+If PROPERTY is not existing, retrieve it from ENGINE first."
+  ;; If the property has not been cached yet, we retrieve it from the
+  ;; engine, and cache it.
+  (unless (assoc property engine)
+    (xesam-set-cached-property
+     engine property (xesam-get-property engine property)))
+  (cdr (assoc property engine)))
+
+(defun xesam-set-cached-property (engine property value)
+  "Set the PROPERTY of ENGINE to VALUE in the cache."
+  (setcdr engine (append (cdr engine) (list (cons property value)))))
 
 (defun xesam-delete-search-engine (&rest args)
-  "Removes service from `xesam-search-engines'."
-  (when (and (= (length args) 3) (stringp (car args)))
-    (setq xesam-search-engines
-	  (delete (assoc (car args) xesam-search-engines)
-		  xesam-search-engines))))
+  "Remove service from `xesam-search-engines'."
+  (setq xesam-search-engines
+	(delete (assoc (car args) xesam-search-engines) xesam-search-engines)))
 
 (defun xesam-search-engines ()
   "Return Xesam search engines, stored in `xesam-search-engines'.
@@ -322,18 +350,19 @@ If there is no registered search engine at all, the function returns `nil'."
       (unless (assoc-string service xesam-search-engines)
 
 	;; Open a new session, and add it to the search engines list.
-	(add-to-list
-	 'xesam-search-engines
-	 (setq engine
-	       (cons service
-		     (dbus-call-method
-		      :session service xesam-path-search
-		      xesam-interface-search "NewSession")))
-	 'append)
+	(add-to-list 'xesam-search-engines (list service) 'append)
+	(setq engine (assoc service xesam-search-engines))
 
-	;; Set the "search.live" property; otherwise the search engine
-	;; might refuse to answer.
-;	(xesam-set-property engine "search.live" t)
+	;; Add the session string.
+	(xesam-set-cached-property
+	 engine "session"
+	 (xesam-dbus-call-method
+	  :session service xesam-path-search
+	  xesam-interface-search "NewSession"))
+
+	;; Unset the "search.live" property; we don't want to be
+	;; informed by changed results.
+	(xesam-set-property engine "search.live" nil)
 
 	;; Check the vendor properties.
 	(setq vendor-id (xesam-get-property engine "vendor.id")
@@ -417,7 +446,7 @@ Turning on Xesam mode runs the normal hook `xesam-mode-hook'."
 		      (propertize
 		       xesam-query
 		       'face 'font-lock-type-face
-		       'help-echo xesam-xml-string))))))
+		       'help-echo (when xesam-debug xesam-xml-string)))))))
 
   (when (not (interactive-p))
     ;; Initialize buffer.
@@ -438,7 +467,7 @@ SEARCH is the search identification in that engine.  Both must be strings."
   "Refreshes one entry in the search buffer."
   (let* ((result
 	  (car
-	   (dbus-call-method
+	   (xesam-dbus-call-method
 	    :session (car engine) xesam-path-search
 	    xesam-interface-search "GetHits" search 1)))
 	 (snippet)
@@ -446,7 +475,7 @@ SEARCH is the search identification in that engine.  Both must be strings."
 	 ;; engines don't return usable values so far.
 ;	  (caaar
 ;	   (dbus-ignore-errors
-;	     (dbus-call-method
+;	     (xesam-dbus-call-method
 ;	      :session  (car engine) xesam-path-search
 ;	      xesam-interface-search "GetHitData"
 ;	      search (list xesam-current) '("snippet")))))
@@ -458,7 +487,7 @@ SEARCH is the search identification in that engine.  Both must be strings."
       (widget-put widget :help-echo ""))
 
     ;; Take all results.
-    (dolist (field (xesam-get-property engine "hit.fields"))
+    (dolist (field (xesam-get-cached-property engine "hit.fields"))
       (when (not (zerop (length (caar result))))
 	(when xesam-debug
 	  (widget-put
@@ -613,12 +642,12 @@ can be either `fulltext-query', or `user-query'.  QUERY is a
 string in the Xesam query language.  A string, identifying the
 search, is returned."
   (let* ((service (car engine))
-	 (session (cdr engine))
+	 (session (xesam-get-cached-property engine "session"))
 	 (xml-string
 	  (format
 	   (if (eq type 'user-query) xesam-user-query xesam-fulltext-query)
 	   query))
-	 (search (dbus-call-method
+	 (search (xesam-dbus-call-method
 		  :session service xesam-path-search
 		  xesam-interface-search "NewSearch" session xml-string)))
 
@@ -653,11 +682,13 @@ search, is returned."
 	    (if (not xesam-debug)
 		(list
 		 12 (propertized-buffer-identification
-		     (xesam-get-property engine "vendor.id")))
+		     (xesam-get-cached-property engine "vendor.id")))
 	      (propertize
-	       (xesam-get-property engine "vendor.id") 'help-echo
+	       (xesam-get-cached-property engine "vendor.id")
+	       'help-echo
 	       (mapconcat
-		'(lambda (x) (format "%s: %s" x (xesam-get-property engine x)))
+		'(lambda (x)
+		   (format "%s: %s" x (xesam-get-cached-property engine x)))
 		'("vendor.id" "vendor.version" "vendor.display" "vendor.xesam"
 		  "vendor.ontology.fields" "vendor.ontology.contents"
 		  "vendor.ontology.sources" "vendor.extensions"
@@ -666,7 +697,7 @@ search, is returned."
 	  (force-mode-line-update))
 
     ;; Start the search.
-    (dbus-call-method
+    (xesam-dbus-call-method
      :session (car engine) xesam-path-search
      xesam-interface-search "StartSearch" search)
 
@@ -686,7 +717,7 @@ Example:
   (xesam-search (car (xesam-search-engines)) \"emacs\")"
   (interactive
    (let* ((vendors (mapcar
-		    '(lambda (x) (xesam-get-property x "vendor.display"))
+		    '(lambda (x) (xesam-get-cached-property x "vendor.display"))
 		    (xesam-search-engines)))
 	  (vendor
 	   (if (> (length vendors) 1)
@@ -698,7 +729,8 @@ Example:
       ;; ENGINE.
       (when vendor
 	(dolist (elt (xesam-search-engines) engine)
-	  (when (string-equal (xesam-get-property elt "vendor.display") vendor)
+	  (when (string-equal
+		 (xesam-get-cached-property elt "vendor.display") vendor)
 	    (setq engine elt))))
       ;; QUERY.
       (when vendor
@@ -719,8 +751,7 @@ Example:
 ;; * Solve error, that xesam-mode does not work the very first time.
 ;; * Retrieve several results at once.
 ;; * Retrieve hits for the next page in advance.
-;; * With prefix, let's chosse search engine.
-;; * Improve mode-line handling. Show search string etc.
+;; * With prefix, let's choose search engine.
 ;; * Minibuffer completion for user queries.
 ;; * `revert-buffer-function' implementation.
 ;; * Close search when search buffer is killed.
