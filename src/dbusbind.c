@@ -1436,29 +1436,32 @@ xd_read_message (bus)
 
   /* Read message type, message serial, unique name, object path,
      interface and member from the message.  */
-  mtype     = dbus_message_get_type (dmessage);
-  serial    = (mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN ?
-	       dbus_message_get_reply_serial (dmessage) :
-	       dbus_message_get_serial (dmessage));
-  uname     = dbus_message_get_sender (dmessage);
-  path      = dbus_message_get_path (dmessage);
+  mtype = dbus_message_get_type (dmessage);
+  serial =
+    ((mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
+     || (mtype == DBUS_MESSAGE_TYPE_ERROR))
+    ? dbus_message_get_reply_serial (dmessage)
+    : dbus_message_get_serial (dmessage);
+  uname = dbus_message_get_sender (dmessage);
+  path = dbus_message_get_path (dmessage);
   interface = dbus_message_get_interface (dmessage);
-  member    = dbus_message_get_member (dmessage);
+  member = dbus_message_get_member (dmessage);
 
   XD_DEBUG_MESSAGE ("Event received: %s %d %s %s %s %s %s",
-		    (mtype == DBUS_MESSAGE_TYPE_INVALID) ?
-		    "DBUS_MESSAGE_TYPE_INVALID" :
-		    (mtype == DBUS_MESSAGE_TYPE_METHOD_CALL) ?
-		    "DBUS_MESSAGE_TYPE_METHOD_CALL" :
-		    (mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN) ?
-		    "DBUS_MESSAGE_TYPE_METHOD_RETURN" :
-		    (mtype == DBUS_MESSAGE_TYPE_ERROR) ?
-		    "DBUS_MESSAGE_TYPE_METHOD_ERROR" :
-		    "DBUS_MESSAGE_TYPE_METHOD_SIGNAL",
+		    (mtype == DBUS_MESSAGE_TYPE_INVALID)
+		    ? "DBUS_MESSAGE_TYPE_INVALID"
+		    : (mtype == DBUS_MESSAGE_TYPE_METHOD_CALL)
+		    ? "DBUS_MESSAGE_TYPE_METHOD_CALL"
+		    : (mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
+		    ? "DBUS_MESSAGE_TYPE_METHOD_RETURN"
+		    : (mtype == DBUS_MESSAGE_TYPE_ERROR)
+		    ? "DBUS_MESSAGE_TYPE_ERROR"
+		    : "DBUS_MESSAGE_TYPE_SIGNAL",
 		    serial, uname, path, interface, member,
 		    SDATA (format2 ("%s", args, Qnil)));
 
-  if (mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
+  if ((mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
+      || (mtype == DBUS_MESSAGE_TYPE_ERROR))
     {
       /* Search for a registered function of the message.  */
       key = list2 (bus, make_number (serial));
