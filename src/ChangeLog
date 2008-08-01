@@ -14142,6 +14142,7 @@
 2007-06-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (mac_window): Replace WindowPtr with WindowRef.
+
 	* macgui.h: Replace WindowPtr with WindowRef.
 
 	* macmenu.c: Replace MenuHandle and GetMenuHandle with MenuRef and
