@@ -4132,7 +4132,13 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
   NSString *file;
   while ((file = [files nextObject]) != nil)
     [ns_pending_files addObject: file];
+
+#ifdef NS_IMPL_GNUSTEP
+  [self replyToOpenOrPrint: 0];
+#else
   [self replyToOpenOrPrint: NSApplicationDelegateReplySuccess];
+#endif /* NS_IMPL_GNUSTEP */
+
 }
 
 /* TODO: these may help w/IO switching btwn terminal and NSApp */
@@ -4639,10 +4645,17 @@ if (NS_KEYLOG) NSLog (@"firstRectForCharRange request");
   return rect;
 }
 
+#ifdef NS_IMPL_GNUSTEP
+- (long)conversationIdentifier
+{
+  return (long)self;
+}
+#else
 - (NSInteger)conversationIdentifier
 {
   return (NSInteger)self;
 }
+#endif
 
 /* TODO: below here not yet implemented correctly, but may not be needed */
 
