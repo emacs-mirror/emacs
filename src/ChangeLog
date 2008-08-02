@@ -1,3 +1,8 @@
+2008-08-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vm-limit.c (check_memory_limits): Don't use getrlimit on cygwin.
+	Don't use uninitialized pointer variable when using getrlimit.
+
 2008-08-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fexpand_file_name): Convert the value of $HOME to a
