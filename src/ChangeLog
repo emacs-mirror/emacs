@@ -1,3 +1,18 @@
+2008-08-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/gnu-linux.h (HAVE_PROCFS, LISTPROC, PROCATTR): New defines.
+
+	* lisp.h: Add prototype for directory_files_internal.
+
+	* process.c (Fsystem_processes_list, Fsystem_process_attributes):
+	New functions.
+	(syms_of_process): Defsubr them.  Add initializations for various
+	Q* symbols used in procfs_system_process_attributes.
+	(procfs_list_system_processes, procfs_system_process_attributes)
+	[HAVE_PROCFS]: New functions.
+	(time_from_jiffies, ltime_from_jiffies, get_up_time, procfs_ttyname)
+	(procfs_get_total_memory): New functions.
+
 2008-08-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xfaces.c (Fx_load_color_file): Fix previous change;
@@ -2323,6 +2338,7 @@
 	(local_heap, local_alloc, local_free, malloc_widget_value)
 	(free_widget_value): Define here.
 
+>>>>>>> 1.6832
 2008-06-09  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (Qascii_0): Extern it.
