@@ -1,3 +1,8 @@
+2008-08-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vm-limit.c (check_memory_limits): Don't use getrlimit on cygwin.
+	Don't use uninitialized pointer variable when using getrlimit.
+
 2008-08-02  Jason Rumney  <jasonr@gnu.org>
 
         * w32font.c (compute_metrics): Don't mess with glyph_idx setting here.
