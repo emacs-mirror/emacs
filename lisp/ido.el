@@ -1506,7 +1506,9 @@ This function also adds a hook to the minibuffer."
       (if ido-minor-mode-map-entry
 	  (setcdr ido-minor-mode-map-entry map)
 	(setq ido-minor-mode-map-entry (cons 'ido-mode map))
-	(add-to-list 'minor-mode-map-alist ido-minor-mode-map-entry)))))
+	(add-to-list 'minor-mode-map-alist ido-minor-mode-map-entry))))
+
+  (message "Ido mode %s" (if ido-mode "enabled" "disabled")))
 
 
 (defun ido-everywhere (arg)
