@@ -4,6 +4,8 @@
 
 2008-08-02  Chong Yidong  <cyd@stupidchicken.com>
 
+	* ido.el (ido-mode): Add toggle notification.
+
 	* cus-edit.el (custom-save-all): Avoid destrying symlink if
 	already visiting the custom file.
 
