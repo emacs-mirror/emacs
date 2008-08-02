@@ -1026,6 +1026,12 @@ functions and variables (formerly used for Tamil script).
 
 * Lisp Changes in Emacs 23.1
 
+** New primitives `list-system-processes' and `system-process-attributes'
+let Lisp programs access the processes that are running on the local
+machine.  See the doc strings of these functions for more details.
+Not all platforms support accessing this information; on those that
+don't, these primitives will return nil.
+
 +++
 ** New variable `user-emacs-directory'.
 Use this instead of "~/.emacs.d".
