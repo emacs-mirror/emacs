@@ -1066,6 +1066,7 @@ See also the function `substitute-in-file-name'.  */)
   int length;
   Lisp_Object handler, result;
   int multibyte;
+  Lisp_Object hdir;
 
   CHECK_STRING (name);
 
@@ -1369,9 +1370,19 @@ See also the function `substitute-in-file-name'.  */)
 #endif /* VMS */
 	  || nm[1] == 0)	/* ~ by itself */
 	{
+	  Lisp_Object tem;
+
 	  if (!(newdir = (unsigned char *) egetenv ("HOME")))
 	    newdir = (unsigned char *) "";
 	  nm++;
+	  /* egetenv may return a unibyte string, which will bite us since
+	     we expect the directory to be multibyte.  */
+	  tem = build_string (newdir);
+	  if (!STRING_MULTIBYTE (tem))
+	    {
+	      hdir = DECODE_FILE (tem);
+	      newdir = SDATA (hdir);
+	    }
 #ifdef DOS_NT
 	  collapse_newdir = 0;
 #endif
