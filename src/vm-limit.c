@@ -147,24 +147,21 @@ check_memory_limits ()
 #endif
   extern POINTER (*__morecore) ();
 
-
   register POINTER cp;
   unsigned long five_percent;
   unsigned long data_size;
   enum warnlevel new_warnlevel;
 
-#ifdef HAVE_GETRLIMIT
+  /* Cygwin has a faulty getrlimit implementation:
+     http://lists.gnu.org/archive/html/emacs-devel/2008-08/msg00125.html  */
+#if defined (HAVE_GETRLIMIT) && ! defined (CYGWIN)
   struct rlimit rlimit;
 
   getrlimit (RLIMIT_AS, &rlimit);
-
-  if (RLIM_INFINITY == rlimit.rlim_max)
+  if (RLIM_INFINITY == rlimit.rlim_max
+      /* This is a nonsensical case, but it happens -- rms.  */
+      || rlimit.rlim_cur > rlimit.rlim_max)
     return;
-
-  /* This is a nonsensical case, but it happens -- rms.  */
-  if (rlimit.rlim_cur > rlimit.rlim_max)
-    return;
-
   five_percent = rlimit.rlim_max / 20;
   data_size = rlimit.rlim_cur;
 
@@ -189,14 +186,11 @@ check_memory_limits ()
     return;
 
   /* What level of warning does current memory usage demand?  */
-  if (data_size > five_percent * 19)
-    new_warnlevel = warned_95;
-  else if (data_size > five_percent * 17)
-    new_warnlevel = warned_85;
-  else if (data_size > five_percent * 15)
-    new_warnlevel = warned_75;
-  else
-    new_warnlevel = not_warned;
+  new_warnlevel
+    = (data_size > five_percent * 19) ? warned_95
+    : (data_size > five_percent * 17) ? warned_85
+    : (data_size > five_percent * 15) ? warned_75
+    : not_warned;
 
   /* If we have gone up a level, give the appropriate warning.  */
   if (new_warnlevel > warnlevel || new_warnlevel == warned_95)
@@ -233,8 +227,10 @@ check_memory_limits ()
 	warnlevel = warned_85;
     }
 
+#if ! defined (HAVE_GETRLIMIT) || defined (CYGWIN)
   if (EXCEEDS_LISP_PTR (cp))
     (*warn_function) ("Warning: memory in use exceeds lisp pointer size");
+#endif
 }
 
 /* Enable memory usage warnings.
