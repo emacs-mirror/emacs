@@ -24,15 +24,15 @@ version control operations on collections of files.  You can use the
 command @kbd{C-x v d} (@code{vc-dir}) to make a directory listing
 that includes only files relevant for version control.
 
-  @kbd{C-x v d} creates a buffer which uses VC directory mode. This
-buffer will contain a listing of version-controlled files beneath the
+  @kbd{C-x v d} creates a buffer which uses VC directory mode.  This
+buffer will contain a listing of version-controlled files below the
 current directory, and their containing directories.  Files which are
 up-to-date (have no local differences from the repository copy) will be
 omitted; if all files in a directory are up-to-date, the directory will
-be omitted as well.  The directory in which @code{vc-dir} was run will
-always be shown as ``./''.  But there is an exception; if VC mode
-detects that a file changed to up-to-date state since your last look at
-it, that state will be shown.
+be omitted as well.  (However, the directory in which @code{vc-dir} was
+run will always be shown as @file{./}.)  There is an exception to this
+rule: if VC mode detects that a file changed to up-to-date state since
+you last looked at it, that state will be shown.
 
   The line for an individual file will show the version control state of
 the file.  Under RCS and SCCS, the name of the user locking the file
@@ -83,40 +83,41 @@ this includes Version Control subdirectories such as @samp{RCS} and
 @node VC Directory Commands
 @subsection VC Directory Commands
 
-  VC directory mode has a full set of navigation and marking commands
+  VC Directory mode has a full set of navigation and marking commands
 for picking out filesets.  Some of these are also available in a
-context menu invoked with the right mouse button.
+context menu invoked by the @kbd{mouse-2} button.
 
-  Up and down-arrow keys move in the buffer; @kbd{n} and @kbd{p}  also
-move vertically as in other list-browsing modes.  @kbd{SPC} and
-@kbd{TAB} behave like down-arrow, and the back-tab behaves like up-arrow.
+  Up- and down-arrow keys move in the buffer; @kbd{n} and @kbd{p}  also
+move vertically as in other list-browsing modes.  @key{SPC} and
+@key{TAB} behave like down-arrow, and @key{BackTab} behaves like
+up-arrow.
 
   Both @kbd{C-m} and @kbd{f} visit the file on the current
-line. @kbd{o} visits that file in another window.  @kbd{q} dismisses
+line.  @kbd{o} visits that file in another window.  @kbd{q} dismisses
 the directory buffer.
 
   @kbd{x} toggles hiding of up-to-date files.
   
   @kbd{m} marks the file or directory on the current line.  If the
-region is active it marks all the files in the region.  There are some
-restrictions when marking: a file cannot be marked if any parent
-directory is marked and a directory cannot be marked if any child file
-is marked.
+region is active, @kbd{m} marks all the files in the region.  There
+are some restrictions when marking: a file cannot be marked if any of
+its parent directories are marked, and a directory cannot be marked if
+any files in it or in its child directories are marked.
 
-  @kbd{M} marks all the files with the same VC state as the current file
-if the cursor is on a file.  If the cursor is on a directory marks all
-child files.  With a prefix argument: marks all files files and
+  @kbd{M} marks all the files with the same VC state as the current
+file if the cursor is on a file.  If the cursor is on a directory, it
+marks all child files.  With a prefix argument: marks all files and
 directories.
 
   @kbd{u} unmarks the file or directory on the current line.  If the
-region is active it unmarks all the files in the region.
+region is active, it unmarks all the files in the region.
 
   @kbd{U} marks all the files with the same VC state as the current file
-if the cursor is on a file.  If the cursor is on a directory unmarks all
-child files.  With a prefix argument: unmarks all marked files and
-directories.
+if the cursor is on a file.  If the cursor is on a directory, it
+unmarks all child files.  With a prefix argument: unmarks all marked
+files and directories.
 
-  It is possible to do search, search and replace, incremental search
+  It is possible to do search, search and replace, incremental search,
 and incremental regexp search on multiple files.  These commands will
 work on all the marked files or the current file if nothing is marked.
 If a directory is marked, the files in that directory shown in the VC
@@ -142,12 +143,12 @@ buffers.  Some single-key shortcuts are available as well; @kbd{=},
   The command @kbd{C-x v v} (@code{vc-next-action}) operates on all the
 marked files, so that you can check in several files at once.
 If the underlying VC supports atomic commits of multiple-file
-changesets @kbd{C-x v v} with a selected set of modified but not committed
-files wuill commit all of them at once as a single changeset.
+changesets, @kbd{C-x v v} with a selected set of modified but not
+committed files will commit all of them at once as a single changeset.
 
   When @kbd{C-x v v} (@code{vc-next-action}) operates on a set of files,
-it requires that all of those files must be either in the same state, or
-in compatible states; otherwise it will throw an error (the added,
+it requires that all of those files must be either in the same state or
+in compatible states; otherwise it will throw an error (added,
 modified and removed states are considered compatible).  Note that this
 differs from the behavior of older versions of VC, which did not have
 fileset operations and simply did @code{vc-next-action} on each file
