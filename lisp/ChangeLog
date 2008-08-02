@@ -1,3 +1,8 @@
+2008-08-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pgg-gpg.el (pgg-gpg-process-region): Accept any remaining
+	pending output coming after the status change.
+
 2008-07-31  Sven Joachim  <svenjoac@gmx.de>
 
 	* files.el (abbreviate-file-name): When replacing $HOME with ~,
