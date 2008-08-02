@@ -1,3 +1,9 @@
+2008-08-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc1-xtra.texi (VC Directory Mode): Fix and improve the info about
+	marking/unmarking. Add descriptions for the multiple file search
+	commands.  Improve some old info.
+
 2008-07-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Visual Line Mode): New node.

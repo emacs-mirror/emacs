@@ -24,14 +24,15 @@ version control operations on collections of files.  You can use the
 command @kbd{C-x v d} (@code{vc-dir}) to make a directory listing
 that includes only files relevant for version control.
 
-  @kbd{C-x v d} creates a buffer which uses VC directory mode. This 
-buffer will contain a listing of version-controlled files beneath
-the current directory, and their containing directories.  Files
-which are up-to-date (have no local differences from the repository
-copy) will be omitted; if all files in a directory are up-to-date,
-the directory will be omitted as well.  But there is an exception; 
-if VC mode detects that a file changed to up-to-date state since your
-last look at it, that state will be shown.
+  @kbd{C-x v d} creates a buffer which uses VC directory mode. This
+buffer will contain a listing of version-controlled files beneath the
+current directory, and their containing directories.  Files which are
+up-to-date (have no local differences from the repository copy) will be
+omitted; if all files in a directory are up-to-date, the directory will
+be omitted as well.  The directory in which @code{vc-dir} was run will
+always be shown as ``./''.  But there is an exception; if VC mode
+detects that a file changed to up-to-date state since your last look at
+it, that state will be shown.
 
   The line for an individual file will show the version control state of
 the file.  Under RCS and SCCS, the name of the user locking the file
@@ -44,7 +45,8 @@ output is used.  Here is an example using RCS:
 @group
                        ./
     modified           file1.c
-    update             file2.c
+    needs-update       file2.c
+    needs-merge        file2.c
 @end group
 @end smallexample
 
@@ -94,27 +96,61 @@ line. @kbd{o} visits that file in another window.  @kbd{q} dismisses
 the directory buffer.
 
   @kbd{x} toggles hiding of up-to-date files.
+  
+  @kbd{m} marks the file or directory on the current line.  If the
+region is active it marks all the files in the region.  There are some
+restrictions when marking: a file cannot be marked if any parent
+directory is marked and a directory cannot be marked if any child file
+is marked.
 
-  @kbd{m} marks the file on the current line.  @kbd{M} marks all
-files. @kbd{u} marks the file on the current line.  @kbd{U} unmarks all
-files.
+  @kbd{M} marks all the files with the same VC state as the current file
+if the cursor is on a file.  If the cursor is on a directory marks all
+child files.  With a prefix argument: marks all files files and
+directories.
 
-  Normal VC command with the @kbd{C-x v} prefix work in directory
+  @kbd{u} unmarks the file or directory on the current line.  If the
+region is active it unmarks all the files in the region.
+
+  @kbd{U} marks all the files with the same VC state as the current file
+if the cursor is on a file.  If the cursor is on a directory unmarks all
+child files.  With a prefix argument: unmarks all marked files and
+directories.
+
+  It is possible to do search, search and replace, incremental search
+and incremental regexp search on multiple files.  These commands will
+work on all the marked files or the current file if nothing is marked.
+If a directory is marked, the files in that directory shown in the VC
+directory buffer will be used.
+
+  @kbd{S} searches the marked files.
+
+  @kbd{Q} does a query replace on the marked files.
+
+  @kbd{M-s a C-s} does an incremental search on the marked files.
+
+  @kbd{M-s a C-M-s} does an incremental search on the marked files.
+
+  Commands are also accessible from the VC-dir menu.  Note that some VC
+backends use the VC-dir menu to make available extra backend specific
+commands.
+
+  Normal VC commands with the @kbd{C-x v} prefix work in VC directory
 buffers.  Some single-key shortcuts are available as well; @kbd{=},
 @kbd{+}, @kbd{l}, @kbd{i}, and @kbd{v} behave as through prefixed with
 @kbd{C-x v}.
 
   The command @kbd{C-x v v} (@code{vc-next-action}) operates on all the
-marked files, so that you can lock or check in several files at once.
+marked files, so that you can check in several files at once.
 If the underlying VC supports atomic commits of multiple-file
-changesets @kbd{v v} with a selected set of modified but not committed 
+changesets @kbd{C-x v v} with a selected set of modified but not committed
 files wuill commit all of them at once as a single changeset.
 
   When @kbd{C-x v v} (@code{vc-next-action}) operates on a set of files,
-it requires that all of those files must be in the same state;
-otherwise it will throw an error.  Note that this differs from the 
-behavior of older versions of VC, which did not have fileset
-operations and simply did @code{vc-next-action} on each file 
+it requires that all of those files must be either in the same state, or
+in compatible states; otherwise it will throw an error (the added,
+modified and removed states are considered compatible).  Note that this
+differs from the behavior of older versions of VC, which did not have
+fileset operations and simply did @code{vc-next-action} on each file
 individually.
 
   If any files are in a state that calls for commit, @kbd{C-x v v} reads a
