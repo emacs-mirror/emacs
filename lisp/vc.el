@@ -1085,7 +1085,7 @@ merge in the changes into your working copy."
 			 ;; finishing the log entry and committing.
 			 (not (and visited (buffer-modified-p))))
 		(vc-revert-file file)
-		(delete file ready-for-commit)))))
+		(setq ready-for-commit (delete file ready-for-commit))))))
 	;; Remaining files need to be committed
 	(if (not ready-for-commit)
 	    (message "No files remain to be committed")
