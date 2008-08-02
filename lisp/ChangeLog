@@ -1,4 +1,4 @@
-2008-08-02  Alex Harsanyi  <harsanyi@mac.com>
+2008-08-02  Alex Harsanyi  <harsanyi@mac.com>  (tiny change)
 
 	* vc.el (vc-next-action): Update list var correctly after delete.
 
