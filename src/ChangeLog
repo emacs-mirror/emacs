@@ -1,5 +1,7 @@
 2008-08-02  Eli Zaretskii  <eliz@gnu.org>
 
+	* alloc.c (NSTATICS): Bump to 0x640.
+
 	* s/gnu-linux.h (HAVE_PROCFS, LISTPROC, PROCATTR): New defines.
 
 	* lisp.h: Add prototype for directory_files_internal.
