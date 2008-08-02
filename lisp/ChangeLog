@@ -1,6 +1,6 @@
 2008-08-02  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cus-edit.el (custom-save-all): Avoid destrying symlink if
+	* cus-edit.el (custom-save-all): Avoid destroying symlink if
 	already visiting the custom file.
 
 	* pgg-gpg.el (pgg-gpg-process-region): Accept any remaining
