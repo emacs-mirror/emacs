@@ -1,3 +1,7 @@
+2008-08-02  Jason Rumney  <jasonr@gnu.org>
+
+        * w32-fns.el (tis620-2533): Use as preferred registry for thai fonts.
+
 2008-08-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-check-event, dbus-handle-event): Handle D-Bus
