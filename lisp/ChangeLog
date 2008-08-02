@@ -1,3 +1,7 @@
+2008-08-02  Alex Harsanyi  <harsanyi@mac.com>
+
+	* vc.el (vc-next-action): Update list var correctly after delete.
+
 2008-08-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-save-all): Avoid destrying symlink if
