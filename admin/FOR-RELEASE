@@ -26,8 +26,11 @@ sk	Miroslav Vaško
 
 * WINDOWS SUPPORT BUGS
 
-These don't need to be fixed before a release, but we call the
-attention of Windows users to fixing them.
+** Emacs crashes on Windows when visiting .tar.gz files.  See
+
+   http://lists.gnu.org/archive/html/emacs-devel/2008-06/msg01850.html
+
+and its follow-ups.
 
 ** Drew Adams 12 Aug bug rpt: overlay display artifact: trace left behind
 Verify that the new font backend eliminates this and other Cleartype related
