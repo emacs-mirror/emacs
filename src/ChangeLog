@@ -2338,7 +2338,6 @@
 	(local_heap, local_alloc, local_free, malloc_widget_value)
 	(free_widget_value): Define here.
 
->>>>>>> 1.6832
 2008-06-09  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (Qascii_0): Extern it.
