@@ -1,3 +1,8 @@
+2008-08-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pgg-gpg.el (pgg-gpg-process-region): Accept any remaining
+	pending output coming after the status change.
+
 2008-08-02  Jason Rumney  <jasonr@gnu.org>
 
         * w32-fns.el (tis620-2533): Use as preferred registry for thai fonts.
