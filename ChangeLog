@@ -1,3 +1,7 @@
+2008-08-02  Romain Francoise  <romain@orebokech.com>
+
+	* Makefile.in (INFO_FILES): Add mairix-el.
+
 2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* make-dist:
