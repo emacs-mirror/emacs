@@ -37,7 +37,14 @@ FRAME_MSDOS_P	An MS-DOS frame (used only by the DOS port).
 FRAME_W32_P	A frame using native MS-Windows GUI.
 FRAME_WINDOW_P	A GUI frame (like X, w32, etc.)
 
+** Support for accessing other processes on the system **
+
+HAVE_PROCFS     The /proc filesystem is supported.
+LISTPROC        A function that returns a list of PIDs of system processes.
+PROCATTR        A function that returns attributes of a process.
+
 ** Compile-time options **
+
 REL_ALLOC	Compile in the relocatable memory allocator ralloc.c.
 SYSTEM_MALLOC	Use the system library's malloc.
 subprocesses    System can use subprocesses (for M-x shell for example).  Defined by default, only MSDOS undefines it.
