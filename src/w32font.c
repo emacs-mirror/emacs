@@ -2265,14 +2265,6 @@ compute_metrics (dc, w32_font, code, metrics)
       metrics->width = gm.gmCellIncX;
       metrics->status = W32METRIC_SUCCESS;
     }
-  else if (w32_font->glyph_idx)
-    {
-      /* Can't use glyph indexes after all.
-	 Avoid it in future, and clear any metrics that were based on
-	 glyph indexes.  */
-      w32_font->glyph_idx = 0;
-      clear_cached_metrics (w32_font);
-    }
   else
     metrics->status = W32METRIC_FAIL;
 }
