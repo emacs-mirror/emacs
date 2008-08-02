@@ -4265,9 +4265,18 @@ if only the first line of the docstring is shown."))
 			     (recentf-expand-file-name (custom-file)))
 			    "\\'")
 		    recentf-exclude)))
-	 (old-buffer (find-buffer-visiting filename)))
+	 (old-buffer (find-buffer-visiting filename))
+	 old-buffer-name)
+
     (with-current-buffer (let ((find-file-visit-truename t))
 			   (or old-buffer (find-file-noselect filename)))
+      ;; We'll save using file-precious-flag, so avoid destroying
+      ;; symlinks.  (If we're not already visiting the buffer, this is
+      ;; handled by find-file-visit-truename, above.)
+      (when old-buffer
+	(setq old-buffer-name (buffer-file-name))
+	(set-visited-file-name (file-chase-links filename)))
+
       (unless (eq major-mode 'emacs-lisp-mode)
 	(emacs-lisp-mode))
       (let ((inhibit-read-only t))
@@ -4275,7 +4284,10 @@ if only the first line of the docstring is shown."))
 	(custom-save-faces))
       (let ((file-precious-flag t))
 	(save-buffer))
-      (unless old-buffer
+      (if old-buffer
+	  (progn
+	    (set-visited-file-name old-buffer-name)
+	    (set-buffer-modified-p nil))
 	(kill-buffer (current-buffer))))))
 
 ;;;###autoload
