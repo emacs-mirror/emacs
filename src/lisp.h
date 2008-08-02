@@ -3276,6 +3276,9 @@ extern void syms_of_ccl P_ ((void));
 /* Defined in dired.c */
 EXFUN (Ffile_attributes, 2);
 extern void syms_of_dired P_ ((void));
+extern Lisp_Object directory_files_internal P_ ((Lisp_Object, Lisp_Object,
+						 Lisp_Object, Lisp_Object,
+						 int, Lisp_Object));
 
 /* Defined in term.c */
 extern void syms_of_term P_ ((void));
