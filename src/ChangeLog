@@ -1,3 +1,8 @@
+2008-08-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name): Convert the value of $HOME to a
+	multibyte string.
+
 2008-08-01  Jason Rumney  <jasonr@gnu.org>
 
         * w32term.c (x_draw_composite_glyph_string_foreground): Force
