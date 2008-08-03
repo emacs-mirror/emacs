@@ -148,7 +148,11 @@ check_memory_limits ()
   extern POINTER (*__morecore) ();
 
   register POINTER cp;
+#if defined (HAVE_GETRLIMIT) && ! defined (CYGWIN)
+  rlim_t five_percent;
+#else
   unsigned long five_percent;
+#endif
   unsigned long data_size;
   enum warnlevel new_warnlevel;
 
@@ -163,13 +167,14 @@ check_memory_limits ()
       || rlimit.rlim_cur > rlimit.rlim_max)
     return;
   five_percent = rlimit.rlim_max / 20;
-  data_size = rlimit.rlim_cur;
 
 #else /* not HAVE_GETRLIMIT */
 
   if (lim_data == 0)
     get_lim_data ();
   five_percent = lim_data / 20;
+
+#endif /* not HAVE_GETRLIMIT */
 
   /* Find current end of memory and issue warning if getting near max */
 #ifdef REL_ALLOC
@@ -179,8 +184,6 @@ check_memory_limits ()
 #endif
   cp = (char *) (*__morecore) (0);
   data_size = (char *) cp - (char *) data_space_start;
-
-#endif /* not HAVE_GETRLIMIT */
 
   if (!warn_function)
     return;

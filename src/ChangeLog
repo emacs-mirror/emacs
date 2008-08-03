@@ -1,3 +1,8 @@
+2008-08-03  Andreas Schwab  <schwab@suse.de>
+
+	* vm-limit.c (check_memory_limits) [HAVE_GETRLIMIT]: Fix
+	calculation of data_size.  Use correct type for five_percent.
+
 2008-08-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vm-limit.c (check_memory_limits): Don't use getrlimit on cygwin.
