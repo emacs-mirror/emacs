@@ -1,3 +1,7 @@
+2008-08-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (windowDidResize): Remove stopModel call.
+
 2008-08-03  Andreas Schwab  <schwab@suse.de>
 
 	* vm-limit.c (get_lim_data) [HAVE_GETRLIMIT && RLIMIT_AS]: Define.
