@@ -65,6 +65,21 @@ get_lim_data ()
 }
 #else /* not NO_LIM_DATA */
 
+#if defined (HAVE_GETRLIMIT) && defined (RLIMIT_AS)
+static void
+get_lim_data ()
+{
+  struct rlimit rlimit;
+
+  getrlimit (RLIMIT_AS, &rlimit);
+  if (rlimit.rlim_cur == RLIM_INFINITY)
+    lim_data = -1;
+  else
+    lim_data = rlimit.rlim_cur;
+}
+
+#else /* not HAVE_GETRLIMIT */
+
 #ifdef USG
 
 static void
@@ -135,6 +150,7 @@ get_lim_data ()
 #endif /* BSD4_2 */
 #endif /* not WINDOWSNT */
 #endif /* not USG */
+#endif /* not HAVE_GETRLIMIT */
 #endif /* not NO_LIM_DATA */
 
 /* Verify amount of memory available, complaining if we're near the end. */
@@ -148,33 +164,13 @@ check_memory_limits ()
   extern POINTER (*__morecore) ();
 
   register POINTER cp;
-#if defined (HAVE_GETRLIMIT) && ! defined (CYGWIN)
-  rlim_t five_percent;
-#else
   unsigned long five_percent;
-#endif
   unsigned long data_size;
   enum warnlevel new_warnlevel;
-
-  /* Cygwin has a faulty getrlimit implementation:
-     http://lists.gnu.org/archive/html/emacs-devel/2008-08/msg00125.html  */
-#if defined (HAVE_GETRLIMIT) && ! defined (CYGWIN)
-  struct rlimit rlimit;
-
-  getrlimit (RLIMIT_AS, &rlimit);
-  if (RLIM_INFINITY == rlimit.rlim_max
-      /* This is a nonsensical case, but it happens -- rms.  */
-      || rlimit.rlim_cur > rlimit.rlim_max)
-    return;
-  five_percent = rlimit.rlim_max / 20;
-
-#else /* not HAVE_GETRLIMIT */
 
   if (lim_data == 0)
     get_lim_data ();
   five_percent = lim_data / 20;
-
-#endif /* not HAVE_GETRLIMIT */
 
   /* Find current end of memory and issue warning if getting near max */
 #ifdef REL_ALLOC
@@ -230,10 +226,8 @@ check_memory_limits ()
 	warnlevel = warned_85;
     }
 
-#if ! defined (HAVE_GETRLIMIT) || defined (CYGWIN)
   if (EXCEEDS_LISP_PTR (cp))
     (*warn_function) ("Warning: memory in use exceeds lisp pointer size");
-#endif
 }
 
 /* Enable memory usage warnings.

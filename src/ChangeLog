@@ -1,7 +1,7 @@
 2008-08-03  Andreas Schwab  <schwab@suse.de>
 
-	* vm-limit.c (check_memory_limits) [HAVE_GETRLIMIT]: Fix
-	calculation of data_size.  Use correct type for five_percent.
+	* vm-limit.c (get_lim_data) [HAVE_GETRLIMIT && RLIMIT_AS]: Define.
+	(check_memory_limits): Don't handle HAVE_GETRLIMIT here.
 
 2008-08-02  Chong Yidong  <cyd@stupidchicken.com>
 
