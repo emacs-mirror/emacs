@@ -1219,9 +1219,9 @@ registration for @var{method}.  Example:
   "org.freedesktop.TextEditor" "OpenFile"
   'my-dbus-method-handler)
 
-@result{} ((:system "org.freedesktop.TextEditor" "OpenFile")
+@result{} ((:session "org.freedesktop.TextEditor" "OpenFile")
     ("org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
-     my-method-handler))
+     my-dbus-method-handler))
 @end lisp
 
 If you invoke the method @samp{org.freedesktop.TextEditor.OpenFile}
@@ -1237,7 +1237,35 @@ could use the command line tool @code{dbus-send} in a shell:
     "org.freedesktop.TextEditor.OpenFile" string:"/etc/hosts"
 
 @print{} method return sender=:1.22 -> dest=:1.23 reply_serial=2
-     boolean true
+      boolean true
+@end example
+
+You can indicate an error by raising the Emacs signal
+@code{dbus-error}.  The handler above could be changed like this:
+
+@lisp
+(defun my-dbus-method-handler (&rest args)
+  (unless (and (= (length args) 1) (stringp (car args)))
+    (signal 'dbus-error (list (format "Wrong argument list: %S" args))))
+  (condition-case err
+      (find-file (car args))
+    (error (signal 'dbus-error (cdr err))))
+  t)
+
+@result{} my-dbus-method-handler
+@end lisp
+
+The test runs then
+
+@example
+# dbus-send --session --print-reply \
+    --dest="org.freedesktop.TextEditor" \
+    "/org/freedesktop/TextEditor" \
+    "org.freedesktop.TextEditor.OpenFile" \
+    string:"/etc/hosts" string:"/etc/passwd"
+
+@print{} Error org.freedesktop.DBus.Error.Failed:
+   Wrong argument list: ("/etc/hosts" "/etc/passwd")
 @end example
 @end defun
 
