@@ -4953,7 +4953,13 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
     x_set_window_size (emacsframe, 0, cols, rows);
 
   ns_send_appdefined (-1);
+
+  /* The following line causes a crash on GNUstep.  Adrian Roberts
+     says he doesn't remember why he added this line, but removing it
+     doesn't seem to cause problems on OSX, either.  */
+#if 0
   [NSApp stopModal];
+#endif
 }
 
 
