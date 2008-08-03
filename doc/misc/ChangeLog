@@ -1,3 +1,8 @@
+2008-08-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Receiving Method Calls): Document error handling of own
+	D-Bus methods.
+
 2008-08-01  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Reading Mail)
