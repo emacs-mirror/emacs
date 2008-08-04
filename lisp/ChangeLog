@@ -16,6 +16,15 @@
 
         * w32-fns.el (tis620-2533): Use as preferred registry for thai fonts.
 
+2008-08-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (encode-coding-char):
+	New optional arg CHARSET.
+
+	* descr-text.el (describe-char-display): Call encode-coding-char
+	with the arg CHARSET.
+	(describe-char): Pay attention to the text-property `charset'.
+
 2008-08-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-check-event, dbus-handle-event): Handle D-Bus
