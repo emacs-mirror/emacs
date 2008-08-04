@@ -278,8 +278,8 @@
 
 2008-07-30  Michael McNamara  <mac@mail.brushroad.com>
 
-	* verilog-mode.el (verilog-do-indent): Remove special indent for
-	declarations inside a parenthetical list. The code is ill-advised,
+	* progmodes/verilog-mode.el (verilog-do-indent): Remove special indent
+	for declarations inside a parenthetical list. The code is ill-advised,
 	and doesn't work given user defined types.
 	(verilog-set-auto-endcomments): Enhance function automatic
 	endcomment to support functions that return user defined types.
@@ -293,8 +293,8 @@
 
 2008-07-30  Wilson Snyder  <wsnyder@wsnyder.org>
 
-	* verilog-mode (verilog-read-decls): Allow AUTORESET to work with
-	SV 'logic' signals.  [Julian Gorfajn]
+	* progmodes/verilog-mode.el (verilog-read-decls): Allow AUTORESET
+	to work with SV 'logic' signals.  [Julian Gorfajn]
 	(verilog-auto-inst-column): Make verilog-auto-inst-column customizable.
 	(verilog-string-replace-matches): Avoid recursion with small
 	replacements.
@@ -888,7 +888,7 @@
 
 2008-07-17  Fan Kai  <fktpp@xemacs.org>  (tiny change)
 
-	* esh-arg.el (eshell-quote-backslash): Fix eshell path completion
+	* eshell/esh-arg.el (eshell-quote-backslash): Fix eshell path completion
 	for Windows.
 
 2008-07-17  Daiki Ueno  <ueno@unixuser.org>
@@ -1026,12 +1026,12 @@
 
 2008-07-13  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc-help.el (calc-describe-key): Add angles to special key
+	* calc/calc-help.el (calc-describe-key): Add angles to special key
 	descriptions.
 
 2008-07-13  Vincent Belaïche  <vincent.b.1@hotmail.fr>
 
-	* calc-help.el (calc-describe-thing): Use `re-search-forward' to
+	* calc/calc-help.el (calc-describe-thing): Use `re-search-forward' to
 	search for regexp.
 
 2008-07-12  Chong Yidong  <cyd@stupidchicken.com>
@@ -4038,7 +4038,7 @@
 
 2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc-sccs.el, vc.svn.el, vc-git.el, vc-hg.el, vc-mtn.el:
+	* vc-sccs.el, vc-svn.el, vc-git.el, vc-hg.el, vc-mtn.el:
 	Remove stub implementations of, and references to, wash-log.
 	* vc-rcs.el (vc-rcs-comment-history):
 	* vc-cvs.el (vc-cvs-comment-history):
@@ -4098,8 +4098,8 @@
 
 	* progmodes/compile.el (compilation-minor-mode-map)
 	(compilation-mode-map): Bind "g" to recompile and "q" to quit-window.
-	* grep.el (grep-mode-map): Use `set-keymap-parent' to connect it
-	to `compilation-minor-mode-map' (instead of an explicit `cons').
+	* progmodes/grep.el (grep-mode-map): Use `set-keymap-parent' to connect
+	it to `compilation-minor-mode-map' (instead of an explicit `cons').
 
 2008-05-08  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -4130,8 +4130,8 @@
 
 2008-05-08  Michael McNamara  <mac@mail.brushroad.com>
 
-	* verilog-mode.el (verilog-type-font-keywords): Add leda and 0in
-	as pragma keywords.
+	* progmodes/verilog-mode.el (verilog-type-font-keywords):
+	Add leda and 0in as pragma keywords.
 	(verilog-pretty-expr): Support lining up assignments which include
 	part selects.
 	(verilog-mode): More portable check for the availability of
@@ -4218,7 +4218,8 @@
 
 2008-05-06  Wilson Snyder  <wsnyder@wsnyder.org>
 
-	* verilog-mode.el (verilog-getopt-file): Cleanup warning message format.
+	* progmodes/verilog-mode.el (verilog-getopt-file):
+	Cleanup warning message format.
 	(verilog-auto, verilog-auto-arg, verilog-auto-ascii-enum)
 	(verilog-auto-inout, verilog-auto-inout-module)
 	(verilog-auto-input, verilog-auto-inst, verilog-auto-inst-param)
@@ -4355,7 +4356,8 @@
 	* progmodes/compile.el (compilation-start): Move setting of
 	compilation-directory after (funcall mode) as that resets local
 	variables, this fixes recompile in grep buffers.
-	* grep.el (grep-mode-map): Bind "g" to recompile (like in dired &c).
+	* progmodes/grep.el (grep-mode-map): Bind "g" to recompile (like
+	in dired &c).
 
 2008-05-02  Eric S. Raymond  <esr@snark.thyrsus.com>
 
@@ -4457,7 +4459,7 @@
 	we report the 'unregistered state reliably.
 	* vc-git.el (vc-git-state): Call vc-git-unregistered so
 	we report the 'unregistered state reliably.
-	* vc-hooks (vc-state): Document that vc-unregistered is
+	* vc-hooks.el (vc-state): Document that vc-unregistered is
 	now expected to be returned reliably.
 	* vc.el (vc-default-dired-state): Change needs-patch state to
 	needs-update, since the name now shows up in dir-status listings
@@ -4921,7 +4923,7 @@
 
 2008-04-27  Jason Riedy  <jason@acm.org>
 
-	* lisp/org-table.el (orgtbl-to-generic): Add a :remove-nil-lines
+	* org/org-table.el (orgtbl-to-generic): Add a :remove-nil-lines
 	parameter that supresses lines that evaluate to NIL.
 	(orgtbl-get-fmt): New inline function for
 	picking apart formats that may be lists.
@@ -4981,7 +4983,7 @@
 	deadline leader.
 	(org-agenda-get-deadlines): Deal with new function value.
 
-	* lisp/org-clock.el (org-clock): New customization group.
+	* org/org-clock.el (org-clock): New customization group.
 	(org-clock-into-drawer, org-clock-out-when-done)
 	(org-clock-in-switch-to-state, org-clock-heading-function):
 	Move into the new group.
@@ -5334,16 +5336,18 @@
 
 2008-04-23  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-set-spellchecker-params): New function to make sure
-	right params and dictionary alists are used after spellchecker changes.
+	* textmodes/ispell.el (ispell-set-spellchecker-params):
+	New function to make sure right params and dictionary alists are used
+	after spellchecker changes.
 	(ispell-aspell-dictionary-alist, ispell-last-program-name)
 	(ispell-initialize-spellchecker-hook): New variables and hook.
 	(ispell-find-aspell-dictionaries): Use ispell-aspell-dictionary-alist.
 	(ispell-maybe-find-aspell-dictionaries): Remove.
 	Calls replaced by (ispell-set-spellchecker-params) calls.
 	(ispell-have-aspell-dictionaries): Remove.
-	* flyspell.el: Replace ispell-maybe-find-aspell-dictionaries by
-	ispell-set-spellchecker-params.
+
+	* textmodes/flyspell.el: Replace ispell-maybe-find-aspell-dictionaries
+	by ispell-set-spellchecker-params.
 
 2008-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -6289,7 +6293,7 @@
 	(holiday-islamic-holidays, holiday-bahai-holidays)
 	(holiday-solar-holidays, calendar-holidays): Move to holidays.el.
 	* calendar/diary-lib.el: Move custom group here from calendar.el.
-	* calendar/holidays-lib.el: Move custom group and variables here
+	* calendar/holidays.el: Move custom group and variables here
 	from calendar.el.
 
 	* calendar/cal-china.el (calendar-chinese-time-zone): Mark as risky.
@@ -6635,7 +6639,7 @@
 
 	* calendar/calendar.el (calendar-mode-map): Replace use of kbd.
 
-	* calendar.el (diary-view-entries-initially-flag): Rename
+	* calendar/calendar.el (diary-view-entries-initially-flag): Rename
 	view-diary-entries-initially.  Keep old name as alias, update users.
 	(calendar-mark-diary-entries-flag): Rename
 	mark-diary-entries-in-calendar.  Keep old name as alias, update users.
@@ -7233,7 +7237,7 @@
 
 	* ediff*.el: Replace load with require in eval-when-compile.
 
-	* ediff-hook: Delete all invocations of (autoload ...).
+	* ediff-hook.el: Delete all invocations of (autoload ...).
 
 	* ediff-util.el (ediff-setup): Make window-min-height a local variable
 	in ediff control window, and set its min height to 2.
@@ -7242,7 +7246,7 @@
 	Work directly with ediff-setup-windows-multiframe and
 	ediff-setup-windows-plain.
 
-	* ediff-wind (ediff-choose-window-setup-function-automatically):
+	* ediff-wind.el (ediff-choose-window-setup-function-automatically):
 	New function.
 	(ediff-window-setup-function): Change initialization.
 	(ediff-setup-windows-automatic): Delete.
@@ -7438,7 +7442,7 @@
 
 	* emulation/viper.el (viper-mode): Move the check for fundamental mode.
 
-	* emulation/viper-utils.el (viper-get-saved-cursor-color-in-insert-mode)
+	* emulation/viper-util.el (viper-get-saved-cursor-color-in-insert-mode)
 	(viper-get-saved-cursor-color-in-replace-mode): Get rid of redundant
 	let-statements.
 
@@ -8919,7 +8923,7 @@
 
 2008-03-16  Ulf Jasper  <ulf.jasper@web.de>
 
-	* icalendar.el (icalendar-version): Increase to 0.18.
+	* calendar/icalendar.el (icalendar-version): Increase to 0.18.
 	(icalendar-export-hidden-diary-entries): New variable.
 	(icalendar-export-region): Use icalendar-export-hidden-diary-entries.
 	In case of error, insert full error-val.
@@ -8929,7 +8933,7 @@
 
 2008-03-16  Craig Markwardt  <Craig.Markwardt@nasa.gov>
 
-	* icalendar.el (icalendar-recurring-start-year): New variable.
+	* calendar/icalendar.el (icalendar-recurring-start-year): New variable.
 	(icalendar--diarytime-to-isotime): Fix treatment of 12:00pm - 12:59pm.
 	(icalendar-export-region): Ignore hidden diary entries.
 	(icalendar--convert-ordinary-to-ical): Fix case where event
@@ -9718,8 +9722,8 @@
 
 2008-03-10  Michael McNamara  <mac@mail.brushroad.com>
 
-	* verilog-mode.el (verilog-font-grouping-keywords): Fix bug in the
-	grouping-keyword regular expression.
+	* progmodes/verilog-mode.el (verilog-font-grouping-keywords):
+	Fix bug in the grouping-keyword regular expression.
 	(verilog-font-lock-keywords): Allow users to toggle special
 	highlight of grouping-keywords.
 	(verilog-highlight-grouping-keywords): The toggle for special
@@ -11774,7 +11778,7 @@
 	* hexl.el (hexl-mode): Don't make `font-lock-defaults' buffer-local;
 	it is already automatically buffer-local.
 
-2008-02-11  Drew Adams  <drew.adams@oracle.com>
+2008-02-12  Drew Adams  <drew.adams@oracle.com>
 
 	* help.el (describe-key): Join some split lines to facilitate filling.
 	* help-fns.el (describe-function-1): Fill text of overlong lines.
@@ -11796,6 +11800,11 @@
 
 	* simple.el (clone-indirect-buffer-hook): New hook.
 	(clone-indirect-buffer): Run it.
+
+2008-02-11  Michael Olson  <mwolson@gnu.org>
+
+	* epa-setup.el:
+	* epg-package-info.el: Files removed.
 
 2008-02-11  Daiki Ueno  <ueno@unixuser.org>
 
