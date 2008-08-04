@@ -3332,7 +3332,7 @@ EXFUN (Fmsdos_downcase_filename, 1);
 #endif
 
 #ifdef HAVE_MENUS
-/* Defined in (x|w32)fns.c...  */
+/* Defined in (x|w32)fns.c, nsfns.m...  */
 extern int have_menus_p P_ ((void));
 #endif
 

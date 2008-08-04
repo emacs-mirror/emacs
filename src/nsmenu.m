@@ -65,6 +65,9 @@ extern Lisp_Object Voverriding_local_map, Voverriding_local_map_menu_flag,
 extern long context_menu_value;
 EmacsMenu *mainMenu, *svcsMenu;
 
+/* Nonzero means a menu is currently active.  */
+static int popup_activated_flag;
+
 /* NOTE: toolbar implementation is at end,
   following complete menu implementation. */
 
@@ -91,6 +94,13 @@ void
 free_frame_menubar (struct frame *f)
 {
   return;
+}
+
+
+int
+popup_activated ()
+{
+  return popup_activated_flag;
 }
 
 
@@ -591,6 +601,7 @@ name_is_separator (name)
     return @"";
   return [NSString stringWithFormat: @"%c", tpos[2]];
 }
+
 
 - (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr
 {
@@ -1117,10 +1128,13 @@ ns_popup_menu (Lisp_Object position, Lisp_Object menu)
   free_menubar_widget_value_tree (first_wv);
   unbind_to (specpdl_count2, Qnil);
 
+  popup_activated_flag = 1;
   tem = [pmenu runMenuAt: p forFrame: f keymaps: keymaps];
+  popup_activated_flag = 0;
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
 
   UNBLOCK_INPUT;
+  discard_menu_items ();
   unbind_to (specpdl_count, Qnil);
   UNGCPRO;
 
@@ -1511,8 +1525,9 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   p.y = (int)f->top_pos + (FRAME_LINE_HEIGHT (f) * f->text_lines)/2;
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents
                                            isQuestion: isQ];
-
+  popup_activated_flag = 1;
   tem = [dialog runDialogAt: p];
+  popup_activated_flag = 0;
 
   [dialog close];
 
@@ -1934,6 +1949,12 @@ for instance using the window manager, then this produces a quit and
   return ns_popup_dialog (position, contents, header);
 }
 
+DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
+       doc: /* Return t if a menu or popup dialog is active.  */)
+     ()
+{
+  return popup_activated () ? Qt : Qnil;
+}
 
 /* ==========================================================================
 
@@ -1947,6 +1968,7 @@ syms_of_nsmenu ()
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);
   defsubr (&Sns_reset_menu);
+  defsubr (&Smenu_or_popup_active_p);
   staticpro (&menu_items);
   menu_items = Qnil;
 

@@ -134,7 +134,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_SOCKETS
 
 /* This seems to help in Ctrl-G detection under Cocoa, however at the cost
-   of some quirks that may or may not bother a given user. */
+   of some quirks that may or may not bother a given user.
+   It was earlier commented that "In Carbon, asynchronous I/O (using SIGIO)
+   can't be used for window events because they don't come from sockets,
+   even though it works fine on tty's.  Uncertain about situation in Cocoa. */
 #ifdef COCOA_EXPERIMENTAL_CTRL_G
 #define NO_SOCK_SIGIO
 #endif

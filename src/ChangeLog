@@ -4,6 +4,18 @@
 
 	* keyboard.h: Comment an #endif.
 
+	* lisp.h (have_menus_p): Adjust comment.
+
+	* menu.c (find_and_return_menu_selection): Fix comparison with
+	client_data.
+
+	* nsmenu.m (popup_activated_flag): New variable.
+	(popup_activated): New function.
+	(menu-or-popup-active-p): New exported lisp definition.
+	(ns_popup_menu): Set popup_activated_flag.  Call discard_menu_items()
+	when popup done.
+	(ns_popup_dialog): Set popup_activated_flag.
+
 	* nsterm.m (EmacsView -converstationIdentifier): Use NSInteger
 	version for GNUstep (handled by conditional typedef in nsterm.m).
 	(ns_get_color): Remove special-casing for "darkblue", "dark blue" (now
@@ -13,11 +25,17 @@
 
 	* sysselect.h: Conditionalize init_process undef on DARWIN_OS.
 
+	* syssignal.h (FORWARD_SIGNAL_TO_MAIN_THREAD): Do it also under NS.
+
+	* xdisp.c (redisplay_internal, note_mouse_highlight): Under NS,
+	shortcircuit if popup_activated like GTK and X toolkit.
+
 	* m/inter386.h: Change DARWIN to DARWIN_OS.
 
 	* s/darwin.h: Add #define DARWIN_OS.  Get rid of C_SWITCH_SYSTEM def.
 	Change LIBS_MACGUI to LIBS_NSGUI.  Move temacs-conditionalized defs
-	closer to C_SWITCH_SYSTEM_TEMACS so usage is understood.
+	closer to C_SWITCH_SYSTEM_TEMACS so usage is understood.  Expand
+	comment on NO_SOCK_SIGIO.
 
 2008-08-03  Chong Yidong  <cyd@stupidchicken.com>
 

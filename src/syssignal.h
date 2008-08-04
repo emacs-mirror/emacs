@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 extern void init_signals P_ ((void));
 
-#if defined (HAVE_GTK_AND_PTHREAD)
+#if defined (HAVE_GTK_AND_PTHREAD) || defined (HAVE_NS)
 #include <pthread.h>
 /* If defined, asynchronous signals delivered to a non-main thread are
    forwarded to the main thread.  */
