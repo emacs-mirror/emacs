@@ -1,3 +1,9 @@
+2008-08-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.h: Test directly for NS_HAVE_INTEGER before defining it.
+
+	* config.in: Regenerate.
+
 2008-08-04  Seiji Zenitani  <zenitani@mac.com>
 
 	* nsfns.m (x-create-frame): Set the frame parameter alpha to nil
