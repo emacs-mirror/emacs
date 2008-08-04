@@ -1458,17 +1458,13 @@ ns_get_color (const char *name, NSColor **col)
     NSEnumerator *lenum, *cenum;
     NSString *name;
     NSColorList *clist;
+
 #ifdef NS_IMPL_GNUSTEP
     /* XXX: who is wrong, the requestor or the implementation? */
     if ([nsname compare: @"Highlight" options: NSCaseInsensitiveSearch]
         == NSOrderedSame)
       nsname = @"highlightColor";
 #endif
-    if ([nsname compare: @"dark blue" options: NSCaseInsensitiveSearch]
-        == NSOrderedSame
-      || [nsname compare: @"darkblue" options: NSCaseInsensitiveSearch]
-        == NSOrderedSame)
-      nsname = @"navy blue";
 
     lenum = [[NSColorList availableColorLists] objectEnumerator];
     while ( (clist = [lenum nextObject]) && new == nil)
@@ -4645,17 +4641,10 @@ if (NS_KEYLOG) NSLog (@"firstRectForCharRange request");
   return rect;
 }
 
-#ifdef NS_IMPL_GNUSTEP
-- (long)conversationIdentifier
-{
-  return (long)self;
-}
-#else
 - (NSInteger)conversationIdentifier
 {
   return (NSInteger)self;
 }
-#endif
 
 /* TODO: below here not yet implemented correctly, but may not be needed */
 

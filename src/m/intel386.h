@@ -103,7 +103,7 @@ NOTE-END */
 #define SEGMENT_MASK ((SEGMENT_SIZE)-1)
 #endif
 
-#if defined (DARWIN)
+#if defined (DARWIN_OS)
 #ifdef _LP64
 /* For Intel Mac, with CC='gcc -arch x86_64'.  */
 #define NO_ARG_ARRAY

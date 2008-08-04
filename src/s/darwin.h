@@ -27,6 +27,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* BSD4_3 and BSD4_4 are already defined in sys/param.h */
 #define BSD_SYSTEM
 
+/* More specific than the above two.  We cannot use __APPLE__ as this
+   may not be defined on non-OSX Darwin, and we cannot define DARWIN
+   here because Panther and lower CoreFoundation.h uses DARWIN to
+   distinguish OS X from pure Darwin. */
+
+#define DARWIN_OS
+
+
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
 
@@ -127,7 +135,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* This seems to help in Ctrl-G detection under Cocoa, however at the cost
    of some quirks that may or may not bother a given user. */
-#if defined (COCOA_EXPERIMENTAL_CTRL_G)
+#ifdef COCOA_EXPERIMENTAL_CTRL_G
 #define NO_SOCK_SIGIO
 #endif
 
@@ -142,34 +150,32 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Definitions for how to compile & link.  */
 
-/* Link in the AppKit lib. */
 #ifdef HAVE_NS
-/* PENDING: can this target be specified in a clearer way? */
 #define OTHER_FILES ns-app
 /* XXX: lresolv is here because configure when testing #undefs res_init,
         a macro in /usr/include/resolv.h for res_9_init, not in stdc lib. */
-#define LIBS_MACGUI -framework AppKit -lresolv
+#define LIBS_NSGUI -framework AppKit -lresolv
 #define SYSTEM_PURESIZE_EXTRA 200000
 #define HEADERPAD_EXTRA 6C8
+
 #else /* !HAVE_NS */
+#define LIBS_NSGUI
 #define HEADERPAD_EXTRA 690
-
-/* FIXME: Is this needed?
-   This is for the Carbon port.  Under the NeXTstep port, this is still picked
-   up during preprocessing, but is undone in config.in. */
-#define C_SWITCH_SYSTEM -fpascal-strings -DMAC_OSX
-
-#define LIBS_MACGUI
-
 #endif /* !HAVE_NS */
 
 /* The -headerpad option tells ld (see man page) to leave room at the
    end of the header for adding load commands.  Needed for dumping.
    0x690 is the total size of 30 segment load commands (at 56
    each); under Cocoa 31 commands are required.  */
-#define LD_SWITCH_SYSTEM_TEMACS -prebind LIBS_MACGUI -Xlinker -headerpad -Xlinker HEADERPAD_EXTRA
+#define LD_SWITCH_SYSTEM_TEMACS -prebind LIBS_NSGUI -Xlinker -headerpad -Xlinker HEADERPAD_EXTRA
 
 #define C_SWITCH_SYSTEM_TEMACS -Dtemacs
+
+#ifdef temacs
+#define malloc unexec_malloc
+#define realloc unexec_realloc
+#define free unexec_free
+#endif
 
 /* The ncurses library has been moved out of the System framework in
    Mac OS X 10.2.  So if ./configure detects it, set the command-line
@@ -210,12 +216,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It is already a controlling terminal of subprocess, because we did
    ioctl TIOCSCTTY.  */
 #define DONT_REOPEN_PTY
-
-#ifdef temacs
-#define malloc unexec_malloc
-#define realloc unexec_realloc
-#define free unexec_free
-#endif
 
 /* This makes create_process in process.c save and restore signal
    handlers correctly.  Suggested by Nozomu Ando.*/

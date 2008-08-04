@@ -18,11 +18,11 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_SYS_SELECT_H
-#if defined (DARWIN) || defined (NS_IMPL_COCOA)
+#if defined (DARWIN_OS)
 #undef init_process
 #endif
 #include <sys/select.h>
-#if defined (DARWIN) || defined (NS_IMPL_COCOA)
+#if defined (DARWIN_OS)
 #define init_process emacs_init_process
 #endif
 #endif

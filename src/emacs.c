@@ -812,7 +812,8 @@ main (int argc, char **argv)
     run_time_remap (argv[0]);
 #endif
 
-#if defined (NS_IMPL_COCOA)
+/* If using unexmacosx.c (set by s/darwin.h), we must do this. */
+#ifdef DARWIN_OS
   if (!initialized)
     unexec_init_emacs_zone ();
 #endif

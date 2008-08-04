@@ -1,3 +1,7 @@
+2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* CPP_DEFINES: Add DARWIN_OS.  Move USE_LISP_UNION_TYPE away from OS's.
+
 2008-08-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* CPP-DEFINES: Add defines for accessing system processes.

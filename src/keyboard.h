@@ -368,7 +368,7 @@ typedef struct _widget_value
 
 extern widget_value *xmalloc_widget_value P_ ((void));
 extern widget_value *digest_single_submenu P_ ((int, int, int));
-#endif
+#endif /* HAVE_NS || HAVE_NTGUI */
 
 
 /* Macros for dealing with lispy events.  */

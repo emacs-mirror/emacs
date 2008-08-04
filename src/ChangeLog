@@ -1,6 +1,27 @@
+2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* emacs.c (main: unexec_init_emacs_zone): Call if on DARWIN_OS.
+
+	* keyboard.h: Comment an #endif.
+
+	* nsterm.m (EmacsView -converstationIdentifier): Use NSInteger
+	version for GNUstep (handled by conditional typedef in nsterm.m).
+	(ns_get_color): Remove special-casing for "darkblue", "dark blue" (now
+	in rgb.txt).
+
+	* process.c (init_process): Use DARWIN_OS, not DARWIN.
+
+	* sysselect.h: Conditionalize init_process undef on DARWIN_OS.
+
+	* m/inter386.h: Change DARWIN to DARWIN_OS.
+
+	* s/darwin.h: Add #define DARWIN_OS.  Get rid of C_SWITCH_SYSTEM def.
+	Change LIBS_MACGUI to LIBS_NSGUI.  Move temacs-conditionalized defs
+	closer to C_SWITCH_SYSTEM_TEMACS so usage is understood.
+
 2008-08-03  Chong Yidong  <cyd@stupidchicken.com>
 
-	* nsterm.m (windowDidResize): Remove stopModel call.
+	* nsterm.m (windowDidResize): Remove stopModal call.
 
 2008-08-03  Andreas Schwab  <schwab@suse.de>
 

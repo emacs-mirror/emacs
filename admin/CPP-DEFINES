@@ -14,12 +14,12 @@ DOS_NT		Compiling for either the MS-DOS or native MS-Windows port.
 WINDOWSNT	Compiling the native MS-Windows (W32) port.
 __MINGW32__	Compiling the W32 port with the MinGW port of GCC.
 _MSC_VER	Compiling the W32 port with the Microsoft C compiler.
-USE_LISP_UNION_TYPE Define it in lisp.h to make Lisp_Object be a union type instead of the default int.
+DARWIN_OS	Compiling on Mac OS X or pure Darwin (and using s/darwin.h).
 
 ** Distinguishing GUIs **
 
 HAVE_NTGUI	Use the native W32 GUI for windows, frames, menus&scrollbars.
-HAVE_NS	Use the NeXT/OpenStep/Cocoa UI under Mac OS X or GNUstep.
+HAVE_NS		Use the NeXT/OpenStep/Cocoa UI under Mac OS X or GNUstep.
 NS_IMPL_GNUSTEP	Compile support for GNUSTEP implementation of NS GUI API.
 NS_IMPL_COCOA	Compile support for Cocoa (Apple) implementation of NS GUI API.
 HAVE_X11	Compile support for the X11 GUI.
@@ -48,6 +48,7 @@ PROCATTR        A function that returns attributes of a process.
 REL_ALLOC	Compile in the relocatable memory allocator ralloc.c.
 SYSTEM_MALLOC	Use the system library's malloc.
 subprocesses    System can use subprocesses (for M-x shell for example).  Defined by default, only MSDOS undefines it.
+USE_LISP_UNION_TYPE Define it in lisp.h to make Lisp_Object be a union type instead of the default int.
 
 ** Replace, the definition is trivial: SWITCH_ENUM_CAST
 
