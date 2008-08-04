@@ -803,6 +803,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you don't have struct exception in math.h. */
 #undef NO_MATHERR
 
+/* Define to 1 if `NSInteger' is defined. */
+#undef NS_HAVE_INTEGER
+
 /* Define to 1 if you are using NS windowing under MacOS X. */
 #undef NS_IMPL_COCOA
 
