@@ -1354,8 +1354,8 @@
 	(attribute_hidden): Define if not defind.
 	(__getopt_initialized): Use attribute_hidden.
 	(__libc_argc, __libc_argv): Renamed from original_argc, etc.
-	(__getopt_nonoption_flags, nonoption_flags_max_len, nonoption_flags_len):
-	Conditional on USE_NONOPTION_FLAGS.
+	(__getopt_nonoption_flags, nonoption_flags_max_len)
+	(nonoption_flags_len): Conditional on USE_NONOPTION_FLAGS.
 	(SWAP_FLAGS): New definitions.
 	(exchange): Test USE_NONOPTION_FLAGS.
 	(_getopt_initialize): Test USE_NONOPTION_FLAGS.
@@ -1882,7 +1882,7 @@
 
 2002-02-03  Paul Eggert  <eggert@twinsun.com>
 
-	* rcs2log(Copyright): Update to 2002.
+	* rcs2log (Copyright): Update to 2002.
 	(AWK, TMPDIR): Work around portability problem in broken shells that
 	don't understand `: ${VAR=val}'.
 	(SORT_K_OPTIONS): New var, for hosts that conform to POSIX 1003.1-2001.
