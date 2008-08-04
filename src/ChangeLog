@@ -14,7 +14,7 @@
 
 2008-08-02  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (compute_metrics): Don't mess with glyph_idx setting here.
+	* w32font.c (compute_metrics): Don't mess with glyph_idx setting here.
 
 2008-08-02  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1215,7 +1215,7 @@
 	* m/ia64.h (SPECIAL_EMACS_INT):
 	* m/amdx86-64.h (SPECIAL_EMACS_INT):
 	* s/gnu.h (NLIST_STRUCT):
-	* aix4-2.h (X11R5_INHIBIT_I18N):
+	* s/aix4-2.h (X11R5_INHIBIT_I18N):
 	* s/gnu-linux.h (LINUX):
 	* s/msdos.h (HAVE_FACES):
 	* s/ms-w32.h (HAVE_FACES): Don't define, unused.
@@ -1298,22 +1298,22 @@
 
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* src/fileio.c:
-	* src/sysdep.c
-	* src/systty.h:
-	* src/m/ibmrs6000.h:
-	* src/m/iris4d.h:
-	* src/s/aix4-2.h:
-	* src/s/freebsd.h:
-	* src/s/gnu-linux.h:
-	* src/s/hpux10-20.h:
-	* src/s/hpux11.h:
-	* src/s/netbsd.h:
-	* src/s/sol2-3.h:
-	* src/s/sol2-4.h:
-	* src/s/sol2.h:
-	* src/s/usg5-4.h:
-	* src/s/vms.h: Remove references to unused variables.
+	* fileio.c:
+	* sysdep.c
+	* systty.h:
+	* m/ibmrs6000.h:
+	* m/iris4d.h:
+	* s/aix4-2.h:
+	* s/freebsd.h:
+	* s/gnu-linux.h:
+	* s/hpux10-20.h:
+	* s/hpux11.h:
+	* s/netbsd.h:
+	* s/sol2-3.h:
+	* s/sol2-4.h:
+	* s/sol2.h:
+	* s/usg5-4.h:
+	* s/vms.h: Remove references to unused variables.
 
 2008-07-10  Andreas Schwab  <schwab@suse.de>
 
@@ -1729,41 +1729,41 @@
 	* s/uxpds.h:
 	* s/uxpv.h: Remove support for obsolete systems.
 	* s/hpux.h, s/hpux10.h, s/hpux8.h, s/hpux9.h, s/hpux9shr.h:
-	Remove, insert contents in s/hpux-10.20.h
+	Remove, insert contents in s/hpux-10.20.h.
 	* s/aix3-1.h, s/aix3-2-5.h, s/aix3-2.h, s/aix4-1.h, s/aix4.h:
-	Remove, insert contents in s/aix-4.2.h
+	Remove, insert contents in s/aix4-2.h.
 	* s/usg5-3.h: Remove, insert contents in s/usg5-4.h.
-	* s/bsd4-3.h: Rename to ..
+	* s/bsd4-3.h: Rename to ...
 	* s/bsd-common.h: ... this.
-	* src/data.c:
-	* src/doc.c:
-	* src/ecrt0.c:
-	* src/emacs.c:
-	* src/fileio.c:
-	* src/floatfns.c:
-	* src/keyboard.c:
-	* src/mem-limits.h:
-	* src/print.c:
-	* src/process.c:
-	* src/sysdep.c:
-	* src/syssignal.h:
-	* src/systty.h:
-	* src/syswait.h:
-	* src/term.c:
-	* src/unexec.c:
-	* src/unexelf.c:
-	* src/unexhp9k800.c:
-	* src/m/hp800.h:
-	* src/m/ibmrs6000.h:
-	* src/m/mips.h:
-	* src/m/vax.h:
-	* src/s/darwin.h:
-	* src/s/freebsd.h:
-	* src/s/gnu.h:
-	* src/s/ms-w32.h:
-	* src/s/msdos.h:
-	* src/s/netbsd.h:
-	* src/s/template.h: Remove references to obsolete variables.
+	* data.c:
+	* doc.c:
+	* ecrt0.c:
+	* emacs.c:
+	* fileio.c:
+	* floatfns.c:
+	* keyboard.c:
+	* mem-limits.h:
+	* print.c:
+	* process.c:
+	* sysdep.c:
+	* syssignal.h:
+	* systty.h:
+	* syswait.h:
+	* term.c:
+	* unexec.c:
+	* unexelf.c:
+	* unexhp9k800.c:
+	* m/hp800.h:
+	* m/ibmrs6000.h:
+	* m/mips.h:
+	* m/vax.h:
+	* s/darwin.h:
+	* s/freebsd.h:
+	* s/gnu.h:
+	* s/ms-w32.h:
+	* s/msdos.h:
+	* s/netbsd.h:
+	* s/template.h: Remove references to obsolete variables.
 
 	* Makefile.in: Add dependencies for all unexec files.
 	(admindir): Remove unused variable.
@@ -2016,7 +2016,7 @@
 
 	* w32font.c (w32font_list, w32font_match): Add logging.
 
-	* w32uniscribe (uniscribe_list, uniscribe_match): Add logging.
+	* w32uniscribe.c (uniscribe_list, uniscribe_match): Add logging.
 
 2008-06-17  Chong Yidong  <cyd@stupidchicken.com>
 
