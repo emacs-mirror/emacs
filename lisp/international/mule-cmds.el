@@ -2877,7 +2877,7 @@ for decimal.  Returns a character as a number."
      ((string-match "^#" input)
       (read input))
      (t
-      (cdr (assoc input (ucs-names)))))))
+      (cdr (assoc-string input (ucs-names) t))))))
 
 (defun ucs-insert (arg)
   "Insert a character of the given Unicode code point.
