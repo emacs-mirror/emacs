@@ -3,6 +3,7 @@
 	* configure: Regenerate.
 
 	* configure.in: Test for existence of NSInteger.
+	Suggested by Yavor Doganov.
 
 2008-08-02  Romain Francoise  <romain@orebokech.com>
 
