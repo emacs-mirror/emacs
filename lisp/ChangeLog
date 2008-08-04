@@ -1,3 +1,8 @@
+2008-08-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char-display): Fix last change:
+	don't pass CHARSET to `encoded-string-description'.
+
 2008-08-02  Alex Harsanyi  <harsanyi@mac.com>  (tiny change)
 
 	* vc.el (vc-next-action): Update list var correctly after delete.
@@ -14,7 +19,7 @@
 
 2008-08-02  Jason Rumney  <jasonr@gnu.org>
 
-        * w32-fns.el (tis620-2533): Use as preferred registry for thai fonts.
+	* w32-fns.el (tis620-2533): Use as preferred registry for thai fonts.
 
 2008-08-01  Kenichi Handa  <handa@m17n.org>
 

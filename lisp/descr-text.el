@@ -345,7 +345,7 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 	   (coding (terminal-coding-system))
 	   (encoded (encode-coding-char char coding charset)))
       (if encoded
-	  (encoded-string-description encoded coding charset)))))
+	  (encoded-string-description encoded coding)))))
 
 
 ;; Return a string of CH with composition for padding on both sides.
