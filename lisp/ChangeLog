@@ -1,3 +1,9 @@
+2008-08-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-call-method-asynchronously)
+	(dbus-method-return-internal, dbus-method-error-internal): Declare
+	them with `declare-function'.
+
 2008-08-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* descr-text.el (describe-char-display): Fix last change:
