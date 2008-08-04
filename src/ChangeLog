@@ -1,3 +1,7 @@
+2008-08-04  Seiji Zenitani  <zenitani@mac.com>
+
+	* nsfns.m (x-create-frame): Set the frame parameter alpha to nil
+
 2008-08-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsterm.h (find_and_call_menu_selection): Fix prototype.
