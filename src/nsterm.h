@@ -773,7 +773,7 @@ extern void ns_release_autorelease_pool ();
 extern void update_frame_tool_bar (FRAME_PTR f);
 extern void free_frame_tool_bar (FRAME_PTR f);
 extern void find_and_call_menu_selection (FRAME_PTR f,
-    EMACS_INT menu_bar_items_used, Lisp_Object vector, void *client_data);
+    int menu_bar_items_used, Lisp_Object vector, void *client_data);
 extern Lisp_Object find_and_return_menu_selection (FRAME_PTR f,
                                                    int keymaps,
                                                    void *client_data);
