@@ -1291,7 +1291,7 @@ be shared by the new frame.  */)
                       RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil, "scrollBarWidth",
                       "ScrollBarWidth", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qalpha, Qt, "alpha", "Alpha",
+  x_default_parameter (f, parms, Qalpha, Qnil, "alpha", "Alpha",
                       RES_TYPE_NUMBER);
 
   width = FRAME_COLS (f);
