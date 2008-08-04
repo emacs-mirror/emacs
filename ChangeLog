@@ -1,3 +1,9 @@
+2008-08-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure: Regenerate.
+
+	* configure.in: Test for existence of NSInteger.
+
 2008-08-02  Romain Francoise  <romain@orebokech.com>
 
 	* Makefile.in (INFO_FILES): Add mairix-el.
