@@ -78,6 +78,7 @@ int term_trace_num = 0;
 #define KEY_NS_INSERT_WORKING_TEXT     ((1<<28)|(0<<16)|9)
 #define KEY_NS_DELETE_WORKING_TEXT     ((1<<28)|(0<<16)|10)
 #define KEY_NS_SPI_SERVICE_CALL        ((1<<28)|(0<<16)|11)
+#define KEY_NS_NEW_FRAME               ((1<<28)|(0<<16)|12)
 
 /* Convert a symbol indexed with an NSxxx value to a value as defined
    in keyboard.c (lispy_function_key). I hope this is a correct way
@@ -3880,6 +3881,7 @@ ns_term_init (Lisp_Object display_name)
     appMenu = [[EmacsMenu alloc] initWithTitle: @"Emacs"];
     [appMenu setAutoenablesItems: NO];
     mainMenu = [[EmacsMenu alloc] initWithTitle: @""];
+    dockMenu = [[EmacsMenu alloc] initWithTitle: @""];
 
     [appMenu insertItemWithTitle: @"About Emacs"
                           action: @selector (orderFrontStandardAboutPanel:)
@@ -3918,6 +3920,10 @@ ns_term_init (Lisp_Object display_name)
                            keyEquivalent: @""
                                  atIndex: 0];
     [mainMenu setSubmenu: appMenu forItem: item];
+    [dockMenu insertItemWithTitle: @"New Frame"
+			   action: @selector (newFrame:)
+		    keyEquivalent: @""
+			  atIndex: 0];
 
     [NSApp setMainMenu: mainMenu];
     [NSApp setAppleMenu: appMenu];
@@ -4023,6 +4029,20 @@ ns_term_shutdown (int sig)
   if (prefsController == nil)
     prefsController = [[EmacsPrefsController alloc] init];
   [prefsController showForFrame: SELECTED_FRAME ()];
+}
+
+
+- (void)newFrame: (id)sender
+{
+  struct frame *emacsframe = SELECTED_FRAME ();
+  NSEvent *theEvent = [NSApp currentEvent];
+
+  if (!emacs_event)
+    return;
+  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->code = KEY_NS_NEW_FRAME;
+  emacs_event->modifiers = 0;
+  EV_TRAILER (theEvent);
 }
 
 
@@ -4136,6 +4156,14 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
 #endif /* NS_IMPL_GNUSTEP */
 
 }
+
+
+/* Handle dock menu requests.  */
+- (NSMenu *)applicationDockMenu: (NSApplication *) sender
+{
+  return dockMenu;
+}
+
 
 /* TODO: these may help w/IO switching btwn terminal and NSApp */
 - (void)applicationDidBecomeActive: (NSNotification *)notification
@@ -4834,8 +4862,6 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 
   NSTRACE (windowShouldClose);
   windowClosing = YES;
-  if (ns_window_num <= 1)
-    return NO;
   if (!emacs_event)
     return NO;
   emacs_event->kind = DELETE_WINDOW_EVENT;
@@ -4943,7 +4969,7 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 
   ns_send_appdefined (-1);
 
-  /* The following line causes a crash on GNUstep.  Adrian Roberts
+  /* The following line causes a crash on GNUstep.  Adrian Robert
      says he doesn't remember why he added this line, but removing it
      doesn't seem to cause problems on OSX, either.  */
 #if 0

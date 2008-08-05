@@ -1,3 +1,20 @@
+2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	Dock menu customization, based on a patch by Ken Raeburn, plus some
+	other fixes.
+	* nsmenu.m (dockMenu): New variable.
+	(EmacsDialog -clicked:): Fix mistake in change of 2008-07-17.
+
+	* nsterm.h (dockMenu): Declare.
+
+	* nsterm.m (KEY_NS_NEW_FRAME): New definition.
+	(ns_term_init): Initialize dockMenu.
+	(EmacsApp -newFrame:, -applicationDockMenu:): New methods.
+	(EmacsView -windowShouldClose:): Don't behave specially if <= 1 frame
+	left.
+
+	* lisp.h (LSB_TAG): Use on DARWIN_OS, not NS_IMPL_COCOA.
+
 2008-08-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsterm.h: Test directly for NS_HAVE_INTEGER before defining it.
@@ -30,7 +47,7 @@
 	when popup done.
 	(ns_popup_dialog): Set popup_activated_flag.
 
-	* nsterm.m (EmacsView -converstationIdentifier): Use NSInteger
+	* nsterm.m (EmacsView -conversationIdentifier): Use NSInteger
 	version for GNUstep (handled by conditional typedef in nsterm.m).
 	(ns_get_color): Remove special-casing for "darkblue", "dark blue" (now
 	in rgb.txt).

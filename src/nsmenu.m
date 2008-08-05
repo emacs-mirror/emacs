@@ -63,7 +63,7 @@ extern Lisp_Object Voverriding_local_map, Voverriding_local_map_menu_flag,
 		   Qoverriding_local_map, Qoverriding_terminal_local_map;
 
 extern long context_menu_value;
-EmacsMenu *mainMenu, *svcsMenu;
+EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 
 /* Nonzero means a menu is currently active.  */
 static int popup_activated_flag;
@@ -1747,7 +1747,7 @@ void process_dialog (id window, Lisp_Object list)
     return self;
 
   seltag = [[sellist objectAtIndex: 0] tag];
-  if (seltag == XHASH (Qundefined)) // FIXME: BIG UGLY HACK!!
+  if (seltag != XHASH (Qundefined)) // FIXME: BIG UGLY HACK!!
     [NSApp stopModalWithCode: seltag];
   return self;
 }

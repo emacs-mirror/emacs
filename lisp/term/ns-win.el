@@ -279,6 +279,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-insert-working-text] 'ns-insert-working-text)
 (define-key global-map [ns-delete-working-text] 'ns-delete-working-text)
 (define-key global-map [ns-spi-service-call] 'ns-spi-service-call)
+(define-key global-map [ns-new-frame] 'make-frame)
 
 
 
@@ -384,6 +385,7 @@ this defaults to \"printenv\"."
              (cons (logior (lsh 0 16)   9) 'ns-insert-working-text)
              (cons (logior (lsh 0 16)  10) 'ns-delete-working-text)
              (cons (logior (lsh 0 16)  11) 'ns-spi-service-call)
+             (cons (logior (lsh 0 16)  12) 'ns-new-frame)
              (cons (logior (lsh 1 16)  32) 'f1)
              (cons (logior (lsh 1 16)  33) 'f2)
              (cons (logior (lsh 1 16)  34) 'f3)

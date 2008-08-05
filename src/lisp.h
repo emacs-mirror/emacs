@@ -157,7 +157,7 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 #endif
 
 /* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
-#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined(NS_IMPL_COCOA)
+#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined DARWIN_OS
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
 /* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
