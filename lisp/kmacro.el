@@ -444,6 +444,7 @@ Optional arg EMPTY is message to print if no macros are defined."
 	 keys)))
 
 
+;;;###autoload
 (defun kmacro-exec-ring-item (item arg)
   "Execute item ITEM from the macro ring."
   ;; Use counter and format specific to the macro on the ring!
