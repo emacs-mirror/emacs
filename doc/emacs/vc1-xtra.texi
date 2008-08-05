@@ -46,7 +46,7 @@ output is used.  Here is an example using RCS:
                        ./
     modified           file1.c
     needs-update       file2.c
-    needs-merge        file2.c
+    needs-merge        file3.c
 @end group
 @end smallexample
 
