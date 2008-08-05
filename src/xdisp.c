@@ -13484,7 +13484,6 @@ redisplay_window (window, just_this_one_p)
     {
       /* We set this later on if we have to adjust point.  */
       int new_vpos = -1;
-      int val;
 
       w->force_start = Qnil;
       w->vscroll = 0;
@@ -13518,16 +13517,15 @@ redisplay_window (window, just_this_one_p)
 
       /* Redisplay, then check if cursor has been set during the
 	 redisplay.  Give up if new fonts were loaded.  */
-      val = try_window (window, startp, 1);
-      if (!val)
+      /* We used to issue a CHECK_MARGINS argument to try_window here,
+	 but this causes scrolling to fail when point begins inside
+	 the scroll margin (bug#148) -- cyd  */
+      if (!try_window (window, startp, 0))
 	{
 	  w->force_start = Qt;
 	  clear_glyph_matrix (w->desired_matrix);
 	  goto need_larger_matrices;
 	}
-      /* Point was outside the scroll margins.  */
-      if (val < 0)
-	new_vpos = window_box_height (w) / 2;
 
       if (w->cursor.vpos < 0 && !w->frozen_window_start_p)
 	{
