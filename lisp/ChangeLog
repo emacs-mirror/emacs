@@ -1,3 +1,10 @@
+2008-08-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (auto-save-visited-file-name): Move definition to
+	fileio.c.
+
+	* cus-start.el (all): Handle auto-save-visited-file-name.
+
 2008-08-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-save-all): Avoid destroying symlink if
