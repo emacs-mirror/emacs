@@ -1,5 +1,7 @@
 2008-08-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* kmacro.el (kmacro-exec-ring-item): Add autoload.
+
 	* files.el (auto-save-visited-file-name): Move definition to
 	fileio.c.
 
