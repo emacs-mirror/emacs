@@ -164,6 +164,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				    (const :tag "always" t)))
 	     ;; fileio.c
 	     (insert-default-directory minibuffer boolean)
+	     (auto-save-visited-file-name auto-save boolean)
 	     (read-file-name-completion-ignore-case minibuffer boolean "22.1")
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
