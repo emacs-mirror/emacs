@@ -1,3 +1,9 @@
+2008-08-05  Alex Shinn  <alexshinn@gmail.com>  (tiny change)
+
+	* files.el (hack-one-local-variable-eval-safep): Handle
+	lisp-indent-function and scheme-indent-function in addition to the
+	deprecated lisp-indent-hook.
+
 2008-08-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/xesam.el (top): Require `wid-edit' always.
