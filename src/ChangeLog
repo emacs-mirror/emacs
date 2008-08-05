@@ -1,3 +1,9 @@
+2008-08-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <scroll-up-aggressively>:
+	<scroll-down-aggressively, before-change-functions>:
+	<after-change-functions>: Reflow docstrings.
+
 2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	Dock menu customization, based on a patch by Ken Raeburn, plus some
@@ -23,7 +29,7 @@
 
 2008-08-04  Seiji Zenitani  <zenitani@mac.com>
 
-	* nsfns.m (x-create-frame): Set the frame parameter alpha to nil
+	* nsfns.m (x-create-frame): Set the frame parameter alpha to nil.
 
 2008-08-04  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -265,8 +271,7 @@
 	* keyboard.c:
 	* frame.h:
 	* frame.c:
-	* frame.c: Remove references to MULTI_KBOARD, it is now the
-	default.
+	* frame.c: Remove references to MULTI_KBOARD, it is now the default.
 	* config.in: Regenerate.
 
 2008-07-30  Jason Rumney  <jasonr@gnu.org>
