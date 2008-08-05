@@ -1,3 +1,8 @@
+2008-08-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fileio.c (Vauto_save_list_file_name): Move here from file.el.
+	(auto_save_1): Update modtime when auto-save-list-file-name is on.
+
 2008-08-03  Andreas Schwab  <schwab@suse.de>
 
 	* vm-limit.c (get_lim_data) [HAVE_GETRLIMIT && RLIMIT_AS]: Define.
