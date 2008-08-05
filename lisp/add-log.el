@@ -511,6 +511,29 @@ comma-separated list."
 	    (error (format "Cannot find matches for tag `%s' in `%s'"
 			   tag file))))))))
 
+(defun change-log-next-error (&optional argp reset)
+  "Move to the Nth (default 1) next match in an Occur mode buffer.
+Compatibility function for \\[next-error] invocations."
+  (interactive "p")
+  (let* ((argp (or argp 0))
+	 (count (abs argp))		; how many cycles
+	 (down (< argp 0))		; are we going down? (is argp negative?)
+	 (up (not down))
+	 (search-function (if up 're-search-forward 're-search-backward)))
+    
+    ;; set the starting position
+    (goto-char (cond (reset (point-min))
+		     (down (line-beginning-position))
+		     (up (line-end-position))
+		     ((point))))
+    
+    (funcall search-function change-log-file-names-re nil t count))
+  
+  (beginning-of-line)
+  ;; if we found a place to visit...
+  (when (looking-at change-log-file-names-re)
+    (change-log-goto-source)))
+
 (defvar change-log-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\C-c ?\C-p] 'add-log-edit-prev-comment)
@@ -997,7 +1020,10 @@ Runs `change-log-mode-hook'.
   (set (make-local-variable 'beginning-of-defun-function) 
        'change-log-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function) 
-       'change-log-end-of-defun))
+       'change-log-end-of-defun)
+  ;; next-error function glue
+  (setq next-error-function 'change-log-next-error)
+  (setq next-error-last-buffer (current-buffer)))
 
 (defun change-log-next-buffer (&optional buffer wrap)
   "Return the next buffer in the series of ChangeLog file buffers.
