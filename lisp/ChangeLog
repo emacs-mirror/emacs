@@ -1,3 +1,13 @@
+2008-08-05  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-read-number): Handle all C-like languages
+	properly.
+
+2008-08-04  Vincent Belaïche  <vincent.b.1@hotmail.fr>
+
+	* calc/calc.el (math-read-number): Handle C numbers beginning with
+	0 correctly.
+
 2008-07-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el ([ns-new-frame]): New global key.
