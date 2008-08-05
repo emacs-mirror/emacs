@@ -2700,7 +2700,9 @@ if test "${with_kerberos+set}" = set; then
   fi
 
   if test "${with_kerberos5+set}" = set; then
-    AC_CHECK_HEADERS(krb5.h)
+    AC_CHECK_HEADERS(krb5.h,
+      AC_CHECK_MEMBERS([krb5_error.text, krb5_error.e_text],,,
+		       [#include <krb5.h>]))
   else
     AC_CHECK_HEADERS(des.h,,
 		     [AC_CHECK_HEADERS(kerberosIV/des.h,,
