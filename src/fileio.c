@@ -185,6 +185,9 @@ Lisp_Object Vwrite_region_annotations_so_far;
 /* File name in which we write a list of all our auto save files.  */
 Lisp_Object Vauto_save_list_file_name;
 
+/* Whether or not files are auto-saved into themselves.  */
+Lisp_Object Vauto_save_visited_file_name;
+
 /* On NT, specifies the directory separator character, used (eg.) when
    expanding file names.  This can be bound to / or \. */
 Lisp_Object Vdirectory_sep_char;
@@ -5099,9 +5102,9 @@ auto_save_1 ()
     }
 
   return
-    Fwrite_region (Qnil, Qnil,
-		   current_buffer->auto_save_file_name,
-		   Qnil, Qlambda, Qnil, Qnil);
+    Fwrite_region (Qnil, Qnil, current_buffer->auto_save_file_name, Qnil,
+		   NILP (Vauto_save_visited_file_name) ? Qlambda : Qt,
+		   Qnil, Qnil);
 }
 
 static Lisp_Object
@@ -5645,6 +5648,11 @@ This variable is initialized automatically from `auto-save-list-file-prefix'
 shortly after Emacs reads your `.emacs' file, if you have not yet given it
 a non-nil value.  */);
   Vauto_save_list_file_name = Qnil;
+
+  DEFVAR_LISP ("auto-save-visited-file-name", &Vauto_save_visited_file_name,
+	       doc: /* Non-nil says auto-save a buffer in the file it is visiting, when practical.
+Normally auto-save files are written under other names.  */);
+  Vauto_save_visited_file_name = Qnil;
 
 #ifdef HAVE_FSYNC
   DEFVAR_BOOL ("write-region-inhibit-fsync", &write_region_inhibit_fsync,
