@@ -117,9 +117,7 @@
 
 ;; Widgets are used to highlight the search results.
 (require 'widget)
-
-(eval-when-compile
-  (require 'wid-edit))
+(require 'wid-edit)
 
 ;; `run-at-time' is used in the signal handler.
 (require 'timer)
@@ -141,9 +139,19 @@
 	  (const :tag "Xesam fulltext query" fulltext-query)))
 
 (defcustom xesam-hits-per-page 20
-  "Number of search hits to be displayed in the result buffer"
+  "Number of search hits to be displayed in the result buffer."
   :group 'xesam
   :type 'integer)
+
+(defface xesam-mode-line '((t :inherit mode-line-emphasis))
+  "Face to highlight mode line."
+  :group 'xesam)
+
+(defface xesam-highlight '((t :inherit match))
+  "Face to highlight query entries.
+It will be overlayed by `widget-documentation-face', so it shall
+be different at least in one face property not set in that face."
+  :group 'xesam)
 
 (defvar xesam-debug nil
   "Insert debug information in the help echo.")
@@ -294,6 +302,7 @@ from VALUE, depending on what the search engine accepts."
 (defvar xesam-type nil)
 (defvar xesam-query nil)
 (defvar xesam-xml-string nil)
+(defvar xesam-objects nil)
 (defvar xesam-current nil)
 (defvar xesam-count nil)
 (defvar xesam-to nil)
@@ -376,7 +385,7 @@ If there is no registered search engine at all, the function returns `nil'."
 	       ((string-equal vendor-id "Beagle")
 		'("xesam:mimeType" "xesam:url"))
 	       ((string-equal vendor-id "Strigi")
-		'("xesam:author" "xesam:cc" "xesam:cc" "xesam:charset"
+		'("xesam:author" "xesam:cc" "xesam:charset"
 		  "xesam:contentType" "xesam:fileExtension" "xesam:id"
 		  "xesam:lineCount" "xesam:links" "xesam:mimeType" "xesam:name"
 		  "xesam:size" "xesam:sourceModified" "xesam:subject"
@@ -420,6 +429,7 @@ Turning on Xesam mode runs the normal hook `xesam-mode-hook'."
   (set (make-local-variable 'xesam-type) "")
   (set (make-local-variable 'xesam-query) "")
   (set (make-local-variable 'xesam-xml-string) "")
+  (set (make-local-variable 'xesam-objects) nil)
   ;; `xesam-current' is the last hit put into the search buffer,
   (set (make-local-variable 'xesam-current) 0)
   ;; `xesam-count' is the number of hits reported by the search engine.
@@ -439,13 +449,13 @@ Turning on Xesam mode runs the normal hook `xesam-mode-hook'."
        (list '(20
 	       (:eval
 		(list "Type: "
-		      (propertize xesam-type 'face 'font-lock-type-face))))
+		      (propertize xesam-type 'face 'xesam-mode-line))))
 	     '(10
 	       (:eval
 		(list " Query: "
 		      (propertize
 		       xesam-query
-		       'face 'font-lock-type-face
+		       'face 'xesam-mode-line
 		       'help-echo (when xesam-debug xesam-xml-string)))))))
 
   (when (not (interactive-p))
@@ -457,28 +467,30 @@ Turning on Xesam mode runs the normal hook `xesam-mode-hook'."
 ;; It doesn't make sense to call it interactively.
 (put 'xesam-mode 'disabled t)
 
+;; The very first buffer created with `xesam-mode' does not have the
+;; keymap etc.  So we create a dummy buffer.  Stupid.
+(with-temp-buffer (xesam-mode))
+
 (defun xesam-buffer-name (service search)
   "Return the buffer name where to present search results.
 SERVICE is the D-Bus unique service name of the Xesam search engine.
 SEARCH is the search identification in that engine.  Both must be strings."
   (format "*%s/%s*" service search))
 
-(defun xesam-refresh-entry (engine search)
+(defun xesam-highlight-string (string)
+  "Highlight text enclosed by <b> and </b>."
+  (while (string-match "\\(.*\\)\\(<b>\\)\\(.*\\)\\(</b>\\)\\(.*\\)" string)
+    (setq string
+	  (format
+	   "%s%s%s"
+	   (match-string 1 string)
+	   (propertize (match-string 3 string) 'face 'xesam-highlight)
+	   (match-string 5 string))))
+  string)
+
+(defun xesam-refresh-entry (engine entry)
   "Refreshes one entry in the search buffer."
-  (let* ((result
-	  (car
-	   (xesam-dbus-call-method
-	    :session (car engine) xesam-path-search
-	    xesam-interface-search "GetHits" search 1)))
-	 (snippet)
-	 ;; We must disable this for the time being; the search
-	 ;; engines don't return usable values so far.
-;	  (caaar
-;	   (dbus-ignore-errors
-;	     (xesam-dbus-call-method
-;	      :session  (car engine) xesam-path-search
-;	      xesam-interface-search "GetHitData"
-;	      search (list xesam-current) '("snippet")))))
+  (let* ((result (nth (1- xesam-current) xesam-objects))
 	 widget)
 
     ;; Create widget.
@@ -488,7 +500,10 @@ SEARCH is the search identification in that engine.  Both must be strings."
 
     ;; Take all results.
     (dolist (field (xesam-get-cached-property engine "hit.fields"))
-      (when (not (zerop (length (caar result))))
+      (when (cond
+	     ((stringp (caar result)) (not (zerop (length (caar result)))))
+	     ((numberp (caar result)) (not (zerop (caar result))))
+	     ((caar result) t))
 	(when xesam-debug
 	  (widget-put
 	   widget :help-echo
@@ -503,6 +518,12 @@ SEARCH is the search identification in that engine.  Both must be strings."
       (widget-put
        widget :xesam:url (concat "file://" (widget-get widget :xesam:url))))
 
+    ;; Strigi returns xesam:size as string.  We must fix this.
+    (when (and (widget-member widget :xesam:size)
+	       (stringp (widget-get widget :xesam:size)))
+      (widget-put
+       widget :xesam:size (string-to-number (widget-get widget :xesam:url))))
+
     ;; First line: :tag.
     (cond
      ((widget-member widget :xesam:title)
@@ -513,6 +534,11 @@ SEARCH is the search identification in that engine.  Both must be strings."
       (widget-put widget :tag (widget-get widget :xesam:mimeType)))
      ((widget-member widget :xesam:name)
       (widget-put widget :tag (widget-get widget :xesam:name))))
+
+    ;; Highlight the search items.
+    (when (widget-member widget :tag)
+      (widget-put
+       widget :tag (xesam-highlight-string (widget-get widget :tag))))
 
     ;; Last Modified.
     (when (widget-member widget :xesam:sourceModified)
@@ -556,11 +582,12 @@ SEARCH is the search identification in that engine.  Both must be strings."
       (widget-put widget :doc (widget-get widget :xesam:snippet))))
 
     (when (widget-member widget :doc)
-      (widget-put widget :help-echo (widget-get widget :doc))
       (with-temp-buffer
-	(insert (widget-get widget :doc))
+	(insert
+	 (xesam-highlight-string (widget-get widget :doc)))
 	(fill-region-as-paragraph (point-min) (point-max))
-	(widget-put widget :doc (buffer-string))))
+	(widget-put widget :doc (buffer-string)))
+      (widget-put widget :help-echo (widget-get widget :doc)))
 
     ;; Format the widget.
     (widget-put
@@ -576,24 +603,38 @@ SEARCH is the search identification in that engine.  Both must be strings."
     (force-mode-line-update)
     (redisplay)))
 
+(defun xesam-get-hits (engine search hits)
+  "Retrieve hits from ENGINE."
+  (with-current-buffer (xesam-buffer-name (car engine) search)
+    (setq xesam-objects
+	  (append xesam-objects
+		  (xesam-dbus-call-method
+		   :session (car engine) xesam-path-search
+		   xesam-interface-search "GetHits" search hits)))))
+
 (defun xesam-refresh-search-buffer (engine search)
   "Refreshes the buffer, presenting results of SEARCH."
   (with-current-buffer (xesam-buffer-name (car engine) search)
     ;; Work only if nobody else is here.
-    (unless xesam-refreshing
+    (unless (or xesam-refreshing (>= xesam-current xesam-to))
       (setq xesam-refreshing t)
       (unwind-protect
-	  (let (widget updated)
-	    ;; Add all result widgets.  The upper boundary is always
-	    ;; computed, because new hits might have arrived while
-	    ;; running.
+	  (let (widget)
+
+	    ;; Retrieve needed hits for visualization.
+	    (while (> (min xesam-to xesam-count) (length xesam-objects))
+	      (xesam-get-hits
+	       engine search
+	       (min xesam-hits-per-page
+		    (- (min xesam-to xesam-count) (length xesam-objects)))))
+
+	    ;; Add all result widgets.
 	    (while (< xesam-current (min xesam-to xesam-count))
-	      (setq updated t
-		    xesam-current (1+ xesam-current))
+	      (setq xesam-current (1+ xesam-current))
 	      (xesam-refresh-entry engine search))
 
 	    ;; Add "NEXT" widget.
-	    (when (and updated (> xesam-count xesam-to))
+	    (when (> xesam-count xesam-to)
 	      (goto-char (point-max))
 	      (widget-create
 	       'link
@@ -603,7 +644,16 @@ SEARCH is the search identification in that engine.  Both must be strings."
 		  (widget-delete widget)
 		  (xesam-refresh-search-buffer xesam-engine xesam-search))
 	       "NEXT")
-	      (widget-beginning-of-line)))
+	      (widget-beginning-of-line))
+
+	    ;; Prefetch next hits.
+	    (when (> (min (+ xesam-hits-per-page xesam-to) xesam-count)
+		     (length xesam-objects))
+	      (xesam-get-hits
+	       engine search
+	       (min xesam-hits-per-page
+		    (- (min (+ xesam-hits-per-page xesam-to) xesam-count)
+		       (length xesam-objects))))))
 
 	;; Return with save settings.
 	(setq xesam-refreshing nil)))))
@@ -632,8 +682,15 @@ SEARCH is the search identification in that engine.  Both must be strings."
 
 	 ((string-equal member "SearchDone")
 	  (setq mode-line-process
-		(propertize " Done" 'face 'font-lock-type-face))
+		(propertize " Done" 'face 'xesam-mode-line))
 	  (force-mode-line-update)))))))
+
+(defun xesam-kill-buffer-function ()
+  "Send the CloseSearch indication."
+  (when (and (eq major-mode 'xesam-mode) (stringp xesam-search))
+    (xesam-dbus-call-method
+     :session (car xesam-engine) xesam-path-search
+     xesam-interface-search "CloseSearch" xesam-search)))
 
 (defun xesam-new-search (engine type query)
   "Create a new search session.
@@ -675,6 +732,7 @@ search, is returned."
 	    xesam-type (symbol-name type)
 	    xesam-query query
 	    xesam-xml-string xml-string
+	    xesam-objects nil
 	    ;; The buffer identification shall indicate the search
 	    ;; engine.  The `help-echo' property is used for debug
 	    ;; information, when applicable.
@@ -694,7 +752,8 @@ search, is returned."
 		  "vendor.ontology.sources" "vendor.extensions"
 		  "vendor.ontologies" "vendor.maxhits")
 		"\n"))))
-	  (force-mode-line-update))
+      (add-hook 'kill-buffer-hook 'xesam-kill-buffer-function)
+      (force-mode-line-update))
 
     ;; Start the search.
     (xesam-dbus-call-method
@@ -748,18 +807,16 @@ Example:
 
 ;;; TODO:
 
-;; * Solve error, that xesam-mode does not work the very first time.
-;; * Retrieve several results at once.
-;; * Retrieve hits for the next page in advance.
+;; * Accept input while retrieving prefetched hits. `run-at-time'?
 ;; * With prefix, let's choose search engine.
 ;; * Minibuffer completion for user queries.
 ;; * `revert-buffer-function' implementation.
-;; * Close search when search buffer is killed.
 ;;
 ;; * Mid term
 ;;   - If available, use ontologies for field selection.
 ;;   - Search engines for Emacs bugs database, wikipedia, google,
 ;;     yahoo, ebay, ...
+;;   - Construct complex queries via widgets, like in mairix.el.
 
 ;; arch-tag: 7fb9fc6c-c2ff-4bc7-bb42-bacb80cce2b2
 ;;; xesam.el ends here
