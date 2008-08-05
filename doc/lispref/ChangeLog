@@ -1,3 +1,8 @@
+2008-08-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* symbols.texi (Other Plists): Fix incorrect example.
+	Suggested by Florian Beck.
+
 2008-07-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* os.texi: Fix previous change.
