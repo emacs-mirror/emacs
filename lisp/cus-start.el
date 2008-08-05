@@ -166,6 +166,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				    (const :tag "always" t)))
              ;; fileio.c
              (delete-by-moving-to-trash auto-save boolean "23.1")
+	     (auto-save-visited-file-name auto-save boolean)
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "22.1")
