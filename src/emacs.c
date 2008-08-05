@@ -1335,11 +1335,13 @@ main (int argc, char **argv)
           if (!strncmp(argv[skip_args], "-psn", 4))
             {
               skip_args += 1;
+              chdir (getenv ("HOME"));
             }
           else
             {
               if (skip_args+1 < argc && !strncmp(argv[skip_args+1], "-psn", 4))
                   skip_args += 2;
+              chdir (getenv ("HOME"));
             }
         }
 #endif

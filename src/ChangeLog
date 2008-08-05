@@ -1,3 +1,8 @@
+2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* emacs.c (main): Under NS, set working dir to $HOME when get a "psn"
+	argument.
+
 2008-08-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (syms_of_buffer) <scroll-up-aggressively>:
