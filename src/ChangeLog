@@ -1,5 +1,8 @@
 2008-08-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xdisp.c (redisplay_window): Don't enforce scroll-margin when
+	forcing a window start.
+
 	* fileio.c (Vauto_save_list_file_name): Move here from file.el.
 	(auto_save_1): Update modtime when auto-save-list-file-name is on.
 
