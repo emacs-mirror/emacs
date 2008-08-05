@@ -1,3 +1,25 @@
+2008-08-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/xesam.el (top): Require `wid-edit' always.
+	(xesam-mode-line, xesam-highlight): New deffaces.
+	(xesam-objects): New local variable.
+	(xesam-search-engines): Fix error in field list.
+	(xesam-mode): Use `xesam-mode-line' instead of
+	`font-lock-type-face'.  Apply `xesam-mode' to a temp buffer, for
+	proper initiatilzaion (why?).
+	(xesam-highlight-string, xesam-get-hits)
+	(xesam-kill-buffer-function): New defuns.
+	(xesam-refresh-entry): Move code to `xesam-get-hits'.  Check
+	result of "hit.fields", it isn't a string only.  Wrap an error of
+	the strigi search engine ("xesam:size" is returned as string).
+	Highlight search items.
+	(xesam-refresh-search-buffer): Make logic of counters more simple.
+	Prefetch next hits.
+	(xesam-signal-handler): Use `xesam-mode-line' instead of
+	`font-lock-type-face'.
+	(xesam-new-search): Add `xesam-kill-buffer-function' to
+	`kill-buffer-hook'.
+
 2008-08-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* add-log.el (change-log-next-error, change-log-mode): Add support
