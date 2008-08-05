@@ -327,12 +327,6 @@ add a final newline, whenever you save a file that really needs one."
   :type 'boolean
   :group 'auto-save)
 
-(defcustom auto-save-visited-file-name nil
-  "Non-nil says auto-save a buffer in the file it is visiting, when practical.
-Normally auto-save files are written under other names."
-  :type 'boolean
-  :group 'auto-save)
-
 (defcustom auto-save-file-name-transforms
   `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'"
      ;; Don't put "\\2" inside expand-file-name, since it will be
