@@ -364,10 +364,10 @@ extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 @end
 #endif
 
-#ifndef NS_HAVE_INTEGER
+#ifndef NS_HAVE_NSINTEGER
 typedef long NSInteger;
 typedef unsigned long NSUInteger;
-#endif /* not NS_HAVE_INTEGER */
+#endif /* not NS_HAVE_NSINTEGER */
 
 #endif  /* __OBJC__ */
 

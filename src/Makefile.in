@@ -1115,6 +1115,19 @@ mktime.o: mktime.c $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
    termopts.h termchar.h character.h coding.h ccl.h disptab.h window.h \
    keyboard.h intervals.h buffer.h commands.h blockinput.h atimer.h $(config_h)
+nsfns.o: nsfns.m charset.h nsterm.h nsgui.h frame.h window.h buffer.h \
+  dispextern.h nsgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
+  atimer.h systime.h epaths.h termhooks.h coding.h systime.h $(config_h)
+nsfont.o: nsterm.h dispextern.h frame.h lisp.h $(config_h)
+nsimage.o: nsimage.m nsterm.h $(config_h)
+nsmenu.o: nsmenu.m termhooks.h frame.h window.h dispextern.h \
+  nsgui.h keyboard.h blockinput.h atimer.h systime.h buffer.h \
+  nsterm.h $(config_h)
+nsterm.o: nsterm.m blockinput.h atimer.h systime.h syssignal.h nsterm.h \
+  nsgui.h frame.h charset.h ccl.h dispextern.h fontset.h termhooks.h \
+  termopts.h termchar.h disptab.h buffer.h window.h keyboard.h \
+  $(INTERVAL_SRC) process.h coding.h $(config_h)
+nsselect.o: nsselect.m blockinput.h nsterm.h nsgui.h frame.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    commands.h syssignal.h systime.h systty.h syswait.h frame.h dispextern.h \
    blockinput.h atimer.h charset.h coding.h ccl.h msdos.h composite.h \
@@ -1242,19 +1255,6 @@ composite.o: composite.c buffer.h  character.h $(INTERVAL_SRC) $(config_h)
 buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
   fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
   scroll.o sysdep.o term.o widget.o window.o xdisp.o xfaces.o sound.o: nsgui.h
-nsfns.o: nsfns.m charset.h nsterm.h nsgui.h frame.h window.h buffer.h \
-  dispextern.h nsgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
-  atimer.h systime.h epaths.h termhooks.h coding.h systime.h $(config_h)
-nsmenu.o: nsmenu.m termhooks.h frame.h window.h dispextern.h \
-  nsgui.h keyboard.h blockinput.h atimer.h systime.h buffer.h \
-  nsterm.h $(config_h)
-nsterm.o: nsterm.m blockinput.h atimer.h systime.h syssignal.h nsterm.h \
-  nsgui.h frame.h charset.h ccl.h dispextern.h fontset.h termhooks.h \
-  termopts.h termchar.h disptab.h buffer.h window.h keyboard.h \
-  $(INTERVAL_SRC) process.h coding.h $(config_h)
-nsselect.o: nsselect.m blockinput.h nsterm.h nsgui.h frame.h $(config_h)
-nsimage.o: nsimage.m nsterm.h
-nsfont.o: nsterm.h dispextern.h frame.h lisp.h $(config_h)
 
 ${ns_appdir}: ${ns_appsrc}
 	rm -fr ${ns_appdir}
@@ -1282,9 +1282,6 @@ clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
 #ifdef HAVE_NS
 	rm -fr ${ns_appdir}
-#ifdef NS_IMPL_GNUSTEP
-	rm -f *.d
-#endif
 #endif
 /* bootstrap-clean is used to clean up just before a bootstrap.
    It should remove all files generated during a compilation/bootstrap,

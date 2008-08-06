@@ -810,7 +810,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef NO_MATHERR
 
 /* Define to 1 if `NSInteger' is defined. */
-#undef NS_HAVE_INTEGER
+#undef NS_HAVE_NSINTEGER
 
 /* Define to 1 if you are using NS windowing under MacOS X. */
 #undef NS_IMPL_COCOA

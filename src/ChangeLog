@@ -1,3 +1,12 @@
+2008-08-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* config.in: Regenerate.
+
+	* Makefile.in: Move nsXXX.m dependencies into big alphabetical list.
+	(mostlyclean): Don't delete *.d under NS.
+
+	* nsterm.h (NS_HAVE_INTEGER): Change to NS_HAVE_NSINTEGER.
+
 2008-08-06  Kenichi Handa  <handa@m17n.org>
 
 	* xfont.c (xfont_list_family): Return a list of symbols, not
