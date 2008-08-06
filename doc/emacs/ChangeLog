@@ -1,3 +1,7 @@
+2008-08-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* vc1-xtra.texi (VC Directory Mode): Fix last change.
+
 2008-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* files.texi (Old Revisions): Update the keys used by vc-annotate and
