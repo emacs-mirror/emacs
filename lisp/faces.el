@@ -978,20 +978,20 @@ an integer value."
          (case attribute
            (:family
             (if (window-system frame)
-                (mapcar #'(lambda (x) (cons (car x) (car x)))
+                (mapcar #'(lambda (x) (cons (symbol-name x) x))
                         (font-family-list))
 	      ;; Only one font on TTYs.
 	      (list (cons "default" "default"))))
            (:foundry
 	    (list nil))
 	   (:width
-	    (mapcar #'(lambda (x) (cons (symbol-name (car x)) (car x)))
+	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-width-table))
            (:weight
-	    (mapcar #'(lambda (x) (cons (symbol-name (car x)) (car x)))
+	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-weight-table))
 	   (:slant
-	    (mapcar #'(lambda (x) (cons (symbol-name (car x)) (car x)))
+	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-slant-table))
 	   (:inverse-video
 	    (mapcar #'(lambda (x) (cons (symbol-name x) x))
