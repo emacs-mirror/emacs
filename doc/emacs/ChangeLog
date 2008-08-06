@@ -1,3 +1,7 @@
+2008-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc1-xtra.texi (VC Directory Mode): Talk about multiple VC systems.
+
 2008-08-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* vc1-xtra.texi (VC Directory Mode): Fix typo.

@@ -34,6 +34,10 @@ run will always be shown as @file{./}.)  There is an exception to this
 rule: if VC mode detects that a file changed to up-to-date state since
 you last looked at it, that state will be shown.
 
+If a directory uses more that one VC systems, the VC system to use for
+the vc-dir command can be chosen with a prefix argument,
+i.e. @kbd{C-u C-x v d}.
+
   The line for an individual file will show the version control state of
 the file.  Under RCS and SCCS, the name of the user locking the file
 is shown; under CVS, an abbreviated version of the @samp{cvs status}
