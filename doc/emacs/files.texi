@@ -1955,37 +1955,50 @@ also use the following keys to browse the annotations of past revisions,
 view diffs, or view log entries:
 
 @table @kbd
-@item P
+@item p
 Annotate the previous revision, that is to say, the revision before
 the one currently annotated.  A numeric prefix argument is a repeat
-count, so @kbd{C-u 10 P} would take you back 10 revisions.
+count, so @kbd{C-u 10 p} would take you back 10 revisions.
 
-@item N
+@item n
 Annotate the next revision---the one after the revision currently
 annotated.  A numeric prefix argument is a repeat count.
 
-@item J
+@item j
 Annotate the revision indicated by the current line.
 
-@item A
+@item a
 Annotate the revision before the one indicated by the current line.
 This is useful to see the state the file was in before the change on
 the current line was made.
 
-@item D
+@item f
+Show in a buffer the file revision indicated by the current line.
+
+@item d
 Display the diff between the current line's revision and the previous
 revision.  This is useful to see what the current line's revision
 actually changed in the file.
 
-@item L
+@item D
+Display the diff between the current line's revision and the previous
+revision for all files in the changeset (for VC systems that support
+changesets).  This is useful to see what the current line's revision
+actually changed in the tree.
+
+@item l
 Show the log of the current line's revision.  This is useful to see
 the author's description of the changes in the revision on the current
 line.
 
-@item W
+@item w
 Annotate the working revision--the one you are editing.  If you used
-@kbd{P} and @kbd{N} to browse to other revisions, use this key to
+@kbd{p} and @kbd{n} to browse to other revisions, use this key to
 return to your working revision.
+
+@item v
+Toggle the annotation visibility.  This is useful for looking just at
+the file contents without distraction from the annotations.
 @end table
 
 @node Secondary VC Commands
@@ -2073,8 +2086,8 @@ output appears in a separate window.  The point is centered at the
 revision of the file that is currently being visited.
 
   In the change log buffer, you can use the following keys to move
-between the logs of revisions and of files, to view past revisions, and
-to view diffs:
+between the logs of revisions and of files, to view past revisions, to
+modify change comments, to view annotations and to view diffs:
 
 @table @kbd
 @item p
@@ -2112,6 +2125,13 @@ in the log buffer
 @end ifnottex
 It also takes a numeric prefix argument as a repeat count.
 
+@item a
+Annotate the revision indicated by the current line.
+
+@item e
+Modify the change comment displayed at point.  Note that not all VC
+systems support modifying change comments.
+
 @item f
 Visit the revision indicated at the current line, like typing @kbd{C-x
 v ~} and specifying this revision's ID (@pxref{Old Revisions}).
@@ -2119,8 +2139,14 @@ v ~} and specifying this revision's ID (@pxref{Old Revisions}).
 @item d
 Display the diff (@pxref{Comparing Files}) between the revision
 indicated at the current line and the next earlier revision.  This is
-useful to see what actually changed when the revision indicated on the
-current line was committed.
+useful to see what actually changed in the file when the revision
+indicated on the current line was committed.
+
+@item D
+Display the changeset diff (@pxref{Comparing Files}) between the
+revision indicated at the current line and the next earlier revision.
+This is useful to see all the changes to all files that the revision
+indicated on the current line did when it was committed.
 @end table
 
 @node VC Undo

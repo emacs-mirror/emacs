@@ -1,5 +1,11 @@
 2008-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* files.texi (Old Revisions): Update the keys used by vc-annotate and
+	describe the new bindings to show the changeset diff, toggle annotation
+	visibility, show revisions.
+	(VC Status): Describe key bindings for modifying the change comments,
+	displaying changeset diffs and annotations.
+
 	* vc1-xtra.texi (VC Directory Mode): Talk about multiple VC systems.
 
 2008-08-05  Nick Roberts  <nickrob@snap.net.nz>
