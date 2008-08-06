@@ -43,7 +43,7 @@
 	(xesam-search-engines): Fix error in field list.
 	(xesam-mode): Use `xesam-mode-line' instead of
 	`font-lock-type-face'.  Apply `xesam-mode' to a temp buffer, for
-	proper initiatilzaion (why?).
+	proper initialization (why?).
 	(xesam-highlight-string, xesam-get-hits)
 	(xesam-kill-buffer-function): New defuns.
 	(xesam-refresh-entry): Move code to `xesam-get-hits'.  Check
@@ -247,7 +247,7 @@
 	a string.  Use separate error message when `arg' is not an integer.
 	Bind `ucs-insert' to `C-x 8 RET'.
 
-2008-07-31  Joachim Nilsson  <joachim.nilsson@member.fsf.org> (tiny change)
+2008-07-31  Joachim Nilsson  <joachim.nilsson@member.fsf.org>  (tiny change)
 
 	* progmodes/cc-styles.el (c-style-alist): For the Ellemtel style,
 	move the (arglist-cont-nonempty) from c-offsets-alist to
