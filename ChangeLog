@@ -1,3 +1,7 @@
+2008-08-06  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Fix quoting.
+
 2008-08-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in (COCOA_EXPERIMENTAL_CTRL_G): Fix 2008-08-04 change.
