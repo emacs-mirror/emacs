@@ -12655,19 +12655,12 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 {
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
-  struct text_pos scroll_margin_pos;
-  struct text_pos pos;
-  struct text_pos startp;
+  struct text_pos pos, startp;
   struct it it;
-  Lisp_Object window_end;
-  int this_scroll_margin;
-  int dy = 0;
-  int scroll_max;
-  int rc;
-  int amount_to_scroll = 0;
-  Lisp_Object aggressive;
-  int height;
+  int this_scroll_margin, scroll_max, rc, height;
+  int dy = 0, amount_to_scroll = 0, scroll_down_p = 0;
   int extra_scroll_margin_lines = last_line_misfit ? 1 : 0;
+  Lisp_Object aggressive;
 
 #if GLYPH_DEBUG
   debug_method_add (w, "try_scrolling");
@@ -12706,48 +12699,44 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
     scroll_max = 0;
   scroll_max *= FRAME_LINE_HEIGHT (f);
 
-  /* Decide whether we have to scroll down.  Start at the window end
-     and move this_scroll_margin up to find the position of the scroll
-     margin.  */
-  window_end = Fwindow_end (window, Qt);
-
  too_near_end:
 
-  CHARPOS (scroll_margin_pos) = XINT (window_end);
-  BYTEPOS (scroll_margin_pos) = CHAR_TO_BYTE (CHARPOS (scroll_margin_pos));
-
-  if (this_scroll_margin || extra_scroll_margin_lines)
+  /* Decide whether we have to scroll down.  */
+  if (PT > CHARPOS (startp))
     {
-      start_display (&it, w, scroll_margin_pos);
-      if (this_scroll_margin)
-	move_it_vertically_backward (&it, this_scroll_margin);
-      if (extra_scroll_margin_lines)
-	move_it_by_lines (&it, - extra_scroll_margin_lines, 0);
-      scroll_margin_pos = it.current.pos;
+      int scroll_margin_y;
+
+      /* Compute the pixel ypos of the scroll margin, then move it to
+	 either that ypos or PT, whichever comes first.  */
+      start_display (&it, w, startp);
+      scroll_margin_y = it.last_visible_y - this_scroll_margin
+	- FRAME_LINE_HEIGHT (f) * extra_scroll_margin_lines;
+      move_it_to (&it, PT, -1, scroll_margin_y - 1, -1,
+		  (MOVE_TO_POS | MOVE_TO_Y));
+
+      if (PT > CHARPOS (it.current.pos))
+	{
+	  /* Point is in the scroll margin at the bottom of the
+	     window, or below.  Compute the distance from the scroll
+	     margin to PT, and give up if the distance is greater than
+	     scroll_max.  */
+	  move_it_to (&it, PT, -1, it.last_visible_y - 1, -1,
+		      MOVE_TO_POS | MOVE_TO_Y);
+
+	  /* To make point visible, we must move the window start down
+	     so that the cursor line is visible, which means we have
+	     to add in the height of the cursor line.  */
+	  dy = line_bottom_y (&it) - scroll_margin_y;
+
+	  if (dy > scroll_max)
+	    return SCROLLING_FAILED;
+
+	  scroll_down_p = 1;
+	}
     }
 
-  if (PT >= CHARPOS (scroll_margin_pos))
+  if (scroll_down_p)
     {
-      int y0;
-
-      /* Point is in the scroll margin at the bottom of the window, or
-	 below.  Compute a new window start that makes point visible.  */
-
-      /* Compute the distance from the scroll margin to PT.
-	 Give up if the distance is greater than scroll_max.  */
-      start_display (&it, w, scroll_margin_pos);
-      y0 = it.current_y;
-      move_it_to (&it, PT, 0, it.last_visible_y, -1,
-		  MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
-
-      /* To make point visible, we have to move the window start
-	 down so that the line the cursor is in is visible, which
-	 means we have to add in the height of the cursor line.  */
-      dy = line_bottom_y (&it) - y0;
-
-      if (dy > scroll_max)
-	return SCROLLING_FAILED;
-
       /* Move the window start down.  If scrolling conservatively,
 	 move it just enough down to make point visible.  If
 	 scroll_step is set, move it down by scroll_step.  */
@@ -12787,9 +12776,10 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
     }
   else
     {
+      struct text_pos scroll_margin_pos = startp;
+
       /* See if point is inside the scroll margin at the top of the
          window.  */
-      scroll_margin_pos = startp;
       if (this_scroll_margin)
 	{
 	  start_display (&it, w, startp);
@@ -13038,9 +13028,13 @@ try_cursor_movement (window, startp, scroll_step)
 
       /* Scroll if point within this distance from the top or bottom
 	 of the window.  This is a pixel value.  */
-      this_scroll_margin = max (0, scroll_margin);
-      this_scroll_margin = min (this_scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
-      this_scroll_margin *= FRAME_LINE_HEIGHT (f);
+      if (scroll_margin > 0)
+	{
+	  this_scroll_margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
+	  this_scroll_margin *= FRAME_LINE_HEIGHT (f);
+	}
+      else
+	this_scroll_margin = 0;
 
       top_scroll_margin = this_scroll_margin;
       if (WINDOW_WANTS_HEADER_LINE_P (w))
@@ -13673,6 +13667,11 @@ redisplay_window (window, just_this_one_p)
 #if GLYPH_DEBUG
       debug_method_add (w, "same window start");
 #endif
+
+      /* If there's a scroll margin, we must try to scroll, in case
+	 point is now in the scroll margin.  */
+      if (scroll_margin > 0)
+	goto try_to_scroll;
 
       /* Try to redisplay starting at same place as before.
          If point has not moved off frame, accept the results.  */
