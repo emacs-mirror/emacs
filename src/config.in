@@ -297,6 +297,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <kerberos/krb.h> header file. */
 #undef HAVE_KERBEROS_KRB_H
 
+/* Define to 1 if `e_text' is member of `krb5_error'. */
+#undef HAVE_KRB5_ERROR_E_TEXT
+
+/* Define to 1 if `text' is member of `krb5_error'. */
+#undef HAVE_KRB5_ERROR_TEXT
+
 /* Define to 1 if you have the <krb5.h> header file. */
 #undef HAVE_KRB5_H
 
