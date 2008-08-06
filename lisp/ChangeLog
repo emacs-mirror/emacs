@@ -2,8 +2,6 @@
 
 	* proced.el (proced-menu): Bind the correct function to for toggling.
 
-	* diff-mode.el (diff-show-trailing-whitespaces): Fix typo.
-
 	* vc-dir.el (vc-dir-mode): Fix typo.
 
 2008-08-06  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
@@ -16,8 +14,7 @@
 
 	* kmacro.el (kmacro-exec-ring-item): Add autoload.
 
-	* files.el (auto-save-visited-file-name): Move definition to
-	fileio.c.
+	* files.el (auto-save-visited-file-name): Move definition to fileio.c.
 
 	* cus-start.el (all): Handle auto-save-visited-file-name.
 
