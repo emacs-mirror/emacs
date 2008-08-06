@@ -1,3 +1,9 @@
+2008-08-06  Reto Zimmermann  <reto@gnu.org>
+
+	* progmodes/vera-mode.el (vera-electric-tab):
+	* progmodes/vhdl-mode.el (vhdl-electric-tab): Make TAB indent
+	region when active.
+
 2008-08-06  Kenichi Handa  <handa@m17n.org>
 
 	* faces.el (face-valid-attribute-values): Fix handling the value
