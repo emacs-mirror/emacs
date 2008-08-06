@@ -351,11 +351,6 @@ buffer).
 
 ** Minibuffer changes
 
-*** Operations like C-x b and C-x C-f, which use switch-to-buffer, do
-not fail any more when used in a minibuffer or a dedicated window.
-Instead, they fallback on using pop-to-buffer, which will use some
-other window.
-
 *** When M-n in the minibuffer reaches the end of the list of defaults,
 it adds the completion list to the end, so next M-n continues putting
 completion items to the minibuffer.  The same principle applies to
@@ -378,6 +373,12 @@ similarly, using the file displayed on the current line.
 `keep-lines', `flush-lines' and `how-many'.  This list includes the active
 region in transient-mark-mode, the word under the cursor, the last Isearch
 regexp, the last Isearch string and the last replacement regexp.
+
+*** When enable-recursive-minibuffers is non-nil, operations which use
+switch-to-buffer (such as C-x b and C-x C-f) do not fail any more when
+used in a minibuffer or a dedicated window.  Instead, they fallback on
+using pop-to-buffer, which will use some other window.  This change
+has no effect when enable-recursive-minibuffers is nil (the default).
 
 *** Isearch started in the minibuffer searches in the minibuffer history.
 Reverse Isearch commands (C-r, C-M-r) search in previous minibuffer
