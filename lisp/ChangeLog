@@ -1,3 +1,9 @@
+2008-08-06  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el (whitespace-newline-mode)
+	(global-whitespace-newline-mode, whitespace-mode)
+	(global-whitespace-mode): Improve docstring.
+
 2008-08-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* kmacro.el (kmacro-exec-ring-item): Add autoload.
