@@ -1886,7 +1886,7 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
   (interactive)
   (let ((whitespace-style '(trailing))
         (whitespace-trailing-regexp "^[-\+!<>].*?\\([\t ]+\\)$"))
-    (whitespace-mode 1)))     ; display trailing blanks in diff buffer
+    (whitespace-mode 1)))     ; display trailing whitespace in diff buffer
 
 ;; provide the package
 (provide 'diff-mode)
