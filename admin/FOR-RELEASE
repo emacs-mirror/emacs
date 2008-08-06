@@ -204,7 +204,8 @@ help.texi
 indent.texi
 killing.texi
 kmacro.texi
-macos.texi
+macos.texi     -- contents need to be evaluated and see what is still
+relevant after the NS merge.
 maintaining.texi
 major.texi
 mark.texi         -- cyd
