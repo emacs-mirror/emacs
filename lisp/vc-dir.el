@@ -898,7 +898,7 @@ Search & Replace
 S - searches the marked files
 Q - does a query replace on the marked files
 M-s a C-s - does an isearch on the marked files
-M-s a C-M-s - does an isearch on the marked files
+M-s a C-M-s - does a regexp isearch on the marked files
 If nothing is marked, these commands act on the current entry.
 When a directory is current or marked, the Search & Replace
 commands act on the files in those directories displayed in the
