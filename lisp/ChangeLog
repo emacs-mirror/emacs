@@ -1,3 +1,8 @@
+2008-08-06  Kenichi Handa  <handa@m17n.org>
+
+	* faces.el (face-valid-attribute-values): Fix handling the value
+	of (font-family-list) and font-XXX-table.
+
 2008-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* proced.el (proced-menu): Bind the correct function to for toggling.
