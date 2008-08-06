@@ -1,3 +1,8 @@
+2008-08-06  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_list_family): Return a list of symbols, not
+	strings.
+
 2008-08-06  Andreas Schwab  <schwab@suse.de>
 
 	* config.in: Regenerate.
