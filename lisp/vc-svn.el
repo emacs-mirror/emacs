@@ -604,7 +604,7 @@ information about FILENAME and return its status."
     (goto-char (point-min))
     (while (re-search-forward
             ;; Ignore the files with status X.
-	    "^\\(\\?\\|[ ACDGIMR!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\)\\) +" nil t)
+	    "^\\(?:\\?\\|[ ACDGIMR!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\)\\) +" nil t)
       ;; If the username contains spaces, the output format is ambiguous,
       ;; so don't trust the output's filename unless we have to.
       (setq file (or filename
@@ -643,7 +643,7 @@ information about FILENAME and return its status."
 	  ((eq status ?R)
 	   (vc-file-setprop file 'vc-state 'removed))
 	  (t 'edited)))))
-    (if filename (vc-file-getprop filename 'vc-state))))
+    (when filename (vc-file-getprop filename 'vc-state))))
 
 (defun vc-svn-valid-symbolic-tag-name-p (tag)
   "Return non-nil if TAG is a valid symbolic tag name."
