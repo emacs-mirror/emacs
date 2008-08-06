@@ -1,3 +1,9 @@
+2008-08-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in (COCOA_EXPERIMENTAL_CTRL_G): Fix 2008-08-04 change.
+
+	* configure: Regenerate.
+
 2008-08-05  Ulrich Mueller  <ulm@gentoo.org>
 
 	* configure.in: Add checks for krb5_error.text and
