@@ -9332,7 +9332,7 @@ if test $ac_cv_header_AppKit_AppKit_h = yes; then
 fi
 
 
-  NS_HAVE_INTEGER=yes
+  NS_HAVE_NSINTEGER=yes
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -9365,17 +9365,17 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test -z "$ac_c_werror_flag" ||
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
-  ns_have_integer=yes
+  ns_have_nsinteger=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	ns_have_integer=no
+	ns_have_nsinteger=no
 fi
 
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  if test $ns_have_integer = no; then
-    NS_HAVE_INTEGER=no
+  if test $ns_have_nsinteger = no; then
+    NS_HAVE_NSINTEGER=no
   fi
 fi
 if test "${HAVE_NS}" = yes; then
@@ -14894,10 +14894,10 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
   fi
-  if test "${NS_HAVE_INTEGER}" = "yes"; then
+  if test "${NS_HAVE_NSINTEGER}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
-#define NS_HAVE_INTEGER 1
+#define NS_HAVE_NSINTEGER 1
 _ACEOF
 
   fi

@@ -1,3 +1,10 @@
+2008-08-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* configure.in (NS_HAVE_INTEGER): Rename to NS_HAVE_NSINTEGER.
+	(C_SWITCH_X_SYSTEM): Drop -MMD -MP under NS_IMPL_GNUstep.
+
+	* configure: Regenerate.
+
 2008-08-06  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Fix quoting.

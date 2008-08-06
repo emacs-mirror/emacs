@@ -1236,13 +1236,13 @@ if test "${with_ns}" != no; then
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
   fi
   AC_CHECK_HEADER(AppKit/AppKit.h, HAVE_NS=yes)
-  NS_HAVE_INTEGER=yes
+  NS_HAVE_NSINTEGER=yes
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <Foundation/NSObjCRuntime.h>],
                                      [NSInteger i;])],
-		    ns_have_integer=yes,
-		    ns_have_integer=no)
-  if test $ns_have_integer = no; then
-    NS_HAVE_INTEGER=no
+		    ns_have_nsinteger=yes,
+		    ns_have_nsinteger=no)
+  if test $ns_have_nsinteger = no; then
+    NS_HAVE_NSINTEGER=no
   fi
 fi
 if test "${HAVE_NS}" = yes; then
@@ -2054,8 +2054,8 @@ if test "${HAVE_NS}" = "yes"; then
   if test "${NS_IMPL_GNUSTEP}" = "yes"; then
     AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])
   fi
-  if test "${NS_HAVE_INTEGER}" = "yes"; then
-    AC_DEFINE(NS_HAVE_INTEGER, 1, [Define to 1 if `NSInteger' is defined.])
+  if test "${NS_HAVE_NSINTEGER}" = "yes"; then
+    AC_DEFINE(NS_HAVE_NSINTEGER, 1, [Define to 1 if `NSInteger' is defined.])
   fi
   # We also have mouse menus.
   HAVE_MENUS=yes
@@ -2610,7 +2610,7 @@ AH_BOTTOM([
 # endif
 # ifdef NS_IMPL_GNUSTEP
 /* See also .m.o rule in Makefile.in */
-#  define C_SWITCH_X_SYSTEM -MMD -MP -D_REENTRANT -fPIC -fno-strict-aliasing
+#  define C_SWITCH_X_SYSTEM -D_REENTRANT -fPIC -fno-strict-aliasing
 #  define GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE
 #  define OTHER_FILES ns-app
 # else /* NS_IMPL_COCOA */
