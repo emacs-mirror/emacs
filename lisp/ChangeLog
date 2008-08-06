@@ -1,5 +1,7 @@
 2008-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* proced.el (proced-menu): Bind the correct function to for toggling.
+
 	* diff-mode.el (diff-show-trailing-whitespaces): Fix typo.
 
 	* vc-dir.el (vc-dir-mode): Fix typo.

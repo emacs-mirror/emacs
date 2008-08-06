@@ -244,7 +244,7 @@ Important: the match ends just after the marker.")
     ["Unmark" proced-unmark t]
     ["Mark All" proced-mark-all t]
     ["Unmark All" proced-unmark-all t]
-    ["Toggle Marks" proced-unmark-all t]
+    ["Toggle Marks" proced-toggle-marks t]
     "--"
     ["Sort" proced-sort t]
     ["Sort by %CPU" proced-sort-pcpu (proced-sorting-scheme-p "%CPU")]
