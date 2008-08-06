@@ -473,8 +473,8 @@ xfont_list_family (frame)
 	continue;
       last_len = p1 - p0;
       last_family = p0;
-      family = make_unibyte_string (p0, last_len);
-      if (NILP (Fassoc_string (family, list, Qt)))
+      family = font_intern_prop (p0, last_len, 1);
+      if (NILP (assq_no_quit (family, list)))
 	list = Fcons (family, list);
     }
 
