@@ -232,6 +232,10 @@ has been replaced with a submenu offering three different ways to
 handle long lines: truncation, continuation at the window edge, and
 the new word wrapping option (see Editing Changes, below).
 
+*** Improvements to menus for major and minor modes
+More major and minor modes now have a mode specific menu, and existing
+mode menus have been improved to include more functionality.
+
 ** Mode-line changes
 +++
 *** The mode-line displays a `@', instead of `-', if the
@@ -242,6 +246,11 @@ minor mode, in the same way as it already did for major modes.
 
 *** The `mode-line-emphasis' face is used to highlight certain
 mode-line information (e.g. waiting for a VC command to finish).
+
+*** The mode-line tooltips have been improved to provide more details.
+
+*** The VC, line/colum number and minor mode indicators on the mode
+line are now interactive: mouse-1 can be used on them to pop up a menu.
 
 ** Directory-local variables can now be defined.
 By default, Emacs looks in .dir-settings.el for directory-local
@@ -553,7 +562,8 @@ which have installed this software.
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
 ** Diff mode
-*** New function `diff-show-trailing-blanks'.
+*** New function `diff-show-trailing-whitespaces' can be used to show
+trailing whitespace problems in the modified lines of a diff buffer.
 
 ** Abbrev has been rewritten in Elisp and extended with more flexibility.
 *** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
