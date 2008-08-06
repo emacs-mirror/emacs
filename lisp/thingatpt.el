@@ -208,7 +208,7 @@ a symbol as a valid THING."
 	 (goto-char (point-min)))))
 
 (defvar thing-at-point-url-path-regexp
-  "[^]\t\n \"'()<>[^`{}]*[^]\t\n \"'()<>[^`{}.,;]+"
+  "[^]\t\n \"'<>[^`{}]*[^]\t\n \"'<>[^`{}.,;]+"
   "A regular expression probably matching the host and filename or e-mail part of a URL.")
 
 (defvar thing-at-point-short-url-regexp
