@@ -2054,9 +2054,9 @@ if test "${HAVE_NS}" = "yes"; then
   if test "${NS_IMPL_GNUSTEP}" = "yes"; then
     AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])
   fi
-  dnl if test "${NS_HAVE_INTEGER}" = "yes"; then
+  if test "${NS_HAVE_INTEGER}" = "yes"; then
     AC_DEFINE(NS_HAVE_INTEGER, 1, [Define to 1 if `NSInteger' is defined.])
-  dnl fi
+  fi
   # We also have mouse menus.
   HAVE_MENUS=yes
 fi
