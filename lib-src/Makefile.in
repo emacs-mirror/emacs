@@ -145,8 +145,6 @@ MOVE_FLAGS=
 #include "../src/config.h"
 
 #if defined(NS_IMPL_COCOA)
-/* Build these programs as universal binaries. */
-CFLAGS := $(CFLAGS) -universal
 /* Add mac-fix-env for OS X systems running NS version. */
 INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} b2m${EXEEXT} ebrowse${EXEEXT} mac-fix-env${EXEEXT}
 #endif
@@ -259,11 +257,7 @@ BASE_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
 	${CC} -c ${CPP_CFLAGS} $<
 
 .m.o:
-#ifdef NS_IMPL_GNUSTEP
-	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString $<
-#else
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
-#endif
 
 all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 

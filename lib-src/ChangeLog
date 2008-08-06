@@ -1,3 +1,8 @@
+2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Makefile.in (CFLAGS): Drop -universal under NS_IMPL_COCOA.
+	(.m.o): Dispense with GNUstep-specific flags.
+
 2008-08-05  Ulrich Mueller  <ulm@gentoo.org>
 
 	* pop.c (socket_connection): Add conditionals for
