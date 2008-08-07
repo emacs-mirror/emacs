@@ -2605,9 +2605,6 @@ AH_BOTTOM([
    side does this in s/darwin.h and we cannot
    parallel this exactly since GNUstep is multi-OS. */
 #ifdef HAVE_NS
-# ifdef C_SWITCH_SYSTEM
-# undef C_SWITCH_SYSTEM
-# endif
 # ifdef NS_IMPL_GNUSTEP
 /* See also .m.o rule in Makefile.in */
 #  define C_SWITCH_X_SYSTEM -D_REENTRANT -fPIC -fno-strict-aliasing

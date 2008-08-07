@@ -1,7 +1,8 @@
 2008-08-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* configure.in (NS_HAVE_INTEGER): Rename to NS_HAVE_NSINTEGER.
-	(C_SWITCH_X_SYSTEM): Drop -MMD -MP under NS_IMPL_GNUstep.
+	(C_SWITCH_X_SYSTEM): Drop -MMD -MP under NS_IMPL_GNUstep.  Don't
+	bother undef'ing since won't have desired effect.
 
 	* configure: Regenerate.
 
