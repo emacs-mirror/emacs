@@ -1,3 +1,12 @@
+2008-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/darwin.h (OTHER_FILES): Do not define here, defined in
+	config.in.
+
+	* Makefile.in (ALL_OBJC_CFLAGS): New variable.
+	(.m.o): Use it.
+	* config.in: Regenerate.
+
 2008-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert last change.

@@ -1039,18 +1039,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    side does this in s/darwin.h and we cannot
    parallel this exactly since GNUstep is multi-OS. */
 #ifdef HAVE_NS
+#define OTHER_FILES ns-app
 # ifdef NS_IMPL_GNUSTEP
 /* See also .m.o rule in Makefile.in */
 #  define C_SWITCH_X_SYSTEM -D_REENTRANT -fPIC -fno-strict-aliasing
-#  define GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE
-#  define OTHER_FILES ns-app
-# else /* NS_IMPL_COCOA */
-#  define C_SWITCH_X_SYSTEM
-#  define GNU_OBJC_CFLAGS
-# endif /* NS_IMPL_COCOA */
+# endif /* NS_IMPL_GNUSTEP */
 #endif /* HAVE_NS */
 
-/* Define `subprocesses' should be defined if you want to
+/* `subprocesses' should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
    Only MSDOS does not support this.  */

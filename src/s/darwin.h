@@ -154,7 +154,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Definitions for how to compile & link.  */
 
 #ifdef HAVE_NS
-#define OTHER_FILES ns-app
 /* XXX: lresolv is here because configure when testing #undefs res_init,
         a macro in /usr/include/resolv.h for res_9_init, not in stdc lib. */
 #define LIBS_NSGUI -framework AppKit -lresolv

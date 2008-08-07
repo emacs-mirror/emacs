@@ -738,6 +738,8 @@ ns_appbindir
 ns_appresdir
 ns_appsrc
 GNUSTEP_MAKEFILES
+GNU_OBJC_CFLAGS
+LIB_SRC_EXTRA_INSTALLABLES
 LTLIBOBJS'
 ac_subst_files=''
       ac_precious_vars='build_alias
@@ -14881,6 +14883,8 @@ cat >>confdefs.h <<\_ACEOF
 #define NS_IMPL_COCOA 1
 _ACEOF
 
+    GNU_OBJC_CFLAGS=
+    LIB_SRC_EXTRA_INSTALLABLES=mac-fix-env
   fi
   if test "${EN_COCOA_EXPERIMENTAL_CTRL_G}" = "yes"; then
 
@@ -14895,6 +14899,7 @@ cat >>confdefs.h <<\_ACEOF
 #define NS_IMPL_GNUSTEP 1
 _ACEOF
 
+    GNU_OBJC_CFLAGS="-fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
   if test "${NS_HAVE_NSINTEGER}" = "yes"; then
 
@@ -16653,7 +16658,6 @@ cat >>conftest.$ac_ext <<_ACEOF
 # endif
 #endif
 
-#include <limits.h>
 #include <stdlib.h>
 
 #ifdef HAVE_UNISTD_H
@@ -16802,15 +16806,12 @@ main ()
      isn't worth using anyway.  */
   alarm (60);
 
-  for (;;)
-    {
-      t = (time_t_max << 1) + 1;
-      if (t <= time_t_max)
-	break;
-      time_t_max = t;
-    }
-  time_t_min = - ((time_t) ~ (time_t) 0 == (time_t) -1) - time_t_max;
-
+  for (time_t_max = 1; 0 < time_t_max; time_t_max *= 2)
+    continue;
+  time_t_max--;
+  if ((time_t) -1 < 0)
+    for (time_t_min = -1; (time_t) (time_t_min * 2) < 0; time_t_min *= 2)
+      continue;
   delta = time_t_max / 997; /* a suitable prime number */
   for (i = 0; i < N_STRINGS; i++)
     {
@@ -16825,12 +16826,10 @@ main ()
 	     && mktime_test ((time_t) (60 * 60 * 24))))
 	return 1;
 
-      for (j = 1; ; j <<= 1)
+      for (j = 1; 0 < j; j *= 2)
 	if (! bigtime_test (j))
 	  return 1;
-	else if (INT_MAX / 2 < j)
-	  break;
-      if (! bigtime_test (INT_MAX))
+      if (! bigtime_test (j - 1))
 	return 1;
     }
   return ! (irix_6_4_bug () && spring_forward_gap () && year_2050_test ());
@@ -24134,6 +24133,8 @@ fi
 
 
 
+
+
 cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIGURATION "${canonical}"
 _ACEOF
@@ -25165,10 +25166,12 @@ ns_appbindir!$ns_appbindir$ac_delim
 ns_appresdir!$ns_appresdir$ac_delim
 ns_appsrc!$ns_appsrc$ac_delim
 GNUSTEP_MAKEFILES!$GNUSTEP_MAKEFILES$ac_delim
+GNU_OBJC_CFLAGS!$GNU_OBJC_CFLAGS$ac_delim
+LIB_SRC_EXTRA_INSTALLABLES!$LIB_SRC_EXTRA_INSTALLABLES$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 26; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 28; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
