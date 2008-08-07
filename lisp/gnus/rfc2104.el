@@ -85,6 +85,14 @@
       (setq ls (cdr ls)))
     v))
 
+(eval-when-compile
+  (defmacro rfc2104-string-make-unibyte (string)
+    "Return the unibyte equivalent of STRING.
+In XEmacs return just STRING."
+    (if (featurep 'xemacs)
+	string
+      `(string-make-unibyte ,string))))
+
 (defun rfc2104-hash (hash block-length hash-length key text)
   (let* (;; if key is longer than B, reset it to HASH(key)
 	 (key (if (> (length key) block-length)
@@ -100,7 +108,8 @@
       (aset ipad i (logxor rfc2104-ipad c))
       (aset opad i (logxor rfc2104-opad c)))
     ;; Perform inner hash.
-    (setq partial (string-make-unibyte (funcall hash (concat ipad text))))
+    (setq partial (rfc2104-string-make-unibyte
+		   (funcall hash (concat ipad text))))
     ;; Pack latter part of opad.
     (do ((r 0 (+ 2 r))
          (w block-length (1+ w)))
@@ -109,7 +118,7 @@
             (+ (* 16 (aref rfc2104-nybbles (aref partial     r)))
                (      aref rfc2104-nybbles (aref partial (1+ r))))))
     ;; Perform outer hash.
-    (string-make-unibyte (funcall hash opad))))
+    (rfc2104-string-make-unibyte (funcall hash opad))))
 
 (provide 'rfc2104)
 

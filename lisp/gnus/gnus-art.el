@@ -3955,60 +3955,41 @@ Valid values for COMMAND include:
     last used for saving.
 Non-nil value for RAW overrides `:decode' and `:headers' properties
 and the raw article including all headers will be piped."
-  (let ((save-buffer gnus-save-article-buffer)
-	(default (or gnus-summary-pipe-output-default-command
-		     gnus-last-shell-command)))
-    ;; `gnus-save-article-buffer' should be a buffer containing the article
-    ;; contents if this function is called by way of the command
-    ;; `gnus-summary-pipe-output'.  OTOH, that the buffer does not exist
-    ;; means this function is called independently.
-    (unless (gnus-buffer-live-p save-buffer)
-      (let ((article (gnus-summary-article-number))
-	    (decode (unless raw
-		      (get 'gnus-summary-save-in-pipe :decode))))
-	(if article
-	    (if (vectorp (gnus-summary-article-header article))
-		(save-window-excursion
-		  (let ((gnus-display-mime-function
-			 (when decode
-			   gnus-display-mime-function))
-			(gnus-article-prepare-hook
-			 (when decode
-			   gnus-article-prepare-hook)))
-		    (gnus-summary-select-article t t nil article)
-		    (gnus-summary-goto-subject article))
-		  (insert-buffer-substring
-		   (prog1
-		       (if decode
-			   gnus-article-buffer
-			 gnus-original-article-buffer)
-		     (setq save-buffer
-			   (nnheader-set-temp-buffer " *Gnus Save*"))))
-		  ;; Remove unwanted headers.
-		  (when (and (not raw)
-			     (or (get 'gnus-summary-save-in-pipe :headers)
-				 (not gnus-save-all-headers)))
-		    (let ((gnus-visible-headers
-			   (or (symbol-value (get 'gnus-summary-save-in-pipe
-						  :headers))
-			       gnus-saved-headers gnus-visible-headers))
-			  (gnus-summary-buffer nil))
-		      (article-hide-headers 1 t))))
-	      (error "%d is not a real article" article))
-	  (error "No article to pipe"))))
+  (let ((article (gnus-summary-article-number))
+	(decode (unless raw
+		  (get 'gnus-summary-save-in-pipe :decode)))
+	save-buffer default)
+    (if article
+	(if (vectorp (gnus-summary-article-header article))
+	    (save-current-buffer
+	      (gnus-summary-select-article decode decode nil article)
+	      (insert-buffer-substring
+	       (prog1
+		   (if decode
+		       gnus-article-buffer
+		     gnus-original-article-buffer)
+		 (setq save-buffer
+		       (nnheader-set-temp-buffer " *Gnus Save*"))))
+	      ;; Remove unwanted headers.
+	      (when (and (not raw)
+			 (or (get 'gnus-summary-save-in-pipe :headers)
+			     (not gnus-save-all-headers)))
+		(let ((gnus-visible-headers
+		       (or (symbol-value (get 'gnus-summary-save-in-pipe
+					      :headers))
+			   gnus-saved-headers gnus-visible-headers))
+		      (gnus-summary-buffer nil))
+		  (article-hide-headers 1 t))))
+	  (error "%d is not a real article" article))
+      (error "No article to pipe"))
+    (setq default (or gnus-summary-pipe-output-default-command
+		      gnus-last-shell-command))
     (unless (stringp command)
       (setq command
 	    (if (and (eq command 'default) default)
 		default
-	      (gnus-read-shell-command
-	       (format
-		"Shell command on %s: "
-		(if (and gnus-number-of-articles-to-be-saved
-			 (> gnus-number-of-articles-to-be-saved 1))
-		    (format "these %d articles"
-			    gnus-number-of-articles-to-be-saved)
-		  "this article"))
-	       default))))
+	      (gnus-read-shell-command "Shell command on this article: "
+				       default))))
     (when (string-equal command "")
       (if default
 	  (setq command default)

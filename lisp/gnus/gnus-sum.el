@@ -1825,12 +1825,14 @@ increase the score of each group you read."
   "?" gnus-summary-mark-as-dormant
   "\C-c\M-\C-s" gnus-summary-limit-include-expunged
   "\C-c\C-s\C-n" gnus-summary-sort-by-number
+  "\C-c\C-s\C-m\C-n" gnus-summary-sort-by-most-recent-number
   "\C-c\C-s\C-l" gnus-summary-sort-by-lines
   "\C-c\C-s\C-c" gnus-summary-sort-by-chars
   "\C-c\C-s\C-a" gnus-summary-sort-by-author
   "\C-c\C-s\C-t" gnus-summary-sort-by-recipient
   "\C-c\C-s\C-s" gnus-summary-sort-by-subject
   "\C-c\C-s\C-d" gnus-summary-sort-by-date
+  "\C-c\C-s\C-m\C-d" gnus-summary-sort-by-most-recent-date
   "\C-c\C-s\C-i" gnus-summary-sort-by-score
   "\C-c\C-s\C-o" gnus-summary-sort-by-original
   "\C-c\C-s\C-r" gnus-summary-sort-by-random
@@ -2703,10 +2705,12 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	 ["Pop article off history" gnus-summary-pop-article t])
 	("Sort"
 	 ["Sort by number" gnus-summary-sort-by-number t]
+	 ["Sort by most recent number" gnus-summary-sort-by-most-recent-number t]
 	 ["Sort by author" gnus-summary-sort-by-author t]
 	 ["Sort by recipient" gnus-summary-sort-by-recipient t]
 	 ["Sort by subject" gnus-summary-sort-by-subject t]
 	 ["Sort by date" gnus-summary-sort-by-date t]
+	 ["Sort by most recent date" gnus-summary-sort-by-most-recent-date t]
 	 ["Sort by score" gnus-summary-sort-by-score t]
 	 ["Sort by lines" gnus-summary-sort-by-lines t]
 	 ["Sort by characters" gnus-summary-sort-by-chars t]
@@ -11467,6 +11471,12 @@ Argument REVERSE means reverse order."
   (interactive "P")
   (gnus-summary-sort 'number reverse))
 
+(defun gnus-summary-sort-by-most-recent-number (&optional reverse)
+  "Sort the summary buffer by most recent article number.
+Argument REVERSE means reverse order."
+  (interactive "P")
+  (gnus-summary-sort 'most-recent-number reverse))
+
 (defun gnus-summary-sort-by-random (&optional reverse)
   "Randomize the order in the summary buffer.
 Argument REVERSE means to randomize in reverse order."
@@ -11499,6 +11509,12 @@ Argument REVERSE means reverse order."
 Argument REVERSE means reverse order."
   (interactive "P")
   (gnus-summary-sort 'date reverse))
+
+(defun gnus-summary-sort-by-most-recent-date (&optional reverse)
+  "Sort the summary buffer by most recent date.
+Argument REVERSE means reverse order."
+  (interactive "P")
+  (gnus-summary-sort 'most-recent-date reverse))
 
 (defun gnus-summary-sort-by-score (&optional reverse)
   "Sort the summary buffer by score.
@@ -11613,29 +11629,69 @@ will not be marked as saved."
     (gnus-set-mode-line 'summary)
     n))
 
-(defun gnus-summary-pipe-output (&optional arg headers)
+(defun gnus-summary-pipe-output (&optional n sym)
   "Pipe the current article to a subprocess.
 If N is a positive number, pipe the N next articles.
 If N is a negative number, pipe the N previous articles.
 If N is nil and any articles have been marked with the process mark,
 pipe those articles instead.
-If HEADERS (the symbolic prefix) is given, force including all headers."
+The default command to which articles are piped is specified by the
+variable `gnus-summary-pipe-output-default-command'; if it is nil, you
+will be prompted for the command.
+
+The properties `:decode' and `:headers' that are put to the function
+symbol `gnus-summary-save-in-pipe' control whether this function
+decodes articles and what headers to keep (see the doc string for the
+`gnus-default-article-saver' variable).  If SYM (the symbolic prefix)
+is neither omitted nor the symbol `r', force including all headers
+regardless of the `:headers' property.  If it is the symbol `r',
+articles that are not decoded and include all headers will be piped
+no matter what the properties `:decode' and `:headers' are."
   (interactive (gnus-interactive "P\ny"))
   (require 'gnus-art)
-  (let ((gnus-default-article-saver 'gnus-summary-save-in-pipe))
-    (if headers
-	(let ((gnus-save-all-headers t)
-	      (headers (get gnus-default-article-saver :headers)))
-	  (unwind-protect
-	      (progn
-		(put gnus-default-article-saver :headers nil)
-		(gnus-summary-save-article arg t))
-	    (put gnus-default-article-saver :headers headers)))
-      (gnus-summary-save-article arg t)))
-  (let ((buffer (get-buffer "*Shell Command Output*")))
-    (when (and buffer
-	       (not (zerop (buffer-size buffer))))
-      (gnus-configure-windows 'pipe))))
+  (let* ((articles (gnus-summary-work-articles n))
+	 (result-buffer "*Shell Command Output*")
+	 (all-headers (not (memq sym '(nil r))))
+	 (gnus-save-all-headers (or all-headers gnus-save-all-headers))
+	 (raw (eq sym 'r))
+	 (headers (get 'gnus-summary-save-in-pipe :headers))
+	 command result)
+    (unless (numberp (car articles))
+      (error "No article to pipe"))
+    (setq command (gnus-read-shell-command
+		   (concat "Shell command on "
+			   (if (cdr articles)
+			       (format "these %d articles" (length articles))
+			     "this article")
+			   ": ")
+		   gnus-summary-pipe-output-default-command))
+    (when (string-equal command "")
+      (error "A command is required"))
+    (when all-headers
+      (put 'gnus-summary-save-in-pipe :headers nil))
+    (unwind-protect
+	(while articles
+	  (gnus-summary-goto-subject (pop articles))
+	  (save-window-excursion (gnus-summary-save-in-pipe command raw))
+	  (when (and (get-buffer result-buffer)
+		     (not (zerop (buffer-size (get-buffer result-buffer)))))
+	    (setq result (concat result (with-current-buffer result-buffer
+					  (buffer-string))))))
+      (put 'gnus-summary-save-in-pipe :headers headers))
+    (unless (zerop (length result))
+      (if (with-current-buffer (get-buffer-create result-buffer)
+	    (erase-buffer)
+	    (insert result)
+	    (prog1
+		(and (= (count-lines (point-min) (point)) 1)
+		     (progn
+		       (end-of-line 0)
+		       (<= (current-column)
+			   (window-width (minibuffer-window)))))
+	      (goto-char (point-min))))
+	  (message "%s" (substring result 0 -1))
+	(message nil)
+	(gnus-configure-windows 'pipe)))))
 
 (defun gnus-summary-save-article-mail (&optional arg)
   "Append the current article to a Unix mail box file.

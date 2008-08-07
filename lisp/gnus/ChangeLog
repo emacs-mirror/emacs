@@ -4,6 +4,28 @@
 	* gnus-start.el:
 	* gnus-registry.el: Remove VMS support.
 
+2008-07-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2104.el (rfc2104-string-make-unibyte): Define it as a compiler
+	macro.
+	(rfc2104-hash): Use it.
+
+2008-07-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-summary-sort-by-most-recent-number)
+	(gnus-summary-sort-by-most-recent-date): New commands.
+	(gnus-summary-mode-map, gnus-summary-make-menu-bar): Add key bindings
+	and menu entries.
+
+2008-07-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-summary-save-in-pipe): Generate work buffer always;
+	don't redisplay article for raw contents; remove plural articles stuff.
+
+	* gnus-sum.el (gnus-summary-pipe-output): Pipe raw articles by symbolic
+	prefix `r'; use gnus-summary-save-in-pipe directly instead of relying
+	on gnus-summary-save-article; display results properly.
+
 2008-07-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-summary-save-in-pipe): Add optional argument `raw'.

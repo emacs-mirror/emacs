@@ -1,3 +1,15 @@
+2008-08-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Sorting the Summary Buffer, Summary Sorting): Add
+	gnus-summary-sort-by-most-recent-number and
+	gnus-summary-sort-by-most-recent-date.
+	(Summary Sorting): Explain prefix argument.
+
+2008-08-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Saving Articles): Mention symbolic prefix `r' for
+	gnus-summary-pipe-output.
+
 2008-08-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Receiving Method Calls): Document error handling of own
