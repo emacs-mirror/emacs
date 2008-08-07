@@ -910,10 +910,7 @@ emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp} ${SOME_MACHINE_LISP}
 	@: bootstrap-emacs, so let us replace it.
 	-ln -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
-/* XXX: not working under NS currently due to path shenanigans.. */
-#ifndef HAVE_NS
 	-./emacs -q -batch -f list-load-path-shadows
-#endif
 
 /* We run make-docfile twice because the command line may get too long
    on some systems.  */
@@ -1252,9 +1249,11 @@ composite.o: composite.c buffer.h  character.h $(INTERVAL_SRC) $(config_h)
    select which of these should be compiled.  */
 
 #ifdef HAVE_NS
-buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
-  fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
-  scroll.o sysdep.o term.o widget.o window.o xdisp.o xfaces.o sound.o: nsgui.h
+/* In fact, every .o file depends directly or indirectly on dispextern.h
+   and hence nsgui.h under NS.  But the ones that actually use stuff there
+   are more limited.  */
+dispnew.o font.o fontset.o frame.o fringe.o image.o keyboard.o menu.o \
+   window.o xdisp.o xfaces.o: nsgui.h
 
 ${ns_appdir}: ${ns_appsrc}
 	rm -fr ${ns_appdir}

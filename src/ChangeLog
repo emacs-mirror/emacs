@@ -1,3 +1,11 @@
+2008-08-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* config.in: Regenerate.
+
+	* Makefile.in (emacs): Remove ndef NS conditional for 'emacs
+	-list-load-path-shadows'.
+	(nsgui.h): Reduce number of things depending on it.
+
 2008-08-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (try_scrolling): Use iterator to find the scroll margin,
