@@ -365,14 +365,14 @@ the tag and whose cdr is the position where the tag was found."
 		  (change-log-search-tag-name-1 at)))
 	    (error nil))
 	  (condition-case nil
-	      ;; Before parenthesized list?
+	      ;; Before parenthesized list on same line?
 	      (save-excursion
 		(when (and (skip-chars-forward " \t")
 			   (looking-at change-log-tag-re))
 		  (change-log-search-tag-name-1)))
 	    (error nil))
 	  (condition-case nil
-	      ;; Near filename?
+	      ;; Near file name?
 	      (save-excursion
 		(when (and (progn
 			     (beginning-of-line)
@@ -383,40 +383,32 @@ the tag and whose cdr is the position where the tag was found."
 		  (change-log-search-tag-name-1)))
 	    (error nil))
 	  (condition-case nil
-	      ;; Before filename?
-	      (save-excursion
-		(when (and (progn
-			     (skip-syntax-backward " ")
-			     (beginning-of-line)
-			     (looking-at change-log-file-names-re))
-			   (goto-char (match-end 0))
-			   (skip-syntax-forward " ")
-			   (looking-at change-log-tag-re))
-		  (change-log-search-tag-name-1)))
-	    (error nil))
-	  (condition-case nil
-	      ;; Near start entry?
-	      (save-excursion
-		(when (and (progn
-			     (beginning-of-line)
-			     (looking-at change-log-start-entry-re))
-			   (forward-line) ; Won't work for multiple
-					  ; names, etc.
-			   (skip-syntax-forward " ")
-			   (progn
-			     (beginning-of-line)
-			     (looking-at change-log-file-names-re))
-			   (goto-char (match-end 0))
-			   (re-search-forward change-log-tag-re))
-		  (change-log-search-tag-name-1)))
-	    (error nil))
-	  (condition-case nil
-	      ;; After parenthesized list?.
-	      (when (re-search-backward change-log-tag-re)
-		(save-restriction
-		  (narrow-to-region (match-beginning 1) (match-end 1))
-		  (goto-char (point-max))
-		  (cons (find-tag-default) (point-max))))
+	      ;; Anywhere else within current entry?
+	      (let ((from
+		     (save-excursion
+		       (end-of-line)
+		       (if (re-search-backward change-log-start-entry-re nil t)
+			   (match-beginning 0)
+			 (point-min))))
+		    (to
+		     (save-excursion
+		       (end-of-line)
+		       (if (re-search-forward change-log-start-entry-re nil t)
+			   (match-beginning 0)
+			 (point-max)))))
+		(when (and (< from to) (<= from at) (<= at to))
+		  (save-restriction
+		    ;; Narrow to current change log entry.
+		    (narrow-to-region from to)
+		    (cond
+		     ((re-search-backward change-log-tag-re nil t)
+		      (narrow-to-region (match-beginning 1) (match-end 1))
+		      (goto-char (point-max))
+		      (cons (find-tag-default) (point-max)))
+		     ((re-search-forward change-log-tag-re nil t)
+		      (narrow-to-region (match-beginning 1) (match-end 1))
+		      (goto-char (point-min))
+		      (cons (find-tag-default) (point-min)))))))
 	    (error nil))))))
 
 (defvar change-log-find-head nil)
@@ -481,9 +473,10 @@ BUFFER denoting the last match for TAG in the last search."
       nil)))
 
 (defun change-log-goto-source ()
-  "Go to source location of change log tag near `point'.
+  "Go to source location of \"change log tag\" near `point'.
 A change log tag is a symbol within a parenthesized,
-comma-separated list."
+comma-separated list.  If no suitable tag can be found nearby,
+try to visit the file for the change under `point' instead."
   (interactive)
   (if (and (eq last-command 'change-log-goto-source)
 	   change-log-find-tail)
@@ -496,20 +489,38 @@ comma-separated list."
 		       (car change-log-find-head)
 		       (nth 2 change-log-find-head)))))
     (save-excursion
-      (let* ((tag-at (change-log-search-tag-name))
+      (let* ((at (point))
+	     (tag-at (change-log-search-tag-name))
 	     (tag (car tag-at))
-	     (file (when tag-at
-		     (change-log-search-file-name (cdr tag-at)))))
-	(if (or (not tag) (not file))
-	    (error "No suitable tag near `point'")
+	     (file (when tag-at (change-log-search-file-name (cdr tag-at))))
+	     (file-at (when file (match-beginning 2)))
+	     ;; `file-2' is the file `change-log-search-file-name' finds
+	     ;; at `point'.  We use `file-2' as a fallback when `tag' or
+	     ;; `file' are not suitable for some reason.
+	     (file-2 (change-log-search-file-name at))
+	     (file-2-at (when file-2 (match-beginning 2))))
+	(cond
+	 ((and (or (not tag) (not file) (not (file-exists-p file)))
+	       (or (not file-2) (not (file-exists-p file-2))))
+	  (error "Cannot find tag or file near `point'"))
+	 ((and file-2 (file-exists-p file-2)
+	       (or (not tag) (not file) (not (file-exists-p file))
+		   (and (or (and (< file-at file-2-at) (<= file-2-at at))
+			    (and (<= at file-2-at) (< file-2-at file-at))))))
+	  ;; We either have not found a suitable file name or `file-2'
+	  ;; provides a "better" file name wrt `point'.  Go to the
+	  ;; buffer of `file-2' instead.
+	  (display-buffer (find-file-noselect file-2)))
+	 (t
 	  (setq change-log-find-head
 		(list tag (concat "\\_<" (regexp-quote tag) "\\_>")
 		      file (find-file-noselect file)))
 	  (condition-case nil
 	      (setq change-log-find-tail
 		    (apply 'change-log-goto-source-1 change-log-find-head))
-	    (error (format "Cannot find matches for tag `%s' in `%s'"
-			   tag file))))))))
+	    (error
+	     (format "Cannot find matches for tag `%s' in file `%s'"
+		     tag file)))))))))
 
 (defun change-log-next-error (&optional argp reset)
   "Move to the Nth (default 1) next match in an Occur mode buffer.
@@ -520,15 +531,15 @@ Compatibility function for \\[next-error] invocations."
 	 (down (< argp 0))		; are we going down? (is argp negative?)
 	 (up (not down))
 	 (search-function (if up 're-search-forward 're-search-backward)))
-    
+
     ;; set the starting position
     (goto-char (cond (reset (point-min))
 		     (down (line-beginning-position))
 		     (up (line-end-position))
 		     ((point))))
-    
+
     (funcall search-function change-log-file-names-re nil t count))
-  
+
   (beginning-of-line)
   ;; if we found a place to visit...
   (when (looking-at change-log-file-names-re)
