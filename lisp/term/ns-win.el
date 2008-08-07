@@ -110,7 +110,6 @@
 				      '(ns-open-temp-file))
         ns-input-file (append ns-input-file (list (pop ns-invocation-args)))))
 
-(defun ns-ignore-0-arg (switch))
 (defun ns-ignore-1-arg (switch)
   (setq ns-invocation-args (cdr ns-invocation-args)))
 (defun ns-ignore-2-arg (switch)
@@ -180,35 +179,41 @@ The properties returned may include `top', `left', `height', and `width'."
 
 ;;;; Keyboard mapping.
 
+;;TODO: all terms have these, but they don't seem necessary.
+;;      Remove if no problems for some time after 2008-08-06.
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
-(put 'backspace 'ascii-character 127)
-(put 'delete 'ascii-character 127)
-(put 'tab 'ascii-character ?\t)
-(put 'S-tab 'ascii-character (logior 16 ?\t))
-(put 'linefeed 'ascii-character ?\n)
-(put 'clear 'ascii-character 12)
-(put 'return 'ascii-character 13)
-(put 'escape 'ascii-character ?\e)
+;;(put 'backspace 'ascii-character 127)
+;;(put 'delete 'ascii-character 127)
+;;(put 'tab 'ascii-character ?\t)
+;;(put 'S-tab 'ascii-character (logior 16 ?\t))
+;;(put 'linefeed 'ascii-character ?\n)
+;;(put 'clear 'ascii-character 12)
+;;(put 'return 'ascii-character 13)
+;;(put 'escape 'ascii-character ?\e)
 
-;; Map certain keypad keys into ASCII characters
-;; that people usually expect.
-(define-key function-key-map [backspace] [127])
-(define-key function-key-map [delete] [127])
-(define-key function-key-map [tab] [?\t])
-(define-key function-key-map [S-tab] [25])
-(define-key function-key-map [linefeed] [?\n])
-(define-key function-key-map [clear] [11])
-(define-key function-key-map [return] [13])
-(define-key function-key-map [escape] [?\e])
-(define-key function-key-map [M-backspace] [?\M-\d])
-(define-key function-key-map [M-delete] [?\M-\d])
-(define-key function-key-map [M-tab] [?\M-\t])
-(define-key function-key-map [M-linefeed] [?\M-\n])
-(define-key function-key-map [M-clear] [?\M-\013])
-(define-key function-key-map [M-return] [?\M-\015])
-(define-key function-key-map [M-escape] [?\M-\e])
 
+(defvar ns-alternatives-map
+  (let ((map (make-sparse-keymap)))
+    ;; Map certain keypad keys into ASCII characters
+    ;; that people usually expect.
+    (define-key map [backspace] [?\d])
+    (define-key map [delete] [?\d])
+    (define-key map [tab] [?\t])
+    (define-key map [S-tab] [25])
+    (define-key map [linefeed] [?\n])
+    (define-key map [clear] [?\C-l])
+    (define-key map [return] [?\C-m])
+    (define-key map [escape] [?\e])
+    (define-key map [M-backspace] [?\M-\d])
+    (define-key map [M-delete] [?\M-\d])
+    (define-key map [M-tab] [?\M-\t])
+    (define-key map [M-linefeed] [?\M-\n])
+    (define-key map [M-clear] [?\M-\C-l])
+    (define-key map [M-return] [?\M-\C-m])
+    (define-key map [M-escape] [?\M-\e])
+    map)
+  "Keymap of alternative meanings for some keys under NS.")
 
 ;; Here are some Nextstep-like bindings for command key sequences.
 (define-key global-map [?\s-,] 'ns-popup-prefs-panel)
@@ -262,6 +267,10 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [kp-end] 'end-of-buffer)
 (define-key global-map [kp-prior] 'scroll-down)
 (define-key global-map [kp-next] 'scroll-up)
+
+;;; Allow shift-clicks to work similarly to under Nextstep
+(define-key global-map [S-mouse-1] 'mouse-save-then-kill)
+(global-unset-key [S-down-mouse-1])
 
 
 ;; Special Nextstep-generated events are converted to function keys.  Here
@@ -369,9 +378,9 @@ this defaults to \"printenv\"."
     (with-selected-frame frame
       (setq interprogram-cut-function 'x-select-text
 	    interprogram-paste-function 'x-cut-buffer-or-selection-value)
-      ;; (let ((map (copy-keymap x-alternatives-map)))
-      ;;   (set-keymap-parent map (keymap-parent local-function-key-map))
-      ;;   (set-keymap-parent local-function-key-map map))
+      (let ((map (copy-keymap ns-alternatives-map)))
+	(set-keymap-parent map (keymap-parent local-function-key-map))
+	(set-keymap-parent local-function-key-map map))
       (setq system-key-alist
             (list
              (cons (logior (lsh 0 16)   1) 'ns-power-off)
@@ -466,40 +475,8 @@ this defaults to \"printenv\"."
              (cons (logior (lsh 3 16)  25) 'S-tab)
              (cons (logior (lsh 3 16)  27) 'escape)
              (cons (logior (lsh 3 16) 127) 'delete)
-             ))
-      (set-terminal-parameter frame 'x-setup-function-keys t))))
-
-
-
-;;;; Miscellaneous mouse bindings.
-
-;;; Allow shift-clicks to work just like under Nextstep
-(defun mouse-extend-region (event)
-  "Move point or mark so as to extend region.
-This should be bound to a mouse click event type."
-  (interactive "e")
-  (mouse-minibuffer-check event)
-  (let ((posn (event-end event)))
-    (if (not (windowp (posn-window posn)))
-        (error "Cursor not in text area of window"))
-    (select-window (posn-window posn))
-    (cond
-     ((not (numberp (posn-point posn))))
-     ((or (not mark-active) (> (abs (- (posn-point posn) (point)))
-                               (abs (- (posn-point posn) (mark)))))
-      (let ((point-save (point)))
-        (unwind-protect
-            (progn
-              (goto-char (posn-point posn))
-              (push-mark nil t t)
-              (or transient-mark-mode
-                  (sit-for 1)))
-          (goto-char point-save))))
-     (t
-      (goto-char (posn-point posn))))))
-
-(define-key global-map [S-mouse-1] 'mouse-extend-region)
-(global-unset-key [S-down-mouse-1])
+             )))
+    (set-terminal-parameter frame 'x-setup-function-keys t)))
 
 
 
@@ -767,8 +744,6 @@ This should be bound to a mouse click event type."
       (setq mapping (vconcat mapping (list (intern (car path)))))
       (define-key global-map mapping (cons (car path) name))))
     name))
-
-(precompute-menubar-bindings)
 
 ;; nsterm.m
 (defvar ns-input-spi-name)
@@ -1216,7 +1191,6 @@ unless the current buffer is a scratch buffer.")
 
 ;; If no position specified, make new frame offset by 25 from current.
 (defvar parameters)		     ; dynamically bound in make-frame
-
 (add-hook 'before-make-frame-hook
           (lambda ()
             (let ((left (cdr (assq 'left (frame-parameters))))
@@ -1232,13 +1206,8 @@ unless the current buffer is a scratch buffer.")
                                              parameters))))))))
 
 ;; frame will be focused anyway, so select it
+;; (if this is not done, modeline is dimmed until first interaction)
 (add-hook 'after-make-frame-functions 'select-frame)
-
-;; (defun ns-win-suspend-error ()
-;;   (error "Suspending an emacs running under *Step/OS X makes no sense"))
-;; (add-hook 'suspend-hook 'ns-win-suspend-error)
-;; (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
-;; 			   global-map)
 
 ;; Based on a function by David Reitter <dreitter@inf.ed.ac.uk> ;
 ;; see http://lists.gnu.org/archive/html/emacs-devel/2005-09/msg00681.html .
@@ -1294,13 +1263,6 @@ cursor display.  On a text-only terminal, this is not implemented."
             (print-buffer)
 	  (error "Cancelled")))
     (print-buffer)))
-
-(defun ns-yes-or-no-p (prompt)
-  "Ask user a \"yes or no\" question using a Nextstep graphical panel.
-PROMPT is the prompt string."
-  (interactive)
-  (setq last-nonmenu-event nil)
-  (yes-or-no-p prompt))
 
 
 ;;;; Font support.
@@ -1436,7 +1398,7 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 (global-unset-key [vertical-scroll-bar drag-mouse-1])
 
 (defun ns-scroll-bar-move (event)
-  "Scroll the frame according to an Nextstep scroller event."
+  "Scroll the frame according to a Nextstep scroller event."
   (interactive "e")
   (let* ((pos (event-end event))
          (window (nth 0 pos))
@@ -1456,7 +1418,7 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
       (vertical-motion (/ (window-height window) 2) window))))
 
 (defun ns-handle-scroll-bar-event (event)
-  "Handle scroll bar EVENT to emulate Mac Toolbox style scrolling."
+  "Handle scroll bar EVENT to emulate Nextstep style scrolling."
   (interactive "e")
   (let* ((position (event-start event))
 	 (bar-part (nth 4 position))
@@ -1491,8 +1453,6 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 (declare-function ns-list-colors "nsfns.m" (&optional frame))
 
 (defvar x-colors (ns-list-colors)
-  "The list of colors defined in non-PANTONE color files.")
-(defvar colors x-colors
   "The list of colors defined in non-PANTONE color files.")
 
 (defun xw-defined-colors (&optional frame)
@@ -1595,15 +1555,6 @@ Note, tranparency works better on Tiger (10.4) and higher."
 ;; Set some options to be as Nextstep-like as possible.
 (setq frame-title-format t
       icon-title-format t)
-
-;; Set up browser connectivity.
-(defvar browse-url-generic-program)
-
-(setq browse-url-browser-function 'browse-url-generic)
-(setq browse-url-generic-program
-      (cond ((eq system-type 'darwin) "open")
-            ;; Otherwise, GNUstep.
-            (t "gopen")))
 
 
 (defvar ns-initialized nil

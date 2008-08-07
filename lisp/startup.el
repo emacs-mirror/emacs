@@ -185,7 +185,7 @@ and VALUE is the value which is given to that frame parameter
 (defconst command-line-ns-option-alist
   '(("-NSAutoLaunch" 1 ns-ignore-1-arg)
     ("-NXAutoLaunch" 1 ns-ignore-1-arg)
-    ("-macosx" 0 ns-ignore-0-arg)
+    ("-macosx" 0 ignore)
     ("-NSHost" 1 ns-ignore-1-arg)
     ("-_NSMachLaunch" 1 ns-ignore-1-arg)
     ("-MachLaunch" 1 ns-ignore-1-arg)

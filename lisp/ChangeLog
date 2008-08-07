@@ -1,3 +1,18 @@
+2008-08-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* startup.el (command-line-ns-option-alist): Use ignore instead of
+	ns-ignore-0-arg.
+
+	* term/ns-win.el (ns-ignore-0-arg, mouse-extend-region)
+	(ns-win-suspend-error, ns-yes-or-no-p, colors): Drop.
+	(ns-alternatives-map): New variable.
+	(x-set-up-function-keys): Use it.
+	(global): Comment out "put backspace ascii-character..." and friends.
+	Move function-key-map into ns-alternatives-map.  Don't call
+	precompute-menubar-bindings.  Don't set anything connected with
+	browse-url.
+	(after-make-frame-functions): Clarify comment why a hook is added.
+
 2008-08-06  Joakim Verona  <joakim@verona.se>
 
 	* thingatpt.el (thing-at-point-url-path-regexp): Allow parenthesis
