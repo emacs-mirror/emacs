@@ -13668,11 +13668,6 @@ redisplay_window (window, just_this_one_p)
       debug_method_add (w, "same window start");
 #endif
 
-      /* If there's a scroll margin, we must try to scroll, in case
-	 point is now in the scroll margin.  */
-      if (scroll_margin > 0)
-	goto try_to_scroll;
-
       /* Try to redisplay starting at same place as before.
          If point has not moved off frame, accept the results.  */
       if (!current_matrix_up_to_date_p
@@ -14079,9 +14074,13 @@ try_window (window, pos, check_margins)
     {
       int this_scroll_margin;
 
-      this_scroll_margin = max (0, scroll_margin);
-      this_scroll_margin = min (this_scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
-      this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
+      if (scroll_margin > 0)
+	{
+	  this_scroll_margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
+	  this_scroll_margin *= FRAME_LINE_HEIGHT (f);
+	}
+      else
+	this_scroll_margin = 0;
 
       if ((w->cursor.y >= 0	/* not vscrolled */
 	   && w->cursor.y < this_scroll_margin
@@ -14091,7 +14090,7 @@ try_window (window, pos, check_margins)
 	     seems to give wrong results.  We don't want to recenter
 	     when the last line is partly visible, we want to allow
 	     that case to be handled in the usual way.  */
-	  || (w->cursor.y + 1) > it.last_visible_y)
+	  || w->cursor.y > it.last_visible_y - this_scroll_margin - 1)
 	{
 	  w->cursor.vpos = -1;
 	  clear_glyph_matrix (w->desired_matrix);
