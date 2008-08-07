@@ -153,12 +153,12 @@ OPTION_DEFAULT_ON([makeinfo],[don't require makeinfo for building manuals])
 
 dnl Can remove these in Emacs 24.
 AC_ARG_WITH([gtk],,
-  AC_MSG_ERROR([--with-gtk has been removed.  Use --with-x-toolkit to
-specify a toolkit.]),,)
+  [AC_MSG_ERROR([--with-gtk has been removed.  Use --with-x-toolkit to
+specify a toolkit.])],,)
 
 AC_ARG_WITH([gcc],,
-  AC_MSG_ERROR([--with-gcc has been removed.  Set the `CC' environment
-  variable to specify a compiler.]),,)
+  [AC_MSG_ERROR([--with-gcc has been removed.  Set the `CC' environment
+variable to specify a compiler.])],,)
 
 AC_ARG_WITH([pkg-config-prog],dnl
 [AS_HELP_STRING([--with-pkg-config-prog=PATH],
@@ -170,13 +170,15 @@ if test "X${with_pkg_config_prog}" != X; then
 fi
 
 AC_ARG_ENABLE(cocoa-experimental-ctrl-g,
-[  --enable-cocoa-experimental-ctrl-g        enable experimental improved ctrl-g recognition],
-   EN_COCOA_EXPERIMENTAL_CTRL_G=yes,
+[AS_HELP_STRING([--enable-cocoa-experimental-ctrl-g],
+                [enable experimental improved ctrl-g recognition])],
+   EN_COCOA_EXPERIMENTAL_CTRL_G=$enableval,
    EN_COCOA_EXPERIMENTAL_CTRL_G=no)
 
 AC_ARG_ENABLE(ns-self-contained,
-[  --disable-ns-self-contained        disable self contained build under NS],
-   EN_NS_SELF_CONTAINED=no,
+[AS_HELP_STRING([--disable-ns-self-contained],
+                [disable self contained build under NeXTstep])],
+   EN_NS_SELF_CONTAINED=$enableval,
    EN_NS_SELF_CONTAINED=yes)
 
 AC_ARG_ENABLE(asserts,
