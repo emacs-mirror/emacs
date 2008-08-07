@@ -1,3 +1,8 @@
+2008-08-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* add-log.el (change-log-search-tag-name)
+	(change-log-goto-source): Fix behavior when point is not on tag.
+
 2008-08-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* startup.el (command-line-ns-option-alist): Use ignore instead of
