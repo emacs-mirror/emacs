@@ -1,3 +1,8 @@
+2008-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* files.texi (Log Buffer): Describe C-c C-d.
+	(Diff Mode): Describe C-x 4 A.
+
 2008-08-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* vc1-xtra.texi (VC Directory Mode): Fix last change.
