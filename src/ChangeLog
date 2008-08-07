@@ -1,3 +1,8 @@
+2008-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): Revert last change.
+	(try_window): Check bottom scroll margin too.
+
 2008-08-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* config.in: Regenerate.
