@@ -1,3 +1,10 @@
+2008-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (move_it_to): When stopping at a charpos, check if
+	that's a continued multi-char glyph; if so, advance to the actual
+	glyph.
+	(try_window): Check scroll margin on bottom window edge too.
+
 2008-08-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Don't enforce scroll-margin when
