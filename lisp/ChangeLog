@@ -1,3 +1,9 @@
+2008-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* battery.el (battery-echo-area-format, battery-status-function):
+	Handle new Linux sysfs format for battery reporting.
+	(battery-linux-sysfs): New function.
+
 2008-08-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* add-log.el (change-log-search-tag-name)
