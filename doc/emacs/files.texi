@@ -2646,7 +2646,7 @@ Refine the current hunk so that it disregards changes in whitespace
 
 @item C-x 4 A
 @findex diff-add-change-log-entries-other-window
-@findex add-change-log-entries-other-window@r{, in Diff mode}
+@findex add-change-log-entry-other-window@r{, in Diff mode}
 Generate a ChangeLog entry, like @kbd{C-x 4 a} does (@pxref{Change
 Log}), for each one of the hunks
 (@code{diff-add-change-log-entries-other-window}).  This creates a
