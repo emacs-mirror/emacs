@@ -1,3 +1,7 @@
+2008-08-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Log Buffer, Diff Mode): Fix last changes.  Add indexing.
+
 2008-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* files.texi (Log Buffer): Describe C-c C-d.
