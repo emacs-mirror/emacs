@@ -2629,7 +2629,7 @@ to the unified diff format with @kbd{C-c C-u}.
 @item C-c C-d
 @findex diff-unified->context
 Convert the entire buffer to the @dfn{context diff format}
-(@code{diff-context->unified}).  With a prefix argument, convert only
+(@code{diff-unified->context}).  With a prefix argument, convert only
 the text within the region.
 
 @item C-c C-u
