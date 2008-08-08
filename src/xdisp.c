@@ -6942,7 +6942,7 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
       && IT_CHARPOS (*it) == to_charpos
       && it->what == IT_CHARACTER
       && it->nglyphs > 1
-      && it->line_wrap == WINDOW_WRAP
+      && !it->truncate_lines_p
       && it->current_x == it->last_visible_x - 1
       && it->c != '\n'
       && it->c != '\t'
