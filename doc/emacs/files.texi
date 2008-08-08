@@ -1804,11 +1804,14 @@ if the top entry was made under your user name on the current date.
 for the opposite way of working---generating ChangeLog entries from
 the revision control log.
 
-  In the @samp{*VC-Log*} buffer, @kbd{C-c C-f} (@kbd{M-x
-log-edit-show-files}) shows the list of files to be committed in case
-you need to check that.  (This can be a list of more than one file if
-you use VC Directory Mode or PCL-CVS.)  @kbd{C-c C-f} (@kbd{M-x
-log-edit-show-diff}) shows the diff for the files to be committed.
+@findex log-edit-show-files
+@findex log-edit-show-diff
+  In the @samp{*VC-Log*} buffer, @kbd{C-c C-f}
+(@code{log-edit-show-files}) shows the list of files to be committed
+in case you need to check that.  (This can be a list of more than one
+file if you use VC Directory Mode or PCL-CVS.)  @kbd{C-c C-d}
+(@code{log-edit-show-diff}) shows the diffs for the files to be
+committed.
 @iftex
 @xref{VC Directory Mode,,,emacs-xtra, Specialized Emacs Features},
 @end iftex
@@ -2560,71 +2563,100 @@ manipulate and apply parts of patches:
 
 @table @kbd
 @item M-n
+@findex diff-hunk-next
 Move to the next hunk-start (@code{diff-hunk-next}).
 
 @item M-p
+@findex diff-hunk-prev
 Move to the previous hunk-start (@code{diff-hunk-prev}).
 
 @item M-@}
+@findex diff-file-next
 Move to the next file-start, in a multi-file patch
 (@code{diff-file-next}).
 
 @item M-@{
+@findex diff-file-prev
 Move to the previous file-start, in a multi-file patch
 (@code{diff-file-prev}).
 
 @item M-k
+@findex diff-hunk-kill
 Kill the hunk at point (@code{diff-hunk-kill}).
 
 @item M-K
+@findex diff-file-kill
 In a multi-file patch, kill the current file part.
 (@code{diff-file-kill}).
 
 @item C-c C-a
+@findex diff-apply-hunk
 Apply this hunk to its target file (@code{diff-apply-hunk}).  With a
 prefix argument of @kbd{C-u}, revert this hunk.
 
 @item C-c C-c
-Go to the source corresponding to this hunk (@code{diff-goto-source}).
+@findex diff-goto-source
+Go to the source file and line corresponding to this hunk
+(@code{diff-goto-source}).
 
 @item C-c C-e
+@findex diff-ediff-patch
 Start an Ediff session with the patch (@code{diff-ediff-patch}).
 @xref{Top, Ediff, Ediff, ediff, The Ediff Manual}.
 
 @item C-c C-n
+@findex diff-restrict-view
 Restrict the view to the current hunk (@code{diff-restrict-view}).
 @xref{Narrowing}.  With a prefix argument of @kbd{C-u}, restrict the
-view to the current patch of a multiple file patch.  To widen again,
-use @kbd{C-x n w}.
+view to the current file of a multiple-file patch.  To widen again,
+use @kbd{C-x n w} (@code{widen}).
 
 @item C-c C-r
+@findex diff-reverse-direction
 Reverse the direction of comparison for the entire buffer
 (@code{diff-reverse-direction}).
 
 @item C-c C-s
+@findex diff-split-hunk
 Split the hunk at point (@code{diff-split-hunk}).  This is for
-manually editing patches, and only works with the unified diff format.
+manually editing patches, and only works with the @dfn{unified diff
+format} produced by the @option{-u} or @option{--unified} options to
+the @command{diff} program.  If you need to split a hunk in the
+@dfn{context diff format} produced by the @option{-c} or
+@option{--context} options to @command{diff}, first convert the buffer
+to the unified diff format with @kbd{C-c C-u}.
+
+@item C-c C-d
+@findex diff-unified->context
+Convert the entire buffer to the @dfn{context diff format}
+(@code{diff-context->unified}).  With a prefix argument, convert only
+the text within the region.
 
 @item C-c C-u
-Convert the entire buffer to unified format
+@findex diff-context->unified
+Convert the entire buffer to unified diff format
 (@code{diff-context->unified}).  With a prefix argument, convert
 unified format to context format.  When the mark is active, convert
 only the text within the region.
 
 @item C-c C-w
+@findex diff-refine-hunk
 Refine the current hunk so that it disregards changes in whitespace
 (@code{diff-refine-hunk}).
 
 @item C-x 4 A
-Iterates over the diff hunks and does a @kbd{C-x 4 a} for each one of
-them.  The goal is to create a skeleton for the ChangeLog that can be
-later filled in.
+@findex diff-add-change-log-entries-other-window
+@findex add-change-log-entries-other-window@r{, in Diff mode}
+Generate a ChangeLog entry, like @kbd{C-x 4 a} does (@pxref{Change
+Log}), for each one of the hunks
+(@code{diff-add-change-log-entries-other-window}).  This creates a
+skeleton of the log of changes that you can later fill with the actual
+descriptions of the changes.  @kbd{C-x 4 a} itself in Diff mode
+operates on behalf of the current hunk's file, but gets the function
+name from the patch itself.  This is useful for making log entries for
+functions that are deleted by the patch.
 @end table
 
-  @kbd{C-x 4 a} in Diff mode operates on behalf of the target file,
-but gets the function name from the patch itself.  @xref{Change Log}.
-This is useful for making log entries for functions that are deleted
-by the patch.
 
 @node Misc File Ops
 @section Miscellaneous File Operations
