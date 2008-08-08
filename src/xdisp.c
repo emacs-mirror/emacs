@@ -7296,6 +7296,30 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 
  out:
 
+  /* On text terminals, we may stop at the end of a line in the middle
+     of a multi-character glyph.  If the glyph itself is continued,
+     i.e. it is actually displayed on the next line, don't treat this
+     stopping point as valid; move to the next line instead (unless
+     that brings us offscreen).  */
+  if (!FRAME_WINDOW_P (it->f)
+      && op & MOVE_TO_POS
+      && IT_CHARPOS (*it) == to_charpos
+      && it->what == IT_CHARACTER
+      && it->nglyphs > 1
+      && it->line_wrap == WINDOW_WRAP
+      && it->current_x == it->last_visible_x - 1
+      && it->c != '\n'
+      && it->c != '\t'
+      && it->vpos < XFASTINT (it->w->window_end_vpos))
+    {
+      it->continuation_lines_width += it->current_x;
+      it->current_x = it->hpos = it->max_ascent = it->max_descent = 0;
+      it->current_y += it->max_ascent + it->max_descent;
+      ++it->vpos;
+      last_height = it->max_ascent + it->max_descent;
+      last_max_ascent = it->max_ascent;
+    }
+
   TRACE_MOVE ((stderr, "move_it_to: reached %d\n", reached));
 }
 
