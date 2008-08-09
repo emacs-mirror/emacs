@@ -3642,6 +3642,7 @@ w32_system_process_attributes (pid)
   Lisp_Object cmd_str, decoded_cmd, tem;
   HANDLE h_snapshot, h_proc;
   DWORD proc_id;
+  int found_proc = 0;
   char uname[UNLEN+1], gname[GNLEN+1], domain[1025];
   DWORD ulength = sizeof (uname), dlength = sizeof (domain), trash;
   DWORD glength = sizeof (gname);
@@ -3701,11 +3702,18 @@ w32_system_process_attributes (pid)
 	      attrs = Fcons (Fcons (Qthcount,
 				    make_fixnum_or_float (pe.cntThreads)),
 			     attrs);
+	      found_proc = 1;
 	      break;
 	    }
 	}
 
       CloseHandle (h_snapshot);
+    }
+
+  if (!found_proc)
+    {
+      UNGCPRO;
+      return Qnil;
     }
 
   h_proc = OpenProcess (PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
