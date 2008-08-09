@@ -1,3 +1,38 @@
+2008-08-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c: Include thelp32.h, psapi.h and coding.h.
+	(_MEMORYSTATUSEX, _PROCESS_MEMORY_COUNTERS_EX): New struct
+	declarations.
+	(CreateToolhelp32Snapshot_Proc, Process32First_Proc)
+	(Process32Next_Proc): New typedefs.
+	(g_b_init_create_toolhelp32_snapshot, g_b_init_process32_first)
+	(g_b_init_process32_next, g_b_init_open_thread_token)
+	(g_b_init_impersonate_self, g_b_init_revert_to_self)
+	(g_b_init_get_process_memory_info, g_b_init_global_memory_status)
+	(g_b_init_get_process_working_set_size)
+	(g_b_init_global_memory_status_ex): New static variables.
+	(globals_of_w32): Initialize them.
+	(create_toolhelp32_snapshot, process32_first, process32_next)
+	(open_thread_token, impersonate_self, revert_to_self)
+	(get_process_memory_info, get_process_working_set_size)
+	(global_memory_status, global_memory_status_ex): New wrapper
+	functions.
+	(w32_list_system_processes, w32_system_process_attributes)
+	(enable_privilege, restore_privilege, ltime, process_times): New
+	functions.
+	(convert_time_raw): New function.
+	(convert_time): Remove conversion of FILETIME into time in 100
+	nsec units, call convert_time_raw instead.
+
+	* process.h (w32_list_system_processes, w32_system_process_attributes):
+	Add prototypes.
+	(Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname)
+	(Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcutime)
+	(Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs, Quser, Qgroup)
+	(Qetime, Qpcpu, Qpmem, Qtpgid, Qcstime): Add extern declarations.
+
+	* process.c (Fsystem_process_attributes): Doc fix.
+
 2008-08-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (move_it_to): When stopping at a charpos, check if
