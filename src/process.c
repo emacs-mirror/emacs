@@ -7481,6 +7481,8 @@ See `list-system-processes' for getting a list of all process IDs.
 
 The attributes that this function may return are listed below,
 together with the type of the associated value (in parentheses).
+Not all platforms support all of these attributes; unsupported
+attributes will not appear in the returned alist.
 Unless explicitly indicated otherwise, numbers can have either
 integer or floating point values.
 
@@ -8207,6 +8209,8 @@ See `list-system-processes' for getting a list of all process IDs.
 
 The attributes that this function may return are listed below,
 together with the type of the associated value (in parentheses).
+Not all platforms support all of these attributes; unsupported
+attributes will not appear in the returned alist.
 Unless explicitly indicated otherwise, numbers can have either
 integer or floating point values.
 
