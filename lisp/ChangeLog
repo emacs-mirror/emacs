@@ -1,3 +1,7 @@
+2008-08-10  John Paul Wallington  <jpw@pobox.com>
+
+	* pcvs.el (defun-cvs-mode): Add `doc-string' decl.
+
 2008-08-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* battery.el (battery-echo-area-format, battery-status-function):
