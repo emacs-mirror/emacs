@@ -464,6 +464,10 @@ void w32_abort (void) NO_RETURN;
 #endif
 #endif
 
+/* Support for listing processes and their attributes.  */
+#define LISTPROC w32_list_system_processes
+#define PROCATTR w32_system_process_attributes
+
 /* Prevent accidental use of features unavailable in
    older Windows versions we still support.  */
 #define _WIN32_WINNT 0x0400
