@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/time.h>
 #include <sys/utime.h>
 #include <mbstring.h>	/* for _mbspbrk */
+#include <math.h>
 
 /* must include CRT headers *before* config.h */
 
@@ -72,8 +73,39 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define _ANONYMOUS_STRUCT
 #endif
 #include <windows.h>
+/* This is guarded by a higher value of _WIN32_WINNT than what we use.  */
+typedef struct _MEMORYSTATUSEX {
+        DWORD dwLength;
+        DWORD dwMemoryLoad;
+        DWORDLONG ullTotalPhys;
+        DWORDLONG ullAvailPhys;
+        DWORDLONG ullTotalPageFile;
+        DWORDLONG ullAvailPageFile;
+        DWORDLONG ullTotalVirtual;
+        DWORDLONG ullAvailVirtual;
+        DWORDLONG ullAvailExtendedVirtual;
+} MEMORYSTATUSEX,*LPMEMORYSTATUSEX;
+
 #include <lmcons.h>
 #include <shlobj.h>
+
+#include <tlhelp32.h>
+#include <psapi.h>
+/* This either is not in psapi.h or guarded by higher value of
+   _WIN32_WINNT than what we use.  */
+typedef struct _PROCESS_MEMORY_COUNTERS_EX {
+	DWORD cb;
+	DWORD PageFaultCount;
+	DWORD PeakWorkingSetSize;
+	DWORD WorkingSetSize;
+	DWORD QuotaPeakPagedPoolUsage;
+	DWORD QuotaPagedPoolUsage;
+	DWORD QuotaPeakNonPagedPoolUsage;
+	DWORD QuotaNonPagedPoolUsage;
+	DWORD PagefileUsage;
+	DWORD PeakPagefileUsage;
+	DWORD PrivateUsage;
+} PROCESS_MEMORY_COUNTERS_EX,*PPROCESS_MEMORY_COUNTERS_EX;
 
 #ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
 #include <sys/socket.h>
@@ -101,6 +133,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32heap.h"
 #include "systime.h"
 #include "dispextern.h"		/* for xstrcasecmp */
+#include "coding.h"		/* for Vlocale_coding_system */
 
 /* For serial_configure and serial_open.  */
 #include "process.h"
@@ -144,6 +177,16 @@ static BOOL g_b_init_get_file_security;
 static BOOL g_b_init_get_security_descriptor_owner;
 static BOOL g_b_init_get_security_descriptor_group;
 static BOOL g_b_init_is_valid_sid;
+static BOOL g_b_init_create_toolhelp32_snapshot;
+static BOOL g_b_init_process32_first;
+static BOOL g_b_init_process32_next;
+static BOOL g_b_init_open_thread_token;
+static BOOL g_b_init_impersonate_self;
+static BOOL g_b_init_revert_to_self;
+static BOOL g_b_init_get_process_memory_info;
+static BOOL g_b_init_get_process_working_set_size;
+static BOOL g_b_init_global_memory_status;
+static BOOL g_b_init_global_memory_status_ex;
 
 /*
   BEGIN: Wrapper functions around OpenProcessToken
@@ -208,6 +251,35 @@ typedef BOOL (WINAPI * GetSecurityDescriptorGroup_Proc) (
     LPBOOL lpbGroupDefaulted);
 typedef BOOL (WINAPI * IsValidSid_Proc) (
     PSID sid);
+typedef HANDLE (WINAPI * CreateToolhelp32Snapshot_Proc) (
+    DWORD dwFlags,
+    DWORD th32ProcessID);
+typedef BOOL (WINAPI * Process32First_Proc) (
+    HANDLE hSnapshot,
+    LPPROCESSENTRY32 lppe);
+typedef BOOL (WINAPI * Process32Next_Proc) (
+    HANDLE hSnapshot,
+    LPPROCESSENTRY32 lppe);
+typedef BOOL (WINAPI * OpenThreadToken_Proc) (
+    HANDLE ThreadHandle,
+    DWORD DesiredAccess,
+    BOOL OpenAsSelf,
+    PHANDLE TokenHandle);
+typedef BOOL (WINAPI * ImpersonateSelf_Proc) (
+    SECURITY_IMPERSONATION_LEVEL ImpersonationLevel);
+typedef BOOL (WINAPI * RevertToSelf_Proc) (void);
+typedef BOOL (WINAPI * GetProcessMemoryInfo_Proc) (
+    HANDLE Process,
+    PPROCESS_MEMORY_COUNTERS ppsmemCounters,
+    DWORD cb);
+typedef BOOL (WINAPI * GetProcessWorkingSetSize_Proc) (
+    HANDLE hProcess,
+    DWORD * lpMinimumWorkingSetSize,
+    DWORD * lpMaximumWorkingSetSize);
+typedef BOOL (WINAPI * GlobalMemoryStatus_Proc) (
+    LPMEMORYSTATUS lpBuffer);
+typedef BOOL (WINAPI * GlobalMemoryStatusEx_Proc) (
+    LPMEMORYSTATUSEX lpBuffer);
 
   /* ** A utility function ** */
 static BOOL
@@ -2557,6 +2629,14 @@ static FILETIME utc_base_ft;
 static long double utc_base;
 static int init = 0;
 
+static long double
+convert_time_raw (FILETIME ft)
+{
+  return
+    (long double) ft.dwHighDateTime
+    * 4096.0L * 1024.0L * 1024.0L + ft.dwLowDateTime;
+}
+
 static time_t
 convert_time (FILETIME ft)
 {
@@ -2584,11 +2664,9 @@ convert_time (FILETIME ft)
   if (CompareFileTime (&ft, &utc_base_ft) < 0)
     return 0;
 
-  ret = (long double) ft.dwHighDateTime
-    * 4096.0L * 1024.0L * 1024.0L + ft.dwLowDateTime;
-  ret -= utc_base;
-  return (time_t) (ret * 1e-7L);
+  return (time_t) ((convert_time_raw (ft) - utc_base) * 1e-7L);
 }
+
 
 void
 convert_from_time_t (time_t time, FILETIME * pft)
@@ -3160,6 +3238,624 @@ utime (const char *name, struct utimbuf *times)
   return 0;
 }
 
+
+/* Support for browsing other processes and their attributes.  See
+   process.c for the Lisp bindings.  */
+
+/* Helper wrapper functions.  */
+
+HANDLE WINAPI create_toolhelp32_snapshot(
+    DWORD Flags,
+    DWORD Ignored)
+{
+  static CreateToolhelp32Snapshot_Proc s_pfn_Create_Toolhelp32_Snapshot = NULL;
+
+  if (g_b_init_create_toolhelp32_snapshot == 0)
+    {
+      g_b_init_create_toolhelp32_snapshot = 1;
+      s_pfn_Create_Toolhelp32_Snapshot = (CreateToolhelp32Snapshot_Proc)
+	GetProcAddress (GetModuleHandle ("kernel32.dll"),
+			"CreateToolhelp32Snapshot");
+    }
+  if (s_pfn_Create_Toolhelp32_Snapshot == NULL)
+    {
+      return INVALID_HANDLE_VALUE;
+    }
+  return (s_pfn_Create_Toolhelp32_Snapshot (Flags, Ignored));
+}
+
+BOOL WINAPI process32_first(
+    HANDLE hSnapshot,
+    LPPROCESSENTRY32 lppe)
+{
+  static Process32First_Proc s_pfn_Process32_First = NULL;
+
+  if (g_b_init_process32_first == 0)
+    {
+      g_b_init_process32_first = 1;
+      s_pfn_Process32_First = (Process32First_Proc)
+	GetProcAddress (GetModuleHandle ("kernel32.dll"),
+			"Process32First");
+    }
+  if (s_pfn_Process32_First == NULL)
+    {
+      return FALSE;
+    }
+  return (s_pfn_Process32_First (hSnapshot, lppe));
+}
+
+BOOL WINAPI process32_next(
+    HANDLE hSnapshot,
+    LPPROCESSENTRY32 lppe)
+{
+  static Process32Next_Proc s_pfn_Process32_Next = NULL;
+
+  if (g_b_init_process32_next == 0)
+    {
+      g_b_init_process32_next = 1;
+      s_pfn_Process32_Next = (Process32Next_Proc)
+	GetProcAddress (GetModuleHandle ("kernel32.dll"),
+			"Process32Next");
+    }
+  if (s_pfn_Process32_Next == NULL)
+    {
+      return FALSE;
+    }
+  return (s_pfn_Process32_Next (hSnapshot, lppe));
+}
+
+BOOL WINAPI open_thread_token (
+    HANDLE ThreadHandle,
+    DWORD DesiredAccess,
+    BOOL OpenAsSelf,
+    PHANDLE TokenHandle)
+{
+  static OpenThreadToken_Proc s_pfn_Open_Thread_Token = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      SetLastError (ERROR_NOT_SUPPORTED);
+      return FALSE;
+    }
+  if (g_b_init_open_thread_token == 0)
+    {
+      g_b_init_open_thread_token = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Open_Thread_Token =
+        (OpenThreadToken_Proc) GetProcAddress (hm_advapi32, "OpenThreadToken");
+    }
+  if (s_pfn_Open_Thread_Token == NULL)
+    {
+      SetLastError (ERROR_NOT_SUPPORTED);
+      return FALSE;
+    }
+  return (
+      s_pfn_Open_Thread_Token (
+          ThreadHandle,
+          DesiredAccess,
+	  OpenAsSelf,
+          TokenHandle)
+      );
+}
+
+BOOL WINAPI impersonate_self (
+    SECURITY_IMPERSONATION_LEVEL ImpersonationLevel)
+{
+  static ImpersonateSelf_Proc s_pfn_Impersonate_Self = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_impersonate_self == 0)
+    {
+      g_b_init_impersonate_self = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Impersonate_Self =
+        (ImpersonateSelf_Proc) GetProcAddress (hm_advapi32, "ImpersonateSelf");
+    }
+  if (s_pfn_Impersonate_Self == NULL)
+    {
+      return FALSE;
+    }
+  return s_pfn_Impersonate_Self (ImpersonationLevel);
+}
+
+BOOL WINAPI revert_to_self (void)
+{
+  static RevertToSelf_Proc s_pfn_Revert_To_Self = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_revert_to_self == 0)
+    {
+      g_b_init_revert_to_self = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Revert_To_Self =
+        (RevertToSelf_Proc) GetProcAddress (hm_advapi32, "RevertToSelf");
+    }
+  if (s_pfn_Revert_To_Self == NULL)
+    {
+      return FALSE;
+    }
+  return s_pfn_Revert_To_Self ();
+}
+
+BOOL WINAPI get_process_memory_info (
+    HANDLE h_proc,
+    PPROCESS_MEMORY_COUNTERS mem_counters,
+    DWORD bufsize)
+{
+  static GetProcessMemoryInfo_Proc s_pfn_Get_Process_Memory_Info = NULL;
+  HMODULE hm_psapi = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_get_process_memory_info == 0)
+    {
+      g_b_init_get_process_memory_info = 1;
+      hm_psapi = LoadLibrary ("Psapi.dll");
+      if (hm_psapi)
+	s_pfn_Get_Process_Memory_Info = (GetProcessMemoryInfo_Proc)
+	  GetProcAddress (hm_psapi, "GetProcessMemoryInfo");
+    }
+  if (s_pfn_Get_Process_Memory_Info == NULL)
+    {
+      return FALSE;
+    }
+  return s_pfn_Get_Process_Memory_Info (h_proc, mem_counters, bufsize);
+}
+
+BOOL WINAPI get_process_working_set_size (
+    HANDLE h_proc,
+    DWORD *minrss,
+    DWORD *maxrss)
+{
+  static GetProcessWorkingSetSize_Proc
+    s_pfn_Get_Process_Working_Set_Size = NULL;
+
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_get_process_working_set_size == 0)
+    {
+      g_b_init_get_process_working_set_size = 1;
+      s_pfn_Get_Process_Working_Set_Size = (GetProcessWorkingSetSize_Proc)
+	GetProcAddress (GetModuleHandle ("kernel32.dll"),
+			"GetProcessWorkingSetSize");
+    }
+  if (s_pfn_Get_Process_Working_Set_Size == NULL)
+    {
+      return FALSE;
+    }
+  return s_pfn_Get_Process_Working_Set_Size (h_proc, minrss, maxrss);
+}
+
+BOOL WINAPI global_memory_status (
+    MEMORYSTATUS *buf)
+{
+  static GlobalMemoryStatus_Proc s_pfn_Global_Memory_Status = NULL;
+
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_global_memory_status == 0)
+    {
+      g_b_init_global_memory_status = 1;
+      s_pfn_Global_Memory_Status = (GlobalMemoryStatus_Proc)
+	GetProcAddress (GetModuleHandle ("kernel32.dll"),
+			"GlobalMemoryStatus");
+    }
+  if (s_pfn_Global_Memory_Status == NULL)
+    {
+      return FALSE;
+    }
+  return s_pfn_Global_Memory_Status (buf);
+}
+
+BOOL WINAPI global_memory_status_ex (
+    MEMORYSTATUSEX *buf)
+{
+  static GlobalMemoryStatusEx_Proc s_pfn_Global_Memory_Status_Ex = NULL;
+
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_global_memory_status_ex == 0)
+    {
+      g_b_init_global_memory_status_ex = 1;
+      s_pfn_Global_Memory_Status_Ex = (GlobalMemoryStatusEx_Proc)
+	GetProcAddress (GetModuleHandle ("kernel32.dll"),
+			"GlobalMemoryStatusEx");
+    }
+  if (s_pfn_Global_Memory_Status_Ex == NULL)
+    {
+      return FALSE;
+    }
+  return s_pfn_Global_Memory_Status_Ex (buf);
+}
+
+Lisp_Object
+w32_list_system_processes ()
+{
+  struct gcpro gcpro1;
+  Lisp_Object proclist = Qnil;
+  HANDLE h_snapshot;
+
+  h_snapshot = create_toolhelp32_snapshot (TH32CS_SNAPPROCESS, 0);
+
+  if (h_snapshot != INVALID_HANDLE_VALUE)
+    {
+      PROCESSENTRY32 proc_entry;
+      DWORD proc_id;
+      BOOL res;
+
+      GCPRO1 (proclist);
+
+      proc_entry.dwSize = sizeof (PROCESSENTRY32);
+      for (res = process32_first (h_snapshot, &proc_entry); res;
+	   res = process32_next  (h_snapshot, &proc_entry))
+	{
+	  proc_id = proc_entry.th32ProcessID;
+	  proclist = Fcons (make_fixnum_or_float (proc_id), proclist);
+	}
+
+      CloseHandle (h_snapshot);
+      UNGCPRO;
+      proclist = Fnreverse (proclist);
+    }
+
+  return proclist;
+}
+
+static int
+enable_privilege (LPCTSTR priv_name, BOOL enable_p, TOKEN_PRIVILEGES *old_priv)
+{
+  TOKEN_PRIVILEGES priv;
+  DWORD priv_size = sizeof (priv);
+  DWORD opriv_size = sizeof (*old_priv);
+  HANDLE h_token = NULL;
+  HANDLE h_thread = GetCurrentThread ();
+  int ret_val = 0;
+  BOOL res;
+
+  res = open_thread_token (h_thread,
+			   TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES,
+			   FALSE, &h_token);
+  if (!res && GetLastError () == ERROR_NO_TOKEN)
+    {
+      if (impersonate_self (SecurityImpersonation))
+	  res = open_thread_token (h_thread,
+				   TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES,
+				   FALSE, &h_token);
+    }
+  if (res)
+    {
+      priv.PrivilegeCount = 1;
+      priv.Privileges[0].Attributes = enable_p ? SE_PRIVILEGE_ENABLED : 0;
+      LookupPrivilegeValue (NULL, priv_name, &priv.Privileges[0].Luid);
+      if (AdjustTokenPrivileges (h_token, FALSE, &priv, priv_size,
+				 old_priv, &opriv_size)
+	  && GetLastError () != ERROR_NOT_ALL_ASSIGNED)
+	ret_val = 1;
+    }
+  if (h_token)
+    CloseHandle (h_token);
+
+  return ret_val;
+}
+
+static int
+restore_privilege (TOKEN_PRIVILEGES *priv)
+{
+  DWORD priv_size = sizeof (*priv);
+  HANDLE h_token = NULL;
+  int ret_val = 0;
+
+  if (open_thread_token (GetCurrentThread (),
+			 TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES,
+			 FALSE, &h_token))
+    {
+      if (AdjustTokenPrivileges (h_token, FALSE, priv, priv_size, NULL, NULL)
+	  && GetLastError () != ERROR_NOT_ALL_ASSIGNED)
+	ret_val = 1;
+    }
+  if (h_token)
+    CloseHandle (h_token);
+
+  return ret_val;
+}
+
+static Lisp_Object
+ltime (time_sec, time_usec)
+     long time_sec, time_usec;
+{
+  return list3 (make_number ((time_sec >> 16) & 0xffff),
+		make_number (time_sec & 0xffff),
+		make_number (time_usec));
+}
+
+static int
+process_times (h_proc, ctime, etime, stime, utime, pcpu)
+     HANDLE h_proc;
+     Lisp_Object *ctime, *etime, *stime, *utime;
+     double *pcpu;
+{
+  FILETIME ft_creation, ft_exit, ft_kernel, ft_user, ft_current;
+  long ctime_sec, ctime_usec, stime_sec, stime_usec, utime_sec, utime_usec;
+  long etime_sec, etime_usec;
+  long double tem1, tem2, tem;
+
+  if (!h_proc
+      || !get_process_times_fn
+      || !(*get_process_times_fn)(h_proc, &ft_creation, &ft_exit,
+				  &ft_kernel, &ft_user))
+    return 0;
+
+  GetSystemTimeAsFileTime (&ft_current);
+
+  tem1 = convert_time_raw (ft_kernel) * 0.1L;
+  stime_usec = fmodl (tem1, 1000000.0L);
+  stime_sec = tem1 * 0.000001L;
+  *stime = ltime (stime_sec, stime_usec);
+  tem2 = convert_time_raw (ft_user) * 0.1L;
+  utime_usec = fmodl (tem2, 1000000.0L);
+  utime_sec = tem2 * 0.000001L;
+  *utime = ltime (utime_sec, utime_usec);
+  tem = (convert_time_raw (ft_creation) - utc_base) * 0.1L;
+  ctime_usec = fmodl (tem, 1000000.0L);
+  ctime_sec = tem * 0.000001L;
+  *ctime = ltime (ctime_sec, ctime_usec);
+  tem = (convert_time_raw (ft_current) - utc_base) * 0.1L - tem;
+  etime_usec = fmodl (tem, 1000000.0L);
+  etime_sec = tem * 0.000001L;
+  *etime = ltime (etime_sec, etime_usec);
+
+  *pcpu = 100.0 * (tem1 + tem2) / tem;
+}
+
+Lisp_Object
+w32_system_process_attributes (pid)
+     Lisp_Object pid;
+{
+  struct gcpro gcpro1, gcpro2, gcpro3;
+  Lisp_Object attrs = Qnil;
+  Lisp_Object cmd_str, decoded_cmd, tem;
+  HANDLE h_snapshot, h_proc;
+  DWORD proc_id;
+  char uname[UNLEN+1], gname[GNLEN+1], domain[1025];
+  DWORD ulength = sizeof (uname), dlength = sizeof (domain), trash;
+  DWORD glength = sizeof (gname);
+  HANDLE token = NULL;
+  SID_NAME_USE user_type;
+  unsigned char buf[1024];
+  TOKEN_USER user_token;
+  TOKEN_PRIMARY_GROUP group_token;
+  int euid;
+  int egid;
+  DWORD sess;
+  PROCESS_MEMORY_COUNTERS mem;
+  PROCESS_MEMORY_COUNTERS_EX mem_ex;
+  DWORD minrss, maxrss;
+  MEMORYSTATUS memst;
+  MEMORYSTATUSEX memstex;
+  double totphys = 0.0;
+  Lisp_Object ctime, stime, utime, etime;
+  double pcpu;
+
+  CHECK_NUMBER_OR_FLOAT (pid);
+  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
+
+  h_snapshot = create_toolhelp32_snapshot (TH32CS_SNAPPROCESS, 0);
+
+  GCPRO3 (attrs, decoded_cmd, tem);
+
+  if (h_snapshot != INVALID_HANDLE_VALUE)
+    {
+      PROCESSENTRY32 pe;
+      BOOL res;
+
+      pe.dwSize = sizeof (PROCESSENTRY32);
+      for (res = process32_first (h_snapshot, &pe); res;
+	   res = process32_next  (h_snapshot, &pe))
+	{
+	  if (proc_id == pe.th32ProcessID)
+	    {
+	      if (proc_id == 0)
+		decoded_cmd = build_string ("Idle");
+	      else
+		{
+		  /* Decode the command name from locale-specific
+		     encoding.  */
+		  cmd_str = make_unibyte_string (pe.szExeFile,
+						 strlen (pe.szExeFile));
+		  decoded_cmd =
+		    code_convert_string_norecord (cmd_str,
+						  Vlocale_coding_system, 0);
+		}
+	      attrs = Fcons (Fcons (Qcomm, decoded_cmd), attrs);
+	      attrs = Fcons (Fcons (Qppid,
+				    make_fixnum_or_float (pe.th32ParentProcessID)),
+			     attrs);
+	      attrs = Fcons (Fcons (Qpri, make_number (pe.pcPriClassBase)),
+			     attrs);
+	      attrs = Fcons (Fcons (Qthcount,
+				    make_fixnum_or_float (pe.cntThreads)),
+			     attrs);
+	      break;
+	    }
+	}
+
+      CloseHandle (h_snapshot);
+    }
+
+  h_proc = OpenProcess (PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+			FALSE, proc_id);
+  /* If we were denied a handle to the process, try again after
+     enabling the SeDebugPrivilege in our process.  */
+  if (!h_proc)
+    {
+      TOKEN_PRIVILEGES priv_current;
+
+      if (enable_privilege (SE_DEBUG_NAME, TRUE, &priv_current))
+	{
+	  h_proc = OpenProcess (PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+				FALSE, proc_id);
+	  restore_privilege (&priv_current);
+	  revert_to_self ();
+	}
+    }
+  if (h_proc
+      && open_process_token (h_proc, TOKEN_QUERY, &token)
+      && get_token_information (token, TokenUser,
+				(PVOID)buf, sizeof (buf), &trash)
+      && (memcpy (&user_token, buf, sizeof (user_token)),
+	  lookup_account_sid (NULL, user_token.User.Sid, uname, &ulength,
+			      domain, &dlength, &user_type)))
+    {
+      /* Determine a reasonable euid and gid values.  */
+      if (xstrcasecmp ("administrator", uname) == 0)
+	{
+	  euid = 500;	/* well-known Administrator uid */
+	  egid = 513;	/* well-known None gid */
+	}
+      else
+	{
+	  /* Use the last sub-authority value of the RID, the relative
+	     portion of the SID, as user/group ID. */
+	  euid = get_rid (user_token.User.Sid);
+
+	  /* Get group id and name.  */
+	  if (get_token_information (token, TokenPrimaryGroup,
+				     (PVOID)buf, sizeof (buf), &trash))
+	    {
+	      memcpy (&group_token, buf, sizeof (group_token));
+	      egid = get_rid (group_token.PrimaryGroup);
+	      dlength = sizeof (domain);
+	      lookup_account_sid (NULL, group_token.PrimaryGroup,
+				  gname, &glength, NULL, &dlength,
+				  &user_type);
+	    }
+	  else
+	    egid = euid;
+	}
+    }
+  else if (!is_windows_9x ())
+    {
+      /* We couldn't open the process token, presumably because of
+	 insufficient access rights.  Assume this process is run by
+	 the system.  */
+      strcpy (uname, "SYSTEM");
+      strcpy (gname, "None");
+      euid = 18;	/* SYSTEM */
+      egid = 513;	/* None */
+      glength = strlen (gname);
+      ulength = strlen (uname);
+    }
+  /* If we are running under Windows 9X, where security calls are not
+     supported, we assume all processes are run by the current
+     user.  */
+  else if (GetUserName (uname, &ulength))
+    {
+      if (xstrcasecmp ("administrator", uname) == 0)
+	euid = 0;
+      else
+	euid = 123;
+      egid = euid;
+      strcpy (gname, "None");
+      glength = strlen (gname);
+      ulength = strlen (uname);
+    }
+  else
+    {
+      euid = 123;
+      egid = 123;
+      strcpy (uname, "administrator");
+      ulength = strlen (uname);
+      strcpy (gname, "None");
+      glength = strlen (gname);
+    }
+  if (token)
+    CloseHandle (token);
+
+  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (euid)), attrs);
+  tem = make_unibyte_string (uname, ulength);
+  attrs = Fcons (Fcons (Quser,
+			 code_convert_string_norecord (tem, Vlocale_coding_system, 0)),
+		 attrs);
+  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (egid)), attrs);
+  tem = make_unibyte_string (gname, glength);
+  attrs = Fcons (Fcons (Qgroup,
+			 code_convert_string_norecord (tem, Vlocale_coding_system, 0)),
+		 attrs);
+
+  if (global_memory_status_ex (&memstex))
+    totphys = memstex.ullTotalPhys / 1024.0;
+  else if (global_memory_status (&memst))
+    totphys = memst.dwTotalPhys / 1024.0;
+
+  if (h_proc
+      && get_process_memory_info (h_proc, (PROCESS_MEMORY_COUNTERS *)&mem_ex,
+				  sizeof (mem_ex)))
+    {
+      DWORD rss = mem_ex.WorkingSetSize / 1024;
+
+      attrs = Fcons (Fcons (Qmajflt,
+			    make_fixnum_or_float (mem_ex.PageFaultCount)),
+		     attrs);
+      attrs = Fcons (Fcons (Qvsize,
+			    make_fixnum_or_float (mem_ex.PrivateUsage / 1024)),
+		     attrs);
+      attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (rss)), attrs);
+      if (totphys)
+	attrs = Fcons (Fcons (Qpmem, make_float (100. * rss / totphys)), attrs);
+    }
+  else if (h_proc
+	   && get_process_memory_info (h_proc, &mem, sizeof (mem)))
+    {
+      DWORD rss = mem_ex.WorkingSetSize / 1024;
+
+      attrs = Fcons (Fcons (Qmajflt,
+			    make_fixnum_or_float (mem.PageFaultCount)),
+		     attrs);
+      attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (rss)), attrs);
+      if (totphys)
+	attrs = Fcons (Fcons (Qpmem, make_float (100. * rss / totphys)), attrs);
+    }
+  else if (h_proc
+	   && get_process_working_set_size (h_proc, &minrss, &maxrss))
+    {
+      DWORD rss = maxrss / 1024;
+
+      attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (maxrss / 1024)), attrs);
+      if (totphys)
+	attrs = Fcons (Fcons (Qpmem, make_float (100. * rss / totphys)), attrs);
+    }
+
+  if (process_times (h_proc, &ctime, &etime, &stime, &utime, &pcpu))
+    {
+      attrs = Fcons (Fcons (Qutime, utime), attrs);
+      attrs = Fcons (Fcons (Qstime, stime), attrs);
+      attrs = Fcons (Fcons (Qstart, ctime), attrs);
+      attrs = Fcons (Fcons (Qetime, etime), attrs);
+      attrs = Fcons (Fcons (Qpcpu, make_float (pcpu)), attrs);
+    }
+
+  /* FIXME: Retrieve command line by walking the PEB of the process.  */
+
+  if (h_proc)
+    CloseHandle (h_proc);
+  UNGCPRO;
+  return attrs;
+}
+
+
 #ifdef HAVE_SOCKETS
 
 /* Wrappers for  winsock functions to map between our file descriptors
@@ -4717,6 +5413,16 @@ globals_of_w32 ()
   g_b_init_get_security_descriptor_owner = 0;
   g_b_init_get_security_descriptor_group = 0;
   g_b_init_is_valid_sid = 0;
+  g_b_init_create_toolhelp32_snapshot = 0;
+  g_b_init_process32_first = 0;
+  g_b_init_process32_next = 0;
+  g_b_init_open_thread_token = 0;
+  g_b_init_impersonate_self = 0;
+  g_b_init_revert_to_self = 0;
+  g_b_init_get_process_memory_info = 0;
+  g_b_init_get_process_working_set_size = 0;
+  g_b_init_global_memory_status = 0;
+  g_b_init_global_memory_status_ex = 0;
   /* The following sets a handler for shutdown notifications for
      console apps. This actually applies to Emacs in both console and
      GUI modes, since we had to fool windows into thinking emacs is a
