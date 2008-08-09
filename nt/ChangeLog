@@ -1,3 +1,7 @@
+2008-08-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (LISTPROC, PROCATTR): New macros.
+
 2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.nt (MULTI_KBOARD): Remove.
