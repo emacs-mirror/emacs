@@ -3608,16 +3608,29 @@ process_times (h_proc, ctime, etime, stime, utime, pcpu)
   utime_usec = fmodl (tem2, 1000000.0L);
   utime_sec = tem2 * 0.000001L;
   *utime = ltime (utime_sec, utime_usec);
-  tem = (convert_time_raw (ft_creation) - utc_base) * 0.1L;
+  tem = convert_time_raw (ft_creation);
+  /* Process no 4 (System) returns zero creation time.  */
+  if (tem)
+    tem = (tem - utc_base) * 0.1;
   ctime_usec = fmodl (tem, 1000000.0L);
   ctime_sec = tem * 0.000001L;
   *ctime = ltime (ctime_sec, ctime_usec);
-  tem = (convert_time_raw (ft_current) - utc_base) * 0.1L - tem;
+  if (tem)
+    tem = (convert_time_raw (ft_current) - utc_base) * 0.1L - tem;
   etime_usec = fmodl (tem, 1000000.0L);
   etime_sec = tem * 0.000001L;
   *etime = ltime (etime_sec, etime_usec);
 
-  *pcpu = 100.0 * (tem1 + tem2) / tem;
+  if (tem)
+    {
+      *pcpu = 100.0 * (tem1 + tem2) / tem;
+      if (*pcpu > 100)
+	*pcpu = 100.0;
+    }
+  else
+    *pcpu = 0;
+
+  return 1;
 }
 
 Lisp_Object
