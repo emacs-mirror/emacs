@@ -34,6 +34,10 @@
 	(calendar-absolute-from-bahai): Fix the leap-year case (sync from trunk
 	2008-03-20).
 
+	* calendar/calendar.el (increment-calendar-month): Optionally handle
+	systems without 12 months per year (sync from trunk 2008-03-31; needed
+	for above holiday-bahai fix).
+
 	* calendar/cal-islam.el (holiday-islamic): Doc fix (sync from trunk
 	2008-04-23).
 
