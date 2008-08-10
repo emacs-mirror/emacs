@@ -12,6 +12,30 @@
 @finalout
 @end iftex
 
+@copying
+This document describes Emacs.app for GNUstep and MacOS X.
+
+Copyright @copyright{} 1994, 1997, 2005, 2006, 2007, 2008 Free Software
+Foundation, Inc.
+
+Copyright @copyright{} 2001 Christophe de Dinechin.
+Copyright @copyright{} 1997 Christian Limpach.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''.
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
+developing GNU and promoting software freedom.''
+@end quotation
+@end copying
+
+
 @titlepage
 @sp 10
 @center @titlefont{Emacs.app}
@@ -32,33 +56,6 @@
 
 @end titlepage
 
-@unnumbered Distribution
-@*
-Copyright @copyright{} 1994 Carl Edman.@*
-Copyright @copyright{} 1997 Christian Limpach.
-Copyright @copyright{} 1997 Scott Bender.
-Copyright @copyright{} 2001 Christophe de Dinechin.
-Copyright @copyright{} 2005-07 Adrian Robert.
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-@ignore
-Permission is granted to process this file through Tex and print the
-results, provided the printed document carries copying permission
-notice identical to this one except for the removal of this paragraph
-(this paragraph not being relevant to the printed manual).
-
-@end ignore
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided that the entire
-resulting derived work is distributed under the terms of a permission
-notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the same conditions as for modified versions.
-
 @ignore
 @menu
 * Introduction::                
@@ -74,10 +71,9 @@ into another language, under the same conditions as for modified versions.
 @top Emacs.app
 
 Emacs.app for GNUstep and MacOS X (http://emacs-app.sf.net) is a version of
-GNU Emacs CVS unicode-2 branch (currently planned to be released as Emacs 23)
-which adds support for the GNUstep and MacOS X systems via the OpenStep APIs
-(referred to as "Cocoa" under OS X).  Support for NeXTstep, OpenStep, and
-Rhapsody systems has been dropped.  For those systems, use "Emacs-on-Aqua",
+GNU Emacs which adds support for the GNUstep and MacOS X systems via the
+OpenStep APIs (referred to as "Cocoa" under OS X).  For support for
+NeXTstep, OpenStep, and Rhapsody systems, try the older "Emacs-on-Aqua",
 available at http://emacs-on-aqua.sf.net.
 
 This port leaves most of the core functions of Emacs unchanged and is
