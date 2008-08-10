@@ -27,6 +27,21 @@ diary suit your personal tastes.
 
 @node Calendar Customizing
 @subsection Customizing the Calendar
+
+@vindex calendar-intermonth-text
+@cindex calendar layout
+@cindex showing week numbers in the calendar
+  The layout of the calendar is to some extent customizable.  The
+display is unfortunately limited to three months (due to some
+deep-rooted and widespread assumptions in the code), but you can
+customize the whitespace used in the display by setting the variables:
+@code{calendar-left-margin}, @code{calendar-intermonth-spacing},
+@code{calendar-column-width}, @code{calendar-day-header-width}, and
+@code{calendar-day-digit-width}.  To display text between the months,
+for example week numbers, customize the variables
+@code{calendar-intermonth-header} and @code{calendar-intermonth-text} as
+described in their documentation.
+
 @vindex calendar-holiday-marker
 @vindex diary-entry-marker
   The variable @code{calendar-holiday-marker} specifies how to mark a
@@ -159,6 +174,9 @@ The @var{k}th @var{dayname} in @var{month} on the Gregorian calendar
 (@var{dayname}=0 for Sunday, and so on); negative @var{k} means count back
 from the end of the month.
 
+@item (holiday-chinese @var{month} @var{day} @var{string})
+A fixed date on the Chinese calendar.
+
 @item (holiday-hebrew @var{month} @var{day} @var{string})
 A fixed date on the Hebrew calendar.
 
@@ -210,7 +228,7 @@ the month (1 specifies the first occurrence, 2 the second occurrence,
 so on).
 
   You can specify holidays that occur on fixed days of the Baha'i,
-Hebrew, Islamic, and Julian calendars too.  For example,
+Chinese, Hebrew, Islamic, and Julian calendars too.  For example,
 
 @smallexample
 (setq other-holidays
