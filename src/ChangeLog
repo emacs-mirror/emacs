@@ -307,7 +307,6 @@
 	* xfaces.c (x-load-color-file): Add.
 	* nsterm.m (ns_initialize): Load colors from etc/rgb.txt instead of
 	Emacs.clr.
-	(ns_draw_window_cursor): Change PENDING to TODO or FIXME.
 	(hide_hourglass): BLOCK_INPUT before UNBLOCK.
 
 2008-07-31  Michael Albinus  <michael.albinus@gmx.de>
@@ -732,13 +731,6 @@
 
 2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* nsgui.h:
-	* nsfont.m:
-	* nsmenu.m:
-	* nsterm.m: Change PENDINGS to FIXME / TODO / XXX.
-
-2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
-
 	* nsterm.m (syms_of_nsterm): Remove debugging println.
 
 2008-07-22  David Reitter  <david.reitter@gmail.com>
@@ -976,21 +968,6 @@
 	* m/vax.h: Remove comments about unsupported systems.
 
 	* s/darwin.h: Reorganize ifdefs.
-
-2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
-
-	* config.in:
-	* dispextern.h:
-	* frame.c:
-	* image.c:
-	* nsfns.m:
-	* nsfont.m:
-	* nsgui.h:
-	* nsmenu.m:
-	* nsterm.h:
-	* nsterm.m:
-	* s/darwin.h:
-	* xdisp.c: Change most cases of PENDING to TODO, some to FIXME or XXX.
 
 2008-07-17  Andreas Schwab  <schwab@suse.de>
 
