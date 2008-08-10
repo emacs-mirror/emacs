@@ -1,3 +1,9 @@
+2008-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (cpp_undefs): Rename from `undefs', update uses.
+	Use $srcdir rather than $top_srcdir.  Set before calling AC_OUTPUT,
+	and explicitly export there.  (Bug#507.)  (Sync of trunk 2008-07-01).
+
 2008-08-05  Ulrich Mueller  <ulm@gentoo.org>
 
 	* configure.in: Add checks for krb5_error.text and
