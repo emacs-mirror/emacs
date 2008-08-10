@@ -94,7 +94,9 @@ Gregorian date Sunday, December 31, 1 BC."
        (* 365 (1- year))		; Days in prior years.
        leap-days
        (calendar-sum m 1 (< m month) 19)
-       (if (= month 19) 4 0)
+       (if (= month 19)
+           (if (bahai-calendar-leap-year-p year) 5 4)
+         0)
        day)))				; Days so far this month.
 
 (defun calendar-bahai-from-absolute (date)
@@ -127,27 +129,31 @@ Defaults to today's date if DATE is not given."
          (y (extract-calendar-year bahai-date))
          (m (extract-calendar-month bahai-date))
          (d (extract-calendar-day bahai-date)))
-    (let ((monthname
-	   (if (and (= m 19)
-		    (<= d 0))
-	       "Ayyam-i-Ha"
-	     (aref bahai-calendar-month-name-array (1- m))))
-	  (day (int-to-string
-		(if (<= d 0)
-		    (if (bahai-calendar-leap-year-p y)
-			(+ d 5)
-		      (+ d 4))
-		  d)))
-	  (dayname nil)
-	  (month (int-to-string m))
-	  (year (int-to-string y)))
-      (mapconcat 'eval calendar-date-display-form ""))))
+    (if (< y 1)
+        ""                              ; pre-Bahai
+      (let ((monthname
+             (if (and (= m 19)
+                      (<= d 0))
+                 "Ayyam-i-Ha"
+               (aref bahai-calendar-month-name-array (1- m))))
+            (day (int-to-string
+                  (if (<= d 0)
+                      (if (bahai-calendar-leap-year-p y)
+                          (+ d 5)
+                        (+ d 4))
+                    d)))
+            (dayname nil)
+            (month (int-to-string m))
+            (year (int-to-string y)))
+        (mapconcat 'eval calendar-date-display-form "")))))
 
 (defun calendar-print-bahai-date ()
   "Show the Baha'i calendar equivalent of the selected date."
   (interactive)
-  (message "Baha'i date: %s"
-           (calendar-bahai-date-string (calendar-cursor-to-date t))))
+  (let ((s (calendar-bahai-date-string (calendar-cursor-to-date t))))
+   (if (string-equal s "")
+       (message "Date is pre-Baha'i")
+     (message "Baha'i date: %s" s))))
 
 (defun calendar-goto-bahai-date (date &optional noecho)
   "Move cursor to Baha'i date DATE.
@@ -186,23 +192,33 @@ Echo Baha'i date unless NOECHO is t."
 
 (defun holiday-bahai (month day string)
   "Holiday on MONTH, DAY (Baha'i) called STRING.
-If MONTH, DAY (Baha'i) is visible, the value returned is corresponding
-Gregorian date in the form of the list (((month day year) STRING)).  Returns
-nil if it is not visible in the current calendar window."
+If MONTH, DAY (Baha'i) is visible in the current calendar window,
+returns the corresponding Gregorian date in the form of the
+list (((month day year) STRING)).  Otherwise, returns nil."
+  ;; Since the calendar window shows 3 months at a time, there are
+  ;; approx +/- 45 days either side of the central month.
+  ;; Since the Bahai months have 19 days, this means up to +/- 3 months.
   (let* ((bahai-date (calendar-bahai-from-absolute
 		      (calendar-absolute-from-gregorian
 		       (list displayed-month 15 displayed-year))))
          (m (extract-calendar-month bahai-date))
          (y (extract-calendar-year bahai-date))
-	 (date))
-    (if (< m 1)
-        nil ;;   Baha'i calendar doesn't apply.
-      (increment-calendar-month m y (- 10 month))
-      (if (> m 7) ;;  Baha'i date might be visible
-          (let ((date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-bahai (list month day y)))))
-            (if (calendar-date-is-visible-p date)
-                (list (list date string))))))))
+	 date)
+    (unless (< m 1)                    ; Baha'i calendar doesn't apply
+      ;; Cf holiday-fixed, holiday-islamic.
+      ;; With a +- 3 month calendar window, and 19 months per year,
+      ;; month 16 is special.  When m16 is central is when the
+      ;; end-of-year first appears.  When m1 is central, m16 is no
+      ;; longer visible.  Hence we can do a one-sided test to see if
+      ;; m16 is visible.  m16 is visible when the central month >= 13.
+      ;; To see if other months are visible we can shift the range
+      ;; accordingly.
+      (calendar-increment-month m y (- 16 month) 19)
+      (and (> m 12)                     ; Baha'i date might be visible
+           (calendar-date-is-visible-p
+            (setq date (calendar-gregorian-from-absolute
+                        (calendar-absolute-from-bahai (list month day y)))))
+           (list (list date string))))))
 
 (defun list-bahai-diary-entries ()
   "Add any Baha'i date entries from the diary file to `diary-entries-list'.
