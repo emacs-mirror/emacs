@@ -282,7 +282,7 @@ $(lisp)/mh-e/mh-loaddefs.el: $(lisp)/subdirs.el $(MH_E_SRC)
 
 bootstrap-prepare:
 	if test -x $(EMACS); then				\
-	  $(MAKE) $(MFLAGS) autoloads;				\
+	  $(MAKE) $(MFLAGS) autoloads EMACS=$(EMACS);		\
 	else							\
 	  cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el;		\
 	fi
