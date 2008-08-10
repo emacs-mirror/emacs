@@ -1,3 +1,60 @@
+2008-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (bootstrap-prepare): Explictly pass EMACS to sub-makes
+	that use it, for non-GNU makes (sync from trunk 2008-06-08).
+
+	* cus-dep.el (generated-custom-dependencies-file): Doc fix (sync from
+	trunk 2008-06-05).
+
+	* finder.el (generated-finder-keywords-file, finder-exit):
+	Doc fix (sync from trunk 2008-06-05).
+
+	* simple.el (toggle-truncate-lines): Doc fix (sync from trunk
+	2008-04-10).
+
+	* subr.el (locate-library): Doc fix (sync from trunk 2008-06-10).
+
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded): Doc fix (sync
+	from trunk 2008-06-13).
+	(byte-compile-file): Doc fix (sync from trunk 2008-04-27).
+
+	* progmodes/f90.el (f90-beginning-of-subprogram)
+	(f90-end-of-subprogram):  Only give a message when interactive (sync
+	from trunk 2008-06-12).
+
+	* progmodes/fortran.el (fortran-end-of-subprogram): Check for a match
+	before trying to move there (sync from trunk 2008-06-11).
+
+	* calendar/cal-bahai.el (holiday-bahai): Use an algorithm actually
+	relevant to this calendar system (sync from trunk 2008-03-31).
+	(calendar-bahai-date-string): Avoid an error for pre-Bahai dates (sync
+	from trunk 2008-03-31).
+	(calendar-print-bahai-date): Handle pre-Bahai dates (sync from trunk
+	2008-03-20).
+	(calendar-absolute-from-bahai): Fix the leap-year case (sync from trunk
+	2008-03-20).
+
+	* calendar/cal-islam.el (holiday-islamic): Doc fix (sync from trunk
+	2008-04-23).
+
+	* calendar/cal-julian.el (holiday-julian): Fix a problem with holidays
+	in the last fortnight in Julian October (sync from trunk 2008-03-31).
+
+	* calendar/cal-tex.el (cal-tex-preamble-extra): Fix custom type (sync
+	from trunk 2008-04-11).
+
+	* calendar/calendar.el (calendar-nth-named-absday)
+	(calendar-nth-named-day):
+	* calendar/diary-lib.el (list-sexp-diary-entries, diary-float):
+	* calendar/holidays.el (holiday-float):
+	Doc fixes (sync from trunk 2008-04-29).
+
+	* calendar/diary-lib.el (simple-diary-display, diary-show-all-entries)
+	(make-diary-entry): Respect non-nil values of pop-up-frames (sync from
+	trunk 2008-03-28).
+
+	* calendar/diary-lib.el (diary-remind): Doc fix.
+
 2008-08-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* kmacro.el (kmacro-exec-ring-item): Add autoload.
