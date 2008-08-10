@@ -3337,6 +3337,16 @@ fi
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`]
 
+# Now get this: Some word that is part of the ${srcdir} directory name
+# or the ${configuration} value might, just might, happen to be an
+# identifier like `sun4' or `i386' or something, and be predefined by
+# the C preprocessor to some helpful value like 1, or maybe the empty
+# string.  Needless to say consequent macro substitutions are less
+# than conducive to the makefile finding the correct directory.
+[cpp_undefs="`echo $srcdir $configuration $canonical |
+  sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
+  -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g'`"]
+
 ## Check if the C preprocessor will convert `..' to `. .'.  If so, set
 ## CPP_NEED_TRADITIONAL to `yes' so that the code to generate Makefile
 ## from Makefile.c can correctly provide the arg `-traditional' to the
@@ -3360,17 +3370,6 @@ done
 # and lib-src/Makefile from ${srcdir}/lib-src/Makefile.c
 # This must be done after src/config.h is built, since we rely on that file.
 
-# Now get this: Some word that is part of the ${srcdir} directory name
-# or the ${configuration} value might, just might, happen to be an
-# identifier like `sun4' or `i386' or something, and be predefined by
-# the C preprocessor to some helpful value like 1, or maybe the empty
-# string.  Needless to say consequent macro substitutions are less
-# than conducive to the makefile finding the correct directory.
-[undefs="`echo $top_srcdir $configuration $canonical |
-sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
-    -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g' \
-`"]
-
 echo creating src/epaths.h
 ${MAKE-make} epaths-force
 
@@ -3389,7 +3388,7 @@ echo creating lib-src/Makefile
   sed -e '1,/start of cpp stuff/d'\
       -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
       < Makefile.c > junk.c
-  $CPP $undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
+  $CPP $cpp_undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
       sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
   cat junk1.c junk2.c > Makefile.new
   rm -f junk.c junk1.c junk2.c
@@ -3405,7 +3404,7 @@ echo creating src/Makefile
   sed -e '1,/start of cpp stuff/d'\
       -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
       < Makefile.c > junk.c
-  $CPP $undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
+  $CPP $cpp_undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
       sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
   cat junk1.c junk2.c > Makefile.new
   rm -f junk.c junk1.c junk2.c
@@ -3421,7 +3420,7 @@ fi
 # This is how we know whether to re-run configure in certain cases.
 touch src/config.stamp
 
-], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPP_NEED_TRADITIONAL="$CPP_NEED_TRADITIONAL" CPPFLAGS="$CPPFLAGS"])
+], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPP_NEED_TRADITIONAL="$CPP_NEED_TRADITIONAL" CPPFLAGS="$CPPFLAGS" cpp_undefs="$cpp_undefs"])
 
 m4_if(dnl	Do not change this comment
    arch-tag: 156a4dd5-bddc-4d18-96ac-f37742cf6a5e
