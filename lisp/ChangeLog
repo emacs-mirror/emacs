@@ -1,3 +1,10 @@
+2008-08-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/xesam.el (xesam-search-engines): Add Debbugs hit fields.
+	(xesam-refresh-entry): Add Debbugs handling.  Insert a widget
+	"DONE", when all hits are retrieved.
+	(xesam-search): autoload it.
+
 2008-08-11  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuffer.el (ibuffer-buffer-file-name): Return nil rather than
