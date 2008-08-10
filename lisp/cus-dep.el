@@ -32,7 +32,7 @@
 (require 'cus-face)
 
 (defvar generated-custom-dependencies-file "cus-load.el"
-  "Output file for \\[custom-make-dependencies].")
+  "Output file for `custom-make-dependencies'.")
 
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
