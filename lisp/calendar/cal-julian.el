@@ -153,7 +153,7 @@ nil if it is not visible in the current calendar window."
            (julian-end (calendar-julian-from-absolute end-date))
            (julian-y1 (extract-calendar-year julian-start))
            (julian-y2 (extract-calendar-year julian-end)))
-      (setq year (if (< 10 month) julian-y1 julian-y2))
+      (setq year (if (<= 10 month) julian-y1 julian-y2))
       (let ((date (calendar-gregorian-from-absolute
                    (calendar-absolute-from-julian
                     (list month day year)))))
