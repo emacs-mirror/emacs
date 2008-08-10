@@ -38,10 +38,10 @@ NOTE-END  */
 
 #define NO_ARG_ARRAY
 
-/* Say this machine is a sparc */
+/* Say this machine is a sparc.  Probably already defined.  */
 
-#ifndef sparc
-#define sparc
+#ifndef __sparc__
+#define __sparc__
 #endif
 
 /* Use type int rather than a union, to represent Lisp_Object */

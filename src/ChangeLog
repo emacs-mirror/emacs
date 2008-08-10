@@ -1,3 +1,11 @@
+2008-08-10  Glenn Morris  <rgm@gnu.org>
+
+	Sync from trunk 2008-07-08:
+	* m/sparc.h: Define __sparc__ rather than sparc.  (Bug#507.)
+	* alloc.c, ecrt0.c: Use __sparc__ rather than sparc.
+
+	* unexsunos4.c: Use __sparc__ rather than sparc.
+
 2008-08-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (move_it_to): When stopping at a charpos, check if

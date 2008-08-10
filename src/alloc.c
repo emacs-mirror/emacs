@@ -4572,7 +4572,7 @@ mark_stack ()
   /* Fixme: Code in the Boehm GC suggests flushing (with `flushrs') is
      needed on ia64 too.  See mach_dep.c, where it also says inline
      assembler doesn't work with relevant proprietary compilers.  */
-#ifdef sparc
+#ifdef __sparc__
   asm ("ta 3");
 #endif
 

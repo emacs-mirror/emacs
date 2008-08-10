@@ -236,11 +236,11 @@ unexec (new_name, a_name, bndry, bss_start, entry)
 #else /* not SUNOS4_SHARED_LIBRARIES */
     rel = erel = 0;
 #endif /* not SUNOS4_SHARED_LIBRARIES */
-#ifdef sparc
+#ifdef __sparc__
 #define REL_INFO_TYPE		struct reloc_info_sparc
 #else
 #define REL_INFO_TYPE		struct relocation_info
-#endif /* sparc */
+#endif /* __sparc__ */
 #define REL_TARGET_ADDRESS(r)	(((REL_INFO_TYPE *)(r))->r_address)
 #endif /* SUNOS4 */
 #if defined (__FreeBSD__) || defined (__NetBSD__)
