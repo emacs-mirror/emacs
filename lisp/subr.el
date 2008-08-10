@@ -1401,7 +1401,7 @@ to the specified name LIBRARY.
 If the optional third arg PATH is specified, that list of directories
 is used instead of `load-path'.
 
-When called from a program, the file name is normaly returned as a
+When called from a program, the file name is normally returned as a
 string.  When run interactively, the argument INTERACTIVE-CALL is t,
 and the file name is displayed in the echo area."
   (interactive (list (completing-read "Locate library: "
