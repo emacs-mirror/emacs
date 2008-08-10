@@ -110,6 +110,7 @@
 	<after-change-functions>: Reflow docstrings.
 
 2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+	    Ken Raeburn  <raeburn@gnu.org>
 
 	Dock menu customization, based on a patch by Ken Raeburn, plus some
 	other fixes.
@@ -886,19 +887,20 @@
 	* nsgui.h: Remove redefinitions of hash_remove.
 	* fns.c (hash_remove): Rename to hash_remove_from_table.
 
-2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+2008-07-19  Seiji Zenitani  <zenitani@mac.com>
 
 	* nsfont.m (nsfont_fmember_to_entity, nsfont_make_fontset_for_font):
-	strdup() the family UTF8String before modifying it.  Patch due to
-	Seiji Zenitani.
+	strdup() the family UTF8String before modifying it.
 
 2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* nsfns.m (ns_set_background_color): Apply patch from Chong Yidong to
-	fix crash.
 	* nsterm.m (ns_maybe_dumpglyphs_background): Compare result from
 	NS_FACE_BACKGROUND with 0 instead of nil.
 	* nsfont.m (nsfont_draw): Same.
+
+2008-07-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (ns_set_background_color): Fix crash.
 
 2008-07-18  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1189,6 +1191,18 @@
 	* Makefile.in: Correct additions for nsfont.o in last commit.
 	* nsfont.m: New file (forgot last commit).
 
+2008-07-15  Chris Hall  <chris@web.workinglinux.com>  (tiny change)
+
+	* callproc.c (set_initial_environment): Initialize
+	Vprocess_environment under CANNOT_DUMP (fixes crash when
+	batch-compiling for bootstrap).
+
+2008-07-15  Chris Hall  <chris@web.workinglinux.com>  (tiny change)
+	    YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	(make_initial_frame): Call init_frame_faces(f) in CANNOT_DUMP case --
+	fix crash due to different init order.
+
 2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	Changes and additions for NeXTstep windowing system (Cocoa and
@@ -1198,9 +1212,6 @@
 	* config.in: Support defines and build commands for NS port.
 	* blockinput.h (BLOCK_INPUT, UNBLOCK_INPUT, TOTALLY_UNBLOCK_INPUT)
 	(UNBLOCK_INPUT_TO): Don't use under NS unless EXPERIMENTAL_CONTROL_G.
-	* callproc.c (set_initial_environment): Initialize
-	Vprocess_environment under CANNOT_DUMP (fixes crash when
-	batch-compiling for bootstrap, due to Chris Hall).
 	* dispextern.h: Include nsgui.h and add needed typedefs under NS
 	windowing.
 	(struct face): Add synth_ital field.
@@ -1221,9 +1232,6 @@
 	(fontset_from_font): Autoconstruct fontset under NS.
 	* frame.c (various): Under NS, include nsterm.h, add Qns window system
 	symbol, document and use it.
-	(make_initial_frame): Call init_frame_faces(f) in CANNOT_DUMP case --
-	patch to fix crash due to different init order, due to Chris Hall and
-	Yamamoto Mitsuharu.
 	(do_switch_frame): When for_deletion under Cocoa, add
 	Fraise_frame(Qnil).
 	(x_set_frame_parameters): Ensure font attribute changes are picked up.
