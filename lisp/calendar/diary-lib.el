@@ -1699,7 +1699,7 @@ month, day, year), and `diary-entry' (a string)."
 SEXP is a diary-sexp.  DAYS is either a single number or a list of numbers
 indicating the number(s) of days before the event that the warning(s) should
 occur on.  If the current date is (one of) DAYS before the event indicated by
-SEXP, then a suitable message (as specified by `diary-remind-message' is
+SEXP, then a suitable message (as specified by `diary-remind-message') is
 returned.
 
 In addition to the reminders beforehand, the diary entry also appears on the
