@@ -1,3 +1,8 @@
+2008-08-10  Jihyun Cho  <jihyun.jo@gmail.com>
+
+	* quail/hangul.el (hangul3-input-method-jong): Fix array indexing
+	bug.
+
 2008-07-19  Juri Linkov  <juri@jurta.org>
 
 	* quail/cyrillic.el ("cyrillic-translit"): Add two rules "//'" and
