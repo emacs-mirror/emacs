@@ -117,7 +117,7 @@
   "Assoc list mapping file names to description & keyword lists.")
 
 (defvar generated-finder-keywords-file "finder-inf.el"
-  "File \\[finder-compile-keywords] puts finder keywords into.")
+  "The function `finder-compile-keywords' writes keywords into this file.")
 
 (defun finder-compile-keywords (&rest dirs)
   "Regenerate the keywords association list into `generated-finder-keywords-file'.
@@ -359,7 +359,7 @@ FILE should be in a form suitable for passing to `locate-library'."
 finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 
 (defun finder-exit ()
-  "Exit Finder mode and kill the buffer."
+  "Exit Finder mode and kill all Finder-related buffers."
   (interactive)
   (or (one-window-p t)
       (delete-window))
