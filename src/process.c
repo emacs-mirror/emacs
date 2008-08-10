@@ -7260,6 +7260,7 @@ procfs_system_process_attributes (pid)
   Lisp_Object attrs = Qnil;
   Lisp_Object cmd_str, decoded_cmd, tem;
   struct gcpro gcpro1, gcpro2;
+  EMACS_INT uid_eint, gid_eint;
 
   CHECK_NUMBER_OR_FLOAT (pid);
   proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
@@ -7271,15 +7272,18 @@ procfs_system_process_attributes (pid)
 
   /* euid egid */
   uid = st.st_uid;
-  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid)), attrs);
+  /* Use of EMACS_INT stops GCC whining about limited range of data type.  */
+  uid_eint = uid;
+  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid_eint)), attrs);
   BLOCK_INPUT;
   pw = (struct passwd *) getpwuid (uid);
   UNBLOCK_INPUT;
   if (pw)
     attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
-  
+
   gid = st.st_gid;
-  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid)), attrs);
+  gid_eint = gid;
+  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid_eint)), attrs);
   BLOCK_INPUT;
   gr = (struct group *) getgrgid (gid);
   UNBLOCK_INPUT;
@@ -7313,6 +7317,7 @@ procfs_system_process_attributes (pid)
 
       if (q)
 	{
+	  EMACS_INT ppid_eint, pgrp_eint, sess_eint, tpgid_eint, thcount_eint;
 	  p = q + 2;
 	  /* state ppid pgrp sess tty tpgid . minflt cminflt majflt cmajflt utime stime cutime cstime priority nice thcount . start vsize rss */
 	  sscanf (p, "%c %d %d %d %d %d %*u %lu %lu %lu %lu %Lu %Lu %Lu %Lu %ld %ld %d %*d %Lu %lu %ld",
@@ -7328,11 +7333,17 @@ procfs_system_process_attributes (pid)
 	    tem =  build_string (state_str);
 	    attrs = Fcons (Fcons (Qstate, tem), attrs);
 	  }
-	  attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (ppid)), attrs);
-	  attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (pgrp)), attrs);
-	  attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (sess)), attrs);
+	  /* Stops GCC whining about limited range of data type.  */
+	  ppid_eint = ppid;
+	  pgrp_eint = pgrp;
+	  sess_eint = sess;
+	  tpgid_eint = tpgid;
+	  thcount_eint = thcount;
+	  attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (ppid_eint)), attrs);
+	  attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (pgrp_eint)), attrs);
+	  attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (sess_eint)), attrs);
 	  attrs = Fcons (Fcons (Qttname, procfs_ttyname (tty)), attrs);
-	  attrs = Fcons (Fcons (Qtpgid, make_fixnum_or_float (tpgid)), attrs);
+	  attrs = Fcons (Fcons (Qtpgid, make_fixnum_or_float (tpgid_eint)), attrs);
 	  attrs = Fcons (Fcons (Qminflt, make_fixnum_or_float (minflt)), attrs);
 	  attrs = Fcons (Fcons (Qmajflt, make_fixnum_or_float (majflt)), attrs);
 	  attrs = Fcons (Fcons (Qcminflt, make_fixnum_or_float (cminflt)), attrs);
@@ -7354,7 +7365,7 @@ procfs_system_process_attributes (pid)
 			 attrs);
 	  attrs = Fcons (Fcons (Qpri, make_number (priority)), attrs);
 	  attrs = Fcons (Fcons (Qnice, make_number (nice)), attrs);
-	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount)), attrs);
+	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount_eint)), attrs);
 	  EMACS_GET_TIME (tnow);
 	  get_up_time (&sec, &usec);
 	  EMACS_SET_SECS (telapsed, sec);
