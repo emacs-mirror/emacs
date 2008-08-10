@@ -403,8 +403,8 @@ REV non-nil gets an error."
   (if rev (error "Can't check in a specific revision with bzr"))
   (vc-bzr-command "commit" nil 0 files "-m" comment))
 
-(defun vc-bzr-find-version (file rev buffer)
-  "Fetch version REV of file FILE and put it into BUFFER."
+(defun vc-bzr-find-revision (file rev buffer)
+  "Fetch revision REV of file FILE and put it into BUFFER."
     (with-current-buffer buffer
       (if (and rev (stringp rev) (not (string= rev "")))
           (vc-bzr-command "cat" t 0 file "-r" rev)

@@ -1,3 +1,8 @@
+2008-08-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-find-revision): Rename from
+	vc-bzr-find-version, forgotten in the 2007-10-10 renaming.
+
 2008-08-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/xesam.el (xesam-search-engines): Add Debbugs hit fields.
