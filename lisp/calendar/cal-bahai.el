@@ -213,7 +213,7 @@ list (((month day year) STRING)).  Otherwise, returns nil."
       ;; m16 is visible.  m16 is visible when the central month >= 13.
       ;; To see if other months are visible we can shift the range
       ;; accordingly.
-      (calendar-increment-month m y (- 16 month) 19)
+      (increment-calendar-month m y (- 16 month) 19)
       (and (> m 12)                     ; Baha'i date might be visible
            (calendar-date-is-visible-p
             (setq date (calendar-gregorian-from-absolute
