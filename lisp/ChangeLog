@@ -1,3 +1,7 @@
+2008-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Update.
+
 2008-08-10  John Paul Wallington  <jpw@pobox.com>
 
 	* pcvs.el (defun-cvs-mode): Add `doc-string' decl.
