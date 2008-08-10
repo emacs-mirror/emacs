@@ -13,15 +13,12 @@
 	* configure.in: Correctly handle
 	--enable-cocoa-experimental-ctrl-g=no and
 	--enable-ns-self-contained=yes.
-	* configure: Regenerate.
 
 2008-08-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* configure.in (NS_HAVE_INTEGER): Rename to NS_HAVE_NSINTEGER.
 	(C_SWITCH_X_SYSTEM): Drop -MMD -MP under NS_IMPL_GNUstep.  Don't
 	bother undef'ing since won't have desired effect.
-
-	* configure: Regenerate.
 
 2008-08-06  Andreas Schwab  <schwab@suse.de>
 
@@ -31,18 +28,12 @@
 
 	* configure.in (COCOA_EXPERIMENTAL_CTRL_G): Fix 2008-08-04 change.
 
-	* configure: Regenerate.
-
 2008-08-05  Ulrich Mueller  <ulm@gentoo.org>
 
 	* configure.in: Add checks for krb5_error.text and
 	krb5_error.e_text struct members.
 
-	* configure: Regenerate.
-
 2008-08-04  Chong Yidong  <cyd@stupidchicken.com>
-
-	* configure: Regenerate.
 
 	* configure.in: Test for existence of NSInteger.
 	Suggested by Yavor Doganov.
@@ -126,7 +117,6 @@
 
 	* configure.in: Change GNUSTEP to NS_IMPL_GNUSTEP, COCOA to
 	NS_IMPL_COCOA.
-	* configure: Regenerate.
 
 2008-07-16  Glenn Morris  <rgm@gnu.org>
 
