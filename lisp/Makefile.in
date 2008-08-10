@@ -920,6 +920,7 @@ ELCFILES = \
 	$(lisp)/org/org-gnus.elc \
 	$(lisp)/org/org-id.elc \
 	$(lisp)/org/org-info.elc \
+	$(lisp)/org/org-install.elc \
 	$(lisp)/org/org-irc.elc \
 	$(lisp)/org/org-jsinfo.elc \
 	$(lisp)/org/org-mac-message.elc \
