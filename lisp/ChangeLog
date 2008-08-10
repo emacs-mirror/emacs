@@ -442,7 +442,7 @@
 	This allows parameters to be replaced with their values, on the
 	expansion of an AUTOINST with Verilog 2001 style parameter settings.
 
-2008-07-30  David Lord  <david.lord@phonecoop.coop>
+2008-07-30  David Lord  <david.lord@phonecoop.coop>  (tiny change)
 
 	* calendar/timeclock.el (timeclock-day-projects): Change a `cdr'
 	to `cddr'.
