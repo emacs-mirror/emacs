@@ -97,12 +97,10 @@
 	(static): Remove, autoconf would always comment it out anyway.
 	(subprocesses): Define unconditionally.
 
-2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+2008-07-19  Yavor Doganov  <yavor@gnu.org>  (tiny change)
 
-	* configure.in: Apply patch from Yavor Doganov <yavor <at> gnu.org> to
-	fix typo in GNUSTEP_MAKEFILES setting for HAVE_NS compilation under
-	GNUstep.
-	* configure: Regenerate.
+	* configure.in: Fix typo in GNUSTEP_MAKEFILES setting for HAVE_NS
+	compilation under GNUstep.
 
 2008-07-18  Kenichi Handa  <handa@m17n.org>
 
