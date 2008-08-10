@@ -1,3 +1,12 @@
+2008-08-11  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuffer.el (ibuffer-buffer-file-name): Return nil rather than
+	empty string when no filename.
+	(define-ibuffer-column filename): Accomodate that change.
+
+	* ibuf-ext.el (ibuffer-define-filter filename): Use plain old
+	`buffer-file-name' instead of `ibuffer-buffer-file-name'.
+
 2008-08-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ELCFILES): Update.
