@@ -8801,7 +8801,7 @@
 
 	* calendar/calendar.el (calendar-other-dates): New function.
 	(calendar-print-other-dates): Use calendar-other-dates.
-	* calendar/cal-menu.el (calendar-other-dates): Declare it, and removes
+	* calendar/cal-menu.el (calendar-other-dates): Declare it, and remove
 	the declarations it replaces.
 	(calendar-mouse-print-dates): Use calendar-other-dates.
 
