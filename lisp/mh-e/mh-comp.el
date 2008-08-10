@@ -655,7 +655,7 @@ See also `mh-reply-show-message-flag',
          (show-buffer mh-show-buffer)
          (config (current-window-configuration))
          (group-reply (or (equal reply-to "cc") (equal reply-to "all")))
-         (form-file (cond ((and (mh-variant-p 'nmh 'mu-mh) group-reply
+         (form-file (cond ((and (mh-variant-p 'nmh 'gnu-mh) group-reply
                                 (stringp mh-repl-group-formfile))
                            mh-repl-group-formfile)
                           ((stringp mh-repl-formfile) mh-repl-formfile)
@@ -669,7 +669,7 @@ See also `mh-reply-show-message-flag',
                         '("-nocc" "all"))
                        ((equal reply-to "to")
                         '("-cc" "to"))
-                       (group-reply (if (mh-variant-p 'nmh 'mu-mh)
+                       (group-reply (if (mh-variant-p 'nmh 'gnu-mh)
                                         '("-group" "-nocc" "me")
                                       '("-cc" "all" "-nocc" "me"))))
                  (cond ((or (eq mh-yank-behavior 'autosupercite)
