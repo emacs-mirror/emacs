@@ -907,7 +907,7 @@ finally GNU mailutils MH."
   (when (and (stringp variant)
              (string-match "^mu-mh"  variant))
     (message
-     (format "%s\n%s; %s" "The variant name mh-mh has been renamed to gnu-mh"
+     (format "%s\n%s; %s" "The variant name mu-mh has been renamed to gnu-mh"
              "and will be removed in MH-E 9.0"
              "try M-x customize-option mh-variant"))
     (sit-for 5)
