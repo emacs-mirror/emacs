@@ -614,17 +614,21 @@ prefixes, eg `calendar-french-'.  The old names you are likely to use
 directly still exist, for the time being, as aliases, but please start
 using the new names.
 
++++
 *** The whitespace in the calendar layout can be customized.
 See the variables:
 calendar-left-margin, calendar-intermonth-spacing, calendar-column-width,
 calendar-day-header-width, and calendar-day-digit-width.
 
++++
 *** Text (e.g. ISO weeks) can be displayed between the calendar months.
 See the variables calendar-intermonth-header and calendar-intermonth-text.
 
++++
 *** The function `holiday-chinese' computes holidays on the Chinese calendar.
 It has been used to add items to the list `holiday-oriental-holidays'.
 
+---
 *** `diary-remind' accepts a negative number -DAYS as a shorthand for
 the list (1 2 ... DAYS).
 
