@@ -1,3 +1,9 @@
+2008-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* ns-emacs.texi: Use @copying.  Change copyright of authors with
+	assignment to FSF.  Change license to GFDL.
+	(Top): Remove outdated references.
+
 2008-08-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Sorting the Summary Buffer, Summary Sorting): Add
