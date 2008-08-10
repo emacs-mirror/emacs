@@ -1,3 +1,9 @@
+2008-08-11  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Getting Started): Rename variant mu-mh to gnu-mh and be
+	explicit about GNU mailutils MH elsewhere (with thanks to Darel
+	Henman) (closes SF #1768928).
+
 2008-08-10  Glenn Morris  <rgm@gnu.org>
 
 	* ns-emacs.texi: Use @copying.  Change copyright of authors with
