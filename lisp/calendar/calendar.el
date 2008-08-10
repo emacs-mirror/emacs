@@ -1321,15 +1321,17 @@ with descriptive strings such as
 (defconst lunar-phases-buffer "*Phases of Moon*"
   "Name of the buffer used for the lunar phases.")
 
-(defmacro increment-calendar-month (mon yr n)
+(defmacro increment-calendar-month (mon yr n &optional nmonths)
   "Increment the variables MON and YR by N months.
 Forward if N is positive or backward if N is negative.
-A negative YR is interpreted as BC; -1 being 1 BC, and so on."
-  `(let (macro-y)
+A negative YR is interpreted as BC; -1 being 1 BC, and so on.
+Optional NMONTHS is the number of months per year (default 12)."
+  `(let ((nmonths (or ,nmonths 12))
+         macro-y)
      (if (< ,yr 0) (setq ,yr (1+ ,yr))) ; -1 BC -> 0 AD, etc
-     (setq macro-y (+ (* ,yr 12) ,mon -1 ,n)
-           ,mon (1+ (mod macro-y 12))
-           ,yr (/ macro-y 12))
+     (setq macro-y (+ (* ,yr nmonths) ,mon -1 ,n)
+           ,mon (1+ (mod macro-y nmonths))
+           ,yr (/ macro-y nmonths))
      (and (< macro-y 0) (> ,mon 1) (setq ,yr (1- ,yr)))
      (if (< ,yr 1) (setq ,yr (1- ,yr))))) ; 0 AD -> -1 BC, etc
 
