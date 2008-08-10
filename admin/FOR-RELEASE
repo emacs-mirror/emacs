@@ -283,8 +283,7 @@ variables.texi
 windows.texi
 
 * PLANNED ADDITIONS
-** CEDET
-** Emacs.app
+** CEDET (not for 23.1 due to paperwork issues, perhaps for 23.2)
 ** ruby-mode
 ** js2-mode
 ** pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
