@@ -835,7 +835,7 @@
 
 	* iswitchb.el (iswitchb-delim): New variable, suggested by Ted Roden.
 
-2008-07-22  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+2008-07-22  Sven Joachim  <svenjoac@gmx.de>
 
 	* vc-dir.el (vc-dir-recompute-file-state): Fix mismatched parenthesis.
 
