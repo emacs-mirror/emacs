@@ -177,9 +177,9 @@ Driven by the variable `calendar-date-display-form'."
 
 (defun holiday-islamic (month day string)
   "Holiday on MONTH, DAY (Islamic) called STRING.
-If MONTH, DAY (Islamic) is visible, the value returned is corresponding
-Gregorian date in the form of the list (((month day year) STRING)).  Returns
-nil if it is not visible in the current calendar window."
+If MONTH, DAY (Islamic) is visible, returns the corresponding
+Gregorian date as the list (((month day year) STRING)).
+Returns nil if it is not visible in the current calendar window."
   (let* ((islamic-date (calendar-islamic-from-absolute
                         (calendar-absolute-from-gregorian
                          (list displayed-month 15 displayed-year))))
