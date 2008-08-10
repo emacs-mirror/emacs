@@ -833,7 +833,7 @@
 
 2008-07-22  Stephen Eglen  <stephen@gnu.org>
 
-	* iswitchb.el (iswitchb-delim): New variable, suggested by Ted Roden.
+	* iswitchb.el (iswitchb-delim): New variable.  Suggested by Ted Roden.
 
 2008-07-22  Sven Joachim  <svenjoac@gmx.de>
 
