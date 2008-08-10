@@ -2993,12 +2993,12 @@ lang=\"%s\" xml:lang=\"%s\">
 	    (setq inverse nil)
 	    (throw 'nextline nil))
 	  (when inverse
-	    (setq i (org-get-string-indentation line))
-	    (if (> i 0)
-		(setq line (concat (mapconcat 'identity
-					      (make-list (* 2 i) "\\nbsp") "")
-				   " " (org-trim line))))
-	    (setq line (concat line " \\\\")))
+	    (let ((i (org-get-string-indentation line)))
+              (if (> i 0)
+                  (setq line (concat (mapconcat 'identity
+                                                (make-list (* 2 i) "\\nbsp") "")
+                                     " " (org-trim line))))
+              (setq line (concat line " \\\\"))))
 
 	  ;; make targets to anchors
 	  (while (string-match "<<<?\\([^<>]*\\)>>>?\\((INVISIBLE)\\)?[ \t]*\n?" line)
