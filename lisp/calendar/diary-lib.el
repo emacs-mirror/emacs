@@ -607,7 +607,8 @@ changing the variable `diary-include-string'."
          (msg (format "No diary entries for %s" hol-string))
          ;; If selected window is dedicated (to the calendar),
          ;; need a new one to display the diary.
-         (pop-up-frames (window-dedicated-p (selected-window))))
+         (pop-up-frames (or pop-up-frames
+			    (window-dedicated-p (selected-window)))))
     (calendar-set-mode-line (format "Diary for %s" hol-string))
     (if (or (not diary-entries-list)
             (and (not (cdr diary-entries-list))
@@ -864,7 +865,8 @@ all entries, not just some, are visible.  If there is no diary buffer, one
 is created."
   (interactive)
   (let ((d-file (diary-check-diary-file))
-        (pop-up-frames (window-dedicated-p (selected-window))))
+        (pop-up-frames (or pop-up-frames
+			   (window-dedicated-p (selected-window)))))
     (with-current-buffer (or (find-buffer-visiting d-file)
                              (find-file-noselect d-file t))
       (when (eq major-mode default-major-mode) (diary-mode))
@@ -1297,7 +1299,7 @@ A number of built-in functions are available for this type of diary entry:
                   when highlighting the day in the calendar.
 
       %%(diary-float MONTH DAYNAME N &optional DAY MARK) text
-                  Entry will appear on the Nth DAYNAME of MONTH.
+                  Entry will appear on the Nth DAYNAME after/before MONTH DAY.
                   (DAYNAME=0 means Sunday, 1 means Monday, and so on;
                   if N is negative it counts backward from the end of
                   the month.  MONTH can be a list of months, a single
@@ -1554,12 +1556,12 @@ use when highlighting the day in the calendar."
         (cons mark entry))))
 
 (defun diary-float (month dayname n &optional day mark)
-  "Floating diary entry--entry applies if date is the nth dayname of month.
-Parameters are MONTH, DAYNAME, N.  MONTH can be a list of months, the constant
-t, or an integer.  The constant t means all months.  If N is negative, count
-backward from the end of the month.
-
-An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY.
+  "Diary entry for the Nth DAYNAME after/before MONTH DAY.
+DAYNAME=0 means Sunday, DAYNAME=1 means Monday, and so on.
+If N>0, use the Nth DAYNAME after MONTH DAY.
+If N<0, use the Nth DAYNAME before MONTH DAY.
+DAY defaults to 1 if N>0, and MONTH's last day otherwise.
+MONTH can be a list of months, an integer, or `t' (meaning all months).
 Optional MARK specifies a face or single-character string to use when
 highlighting the day in the calendar."
 ;; This is messy because the diary entry may apply, but the date on which it
@@ -1743,7 +1745,8 @@ marked on the calendar."
   "Insert a diary entry STRING which may be NONMARKING in FILE.
 If omitted, NONMARKING defaults to nil and FILE defaults to
 `diary-file'."
-  (let ((pop-up-frames (window-dedicated-p (selected-window))))
+  (let ((pop-up-frames (or pop-up-frames
+			   (window-dedicated-p (selected-window)))))
     (find-file-other-window (substitute-in-file-name (or file diary-file))))
   (when (eq major-mode default-major-mode) (diary-mode))
   (widen)
