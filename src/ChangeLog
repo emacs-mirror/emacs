@@ -1,3 +1,9 @@
+2008-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (procfs_system_process_attributes): Use EMACS_INTs to
+	silence gcc "limited range of data type" warnings in some
+	make_fixnum_or_float calls.
+
 2008-08-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (w32_system_process_attributes): If the process does not
