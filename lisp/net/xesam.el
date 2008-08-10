@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; This package provides an interface to the Xesam, a D-Bus based "eXtEnsible
+;; This package provides an interface to Xesam, a D-Bus based "eXtEnsible
 ;; Search And Metadata specification".  It has been tested with
 ;;
 ;; xesam-glib 0.3.4, xesam-tools 0.6.1
@@ -32,7 +32,7 @@
 ;; The precondition for this package is a D-Bus aware Emacs.  This is
 ;; configured per default, when Emacs is built on a machine running
 ;; D-Bus.  Furthermore, there must be at least one search engine
-;; running, which support the Xesam interface.  Beagle and strigi have
+;; running, which supports the Xesam interface.  Beagle and strigi have
 ;; been tested; tracker, pinot and recoll are also said to support
 ;; Xesam.  You can check the existence of such a search engine by
 ;;
@@ -380,20 +380,25 @@ If there is no registered search engine at all, the function returns `nil'."
 	;; That is not the case now, so we set it ourselves.
 	;; Hopefully, this will change later.
 	(setq hit-fields
-	      (cond
-	       ((string-equal vendor-id "Beagle")
-		'("xesam:mimeType" "xesam:url"))
-	       ((string-equal vendor-id "Strigi")
-		'("xesam:author" "xesam:cc" "xesam:charset"
-		  "xesam:contentType" "xesam:fileExtension" "xesam:id"
-		  "xesam:lineCount" "xesam:links" "xesam:mimeType" "xesam:name"
-		  "xesam:size" "xesam:sourceModified" "xesam:subject"
-		  "xesam:to" "xesam:url"))
-	       ((string-equal vendor-id "TrackerXesamSession")
-		'("xesam:relevancyRating" "xesam:url"))
-	       ;; xesam-tools yahoo service.
-	       (t '("xesam:contentModified" "xesam:mimeType" "xesam:summary"
-		    "xesam:title" "xesam:url" "yahoo:displayUrl"))))
+	      (case (intern vendor-id)
+		('Beagle
+		 '("xesam:mimeType" "xesam:url"))
+		('Strigi
+		 '("xesam:author" "xesam:cc" "xesam:charset"
+		   "xesam:contentType" "xesam:fileExtension"
+		   "xesam:id" "xesam:lineCount" "xesam:links"
+		   "xesam:mimeType" "xesam:name" "xesam:size"
+		   "xesam:sourceModified" "xesam:subject" "xesam:to"
+		   "xesam:url"))
+		('TrackerXesamSession
+		 '("xesam:relevancyRating" "xesam:url"))
+		('Debbugs
+		 '("xesam:keyword" "xesam:owner" "xesam:title"
+		   "xesam:url" "xesam:sourceModified" "xesam:mimeType"
+		   "debbugs:key"))
+		;; xesam-tools yahoo service.
+		(t '("xesam:contentModified" "xesam:mimeType" "xesam:summary"
+		     "xesam:title" "xesam:url" "yahoo:displayUrl"))))
 
 	(xesam-set-property engine "hit.fields" hit-fields)
 	(xesam-set-property engine "hit.fields.extended" '("xesam:snippet"))
@@ -560,6 +565,39 @@ SEARCH is the search identification in that engine.  Both must be strings."
 	   (string-equal "text/html" (widget-get widget :xesam:mimeType)))
       (setcar widget 'url-link))
 
+     ;; Debbugs hits shall be displayed.
+     ((and (widget-member widget :xesam:mimeType)
+	   (string-equal "application/x-debbugs"
+			 (widget-get widget :xesam:mimeType)))
+      (widget-put
+       widget :notify
+       '(lambda (widget &rest ignore)
+	  ;; We toggle.  If there are already children, we delete them.
+	  (if (widget-get widget :children)
+	      (widget-children-value-delete widget)
+
+	    ;; No children.  Let's display the messages.
+	    (widget-end-of-line)
+	    ;; Get hit data.  Loop over results.
+	    (dolist (data
+		     ;; "GetHitData" returns a list.  But we have
+		     ;; requested just one element only.
+		     (car
+		      (xesam-dbus-call-method
+		       :session (car xesam-engine) xesam-path-search
+		       xesam-interface-search "GetHitData" xesam-search
+		       (list (widget-get widget :debbugs:key))
+		       '("debbugs:key"))))
+	      (let ((child
+		     (widget-create-child-and-convert
+		      ;; The result is a variant.  So we must apply `car'.
+		      widget '(link) :format "\n%h" :doc (car data))))
+		;; Add child to parent's list.  Needed, in order to be
+		;; able to delete it next toggle.
+		(widget-put
+		 widget
+		 :children (cons child (widget-get widget :children)))))))))
+
      ;; For local files, we will open the file as default action.
      ((string-match "file"
 		    (url-type (url-generic-parse-url
@@ -653,6 +691,12 @@ SEARCH is the search identification in that engine.  Both must be strings."
 	       (min xesam-hits-per-page
 		    (- (min (+ xesam-hits-per-page xesam-to) xesam-count)
 		       (length xesam-objects))))))
+
+	    ;; Add "DONE" widget.
+	    (when (= xesam-current xesam-count)
+	      (goto-char (point-max))
+	      (widget-create 'link :notify 'ignore "DONE")
+	      (widget-beginning-of-line))
 
 	;; Return with save settings.
 	(setq xesam-refreshing nil)))))
@@ -762,6 +806,7 @@ search, is returned."
     ;; Return search id.
     search))
 
+;;;###autoload
 (defun xesam-search (engine query)
   "Perform an interactive search.
 ENGINE is the Xesam search engine to be applied, it must be one of the
