@@ -1,3 +1,7 @@
+2008-08-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (bootstrap-emacs): Use ln -f in the CANNOT_DUMP case.
+
 2008-08-10  Glenn Morris  <rgm@gnu.org>
 
 	* process.c (procfs_system_process_attributes): Use EMACS_INTs to

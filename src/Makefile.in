@@ -1372,7 +1372,7 @@ ${lispsource}loaddefs.el: $(BOOTSTRAPEMACS)
 bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	cd ../lisp; $(MAKE) $(MFLAGS) update-subdirs
 #ifdef CANNOT_DUMP
-	ln temacs${EXEEXT} bootstrap-emacs${EXEEXT}
+	ln -f temacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #else
 	$(RUN_TEMACS) --batch --load loadup bootstrap
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
