@@ -1,5 +1,7 @@
 2008-08-11  Glenn Morris  <rgm@gnu.org>
 
+	* term/ns-win.el (x-parse-geometry): Doc fix.
+
 	* dired.el (x-popup-menu):
 	* hi-lock.el (x-popup-menu):
 	* mouse.el (font-face-attributes):
