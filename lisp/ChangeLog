@@ -1,3 +1,7 @@
+2008-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-bahai.el (holiday-bahai): Doc fix.
+
 2008-08-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-find-revision): Rename from
