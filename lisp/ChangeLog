@@ -1,3 +1,11 @@
+2008-08-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cc-defs.el (c-emacs-features): Check
+	beginning-of-defun-raw instead of beginning-of-defun, and avoid
+	moving point during the test.
+
+	* emacs-lisp/lisp.el (beginning-of-defun): Doc fix.
+
 2008-08-11  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el (x-parse-geometry): Doc fix.
