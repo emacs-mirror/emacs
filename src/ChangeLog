@@ -1,3 +1,8 @@
+2008-08-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (x_produce_glyphs): Handle the case when font has no
+	space character in calculating tabs.
+
 2008-08-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (bootstrap-emacs): Use ln -f in the CANNOT_DUMP case.
