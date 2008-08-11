@@ -181,22 +181,27 @@ the body of the defun.")
 
 (defun beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
-With ARG, do it that many times.  Negative arg -N
-means move forward to Nth following beginning of defun.
-Returns t unless search stops due to beginning or end of buffer.
+With ARG, do it that many times.  Negative ARG means move forward
+to the ARGth following beginning of defun.
 
-If variable `beginning-of-defun-function' is non-nil, its value
-is called as a function to find the defun's beginning.
+If search is successful, return t; point ends up at the beginning
+of the line where the search succeeded.  Otherwise, return nil.
 
-Normally a defun is assumed to start where there is a char with
-open-parenthesis syntax at the beginning of a line.  If
-`defun-prompt-regexp' is non-nil, then a string which matches
-that regexp may precede the open-parenthesis, and point ends up
-at the beginning of the line.
+When `open-paren-in-column-0-is-defun-start' is non-nil, a defun
+is assumed to start where there is a char with open-parenthesis
+syntax at the beginning of a line.  If `defun-prompt-regexp' is
+non-nil, then a string which matches that regexp may also precede
+the open-parenthesis.  If `defun-prompt-regexp' and
+`open-paren-in-column-0-is-defun-start' are both nil, this
+function instead finds an open-paren at the outermost level.
 
-If `defun-prompt-regexp' and `open-paren-in-column-0-is-defun-start'
-are both nil, the function instead finds an open-paren at the
-outermost level."
+If the variable `beginning-of-defun-function' is non-nil, its
+value is called as a function, with argument ARG, to find the
+defun's beginning.
+
+Regardless of the values of `defun-prompt-regexp' and
+`beginning-of-defun-function', point always moves to the
+beginning of the line whenever the search is successful."
   (interactive "p")
   (or (not (eq this-command 'beginning-of-defun))
       (eq last-command 'beginning-of-defun)
