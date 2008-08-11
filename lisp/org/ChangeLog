@@ -1,3 +1,7 @@
+2008-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* org-mac-message.el (do-applescript): Fix declaration.
+
 2008-08-10  Glenn Morris  <rgm@gnu.org>
 
 	* org-exp.el (org-export-as-html): Let-bind `i'.
