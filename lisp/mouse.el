@@ -2473,6 +2473,7 @@ choose a font."
 (declare-function x-select-font "xfns.c" (&optional frame ignored)) ; USE_GTK
 (declare-function buffer-face-mode-invoke "face-remap"
                   (face arg &optional interactive))
+(declare-function font-face-attributes "font.c" (font &optional frame))
 
 (defun mouse-appearance-menu (event)
   (interactive "@e")

@@ -3314,6 +3314,7 @@ Anything else means ask for each directory."
   (message-box
    "Dired recursive copies are currently disabled.\nSee the variable `dired-recursive-copies'."))
 
+(declare-function x-popup-menu "xmenu.c" (position menu))
 
 (defun dired-dnd-do-ask-action (uri)
   ;; No need to get actions and descriptions from the source,

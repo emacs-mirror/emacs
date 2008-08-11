@@ -253,6 +253,8 @@ exists."
 (defconst x-pointer-invisible 255)
 
 
+(defvar x-colors)
+
 (defun xw-defined-colors (&optional frame)
   "Internal function called by `defined-colors', which see."
   (or frame (setq frame (selected-frame)))
@@ -1449,6 +1451,10 @@ The value nil is the same as this list:
 (declare-function x-server-max-request-size "xfns.c" (&optional terminal))
 (declare-function x-get-resource "frame.c"
 		  (attribute class &optional component subclass))
+(declare-function x-parse-geometry "frame.c" (string))
+(defvar x-resource-name)
+(defvar x-display-name)
+(defvar x-command-line-resources)
 
 (defun x-initialize-window-system ()
   "Initialize Emacs for X frames and open the first connection to an X server."

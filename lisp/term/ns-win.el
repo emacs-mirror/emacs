@@ -749,6 +749,8 @@ this defaults to \"printenv\"."
 (defvar ns-input-spi-name)
 (defvar ns-input-spi-arg)
 
+(declare-function dnd-open-file "dnd" (uri action))
+
 (defun ns-spi-service-call ()
   "Respond to a service request."
   (interactive)
@@ -1209,6 +1211,9 @@ unless the current buffer is a scratch buffer.")
 ;; (if this is not done, modeline is dimmed until first interaction)
 (add-hook 'after-make-frame-functions 'select-frame)
 
+(defvar tool-bar-mode)
+(declare-function tool-bar-mode "tool-bar" (&optional arg))
+
 ;; Based on a function by David Reitter <dreitter@inf.ed.ac.uk> ;
 ;; see http://lists.gnu.org/archive/html/emacs-devel/2005-09/msg00681.html .
 (defun ns-toggle-toolbar (&optional frame)
@@ -1397,6 +1402,8 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 (global-unset-key [vertical-scroll-bar mouse-1])
 (global-unset-key [vertical-scroll-bar drag-mouse-1])
 
+(declare-function scroll-bar-scale "scroll-bar" (num-denom whole))
+
 (defun ns-scroll-bar-move (event)
   "Scroll the frame according to a Nextstep scroller event."
   (interactive "e")
@@ -1561,6 +1568,8 @@ Note, tranparency works better on Tiger (10.4) and higher."
   "Non-nil if Nextstep windowing has been initialized.")
 
 (declare-function ns-list-services "nsfns.m" ())
+(declare-function x-open-connection "xfns.c"
+                  (display &optional xrm-string must-succeed))
 
 ;; Do the actual Nextstep Windows setup here; the above code just
 ;; defines functions and variables that we use now.

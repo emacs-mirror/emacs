@@ -147,6 +147,7 @@ the last file dropped is selected."
 (global-set-key [language-change] 'ignore)
 
 (defvar x-resource-name)
+(defvar x-colors)
 
 
 (defun xw-defined-colors (&optional frame)
@@ -225,6 +226,9 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (declare-function create-fontset-from-x-resource "fontset" ())
 (declare-function x-get-resource "frame.c"
                   (attribute class &optional component subclass))
+(declare-function x-handle-args "common-win" (args))
+(declare-function x-parse-geometry "frame.c" (string))
+(defvar x-command-line-resources)
 
 (defun w32-initialize-window-system ()
   "Initialize Emacs for W32 GUI frames."

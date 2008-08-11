@@ -153,6 +153,8 @@
     ["Backward 1 Year" (calendar-scroll-right 12) :keys "4 M-v"])
   "Key map for \"Scroll\" menu in the calendar.")
 
+(declare-function x-popup-menu "xmenu.c" (position menu))
+
 (defmacro cal-menu-x-popup-menu (event title &rest body)
   "Call `x-popup-menu' at position EVENT, with TITLE and contents BODY.
 Signals an error if popups are unavailable."

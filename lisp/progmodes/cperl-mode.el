@@ -7089,6 +7089,8 @@ Use as
 			(cons cons1 (car cperl-hierarchy)))))))
       (end-of-line))))
 
+(declare-function x-popup-menu "xmenu.c" (position menu))
+
 (defun cperl-tags-hier-init (&optional update)
   "Show hierarchical menu of classes and methods.
 Finds info about classes by a scan of loaded TAGS files.

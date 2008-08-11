@@ -624,6 +624,8 @@ The holidays are those in the list `calendar-holidays'."
 (define-obsolete-function-alias
   'check-calendar-holidays 'calendar-check-holidays "23.1")
 
+(declare-function x-popup-menu "xmenu.c" (position menu))
+
 ;;;###cal-autoload
 (defun calendar-cursor-holidays (&optional date event)
   "Find holidays for the date specified by the cursor in the calendar window.
