@@ -33,7 +33,7 @@
 (org-add-link-type "message" 'org-mac-message-open)
 
 ;; In mac.c, removed in Emacs 23.
-(declare-function do-applescript "org-mac-message" (string))
+(declare-function do-applescript "org-mac-message" (script))
 (unless (fboundp 'do-applescript)
   ;; Need to fake this using shell-command-to-string
   (defun do-applescript (script)
