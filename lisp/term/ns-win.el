@@ -160,7 +160,7 @@ The return value is ARGS minus the number of arguments processed."
   (nreverse args))
 
 (defun x-parse-geometry (geom)
-  "Parse a Nextstep-style geometry string STRING.
+  "Parse a Nextstep-style geometry string GEOM.
 Returns an alist of the form ((top . TOP), (left . LEFT) ... ).
 The properties returned may include `top', `left', `height', and `width'."
   (when (string-match "\\([0-9]+\\)\\( \\([0-9]+\\)\\( \\([0-9]+\\)\
