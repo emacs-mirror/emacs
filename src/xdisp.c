@@ -21367,25 +21367,33 @@ x_produce_glyphs (it)
 	}
       else if (it->char_to_display == '\t')
 	{
-	  int tab_width = it->tab_width * font->space_width;
-	  int x = it->current_x + it->continuation_lines_width;
-	  int next_tab_x = ((1 + x + tab_width - 1) / tab_width) * tab_width;
-
-	  /* If the distance from the current position to the next tab
-	     stop is less than a space character width, use the
-	     tab stop after that.  */
-	  if (next_tab_x - x < font->space_width)
-	    next_tab_x += tab_width;
-
-	  it->pixel_width = next_tab_x - x;
-	  it->nglyphs = 1;
-	  it->ascent = it->phys_ascent = FONT_BASE (font) + boff;
-	  it->descent = it->phys_descent = FONT_DESCENT (font) - boff;
-
-	  if (it->glyph_row)
+	  if (font->space_width > 0)
 	    {
-	      append_stretch_glyph (it, it->object, it->pixel_width,
-				    it->ascent + it->descent, it->ascent);
+	      int tab_width = it->tab_width * font->space_width;
+	      int x = it->current_x + it->continuation_lines_width;
+	      int next_tab_x = ((1 + x + tab_width - 1) / tab_width) * tab_width;
+
+	      /* If the distance from the current position to the next tab
+		 stop is less than a space character width, use the
+		 tab stop after that.  */
+	      if (next_tab_x - x < font->space_width)
+		next_tab_x += tab_width;
+
+	      it->pixel_width = next_tab_x - x;
+	      it->nglyphs = 1;
+	      it->ascent = it->phys_ascent = FONT_BASE (font) + boff;
+	      it->descent = it->phys_descent = FONT_DESCENT (font) - boff;
+
+	      if (it->glyph_row)
+		{
+		  append_stretch_glyph (it, it->object, it->pixel_width,
+					it->ascent + it->descent, it->ascent);
+		}
+	    }
+	  else
+	    {
+	      it->pixel_width = 0;
+	      it->nglyphs = 1;
 	    }
 	}
       else
