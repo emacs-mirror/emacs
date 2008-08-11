@@ -478,7 +478,7 @@
 2008-07-30  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el (verilog-read-decls): Allow AUTORESET
-	to work with SV 'logic' signals.  [Julian Gorfajn]
+	to work with SV 'logic' signals.  Suggested by Julian Gorfajn.
 	(verilog-auto-inst-column): Make verilog-auto-inst-column customizable.
 	(verilog-string-replace-matches): Avoid recursion with small
 	replacements.
@@ -486,9 +486,10 @@
 	(verilog-mode-version-date, verilog-read-inst-param-value)
 	(verilog-auto-inst, verilog-auto-inst-param)
 	(verilog-auto-inst-port, verilog-simplify-range-expression): Add
-	verilog-auto-inst-param-value option for AUTOINST.  [David Rogoff]
-	This allows parameters to be replaced with their values, on the
-	expansion of an AUTOINST with Verilog 2001 style parameter settings.
+	verilog-auto-inst-param-value option for AUTOINST.  Suggested by
+	David Rogoff.  This allows parameters to be replaced with their
+	values, on the expansion of an AUTOINST with Verilog 2001 style
+	parameter settings.
 
 2008-07-30  David Lord  <david.lord@phonecoop.coop>  (tiny change)
 
