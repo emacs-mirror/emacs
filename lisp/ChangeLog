@@ -1,3 +1,9 @@
+2008-08-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (visual-line--saved-state): New var.
+	(visual-line-mode): Save local values of variables, and restore
+	them when visual-line-mode is disabled.
+
 2008-08-12  NAKAGAWA Makoto  <gha03025@nifty.ne.jp>  (tiny change)
 
 	* net/ldap.el (ldap-search-internal): Tweak URL regexp.
