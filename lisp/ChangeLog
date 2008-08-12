@@ -1,3 +1,7 @@
+2008-08-12  NAKAGAWA Makoto  <gha03025@nifty.ne.jp>  (tiny change)
+
+	* net/ldap.el (ldap-search-internal): Tweak URL regexp.
+
 2008-08-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (bootstrap-prepare): Explictly pass EMACS to sub-makes
