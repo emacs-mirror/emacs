@@ -1,3 +1,7 @@
+2008-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* maintaining.texi (Change Log): Mention next-error is available.
+
 2008-08-10  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi (Calendar Customizing): Mention whitespace variables
