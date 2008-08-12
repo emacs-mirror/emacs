@@ -1,3 +1,9 @@
+2008-08-12  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-emacs-features):
+	argumentative-bod-function: bind mark-ring to avoid accumulating a
+	spurious mark.
+
 2008-08-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (visual-line--saved-state): New var.
