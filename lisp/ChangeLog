@@ -1,3 +1,10 @@
+2008-08-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-minor-mode-table): Add `savehist-mode'.
+
+	* play/solitaire.el (solitaire-solve): Err out if the solitaire
+	is already in progress.
+
 2008-08-12  NAKAGAWA Makoto  <gha03025@nifty.ne.jp>  (tiny change)
 
 	* net/ldap.el (ldap-search-internal): Tweak URL regexp.

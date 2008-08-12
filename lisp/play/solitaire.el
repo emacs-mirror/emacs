@@ -431,6 +431,8 @@ Seen in info on text lines."
   "Spoil solitaire by solving the game for you - nearly ...
 ... stops with five stones left ;)"
   (interactive)
+  (when (< solitaire-stones 32)
+    (error "Cannot solve game in progress"))
   (let ((allmoves [up up S-down up left left S-right up up left S-down
 		      up up right right S-left down down down S-up up
 		      S-down down down down S-up left left down

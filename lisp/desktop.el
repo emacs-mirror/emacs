@@ -454,7 +454,8 @@ Furthermore the major mode function must be autoloaded.")
 (defcustom desktop-minor-mode-table
   '((auto-fill-function auto-fill-mode)
     (vc-mode nil)
-    (vc-dired-mode nil))
+    (vc-dired-mode nil)
+    (savehist-mode nil))
   "Table mapping minor mode variables to minor mode functions.
 Each entry has the form (NAME RESTORE-FUNCTION).
 NAME is the name of the buffer-local variable indicating that the minor
