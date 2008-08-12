@@ -6113,13 +6113,12 @@ If given a numerical ARG, move forward ARG pages."
 If end of article, return non-nil.  Otherwise return nil.
 Argument LINES specifies lines to be scrolled up."
   (interactive "p")
-  (move-to-window-line -1)
+  (move-to-window-line (if (featurep 'xemacs) -1 (- -1 scroll-margin)))
   (if (and (not (and gnus-article-over-scroll
 		     (> (count-lines (window-start) (point-max))
-			(+ (or lines (1- (window-height)))
-			   (or (and (boundp 'scroll-margin)
-				    (symbol-value 'scroll-margin))
-			       0)))))
+			(if (featurep 'xemacs)
+			    (or lines (1- (window-height)))
+			  (+ (or lines (1- (window-height))) scroll-margin)))))
 	   (save-excursion
 	     (end-of-line)
 	     (and (pos-visible-in-window-p)	;Not continuation line.
@@ -6151,19 +6150,19 @@ specifies."
       (min (max 0 scroll-margin)
 	   (max 1 (- (window-height)
 		     (if mode-line-format 1 0)
-		     (if header-line-format 1 0)))))))
+		     (if header-line-format 1 0)
+		     2))))))
 
 (defun gnus-article-next-page-1 (lines)
-  (when (and (not (featurep 'xemacs))
-	     (numberp lines)
-	     (> lines 0)
-	     (numberp (symbol-value 'scroll-margin))
-	     (> (symbol-value 'scroll-margin) 0))
+  (unless (featurep 'xemacs)
     ;; Protect against the bug that Emacs 21.x hangs up when scrolling up for
     ;; too many number of lines if `scroll-margin' is set as two or greater.
-    (setq lines (min lines
-		     (max 0 (- (count-lines (window-start) (point-max))
-			       (symbol-value 'scroll-margin))))))
+    (when (and (numberp lines)
+	       (> lines 0)
+	       (> scroll-margin 0))
+      (setq lines (min lines
+		       (max 0 (- (count-lines (window-start) (point-max))
+				 scroll-margin))))))
   (condition-case ()
       (let ((scroll-in-place nil))
 	(scroll-up lines))
@@ -6185,9 +6184,9 @@ Argument LINES specifies lines to be scrolled down."
 	(goto-char (point-max))
 	(recenter (if gnus-article-over-scroll
 		      (if lines
-			  (max (+ lines (or (and (boundp 'scroll-margin)
-						 (symbol-value 'scroll-margin))
-					    0))
+			  (max (if (featurep 'xemacs)
+				   lines
+				 (+ lines scroll-margin))
 			       3)
 			(- (window-height) 2))
 		    -1)))

@@ -1,3 +1,21 @@
+2008-08-11  Ralf Angeli  <angeli@caeruleus.net>
+
+	* gnus-art.el (gnus-article-next-page): Respect `scroll-margin' when
+	moving point to the bottom of the window in order to avoid recentering.
+
+2008-08-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page, gnus-article-prev-page)
+	(gnus-article-next-page-1): Use compiler directive (featurep 'xemacs).
+	(gnus-article-beginning-of-window): Fix calculation.
+
+2008-08-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-summary-supersede-article)
+	(gnus-summary-resend-message-edit): Bind mail-parse-charset to the
+	value of gnus-newsgroup-charset to decode non-MIME encoded text in
+	message header.
+
 2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* message.el:

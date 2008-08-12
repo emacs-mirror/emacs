@@ -812,7 +812,8 @@ post using the current select method."
 This is done simply by taking the old article and adding a Supersedes
 header line with the old Message-ID."
   (interactive)
-  (let ((article (gnus-summary-article-number)))
+  (let ((article (gnus-summary-article-number))
+	(mail-parse-charset gnus-newsgroup-charset))
     (gnus-setup-message 'reply-yank
       (gnus-summary-select-article t)
       (set-buffer gnus-original-article-buffer)
@@ -1274,7 +1275,7 @@ A new buffer will be created to allow the user to modify body and
 contents of the message, and then, everything will happen as when
 composing a new message."
   (interactive)
-  (let ((article (gnus-summary-article-number)))
+  (let ((mail-parse-charset gnus-newsgroup-charset))
     (gnus-setup-message 'reply-yank
       (gnus-summary-select-article t)
       (set-buffer gnus-original-article-buffer)
