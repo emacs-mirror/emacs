@@ -4508,6 +4508,8 @@ other purposes."
 			    (copy-tree fringe-indicator-alist)))))))
 	 (set-default symbol value)))
 
+(defvar visual-line--saved-state nil)
+
 (define-minor-mode visual-line-mode
   "Redefine simple editing commands to act on visual lines, not logical lines.
 This also turns on `word-wrap' in the buffer."
@@ -4516,6 +4518,15 @@ This also turns on `word-wrap' in the buffer."
   :lighter " wrap"
   (if visual-line-mode
       (progn
+	(set (make-local-variable 'visual-line--saved-state) nil)
+	;; Save the local values of some variables, to be restored if
+	;; visual-line-mode is turned off.
+	(dolist (var '(line-move-visual truncate-lines
+		       truncate-partial-width-windows
+		       word-wrap fringe-indicator-alist))
+	  (if (local-variable-p var)
+	      (push (cons var (symbol-value var)) 
+		    visual-line--saved-state)))
 	(set (make-local-variable 'line-move-visual) t)
 	(set (make-local-variable 'truncate-partial-width-windows) nil)
 	(setq truncate-lines nil
@@ -4527,7 +4538,10 @@ This also turns on `word-wrap' in the buffer."
     (kill-local-variable 'word-wrap)
     (kill-local-variable 'truncate-lines)
     (kill-local-variable 'truncate-partial-width-windows)
-    (kill-local-variable 'fringe-indicator-alist)))
+    (kill-local-variable 'fringe-indicator-alist)
+    (dolist (saved visual-line--saved-state)
+      (set (make-local-variable (car saved)) (cdr saved)))
+    (kill-local-variable 'visual-line--saved-state)))
 
 (defun turn-on-visual-line-mode ()
   (visual-line-mode 1))
