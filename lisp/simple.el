@@ -4525,7 +4525,7 @@ This also turns on `word-wrap' in the buffer."
 		       truncate-partial-width-windows
 		       word-wrap fringe-indicator-alist))
 	  (if (local-variable-p var)
-	      (push (cons var (symbol-value var)) 
+	      (push (cons var (symbol-value var))
 		    visual-line--saved-state)))
 	(set (make-local-variable 'line-move-visual) t)
 	(set (make-local-variable 'truncate-partial-width-windows) nil)
