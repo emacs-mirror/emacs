@@ -1444,7 +1444,8 @@ non-nil, a caret is prepended to invert the set."
     ;; beginning-of-defun-function.  Assume end-of-defun does likewise.
     (let ((beginning-of-defun-function
 	   (lambda (&optional arg)
-	     (not (eq arg nil)))))
+	     (not (eq arg nil))))
+	  mark-ring)
       (save-excursion
 	(if (beginning-of-defun-raw 1)
 	    (setq list (cons 'argumentative-bod-function list)))))
