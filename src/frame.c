@@ -69,6 +69,10 @@ Lisp_Object Vframe_alpha_lower_limit;
 
 #endif
 
+#ifdef HAVE_NS
+Lisp_Object Qns_parse_geometry;
+#endif
+
 Lisp_Object Qframep, Qframe_live_p;
 Lisp_Object Qicon, Qmodeline;
 Lisp_Object Qonly;
@@ -4050,6 +4054,25 @@ x_default_parameter (f, alist, prop, deflt, xprop, xclass, type)
 
 
 
+#ifdef HAVE_NS
+
+/* We used to define x-parse-geometry directly in ns-win.el, but that
+   confused make-docfile: the documentation string in ns-win.el was
+   used for x-parse-geometry even in non-NS builds..  */
+
+DEFUN ("x-parse-geometry", Fx_parse_geometry, Sx_parse_geometry, 1, 1, 0,
+       doc: /* Parse a Nextstep-style geometry string STRING.
+Returns an alist of the form ((top . TOP), (left . LEFT) ... ).
+The properties returned may include `top', `left', `height', and `width'.
+This works by calling `ns-parse-geometry'.  */)
+     (string)
+     Lisp_Object string;
+{
+  call1 (Qns_parse_geometry, string);
+}
+
+#else /* !HAVE_NS */
+
 DEFUN ("x-parse-geometry", Fx_parse_geometry, Sx_parse_geometry, 1, 1, 0,
        doc: /* Parse an X-style geometry string STRING.
 Returns an alist of the form ((top . TOP), (left . LEFT) ... ).
@@ -4068,12 +4091,6 @@ or a list (- N) meaning -N pixels relative to bottom/right corner.  */)
 
   geometry = XParseGeometry ((char *) SDATA (string),
 			     &x, &y, &width, &height);
-
-#if 0
-  if (!!(geometry & XValue) != !!(geometry & YValue))
-    error ("Must specify both x and y position, or neither");
-#endif
-
   result = Qnil;
   if (geometry & XValue)
     {
@@ -4108,6 +4125,8 @@ or a list (- N) meaning -N pixels relative to bottom/right corner.  */)
 
   return result;
 }
+#endif /* HAVE_NS */
+
 
 /* Calculate the desired size and position of frame F.
    Return the flags saying which aspects were specified.
@@ -4414,6 +4433,11 @@ syms_of_frame ()
   staticpro (&Qterminal);
   Qterminal_live_p = intern ("terminal-live-p");
   staticpro (&Qterminal_live_p);
+
+#ifdef HAVE_NS
+  Qns_parse_geometry = intern ("ns-parse-geometry");
+  staticpro (&Qns_parse_geometry);
+#endif
 
   {
     int i;
