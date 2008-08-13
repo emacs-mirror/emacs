@@ -1,7 +1,7 @@
 2008-08-13  Andreas Schwab  <schwab@suse.de>
 
-	* net/tramp.el (tramp-handle-shell-command): Correctly handle
-	output going to current buffer.  Don't disable undo.
+	* net/tramp.el (tramp-handle-shell-command): Handle output going
+	to current buffer like shell-command.  Don't disable undo.
 
 2008-08-13  Glenn Morris  <rgm@gnu.org>
 
