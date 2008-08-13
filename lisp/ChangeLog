@@ -1,3 +1,7 @@
+2008-08-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/ns-win.el (ns-parse-geometry): Rename from x-parse-geometry.
+
 2008-08-13  Andreas Schwab  <schwab@suse.de>
 
 	* net/tramp.el (tramp-handle-shell-command): Handle output going
