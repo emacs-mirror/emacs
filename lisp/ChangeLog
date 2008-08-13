@@ -1,3 +1,8 @@
+2008-08-13  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-cmd.el (eshell/which): Handle the case where no description
+	is found.
+
 2008-08-12  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-defs.el (c-emacs-features):
