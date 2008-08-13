@@ -1252,9 +1252,12 @@ be finished later after the completion of an asynchronous subprocess."
 			      (prog1
 				  (describe-function sym)
 				(message nil))))))
-		(setq desc (substring desc 0
-				      (1- (or (string-match "\n" desc)
-					      (length desc)))))
+		(setq desc (if desc (substring desc 0
+					       (1- (or (string-match "\n" desc)
+						       (length desc))))
+			     ;; This should not happen.
+			     (format "%s is defined, \
+but no documentation was found" name)))
 		(if (buffer-live-p (get-buffer "*Help*"))
 		    (kill-buffer "*Help*"))
 		(setq program (or desc name))))))
