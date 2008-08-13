@@ -159,7 +159,7 @@ The return value is ARGS minus the number of arguments processed."
 	(setq args (cons orig-this-switch args)))))
   (nreverse args))
 
-(defun x-parse-geometry (geom)
+(defun ns-parse-geometry (geom)
   "Parse a Nextstep-style geometry string GEOM.
 Returns an alist of the form ((top . TOP), (left . LEFT) ... ).
 The properties returned may include `top', `left', `height', and `width'."
