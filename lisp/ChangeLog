@@ -1,3 +1,8 @@
+2008-08-13  Andreas Schwab  <schwab@suse.de>
+
+	* net/tramp.el (tramp-handle-shell-command): Correctly handle
+	output going to current buffer.  Don't disable undo.
+
 2008-08-13  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-cmd.el (eshell/which): Handle the case where no description

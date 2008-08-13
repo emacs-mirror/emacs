@@ -3846,11 +3846,14 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	 ;; We cannot use `shell-file-name' and `shell-command-switch',
 	 ;; they are variables of the local host.
 	 (args (list "/bin/sh" "-c" (substring command 0 asynchronous)))
+	 current-buffer-p
 	 (output-buffer
 	  (cond
 	   ((bufferp output-buffer) output-buffer)
 	   ((stringp output-buffer) (get-buffer-create output-buffer))
-	   (output-buffer (current-buffer))
+	   (output-buffer
+	    (setq current-buffer-p t)
+	    (current-buffer))
 	   (t (get-buffer-create
 	       (if asynchronous
 		   "*Async Shell Command*"
@@ -3875,12 +3878,12 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	    (error nil))
 	(error "Shell command in progress")))
 
-    (with-current-buffer output-buffer
-      (setq buffer-read-only nil
-	    buffer-undo-list t)
-      (erase-buffer))
+    (unless current-buffer-p
+      (with-current-buffer output-buffer
+	(setq buffer-read-only nil)
+	(erase-buffer)))
 
-    (if (integerp asynchronous)
+    (if (and (not current-buffer-p) (integerp asynchronous))
 	(prog1
 	    ;; Run the process.
 	    (apply 'start-file-process "*Async Shell*" buffer args)
