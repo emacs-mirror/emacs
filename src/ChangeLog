@@ -1,3 +1,8 @@
+2008-08-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Qns_parse_geometry): New var.
+	(Fx_parse_geometry): For HAVE_NS, call ns-parse-geometry.
+
 2008-08-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (x_produce_glyphs): Handle the case when font has no
