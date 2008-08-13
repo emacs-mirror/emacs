@@ -1,3 +1,9 @@
+2008-08-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/find-func.el (find-library): Wrap search for
+	library name in condition-case to avoid reporting a scan-error.
+	(Bug#563)  (sync from trunk 2008-01-25)
+
 2008-08-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-minor-mode-table): Add `savehist-mode'.
