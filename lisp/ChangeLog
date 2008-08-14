@@ -1,3 +1,8 @@
+2008-08-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc-dispatcher.el (vc-do-command): Let asynchronous processes run
+	also for remote directories.
+
 2008-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easymenu.el (easy-menu-add): Don't precompute keybindings
