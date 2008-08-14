@@ -29,16 +29,15 @@
 
 ;;; Code:
 
-(defcustom easy-menu-precalculate-equivalent-keybindings t
+(defvar easy-menu-precalculate-equivalent-keybindings nil
   "Determine when equivalent key bindings are computed for easy-menu menus.
 It can take some time to calculate the equivalent key bindings that are shown
 in a menu.  If the variable is on, then this calculation gives a (maybe
 noticeable) delay when a mode is first entered.  If the variable is off, then
 this delay will come when a menu is displayed the first time.  If you never use
-menus, turn this variable off, otherwise it is probably better to keep it on."
-  :type 'boolean
-  :group 'menu
-  :version "20.3")
+menus, turn this variable off, otherwise it is probably better to keep it on.")
+(make-obsolete-variable
+ 'easy-menu-precalculate-equivalent-keybindings nil "23.1")
 
 (defsubst easy-menu-intern (s)
   (if (stringp s) (intern s) s))
@@ -499,9 +498,7 @@ To implement dynamic menus, either call this from
 
 ;; XEmacs needs the following two functions to add and remove menus.
 ;; In Emacs this is done automatically when switching keymaps, so
-;; here easy-menu-remove is a noop and easy-menu-add only precalculates
-;; equivalent keybindings (if easy-menu-precalculate-equivalent-keybindings
-;; is on).
+;; here easy-menu-remove is a noop.
 (defalias 'easy-menu-remove 'ignore
   "Remove MENU from the current menu bar.
 Contrary to XEmacs, this is a nop on Emacs since menus are automatically
@@ -515,17 +512,9 @@ On Emacs, menus are already automatically activated when the
 corresponding keymap is activated.  On XEmacs this is needed to
 actually add the menu to the current menubar.
 
-This also precalculates equivalent key bindings when
-`easy-menu-precalculate-equivalent-keybindings' is on.
-
 You should call this once the menu and keybindings are set up
 completely and menu filter functions can be expected to work."
-  (when easy-menu-precalculate-equivalent-keybindings
-    (if (and (symbolp menu) (not (keymapp menu)) (boundp menu))
-	(setq menu (symbol-value menu)))
-    (and (keymapp menu) (fboundp 'x-popup-menu)
-	 (x-popup-menu nil menu))
-    ))
+  )
 
 (defun add-submenu (menu-path submenu &optional before in-menu)
   "Add submenu SUBMENU in the menu at MENU-PATH.

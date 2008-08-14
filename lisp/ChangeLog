@@ -1,3 +1,9 @@
+2008-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el (easy-menu-add): Don't precompute keybindings
+	since those precomputed values aren't used any more.
+	(easy-menu-precalculate-equivalent-keybindings): Obsolete.
+
 2008-08-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* help.el (with-help-window): Return last value in BODY.
