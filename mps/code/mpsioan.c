@@ -35,6 +35,7 @@ extern int _flsbuf(unsigned char c, FILE *stream);
 
 static FILE *ioFile = NULL;
 
+#pragma warning( disable : 4996 )
 
 mps_res_t mps_io_create(mps_io_t *mps_io_r)
 {
