@@ -571,32 +571,33 @@ SEARCH is the search identification in that engine.  Both must be strings."
 			 (widget-get widget :xesam:mimeType)))
       (widget-put
        widget :notify
-       '(lambda (widget &rest ignore)
-	  ;; We toggle.  If there are already children, we delete them.
-	  (if (widget-get widget :children)
-	      (widget-children-value-delete widget)
+       (lambda (widget &rest ignore)
+	 (save-excursion
+	   ;; We toggle.  If there are already children, we delete them.
+	   (if (widget-get widget :children)
+	       (widget-children-value-delete widget)
 
-	    ;; No children.  Let's display the messages.
-	    (widget-end-of-line)
-	    ;; Get hit data.  Loop over results.
-	    (dolist (data
-		     ;; "GetHitData" returns a list.  But we have
-		     ;; requested just one element only.
-		     (car
-		      (xesam-dbus-call-method
-		       :session (car xesam-engine) xesam-path-search
-		       xesam-interface-search "GetHitData" xesam-search
-		       (list (widget-get widget :debbugs:key))
-		       '("debbugs:key"))))
-	      (let ((child
-		     (widget-create-child-and-convert
-		      ;; The result is a variant.  So we must apply `car'.
-		      widget '(link) :format "\n%h" :doc (car data))))
-		;; Add child to parent's list.  Needed, in order to be
-		;; able to delete it next toggle.
-		(widget-put
-		 widget
-		 :children (cons child (widget-get widget :children)))))))))
+	     ;; No children.  Let's display the messages.
+	     (widget-end-of-line)
+	     ;; Get hit data.  Loop over results.
+	     (dolist (data
+		      ;; "GetHitData" returns a list.  But we have
+		      ;; requested just one element only.
+		      (car
+		       (xesam-dbus-call-method
+			:session (car xesam-engine) xesam-path-search
+			xesam-interface-search "GetHitData" xesam-search
+			(list (widget-get widget :debbugs:key))
+			'("debbugs:key"))))
+	       (let ((child
+		      (widget-create-child-and-convert
+		       ;; The result is a variant.  So we must apply `car'.
+		       widget '(link) :format "\n%h" :doc (car data))))
+		 ;; Add child to parent's list.  Needed, in order to be
+		 ;; able to delete it next toggle.
+		 (widget-put
+		  widget
+		  :children (cons child (widget-get widget :children))))))))))
 
      ;; For local files, we will open the file as default action.
      ((string-match "file"
@@ -604,9 +605,9 @@ SEARCH is the search identification in that engine.  Both must be strings."
 			       (widget-get widget :xesam:url))))
       (widget-put
        widget :notify
-       '(lambda (widget &rest ignore)
-	  (find-file
-	   (url-filename (url-generic-parse-url (widget-value widget))))))
+       (lambda (widget &rest ignore)
+	 (find-file
+	  (url-filename (url-generic-parse-url (widget-value widget))))))
       (widget-put
        widget :value
        (url-filename (url-generic-parse-url (widget-get widget :xesam:url))))))
@@ -676,10 +677,10 @@ SEARCH is the search identification in that engine.  Both must be strings."
 	      (widget-create
 	       'link
 	       :notify
-	       '(lambda (widget &rest ignore)
-		  (setq xesam-to (+ xesam-to xesam-hits-per-page))
-		  (widget-delete widget)
-		  (xesam-refresh-search-buffer xesam-engine xesam-search))
+	       (lambda (widget &rest ignore)
+		 (setq xesam-to (+ xesam-to xesam-hits-per-page))
+		 (widget-delete widget)
+		 (xesam-refresh-search-buffer xesam-engine xesam-search))
 	       "NEXT")
 	      (widget-beginning-of-line))
 
@@ -690,13 +691,13 @@ SEARCH is the search identification in that engine.  Both must be strings."
 	       engine search
 	       (min xesam-hits-per-page
 		    (- (min (+ xesam-hits-per-page xesam-to) xesam-count)
-		       (length xesam-objects))))))
+		       (length xesam-objects)))))
 
 	    ;; Add "DONE" widget.
 	    (when (= xesam-current xesam-count)
 	      (goto-char (point-max))
 	      (widget-create 'link :notify 'ignore "DONE")
-	      (widget-beginning-of-line))
+	      (widget-beginning-of-line)))
 
 	;; Return with save settings.
 	(setq xesam-refreshing nil)))))
@@ -746,7 +747,7 @@ search, is returned."
 	 (xml-string
 	  (format
 	   (if (eq type 'user-query) xesam-user-query xesam-fulltext-query)
-	   query))
+	   (url-insert-entities-in-string query)))
 	 (search (xesam-dbus-call-method
 		  :session service xesam-path-search
 		  xesam-interface-search "NewSearch" session xml-string)))
@@ -788,8 +789,8 @@ search, is returned."
 	       (xesam-get-cached-property engine "vendor.id")
 	       'help-echo
 	       (mapconcat
-		'(lambda (x)
-		   (format "%s: %s" x (xesam-get-cached-property engine x)))
+		(lambda (x)
+		  (format "%s: %s" x (xesam-get-cached-property engine x)))
 		'("vendor.id" "vendor.version" "vendor.display" "vendor.xesam"
 		  "vendor.ontology.fields" "vendor.ontology.contents"
 		  "vendor.ontology.sources" "vendor.extensions"
@@ -820,7 +821,7 @@ Example:
   (xesam-search (car (xesam-search-engines)) \"emacs\")"
   (interactive
    (let* ((vendors (mapcar
-		    '(lambda (x) (xesam-get-cached-property x "vendor.display"))
+		    (lambda (x) (xesam-get-cached-property x "vendor.display"))
 		    (xesam-search-engines)))
 	  (vendor
 	   (if (> (length vendors) 1)
