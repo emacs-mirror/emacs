@@ -5541,11 +5541,15 @@ This also applies to other functions such as `choose-completion'
 and `mouse-choose-completion'.")
 
 (defvar completion-base-size nil
-  "Number of chars at beginning of minibuffer not involved in completion.
-This is a local variable in the completion list buffer
-but it talks about the buffer in `completion-reference-buffer'.
-If this is nil, it means to compare text to determine which part
-of the tail end of the buffer's text is involved in completion.")
+  "Number of chars before point not involved in completion.
+This is a local variable in the completion list buffer.
+It refers to the chars in the minibuffer if completing in the
+minibuffer, or in `completion-reference-buffer' otherwise.
+Only characters in the field at point are included.
+
+If nil, Emacs determines which part of the tail end of the
+buffer's text is involved in completion by comparing the text
+directly.")
 
 (defun delete-completion-window ()
   "Delete the completion list window.
