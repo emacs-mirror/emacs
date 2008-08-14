@@ -1,6 +1,6 @@
 2008-08-14  Chong Yidong  <cyd@stupidchicken.com>
 
-	* fns.c (syms_of_fns): Doc fix.
+	* fns.c (use_dialog_box): Doc fix.
 
 	* s/darwin.h: Undefine HAVE_RES_INIT, which appears to be harmful
 	on OS X.
