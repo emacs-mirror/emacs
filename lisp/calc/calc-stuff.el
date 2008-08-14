@@ -155,11 +155,6 @@ With a prefix, push that prefix as a number onto the stack."
 	  (setq calc-which-why calc-why))
       (message "No explanations available"))))
 
-
-(defun calc-version ()
-  (interactive)
-  (message "Calc %s" calc-version))
-
 ;; The following caches are declared in other files, but are
 ;; reset here.
 (defvar math-lud-cache) ; calc-mtx.el
