@@ -1,3 +1,9 @@
+2008-08-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/xesam.el (xesam-refresh-entry): Use `save-excursion' in the
+	notify function of the URL.
+	(xesam-new-search): Encode special characters in the query string.
+
 2008-08-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/ns-win.el (ns-parse-geometry): Rename from x-parse-geometry.
