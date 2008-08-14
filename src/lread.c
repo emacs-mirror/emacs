@@ -791,13 +791,13 @@ floating-point value.  */)
      Lisp_Object prompt, inherit_input_method, seconds;
 {
   Lisp_Object val;
-  int c;
 
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
   val = read_filtered_event (1, 1, 1, ! NILP (inherit_input_method), seconds);
-  c = XINT (val);
-  return make_number (char_resolve_modifier_mask (c));
+
+  return (NILP (val) ? Qnil
+	  : make_number (char_resolve_modifier_mask (XINT (val))));
 }
 
 DEFUN ("read-event", Fread_event, Sread_event, 0, 3, 0,
@@ -836,13 +836,14 @@ floating-point value.  */)
      Lisp_Object prompt, inherit_input_method, seconds;
 {
   Lisp_Object val;
-  int c;
 
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
+
   val = read_filtered_event (1, 1, 0, ! NILP (inherit_input_method), seconds);
-  c = XINT (val);
-  return make_number (char_resolve_modifier_mask (c));
+
+  return (NILP (val) ? Qnil
+	  : make_number (char_resolve_modifier_mask (XINT (val))));
 }
 
 DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
