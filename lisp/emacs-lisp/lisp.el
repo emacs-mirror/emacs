@@ -687,18 +687,19 @@ considered."
 		   (message "Making completion list..."))
 		 (let ((list (all-completions pattern obarray predicate)))
 		   (setq list (sort list 'string<))
-		   (or (eq predicate 'fboundp)
-		       (let (new)
-			 (while list
-			   (setq new (cons (if (fboundp (intern (car list)))
-					       (list (car list) " <f>")
-					     (car list))
-					   new))
-			   (setq list (cdr list)))
-			 (setq list (nreverse new))))
+		   (unless (eq predicate 'fboundp)
+		     (let (new)
+		       (dolist (compl list)
+			 (push (if (fboundp (intern compl))
+				   (list compl " <f>")
+				 compl)
+			       new))
+		       (setq list (nreverse new))))
 		   (if (> (length list) 1)
 		       (with-output-to-temp-buffer "*Completions*"
-			 (display-completion-list list pattern))
+			 (display-completion-list
+			  list pattern
+			  (- beg (field-beginning))))
 		     ;; Don't leave around a completions buffer that's
 		     ;; out of date.
 		     (let ((win (get-buffer-window "*Completions*" 0)))
