@@ -154,16 +154,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Definitions for how to compile & link.  */
 
 #ifdef HAVE_NS
-/* XXX: lresolv is here because configure when testing #undefs res_init,
-        a macro in /usr/include/resolv.h for res_9_init, not in stdc lib. */
-#define LIBS_NSGUI -framework AppKit -lresolv
+#define LIBS_NSGUI -framework AppKit
 #define SYSTEM_PURESIZE_EXTRA 200000
 #define HEADERPAD_EXTRA 6C8
-
 #else /* !HAVE_NS */
 #define LIBS_NSGUI
 #define HEADERPAD_EXTRA 690
 #endif /* !HAVE_NS */
+
+/* On Darwin, res_init appears not to be useful: see bug#562 and
+   http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01467.html  */
+
+#undef HAVE_RES_INIT
+#undef HAVE_LIBRESOLV
 
 /* The -headerpad option tells ld (see man page) to leave room at the
    end of the header for adding load commands.  Needed for dumping.
