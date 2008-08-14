@@ -1,3 +1,8 @@
+2008-08-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* s/darwin.h: Undefine HAVE_RES_INIT, which appears to be harmful
+	on OS X.
+
 2008-08-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (Qns_parse_geometry): New var.
