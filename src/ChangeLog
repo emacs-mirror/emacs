@@ -1,3 +1,9 @@
+2008-08-14  Lawrence Mitchell  <wence@gmx.li>
+
+	* lread.c (Fread_char, Fread_char_exclusive): If no character
+	event is read before timeout is reached, return nil, rather than
+	converting to a number.
+
 2008-08-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fns.c (use_dialog_box): Doc fix.
