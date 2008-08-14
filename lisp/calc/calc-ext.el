@@ -1147,7 +1147,7 @@ calc-store-times calc-subscript calc-unstore)
 
  ("calc-stuff" calc-clean calc-clean-num calc-flush-caches
 calc-less-recursion-depth calc-more-recursion-depth calc-num-prefix
-calc-version calc-why)
+calc-why)
 
  ("calc-trail" calc-trail-backward calc-trail-first calc-trail-forward
 calc-trail-in calc-trail-isearch-backward calc-trail-isearch-forward
