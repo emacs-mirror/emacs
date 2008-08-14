@@ -73,7 +73,6 @@ SUFFIX is the string after point.
 The result is of the form (START . END) where START is the position
 in STRING of the beginning of the completion field and END is the position
 in SUFFIX of the end of the completion field.
-I.e. START is the same as the `completion-base-size'.
 E.g. for simple completion tables, the result is always (0 . (length SUFFIX))
 and for file names the result is the positions delimited by
 the closest directory separators."
@@ -815,7 +814,7 @@ of the differing parts is, by contrast, slightly highlighted."
         completions)
        base-size))))
 
-(defun display-completion-list (completions &optional common-substring)
+(defun display-completion-list (completions &optional common-substring base-size)
   "Display the list of completions, COMPLETIONS, using `standard-output'.
 Each element may be just a symbol or string
 or may be a list of two strings to be printed as if concatenated.
@@ -826,11 +825,15 @@ The actual completion alternatives, as inserted, are given `mouse-face'
 properties of `highlight'.
 At the end, this runs the normal hook `completion-setup-hook'.
 It can find the completion buffer in `standard-output'.
-The obsolete optional second arg COMMON-SUBSTRING is a string.
-It is used to put faces, `completions-first-difference' and
-`completions-common-part' on the completion buffer.  The
-`completions-common-part' face is put on the common substring
-specified by COMMON-SUBSTRING."
+
+The optional arg COMMON-SUBSTRING, if non-nil, should be a string
+specifying a common substring for adding the faces
+`completions-first-difference' and `completions-common-part' to
+the completions buffer.
+
+The optional arg BASE-SIZE, if non-nil, which should be an
+integer that specifies the value of `completion-base-size' for
+the completion buffer."
   (if common-substring
       (setq completions (completion-hilit-commonality
                          completions (length common-substring))))
@@ -839,7 +842,7 @@ specified by COMMON-SUBSTRING."
       (with-temp-buffer
 	(let ((standard-output (current-buffer))
 	      (completion-setup-hook nil))
-	  (display-completion-list completions))
+	  (display-completion-list completions common-substring base-size))
 	(princ (buffer-string)))
 
     (with-current-buffer standard-output
@@ -849,15 +852,17 @@ specified by COMMON-SUBSTRING."
 
 	(insert "Possible completions are:\n")
         (let ((last (last completions)))
-          ;; Get the base-size from the tail of the list.
-          (set (make-local-variable 'completion-base-size) (or (cdr last) 0))
+          ;; If BASE-SIZE is unspecified, set it from the tail of the list.
+	  (set (make-local-variable 'completion-base-size)
+	       (or base-size (cdr last) 0))
           (setcdr last nil)) ;Make completions a properly nil-terminated list.
 	(completion--insert-strings completions))))
 
   ;; The hilit used to be applied via completion-setup-hook, so there
   ;; may still be some code that uses completion-common-substring.
-  (let ((completion-common-substring common-substring))
-    (run-hooks 'completion-setup-hook))
+  (with-no-warnings
+    (let ((completion-common-substring common-substring))
+      (run-hooks 'completion-setup-hook)))
   nil)
 
 (defun minibuffer-completion-help ()
