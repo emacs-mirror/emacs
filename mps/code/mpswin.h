@@ -13,7 +13,8 @@
 
 /* Suppress Visual C warnings from windows.h at warning level 4. */
 #ifdef MPS_BUILD_MV
-#pragma warning(disable: 4115 4201 4209 4214)
+#pragma warning(disable: 4115 4201 4209 4214 4996)
+/* 4996 = insecure C runtime, added in a rush for VC9 (2008) RHSK */
 #endif
 
 #include <windows.h>
