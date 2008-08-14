@@ -118,6 +118,8 @@ mps_clock_t mps_clocks_per_sec(void)
 }
 
 
+#pragma warning( disable : 4996 )
+
 unsigned long mps_lib_telemetry_control(void)
 {
   char *s;
