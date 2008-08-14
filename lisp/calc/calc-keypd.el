@@ -382,7 +382,7 @@
 	  (delete-region (point-min) (point))
 	  (if calc-keypad-input
 	      (insert "Calc: " calc-keypad-input "\n")
-	    (insert "----+-----Calc " calc-version " -----+----"
+	    (insert "----+----+--Calc---+----+----"
 		    (int-to-string (1+ calc-keypad-menu))
 		    "\n")))))
   (setq calc-keypad-prev-input calc-keypad-input))
