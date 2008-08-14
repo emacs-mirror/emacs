@@ -1,3 +1,7 @@
+2008-08-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.el (with-help-window): Return last value in BODY.
+
 2008-08-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/xesam.el (xesam-refresh-entry): Use `save-excursion' in the
