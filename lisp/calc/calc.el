@@ -6,7 +6,6 @@
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 ;; Keywords: convenience, extensions
-;; Version: 2.1
 
 ;; This file is part of GNU Emacs.
 
@@ -901,7 +900,6 @@ Used by `calc-user-invocation'.")
 (put 'math-underflow 'error-conditions '(error math-underflow calc-error))
 (put 'math-underflow 'error-message "Floating-point underflow occurred")
 
-(defconst calc-version "2.1")
 (defvar calc-trail-pointer nil
   "The \"current\" entry in trail buffer.")
 (defvar calc-trail-overlay nil
@@ -1203,11 +1201,6 @@ Used by `calc-user-invocation'.")
 	(use-local-map loc)))))
 
 (defvar calc-alg-map) ; Defined in calc-ext.el
-
-(defun calc-version ()
-  "Return version of this version of Calc."
-  (interactive)
-  (message "Calc version %s" calc-version))
 
 (defun calc-mode ()
   "Calculator major mode.
