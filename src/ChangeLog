@@ -1,5 +1,10 @@
 2008-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xfaces.c (lookup_derived_face): Properly handle possible zero
+	return value of get_lface_attributes.
+	(merge_faces): Don't tell lookup_derived_face to signal an error
+	if face is not found.
+
 	* dired.c (Fdirectory_files): Doc fix.
 
 	* process.c (make_process): Initialize kill_without_query struct
