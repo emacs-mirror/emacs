@@ -3992,7 +3992,19 @@ w32_system_process_attributes (pid)
 		 attrs);
 
   if (global_memory_status_ex (&memstex))
+#if __GNUC__ || (defined (_MSC_VER) && _MSC_VER >= 1300)
     totphys = memstex.ullTotalPhys / 1024.0;
+#else
+  /* Visual Studio 6 cannot convert an unsigned __int64 type to
+     double, so we need to do this for it...  */
+    {
+      DWORD tot_hi = memstex.ullTotalPhys >> 32;
+      DWORD tot_md = (memstex.ullTotalPhys & 0x00000000ffffffff) >> 10;
+      DWORD tot_lo = memstex.ullTotalPhys % 1024;
+
+      totphys = tot_hi * 4194304.0 + tot_md + tot_lo / 1024.0;
+    }
+#endif	/* __GNUC__ || _MSC_VER >= 1300 */
   else if (global_memory_status (&memst))
     totphys = memst.dwTotalPhys / 1024.0;
 
