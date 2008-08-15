@@ -542,14 +542,6 @@ It turns on word-wrapping in the current buffer, and rebinds C-a, C-e,
 and C-k to commands that operate by visual lines instead of logical
 lines.  This is a more reliable replacement for longlines-mode.
 
-** A new `whitespace' package has been installed, and the pre-existing one
-renamed to `old-whitespace'.
-Now, besides reporting bogus blanks, whitespace package has a minor mode and a
-global minor mode to visualize blanks (TAB, (HARD) SPACE and NEWLINE).  The
-visualization is made via faces and/or display table. Also it is possible to
-select which kind of blanks should be visualized, for example, trailing blanks,
-leading blanks, spaces, tabs, newlines, etc.
-
 ** xesam.el is an implementation of Xesam, an interface to (desktop)
 search engines like Beagle, Strigi, and Tracker.  The Xesam API
 requires D-Bus for communication.
@@ -558,6 +550,120 @@ requires D-Bus for communication.
 interfaces according to the zeroconf specification.  It communicates
 with Avahi, a zeroconf implementation, via D-Bus messages on systems
 which have installed this software.
+
+** A new `whitespace' package has been installed, and the pre-existing one
+renamed to `old-whitespace'.
+Now, besides reporting bogus blanks, whitespace package has a minor mode and a
+global minor mode to visualize blanks (TAB, (HARD) SPACE and NEWLINE).  The
+visualization is made via faces and/or display table.
+
+The main commands are `whitespace-mode', `whitespace-toggle-options',
+`global-whitespace-mode' and `global-whitespace-toggle-options'.
+
+There are also the following useful commands: `whitespace-newline-mode',
+`global-whitespace-newline-mode', `whitespace-report',
+`whitespace-report-region', `whitespace-cleanup' and
+`whitespace-cleanup-region'.
+
+It has the following hook variables: `whitespace-mode-hook',
+`global-whitespace-mode-hook' and `whitespace-load-hook'.
+
+It has the following options: `whitespace-style', `whitespace-action',
+`whitespace-line-column', `whitespace-display-mappings' and
+`whitespace-global-modes'.
+
+It has the following faces: `whitespace-space', `whitespace-hspace',
+`whitespace-tab', `whitespace-newline', `whitespace-trailing',
+`whitespace-line', `whitespace-space-before-tab', `whitespace-indentation',
+`whitespace-empty' and `whitespace-space-after-tab'.
+
+It has the following regexp options: `whitespace-space-regexp',
+`whitespace-hspace-regexp', `whitespace-tab-regexp',
+`whitespace-trailing-regexp', `whitespace-space-before-tab-regexp',
+`whitespace-indentation-regexp', `whitespace-empty-at-bob-regexp',
+`whitespace-empty-at-eob-regexp' and `whitespace-space-after-tab-regexp'.
+
+The `whitespace-style' option specifies which kind of blanks should be
+visualized.  It's a list containing some or all of the following values:
+
+trailing	trailing blanks are visualized via faces.
+
+tabs		TABs are visualized via faces.
+
+spaces		SPACEs and HARD SPACEs are visualized via faces.
+
+lines		lines whose have columns beyond `whitespace-line-column' are
+		highlighted via faces.
+		Whole line is highlighted.
+		It has precedence over `lines-tail' (see below).
+
+lines-tail	lines whose have columns beyond `whitespace-line-column' are
+		highlighted via faces.
+		But only the part of line which goes beyond
+		`whitespace-line-column' column.
+		It has effect only if `lines' (see above) is not present in
+		`whitespace-style'.
+
+newline		NEWLINEs are visualized via faces.
+
+empty		empty lines at beginning and/or end of buffer are visualized
+		via faces.
+
+indentation::tab	8 or more SPACEs at beginning of line are visualized
+			via faces.
+
+indentation::space	TABs at beginning of line are visualized via faces.
+
+indentation	8 or more SPACEs at beginning of line are visualized, if
+		`indent-tabs-mode' (which see) is non-nil; otherwise, TABs at
+		beginning of line are visualized via faces.
+
+space-after-tab::tab	8 or more SPACEs after a TAB are visualized via faces.
+
+space-after-tab::space	TABs are visualized when occurs 8 or more SPACEs after
+			a TAB via faces.
+
+space-after-tab		8 or more SPACEs after a TAB are visualized, if
+			`indent-tabs-mode' (which see) is non-nil; otherwise,
+			the TABs are visualized via faces.
+
+space-before-tab::tab	SPACEs before TAB are visualized via faces.
+
+space-before-tab::space	TABs are visualized when occurs SPACEs before TAB via
+			faces.
+
+space-before-tab	SPACEs before TAB are visualized, if `indent-tabs-mode'
+			(which see) is non-nil; otherwise, the TABs are
+			visualized via faces.
+
+space-mark	SPACEs and HARD SPACEs are visualized via display table.
+
+tab-mark	TABs are visualized via display table.
+
+newline-mark	NEWLINEs are visualized via display table.
+
+Any other value is ignored.
+
+The `whitespace-action' option specifies which action is taken when a buffer is
+visited, killed or written.  It's a list containing some or all of the
+following values:
+
+nil		no action is taken.
+
+cleanup		cleanup any bogus whitespace always when local whitespace is
+		turned on.  See `whitespace-cleanup' and
+		`whitespace-cleanup-region'.
+
+report-on-bogus	report if there is any bogus whitespace always when local
+		whitespace is turned on.
+
+auto-cleanup	cleanup any bogus whitespace when buffer is written or killed.
+		See `whitespace-cleanup' and `whitespace-cleanup-region'.
+
+abort-on-bogus	abort if there is any bogus whitespace and the buffer is
+		written or killed.
+
+Any other value is treated as nil.
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.1

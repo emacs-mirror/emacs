@@ -1,3 +1,7 @@
+2008-08-14  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* NEWS: Improve information about whitespace package.
+
 2008-08-01  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* NEWS: Add entries about the new auth-source integration and
