@@ -600,6 +600,7 @@ make_process (name)
   p->raw_status_new = 0;
   p->status = Qrun;
   p->mark = Fmake_marker ();
+  p->kill_without_query = 0;
 
 #ifdef ADAPTIVE_READ_BUFFERING
   p->adaptive_read_buffering = 0;
