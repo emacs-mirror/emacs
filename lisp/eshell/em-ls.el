@@ -638,7 +638,12 @@ In Eshell's implementation of ls, ENTRIES is always reversed."
   "Output a list of FILES.
 Each member of FILES is either a string or a cons cell of the form
 \(FILE .  ATTRS)."
-  (if (memq listing-style '(long-listing single-column))
+  ;; Mimic behavior of coreutils ls, which lists a single file per
+  ;; line when output is not a tty.  Exceptions: if -x was supplied.
+  ;; Not really the same since not testing output destination.
+  (if (or (and eshell-in-pipeline-p
+	       (not (eq listing-style 'by-lines)))
+	  (memq listing-style '(long-listing single-column)))
       (eshell-for file files
 	(if file
 	    (eshell-ls-file file size-width copy-fileinfo)))
