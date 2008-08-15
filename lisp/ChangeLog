@@ -1,3 +1,8 @@
+2008-08-15  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-ls.el (eshell-ls-files): List one per line in a pipeline.
+	(Bug#699)
+
 2008-08-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/find-func.el (find-library): Wrap search for
