@@ -697,9 +697,7 @@ considered."
 		       (setq list (nreverse new))))
 		   (if (> (length list) 1)
 		       (with-output-to-temp-buffer "*Completions*"
-			 (display-completion-list
-			  list pattern
-			  (- beg (field-beginning))))
+			 (display-completion-list list pattern))
 		     ;; Don't leave around a completions buffer that's
 		     ;; out of date.
 		     (let ((win (get-buffer-window "*Completions*" 0)))
