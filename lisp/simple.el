@@ -5612,12 +5612,15 @@ With prefix argument N, move N items (negative N means move backward)."
     (setq completion (buffer-substring-no-properties beg end))
     (let ((owindow (selected-window)))
       (if (and (one-window-p t 'selected-frame)
-	       (window-dedicated-p (selected-window)))
+	       (window-dedicated-p owindow))
 	  ;; This is a special buffer's frame
 	  (iconify-frame (selected-frame))
 	(or (window-dedicated-p (selected-window))
 	    (bury-buffer)))
-      (select-window owindow))
+      (select-window
+       (or (and (buffer-live-p buffer)
+		(get-buffer-window buffer))
+	   owindow)))
     (choose-completion-string completion buffer base-size)))
 
 ;; Delete the longest partial match for STRING
