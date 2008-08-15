@@ -814,7 +814,7 @@ of the differing parts is, by contrast, slightly highlighted."
         completions)
        base-size))))
 
-(defun display-completion-list (completions &optional common-substring base-size)
+(defun display-completion-list (completions &optional common-substring)
   "Display the list of completions, COMPLETIONS, using `standard-output'.
 Each element may be just a symbol or string
 or may be a list of two strings to be printed as if concatenated.
@@ -829,11 +829,7 @@ It can find the completion buffer in `standard-output'.
 The optional arg COMMON-SUBSTRING, if non-nil, should be a string
 specifying a common substring for adding the faces
 `completions-first-difference' and `completions-common-part' to
-the completions buffer.
-
-The optional arg BASE-SIZE, if non-nil, which should be an
-integer that specifies the value of `completion-base-size' for
-the completion buffer."
+the completions buffer."
   (if common-substring
       (setq completions (completion-hilit-commonality
                          completions (length common-substring))))
@@ -842,21 +838,22 @@ the completion buffer."
       (with-temp-buffer
 	(let ((standard-output (current-buffer))
 	      (completion-setup-hook nil))
-	  (display-completion-list completions common-substring base-size))
+	  (display-completion-list completions common-substring))
 	(princ (buffer-string)))
 
-    (with-current-buffer standard-output
-      (goto-char (point-max))
-      (if (null completions)
-	  (insert "There are no possible completions of what you have typed.")
-
-	(insert "Possible completions are:\n")
-        (let ((last (last completions)))
-          ;; If BASE-SIZE is unspecified, set it from the tail of the list.
-	  (set (make-local-variable 'completion-base-size)
-	       (or base-size (cdr last) 0))
-          (setcdr last nil)) ;Make completions a properly nil-terminated list.
-	(completion--insert-strings completions))))
+    (let ((mainbuf (current-buffer)))
+      (with-current-buffer standard-output
+	(goto-char (point-max))
+	(if (null completions)
+	    (insert "There are no possible completions of what you have typed.")
+	  (insert "Possible completions are:\n")
+	  (let ((last (last completions)))
+	    ;; Set base-size from the tail of the list.
+	    (set (make-local-variable 'completion-base-size)
+		 (or (cdr last)
+		     (and (minibufferp mainbuf) 0)))
+	    (setcdr last nil)) ; Make completions a properly nil-terminated list.
+	  (completion--insert-strings completions)))))
 
   ;; The hilit used to be applied via completion-setup-hook, so there
   ;; may still be some code that uses completion-common-substring.
