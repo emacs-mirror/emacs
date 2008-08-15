@@ -329,7 +329,8 @@ If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
 If MATCH is non-nil, mention only file names that match the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
- NOSORT is useful if you plan to sort the result yourself.  */)
+  Otherwise, the list returned is sorted with `stringp-lessp'.
+  NOSORT is useful if you plan to sort the result yourself.  */)
      (directory, full, match, nosort)
      Lisp_Object directory, full, match, nosort;
 {
