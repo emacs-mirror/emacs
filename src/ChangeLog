@@ -1,3 +1,9 @@
+2008-08-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (_MEMORY_STATUS_EX, MEMORY_STATUS_EX, LPMEMORY_STATUS_EX):
+	Rename from _MEMORYSTATUSEX, MEMORYSTATUSEX, LPMEMORYSTATUSEX.
+	All users changed.
+
 2008-08-14  Lawrence Mitchell  <wence@gmx.li>
 
 	* lread.c (Fread_char, Fread_char_exclusive): If no character
