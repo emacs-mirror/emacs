@@ -838,7 +838,11 @@ this grossness will be made to disappear by using `call/cc'..."
 	      (setcar head
 		      (intern-soft
 		       (concat (symbol-name (car head)) "*"))))))
-	,(car pipeline)))))
+	;; Indicate to the command if it is the last in the pipeline.
+	;; Currently only used by eshell-ls-files.
+	;; Perhaps nil, rather than 'last, would be OK?
+	(let ((eshell-in-pipeline-p ,(if (cdr pipeline) t (quote 'last))))
+	  ,(car pipeline))))))
 
 (defmacro eshell-do-pipelines-synchronously (pipeline)
   "Execute the commands in PIPELINE in sequence synchronously.
