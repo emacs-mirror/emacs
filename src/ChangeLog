@@ -3,7 +3,9 @@
 	* w32.c (_MEMORY_STATUS_EX, MEMORY_STATUS_EX, LPMEMORY_STATUS_EX):
 	Rename from _MEMORYSTATUSEX, MEMORYSTATUSEX, LPMEMORYSTATUSEX.
 	All users changed.
-	(stat): Only root directory passed to GetDriveType.
+	(stat): Only root directory passed to GetDriveType.  Allow RAM
+	disk as well as local fixed disk when w32-get-true-file-attributes
+	is set to `local'.
 
 2008-08-14  Lawrence Mitchell  <wence@gmx.li>
 
