@@ -1,3 +1,10 @@
+2008-08-15  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-cmd.el (eshell-do-pipelines): Indicate the last command in
+	a pipeline.
+	* eshell/em-ls.el (eshell-ls-files): List one per line in a pipeline,
+	unless at the end of the pipeline.  (Bug#699).
+
 2008-08-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (completion-boundaries): Doc fix.
