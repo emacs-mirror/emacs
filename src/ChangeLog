@@ -1,5 +1,7 @@
 2008-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dired.c (Fdirectory_files): Doc fix.
+
 	* process.c (make_process): Initialize kill_without_query struct
 	member.
 
