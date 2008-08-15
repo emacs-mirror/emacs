@@ -1,13 +1,10 @@
 2008-08-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (completion-boundaries): Doc fix.
-	(display-completion-list): New arg BASE-SIZE, to specify an
-	overriding base-size.
+	(display-completion-list): Only default base-size to zero if
+	completing in the minibuffer.
 
 	* simple.el (completion-base-size): Doc fix.
-
-	* emacs-lisp/lisp.el (lisp-complete-symbol): Supply match-size to
-	display-completion-list.
 
 2008-08-14  Michael Albinus  <michael.albinus@gmx.de>
 
