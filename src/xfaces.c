@@ -4974,7 +4974,9 @@ lookup_derived_face (f, symbol, face_id, signal_p)
   if (!default_face)
     abort ();
 
-  get_lface_attributes (f, symbol, symbol_attrs, signal_p, 0);
+  if (!get_lface_attributes (f, symbol, symbol_attrs, signal_p, 0))
+    return -1;
+
   bcopy (default_face->lface, attrs, sizeof attrs);
   merge_face_vectors (f, symbol_attrs, attrs, 0);
   return lookup_face (f, attrs);
@@ -6533,10 +6535,10 @@ merge_faces (f, face_name, face_id, base_face_id)
       if (face_id < 0 || face_id >= lface_id_to_name_size)
 	return base_face_id;
       face_name = lface_id_to_name[face_id];
-      face_id = lookup_derived_face (f, face_name, base_face_id, 1);
-      if (face_id >= 0)
-	return face_id;
-      return base_face_id;
+      /* When called during make-frame, lookup_derived_face may fail
+	 if the faces are uninitialized.  Don't signal an error.  */
+      face_id = lookup_derived_face (f, face_name, base_face_id, 0);
+      return (face_id >= 0 ? face_id : base_face_id);
     }
 
   /* Begin with attributes from the base face.  */
