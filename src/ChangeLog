@@ -1,3 +1,8 @@
+2008-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c (Fmake_network_process): Initialize kill_without_query
+	struct member.
+
 2008-08-10  Glenn Morris  <rgm@gnu.org>
 
 	Sync from trunk 2008-07-08:
