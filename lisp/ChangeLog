@@ -5,6 +5,7 @@
 	completing in the minibuffer.
 
 	* simple.el (completion-base-size): Doc fix.
+	(choose-completion): Try reselecting completion-reference-buffer.
 
 2008-08-14  Michael Albinus  <michael.albinus@gmx.de>
 
