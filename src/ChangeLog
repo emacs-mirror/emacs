@@ -3,6 +3,7 @@
 	* w32.c (_MEMORY_STATUS_EX, MEMORY_STATUS_EX, LPMEMORY_STATUS_EX):
 	Rename from _MEMORYSTATUSEX, MEMORYSTATUSEX, LPMEMORYSTATUSEX.
 	All users changed.
+	(stat): Only root directory passed to GetDriveType.
 
 2008-08-14  Lawrence Mitchell  <wence@gmx.li>
 
