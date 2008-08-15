@@ -6,6 +6,16 @@
 	(stat): Only root directory passed to GetDriveType.  Allow RAM
 	disk as well as local fixed disk when w32-get-true-file-attributes
 	is set to `local'.
+	(CopySid_Proc, EqualSid_Proc, GetLengthSid_Proc): New typedefs.
+	(equal_sid, get_length_sid, copy_sid): New wrapper functions.
+	(w32_cached_id, w32_add_to_cache): New functions.
+	(get_name_and_id): Look account names in the cache before calling
+	lookup_account_sid.
+	(g_b_init_get_length_sid, g_b_init_equal_sid, g_b_init_copy_sid):
+	New initialization flags.
+	(globals_of_w32): Initialize them to zero.
+	(w32_system_process_attributes): Use w32_cached_id and
+	w32_add_to_cache.
 
 2008-08-14  Lawrence Mitchell  <wence@gmx.li>
 
