@@ -1,7 +1,7 @@
 2008-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
-	* process.c (Fmake_network_process): Initialize kill_without_query
-	struct member.
+	* process.c (make_process): Initialize kill_without_query struct
+	member.
 
 2008-08-10  Glenn Morris  <rgm@gnu.org>
 
