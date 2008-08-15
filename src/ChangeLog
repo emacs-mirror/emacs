@@ -1,5 +1,7 @@
 2008-08-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32fns.c [_MSC_VER && _MSC_VER < 1300]: Declare HMONITOR.
+
 	* w32.c (_MEMORY_STATUS_EX, MEMORY_STATUS_EX, LPMEMORY_STATUS_EX):
 	Rename from _MEMORYSTATUSEX, MEMORYSTATUSEX, LPMEMORYSTATUSEX.
 	All users changed.
