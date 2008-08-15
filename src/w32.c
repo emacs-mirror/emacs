@@ -188,6 +188,9 @@ static BOOL g_b_init_get_process_memory_info;
 static BOOL g_b_init_get_process_working_set_size;
 static BOOL g_b_init_global_memory_status;
 static BOOL g_b_init_global_memory_status_ex;
+static BOOL g_b_init_get_length_sid;
+static BOOL g_b_init_equal_sid;
+static BOOL g_b_init_copy_sid;
 
 /*
   BEGIN: Wrapper functions around OpenProcessToken
@@ -281,6 +284,17 @@ typedef BOOL (WINAPI * GlobalMemoryStatus_Proc) (
     LPMEMORYSTATUS lpBuffer);
 typedef BOOL (WINAPI * GlobalMemoryStatusEx_Proc) (
     LPMEMORY_STATUS_EX lpBuffer);
+typedef BOOL (WINAPI * CopySid_Proc) (
+    DWORD nDestinationSidLength,
+    PSID pDestinationSid,
+    PSID pSourceSid);
+typedef BOOL (WINAPI * EqualSid_Proc) (
+    PSID pSid1,
+    PSID pSid2);
+typedef DWORD (WINAPI * GetLengthSid_Proc) (
+    PSID pSid);
+
+
 
   /* ** A utility function ** */
 static BOOL
@@ -626,6 +640,81 @@ BOOL WINAPI is_valid_sid (
       return FALSE;
     }
   return (s_pfn_Is_Valid_Sid (sid));
+}
+
+BOOL WINAPI equal_sid (
+    PSID sid1,
+    PSID sid2)
+{
+  static EqualSid_Proc s_pfn_Equal_Sid = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_equal_sid == 0)
+    {
+      g_b_init_equal_sid = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Equal_Sid =
+        (EqualSid_Proc) GetProcAddress (
+            hm_advapi32, "EqualSid");
+    }
+  if (s_pfn_Equal_Sid == NULL)
+    {
+      return FALSE;
+    }
+  return (s_pfn_Equal_Sid (sid1, sid2));
+}
+
+DWORD WINAPI get_length_sid (
+    PSID sid)
+{
+  static GetLengthSid_Proc s_pfn_Get_Length_Sid = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return 0;
+    }
+  if (g_b_init_get_length_sid == 0)
+    {
+      g_b_init_get_length_sid = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Get_Length_Sid =
+        (GetLengthSid_Proc) GetProcAddress (
+            hm_advapi32, "GetLengthSid");
+    }
+  if (s_pfn_Get_Length_Sid == NULL)
+    {
+      return 0;
+    }
+  return (s_pfn_Get_Length_Sid (sid));
+}
+
+BOOL WINAPI copy_sid (
+    DWORD destlen,
+    PSID dest,
+    PSID src)
+{
+  static CopySid_Proc s_pfn_Copy_Sid = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_copy_sid == 0)
+    {
+      g_b_init_copy_sid = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Copy_Sid =
+        (CopySid_Proc) GetProcAddress (
+            hm_advapi32, "CopySid");
+    }
+  if (s_pfn_Copy_Sid == NULL)
+    {
+      return FALSE;
+    }
+  return (s_pfn_Copy_Sid (destlen, dest, src));
 }
 
 /*
@@ -2780,6 +2869,69 @@ get_rid (PSID sid)
   return *get_sid_sub_authority (sid, n_subauthorities - 1);
 }
 
+/* Caching SID and account values for faster lokup.  */
+
+#ifdef __GNUC__
+# define FLEXIBLE_ARRAY_MEMBER
+#else
+# define FLEXIBLE_ARRAY_MEMBER 1
+#endif
+
+struct w32_id {
+  int rid;
+  struct w32_id *next;
+  char name[GNLEN+1];
+  unsigned char sid[FLEXIBLE_ARRAY_MEMBER];
+};
+
+static struct w32_id *w32_idlist;
+
+static int
+w32_cached_id (PSID sid, int *id, char *name)
+{
+  struct w32_id *tail, *found;
+
+  for (found = NULL, tail = w32_idlist; tail; tail = tail->next)
+    {
+      if (equal_sid ((PSID)tail->sid, sid))
+	{
+	  found = tail;
+	  break;
+	}
+    }
+  if (found)
+    {
+      *id = found->rid;
+      strcpy (name, found->name);
+      return 1;
+    }
+  else
+    return 0;
+}
+
+static void
+w32_add_to_cache (PSID sid, int id, char *name)
+{
+  DWORD sid_len;
+  struct w32_id *new_entry;
+
+  /* We don't want to leave behind stale cache from when Emacs was
+     dumped.  */
+  if (initialized)
+    {
+      sid_len = get_length_sid (sid);
+      new_entry = xmalloc (offsetof (struct w32_id, sid) + sid_len);
+      if (new_entry)
+	{
+	  new_entry->rid = id;
+	  strcpy (new_entry->name, name);
+	  copy_sid (sid_len, (PSID)new_entry->sid, sid);
+	  new_entry->next = w32_idlist;
+	  w32_idlist = new_entry;
+	}
+    }
+}
+
 #define UID 1
 #define GID 2
 
@@ -2808,7 +2960,7 @@ get_name_and_id (PSECURITY_DESCRIPTOR psd, const char *fname,
 
   if (!result || !is_valid_sid (sid))
     use_dflt = 1;
-  else
+  else if (!w32_cached_id (sid, id, nm))
     {
       /* If FNAME is a UNC, we need to lookup account on the
 	 specified machine.  */
@@ -2833,6 +2985,7 @@ get_name_and_id (PSECURITY_DESCRIPTOR psd, const char *fname,
 	{
 	  *id = get_rid (sid);
 	  strcpy (nm, name);
+	  w32_add_to_cache (sid, *id, name);
 	}
     }
   return use_dflt;
@@ -3748,11 +3901,18 @@ w32_system_process_attributes (pid)
   if (h_proc
       && open_process_token (h_proc, TOKEN_QUERY, &token)
       && get_token_information (token, TokenUser,
-				(PVOID)buf, sizeof (buf), &trash)
-      && (memcpy (&user_token, buf, sizeof (user_token)),
-	  lookup_account_sid (NULL, user_token.User.Sid, uname, &ulength,
-			      domain, &dlength, &user_type)))
+				(PVOID)buf, sizeof (buf), &trash))
     {
+      memcpy (&user_token, buf, sizeof (user_token));
+      if (w32_cached_id (user_token.User.Sid, &euid, uname))
+	ulength = strlen (uname);
+      else
+	{
+	  lookup_account_sid (NULL, user_token.User.Sid, uname, &ulength,
+			      domain, &dlength, &user_type);
+	  euid = get_rid (user_token.User.Sid);
+	  w32_add_to_cache (user_token.User.Sid, euid, uname);
+	}
       /* Determine a reasonable euid and gid values.  */
       if (xstrcasecmp ("administrator", uname) == 0)
 	{
@@ -3761,20 +3921,22 @@ w32_system_process_attributes (pid)
 	}
       else
 	{
-	  /* Use the last sub-authority value of the RID, the relative
-	     portion of the SID, as user/group ID. */
-	  euid = get_rid (user_token.User.Sid);
-
 	  /* Get group id and name.  */
 	  if (get_token_information (token, TokenPrimaryGroup,
 				     (PVOID)buf, sizeof (buf), &trash))
 	    {
 	      memcpy (&group_token, buf, sizeof (group_token));
-	      egid = get_rid (group_token.PrimaryGroup);
-	      dlength = sizeof (domain);
-	      lookup_account_sid (NULL, group_token.PrimaryGroup,
-				  gname, &glength, NULL, &dlength,
-				  &user_type);
+	      if (w32_cached_id (group_token.PrimaryGroup, &egid, gname))
+		glength = strlen (gname);
+	      else
+		{
+		  dlength = sizeof (domain);
+		  lookup_account_sid (NULL, group_token.PrimaryGroup,
+				      gname, &glength, NULL, &dlength,
+				      &user_type);
+		  egid = get_rid (group_token.PrimaryGroup);
+		  w32_add_to_cache (group_token.PrimaryGroup, egid, gname);
+		}
 	    }
 	  else
 	    egid = euid;
@@ -5457,6 +5619,9 @@ globals_of_w32 ()
   g_b_init_get_process_working_set_size = 0;
   g_b_init_global_memory_status = 0;
   g_b_init_global_memory_status_ex = 0;
+  g_b_init_equal_sid = 0;
+  g_b_init_copy_sid = 0;
+  g_b_init_get_length_sid = 0;
   /* The following sets a handler for shutdown notifications for
      console apps. This actually applies to Emacs in both console and
      GUI modes, since we had to fool windows into thinking emacs is a
