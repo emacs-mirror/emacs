@@ -242,6 +242,11 @@ struct MONITOR_INFO
     DWORD   dwFlags;
 };
 
+/* Reportedly, VS 6 does not have this in its headers.  */
+#if defined(_MSC_VER) && _MSC_VER < 1300
+DECLARE_HANDLE(HMONITOR);
+#endif
+
 typedef BOOL (WINAPI * TrackMouseEvent_Proc)
   (IN OUT LPTRACKMOUSEEVENT lpEventTrack);
 typedef LONG (WINAPI * ImmGetCompositionString_Proc)
