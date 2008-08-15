@@ -1,3 +1,8 @@
+2008-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c (make_process): Initialize kill_without_query struct
+	member.
+
 2008-08-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (w32_system_process_attributes) [_MSC_VER < 1300]:
