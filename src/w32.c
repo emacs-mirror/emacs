@@ -73,8 +73,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define _ANONYMOUS_STRUCT
 #endif
 #include <windows.h>
-/* This is guarded by a higher value of _WIN32_WINNT than what we use.  */
-typedef struct _MEMORYSTATUSEX {
+/* Some versions of compiler define MEMORYSTATUSEX, some don't, so we
+   use a different name to avoid compilation problems.  */
+typedef struct _MEMORY_STATUS_EX {
         DWORD dwLength;
         DWORD dwMemoryLoad;
         DWORDLONG ullTotalPhys;
@@ -84,7 +85,7 @@ typedef struct _MEMORYSTATUSEX {
         DWORDLONG ullTotalVirtual;
         DWORDLONG ullAvailVirtual;
         DWORDLONG ullAvailExtendedVirtual;
-} MEMORYSTATUSEX,*LPMEMORYSTATUSEX;
+} MEMORY_STATUS_EX,*LPMEMORY_STATUS_EX;
 
 #include <lmcons.h>
 #include <shlobj.h>
@@ -279,7 +280,7 @@ typedef BOOL (WINAPI * GetProcessWorkingSetSize_Proc) (
 typedef BOOL (WINAPI * GlobalMemoryStatus_Proc) (
     LPMEMORYSTATUS lpBuffer);
 typedef BOOL (WINAPI * GlobalMemoryStatusEx_Proc) (
-    LPMEMORYSTATUSEX lpBuffer);
+    LPMEMORY_STATUS_EX lpBuffer);
 
   /* ** A utility function ** */
 static BOOL
@@ -3459,7 +3460,7 @@ BOOL WINAPI global_memory_status (
 }
 
 BOOL WINAPI global_memory_status_ex (
-    MEMORYSTATUSEX *buf)
+    MEMORY_STATUS_EX *buf)
 {
   static GlobalMemoryStatusEx_Proc s_pfn_Global_Memory_Status_Ex = NULL;
 
@@ -3658,7 +3659,7 @@ w32_system_process_attributes (pid)
   PROCESS_MEMORY_COUNTERS_EX mem_ex;
   DWORD minrss, maxrss;
   MEMORYSTATUS memst;
-  MEMORYSTATUSEX memstex;
+  MEMORY_STATUS_EX memstex;
   double totphys = 0.0;
   Lisp_Object ctime, stime, utime, etime;
   double pcpu;
