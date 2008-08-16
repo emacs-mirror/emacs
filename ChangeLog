@@ -1,3 +1,7 @@
+2008-08-16  Jason Rumney  <jasonr@gnu.org>
+
+	* make-dist (tempdir/nt): Link emacsclient.rc.
+
 2008-08-10  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (cpp_undefs): Rename from `undefs', update uses.
