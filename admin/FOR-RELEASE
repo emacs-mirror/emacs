@@ -202,7 +202,7 @@ gnu.texi
 gpl.texi
 help.texi
 indent.texi
-killing.texi
+killing.texi      -- cyd
 kmacro.texi
 macos.texi     -- contents need to be evaluated and see what is still
 relevant after the NS merge.
