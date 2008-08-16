@@ -18,10 +18,10 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
 [\|\-\-parse\-stdin=\fIfile\fP\|]
 .br
-[\|\-\-append\|] [\|\-\-no\-defines\|]
+[\|\-\-append\|] [\|\-\-no\-defines\|] [\|\-\-globals\|]
 [\|\-\-no\-globals\|] [\|\-\-include=\fIfile\fP\|]
 [\|\-\-ignore\-indentation\|] [\|\-\-language=\fIlanguage\fP\|]
-[\|\-\-no\-members\|] [\|\-\-output=\fItagfile\fP\|]
+[\|\-\-members\|] [\|\-\-no\-members\|] [\|\-\-output=\fItagfile\fP\|]
 [\|\-\-regex=\fIregexp\fP\|] [\|\-\-no\-regex\|]
 [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
@@ -32,9 +32,9 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-parse\-stdin=\fIfile\fP\|]
 .br
 [\|\-\-append\|] [\|\-\-backward\-search\|]
-[\|\-\-cxref\|] [\|\-\-no\-defines\|] [\|\-\-forward\-search\|]
-[\|\-\-no\-globals\|] [\|\-\-ignore\-indentation\|]
-[\|\-\-language=\fIlanguage\fP\|] [\|\-\-no\-members\|]
+[\|\-\-cxref\|] [\|\-\-no\-defines\|]
+[\|\-\-globals\|] [\|\-\-no\-globals\|] [\|\-\-ignore\-indentation\|]
+[\|\-\-language=\fIlanguage\fP\|] [\|\-\-members\|] [\|\-\-no\-members\|]
 [\|\-\-output=\fItagfile\fP\|] [\|\-\-regex=\fIregexp\fP\|]
 [\|\-\-update\|]
 [\|\-\-help\|] [\|\-\-version\|]
@@ -49,9 +49,9 @@ understood by
 format understood by
 .BR vi ( 1 )\c
 \&.  Both forms of the program understand
-the syntax of C, Objective C, C++, Java, Fortran, Ada, Cobol, Erlang, HTML,
-LaTeX, Emacs Lisp/Common Lisp, Lua, makefile, Pascal, Perl, PHP, Postscript,
-Python, Prolog, Scheme and
+the syntax of C, Objective C, C++, Java, Fortran, Ada, Cobol, Erlang,
+Forth, HTML, LaTeX, Emacs Lisp/Common Lisp, Lua, Makefile, Pascal, Perl,
+PHP, Postscript, Python, Prolog, Scheme and
 most assembler\-like syntaxes.
 Both forms read the files specified on the command line, and write a tag
 table (defaults: \fBTAGS\fP for \fBetags\fP, \fBtags\fP for
@@ -64,6 +64,7 @@ Files specified with absolute file names will be recorded
 with absolute file names.  Files generated from a source file\-\-like
 a C file generated from a source Cweb file\-\-will be recorded with
 the name of the source file.
+Compressed files are supported using gzip and bzip2.
 The programs recognize the language used in an input file based on its
 file name and contents.  The \fB\-\-language\fP switch can be used to force
 parsing of the file names following the switch according to the given
@@ -95,9 +96,13 @@ Do not create tag entries for C preprocessor constant definitions
 and enum constants.
 This may make the tags file much smaller if many header files are tagged.
 .TP
+.B \-\-globals
+Create tag entries for global variables in Perl and Makefile.  This is
+the default in C and derived languages.
+.TP
 .B \-\-no\-globals
-Do not tag global variables.  Typically this reduces the file size by
-one fourth.
+Do not tag global variables in C and derived languages.  Typically this
+reduces the file size by one fourth.
 .TP
 \fB\-i\fP \fIfile\fP, \fB\-\-include=\fIfile\fP
 Include a note in the tag file indicating that, when searching for a
@@ -120,7 +125,7 @@ regexp matching is done in this case (see the \fB\-\-regex\fP option).
 .TP
 .B \-\-members
 Create tag entries for variables that are members of structure-like
-constructs in C++, Objective C, Java.  This is the default.
+constructs in PHP.  This is the default for C and derived languages.
 .TP
 .B \-\-no\-members
 Do not tag member variables.
