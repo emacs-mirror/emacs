@@ -627,7 +627,7 @@ echo "Making links to \`info'"
  cd ../${tempdir}/info
  # Avoid an error when expanding the wildcards later.
  ln emacs dummy~ ; ln emacs \#dummy\#
- rm -f *~ \#*\# core)
+ rm -f *~ \#*\# core .arch-inventory)
 
 echo "Making links to \`man'"
 (cd man
