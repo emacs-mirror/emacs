@@ -1,3 +1,7 @@
+2008-08-16  Jason Rumney  <jasonr@gnu.org>
+
+	* admin.el (set-version): Set version in nt/emacsclient.rc
+
 2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.2 released.
