@@ -1004,7 +1004,6 @@ Mostly we check word delimiters."
 (defun flyspell-word (&optional following)
   "Spell check a word."
   (interactive (list ispell-following-word))
-  (ispell-maybe-find-aspell-dictionaries)
   (save-excursion
     ;; use the correct dictionary
     (flyspell-accept-buffer-local-defs)
