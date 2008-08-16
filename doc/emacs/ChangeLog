@@ -1,3 +1,15 @@
+2008-08-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* killing.texi (Killing): Copyedit.  Define read-only text.
+	(Deletion): DEL and C-d were already explained in Erasing; xref there.
+	(Killing by Lines): Copyedit.
+	(Other Kill Commands): Move M-w description here.
+	(Yanking): Move M-w to Other Kill Commands.
+	(Kill Ring): Also mention saving text in registers.  Link to Text
+	Properties in elisp manual.
+	(Accumulating Text): Copyedit.
+	(CUA Bindings): Shift selection is now the default.
+
 2008-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* maintaining.texi (Change Log): Mention next-error is available.
