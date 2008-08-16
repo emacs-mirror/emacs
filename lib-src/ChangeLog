@@ -1,3 +1,10 @@
+2008-08-17  Francesco Potortì  <pot@gnu.org>
+
+	* etags.c (main): Use canonicalize_filename on tags file name.
+	(relative_filename): Revert 3.85: do not collapse slashes here.
+	(absolute_dirname): Remove useless call to canonicalize_filename.
+	(canonicalize_filename): Collapse multiple slashes here.
+
 2008-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (INSTALLABLES): Add LIB_SRC_EXTRA_INSTALLABLES.  Do
