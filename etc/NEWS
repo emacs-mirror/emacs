@@ -374,6 +374,7 @@ similarly, using the file displayed on the current line.
 region in transient-mark-mode, the word under the cursor, the last Isearch
 regexp, the last Isearch string and the last replacement regexp.
 
+---
 *** When enable-recursive-minibuffers is non-nil, operations which use
 switch-to-buffer (such as C-x b and C-x C-f) do not fail any more when
 used in a minibuffer or a dedicated window.  Instead, they fallback on
