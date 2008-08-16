@@ -65,7 +65,8 @@ For instance, @kbd{DEL} runs the command @code{delete-backward-char}
 by default (some modes bind it to a different command); it does not
 insert a literal @samp{DEL} character (@acronym{ASCII} character code
 127).  To insert a non-graphic character, first @dfn{quote} it by
-typing @kbd{C-q}.  There are two ways to use @kbd{C-q}:
+typing @kbd{C-q} (@code{quoted-insert}).  There are two ways to use
+@kbd{C-q}:
 
 @itemize @bullet
 @item
