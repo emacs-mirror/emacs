@@ -59,14 +59,14 @@ University of California, as described above. */
 
 /*
  * Authors:
- * 1983	Ctags originally by Ken Arnold.
- * 1984	Fortran added by Jim Kleckner.
- * 1984	Ed Pelegri-Llopart added C typedefs.
- * 1985	Emacs TAGS format by Richard Stallman.
- * 1989	Sam Kendall added C++.
+ * 1983 Ctags originally by Ken Arnold.
+ * 1984 Fortran added by Jim Kleckner.
+ * 1984 Ed Pelegri-Llopart added C typedefs.
+ * 1985 Emacs TAGS format by Richard Stallman.
+ * 1989 Sam Kendall added C++.
  * 1992 Joseph B. Wells improved C and C++ parsing.
- * 1993	Francesco Potortì reorganized C and C++.
- * 1994	Line-by-line regexp tags by Tom Tromey.
+ * 1993 Francesco Potortì reorganized C and C++.
+ * 1994 Line-by-line regexp tags by Tom Tromey.
  * 2001 Nested classes by Francesco Potortì (concept by Mykola Dzyuba).
  * 2002 #line directives by Francesco Potortì.
  *
@@ -75,11 +75,11 @@ University of California, as described above. */
 
 /*
  * If you want to add support for a new language, start by looking at the LUA
- * language, which is the simplest.  Alternatively, consider shipping a
- * configuration file containing regexp definitions for etags.
+ * language, which is the simplest.  Alternatively, consider distributing etags
+ * together with a configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.38";
+char pot_etags_version[] = "@(#) pot revision number is 17.38.1.3";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -892,7 +892,7 @@ etags --help --lang=ada.");
 # define EMACS_NAME "standalone"
 #endif
 #ifndef VERSION
-# define VERSION "17.38"
+# define VERSION "17.38.1.3"
 #endif
 static void
 print_version ()
@@ -1264,7 +1264,10 @@ main (argc, argv)
       || strneq (tagfile, "/dev/", 5))
     tagfiledir = cwd;
   else
-    tagfiledir = absolute_dirname (tagfile, cwd);
+    {
+      canonicalize_filename (tagfile);
+      tagfiledir = absolute_dirname (tagfile, cwd);
+    }
 
   init ();			/* set up boolean "functions" */
 
@@ -1420,7 +1423,7 @@ get_compressor_from_suffix (file, extptr)
   compressor *compr;
   char *slash, *suffix;
 
-  /* This relies on FN to be after canonicalize_filename,
+  /* File has been processed by canonicalize_filename,
      so we don't need to consider backslashes on DOS_NT.  */
   slash = etags_strrchr (file, '/');
   suffix = etags_strrchr (file, '.');
@@ -6221,7 +6224,7 @@ readline (lbp, stream)
 		  discard_until_line_directive = FALSE; /* found it */
 		  name = lbp->buffer + start;
 		  *endp = '\0';
-		  canonicalize_filename (name); /* for DOS */
+		  canonicalize_filename (name);
 		  taggedabsname = absolute_filename (name, tagfiledir);
 		  if (filename_is_absolute (name)
 		      || filename_is_absolute (curfdp->infname))
@@ -6636,14 +6639,8 @@ relative_filename (file, dir)
 
   /* Build a sequence of "../" strings for the resulting relative file name. */
   i = 0;
-  while (*dp == '/')
-    ++dp;
   while ((dp = etags_strchr (dp + 1, '/')) != NULL)
-    {
-      i += 1;
-      while (*dp == '/')
-	++dp;
-    }
+    i += 1;
   res = xnew (3*i + strlen (fp + 1) + 1, char);
   res[0] = '\0';
   while (i-- > 0)
@@ -6730,7 +6727,6 @@ absolute_dirname (file, dir)
   char *slashp, *res;
   char save;
 
-  canonicalize_filename (file);
   slashp = etags_strrchr (file, '/');
   if (slashp == NULL)
     return savestr (dir);
@@ -6755,27 +6751,38 @@ filename_is_absolute (fn)
 	  );
 }
 
-/* Translate backslashes into slashes.  Works in place. */
+/* Upcase DOS drive letter and collapse separators into single slashes.
+   Works in place. */
 static void
 canonicalize_filename (fn)
      register char *fn;
 {
+  register char* cp;
+  char sep = '/';
+
 #ifdef DOS_NT
   /* Canonicalize drive letter case.  */
   if (fn[0] != '\0' && fn[1] == ':' && ISLOWER (fn[0]))
     fn[0] = upcase (fn[0]);
-  /* Convert backslashes to slashes.  */
-  for (; *fn != '\0'; fn++)
-    if (*fn == '\\')
-      *fn = '/';
-#else
-  /* No action. */
-  fn = NULL;			/* shut up the compiler */
+
+  sep = '\\';
 #endif
+
+  /* Collapse multiple separators into a single slash. */
+  for (cp = fn; *cp != '\0'; cp++, fn++)
+    if (*cp == sep)
+      {
+	*fn = '/';
+	while (cp[1] == sep)
+	  cp++;
+      }
+    else
+      *fn = *cp;
+  *fn = '\0';
 }
 
 
-/* Initialize a linebuffer for use */
+/* Initialize a linebuffer for use. */
 static void
 linebuffer_init (lbp)
      linebuffer *lbp;
