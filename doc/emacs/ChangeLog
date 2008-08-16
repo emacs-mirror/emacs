@@ -1,5 +1,7 @@
 2008-08-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* basic.texi (Inserting Text): Provide command name for C-q.
+
 	* killing.texi (Killing): Copyedit.  Define read-only text.
 	(Deletion): DEL and C-d were already explained in Erasing; xref there.
 	(Killing by Lines): Copyedit.
