@@ -296,6 +296,10 @@ from VALUE, depending on what the search engine accepts."
   "Interactive query history.")
 
 ;; Pacify byte compiler.
+(defvar xesam-vendor nil)
+(make-variable-buffer-local 'xesam-vendor)
+(put 'xesam-vendor 'permanent-local t)
+
 (defvar xesam-engine nil)
 (defvar xesam-search nil)
 (defvar xesam-type nil)
@@ -305,6 +309,7 @@ from VALUE, depending on what the search engine accepts."
 (defvar xesam-current nil)
 (defvar xesam-count nil)
 (defvar xesam-to nil)
+(defvar xesam-notify-function nil)
 (defvar xesam-refreshing nil)
 
 
@@ -418,7 +423,11 @@ If there is no registered search engine at all, the function returns `nil'."
 In this mode, widgets represent the search results.
 
 \\{xesam-mode-map}
-Turning on Xesam mode runs the normal hook `xesam-mode-hook'."
+Turning on Xesam mode runs the normal hook `xesam-mode-hook'.  It
+can be used to set `xesam-notify-function', which must a search
+engine specific, widget :notify function to visualize xesam:url."
+  (set (make-local-variable 'xesam-notify-function) nil)
+
   ;; Keymap.
   (setq xesam-mode-map (copy-keymap special-mode-map))
   (set-keymap-parent xesam-mode-map widget-keymap)
@@ -440,6 +449,9 @@ Turning on Xesam mode runs the normal hook `xesam-mode-hook'."
   (set (make-local-variable 'xesam-count) 0)
   ;; `xesam-to' is the upper hit number to be presented.
   (set (make-local-variable 'xesam-to) xesam-hits-per-page)
+  ;; `xesam-notify-function' can be a search engine specific function
+  ;; to visualize xesam:url.  It can be overwritten in `xesam-mode'.
+  (set (make-local-variable 'xesam-notify-function) nil)
   ;; `xesam-refreshing' is an indicator, whether the buffer is just
   ;; being updated.  Needed, because `xesam-refresh-search-buffer'
   ;; can be triggered by an event.
@@ -560,44 +572,15 @@ SEARCH is the search identification in that engine.  Both must be strings."
     (widget-put widget :value (widget-get widget :xesam:url))
 
     (cond
+     ;; A search engine can set `xesam-notify-function' via
+     ;; `xesam-mode-hooks'.
+     (xesam-notify-function
+      (widget-put widget :notify xesam-notify-function))
+
      ;; In case of HTML, we use a URL link.
      ((and (widget-member widget :xesam:mimeType)
 	   (string-equal "text/html" (widget-get widget :xesam:mimeType)))
       (setcar widget 'url-link))
-
-     ;; Debbugs hits shall be displayed.
-     ((and (widget-member widget :xesam:mimeType)
-	   (string-equal "application/x-debbugs"
-			 (widget-get widget :xesam:mimeType)))
-      (widget-put
-       widget :notify
-       (lambda (widget &rest ignore)
-	 (save-excursion
-	   ;; We toggle.  If there are already children, we delete them.
-	   (if (widget-get widget :children)
-	       (widget-children-value-delete widget)
-
-	     ;; No children.  Let's display the messages.
-	     (widget-end-of-line)
-	     ;; Get hit data.  Loop over results.
-	     (dolist (data
-		      ;; "GetHitData" returns a list.  But we have
-		      ;; requested just one element only.
-		      (car
-		       (xesam-dbus-call-method
-			:session (car xesam-engine) xesam-path-search
-			xesam-interface-search "GetHitData" xesam-search
-			(list (widget-get widget :debbugs:key))
-			'("debbugs:key"))))
-	       (let ((child
-		      (widget-create-child-and-convert
-		       ;; The result is a variant.  So we must apply `car'.
-		       widget '(link) :format "\n%h" :doc (car data))))
-		 ;; Add child to parent's list.  Needed, in order to be
-		 ;; able to delete it next toggle.
-		 (widget-put
-		  widget
-		  :children (cons child (widget-get widget :children))))))))))
 
      ;; For local files, we will open the file as default action.
      ((string-match "file"
@@ -768,6 +751,10 @@ search, is returned."
     (with-current-buffer
 	(generate-new-buffer (xesam-buffer-name service search))
       (switch-to-buffer-other-window (current-buffer))
+      ;; Inialize buffer with `xesam-mode'.  `xesam-vendor' must be
+      ;; set before calling `xesam-mode', because we want to give the
+      ;; hook functions a chance to identify their search engine.
+      (setq xesam-vendor (xesam-get-cached-property engine "vendor.id"))
       (xesam-mode)
       (setq xesam-engine engine
 	    xesam-search search
@@ -782,11 +769,9 @@ search, is returned."
 	    ;; information, when applicable.
 	    mode-line-buffer-identification
 	    (if (not xesam-debug)
-		(list
-		 12 (propertized-buffer-identification
-		     (xesam-get-cached-property engine "vendor.id")))
+		(list 12 (propertized-buffer-identification xesam-vendor))
 	      (propertize
-	       (xesam-get-cached-property engine "vendor.id")
+	       xesam-vendor
 	       'help-echo
 	       (mapconcat
 		(lambda (x)
