@@ -1,3 +1,10 @@
+2008-08-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c: Remove dead code.
+	(handle_invisible_prop, next_overlay_string): Defer call to
+	setup_for_ellipsis.
+	(handle_stop, set_iterator_to_next): Call setup_for_ellipsis.
+
 2008-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (lookup_derived_face): Properly handle possible zero
