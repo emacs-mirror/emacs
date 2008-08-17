@@ -889,10 +889,6 @@ static Lisp_Object get_it_property P_ ((struct it *it, Lisp_Object prop));
 
 static void handle_line_prefix P_ ((struct it *));
 
-#if 0
-static int invisible_text_between_p P_ ((struct it *, int, int));
-#endif
-
 static void pint2str P_ ((char *, int, int));
 static void pint2hrstr P_ ((char *, int, int));
 static struct text_pos run_window_scroll_functions P_ ((Lisp_Object,
@@ -3108,6 +3104,7 @@ handle_stop (it)
   it->current.dpvec_index = -1;
   handle_overlay_change_p = !it->ignore_overlay_strings_at_pos_p;
   it->ignore_overlay_strings_at_pos_p = 0;
+  it->ellipsis_p = 0;
 
   /* Use face of preceding text for ellipsis (if invisible) */
   if (it->selective_display_ellipsis_p)
@@ -3128,10 +3125,14 @@ handle_stop (it)
 	    {
 	      /* We still want to show before and after strings from
 		 overlays even if the actual buffer text is replaced.  */
-	      if (!handle_overlay_change_p || it->sp > 1)
-		return;
-	      if (!get_overlay_strings_1 (it, 0, 0))
-		return;
+	      if (!handle_overlay_change_p
+		  || it->sp > 1
+		  || !get_overlay_strings_1 (it, 0, 0))
+		{
+		  if (it->ellipsis_p)
+		    setup_for_ellipsis (it, 0);
+		  return;
+		}
 	      it->ignore_overlay_strings_at_pos_p = 1;
 	      it->string_from_display_prop_p = 0;
 	      handle_overlay_change_p = 0;
@@ -3154,6 +3155,12 @@ handle_stop (it)
 	     if it finds overlays.  */
 	  if (handle_overlay_change_p)
 	    handled = handle_overlay_change (it);
+	}
+
+      if (it->ellipsis_p)
+	{
+	  setup_for_ellipsis (it, 0);
+	  break;
 	}
     }
   while (handled == HANDLED_RECOMPUTE_PROPS);
@@ -3838,7 +3845,7 @@ handle_invisible_prop (it)
 		  it->position.charpos = IT_CHARPOS (*it) - 1;
 		  it->position.bytepos = CHAR_TO_BYTE (it->position.charpos);
 		}
-              setup_for_ellipsis (it, 0);
+	      it->ellipsis_p = 1;
 	      /* Let the ellipsis display before
 		 considering any properties of the following char.
 		 Fixes jasonr@gnu.org 01 Oct 07 bug.  */
@@ -4860,8 +4867,8 @@ next_overlay_string (it)
       /* No more overlay strings.  Restore IT's settings to what
 	 they were before overlay strings were processed, and
 	 continue to deliver from current_buffer.  */
-      int display_ellipsis_p = it->stack[it->sp - 1].display_ellipsis_p;
 
+      it->ellipsis_p = (it->stack[it->sp - 1].display_ellipsis_p != 0);
       pop_it (it);
       xassert (it->sp > 0
 	       || it->method == GET_FROM_COMPOSITION
@@ -4877,11 +4884,6 @@ next_overlay_string (it)
 	 next_element_from_buffer doesn't try it again.  */
       if (NILP (it->string) && IT_CHARPOS (*it) >= it->end_charpos)
 	it->overlay_strings_at_end_processed_p = 1;
-
-      /* If we have to display `...' for invisible text, set
-	 the iterator up for that.  */
-      if (display_ellipsis_p)
-	setup_for_ellipsis (it, 0);
     }
   else
     {
@@ -6193,7 +6195,12 @@ set_iterator_to_next (it, reseat_p)
 	  /* IT->string is an overlay string.  Advance to the
 	     next, if there is one.  */
 	  if (IT_STRING_CHARPOS (*it) >= SCHARS (it->string))
-	    next_overlay_string (it);
+	    {
+	      it->ellipsis_p = 0;
+	      next_overlay_string (it);
+	      if (it->ellipsis_p)
+		setup_for_ellipsis (it, 0);
+	    }
 	}
       else
 	{
@@ -7500,41 +7507,6 @@ move_it_past_eol (it)
   if (rc == MOVE_NEWLINE_OR_CR)
     set_iterator_to_next (it, 0);
 }
-
-
-#if 0 /* Currently not used.  */
-
-/* Return non-zero if some text between buffer positions START_CHARPOS
-   and END_CHARPOS is invisible.  IT->window is the window for text
-   property lookup.  */
-
-static int
-invisible_text_between_p (it, start_charpos, end_charpos)
-     struct it *it;
-     int start_charpos, end_charpos;
-{
-  Lisp_Object prop, limit;
-  int invisible_found_p;
-
-  xassert (it != NULL && start_charpos <= end_charpos);
-
-  /* Is text at START invisible?  */
-  prop = Fget_char_property (make_number (start_charpos), Qinvisible,
-			     it->window);
-  if (TEXT_PROP_MEANS_INVISIBLE (prop))
-    invisible_found_p = 1;
-  else
-    {
-      limit = Fnext_single_char_property_change (make_number (start_charpos),
-						 Qinvisible, Qnil,
-						 make_number (end_charpos));
-      invisible_found_p = XFASTINT (limit) < end_charpos;
-    }
-
-  return invisible_found_p;
-}
-
-#endif /* 0 */
 
 
 /* Move IT by a specified number DVPOS of screen lines down.  DVPOS
@@ -9676,15 +9648,6 @@ update_menu_bar (f, save_match_data, hooks_run)
 
   window = FRAME_SELECTED_WINDOW (f);
   w = XWINDOW (window);
-
-#if 0 /* The if statement below this if statement used to include the
-         condition !NILP (w->update_mode_line), rather than using
-         update_mode_lines directly, and this if statement may have
-         been added to make that condition work.  Now the if
-         statement below matches its comment, this isn't needed.  */
-  if (update_mode_lines)
-    w->update_mode_line = Qt;
-#endif
 
   if (FRAME_WINDOW_P (f)
       ?
@@ -11876,11 +11839,6 @@ redisplay_internal (preserve_echo_area)
 		  /* Update the display.  */
 		  set_window_update_flags (XWINDOW (f->root_window), 1);
 		  pause |= update_frame (f, 0, 0);
-#if 0  /* Exiting the loop can leave the wrong value for buffer_shared.  */
-		  if (pause)
-		    break;
-#endif
-
 		  f->updated_p = 1;
 		}
 	    }
@@ -12174,11 +12132,6 @@ mark_window_display_accurate_1 (w, accurate_p)
   if (accurate_p)
     {
       w->window_end_valid = w->buffer;
-#if 0 /* This is incorrect with variable-height lines.  */
-      xassert (XINT (w->window_end_vpos)
-	       < (WINDOW_TOTAL_LINES (w)
-		  - (WINDOW_WANTS_MODELINE_P (w) ? 1 : 0)));
-#endif
       w->update_mode_line = Qnil;
     }
 }
@@ -13810,11 +13763,6 @@ redisplay_window (window, just_this_one_p)
     {
       init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
       move_it_vertically_backward (&it, 0);
-#if 0
-      /* I think this assert is bogus if buffer contains
-	 invisible text or images.  KFS.  */
-      xassert (IT_CHARPOS (it) <= PT);
-#endif
       it.current_y = 0;
     }
 
