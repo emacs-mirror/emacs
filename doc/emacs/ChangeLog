@@ -1,3 +1,10 @@
+2008-08-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* regs.texi (Registers): Clarify valid register names.
+	(RegPos): Note that buffer is saved and restored too.
+	(RegText): Note that mark is reactivated/deactivated.
+	(RegConfig): Xref to Windows node.
+
 2008-08-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* basic.texi (Inserting Text): Provide command name for C-q.
