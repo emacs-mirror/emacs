@@ -227,7 +227,7 @@ interface to GnuPG (see New Modes and Packages).
 *** In the Options menu, the "Truncate Long Lines in the Buffer" entry
 has been replaced with a submenu offering three different ways to
 handle long lines: truncation, continuation at the window edge, and
-the new word wrapping option (see Editing Changes, below).
+the new word wrapping behavior (see Editing Changes, below).
 
 *** Improvements to menus for major and minor modes
 More major and minor modes now have a mode specific menu, and existing
@@ -302,6 +302,7 @@ identical.
 
 * Editing Changes in Emacs 23.1
 
++++
 ** The C-n and C-p line-motion commands now move by screen lines,
 taking continued lines and variable-width characters into account.
 Setting `line-move-visual' to nil reverts this to the previous
@@ -326,8 +327,10 @@ region is active.  Otherwise, it fills the current paragraph.
 *** When Transient Mark mode is on, M-$ now checks spelling of the
 region if the region is active.  Otherwise, it checks spelling of the
 word at point.
+
 *** When Transient Mark mode is on, TAB now indents the region if the
 region is active.
+
 *** `use-empty-active-region' controls whether an empty active region
 in Transient Mark mode should make commands operate on that empty
 region.
@@ -424,11 +427,14 @@ possible completions, rather than stopping at the common prefix.
 completions only if you repeat the completion.  This was already
 supported in `partial-completion-mode'.
 
-** Continuation lines can be wrapped at word boundaries
-(word-wrapping) instead of the right window edge.  The new per-buffer
-variable `word-wrap', if non-nil turns on word-wrapping.  Word
-wrapping does not take place if continuation lines are not shown,
-e.g. if truncate-lines is non-nil.
+** Continuation lines can now be wrapped at word boundaries
+(word-wrapping).  This is controlled by the new per-buffer variable
+`word-wrap'.  Word wrapping does not take place if continuation lines
+are not shown, e.g. if truncate-lines is non-nil.  The most convenient
+way to enable word-wrapping is using the new minor mode Visual Line
+mode; in addition to setting `word-wrap' to t, this rebinds some
+editing commands to work on screen lines rather than text lines.  See
+New Modes and Packages, below.
 
 ** Window management changes
 
@@ -539,6 +545,8 @@ Manual.
 It turns on word-wrapping in the current buffer, and rebinds C-a, C-e,
 and C-k to commands that operate by visual lines instead of logical
 lines.  This is a more reliable replacement for longlines-mode.
+This can also be turned on using the menu bar, via
+Options -> Line Wrapping in this Buffer -> Word Wrap
 
 ** xesam.el is an implementation of Xesam, an interface to (desktop)
 search engines like Beagle, Strigi, and Tracker.  The Xesam API
