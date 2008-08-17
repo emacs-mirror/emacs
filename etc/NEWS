@@ -56,8 +56,12 @@ a GIF library.
 
 ** New NeXTSTEP-based port
 This provides support for GNUStep (via the GNUStep libraries) and Mac
-OS X (via the Cocoa libraries).  See nextstep/README and
-nextstep/INSTALL in the Emacs source directory.
+OS X (via the Cocoa libraries).  
+
+Specify --with-ns to configure for this. By default, a self-contained
+app will be built (containing all lisp).  To install/share lisp with
+other emacsen (e.g. X11 build) use --disable-ns-self-contained.  See
+nextstep/README and nextstep/INSTALL in the Emacs source directory.
 
 ** Mac OS X is no longer supported via Carbon.
 Use the NeXTSTEP port, described above.
@@ -107,13 +111,6 @@ Various resolutions are available as etc/images/icons/hicolor/*/apps/emacs.png.
 The Emacs 22 icon is available as `emacs22.png' in the same location.
 
 * Changes in Emacs 23.1
-
-** Emacs can now be built under the Cocoa libraries on Mac OS X and GNUstep
-   libraries on other machines.  Specify --with-ns to configure for this. By
-   default a self-contained app will be built (containing all lisp).  To
-   install/share lisp with other emacsen (e.g. X11 build) use
-   --disable-ns-self-contained.  Use 'info-ns-emacs' or first entry under Help
-   menu when running for more information.
 
 ** `where-is-preferred-modifier' can specify your favorite modifier.
 
