@@ -826,7 +826,7 @@ properties of `highlight'.
 At the end, this runs the normal hook `completion-setup-hook'.
 It can find the completion buffer in `standard-output'.
 
-The optional arg COMMON-SUBSTRING, if non-nil, should be a string
+The obsolete optional arg COMMON-SUBSTRING, if non-nil, should be a string
 specifying a common substring for adding the faces
 `completions-first-difference' and `completions-common-part' to
 the completions buffer."
