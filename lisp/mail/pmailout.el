@@ -249,4 +249,5 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
   (when pmail-delete-after-output
     (pmail-delete-forward)))
 
+;; arch-tag: 4059abf0-f249-4be4-8e0d-602d370d01d1
 ;;; pmailout.el ends here
