@@ -1,3 +1,8 @@
+2008-08-18  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (font-show-log): Add optional arg N
+	to control the limit of font listing.
+
 2008-08-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.el (recenter-top-bottom): Determine top and bottom
