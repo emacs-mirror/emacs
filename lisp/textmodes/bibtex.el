@@ -146,6 +146,18 @@ The value nil means do no formatting at all."
                       (const unify-case)
                       (const braces)
                       (const strings))))
+(put 'bibtex-entry-format 'safe-local-variable
+     (lambda (x)
+       (or (eq x t)
+           (let ((OK t))
+             (while (consp x)
+               (unless (memq (pop x)
+                             '(opts-or-alts required-fields numerical-fields
+                               page-dashes whitespace inherit-booktitle realign
+                               last-comma delimiters unify-case braces strings))
+                 (setq OK nil)))
+             (unless (null x) (setq OK nil))
+             OK))))
 
 (defcustom bibtex-field-braces-alist nil
  "Alist of field regexps that \\[bibtex-clean-entry] encloses by braces.
@@ -795,7 +807,7 @@ See `bibtex-generate-autokey' for details."
   :type 'string)
 
 (defcustom bibtex-autokey-year-title-separator ":_"
-  "String to be put between name part and year part of key.
+  "String to be put between year part and title part of key.
 See `bibtex-generate-autokey' for details."
   :group 'bibtex-autokey
   :type 'string)
@@ -4150,7 +4162,7 @@ intermixed with \\[bibtex-pop-previous] (bibtex-pop-previous)."
 
 (defun bibtex-clean-entry (&optional new-key called-by-reformat)
   "Finish editing the current BibTeX entry and clean it up.
-Check that no required fields are empty and formats entry dependent
+Check that no required fields are empty and format entry dependent
 on the value of `bibtex-entry-format'.
 If the reference key of the entry is empty or a prefix argument is given,
 calculate a new reference key.  (Note: this works only if fields in entry
