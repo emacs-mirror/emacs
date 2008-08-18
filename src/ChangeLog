@@ -1,3 +1,10 @@
+2008-08-18  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (face_for_char): Add font log.
+
+	* font.c (font_add_log): Add the font properties :script, :lang,
+	and :otf in the log.
+
 2008-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c: Remove dead code.
