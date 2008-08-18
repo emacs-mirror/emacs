@@ -3401,4 +3401,5 @@ encoded string (and the same mask) will decode the string."
 
 (provide 'pmail)
 
+;; arch-tag: 65d257d3-c281-4a65-9c38-e61af95af2f0
 ;;; pmail.el ends here
