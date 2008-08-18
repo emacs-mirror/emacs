@@ -1,3 +1,8 @@
+2008-08-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (recenter-top-bottom): Determine top and bottom
+	positions using scroll-margin instead of scroll-conservatively.
+
 2008-08-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-send-signal): Use beginning-of-line.
