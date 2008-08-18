@@ -1,3 +1,24 @@
+2008-08-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-signal-list): Add POSIX 1003.1-2001 signals.
+	(proced-mode-map): Add tooltips for menus.  Use radio buttons for
+	listing types.
+	(proced-log-buffer): New variable.
+	(proced-mark-all, proced-unmark-all, proced-do-mark-al): Operate
+	on region if transient-mark-mode is turned on and the region is
+	active.
+	(proced-omit-processes): Renamed from proced-hide-processes to
+	avoid key clash with describe-mode (bound to h).  Search for
+	marked processes starting from point-min.
+	(proced-header-space): Removed.
+	(proced-send-signal): Handle errors.  Operate on current process
+	if no process is marked.
+	(proced-why): New command.
+	(proced-log, proced-log-summary): New functions.
+	(proced-help): Use proced-why.
+	* textmodes/bibtex.el (bibtex-entry-format): Mark as safe.
+	(bibtex-autokey-year-title-separator): Fix doscstring.
+
 2008-08-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/xesam.el (xesam-vendor, xesam-notify-function): New local
