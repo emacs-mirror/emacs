@@ -1,5 +1,9 @@
 2008-08-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
+	* proced.el (proced-send-signal): Use beginning-of-line.
+
+2008-08-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
 	* proced.el (proced-signal-list): Add POSIX 1003.1-2001 signals.
 	(proced-mode-map): Add tooltips for menus.  Use radio buttons for
 	listing types.
