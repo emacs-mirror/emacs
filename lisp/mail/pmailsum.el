@@ -1493,5 +1493,4 @@ If `pmail-summary-line-count-flag' is nil, return the empty string."
 
 (provide 'pmailsum)
 
-;; arch-tag: 556079ee-75c1-47f5-9884-2e0a0bc6c5a1
 ;;; pmailsum.el ends here

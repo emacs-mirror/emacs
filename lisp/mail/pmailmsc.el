@@ -58,5 +58,4 @@ If FILE-NAME is empty, remove any existing inbox list."
       (setq pmail-inbox-list inbox-list)))
   (pmail-show-message pmail-current-message))
 
-;; arch-tag: 74ed1d50-2c25-4cbd-b5ae-d29ed8aba6e4
 ;;; pmailmsc.el ends here

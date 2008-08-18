@@ -245,5 +245,4 @@ Arguments are MSG and FIELD."
 
 (provide 'pmailsort)
 
-;; arch-tag: 0d90896b-0c35-46ac-b240-38be5ada2360
 ;;; pmailsort.el ends here

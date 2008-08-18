@@ -223,5 +223,4 @@ With prefix argument N moves forward N messages with these labels."
       (when (> n 0)
 	(message "No following message with labels %s" labels)))))
 
-;; arch-tag: b26b3392-99ca-4e1d-933a-dab59b04e9a8
 ;;; pmailkwd.el ends here
