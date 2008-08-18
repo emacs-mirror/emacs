@@ -28,14 +28,15 @@
 ;; on the processes listed.
 ;;
 ;; To do:
-;; - decompose ps(1) output into columns (for `proced-header-alist')
-;;   How can we identify columns that may contain whitespace
-;;   and that can be either right or left justified?
-;;   Use a "grammar table"?
-;; - sort the "cooked" values used in the output format fields
-;;   if ps(1) doesn't support the requested sorting scheme
-;; - filter by user name or other criteria
+;; - use list-system-processes and system-process-attributes
+;; - sort and filter by user name or other criteria
+;; - make fields clickable for marking / filtering / sorting:
+;;   clicking on a USER field marks all processes of this user etc
+;;   clicking on a %MEM field marks all processes with at least this %MEM.
+;;   clicking on a header field sorts according to this header
+;; - mark parent and children PIDs (or both)
 ;; - automatic update of process list
+;; - allow "sudo kill PID", "renice PID"
 
 ;;; Code:
 
@@ -143,13 +144,20 @@ the external command (usually \"kill\")."
                  (string :tag "command")))
 
 (defcustom proced-signal-list
-  '(("HUP   (1.  Hangup)")
+  '(;; signals supported on all POSIX compliant systems
+    ("HUP   (1.  Hangup)")
     ("INT   (2.  Terminal interrupt)")
     ("QUIT  (3.  Terminal quit)")
     ("ABRT  (6.  Process abort)")
-    ("KILL  (9.  Kill -- cannot be caught or ignored)")
+    ("KILL  (9.  Kill - cannot be caught or ignored)")
     ("ALRM  (14. Alarm Clock)")
-    ("TERM  (15. Termination)"))
+    ("TERM  (15. Termination)")
+    ;; POSIX 1003.1-2001
+    ;; Which systems do not support these signals so that we can
+    ;; exclude them from `proced-signal-list'?
+    ("CONT (Continue executing)")
+    ("STOP (Stop executing / pause - cannot be caught or ignored)")
+    ("TSTP (Terminal stop / pause)"))
   "List of signals, used for minibuffer completion."
   :group 'proced
   :type '(repeat (string :tag "signal")))
@@ -223,7 +231,7 @@ Important: the match ends just after the marker.")
     (define-key km "sS" 'proced-sort)
     (define-key km "st" 'proced-sort-time)
     ;; operate
-    (define-key km "h" 'proced-hide-processes)
+    (define-key km "o" 'proced-omit-processes)
     (define-key km "x" 'proced-send-signal) ; Dired compatibility
     (define-key km "k" 'proced-send-signal) ; kill processes
     ;; misc
@@ -235,29 +243,45 @@ Important: the match ends just after the marker.")
     (define-key km [remap undo] 'proced-undo)
     (define-key km [remap advertised-undo] 'proced-undo)
     km)
-  "Keymap for proced commands")
+  "Keymap for proced commands.")
 
 (easy-menu-define
   proced-menu proced-mode-map "Proced Menu"
-  '("Proced"
-    ["Mark" proced-mark t]
-    ["Unmark" proced-unmark t]
-    ["Mark All" proced-mark-all t]
-    ["Unmark All" proced-unmark-all t]
-    ["Toggle Marks" proced-toggle-marks t]
+  `("Proced"
+    ["Mark" proced-mark
+     :help "Mark Current Process"]
+    ["Unmark" proced-unmark
+     :help "Unmark Current Process"]
+    ["Mark All" proced-mark-all
+     :help "Mark All Processes"]
+    ["Unmark All" proced-unmark-all
+     :help "Unmark All Process"]
+    ["Toggle Marks" proced-toggle-marks
+     :help "Marked Processes Become Unmarked, and Vice Versa"]
     "--"
-    ["Sort" proced-sort t]
+    ["Sort..." proced-sort
+     :help "Sort Process List"]
     ["Sort by %CPU" proced-sort-pcpu (proced-sorting-scheme-p "%CPU")]
     ["Sort by %MEM" proced-sort-pmem (proced-sorting-scheme-p "%MEM")]
     ["Sort by PID" proced-sort-pid (proced-sorting-scheme-p "PID")]
     ["Sort by START" proced-sort-start (proced-sorting-scheme-p "START")]
     ["Sort by TIME" proced-sort-time (proced-sorting-scheme-p "TIME")]
     "--"
-    ["Hide Marked Processes" proced-hide-processes t]
+    ["Omit Marked Processes" proced-omit-processes
+     :help "Omit Marked Processes in Process Listing."]
     "--"
-    ["Revert" revert-buffer t]
-    ["Send signal" proced-send-signal t]
-    ["Change listing" proced-listing-type t]))
+    ["Revert" revert-buffer
+     :help "Revert Process Listing"]
+    ["Send signal" proced-send-signal
+     :help "Send Signal to Marked Processes"]
+    ("Listing Type"
+     :help "Select Type of Process Listing"
+     ,@(mapcar (lambda (el)
+                 (let ((command (car el)))
+                   `[,command (proced-listing-type ,command)
+                             :style radio
+                             :selected (string= proced-command ,command)]))
+               proced-command-alist))))
 
 (defconst proced-help-string
   "(n)ext, (p)revious, (m)ark, (u)nmark, (k)ill, (q)uit  (type ? for more help)"
@@ -279,6 +303,9 @@ JUSTIFY is 'left or 'right for left or right-justified output of ps(1).")
 (defvar proced-sorting-schemes-re nil
   "Regexp to match valid sorting schemes.")
 (make-variable-buffer-local 'proced-sorting-schemes-re)
+
+(defvar proced-log-buffer "*Proced log*"
+  "Name of Proced Log buffer.")
 
 ;; helper functions
 (defun proced-marker-regexp ()
@@ -339,10 +366,8 @@ information will be displayed but not selected.
     (set-buffer buffer)
     (setq new (zerop (buffer-size)))
     (if new (proced-mode))
-
     (if (or new arg)
         (proced-update))
-
     (if arg
 	(display-buffer buffer)
       (pop-to-buffer buffer)
@@ -382,7 +407,7 @@ Optional prefix ARG says how many lines to move; default is one line."
   (proced-do-mark nil (- (or count 1))))
 
 (defun proced-do-mark (mark &optional count)
-  "Mark the current (or next ARG) processes using MARK."
+  "Mark the current (or next COUNT) processes using MARK."
   (or count (setq count 1))
   (let ((backward (< count 0))
 	buffer-read-only)
@@ -394,22 +419,40 @@ Optional prefix ARG says how many lines to move; default is one line."
     (proced-move-to-goal-column)))
 
 (defun proced-mark-all ()
-  "Mark all processes."
+  "Mark all processes.
+If `transient-mark-mode' is turned on and the region is active,
+mark the region."
   (interactive)
   (proced-do-mark-all t))
 
 (defun proced-unmark-all ()
-  "Unmark all processes."
+  "Unmark all processes.
+If `transient-mark-mode' is turned on and the region is active,
+unmark the region."
   (interactive)
   (proced-do-mark-all nil))
 
 (defun proced-do-mark-all (mark)
-  "Mark all processes using MARK."
+  "Mark all processes using MARK.
+If `transient-mark-mode' is turned on and the region is active,
+mark the region."
   (let (buffer-read-only)
     (save-excursion
-      (goto-char (point-min))
-      (while (not (eobp))
-        (proced-insert-mark mark)))))
+      (if (and transient-mark-mode mark-active)
+          ;; Operate even on those lines that are only partially a part
+          ;; of region.  This appears most consistent with
+          ;; `proced-move-to-goal-column'.
+          (let ((end (save-excursion
+                       (goto-char (region-end))
+                       (unless (looking-at "^") (forward-line))
+                       (point))))
+            (goto-char (region-beginning))
+            (unless (looking-at "^") (beginning-of-line))
+            (while (< (point) end)
+              (proced-insert-mark mark)))
+        (goto-char (point-min))
+        (while (not (eobp))
+          (proced-insert-mark mark))))))
 
 (defun proced-toggle-marks ()
   "Toggle marks: marked processes become unmarked, and vice versa."
@@ -439,35 +482,36 @@ Otherwise move one line forward after inserting the mark."
 ;; However, for negative args the target lines of `dired-do-kill-lines'
 ;; include the current line, whereas `dired-mark' for negative args operates
 ;; on the preceding lines. Here we are consistent with `dired-mark'.
-(defun proced-hide-processes (&optional arg quiet)
-  "Hide marked processes.
-With prefix ARG, hide that many lines starting with the current line.
-\(A negative argument hides backward.)
+(defun proced-omit-processes (&optional arg quiet)
+  "Omit marked processes.
+With prefix ARG, omit that many lines starting with the current line.
+\(A negative argument omits backward.)
 If QUIET is non-nil suppress status message.
-Returns count of hidden lines."
+Returns count of omitted lines."
   (interactive "P")
   (let ((mark-re (proced-marker-regexp))
         (count 0)
         buffer-read-only)
-    (save-excursion
-      (if arg
-          ;; Hide ARG lines starting with the current line.
-          (delete-region (line-beginning-position)
-                         (save-excursion
-                           (if (<= 0 arg)
-                               (setq count (- arg (forward-line arg)))
-                             (setq count (min (1- (line-number-at-pos))
-                                              (abs arg)))
-                             (forward-line (- count)))
-                           (point)))
-        ;; Hide marked lines
+    (if arg
+        ;; Omit ARG lines starting with the current line.
+        (delete-region (line-beginning-position)
+                       (save-excursion
+                         (if (<= 0 arg)
+                             (setq count (- arg (forward-line arg)))
+                           (setq count (min (1- (line-number-at-pos))
+                                            (abs arg)))
+                           (forward-line (- count)))
+                         (point)))
+        ;; Omit marked lines
+      (save-excursion
+        (goto-char (point-min))
         (while (and (not (eobp))
                     (re-search-forward mark-re nil t))
           (delete-region (match-beginning 0)
                          (save-excursion (forward-line) (point)))
           (setq count (1+ count)))))
     (unless (zerop count) (proced-move-to-goal-column))
-    (unless quiet (proced-success-message "Hid" count))
+    (unless quiet (proced-success-message "Omitted" count))
     count))
 
 (defun proced-listing-type (command)
@@ -477,12 +521,6 @@ Returns count of hidden lines."
   (setq proced-command command)
   (proced-update))
 
-;; adopted from `ruler-mode-space'
-(defsubst proced-header-space (width)
-  "Return a single space string of WIDTH times the normal character width."
-  (propertize " " 'display (list 'space :width width)))
-
-;; header line: code inspired by `ruler-mode-ruler'
 (defun proced-header-line ()
   "Return header line for Proced buffer."
   (list (propertize " " 'display '(space :align-to 0))
@@ -490,7 +528,8 @@ Returns count of hidden lines."
          "%" "%%" (substring proced-header-line (window-hscroll)))))
 
 (defun proced-update (&optional quiet)
-  "Update the `proced' process information.  Preserves point and marks."
+  "Update the `proced' process information.  Preserves point and marks.
+Suppress status information if QUIET is nil."
   ;; This is the main function that generates and updates the process listing.
   (interactive)
   (or quiet (message "Updating process information..."))
@@ -594,6 +633,7 @@ Returns count of hidden lines."
 
 (defun proced-send-signal (&optional signal)
   "Send a SIGNAL to the marked processes.
+If no process is marked, operate on current process.
 SIGNAL may be a string (HUP, INT, TERM, etc.) or a number.
 If SIGNAL is nil display marked processes and query interactively for SIGNAL."
   (interactive)
@@ -610,71 +650,153 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
                     ;; and the command name?
                     (substring (match-string-no-properties 0) 2))
               process-list)))
-    (setq process-list (nreverse process-list))
-    (if (not process-list)
-        (message "No processes marked")
-      (unless signal
-        ;; Display marked processes (code taken from `dired-mark-pop-up').
-        (let ((bufname  " *Marked Processes*")
-              (header proced-header-line)) ; inherit header line
-          (with-current-buffer (get-buffer-create bufname)
-            (setq truncate-lines t
-                  proced-header-line header
-                  header-line-format '(:eval (proced-header-line)))
-            (add-hook 'post-command-hook 'force-mode-line-update nil t)
-            (erase-buffer)
-            (dolist (process process-list)
-              (insert "  " (cdr process) "\n"))
-            (save-window-excursion
-              (dired-pop-to-buffer bufname) ; all we need
-              (let* ((completion-ignore-case t)
-                     (pnum (if (= 1 (length process-list))
-                               "1 process"
-                             (format "%d processes" (length process-list))))
-                     ;; The following is an ugly hack. Is there a better way
-                     ;; to help people like me to remember the signals and
-                     ;; their meanings?
-                     (tmp (completing-read (concat "Send signal [" pnum
-                                                   "] (default TERM): ")
-                                           proced-signal-list
-                                           nil nil nil nil "TERM")))
-                (setq signal (if (string-match "^\\(\\S-+\\)\\s-" tmp)
-                                 (match-string 1 tmp) tmp))))))
-        ;; send signal
-        (let ((count 0)
-              err-list)
-          (if (functionp proced-signal-function)
-              ;; use built-in `signal-process'
-              (let ((signal (if (stringp signal)
-                                (if (string-match "\\`[0-9]+\\'" signal)
-                                    (string-to-number signal)
-                                  (make-symbol signal))
-                              signal))) ; number
-                (dolist (process process-list)
-                  (if (zerop (funcall
-                              proced-signal-function
-                              (string-to-number (car process)) signal))
-                      (setq count (1+ count))
-                    (push (cdr process) err-list))))
-            ;; use external system call
-            (let ((signal (concat "-" (if (numberp signal)
-                                          (number-to-string signal) signal))))
+    (setq process-list
+          (if process-list
+              (nreverse process-list)
+            ;; take current process
+            (save-excursion
+              (line-beginning-position)
+              (looking-at (concat "^" (proced-skip-regexp)
+                                  "\\s-+\\([0-9]+\\>\\).*$"))
+              (list (cons (match-string-no-properties 1)
+                          (substring (match-string-no-properties 0) 2))))))
+    (unless signal
+      ;; Display marked processes (code taken from `dired-mark-pop-up').
+      (let ((bufname  " *Marked Processes*")
+            (header proced-header-line)) ; inherit header line
+        (with-current-buffer (get-buffer-create bufname)
+          (setq truncate-lines t
+                proced-header-line header
+                header-line-format '(:eval (proced-header-line)))
+          (add-hook 'post-command-hook 'force-mode-line-update nil t)
+          (erase-buffer)
+          (dolist (process process-list)
+            (insert "  " (cdr process) "\n"))
+          (save-window-excursion
+            (dired-pop-to-buffer bufname) ; all we need
+            (let* ((completion-ignore-case t)
+                   (pnum (if (= 1 (length process-list))
+                             "1 process"
+                           (format "%d processes" (length process-list))))
+                   ;; The following is an ugly hack. Is there a better way
+                   ;; to help people like me to remember the signals and
+                   ;; their meanings?
+                   (tmp (completing-read (concat "Send signal [" pnum
+                                                 "] (default TERM): ")
+                                         proced-signal-list
+                                         nil nil nil nil "TERM")))
+              (setq signal (if (string-match "^\\(\\S-+\\)\\s-" tmp)
+                               (match-string 1 tmp) tmp))))))
+      ;; send signal
+      (let ((count 0)
+            failures)
+        ;; Why not always use `signal-process'?  See
+        ;; http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg02955.html
+        (if (functionp proced-signal-function)
+            ;; use built-in `signal-process'
+            (let ((signal (if (stringp signal)
+                              (if (string-match "\\`[0-9]+\\'" signal)
+                                  (string-to-number signal)
+                                (make-symbol signal))
+                            signal))) ; number
               (dolist (process process-list)
-                (if (zerop (call-process
-                            proced-signal-function nil 0 nil
-                            signal (car process)))
-                    (setq count (1+ count))
-                  (push (cdr process) err-list)))))
-          (if err-list
-              ;; FIXME: that's not enough to display the errors.
-              (message "%s: %s" signal err-list)
-            (proced-success-message "Sent signal to" count)))
-        ;; final clean-up
-        (run-hooks 'proced-after-send-signal-hook)))))
+                (condition-case err
+                    (if (zerop (funcall
+                                proced-signal-function
+                                (string-to-number (car process)) signal))
+                        (setq count (1+ count))
+                      (proced-log "%s\n" (cdr process))
+                      (push (cdr process) failures))
+                  (error ;; catch errors from failed signals
+                   (proced-log "%s\n" err)
+                   (proced-log "%s\n" (cdr process))
+                   (push (cdr process) failures)))))
+          ;; use external system call
+          (let ((signal (concat "-" (if (numberp signal)
+                                        (number-to-string signal) signal))))
+            (dolist (process process-list)
+              (with-temp-buffer
+                (condition-case err
+                    (if (zerop (call-process
+                                proced-signal-function nil t nil
+                                signal (car process)))
+                        (setq count (1+ count))
+                      (proced-log (current-buffer))
+                      (proced-log "%s\n" (cdr process))
+                      (push (cdr process) failures))
+                  (error ;; catch errors from failed signals
+                   (proced-log (current-buffer))
+                   (proced-log "%s\n" (cdr process))
+                   (push (cdr process) failures)))))))
+        (if failures
+            (proced-log-summary
+             signal
+             (format "%d of %d signal%s failed"
+                     (length failures) (length process-list)
+                     (if (= 1 (length process-list)) "" "s")))
+          (proced-success-message "Sent signal to" count)))
+      ;; final clean-up
+      (run-hooks 'proced-after-send-signal-hook))))
+
+;; just like `dired-why'
+(defun proced-why ()
+  "Pop up a buffer with error log output from Proced.
+A group of errors from a single command ends with a formfeed.
+Thus, use \\[backward-page] to find the beginning of a group of errors."
+  (interactive)
+  (if (get-buffer proced-log-buffer)
+      (let ((owindow (selected-window))
+	    (window (display-buffer (get-buffer proced-log-buffer))))
+	(unwind-protect
+	    (progn
+	      (select-window window)
+	      (goto-char (point-max))
+	      (forward-line -1)
+	      (backward-page 1)
+	      (recenter 0))
+	  (select-window owindow)))))
+
+;; similar to `dired-log'
+(defun proced-log (log &rest args)
+  "Log a message or the contents of a buffer.
+If LOG is a string and there are more args, it is formatted with
+those ARGS.  Usually the LOG string ends with a \\n.
+End each bunch of errors with (proced-log t signal):
+this inserts the current time, buffer and signal at the start of the page,
+and \f (formfeed) at the end."
+  (let ((obuf (current-buffer)))
+    (with-current-buffer (get-buffer-create proced-log-buffer)
+      (goto-char (point-max))
+      (let ((inhibit-read-only t))
+	(cond ((stringp log)
+	       (insert (if args
+			   (apply 'format log args)
+			 log)))
+	      ((bufferp log)
+	       (insert-buffer-substring log))
+	      ((eq t log)
+	       (backward-page 1)
+	       (unless (bolp)
+		 (insert "\n"))
+	       (insert (current-time-string)
+		       "\tBuffer `" (buffer-name obuf) "', "
+                       (format "signal `%s'\n" (car args)))
+	       (goto-char (point-max))
+	       (insert "\f\n")))))))
+
+;; similar to `dired-log-summary'
+(defun proced-log-summary (signal string)
+  "State a summary of SIGNAL's failures, in echo area and log buffer.
+STRING is an overall summary of the failures."
+  (message "Signal %s: %s--type ? for details" signal string)
+  ;; Log a summary describing a bunch of errors.
+  (proced-log (concat "\n" string "\n"))
+  (proced-log t signal))
 
 (defun proced-help ()
   "Provide help for the `proced' user."
   (interactive)
+  (proced-why)
   (if (eq last-command 'proced-help)
       (describe-mode)
     (message proced-help-string)))
@@ -747,4 +869,4 @@ SCHEME must be a string or nil."
 (provide 'proced)
 
 ;; arch-tag: a6e312ad-9032-45aa-972d-31a8cfc545af
-;;; proced.el ends here.
+;;; proced.el ends here
