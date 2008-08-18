@@ -2230,7 +2230,11 @@ Optional argument USER-SETUP non-nil means  called from function
         (fset 'edt-emulation-on (symbol-function 'edt-select-user-global-map)))
     (progn
       (fset 'edt-emulation-on (symbol-function 'edt-select-default-global-map))
-      (edt-select-default-global-map))))
+      (edt-select-default-global-map)))
+  ;; We need to share `global-buffers-menu-map' with the saved global
+  ;; keymap, because `menu-bar-update-buffers' directly changes it.
+  (define-key (current-global-map) [menu-bar buffer]
+    (cons "Buffers" global-buffers-menu-map)))
 
 (defun edt-user-emulation-setup ()
   "Setup user custom emulation of DEC's EDT editor."
