@@ -1,3 +1,11 @@
+2008-08-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* make-dist: Omit info/.arch-inventory.
+
+2008-08-16  Jason Rumney  <jasonr@gnu.org>
+
+	* make-dist (tempdir/nt): Link emacsclient.rc.
+
 2008-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (LIB_SRC_EXTRA_INSTALLABLES): New variable.

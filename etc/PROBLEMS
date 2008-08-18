@@ -2107,7 +2107,14 @@ A certain X server for Windows had a bug which caused this.
 Supposedly the newer 32-bit version of this server doesn't have the
 problem.
 
-** Known problems with the MS-Windows port of Emacs 22.1
+** Emacs crashes when opening a file with a UNC path and rails-mode is loaded.
+
+Loading rails-mode seems to interfere with UNC path handling. This has been
+reported as a bug against both Emacs and rails-mode, so look for an updated
+rails-mode that avoids this crash, or avoid using UNC paths if using
+rails-mode.
+
+** Known problems with the MS-Windows port of Emacs 22.3
 
 M-x term does not work on MS-Windows.  TTY emulation on Windows is
 undocumented, and programs such as stty which are used on posix platforms

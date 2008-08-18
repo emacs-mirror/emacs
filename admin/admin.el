@@ -123,6 +123,20 @@ Root must be the root of an Emacs source tree."
     (set-version-in-file root "nt/emacs.rc" comma-space-version
 			 (rx (and "\"ProductVersion\"" (0+ space) ?,
 				  (0+ space) ?\" (submatch (1+ (in "0-9, ")))
+				  "\\0\"")))
+    ;; Likewise for emacsclient.rc
+    (set-version-in-file root "nt/emacsclient.rc" comma-version
+			 (rx (and "FILEVERSION" (1+ space)
+				  (submatch (1+ (in "0-9,"))))))
+    (set-version-in-file root "nt/emacsclient.rc" comma-version
+			 (rx (and "PRODUCTVERSION" (1+ space)
+				  (submatch (1+ (in "0-9,"))))))
+    (set-version-in-file root "nt/emacsclient.rc" comma-space-version
+			 (rx (and "\"FileVersion\"" (0+ space) ?, (0+ space)
+				  ?\" (submatch (1+ (in "0-9, "))) "\\0\"")))
+    (set-version-in-file root "nt/emacsclient.rc" comma-space-version
+			 (rx (and "\"ProductVersion\"" (0+ space) ?,
+				  (0+ space) ?\" (submatch (1+ (in "0-9, ")))
 				  "\\0\""))))
   ;; nextstep.
   (set-version-in-file
