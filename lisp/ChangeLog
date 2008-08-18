@@ -1,3 +1,8 @@
+2008-08-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emulation/edt.el (edt-default-emulation-setup): Share
+	global-buffers-menu-map with the emulated global map.
+
 2008-08-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/flyspell.el (flyspell-word): Revert last change.
