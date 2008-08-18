@@ -655,7 +655,7 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
               (nreverse process-list)
             ;; take current process
             (save-excursion
-              (line-beginning-position)
+              (beginning-of-line)
               (looking-at (concat "^" (proced-skip-regexp)
                                   "\\s-+\\([0-9]+\\>\\).*$"))
               (list (cons (match-string-no-properties 1)
