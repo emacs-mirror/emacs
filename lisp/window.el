@@ -1436,26 +1436,25 @@ top, middle, or bottom on successive calls.
 
 The cycling order is: middle -> top -> bottom.
 
-Top and bottom destinations are actually `scroll-conservatively' lines
-from true window top and bottom."
+Top and bottom destinations are actually `scroll-margin' lines
+the from true window top and bottom."
   (interactive "P")
   (cond
    (arg (recenter arg))                 ; Always respect ARG.
-   ((not (eq this-command last-command))
-    ;; First time - save mode and recenter.
+   ((or (not (eq this-command last-command))
+	(eq recenter-last-op 'bottom))
     (setq recenter-last-op 'middle)
     (recenter))
-   (t ;; repeat: loop through various options.
-    (setq recenter-last-op
-	  (cond ((eq recenter-last-op 'middle)
-		 (recenter scroll-conservatively)
-		 'top)
-		((eq recenter-last-op 'top)
-		 (recenter (1- (- scroll-conservatively)))
-		 'bottom)
-		((eq recenter-last-op 'bottom)
-		 (recenter)
-		 'middle))))))
+   (t
+    (let ((this-scroll-margin
+	   (min (max 0 scroll-margin)
+		(truncate (/ (window-body-height) 4.0)))))
+      (cond ((eq recenter-last-op 'middle)
+	     (setq recenter-last-op 'top)
+	     (recenter this-scroll-margin))
+	    ((eq recenter-last-op 'top)
+	     (setq recenter-last-op 'bottom)
+	     (recenter (- -1 this-scroll-margin))))))))
 
 (define-key global-map [?\C-l] 'recenter-top-bottom)
 
