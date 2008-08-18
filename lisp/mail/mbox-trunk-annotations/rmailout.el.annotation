@@ -1,0 +1,420 @@
+1.65         (pj       15-Jul-01): ;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file
+1.4          (eric     30-May-92): 
+1.69         (ttn      06-Aug-05): ;; Copyright (C) 1985, 1987, 1993, 1994, 2001, 2002, 2003, 2004,
+1.79         (miles    08-Jan-08): ;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+1.9          (eric     22-Jul-92): 
+1.6          (eric     15-Jul-92): ;; Maintainer: FSF
+1.8          (eric     17-Jul-92): ;; Keywords: mail
+1.1          (root     22-May-90): 
+1.1          (root     22-May-90): ;; This file is part of GNU Emacs.
+1.1          (root     22-May-90): 
+1.81         (gm       06-May-08): ;; GNU Emacs is free software: you can redistribute it and/or modify
+1.1          (root     22-May-90): ;; it under the terms of the GNU General Public License as published by
+1.81         (gm       06-May-08): ;; the Free Software Foundation, either version 3 of the License, or
+1.81         (gm       06-May-08): ;; (at your option) any later version.
+1.1          (root     22-May-90): 
+1.1          (root     22-May-90): ;; GNU Emacs is distributed in the hope that it will be useful,
+1.1          (root     22-May-90): ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+1.1          (root     22-May-90): ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+1.1          (root     22-May-90): ;; GNU General Public License for more details.
+1.1          (root     22-May-90): 
+1.1          (root     22-May-90): ;; You should have received a copy of the GNU General Public License
+1.81         (gm       06-May-08): ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+1.65         (pj       15-Jul-01): 
+1.65         (pj       15-Jul-01): ;;; Commentary:
+1.1          (root     22-May-90): 
+1.6          (eric     15-Jul-92): ;;; Code:
+1.1          (root     22-May-90): 
+1.30         (kwzh     09-Feb-94): (require 'rmail)
+1.59         (rms      04-Jan-99): (provide 'rmailout)
+1.30         (kwzh     09-Feb-94): 
+1.44         (rms      14-Sep-96): ;;;###autoload
+1.49         (rms      03-May-97): (defcustom rmail-output-file-alist nil
+1.2          (rms      24-Dec-90):   "*Alist matching regexps to suggested output Rmail files.
+1.16         (rms      09-Jul-93): This is a list of elements of the form (REGEXP . NAME-EXP).
+1.21         (roland   14-Oct-93): The suggestion is taken if REGEXP matches anywhere in the message buffer.
+1.16         (rms      09-Jul-93): NAME-EXP may be a string constant giving the file name to use,
+1.16         (rms      09-Jul-93): or more generally it may be any kind of expression that returns
+1.49         (rms      03-May-97): a file name as a string."
+1.49         (rms      03-May-97):   :type '(repeat (cons regexp
+1.49         (rms      03-May-97): 		       (choice :value ""
+1.49         (rms      03-May-97): 			       (string :tag "File Name")
+1.49         (rms      03-May-97): 			       sexp)))
+1.49         (rms      03-May-97):   :group 'rmail-output)
+1.2          (rms      24-Dec-90): 
+1.59         (rms      04-Jan-99): (defun rmail-output-read-rmail-file-name ()
+1.59         (rms      04-Jan-99):   "Read the file name to use for `rmail-output-to-rmail-file'.
+1.59         (rms      04-Jan-99): Set `rmail-default-rmail-file' to this name as well as returning it."
+1.59         (rms      04-Jan-99):   (let ((default-file
+1.59         (rms      04-Jan-99): 	  (let (answer tail)
+1.59         (rms      04-Jan-99): 	    (setq tail rmail-output-file-alist)
+1.59         (rms      04-Jan-99): 	    ;; Suggest a file based on a pattern match.
+1.59         (rms      04-Jan-99): 	    (while (and tail (not answer))
+1.59         (rms      04-Jan-99): 	      (save-excursion
+1.63         (gerd     08-May-01): 		(set-buffer rmail-buffer)
+1.59         (rms      04-Jan-99): 		(goto-char (point-min))
+1.59         (rms      04-Jan-99): 		(if (re-search-forward (car (car tail)) nil t)
+1.59         (rms      04-Jan-99): 		    (setq answer (eval (cdr (car tail)))))
+1.59         (rms      04-Jan-99): 		(setq tail (cdr tail))))
+1.59         (rms      04-Jan-99): 	    ;; If no suggestions, use same file as last time.
+1.59         (rms      04-Jan-99): 	    (expand-file-name (or answer rmail-default-rmail-file)))))
+1.59         (rms      04-Jan-99):     (let ((read-file
+1.59         (rms      04-Jan-99): 	   (expand-file-name
+1.59         (rms      04-Jan-99): 	    (read-file-name
+1.70         (rfrancoi 24-Sep-05): 	     (concat "Output message to Rmail file (default "
+1.59         (rms      04-Jan-99): 		     (file-name-nondirectory default-file)
+1.70         (rfrancoi 24-Sep-05): 		     "): ")
+1.59         (rms      04-Jan-99): 	     (file-name-directory default-file)
+1.59         (rms      04-Jan-99): 	     (abbreviate-file-name default-file))
+1.59         (rms      04-Jan-99): 	    (file-name-directory default-file))))
+1.59         (rms      04-Jan-99):       ;; If the user enters just a directory,
+1.59         (rms      04-Jan-99):       ;; use the name within that directory chosen by the default.
+1.59         (rms      04-Jan-99):       (setq rmail-default-rmail-file
+1.59         (rms      04-Jan-99): 	    (if (file-directory-p read-file)
+1.59         (rms      04-Jan-99): 		(expand-file-name (file-name-nondirectory default-file)
+1.59         (rms      04-Jan-99): 				  read-file)
+1.59         (rms      04-Jan-99): 	      read-file)))))
+1.59         (rms      04-Jan-99): 
+1.59         (rms      04-Jan-99): (defun rmail-output-read-file-name ()
+1.59         (rms      04-Jan-99):   "Read the file name to use for `rmail-output'.
+1.59         (rms      04-Jan-99): Set `rmail-default-file' to this name as well as returning it."
+1.59         (rms      04-Jan-99):   (let ((default-file
+1.59         (rms      04-Jan-99): 	  (let (answer tail)
+1.59         (rms      04-Jan-99): 	    (setq tail rmail-output-file-alist)
+1.59         (rms      04-Jan-99): 	    ;; Suggest a file based on a pattern match.
+1.59         (rms      04-Jan-99): 	    (while (and tail (not answer))
+1.59         (rms      04-Jan-99): 	      (save-excursion
+1.59         (rms      04-Jan-99): 		(goto-char (point-min))
+1.59         (rms      04-Jan-99): 		(if (re-search-forward (car (car tail)) nil t)
+1.59         (rms      04-Jan-99): 		    (setq answer (eval (cdr (car tail)))))
+1.59         (rms      04-Jan-99): 		(setq tail (cdr tail))))
+1.59         (rms      04-Jan-99): 	    ;; If no suggestion, use same file as last time.
+1.59         (rms      04-Jan-99): 	    (or answer rmail-default-file))))
+1.59         (rms      04-Jan-99):     (let ((read-file
+1.59         (rms      04-Jan-99): 	   (expand-file-name
+1.59         (rms      04-Jan-99): 	    (read-file-name
+1.70         (rfrancoi 24-Sep-05): 	     (concat "Output message to Unix mail file (default "
+1.59         (rms      04-Jan-99): 		     (file-name-nondirectory default-file)
+1.70         (rfrancoi 24-Sep-05): 		     "): ")
+1.59         (rms      04-Jan-99): 	     (file-name-directory default-file)
+1.59         (rms      04-Jan-99): 	     (abbreviate-file-name default-file))
+1.59         (rms      04-Jan-99): 	    (file-name-directory default-file))))
+1.59         (rms      04-Jan-99):       (setq rmail-default-file
+1.59         (rms      04-Jan-99): 	    (if (file-directory-p read-file)
+1.59         (rms      04-Jan-99): 		(expand-file-name (file-name-nondirectory default-file)
+1.59         (rms      04-Jan-99): 				  read-file)
+1.59         (rms      04-Jan-99): 	      (expand-file-name
+1.59         (rms      04-Jan-99): 	       (or read-file (file-name-nondirectory default-file))
+1.59         (rms      04-Jan-99): 	       (file-name-directory default-file)))))))
+1.59         (rms      04-Jan-99): 
+1.77         (dann     25-Nov-07): (declare-function rmail-update-summary "rmailsum" (&rest ignore))
+1.77         (dann     25-Nov-07): 
+1.55         (rms      16-Aug-98): ;;; There are functions elsewhere in Emacs that use this function;
+1.55         (rms      16-Aug-98): ;;; look at them before you change the calling method.
+1.45         (rms      27-Sep-96): ;;;###autoload
+1.61         (fx       24-May-00): (defun rmail-output-to-rmail-file (file-name &optional count stay)
+1.1          (root     22-May-90):   "Append the current message to an Rmail file named FILE-NAME.
+1.1          (root     22-May-90): If the file does not exist, ask if it should be created.
+1.1          (root     22-May-90): If file is being visited, the message is appended to the Emacs
+1.1          (root     22-May-90): buffer visiting that file.
+1.50         (rms      20-Sep-97): If the file exists and is not an Rmail file, the message is
+1.50         (rms      20-Sep-97): appended in inbox format, the same way `rmail-output' does it.
+1.16         (rms      09-Jul-93): 
+1.37         (rms      05-May-94): The default file name comes from `rmail-default-rmail-file',
+1.28         (rms      15-Jan-94): which is updated to the name you use in this command.
+1.28         (rms      15-Jan-94): 
+1.71         (eliz     04-Nov-05): A prefix argument COUNT says to output that many consecutive messages,
+1.61         (fx       24-May-00): starting with the current one.  Deleted messages are skipped and don't count.
+1.61         (fx       24-May-00): 
+1.71         (eliz     04-Nov-05): If the optional argument STAY is non-nil, then leave the last filed
+1.71         (eliz     04-Nov-05): message up instead of moving forward to the next non-deleted message."
+1.13         (rms      11-Jun-93):   (interactive
+1.59         (rms      04-Jan-99):    (list (rmail-output-read-rmail-file-name)
+1.59         (rms      04-Jan-99): 	 (prefix-numeric-value current-prefix-arg)))
+1.11         (jimb     14-Feb-93):   (or count (setq count 1))
+1.3          (jimb     01-Mar-91):   (setq file-name
+1.3          (jimb     01-Mar-91): 	(expand-file-name file-name
+1.27         (rms      15-Jan-94): 			  (file-name-directory rmail-default-rmail-file)))
+1.42         (rms      21-Sep-95):   (if (and (file-readable-p file-name) (not (mail-file-babyl-p file-name)))
+1.16         (rms      09-Jul-93):       (rmail-output file-name count)
+1.16         (rms      09-Jul-93):     (rmail-maybe-set-message-counters)
+1.16         (rms      09-Jul-93):     (setq file-name (abbreviate-file-name file-name))
+1.47         (rms      30-Mar-97):     (or (find-buffer-visiting file-name)
+1.16         (rms      09-Jul-93): 	(file-exists-p file-name)
+1.16         (rms      09-Jul-93): 	(if (yes-or-no-p
+1.16         (rms      09-Jul-93): 	     (concat "\"" file-name "\" does not exist, create it? "))
+1.16         (rms      09-Jul-93): 	    (let ((file-buffer (create-file-buffer file-name)))
+1.1          (root     22-May-90): 	      (save-excursion
+1.16         (rms      09-Jul-93): 		(set-buffer file-buffer)
+1.16         (rms      09-Jul-93): 		(rmail-insert-rmail-file-header)
+1.62         (eliz     11-Mar-01): 		(let ((require-final-newline nil)
+1.62         (eliz     11-Mar-01): 		      (coding-system-for-write
+1.62         (eliz     11-Mar-01): 		       (or rmail-file-coding-system
+1.62         (eliz     11-Mar-01): 			   'emacs-mule-unix)))
+1.16         (rms      09-Jul-93): 		  (write-region (point-min) (point-max) file-name t 1)))
+1.16         (rms      09-Jul-93): 	      (kill-buffer file-buffer))
+1.16         (rms      09-Jul-93): 	  (error "Output file does not exist")))
+1.16         (rms      09-Jul-93):     (while (> count 0)
+1.16         (rms      09-Jul-93):       (let (redelete)
+1.16         (rms      09-Jul-93): 	(unwind-protect
+1.16         (rms      09-Jul-93): 	    (progn
+1.63         (gerd     08-May-01): 	      (set-buffer rmail-buffer)
+1.24         (rms      23-Dec-93): 	      ;; Temporarily turn off Deleted attribute.
+1.24         (rms      23-Dec-93): 	      ;; Do this outside the save-restriction, since it would
+1.24         (rms      23-Dec-93): 	      ;; shift the place in the buffer where the visible text starts.
+1.24         (rms      23-Dec-93): 	      (if (rmail-message-deleted-p rmail-current-message)
+1.24         (rms      23-Dec-93): 		  (progn (setq redelete t)
+1.24         (rms      23-Dec-93): 			 (rmail-set-attribute "deleted" nil)))
+1.16         (rms      09-Jul-93): 	      (save-restriction
+1.16         (rms      09-Jul-93): 		(widen)
+1.16         (rms      09-Jul-93): 		;; Decide whether to append to a file or to an Emacs buffer.
+1.16         (rms      09-Jul-93): 		(save-excursion
+1.47         (rms      30-Mar-97): 		  (let ((buf (find-buffer-visiting file-name))
+1.16         (rms      09-Jul-93): 			(cur (current-buffer))
+1.16         (rms      09-Jul-93): 			(beg (1+ (rmail-msgbeg rmail-current-message)))
+1.52         (rms      27-May-98): 			(end (1+ (rmail-msgend rmail-current-message)))
+1.52         (rms      27-May-98): 			(coding-system-for-write
+1.52         (rms      27-May-98): 			 (or rmail-file-coding-system
+1.52         (rms      27-May-98): 			     'emacs-mule-unix)))
+1.16         (rms      09-Jul-93): 		    (if (not buf)
+1.40         (rms      17-Nov-94): 			;; Output to a file.
+1.40         (rms      17-Nov-94): 			(if rmail-fields-not-to-output
+1.40         (rms      17-Nov-94): 			    ;; Delete some fields while we output.
+1.40         (rms      17-Nov-94): 			    (let ((obuf (current-buffer)))
+1.40         (rms      17-Nov-94): 			      (set-buffer (get-buffer-create " rmail-out-temp"))
+1.40         (rms      17-Nov-94): 			      (insert-buffer-substring obuf beg end)
+1.40         (rms      17-Nov-94): 			      (rmail-delete-unwanted-fields)
+1.40         (rms      17-Nov-94): 			      (append-to-file (point-min) (point-max) file-name)
+1.40         (rms      17-Nov-94): 			      (set-buffer obuf)
+1.40         (rms      17-Nov-94): 			      (kill-buffer (get-buffer " rmail-out-temp")))
+1.40         (rms      17-Nov-94): 			  (append-to-file beg end file-name))
+1.16         (rms      09-Jul-93): 		      (if (eq buf (current-buffer))
+1.16         (rms      09-Jul-93): 			  (error "Can't output message to same file it's already in"))
+1.16         (rms      09-Jul-93): 		      ;; File has been visited, in buffer BUF.
+1.16         (rms      09-Jul-93): 		      (set-buffer buf)
+1.16         (rms      09-Jul-93): 		      (let ((buffer-read-only nil)
+1.16         (rms      09-Jul-93): 			    (msg (and (boundp 'rmail-current-message)
+1.16         (rms      09-Jul-93): 				      rmail-current-message)))
+1.16         (rms      09-Jul-93): 			;; If MSG is non-nil, buffer is in RMAIL mode.
+1.16         (rms      09-Jul-93): 			(if msg
+1.16         (rms      09-Jul-93): 			    (progn
+1.25         (rms      24-Dec-93): 			      ;; Turn on auto save mode, if it's off in this
+1.25         (rms      24-Dec-93): 			      ;; buffer but enabled by default.
+1.25         (rms      24-Dec-93): 			      (and (not buffer-auto-save-file-name)
+1.25         (rms      24-Dec-93): 				   auto-save-default
+1.25         (rms      24-Dec-93): 				   (auto-save-mode t))
+1.16         (rms      09-Jul-93): 			      (rmail-maybe-set-message-counters)
+1.16         (rms      09-Jul-93): 			      (widen)
+1.16         (rms      09-Jul-93): 			      (narrow-to-region (point-max) (point-max))
+1.16         (rms      09-Jul-93): 			      (insert-buffer-substring cur beg end)
+1.16         (rms      09-Jul-93): 			      (goto-char (point-min))
+1.16         (rms      09-Jul-93): 			      (widen)
+1.16         (rms      09-Jul-93): 			      (search-backward "\n\^_")
+1.16         (rms      09-Jul-93): 			      (narrow-to-region (point) (point-max))
+1.40         (rms      17-Nov-94): 			      (rmail-delete-unwanted-fields)
+1.16         (rms      09-Jul-93): 			      (rmail-count-new-messages t)
+1.24         (rms      23-Dec-93): 			      (if (rmail-summary-exists)
+1.24         (rms      23-Dec-93): 				  (rmail-select-summary
+1.24         (rms      23-Dec-93): 				    (rmail-update-summary)))
+1.16         (rms      09-Jul-93): 			      (rmail-show-message msg))
+1.52         (rms      27-May-98): 			  ;; Output file not in rmail mode => just insert at the end.
+1.52         (rms      27-May-98): 			  (narrow-to-region (point-min) (1+ (buffer-size)))
+1.52         (rms      27-May-98): 			  (goto-char (point-max))
+1.52         (rms      27-May-98): 			  (insert-buffer-substring cur beg end)
+1.52         (rms      27-May-98): 			  (rmail-delete-unwanted-fields)))))))
+1.16         (rms      09-Jul-93): 	      (rmail-set-attribute "filed" t))
+1.16         (rms      09-Jul-93): 	  (if redelete (rmail-set-attribute "deleted" t))))
+1.16         (rms      09-Jul-93):       (setq count (1- count))
+1.16         (rms      09-Jul-93):       (if rmail-delete-after-output
+1.66         (pot      04-Feb-03): 	  (unless
+1.61         (fx       24-May-00): 	      (if (and (= count 0) stay)
+1.61         (fx       24-May-00): 		  (rmail-delete-message)
+1.61         (fx       24-May-00): 		(rmail-delete-forward))
+1.61         (fx       24-May-00): 	    (setq count 0))
+1.16         (rms      09-Jul-93): 	(if (> count 0)
+1.66         (pot      04-Feb-03): 	    (unless
+1.61         (fx       24-May-00): 		(if (not stay) (rmail-next-undeleted-message 1))
+1.61         (fx       24-May-00): 	      (setq count 0)))))))
+1.16         (rms      09-Jul-93): 
+1.45         (rms      27-Sep-96): ;;;###autoload
+1.49         (rms      03-May-97): (defcustom rmail-fields-not-to-output nil
+1.49         (rms      03-May-97):   "*Regexp describing fields to exclude when outputting a message to a file."
+1.49         (rms      03-May-97):   :type '(choice (const :tag "None" nil)
+1.49         (rms      03-May-97): 		 regexp)
+1.49         (rms      03-May-97):   :group 'rmail-output)
+1.40         (rms      17-Nov-94): 
+1.40         (rms      17-Nov-94): ;; Delete from the buffer header fields we don't want output.
+1.40         (rms      17-Nov-94): ;; NOT-RMAIL if t means this buffer does not have the full header
+1.40         (rms      17-Nov-94): ;; and *** EOOH *** that a message in an Rmail file has.
+1.40         (rms      17-Nov-94): (defun rmail-delete-unwanted-fields (&optional not-rmail)
+1.66         (pot      04-Feb-03):   (if rmail-fields-not-to-output
+1.40         (rms      17-Nov-94):       (save-excursion
+1.40         (rms      17-Nov-94): 	(goto-char (point-min))
+1.40         (rms      17-Nov-94): 	;; Find the end of the header.
+1.40         (rms      17-Nov-94): 	(if (and (or not-rmail (search-forward "\n*** EOOH ***\n" nil t))
+1.40         (rms      17-Nov-94): 		 (search-forward "\n\n" nil t))
+1.40         (rms      17-Nov-94): 	    (let ((end (point-marker)))
+1.40         (rms      17-Nov-94): 	      (goto-char (point-min))
+1.40         (rms      17-Nov-94): 	      (while (re-search-forward rmail-fields-not-to-output end t)
+1.40         (rms      17-Nov-94): 		(beginning-of-line)
+1.40         (rms      17-Nov-94): 		(delete-region (point)
+1.40         (rms      17-Nov-94): 			       (progn (forward-line 1) (point)))))))))
+1.40         (rms      17-Nov-94): 
+1.55         (rms      16-Aug-98): ;;; There are functions elsewhere in Emacs that use this function;
+1.55         (rms      16-Aug-98): ;;; look at them before you change the calling method.
+1.45         (rms      27-Sep-96): ;;;###autoload
+1.22         (rms      15-Nov-93): (defun rmail-output (file-name &optional count noattribute from-gnus)
+1.32         (rms      03-Apr-94):   "Append this message to system-inbox-format mail file named FILE-NAME.
+1.71         (eliz     04-Nov-05): A prefix argument COUNT says to output that many consecutive messages,
+1.11         (jimb     14-Feb-93): starting with the current one.  Deleted messages are skipped and don't count.
+1.71         (eliz     04-Nov-05): When called from lisp code, COUNT may be omitted and defaults to 1.
+1.19         (rms      25-Jul-93): 
+1.20         (rms      09-Oct-93): If the pruned message header is shown on the current message, then
+1.20         (rms      09-Oct-93): messages will be appended with pruned headers; otherwise, messages
+1.20         (rms      09-Oct-93): will be appended with their original headers.
+1.28         (rms      15-Jan-94): 
+1.38         (rms      19-May-94): The default file name comes from `rmail-default-file',
+1.28         (rms      15-Jan-94): which is updated to the name you use in this command.
+1.20         (rms      09-Oct-93): 
+1.19         (rms      25-Jul-93): The optional third argument NOATTRIBUTE, if non-nil, says not
+1.22         (rms      15-Nov-93): to set the `filed' attribute, and not to display a message.
+1.22         (rms      15-Nov-93): 
+1.22         (rms      15-Nov-93): The optional fourth argument FROM-GNUS is set when called from GNUS."
+1.1          (root     22-May-90):   (interactive
+1.59         (rms      04-Jan-99):    (list (rmail-output-read-file-name)
+1.59         (rms      04-Jan-99): 	 (prefix-numeric-value current-prefix-arg)))
+1.11         (jimb     14-Feb-93):   (or count (setq count 1))
+1.3          (jimb     01-Mar-91):   (setq file-name
+1.3          (jimb     01-Mar-91): 	(expand-file-name file-name
+1.27         (rms      15-Jan-94): 			  (and rmail-default-file
+1.27         (rms      15-Jan-94): 			       (file-name-directory rmail-default-file))))
+1.42         (rms      21-Sep-95):   (if (and (file-readable-p file-name) (mail-file-babyl-p file-name))
+1.16         (rms      09-Jul-93):       (rmail-output-to-rmail-file file-name count)
+1.63         (gerd     08-May-01):     (set-buffer rmail-buffer)
+1.20         (rms      09-Oct-93):     (let ((orig-count count)
+1.20         (rms      09-Oct-93): 	  (rmailbuf (current-buffer))
+1.20         (rms      09-Oct-93): 	  (case-fold-search t)
+1.20         (rms      09-Oct-93): 	  (tembuf (get-buffer-create " rmail-output"))
+1.20         (rms      09-Oct-93): 	  (original-headers-p
+1.22         (rms      15-Nov-93): 	   (and (not from-gnus)
+1.66         (pot      04-Feb-03): 		(save-excursion
+1.22         (rms      15-Nov-93): 		  (save-restriction
+1.22         (rms      15-Nov-93): 		    (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
+1.22         (rms      15-Nov-93): 		    (goto-char (point-min))
+1.22         (rms      15-Nov-93): 		    (forward-line 1)
+1.22         (rms      15-Nov-93): 		    (= (following-char) ?0)))))
+1.20         (rms      09-Oct-93): 	  header-beginning
+1.66         (pot      04-Feb-03): 	  mail-from mime-version content-type)
+1.20         (rms      09-Oct-93):       (while (> count 0)
+1.55         (rms      16-Aug-98): 	;; Preserve the Mail-From and MIME-Version fields
+1.55         (rms      16-Aug-98): 	;; even if they have been pruned.
+1.22         (rms      15-Nov-93): 	(or from-gnus
+1.55         (rms      16-Aug-98): 	    (save-excursion
+1.55         (rms      16-Aug-98): 	      (save-restriction
+1.55         (rms      16-Aug-98): 		(widen)
+1.55         (rms      16-Aug-98): 		(goto-char (rmail-msgbeg rmail-current-message))
+1.55         (rms      16-Aug-98): 		(setq header-beginning (point))
+1.55         (rms      16-Aug-98): 		(search-forward "\n*** EOOH ***\n")
+1.55         (rms      16-Aug-98): 		(narrow-to-region header-beginning (point))
+1.66         (pot      04-Feb-03): 		(setq mail-from (mail-fetch-field "Mail-From"))
+1.66         (pot      04-Feb-03): 		(unless rmail-enable-mime
+1.66         (pot      04-Feb-03): 		  (setq mime-version (mail-fetch-field "MIME-Version")
+1.66         (pot      04-Feb-03): 			content-type (mail-fetch-field "Content-type"))))))
+1.16         (rms      09-Jul-93): 	(save-excursion
+1.16         (rms      09-Jul-93): 	  (set-buffer tembuf)
+1.16         (rms      09-Jul-93): 	  (erase-buffer)
+1.16         (rms      09-Jul-93): 	  (insert-buffer-substring rmailbuf)
+1.64         (gerd     06-Jul-01): 	  (when rmail-enable-mime
+1.64         (gerd     06-Jul-01): 	    (if original-headers-p
+1.64         (gerd     06-Jul-01): 		(delete-region (goto-char (point-min))
+1.64         (gerd     06-Jul-01): 			       (if (search-forward "\n*** EOOH ***\n")
+1.64         (gerd     06-Jul-01): 				   (match-end 0)))
+1.64         (gerd     06-Jul-01): 	      (goto-char (point-min))
+1.64         (gerd     06-Jul-01): 	      (forward-line 2)
+1.64         (gerd     06-Jul-01): 	      (delete-region (point-min)(point))
+1.64         (gerd     06-Jul-01): 	      (search-forward "\n*** EOOH ***\n")
+1.64         (gerd     06-Jul-01): 	      (delete-region (match-beginning 0)
+1.64         (gerd     06-Jul-01): 			     (if (search-forward "\n\n")
+1.64         (gerd     06-Jul-01): 				 (1- (match-end 0)))))
+1.64         (gerd     06-Jul-01): 	    (setq buffer-file-coding-system (or rmail-file-coding-system
+1.64         (gerd     06-Jul-01): 						'raw-text)))
+1.40         (rms      17-Nov-94): 	  (rmail-delete-unwanted-fields t)
+1.56         (rms      21-Oct-98): 	  (or (bolp) (insert "\n"))
+1.16         (rms      09-Jul-93): 	  (goto-char (point-min))
+1.20         (rms      09-Oct-93): 	  (if mail-from
+1.20         (rms      09-Oct-93): 	      (insert mail-from "\n")
+1.20         (rms      09-Oct-93): 	    (insert "From "
+1.20         (rms      09-Oct-93): 		    (mail-strip-quoted-names (or (mail-fetch-field "from")
+1.20         (rms      09-Oct-93): 						 (mail-fetch-field "really-from")
+1.20         (rms      09-Oct-93): 						 (mail-fetch-field "sender")
+1.20         (rms      09-Oct-93): 						 "unknown"))
+1.20         (rms      09-Oct-93): 		    " " (current-time-string) "\n"))
+1.72         (eliz     21-Jan-06): 	  (when mime-version
+1.72         (eliz     21-Jan-06): 	    (insert "MIME-Version: " mime-version)
+1.72         (eliz     21-Jan-06): 	    ;; Some malformed MIME messages set content-type to nil.
+1.72         (eliz     21-Jan-06): 	    (when content-type
+1.72         (eliz     21-Jan-06): 	      (insert "\nContent-type: " content-type "\n")))
+1.16         (rms      09-Jul-93): 	  ;; ``Quote'' "\nFrom " as "\n>From "
+1.16         (rms      09-Jul-93): 	  ;;  (note that this isn't really quoting, as there is no requirement
+1.16         (rms      09-Jul-93): 	  ;;   that "\n[>]+From " be quoted in the same transparent way.)
+1.41         (kwzh     02-Dec-94): 	  (let ((case-fold-search nil))
+1.41         (kwzh     02-Dec-94): 	    (while (search-forward "\nFrom " nil t)
+1.41         (kwzh     02-Dec-94): 	      (forward-char -5)
+1.41         (kwzh     02-Dec-94): 	      (insert ?>)))
+1.19         (rms      25-Jul-93): 	  (write-region (point-min) (point-max) file-name t
+1.19         (rms      25-Jul-93): 			(if noattribute 'nomsg)))
+1.20         (rms      09-Oct-93): 	(or noattribute
+1.20         (rms      09-Oct-93): 	    (if (equal major-mode 'rmail-mode)
+1.20         (rms      09-Oct-93): 		(rmail-set-attribute "filed" t)))
+1.20         (rms      09-Oct-93): 	(setq count (1- count))
+1.22         (rms      15-Nov-93): 	(or from-gnus
+1.22         (rms      15-Nov-93): 	    (let ((next-message-p
+1.22         (rms      15-Nov-93): 		   (if rmail-delete-after-output
+1.22         (rms      15-Nov-93): 		       (rmail-delete-forward)
+1.22         (rms      15-Nov-93): 		     (if (> count 0)
+1.22         (rms      15-Nov-93): 			 (rmail-next-undeleted-message 1))))
+1.22         (rms      15-Nov-93): 		  (num-appended (- orig-count count)))
+1.22         (rms      15-Nov-93): 	      (if (and next-message-p original-headers-p)
+1.22         (rms      15-Nov-93): 		  (rmail-toggle-header))
+1.22         (rms      15-Nov-93): 	      (if (and (> count 0) (not next-message-p))
+1.66         (pot      04-Feb-03): 		  (progn
+1.78         (deego    06-Dec-07): 		    (error "%s"
+1.22         (rms      15-Nov-93): 		     (save-excursion
+1.22         (rms      15-Nov-93): 		       (set-buffer rmailbuf)
+1.22         (rms      15-Nov-93): 		       (format "Only %d message%s appended" num-appended
+1.22         (rms      15-Nov-93): 			       (if (= num-appended 1) "" "s"))))
+1.22         (rms      15-Nov-93): 		    (setq count 0))))))
+1.20         (rms      09-Oct-93):       (kill-buffer tembuf))))
+1.4          (eric     30-May-92): 
+1.46         (rms      30-Mar-97): ;;;###autoload
+1.48         (rms      05-Apr-97): (defun rmail-output-body-to-file (file-name)
+1.46         (rms      30-Mar-97):   "Write this message body to the file FILE-NAME.
+1.46         (rms      30-Mar-97): FILE-NAME defaults, interactively, from the Subject field of the message."
+1.46         (rms      30-Mar-97):   (interactive
+1.46         (rms      30-Mar-97):    (let ((default-file
+1.51         (rms      23-May-98): 	   (or (mail-fetch-field "Subject")
+1.51         (rms      23-May-98): 	       rmail-default-body-file)))
+1.51         (rms      23-May-98):      (list (setq rmail-default-body-file
+1.51         (rms      23-May-98): 		 (read-file-name
+1.51         (rms      23-May-98): 		  "Output message body to file: "
+1.51         (rms      23-May-98): 		  (and default-file (file-name-directory default-file))
+1.51         (rms      23-May-98): 		  default-file
+1.51         (rms      23-May-98): 		  nil default-file)))))
+1.51         (rms      23-May-98):   (setq file-name
+1.51         (rms      23-May-98): 	(expand-file-name file-name
+1.51         (rms      23-May-98): 			  (and rmail-default-body-file
+1.51         (rms      23-May-98): 			       (file-name-directory rmail-default-body-file))))
+1.46         (rms      30-Mar-97):   (save-excursion
+1.46         (rms      30-Mar-97):     (goto-char (point-min))
+1.46         (rms      30-Mar-97):     (search-forward "\n\n")
+1.48         (rms      05-Apr-97):     (and (file-exists-p file-name)
+1.74         (lektu    13-Nov-06): 	 (not (y-or-n-p (format "File %s exists; overwrite? " file-name)))
+1.48         (rms      05-Apr-97): 	 (error "Operation aborted"))
+1.46         (rms      30-Mar-97):     (write-region (point) (point-max) file-name)
+1.46         (rms      30-Mar-97):     (if (equal major-mode 'rmail-mode)
+1.46         (rms      30-Mar-97): 	(rmail-set-attribute "stored" t)))
+1.46         (rms      30-Mar-97):   (if rmail-delete-after-output
+1.46         (rms      30-Mar-97):       (rmail-delete-forward)))
+1.46         (rms      30-Mar-97): 
+1.80         (monnier  10-Apr-08): ;; arch-tag: 447117c6-1a9a-4b88-aa43-3101b043e3a4
+1.4          (eric     30-May-92): ;;; rmailout.el ends here
