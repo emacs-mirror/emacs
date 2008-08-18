@@ -4928,7 +4928,28 @@ font_add_log (action, arg, result)
   if (EQ (Vfont_log, Qt))
     return;
   if (FONTP (arg))
-    arg = Ffont_xlfd_name (arg, Qt);
+    {
+      Lisp_Object tail, elt;
+      Lisp_Object equalstr = build_string ("=");
+
+      val = Ffont_xlfd_name (arg, Qt);
+      for (tail = AREF (arg, FONT_EXTRA_INDEX); CONSP (tail);
+	   tail = XCDR (tail))
+	{
+	  elt = XCAR (tail);
+	  if (EQ (XCAR (elt), QCscript))
+	    val = concat3 (val, SYMBOL_NAME (QCscript),
+			   concat2 (equalstr, SYMBOL_NAME (XCDR (elt))));
+	  else if (EQ (XCAR (elt), QClang))
+	    val = concat3 (val, SYMBOL_NAME (QClang),
+			   concat2 (equalstr, SYMBOL_NAME (XCDR (elt))));
+	  else if (EQ (XCAR (elt), QCotf) && CONSP (XCDR (elt)))
+	    val = concat3 (val, SYMBOL_NAME (QCotf),
+			   concat2 (equalstr,
+				    SYMBOL_NAME (XCAR (XCDR (elt)))));
+	}
+      arg = val;
+    }
   if (FONTP (result))
     {
       val = Ffont_xlfd_name (result, Qt);
