@@ -199,4 +199,5 @@ single message."
 
 (provide 'pmailhdr)
 
+;; arch-tag: d708a0d9-2686-4958-b61a-7d3d2ace2131
 ;;; pmailhdr.el ends here
