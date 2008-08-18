@@ -872,7 +872,7 @@ face_for_char (f, face, c, pos, object)
      int c, pos;
      Lisp_Object object;
 {
-  Lisp_Object fontset, rfont_def;
+  Lisp_Object fontset, rfont_def, charset;
   int face_id;
   int id;
 
@@ -884,11 +884,12 @@ face_for_char (f, face, c, pos, object)
   xassert (!BASE_FONTSET_P (fontset));
 
   if (pos < 0)
-    id = -1;
+    {
+      id = -1;
+      charset = Qnil;
+    }
   else
     {
-      Lisp_Object charset;
-
       charset = Fget_char_property (make_number (pos), Qcharset, object);
       if (NILP (charset))
 	id = -1;
@@ -903,6 +904,7 @@ face_for_char (f, face, c, pos, object)
 	}
     }
 
+  font_add_log ("finding a font for", Fcons (make_number (c), charset), Qnil);
   rfont_def = fontset_font (fontset, c, face, id);
   if (VECTORP (rfont_def))
     {
