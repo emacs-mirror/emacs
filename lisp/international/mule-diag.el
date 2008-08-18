@@ -1299,9 +1299,11 @@ character)")
 					       (nth 13 fields) 16)))))))))))
 
 ;;;###autoload
-(defun font-show-log ()
-  "Show log of font listing and opening."
-  (interactive)
+(defun font-show-log (&optional n)
+  "Show log of font listing and opening.
+Prefix arg N says how many fonts to show for each listing.
+The default is 20.  If N is negative, do not limit the listing."
+  (interactive "p")
   (if (eq font-log t)
       (message "Font logging is currently suppressed")
     (with-output-to-temp-buffer "*Help*"
@@ -1310,12 +1312,11 @@ character)")
 	(insert (format "%s: %s\n" (car elt) (cadr elt)))
 	(setq elt (nth 2 elt))
 	(if (or (vectorp elt) (listp elt))
-	    (let ((limit 20)
-		  (i 0))
+	    (let ((i 0))
 	      (catch 'tag
 		(mapc #'(lambda (x)
 			  (setq i (1+ i))
-			  (when (= i 20)
+			  (when (= i n)
 			    (insert "  ...\n")
 			    (throw 'tag nil))
 			  (insert (format "  %s\n" x)))
