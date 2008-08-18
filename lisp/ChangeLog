@@ -1,3 +1,8 @@
+2008-08-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emulation/edt.el (edt-default-emulation-setup): Share
+	global-buffers-menu-map with the emulated global map.
+
 2008-08-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el (global): Uncomment "put backspace
