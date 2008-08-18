@@ -1,3 +1,8 @@
+2008-08-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (global): Uncomment "put backspace
+	ascii-character..." and friends, they are needed for tramp.
+
 2008-08-18  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (font-show-log): Add optional arg N

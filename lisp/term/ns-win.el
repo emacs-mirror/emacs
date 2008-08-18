@@ -179,18 +179,20 @@ The properties returned may include `top', `left', `height', and `width'."
 
 ;;;; Keyboard mapping.
 
-;;TODO: all terms have these, but they don't seem necessary.
+;; These tell read-char how to convert these special chars to ASCII.
+;;TODO: all terms have these, and at least the return mapping is necessary
+;;      for tramp to recognize the enter key.
+;;      Perhaps they should be moved into common code somewhere
+;;      (when a window system is active).
 ;;      Remove if no problems for some time after 2008-08-06.
-;; These tell read-char how to convert
-;; these special chars to ASCII.
-;;(put 'backspace 'ascii-character 127)
-;;(put 'delete 'ascii-character 127)
-;;(put 'tab 'ascii-character ?\t)
-;;(put 'S-tab 'ascii-character (logior 16 ?\t))
-;;(put 'linefeed 'ascii-character ?\n)
-;;(put 'clear 'ascii-character 12)
-;;(put 'return 'ascii-character 13)
-;;(put 'escape 'ascii-character ?\e)
+(put 'backspace 'ascii-character 127)
+(put 'delete 'ascii-character 127)
+(put 'tab 'ascii-character ?\t)
+(put 'S-tab 'ascii-character (logior 16 ?\t))
+(put 'linefeed 'ascii-character ?\n)
+(put 'clear 'ascii-character 12)
+(put 'return 'ascii-character 13)
+(put 'escape 'ascii-character ?\e)
 
 
 (defvar ns-alternatives-map
