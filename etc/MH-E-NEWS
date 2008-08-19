@@ -5,6 +5,92 @@ Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 See the end of the file for license conditions.
 
 
+* Changes in MH-E 8.1
+
+Version 8.1 fixes some issues with forwarding messages, respects the
+MH environment variable, adds the abilities to use aliases with GPG
+and show HTML even though it is discouraged. A new hook,
+`mh-annotate-msg-hook', has been added.
+
+** New Features in MH-E 8.1
+
+*** Showing HTML When Text Is the Preferred Alternative
+
+The `:' (`mh-show-preferred-alternative') function displays the
+message with the default preferred alternative. This is as if
+`mm-discouraged-alternatives' was set to nil (closes SF #1777321).
+
+** New Variables in MH-E 8.1
+
+*** mh-annotate-msg-hook
+
+The `mh-annotate-msg-hook' hook is run whenever a message is sent and
+after the scan lines and message are annotated. Hook functions can
+access the current folder name with `mh-current-folder' and obtain the
+message numbers of the annotated messages with `mh-annotate-list'
+(closes SF #2032269).
+
+** Bug Fixes in MH-E 8.1
+
+*** Can't Use Aliases with GPG
+
+GPG requires e-mail addresses, not aliases. So resolve aliases before
+passing addresses to GPG/PGP (closes SF #649226).
+
+*** mh-mml-forward-message: Disposition Should Be Inline
+
+The `f' (`mh-forward') function now forwards messages as inline
+attachments (closes SF #1378993).
+
+*** Illegal Filename Characters on Windows Filesystems
+
+The X-Image-URL cache created filenames with invalid characters on
+Windows. This has been fixed with assistance from Darel Henman (closes
+SF #1396499).
+
+*** Make Many Header Fields Invisible
+
+A vast landscape of header fields are now invisible. You may wish to
+browse `mh-invisible-header-fields-default' and clean up your
+`mh-invisible-header-fields' option. A permanent bug (SF #1916032) has
+been created where you can submit header fields that should be
+rendered invisible (closes SF #1701231).
+
+*** mh-forward Includes Messages in Reverse Order
+
+The `f' (`mh-forward') function now includes messages in ascending
+order (closes SF #1730393).
+
+*** Compile Fails on XEmacs 21.5 beta 28
+
+This has been fixed with help from Henrique Martins (closes SF
+#1749774).
+
+*** Rename Variant mu-mh to gnu-mh
+
+The GNU mailutils MH variant was named inconsistently. The variant has
+been renamed to gnu-mh throughout. Thanks to Darel Henman (closes SF
+#1768928).
+
+*** Respect MH environment Variable
+
+Even if the MH environment variable was set, an error was generated if
+"~/.mh_profile" was missing. This has been fixed thanks to Xavier
+Maillard (closes SF #1946861).
+
+*** Enhance mh-mairix-regexp-builder
+
+Additional items have been added to the Mairix search string in order
+to support org-mode. Thanks to Nick Dokos (closes SF #1965704).
+
+*** mh-mh-to-mime and mh-mh-to-mime-undo Reset Modes
+
+The functions `mh-mh-to-mime' and `mh-mh-to-mime-undo' would reset the
+buffer to fundamental mode. This has been fixed thanks to Sergey
+Poznyakoff (closes SF #1966722).
+
+
+
 * Changes in MH-E 8.0.3
 
 Version 8.0.3 fixes errors in sending messages and in running spam
@@ -55,6 +141,8 @@ Sergey Poznyakoff <gray@Mirddin.farlep.net> (closes SF #1513140).
 The fix for SF #1499712 broke `F n' (`mh-index-new-messages') on
 XEmacs since a regular expression that XEmacs could not handle was
 added. This regexp has been fixed (closes SF #1514424).
+
+
 
 * Changes in MH-E 8.0.1
 
