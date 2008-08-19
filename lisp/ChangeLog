@@ -1,5 +1,7 @@
 2008-08-19  Chong Yidong  <cyd@stupidchicken.com>
 
+	* minibuffer.el (completion-table-dynamic): Doc fix.
+
 	* cus-edit.el (custom-toggle-hide): Allow hiding only if widget is
 	saved.
 
