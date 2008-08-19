@@ -2244,8 +2244,8 @@ and `face'."
   "Toggle visibility of WIDGET."
   (custom-load-widget widget)
   (let ((state (widget-get widget :custom-state)))
-    (cond ((memq state '(invalid modified))
-	   (error "There are unset changes"))
+    (cond ((memq state '(invalid modified set))
+	   (error "There are unsaved changes"))
 	  ((eq state 'hidden)
 	   (widget-put widget :custom-state 'unknown))
 	  (t
