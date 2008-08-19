@@ -8,12 +8,12 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 8.0.3+CVS
+@set VERSION 8.1
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2008-03-16
-@set UPDATE-MONTH March, 2008
+@set UPDATED 2008-08-18
+@set UPDATE-MONTH August, 2008
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -199,8 +199,8 @@ more niceties about GNU Emacs and MH@. Now I'm fully hooked on both of
 them.
 
 The MH-E package is distributed with GNU Emacs@footnote{Version
-@value{VERSION} of MH-E will appear in GNU Emacs 22.1. It is supported
-in GNU Emacs 21, as well as XEmacs 21 (except for versions
+@value{VERSION} of MH-E will appear in GNU Emacs 23.1. It is supported
+in GNU Emacs 21 and 22, as well as XEmacs 21 (except for versions
 21.5.9-21.5.16). It is compatible with MH versions 6.8.4 and higher,
 all versions of nmh, and GNU mailutils 1.0 and higher.}, so you
 shouldn't have to do anything special to use it. Gnus is also
@@ -706,7 +706,7 @@ left out the menu bar and tool bar in all of the example screens.}:
 To: wohler
 cc:
 Subject: Test
-X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+X-Mailer: MH-E 8.1; nmh 1.1; GNU Emacs 23.1
 --------
 This is a test message to get the wheels churning...#
 
@@ -789,7 +789,7 @@ You should see the scan line for your message, and perhaps others. Use
 -:%%  @{+inbox/select@} 4 msgs (1-4)   Bot L4     (MH-Folder Show)---------
 To: wohler
 Subject: Test
-X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+X-Mailer: MH-E 8.1; nmh 1.1; GNU Emacs 23.1
 Date: Fri, 17 Mar 2006 10:49:11 -0800
 From: Bill Wohler <wohler@@stop.mail-abuse.org>
 
@@ -837,14 +837,14 @@ In-reply-to: <31054.1142621351@@stop.mail-abuse.org>
 References: <31054.1142621351@@stop.mail-abuse.org>
 Comments: In-reply-to Bill Wohler <wohler@@stop.mail-abuse.org>
    message dated "Fri, 17 Mar 2006 10:49:11 -0800."
-X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+X-Mailer: MH-E 8.1; nmh 1.1; GNU Emacs 23.1
 --------
 #
 
 --:--  @{draft@}  All L10     (MH-Letter)----------------------------------
 To: wohler
 Subject: Test
-X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+X-Mailer: MH-E 8.1; nmh 1.1; GNU Emacs 23.1
 Date: Fri, 17 Mar 2006 10:49:11 -0800
 From: Bill Wohler <wohler@@stop.mail-abuse.org>
 
@@ -1493,7 +1493,7 @@ Binding} of @samp{m}.
 @cindex Unix commands, @command{xbuffy}
 
 You can use @command{xbuffy} to automate the incorporation of this
-mail using the Emacs 22 command @command{emacsclient} as follows:
+mail using the Emacs 23 command @command{emacsclient} as follows:
 
 @smallexample
 box ~/mail/mh-e
@@ -5444,7 +5444,7 @@ details from the user.
 To: wohler
 cc:
 Subject: Test of MIME
-X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+X-Mailer: MH-E 8.1; nmh 1.1; GNU Emacs 23.1
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="=-=-="
 --------
@@ -8919,10 +8919,14 @@ It also brought GNU mailutils MH support, S/MIME support, picon
 support, and an improved interface for hiding header fields. The CVS
 repository was migrated from SourceForge to Savannah (only for those
 files that were already part of Emacs) and the software was completely
-reorganized to push back two decades of entropy. Version 8 will appear
-in Emacs 22.1, expected to be released in 2006.
+reorganized to push back two decades of entropy. Version 8 appeared in
+Emacs 22.1 in 2006.
 
-Bill Wohler, February 2006
+Development was then quiet for a couple of years. Emacs 23.1, which is
+due out in 2009, will contain version 8.1. This version includes a few
+new features and several bug fixes.
+
+Bill Wohler, August 2008
 
 @node GFDL, Key Index, History, Top
 @appendix GNU FREE DOCUMENTATION LICENSE
