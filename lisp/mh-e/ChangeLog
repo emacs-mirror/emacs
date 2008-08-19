@@ -1,3 +1,9 @@
+2008-08-18  Bill Wohler	 <wohler@newt.com>
+
+	Release MH-E version 8.1.
+  
+	* mh-e.el (Version, mh-version): Update for release 8.1.
+
 2008-08-11  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-variant-mh-info, mh-variant-nmh-info)
@@ -186,7 +192,7 @@
 	no longer included in reverse order (closes SF #1730393).
 
 	* mh-mime.el (mh-mml-forward-message): Forward messages as inline
-	attatchments (closes SF #1378993).
+	attachments (closes SF #1378993).
 
 2008-02-06  Richard Stallman  <rms@gnu.org>
 
