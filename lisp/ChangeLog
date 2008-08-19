@@ -1,3 +1,15 @@
+2008-08-19  Kenichi Handa  <handa@m17n.org>
+
+	* language/european.el ("Esperanto"): Change the preferred
+	charsets to iso-8859-3.
+
+	* language/utf-8-lang.el ("UTF-8"): Add the preferred charsets.
+
+	* international/fontset.el (script-representative-chars): Delete
+	the entry for symbol.
+	(setup-default-fontset): For symbol characters, don't specify
+	:script property.
+
 2008-08-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (completion-table-dynamic): Doc fix.

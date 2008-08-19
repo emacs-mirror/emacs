@@ -1,3 +1,15 @@
+2008-08-19  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Vfont_log_deferred): New variable.
+	(font_add_log): Check Vfont_log_deferred.
+	(font_deferred_log): New funciton.
+
+	* font.h (font_deferred_log): Extern it.
+
+	* fontset.c (reorder_font_vector): Use encoding charset of fonts
+	for sorting.
+	(face_for_char): Use deferred log.
+
 2008-08-18  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (face_for_char): Add font log.
