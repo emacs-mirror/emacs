@@ -24,6 +24,9 @@ sk	Miroslav Vaško
 
 ** Try to reorder NEWS: most important things first, related items together.
 
+** Update INSTALL and NEWS to reflect lack of MS-DOS support, if it still
+isn't working by then.
+
 * WINDOWS SUPPORT BUGS
 
 ** Emacs crashes on Windows when visiting .tar.gz files.  See
