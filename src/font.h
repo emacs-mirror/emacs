@@ -866,6 +866,7 @@ extern struct font_driver nsfont_driver;
 #endif
 
 extern void font_add_log P_ ((char *, Lisp_Object, Lisp_Object));
+extern void font_deferred_log P_ ((char *, Lisp_Object, Lisp_Object));
 
 #ifdef FONT_DEBUG
 #define font_assert(X)	do {if (!(X)) abort ();} while (0)
