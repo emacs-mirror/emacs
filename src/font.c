@@ -4912,6 +4912,15 @@ build_style_table (entry, nelement)
 static Lisp_Object Vfont_log;
 static int font_log_env_checked;
 
+/* The deferred font-log data of the form [ACTION ARG RESULT].
+   If ACTION is not nil, that is added to the log when font_add_log is
+   called next time.  At that time, ACTION is set back to nil.  */
+static Lisp_Object Vfont_log_deferred;
+
+/* Prepend the font-related logging data in Vfont_log if it is not
+   `t'.  ACTION describes a kind of font-related action (e.g. listing,
+   opening), ARG is the argument for the action, and RESULT is the
+   result of the action.  */
 void
 font_add_log (action, arg, result)
      char *action;
@@ -4927,6 +4936,15 @@ font_add_log (action, arg, result)
     }
   if (EQ (Vfont_log, Qt))
     return;
+  if (STRINGP (AREF (Vfont_log_deferred, 0)))
+    {
+      char *str = SDATA (AREF (Vfont_log_deferred, 0));
+
+      ASET (Vfont_log_deferred, 0, Qnil);
+      font_add_log (str, AREF (Vfont_log_deferred, 1),
+		    AREF (Vfont_log_deferred, 2));
+    }
+
   if (FONTP (arg))
     {
       Lisp_Object tail, elt;
@@ -4982,6 +5000,20 @@ font_add_log (action, arg, result)
     }
   Vfont_log = Fcons (list3 (intern (action), arg, result), Vfont_log);
 }
+
+/* Record a font-related logging data to be added to Vfont_log when
+   font_add_log is called next time.  ACTION, ARG, RESULT are the same
+   as font_add_log.  */
+
+void
+font_deferred_log (action, arg, result)
+     char *action;
+     Lisp_Object arg, result;
+{
+  ASET (Vfont_log_deferred, 0, build_string (action));
+  ASET (Vfont_log_deferred, 1, arg);
+  ASET (Vfont_log_deferred, 2, result);
+}     
 
 extern void syms_of_ftfont P_ (());
 extern void syms_of_xfont P_ (());
@@ -5044,6 +5076,9 @@ syms_of_font ()
   scratch_font_spec = Ffont_spec (0, NULL);
   staticpro (&scratch_font_prefer);
   scratch_font_prefer = Ffont_spec (0, NULL);
+
+  staticpro (&Vfont_log_deferred);
+  Vfont_log_deferred = Fmake_vector (make_number (3), Qnil);
 
 #if 0
 #ifdef HAVE_LIBOTF
