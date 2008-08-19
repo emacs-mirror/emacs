@@ -1,3 +1,8 @@
+2008-08-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* edmacro.el (edmacro-parse-keys): Catch events with spaces in
+	their names.
+
 2008-08-19  Kenichi Handa  <handa@m17n.org>
 
 	* language/european.el ("Esperanto"): Change the preferred
