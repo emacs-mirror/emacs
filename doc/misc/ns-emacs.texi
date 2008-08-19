@@ -40,7 +40,7 @@ developing GNU and promoting software freedom.''
 @sp 10
 @center @titlefont{Emacs.app}
 
-@center (Version 9.0-rc1, April, 2006)
+@center (Version 9.0-rc3, November, 2007)
 
 @sp 2
 @center Carl Edman
@@ -155,7 +155,7 @@ menu, or through the standard Cmd-t and Cmd-C.  These are easier to use than
 Emacs's own methods for setting these items.  To use the color panel, drag
 from it to an emacs frame.  The foreground (or background, if shift is held
 down) of the face at that point will be changed.  To finalize settings for
-either color or font, choose 'Save Preferences' from under the Help menu.  To
+either color or font, choose 'Save Options' from under the Options menu.  To
 discard these settings, create a new frame and close the altered one.
 
 @item
@@ -445,15 +445,16 @@ combo box.
 @node Customization, Tips and Tricks, Preferences Panel, Top
 @section Customization
 
-Under X, resources are used to customize the behavior of Emacs to the needs of
-the user.  These resources are queried programmatically with the
-@code{x-get-resource} function.  Under NS defaults fulfill a similar function.
-They can be read using the @code{ns-get-resource} function.  Calls to
-@code{x-get-resource} are automatically mapped to @code{ns-get-resource}.
-From the command line, the command `@code{defaults read Emacs}' will show
-these resources as of last Emacs quit, and individual resources can be
-read/written by commands like `@code{defaults read Emacs Foo}' and
-`@code{defaults write Emacs Foo barvalue}'.
+Under X, resources are used to customize the behavior of Emacs to the
+needs of the user.  These resources are queried programmatically with
+the @code{x-get-resource} function.  Under NS defaults fulfill a
+similar function.  They can be read using the @code{ns-get-resource}
+function.  Calls to @code{x-get-resource} are automatically mapped to
+@code{ns-get-resource}.  From the command line, the command
+`@code{defaults read org.gnu.Emacs}' will show these resources as of
+last Emacs quit, and individual resources can be read/written by
+commands like `@code{defaults read Emacs Foo}' and `@code{defaults
+write Emacs Foo barvalue}'.
 
 Calling the function @code{ns-save-preferences} in lisp, or selecting ``Save
 Options'' from the 'Options' menu will automatically write out the defaults

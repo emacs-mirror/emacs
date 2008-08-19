@@ -1,7 +1,13 @@
+2008-08-18  Brian Cully  <bjc@kublai.com>
+
+	* ns-emacs.texi: Update version.
+	(Introduction): Correct menu location for options save.
+	(Customization): Note that defaults are stored under org.gnu.Emacs.
+
 2008-08-18  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E manual version 8.1.
-  
+
 	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
 	release 8.1.
 
