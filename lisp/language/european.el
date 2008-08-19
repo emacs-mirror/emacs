@@ -282,7 +282,7 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
 
 (set-language-info-alist
  "Esperanto" '((tutorial . "TUTORIAL.eo")
-	       (charset ascii latin-iso8859-3)
+	       (charset iso-8859-3)
 	       (coding-system iso-latin-3)
 	       (coding-priority iso-latin-3)
 	       (nonascii-translation . latin-iso8859-3)
