@@ -419,16 +419,16 @@ reorder_font_vector (font_group, font)
 
       if (! font_match_p (font_spec, font_object))
 	{
-	  Lisp_Object repertory = FONT_DEF_REPERTORY (font_def);
+	  Lisp_Object encoding = FONT_DEF_ENCODING (font_def);
 
-	  if (! NILP (repertory))
+	  if (! NILP (encoding))
 	    {
 	      Lisp_Object tail;
 
 	      for (tail = Vcharset_ordered_list;
 		   ! EQ (tail, Vcharset_non_preferred_head) && CONSP (tail);
 		   score += 0x100, tail = XCDR (tail))
-		if (EQ (repertory, XCAR (tail)))
+		if (EQ (encoding, XCAR (tail)))
 		  break;
 	    }
 	  else
@@ -904,7 +904,7 @@ face_for_char (f, face, c, pos, object)
 	}
     }
 
-  font_add_log ("finding a font for", Fcons (make_number (c), charset), Qnil);
+  font_deferred_log ("font for", Fcons (make_number (c), charset), Qnil);
   rfont_def = fontset_font (fontset, c, face, id);
   if (VECTORP (rfont_def))
     {
