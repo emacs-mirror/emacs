@@ -1,3 +1,8 @@
+2008-08-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-toggle-hide): Allow hiding only if widget is
+	saved.
+
 2008-08-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emulation/edt.el (edt-default-emulation-setup): Share
