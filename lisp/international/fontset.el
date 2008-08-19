@@ -175,7 +175,6 @@
 	(runic #x16A0)
 	(khmer #x1780)
 	(mongolian #x1826)
-	(symbol #x201C #x2200 #x2500)
 	(braille #x2800)
 	(ideographic-description #x2FF0)
 	(cjk-misc #x300E)
@@ -372,7 +371,7 @@
 
      (khmer ,(font-spec :registry "iso10646-1" :otf '(khmr nil (pres))))
 
-     (symbol ,(font-spec :registry "iso10646-1" :script 'symbol))
+     (symbol ,(font-spec :registry "iso10646-1"))
 
      (yi ,(font-spec :registry "iso10646-1" :script 'yi))
 
