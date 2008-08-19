@@ -130,7 +130,7 @@ This alist may be a full list of possible completions so that FUN can ignore
 the value of its argument.  If completion is performed in the minibuffer,
 FUN will be called in the buffer from which the minibuffer was entered.
 
-The result of the `dynamic-completion-table' form is a function
+The result of the `completion-table-dynamic' form is a function
 that can be used as the COLLECTION argument to `try-completion' and
 `all-completions'.  See Info node `(elisp)Programmed Completion'."
   (lexical-let ((fun fun))
