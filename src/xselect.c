@@ -1471,7 +1471,7 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
   if (NILP (XCAR (reading_selection_reply)))
     error ("Timed out waiting for reply from selection owner");
   if (EQ (XCAR (reading_selection_reply), Qlambda))
-    error ("No `%s' selection", SDATA (SYMBOL_NAME (selection_symbol)));
+    return Qnil;
 
   /* Otherwise, the selection is waiting for us on the requested property.  */
   return
