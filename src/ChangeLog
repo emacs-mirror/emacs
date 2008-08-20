@@ -1,3 +1,15 @@
+2008-08-20  David Reitter <david.reitter@gmail.com>
+
+	* nsfns.m (ns_lisp_to_cursor_type): Replace with generic xfns.c 
+	* nsterm.m: remove ns-specific code for cursor blinking
+	(ns_draw_window_cursor): clear cursor properly rather than
+	redrawing the area. Respect width of bar cursors.
+	These changes enable the use of generic blink-cursor-mode and 
+	generic cursor types in NS and support smooth cursor movements (do
+	not blink off after command).
+	* xdisp.c (get_phys_cursor_geometry): redraw wider rectangle on
+	Nextstep, too. 
+
 2008-08-19  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (Vfont_log_deferred): New variable.
