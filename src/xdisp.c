@@ -2093,7 +2093,7 @@ get_phys_cursor_geometry (w, row, glyph, xp, yp, heightp)
      rectangle as wide as the glyph, but use a canonical character
      width instead.  */
   wd = glyph->pixel_width - 1;
-#ifdef HAVE_NTGUI
+#if defined(HAVE_NTGUI) || defined(HAVE_NS)
   wd++; /* Why? */
 #endif
 
@@ -8292,6 +8292,9 @@ ensure_echo_area_buffers ()
 	sprintf (name, " *Echo Area %d*", i);
 	echo_buffer[i] = Fget_buffer_create (build_string (name));
 	XBUFFER (echo_buffer[i])->truncate_lines = Qnil;
+	/* to force word wrap in echo area - 
+	   it was decided to postpone this*/
+	/* XBUFFER (echo_buffer[i])->word_wrap = Qt; */
 
 	for (j = 0; j < 2; ++j)
 	  if (EQ (old_buffer, echo_area_buffer[j]))
