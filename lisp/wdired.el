@@ -207,7 +207,6 @@ program `dired-chmod-program', which must exist."
 (defvar wdired-col-perm) ;; Column where the permission bits start
 (defvar wdired-old-content)
 (defvar wdired-old-point)
-(defvar wdired-old-auto-revert-mode nil)
 
 
 (defun wdired-mode ()
@@ -243,10 +242,6 @@ See `wdired-mode'."
        (buffer-substring (point-min) (point-max)))
   (set (make-local-variable 'wdired-old-point) (point))
   (set (make-local-variable 'query-replace-skip-read-only) t)
-  (when (and (boundp 'auto-revert-mode)
-	     auto-revert-mode)
-    (set (make-local-variable 'wdired-old-auto-revert-mode) t)
-    (auto-revert-mode 0))
   (use-local-map wdired-mode-map)
   (force-mode-line-update)
   (setq buffer-read-only nil)
@@ -354,11 +349,6 @@ non-nil means return old filename."
   (setq mode-name "Dired")
   (dired-advertise)
   (remove-hook 'kill-buffer-hook 'wdired-check-kill-buffer t)
-  (when wdired-old-auto-revert-mode
-    (kill-local-variable 'wdired-old-auto-revert-mode)
-    (and (boundp 'auto-revert-mode)
-	 (null auto-revert-mode)
-	 (auto-revert-mode 1)))
   (set (make-local-variable 'revert-buffer-function) 'dired-revert))
 
 
