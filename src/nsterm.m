@@ -168,13 +168,6 @@ Lisp_Object ns_control_modifier;
    the Function modifer (laptops).  May be any of the modifier lisp symbols. */
 Lisp_Object ns_function_modifier;
 
-/* A floating point value specifying the rate at which to blink the cursor.
-   YES indicates 0.5, NO indicates no blinking. */
-Lisp_Object ns_cursor_blink_rate;
-
-/* Used for liason with core emacs cursor-blink-mode. */
-Lisp_Object ns_cursor_blink_mode;
-
 /* A floating point value specifying vertical stretch (positive) or shrink
   (negative) of text line spacing.  Zero means default spacing.
   YES indicates 0.5, NO indicates 0.0. */
@@ -235,7 +228,6 @@ static BOOL send_appdefined = YES;
 static NSEvent *last_appdefined_event = 0;
 static NSTimer *timed_entry = 0;
 static NSTimer *fd_entry = nil;
-static NSTimer *cursor_blink_entry = nil;
 static NSTimer *scroll_repeat_entry = nil;
 static fd_set select_readfds, t_readfds;
 static struct timeval select_timeout;
@@ -2270,6 +2262,10 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
                        int on_p, int active_p)
 /* --------------------------------------------------------------------------
      External call (RIF): draw cursor
+     (modeled after x_draw_window_cursor and erase_phys_cursor.
+     FIXME: erase_phys_cursor is called from display_and_set_cursor,
+     called from update_window_cursor/x_update_window_end/...
+     Why do we have to duplicate this code?
    -------------------------------------------------------------------------- */
 {
   NSRect r, s;
@@ -2278,14 +2274,23 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   struct glyph *phys_cursor_glyph;
   int overspill;
   unsigned char drawGlyph = 0, cursorType, oldCursorType;
+  int new_cursor_type;
+  int new_cursor_width;
+  int active_cursor;
+  enum draw_glyphs_face hl;
+  struct glyph_matrix *active_glyphs = w->current_matrix;
+  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  int hpos = w->phys_cursor.hpos;
+  int vpos = w->phys_cursor.vpos;
+  struct glyph_row *cursor_row;
 
   NSTRACE (dumpcursor);
 
-  if (!on_p)
+  if (!on_p) // check this?    && !w->phys_cursor_on_p)
       return;
 
   w->phys_cursor_type = cursor_type;
-  w->phys_cursor_on_p = 1;
+  w->phys_cursor_on_p = on_p;
 
   if (cursor_type == NO_CURSOR)
     {
@@ -2318,9 +2323,10 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   if (overspill > 0)
     r.size.width -= overspill;
 
-  /* TODO: 23: use emacs stored f->cursor_type instead of ns-specific */
   oldCursorType = FRAME_CURSOR (f);
   cursorType = FRAME_CURSOR (f) = FRAME_NEW_CURSOR (f);
+
+  /* TODO: 23: use emacs stored cursor color instead of ns-specific */
   f->output_data.ns->current_cursor_color
     = f->output_data.ns->desired_cursor_color;
 
@@ -2342,51 +2348,125 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   if (cursorType == no_highlight || cursor_type == NO_CURSOR)
     {
       /* clearing for blink: erase the cursor itself */
+
+      /* No cursor displayed or row invalidated => nothing to do on the
+	 screen.  */
+      if (w->phys_cursor_type == NO_CURSOR)
+	return;
+
+      /* VPOS >= active_glyphs->nrows means that window has been resized.
+	 Don't bother to erase the cursor.  */
+      if (vpos >= active_glyphs->nrows)
+	return;
+
+      /* If row containing cursor is marked invalid, there is nothing we
+	 can do.  */
+      cursor_row = MATRIX_ROW (active_glyphs, vpos);
+      if (!cursor_row->enabled_p)
+	return;
+
+      /* If line spacing is > 0, old cursor may only be partially visible in
+	 window after split-window.  So adjust visible height.  */
+      cursor_row->visible_height = min (cursor_row->visible_height,
+					window_text_bottom_y (w) - cursor_row->y);
+
+      /* If row is completely invisible, don't attempt to delete a cursor which
+	 isn't there.  This can happen if cursor is at top of a window, and
+	 we switch to a buffer with a header line in that window.  */
+      if (cursor_row->visible_height <= 0)
+	return;
+
+      /* If cursor is in the fringe, erase by drawing actual bitmap there.  */
+      if (cursor_row->cursor_in_fringe_p)
+	{
+	  cursor_row->cursor_in_fringe_p = 0;
+	  draw_fringe_bitmap (w, cursor_row, 0);
+	  return;
+	}
+
+      /* This can happen when the new row is shorter than the old one.
+	 In this case, either draw_glyphs or clear_end_of_line
+	 should have cleared the cursor.  Note that we wouldn't be
+	 able to erase the cursor in this case because we don't have a
+	 cursor glyph at hand.  */
+      if (w->phys_cursor.hpos >= cursor_row->used[TEXT_AREA])
+	return;
+
+      /* If the cursor is in the mouse face area, redisplay that when
+	 we clear the cursor.  */
+      if (! NILP (dpyinfo->mouse_face_window)
+	  && w == XWINDOW (dpyinfo->mouse_face_window)
+	  && (vpos > dpyinfo->mouse_face_beg_row
+	      || (vpos == dpyinfo->mouse_face_beg_row
+		  && hpos >= dpyinfo->mouse_face_beg_col))
+	  && (vpos < dpyinfo->mouse_face_end_row
+	      || (vpos == dpyinfo->mouse_face_end_row
+		  && hpos < dpyinfo->mouse_face_end_col))
+	  /* Don't redraw the cursor's spot in mouse face if it is at the
+	     end of a line (on a newline).  The cursor appears there, but
+	     mouse highlighting does not.  */
+	  && cursor_row->used[TEXT_AREA] > hpos)
+	hl = DRAW_MOUSE_FACE;
+      else
+	hl = DRAW_NORMAL_TEXT;
+      drawGlyph = 1; // just draw the Glyph
       [FRAME_BACKGROUND_COLOR (f) set];
-      cursorType = oldCursorType; /* just clear what we had before */
+
+      NSDisableScreenUpdates ();
     }
   else
+    { 
+      cursorType = cursor_type;
+      hl = DRAW_CURSOR;
       [FRAME_CURSOR_COLOR (f) set];
+    
 
-  if (!active_p)
-    {
-      /* inactive window: ignore what we just set and use a hollow box */
-      cursorType = hollow_box;
-      [FRAME_CURSOR_COLOR (f) set];
-    }
+      if (!active_p)
+	{
+	  /* inactive window: ignore what we just set and use a hollow box */
+	  cursorType = hollow_box;
+	  [FRAME_CURSOR_COLOR (f) set];
+	}
 
-  switch (cursorType)
-    {
-    case no_highlight:
-      break;
-    case filled_box:
-      NSRectFill (r);
-      drawGlyph = 1;
-      break;
-    case hollow_box:
-      NSRectFill (r);
-      [FRAME_BACKGROUND_COLOR (f) set];
-      NSRectFill (NSInsetRect (r, 1, 1));
-      [FRAME_CURSOR_COLOR (f) set];
-      drawGlyph = 1;
-      break;
-    case underscore:
-      s = r;
-      s.origin.y += lrint (0.75 * s.size.height);
-      s.size.height = lrint (s.size.height * 0.25);
-      NSRectFill (s);
-      break;
-    case bar:
-      s = r;
-      s.size.width = 1;
-      NSRectFill (s);
-      break;
+      NSDisableScreenUpdates ();
+
+      switch (cursorType)
+	{
+	case NO_CURSOR: // no_highlight:
+	  break;
+	case FILLED_BOX_CURSOR: //filled_box:
+	  NSRectFill (r);
+	  drawGlyph = 1;
+	  break;
+	case HOLLOW_BOX_CURSOR: //hollow_box:
+	  NSRectFill (r);
+	  [FRAME_BACKGROUND_COLOR (f) set];
+	  NSRectFill (NSInsetRect (r, 1, 1));
+	  [FRAME_CURSOR_COLOR (f) set];
+	  drawGlyph = 1;
+	  break;
+	case HBAR_CURSOR: // underscore:
+	  s = r;
+	  s.origin.y += lrint (0.75 * s.size.height);
+	  s.size.height = cursor_width; //lrint (s.size.height * 0.25);
+	  NSRectFill (s);
+	  break;
+	case BAR_CURSOR: //bar:
+	  s = r;
+	  s.size.width = cursor_width;
+	  NSRectFill (s);
+	  drawGlyph = 1;
+	  break;
+	}
     }
   ns_unfocus (f);
 
   /* if needed, draw the character under the cursor */
   if (drawGlyph)
-    draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
+    draw_phys_cursor_glyph (w, glyph_row, hl);
+
+  NSEnableScreenUpdates ();
+
 }
 
 
@@ -3173,35 +3253,6 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
                                               repeats: YES]
                retain];
 
-  if (!NILP (ns_cursor_blink_mode) && !cursor_blink_entry)
-    {
-      if (!NUMBERP (ns_cursor_blink_rate))
-        ns_cursor_blink_rate = make_float (0.5);
-      cursor_blink_entry = [[NSTimer
-        scheduledTimerWithTimeInterval: XFLOATINT (ns_cursor_blink_rate)
-                                target: NSApp
-                              selector: @selector (cursor_blink_handler:)
-                              userInfo: 0
-                               repeats: YES]
-                             retain];
-    }
-  else if (NILP (ns_cursor_blink_mode) && cursor_blink_entry)
-    {
-      if (NUMBERP (ns_cursor_blink_rate))
-          ns_cursor_blink_rate = Qnil;
-      struct ns_display_info *dpyinfo = x_display_list; /* HACK */
-      [cursor_blink_entry invalidate];
-      [cursor_blink_entry release];
-      cursor_blink_entry = 0;
-      if (dpyinfo->x_highlight_frame)
-        {
-          Lisp_Object tem
-	    = get_frame_param (dpyinfo->x_highlight_frame, Qcursor_type);
-          dpyinfo->x_highlight_frame->output_data.ns->desired_cursor
-	    = ns_lisp_to_cursor_type (tem);
-        }
-    }
-
   /* Let Application dispatch events until it receives an event of the type
        NX_APPDEFINED, which should only be sent by timeout_handler.  */
   inNsSelect = 1;
@@ -3487,8 +3538,6 @@ ns_set_default_prefs ()
   ns_command_modifier = Qsuper;
   ns_control_modifier = Qcontrol;
   ns_function_modifier = Qnone;
-  ns_cursor_blink_rate = Qnil;
-  ns_cursor_blink_mode = Qnil;
   ns_expand_space = make_float (0.0);
   ns_antialias_text = Qt;
   ns_antialias_threshold = 10.0; /* not exposed to lisp side */
@@ -3795,10 +3844,6 @@ ns_term_init (Lisp_Object display_name)
              Qnil, Qnil, NO, YES);
   if (NILP (ns_function_modifier))
     ns_function_modifier = Qnone;
-  ns_default ("CursorBlinkRate", &ns_cursor_blink_rate,
-             make_float (0.5), Qnil, YES, NO);
-  if (NUMBERP (ns_cursor_blink_rate))
-    ns_cursor_blink_mode = Qt;
   ns_default ("ExpandSpace", &ns_expand_space,
              make_float (0.5), make_float (0.0), YES, NO);
   ns_default ("GSFontAntiAlias", &ns_antialias_text,
@@ -4193,31 +4238,6 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
 }
 
 extern void update_window_cursor (struct window *w, int on);
-
-- (void)cursor_blink_handler: (NSTimer *)cursorEntry
-/* --------------------------------------------------------------------------
-     Flash the cursor
-   -------------------------------------------------------------------------- */
-{
-  struct ns_display_info *dpyinfo = x_display_list; /*HACK, but OK for now */
-  struct frame *f = dpyinfo->x_highlight_frame;
-  NSTRACE (cursor_blink_handler);
-
-  if (!f)
-    return;
-  if (f->output_data.ns->current_cursor == no_highlight)
-    {
-      Lisp_Object tem = get_frame_param (f, Qcursor_type);
-      f->output_data.ns->desired_cursor = ns_lisp_to_cursor_type (tem);
-    }
-  else
-    {
-      f->output_data.ns->desired_cursor = no_highlight;
-    }
-  update_window_cursor (XWINDOW (FRAME_SELECTED_WINDOW (f)), 1);
-  /*x_update_cursor (f, 1); */
-}
-
 
 - (void)fd_handler: (NSTimer *) fdEntry
 /* --------------------------------------------------------------------------
@@ -6025,15 +6045,12 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   int cursorType
     = ns_lisp_to_cursor_type (get_frame_param (frame, Qcursor_type));
   prevExpandSpace = XFLOATINT (ns_expand_space);
-  prevBlinkRate = NILP (ns_cursor_blink_rate)
-    ? 0 : XFLOATINT (ns_cursor_blink_rate);
 
 #ifdef NS_IMPL_COCOA
   prevUseHighlightColor = ns_use_system_highlight_color;
 #endif
 
   [expandSpaceSlider setFloatValue: prevExpandSpace];
-  [cursorBlinkSlider setFloatValue: prevBlinkRate];
   [cursorTypeMatrix selectCellWithTag: (cursorType == filled_box ? 1 :
                                         (cursorType == bar ? 2 :
                                          (cursorType == underscore ? 3 : 4)))];
@@ -6062,9 +6079,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   int ctrlTag = [[controlModMenu selectedItem] tag];
   int fnTag = [[functionModMenu selectedItem] tag];
 #endif
-  float blinkRate = [cursorBlinkSlider floatValue];
   float expandSpace = [expandSpaceSlider floatValue];
-  Lisp_Object old_cursor_blink_mode;
 
   if (expandSpace != prevExpandSpace)
     {
@@ -6074,38 +6089,6 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 /*         FRAME_LINE_HEIGHT (frame) *= (expandSpace / prevExpandSpace);
            x_set_window_size (frame, 0, frame->text_cols, frame->text_lines); */
       prevExpandSpace = expandSpace;
-    }
-  if (blinkRate != prevBlinkRate)
-    {
-      old_cursor_blink_mode = ns_cursor_blink_mode;
-      if (blinkRate == 0.0)
-        {
-          ns_cursor_blink_rate = Qnil;
-          ns_cursor_blink_mode = Qnil;
-        }
-      else
-        {
-          ns_cursor_blink_rate = make_float (blinkRate);
-          ns_cursor_blink_mode = Qt;
-        }
-      if (!EQ (ns_cursor_blink_mode, old_cursor_blink_mode))
-          Feval (Fcons (intern ("blink-cursor-mode"), Qnil));
-
-      if (blinkRate != 0.0 && prevBlinkRate != 0.0)
-        {  /* if changed rates, remove blink handler so change picked up */
-          struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (frame);
-          [cursor_blink_entry invalidate];
-          [cursor_blink_entry release];
-          cursor_blink_entry = 0;
-          if (dpyinfo->x_highlight_frame)
-            {
-              Lisp_Object tem
-		= get_frame_param (dpyinfo->x_highlight_frame, Qcursor_type);
-              dpyinfo->x_highlight_frame->output_data.ns->desired_cursor
-		= ns_lisp_to_cursor_type (tem);
-            }
-        }
-      prevBlinkRate = blinkRate;
     }
   FRAME_NEW_CURSOR (frame)
     = (cursorTag == 1 ? filled_box
@@ -6418,14 +6401,6 @@ Set to control, meta, alt, super, or hyper means it is taken to be that key.");
 Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to none means that the function key is not interpreted by Emacs at all,\n\
 allowing it to be used at a lower level for accented character entry.");
-
-  DEFVAR_LISP ("ns-cursor-blink-rate", &ns_cursor_blink_rate,
-               "Rate at which the Emacs cursor blinks (in seconds).\n\
-Set to nil to disable blinking.");
-
-  DEFVAR_LISP ("ns-cursor-blink-mode", &ns_cursor_blink_mode,
-               "Internal variable -- use M-x blink-cursor-mode or preferences\n\
-panel to control this setting.");
 
   DEFVAR_LISP ("ns-expand-space", &ns_expand_space,
                "Amount by which spacing between lines is expanded (positive)\n\
