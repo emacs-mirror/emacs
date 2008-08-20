@@ -808,6 +808,10 @@ in the current file and skips to the next file.  These multi-file keys
 are available for all commands that use `tags-query-replace'
 including `dired-do-query-replace-regexp', `vc-dir-query-replace-regexp',
 `reftex-query-replace-document'.
+---
+*** If Auto Revert mode is enabled in a Dired buffer, it is
+temporarily disabled when entering Wdired mode; it is renabled upon
+leaving Wdired mode.
 
 ** Fortran
 *** The variable `fortran-line-length' can change the fixed-form line-length.
