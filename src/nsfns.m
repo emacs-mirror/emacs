@@ -413,6 +413,8 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 
+/* FIXME: adapt to generics */
+
 static void
 ns_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
@@ -434,7 +436,6 @@ ns_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     }
   update_face_from_frame_parameter (f, Qcursor_color, arg);
 }
-
 
 static void
 ns_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
@@ -928,27 +929,18 @@ ns_cursor_type_to_lisp (int arg)
     }
 }
 
-
-static void
-ns_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+/* this is like x_set_cursor_type defined in xfns.c */
+void
+ns_set_cursor_type (f, arg, oldval)
+     FRAME_PTR f;
+     Lisp_Object arg, oldval;
 {
-  int val;
+  set_frame_cursor_types (f, arg);
 
-  val = ns_lisp_to_cursor_type (arg);
-  if (val >= 0)
-    {
-      f->output_data.ns->desired_cursor =val;
-    }
-  else
-    {
-      store_frame_param (f, Qcursor_type, oldval);
-      error ("the `cursor-type' frame parameter should be either `no', `box', \
-`hollow', `underscore' or `bar'.");
-    }
-
-  update_mode_lines++;
+  /* Make sure the cursor gets redrawn.  */
+  cursor_type_changed = 1;
 }
-
+
 
 /* 23: called to set mouse pointer color, but all other terms use it to
        initialize pointer types (and don't set the color ;) */
