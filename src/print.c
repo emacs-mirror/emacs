@@ -1488,7 +1488,7 @@ print_object (obj, printcharfun, escapeflag)
   QUIT;
 
   /* See similar code in print_preprocess.  */
-  if (print_depth > PRINT_CIRCLE)
+  if (print_depth >= PRINT_CIRCLE)
     error ("Apparently circular structure being printed");
 
   /* Detect circularities and truncate them.  */
