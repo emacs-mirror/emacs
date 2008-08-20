@@ -570,6 +570,7 @@ mac_handle_text_input_event (next_handler, event, data)
 #ifndef MAC_OSX
 	    break;
 #else  /* MAC_OSX */
+	    struct buffer *b;
 	    CFRange sel_range;
 	    int charpos;
 	    int hpos, vpos, x, y;
@@ -579,8 +580,17 @@ mac_handle_text_input_event (next_handler, event, data)
 
 	    f = mac_focus_frame (&one_mac_display_info);
 	    w = XWINDOW (f->selected_window);
+	    b = XBUFFER (w->buffer);
+
+	    /* Are we in a window whose display is up to date?
+	       And verify the buffer's text has not changed.  */
+	    if (!(EQ (w->window_end_valid, w->buffer)
+		  && XINT (w->last_modified) == BUF_MODIFF (b)
+		  && XINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b)))
+	      break;
+
 	    mac_get_selected_range (w, &sel_range);
-	    charpos = (BUF_BEGV (XBUFFER (w->buffer)) + sel_range.location
+	    charpos = (BUF_BEGV (b) + sel_range.location
 		       + byte_offset / (long) sizeof (UniChar));
 
 	    if (!fast_find_position (w, charpos, &hpos, &vpos, &x, &y, Qnil))
