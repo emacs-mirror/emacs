@@ -1,3 +1,10 @@
+2008-08-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_load_font): Round average width to the nearest integer.
+
+	* mactoolbox.c [USE_MAC_TSM] (mac_handle_text_input_event):
+	Check if display is up to date before accessing current matrix.
+
 2008-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* process.c (make_process): Initialize kill_without_query struct
