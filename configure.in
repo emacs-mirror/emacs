@@ -2603,6 +2603,14 @@ AH_BOTTOM([
 #define INLINE
 #endif
 
+/* `subprocesses' should be defined if you want to
+   have code for asynchronous subprocesses
+   (as used in M-x compile and M-x shell).
+   Only MSDOS does not support this (it overrides
+   this in its config_opsysfile below).  */
+
+#define subprocesses
+
 /* Include the os and machine dependent files.  */
 #include config_opsysfile
 #include config_machfile
@@ -2618,13 +2626,6 @@ AH_BOTTOM([
 #  define C_SWITCH_X_SYSTEM -D_REENTRANT -fPIC -fno-strict-aliasing
 # endif /* NS_IMPL_GNUSTEP */
 #endif /* HAVE_NS */
-
-/* `subprocesses' should be defined if you want to
-   have code for asynchronous subprocesses
-   (as used in M-x compile and M-x shell).
-   Only MSDOS does not support this.  */
-
-#define subprocesses
 
 /* SIGTYPE is the macro we actually use.  */
 #ifndef SIGTYPE
