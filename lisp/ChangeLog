@@ -1,3 +1,9 @@
+2008-08-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/xesam.el (xesam-highlight-string): Precise doc string.
+	(xesam-highlight-buffer): New defun.
+	(xesam-refresh-entry): Use it.  Better check for sourceModified.
+
 2008-08-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* edmacro.el (edmacro-parse-keys): Catch events with spaces in
