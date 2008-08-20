@@ -494,7 +494,8 @@ SEARCH is the search identification in that engine.  Both must be strings."
   (format "*%s/%s*" service search))
 
 (defun xesam-highlight-string (string)
-  "Highlight text enclosed by <b> and </b>."
+  "Highlight text enclosed by <b> and </b>.
+Return propertized STRING."
   (while (string-match "\\(.*\\)\\(<b>\\)\\(.*\\)\\(</b>\\)\\(.*\\)" string)
     (setq string
 	  (format
@@ -503,6 +504,18 @@ SEARCH is the search identification in that engine.  Both must be strings."
 	   (propertize (match-string 3 string) 'face 'xesam-highlight)
 	   (match-string 5 string))))
   string)
+
+(defun xesam-highlight-buffer (regexp &optional buffer)
+  "Highlight text matching REGEXP in BUFFER.
+If BUFFER is nil, use the current buffer"
+  (with-current-buffer (or buffer (current-buffer))
+    (save-excursion
+      (let ((case-fold-search t))
+	(goto-char (point-min))
+	(while (re-search-forward regexp nil t)
+	  (overlay-put
+	   (make-overlay
+	    (match-beginning 0) (match-end 0)) 'face 'xesam-highlight))))))
 
 (defun xesam-refresh-entry (engine entry)
   "Refreshes one entry in the search buffer."
@@ -557,7 +570,10 @@ SEARCH is the search identification in that engine.  Both must be strings."
        widget :tag (xesam-highlight-string (widget-get widget :tag))))
 
     ;; Last Modified.
-    (when (widget-member widget :xesam:sourceModified)
+    (when (and (widget-member widget :xesam:sourceModified)
+	       (not
+		(zerop
+		 (string-to-number (widget-get widget :xesam:sourceModified)))))
       (widget-put
        widget :tag
        (format
@@ -589,8 +605,10 @@ SEARCH is the search identification in that engine.  Both must be strings."
       (widget-put
        widget :notify
        (lambda (widget &rest ignore)
-	 (find-file
-	  (url-filename (url-generic-parse-url (widget-value widget))))))
+	 (let ((query xesam-query))
+	   (find-file
+	    (url-filename (url-generic-parse-url (widget-value widget))))
+	   (xesam-highlight-buffer (regexp-opt (split-string query nil t))))))
       (widget-put
        widget :value
        (url-filename (url-generic-parse-url (widget-get widget :xesam:url))))))
@@ -837,6 +855,7 @@ Example:
 
 ;;; TODO:
 
+;; * Buffer highlighting needs better analysis of query string.
 ;; * Accept input while retrieving prefetched hits. `run-at-time'?
 ;; * With prefix, let's choose search engine.
 ;; * Minibuffer completion for user queries.
