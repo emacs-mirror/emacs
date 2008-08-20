@@ -8036,7 +8036,7 @@ x_load_font (f, fontname, size)
 	    for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
 	      if ((pcm = mac_per_char_metric (font, &char2b, 0)) != NULL)
 		width += pcm->width;
-	    fontp->average_width = width / 95;
+	    fontp->average_width = width / 95.0 + 0.5;
 	  }
 	else
 	  fontp->average_width = FONT_WIDTH (font);
