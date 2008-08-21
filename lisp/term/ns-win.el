@@ -59,7 +59,6 @@
 ;; nsterm.m
 (defvar ns-version-string)
 (defvar ns-expand-space)
-(defvar ns-cursor-blink-rate)
 (defvar ns-alternate-modifier)
 
 ;;;; Command line argument handling.
@@ -995,10 +994,6 @@ Lines are highlighted according to `ns-input-line'."
   (ns-set-resource nil "CommandModifier" (symbol-name ns-command-modifier))
   (ns-set-resource nil "ControlModifier" (symbol-name ns-control-modifier))
   (ns-set-resource nil "FunctionModifier" (symbol-name ns-function-modifier))
-  (ns-set-resource nil "CursorBlinkRate"
-                   (if ns-cursor-blink-rate
-                       (number-to-string ns-cursor-blink-rate)
-                     "NO"))
   (ns-set-resource nil "ExpandSpace"
                    (if ns-expand-space
                        (number-to-string ns-expand-space)
@@ -1227,28 +1222,6 @@ unless the current buffer is a scratch buffer.")
 		       (if (> (or (frame-parameter frame 'tool-bar-lines) 0) 0)
 				   0 1)) ))
   (if (not tool-bar-mode) (tool-bar-mode t)))
-
-(defvar ns-cursor-blink-mode) 		; nsterm.m
-
-;; Redefine from frame.el.
-(define-minor-mode blink-cursor-mode
-  "Toggle blinking cursor mode.
-With a numeric argument, turn blinking cursor mode on if ARG is positive,
-otherwise turn it off.  When blinking cursor mode is enabled, the
-cursor of the selected window blinks.
-
-Note that this command is effective only when Emacs
-displays through a window system, because then Emacs does its own
-cursor display.  On a text-only terminal, this is not implemented."
-  :init-value (not (or noninteractive
-		       no-blinking-cursor
-		       (eq ns-cursor-blink-rate nil)))
-  :initialize 'custom-initialize-safe-default
-  :group 'cursor
-  :global t
-  (if blink-cursor-mode
-      (setq ns-cursor-blink-mode t)
-      (setq ns-cursor-blink-mode nil)))
 
 
 
