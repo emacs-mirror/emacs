@@ -10514,7 +10514,8 @@ x_delete_display (dpyinfo)
 	  tail->next = tail->next->next;
     }
 
-#ifndef USE_X_TOOLKIT   /* I'm told Xt does this itself.  */
+  /* Xt and GTK do this themselves.  */
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 #ifndef AIX		/* On AIX, XCloseDisplay calls this.  */
   XrmDestroyDatabase (dpyinfo->xrdb);
 #endif
