@@ -1,3 +1,10 @@
+2008-08-21  Christian Faulhammer  <opfer@gentoo.org>  (tiny change)
+
+	* configure.in (GNUSTEP_SYSTEM_HEADERS): Define
+	GNUSTEP_SYSTEM_HEADERS and GNUSTEP_SYSTEM_LIBRARIES.
+
+	* configure: Regenerate.
+
 2008-08-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.in: Move "#define subprocesses" before
