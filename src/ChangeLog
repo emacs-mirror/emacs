@@ -1,7 +1,6 @@
-2008-08-21  İsmail Dönmez <ismail@namtrac.org>  (tiny change)
+2008-08-21  İsmail Dönmez  <ismail@namtrac.org>  (tiny change)
 
-	* xterm.c (x_delete_display): Don't call XrmDestroyDatabase on
-	GTK+.
+	* xterm.c (x_delete_display): Don't call XrmDestroyDatabase on GTK+.
 
 2008-08-21  Christian Faulhammer  <opfer@gentoo.org>  (tiny change)
 
@@ -33,9 +32,9 @@
 	* xselect.c (x_get_foreign_selection): Return nil if desired
 	selection could not be obtained, instead of signalling an error.
 
-2008-08-20  David Reitter <david.reitter@gmail.com>
+2008-08-20  David Reitter  <david.reitter@gmail.com>
 
-	* nsfns.m (ns_lisp_to_cursor_type): Replace with generic xfns.c
+	* nsfns.m (ns_lisp_to_cursor_type): Replace with generic xfns.c.
 	* nsterm.m: Remove ns-specific code for cursor blinking.
 	(ns_draw_window_cursor): Clear cursor properly rather than
 	redrawing the area. Respect width of bar cursors.
@@ -163,8 +162,8 @@
 	(global_memory_status, global_memory_status_ex): New wrapper
 	functions.
 	(w32_list_system_processes, w32_system_process_attributes)
-	(enable_privilege, restore_privilege, ltime, process_times): New
-	functions.
+	(enable_privilege, restore_privilege, ltime, process_times):
+	New functions.
 	(convert_time_raw): New function.
 	(convert_time): Remove conversion of FILETIME into time in 100
 	nsec units, call convert_time_raw instead.
@@ -180,14 +179,12 @@
 
 2008-08-08  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xdisp.c (move_it_to): When stopping at a charpos, check if
-	that's a continued multi-char glyph; if so, advance to the actual
-	glyph.
+	* xdisp.c (move_it_to): When stopping at a charpos, check if that's
+	a continued multi-char glyph; if so, advance to the actual glyph.
 
 2008-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* s/darwin.h (OTHER_FILES): Do not define here, defined in
-	config.in.
+	* s/darwin.h (OTHER_FILES): Do not define here, defined in config.in.
 
 	* Makefile.in (ALL_OBJC_CFLAGS): New variable.
 	(.m.o): Use it.
@@ -225,8 +222,7 @@
 
 2008-08-06  Kenichi Handa  <handa@m17n.org>
 
-	* xfont.c (xfont_list_family): Return a list of symbols, not
-	strings.
+	* xfont.c (xfont_list_family): Return a list of symbols, not strings.
 
 2008-08-06  Andreas Schwab  <schwab@suse.de>
 
