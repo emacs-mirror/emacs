@@ -615,14 +615,9 @@ input if confirmed."
         (let ((exts '(" " "-"))
               (before (substring string 0 point))
               (after (substring string point))
-              ;; If the user hasn't entered any text yet, then she
-              ;; presumably hits SPC to see the *completions*, but
-              ;; partial-completion will often find a " " or a "-" to match.
-              ;; So disable partial-completion in that situation.
-              (completion-styles
-               (or (and (equal string "")
-                        (remove 'partial-completion completion-styles))
-                   completion-styles))
+	      ;; Disable partial-completion for this.
+	      (completion-styles
+	       (remove 'partial-completion completion-styles))
 	      tem)
 	  (while (and exts (not (consp tem)))
             (setq tem (completion-try-completion
