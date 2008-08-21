@@ -44,8 +44,8 @@
 
 	* language/utf-8-lang.el ("UTF-8"): Add the preferred charsets.
 
-	* international/fontset.el (script-representative-chars): Delete
-	the entry for symbol.
+	* international/fontset.el (script-representative-chars):
+	Delete the entry for symbol.
 	(setup-default-fontset): For symbol characters, don't specify
 	:script property.
 
@@ -86,9 +86,8 @@
 	(proced-mode-map): Add tooltips for menus.  Use radio buttons for
 	listing types.
 	(proced-log-buffer): New variable.
-	(proced-mark-all, proced-unmark-all, proced-do-mark-al): Operate
-	on region if transient-mark-mode is turned on and the region is
-	active.
+	(proced-mark-all, proced-unmark-all, proced-do-mark-al): Operate on
+	region if transient-mark-mode is turned on and the region is active.
 	(proced-omit-processes): Renamed from proced-hide-processes to
 	avoid key clash with describe-mode (bound to h).  Search for
 	marked processes starting from point-min.
@@ -103,8 +102,8 @@
 
 2008-08-17  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/xesam.el (xesam-vendor, xesam-notify-function): New local
-	variables.
+	* net/xesam.el (xesam-vendor, xesam-notify-function):
+	New local variables.
 	(xesam-mode): Extend docstring.  Initialize `xesam-notify-function'.
 	(xesam-refresh-entry): Use `xesam-notify-function' if set.  Remove
 	Debbugs specific code; it shall be enabled via `xesam-mode-hooks'.
@@ -1245,7 +1244,7 @@
 	(line-move-1): Convert temporary-goal-column back to an integer if
 	it was set as a float by a previous call to line-move-visual.
 	(end-of-visual-line, beginning-of-visual-line)
-	(next-logical-line, previous-logical-line):  New functions.
+	(next-logical-line, previous-logical-line): New functions.
 
 2008-07-17  David Reitter  <david.reitter@gmail.com>
 
@@ -1704,7 +1703,7 @@
 	keybindings to ctl-x-map.
 
 	* bookmark.el: Rebind three global `C-x r' keys "b", "m", "l"
-	to the new map `ctl-x-r-map'  in autoload cookies.
+	to the new map `ctl-x-r-map' in autoload cookies.
 
 	* expand.el: Rebind two global `C-x a' keys "n", "p"
 	to the new map `abbrev-map' in autoload cookies.
