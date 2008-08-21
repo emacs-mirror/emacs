@@ -938,7 +938,10 @@ ${libsrc}make-docfile${EXEEXT}:
 temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
 	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
 #ifdef NS_IMPL_GNUSTEP
-	$(CC) -rdynamic YMF_PASS_LDFLAGS (${TEMACS_LDFLAGS} -lgnustep-gui -lgnustep-base -lobjc $(CONFIG_SYSTEM_LIBS) -lpthread ) -o temacs ${obj} ${otherobj} OBJECTS_MACHINE ${LIBES}
+	$(CC) -rdynamic YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
+	$(LDFLAGS) -lgnustep-gui -lgnustep-base \
+	-lobjc $(CONFIG_SYSTEM_LIBS) -lpthread ) -o temacs \
+	${obj} ${otherobj} OBJECTS_MACHINE ${LIBES}
 #else
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
