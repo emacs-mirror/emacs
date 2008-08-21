@@ -336,7 +336,7 @@ unless you have said in advance to do so.  To do this, set the variable
 
 @table @kbd
 @item M-;
-Align comment or insert new comment (@code{fortran-indent-comment}).
+Align comment or insert new comment (@code{comment-dwim}).
 
 @item C-x ;
 Applies to nonstandard @samp{!} comments only.
@@ -346,13 +346,11 @@ Turn all lines of the region into comments, or (with argument) turn them back
 into real code (@code{fortran-comment-region}).
 @end table
 
-@findex fortran-indent-comment
-  @kbd{M-;} in Fortran mode is redefined as the command
-@code{fortran-indent-comment}.  Like the usual @kbd{M-;} command, this
-recognizes any kind of existing comment and aligns its text appropriately;
-if there is no existing comment, a comment is inserted and aligned.  But
-inserting and aligning comments are not the same in Fortran mode as in
-other modes.
+  @kbd{M-;} in Fortran mode runs the standard @code{comment-dwim}.
+This recognizes any kind of existing comment and aligns its text
+appropriately; if there is no existing comment, a comment is inserted
+and aligned.  Inserting and aligning comments are not the same in
+Fortran mode as in other modes.
 
   When a new comment must be inserted, if the current line is blank, a
 full-line comment is inserted.  On a non-blank line, a nonstandard @samp{!}
