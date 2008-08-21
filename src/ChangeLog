@@ -1,3 +1,8 @@
+2008-08-21  $,1 P(Bsmail D,Av(Bnmez  <ismail@namtrac.org>  (tiny change)
+
+	* xterm.c (x_delete_display): Don't call XrmDestroyDatabase on
+	GTK+.
+
 2008-08-20  Andreas Schwab  <schwab@suse.de>
 
 	* print.c (print_object): Fix off-by-one in last change.
