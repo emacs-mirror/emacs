@@ -1,6 +1,7 @@
 2008-08-21  Glenn Morris  <rgm@gnu.org>
 
 	* fortran-xtra.texi (Fortran Columns): Document `fortran-line-length'.
+	(Fortran Comments): Replace fortran-indent-comment with comment-dwim.
 
 2008-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
