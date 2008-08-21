@@ -3733,6 +3733,10 @@ x_update_menu_appearance (f)
 	}
 
       if (face->font
+	  /* On Solaris 5.8, it's been reported that the `menu' face
+	     can be unspecified here, during startup.  Why this
+	     happens remains unknown.  -- cyd  */
+	  && FONTP (LFACE_FONT (lface))
 	  && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
 	      || !UNSPECIFIEDP (LFACE_FOUNDRY (lface))
 	      || !UNSPECIFIEDP (LFACE_SWIDTH (lface))

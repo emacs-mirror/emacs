@@ -1,5 +1,8 @@
 2008-08-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xfaces.c (x_update_menu_appearance): Check validity of menu font
+	before using it.
+
 	* puresize.h (BASE_PURESIZE): Increase to 1250000.
 
 2008-08-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
