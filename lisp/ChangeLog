@@ -1,3 +1,9 @@
+2008-08-21  John Paul Wallington  <jpw@pobox.com>
+
+	* mail/rmail.el (rmail-insert-inbox-text): Ensure that the
+	filename of `tofile' doesn't contain any colons on Windows,
+	Cygwin, and MS-DOS systems.
+
 2008-08-21  Daiki Ueno  <ueno@unixuser.org>
 
 	* epg.el (epg-make-context, epg-context-set-passphrase-callback)
