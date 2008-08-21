@@ -1120,6 +1120,7 @@ coding-system used for decoding.  The functions
 `process-filter-multibyte-p' and `set-process-filter-multibyte' are
 obsolete.
 
+---
 ** The variable `byte-compile-warnings' can now be a list starting with `not',
 meaning to disable the specified warnings.  The meaning of this list
 may therefore be the reverse of what you expect (of course, this is
