@@ -1,3 +1,8 @@
+2008-08-21  Christian Faulhammer  <opfer@gentoo.org>  (tiny change)
+
+	* Makefile.in (temacs${EXEEXT}): On GNUstep, link to appropriate
+	GNUstep library location.
+
 2008-08-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (x_update_menu_appearance): Check validity of menu font
