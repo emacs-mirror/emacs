@@ -458,20 +458,28 @@ Otherwise (and by default), the break comes before the delimiter.
 @node Fortran Columns
 @subsection Checking Columns in Fortran
 
+@vindex fortran-line-length
+In standard Fortran 77, anything beyond column 72 is ignored.
+Most compilers provide an option to change this (for example,
+@samp{-ffixed-line-length-N} in gfortran).  Customize the variable
+@code{fortran-line-length} to change the line length in Fortran mode.
+
 @table @kbd
 @item C-c C-r
 Display a ``column ruler'' momentarily above the current line
 (@code{fortran-column-ruler}).
 @item C-c C-w
-Split the current window horizontally temporarily so that it is 72
-columns wide (@code{fortran-window-create-momentarily}).  This may
-help you avoid making lines longer than the 72-character limit that
-some Fortran compilers impose.
+Split the current window horizontally temporarily so that it is
+@code{fortran-line-length} columns wide
+(@code{fortran-window-create-momentarily}).  This may help you avoid
+making lines longer than the character limit imposed by your Fortran
+compiler.
 @item C-u C-c C-w
-Split the current window horizontally so that it is 72 columns wide
-(@code{fortran-window-create}).  You can then continue editing.
+Split the current window horizontally so that it is
+@code{fortran-line-length} columns wide (@code{fortran-window-create}).
+You can then continue editing.
 @item M-x fortran-strip-sequence-nos
-Delete all text in column 72 and beyond.
+Delete all text in column @code{fortran-line-length} and beyond.
 @end table
 
 @kindex C-c C-r @r{(Fortran mode)}
@@ -501,9 +509,9 @@ display.
 @kindex C-c C-w @r{(Fortran mode)}
 @findex fortran-window-create-momentarily
   @kbd{C-c C-w} (@code{fortran-window-create-momentarily}) temporarily
-splits the current window horizontally, making a window 72 columns
-wide, so you can see any lines that are too long.  Type a space to
-restore the normal width.
+splits the current window horizontally, making a window
+@code{fortran-line-length} columns wide, so you can see any lines that
+are too long.  Type a space to restore the normal width.
 
 @kindex C-u C-c C-w @r{(Fortran mode)}
 @findex fortran-window-create
@@ -514,8 +522,9 @@ immediately see when you make a line too wide to be correct Fortran.
 
 @findex fortran-strip-sequence-nos
   The command @kbd{M-x fortran-strip-sequence-nos} deletes all text in
-column 72 and beyond, on all lines in the current buffer.  This is the
-easiest way to get rid of old sequence numbers.
+column @code{fortran-line-length} and beyond, on all lines in the
+current buffer.  This is the easiest way to get rid of old sequence
+numbers.
 
 @node Fortran Abbrev
 @subsection Fortran Keyword Abbrevs
