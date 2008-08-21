@@ -1210,6 +1210,7 @@ IDENTIFICATION specifies which part of the remote identifier has to be
 returned.  With CONNECTED passed non-nil, it is checked whether a
 remote connection has been established already.
 
++++
 ** The new macro `declare-function' suppresses compiler warnings about
 undefined functions.
 
@@ -1635,6 +1636,7 @@ certain variable as having been made within Custom.
 
 ** The new package avl-tree.el deals with the AVL tree data structure.
 
++++
 ** The new package check-declare.el verifies the accuracy of
 declare-function macros (see Lisp Changes, above).
 
