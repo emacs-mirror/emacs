@@ -810,7 +810,9 @@ including `dired-do-query-replace-regexp', `vc-dir-query-replace-regexp',
 `reftex-query-replace-document'.
 
 ** Fortran
-*** The variable `fortran-line-length' can change the fixed-form line-length.
++++
+*** The line length of fixed-form Fortran is not fixed at 72 any more.
+Customize the variable `fortran-line-length' to change it.
 
 *** In Fortran mode, M-; is now bound to the standard comment-dwim,
 rather than fortran-indent-comment.
