@@ -1,3 +1,9 @@
+2008-08-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (completion--try-word-completion): Disable
+	partial-completion when considering the addition of a space or
+	hyphen.
+
 2008-08-21  John Paul Wallington  <jpw@pobox.com>
 
 	* mail/rmail.el (rmail-insert-inbox-text): Ensure that the
