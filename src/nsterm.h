@@ -41,7 +41,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (void)showPreferencesWindow: (id)sender;
 - (BOOL) openFile: (NSString *)fileName;
 - (void)fd_handler: (NSTimer *) fdEntry;
-- (void)cursor_blink_handler: (NSTimer *)cursorEntry;
 - (void)timeout_handler: (NSTimer *)timedEntry;
 - (BOOL)fulfillService: (NSString *)name withArg: (NSString *)arg;
 @end
@@ -83,6 +82,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (void) setWindowClosing: (BOOL)closing;
 - (EmacsToolbar *) toolbar;
 - (void) deleteWorkingText;
+
+#ifdef NS_IMPL_GNUSTEP
+/* Not declared, but useful. */
+- (void) unlockFocusNeedsFlush: (BOOL)needs;
+#endif
 @end
 
 

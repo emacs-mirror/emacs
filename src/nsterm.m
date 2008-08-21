@@ -2273,7 +2273,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   struct frame *f = WINDOW_XFRAME (w);
   struct glyph *phys_cursor_glyph;
   int overspill;
-  unsigned char drawGlyph = 0, cursorType, oldCursorType;
+  char drawGlyph = 0, cursorType, oldCursorType;
   int new_cursor_type;
   int new_cursor_width;
   int active_cursor;
@@ -2928,13 +2928,21 @@ ns_draw_glyph_string (struct glyph_string *s)
 
   NSTRACE (ns_draw_glyph_string);
 
-  if (s->next && s->right_overhang && !s->for_overlaps && s->hl != DRAW_CURSOR)
+  if (s->next && s->right_overhang && !s->for_overlaps/* && s->hl != DRAW_CURSOR*/)
     {
-      xassert (s->next->img == NULL);
-      n = ns_get_glyph_string_clip_rect (s->next, r);
-      ns_focus (s->f, r, n);
-      ns_maybe_dumpglyphs_background (s->next, 1);
-      ns_unfocus (s->f);
+      int width;
+      struct glyph_string *next;
+
+      for (width = 0, next = s->next; next;
+	   width += next->width, next = next->next)
+	if (next->first_glyph->type != IMAGE_GLYPH)
+          {
+            n = ns_get_glyph_string_clip_rect (s->next, r);
+            ns_focus (s->f, r, n);
+            ns_maybe_dumpglyphs_background (s->next, 1);
+            ns_unfocus (s->f);
+            next->num_clips = 0;
+          }
     }
 
   if (!s->for_overlaps && s->face->box != FACE_NO_BOX
@@ -3044,6 +3052,7 @@ ns_draw_glyph_string (struct glyph_string *s)
       ns_unfocus (s->f);
     }
 
+  s->num_clips = 0;
 }
 
 
@@ -3149,7 +3158,7 @@ ns_read_socket (struct terminal *terminal, int expected,
 
   /* If have pending open-file requests, attend to the next one of those. */
   if (ns_pending_files && [ns_pending_files count] != 0
-      && [NSApp openFile: [ns_pending_files objectAtIndex: 0]])
+      && [(EmacsApp *)NSApp openFile: [ns_pending_files objectAtIndex: 0]])
     {
       [ns_pending_files removeObjectAtIndex: 0];
     }
@@ -4194,11 +4203,11 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
   while ((file = [files nextObject]) != nil)
     [ns_pending_files addObject: file];
 
-#ifdef NS_IMPL_GNUSTEP
-  [self replyToOpenOrPrint: 0];
-#else
+/* TODO: when GNUstep implements this (and we require that version of
+         GNUstep), remove. */
+#ifndef NS_IMPL_GNUSTEP
   [self replyToOpenOrPrint: NSApplicationDelegateReplySuccess];
-#endif /* NS_IMPL_GNUSTEP */
+#endif /* !NS_IMPL_GNUSTEP */
 
 }
 

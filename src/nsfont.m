@@ -1016,13 +1016,13 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     /* do underline */
     if (face->underline_p)
       {
-        if (face->underline_color != nil)
+        if (face->underline_color != 0)
           [ns_lookup_indexed_color (face->underline_color, s->f) set];
         else
           [col set];
         DPSmoveto (context, r.origin.x, r.origin.y + font->underpos);
         DPSlineto (context, r.origin.x+r.size.width, r.origin.y+font->underpos);
-        if (face->underline_color != nil)
+        if (face->underline_color != 0)
           [col set];
       }
     else

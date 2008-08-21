@@ -1,3 +1,16 @@
+2008-08-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (ns-read-file-name): Add casts to avoid warning.
+	(ns-convert-utf8-nfd-to-nfc): Warn if cannot execute correctly.
+	* nsfont.m (nsfont_draw): Compare indexed colors to 0, not nil.
+	* nsterm.h (EmacsView-unlockFocusNeedsFlush:): Add declaration.
+	(EmacsApp-cursor_blink_handler): Remove declaration.
+	* nsterm.m (ns_draw_glyph_string): Update first conditional body to
+	match 01 Feb 2008 changes in xterm.c.
+	(ns_read_socket): Add cast to avoid warning.
+	(EmacsApp-application:openFiles:): Don't call replyToOpenOrPrint: on
+	GNUstep.
+
 2008-08-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xselect.c (x_get_foreign_selection): Return nil if desired

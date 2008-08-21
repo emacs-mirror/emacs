@@ -1440,7 +1440,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
     dirS = [dirS stringByExpandingTildeInPath];
 
   panel = NILP (isLoad) ?
-    [EmacsSavePanel savePanel] : [EmacsOpenPanel openPanel];
+    (id)[EmacsSavePanel savePanel] : (id)[EmacsOpenPanel openPanel];
 
   [panel setTitle: promptS];
 
@@ -1988,11 +1988,21 @@ DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
     (str)
     Lisp_Object str;
 {
+/* TODO: If GNUstep ever implements precomposedStringWithCanonicalMapping,
+         remove this. */
   NSString *utfStr;
 
   CHECK_STRING (str);
-  utfStr = [[NSString stringWithUTF8String: SDATA (str)]
-             precomposedStringWithCanonicalMapping];
+  utfStr = [NSString stringWithUTF8String: SDATA (str)];
+  if (![utfStr respondsToSelector:
+                 @selector (precomposedStringWithCanonicalMapping)])
+    {
+      message1
+        ("Warning: ns-convert-utf8-nfd-to-nfc unsupported under GNUstep.\n");
+      return Qnil;
+    }
+  else
+    utfStr = [utfStr precomposedStringWithCanonicalMapping];
   return build_string ([utfStr UTF8String]);
 }
 
