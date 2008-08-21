@@ -1,3 +1,9 @@
+2008-08-21  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg-make-context, epg-context-set-passphrase-callback)
+	(epg-context-set-progress-callback): Make sure the callback is a
+	cons of a function and a handback.  Update all callers.
+
 2008-08-20  David Reitter  <david.reitter@gmail.com>
 
 	* term/ns-win.el (ns-cursor-blink-rate, ns-cursor-blink-mode): Remove.
