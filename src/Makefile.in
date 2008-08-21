@@ -939,7 +939,7 @@ temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJ
 	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
 #ifdef NS_IMPL_GNUSTEP
 	$(CC) -rdynamic YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
-	$(LDFLAGS) -lgnustep-gui -lgnustep-base \
+	-L@GNUSTEP_SYSTEM_LIBRARIES@ $(LDFLAGS) -lgnustep-gui -lgnustep-base \
 	-lobjc $(CONFIG_SYSTEM_LIBS) -lpthread ) -o temacs \
 	${obj} ${otherobj} OBJECTS_MACHINE ${LIBES}
 #else
