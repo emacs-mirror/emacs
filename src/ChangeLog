@@ -1,3 +1,8 @@
+2008-08-21  İsmail Dönmez <ismail@namtrac.org>  (tiny change)
+
+	* xterm.c (x_delete_display): Don't call XrmDestroyDatabase on
+	GTK+.
+
 2008-08-21  Christian Faulhammer  <opfer@gentoo.org>  (tiny change)
 
 	* Makefile.in (temacs${EXEEXT}): On GNUstep, link to appropriate
