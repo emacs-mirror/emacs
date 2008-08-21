@@ -738,6 +738,8 @@ ns_appbindir
 ns_appresdir
 ns_appsrc
 GNUSTEP_MAKEFILES
+GNUSTEP_SYSTEM_HEADERS
+GNUSTEP_SYSTEM_LIBRARIES
 GNU_OBJC_CFLAGS
 LIB_SRC_EXTRA_INSTALLABLES
 LTLIBOBJS'
@@ -18738,11 +18740,13 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -18782,11 +18786,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -24135,6 +24141,8 @@ fi
 
 
 
+
+
 cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIGURATION "${canonical}"
 _ACEOF
@@ -25166,12 +25174,14 @@ ns_appbindir!$ns_appbindir$ac_delim
 ns_appresdir!$ns_appresdir$ac_delim
 ns_appsrc!$ns_appsrc$ac_delim
 GNUSTEP_MAKEFILES!$GNUSTEP_MAKEFILES$ac_delim
+GNUSTEP_SYSTEM_HEADERS!$GNUSTEP_SYSTEM_HEADERS$ac_delim
+GNUSTEP_SYSTEM_LIBRARIES!$GNUSTEP_SYSTEM_LIBRARIES$ac_delim
 GNU_OBJC_CFLAGS!$GNU_OBJC_CFLAGS$ac_delim
 LIB_SRC_EXTRA_INSTALLABLES!$LIB_SRC_EXTRA_INSTALLABLES$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 28; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 30; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
