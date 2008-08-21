@@ -2287,13 +2287,14 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   NSTRACE (dumpcursor);
 
   if (!on_p) // check this?    && !w->phys_cursor_on_p)
-      return;
+	return;
 
   w->phys_cursor_type = cursor_type;
   w->phys_cursor_on_p = on_p;
 
   if (cursor_type == NO_CURSOR)
     {
+      w->phys_cursor_on_p = 0;
       w->phys_cursor_width = 0;
       return;
     }
@@ -2325,7 +2326,6 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 
   oldCursorType = FRAME_CURSOR (f);
   cursorType = FRAME_CURSOR (f) = FRAME_NEW_CURSOR (f);
-
   /* TODO: 23: use emacs stored cursor color instead of ns-specific */
   f->output_data.ns->current_cursor_color
     = f->output_data.ns->desired_cursor_color;
@@ -2335,14 +2335,16 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   ns_clip_to_row (w, glyph_row, -1, NO);
 /*  ns_focus (f, &r, 1); */
 
-  if (FRAME_LAST_INACTIVE (f))
+  /* Why would this be needed?
+     if (FRAME_LAST_INACTIVE (f))
     {
-      /* previously hollow box; clear entire area */
+      * previously hollow box; clear entire area *
       [FRAME_BACKGROUND_COLOR (f) set];
       NSRectFill (r);
       drawGlyph = 1;
       FRAME_LAST_INACTIVE (f) = NO;
     }
+  */
 
   /* prepare to draw */
   if (cursorType == no_highlight || cursor_type == NO_CURSOR)
@@ -2424,8 +2426,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       if (!active_p)
 	{
 	  /* inactive window: ignore what we just set and use a hollow box */
-	  cursorType = hollow_box;
-	  [FRAME_CURSOR_COLOR (f) set];
+	  cursorType = HOLLOW_BOX_CURSOR;
 	}
 
       NSDisableScreenUpdates ();
