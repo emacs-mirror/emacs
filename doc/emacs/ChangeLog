@@ -1,3 +1,15 @@
+2008-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mini.texi (Minibuffer): Simplify introduction.
+	(Minibuffer File): Document tilde in minibuffer filenames.
+	(Minibuffer Edit): Mention that the prompt is read-only.  Describe how
+	to enter tabs, spaces, and question marks.  Describe behavior of C-a.
+	(Completion Example): Update example to current command list.
+	(Completion Options): Document `lazy' value of completion-auto-help.
+	Update contents of completion-ignored-extensions.
+	(Minibuffer History): Describe "future history" list.  State default
+	value of history-delete-duplicates.
+
 2008-08-21  Glenn Morris  <rgm@gnu.org>
 
 	* fortran-xtra.texi (Fortran Columns): Document `fortran-line-length'.
