@@ -1,3 +1,16 @@
+2008-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-remote-process-environment): Add "EMACS=t"
+	and "INSIDE_EMACS=...".  Reported by Tassilo Horn
+	<tassilo@member.fsf.org>.
+
+	* net/trampver.el: Update release number.
+
+	* net/xesam.el (xesam-minor-mode): New minor mode.
+	(xesam-highlight-buffer): Remove.  Code moved to
+	`xesam-minor-mode'.
+	(xesam-refresh-entry): Use `xesam-minor-mode'.
+
 2008-08-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (completion--try-word-completion): Disable
