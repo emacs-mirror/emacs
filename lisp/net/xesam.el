@@ -101,6 +101,30 @@
 ;; can be selected via minibuffer completion.  Afterwards, the query
 ;; shall be entered in the minibuffer.
 
+;; Search results are presented in a new buffer.  This buffer has the
+;; major mode `xesam-mode', with the following keybindings:
+
+;;   SPC	`scroll-up'
+;;   DEL	`scroll-down'
+;;   <		`beginning-of-buffer'
+;;   >		`end-of-buffer'
+;;   q		`quit-window'
+;;   z		`kill-this-buffer'
+;;   g		`revert-buffer'
+
+;; The search results are represented by widgets.  Navigation commands
+;; are the usual widget navigation commands:
+
+;;   TAB	`widget-forward'
+;;   <backtab>	`widget-backward'
+
+;; Applying RET, <down-mouse-1>, or <down-mouse-2> on a URL belonging
+;; to the widget, brings up more details of the search hit.  The way,
+;; how this hit is presented, depends on the type of the hit.  HTML
+;; files are opened via `browse-url'.  Local files are opened in a new
+;; buffer, with highlighted search hits (highlighting can be toggled
+;; by `xesam-minor-mode' in that buffer).
+
 ;;; Code:
 
 ;; D-Bus support in the Emacs core can be disabled with configuration
@@ -487,6 +511,39 @@ engine specific, widget :notify function to visualize xesam:url."
 ;; keymap etc.  So we create a dummy buffer.  Stupid.
 (with-temp-buffer (xesam-mode))
 
+(define-minor-mode xesam-minor-mode
+  "Toggle Xesam minor mode.
+With no argument, this command toggles the mode.
+Non-null prefix argument turns on the mode.
+Null prefix argument turns off the mode.
+
+When Xesam minor mode is enabled, all text which matches a
+previous Xesam query in this buffer is highlighted."
+  :group 'xesam
+  :init-value nil
+  :lighter " Xesam"
+  (when (local-variable-p 'xesam-query)
+    ;; Run only if the buffer is related to a Xesam search.
+    (save-excursion
+      (if xesam-minor-mode
+	  ;; Highlight hits.
+	  (let ((query-regexp (regexp-opt (split-string xesam-query nil t) t))
+		(case-fold-search t))
+	    ;; I have no idea whether people will like setting
+	    ;; `isearch-case-fold-search' and `query-regexp'.  Maybe
+	    ;; this shall be controlled by a custom option.
+	    (unless isearch-case-fold-search (isearch-toggle-case-fold))
+	    (isearch-update-ring query-regexp t)
+	    ;; Create overlays.
+	    (goto-char (point-min))
+	    (while (re-search-forward query-regexp nil t)
+	      (overlay-put
+	       (make-overlay
+		(match-beginning 0) (match-end 0)) 'face 'xesam-highlight)))
+	;; Remove overlays.
+	(dolist (ov (overlays-in (point-min) (point-max)))
+	  (delete-overlay ov))))))
+
 (defun xesam-buffer-name (service search)
   "Return the buffer name where to present search results.
 SERVICE is the D-Bus unique service name of the Xesam search engine.
@@ -504,18 +561,6 @@ Return propertized STRING."
 	   (propertize (match-string 3 string) 'face 'xesam-highlight)
 	   (match-string 5 string))))
   string)
-
-(defun xesam-highlight-buffer (regexp &optional buffer)
-  "Highlight text matching REGEXP in BUFFER.
-If BUFFER is nil, use the current buffer"
-  (with-current-buffer (or buffer (current-buffer))
-    (save-excursion
-      (let ((case-fold-search t))
-	(goto-char (point-min))
-	(while (re-search-forward regexp nil t)
-	  (overlay-put
-	   (make-overlay
-	    (match-beginning 0) (match-end 0)) 'face 'xesam-highlight))))))
 
 (defun xesam-refresh-entry (engine entry)
   "Refreshes one entry in the search buffer."
@@ -608,7 +653,8 @@ If BUFFER is nil, use the current buffer"
 	 (let ((query xesam-query))
 	   (find-file
 	    (url-filename (url-generic-parse-url (widget-value widget))))
-	   (xesam-highlight-buffer (regexp-opt (split-string query nil t))))))
+	   (set (make-local-variable 'xesam-query) query)
+	   (xesam-minor-mode 1))))
       (widget-put
        widget :value
        (url-filename (url-generic-parse-url (widget-get widget :xesam:url))))))
