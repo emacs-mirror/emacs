@@ -932,6 +932,8 @@ directories for POSIX compatible commands."
 (defcustom tramp-remote-process-environment
   `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "LC_ALL=C"
     ,(concat "TERM=" tramp-terminal-type)
+    "EMACS=t" ;; Deprecated.
+    ,(format "INSIDE_EMACS=%s,tramp:%s" emacs-version tramp-version)
     "CDPATH=" "HISTORY=" "MAIL=" "MAILCHECK=" "MAILPATH="
     "autocorrect=" "correct=")
 
