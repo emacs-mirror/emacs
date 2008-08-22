@@ -350,7 +350,7 @@ the mark in Transient Mark mode (e.g., any command that modifies the
 buffer).
 
 ** Minibuffer changes
-
++++
 *** When M-n in the minibuffer reaches the end of the list of defaults,
 it adds the completion list to the end, so next M-n continues putting
 completion items to the minibuffer.  The same principle applies to
@@ -414,17 +414,17 @@ bind `mouse-yank-primary' to Mouse-2.
 selection by setting `x-select-enable-primary' to nil.
 
 ** Completion changes
-
+---
 *** `completion-styles' can be customized to choose your favorite
 completion style.
-
+---
 *** The default completion styles include a form of partial-completion.
-
+---
 *** The new command `minibuffer-force-complete' chooses one of the
 possible completions, rather than stopping at the common prefix.
-
-*** `completion-auto-help' can be set to `lazy' to list the
-completions only if you repeat the completion.  This was already
++++
+*** If `completion-auto-help' is `lazy', Emacs shows the completions
+buffer only on the second attempt to complete.  This was already
 supported in `partial-completion-mode'.
 
 ** Continuation lines can now be wrapped at word boundaries
