@@ -349,7 +349,7 @@ shift-translated, or after commands that would ordinarily deactivate
 the mark in Transient Mark mode (e.g., any command that modifies the
 buffer).
 
-** Minibuffer changes
+** Minibuffer and completion changes
 +++
 *** When M-n in the minibuffer reaches the end of the list of defaults,
 it adds the completion list to the end, so next M-n continues putting
@@ -373,7 +373,6 @@ similarly, using the file displayed on the current line.
 `keep-lines', `flush-lines' and `how-many'.  This list includes the active
 region in transient-mark-mode, the word under the cursor, the last Isearch
 regexp, the last Isearch string and the last replacement regexp.
-
 ---
 *** When enable-recursive-minibuffers is non-nil, operations which use
 switch-to-buffer (such as C-x b and C-x C-f) do not fail any more when
@@ -394,6 +393,18 @@ completion-ignore-case for file name completion.
 
 *** The variable read-buffer-completion-ignore-case overrides
 completion-ignore-case for buffer name completion.
+---
+*** `completion-styles' can be customized to choose your favorite
+completion style.
+---
+*** The default completion styles include a form of partial-completion.
+---
+*** The new command `minibuffer-force-complete' chooses one of the
+possible completions, rather than stopping at the common prefix.
++++
+*** If `completion-auto-help' is `lazy', Emacs shows the completions
+buffer only on the second attempt to complete.  This was already
+supported in `partial-completion-mode'.
 
 ** Face changes
 
@@ -412,20 +423,6 @@ bind `mouse-yank-primary' to Mouse-2.
 
 *** You can disable kill ring commands from accessing the primary
 selection by setting `x-select-enable-primary' to nil.
-
-** Completion changes
----
-*** `completion-styles' can be customized to choose your favorite
-completion style.
----
-*** The default completion styles include a form of partial-completion.
----
-*** The new command `minibuffer-force-complete' chooses one of the
-possible completions, rather than stopping at the common prefix.
-+++
-*** If `completion-auto-help' is `lazy', Emacs shows the completions
-buffer only on the second attempt to complete.  This was already
-supported in `partial-completion-mode'.
 
 ** Continuation lines can now be wrapped at word boundaries
 (word-wrapping).  This is controlled by the new per-buffer variable
