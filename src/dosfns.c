@@ -29,8 +29,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "termchar.h"
-#include "termhooks.h"
 #include "frame.h"
+#include "termhooks.h"
 #include "blockinput.h"
 #include "window.h"
 #include "dosfns.h"
@@ -536,15 +536,27 @@ If the underlying system call fails, value is nil.  */)
 void
 dos_cleanup (void)
 {
+  struct tty_display_info *tty;
+
 #ifndef HAVE_X_WINDOWS
   restore_parent_vm_title ();
 #endif
   /* Make sure the termscript file is committed, in case we are
      crashing and some vital info was written there.  */
-  if (termscript)
+  if (FRAMEP (selected_frame))
     {
-      fflush (termscript);
-      fsync (fileno (termscript));
+      struct frame *sf = XFRAME (selected_frame);
+
+      if (FRAME_LIVE_P (sf)
+	  && (FRAME_MSDOS_P (sf) || FRAME_TERMCAP_P (sf)))
+	{
+	  tty = CURTTY ();
+	  if (tty->termscript)
+	    {
+	      fflush (tty->termscript);
+	      fsync (fileno (tty->termscript));
+	    }
+	}
     }
 }
 
