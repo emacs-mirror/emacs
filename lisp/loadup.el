@@ -190,15 +190,18 @@
       (load "term/common-win")
       (load "term/w32-win")
       (load "ls-lisp")
-      (load "disp-table") ; needed to setup ibm-pc char set, see internal.el
+      (load "disp-table")
       (load "dos-w32")
       (load "w32-fns")))
 (if (eq system-type 'ms-dos)
     (progn
-      (load "ls-lisp")
       (load "dos-w32")
       (load "dos-fns")
       (load "dos-vars")
+      ;; Don't load term/common-win: it isn't appropriate for the `pc'
+      ;; ``window system'', which generally behaves like a terminal.
+      (load "term/pc-win")
+      (load "ls-lisp")
       (load "international/ccl")	; codepage.el uses CCL en/decoder
       (load "international/codepage")	; internal.el uses cpNNN coding systems
       (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
