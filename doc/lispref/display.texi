@@ -1079,10 +1079,7 @@ buffer in Help mode.
 @defvar temp-buffer-show-hook
 This normal hook is run by @code{with-output-to-temp-buffer} after
 displaying the temporary buffer.  When the hook runs, the temporary buffer
-is current, and the window it was displayed in is selected.  This hook
-is normally set up with a function to make the buffer read only, and
-find function names and variable names in it, provided the major mode
-is Help mode.
+is current, and the window it was displayed in is selected.
 @end defvar
 
 @defun momentary-string-display string position &optional char message
