@@ -87,6 +87,10 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    in how to declare valloc.  */
 #define GMALLOC_INHIBIT_VALLOC
 
+/* This overrides the default value on editfns.c, since DJGPP
+   does not have pw->pw_gecos.  */
+#define USER_FULL_NAME (getenv ("NAME"))
+
 /* setjmp and longjmp can safely replace _setjmp and _longjmp,
    but they will run slower.  */
 
@@ -194,7 +198,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define LIBX11_SYSTEM -lxext -lsys
 #else
 /* We need a little extra space, see ../../lisp/loadup.el */
-#define SYSTEM_PURESIZE_EXTRA 50000
+#define SYSTEM_PURESIZE_EXTRA 100000
 #endif
 
 /* Tell the garbage collector that setjmp is known to save all
