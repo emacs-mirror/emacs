@@ -4561,8 +4561,6 @@ dos_ttraw (struct tty_display_info *tty)
   union REGS inregs, outregs;
   static int first_time = 1;
 
-  fprintf (prdebug, "dos_ttraw: output = %d\n", tty->terminal->type); fflush (prdebug);
-
   /* If we are called for the initial terminal, it's too early to do
      anything, and termscript isn't set up.  */
   if (tty->terminal->type == output_initial)
