@@ -7076,7 +7076,8 @@ tty_read_avail_input (struct terminal *terminal,
   if (!terminal->name)		/* Don't read from a dead terminal. */
     return 0;
 
-  if (terminal->type != output_termcap)
+  if (terminal->type != output_termcap
+      && terminal->type != output_msdos_raw)
     abort ();
 
   /* XXX I think the following code should be moved to separate hook
@@ -7084,6 +7085,12 @@ tty_read_avail_input (struct terminal *terminal,
 #ifdef WINDOWSNT
   return 0;
 #else /* not WINDOWSNT */
+  if (! tty->term_initted)      /* In case we get called during bootstrap. */
+    return 0;
+
+  if (! tty->input)
+    return 0;                   /* The terminal is suspended. */
+
 #ifdef MSDOS
   n_to_read = dos_keysns ();
   if (n_to_read == 0)
@@ -7093,13 +7100,6 @@ tty_read_avail_input (struct terminal *terminal,
   nread = 1;
 
 #else /* not MSDOS */
-
-  if (! tty->term_initted)      /* In case we get called during bootstrap. */
-    return 0;
-
-  if (! tty->input)
-    return 0;                   /* The terminal is suspended. */
-
 #ifdef HAVE_GPM
   if (gpm_tty == tty)
   {
@@ -11005,7 +11005,7 @@ handle_interrupt ()
 #ifdef MSDOS
       /* We must remain inside the screen area when the internal terminal
 	 is used.  Note that [Enter] is not echoed by dos.  */
-      cursor_to (0, 0);
+      cursor_to (SELECTED_FRAME (), 0, 0);
 #endif
       /* It doesn't work to autosave while GC is in progress;
 	 the code used for auto-saving doesn't cope with the mark bit.  */
