@@ -737,21 +737,25 @@ opening the first frame (e.g. open a connection to an X server).")
     (setq eol-mnemonic-dos  "(DOS)"
           eol-mnemonic-mac  "(Mac)")))
 
-  ;; Make sure window system's init file was loaded in loadup.el if using a window system.
+  ;; Make sure window system's init file was loaded in loadup.el if
+  ;; using a window system.
   (condition-case error
     (unless noninteractive
       (if (and initial-window-system
 	       (not (featurep
-		     (intern (concat (symbol-name initial-window-system) "-win")))))
+		     (intern
+		      (concat (symbol-name initial-window-system) "-win")))))
 	  (error "Unsupported window system `%s'" initial-window-system))
       ;; Process window-system specific command line parameters.
       (setq command-line-args
-	    (funcall (or (cdr (assq initial-window-system handle-args-function-alist))
-			 (error "Unsupported window system `%s'" initial-window-system))
-		     command-line-args))
+	    (funcall
+	     (or (cdr (assq initial-window-system handle-args-function-alist))
+		 (error "Unsupported window system `%s'" initial-window-system))
+	     command-line-args))
       ;; Initialize the window system. (Open connection, etc.)
-      (funcall (or (cdr (assq initial-window-system window-system-initialization-alist))
-		   (error "Unsupported window system `%s'" initial-window-system))))
+      (funcall
+       (or (cdr (assq initial-window-system window-system-initialization-alist))
+	   (error "Unsupported window system `%s'" initial-window-system))))
     ;; If there was an error, print the error message and exit.
     (error
      (princ
@@ -926,7 +930,11 @@ opening the first frame (e.g. open a connection to an X server).")
   ;; since users can connect to color-capable terminals and also
   ;; switch color support on or off in mid-session by setting the
   ;; tty-color-mode frame parameter.
-  (tty-register-default-colors)
+  ;; Exception: the `pc' ``window system'' has only 16 fixed colors,
+  ;; and they are already set at this point by a suitable function in
+  ;; window-system-initialization-alist.
+  (or (eq initial-window-system 'pc)
+      (tty-register-default-colors))
 
   ;; Record whether the tool-bar is present before the user and site
   ;; init files are processed.  frame-notice-user-settings uses this
