@@ -1,3 +1,9 @@
+2008-08-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_scrolling): Check INT_MAX instead of
+	MOST_POSITIVE_FIXNUM for maximum integer value.  Include limits.h
+	to obtain INT_MAX.
+
 2008-08-21  İsmail Dönmez  <ismail@namtrac.org>  (tiny change)
 
 	* xterm.c (x_delete_display): Don't call XrmDestroyDatabase on GTK+.
