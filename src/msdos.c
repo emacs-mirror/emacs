@@ -80,8 +80,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define _dos_ds _go32_info_block.selector_for_linear_memory
 #endif
 
-extern FILE *prdebug;
-
 #if __DJGPP__ > 1
 
 #include <signal.h>
