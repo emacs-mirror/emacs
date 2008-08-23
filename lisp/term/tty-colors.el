@@ -49,14 +49,16 @@
 ;; color.
 
 ;; `tty-defined-color-alist' is created at startup by calling the
-;; function `tty-color-define', defined below, passing it each
-;; supported color, its index, and its RGB values.  The standard list
-;; of colors supported by many Unix color terminals, including xterm,
-;; FreeBSD, and GNU/Linux, is supplied below in `tty-standard-colors'.
-;; If your terminal supports different or additional colors, call
-;; `tty-color-define' from your `.emacs' or `site-start.el'.  For
-;; more-or-less standard definitions of VGA text-mode colors, see the
-;; beginning of lisp/term/pc-win.el.
+;; function `tty-register-default-colors', defined below, which in
+;; turn calls `tty-color-define', passing it each supported color, its
+;; index, and its RGB values.  The standard list of colors supported
+;; by many Unix color terminals, including xterm, FreeBSD, and
+;; GNU/Linux, is supplied below in `tty-standard-colors'.  Some
+;; terminal-specific files in lisp/term define their own standard
+;; colors.  If your terminal supports different or additional colors,
+;; call `tty-color-define' from your `.emacs' or `site-start.el'.  For
+;; more-or-less standard definitions of VGA text-mode colors, see
+;; lisp/term/pc-win.el.
 
 ;;; Code:
 
@@ -811,9 +813,7 @@ Value is the modified color alist for FRAME."
 
 (defun tty-register-default-colors ()
   "Register the default set of colors for a character terminal."
-  (let* ((colors (cond ((eq window-system 'pc)
-			msdos-color-values)
-		       (t tty-standard-colors)))
+  (let* ((colors tty-standard-colors)
 	 (color (car colors)))
     (while colors
       (tty-color-define (car color) (cadr color) (cddr color))
