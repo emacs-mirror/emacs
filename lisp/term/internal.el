@@ -25,22 +25,27 @@
 ;;; Code:
 
 ;; ---------------------------------------------------------------------------
-;; keyboard setup -- that's simple!
-(set-input-mode nil nil 0)
-(define-key local-function-key-map [backspace] "\177") ; Normal behavior for BS
-(define-key local-function-key-map [delete] "\C-d") ; ... and Delete
-(define-key local-function-key-map [tab] [?\t])
-(define-key local-function-key-map [linefeed] [?\n])
-(define-key local-function-key-map [clear] [11])
-(define-key local-function-key-map [return] [13])
-(define-key local-function-key-map [escape] [?\e])
-(define-key local-function-key-map [M-backspace] [?\M-\d])
-(define-key local-function-key-map [M-delete] [?\M-d])
-(define-key local-function-key-map [M-tab] [?\M-\t])
-(define-key local-function-key-map [M-linefeed] [?\M-\n])
-(define-key local-function-key-map [M-clear] [?\M-\013])
-(define-key local-function-key-map [M-return] [?\M-\015])
-(define-key local-function-key-map [M-escape] [?\M-\e]))
+(defvar msdos-key-remapping-map
+  (let ((map (make-sparse-keymap)))
+    ;; keyboard setup -- that's simple!
+    (define-key map [backspace] "\177") ; Normal behavior for BS
+    (define-key map [delete] "\C-d") ; ... and Delete
+    (define-key map [tab] [?\t])
+    (define-key map [linefeed] [?\n])
+    (define-key map [clear] [11])
+    (define-key map [return] [13])
+    (define-key map [escape] [?\e])
+    (define-key map [M-backspace] [?\M-\d])
+    (define-key map [M-delete] [?\M-d])
+    (define-key map [M-tab] [?\M-\t])
+    (define-key map [M-linefeed] [?\M-\n])
+    (define-key map [M-clear] [?\M-\013])
+    (define-key map [M-return] [?\M-\015])
+    (define-key map [M-escape] [?\M-\e])
+    map)
+  "Keymap for remapping special keys on MS-DOS keyboard.")
+
+;; These tell read-char how to convert these special chars to ASCII.
 (put 'backspace 'ascii-character 127)
 (put 'delete 'ascii-character 127)
 (put 'tab 'ascii-character ?\t)
@@ -48,6 +53,19 @@
 (put 'clear 'ascii-character 12)
 (put 'return 'ascii-character 13)
 (put 'escape 'ascii-character ?\e)
+
+(defun msdos-setup-keyboard (frame)
+  "Setup `local-function-key-map' for MS-DOS keyboard."
+  ;; Don't do this twice on the same display, or it would break
+  ;; normal-erase-is-backspace-mode.
+  (unless (terminal-parameter frame 'msdos-setup-keyboard)
+    ;; Map certain keypad keys into ASCII characters that people usually expect.
+    (with-selected-frame frame
+      (let ((map (copy-keymap msdos-key-remapping-map)))
+        (set-keymap-parent map (keymap-parent local-function-key-map))
+        (set-keymap-parent local-function-key-map map)))
+    (set-terminal-parameter frame 'msdos-setup-keyboard t))
+  (set-input-mode nil nil 0))
 
 ;; ----------------------------------------------------------------------
 ;;   DOS display setup
@@ -694,7 +712,7 @@ list.  You can (and should) also run it whenever the value of
 	 (coding (car (cdr desc)))
 	 coding-dos coding-unix)
     (if (null desc)
-	(dos-cpNNN-setup dos-codepage)
+	(ignore) ; (dos-cpNNN-setup dos-codepage))  FIXME
       ;; We've got one of the Far-Eastern codepages which support
       ;; MULE native coding systems directly.
       (setq coding-dos (intern (format "%s-dos" coding))
@@ -706,26 +724,14 @@ list.  You can (and should) also run it whenever the value of
        (setq default-terminal-coding-system coding-unix))
       ;; Assume they support non-ASCII Latin characters like the IBM
       ;; codepage 437 does.
-      (IT-display-table-setup "cp437")
+      ;(IT-display-table-setup "cp437")
       ;; It's time: too many input methods in leim/quail produce
       ;; Unicode characters.  Let the user see them.
-      (IT-setup-unicode-display)
+      ;(IT-setup-unicode-display)
       (prefer-coding-system coding-dos)
       (if default-enable-multibyte-characters
 	  (setq unibyte-display-via-language-environment t))
       )))
-
-;; We want to delay the terminal and other codepage-related setup
-;; until after the terminal is set and user's .emacs is processed,
-;; because people might define their `dos-codepage-setup-hook' there.
-(add-hook 'term-setup-hook 'dos-codepage-setup)
-
-;; In multibyte mode, we want unibyte buffers to be displayed using
-;; the terminal coding system, so that they display correctly on the
-;; DOS terminal; in unibyte mode we want to see all 8-bit characters
-;; verbatim.  In both cases, we want the entire range of 8-bit
-;; characters to arrive at our display code verbatim.
-(standard-display-8bit 127 255)
 
 ;; arch-tag: eea04c06-7311-4b5a-b531-3c1be1b070af
 ;;; internal.el ends here
