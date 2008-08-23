@@ -2414,7 +2414,9 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       drawGlyph = 1; // just draw the Glyph
       [FRAME_BACKGROUND_COLOR (f) set];
 
+#ifdef NS_IMPL_COCOA
       NSDisableScreenUpdates ();
+#endif
     }
   else
     { 
@@ -2429,7 +2431,9 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 	  cursorType = HOLLOW_BOX_CURSOR;
 	}
 
+#ifdef NS_IMPL_COCOA
       NSDisableScreenUpdates ();
+#endif
 
       switch (cursorType)
 	{
@@ -2466,7 +2470,9 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   if (drawGlyph)
     draw_phys_cursor_glyph (w, glyph_row, hl);
 
+#ifdef NS_IMPL_COCOA
   NSEnableScreenUpdates ();
+#endif
 
 }
 
