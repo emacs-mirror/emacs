@@ -3390,7 +3390,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   update_begin (f);
 #ifdef MSDOS
   if (FRAME_MSDOS_P (f))
-    set_terminal_modes (FRAME_TERMINAL (f));
+    FRAME_TERMINAL (f)->set_terminal_modes_hook (FRAME_TERMINAL (f));
 #endif
   clear_frame (f);
   clear_current_matrices (f);
@@ -6966,13 +6966,6 @@ init_display ()
   /* Set up faces of the initial terminal frame of a dumped Emacs.  */
   if (initialized
       && !noninteractive
-#ifdef MSDOS
-      /* The MSDOS terminal turns on its ``window system'' relatively
-	 late into the startup, so we cannot do the frame faces'
-	 initialization just yet.  It will be done later by pc-win.el
-	 and internal_terminal_init.  */
-      && (strcmp (terminal_type, "internal") != 0 || inhibit_window_system)
-#endif
       && NILP (Vinitial_window_system))
     {
       /* For the initial frame, we don't have any way of knowing what
