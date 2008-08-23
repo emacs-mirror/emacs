@@ -1,7 +1,7 @@
 ;;; dired-x.el --- extra Dired functionality -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993, 1994, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1997, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
@@ -1062,6 +1062,8 @@ dired."
    '("\\.dvi$" "xdvi" "dvips")		; preview and printing
    '("\\.au$" "play")			; play Sun audiofiles
    '("\\.mpe?g$\\|\\.avi$" "xine -p")
+   '("\\.ogg$" "ogg123")
+   '("\\.mp3$" "mpg123")
    '("\\.wav$" "play")
    '("\\.uu$" "uudecode")		; for uudecoded files
    '("\\.hqx$" "mcvert")
@@ -1120,6 +1122,9 @@ where each COMMAND can either be a string or a Lisp expression that evaluates
 to a string.  If several COMMANDs are given, the first one will be the default
 and the rest will be added temporarily to the history and can be retrieved
 with \\[previous-history-element] (M-p) .
+
+The variable `dired-guess-shell-case-fold-search' controls whether
+REGEXP is matched case-sensitively.
 
 You can set this variable in your ~/.emacs.  For example, to add rules for
 `.foo' and `.bar' files, write
