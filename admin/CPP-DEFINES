@@ -50,6 +50,9 @@ SYSTEM_MALLOC	Use the system library's malloc.
 subprocesses    System can use subprocesses (for M-x shell for example).  Defined by default, only MSDOS undefines it.
 USE_LISP_UNION_TYPE Define it in lisp.h to make Lisp_Object be a union type instead of the default int.
 
+** Misc macros
+USER_FULL_NAME   If defined, overrides the default pw->pw_gecos for getting at the full user name.  Only MSDOS overrides the default.
+
 ** Replace, the definition is trivial: SWITCH_ENUM_CAST
 
 ** Defines from src/m/*.h and src/s/*.h.  Some of these might not be used in the code anymore, so they can be removed.  The HAVE_* definitions are probably handled by autoconf, so it might be possible to just remove them from src/[sm]/*.h.
