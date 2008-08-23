@@ -34,6 +34,7 @@
 /^GETOPT_H *=/s!@GETOPT_H@!getopt.h!
 /^GETOPTOBJS *=/s!@GETOPTOBJS@!getopt.o getopt1.o!
 /^INSTALLABLES/s/emacsclient *//
+/^INSTALLABLES/s/ @LIB_SRC_EXTRA_INSTALLABLES@//
 s!^	\./!	!
 /^UTILITIES=/s/ wakeup//
 /^UTILITIES=/s/ movemail//
