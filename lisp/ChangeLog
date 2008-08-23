@@ -1,3 +1,8 @@
+2008-08-23  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-guess-shell-alist-default): Add .mp3 and .ogg.
+	(dired-guess-shell-alist-user): Doc fix.  (Bug#417).
+
 2008-08-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (temp-buffer-show-hook): Doc fix.
