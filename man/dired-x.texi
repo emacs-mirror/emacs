@@ -711,6 +711,13 @@ to add rules for @samp{.foo} and @samp{.bar} file extensions, write
 @noindent
 This will override any predefined rules for the same extensions.
 
+@item dired-guess-shell-case-fold-search
+@vindex dired-guess-shell-case-fold-search
+Default: @code{t}
+
+Non-@code{nil} means @code{dired-guess-shell-alist-default} and
+@code{dired-guess-shell-alist-user} are matched case-insensitively.
+
 @item dired-guess-shell-gnutar
 @vindex dired-guess-shell-gnutar
 @cindex Passing GNU Tar its @samp{z} switch.
