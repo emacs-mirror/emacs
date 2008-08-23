@@ -167,6 +167,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <limits.h>
 
 #include "lisp.h"
 #include "keyboard.h"
@@ -12641,6 +12642,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   int dy = 0, amount_to_scroll = 0, scroll_down_p = 0;
   int extra_scroll_margin_lines = last_line_misfit ? 1 : 0;
   Lisp_Object aggressive;
+  int scroll_limit = INT_MAX / FRAME_LINE_HEIGHT (f);
 
 #if GLYPH_DEBUG
   debug_method_add (w, "try_scrolling");
@@ -12658,26 +12660,28 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   else
     this_scroll_margin = 0;
 
-  /* Force scroll_conservatively to have a reasonable value so it doesn't
-     cause an overflow while computing how much to scroll.  */
-  if (scroll_conservatively)
-    scroll_conservatively = min (scroll_conservatively,
-                                 MOST_POSITIVE_FIXNUM / FRAME_LINE_HEIGHT (f));
-
-  /* Compute how much we should try to scroll maximally to bring point
-     into view.  */
-  if (scroll_step || scroll_conservatively || temp_scroll_step)
-    scroll_max = max (scroll_step,
-		      max (scroll_conservatively, temp_scroll_step));
+  /* Force scroll_conservatively to have a reasonable value, to avoid
+     overflow while computing how much to scroll.  Note that it's
+     fairly common for users to supply scroll-conservatively equal to
+     `most-positive-fixnum', which can be larger than INT_MAX.  */
+  if (scroll_conservatively > scroll_limit)
+    {
+      scroll_conservatively = scroll_limit;
+      scroll_max = INT_MAX;
+    }
+  else if (scroll_step || scroll_conservatively || temp_scroll_step)
+    /* Compute how much we should try to scroll maximally to bring
+       point into view.  */
+    scroll_max = (max (scroll_step,
+		       max (scroll_conservatively, temp_scroll_step))
+		  * FRAME_LINE_HEIGHT (f));
   else if (NUMBERP (current_buffer->scroll_down_aggressively)
 	   || NUMBERP (current_buffer->scroll_up_aggressively))
-    /* We're trying to scroll because of aggressive scrolling
-       but no scroll_step is set.  Choose an arbitrary one.  Maybe
-       there should be a variable for this.  */
-    scroll_max = 10;
+    /* We're trying to scroll because of aggressive scrolling but no
+       scroll_step is set.  Choose an arbitrary one.  */
+    scroll_max = 10 * FRAME_LINE_HEIGHT (f);
   else
     scroll_max = 0;
-  scroll_max *= FRAME_LINE_HEIGHT (f);
 
  too_near_end:
 
