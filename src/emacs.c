@@ -1552,6 +1552,10 @@ main (int argc, char **argv)
       syms_of_fontset ();
 #endif /* HAVE_NTGUI */
 
+#ifdef MSDOS
+      syms_of_xmenu ();
+#endif	/* MSDOS */
+
 #ifdef HAVE_NS
       syms_of_nsterm ();
       syms_of_nsfns ();
