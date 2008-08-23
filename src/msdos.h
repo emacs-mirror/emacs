@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <dpmi.h>
 
-int dos_ttraw ();
+int dos_ttraw (struct tty_display_info *);
 int dos_ttcooked ();
 int dos_get_saved_screen (char **, int *, int *);
 int dos_set_keyboard (int, int);
@@ -54,56 +54,13 @@ typedef int XRectangle;
 #define PIX_TYPE unsigned long
 #define XDISPLAY
 
-/* A stripped version of struct x_display_info in xterm.h, which see.  */
-struct display_info
-{
-  /* These variables describe the range of text currently shown in its
-     mouse-face, together with the window they apply to.  As long as
-     the mouse stays within this range, we need not redraw anything on
-     its account.  Rows and columns are glyph matrix positions in
-     MOUSE_FACE_WINDOW.  */
-  int mouse_face_beg_row, mouse_face_beg_col;
-  int mouse_face_end_row, mouse_face_end_col;
-  int mouse_face_past_end;
-  Lisp_Object mouse_face_window;
-  int mouse_face_face_id;
+typedef struct tty_display_info Display_Info;
 
-  /* 1 if a mouse motion event came and we didn't handle it right away because
-     gc was in progress.  */
-  int mouse_face_deferred_gc;
-
-  /* FRAME and X, Y position of mouse when last checked for
-     highlighting.  X and Y can be negative or out of range for the frame.  */
-  struct frame *mouse_face_mouse_frame;
-  int mouse_face_mouse_x, mouse_face_mouse_y;
-
-  /* Nonzero means defer mouse-motion highlighting.  */
-  int mouse_face_defer;
-
-  /* Nonzero means that the mouse highlight should not be shown.  */
-  int mouse_face_hidden;
-};
-
-typedef struct display_info Display_Info;
-
-/* This is a cut-down version of the one in xterm.h, which see.  */
-struct x_output
-{
-  PIX_TYPE background_pixel;	/* used in xfaces.c and lots of other places */
-  PIX_TYPE foreground_pixel;	/* ditto */
-  XFontStruct *font;		/* used in x-popup-menu (xmenu.c) */
-  Window hourglass_window;	/* currently unused (but maybe some day) */
-  unsigned hourglass_p : 1;	/* ditto */
-  struct display_info display_info; /* used for drawing mouse highlight */
-};
-
-extern struct x_output the_only_x_display;
+extern struct tty_display_info the_only_display_info;
 
 #define FRAME_X_DISPLAY(f) ((Display *) 0)
-#define FRAME_FOREGROUND_PIXEL(f) (the_only_x_display.foreground_pixel)
-#define FRAME_BACKGROUND_PIXEL(f) (the_only_x_display.background_pixel)
-#define FRAME_FONT(f) (the_only_x_display.font)
-#define FRAME_X_DISPLAY_INFO(f) (&the_only_x_display.display_info)
+#define FRAME_FONT(f) ((f)->output_data.tty->font)
+#define FRAME_X_DISPLAY_INFO(f) (&the_only_display_info)
 
 /* Prototypes.  */
 
