@@ -1,3 +1,7 @@
+2008-08-23  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (gif_format): Use :index, not :image.
+
 2008-08-21  $,1 P(Bsmail D,Av(Bnmez  <ismail@namtrac.org>  (tiny change)
 
 	* xterm.c (x_delete_display): Don't call XrmDestroyDatabase on
