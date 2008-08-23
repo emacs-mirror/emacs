@@ -128,8 +128,15 @@ EMPTY-DICT-ENTRIES are dictionary entries for the EMPTY fill macro."
     ;;
     (find-file (cit-file filename))
     (srecode-load-tables-for-mode major-mode)
-    (erase-buffer)
+    (condition-case nil
+	;; Protect against a font-lock bug.
+	(erase-buffer)
+      (error nil))
     (apply 'srecode-insert "file:empty" empty-dict-entries)
+
+    (save-excursion
+      (goto-char (point-max))
+      (insert "\n\n"))
 
     ;; 3 a) Parse the sources
     (setq post-empty-tags (semantic-fetch-tags))
