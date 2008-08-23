@@ -11404,7 +11404,7 @@ redisplay_internal (preserve_echo_area)
 	 the whole thing.  */
       windows_or_buffers_changed++;
       SET_FRAME_GARBAGED (sf);
-#ifndef WINDOWSNT
+#ifndef DOS_NT
       set_tty_color_mode (FRAME_TTY (sf), sf);
 #endif
       FRAME_TTY (sf)->previous_frame = sf;
