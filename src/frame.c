@@ -586,19 +586,20 @@ make_terminal_frame (struct terminal *terminal)
   f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
   f->async_visible = 1;		/* Don't let visible be cleared later. */
 #ifdef MSDOS
-  f->output_data.x = &the_only_x_display;
+  f->output_data.tty->display_info = &the_only_display_info;
   if (!inhibit_window_system
       && (!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame))
 	  || XFRAME (selected_frame)->output_method == output_msdos_raw))
     {
       f->output_method = output_msdos_raw;
+#if 0
       /* This initialization of foreground and background pixels is
 	 only important for the initial frame created in temacs.  If
 	 we don't do that, we get black background and foreground in
-	 the dumped Emacs because the_only_x_display is a static
+	 the dumped Emacs because the_only_display_info is a static
 	 variable, hence it is born all-zeroes, and zero is the code
 	 for the black color.  Other frames all inherit their pixels
-	 from what's already in the_only_x_display.  */
+	 from what's already in the_only_display_info.  */
       if ((!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame)))
 	  && FRAME_BACKGROUND_PIXEL (f) == 0
 	  && FRAME_FOREGROUND_PIXEL (f) == 0)
@@ -606,6 +607,7 @@ make_terminal_frame (struct terminal *terminal)
 	  FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
 	  FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
 	}
+#endif
     }
   else
     f->output_method = output_termcap;
@@ -719,6 +721,10 @@ affects all frames on the same terminal device.  */)
 
   if (!t)
     {
+#ifdef MSDOS
+      /* msdos.c assumes a single tty_display_info object.  */
+      error ("Multiple terminals are not supported on this platform");
+#else  /* !MSDOS */
       char *name = 0, *type = 0;
       Lisp_Object tty, tty_type;
 
@@ -745,6 +751,7 @@ affects all frames on the same terminal device.  */)
         }
 
       t = init_tty (name, type, 0); /* Errors are not fatal. */
+#endif /* !MSDOS */
     }
 
   f = make_terminal_frame (t);
