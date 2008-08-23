@@ -1,3 +1,9 @@
+2008-08-23  David Reitter <david.reitter@gmail.com> 
+	
+	* nsterm.m (ns_draw_window_cursor): Don't call
+	NSDisableScreenUpdates and NSEnableScreenUpdates on
+	non-NS_IMPL_COCOA systems.
+
 2008-08-23  Andreas Schwab  <schwab@suse.de>
 
 	* process.c (procfs_system_process_attributes): Fix use of
