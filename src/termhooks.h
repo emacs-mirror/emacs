@@ -633,7 +633,7 @@ extern struct terminal *terminal_list;
 #endif
 
 /* Return true if the terminal device is not suspended. */
-#define TERMINAL_ACTIVE_P(d) ((d)->type != output_termcap || (d)->display_info.tty->input)
+#define TERMINAL_ACTIVE_P(d) (((d)->type != output_termcap && (d)->type !=output_msdos_raw) || (d)->display_info.tty->input)
 
 extern Lisp_Object get_terminal_param P_ ((struct terminal *, Lisp_Object));
 extern struct terminal *get_terminal P_ ((Lisp_Object terminal, int));
