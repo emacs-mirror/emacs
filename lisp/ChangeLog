@@ -1,3 +1,7 @@
+2008-08-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (temp-buffer-show-hook): Doc fix.
+
 2008-08-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-remote-process-environment): Add "EMACS=t"
