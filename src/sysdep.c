@@ -1334,7 +1334,7 @@ init_sys_modes (tty_out)
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
   if (!tty_out->term_initted)
     internal_terminal_init ();
-  dos_ttraw ();
+  dos_ttraw (tty_out);
 #endif
 
   EMACS_SET_TTY (fileno (tty_out->input), &tty, 0);
