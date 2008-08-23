@@ -1,3 +1,12 @@
+2008-08-23  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (enum tiff_keyword_index, tiff_format): Add :index keyword.
+	(fn_TIFFSetDirectory): New library function used.
+	(init_tiff_functions) [HAVE_NTGUI]: Initialize it.
+	(tiff_load): Use :index to select among multiple images.  Set count
+	property when multiple images exist.
+	(gif_format): Use :index, not :image.
+
 2008-08-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (try_scrolling): Check INT_MAX instead of

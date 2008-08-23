@@ -6926,6 +6926,7 @@ enum tiff_keyword_index
   TIFF_HEURISTIC_MASK,
   TIFF_MASK,
   TIFF_BACKGROUND,
+  TIFF_INDEX,
   TIFF_LAST
 };
 
@@ -6943,7 +6944,8 @@ static struct image_keyword tiff_format[TIFF_LAST] =
   {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0},
+  {":index",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0}
 };
 
 /* Structure describing the image type `tiff'.  */
@@ -6989,6 +6991,7 @@ DEF_IMGLIB_FN (TIFFClientOpen);
 DEF_IMGLIB_FN (TIFFGetField);
 DEF_IMGLIB_FN (TIFFReadRGBAImage);
 DEF_IMGLIB_FN (TIFFClose);
+DEF_IMGLIB_FN (TIFFSetDirectory);
 
 static int
 init_tiff_functions (Lisp_Object libraries)
@@ -7005,6 +7008,7 @@ init_tiff_functions (Lisp_Object libraries)
   LOAD_IMGLIB_FN (library, TIFFGetField);
   LOAD_IMGLIB_FN (library, TIFFReadRGBAImage);
   LOAD_IMGLIB_FN (library, TIFFClose);
+  LOAD_IMGLIB_FN (library, TIFFSetDirectory);
   return 1;
 }
 
@@ -7017,7 +7021,7 @@ init_tiff_functions (Lisp_Object libraries)
 #define fn_TIFFGetField			TIFFGetField
 #define fn_TIFFReadRGBAImage		TIFFReadRGBAImage
 #define fn_TIFFClose			TIFFClose
-
+#define fn_TIFFSetDirectory		TIFFSetDirectory
 #endif /* HAVE_NTGUI */
 
 
@@ -7170,12 +7174,13 @@ tiff_load (f, img)
   Lisp_Object file, specified_file;
   Lisp_Object specified_data;
   TIFF *tiff;
-  int width, height, x, y;
+  int width, height, x, y, count;
   uint32 *buf;
-  int rc;
+  int rc, rc2;
   XImagePtr ximg;
   struct gcpro gcpro1;
   tiff_memory_source memsrc;
+  Lisp_Object image;
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
@@ -7231,6 +7236,20 @@ tiff_load (f, img)
 	}
     }
 
+  image = image_spec_value (img->spec, QCindex, NULL);
+  if (INTEGERP (image))
+    {
+      int ino = XFASTINT (image);
+      if (!fn_TIFFSetDirectory (tiff, ino))
+	{
+	  image_error ("Invalid image number `%s' in image `%s'",
+		       image, img->spec);
+	  fn_TIFFClose (tiff);
+	  UNGCPRO;
+	  return 0;
+	}
+    }
+
   /* Get width and height of the image, and allocate a raster buffer
      of width x height 32-bit values.  */
   fn_TIFFGetField (tiff, TIFFTAG_IMAGEWIDTH, &width);
@@ -7239,6 +7258,7 @@ tiff_load (f, img)
   if (!check_image_size (f, width, height))
     {
       image_error ("Invalid image size", Qnil, Qnil);
+      fn_TIFFClose (tiff);
       UNGCPRO;
       return 0;
     }
@@ -7246,6 +7266,16 @@ tiff_load (f, img)
   buf = (uint32 *) xmalloc (width * height * sizeof *buf);
 
   rc = fn_TIFFReadRGBAImage (tiff, width, height, buf, 0);
+
+  /* Count the number of images in the file.  */
+  for (count = 1, rc2 = 1; rc2; count++)
+    rc2 = fn_TIFFSetDirectory (tiff, count);
+
+  if (count > 1)
+    img->data.lisp_val = Fcons (Qcount,
+				Fcons (make_number (count),
+				       img->data.lisp_val));
+
   fn_TIFFClose (tiff);
   if (!rc)
     {
@@ -7366,7 +7396,7 @@ static struct image_keyword gif_format[GIF_LAST] =
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":image",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":index",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
