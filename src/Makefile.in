@@ -505,9 +505,9 @@ GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 #ifdef MSDOS
 #ifdef HAVE_X_WINDOWS
-MSDOS_OBJ = dosfns.o msdos.o
+MSDOS_OBJ = dosfns.o msdos.o xmenu.o
 #else
-MSDOS_OBJ = dosfns.o msdos.o w16select.o
+MSDOS_OBJ = dosfns.o msdos.o w16select.o xmenu.o
 #endif
 #endif
 
@@ -871,6 +871,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/international/fontset.elc \
   ../lisp/mouse.elc \
   ../lisp/term/x-win.elc \
+  ../lisp/term/pc-win.elc \
   ../lisp/term/ns-win.elc
 
 /* Construct full set of libraries to be linked.
