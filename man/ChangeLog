@@ -1,3 +1,8 @@
+2008-08-23  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Shell Command Guessing):
+	Mention dired-guess-shell-case-fold-search.  (Bug#417)
+
 2008-06-15  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-faq.texi: Generate.  Change node names to "FAQ N-M".
