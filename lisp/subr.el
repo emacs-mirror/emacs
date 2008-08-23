@@ -2023,9 +2023,7 @@ BEG and END default respectively to the beginning and end of buffer."
 (defvar temp-buffer-show-hook nil
   "Normal hook run by `with-output-to-temp-buffer' after displaying the buffer.
 When the hook runs, the temporary buffer is current, and the window it
-was displayed in is selected.  This hook is normally set up with a
-function to make the buffer read only, and find function names and
-variable names in it, provided the major mode is still Help mode.")
+was displayed in is selected.")
 
 (defvar temp-buffer-setup-hook nil
   "Normal hook run by `with-output-to-temp-buffer' at the start.
