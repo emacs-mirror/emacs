@@ -1114,6 +1114,9 @@ to a string.  If several COMMANDs are given, the first one will be the default
 and the rest will be added temporarily to the history and can be retrieved
 with \\[previous-history-element] (M-p) .
 
+The variable `dired-guess-shell-case-fold-search' controls whether
+REGEXP is matched case-sensitively.
+
 You can set this variable in your ~/.emacs.  For example, to add rules for
 `.foo' and `.bar' files, write
 
