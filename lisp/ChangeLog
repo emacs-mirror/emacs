@@ -1,3 +1,8 @@
+2008-08-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-buffer-stale-p): Do not revert buffer that
+	can be written.
+
 2008-08-23  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el (dired-guess-shell-alist-default): Add .mp3 and .ogg.
