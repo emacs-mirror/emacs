@@ -1,8 +1,13 @@
+2008-08-23  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Shell Command Guessing):
+	Mention dired-guess-shell-case-fold-search.  (Bug#417)
+
 2008-08-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Update release number.
 
-2008-08-18  Brian Cully  <bjc@kublai.com>
+2008-08-18  Brian Cully  <bjc@kublai.com>  (tiny change)
 
 	* ns-emacs.texi: Update version.
 	(Introduction): Correct menu location for options save.
