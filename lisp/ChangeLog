@@ -1,3 +1,11 @@
+2008-08-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-common-init): Use absolute file so that
+	perldb works with tramp (sudo).
+
+	* term/x-win.el (x-gtk-map-stock): Don't let the tool bar destroy
+	match data in process filters.
+
 2008-08-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* dired.el (dired-buffer-stale-p): Do not revert buffer that
