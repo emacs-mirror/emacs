@@ -1,5 +1,8 @@
 2008-08-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* term/pc-win.el (msdos-setup-keyboard) <msdos-setup-keyboard>:
+	Add declare-function.
+
 	* startup.el (command-line): Don't call tty-register-default-colors
 	if initial-window-system is `pc'.
 
