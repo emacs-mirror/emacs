@@ -1,3 +1,8 @@
+2008-08-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-prepare-status-buffer): Make sure we use a
+	directory name.
+
 2008-08-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-common-init): Use absolute file so that

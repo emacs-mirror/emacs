@@ -88,7 +88,7 @@ See `run-hooks'."
 
 (defun vc-dir-prepare-status-buffer (bname dir backend &optional create-new)
   "Find a buffer named BNAME showing DIR, or create a new one."
-  (setq dir (expand-file-name dir))
+  (setq dir (file-name-as-directory (expand-file-name dir)))
   (let*
 	 ;; Look for another buffer name BNAME visiting the same directory.
 	 ((buf (save-excursion
