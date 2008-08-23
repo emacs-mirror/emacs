@@ -96,7 +96,8 @@ with a character in column 6."
                                           (interactive)
                                           (describe-variable
                                            'fortran-tab-mode-string))))
-  "String to appear in mode line in TAB format buffers."
+  "String to appear in mode line in TAB format buffers.
+See Info node `(emacs)ForIndent Cont'."
   :type  'string
   :group 'fortran-indent)
 (put 'fortran-tab-mode-string 'risky-local-variable t)
@@ -147,7 +148,8 @@ nil forces comment lines not to be touched;
 
 (defcustom fortran-comment-line-start "C"
   "Delimiter inserted to start new full-line comment.
-You might want to change this to \"*\", for instance."
+You might want to change this to \"*\", for instance; or \"!\" to
+allow trailing comments on a line."
   :version "21.1"
   :type    'string
   :group   'fortran-comment)
@@ -224,7 +226,7 @@ In fixed format continuation style, this character is inserted in
 column 6 by \\[fortran-split-line] to begin a continuation line.
 Also, if \\[fortran-indent-line] finds this at the beginning of a
 line, it will convert the line into a continuation line of the
-appropriate style. Normally $."
+appropriate style.  Normally \"$\"."
   :type  'string
   :group 'fortran)
 (put 'fortran-continuation-string 'safe-local-variable
