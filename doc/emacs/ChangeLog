@@ -1,3 +1,17 @@
+2008-08-23  Glenn Morris  <rgm@gnu.org>
+
+	* fortran-xtra.texi (Fortran): Change description of free form and
+	fixed form a bit.  Mention hideshow and imenu.
+	(Fortran Motion): Mention fortran-end-of-subprogram,
+	fortran-beginning-of-subprogram, fortran-mark-do, fortran-mark-if.
+	(Fortran Indent): Minor re-word.
+	(ForIndent Commands): Mention fortran-fill-paragraph and
+	fortran-fill-statement.
+	(ForIndent Cont): Mention fortran-tab-mode-string.
+	(Fortran Comments): Mention fortran-comment-line-start-skip.
+	(Fortran Columns): Mention font-locking.
+	(Fortran Abbrev): Word syntax not relevant with new-style abbrev.
+
 2008-08-23  Johan Bockgard  <bojohan@muon>
 
 	* basic.texi (Moving Point): Fix <prior>/<next> confusion.
