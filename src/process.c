@@ -7933,7 +7933,7 @@ extern int frame_garbaged;
 extern EMACS_TIME timer_check ();
 extern int timers_run;
 
-Lisp_Object QCtype;
+Lisp_Object QCtype, QCname;
 
 /* As described above, except assuming that there are no subprocesses:
 
@@ -8273,6 +8273,8 @@ syms_of_process ()
 {
   QCtype = intern (":type");
   staticpro (&QCtype);
+  QCname = intern (":name");
+  staticpro (&QCname);
 
   defsubr (&Sget_buffer_process);
   defsubr (&Sprocess_inherit_coding_system_flag);
