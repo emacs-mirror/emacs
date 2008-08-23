@@ -67,7 +67,7 @@ top_srcdir := $(subst \,/,$(shell cd))
 # Find out which version of Emacs this is.
 version := ${shell sed -n -e '/(defconst emacs-version/s/^[^"]*\("[^"]*"\).*/\1/p' lisp/version.el}
 
-all:	maybe_bootstrap lib-src src man lispref lispintro
+all:	maybe_bootstrap lib-src src emacs lispref lispintro
 
 lib-src: FRC
 	cd lib-src
@@ -76,7 +76,7 @@ lib-src: FRC
 
 src: FRC
 	cd src
-	$(MAKE) top_srcdir=${top_srcdir}
+	$(MAKE) top_srcdir=${top_srcdir} BOOTSTRAPEMACS=""
 	djecho -s '/-geometry/s,^.*,set environment HOME $(top_srcdir),' \
 	          '/environment *TERM/s/^.*/set environment TERM internal/' \
 	          '/x_error_quitter/s/^.*/set environment NAME root/' >gdb.sed
@@ -90,10 +90,10 @@ src: FRC
 	cd ..
 	if exist leim\Makefile redir $(MAKE) -C leim top_srcdir=${top_srcdir}
 
-man lispref lispintro:	FRC
-	cd $@
+emacs lispref lispintro:	FRC
+	cd doc/$@
 	$(MAKE) top_srcdir=${top_srcdir} info
-	cd ..
+	cd ../..
 
 install: all
 	if not exist bin\nul md bin
@@ -103,8 +103,6 @@ install: all
 	if exist fns.el update fns.el ../bin/fns.el
 	cd ..
 	cd src
-	stubify emacs
-	stubedit emacs.exe minstack=512k
 	mv -f emacs.exe ../bin/
 	cd ..
 	djecho -s "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)" \
@@ -144,7 +142,11 @@ clean mostlyclean:
 	cd oldxmenu
 	-$(MAKE) $(MFLAGS) $@
 	cd ..
-	cd man
+	cd doc
+	cd emacs
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd misc
 	-$(MAKE) $(MFLAGS) $@
 	cd ..
 	cd lispref
@@ -152,6 +154,7 @@ clean mostlyclean:
 	cd ..
 	cd lispintro
 	-$(MAKE) $(MFLAGS) $@
+	cd ..
 	cd ..
 	cd leim
 	if exist Makefile redir $(MAKE) $(MFLAGS) $@
@@ -170,7 +173,11 @@ distclean maintainer-clean: FRC
 	cd lib-src
 	$(MAKE) $(MFLAGS) $@
 	cd ..
-	cd man
+	cd doc
+	cd emacs
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd misc
 	-$(MAKE) $(MFLAGS) $@
 	cd ..
 	cd lispref
@@ -178,6 +185,7 @@ distclean maintainer-clean: FRC
 	cd ..
 	cd lispintro
 	-$(MAKE) $(MFLAGS) $@
+	cd ..
 	cd ..
 	cd leim
 	if exist Makefile redir $(MAKE) $(MFLAGS) $@
@@ -197,7 +205,11 @@ extraclean:
 	cd lib-src
 	$(MAKE) $(MFLAGS) $@
 	cd ..
-	cd man
+	cd doc
+	cd emacs
+	-$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd misc
 	-$(MAKE) $(MFLAGS) $@
 	cd ..
 	cd lispref
@@ -205,6 +217,7 @@ extraclean:
 	cd ..
 	cd lispintro
 	-$(MAKE) $(MFLAGS) $@
+	cd ..
 	cd ..
 	cd leim
 	if exist Makefile redir $(MAKE) $(MFLAGS) $@
@@ -242,9 +255,10 @@ bootstrap-src:
 bootstrap-clean-before: FRC
 	cd src;      $(MAKE) $(MFLAGS) mostlyclean; cd ..
 	cd lib-src;  $(MAKE) $(MFLAGS) clean;       cd ..
-	-cd man;     $(MAKE) $(MFLAGS) clean;       cd ..
+	-cd doc/emacs; $(MAKE) $(MFLAGS) clean;     cd ..
+	-cd misc;    $(MAKE) $(MFLAGS) clean;       cd ..
 	-cd lispref; $(MAKE) $(MFLAGS) clean;       cd ..
-	-cd lispintro; $(MAKE) $(MFLAGS) clean;     cd ..
+	-cd lispintro; $(MAKE) $(MFLAGS) clean;     cd ..; cd ..
 	cd leim;     if exist Makefile redir $(MAKE) $(MFLAGS) clean; cd ..
 
 bootstrap-clean-after:
