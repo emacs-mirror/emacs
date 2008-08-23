@@ -717,6 +717,9 @@ for a remote directory.  This feature is used by Auto Revert Mode."
     (and (stringp dirname)
 	 (not (when noconfirm (file-remote-p dirname)))
 	 (file-readable-p dirname)
+	 ;; Do not auto-revert when the dired buffer can be currently
+	 ;; written by the user as in `wdired-mode'.
+	 buffer-read-only
 	 (dired-directory-changed-p dirname))))
 
 (defun dired-internal-noselect (dir-or-list &optional switches mode)
