@@ -360,6 +360,13 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	  Lisp_Object bar_window;
 	  enum scroll_bar_part part;
 	  unsigned long time;
+	  void (*mouse_position_hook) P_ ((struct frame **, int,
+					   Lisp_Object *,
+					   enum scroll_bar_part *,
+					   Lisp_Object *,
+					   Lisp_Object *,
+					   unsigned long *)) =
+	    new_f->terminal->mouse_position_hook;
 
 	  if (mouse_position_hook)
 	    (*mouse_position_hook) (&new_f, 1, &bar_window,
@@ -403,8 +410,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
       xpos += XINT (x);
       ypos += XINT (y);
 
-      if (! FRAME_X_P (f))
-        error ("Can not put X menu on non-X terminal");
+      if (! FRAME_X_P (f) && ! FRAME_MSDOS_P (f))
+        error ("Can not put X menu on this terminal");
 
       XSETFRAME (Vmenu_updating_frame, f);
     }
@@ -594,8 +601,8 @@ for instance using the window manager, then this produces a quit and
        but I don't want to make one now.  */
     CHECK_WINDOW (window);
 
-  if (! FRAME_X_P (f))
-    error ("Can not put X dialog on non-X terminal");
+  if (! FRAME_X_P (f) && ! FRAME_MSDOS_P (f))
+    error ("Can not put X dialog on this terminal");
 
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   /* Display a menu with these alternatives
@@ -2605,7 +2612,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   unsigned int dummy_uint;
   int specpdl_count = SPECPDL_INDEX ();
 
-  if (! FRAME_X_P (f))
+  if (! FRAME_X_P (f) && ! FRAME_MSDOS_P (f))
     abort ();
 
   *error = 0;
