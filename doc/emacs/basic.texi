@@ -202,18 +202,18 @@ numeric argument @var{n}, move to @var{n}/10 of the way from the top.
 Move to the end of the buffer (@code{end-of-buffer}).
 @item C-v
 @itemx @key{PageDown}
-@itemx @key{PRIOR}
+@itemx @key{next}
 Scroll the display one screen forward, and move point if necessary to
 put it on the screen (@code{scroll-up}).  If your keyboard has a
-@key{PageDown} key (sometimes labelled @key{PRIOR}), it does the same
+@key{PageDown} key (sometimes labelled @key{next}), it does the same
 thing as as @key{C-v}.  Scrolling commands are described further in
 @ref{Scrolling}.
 @item M-v
 @itemx @key{PageUp}
-@itemx @key{NEXT}
+@itemx @key{prior}
 Scroll one screen backward, and move point if necessary to put it on
 the screen (@code{scroll-down}).  If your keyboard has a @key{PageUp}
-key (sometimes labelled @key{NEXT}), it does the same thing as
+key (sometimes labelled @key{prior}), it does the same thing as
 @key{M-v}.
 @item M-x goto-char
 Read a number @var{n} and move point to buffer position @var{n}.

@@ -1,3 +1,7 @@
+2008-08-23  Johan Bockgard  <bojohan@muon>
+
+	* basic.texi (Moving Point): Fix <prior>/<next> confusion.
+
 2008-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mini.texi (Minibuffer): Simplify introduction.
