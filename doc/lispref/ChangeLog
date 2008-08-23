@@ -1,3 +1,8 @@
+2008-08-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Temporary Displays): Remove unnecessary comment
+	about usage of temp-buffer-show-hook.
+
 2008-08-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* symbols.texi (Other Plists): Fix incorrect example.
