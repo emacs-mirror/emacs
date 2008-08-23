@@ -1,3 +1,30 @@
+2008-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed2v2.inp: Remove definition of USER_FULL_NAME (now defined on
+	src/s/msdos.h).
+
+	* sed3v2.inp: Edit out @LIB_SRC_EXTRA_INSTALLABLES@.
+
+	* sed1v2.inp (version):  Define to empty.
+	(ALL_CFLAGS, LIBES): Edit out @FOO@ stuff.
+	(EXEEXT): Define to .exe.
+	Edit "ln -f" into "cp -pf".
+	Edit "touch" into "djecho $@ >", to avoid requiring touch.exe.
+	(b-emacs${EXEEXT}): Don't remove emacs.exe and temacs.exe.
+	Edit "`/bin/pwd`/" into "./".
+	Stubify emacs after it is dumped, to produce emacs.exe.
+	Stubedit temacs.exe to 1024K of stack, emacs.exe to 2048K, and
+	b-emacs.exe to 3072K.
+
+	* mainmake.v2 (emacs lispref lispintro): Chdir under doc/.
+	(emacs): Renamed from `man', to reflect changes in doc directory
+	structure.  All callers changed.
+	(clean mostlyclean distclean maintainer-clean extraclean): Chdir
+	into doc/ for manuals.  Add misc subdirectory.
+	(src): Pass an empty BOOTSTRAPEMACS variable to src/Makefile.
+	(install): Don't stubify/stubedit emacs.exe, this is now done by
+	src/Makefile.
+
 2007-10-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed6.inp: Update comment to reflect doc directory structure.

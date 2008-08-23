@@ -1,3 +1,7 @@
+2008-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* CPP-DEFINES: Add USER_FULL_NAME.
+
 2008-08-16  Jason Rumney  <jasonr@gnu.org>
 
 	* admin.el (set-version): Set version in nt/emacsclient.rc

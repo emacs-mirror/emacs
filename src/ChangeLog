@@ -1,3 +1,125 @@
+2008-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main) [MSDOS]: Call syms_of_xmenu.
+
+	* dispnew.c (init_display): Remove MS-DOS specific conditions for
+	calling tty-set-up-initial-frame-faces.
+
+	* xmenu.c (Fx_popup_dialog, Fx_popup_menu, xmenu_show): Allow
+	MSDOS frames along with X frames.
+
+	* termhooks.h (TERMINAL_ACTIVE_P): Handle output_msdos_raw in
+	addition to output_termcap.
+
+	* xdisp.c (redisplay_internal) [MSDOS]: Don't call set_tty_color_mode.
+
+	* termchar.h (FRAME_TTY): Support output_msdos_raw.
+	(struct tty_display_info) [MSDOS]: Add fields related to mouse
+	highlight.
+
+	* process.c [!subprocesses]: Define QCname.
+	(syms_of_process): Intern and staticpro it.
+
+	* w16select.c (Fw16_set_clipboard_data, Fw16_get_clipboard_data):
+	Adjust for changes in encoding/decoding routines.  Use
+	encode_coding_object and decode_coding_object instead of
+	encode_coding and decode_coding.
+
+	* sysdep.c (init_sys_modes): Call dos_ttraw with tty_out as
+	argument.
+
+	* dosfns.c: Include frame.h before termhooks.h.
+	(dos_cleanup): Use CURTTY ()->termscript instead of a global
+	variable termscript.
+
+	* s/msdos.h (USER_FULL_NAME): Define.
+	(SYSTEM_PURESIZE_EXTRA): Bump up to 100K.
+
+	* editfns.c (USER_FULL_NAME): Define to pw->pw_gecos if undefined.
+	(Fuser_full_name): Use USER_FULL_NAME instead of a literal
+	pw->pw_gecos.
+
+	* keyboard.c (handle_interrupt) [MSDOS]: Call cursor_to with
+	SELECTED_FRAME as additional (1st) argument.
+	(tty_read_avail_input): Handle output_msdos_raw in
+	addition to output_termcap.
+
+	* msdos.c: Include frame.h before termhooks.h.
+	(mouse_on, mouse_off, mouse_moveto, mouse_init)
+	(msdos_set_cursor_shape, IT_set_face, IT_write_glyphs)
+	(show_mouse_face, IT_clear_end_of_line, IT_clear_screen)
+	(IT_clear_to_end, IT_cursor_to, IT_display_cursor, IT_cmgoto)
+	(IT_set_terminal_modes, IT_reset_terminal_modes)
+	(IT_set_frame_parameters): Use tty->termscript instead of a global
+	variable termscript.
+	(IT_write_glyphs): Use tty->terminal->terminal_coding instead of a
+	global variable terminal_coding.  Don't refer to
+	Vnonascii_translation_table.
+	(internal_terminal_init): Set Vwindow_system in current_kboard.
+	Don't use TTY_CHAR_INS_DEL_OK.  Set Vinitial_window_system.
+	Announce date and time of session start, if termscript is open.
+	Don't zero out the_only_display_info (it is done in
+	term.c:init_tty).  Open termscript only of not already open.  Log
+	"SCREEN SAVED" here, instead of IT_set_terminal_modes.  Init mouse
+	here instead of dos_ttraw.  Don't initialize display if this is an
+	initial tty.  Don't set FRAME_FONT.
+	(Vwindow_system_version): Bump to 23.
+	(dos_ttraw): Accept a TTY argument; all callers fixed.  If mouse
+	is available, set up mouse_position_hook.
+	(dos_ttraw, IT_set_terminal_modes): If called with initial
+	terminal, do nothing.
+	(IT_set_frame_parameters): Handle the Qtty_type frame
+	parameter by calling internal_terminal_init.
+	(dos_set_window_size, show_mouse_face)
+	(clear_mouse_face, IT_note_mode_line_highlight)
+	(IT_note_mouse_highlight, IT_update_begin, IT_frame_up_to_date)
+	(dos_rawgetc): Use tty_display_info instead of x_display_info.
+	(initialize_msdos_display): New function.
+	(IT_cursor_to, IT_clear_to_end, IT_clear_screen)
+	(IT_clear_end_of_line, IT_insert_glyphs, IT_write_glyphs)
+	(IT_delete_glyphs, IT_ring_bell, IT_reset_terminal_modes)
+	(IT_set_terminal_modes, IT_set_terminal_window, IT_update_begin):
+	Accept additional argument: a pointer to a frame.  All callers
+	changed.
+	(request_sigio, unrequest_sigio): Don't define, now defined on
+	sysdep.c.
+	(IT_write_glyphs): Rewrite to use encode_terminal_code.
+
+	* term.c [MSDOS]: Include msdos.h.
+	(init_tty) [MSDOS]: Reuse most of WINDOWSNT branch.  Change cpp
+	conditional to DOS_NT.  Allow only one call to this function in a
+	session.  Don't allocate a new struct tty_display_info; instead,
+	reuse the_only_display_info.  Call get_tty_size to get screen
+	dimensions.  Call init_baud_rate to set bad_rate.
+	(dissociate_if_controlling_tty) [MSDOS]: Ifdef away function body.
+	(Fsuspend_tty) [MSDOS]: Don't close input and output.
+	(Fresume_tty) [MSDOS]: Don't reopen the TTY; instead, use
+	stdin/stdout.
+	(get_tty_terminal, get_named_tty, Ftty_type)
+	(Fcontrolling_tty_p): Handle output_msdos_raw in addition to
+	output_termcap.
+	(Fresume_tty, Fsuspend_tty, init_tty, delete_tty): Call
+	add_keyboard_wait_descriptor and delete_keyboard_wait_descriptor
+	only when subprocesses are supported
+
+	* frame.c (make_terminal_frame) [MSDOS]: Adjust initialization of
+	f->output_data.x.
+	(Fmake_terminal_frame) [MSDOS]: Don't allow creation of new
+	terminal devices.
+
+	* msdos.h Remove definition of struct x_display_info and struct
+	x_output.
+	(FRAME_FONT): Use output_data.tty.
+	(FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL): Don't define.
+	(struct x_display_info): Renamed from display_info.  All users in
+	msdos.c changed.
+	(struct x_output): Remove background_pixel and foreground_pixel.
+	(the_only_display_info): Renamed from the_only_x_display.
+	(dos_ttraw): Update prototype.
+
+	* Makefile.in (MSDOS_OBJ): Add xmenu.o.
+	(SOME_MACHINE_LISP): Add ../lisp/term/pc-win.elc.
+
 2008-08-23  Jason Rumney  <jasonr@gnu.org>
 
 	* image.c (enum tiff_keyword_index, tiff_format): Add :index keyword.
