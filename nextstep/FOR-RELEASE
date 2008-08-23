@@ -26,6 +26,8 @@
 
 * OTHER BUGS
 
+** Fix #include ordering for src/ns*.
+
 ** Find out why char_quoted() in syntax.c gets called with charpos < 2 ||
    bytepos < 2 only under NS port.
 
