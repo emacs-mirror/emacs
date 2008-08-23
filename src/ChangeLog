@@ -1,3 +1,8 @@
+2008-08-23  Andreas Schwab  <schwab@suse.de>
+
+	* process.c (procfs_system_process_attributes): Fix use of
+	uninitialized variables.
+
 2008-08-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.c (main) [MSDOS]: Call syms_of_xmenu.

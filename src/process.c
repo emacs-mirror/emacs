@@ -7246,10 +7246,10 @@ procfs_system_process_attributes (pid)
   char procbuf[1025], *p, *q;
   int fd;
   ssize_t nread;
-  char cmd[PATH_MAX];
+  const char *cmd;
   char *cmdline = NULL;
   size_t cmdsize;
-  int c;
+  unsigned char c;
   int proc_id, ppid, uid, gid, pgrp, sess, tty, tpgid, thcount;
   unsigned long long utime, stime, cutime, cstime, start;
   long priority, nice, rss;
@@ -7277,7 +7277,7 @@ procfs_system_process_attributes (pid)
   uid_eint = uid;
   attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid_eint)), attrs);
   BLOCK_INPUT;
-  pw = (struct passwd *) getpwuid (uid);
+  pw = getpwuid (uid);
   UNBLOCK_INPUT;
   if (pw)
     attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
@@ -7286,7 +7286,7 @@ procfs_system_process_attributes (pid)
   gid_eint = gid;
   attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid_eint)), attrs);
   BLOCK_INPUT;
-  gr = (struct group *) getgrgid (gid);
+  gr = getgrgid (gid);
   UNBLOCK_INPUT;
   if (gr)
     attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
@@ -7300,18 +7300,25 @@ procfs_system_process_attributes (pid)
       procbuf[nread] = '\0';
       p = procbuf;
 
-      p = strchr (p, '(') + 1;
-      q = strchr (p, ')');
-      /* comm */
-      if (q > p)
+      cmd = NULL;
+      p = strchr (p, '(');
+      if (p != NULL)
 	{
-	  memcpy (cmd, p, q - p);
-	  cmd[q - p] = '\0';
+	  q = strrchr (p + 1, ')');
+	  /* comm */
+	  if (q != NULL)
+	    {
+	      cmd = p + 1;
+	      cmdsize = q - cmd;
+	    }
 	}
-      else
-	strcpy (cmd, "???");
+      if (cmd == NULL)
+	{
+	  cmd = "???";
+	  cmdsize = 3;
+	}
       /* Command name is encoded in locale-coding-system; decode it.  */
-      cmd_str = make_unibyte_string (cmd, q ? q - p : 3);
+      cmd_str = make_unibyte_string (cmd, cmdsize);
       decoded_cmd = code_convert_string_norecord (cmd_str,
 						  Vlocale_coding_system, 0);
       attrs = Fcons (Fcons (Qcomm, decoded_cmd), attrs);
@@ -7412,7 +7419,7 @@ procfs_system_process_attributes (pid)
   fd = emacs_open (fn, O_RDONLY, 0);
   if (fd >= 0)
     {
-      for (cmdsize = 0; emacs_read (fd, (char *)&c, 1) == 1; cmdsize++)
+      for (cmdsize = 0; emacs_read (fd, &c, 1) == 1; cmdsize++)
 	{
 	  if (isspace (c) || c == '\\')
 	    cmdsize++;	/* for later quoting, see below */
