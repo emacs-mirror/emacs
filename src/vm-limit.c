@@ -121,9 +121,29 @@ void
 get_lim_data ()
 {
   _go32_dpmi_meminfo info;
+  unsigned long lim1, lim2;
 
   _go32_dpmi_get_free_memory_information (&info);
-  lim_data = info.available_memory;
+  /* DPMI server of Windows NT and its descendants reports in
+     info.available_memory a much lower amount that is really
+     available, which causes bogus "past 95% of memory limit"
+     warnings.  Try to overcome that via circumstantial evidence.  */
+  lim1 = info.available_memory;
+  lim2 = info.available_physical_pages * 4096;
+  /* DPMI Spec: "Fields that are unavailable will hold -1."  */
+  if ((long)lim1 == -1L)
+    lim1 = 0;
+  if ((long)lim2 == -1L)
+    lim2 = 0;
+  /* Surely, the available memory is at least what we have physically
+     available, right?  */
+  if (lim1 > lim2)
+    lim_data = lim1;
+  else
+    lim_data = lim2;
+  /* Don't believe they will give us more that 0.5 GB.   */
+  if (lim_data > 512 * 1024 * 1024)
+    lim_data = 512 * 1024 * 1024;
 }
 #else /* not MSDOS */
 static void
