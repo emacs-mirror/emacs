@@ -585,6 +585,8 @@ make_terminal_frame (struct terminal *terminal)
 
   f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
   f->async_visible = 1;		/* Don't let visible be cleared later. */
+  f->terminal = terminal;
+  f->terminal->reference_count++;
 #ifdef MSDOS
   f->output_data.tty->display_info = &the_only_display_info;
   if (!inhibit_window_system
@@ -614,22 +616,10 @@ make_terminal_frame (struct terminal *terminal)
 #else
   {
     f->output_method = output_termcap;
-    f->terminal = terminal;
-    f->terminal->reference_count++;
     create_tty_output (f);
 
     FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
     FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
-
-    FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
-    FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
-
-    /* Set the top frame to the newly created frame. */
-    if (FRAMEP (FRAME_TTY (f)->top_frame)
-        && FRAME_LIVE_P (XFRAME (FRAME_TTY (f)->top_frame)))
-      XFRAME (FRAME_TTY (f)->top_frame)->async_visible = 2; /* obscured */
-
-    FRAME_TTY (f)->top_frame = frame;
   }
 
 #ifdef CANNOT_DUMP
@@ -637,6 +627,16 @@ make_terminal_frame (struct terminal *terminal)
   FRAME_BACKGROUND_PIXEL(f) = FACE_TTY_DEFAULT_BG_COLOR;
 #endif
 #endif /* MSDOS */
+
+  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+
+  /* Set the top frame to the newly created frame. */
+  if (FRAMEP (FRAME_TTY (f)->top_frame)
+      && FRAME_LIVE_P (XFRAME (FRAME_TTY (f)->top_frame)))
+    XFRAME (FRAME_TTY (f)->top_frame)->async_visible = 2; /* obscured */
+
+  FRAME_TTY (f)->top_frame = frame;
 
   if (!noninteractive)
     init_frame_faces (f);
@@ -717,14 +717,17 @@ affects all frames on the same terminal device.  */)
         terminal = XCDR (terminal);
         t = get_terminal (terminal, 1);
       }
+#ifdef MSDOS
+    if (t && t != the_only_display_info.terminal)
+      /* msdos.c assumes a single tty_display_info object.  */
+      error ("Multiple terminals are not supported on this platform");
+    if (!t)
+      t = the_only_display_info.terminal;
+#endif
   }
 
   if (!t)
     {
-#ifdef MSDOS
-      /* msdos.c assumes a single tty_display_info object.  */
-      error ("Multiple terminals are not supported on this platform");
-#else  /* !MSDOS */
       char *name = 0, *type = 0;
       Lisp_Object tty, tty_type;
 
@@ -751,7 +754,6 @@ affects all frames on the same terminal device.  */)
         }
 
       t = init_tty (name, type, 0); /* Errors are not fatal. */
-#endif /* !MSDOS */
     }
 
   f = make_terminal_frame (t);
