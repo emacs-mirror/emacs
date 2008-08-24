@@ -1,3 +1,7 @@
+2008-08-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-introspect): Use `dbus-call-method-non-blocking'.
+
 2008-08-24  Romain Francoise  <romain@orebokech.com>
 
 	* progmodes/python.el (run-python): Remove '' from sys.path.
