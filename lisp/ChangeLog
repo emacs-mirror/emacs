@@ -1,3 +1,7 @@
+2008-08-24  Romain Francoise  <romain@orebokech.com>
+
+	* progmodes/python.el (run-python): Remove '' from sys.path.
+
 2008-08-23  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el (dired-guess-shell-alist-user): Doc fix.
