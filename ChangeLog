@@ -1,3 +1,7 @@
+2008-08-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (NS_IMPL_GNUSTEP): Increase pure size.
+
 2008-08-21  Christian Faulhammer  <opfer@gentoo.org>  (tiny change)
 
 	* configure.in (GNUSTEP_SYSTEM_HEADERS): Define
