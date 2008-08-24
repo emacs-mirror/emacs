@@ -445,9 +445,11 @@ BUS must be either the symbol `:system' or the symbol `:session'.
 SERVICE must be a known service name, and PATH must be a valid
 object path.  The last two parameters are strings.  The result,
 the introspection data, is a string in XML format."
-  ;; We don't want to raise errors.
+  ;; We don't want to raise errors.  `dbus-call-method-non-blocking'
+  ;; is used, because the handler can be registered in our Emacs
+  ;; instance; caller an callee would block each other.
   (dbus-ignore-errors
-    (dbus-call-method
+    (dbus-call-method-non-blocking
      bus service path dbus-interface-introspectable "Introspect")))
 
 (defun dbus-introspect-xml (bus service path)
