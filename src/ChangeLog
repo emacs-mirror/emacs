@@ -1,5 +1,10 @@
 2008-08-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* frame.c (make_terminal_frame): Initialize f->terminal,
+	f->terminal->reference_count, and scroll bars on MS-DOS as well.
+	Set the top frame to newly created frame.
+	(Fmake_terminal_frame): Reuse the_only_display_info.
+
 	* vm-limit.c (get_lim_data) [MSDOS]: Use alternative methods of
 	estimating available memory.
 
