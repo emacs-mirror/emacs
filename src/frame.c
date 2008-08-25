@@ -876,7 +876,7 @@ do_switch_frame (frame, track, for_deletion)
   if (!for_deletion && FRAME_HAS_MINIBUF_P (sf))
     resize_mini_window (XWINDOW (FRAME_MINIBUF_WINDOW (sf)), 1);
 
-  if (FRAME_TERMCAP_P (XFRAME (frame)))
+  if (FRAME_TERMCAP_P (XFRAME (frame)) || FRAME_MSDOS_P (XFRAME (frame)))
     {
       if (FRAMEP (FRAME_TTY (XFRAME (frame))->top_frame))
 	/* Mark previously displayed frame as now obscured.  */
