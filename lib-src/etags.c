@@ -79,7 +79,7 @@ University of California, as described above. */
  * together with a configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.38.1.3";
+char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -892,7 +892,7 @@ etags --help --lang=ada.");
 # define EMACS_NAME "standalone"
 #endif
 #ifndef VERSION
-# define VERSION "17.38.1.3"
+# define VERSION "17.38.1.4"
 #endif
 static void
 print_version ()
@@ -1251,7 +1251,7 @@ main (argc, argv)
     }
 
   if (tagfile == NULL)
-    tagfile = CTAGS ? "tags" : "TAGS";
+    tagfile = savestr (CTAGS ? "tags" : "TAGS");
   cwd = etags_getcwd ();	/* the current working directory */
   if (cwd[strlen (cwd) - 1] != '/')
     {
@@ -1259,10 +1259,11 @@ main (argc, argv)
       cwd = concat (oldcwd, "/", "");
       free (oldcwd);
     }
-  /* Relative file names are made relative to the current directory. */
+
+  /* Compute base directory for relative file names. */
   if (streq (tagfile, "-")
       || strneq (tagfile, "/dev/", 5))
-    tagfiledir = cwd;
+    tagfiledir = cwd;		 /* relative file names are relative to cwd */
   else
     {
       canonicalize_filename (tagfile);
