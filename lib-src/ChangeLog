@@ -1,3 +1,7 @@
+2008-08-25  Francesco Potortì  <pot@gnu.org>
+
+	* etags.c (main): Do not use static space for the tagfile string.
+
 2008-08-17  Francesco Potortì  <pot@gnu.org>
 
 	* etags.c (main): Use canonicalize_filename on tags file name.
