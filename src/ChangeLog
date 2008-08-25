@@ -1,3 +1,8 @@
+2008-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (do_switch_frame): Mark previously displayed frame as
+	obscured for FRAME_MSDOS_P frames as well.
+
 2008-08-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.c (make_terminal_frame): Initialize f->terminal,
