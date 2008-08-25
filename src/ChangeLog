@@ -13,8 +13,8 @@
 	* vm-limit.c (get_lim_data) [MSDOS]: Use alternative methods of
 	estimating available memory.
 
-2008-08-23  David Reitter <david.reitter@gmail.com> 
-	
+2008-08-23  David Reitter <david.reitter@gmail.com>
+
 	* nsterm.m (ns_draw_window_cursor): Don't call
 	NSDisableScreenUpdates and NSEnableScreenUpdates on
 	non-NS_IMPL_COCOA systems.
