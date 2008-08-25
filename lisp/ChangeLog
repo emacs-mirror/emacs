@@ -1,3 +1,10 @@
+2008-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* bindings.el (mode-line-frame-control): New function, caters to
+	`pc' ``window system''.
+	(mode-line-frame-identification): Use it instead of accessing
+	window-system directly.
+
 2008-08-25  Juri Linkov  <juri@jurta.org>
 
 	* textmodes/text-mode.el (text-mode-map): Unbind "\es" from
