@@ -291,6 +291,10 @@ the minibuffer that toggles word search (i.e. using key sequences
 `M-s w' to start word search, or type `M-s w' in Isearch mode to
 toggle word search.
 
+** In Text mode, `center-line' and `center-paragraph' are rebound
+from `M-s' and `M-S' to global keys `M-o M-s' and `M-o M-S' on the
+global prefix map `M-o' intended for such formatting commands.
+
 ---
 ** The following input methods were removed in Emacs 22.2, but this was
 not advertised: danish-alt-postfix, esperanto-alt-postfix,
