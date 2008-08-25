@@ -1,3 +1,10 @@
+2008-08-25  Juri Linkov  <juri@jurta.org>
+
+	* textmodes/text-mode.el (text-mode-map): Unbind "\es" from
+	`center-line' and "\eS" from `center-paragraph'.
+	(facemenu-keymap): Bind "\es" to `center-line' and "\eS" to
+	`center-paragraph'.
+
 2008-08-25  Ulf Jasper  <ulf@web.de>
 
 	* net/newst-treeview.el (newsticker-treeview-own-frame): Doc
