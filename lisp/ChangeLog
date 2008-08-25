@@ -1,3 +1,18 @@
+2008-08-25  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-treeview.el (newsticker-treeview-own-frame): Doc
+	fixed.
+	(newsticker-treeview-treewindow-width): New.
+	(newsticker-treeview-listwindow-height): New.
+	(newsticker-treeview-browse-url-item): New.
+	(newsticker-treeview-mode-map): Added
+	newsticker-treeview-browse-url-item.
+	(newsticker--treeview-window-init): Use
+	newsticker-treeview-treewindow-width and
+	newsticker-treeview-listwindow-height.
+
+	* net/newst-reader.el (newsticker-browse-url-item): New.
+
 2008-08-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-dir.el (vc-dir-marked-only-files-and-states):
