@@ -215,7 +215,17 @@ mnemonics of the following coding systems:
 
 (make-variable-buffer-local 'mode-line-mule-info)
 
-(defvar mode-line-frame-identification '(window-system "  " "-%F  ")
+;; MSDOS frames have window-system, but want the Fn identification.
+(defun mode-line-frame-control ()
+  "Compute mode-line control for frame identification.
+Value is used for `mode-line-frame-identification', which see."
+  (if (or (null (window-system))
+	  (eq (window-system) 'pc))
+      "-%F  "
+    "  "))
+
+(defvar mode-line-frame-identification
+  (list (mode-line-frame-control))
   "Mode-line control to describe the current frame.")
 
 (defvar mode-line-process nil "\
