@@ -1,3 +1,8 @@
+2008-08-25  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-simplify-units-quotient): Replace
+	missing exponent.
+
 2008-08-24  Romain Francoise  <romain@orebokech.com>
 
 	* progmodes/python.el (run-python): Remove '' from sys.path.
