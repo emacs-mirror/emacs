@@ -1,3 +1,8 @@
+2008-08-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-marked-only-files-and-states):
+	(vc-dir-child-files-and-states): Reverse the list before returning it.
+
 2008-08-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-introspect): Use `dbus-call-method-non-blocking'.

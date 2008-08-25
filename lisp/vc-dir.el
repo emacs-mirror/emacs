@@ -777,7 +777,7 @@ child files."
 		    result)
 	      (setq crt (ewoc-next vc-ewoc crt)))
 	  (setq crt (ewoc-next vc-ewoc crt)))))
-    result))
+    (nreverse result)))
 
 (defun vc-dir-child-files-and-states ()
   "Return the list of conses (FILE . STATE) for child files of the current entry if it's a directory.
@@ -802,7 +802,7 @@ If it is a file, return the corresponding cons for the file itself."
       (push
        (cons (expand-file-name (vc-dir-fileinfo->name crt-data))
 	     (vc-dir-fileinfo->state crt-data)) result))
-    result))
+    (nreverse result)))
 
 (defun vc-dir-recompute-file-state (fname def-dir)
   (let* ((file-short (file-relative-name fname def-dir))
