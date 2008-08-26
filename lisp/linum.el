@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-(defconst linum-version "0.9wx")
+(defconst linum-version "0.9wz")
 
 (defvar linum-overlays nil "Overlays used in this buffer.")
 (defvar linum-available nil "Overlays available for reuse.")
@@ -54,7 +54,7 @@ See also `linum-before-numbering-hook'."
   :type 'sexp)
 
 (defface linum
-  '((t :inherit shadow))
+  '((t :inherit (shadow default)))
   "Face for displaying line numbers in the display margin."
   :group 'linum)
 
@@ -65,7 +65,7 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
   :group 'linum
   :type 'boolean)
 
-(defcustom linum-delay t
+(defcustom linum-delay nil
   "Delay updates to give Emacs a chance for other changes."
   :group 'linum
   :type 'boolean)
@@ -131,39 +131,38 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
   "Update line numbers for the portion visible in window WIN."
   (goto-char (window-start win))
   (let ((line (line-number-at-pos))
-        (limit (1+ (window-end win t)))
+        (limit (window-end win t))
         (fmt (cond ((stringp linum-format) linum-format)
                    ((eq linum-format 'dynamic)
                     (let ((w (length (number-to-string
                                       (count-lines (point-min) (point-max))))))
                       (concat "%" (number-to-string w) "d")))))
-        (width 0)
-        visited
-        ov)
+        (width 0))
     (run-hooks 'linum-before-numbering-hook)
     ;; Create an overlay (or reuse an existing one) for each
     ;; line visible in this window, if necessary.
-    (while (and (not (eobp)) (< (point) limit))
-      (setq visited nil)
-      (dolist (o (overlays-in (point) (point)))
-        (when (eq (overlay-get o 'linum-line) line)
-          (unless (memq o linum-overlays)
-            (push o linum-overlays))
-          (setq linum-available (delete o linum-available))
-          (setq visited t)))
-      (let ((str (if fmt
-                     (propertize (format fmt line) 'face 'linum)
-                   (funcall linum-format line))))
+    (while (and (not (eobp)) (<= (point) limit))
+      (let* ((str (if fmt
+                      (propertize (format fmt line) 'face 'linum)
+                    (funcall linum-format line)))
+             (visited (catch 'visited
+                        (dolist (o (overlays-in (point) (point)))
+                          (when (string= (overlay-get o 'linum-str) str)
+                            (unless (memq o linum-overlays)
+                              (push o linum-overlays))
+                            (setq linum-available (delete o linum-available))
+                            (throw 'visited t))))))
         (setq width (max width (length str)))
         (unless visited
-          (if (null linum-available)
-              (setq ov (make-overlay (point) (point)))
-            (setq ov (pop linum-available))
-            (move-overlay ov (point) (point)))
-          (push ov linum-overlays)
-          (setq str (propertize " " 'display `((margin left-margin) ,str)))
-          (overlay-put ov 'before-string str)
-          (overlay-put ov 'linum-line line)))
+          (let (ov)
+            (if (null linum-available)
+                (setq ov (make-overlay (point) (point)))
+              (setq ov (pop linum-available))
+              (move-overlay ov (point) (point)))
+            (push ov linum-overlays)
+            (overlay-put ov 'before-string
+                         (propertize " " 'display `((margin left-margin) ,str)))
+            (overlay-put ov 'linum-str str))))
       (forward-line)
       (setq line (1+ line)))
     (set-window-margins win width)))
