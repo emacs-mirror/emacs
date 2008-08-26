@@ -2055,7 +2055,9 @@ whether or not it is currently displayed in some window.  */)
     }
   else
     {
-      int it_start, oselective, it_overshoot_expected, first_x;
+      int it_start, oselective, first_x;
+      int start_string_newlines = 0;
+      enum it_method omethod;
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
@@ -2068,30 +2070,16 @@ whether or not it is currently displayed in some window.  */)
 	 while the end position is really at some X > 0, the same X that
 	 PT had.  */
       it_start = IT_CHARPOS (it);
+      omethod = it.method;
 
-      /* We expect the call to move_it_to, further down, to overshoot
-	 if the starting point is on an image, stretch glyph,
-	 composition, or Lisp string.  We won't need to backtrack in
-	 this situation, except for one corner case: when the Lisp
-	 string contains a newline.  */
-      if (it.method == GET_FROM_STRING)
+      if (omethod == GET_FROM_STRING)
 	{
-	  const char *s = SDATA (it.string);
+	  char *s = SDATA (it.string) + IT_STRING_CHARPOS (it);
 	  const char *e = s + SBYTES (it.string);
-
-	  while (s < e && *s != '\n')
-	    ++s;
-
-	  /* If there is no newline in the string, we need to check
-	     whether there is a newline immediately after the string
-	     in move_it_to below.  This may happen if there is an
-	     overlay with an after-string just before the newline.  */
-	  it_overshoot_expected = (s == e) ? -1 : 0;
+	  for (; s < e; s++)
+	    if (*s == '\n')
+	      start_string_newlines++;
 	}
-      else
-	it_overshoot_expected = (it.method == GET_FROM_IMAGE
-				 || it.method == GET_FROM_STRETCH
-				 || it.method == GET_FROM_COMPOSITION);
 
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = 0;
@@ -2101,15 +2089,32 @@ whether or not it is currently displayed in some window.  */)
       move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
       it.selective = oselective;
 
-      /* Move back if we got too far.  This may happen if
-	 truncate-lines is on and PT is beyond right margin.
-	 Don't go back if the overshoot is expected (see above).  */
-      if (IT_CHARPOS (it) > it_start && XINT (lines) > 0
-	  && (!it_overshoot_expected
-	      || (it_overshoot_expected < 0
-		  && it.method == GET_FROM_BUFFER
-		  && it.c == '\n')))
-	move_it_by_lines (&it, -1, 0);
+      if (XINT (lines) > 0)
+	{
+	  /* If we start on a multi-line string, move the iterator to
+	     the last line of that string.  */
+	  if (omethod == GET_FROM_STRING && start_string_newlines)
+	    move_it_by_lines (&it, start_string_newlines, 0);
+
+	  /* If we got too far, move back.  This may happen if
+	     truncate-lines is on and PT is beyond the right margin.
+	     If the starting point is on an image, stretch glyph,
+	     composition, or Lisp string, no need to backtrack...  */
+	  if (IT_CHARPOS (it) > it_start
+	      && (omethod == GET_FROM_BUFFER
+		  || omethod == GET_FROM_DISPLAY_VECTOR
+		  || omethod == GET_FROM_C_STRING
+		  /* ... except for one corner case: when the Lisp
+		     string contains a newline, or if there is a
+		     newline immediately afterwards (e.g. if there is
+		     an overlay with an after-string just before the
+		     newline).  */
+		  || (omethod == GET_FROM_STRING
+		      && (start_string_newlines
+			  || (it.method == GET_FROM_BUFFER
+			      && it.c == '\n')))))
+	    move_it_by_lines (&it, -1, 0);
+	}
 
       it.vpos = 0;
       /* Do this even if LINES is 0, so that we move back
