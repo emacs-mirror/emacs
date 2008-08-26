@@ -1,5 +1,9 @@
 2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
+	* comint.el (comint-dynamic-complete-as-filename): If case is
+	ignored while matching, replace the entire filename with
+	completion.
+
 	* textmodes/flyspell.el (flyspell-check-pre-word-p): Make sure
 	flyspell-pre-point is valid to avoid signalling an error in
 	post-command-hook.
