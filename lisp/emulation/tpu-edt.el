@@ -1267,7 +1267,7 @@ This is useful for inserting control characters."
 (defvar tpu-saved-control-r nil "Saved value of Control-r.")
 
 (defun tpu-end-define-macro-key (key)
-  "End the current macro definition"
+  "End the current macro definition."
   (interactive "kPress the key you want to use to do what was just learned: ")
   (end-kbd-macro nil)
   (global-set-key key last-kbd-macro)
