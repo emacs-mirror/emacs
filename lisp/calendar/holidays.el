@@ -355,11 +355,11 @@ three-month period centered around `displayed-month' of `displayed-year'.
 Several basic functions are provided for this purpose:
 
     (holiday-fixed MONTH DAY STRING) is a fixed date on the Gregorian calendar
-    (holiday-float MONTH DAYNAME K STRING &optional day) is the Kth DAYNAME in
-                               MONTH on the Gregorian calendar (0 for Sunday,
-                               etc.); K<0 means count back from the end of the
-                               month.  An optional parameter DAY means the Kth
-                               DAYNAME after/before MONTH DAY.
+    (holiday-float MONTH DAYNAME K STRING &optional DAY) is the Kth DAYNAME
+                               (0 for Sunday, etc.) after/before Gregorian
+                               MONTH DAY.  K<0 means count back from the end
+                               of the month.  Optional DAY defaults to 1 if
+                               K>0, and MONTH's last day otherwise.
     (holiday-hebrew MONTH DAY STRING)  a fixed date on the Hebrew calendar
     (holiday-islamic MONTH DAY STRING) a fixed date on the Islamic calendar
     (holiday-bahai MONTH DAY STRING)   a fixed date on the Baha'i calendar
