@@ -45,7 +45,7 @@
 (declare-function msdos-remember-default-colors "msdos.c")
 (declare-function w16-set-clipboard-data "w16select.c")
 (declare-function w16-get-clipboard-data "w16select.c")
-(declare-function msdos-setup-keyboard "term/internal.el")
+(declare-function msdos-setup-keyboard "internal" (frame))
 
 ;;; This was copied from etc/rgb.txt, except that some values were changed
 ;;; a bit to make them consistent with DOS console colors, and the RGB
