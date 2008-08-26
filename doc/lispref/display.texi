@@ -3814,6 +3814,7 @@ displayed (@pxref{Display Feature Testing}).
 * XBM Images::          Special features for XBM format.
 * XPM Images::          Special features for XPM format.
 * GIF Images::          Special features for GIF format.
+* TIFF Images::         Special features for TIFF format.
 * PostScript Images::   Special features for PostScript format.
 * Other Image Types::   Various other formats are supported.
 * Defining Images::     Convenient ways to define an image for later use.
@@ -4198,6 +4199,20 @@ every 0.1 seconds.
       (insert-image img))
     (run-with-timer 0.1 nil 'display-anim buffer file (1+ idx) max nil)))
 @end ignore
+
+@node TIFF Images
+@subsection TIFF Images
+@cindex TIFF
+
+  For TIFF images, specify image type @code{tiff}.
+
+@table @code
+@item :index @var{index}
+You can use @code{:index} to specify one image from a TIFF file that
+contains more than one image.  This property specifies use of image
+number @var{index} from the file.  If the TIFF file doesn't contain an
+image with index @var{index}, the image displays as a hollow box.
+@end table
 
 @node PostScript Images
 @subsection PostScript Images
