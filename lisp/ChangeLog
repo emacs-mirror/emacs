@@ -1,3 +1,9 @@
+2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/flyspell.el (flyspell-check-pre-word-p): Make sure
+	flyspell-pre-point is valid to avoid signalling an error in
+	post-command-hook.
+
 2008-08-26  Johan Bockgård  <bojohan@gnu.org>
 
 	* linum.el (linum): Inherit remaining face attributes from default
