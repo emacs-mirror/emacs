@@ -744,6 +744,9 @@ before the current command."
 		  (eq flyspell-previous-command this-command)))
 	 (or (= (current-column) 0)
 	     (= (current-column) flyspell-pre-column)
+	     ;; If other post-command-hooks change the buffer,
+	     ;; flyspell-pre-point can lie past eob (bug#468).
+	     (null (char-after flyspell-pre-point))
 	     (eq (char-syntax (char-after flyspell-pre-point)) ?w)))
     nil)
    ((not (eq (current-buffer) flyspell-pre-buffer))
