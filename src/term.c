@@ -2232,7 +2232,7 @@ get_named_tty (name)
 
   for (t = terminal_list; t; t = t->next_terminal)
     {
-      if (t->type == output_termcap || t->type == output_msdos_raw
+      if ((t->type == output_termcap || t->type == output_msdos_raw)
           && !strcmp (t->display_info.tty->name, name)
           && TERMINAL_ACTIVE_P (t))
         return t;
