@@ -812,6 +812,7 @@ cached information about equivalent key sequences.  */)
   if (NILP (position))
     {
       discard_menu_items ();
+      FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
       UNGCPRO;
       return Qnil;
     }
@@ -825,6 +826,7 @@ cached information about equivalent key sequences.  */)
   if (current_popup_menu)
     {
       discard_menu_items ();
+      FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
       UNGCPRO;
       return Qnil;
     }
@@ -837,6 +839,7 @@ cached information about equivalent key sequences.  */)
   UNBLOCK_INPUT;
 
   discard_menu_items ();
+  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
 
 #endif /* HAVE_MENUS */
 
@@ -959,6 +962,7 @@ otherwise it is "Question". */)
     UNBLOCK_INPUT;
 
     discard_menu_items ();
+    FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
 
     if (error_name) error (error_name);
     return selection;
@@ -1931,6 +1935,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
   /* Clean up extraneous mouse events which might have been generated
      during the call. */
   discard_mouse_events ();
+  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
 
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);

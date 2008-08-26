@@ -1,3 +1,8 @@
+2008-08-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (Fx_popup_menu, Fx_popup_dialog, w32_menu_show): Ensure
+	mouse is not grabbed after menu is finished.
+
 2008-08-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* editfns.c (Ffield_string_no_properties): Fix typo in docstring.
