@@ -2414,6 +2414,7 @@ extern void init_frame_faces (FRAME_PTR);
 void
 internal_terminal_init ()
 {
+  static int init_needed = 1;
   char *term = getenv ("TERM"), *colors;
   struct frame *sf = SELECTED_FRAME();
   struct tty_display_info *tty;
@@ -2438,76 +2439,82 @@ internal_terminal_init ()
     }
 
   tty = FRAME_TTY (sf);
-  if (!tty->termscript && getenv ("EMACSTEST"))
-    tty->termscript = fopen (getenv ("EMACSTEST"), "wt");
-  if (tty->termscript)
+  if (init_needed)
     {
-      time_t now = time (NULL);
-      struct tm *tnow = localtime (&now);
-      char tbuf[100];
+      if (!tty->termscript && getenv ("EMACSTEST"))
+	tty->termscript = fopen (getenv ("EMACSTEST"), "wt");
+      if (tty->termscript)
+	{
+	  time_t now = time (NULL);
+	  struct tm *tnow = localtime (&now);
+	  char tbuf[100];
 
-      strftime (tbuf, sizeof (tbuf) - 1, "%a %b %e %Y %H:%M:%S %Z", tnow);
-      fprintf (tty->termscript, "\nEmacs session started at %s\n", tbuf);
-      fprintf (tty->termscript,   "=====================\n\n");
+	  strftime (tbuf, sizeof (tbuf) - 1, "%a %b %e %Y %H:%M:%S %Z", tnow);
+	  fprintf (tty->termscript, "\nEmacs session started at %s\n", tbuf);
+	  fprintf (tty->termscript,   "=====================\n\n");
+	}
+
+      Vinitial_window_system = Qpc;
+      Vwindow_system_version = make_number (23); /* RE Emacs version */
+      tty->terminal->type = output_msdos_raw;
+
+      /* If Emacs was dumped on DOS/V machine, forget the stale VRAM
+	 address.  */
+      screen_old_address = 0;
+
+      /* Forget the stale screen colors as well.  */
+      initial_screen_colors[0] = initial_screen_colors[1] = -1;
+
+      FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()) = 7; /* White */
+      FRAME_FOREGROUND_PIXEL (SELECTED_FRAME ()) = 0; /* Black */
+      bright_bg ();
+      colors = getenv ("EMACSCOLORS");
+      if (colors && strlen (colors) >= 2)
+	{
+	  /* The colors use 4 bits each (we enable bright background).  */
+	  if (isdigit (colors[0]))
+	    colors[0] -= '0';
+	  else if (isxdigit (colors[0]))
+	    colors[0] -= (isupper (colors[0]) ? 'A' : 'a') - 10;
+	  if (colors[0] >= 0 && colors[0] < 16)
+	    FRAME_FOREGROUND_PIXEL (SELECTED_FRAME ()) = colors[0];
+	  if (isdigit (colors[1]))
+	    colors[1] -= '0';
+	  else if (isxdigit (colors[1]))
+	    colors[1] -= (isupper (colors[1]) ? 'A' : 'a') - 10;
+	  if (colors[1] >= 0 && colors[1] < 16)
+	    FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()) = colors[1];
+	}
+      the_only_display_info.mouse_face_mouse_frame = NULL;
+      the_only_display_info.mouse_face_deferred_gc = 0;
+      the_only_display_info.mouse_face_beg_row =
+	the_only_display_info.mouse_face_beg_col = -1;
+      the_only_display_info.mouse_face_end_row =
+	the_only_display_info.mouse_face_end_col = -1;
+      the_only_display_info.mouse_face_face_id = DEFAULT_FACE_ID;
+      the_only_display_info.mouse_face_window = Qnil;
+      the_only_display_info.mouse_face_mouse_x =
+	the_only_display_info.mouse_face_mouse_y = 0;
+      the_only_display_info.mouse_face_defer = 0;
+      the_only_display_info.mouse_face_hidden = 0;
+
+      if (have_mouse)	/* detected in dos_ttraw, which see */
+	{
+	  have_mouse = 1;	/* enable mouse */
+	  mouse_visible = 0;
+	  mouse_setup_buttons (mouse_button_count);
+	  tty->terminal->mouse_position_hook = &mouse_get_pos;
+	  mouse_init ();
+	}
+
+      if (tty->termscript && screen_size)
+	fprintf (tty->termscript, "<SCREEN SAVED (dimensions=%dx%d)>\n",
+		 screen_size_X, screen_size_Y);
+
+      init_needed = 0;
     }
-
-  Vinitial_window_system = current_kboard->Vwindow_system = Qpc;
-  Vwindow_system_version = make_number (23); /* RE Emacs version */
+  current_kboard->Vwindow_system = Qpc;
   sf->output_method = output_msdos_raw;
-  tty->terminal->type = output_msdos_raw;
-
-  /* If Emacs was dumped on DOS/V machine, forget the stale VRAM address.  */
-  screen_old_address = 0;
-
-  /* Forget the stale screen colors as well.  */
-  initial_screen_colors[0] = initial_screen_colors[1] = -1;
-
-  FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()) = 7; /* White */
-  FRAME_FOREGROUND_PIXEL (SELECTED_FRAME ()) = 0; /* Black */
-  bright_bg ();
-  colors = getenv ("EMACSCOLORS");
-  if (colors && strlen (colors) >= 2)
-    {
-      /* The colors use 4 bits each (we enable bright background).  */
-      if (isdigit (colors[0]))
-        colors[0] -= '0';
-      else if (isxdigit (colors[0]))
-        colors[0] -= (isupper (colors[0]) ? 'A' : 'a') - 10;
-      if (colors[0] >= 0 && colors[0] < 16)
-        FRAME_FOREGROUND_PIXEL (SELECTED_FRAME ()) = colors[0];
-      if (isdigit (colors[1]))
-        colors[1] -= '0';
-      else if (isxdigit (colors[1]))
-        colors[1] -= (isupper (colors[1]) ? 'A' : 'a') - 10;
-      if (colors[1] >= 0 && colors[1] < 16)
-        FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()) = colors[1];
-    }
-  the_only_display_info.mouse_face_mouse_frame = NULL;
-  the_only_display_info.mouse_face_deferred_gc = 0;
-  the_only_display_info.mouse_face_beg_row =
-    the_only_display_info.mouse_face_beg_col = -1;
-  the_only_display_info.mouse_face_end_row =
-    the_only_display_info.mouse_face_end_col = -1;
-  the_only_display_info.mouse_face_face_id = DEFAULT_FACE_ID;
-  the_only_display_info.mouse_face_window = Qnil;
-  the_only_display_info.mouse_face_mouse_x =
-    the_only_display_info.mouse_face_mouse_y = 0;
-  the_only_display_info.mouse_face_defer = 0;
-  the_only_display_info.mouse_face_hidden = 0;
-
-  if (have_mouse)	/* detected in dos_ttraw, which see */
-    {
-      have_mouse = 1;	/* enable mouse */
-      mouse_visible = 0;
-      mouse_setup_buttons (mouse_button_count);
-      tty->terminal->mouse_position_hook = &mouse_get_pos;
-      mouse_init ();
-    }
-
-  if (tty->termscript && screen_size)
-    fprintf (tty->termscript, "<SCREEN SAVED (dimensions=%dx%d)>\n",
-	     screen_size_X, screen_size_Y);
-
   init_frame_faces (sf);
 #endif
 }
