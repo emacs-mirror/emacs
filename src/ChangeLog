@@ -1,3 +1,7 @@
+2008-08-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (get_named_tty): Fix last change.
+
 2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* indent.c (Fvertical_motion): If moving forward starting from a
