@@ -28,9 +28,6 @@
 
 ** Fix #include ordering for src/ns*.
 
-** Find out why char_quoted() in syntax.c gets called with charpos < 2 ||
-   bytepos < 2 only under NS port.
-
 ** Remove Feval calls relating to insert working text in isearch mode.
 
 ** free_frame_resources, face colors
@@ -53,11 +50,6 @@
 ** deal with Finder aliases somehow
 
 ** Ctrl-F2 won't pull up menus
-
-** set were-is-preferred-modifier to Qsuper when ns-extended-platform-support
-   mode on (and recompute menubar bindings if needed)
-
-** add a New Window entry to the dock menu
 
 
 * OTHER / LOW PRIORITY:
