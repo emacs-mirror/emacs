@@ -124,31 +124,31 @@ Reportedly this patch in X fixes the problem.
     +/* $TOG: imInt.c /main/5 1998/05/30 21:11:16 kaleb $  */
      /******************************************************************
 
-		Copyright 1992, 1993, 1994 by FUJITSU LIMITED
+                Copyright 1992, 1993, 1994 by FUJITSU LIMITED
     @@ -166,8 +166,8 @@
      _XimMakeImName(lcd)
-	 XLCd	   lcd;
+         XLCd      lcd;
      {
     -    char* begin;
     -    char* end;
     +    char* begin = NULL;
     +    char* end = NULL;
-	 char* ret;
-	 int	i = 0;
-	 char* ximmodifier = XIMMODIFIER;
+         char* ret;
+         int	i = 0;
+         char* ximmodifier = XIMMODIFIER;
     @@ -182,7 +182,11 @@
-	 }
-	 ret = Xmalloc(end - begin + 2);
-	 if (ret != NULL) {
-    -    	(void)strncpy(ret, begin, end - begin + 1);
+         }
+         ret = Xmalloc(end - begin + 2);
+         if (ret != NULL) {
+    -           (void)strncpy(ret, begin, end - begin + 1);
     +	if (begin != NULL) {
-    +      	  (void)strncpy(ret, begin, end - begin + 1);
+    +             (void)strncpy(ret, begin, end - begin + 1);
     +        } else {
-    +	  ret[0] = '\0';
+    +     ret[0] = '\0';
     +	}
-	    ret[end - begin + 1] = '\0';
-	 }
-	 return ret;
+            ret[end - begin + 1] = '\0';
+         }
+         return ret;
 
 ** Emacs crashes on startup after a glibc upgrade.
 
@@ -352,8 +352,8 @@ you may need to make `movemail' setgid to a suitable group such as
 `mail'.  To do this,  use the following commands (as root) after doing the
 make install.
 
-	chgrp mail movemail
-	chmod 2755 movemail
+        chgrp mail movemail
+        chmod 2755 movemail
 
 Installation normally copies movemail from the build directory to an
 installation directory which is usually under /usr/local/lib.  The
@@ -460,21 +460,21 @@ causes it.
     --- serversyscall.c     Wed Jan 28 15:14:48 1987
     ***************
     *** 163,169 ****
-	    /*
-	     * No return sent for close or fsync!
-	     */
+            /*
+             * No return sent for close or fsync!
+             */
     !       if (syscall == RSYS_close || syscall == RSYS_fsync)
-		    proc->p_returnval = deallocate_fd(proc, msg->m_args[0]);
-	    else
-	    {
+                    proc->p_returnval = deallocate_fd(proc, msg->m_args[0]);
+            else
+            {
     --- 166,172 ----
-	    /*
-	     * No return sent for close or fsync!
-	     */
+            /*
+             * No return sent for close or fsync!
+             */
     !       if (syscall == RSYS_close)
-		    proc->p_returnval = deallocate_fd(proc, msg->m_args[0]);
-	    else
-	    {
+                    proc->p_returnval = deallocate_fd(proc, msg->m_args[0]);
+            else
+            {
 
 ** PSGML
 
@@ -950,15 +950,15 @@ distributions, such as Debian, may already have applied such a patch.)
 +	;; register-char-codings may be very slow for these coding
 +	;; system definitions.
 +	(let ((y (cadr x)))
-+	  (mucs-define-coding-system
-+	   (car x) (nth 1 y) (nth 2 y)
-+	   (nth 3 y) (nth 4 y) (nth 5 y)))
++         (mucs-define-coding-system
++          (car x) (nth 1 y) (nth 2 y)
++          (nth 3 y) (nth 4 y) (nth 5 y)))
 +      (mapcar
 +       (lambda (y)
-+	 (mucs-define-coding-system
-+	  (nth 0 y) (nth 1 y) (nth 2 y)
-+	  (nth 3 y) (nth 4 y) (nth 5 y) (nth 6 y))
-+	 (coding-system-put (car y) 'alias-coding-systems (list (car x)))))
++        (mucs-define-coding-system
++         (nth 0 y) (nth 1 y) (nth 2 y)
++         (nth 3 y) (nth 4 y) (nth 5 y) (nth 6 y))
++        (coding-system-put (car y) 'alias-coding-systems (list (car x)))))
 +      (cdr x)))
    `((utf-8
       (utf-8-unix
@@ -983,7 +983,7 @@ make it compiled by the latest Emacs.
  ;   (message "MCCLREGFIN:%S" result)
 -    `(progn
 -       (setq mucs-ccl-facility-alist
--	     (quote ,mucs-ccl-facility-alist))
+-            (quote ,mucs-ccl-facility-alist))
 -       ,@result)))
 +    ;; The only way the function is used in this package is included
 +    ;; in `mucs-package-definition-end-hook' value, where it must
@@ -991,7 +991,7 @@ make it compiled by the latest Emacs.
 +    ;; on byte compiler to remove extra `progn's in `(progn ...)'
 +    ;; form.
 +    `((setq mucs-ccl-facility-alist
-+	    (quote ,mucs-ccl-facility-alist))
++           (quote ,mucs-ccl-facility-alist))
 +      ,@result)))
 
  ;;; Add hook for embedding translation informations to a package.
@@ -1396,7 +1396,7 @@ font.
 One way to avoid this problem is to eliminate the type-1 fonts from
 your font path, like this:
 
-	xset -fp /usr/X11R6/lib/X11/fonts/Type1/
+        xset -fp /usr/X11R6/lib/X11/fonts/Type1/
 
 *** Pull-down menus appear in the wrong place, in the toolkit version of Emacs.
 
@@ -1444,6 +1444,20 @@ The easy way to do this is to put
   (setq x-sigio-bug t)
 
 in your site-init.el file.
+
+*** Prevent double pastes in X
+
+The problem:  a region, such as a command, is pasted twice when you copy
+it with your mouse from GNU Emacs to an xterm or an RXVT shell in X.
+The solution:  try the following in your X configuration file,
+/etc/X11/xorg.conf  This should enable both PS/2 and USB mice for
+single copies.  You do not need any other drivers or options.
+
+    Section "InputDevice"
+            Identifier	"Generic Mouse"
+            Driver	"mousedev"
+            Option	"Device"           "/dev/input/mice"
+    EndSection
 
 * Runtime problems on character terminals
 
@@ -2060,15 +2074,15 @@ the fr.ISO-8859-15 locale (and maybe other related locales).
 
 You can fix this by editing the file:
 
-	/usr/openwin/lib/locale/iso8859-15/Compose
+        /usr/openwin/lib/locale/iso8859-15/Compose
 
 Near the bottom there is a line that reads:
 
-	Ctrl<t> <quotedbl> <Y>                  : "\276"        threequarters
+        Ctrl<t> <quotedbl> <Y>                  : "\276"        threequarters
 
 that should read:
 
-	Ctrl<T> <quotedbl> <Y>                  : "\276"        threequarters
+        Ctrl<T> <quotedbl> <Y>                  : "\276"        threequarters
 
 Note the lower case <t>.  Changing this line should make C-t work.
 
@@ -2568,7 +2582,7 @@ link stage.
 
 A solution is to link with GCC, like this:
 
-  	make CC=gcc
+        make CC=gcc
 
 Since the .o object files already exist, this will not recompile Emacs
 with GCC, but just restart by trying again to link temacs.
@@ -2585,7 +2599,7 @@ workaround/fix is:
 
 *** AIX 4.1.2: Linker error messages such as
   ld: 0711-212 SEVERE ERROR: Symbol .__quous, found in the global symbol table
-	of archive /usr/lib/libIM.a, was not defined in archive member shr.o.
+        of archive /usr/lib/libIM.a, was not defined in archive member shr.o.
 
 This is a problem in libIM.a.  You can work around it by executing
 these shell commands in the src subdirectory of the directory where
@@ -2775,8 +2789,8 @@ following section near the end of the file src/m/macppc.h in the Emacs
 distribution:
 
   #if 0  /* This breaks things on PPC GNU/Linux except for Yellowdog,
-	    even with identical GCC, as, ld.  Let's take it out until we
-	    know what's really going on here.  */
+            even with identical GCC, as, ld.  Let's take it out until we
+            know what's really going on here.  */
   /* GCC 2.95 and newer on GNU/Linux PPC changed the load address to
      0x10000000.  */
   #if defined __linux__
@@ -3038,7 +3052,7 @@ for certain.
 
         103093-03: [README] SunOS 5.5: kernel patch (2140557 bytes)
         102832-01: [README] OpenWindows 3.5: Xview Jumbo Patch (4181613 bytes)
-	103242-04: [README] SunOS 5.5: linker patch (595363 bytes)
+        103242-04: [README] SunOS 5.5: linker patch (595363 bytes)
 
 (One user reports that the bug was fixed by those patches together
 with patches 102980-04, 103279-01, 103300-02, and 103468-01.)
@@ -3290,16 +3304,16 @@ emulator program.  It contains several extremely general X resources
 that affect other programs besides `scoterm'.  In particular, these
 resources affect Emacs also:
 
-	*Font: -*-helvetica-medium-r-*--12-*-p-*
-	*Background:			scoBackground
-	*Foreground:			scoForeground
+        *Font: -*-helvetica-medium-r-*--12-*-p-*
+        *Background:			scoBackground
+        *Foreground:			scoForeground
 
 The best solution is to create an application-specific resource file for
 Emacs, /usr/lib/X11/sco/startup/Emacs, with the following contents:
 
-	Emacs*Font:	-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1
-	Emacs*Background:	white
-	Emacs*Foreground:	black
+        Emacs*Font:	-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1
+        Emacs*Background:	white
+        Emacs*Foreground:	black
 
 (These settings mimic the Emacs defaults, but you can change them to
 suit your needs.)  This resource file is only read when the X server
@@ -3386,19 +3400,19 @@ For Perl 4:
     --- PERL/LIB/PERLDB.PL	Mon Jul 01 15:28:16 1996
     ***************
     *** 68,74 ****
-	  $rcfile=".perldb";
+          $rcfile=".perldb";
       }
       else {
     !     $console = "con";
-	  $rcfile="perldb.ini";
+          $rcfile="perldb.ini";
       }
 
     --- 68,74 ----
-	  $rcfile=".perldb";
+          $rcfile=".perldb";
       }
       else {
     !     $console = "";
-	  $rcfile="perldb.ini";
+          $rcfile="perldb.ini";
       }
 
 
@@ -3407,19 +3421,19 @@ For Perl 4:
     --- perl/5.001/lib/perl5db.pl	Mon Jul 01 17:00:08 1996
     ***************
     *** 22,28 ****
-	  $rcfile=".perldb";
+          $rcfile=".perldb";
       }
       elsif (-e "con") {
     !     $console = "con";
-	  $rcfile="perldb.ini";
+          $rcfile="perldb.ini";
       }
       else {
     --- 22,28 ----
-	  $rcfile=".perldb";
+          $rcfile=".perldb";
       }
       elsif (-e "con") {
     !     $console = "";
-	  $rcfile="perldb.ini";
+          $rcfile="perldb.ini";
       }
       else {
 
@@ -3746,7 +3760,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 Local variables:
 mode: outline
-paragraph-separate: "[ 	]*$"
+paragraph-separate: "[  ]*$"
 end:
 
 arch-tag: 49fc0d95-88cb-4715-b21c-f27fb5a4764a
