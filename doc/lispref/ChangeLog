@@ -1,3 +1,7 @@
+2008-08-26  Jason Rumney  <jasonr@gnu.org>
+
+	* display.texi (TIFF Images): New section describing :index property.
+
 2008-08-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Temporary Displays): Remove unnecessary comment
