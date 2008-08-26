@@ -1,3 +1,8 @@
+2008-08-26  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa--key-widget-action): Save the selected window to
+	make `widget-button-click-moves-point' work.  (Bug#733).
+
 2008-08-26  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/gud.el (tramp-file-name-localname)
