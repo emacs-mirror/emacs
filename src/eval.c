@@ -1377,7 +1377,7 @@ instead of a single condition name.  Then it handles all of them.
 
 When a handler handles an error, control returns to the `condition-case'
 and it executes the handler's BODY...
-with VAR bound to (SIGNALED-CONDITIONS . SIGNAL-DATA) from the error.
+with VAR bound to (ERROR-SYMBOL . SIGNAL-DATA) from the error.
 (If VAR is nil, the handler can't access that information.)
 Then the value of the last BODY form is returned from the `condition-case'
 expression.
