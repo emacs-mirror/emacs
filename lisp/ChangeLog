@@ -1,3 +1,10 @@
+2008-08-26  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/gud.el (tramp-file-name-localname)
+	(tramp-dissect-file-name): Declare,
+
+	* term/pc-win.el (msdos-setup-keyboard): Fix declaration.
+
 2008-08-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* bindings.el (mode-line-frame-control): New function, caters to

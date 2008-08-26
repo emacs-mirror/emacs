@@ -1,3 +1,27 @@
+2008-08-26  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Non-Gregorian Diary Entries): New name for
+	node "Hebrew/Islamic Entries".
+
+	* calendar.texi (Specified Dates): Fix names of iso functions.
+	(General Calendar): There may not be another window.
+	(Writing Calendar Files, Holidays): Tweak intro.
+	(Holidays): Mention Baha'i and Chinese holidays.
+	(Sunrise/Sunset): Add M-x calendar-sunrise-sunset-month.
+	(Lunar Phases): Remove incorrect reference to calendar-time-zone.
+	(To Other Calendar): Add calendar-print-other-dates.
+	Refer to "graphic display" rather than "X.
+	(From Other Calendar): Add calendar-bahai-goto-date.  Fix reference.
+	(Displaying the Diary): Fix whitespace after reference.
+	Fix `diary-number-of-entries' reference.
+	(Date Formats): Explicitly mention that day names can be abbreviated.
+	(Adding to Diary): Add some references to other sections.
+	(Special Diary Entries): Fix reference.
+	(Appointments): Simplify appt-message-warning-time entry.
+	Clarify where times must be.
+	(Importing Diary): Comment out icalendar paragraph that does not apply.
+	(Time Intervals): Simplify entry for timeclock-ask-before-exiting.
+
 2008-08-23  Glenn Morris  <rgm@gnu.org>
 
 	* fortran-xtra.texi (Fortran): Change description of free form and

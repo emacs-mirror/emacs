@@ -97,6 +97,13 @@ listed is the master.  E.g.:
 
 forcemerge 123 124 125 ...
 
+*** To unmerge bugs:
+To disconnect a bug from all bugs it is merged with:
+
+unmerge 123
+
+This command accepts only one bug number.
+
 *** To set severity:
 severity 123 critical|grave|serious|important|normal|minor|wishlist
 
