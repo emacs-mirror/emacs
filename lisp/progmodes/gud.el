@@ -2445,6 +2445,9 @@ comint mode, which see."
   :group 'gud
   :type 'boolean)
 
+(declare-function tramp-file-name-localname "tramp" (vec))
+(declare-function tramp-dissect-file-name "tramp" (name &optional nodefault))
+
 ;; Perform initializations common to all debuggers.
 ;; The first arg is the specified command line,
 ;; which starts with the program to debug.
