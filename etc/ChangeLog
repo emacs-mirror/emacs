@@ -1,3 +1,7 @@
+2008-08-26  Robert J. Chassell  <bob@rattlesnake.com>
+
+        * PROBLEMS: Prevent pasting a region twice on an xterm or rxvt in X.
+
 2008-08-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* HELLO: Fix Javanese pun.
