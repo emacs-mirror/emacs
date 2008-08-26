@@ -53,6 +53,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include "syssignal.h"
 
+#include "character.h"
+#include "font.h"
+
 /* This sucks: this is the first default that x-faces.el tries.  This won't
    be used unless neither the "Emacs.EmacsFrame" resource nor the
    "Emacs.EmacsFrame" resource is set; the frame
@@ -104,7 +107,7 @@ static XtResource resources[] = {
      offset (internal_border_width), XtRImmediate, (XtPointer)4},
   {XtNinterline, XtCInterline, XtRInt, sizeof (int),
      offset (interline), XtRImmediate, (XtPointer)0},
-  {XtNfont,  XtCFont, XtRFontStruct, sizeof(XFontStruct *),
+  {XtNfont,  XtCFont, XtRFontStruct, sizeof(struct font *),
      offset(font),XtRString, DEFAULT_FACE_FONT},
   {XtNforeground, XtCForeground, XtRPixel, sizeof(Pixel),
      offset(foreground_pixel), XtRString, "XtDefaultForeground"},
@@ -572,6 +575,22 @@ setup_frame_gcs (ew)
   XGCValues gc_values;
   struct frame* s = ew->emacs_frame.frame;
   Pixmap blank_stipple, blank_tile;
+  unsigned long valuemask = (GCForeground | GCBackground | GCGraphicsExposures
+			     | GCStipple | GCTile);
+  Lisp_Object font;
+
+  XSETFONT (font, ew->emacs_frame.font);
+  font = Ffont_xlfd_name (font, Qnil);
+  if (STRINGP (font))
+    {
+      XFontStruct *xfont = XLoadQueryFont (FRAME_X_DISPLAY_INFO (s)->display,
+					   SDATA (font));
+      if (xfont)
+	{
+	  gc_values.font = xfont->fid;
+	  valuemask |= GCFont;
+	}
+    }
 
   /* We have to initialize all of our GCs to have a stipple/tile, otherwise
      XGetGCValues returns uninitialized data when we query the stipple
@@ -598,31 +617,24 @@ setup_frame_gcs (ew)
 				   ew->core.depth);
 
   /* Normal video */
-  gc_values.font = ew->emacs_frame.font->fid;
   gc_values.foreground = ew->emacs_frame.foreground_pixel;
   gc_values.background = ew->core.background_pixel;
   gc_values.graphics_exposures = False;
   gc_values.stipple = blank_stipple;
   gc_values.tile = blank_tile;
   XChangeGC (XtDisplay (ew), s->output_data.x->normal_gc,
-	     (GCFont | GCForeground | GCBackground | GCGraphicsExposures
-	      | GCStipple | GCTile),
-	     &gc_values);
+	     valuemask, &gc_values);
 
   /* Reverse video style. */
-  gc_values.font = ew->emacs_frame.font->fid;
   gc_values.foreground = ew->core.background_pixel;
   gc_values.background = ew->emacs_frame.foreground_pixel;
   gc_values.graphics_exposures = False;
   gc_values.stipple = blank_stipple;
   gc_values.tile = blank_tile;
   XChangeGC (XtDisplay (ew), s->output_data.x->reverse_gc,
-	     (GCFont | GCForeground | GCBackground | GCGraphicsExposures
-	      | GCStipple | GCTile),
-	     &gc_values);
+	     valuemask, &gc_values);
 
   /* Cursor has to have an empty stipple. */
-  gc_values.font = ew->emacs_frame.font->fid;
   gc_values.foreground = ew->core.background_pixel;
   gc_values.background = ew->emacs_frame.cursor_color;
   gc_values.graphics_exposures = False;
@@ -632,9 +644,7 @@ setup_frame_gcs (ew)
 			     RootWindowOfScreen (XtScreen (ew)),
 			     setup_frame_cursor_bits, 16, 16);
   XChangeGC (XtDisplay (ew), s->output_data.x->cursor_gc,
-	     (GCFont | GCForeground | GCBackground | GCGraphicsExposures
-	      | GCStipple | GCTile),
-	     &gc_values);
+	     valuemask, &gc_values);
 }
 
 static void
@@ -681,48 +691,8 @@ EmacsFrameInitialize (request, new, dum1, dum2)
       exit (1);
     }
 
-#if 0 /* done in xfns.c */
-  /* If the "Emacs.EmacsFrame.{default,Face}.{attributeFont,AttributeFont}"
-     resource is set, then it always overrides "Emacs.EmacsFrame.{font,Font}".
-     It's unfortunate that we have to do this, but we need to know the font
-     size for frame-sizing purposes before the faces get initialized.  If
-     the "default.attributeFont" isn't set, then we use the font of this
-     EmacsFrame itself, defaulting to XtDefaultFont.  Up in the lisp code,
-     the "default" face will use the frame's font if its own is not set,
-     so everything stays in sync -- it's not possible for the frame's font
-     and the default face's font to be different.
-   */
-  {
-    XFontStruct *f = 0;
-    XtResource face_res;
-    face_res.resource_name = "attributeFont";
-    face_res.resource_class = "AttributeFont";
-    face_res.resource_type = XtRFontStruct;
-    face_res.resource_size = sizeof (XFontStruct *);
-    face_res.resource_offset = 0;
-    face_res.default_type = XtRImmediate;
-    face_res.default_addr = 0;
-    XtGetSubresources ((Widget) ew, (XtPointer) &f, "default", "Face",
-		       &face_res, 1, NULL, 0);
-
-    if (f)
-	ew->emacs_frame.font = f;
-    else if (! ew->emacs_frame.font)
-      {
-	fprintf (stderr, "emacs frame widget could not load a font\n");
-	exit (1);
-      }
-  }
-
-/* Update the font field in frame */
-  FRAME_FONT (ew->emacs_frame.frame) = ew->emacs_frame.font;
-#endif
-
   update_from_various_frame_slots (ew);
   set_frame_size (ew);
-/*create_frame_gcs (ew);
-  setup_frame_gcs (ew);
-  update_various_frame_slots (ew); */
 }
 
 
