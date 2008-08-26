@@ -54,6 +54,8 @@ a GIF library.
 +++
 *** Emacs now supports the SVG image format through librsvg2.
 
+*** Emacs now supports multi-page TIFF images.
+
 ** New NeXTSTEP-based port
 This provides support for GNUStep (via the GNUStep libraries) and Mac
 OS X (via the Cocoa libraries).  
