@@ -488,8 +488,6 @@ It uses `auto-composition-function' (default `auto-compose-chars').
 
 ** bug-reference.el provides clickable links to bug reports.
 
-** copyright.el provides utilities for updating copyright notices in files.
-
 ** dbus.el provides D-Bus language bindings.
 D-Bus is an inter-process communication mechanism for applications
 residing on the same host.  See the manual for details.
@@ -558,126 +556,18 @@ interfaces according to the zeroconf specification.  It communicates
 with Avahi, a zeroconf implementation, via D-Bus messages on systems
 which have installed this software.
 
-** A new `whitespace' package has been installed, and the pre-existing one
-renamed to `old-whitespace'.
-Now, besides reporting bogus blanks, whitespace package has a minor mode and a
-global minor mode to visualize blanks (TAB, (HARD) SPACE and NEWLINE).  The
-visualization is made via faces and/or display table.
-
-The main commands are `whitespace-mode', `whitespace-toggle-options',
-`global-whitespace-mode' and `global-whitespace-toggle-options'.
-
-There are also the following useful commands: `whitespace-newline-mode',
-`global-whitespace-newline-mode', `whitespace-report',
-`whitespace-report-region', `whitespace-cleanup' and
-`whitespace-cleanup-region'.
-
-It has the following hook variables: `whitespace-mode-hook',
-`global-whitespace-mode-hook' and `whitespace-load-hook'.
-
-It has the following options: `whitespace-style', `whitespace-action',
-`whitespace-line-column', `whitespace-display-mappings' and
-`whitespace-global-modes'.
-
-It has the following faces: `whitespace-space', `whitespace-hspace',
-`whitespace-tab', `whitespace-newline', `whitespace-trailing',
-`whitespace-line', `whitespace-space-before-tab', `whitespace-indentation',
-`whitespace-empty' and `whitespace-space-after-tab'.
-
-It has the following regexp options: `whitespace-space-regexp',
-`whitespace-hspace-regexp', `whitespace-tab-regexp',
-`whitespace-trailing-regexp', `whitespace-space-before-tab-regexp',
-`whitespace-indentation-regexp', `whitespace-empty-at-bob-regexp',
-`whitespace-empty-at-eob-regexp' and `whitespace-space-after-tab-regexp'.
-
-The `whitespace-style' option specifies which kind of blanks should be
-visualized.  It's a list containing some or all of the following values:
-
-trailing	trailing blanks are visualized via faces.
-
-tabs		TABs are visualized via faces.
-
-spaces		SPACEs and HARD SPACEs are visualized via faces.
-
-lines		lines whose have columns beyond `whitespace-line-column' are
-		highlighted via faces.
-		Whole line is highlighted.
-		It has precedence over `lines-tail' (see below).
-
-lines-tail	lines whose have columns beyond `whitespace-line-column' are
-		highlighted via faces.
-		But only the part of line which goes beyond
-		`whitespace-line-column' column.
-		It has effect only if `lines' (see above) is not present in
-		`whitespace-style'.
-
-newline		NEWLINEs are visualized via faces.
-
-empty		empty lines at beginning and/or end of buffer are visualized
-		via faces.
-
-indentation::tab	8 or more SPACEs at beginning of line are visualized
-			via faces.
-
-indentation::space	TABs at beginning of line are visualized via faces.
-
-indentation	8 or more SPACEs at beginning of line are visualized, if
-		`indent-tabs-mode' (which see) is non-nil; otherwise, TABs at
-		beginning of line are visualized via faces.
-
-space-after-tab::tab	8 or more SPACEs after a TAB are visualized via faces.
-
-space-after-tab::space	TABs are visualized when occurs 8 or more SPACEs after
-			a TAB via faces.
-
-space-after-tab		8 or more SPACEs after a TAB are visualized, if
-			`indent-tabs-mode' (which see) is non-nil; otherwise,
-			the TABs are visualized via faces.
-
-space-before-tab::tab	SPACEs before TAB are visualized via faces.
-
-space-before-tab::space	TABs are visualized when occurs SPACEs before TAB via
-			faces.
-
-space-before-tab	SPACEs before TAB are visualized, if `indent-tabs-mode'
-			(which see) is non-nil; otherwise, the TABs are
-			visualized via faces.
-
-space-mark	SPACEs and HARD SPACEs are visualized via display table.
-
-tab-mark	TABs are visualized via display table.
-
-newline-mark	NEWLINEs are visualized via display table.
-
-Any other value is ignored.
-
-The `whitespace-action' option specifies which action is taken when a buffer is
-visited, killed or written.  It's a list containing some or all of the
-following values:
-
-nil		no action is taken.
-
-cleanup		cleanup any bogus whitespace always when local whitespace is
-		turned on.  See `whitespace-cleanup' and
-		`whitespace-cleanup-region'.
-
-report-on-bogus	report if there is any bogus whitespace always when local
-		whitespace is turned on.
-
-auto-cleanup	cleanup any bogus whitespace when buffer is written or killed.
-		See `whitespace-cleanup' and `whitespace-cleanup-region'.
-
-abort-on-bogus	abort if there is any bogus whitespace and the buffer is
-		written or killed.
-
-Any other value is treated as nil.
+** There is a new `whitespace' package.
+(The pre-existing one has been renamed to `old-whitespace'.)
+Now, besides reporting bogus blanks, the whitespace package has a
+minor mode and a global minor mode to visualize blanks (TAB, (HARD)
+SPACE and NEWLINE).  The visualization is made via faces and/or display
+table.  It can also indicate lines that extend beyond a given column,
+trailing blanks, and empty lines at the start or end of a buffer.
+See `whitespace-style' for more details.  The `whitespace-action' option
+specifies what to do when a buffer is visited, killed, or written.
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
-
-** Diff mode
-*** New function `diff-show-trailing-whitespaces' can be used to show
-trailing whitespace problems in the modified lines of a diff buffer.
 
 ** Abbrev has been rewritten in Elisp and extended with more flexibility.
 *** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
@@ -766,6 +656,15 @@ the first error encountered during compilations.
 improved. `hh' can be used to match C++ header files and `cchh' both
 C++ sources and headers.
 
+** Copyright
+
+*** You can specify your copyright holders' names.
+Only copyright lines with holders matching `copyright-names-regexp' are
+considered for update.
+
+*** Copyrights can be at the end of the buffer.
+This is controlled by `copyright-at-end-flag' (used by, e.g., change-log-mode).
+
 ** Custom
 +++
 *** defcustom accepts new keyword arguments, `:safe' and `:risky', which
@@ -780,6 +679,9 @@ diff-auto-refine-mode.  It is bound to `C-c C-b'.
 *** diff-add-change-log-entries-other-window iterates through the diff
 buffer and tries to create ChangeLog entries for each change.
 It is bound to `C-x 4 A'.
+
+*** The new function `diff-show-trailing-whitespaces' shows
+trailing whitespace problems in the modified lines of a diff buffer.
 
 ** Dired
 
