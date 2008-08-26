@@ -1,3 +1,14 @@
+2008-08-26  Johan Bockgård  <bojohan@gnu.org>
+
+	* linum.el (linum): Inherit remaining face attributes from default
+	face.
+
+2008-08-26  Markus Triska  <markus.triska@gmx.at>
+
+	* linum.el (linum-delay): Disable - it should no longer be
+	necessary, and can lead to longer delays.
+	(linum-update-window): Renumber if margin width has changed.
+
 2008-08-26  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.el (epa--key-widget-action): Save the selected window to
