@@ -1,7 +1,7 @@
 2008-08-26  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/gud.el (tramp-file-name-localname)
-	(tramp-dissect-file-name): Declare,
+	(tramp-dissect-file-name): Declare.
 
 	* term/pc-win.el (msdos-setup-keyboard): Fix declaration.
 
