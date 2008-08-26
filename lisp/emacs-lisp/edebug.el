@@ -273,8 +273,8 @@ An extant spec symbol is a symbol that is not a function and has a
 
 (defun edebug-gensym (&optional prefix)
   "Generate a fresh uninterned symbol.
-There is an  optional argument, PREFIX.  PREFIX is the
-string that begins the new name. Most people take just the default,
+There is an optional argument, PREFIX.  PREFIX is the string
+that begins the new name.  Most people take just the default,
 except when debugging needs suggest otherwise."
   (if (null prefix)
       (setq prefix "G"))
@@ -1278,7 +1278,7 @@ expressions; a `progn' form will be returned enclosing these forms."
     sexp))
 
 (defun edebug-unwrap* (sexp)
-  "Return the sexp recursively unwrapped."
+  "Return the SEXP recursively unwrapped."
   (let ((new-sexp (edebug-unwrap sexp)))
     (while (not (eq sexp new-sexp))
       (setq sexp new-sexp
@@ -2231,7 +2231,8 @@ See `condition-case'.
 This is the Edebug replacement for the standard `signal'.  It should
 only be active while Edebug is.  It checks `debug-on-error' to see
 whether it should call the debugger.  When execution is resumed, the
-error is signaled again."
+error is signaled again.
+\n(fn SIGNAL-NAME DATA)"
   (if (and (listp debug-on-error) (memq edebug-signal-name debug-on-error))
       (edebug 'error (cons edebug-signal-name edebug-signal-data)))
   ;; If we reach here without another non-local exit, then send signal again.
@@ -2342,7 +2343,7 @@ or nil (if the default binding is current)."
 
 (defun edebug-restore-status (var status)
   "Reset VAR based on STATUS.
-STATUS should be a list you got from `edebug-var-status'."
+STATUS should be a list returned by `edebug-var-status'."
   (let ((locus (car status))
 	(value (cdr status)))
     (cond ((bufferp locus)
@@ -3502,7 +3503,7 @@ Edebug, it calls `edebug-on-entry'."
 
 (defun edebug-top-level-nonstop ()
   "Set mode to Go-nonstop, and exit to top-level.
-This is useful for exiting even if unwind-protect code may be executed."
+This is useful for exiting even if `unwind-protect' code may be executed."
   (interactive)
   (setq edebug-execution-mode 'Go-nonstop)
   (top-level))
@@ -3937,7 +3938,7 @@ edebug-global-break-condition
 ;; A list of expressions and their evaluations is displayed in *edebug*.
 
 (defun edebug-eval-result-list ()
-  "Return a list of evaluations of edebug-eval-list"
+  "Return a list of evaluations of `edebug-eval-list'."
   ;; Assumes in outside environment.
   ;; Don't do any edebug things now.
   (let ((edebug-execution-mode 'Go-nonstop)
@@ -3971,7 +3972,7 @@ edebug-global-break-condition
 ;; with calls in user functions, e.g. (edebug-eval-display)
 
 (defun edebug-eval-display (edebug-eval-result-list)
-  "Display expressions and evaluations in EVAL-LIST.
+  "Display expressions and evaluations in EDEBUG-EVAL-RESULT-LIST.
 It modifies the context by popping up the eval display."
   (if edebug-eval-result-list
       (progn
@@ -3981,7 +3982,7 @@ It modifies the context by popping up the eval display."
 
 (defun edebug-eval-redisplay ()
   "Redisplay eval list in outside environment.
-May only be called from within edebug-recursive-edit."
+May only be called from within `edebug-recursive-edit'."
   (edebug-create-eval-buffer)
   (edebug-outside-excursion
    (edebug-eval-display-list (edebug-eval-result-list))
@@ -4073,9 +4074,9 @@ Global commands prefixed by `global-edebug-prefix':
 ;; edebug is not dependent on this, yet.
 
 (defun edebug (&optional edebug-arg-mode &rest debugger-args)
-  "Replacement for debug.
-If we are running an edebugged function,
-show where we last were.  Otherwise call debug normally."
+  "Replacement for `debug'.
+If we are running an edebugged function,show where we last were.
+Otherwise call `debug' normally."
 ;;  (message "entered: %s  depth: %s  edebug-recursion-depth: %s"
 ;;	   edebug-entered (recursion-depth) edebug-recursion-depth) (sit-for 1)
   (if (and edebug-entered  ; anything active?
@@ -4175,7 +4176,7 @@ You must include newlines in FMT to break lines, but one newline is appended."
 
 
 (defun edebug-trace (fmt &rest args)
-  "Convenience call to edebug-trace-display using edebug-trace-buffer"
+  "Convenience call to `edebug-trace-display' using `edebug-trace-buffer'."
   (apply 'edebug-trace-display edebug-trace-buffer fmt args))
 
 

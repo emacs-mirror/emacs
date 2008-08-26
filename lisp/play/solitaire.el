@@ -35,15 +35,15 @@
 ;;; Code:
 
 (defgroup solitaire nil
-  "Game of solitaire."
+  "Game of Solitaire."
   :prefix "solitaire-"
   :group 'games)
 
 (defvar solitaire-mode-map nil
-  "Keymap for playing solitaire.")
+  "Keymap for playing Solitaire.")
 
 (defcustom solitaire-mode-hook nil
-  "Hook to run upon entry to solitaire."
+  "Hook to run upon entry to Solitaire."
   :type 'hook
   :group 'solitaire)
 
@@ -94,8 +94,8 @@
 (put 'solitaire-mode 'mode-class 'special)
 
 (defun solitaire-mode ()
-  "Major mode for playing solitaire.
-To learn how to play solitaire, see the documentation for function
+  "Major mode for playing Solitaire.
+To learn how to play Solitaire, see the documentation for function
 `solitaire'.
 \\<solitaire-mode-map>
 The usual mnemonic keys move the cursor around the board; in addition,
@@ -147,7 +147,7 @@ Move stones using \\[solitaire-move] followed by a direction key.
 Undo moves using \\[solitaire-undo].
 Check for possible moves using \\[solitaire-do-check].
 \(The variable `solitaire-auto-eval' controls whether to automatically
-check after each move or undo)
+check after each move or undo.)
 
 What is Solitaire?
 
@@ -428,7 +428,7 @@ Seen in info on text lines."
 
 ;; And here's the spoiler:)
 (defun solitaire-solve ()
-  "Spoil solitaire by solving the game for you - nearly ...
+  "Spoil Solitaire by solving the game for you - nearly ...
 ... stops with five stones left ;)"
   (interactive)
   (when (< solitaire-stones 32)

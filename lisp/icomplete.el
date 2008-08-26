@@ -76,13 +76,13 @@
   :group 'icomplete)
 
 (defcustom icomplete-compute-delay .3
-  "*Completions-computation stall, used only with large-number
-completions - see `icomplete-delay-completions-threshold'."
+  "*Completions-computation stall, used only with large-number completions.
+See `icomplete-delay-completions-threshold'."
   :type 'number
   :group 'icomplete)
 
 (defcustom icomplete-delay-completions-threshold 400
-  "*Pending-completions number over which to apply icomplete-compute-delay."
+  "*Pending-completions number over which to apply `icomplete-compute-delay'."
   :type 'integer
   :group 'icomplete)
 
@@ -140,7 +140,7 @@ minibuffer completion.")
 (add-hook 'icomplete-post-command-hook 'icomplete-exhibit)
 
 (defun icomplete-get-keys (func-name)
-  "Return strings naming keys bound to `func-name', or nil if none.
+  "Return strings naming keys bound to FUNC-NAME, or nil if none.
 Examines the prior, not current, buffer, presuming that current buffer
 is minibuffer."
   (if (commandp func-name)

@@ -281,7 +281,7 @@ Point is left at the end of the arguments."
 		(= (+ pos 2) (point-max))))))
 
 (defun eshell-quote-backslash (string &optional index)
-  "Intelligently backslash the character occuring in STRING at INDEX.
+  "Intelligently backslash the character occurring in STRING at INDEX.
 If the character is itself a backslash, it needs no escaping."
   (let ((char (aref string index)))
     (if (eq char ?\\)

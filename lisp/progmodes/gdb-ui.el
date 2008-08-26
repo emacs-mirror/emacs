@@ -1315,7 +1315,7 @@ want the GDB Graphical Interface."
   (setq gdb-flush-pending-output t)
   (setq gud-running nil)
   (gdb-force-mode-line-update
-   (propertize "stopped"'face font-lock-warning-face))
+   (propertize "stopped" 'face font-lock-warning-face))
   (setq gdb-output-sink 'user)
   (setq gdb-input-queue nil)
   (setq gdb-pending-triggers nil)
@@ -3109,7 +3109,7 @@ Kills the gdb buffers, and resets variables and the source buffers."
   (remove-hook 'after-save-hook 'gdb-create-define-alist t))
 
 (defun gdb-source-info ()
-  "Find the source file where the program starts and displays it with related
+  "Find the source file where the program starts and display it with related
 buffers."
   (goto-char (point-min))
   (if (and (search-forward "Located in " nil t)

@@ -758,7 +758,7 @@ space does not end a sentence, so don't break a line there."
 If ARG is non-nil (interactively, with prefix argument), justify as well.
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there.
-the variable `fill-column' controls the width for filling.
+The variable `fill-column' controls the width for filling.
 
 If `fill-paragraph-function' is non-nil, we call it (passing our
 argument to it), and if it returns non-nil, we simply return its value.

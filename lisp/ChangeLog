@@ -1,3 +1,61 @@
+2008-08-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* facemenu.el (facemenu-unlisted-faces): Fix obsolescence declaration.
+
+	* hi-lock.el (hi-lock-mode): Fix typo in docstring.
+
+	* icomplete.el (icomplete-compute-delay, icomplete-get-keys): Doc fixes.
+	(icomplete-delay-completions-threshold): Fix typo in docstring.
+
+	* speedbar.el (speedbar-stealthy-function-list)
+	(speedbar-verbosity-level, speedbar-supported-extension-expressions)
+	(speedbar-update-current-file, speedbar-add-indicator)
+	(speedbar-tag-expand): Reflow docstrings.
+	(speedbar-use-imenu-flag, speedbar-use-tool-tips-flag)
+	(speedbar-ignored-directory-regexp, speedbar-file-unshown-regexp)
+	(speedbar-file-regexp, speedbar-message, speedbar-item-info)
+	(speedbar-files-item-info, speedbar-fetch-replacement-function)
+	(speedbar-maybe-add-localized-support)
+	(speedbar-generic-list-positioned-group-p, speedbar-insert-generic-list)
+	(speedbar-extract-one-symbol, speedbar-recenter-to-top)
+	(speedbar-recenter, speedbar-separator-face): Fix typos in docstrings.
+	(speedbar-ignored-directory-expressions, speedbar-handle-delete-frame)
+	(speedbar-show-info-under-mouse, speedbar-directory-buttons)
+	(speedbar-check-vc-this-line, speedbar-files-line-directory)
+	(speedbar-buffer-buttons, speedbar-buffer-buttons-temp)
+	(speedbar-buffers-line-directory): Doc fixes.
+
+	* tool-bar.el (tool-bar-add-item): Fix typo in docstring.
+
+	* emacs-lisp/edebug.el (edebug-unwrap*, edebug-signal)
+	(edebug-restore-status): Doc fixes.
+	(edebug-gensym, edebug-top-level-nonstop, edebug-eval-display)
+	(edebug-eval-result-list, edebug-eval-redisplay, edebug)
+	(edebug-trace): Fix typos in docstrings.
+
+	* emulation/tpu-edt.el (tpu-match-beginning, tpu-match-end)
+	(tpu-check-match, tpu-goto-breadcrumb, tpu-reset-screen-size)
+	(tpu-toggle-overwrite-mode, tpu-include, tpu-get, tpu-what-line)
+	(tpu-insert-escape, tpu-insert-formfeed, tpu-end-define-macro-key)
+	(tpu-check-search-case, tpu-select, tpu-unselect, tpu-trim-line-ends)
+	(tpu-toggle-control-keys): Fix typos in docstrings.
+	(tpu-kill-buffer): Doc fix.
+	(tpu-make-file-buffer-list, tpu-toggle-regexp, tpu-cut)
+	(tpu-append-region, tpu-delete-current-char, tpu-emacs-replace):
+	Reflow docstrings.
+
+	* eshell/em-smart.el (eshell-review-quick-commands): Doc fix.
+
+	* eshell/esh-arg.el (eshell-quote-backslash): Fix typo in docstring.
+
+	* play/solitaire.el (solitaire, solitaire-mode-map, solitaire-mode-hook)
+	(solitaire-mode, solitaire, solitaire-solve): Fix typos in docstrings.
+
+	* progmodes/gdb-ui.el (gdb-source-info): Fix typo in docstring.
+
+	* progmodes/python.el (python-comment-line-p, python-blank-line-p)
+	(python-skip-out): Doc fixes.
+
 2008-08-25  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (math-simplify-units-quotient): Replace
@@ -129,7 +187,7 @@
 	* files.el (abbreviate-file-name): When replacing $HOME with ~,
 	turn off case-fold-search.
 
-2008-07-31  Joachim Nilsson  <joachim.nilsson@member.fsf.org> (tiny change)
+2008-07-31  Joachim Nilsson  <joachim.nilsson@member.fsf.org>  (tiny change)
 
 	* progmodes/cc-styles.el (c-style-alist): For the Ellemtel style,
 	move the (arglist-cont-nonempty) from c-offsets-alist to

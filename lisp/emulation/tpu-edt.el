@@ -730,15 +730,15 @@ SS3 is DEC's name for the sequence <ESC>O.")
   (set-marker tpu-match-end-mark nil))
 
 (defun tpu-match-beginning nil
-  "Returns the location of the last match beginning."
+  "Return the location of the last match beginning."
   (marker-position tpu-match-beginning-mark))
 
 (defun tpu-match-end nil
-  "Returns the location of the last match end."
+  "Return the location of the last match end."
   (marker-position tpu-match-end-mark))
 
 (defun tpu-check-match nil
-  "Returns t if point is between tpu-match markers.
+  "Return t if point is between tpu-match markers.
 Otherwise sets the tpu-match markers to nil and returns nil."
   ;; make sure 1- marker is in this buffer
   ;;           2- point is at or after beginning marker
@@ -849,7 +849,7 @@ Top line is 0.  Counts each text line only once, even if it wraps."
   (message "Mark %d set." num))
 
 (defun tpu-goto-breadcrumb (num)
-  "Returns to a breadcrumb set with drop-breadcrumb."
+  "Return to a breadcrumb set with drop-breadcrumb."
   (interactive "p")
   (cond ((get tpu-breadcrumb-plist num)
 	 (switch-to-buffer (car (get tpu-breadcrumb-plist num)))
@@ -908,7 +908,7 @@ With argument, fill and justify."
    tpu-version))
 
 (defun tpu-reset-screen-size (height width)
-  "Sets the screen size."
+  "Set the screen size."
   (interactive "nnew screen height: \nnnew screen width: ")
   (set-frame-height (selected-frame) height)
   (set-frame-width (selected-frame) width))
@@ -930,8 +930,8 @@ With argument, fill and justify."
 		(if tpu-newline-and-indent-p " and indents." "."))))
 
 (defun tpu-spell-check nil
-  "Checks the spelling of the region, or of the entire buffer if no
- region is selected."
+  "Check the spelling of the region, or of the entire buffer,
+ if no region is selected."
   (interactive)
   (cond (tpu-have-ispell
 	 (if (tpu-mark) (ispell-region (tpu-mark) (point)) (ispell-buffer)))
@@ -940,7 +940,7 @@ With argument, fill and justify."
   (if (tpu-mark) (tpu-unselect t)))
 
 (defun tpu-toggle-overwrite-mode nil
-  "Switches in and out of overwrite mode"
+  "Switch in and out of overwrite mode."
   (interactive)
   (cond (overwrite-mode
 	 (tpu-local-set-key "\177" tpu-saved-delete-func)
@@ -970,18 +970,18 @@ This is useful for inserting control characters."
 ;;;  TPU line-mode commands
 ;;;
 (defun tpu-include (file)
-  "TPU-like include file"
+  "TPU-like include file."
   (interactive "fInclude file: ")
   (insert-file-contents file)
   (message ""))
 
 (defun tpu-get (file)
-  "TPU-like get file"
+  "TPU-like get file."
   (interactive "FFile to get: ")
   (find-file file find-file-wildcards))
 
 (defun tpu-what-line nil
-  "Tells what line the point is on,
+  "Tell what line the point is on,
  and the total number of lines in the buffer."
   (interactive)
   (if (eobp)
@@ -1251,12 +1251,12 @@ This is useful for inserting control characters."
 ;;;  Auto-insert
 ;;;
 (defun tpu-insert-escape nil
-  "Inserts an escape character, and so becomes the escape-key alias."
+  "Insert an escape character, and so becomes the escape-key alias."
   (interactive)
   (insert "\e"))
 
 (defun tpu-insert-formfeed nil
-  "Inserts a formfeed character."
+  "Insert a formfeed character."
   (interactive)
   (insert "\C-L"))
 
@@ -1267,7 +1267,7 @@ This is useful for inserting control characters."
 (defvar tpu-saved-control-r nil "Saved value of Control-r.")
 
 (defun tpu-end-define-macro-key (key)
-  "Ends the current macro definition"
+  "End the current macro definition"
   (interactive "kPress the key you want to use to do what was just learned: ")
   (end-kbd-macro nil)
   (global-set-key key last-kbd-macro)
@@ -1285,8 +1285,9 @@ This is useful for inserting control characters."
 ;;;  Buffers and Windows
 ;;;
 (defun tpu-kill-buffer nil
-  "Kills the current buffer.  If tpu-kill-buffers-silently is non-nil,
-kills modified buffers without asking."
+  "Kill the current buffer.
+If `tpu-kill-buffers-silently' is non-nil,
+kill modified buffers without asking."
   (interactive)
   (if tpu-kill-buffers-silently (set-buffer-modified-p nil))
   (kill-buffer (current-buffer)))
@@ -1316,7 +1317,7 @@ kills modified buffers without asking."
     (switch-to-buffer (car (reverse list)))))
 
 (defun tpu-make-file-buffer-list (buffer-list)
-  "Returns names from BUFFER-LIST excluding those beginning with a space or star."
+  "Return names from BUFFER-LIST excluding those beginning with a space or star."
   (delq nil (mapcar '(lambda (b)
                        (if (or (= (aref (buffer-name b) 0) ? )
                                (= (aref (buffer-name b) 0) ?*)) nil b))
@@ -1339,7 +1340,7 @@ kills modified buffers without asking."
 ;;;  Search
 ;;;
 (defun tpu-toggle-regexp nil
-  "Switches in and out of regular expression search and replace mode."
+  "Switch in and out of regular expression search and replace mode."
   (interactive)
   (setq tpu-regexp-p (not tpu-regexp-p))
   (tpu-set-search)
@@ -1460,7 +1461,7 @@ direction.  If an argument is specified, don't set the search direction."
 (defalias 'tpu-search-internal-core (symbol-function 'tpu-search-internal))
 
 (defun tpu-check-search-case (string)
-  "Returns t if string contains upper case."
+  "Return t if string contains upper case."
   ;; if using regexp, eliminate upper case forms (\B \W \S.)
   (if tpu-regexp-p
       (let ((pat (copy-sequence string)) (case-fold-search nil) (pos 0))
@@ -1508,7 +1509,7 @@ Used for reversing a search in progress."
 ;;;  Select / Unselect
 ;;;
 (defun tpu-select (&optional quiet)
-  "Sets the mark to define one end of a region."
+  "Set the mark to define one end of a region."
   (interactive "P")
   (cond ((tpu-mark)
 	 (tpu-unselect quiet))
@@ -1518,7 +1519,7 @@ Used for reversing a search in progress."
 	 (if (not quiet) (message "Move the text cursor to select text.")))))
 
 (defun tpu-unselect (&optional quiet)
-  "Removes the mark to unselect the current region."
+  "Remove the mark to unselect the current region."
   (interactive "P")
   (deactivate-mark)
   (setq mark-ring nil)
@@ -1607,14 +1608,14 @@ The text is saved for the tpu-paste command."
 	 (tpu-error "No selection active."))))
 
 (defun tpu-cut (arg)
-  "Copy selected region to the cut buffer.  In the absence of an
-argument, delete the selected region too."
+  "Copy selected region to the cut buffer.
+In the absence of an argument, delete the selected region too."
   (interactive "P")
   (if arg (tpu-store-text) (tpu-cut-text)))
 
 (defun tpu-append-region (arg)
-  "Append selected region to the tpu-cut buffer.  In the absence of an
-argument, delete the selected region too."
+  "Append selected region to the tpu-cut buffer.
+In the absence of an argument, delete the selected region too."
   (interactive "P")
   (cond ((tpu-mark)
 	 (let ((beg (region-beginning)) (end (region-end)))
@@ -1690,8 +1691,8 @@ They are saved for the TPU-edt undelete-words command."
     (delete-region beg (point))))
 
 (defun tpu-delete-current-char (num)
-  "Delete one or specified number of characters after point.  The last
-character deleted is saved for the TPU-edt undelete-char command."
+  "Delete one or specified number of characters after point.
+The last character deleted is saved for the TPU-edt undelete-char command."
   (interactive "p")
   (while (and (> num 0) (not (eobp)))
     (setq tpu-last-deleted-char (char-after (point)))
@@ -1852,10 +1853,10 @@ A negative argument means replace all occurrences of the search string."
     (message "Replaced %s occurrence%s." strings (if (not (= 1 strings)) "s" ""))))
 
 (defun tpu-emacs-replace (&optional dont-ask)
-  "A TPU-edt interface to the Emacs replace functions.  If TPU-edt is
-currently in regular expression mode, the Emacs regular expression
-replace functions are used.  If an argument is supplied, replacements
-are performed without asking.  Only works in forward direction."
+  "A TPU-edt interface to the Emacs replace functions.
+If TPU-edt is currently in regular expression mode, the Emacs regular
+expression replace functions are used.  If an argument is supplied,
+replacements are performed without asking.  Only works in forward direction."
   (interactive "P")
   (cond (dont-ask
 	 (setq current-prefix-arg nil)
@@ -1904,7 +1905,7 @@ or each line of the entire buffer if no region is selected."
 	     (end-of-line) (insert text) (forward-line))))))
 
 (defun tpu-trim-line-ends nil
-  "Removes trailing whitespace from every line in the buffer."
+  "Remove trailing whitespace from every line in the buffer."
   (interactive)
   (save-match-data
     (save-excursion
@@ -2306,7 +2307,7 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
     (setq tpu-control-keys tpu-style)))
 
 (defun tpu-toggle-control-keys nil
-  "Toggles control key bindings between TPU-edt and Emacs."
+  "Toggle control key bindings between TPU-edt and Emacs."
   (interactive)
   (tpu-reset-control-keys (not tpu-control-keys))
   (and (interactive-p)
