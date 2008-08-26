@@ -44,11 +44,11 @@
 ;; documentation of that function.
 ;;
 ;; Today's appointment list is initialized from the diary when this
-;; package is activated. Additionally, the appointments list is
+;; package is activated.  Additionally, the appointments list is
 ;; recreated automatically at 12:01am for those who do not logout
-;; every day or are programming late. It is also updated when the
-;; `diary-file' is saved. Calling `appt-check' with an argument forces
-;; a re-initialization at any time.
+;; every day or are programming late.  It is also updated when the
+;; `diary-file' is saved.  Calling `appt-check' with an argument (or
+;; re-enabling the package) forces a re-initialization at any time.
 ;;
 ;; In order to add or delete items from today's list, without
 ;; changing the diary file, use `appt-add' and `appt-delete'.
@@ -538,7 +538,7 @@ appointment package (if it is not already active)."
                     (delq elt appt-time-msg-list))))
           (if diary-entries-list
               ;; Cycle through the entry-list (diary-entries-list)
-              ;; looking for entries beginning with a time. If the
+              ;; looking for entries beginning with a time.  If the
               ;; entry begins with a time, add it to the
               ;; appt-time-msg-list.  Then sort the list.
               (let ((entry-list diary-entries-list)
@@ -632,13 +632,13 @@ This function is intended for use with `write-file-functions'."
 ;; The display-time call was not necessary, AFAICS.
 ;; What was really needed was to add the hook and load this file.
 ;; Calling (diary 0) once the hook had been added was in some sense a
-;; roundabout way of loading this file. This file used to have code at
+;; roundabout way of loading this file.  This file used to have code at
 ;; the top-level that set up the appt-timer and global-mode-string.
 ;; One way to maintain backwards compatibility would be to call
-;; (appt-activate 1) at top-level. However, this goes against the
+;; (appt-activate 1) at top-level.  However, this goes against the
 ;; convention that just loading an Emacs package should not activate
-;; it. Instead, we make appt-make-list activate the package (after a
-;; suggestion from rms). This means that one has to call diary in
+;; it.  Instead, we make appt-make-list activate the package (after a
+;; suggestion from rms).  This means that one has to call diary in
 ;; order to get it to work, but that is in line with the old (weird,
 ;; IMO) documented behavior for activating the package.
 ;; Actually, since (diary 0) does not run diary-hook, I don't think
