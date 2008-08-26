@@ -5,6 +5,8 @@
 
 2008-08-26  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/holidays.el (calendar-holidays): Doc fix.
+
 	* progmodes/gud.el (tramp-file-name-localname)
 	(tramp-dissect-file-name): Declare.
 
