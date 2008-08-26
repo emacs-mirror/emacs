@@ -1469,14 +1469,14 @@ invisible-p to check whether it would cause the text to be invisible.
 Convenient when checking invisibility of text with no buffer position
 (e.g. in before/after-strings).
 
-*** Non-breaking space is now displayed as whitespace.
-
 *** `clear-image-cache' can be told to flush only images of a specific file.
 
 *** `vertical-motion' can now be given a goal column.
 It now accepts a cons cell (COLS . LINES) in its first argument, which
 says to stop, where possible, at a pixel x-position equal to COLS
 times the default column width.
+
+** The Lisp interpreter now treats non-breaking space as whitespace.
 
 ** Miscellaneous new functions
 
