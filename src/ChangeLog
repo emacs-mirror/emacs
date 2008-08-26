@@ -1,3 +1,9 @@
+2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): If moving forward starting from a
+	multi-line string, move the iterator to the last line of that
+	string.
+
 2008-08-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.c (do_switch_frame): Mark previously displayed frame as
