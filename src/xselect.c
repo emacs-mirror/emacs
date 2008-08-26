@@ -2802,7 +2802,7 @@ If DEST is a cons, it is converted to a 32 bit number
 with the high 16 bits from the car and the lower 16 bit from the cdr.  That
 number is then used as a window id.
 If DEST is a frame the event is sent to the outer window of that frame.
-Nil means the currently selected frame.
+A value of nil means the currently selected frame.
 If DEST is the string "PointerWindow" the event is sent to the window that
 contains the pointer.  If DEST is the string "InputFocus" the event is
 sent to the window that has the input focus.

@@ -1046,8 +1046,8 @@ DEFUN ("read-minibuffer", Fread_minibuffer, Sread_minibuffer, 1, 2, 0,
        doc: /* Return a Lisp object read using the minibuffer, unevaluated.
 Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
 is a string to insert in the minibuffer before reading.
-\(INITIAL-CONTENTS can also be a cons of a string and an integer.  Such
-arguments are used as in `read-from-minibuffer'.)  */)
+\(INITIAL-CONTENTS can also be a cons of a string and an integer.
+Such arguments are used as in `read-from-minibuffer'.)  */)
      (prompt, initial_contents)
      Lisp_Object prompt, initial_contents;
 {
@@ -1061,8 +1061,8 @@ DEFUN ("eval-minibuffer", Feval_minibuffer, Seval_minibuffer, 1, 2, 0,
        doc: /* Return value of Lisp expression read using the minibuffer.
 Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
 is a string to insert in the minibuffer before reading.
-\(INITIAL-CONTENTS can also be a cons of a string and an integer.  Such
-arguments are used as in `read-from-minibuffer'.)  */)
+\(INITIAL-CONTENTS can also be a cons of a string and an integer.
+Such arguments are used as in `read-from-minibuffer'.)  */)
      (prompt, initial_contents)
      Lisp_Object prompt, initial_contents;
 {

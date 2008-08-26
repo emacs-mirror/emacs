@@ -2969,7 +2969,7 @@ PATTERN is a string, perhaps with wildcard characters;
 FACE is a face name--a symbol.
 
 The return value is a list of strings, suitable as arguments to
-set-face-font.
+`set-face-font'.
 
 Fonts Emacs can't use may or may not be excluded
 even if they match PATTERN and FACE.
@@ -3954,7 +3954,7 @@ DEFUN ("internal-copy-lisp-face", Finternal_copy_lisp_face,
 If FRAME is t, copy the global face definition of FROM.
 Otherwise, copy the frame-local definition of FROM on FRAME.
 If NEW-FRAME is a frame, copy that data into the frame-local
-definition of TO on NEW-FRAME.  If NEW-FRAME is nil.
+definition of TO on NEW-FRAME.  If NEW-FRAME is nil,
 FRAME controls where the data is copied to.
 
 The value is TO.  */)

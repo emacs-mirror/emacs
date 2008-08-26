@@ -24150,7 +24150,7 @@ If you want scrolling to always be a line at a time, you should set
     doc: /* *Scroll up to this many lines, to bring point back on screen.
 If point moves off-screen, redisplay will scroll by up to
 `scroll-conservatively' lines in order to bring point just barely
-onto the screen again.   If that cannot be done, then redisplay
+onto the screen again.  If that cannot be done, then redisplay
 recenters point as usual.
 
 A value of zero means always recenter point if it moves off screen.  */);

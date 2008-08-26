@@ -1502,7 +1502,7 @@ the current buffer), START and END are buffer positions (integers or
 markers).  If OBJECT is a string, START and END are 0-based indices into it.
 Return t if any property was actually removed, nil otherwise.
 
-Use set-text-properties if you want to remove all text properties.  */)
+Use `set-text-properties' if you want to remove all text properties.  */)
      (start, end, properties, object)
      Lisp_Object start, end, properties, object;
 {
@@ -2292,8 +2292,8 @@ Each element has the form (PROPERTY . NONSTICKINESS).
 
 If a character in a buffer has PROPERTY, new text inserted adjacent to
 the character doesn't inherit PROPERTY if NONSTICKINESS is non-nil,
-inherits it if NONSTICKINESS is nil.  The front-sticky and
-rear-nonsticky properties of the character overrides NONSTICKINESS.  */);
+inherits it if NONSTICKINESS is nil.  The `front-sticky' and
+`rear-nonsticky' properties of the character override NONSTICKINESS.  */);
   /* Text property `syntax-table' should be nonsticky by default.  */
   Vtext_property_default_nonsticky
     = Fcons (Fcons (intern ("syntax-table"), Qt), Qnil);

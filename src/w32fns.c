@@ -452,7 +452,7 @@ x_real_positions (f, xptr, yptr)
 
 DEFUN ("w32-define-rgb-color", Fw32_define_rgb_color,
        Sw32_define_rgb_color, 4, 4, 0,
-       doc: /* Convert RGB numbers to a windows color reference and associate with NAME.
+       doc: /* Convert RGB numbers to a Windows color reference and associate with NAME.
 This adds or updates a named color to `w32-color-map', making it
 available for use.  The original entry's RGB ref is returned, or nil
 if the entry is new.  */)

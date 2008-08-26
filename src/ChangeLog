@@ -1,11 +1,31 @@
+2008-08-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* editfns.c (Ffield_string_no_properties): Fix typo in docstring.
+
+	* fringe.c (Fdefine_fringe_bitmap): Doc fix.
+
+	* minibuf.c (Fread_minibuffer, Feval_minibuffer): Reflow docstring.
+
+	* textprop.c (syms_of_textprop) <text-property-default-nonsticky>:
+	(Fremove_text_properties): Fix typos in docstrings.
+
+	* w32fns.c (Fw32_define_rgb_color): Fix typo in docstring.
+
+	* xdisp.c (syms_of_xdisp) <scroll-conservatively>:
+	Fix typo in docstring.
+
+	* xfaces.c (Fx_list_fonts, Finternal_copy_lisp_face):
+	Fix typos in docstrings.
+
+	* xselect.c (Fx_send_client_event): Doc fix.
+
 2008-08-23  Jason Rumney  <jasonr@gnu.org>
 
 	* image.c (gif_format): Use :index, not :image.
 
 2008-08-21  $,1 P(Bsmail D,Av(Bnmez  <ismail@namtrac.org>  (tiny change)
 
-	* xterm.c (x_delete_display): Don't call XrmDestroyDatabase on
-	GTK+.
+	* xterm.c (x_delete_display): Don't call XrmDestroyDatabase on GTK+.
 
 2008-08-20  Andreas Schwab  <schwab@suse.de>
 
