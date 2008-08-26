@@ -1,3 +1,8 @@
+2008-08-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (internal_terminal_init): Most initializations done only
+	once, especially initial_screen_colors[] and termscript open.
+
 2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* eval.c (Fcondition_case): Doc fix.
