@@ -1,6 +1,7 @@
 2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
-	* widgetprv.h (struct): Change font member to the new font struct.
+	* widgetprv.h (EmacsFramePart): Change font member to the new font
+	struct.
 
 	* widget.c: Include character.h and font.h for XSETFONT.
 	(setup_frame_gcs): Compute X font id from font struct, just once.
