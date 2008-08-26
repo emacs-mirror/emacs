@@ -19,7 +19,7 @@ diary suit your personal tastes.
 * Date Display Format::    Changing the format.
 * Time Display Format::    Changing the format.
 * Diary Customizing::      Defaults you can set.
-* Hebrew/Islamic Entries:: How to obtain them.
+* Non-Gregorian Diary Entries:: Making entries based on other calendars.
 * Fancy Diary Display::    Enhancing the diary display, sorting entries,
                              using included diary files.
 * Sexp Diary Entries::     Fancy things you can do.
@@ -449,8 +449,8 @@ to match part of a word beyond the date itself to distinguish it from
 the fourth pattern.
 
 @c FIXME Baha'i.
-@node Hebrew/Islamic Entries
-@subsection Hebrew- and Islamic-Date Diary Entries
+@node Non-Gregorian Diary Entries
+@subsection Diary Entries Using non-Gregorian Calendars
 
   Your diary file can have entries based on Baha'i, Hebrew, or Islamic
 dates, as well as entries based on the world-standard Gregorian
