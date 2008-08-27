@@ -543,7 +543,10 @@ Compatibility function for \\[next-error] invocations."
   (beginning-of-line)
   ;; if we found a place to visit...
   (when (looking-at change-log-file-names-re)
-    (change-log-goto-source)))
+    (change-log-goto-source)
+    ;; go to the file itself
+    (let ((file (nth 2 change-log-find-head)))
+      (when file (find-file file)))))
 
 (defvar change-log-mode-map
   (let ((map (make-sparse-keymap)))

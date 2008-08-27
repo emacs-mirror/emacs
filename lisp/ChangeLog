@@ -1,3 +1,8 @@
+2008-08-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* add-log.el (change-log-next-error): Run an extra `find-file' to
+	go to the position of interest.
+
 2008-08-27  Tomas Abrahamsson  <tab@lysator.liu.se>
 
 	* textmodes/artist.el (artist-mode-init): Added comment on the
