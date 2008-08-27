@@ -2822,8 +2822,8 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 			   (t
 			    (cdr comint-completion-addsuffix))))
 	 (filename (comint-match-partial-filename))
-	 (filename-beg (if filename (match-beginning 0)))
-	 (filename-end (if filename (match-end 0)))
+	 (filename-beg (if filename (match-beginning 0) (point)))
+	 (filename-end (if filename (match-end 0) (point)))
 	 (filename (or filename ""))
 	 (filedir (file-name-directory filename))
 	 (filenondir (file-name-nondirectory filename))
@@ -2842,19 +2842,12 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	   (comint-dynamic-list-filename-completions))
 	  (t                            ; Completion string returned.
 	   (let ((file (concat (file-name-as-directory directory) completion)))
-	     (if (or (null read-file-name-completion-ignore-case)
-		     (null filename-beg)
-		     (null filename-end))
-		 (insert (comint-quote-filename
-			  (substring (directory-file-name completion)
-				     (length filenondir)))))
-	     ;; If read-file-name-completion-ignore-case is non-nil,
-	     ;; the completion string may have a different case than
-	     ;; what's in the prompt.
+	     ;; Insert completion.  Note that the completion string
+	     ;; may have a different case than what's in the prompt,
+	     ;; if read-file-name-completion-ignore-case is non-nil,
 	     (delete-region filename-beg filename-end)
 	     (if filedir (insert filedir))
-	     (insert (comint-quote-filename
-		      (directory-file-name completion)))
+	     (insert (comint-quote-filename (directory-file-name completion)))
 	     (cond ((symbolp (file-name-completion completion directory))
 		    ;; We inserted a unique completion.
 		    (insert (if (file-directory-p file) dirsuffix filesuffix))
