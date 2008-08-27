@@ -261,8 +261,14 @@ report_file_error (string, data)
       default:
 	/* System error messages are capitalized.  Downcase the initial
 	   unless it is followed by a slash.  */
-	if (SREF (errstring, 1) != '/')
-	  SSET (errstring, 0, DOWNCASE (SREF (errstring, 0)));
+	if (! EQ (Faref (errstring, make_number (1)), make_number ('/')))
+	  {
+	    int c;
+
+	    str = (char *) SDATA (errstring);
+	    c = STRING_CHAR (str, 0);
+	    Faset (errstring, 0, make_number (DOWNCASE (c)));
+	  }
 
 	xsignal (Qfile_error,
 		 Fcons (build_string (string), Fcons (errstring, data)));
