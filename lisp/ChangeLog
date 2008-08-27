@@ -1,3 +1,9 @@
+2008-08-27  Alex Harsanyi  <harsanyi@mac.com>  (tiny change)
+
+	* vc-hooks.el (vc-workfile-unchanged-p): If the checkout time is
+	not the same as the last modification time, fall back on the
+	backend-specific check.
+
 2008-08-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* add-log.el (change-log-next-error): Run an extra `find-file' to
