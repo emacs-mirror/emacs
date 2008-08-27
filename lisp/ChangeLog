@@ -4,6 +4,8 @@
 
 	* comint.el (comint-dynamic-complete-as-filename): Generalize last
 	change to allow quoting of characters before point.
+	(comint-dynamic-list-filename-completions): Quote common
+	substring.
 
 2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
