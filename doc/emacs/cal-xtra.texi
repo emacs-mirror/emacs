@@ -14,12 +14,12 @@
 diary suit your personal tastes.
 
 @menu
-* Calendar Customizing::   Defaults you can set.
+* Calendar Customizing::   Calendar layout and hooks.
 * Holiday Customizing::    Defining your own holidays.
 * Date Display Format::    Changing the format.
 * Time Display Format::    Changing the format.
 * Diary Customizing::      Defaults you can set.
-* Non-Gregorian Diary Entries:: Making entries based on other calendars.
+* Non-Gregorian Diary::    Diary entries based on other calendars.
 * Fancy Diary Display::    Enhancing the diary display, sorting entries,
                              using included diary files.
 * Sexp Diary Entries::     Fancy things you can do.
@@ -30,26 +30,27 @@ diary suit your personal tastes.
 
 @vindex calendar-intermonth-text
 @cindex calendar layout
-@cindex showing week numbers in the calendar
-  The layout of the calendar is to some extent customizable.  The
-display is unfortunately limited to three months (due to some
-deep-rooted and widespread assumptions in the code), but you can
-customize the whitespace used in the display by setting the variables:
-@code{calendar-left-margin}, @code{calendar-intermonth-spacing},
-@code{calendar-column-width}, @code{calendar-day-header-width}, and
-@code{calendar-day-digit-width}.  To display text between the months,
-for example week numbers, customize the variables
-@code{calendar-intermonth-header} and @code{calendar-intermonth-text} as
-described in their documentation.
+@cindex calendar week numbers
+  The calendar display unfortunately cannot be changed from three
+months, but you can customize the whitespace used by setting the
+variables: @code{calendar-left-margin},
+@code{calendar-intermonth-spacing}, @code{calendar-column-width},
+@code{calendar-day-header-width}, and @code{calendar-day-digit-width}.
+To display text @emph{between} the months, for example week numbers,
+customize the variables @code{calendar-intermonth-header} and
+@code{calendar-intermonth-text} as described in their documentation.
 
 @vindex calendar-holiday-marker
 @vindex diary-entry-marker
+@vindex calenday-today-marker
   The variable @code{calendar-holiday-marker} specifies how to mark a
-date as being a holiday.  Its value may be a single-character string
-to insert next to the date, or a face name to use for displaying the
-date.  Likewise, the variable @code{diary-entry-marker} specifies how
-to mark a date that has diary entries.  By default, the calendar uses
-faces named @code{holiday} and @code{diary} for these purposes.
+date as being a holiday.  Its value may be a single-character string to
+insert next to the date, or a face name to use for displaying the date.
+Likewise, the variable @code{diary-entry-marker} specifies how to mark a
+date that has diary entries, and @code{calenday-today-marker} is used by
+the function @code{calendar-mark-today} to mark today's date.  By
+default, the calendar uses faces named @code{holiday}, @code{diary}, and
+@code{calendar-today} for these purposes.
 
 @vindex calendar-load-hook
   The variable @code{calendar-load-hook} is a normal hook run when the
@@ -63,33 +64,17 @@ display does not run this hook.  But if you leave the calendar with the
 @kbd{q} command and reenter it, the hook runs again.@refill
 
 @vindex calendar-today-visible-hook
+@findex calendar-star-date
   The variable @code{calendar-today-visible-hook} is a normal hook run
 after the calendar buffer has been prepared with the calendar when the
 current date is visible in the window.  One use of this hook is to
-replace today's date with asterisks; to do that, use the hook function
-@code{calendar-star-date}.
-
-@findex calendar-star-date
-@example
-(add-hook 'calendar-today-visible-hook 'calendar-star-date)
-@end example
-
-@noindent
-Another standard hook function marks the current date, either by
-changing its face or by adding an asterisk.  Here's how to use it:
+mark today's date; to do that use either of the functions
+@code{calendar-mark-today} or @code{calendar-star-date}:
 
 @findex calendar-mark-today
-@example
+@smallexample
 (add-hook 'calendar-today-visible-hook 'calendar-mark-today)
-@end example
-
-@noindent
-@vindex calendar-today-marker
-The variable @code{calendar-today-marker} specifies how to mark
-today's date.  Its value should be a single-character string to insert
-next to the date or a face name to use for displaying the date.  A
-face named @code{calendar-today} is provided for this purpose; that
-symbol is the default for this variable.
+@end smallexample
 
 @vindex calendar-today-invisible-hook
 @noindent
@@ -104,14 +89,11 @@ the current date is @emph{not} visible in the window.
 @subsection Customizing the Holidays
 
 @vindex calendar-holidays
-@vindex holiday-bahai-holidays
-@vindex holiday-christian-holidays
-@vindex holiday-hebrew-holidays
-@vindex holiday-islamic-holidays
+@vindex holiday-oriental-holidays
+@vindex holiday-solar-holidays
   Emacs knows about holidays defined by entries on one of several lists.
-You can customize these lists of holidays to your own needs, adding or
-deleting holidays.  The lists of holidays that Emacs uses are for
-general holidays (@code{holiday-general-holidays}), local holidays
+The lists of holidays that Emacs uses are for general holidays
+(@code{holiday-general-holidays}), local holidays
 (@code{holiday-local-holidays}), Baha'i holidays
 (@code{holiday-bahai-holidays}), Christian holidays
 (@code{holiday-christian-holidays}), Hebrew (Jewish) holidays
@@ -121,16 +103,21 @@ general holidays (@code{holiday-general-holidays}), local holidays
 (@code{holiday-solar-holidays}), and other holidays
 (@code{holiday-other-holidays}).
 
+You can customize these lists of holidays to your own needs, deleting or
+adding holidays as described below.  Set any of them to @code{nil} to
+eliminate the associated holidays.
+
 @vindex holiday-general-holidays
   The general holidays are, by default, holidays common throughout the
-United States.  To eliminate these holidays, set
-@code{holiday-general-holidays} to @code{nil}.
+United States.
 
 @vindex holiday-local-holidays
-  There are no default local holidays (but sites may supply some).  You
-can set the variable @code{holiday-local-holidays} to any list of
-holidays, as described below.
+  There are no default local holidays, but your site may supply some.
 
+@vindex holiday-bahai-holidays
+@vindex holiday-christian-holidays
+@vindex holiday-hebrew-holidays
+@vindex holiday-islamic-holidays
 @vindex calendar-bahai-all-holidays-flag
 @vindex calendar-christian-all-holidays-flag
 @vindex calendar-hebrew-all-holidays-flag
@@ -141,38 +128,31 @@ more extensive collection of religious holidays, you can set any (or
 all) of the variables @code{calendar-bahai-all-holidays-flag},
 @code{calendar-christian-all-holidays-flag},
 @code{calendar-hebrew-all-holidays-flag}, or
-@code{calendar-islamic-all-holidays-flag} to @code{t}.  If you want to
-eliminate the religious holidays, set any or all of the corresponding
-variables @code{holiday-bahai-holidays}, @code{holiday-christian-holidays},
-@code{holiday-hebrew-holidays}, and @code{holiday-islamic-holidays} to
-@code{nil}.@refill
+@code{calendar-islamic-all-holidays-flag} to @code{t}.
 
 @vindex holiday-other-holidays
   You can set the variable @code{holiday-other-holidays} to any list of
 holidays.  This list, normally empty, is intended for individual use.
 
 @cindex holiday forms
-  Each of the lists (@code{holiday-general-holidays},
-@code{holiday-local-holidays}, @code{holiday-bahai-holidays},
-@code{holiday-christian-holidays}, @code{holiday-hebrew-holidays},
-@code{holiday-islamic-holidays}, @code{holiday-oriental-holidays},
-@code{holiday-solar-holidays}, and @code{holiday-other-holidays}) is a
-list of @dfn{holiday forms}, each holiday form describing a holiday (or
-sometimes a list of holidays).
+  Each of the holiday variables is a list of @dfn{holiday forms}, each
+form describing a holiday (or sometimes a list of holidays).
 
   Here is a table of the possible kinds of holiday form.  Day numbers
 and month numbers count starting from 1, but ``dayname'' numbers
 count Sunday as 0.  The element @var{string} is always the
-name of the holiday, as a string.
+description of the holiday, as a string.
 
 @table @code
 @item (holiday-fixed @var{month} @var{day} @var{string})
 A fixed date on the Gregorian calendar.
 
-@item (holiday-float @var{month} @var{dayname} @var{k} @var{string})
-The @var{k}th @var{dayname} in @var{month} on the Gregorian calendar
-(@var{dayname}=0 for Sunday, and so on); negative @var{k} means count back
-from the end of the month.
+@item (holiday-float @var{month} @var{dayname} @var{k} @var{string}
+      &optional @var{day})
+The @var{k}th @var{dayname} (@var{dayname}=0 for Sunday, and so on)
+after or before Gregorian date @var{month}, @var{day}.  Negative @var{k}
+means count back from the end of the month.  Optional @var{day} defaults
+to 1 if @var{k} is positive, and the last day of @var{month} otherwise.
 
 @item (holiday-chinese @var{month} @var{day} @var{string})
 A fixed date on the Chinese calendar.
@@ -189,9 +169,8 @@ A fixed date on the Julian calendar.
 @item (holiday-sexp @var{sexp} @var{string})
 A date calculated by the Lisp expression @var{sexp}.  The expression
 should use the variable @code{year} to compute and return the date of a
-holiday, or @code{nil} if the holiday doesn't happen this year.  The
-value of @var{sexp} must represent the date as a list of the form
-@code{(@var{month} @var{day} @var{year})}.
+holiday in the form of a list @code{(@var{month} @var{day} @var{year})},
+or @code{nil} if the holiday doesn't happen this year.
 
 @item (if @var{condition} @var{holiday-form})
 A holiday that happens only if @var{condition} is true.
@@ -202,15 +181,12 @@ arguments @var{args}.
 @end table
 
   For example, suppose you want to add Bastille Day, celebrated in
-France on July 14.  You can do this as follows:
+France on July 14 (i.e., the fourteenth day of the seventh month).  You
+can do this as follows:
 
 @smallexample
 (setq other-holidays '((holiday-fixed 7 14 "Bastille Day")))
 @end smallexample
-
-@noindent
-The holiday form @code{(holiday-fixed 7 14 "Bastille Day")} specifies the
-fourteenth day of the seventh month (July).
 
   Many holidays occur on a specific day of the week, at a specific time
 of month.  Here is a holiday form describing Hurricane Supplication Day,
@@ -244,13 +220,13 @@ birthday (since the Islamic months are numbered from 1 starting with
 Muharram), and Thomas Jefferson's birthday, which is 2 April 1743 on the
 Julian calendar.
 
-  To include a holiday conditionally, use either Emacs Lisp's @code{if} or the
-@code{holiday-sexp} form.  For example, American presidential elections
-occur on the first Tuesday after the first Monday in November of years
-divisible by 4:
+  To include a holiday conditionally, use either Emacs Lisp's @code{if}
+or the @code{holiday-sexp} form.  For example, American presidential
+elections occur on the first Tuesday after the first Monday in November
+of years divisible by 4:
 
 @smallexample
-(holiday-sexp '(if (= 0 (% year 4))
+(holiday-sexp '(if (zerop (% year 4))
                    (calendar-gregorian-from-absolute
                     (1+ (calendar-dayname-on-or-before
                           1 (+ 6 (calendar-absolute-from-gregorian
@@ -262,8 +238,8 @@ divisible by 4:
 or
 
 @smallexample
-(if (= 0 (% displayed-year 4))
-    (fixed 11
+(if (zerop (% displayed-year 4))
+    (holiday-fixed 11
            (calendar-extract-day
              (calendar-gregorian-from-absolute
                (1+ (calendar-dayname-on-or-before
@@ -308,10 +284,11 @@ while in the European style this value is the default:
 @end smallexample
 
 @noindent
-The ISO standard date representation is this:
+The default ISO date representation is:
 
 @smallexample
-(year "-" month "-" day)
+((format "%s-%.2d-%.2d" year (string-to-number month)
+         (string-to-number day)))
 @end smallexample
 
 @noindent
@@ -333,8 +310,7 @@ you can alter the variable @code{calendar-time-display-form}.  This
 variable is a list of expressions that can involve the variables
 @code{12-hours}, @code{24-hours}, and @code{minutes}, which are all
 numbers in string form, and @code{am-pm} and @code{time-zone}, which are
-both alphabetic strings.  The default value of
-@code{calendar-time-display-form} is as follows:
+both alphabetic strings.  The default value is:
 
 @smallexample
 (12-hours ":" minutes am-pm
@@ -349,31 +325,31 @@ Here is a value that provides European style times:
           (if time-zone " (") time-zone (if time-zone ")"))
 @end smallexample
 
+Note that few calendar functions return a time of day (at present, only
+solar functions).
+
 @node Diary Customizing
 @subsection Customizing the Diary
 
 @vindex diary-show-holidays-flag
-  Ordinarily, the mode line of the diary buffer window indicates any
-holidays that fall on the date of the diary entries.  The process of
-checking for holidays can take several seconds, so including holiday
-information delays the display of the diary buffer noticeably.  If you'd
-prefer to have a faster display of the diary buffer but without the
-holiday information, set the variable @code{diary-show-holidays-flag} to
-@code{nil}.@refill
+  Ordinarily, the mode line of the diary window indicates any holidays
+that fall on the date of the diary entries.  The process of checking for
+holidays can be slow, depending on the defined holidays.  In that case,
+setting @code{diary-show-holidays-flag} to @code{nil} will speed up the
+diary display.
 
 @vindex diary-number-of-entries
   The variable @code{diary-number-of-entries} controls the number of
 days of diary entries to be displayed at one time.  It affects the
 initial display when @code{calendar-view-diary-initially-flag} is
-@code{t}, as well as the command @kbd{M-x diary}.  For example, the
-default value is 1, which says to display only the current day's diary
-entries.  If the value is 2, both the current day's and the next day's
-entries are displayed.  The value can also be a vector of seven
-elements: for example, if the value is @code{[0 2 2 2 2 4 1]} then no
-diary entries appear on Sunday, the current date's and the next day's
-diary entries appear Monday through Thursday, Friday through Monday's
-entries appear on Friday, while on Saturday only that day's entries
-appear.
+@code{t}, as well as the command @kbd{M-x diary}.  For example, a value
+of 1 (the default) displays only the current day's diary entries,
+whereas a value of 2 will also show the next day's entries.  The value
+can also be a vector of seven integers: for example, if the value is
+@code{[0 2 2 2 2 4 1]} then no diary entries appear on Sunday, the
+current date's and the next day's diary entries appear Monday through
+Thursday, Friday through Monday's entries appear on Friday, while on
+Saturday only that day's entries appear.
 
 @vindex diary-print-entries-hook
 @findex diary-print-entries
@@ -388,8 +364,7 @@ hook.  Other uses might include, for example, rearranging the lines into
 order by day and time.
 
 @vindex diary-date-forms
-  You can customize the form of dates in your diary file, if neither the
-standard American nor European styles suits your needs, by setting the
+  You can customize the form of dates in your diary file by setting the
 variable @code{diary-date-forms}.  This variable is a list of patterns
 for recognizing a date.  Each date pattern is a list whose elements may
 be regular expressions (@pxref{Regular Expressions,,, elisp, the Emacs
@@ -407,13 +382,14 @@ constituent.
 and @code{dayname} match the month number, day number, year number,
 month name, and day name of the date being considered.  The symbols that
 match numbers allow leading zeros; those that match names allow
-three-letter abbreviations and capitalization.  All the symbols can
-match @samp{*}; since @samp{*} in a diary entry means ``any day'', ``any
-month'', and so on, it should match regardless of the date being
-considered.
+capitalization and abbreviation (as specified by
+@code{calendar-month-abbrev-array} and
+@code{calendar-day-abbrev-array}).  All the symbols can match @samp{*};
+since @samp{*} in a diary entry means ``any day'', ``any month'', and so
+on, it should match regardless of the date being considered.
 
   The default value of @code{diary-date-forms} in the American style is
-this:
+provided by @code{diary-american-date-forms}:
 
 @example
 ((month "/" day "[^/0-9]")
@@ -422,6 +398,10 @@ this:
  (monthname " *" day ", *" year "[^0-9]")
  (dayname "\\W"))
 @end example
+
+@noindent
+Other default styles are provided by @code{diary-european-date-forms}
+and @code{diary-iso-date-forms}.
 
   The date patterns in the list must be @emph{mutually exclusive} and
 must not match any portion of the diary entry itself, just the date and
@@ -432,13 +412,13 @@ that ends the date---then the first element of the date pattern
 up to the beginning of the current word of the diary entry, after
 finishing the match.  Even if you use @code{backup}, the date pattern
 must absolutely not match more than a portion of the first word of the
-diary entry.  The default value of @code{diary-date-forms} in the
-European style is this list:
+diary entry.  For example, the default value of
+@code{diary-european-date-forms} is:
 
 @example
 ((day "/" month "[^/0-9]")
  (day "/" month "/" year "[^0-9]")
- (backup day " *" monthname "\\W+\\<[^*0-9]")
+ (backup day " *" monthname "\\W+\\<\\([^*0-9]\\|\\([0-9]+[:aApP]\\)\\)")
  (day " *" monthname " *" year "[^0-9]")
  (dayname "\\W"))
 @end example
@@ -448,42 +428,45 @@ Notice the use of @code{backup} in the third pattern, because it needs
 to match part of a word beyond the date itself to distinguish it from
 the fourth pattern.
 
-@c FIXME Baha'i.
-@node Non-Gregorian Diary Entries
+@node Non-Gregorian Diary
 @subsection Diary Entries Using non-Gregorian Calendars
 
-  Your diary file can have entries based on Baha'i, Hebrew, or Islamic
-dates, as well as entries based on the world-standard Gregorian
-calendar.  However, because recognition of such entries is
-time-consuming and most people don't use them, you must explicitly
-enable their use.  If you want the diary to recognize Hebrew-date diary
-entries, for example, you must do this:
+  As well as entries based on the standard Gregorian calendar, your
+diary can have entries based on Baha'i, Hebrew, or Islamic dates.
+Recognition of such entries can be time-consuming, however, and since
+most people don't use them, you must explicitly enable their use.  If
+you want the diary to recognize Hebrew-date diary entries, for example,
+you must do this:
 
 @vindex diary-nongregorian-listing-hook
 @vindex diary-nongregorian-marking-hook
 @findex diary-hebrew-list-entries
 @findex diary-hebrew-mark-entries
+@findex diary-islamic-list-entries
+@findex diary-islamic-mark-entries
+@findex diary-bahai-list-entries
+@findex diary-bahai-mark-entries
 @smallexample
 (add-hook 'diary-nongregorian-listing-hook 'diary-hebrew-list-entries)
 (add-hook 'diary-nongregorian-marking-hook 'diary-hebrew-mark-entries)
 @end smallexample
 
 @noindent
-If you want Islamic-date entries, do this:
+Similarly, for Islamic and Baha'i entries, add
+@code{diary-islamic-list-entries} and @code{diary-islamic-mark-entries}, or
+@code{diary-bahai-list-entries} and @code{diary-bahai-mark-entries}.
 
-@findex diary-islamic-list-entries
-@findex diary-islamic-mark-entries
-@smallexample
-(add-hook 'diary-nongregorian-listing-hook 'diary-islamic-list-entries)
-(add-hook 'diary-nongregorian-marking-hook 'diary-islamic-mark-entries)
-@end smallexample
-
-  Hebrew- and Islamic-date diary entries have the same formats as
-Gregorian-date diary entries, except that @samp{H} precedes a Hebrew
-date and @samp{I} precedes an Islamic date.  Moreover, because the
-Hebrew and Islamic month names are not uniquely specified by the first
-three letters, you may not abbreviate them.  For example, a diary entry
-for the Hebrew date Heshvan 25 could look like this:
+@vindex diary-bahai-entry-symbol
+@vindex diary-hebrew-entry-symbol
+@vindex diary-islamic-entry-symbol
+  These diary entries have the same formats as Gregorian-date diary
+entries; except that @code{diary-bahai-entry-symbol} (default @samp{B})
+must precede a Baha'i date, @code{diary-hebrew-entry-symbol} (default
+@samp{H}) a Hebrew date, and @code{diary-islamic-entry-symbol} (default
+@samp{I}) an Islamic date.  Moreover, non-Gregorian month names may not
+be abbreviated (because the first three letters are often not unique).
+For example, a diary entry for the Hebrew date Heshvan 25 could look
+like this:
 
 @smallexample
 HHeshvan 25 Happy Hebrew birthday!
@@ -498,36 +481,33 @@ Dhu al-Qada 25:
 IDhu al-Qada 25 Happy Islamic birthday!
 @end smallexample
 
-  As with Gregorian-date diary entries, Hebrew- and Islamic-date entries
-are nonmarking if they are preceded with an ampersand (@samp{&}).
+  As with Gregorian-date diary entries, non-Gregorian entries are
+nonmarking if preceded by @code{diary-nonmarking-symbol} (default
+@samp{&}).
 
-  Here is a table of commands used in the calendar to create diary entries
-that match the selected date and other dates that are similar in the Hebrew
-or Islamic calendar:
+  Here is a table of commands used in the calendar to create diary
+entries that match the selected date and other dates that are similar in
+the Baha'i, Hebrew, or Islamic calendars:
 
 @table @kbd
 @item i h d
-Add a diary entry for the Hebrew date corresponding to the selected date
-(@code{diary-hebrew-insert-entry}).
+@code{diary-hebrew-insert-entry}
 @item i h m
-Add a diary entry for the day of the Hebrew month corresponding to the
-selected date (@code{diary-hebrew-insert-monthly-entry}).  This diary
-entry matches any date that has the same Hebrew day-within-month as the
-selected date.
+@code{diary-hebrew-insert-monthly-entry}
 @item i h y
-Add a diary entry for the day of the Hebrew year corresponding to the
-selected date (@code{diary-hebrew-insert-yearly-entry}).  This diary
-entry matches any date which has the same Hebrew month and day-within-month
-as the selected date.
+@code{diary-hebrew-insert-yearly-entry}
 @item i i d
-Add a diary entry for the Islamic date corresponding to the selected date
-(@code{diary-islamic-insert-entry}).
+@code{diary-islamic-insert-entry}
 @item i i m
-Add a diary entry for the day of the Islamic month corresponding to the
-selected date (@code{diary-islamic-insert-monthly-entry}).
+@code{diary-islamic-insert-monthly-entry}
 @item i i y
-Add a diary entry for the day of the Islamic year corresponding to the
-selected date (@code{diary-islamic-insert-yearly-entry}).
+@code{diary-islamic-insert-yearly-entry}
+@item i B d
+@code{diary-bahai-insert-entry}
+@item i B m
+@code{diary-bahai-insert-monthly-entry}
+@item i B y
+@code{diary-bahai-insert-yearly-entry}
 @end table
 
 @findex diary-hebrew-insert-entry
@@ -536,11 +516,17 @@ selected date (@code{diary-islamic-insert-yearly-entry}).
 @findex diary-islamic-insert-entry
 @findex diary-islamic-insert-monthly-entry
 @findex diary-islamic-insert-yearly-entry
+@findex diary-bahai-insert-entry
+@findex diary-bahai-insert-monthly-entry
+@findex diary-bahai-insert-yearly-entry
   These commands work much like the corresponding commands for ordinary
 diary entries: they apply to the date that point is on in the calendar
-window, and what they do is insert just the date portion of a diary entry
-at the end of your diary file.  You must then insert the rest of the
-diary entry.
+window, and what they do is insert just the date portion of a diary
+entry at the end of your diary file.  You must then insert the rest of
+the diary entry.  The basic commands add an entry for the specific
+non-Gregorian date, the @samp{monthly} commands for the given
+non-Gregorian day-within-month in every month, and the @samp{yearly}
+commands for the given non-Gregorian day and month in every year.
 
 @node Fancy Diary Display
 @subsection Fancy Diary Display
@@ -588,20 +574,22 @@ For each day, this sorts diary entries that begin with a recognizable
 time of day according to their times.  Diary entries without times come
 first within each day.
 
+@vindex diary-include-string
   Fancy diary display also has the ability to process included diary
 files.  This permits a group of people to share a diary file for events
-that apply to all of them.  Lines in the diary file of this form:
+that apply to all of them.  Lines in the diary file starting with
+@code{diary-include-string}:
 
 @smallexample
 #include "@var{filename}"
 @end smallexample
 
 @noindent
-includes the diary entries from the file @var{filename} in the fancy
-diary buffer.  The include mechanism is recursive, so that included files
-can include other files, and so on; you must be careful not to have a
-cycle of inclusions, of course.  Here is how to enable the include
-facility:
+include the diary entries from the file @var{filename} in the fancy
+diary buffer.  The include mechanism is recursive, so that included
+files can include other files, and so on (you must be careful not to
+have a cycle of inclusions, of course).  Here is how to enable the
+include facility:
 
 @vindex diary-list-entries-hook
 @vindex diary-mark-entries-hook
@@ -619,10 +607,14 @@ ordinary diary display shows the entries directly from your diary file.
 @subsection Sexp Entries and the Fancy Diary Display
 @cindex sexp diary entries
 
+@vindex diary-sexp-entry-symbol
   Sexp diary entries allow you to do more than just have complicated
-conditions under which a diary entry applies.  If you use the fancy
-diary display, sexp entries can generate the text of the entry depending
-on the date itself.  For example, an anniversary diary entry can insert
+conditions under which a diary entry applies.  Sexp entries should be
+preceded by @code{diary-sexp-entry-symbol} (default @samp{%%}) in the
+diary file.  If you use the fancy diary display, sexp entries can
+generate the text of the entry depending on the date itself.
+
+For example, an anniversary diary entry can insert
 the number of years since the anniversary date into the text of the
 diary entry.  Thus the @samp{%d} in this diary entry:
 
@@ -682,18 +674,13 @@ can use
 @end smallexample
 
 @noindent
-and the fancy diary will show
-@smallexample
-Ed's anniversary
-@end smallexample
-@noindent
-both on December 15 and on December 22.
+and the fancy diary will show @samp{Ed's anniversary} both on December
+15 and on December 22.
 
 @findex diary-date
   The function @code{diary-date} applies to dates described by a month,
 day, year combination, each of which can be an integer, a list of
-integers, or @code{t}. The value @code{t} means all values.  For
-example,
+integers, or @code{t} (meaning all values).  For example,
 
 @smallexample
 %%(diary-date '(10 11 12) 22 t) Rake leaves
@@ -713,7 +700,7 @@ on October 22, November 22, and December 22 of every year.
   The function @code{diary-float} allows you to describe diary entries
 that apply to dates like the third Friday of November, or the last
 Tuesday in April.  The parameters are the @var{month}, @var{dayname},
-and an index @var{n}. The entry appears on the @var{n}th @var{dayname}
+and an index @var{n}.  The entry appears on the @var{n}th @var{dayname}
 after the first day of @var{month}, where @var{dayname}=0 means Sunday,
 1 means Monday, and so on.  If @var{n} is negative it counts backward
 from the end of @var{month}.  The value of @var{month} can be a list of
@@ -763,7 +750,7 @@ a sexp diary entry that matches those dates:
 
 @smallexample
 &%%(let ((dayname (calendar-day-of-week date))
-         (day (car (cdr date))))
+         (day (cadr date)))
       (or (and (= day 21) (memq dayname '(1 2 3 4 5)))
           (and (memq day '(19 20)) (= dayname 5)))
          ) Pay check deposited
@@ -779,13 +766,17 @@ diary display) to concoct diary entries whose text varies based on the date:
 @findex diary-julian-date
 @findex diary-astro-day-number
 @findex diary-bahai-date
+@findex diary-chinese-date
+@findex diary-coptic-date
+@findex diary-ethiopic-date
 @findex diary-hebrew-date
 @findex diary-islamic-date
 @findex diary-french-date
 @findex diary-mayan-date
+@findex diary-persian-date
 @table @code
 @item %%(diary-sunrise-sunset)
-Make a diary entry for the local times of today's sunrise and sunset.
+Make a diary entry for today's local times of sunrise and sunset.
 @item %%(diary-lunar-phases)
 Make a diary entry for the phases (quarters) of the moon.
 @item %%(diary-day-of-year)
@@ -794,37 +785,45 @@ of days remaining in the current year.
 @item %%(diary-iso-date)
 Make a diary entry with today's equivalent ISO commercial date.
 @item %%(diary-julian-date)
-Make a diary entry with today's equivalent date on the Julian calendar.
+Make a diary entry with today's equivalent Julian calendar date.
 @item %%(diary-astro-day-number)
 Make a diary entry with today's equivalent astronomical (Julian) day number.
 @item %%(diary-bahai-date)
-Make a diary entry with today's equivalent date on the Baha'i calendar.
-@item %%(diary-hebrew-date)
-Make a diary entry with today's equivalent date on the Hebrew calendar.
-@item %%(diary-islamic-date)
-Make a diary entry with today's equivalent date on the Islamic calendar.
+Make a diary entry with today's equivalent Baha'i calendar date.
+@item %%(diary-chinese-date)
+Make a diary entry with today's equivalent Chinese calendar date.
+@item %%(diary-coptic-date)
+Make a diary entry with today's equivalent Coptic calendar date.
+@item %%(diary-ethiopic-date)
+Make a diary entry with today's equivalent Ethiopic calendar date.
 @item %%(diary-french-date)
 Make a diary entry with today's equivalent date on the French Revolutionary
 calendar.
+@item %%(diary-hebrew-date)
+Make a diary entry with today's equivalent Hebrew calendar date.
+@item %%(diary-islamic-date)
+Make a diary entry with today's equivalent Islamic calendar date.
 @item %%(diary-mayan-date)
-Make a diary entry with today's equivalent date on the Mayan calendar.
+Make a diary entry with today's equivalent Mayan calendar date.
+@item %%(diary-persian-date)
+Make a diary entry with today's equivalent Persian calendar date.
 @end table
 
 @noindent
-Thus including the diary entry
+For example, including the diary entry
 
-@example
+@smallexample
 &%%(diary-hebrew-date)
-@end example
+@end smallexample
 
 @noindent
 causes every day's diary display to contain the equivalent date on the
 Hebrew calendar, if you are using the fancy diary display.  (With simple
-diary display, the line @samp{&%%(diary-hebrew-date)} appears in the
-diary for any date, but does nothing particularly useful.)
+diary display, the literal line @samp{&%%(diary-hebrew-date)} appears in
+the diary for any date.)
 
-  These functions can be used to construct sexp diary entries based on
-the Hebrew calendar in certain standard ways:
+  This function has been used to construct certain standard Hebrew sexp
+diary entries:
 
 @cindex rosh hodesh
 @findex diary-hebrew-rosh-hodesh
@@ -850,15 +849,15 @@ Make a diary entry that gives the omer count, when appropriate.
 @item %%(diary-hebrew-yahrzeit @var{month} @var{day} @var{year}) @var{name}
 Make a diary entry marking the anniversary of a date of death.  The date
 is the @emph{Gregorian} (civil) date of death.  The diary entry appears
-on the proper Hebrew calendar anniversary and on the day before.  (In
-the European style, the order of the parameters is changed to @var{day},
-@var{month}, @var{year}.)
+on the proper Hebrew calendar anniversary and on the day before.  (The
+order of the parameters changes according to the calendar date style;
+for example in the European style to @var{day}, @var{month}, @var{year}.)
 @end table
 
   All the functions documented above take an optional argument
 @var{mark} which specifies how to mark the date in the calendar display.
 If one of these functions decides that it applies to a certain date,
-it returns a value that contains @var{mark}.
+it returns a value that contains @var{mark}, as described above.
 
 @ignore
    arch-tag: 52cb299f-fd1f-4616-bfe6-91b988669431
