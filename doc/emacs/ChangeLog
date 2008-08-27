@@ -1,3 +1,7 @@
+2008-08-27  Romain Francoise  <romain@orebokech.com>
+
+	* custom.texi (Directory Variables): Minor fix.
+
 2008-08-27  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi (Advanced Calendar/Diary Usage): Tweak some menu
