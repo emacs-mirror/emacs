@@ -1,3 +1,10 @@
+2008-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (Fmsdos_remember_default_colors): Don't reverse frame
+	colors under -rv.
+	(IT_set_frame_parameters): Don't swap foreground and background
+	colors if `(reverse . t)' is present in the frame properties.
+
 2008-08-27  Andreas Schwab  <schwab@suse.de>
 
 	* dired.c (Ffile_attributes): Avoid compiler warning in bitshift.
