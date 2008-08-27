@@ -122,3 +122,9 @@ notfixed 123 23.0.60
 
 ** To remove spam from the tracker, move it to the `spam' pseudo-package:
 reassign 123 spam
+
+** To change the title of a bug:
+retitle 123 Some New Title
+
+** To change the submitter address:
+submitter 123 none@example.com
