@@ -1,5 +1,9 @@
 2008-08-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* indent.c (Fvertical_motion): Revert last change.  Handle the
+	general case where we are moving forward, and PT spans multiple
+	screen lines.
+
 	* eval.c (find_handler_clause): Temporarily increase
 	max-lisp-eval-depth while printing the backtrace buffer, to
 	guarantee that help-mode code can run.
