@@ -24,34 +24,19 @@ sk	Miroslav Vaško
 
 ** Try to reorder NEWS: most important things first, related items together.
 
-** Update INSTALL and NEWS to reflect lack of MS-DOS support, if it still
-isn't working by then.
-
 * WINDOWS SUPPORT BUGS
 
-** Emacs crashes on Windows when visiting .tar.gz files.  See
-
-   http://lists.gnu.org/archive/html/emacs-devel/2008-06/msg01850.html
-
-and its follow-ups.
+** Emacs crashes on Windows when visiting .tar.gz files.
+http://lists.gnu.org/archive/html/emacs-devel/2008-06/msg01850.html
 
 ** Drew Adams 12 Aug bug rpt: overlay display artifact: trace left behind
 Verify that the new font backend eliminates this and other Cleartype related
 problems.
+http://lists.gnu.org/archive/html/emacs-devel/2006-08/msg00439.html
 
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
-
-* BUGS WAITING FOR MORE USER INPUT
-
-** raman@users.sf.net, sep 7: Emacs 23.0.50: Segfaults in alloc.c (batch process)
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00690.html
-
-** undefined reference getopt_long
-Report by Daniel C. Bastos <dbast0s@yahoo.com.br> on bug-gnu-emacs
-from 2007-08-27.  Impossible to procede without more input from OP (as
-of 20070912, emails are bouncing) or someone else who can reproduce this.
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01497.html
+http://lists.gnu.org/archive/html/emacs-devel/2006-08/msg00310.html
 
 * BUGS
 
@@ -78,6 +63,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01720.html
 
 ** herring@lanl.gov: find-func: can no longer find adviced subrs
 This ought to work.
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01005.html
 
 ** \\{...} produces duplicate entries
 http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg00209.html
@@ -91,8 +77,10 @@ rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
 minimized.  I don't know what is left to do here.
 
 ** sdl.web@gmail.com, 30 Oct: ps-lpr-switches has no effect
+http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg02091.html
 
 ** timh@insightful.com, 9 Nov: X-coding-system incompatibility, and workaround
+http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg00614.html
 
 ** multi-tty does not work correctly.
 If the server is started from a tty frame and emacsclient creates an
@@ -110,10 +98,8 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01335.html
 ** move verilog-mode.el compile patterns into compile.el?
 http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00234.html
 
-** stack-trace-on-error segfaults infloop
-http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg02031.html
-
 ** han@mijncomputer.nl, Feb 3: emacsclient misbehaves
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00214.html
 
 ** Mouse clicks on the menubar don't currently work with a console
 Following the direct use of Gpm, the menubar now needs to be
@@ -185,7 +171,7 @@ basic.texi        -- cyd
 buffers.texi
 building.texi
 calendar.texi     -- rgm
-cal-xtra.texi
+cal-xtra.texi     -- rgm
 cmdargs.texi
 commands.texi     -- cyd
 custom.texi
@@ -241,7 +227,6 @@ control.texi
 customize.texi
 debugging.texi
 display.texi
-doclicense.texi
 edebug.texi
 elisp.texi
 errors.texi
@@ -272,22 +257,22 @@ positions.texi
 processes.texi
 searching.texi
 sequences.texi
-spellfile
 streams.texi
 strings.texi
 symbols.texi
 syntax.texi
 text.texi
 tips.texi
-two.el
 variables.texi
 windows.texi
 
 * PLANNED ADDITIONS
+
 ** CEDET (not for 23.1 due to paperwork issues, perhaps for 23.2)
 ** ruby-mode
 ** js2-mode
 ** pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
+
 
 Local variables:
 mode: outline
