@@ -1941,16 +1941,18 @@ find_handler_clause (handlers, conditions, sig, data)
     {
       if (!NILP (sig) && wants_debugger (Vstack_trace_on_error, conditions))
 	{
+	  max_lisp_eval_depth += 15;
 	  max_specpdl_size++;
-    #ifdef PROTOTYPES
+#ifdef PROTOTYPES
 	  internal_with_output_to_temp_buffer ("*Backtrace*",
 					       (Lisp_Object (*) (Lisp_Object)) Fbacktrace,
 					       Qnil);
-    #else
+#else
 	  internal_with_output_to_temp_buffer ("*Backtrace*",
 					       Fbacktrace, Qnil);
-    #endif
+#endif
 	  max_specpdl_size--;
+	  max_lisp_eval_depth -= 15;
 	}
 
       if (!debugger_considered)

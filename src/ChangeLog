@@ -1,3 +1,9 @@
+2008-08-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eval.c (find_handler_clause): Temporarily increase
+	max-lisp-eval-depth while printing the backtrace buffer, to
+	guarantee that help-mode code can run.
+
 2008-08-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (Fmsdos_remember_default_colors): Don't reverse frame
