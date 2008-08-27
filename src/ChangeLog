@@ -1,3 +1,8 @@
+2008-08-27  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* xterm.c (x_term_init): Temporarily hide the partially
+	initialized terminal while calling vendor-specific-keysyms.
+
 2008-08-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (internal_terminal_init): Most initializations done only
