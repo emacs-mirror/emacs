@@ -2055,32 +2055,33 @@ whether or not it is currently displayed in some window.  */)
     }
   else
     {
-      int it_start, oselective, first_x;
-      int start_string_newlines = 0;
-      enum it_method omethod;
+      int it_start, oselective, first_x, it_overshoot_expected;
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
       first_x = it.first_visible_x;
+      it_start = IT_CHARPOS (it);
+
+      /* See comments below for why we calculate this.  */
+      if (XINT (lines) > 0)
+	{
+	  if (it.method == GET_FROM_STRING)
+	    {
+	      const char *s = SDATA (it.string);
+	      const char *e = s + SBYTES (it.string);
+	      while (s < e && *s != '\n')
+		++s;
+	      it_overshoot_expected = (s == e) ? -1 : 0;
+	    }
+	  else
+	    it_overshoot_expected = (it.method == GET_FROM_IMAGE
+				     || it.method == GET_FROM_STRETCH
+				     || it.method == GET_FROM_COMPOSITION);
+	}
 
       /* Scan from the start of the line containing PT.  If we don't
 	 do this, we start moving with IT->current_x == 0, while PT is
-	 really at some x > 0.  The effect is, in continuation lines, that
-	 we end up with the iterator placed at where it thinks X is 0,
-	 while the end position is really at some X > 0, the same X that
-	 PT had.  */
-      it_start = IT_CHARPOS (it);
-      omethod = it.method;
-
-      if (omethod == GET_FROM_STRING)
-	{
-	  char *s = SDATA (it.string) + IT_STRING_CHARPOS (it);
-	  const char *e = s + SBYTES (it.string);
-	  for (; s < e; s++)
-	    if (*s == '\n')
-	      start_string_newlines++;
-	}
-
+	 really at some x > 0.  */
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = 0;
       /* Temporarily disable selective display so we don't move too far */
@@ -2089,38 +2090,51 @@ whether or not it is currently displayed in some window.  */)
       move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
       it.selective = oselective;
 
-      if (XINT (lines) > 0)
+      if (XINT (lines) <= 0)
 	{
-	  /* If we start on a multi-line string, move the iterator to
-	     the last line of that string.  */
-	  if (omethod == GET_FROM_STRING && start_string_newlines)
-	    move_it_by_lines (&it, start_string_newlines, 0);
-
-	  /* If we got too far, move back.  This may happen if
-	     truncate-lines is on and PT is beyond the right margin.
-	     If the starting point is on an image, stretch glyph,
-	     composition, or Lisp string, no need to backtrack...  */
-	  if (IT_CHARPOS (it) > it_start
-	      && (omethod == GET_FROM_BUFFER
-		  || omethod == GET_FROM_DISPLAY_VECTOR
-		  || omethod == GET_FROM_C_STRING
-		  /* ... except for one corner case: when the Lisp
-		     string contains a newline, or if there is a
-		     newline immediately afterwards (e.g. if there is
-		     an overlay with an after-string just before the
-		     newline).  */
-		  || (omethod == GET_FROM_STRING
-		      && (start_string_newlines
-			  || (it.method == GET_FROM_BUFFER
-			      && it.c == '\n')))))
-	    move_it_by_lines (&it, -1, 0);
+	  it.vpos = 0;
+	  /* Do this even if LINES is 0, so that we move back to the
+	     beginning of the current line as we ought.  */
+	  if (XINT (lines) == 0 || IT_CHARPOS (it) > 0)
+	    move_it_by_lines (&it, XINT (lines), 0);
 	}
-
-      it.vpos = 0;
-      /* Do this even if LINES is 0, so that we move back
-	 to the beginning of the current line as we ought.  */
-      if (XINT (lines) >= 0 || IT_CHARPOS (it) > 0)
-	move_it_by_lines (&it, XINT (lines), 0);
+      else
+	{
+	  if (IT_CHARPOS (it) > PT)
+	    {
+	      /* IT may move too far if truncate-lines is on and PT
+		 lies beyond the right margin.  In that case,
+		 backtrack unless the starting point is on an image,
+		 stretch glyph, composition, or Lisp string.  */
+	      if (!it_overshoot_expected
+		  /* Also, backtrack if the Lisp string contains no
+		     newline, but there is a newline right after it.
+		     In this case, IT overshoots if there is an
+		     after-string just before the newline.  */
+		  || (it_overshoot_expected < 0
+		      && it.method == GET_FROM_BUFFER
+		      && it.c == '\n'))
+		move_it_by_lines (&it, -1, 0);
+	      it.vpos = 0;
+	      move_it_by_lines (&it, XINT (lines), 0);
+	    }
+	  else
+	    {
+	      /* Otherwise, we are at the first row occupied by PT,
+		 which might span multiple screen lines (e.g., if it's
+		 on a multi-line display string).  We want to start
+		 from the last line that it occupies.  */
+	      it.vpos = 0;
+	      if (PT < ZV)
+		{
+		  while (IT_CHARPOS (it) <= PT)
+		    move_it_by_lines (&it, 1, 0);
+		  move_it_by_lines (&it, XINT (lines) - 1, 0);
+		}
+	      else
+		move_it_by_lines (&it, XINT (lines), 0);
+	    }
+	}
 
       /* Move to the goal column, if one was specified.  */
       if (!NILP (lcols))
