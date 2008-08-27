@@ -1,3 +1,15 @@
+2008-08-27  Tomas Abrahamsson  <tab@lysator.liu.se>
+
+	* textmodes/artist.el (artist-mode-init): Added comment on the
+	setting up of the `artist-replacement-table' array.
+	(artist-get-replacement-char): New defsubst.
+	(artist-get-char-at-xy-conv, artist-replace-char)
+	(artist-replace-chars, artist-replace-string): Use it instead of
+	accessing `artist-replacement-table' directly.
+	Reported by Rubén Berenguel <ruben@maia.ub.es>.
+
+	(artist-mt): Fixed structures for cut and copy operations.
+
 2008-08-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* shell.el (shell-file-name-quote-list): Quote `$'.
