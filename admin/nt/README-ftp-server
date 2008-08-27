@@ -5,16 +5,17 @@ See the end of the file for license conditions.
 		      Precompiled Distributions of
 			   Emacs for Windows
 
-			      Version 22.2
+			  PRETEST Version 22.2.91
 
-			     March 26, 2008
+			     August 27, 2008
 		
-  This directory contains source and precompiled distributions for GNU
-  Emacs on Windows NT/2000/XP and Windows 95/98/Me.  This port is a
+  This directory contains precompiled distributions for GNU Emacs
+  on Windows NT/2000/XP/Vista and Windows 95/98/Me.  This port is a
   part of the standard GNU Emacs distribution from the Free Software
   Foundation; the precompiled distributions are provided here for
   convenience since the majority of Windows users are not accustomed
-  to compiling programs themselves.
+  to compiling programs themselves.  Corresponding source can be found
+  in the parent directory in emacs-22.2.91.tar.gz.
 
   If you have access to the World Wide Web, I would recommend pointing
   your favorite web browser to the following document (if you haven't
@@ -22,17 +23,13 @@ See the end of the file for license conditions.
 
 	http://www.gnu.org/software/emacs/windows/ntemacs.html
 
-  The above web document is a far more complete version of this README
-  file.  If you don't have access to the Web, however, then read on.
-
-
 * IMPORTANT LEGAL REMINDER
 
   If you want to redistribute any of the precompiled distributions of
   Emacs, be careful to check the implications of the GPL.  For instance,
-  if you put the emacs-22.2-bin-i386.tar.gz file from this directory on
+  if you put the emacs-22.2.91-bin-i386.tar.gz file from this directory on
   an Internet site, you must arrange to distribute the source files of
-  the SAME version (i.e. ../emacs-22.2.tar.gz).
+  the SAME version (i.e. ../emacs-22.2.91.tar.gz).
 
   Making a link to our copy of the source is NOT sufficient, since we
   might upgrade to a new version while you are still distributing the
@@ -41,8 +38,8 @@ See the end of the file for license conditions.
 
 * Files in this directory
 
-  + emacs-22.2-bin-i386.zip
-    Windows binaries of Emacs-22.2, with all lisp code and documentation
+  + emacs-22.2.91-bin-i386.zip
+    Windows binaries of Emacs-22.2.91, with all lisp code and documentation
     included.
 
     Download this file if you want a single installation package, and
@@ -53,8 +50,8 @@ See the end of the file for license conditions.
     If you need the C source code at a later date, it will be safe to
     unpack the source distribution on top of this installation.
 
-  + emacs-22.2-barebin-i386.zip
-    Windows binaries of Emacs-22.2, without lisp code or documentation.
+  + emacs-22.2.91-barebin-i386.zip
+    Windows binaries of Emacs-22.2.91, without lisp code or documentation.
 
     Download this file if you already have the source distribution, or
     if you need to redump the emacs.exe executable.
@@ -69,28 +66,12 @@ See the end of the file for license conditions.
     a basic Makefile for compiling with mingw32 and a .def file for
     generating a DLL with the appropriate exports in addition to the
     source code to provide the subset of functionality Emacs uses from
-    libXpm. This corresponds to the libXpm.dll in emacs-22.2-bin-i386.zip
-    and emacs-22.2-barebin-i386.zip.
-
-
-    The following are provided for users who require older versions.
-
-  + emacs-22.1-bin-i386.zip
-  + emacs-22-1-barebin-i386.zip
-    Windows binaries of Emacs 22.1, contents as above.
-
-  + emacs-21.3-bin-i386.tar.gz
-    Windows binaries of Emacs 21.3, with compiled lisp code and some
-    documentation included.
-
-  + emacs-21.3-leim.tar.gz
-    Compiled lisp input methods. This optional addition to Emacs-21.3
-    is required if you want to enter languages that are not directly
-    supported by your keyboard.
+    libXpm. This corresponds to the libXpm.dll in emacs-22.2.91-bin-i386.zip
+    and emacs-22.2.91-barebin-i386.zip.
 
 * Image support
 
-  Emacs 22.2 contains support for images, however for most image formats
+  Emacs 22.2.91 contains support for images, however for most image formats
   supporting libraries are required.  This distribution has been tested
   with the libraries that are distributed with GTK for Windows, and the
   libraries found at http://gnuwin32.sourceforge.net/. The following image
@@ -120,23 +101,24 @@ See the end of the file for license conditions.
 
 * Distributions in .tar.gz and .zip format
 
-  Emacs is distributed primarily as source code in a large gzipped tar file
-  (*.tar.gz).  Because Emacs is quite large and therefore difficult to
-  download over unreliable connections, the Windows binaries are provided
-  in several combinations, ranging from the complete source plus executables,
-  to just the minimal amount needed to run without any source, plus a
-  couple of optional packages.  Formerly, we used the same .tar.gz format
-  but since there are no longer legal problems with .zip files, and the
-  latest versions of Windows support these natively, the Windows binaries
-  of Emacs are now distributed as .zip files.
+  Emacs is distributed primarily as source code in a large gzipped tar
+  file (*.tar.gz).  Because Emacs is quite large and therefore
+  difficult to download over unreliable connections, the Windows
+  binaries are provided in two combinations. The complete lisp source
+  plus executables (bin), and executables only (barebin) for unpacking
+  over the top of the source distribution.  Formerly, we used the same
+  .tar.gz format but since there are no longer legal problems with
+  .zip files, and the latest versions of Windows support these
+  natively, the Windows binaries of Emacs are now distributed as .zip
+  files.
 
 * Distributions for non-x86 platforms
 
   Distributions for non-x86 platforms are no longer supplied. Older
   platforms supported by Windows NT no longer seem to be in demand,
-  and Emacs is yet to be ported to 64bit Windows platforms. If you are
-  willing to help port Emacs 23 to 64bit versions of Windows, your
-  contribution will be welcome on the emacs-devel mailing list.
+  and Emacs is yet to be ported to 64 bit Windows platforms. If you
+  are willing to help port Emacs 23 to 64 bit versions of Windows,
+  your contribution will be welcome on the emacs-devel mailing list.
 
 * Unpacking distributions
 
@@ -148,7 +130,8 @@ See the end of the file for license conditions.
     GnuWin32: http://gnuwin32.sourceforge.net/
 
   Many other popular file compression utilities for Windows are also
-  able to handle gzipped tar files.
+  able to handle gzipped tar files. 7zip is one free Windows graphical
+  program that is able to handle many archive formats.
 
   Open a command prompt (MSDOS) window.  Decide on a directory in which
   to place Emacs.  Move the distribution to that directory, and then
@@ -201,6 +184,11 @@ See the end of the file for license conditions.
     abbrevli.el, your distribution has been corrupted while unpacking
     and Emacs will not start.
 
+  + Check that filenames were not changed by your web-browser.  Some
+    proprietary web-browsers save .tar.gz files as .tar.tar. You might
+    like to consider switching to a Free modern browser if your browser
+    has this bug.
+
   + I've also had reports that some older "gnuwin32" port of tar
     corrupts the executables.  Use the latest version from the gnuwin32
     site or another port of tar instead.
@@ -215,11 +203,10 @@ See the end of the file for license conditions.
   If you would like to compile Emacs from source, download the source
   distribution, unpack it in the same manner as a precompiled
   distribution, and look in the file nt/INSTALL for detailed
-  directions.  You can either use the Microsoft compiler included with
-  Visual C++ 2003 or earlier, or GCC 2.95 or later with MinGW support,
-  to compile the source.  The port of GCC included in Cygwin is
-  supported, but check the nt/INSTALL file if you have trouble since
-  some builds of GNU make aren't supported.
+  directions.  It is recommended to use GCC 2.95 or later with MinGW
+  support to compile the source.  The port of GCC included in Cygwin
+  is supported, but check the nt/INSTALL file if you have trouble
+  since some builds of GNU make aren't supported.
 
 
 * Further information
@@ -234,7 +221,7 @@ See the end of the file for license conditions.
   about the Windows port and related software packages. Note that as
   of writing, most of the information in that FAQ was for Emacs-21.3
   and earlier versions, so some information may not be relevant to
-  Emacs-22.2.
+  Emacs-22.2.91.
 
   In addition to the FAQ, there is a mailing list for discussing issues
   related to the Windows port of Emacs.  For information about the
