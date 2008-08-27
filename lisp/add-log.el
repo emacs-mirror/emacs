@@ -546,7 +546,7 @@ Compatibility function for \\[next-error] invocations."
     (change-log-goto-source)
     ;; go to the file itself
     (let ((file (nth 2 change-log-find-head)))
-      (when file (find-file file)))))
+      (when file (pop-to-buffer (find-file-noselect file))))))
 
 (defvar change-log-mode-map
   (let ((map (make-sparse-keymap)))
