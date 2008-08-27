@@ -1000,8 +1000,8 @@ which see.  */)
     {
       /* To allow inode numbers beyond 32 bits, separate into 2 24-bit
 	 high parts and a 16-bit bottom part.
-	 The code on the next line avoids a compiler warning on some
-	 systems (bug#766).  */
+	 The code on the next line avoids a compiler warning on
+	 systems where st_ino is 32 bit wide. (bug#766).  */
       EMACS_INT high_ino = s.st_ino >> 31 >> 1;
       EMACS_INT low_ino  = s.st_ino & 0xffffffff;
 
