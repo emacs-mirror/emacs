@@ -2188,22 +2188,14 @@ DEFUN ("msdos-remember-default-colors", Fmsdos_remember_default_colors,
   struct frame *f;
 
   CHECK_FRAME (frame);
-  f= XFRAME (frame);
+  f = XFRAME (frame);
 
   /* This function is called after applying default-frame-alist to the
      initial frame.  At that time, if reverse-colors option was
      specified in default-frame-alist, it was already applied, and
-     frame colors are reversed.  We need to account for that.  */
-  if (EQ (Fcdr (Fassq (Qreverse, f->param_alist)), Qt))
-    {
-      initial_screen_colors[0] = FRAME_BACKGROUND_PIXEL (f);
-      initial_screen_colors[1] = FRAME_FOREGROUND_PIXEL (f);
-    }
-  else
-    {
-      initial_screen_colors[0] = FRAME_FOREGROUND_PIXEL (f);
-      initial_screen_colors[1] = FRAME_BACKGROUND_PIXEL (f);
-    }
+     frame colors are reversed.  */
+  initial_screen_colors[0] = FRAME_FOREGROUND_PIXEL (f);
+  initial_screen_colors[1] = FRAME_BACKGROUND_PIXEL (f);
 }
 
 void
@@ -2233,6 +2225,7 @@ IT_set_frame_parameters (f, alist)
     {
       FRAME_FOREGROUND_PIXEL (f) = initial_screen_colors[0];
       FRAME_BACKGROUND_PIXEL (f) = initial_screen_colors[1];
+      init_frame_faces (f);
     }
   orig_fg = FRAME_FOREGROUND_PIXEL (f);
   orig_bg = FRAME_BACKGROUND_PIXEL (f);
@@ -2297,19 +2290,9 @@ IT_set_frame_parameters (f, alist)
 	      /* Make sure the foreground of the default face for this
 		 frame is changed as well.  */
 	      XSETFRAME (frame, f);
-	      if (need_to_reverse)
-		{
-		  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
-						     val, frame);
-		  prop = Qbackground_color;
-		  bg_set = 1;
-		}
-	      else
-		{
-		  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
-						     val, frame);
-		  fg_set = 1;
-		}
+	      Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
+						 val, frame);
+	      fg_set = 1;
 	      redraw = 1;
 	      if (tty->termscript)
 		fprintf (tty->termscript, "<FGCOLOR %lu>\n", new_color);
@@ -2328,19 +2311,9 @@ IT_set_frame_parameters (f, alist)
 	      /* Make sure the background of the default face for this
 		 frame is changed as well.  */
 	      XSETFRAME (frame, f);
-	      if (need_to_reverse)
-		{
-		  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
-						     val, frame);
-		  prop = Qforeground_color;
-		  fg_set = 1;
-		}
-	      else
-		{
-		  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
-						     val, frame);
-		  bg_set = 1;
-		}
+	      Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
+						 val, frame);
+	      bg_set = 1;
 	      redraw = 1;
 	      if (tty->termscript)
 		fprintf (tty->termscript, "<BGCOLOR %lu>\n", new_color);
@@ -2439,6 +2412,8 @@ internal_terminal_init ()
     }
 
   tty = FRAME_TTY (sf);
+  current_kboard->Vwindow_system = Qpc;
+  sf->output_method = output_msdos_raw;
   if (init_needed)
     {
       if (!tty->termscript && getenv ("EMACSTEST"))
@@ -2511,11 +2486,9 @@ internal_terminal_init ()
 	fprintf (tty->termscript, "<SCREEN SAVED (dimensions=%dx%d)>\n",
 		 screen_size_X, screen_size_Y);
 
+      init_frame_faces (sf);
       init_needed = 0;
     }
-  current_kboard->Vwindow_system = Qpc;
-  sf->output_method = output_msdos_raw;
-  init_frame_faces (sf);
 #endif
 }
 
