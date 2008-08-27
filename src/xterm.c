@@ -10122,11 +10122,15 @@ x_term_init (display_name, xrm_option, resource_name)
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
+	    /* Temporarily hide the partially initialized terminal */
+	    terminal_list = terminal->next_terminal;
 	    UNBLOCK_INPUT;
 	    terminal->kboard->Vsystem_key_alist
 	      = call1 (Qvendor_specific_keysyms,
 		       vendor ? build_string (vendor) : empty_unibyte_string);
 	    BLOCK_INPUT;
+	    terminal->next_terminal = terminal_list;
+ 	    terminal_list = terminal;
 	  }
 
 	terminal->kboard->next_kboard = all_kboards;
