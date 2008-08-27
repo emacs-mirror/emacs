@@ -1,3 +1,27 @@
+2008-08-27  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Advanced Calendar/Diary Usage): Tweak some menu
+	descriptions.
+	(Calendar Customizing): Tweak layout description.
+	Move calenday-today-marker and calendar-today face to the other
+	markers.  Condense calendar-star-date and calendar-mark-today
+	description.
+	(Holiday Customizing): Add oriental and solar holidays.
+	Add index entries for Baha'i, Christian, Hebrew and Islamic holidays.
+	Fix holiday-float description.  Use zerop in examples.  Be less verbose.
+	(Date Display Format): Change ISO format.  Be less verbose.
+	(Diary Customizing): Mention day and month abbrev arrays.
+	Mention the date-form variables by name.  Update European example.
+	(Non-Gregorian Diary): Change node name.  Mention Baha'i functions.
+	Condense examples.  Mention diary-entry-symbols by name.
+	Condense table for insertion commands.
+	(Fancy Diary Display): Mention diary-include-string and
+	diary-sexp-entry-symbol.  Condense example.  Add Chinese, Coptic,
+	Ethiopic, Persian date functions.  Condense descriptions.
+
+	* calendar.texi (Format of Diary File): Mention diary-nonmarking-symbol.
+	(Adding to Diary): Adapt for changed node name.
+
 2008-08-26  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi (Non-Gregorian Diary Entries): New name for
