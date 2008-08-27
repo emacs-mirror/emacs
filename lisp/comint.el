@@ -2961,7 +2961,7 @@ See also `comint-dynamic-complete-filename'."
 	  (message "No completions of %s" filename))
       (comint-dynamic-list-completions
        (mapcar 'comint-quote-filename completions)
-       filenondir))))
+       (comint-quote-filename filenondir)))))
 
 
 ;; This is bound locally in a *Completions* buffer to the list of
