@@ -61,10 +61,6 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01816.html
 ** sdl.web@gmail.com, Sep 24: TLS infinite loop.
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01720.html
 
-** herring@lanl.gov: find-func: can no longer find adviced subrs
-This ought to work.
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01005.html
-
 ** rms: gnus-dired.el is a mistake.  Those features should not
 be part of Gnus.  They should be moved to some other part of Emacs.
 rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
