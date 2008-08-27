@@ -1170,12 +1170,14 @@ first must begin with whitespace to indicate they continue a previous
 entry.  Lines that do not begin with valid dates and do not continue a
 preceding entry are ignored.
 
+@vindex diary-nonmarking-symbol
   You can inhibit the marking of certain diary entries in the calendar
-window; to do this, insert an ampersand (@samp{&}) at the beginning of
-the entry, before the date.  This has no effect on display of the entry
-in the diary window; it affects only marks on dates in the calendar
-window.  Nonmarking entries are especially useful for generic entries
-that would otherwise mark many different dates.
+window; to do this, insert an ampersand @code{diary-nonmarking-symbol}
+(default @samp{&}) at the beginning of the entry, before the date.  This
+has no effect on display of the entry in the diary window; it affects
+only marks on dates in the calendar window.  Nonmarking entries are
+especially useful for generic entries that would otherwise mark many
+different dates.
 
   If the first line of a diary entry consists only of the date or day
 name with no following blanks or punctuation, then the diary window
@@ -1279,10 +1281,10 @@ entries.  The basic commands are listed here; more sophisticated
 commands are in the next section (@pxref{Special Diary Entries}).
 Entries can also be based on non-Gregorian calendars.
 @iftex
-@inforef{Non-Gregorian Diary Entries,, emacs-xtra}.
+@inforef{Non-Gregorian Diary,, emacs-xtra}.
 @end iftex
 @ifnottex
-@xref{Non-Gregorian Diary Entries}.
+@xref{Non-Gregorian Diary}.
 @end ifnottex
 
 @table @kbd
