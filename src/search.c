@@ -1340,11 +1340,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 			      if (this_char_base > 0)
 				boyer_moore_ok = 0;
 			      else
-				{
-				  this_char_base = 0;
-				  if (char_base < 0)
-				    char_base = this_char_base;
-				}
+				this_char_base = 0;
 			    }
 			  else if (CHAR_BYTE8_P (inverse))
 			    /* Boyer-moore search can't handle a
@@ -1356,8 +1352,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 			      this_char_base = inverse & ~0x3F;
 			      if (char_base < 0)
 				char_base = this_char_base;
-			      else if (char_base > 0
-				       && this_char_base != char_base)
+			      else if (this_char_base != char_base)
 				boyer_moore_ok = 0;
 			    }
 			  else if ((inverse & ~0x3F) != this_char_base)
@@ -1368,8 +1363,6 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 			}
 		    }
 		}
-	      if (char_base < 0)
-		char_base = 0;
 
 	      /* Store this character into the translated pattern.  */
 	      bcopy (str, pat, charlen);
@@ -1377,6 +1370,11 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	      base_pat += in_charlen;
 	      len_byte -= in_charlen;
 	    }
+
+	  /* If char_base is still negative we didn't find any translated
+	     non-ASCII characters.  */
+	  if (char_base < 0)
+	    char_base = 0;
 	}
       else
 	{

@@ -1,3 +1,7 @@
+2008-08-27  Andreas Schwab  <schwab@suse.de>
+
+	* search.c (search_buffer): Set char_base to zero only at the end.
+
 2008-08-27  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (report_file_error): Fix handling of multibyte error
