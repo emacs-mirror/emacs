@@ -58,7 +58,7 @@ a GIF library.
 
 ** New NeXTSTEP-based port
 This provides support for GNUStep (via the GNUStep libraries) and Mac
-OS X (via the Cocoa libraries).  
+OS X (via the Cocoa libraries).
 
 Specify --with-ns to configure for this. By default, a self-contained
 app will be built (containing all lisp).  To install/share lisp with
@@ -791,7 +791,7 @@ history.  See `Minibuffer changes', above.
 
 +++
 ** MH-E
-     
+
 *** Upgraded to MH-E version 8.1. See MH-E-NEWS for details.
 
 ** Python
@@ -802,6 +802,12 @@ that either version can be used as inferior Python by python.el.
 debug a Python program, pdbtrack notices the pdb prompt and displays
 the source file and line that the program is stopped at, much the same
 way as gud-mode does for debugging C programs with gdb.
+
+** Recentf
+
+*** The default value of `recentf-keep' prevents from checking of
+remote files, if there is no established connection to the
+corresponding remote host.
 
 ** T-mouse Mode
 
