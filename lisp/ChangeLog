@@ -1,3 +1,8 @@
+2008-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/x-win.el (x-win-suspend-error): Don't signal error if there
+	are no X frames active.
+
 2008-08-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/xesam.el (xesam-kill-buffer-function): Wrap code by
