@@ -1,3 +1,8 @@
+2008-04-09  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* emacs-lisp/debug.el (debug): When killing a noninteractive
+	Emacs, give an exit status of -1.
+
 2008-08-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc-hooks.el (vc-workfile-unchanged-p): Revert last change.
