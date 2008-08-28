@@ -48,11 +48,6 @@ Fixed by this change?
 	* ps-print.el: [...]
 	(ps-do-despool): If ps-lpr-switches is not a list, force it to be one.
 
-
-Also emacsclient does not work on Windows, it also worked with
-server.el version 1.136.
-http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00710.html
-
 ** unicode-merge issues:
 
 *** The data segment size increased after the unicode-2 merge.
