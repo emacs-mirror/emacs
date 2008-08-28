@@ -1,3 +1,7 @@
+2008-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc-hooks.el (vc-workfile-unchanged-p): Revert last change.
+
 2008-08-27  Alex Harsanyi  <harsanyi@mac.com>  (tiny change)
 
 	* vc-hooks.el (vc-workfile-unchanged-p): If the checkout time is
