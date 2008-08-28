@@ -60,6 +60,7 @@
 (require 'cit-srec)
 (require 'cit-el)
 (require 'cit-texi)
+(require 'cit-gnustep)
 
 (defvar cedet-integ-target "/tmp/CEDET_INTEG"
   "Root of the integration tests.")
@@ -95,6 +96,14 @@
 
   ;; Do some texinfo documentation.
   (cit-srecode-fill-texi)
+
+  ;; Do a EDE GNUstep-Make Project
+  (make-directory (concat cedet-integ-target "_ede_GSMake") t)
+  (find-file (expand-file-name "README" (concat cedet-integ-target "_ede_GSMake"))) ;; only to change dir
+  (setq oldval ede-auto-add-method
+	ede-auto-add-method 'always)
+  (cit-ede-step-test)
+  (setq ede-auto-add-method oldval)
 
   ;; Leave a message
   (let ((b (set-buffer (get-buffer-create "*PASSED*"))))
