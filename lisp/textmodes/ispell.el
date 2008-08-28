@@ -424,8 +424,9 @@ window system by evaluating the following on startup to set this variable:
 ;;;###autoload
 (defcustom ispell-personal-dictionary nil
   "*File name of your personal spelling dictionary, or nil.
-If nil, the default personal dictionary, \"~/.ispell_DICTNAME\" is used,
-where DICTNAME is the name of your default dictionary."
+If nil, the default personal dictionary, (\"~/.ispell_DICTNAME\" for ispell or
+\"~/.aspell.LANG.pws\" for aspell) is used, where DICTNAME is the name of your
+default dictionary and LANG the two letter language code."
   :type '(choice file
 		 (const :tag "default" nil))
   :group 'ispell)
