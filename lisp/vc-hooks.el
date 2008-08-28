@@ -559,13 +559,16 @@ and does not employ any heuristic at all."
   "Return non-nil if FILE has not changed since the last checkout."
   (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
         (lastmod (nth 5 (file-attributes file))))
-    (or (and checkout-time
-             ;; Tramp and Ange-FTP return this when they don't know the time.
-	     (not (equal lastmod '(0 0)))
-	     (equal checkout-time lastmod))
-	(let ((unchanged (vc-call workfile-unchanged-p file)))
-	  (vc-file-setprop file 'vc-checkout-time (if unchanged lastmod 0))
-	  unchanged))))
+    ;; This is a shortcut for determining when the workfile is
+    ;; unchanged.  It can fail under some circumstances; see the
+    ;; discussion in bug#694.
+    (if (and checkout-time
+	     ;; Tramp and Ange-FTP return this when they don't know the time.
+	     (not (equal lastmod '(0 0))))
+	(equal checkout-time lastmod)
+      (let ((unchanged (vc-call workfile-unchanged-p file)))
+	(vc-file-setprop file 'vc-checkout-time (if unchanged lastmod 0))
+	unchanged))))
 
 (defun vc-default-workfile-unchanged-p (backend file)
   "Check if FILE is unchanged by diffing against the master version.
