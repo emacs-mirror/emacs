@@ -1,3 +1,8 @@
+2008-08-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/xesam.el (xesam-kill-buffer-function): Wrap code by
+	`ignore-errors' (the function must succeed always).
+
 2008-08-28  "Edward O'Connor"  <hober0@gmail.com>
 
 	* json.el (json-read-number): New arg.  Handle explicitly signed
