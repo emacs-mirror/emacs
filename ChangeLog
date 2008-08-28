@@ -1,3 +1,9 @@
+2008-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Disable XFT and Freetype when without X.
+
+	* configure: Regenerate.
+
 2008-08-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (NS_IMPL_GNUSTEP): Increase pure size.
