@@ -779,9 +779,10 @@ Return propertized STRING."
 (defun xesam-kill-buffer-function ()
   "Send the CloseSearch indication."
   (when (and (eq major-mode 'xesam-mode) (stringp xesam-search))
-    (xesam-dbus-call-method
-     :session (car xesam-engine) xesam-path-search
-     xesam-interface-search "CloseSearch" xesam-search)))
+    (ignore-errors ;; The D-Bus service could have disappeared.
+      (xesam-dbus-call-method
+       :session (car xesam-engine) xesam-path-search
+       xesam-interface-search "CloseSearch" xesam-search))))
 
 (defun xesam-new-search (engine type query)
   "Create a new search session.
