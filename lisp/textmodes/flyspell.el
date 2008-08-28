@@ -484,7 +484,7 @@ This runs `flyspell-mode-hook' after flyspell mode is entered or exit.
 
 Remark:
 `flyspell-mode' uses `ispell-mode'.  Thus all Ispell options are
-valid.  For instance, a personal dictionary can be used by
+valid.  For instance, a different dictionary can be used by
 invoking `ispell-change-dictionary'.
 
 Consider using the `ispell-parser' to check your text.  For instance
