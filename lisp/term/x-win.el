@@ -1441,7 +1441,9 @@ The value nil is the same as this list:
 ;;; Window system initialization.
 
 (defun x-win-suspend-error ()
-  (error "Suspending an Emacs running under X makes no sense"))
+  ;; Don't allow suspending if any of the frames are X frames.
+  (if (memq 'x (mapcar 'window-system (frame-list)))
+      (error "Cannot suspend Emacs while running under X")))
 
 (defvar x-initialized nil
   "Non-nil if the X window system has been initialized.")
