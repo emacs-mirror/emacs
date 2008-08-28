@@ -71,7 +71,7 @@ Lisp_Object Vdbus_debug;
 #define XD_ERROR(error)							\
   do {									\
     char s[1024];							\
-    strcpy (s, error.message);						\
+    strncpy (s, error.message, 1023);					\
     dbus_error_free (&error);						\
     /* Remove the trailing newline.  */					\
     if (strchr (s, '\n') != NULL)					\
@@ -85,7 +85,7 @@ Lisp_Object Vdbus_debug;
 #define XD_DEBUG_MESSAGE(...)		\
   do {					\
     char s[1024];			\
-    sprintf (s, __VA_ARGS__);		\
+    snprintf (s, 1023, __VA_ARGS__);	\
     printf ("%s: %s\n", __func__, s);	\
     message ("%s: %s", __func__, s);	\
   } while (0)
@@ -104,7 +104,7 @@ Lisp_Object Vdbus_debug;
     if (!NILP (Vdbus_debug))						\
       {									\
 	char s[1024];							\
-	sprintf (s, __VA_ARGS__);					\
+	snprintf (s, 1023, __VA_ARGS__);				\
 	message ("%s: %s", __func__, s);				\
       }									\
   } while (0)
@@ -179,7 +179,7 @@ Lisp_Object Vdbus_debug;
    signature is embedded, or DBUS_TYPE_INVALID.  It is needed for the
    check that DBUS_TYPE_DICT_ENTRY occurs only as array element.  */
 void
-xd_signature(signature, dtype, parent_type, object)
+xd_signature (signature, dtype, parent_type, object)
      char *signature;
      unsigned int dtype, parent_type;
      Lisp_Object object;
@@ -454,7 +454,7 @@ xd_append_arg (dtype, object, iter)
       case DBUS_TYPE_OBJECT_PATH:
       case DBUS_TYPE_SIGNATURE:
 	{
-	  char *val = SDATA (object);
+	  char *val = SDATA (Fstring_make_unibyte (object));
 	  XD_DEBUG_MESSAGE ("%c %s", dtype, val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    xsignal2 (Qdbus_error,
