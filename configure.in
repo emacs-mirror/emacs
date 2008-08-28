@@ -1808,7 +1808,7 @@ fi
 
 ## Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
 HAVE_XFT=maybe
-if test "x${with_freetype}" = "xno"; then
+if test "x${with_freetype}" = "xno" || test "x${with_x}" = "xno"; then
   with_xft="no";
 fi
 if test "x${with_xft}" != "xno"; then
@@ -1848,7 +1848,7 @@ if test "${HAVE_XFT}" = "yes"; then
   dnl As we use Xft, we anyway use freetype.
   dnl In this case, there's no need of additional CFLAGS and LIBS.
   HAVE_FREETYPE=yes
-elif test "x${with_freetype}" != "xno"; then
+elif test "x${with_freetype}" != "xno" && test "x${with_x}" != "xno"; then
 
   PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes, HAVE_FREETYPE=no)
   if test "${HAVE_FREETYPE}" = "yes"; then
