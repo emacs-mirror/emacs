@@ -221,19 +221,27 @@ KEYWORD is the keyword expected."
 
 ;; Number parsing
 
-(defun json-read-number ()
-  "Read the JSON number following point.
+(defun json-read-number (&optional sign)
+ "Read the JSON number following point.
+The optional SIGN  argument is for internal use.
+
 N.B.: Only numbers which can fit in Emacs Lisp's native number
 representation will be parsed correctly."
-  (if (char-equal (json-peek) ?-)
-      (progn
-        (json-advance)
-        (- 0 (json-read-number)))
-    (if (looking-at "[0-9]+\\([.][0-9]+\\)?\\([eE][+-]?[0-9]+\\)?")
-        (progn
+ ;; If SIGN is non-nil, the number is explicitly signed.
+ (let ((number-regexp
+        "\\([0-9]+\\)?\\(\\.[0-9]+\\)?\\([Ee][+-]?[0-9]+\\)?"))
+   (cond ((and (null sign) (char-equal (json-peek) ?-))
+          (json-advance)
+          (- (json-read-number t)))
+         ((and (null sign) (char-equal (json-peek) ?+))
+          (json-advance)
+          (json-read-number t))
+         ((and (looking-at number-regexp)
+               (or (match-beginning 1)
+                   (match-beginning 2)))
           (goto-char (match-end 0))
           (string-to-number (match-string 0)))
-      (signal 'json-number-format (list (point))))))
+         (t (signal 'json-number-format (list (point)))))))
 
 ;; Number encoding
 
@@ -470,7 +478,7 @@ become JSON objects."
            (?\" json-read-string))))
     (mapc (lambda (char)
             (push (list char 'json-read-number) table))
-          '(?- ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
+          '(?- ?+ ?. ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
     table)
   "Readtable for JSON reader.")
 
