@@ -255,6 +255,31 @@ are fixed-pitch."
 (fset 'set-cursor-color 'ignore)	; Hardware determined by char under.
 (fset 'set-border-color 'ignore)	; Not useful.
 
+(defvar msdos-previous-message nil
+  "The content of the echo area before help echo was displayed.")
+
+(defun msdos-show-help (help)
+  "Function installed as `show-help-function' on MSDOS frames."
+  (when (and (not (window-minibuffer-p)) ;Don't overwrite minibuffer contents.
+             ;; Don't know how to reproduce it in Elisp:
+             ;; Don't overwrite a keystroke echo.
+             ;; (NILP (echo_message_buffer) || ok_to_overwrite_keystroke_echo)
+             (not cursor-in-echo-area)) ;Don't overwrite a prompt.
+    (cond
+     ((stringp help)
+      (unless msdos-previous-message
+        (setq msdos-previous-message (current-message)))
+      (let ((message-truncate-lines t)
+            (message-log-max nil))
+        (message "%s" (replace-regexp-in-string "\n" ", " help))))
+     ((stringp msdos-previous-message)
+      (let ((message-log-max nil))
+        (message "%s" msdos-previous-message)
+        (setq msdos-previous-message nil)))
+     (t
+      (message nil)))))
+
+
 ;; Initialization.
 ;; ---------------------------------------------------------------------------
 ;; This function is run, by faces.el:tty-create-frame-with-faces, only
@@ -297,6 +322,8 @@ Errors out because it is not supposed to be called, ever."
   (msdos-face-setup)
   ;; Set up the initial frame.
   (msdos-setup-initial-frame)
+  ;; Help echo is displayed in the echo area.
+  (setq show-help-function 'msdos-show-help)
   ;; We want to delay the codepage-related setup until after user's
   ;; .emacs is processed, because people might define their
   ;; `dos-codepage-setup-hook' there.
