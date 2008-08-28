@@ -4075,7 +4075,7 @@ Global commands prefixed by `global-edebug-prefix':
 
 (defun edebug (&optional edebug-arg-mode &rest debugger-args)
   "Replacement for `debug'.
-If we are running an edebugged function,show where we last were.
+If we are running an edebugged function, show where we last were.
 Otherwise call `debug' normally."
 ;;  (message "entered: %s  depth: %s  edebug-recursion-depth: %s"
 ;;	   edebug-entered (recursion-depth) edebug-recursion-depth) (sit-for 1)
