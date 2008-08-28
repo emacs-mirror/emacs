@@ -1,3 +1,10 @@
+2008-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/pc-win.el (msdos-previous-message): New variable.
+	(msdos-show-help): New function.
+	(msdos-initialize-window-system): Set show-help-function to
+	msdos-show-help.
+x
 2008-04-09  Lennart Borgman  <lennart.borgman@gmail.com>
 
 	* emacs-lisp/debug.el (debug): When killing a noninteractive
