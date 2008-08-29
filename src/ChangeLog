@@ -1,5 +1,10 @@
 2008-08-29  Eli Zaretskii  <eliz@gnu.org>
 
+	* composite.c (fill_gstring_body): Avoid compiler warnings.
+
+	* font.c (font_fill_lglyph_metrics): Use EMACS_INT in
+	LGLYPH_SET_CODE to avoid compiler warnings.
+
 	* makefile.w32-in ($(BLD)/w32uniscribe.$(O)): Depend on composite.h
 
 	* composite.h (LGLYPH_SET_CODE): Cast `val' to EMACS_INT.
