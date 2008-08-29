@@ -1,5 +1,10 @@
 2008-08-29  Kenichi Handa  <handa@m17n.org>
 
+	* fileio.c (report_file_error): Don't downcase the first character
+	of errstring if it is still unibyte.
+
+2008-08-29  Kenichi Handa  <handa@m17n.org>
+
 	These changes are to re-implement the automatic composition so
 	that it doesn't use text properties.
 

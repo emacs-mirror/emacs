@@ -1,3 +1,53 @@
+2008-08-29  Kenichi Handa  <handa@m17n.org>
+
+	These changes are to adjust the automatic composition for the new
+	implementation (avoid using text property).
+
+	* composite.el (composition-function-table): Declaration moved to
+	composite.c.
+	(terminal-composition-base-character-p): Delete it.
+	(terminal-composition-function): Delete it.
+	(terminal-composition-function-table): Delete it.
+	(lgstring-header, lgstring-set-header, lgstring-font)
+	(lgstring-char, lgstring-char-len, lgstring-shaped-p)
+	(lgstring-set-id, lgstring-glyph, lgstring-glyph-len)
+	(lgstring-set-glyph, lglyph-from, lglyph-to, lglyph-char)
+	(lglyph-code, lglyph-width, lglyph-lbearing, lglyph-rbearing)
+	(lglyph-ascent, lglyph-descent, lglyph-adjustment)
+	(lglyph-set-from-to, lglyph-copy, lgstring-insert-glyph)
+	(compose-glyph-string, compose-glyph-string-relative)
+	(compose-gstring-for-graphic, compose-gstring-for-terminal): New
+	functions.
+	(auto-compose-chars): Argument changed.
+
+	* language/european.el: Don't setup composition-function-table.
+	(diacritic-composition-pattern, diacritic-compose-region)
+	(diacritic-compose-string, diacritic-compose-buffer)
+	(diacritic-composition-function): Delete them.
+
+	* language/lao-util.el (lao-composition-function): Argument
+	changed.
+
+	* language/sinhala.el: Fix setting up of
+	composition-function-table.
+
+	* language/thai.el: Fix setting up of composition-function-table.
+
+	* language/thai-util.el: Encoding changed to utf-8.
+	(thai-composition-function): Argument changed.
+
+	* language/indian.el: Fix setting up of
+	composition-function-table.
+	(devanagari-composable-pattern)
+	(tamil-composable-pattern, kannada-composable-pattern)
+	(malayalam-composable-pattern): New variables.
+
+	* international/characters.el (unicode-category-table): Setup
+	unicode-category-table.
+
+	* international/fontset.el (setup-default-fontset): Prepend
+	iso10646-1 fonts to the fallback font groups instead of appending.
+
 2008-08-29  Glenn Morris  <rgm@gnu.org>
 
 	* cus-start.el (truncate-partial-width-windows): Changed in 23.1.
