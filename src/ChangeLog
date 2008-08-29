@@ -1,3 +1,15 @@
+2008-08-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (mac_system_script_code): Use EMACS_INT for DEFVAR_INT variable.
+	[MAC_OSX] (mac_try_close_socket, sys_select) [SELECT_USE_CFSOCKET]:
+	Cast to pointer-size integer before casting to pointer.
+
+	* macmenu.c [HAVE_DIALOGS] (mac_dialog_show): Cast to pointer-size
+	integer before casting to pointer.
+
+	* macselect.c (Fmac_resume_apple_event): Distribute cast to pointer
+	over conditional branches.
+
 2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* eval.c (Fcondition_case): Doc fix.
