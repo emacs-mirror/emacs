@@ -1939,7 +1939,7 @@ mac_dialog_show (f, keymaps, title, header, error_name)
 	if (!NILP (descrip))
 	  wv->key = (char *) SDATA (descrip);
 	wv->value = (char *) SDATA (item_name);
-	wv->call_data = (void *) i;
+	wv->call_data = (void *) (EMACS_INT) i;
 	  /* menu item is identified by its index in menu_items table */
 	wv->enabled = !NILP (enable);
 	wv->help = Qnil;
