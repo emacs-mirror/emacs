@@ -37,6 +37,8 @@ extern Lisp_Object fontset_font_pattern P_ ((FRAME_PTR, struct face *, int));
 extern int face_suitable_for_char_p P_ ((struct face *, int));
 extern int face_for_char P_ ((FRAME_PTR, struct face *, int,
 			      int, Lisp_Object));
+extern Lisp_Object font_for_char P_ ((struct face *, int, int, Lisp_Object));
+
 extern int make_fontset_for_ascii_face P_ ((FRAME_PTR, int, struct face *));
 extern int fontset_from_font P_ ((Lisp_Object));
 extern void set_default_ascii_font P_ ((Lisp_Object));
