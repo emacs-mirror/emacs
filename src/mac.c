@@ -69,7 +69,7 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 /* The system script code. */
-static int mac_system_script_code;
+static EMACS_INT mac_system_script_code;
 
 /* The system locale identifier string.  */
 static Lisp_Object Vmac_system_locale;
@@ -5047,7 +5047,7 @@ mac_try_close_socket (fd)
 #if SELECT_USE_CFSOCKET
   if (getpid () == mac_emacs_pid && cfsockets_for_select)
     {
-      void *key = (void *) fd;
+      void *key = (void *) (long) fd;
       CFSocketRef socket =
 	(CFSocketRef) CFDictionaryGetValue (cfsockets_for_select, key);
 
@@ -5160,7 +5160,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	  for (fd = minfd; fd < nfds; fd++)
 	    if (FD_ISSET (fd, rfds) || (wfds && FD_ISSET (fd, wfds)))
 	      {
-		void *key = (void *) fd;
+		void *key = (void *) (long) fd;
 		CFRunLoopSourceRef source =
 		  (CFRunLoopSourceRef) CFDictionaryGetValue (sources, key);
 
@@ -5190,7 +5190,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	  for (fd = minfd; fd < nfds; fd++)
 	    if (FD_ISSET (fd, rfds) || (wfds && FD_ISSET (fd, wfds)))
 	      {
-		void *key = (void *) fd;
+		void *key = (void *) (long) fd;
 		CFRunLoopSourceRef source =
 		  (CFRunLoopSourceRef) CFDictionaryGetValue (sources, key);
 
