@@ -188,6 +188,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "process.h"
 #include "region-cache.h"
+#include "font.h"
 #include "fontset.h"
 #include "blockinput.h"
 
@@ -767,7 +768,6 @@ static enum prop_handled handle_display_prop P_ ((struct it *));
 static enum prop_handled handle_composition_prop P_ ((struct it *));
 static enum prop_handled handle_overlay_change P_ ((struct it *));
 static enum prop_handled handle_fontified_prop P_ ((struct it *));
-static enum prop_handled handle_auto_composed_prop P_ ((struct it *));
 
 /* Properties handled by iterators.  */
 
@@ -779,7 +779,6 @@ static struct props it_props[] =
   {&Qface,		FACE_PROP_IDX,		handle_face_prop},
   {&Qdisplay,		DISPLAY_PROP_IDX,	handle_display_prop},
   {&Qinvisible,		INVISIBLE_PROP_IDX,	handle_invisible_prop},
-  {&Qauto_composed,	AUTO_COMPOSED_PROP_IDX,	handle_auto_composed_prop},
   {&Qcomposition,	COMPOSITION_PROP_IDX,	handle_composition_prop},
   {NULL,		0,			NULL}
 };
@@ -2574,6 +2573,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   it->w = w;
   it->f = XFRAME (w->frame);
 
+  it->cmp_it.id = -1;
+
   /* Extra space between lines (on window systems only).  */
   if (base_face_id == DEFAULT_FACE_ID
       && FRAME_WINDOW_P (it->f))
@@ -3181,6 +3182,7 @@ compute_stop_pos (it)
 {
   register INTERVAL iv, next_iv;
   Lisp_Object object, limit, position;
+  EMACS_INT charpos, bytepos;
 
   /* If nowhere else, stop at the end.  */
   it->stop_charpos = it->end_charpos;
@@ -3191,19 +3193,22 @@ compute_stop_pos (it)
 	 properties.  */
       object = it->string;
       limit = Qnil;
-      position = make_number (IT_STRING_CHARPOS (*it));
+      charpos = IT_STRING_CHARPOS (*it);
+      bytepos = IT_STRING_BYTEPOS (*it);
     }
   else
     {
-      int charpos;
+      EMACS_INT pos;
 
       /* If next overlay change is in front of the current stop pos
 	 (which is IT->end_charpos), stop there.  Note: value of
 	 next_overlay_change is point-max if no overlay change
 	 follows.  */
-      charpos = next_overlay_change (IT_CHARPOS (*it));
-      if (charpos < it->stop_charpos)
-	it->stop_charpos = charpos;
+      charpos = IT_CHARPOS (*it);
+      bytepos = IT_BYTEPOS (*it);
+      pos = next_overlay_change (charpos);
+      if (pos < it->stop_charpos)
+	it->stop_charpos = pos;
 
       /* If showing the region, we have to stop at the region
 	 start or end because the face might change there.  */
@@ -3219,12 +3224,11 @@ compute_stop_pos (it)
          property changes.  */
       XSETBUFFER (object, current_buffer);
       limit = make_number (IT_CHARPOS (*it) + TEXT_PROP_DISTANCE_LIMIT);
-      position = make_number (IT_CHARPOS (*it));
-
     }
 
   /* Get the interval containing IT's position.  Value is a null
      interval if there isn't such an interval.  */
+  position = make_number (charpos);
   iv = validate_interval_range (object, &position, &position, 0);
   if (!NULL_INTERVAL_P (iv))
     {
@@ -3267,6 +3271,9 @@ compute_stop_pos (it)
 	    it->stop_charpos = min (it->stop_charpos, next_iv->position);
 	}
     }
+
+  composition_compute_stop_pos (&it->cmp_it, charpos, bytepos,
+				it->stop_charpos, it->string);
 
   xassert (STRINGP (it->string)
 	   || (it->stop_charpos >= BEGV
@@ -3600,7 +3607,8 @@ face_before_or_after_it_pos (it, before_p)
 	/* For composition, we must check the character after the
            composition.  */
 	pos = (it->what == IT_COMPOSITION
-	       ? string_pos (IT_STRING_CHARPOS (*it) + it->cmp_len, it->string)
+	       ? string_pos (IT_STRING_CHARPOS (*it)
+			     + it->cmp_it.nchars, it->string)
 	       : string_pos (IT_STRING_CHARPOS (*it) + 1, it->string));
 
       if (it->current.overlay_string_index >= 0)
@@ -3650,7 +3658,7 @@ face_before_or_after_it_pos (it, before_p)
 	  if (it->what == IT_COMPOSITION)
 	    /* For composition, we must check the position after the
 	       composition.  */
-	    pos.charpos += it->cmp_len, pos.bytepos += it->len;
+	    pos.charpos += it->cmp_it.nchars, pos.bytepos += it->len;
 	  else
 	    INC_TEXT_POS (pos, it->multibyte_p);
 	}
@@ -4624,97 +4632,6 @@ string_buffer_position (w, string, around_charpos)
 			`composition' property
  ***********************************************************************/
 
-static enum prop_handled
-handle_auto_composed_prop (it)
-     struct it *it;
-{
-  enum prop_handled handled = HANDLED_NORMALLY;
-
-  if (FUNCTIONP (Vauto_composition_function))
-    {
-      Lisp_Object val = Qnil;
-      EMACS_INT pos, limit = -1;
-
-      if (STRINGP (it->string))
-	pos = IT_STRING_CHARPOS (*it);
-      else
-	pos = IT_CHARPOS (*it);
-
-      val = Fget_text_property (make_number (pos), Qauto_composed, it->string);
-      if (! NILP (val))
-	{
-	  Lisp_Object cmp_prop;
-	  EMACS_INT cmp_start, cmp_end;
-
-	  if (get_property_and_range (pos, Qcomposition, &cmp_prop,
-				      &cmp_start, &cmp_end, it->string)
-	      && cmp_start == pos
-	      && COMPOSITION_METHOD (cmp_prop) == COMPOSITION_WITH_GLYPH_STRING)
-	    {
-	      Lisp_Object gstring = COMPOSITION_COMPONENTS (cmp_prop);
-	      Lisp_Object font_object = LGSTRING_FONT (gstring);
-
-	      if (! EQ (font_object,
-			font_at (-1, pos, FACE_FROM_ID (it->f, it->face_id),
-				 it->w, it->string)))
-		/* We must re-compute the composition for the
-		   different font.  */
-		val = Qnil;
-	    }
-
-	  if (! NILP (val))
-	    {
-	      Lisp_Object end;
-
-	      /* As Fnext_single_char_property_change is very slow, we
-		 limit the search to the current line.  */
-	      if (STRINGP (it->string))
-		limit = SCHARS (it->string);
-	      else
-		limit = find_next_newline_no_quit (pos, 1);
-	      end = Fnext_single_char_property_change (make_number (pos),
-						       Qauto_composed,
-						       it->string,
-						       make_number (limit));
-
-	      if (XINT (end) < limit)
-		/* The current point is auto-composed, but there exist
-		   characters not yet composed beyond the
-		   auto-composed region.  There's a possiblity that
-		   the last characters in the region may be newly
-		   composed.  */
-		val = Qnil;
-	    }
-	}
-      if (NILP (val) && ! STRINGP (it->string))
-	{
-	  if (limit < 0)
-	    limit = (STRINGP (it->string) ? SCHARS (it->string)
-		     : find_next_newline_no_quit (pos, 1));
-	  if (pos < limit)
-	    {
-	      int count = SPECPDL_INDEX ();
-	      Lisp_Object args[5];
-
-	      if (FRAME_WINDOW_P (it->f))
-		limit = font_range (pos, limit,
-				    FACE_FROM_ID (it->f, it->face_id),
-				    it->f, it->string);
-	      args[0] = Vauto_composition_function;
-	      specbind (Qauto_composition_function, Qnil);
-	      args[1] = make_number (pos);
-	      args[2] = make_number (limit);
-	      args[3] = it->window;
-	      args[4] = it->string;
-	      safe_call (5, args);
-	      unbind_to (count, Qnil);
-	    }
-	}
-    }
-
-  return handled;
-}
-
 /* Set up iterator IT from `composition' property at its current
    position.  Called from handle_stop.  */
 
@@ -4724,7 +4641,6 @@ handle_composition_prop (it)
 {
   Lisp_Object prop, string;
   EMACS_INT pos, pos_byte, start, end;
-  enum prop_handled handled = HANDLED_NORMALLY;
 
   if (STRINGP (it->string))
     {
@@ -4751,8 +4667,6 @@ handle_composition_prop (it)
       && COMPOSITION_VALID_P (start, end, prop)
       && (STRINGP (it->string) || (PT <= start || PT >= end)))
     {
-      int id;
-
       if (start != pos)
 	{
 	  if (STRINGP (it->string))
@@ -4760,63 +4674,17 @@ handle_composition_prop (it)
 	  else
 	    pos_byte = CHAR_TO_BYTE (start);
 	}
-      id = get_composition_id (start, pos_byte, end - start, prop, string);
+      it->cmp_it.id = get_composition_id (start, pos_byte, end - start,
+					       prop, string);
 
-      if (id >= 0)
+      if (it->cmp_it.id >= 0)
 	{
-	  struct composition *cmp = composition_table[id];
-
-	  if (cmp->glyph_len == 0)
-	    {
-	      /* No glyph.  */
-	      if (STRINGP (it->string))
-		{
-		  IT_STRING_CHARPOS (*it) = end;
-		  IT_STRING_BYTEPOS (*it) = string_char_to_byte (it->string,
-								 end);
-		}
-	      else
-		{
-		  IT_CHARPOS (*it) = end;
-		  IT_BYTEPOS (*it) = CHAR_TO_BYTE (end);
-		}
-	      return HANDLED_RECOMPUTE_PROPS;
-	    }
-
-	  it->stop_charpos = end;
-	  push_it (it);
-
-	  it->method = GET_FROM_COMPOSITION;
-	  it->cmp_id = id;
-	  it->cmp_len = COMPOSITION_LENGTH (prop);
-	  /* For a terminal, draw only the first (non-TAB) character
-	     of the components.  */
-	  if (composition_table[id]->method == COMPOSITION_WITH_GLYPH_STRING)
-	    {
-	      /* FIXME: This doesn't do anything!?! */
-	      Lisp_Object lgstring = AREF (XHASH_TABLE (composition_hash_table)
-					   ->key_and_value,
-					   cmp->hash_index * 2);
-	    }
-	  else
-	    {
-	      int i;
-
-	      for (i = 0; i < cmp->glyph_len; i++)
-		if ((it->c = COMPOSITION_GLYPH (composition_table[id], i))
-		    != '\t')
-		  break;
-	    }
-	  if (it->c == '\t')
-	    it->c = ' ';
-	  it->len = (STRINGP (it->string)
-		     ? string_char_to_byte (it->string, end)
-		     : CHAR_TO_BYTE (end)) - pos_byte;
-	  handled = HANDLED_RETURN;
+	  it->cmp_it.nchars = COMPOSITION_LENGTH (prop);
+	  it->cmp_it.nglyphs = -1;
 	}
     }
 
-  return handled;
+  return HANDLED_NORMALLY;
 }
 
 
@@ -4872,7 +4740,6 @@ next_overlay_string (it)
       it->ellipsis_p = (it->stack[it->sp - 1].display_ellipsis_p != 0);
       pop_it (it);
       xassert (it->sp > 0
-	       || it->method == GET_FROM_COMPOSITION
 	       || (NILP (it->string)
 		   && it->method == GET_FROM_BUFFER
 		   && it->stop_charpos >= BEGV
@@ -4904,6 +4771,8 @@ next_overlay_string (it)
       SET_TEXT_POS (it->current.string_pos, 0, 0);
       it->method = GET_FROM_STRING;
       it->stop_charpos = 0;
+      if (it->cmp_it.stop_pos >= 0)
+	it->cmp_it.stop_pos = 0;
     }
 
   CHECK_IT (it);
@@ -5218,6 +5087,7 @@ push_it (it)
   p = it->stack + it->sp;
 
   p->stop_charpos = it->stop_charpos;
+  p->cmp_it = it->cmp_it;
   xassert (it->face_id >= 0);
   p->face_id = it->face_id;
   p->string = it->string;
@@ -5229,13 +5099,6 @@ push_it (it)
       p->u.image.object = it->object;
       p->u.image.image_id = it->image_id;
       p->u.image.slice = it->slice;
-      break;
-    case GET_FROM_COMPOSITION:
-      p->u.comp.object = it->object;
-      p->u.comp.c = it->c;
-      p->u.comp.len = it->len;
-      p->u.comp.cmp_id = it->cmp_id;
-      p->u.comp.cmp_len = it->cmp_len;
       break;
     case GET_FROM_STRETCH:
       p->u.stretch.object = it->object;
@@ -5273,6 +5136,7 @@ pop_it (it)
   --it->sp;
   p = it->stack + it->sp;
   it->stop_charpos = p->stop_charpos;
+  it->cmp_it = p->cmp_it;
   it->face_id = p->face_id;
   it->current = p->current;
   it->position = p->position;
@@ -5287,13 +5151,6 @@ pop_it (it)
       it->image_id = p->u.image.image_id;
       it->object = p->u.image.object;
       it->slice = p->u.image.slice;
-      break;
-    case GET_FROM_COMPOSITION:
-      it->object = p->u.comp.object;
-      it->c = p->u.comp.c;
-      it->len = p->u.comp.len;
-      it->cmp_id = p->u.comp.cmp_id;
-      it->cmp_len = p->u.comp.cmp_len;
       break;
     case GET_FROM_STRETCH:
       it->object = p->u.comp.object;
@@ -5754,7 +5611,6 @@ static int (* get_next_element[NUM_IT_METHODS]) P_ ((struct it *it)) =
 {
   next_element_from_buffer,
   next_element_from_display_vector,
-  next_element_from_composition,
   next_element_from_string,
   next_element_from_c_string,
   next_element_from_image,
@@ -5762,6 +5618,19 @@ static int (* get_next_element[NUM_IT_METHODS]) P_ ((struct it *it)) =
 };
 
 #define GET_NEXT_DISPLAY_ELEMENT(it) (*get_next_element[(it)->method]) (it)
+
+
+/* Return 1 iff a character at CHARPOS (and BYTEPOS) is composed
+   (possibly with the following characters).  */
+
+#define CHAR_COMPOSED_P(IT,CHARPOS,BYTEPOS)				\
+  ((IT)->cmp_it.id >= 0							\
+   || ((IT)->cmp_it.stop_pos == (CHARPOS)				\
+       && composition_reseat_it (&(IT)->cmp_it, CHARPOS, BYTEPOS,	\
+				 (IT)->end_charpos, (IT)->w,		\
+				 FACE_FROM_ID ((IT)->f, (IT)->face_id),	\
+				 (IT)->string)))
+
 
 /* Load IT's display element fields with information about the next
    display element from the current position of IT.  Value is zero if
@@ -6037,6 +5906,7 @@ get_next_display_element (it)
 	}
     }
 
+#ifdef HAVE_WINDOW_SYSTEM
   /* Adjust face id for a multibyte character.  There are no multibyte
      character in unibyte text.  */
   if ((it->what == IT_CHARACTER || it->what == IT_COMPOSITION)
@@ -6045,12 +5915,24 @@ get_next_display_element (it)
       && FRAME_WINDOW_P (it->f))
     {
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
-      int pos = (it->s ? -1
-		 : STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
-		 : IT_CHARPOS (*it));
 
-      it->face_id = FACE_FOR_CHAR (it->f, face, it->c, pos, it->string);
+      if (it->what == IT_COMPOSITION && it->cmp_it.ch >= 0)
+	{
+	  /* Automatic composition with glyph-string.   */
+	  Lisp_Object gstring = composition_gstring_from_id (it->cmp_it.id);
+	  
+	  it->face_id = face_for_font (it->f, LGSTRING_FONT (gstring), face);
+	}
+      else
+	{
+	  int pos = (it->s ? -1
+		     : STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
+		     : IT_CHARPOS (*it));
+
+	  it->face_id = FACE_FOR_CHAR (it->f, face, it->c, pos, it->string);
+	}
     }
+#endif
 
   /* Is this character the last one of a run of characters with
      box?  If yes, set IT->end_of_box_run_p to 1.  */
@@ -6105,29 +5987,26 @@ set_iterator_to_next (it, reseat_p)
 	 invisible lines that are so because of selective display.  */
       if (ITERATOR_AT_END_OF_LINE_P (it) && reseat_p)
 	reseat_at_next_visible_line_start (it, 0);
+      else if (it->cmp_it.id >= 0)
+	{
+	  IT_CHARPOS (*it) += it->cmp_it.nchars;
+	  IT_BYTEPOS (*it) += it->cmp_it.nbytes;
+	  if (it->cmp_it.to < it->cmp_it.nglyphs)
+	    it->cmp_it.from = it->cmp_it.to;
+	  else
+	    {
+	      it->cmp_it.id = -1;
+	      composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
+					    IT_BYTEPOS (*it), it->stop_charpos,
+					    Qnil);
+	    }
+	}
       else
 	{
 	  xassert (it->len != 0);
 	  IT_BYTEPOS (*it) += it->len;
 	  IT_CHARPOS (*it) += 1;
 	  xassert (IT_BYTEPOS (*it) == CHAR_TO_BYTE (IT_CHARPOS (*it)));
-	}
-      break;
-
-    case GET_FROM_COMPOSITION:
-      xassert (it->cmp_id >= 0 && it->cmp_id < n_compositions);
-      xassert (it->sp > 0);
-      pop_it (it);
-      if (it->method == GET_FROM_STRING)
-	{
-	  IT_STRING_BYTEPOS (*it) += it->len;
-	  IT_STRING_CHARPOS (*it) += it->cmp_len;
-	  goto consider_string_end;
-	}
-      else if (it->method == GET_FROM_BUFFER)
-	{
-	  IT_BYTEPOS (*it) += it->len;
-	  IT_CHARPOS (*it) += it->cmp_len;
 	}
       break;
 
@@ -6186,8 +6065,26 @@ set_iterator_to_next (it, reseat_p)
     case GET_FROM_STRING:
       /* Current display element is a character from a Lisp string.  */
       xassert (it->s == NULL && STRINGP (it->string));
-      IT_STRING_BYTEPOS (*it) += it->len;
-      IT_STRING_CHARPOS (*it) += 1;
+      if (it->cmp_it.id >= 0)
+	{
+	  IT_STRING_CHARPOS (*it) += it->cmp_it.nchars;
+	  IT_STRING_BYTEPOS (*it) += it->cmp_it.nbytes;
+	  if (it->cmp_it.to < it->cmp_it.nglyphs)
+	    it->cmp_it.from = it->cmp_it.to;
+	  else
+	    {
+	      it->cmp_it.id = -1;
+	      composition_compute_stop_pos (&it->cmp_it,
+					    IT_STRING_CHARPOS (*it),
+					    IT_STRING_BYTEPOS (*it),
+					    it->stop_charpos, it->string);
+	    }
+	}
+      else
+	{
+	  IT_STRING_BYTEPOS (*it) += it->len;
+	  IT_STRING_CHARPOS (*it) += 1;
+	}
 
     consider_string_end:
 
@@ -6330,6 +6227,12 @@ next_element_from_string (it)
 	  it->what = IT_EOB;
 	  return 0;
 	}
+      else if (CHAR_COMPOSED_P (it, IT_STRING_CHARPOS (*it),
+				IT_STRING_BYTEPOS (*it))
+	       && next_element_from_composition (it))
+	{
+	  return 1;
+	}
       else if (STRING_MULTIBYTE (it->string))
 	{
 	  int remaining = SBYTES (it->string) - IT_STRING_BYTEPOS (*it);
@@ -6359,6 +6262,12 @@ next_element_from_string (it)
 	  /* Pad with spaces.  */
 	  it->c = ' ', it->len = 1;
 	  CHARPOS (position) = BYTEPOS (position) = -1;
+	}
+      else if (CHAR_COMPOSED_P (it, IT_STRING_CHARPOS (*it),
+				IT_STRING_BYTEPOS (*it))
+	       && next_element_from_composition (it))
+	{
+	  return 1;
 	}
       else if (STRING_MULTIBYTE (it->string))
 	{
@@ -6546,14 +6455,16 @@ next_element_from_buffer (it)
 	  && IT_CHARPOS (*it) >= it->redisplay_end_trigger_charpos)
 	run_redisplay_end_trigger_hook (it);
 
+      if (CHAR_COMPOSED_P (it, IT_CHARPOS (*it), IT_BYTEPOS (*it))
+	  && next_element_from_composition (it))
+	{
+	  return 1;
+	}
+
       /* Get the next character, maybe multibyte.  */
       p = BYTE_POS_ADDR (IT_BYTEPOS (*it));
       if (it->multibyte_p && !ASCII_BYTE_P (*p))
-	{
-	  int maxlen = ((IT_BYTEPOS (*it) >= GPT_BYTE ? ZV_BYTE : GPT_BYTE)
-			- IT_BYTEPOS (*it));
-	  it->c = string_char_and_length (p, maxlen, &it->len);
-	}
+	it->c = STRING_CHAR_AND_LENGTH (p, 0, it->len);
       else
 	it->c = *p, it->len = 1;
 
@@ -6625,22 +6536,43 @@ run_redisplay_end_trigger_hook (it)
 }
 
 
-/* Deliver a composition display element.  The iterator IT is already
-   filled with composition information (done in
-   handle_composition_prop).  Value is always 1.  */
+/* Deliver a composition display element.  Unlike the other
+   next_element_from_XXX, this function is not registered in the array
+   get_next_element[].  It is called from next_element_from_buffer and
+   next_element_from_string when necessary.  */
 
 static int
 next_element_from_composition (it)
      struct it *it;
 {
   it->what = IT_COMPOSITION;
-  it->position = (STRINGP (it->string)
-		  ? it->current.string_pos
-		  : it->current.pos);
+  it->len = it->cmp_it.nbytes;
   if (STRINGP (it->string))
-    it->object = it->string;
+    {
+      if (it->c < 0)
+	{
+	  IT_STRING_CHARPOS (*it) += it->cmp_it.nchars;
+	  IT_STRING_BYTEPOS (*it) += it->cmp_it.nbytes;
+	  return 0;
+	}
+      it->position = it->current.string_pos;
+      it->object = it->string;
+      it->c = composition_update_it (&it->cmp_it, IT_STRING_CHARPOS (*it),
+				     IT_STRING_BYTEPOS (*it), it->string);
+    }
   else
-    it->object = it->w->buffer;
+    {
+      if (it->c < 0)
+	{
+	  IT_CHARPOS (*it) += it->cmp_it.nchars;
+	  IT_BYTEPOS (*it) += it->cmp_it.nbytes;
+	  return 0;
+	}
+      it->position = it->current.pos;
+      it->object = it->w->buffer;
+      it->c = composition_update_it (&it->cmp_it, IT_CHARPOS (*it),
+				     IT_BYTEPOS (*it), Qnil);
+    }    
   return 1;
 }
 
@@ -15674,7 +15606,7 @@ dump_glyph (row, glyph, area)
   else if (glyph->type == COMPOSITE_GLYPH)
     {
       fprintf (stderr,
-	       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       "  %5d %4c %6d %c %3d 0x%05x",
 	       glyph - row->glyphs[TEXT_AREA],
 	       '+',
 	       glyph->charpos,
@@ -15684,8 +15616,12 @@ dump_glyph (row, glyph, area)
 		   ? 'S'
 		   : '-')),
 	       glyph->pixel_width,
-	       glyph->u.cmp_id,
-	       '.',
+	       glyph->u.cmp.id);
+      if (glyph->u.cmp.automatic)
+	fprintf (stderr,
+		 "[%d-%d]",
+		 glyph->u.cmp.from, glyph->u.cmp.to);
+      fprintf (stderr, " . %4d %1.1d%1.1d\n"
 	       glyph->face_id,
 	       glyph->left_box_line_p,
 	       glyph->right_box_line_p);
@@ -19609,70 +19545,45 @@ fill_composite_glyph_string (s, base_face, overlaps)
      int overlaps;
 {
   int i;
+  /* For all glyphs of this composition, starting at the offset
+     S->gidx, until we reach the end of the definition or encounter a
+     glyph that requires the different face, add it to S.  */
+  struct face *face;
 
   xassert (s);
 
   s->for_overlaps = overlaps;
-
-  if (s->cmp->method == COMPOSITION_WITH_GLYPH_STRING)
+  s->face = NULL;
+  s->font = NULL;
+  for (i = s->cmp_from; i < s->cmp->glyph_len; i++)
     {
-      Lisp_Object gstring
-	= AREF (XHASH_TABLE (composition_hash_table)->key_and_value,
-		s->cmp->hash_index * 2);
+      int c = COMPOSITION_GLYPH (s->cmp, i);
 
-      s->face = base_face;
-      s->font = base_face->font;
-      for (i = 0, s->nchars = 0; i < s->cmp->glyph_len; i++, s->nchars++)
+      if (c != '\t')
 	{
-	  Lisp_Object g = LGSTRING_GLYPH (gstring, i);
-	  unsigned code;
-          XChar2b * store_pos;
-	  if (NILP (g))
-	    break;
-	  code = LGLYPH_CODE (g);
-          store_pos = s->char2b + i;
-	  STORE_XCHAR2B (store_pos, code >> 8, code & 0xFF);
-	}
-      s->width = s->cmp->pixel_width;
-    }
-  else
-    {
-      /* For all glyphs of this composition, starting at the offset
-	 S->gidx, until we reach the end of the definition or encounter a
-	 glyph that requires the different face, add it to S.  */
-      struct face *face;
+	  int face_id = FACE_FOR_CHAR (s->f, base_face->ascii_face, c,
+				       -1, Qnil);
 
-      s->face = NULL;
-      s->font = NULL;
-      for (i = s->gidx; i < s->cmp->glyph_len; i++)
-	{
-	  int c = COMPOSITION_GLYPH (s->cmp, i);
-
-	  if (c != '\t')
+	  face = get_char_face_and_encoding (s->f, c, face_id,
+					     s->char2b + i, 1, 1);
+	  if (face)
 	    {
-	      int face_id = FACE_FOR_CHAR (s->f, base_face->ascii_face, c,
-					   -1, Qnil);
-
-	      face = get_char_face_and_encoding (s->f, c, face_id,
-						 s->char2b + i, 1, 1);
-	      if (face)
+	      if (! s->face)
 		{
-		  if (! s->face)
-		    {
-		      s->face = face;
-		      s->font = s->face->font;
-		    }
-		  else if (s->face != face)
-		    break;
+		  s->face = face;
+		  s->font = s->face->font;
 		}
+	      else if (s->face != face)
+		break;
 	    }
-	  ++s->nchars;
 	}
-
-      /* All glyph strings for the same composition has the same width,
-	 i.e. the width set for the first component of the composition.  */
-      s->width = s->first_glyph->pixel_width;
+      ++s->nchars;
     }
+  s->cmp_to = i;
+
+  /* All glyph strings for the same composition has the same width,
+     i.e. the width set for the first component of the composition.  */
+  s->width = s->first_glyph->pixel_width;
 
   /* If the specified font could not be loaded, use the frame's
      default font, but record the fact that we couldn't load it in
@@ -19690,7 +19601,43 @@ fill_composite_glyph_string (s, base_face, overlaps)
   /* This glyph string must always be drawn with 16-bit functions.  */
   s->two_byte_p = 1;
 
-  return s->gidx + s->nchars;
+  return s->cmp_to;
+}
+
+static int
+fill_gstring_glyph_string (s, face_id, start, end, overlaps)
+     struct glyph_string *s;
+     int face_id;
+     int start, end, overlaps;
+{
+  struct glyph *glyph, *last;
+  Lisp_Object lgstring;
+  int i;
+
+  s->for_overlaps = overlaps;
+  glyph = s->row->glyphs[s->area] + start;
+  last = s->row->glyphs[s->area] + end;
+  s->cmp_id = glyph->u.cmp.id;
+  s->cmp_from = glyph->u.cmp.from;
+  s->cmp_to = glyph->u.cmp.to;
+  s->face = FACE_FROM_ID (s->f, face_id);
+  lgstring = composition_gstring_from_id (s->cmp_id);
+  s->font = XFONT_OBJECT (LGSTRING_FONT (lgstring));
+  glyph++;
+  while (glyph < last
+	 && glyph->u.cmp.automatic
+	 && glyph->u.cmp.id == s->cmp_id)
+    s->cmp_to = (glyph++)->u.cmp.to;
+
+  for (i = s->cmp_from; i < s->cmp_to; i++)
+    {
+      Lisp_Object lglyph = LGSTRING_GLYPH (lgstring, i);
+      unsigned code = LGLYPH_CODE (lglyph);
+
+      STORE_XCHAR2B ((s->char2b + i), code >> 8, code & 0xFF);
+    }
+  s->width = composition_gstring_width (lgstring, s->cmp_from, s->cmp_to, NULL);
+  return glyph - s->row->glyphs[s->area];
 }
 
 
@@ -19837,7 +19784,6 @@ get_per_char_metric (f, font, char2b)
 {
   static struct font_metrics metrics;
   unsigned code = (XCHAR2B_BYTE1 (char2b) << 8) | XCHAR2B_BYTE2 (char2b);
-  struct font *fontp;
 
   if (! font || code == FONT_INVALID_CODE)
     return NULL;
@@ -19875,10 +19821,27 @@ x_get_glyph_overhangs (glyph, f, left, right)
     }
   else if (glyph->type == COMPOSITE_GLYPH)
     {
-      struct composition *cmp = composition_table[glyph->u.cmp_id];
+      if (! glyph->u.cmp.automatic)
+	{
+	  struct composition *cmp = composition_table[glyph->u.cmp.id];
 
-      *right = cmp->rbearing - cmp->pixel_width;
-      *left = - cmp->lbearing;
+	  if (cmp->rbearing - cmp->pixel_width)
+	    *right = cmp->rbearing - cmp->pixel_width;
+	  if (cmp->lbearing < 0);
+	  *left = - cmp->lbearing;
+	}
+      else
+	{
+	  Lisp_Object gstring = composition_gstring_from_id (glyph->u.cmp.id);
+	  struct font_metrics metrics;
+
+	  composition_gstring_width (gstring, glyph->u.cmp.from,
+				     glyph->u.cmp.to, &metrics);
+	  if (metrics.rbearing > metrics.width)
+	    *right = metrics.rbearing;
+	  if (metrics.lbearing < 0)
+	    *left = - metrics.lbearing;
+	}
     }
 }
 
@@ -20142,7 +20105,7 @@ compute_overhangs_and_x (s, x, backward_p)
 	 INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);	   \
 	 append_glyph_string (&HEAD, &TAIL, s);				   \
 	 s->x = (X);							   \
-	 START = fill_glyph_string (s, face_id, START, END, overlaps);   \
+	 START = fill_glyph_string (s, face_id, START, END, overlaps);	   \
        }								   \
      while (0)
 
@@ -20160,7 +20123,7 @@ compute_overhangs_and_x (s, x, backward_p)
   do {									    \
     int face_id = (row)->glyphs[area][START].face_id;			    \
     struct face *base_face = FACE_FROM_ID (f, face_id);			    \
-    int cmp_id = (row)->glyphs[area][START].u.cmp_id;			    \
+    int cmp_id = (row)->glyphs[area][START].u.cmp.id;			    \
     struct composition *cmp = composition_table[cmp_id];		    \
     XChar2b *char2b;							    \
     struct glyph_string *first_s;					    \
@@ -20176,7 +20139,7 @@ compute_overhangs_and_x (s, x, backward_p)
 	INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);		    \
 	append_glyph_string (&(HEAD), &(TAIL), s);			    \
 	s->cmp = cmp;							    \
-	s->gidx = n;							    \
+	s->cmp_from = n;						    \
 	s->x = (X);							    \
 	if (n == 0)							    \
 	  first_s = s;							    \
@@ -20185,6 +20148,28 @@ compute_overhangs_and_x (s, x, backward_p)
     									    \
     ++START;								    \
     s = first_s;							    \
+  } while (0)
+
+
+/* Add a glyph string for a glyph-string sequence to the list of strings
+   between HEAD and TAIL.  */
+
+#define BUILD_GSTRING_GLYPH_STRING(START, END, HEAD, TAIL, HL, X, LAST_X) \
+  do {									  \
+    int face_id;							  \
+    XChar2b *char2b;							  \
+    Lisp_Object gstring;						  \
+    									  \
+    face_id = (row)->glyphs[area][START].face_id;			  \
+    gstring = (composition_gstring_from_id				  \
+	       ((row)->glyphs[area][START].u.cmp.id));			  \
+    s = (struct glyph_string *) alloca (sizeof *s);			  \
+    char2b = (XChar2b *) alloca ((sizeof *char2b)			  \
+				 * LGSTRING_GLYPH_LEN (gstring));	  \
+    INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);		  \
+    append_glyph_string (&(HEAD), &(TAIL), s);				  \
+    s->x = (X);								  \
+    START = fill_gstring_glyph_string (s, face_id, START, END, overlaps); \
   } while (0)
 
 
@@ -20198,47 +20183,50 @@ compute_overhangs_and_x (s, x, backward_p)
    to allocate glyph strings (because draw_glyphs can be called
    asynchronously).  */
 
-#define BUILD_GLYPH_STRINGS(START, END, HEAD, TAIL, HL, X, LAST_X)	   \
-     do									   \
-       {								   \
-	 HEAD = TAIL = NULL;						   \
-	 while (START < END)						   \
-	   {								   \
-             struct glyph *first_glyph = (row)->glyphs[area] + START;	   \
-             switch (first_glyph->type)					   \
-	       {							   \
-	       case CHAR_GLYPH:						   \
-                 BUILD_CHAR_GLYPH_STRINGS (START, END, HEAD, TAIL,	   \
-		                           HL, X, LAST_X);		   \
-		 break;							   \
-									   \
-	       case COMPOSITE_GLYPH:					   \
-                 BUILD_COMPOSITE_GLYPH_STRING (START, END, HEAD, TAIL,	   \
-					       HL, X, LAST_X);		   \
-		 break;							   \
-									   \
-	       case STRETCH_GLYPH:					   \
-		 BUILD_STRETCH_GLYPH_STRING (START, END, HEAD, TAIL,	   \
-					     HL, X, LAST_X);		   \
-		 break;							   \
-									   \
-	       case IMAGE_GLYPH:					   \
-		 BUILD_IMAGE_GLYPH_STRING (START, END, HEAD, TAIL,	   \
-					   HL, X, LAST_X);		   \
-		 break;							   \
-									   \
-	       default:							   \
-		 abort ();						   \
-	       }							   \
-									   \
-	     if (s)							   \
-	       {							   \
-		 set_glyph_string_background_width (s, START, LAST_X);	   \
-	         (X) += s->width;					   \
-	       }							   \
-            }								   \
-       }								   \
-     while (0)
+#define BUILD_GLYPH_STRINGS(START, END, HEAD, TAIL, HL, X, LAST_X)	\
+  do									\
+    {									\
+      HEAD = TAIL = NULL;						\
+      while (START < END)						\
+	{								\
+	  struct glyph *first_glyph = (row)->glyphs[area] + START;	\
+	  switch (first_glyph->type)					\
+	    {								\
+	    case CHAR_GLYPH:						\
+	      BUILD_CHAR_GLYPH_STRINGS (START, END, HEAD, TAIL,		\
+					HL, X, LAST_X);			\
+	      break;							\
+	      								\
+	    case COMPOSITE_GLYPH:					\
+	      if (first_glyph->u.cmp.automatic)				\
+		BUILD_GSTRING_GLYPH_STRING (START, END, HEAD, TAIL,	\
+					    HL, X, LAST_X);		\
+	      else							\
+		BUILD_COMPOSITE_GLYPH_STRING (START, END, HEAD, TAIL,	\
+					      HL, X, LAST_X);		\
+	      break;							\
+	      								\
+	    case STRETCH_GLYPH:						\
+	      BUILD_STRETCH_GLYPH_STRING (START, END, HEAD, TAIL,	\
+					  HL, X, LAST_X);		\
+	      break;							\
+	      								\
+	    case IMAGE_GLYPH:						\
+	      BUILD_IMAGE_GLYPH_STRING (START, END, HEAD, TAIL,		\
+					HL, X, LAST_X);			\
+	      break;							\
+	      								\
+	    default:							\
+	      abort ();							\
+	    }								\
+	  								\
+	  if (s)							\
+	    {								\
+	      set_glyph_string_background_width (s, START, LAST_X);	\
+	      (X) += s->width;						\
+	    }								\
+	}								\
+    } while (0)
 
 
 /* Draw glyphs between START and END in AREA of ROW on window W,
@@ -20559,8 +20547,9 @@ append_glyph (it)
     IT_EXPAND_MATRIX_WIDTH (it, area);
 }
 
-/* Store one glyph for the composition IT->cmp_id in IT->glyph_row.
-   Called from x_produce_glyphs when IT->glyph_row is non-null.  */
+/* Store one glyph for the composition IT->cmp_it.id in
+   IT->glyph_row.  Called from x_produce_glyphs when IT->glyph_row is
+   non-null.  */
 
 static INLINE void
 append_composite_glyph (it)
@@ -20581,6 +20570,18 @@ append_composite_glyph (it)
       glyph->descent = it->descent;
       glyph->voffset = it->voffset;
       glyph->type = COMPOSITE_GLYPH;
+      if (it->cmp_it.ch < 0)
+	{
+	  glyph->u.cmp.automatic = 0;
+	  glyph->u.cmp.id = it->cmp_it.id;
+	}
+      else
+	{
+	  glyph->u.cmp.automatic = 1;
+	  glyph->u.cmp.id = it->cmp_it.id;
+	  glyph->u.cmp.from = it->cmp_it.from;
+	  glyph->u.cmp.to = it->cmp_it.to;
+	}
       glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
       glyph->left_box_line_p = it->start_of_box_run_p;
@@ -20590,7 +20591,6 @@ append_composite_glyph (it)
       glyph->padding_p = 0;
       glyph->glyph_not_available_p = 0;
       glyph->face_id = it->face_id;
-      glyph->u.cmp_id = it->cmp_id;
       glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
@@ -21447,9 +21447,11 @@ x_produce_glyphs (it)
 	}
       it->multibyte_p = saved_multibyte_p;
     }
-  else if (it->what == IT_COMPOSITION)
+  else if (it->what == IT_COMPOSITION && it->cmp_it.ch < 0)
     {
-      /* Note: A composition is represented as one glyph in the
+      /* A static compositoin.
+
+	 Note: A composition is represented as one glyph in the
 	 glyph matrix.  There are no padding glyphs.
 
 	 Important is that pixel_width, ascent, and descent are the
@@ -21457,18 +21459,12 @@ x_produce_glyphs (it)
 	 the overall glyphs composed).  */
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
       int boff;			/* baseline offset */
-      struct composition *cmp = composition_table[it->cmp_id];
+      struct composition *cmp = composition_table[it->cmp_it.id];
       int glyph_len = cmp->glyph_len;
       struct font *font = face->font;
 
       it->nglyphs = 1;
 
-      if (cmp->method == COMPOSITION_WITH_GLYPH_STRING)
-	{
-	  PREPARE_FACE_FOR_DISPLAY (it->f, face);
-	  font_prepare_composition (cmp, it->f);
-	}
-      else
       /* If we have not yet calculated pixel size data of glyphs of
 	 the composition for the current face font, calculate them
 	 now.  Theoretically, we have to check all fonts for the
@@ -21488,7 +21484,6 @@ x_produce_glyphs (it)
 	  int lbearing, rbearing;
 	  int i, width, ascent, descent;
 	  int left_padded = 0, right_padded = 0;
-	  int face_id;
 	  int c;
 	  XChar2b char2b;
 	  struct font_metrics *pcm;
@@ -21762,6 +21757,52 @@ x_produce_glyphs (it)
       if (face->overline_p)
 	it->ascent += overline_margin;
 
+      take_vertical_position_into_account (it);
+      if (it->ascent < 0)
+	it->ascent = 0;
+      if (it->descent < 0)
+	it->descent = 0;
+
+      if (it->glyph_row)
+	append_composite_glyph (it);
+    }
+  else if (it->what == IT_COMPOSITION)
+    {
+      /* A dynamic (automatic) composition.  */
+      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+      Lisp_Object gstring;
+      struct font_metrics metrics;
+
+      gstring = composition_gstring_from_id (it->cmp_it.id);
+      it->pixel_width
+	= composition_gstring_width (gstring, it->cmp_it.from, it->cmp_it.to,
+				     &metrics);
+      if (it->glyph_row
+	  && (metrics.lbearing < 0 || metrics.rbearing > metrics.width))
+	it->glyph_row->contains_overlapping_glyphs_p = 1;
+      it->ascent = it->phys_ascent = metrics.ascent;
+      it->descent = it->phys_descent = metrics.descent;
+      if (face->box != FACE_NO_BOX)
+	{
+	  int thick = face->box_line_width;
+
+	  if (thick > 0)
+	    {
+	      it->ascent += thick;
+	      it->descent += thick;
+	    }
+	  else
+	    thick = - thick;
+
+	  if (it->start_of_box_run_p)
+	    it->pixel_width += thick;
+	  if (it->end_of_box_run_p)
+	    it->pixel_width += thick;
+	}
+      /* If face has an overline, add the height of the overline
+	 (1 pixel) and a 1 pixel margin to the character height.  */
+      if (face->overline_p)
+	it->ascent += overline_margin;
       take_vertical_position_into_account (it);
       if (it->ascent < 0)
 	it->ascent = 0;
