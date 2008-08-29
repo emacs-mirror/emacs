@@ -1149,11 +1149,10 @@ See also the function `substitute-in-file-name'.  */)
   nm = SDATA (name);
   multibyte = STRING_MULTIBYTE (name);
 
-#ifdef DOS_NT
-  /* We will force directory separators to be either all \ or /, so make
-     a local copy to modify, even if there ends up being no change. */
+  /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below. */
   nm = strcpy (alloca (strlen (nm) + 1), nm);
 
+#ifdef DOS_NT
   /* Note if special escape prefix is present, but remove for now.  */
   if (nm[0] == '/' && nm[1] == ':')
     {
@@ -1340,7 +1339,7 @@ See also the function `substitute-in-file-name'.  */)
 	    }
 	  return name;
 #else /* not DOS_NT */
-	  if (nm == SDATA (name))
+	  if (strcmp (nm, SDATA (name)) == 0)
 	    return name;
 	  return make_specified_string (nm, -1, strlen (nm), multibyte);
 #endif /* not DOS_NT */
