@@ -5760,7 +5760,10 @@ or tab character nearest to the right window edge.
 If nil, continuation lines are wrapped at the right screen edge.
 
 This variable has no effect if long lines are truncated (see
-`truncate-lines' and `truncate-partial-width-windows').  */);
+`truncate-lines' and `truncate-partial-width-windows').  If you use
+word-wrapping, you might want to reduce the value of
+`truncate-partial-width-windows', since wrapping can make text readable
+in narrower windows.  */);
 
 #ifdef DOS_NT
   DEFVAR_PER_BUFFER ("buffer-file-type", &current_buffer->buffer_file_type,
