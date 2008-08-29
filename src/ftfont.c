@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "charset.h"
 #include "coding.h"
+#include "composite.h"
 #include "fontset.h"
 #include "font.h"
 #include "ftfont.h"
@@ -207,6 +208,7 @@ ftfont_resolve_generic_family (family, pattern)
   Lisp_Object slot;
   FcPattern *match;
   FcResult result;
+  FcLangSet *langset;
 
   family = Fintern (Fdowncase (SYMBOL_NAME (family)), Qnil);
   if (EQ (family, Qmono))
@@ -224,6 +226,14 @@ ftfont_resolve_generic_family (family, pattern)
   FcPatternDel (pattern, FC_FOUNDRY);
   FcPatternDel (pattern, FC_FAMILY);
   FcPatternAddString (pattern, FC_FAMILY, SYMBOL_FcChar8 (family));
+  if (FcPatternGetLangSet (pattern, FC_LANG, 0, &langset) != FcResultMatch)
+    {
+      /* This is to avoid the effect of locale.  */
+      langset = FcLangSetCreate ();
+      FcLangSetAdd (langset, "en");
+      FcPatternAddLangSet (pattern, FC_LANG, langset);
+      FcLangSetDestroy (langset);
+    }
   FcConfigSubstitute (NULL, pattern, FcMatchPattern);
   FcDefaultSubstitute (pattern);
   match = FcFontMatch (NULL, pattern, &result);
@@ -1769,7 +1779,7 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
      FT_Face ft_face;
      OTF *otf;
 {
-  EMACS_UINT len = LGSTRING_LENGTH (lgstring);
+  EMACS_UINT len = LGSTRING_GLYPH_LEN (lgstring);
   EMACS_UINT i;
   struct MFLTFontFT flt_font_ft;
 
@@ -1829,7 +1839,7 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
       gstring.glyphs = realloc (gstring.glyphs,
 				sizeof (MFLTGlyph) * gstring.allocated);
     }
-  if (gstring.used > LGSTRING_LENGTH (lgstring))
+  if (gstring.used > LGSTRING_GLYPH_LEN (lgstring))
     return Qnil;
   for (i = 0; i < gstring.used; i++)
     {
