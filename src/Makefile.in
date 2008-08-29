@@ -1082,7 +1082,8 @@ frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
 fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhooks.h $(config_h)
 font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \
    font.h $(config_h)
-ftfont.o: dispextern.h frame.h character.h charset.h font.h $(config_h)
+ftfont.o: dispextern.h frame.h character.h charset.h composite.h font.h \
+   $(config_h)
 fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h character.h \
    charset.h frame.h keyboard.h termhooks.h font.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
@@ -1248,7 +1249,8 @@ textprop.o: textprop.c buffer.h window.h dispextern.h $(INTERVAL_SRC) \
 	$(config_h)
 intervals.o: intervals.c buffer.h $(INTERVAL_SRC) keyboard.h puresize.h \
 	keymap.h $(config_h)
-composite.o: composite.c buffer.h  character.h $(INTERVAL_SRC) $(config_h)
+composite.o: composite.c buffer.h character.h dispextern.h font.h frame.h \
+	$(INTERVAL_SRC) window.h $(config_h)
 
 /* System-specific programs to be made.
    OTHER_FILES and OBJECTS_MACHINE
