@@ -114,8 +114,6 @@ The Emacs 22 icon is available as `emacs22.png' in the same location.
 
 * Changes in Emacs 23.1
 
-** `where-is-preferred-modifier' can specify your favorite modifier.
-
 ** Improved X Window System support
 
 *** Emacs now supports using both X displays and ttys in one session.
@@ -154,11 +152,6 @@ active frame and INACTIVE is the opactity of non-active frames.
 
 The variable `frame-alpha-lower-limit' defines a lower bound for the
 opacity; the default is 20.
-
-*** Emacs can now use `auth-source' for authentication.
-`smtpmail' and `url' (Tramp and Gnus also) use `auth-source' to obtain
-login names and passwords.  The match, if found, is reported
-in *Messages* with the password blanked out.
 
 ** Internationalization changes
 
@@ -251,10 +244,22 @@ mode-line information (e.g. waiting for a VC command to finish).
 *** The VC, line/colum number and minor mode indicators on the mode
 line are now interactive: mouse-1 can be used on them to pop up a menu.
 
+** File deletion can make use of the Recycle Bin or system Trash folder.
+Set `delete-by-moving-to-trash' non-nil to use this.  Deleted files
+and directories will then be sent to the Recyle Bin on Windows, and
+to `trash-directory' on other systems.
+
 ** Directory-local variables can now be defined.
 By default, Emacs looks in .dir-settings.el for directory-local
 variables.  For more information, see `set-directory-project' and
 `define-project-bindings'.
+
+** Emacs can now use `auth-source' for authentication.
+`smtpmail' and `url' (Tramp and Gnus also) use `auth-source' to obtain
+login names and passwords.  The match, if found, is reported
+in *Messages* with the password blanked out.
+
+** `where-is-preferred-modifier' can specify your favorite modifier.
 
 
 * Startup Changes in Emacs 23.1
