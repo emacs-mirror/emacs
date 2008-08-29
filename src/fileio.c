@@ -261,7 +261,8 @@ report_file_error (string, data)
       default:
 	/* System error messages are capitalized.  Downcase the initial
 	   unless it is followed by a slash.  */
-	if (! EQ (Faref (errstring, make_number (1)), make_number ('/')))
+	if (STRING_MULTIBYTE (errstring)
+	    && ! EQ (Faref (errstring, make_number (1)), make_number ('/')))
 	  {
 	    int c;
 
