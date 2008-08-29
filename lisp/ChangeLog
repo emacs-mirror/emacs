@@ -1,3 +1,8 @@
+2008-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* isearch.el (isearch-highlight-regexp): Fix case of highlighted
+	string.
+
 2008-08-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* bindings.el (mode-line-frame-identification): Fix last change.
