@@ -9834,6 +9834,14 @@ FRAME_PTR last_mouse_frame;
 int last_tool_bar_item;
 
 
+static Lisp_Object
+update_tool_bar_unwind (frame)
+     Lisp_Object frame;
+{
+  selected_frame = frame;
+  return Qnil;
+}
+
 /* Update the tool-bar item list for frame F.  This has to be done
    before we start to fill in any display lines.  Called from
    prepare_menu_bars.  If SAVE_MATCH_DATA is non-zero, we must save
@@ -9878,7 +9886,7 @@ update_tool_bar (f, save_match_data)
 	{
 	  struct buffer *prev = current_buffer;
 	  int count = SPECPDL_INDEX ();
-	  Lisp_Object new_tool_bar;
+	  Lisp_Object frame, new_tool_bar;
           int new_n_tool_bar;
 	  struct gcpro gcpro1;
 
@@ -9899,6 +9907,14 @@ update_tool_bar (f, save_match_data)
 	    }
 
 	  GCPRO1 (new_tool_bar);
+
+	  /* We must temporarily set the selected frame to this frame
+	     before calling tool_bar_items, because the calculation of
+	     the tool-bar keymap uses the selected frame (see
+	     `tool-bar-make-keymap' in tool-bar.el).  */
+	  record_unwind_protect (update_tool_bar_unwind, selected_frame);
+	  XSETFRAME (frame, f);
+	  selected_frame = frame;
 
 	  /* Build desired tool-bar items from keymaps.  */
           new_tool_bar = tool_bar_items (Fcopy_sequence (f->tool_bar_items),
