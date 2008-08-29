@@ -3024,7 +3024,8 @@ ns_draw_glyph_string (struct glyph_string *s)
       n = ns_get_glyph_string_clip_rect (s, r);
       ns_focus (s->f, r, n);
 
-      if (s->for_overlaps || s->gidx > 0)
+      if (s->for_overlaps || (s->cmp_from > 0
+			      && ! s->first_glyph->u.cmp.automatic))
         s->background_filled_p = 1;
       else      /* 1 */
         ns_maybe_dumpglyphs_background
