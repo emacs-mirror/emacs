@@ -1,3 +1,9 @@
+2008-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (update_tool_bar_unwind): New function.
+	(update_tool_bar): Temporarily set selected frame before building
+	tool-bar items.
+
 2008-08-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (XD_ERROR, XD_DEBUG_MESSAGE): Use strncpy and
