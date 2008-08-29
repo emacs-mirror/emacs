@@ -1393,14 +1393,21 @@ and reads its face argument using `hi-lock-read-face-name'."
   (isearch-done)
   (isearch-clean-overlays)
   (require 'hi-lock nil t)
-  ;; (add-to-history 'hi-lock-regexp-history regexp)
-  (let ((case-fold-search isearch-case-fold-search)
-	;; TODO: add `search-upper-case' as in `isearch-occur'
-	)
-    (hi-lock-face-buffer
-     (hi-lock-regexp-okay
-      (if isearch-regexp isearch-string (regexp-quote isearch-string)))
-     (hi-lock-read-face-name))))
+  (let ((string (cond (isearch-regexp isearch-string)
+		      ((if (and (eq isearch-case-fold-search t)
+				search-upper-case)
+			   (isearch-no-upper-case-p
+			    isearch-string isearch-regexp)
+			 isearch-case-fold-search)
+		       ;; Turn isearch-string into a case-insensitive
+		       ;; regexp.
+		       (replace-regexp-in-string
+			"[a-z]"
+			(lambda (m)
+			  (format "[%s%s]" (upcase m) (downcase m)))
+			isearch-string))
+		      (t (regexp-quote isearch-string)))))
+    (hi-lock-face-buffer string (hi-lock-read-face-name))))
 
 
 (defun isearch-delete-char ()
