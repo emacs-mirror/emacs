@@ -734,10 +734,12 @@ int uniscribe_check_otf (font, otf_spec)
 	      OTF_INT16_VAL (tbl, scriptlist_table + 6 + j * 6, &script_table);
 	      break;
 	    }
+#if 0	  /* Causes false positives.  */
 	  /* If there is a DFLT script defined in the font, use it
 	     if the specified script is not found.  */
 	  else if (script_id == default_script)
 	    OTF_INT16_VAL (tbl, scriptlist_table + 6 + j * 6, &script_table);
+#endif
 	}
       /* If no specific or default script table was found, then this font
 	 does not support the script.  */
