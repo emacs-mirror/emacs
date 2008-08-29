@@ -865,7 +865,7 @@ fill_gstring_body (gstring)
   for (i = 0; i < len; i++)
     {
       Lisp_Object g = LGSTRING_GLYPH (gstring, i);
-      int c = XINT (AREF (header, i + 1));
+      EMACS_INT c = XINT (AREF (header, i + 1));
 
       if (NILP (g))
 	{
