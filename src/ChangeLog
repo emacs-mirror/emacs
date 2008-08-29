@@ -1,3 +1,8 @@
+2008-08-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name): Copy argument `name' into local
+	storage on all platforms, not just on DOS_NT.
+
 2008-08-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (mac_system_script_code): Use EMACS_INT for DEFVAR_INT variable.
