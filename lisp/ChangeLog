@@ -1,3 +1,7 @@
+2008-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-mode): Fix 2008-07-19 change.
+
 2008-08-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* facemenu.el (facemenu-unlisted-faces): Fix obsolescence declaration.
