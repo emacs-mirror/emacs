@@ -339,13 +339,18 @@ uniscribe_shape (lgstring)
 		  int lglyph_index = j + done_glyphs;
 		  Lisp_Object lglyph = LGSTRING_GLYPH (lgstring, lglyph_index);
 		  ABC char_metric;
+		  unsigned gl;
 
 		  if (NILP (lglyph))
 		    {
 		      lglyph = Fmake_vector (make_number (LGLYPH_SIZE), Qnil);
 		      LGSTRING_SET_GLYPH (lgstring, lglyph_index, lglyph);
 		    }
-		  LGLYPH_SET_CODE (lglyph, glyphs[j]);
+		  /* Copy to a 32-bit data type to shut up the
+		     compiler warning in LGLYPH_SET_CODE about
+		     comparison being always false.  */
+		  gl = glyphs[j];
+		  LGLYPH_SET_CODE (lglyph, gl);
 
 		  /* Detect clusters, for linking codes back to characters.  */
 		  if (attributes[j].fClusterStart)
