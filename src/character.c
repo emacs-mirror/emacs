@@ -85,6 +85,8 @@ Lisp_Object Vscript_representative_chars;
 
 static Lisp_Object Qchar_script_table;
 
+Lisp_Object Vunicode_category_table;
+
 /* Mapping table from unibyte chars to multibyte chars.  */
 int unibyte_to_multibyte_table[256];
 
@@ -1104,6 +1106,15 @@ It has one extra slot whose value is a list of script symbols.  */);
   DEFVAR_LISP ("script-representative-chars", &Vscript_representative_chars,
 	       doc: /* Alist of scripts vs the representative characters.  */);
   Vscript_representative_chars = Qnil;
+
+  DEFVAR_LISP ("unicode-category-table", &Vunicode_category_table,
+	       doc: /* Char table of Unicode's "General Category".
+All Unicode characters has one of the following values (symbol):
+  Lw, Ll, Lt, Lm, Lo, Mn, Mc, Me, Nd, Nl, No, Pc, Pd, Ps, Pe, Pi, Pf, Po,
+  Sm, Sc, Sk, So, Zs, Zl, Zp, Cc, Cf, Cs, Co, Cn
+See The Unicode Standard for the meaning of those values.  */);
+  /* The correct char-table is setup in characters.el.  */
+  Vunicode_category_table = Qnil;
 }
 
 #endif /* emacs */
