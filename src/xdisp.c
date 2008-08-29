@@ -24909,8 +24909,10 @@ otherwise, respect the value of `truncate-lines'.
 For any other non-nil value, truncate lines in all windows with
 less than the full frame width.
 
-A value of nil means to respect the value of `truncate-lines'.  */);
-  Vtruncate_partial_width_windows = make_number (30);
+A value of nil means to respect the value of `truncate-lines'.
+
+If `word-wrap' is enabled, you might want to reduce this.  */);
+  Vtruncate_partial_width_windows = make_number (50);
 
   DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
     doc: /* When nil, display the mode-line/header-line/menu-bar in the default face.
