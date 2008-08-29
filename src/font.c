@@ -4195,10 +4195,13 @@ font_fill_lglyph_metrics (glyph, font_object)
      Lisp_Object glyph, font_object;
 {
   struct font *font = XFONT_OBJECT (font_object);
-  unsigned code = font->driver->encode_char (font, LGLYPH_CHAR (glyph));
+  unsigned code;
+  /* ecode used in LGLYPH_SET_CODE to avoid compiler warnings.  */
+  EMACS_INT ecode = font->driver->encode_char (font, LGLYPH_CHAR (glyph));
   struct font_metrics metrics;
 
-  LGLYPH_SET_CODE (glyph, code);
+  LGLYPH_SET_CODE (glyph, ecode);
+  code = ecode;
   font->driver->text_extents (font, &code, 1, &metrics);
   LGLYPH_SET_LBEARING (glyph, metrics.lbearing);
   LGLYPH_SET_RBEARING (glyph, metrics.rbearing);
