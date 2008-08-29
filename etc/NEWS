@@ -448,7 +448,7 @@ New Modes and Packages, below.
 
 *** truncate-partial-width-windows now accepts integer values, which
 specify a minimum window width for partial-width windows, below which
-lines are truncated.  The default has been changed to 30.
+lines are truncated.  The default has been changed to 50.
 
 *** The new command balance-windows-area balances windows both
 vertically and horizontally.
