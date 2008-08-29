@@ -1,3 +1,7 @@
+2008-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el (truncate-partial-width-windows): Changed in 23.1.
+
 2008-08-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/x-win.el (x-win-suspend-error): Don't signal error if there

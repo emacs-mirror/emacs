@@ -1,3 +1,9 @@
+2008-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (word-wrap): Doc fix.
+	* xdisp.c (truncate-partial-width-windows): Doc fix.
+	Increase default to 50.
+
 2008-08-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (update_tool_bar_unwind): New function.
