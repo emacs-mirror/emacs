@@ -596,11 +596,21 @@ encode_terminal_code (src, src_len, coding)
     {
       if (src->type == COMPOSITE_GLYPH)
 	{
-	  struct composition *cmp = composition_table[src->u.cmp_id];
+	  struct composition *cmp;
+	  Lisp_Object gstring;
 	  int i;
 
 	  nbytes = buf - encode_terminal_src;
-	  required = MAX_MULTIBYTE_LENGTH * cmp->glyph_len;
+	  if (src->u.cmp.automatic)
+	    {
+	      gstring = composition_gstring_from_id (src->u.cmp.id);
+	      required = src->u.cmp.to - src->u.cmp.from;
+	    }
+	  else
+	    {
+	      cmp = composition_table[src->u.cmp.id];
+	      required = MAX_MULTIBYTE_LENGTH * cmp->glyph_len;
+	    }
 
 	  if (encode_terminal_src_size < nbytes + required)
 	    {
@@ -610,15 +620,27 @@ encode_terminal_code (src, src_len, coding)
 	      buf = encode_terminal_src + nbytes;
 	    }
 
-	  for (i = 0; i < cmp->glyph_len; i++)
-	    {
-	      int c = COMPOSITION_GLYPH (cmp, i);
+	  if (src->u.cmp.automatic)
+	    for (i = src->u.cmp.from; i < src->u.cmp.to; i++)
+	      {
+		Lisp_Object g = LGSTRING_GLYPH (gstring, i);
+		int c = LGLYPH_CHAR (g);
 
-	      if (! char_charset (c, charset_list, NULL))
-		break;
-	      buf += CHAR_STRING (c, buf);
-	      nchars++;
-	    }
+		if (! char_charset (c, charset_list, NULL))
+		  break;
+		buf += CHAR_STRING (c, buf);
+		nchars++;
+	      }
+	  else
+	    for (i = 0; i < cmp->glyph_len; i++)
+	      {
+		int c = COMPOSITION_GLYPH (cmp, i);
+
+		if (! char_charset (c, charset_list, NULL))
+		  break;
+		buf += CHAR_STRING (c, buf);
+		nchars++;
+	      }
 	  if (i == 0)
 	    {
 	      /* The first character of the composition is not encodable.  */
@@ -1745,7 +1767,20 @@ append_composite_glyph (it)
     {
       glyph->type = COMPOSITE_GLYPH;
       glyph->pixel_width = it->pixel_width;
-      glyph->u.cmp_id = it->cmp_id;
+      glyph->u.cmp.id = it->cmp_it.id;
+      if (it->cmp_it.ch < 0)
+	{
+	  glyph->u.cmp.automatic = 0;
+	  glyph->u.cmp.id = it->cmp_it.id;
+	}
+      else
+	{
+	  glyph->u.cmp.automatic = 1;
+	  glyph->u.cmp.id = it->cmp_it.id;
+	  glyph->u.cmp.from = it->cmp_it.from;
+	  glyph->u.cmp.to = it->cmp_it.to;
+	}
+
       glyph->face_id = it->face_id;
       glyph->padding_p = 0;
       glyph->charpos = CHARPOS (it->position);
@@ -1766,14 +1801,23 @@ static void
 produce_composite_glyph (it)
      struct it *it;
 {
-  struct composition *cmp = composition_table[it->cmp_id];
   int c;
 
-  xassert (cmp->glyph_len > 0);
-  c = COMPOSITION_GLYPH (cmp, 0);
-  it->pixel_width = CHAR_WIDTH (it->c);
-  it->nglyphs = 1;
+  if (it->cmp_it.ch < 0)
+    {
+      struct composition *cmp = composition_table[it->cmp_it.id];
 
+      c = COMPOSITION_GLYPH (cmp, 0);
+      it->pixel_width = CHAR_WIDTH (it->c);
+    }
+  else
+    {
+      Lisp_Object gstring = composition_gstring_from_id (it->cmp_it.id);
+
+      it->pixel_width = composition_gstring_width (gstring, it->cmp_it.from,
+						   it->cmp_it.to, NULL);
+    }
+  it->nglyphs = 1;
   if (it->glyph_row)
     append_composite_glyph (it);
 }
