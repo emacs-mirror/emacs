@@ -129,23 +129,59 @@ environment."))
 South Indian language Malayalam is supported in this language environment."))
  '("Indian"))
 
+(defconst devanagari-composable-pattern
+  (concat
+   "\\([अ-औॠॡ][ँं]?\\)\\|[ः।]"
+   "\\|\\("
+   "\\(?:\\(?:[क-हक़-य़]्\\)?\\(?:[क-हक़-य़]्\\)?\\(?:[क-हक़-य़]्\\)?[क-हक़-य़]्\\)?"
+   "[क-हक़-य़]\\(?:्\\|[ा-्ॢॣ]?[ंँ]?\\)?"
+   "\\)")
+  "Regexp matching a composable sequence of Devanagari characters.")
+
+(defconst tamil-composable-pattern
+  (concat
+   "\\([அ-ஔ]\\)\\|"
+   "[ஂஃ]\\|" ;; vowel modifier considered independent
+   "\\(\\(?:\\(?:க்ஷ\\)\\|[க-ஹ]\\)[்ா-ௌ]?\\)\\|"
+   "\\(ஷ்ரீ\\)")
+  "Regexp matching a composable sequence of Tamil characters.")
+
+(defconst kannada-composable-pattern
+  (concat
+   "\\([ಂ-ಔೠಌ]\\)\\|[ಃ]"
+   "\\|\\("
+   "\\(?:\\(?:[ಕ-ಹ]್\\)?\\(?:[ಕ-ಹ]್\\)?\\(?:[ಕ-ಹ]್\\)?[ಕ-ಹ]್\\)?"
+   "[ಕ-ಹ]\\(?:್\\|[ಾ-್ೕೃ]?\\)?"
+   "\\)")
+  "Regexp matching a composable sequence of Kannada characters.")
+
+(defconst malayalam-composable-pattern
+  (concat
+   "\\([അ-ഔ][ം]?\\)\\|ഃ"
+   "\\|\\("
+   "\\(?:\\(?:[ക-ഹ]്\\)?\\(?:[ക-ഹ]്\\)?\\(?:[ക-ഹ]്\\)?[ക-ഹ]്\\)?"
+   "[ക-ഹ]\\(?:്\\|[ാ-ൃെേൈൊൊോൌ]?[ം്]?\\)?"
+   "\\)")
+  "Regexp matching a composable sequence of Malayalam characters.")
+
 (let ((script-regexp-alist
-       '((devanagari . "[\x900-\x9FF\x200C\x200D]+")
+       `((devanagari . ,devanagari-composable-pattern)
 	 (bengali . "[\x980-\x9FF\x200C\x200D]+")
 	 (gurmukhi . "[\xA00-\xA7F\x200C\x200D]+")
 	 (gujarati . "[\xA80-\xAFF\x200C\x200D]+")
 	 (oriya . "[\xB00-\xB7F\x200C\x200D]+")
-	 (tamil . "[\xB80-\xBFF\x200C\x200D]+")
+	 (tamil . ,tamil-composable-pattern)
 	 (telugu . "[\xC00-\xC7F\x200C\x200D]+")
-	 (kannada . "[\xC80-\xCFF\x200C\x200D]+")
-	 (malayalam . "[\xD00-\xD7F\x200C\x200D]+"))))
-  (map-char-table #'(lambda (key val) 
-		      (let ((slot (assq val script-regexp-alist)))
-			(if slot
-			    (set-char-table-range 
-			     composition-function-table key
-			     (list (cons (cdr slot) 'font-shape-text))))))
-		  char-script-table))
+	 (kannada . ,kannada-composable-pattern)
+	 (malayalam . ,malayalam-composable-pattern))))
+  (map-char-table
+   #'(lambda (key val)
+       (let ((slot (assq val script-regexp-alist)))
+	 (if slot
+	     (set-char-table-range
+	      composition-function-table key
+	      (list (vector (cdr slot) 0 'font-shape-gstring))))))
+   char-script-table))
 
 (provide 'indian)
 
