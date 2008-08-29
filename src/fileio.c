@@ -260,7 +260,8 @@ report_file_error (string, data)
 	break;
       default:
 	/* System error messages are capitalized.  Downcase the initial
-	   unless it is followed by a slash.  */
+	   unless it is followed by a slash.  (The slash case caters to
+	   error messages that begin with "I/O" or, in German, "E/A".)  */
 	if (STRING_MULTIBYTE (errstring)
 	    && ! EQ (Faref (errstring, make_number (1)), make_number ('/')))
 	  {
