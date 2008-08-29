@@ -31,6 +31,7 @@
 (defvar pmail-current-message)
 (defvar pmail-inbox-list)
 
+(declare-function mail-parse-comma-list "mail-utils" ())
 (declare-function pmail-parse-file-inboxes "pmail" ())
 (declare-function pmail-show-message "pmail" (&optional n no-summary))
 

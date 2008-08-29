@@ -173,7 +173,7 @@ The current buffer, possibly narrowed, contains a single message."
   "Show all headers.
 The current buffer, possibly narrowed, contains a single message."
   ;; Remove all the overlays used to control hiding headers.
-  (mapcar 'delete-overlay pmail-header-overlay-list)
+  (mapc 'delete-overlay pmail-header-overlay-list)
   (setq pmail-header-display-state nil))
 
 (defun pmail-header-toggle-visibility (&optional arg)

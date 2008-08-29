@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997, 1998,
 ;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -199,6 +199,11 @@ please report it with \\[report-emacs-bug].")
 (declare-function mail-position-on-field "sendmail" (field &optional soft))
 (declare-function mail-text-start "sendmail" ())
 (declare-function pmail-update-summary "pmailsum" (&rest ignore))
+(declare-function unrmail "unrmail" (file to-file))
+(declare-function rmail-dont-reply-to "mail-utils" (destinations))
+(declare-function pmail-summary-goto-msg "pmailsum" (&optional n nowarn skip-pmail))
+(declare-function pmail-summary-pmail-update "pmailsum" ())
+(declare-function pmail-summary-update "pmailsum" (n))
 
 (defun pmail-probe (prog)
   "Determine what flavor of movemail PROG is.
@@ -289,20 +294,20 @@ It is useful to set this variable in the site customization file.")
 ;;;###autoload
 (defcustom pmail-ignored-headers
   (concat "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^sender:"
-	  "\\|^status:\\|^received:\\|^content-transfer-encoding:"
-	  "\\|^x400-\\(received\\|mts-identifier\\|content-type\\|originator\\|recipients\\):"
-	  "\\|^list-\\(help\\|post\\|subscribe\\|id\\|unsubscribe\\|archive\\):"
-	  "\\|^resent-\\(face\\|x-.*\\|organization\\|openpgp\\|date\\|message-id\\):"
-	  "\\|^thread-\\(topic\\|index\\)"
-	  "\\|^summary-line:\\|^precedence:\\|^message-id:"
-	  "\\|^path:\\|^face:\\|^delivered-to:\\|^lines:"
-	  "\\|^return-path:\\|^errors-to:\\|^return-receipt-to:"
-	  "\\|^content-\\(length\\|type\\|class\\|disposition\\):"
+	  "\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:"
+	  "\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:"
+	  "\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:"
 	  "\\|^nntp-posting-host:\\|^path:\\|^x-char.*:\\|^x-face:\\|^face:"
+	  "\\|^x-mailer:\\|^delivered-to:\\|^lines:"
+	  "\\|^content-transfer-encoding:\\|^x-coding-system:"
+	  "\\|^return-path:\\|^errors-to:\\|^return-receipt-to:"
+	  "\\|^precedence:\\|^list-help:\\|^list-post:\\|^list-subscribe:"
+	  "\\|^list-id:\\|^list-unsubscribe:\\|^list-archive:"
+	  "\\|^content-length:\\|^nntp-posting-date:\\|^user-agent"
 	  "\\|^importance:\\|^envelope-to:\\|^delivery-date\\|^openpgp:"
-	  "\\|^mbox-line:\\|^cancel-lock:\\|^in-reply-to:\\|^comment:"
-	  "\\|^x-.*:\\|^domainkey-signature:"
-	  "\\|^original-recipient:\\|^from ")
+	  "\\|^mbox-line:\\|^cancel-lock:\\|^DomainKey-Signature:"
+	  "\\|^resent-face:\\|^resent-x.*:\\|^resent-organization:\\|^resent-openpgp:"
+	  "\\|^x-.*:\\|^domainkey-signature:\\|^original-recipient:\\|^from ")
   "*Regexp to match header fields that Pmail should normally hide.
 \(See also `pmail-nonignored-headers', which overrides this regexp.)
 This variable is used for reformatting the message header,
@@ -867,7 +872,7 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
 	  (unwind-protect
 	      (progn
 		(write-region (point-min) (point-max) old-file)
-		(unpmail old-file new-file)
+		(unrmail old-file new-file)
 		(message "Replacing BABYL format with mbox format...")
 		(let ((inhibit-read-only t))
 		  (erase-buffer)
@@ -1609,9 +1614,9 @@ is non-nil if the user has supplied the password interactively.
 		      (or pass supplied-password)
 		      got-password)
 	      (error "Emacs movemail does not support %s protocol" proto))
-	  (list file
+	  (list (concat proto "://" user "@" host)
 		(or (string-equal proto "pop") (string-equal proto "imap"))
-		supplied-password
+		(or supplied-password pass)
 		got-password))))
 
    ((string-match "^po:\\([^:]+\\)\\(:\\(.*\\)\\)?" file)
@@ -1655,9 +1660,9 @@ is non-nil if the user has supplied the password interactively.
 		    ;; in case of multiple inboxes that need moving.
 		    (concat ".newmail-"
 			    (file-name-nondirectory
-			     (if (memq system-type '(windows-nt cygwin))
-				 ;; cannot have "po:" in file name
-				 (substring file 3)
+			     (if (memq system-type '(windows-nt cygwin ms-dos))
+				 ;; cannot have colons in file name
+				 (replace-regexp-in-string ":" "-" file)
 			       file)))
 		    ;; Use the directory of this pmail file
 		    ;; because it's a nuisance to use the homedir
@@ -1695,7 +1700,7 @@ is non-nil if the user has supplied the password interactively.
 		 (buffer-disable-undo errors)
 		 (let ((args
 			(append
-			 (list pmail-movemail-program nil errors nil)
+			 (list (or pmail-movemail-program "movemail") nil errors nil)
 			 (if pmail-preserve-inbox
 			     (list "-p")
 			   nil)
@@ -2747,15 +2752,15 @@ use \\[mail-yank-original] to yank the original message into it."
 	 ;; Remove unwanted names from reply-to, since Mail-Followup-To
 	 ;; header causes all the names in it to wind up in reply-to, not
 	 ;; in cc.  But if what's left is an empty list, use the original.
-	 (let* ((reply-to-list (pmail-dont-reply-to reply-to)))
+	 (let* ((reply-to-list (rmail-dont-reply-to reply-to)))
 	   (if (string= reply-to-list "") reply-to reply-to-list))
          subject
          (pmail-make-in-reply-to-field from date message-id)
          (if just-sender
              nil
            ;; mail-strip-quoted-names is NOT necessary for
-           ;; pmail-dont-reply-to to do its job.
-           (let* ((cc-list (pmail-dont-reply-to
+           ;; rmail-dont-reply-to to do its job.
+           (let* ((cc-list (rmail-dont-reply-to
                             (mail-strip-quoted-names
                              (if (null cc) to (concat to ", " cc))))))
              (if (string= cc-list "") nil cc-list)))
@@ -3099,20 +3104,12 @@ specifying headers which should not be copied into the new message."
     ;; Now start sending new message; default header fields from original.
     ;; Turn off the usual actions for initializing the message body
     ;; because we want to get only the text from the failure message.
-    ;;
-    ;; NOTE: the use of pmail-msgref-vector is a red flag.  I'm not
-    ;; sure (yet) what the right thing to do here is but I strongly
-    ;; suspect it needs something along the lines of:
-    ;; ...(pmail-desc-set-attribute pmail-desc-resent-index nil n)...
-    ;; The test to run to see the breakage and figure out what needs
-    ;; to be done is to cause a "resend" to happen and verify that it
-    ;; is either broken or works properly.  For now the unbound
-    ;; variable is being left intact. -pmr 8/12/2008
     (let (mail-signature mail-setup-hook)
       (if (pmail-start-mail nil nil nil nil nil pmail-this-buffer
 			    (list (list 'pmail-mark-message
 					pmail-this-buffer
-					(aref pmail-msgref-vector msgnum)
+					(with-current-buffer pmail-buffer
+					  (pmail-desc-get-start msgnum))
 					"retried")))
 	  ;; Insert original text as initial text of new draft message.
 	  ;; Bind inhibit-read-only since the header delimiter

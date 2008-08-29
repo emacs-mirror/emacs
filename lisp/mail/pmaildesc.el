@@ -30,6 +30,9 @@
 
 (require 'pmailhdr)
 
+;; External function declarations
+(declare-function pmail-narrow-to-header "pmail" (msg))
+
 (defvar pmail-desc-attributes nil
   "A private variable providing temporary access to message attributes.")
 

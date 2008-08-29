@@ -39,6 +39,9 @@
 
 ;;; Code:
 
+;; For ...
+(require 'pmail)
+
 ;;; Variables
 
 (defcustom pmail-mime-media-type-handlers-alist
@@ -190,10 +193,11 @@ format."
   ;;    of the preceding part.
   ;; We currently don't handle that.
   (let ((boundary (cdr (assq 'boundary content-type)))
-	beg next)
+	beg end next)
     (unless boundary
-      (error "No boundary defined" content-type content-disposition
-	     content-transfer-encoding))
+      (pmail-mm-get-boundary-error-message
+       "No boundary defined" content-type content-disposition
+       content-transfer-encoding))
     (setq boundary (concat "\n--" boundary))
     ;; Hide the body before the first bodypart
     (goto-char (point-min))
@@ -216,8 +220,9 @@ format."
 	    ((looking-at "[ \t]*\n")
 	     (setq next (copy-marker (match-end 0))))
 	    (t
-	     (error "Malformed boundary" content-type
-		    content-disposition content-transfer-encoding)))
+	     (pmail-mm-get-boundary-error-message
+	      "Malformed boundary" content-type content-disposition
+	      content-transfer-encoding)))
       (delete-region end next)
       ;; Handle the part.
       (save-match-data
@@ -395,6 +400,11 @@ This calls `pmail-mime-show' to do the real job."
       (insert data)
       (pmail-mime-show t))
     (view-buffer buf)))
+
+(defun pmail-mm-get-boundary-error-message (message type disposition encoding)
+  "Return MESSAGE with more information on the main mime components."
+  (error "%s; type: %s; disposition: %s; encoding: %s"
+	 message type disposition encoding))
 
 (provide 'pmailmm)
 

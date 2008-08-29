@@ -33,6 +33,11 @@
 
 (autoload 'timezone-make-date-sortable "timezone")
 
+(declare-function pmail-dont-reply-to "mail-utils" (destinations))
+(declare-function pmail-desc-get-marker-end "pmailsort" (msgnum))
+(declare-function pmail-desc-get-marker-start "pmailsort" (msgnum))
+(declare-function pmail-update-summary "pmailsum" (&rest ignore))
+
 ;; Sorting messages in Pmail buffer
 
 ;;;###autoload
@@ -150,8 +155,6 @@ KEYWORDS is a comma-separated list of labels."
 			      n))))))
 
 ;; Basic functions
-
-(declare-function pmail-update-summary "pmailsum" (&rest ignore))
 
 (defun pmail-sort-messages (reverse keyfun)
   "Sort messages of current Pmail file.

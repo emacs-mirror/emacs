@@ -41,8 +41,6 @@
 ;; completion.  It is better to use strings with the label functions
 ;; and let them worry about making the label.
 
-(provide 'pmailkwd)
-
 (eval-when-compile
   (require 'mail-utils))
 
@@ -61,6 +59,25 @@ These have a well-defined meaning to the PMAIL system.")
   "Keywords used to label messages.
 These are all user-defined, unlike `pmail-attributes'.")
 
+
+;; External library declarations.
+(declare-function mail-comma-list-regexp "mail-utils" (labels))
+(declare-function mail-parse-comma-list "mail-utils" ())
+(declare-function pmail-desc-add-keyword "pmaildesc" (keyword n))
+(declare-function pmail-desc-get-end "pmaildesc" (n))
+(declare-function pmail-desc-get-keywords "pmaildesc" (n))
+(declare-function pmail-desc-get-start "pmaildesc" (n))
+(declare-function pmail-desc-remove-keyword "pmaildesc" (keyword n))
+(declare-function pmail-display-labels "pmail" ())
+(declare-function pmail-maybe-set-message-counters "pmail" ())
+(declare-function pmail-message-labels-p "pmail" (msg labels))
+(declare-function pmail-msgbeg "pmail" (n))
+(declare-function pmail-set-attribute "pmail" (attr state &optional msgnum))
+(declare-function pmail-set-message-deleted-p "pmail" (n state))
+(declare-function pmail-show-message "pmail" (&optional n no-summary))
+(declare-function pmail-summary-exists "pmail" ())
+(declare-function pmail-summary-update "pmailsum" (n))
+
 ;;;; Low-level functions.
 
 (defun pmail-attribute-p (s)
@@ -143,15 +160,6 @@ message."
       ;; return the string, not the symbol
       result)))
 
-(declare-function pmail-maybe-set-message-counters "pmail" ())
-(declare-function pmail-display-labels "pmail" ())
-(declare-function pmail-msgbeg "pmail" (n))
-(declare-function pmail-set-message-deleted-p "pmail" (n state))
-(declare-function pmail-message-labels-p "pmail" (msg labels))
-(declare-function pmail-show-message "pmail" (&optional n no-summary))
-(declare-function mail-comma-list-regexp "mail-utils" (labels))
-(declare-function mail-parse-comma-list "mail-utils.el" ())
-
 (defun pmail-set-label (l state &optional n)
   "Add or remove label L in message N.
 The label L is added when STATE is non-nil, otherwise it is
@@ -175,7 +183,7 @@ current buffer, possibly narrowed, displays a message."
 	    (pmail-desc-remove-keyword str n))))))
   (pmail-display-labels)
   ;; Deal with the summary buffer.
-  (when pmail-summary-buffer
+  (when (pmail-summary-exists)
     (pmail-summary-update n)))
 
 ;; Motion on messages with keywords.
@@ -222,6 +230,8 @@ With prefix argument N moves forward N messages with these labels."
 	(message "No previous message with labels %s" labels))
       (when (> n 0)
 	(message "No following message with labels %s" labels)))))
+
+(provide 'pmailkwd)
 
 ;; arch-tag: 1149979c-8e47-4333-9629-cf3dc887a6a7
 ;;; pmailkwd.el ends here

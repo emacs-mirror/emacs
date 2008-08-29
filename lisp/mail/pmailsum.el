@@ -213,6 +213,15 @@
     map)
   "Keymap for `pmail-summary-mode'.")
 
+(declare-function pmail-abort-edit "pmailedit" ())
+(declare-function pmail-cease-edit "pmailedit"())
+(declare-function pmail-set-label "pmailkwd" (l state &optional n))
+(declare-function pmail-output-read-file-name "pmailout" ())
+(declare-function pmail-output-read-pmail-file-name  "pmailout" ())
+(declare-function mail-comma-list-regexp "mail-utils" (labels))
+(declare-function mail-send-and-exit "sendmail" (&optional arg))
+(declare-function mail-strip-quoted-names "mail-utils" (address))
+
 ;; Entry points for making a summary buffer.
 
 ;; Regenerate the contents of the summary
@@ -1052,13 +1061,6 @@ argument says to read a file name and use that file as the inbox."
   (with-no-warnings
     (end-of-buffer))
   (forward-line -1))
-
-(declare-function pmail-abort-edit "pmailedit" ())
-(declare-function pmail-cease-edit "pmailedit"())
-(declare-function pmail-set-label "pmailkwd" (l state &optional n))
-(declare-function pmail-output-read-file-name "pmailout" ())
-(declare-function pmail-output-read-pmail-file-name  "pmailout" ())
-(declare-function mail-send-and-exit "sendmail" (&optional arg))
 
 (defvar pmail-summary-edit-map
   (let ((map (nconc (make-sparse-keymap) text-mode-map)))
