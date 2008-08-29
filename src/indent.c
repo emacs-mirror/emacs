@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "character.h"
 #include "category.h"
+#include "composite.h"
 #include "indent.h"
 #include "keyboard.h"
 #include "frame.h"
@@ -33,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termopts.h"
 #include "disptab.h"
 #include "intervals.h"
+#include "dispextern.h"
 #include "region-cache.h"
 
 /* Indentation can insert tabs if this is non-zero;
@@ -278,32 +280,6 @@ skip_invisible (pos, next_boundary_p, to, window)
   if (NILP (window) ? inv_p == 1 : inv_p)
     return *next_boundary_p;
   return pos;
-}
-
-/* If a composition starts at POS/POS_BYTE and it doesn't stride over
-   POINT, set *LEN / *LEN_BYTE to the character and byte lengths, *WIDTH
-   to the width, and return 1.  Otherwise, return 0.  */
-
-static int
-check_composition (pos, pos_byte, point, len, len_byte, width)
-     int pos, pos_byte, point;
-     int *len, *len_byte, *width;
-{
-  Lisp_Object prop;
-  EMACS_INT start, end;
-  int id;
-
-  if (! find_composition (pos, -1, &start, &end, &prop, Qnil)
-      || pos != start || point < end
-      || !COMPOSITION_VALID_P (start, end, prop))
-    return 0;
-  if ((id = get_composition_id (pos, pos_byte, end - pos, prop, Qnil)) < 0)
-    return 0;
-
-  *len = COMPOSITION_LENGTH (prop);
-  *len_byte = CHAR_TO_BYTE (end) - pos_byte;
-  *width = composition_table[id]->width;
-  return 1;
 }
 
 /* Set variables WIDTH and BYTES for a multibyte sequence starting at P.
@@ -556,6 +532,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  struct composition_it cmp_it;
 
   /* Start the scan at the beginning of this line with column number 0.  */
   register EMACS_INT col = 0, prev_col = 0;
@@ -573,6 +550,9 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
   }
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
+  bzero (&cmp_it, sizeof cmp_it);
+  cmp_it.id = -1;
+  composition_compute_stop_pos (&cmp_it, scan, scan_byte, end, Qnil);
 
   /* Scan forward to the target position.  */
   while (scan < end)
@@ -599,20 +579,6 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 	break;
       prev_col = col;
 
-      { /* Check composition sequence.  */
-	int len, len_byte, width;
-
-	if (check_composition (scan, scan_byte, end,
-			       &len, &len_byte, &width))
-	  {
-	    scan += len;
-	    scan_byte += len_byte;
-	    if (scan <= end)
-	      col += width;
-	    continue;
-	  }
-      }
-
       { /* Check display property.  */
 	EMACS_INT end;
 	int width = check_display_width (scan, col, &end);
@@ -626,6 +592,29 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 	      }
 	  }
       }
+
+      /* Check composition sequence.  */
+      if (cmp_it.id >= 0
+	  || (scan == cmp_it.stop_pos
+	      && composition_reseat_it (&cmp_it, scan, scan_byte, end,
+					XWINDOW (selected_window), NULL, Qnil)))
+	composition_update_it (&cmp_it, scan, scan_byte, Qnil);
+      if (cmp_it.id >= 0)
+	{
+	  scan += cmp_it.nchars;
+	  scan_byte += cmp_it.nbytes;
+	  if (scan <= end)
+	    col += cmp_it.width;
+	  if (cmp_it.to == cmp_it.nglyphs)
+	    {
+	      cmp_it.id = -1;
+	      composition_compute_stop_pos (&cmp_it, scan, scan_byte, end,
+					    Qnil);
+	    }
+	  else
+	    cmp_it.from = cmp_it.to;
+	  continue;
+	}
 
       c = FETCH_BYTE (scan_byte);
 
@@ -1195,6 +1184,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   EMACS_INT prev_tab_offset;	/* Previous tab offset.  */
   EMACS_INT continuation_glyph_width;
 
+  struct composition_it cmp_it;
+
   XSETBUFFER (buffer, current_buffer);
   XSETWINDOW (window, win);
 
@@ -1235,6 +1226,10 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   pos_byte = prev_pos_byte = CHAR_TO_BYTE (from);
   contin_hpos = 0;
   prev_tab_offset = tab_offset;
+  bzero (&cmp_it, sizeof cmp_it);
+  cmp_it.id = -1;
+  composition_compute_stop_pos (&cmp_it, pos, pos_byte, to, Qnil);
+
   while (1)
     {
       while (pos == next_boundary)
@@ -1522,21 +1517,29 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  EMACS_INT i, n;
 	  Lisp_Object charvec;
 
-	  c = FETCH_BYTE (pos_byte);
-
 	  /* Check composition sequence.  */
-	  {
-	    int len, len_byte, width;
+	  if (cmp_it.id >= 0
+	      || (pos == cmp_it.stop_pos
+		  && composition_reseat_it (&cmp_it, pos, pos_byte, to, win,
+					    NULL, Qnil)))
+	    composition_update_it (&cmp_it, pos, pos_byte, Qnil);
+	  if (cmp_it.id >= 0)
+	    {
+	      pos += cmp_it.nchars;
+	      pos_byte += cmp_it.nbytes;
+	      hpos += cmp_it.width;
+	      if (cmp_it.to == cmp_it.nglyphs)
+		{
+		  cmp_it.id = -1;
+		  composition_compute_stop_pos (&cmp_it, pos, pos_byte, to,
+						Qnil);
+		}
+	      else
+		cmp_it.from = cmp_it.to;
+	      continue;
+	    }
 
-	    if (check_composition (pos, pos_byte, to, &len, &len_byte, &width))
-	      {
-		pos += len;
-		pos_byte += len_byte;
-		hpos += width;
-		continue;
-	      }
-	  }
-
+	  c = FETCH_BYTE (pos_byte);
 	  pos++, pos_byte++;
 
 	  /* Perhaps add some info to the width_run_cache.  */
@@ -2065,6 +2068,8 @@ whether or not it is currently displayed in some window.  */)
       /* See comments below for why we calculate this.  */
       if (XINT (lines) > 0)
 	{
+	  if (it.cmp_it.id >= 0)
+	    it_overshoot_expected = 1;
 	  if (it.method == GET_FROM_STRING)
 	    {
 	      const char *s = SDATA (it.string);
@@ -2075,8 +2080,7 @@ whether or not it is currently displayed in some window.  */)
 	    }
 	  else
 	    it_overshoot_expected = (it.method == GET_FROM_IMAGE
-				     || it.method == GET_FROM_STRETCH
-				     || it.method == GET_FROM_COMPOSITION);
+				     || it.method == GET_FROM_STRETCH);
 	}
 
       /* Scan from the start of the line containing PT.  If we don't
