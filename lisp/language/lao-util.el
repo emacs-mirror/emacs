@@ -491,17 +491,17 @@ syllable.  In that case, FROM and TO are indexes to STR."
       lao-str)))
 
 ;;;###autoload
-(defun lao-composition-function (from to font-object string)
-  (if (= (lgstirng-char-len gstring) 1)
+(defun lao-composition-function (gstring)
+  (if (= (lgstring-char-len gstring) 1)
       (compose-gstring-for-graphic gstring)
-    (or (font-shape-text from to font-object string))
+    (or (font-shape-gstring gstring)
 	(let ((glyph-len (lgstring-glyph-len gstring))
 	      (i 0)
 	      glyph)
 	  (while (and (< i glyph-len)
 		      (setq glyph (lgstring-glyph gstring i)))
 	    (setq i (1+ i)))
-	  (compose-glyph-string-relative gstring 0 i 0.1))))
+	  (compose-glyph-string-relative gstring 0 i 0.1)))))
 
 ;;;###autoload
 (defun lao-compose-region (from to)
