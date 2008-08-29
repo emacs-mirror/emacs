@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "character.h"
 #include "charset.h"
+#include "composite.h"
 #include "fontset.h"
 #include "font.h"
 #include "w32font.h"
@@ -223,7 +224,7 @@ uniscribe_shape (lgstring)
   uniscribe_font = (struct uniscribe_font_info *) font;
 
   /* Get the chars from lgstring in a form we can use with uniscribe.  */
-  max_glyphs = nchars = LGSTRING_LENGTH (lgstring);
+  max_glyphs = nchars = LGSTRING_GLYPH_LEN (lgstring);
   done_glyphs = 0;
   chars = (wchar_t *) alloca (nchars * sizeof (wchar_t));
   for (i = 0; i < nchars; i++)
