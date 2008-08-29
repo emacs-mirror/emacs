@@ -1,3 +1,151 @@
+2008-08-29  Kenichi Handa  <handa@m17n.org>
+
+	These changes are to re-implement the automatic composition so
+	that it doesn't use text properties.
+
+	* Makefile.in (ftfont.o): Depend on composite.h.
+	(composite.o): Depend dispextern.h, font.h, frame, and window.h.
+
+	* character.h (Vunicode_category_table): Extern it.
+
+	* character.c (Vunicode_category_table): New variable.
+	(syms_of_character): DEFVAR_LISP Vunicode_category_table.
+
+	* chartab.c (optimize_sub_char_table): Perform more greedy
+	optimization.
+
+	* composite.h (enum composition_method): Delete
+	COMPOSITION_WITH_GLYPH_STRING.
+	(COMPOSITION_METHOD): Dont' check COMPOSITION_WITH_GLYPH_STRING.
+	(Vcomposition_function_table): Extern it.
+	(LGSTRING_XXX, LGLYPH_XXX): Macros moved from font.h.
+	(composition_gstring_put_cache, composition_gstring_from_id)
+	(composition_gstring_p, composition_gstring_width)
+	(composition_compute_stop_pos, composition_reseat_it)
+	(composition_update_it, composition_adjust_point): Extern them.
+	(Fcomposition_get_gstring): EXFUN it.
+
+	* composite.c: Include window.h, frame.h, dispextern.h font.h.
+	(Vcomposition_function_table)
+	(get_composition_id): Don't handle COMPOSITION_WITH_GLYPH_STRING.
+	(gstring_hash_table, gstring_work, gstring_work_headers): New
+	variables.
+	(gstring_lookup_cache, composition_gstring_put_cache)
+	(composition_gstring_from_id, composition_gstring_p)
+	(composition_gstring_width, fill_gstring_header)
+	(fill_gstring_body, autocmp_chars, composition_compute_stop_pos)
+	(composition_reseat_it, composition_update_it)
+	(composition_adjust_point, Fcomposition_get_gstring): New
+	functions.
+	(syms_of_composite): Initialize gstring_hash_table, gstrint_work,
+	and gstring_work_headers.  DEFVAR_LISP composition-function-table.
+	Defsubr compostion_get_gstring.
+
+	* dispextern.h (struct glyph): New union u.cmp.  Delete the member
+	cmp_id.
+	(struct glyph_string): Delete the member gidx.  New members
+	cmp_id, cmp_from, and cmp_to.
+	(enum it_method): Delete GET_FROM_COMPOSITION.
+	(struct composition_it): New struct.
+	(struct it): New member cmp_it, and iterator_stack_entry.cmp_it.
+	Delete c, len, cmp_id, cmp_len in u.comp.
+
+	* font.h (enum lgstring_indices): Delete it.
+	(LGSTRING_XXX, LGLYPH_XXX): These macros moved to composite.h.
+	(enum lglyph_indices): Likewise.
+	(font_range): Extern adjusted.
+	(font_fill_lglyph_metrics): Extern it.
+
+	* font.c (QCf): New variable.
+	(check_gstring): Use LGSTRING_GLYPH_LEN, not LGSTRING_LENGTH.
+	(font_prepare_composition): Delete this function.
+	(font_range): Type and arguments changed.
+	(Ffont_make_gstring, Ffont_fill_gstring): Delete them.
+	(font_fill_lglyph_metrics): New function.
+	(Ffont_shape_text): Renamed to Ffont_shape_gstring and arguments
+	changed.
+	(syms_of_font): DEFSYM QCf.  Delete defsubr for
+	Sfont_make_gstring, Sfont_fill_gstring, Sfont_shape_text.  Defsubr
+	Sfont_shape_gstring.
+
+	* fontset.h (font_for_char): Extern it.
+
+	* fontset.c (font_for_char): New function.
+
+	* ftfont.c: Include composite.h.
+	(ftfont_resolve_generic_family): Add langset "en" to pattern.
+	(ftfont_shape_by_flt): Use LGSTRING_GLYPH_LEN, not
+	LGSTRING_LENGTH.
+
+	* indent.c: Include composite.h and dispextern.h.
+	(check_composition): Delete this function..
+	(scan_for_column): Handle composition by
+	composition_compute_stop_pos, composition_reseat_it, and
+	composition_update_it.
+	(compute_motion): Likewise.
+	(Fvertical_motion): Fix checking of composition.
+
+	* keyboard.c (adjust_point_for_property): Check composition by
+	composition_adjust_point.
+
+	* nsterm.m (ns_draw_glyph_string): Adjusted for the change of
+	struct glyph_string.
+
+	* term.c (encode_terminal_code): Adjusted for the change of struct
+	glyph.
+	(append_composite_glyph): Adjusted for the change of struct it and
+	struct glyph.
+	(produce_composite_glyph): Likewise.
+
+	* w32term.c (x_draw_composite_glyph_string_foreground): Adjusted
+	for the change of struct glyph_string.
+	(x_draw_glyph_string): Likewise.
+
+	* w32uniscribe.c (struct uniscribe_font_info): Include composite.h.
+	(uniscribe_shape): Use LGSTRING_GLYPH_LEN, not LGSTRING_LENGTH.
+
+	* xdisp.c: Include font.h.
+	(it_props): Delete the entry for Qauto_composed.
+	(init_iterator): Initialize it->cmp_it.id to -1.
+	(compute_stop_pos): Call composition_compute_stop_pos.
+	(face_before_or_after_it_pos): Adjusted for the change of struct
+	it.
+	(handle_auto_composed_prop): Delete it.
+	(handle_composition_prop): Handle only static composition.
+	(next_overlay_string): Remove it->method == GET_FROM_COMPOSITION
+	from xassert.  Initialize it->cmp_it.stop_pos.
+	(push_it): Adjusted for the change of struct it.
+	(pop_it): Likewise.
+	(get_next_element): Delete next_element_from_composition.
+	(CHAR_COMPOSED_P): New macro.
+	(get_next_display_element): For automatic composition, get a face
+	from the font in the glyph-string.
+	(set_iterator_to_next): For GET_FROM_BUFFER and GET_FROM_STRING,
+	check composition by it->cmp_it.id.  Delete GET_FROM_COMPOSITION
+	case.
+	(next_element_from_string): Check if the character at the current
+	position is composed by CHAR_COMPOSED_P.
+	(next_element_from_buffer): Likewise.
+	(next_element_from_composition): Adjusted for the change of struct
+	it.  Update it->cmp_it.
+	(dump_glyph): Adjusted for the change of struct glyph.
+	(fill_composite_glyph_string): Adjusted for the change of struct
+	it and struct glyph.  Don't handle automatic composition here.
+	(fill_gstring_glyph_string): New function.
+	(x_get_glyph_overhangs): Handle automatic composition.
+	(BUILD_COMPOSITE_GLYPH_STRING): Adjusted for the change of struct
+	glyph.
+	(BUILD_GSTRING_GLYPH_STRING): New macro.
+	(BUILD_GLYPH_STRINGS): Call BUILD_GSTRING_GLYPH_STRING for
+	automatic composition.
+	(append_composite_glyph): Adjusted for the change of struct it and
+	struct glyph.
+	(x_produce_glyphs): Adjusted for the change of struct it.
+
+	* xterm.c (x_draw_composite_glyph_string_foreground): Adjusted for
+	the change of struct glyph_string.
+	(x_draw_glyph_string): Likewise.
+
 2008-08-29  Glenn Morris  <rgm@gnu.org>
 
 	* buffer.c (word-wrap): Doc fix.
