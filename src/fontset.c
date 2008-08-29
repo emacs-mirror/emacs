@@ -934,6 +934,56 @@ face_for_char (f, face, c, pos, object)
 }
 
 
+Lisp_Object
+font_for_char (face, c, pos, object)
+     struct face *face;
+     int c, pos;
+     Lisp_Object object;
+{
+  Lisp_Object fontset, rfont_def, charset;
+  int face_id;
+  int id;
+
+  if (ASCII_CHAR_P (c))
+    {
+      Lisp_Object font_object;
+
+      XSETFONT (font_object, face->ascii_face->font);
+      return font_object;
+    }
+
+  xassert (fontset_id_valid_p (face->fontset));
+  fontset = FONTSET_FROM_ID (face->fontset);
+  xassert (!BASE_FONTSET_P (fontset));
+  if (pos < 0)
+    {
+      id = -1;
+      charset = Qnil;
+    }
+  else
+    {
+      charset = Fget_char_property (make_number (pos), Qcharset, object);
+      if (NILP (charset))
+	id = -1;
+      else if (CHARSETP (charset))
+	{
+	  Lisp_Object val;
+
+	  val = assoc_no_quit (charset, Vfont_encoding_charset_alist);
+	  if (CONSP (val) && CHARSETP (XCDR (val)))
+	    charset = XCDR (val);
+	  id = XINT (CHARSET_SYMBOL_ID (charset));
+	}
+    }
+
+  font_deferred_log ("font for", Fcons (make_number (c), charset), Qnil);
+  rfont_def = fontset_font (fontset, c, face, id);
+  return (VECTORP (rfont_def)
+	  ? RFONT_DEF_OBJECT (rfont_def)
+	  : Qnil);
+}
+
+
 /* Make a realized fontset for ASCII face FACE on frame F from the
    base fontset BASE_FONTSET_ID.  If BASE_FONTSET_ID is -1, use the
    default fontset as the base.  Value is the id of the new fontset.
