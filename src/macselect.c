@@ -1041,10 +1041,9 @@ nil, which means the event is already resumed or expired.  */)
 	}
       AESetTheCurrentEvent (&ae->apple_event);
       AEResumeTheCurrentEvent (&ae->apple_event, &ae->reply,
-			       ((AEEventHandlerUPP)
-				(EQ (error_code, Qt) ?
-				 kAEUseStandardDispatch : kAENoDispatch)),
-			       0);
+			       (EQ (error_code, Qt)
+				? (AEEventHandlerUPP) kAEUseStandardDispatch
+				: (AEEventHandlerUPP) kAENoDispatch), 0);
       AEDisposeDesc (&ae->reply);
       AEDisposeDesc (&ae->apple_event);
       xfree (ae);
