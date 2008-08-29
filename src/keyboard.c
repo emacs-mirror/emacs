@@ -1994,13 +1994,9 @@ adjust_point_for_property (last_pt, modified)
       /* FIXME: check `intangible'.  */
       if (check_composition
 	  && PT > BEGV && PT < ZV
-	  && get_property_and_range (PT, Qcomposition, &val, &beg, &end, Qnil)
-	  && COMPOSITION_VALID_P (beg, end, val)
-	  && beg < PT /* && end > PT   <- It's always the case.  */
-	  && (last_pt <= beg || last_pt >= end))
+	  && (beg = composition_adjust_point (last_pt)) != PT)
 	{
-	  xassert (end > PT);
-	  SET_PT (PT < last_pt ? beg : end);
+	  SET_PT (beg);
 	  check_display = check_invisible = 1;
 	}
       check_composition = 0;
