@@ -1,3 +1,7 @@
+2008-08-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* bindings.el (mode-line-frame-identification): Fix last change.
+
 2008-08-29  Kenichi Handa  <handa@m17n.org>
 
 	These changes are to adjust the automatic composition for the new
