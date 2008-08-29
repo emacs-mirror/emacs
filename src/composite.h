@@ -277,7 +277,7 @@ enum lglyph_indices
   do {									\
     if (val == FONT_INVALID_CODE)					\
       ASET ((g), LGLYPH_IX_CODE, Qnil);					\
-    else if (val > MOST_POSITIVE_FIXNUM)				\
+    else if ((EMACS_INT)val > MOST_POSITIVE_FIXNUM)			\
       ASET ((g), LGLYPH_IX_CODE, Fcons (make_number ((val) >> 16),	\
 					make_number ((val) & 0xFFFF)));	\
     else								\
