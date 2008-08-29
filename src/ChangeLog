@@ -1,3 +1,7 @@
+2008-08-29  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (uniscribe_check_otf): Don't fallback on DFLT script.
+
 2008-08-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* composite.c (fill_gstring_body): Avoid compiler warnings.
