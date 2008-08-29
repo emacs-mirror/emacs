@@ -219,16 +219,15 @@ mnemonics of the following coding systems:
 (defun mode-line-frame-control ()
   "Compute mode-line control for frame identification.
 Value is used for `mode-line-frame-identification', which see."
-  (if (or (null initial-window-system)
-	  (eq initial-window-system 'pc))
+  (if (or (null window-system)
+	  (eq window-system 'pc))
       "-%F  "
     "  "))
 
-(defvar mode-line-frame-identification "  "
-  "Mode-line control to describe the current frame.")
 ;; We need to defer the call to mode-line-frame-control to the time
 ;; the mode line is actually displayed.
-(setq mode-line-frame-identification '(:eval (mode-line-frame-control)))
+(defvar mode-line-frame-identification '(:eval (mode-line-frame-control))
+  "Mode-line control to describe the current frame.")
 (put 'mode-line-frame-identification 'risky-local-variable t)
 
 (defvar mode-line-process nil "\
