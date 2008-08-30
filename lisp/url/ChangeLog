@@ -1,3 +1,9 @@
+2008-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* url-http.el (url-https-expand-file-name): Resolve directly to
+	url-default-expander rather than via another alias.
+	(url-default-expander): Autoload an autoload.  (Bug#825).
+
 2008-07-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url.el (url-do-setup):
