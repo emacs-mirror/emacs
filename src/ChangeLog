@@ -2,6 +2,7 @@
 
 	* msdos.c (IT_display_cursor): Write "CURSOR ON/OFF" to termscript
 	only when the state changes.
+	(IT_update_begin, IT_update_end): Add termscript trace.
 
 	* w16select.c (Fw16_set_clipboard_data): Don't encode text if
 	clipboard is unavailable.  Set dst to NULL if it doesn't point to
