@@ -1,3 +1,9 @@
+2008-08-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (init_display): Set `tty's association in frame's
+	parameters alist to the name of the terminal device, if that is
+	known.
+
 2008-08-29  Jason Rumney  <jasonr@gnu.org>
 
 	* w32uniscribe.c (uniscribe_check_otf): Don't fallback on DFLT script.
