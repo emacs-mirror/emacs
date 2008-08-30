@@ -1,3 +1,9 @@
+2008-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* url-http.el (url-https-expand-file-name): Resolve directly to
+	url-default-expander rather than via another alias.
+	(url-default-expander): Autoload an autoload.  (Bug#825).
+
 2008-04-04  Magnus Henoch  <mange@freemail.hu>
 
 	* url-http.el (url-http-chunked-encoding-after-change-function):
