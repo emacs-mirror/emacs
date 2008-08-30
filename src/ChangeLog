@@ -1,3 +1,7 @@
+2008-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* frame.c (Fmodify_frame_parameters): Doc fix.
+
 2008-08-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (init_user_info): Allocate buf[] with xmalloc using the size

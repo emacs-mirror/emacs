@@ -1,5 +1,7 @@
 2008-08-30  Glenn Morris  <rgm@gnu.org>
 
+	* subr.el (make-variable-frame-local): Tweak obsolescence message.
+
 	* info.el (Info-hide-note-references, Info-refill-paragraphs):
 	Doc fixes.
 
