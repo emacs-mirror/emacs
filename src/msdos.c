@@ -1728,17 +1728,19 @@ IT_display_cursor (int on)
 {
   struct tty_display_info *tty = CURTTY ();
 
-  if (tty->termscript)
-    fprintf (tty->termscript, "\nCURSOR %s", on ? "ON" : "OFF");
   if (on && cursor_cleared)
     {
       ScreenSetCursor (current_pos_Y, current_pos_X);
       cursor_cleared = 0;
+      if (tty->termscript)
+	fprintf (tty->termscript, "\nCURSOR ON");
     }
   else if (!on && !cursor_cleared)
     {
       ScreenSetCursor (-1, -1);
       cursor_cleared = 1;
+      if (tty->termscript)
+	fprintf (tty->termscript, "\nCURSOR OFF");
     }
 }
 
