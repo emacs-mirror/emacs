@@ -2,6 +2,8 @@
 
 	* macterm.c [USE_CG_DRAWING] (mac_draw_cg_image):
 	Fix coordinate flipping.
+	[USE_ATSUI] (mac_draw_image_string_atsui) [MAC_OS_X]: Likewise.
+	[USE_CG_TEXT_DRAWING] (mac_draw_image_string_cg): Likewise.
 
 2008-08-29  Eli Zaretskii  <eliz@gnu.org>
 
