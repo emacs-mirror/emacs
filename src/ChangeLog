@@ -1,5 +1,10 @@
 2008-08-30  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32.c (init_user_info): Allocate buf[] with xmalloc using the size
+	needed by GetTokenInformation.
+	(w32_system_process_attributes): Check return values of all system
+	APIs.
+
 	* msdos.c (IT_display_cursor): Write "CURSOR ON/OFF" to termscript
 	only when the state changes.
 	(IT_update_begin, IT_update_end): Add termscript trace.
