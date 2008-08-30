@@ -1838,6 +1838,9 @@ IT_update_begin (struct frame *f)
   struct tty_display_info *display_info = FRAME_X_DISPLAY_INFO (f);
   struct frame *mouse_face_frame = display_info->mouse_face_mouse_frame;
 
+  if (display_info->termscript)
+    fprintf (display_info->termscript, "\n\n<UPDATE_BEGIN");
+
   BLOCK_INPUT;
 
   if (f && f == mouse_face_frame)
@@ -1894,7 +1897,11 @@ IT_update_begin (struct frame *f)
 static void
 IT_update_end (struct frame *f)
 {
-  FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
+  struct tty_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
+  if (dpyinfo->termscript)
+    fprintf (dpyinfo->termscript, "\n<UPDATE_END\n");
+  dpyinfo->mouse_face_defer = 0;
 }
 
 static void
