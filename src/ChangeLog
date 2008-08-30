@@ -1,3 +1,9 @@
+2008-08-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (stat): Only root directory passed to GetDriveType.  Allow
+	RAM disk as well as local fixed disk when
+	w32-get-true-file-attributes is set to `local'.
+
 2008-08-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [USE_CG_DRAWING] (mac_draw_cg_image):
