@@ -1362,6 +1362,11 @@ p3p
 (defconst url-https-default-port 443 "Default HTTPS port.")
 ;;;###autoload
 (defconst url-https-asynchronous-p t "HTTPS retrievals are asynchronous.")
+
+;; FIXME what is the point of this alias being an autoload?
+;; Trying to use it will not cause url-http to be loaded,
+;; since the full alias just gets dumped into loaddefs.el.
+
 ;;;###autoload (autoload 'url-default-expander "url-expand")
 ;;;###autoload
 (defalias 'url-https-expand-file-name 'url-default-expander)
