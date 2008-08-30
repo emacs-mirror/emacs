@@ -944,7 +944,8 @@ is converted into a string by expressing it in decimal."
 (make-obsolete 'focus-frame "it does nothing." "22.1")
 (defalias 'unfocus-frame 'ignore "")
 (make-obsolete 'unfocus-frame "it does nothing." "22.1")
-(make-obsolete 'make-variable-frame-local "use a frame-parameter instead." "22.2")
+(make-obsolete 'make-variable-frame-local
+	       "explicitly check for a frame-parameter instead." "22.2")
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
