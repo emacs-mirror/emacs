@@ -2390,6 +2390,8 @@ int
 stat (const char * path, struct stat * buf)
 {
   char *name, *r;
+  char drive_root[4];
+  UINT devtype;
   WIN32_FIND_DATA wfd;
   HANDLE fh;
   DWORD fake_inode;
@@ -2491,9 +2493,19 @@ stat (const char * path, struct stat * buf)
 	}
     }
 
+  /* GetDriveType needs the root directory of NAME's drive.  */
+  if (!(strlen (name) >= 2 && IS_DEVICE_SEP (name[1])))
+    devtype = GetDriveType (NULL); /* use root of current diectory */
+  else
+    {
+      strncpy (drive_root, name, 3);
+      drive_root[3] = '\0';
+      devtype = GetDriveType (drive_root);
+    }
+
   if (!(NILP (Vw32_get_true_file_attributes)
 	|| (EQ (Vw32_get_true_file_attributes, Qlocal) &&
-	    GetDriveType (name) != DRIVE_FIXED))
+	    devtype != DRIVE_FIXED && devtype != DRIVE_RAMDISK))
       /* No access rights required to get info.  */
       && (fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING,
 			   FILE_FLAG_BACKUP_SEMANTICS, NULL))
