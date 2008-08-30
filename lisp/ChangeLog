@@ -1,6 +1,6 @@
 2008-08-30  Glenn Morris  <rgm@gnu.org>
 
-	* apropos.el (apropos-command): Ignore documentation errors.
+	* apropos.el (apropos-command): Report documentation errors.
 	* help-fns.el (describe-function-1): Handle broken aliases.  (Bug#825)
 
 2008-08-29  Chong Yidong  <cyd@stupidchicken.com>
