@@ -500,6 +500,9 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
   BLOCK_INPUT;
 
+  if (!open_clipboard ())
+    goto error;
+
   nbytes = SBYTES (string);
   src = SDATA (string);
 
@@ -515,6 +518,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 	 will have to convert it to DOS CR-LF style.  */
       no_crlf_conversion = 0;
       Vlast_coding_system_used = Qraw_text;
+      dst = NULL;	/* so we don't try to free a random pointer */
     }
   else
     {
@@ -540,9 +544,6 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
       Vlast_coding_system_used = CODING_ID_NAME (coding.id);
       src = dst;
     }
-
-  if (!open_clipboard ())
-    goto error;
 
   ok = empty_clipboard ()
     && ((put_status
@@ -595,7 +596,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
      Lisp_Object frame;
 {
   unsigned data_size, truelen;
-  unsigned char *htext;
+  unsigned char *htext = NULL;
   Lisp_Object ret = Qnil;
   int no_crlf_conversion, require_decoding = 0;
 
