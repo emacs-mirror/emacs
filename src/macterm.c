@@ -559,27 +559,25 @@ mac_draw_cg_image (image, f, gc, src_x, src_y, width, height,
      int dest_x, dest_y, overlay_p;
 {
   CGContextRef context;
-  CGFloat port_height = FRAME_PIXEL_HEIGHT (f);
-  CGRect dest_rect = mac_rect_make (f, dest_x, dest_y, width, height);
+  CGRect dest_rect, bounds;
 
   context = mac_begin_cg_clip (f, gc);
+  dest_rect = mac_rect_make (f, dest_x, dest_y, width, height);
+  bounds = mac_rect_make (f, dest_x - src_x, dest_y - src_y,
+			  CGImageGetWidth (image), CGImageGetHeight (image));
   if (!overlay_p)
     {
       CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
       CGContextFillRect (context, dest_rect);
     }
   CGContextClipToRect (context, dest_rect);
+  CGContextTranslateCTM (context,
+			 CGRectGetMinX (bounds), CGRectGetMaxY (bounds));
   CGContextScaleCTM (context, 1, -1);
-  CGContextTranslateCTM (context, 0, -port_height);
   if (CGImageIsMask (image))
     CG_SET_FILL_COLOR_WITH_GC_FOREGROUND (context, gc);
-  CGContextDrawImage (context,
-		      mac_rect_make (f, dest_x - src_x,
-				     port_height - (dest_y - src_y
-						    + CGImageGetHeight (image)),
-				     CGImageGetWidth (image),
-				     CGImageGetHeight (image)),
-		      image);
+  bounds.origin = CGPointZero;
+  CGContextDrawImage (context, bounds, image);
   mac_end_cg_clip (f);
 }
 
