@@ -221,7 +221,8 @@ when you hit the end of the current node."
   "*If non-nil, hide the tag and section reference in *note and * menu items.
 If value is non-nil but not `hide', also replaces the \"*note\" with \"see\".
 If value is non-nil but not t or `hide', the reference section is still shown.
-`nil' completely disables this feature."
+`nil' completely disables this feature.  If this is non-nil, you might
+want to set `Info-refill-paragraphs'."
   :version "22.1"
   :type '(choice (const :tag "No hiding" nil)
 		 (const :tag "Replace tag and hide reference" t)
@@ -232,7 +233,8 @@ If value is non-nil but not t or `hide', the reference section is still shown.
 (defcustom Info-refill-paragraphs nil
   "*If non-nil, attempt to refill paragraphs with hidden references.
 This refilling may accidentally remove explicit line breaks in the Info
-file, so be prepared for a few surprises if you enable this feature."
+file, so be prepared for a few surprises if you enable this feature.
+This only has an effect if `Info-hide-note-references' is non-nil."
   :version "22.1"
   :type 'boolean
   :group 'info)
