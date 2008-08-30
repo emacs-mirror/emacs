@@ -1,5 +1,8 @@
 2008-08-30  Eli Zaretskii  <eliz@gnu.org>
 
+	* msdos.c (IT_display_cursor): Write "CURSOR ON/OFF" to termscript
+	only when the state changes.
+
 	* w16select.c (Fw16_set_clipboard_data): Don't encode text if
 	clipboard is unavailable.  Set dst to NULL if it doesn't point to
 	malloc'ed data.
