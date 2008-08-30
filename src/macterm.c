@@ -1023,9 +1023,9 @@ mac_draw_image_string_atsui (f, gc, x, y, buf, nchars, bg_width,
 
       GetPort (&port);
       QDBeginCGContext (port, &context);
+      CGContextTranslateCTM (context, 0, FRAME_PIXEL_HEIGHT (f));
       if (gc->n_clip_rects || bg_width)
 	{
-	  CGContextTranslateCTM (context, 0, FRAME_PIXEL_HEIGHT (f));
 	  CGContextScaleCTM (context, 1, -1);
 	  if (gc->n_clip_rects)
 	    CGContextClipToRects (context, gc->clip_rects,
@@ -1410,9 +1410,9 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
   context = mac_begin_cg_clip (f, gc);
 #else
   QDBeginCGContext (GetWindowPort (FRAME_MAC_WINDOW (f)), &context);
+  CGContextTranslateCTM (context, 0, FRAME_PIXEL_HEIGHT (f));
   if (gc->n_clip_rects || bg_width)
     {
-      CGContextTranslateCTM (context, 0, FRAME_PIXEL_HEIGHT (f));
       CGContextScaleCTM (context, 1, -1);
       if (gc->n_clip_rects)
 	CGContextClipToRects (context, gc->clip_rects, gc->n_clip_rects);
