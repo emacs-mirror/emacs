@@ -1,6 +1,7 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -1361,8 +1362,9 @@ p3p
 (defconst url-https-default-port 443 "Default HTTPS port.")
 ;;;###autoload
 (defconst url-https-asynchronous-p t "HTTPS retrievals are asynchronous.")
+;;;###autoload (autoload 'url-default-expander "url-expand")
 ;;;###autoload
-(defalias 'url-https-expand-file-name 'url-http-expand-file-name)
+(defalias 'url-https-expand-file-name 'url-default-expander)
 
 (defmacro url-https-create-secure-wrapper (method args)
   `(defun ,(intern (format (if method "url-https-%s" "url-https") method)) ,args
