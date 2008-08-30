@@ -1,5 +1,8 @@
 2008-08-30  Glenn Morris  <rgm@gnu.org>
 
+	* info.el (Info-hide-note-references, Info-refill-paragraphs):
+	Doc fixes.
+
 	* apropos.el (apropos-command): Report documentation errors.
 	* help-fns.el (describe-function-1): Handle broken aliases.  (Bug#825)
 
