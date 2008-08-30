@@ -268,7 +268,8 @@ face (according to `face-differs-from-default-p')."
 		function))
 	 file-name string
 	 (beg (if (commandp def) "an interactive " "a "))
-         (pt1 (with-current-buffer (help-buffer) (point))))
+	 (pt1 (with-current-buffer (help-buffer) (point)))
+	 errtype)
     (setq string
 	  (cond ((or (stringp def)
 		     (vectorp def))
@@ -280,8 +281,11 @@ face (according to `face-differs-from-default-p')."
 		((byte-code-function-p def)
 		 (concat beg "compiled Lisp function"))
 		((symbolp def)
-		 (while (symbolp (symbol-function def))
+		 (while (and (fboundp def)
+			     (symbolp (symbol-function def)))
 		   (setq def (symbol-function def)))
+		 ;; Handle (defalias 'foo 'bar), where bar is undefined.
+		 (or (fboundp def) (setq errtype 'alias))
 		 (format "an alias for `%s'" def))
 		((eq (car-safe def) 'lambda)
 		 (concat beg "Lisp function"))
@@ -307,135 +311,137 @@ face (according to `face-differs-from-default-p')."
                      "a sparse keymap")))
 		(t "")))
     (princ string)
-    (with-current-buffer standard-output
-      (save-excursion
-	(save-match-data
-	  (if (re-search-backward "alias for `\\([^`']+\\)'" nil t)
-	      (help-xref-button 1 'help-function def)))))
-    (or file-name
-	(setq file-name (symbol-file function 'defun)))
-    (setq file-name (describe-simplify-lib-file-name file-name))
-    (when (equal file-name "loaddefs.el")
-      ;; Find the real def site of the preloaded function.
-      ;; This is necessary only for defaliases.
-      (let ((location
-	     (condition-case nil
-		 (find-function-search-for-symbol function nil "loaddefs.el")
-	       (error nil))))
-	(when location
-	  (with-current-buffer (car location)
-	    (goto-char (cdr location))
-	    (when (re-search-backward
-		   "^;;; Generated autoloads from \\(.*\\)" nil t)
-	      (setq file-name (match-string 1)))))))
-    (when (and (null file-name) (subrp def))
-      ;; Find the C source file name.
-      (setq file-name (if (get-buffer " *DOC*")
-			  (help-C-file-name def 'subr)
-			'C-source)))
-    (when file-name
-      (princ " in `")
-      ;; We used to add .el to the file name,
-      ;; but that's completely wrong when the user used load-file.
-      (princ (if (eq file-name 'C-source) "C source code" file-name))
-      (princ "'")
-      ;; See if lisp files are present where they where installed from.
-      (if (not (eq file-name 'C-source))
-	  (setq file-name (find-source-lisp-file file-name)))
-
-      ;; Make a hyperlink to the library.
+    (if (eq errtype 'alias)
+	(princ ",\nwhich is not defined.  Please make a bug report.")
       (with-current-buffer standard-output
-        (save-excursion
-	  (re-search-backward "`\\([^`']+\\)'" nil t)
-	  (help-xref-button 1 'help-function-def real-function file-name))))
-    (princ ".")
-    (with-current-buffer (help-buffer)
-      (fill-region-as-paragraph (save-excursion (goto-char pt1) (forward-line 0) (point))
-                                (point)))
-    (terpri)(terpri)
-    (when (commandp function)
-      (let ((pt2 (with-current-buffer (help-buffer) (point))))
-      (if (and (eq function 'self-insert-command)
-	       (eq (key-binding "a") 'self-insert-command)
-	       (eq (key-binding "b") 'self-insert-command)
-	       (eq (key-binding "c") 'self-insert-command))
-	  (princ "It is bound to many ordinary text characters.\n")
-	(let* ((remapped (command-remapping function))
-	       (keys (where-is-internal
-		      (or remapped function) overriding-local-map nil nil))
-	       non-modified-keys)
-	  ;; Which non-control non-meta keys run this command?
-	  (dolist (key keys)
-	    (if (member (event-modifiers (aref key 0)) '(nil (shift)))
-		(push key non-modified-keys)))
-	  (when remapped
-	    (princ "It is remapped to `")
-	    (princ (symbol-name remapped))
-	    (princ "'"))
+	(save-excursion
+	  (save-match-data
+	    (if (re-search-backward "alias for `\\([^`']+\\)'" nil t)
+		(help-xref-button 1 'help-function def)))))
+      (or file-name
+	  (setq file-name (symbol-file function 'defun)))
+      (setq file-name (describe-simplify-lib-file-name file-name))
+      (when (equal file-name "loaddefs.el")
+	;; Find the real def site of the preloaded function.
+	;; This is necessary only for defaliases.
+	(let ((location
+	       (condition-case nil
+		   (find-function-search-for-symbol function nil "loaddefs.el")
+		 (error nil))))
+	  (when location
+	    (with-current-buffer (car location)
+	      (goto-char (cdr location))
+	      (when (re-search-backward
+		     "^;;; Generated autoloads from \\(.*\\)" nil t)
+		(setq file-name (match-string 1)))))))
+      (when (and (null file-name) (subrp def))
+	;; Find the C source file name.
+	(setq file-name (if (get-buffer " *DOC*")
+			    (help-C-file-name def 'subr)
+			  'C-source)))
+      (when file-name
+	(princ " in `")
+	;; We used to add .el to the file name,
+	;; but that's completely wrong when the user used load-file.
+	(princ (if (eq file-name 'C-source) "C source code" file-name))
+	(princ "'")
+	;; See if lisp files are present where they where installed from.
+	(if (not (eq file-name 'C-source))
+	    (setq file-name (find-source-lisp-file file-name)))
 
-	  (when keys
-              (princ (if remapped ", which is bound to " "It is bound to "))
-	    ;; If lots of ordinary text characters run this command,
-	    ;; don't mention them one by one.
-	    (if (< (length non-modified-keys) 10)
-		(princ (mapconcat 'key-description keys ", "))
-	      (dolist (key non-modified-keys)
-		(setq keys (delq key keys)))
-	      (if keys
-		  (progn
+	;; Make a hyperlink to the library.
+	(with-current-buffer standard-output
+	  (save-excursion
+	    (re-search-backward "`\\([^`']+\\)'" nil t)
+	    (help-xref-button 1 'help-function-def real-function file-name))))
+      (princ ".")
+      (with-current-buffer (help-buffer)
+	(fill-region-as-paragraph (save-excursion (goto-char pt1) (forward-line 0) (point))
+				  (point)))
+      (terpri)(terpri)
+      (when (commandp function)
+	(let ((pt2 (with-current-buffer (help-buffer) (point))))
+	  (if (and (eq function 'self-insert-command)
+		   (eq (key-binding "a") 'self-insert-command)
+		   (eq (key-binding "b") 'self-insert-command)
+		   (eq (key-binding "c") 'self-insert-command))
+	      (princ "It is bound to many ordinary text characters.\n")
+	    (let* ((remapped (command-remapping function))
+		   (keys (where-is-internal
+			  (or remapped function) overriding-local-map nil nil))
+		   non-modified-keys)
+	      ;; Which non-control non-meta keys run this command?
+	      (dolist (key keys)
+		(if (member (event-modifiers (aref key 0)) '(nil (shift)))
+		    (push key non-modified-keys)))
+	      (when remapped
+		(princ "It is remapped to `")
+		(princ (symbol-name remapped))
+		(princ "'"))
+
+	      (when keys
+		(princ (if remapped ", which is bound to " "It is bound to "))
+		;; If lots of ordinary text characters run this command,
+		;; don't mention them one by one.
+		(if (< (length non-modified-keys) 10)
 		    (princ (mapconcat 'key-description keys ", "))
-		    (princ ", and many ordinary text characters"))
-		(princ "many ordinary text characters"))))
-	  (when (or remapped keys non-modified-keys)
-	    (princ ".")
-              (terpri))))
-        (with-current-buffer (help-buffer) (fill-region-as-paragraph pt2 (point)))
-        (terpri)))
-    (let* ((arglist (help-function-arglist def))
-	   (doc (documentation function))
-	   (usage (help-split-fundoc doc function)))
-      (with-current-buffer standard-output
-        ;; If definition is a keymap, skip arglist note.
-        (unless (keymapp function)
-          (let* ((use (cond
-                        (usage (setq doc (cdr usage)) (car usage))
-                        ((listp arglist)
-                         (format "%S" (help-make-usage function arglist)))
-                        ((stringp arglist) arglist)
-                        ;; Maybe the arglist is in the docstring of a symbol
-			;; this one is aliased to.
-                        ((let ((fun real-function))
-                           (while (and (symbolp fun)
-                                       (setq fun (symbol-function fun))
-                                       (not (setq usage (help-split-fundoc
-                                                         (documentation fun)
-                                                         function)))))
-                           usage)
-                         (car usage))
-                        ((or (stringp def)
-                             (vectorp def))
-                         (format "\nMacro: %s" (format-kbd-macro def)))
-                        (t "[Missing arglist.  Please make a bug report.]")))
-                 (high (help-highlight-arguments use doc)))
-            (let ((fill-begin (point)))
-	      (insert (car high) "\n")
-	      (fill-region fill-begin (point)))
-            (setq doc (cdr high))))
-        (let* ((obsolete (and
-			  ;; function might be a lambda construct.
-			  (symbolp function)
-			  (get function 'byte-obsolete-info)))
-	       (use (car obsolete)))
-          (when obsolete
-            (princ "\nThis function is obsolete")
-            (when (nth 2 obsolete)
-              (insert (format " since %s" (nth 2 obsolete))))
-	    (insert (cond ((stringp use) (concat ";\n" use))
-			  (use (format ";\nuse `%s' instead." use))
-			  (t "."))
-		    "\n"))
-          (insert "\n"
-                  (or doc "Not documented.")))))))
+		  (dolist (key non-modified-keys)
+		    (setq keys (delq key keys)))
+		  (if keys
+		      (progn
+			(princ (mapconcat 'key-description keys ", "))
+			(princ ", and many ordinary text characters"))
+		    (princ "many ordinary text characters"))))
+	      (when (or remapped keys non-modified-keys)
+		(princ ".")
+		(terpri))))
+	  (with-current-buffer (help-buffer) (fill-region-as-paragraph pt2 (point)))
+	  (terpri)))
+      (let* ((arglist (help-function-arglist def))
+	     (doc (documentation function))
+	     (usage (help-split-fundoc doc function)))
+	(with-current-buffer standard-output
+	  ;; If definition is a keymap, skip arglist note.
+	  (unless (keymapp function)
+	    (let* ((use (cond
+			 (usage (setq doc (cdr usage)) (car usage))
+			 ((listp arglist)
+			  (format "%S" (help-make-usage function arglist)))
+			 ((stringp arglist) arglist)
+			 ;; Maybe the arglist is in the docstring of a symbol
+			 ;; this one is aliased to.
+			 ((let ((fun real-function))
+			    (while (and (symbolp fun)
+					(setq fun (symbol-function fun))
+					(not (setq usage (help-split-fundoc
+							  (documentation fun)
+							  function)))))
+			    usage)
+			  (car usage))
+			 ((or (stringp def)
+			      (vectorp def))
+			  (format "\nMacro: %s" (format-kbd-macro def)))
+			 (t "[Missing arglist.  Please make a bug report.]")))
+		   (high (help-highlight-arguments use doc)))
+	      (let ((fill-begin (point)))
+		(insert (car high) "\n")
+		(fill-region fill-begin (point)))
+	      (setq doc (cdr high))))
+	  (let* ((obsolete (and
+			    ;; function might be a lambda construct.
+			    (symbolp function)
+			    (get function 'byte-obsolete-info)))
+		 (use (car obsolete)))
+	    (when obsolete
+	      (princ "\nThis function is obsolete")
+	      (when (nth 2 obsolete)
+		(insert (format " since %s" (nth 2 obsolete))))
+	      (insert (cond ((stringp use) (concat ";\n" use))
+			    (use (format ";\nuse `%s' instead." use))
+			    (t "."))
+		      "\n"))
+	    (insert "\n"
+		    (or doc "Not documented."))))))))
 
 
 ;; Variables
