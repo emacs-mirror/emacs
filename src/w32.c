@@ -907,20 +907,37 @@ init_user_info ()
      primary group sid from the process token). */
 
   char         uname[UNLEN+1], gname[GNLEN+1], domain[1025];
-  DWORD        ulength = sizeof (uname), dlength = sizeof (domain), trash;
+  DWORD        ulength = sizeof (uname), dlength = sizeof (domain), needed;
   DWORD	       glength = sizeof (gname);
   HANDLE       token = NULL;
   SID_NAME_USE user_type;
-  unsigned char buf[1024];
+  unsigned char *buf = NULL;
+  DWORD        blen = 0;
   TOKEN_USER   user_token;
   TOKEN_PRIMARY_GROUP group_token;
+  BOOL         result;
 
-  if (open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
-      && get_token_information (token, TokenUser,
-				(PVOID)buf, sizeof (buf), &trash)
-      && (memcpy (&user_token, buf, sizeof (user_token)),
-	  lookup_account_sid (NULL, user_token.User.Sid, uname, &ulength,
-			      domain, &dlength, &user_type)))
+  result = open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token);
+  if (result)
+    {
+      result = get_token_information (token, TokenUser, NULL, 0, &blen);
+      if (!result && GetLastError () == ERROR_INSUFFICIENT_BUFFER)
+	{
+	  buf = xmalloc (blen);
+	  result = get_token_information (token, TokenUser,
+					  (LPVOID)buf, blen, &needed);
+	  if (result)
+	    {
+	      memcpy (&user_token, buf, sizeof (user_token));
+	      result = lookup_account_sid (NULL, user_token.User.Sid,
+					   uname, &ulength,
+					   domain, &dlength, &user_type);
+	    }
+	}
+      else
+	result = FALSE;
+    }
+  if (result)
     {
       strcpy (dflt_passwd.pw_name, uname);
       /* Determine a reasonable uid value.  */
@@ -936,12 +953,22 @@ init_user_info ()
 	  dflt_passwd.pw_uid = get_rid (user_token.User.Sid);
 
 	  /* Get group id and name.  */
-	  if (get_token_information (token, TokenPrimaryGroup,
-				     (PVOID)buf, sizeof (buf), &trash))
+	  result = get_token_information (token, TokenPrimaryGroup,
+					  (LPVOID)buf, blen, &needed);
+	  if (!result && GetLastError () == ERROR_INSUFFICIENT_BUFFER)
+	    {
+	      buf = xrealloc (buf, blen = needed);
+	      result = get_token_information (token, TokenPrimaryGroup,
+					      (LPVOID)buf, blen, &needed);
+	    }
+	  if (result)
 	    {
 	      memcpy (&group_token, buf, sizeof (group_token));
 	      dflt_passwd.pw_gid = get_rid (group_token.PrimaryGroup);
 	      dlength = sizeof (domain);
+	      /* If we can get at the real Primary Group name, use that.
+		 Otherwise, the default group name was already set to
+		 "None" in globals_of_w32.  */
 	      if (lookup_account_sid (NULL, group_token.PrimaryGroup,
 				      gname, &glength, NULL, &dlength,
 				      &user_type))
@@ -952,7 +979,7 @@ init_user_info ()
 	}
     }
   /* If security calls are not supported (presumably because we
-     are running under Windows 95), fallback to this. */
+     are running under Windows 9X), fallback to this: */
   else if (GetUserName (uname, &ulength))
     {
       strcpy (dflt_passwd.pw_name, uname);
@@ -980,6 +1007,7 @@ init_user_info ()
   strcpy (dflt_passwd.pw_dir, getenv ("HOME"));
   strcpy (dflt_passwd.pw_shell, getenv ("SHELL"));
 
+  xfree (buf);
   if (token)
     CloseHandle (token);
 }
@@ -3810,11 +3838,12 @@ w32_system_process_attributes (pid)
   DWORD proc_id;
   int found_proc = 0;
   char uname[UNLEN+1], gname[GNLEN+1], domain[1025];
-  DWORD ulength = sizeof (uname), dlength = sizeof (domain), trash;
+  DWORD ulength = sizeof (uname), dlength = sizeof (domain), needed;
   DWORD glength = sizeof (gname);
   HANDLE token = NULL;
   SID_NAME_USE user_type;
-  unsigned char buf[1024];
+  unsigned char *buf = NULL;
+  DWORD blen = 0;
   TOKEN_USER user_token;
   TOKEN_PRIMARY_GROUP group_token;
   int euid;
@@ -3828,6 +3857,7 @@ w32_system_process_attributes (pid)
   double totphys = 0.0;
   Lisp_Object ctime, stime, utime, etime;
   double pcpu;
+  BOOL result = FALSE;
 
   CHECK_NUMBER_OR_FLOAT (pid);
   proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
@@ -3898,87 +3928,125 @@ w32_system_process_attributes (pid)
 	  revert_to_self ();
 	}
     }
-  if (h_proc
-      && open_process_token (h_proc, TOKEN_QUERY, &token)
-      && get_token_information (token, TokenUser,
-				(PVOID)buf, sizeof (buf), &trash))
+  if (h_proc)
     {
-      memcpy (&user_token, buf, sizeof (user_token));
-      if (w32_cached_id (user_token.User.Sid, &euid, uname))
-	ulength = strlen (uname);
-      else
+      result = open_process_token (h_proc, TOKEN_QUERY, &token);
+      if (result)
 	{
-	  lookup_account_sid (NULL, user_token.User.Sid, uname, &ulength,
-			      domain, &dlength, &user_type);
-	  euid = get_rid (user_token.User.Sid);
-	  w32_add_to_cache (user_token.User.Sid, euid, uname);
-	}
-      /* Determine a reasonable euid and gid values.  */
-      if (xstrcasecmp ("administrator", uname) == 0)
-	{
-	  euid = 500;	/* well-known Administrator uid */
-	  egid = 513;	/* well-known None gid */
-	}
-      else
-	{
-	  /* Get group id and name.  */
-	  if (get_token_information (token, TokenPrimaryGroup,
-				     (PVOID)buf, sizeof (buf), &trash))
+	  result = get_token_information (token, TokenUser, NULL, 0, &blen);
+	  if (!result && GetLastError () == ERROR_INSUFFICIENT_BUFFER)
 	    {
-	      memcpy (&group_token, buf, sizeof (group_token));
-	      if (w32_cached_id (group_token.PrimaryGroup, &egid, gname))
-		glength = strlen (gname);
-	      else
+	      buf = xmalloc (blen);
+	      result = get_token_information (token, TokenUser,
+					      (LPVOID)buf, blen, &needed);
+	      if (result)
 		{
-		  dlength = sizeof (domain);
-		  lookup_account_sid (NULL, group_token.PrimaryGroup,
-				      gname, &glength, NULL, &dlength,
-				      &user_type);
-		  egid = get_rid (group_token.PrimaryGroup);
-		  w32_add_to_cache (group_token.PrimaryGroup, egid, gname);
+		  memcpy (&user_token, buf, sizeof (user_token));
+		  if (!w32_cached_id (user_token.User.Sid, &euid, uname))
+		    {
+		      euid = get_rid (user_token.User.Sid);
+		      result = lookup_account_sid (NULL, user_token.User.Sid,
+						   uname, &ulength,
+						   domain, &dlength,
+						   &user_type);
+		      if (result)
+			w32_add_to_cache (user_token.User.Sid, euid, uname);
+		      else
+			{
+			  strcpy (uname, "unknown");
+			  result = TRUE;
+			}
+		    }
+		  ulength = strlen (uname);
 		}
 	    }
-	  else
-	    egid = euid;
 	}
+      if (result)
+	{
+	  /* Determine a reasonable euid and gid values.  */
+	  if (xstrcasecmp ("administrator", uname) == 0)
+	    {
+	      euid = 500;	/* well-known Administrator uid */
+	      egid = 513;	/* well-known None gid */
+	    }
+	  else
+	    {
+	      /* Get group id and name.  */
+	      result = get_token_information (token, TokenPrimaryGroup,
+					      (LPVOID)buf, blen, &needed);
+	      if (!result && GetLastError () == ERROR_INSUFFICIENT_BUFFER)
+		{
+		  buf = xrealloc (buf, blen = needed);
+		  result = get_token_information (token, TokenPrimaryGroup,
+						  (LPVOID)buf, blen, &needed);
+		}
+	      if (result)
+		{
+		  memcpy (&group_token, buf, sizeof (group_token));
+		  if (!w32_cached_id (group_token.PrimaryGroup, &egid, gname))
+		    {
+		      egid = get_rid (group_token.PrimaryGroup);
+		      dlength = sizeof (domain);
+		      result =
+			lookup_account_sid (NULL, group_token.PrimaryGroup,
+					    gname, &glength, NULL, &dlength,
+					    &user_type);
+		      if (result)
+			w32_add_to_cache (group_token.PrimaryGroup,
+					  egid, gname);
+		      else
+			{
+			  strcpy (gname, "None");
+			  result = TRUE;
+			}
+		    }
+		  glength = strlen (gname);
+		}
+	    }
+	}
+      if (buf)
+	xfree (buf);
     }
-  else if (!is_windows_9x ())
+  if (!result)
     {
-      /* We couldn't open the process token, presumably because of
-	 insufficient access rights.  Assume this process is run by
-	 the system.  */
-      strcpy (uname, "SYSTEM");
-      strcpy (gname, "None");
-      euid = 18;	/* SYSTEM */
-      egid = 513;	/* None */
-      glength = strlen (gname);
-      ulength = strlen (uname);
-    }
-  /* If we are running under Windows 9X, where security calls are not
-     supported, we assume all processes are run by the current
-     user.  */
-  else if (GetUserName (uname, &ulength))
-    {
-      if (xstrcasecmp ("administrator", uname) == 0)
-	euid = 0;
+      if (!is_windows_9x ())
+	{
+	  /* We couldn't open the process token, presumably because of
+	     insufficient access rights.  Assume this process is run
+	     by the system.  */
+	  strcpy (uname, "SYSTEM");
+	  strcpy (gname, "None");
+	  euid = 18;	/* SYSTEM */
+	  egid = 513;	/* None */
+	  glength = strlen (gname);
+	  ulength = strlen (uname);
+	}
+      /* If we are running under Windows 9X, where security calls are
+	 not supported, we assume all processes are run by the current
+	 user.  */
+      else if (GetUserName (uname, &ulength))
+	{
+	  if (xstrcasecmp ("administrator", uname) == 0)
+	    euid = 0;
+	  else
+	    euid = 123;
+	  egid = euid;
+	  strcpy (gname, "None");
+	  glength = strlen (gname);
+	  ulength = strlen (uname);
+	}
       else
-	euid = 123;
-      egid = euid;
-      strcpy (gname, "None");
-      glength = strlen (gname);
-      ulength = strlen (uname);
+	{
+	  euid = 123;
+	  egid = 123;
+	  strcpy (uname, "administrator");
+	  ulength = strlen (uname);
+	  strcpy (gname, "None");
+	  glength = strlen (gname);
+	}
+      if (token)
+	CloseHandle (token);
     }
-  else
-    {
-      euid = 123;
-      egid = 123;
-      strcpy (uname, "administrator");
-      ulength = strlen (uname);
-      strcpy (gname, "None");
-      glength = strlen (gname);
-    }
-  if (token)
-    CloseHandle (token);
 
   attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (euid)), attrs);
   tem = make_unibyte_string (uname, ulength);
