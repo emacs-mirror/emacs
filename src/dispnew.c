@@ -6944,7 +6944,13 @@ init_display ()
     Fmodify_frame_parameters
       (selected_frame, Fcons (Fcons (Qtty_type,
                                      Ftty_type (selected_frame)), Qnil));
-    Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qtty, Qnil), Qnil));
+    if (t->display_info.tty->name)
+      Fmodify_frame_parameters (selected_frame,
+				Fcons (Fcons (Qtty, build_string (t->display_info.tty->name)),
+				       Qnil));
+    else
+      Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qtty, Qnil),
+						       Qnil));
   }
 
   {
