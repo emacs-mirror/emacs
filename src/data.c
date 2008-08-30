@@ -1691,7 +1691,9 @@ The only way to create a frame-local binding for VARIABLE in a frame
 is to set the VARIABLE frame parameter of that frame.  See
 `modify-frame-parameters' for how to set frame parameters.
 
-Buffer-local bindings take precedence over frame-local bindings.  */)
+Note that since Emacs 23.1, variables cannot be both buffer-local and
+frame-local any more (buffer-local bindings used to take precedence over
+frame-local bindings).  */)
      (variable)
      register Lisp_Object variable;
 {
