@@ -489,8 +489,12 @@ while a list of strings is used as a word list."
 		   (setq score (apropos-score-symbol symbol))
 		   (unless var-predicate
 		     (if (fboundp symbol)
-			 (if (setq doc (ignore-errors (documentation symbol t)))
-			     (progn
+			 (if (setq doc (condition-case nil
+                                           (documentation symbol t)
+                                         (error 'error)))
+                             ;; Eg alias to undefined function.
+                             (if (eq doc 'error)
+                                 "(documentation error)"
 			       (setq score (+ score (apropos-score-doc doc)))
 			       (substring doc 0 (string-match "\n" doc)))
 			   "(not documented)")))
