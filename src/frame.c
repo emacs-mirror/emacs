@@ -2265,7 +2265,9 @@ so that `frame-parameters' will return them.
 
 The value of frame parameter FOO can also be accessed
 as a frame-local binding for the variable FOO, if you have
-enabled such bindings for that variable with `make-variable-frame-local'.  */)
+enabled such bindings for that variable with `make-variable-frame-local'.
+Note that this functionality is obsolete as of Emacs 22.2, and its
+use is not recommended.  Explicitly check for a frame-parameter instead.  */)
      (frame, alist)
      Lisp_Object frame, alist;
 {
