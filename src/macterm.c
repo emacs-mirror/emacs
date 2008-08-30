@@ -1012,7 +1012,6 @@ mac_draw_image_string_atsui (f, gc, x, y, buf, nchars, bg_width,
   else
     {
       static CGContextRef context;
-      CGFloat port_height = FRAME_PIXEL_HEIGHT (f);
       static const ATSUAttributeTag tags[] = {kATSUCGContextTag};
       static const ByteCount sizes[] = {sizeof (CGContextRef)};
       static const ATSUAttributeValuePtr values[] = {&context};
@@ -1026,7 +1025,7 @@ mac_draw_image_string_atsui (f, gc, x, y, buf, nchars, bg_width,
       QDBeginCGContext (port, &context);
       if (gc->n_clip_rects || bg_width)
 	{
-	  CGContextTranslateCTM (context, 0, port_height);
+	  CGContextTranslateCTM (context, 0, FRAME_PIXEL_HEIGHT (f));
 	  CGContextScaleCTM (context, 1, -1);
 	  if (gc->n_clip_rects)
 	    CGContextClipToRects (context, gc->clip_rects,
@@ -1042,7 +1041,6 @@ mac_draw_image_string_atsui (f, gc, x, y, buf, nchars, bg_width,
 						FONT_HEIGHT (GC_FONT (gc))));
 	    }
 	  CGContextScaleCTM (context, 1, -1);
-	  CGContextTranslateCTM (context, 0, -port_height);
 #if !USE_CG_DRAWING
 	}
 #endif
@@ -1054,11 +1052,11 @@ mac_draw_image_string_atsui (f, gc, x, y, buf, nchars, bg_width,
 	{
 	  ATSUDrawText (text_layout,
 			kATSUFromTextBeginning, kATSUToTextEnd,
-			Long2Fix (x), Long2Fix (port_height - y));
+			Long2Fix (x), Long2Fix (-y));
 	  if (overstrike_p)
 	    ATSUDrawText (text_layout,
 			  kATSUFromTextBeginning, kATSUToTextEnd,
-			  Long2Fix (x + 1), Long2Fix (port_height - y));
+			  Long2Fix (x + 1), Long2Fix (-y));
 	}
 #if USE_CG_DRAWING
       mac_end_cg_clip (f);
@@ -1383,7 +1381,7 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
      XChar2b *buf;
      int nchars, bg_width, overstrike_p;
 {
-  CGFloat port_height, gx, gy;
+  CGFloat gx, gy;
   int i;
   CGContextRef context;
   CGGlyph *glyphs;
@@ -1392,9 +1390,8 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
   if (!mac_use_core_graphics || GC_FONT (gc)->cg_font == NULL)
     return 0;
 
-  port_height = FRAME_PIXEL_HEIGHT (f);
   gx = x;
-  gy = port_height - y;
+  gy = -y;
   glyphs = (CGGlyph *)buf;
   advances = alloca (sizeof (CGSize) * nchars);
   if (advances == NULL)
@@ -1415,7 +1412,7 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
   QDBeginCGContext (GetWindowPort (FRAME_MAC_WINDOW (f)), &context);
   if (gc->n_clip_rects || bg_width)
     {
-      CGContextTranslateCTM (context, 0, port_height);
+      CGContextTranslateCTM (context, 0, FRAME_PIXEL_HEIGHT (f));
       CGContextScaleCTM (context, 1, -1);
       if (gc->n_clip_rects)
 	CGContextClipToRects (context, gc->clip_rects, gc->n_clip_rects);
@@ -1429,7 +1426,6 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
 			    bg_width, FONT_HEIGHT (GC_FONT (gc))));
 	}
       CGContextScaleCTM (context, 1, -1);
-      CGContextTranslateCTM (context, 0, -port_height);
 #if !USE_CG_DRAWING
     }
 #endif
