@@ -1672,6 +1672,9 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
 
 /* Lisp functions for creating and removing buffer-local variables.  */
 
+/* Obsolete since 22.2.  NB adjust doc of modify-frame-parameters
+   when/if this is removed.  */
+
 DEFUN ("make-variable-frame-local", Fmake_variable_frame_local, Smake_variable_frame_local,
        1, 1, "vMake Variable Frame Local: ",
        doc: /* Enable VARIABLE to have frame-local bindings.
