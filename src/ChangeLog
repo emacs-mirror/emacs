@@ -1,3 +1,8 @@
+2008-08-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_CG_DRAWING] (mac_draw_cg_image):
+	Fix coordinate flipping.
+
 2008-08-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fexpand_file_name): Copy argument `name' into local
