@@ -489,7 +489,7 @@ while a list of strings is used as a word list."
 		   (setq score (apropos-score-symbol symbol))
 		   (unless var-predicate
 		     (if (fboundp symbol)
-			 (if (setq doc (documentation symbol t))
+			 (if (setq doc (ignore-errors (documentation symbol t)))
 			     (progn
 			       (setq score (+ score (apropos-score-doc doc)))
 			       (substring doc 0 (string-match "\n" doc)))
