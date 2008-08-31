@@ -3542,6 +3542,15 @@ IT_menu_calc_size (XMenu *menu, int *width, int *height)
 
 /* Display MENU at (X,Y) using FACES.  */
 
+#define BUILD_CHAR_GLYPH(GLYPH, CODE, FACE_ID, PADDING_P)  \
+  do							   \
+    {							   \
+      (GLYPH).type = CHAR_GLYPH;			   \
+      SET_CHAR_GLYPH ((GLYPH), CODE, FACE_ID, PADDING_P);  \
+      (GLYPH).charpos = -1;				   \
+    }							   \
+  while (0)
+
 static void
 IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 {
@@ -3553,7 +3562,9 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
   menu_help_message = NULL;
 
   width = menu->width;
-  text = (struct glyph *) xmalloc ((width + 2) * sizeof (struct glyph));
+  /* We multiply width by 2 to account for possible control characters.
+     FIXME: cater to non-ASCII characters in menus.  */
+  text = (struct glyph *) xmalloc ((width * 2 + 2) * sizeof (struct glyph));
   ScreenGetCursor (&row, &col);
   mouse_get_xy (&mx, &my);
   IT_update_begin (sf);
@@ -3564,7 +3575,7 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
       IT_cursor_to (sf, y + i, x);
       enabled
 	= (!menu->submenu[i] && menu->panenumber[i]) || (menu->submenu[i]);
-      mousehere = (y + i == my && x <= mx && mx < x + width + 2);
+      mousehere = (y + i == my && x <= mx && mx < x + max_width);
       face = faces[enabled + mousehere * 2];
       /* The following if clause means that we display the menu help
 	 strings even if the menu item is currently disabled.  */
@@ -3575,21 +3586,22 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 	  menu_help_itemno = i;
 	}
       p = text;
-      SET_CHAR_GLYPH (*p, ' ', face, 0);
+      BUILD_CHAR_GLYPH (*p, ' ', face, 0);
       p++;
       for (j = 0, q = menu->text[i]; *q; j++)
 	{
 	  if (*q > 26)
 	    {
-	      SET_CHAR_GLYPH (*p, *q++, face, 0);
+	      BUILD_CHAR_GLYPH (*p, *q++, face, 0);
 	      p++;
 	    }
 	  else	/* make '^x' */
 	    {
-	      SET_CHAR_GLYPH (*p, '^', face, 0);
+	      /* FIXME: need to handle non-ASCII characters!  */
+	      BUILD_CHAR_GLYPH (*p, '^', face, 0);
 	      p++;
 	      j++;
-	      SET_CHAR_GLYPH (*p, *q++ + 64, face, 0);
+	      BUILD_CHAR_GLYPH (*p, *q++ + 64, face, 0);
 	      p++;
 	    }
 	}
@@ -3600,9 +3612,11 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 	  text[max_width - 1].u.ch = '$'; /* indicate it's truncated */
 	}
       for (; j < max_width - 2; j++, p++)
-	SET_CHAR_GLYPH (*p, ' ', face, 0);
+	BUILD_CHAR_GLYPH (*p, ' ', face, 0);
 
-      SET_CHAR_GLYPH (*p, menu->submenu[i] ? 16 : ' ', face, 0);
+      /* FIXME: should use Unicode codepoint for what Emacs 22.x
+	 displayed here.  */
+      BUILD_CHAR_GLYPH (*p, menu->submenu[i] ? '>' : ' ', face, 0);
       p++;
       IT_write_glyphs (sf, text, max_width);
     }
