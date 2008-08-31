@@ -322,8 +322,6 @@
 
 ;;; Code:
 
-(provide 'ido)
-
 (defvar cua-inhibit-cua-keys)
 
 ;;; User Variables
@@ -4656,6 +4654,7 @@ DEF, if non-nil, is the default value."
 	(ido-choice-list choices))
     (ido-read-internal 'list prompt hist def require-match initial-input)))
 
+(provide 'ido)
 
 ;; arch-tag: b63a3500-1735-41bd-8a01-05373f0864da
 ;;; ido.el ends here
