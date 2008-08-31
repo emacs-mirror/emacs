@@ -1,3 +1,9 @@
+2008-08-30  Markus Triska  <markus.triska@gmx.at>
+
+	* linum.el (linum-mode): `window-size-change-functions' can now be
+	buffer-local.
+	(linum-update-window): Use result of `move-overlay'.
+
 2008-08-30  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (make-variable-frame-local): Tweak obsolescence message.
