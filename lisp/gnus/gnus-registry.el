@@ -149,6 +149,12 @@ and no extra data."
   :group 'gnus-registry
   :type 'boolean)
 
+(defcustom gnus-registry-max-track-groups 20
+  "The maximum number of non-unique group matches to check for a message ID."
+  :group 'gnus-registry
+  :type '(radio (const :format "Unlimited " nil)
+		(integer :format "Maximum non-unique matches: %v")))
+
 (defcustom gnus-registry-track-extra nil
   "Whether the registry should track extra data about a message.
 The Subject and Sender (From:) headers are currently tracked this
@@ -506,7 +512,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	 9
 	 "%s is looking for matches for reference %s from [%s]"
 	 log-agent reference refstr)
-	(dolist (group (gnus-registry-fetch-groups reference))
+	(dolist (group (gnus-registry-fetch-groups 
+			reference 
+			gnus-registry-max-track-groups))
 	  (when (and group (gnus-registry-follow-group-p group))
 	    (gnus-message
 	     7
@@ -530,7 +538,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	       matches)
 	   (when (and this-sender
 		      (equal sender this-sender))
-	     (let ((groups (gnus-registry-fetch-groups key)))
+	     (let ((groups (gnus-registry-fetch-groups 
+			    key
+			    gnus-registry-max-track-groups)))
 	       (dolist (group groups)
 		 (push group found-full)
 		 (setq found (append (list group) (delete group found)))))
@@ -557,7 +567,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	       matches)
 	   (when (and this-subject
 		      (equal subject this-subject))
-	     (let ((groups (gnus-registry-fetch-groups key)))
+	     (let ((groups (gnus-registry-fetch-groups 
+			    key
+			    gnus-registry-max-track-groups)))
 	       (dolist (group groups)
 		 (push group found-full)
 		 (setq found (append (list group) (delete group found)))))
@@ -1002,8 +1014,8 @@ Returns the first place where the trail finds a group name."
 		       crumb
 		     (gnus-group-short-name crumb))))))))
 
-(defun gnus-registry-fetch-groups (id)
-  "Get the groups of a message, based on the message ID."
+(defun gnus-registry-fetch-groups (id &optional max)
+  "Get the groups (up to MAX, if given) of a message, based on the message ID."
   (let ((trail (gethash id gnus-registry-hashtb))
 	groups)
     (dolist (crumb trail)
@@ -1015,7 +1027,9 @@ Returns the first place where the trail finds a group name."
 	  (if (or (not (stringp crumb)) gnus-registry-use-long-group-names)
 	      crumb
 	    (gnus-group-short-name crumb))
-	 groups))))
+	 groups))
+	(when (and max (> (length groups) max))
+	  (return))))
     ;; return the list of groups
     groups))
 

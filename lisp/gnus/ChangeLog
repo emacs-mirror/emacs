@@ -1,3 +1,18 @@
+2008-08-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-spec.el (gnus-parse-simple-format): Revert last patch.
+
+2008-08-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-spec.el (gnus-parse-simple-format): Remove trailing whitespace.
+
+2008-08-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-max-track-groups): New variable to
+	prevent tracking too many groups.
+	(gnus-registry-split-fancy-with-parent, gnus-registry-fetch-groups):
+	Use it.
+
 2008-08-11  Ralf Angeli  <angeli@caeruleus.net>
 
 	* gnus-art.el (gnus-article-next-page): Respect `scroll-margin' when
