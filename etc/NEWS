@@ -455,6 +455,7 @@ vertically and horizontally.
 
 ** Miscellaneous changes:
 
++++
 *** C-l is bound to the new command recenter-top-bottom, rather than recenter.
 This moves the current line to window center, top and bottom on
 successive invokations.
