@@ -45,8 +45,8 @@
 	(lglyph-ascent, lglyph-descent, lglyph-adjustment)
 	(lglyph-set-from-to, lglyph-copy, lgstring-insert-glyph)
 	(compose-glyph-string, compose-glyph-string-relative)
-	(compose-gstring-for-graphic, compose-gstring-for-terminal): New
-	functions.
+	(compose-gstring-for-graphic, compose-gstring-for-terminal):
+	New functions.
 	(auto-compose-chars): Argument changed.
 
 	* language/european.el: Don't setup composition-function-table.
@@ -54,19 +54,16 @@
 	(diacritic-compose-string, diacritic-compose-buffer)
 	(diacritic-composition-function): Delete them.
 
-	* language/lao-util.el (lao-composition-function): Argument
-	changed.
+	* language/lao-util.el (lao-composition-function): Argument changed.
 
-	* language/sinhala.el: Fix setting up of
-	composition-function-table.
+	* language/sinhala.el: Fix setting up of composition-function-table.
 
 	* language/thai.el: Fix setting up of composition-function-table.
 
 	* language/thai-util.el: Encoding changed to utf-8.
 	(thai-composition-function): Argument changed.
 
-	* language/indian.el: Fix setting up of
-	composition-function-table.
+	* language/indian.el: Fix setting up of composition-function-table.
 	(devanagari-composable-pattern)
 	(tamil-composable-pattern, kannada-composable-pattern)
 	(malayalam-composable-pattern): New variables.
@@ -142,14 +139,12 @@
 
 	* comint.el (comint-dynamic-complete-as-filename): Generalize last
 	change to allow quoting of characters before point.
-	(comint-dynamic-list-filename-completions): Quote common
-	substring.
+	(comint-dynamic-list-filename-completions): Quote common substring.
 
 2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* comint.el (comint-dynamic-complete-as-filename): If case is
-	ignored while matching, replace the entire filename with
-	completion.
+	ignored while matching, replace the entire filename with completion.
 
 	* textmodes/flyspell.el (flyspell-check-pre-word-p): Make sure
 	flyspell-pre-point is valid to avoid signalling an error in
@@ -196,8 +191,7 @@
 
 2008-08-25  Ulf Jasper  <ulf@web.de>
 
-	* net/newst-treeview.el (newsticker-treeview-own-frame): Doc
-	fixed.
+	* net/newst-treeview.el (newsticker-treeview-own-frame): Doc fixed.
 	(newsticker-treeview-treewindow-width): New.
 	(newsticker-treeview-listwindow-height): New.
 	(newsticker-treeview-browse-url-item): New.
@@ -236,9 +230,8 @@
 	if initial-window-system is `pc'.
 
 	* term/internal.el (local-function-key-map): Fix unbalanced parens.
-	(msdos-key-remapping-map): New variable.  Move
-	here all the special keys we will be remapping via
-	local-function-key-map.
+	(msdos-key-remapping-map): New variable.  Move here all the special
+	keys we will be remapping via local-function-key-map.
 	(msdos-setup-keyboard): New function.
 
 	* term/pc-win.el (msdos-create-frame-with-faces): Renamed from
@@ -248,8 +241,8 @@
 	(msdos-create-frame-with-faces): Set the terminal's
 	`terminal-initted' (sic!) parameter.
 	(frame-creation-function-alist): Add msdos-create-frame-with-faces.
-	(window-system-initialization-alist): Add
-	msdos-initialize-window-system.
+	(window-system-initialization-alist):
+	Add msdos-initialize-window-system.
 	(handle-args-function-alist): Use tty-handle-args for `pc'
 	``window system'' as well.
 	(pc-win): Provide.
@@ -1508,7 +1501,7 @@
 
 2008-07-18  Chong Yidong  <cyd@stupidchicken.com>
 
-	* Makefile.in (ELCFILES): Remove ns-carbon-compat.elc.  and
+	* Makefile.in (ELCFILES): Remove ns-carbon-compat.elc and
 	ns-grabenv.elc.
 
 	* ns-carbon-compat.el: File removed.

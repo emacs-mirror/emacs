@@ -139,7 +139,7 @@
 	LGSTRING_LENGTH.
 
 	* indent.c: Include composite.h and dispextern.h.
-	(check_composition): Delete this function..
+	(check_composition): Delete this function.
 	(scan_for_column): Handle composition by
 	composition_compute_stop_pos, composition_reseat_it, and
 	composition_update_it.
@@ -494,7 +494,7 @@
 	* nsfns.m (ns_lisp_to_cursor_type): Replace with generic xfns.c.
 	* nsterm.m: Remove ns-specific code for cursor blinking.
 	(ns_draw_window_cursor): Clear cursor properly rather than
-	redrawing the area. Respect width of bar cursors.
+	redrawing the area.  Respect width of bar cursors.
 	These changes enable the use of generic blink-cursor-mode and
 	generic cursor types in NS and support smooth cursor movements (do
 	not blink off after command).
@@ -865,7 +865,7 @@
 	(ns_draw_fringe_bitmap, ns_draw_window_cursor): Use YES, NO in
 	ns_clip_to_row() call.
 	(ns_draw_glyph_string): Drop face comparison to ~0 (no longer
-	used). Cast FRAME_FONT assignments.
+	used).  Cast FRAME_FONT assignments.
 	(ns_read_socket): Cast call to EmacsApp-fulfillService:withArg:.
 	(ns_string_to_lispmod): Change arg to const char.
 	(ns_term_init): Use NSMenuItem class.
