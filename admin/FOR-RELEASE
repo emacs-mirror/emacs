@@ -119,7 +119,7 @@ commands.texi     -- cyd
 custom.texi
 dired.texi
 dired-xtra.texi
-display.texi
+display.texi      -- cyd
 emacs.texi        -- cyd
 emacs-xtra.texi
 emerge-xtra.texi
