@@ -1,3 +1,9 @@
+2008-08-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (BUILD_CHAR_GLYPH): New macro.
+	(IT_menu_display): Use it instead of SET_CHAR_GLYPH to construct
+	the menu.
+
 2008-08-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* xdisp.c (prepare_menu_bars): Don't call
