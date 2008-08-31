@@ -757,9 +757,9 @@ extern void free_font_driver_list P_ ((FRAME_PTR f));
 extern Lisp_Object font_update_drivers P_ ((FRAME_PTR f, Lisp_Object list));
 extern Lisp_Object font_at P_ ((int c, EMACS_INT pos, struct face *face,
 				struct window *w, Lisp_Object object));
-extern EMACS_INT font_range P_ ((EMACS_INT, EMACS_INT *,
-				 struct window *, struct face *,
-				 Lisp_Object));
+extern Lisp_Object font_range (EMACS_INT, EMACS_INT *,
+			       struct window *, struct face *,
+			       Lisp_Object);
 extern void font_fill_lglyph_metrics P_ ((Lisp_Object, Lisp_Object));
 
 extern Lisp_Object font_put_extra P_ ((Lisp_Object font, Lisp_Object prop,

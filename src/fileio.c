@@ -269,7 +269,7 @@ report_file_error (string, data)
 
 	    str = (char *) SDATA (errstring);
 	    c = STRING_CHAR (str, 0);
-	    Faset (errstring, 0, make_number (DOWNCASE (c)));
+	    Faset (errstring, make_number (0), make_number (DOWNCASE (c)));
 	  }
 
 	xsignal (Qfile_error,

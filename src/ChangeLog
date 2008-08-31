@@ -1,3 +1,9 @@
+2008-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font.h (font_range):
+	* fileio.c (report_file_error):
+	* composite.c (composition_update_it): Yet another int/Lisp_Oject mixup.
+
 2008-08-30  Glenn Morris  <rgm@gnu.org>
 
 	* frame.c (Fmodify_frame_parameters): Doc fix.

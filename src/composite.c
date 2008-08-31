@@ -1142,7 +1142,7 @@ composition_update_it (cmp_it, charpos, bytepos, string)
 	  Lisp_Object glyph = LGSTRING_GLYPH (gstring, cmp_it->from);
 	  int from = LGLYPH_FROM (glyph);
 
-	  c = LGSTRING_CHAR (gstring, from);
+	  c = XINT (LGSTRING_CHAR (gstring, from));
 	  cmp_it->nchars = LGLYPH_TO (glyph) - from + 1;
 	  cmp_it->width = (LGLYPH_WIDTH (glyph) > 0
 			   ? CHAR_WIDTH (LGLYPH_CHAR (glyph)) : 0);
