@@ -1,3 +1,7 @@
+2008-08-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ido.el: Move provide statement to the end of the file.
+
 2008-08-30  Markus Triska  <markus.triska@gmx.at>
 
 	* linum.el (linum-mode): `window-size-change-functions' can now be
