@@ -1,3 +1,15 @@
+2008-08-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.texi (Top): Add Temporary Face Changes xref.
+
+	* display.texi (Display): Move Temporary Face Changes node to just
+	after Standard Faces.
+	(Scrolling): Document recenter-top-bottom instead of recenter.
+	(Horizontal Scrolling): Move auto hscroll discussion to the top.
+	(Faces, Standard Faces, Temporary Face Changes, Useless Whitespace)
+	(Display Custom): Copyedits.
+	(Optional Mode Line): Document display-battery-mode.
+
 2008-08-27  Romain Francoise  <romain@orebokech.com>
 
 	* custom.texi (Directory Variables): Minor fix.
