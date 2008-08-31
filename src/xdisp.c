@@ -5920,7 +5920,7 @@ get_next_display_element (it)
 	{
 	  /* Automatic composition with glyph-string.   */
 	  Lisp_Object gstring = composition_gstring_from_id (it->cmp_it.id);
-	  
+
 	  it->face_id = face_for_font (it->f, LGSTRING_FONT (gstring), face);
 	}
       else
@@ -9523,7 +9523,8 @@ prepare_menu_bars ()
 
 	      while (CONSP (functions))
 		{
-		  call1 (XCAR (functions), frame);
+		  if (!EQ (XCAR (functions), Qt))
+		    call1 (XCAR (functions), frame);
 		  functions = XCDR (functions);
 		}
 	      UNGCPRO;
