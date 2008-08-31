@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-(defconst linum-version "0.9wz")
+(defconst linum-version "0.9x")
 
 (defvar linum-overlays nil "Overlays used in this buffer.")
 (defvar linum-available nil "Overlays available for reuse.")
@@ -82,15 +82,14 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
                                            'linum-update-current) nil t)
           (add-hook 'after-change-functions 'linum-after-change nil t))
         (add-hook 'window-scroll-functions 'linum-after-scroll nil t)
-        ;; mistake in Emacs: window-size-change-functions cannot be local
-        (add-hook 'window-size-change-functions 'linum-after-size)
+        (add-hook 'window-size-change-functions 'linum-after-size nil t)
         (add-hook 'change-major-mode-hook 'linum-delete-overlays nil t)
         (add-hook 'window-configuration-change-hook
                   'linum-after-config nil t)
         (linum-update-current))
     (remove-hook 'post-command-hook 'linum-update-current t)
     (remove-hook 'post-command-hook 'linum-schedule t)
-    (remove-hook 'window-size-change-functions 'linum-after-size)
+    (remove-hook 'window-size-change-functions 'linum-after-size t)
     (remove-hook 'window-scroll-functions 'linum-after-scroll t)
     (remove-hook 'after-change-functions 'linum-after-change t)
     (remove-hook 'window-configuration-change-hook 'linum-after-config t)
@@ -154,11 +153,9 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
                             (throw 'visited t))))))
         (setq width (max width (length str)))
         (unless visited
-          (let (ov)
-            (if (null linum-available)
-                (setq ov (make-overlay (point) (point)))
-              (setq ov (pop linum-available))
-              (move-overlay ov (point) (point)))
+          (let ((ov (if (null linum-available)
+                        (make-overlay (point) (point))
+                      (move-overlay (pop linum-available) (point) (point)))))
             (push ov linum-overlays)
             (overlay-put ov 'before-string
                          (propertize " " 'display `((margin left-margin) ,str)))
