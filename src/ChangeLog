@@ -2,7 +2,8 @@
 
 	* msdos.c (BUILD_CHAR_GLYPH): New macro.
 	(IT_menu_display): Use it instead of SET_CHAR_GLYPH to construct
-	the menu.
+	the menu.  Allocate larger buffer for `text', to account for
+	possible ^C characters.
 
 2008-08-31  Martin Rudalics  <rudalics@gmx.at>
 
