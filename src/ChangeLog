@@ -6,6 +6,8 @@
 
 2008-08-30  Glenn Morris  <rgm@gnu.org>
 
+	* data.c (Fmake_variable_frame_local): Doc fix.
+
 	* frame.c (Fmodify_frame_parameters): Doc fix.
 
 2008-08-30  Eli Zaretskii  <eliz@gnu.org>
