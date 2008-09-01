@@ -1381,12 +1381,17 @@ or a symbol chosen among `any', `star', `point'."
           (mapconcat
            (lambda (x)
              (case x
-                      ((star any point)
-                       (if (if (consp group) (memq x group) group)
-                                     "\\(.*?\\)" ".*?"))
-               (t (regexp-quote x))))
-           pattern
-                  ""))))
+	       ((star any point)
+		(if (if (consp group) (memq x group) group)
+		    "\\(.*?\\)"
+		  ".*?"))
+               (t
+		(if (and completion-ignore-case
+			 (string-match "[[:alpha:]]" x))
+		    (format "[%s%s]" (downcase x) (upcase x))
+		  (regexp-quote x)))))
+	   pattern
+	   ""))))
     ;; Avoid pathological backtracking.
     (while (string-match "\\.\\*\\?\\(?:\\\\[()]\\)*\\(\\.\\*\\?\\)" re)
       (setq re (replace-match "" t t re 1)))
