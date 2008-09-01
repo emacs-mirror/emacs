@@ -2622,10 +2622,8 @@ See also user-option `pmail-confirm-expunge'."
   ;; Remove the messages from the buffer and from the Pmail message
   ;; descriptor vector.
   (pmail-desc-prune-deleted-messages 'pmail-expunge-callback)
-  ;; Update the Pmail message counter, deal with the summary buffer,
-  ;; show the current message and update the User status.
-  (setq pmail-total-messages (pmail-desc-get-count))
-  (pmail-show-message pmail-current-message t)
+  ;; Deal with the summary buffer and update
+  ;; the User status.
   (let* ((omax (- (buffer-size) (point-max)))
 	 (omin (- (buffer-size) (point-min)))
 	 (opoint (if (and (> pmail-current-message 0)
@@ -2650,8 +2648,15 @@ See also user-option `pmail-confirm-expunge'."
 (defun pmail-expunge-callback (n)
   "Called after message N has been pruned to update the current Pmail
   message counter."
-  (if (< n pmail-current-message)
-      (setq pmail-current-message (1- pmail-current-message))))
+  ;; Process the various possible states to set the current message
+  ;; counter.
+  (setq pmail-total-messages (1- pmail-total-messages)
+	pmail-current-message
+	(cond
+	 ((= 0 pmail-total-messages) 0)
+	 ((> pmail-current-message n) (pmail-desc-get-previous pmail-desc-deleted-index n))
+	 ((> pmail-current-message n) 0)
+	 (t pmail-current-message))))
 
 ;;; mbox: ready
 (defun pmail-expunge ()

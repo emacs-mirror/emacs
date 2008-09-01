@@ -354,6 +354,27 @@ This includes the attributes."
   (nth pmail-desc-date-month-index
        (nth pmail-desc-date-index (pmail-desc-get-descriptor n))))
 
+(defun pmail-desc-get-previous (n attr-index &optional sense)
+  "Return the index for the previous matching descriptor.
+Starting with descriptor at index N locate the first previous
+descriptor such that the attribute ATTR is set.  SENSE, if
+non-null will reverse the sense of the attribute test."
+  (let ((index (1- n)) flag result)
+    (while (and (> index 0) (not result))
+      (if (listp (aref pmail-desc-vector index))
+	  (setq result (pmail-desc-get-match-index attr-index sense index)))
+      (setq index (1- index)))
+    (or result 0)))
+
+(defun pmail-desc-get-match-index (attr-index sense n)
+  "Return the index N if the associated descriptor has a matching
+attribute, nil otherwise.  The attribute value must be set if
+SENSE is nil, or unset if SENSE is non-nil."
+  (let (flag (pmail-desc-attr-p attr-index n))
+    (if (or (and flag (not sense)) (and (not flag) sense))
+	n
+      nil)))
+
 (defun pmail-desc-get-sender (n)
   "Return the User registered as the mail sender."
   (nth pmail-desc-sender-index (pmail-desc-get-descriptor n)))
@@ -395,11 +416,10 @@ displayed in the Pmail summary buffer."
 Return the number of messages removed.  Invoke CALLBACK immediately
 after a message has been deleted.."
 
-  ;; Set the callback.
+  ;; Set the callback and remove all messages marked for deletion from
+  ;; the Pmail buffer and their descriptors from the Pmail message
+  ;; vector.
   (setq pmail-desc-delete-callback callback)
-
-  ;; Remove all messages marked for deletion from the Pmail buffer and
-  ;; their descriptors from the Pmail message vector.
   (let ((result (length (delq t (mapcar 'pmail-desc-delete-maybe
 					(pmail-desc-make-index-list))))))
     (setq pmail-desc-vector
