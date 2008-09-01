@@ -5452,13 +5452,20 @@ be found.  Value is ALIST.  */)
      (alist)
      Lisp_Object alist;
 {
-  Lisp_Object tail, tail2;
+  Lisp_Object entry, tail, tail2;
 
   CHECK_LIST (alist);
   alist = Fcopy_sequence (alist);
   for (tail = alist; CONSP (tail); tail = XCDR (tail))
-    for (tail2 = XCAR (tail); CONSP (tail2); tail2 = XCDR (tail2))
-      XSETCAR (tail2, Fintern (XCAR (tail2), Qnil));
+    {
+      entry = XCAR (tail);
+      CHECK_LIST (entry);
+      entry = Fcopy_sequence (entry);
+      XSETCAR (tail, entry);
+      for (tail2 = entry; CONSP (tail2); tail2 = XCDR (tail2))
+	XSETCAR (tail2, Fintern (XCAR (tail2), Qnil));
+    }
+
   Vface_alternative_font_family_alist = alist;
   free_all_realized_faces (Qnil);
   return alist;
@@ -5475,13 +5482,19 @@ be found.  Value is ALIST.  */)
      (alist)
      Lisp_Object alist;
 {
-  Lisp_Object tail, tail2;
+  Lisp_Object entry, tail, tail2;
 
   CHECK_LIST (alist);
   alist = Fcopy_sequence (alist);
   for (tail = alist; CONSP (tail); tail = XCDR (tail))
-    for (tail2 = XCAR (tail); CONSP (tail2); tail2 = XCDR (tail2))
-      XSETCAR (tail2, Fdowncase (XCAR (tail2)));
+    {
+      entry = XCAR (tail);
+      CHECK_LIST (entry);
+      entry = Fcopy_sequence (entry);
+      XSETCAR (tail, entry);
+      for (tail2 = entry; CONSP (tail2); tail2 = XCDR (tail2))
+	XSETCAR (tail2, Fdowncase (XCAR (tail2)));
+    }
   Vface_alternative_font_registry_alist = alist;
   free_all_realized_faces (Qnil);
   return alist;
