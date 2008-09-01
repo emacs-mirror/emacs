@@ -1299,11 +1299,12 @@ character)")
 					       (nth 13 fields) 16)))))))))))
 
 ;;;###autoload
-(defun font-show-log (&optional n)
+(defun font-show-log (&optional limit)
   "Show log of font listing and opening.
-Prefix arg N says how many fonts to show for each listing.
-The default is 20.  If N is negative, do not limit the listing."
-  (interactive "p")
+Prefix arg LIMIT says how many fonts to show for each listing.
+The default is 20.  If LIMIT is negative, do not limit the listing."
+  (interactive "P")
+  (setq limit (if limit (prefix-numeric-value limit) 20))
   (if (eq font-log t)
       (message "Font logging is currently suppressed")
     (with-output-to-temp-buffer "*Help*"
@@ -1316,7 +1317,7 @@ The default is 20.  If N is negative, do not limit the listing."
 	      (catch 'tag
 		(mapc #'(lambda (x)
 			  (setq i (1+ i))
-			  (when (= i n)
+			  (when (= i limit)
 			    (insert "  ...\n")
 			    (throw 'tag nil))
 			  (insert (format "  %s\n" x)))
