@@ -1,3 +1,9 @@
+2008-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* vc-hooks.el (vc-previous-version): Move alias to vc.el.
+	* vc.el (vc-default-previous-version): Move alias here from vc-hooks,
+	and fix name typos.  (Bug#856)
+
 2008-09-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (completion-pcm--pattern->regex): When
