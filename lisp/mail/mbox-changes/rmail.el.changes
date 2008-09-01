@@ -1181,7 +1181,7 @@ Merge from emacs--rel--22
 
 Revision: emacs@sv.gnu.org/emacs--devo--0--patch-1032
 ----------------------------
-revision 1.445 (defer)
+revision 1.445 (irrelevant)
 date: 2008-01-13 18:16:04 +0000;  author: m061211;  state: Exp;  lines: +75 -70;  commitid: 542CxzVsGawCyhNs;
 (rmail-convert-to-babyl-format): Remove
 save-excursion to avoid infinite looping.
@@ -1315,12 +1315,12 @@ revision 1.435 (applied)
 date: 2007-06-09 12:52:02 +0000;  author: ttn;  state: Exp;  lines: +1 -1;  commitid: qAfHMYDnHTNVLels;
 (rmail-movemail-variant-in-use): Fix doc typo.
 ----------------------------
-revision 1.434 (defer)
+revision 1.434 (irrelevant)
 date: 2007-05-14 19:58:45 +0000;  author: eliz;  state: Exp;  lines: +7 -6;  commitid: Lc0wnr2BZzX0YVhs;
 (rmail-convert-to-babyl-format): Check content-transfer-encoding _last_,
 because it's its position that we need as value of base64-header-field-end.
 ----------------------------
-revision 1.433 (defer)
+revision 1.433 (irrelevant)
 date: 2007-04-03 11:11:27 +0000;  author: eliz;  state: Exp;  lines: +17 -7;
 branches:  1.433.2;  1.433.4;
 (rmail-convert-to-babyl-format): Don't try to decode base-64 encoded body
@@ -1350,17 +1350,17 @@ date: 2006-10-07 13:12:42 +0000;  author: eliz;  state: Exp;  lines: +6 -0;
 (rmail-redecode-body): If the old encoding is `undecided', call
 find-coding-systems-region to find a proper non-trivial encoding.
 ----------------------------
-revision 1.427 (defer)
+revision 1.427 (irrelevant)
 date: 2006-09-08 12:02:13 +0000;  author: rms;  state: Exp;  lines: +11 -6;
 (rmail-get-new-mail): Say whether all msgs are spam.
 (rmail-convert-to-babyl-format): Don't record undo, leave list empty.
 ----------------------------
-revision 1.426 (defer)
+revision 1.426 (irrelevant)
 date: 2006-05-20 17:36:07 +0000;  author: eliz;  state: Exp;  lines: +3 -3;
 (rmail-mime-charset-pattern): Add "?:" before "format".
 (rmail-convert-to-babyl-format): Undo the change from 2006-04-19.
 ----------------------------
-revision 1.425 (defer)
+revision 1.425 (irrelevant)
 date: 2006-04-19 09:55:40 +0000;  author: rfrancoise;  state: Exp;  lines: +2 -2;
 (rmail-convert-to-babyl-format): Use second group from
 `rmail-mime-charset-pattern'.
@@ -1644,7 +1644,7 @@ revision 1.387 (irrelevant)
 date: 2004-03-07 20:04:51 +0000;  author: eliz;  state: Exp;  lines: +0 -1;
 Remove redundant whitespace.
 ----------------------------
-revision 1.386 (defer)
+revision 1.386 (irrelevant)
 date: 2004-03-04 17:03:51 +0000;  author: rms;  state: Exp;  lines: +6 -3;
 (rmail-convert-to-babyl-format):
 Specify t for UNIBYTE when calling mail-unquote-printable-region.
@@ -1669,7 +1669,7 @@ date: 2004-02-08 22:33:42 +0000;  author: uid65629;  state: Exp;  lines: +3 -5;
 (rmail-get-new-mail): Remove extra format string
 arguments.
 ----------------------------
-revision 1.381 (defer)
+revision 1.381 (irrelevant)
 date: 2004-01-21 12:35:55 +0000;  author: uid66361;  state: Exp;  lines: +8 -1;
 (rmail-convert-to-babyl-format): Avoid deleting trailing white space
 and ensure a final newline.
@@ -1686,19 +1686,19 @@ msgs deleted by the user.
 (rmail-only-expunge): added an optional argument dont-show to
 prevent showing message after expunge.
 ----------------------------
-revision 1.379 (defer)
+revision 1.379 (irrelevant)
 date: 2004-01-12 21:56:50 +0000;  author: uid65566;  state: Exp;  lines: +7 -41;
 (rmail-convert-to-babyl-format): Use mail-unquote-printable-region.
 (rmail-hex-string-to-integer, rmail-decode-quoted-printable):
 (rmail-hex-char-to-integer): Functions deleted.
 ----------------------------
-revision 1.378 (defer)
+revision 1.378 (irrelevant)
 date: 2003-12-30 11:42:37 +0000;  author: uid65627;  state: Exp;  lines: +4 -1;
 (rmail-convert-to-babyl-format): Fix off-by-one
 error in arguments to base64-decode-region.  Remove ^M characters
 after decoding base64.
 ----------------------------
-revision 1.377 (defer)
+revision 1.377 (irrelevant)
 date: 2003-12-30 10:45:41 +0000;  author: uid65627;  state: Exp;  lines: +28 -22;
 (rmail-convert-to-babyl-format): Make the code
 cleaner (suggested by Richard Stallman).
@@ -1709,11 +1709,11 @@ date: 2003-11-03 19:20:23 +0000;  author: eliz;  state: Exp;  lines: +22 -18;
 base64-decode-region signals an error, catch it and silently
 ignore it.
 ----------------------------
-revision 1.375 (defer)
+revision 1.375 (irrelevant)
 date: 2003-10-16 16:54:48 +0000;  author: eliz;  state: Exp;  lines: +3 -3;
 (rmail-convert-to-babyl-format): Fix the last change.
 ----------------------------
-revision 1.374 (defer)
+revision 1.374 (irrelevant)
 date: 2003-10-16 16:49:27 +0000;  author: eliz;  state: Exp;  lines: +9 -3;
 (rmail-convert-to-babyl-format): Display a message while converting to Babyl.
 ----------------------------
@@ -1721,7 +1721,7 @@ revision 1.373 (applied)
 date: 2003-09-01 15:45:30 +0000;  author: miles;  state: Exp;  lines: +1 -0;
 Add arch taglines
 ----------------------------
-revision 1.372 (defer)
+revision 1.372 (irrelevant)
 date: 2003-08-28 15:11:15 +0000;  author: eliz;  state: Exp;  lines: +73 -6;
 (rmail-convert-to-babyl-format): Detect
 quoted-printable- and base64-encoded messages and decode them
