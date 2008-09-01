@@ -273,6 +273,7 @@ enum lglyph_indices
 #define LGLYPH_SET_FROM(g, val) ASET ((g), LGLYPH_IX_FROM, make_number (val))
 #define LGLYPH_SET_TO(g, val) ASET ((g), LGLYPH_IX_TO, make_number (val))
 #define LGLYPH_SET_CHAR(g, val) ASET ((g), LGLYPH_IX_CHAR, make_number (val))
+/* Callers must assure that VAL is not negative!  */
 #define LGLYPH_SET_CODE(g, val)						\
   do {									\
     if (val == FONT_INVALID_CODE)					\
