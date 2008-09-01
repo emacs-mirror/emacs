@@ -217,36 +217,111 @@ face (according to `face-differs-from-default-p')."
   ;; Return value is like the one from help-split-fundoc, but highlighted
   (cons usage doc))
 
-;;;###autoload
-(defun describe-simplify-lib-file-name (file)
-  "Simplify a library name FILE to a relative name, and make it a source file."
-  (if file
-      ;; Try converting the absolute file name to a library name.
-      (let ((libname (file-name-nondirectory file)))
-	;; Now convert that back to a file name and see if we get
-	;; the original one.  If so, they are equivalent.
-	(if (equal file (locate-file libname load-path '("")))
-	    (if (string-match "[.]elc\\'" libname)
-		(substring libname 0 -1)
-	      libname)
-	  file))))
+;; The following function was compiled from the former functions
+;; `describe-simplify-lib-file-name' and `find-source-lisp-file' with
+;; some excerpts from `describe-function-1' and `describe-variable'.
+;; The only additional twists provided are (1) locate the defining file
+;; for autoloaded functions, and (2) give preference to files in the
+;; "install directory" (directories found via `load-path') rather than
+;; to files in the "compile directory" (directories found by searching
+;; the loaddefs.el file).  We autoload it because it's also used by
+;; `describe-face' (instead of `describe-simplify-lib-file-name').
 
-(defun find-source-lisp-file (file-name)
-  (let* ((elc-file (locate-file (concat file-name
-				 (if (string-match "\\.el" file-name)
-				     "c"
-				   ".elc"))
-				 load-path))
-	 (str (if (and elc-file (file-readable-p elc-file))
-		  (with-temp-buffer
-		    (insert-file-contents-literally elc-file nil 0 256)
-		    (buffer-string))))
-	 (src-file (and str
-			(string-match ";;; from file \\(.*\\.el\\)" str)
-			(match-string 1 str))))
-    (if (and src-file (file-readable-p src-file))
-	src-file
-      file-name)))
+;;;###autoload
+(defun find-lisp-object-file-name (object type)
+  "Guess the file that defined the Lisp object OBJECT, of type TYPE.
+OBJECT should be a symbol associated with a function, variable, or face;
+  alternatively, it can be a function definition.
+If TYPE is `variable', search for a variable definition.
+If TYPE is `face', search for a face definition.
+If TYPE is the value returned by `symbol-function' for a function symbol,
+ search for a function definition.
+
+The return value is the absolute name of a readable file where OBJECT is
+defined.  If several such files exist, preference is given to a file
+found via `load-path'.  The return value can also be `C-source', which
+means that OBJECT is a function or variable defined in C.  If no
+suitable file is found, return nil."
+  (let* ((autoloaded (eq (car-safe type) 'autoload))
+	 (file-name (or (and autoloaded (nth 1 type))
+			(symbol-file
+			 object (if (memq type (list 'defvar 'defface))
+				    type
+				  'defun)))))
+    (cond
+     (autoloaded
+      ;; An autoloaded function: Locate the file since `symbol-function'
+      ;; has only returned a bare string here.
+      (setq file-name
+	    (locate-file file-name load-path '(".el" ".elc") 'readable)))
+     ((and (stringp file-name)
+	   (string-match "[.]*loaddefs.el\\'" file-name))
+      ;; An autoloaded variable or face.  Visit loaddefs.el in a buffer
+      ;; and try to extract the defining file.  The following form is
+      ;; from `describe-function-1' and `describe-variable'.
+      (let ((location
+	     (condition-case nil
+		 (find-function-search-for-symbol object nil file-name)
+	       (error nil))))
+	(when location
+	  (with-current-buffer (car location)
+	    (goto-char (cdr location))
+	    (when (re-search-backward
+		   "^;;; Generated autoloads from \\(.*\\)" nil t)
+	      (setq file-name
+		    (locate-file
+		     (match-string-no-properties 1)
+		     load-path nil 'readable))))))))
+
+    (cond
+     ((and (not file-name) (subrp type))
+      ;; A built-in function.  The form is from `describe-function-1'.
+      (if (get-buffer " *DOC*")
+	  (help-C-file-name type 'subr)
+	'C-source))
+     ((and (not file-name) (symbolp object)
+	   (integerp (get object 'variable-documentation)))
+      ;; A variable defined in C.  The form is from `describe-variable'.
+      (if (get-buffer " *DOC*")
+	  (help-C-file-name object 'var)
+	'C-source))
+     ((not (stringp file-name))
+      ;; If we don't have a file-name string by now, we lost.
+      nil)
+     ((let ((lib-name
+	     (if (string-match "[.]elc\\'" file-name)
+		 (substring-no-properties file-name 0 -1)
+	       file-name)))
+	;; When the Elisp source file can be found in the install
+	;; directory return the name of that file - `file-name' should
+	;; have become an absolute file name ny now.
+	(and (file-readable-p lib-name) lib-name)))
+     ((let* ((lib-name (file-name-nondirectory file-name))
+	     ;; The next form is from `describe-simplify-lib-file-name'.
+	     (file-name
+	      ;; Try converting the absolute file name to a library
+	      ;; name, convert that back to a file name and see if we
+	      ;; get the original one.  If so, they are equivalent.
+	      (if (equal file-name (locate-file lib-name load-path '("")))
+		  (if (string-match "[.]elc\\'" lib-name)
+		      (substring-no-properties lib-name 0 -1)
+		    lib-name)
+		file-name))
+	     ;; The next three forms are from `find-source-lisp-file'.
+	     (elc-file (locate-file
+			(concat file-name
+				(if (string-match "\\.el\\'" file-name)
+				    "c"
+				  ".elc"))
+			load-path nil 'readable))
+	     (str (when elc-file
+		    (with-temp-buffer
+		      (insert-file-contents-literally elc-file nil 0 256)
+		      (buffer-string))))
+	     (src-file (and str
+			    (string-match ";;; from file \\(.*\\.el\\)" str)
+			    (match-string 1 str))))
+	(and src-file (file-readable-p src-file) src-file))))))
 
 (declare-function ad-get-advice-info "advice" (function))
 
@@ -258,9 +333,8 @@ face (according to `face-differs-from-default-p')."
 	 ;; real definition, if that symbol is already set up.
 	 (real-function
 	  (or (and advised
-		   (cdr (assq 'origname advised))
-		   (fboundp (cdr (assq 'origname advised)))
-		   (cdr (assq 'origname advised)))
+		   (let ((origname (cdr (assq 'origname advised))))
+		     (and (fboundp origname) origname)))
 	      function))
 	 ;; Get the real definition.
 	 (def (if (symbolp real-function)
@@ -268,7 +342,7 @@ face (according to `face-differs-from-default-p')."
 		function))
 	 file-name string
 	 (beg (if (commandp def) "an interactive " "a "))
-	 (pt1 (with-current-buffer (help-buffer) (point)))
+         (pt1 (with-current-buffer (help-buffer) (point)))
 	 errtype)
     (setq string
 	  (cond ((or (stringp def)
@@ -292,12 +366,10 @@ face (according to `face-differs-from-default-p')."
 		((eq (car-safe def) 'macro)
 		 "a Lisp macro")
 		((eq (car-safe def) 'autoload)
-		 (setq file-name (nth 1 def))
 		 (format "%s autoloaded %s"
 			 (if (commandp def) "an interactive" "an")
 			 (if (eq (nth 4 def) 'keymap) "keymap"
-			   (if (nth 4 def) "Lisp macro" "Lisp function"))
-			 ))
+			   (if (nth 4 def) "Lisp macro" "Lisp function"))))
                 ((keymapp def)
                  (let ((is-full nil)
                        (elts (cdr-safe def)))
@@ -316,39 +388,16 @@ face (according to `face-differs-from-default-p')."
       (with-current-buffer standard-output
 	(save-excursion
 	  (save-match-data
-	    (if (re-search-backward "alias for `\\([^`']+\\)'" nil t)
-		(help-xref-button 1 'help-function def)))))
-      (or file-name
-	  (setq file-name (symbol-file function 'defun)))
-      (setq file-name (describe-simplify-lib-file-name file-name))
-      (when (equal file-name "loaddefs.el")
-	;; Find the real def site of the preloaded function.
-	;; This is necessary only for defaliases.
-	(let ((location
-	       (condition-case nil
-		   (find-function-search-for-symbol function nil "loaddefs.el")
-		 (error nil))))
-	  (when location
-	    (with-current-buffer (car location)
-	      (goto-char (cdr location))
-	      (when (re-search-backward
-		     "^;;; Generated autoloads from \\(.*\\)" nil t)
-		(setq file-name (match-string 1)))))))
-      (when (and (null file-name) (subrp def))
-	;; Find the C source file name.
-	(setq file-name (if (get-buffer " *DOC*")
-			    (help-C-file-name def 'subr)
-			  'C-source)))
+	    (when (re-search-backward "alias for `\\([^`']+\\)'" nil t)
+	      (help-xref-button 1 'help-function def)))))
+
+      (setq file-name (find-lisp-object-file-name function def))
       (when file-name
 	(princ " in `")
 	;; We used to add .el to the file name,
 	;; but that's completely wrong when the user used load-file.
 	(princ (if (eq file-name 'C-source) "C source code" file-name))
 	(princ "'")
-	;; See if lisp files are present where they where installed from.
-	(if (not (eq file-name 'C-source))
-	    (setq file-name (find-source-lisp-file file-name)))
-
 	;; Make a hyperlink to the library.
 	(with-current-buffer standard-output
 	  (save-excursion
@@ -519,50 +568,28 @@ it is displayed along with the global value."
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
 	       v (intern val)))))
-  (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
-  (unless (frame-live-p frame) (setq frame (selected-frame)))
-  (if (not (symbolp variable))
-      (message "You did not specify a variable")
-    (save-excursion
-      (let ((valvoid (not (with-current-buffer buffer (boundp variable))))
-	    val val-start-pos locus)
-	;; Extract the value before setting up the output buffer,
-	;; in case `buffer' *is* the output buffer.
-	(unless valvoid
-	  (with-selected-frame frame
+  (let (file-name)
+    (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
+    (unless (frame-live-p frame) (setq frame (selected-frame)))
+    (if (not (symbolp variable))
+	(message "You did not specify a variable")
+      (save-excursion
+	(let ((valvoid (not (with-current-buffer buffer (boundp variable))))
+	      val val-start-pos locus)
+	  ;; Extract the value before setting up the output buffer,
+	  ;; in case `buffer' *is* the output buffer.
+	  (unless valvoid
+	    (with-selected-frame frame
+	      (with-current-buffer buffer
+		(setq val (symbol-value variable)
+		      locus (variable-binding-locus variable)))))
+	  (help-setup-xref (list #'describe-variable variable buffer)
+			   (interactive-p))
+	  (with-help-window (help-buffer)
 	    (with-current-buffer buffer
-	      (setq val (symbol-value variable)
-		    locus (variable-binding-locus variable)))))
-	(help-setup-xref (list #'describe-variable variable buffer)
-			 (interactive-p))
-	(with-help-window (help-buffer)
-	  (with-current-buffer buffer
-	    (prin1 variable)
-	    ;; Make a hyperlink to the library if appropriate.  (Don't
-	    ;; change the format of the buffer's initial line in case
-	    ;; anything expects the current format.)
-	    (let ((file-name (symbol-file variable 'defvar)))
-	      (setq file-name (describe-simplify-lib-file-name file-name))
-	      (when (equal file-name "loaddefs.el")
-		;; Find the real def site of the preloaded variable.
-		(let ((location
-		       (condition-case nil
-			   (find-variable-noselect variable file-name)
-			 (error nil))))
-		  (when location
-		    (with-current-buffer (car location)
-		      (when (cdr location)
-			(goto-char (cdr location)))
-		      (when (re-search-backward
-			     "^;;; Generated autoloads from \\(.*\\)" nil t)
-			(setq file-name (match-string 1)))))))
-	      (when (and (null file-name)
-			 (integerp (get variable 'variable-documentation)))
-		;; It's a variable not defined in Elisp but in C.
-		(setq file-name
-		      (if (get-buffer " *DOC*")
-			  (help-C-file-name variable 'var)
-			'C-source)))
+	      (prin1 variable)
+	      (setq file-name (find-lisp-object-file-name variable 'defvar))
+
 	      (if file-name
 		  (progn
 		    (princ " is a variable defined in `")
