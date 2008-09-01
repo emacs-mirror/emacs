@@ -1104,7 +1104,12 @@ It has one extra slot whose value is a list of script symbols.  */);
   Vchar_script_table = Fmake_char_table (Qchar_script_table, Qnil);
 
   DEFVAR_LISP ("script-representative-chars", &Vscript_representative_chars,
-	       doc: /* Alist of scripts vs the representative characters.  */);
+	       doc: /* Alist of scripts vs the representative characters.
+Each element is a cons (SCRIPT . CHARS), where SCRIPT is a script name symbol,
+CHARS is a list or a vector of characters.
+If it is a list, all characters in the list is necessary for supporting SCRIPT.
+If it is a vector, one of the characters in the vector is necessary.
+This variable is used to find a font for a specific script.  */);
   Vscript_representative_chars = Qnil;
 
   DEFVAR_LISP ("unicode-category-table", &Vunicode_category_table,
