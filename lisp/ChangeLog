@@ -14,7 +14,7 @@
 
 2008-09-01  Simon South  <ssouth@member.fsf.org>
 
-	* delphi.el: New maintainer.
+	* progmodes/delphi.el: New maintainer.
 	(delphi-interface-types): New var.
 	(delphi-composite-types): Use it.
 	(delphi-enclosing-indent-of): Distinguish between "interface"
