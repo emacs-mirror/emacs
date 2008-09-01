@@ -2782,7 +2782,8 @@ non-nil, otherwise clears it.  N is the message number.
 BUFFER, possibly narrowed, contains an mbox mail message."
   (save-excursion
     (set-buffer buffer)
-    (pmail-set-attribute attr state n)))
+    (pmail-set-attribute attr state n)
+    (pmail-show-message)))
 
 (defun pmail-mark-message (msgnum-list attr-index)
   "Set attribute ATTRIBUTE-INDEX in the message of the car of MSGNUM-LIST.
