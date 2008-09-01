@@ -1,3 +1,11 @@
+2008-09-01  Simon South  <ssouth@member.fsf.org>
+
+	* delphi.el: New maintainer.
+	(delphi-interface-types): New var.
+	(delphi-composite-types): Use it.
+	(delphi-enclosing-indent-of): Distinguish between "interface"
+	keyword as a unit separator and used like a class declaration.
+
 2008-09-01  Martin Rudalics  <rudalics@gmx.at>
 
 	* help-fns.el (describe-simplify-lib-file-name)
