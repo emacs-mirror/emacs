@@ -1427,17 +1427,17 @@ Possible values: `top', `middle', `bottom'.")
 
 (defun recenter-top-bottom (&optional arg)
   "Move current line to window center, top, and bottom, successively.
-With a prefix argument, this is the same as `recenter':
+With no prefix argument, the first call redraws the frame and
+ centers point vertically within the window.  Successive calls
+ scroll the window, placing point on the top, bottom, and middle
+ consecutively.  The cycling order is middle -> top -> bottom.
+
+A prefix argument is handled like `recenter':
  With numeric prefix ARG, move current line to window-line ARG.
  With plain `C-u', move current line to window center.
 
-Otherwise move current line to window center on first call, and to
-top, middle, or bottom on successive calls.
-
-The cycling order is: middle -> top -> bottom.
-
 Top and bottom destinations are actually `scroll-margin' lines
-the from true window top and bottom."
+ the from true window top and bottom."
   (interactive "P")
   (cond
    (arg (recenter arg))                 ; Always respect ARG.
