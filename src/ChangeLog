@@ -1,3 +1,13 @@
+2008-09-01  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_spec_pattern): Don't create a charset of the
+	representative chars of the script is a vector.
+	(ftfont_list): Handle the case the representative chars of the
+	script is a vector.
+
+	* character.c (syms_of_character): Docstring of
+	script-representative-chars fixed.
+
 2008-08-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (BUILD_CHAR_GLYPH): New macro.
@@ -47,6 +57,7 @@
 
 	* w32uniscribe.c (uniscribe_check_otf): Don't fallback on DFLT script.
 
+>>>>>>> 1.6936
 2008-08-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* composite.c (fill_gstring_body): Avoid compiler warnings.
