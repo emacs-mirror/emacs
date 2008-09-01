@@ -1,3 +1,14 @@
+2008-09-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* help-fns.el (describe-simplify-lib-file-name)
+	(find-source-lisp-file): Removed.
+	(find-lisp-object-file-name): New function giving preference to
+	files found via load-path instead of loaddefs.el.
+	(describe-function-1): Use new function instead of the removed
+	ones.  (Bugs #587, #669, #690)
+	* faces.el (describe-face): Use find-lisp-object-file-name instead
+	of describe-simplify-lib-file-name.
+
 2008-09-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (font-show-log): Fix previous change.
