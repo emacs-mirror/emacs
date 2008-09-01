@@ -1,3 +1,20 @@
+2008-09-01  Paul Reilly <pmr@pajato.com>
+
+	* mbox-changes/rmail.el.changes:
+	Reflect that rmail-convert-to-babyl is no longer relevant.
+
+	* pmail.el, pmaildesc.el: Fix the expunge operation.
+
+	pmail.el (pmail-only-expunge): Manage pmail-total-messages in the
+	callback handler; remove the extra show message call.
+	(pmail-expunge-callback): Rewrite to handle all possible conditions.
+
+	pmaildesc.el (pmail-desc-get-previous, pmail-desc-get-match-index):
+	New functions.
+
+	* ChangeLog.pmail:
+	New and temporary change log file used to capture changes to the pmail*.el files.
+
 2008-08-29  Paul Reilly  <pmr@pajato.com>
 
 	* pmail.el, pmaildesc.el, pmailhdr.el, pmailkwd.el, pmailmm.el,
