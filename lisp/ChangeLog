@@ -1,3 +1,7 @@
+2008-09-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (recenter-top-bottom): Doc fix.
+
 2008-09-01  Simon South  <ssouth@member.fsf.org>
 
 	* delphi.el: New maintainer.
