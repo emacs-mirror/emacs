@@ -1,5 +1,13 @@
 2008-09-01  Kenichi Handa  <handa@m17n.org>
 
+	* international/mule-diag.el (font-show-log): Fix previous change.
+
+	* international/mule-cmds.el (set-language-environment): Don't
+	overwrite current-iso639-language if the current language
+	environment doesn't provide that data.
+	(set-locale-environment): Set current-iso639-language from the
+	locale name.
+
 	* international/fontset.el (script-representative-chars): Re-add
 	the entry for symbol, but with vector of characters.
 	(setup-default-fontset): Cancel previous change.
