@@ -1842,7 +1842,8 @@ specifies the character set for the major languages of Western Europe."
 	(funcall func)))
 
   (setq current-iso639-language
-	(get-language-info language-name 'iso639-language))
+	(or (get-language-info language-name 'iso639-language)
+	    current-iso639-language))
 
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
@@ -2510,7 +2511,10 @@ See also `locale-charset-language-names', `locale-language-names',
       ;; want to set them to the same value as LC_CTYPE.
       (when locale-name
 	(setq system-messages-locale locale)
-	(setq system-time-locale locale)))
+	(setq system-time-locale locale))
+
+      (if (string-match "^[a-z][a-z]" locale)
+	  (setq current-iso639-language (intern (match-string 0 locale)))))
 
     (setq woman-locale
           (or system-messages-locale
