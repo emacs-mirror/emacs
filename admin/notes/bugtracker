@@ -112,10 +112,13 @@ severity 123 critical|grave|serious|important|normal|minor|wishlist
 
 See http://emacsbugs.donarmstrong.com/Developer#severities for the meanings.
 
-*** To set the onwer of a bug:
+*** To set the owner of a bug:
 owner 123 A Hacker <none@example.com>
 
 The shorthand `!' means your own address.
+
+*** To remove the owner of a bug:
+noowner 123
 
 *** To mark a bug as fixed in a particular version:
 fixed 123 23.0.60
