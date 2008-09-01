@@ -1,3 +1,9 @@
+2008-09-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Finternal_set_alternative_font_family_alist)
+	(Finternal_set_alternative_font_registry_alist): Properly copy
+	entire alist structure.
+
 2008-09-01  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_spec_pattern): Don't create a charset of the
