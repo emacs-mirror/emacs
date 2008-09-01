@@ -1363,10 +1363,7 @@ If FRAME is omitted or nil, use the selected frame."
 		  (re-search-backward
 		   (concat "\\(" customize-label "\\)") nil t)
 		  (help-xref-button 1 'help-customize-face f)))
-	      ;; The next 4 sexps are copied from describe-function-1
-	      ;; and simplified.
-	      (setq file-name (symbol-file f 'defface))
-	      (setq file-name (describe-simplify-lib-file-name file-name))
+	      (setq file-name (find-lisp-object-file-name f 'defface))
 	      (when file-name
 		(princ "Defined in `")
 		(princ file-name)
