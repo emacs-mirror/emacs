@@ -1,3 +1,9 @@
+2008-09-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (script-representative-chars): Re-add
+	the entry for symbol, but with vector of characters.
+	(setup-default-fontset): Cancel previous change.
+
 2008-08-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ido.el: Move provide statement to the end of the file.
