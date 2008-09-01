@@ -2243,6 +2243,9 @@ log entries should be gathered."
   (string-match "[0-9]+\\'" rev)
   (substring rev (match-beginning 0) (match-end 0)))
 
+(define-obsolete-function-alias
+  'vc-default-previous-version 'vc-default-previous-revision "23.1")
+
 (defun vc-default-previous-revision (backend file rev)
   "Return the revision number immediately preceding REV for FILE,
 or nil if there is no previous revision.  This default
