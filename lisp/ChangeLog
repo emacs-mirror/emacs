@@ -1,5 +1,9 @@
 2008-09-01  Chong Yidong  <cyd@stupidchicken.com>
 
+	* minibuffer.el (completion-pcm--pattern->regex): When
+	completion-ignore-case is non-nil, generate a regexp that ignores
+	case.
+
 	* window.el (recenter-top-bottom): Doc fix.
 
 2008-09-01  Simon South  <ssouth@member.fsf.org>
