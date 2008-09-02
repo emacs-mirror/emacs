@@ -1,5 +1,7 @@
 2008-09-02  Andreas Schwab  <schwab@suse.de>
 
+	* xterm.c (x_delete_display): Fix merge error.
+
 	* fileio.c (Fexpand_file_name): Remove unused variables.
 
 2008-09-02  Eli Zaretskii  <eliz@gnu.org>

@@ -10516,7 +10516,6 @@ x_delete_display (dpyinfo)
   /* Xt and GTK do this themselves.  */
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 #ifndef AIX		/* On AIX, XCloseDisplay calls this.  */
-  /* Xt and GTK does this themselves. */
   XrmDestroyDatabase (dpyinfo->xrdb);
 #endif
 #endif
