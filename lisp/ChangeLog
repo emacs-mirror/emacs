@@ -1,3 +1,8 @@
+2008-09-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* calc/calc.el (calc-dispatch-map): Fix handling of upcased and
+	control-prefixed keys.  (Bug #835)
+
 2008-09-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-mode): Fix 2008-07-19 change.
