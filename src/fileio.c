@@ -824,7 +824,6 @@ See also the function `substitute-in-file-name'.  */)
   /* These point to SDATA and need to be careful with string-relocation
      during GC (via DECODE_FILE).  */
   unsigned char *nm, *newdir;
-  int nm_in_name;
   /* This should only point to alloca'd data.  */
   unsigned char *target;
 
@@ -930,11 +929,9 @@ See also the function `substitute-in-file-name'.  */)
     }
 
   nm = SDATA (name);
-  nm_in_name = 1;
 
   /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below. */
   nm = strcpy (alloca (strlen (nm) + 1), nm);
-  nm_in_name = 0;
 
 #ifdef DOS_NT
   /* Note if special escape prefix is present, but remove for now.  */
@@ -1077,13 +1074,8 @@ See also the function `substitute-in-file-name'.  */)
 	  tem = build_string (newdir);
 	  if (!STRING_MULTIBYTE (tem))
 	    {
-	      /* FIXME: DECODE_FILE may GC, which may move SDATA(name),
-		 after which `nm' won't point to the right place any more.  */
-	      int offset = nm - SDATA (name);
 	      hdir = DECODE_FILE (tem);
 	      newdir = SDATA (hdir);
-	      if (nm_in_name)
-	      nm = SDATA (name) + offset;
 	    }
 #ifdef DOS_NT
 	  collapse_newdir = 0;

@@ -1,3 +1,7 @@
+2008-09-02  Andreas Schwab  <schwab@suse.de>
+
+	* fileio.c (Fexpand_file_name): Remove unused variables.
+
 2008-09-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fexpand_file_name): Copy argument `name' into local
