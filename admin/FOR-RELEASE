@@ -214,6 +214,7 @@ windows.texi
 ** ruby-mode
 ** js2-mode
 ** pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
+** gas-mode ?
 
 
 Local variables:
