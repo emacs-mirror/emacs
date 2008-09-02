@@ -1,3 +1,7 @@
+2008-09-02  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-langs.el (c-opt-op-identitier-prefix): Fix typo.
+
 2008-09-01  Glenn Morris  <rgm@gnu.org>
 
 	* vc-hooks.el (vc-previous-version): Move alias to vc.el.
