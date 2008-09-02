@@ -90,7 +90,8 @@ This function exists for compatibility with XEmacs."
 
 (defalias 'find-face 'internal-find-face)
 (defalias 'get-face 'internal-get-face)
-(defalias 'try-face-font 'internal-try-face-font)
+;; internal-try-face-font was removed from faces.el in rev 1.139, 1999/07/21.
+;;;(defalias 'try-face-font 'internal-try-face-font)
 
 (defalias 'exec-to-string 'shell-command-to-string)
 
