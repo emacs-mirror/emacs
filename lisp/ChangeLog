@@ -1,3 +1,7 @@
+2008-09-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* files.el (auto-mode-alist): Use verilog-mode for SystemVerilog files.
+
 2008-09-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* calc/calc.el (calc-dispatch-map): Fix handling of upcased and
