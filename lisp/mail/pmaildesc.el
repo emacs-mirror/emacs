@@ -370,7 +370,7 @@ non-null will reverse the sense of the attribute test."
   "Return the index N if the associated descriptor has a matching
 attribute, nil otherwise.  The attribute value must be set if
 SENSE is nil, or unset if SENSE is non-nil."
-  (let (flag (pmail-desc-attr-p attr-index n))
+  (let ((flag (pmail-desc-attr-p attr-index n)))
     (if (or (and flag (not sense)) (and (not flag) sense))
 	n
       nil)))
