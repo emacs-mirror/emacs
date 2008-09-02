@@ -1026,7 +1026,7 @@ Used by `calc-user-invocation'.")
     (define-key map "\C-j" 'calc-over)
     (define-key map "\C-y" 'calc-yank)
     (define-key map [mouse-2] 'calc-yank)
-      
+
     (mapc (lambda (x) (define-key map (char-to-string x) 'undefined))
           "lOW")
     (mapc (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
@@ -1096,11 +1096,17 @@ Used by `calc-user-invocation'.")
 (defvar calc-dispatch-map
   (let ((map (make-keymap)))
     (mapc (lambda (x)
-            (define-key map (char-to-string (car x)) (cdr x))
-            (when (string-match "abcdefhijklnopqrstuwxyz"
-                                (char-to-string (car x)))
-              (define-key map (char-to-string (- (car x) ?a -1)) (cdr x)))
-            (define-key map (format "\e%c" (car x)) (cdr x)))
+	    (let* ((x-chr (car x))
+		   (x-str (char-to-string x-chr))
+		   (x-def (cdr x)))
+	      (define-key map x-str x-def)
+	      (when (string-match "[a-z]" x-str)
+		;; Map upper case char to same definition.
+		(define-key map (upcase x-str) x-def)
+		(unless (string-match "[gmv]" x-str)
+		  ;; Map control prefixed char to same definition.
+		  (define-key map (vector (list 'control x-chr)) x-def)))
+	      (define-key map (format "\e%c" x-chr) x-def)))
           '( ( ?a . calc-embedded-activate )
              ( ?b . calc-big-or-small )
              ( ?c . calc )
