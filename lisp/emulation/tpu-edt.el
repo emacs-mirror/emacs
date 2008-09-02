@@ -1246,8 +1246,9 @@ and the total number of lines in the buffer."
 ;;;  Buffers and Windows
 ;;;
 (defun tpu-kill-buffer nil
-  "Kill the current buffer.  If tpu-kill-buffers-silently is non-nil,
-kills modified buffers without asking."
+  "Kill the current buffer.
+If `tpu-kill-buffers-silently' is non-nil,
+kill modified buffers without asking."
   (interactive)
   (if tpu-kill-buffers-silently (set-buffer-modified-p nil))
   (kill-buffer (current-buffer)))

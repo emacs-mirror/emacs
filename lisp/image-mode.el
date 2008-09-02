@@ -332,7 +332,7 @@ to toggle between display as an image and display as text."
 
   (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
   (if (display-images-p)
-      (if (not (image-get-display-property))
+      (if (not (get-text-property (point-min) 'display))
 	  (image-toggle-display)
 	;; Set next vars when image is already displayed but local
 	;; variables were cleared by kill-all-local-variables
