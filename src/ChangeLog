@@ -1,3 +1,8 @@
+2008-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Don't call move_it_by_lines again
+	if moving by a single line.
+
 2008-09-02  Andreas Schwab  <schwab@suse.de>
 
 	* xterm.c (x_delete_display): Fix merge error.
