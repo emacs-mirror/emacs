@@ -1,3 +1,11 @@
+2008-09-02  Carsten Bormann <cabo@tzi.org>
+
+	* quail/latin-post.el ("german-postfix"): do not translate ue to
+	\"u after a, e or q, because that would be extremely uncommon
+	compared to aue, eue or que.  The only exception is the prefix
+	"ge", after which, according to corpus statistics, a \"u can be
+	expected.
+
 2008-08-10  Jihyun Cho  <jihyun.jo@gmail.com>
 
 	* quail/hangul.el (hangul3-input-method-jong): Fix array indexing
