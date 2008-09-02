@@ -985,7 +985,7 @@ This regexp is assumed to not match any non-operator identifier."
 ;; Note: the following alias is an old name which was a mis-spelling.  It has
 ;; been corrected above and throughout cc-engine.el.  It will be removed at
 ;; some release very shortly in the future.  ACM, 2006-04-14.
-(defalias 'c-opt-op-identitier-prefix 'c-opt-op-identifier-prefix)
+(defvaralias 'c-opt-op-identitier-prefix 'c-opt-op-identifier-prefix)
 (make-obsolete-variable 'c-opt-op-identitier-prefix 'c-opt-op-identifier-prefix
 			"CC Mode 5.31.4, 2006-04-14")
 
