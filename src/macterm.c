@@ -476,25 +476,21 @@ mac_erase_rectangle (f, gc, x, y, width, height)
      unsigned int width, height;
 {
 #if USE_CG_DRAWING
-    {
-      CGContextRef context;
+  CGContextRef context;
 
-      context = mac_begin_cg_clip (f, gc);
-      CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
-      CGContextFillRect (context, mac_rect_make (f, x, y, width, height));
-      mac_end_cg_clip (f);
-    }
+  context = mac_begin_cg_clip (f, gc);
+  CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
+  CGContextFillRect (context, mac_rect_make (f, x, y, width, height));
+  mac_end_cg_clip (f);
 #else
-    {
-      Rect r;
+  Rect r;
 
-      mac_begin_clip (f, gc);
-      RGBBackColor (GC_BACK_COLOR (gc));
-      SetRect (&r, x, y, x + width, y + height);
-      EraseRect (&r);
-      RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
-      mac_end_clip (f, gc);
-    }
+  mac_begin_clip (f, gc);
+  RGBBackColor (GC_BACK_COLOR (gc));
+  SetRect (&r, x, y, x + width, y + height);
+  EraseRect (&r);
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
+  mac_end_clip (f, gc);
 #endif
 }
 
@@ -517,16 +513,14 @@ mac_clear_window (f)
      struct frame *f;
 {
 #if USE_CG_DRAWING
-  {
-    CGContextRef context;
-    GC gc = FRAME_NORMAL_GC (f);
+  CGContextRef context;
+  GC gc = FRAME_NORMAL_GC (f);
 
-    context = mac_begin_cg_clip (f, NULL);
-    CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
-    CGContextFillRect (context, CGRectMake (0, 0, FRAME_PIXEL_WIDTH (f),
-					    FRAME_PIXEL_HEIGHT (f)));
-    mac_end_cg_clip (f);
-  }
+  context = mac_begin_cg_clip (f, NULL);
+  CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
+  CGContextFillRect (context, CGRectMake (0, 0, FRAME_PIXEL_WIDTH (f),
+					  FRAME_PIXEL_HEIGHT (f)));
+  mac_end_cg_clip (f);
 #else  /* !USE_CG_DRAWING */
   mac_begin_clip (f, NULL);
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
@@ -840,11 +834,12 @@ mac_draw_rectangle (f, gc, x, y, width, height)
 {
 #if USE_CG_DRAWING
   CGContextRef context;
+  CGRect rect;
 
   context = mac_begin_cg_clip (f, gc);
   CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND (context, gc);
-  CGContextStrokeRect (context,
-		       CGRectMake (x + 0.5f, y + 0.5f, width, height));
+  rect = mac_rect_make (f, x, y, width + 1, height + 1);
+  CGContextStrokeRect (context, CGRectInset (rect, 0.5f, 0.5f));
   mac_end_cg_clip (f);
 #else
   Rect r;
