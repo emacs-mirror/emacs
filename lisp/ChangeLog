@@ -11,16 +11,7 @@
 
 	* tool-bar.el (tool-bar-add-item): Fix typo in docstring.
 
-	* emulation/tpu-edt.el (tpu-match-beginning, tpu-match-end)
-	(tpu-check-match, tpu-goto-breadcrumb, tpu-reset-screen-size)
-	(tpu-toggle-overwrite-mode, tpu-include, tpu-get, tpu-what-line)
-	(tpu-insert-escape, tpu-insert-formfeed, tpu-end-define-macro-key)
-	(tpu-check-search-case, tpu-select, tpu-unselect, tpu-trim-line-ends)
-	(tpu-toggle-control-keys): Fix typos in docstrings.
-	(tpu-kill-buffer): Doc fix.
-	(tpu-make-file-buffer-list, tpu-toggle-regexp, tpu-cut)
-	(tpu-append-region, tpu-delete-current-char, tpu-emacs-replace):
-	Reflow docstrings.
+	* emulation/tpu-edt.el (tpu-kill-buffer): Doc fix.
 
 2008-09-02  Glenn Morris  <rgm@gnu.org>
 
