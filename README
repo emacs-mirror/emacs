@@ -22,7 +22,7 @@ they allow us to notice and fix problems on machines we don't have, or
 in code we don't use often.  Please send bug reports for released
 versions of Emacs sent to the mailing list bug-gnu-emacs@gnu.org.
 Please send bug reports for pretest versions of Emacs, and versions
-from the Savannah.gnu.org repository, to emacs-pretest-bugs@gnu.org.
+from the Savannah.gnu.org repository, to emacs-pretest-bug@gnu.org.
 
 See the "Bugs" section of the Emacs manual for more information on how
 to report bugs.  (The file `BUGS' in this directory explains how you
