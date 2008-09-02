@@ -2128,15 +2128,21 @@ whether or not it is currently displayed in some window.  */)
 		 which might span multiple screen lines (e.g., if it's
 		 on a multi-line display string).  We want to start
 		 from the last line that it occupies.  */
-	      it.vpos = 0;
 	      if (PT < ZV)
 		{
 		  while (IT_CHARPOS (it) <= PT)
-		    move_it_by_lines (&it, 1, 0);
-		  move_it_by_lines (&it, XINT (lines) - 1, 0);
+		    {
+		      it.vpos = 0;
+		      move_it_by_lines (&it, 1, 0);
+		    }
+		  if (XINT (lines) > 1)
+		    move_it_by_lines (&it, XINT (lines) - 1, 0);
 		}
 	      else
-		move_it_by_lines (&it, XINT (lines), 0);
+		{
+		  it.vpos = 0;
+		  move_it_by_lines (&it, XINT (lines), 0);
+		}
 	    }
 	}
 
