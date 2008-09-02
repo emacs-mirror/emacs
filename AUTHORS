@@ -133,7 +133,7 @@ Andreas Leue: changed artist.el
 Andreas Luik: changed xfns.c xterm.c
 
 Andreas Schwab: changed Makefile.in files.el lisp.h alloc.c xdisp.c
-  editfns.c fns.c print.c coding.c dired.el fileio.c info.el eval.c
+  editfns.c print.c fns.c coding.c dired.el fileio.c info.el eval.c
   process.c simple.el buffer.c minibuf.c window.c xterm.c emacs.c
   keyboard.c and 452 other files
 
@@ -349,7 +349,7 @@ Cheng Gao: changed MORE.STUFF flymake.el tips.texi url-dired.el
 Chong Yidong: changed xdisp.c files.el simple.el cus-edit.el longlines.el
   display.texi custom.el files.texi image-mode.el keyboard.c info.el
   compile.el custom.texi image.c text.texi xterm.c frames.texi mouse.el
-  misc.texi startup.el wid-edit.el and 330 other files
+  misc.texi startup.el wid-edit.el and 331 other files
 
 Chris Hanson: changed xscheme.el scheme.el xterm.c hpux.h x11term.c
   hp9000s300.h keyboard.c process.c texinfmt.el emacsclient.c sort.el
@@ -879,7 +879,7 @@ Glenn Morris: changed f90.el diary-lib.el calendar.el fortran.el
   calendar.texi COPYING appt.el Makefile.in files.el sh-script.el
   simple.el timeclock.el cal-menu.el tex-mode.el cal-islam.el cal-tex.el
   calc.texi complete.el fr-refcard.tex holidays.el orgcard.tex
-  and 256 other files
+  and 260 other files
 
 Glynn Clements: wrote gamegrid.el snake.el tetris.el
 
@@ -1014,6 +1014,8 @@ Irie Tetsuya: changed gnus.texi message.texi
 
 Ishikawa Chiaki: changed aviion.h dgux.h
 
+$,1 P(Bsmail D,Av(Bnmez: changed xterm.c
+
 Istvan Marko: changed gnus-agent.el xfns.c
 
 Itai Zukerman: changed mm-decode.el
@@ -1088,12 +1090,12 @@ Jason Merrill: changed gnus-sum.el gnus-salt.el imap.el nnfolder.el
 Jason Rumney: wrote w32-vars.el
 and changed w32fns.c w32term.c w32menu.c makefile.w32-in w32-win.el
   w32term.h w32.c w32bdf.c w32-fns.el w32proc.c w32select.c w32console.c
-  mule-cmds.el w32gui.h keyboard.c emacs.c fileio.c files.el image.c
-  nmake.defs w32bdf.h and 96 other files
+  mule-cmds.el w32gui.h image.c keyboard.c emacs.c fileio.c files.el
+  nmake.defs w32bdf.h and 97 other files
 
 Jay Belanger: changed calc.texi calc.el calc-ext.el calc-embed.el
   calc-aent.el calc-prog.el calc-arith.el calc-help.el calc-lang.el
-  calcalg2.el COPYING calc-graph.el calc-store.el calc-units.el
+  calc-units.el calcalg2.el COPYING calc-graph.el calc-store.el
   calc-misc.el calc-yank.el calc-alg.el calc-poly.el calccomp.el
   calc-mode.el calc-forms.el and 35 other files
 
@@ -1317,8 +1319,8 @@ and changed files.el perl-mode.el
 
 Juanma Barranquero: changed makefile.w32-in subr.el faces.el files.el
   help-fns.el bs.el w32fns.c buffer.c desktop.el simple.el emacsclient.c
-  replace.el eval.c org.el idlwave.el ido.el process.c vhdl-mode.el
-  window.c xdisp.c allout.el and 662 other files
+  replace.el eval.c org.el xdisp.c idlwave.el ido.el process.c
+  vhdl-mode.el window.c allout.el and 665 other files
 
 Juergen Hoetzel: changed url-handlers.el
 
