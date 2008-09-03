@@ -1,3 +1,8 @@
+2008-09-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* isearch.el (isearch-highlight-regexp): Fix last change, quoting
+	non-alphabetical characters properly.
+
 2008-09-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* files.el (auto-mode-alist): Use verilog-mode for SystemVerilog files.
