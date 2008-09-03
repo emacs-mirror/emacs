@@ -99,10 +99,12 @@ for pop-up frames."
 		       (sexp :tag "Value")))
   :group 'frames)
 
-(setq pop-up-frame-function
-      ;; Using `function' here caused some sort of problem.
-      '(lambda ()
-	 (make-frame pop-up-frame-alist)))
+(defcustom pop-up-frame-function
+  (lambda () (make-frame pop-up-frame-alist))
+  "Function to call to handle automatic new frame creation.
+It is called with no arguments and should return a newly created frame."
+  :type '(choice (const nil) (function :tag "function"))
+  :group 'frames)
 
 (defcustom special-display-frame-alist
   '((height . 14) (width . 80) (unsplittable . t))
