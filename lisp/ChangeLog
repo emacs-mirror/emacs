@@ -1,5 +1,7 @@
 2008-09-03  Alan Mackenzie  <acm@muc.de>
 
+	* progmodes/cc-defs.el (c-version): Incremented to 5.31.6.
+
 	* progmodes/cc-awk.el:
 	* progmodes/cc-fonts.el:
 	* progmodes/cc-engine.el:
