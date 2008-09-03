@@ -722,21 +722,6 @@ that frame."
   :version "21.1"
   :group 'windows)
 
-(defcustom pop-up-frame-function nil
-  "Function to call to handle automatic new frame creation.
-It is called with no arguments and should return a newly created frame.
-
-A typical value might be
-
-`(lambda () (new-frame pop-up-frame-alist))'
-
-where `pop-up-frame-alist' would hold the default frame
-parameters."
-  :type '(choice
-	  (const nil)
-	  (function :tag "function"))
-  :group 'windows)
-
 (defcustom pop-up-windows t
   "Non-nil means `display-buffer' should make a new window."
   :type 'boolean
