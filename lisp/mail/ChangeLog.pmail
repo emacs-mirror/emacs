@@ -1,3 +1,23 @@
+2008-09-03  pmr  <pmr@pajato.com>
+
+	* pmail.el, pmaildesc.el, pmailout.el:
+	Fix the expunge command so that the current message index is correct.
+
+	* pmail.el (pmail-expunge-counter): New variable
+	  (pmail-set-attribute): Canonicalize the calling sequence to index, attribute, state.
+	  (pmail-show-message, pmail-delete-message, pmail-undelete-previous-message,
+	   pmail-delete-forward, pmail-mark-message): Use the new canonical calling sequence.
+	  (pmail-only-expunge): Use the expunge counter to update the current message index.
+	  (pmail-expunge-callback): Simplify.  Just count the expunged messages with a lower
+	   index than the current message index.
+
+	* pmaildesc.el (pmail-desc-get-previous): Fix an "off by one" issue.
+	  (pmail-desc-set-attribute): Canonicalize the calling sequence to index, attribute, state.
+
+	* pmailout.el (pmail-output-body-to-file): Use the canonical calling sequence.
+
+	* sendmail.el (mail-yank-region): Fix comment.
+
 2008-09-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mail/pmaildesc.el (pmail-desc-get-match-index):
