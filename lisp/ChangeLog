@@ -1,3 +1,9 @@
+2008-09-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (pop-up-frame-function): Move ...
+	* frame.el (pop-up-frame-function): ... here, to avoid
+	"CHANGED outside Customize;".
+
 2008-09-03  Glenn Morris  <rgm@gnu.org>
 
 	* buff-menu.el (buffer-menu-mode-hook): Add obsolete alias.
