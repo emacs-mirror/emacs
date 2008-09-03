@@ -200,6 +200,9 @@ Letters do not insert themselves; instead, they are commands.
   (setq truncate-lines t)
   (setq buffer-read-only t))
 
+(define-obsolete-variable-alias 'buffer-menu-mode-hook
+  'Buffer-menu-mode-hook "23.1")
+
 ;; This function exists so we can make the doc string of Buffer-menu-mode
 ;; look nice.
 (defun Buffer-menu-revert ()
