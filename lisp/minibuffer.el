@@ -1381,17 +1381,12 @@ or a symbol chosen among `any', `star', `point'."
           (mapconcat
            (lambda (x)
              (case x
-	       ((star any point)
-		(if (if (consp group) (memq x group) group)
-		    "\\(.*?\\)"
-		  ".*?"))
-               (t
-		(if (and completion-ignore-case
-			 (string-match "[[:alpha:]]" x))
-		    (format "[%s%s]" (downcase x) (upcase x))
-		  (regexp-quote x)))))
-	   pattern
-	   ""))))
+                      ((star any point)
+                       (if (if (consp group) (memq x group) group)
+                                     "\\(.*?\\)" ".*?"))
+               (t (regexp-quote x))))
+           pattern
+                  ""))))
     ;; Avoid pathological backtracking.
     (while (string-match "\\.\\*\\?\\(?:\\\\[()]\\)*\\(\\.\\*\\?\\)" re)
       (setq re (replace-match "" t t re 1)))
@@ -1413,7 +1408,8 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
     ;; since all-completions is written in C!
     (let* (;; Convert search pattern to a standard regular expression.
 	   (regex (completion-pcm--pattern->regex pattern))
-	   (completion-regexp-list (cons regex completion-regexp-list))
+           (case-fold-search completion-ignore-case)
+           (completion-regexp-list (cons regex completion-regexp-list))
 	   (compl (all-completions
                    (concat prefix (if (stringp (car pattern)) (car pattern) ""))
 		   table pred))
@@ -1426,8 +1422,7 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
       (if (not (functionp table))
 	  ;; The internal functions already obeyed completion-regexp-list.
 	  compl
-	(let ((case-fold-search completion-ignore-case)
-              (poss ()))
+	(let ((poss ()))
 	  (dolist (c compl)
 	    (when (string-match regex c) (push c poss)))
 	  poss)))))
@@ -1435,6 +1430,7 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 (defun completion-pcm--hilit-commonality (pattern completions)
   (when completions
     (let* ((re (completion-pcm--pattern->regex pattern '(point)))
+           (case-fold-search completion-ignore-case)
            (last (last completions))
            (base-size (cdr last)))
       ;; Remove base-size during mapcar, and add it back later.
