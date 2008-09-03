@@ -1,3 +1,7 @@
+2008-09-03  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-version): Increment to 5.31.6
+
 2008-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-pcm--pattern->regex): Undo last change.
