@@ -20,8 +20,7 @@
 
 2008-09-02  Juanma Barranquero  <lekktu@gmail.com>
 
-	* mail/pmaildesc.el (pmail-desc-get-match-index):
-	Fix malformed let binding.
+	* pmaildesc.el (pmail-desc-get-match-index): Fix malformed let binding.
 
 2008-09-01  Paul Reilly <pmr@pajato.com>
 
