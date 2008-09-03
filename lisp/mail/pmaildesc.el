@@ -355,18 +355,18 @@ This includes the attributes."
        (nth pmail-desc-date-index (pmail-desc-get-descriptor n))))
 
 (defun pmail-desc-get-previous (n attr-index &optional sense)
-  "Return the index for the previous matching descriptor.
+  "Return the message index for the previous matching descriptor.
 Starting with descriptor at index N locate the first previous
 descriptor such that the attribute ATTR is set.  SENSE, if
 non-null will reverse the sense of the attribute test."
   (let ((index (1- n)) flag result)
     (while (and (> index 0) (not result))
-      (if (listp (aref pmail-desc-vector index))
-	  (setq result (pmail-desc-get-match-index attr-index sense index)))
+      (if (listp (aref pmail-desc-vector (1- index)))
+	  (setq result (pmail-desc-get-match-index index attr-index sense)))
       (setq index (1- index)))
     (or result 0)))
 
-(defun pmail-desc-get-match-index (attr-index sense n)
+(defun pmail-desc-get-match-index (n attr-index sense)
   "Return the index N if the associated descriptor has a matching
 attribute, nil otherwise.  The attribute value must be set if
 SENSE is nil, or unset if SENSE is non-nil."
@@ -426,7 +426,7 @@ after a message has been deleted.."
 	  (vconcat (delq t (append pmail-desc-vector nil))))
     result))
 
-(defun pmail-desc-set-attribute (attr-index state n)
+(defun pmail-desc-set-attribute (n attr-index state)
   "Set the attribute denoted by ATTR-INDEX in message N according to STATE.
 If STATE is non-nil the attribute will be set to the single character code
 associated with ATTR-INDEX in pmail-desc-attr-alist, otherwise the attribute is

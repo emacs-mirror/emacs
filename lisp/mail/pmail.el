@@ -186,6 +186,11 @@ please report it with \\[report-emacs-bug].")
 
 (defvar pmail-encoded-remote-password nil)
 
+(defvar pmail-expunge-counter 0
+  "A counter used to keep track of the number of expunged
+messages with a lower message number than the current message
+index.")
+
 (defcustom pmail-preserve-inbox nil
   "*Non-nil means leave incoming mail in the user's inbox--don't delete it."
   :type 'boolean
@@ -1908,7 +1913,7 @@ default, the current message is changed."
       (let ((attr-index (pmail-desc-get-attr-index attr)))
 	(set-buffer pmail-buffer)
 	(or msgnum (setq msgnum pmail-current-message))
-	(pmail-desc-set-attribute attr-index state msgnum)
+	(pmail-desc-set-attribute msgnum attr-index state)
         ;; Deal with the summary buffer.
         (when pmail-summary-buffer
 	  (pmail-summary-update msgnum))))))
@@ -2143,7 +2148,7 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
         ;; Clear the "unseen" attribute when we show a message, unless
 	;; it is already cleared.
 	(when (pmail-desc-attr-p pmail-desc-unseen-index n)
-	  (pmail-desc-set-attribute pmail-desc-unseen-index nil n))
+	  (pmail-desc-set-attribute n pmail-desc-unseen-index nil))
 	(pmail-display-labels)
 	;; Deal with MIME
 	(if (eq pmail-enable-mime t)
@@ -2554,7 +2559,7 @@ If N is negative, go forwards instead."
 (defun pmail-delete-message ()
   "Delete this message and stay on it."
   (interactive)
-  (pmail-desc-set-attribute pmail-desc-deleted-index t pmail-current-message)
+  (pmail-desc-set-attribute pmail-current-message pmail-desc-deleted-index t)
   (run-hooks 'pmail-delete-message-hook)
   (pmail-show-message pmail-current-message))
 
@@ -2568,7 +2573,7 @@ If N is negative, go forwards instead."
       (setq msg (1- msg)))
     (if (= msg 0)
 	(error "No previous deleted message")
-      (pmail-desc-set-attribute pmail-desc-deleted-index nil msg)
+      (pmail-desc-set-attribute msg pmail-desc-deleted-index nil)
       (pmail-show-message msg)
       (if (pmail-summary-exists)
 	  (save-excursion
@@ -2584,7 +2589,7 @@ With prefix argument, delete and move backward.
 
 Returns t if a new message is displayed after the delete, or nil otherwise."
   (interactive "P")
-  (pmail-desc-set-attribute pmail-desc-deleted-index t pmail-current-message)
+  (pmail-desc-set-attribute pmail-current-message pmail-desc-deleted-index t)
   (run-hooks 'pmail-delete-message-hook)
   (let ((del-msg pmail-current-message))
     (if (pmail-summary-exists)
@@ -2621,7 +2626,9 @@ See also user-option `pmail-confirm-expunge'."
   (or (eq buffer-undo-list t) (setq buffer-undo-list nil))
   ;; Remove the messages from the buffer and from the Pmail message
   ;; descriptor vector.
+  (setq pmail-expunge-counter 0)
   (pmail-desc-prune-deleted-messages 'pmail-expunge-callback)
+  (setq pmail-current-message (- pmail-current-message pmail-expunge-counter))
   ;; Deal with the summary buffer and update
   ;; the User status.
   (let* ((omax (- (buffer-size) (point-max)))
@@ -2650,13 +2657,9 @@ See also user-option `pmail-confirm-expunge'."
   message counter."
   ;; Process the various possible states to set the current message
   ;; counter.
-  (setq pmail-total-messages (1- pmail-total-messages)
-	pmail-current-message
-	(cond
-	 ((= 0 pmail-total-messages) 0)
-	 ((> pmail-current-message n) (pmail-desc-get-previous pmail-desc-deleted-index n))
-	 ((> pmail-current-message n) 0)
-	 (t pmail-current-message))))
+  (setq pmail-total-messages (1- pmail-total-messages))
+  (if (>= pmail-current-message n)
+      (setq pmail-expunge-counter (1+ pmail-expunge-counter))))
 
 ;;; mbox: ready
 (defun pmail-expunge ()
@@ -2793,7 +2796,7 @@ message buffers.  MSGNUM-LIST is a list of the form (MSGNUM)."
     (let ((n (car msgnum-list)))
       (set-buffer pmail-buffer)
       (pmail-narrow-to-message n)
-      (pmail-desc-set-attribute attr-index t n))))
+      (pmail-desc-set-attribute n attr-index t))))
 
 (defun pmail-narrow-to-message (n)
   "Narrow the current (pmail) buffer to bracket message N."

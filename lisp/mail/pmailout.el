@@ -244,8 +244,7 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
 	 (error "Operation aborted"))
     (write-region (point) (point-max) file-name)
     (when (equal major-mode 'pmail-mode)
-      (pmail-desc-set-attribute pmail-desc-stored-index
-				t pmail-current-message)))
+      (pmail-desc-set-attribute pmail-current-message pmail-desc-stored-index t)))
   (when pmail-delete-after-output
     (pmail-delete-forward)))
 
