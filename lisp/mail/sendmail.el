@@ -1565,7 +1565,7 @@ and don't delete any header fields."
 	   (let ((mail-indentation-spaces (if arg (prefix-numeric-value arg)
 					    mail-indentation-spaces)))
 	     (if mail-citation-hook
-		 ;; Bind mail-citation-hook to the original message's header.
+		 ;; Bind mail-citation-header to the original message's header.
 		 (let ((mail-citation-header
 			(with-current-buffer buffer
 			  (buffer-substring-no-properties
