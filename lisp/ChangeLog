@@ -1,3 +1,10 @@
+2008-09-03  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-awk.el:
+	* progmodes/cc-fonts.el:
+	* progmodes/cc-engine.el:
+	Copy in some minor bug fixes from the trunk.
+
 2008-08-30  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (make-variable-frame-local): Tweak obsolescence message.
