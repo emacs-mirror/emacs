@@ -1,3 +1,7 @@
+2008-09-03  Glenn Morris  <rgm@gnu.org>
+
+	* buff-menu.el (buffer-menu-mode-hook): Add obsolete alias.
+
 2008-09-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* isearch.el (isearch-highlight-regexp): Fix last change, quoting
