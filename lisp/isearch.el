@@ -1401,11 +1401,13 @@ and reads its face argument using `hi-lock-read-face-name'."
 			 isearch-case-fold-search)
 		       ;; Turn isearch-string into a case-insensitive
 		       ;; regexp.
-		       (replace-regexp-in-string
-			"[a-z]"
-			(lambda (m)
-			  (format "[%s%s]" (upcase m) (downcase m)))
-			isearch-string))
+		       (mapconcat
+			(lambda (c)
+			  (let ((s (string c)))
+			    (if (string-match "[[:alpha:]]" s)
+				(format "[%s%s]" (upcase s) (downcase s))
+			      (regexp-quote s))))
+			isearch-string ""))
 		      (t (regexp-quote isearch-string)))))
     (hi-lock-face-buffer string (hi-lock-read-face-name))))
 
