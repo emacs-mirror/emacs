@@ -1,3 +1,9 @@
+2008-09-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.el (message-confirm-send): New variable to confirm sending a
+	message.
+	(message-send): Use it.
+
 2008-08-30  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-spec.el (gnus-parse-simple-format): Revert last patch.
