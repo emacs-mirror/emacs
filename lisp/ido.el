@@ -2161,7 +2161,9 @@ If cursor is not at the end of the user input, move to end of input."
 
       (cond
        ((eq ido-exit 'find-file)
-	(ido-file-internal ido-default-file-method nil nil nil nil ido-text))
+	(ido-file-internal
+	 (if (memq method '(other-window other-frame)) method ido-default-file-method)
+	 nil nil nil nil ido-text))
 
        ((eq ido-exit 'insert-file)
 	(ido-file-internal 'insert 'insert-file nil "Insert file: " nil ido-text 'ido-enter-insert-buffer))
@@ -2317,7 +2319,9 @@ If cursor is not at the end of the user input, move to end of input."
 	  (call-interactively this-command)))
 
        ((eq ido-exit 'switch-to-buffer)
-	(ido-buffer-internal ido-default-buffer-method nil nil nil ido-text))
+	(ido-buffer-internal
+	 (if (memq method '(other-window other-frame)) method ido-default-buffer-method)
+	 nil nil nil ido-text))
 
        ((eq ido-exit 'insert-buffer)
 	(ido-buffer-internal 'insert 'insert-buffer "Insert buffer: " nil ido-text 'ido-enter-insert-file))
