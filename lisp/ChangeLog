@@ -1,3 +1,8 @@
+2008-09-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/tramp-cache.el (tramp-flush-file-function): Fix typo in docstring.
+	(tramp-parse-connection-properties): Reflow docstring.
+
 2008-09-04  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-buffer-internal, ido-file-internal): Pass on other-window
@@ -11,7 +16,7 @@
 
 2008-09-03  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-defs.el (c-version): Increment to 5.31.6
+	* progmodes/cc-defs.el (c-version): Increment to 5.31.6.
 
 2008-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
