@@ -9,7 +9,7 @@
 top=
 ede_FILES=Project.ede Makefile
 
-Lisp_LISP=cedet-integ-test.el cit-cpp.el cit-el.el cit-texi.el cit-load.el cit-srec.el
+Lisp_LISP=cedet-integ-test.el cit-cpp.el cit-el.el cit-texi.el cit-load.el cit-srec.el cit-gnustep.el
 EMACS=emacs
 templates_MISC=cit-extra-cpp.srt
 scripts_MISC=cit-test.sh
