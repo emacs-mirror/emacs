@@ -1213,19 +1213,20 @@ a case-insensitive match is tried."
 	      (delete-region (1- (point)) (point))))
 
 	  ;; Now remove duplicate entries under the same heading.
-	  (let ((seen nil)
-		(limit (point-marker)))
-	    (goto-char start)
-	    (while (and (> limit (point))
-			(re-search-forward "^* \\([^:\n]+:\\(:\\|[^.\n]+\\).\\)"
-					   limit 'move))
-	      ;; Fold case straight away; `member-ignore-case' here wasteful.
-	      (let ((x (downcase (match-string 1))))
-	  	(if (member x seen)
-	  	    (delete-region (match-beginning 0)
-	  			   (progn (re-search-forward "^[^ \t]" nil t)
-	  				  (match-beginning 0)))
-	  	  (push x seen))))))))))
+	  (let (seen)
+	    (save-restriction
+	      (narrow-to-region start (point))
+	      (goto-char (point-min))
+	      (while (re-search-forward "^* \\([^:\n]+:\\(:\\|[^.\n]+\\).\\)" nil 'move)
+		;; Fold case straight away; `member-ignore-case' here wasteful.
+		(let ((x (downcase (match-string 1))))
+		  (if (member x seen)
+		      (delete-region
+		       (match-beginning 0)
+		       (if (re-search-forward "^[^ \t]" nil 'move)
+			   (goto-char (match-beginning 0))
+			 (point-max)))
+		    (push x seen)))))))))))
 
 ;; Note that on entry to this function the current-buffer must be the
 ;; *info* buffer; not the info tags buffer.
@@ -3836,10 +3837,10 @@ the variable `Info-file-list-for-emacs'."
 		((string-equal (downcase tag) "prev") Info-prev-link-keymap)
 		((string-equal (downcase tag) "next") Info-next-link-keymap)
 		((string-equal (downcase tag) "up"  ) Info-up-link-keymap))))))
-        
+
         (when (> Info-breadcrumbs-depth 0)
           (Info-insert-breadcrumbs))
-        
+
         ;; Treat header line.
         (when Info-use-header-line
           (goto-char (point-min))
