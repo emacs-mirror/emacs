@@ -1,11 +1,11 @@
 2008-09-03  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-defs.el (c-version): Incremented to 5.31.6.
+	* progmodes/cc-defs.el (c-version): Increment to 5.31.6.
 
-	* progmodes/cc-awk.el:
-	* progmodes/cc-fonts.el:
-	* progmodes/cc-engine.el:
-	Copy in some minor bug fixes from the trunk.
+2008-09-03  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/cc-fonts.el (gtkdoc-font-lock-doc-comments): Highlight
+	name of parameters in document body.  (sync from trunk 2007-08-23)
 
 2008-08-30  Glenn Morris  <rgm@gnu.org>
 
