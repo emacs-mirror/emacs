@@ -1207,7 +1207,7 @@ window itself is specified by the variable `help-window'."
 (defmacro with-help-window (buffer-name &rest body)
   "Display buffer BUFFER-NAME in a help window evaluating BODY.
 Select help window if the actual value of the user option
-`help-window-select' says so."
+`help-window-select' says so.  Return last value in BODY."
   (declare (indent 1) (debug t))
   ;; Bind list-of-frames to `frame-list' and list-of-window-tuples to a
   ;; list of one <window window-buffer window-start window-point> tuple
@@ -1222,23 +1222,22 @@ Select help window if the actual value of the user option
 		     list))
 	     'no-mini t)
 	    list)))
-     ;; We set `help-window' to t in order to trigger `help-mode-finish'
-     ;; to set `help-window' to the actual help window.
+     ;; Make `help-window' t to trigger `help-mode-finish' to set
+     ;; `help-window' to the actual help window.
      (setq help-window t)
      ;; Make `help-window-point-marker' point nowhere (the only place
      ;; where this should be set to a buffer position is within BODY).
      (set-marker help-window-point-marker nil)
-
-     (with-output-to-temp-buffer ,buffer-name
-       (progn ,@body))
-
-     (when (windowp help-window)
-       ;; Set up help window.
-       (help-window-setup list-of-frames list-of-window-tuples))
-
-     ;; Reset `help-window' to nil to avoid confusing future calls of
-     ;; `help-mode-finish' by "plain" `with-output-to-temp-buffer'.
-     (setq help-window nil)))
+     (prog1
+	 ;; Return value returned by `with-output-to-temp-buffer'.
+	 (with-output-to-temp-buffer ,buffer-name
+	   (progn ,@body))
+       (when (windowp help-window)
+	 ;; Set up help window.
+	 (help-window-setup list-of-frames list-of-window-tuples))
+       ;; Reset `help-window' to nil to avoid confusing future calls of
+       ;; `help-mode-finish' with plain `with-output-to-temp-buffer'.
+       (setq help-window nil))))
 
 (provide 'help)
 

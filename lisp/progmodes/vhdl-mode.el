@@ -7004,6 +7004,9 @@ else indent `correctly'."
   (interactive "*P")
   (vhdl-prepare-search-2
    (cond
+    ;; indent region if region is active
+    ((and (not (featurep 'xemacs)) (use-region-p))
+     (vhdl-indent-region (region-beginning) (region-end) nil))
     ;; expand word
     ((= (char-syntax (preceding-char)) ?w)
      (let ((case-fold-search (not vhdl-word-completion-case-sensitive))

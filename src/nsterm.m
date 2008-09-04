@@ -78,6 +78,7 @@ int term_trace_num = 0;
 #define KEY_NS_INSERT_WORKING_TEXT     ((1<<28)|(0<<16)|9)
 #define KEY_NS_DELETE_WORKING_TEXT     ((1<<28)|(0<<16)|10)
 #define KEY_NS_SPI_SERVICE_CALL        ((1<<28)|(0<<16)|11)
+#define KEY_NS_NEW_FRAME               ((1<<28)|(0<<16)|12)
 
 /* Convert a symbol indexed with an NSxxx value to a value as defined
    in keyboard.c (lispy_function_key). I hope this is a correct way
@@ -167,13 +168,6 @@ Lisp_Object ns_control_modifier;
    the Function modifer (laptops).  May be any of the modifier lisp symbols. */
 Lisp_Object ns_function_modifier;
 
-/* A floating point value specifying the rate at which to blink the cursor.
-   YES indicates 0.5, NO indicates no blinking. */
-Lisp_Object ns_cursor_blink_rate;
-
-/* Used for liason with core emacs cursor-blink-mode. */
-Lisp_Object ns_cursor_blink_mode;
-
 /* A floating point value specifying vertical stretch (positive) or shrink
   (negative) of text line spacing.  Zero means default spacing.
   YES indicates 0.5, NO indicates 0.0. */
@@ -234,7 +228,6 @@ static BOOL send_appdefined = YES;
 static NSEvent *last_appdefined_event = 0;
 static NSTimer *timed_entry = 0;
 static NSTimer *fd_entry = nil;
-static NSTimer *cursor_blink_entry = nil;
 static NSTimer *scroll_repeat_entry = nil;
 static fd_set select_readfds, t_readfds;
 static struct timeval select_timeout;
@@ -785,7 +778,7 @@ ns_unfocus (struct frame *f)
 
 
 static void
-ns_clip_to_row (struct window *w, struct glyph_row *row, int area, GC gc)
+ns_clip_to_row (struct window *w, struct glyph_row *row, int area, BOOL gc)
 /* --------------------------------------------------------------------------
      23: Internal (but parallels other terms): Focus drawing on given row
    -------------------------------------------------------------------------- */
@@ -1458,17 +1451,13 @@ ns_get_color (const char *name, NSColor **col)
     NSEnumerator *lenum, *cenum;
     NSString *name;
     NSColorList *clist;
+
 #ifdef NS_IMPL_GNUSTEP
     /* XXX: who is wrong, the requestor or the implementation? */
     if ([nsname compare: @"Highlight" options: NSCaseInsensitiveSearch]
         == NSOrderedSame)
       nsname = @"highlightColor";
 #endif
-    if ([nsname compare: @"dark blue" options: NSCaseInsensitiveSearch]
-        == NSOrderedSame
-      || [nsname compare: @"darkblue" options: NSCaseInsensitiveSearch]
-        == NSOrderedSame)
-      nsname = @"navy blue";
 
     lenum = [[NSColorList availableColorLists] objectEnumerator];
     while ( (clist = [lenum nextObject]) && new == nil)
@@ -2212,7 +2201,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       int oldVH = row->visible_height;
       row->visible_height = p->h;
       row->y -= rowY - p->y;
-      ns_clip_to_row (w, row, -1, NULL);
+      ns_clip_to_row (w, row, -1, NO);
       row->y = oldY;
       row->visible_height = oldVH;
     }
@@ -2273,6 +2262,10 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
                        int on_p, int active_p)
 /* --------------------------------------------------------------------------
      External call (RIF): draw cursor
+     (modeled after x_draw_window_cursor and erase_phys_cursor.
+     FIXME: erase_phys_cursor is called from display_and_set_cursor,
+     called from update_window_cursor/x_update_window_end/...
+     Why do we have to duplicate this code?
    -------------------------------------------------------------------------- */
 {
   NSRect r, s;
@@ -2280,18 +2273,28 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   struct frame *f = WINDOW_XFRAME (w);
   struct glyph *phys_cursor_glyph;
   int overspill;
-  unsigned char drawGlyph = 0, cursorType, oldCursorType;
+  char drawGlyph = 0, cursorType, oldCursorType;
+  int new_cursor_type;
+  int new_cursor_width;
+  int active_cursor;
+  enum draw_glyphs_face hl;
+  struct glyph_matrix *active_glyphs = w->current_matrix;
+  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  int hpos = w->phys_cursor.hpos;
+  int vpos = w->phys_cursor.vpos;
+  struct glyph_row *cursor_row;
 
   NSTRACE (dumpcursor);
 
-  if (!on_p)
-      return;
+  if (!on_p) // check this?    && !w->phys_cursor_on_p)
+	return;
 
   w->phys_cursor_type = cursor_type;
-  w->phys_cursor_on_p = 1;
+  w->phys_cursor_on_p = on_p;
 
   if (cursor_type == NO_CURSOR)
     {
+      w->phys_cursor_on_p = 0;
       w->phys_cursor_width = 0;
       return;
     }
@@ -2313,7 +2316,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   r.size.height = h;
   r.size.width = w->phys_cursor_width;
 
-  /* PENDING: if we overwrite the internal border area, it does not get erased;
+  /* FIXME: if we overwrite the internal border area, it does not get erased;
      fix by truncating cursor, but better would be to erase properly */
   overspill = r.origin.x + r.size.width -
     WINDOW_TEXT_TO_FRAME_PIXEL_X (w, WINDOW_BOX_RIGHT_EDGE_X (w) 
@@ -2321,75 +2324,156 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   if (overspill > 0)
     r.size.width -= overspill;
 
-  /* PENDING: 23: use emacs stored f->cursor_type instead of ns-specific */
   oldCursorType = FRAME_CURSOR (f);
   cursorType = FRAME_CURSOR (f) = FRAME_NEW_CURSOR (f);
+  /* TODO: 23: use emacs stored cursor color instead of ns-specific */
   f->output_data.ns->current_cursor_color
     = f->output_data.ns->desired_cursor_color;
 
-  /* PENDING: only needed in rare cases with last-resort font in HELLO..
+  /* TODO: only needed in rare cases with last-resort font in HELLO..
      should we do this more efficiently? */
-  ns_clip_to_row (w, glyph_row, -1, NULL);
+  ns_clip_to_row (w, glyph_row, -1, NO);
 /*  ns_focus (f, &r, 1); */
 
-  if (FRAME_LAST_INACTIVE (f))
+  /* Why would this be needed?
+     if (FRAME_LAST_INACTIVE (f))
     {
-      /* previously hollow box; clear entire area */
+      * previously hollow box; clear entire area *
       [FRAME_BACKGROUND_COLOR (f) set];
       NSRectFill (r);
       drawGlyph = 1;
       FRAME_LAST_INACTIVE (f) = NO;
     }
+  */
 
   /* prepare to draw */
   if (cursorType == no_highlight || cursor_type == NO_CURSOR)
     {
       /* clearing for blink: erase the cursor itself */
+
+      /* No cursor displayed or row invalidated => nothing to do on the
+	 screen.  */
+      if (w->phys_cursor_type == NO_CURSOR)
+	return;
+
+      /* VPOS >= active_glyphs->nrows means that window has been resized.
+	 Don't bother to erase the cursor.  */
+      if (vpos >= active_glyphs->nrows)
+	return;
+
+      /* If row containing cursor is marked invalid, there is nothing we
+	 can do.  */
+      cursor_row = MATRIX_ROW (active_glyphs, vpos);
+      if (!cursor_row->enabled_p)
+	return;
+
+      /* If line spacing is > 0, old cursor may only be partially visible in
+	 window after split-window.  So adjust visible height.  */
+      cursor_row->visible_height = min (cursor_row->visible_height,
+					window_text_bottom_y (w) - cursor_row->y);
+
+      /* If row is completely invisible, don't attempt to delete a cursor which
+	 isn't there.  This can happen if cursor is at top of a window, and
+	 we switch to a buffer with a header line in that window.  */
+      if (cursor_row->visible_height <= 0)
+	return;
+
+      /* If cursor is in the fringe, erase by drawing actual bitmap there.  */
+      if (cursor_row->cursor_in_fringe_p)
+	{
+	  cursor_row->cursor_in_fringe_p = 0;
+	  draw_fringe_bitmap (w, cursor_row, 0);
+	  return;
+	}
+
+      /* This can happen when the new row is shorter than the old one.
+	 In this case, either draw_glyphs or clear_end_of_line
+	 should have cleared the cursor.  Note that we wouldn't be
+	 able to erase the cursor in this case because we don't have a
+	 cursor glyph at hand.  */
+      if (w->phys_cursor.hpos >= cursor_row->used[TEXT_AREA])
+	return;
+
+      /* If the cursor is in the mouse face area, redisplay that when
+	 we clear the cursor.  */
+      if (! NILP (dpyinfo->mouse_face_window)
+	  && w == XWINDOW (dpyinfo->mouse_face_window)
+	  && (vpos > dpyinfo->mouse_face_beg_row
+	      || (vpos == dpyinfo->mouse_face_beg_row
+		  && hpos >= dpyinfo->mouse_face_beg_col))
+	  && (vpos < dpyinfo->mouse_face_end_row
+	      || (vpos == dpyinfo->mouse_face_end_row
+		  && hpos < dpyinfo->mouse_face_end_col))
+	  /* Don't redraw the cursor's spot in mouse face if it is at the
+	     end of a line (on a newline).  The cursor appears there, but
+	     mouse highlighting does not.  */
+	  && cursor_row->used[TEXT_AREA] > hpos)
+	hl = DRAW_MOUSE_FACE;
+      else
+	hl = DRAW_NORMAL_TEXT;
+      drawGlyph = 1; // just draw the Glyph
       [FRAME_BACKGROUND_COLOR (f) set];
-      cursorType = oldCursorType; /* just clear what we had before */
+
+#ifdef NS_IMPL_COCOA
+      NSDisableScreenUpdates ();
+#endif
     }
   else
+    { 
+      cursorType = cursor_type;
+      hl = DRAW_CURSOR;
       [FRAME_CURSOR_COLOR (f) set];
+    
 
-  if (!active_p)
-    {
-      /* inactive window: ignore what we just set and use a hollow box */
-      cursorType = hollow_box;
-      [FRAME_CURSOR_COLOR (f) set];
-    }
+      if (!active_p)
+	{
+	  /* inactive window: ignore what we just set and use a hollow box */
+	  cursorType = HOLLOW_BOX_CURSOR;
+	}
 
-  switch (cursorType)
-    {
-    case no_highlight:
-      break;
-    case filled_box:
-      NSRectFill (r);
-      drawGlyph = 1;
-      break;
-    case hollow_box:
-      NSRectFill (r);
-      [FRAME_BACKGROUND_COLOR (f) set];
-      NSRectFill (NSInsetRect (r, 1, 1));
-      [FRAME_CURSOR_COLOR (f) set];
-      drawGlyph = 1;
-      break;
-    case underscore:
-      s = r;
-      s.origin.y += lrint (0.75 * s.size.height);
-      s.size.height = lrint (s.size.height * 0.25);
-      NSRectFill (s);
-      break;
-    case bar:
-      s = r;
-      s.size.width = 1;
-      NSRectFill (s);
-      break;
+#ifdef NS_IMPL_COCOA
+      NSDisableScreenUpdates ();
+#endif
+
+      switch (cursorType)
+	{
+	case NO_CURSOR: // no_highlight:
+	  break;
+	case FILLED_BOX_CURSOR: //filled_box:
+	  NSRectFill (r);
+	  drawGlyph = 1;
+	  break;
+	case HOLLOW_BOX_CURSOR: //hollow_box:
+	  NSRectFill (r);
+	  [FRAME_BACKGROUND_COLOR (f) set];
+	  NSRectFill (NSInsetRect (r, 1, 1));
+	  [FRAME_CURSOR_COLOR (f) set];
+	  drawGlyph = 1;
+	  break;
+	case HBAR_CURSOR: // underscore:
+	  s = r;
+	  s.origin.y += lrint (0.75 * s.size.height);
+	  s.size.height = cursor_width; //lrint (s.size.height * 0.25);
+	  NSRectFill (s);
+	  break;
+	case BAR_CURSOR: //bar:
+	  s = r;
+	  s.size.width = cursor_width;
+	  NSRectFill (s);
+	  drawGlyph = 1;
+	  break;
+	}
     }
   ns_unfocus (f);
 
   /* if needed, draw the character under the cursor */
   if (drawGlyph)
-    draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
+    draw_phys_cursor_glyph (w, glyph_row, hl);
+
+#ifdef NS_IMPL_COCOA
+  NSEnableScreenUpdates ();
+#endif
+
 }
 
 
@@ -2433,6 +2517,8 @@ hide_hourglass ()
 {
   if (!hourglass_shown_p)
     return;
+
+  BLOCK_INPUT;
 
   /* TODO: remove NSProgressIndicator from all frames */
 
@@ -2849,13 +2935,21 @@ ns_draw_glyph_string (struct glyph_string *s)
 
   NSTRACE (ns_draw_glyph_string);
 
-  if (s->next && s->right_overhang && !s->for_overlaps && s->hl != DRAW_CURSOR)
+  if (s->next && s->right_overhang && !s->for_overlaps/* && s->hl != DRAW_CURSOR*/)
     {
-      xassert (s->next->img == NULL);
-      n = ns_get_glyph_string_clip_rect (s->next, r);
-      ns_focus (s->f, r, n);
-      ns_maybe_dumpglyphs_background (s->next, 1);
-      ns_unfocus (s->f);
+      int width;
+      struct glyph_string *next;
+
+      for (width = 0, next = s->next; next;
+	   width += next->width, next = next->next)
+	if (next->first_glyph->type != IMAGE_GLYPH)
+          {
+            n = ns_get_glyph_string_clip_rect (s->next, r);
+            ns_focus (s->f, r, n);
+            ns_maybe_dumpglyphs_background (s->next, 1);
+            ns_unfocus (s->f);
+            next->num_clips = 0;
+          }
     }
 
   if (!s->for_overlaps && s->face->box != FACE_NO_BOX
@@ -2930,7 +3024,8 @@ ns_draw_glyph_string (struct glyph_string *s)
       n = ns_get_glyph_string_clip_rect (s, r);
       ns_focus (s->f, r, n);
 
-      if (s->for_overlaps || s->gidx > 0)
+      if (s->for_overlaps || (s->cmp_from > 0
+			      && ! s->first_glyph->u.cmp.automatic))
         s->background_filled_p = 1;
       else      /* 1 */
         ns_maybe_dumpglyphs_background
@@ -2941,8 +3036,8 @@ ns_draw_glyph_string (struct glyph_string *s)
                      (s->for_overlaps ? NS_DUMPGLYPH_FOREGROUND :
                       NS_DUMPGLYPH_NORMAL));
       ns_tmp_font = (struct nsfont_info *)s->face->font;
-      if (ns_tmp_font == ~0 || ns_tmp_font == NULL)
-          ns_tmp_font = FRAME_FONT (s->f);
+      if (ns_tmp_font == NULL)
+          ns_tmp_font = (struct nsfont_info *)FRAME_FONT (s->f);
 
       ns_tmp_font->font.driver->draw
         (s, 0, s->nchars, s->x, s->y,
@@ -2965,6 +3060,7 @@ ns_draw_glyph_string (struct glyph_string *s)
       ns_unfocus (s->f);
     }
 
+  s->num_clips = 0;
 }
 
 
@@ -3070,14 +3166,15 @@ ns_read_socket (struct terminal *terminal, int expected,
 
   /* If have pending open-file requests, attend to the next one of those. */
   if (ns_pending_files && [ns_pending_files count] != 0
-      && [NSApp openFile: [ns_pending_files objectAtIndex: 0]])
+      && [(EmacsApp *)NSApp openFile: [ns_pending_files objectAtIndex: 0]])
     {
       [ns_pending_files removeObjectAtIndex: 0];
     }
   /* Deal with pending service requests. */
   else if (ns_pending_service_names && [ns_pending_service_names count] != 0
-    && [NSApp fulfillService: [ns_pending_service_names objectAtIndex: 0]
-                     withArg: [ns_pending_service_args objectAtIndex: 0]])
+    && [(EmacsApp *)
+         NSApp fulfillService: [ns_pending_service_names objectAtIndex: 0]
+                      withArg: [ns_pending_service_args objectAtIndex: 0]])
     {
       [ns_pending_service_names removeObjectAtIndex: 0];
       [ns_pending_service_args removeObjectAtIndex: 0];
@@ -3172,35 +3269,6 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
                                              userInfo: 0
                                               repeats: YES]
                retain];
-
-  if (!NILP (ns_cursor_blink_mode) && !cursor_blink_entry)
-    {
-      if (!NUMBERP (ns_cursor_blink_rate))
-        ns_cursor_blink_rate = make_float (0.5);
-      cursor_blink_entry = [[NSTimer
-        scheduledTimerWithTimeInterval: XFLOATINT (ns_cursor_blink_rate)
-                                target: NSApp
-                              selector: @selector (cursor_blink_handler:)
-                              userInfo: 0
-                               repeats: YES]
-                             retain];
-    }
-  else if (NILP (ns_cursor_blink_mode) && cursor_blink_entry)
-    {
-      if (NUMBERP (ns_cursor_blink_rate))
-          ns_cursor_blink_rate = Qnil;
-      struct ns_display_info *dpyinfo = x_display_list; /* HACK */
-      [cursor_blink_entry invalidate];
-      [cursor_blink_entry release];
-      cursor_blink_entry = 0;
-      if (dpyinfo->x_highlight_frame)
-        {
-          Lisp_Object tem
-	    = get_frame_param (dpyinfo->x_highlight_frame, Qcursor_type);
-          dpyinfo->x_highlight_frame->output_data.ns->desired_cursor
-	    = ns_lisp_to_cursor_type (tem);
-        }
-    }
 
   /* Let Application dispatch events until it receives an event of the type
        NX_APPDEFINED, which should only be sent by timeout_handler.  */
@@ -3435,7 +3503,7 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 
    ========================================================================== */
 
-static Lisp_Object ns_string_to_lispmod (char *s)
+static Lisp_Object ns_string_to_lispmod (const char *s)
 /* --------------------------------------------------------------------------
      Convert modifier name to lisp symbol
    -------------------------------------------------------------------------- */
@@ -3487,8 +3555,6 @@ ns_set_default_prefs ()
   ns_command_modifier = Qsuper;
   ns_control_modifier = Qcontrol;
   ns_function_modifier = Qnone;
-  ns_cursor_blink_rate = Qnil;
-  ns_cursor_blink_mode = Qnil;
   ns_expand_space = make_float (0.0);
   ns_antialias_text = Qt;
   ns_antialias_threshold = 10.0; /* not exposed to lisp side */
@@ -3795,10 +3861,6 @@ ns_term_init (Lisp_Object display_name)
              Qnil, Qnil, NO, YES);
   if (NILP (ns_function_modifier))
     ns_function_modifier = Qnone;
-  ns_default ("CursorBlinkRate", &ns_cursor_blink_rate,
-             make_float (0.5), Qnil, YES, NO);
-  if (NUMBERP (ns_cursor_blink_rate))
-    ns_cursor_blink_mode = Qt;
   ns_default ("ExpandSpace", &ns_expand_space,
              make_float (0.5), make_float (0.0), YES, NO);
   ns_default ("GSFontAntiAlias", &ns_antialias_text,
@@ -3822,37 +3884,37 @@ ns_term_init (Lisp_Object display_name)
     ns_selection_color = NS_SELECTION_COLOR_DEFAULT;
 
   {
-    id cl;
-    Lisp_Object tem, tem1;
-    extern Lisp_Object Vsource_directory;
-
-    cl = [NSColorList colorListNamed: @"Emacs"];
+    NSColorList *cl = [NSColorList colorListNamed: @"Emacs"];
 
     if ( cl == nil )
       {
-        /* first try data_dir, then invocation-dir
-           and finally source-directory/etc */
-        tem1 = tem
-	  = Fexpand_file_name (build_string ("Emacs.clr"), Vdata_directory);
-        if (NILP (Ffile_exists_p (tem)))
-          {
-            tem = Fexpand_file_name (build_string ("Emacs.clr"),
-                                     Vinvocation_directory);
-            if (NILP (Ffile_exists_p (tem)))
-              {
-                Lisp_Object newdir
-		  = Fexpand_file_name (build_string ("etc/"),
-				       Vsource_directory);
-                tem = Fexpand_file_name (build_string ("Emacs.clr"),
-                                         newdir);
-              }
-          }
+        Lisp_Object color_file, color_map, color;
+        int r,g,b;
+        unsigned long c;
+        char *name;
 
-        cl = [[NSColorList alloc]
-               initWithName: @"Emacs"
-                   fromFile: [NSString stringWithCString: SDATA (tem)]];
-        if (cl ==nil)
-          fatal ("Could not find %s.\n", SDATA (tem1));
+        color_file = Fexpand_file_name (build_string ("rgb.txt"),
+                         Fsymbol_value (intern ("data-directory")));
+        if (NILP (Ffile_readable_p (color_file)))
+          fatal ("Could not find %s.\n", SDATA (color_file));
+
+        color_map = Fx_load_color_file (color_file);
+        if (NILP (color_map))
+          fatal ("Could not read %s.\n", SDATA (color_file));
+
+        cl = [[NSColorList alloc] initWithName: @"Emacs"];
+        for ( ; CONSP (color_map); color_map = XCDR (color_map))
+          {
+            color = XCAR (color_map);
+            name = SDATA (XCAR (color));
+            c = XINT (XCDR (color));
+            [cl setColor:
+                  [NSColor colorWithCalibratedRed: RED_FROM_ULONG (c) / 255.0
+                                            green: GREEN_FROM_ULONG (c) / 255.0
+                                             blue: BLUE_FROM_ULONG (c) / 255.0
+                                            alpha: 1.0]
+                  forKey: [NSString stringWithUTF8String: name]];
+          }
         [cl writeToFile: nil];
       }
   }
@@ -3874,13 +3936,14 @@ ns_term_init (Lisp_Object display_name)
 #ifdef NS_IMPL_COCOA
   {
     NSMenu *appMenu;
-    id<NSMenuItem> item;
+    NSMenuItem *item;
     /* set up the application menu */
     svcsMenu = [[EmacsMenu alloc] initWithTitle: @"Services"];
     [svcsMenu setAutoenablesItems: NO];
     appMenu = [[EmacsMenu alloc] initWithTitle: @"Emacs"];
     [appMenu setAutoenablesItems: NO];
     mainMenu = [[EmacsMenu alloc] initWithTitle: @""];
+    dockMenu = [[EmacsMenu alloc] initWithTitle: @""];
 
     [appMenu insertItemWithTitle: @"About Emacs"
                           action: @selector (orderFrontStandardAboutPanel:)
@@ -3919,6 +3982,10 @@ ns_term_init (Lisp_Object display_name)
                            keyEquivalent: @""
                                  atIndex: 0];
     [mainMenu setSubmenu: appMenu forItem: item];
+    [dockMenu insertItemWithTitle: @"New Frame"
+			   action: @selector (newFrame:)
+		    keyEquivalent: @""
+			  atIndex: 0];
 
     [NSApp setMainMenu: mainMenu];
     [NSApp setAppleMenu: appMenu];
@@ -4027,6 +4094,40 @@ ns_term_shutdown (int sig)
 }
 
 
+- (void)newFrame: (id)sender
+{
+  struct frame *emacsframe = SELECTED_FRAME ();
+  NSEvent *theEvent = [NSApp currentEvent];
+
+  if (!emacs_event)
+    return;
+  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->code = KEY_NS_NEW_FRAME;
+  emacs_event->modifiers = 0;
+  EV_TRAILER (theEvent);
+}
+
+
+/* Open a file (used by below, after going into queue read by ns_read_socket) */
+- (BOOL) openFile: (NSString *)fileName
+{
+  struct frame *emacsframe = SELECTED_FRAME ();
+  NSEvent *theEvent = [NSApp currentEvent];
+
+  if (!emacs_event)
+    return NO;
+
+  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->code = KEY_NS_OPEN_FILE_LINE;
+  ns_input_file = append2 (ns_input_file, build_string ([fileName UTF8String]));
+  ns_input_line = Qnil; /* can be start or cons start,end */
+  emacs_event->modifiers =0;
+  EV_TRAILER (theEvent);
+
+  return YES;
+}
+
+
 /* **************************************************************************
 
       EmacsApp delegate implementation
@@ -4078,26 +4179,6 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
 }
 
 
-/* Open a file (used by below, after going into queue read by ns_read_socket) */
--(BOOL) openFile: (NSString *)fileName
-{
-  struct frame *emacsframe = SELECTED_FRAME ();
-  NSEvent *theEvent = [NSApp currentEvent];
-
-  if (!emacs_event)
-    return NO;
-
-  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
-  emacs_event->code = KEY_NS_OPEN_FILE_LINE;
-  ns_input_file = append2 (ns_input_file, build_string ([fileName UTF8String]));
-  ns_input_line = Qnil; /* can be start or cons start,end */
-  emacs_event->modifiers =0;
-  EV_TRAILER (theEvent);
-
-  return YES;
-}
-
-
 /*   Notification from the Workspace to open a file */
 - (BOOL)application: sender openFile: (NSString *)file
 {
@@ -4129,8 +4210,22 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
   NSString *file;
   while ((file = [files nextObject]) != nil)
     [ns_pending_files addObject: file];
-  return YES;
+
+/* TODO: when GNUstep implements this (and we require that version of
+         GNUstep), remove. */
+#ifndef NS_IMPL_GNUSTEP
+  [self replyToOpenOrPrint: NSApplicationDelegateReplySuccess];
+#endif /* !NS_IMPL_GNUSTEP */
+
 }
+
+
+/* Handle dock menu requests.  */
+- (NSMenu *)applicationDockMenu: (NSApplication *) sender
+{
+  return dockMenu;
+}
+
 
 /* TODO: these may help w/IO switching btwn terminal and NSApp */
 - (void)applicationDidBecomeActive: (NSNotification *)notification
@@ -4160,31 +4255,6 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
 }
 
 extern void update_window_cursor (struct window *w, int on);
-
-- (void)cursor_blink_handler: (NSTimer *)cursorEntry
-/* --------------------------------------------------------------------------
-     Flash the cursor
-   -------------------------------------------------------------------------- */
-{
-  struct ns_display_info *dpyinfo = x_display_list; /*HACK, but OK for now */
-  struct frame *f = dpyinfo->x_highlight_frame;
-  NSTRACE (cursor_blink_handler);
-
-  if (!f)
-    return;
-  if (f->output_data.ns->current_cursor == no_highlight)
-    {
-      Lisp_Object tem = get_frame_param (f, Qcursor_type);
-      f->output_data.ns->desired_cursor = ns_lisp_to_cursor_type (tem);
-    }
-  else
-    {
-      f->output_data.ns->desired_cursor = no_highlight;
-    }
-  update_window_cursor (XWINDOW (FRAME_SELECTED_WINDOW (f)), 1);
-  /*x_update_cursor (f, 1); */
-}
-
 
 - (void)fd_handler: (NSTimer *) fdEntry
 /* --------------------------------------------------------------------------
@@ -4347,7 +4417,6 @@ extern void update_window_cursor (struct window *w, int on);
   if (!emacs_event)
     return;
 
-/*#if defined (COCOA_EXPERIMENTAL_CTRL_G) */
  if (![[self window] isKeyWindow])
    {
      /* XXX: Using NO_SOCK_SIGIO like Carbon causes a condition in which,
@@ -4358,10 +4427,9 @@ extern void update_window_cursor (struct window *w, int on);
          NSView most recently updated (I guess), which is not the correct one.
          UPDATE: After multi-TTY merge this happens even w/o NO_SOCK_SIGIO */
      if ([[theEvent window] isKindOfClass: [EmacsWindow class]])
-         [[(EmacsView *)[theEvent window] delegate] keyDown: theEvent];
+         [(EmacsView *)[[theEvent window] delegate] keyDown: theEvent];
      return;
    }
-/*#endif */
 
   if (nsEvArray == nil)
     nsEvArray = [[NSMutableArray alloc] initWithCapacity: 1];
@@ -4638,9 +4706,9 @@ if (NS_KEYLOG) NSLog (@"firstRectForCharRange request");
   return rect;
 }
 
-- (long)conversationIdentifier
+- (NSInteger)conversationIdentifier
 {
-  return (long)self;
+  return (NSInteger)self;
 }
 
 /* TODO: below here not yet implemented correctly, but may not be needed */
@@ -4831,8 +4899,6 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 
   NSTRACE (windowShouldClose);
   windowClosing = YES;
-  if (ns_window_num <= 1)
-    return NO;
   if (!emacs_event)
     return NO;
   emacs_event->kind = DELETE_WINDOW_EVENT;
@@ -4939,7 +5005,13 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
     x_set_window_size (emacsframe, 0, cols, rows);
 
   ns_send_appdefined (-1);
+
+  /* The following line causes a crash on GNUstep.  Adrian Robert
+     says he doesn't remember why he added this line, but removing it
+     doesn't seem to cause problems on OSX, either.  */
+#if 0
   [NSApp stopModal];
+#endif
 }
 
 
@@ -5239,7 +5311,8 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
     context_menu_value = [sender tag];
   else
     find_and_call_menu_selection (emacsframe, emacsframe->menu_bar_items_used,
-                                  emacsframe->menu_bar_vector, [sender tag]);
+                                  emacsframe->menu_bar_vector,
+                                  (void *)[sender tag]);
   ns_send_appdefined (-1);
   return self;
 }
@@ -5989,15 +6062,12 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   int cursorType
     = ns_lisp_to_cursor_type (get_frame_param (frame, Qcursor_type));
   prevExpandSpace = XFLOATINT (ns_expand_space);
-  prevBlinkRate = NILP (ns_cursor_blink_rate)
-    ? 0 : XFLOATINT (ns_cursor_blink_rate);
 
 #ifdef NS_IMPL_COCOA
   prevUseHighlightColor = ns_use_system_highlight_color;
 #endif
 
   [expandSpaceSlider setFloatValue: prevExpandSpace];
-  [cursorBlinkSlider setFloatValue: prevBlinkRate];
   [cursorTypeMatrix selectCellWithTag: (cursorType == filled_box ? 1 :
                                         (cursorType == bar ? 2 :
                                          (cursorType == underscore ? 3 : 4)))];
@@ -6026,9 +6096,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   int ctrlTag = [[controlModMenu selectedItem] tag];
   int fnTag = [[functionModMenu selectedItem] tag];
 #endif
-  float blinkRate = [cursorBlinkSlider floatValue];
   float expandSpace = [expandSpaceSlider floatValue];
-  Lisp_Object old_cursor_blink_mode;
 
   if (expandSpace != prevExpandSpace)
     {
@@ -6038,38 +6106,6 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 /*         FRAME_LINE_HEIGHT (frame) *= (expandSpace / prevExpandSpace);
            x_set_window_size (frame, 0, frame->text_cols, frame->text_lines); */
       prevExpandSpace = expandSpace;
-    }
-  if (blinkRate != prevBlinkRate)
-    {
-      old_cursor_blink_mode = ns_cursor_blink_mode;
-      if (blinkRate == 0.0)
-        {
-          ns_cursor_blink_rate = Qnil;
-          ns_cursor_blink_mode = Qnil;
-        }
-      else
-        {
-          ns_cursor_blink_rate = make_float (blinkRate);
-          ns_cursor_blink_mode = Qt;
-        }
-      if (!EQ (ns_cursor_blink_mode, old_cursor_blink_mode))
-          Feval (Fcons (intern ("blink-cursor-mode"), Qnil));
-
-      if (blinkRate != 0.0 && prevBlinkRate != 0.0)
-        {  /* if changed rates, remove blink handler so change picked up */
-          struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (frame);
-          [cursor_blink_entry invalidate];
-          [cursor_blink_entry release];
-          cursor_blink_entry = 0;
-          if (dpyinfo->x_highlight_frame)
-            {
-              Lisp_Object tem
-		= get_frame_param (dpyinfo->x_highlight_frame, Qcursor_type);
-              dpyinfo->x_highlight_frame->output_data.ns->desired_cursor
-		= ns_lisp_to_cursor_type (tem);
-            }
-        }
-      prevBlinkRate = blinkRate;
     }
   FRAME_NEW_CURSOR (frame)
     = (cursorTag == 1 ? filled_box
@@ -6156,6 +6192,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 /* ==========================================================================
 
    Font-related functions; these used to be in nsfaces.m
+   The XLFD functions (115 lines) are an abomination that should be removed.
 
    ========================================================================== */
 
@@ -6204,141 +6241,9 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 }
 
 
-Lisp_Object
-ns_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames)
-/* --------------------------------------------------------------------------
-     This is used by the xfaces system.  It is expected to speak XLFD.
-   -------------------------------------------------------------------------- */
-{
-  Lisp_Object list = Qnil,
-    rpattern,
-    key,
-    tem,
-    args[2];
-  struct re_pattern_buffer *bufp;
-  id fm = [NSFontManager sharedFontManager];
-  NSEnumerator *fenum, *senum;
-  NSArray *membInfo;
-  NSString *fontname;
-  const char *xlfdName;
-  char *pattFam;
-  char *patt;
-  NSString *famName;
-
-  NSTRACE (ns_list_fonts);
-
-  CHECK_STRING (pattern);
-  patt = SDATA (pattern);
-
-#if 0
-/* temporary: for font_backend, we use fontsets, and when these are defined,
-   the old XLFD-based system is used; eventually this will be replaced by
-   backend code, but for now we allow specs that are just family names */
-      /* if pattern is not XLFD, panic now */
-      if (patt[0] != '-')
-        error ("ns_list_fonts: X font name (XLFD) expected.");
-
-      /* if unicode encoding not requested, also die */
-      if (!strstr (patt, "iso10646") && patt[strlen (patt)-3] != '*')
-        return Qnil;
-#endif /* 0 */
-
-  key = f ? Fcons (pattern, make_number (maxnames)) : Qnil;
-  tem = f ? XCDR (FRAME_NS_DISPLAY_INFO (f)->name_list_element) : Qnil;
-
-  /* See if we cached the result for this particular query.
-     The cache is an alist of the form:
-     ((((PATTERN . MAXNAMES) FONTNAME) ...) ...)
-  */
-  if (f && !NILP (list = Fassoc (key, tem)))
-    {
-      list = Fcdr_safe (list);
-      /* We have a cached list.  Don't have to get the list again.  */
-      if (!NILP (list))
-        return list;
-    }
-
-  if (patt[0] != '-')
-      pattFam = patt;
-  else
-      pattFam = ns_xlfd_to_fontname (patt);
-  /* XXX: '*' at beginning matches literally.. */
-  if (pattFam[0] == '*')
-    pattFam[0] = '.';
-
-  /* must start w/family name, but can have other stuff afterwards
-    (usually bold and italic specifiers) */
-  args[0] = build_string ("^");
-  args[1] = build_string (pattFam);
-  rpattern = Fconcat (2, args);
-  bufp = compile_pattern (rpattern, 0, Vascii_canon_table, 0, 0);
-
-  list = Qnil;
-  fenum = [[fm availableFontFamilies] objectEnumerator];
-  while ( (famName = [fenum nextObject]) )
-    {
-      NSMutableString *tmp = [famName mutableCopy];
-      const char *fname;
-      NSRange r;
-
-      /* remove spaces, to look like postscript name */
-      while ((r = [tmp rangeOfString: @" "]).location != NSNotFound)
-        [tmp deleteCharactersInRange: r];
-
-      fname = [tmp UTF8String];
-      int len = strlen (fname);
-      BOOL foundItal;
-      const char *synthItalFont;
-
-      if (re_search (bufp, fname, len, 0, len, 0) >= 0)
-        {
-          /* Found a family.  Add all variants.  If we have no italic variant,
-             add a synthItal. */
-          senum =[[fm availableMembersOfFontFamily: famName] objectEnumerator];
-          foundItal = NO;
-          synthItalFont = NULL;
-          while (membInfo = [senum nextObject])
-            {
-              xlfdName
-		= ns_fontname_to_xlfd ([[membInfo objectAtIndex: 0]
-					 UTF8String]);
-              list = Fcons (build_string (xlfdName), list);
-              if (!synthItalFont)
-                {
-                  NSString *synthName
-		    = [[membInfo objectAtIndex: 0]
-			stringByAppendingString: @"-synthItal"];
-                  synthItalFont = [synthName UTF8String];
-                }
-              else if ([[membInfo objectAtIndex: 3] intValue]
-                         & NSItalicFontMask)
-                foundItal = YES;
-            }
-          if (foundItal == NO)
-            {
-              xlfdName = ns_fontname_to_xlfd (synthItalFont);
-              list = Fcons (build_string (xlfdName), list);
-            }
-        }
-      [tmp release];
-    }
-
-  /* fallback */
-  if (XFASTINT (Flength (list)) == 0)
-      list = Fcons (build_string (ns_fontname_to_xlfd ("Monaco")), list);
-
-  /* store result in cache */
-  if (f != NULL)
-    XCDR_AS_LVALUE (FRAME_NS_DISPLAY_INFO (f)->name_list_element)
-      = Fcons (Fcons (key, list),
-               XCDR (FRAME_NS_DISPLAY_INFO (f)->name_list_element));
-  return list;
-}
-
-
 /* XLFD: -foundry-family-weight-slant-swidth-adstyle-pxlsz-ptSz-resx-resy-spc-avgWidth-rgstry-encoding */
 
-const char *
+static const char *
 ns_font_to_xlfd (NSFont *nsfont)
 /* --------------------------------------------------------------------------
     Convert an NS font name to an X font name (XLFD).
@@ -6347,7 +6252,7 @@ ns_font_to_xlfd (NSFont *nsfont)
 {
   NSFontManager *mgr = [NSFontManager sharedFontManager];
   NSString *sname = [nsfont /*familyName*/fontName];
-  char *famName = [sname UTF8String];
+  char *famName = (char *)[sname UTF8String];
   char *weightStr = [mgr fontNamed: sname hasTraits: NSBoldFontMask] ?
       "bold" : "medium";
   char *slantStr = [mgr fontNamed: sname hasTraits: NSItalicFontMask] ?
@@ -6358,7 +6263,7 @@ ns_font_to_xlfd (NSFont *nsfont)
   int i, len;
 
   /* change '-' to '$' to avoid messing w/XLFD separator */
-  for (len =strlen (famName), i =0; i<len; i++)
+  for (len = strlen (famName), i =0; i<len; i++)
     if (famName[i] == '-')
       {
         famName[i] = '\0';
@@ -6373,7 +6278,7 @@ ns_font_to_xlfd (NSFont *nsfont)
   return xlfd;
 }
 
-const char *
+static const char *
 ns_fontname_to_xlfd (const char *name)
 /* --------------------------------------------------------------------------
     Convert an NS font name to an X font name (XLFD).
@@ -6453,6 +6358,7 @@ ns_xlfd_to_fontname (const char *xlfd)
   return ret;
 }
 
+
 void
 syms_of_nsterm ()
 {
@@ -6513,14 +6419,6 @@ Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to none means that the function key is not interpreted by Emacs at all,\n\
 allowing it to be used at a lower level for accented character entry.");
 
-  DEFVAR_LISP ("ns-cursor-blink-rate", &ns_cursor_blink_rate,
-               "Rate at which the Emacs cursor blinks (in seconds).\n\
-Set to nil to disable blinking.");
-
-  DEFVAR_LISP ("ns-cursor-blink-mode", &ns_cursor_blink_mode,
-               "Internal variable -- use M-x blink-cursor-mode or preferences\n\
-panel to control this setting.");
-
   DEFVAR_LISP ("ns-expand-space", &ns_expand_space,
                "Amount by which spacing between lines is expanded (positive)\n\
 or shrunk (negative).  Zero (the default) means standard line height.\n\
@@ -6555,7 +6453,7 @@ or shrunk (negative).  Zero (the default) means standard line height.\n\
   Qcontrol = intern ("control");
   Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
 
-  /*PENDING: move to common code */
+  /* TODO: move to common code */
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
@@ -6588,8 +6486,8 @@ baseline level.  The default value is nil.  */);
 
   /* Tell emacs about this window system. */
   Fprovide (intern ("ns"), Qnil);
-  /* PENDING: try to move this back into lisp,  ns-win.el loaded too late
-              right now */
+  /* TODO: try to move this back into lisp,  ns-win.el loaded too late
+           right now */
   {
     Lisp_Object args[3] = { intern ("ns-version-string"), build_string ("9.0"),
                     build_string ("NS Window system port version number.") };

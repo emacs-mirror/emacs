@@ -839,6 +839,7 @@ ELCFILES = \
 	$(lisp)/net/hmac-md5.elc \
 	$(lisp)/net/imap.elc \
 	$(lisp)/net/ldap.elc \
+	$(lisp)/net/mairix.elc \
 	$(lisp)/net/net-utils.elc \
 	$(lisp)/net/netrc.elc \
 	$(lisp)/net/newst-backend.elc \
@@ -926,6 +927,7 @@ ELCFILES = \
 	$(lisp)/org/org-gnus.elc \
 	$(lisp)/org/org-id.elc \
 	$(lisp)/org/org-info.elc \
+	$(lisp)/org/org-install.elc \
 	$(lisp)/org/org-irc.elc \
 	$(lisp)/org/org-jsinfo.elc \
 	$(lisp)/org/org-mac-message.elc \
@@ -1118,7 +1120,6 @@ ELCFILES = \
 	$(lisp)/tempo.elc \
 	$(lisp)/term.elc \
 	$(lisp)/term/common-win.elc \
-	$(lisp)/term/mac-win.elc \
 	$(lisp)/term/ns-win.elc \
 	$(lisp)/term/pc-win.elc \
 	$(lisp)/term/rxvt.elc \
@@ -1318,6 +1319,7 @@ compile-last:
 	  test -f $$el || continue; \
 	  test -f $${el}c && continue; \
 	  grep 'no-byte-compile: t' $$el > /dev/null && continue; \
+	  head -n 1 $$el | grep '^;; Automatically generated from UnicodeData.txt.' > /dev/null && continue; \
 	  sel=`echo $$el | sed "s|^$(lisp)|\\$$(lisp)|"`; \
 	  echo "Maintainer warning: $$sel missing from \$$ELCFILES?"; \
 	  echo "Compiling $$el"; \

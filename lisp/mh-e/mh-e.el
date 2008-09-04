@@ -6,7 +6,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 8.0.3+cvs
+;; Version: 8.1
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -28,10 +28,11 @@
 
 ;; MH-E is an Emacs interface to the MH mail system.
 
-;; MH-E is supported by GNU Emacs 21 and 22, as well as XEmacs 21
+;; MH-E is supported in GNU Emacs 21 and 22, as well as XEmacs 21
 ;; (except for versions 21.5.9-21.5.16). It is compatible with MH
 ;; versions 6.8.4 and higher, all versions of nmh, and GNU mailutils
-;; 0.4 and higher.
+;; 1.0 and higher. Gnus is also required; version 5.10 or higher is
+;; recommended.
 
 ;; MH (Message Handler) is a powerful mail reader. See
 ;; http://rand-mh.sourceforge.net/.
@@ -127,7 +128,7 @@
 ;; Try to keep variables local to a single file. Provide accessors if
 ;; variables are shared. Use this section as a last resort.
 
-(defconst mh-version "8.0.3+cvs" "Version number of MH-E.")
+(defconst mh-version "8.1" "Version number of MH-E.")
 
 ;; Variants
 
@@ -140,8 +141,8 @@
     "/usr/contrib/mh/bin/"              ; BSDI
     "/usr/pkg/bin/"                     ; NetBSD
     "/usr/local/bin/"
-    "/usr/local/bin/mu-mh/"             ; GNU mailutils - default
-    "/usr/bin/mu-mh/")                  ; GNU mailutils - packaged
+    "/usr/local/bin/mu-mh/"             ; GNU mailutils MH - default
+    "/usr/bin/mu-mh/")                  ; GNU mailutils MH - packaged
   "List of directories to search for variants of the MH variant.
 The list `exec-path' is searched in addition to this list.
 There's no need for users to modify this list. Instead add extra
@@ -744,10 +745,10 @@ is described by the variable `mh-variants'."
       (cond
        ((mh-variant-mh-info dir))
        ((mh-variant-nmh-info dir))
-       ((mh-variant-mu-mh-info dir))))))
+       ((mh-variant-gnu-mh-info dir))))))
 
 (defun mh-variant-mh-info (dir)
-  "Return info for MH variant in DIR assuming a temporary buffer is setup."
+  "Return info for MH variant in DIR assuming a temporary buffer is set up."
   ;; MH does not have the -version option.
   ;; Its version number is included in the output of "-help" as:
   ;;
@@ -777,9 +778,9 @@ is described by the variable `mh-variants'."
                 (mh-progs       ,dir)
                 (flists         nil)))))))))
 
-(defun mh-variant-mu-mh-info (dir)
-  "Return info for GNU mailutils variant in DIR.
-This assumes that a temporary buffer is setup."
+(defun mh-variant-gnu-mh-info (dir)
+  "Return info for GNU mailutils MH variant in DIR.
+This assumes that a temporary buffer is set up."
   ;; 'mhparam -version' output:
   ;; mhparam (GNU mailutils 0.3.2)
   (let ((mhparam (expand-file-name "mhparam" dir)))
@@ -792,7 +793,7 @@ This assumes that a temporary buffer is setup."
         (let ((version (match-string 1))
               (mh-progs dir))
           `(,version
-            (variant        mu-mh)
+            (variant        gnu-mh)
             (mh-lib-progs   ,(mh-profile-component "libdir"))
             (mh-lib         ,(mh-profile-component "etcdir"))
             (mh-progs       ,dir)
@@ -800,7 +801,7 @@ This assumes that a temporary buffer is setup."
                               (expand-file-name "flists" dir)))))))))
 
 (defun mh-variant-nmh-info (dir)
-  "Return info for nmh variant in DIR assuming a temporary buffer is setup."
+  "Return info for nmh variant in DIR assuming a temporary buffer is set up."
   ;; `mhparam -version' outputs:
   ;; mhparam -- nmh-1.1-RC1 [compiled on chaak at Fri Jun 20 11:03:28 PDT 2003]
   (let ((mhparam (expand-file-name "mhparam" dir)))
@@ -824,7 +825,7 @@ This assumes that a temporary buffer is setup."
   (and (file-regular-p file) (file-executable-p file)))
 
 (defun mh-variant-set-variant (variant)
-  "Setup the system variables for the MH variant named VARIANT.
+  "Set up the system variables for the MH variant named VARIANT.
 If VARIANT is a string, use that key in the alist returned by the
 function `mh-variants'.
 If VARIANT is a symbol, select the first entry that matches that
@@ -864,7 +865,7 @@ variant."
 
 (defun mh-variant-p (&rest variants)
   "Return t if variant is any of VARIANTS.
-Currently known variants are 'MH, 'nmh, and 'mu-mh."
+Currently known variants are 'MH, 'nmh, and 'gnu-mh."
   (let ((variant-in-use
          (cadr (assoc 'variant (assoc mh-variant-in-use (mh-variants))))))
     (not (null (member variant-in-use variants)))))
@@ -872,8 +873,9 @@ Currently known variants are 'MH, 'nmh, and 'mu-mh."
 (defun mh-profile-component (component)
   "Return COMPONENT value from mhparam, or nil if unset."
   (save-excursion
-    ;; MH and nmh use -components, Mailutils uses -component. Since MH
-    ;; and nmh work with an unambiguous prefix, the `s' is dropped here.
+    ;; MH and nmh use -components, GNU mailutils MH uses -component.
+    ;; Since MH and nmh work with an unambiguous prefix, the `s' is
+    ;; dropped here.
     (mh-exec-cmd-quiet nil "mhparam" "-component" component)
     (mh-profile-component-value component)))
 
@@ -895,12 +897,23 @@ Returns nil if the component is not in the buffer."
 Sets `mh-progs', `mh-lib', `mh-lib-progs' and
 `mh-flists-present-flag'.
 If the VARIANT is \"autodetect\", then first try nmh, then MH and
-finally GNU mailutils."
+finally GNU mailutils MH."
   (interactive
    (list (completing-read
           "MH variant: "
           (mapcar (lambda (x) (list (car x))) (mh-variants))
           nil t)))
+
+  ;; TODO Remove mu-mh backwards compatibility in 9.0.
+  (when (and (stringp variant)
+             (string-match "^mu-mh"  variant))
+    (message
+     (format "%s\n%s; %s" "The variant name mu-mh has been renamed to gnu-mh"
+             "and will be removed in MH-E 9.0"
+             "try M-x customize-option mh-variant"))
+    (sit-for 5)
+    (setq variant (concat "gnu-mh" (substring variant (match-end 0)))))
+
   (let ((valid-list (mapcar (lambda (x) (car x)) (mh-variants))))
     (cond
      ((eq variant 'none))
@@ -910,7 +923,7 @@ finally GNU mailutils."
         (message "%s installed as MH variant" mh-variant-in-use))
        ((mh-variant-set-variant 'mh)
         (message "%s installed as MH variant" mh-variant-in-use))
-       ((mh-variant-set-variant 'mu-mh)
+       ((mh-variant-set-variant 'gnu-mh)
         (message "%s installed as MH variant" mh-variant-in-use))
        (t
         (message "No MH variant found on the system"))))
@@ -919,7 +932,8 @@ finally GNU mailutils."
         (message "Warning: %s variant not found. Autodetecting..." variant)
         (mh-variant-set 'autodetect)))
      (t
-      (message "Unknown variant; use %s"
+      (message "Unknown variant %s; use %s"
+               variant
                (mapconcat '(lambda (x) (format "%s" (car x)))
                           (mh-variants) " or "))))))
 
@@ -928,14 +942,14 @@ finally GNU mailutils."
 
 The default setting of this option is \"Auto-detect\" which means
 that MH-E will automatically choose the first of nmh, MH, or GNU
-mailutils that it finds in the directories listed in
+mailutils MH that it finds in the directories listed in
 `mh-path' (which you can customize), `mh-sys-path', and
 `exec-path'. If MH-E can't find MH at all, you may have to
 customize `mh-path' and add the directory in which the command
 \"mhparam\" is located. If, on the other hand, you have both nmh
-and mailutils installed (for example) and `mh-variant-in-use' was
-initialized to nmh but you want to use mailutils, then you can
-set this option to \"mailutils\".
+and GNU mailutils MH installed (for example) and
+`mh-variant-in-use' was initialized to nmh but you want to use
+GNU mailutils MH, then you can set this option to \"gnu-mh\".
 
 When this variable is changed, MH-E resets `mh-progs', `mh-lib',
 `mh-lib-progs', `mh-flists-present-flag', and `mh-variant-in-use'
@@ -1996,7 +2010,7 @@ set SYMBOL to VALUE."
 The default setting for this option is \"Use MH-E scan Format\". This
 means that the format string will be taken from the either
 `mh-scan-format-mh' or `mh-scan-format-nmh' depending on whether MH or
-nmh (or GNU mailutils) is in use. This setting also enables you to
+nmh (or GNU mailutils MH) is in use. This setting also enables you to
 turn on the `mh-adaptive-cmd-note-flag' option.
 
 You can also set this option to \"Use Default scan Format\" to get the
@@ -3081,9 +3095,10 @@ folder, which is also available in `mh-current-folder'."
   :package-version '(MH-E . "8.0"))
 
 (defcustom-mh mh-annotate-msg-hook nil
-  "Hook run by `mh-annotate-msg' after annotation.
-Variables that are useful in this hook include `mh-current-folder',
-the current folder, and `mh-annotate-list', the messages annotated."
+  "Hook run whenever a message is sent and after the scan lines and message are annotated.
+Hook functions can access the current folder name with
+`mh-current-folder' and obtain the message numbers of the
+annotated messages with `mh-annotate-list'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-sending-mail

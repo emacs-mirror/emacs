@@ -28,6 +28,7 @@
 (set-language-info-alist
  "UTF-8" `((coding-system utf-8)
 	   (coding-priority utf-8)
+	   (charset unicode-bmp unicode)
 ;; Presumably not relevant now.
 ;; 	   (setup-function
 ;; 	    . (lambda ()

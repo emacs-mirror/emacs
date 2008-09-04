@@ -32,7 +32,7 @@
 ;;; Code:
 
 (defvar nxml-file-name-ignore-case
-  (memq system-type '(vax-vms windows-nt)))
+  (memq system-type '(windows-nt)))
 
 (defvar nxml-cached-file-name-auto-coding-regexp nil)
 (defvar nxml-cached-auto-mode-alist nil)

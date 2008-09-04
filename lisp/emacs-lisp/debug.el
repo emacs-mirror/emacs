@@ -200,7 +200,7 @@ first will be printed into the backtrace buffer."
 		    (insert "...\n"))
 		  (goto-char (point-min))
 		  (message "%s" (buffer-string))
-		  (kill-emacs))
+		  (kill-emacs -1))
 		(message "")
 		(let ((standard-output nil)
 		      (buffer-read-only t))

@@ -86,7 +86,7 @@
 
 (defun ada-prj-edit ()
   "Editing the project file associated with the current Ada buffer.
-If there is none, opens a new project file"
+If there is none, opens a new project file."
   (interactive)
   (if ada-prj-default-project-file
       (ada-customize)
@@ -94,8 +94,8 @@ If there is none, opens a new project file"
 
 (defun ada-prj-initialize-values (symbol ada-buffer filename)
   "Set SYMBOL to the property list of the project file FILENAME.
-If FILENAME is null, read the file associated with ADA-BUFFER. If no
-project file is found, returns the default values."
+If FILENAME is null, read the file associated with ADA-BUFFER.
+If no project file is found, return the default values."
 ;; FIXME: rationalize arguments; make ada-buffer optional?
   (if (and filename
 	   (not (string= filename ""))
@@ -104,7 +104,7 @@ project file is found, returns the default values."
 
     ;;  Set default values (except for the file name if this was given
     ;;  in the buffer
-    (ada-xref-set-default-prj-values symbol ada-buffer)
+    (set symbol (ada-default-prj-properties))
     (if (and filename (not (string= filename "")))
 	(set symbol (plist-put (eval symbol) 'filename filename)))
     ))
@@ -112,7 +112,7 @@ project file is found, returns the default values."
 
 (defun ada-prj-save-specific-option (field)
   "Return the string to print in the project file to save FIELD.
-If the current value of FIELD is the default value, returns an empty string."
+If the current value of FIELD is the default value, return an empty string."
   (if (string= (plist-get ada-prj-current-values field)
 	       (plist-get ada-prj-default-values field))
       ""
@@ -122,7 +122,8 @@ If the current value of FIELD is the default value, returns an empty string."
 (defun ada-prj-save ()
   "Save the edited project file."
   (interactive)
-  (let ((file-name (plist-get ada-prj-current-values 'filename))
+  (let ((file-name (or (plist-get ada-prj-current-values 'filename)
+		       (read-file-name "Save project as: ")))
 	output)
     (set 'output
 	 (concat
@@ -141,7 +142,6 @@ If the current value of FIELD is the default value, returns an empty string."
 
 	  ;;  Always save the fields that depend on the current buffer
 	  "main="      (plist-get ada-prj-current-values 'main) "\n"
-	  "main_unit=" (plist-get ada-prj-current-values 'main_unit) "\n"
 	  "build_dir=" (plist-get ada-prj-current-values 'build_dir) "\n"
 	  (ada-prj-set-list "check_cmd"
 			    (plist-get ada-prj-current-values 'check_cmd)) "\n"
@@ -184,7 +184,8 @@ If the current value of FIELD is the default value, returns an empty string."
   )
 
 (defun ada-prj-load-from-file (symbol)
-  "Load SYMBOL value from file. One item per line should be found in the file."
+  "Load SYMBOL value from file.
+One item per line should be found in the file."
   (save-excursion
     (let ((file (read-file-name "File name: " nil nil t))
 	  (buffer (current-buffer))
@@ -288,26 +289,22 @@ The current buffer must be the project editing buffer."
     (widget-insert "Project file name:\n")
     (widget-insert (plist-get ada-prj-current-values 'filename))
     (widget-insert "\n\n")
-;     (ada-prj-field 'filename "Project file name"
-; "Enter the name and directory of the project
-; file. The name of the file should be the
-; name of the project itself. The extension
-; must be .adp")
-;     (ada-prj-field 'casing "Casing Exceptions Dictionnaries"
-; "List of files that contain casing exception
-; dictionnaries. All these files contain one
-; identifier per line, with a special casing.
-; The first file has the highest priority."
-;      t)
+    (ada-prj-field 'casing "Casing Exceptions"
+"List of files that contain casing exception
+dictionaries. All these files contain one
+identifier per line, with a special casing.
+The first file has the highest priority."
+      t nil
+      (mapconcat (lambda(x)
+		   (concat "           " x))
+		 (ada-xref-get-project-field 'casing)
+		 "\n")
+      )
     (ada-prj-field 'main "Executable file name"
 "Name of the executable generated when you
 compile your application. This should include
 the full directory name, using ${build_dir} if
 you wish.")
-    (ada-prj-field 'main_unit "File name of the main unit"
-"Name of the file to pass to the gnatmake command,
-and that will create the executable.
-This should not include any directory specification.")
     (ada-prj-field 'build_dir  "Build directory"
 		   "Reference directory for relative paths in
 src_dir and obj_dir below. This is also the directory
@@ -401,7 +398,7 @@ ignored by gnatfind and you don't see the references within.")
    ((= tab-num 4)
     (widget-insert "/_____________\\/______________\\/______________\\/              \\/______________\\\n")
     (widget-insert
-"All the fields below can use variable substitution The syntax is ${name},
+"All the fields below can use variable substitution. The syntax is ${name},
 where name is the name that appears after the Help buttons in this buffer. As
 a special case, ${current} is replaced with the name of the file currently
 edited, with directory name but no extension, whereas ${full_current} is
@@ -466,8 +463,7 @@ connect to the target when working with cross-environments" t)
   (widget-insert "______________________________________________________________________\n\n       ")
   (widget-create 'push-button
 		 :notify (lambda (&rest ignore)
-			   (ada-xref-set-default-prj-values
-			    'ada-prj-current-values ada-prj-ada-buffer)
+			   (setq ada-prj-current-values (ada-default-prj-properties))
 			   (ada-prj-display-page 1))
 		 "Reset to Default Values")
   (widget-insert "         ")
@@ -513,10 +509,8 @@ If FILENAME is given, edit that file."
 	    (ada-reread-prj-file ada-prj-default-project-file)
 	  (ada-reread-prj-file)))
 
-      ;;  Else start the interactive editor
       (switch-to-buffer "*Edit Ada Mode Project*")
 
-      (ada-xref-set-default-prj-values 'ada-prj-default-values ada-buffer)
       (ada-prj-initialize-values 'ada-prj-current-values
 				 ada-buffer
 				 ada-prj-default-project-file)
@@ -617,9 +611,9 @@ Parameters WIDGET-MODIFIED, EVENT match :notify for the widget."
   "Create a widget to edit FIELD in the current buffer.
 TEXT is a short explanation of what the field means, whereas HELP-TEXT
 is the text displayed when the user pressed the help button.
-If IS-LIST is non-nil, the field contains a list. Otherwise, it contains
+If IS-LIST is non-nil, the field contains a list.  Otherwise, it contains
 a single string.
-if IS-PATHS is true, some special buttons are added to load paths,...
+If IS-PATHS is true, some special buttons are added to load paths,...
 AFTER-TEXT is inserted just after the widget."
   (let ((value (plist-get ada-prj-current-values field))
 	(inhibit-read-only t)

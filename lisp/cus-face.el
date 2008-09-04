@@ -44,7 +44,7 @@
 	  ;; Create frame-local faces
 	  (dolist (frame (frame-list))
 	    (face-spec-set-2 face frame value)
-	    (when (memq (window-system frame) '(x w32 mac ns))
+	    (when (memq (window-system frame) '(x w32 ns))
 	      (setq have-window-system t)))
 	  ;; When making a face after frames already exist
 	  (if have-window-system

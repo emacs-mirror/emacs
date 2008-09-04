@@ -491,7 +491,7 @@ Use \\[untabify] to convert tabs to spaces before sorting."
       (setq col-end (max col-beg1 col-end1))
       (if (search-backward "\t" beg1 t)
 	  (error "sort-columns does not work with tabs -- use M-x untabify"))
-      (if (not (or (memq system-type '(vax-vms windows-nt))
+      (if (not (or (memq system-type '(windows-nt))
 		   (let ((pos beg1) plist fontified)
 		     (catch 'found
 		       (while (< pos end1)
@@ -516,7 +516,7 @@ Use \\[untabify] to convert tabs to spaces before sorting."
 	    (when sort-fold-case
 	      (push "-f" sort-args))
 	    (apply #'call-process-region beg1 end1 "sort" t t nil sort-args))
-	;; On VMS and ms-windows, use Emacs's own facilities.
+	;; On ms-windows, use Emacs's own facilities.
 	(save-excursion
 	  (save-restriction
 	    (narrow-to-region beg1 end1)

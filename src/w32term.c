@@ -86,8 +86,7 @@ static int any_help_event_p;
 /* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_window;
 
-/* Non-zero means make use of UNDERLINE_POSITION font properties.
-   (Not yet supported, see TODO in x_draw_glyph_string.)  */
+/* Non-zero means make use of UNDERLINE_POSITION font properties.  */
 int x_use_underline_position_properties;
 
 /* Non-zero means to draw the underline at the same place as the descent line.  */
@@ -167,14 +166,6 @@ int w32_system_caret_height;
 int w32_system_caret_x;
 int w32_system_caret_y;
 int w32_use_visible_system_caret;
-
-/* Flag to enable Unicode output in case users wish to use programs
-   like Twinbridge on '95 rather than installed system level support
-   for Far East languages.  */
-int w32_enable_unicode_output;
-
-/* Flag to enable Cleartype hack for font metrics.  */
-static int cleartype_active;
 
 DWORD dwWindowsThreadId = 0;
 HANDLE hWindowsThread = NULL;
@@ -1274,7 +1265,6 @@ x_draw_glyph_string_background (s, force_p)
         if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
-	       || cleartype_active
 	       || force_p)
 	{
 	  x_clear_glyph_string_rect (s, s->x, s->y + box_line_width,
@@ -1351,6 +1341,7 @@ x_draw_composite_glyph_string_foreground (s)
      struct glyph_string *s;
 {
   int i, j, x;
+  struct font *font = s->font;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -1360,9 +1351,9 @@ x_draw_composite_glyph_string_foreground (s)
   else
     x = s->x;
 
-  /* S is a glyph string for a composition.  S->gidx is the index of
-     the first character drawn for glyphs of this composition.
-     S->gidx == 0 means we are drawing the very first character of
+  /* S is a glyph string for a composition.  S->cmp_from is the index
+     of the first character drawn for glyphs of this composition.
+     S->cmp_from == 0 means we are drawing the very first character of
      this composition.  */
 
   SetTextColor (s->hdc, s->gc->foreground);
@@ -1373,67 +1364,66 @@ x_draw_composite_glyph_string_foreground (s)
      first character of the composition could not be loaded.  */
   if (s->font_not_found_p)
     {
-      if (s->gidx == 0)
+      if (s->cmp_from == 0)
         w32_draw_rectangle (s->hdc, s->gc, x, s->y, s->width - 1,
                             s->height - 1);
     }
-  else
+  else if (! s->first_glyph->u.cmp.automatic)
     {
-      struct font *font = s->font;
       int y = s->ybase;
       int width = 0;
       HFONT old_font;
 
       old_font = SelectObject (s->hdc, FONT_HANDLE (font));
 
-      if (s->cmp->method == COMPOSITION_WITH_GLYPH_STRING)
-	{
-	  Lisp_Object gstring = AREF (XHASH_TABLE (composition_hash_table)
-				      ->key_and_value,
-				      s->cmp->hash_index * 2);
-	  int from;
+      for (i = 0, j = s->cmp_from; i < s->nchars; i++, j++)
+	if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
+	  {
+	    int xx = x + s->cmp->offsets[j * 2];
+	    int yy = y - s->cmp->offsets[j * 2 + 1];
 
-	  for (i = from = 0; i < s->nchars; i++)
+	    font->driver->draw (s, j, j + 1, xx, yy, 0);
+	    if (s->face->overstrike)
+	      font->driver->draw (s, j, j + 1, xx + 1, yy, 0);
+	  }
+      SelectObject (s->hdc, old_font);
+    }
+  else
+    {
+      Lisp_Object gstring = composition_gstring_from_id (s->cmp_id);
+      Lisp_Object glyph;
+      int y = s->ybase;
+      int width = 0;
+      HFONT old_font;
+
+      old_font = SelectObject (s->hdc, FONT_HANDLE (font));
+
+      for (i = j = s->cmp_from; i < s->cmp_to; i++)
+	{
+	  glyph = LGSTRING_GLYPH (gstring, i);
+	  if (NILP (LGLYPH_ADJUSTMENT (glyph)))
+	    width += LGLYPH_WIDTH (glyph);
+	  else
 	    {
-	      Lisp_Object g = LGSTRING_GLYPH (gstring, i);
-	      Lisp_Object adjustment = LGLYPH_ADJUSTMENT (g);
 	      int xoff, yoff, wadjust;
 
-	      if (! VECTORP (adjustment))
+	      if (j < i)
 		{
-		  width += LGLYPH_WIDTH (g);
-		  continue;
-		}
-	      if (from < i)
-		{
-		  font->driver->draw (s, from, i, x, y, 0);
+		  font->driver->draw (s, j, i, x, y, 0);
 		  x += width;
 		}
-	      xoff = XINT (AREF (adjustment, 0));
-	      yoff = XINT (AREF (adjustment, 1));
-	      wadjust = XINT (AREF (adjustment, 2));
-
+	      xoff = LGLYPH_XOFF (glyph);
+	      yoff = LGLYPH_YOFF (glyph);
+	      wadjust = LGLYPH_WADJUST (glyph);
 	      font->driver->draw (s, i, i + 1, x + xoff, y + yoff, 0);
 	      x += wadjust;
-	      from = i + 1;
+	      j = i + 1;
 	      width = 0;
 	    }
-	  if (from < i)
-	    font->driver->draw (s, from, i, x, y, 0);
 	}
-      else
-	{
-	  for (i = 0, j = s->gidx; i < s->nchars; i++, j++)
-	    if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
-	      {
-		int xx = x + s->cmp->offsets[j * 2];
-		int yy = y - s->cmp->offsets[j * 2 + 1];
+      if (j < i)
+	font->driver->draw (s, j, i, x, y, 0);
 
-		font->driver->draw (s, j, j + 1, xx, yy, 0);
-		if (s->face->overstrike)
-		  font->driver->draw (s, j, j + 1, xx + 1, yy, 0);
-	      }
-	}
       SelectObject (s->hdc, old_font);
     }
 }
@@ -2293,7 +2283,8 @@ x_draw_glyph_string (s)
       break;
 
     case COMPOSITE_GLYPH:
-      if (s->for_overlaps || s->gidx > 0)
+      if (s->for_overlaps || (s->cmp_from > 0
+			      && ! s->first_glyph->u.cmp.automatic))
 	s->background_filled_p = 1;
       else
 	x_draw_glyph_string_background (s, 1);
@@ -6118,7 +6109,6 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->memory_below_frame = 0;   /* We don't remember what scrolls
                                         off the bottom. */
 
-#ifdef MULTI_KBOARD
   /* We don't yet support separate terminals on W32, so don't try to share
      keyboards between virtual terminals that are on the same physical
      terminal like X does.  */
@@ -6133,7 +6123,6 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   if (current_kboard == initial_kboard)
     current_kboard = terminal->kboard;
   terminal->kboard->reference_count++;
-#endif
 
   return terminal;
 }
@@ -6346,9 +6335,6 @@ w32_initialize ()
 
   /* Dynamically link to optional system components.  */
   {
-    UINT smoothing_type;
-    BOOL smoothing_enabled;
-
     HANDLE user_lib = LoadLibrary ("user32.dll");
 
 #define LOAD_PROC(lib, fn) pfn##fn = (void *) GetProcAddress (lib, #fn)
@@ -6366,28 +6352,6 @@ w32_initialize ()
        effectively form the border of the main scroll bar range.  */
     vertical_scroll_bar_top_border = vertical_scroll_bar_bottom_border
       = GetSystemMetrics (SM_CYVSCROLL);
-
-    /* Constants that are not always defined by the system headers
-       since they only exist on certain versions of Windows.  */
-#ifndef SPI_GETFONTSMOOTHING
-#define SPI_GETFONTSMOOTHING 0x4A
-#endif
-#ifndef SPI_GETFONTSMOOTHINGTYPE
-#define SPI_GETFONTSMOOTHINGTYPE 0x0200A
-#endif
-#ifndef FE_FONTSMOOTHINGCLEARTYPE
-#define FE_FONTSMOOTHINGCLEARTYPE 0x2
-#endif
-
-    /* Determine if Cleartype is in use.  Used to enable a hack in
-       the char metric calculations which adds extra pixels to
-       compensate for the "sub-pixels" that are not counted by the
-       system APIs. */
-    cleartype_active =
-      SystemParametersInfo (SPI_GETFONTSMOOTHING, 0, &smoothing_enabled, 0)
-      && smoothing_enabled
-      && SystemParametersInfo (SPI_GETFONTSMOOTHINGTYPE, 0, &smoothing_type, 0)
-      && smoothing_type == FE_FONTSMOOTHINGCLEARTYPE;
   }
 }
 
@@ -6433,15 +6397,6 @@ When nil, CapsLock only affects normal character input keys.  */);
 When nil, the right-alt and left-ctrl key combination is
 interpreted normally.  */);
   Vw32_recognize_altgr = Qt;
-
-  DEFVAR_BOOL ("w32-enable-unicode-output",
-               &w32_enable_unicode_output,
-               doc: /* Enable the use of Unicode for text output if non-nil.
-Unicode output may prevent some third party applications for displaying
-Far-East Languages on Windows 95/98 from working properly.
-NT uses Unicode internally anyway, so this flag will probably have no
-effect on NT machines.  */);
-  w32_enable_unicode_output = 1;
 
   DEFVAR_BOOL ("w32-use-visible-system-caret",
 	       &w32_use_visible_system_caret,

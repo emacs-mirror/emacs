@@ -175,7 +175,7 @@
 	(runic #x16A0)
 	(khmer #x1780)
 	(mongolian #x1826)
-	(symbol #x201C #x2200 #x2500)
+	(symbol . [#x201C #x2200 #x2500])
 	(braille #x2800)
 	(ideographic-description #x2FF0)
 	(cjk-misc #x300E)
@@ -491,13 +491,13 @@
   ;; This may find fonts with more variants (bold, italic) but which
   ;; don't cover many characters.
   (set-fontset-font "fontset-default" nil
-		    '(nil . "iso10646-1") nil 'append)
+		    '(nil . "iso10646-1") nil 'prepend)
   ;; These may find fonts that cover many characters but with fewer
   ;; variants.
   (set-fontset-font "fontset-default" nil
-		    '("gnu-unifont" . "iso10646-1") nil 'append)
+		    '("gnu-unifont" . "iso10646-1") nil 'prepend)
   (set-fontset-font "fontset-default" nil
-		    '("mutt-clearlyu" . "iso10646-1") nil 'append)
+		    '("mutt-clearlyu" . "iso10646-1") nil 'prepend)
 
   (set-fontset-font "fontset-default" '(#xE000 . #xF8FF) nil))
 

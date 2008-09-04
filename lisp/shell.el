@@ -172,7 +172,7 @@ This is a fine thing to set in your `.emacs' file.")
 (defvar shell-file-name-quote-list
   (if (memq system-type '(ms-dos windows-nt))
       nil
-    (append shell-delimiter-argument-list '(?\s ?\* ?\! ?\" ?\' ?\` ?\# ?\\)))
+    (append shell-delimiter-argument-list '(?\s ?$ ?\* ?\! ?\" ?\' ?\` ?\# ?\\)))
   "List of characters to quote when in a file name.
 This variable is used to initialize `comint-file-name-quote-list' in the
 shell buffer.  The value may depend on the operating system or shell.

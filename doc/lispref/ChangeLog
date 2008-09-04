@@ -1,3 +1,33 @@
+2008-08-26  Jason Rumney  <jasonr@gnu.org>
+
+	* display.texi (TIFF Images): New section describing :index property.
+
+2008-08-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Temporary Displays): Remove unnecessary comment
+	about usage of temp-buffer-show-hook.
+
+2008-08-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* symbols.texi (Other Plists): Fix incorrect example.
+	Suggested by Florian Beck.
+
+2008-07-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* os.texi: Fix previous change.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* os.texi:
+	* intro.texi:
+	* files.texi: Remove VMS support.
+
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* os.texi:
+	* frames.texi:
+	* display.texi: Remove mentions of Mac Carbon.
+
 2008-07-01  Miles Bader  <miles@gnu.org>
 
 	* text.texi (Special Properties):

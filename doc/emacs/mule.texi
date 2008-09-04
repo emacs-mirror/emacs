@@ -142,6 +142,95 @@ language, to make it convenient to type them.
   The prefix key @kbd{C-x @key{RET}} is used for commands that pertain
 to multibyte characters, coding systems, and input methods.
 
+@kindex C-x =
+@findex what-cursor-position
+  The command @kbd{C-x =} (@code{what-cursor-position}) shows
+information about the character at point.  In addition to the
+character position, which was described in @ref{Position Info}, this
+command displays how the character is encoded.  For instance, it
+displays the following line in the echo area for the character
+@samp{c}:
+
+@smallexample
+Char: c (99, #o143, #x63) point=28062 of 36168 (78%) column=53
+@end smallexample
+
+  The four values after @samp{Char:} describe the character that
+follows point, first by showing it and then by giving its character
+code in decimal, octal and hex.  For a non-@acronym{ASCII} multibyte
+character, these are followed by @samp{file} and the character's
+representation, in hex, in the buffer's coding system, if that coding
+system encodes the character safely and with a single byte
+(@pxref{Coding Systems}).  If the character's encoding is longer than
+one byte, Emacs shows @samp{file ...}.
+
+  However, if the character displayed is in the range 0200 through
+0377 octal, it may actually stand for an invalid UTF-8 byte read from
+a file.  In Emacs, that byte is represented as a sequence of 8-bit
+characters, but all of them together display as the original invalid
+byte, in octal code.  In this case, @kbd{C-x =} shows @samp{part of
+display ...} instead of @samp{file}.
+
+@cindex character set of character at point
+@cindex font of character at point
+@cindex text properties at point
+@cindex face at point
+  With a prefix argument (@kbd{C-u C-x =}), this command displays a
+detailed description of the character in a window:
+
+@itemize @bullet
+@item
+The character set name, and the codes that identify the character
+within that character set; @acronym{ASCII} characters are identified
+as belonging to the @code{ascii} character set.
+
+@item
+The character's syntax and categories.
+
+@item
+The character's encodings, both internally in the buffer, and externally
+if you were to save the file.
+
+@item
+What keys to type to input the character in the current input method
+(if it supports the character).
+
+@item
+If you are running Emacs on a graphical display, the font name and
+glyph code for the character.  If you are running Emacs on a text-only
+terminal, the code(s) sent to the terminal.
+
+@item
+The character's text properties (@pxref{Text Properties,,,
+elisp, the Emacs Lisp Reference Manual}), including any non-default
+faces used to display the character, and any overlays containing it
+(@pxref{Overlays,,, elisp, the same manual}).
+@end itemize
+
+  Here's an example showing the Latin-1 character A with grave accent,
+in a buffer whose coding system is @code{utf-8-unix}:
+
+@smallexample
+        character: @`A (192, #o300, #xc0)
+preferred charset: unicode (Unicode (ISO10646))
+       code point: 0xC0
+           syntax: w 	which means: word
+         category: j:Japanese l:Latin v:Vietnamese
+      buffer code: #xC3 #x80
+        file code: not encodable by coding system undecided-unix
+          display: by this font (glyph code)
+    xft:-unknown-DejaVu Sans Mono-normal-normal-normal-*-13-*-*-*-m-0-iso10646-1 (#x82)
+
+Character code properties: customize what to show
+  name: LATIN CAPITAL LETTER A WITH GRAVE
+  general-category: Lu (Letter, Uppercase)
+  decomposition: (65 768) ('A' '̀')
+  old-name: LATIN CAPITAL LETTER A GRAVE
+
+There are text properties here:
+  auto-composed        t
+@end smallexample
+
 @node Enabling Multibyte
 @section Enabling Multibyte Characters
 

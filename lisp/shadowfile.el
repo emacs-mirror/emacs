@@ -762,7 +762,7 @@ look for files that have been changed and need to be copied to other systems."
 				(buffer-list))))
 	   (yes-or-no-p "Modified buffers exist; exit anyway? "))
        (or (not (fboundp 'process-list))
-	   ;; process-list is not defined on VMS.
+	   ;; process-list is not defined on MSDOS.
 	   (let ((processes (process-list))
 		 active)
 	     (while processes

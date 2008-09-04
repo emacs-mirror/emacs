@@ -292,10 +292,6 @@
   "Front-ends/assistants for, or emulators of, UNIX features."
   :group 'environment)
 
-(defgroup vms nil
-  "Support code for vms."
-  :group 'environment)
-
 (defgroup i18n nil
   "Internationalization and alternate character-set support."
   :link '(custom-manual "(emacs)International")
@@ -446,13 +442,6 @@
   "Windows within a frame."
   :link '(custom-manual "(emacs)Windows")
   :group 'environment)
-
-(defgroup mac nil
-  "Mac specific features."
-  :link '(custom-manual "(emacs)Mac OS")
-  :group 'environment
-  :version "22.1"
-  :prefix "mac-")
 
 ;;; Custom mode keymaps
 
@@ -2068,7 +2057,7 @@ and `face'."
 ;;; The `custom' Widget.
 
 (defface custom-button
-  '((((type x w32 mac ns) (class color))	; Like default modeline
+  '((((type x w32 ns) (class color))	; Like default modeline
      (:box (:line-width 2 :style released-button)
 	   :background "lightgrey" :foreground "black"))
     (t
@@ -2080,7 +2069,7 @@ and `face'."
 (put 'custom-button-face 'face-alias 'custom-button)
 
 (defface custom-button-mouse
-  '((((type x w32 mac ns) (class color))
+  '((((type x w32 ns) (class color))
      (:box (:line-width 2 :style released-button)
 	   :background "grey90" :foreground "black"))
     (t
@@ -2102,7 +2091,7 @@ and `face'."
       (if custom-raised-buttons 'custom-button-mouse 'highlight))
 
 (defface custom-button-pressed
-  '((((type x w32 mac ns) (class color))
+  '((((type x w32 ns) (class color))
      (:box (:line-width 2 :style pressed-button)
 	   :background "lightgrey" :foreground "black"))
     (t
@@ -2255,8 +2244,8 @@ and `face'."
   "Toggle visibility of WIDGET."
   (custom-load-widget widget)
   (let ((state (widget-get widget :custom-state)))
-    (cond ((memq state '(invalid modified))
-	   (error "There are unset changes"))
+    (cond ((memq state '(invalid modified set))
+	   (error "There are unsaved changes"))
 	  ((eq state 'hidden)
 	   (widget-put widget :custom-state 'unknown))
 	  (t
@@ -3161,10 +3150,6 @@ OS/2 Presentation Manager.")
 					   :sibling-args (:help-echo "\
 Windows NT/9X.")
 					   w32)
-				    (const :format "MAC "
-					   :sibling-args (:help-echo "\
-Macintosh OS (Carbon interface).")
-					   mac)
 				    (const :format "NS "
 					   :sibling-args (:help-echo "\
 GNUstep or Macintosh OS Cocoa interface.")
@@ -3222,7 +3207,7 @@ Only match frames that support the specified face attributes.")
 ;;; The `custom-face' Widget.
 
 (defface custom-face-tag
-  `((t (:weight bold :height 1.2 :inherit variable-pitch)))
+  `((t :inherit custom-variable-tag))
   "Face used for face tags."
   :group 'custom-faces)
 ;; backward-compatibility alias
@@ -4280,9 +4265,18 @@ if only the first line of the docstring is shown."))
 			     (recentf-expand-file-name (custom-file)))
 			    "\\'")
 		    recentf-exclude)))
-	 (old-buffer (find-buffer-visiting filename)))
+	 (old-buffer (find-buffer-visiting filename))
+	 old-buffer-name)
+
     (with-current-buffer (let ((find-file-visit-truename t))
 			   (or old-buffer (find-file-noselect filename)))
+      ;; We'll save using file-precious-flag, so avoid destroying
+      ;; symlinks.  (If we're not already visiting the buffer, this is
+      ;; handled by find-file-visit-truename, above.)
+      (when old-buffer
+	(setq old-buffer-name (buffer-file-name))
+	(set-visited-file-name (file-chase-links filename)))
+
       (unless (eq major-mode 'emacs-lisp-mode)
 	(emacs-lisp-mode))
       (let ((inhibit-read-only t))
@@ -4290,7 +4284,10 @@ if only the first line of the docstring is shown."))
 	(custom-save-faces))
       (let ((file-precious-flag t))
 	(save-buffer))
-      (unless old-buffer
+      (if old-buffer
+	  (progn
+	    (set-visited-file-name old-buffer-name)
+	    (set-buffer-modified-p nil))
 	(kill-buffer (current-buffer))))))
 
 ;;;###autoload

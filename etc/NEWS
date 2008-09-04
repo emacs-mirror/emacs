@@ -54,10 +54,16 @@ a GIF library.
 +++
 *** Emacs now supports the SVG image format through librsvg2.
 
+*** Emacs now supports multi-page TIFF images.
+
 ** New NeXTSTEP-based port
 This provides support for GNUStep (via the GNUStep libraries) and Mac
-OS X (via the Cocoa libraries).  See nextstep/README and
-nextstep/INSTALL in the Emacs source directory.
+OS X (via the Cocoa libraries).
+
+Specify --with-ns to configure for this. By default, a self-contained
+app will be built (containing all lisp).  To install/share lisp with
+other emacsen (e.g. X11 build) use --disable-ns-self-contained.  See
+nextstep/README and nextstep/INSTALL in the Emacs source directory.
 
 ** Mac OS X is no longer supported via Carbon.
 Use the NeXTSTEP port, described above.
@@ -75,17 +81,21 @@ See the list at the end of etc/MACHINES for details.
 *** The `emacstool' utility has been removed.
 
 ** The following platforms will be removed in a future Emacs version:
+If you are still using Emacs on one of these platforms, please email
+emacs-devel@gnu.org to inform the Emacs developers.
 
-*** Libc version 5 on GNU/Linux.
+*** Old GNU/Linux systems based on libc version 5.
 
-*** Old FreeBSD and NetBSD systems based on the COFF executable
-    format.
+*** Old FreeBSD, NetBSD, and OpenBSD systems based on the COFF
+    executable format.
 
 *** Solaris versions 2.6 and below.
 
 *** Solaris on IBM RS6000 machines.
 
 *** UNIX System V (the original SysV, not later platforms based on it).
+
+*** Unixware on non-x86 machines.
 
 *** Platforms not supporting shared libraries (i.e., requiring the
 NO_SHARED_LIBS compilation flag).
@@ -103,15 +113,6 @@ Various resolutions are available as etc/images/icons/hicolor/*/apps/emacs.png.
 The Emacs 22 icon is available as `emacs22.png' in the same location.
 
 * Changes in Emacs 23.1
-
-** Emacs can now be built under the Cocoa libraries on Mac OS X and GNUstep
-   libraries on other machines.  Specify --with-ns to configure for this. By
-   default a self-contained app will be built (containing all lisp).  To
-   install/share lisp with other emacsen (e.g. X11 build) use
-   --disable-ns-self-contained.  Use 'info-ns-emacs' or first entry under Help
-   menu when running for more information.
-
-** `where-is-preferred-modifier' can specify your favorite modifier.
 
 ** Improved X Window System support
 
@@ -189,6 +190,15 @@ Sinhala, and TaiViet.
 *** The minor modes unify-8859-on-encoding-mode and
 unify-8859-on-decoding-mode are obsolete.
 
+*** `ucs-insert' is bound to `C-x 8 RET' and in addition to hex numbers
+accepts numbers in hash notation (e.g. #o21430 for octal, or #10r8984 for
+decimal).  It also accepts Unicode character names with completion.
+
+*** The `cyrillic-translit' input method supports many new characters.
+Common typographical characters available from Unicode were added to
+`cyrillic-translit': punctuation marks, accented characters, fractions,
+and others.
+
 ** Emacs now supports serial port access on GNU/Linux, Unix, and
 Windows.  The new command `serial-term' starts an interactive terminal
 on a serial port.  The serial port can be configured at runtime with
@@ -212,7 +222,11 @@ interface to GnuPG (see New Modes and Packages).
 *** In the Options menu, the "Truncate Long Lines in the Buffer" entry
 has been replaced with a submenu offering three different ways to
 handle long lines: truncation, continuation at the window edge, and
-the new word wrapping option (see Editing Changes, below).
+the new word wrapping behavior (see Editing Changes, below).
+
+*** Improvements to menus for major and minor modes
+More major and minor modes now have a mode specific menu, and existing
+mode menus have been improved to include more functionality.
 
 ** Mode-line changes
 +++
@@ -225,10 +239,27 @@ minor mode, in the same way as it already did for major modes.
 *** The `mode-line-emphasis' face is used to highlight certain
 mode-line information (e.g. waiting for a VC command to finish).
 
+*** The mode-line tooltips have been improved to provide more details.
+
+*** The VC, line/colum number and minor mode indicators on the mode
+line are now interactive: mouse-1 can be used on them to pop up a menu.
+
+** File deletion can make use of the Recycle Bin or system Trash folder.
+Set `delete-by-moving-to-trash' non-nil to use this.  Deleted files
+and directories will then be sent to the Recyle Bin on Windows, and
+to `trash-directory' on other systems.
+
 ** Directory-local variables can now be defined.
 By default, Emacs looks in .dir-settings.el for directory-local
 variables.  For more information, see `set-directory-project' and
 `define-project-bindings'.
+
+** Emacs can now use `auth-source' for authentication.
+`smtpmail' and `url' (Tramp and Gnus also) use `auth-source' to obtain
+login names and passwords.  The match, if found, is reported
+in *Messages* with the password blanked out.
+
+** `where-is-preferred-modifier' can specify your favorite modifier.
 
 
 * Startup Changes in Emacs 23.1
@@ -253,10 +284,23 @@ following arguments.
 
 * Incompatible Editing Changes in Emacs 23.1
 
+** In Dired, `dired-flag-garbage-files' is rebound from `&' to `%&'
+on the regexp command prefix map.
+
 +++
 ** In Dired-x, all command guesses for ! are now added to the default
 list accessible by M-n instead of pushing all guesses temporarily into
 the history list.
+
+** In Isearch mode, a special case of typing `C-w' at the beginning of
+the minibuffer that toggles word search (i.e. using key sequences
+`C-s RET C-w' or `C-s M-e C-w') is obsolete.  You can use the global key
+`M-s w' to start word search, or type `M-s w' in Isearch mode to
+toggle word search.
+
+** In Text mode, `center-line' and `center-paragraph' are rebound
+from `M-s' and `M-S' to global keys `M-o M-s' and `M-o M-S' on the
+global prefix map `M-o' intended for such formatting commands.
 
 ---
 ** The following input methods were removed in Emacs 22.2, but this was
@@ -269,6 +313,7 @@ identical.
 
 * Editing Changes in Emacs 23.1
 
++++
 ** The C-n and C-p line-motion commands now move by screen lines,
 taking continued lines and variable-width characters into account.
 Setting `line-move-visual' to nil reverts this to the previous
@@ -293,8 +338,10 @@ region is active.  Otherwise, it fills the current paragraph.
 *** When Transient Mark mode is on, M-$ now checks spelling of the
 region if the region is active.  Otherwise, it checks spelling of the
 word at point.
+
 *** When Transient Mark mode is on, TAB now indents the region if the
 region is active.
+
 *** `use-empty-active-region' controls whether an empty active region
 in Transient Mark mode should make commands operate on that empty
 region.
@@ -313,13 +360,8 @@ shift-translated, or after commands that would ordinarily deactivate
 the mark in Transient Mark mode (e.g., any command that modifies the
 buffer).
 
-** Minibuffer changes
-
-*** Operations like C-x b and C-x C-f, which use switch-to-buffer, do
-not fail any more when used in a minibuffer or a dedicated window.
-Instead, they fallback on using pop-to-buffer, which will use some
-other window.
-
+** Minibuffer and completion changes
++++
 *** When M-n in the minibuffer reaches the end of the list of defaults,
 it adds the completion list to the end, so next M-n continues putting
 completion items to the minibuffer.  The same principle applies to
@@ -340,16 +382,40 @@ similarly, using the file displayed on the current line.
 
 *** A list of regexp default values is available via M-n for `occur',
 `keep-lines', `flush-lines' and `how-many'.  This list includes the active
-region in transient-mark-mode, the word under the cursor, the last isearch
-regexp, the last isearch string and the last replacement regexp.
+region in transient-mark-mode, the word under the cursor, the last Isearch
+regexp, the last Isearch string and the last replacement regexp.
+---
+*** When enable-recursive-minibuffers is non-nil, operations which use
+switch-to-buffer (such as C-x b and C-x C-f) do not fail any more when
+used in a minibuffer or a dedicated window.  Instead, they fallback on
+using pop-to-buffer, which will use some other window.  This change
+has no effect when enable-recursive-minibuffers is nil (the default).
 
-*** isearch started in the minibuffer searches in the minibuffer history.
-Reverse isearch commands (C-r, C-M-r) search in previous minibuffer
-history elements, and forward isearch commands (C-s, C-M-s) search in
+*** Isearch started in the minibuffer searches in the minibuffer history.
+Reverse Isearch commands (C-r, C-M-r) search in previous minibuffer
+history elements, and forward Isearch commands (C-s, C-M-s) search in
 next history elements.  When the reverse search reaches the first history
 element, it wraps to the last history element, and the forward search
 wraps to the first history element.  When the search is terminated, the
 history element containing the search string becomes the current.
+
+*** The variable read-file-name-completion-ignore-case overrides
+completion-ignore-case for file name completion.
+
+*** The variable read-buffer-completion-ignore-case overrides
+completion-ignore-case for buffer name completion.
+---
+*** `completion-styles' can be customized to choose your favorite
+completion style.
+---
+*** The default completion styles include a form of partial-completion.
+---
+*** The new command `minibuffer-force-complete' chooses one of the
+possible completions, rather than stopping at the common prefix.
++++
+*** If `completion-auto-help' is `lazy', Emacs shows the completions
+buffer only on the second attempt to complete.  This was already
+supported in `partial-completion-mode'.
 
 ** Face changes
 
@@ -369,41 +435,27 @@ bind `mouse-yank-primary' to Mouse-2.
 *** You can disable kill ring commands from accessing the primary
 selection by setting `x-select-enable-primary' to nil.
 
-** Completion changes
-
-*** `completion-styles' can be customized to choose your favorite
-completion style.
-
-*** The default completion styles include a form of partial-completion.
-
-*** The new command `minibuffer-force-complete' chooses one of the
-possible completions, rather than stopping at the common prefix.
-
-*** `completion-auto-help' can be set to `lazy' to list the
-completions only if you repeat the completion.  This was already
-supported in `partial-completion-mode'.
-
-** Continuation lines can be wrapped at word boundaries
-(word-wrapping) instead of the right window edge.  The new per-buffer
-variable `word-wrap', if non-nil turns on word-wrapping.  Word
-wrapping does not take place if continuation lines are not shown,
-e.g. if truncate-lines is non-nil.
+** Continuation lines can now be wrapped at word boundaries
+(word-wrapping).  This is controlled by the new per-buffer variable
+`word-wrap'.  Word wrapping does not take place if continuation lines
+are not shown, e.g. if truncate-lines is non-nil.  The most convenient
+way to enable word-wrapping is using the new minor mode Visual Line
+mode; in addition to setting `word-wrap' to t, this rebinds some
+editing commands to work on screen lines rather than text lines.  See
+New Modes and Packages, below.
 
 ** Window management changes
 
 *** truncate-partial-width-windows now accepts integer values, which
 specify a minimum window width for partial-width windows, below which
-lines are truncated.  The default has been changed to 30.
+lines are truncated.  The default has been changed to 50.
 
 *** The new command balance-windows-area balances windows both
 vertically and horizontally.
 
 ** Miscellaneous changes:
 
-*** New keymap `search-map' bound to `M-s' provides global bindings
-for search related commands: `M-s o' for `occur', `M-s h r' for
-`highlight-regexp' and other hi-lock commands on the `M-s h' prefix.
-
++++
 *** C-l is bound to the new command recenter-top-bottom, rather than recenter.
 This moves the current line to window center, top and bottom on
 successive invokations.
@@ -444,8 +496,6 @@ It uses `auto-composition-function' (default `auto-compose-chars').
 
 ** bug-reference.el provides clickable links to bug reports.
 
-** copyright.el provides utilities for updating copyright notices in files.
-
 ** dbus.el provides D-Bus language bindings.
 D-Bus is an inter-process communication mechanism for applications
 residing on the same host.  See the manual for details.
@@ -465,7 +515,13 @@ details, see the EasyPG Assistant User's Manual.
 ** linum.el is a new minor mode to display line numbers for the
 current buffer.
 
-** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
+** mairix.el is an interface to mairix, a free tool for indexing and
+searching locally stored mail.  It allows you to query mairix and
+display the search results with Rmail, Gnus and VM.  Note that there
+is an existing Gnus back end, nnmairix.el, which should be used with
+Maildir/MH setups.
+
+** minibuffer-depth-indicate-mode shows the minibuffer depth in the prompt.
 
 ** nXML Mode
 This is a new mode for editing XML documents.  It allows a schema to
@@ -491,18 +547,13 @@ Manual.
 
 ** RST mode is a major mode for editing ReSTructured-Text files.
 
++++
 ** Visual Line mode provides support for editing by visual lines.
 It turns on word-wrapping in the current buffer, and rebinds C-a, C-e,
 and C-k to commands that operate by visual lines instead of logical
 lines.  This is a more reliable replacement for longlines-mode.
-
-** A new `whitespace' package has been installed, and the pre-existing one
-renamed to `old-whitespace'.
-Now, besides reporting bogus blanks, whitespace package has a minor mode and a
-global minor mode to visualize blanks (TAB, (HARD) SPACE and NEWLINE).  The
-visualization is made via faces and/or display table. Also it is possible to
-select which kind of blanks should be visualized, for example, trailing blanks,
-leading blanks, spaces, tabs, newlines, etc.
+This can also be turned on using the menu bar, via
+Options -> Line Wrapping in this Buffer -> Word Wrap
 
 ** xesam.el is an implementation of Xesam, an interface to (desktop)
 search engines like Beagle, Strigi, and Tracker.  The Xesam API
@@ -513,11 +564,18 @@ interfaces according to the zeroconf specification.  It communicates
 with Avahi, a zeroconf implementation, via D-Bus messages on systems
 which have installed this software.
 
+** There is a new `whitespace' package.
+(The pre-existing one has been renamed to `old-whitespace'.)
+Now, besides reporting bogus blanks, the whitespace package has a
+minor mode and a global minor mode to visualize blanks (TAB, (HARD)
+SPACE and NEWLINE).  The visualization is made via faces and/or display
+table.  It can also indicate lines that extend beyond a given column,
+trailing blanks, and empty lines at the start or end of a buffer.
+See `whitespace-style' for more details.  The `whitespace-action' option
+specifies what to do when a buffer is visited, killed, or written.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
-
-** Diff mode
-*** New function `diff-show-trailing-blanks'.
 
 ** Abbrev has been rewritten in Elisp and extended with more flexibility.
 *** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
@@ -567,17 +625,21 @@ prefixes, eg `calendar-french-'.  The old names you are likely to use
 directly still exist, for the time being, as aliases, but please start
 using the new names.
 
++++
 *** The whitespace in the calendar layout can be customized.
 See the variables:
 calendar-left-margin, calendar-intermonth-spacing, calendar-column-width,
 calendar-day-header-width, and calendar-day-digit-width.
 
++++
 *** Text (e.g. ISO weeks) can be displayed between the calendar months.
 See the variables calendar-intermonth-header and calendar-intermonth-text.
 
++++
 *** The function `holiday-chinese' computes holidays on the Chinese calendar.
 It has been used to add items to the list `holiday-oriental-holidays'.
 
+---
 *** `diary-remind' accepts a negative number -DAYS as a shorthand for
 the list (1 2 ... DAYS).
 
@@ -602,6 +664,15 @@ the first error encountered during compilations.
 improved. `hh' can be used to match C++ header files and `cchh' both
 C++ sources and headers.
 
+** Copyright
+
+*** You can specify your copyright holders' names.
+Only copyright lines with holders matching `copyright-names-regexp' are
+considered for update.
+
+*** Copyrights can be at the end of the buffer.
+This is controlled by `copyright-at-end-flag' (used by, e.g., change-log-mode).
+
 ** Custom
 +++
 *** defcustom accepts new keyword arguments, `:safe' and `:risky', which
@@ -617,11 +688,29 @@ diff-auto-refine-mode.  It is bound to `C-c C-b'.
 buffer and tries to create ChangeLog entries for each change.
 It is bound to `C-x 4 A'.
 
+*** The new function `diff-show-trailing-whitespaces' shows
+trailing whitespace problems in the modified lines of a diff buffer.
+
 ** Dired
 
 *** In Dired, C-x C-q now runs the command wdired-change-to-wdired-mode,
 and C-x C-q in wdired-mode exits it with asking a question about
 saving changes.
+
+*** `&' runs the command `dired-do-async-shell-command' that executes
+the command asynchronously without the need to manually add ampersand
+to the end of the command.  Its output appears in the buffer `*Async Shell
+Command*'.
+
+*** `M-s f C-s' and `M-s f M-C-s' run Isearch that matches only at file names.
+When a new user option `dired-isearch-filenames' is non-nil, then even
+ordinary Isearch started with `C-s' and `C-M-s' matches only at file names
+in the Dired buffer.  You can toggle file names matching on or off
+by typing `M-s f' in Isearch mode.
+
+*** `M-s a C-s' and `M-s a M-C-s' run multi-file Isearch on the marked files.
+They visit the first marked file in the sequence and display the usual Isearch
+prompt for a string or a regexp where all Isearch commands are available.
 
 *** `Q' in Dired provides two new keys for multi-file replacement.
 The upper case key `Y' replaces all remaining matches in all remaining files
@@ -632,8 +721,11 @@ including `dired-do-query-replace-regexp', `vc-dir-query-replace-regexp',
 `reftex-query-replace-document'.
 
 ** Fortran
-*** The variable `fortran-line-length' can change the fixed-form line-length.
++++
+*** The line length of fixed-form Fortran is not fixed at 72 any more.
+Customize the variable `fortran-line-length' to change it.
 
++++
 *** In Fortran mode, M-; is now bound to the standard comment-dwim,
 rather than fortran-indent-comment.
 
@@ -651,6 +743,11 @@ saving articles drafts and ~/.newsrc.eld.  These file may not be read
 correctly in Emacs 22 and below.  If you want to Gnus across different Emacs
 versions, you may set `mm-auto-save-coding-system' to `emacs-mule'.
 
+*** Password are consistently loaded through `auth-source'
+Gnus can use `auth-source' for POP and IMAP passwords.  Also see that
+`smtpmail' and `url' support `auth-source' for SMTP and HTTP/HTTPS/RSS
+authentication respectively.
+
 ** Help mode
 *** New macro `with-help-window' should set up help windows better
 than `with-output-to-temp-buffer' with `print-help-return-message'.
@@ -661,34 +758,47 @@ position of point in help window (for example in `view-lossage').
 
 ** Isearch
 
-*** New command `isearch-highlight-regexp' bound to `M-s h r'
-in isearch mode runs `highlight-regexp' (`hi-lock-face-buffer')
-with the current search string as its regexp argument.
+*** New command `isearch-forward-word' bound globally to `M-s w' starts
+incremental word search.  New command `isearch-toggle-word' bound to the
+same key `M-s w' in Isearch mode toggles word searching on or off
+while Isearch is active.
 
-*** New command `isearch-occur' bound to `M-s o' in isearch mode
-runs `occur' with the current search string.
+*** New command `isearch-highlight-regexp' bound to `M-s h r' in Isearch
+mode runs `highlight-regexp' (`hi-lock-face-buffer') with the current
+search string as its regexp argument.  The same key `M-s h r' and
+other keys on the `M-s h' prefix are bound globally to the command
+`highlight-regexp' and other hi-lock commands.
 
-*** isearch can now search through multiple ChangeLog files.
-When running isearch in a ChangeLog file, if the search fails,
+*** New command `isearch-occur' bound to `M-s o' in Isearch mode
+runs `occur' with the current search string.  The same key `M-s o'
+is bound globally to the command `occur'.
+
+*** Isearch can now search through multiple ChangeLog files.
+When running Isearch in a ChangeLog file, if the search fails,
 then another C-s tries searching the previous ChangeLog,
 if there is one (e.g. go from ChangeLog to ChangeLog.12).
 This is enabled if multi-isearch-search is non-nil.
 
 *** Two new commands to start Isearch on a list of marked buffers
-for buff-menu.el and ibuffer.el are bound to the keys "M-s a C-s" and
-"M-s a M-C-s".
+for buff-menu.el and ibuffer.el are bound to the keys `M-s a C-s' and
+`M-s a M-C-s'.
 
-*** The part of an isearch that failed to match is highlighted in `isearch-fail'
+*** The part of an Isearch that failed to match is highlighted in `isearch-fail'
 face.
 
-*** `C-h C-h' in isearch mode displays isearch-specific Help screen,
-`C-h b' displays all isearch key bindings, `C-h k' displays the full
-documentation of the given isearch key sequence, `C-h m' displays
-documentation of isearch mode.  All the rest Help commands exit isearch mode
+*** `C-h C-h' in Isearch mode displays isearch-specific Help screen,
+`C-h b' displays all Isearch key bindings, `C-h k' displays the full
+documentation of the given Isearch key sequence, `C-h m' displays
+documentation of Isearch mode.  All the rest Help commands exit Isearch mode
 and execute their global definitions.
 
 *** When started in the minibuffer, Isearch searches in the minibuffer
 history.  See `Minibuffer changes', above.
+
++++
+** MH-E
+
+*** Upgraded to MH-E version 8.1. See MH-E-NEWS for details.
 
 ** Python
 *** The file etc/emacs.py now supports both Python 2 and 3, meaning
@@ -698,6 +808,12 @@ that either version can be used as inferior Python by python.el.
 debug a Python program, pdbtrack notices the pdb prompt and displays
 the source file and line that the program is stopped at, much the same
 way as gud-mode does for debugging C programs with gdb.
+
+** Recentf
+
+*** The default value of `recentf-keep' prevents from checking of
+remote files, if there is no established connection to the
+corresponding remote host.
 
 ** T-mouse Mode
 
@@ -890,6 +1006,16 @@ Emacs has focus.  To enable them, set the variable
 w32-pass-multimedia-buttons to nil.  See the doc string of that variable
 for the list of extra keys that are available.
 
+** BDF fonts no longer supported on MS-Windows.
+The font backend was completely rewritten for this release. The focus
+on Windows has been getting acceptable performance and full unicode
+support, including complex script shaping for native Windows fonts.  A
+rewrite of the BDF font support has not happened due to lack of time
+and developers.  If demand still exists for such a backend even with
+the improved language support for native Windows fonts, future
+development in this direction will most likely be based on the
+freetype library, giving access to a wider range of font formats.
+
 
 * Incompatible Lisp Changes in Emacs 23.1
 
@@ -911,6 +1037,7 @@ coding-system used for decoding.  The functions
 `process-filter-multibyte-p' and `set-process-filter-multibyte' are
 obsolete.
 
+---
 ** The variable `byte-compile-warnings' can now be a list starting with `not',
 meaning to disable the specified warnings.  The meaning of this list
 may therefore be the reverse of what you expect (of course, this is
@@ -951,6 +1078,12 @@ functions and variables (formerly used for Tamil script).
 
 
 * Lisp Changes in Emacs 23.1
+
+** New primitives `list-system-processes' and `system-process-attributes'
+let Lisp programs access the processes that are running on the local
+machine.  See the doc strings of these functions for more details.
+Not all platforms support accessing this information; on those that
+don't, these primitives will return nil.
 
 +++
 ** New variable `user-emacs-directory'.
@@ -994,6 +1127,7 @@ IDENTIFICATION specifies which part of the remote identifier has to be
 returned.  With CONNECTED passed non-nil, it is checked whether a
 remote connection has been established already.
 
++++
 ** The new macro `declare-function' suppresses compiler warnings about
 undefined functions.
 
@@ -1058,7 +1192,7 @@ are available for inserting into the minibuffer by typing `M-n'.
 For empty input these functions return the first element of this list.
 
 *** New function `read-regexp' uses the regexp history and some useful
-regexp defaults (string at point, last isearch/replacement regexp/string)
+regexp defaults (string at point, last Isearch/replacement regexp/string)
 via M-n when reading a regexp in the minibuffer.
 
 *** minibuffer-local-must-match-filename-map is now named
@@ -1087,7 +1221,10 @@ function to use for searching in `query-replace-regexp',
 `replace-regexp', `query-replace-regexp-eval', and
 `map-query-replace-regexp'.
 
-*** The new keymap `multi-query-replace-map' contains additonal keys bound
+*** New keymap `search-map' bound to `M-s' provides global bindings
+for search related commands.
+
+*** New keymap `multi-query-replace-map' contains additonal keys bound
 to `automatic-all' and `exit-current' for multi-buffer interactive replacement.
 
 *** The variable `inhibit-changing-match-data', if non-nil, prevents
@@ -1170,6 +1307,9 @@ This replaces `char-valid-p', which is now obsolete.
 a character code property.
 
 *** New variables:
+
+**** file-local-variables-alist stores an alist of file-local
+variables defined in the current buffer.
 
 **** `find-word-boundary-function-table' is a char-table of functions to
 search for a word boundary.
@@ -1305,6 +1445,10 @@ which is not used directly any more.
 
 *** New hooks:
 
+**** before-hack-local-variables-hook is called after setting new
+variable file-local-variables-alist, and before actually applying the
+file-local variables.
+
 **** `suspend-tty-functions' and `resume-tty-functions' are called
 after a tty frame has been suspended or resumed, respectively.  The
 functions are called with the terminal id of the frame being
@@ -1337,14 +1481,14 @@ invisible-p to check whether it would cause the text to be invisible.
 Convenient when checking invisibility of text with no buffer position
 (e.g. in before/after-strings).
 
-*** Non-breaking space is now displayed as whitespace.
-
 *** `clear-image-cache' can be told to flush only images of a specific file.
 
 *** `vertical-motion' can now be given a goal column.
 It now accepts a cons cell (COLS . LINES) in its first argument, which
 says to stop, where possible, at a pixel x-position equal to COLS
 times the default column width.
+
+** The Lisp interpreter now treats non-breaking space as whitespace.
 
 ** Miscellaneous new functions
 
@@ -1409,6 +1553,7 @@ certain variable as having been made within Custom.
 
 ** The new package avl-tree.el deals with the AVL tree data structure.
 
++++
 ** The new package check-declare.el verifies the accuracy of
 declare-function macros (see Lisp Changes, above).
 

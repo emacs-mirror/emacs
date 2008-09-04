@@ -1,3 +1,115 @@
+2008-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Disable XFT and Freetype when without X.
+
+	* configure: Regenerate.
+
+2008-08-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (NS_IMPL_GNUSTEP): Increase pure size.
+
+2008-08-21  Christian Faulhammer  <opfer@gentoo.org>  (tiny change)
+
+	* configure.in (GNUSTEP_SYSTEM_HEADERS): Define
+	GNUSTEP_SYSTEM_HEADERS and GNUSTEP_SYSTEM_LIBRARIES.
+
+	* configure: Regenerate.
+
+2008-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.in: Move "#define subprocesses" before
+	config_opsysfile is included.
+
+2008-08-19  Kenichi Handa  <handa@m17n.org>
+
+	* INSTALL (Extra fonts): Mention local fonts, don't mention
+	mule-unicode.
+
+2008-08-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* make-dist: Omit info/.arch-inventory.
+
+2008-08-16  Jason Rumney  <jasonr@gnu.org>
+
+	* make-dist (tempdir/nt): Link emacsclient.rc.
+
+2008-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (LIB_SRC_EXTRA_INSTALLABLES): New variable.
+	AC_SUBST it.
+	(GNU_OBJC_CFLAGS): Define as a shell variable instead of #define.
+	AC_SUBST it.
+	(OTHER_FILES): Always define for HAVE_NS.
+	(C_SWITCH_X_SYSTEM): Don't define as empty for NS_IMPL_COCOA.
+	* configure: Regenerate.
+
+2008-08-07  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Correctly handle
+	--enable-cocoa-experimental-ctrl-g=no and
+	--enable-ns-self-contained=yes.
+
+2008-08-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* configure.in (NS_HAVE_INTEGER): Rename to NS_HAVE_NSINTEGER.
+	(C_SWITCH_X_SYSTEM): Drop -MMD -MP under NS_IMPL_GNUstep.  Don't
+	bother undef'ing since won't have desired effect.
+
+2008-08-06  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Fix quoting.
+
+2008-08-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in (COCOA_EXPERIMENTAL_CTRL_G): Fix 2008-08-04 change.
+
+2008-08-05  Ulrich Mueller  <ulm@gentoo.org>
+
+	* configure.in: Add checks for krb5_error.text and
+	krb5_error.e_text struct members.
+
+2008-08-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Test for existence of NSInteger.
+	Suggested by Yavor Doganov.
+
+2008-08-02  Romain Francoise  <romain@orebokech.com>
+
+	* Makefile.in (INFO_FILES): Add mairix-el.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* make-dist:
+	* README: Remove VMS support.
+	* vms: Remove directory.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (MULTI_KBOARD): Remove.
+
+2008-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (DO_BLOCK_INPUT): Remove, unused.
+
+2008-07-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info/dir (File): Add mairix-el.
+
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove support for Mac Carbon.
+	* mac: Remove directory.
+	* make-dist:
+	* configure.in:
+	* README:
+	* Makefile.in:
+	* INSTALL: Remove code for Carbon.
+	* configure: Regenerate.
+
+2008-07-26  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Makefile.in (install-arch-dep): Fix typo in NS installation commands.
+
 2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Check for getrlimit.
@@ -11,12 +123,10 @@
 	(static): Remove, autoconf would always comment it out anyway.
 	(subprocesses): Define unconditionally.
 
-2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+2008-07-19  Yavor Doganov  <yavor@gnu.org>  (tiny change)
 
-	* configure.in: Apply patch from Yavor Doganov <yavor <at> gnu.org> to
-	fix typo in GNUSTEP_MAKEFILES setting for HAVE_NS compilation under
-	GNUstep.
-	* configure: Regenerate.
+	* configure.in: Fix typo in GNUSTEP_MAKEFILES setting for HAVE_NS
+	compilation under GNUstep.
 
 2008-07-18  Kenichi Handa  <handa@m17n.org>
 
@@ -42,7 +152,6 @@
 
 	* configure.in: Change GNUSTEP to NS_IMPL_GNUSTEP, COCOA to
 	NS_IMPL_COCOA.
-	* configure: Regenerate.
 
 2008-07-16  Glenn Morris  <rgm@gnu.org>
 

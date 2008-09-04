@@ -6,7 +6,7 @@
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-reader.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "15. Juni 2008, 09:42:01 (ulf)"
+;; Time-stamp:  "25. August 2008, 19:35:45 (ulf)"
 
 ;; ======================================================================
 
@@ -1151,6 +1151,32 @@ static char * visit_xpm[] = {
 "
                      'xpm t))
   "Image for the browse button.")
+
+(defun newsticker-browse-url-item (feed item)
+  "Convert FEED ITEM to html and call `browse-url' on result."
+  (interactive)
+  (let ((t-file (make-temp-file "newsticker")))
+    (with-temp-file t-file
+      (insert "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+               <!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"
+               \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">
+               <html xmlns=\"http://www.w3.org/1999/xhtml\">
+               <body>")
+      (insert "<h1>" feed ": " (newsticker--title item) "</h1>")
+      (insert (format-time-string newsticker-date-format
+                                  (newsticker--time item)))
+      (insert "<br/>")
+      (insert (or (newsticker--desc item) "[No Description]"))
+      (when (newsticker--enclosure item)
+        (insert "<br/><hr/><i>")
+        (newsticker--insert-enclosure item nil)
+        (insert "</i>"))
+      (when (newsticker--extra item)
+        (insert "<br/><hr/><tt>")
+        (newsticker--print-extra-elements item nil)
+        (insert "</tt>"))
+      (insert "</body></html>"))
+    (browse-url t-file)))
 
 (provide 'newsticker-reader)
 

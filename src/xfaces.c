@@ -234,15 +234,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define x_display_info w32_display_info
 #define FRAME_X_FONT_TABLE FRAME_W32_FONT_TABLE
 #define check_x check_w32
-#define x_list_fonts w32_list_fonts
 #define GCGraphicsExposures 0
 #endif /* WINDOWSNT */
-
-#ifdef MAC_OS
-#include "macterm.h"
-#define x_display_info mac_display_info
-#define check_x check_mac
-#endif /* MAC_OS */
 
 #ifdef HAVE_NS
 #include "nsterm.h"
@@ -251,7 +244,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define x_display_info ns_display_info
 #define FRAME_X_FONT_TABLE FRAME_NS_FONT_TABLE
 #define check_x check_ns
-#define x_list_fonts ns_list_fonts
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
 
@@ -563,14 +555,6 @@ static void uncache_face P_ ((struct face_cache *, struct face *));
 static GC x_create_gc P_ ((struct frame *, unsigned long, XGCValues *));
 static void x_free_gc P_ ((struct frame *, GC));
 
-#ifdef WINDOWSNT
-extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
-#endif /* WINDOWSNT */
-
-#ifdef HAVE_NS
-extern Lisp_Object ns_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
-#endif /* HAVE_NS */
-
 #ifdef USE_X_TOOLKIT
 static void x_update_menu_appearance P_ ((struct frame *));
 
@@ -806,35 +790,6 @@ x_free_gc (f, gc)
 }
 #endif  /* HAVE_NS */
 
-#ifdef MAC_OS
-/* Mac OS emulation of GCs */
-
-static INLINE GC
-x_create_gc (f, mask, xgcv)
-     struct frame *f;
-     unsigned long mask;
-     XGCValues *xgcv;
-{
-  GC gc;
-  BLOCK_INPUT;
-  gc = XCreateGC (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), mask, xgcv);
-  UNBLOCK_INPUT;
-  IF_DEBUG (++ngcs);
-  return gc;
-}
-
-static INLINE void
-x_free_gc (f, gc)
-     struct frame *f;
-     GC gc;
-{
-  eassert (interrupt_input_blocked);
-  IF_DEBUG (xassert (--ngcs >= 0));
-  XFreeGC (FRAME_MAC_DISPLAY (f), gc);
-}
-
-#endif  /* MAC_OS */
-
 /* Like strcasecmp/stricmp.  Used to compare parts of font names which
    are in ISO8859-1.  */
 
@@ -908,9 +863,6 @@ init_frame_faces (f)
 #endif
 #ifdef WINDOWSNT
   if (!FRAME_WINDOW_P (f) || FRAME_W32_WINDOW (f))
-#endif
-#ifdef MAC_OS
-  if (!FRAME_MAC_P (f) || FRAME_MAC_WINDOW (f))
 #endif
 #ifdef HAVE_NS
   if (!FRAME_NS_P (f) || FRAME_NS_WINDOW (f))
@@ -1307,10 +1259,6 @@ defined_color (f, color_name, color_def, alloc)
 #ifdef WINDOWSNT
   else if (FRAME_W32_P (f))
     return w32_defined_color (f, color_name, color_def, alloc);
-#endif
-#ifdef MAC_OS
-  else if (FRAME_MAC_P (f))
-    return mac_defined_color (f, color_name, color_def, alloc);
 #endif
 #ifdef HAVE_NS
   else if (FRAME_NS_P (f))
@@ -1736,14 +1684,7 @@ enum xlfd_swidth
    font height, then for weight, then for slant.'  This variable can be
    set via set-face-font-sort-order.  */
 
-#ifdef MAC_OS
-static int font_sort_order[4] = {
-  XLFD_SWIDTH, XLFD_POINT_SIZE, XLFD_WEIGHT, XLFD_SLANT
-};
-#else
 static int font_sort_order[4];
-#endif
-
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -2384,13 +2325,7 @@ lface_fully_specified_p (attrs)
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX)
-      if ((UNSPECIFIEDP (attrs[i]) || IGNORE_DEFFACE_P (attrs[i]))
-#ifdef MAC_OS
-        /* MAC_TODO: No stipple support on Mac OS yet, this index is
-           always unspecified.  */
-          && i != LFACE_STIPPLE_INDEX
-#endif
-          )
+      if ((UNSPECIFIEDP (attrs[i]) || IGNORE_DEFFACE_P (attrs[i])))
         break;
 
   return i == LFACE_VECTOR_SIZE;
@@ -3798,6 +3733,10 @@ x_update_menu_appearance (f)
 	}
 
       if (face->font
+	  /* On Solaris 5.8, it's been reported that the `menu' face
+	     can be unspecified here, during startup.  Why this
+	     happens remains unknown.  -- cyd  */
+	  && FONTP (LFACE_FONT (lface))
 	  && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
 	      || !UNSPECIFIEDP (LFACE_FOUNDRY (lface))
 	      || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
@@ -5039,7 +4978,9 @@ lookup_derived_face (f, symbol, face_id, signal_p)
   if (!default_face)
     abort ();
 
-  get_lface_attributes (f, symbol, symbol_attrs, signal_p, 0);
+  if (!get_lface_attributes (f, symbol, symbol_attrs, signal_p, 0))
+    return -1;
+
   bcopy (default_face->lface, attrs, sizeof attrs);
   merge_face_vectors (f, symbol_attrs, attrs, 0);
   return lookup_face (f, attrs);
@@ -5511,13 +5452,20 @@ be found.  Value is ALIST.  */)
      (alist)
      Lisp_Object alist;
 {
-  Lisp_Object tail, tail2;
+  Lisp_Object entry, tail, tail2;
 
   CHECK_LIST (alist);
   alist = Fcopy_sequence (alist);
   for (tail = alist; CONSP (tail); tail = XCDR (tail))
-    for (tail2 = XCAR (tail); CONSP (tail2); tail2 = XCDR (tail2))
-      XSETCAR (tail2, Fintern (XCAR (tail2), Qnil));
+    {
+      entry = XCAR (tail);
+      CHECK_LIST (entry);
+      entry = Fcopy_sequence (entry);
+      XSETCAR (tail, entry);
+      for (tail2 = entry; CONSP (tail2); tail2 = XCDR (tail2))
+	XSETCAR (tail2, Fintern (XCAR (tail2), Qnil));
+    }
+
   Vface_alternative_font_family_alist = alist;
   free_all_realized_faces (Qnil);
   return alist;
@@ -5534,13 +5482,19 @@ be found.  Value is ALIST.  */)
      (alist)
      Lisp_Object alist;
 {
-  Lisp_Object tail, tail2;
+  Lisp_Object entry, tail, tail2;
 
   CHECK_LIST (alist);
   alist = Fcopy_sequence (alist);
   for (tail = alist; CONSP (tail); tail = XCDR (tail))
-    for (tail2 = XCAR (tail); CONSP (tail2); tail2 = XCDR (tail2))
-      XSETCAR (tail2, Fdowncase (XCAR (tail2)));
+    {
+      entry = XCAR (tail);
+      CHECK_LIST (entry);
+      entry = Fcopy_sequence (entry);
+      XSETCAR (tail, entry);
+      for (tail2 = entry; CONSP (tail2); tail2 = XCDR (tail2))
+	XSETCAR (tail2, Fdowncase (XCAR (tail2)));
+    }
   Vface_alternative_font_registry_alist = alist;
   free_all_realized_faces (Qnil);
   return alist;
@@ -6598,10 +6552,10 @@ merge_faces (f, face_name, face_id, base_face_id)
       if (face_id < 0 || face_id >= lface_id_to_name_size)
 	return base_face_id;
       face_name = lface_id_to_name[face_id];
-      face_id = lookup_derived_face (f, face_name, base_face_id, 1);
-      if (face_id >= 0)
-	return face_id;
-      return base_face_id;
+      /* When called during make-frame, lookup_derived_face may fail
+	 if the faces are uninitialized.  Don't signal an error.  */
+      face_id = lookup_derived_face (f, face_name, base_face_id, 0);
+      return (face_id >= 0 ? face_id : base_face_id);
     }
 
   /* Begin with attributes from the base face.  */
@@ -6627,6 +6581,60 @@ merge_faces (f, face_name, face_id, base_face_id)
      or realize a new one for ASCII characters.  */
   return lookup_face (f, attrs);
 }
+
+
+
+#ifndef HAVE_X_WINDOWS
+DEFUN ("x-load-color-file", Fx_load_color_file,
+       Sx_load_color_file, 1, 1, 0,
+       doc: /* Create an alist of color entries from an external file.
+
+The file should define one named RGB color per line like so:
+  R G B   name
+where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
+    (filename)
+    Lisp_Object filename;
+{
+  FILE *fp;
+  Lisp_Object cmap = Qnil;
+  Lisp_Object abspath;
+
+  CHECK_STRING (filename);
+  abspath = Fexpand_file_name (filename, Qnil);
+
+  fp = fopen (SDATA (filename), "rt");
+  if (fp)
+    {
+      char buf[512];
+      int red, green, blue;
+      int num;
+
+      BLOCK_INPUT;
+
+      while (fgets (buf, sizeof (buf), fp) != NULL) {
+	if (sscanf (buf, "%u %u %u %n", &red, &green, &blue, &num) == 3)
+	  {
+	    char *name = buf + num;
+	    num = strlen (name) - 1;
+	    if (name[num] == '\n')
+	      name[num] = 0;
+	    cmap = Fcons (Fcons (build_string (name),
+#ifdef WINDOWSNT
+				 make_number (RGB (red, green, blue))),
+#else
+				 make_number ((red << 16) | (green << 8) | blue)),
+#endif
+			  cmap);
+	  }
+      }
+      fclose (fp);
+
+      UNBLOCK_INPUT;
+    }
+
+  return cmap;
+}
+#endif
 
 
 /***********************************************************************
@@ -6884,6 +6892,9 @@ syms_of_xfaces ()
 #endif
   defsubr (&Scolor_gray_p);
   defsubr (&Scolor_supported_p);
+#ifndef HAVE_X_WINDOWS
+  defsubr (&Sx_load_color_file);
+#endif
   defsubr (&Sface_attribute_relative_p);
   defsubr (&Smerge_face_attribute);
   defsubr (&Sinternal_get_lisp_face_attribute);

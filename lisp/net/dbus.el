@@ -33,6 +33,9 @@
 ;; D-Bus support in the Emacs core can be disabled with configuration
 ;; option "--without-dbus".  Declare used subroutines and variables.
 (declare-function dbus-call-method "dbusbind.c")
+(declare-function dbus-call-method-asynchronously "dbusbind.c")
+(declare-function dbus-method-return-internal "dbusbind.c")
+(declare-function dbus-method-error-internal "dbusbind.c")
 (declare-function dbus-register-signal "dbusbind.c")
 (defvar dbus-debug)
 (defvar dbus-registered-functions-table)
@@ -62,6 +65,21 @@
 (defconst dbus-interface-properties (concat dbus-interface-dbus ".Properties")
   "The interface for property objects.")
 
+(defconst dbus-message-type-invalid 0
+  "This value is never a valid message type.")
+
+(defconst dbus-message-type-method-call 1
+  "Message type of a method call message.")
+
+(defconst dbus-message-type-method-return 2
+  "Message type of a method return message.")
+
+(defconst dbus-message-type-error 3
+  "Message type of an error reply message.")
+
+(defconst dbus-message-type-signal 4
+  "Message type of a signal message.")
+
 (defmacro dbus-ignore-errors (&rest body)
   "Execute BODY; signal D-Bus error when `dbus-debug' is non-nil.
 Otherwise, return result of last form in BODY, or all other errors."
@@ -70,7 +88,7 @@ Otherwise, return result of last form in BODY, or all other errors."
      (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
 
 (put 'dbus-ignore-errors 'lisp-indent-function 0)
-(put 'dbus-ignore-errors 'edebug-form-spec '(form symbolp body))
+(put 'dbus-ignore-errors 'edebug-form-spec '(form body))
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<dbus-ignore-errors\\>"))
 
 
@@ -79,6 +97,13 @@ Otherwise, return result of last form in BODY, or all other errors."
 ;; We create it here.  So we have a simple test in dbusbind.c, whether
 ;; the Lisp code has been loaded.
 (setq dbus-registered-functions-table (make-hash-table :test 'equal))
+
+(defvar dbus-return-values-table (make-hash-table :test 'equal)
+  "Hash table for temporary storing arguments of reply messages.
+A key in this hash table is a list (BUS SERIAL).  BUS is either the
+symbol `:system' or the symbol `:session'.  SERIAL is the serial number
+of the reply message.  See `dbus-call-method-non-blocking-handler' and
+`dbus-call-method-non-blocking'.")
 
 (defun dbus-list-hash-table ()
   "Returns all registered member registrations to D-Bus.
@@ -119,6 +144,42 @@ been unregistered, `nil' otherwise."
 	  (remhash key dbus-registered-functions-table))
 	(setq value t)))
     value))
+
+(defun dbus-call-method-non-blocking-handler (&rest args)
+  "Handler for reply messages of asynchronous D-Bus message calls.
+It calls the function stored in `dbus-registered-functions-table'.
+The result will be made available in `dbus-return-values-table'."
+  (puthash (list (dbus-event-bus-name last-input-event)
+		 (dbus-event-serial-number last-input-event))
+	   (if (= (length args) 1) (car args) args)
+	   dbus-return-values-table))
+
+(defun dbus-call-method-non-blocking
+  (bus service path interface method &rest args)
+  "Call METHOD on the D-Bus BUS, but don't block the event queue.
+This is necessary for communicating to registered D-Bus methods,
+which are running in the same Emacs process.
+
+The arguments are the same as in `dbus-call-method'.
+
+usage: (dbus-call-method-non-blocking
+         BUS SERVICE PATH INTERFACE METHOD
+         &optional :timeout TIMEOUT &rest ARGS)"
+
+  (let ((key
+	 (apply
+	  'dbus-call-method-asynchronously
+	  bus service path interface method
+	  'dbus-call-method-non-blocking-handler args)))
+    ;; Wait until `dbus-call-method-non-blocking-handler' has put the
+    ;; result into `dbus-return-values-table'.
+    (while (not (gethash key dbus-return-values-table nil))
+      (read-event nil nil 0.1))
+
+    ;; Cleanup `dbus-return-values-table'.  Return the result.
+    (prog1
+	(gethash key dbus-return-values-table nil)
+      (remhash key dbus-return-values-table))))
 
 (defun dbus-name-owner-changed-handler (&rest args)
   "Reapplies all member registrations to D-Bus.
@@ -166,7 +227,7 @@ usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
 	  args))))))
 
 ;; Register the handler.
-(ignore-errors
+(when nil ;ignore-errors
   (dbus-register-signal
    :system dbus-service-dbus dbus-path-dbus dbus-interface-dbus
    "NameOwnerChanged" 'dbus-name-owner-changed-handler)
@@ -181,17 +242,18 @@ usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
   "Checks whether EVENT is a well formed D-Bus event.
 EVENT is a list which starts with symbol `dbus-event':
 
-     (dbus-event BUS SERIAL SERVICE PATH INTERFACE MEMBER HANDLER &rest ARGS)
+  (dbus-event BUS TYPE SERIAL SERVICE PATH INTERFACE MEMBER HANDLER &rest ARGS)
 
 BUS identifies the D-Bus the message is coming from.  It is
-either the symbol `:system' or the symbol `:session'.  SERIAL is
-the serial number of the received D-Bus message if it is a method
-call, or `nil'.  SERVICE and PATH are the unique name and the
-object path of the D-Bus object emitting the message.  INTERFACE
-and MEMBER denote the message which has been sent.  HANDLER is
-the function which has been registered for this message.  ARGS
-are the arguments passed to HANDLER, when it is called during
-event handling in `dbus-handle-event'.
+either the symbol `:system' or the symbol `:session'.  TYPE is
+the D-Bus message type which has caused the event, SERIAL is the
+serial number of the received D-Bus message.  SERVICE and PATH
+are the unique name and the object path of the D-Bus object
+emitting the message.  INTERFACE and MEMBER denote the message
+which has been sent.  HANDLER is the function which has been
+registered for this message.  ARGS are the arguments passed to
+HANDLER, when it is called during event handling in
+`dbus-handle-event'.
 
 This function raises a `dbus-error' signal in case the event is
 not well formed."
@@ -200,37 +262,62 @@ not well formed."
 	       (eq (car event) 'dbus-event)
 	       ;; Bus symbol.
 	       (symbolp (nth 1 event))
+	       ;; Type.
+	       (and (natnump (nth 2 event))
+		    (< dbus-message-type-invalid (nth 2 event)))
 	       ;; Serial.
-	       (or (natnump (nth 2 event)) (null (nth 2 event)))
+	       (natnump (nth 3 event))
 	       ;; Service.
-	       (stringp (nth 3 event))
+	       (or (= dbus-message-type-method-return (nth 2 event))
+		   (= dbus-message-type-error (nth 2 event))
+		   (stringp (nth 4 event)))
 	       ;; Object path.
-	       (stringp (nth 4 event))
+	       (or (= dbus-message-type-method-return (nth 2 event))
+		   (= dbus-message-type-error (nth 2 event))
+		   (stringp (nth 5 event)))
 	       ;; Interface.
-	       (stringp (nth 5 event))
+	       (or (= dbus-message-type-method-return (nth 2 event))
+		   (= dbus-message-type-error (nth 2 event))
+		   (stringp (nth 6 event)))
 	       ;; Member.
-	       (stringp (nth 6 event))
+	       (or (= dbus-message-type-method-return (nth 2 event))
+		   (= dbus-message-type-error (nth 2 event))
+		   (stringp (nth 7 event)))
 	       ;; Handler.
-	       (functionp (nth 7 event)))
+	       (functionp (nth 8 event)))
     (signal 'dbus-error (list "Not a valid D-Bus event" event))))
 
 ;;;###autoload
 (defun dbus-handle-event (event)
   "Handle events from the D-Bus.
 EVENT is a D-Bus event, see `dbus-check-event'.  HANDLER, being
-part of the event, is called with arguments ARGS."
+part of the event, is called with arguments ARGS.
+If the HANDLER returns an `dbus-error', it is propagated as return message."
   (interactive "e")
-  ;; We don't want to raise an error, because this function is called
-  ;; in the event handling loop.
-  (dbus-ignore-errors
-    (let (result)
-      (dbus-check-event event)
-      (setq result (apply (nth 7 event) (nthcdr 8 event)))
-      (unless (consp result) (setq result (cons result nil)))
-      ;; Return a message when serial is not `nil'.
-      (when (not (null (nth 2 event)))
-	(apply 'dbus-method-return-internal
-	       (nth 1 event) (nth 2 event) (nth 3 event) result)))))
+  (condition-case err
+      (let (result)
+	;; We ignore not well-formed events.
+	(dbus-check-event event)
+	;; Error messages must be propagated.
+	(when (= dbus-message-type-error (nth 2 event))
+	  (signal 'dbus-error (nthcdr 9 event)))
+	;; Apply the handler.
+	(setq result (apply (nth 8 event) (nthcdr 9 event)))
+	;; Return a message when it is a message call.
+	(when (= dbus-message-type-method-call (nth 2 event))
+	  (dbus-ignore-errors
+	    (dbus-method-return-internal
+	     (nth 1 event) (nth 3 event) (nth 4 event) result))))
+    ;; Error handling.
+    (dbus-error
+     ;; Return an error message when it is a message call.
+     (when (= dbus-message-type-method-call (nth 2 event))
+       (dbus-ignore-errors
+	 (dbus-method-error-internal
+	  (nth 1 event) (nth 3 event) (nth 4 event) (cadr err))))
+     ;; Propagate D-Bus error messages.
+     (when (or dbus-debug (= dbus-message-type-error (nth 2 event)))
+       (signal (car err) (cdr err))))))
 
 (defun dbus-event-bus-name (event)
   "Return the bus name the event is coming from.
@@ -241,15 +328,22 @@ formed."
   (dbus-check-event event)
   (nth 1 event))
 
-(defun dbus-event-serial-number (event)
-  "Return the serial number of the corresponding D-Bus message.
-The result is a number in case the D-Bus message is a method
-call, or `nil' for all other mesage types.  The serial number is
-needed for generating a reply message.  EVENT is a D-Bus event,
-see `dbus-check-event'.  This function raises a `dbus-error'
-signal in case the event is not well formed."
+(defun dbus-event-message-type (event)
+  "Return the message type of the corresponding D-Bus message.
+The result is a number.  EVENT is a D-Bus event, see
+`dbus-check-event'.  This function raises a `dbus-error' signal
+in case the event is not well formed."
   (dbus-check-event event)
   (nth 2 event))
+
+(defun dbus-event-serial-number (event)
+  "Return the serial number of the corresponding D-Bus message.
+The result is a number.  The serial number is needed for
+generating a reply message.  EVENT is a D-Bus event, see
+`dbus-check-event'.  This function raises a `dbus-error' signal
+in case the event is not well formed."
+  (dbus-check-event event)
+  (nth 3 event))
 
 (defun dbus-event-service-name (event)
   "Return the name of the D-Bus object the event is coming from.
@@ -257,7 +351,7 @@ The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (dbus-check-event event)
-  (nth 3 event))
+  (nth 4 event))
 
 (defun dbus-event-path-name (event)
   "Return the object path of the D-Bus object the event is coming from.
@@ -265,7 +359,7 @@ The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (dbus-check-event event)
-  (nth 4 event))
+  (nth 5 event))
 
 (defun dbus-event-interface-name (event)
   "Return the interface name of the D-Bus object the event is coming from.
@@ -273,7 +367,7 @@ The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (dbus-check-event event)
-  (nth 5 event))
+  (nth 6 event))
 
 (defun dbus-event-member-name (event)
   "Return the member name the event is coming from.
@@ -282,7 +376,7 @@ string.  EVENT is a D-Bus event, see `dbus-check-event'.  This
 function raises a `dbus-error' signal in case the event is not
 well formed."
   (dbus-check-event event)
-  (nth 6 event))
+  (nth 7 event))
 
 
 ;;; D-Bus registered names.
@@ -351,9 +445,11 @@ BUS must be either the symbol `:system' or the symbol `:session'.
 SERVICE must be a known service name, and PATH must be a valid
 object path.  The last two parameters are strings.  The result,
 the introspection data, is a string in XML format."
-  ;; We don't want to raise errors.
+  ;; We don't want to raise errors.  `dbus-call-method-non-blocking'
+  ;; is used, because the handler can be registered in our Emacs
+  ;; instance; caller an callee would block each other.
   (dbus-ignore-errors
-    (dbus-call-method
+    (dbus-call-method-non-blocking
      bus service path dbus-interface-introspectable "Introspect")))
 
 (defun dbus-introspect-xml (bus service path)
@@ -641,8 +737,8 @@ returned."
 	 (string-equal
 	  "readwrite"
 	  (dbus-introspect-get-attribute
-	   bus service path interface property)
-	  "access"))
+	   (dbus-introspect-get-property bus service path interface property)
+	   "access")))
       ;; "Set" requires a variant.
       (dbus-call-method
        bus service path dbus-interface-properties

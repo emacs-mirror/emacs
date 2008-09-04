@@ -94,7 +94,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.31.5"
+(defconst c-version "5.31.6"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -1440,13 +1440,15 @@ non-nil, a caret is prepended to invert the set."
 			 '1-bit)
 		       list)))
 
-    ;; In Emacs >= 23, beginning-of-defun will passes its parameter to
-    ;; beginning-of-defun-function.  Assume end-of-defun does the same.
+    ;; In Emacs >= 23, beginning-of-defun-raw passes its argument to
+    ;; beginning-of-defun-function.  Assume end-of-defun does likewise.
     (let ((beginning-of-defun-function
 	   (lambda (&optional arg)
-	     (not (eq arg nil)))))
-      (if (beginning-of-defun 1)
-	  (setq list (cons 'argumentative-bod-function list))))
+	     (not (eq arg nil))))
+	  mark-ring)
+      (save-excursion
+	(if (beginning-of-defun-raw 1)
+	    (setq list (cons 'argumentative-bod-function list)))))
 
     (let ((buf (generate-new-buffer " test"))
 	  parse-sexp-lookup-properties

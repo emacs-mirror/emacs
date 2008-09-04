@@ -254,11 +254,13 @@ DBUS_OBJ = dbusbind.o
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
 ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@
+ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
+
 .SUFFIXES: .m
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 .m.o:
-	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) GNU_OBJC_CFLAGS $<
+	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 
 #ifndef LIBX11_SYSTEM
 #define LIBX11_SYSTEM
@@ -503,21 +505,14 @@ GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 #ifdef MSDOS
 #ifdef HAVE_X_WINDOWS
-MSDOS_OBJ = dosfns.o msdos.o
+MSDOS_OBJ = dosfns.o msdos.o xmenu.o
 #else
-MSDOS_OBJ = dosfns.o msdos.o w16select.o
+MSDOS_OBJ = dosfns.o msdos.o w16select.o xmenu.o
 #endif
 #endif
 
 #ifdef CYGWIN
 CYGWIN_OBJ = sheap.o
-#endif
-
-#ifdef HAVE_CARBON
-mac = ../mac/
-MAC_OBJ = mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o fringe.o image.o mactoolbox.o
-emacsapp = $(PWD)/$(mac)Emacs.app/
-emacsappsrc = ${srcdir}/../mac/Emacs.app/
 #endif
 
 #ifdef HAVE_NS
@@ -557,14 +552,14 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
-	$(MSDOS_OBJ) $(MAC_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_DRIVERS)
+	$(MSDOS_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_DRIVERS)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
    in case they are needed there.  */
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
-  mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o \
+  fontset.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_DRIVERS)
@@ -627,12 +622,6 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
 #else
 #define MOUSE_SUPPORT
 #endif
-#endif
-
-#ifdef VMS
-#define VMS_SUPPORT ${lispsource}vmsproc.elc ${lispsource}vms-patch.elc
-#else
-#define VMS_SUPPORT
 #endif
 
 #ifdef MSDOS
@@ -769,7 +758,6 @@ lisp= \
 	${lispsource}ediff-hook.elc \
 	${lispsource}epa-hook.elc \
 	TOOLTIP_SUPPORT \
-	VMS_SUPPORT \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
 	WINDOW_SUPPORT \
@@ -871,7 +859,6 @@ shortlisp= \
    for the sake of systems which can''t handle large ones.  */
 SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/select.elc ../lisp/scroll-bar.elc \
-  VMS_SUPPORT \
   ../lisp/ls-lisp.elc ../lisp/dos-fns.elc \
   ../lisp/w32-fns.elc ../lisp/dos-w32.elc \
   ../lisp/disp-table.elc ../lisp/dos-vars.elc \
@@ -884,6 +871,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/international/fontset.elc \
   ../lisp/mouse.elc \
   ../lisp/term/x-win.elc \
+  ../lisp/term/pc-win.elc \
   ../lisp/term/ns-win.elc
 
 /* Construct full set of libraries to be linked.
@@ -925,10 +913,7 @@ emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp} ${SOME_MACHINE_LISP}
 	@: bootstrap-emacs, so let us replace it.
 	-ln -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
-/* XXX: not working under NS currently due to path shenanigans.. */
-#ifndef HAVE_NS
 	-./emacs -q -batch -f list-load-path-shadows
-#endif
 
 /* We run make-docfile twice because the command line may get too long
    on some systems.  */
@@ -954,7 +939,10 @@ ${libsrc}make-docfile${EXEEXT}:
 temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
 	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
 #ifdef NS_IMPL_GNUSTEP
-	$(CC) -rdynamic YMF_PASS_LDFLAGS (${TEMACS_LDFLAGS} -lgnustep-gui -lgnustep-base -lobjc $(CONFIG_SYSTEM_LIBS) -lpthread ) -o temacs ${obj} ${otherobj} OBJECTS_MACHINE ${LIBES}
+	$(CC) -rdynamic YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
+	-L@GNUSTEP_SYSTEM_LIBRARIES@ -lgnustep-gui -lgnustep-base \
+	-lobjc $(CONFIG_SYSTEM_LIBS) -lpthread ) -o temacs \
+	${obj} ${otherobj} OBJECTS_MACHINE ${LIBES}
 #else
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
@@ -1071,7 +1059,7 @@ dispnew.o: dispnew.c systime.h commands.h process.h frame.h \
    window.h buffer.h dispextern.h termchar.h termopts.h termhooks.h cm.h \
    disptab.h indent.h intervals.h \
    xterm.h blockinput.h atimer.h character.h msdos.h composite.h keyboard.h \
-   $(config_h)
+   syssignal.h $(config_h)
 doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h keymap.h character.h
 doprnt.o: doprnt.c character.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h blockinput.h window.h \
@@ -1089,17 +1077,18 @@ filelock.o: filelock.c buffer.h character.h charset.h coding.h systime.h \
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    blockinput.h atimer.h systime.h buffer.h character.h fontset.h font.h    \
-   msdos.h dosfns.h dispextern.h w32term.h macterm.h macgui.h termchar.h    \
+   msdos.h dosfns.h dispextern.h w32term.h termchar.h    \
    $(config_h)
 fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhooks.h $(config_h)
 font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \
    font.h $(config_h)
-ftfont.o: dispextern.h frame.h character.h charset.h font.h $(config_h)
+ftfont.o: dispextern.h frame.h character.h charset.h composite.h font.h \
+   $(config_h)
 fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h character.h \
    charset.h frame.h keyboard.h termhooks.h font.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 image.o: image.c frame.h window.h dispextern.h blockinput.h atimer.h \
-   systime.h xterm.h w32term.h w32gui.h macterm.h macgui.h font.h \
+   systime.h xterm.h w32term.h w32gui.h font.h \
    nsterm.h nsgui.h $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h character.h category.h composite.h \
@@ -1109,7 +1098,7 @@ insdel.o: insdel.c window.h buffer.h $(INTERVAL_SRC) blockinput.h character.h \
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h character.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systime.h dispextern.h syntax.h $(INTERVAL_SRC) blockinput.h atimer.h     \
-   xterm.h puresize.h msdos.h keymap.h w32term.h macterm.h macgui.h nsterm.h \
+   xterm.h puresize.h msdos.h keymap.h w32term.h nsterm.h \
    $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
    atimer.h systime.h puresize.h character.h intervals.h keymap.h window.h \
@@ -1130,6 +1119,19 @@ mktime.o: mktime.c $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
    termopts.h termchar.h character.h coding.h ccl.h disptab.h window.h \
    keyboard.h intervals.h buffer.h commands.h blockinput.h atimer.h $(config_h)
+nsfns.o: nsfns.m charset.h nsterm.h nsgui.h frame.h window.h buffer.h \
+  dispextern.h nsgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
+  atimer.h systime.h epaths.h termhooks.h coding.h systime.h $(config_h)
+nsfont.o: nsterm.h dispextern.h frame.h lisp.h $(config_h)
+nsimage.o: nsimage.m nsterm.h $(config_h)
+nsmenu.o: nsmenu.m termhooks.h frame.h window.h dispextern.h \
+  nsgui.h keyboard.h blockinput.h atimer.h systime.h buffer.h \
+  nsterm.h $(config_h)
+nsterm.o: nsterm.m blockinput.h atimer.h systime.h syssignal.h nsterm.h \
+  nsgui.h frame.h charset.h ccl.h dispextern.h fontset.h termhooks.h \
+  termopts.h termchar.h disptab.h buffer.h window.h keyboard.h \
+  $(INTERVAL_SRC) process.h coding.h $(config_h)
+nsselect.o: nsselect.m blockinput.h nsterm.h nsgui.h frame.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    commands.h syssignal.h systime.h systty.h syswait.h frame.h dispextern.h \
    blockinput.h atimer.h charset.h coding.h ccl.h msdos.h composite.h \
@@ -1151,7 +1153,8 @@ sysdep.o: sysdep.c syssignal.h systty.h systime.h syswait.h blockinput.h \
    frame.h atimer.h window.h msdos.h dosfns.h keyboard.h cm.h $(config_h)
 term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
    disptab.h dispextern.h keyboard.h character.h charset.h coding.h ccl.h \
-   msdos.h window.h keymap.h blockinput.h atimer.h systime.h
+   msdos.h window.h keymap.h blockinput.h atimer.h systime.h systty.h \
+   syssignal.h  $(INTERVAL_SRC)
 termcap.o: termcap.c $(config_h)
 terminal.o: terminal.c frame.h termchar.h termhooks.h charset.h coding.h \
    keyboard.h $(config_h)
@@ -1176,15 +1179,15 @@ widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    disptab.h keyboard.h dispextern.h msdos.h composite.h \
    keymap.h blockinput.h atimer.h systime.h $(INTERVAL_SRC) \
-   xterm.h w32term.h macterm.h macgui.h nsterm.h $(config_h)
+   xterm.h w32term.h nsterm.h $(config_h)
 xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h \
    coding.h termchar.h frame.h window.h disptab.h termhooks.h character.h     \
    charset.h $(config_h) keyboard.h $(INTERVAL_SRC) region-cache.h xterm.h    \
-   w32term.h macterm.h macgui.h nsterm.h msdos.h composite.h fontset.h	      \
+   w32term.h nsterm.h msdos.h composite.h fontset.h	      \
    blockinput.h atimer.h systime.h keymap.h font.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h	\
    window.h character.h charset.h msdos.h dosfns.h composite.h atimer.h	\
-   systime.h keyboard.h fontset.h w32term.h macterm.h macgui.h nsterm.h	\
+   systime.h keyboard.h fontset.h w32term.h nsterm.h	\
    $(INTERVAL_SRC) termchar.h termhooks.h font.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
@@ -1213,12 +1216,12 @@ xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h xterm.h \
   lisp.h termopts.h
 gtkutil.o: gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
   blockinput.h window.h atimer.h systime.h termhooks.h keyboard.h \
-  charset.h coding.h
+  charset.h coding.h syssignal.h
 dbusbind.o: dbusbind.c termhooks.h $(config_h)
 
 hftctl.o: hftctl.c $(config_h)
-sound.o: sound.c dispextern.h $(config_h)
-atimer.o: atimer.c atimer.h systime.h $(config_h)
+sound.o: sound.c dispextern.h syssignal.h $(config_h)
+atimer.o: atimer.c atimer.h syssignal.h systime.h $(config_h)
 
 /* The files of Lisp proper */
 
@@ -1231,7 +1234,7 @@ data.o: data.c buffer.h puresize.h character.h syssignal.h keyboard.h frame.h \
    termhooks.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h \
   dispextern.h $(config_h)
-floatfns.o: floatfns.c $(config_h)
+floatfns.o: floatfns.c syssignal.h $(config_h)
 fns.o: fns.c commands.h $(config_h) frame.h buffer.h character.h keyboard.h \
  keymap.h frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h md5.h \
  blockinput.h atimer.h systime.h xterm.h termhooks.h
@@ -1246,76 +1249,19 @@ textprop.o: textprop.c buffer.h window.h dispextern.h $(INTERVAL_SRC) \
 	$(config_h)
 intervals.o: intervals.c buffer.h $(INTERVAL_SRC) keyboard.h puresize.h \
 	keymap.h $(config_h)
-composite.o: composite.c buffer.h  character.h $(INTERVAL_SRC) $(config_h)
+composite.o: composite.c buffer.h character.h dispextern.h font.h frame.h \
+	$(INTERVAL_SRC) window.h $(config_h)
 
 /* System-specific programs to be made.
    OTHER_FILES and OBJECTS_MACHINE
    select which of these should be compiled.  */
 
-#ifdef HAVE_CARBON
-buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
-  fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
-  scroll.o sysdep.o term.o terminal.o widget.o window.o xdisp.o xfaces.o xfns.o xmenu.o \
-  xterm.o xselect.o sound.o: macgui.h
-mac.o: mac.c process.h sysselect.h blockinput.h atimer.h systime.h charset.h \
-  coding.h ccl.h $(config_h)
-macfns.o: macfns.c charset.h macterm.h macgui.h frame.h window.h buffer.h \
-  dispextern.h macgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
-  atimer.h systime.h epaths.h termhooks.h coding.h $(config_h)
-macmenu.o: macmenu.c termhooks.h frame.h window.h dispextern.h macgui.h \
-  keyboard.h blockinput.h atimer.h systime.h buffer.h macterm.h $(config_h)
-macterm.o: blockinput.h atimer.h systime.h syssignal.h macterm.h macgui.h \
-  frame.h charset.h ccl.h dispextern.h fontset.h termhooks.h termopts.h \
-  termchar.h disptab.h buffer.h window.h keyboard.h $(INTERVAL_SRC) \
-  process.h coding.h $(config_h)
-macselect.o: blockinput.h atimer.h systime.h macterm.h macgui.h frame.h \
-  keymap.h $(config_h)
-mactoolbox.o: blockinput.h atimer.h systime.h macterm.h macgui.h frame.h \
-  charset.h coding.h ccl.h dispextern.h fontset.h termhooks.h buffer.h \
-  window.h keyboard.h $(config_h)
-
-${emacsapp}Contents/Resources/English.lproj:
-	mkdir -p $@
-
-ifneq (${emacsapp},${emacsappsrc})
-${emacsapp}Contents/Info.plist: ${emacsappsrc}Contents/Info.plist
-	cp $< $@
-${emacsapp}Contents/PkgInfo: ${emacsappsrc}Contents/PkgInfo
-	cp $< $@
-${emacsapp}Contents/Resources/Emacs.icns: ${emacsappsrc}Contents/Resources/Emacs.icns
-	mkdir -p ${emacsapp}Contents/Resources
-	cp $< $@
-${emacsapp}Contents/Resources/English.lproj/InfoPlist.strings: ${emacsappsrc}Contents/Resources/English.lproj/InfoPlist.strings
-	cp $< $@
-endif
-
-macosx-bundle: ${emacsapp}Contents/Resources/English.lproj \
-	${emacsapp}Contents/Info.plist ${emacsapp}Contents/PkgInfo \
-	${emacsapp}Contents/Resources/Emacs.icns \
-	${emacsapp}Contents/Resources/English.lproj/InfoPlist.strings
-macosx-app: macosx-bundle ${emacsapp}Contents/MacOS/Emacs
-${emacsapp}Contents/MacOS/Emacs: emacs${EXEEXT}
-	mkdir -p ${emacsapp}Contents/MacOS/;
-	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs${EXEEXT} Emacs${EXEEXT}
-#endif /* HAVE_CARBON */
-
 #ifdef HAVE_NS
-buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
-  fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
-  scroll.o sysdep.o term.o widget.o window.o xdisp.o xfaces.o sound.o: nsgui.h
-nsfns.o: nsfns.m charset.h nsterm.h nsgui.h frame.h window.h buffer.h \
-  dispextern.h nsgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
-  atimer.h systime.h epaths.h termhooks.h coding.h systime.h $(config_h)
-nsmenu.o: nsmenu.m termhooks.h frame.h window.h dispextern.h \
-  nsgui.h keyboard.h blockinput.h atimer.h systime.h buffer.h \
-  nsterm.h $(config_h)
-nsterm.o: nsterm.m blockinput.h atimer.h systime.h syssignal.h nsterm.h \
-  nsgui.h frame.h charset.h ccl.h dispextern.h fontset.h termhooks.h \
-  termopts.h termchar.h disptab.h buffer.h window.h keyboard.h \
-  $(INTERVAL_SRC) process.h coding.h $(config_h)
-nsselect.o: nsselect.m blockinput.h nsterm.h nsgui.h frame.h $(config_h)
-nsimage.o: nsimage.m nsterm.h
-nsfont.o: nsterm.h dispextern.h frame.h lisp.h $(config_h)
+/* In fact, every .o file depends directly or indirectly on dispextern.h
+   and hence nsgui.h under NS.  But the ones that actually use stuff there
+   are more limited.  */
+dispnew.o font.o fontset.o frame.o fringe.o image.o keyboard.o menu.o \
+   window.o xdisp.o xfaces.o: nsgui.h
 
 ${ns_appdir}: ${ns_appsrc}
 	rm -fr ${ns_appdir}
@@ -1343,9 +1289,6 @@ clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
 #ifdef HAVE_NS
 	rm -fr ${ns_appdir}
-#ifdef NS_IMPL_GNUSTEP
-	rm -f *.d
-#endif
 #endif
 /* bootstrap-clean is used to clean up just before a bootstrap.
    It should remove all files generated during a compilation/bootstrap,
@@ -1435,7 +1378,7 @@ ${lispsource}loaddefs.el: $(BOOTSTRAPEMACS)
 bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	cd ../lisp; $(MAKE) $(MFLAGS) update-subdirs
 #ifdef CANNOT_DUMP
-	ln temacs${EXEEXT} bootstrap-emacs${EXEEXT}
+	ln -f temacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #else
 	$(RUN_TEMACS) --batch --load loadup bootstrap
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}

@@ -221,7 +221,8 @@ when you hit the end of the current node."
   "*If non-nil, hide the tag and section reference in *note and * menu items.
 If value is non-nil but not `hide', also replaces the \"*note\" with \"see\".
 If value is non-nil but not t or `hide', the reference section is still shown.
-`nil' completely disables this feature."
+`nil' completely disables this feature.  If this is non-nil, you might
+want to set `Info-refill-paragraphs'."
   :version "22.1"
   :type '(choice (const :tag "No hiding" nil)
 		 (const :tag "Replace tag and hide reference" t)
@@ -232,7 +233,8 @@ If value is non-nil but not t or `hide', the reference section is still shown.
 (defcustom Info-refill-paragraphs nil
   "*If non-nil, attempt to refill paragraphs with hidden references.
 This refilling may accidentally remove explicit line breaks in the Info
-file, so be prepared for a few surprises if you enable this feature."
+file, so be prepared for a few surprises if you enable this feature.
+This only has an effect if `Info-hide-note-references' is non-nil."
   :version "22.1"
   :type 'boolean
   :group 'info)
@@ -543,7 +545,9 @@ appended to the Info buffer name.
 
 The search path for Info files is in the variable `Info-directory-list'.
 The top-level Info directory is made by combining all the files named `dir'
-in all the directories in that path."
+in all the directories in that path.
+
+See a list of available Info commands in `Info-mode'."
   (interactive (list
                 (if (and current-prefix-arg (not (numberp current-prefix-arg)))
                     (read-file-name "Info file name: " nil nil t))
@@ -3432,6 +3436,7 @@ Advanced commands:
 \\[Info-search-case-sensitively]	Search through this Info file for specified regexp case-sensitively.
 \\[Info-search-next]	Search for another occurrence of regexp
 	  from a previous \\<Info-mode-map>\\[Info-search] command.
+\\[isearch-forward], \\[isearch-forward-regexp]	Use Isearch to search through multiple Info nodes.
 \\[Info-index]	Search for a topic in this manual's Index and go to index entry.
 \\[Info-index-next]	(comma) Move to the next match from a previous \\<Info-mode-map>\\[Info-index] command.
 \\[info-apropos]	Look for a string in the indices of all manuals.
@@ -3893,7 +3898,7 @@ the variable `Info-file-list-for-emacs'."
           ;; This is a serious problem for trying to handle multiple
           ;; frame types at once.  We want this text to be invisible
           ;; on frames that can display the font above.
-          (when (memq (framep (selected-frame)) '(x pc w32 mac ns))
+          (when (memq (framep (selected-frame)) '(x pc w32 ns))
             (add-text-properties (1- (match-beginning 2)) (match-end 2)
                                  '(invisible t front-sticky nil rear-nonsticky t)))))
 

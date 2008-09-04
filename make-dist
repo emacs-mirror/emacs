@@ -337,10 +337,7 @@ for subdir in lisp site-lisp \
 	      etc/images/smilies/medium etc/images/tree-widget \
 	      etc/images/tree-widget/default etc/images/tree-widget/folder \
 	      etc/refcards etc/schema etc/tutorials info doc doc/emacs \
-	      doc/misc doc/man doc/lispref doc/lispintro m4 msdos vms mac \
-	      mac/src mac/Emacs.app mac/Emacs.app/Contents \
-	      mac/Emacs.app/Contents/MacOS mac/Emacs.app/Contents/Resources \
-	      mac/Emacs.app/Contents/Resources/English.lproj \
+	      doc/misc doc/man doc/lispref doc/lispintro m4 msdos \
 	      nextstep nextstep/Cocoa nextstep/Cocoa/Emacs.base \
 	      nextstep/Cocoa/Emacs.base/Contents \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources \
@@ -513,7 +510,7 @@ echo "Making links to \`m4'"
 
 echo "Making links to \`nt'"
 (cd nt
- ln emacs.manifest emacs.rc config.nt [a-z]*.c ../${tempdir}/nt
+ ln emacs.manifest emacs.rc emacsclient.rc config.nt [a-z]*.c ../${tempdir}/nt
  ln nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
  ln [a-z]*.bat [a-z]*.h ../${tempdir}/nt
  ln ChangeLog INSTALL README makefile.w32-in ../${tempdir}/nt)
@@ -538,26 +535,6 @@ echo "Making links to \`nt/icons'"
 (cd nt/icons
  ln [a-z]*.ico ../../${tempdir}/nt/icons
  ln [a-z]*.cur ../../${tempdir}/nt/icons)
-
-echo "Making links to \`mac'"
-(cd mac
- ln ChangeLog INSTALL README make-package ../${tempdir}/mac)
-
-echo "Making links to \`mac/src'"
-(cd mac/src
- ln [a-z]*.c *.r ../../${tempdir}/mac/src)
-
-echo "Making links to \`mac/Emacs.app/Contents'"
-(cd mac/Emacs.app/Contents
- ln Info.plist PkgInfo ../../../${tempdir}/mac/Emacs.app/Contents)
-
-echo "Making links to \`mac/Emacs.app/Contents/Resources'"
-(cd mac/Emacs.app/Contents/Resources
- ln Emacs.icns ../../../../${tempdir}/mac/Emacs.app/Contents/Resources)
-
-echo "Making links to \`mac/Emacs.app/Contents/Resources/English.lproj'"
-(cd mac/Emacs.app/Contents/Resources/English.lproj
- ln InfoPlist.strings ../../../../../${tempdir}/mac/Emacs.app/Contents/Resources/English.lproj)
 
 echo "Making links to \`msdos'"
 (cd msdos
@@ -601,8 +578,7 @@ echo "Making links to \`nextstep/GNUstep/Emacs.base/Resources/preferences.gorm'"
 echo "Making links to \`oldXMenu'"
 (cd oldXMenu
  ln *.c *.h *.in ../${tempdir}/oldXMenu
- ln README ChangeLog ../${tempdir}/oldXMenu
- ln compile.com descrip.mms ../${tempdir}/oldXMenu)
+ ln README ChangeLog ../${tempdir}/oldXMenu)
 
 echo "Making links to \`lwlib'"
 (cd lwlib
@@ -696,7 +672,7 @@ echo "Making links to \`info'"
  cd ../${tempdir}/info
  # Avoid an error when expanding the wildcards later.
  ln emacs dummy~ ; ln emacs \#dummy\#
- rm -f *~ \#*\# core)
+ rm -f *~ \#*\# core .arch-inventory)
 
 echo "Making links to \`doc/emacs'"
 (cd doc/emacs
@@ -751,16 +727,10 @@ echo "Making links to \`doc/man'"
 (cd doc/man
  ln *.1 ../../${tempdir}/doc/man)
 
-echo "Making links to \`vms'"
-(cd vms
- test -f README && ln README ../${tempdir}/vms
- cd ../${tempdir}/vms
- rm -f *~)
-
 ### It would be nice if they could all be symlinks to top-level copy, but
 ### you're not supposed to have any symlinks in distribution tar files.
 echo "Making sure copying notices are all copies of \`COPYING'"
-for subdir in . etc info leim lib-src lisp lwlib mac msdos nt src; do
+for subdir in . etc info leim lib-src lisp lwlib msdos nt src; do
   rm -f ${tempdir}/${subdir}/COPYING
   cp COPYING ${tempdir}/${subdir}
 done

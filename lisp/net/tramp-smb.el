@@ -948,7 +948,6 @@ connection if a previous connection has died for some reason."
 
 	    (tramp-message
 	     vec 6 "%s" (mapconcat 'identity (process-command p) " "))
-	    (set-process-sentinel p 'tramp-process-sentinel)
 	    (tramp-set-process-query-on-exit-flag p nil)
 	    (tramp-set-connection-property p "smb-share" share)
 

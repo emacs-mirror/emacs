@@ -105,6 +105,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define BSTRING
 
+/* These are used in Flist_system_processes and Fsystem_process_attributes.  */
+#define HAVE_PROCFS 1
+#define LISTPROC procfs_list_system_processes
+#define PROCATTR procfs_system_process_attributes
+
 /* define MAIL_USE_FLOCK if the mailer uses flock
    to interlock access to /usr/spool/mail/$USER.
    The alternative is that a lock file named

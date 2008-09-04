@@ -57,6 +57,7 @@ INFO_TARGETS = \
 	$(infodir)/gnus \
 	$(infodir)/idlwave \
 	$(infodir)/info \
+	$(infodir)/mairix-el \
 	$(infodir)/message \
 	$(infodir)/mh-e \
 	$(infodir)/newsticker \
@@ -102,6 +103,7 @@ DVI_TARGETS = \
 	gnus.dvi \
 	idlwave.dvi \
 	info.dvi \
+	mairix-el.dvi \
 	message.dvi \
 	mh-e.dvi \
 	newsticker.dvi \
@@ -279,6 +281,12 @@ $(infodir)/info: info.texi
 	cd $(srcdir); $(MAKEINFO) --no-split info.texi -o $@
 info.dvi: info.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/info.texi
+
+mairix-el : $(infodir)/mairix-el
+$(infodir)/mairix-el: mairix-el.texi
+	cd $(srcdir); $(MAKEINFO) mairix-el.texi
+mairix-el.dvi: mairix-el.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/mairix-el.texi
 
 message : $(infodir)/message
 $(infodir)/message: message.texi

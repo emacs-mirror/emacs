@@ -104,6 +104,9 @@
 	  (process-send-eof process)
 	  (while (eq 'run (process-status process))
 	    (accept-process-output process 5))
+	  ;; Accept any remaining pending output coming after the
+	  ;; status change.
+	  (accept-process-output process 5)
 	  (setq status (process-status process)
 		exit-status (process-exit-status process))
 	  (delete-process process)

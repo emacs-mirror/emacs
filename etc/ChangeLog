@@ -1,3 +1,42 @@
+2008-08-26  Robert J. Chassell  <bob@rattlesnake.com>
+
+        * PROBLEMS: Prevent pasting a region twice on an xterm or rxvt in X.
+
+2008-08-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* HELLO: Fix Javanese pun.
+
+2008-08-18  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.1.
+ 
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.1.
+
+2008-08-14  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* NEWS: Improve information about whitespace package.
+
+2008-08-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* NEWS: Add entries about the new auth-source integration and
+	about the cyrillic-translit modifications.
+
+2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Emacs.clr: Remove.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* termcap.src: Remove file.
+	* README:
+	* PROBLEMS:
+	* MACHINES: Remove VMS info.
+
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* PROBLEMS:
+	* MACHINES: Remove mentions of Mac Carbon.
+
 2008-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* NEWS: New function `diff-show-trailing-blanks' in diff-mode.el.

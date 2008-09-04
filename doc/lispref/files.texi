@@ -1487,11 +1487,6 @@ levels of parent directories.
 See also @code{delete-directory} in @ref{Create/Delete Dirs}.
 @end deffn
 
-@defun define-logical-name varname string
-This function defines the logical name @var{varname} to have the value
-@var{string}.  It is available only on VMS.
-@end defun
-
 @defun set-file-modes filename mode
 This function sets mode bits of @var{filename} to @var{mode} (which
 must be an integer).  Only the low 12 bits of @var{mode} are used.
@@ -1565,10 +1560,9 @@ directory.
   On MS-DOS and MS-Windows, these functions (like the function that
 actually operate on files) accept MS-DOS or MS-Windows file-name syntax,
 where backslashes separate the components, as well as Unix syntax; but
-they always return Unix syntax.  On VMS, these functions (and the ones
-that operate on files) understand both VMS file-name syntax and Unix
-syntax.  This enables Lisp programs to specify file names in Unix syntax
-and work properly on all systems without change.
+they always return Unix syntax.  This enables Lisp programs to specify
+file names in Unix syntax and work properly on all systems without
+change.
 
 @menu
 * File Name Components::  The directory part of a file name, and the rest.
@@ -1597,15 +1591,11 @@ Concatenating these two parts reproduces the original file name.
 
   On most systems, the directory part is everything up to and including
 the last slash (backslash is also allowed in input on MS-DOS or
-MS-Windows); the nondirectory part is the rest.  The rules in VMS syntax
-are complicated.
+MS-Windows); the nondirectory part is the rest.
 
   For some purposes, the nondirectory part is further subdivided into
 the name proper and the @dfn{version number}.  On most systems, only
-backup files have version numbers in their names.  On VMS, every file
-has a version number, but most of the time the file name actually used
-in Emacs omits the version number, so that version numbers in Emacs are
-found mostly in directory lists.
+backup files have version numbers in their names.
 
 @defun file-name-directory filename
 This function returns the directory part of @var{filename}, as a
@@ -1613,9 +1603,7 @@ directory name (@pxref{Directory Names}), or @code{nil} if
 @var{filename} does not include a directory part.
 
 On GNU and Unix systems, a string returned by this function always
-ends in a slash.  On MS-DOS it can also end in a colon.  On VMS, it
-returns a string ending in one of the three characters @samp{:},
-@samp{]}, or @samp{>}.
+ends in a slash.  On MS-DOS it can also end in a colon.
 
 @example
 @group
@@ -1625,10 +1613,6 @@ returns a string ending in one of the three characters @samp{:},
 @group
 (file-name-directory "foo")        ; @r{Unix example}
      @result{} nil
-@end group
-@group
-(file-name-directory "[X]FOO.TMP") ; @r{VMS example}
-     @result{} "[X]"
 @end group
 @end example
 @end defun
@@ -1648,11 +1632,6 @@ This function returns the nondirectory part of @var{filename}.
 @group
 (file-name-nondirectory "lewis/")
      @result{} ""
-@end group
-@group
-;; @r{The following example is accurate only on VMS.}
-(file-name-nondirectory "[X]FOO.TMP")
-     @result{} "FOO.TMP"
 @end group
 @end example
 @end defun
@@ -1677,11 +1656,6 @@ return value, but backup version numbers are kept.
 @group
 (file-name-sans-versions "~rms/foo")
      @result{} "~rms/foo"
-@end group
-@group
-;; @r{The following example applies to VMS only.}
-(file-name-sans-versions "foo;23")
-     @result{} "foo"
 @end group
 @end example
 @end defun
@@ -1758,12 +1732,11 @@ name.  On Unix and GNU/Linux, an absolute file name starts with a slash
 or a tilde (@samp{~}), and a relative one does not.  On MS-DOS and
 MS-Windows, an absolute file name starts with a slash or a backslash, or
 with a drive specification @samp{@var{x}:/}, where @var{x} is the
-@dfn{drive letter}.  The rules on VMS are complicated.
+@dfn{drive letter}.
 
 @defun file-name-absolute-p filename
 This function returns @code{t} if file @var{filename} is an absolute
-file name, @code{nil} otherwise.  On VMS, this function understands both
-Unix syntax and VMS syntax.
+file name, @code{nil} otherwise.
 
 @example
 @group
@@ -1819,8 +1792,8 @@ the directory name but not identical to it.  (This is not quite the
 same as the usual Unix terminology.)  These two different names for
 the same entity are related by a syntactic transformation.  On GNU and
 Unix systems, this is simple: a directory name ends in a slash,
-whereas the directory's name as a file lacks that slash.  On MS-DOS and
-VMS, the relationship is more complicated.
+whereas the directory's name as a file lacks that slash.  On MS-DOS
+the relationship is more complicated.
 
   The difference between a directory name and its name as a file is
 subtle but crucial.  When an Emacs variable or function argument is
@@ -1836,8 +1809,7 @@ such as @samp{$HOME}, and the constructs @samp{~}, @samp{.} and @samp{..}.
 This function returns a string representing @var{filename} in a form
 that the operating system will interpret as the name of a directory.  On
 most systems, this means appending a slash to the string (if it does not
-already end in one).  On VMS, the function converts a string of the form
-@file{[X]Y.DIR.1} to the form @file{[X.Y]}.
+already end in one).
 
 @example
 @group
@@ -1851,8 +1823,7 @@ already end in one).  On VMS, the function converts a string of the form
 This function returns a string representing @var{dirname} in a form that
 the operating system will interpret as the name of a file.  On most
 systems, this means removing the final slash (or backslash) from the
-string.  On VMS, the function converts a string of the form @file{[X.Y]}
-to @file{[X]Y.DIR.1}.
+string.
 
 @example
 @group
@@ -2037,7 +2008,7 @@ with @samp{~}.  This variable is buffer-local in every buffer.
 @code{expand-file-name} uses the default directory when its second
 argument is @code{nil}.
 
-Aside from VMS, the value is always a string ending with a slash.
+The value is always a string ending with a slash.
 
 @example
 @group
@@ -2097,8 +2068,6 @@ through the immediately preceding @samp{/}).
 @end group
 @end example
 
-On VMS, @samp{$} substitution is not done, so this function does nothing
-on VMS except discard superfluous initial components as shown above.
 @end defun
 
 @node Unique File Names
@@ -2415,11 +2384,6 @@ is what @code{file-attributes} would return for that file.
 The optional argument @var{id-format} has the same meaning as the
 corresponding argument to @code{file-attributes} (@pxref{Definition
 of file-attributes}).
-@end defun
-
-@defun file-name-all-versions file dirname
-This function returns a list of all versions of the file named
-@var{file} in directory @var{dirname}.  It is only available on VMS.
 @end defun
 
 @defun file-expand-wildcards pattern &optional full

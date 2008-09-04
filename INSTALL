@@ -177,8 +177,10 @@ configure it with the option "--without-gui".
 The Emacs distribution does not include fonts and does not install
 them.  You must do that yourself.
 
-To take proper advantage of Emacs 21's mule-unicode charsets, you need
-a suitable font.  For `Unicode' (ISO 10646) fonts for X, see
+Emacs running on the GNU system supports both X fonts and local fonts
+(i.e. the fonts managed by the fontconfig library).
+
+For `Unicode' (ISO 10646) X fonts, see
 <URL:http://czyborra.com/unifont/> (packaged in Debian),
 <URL:http://openlab.ring.gr.jp/efont/> (packaged in Debian).  (In
 recent Debian versions, there is an extensive `misc-fixed' iso10646-1
@@ -223,8 +225,7 @@ DETAILED BUILDING AND INSTALLATION:
 
 (This is for a Unix or Unix-like system.  For MS-DOS and Windows 3.X,
 see below; search for MSDOG.  For Windows 9X, Windows ME, Windows NT,
-and Windows 2000, see the file nt/INSTALL.  For the Mac, see the file
-mac/INSTALL.)
+and Windows 2000, see the file nt/INSTALL.)
 
 1) Make sure your system has enough swapping space allocated to handle
 a program whose pure code is 1.5 MB and whose data area is at

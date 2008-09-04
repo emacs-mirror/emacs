@@ -1,3 +1,1162 @@
+2008-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Don't call move_it_by_lines again
+	if moving by a single line.
+
+2008-09-02  Andreas Schwab  <schwab@suse.de>
+
+	* xterm.c (x_delete_display): Fix merge error.
+
+	* fileio.c (Fexpand_file_name): Remove unused variables.
+
+2008-09-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name): Copy argument `name' into local
+	storage on all platforms, not just on DOS_NT.
+
+2008-09-02  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (Fx_popup_menu, Fx_popup_dialog, w32_menu_show): Ensure
+	mouse is not grabbed after menu is finished.
+
+2008-09-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Finternal_set_alternative_font_family_alist)
+	(Finternal_set_alternative_font_registry_alist): Properly copy
+	entire alist structure.
+
+2008-09-01  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_spec_pattern): Don't create a charset of the
+	representative chars of the script is a vector.
+	(ftfont_list): Handle the case the representative chars of the
+	script is a vector.
+
+	* character.c (syms_of_character): Docstring of
+	script-representative-chars fixed.
+
+2008-08-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (BUILD_CHAR_GLYPH): New macro.
+	(IT_menu_display): Use it instead of SET_CHAR_GLYPH to construct
+	the menu.  Allocate larger buffer for `text', to account for
+	possible ^C characters.
+
+2008-08-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (prepare_menu_bars): Don't call
+	Vwindow_size_change_functions with arg Qt.
+
+2008-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font.h (font_range):
+	* fileio.c (report_file_error):
+	* composite.c (composition_update_it): Yet another int/Lisp_Oject mixup.
+
+2008-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* data.c (Fmake_variable_frame_local): Doc fix.
+
+	* frame.c (Fmodify_frame_parameters): Doc fix.
+
+2008-08-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (init_user_info): Allocate buf[] with xmalloc using the size
+	needed by GetTokenInformation.
+	(w32_system_process_attributes): Check return values of all system
+	APIs.
+
+	* msdos.c (IT_display_cursor): Write "CURSOR ON/OFF" to termscript
+	only when the state changes.
+	(IT_update_begin, IT_update_end): Add termscript trace.
+
+	* w16select.c (Fw16_set_clipboard_data): Don't encode text if
+	clipboard is unavailable.  Set dst to NULL if it doesn't point to
+	malloc'ed data.
+	(Fw16_get_clipboard_data): Initialize htext to NULL, to avoid
+	passing random values to xfree.
+
+	* dispnew.c (init_display): Set `tty's association in frame's
+	parameters alist to the name of the terminal device, if that is
+	known.
+
+2008-08-29  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (uniscribe_check_otf): Don't fallback on DFLT script.
+
+2008-08-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* composite.c (fill_gstring_body): Avoid compiler warnings.
+
+	* font.c (font_fill_lglyph_metrics): Use EMACS_INT in
+	LGLYPH_SET_CODE to avoid compiler warnings.
+
+	* makefile.w32-in ($(BLD)/w32uniscribe.$(O)): Depend on composite.h
+
+	* composite.h (LGLYPH_SET_CODE): Cast `val' to EMACS_INT.
+
+	* w32uniscribe.c (uniscribe_shape): Shut up compiler warning in
+	LGLYPH_SET_CODE.
+
+2008-08-29  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (report_file_error): Don't downcase the first character
+	of errstring if it is still unibyte.
+
+2008-08-29  Kenichi Handa  <handa@m17n.org>
+
+	These changes are to re-implement the automatic composition so
+	that it doesn't use text properties.
+
+	* Makefile.in (ftfont.o): Depend on composite.h.
+	(composite.o): Depend dispextern.h, font.h, frame, and window.h.
+
+	* character.h (Vunicode_category_table): Extern it.
+
+	* character.c (Vunicode_category_table): New variable.
+	(syms_of_character): DEFVAR_LISP Vunicode_category_table.
+
+	* chartab.c (optimize_sub_char_table): Perform more greedy
+	optimization.
+
+	* composite.h (enum composition_method): Delete
+	COMPOSITION_WITH_GLYPH_STRING.
+	(COMPOSITION_METHOD): Dont' check COMPOSITION_WITH_GLYPH_STRING.
+	(Vcomposition_function_table): Extern it.
+	(LGSTRING_XXX, LGLYPH_XXX): Macros moved from font.h.
+	(composition_gstring_put_cache, composition_gstring_from_id)
+	(composition_gstring_p, composition_gstring_width)
+	(composition_compute_stop_pos, composition_reseat_it)
+	(composition_update_it, composition_adjust_point): Extern them.
+	(Fcomposition_get_gstring): EXFUN it.
+
+	* composite.c: Include window.h, frame.h, dispextern.h font.h.
+	(Vcomposition_function_table)
+	(get_composition_id): Don't handle COMPOSITION_WITH_GLYPH_STRING.
+	(gstring_hash_table, gstring_work, gstring_work_headers): New
+	variables.
+	(gstring_lookup_cache, composition_gstring_put_cache)
+	(composition_gstring_from_id, composition_gstring_p)
+	(composition_gstring_width, fill_gstring_header)
+	(fill_gstring_body, autocmp_chars, composition_compute_stop_pos)
+	(composition_reseat_it, composition_update_it)
+	(composition_adjust_point, Fcomposition_get_gstring): New
+	functions.
+	(syms_of_composite): Initialize gstring_hash_table, gstrint_work,
+	and gstring_work_headers.  DEFVAR_LISP composition-function-table.
+	Defsubr compostion_get_gstring.
+
+	* dispextern.h (struct glyph): New union u.cmp.  Delete the member
+	cmp_id.
+	(struct glyph_string): Delete the member gidx.  New members
+	cmp_id, cmp_from, and cmp_to.
+	(enum it_method): Delete GET_FROM_COMPOSITION.
+	(struct composition_it): New struct.
+	(struct it): New member cmp_it, and iterator_stack_entry.cmp_it.
+	Delete c, len, cmp_id, cmp_len in u.comp.
+
+	* font.h (enum lgstring_indices): Delete it.
+	(LGSTRING_XXX, LGLYPH_XXX): These macros moved to composite.h.
+	(enum lglyph_indices): Likewise.
+	(font_range): Extern adjusted.
+	(font_fill_lglyph_metrics): Extern it.
+
+	* font.c (QCf): New variable.
+	(check_gstring): Use LGSTRING_GLYPH_LEN, not LGSTRING_LENGTH.
+	(font_prepare_composition): Delete this function.
+	(font_range): Type and arguments changed.
+	(Ffont_make_gstring, Ffont_fill_gstring): Delete them.
+	(font_fill_lglyph_metrics): New function.
+	(Ffont_shape_text): Renamed to Ffont_shape_gstring and arguments
+	changed.
+	(syms_of_font): DEFSYM QCf.  Delete defsubr for
+	Sfont_make_gstring, Sfont_fill_gstring, Sfont_shape_text.  Defsubr
+	Sfont_shape_gstring.
+
+	* fontset.h (font_for_char): Extern it.
+
+	* fontset.c (font_for_char): New function.
+
+	* ftfont.c: Include composite.h.
+	(ftfont_resolve_generic_family): Add langset "en" to pattern.
+	(ftfont_shape_by_flt): Use LGSTRING_GLYPH_LEN, not
+	LGSTRING_LENGTH.
+
+	* indent.c: Include composite.h and dispextern.h.
+	(check_composition): Delete this function.
+	(scan_for_column): Handle composition by
+	composition_compute_stop_pos, composition_reseat_it, and
+	composition_update_it.
+	(compute_motion): Likewise.
+	(Fvertical_motion): Fix checking of composition.
+
+	* keyboard.c (adjust_point_for_property): Check composition by
+	composition_adjust_point.
+
+	* nsterm.m (ns_draw_glyph_string): Adjusted for the change of
+	struct glyph_string.
+
+	* term.c (encode_terminal_code): Adjusted for the change of struct
+	glyph.
+	(append_composite_glyph): Adjusted for the change of struct it and
+	struct glyph.
+	(produce_composite_glyph): Likewise.
+
+	* w32term.c (x_draw_composite_glyph_string_foreground): Adjusted
+	for the change of struct glyph_string.
+	(x_draw_glyph_string): Likewise.
+
+	* w32uniscribe.c (struct uniscribe_font_info): Include composite.h.
+	(uniscribe_shape): Use LGSTRING_GLYPH_LEN, not LGSTRING_LENGTH.
+
+	* xdisp.c: Include font.h.
+	(it_props): Delete the entry for Qauto_composed.
+	(init_iterator): Initialize it->cmp_it.id to -1.
+	(compute_stop_pos): Call composition_compute_stop_pos.
+	(face_before_or_after_it_pos): Adjusted for the change of struct
+	it.
+	(handle_auto_composed_prop): Delete it.
+	(handle_composition_prop): Handle only static composition.
+	(next_overlay_string): Remove it->method == GET_FROM_COMPOSITION
+	from xassert.  Initialize it->cmp_it.stop_pos.
+	(push_it): Adjusted for the change of struct it.
+	(pop_it): Likewise.
+	(get_next_element): Delete next_element_from_composition.
+	(CHAR_COMPOSED_P): New macro.
+	(get_next_display_element): For automatic composition, get a face
+	from the font in the glyph-string.
+	(set_iterator_to_next): For GET_FROM_BUFFER and GET_FROM_STRING,
+	check composition by it->cmp_it.id.  Delete GET_FROM_COMPOSITION
+	case.
+	(next_element_from_string): Check if the character at the current
+	position is composed by CHAR_COMPOSED_P.
+	(next_element_from_buffer): Likewise.
+	(next_element_from_composition): Adjusted for the change of struct
+	it.  Update it->cmp_it.
+	(dump_glyph): Adjusted for the change of struct glyph.
+	(fill_composite_glyph_string): Adjusted for the change of struct
+	it and struct glyph.  Don't handle automatic composition here.
+	(fill_gstring_glyph_string): New function.
+	(x_get_glyph_overhangs): Handle automatic composition.
+	(BUILD_COMPOSITE_GLYPH_STRING): Adjusted for the change of struct
+	glyph.
+	(BUILD_GSTRING_GLYPH_STRING): New macro.
+	(BUILD_GLYPH_STRINGS): Call BUILD_GSTRING_GLYPH_STRING for
+	automatic composition.
+	(append_composite_glyph): Adjusted for the change of struct it and
+	struct glyph.
+	(x_produce_glyphs): Adjusted for the change of struct it.
+
+	* xterm.c (x_draw_composite_glyph_string_foreground): Adjusted for
+	the change of struct glyph_string.
+	(x_draw_glyph_string): Likewise.
+
+2008-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (word-wrap): Doc fix.
+	* xdisp.c (truncate-partial-width-windows): Doc fix.
+	Increase default to 50.
+
+2008-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (update_tool_bar_unwind): New function.
+	(update_tool_bar): Temporarily set selected frame before building
+	tool-bar items.
+
+2008-08-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (XD_ERROR, XD_DEBUG_MESSAGE): Use strncpy and
+	snprintf, respectively.
+	(xd_append_arg): Convert strings with Fstring_make_unibyte.
+
+2008-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in: Revert (undocumented) 2008-08-20 change adding
+	LDFLAGS to GNUstep CC invocation.
+
+2008-08-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Revert last change.  Handle the
+	general case where we are moving forward, and PT spans multiple
+	screen lines.
+
+	* eval.c (find_handler_clause): Temporarily increase
+	max-lisp-eval-depth while printing the backtrace buffer, to
+	guarantee that help-mode code can run.
+
+2008-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (Fmsdos_remember_default_colors): Don't reverse frame
+	colors under -rv.
+	(IT_set_frame_parameters): Don't swap foreground and background
+	colors if `(reverse . t)' is present in the frame properties.
+	(internal_terminal_init): Call init_frame_faces only for the
+	initial frame.
+
+2008-08-27  Andreas Schwab  <schwab@suse.de>
+
+	* dired.c (Ffile_attributes): Avoid compiler warning in bitshift.
+
+2008-08-27  Andreas Schwab  <schwab@suse.de>
+
+	* search.c (search_buffer): Set char_base to zero only at the end.
+
+2008-08-27  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (report_file_error): Fix handling of multibyte error
+	string.
+
+2008-08-27  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* xterm.c (x_term_init): Temporarily hide the partially
+	initialized terminal while calling vendor-specific-keysyms.
+
+2008-08-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (internal_terminal_init): Most initializations done only
+	once, especially initial_screen_colors[] and termscript open.
+
+2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eval.c (Fcondition_case): Doc fix.
+
+	* widgetprv.h (EmacsFramePart): Change font member to the new font
+	struct.
+
+	* widget.c: Include character.h and font.h for XSETFONT.
+	(setup_frame_gcs): Compute X font id from font struct, just once.
+
+2008-08-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (get_named_tty): Fix last change.
+
+2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): If moving forward starting from a
+	multi-line string, move the iterator to the last line of that
+	string.
+
+2008-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (do_switch_frame): Mark previously displayed frame as
+	obscured for FRAME_MSDOS_P frames as well.
+
+2008-08-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (make_terminal_frame): Initialize f->terminal,
+	f->terminal->reference_count, and scroll bars on MS-DOS as well.
+	Set the top frame to newly created frame.
+	(Fmake_terminal_frame): Reuse the_only_display_info.
+
+	* vm-limit.c (get_lim_data) [MSDOS]: Use alternative methods of
+	estimating available memory.
+
+2008-08-23  David Reitter <david.reitter@gmail.com>
+
+	* nsterm.m (ns_draw_window_cursor): Don't call
+	NSDisableScreenUpdates and NSEnableScreenUpdates on
+	non-NS_IMPL_COCOA systems.
+
+2008-08-23  Andreas Schwab  <schwab@suse.de>
+
+	* process.c (procfs_system_process_attributes): Fix use of
+	uninitialized variables.
+
+2008-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main) [MSDOS]: Call syms_of_xmenu.
+
+	* dispnew.c (init_display): Remove MS-DOS specific conditions for
+	calling tty-set-up-initial-frame-faces.
+
+	* xmenu.c (Fx_popup_dialog, Fx_popup_menu, xmenu_show): Allow
+	MSDOS frames along with X frames.
+
+	* termhooks.h (TERMINAL_ACTIVE_P): Handle output_msdos_raw in
+	addition to output_termcap.
+
+	* xdisp.c (redisplay_internal) [MSDOS]: Don't call set_tty_color_mode.
+
+	* termchar.h (FRAME_TTY): Support output_msdos_raw.
+	(struct tty_display_info) [MSDOS]: Add fields related to mouse
+	highlight.
+
+	* process.c [!subprocesses]: Define QCname.
+	(syms_of_process): Intern and staticpro it.
+
+	* w16select.c (Fw16_set_clipboard_data, Fw16_get_clipboard_data):
+	Adjust for changes in encoding/decoding routines.  Use
+	encode_coding_object and decode_coding_object instead of
+	encode_coding and decode_coding.
+
+	* sysdep.c (init_sys_modes): Call dos_ttraw with tty_out as
+	argument.
+
+	* dosfns.c: Include frame.h before termhooks.h.
+	(dos_cleanup): Use CURTTY ()->termscript instead of a global
+	variable termscript.
+
+	* s/msdos.h (USER_FULL_NAME): Define.
+	(SYSTEM_PURESIZE_EXTRA): Bump up to 100K.
+
+	* editfns.c (USER_FULL_NAME): Define to pw->pw_gecos if undefined.
+	(Fuser_full_name): Use USER_FULL_NAME instead of a literal
+	pw->pw_gecos.
+
+	* keyboard.c (handle_interrupt) [MSDOS]: Call cursor_to with
+	SELECTED_FRAME as additional (1st) argument.
+	(tty_read_avail_input): Handle output_msdos_raw in
+	addition to output_termcap.
+
+	* msdos.c: Include frame.h before termhooks.h.
+	(mouse_on, mouse_off, mouse_moveto, mouse_init)
+	(msdos_set_cursor_shape, IT_set_face, IT_write_glyphs)
+	(show_mouse_face, IT_clear_end_of_line, IT_clear_screen)
+	(IT_clear_to_end, IT_cursor_to, IT_display_cursor, IT_cmgoto)
+	(IT_set_terminal_modes, IT_reset_terminal_modes)
+	(IT_set_frame_parameters): Use tty->termscript instead of a global
+	variable termscript.
+	(IT_write_glyphs): Use tty->terminal->terminal_coding instead of a
+	global variable terminal_coding.  Don't refer to
+	Vnonascii_translation_table.
+	(internal_terminal_init): Set Vwindow_system in current_kboard.
+	Don't use TTY_CHAR_INS_DEL_OK.  Set Vinitial_window_system.
+	Announce date and time of session start, if termscript is open.
+	Don't zero out the_only_display_info (it is done in
+	term.c:init_tty).  Open termscript only of not already open.  Log
+	"SCREEN SAVED" here, instead of IT_set_terminal_modes.  Init mouse
+	here instead of dos_ttraw.  Don't initialize display if this is an
+	initial tty.  Don't set FRAME_FONT.
+	(Vwindow_system_version): Bump to 23.
+	(dos_ttraw): Accept a TTY argument; all callers fixed.  If mouse
+	is available, set up mouse_position_hook.
+	(dos_ttraw, IT_set_terminal_modes): If called with initial
+	terminal, do nothing.
+	(IT_set_frame_parameters): Handle the Qtty_type frame
+	parameter by calling internal_terminal_init.
+	(dos_set_window_size, show_mouse_face)
+	(clear_mouse_face, IT_note_mode_line_highlight)
+	(IT_note_mouse_highlight, IT_update_begin, IT_frame_up_to_date)
+	(dos_rawgetc): Use tty_display_info instead of x_display_info.
+	(initialize_msdos_display): New function.
+	(IT_cursor_to, IT_clear_to_end, IT_clear_screen)
+	(IT_clear_end_of_line, IT_insert_glyphs, IT_write_glyphs)
+	(IT_delete_glyphs, IT_ring_bell, IT_reset_terminal_modes)
+	(IT_set_terminal_modes, IT_set_terminal_window, IT_update_begin):
+	Accept additional argument: a pointer to a frame.  All callers
+	changed.
+	(request_sigio, unrequest_sigio): Don't define, now defined on
+	sysdep.c.
+	(IT_write_glyphs): Rewrite to use encode_terminal_code.
+
+	* term.c [MSDOS]: Include msdos.h.
+	(init_tty) [MSDOS]: Reuse most of WINDOWSNT branch.  Change cpp
+	conditional to DOS_NT.  Allow only one call to this function in a
+	session.  Don't allocate a new struct tty_display_info; instead,
+	reuse the_only_display_info.  Call get_tty_size to get screen
+	dimensions.  Call init_baud_rate to set bad_rate.
+	(dissociate_if_controlling_tty) [MSDOS]: Ifdef away function body.
+	(Fsuspend_tty) [MSDOS]: Don't close input and output.
+	(Fresume_tty) [MSDOS]: Don't reopen the TTY; instead, use
+	stdin/stdout.
+	(get_tty_terminal, get_named_tty, Ftty_type)
+	(Fcontrolling_tty_p): Handle output_msdos_raw in addition to
+	output_termcap.
+	(Fresume_tty, Fsuspend_tty, init_tty, delete_tty): Call
+	add_keyboard_wait_descriptor and delete_keyboard_wait_descriptor
+	only when subprocesses are supported
+
+	* frame.c (make_terminal_frame) [MSDOS]: Adjust initialization of
+	f->output_data.x.
+	(Fmake_terminal_frame) [MSDOS]: Don't allow creation of new
+	terminal devices.
+
+	* msdos.h Remove definition of struct x_display_info and struct
+	x_output.
+	(FRAME_FONT): Use output_data.tty.
+	(FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL): Don't define.
+	(struct x_display_info): Renamed from display_info.  All users in
+	msdos.c changed.
+	(struct x_output): Remove background_pixel and foreground_pixel.
+	(the_only_display_info): Renamed from the_only_x_display.
+	(dos_ttraw): Update prototype.
+
+	* Makefile.in (MSDOS_OBJ): Add xmenu.o.
+	(SOME_MACHINE_LISP): Add ../lisp/term/pc-win.elc.
+
+2008-08-23  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (enum tiff_keyword_index, tiff_format): Add :index keyword.
+	(fn_TIFFSetDirectory): New library function used.
+	(init_tiff_functions) [HAVE_NTGUI]: Initialize it.
+	(tiff_load): Use :index to select among multiple images.  Set count
+	property when multiple images exist.
+	(gif_format): Use :index, not :image.
+
+2008-08-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_scrolling): Check INT_MAX instead of
+	MOST_POSITIVE_FIXNUM for maximum integer value.  Include limits.h
+	to obtain INT_MAX.
+
+2008-08-21  İsmail Dönmez  <ismail@namtrac.org>  (tiny change)
+
+	* xterm.c (x_delete_display): Don't call XrmDestroyDatabase on GTK+.
+
+2008-08-21  Christian Faulhammer  <opfer@gentoo.org>  (tiny change)
+
+	* Makefile.in (temacs${EXEEXT}): On GNUstep, link to appropriate
+	GNUstep library location.
+
+2008-08-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (x_update_menu_appearance): Check validity of menu font
+	before using it.
+
+	* puresize.h (BASE_PURESIZE): Increase to 1250000.
+
+2008-08-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (ns-read-file-name): Add casts to avoid warning.
+	(ns-convert-utf8-nfd-to-nfc): Warn if cannot execute correctly.
+	* nsfont.m (nsfont_draw): Compare indexed colors to 0, not nil.
+	* nsterm.h (EmacsView-unlockFocusNeedsFlush:): Add declaration.
+	(EmacsApp-cursor_blink_handler): Remove declaration.
+	* nsterm.m (ns_draw_glyph_string): Update first conditional body to
+	match 01 Feb 2008 changes in xterm.c.
+	(ns_read_socket): Add cast to avoid warning.
+	(EmacsApp-application:openFiles:): Don't call replyToOpenOrPrint: on
+	GNUstep.
+
+2008-08-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (x_get_foreign_selection): Return nil if desired
+	selection could not be obtained, instead of signalling an error.
+
+2008-08-20  David Reitter  <david.reitter@gmail.com>
+
+	* nsfns.m (ns_lisp_to_cursor_type): Replace with generic xfns.c.
+	* nsterm.m: Remove ns-specific code for cursor blinking.
+	(ns_draw_window_cursor): Clear cursor properly rather than
+	redrawing the area.  Respect width of bar cursors.
+	These changes enable the use of generic blink-cursor-mode and
+	generic cursor types in NS and support smooth cursor movements (do
+	not blink off after command).
+	* xdisp.c (get_phys_cursor_geometry): Redraw wider rectangle on
+	Nextstep, too.
+
+2008-08-19  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Vfont_log_deferred): New variable.
+	(font_add_log): Check Vfont_log_deferred.
+	(font_deferred_log): New funciton.
+
+	* font.h (font_deferred_log): Extern it.
+
+	* fontset.c (reorder_font_vector): Use encoding charset of fonts
+	for sorting.
+	(face_for_char): Use deferred log.
+
+2008-08-18  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (face_for_char): Add font log.
+
+	* font.c (font_add_log): Add the font properties :script, :lang,
+	and :otf in the log.
+
+2008-08-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c: Remove dead code.
+	(handle_invisible_prop, next_overlay_string): Defer call to
+	setup_for_ellipsis.
+	(handle_stop, set_iterator_to_next): Call setup_for_ellipsis.
+
+2008-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (lookup_derived_face): Properly handle possible zero
+	return value of get_lface_attributes.
+	(merge_faces): Don't tell lookup_derived_face to signal an error
+	if face is not found.
+
+	* dired.c (Fdirectory_files): Doc fix.
+
+	* process.c (make_process): Initialize kill_without_query struct
+	member.
+
+2008-08-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (w32_system_process_attributes) [_MSC_VER < 1300]:
+	Alternative calculation of totphys for Visual Studio 6.
+
+	* w32fns.c [_MSC_VER && _MSC_VER < 1300]: Declare HMONITOR.
+
+	* w32.c (_MEMORY_STATUS_EX, MEMORY_STATUS_EX, LPMEMORY_STATUS_EX):
+	Rename from _MEMORYSTATUSEX, MEMORYSTATUSEX, LPMEMORYSTATUSEX.
+	All users changed.
+	(stat): Only root directory passed to GetDriveType.  Allow RAM
+	disk as well as local fixed disk when w32-get-true-file-attributes
+	is set to `local'.
+	(CopySid_Proc, EqualSid_Proc, GetLengthSid_Proc): New typedefs.
+	(equal_sid, get_length_sid, copy_sid): New wrapper functions.
+	(w32_cached_id, w32_add_to_cache): New functions.
+	(get_name_and_id): Look account names in the cache before calling
+	lookup_account_sid.
+	(g_b_init_get_length_sid, g_b_init_equal_sid, g_b_init_copy_sid):
+	New initialization flags.
+	(globals_of_w32): Initialize them to zero.
+	(w32_system_process_attributes): Use w32_cached_id and
+	w32_add_to_cache.
+
+2008-08-14  Lawrence Mitchell  <wence@gmx.li>
+
+	* lread.c (Fread_char, Fread_char_exclusive): If no character
+	event is read before timeout is reached, return nil, rather than
+	converting to a number.
+
+2008-08-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fns.c (use_dialog_box): Doc fix.
+
+	* s/darwin.h: Undefine HAVE_RES_INIT, which appears to be harmful
+	on OS X.
+
+2008-08-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Qns_parse_geometry): New var.
+	(Fx_parse_geometry): For HAVE_NS, call ns-parse-geometry.
+
+2008-08-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (x_produce_glyphs): Handle the case when font has no
+	space character in calculating tabs.
+
+2008-08-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (bootstrap-emacs): Use ln -f in the CANNOT_DUMP case.
+
+2008-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* process.c (procfs_system_process_attributes): Use EMACS_INTs to
+	silence gcc "limited range of data type" warnings in some
+	make_fixnum_or_float calls.
+
+2008-08-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (w32_system_process_attributes): If the process does not
+	exist, return nil.
+
+	* w32.c: Include thelp32.h, psapi.h and coding.h.
+	(_MEMORYSTATUSEX, _PROCESS_MEMORY_COUNTERS_EX): New struct
+	declarations.
+	(CreateToolhelp32Snapshot_Proc, Process32First_Proc)
+	(Process32Next_Proc): New typedefs.
+	(g_b_init_create_toolhelp32_snapshot, g_b_init_process32_first)
+	(g_b_init_process32_next, g_b_init_open_thread_token)
+	(g_b_init_impersonate_self, g_b_init_revert_to_self)
+	(g_b_init_get_process_memory_info, g_b_init_global_memory_status)
+	(g_b_init_get_process_working_set_size)
+	(g_b_init_global_memory_status_ex): New static variables.
+	(globals_of_w32): Initialize them.
+	(create_toolhelp32_snapshot, process32_first, process32_next)
+	(open_thread_token, impersonate_self, revert_to_self)
+	(get_process_memory_info, get_process_working_set_size)
+	(global_memory_status, global_memory_status_ex): New wrapper
+	functions.
+	(w32_list_system_processes, w32_system_process_attributes)
+	(enable_privilege, restore_privilege, ltime, process_times):
+	New functions.
+	(convert_time_raw): New function.
+	(convert_time): Remove conversion of FILETIME into time in 100
+	nsec units, call convert_time_raw instead.
+
+	* process.h (w32_list_system_processes, w32_system_process_attributes):
+	Add prototypes.
+	(Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname)
+	(Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcutime)
+	(Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs, Quser, Qgroup)
+	(Qetime, Qpcpu, Qpmem, Qtpgid, Qcstime): Add extern declarations.
+
+	* process.c (Fsystem_process_attributes): Doc fix.
+
+2008-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (move_it_to): When stopping at a charpos, check if that's
+	a continued multi-char glyph; if so, advance to the actual glyph.
+
+2008-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/darwin.h (OTHER_FILES): Do not define here, defined in config.in.
+
+	* Makefile.in (ALL_OBJC_CFLAGS): New variable.
+	(.m.o): Use it.
+	* config.in: Regenerate.
+
+2008-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): Revert last change.
+	(try_window): Check bottom scroll margin too.
+
+2008-08-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* config.in: Regenerate.
+
+	* Makefile.in (emacs): Remove ndef NS conditional for 'emacs
+	-list-load-path-shadows'.
+	(nsgui.h): Reduce number of things depending on it.
+
+2008-08-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_scrolling): Use iterator to find the scroll margin,
+	instead of window-end which does the wrong thing at eob.
+	(try_cursor_movement): Minor optimization.
+	(redisplay_window): If scroll margin is defined, don't assume
+	window doesn't need scrolling.
+
+2008-08-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* config.in: Regenerate.
+
+	* Makefile.in: Move nsXXX.m dependencies into big alphabetical list.
+	(mostlyclean): Don't delete *.d under NS.
+
+	* nsterm.h (NS_HAVE_INTEGER): Change to NS_HAVE_NSINTEGER.
+
+2008-08-06  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_list_family): Return a list of symbols, not strings.
+
+2008-08-06  Andreas Schwab  <schwab@suse.de>
+
+	* config.in: Regenerate.
+
+2008-08-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): Don't enforce scroll-margin when
+	forcing a window start.
+
+	* fileio.c (Vauto_save_list_file_name): Move here from file.el.
+	(auto_save_1): Update modtime when auto-save-list-file-name is on.
+
+2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* emacs.c (main): Under NS, set working dir to HOME when get a "psn"
+	argument.
+
+2008-08-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <scroll-up-aggressively>:
+	<scroll-down-aggressively, before-change-functions>:
+	<after-change-functions>: Reflow docstrings.
+
+2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+	    Ken Raeburn  <raeburn@gnu.org>
+
+	Dock menu customization, based on a patch by Ken Raeburn, plus some
+	other fixes.
+	* nsmenu.m (dockMenu): New variable.
+	(EmacsDialog -clicked:): Fix mistake in change of 2008-07-17.
+
+	* nsterm.h (dockMenu): Declare.
+
+	* nsterm.m (KEY_NS_NEW_FRAME): New definition.
+	(ns_term_init): Initialize dockMenu.
+	(EmacsApp -newFrame:, -applicationDockMenu:): New methods.
+	(EmacsView -windowShouldClose:): Don't behave specially if <= 1 frame
+	left.
+
+	* lisp.h (LSB_TAG): Use on DARWIN_OS, not NS_IMPL_COCOA.
+
+2008-08-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.h: Test directly for NS_HAVE_INTEGER before defining it.
+
+	* config.in: Regenerate.
+
+2008-08-04  Seiji Zenitani  <zenitani@mac.com>
+
+	* nsfns.m (x-create-frame): Set the frame parameter alpha to nil.
+
+2008-08-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.h (find_and_call_menu_selection): Fix prototype.
+
+2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* emacs.c (main: unexec_init_emacs_zone): Call if on DARWIN_OS.
+
+	* keyboard.h: Comment an #endif.
+
+	* lisp.h (have_menus_p): Adjust comment.
+
+	* menu.c (find_and_return_menu_selection): Fix comparison with
+	client_data.
+
+	* nsmenu.m (popup_activated_flag): New variable.
+	(popup_activated): New function.
+	(menu-or-popup-active-p): New exported lisp definition.
+	(ns_popup_menu): Set popup_activated_flag.  Call discard_menu_items()
+	when popup done.
+	(ns_popup_dialog): Set popup_activated_flag.
+
+	* nsterm.m (EmacsView -conversationIdentifier): Use NSInteger
+	version for GNUstep (handled by conditional typedef in nsterm.m).
+	(ns_get_color): Remove special-casing for "darkblue", "dark blue" (now
+	in rgb.txt).
+
+	* process.c (init_process): Use DARWIN_OS, not DARWIN.
+
+	* sysselect.h: Conditionalize init_process undef on DARWIN_OS.
+
+	* syssignal.h (FORWARD_SIGNAL_TO_MAIN_THREAD): Do it also under NS.
+
+	* xdisp.c (redisplay_internal, note_mouse_highlight): Under NS,
+	shortcircuit if popup_activated like GTK and X toolkit.
+
+	* m/inter386.h: Change DARWIN to DARWIN_OS.
+
+	* s/darwin.h: Add #define DARWIN_OS.  Get rid of C_SWITCH_SYSTEM def.
+	Change LIBS_MACGUI to LIBS_NSGUI.  Move temacs-conditionalized defs
+	closer to C_SWITCH_SYSTEM_TEMACS so usage is understood.  Expand
+	comment on NO_SOCK_SIGIO.
+
+2008-08-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (windowDidResize): Remove stopModal call.
+
+2008-08-03  Andreas Schwab  <schwab@suse.de>
+
+	* vm-limit.c (get_lim_data) [HAVE_GETRLIMIT && RLIMIT_AS]: Define.
+	(check_memory_limits): Don't handle HAVE_GETRLIMIT here.
+
+2008-08-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vm-limit.c (check_memory_limits): Don't use getrlimit on cygwin.
+	Don't use uninitialized pointer variable when using getrlimit.
+
+2008-08-02  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (compute_metrics): Don't mess with glyph_idx setting here.
+
+2008-08-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* alloc.c (NSTATICS): Bump to 0x640.
+
+	* s/gnu-linux.h (HAVE_PROCFS, LISTPROC, PROCATTR): New defines.
+
+	* lisp.h: Add prototype for directory_files_internal.
+
+	* process.c (Fsystem_processes_list, Fsystem_process_attributes):
+	New functions.
+	(syms_of_process): Defsubr them.  Add initializations for various
+	Q* symbols used in procfs_system_process_attributes.
+	(procfs_list_system_processes, procfs_system_process_attributes)
+	[HAVE_PROCFS]: New functions.
+	(time_from_jiffies, ltime_from_jiffies, get_up_time, procfs_ttyname)
+	(procfs_get_total_memory): New functions.
+
+2008-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Fx_load_color_file): Fix previous change;
+	it is #ifdef WINDOWSNT, not WINDOWS_NT.
+
+2008-08-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_read_message): Handle D-Bus error messages.
+
+2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.h (NSInteger, NSUInteger): Add defines for non-Leopard.
+
+2008-08-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (ns_frame_parm_handlers): Add empty entry for x_set_alpha.
+
+	* nsterm.m (EmacsApp -application:openFiles:): GNUStep does not
+	define NSApplicationDelegateReplySuccess.
+	(EmacsView -converstationIdentifier): Use long instead of
+	NSInteger for GNUStep, since it doesn't have NSInteger.
+
+	* xmenu.c: Revert last change.
+
+	* keyboard.h: Fix last change.
+
+2008-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (x-load-color-file): Use RGB() instead of manually shifting
+	on Windows.
+
+2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	Warning clearing and clean-up in NS port.
+	* keyboard.h (xmalloc_widget_value, digest_single_submenu):
+	Add prototypes.
+	* nsgui.h (FACE_DEFAULT): Remove, unused.
+	(XGCValues): Change colors to unsigned long.
+	* nsterm.h (EmacsApp): Add declaration of all methods implemented in
+	nsterm.m.
+	(EmacsMenu -addItemWithWidgetValue:): Change to use NSMenuItem class.
+	(ns_list_fonts): Remove, unused.
+	(ns_font_to_xlfd, ns_fontname_to_xlfd): Drop prototypes.
+	* nsfns.m (interpret_services_menu): Use NSMenuItem class.
+	* nsfont.m (nsfont_open): Fix cast error in glyphs,metrics alloc.
+	(nsfont_draw): Compare face colors to 0, not nil.
+	* nsmenu.m (struct widget_value): Drop unneeded declaration.
+	(EmacsMenu -addItemWithWidgetValue:, -fillWithWidgetValue:)
+	(-addSubmenuWithTitle:): Use NSMenuItem class.
+	(ns_popup_menu): Use NO, not NULL, for enabled setting.
+	* nsterm.m (ns_draw_glyph_string): Don't compare font to ~0.
+	(ns_clip_to_row): Make gc arg a BOOL.
+	(ns_draw_fringe_bitmap, ns_draw_window_cursor): Use YES, NO in
+	ns_clip_to_row() call.
+	(ns_draw_glyph_string): Drop face comparison to ~0 (no longer
+	used).  Cast FRAME_FONT assignments.
+	(ns_read_socket): Cast call to EmacsApp-fulfillService:withArg:.
+	(ns_string_to_lispmod): Change arg to const char.
+	(ns_term_init): Use NSMenuItem class.
+	(EmacsApp -openFile:): Move to different section of file.
+	(EmacsApp -application:openFiles:): Don't return a value, call
+	-replyToOpenOrPrint:.
+	(EmacsView -keyDown:): Fix up cast.
+	(EmacsView -converstationIdentifier): Use NSInteger instead of long.
+	(EmacsView -menuDown:): Cast tag in call to
+	find_and_call_menu_selection().
+	(ns_list_fonts): Remove, unused.
+	(ns_font_to_xlfd): Make static.  Cast result of UTF8String.
+	(ns_fontname_to_xlfd): Make static.
+	* w32menu.c (xmalloc_widget_value, digest_single_submenu):
+	Remove prototypes (now in keyboard.h).
+	(next_menubar_widget_id): Remove, unused.
+	* xmenu.c (xmalloc_widget_value, digest_single_submenu):
+	Remove prototypes (now in keyboard.h).
+	* xfaces.c (ns_list_fonts, w32_list_fonts): Remove, unused.
+
+2008-08-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (dispnew.o, gtkutil.o, sound.o, atimer.o)
+	(floatfns.o): Depend on syssignal.h.
+	(term.o): Depend on syssignal.h, systty.h, and $(INTERVAL_SRC).
+
+	* systty.h: Fix previous change that removed BSD_TERMIOS.
+	Add comments to #ifdefs.
+
+2008-08-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* w32fns.c (w32-load-color-file): Remove.
+	(x-open-connection): Use renamed Fx_load_color_file.
+	* xfaces.c (x-load-color-file): Add.
+	* nsterm.m (ns_initialize): Load colors from etc/rgb.txt instead of
+	Emacs.clr.
+	(hide_hourglass): BLOCK_INPUT before UNBLOCK.
+
+2008-07-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_call_method_asynchronously)
+	(Fdbus_method_error_internal): New defuns.
+	(xd_read_message): Handle also reply messages.
+	(Vdbus_registered_functions_table): Extend docstring.
+
+2008-07-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (gobble_input): Fix previous change.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* bitmaps/README:
+	* xfns.c:
+	* termcap.c:
+	* term.c:
+	* syswait.h:
+	* systty.h:
+	* systime.h:
+	* syssignal.h:
+	* sysdep.c:
+	* process.h:
+	* process.c:
+	* print.c:
+	* ndir.h:
+	* lread.c:
+	* keyboard.c:
+	* getpagesize.h:
+	* floatfns.c:
+	* fileio.c:
+	* emacs.c:
+	* doc.c:
+	* dispnew.c:
+	* dired.c:
+	* data.c:
+	* callproc.c:
+	* buffer.c:
+	* README:
+	* Makefile.in:
+	* s/template.h:
+	* s/msdos.h:
+	* m/vax.h: Remove VMS support.
+	* s/vms.h:
+	* vlimit.h:
+	* uaf.h:
+	* temacs.opt:
+	* param.h:
+	* ioctl.h: Remove file.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/ms-w32.h (MULTI_KBOARD): Remove.
+	* xterm.c:
+	* xselect.c:
+	* xfns.c:
+	* window.c:
+	* w32term.c:
+	* w32fns.c:
+	* terminal.c:
+	* termhooks.h:
+	* term.c:
+	* sysdep.c:
+	* keyboard.h:
+	* keyboard.c:
+	* frame.h:
+	* frame.c:
+	* frame.c: Remove references to MULTI_KBOARD, it is now the default.
+	* config.in: Regenerate.
+
+2008-07-30  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.h (struct w32font_info): Use unicode version of textmetrics.
+
+	* w32font.c (w32font_encode_char): Leave as unicode if in range.
+	(w32font_open_internal): Get unicode version of textmetrics.
+	Don't enable or disable glyph indices here.
+	(w32font_open): Disable use of glyph indices.
+
+	* w32uniscribe.c (uniscribe_open): Enable use of glyph indices.
+
+2008-07-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (Vread_buffer_function): Doc fix.
+
+2008-07-30  John Paul Wallington  <jpw@pobox.com>
+
+	* minibuf.c (read_buffer_completion_ignore_case): New var.
+	(Fread_buffer): Use it.
+
+2008-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* systty.h (sensemode): Remove empty #if.  Remove reference to
+	BSD_TERMIOS, unused.
+
+	* sysdep.c: Remove reference to DGUX.
+	(closedir): Remove reference to BROKEN_CLOSEDIR, unused.
+
+	* config.in: Regenerate.
+
+2008-07-30  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (uniscribe_encode_char): Fix glyph buffer size.
+
+2008-07-29  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (uniscribe_shape): Avoid using context if cache
+	is populated.
+	(uniscribe_encode_char): Always use uniscribe.
+	Avoid using context if cache is populated.
+
+2008-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (Fx_menu_bar_open_internal): Use activate_item signal to
+	open menu.
+
+	* gtkutil.c (menu_nav_ended): Remove.
+	(create_menus): Remove signal connect for menu_nav_ended.
+
+2008-07-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): Check return value of
+	compute_window_start_on_continuation_line before forcing a window
+	start.
+
+2008-07-28  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_text_extents): Use w32_metric_cache consistently.
+
+	* w32term.c (w32_enable_unicode_output, cleartype_active):
+	Remove obsolete display options.
+	(x_draw_glyph_string_background): Don't use old cleartype_active
+	workaround.
+	(w32_initialize): Remove cleartype_active initialization.
+	(syms_of_w32term): Remove w32_enable_unicode_output initialization.
+
+2008-07-28  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h (init_weak_hash_tables, syms_of_font)
+	(xd_read_queued_messages, syms_of_dbusbind): Declare.
+	(remove_hash_entry): Don't declare.
+	* eval.c (maybe_call_debugger): Make static and move before use.
+	* gtkutil.c: Include <X11/Xft/Xft.h> if HAVE_XFT.
+	* xdisp.c: Include "gtkutil.h" if USE_GTK.
+	* xterm.h (x_set_frame_alpha): Declare.
+
+2008-07-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (menu_nav_ended): Revert change from 2008-07-24.
+	(create_menus): Connect selection-done to menu_nav_ended.
+
+2008-07-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (x-create-frame): Add copy of parms argument to beginning.
+	Set Vx_resource_name to a fallback.  Replace read of 'buffered'
+	parameter with read of 'alpha' one.
+	(Qns_frame_parameter): Remove.
+	* nsselection.m (selection-coding-system)
+	(next-selection-coding-system, Vselection_coding_system)
+	(Vnext_selection_coding_system): Drop.
+
+2008-07-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (do-applescript, do_applescript): Rename to
+	ns-do-applescript, ns_do_applescript, and move within file.
+
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove support for Mac Carbon.
+	* mactoolbox.c:
+	* macterm.h:
+	* macterm.c:
+	* macselect.c:
+	* macmenu.c:
+	* macgui.h:
+	* macfns.c:
+	* mac.c: Remove file.
+	* s/darwin.h:
+	* m/intel386.h:
+	* xfaces.c:
+	* xdisp.c:
+	* window.c:
+	* tparam.c:
+	* termhooks.h:
+	* termcap.c:
+	* term.c:
+	* syssignal.h:
+	* sysselect.h:
+	* sysdep.c:
+	* process.c:
+	* lread.c:
+	* lisp.h:
+	* keyboard.c:
+	* image.c:
+	* fringe.c:
+	* frame.h:
+	* frame.c:
+	* fontset.c:
+	* font.h:
+	* font.c:
+	* fns.c:
+	* fileio.c:
+	* emacs.c:
+	* dispnew.c:
+	* dispextern.h:
+	* config.in:
+	* atimer.c:
+	* Makefile.in: Remove code for Carbon
+
 2008-07-26 YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (XDrawLine) [USE_MAC_IMAGE_IO]: Remove spurious return.
@@ -15,7 +1174,7 @@
 
 2008-07-26  David Robinow  <drobinow@gmail.com>  (tiny change)
 
-        * w32inevt.c: Include dispextern.h.
+	* w32inevt.c: Include dispextern.h.
 
 2008-07-26  Andreas Schwab  <schwab@suse.de>
 
@@ -28,14 +1187,14 @@
 
 2008-07-25  Jason Rumney  <jasonr@gnu.org>
 
-        * w32uniscribe.c (uniscribe_shape): Pass NULL for control arg to
-        ScriptItemize. Clean up return value checking. Remove unused
-        variables.
-        (uniscribe_encode_char): Encode non-BMP characters with uniscribe
-        shaping engine.
+	* w32uniscribe.c (uniscribe_shape): Pass NULL for control arg to
+	ScriptItemize.  Clean up return value checking.  Remove unused
+	variables.
+	(uniscribe_encode_char): Encode non-BMP characters with uniscribe
+	shaping engine.
 
-        * w32font.c (w32font_has_char): Handle the case where we can't
-        determine the script for a character.
+	* w32font.c (w32font_has_char): Handle the case where we can't
+	determine the script for a character.
 
 2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -54,13 +1213,13 @@
 
 2008-07-25  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32font_encode_char): Encode characters outside BMP as
-        surrogates before looking up glyph index.
-        (w32font_text_extents): Encode as surrogates if falling back to
-        functions that need UTF-16 wide chars.
+	* w32font.c (w32font_encode_char): Encode characters outside BMP as
+	surrogates before looking up glyph index.
+	(w32font_text_extents): Encode as surrogates if falling back to
+	functions that need UTF-16 wide chars.
 
-        * w32uniscribe.c (uniscribe_encode_char): Encode characters outside
-        BMP as surrogates before looking up glyph index.
+	* w32uniscribe.c (uniscribe_encode_char): Encode characters outside
+	BMP as surrogates before looking up glyph index.
 
 2008-07-25  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -69,7 +1228,7 @@
 
 2008-07-25  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (Fx_select_font): Reverse sense of second arg.
+	* w32font.c (Fx_select_font): Reverse sense of second arg.
 
 2008-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -208,13 +1367,6 @@
 
 	* w32proc.c (Fw32_long_file_name): Don't append dir separator to
 	bare drive.
-
-2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
-
-	* nsgui.h:
-	* nsfont.m:
-	* nsmenu.m:
-	* nsterm.m: Change PENDINGS to FIXME / TODO / XXX.
 
 2008-07-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -366,19 +1518,20 @@
 	* nsgui.h: Remove redefinitions of hash_remove.
 	* fns.c (hash_remove): Rename to hash_remove_from_table.
 
-2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+2008-07-19  Seiji Zenitani  <zenitani@mac.com>
 
 	* nsfont.m (nsfont_fmember_to_entity, nsfont_make_fontset_for_font):
-	strdup() the family UTF8String before modifying it.  Patch due to
-	Seiji Zenitani.
+	strdup() the family UTF8String before modifying it.
 
 2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* nsfns.m (ns_set_background_color): Apply patch from Chong Yidong to
-	fix crash.
 	* nsterm.m (ns_maybe_dumpglyphs_background): Compare result from
 	NS_FACE_BACKGROUND with 0 instead of nil.
 	* nsfont.m (nsfont_draw): Same.
+
+2008-07-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (ns_set_background_color): Fix crash.
 
 2008-07-18  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -454,21 +1607,6 @@
 	* m/vax.h: Remove comments about unsupported systems.
 
 	* s/darwin.h: Reorganize ifdefs.
-
-2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
-
-	* config.in:
-	* dispextern.h:
-	* frame.c:
-	* image.c:
-	* nsfns.m:
-	* nsfont.m:
-	* nsgui.h:
-	* nsmenu.m:
-	* nsterm.h:
-	* nsterm.m:
-	* s/darwin.h:
-	* xdisp.c: Change most cases of PENDING to TODO, some to FIXME or XXX.
 
 2008-07-17  Andreas Schwab  <schwab@suse.de>
 
@@ -669,6 +1807,18 @@
 	* Makefile.in: Correct additions for nsfont.o in last commit.
 	* nsfont.m: New file (forgot last commit).
 
+2008-07-15  Chris Hall  <chris@web.workinglinux.com>  (tiny change)
+
+	* callproc.c (set_initial_environment): Initialize
+	Vprocess_environment under CANNOT_DUMP (fixes crash when
+	batch-compiling for bootstrap).
+
+2008-07-15  Chris Hall  <chris@web.workinglinux.com>  (tiny change)
+	    YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	(make_initial_frame): Call init_frame_faces(f) in CANNOT_DUMP case --
+	fix crash due to different init order.
+
 2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	Changes and additions for NeXTstep windowing system (Cocoa and
@@ -678,9 +1828,6 @@
 	* config.in: Support defines and build commands for NS port.
 	* blockinput.h (BLOCK_INPUT, UNBLOCK_INPUT, TOTALLY_UNBLOCK_INPUT)
 	(UNBLOCK_INPUT_TO): Don't use under NS unless EXPERIMENTAL_CONTROL_G.
-	* callproc.c (set_initial_environment): Initialize
-	Vprocess_environment under CANNOT_DUMP (fixes crash when
-	batch-compiling for bootstrap, due to Chris Hall).
 	* dispextern.h: Include nsgui.h and add needed typedefs under NS
 	windowing.
 	(struct face): Add synth_ital field.
@@ -701,9 +1848,6 @@
 	(fontset_from_font): Autoconstruct fontset under NS.
 	* frame.c (various): Under NS, include nsterm.h, add Qns window system
 	symbol, document and use it.
-	(make_initial_frame): Call init_frame_faces(f) in CANNOT_DUMP case --
-	patch to fix crash due to different init order, due to Chris Hall and
-	Yamamoto Mitsuharu.
 	(do_switch_frame): When for_deletion under Cocoa, add
 	Fraise_frame(Qnil).
 	(x_set_frame_parameters): Ensure font attribute changes are picked up.
@@ -875,7 +2019,7 @@
 	* m/ia64.h (SPECIAL_EMACS_INT):
 	* m/amdx86-64.h (SPECIAL_EMACS_INT):
 	* s/gnu.h (NLIST_STRUCT):
-	* aix4-2.h (X11R5_INHIBIT_I18N):
+	* s/aix4-2.h (X11R5_INHIBIT_I18N):
 	* s/gnu-linux.h (LINUX):
 	* s/msdos.h (HAVE_FACES):
 	* s/ms-w32.h (HAVE_FACES): Don't define, unused.
@@ -958,22 +2102,22 @@
 
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* src/fileio.c:
-	* src/sysdep.c
-	* src/systty.h:
-	* src/m/ibmrs6000.h:
-	* src/m/iris4d.h:
-	* src/s/aix4-2.h:
-	* src/s/freebsd.h:
-	* src/s/gnu-linux.h:
-	* src/s/hpux10-20.h:
-	* src/s/hpux11.h:
-	* src/s/netbsd.h:
-	* src/s/sol2-3.h:
-	* src/s/sol2-4.h:
-	* src/s/sol2.h:
-	* src/s/usg5-4.h:
-	* src/s/vms.h: Remove references to unused variables.
+	* fileio.c:
+	* sysdep.c
+	* systty.h:
+	* m/ibmrs6000.h:
+	* m/iris4d.h:
+	* s/aix4-2.h:
+	* s/freebsd.h:
+	* s/gnu-linux.h:
+	* s/hpux10-20.h:
+	* s/hpux11.h:
+	* s/netbsd.h:
+	* s/sol2-3.h:
+	* s/sol2-4.h:
+	* s/sol2.h:
+	* s/usg5-4.h:
+	* s/vms.h: Remove references to unused variables.
 
 2008-07-10  Andreas Schwab  <schwab@suse.de>
 
@@ -1389,41 +2533,41 @@
 	* s/uxpds.h:
 	* s/uxpv.h: Remove support for obsolete systems.
 	* s/hpux.h, s/hpux10.h, s/hpux8.h, s/hpux9.h, s/hpux9shr.h:
-	Remove, insert contents in s/hpux-10.20.h
+	Remove, insert contents in s/hpux-10.20.h.
 	* s/aix3-1.h, s/aix3-2-5.h, s/aix3-2.h, s/aix4-1.h, s/aix4.h:
-	Remove, insert contents in s/aix-4.2.h
+	Remove, insert contents in s/aix4-2.h.
 	* s/usg5-3.h: Remove, insert contents in s/usg5-4.h.
-	* s/bsd4-3.h: Rename to ..
+	* s/bsd4-3.h: Rename to ...
 	* s/bsd-common.h: ... this.
-	* src/data.c:
-	* src/doc.c:
-	* src/ecrt0.c:
-	* src/emacs.c:
-	* src/fileio.c:
-	* src/floatfns.c:
-	* src/keyboard.c:
-	* src/mem-limits.h:
-	* src/print.c:
-	* src/process.c:
-	* src/sysdep.c:
-	* src/syssignal.h:
-	* src/systty.h:
-	* src/syswait.h:
-	* src/term.c:
-	* src/unexec.c:
-	* src/unexelf.c:
-	* src/unexhp9k800.c:
-	* src/m/hp800.h:
-	* src/m/ibmrs6000.h:
-	* src/m/mips.h:
-	* src/m/vax.h:
-	* src/s/darwin.h:
-	* src/s/freebsd.h:
-	* src/s/gnu.h:
-	* src/s/ms-w32.h:
-	* src/s/msdos.h:
-	* src/s/netbsd.h:
-	* src/s/template.h: Remove references to obsolete variables.
+	* data.c:
+	* doc.c:
+	* ecrt0.c:
+	* emacs.c:
+	* fileio.c:
+	* floatfns.c:
+	* keyboard.c:
+	* mem-limits.h:
+	* print.c:
+	* process.c:
+	* sysdep.c:
+	* syssignal.h:
+	* systty.h:
+	* syswait.h:
+	* term.c:
+	* unexec.c:
+	* unexelf.c:
+	* unexhp9k800.c:
+	* m/hp800.h:
+	* m/ibmrs6000.h:
+	* m/mips.h:
+	* m/vax.h:
+	* s/darwin.h:
+	* s/freebsd.h:
+	* s/gnu.h:
+	* s/ms-w32.h:
+	* s/msdos.h:
+	* s/netbsd.h:
+	* s/template.h: Remove references to obsolete variables.
 
 	* Makefile.in: Add dependencies for all unexec files.
 	(admindir): Remove unused variable.
@@ -1676,7 +2820,7 @@
 
 	* w32font.c (w32font_list, w32font_match): Add logging.
 
-	* w32uniscribe (uniscribe_list, uniscribe_match): Add logging.
+	* w32uniscribe.c (uniscribe_list, uniscribe_match): Add logging.
 
 2008-06-17  Chong Yidong  <cyd@stupidchicken.com>
 

@@ -1085,7 +1085,7 @@ merge in the changes into your working copy."
 			 ;; finishing the log entry and committing.
 			 (not (and visited (buffer-modified-p))))
 		(vc-revert-file file)
-		(delete file ready-for-commit)))))
+		(setq ready-for-commit (delete file ready-for-commit))))))
 	;; Remaining files need to be committed
 	(if (not ready-for-commit)
 	    (message "No files remain to be committed")
@@ -2242,6 +2242,9 @@ log entries should be gathered."
   "Return the minor revision number of a revision number REV."
   (string-match "[0-9]+\\'" rev)
   (substring rev (match-beginning 0) (match-end 0)))
+
+(define-obsolete-function-alias
+  'vc-default-previous-version 'vc-default-previous-revision "23.1")
 
 (defun vc-default-previous-revision (backend file rev)
   "Return the revision number immediately preceding REV for FILE,

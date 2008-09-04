@@ -216,7 +216,7 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 ;;;###autoload
 (defun calc-help ()
   (interactive)
-  (let ((msgs (append
+  (let ((msgs
 	 '("Press `h' for complete help; press `?' repeatedly for a summary"
 	   "Letter keys: Negate; Precision; Yank; Why; Xtended cmd; Quit"
 	   "Letter keys: SHIFT + Undo, reDo; Keep-args; Inverse, Hyperbolic"
@@ -235,10 +235,8 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 	   "Prefix keys: Kombinatorics/statistics, Modes, Store/recall"
 	   "Prefix keys: Trail/time, Units/statistics, Vector/matrix"
 	   "Prefix keys: Z (user), SHIFT + Z (define)"
-	   "Prefix keys: prefix + ? gives further help for that prefix")
-	 (list (format
-		"  Calc %s by Dave Gillespie, daveg@synaptics.com"
-		calc-version)))))
+	   "Prefix keys: prefix + ? gives further help for that prefix"
+           "  Calc by Dave Gillespie, daveg@synaptics.com")))
     (if calc-full-help-flag
 	msgs
       (if (or calc-inverse-flag calc-hyperbolic-flag)
@@ -834,8 +832,8 @@ loaded and the keystroke automatically re-typed."
 Prompts for bug subject.  Leaves you in a mail buffer."
   (interactive)
   (let ((reporter-prompt-for-summary-p t))
-    (reporter-submit-bug-report calc-bug-address "Calc" '(calc-version)
-				nil nil
+    (reporter-submit-bug-report calc-bug-address "Calc"
+				nil nil nil
 				"Please describe exactly what actions triggered the bug and the
 precise symptoms of the bug.  If possible, include a backtrace by
 doing 'M-x toggle-debug-on-error', then reproducing the bug.

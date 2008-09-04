@@ -101,16 +101,6 @@ extern int errno;
 #endif
 #endif
 
-/* Avoid traps on VMS from sinh and cosh.
-   All the other functions set errno instead.  */
-
-#ifdef VMS
-#undef cosh
-#undef sinh
-#define cosh(x) ((exp(x)+exp(-x))*0.5)
-#define sinh(x) ((exp(x)-exp(-x))*0.5)
-#endif /* VMS */
-
 #ifdef FLOAT_CATCH_SIGILL
 static SIGTYPE float_error ();
 #endif

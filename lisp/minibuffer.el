@@ -73,7 +73,6 @@ SUFFIX is the string after point.
 The result is of the form (START . END) where START is the position
 in STRING of the beginning of the completion field and END is the position
 in SUFFIX of the end of the completion field.
-I.e. START is the same as the `completion-base-size'.
 E.g. for simple completion tables, the result is always (0 . (length SUFFIX))
 and for file names the result is the positions delimited by
 the closest directory separators."
@@ -131,7 +130,7 @@ This alist may be a full list of possible completions so that FUN can ignore
 the value of its argument.  If completion is performed in the minibuffer,
 FUN will be called in the buffer from which the minibuffer was entered.
 
-The result of the `dynamic-completion-table' form is a function
+The result of the `completion-table-dynamic' form is a function
 that can be used as the COLLECTION argument to `try-completion' and
 `all-completions'.  See Info node `(elisp)Programmed Completion'."
   (lexical-let ((fun fun))
@@ -616,14 +615,9 @@ input if confirmed."
         (let ((exts '(" " "-"))
               (before (substring string 0 point))
               (after (substring string point))
-              ;; If the user hasn't entered any text yet, then she
-              ;; presumably hits SPC to see the *completions*, but
-              ;; partial-completion will often find a " " or a "-" to match.
-              ;; So disable partial-completion in that situation.
-              (completion-styles
-               (or (and (equal string "")
-                        (remove 'partial-completion completion-styles))
-                   completion-styles))
+	      ;; Disable partial-completion for this.
+	      (completion-styles
+	       (remove 'partial-completion completion-styles))
 	      tem)
 	  (while (and exts (not (consp tem)))
             (setq tem (completion-try-completion
@@ -826,11 +820,11 @@ The actual completion alternatives, as inserted, are given `mouse-face'
 properties of `highlight'.
 At the end, this runs the normal hook `completion-setup-hook'.
 It can find the completion buffer in `standard-output'.
-The obsolete optional second arg COMMON-SUBSTRING is a string.
-It is used to put faces, `completions-first-difference' and
-`completions-common-part' on the completion buffer.  The
-`completions-common-part' face is put on the common substring
-specified by COMMON-SUBSTRING."
+
+The obsolete optional arg COMMON-SUBSTRING, if non-nil, should be a string
+specifying a common substring for adding the faces
+`completions-first-difference' and `completions-common-part' to
+the completions buffer."
   (if common-substring
       (setq completions (completion-hilit-commonality
                          completions (length common-substring))))
@@ -839,25 +833,28 @@ specified by COMMON-SUBSTRING."
       (with-temp-buffer
 	(let ((standard-output (current-buffer))
 	      (completion-setup-hook nil))
-	  (display-completion-list completions))
+	  (display-completion-list completions common-substring))
 	(princ (buffer-string)))
 
-    (with-current-buffer standard-output
-      (goto-char (point-max))
-      (if (null completions)
-	  (insert "There are no possible completions of what you have typed.")
-
-	(insert "Possible completions are:\n")
-        (let ((last (last completions)))
-          ;; Get the base-size from the tail of the list.
-          (set (make-local-variable 'completion-base-size) (or (cdr last) 0))
-          (setcdr last nil)) ;Make completions a properly nil-terminated list.
-	(completion--insert-strings completions))))
+    (let ((mainbuf (current-buffer)))
+      (with-current-buffer standard-output
+	(goto-char (point-max))
+	(if (null completions)
+	    (insert "There are no possible completions of what you have typed.")
+	  (insert "Possible completions are:\n")
+	  (let ((last (last completions)))
+	    ;; Set base-size from the tail of the list.
+	    (set (make-local-variable 'completion-base-size)
+		 (or (cdr last)
+		     (and (minibufferp mainbuf) 0)))
+	    (setcdr last nil)) ; Make completions a properly nil-terminated list.
+	  (completion--insert-strings completions)))))
 
   ;; The hilit used to be applied via completion-setup-hook, so there
   ;; may still be some code that uses completion-common-substring.
-  (let ((completion-common-substring common-substring))
-    (run-hooks 'completion-setup-hook))
+  (with-no-warnings
+    (let ((completion-common-substring common-substring))
+      (run-hooks 'completion-setup-hook)))
   nil)
 
 (defun minibuffer-completion-help ()
@@ -1068,7 +1065,7 @@ specified by COMMON-SUBSTRING."
   "Current predicate used by `read-file-name-internal'.")
 
 (defcustom read-file-name-completion-ignore-case
-  (if (memq system-type '(ms-dos windows-nt darwin macos vax-vms axp-vms))
+  (if (memq system-type '(ms-dos windows-nt darwin cygwin))
       t nil)
   "Non-nil means when reading a file name completion ignores case."
   :group 'minibuffer
@@ -1411,7 +1408,8 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
     ;; since all-completions is written in C!
     (let* (;; Convert search pattern to a standard regular expression.
 	   (regex (completion-pcm--pattern->regex pattern))
-	   (completion-regexp-list (cons regex completion-regexp-list))
+           (case-fold-search completion-ignore-case)
+           (completion-regexp-list (cons regex completion-regexp-list))
 	   (compl (all-completions
                    (concat prefix (if (stringp (car pattern)) (car pattern) ""))
 		   table pred))
@@ -1424,8 +1422,7 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
       (if (not (functionp table))
 	  ;; The internal functions already obeyed completion-regexp-list.
 	  compl
-	(let ((case-fold-search completion-ignore-case)
-              (poss ()))
+	(let ((poss ()))
 	  (dolist (c compl)
 	    (when (string-match regex c) (push c poss)))
 	  poss)))))
@@ -1433,6 +1430,7 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 (defun completion-pcm--hilit-commonality (pattern completions)
   (when completions
     (let* ((re (completion-pcm--pattern->regex pattern '(point)))
+           (case-fold-search completion-ignore-case)
            (last (last completions))
            (base-size (cdr last)))
       ;; Remove base-size during mapcar, and add it back later.

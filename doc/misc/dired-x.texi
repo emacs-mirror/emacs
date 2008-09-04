@@ -1,17 +1,10 @@
 \input texinfo  @comment -*-texinfo-*-
 
-@c dired-x.texi --- Sebastian Kremer's Extra DIRED hacked up for GNU Emacs19
+@c dired-x.texi --- Sebastian Kremer's Extra DIRED hacked up for GNU Emacs
 @c
 @c Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 @c	Lawrence R. Dodd <dodd@roebling.poly.edu>
 @c [Dodd's address no longer valid.]
-@c Version: 2.53
-@c Date: 2001/02/25 14:05:46
-@c Keywords: dired extensions
-@c dired-x.el REVISION NUMBER: 2
-
-@c State: Released
-@c Ident: dired-x.texi,v 2.53 2001/02/25 14:05:46 dodd Released
 
 @comment %**start of header (This is for running Texinfo on a region.)
 @c FOR GNU EMACS USE ../info/dired-x BELOW
@@ -703,6 +696,13 @@ to add rules for @samp{.foo} and @samp{.bar} file extensions, write
 
 @noindent
 This will override any predefined rules for the same extensions.
+
+@item dired-guess-shell-case-fold-search
+@vindex dired-guess-shell-case-fold-search
+Default: @code{t}
+
+Non-@code{nil} means @code{dired-guess-shell-alist-default} and
+@code{dired-guess-shell-alist-user} are matched case-insensitively.
 
 @item dired-guess-shell-gnutar
 @vindex dired-guess-shell-gnutar

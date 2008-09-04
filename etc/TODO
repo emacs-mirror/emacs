@@ -15,13 +15,14 @@ to the FSF.
 * Simple tasks. These don't require much emacs knowledge, they are
 suitable for anyone from beginners to experts.
 
+** Convert modes that use view-mode to be derived from special-mode instead.
+
 ** make emacsclient accept -nw as a synonym to -t.
 
 ** Replace some uses of the preprocessor code in Makefile.in with the equivalent autoconf.
 
 ** Major modes should have a menu entry.  Examples of modes that do
-not have one at the moment and probably should: text-mode,
-change-log-mode, texinfo-mode, inferior-lisp-mode.
+not have one at the moment and probably should: text-mode, inferior-lisp-mode.
 
 ** Check if all items on the mode-line have a suitable tooltip for all modes.
 
@@ -142,6 +143,9 @@ Change them to use report-emacs-bug.
 
 ** Add a defcustom that supplies a function to name numeric backup files,
 like make-backup-file-name-function for non-numeric backup files.
+
+** `dired-mode' should specify the semantics of `buffer-modified-p' for
+dired buffers and DTRT WRT `auto-revert-mode'. 
 
 * Important features:
 

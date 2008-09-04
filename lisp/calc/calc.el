@@ -6,7 +6,6 @@
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 ;; Keywords: convenience, extensions
-;; Version: 2.1
 
 ;; This file is part of GNU Emacs.
 
@@ -901,7 +900,6 @@ Used by `calc-user-invocation'.")
 (put 'math-underflow 'error-conditions '(error math-underflow calc-error))
 (put 'math-underflow 'error-message "Floating-point underflow occurred")
 
-(defconst calc-version "2.1")
 (defvar calc-trail-pointer nil
   "The \"current\" entry in trail buffer.")
 (defvar calc-trail-overlay nil
@@ -1028,7 +1026,7 @@ Used by `calc-user-invocation'.")
     (define-key map "\C-j" 'calc-over)
     (define-key map "\C-y" 'calc-yank)
     (define-key map [mouse-2] 'calc-yank)
-      
+
     (mapc (lambda (x) (define-key map (char-to-string x) 'undefined))
           "lOW")
     (mapc (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
@@ -1098,11 +1096,17 @@ Used by `calc-user-invocation'.")
 (defvar calc-dispatch-map
   (let ((map (make-keymap)))
     (mapc (lambda (x)
-            (define-key map (char-to-string (car x)) (cdr x))
-            (when (string-match "abcdefhijklnopqrstuwxyz"
-                                (char-to-string (car x)))
-              (define-key map (char-to-string (- (car x) ?a -1)) (cdr x)))
-            (define-key map (format "\e%c" (car x)) (cdr x)))
+	    (let* ((x-chr (car x))
+		   (x-str (char-to-string x-chr))
+		   (x-def (cdr x)))
+	      (define-key map x-str x-def)
+	      (when (string-match "[a-z]" x-str)
+		;; Map upper case char to same definition.
+		(define-key map (upcase x-str) x-def)
+		(unless (string-match "[gmv]" x-str)
+		  ;; Map control prefixed char to same definition.
+		  (define-key map (vector (list 'control x-chr)) x-def)))
+	      (define-key map (format "\e%c" x-chr) x-def)))
           '( ( ?a . calc-embedded-activate )
              ( ?b . calc-big-or-small )
              ( ?c . calc )
@@ -1203,11 +1207,6 @@ Used by `calc-user-invocation'.")
 	(use-local-map loc)))))
 
 (defvar calc-alg-map) ; Defined in calc-ext.el
-
-(defun calc-version ()
-  "Return version of this version of Calc."
-  (interactive)
-  (message "Calc version %s" calc-version))
 
 (defun calc-mode ()
   "Calculator major mode.
@@ -3455,7 +3454,7 @@ largest Emacs integer.")
 
 
 ;;; Parse a simple number in string form.   [N X] [Public]
-(defun math-read-number (s)
+(defun math-read-number (s &optional decimal)
   "Convert the string S into a Calc number."
   (math-normalize
    (cond
@@ -3463,9 +3462,10 @@ largest Emacs integer.")
     ;; Integers (most common case)
     ((string-match "\\` *\\([0-9]+\\) *\\'" s)
      (let ((digs (math-match-substring s 1)))
-       (if (and (eq calc-language 'c)
+       (if (and (memq calc-language calc-lang-c-type-hex)
 		(> (length digs) 1)
-		(eq (aref digs 0) ?0))
+		(eq (aref digs 0) ?0)
+                (null decimal))
 	   (math-read-number (concat "8#" digs))
 	 (if (<= (length digs) (* 2 math-bignum-digit-length))
 	     (string-to-number digs)
@@ -3492,8 +3492,8 @@ largest Emacs integer.")
 	   (frac (math-match-substring s 2)))
        (let ((ilen (length int))
 	     (flen (length frac)))
-	 (let ((int (if (> ilen 0) (math-read-number int) 0))
-	       (frac (if (> flen 0) (math-read-number frac) 0)))
+	 (let ((int (if (> ilen 0) (math-read-number int t) 0))
+	       (frac (if (> flen 0) (math-read-number frac t) 0)))
 	   (and int frac (or (> ilen 0) (> flen 0))
 		(list 'float
 		      (math-add (math-scale-int int flen) frac)
@@ -3503,7 +3503,7 @@ largest Emacs integer.")
     ((string-match "^\\(.*\\)[eE]\\([-+]?[0-9]+\\)$" s)
      (let ((mant (math-match-substring s 1))
 	   (exp (math-match-substring s 2)))
-       (let ((mant (if (> (length mant) 0) (math-read-number mant) 1))
+       (let ((mant (if (> (length mant) 0) (math-read-number mant t) 1))
 	     (exp (if (<= (length exp) (if (memq (aref exp 0) '(?+ ?-)) 8 7))
 		      (string-to-number exp))))
 	 (and mant exp (Math-realp mant) (> exp -4000000) (< exp 4000000)

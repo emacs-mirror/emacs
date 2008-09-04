@@ -1274,12 +1274,12 @@ is used to search."
       (when (cdr pattern)
         (setq result `(,@result "-and" "-lbrace"
                        ,@(mh-pick-construct-regexp
-                          (if (and (mh-variant-p 'mu-mh) (car pattern))
+                          (if (and (mh-variant-p 'gnu-mh) (car pattern))
                               (format "--pattern=%s" (cdr pattern))
                             (cdr pattern))
                           (if (car pattern)
                               (cond
-                               ((mh-variant-p 'mu-mh)
+                               ((mh-variant-p 'gnu-mh)
                                 (format "--component=%s" (car pattern)))
                                ((member (car pattern) mh-pick-single-dash)
                                 (format "-%s" (car pattern)))

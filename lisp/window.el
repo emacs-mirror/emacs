@@ -722,21 +722,6 @@ that frame."
   :version "21.1"
   :group 'windows)
 
-(defcustom pop-up-frame-function nil
-  "Function to call to handle automatic new frame creation.
-It is called with no arguments and should return a newly created frame.
-
-A typical value might be
-
-`(lambda () (new-frame pop-up-frame-alist))'
-
-where `pop-up-frame-alist' would hold the default frame
-parameters."
-  :type '(choice
-	  (const nil)
-	  (function :tag "function"))
-  :group 'windows)
-
 (defcustom pop-up-windows t
   "Non-nil means `display-buffer' should make a new window."
   :type 'boolean
@@ -1427,35 +1412,34 @@ Possible values: `top', `middle', `bottom'.")
 
 (defun recenter-top-bottom (&optional arg)
   "Move current line to window center, top, and bottom, successively.
-With a prefix argument, this is the same as `recenter':
+With no prefix argument, the first call redraws the frame and
+ centers point vertically within the window.  Successive calls
+ scroll the window, placing point on the top, bottom, and middle
+ consecutively.  The cycling order is middle -> top -> bottom.
+
+A prefix argument is handled like `recenter':
  With numeric prefix ARG, move current line to window-line ARG.
  With plain `C-u', move current line to window center.
 
-Otherwise move current line to window center on first call, and to
-top, middle, or bottom on successive calls.
-
-The cycling order is: middle -> top -> bottom.
-
-Top and bottom destinations are actually `scroll-conservatively' lines
-from true window top and bottom."
+Top and bottom destinations are actually `scroll-margin' lines
+ the from true window top and bottom."
   (interactive "P")
   (cond
    (arg (recenter arg))                 ; Always respect ARG.
-   ((not (eq this-command last-command))
-    ;; First time - save mode and recenter.
+   ((or (not (eq this-command last-command))
+	(eq recenter-last-op 'bottom))
     (setq recenter-last-op 'middle)
     (recenter))
-   (t ;; repeat: loop through various options.
-    (setq recenter-last-op
-	  (cond ((eq recenter-last-op 'middle)
-		 (recenter scroll-conservatively)
-		 'top)
-		((eq recenter-last-op 'top)
-		 (recenter (1- (- scroll-conservatively)))
-		 'bottom)
-		((eq recenter-last-op 'bottom)
-		 (recenter)
-		 'middle))))))
+   (t
+    (let ((this-scroll-margin
+	   (min (max 0 scroll-margin)
+		(truncate (/ (window-body-height) 4.0)))))
+      (cond ((eq recenter-last-op 'middle)
+	     (setq recenter-last-op 'top)
+	     (recenter this-scroll-margin))
+	    ((eq recenter-last-op 'top)
+	     (setq recenter-last-op 'bottom)
+	     (recenter (- -1 this-scroll-margin))))))))
 
 (define-key global-map [?\C-l] 'recenter-top-bottom)
 

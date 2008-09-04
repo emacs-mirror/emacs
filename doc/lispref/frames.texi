@@ -40,8 +40,6 @@ kind of display the frame uses:
 The frame is displayed in an X window.
 @item t
 A terminal frame on a character display.
-@item mac
-The frame is displayed on a Macintosh.
 @item w32
 The frame is displayed on MS-Windows 9X/NT.
 @item pc
@@ -1729,33 +1727,12 @@ and @code{x-set-selection} on MS-Windows support the text data type
 only; if the clipboard holds other types of data, Emacs treats the
 clipboard as empty.
 
-@cindex scrap support (for Mac OS)
-On Mac OS, selection-like data transfer between applications is
-performed through a mechanism called @dfn{scraps}.  The clipboard is a
-particular scrap named @code{com.apple.scrap.clipboard}.  Types of scrap
-data are called @dfn{scrap flavor types}, which are identified by
-four-char codes such as @code{TEXT}.  Emacs associates a selection with
-a scrap, and a selection type with a scrap flavor type via
-@code{mac-scrap-name} and @code{mac-ostype} properties, respectively.
-
-@example
-(get 'CLIPBOARD 'mac-scrap-name)
-     @result{} "com.apple.scrap.clipboard"
-(get 'com.apple.traditional-mac-plain-text 'mac-ostype)
-     @result{} "TEXT"
-@end example
-
-Conventionally, selection types for scrap flavor types on Mac OS have
-the form of @acronym{UTI, Uniform Type Identifier} such as
-@code{com.apple.traditional-mac-plain-text},
-@code{public.utf16-plain-text}, and @code{public.file-url}.
-
 @defopt x-select-enable-clipboard
 If this is non-@code{nil}, the Emacs yank functions consult the
 clipboard before the primary selection, and the kill functions store in
 the clipboard as well as the primary selection.  Otherwise they do not
 access the clipboard at all.  The default is @code{nil} on most systems,
-but @code{t} on MS-Windows and Mac.
+but @code{t} on MS-Windows.
 @end defopt
 
 @node Drag and Drop

@@ -1312,6 +1312,7 @@ x_draw_composite_glyph_string_foreground (s)
      struct glyph_string *s;
 {
   int i, j, x;
+  struct font *font = s->font;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -1321,73 +1322,66 @@ x_draw_composite_glyph_string_foreground (s)
   else
     x = s->x;
 
-  /* S is a glyph string for a composition.  S->gidx is the index of
-     the first character drawn for glyphs of this composition.
-     S->gidx == 0 means we are drawing the very first character of
+  /* S is a glyph string for a composition.  S->cmp_from is the index
+     of the first character drawn for glyphs of this composition.
+     S->cmp_from == 0 means we are drawing the very first character of
      this composition.  */
 
   /* Draw a rectangle for the composition if the font for the very
      first character of the composition could not be loaded.  */
   if (s->font_not_found_p)
     {
-      if (s->gidx == 0)
+      if (s->cmp_from == 0)
 	XDrawRectangle (s->display, s->window, s->gc, x, s->y,
 			s->width - 1, s->height - 1);
     }
+  else if (! s->first_glyph->u.cmp.automatic)
+    {
+      int y = s->ybase;
+
+      for (i = 0, j = s->cmp_from; i < s->nchars; i++, j++)
+	if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
+	  {
+	    int xx = x + s->cmp->offsets[j * 2];
+	    int yy = y - s->cmp->offsets[j * 2 + 1];
+
+	    font->driver->draw (s, j, j + 1, xx, yy, 0);
+	    if (s->face->overstrike)
+	      font->driver->draw (s, j, j + 1, xx + 1, yy, 0);
+	  }
+    }
   else
     {
-      struct font *font = s->font;
+      Lisp_Object gstring = composition_gstring_from_id (s->cmp_id);
+      Lisp_Object glyph;
       int y = s->ybase;
       int width = 0;
 
-      if (s->cmp->method == COMPOSITION_WITH_GLYPH_STRING)
+      for (i = j = s->cmp_from; i < s->cmp_to; i++)
 	{
-	  Lisp_Object gstring = AREF (XHASH_TABLE (composition_hash_table)
-				      ->key_and_value,
-				      s->cmp->hash_index * 2);
-	  int from;
-
-	  for (i = from = 0; i < s->nchars; i++)
+	  glyph = LGSTRING_GLYPH (gstring, i);
+	  if (NILP (LGLYPH_ADJUSTMENT (glyph)))
+	    width += LGLYPH_WIDTH (glyph);
+	  else
 	    {
-	      Lisp_Object g = LGSTRING_GLYPH (gstring, i);
-	      Lisp_Object adjustment = LGLYPH_ADJUSTMENT (g);
 	      int xoff, yoff, wadjust;
 
-	      if (! VECTORP (adjustment))
+	      if (j < i)
 		{
-		  width += LGLYPH_WIDTH (g);
-		  continue;
-		}
-	      if (from < i)
-		{
-		  font->driver->draw (s, from, i, x, y, 0);
+		  font->driver->draw (s, j, i, x, y, 0);
 		  x += width;
 		}
-	      xoff = XINT (AREF (adjustment, 0));
-	      yoff = XINT (AREF (adjustment, 1));
-	      wadjust = XINT (AREF (adjustment, 2));
-
+	      xoff = LGLYPH_XOFF (glyph);
+	      yoff = LGLYPH_YOFF (glyph);
+	      wadjust = LGLYPH_WADJUST (glyph);
 	      font->driver->draw (s, i, i + 1, x + xoff, y + yoff, 0);
 	      x += wadjust;
-	      from = i + 1;
+	      j = i + 1;
 	      width = 0;
 	    }
-	  if (from < i)
-	    font->driver->draw (s, from, i, x, y, 0);
 	}
-      else
-	{
-	  for (i = 0, j = s->gidx; i < s->nchars; i++, j++)
-	    if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
-	      {
-		int xx = x + s->cmp->offsets[j * 2];
-		int yy = y - s->cmp->offsets[j * 2 + 1];
-
-		font->driver->draw (s, j, j + 1, xx, yy, 0);
-		if (s->face->overstrike)
-		  font->driver->draw (s, j, j + 1, xx + 1, yy, 0);
-	      }
-	}
+      if (j < i)
+	font->driver->draw (s, j, i, x, y, 0);
     }
 }
 
@@ -2701,7 +2695,8 @@ x_draw_glyph_string (s)
       break;
 
     case COMPOSITE_GLYPH:
-      if (s->for_overlaps || s->gidx > 0)
+      if (s->for_overlaps || (s->cmp_from > 0
+			      && ! s->first_glyph->u.cmp.automatic))
 	s->background_filled_p = 1;
       else
 	x_draw_glyph_string_background (s, 1);
@@ -9859,7 +9854,6 @@ static int x_initialized;
 static int x_session_initialized;
 #endif
 
-#ifdef MULTI_KBOARD
 /* Test whether two display-name strings agree up to the dot that separates
    the screen number from the server number.  */
 static int
@@ -9906,7 +9900,6 @@ same_x_server (name1, name2)
 	  && (*name1 == '.' || *name1 == '\0')
 	  && (*name2 == '.' || *name2 == '\0'));
 }
-#endif
 
 /* Count number of set bits in mask and number of bits to shift to
    get to the first bit.  With MASK 0x7e0, *BITS is set to 6, and *OFFSET
@@ -10105,7 +10098,6 @@ x_term_init (display_name, xrm_option, resource_name)
 
   terminal = x_create_terminal (dpyinfo);
 
-#ifdef MULTI_KBOARD
   {
     struct x_display_info *share;
     Lisp_Object tail;
@@ -10125,11 +10117,15 @@ x_term_init (display_name, xrm_option, resource_name)
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
+	    /* Temporarily hide the partially initialized terminal */
+	    terminal_list = terminal->next_terminal;
 	    UNBLOCK_INPUT;
 	    terminal->kboard->Vsystem_key_alist
 	      = call1 (Qvendor_specific_keysyms,
 		       vendor ? build_string (vendor) : empty_unibyte_string);
 	    BLOCK_INPUT;
+	    terminal->next_terminal = terminal_list;
+ 	    terminal_list = terminal;
 	  }
 
 	terminal->kboard->next_kboard = all_kboards;
@@ -10142,7 +10138,6 @@ x_term_init (display_name, xrm_option, resource_name)
       }
     terminal->kboard->reference_count++;
   }
-#endif
 
   /* Put this display on the chain.  */
   dpyinfo->next = x_display_list;
@@ -10518,7 +10513,8 @@ x_delete_display (dpyinfo)
 	  tail->next = tail->next->next;
     }
 
-#ifndef USE_X_TOOLKIT   /* I'm told Xt does this itself.  */
+  /* Xt and GTK do this themselves.  */
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 #ifndef AIX		/* On AIX, XCloseDisplay calls this.  */
   XrmDestroyDatabase (dpyinfo->xrdb);
 #endif

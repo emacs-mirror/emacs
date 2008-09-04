@@ -215,8 +215,20 @@ mnemonics of the following coding systems:
 
 (make-variable-buffer-local 'mode-line-mule-info)
 
-(defvar mode-line-frame-identification '(window-system "  " "-%F  ")
+;; MSDOS frames have window-system, but want the Fn identification.
+(defun mode-line-frame-control ()
+  "Compute mode-line control for frame identification.
+Value is used for `mode-line-frame-identification', which see."
+  (if (or (null window-system)
+	  (eq window-system 'pc))
+      "-%F  "
+    "  "))
+
+;; We need to defer the call to mode-line-frame-control to the time
+;; the mode line is actually displayed.
+(defvar mode-line-frame-identification '(:eval (mode-line-frame-control))
   "Mode-line control to describe the current frame.")
+(put 'mode-line-frame-identification 'risky-local-variable t)
 
 (defvar mode-line-process nil "\
 Mode-line control for displaying info on process status.
@@ -583,10 +595,6 @@ is okay.  See `mode-line-format'.")
        (cond ((memq system-type '(ms-dos windows-nt))
 	      '(".o" "~" ".bin" ".bak" ".obj" ".map" ".ico" ".pif" ".lnk"
 		".a" ".ln" ".blg" ".bbl" ".dll" ".drv" ".vxd" ".386"))
-	     ((eq system-type 'vax-vms)
-	      '(".obj" ".exe" ".bin" ".lbin" ".sbin"
-		".brn" ".rnt" ".lni"
-		".olb" ".tlb" ".mlb" ".hlb"))
 	     (t
 	      '(".o" "~" ".bin" ".lbin" ".so"
 		".a" ".ln" ".blg" ".bbl")))

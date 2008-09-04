@@ -796,13 +796,13 @@ floating-point value.  */)
      Lisp_Object prompt, inherit_input_method, seconds;
 {
   Lisp_Object val;
-  int c;
 
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
   val = read_filtered_event (1, 1, 1, ! NILP (inherit_input_method), seconds);
-  c = XINT (val);
-  return make_number (char_resolve_modifier_mask (c));
+
+  return (NILP (val) ? Qnil
+	  : make_number (char_resolve_modifier_mask (XINT (val))));
 }
 
 DEFUN ("read-event", Fread_event, Sread_event, 0, 3, 0,
@@ -841,13 +841,14 @@ floating-point value.  */)
      Lisp_Object prompt, inherit_input_method, seconds;
 {
   Lisp_Object val;
-  int c;
 
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
+
   val = read_filtered_event (1, 1, 0, ! NILP (inherit_input_method), seconds);
-  c = XINT (val);
-  return make_number (char_resolve_modifier_mask (c));
+
+  return (NILP (val) ? Qnil
+	  : make_number (char_resolve_modifier_mask (XINT (val))));
 }
 
 DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
@@ -1470,11 +1471,7 @@ complete_filename_p (pathname)
   register const unsigned char *s = SDATA (pathname);
   return (IS_DIRECTORY_SEP (s[0])
 	  || (SCHARS (pathname) > 2
-	      && IS_DEVICE_SEP (s[1]) && IS_DIRECTORY_SEP (s[2]))
-#ifdef VMS
-	  || index (s, ':')
-#endif /* VMS */
-	  );
+	      && IS_DEVICE_SEP (s[1]) && IS_DIRECTORY_SEP (s[2])));
 }
 
 DEFUN ("locate-file-internal", Flocate_file_internal, Slocate_file_internal, 2, 4, 0,
@@ -3875,9 +3872,7 @@ oblookup (obarray, ptr, size, size_byte)
     }
   /* This is sometimes needed in the middle of GC.  */
   obsize &= ~ARRAY_MARK_FLAG;
-  /* Combining next two lines breaks VMS C 2.3.  */
-  hash = hash_string (ptr, size_byte);
-  hash %= obsize;
+  hash = hash_string (ptr, size_byte) % obsize;
   bucket = XVECTOR (obarray)->contents[hash];
   oblookup_last_bucket_number = hash;
   if (EQ (bucket, make_number (0)))
@@ -4256,15 +4251,11 @@ init_lread ()
     }
 #endif
 
-#if (!(defined(WINDOWSNT) || (defined(HAVE_CARBON)) || (defined(HAVE_NS))))
+#if (!(defined(WINDOWSNT) || (defined(HAVE_NS))))
   /* When Emacs is invoked over network shares on NT, PATH_LOADSEARCH is
      almost never correct, thereby causing a warning to be printed out that
      confuses users.  Since PATH_LOADSEARCH is always overridden by the
-     EMACSLOADPATH environment variable below, disable the warning on NT.
-     Also, when using the "self-contained" option for Carbon Emacs for MacOSX,
-     the "standard" paths may not exist and would be overridden by
-     EMACSLOADPATH as on NT.  Since this depends on how the executable
-     was build and packaged, turn off the warnings in general */
+     EMACSLOADPATH environment variable below, disable the warning on NT.  */
 
   /* Warn if dirs in the *standard* path don't exist.  */
   if (!turn_off_warning)
@@ -4286,7 +4277,7 @@ init_lread ()
 	    }
 	}
     }
-#endif /* !(WINDOWSNT || HAVE_CARBON || HAVE_NS) */
+#endif /* !(WINDOWSNT || HAVE_NS) */
 
   /* If the EMACSLOADPATH environment variable is set, use its value.
      This doesn't apply if we're dumping.  */

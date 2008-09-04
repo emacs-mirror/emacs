@@ -65,6 +65,21 @@ get_lim_data ()
 }
 #else /* not NO_LIM_DATA */
 
+#if defined (HAVE_GETRLIMIT) && defined (RLIMIT_AS)
+static void
+get_lim_data ()
+{
+  struct rlimit rlimit;
+
+  getrlimit (RLIMIT_AS, &rlimit);
+  if (rlimit.rlim_cur == RLIM_INFINITY)
+    lim_data = -1;
+  else
+    lim_data = rlimit.rlim_cur;
+}
+
+#else /* not HAVE_GETRLIMIT */
+
 #ifdef USG
 
 static void
@@ -106,9 +121,29 @@ void
 get_lim_data ()
 {
   _go32_dpmi_meminfo info;
+  unsigned long lim1, lim2;
 
   _go32_dpmi_get_free_memory_information (&info);
-  lim_data = info.available_memory;
+  /* DPMI server of Windows NT and its descendants reports in
+     info.available_memory a much lower amount that is really
+     available, which causes bogus "past 95% of memory limit"
+     warnings.  Try to overcome that via circumstantial evidence.  */
+  lim1 = info.available_memory;
+  lim2 = info.available_physical_pages * 4096;
+  /* DPMI Spec: "Fields that are unavailable will hold -1."  */
+  if ((long)lim1 == -1L)
+    lim1 = 0;
+  if ((long)lim2 == -1L)
+    lim2 = 0;
+  /* Surely, the available memory is at least what we have physically
+     available, right?  */
+  if (lim1 > lim2)
+    lim_data = lim1;
+  else
+    lim_data = lim2;
+  /* Don't believe they will give us more that 0.5 GB.   */
+  if (lim_data > 512 * 1024 * 1024)
+    lim_data = 512 * 1024 * 1024;
 }
 #else /* not MSDOS */
 static void
@@ -135,6 +170,7 @@ get_lim_data ()
 #endif /* BSD4_2 */
 #endif /* not WINDOWSNT */
 #endif /* not USG */
+#endif /* not HAVE_GETRLIMIT */
 #endif /* not NO_LIM_DATA */
 
 /* Verify amount of memory available, complaining if we're near the end. */
@@ -147,28 +183,10 @@ check_memory_limits ()
 #endif
   extern POINTER (*__morecore) ();
 
-
   register POINTER cp;
   unsigned long five_percent;
   unsigned long data_size;
   enum warnlevel new_warnlevel;
-
-#ifdef HAVE_GETRLIMIT
-  struct rlimit rlimit;
-
-  getrlimit (RLIMIT_AS, &rlimit);
-
-  if (RLIM_INFINITY == rlimit.rlim_max)
-    return;
-
-  /* This is a nonsensical case, but it happens -- rms.  */
-  if (rlimit.rlim_cur > rlimit.rlim_max)
-    return;
-
-  five_percent = rlimit.rlim_max / 20;
-  data_size = rlimit.rlim_cur;
-
-#else /* not HAVE_GETRLIMIT */
 
   if (lim_data == 0)
     get_lim_data ();
@@ -183,20 +201,15 @@ check_memory_limits ()
   cp = (char *) (*__morecore) (0);
   data_size = (char *) cp - (char *) data_space_start;
 
-#endif /* not HAVE_GETRLIMIT */
-
   if (!warn_function)
     return;
 
   /* What level of warning does current memory usage demand?  */
-  if (data_size > five_percent * 19)
-    new_warnlevel = warned_95;
-  else if (data_size > five_percent * 17)
-    new_warnlevel = warned_85;
-  else if (data_size > five_percent * 15)
-    new_warnlevel = warned_75;
-  else
-    new_warnlevel = not_warned;
+  new_warnlevel
+    = (data_size > five_percent * 19) ? warned_95
+    : (data_size > five_percent * 17) ? warned_85
+    : (data_size > five_percent * 15) ? warned_75
+    : not_warned;
 
   /* If we have gone up a level, give the appropriate warning.  */
   if (new_warnlevel > warnlevel || new_warnlevel == warned_95)

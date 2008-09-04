@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "charset.h"
 #include "coding.h"
+#include "composite.h"
 #include "fontset.h"
 #include "font.h"
 #include "ftfont.h"
@@ -207,6 +208,7 @@ ftfont_resolve_generic_family (family, pattern)
   Lisp_Object slot;
   FcPattern *match;
   FcResult result;
+  FcLangSet *langset;
 
   family = Fintern (Fdowncase (SYMBOL_NAME (family)), Qnil);
   if (EQ (family, Qmono))
@@ -224,6 +226,14 @@ ftfont_resolve_generic_family (family, pattern)
   FcPatternDel (pattern, FC_FOUNDRY);
   FcPatternDel (pattern, FC_FAMILY);
   FcPatternAddString (pattern, FC_FAMILY, SYMBOL_FcChar8 (family));
+  if (FcPatternGetLangSet (pattern, FC_LANG, 0, &langset) != FcResultMatch)
+    {
+      /* This is to avoid the effect of locale.  */
+      langset = FcLangSetCreate ();
+      FcLangSetAdd (langset, "en");
+      FcPatternAddLangSet (pattern, FC_LANG, langset);
+      FcLangSetDestroy (langset);
+    }
   FcConfigSubstitute (NULL, pattern, FcMatchPattern);
   FcDefaultSubstitute (pattern);
   match = FcFontMatch (NULL, pattern, &result);
@@ -663,7 +673,7 @@ ftfont_spec_pattern (spec, otlayout, otspec)
     {
       Lisp_Object chars = assq_no_quit (script, Vscript_representative_chars);
 
-      if (CONSP (chars))
+      if (CONSP (chars) && CONSP (CDR (chars)))
 	{
 	  charset = FcCharSetCreate ();
 	  if (! charset)
@@ -734,6 +744,9 @@ ftfont_list (frame, spec)
   FcPattern *pattern;
   FcFontSet *fontset = NULL;
   FcObjectSet *objset = NULL;
+  FcCharSet *charset;
+  Lisp_Object chars = Qnil;
+  FcResult result;
   char otlayout[15];		/* For "otlayout:XXXX" */
   struct OpenTypeSpec *otspec = NULL;
   int spacing = -1;
@@ -747,6 +760,17 @@ ftfont_list (frame, spec)
   pattern = ftfont_spec_pattern (spec, otlayout, &otspec);
   if (! pattern)
     return Qnil;
+  if (FcPatternGetCharSet (pattern, FC_CHARSET, 0, &charset) != FcResultMatch)
+    {
+      val = assq_no_quit (QCscript, AREF (spec, FONT_EXTRA_INDEX));
+      if (! NILP (val))
+	{
+	  val = assq_no_quit (XCDR (val), Vscript_representative_chars);
+	  if (CONSP (val) && VECTORP (XCDR (val)))
+	    chars = XCDR (val);
+	}
+      val = Qnil;
+    }
   if (INTEGERP (AREF (spec, FONT_SPACING_INDEX)))
     spacing = XINT (AREF (spec, FONT_SPACING_INDEX));
   family = AREF (spec, FONT_FAMILY_INDEX);
@@ -776,10 +800,12 @@ ftfont_list (frame, spec)
 			     NULL);
   if (! objset)
     goto err;
+  if (! NILP (chars))
+    FcObjectSetAdd (objset, FC_CHARSET);
 
   fontset = FcFontList (NULL, pattern, objset);
-  if (! fontset)
-    goto err;
+  if (! fontset || fontset->nfont == 0)
+    goto finish;
 #if 0
   /* Need fix because this finds any fonts.  */
   if (fontset->nfont == 0 && ! NILP (family))
@@ -826,8 +852,8 @@ ftfont_list (frame, spec)
 	{
 	  FcChar8 *this;
 
-	  if (FcPatternGetString (fontset->fonts[i], FC_CAPABILITY, 0,
-				  &this) != FcResultMatch
+	  if (FcPatternGetString (fontset->fonts[i], FC_CAPABILITY, 0, &this)
+	      != FcResultMatch
 	      || ! strstr ((char *) this, otlayout))
 	    continue;
 	}
@@ -855,12 +881,26 @@ ftfont_list (frame, spec)
 	    continue;
 	}
 #endif	/* HAVE_LIBOTF */
+      if (VECTORP (chars))
+	{
+	  int j;
+
+	  if (FcPatternGetCharSet (fontset->fonts[i], FC_CHARSET, 0, &charset)
+	      != FcResultMatch)
+	    continue;
+	  for (j = 0; j < ASIZE (chars); j++)
+	    if (NATNUMP (AREF (chars, j))
+		&& FcCharSetHasChar (charset, XFASTINT (AREF (chars, j))))
+	      break;
+	  if (j == ASIZE (chars))
+	    continue;
+	}
       entity = ftfont_pattern_entity (fontset->fonts[i],
 				      AREF (spec, FONT_EXTRA_INDEX));
       if (! NILP (entity))
 	val = Fcons (entity, val);
     }
-  font_add_log ("ftfont-list", spec, val);
+  val = Fnreverse (val);
   goto finish;
 
  err:
@@ -869,6 +909,7 @@ ftfont_list (frame, spec)
   val = Qnil;
 
  finish:
+  font_add_log ("ftfont-list", spec, val);
   if (objset) FcObjectSetDestroy (objset);
   if (fontset) FcFontSetDestroy (fontset);
   if (pattern) FcPatternDestroy (pattern);
@@ -1769,7 +1810,7 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
      FT_Face ft_face;
      OTF *otf;
 {
-  EMACS_UINT len = LGSTRING_LENGTH (lgstring);
+  EMACS_UINT len = LGSTRING_GLYPH_LEN (lgstring);
   EMACS_UINT i;
   struct MFLTFontFT flt_font_ft;
 
@@ -1829,7 +1870,7 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
       gstring.glyphs = realloc (gstring.glyphs,
 				sizeof (MFLTGlyph) * gstring.allocated);
     }
-  if (gstring.used > LGSTRING_LENGTH (lgstring))
+  if (gstring.used > LGSTRING_GLYPH_LEN (lgstring))
     return Qnil;
   for (i = 0; i < gstring.used; i++)
     {

@@ -1,3 +1,200 @@
+2008-08-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.texi (Top): Add Temporary Face Changes xref.
+
+	* display.texi (Display): Move Temporary Face Changes node to just
+	after Standard Faces.
+	(Scrolling): Document recenter-top-bottom instead of recenter.
+	(Horizontal Scrolling): Move auto hscroll discussion to the top.
+	(Faces, Standard Faces, Temporary Face Changes, Useless Whitespace)
+	(Display Custom): Copyedits.
+	(Optional Mode Line): Document display-battery-mode.
+
+2008-08-27  Romain Francoise  <romain@orebokech.com>
+
+	* custom.texi (Directory Variables): Minor fix.
+
+2008-08-27  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Advanced Calendar/Diary Usage): Tweak some menu
+	descriptions.
+	(Calendar Customizing): Tweak layout description.
+	Move calenday-today-marker and calendar-today face to the other
+	markers.  Condense calendar-star-date and calendar-mark-today
+	description.
+	(Holiday Customizing): Add oriental and solar holidays.
+	Add index entries for Baha'i, Christian, Hebrew and Islamic holidays.
+	Fix holiday-float description.  Use zerop in examples.  Be less verbose.
+	(Date Display Format): Change ISO format.  Be less verbose.
+	(Diary Customizing): Mention day and month abbrev arrays.
+	Mention the date-form variables by name.  Update European example.
+	(Non-Gregorian Diary): Change node name.  Mention Baha'i functions.
+	Condense examples.  Mention diary-entry-symbols by name.
+	Condense table for insertion commands.
+	(Fancy Diary Display): Mention diary-include-string and
+	diary-sexp-entry-symbol.  Condense example.  Add Chinese, Coptic,
+	Ethiopic, Persian date functions.  Condense descriptions.
+
+	* calendar.texi (Format of Diary File): Mention diary-nonmarking-symbol.
+	(Adding to Diary): Adapt for changed node name.
+
+2008-08-26  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Non-Gregorian Diary Entries): New name for
+	node "Hebrew/Islamic Entries".
+
+	* calendar.texi (Specified Dates): Fix names of iso functions.
+	(General Calendar): There may not be another window.
+	(Writing Calendar Files, Holidays): Tweak intro.
+	(Holidays): Mention Baha'i and Chinese holidays.
+	(Sunrise/Sunset): Add M-x calendar-sunrise-sunset-month.
+	(Lunar Phases): Remove incorrect reference to calendar-time-zone.
+	(To Other Calendar): Add calendar-print-other-dates.
+	Refer to "graphic display" rather than "X.
+	(From Other Calendar): Add calendar-bahai-goto-date.  Fix reference.
+	(Displaying the Diary): Fix whitespace after reference.
+	Fix `diary-number-of-entries' reference.
+	(Date Formats): Explicitly mention that day names can be abbreviated.
+	(Adding to Diary): Add some references to other sections.
+	(Special Diary Entries): Fix reference.
+	(Appointments): Simplify appt-message-warning-time entry.
+	Clarify where times must be.
+	(Importing Diary): Comment out icalendar paragraph that does not apply.
+	(Time Intervals): Simplify entry for timeclock-ask-before-exiting.
+
+2008-08-23  Glenn Morris  <rgm@gnu.org>
+
+	* fortran-xtra.texi (Fortran): Change description of free form and
+	fixed form a bit.  Mention hideshow and imenu.
+	(Fortran Motion): Mention fortran-end-of-subprogram,
+	fortran-beginning-of-subprogram, fortran-mark-do, fortran-mark-if.
+	(Fortran Indent): Minor re-word.
+	(ForIndent Commands): Mention fortran-fill-paragraph and
+	fortran-fill-statement.
+	(ForIndent Cont): Mention fortran-tab-mode-string.
+	(Fortran Comments): Mention fortran-comment-line-start-skip.
+	(Fortran Columns): Mention font-locking.
+	(Fortran Abbrev): Word syntax not relevant with new-style abbrev.
+
+2008-08-23  Johan Bockgard  <bojohan@muon>
+
+	* basic.texi (Moving Point): Fix <prior>/<next> confusion.
+
+2008-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mini.texi (Minibuffer): Simplify introduction.
+	(Minibuffer File): Document tilde in minibuffer filenames.
+	(Minibuffer Edit): Mention that the prompt is read-only.  Describe how
+	to enter tabs, spaces, and question marks.  Describe behavior of C-a.
+	(Completion Example): Update example to current command list.
+	(Completion Options): Document `lazy' value of completion-auto-help.
+	Update contents of completion-ignored-extensions.
+	(Minibuffer History): Describe "future history" list.  State default
+	value of history-delete-duplicates.
+
+2008-08-21  Glenn Morris  <rgm@gnu.org>
+
+	* fortran-xtra.texi (Fortran Columns): Document `fortran-line-length'.
+	(Fortran Comments): Replace fortran-indent-comment with comment-dwim.
+
+2008-08-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* regs.texi (Registers): Clarify valid register names.
+	(RegPos): Note that buffer is saved and restored too.
+	(RegText): Note that mark is reactivated/deactivated.
+	(RegConfig): Xref to Windows node.
+
+2008-08-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* basic.texi (Inserting Text): Provide command name for C-q.
+
+	* killing.texi (Killing): Copyedit.  Define read-only text.
+	(Deletion): DEL and C-d were already explained in Erasing; xref there.
+	(Killing by Lines): Copyedit.
+	(Other Kill Commands): Move M-w description here.
+	(Yanking): Move M-w to Other Kill Commands.
+	(Kill Ring): Also mention saving text in registers.  Link to Text
+	Properties in elisp manual.
+	(Accumulating Text): Copyedit.
+	(CUA Bindings): Shift selection is now the default.
+
+2008-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* maintaining.texi (Change Log): Mention next-error is available.
+
+2008-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Calendar Customizing): Mention whitespace variables
+	and intermonth text.
+	(Holiday Customizing): Add holiday-chinese.
+
+2008-08-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Log Buffer, Diff Mode): Fix last changes.  Add indexing.
+
+2008-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* files.texi (Log Buffer): Describe C-c C-d.
+	(Diff Mode): Describe C-x 4 A.
+
+2008-08-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* vc1-xtra.texi (VC Directory Mode): Fix last change.
+
+2008-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* files.texi (Old Revisions): Update the keys used by vc-annotate and
+	describe the new bindings to show the changeset diff, toggle annotation
+	visibility, show revisions.
+	(VC Status): Describe key bindings for modifying the change comments,
+	displaying changeset diffs and annotations.
+
+	* vc1-xtra.texi (VC Directory Mode): Talk about multiple VC systems.
+
+2008-08-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc1-xtra.texi (VC Directory Mode): Fix typo.
+
+2008-08-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* vc1-xtra.texi (VC Directory Mode, VC Directory Commands): Fix English
+	and wording.
+
+2008-08-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc1-xtra.texi (VC Directory Mode): Fix and improve the info about
+	marking/unmarking.  Add descriptions for the multiple file search
+	commands.  Improve some old info.
+
+2008-07-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Visual Line Mode): New node.
+
+	* basic.texi (Inserting Text): Move DEL to deletion node.
+	(Moving Point): Add additional alternative key bindings.  Describe
+	line-move-visual.
+	(Erasing): Describe DEL.
+	(Basic Undo, Blank Lines, Arguments): Copyedit.
+	(Continuation Lines): Mention Visual Line mode.
+	(Position Info): Move extended discussion to mule.texi.
+
+	* mule.texi (International Chars): Describe C-x =.
+
+	* emacs.texi (Top): Add Visual Line Mode node.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.texi: Remove VMS support.
+
+2008-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc1-xtra.texi (VC Directory Mode): Update the display format and fix
+	the vc-dir command name.
+
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xresources.texi: Remove mentions of Mac Carbon.
+
 2008-07-19  Andreas Schwab  <schwab@suse.de>
 
 	* ns-emacs.texi: Move to ../misc.

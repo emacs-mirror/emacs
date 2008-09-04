@@ -397,11 +397,10 @@ Otherwise return the normal value."
 ;;; Support for :e, :r, :w file globbing
 
 ;; Glob the file spec.
-;; This function is designed to work under Unix.  It might also work under VMS.
+;; This function is designed to work under Unix.
 (defun viper-glob-unix-files (filespec)
   (let ((gshell
 	 (cond (ex-unix-type-shell shell-file-name)
-	       ((memq system-type '(vax-vms axp-vms)) "*dcl*") ; VAX VMS
 	       (t "sh"))) ; probably Unix anyway
 	(gshell-options
 	 ;; using cond in anticipation of further additions

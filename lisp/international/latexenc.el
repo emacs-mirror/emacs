@@ -63,8 +63,6 @@
     ("cp852" . cp852) ; IBM code page 852
     ("cp858" . cp858) ; IBM code page 850 but with a euro symbol
     ("cp865" . cp865) ; IBM code page 865
-    ;; The DECMultinational charaterset used by the OpenVMS system
-    ;; ("decmulti" . undecided)
     ("latin1" . iso-8859-1)
     ("latin2" . iso-8859-2)
     ("latin3" . iso-8859-3)

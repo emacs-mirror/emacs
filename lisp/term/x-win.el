@@ -253,6 +253,8 @@ exists."
 (defconst x-pointer-invisible 255)
 
 
+(defvar x-colors)
+
 (defun xw-defined-colors (&optional frame)
   "Internal function called by `defined-colors', which see."
   (or frame (setq frame (selected-frame)))
@@ -1439,7 +1441,9 @@ The value nil is the same as this list:
 ;;; Window system initialization.
 
 (defun x-win-suspend-error ()
-  (error "Suspending an Emacs running under X makes no sense"))
+  ;; Don't allow suspending if any of the frames are X frames.
+  (if (memq 'x (mapcar 'window-system (frame-list)))
+      (error "Cannot suspend Emacs while running under X")))
 
 (defvar x-initialized nil
   "Non-nil if the X window system has been initialized.")
@@ -1449,6 +1453,10 @@ The value nil is the same as this list:
 (declare-function x-server-max-request-size "xfns.c" (&optional terminal))
 (declare-function x-get-resource "frame.c"
 		  (attribute class &optional component subclass))
+(declare-function x-parse-geometry "frame.c" (string))
+(defvar x-resource-name)
+(defvar x-display-name)
+(defvar x-command-line-resources)
 
 (defun x-initialize-window-system ()
   "Initialize Emacs for X frames and open the first connection to an X server."
@@ -1663,16 +1671,17 @@ If you don't want stock icons, set the variable to nil."
 (defun x-gtk-map-stock (file)
   "Map icon with file name FILE to a Gtk+ stock name, using `x-gtk-stock-map'."
   (if (stringp file)
-      (let* ((file-sans (file-name-sans-extension file))
-	     (key (and (string-match "/\\([^/]+/[^/]+/[^/]+$\\)" file-sans)
-		       (match-string 1 file-sans)))
-	     (value))
-	(mapc (lambda (elem)
-		(let ((assoc (if (symbolp elem) (symbol-value elem) elem)))
-		  (or value (setq value (assoc-string (or key file-sans)
-						      assoc)))))
-	      icon-map-list)
-	(and value (cdr value)))
+      (save-match-data
+	(let* ((file-sans (file-name-sans-extension file))
+	       (key (and (string-match "/\\([^/]+/[^/]+/[^/]+$\\)" file-sans)
+			 (match-string 1 file-sans)))
+	       (value))
+	  (mapc (lambda (elem)
+		  (let ((assoc (if (symbolp elem) (symbol-value elem) elem)))
+		    (or value (setq value (assoc-string (or key file-sans)
+							assoc)))))
+		icon-map-list)
+	  (and value (cdr value))))
     nil))
 
 (provide 'x-win)

@@ -723,14 +723,14 @@ This variable is initialized by the artist-make-prev-next-op-alist function.")
 		 2
 		 artist-draw-rect
 		 (artist-undraw-rect
-		  artist-t artist-cut-rect)
+		  artist-t artist-cut-rect))
 		("cut square" cut-s "cut-s"
 		 artist-no-arrows nil
 		 nil nil nil
 		 2
 		 artist-draw-square
 		 (artist-undraw-square
-		  artist-t artist-cut-square))))))
+		  artist-t artist-cut-square)))))
 
        (graphics-operation
 	("Copy" (("copy rectangle" copy-r "copy-r"
@@ -739,14 +739,14 @@ This variable is initialized by the artist-make-prev-next-op-alist function.")
 		  2
 		  artist-draw-rect
 		  (artist-undraw-rect
-		   artist-t artist-copy-rect)
+		   artist-t artist-copy-rect))
 		 ("copy square" copy-s "copy-s"
 		  artist-no-arrows nil
 		  nil nil nil
 		  2
 		  artist-draw-square
 		  (artist-undraw-square
-		   artist-t artist-copy-square))))))
+		   artist-t artist-copy-square)))))
 
        (graphics-operation
 	("Paste" (("paste" paste "paste"
@@ -1375,6 +1375,9 @@ Keymap summary
 ;; Init and exit
 (defun artist-mode-init ()
   "Init Artist mode.  This will call the hook `artist-mode-init-hook'."
+  ;; Set up a conversion table for mapping tabs and new-lines to spaces.
+  ;; the last case, 0, is for the last position in buffer/region, where
+  ;; the `following-char' function returns 0.
   (let ((i 0))
     (while (< i 256)
       (aset artist-replacement-table i i)
@@ -1382,6 +1385,7 @@ Keymap summary
   (aset artist-replacement-table ?\n ?\s)
   (aset artist-replacement-table ?\t ?\s)
   (aset artist-replacement-table 0 ?\s)
+  ;; More setup
   (make-local-variable 'artist-key-is-drawing)
   (make-local-variable 'artist-key-endpoint1)
   (make-local-variable 'artist-key-poly-point-list)
@@ -1944,10 +1948,21 @@ Also updates the variables `artist-draw-min-y' and `artist-draw-max-y'."
   (following-char))
 
 
+(defsubst artist-get-replacement-char (c)
+  "Retrieve a replacement for character C from `artist-replacement-table'.
+The replacement is used to convert tabs and new-lines to spaces."
+  ;; Characters may be outside the range of the `artist-replacement-table',
+  ;; for example if they are unicode code points >= 256.
+  ;; Check so we don't attempt to access the array out of its bounds,
+  ;; assuming no such character needs to be replaced.
+  (if (< c (length artist-replacement-table))
+      (aref artist-replacement-table c)
+    c))
+
 (defun artist-get-char-at-xy-conv (x y)
   "Retrieve the character at X, Y, converting tabs and new-lines to spaces."
   (save-excursion
-    (aref artist-replacement-table (artist-get-char-at-xy x y))))
+    (artist-get-replacement-char (artist-get-char-at-xy x y))))
 
 
 (defun artist-replace-char (new-char)
@@ -1963,12 +1978,12 @@ Also updates the variables `artist-draw-min-y' and `artist-draw-max-y'."
 	(artist-move-to-xy (1+ (artist-current-column))
 			   (artist-current-line))
 	(delete-char -1)
-	(insert (aref artist-replacement-table new-char)))
+	(insert (artist-get-replacement-char new-char)))
     ;; In emacs-19, the self-insert-command works better and faster
     (let ((overwrite-mode 'overwrite-mode-textual)
 	  (fill-column 32765)		; Large :-)
 	  (blink-matching-paren nil))
-      (setq last-command-event (aref artist-replacement-table new-char))
+      (setq last-command-event (artist-get-replacement-char new-char))
       (self-insert-command 1))))
 
 (defun artist-replace-chars (new-char count)
@@ -1980,7 +1995,7 @@ Also updates the variables `artist-draw-min-y' and `artist-draw-max-y'."
       ;; The self-insert-command doesn't care about the overwrite-mode,
       ;; so the insertion is done in the same way as in picture mode.
       ;; This seems to be a little bit slower.
-      (let* ((replaced-c (aref artist-replacement-table new-char))
+      (let* ((replaced-c (artist-get-replacement-char new-char))
 	     (replaced-s (make-string count replaced-c)))
 	(artist-move-to-xy (+ (artist-current-column) count)
 			   (artist-current-line))
@@ -1990,7 +2005,7 @@ Also updates the variables `artist-draw-min-y' and `artist-draw-max-y'."
     (let ((overwrite-mode 'overwrite-mode-textual)
 	  (fill-column 32765)		; Large :-)
 	  (blink-matching-paren nil))
-      (setq last-command-event (aref artist-replacement-table new-char))
+      (setq last-command-event (artist-get-replacement-char new-char))
       (self-insert-command count))))
 
 (defsubst artist-replace-string (string &optional see-thru)
@@ -2003,7 +2018,7 @@ With optional argument SEE-THRU, set to non-nil, text in the buffer
 	(blink-matching-paren nil))
     (while char-list
       (let ((c (car char-list)))
-	(if (and see-thru (= (aref artist-replacement-table c) ?\s))
+	(if (and see-thru (= (artist-get-replacement-char c) ?\s))
 	    (artist-move-to-xy (1+ (artist-current-column))
 			       (artist-current-line))
 	  (artist-replace-char c)))

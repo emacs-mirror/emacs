@@ -135,7 +135,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "3.7"))
+  (let ((version-string "4.00"))
     (if (interactive-p)
 	(message version-string)
       version-string)))
@@ -636,6 +636,7 @@ The package name is in (match-string 4).")
     (concat "\\("
 	    ";"                                        "\\|"
 	    "=>[ \t]*$"                                "\\|"
+	    "=>[ \t]*--.*$"                            "\\|"
 	    "^[ \t]*separate[ \t]*(\\(\\sw\\|[_.]\\)+)"  "\\|"
 	    "\\<" (regexp-opt '("begin" "declare" "is" "do" "else" "generic"
 				"loop" "private" "record" "select"
@@ -790,13 +791,13 @@ the 4 file locations can be clicked on and jumped to."
 
       ;; set source marker
       (save-excursion
-        (compilation-find-file (point-marker) (match-string 1) "./")
-        (set-buffer file)
+	(compilation-find-file (point-marker) (match-string 1) "./")
+	(set-buffer file)
 
-        (if (stringp line)
-            (goto-line (string-to-number line)))
+	(if (stringp line)
+	    (goto-line (string-to-number line)))
 
-        (setq source (point-marker)))
+	(setq source (point-marker)))
 
       (compilation-goto-locus error-pos source nil)
 
@@ -935,8 +936,7 @@ are treated as numbers instead of gnatprep comments."
 	(buffer-undo-list t)
 	(inhibit-read-only t)
 	(inhibit-point-motion-hooks t)
-	(inhibit-modification-hooks t)
-	buffer-file-name buffer-file-truename)
+	(inhibit-modification-hooks t))
     (remove-text-properties (point-min) (point-max) '(syntax-table nil))
     (goto-char (point-min))
     (while (re-search-forward
@@ -1197,9 +1197,6 @@ If you use ada-xref.el:
   (set (make-local-variable 'fill-paragraph-function)
        'ada-fill-comment-paragraph)
 
-  (set (make-local-variable 'imenu-generic-expression)
-       ada-imenu-generic-expression)
-
   ;;  Support for compile.el
   ;;  We just substitute our own functions to go to the error.
   (add-hook 'compilation-mode-hook
@@ -1214,23 +1211,13 @@ If you use ada-xref.el:
 		'ada-compile-goto-error)))
 
   ;;  font-lock support :
-  ;;  We need to set some properties for XEmacs, and define some variables
-  ;;  for Emacs
 
-  ;; FIXME: The Emacs code should work just fine under XEmacs AFAIK.  --Stef
-  (if (featurep 'xemacs)
-      ;;  XEmacs
-      (put 'ada-mode 'font-lock-defaults
-	   '(ada-font-lock-keywords
-	     nil t ((?\_ . "w") (?# . ".")) beginning-of-line))
-    ;;  Emacs
-    (set (make-local-variable 'font-lock-defaults)
-	 '(ada-font-lock-keywords
-	   nil t
-	   ((?\_ . "w") (?# . "."))
-	   beginning-of-line
-	   (font-lock-syntactic-keywords . ada-font-lock-syntactic-keywords)))
-    )
+  (set (make-local-variable 'font-lock-defaults)
+       '(ada-font-lock-keywords
+	 nil t
+	 ((?\_ . "w") (?# . "."))
+	 beginning-of-line
+	 (font-lock-syntactic-keywords . ada-font-lock-syntactic-keywords)))
 
   ;; Set up support for find-file.el.
   (set (make-local-variable 'ff-other-file-alist)
@@ -1243,34 +1230,34 @@ If you use ada-xref.el:
 
   (make-local-variable 'ff-special-constructs)
   (mapc (lambda (pair) (add-to-list 'ff-special-constructs pair))
-        (list
-         ;; Top level child package declaration; go to the parent package.
-         (cons (eval-when-compile
-                 (concat "^\\(private[ \t]\\)?[ \t]*package[ \t]+"
-                         "\\(body[ \t]+\\)?"
-                         "\\(\\(\\sw\\|[_.]\\)+\\)\\.\\(\\sw\\|_\\)+[ \t\n]+is"))
-               (lambda ()
-                 (ff-get-file
-                  ada-search-directories-internal
-                  (ada-make-filename-from-adaname (match-string 3))
-                  ada-spec-suffixes)))
+	(list
+	 ;; Top level child package declaration; go to the parent package.
+	 (cons (eval-when-compile
+		 (concat "^\\(private[ \t]\\)?[ \t]*package[ \t]+"
+			 "\\(body[ \t]+\\)?"
+			 "\\(\\(\\sw\\|[_.]\\)+\\)\\.\\(\\sw\\|_\\)+[ \t\n]+is"))
+	       (lambda ()
+		 (ff-get-file
+		  ada-search-directories-internal
+		  (ada-make-filename-from-adaname (match-string 3))
+		  ada-spec-suffixes)))
 
-         ;; A "separate" clause.
-         (cons "^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
-               (lambda ()
-                 (ff-get-file
-                  ada-search-directories-internal
-                  (ada-make-filename-from-adaname (match-string 1))
-                  ada-spec-suffixes)))
+	 ;; A "separate" clause.
+	 (cons "^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
+	       (lambda ()
+		 (ff-get-file
+		  ada-search-directories-internal
+		  (ada-make-filename-from-adaname (match-string 1))
+		  ada-spec-suffixes)))
 
-         ;; A "with" clause.
-         (cons "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)"
-               (lambda ()
-                 (ff-get-file
-                  ada-search-directories-internal
-                  (ada-make-filename-from-adaname (match-string 1))
-                  ada-spec-suffixes)))
-         ))
+	 ;; A "with" clause.
+	 (cons "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)"
+	       (lambda ()
+		 (ff-get-file
+		  ada-search-directories-internal
+		  (ada-make-filename-from-adaname (match-string 1))
+		  ada-spec-suffixes)))
+	 ))
 
   ;;  Support for outline-minor-mode
   (set (make-local-variable 'outline-regexp)
@@ -1278,6 +1265,8 @@ If you use ada-xref.el:
   (set (make-local-variable 'outline-level) 'ada-outline-level)
 
   ;;  Support for imenu : We want a sorted index
+  (setq imenu-generic-expression ada-imenu-generic-expression)
+
   (setq imenu-sort-function 'imenu--sort-by-name)
 
   ;;  Support for ispell : Check only comments
@@ -1290,40 +1279,40 @@ If you use ada-xref.el:
 
   ;; Exclude comments alone on line from alignment.
   (add-to-list 'align-exclude-rules-list
-               '(ada-solo-comment
-                 (regexp  . "^\\(\\s-*\\)--")
-                 (modes   . '(ada-mode))))
+	       '(ada-solo-comment
+		 (regexp  . "^\\(\\s-*\\)--")
+		 (modes   . '(ada-mode))))
   (add-to-list 'align-exclude-rules-list
-               '(ada-solo-use
-                 (regexp  . "^\\(\\s-*\\)\\<use\\>")
-                 (modes   . '(ada-mode))))
+	       '(ada-solo-use
+		 (regexp  . "^\\(\\s-*\\)\\<use\\>")
+		 (modes   . '(ada-mode))))
 
   (setq ada-align-modes nil)
 
   (add-to-list 'ada-align-modes
-               '(ada-declaration-assign
-                 (regexp  . "[^:]\\(\\s-*\\):[^:]")
-                 (valid   . (lambda() (not (ada-in-comment-p))))
-                 (repeat . t)
-                 (modes   . '(ada-mode))))
+	       '(ada-declaration-assign
+		 (regexp  . "[^:]\\(\\s-*\\):[^:]")
+		 (valid   . (lambda() (not (ada-in-comment-p))))
+		 (repeat . t)
+		 (modes   . '(ada-mode))))
   (add-to-list 'ada-align-modes
-               '(ada-associate
-                 (regexp  . "[^=]\\(\\s-*\\)=>")
-                 (valid   . (lambda() (not (ada-in-comment-p))))
-                 (modes   . '(ada-mode))))
+	       '(ada-associate
+		 (regexp  . "[^=]\\(\\s-*\\)=>")
+		 (valid   . (lambda() (not (ada-in-comment-p))))
+		 (modes   . '(ada-mode))))
   (add-to-list 'ada-align-modes
-               '(ada-comment
-                 (regexp  . "\\(\\s-*\\)--")
-                 (modes   . '(ada-mode))))
+	       '(ada-comment
+		 (regexp  . "\\(\\s-*\\)--")
+		 (modes   . '(ada-mode))))
   (add-to-list 'ada-align-modes
-               '(ada-use
-                 (regexp  . "\\(\\s-*\\)\\<use\\s-")
-                 (valid   . (lambda() (not (ada-in-comment-p))))
-                 (modes   . '(ada-mode))))
+	       '(ada-use
+		 (regexp  . "\\(\\s-*\\)\\<use\\s-")
+		 (valid   . (lambda() (not (ada-in-comment-p))))
+		 (modes   . '(ada-mode))))
   (add-to-list 'ada-align-modes
-               '(ada-at
-                 (regexp . "\\(\\s-+\\)at\\>")
-                 (modes . '(ada-mode))))
+	       '(ada-at
+		 (regexp . "\\(\\s-+\\)at\\>")
+		 (modes . '(ada-mode))))
 
   (setq align-mode-rules-list ada-align-modes)
 
@@ -1341,6 +1330,9 @@ If you use ada-xref.el:
 
   ;;  Support for indent-new-comment-line (Especially for XEmacs)
   (set (make-local-variable 'comment-multi-line) nil)
+
+  ;;  Support for add-log
+  (set (make-local-variable 'add-log-current-defun-function) 'ada-which-function)
 
   (setq major-mode 'ada-mode
 	mode-name "Ada")
@@ -1440,7 +1432,7 @@ Casing exception lists are `ada-case-exception' and `ada-case-exception-substrin
 (defun ada-create-case-exception (&optional word)
   "Define WORD as an exception for the casing system.
 If WORD is not given, then the current word in the buffer is used instead.
-The new words is added to the first file in `ada-case-exception-file'.
+The new word is added to the first file in `ada-case-exception-file'.
 The standard casing rules will no longer apply to this word."
   (interactive)
   (let ((previous-syntax-table (syntax-table))
@@ -1760,7 +1752,7 @@ adapt to unusal auto-casing schemes.  Since it does nothing, you can for
 instance use it for `ada-case-identifier' if you don't want any special
 auto-casing for identifiers, whereas keywords have to be lower-cased.
 See also `ada-auto-case' to disable auto casing altogether."
-  )
+  nil)
 
 (defun ada-capitalize-word (&optional arg)
   "Upcase first letter and letters following '_', lower case other letters.
@@ -2197,7 +2189,7 @@ The original line is indented first if `ada-indent-after-return' is non-nil."
 
 (defun ada-batch-reformat ()
   "Re-indent and re-case all the files found on the command line.
-This function should be used from the Unix/Windows command line, with a
+This function should be used from the command line, with a
 command like:
   emacs -batch -l ada-mode -f ada-batch-reformat file1 file2 ..."
 
@@ -2219,8 +2211,8 @@ Return the new position of point or nil if not found."
 
 (defun ada-indent-current ()
   "Indent current line as Ada code.
-Return the calculation that was done, including the reference point and the
-offset."
+Return the calculation that was done, including the reference point
+and the offset."
   (interactive)
   (let ((previous-syntax-table (syntax-table))
 	(orgpoint (point-marker))
@@ -3506,11 +3498,13 @@ Moves point to the matching block start."
 Assumes point to be already positioned by `ada-goto-matching-start'.
 Moves point to the beginning of the declaration."
 
-  ;; named block without a `declare'
+  ;; named block without a `declare'; ada-goto-matching-start leaves
+  ;; point at start of 'begin' for a block.
   (if (save-excursion
 	(ada-goto-previous-word)
 	(looking-at (concat "\\<" defun-name "\\> *:")))
       t                                 ; do nothing
+    ;; else
     ;;
     ;; 'accept' or 'package' ?
     ;;
@@ -3524,7 +3518,9 @@ Moves point to the beginning of the declaration."
       ;; a named 'declare'-block ? => jump to the label
       ;;
       (if (looking-at "\\<declare\\>")
-	  (backward-word 1)
+	  (progn
+	    (forward-comment -1)
+	    (backward-word 1))
 	;;
 	;; no, => 'procedure'/'function'/'task'/'protected'
 	;;
@@ -5043,9 +5039,9 @@ Used in `ff-pre-load-hook'."
   (save-excursion
     (end-of-line);;  make sure we get the complete name
     (or (if (re-search-backward ada-procedure-start-regexp nil t)
-            (setq ff-function-name (match-string 5)))
-        (if (re-search-backward ada-package-start-regexp nil t)
-            (setq ff-function-name (match-string 4))))
+	    (setq ff-function-name (match-string 5)))
+	(if (re-search-backward ada-package-start-regexp nil t)
+	    (setq ff-function-name (match-string 4))))
     ))
 
 
@@ -5190,6 +5186,9 @@ Return nil if no body was found."
   ;; Mark single quotes as having string quote syntax in 'c' instances.
   ;; We used to explicitly avoid ''' as a special case for fear the buffer
   ;; be highlighted as a string, but it seems this fear is unfounded.
+  ;;
+  ;; This sets the properties of the characters, so that ada-in-string-p
+  ;; correctly handles '"' too...
   '(("[^a-zA-Z0-9)]\\('\\)[^\n]\\('\\)" (1 (7 . ?')) (2 (7 . ?')))
     ("^[ \t]*\\(#\\(if\\|else\\|elsif\\|end\\)\\)" (1 (11 . ?\n)))))
 
@@ -5243,7 +5242,7 @@ Return nil if no body was found."
 		"null" "or" "others" "overriding" "private" "protected" "raise"
 		"range" "record" "rem" "renames" "requeue" "return" "reverse"
 		"select" "separate" "synchronized" "tagged" "task" "terminate"
-                "then" "until" "when" "while" "with" "xor") t)
+		"then" "until" "when" "while" "with" "xor") t)
 	     "\\>")
      ;;
      ;; Anything following end and not already fontified is a body name.
@@ -5380,13 +5379,15 @@ for `ada-procedure-start-regexp'."
 	(insert "end " procname ";")
 	(ada-indent-newline-indent)
 	)
-       ;; else
+
        ((looking-at "[ \t\n]*is")
 	;; do nothing
 	)
+
        ((looking-at "[ \t\n]*rename")
 	;; do nothing
 	)
+
        (t
 	(message "unknown syntax"))))
      (t
@@ -5510,7 +5511,6 @@ This function typically is to be hooked into `ff-file-created-hook'."
 (autoload 'ada-point-and-xref               "ada-xref" nil t)
 (autoload 'ada-reread-prj-file              "ada-xref" nil t)
 (autoload 'ada-run-application              "ada-xref" nil t)
-(autoload 'ada-set-default-project-file     "ada-xref" nil nil)
 (autoload 'ada-set-default-project-file     "ada-xref" nil t)
 (autoload 'ada-xref-goto-previous-reference "ada-xref" nil t)
 (autoload 'ada-set-main-compile-application "ada-xref" nil t)

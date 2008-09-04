@@ -6042,7 +6042,7 @@ with something like \"1.\" or \"2)\"."
 	      (buffer-substring (point-at-bol) (match-beginning 3))))
 	;; (term (substring (match-string 3) -1))
 	ind1 (n (1- arg))
-	fmt bob)
+	fmt bobp)
     ;; find where this list begins
     (org-beginning-of-item-list)
     (setq bobp (bobp))
@@ -7031,7 +7031,7 @@ used as the link location instead of reading one interactively."
 
 (defun org-extract-attributes (s)
   "Extract the attributes cookie from a string and set as text property."
-  (let (a attr (start 0))
+  (let (a attr key value (start 0))
     (save-match-data
       (when (string-match "{{\\([^}]+\\)}}$" s)
 	(setq a (match-string 1 s) s (substring s 0 (match-beginning 0)))
@@ -9436,7 +9436,7 @@ also TODO lines."
 	minus tag mm
 	tagsmatch todomatch tagsmatcher todomatcher kwd matcher
 	orterms term orlist re-p str-p level-p level-op
-	prop-p pn pv po cat-p gv)
+	prop-p pn pv po cat-p gv time-p)
     (if (string-match "/+" match)
 	;; match contains also a todo-matching request
 	(progn

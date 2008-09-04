@@ -1,3 +1,70 @@
+2008-09-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.el (message-confirm-send): New variable to confirm sending a
+	message.
+	(message-send): Use it.
+
+2008-08-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-spec.el (gnus-parse-simple-format): Revert last patch.
+
+2008-08-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-spec.el (gnus-parse-simple-format): Remove trailing whitespace.
+
+2008-08-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-max-track-groups): New variable to
+	prevent tracking too many groups.
+	(gnus-registry-split-fancy-with-parent, gnus-registry-fetch-groups):
+	Use it.
+
+2008-08-11  Ralf Angeli  <angeli@caeruleus.net>
+
+	* gnus-art.el (gnus-article-next-page): Respect `scroll-margin' when
+	moving point to the bottom of the window in order to avoid recentering.
+
+2008-08-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page, gnus-article-prev-page)
+	(gnus-article-next-page-1): Use compiler directive (featurep 'xemacs).
+	(gnus-article-beginning-of-window): Fix calculation.
+
+2008-08-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-summary-supersede-article)
+	(gnus-summary-resend-message-edit): Bind mail-parse-charset to the
+	value of gnus-newsgroup-charset to decode non-MIME encoded text in
+	message header.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* message.el:
+	* gnus-start.el:
+	* gnus-registry.el: Remove VMS support.
+
+2008-07-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2104.el (rfc2104-string-make-unibyte): Define it as a compiler
+	macro.
+	(rfc2104-hash): Use it.
+
+2008-07-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-summary-sort-by-most-recent-number)
+	(gnus-summary-sort-by-most-recent-date): New commands.
+	(gnus-summary-mode-map, gnus-summary-make-menu-bar): Add key bindings
+	and menu entries.
+
+2008-07-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-summary-save-in-pipe): Generate work buffer always;
+	don't redisplay article for raw contents; remove plural articles stuff.
+
+	* gnus-sum.el (gnus-summary-pipe-output): Pipe raw articles by symbolic
+	prefix `r'; use gnus-summary-save-in-pipe directly instead of relying
+	on gnus-summary-save-article; display results properly.
+
 2008-07-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-summary-save-in-pipe): Add optional argument `raw'.

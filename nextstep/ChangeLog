@@ -1,3 +1,13 @@
+2008-08-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* GNUstep/Emacs.base/Resources/Info-gnustep.plist: Update URLs.
+	* GNUstep/Emacs.base/Resources/emacs.tiff: Update to copy of:
+	../../../Cocoa/Emacs.base/Contents/Resources/Emacs.icns 64 size.
+
+2008-07-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* DEV-NOTES: New file.
+
 2008-07-22  Seiji Zenitani  <zenitani@mac.com>
 
 	* Cocoa/Emacs.base/Contents/Info.plist: Import document icon settings

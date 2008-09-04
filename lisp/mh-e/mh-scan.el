@@ -421,7 +421,7 @@ Note that columns in Emacs start with 0."
 (defun mh-scan-format ()
   "Return the output format argument for the scan program."
   (if (equal mh-scan-format-file t)
-      (list "-format" (if (mh-variant-p 'nmh 'mu-mh)
+      (list "-format" (if (mh-variant-p 'nmh 'gnu-mh)
                           (list (mh-update-scan-format
                                  mh-scan-format-nmh mh-cmd-note))
                         (list (mh-update-scan-format

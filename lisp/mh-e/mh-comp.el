@@ -246,7 +246,10 @@ message is actually sent. You can do away with this confirmation
 by turning off the option `mh-auto-fields-prompt-flag'.
 
 In case the MH \"send\" program is installed under a different name,
-use `mh-send-prog' to tell MH-E the name."
+use `mh-send-prog' to tell MH-E the name.
+
+The hook `mh-annotate-msg-hook' is run after annotating the
+message and scan line."
   (interactive "P")
   (run-hooks 'mh-before-send-letter-hook)
   (if (and (mh-insert-auto-fields t)
@@ -543,7 +546,10 @@ default MESSAGE is the current message.
 Also investigate the command \\[mh-edit-again] for another way to
 redistribute messages.
 
-See also `mh-redist-full-contents-flag'."
+See also `mh-redist-full-contents-flag'.
+
+The hook `mh-annotate-msg-hook' is run after annotating the
+message and scan line."
   (interactive (list (mh-read-address "Redist-To: ")
                      (mh-read-address "Redist-Cc: ")
                      (mh-get-msg-num t)))
@@ -649,7 +655,7 @@ See also `mh-reply-show-message-flag',
          (show-buffer mh-show-buffer)
          (config (current-window-configuration))
          (group-reply (or (equal reply-to "cc") (equal reply-to "all")))
-         (form-file (cond ((and (mh-variant-p 'nmh 'mu-mh) group-reply
+         (form-file (cond ((and (mh-variant-p 'nmh 'gnu-mh) group-reply
                                 (stringp mh-repl-group-formfile))
                            mh-repl-group-formfile)
                           ((stringp mh-repl-formfile) mh-repl-formfile)
@@ -663,7 +669,7 @@ See also `mh-reply-show-message-flag',
                         '("-nocc" "all"))
                        ((equal reply-to "to")
                         '("-cc" "to"))
-                       (group-reply (if (mh-variant-p 'nmh 'mu-mh)
+                       (group-reply (if (mh-variant-p 'nmh 'gnu-mh)
                                         '("-group" "-nocc" "me")
                                       '("-cc" "all" "-nocc" "me"))))
                  (cond ((or (eq mh-yank-behavior 'autosupercite)

@@ -3217,7 +3217,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 ;; Quote metacharacters (using \) when executing diff in Unix, but not in
 ;; EMX OS/2
 ;;(defun ediff-protect-metachars (str)
-;;  (or (memq system-type '(emx vax-vms axp-vms))
+;;  (or (memq system-type '(emx))
 ;;      (let ((limit 0))
 ;;	(while (string-match ediff-metachars str limit)
 ;;	  (setq str (concat (substring str 0 (match-beginning 0))

@@ -1015,7 +1015,6 @@ x_handle_selection_clear (event)
 
   TRACE0 ("x_handle_selection_clear");
 
-#ifdef MULTI_KBOARD  
   /* If the new selection owner is also Emacs,
      don't clear the new selection.  */
   BLOCK_INPUT;
@@ -1034,7 +1033,6 @@ x_handle_selection_clear (event)
 	  }
       }
   UNBLOCK_INPUT;
-#endif
   
   selection_symbol = x_atom_to_symbol (display, selection);
 
@@ -1473,7 +1471,7 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
   if (NILP (XCAR (reading_selection_reply)))
     error ("Timed out waiting for reply from selection owner");
   if (EQ (XCAR (reading_selection_reply), Qlambda))
-    error ("No `%s' selection", SDATA (SYMBOL_NAME (selection_symbol)));
+    return Qnil;
 
   /* Otherwise, the selection is waiting for us on the requested property.  */
   return

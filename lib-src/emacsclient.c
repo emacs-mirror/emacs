@@ -64,15 +64,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
-#ifdef VMS
-# include "vms-pwd.h"
-#else /* not VMS */
 #ifdef WINDOWSNT
 # include <io.h>
 #else /* not WINDOWSNT */
 # include <pwd.h>
 #endif /* not WINDOWSNT */
-#endif /* not VMS */
 #include <sys/stat.h>
 
 #include <signal.h>
@@ -569,7 +565,7 @@ decode_options (argc, argv)
 
   if (!tty && display)
     window_system = 1;
-#if !defined (WINDOWSNT) && !defined (HAVE_CARBON)
+#if !defined (WINDOWSNT)
   else if (!current_frame)
     tty = 1;
 #endif

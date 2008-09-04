@@ -230,9 +230,6 @@ lisp/play/tetris.el
   <http://lists.gnu.org/archive/html/emacs-devel/2007-01/msg00960.html>
   rms: Legal advice is that we are ok and need not worry about this.
 
-lispref/doclicense.texi
-man/doclicense.texi
-  - leave the copyright alone in this imported file.
 
 lisp/net/tramp.el
   - there are also copyrights in the body of the file. Update these too.
@@ -307,11 +304,20 @@ originally. Although we have the legal right to switch to v2 or later,
 rms prefers that we do not do so.
 
 
-man/*.texi - All manuals should be under GFDL, and should include a
-copy of it, so that they can be distributed separately.  faq.texi has
-a different license, for some reason no-one can remember.
+doc/*/doclicense.texi
+  - leave the copyright alone in this imported file.
+
+doc/*/*.texi - All manuals should be under GFDL (but see below), and
+should include a copy of it, so that they can be distributed
+separately. faq.texi has a different license, for some reason no-one
+can remember.
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00583.html
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00618.html
+
+doc/misc/mh-e.texi is dual-licensed (GPL and GFDL) per agreement with
+FSF (reconfirmed by rms Aug 25 2008).  Discussion with
+licensing@fsf.org starting on Thu, 07 Aug 2003 with subject:
+"[gnu.org #58812] Changing license of MH-E manual"
 
 
 msdos/is_exec.c, sigaction.c - these files are copyright DJ Delorie.

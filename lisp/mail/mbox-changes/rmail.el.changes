@@ -1,0 +1,1759 @@
+RCS file: /cvsroot/emacs/emacs/lisp/mail/rmail.el,v
+Working file: rmail.el
+head: 1.454
+branch:
+locks: strict
+access list:
+symbolic names:
+	remove-vms: 1.454
+	before-remove-vms: 1.454
+	remove-carbon: 1.454
+	before-remove-carbon: 1.454
+	before-merge-emacs-app-to-trunk: 1.454
+	font-backend: 1.453.0.2
+	font-backend-base: 1.453
+	EMACS_22_2: 1.433.2.10
+	EMACS_PRETEST_22_1_92: 1.433.2.10
+	lisp-bob: 1.452
+	EMACS_PRETEST_22_1_91: 1.433.2.9
+	merge-unicode-to-trunk: 1.447
+	before-merge-unicode-to-trunk: 1.446
+	EMACS_PRETEST_22_1_90: 1.433.2.8
+	lexbind-base: 1.454
+	merge-multi-tty-to-trunk: 1.439
+	before-merge-multi-tty-to-trunk: 1.439
+	EMACS_22_1: 1.433.2.1
+	EMACS_PRETEST_22_0_990: 1.433.2.1
+	multi-tty: 1.433.0.4
+	multi-tty-base: 1.439
+	EMACS_22_BRANCHPOINT: 1.433.2.1
+	EMACS_PRETEST_22_0_99: 1.433
+	EMACS_22_BASE: 1.433.0.2
+	EMACS_PRETEST_22_0_98: 1.433
+	EMACS_PRETEST_22_0_97: 1.433
+	EMACS_PRETEST_22_0_96: 1.432
+	EMACS_PRETEST_22_0_95: 1.432
+	EMACS_PRETEST_22_0_94: 1.431
+	EMACS_PRETEST_22_0_93: 1.431
+	EMACS_PRETEST_22_0_92: 1.430
+	EMACS_PRETEST_22_0_91: 1.430
+	EMACS_PRETEST_22_0_90: 1.429
+	unicode-post-font-backend: 1.371.4.29
+	unicode-pre-font-backend: 1.371.4.29
+	unicode-xft: 1.371.4.27.0.2
+	unicode-xft-base: 1.371.4.38
+	ttn-vms-21-2-B4: 1.349.4.3
+	ttn-vms-21-2-B3: 1.349.4.3
+	ttn-vms-21-2-B2: 1.349.4.3
+	XFT_JHD_BRANCH_base: 1.397
+	XFT_JHD_BRANCH: 1.397.0.2
+	EMACS_19_34: 1.194
+	after-merge-gnus-5_10: 1.392
+	before-merge-gnus-5_10: 1.392
+	gnus-5_10-post-merge-josefsson: 1.391
+	gnus-5_10-pre-merge-josefsson: 1.391
+	gnus-5_10-post-merge-yamaoka: 1.391
+	gnus-5_10-pre-merge-yamaoka: 1.391
+	gnus-5_10-branch: 1.391.0.2
+	gnus-5_10-branchpoint: 1.392
+	emacs-unicode-2-pre-sync: 1.371.4.3
+	ttn-vms-21-3-stash: 1.349.4.5.0.2
+	ttn-vms-21-2-stash: 1.349.4.3.0.2
+	EMACS_21_2: 1.349.4.3
+	handa-temp-tag: 1.387
+	emacs-bidi: 1.371.0.6
+	emacs-bidi-base: 1.371
+	emacs-unicode-2: 1.371.0.4
+	emacs-unicode-2-base: 1.446
+	Boehm-GC: 1.371.0.2
+	Boehm-GC-base: 1.371
+	EMACS_21_3: 1.349.4.5
+	rmail-mbox-branch: 1.368.0.2
+	RMAIL-MBOX-BASE: 1.368
+	EMACS_PRETEST_21_2_95: 1.349.4.5
+	EMACS_PRETEST_21_2_94: 1.349.4.5
+	EMACS_PRETEST_21_2_93: 1.349.4.5
+	EMACS_PRETEST_21_2_92: 1.349.4.5
+	EMACS_PRETEST_21_2_91: 1.349.4.5
+	lexbind: 1.360.0.2
+	emacs-unicode: 1.355.0.2
+	emacs-unicode-base: 1.355
+	fx-branch-base: 1.328
+	EMACS_21_1: 1.349
+	EMACS_21_1_RC: 1.349.0.4
+	EMACS_21_1_BASE: 1.349
+	patches_21_0: 1.349.0.2
+	patches_21_0_base: 1.349
+	EMACS_PRETEST_21_0_106: 1.349
+	EMACS_PRETEST_21_0_105: 1.348
+	EMACS_PRETEST_21_0_104: 1.347
+	EMACS_20_2: 1.236
+	gerd_big: 1.341.0.8
+	gerd_int: 1.341.0.6
+	gerd_dbe: 1.341.0.4
+	gerd_defvaralias: 1.341.0.2
+	EMACS_20_4: 1.305
+	EMACS_PRETEST_21_0_103: 1.339
+	EMACS_PRETEST_21_0_102: 1.333
+	EMACS_PRETEST_21_0_101: 1.333
+	EMACS_PRETEST_21_0_100: 1.332
+	EMACS_PRETEST_21_0_99: 1.329
+	EMACS_PRETEST_21_0_98: 1.329
+	fx-branch: 1.328.0.2
+	EMACS_PRETEST_21_0_97: 1.328
+	EMACS_PRETEST_21_0_96: 1.327
+	EMACS_PRETEST_21_0_95: 1.325
+	EMACS_PRETEST_21_0_93: 1.325
+	EMACS_PRETEST_21_0_92: 1.323
+	EMACS_PRETEST_21_0_91: 1.321
+	EMACS_PRETEST_21_0_90: 1.321
+keyword substitution: kv
+total revisions: 661;	selected revisions: 661
+description:
+;;; rmail.el --- main code of "RMAIL" mail reader for Emacs.
+----------------------------
+revision 1.454 (patched)
+date: 2008-05-06 07:22:26 +0000;  author: gm;  state: Exp;  lines: +4 -6;  commitid: nPdVwGEZ0V6bhS1t;
+Switch to recommended form of GPLv3 permissions notice.
+----------------------------
+revision 1.453 (applied)
+date: 2008-04-10 14:10:19 +0000;  author: monnier;  state: Exp;  lines: +1 -1;  commitid: vwbWV2GwRKWGmzYs;
+Fix up comment convention on the arch-tag lines.
+----------------------------
+revision 1.452 (applied)
+date: 2008-02-20 05:59:41 +0000;  author: gm;  state: Exp;  lines: +9 -1;  commitid: afzSfvXamNShg6Ss;
+(rmail-autodetect): Add .exe extension to movemail on Windows.
+----------------------------
+revision 1.451 (patched)
+date: 2008-02-13 20:58:26 +0000;  author: bastien1;  state: Exp;  lines: +13 -15;  commitid: lqRKtg2wkubzshRs;
+;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
+
+;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008 Free Software Foundation, Inc.
+
+;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
+;; Maintainer: Simon Josefsson <simon@josefsson.org>
+;; w32 Maintainer: Brian D. Carlstrom <bdc@ai.mit.edu>
+;; ESMTP support: Simon Leinen <simon@switch.ch>
+;; Hacked by Mike Taylor, 11th October 1999 to add support for
+;; automatically appending a domain to RCPT TO: addresses.
+;; AUTH=LOGIN support: Stephen Cranefield <scranefield@infoscience.otago.ac.nz>
+;; Keywords: mail
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
+
+;;; Commentary:
+
+;; Send Mail to smtp host from smtpmail temp buffer.
+
+;; Please add these lines in your .emacs(_emacs) or use customize.
+;;
+;;(setq send-mail-function 'smtpmail-send-it) ; if you use `mail'
+;;(setq message-send-mail-function 'smtpmail-send-it) ; if you use message/Gnus
+;;(setq smtpmail-default-smtp-server "YOUR SMTP HOST")
+;;(setq smtpmail-local-domain "YOUR DOMAIN NAME")
+;;(setq smtpmail-sendto-domain "YOUR DOMAIN NAME")
+;;(setq smtpmail-debug-info t) ; only to debug problems
+;;(setq smtpmail-auth-credentials  ; or use ~/.authinfo
+;;      '(("YOUR SMTP HOST" 25 "username" "password")))
+;;(setq smtpmail-starttls-credentials
+;;      '(("YOUR SMTP HOST" 25 "~/.my_smtp_tls.key" "~/.my_smtp_tls.cert")))
+;; Where the 25 equals the value of `smtpmail-smtp-service', it can be an
+;; integer or a string, just as long as they match (eq).
+
+;; To queue mail, set smtpmail-queue-mail to t and use
+;; smtpmail-send-queued-mail to send.
+
+;; Modified by Stephen Cranefield <scranefield@infoscience.otago.ac.nz>,
+;; 22/6/99, to support SMTP Authentication by the AUTH=LOGIN mechanism.
+;; See http://help.netscape.com/products/server/messaging/3x/info/smtpauth.html
+;; Rewritten by Simon Josefsson to use same credential variable as AUTH
+;; support below.
+
+;; Modified by Simon Josefsson <jas@pdc.kth.se>, 22/2/99, to support SMTP
+;; Authentication by the AUTH mechanism.
+;; See http://www.ietf.org/rfc/rfc2554.txt
+
+;; Modified by Simon Josefsson <simon@josefsson.org>, 2000-10-07, to support
+;; STARTTLS.  Requires external program
+;; ftp://ftp.opaopa.org/pub/elisp/starttls-*.tar.gz.
+;; See http://www.ietf.org/rfc/rfc2246.txt, http://www.ietf.org/rfc/rfc2487.txt
+
+;;; Code:
+
+(require 'sendmail)
+(autoload 'starttls-open-stream "starttls")
+(autoload 'starttls-negotiate "starttls")
+(autoload 'mail-strip-quoted-names "mail-utils")
+(autoload 'message-make-date "message")
+(autoload 'message-make-message-id "message")
+(autoload 'rfc2104-hash "rfc2104")
+(autoload 'netrc-parse "netrc")
+(autoload 'netrc-machine "netrc")
+(autoload 'netrc-get "netrc")
+
+;;;
+(defgroup smtpmail nil
+  "SMTP protocol for sending mail."
+  :group 'mail)
+
+
+(defcustom smtpmail-default-smtp-server nil
+  "*Specify default SMTP server.
+This only has effect if you specify it before loading the smtpmail library."
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
+
+(defcustom smtpmail-smtp-server
+  (or (getenv "SMTPSERVER") smtpmail-default-smtp-server)
+  "*The name of the host running SMTP server."
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
+
+(defcustom smtpmail-smtp-service 25
+  "*SMTP service port number.
+The default value would be \"smtp\" or 25."
+  :type '(choice (integer :tag "Port") (string :tag "Service"))
+  :group 'smtpmail)
+
+(defcustom smtpmail-local-domain nil
+  "*Local domain name without a host name.
+If the function `system-name' returns the full internet address,
+don't define this value."
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
+
+(defcustom smtpmail-sendto-domain nil
+  "*Local domain name without a host name.
+This is appended (with an @-sign) to any specified recipients which do
+not include an @-sign, so that each RCPT TO address is fully qualified.
+\(Some configurations of sendmail require this.)
+
+Don't bother to set this unless you have get an error like:
+	Sending failed; SMTP protocol error
+when sending mail, and the *trace of SMTP session to <somewhere>*
+buffer includes an exchange like:
+	RCPT TO: <someone>
+	501 <someone>: recipient address must contain a domain
+"
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
+
+(defcustom smtpmail-debug-info nil
+  "Whether to print info in buffer *trace of SMTP session to <somewhere>*.
+See also `smtpmail-debug-verb' which determines if the SMTP protocol should
+be verbose as well."
+  :type 'boolean
+  :group 'smtpmail)
+
+(defcustom smtpmail-debug-verb nil
+  "Whether this library sends the SMTP VERB command or not.
+The commands enables verbose information from the SMTP server."
+  :type 'boolean
+  :group 'smtpmail)
+
+(defcustom smtpmail-code-conv-from nil ;; *junet*
+  "*smtpmail code convert from this code to *internal*..for tiny-mime.."
+  :type 'boolean
+  :group 'smtpmail)
+
+(defcustom smtpmail-queue-mail nil
+  "*If set, mail is queued; otherwise it is sent immediately.
+If queued, it is stored in the directory `smtpmail-queue-dir'
+and sent with `smtpmail-send-queued-mail'."
+  :type 'boolean
+  :group 'smtpmail)
+
+(defcustom smtpmail-queue-dir "~/Mail/queued-mail/"
+  "*Directory where `smtpmail.el' stores queued mail."
+  :type 'directory
+  :group 'smtpmail)
+
+(defcustom smtpmail-auth-credentials "~/.authinfo"
+  "Specify username and password for servers, directly or via .netrc file.
+This variable can either be a filename pointing to a file in netrc(5)
+format, or list of four-element lists that contain, in order,
+`servername' (a string), `port' (an integer), `user' (a string) and
+`password' (a string, or nil to query the user when needed).  If you
+need to enter a `realm' too, add it to the user string, so that it
+looks like `user@realm'."
+  :type '(choice file
+		 (repeat (list (string  :tag "Server")
+		       (integer :tag "Port")
+		       (string  :tag "Username")
+		       (choice (const :tag "Query when needed" nil)
+				       (string  :tag "Password")))))
+  :version "22.1"
+  :group 'smtpmail)
+
+(defcustom smtpmail-starttls-credentials '(("" 25 "" ""))
+  "Specify STARTTLS keys and certificates for servers.
+This is a list of four-element list with `servername' (a string),
+`port' (an integer), `key' (a filename) and `certificate' (a
+filename).
+If you do not have a certificate/key pair, leave the `key' and
+`certificate' fields as `nil'.  A key/certificate pair is only
+needed if you want to use X.509 client authenticated
+connections."
+  :type '(repeat (list (string  :tag "Server")
+		       (integer :tag "Port")
+		       (file    :tag "Key")
+		       (file    :tag "Certificate")))
+  :version "21.1"
+  :group 'smtpmail)
+
+(defcustom smtpmail-warn-about-unknown-extensions nil
+  "*If set, print warnings about unknown SMTP extensions.
+This is mainly useful for development purposes, to learn about
+new SMTP extensions that might be useful to support."
+  :type 'boolean
+  :version "21.1"
+  :group 'smtpmail)
+
+(defvar smtpmail-queue-index-file "index"
+  "File name of queued mail index.
+This is relative to `smtpmail-queue-dir'.")
+
+(defvar smtpmail-address-buffer)
+(defvar smtpmail-recipient-address-list)
+
+(defvar smtpmail-queue-counter 0)
+
+;; Buffer-local variable.
+(defvar smtpmail-read-point)
+
+(defvar smtpmail-queue-index (concat smtpmail-queue-dir
+				     smtpmail-queue-index-file))
+
+(defconst smtpmail-auth-supported '(cram-md5 plain login)
+  "List of supported SMTP AUTH mechanisms.")
+
+;;;
+;;;
+;;;
+
+(defvar smtpmail-mail-address nil
+  "Value to use for envelope-from address for mail from ambient buffer.")
+
+;;;###autoload
+(defun smtpmail-send-it ()
+  (let ((errbuf (if mail-interactive
+		    (generate-new-buffer " smtpmail errors")
+		  0))
+	(tembuf (generate-new-buffer " smtpmail temp"))
+	(case-fold-search nil)
+	delimline
+	(mailbuf (current-buffer))
+        ;; Examine this variable now, so that
+	;; local binding in the mail buffer will take effect.
+	(smtpmail-mail-address
+         (or (and mail-specify-envelope-from (mail-envelope-from))
+             user-mail-address))
+	(smtpmail-code-conv-from
+	 (if enable-multibyte-characters
+	     (let ((sendmail-coding-system smtpmail-code-conv-from))
+	       (select-message-coding-system)))))
+    (unwind-protect
+	(save-excursion
+	  (set-buffer tembuf)
+	  (erase-buffer)
+	  ;; Use the same buffer-file-coding-system as in the mail
+	  ;; buffer, otherwise any write-region invocations (e.g., in
+	  ;; mail-do-fcc below) will annoy with asking for a suitable
+	  ;; encoding.
+	  (set-buffer-file-coding-system smtpmail-code-conv-from nil t)
+	  (insert-buffer-substring mailbuf)
+	  (goto-char (point-max))
+	  ;; require one newline at the end.
+	  (or (= (preceding-char) ?\n)
+	      (insert ?\n))
+	  ;; Change header-delimiter to be what sendmail expects.
+	  (mail-sendmail-undelimit-header)
+	  (setq delimline (point-marker))
+;;	  (sendmail-synch-aliases)
+	  (if mail-aliases
+	      (expand-mail-aliases (point-min) delimline))
+	  (goto-char (point-min))
+	  ;; ignore any blank lines in the header
+	  (while (and (re-search-forward "\n\n\n*" delimline t)
+		      (< (point) delimline))
+	    (replace-match "\n"))
+	  (let ((case-fold-search t))
+	    ;; We used to process Resent-... headers here,
+	    ;; but it was not done properly, and the job
+	    ;; is done correctly in smtpmail-deduce-address-list.
+	    ;; Don't send out a blank subject line
+	    (goto-char (point-min))
+	    (if (re-search-forward "^Subject:\\([ \t]*\n\\)+\\b" delimline t)
+		(replace-match "")
+	      ;; This one matches a Subject just before the header delimiter.
+	      (if (and (re-search-forward "^Subject:\\([ \t]*\n\\)+" delimline t)
+		       (= (match-end 0) delimline))
+		  (replace-match "")))
+	    ;; Put the "From:" field in unless for some odd reason
+	    ;; they put one in themselves.
+	    (goto-char (point-min))
+	    (if (not (re-search-forward "^From:" delimline t))
+		(let* ((login smtpmail-mail-address)
+		       (fullname (user-full-name)))
+		  (cond ((eq mail-from-style 'angles)
+			 (insert "From: " fullname)
+			 (let ((fullname-start (+ (point-min) 6))
+			       (fullname-end (point-marker)))
+			   (goto-char fullname-start)
+			   ;; Look for a character that cannot appear unquoted
+			   ;; according to RFC 822.
+			   (if (re-search-forward "[^- !#-'*+/-9=?A-Z^-~]"
+						  fullname-end 1)
+			       (progn
+				 ;; Quote fullname, escaping specials.
+				 (goto-char fullname-start)
+				 (insert "\"")
+				 (while (re-search-forward "[\"\\]"
+							   fullname-end 1)
+				   (replace-match "\\\\\\&" t))
+				 (insert "\""))))
+			 (insert " <" login ">\n"))
+			((eq mail-from-style 'parens)
+			 (insert "From: " login " (")
+			 (let ((fullname-start (point)))
+			   (insert fullname)
+			   (let ((fullname-end (point-marker)))
+			     (goto-char fullname-start)
+			     ;; RFC 822 says \ and nonmatching parentheses
+			     ;; must be escaped in comments.
+			     ;; Escape every instance of ()\ ...
+			     (while (re-search-forward "[()\\]" fullname-end 1)
+			       (replace-match "\\\\\\&" t))
+			     ;; ... then undo escaping of matching parentheses,
+			     ;; including matching nested parentheses.
+			     (goto-char fullname-start)
+			     (while (re-search-forward
+				     "\\(\\=\\|[^\\]\\(\\\\\\\\\\)*\\)\\\\(\\(\\([^\\]\\|\\\\\\\\\\)*\\)\\\\)"
+				     fullname-end 1)
+			       (replace-match "\\1(\\3)" t)
+			       (goto-char fullname-start))))
+			 (insert ")\n"))
+			((null mail-from-style)
+			 (insert "From: " login "\n")))))
+	    ;; Insert a `Message-Id:' field if there isn't one yet.
+	    (goto-char (point-min))
+	    (unless (re-search-forward "^Message-Id:" delimline t)
+	      (insert "Message-Id: " (message-make-message-id) "\n"))
+	    ;; Insert a `Date:' field if there isn't one yet.
+	    (goto-char (point-min))
+	    (unless (re-search-forward "^Date:" delimline t)
+	      (insert "Date: " (message-make-date) "\n"))
+	    ;; Possibly add a MIME header for the current coding system
+	    (let (charset)
+	      (goto-char (point-min))
+	      (and (eq mail-send-nonascii 'mime)
+		   (not (re-search-forward "^MIME-version:" delimline t))
+		   (progn (skip-chars-forward "\0-\177")
+			  (/= (point) (point-max)))
+		   smtpmail-code-conv-from
+		   (setq charset
+			 (coding-system-get smtpmail-code-conv-from
+					    'mime-charset))
+		   (goto-char delimline)
+		   (insert "MIME-version: 1.0\n"
+			   "Content-type: text/plain; charset="
+			   (symbol-name charset)
+			   "\nContent-Transfer-Encoding: 8bit\n")))
+	    ;; Insert an extra newline if we need it to work around
+	    ;; Sun's bug that swallows newlines.
+	    (goto-char (1+ delimline))
+	    (if (eval mail-mailer-swallows-blank-line)
+		(newline))
+	    ;; Find and handle any FCC fields.
+	    (goto-char (point-min))
+	    (if (re-search-forward "^FCC:" delimline t)
+		;; Force mail-do-fcc to use the encoding of the mail
+		;; buffer to encode outgoing messages on FCC files.
+		(let ((coding-system-for-write smtpmail-code-conv-from))
+		  (mail-do-fcc delimline)))
+	    (if mail-interactive
+		(with-current-buffer errbuf
+		  (erase-buffer))))
+	  ;;
+	  ;;
+	  ;;
+	  (setq smtpmail-address-buffer (generate-new-buffer "*smtp-mail*"))
+	  (setq smtpmail-recipient-address-list
+		    (smtpmail-deduce-address-list tembuf (point-min) delimline))
+	  (kill-buffer smtpmail-address-buffer)
+
+	  (smtpmail-do-bcc delimline)
+	  ; Send or queue
+	  (if (not smtpmail-queue-mail)
+	      (if (not (null smtpmail-recipient-address-list))
+		  (if (not (smtpmail-via-smtp
+			    smtpmail-recipient-address-list tembuf))
+		      (error "Sending failed; SMTP protocol error"))
+		(error "Sending failed; no recipients"))
+	    (let* ((file-data
+		    (expand-file-name
+		     (format "%s_%i"
+			     (format-time-string "%Y-%m-%d_%H:%M:%S")
+			     (setq smtpmail-queue-counter
+				   (1+ smtpmail-queue-counter)))
+		     smtpmail-queue-dir))
+		   (file-data (convert-standard-filename file-data))
+		   (file-elisp (concat file-data ".el"))
+		   (buffer-data (create-file-buffer file-data))
+		   (buffer-elisp (create-file-buffer file-elisp))
+		   (buffer-scratch "*queue-mail*"))
+	      (unless (file-exists-p smtpmail-queue-dir)
+		(make-directory smtpmail-queue-dir t))
+	      (with-current-buffer buffer-data
+		(erase-buffer)
+		(set-buffer-file-coding-system smtpmail-code-conv-from nil t)
+		(insert-buffer-substring tembuf)
+		(write-file file-data)
+		(set-buffer buffer-elisp)
+		(erase-buffer)
+		(insert (concat
+			 "(setq smtpmail-recipient-address-list '"
+			 (prin1-to-string smtpmail-recipient-address-list)
+			 ")\n"))
+		(write-file file-elisp)
+		(set-buffer (generate-new-buffer buffer-scratch))
+		(insert (concat file-data "\n"))
+		(append-to-file (point-min)
+				(point-max)
+				smtpmail-queue-index)
+		)
+	      (kill-buffer buffer-scratch)
+	      (kill-buffer buffer-data)
+	      (kill-buffer buffer-elisp))))
+      (kill-buffer tembuf)
+      (if (bufferp errbuf)
+	  (kill-buffer errbuf)))))
+
+;;;###autoload
+(defun smtpmail-send-queued-mail ()
+  "Send mail that was queued as a result of setting `smtpmail-queue-mail'."
+  (interactive)
+  (with-temp-buffer
+    ;;; Get index, get first mail, send it, update index, get second
+    ;;; mail, send it, etc...
+    (let ((file-msg ""))
+      (insert-file-contents smtpmail-queue-index)
+      (goto-char (point-min))
+      (while (not (eobp))
+	(setq file-msg (buffer-substring (point) (line-end-position)))
+	(load file-msg)
+	;; Insert the message literally: it is already encoded as per
+	;; the MIME headers, and code conversions might guess the
+	;; encoding wrongly.
+	(with-temp-buffer
+	  (let ((coding-system-for-read 'no-conversion))
+	    (insert-file-contents file-msg))
+          (let ((smtpmail-mail-address
+                 (or (and mail-specify-envelope-from (mail-envelope-from))
+                     user-mail-address)))
+            (if (not (null smtpmail-recipient-address-list))
+                (if (not (smtpmail-via-smtp smtpmail-recipient-address-list
+                                            (current-buffer)))
+                    (error "Sending failed; SMTP protocol error"))
+              (error "Sending failed; no recipients"))))
+	(delete-file file-msg)
+	(delete-file (concat file-msg ".el"))
+	(delete-region (point-at-bol) (point-at-bol 2)))
+      (write-region (point-min) (point-max) smtpmail-queue-index))))
+
+;(defun smtpmail-via-smtp (host,port,sender,destination,smtpmail-text-buffer)
+
+(defun smtpmail-fqdn ()
+  (if smtpmail-local-domain
+      (concat (system-name) "." smtpmail-local-domain)
+    (system-name)))
+
+(defsubst smtpmail-cred-server (cred)
+  (nth 0 cred))
+
+(defsubst smtpmail-cred-port (cred)
+  (nth 1 cred))
+
+(defsubst smtpmail-cred-key (cred)
+  (nth 2 cred))
+
+(defsubst smtpmail-cred-user (cred)
+  (nth 2 cred))
+
+(defsubst smtpmail-cred-cert (cred)
+  (nth 3 cred))
+
+(defsubst smtpmail-cred-passwd (cred)
+  (nth 3 cred))
+
+(defun smtpmail-find-credentials (cred server port)
+  (catch 'done
+    (let ((l cred) el)
+      (while (setq el (pop l))
+	(when (and (equal server (smtpmail-cred-server el))
+		   (equal port (smtpmail-cred-port el)))
+	  (throw 'done el))))))
+
+(defun smtpmail-maybe-append-domain (recipient)
+  (if (or (not smtpmail-sendto-domain)
+	  (string-match "@" recipient))
+      recipient
+    (concat recipient "@" smtpmail-sendto-domain)))
+
+(defun smtpmail-intersection (list1 list2)
+  (let ((result nil))
+    (dolist (el2 list2)
+      (when (memq el2 list1)
+	(push el2 result)))
+    (nreverse result)))
+
+(defvar starttls-extra-args)
+(defvar starttls-extra-arguments)
+
+(defun smtpmail-open-stream (process-buffer host port)
+  (let ((cred (smtpmail-find-credentials
+	       smtpmail-starttls-credentials host port)))
+    (if (null (and cred (condition-case ()
+			    (with-no-warnings
+			      (require 'starttls)
+			      (call-process (if starttls-use-gnutls
+						starttls-gnutls-program
+					      starttls-program)))
+			  (error nil))))
+	;; The normal case.
+	(open-network-stream "SMTP" process-buffer host port)
+      (let* ((cred-key (smtpmail-cred-key cred))
+	     (cred-cert (smtpmail-cred-cert cred))
+	     (starttls-extra-args
+	      (append
+	       starttls-extra-args
+	       (when (and (stringp cred-key) (stringp cred-cert)
+			  (file-regular-p
+			   (setq cred-key (expand-file-name cred-key)))
+			  (file-regular-p
+			   (setq cred-cert (expand-file-name cred-cert))))
+		 (list "--key-file" cred-key "--cert-file" cred-cert))))
+	     (starttls-extra-arguments
+	      (append
+	       starttls-extra-arguments
+	       (when (and (stringp cred-key) (stringp cred-cert)
+			  (file-regular-p
+			   (setq cred-key (expand-file-name cred-key)))
+			  (file-regular-p
+			   (setq cred-cert (expand-file-name cred-cert))))
+		 (list "--x509keyfile" cred-key "--x509certfile" cred-cert)))))
+	(starttls-open-stream "SMTP" process-buffer host port)))))
+
+(defun smtpmail-try-auth-methods (process supported-extensions host port)
+  (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
+	 (mech (car (smtpmail-intersection smtpmail-auth-supported mechs)))
+	 (cred (if (stringp smtpmail-auth-credentials)
+		   (let* ((netrc (netrc-parse smtpmail-auth-credentials))
+                          (port-name (format "%s" (or port "smtp")))
+			  (hostentry (netrc-machine netrc host port-name
+                                                    port-name)))
+                     (when hostentry
+                       (list host port
+                             (netrc-get hostentry "login")
+                             (netrc-get hostentry "password"))))
+		 (smtpmail-find-credentials
+		  smtpmail-auth-credentials host port)))
+	 (passwd (when cred
+		   (or (smtpmail-cred-passwd cred)
+		       (read-passwd
+			(format "SMTP password for %s:%s: "
+				(smtpmail-cred-server cred)
+				(smtpmail-cred-port cred))))))
+	 ret)
+    (when (and cred mech)
+      (cond
+       ((eq mech 'cram-md5)
+	(smtpmail-send-command process (upcase (format "AUTH %s" mech)))
+	(if (or (null (car (setq ret (smtpmail-read-response process))))
+		(not (integerp (car ret)))
+		(>= (car ret) 400))
+	    (throw 'done nil))
+	(when (eq (car ret) 334)
+	  (let* ((challenge (substring (cadr ret) 4))
+		 (decoded (base64-decode-string challenge))
+		 (hash (rfc2104-hash 'md5 64 16 passwd decoded))
+		 (response (concat (smtpmail-cred-user cred) " " hash))
+		 ;; Osamu Yamane <yamane@green.ocn.ne.jp>:
+		 ;; SMTP auth fails because the SMTP server identifies
+		 ;; only the first part of the string (delimited by
+		 ;; new line characters) as a response from the
+		 ;; client, and the rest as distinct commands.
+
+		 ;; In my case, the response string is 80 characters
+		 ;; long.  Without the no-line-break option for
+		 ;; base64-encode-sting, only the first 76 characters
+		 ;; are taken as a response to the server, and the
+		 ;; authentication fails.
+		 (encoded (base64-encode-string response t)))
+	    (smtpmail-send-command process (format "%s" encoded))
+	    (if (or (null (car (setq ret (smtpmail-read-response process))))
+		    (not (integerp (car ret)))
+		    (>= (car ret) 400))
+		(throw 'done nil)))))
+       ((eq mech 'login)
+	(smtpmail-send-command process "AUTH LOGIN")
+	(if (or (null (car (setq ret (smtpmail-read-response process))))
+		(not (integerp (car ret)))
+		(>= (car ret) 400))
+	    (throw 'done nil))
+	(smtpmail-send-command
+	 process (base64-encode-string (smtpmail-cred-user cred) t))
+	(if (or (null (car (setq ret (smtpmail-read-response process))))
+		(not (integerp (car ret)))
+		(>= (car ret) 400))
+	    (throw 'done nil))
+	(smtpmail-send-command process (base64-encode-string passwd t))
+	(if (or (null (car (setq ret (smtpmail-read-response process))))
+		(not (integerp (car ret)))
+		(>= (car ret) 400))
+	    (throw 'done nil)))
+       ((eq mech 'plain)
+	;; We used to send an empty initial request, and wait for an
+	;; empty response, and then send the password, but this
+	;; violate a SHOULD in RFC 2222 paragraph 5.1.  Note that this
+	;; is not sent if the server did not advertise AUTH PLAIN in
+	;; the EHLO response.  See RFC 2554 for more info.
+	(smtpmail-send-command process
+			       (concat "AUTH PLAIN "
+				       (base64-encode-string
+					(concat "\0"
+						(smtpmail-cred-user cred)
+						"\0"
+						passwd) t)))
+	(if (or (null (car (setq ret (smtpmail-read-response process))))
+		(not (integerp (car ret)))
+		(not (equal (car ret) 235)))
+	    (throw 'done nil)))
+
+       (t
+	(error "Mechanism %s not implemented" mech)))
+      ;; Remember the password.
+      (when (and (not (stringp smtpmail-auth-credentials))
+		 (null (smtpmail-cred-passwd cred)))
+	(setcar (cdr (cdr (cdr cred))) passwd)))))
+
+(defun smtpmail-via-smtp (recipient smtpmail-text-buffer)
+  (let ((process nil)
+	(host (or smtpmail-smtp-server
+		  (error "`smtpmail-smtp-server' not defined")))
+	(port smtpmail-smtp-service)
+        ;; smtpmail-mail-address should be set to the appropriate
+        ;; buffer-local value by the caller, but in case not:
+        (envelope-from (or smtpmail-mail-address
+                           (and mail-specify-envelope-from
+                                (mail-envelope-from))
+                           user-mail-address))
+	response-code
+	greeting
+	process-buffer
+	(supported-extensions '()))
+    (unwind-protect
+	(catch 'done
+	  ;; get or create the trace buffer
+	  (setq process-buffer
+		(get-buffer-create (format "*trace of SMTP session to %s*" host)))
+
+	  ;; clear the trace buffer of old output
+	  (with-current-buffer process-buffer
+	    (setq buffer-undo-list t)
+	    (erase-buffer))
+
+	  ;; open the connection to the server
+	  (setq process (smtpmail-open-stream process-buffer host port))
+	  (and (null process) (throw 'done nil))
+
+	  ;; set the send-filter
+	  (set-process-filter process 'smtpmail-process-filter)
+
+	  (with-current-buffer process-buffer
+	    (set-buffer-process-coding-system 'raw-text-unix 'raw-text-unix)
+	    (make-local-variable 'smtpmail-read-point)
+	    (setq smtpmail-read-point (point-min))
+
+
+	    (if (or (null (car (setq greeting (smtpmail-read-response process))))
+		    (not (integerp (car greeting)))
+		    (>= (car greeting) 400))
+		(throw 'done nil)
+	      )
+
+	    (let ((do-ehlo t)
+		  (do-starttls t))
+	      (while do-ehlo
+	    ;; EHLO
+	    (smtpmail-send-command process (format "EHLO %s" (smtpmail-fqdn)))
+
+	    (if (or (null (car (setq response-code
+				     (smtpmail-read-response process))))
+		    (not (integerp (car response-code)))
+		    (>= (car response-code) 400))
+		(progn
+		  ;; HELO
+		  (smtpmail-send-command
+		   process (format "HELO %s" (smtpmail-fqdn)))
+
+		  (if (or (null (car (setq response-code
+					   (smtpmail-read-response process))))
+			  (not (integerp (car response-code)))
+			  (>= (car response-code) 400))
+		      (throw 'done nil)))
+	      (dolist (line (cdr (cdr response-code)))
+		(let ((name
+		       (with-case-table ascii-case-table
+			 (mapcar (lambda (s) (intern (downcase s)))
+				 (split-string (substring line 4) "[ ]")))))
+		  (and (eq (length name) 1)
+		       (setq name (car name)))
+		  (and name
+		       (cond ((memq (if (consp name) (car name) name)
+				    '(verb xvrb 8bitmime onex xone
+					   expn size dsn etrn
+					   enhancedstatuscodes
+					   help xusr
+					   auth=login auth starttls))
+			      (setq supported-extensions
+				    (cons name supported-extensions)))
+			     (smtpmail-warn-about-unknown-extensions
+			      (message "Unknown extension %s" name)))))))
+
+	    (if (and do-starttls
+		     (smtpmail-find-credentials smtpmail-starttls-credentials host port)
+		     (member 'starttls supported-extensions)
+		     (numberp (process-id process)))
+		(progn
+		  (smtpmail-send-command process (format "STARTTLS"))
+		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
+			  (not (integerp (car response-code)))
+			  (>= (car response-code) 400))
+		      (throw 'done nil))
+		  (starttls-negotiate process)
+		  (setq do-starttls nil))
+	      (setq do-ehlo nil))))
+
+	    (smtpmail-try-auth-methods process supported-extensions host port)
+
+	    (if (or (member 'onex supported-extensions)
+		    (member 'xone supported-extensions))
+		(progn
+		  (smtpmail-send-command process (format "ONEX"))
+		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
+			  (not (integerp (car response-code)))
+			  (>= (car response-code) 400))
+		      (throw 'done nil))))
+
+	    (if (and smtpmail-debug-verb
+		     (or (member 'verb supported-extensions)
+			 (member 'xvrb supported-extensions)))
+		(progn
+		  (smtpmail-send-command process (format "VERB"))
+		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
+			  (not (integerp (car response-code)))
+			  (>= (car response-code) 400))
+		      (throw 'done nil))))
+
+	    (if (member 'xusr supported-extensions)
+		(progn
+		  (smtpmail-send-command process (format "XUSR"))
+		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
+			  (not (integerp (car response-code)))
+			  (>= (car response-code) 400))
+		      (throw 'done nil))))
+
+	    ;; MAIL FROM:<sender>
+	    (let ((size-part
+		   (if (or (member 'size supported-extensions)
+			   (assoc 'size supported-extensions))
+		       (format " SIZE=%d"
+			       (with-current-buffer smtpmail-text-buffer
+				 ;; size estimate:
+				 (+ (- (point-max) (point-min))
+				    ;; Add one byte for each change-of-line
+				    ;; because of CR-LF representation:
+				    (count-lines (point-min) (point-max)))))
+		     ""))
+		  (body-part
+		   (if (member '8bitmime supported-extensions)
+		       ;; FIXME:
+		       ;; Code should be added here that transforms
+		       ;; the contents of the message buffer into
+		       ;; something the receiving SMTP can handle.
+		       ;; For a receiver that supports 8BITMIME, this
+		       ;; may mean converting BINARY to BASE64, or
+		       ;; adding Content-Transfer-Encoding and the
+		       ;; other MIME headers.  The code should also
+		       ;; return an indication of what encoding the
+		       ;; message buffer is now, i.e. ASCII or
+		       ;; 8BITMIME.
+		       (if nil
+			   " BODY=8BITMIME"
+			 "")
+		     "")))
+;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
+	      (smtpmail-send-command process (format "MAIL FROM:<%s>%s%s"
+                                                     envelope-from
+						     size-part
+						     body-part))
+
+	      (if (or (null (car (setq response-code (smtpmail-read-response process))))
+		      (not (integerp (car response-code)))
+		      (>= (car response-code) 400))
+		  (throw 'done nil)
+		))
+
+	    ;; RCPT TO:<recipient>
+	    (let ((n 0))
+	      (while (not (null (nth n recipient)))
+		(smtpmail-send-command process (format "RCPT TO:<%s>" (smtpmail-maybe-append-domain (nth n recipient))))
+		(setq n (1+ n))
+
+		(setq response-code (smtpmail-read-response process))
+		(if (or (null (car response-code))
+			(not (integerp (car response-code)))
+			(>= (car response-code) 400))
+		    (throw 'done nil)
+		  )
+		))
+
+	    ;; DATA
+	    (smtpmail-send-command process "DATA")
+
+	    (if (or (null (car (setq response-code (smtpmail-read-response process))))
+		    (not (integerp (car response-code)))
+		    (>= (car response-code) 400))
+		(throw 'done nil)
+	      )
+
+	    ;; Mail contents
+	    (smtpmail-send-data process smtpmail-text-buffer)
+
+	    ;;DATA end "."
+	    (smtpmail-send-command process ".")
+
+	    (if (or (null (car (setq response-code (smtpmail-read-response process))))
+		    (not (integerp (car response-code)))
+		    (>= (car response-code) 400))
+		(throw 'done nil)
+	      )
+
+	    ;;QUIT
+;	    (smtpmail-send-command process "QUIT")
+;	    (and (null (car (smtpmail-read-response process)))
+;		 (throw 'done nil))
+	    t ))
+      (if process
+	  (with-current-buffer (process-buffer process)
+	    (smtpmail-send-command process "QUIT")
+	    (smtpmail-read-response process)
+
+;	    (if (or (null (car (setq response-code (smtpmail-read-response process))))
+;		    (not (integerp (car response-code)))
+;		    (>= (car response-code) 400))
+;		(throw 'done nil)
+;	      )
+	    (delete-process process)
+	    (unless smtpmail-debug-info
+	      (kill-buffer process-buffer)))))))
+
+
+(defun smtpmail-process-filter (process output)
+  (with-current-buffer (process-buffer process)
+    (goto-char (point-max))
+    (insert output)))
+
+(defun smtpmail-read-response (process)
+  (let ((case-fold-search nil)
+	(response-strings nil)
+	(response-continue t)
+	(return-value '(nil ()))
+	match-end)
+    (catch 'done
+      (while response-continue
+	(goto-char smtpmail-read-point)
+	(while (not (search-forward "\r\n" nil t))
+	  (unless (memq (process-status process) '(open run))
+	    (throw 'done nil))
+	  (accept-process-output process)
+	  (goto-char smtpmail-read-point))
+
+	(setq match-end (point))
+	(setq response-strings
+	      (cons (buffer-substring smtpmail-read-point (- match-end 2))
+		    response-strings))
+
+	(goto-char smtpmail-read-point)
+	(if (looking-at "[0-9]+ ")
+	    (let ((begin (match-beginning 0))
+		  (end (match-end 0)))
+	      (if smtpmail-debug-info
+		  (message "%s" (car response-strings)))
+
+	      (setq smtpmail-read-point match-end)
+
+	      ;; ignore lines that start with "0"
+	      (if (looking-at "0[0-9]+ ")
+		  nil
+		(setq response-continue nil)
+		(setq return-value
+		      (cons (string-to-number
+			     (buffer-substring begin end))
+			    (nreverse response-strings)))))
+
+	  (if (looking-at "[0-9]+-")
+	      (progn (if smtpmail-debug-info
+			 (message "%s" (car response-strings)))
+		     (setq smtpmail-read-point match-end)
+		     (setq response-continue t))
+	    (progn
+	      (setq smtpmail-read-point match-end)
+	      (setq response-continue nil)
+	      (setq return-value
+		    (cons nil (nreverse response-strings)))))))
+      (setq smtpmail-read-point match-end))
+    return-value))
+
+
+(defun smtpmail-send-command (process command)
+  (goto-char (point-max))
+  (if (= (aref command 0) ?P)
+      (insert "PASS <omitted>\r\n")
+    (insert command "\r\n"))
+  (setq smtpmail-read-point (point))
+  (process-send-string process command)
+  (process-send-string process "\r\n"))
+
+(defun smtpmail-send-data-1 (process data)
+  (goto-char (point-max))
+
+  (if (and (multibyte-string-p data)
+	   smtpmail-code-conv-from)
+      (setq data (string-as-multibyte
+		  (encode-coding-string data smtpmail-code-conv-from))))
+
+  (if smtpmail-debug-info
+      (insert data "\r\n"))
+
+  (setq smtpmail-read-point (point))
+  ;; Escape "." at start of a line
+  (if (eq (string-to-char data) ?.)
+      (process-send-string process "."))
+  (process-send-string process data)
+  (process-send-string process "\r\n")
+  )
+
+(defun smtpmail-send-data (process buffer)
+  (let ((data-continue t) sending-data)
+    (with-current-buffer buffer
+      (goto-char (point-min)))
+    (while data-continue
+      (with-current-buffer buffer
+        (setq sending-data (buffer-substring (point-at-bol) (point-at-eol)))
+	(end-of-line 2)
+        (setq data-continue (not (eobp))))
+      (smtpmail-send-data-1 process sending-data))))
+
+(defun smtpmail-deduce-address-list (smtpmail-text-buffer header-start header-end)
+  "Get address list suitable for smtp RCPT TO: <address>."
+  (unwind-protect
+      (with-current-buffer smtpmail-address-buffer
+	(erase-buffer)
+	(let
+	    ((case-fold-search t)
+	     (simple-address-list "")
+	     this-line
+	     this-line-end
+	     addr-regexp)
+	  (insert-buffer-substring smtpmail-text-buffer header-start header-end)
+	  (goto-char (point-min))
+	  ;; RESENT-* fields should stop processing of regular fields.
+	  (save-excursion
+	    (setq addr-regexp
+		  (if (re-search-forward "^Resent-\\(to\\|cc\\|bcc\\):"
+					 header-end t)
+		      "^Resent-\\(to\\|cc\\|bcc\\):"
+		    "^\\(To:\\|Cc:\\|Bcc:\\)")))
+
+	  (while (re-search-forward addr-regexp header-end t)
+	    (replace-match "")
+	    (setq this-line (match-beginning 0))
+	    (forward-line 1)
+	    ;; get any continuation lines
+	    (while (and (looking-at "^[ \t]+") (< (point) header-end))
+	      (forward-line 1))
+	    (setq this-line-end (point-marker))
+	    (setq simple-address-list
+		  (concat simple-address-list " "
+			  (mail-strip-quoted-names (buffer-substring this-line this-line-end))))
+	    )
+	  (erase-buffer)
+	  (insert " " simple-address-list "\n")
+	  (subst-char-in-region (point-min) (point-max) 10 ?  t);; newline --> blank
+	  (subst-char-in-region (point-min) (point-max) ?, ?  t);; comma   --> blank
+	  (subst-char-in-region (point-min) (point-max)  9 ?  t);; tab     --> blank
+
+	  (goto-char (point-min))
+	  ;; tidyness in case hook is not robust when it looks at this
+	  (while (re-search-forward "[ \t]+" header-end t) (replace-match " "))
+
+	  (goto-char (point-min))
+	  (let (recipient-address-list)
+	    (while (re-search-forward " \\([^ ]+\\) " (point-max) t)
+	      (backward-char 1)
+	      (setq recipient-address-list (cons (buffer-substring (match-beginning 1) (match-end 1))
+						 recipient-address-list))
+	      )
+	    (setq smtpmail-recipient-address-list recipient-address-list))
+
+	  )
+	)
+    )
+  )
+
+
+(defun smtpmail-do-bcc (header-end)
+  "Delete [Resent-]BCC: and their continuation lines from the header area.
+There may be multiple BCC: lines, and each may have arbitrarily
+many continuation lines."
+  (let ((case-fold-search t))
+    (save-excursion
+      (goto-char (point-min))
+      ;; iterate over all BCC: lines
+      (while (re-search-forward "^\\(RESENT-\\)?BCC:" header-end t)
+	(delete-region (match-beginning 0)
+		       (progn (forward-line 1) (point)))
+	;; get rid of any continuation lines
+	(while (and (looking-at "^[ \t].*\n") (< (point) header-end))
+	  (replace-match ""))))))
+
+
+(provide 'smtpmail)
+
+;;; arch-tag: a76992df-6d71-43b7-9e72-4bacc6c05466
+;;; smtpmail.el ends here
+----------------------------
+revision 1.450 (applied)
+date: 2008-02-12 07:13:29 +0000;  author: bastien1;  state: Exp;  lines: +9 -23;  commitid: kUIzo78FXw0mV4Rs;
+Reverted wrong changes to rmail.el.
+----------------------------
+revision 1.449 (irrelevant)
+date: 2008-02-12 07:10:49 +0000;  author: bastien1;  state: Exp;  lines: +23 -9;  commitid: U6bdsg13J3PmU4Rs;
+2008-02-11 Drew Adams  <drew.adams@oracle.com>
+
+	* help.el (describe-key): Joined some split lines to facilitate
+	filling.
+	* help-fns.el (describe-function-1): Fill text of overlong lines.
+----------------------------
+revision 1.448 (patched)
+date: 2008-02-10 22:10:09 +0000;  author: bastien1;  state: Exp;  lines: +4 -2;  commitid: XXphXBYKRXGPWTQs;
+(rmail-nonignored-headers): Allow to be nil.
+(rmail-clear-headers): Don't check `rmail-nonignored-headers' when
+it is nil.
+----------------------------
+revision 1.447 (defer)
+date: 2008-02-01 16:01:27 +0000;  author: miles;  state: Exp;  lines: +11 -11;  commitid: A9tHDrKNUaDbcIPs;
+Merge unicode branch
+
+Revision: emacs@sv.gnu.org/emacs--devo--0--patch-1037
+----------------------------
+revision 1.446 (patched)
+date: 2008-02-01 02:40:23 +0000;  author: miles;  state: Exp;  lines: +1 -1;  commitid: XnTPkNPE8wPKLDPs;
+Merge from emacs--rel--22
+
+Revision: emacs@sv.gnu.org/emacs--devo--0--patch-1032
+----------------------------
+revision 1.445 (irrelevant)
+date: 2008-01-13 18:16:04 +0000;  author: m061211;  state: Exp;  lines: +75 -70;  commitid: 542CxzVsGawCyhNs;
+(rmail-convert-to-babyl-format): Remove
+save-excursion to avoid infinite looping.
+----------------------------
+revision 1.444 (patched)
+date: 2008-01-08 20:45:07 +0000;  author: miles;  state: Exp;  lines: +1 -1;  commitid: GLqjDoDkbCnkxEMs;
+Merge from emacs--rel--22
+
+Revision: emacs@sv.gnu.org/emacs--devo--0--patch-987
+----------------------------
+revision 1.443 (patched)
+date: 2007-11-27 06:57:06 +0000;  author: dann;  state: Exp;  lines: +9 -0;  commitid: 2IinMqAAxCxbjbHs;
+* progmodes/cperl-mode.el (compilation-error-regexp-alist): Pacify
+byte compiler.
+(cperl-mode): Use with-no-warnings for setting vc-header-alist.
+
+* progmodes/idlwave.el (idlwave-shell-get-path-info)
+(idlwave-shell-temp-file, idlwave-shell-is-running)
+(widget-value, comint-dynamic-complete-filename, Info-goto-node):
+* progmodes/idlw-help.el (idlwave-prepare-structure-tag-completion)
+(idlwave-all-method-classes, idlwave-all-method-keyword-classes)
+(idlwave-beginning-of-statement, idlwave-best-rinfo-assoc)
+(idlwave-class-found-in, idlwave-class-or-superclass-with-tag)
+(idlwave-completing-read, idlwave-current-routine)
+(idlwave-downcase-safe, idlwave-entry-find-keyword)
+(idlwave-expand-keyword, idlwave-find-class-definition)
+(idlwave-find-inherited-class, idlwave-find-struct-tag)
+(idlwave-get-buffer-visiting, idlwave-in-quote)
+(idlwave-make-full-name, idlwave-members-only)
+(idlwave-popup-select, idlwave-routine-source-file)
+(idlwave-routines, idlwave-sintern-class)
+(idlwave-sintern-keyword, idlwave-sintern-method)
+(idlwave-sintern-routine-or-method)
+(idlwave-substitute-link-target, idlwave-sys-dir)
+(idlwave-this-word, idlwave-what-module-find-class)
+(idlwave-where):
+* progmodes/idlw-complete-structtag.el (idlwave-shell-buffer):
+* mail/uce.el (rmail-msg-is-pruned)
+(rmail-maybe-set-message-counters, rmail-msgbeg, rmail-msgend)
+(rmail-toggle-header):
+* mail/sendmail.el (dired-view-file, dired-get-filename):
+* mail/rmailkwd.el (rmail-maybe-set-message-counters)
+(rmail-display-labels, rmail-msgbeg)
+(rmail-set-message-deleted-p, rmail-message-labels-p)
+(rmail-show-message, mail-comma-list-regexp)
+(mail-parse-comma-list):
+* mail/rmail.el (rmail-spam-filter, rmail-summary-goto-msg)
+(rmail-summary-mark-undeleted, rmail-summary-mark-deleted)
+(rfc822-addresses, mail-abbrev-make-syntax-table)
+(mail-sendmail-delimit-header, mail-header-end):
+* mail/hashcash.el (message-narrow-to-headers-or-head)
+(message-fetch-field, message-goto-eoh)
+(message-narrow-to-headers):
+* vc.el (view-mode-exit): Declare as functions.
+
+* mail/vms-pmail.el:
+* vmsproc.el:
+* vms-patch.el: Don't byte compile these files, they don't work.
+
+* Makefile.in (SOME_MACHINE_LISP): Remove VMS files, they are not
+compiled anymore.
+----------------------------
+revision 1.442 (applied)
+date: 2007-11-25 16:48:31 +0000;  author: dann;  state: Exp;  lines: +4 -0;  commitid: AG5BA1V4T2VeEYGs;
+* mail/mspools.el (rmail-get-new-mail):
+* mail/reporter.el (mail-position-on-field, mail-text):
+* mail/rmail.el (mail-position-on-field, mail-text-start)
+(rmail-update-summary):
+* mail/rmailedit.el (rmail-summary-disable)
+(rmail-summary-enable):
+* mail/rmailmsc.el (rmail-parse-file-inboxes)
+(rmail-show-message):
+* mail/rmailout.el (rmail-update-summary):
+* mail/rmailsort.el (rmail-update-summary):
+* mail/sendmail.el (dired-move-to-filename, dired-get-filename)
+(dired-view-file):
+* mail/uce.el (mail-strip-quoted-names):
+* mail/undigest.el (rmail-update-summary):
+* mail/unrmail.el (mail-strip-quoted-names):
+* ediff.el (diff-latest-backup-file): Declare as functions.
+
+* obsolete/mlsupport.el (ml-previous-page): Fix typo.
+(kill-to-end-of-line):
+* obsolete/rnews.el (news-set-minor-modes): Remove non working
+functions.
+----------------------------
+revision 1.441 (applied)
+date: 2007-11-21 04:55:58 +0000;  author: miles;  state: Exp;  lines: +3 -1;  commitid: sh9id2ij5oqKPoGs;
+Merge from emacs--rel--22
+
+Revision: emacs@sv.gnu.org/emacs--devo--0--patch-937
+----------------------------
+revision 1.440 (patched)
+date: 2007-10-12 03:05:02 +0000;  author: gm;  state: Exp;  lines: +3 -2;  commitid: KgZKUHr3QcvrvfBs;
+Re-fill copyright header.
+(rmail-list-to-menu): Use mapc rather than mapcar.
+----------------------------
+revision 1.439 (applied)
+date: 2007-08-22 03:36:42 +0000;  author: gm;  state: Exp;  lines: +7 -4;  commitid: snSlmOInawCWjHus;
+(rmail-movemail-variant-p): Call on load to set movemail related variables.
+(rmail-insert-inbox-text): Use only rmail-movemail-program, which
+will now be set before this is called.
+----------------------------
+revision 1.438 (applied)
+date: 2007-08-20 09:30:12 +0000;  author: schwab;  state: Exp;  lines: +1 -1;  commitid: we67G0c0GiHcltus;
+(rmail-autodetect): Doc fix.
+----------------------------
+revision 1.437 (patched)
+date: 2007-08-13 13:41:26 +0000;  author: miles;  state: Exp;  lines: +2 -2;  commitid: VsOBiVySwfx6XAts;
+Merge from emacs--rel--22
+
+Revision: emacs@sv.gnu.org/emacs--devo--0--patch-851
+----------------------------
+revision 1.436 (irrelevant)
+date: 2007-07-26 05:27:13 +0000;  author: miles;  state: Exp;  lines: +1 -1;  commitid: IKTBbGNFxqtbNers;
+Merge from emacs--rel--22
+
+Patches applied:
+
+ * emacs--rel--22  (patch 70-73)
+
+   - Update from CVS
+
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+   * Relicense all FSF files to GPLv3 or later.
+
+Revision: emacs@sv.gnu.org/emacs--devo--0--patch-828
+----------------------------
+revision 1.435 (applied)
+date: 2007-06-09 12:52:02 +0000;  author: ttn;  state: Exp;  lines: +1 -1;  commitid: qAfHMYDnHTNVLels;
+(rmail-movemail-variant-in-use): Fix doc typo.
+----------------------------
+revision 1.434 (irrelevant)
+date: 2007-05-14 19:58:45 +0000;  author: eliz;  state: Exp;  lines: +7 -6;  commitid: Lc0wnr2BZzX0YVhs;
+(rmail-convert-to-babyl-format): Check content-transfer-encoding _last_,
+because it's its position that we need as value of base64-header-field-end.
+----------------------------
+revision 1.433 (irrelevant)
+date: 2007-04-03 11:11:27 +0000;  author: eliz;  state: Exp;  lines: +17 -7;
+branches:  1.433.2;  1.433.4;
+(rmail-convert-to-babyl-format): Don't try to decode base-64 encoded body
+if its content-type is something other than text/* or message/*.
+----------------------------
+revision 1.432 (applied)
+date: 2007-02-24 17:12:34 +0000;  author: jpw;  state: Exp;  lines: +1 -1;
+(rmail-message-filter): Fix custom type.
+----------------------------
+revision 1.431 (irrelevant)
+date: 2007-01-21 02:59:07 +0000;  author: gm;  state: Exp;  lines: +1 -1;
+Add 2007 to copyright years.
+----------------------------
+revision 1.430 (defer)
+date: 2006-11-04 15:38:39 +0000;  author: eliz;  state: Exp;  lines: +29 -3;
+(rmail-redecode-body): New optional argument RAW.
+Don't encode body if RAW is non-nil, or if the old encoding is identical to the
+new encoding, or if the body contains only eight-bit-* characters.
+----------------------------
+revision 1.429 (applied)
+date: 2006-10-07 13:29:51 +0000;  author: eliz;  state: Exp;  lines: +1 -1;
+(rmail-mime-charset-pattern): Allow a TAB between "Content-Type" and
+"text/plain".
+----------------------------
+revision 1.428 (defer)
+date: 2006-10-07 13:12:42 +0000;  author: eliz;  state: Exp;  lines: +6 -0;
+(rmail-redecode-body): If the old encoding is `undecided', call
+find-coding-systems-region to find a proper non-trivial encoding.
+----------------------------
+revision 1.427 (irrelevant)
+date: 2006-09-08 12:02:13 +0000;  author: rms;  state: Exp;  lines: +11 -6;
+(rmail-get-new-mail): Say whether all msgs are spam.
+(rmail-convert-to-babyl-format): Don't record undo, leave list empty.
+----------------------------
+revision 1.426 (irrelevant)
+date: 2006-05-20 17:36:07 +0000;  author: eliz;  state: Exp;  lines: +3 -3;
+(rmail-mime-charset-pattern): Add "?:" before "format".
+(rmail-convert-to-babyl-format): Undo the change from 2006-04-19.
+----------------------------
+revision 1.425 (irrelevant)
+date: 2006-04-19 09:55:40 +0000;  author: rfrancoise;  state: Exp;  lines: +2 -2;
+(rmail-convert-to-babyl-format): Use second group from
+`rmail-mime-charset-pattern'.
+----------------------------
+revision 1.424 (applied)
+date: 2006-04-10 03:19:03 +0000;  author: rms;  state: Exp;  lines: +3 -1;
+(rmail-mime-charset-pattern): Ignore format and delsp specs
+while looking for charset.
+----------------------------
+revision 1.423 (patched)
+date: 2006-03-25 11:33:48 +0000;  author: eliz;  state: Exp;  lines: +34 -0;
+(tool-bar-map): Defvar it.
+(rmail-tool-bar-map): Tool-bar buttons for Rmail.
+(rmail-perm-variables): Make rmail-tool-bar-map a local variable.
+----------------------------
+revision 1.422 (patched)
+date: 2006-03-18 18:28:36 +0000;  author: rms;  state: Exp;  lines: +4 -4;
+(rmail-reply-regexp): Undo previous change.
+----------------------------
+revision 1.421 (applied)
+date: 2006-03-11 15:13:47 +0000;  author: rms;  state: Exp;  lines: +8 -2;
+(rmail-ignored-headers): Discard DomainKey-Signature.
+----------------------------
+revision 1.420 (irrelevant)
+date: 2006-02-06 12:31:40 +0000;  author: ttn;  state: Exp;  lines: +1 -1;
+Update years in copyright notice; nfc.
+----------------------------
+revision 1.419 (patched)
+date: 2006-01-19 11:59:15 +0000;  author: handa;  state: Exp;  lines: +17 -4;
+(rmail-enable-mime): Docstring fixed.
+(rmail-mime-feature): Likewise.
+(rmail-require-mime-maybe): Use display-warning to show a warning
+message.
+----------------------------
+revision 1.418 (irrelevant)
+date: 2006-01-08 23:47:07 +0000;  author: as;  state: Exp;  lines: +4 -2;
+(rmail-reply-regexp): Also ignore mailing list
+identifiers sometimes added in square brackets at the beginning of
+subject lines.
+----------------------------
+revision 1.417 (applied)
+date: 2006-01-08 15:18:55 +0000;  author: as;  state: Exp;  lines: +35 -13;
+(rmail-current-subject): New function.
+(rmail-current-subject-regexp): New function.
+(rmail-next-same-subject): Use it.
+----------------------------
+revision 1.416 (applied)
+date: 2005-12-10 11:29:53 +0000;  author: eliz;  state: Exp;  lines: +9 -4;
+(rmail-next-same-subject): Handle multiple "Re: " strings and long subject
+lines that were broken into multiple lines at arbitrary places.
+----------------------------
+revision 1.415 (applied)
+date: 2005-09-24 13:43:59 +0000;  author: rfrancoise;  state: Exp;  lines: +14 -12;
+2005-09-24  Emilio C. Lopes  <eclig@gmx.net>
+
+	* woman.el (woman-file-name):
+	* wid-edit.el (widget-file-prompt-value)
+	(widget-coding-system-prompt-value):
+	* w32-fns.el (set-w32-system-coding-system):
+	* vc.el (vc-version-diff, vc-annotate):
+	* textmodes/reftex-auc.el (reftex-arg-cite)
+	(reftex-arg-index-tag):
+	* textmodes/refer.el (refer-get-bib-files):
+	* textmodes/artist.el (artist-figlet-choose-font):
+	* terminal.el (terminal-emulator):
+	* replace.el (occur-read-primary-args):
+	* rect.el (string-rectangle, string-insert-rectangle):
+	* ps-print.el (ps-print-preprint):
+	* progmodes/pascal.el (pascal-goto-defun):
+	* progmodes/etags.el (visit-tags-table, visit-tags-table-buffer):
+	* progmodes/compile.el (compilation-find-file):
+	* printing.el (pr-interactive-n-up):
+	* play/animate.el (animate-birthday-present):
+	* net/rcompile.el (remote-compile):
+	* man.el (man, Man-goto-section, Man-follow-manual-reference):
+	* mail/rmailsum.el (rmail-summary-search-backward)
+	(rmail-summary-search):
+	* mail/rmailout.el (rmail-output-read-rmail-file-name)
+	(rmail-output-read-file-name):
+	* mail/rmail.el (rmail-search, rmail-search-backwards):
+	* mail/mailabbrev.el (merge-mail-abbrevs, rebuild-mail-abbrevs):
+	* locate.el (locate):
+	* international/quail.el (quail-show-keyboard-layout):
+	* international/mule.el (set-buffer-file-coding-system)
+	(revert-buffer-with-coding-system, set-file-name-coding-system)
+	(set-terminal-coding-system, set-keyboard-coding-system)
+	(set-next-selection-coding-system):
+	* international/mule-diag.el (describe-coding-system)
+	(describe-font, describe-fontset):
+	* international/mule-cmds.el (universal-coding-system-argument)
+	(search-unencodable-char, describe-input-method)
+	(set-language-environment, describe-language-environment):
+	* international/codepage.el (codepage-setup):
+	* international/code-pages.el (codepage-setup):
+	* info.el (Info-search, Info-follow-reference)
+	(Info-search-backward):
+	* emacs-lisp/advice.el (ad-read-advised-function)
+	(ad-read-advice-class, ad-clear-cache, ad-activate)
+	(ad-deactivate, ad-update, ad-unadvise, ad-read-advice-name)
+	(ad-enable-advice, ad-disable-advice, ad-remove-advice)
+	(ad-read-regexp):
+	* ediff-util.el (ediff-toggle-regexp-match):
+	* ediff-ptch.el (ediff-prompt-for-patch-file):
+	* dired-aux.el (dired-diff):
+	* diff.el (diff):
+	* cus-edit.el (custom-variable-prompt):
+	* calendar/timeclock.el (timeclock-ask-for-project):
+	* calc/calcalg3.el (calc-get-fit-variables):
+	* calc/calc-store.el (calc-edit-variable)
+	(calc-permanent-variable):
+	* vc-mcvs.el (vc-mcvs-register):
+	* shadowfile.el (shadow-define-literal-group):
+	* woman.el (woman-file-name):
+	* vc.el (vc-version-diff, vc-merge):
+	* textmodes/reftex-index.el (reftex-index-complete-tag):
+	* format.el (format-decode-buffer, format-decode-region):
+	* emulation/viper-cmd.el (viper-read-string-with-history):
+	* emacs-lisp/debug.el (cancel-debug-on-entry):
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	* ediff.el (ediff-merge-revisions)
+	(ediff-merge-revisions-with-ancestor, ediff-revision):
+	* completion.el (interactive-completion-string-reader):
+	* calc/calc-prog.el (calc-user-define-formula):
+	Follow convention for reading with the minibuffer.
+----------------------------
+revision 1.414 (applied)
+date: 2005-08-29 14:38:57 +0000;  author: lektu;  state: Exp;  lines: +10 -0;
+(deleted-head, font-lock-fontified, mail-abbrev-syntax-table, mail-abbrevs,
+messages-head, rmail-use-spam-filter, rsf-beep, rsf-sleep-after-message,
+total-messages): Add defvars.
+----------------------------
+revision 1.413 (defer 'rmail-reply)
+date: 2005-08-15 02:04:29 +0000;  author: rms;  state: Exp;  lines: +43 -26;
+(rmail-nonignored-headers): New variable.
+(rmail-clear-headers): Use it.
+(rmail-reply): Better handling of mail-followup-to header.
+----------------------------
+revision 1.412 (applied)
+date: 2005-08-14 23:44:12 +0000;  author: schwab;  state: Exp;  lines: +2 -3;
+Revert last change.
+----------------------------
+revision 1.411 (irrelevant)
+date: 2005-08-14 22:50:04 +0000;  author: ttn;  state: Exp;  lines: +3 -2;
+Fix dependency bug: Wrap `desktop-buffer-mode-handlers'
+modification in `eval-after-load' form.
+----------------------------
+revision 1.410 (applied)
+date: 2005-08-12 10:26:59 +0000;  author: eliz;  state: Exp;  lines: +16 -2;
+(rmail-end-of-message): New command to go to the
+end of the current message.  Added to `rmail-mode-map' with key "/".
+(rmail-beginning-of-message): Fixed to work as documented.
+(rmail-mode): Change documentation.
+----------------------------
+revision 1.409 (applied)
+date: 2005-08-10 19:40:05 +0000;  author: lh;  state: Exp;  lines: +3 -1;
+Add handler to desktop-buffer-mode-handlers.
+(rmail-restore-desktop-buffer): Remove autoload cookie.
+----------------------------
+revision 1.408 (patched)
+date: 2005-08-09 11:38:10 +0000;  author: rms;  state: Exp;  lines: +2 -2;
+(rmail-ignored-headers): Don't hide mime-version: and content-type: headers.
+----------------------------
+revision 1.407 (applied)
+date: 2005-08-06 18:54:05 +0000;  author: ttn;  state: Exp;  lines: +8 -8;
+Update years in copyright notice; nfc.
+----------------------------
+revision 1.406 (applied)
+date: 2005-07-08 22:31:32 +0000;  author: rms;  state: Exp;  lines: +4 -4;
+(rmail-only-expunge): Fix paren error.
+Unconditionally try to leave point at the same old place.
+----------------------------
+revision 1.405 (irrelevant)
+date: 2005-07-04 17:46:22 +0000;  author: lute;  state: Exp;  lines: +2 -2;
+Update FSF's address.
+----------------------------
+revision 1.404 (applied)
+date: 2005-05-26 15:16:48 +0000;  author: lute;  state: Exp;  lines: +1 -1;
+(rmail-mode): Use run-mode-hooks.
+----------------------------
+revision 1.403 (patched) 
+date: 2005-05-21 14:13:00 +0000;  author: eliz;  state: Exp;  lines: +5 -1;
+(rmail-reply): Filter the list in reply-to through rmail-dont-reply-to.
+----------------------------
+revision 1.402 (irrelevant)
+date: 2005-05-16 11:16:34 +0000;  author: lektu;  state: Exp;  lines: +1 -1;
+Replace `string-to-int' by `string-to-number'.
+----------------------------
+revision 1.401 (applied)
+date: 2005-04-24 21:32:28 +0000;  author: rms;  state: Exp;  lines: +4 -5;
+(rmail-font-lock-keywords): Match any number of
+citation markers at start of each line.
+----------------------------
+revision 1.400 (irrelevant)
+date: 2005-04-23 16:36:53 +0000;  author: rms;  state: Exp;  lines: +3 -1;
+(rmail-font-lock-keywords): Use font-lock-comment-delimiter-face.
+----------------------------
+revision 1.399 (applied)
+date: 2005-04-17 15:55:50 +0000;  author: rms;  state: Exp;  lines: +8 -5;
+(rmail-ignored-headers): Ignore more headers
+(rmail-font-lock-keywords): Don't fontify the text of a citation.
+----------------------------
+revision 1.398 (applied)
+date: 2005-04-02 11:31:06 +0000;  author: eliz;  state: Exp;  lines: +20 -29;
+(rmail-parse-url): Bugfix. Parse traditional mailbox specifications
+as well as URLs.
+(rmail-insert-inbox-text): Remove unused conditional branches.
+----------------------------
+revision 1.397 (applied)
+date: 2005-03-18 00:12:08 +0000;  author: rms;  state: Exp;  lines: +56 -15;
+branches:  1.397.2;
+(rmail-movemail-program, rmail-pop-password)
+(rmail-pop-password-required, rmail-remote-password): Doc fixes.
+(rmail-preserve-inbox, rmail-probe, rmail-autodetect): Doc fix.
+
+(rmail-unknown-mail-followup-to): New function.
+(rmail-show-message): Use rmail-unknown-mail-followup-to.
+(rmail-reply): Recognize Mail-Followup-To and Mail-Reply-To headers.
+----------------------------
+revision 1.396 (applied)
+date: 2005-02-09 15:50:37 +0000;  author: kfstorm;  state: Exp;  lines: +10 -10;
+Change release version from 21.4 to 22.1 throughout.
+Change development version from 21.3.50 to 22.0.50.
+----------------------------
+revision 1.395 (applied)
+date: 2005-01-15 14:27:41 +0000;  author: eliz;  state: Exp;  lines: +223 -82;
+Updated to work with movemail from GNU Mailutils
+(rmail-pop-password, rmail-pop-password-required): Moved to
+rmail-obsolete group.
+(rmail-set-pop-password): Renamed to rmail-set-remote-password.
+All callers updated.
+(rmail-get-pop-password): Renamed to rmail-get-remote-password.
+Take an argument specifying whether it is POP or IMAP mailbox we
+are using. All callers updated.
+(rmail-pop-password-error): Renamed to rmail-remote-password-error.
+Added mailutils-specific error message.
+(rmail-movemail-search-path)
+(rmail-movemail-variant-in-use): New variables.
+(rmail-remote-password, rmail-remote-password-required): New
+customization variables.
+(rmail-probe,rmail-autodetect, rmail-movemail-variant-p): New functions
+(rmail-parse-url): New function.
+(rmail-get-new-mail, rmail-insert-inbox-text): Updated for use
+with GNU mailutils movemail.
+----------------------------
+revision 1.394 (applied)
+date: 2004-12-27 16:11:33 +0000;  author: rms;  state: Exp;  lines: +2 -0;
+(rmail-resend): Let MAIL-ALIAS-FILE arg override mail-personal-alias-file.
+----------------------------
+revision 1.393 (defer, part of spam filter)
+date: 2004-11-12 17:08:57 +0000;  author: eliz;  state: Exp;  lines: +2 -2;
+(rmail-get-new-mail): Use the renamed variables `rsf-beep' and
+`rsf-sleep-after-message'.
+----------------------------
+revision 1.392 (irrelevant)
+date: 2004-07-24 21:35:32 +0000;  author: rms;  state: Exp;  lines: +1 -1;
+(rmail-mime-charset-pattern): Don't include semicolon in the charset value.
+----------------------------
+revision 1.391 (applied)
+date: 2004-04-26 18:54:23 +0000;  author: lh;  state: Exp;  lines: +3 -1;
+branches:  1.391.2;
+(rmail-variables): Bind desktop-save-buffer to t.
+----------------------------
+revision 1.390 (defer)
+date: 2004-04-24 08:57:31 +0000;  author: eliz;  state: Exp;  lines: +13 -9;
+(rmail-mail-new-frame): Doc fix.
+(rmail-start-mail): Support rmail-mail-new-frame even on
+terminals that can display only one frame at a time.
+----------------------------
+revision 1.389 (applied)
+date: 2004-04-21 20:49:37 +0000;  author: lh;  state: Exp;  lines: +24 -9;
+(rmail-restore-desktop-buffer): Move from desktop.el. Add Parameters.
+----------------------------
+revision 1.388 (irrelevant)
+date: 2004-04-19 18:04:46 +0000;  author: eliz;  state: Exp;  lines: +9 -7;
+(rmail-convert-to-babyl-format): Don't remove ^M
+characters left after base64 decoding.
+(rmail-decode-region): Use -dos variety of `coding', to remove any
+^M characters left after qp or base64 decoding.
+----------------------------
+revision 1.387 (irrelevant)
+date: 2004-03-07 20:04:51 +0000;  author: eliz;  state: Exp;  lines: +0 -1;
+Remove redundant whitespace.
+----------------------------
+revision 1.386 (irrelevant)
+date: 2004-03-04 17:03:51 +0000;  author: rms;  state: Exp;  lines: +6 -3;
+(rmail-convert-to-babyl-format):
+Specify t for UNIBYTE when calling mail-unquote-printable-region.
+----------------------------
+revision 1.385 (defer)
+date: 2004-02-17 19:54:49 +0000;  author: uid65627;  state: Exp;  lines: +8 -3;
+(rmail-get-new-mail): Don't reference
+rmail-use-spam-filter if rmail-spam-filter is not loaded.
+----------------------------
+revision 1.384 (applied)
+date: 2004-02-16 11:35:50 +0000;  author: uid65627;  state: Exp;  lines: +3 -3;
+(rmail-default-dont-reply-to-names): Make "info-"
+anchored at the beginning of the email address.
+----------------------------
+revision 1.383 (irrelevant)
+date: 2004-02-08 22:36:05 +0000;  author: uid65629;  state: Exp;  lines: +2 -2;
+(rmail-get-new-mail): Remove useless use of
+format.
+----------------------------
+revision 1.382 (irrelevant)
+date: 2004-02-08 22:33:42 +0000;  author: uid65629;  state: Exp;  lines: +3 -5;
+(rmail-get-new-mail): Remove extra format string
+arguments.
+----------------------------
+revision 1.381 (irrelevant)
+date: 2004-01-21 12:35:55 +0000;  author: uid66361;  state: Exp;  lines: +8 -1;
+(rmail-convert-to-babyl-format): Avoid deleting trailing white space
+and ensure a final newline.
+----------------------------
+revision 1.380 (partial, along with 1.406)
+date: 2004-01-16 18:23:37 +0000;  author: uid65566;  state: Exp;  lines: +59 -9;
+(rmail-get-new-mail): New local rsf-number-of-spam.
+Call rmail-spam-filter.  Delete and expunge spam.
+Print number of spam messages deleted.
+Save and restore the deletion status of old messages when reading
+new mail with spam filter, so that expunging spam does not expunge
+msgs deleted by the user.
+
+(rmail-only-expunge): added an optional argument dont-show to
+prevent showing message after expunge.
+----------------------------
+revision 1.379 (irrelevant)
+date: 2004-01-12 21:56:50 +0000;  author: uid65566;  state: Exp;  lines: +7 -41;
+(rmail-convert-to-babyl-format): Use mail-unquote-printable-region.
+(rmail-hex-string-to-integer, rmail-decode-quoted-printable):
+(rmail-hex-char-to-integer): Functions deleted.
+----------------------------
+revision 1.378 (irrelevant)
+date: 2003-12-30 11:42:37 +0000;  author: uid65627;  state: Exp;  lines: +4 -1;
+(rmail-convert-to-babyl-format): Fix off-by-one
+error in arguments to base64-decode-region.  Remove ^M characters
+after decoding base64.
+----------------------------
+revision 1.377 (irrelevant)
+date: 2003-12-30 10:45:41 +0000;  author: uid65627;  state: Exp;  lines: +28 -22;
+(rmail-convert-to-babyl-format): Make the code
+cleaner (suggested by Richard Stallman).
+----------------------------
+revision 1.376 (irrelevant)
+date: 2003-11-03 19:20:23 +0000;  author: eliz;  state: Exp;  lines: +22 -18;
+(rmail-convert-to-babyl-format): If
+base64-decode-region signals an error, catch it and silently
+ignore it.
+----------------------------
+revision 1.375 (irrelevant)
+date: 2003-10-16 16:54:48 +0000;  author: eliz;  state: Exp;  lines: +3 -3;
+(rmail-convert-to-babyl-format): Fix the last change.
+----------------------------
+revision 1.374 (irrelevant)
+date: 2003-10-16 16:49:27 +0000;  author: eliz;  state: Exp;  lines: +9 -3;
+(rmail-convert-to-babyl-format): Display a message while converting to Babyl.
+----------------------------
+revision 1.373 (applied)
+date: 2003-09-01 15:45:30 +0000;  author: miles;  state: Exp;  lines: +1 -0;
+Add arch taglines
+----------------------------
+revision 1.372 (irrelevant)
+date: 2003-08-28 15:11:15 +0000;  author: eliz;  state: Exp;  lines: +73 -6;
+(rmail-convert-to-babyl-format): Detect
+quoted-printable- and base64-encoded messages and decode them
+automatically.  Set the message's encoding from the charset=
+header, if any.  Decode base64-encoded messages in Mail format as
+well.
+----------------------------
+revision 1.371 (merged)
+date: 2003-05-15 00:01:00 +0000;  author: jpw;  state: Exp;  lines: +1 -1;
+branches:  1.371.4;
+(rmail-ignored-headers): Ignore Face: header.
+----------------------------
+revision 1.370 (applied)
+date: 2003-05-06 17:47:18 +0000;  author: lektu;  state: Exp;  lines: +1 -1;
+(rmail-primary-inbox-list): Don't quote nil and t in docstrings.
+----------------------------
+revision 1.369 (irrelevant)
+date: 2003-02-20 21:07:29 +0000;  author: lektu;  state: Exp;  lines: +1 -1;
+(rmail-insert-inbox-text): Make the pop3 mechanism work on cygwin systems too.
+----------------------------
+revision 1.368 (base)
+date: 2003-01-06 16:02:29 +0000;  author: jpw;  state: Exp;  lines: +3 -3;
+branches:  1.368.2;
+(rmail-mmdf-delim1, rmail-mmdf-delim2): Doc fixes.
+
+Keys:
+applied: The patch has already been applied.
+irrelevant: The change is no longer relevant.
+defer: think about this change immediately after mbox/trunk is basically running.
+merged: The change has been applied now.
+partial: Some of the patch is now applied but some is deferred.
+
+Todo:
+determine if any changes to (rmail-convert-to-babyl) need to be applied in some new fashion.
+revisit spam handling additions.

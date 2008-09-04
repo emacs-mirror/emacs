@@ -166,9 +166,6 @@
 (message "%s" (garbage-collect))
 
 (load "replace")
-(if (eq system-type 'vax-vms)
-    (progn
-      (load "vmsproc")))
 (load "buff-menu")
 
 (if (fboundp 'x-create-frame)
@@ -187,33 +184,30 @@
 
 (message "%s" (garbage-collect))
 
-(if (eq system-type 'vax-vms)
-    (progn
-      (load "vms-patch")))
 (if (eq system-type 'windows-nt)
     (progn
       (load "w32-vars")
       (load "term/common-win")
       (load "term/w32-win")
       (load "ls-lisp")
-      (load "disp-table") ; needed to setup ibm-pc char set, see internal.el
+      (load "disp-table")
       (load "dos-w32")
       (load "w32-fns")))
 (if (eq system-type 'ms-dos)
     (progn
-      (load "ls-lisp")
       (load "dos-w32")
       (load "dos-fns")
       (load "dos-vars")
+      ;; Don't load term/common-win: it isn't appropriate for the `pc'
+      ;; ``window system'', which generally behaves like a terminal.
+      (load "term/pc-win")
+      (load "ls-lisp")
       (load "international/ccl")	; codepage.el uses CCL en/decoder
       (load "international/codepage")	; internal.el uses cpNNN coding systems
       (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
 (if (eq system-type 'macos)
     (progn
       (load "ls-lisp")))
-(if (featurep 'mac-carbon)
-    (progn
-      (load "term/mac-win")))
 (if (featurep 'ns)
     (progn
       (load "emacs-lisp/easymenu")  ;; for platform-related menu adjustments
@@ -233,7 +227,7 @@
 ;doc strings kept in the DOC file rather than in core,
 ;you may load them with a "site-load.el" file.
 ;But you must also cause them to be scanned when the DOC file
-;is generated.  For VMS, you must edit ../vms/makedoc.com.
+;is generated.
 ;For other systems, you must edit ../src/Makefile.in.
 (if (load "site-load" t)
     (garbage-collect))
@@ -344,11 +338,7 @@
 
 (if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
 	(member (nth 4 command-line-args) '("dump" "bootstrap")))
-    (if (eq system-type 'vax-vms)
-	(progn
-	  (message "Dumping data as file temacs.dump")
-	  (dump-emacs "temacs.dump" "temacs")
-	  (kill-emacs))
+    (progn
       (if (memq system-type '(ms-dos windows-nt cygwin))
           (message "Dumping under the name emacs")
         (message "Dumping under the name emacs"))

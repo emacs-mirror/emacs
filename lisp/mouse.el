@@ -673,7 +673,7 @@ This should be bound to a mouse drag event."
     ;; If mark is highlighted, no need to bounce the cursor.
     ;; On X, we highlight while dragging, thus once again no need to bounce.
     (or transient-mark-mode
-	(memq (framep (selected-frame)) '(x pc w32 mac ns))
+	(memq (framep (selected-frame)) '(x pc w32 ns))
 	(sit-for 1))
     (push-mark)
     (set-mark (point))
@@ -2473,6 +2473,7 @@ choose a font."
 (declare-function x-select-font "xfns.c" (&optional frame ignored)) ; USE_GTK
 (declare-function buffer-face-mode-invoke "face-remap"
                   (face arg &optional interactive))
+(declare-function font-face-attributes "font.c" (font &optional frame))
 
 (defun mouse-appearance-menu (event)
   (interactive "@e")

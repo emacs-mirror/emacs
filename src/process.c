@@ -33,6 +33,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef subprocesses
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
 #include <errno.h>
 #include <setjmp.h>
 #include <sys/types.h>		/* some typedefs are used in sys/file.h */
@@ -41,14 +43,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
+
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#include <grp.h>
+#endif
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-
-#if defined(WINDOWSNT) || defined(UNIX98_PTYS)
-#include <stdlib.h>
 #include <fcntl.h>
-#endif /* not WINDOWSNT */
 
 #ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
 #include <sys/socket.h>
@@ -146,6 +150,11 @@ extern Lisp_Object QCfamily;
 /* QCfilter is defined in keyboard.c.  */
 extern Lisp_Object QCfilter;
 
+Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
+Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
+Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
+Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem;
+
 #ifdef HAVE_SOCKETS
 #define NETCONN_P(p) (EQ (XPROCESS (p)->type, Qnetwork))
 #define NETCONN1_P(p) (EQ ((p)->type, Qnetwork))
@@ -159,11 +168,7 @@ extern Lisp_Object QCfilter;
 #endif /* HAVE_SOCKETS */
 
 /* Define first descriptor number available for subprocesses.  */
-#ifdef VMS
-#define FIRST_PROC_DESC 1
-#else /* Not VMS */
 #define FIRST_PROC_DESC 3
-#endif
 
 /* Define SIGCHLD as an alias for SIGCLD.  There are many conditionals
    testing SIGCHLD.  */
@@ -191,9 +196,6 @@ extern void serial_configure (struct Lisp_Process *p, Lisp_Object contact);
 
 #ifndef USE_CRT_DLL
 extern int errno;
-#endif
-#ifdef VMS
-extern char *sys_errlist[];
 #endif
 
 #ifndef HAVE_H_ERRNO
@@ -598,6 +600,7 @@ make_process (name)
   p->raw_status_new = 0;
   p->status = Qrun;
   p->mark = Fmake_marker ();
+  p->kill_without_query = 0;
 
 #ifdef ADAPTIVE_READ_BUFFERING
   p->adaptive_read_buffering = 0;
@@ -1417,12 +1420,7 @@ list_processes_1 (query_only)
 	{
 	  Lisp_Object tem;
 	  tem = Fcar (Fcdr (p->status));
-#ifdef VMS
-	  if (XINT (tem) < NSIG)
-	    write_string (sys_errlist [XINT (tem)], -1);
-	  else
-#endif
-	    Fprinc (symbol, Qnil);
+	  Fprinc (symbol, Qnil);
 	}
       else if (NETCONN1_P (p) || SERIALCONN1_P (p))
 	{
@@ -1587,12 +1585,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
      register Lisp_Object *args;
 {
   Lisp_Object buffer, name, program, proc, current_dir, tem;
-#ifdef VMS
-  register unsigned char *new_argv;
-  int len;
-#else
   register unsigned char **new_argv;
-#endif
   register int i;
   int count = SPECPDL_INDEX ();
 
@@ -1709,28 +1702,6 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     XPROCESS (proc)->encode_coding_system = val;
   }
 
-#ifdef VMS
-  /* Make a one member argv with all args concatenated
-     together separated by a blank.  */
-  len = SBYTES (program) + 2;
-  for (i = 3; i < nargs; i++)
-    {
-      tem = args[i];
-      CHECK_STRING (tem);
-      len += SBYTES (tem) + 1;	/* count the blank */
-    }
-  new_argv = (unsigned char *) alloca (len);
-  strcpy (new_argv, SDATA (program));
-  for (i = 3; i < nargs; i++)
-    {
-      tem = args[i];
-      CHECK_STRING (tem);
-      strcat (new_argv, " ");
-      strcat (new_argv, SDATA (tem));
-    }
-  /* Need to add code here to check for program existence on VMS */
-
-#else /* not VMS */
   new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
 
   /* If program file name is not absolute, search our path for it.
@@ -1782,7 +1753,6 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       new_argv[i - 2] = SDATA (tem);
     }
   new_argv[i - 2] = 0;
-#endif /* not VMS */
 
   XPROCESS (proc)->decoding_buf = make_uninit_string (0);
   XPROCESS (proc)->decoding_carryover = 0;
@@ -1841,7 +1811,6 @@ create_process_sigchld ()
 #endif
 #endif
 
-#ifndef VMS /* VMS version of this function is in vmsproc.c.  */
 void
 create_process (process, new_argv, current_dir)
      Lisp_Object process;
@@ -2285,7 +2254,6 @@ create_process (process, new_argv, current_dir)
   if (pid < 0)
     report_file_error ("Doing vfork", Qnil);
 }
-#endif /* not VMS */
 
 
 #ifdef HAVE_SOCKETS
@@ -4098,19 +4066,9 @@ deactivate_process (proc)
     {
       /* Beware SIGCHLD hereabouts. */
       flush_pending_output (inchannel);
-#ifdef VMS
-      {
-	VMS_PROC_STUFF *get_vms_process_pointer (), *vs;
-	sys$dassgn (outchannel);
-	vs = get_vms_process_pointer (p->pid);
-	if (vs)
-	  give_back_vms_process_stuff (vs);
-      }
-#else
       emacs_close (inchannel);
       if (outchannel >= 0 && outchannel != inchannel)
  	emacs_close (outchannel);
-#endif
 
       p->infd  = -1;
       p->outfd = -1;
@@ -5231,37 +5189,6 @@ read_process_output (proc, channel)
   int carryover = p->decoding_carryover;
   int readmax = 4096;
 
-#ifdef VMS
-  VMS_PROC_STUFF *vs, *get_vms_process_pointer();
-
-  vs = get_vms_process_pointer (p->pid);
-  if (vs)
-    {
-      if (!vs->iosb[0])
-	return (0);		/* Really weird if it does this */
-      if (!(vs->iosb[0] & 1))
-	return -1;		/* I/O error */
-    }
-  else
-    error ("Could not get VMS process pointer");
-  chars = vs->inputBuffer;
-  nbytes = clean_vms_buffer (chars, vs->iosb[1]);
-  if (nbytes <= 0)
-    {
-      start_vms_process_read (vs); /* Crank up the next read on the process */
-      return 1;			/* Nothing worth printing, say we got 1 */
-    }
-  if (carryover > 0)
-    {
-      /* The data carried over in the previous decoding (which are at
-         the tail of decoding buffer) should be prepended to the new
-         data read to decode all together.  */
-      chars = (char *) alloca (nbytes + carryover);
-      bcopy (SDATA (p->decoding_buf), buf, carryover);
-      bcopy (vs->inputBuffer, chars + carryover, nbytes);
-    }
-#else /* not VMS */
-
   chars = (char *) alloca (carryover + readmax);
   if (carryover)
     /* See the comment above.  */
@@ -5318,7 +5245,6 @@ read_process_output (proc, channel)
       else
 	nbytes = nbytes + 1;
     }
-#endif /* not VMS */
 
   p->decoding_carryover = 0;
 
@@ -5441,9 +5367,6 @@ read_process_output (proc, channel)
 	if (waiting_for_user_input_p == -1)
 	  record_asynch_buffer_change ();
 
-#ifdef VMS
-      start_vms_process_read (vs);
-#endif
       unbind_to (count, Qnil);
       return nbytes;
     }
@@ -5566,9 +5489,6 @@ read_process_output (proc, channel)
       SET_PT_BOTH (opoint, opoint_byte);
       set_buffer_internal (old);
     }
-#ifdef VMS
-  start_vms_process_read (vs);
-#endif
   return nbytes;
 }
 
@@ -5619,10 +5539,6 @@ send_process (proc, buf, len, object)
   SIGTYPE (*volatile old_sigpipe) ();
 
   GCPRO1 (object);
-
-#ifdef VMS
-  VMS_PROC_STUFF *vs, *get_vms_process_pointer();
-#endif /* VMS */
 
   if (p->raw_status_new)
     update_status (p);
@@ -5703,14 +5619,6 @@ send_process (proc, buf, len, object)
       len = coding->produced;
       buf = SDATA (coding->dst_object);
     }
-
-#ifdef VMS
-  vs = get_vms_process_pointer (p->pid);
-  if (vs == 0)
-    error ("Could not find this process: %x", p->pid);
-  else if (write_to_vms_process (vs, buf, len))
-    ;
-#else /* not VMS */
 
   if (pty_max_bytes == 0)
     {
@@ -5873,23 +5781,16 @@ send_process (proc, buf, len, object)
 	    Fprocess_send_eof (proc);
 	}
     }
-#endif /* not VMS */
   else
     {
       signal (SIGPIPE, old_sigpipe);
-#ifndef VMS
       proc = process_sent_to;
       p = XPROCESS (proc);
-#endif
       p->raw_status_new = 0;
       p->status = Fcons (Qexit, Fcons (make_number (256), Qnil));
       p->tick = ++process_tick;
       deactivate_process (proc);
-#ifdef VMS
-      error ("Error writing to process %s; closed it", SDATA (p->name));
-#else
       error ("SIGPIPE raised on process %s; closed it", SDATA (p->name));
-#endif
     }
 
   UNGCPRO;
@@ -6193,20 +6094,8 @@ process_send_signal (process, signo, current_group, nomsg)
       break;
 #endif /* ! defined (SIGCONT) */
     case SIGINT:
-#ifdef VMS
-      send_process (proc, "\003", 1, Qnil);	/* ^C */
-      goto whoosh;
-#endif
     case SIGQUIT:
-#ifdef VMS
-      send_process (proc, "\031", 1, Qnil);	/* ^Y */
-      goto whoosh;
-#endif
     case SIGKILL:
-#ifdef VMS
-      sys$forcex (&(p->pid), 0, 1);
-      whoosh:
-#endif
       flush_pending_output (p->infd);
       break;
     }
@@ -6547,9 +6436,6 @@ process has been transmitted to the serial port.  */)
       send_process (proc, "", 0, Qnil);
     }
 
-#ifdef VMS
-  send_process (proc, "\032", 1, Qnil); 	/* ^z */
-#else
   if (XPROCESS (proc)->pty_flag)
     send_process (proc, "\004", 1, Qnil);
   else if (EQ (XPROCESS (proc)->type, Qserial))
@@ -6594,7 +6480,6 @@ process has been transmitted to the serial port.  */)
 
       XPROCESS (proc)->outfd = new_outfd;
     }
-#endif /* VMS */
   return process;
 }
 
@@ -7182,6 +7067,485 @@ keyboard_bit_set (mask)
   return 0;
 }
 
+/* Enumeration of and access to system processes a-la ps(1).  */
+
+#if HAVE_PROCFS
+
+/* Process enumeration and access via /proc.  */
+
+static Lisp_Object
+procfs_list_system_processes ()
+{
+  Lisp_Object procdir, match, proclist, next;
+  struct gcpro gcpro1, gcpro2;
+  register Lisp_Object tail;
+
+  GCPRO2 (procdir, match);
+  /* For every process on the system, there's a directory in the
+     "/proc" pseudo-directory whose name is the numeric ID of that
+     process.  */
+  procdir = build_string ("/proc");
+  match = build_string ("[0-9]+");
+  proclist = directory_files_internal (procdir, Qnil, match, Qt, 0, Qnil);
+
+  /* `proclist' gives process IDs as strings.  Destructively convert
+     each string into a number.  */
+  for (tail = proclist; CONSP (tail); tail = next)
+    {
+      next = XCDR (tail);
+      XSETCAR (tail, Fstring_to_number (XCAR (tail), Qnil));
+    }
+  UNGCPRO;
+
+  /* directory_files_internal returns the files in reverse order; undo
+     that.  */
+  proclist = Fnreverse (proclist);
+  return proclist;
+}
+
+static void
+time_from_jiffies (unsigned long long tval, long hz,
+		   time_t *sec, unsigned *usec)
+{
+  unsigned long long ullsec;
+
+  *sec = tval / hz;
+  ullsec = *sec;
+  tval -= ullsec * hz;
+  /* Careful: if HZ > 1 million, then integer division by it yields zero.  */
+  if (hz <= 1000000)
+    *usec = tval * 1000000 / hz;
+  else
+    *usec = tval / (hz / 1000000);
+}
+
+static Lisp_Object
+ltime_from_jiffies (unsigned long long tval, long hz)
+{
+  time_t sec;
+  unsigned usec;
+
+  time_from_jiffies (tval, hz, &sec, &usec);
+
+  return list3 (make_number ((sec >> 16) & 0xffff),
+		make_number (sec & 0xffff),
+		make_number (usec));
+}
+
+static void
+get_up_time (time_t *sec, unsigned *usec)
+{
+  FILE *fup;
+  
+  *sec = *usec = 0;
+
+  BLOCK_INPUT;
+  fup = fopen ("/proc/uptime", "r");
+
+  if (fup)
+    {
+      double uptime, idletime;
+
+      /* The numbers in /proc/uptime use C-locale decimal point, but
+	 we already set ourselves to the C locale (see `fixup_locale'
+	 in emacs.c).  */
+      if (2 <= fscanf (fup, "%lf %lf", &uptime, &idletime))
+	{
+	  *sec = uptime;
+	  *usec = (uptime - *sec) * 1000000;
+	}
+      fclose (fup);
+    }
+  UNBLOCK_INPUT;
+}
+
+#define MAJOR(d) (((unsigned)(d) >> 8) & 0xfff)
+#define MINOR(d) (((unsigned)(d) & 0xff) | (((unsigned)(d) & 0xfff00000) >> 12))
+
+static Lisp_Object
+procfs_ttyname (rdev)
+{
+  FILE *fdev = NULL;
+  char name[PATH_MAX];
+
+  BLOCK_INPUT;
+  fdev = fopen ("/proc/tty/drivers", "r");
+
+  if (fdev)
+    {
+      unsigned major;
+      unsigned long minor_beg, minor_end;
+      char minor[25];	/* 2 32-bit numbers + dash */
+      char *endp;
+
+      while (!feof (fdev) && !ferror (fdev))
+	{
+	  if (3 <= fscanf (fdev, "%*s %s %u %s %*s\n", name, &major, minor)
+	      && major == MAJOR (rdev))
+	    {
+	      minor_beg = strtoul (minor, &endp, 0);
+	      if (*endp == '\0')
+		minor_end = minor_beg;
+	      else if (*endp == '-')
+		minor_end = strtoul (endp + 1, &endp, 0);
+	      else
+		continue;
+
+	      if (MINOR (rdev) >= minor_beg && MINOR (rdev) <= minor_end)
+		{
+		  sprintf (name + strlen (name), "%lu", MINOR (rdev));
+		  break;
+		}
+	    }
+	}
+      fclose (fdev);
+    }
+  UNBLOCK_INPUT;
+  return build_string (name);
+}
+
+static unsigned long
+procfs_get_total_memory (void)
+{
+  FILE *fmem = NULL;
+  unsigned long retval = 2 * 1024 * 1024; /* default: 2GB */
+
+  BLOCK_INPUT;
+  fmem = fopen ("/proc/meminfo", "r");
+
+  if (fmem)
+    {
+      unsigned long entry_value;
+      char entry_name[20];	/* the longest I saw is 13+1 */
+
+      while (!feof (fmem) && !ferror (fmem))
+	{
+	  if (2 <= fscanf (fmem, "%s %lu kB\n", entry_name, &entry_value)
+	      && strcmp (entry_name, "MemTotal:") == 0)
+	    {
+	      retval = entry_value;
+	      break;
+	    }
+	}
+      fclose (fmem);
+    }
+  UNBLOCK_INPUT;
+  return retval;
+}
+
+static Lisp_Object
+procfs_system_process_attributes (pid)
+     Lisp_Object pid;
+{
+  char procfn[PATH_MAX], fn[PATH_MAX];
+  struct stat st;
+  struct passwd *pw;
+  struct group *gr;
+  long clocks_per_sec;
+  char *procfn_end;
+  char procbuf[1025], *p, *q;
+  int fd;
+  ssize_t nread;
+  const char *cmd;
+  char *cmdline = NULL;
+  size_t cmdsize;
+  unsigned char c;
+  int proc_id, ppid, uid, gid, pgrp, sess, tty, tpgid, thcount;
+  unsigned long long utime, stime, cutime, cstime, start;
+  long priority, nice, rss;
+  unsigned long minflt, majflt, cminflt, cmajflt, vsize;
+  time_t sec;
+  unsigned usec;
+  EMACS_TIME tnow, tstart, tboot, telapsed,ttotal;
+  double pcpu, pmem;
+  Lisp_Object attrs = Qnil;
+  Lisp_Object cmd_str, decoded_cmd, tem;
+  struct gcpro gcpro1, gcpro2;
+  EMACS_INT uid_eint, gid_eint;
+
+  CHECK_NUMBER_OR_FLOAT (pid);
+  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
+  sprintf (procfn, "/proc/%lu", proc_id);
+  if (stat (procfn, &st) < 0)
+    return attrs;
+
+  GCPRO2 (attrs, decoded_cmd);
+
+  /* euid egid */
+  uid = st.st_uid;
+  /* Use of EMACS_INT stops GCC whining about limited range of data type.  */
+  uid_eint = uid;
+  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid_eint)), attrs);
+  BLOCK_INPUT;
+  pw = getpwuid (uid);
+  UNBLOCK_INPUT;
+  if (pw)
+    attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
+
+  gid = st.st_gid;
+  gid_eint = gid;
+  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid_eint)), attrs);
+  BLOCK_INPUT;
+  gr = getgrgid (gid);
+  UNBLOCK_INPUT;
+  if (gr)
+    attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
+
+  strcpy (fn, procfn);
+  procfn_end = fn + strlen (fn);
+  strcpy (procfn_end, "/stat");
+  fd = emacs_open (fn, O_RDONLY, 0);
+  if (fd >= 0 && (nread = emacs_read (fd, procbuf, sizeof(procbuf) - 1)) > 0)
+    {
+      procbuf[nread] = '\0';
+      p = procbuf;
+
+      cmd = NULL;
+      p = strchr (p, '(');
+      if (p != NULL)
+	{
+	  q = strrchr (p + 1, ')');
+	  /* comm */
+	  if (q != NULL)
+	    {
+	      cmd = p + 1;
+	      cmdsize = q - cmd;
+	    }
+	}
+      if (cmd == NULL)
+	{
+	  cmd = "???";
+	  cmdsize = 3;
+	}
+      /* Command name is encoded in locale-coding-system; decode it.  */
+      cmd_str = make_unibyte_string (cmd, cmdsize);
+      decoded_cmd = code_convert_string_norecord (cmd_str,
+						  Vlocale_coding_system, 0);
+      attrs = Fcons (Fcons (Qcomm, decoded_cmd), attrs);
+
+      if (q)
+	{
+	  EMACS_INT ppid_eint, pgrp_eint, sess_eint, tpgid_eint, thcount_eint;
+	  p = q + 2;
+	  /* state ppid pgrp sess tty tpgid . minflt cminflt majflt cmajflt utime stime cutime cstime priority nice thcount . start vsize rss */
+	  sscanf (p, "%c %d %d %d %d %d %*u %lu %lu %lu %lu %Lu %Lu %Lu %Lu %ld %ld %d %*d %Lu %lu %ld",
+		  &c, &ppid, &pgrp, &sess, &tty, &tpgid,
+		  &minflt, &cminflt, &majflt, &cmajflt,
+		  &utime, &stime, &cutime, &cstime,
+		  &priority, &nice, &thcount, &start, &vsize, &rss);
+	  {
+	    char state_str[2];
+
+	    state_str[0] = c;
+	    state_str[1] = '\0';
+	    tem =  build_string (state_str);
+	    attrs = Fcons (Fcons (Qstate, tem), attrs);
+	  }
+	  /* Stops GCC whining about limited range of data type.  */
+	  ppid_eint = ppid;
+	  pgrp_eint = pgrp;
+	  sess_eint = sess;
+	  tpgid_eint = tpgid;
+	  thcount_eint = thcount;
+	  attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (ppid_eint)), attrs);
+	  attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (pgrp_eint)), attrs);
+	  attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (sess_eint)), attrs);
+	  attrs = Fcons (Fcons (Qttname, procfs_ttyname (tty)), attrs);
+	  attrs = Fcons (Fcons (Qtpgid, make_fixnum_or_float (tpgid_eint)), attrs);
+	  attrs = Fcons (Fcons (Qminflt, make_fixnum_or_float (minflt)), attrs);
+	  attrs = Fcons (Fcons (Qmajflt, make_fixnum_or_float (majflt)), attrs);
+	  attrs = Fcons (Fcons (Qcminflt, make_fixnum_or_float (cminflt)), attrs);
+	  attrs = Fcons (Fcons (Qcmajflt, make_fixnum_or_float (cmajflt)), attrs);
+	  clocks_per_sec = sysconf (_SC_CLK_TCK);
+	  if (clocks_per_sec < 0)
+	    clocks_per_sec = 100;
+	  attrs = Fcons (Fcons (Qutime,
+				ltime_from_jiffies (utime, clocks_per_sec)),
+			 attrs);
+	  attrs = Fcons (Fcons (Qstime,
+				ltime_from_jiffies (stime, clocks_per_sec)),
+			 attrs);
+	  attrs = Fcons (Fcons (Qcutime,
+				ltime_from_jiffies (cutime, clocks_per_sec)),
+			 attrs);
+	  attrs = Fcons (Fcons (Qcstime,
+				ltime_from_jiffies (cstime, clocks_per_sec)),
+			 attrs);
+	  attrs = Fcons (Fcons (Qpri, make_number (priority)), attrs);
+	  attrs = Fcons (Fcons (Qnice, make_number (nice)), attrs);
+	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount_eint)), attrs);
+	  EMACS_GET_TIME (tnow);
+	  get_up_time (&sec, &usec);
+	  EMACS_SET_SECS (telapsed, sec);
+	  EMACS_SET_USECS (telapsed, usec);
+	  EMACS_SUB_TIME (tboot, tnow, telapsed);
+	  time_from_jiffies (start, clocks_per_sec, &sec, &usec);
+	  EMACS_SET_SECS (tstart, sec);
+	  EMACS_SET_USECS (tstart, usec);
+	  EMACS_ADD_TIME (tstart, tboot, tstart);
+	  attrs = Fcons (Fcons (Qstart,
+				list3 (make_number
+				       ((EMACS_SECS (tstart) >> 16) & 0xffff),
+				       make_number
+				       (EMACS_SECS (tstart) & 0xffff),
+				       make_number
+				       (EMACS_USECS (tstart)))),
+			 attrs);
+	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (vsize/1024)), attrs);
+	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (4*rss)), attrs);
+	  EMACS_SUB_TIME (telapsed, tnow, tstart);
+	  attrs = Fcons (Fcons (Qetime,
+				list3 (make_number
+				       ((EMACS_SECS (telapsed) >> 16) & 0xffff),
+				       make_number
+				       (EMACS_SECS (telapsed) & 0xffff),
+				       make_number
+				       (EMACS_USECS (telapsed)))),
+			 attrs);
+	  time_from_jiffies (utime + stime, clocks_per_sec, &sec, &usec);
+	  pcpu = (sec + usec / 1000000.0) / (EMACS_SECS (telapsed) + EMACS_USECS (telapsed) / 1000000.0);
+	  attrs = Fcons (Fcons (Qpcpu, make_float (pcpu)), attrs);
+	  pmem = 4.0 * 100 * rss / procfs_get_total_memory ();
+	  if (pmem > 100)
+	    pmem = 100;
+	  attrs = Fcons (Fcons (Qpmem, make_float (pmem)), attrs);
+	}
+    }
+  if (fd >= 0)
+    emacs_close (fd);
+
+  /* args */
+  strcpy (procfn_end, "/cmdline");
+  fd = emacs_open (fn, O_RDONLY, 0);
+  if (fd >= 0)
+    {
+      for (cmdsize = 0; emacs_read (fd, &c, 1) == 1; cmdsize++)
+	{
+	  if (isspace (c) || c == '\\')
+	    cmdsize++;	/* for later quoting, see below */
+	}
+      if (cmdsize)
+	{
+	  cmdline = xmalloc (cmdsize + 1);
+	  lseek (fd, 0L, SEEK_SET);
+	  cmdline[0] = '\0';
+	  if ((nread = read (fd, cmdline, cmdsize)) >= 0)
+	    cmdline[nread++] = '\0';
+	  /* We don't want trailing null characters.  */
+	  for (p = cmdline + nread - 1; p > cmdline && !*p; p--)
+	    nread--;
+	  for (p = cmdline; p < cmdline + nread; p++)
+	    {
+	      /* Escape-quote whitespace and backslashes.  */
+	      if (isspace (*p) || *p == '\\')
+		{
+		  memmove (p + 1, p, nread - (p - cmdline));
+		  nread++;
+		  *p++ = '\\';
+		}
+	      else if (*p == '\0')
+		*p = ' ';
+	    }
+	  cmdsize = nread;
+	}
+      else
+	{
+	  cmdsize = strlen (cmd) + 2;
+	  cmdline = xmalloc (cmdsize + 1);
+	  strcpy (cmdline, "[");
+	  strcat (strcat (cmdline, cmd), "]");
+	}
+      emacs_close (fd);
+      /* Command line is encoded in locale-coding-system; decode it.  */
+      cmd_str = make_unibyte_string (cmdline, cmdsize);
+      decoded_cmd = code_convert_string_norecord (cmd_str,
+						  Vlocale_coding_system, 0);
+      xfree (cmdline);
+      attrs = Fcons (Fcons (Qargs, decoded_cmd), attrs);
+    }
+
+  UNGCPRO;
+  return attrs;
+}
+
+#endif	/* !HAVE_PROCFS */
+
+DEFUN ("list-system-processes", Flist_system_processes, Slist_system_processes,
+       0, 0, 0,
+       doc: /* Return a list of numerical process IDs of all running processes.
+If this functionality is unsupported, return nil.
+
+See `system-process-attributes' for getting attributes of a process
+given its ID.  */)
+    ()
+{
+#ifdef LISTPROC
+  return LISTPROC ();
+#else
+  return Qnil;
+#endif
+}
+
+DEFUN ("system-process-attributes", Fsystem_process_attributes,
+       Ssystem_process_attributeses, 1, 1, 0,
+       doc: /* Return attributes of the process given by its PID, a number.
+
+Value is an alist where each element is a cons cell of the form
+
+    \(ATTR . VALUE)
+
+If this functionality is unsupported, the value is nil.
+
+See `list-system-processes' for getting a list of all process IDs.
+
+The attributes that this function may return are listed below,
+together with the type of the associated value (in parentheses).
+Not all platforms support all of these attributes; unsupported
+attributes will not appear in the returned alist.
+Unless explicitly indicated otherwise, numbers can have either
+integer or floating point values.
+
+ euid    -- Effective user User ID of the process (number)
+ user    -- User name corresponding to euid (string)
+ egid    -- Effective user Group ID of the process (number)
+ group   -- Group name corresponding to egid (string)
+ comm    -- Command name (executable name only) (string)
+ state   -- Process state code, such as "S", "R", or "T" (string)
+ ppid    -- Parent process ID (number)
+ pgrp    -- Process group ID (number)
+ sess    -- Session ID, i.e. process ID of session leader (number)
+ ttname  -- Controlling tty name (string)
+ tpgid   -- ID of foreground process group on the process's tty (number)
+ minflt  -- number of minor page faults (number)
+ majflt  -- number of major page faults (number)
+ cminflt -- cumulative number of minor page faults (number)
+ cmajflt -- cumulative number of major page faults (number)
+ utime   -- user time used by the process, in the (HIGH LOW USEC) format
+ stime   -- system time used by the process, in the (HIGH LOW USEC) format
+ cutime  -- user time used by the process and its children, (HIGH LOW USEC)
+ cstime  -- system time used by the process and its children, (HIGH LOW USEC)
+ pri     -- priority of the process (number)
+ nice    -- nice value of the process (number)
+ thcount -- process thread count (number)
+ start   -- time the process started, in the (HIGH LOW USEC) format
+ vsize   -- virtual memory size of the process in KB's (number)
+ rss     -- resident set size of the process in KB's (number)
+ etime   -- elapsed time the process is running, in (HIGH LOW USEC) format
+ pcpu    -- percents of CPU time used by the process (floating-point number)
+ pmem    -- percents of total physical memory used by process's resident set
+              (floating-point number)
+ args    -- command line which invoked the process (string).  */)
+    (pid)
+
+    Lisp_Object pid;
+{
+#ifdef PROCATTR
+  return PROCATTR (pid);
+#else
+  return Qnil;
+#endif
+}
+
 void
 init_process ()
 {
@@ -7268,7 +7632,7 @@ init_process ()
  }
 #endif /* HAVE_SOCKETS */
 
-#if defined (DARWIN) || defined (MAC_OSX)
+#if defined (DARWIN_OS)
   /* PTYs are broken on Darwin < 6, but are sometimes useful for interactive
      processes.  As such, we only change the default value.  */
  if (initialized)
@@ -7395,6 +7759,65 @@ syms_of_process ()
   staticpro (&deleted_pid_list);
 #endif
 
+  Qeuid = intern ("euid");
+  staticpro (&Qeuid);
+  Qegid = intern ("egid");
+  staticpro (&Qegid);
+  Quser = intern ("user");
+  staticpro (&Quser);
+  Qgroup = intern ("group");
+  staticpro (&Qgroup);
+  Qcomm = intern ("comm");
+  staticpro (&Qcomm);
+  Qstate = intern ("state");
+  staticpro (&Qstate);
+  Qppid = intern ("ppid");
+  staticpro (&Qppid);
+  Qpgrp = intern ("pgrp");
+  staticpro (&Qpgrp);
+  Qsess = intern ("sess");
+  staticpro (&Qsess);
+  Qttname = intern ("ttname");
+  staticpro (&Qttname);
+  Qtpgid = intern ("tpgid");
+  staticpro (&Qtpgid);
+  Qminflt = intern ("minflt");
+  staticpro (&Qminflt);
+  Qmajflt = intern ("majflt");
+  staticpro (&Qmajflt);
+  Qcminflt = intern ("cminflt");
+  staticpro (&Qcminflt);
+  Qcmajflt = intern ("cmajflt");
+  staticpro (&Qcmajflt);
+  Qutime = intern ("utime");
+  staticpro (&Qutime);
+  Qstime = intern ("stime");
+  staticpro (&Qstime);
+  Qcutime = intern ("cutime");
+  staticpro (&Qcutime);
+  Qcstime = intern ("cstime");
+  staticpro (&Qcstime);
+  Qpri = intern ("pri");
+  staticpro (&Qpri);
+  Qnice = intern ("nice");
+  staticpro (&Qnice);
+  Qthcount = intern ("thcount");
+  staticpro (&Qthcount);
+  Qstart = intern ("start");
+  staticpro (&Qstart);
+  Qvsize = intern ("vsize");
+  staticpro (&Qvsize);
+  Qrss = intern ("rss");
+  staticpro (&Qrss);
+  Qetime = intern ("etime");
+  staticpro (&Qetime);
+  Qpcpu = intern ("pcpu");
+  staticpro (&Qpcpu);
+  Qpmem = intern ("pmem");
+  staticpro (&Qpmem);
+  Qargs = intern ("args");
+  staticpro (&Qargs);
+
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
 	       doc: /* *Non-nil means delete processes immediately when they exit.
 A value of nil means don't delete them until `list-processes' is run.  */);
@@ -7489,6 +7912,8 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sprocess_coding_system);
   defsubr (&Sset_process_filter_multibyte);
   defsubr (&Sprocess_filter_multibyte_p);
+  defsubr (&Slist_system_processes);
+  defsubr (&Ssystem_process_attributeses);
 }
 
 
@@ -7496,6 +7921,12 @@ The variable takes effect when `start-process' is called.  */);
 
 #include <sys/types.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #include "lisp.h"
 #include "systime.h"
@@ -7509,7 +7940,7 @@ extern int frame_garbaged;
 extern EMACS_TIME timer_check ();
 extern int timers_run;
 
-Lisp_Object QCtype;
+Lisp_Object QCtype, QCname;
 
 /* As described above, except assuming that there are no subprocesses:
 
@@ -7771,6 +8202,74 @@ kill_buffer_processes (buffer)
 {
 }
 
+DEFUN ("list-system-processes", Flist_system_processes, Slist_system_processes,
+       0, 0, 0,
+       doc: /* Return a list of numerical process IDs of all running processes.
+If this functionality is unsupported, return nil.
+
+See `system-process-attributes' for getting attributes of a process
+given its ID.  */)
+    ()
+{
+  return Qnil;
+}
+
+DEFUN ("system-process-attributes", Fsystem_process_attributes,
+       Ssystem_process_attributeses, 1, 1, 0,
+       doc: /* Return attributes of the process given by its PID, a number.
+
+Value is an alist where each element is a cons cell of the form
+
+    \(ATTR . VALUE)
+
+If this functionality is unsupported, the value is nil.
+
+See `list-system-processes' for getting a list of all process IDs.
+
+The attributes that this function may return are listed below,
+together with the type of the associated value (in parentheses).
+Not all platforms support all of these attributes; unsupported
+attributes will not appear in the returned alist.
+Unless explicitly indicated otherwise, numbers can have either
+integer or floating point values.
+
+ euid    -- Effective user User ID of the process (number)
+ user    -- User name corresponding to euid (string)
+ egid    -- Effective user Group ID of the process (number)
+ group   -- Group name corresponding to egid (string)
+ comm    -- Command name (executable name only) (string)
+ state   -- Process state code, such as "S", "R", or "T" (string)
+ ppid    -- Parent process ID (number)
+ pgrp    -- Process group ID (number)
+ sess    -- Session ID, i.e. process ID of session leader (number)
+ ttname  -- Controlling tty name (string)
+ tpgid   -- ID of foreground process group on the process's tty (number)
+ minflt  -- number of minor page faults (number)
+ majflt  -- number of major page faults (number)
+ cminflt -- cumulative number of minor page faults (number)
+ cmajflt -- cumulative number of major page faults (number)
+ utime   -- user time used by the process, in the (HIGH LOW USEC) format
+ stime   -- system time used by the process, in the (HIGH LOW USEC) format
+ cutime  -- user time used by the process and its children, (HIGH LOW USEC)
+ cstime  -- system time used by the process and its children, (HIGH LOW USEC)
+ pri     -- priority of the process (number)
+ nice    -- nice value of the process (number)
+ thcount -- process thread count (number)
+ start   -- time the process started, in the (HIGH LOW USEC) format
+ vsize   -- virtual memory size of the process in KB's (number)
+ rss     -- resident set size of the process in KB's (number)
+ etime   -- elapsed time the process is running, in (HIGH LOW USEC) format
+ pcpu    -- percents of CPU time used by the process (floating-point number)
+ pmem    -- percents of total physical memory used by process's resident set
+              (floating-point number)
+ args    -- command line which invoked the process (string).   */)
+    (pid)
+
+    Lisp_Object pid;
+{
+  return Qnil;
+}
+
 void
 init_process ()
 {
@@ -7781,9 +8280,13 @@ syms_of_process ()
 {
   QCtype = intern (":type");
   staticpro (&QCtype);
+  QCname = intern (":name");
+  staticpro (&QCname);
 
   defsubr (&Sget_buffer_process);
   defsubr (&Sprocess_inherit_coding_system_flag);
+  defsubr (&Slist_system_processes);
+  defsubr (&Ssystem_process_attributeses);
 }
 
 

@@ -660,28 +660,27 @@ optimize_sub_char_table (table, test)
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT (tbl->depth);
   Lisp_Object elt, this;
-  int i;
+  int i, optimizable;
 
   elt = XSUB_CHAR_TABLE (table)->contents[0];
   if (SUB_CHAR_TABLE_P (elt))
     elt = XSUB_CHAR_TABLE (table)->contents[0]
       = optimize_sub_char_table (elt, test);
-  if (SUB_CHAR_TABLE_P (elt))
-    return table;
+  optimizable = SUB_CHAR_TABLE_P (elt) ? 0 : 1;
   for (i = 1; i < chartab_size[depth]; i++)
     {
       this = XSUB_CHAR_TABLE (table)->contents[i];
       if (SUB_CHAR_TABLE_P (this))
 	this = XSUB_CHAR_TABLE (table)->contents[i]
 	  = optimize_sub_char_table (this, test);
-      if (SUB_CHAR_TABLE_P (this)
-	  || (NILP (test) ? NILP (Fequal (this, elt)) /* defaults to `equal'. */
+      if (optimizable
+	  && (NILP (test) ? NILP (Fequal (this, elt)) /* defaults to `equal'. */
 	      : EQ (test, Qeq) ? !EQ (this, elt)      /* Optimize `eq' case.  */
 	      : NILP (call2 (test, this, elt))))
-	break;
+	optimizable = 0;
     }
 
-  return (i < chartab_size[depth] ? table : elt);
+  return (optimizable ? elt : table);
 }
 
 DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,

@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 extern void init_signals P_ ((void));
 
-#if defined (HAVE_GTK_AND_PTHREAD) || (defined (HAVE_CARBON) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1020)
+#if defined (HAVE_GTK_AND_PTHREAD) || defined (HAVE_NS)
 #include <pthread.h>
 /* If defined, asynchronous signals delivered to a non-main thread are
    forwarded to the main thread.  */
@@ -192,13 +192,11 @@ extern SIGMASKTYPE sigprocmask_set;
 
 /* Define SIGCHLD as an alias for SIGCLD.  There are many conditionals
    testing SIGCHLD.  */
-#ifndef VMS
 #ifdef SIGCLD
 #ifndef SIGCHLD
 #define SIGCHLD SIGCLD
 #endif /* SIGCHLD */
 #endif /* ! defined (SIGCLD) */
-#endif /* VMS */
 
 #ifndef HAVE_STRSIGNAL
 /* strsignal is in sysdep.c */

@@ -484,7 +484,7 @@ This runs `flyspell-mode-hook' after flyspell mode is entered or exit.
 
 Remark:
 `flyspell-mode' uses `ispell-mode'.  Thus all Ispell options are
-valid.  For instance, a personal dictionary can be used by
+valid.  For instance, a different dictionary can be used by
 invoking `ispell-change-dictionary'.
 
 Consider using the `ispell-parser' to check your text.  For instance
@@ -744,6 +744,9 @@ before the current command."
 		  (eq flyspell-previous-command this-command)))
 	 (or (= (current-column) 0)
 	     (= (current-column) flyspell-pre-column)
+	     ;; If other post-command-hooks change the buffer,
+	     ;; flyspell-pre-point can lie past eob (bug#468).
+	     (null (char-after flyspell-pre-point))
 	     (eq (char-syntax (char-after flyspell-pre-point)) ?w)))
     nil)
    ((not (eq (current-buffer) flyspell-pre-buffer))

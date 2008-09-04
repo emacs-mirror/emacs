@@ -1,0 +1,1706 @@
+1.9          (eric     17-Mar-93): ;;; rmailsum.el --- make summary buffers for the mail reader
+1.8          (eric     17-Mar-93): 
+1.136        (ttn      06-Aug-05): ;; Copyright (C) 1985, 1993, 1994, 1995, 1996, 2000, 2001, 2002, 2003,
+1.149        (miles    08-Jan-08): ;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+1.2          (eric     30-May-92): 
+1.3          (eric     16-Jul-92): ;; Maintainer: FSF
+1.4          (eric     17-Jul-92): ;; Keywords: mail
+1.1          (jimb     30-Nov-90): 
+1.1          (jimb     30-Nov-90): ;; This file is part of GNU Emacs.
+1.1          (jimb     30-Nov-90): 
+1.151        (gm       06-May-08): ;; GNU Emacs is free software: you can redistribute it and/or modify
+1.1          (jimb     30-Nov-90): ;; it under the terms of the GNU General Public License as published by
+1.151        (gm       06-May-08): ;; the Free Software Foundation, either version 3 of the License, or
+1.151        (gm       06-May-08): ;; (at your option) any later version.
+1.1          (jimb     30-Nov-90): 
+1.1          (jimb     30-Nov-90): ;; GNU Emacs is distributed in the hope that it will be useful,
+1.1          (jimb     30-Nov-90): ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+1.1          (jimb     30-Nov-90): ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+1.1          (jimb     30-Nov-90): ;; GNU General Public License for more details.
+1.1          (jimb     30-Nov-90): 
+1.1          (jimb     30-Nov-90): ;; You should have received a copy of the GNU General Public License
+1.151        (gm       06-May-08): ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+1.1          (jimb     30-Nov-90): 
+1.8          (eric     17-Mar-93): ;;; Commentary:
+1.8          (eric     17-Mar-93): 
+1.6          (rms      09-Mar-93): ;; Extended by Bob Weiner of Motorola
+1.6          (rms      09-Mar-93): ;;   Provided all commands from rmail-mode in rmail-summary-mode and made key
+1.6          (rms      09-Mar-93): ;;   bindings in both modes wholly compatible.
+1.8          (eric     17-Mar-93): 
+1.8          (eric     17-Mar-93): ;;; Code:
+1.6          (rms      09-Mar-93): 
+1.138        (lektu    29-Aug-05): (defvar msgnum)
+1.138        (lektu    29-Aug-05): 
+1.70         (rms      21-Aug-95): ;; For rmail-select-summary
+1.70         (rms      21-Aug-95): (require 'rmail)
+1.70         (rms      21-Aug-95): 
+1.82         (rms      04-Apr-96): ;;;###autoload
+1.96         (rms      03-May-97): (defcustom rmail-summary-scroll-between-messages t
+1.96         (rms      03-May-97):   "*Non-nil means Rmail summary scroll commands move between messages."
+1.96         (rms      03-May-97):   :type 'boolean
+1.96         (rms      03-May-97):   :group 'rmail-summary)
+1.82         (rms      04-Apr-96): 
+1.91         (rms      04-Oct-96): ;;;###autoload
+1.96         (rms      03-May-97): (defcustom rmail-summary-line-count-flag t
+1.127        (jpw      06-Feb-03):   "*Non-nil means Rmail summary should show the number of lines in each message."
+1.96         (rms      03-May-97):   :type 'boolean
+1.96         (rms      03-May-97):   :group 'rmail-summary)
+1.91         (rms      04-Oct-96): 
+1.55         (rms      07-Oct-94): (defvar rmail-summary-font-lock-keywords
+1.122        (eliz     21-Oct-01):   '(("^.....D.*" . font-lock-string-face)			; Deleted.
+1.122        (eliz     21-Oct-01):     ("^.....-.*" . font-lock-type-face)				; Unread.
+1.55         (rms      07-Oct-94):     ;; Neither of the below will be highlighted if either of the above are:
+1.122        (eliz     21-Oct-01):     ("^.....[^D-] \\(......\\)" 1 font-lock-keyword-face)	; Date.
+1.130        (rms      30-Sep-03):     ("{ \\([^\n}]+\\) }" 1 font-lock-comment-face))		; Labels.
+1.55         (rms      07-Oct-94):   "Additional expressions to highlight in Rmail Summary mode.")
+1.55         (rms      07-Oct-94): 
+1.134        (rms      03-Jul-05): (defvar rmail-summary-redo
+1.134        (rms      03-Jul-05):   "(FUNCTION . ARGS) to regenerate this Rmail summary buffer.")
+1.134        (rms      03-Jul-05): 
+1.134        (rms      03-Jul-05): (defvar rmail-summary-overlay nil)
+1.134        (rms      03-Jul-05): (put 'rmail-summary-overlay 'permanent-local t)
+1.134        (rms      03-Jul-05): 
+1.134        (rms      03-Jul-05): (defvar rmail-summary-mode-map nil)
+1.134        (rms      03-Jul-05): 
+1.6          (rms      09-Mar-93): ;; Entry points for making a summary buffer.
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): ;; Regenerate the contents of the summary
+1.6          (rms      09-Mar-93): ;; using the same selection criterion as last time.
+1.6          (rms      09-Mar-93): ;; M-x revert-buffer in a summary buffer calls this function.
+1.6          (rms      09-Mar-93): (defun rmail-update-summary (&rest ignore)
+1.6          (rms      09-Mar-93):   (apply (car rmail-summary-redo) (cdr rmail-summary-redo)))
+1.1          (jimb     30-Nov-90): 
+1.90         (rms      27-Sep-96): ;;;###autoload
+1.1          (jimb     30-Nov-90): (defun rmail-summary ()
+1.1          (jimb     30-Nov-90):   "Display a summary of all messages, one line per message."
+1.1          (jimb     30-Nov-90):   (interactive)
+1.6          (rms      09-Mar-93):   (rmail-new-summary "All" '(rmail-summary) nil))
+1.1          (jimb     30-Nov-90): 
+1.90         (rms      27-Sep-96): ;;;###autoload
+1.1          (jimb     30-Nov-90): (defun rmail-summary-by-labels (labels)
+1.1          (jimb     30-Nov-90):   "Display a summary of all messages with one or more LABELS.
+1.1          (jimb     30-Nov-90): LABELS should be a string containing the desired labels, separated by commas."
+1.1          (jimb     30-Nov-90):   (interactive "sLabels to summarize by: ")
+1.1          (jimb     30-Nov-90):   (if (string= labels "")
+1.1          (jimb     30-Nov-90):       (setq labels (or rmail-last-multi-labels
+1.1          (jimb     30-Nov-90): 		       (error "No label specified"))))
+1.1          (jimb     30-Nov-90):   (setq rmail-last-multi-labels labels)
+1.1          (jimb     30-Nov-90):   (rmail-new-summary (concat "labels " labels)
+1.6          (rms      09-Mar-93): 		     (list 'rmail-summary-by-labels labels)
+1.1          (jimb     30-Nov-90): 		     'rmail-message-labels-p
+1.1          (jimb     30-Nov-90): 		     (concat ", \\(" (mail-comma-list-regexp labels) "\\),")))
+1.1          (jimb     30-Nov-90): 
+1.90         (rms      27-Sep-96): ;;;###autoload
+1.1          (jimb     30-Nov-90): (defun rmail-summary-by-recipients (recipients &optional primary-only)
+1.1          (jimb     30-Nov-90):   "Display a summary of all messages with the given RECIPIENTS.
+1.1          (jimb     30-Nov-90): Normally checks the To, From and Cc fields of headers;
+1.1          (jimb     30-Nov-90): but if PRIMARY-ONLY is non-nil (prefix arg given),
+1.1          (jimb     30-Nov-90):  only look in the To and From fields.
+1.6          (rms      09-Mar-93): RECIPIENTS is a string of regexps separated by commas."
+1.1          (jimb     30-Nov-90):   (interactive "sRecipients to summarize by: \nP")
+1.1          (jimb     30-Nov-90):   (rmail-new-summary
+1.1          (jimb     30-Nov-90):    (concat "recipients " recipients)
+1.6          (rms      09-Mar-93):    (list 'rmail-summary-by-recipients recipients primary-only)
+1.1          (jimb     30-Nov-90):    'rmail-message-recipients-p
+1.1          (jimb     30-Nov-90):    (mail-comma-list-regexp recipients) primary-only))
+1.1          (jimb     30-Nov-90): 
+1.90         (rms      27-Sep-96): ;;;###autoload
+1.1          (jimb     30-Nov-90): (defun rmail-summary-by-regexp (regexp)
+1.1          (jimb     30-Nov-90):   "Display a summary of all messages according to regexp REGEXP.
+1.1          (jimb     30-Nov-90): If the regular expression is found in the header of the message
+1.1          (jimb     30-Nov-90): \(including in the date and other lines, as well as the subject line),
+1.1          (jimb     30-Nov-90): Emacs will list the header line in the RMAIL-summary."
+1.1          (jimb     30-Nov-90):   (interactive "sRegexp to summarize by: ")
+1.1          (jimb     30-Nov-90):   (if (string= regexp "")
+1.1          (jimb     30-Nov-90):       (setq regexp (or rmail-last-regexp
+1.120        (pj       15-Jul-01): 			 (error "No regexp specified"))))
+1.1          (jimb     30-Nov-90):   (setq rmail-last-regexp regexp)
+1.1          (jimb     30-Nov-90):   (rmail-new-summary (concat "regexp " regexp)
+1.6          (rms      09-Mar-93): 		     (list 'rmail-summary-by-regexp regexp)
+1.1          (jimb     30-Nov-90): 		     'rmail-message-regexp-p
+1.1          (jimb     30-Nov-90):                      regexp))
+1.1          (jimb     30-Nov-90): 
+1.6          (rms      09-Mar-93): ;; rmail-summary-by-topic
+1.6          (rms      09-Mar-93): ;; 1989 R.A. Schnitzler
+1.6          (rms      09-Mar-93): 
+1.90         (rms      27-Sep-96): ;;;###autoload
+1.6          (rms      09-Mar-93): (defun rmail-summary-by-topic (subject &optional whole-message)
+1.6          (rms      09-Mar-93):   "Display a summary of all messages with the given SUBJECT.
+1.6          (rms      09-Mar-93): Normally checks the Subject field of headers;
+1.126        (lektu    04-Feb-03): but if WHOLE-MESSAGE is non-nil (prefix arg given),
+1.6          (rms      09-Mar-93):  look in the whole message.
+1.6          (rms      09-Mar-93): SUBJECT is a string of regexps separated by commas."
+1.140        (as       08-Jan-06):   (interactive
+1.140        (as       08-Jan-06):    (let* ((subject (with-current-buffer rmail-buffer
+1.140        (as       08-Jan-06): 		     (rmail-current-subject)))
+1.140        (as       08-Jan-06): 	  (subject-re (with-current-buffer rmail-buffer
+1.140        (as       08-Jan-06): 			(rmail-current-subject-regexp)))
+1.140        (as       08-Jan-06): 	  (prompt (concat "Topics to summarize by (regexp"
+1.140        (as       08-Jan-06): 			  (if subject ", default current subject" "")
+1.140        (as       08-Jan-06): 			  "): ")))
+1.140        (as       08-Jan-06):      (list (read-string prompt nil nil subject) current-prefix-arg)))
+1.6          (rms      09-Mar-93):   (rmail-new-summary
+1.6          (rms      09-Mar-93):    (concat "about " subject)
+1.6          (rms      09-Mar-93):    (list 'rmail-summary-by-topic subject whole-message)
+1.6          (rms      09-Mar-93):    'rmail-message-subject-p
+1.6          (rms      09-Mar-93):    (mail-comma-list-regexp subject) whole-message))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-message-subject-p (msg subject &optional whole-message)
+1.6          (rms      09-Mar-93):   (save-restriction
+1.6          (rms      09-Mar-93):     (goto-char (rmail-msgbeg msg))
+1.105        (rms      01-Nov-98):     (search-forward "\n*** EOOH ***\n" (rmail-msgend msg) 'move)
+1.6          (rms      09-Mar-93):     (narrow-to-region
+1.6          (rms      09-Mar-93):      (point)
+1.12         (rms      31-May-93):      (progn (search-forward (if whole-message "\^_" "\n\n")) (point)))
+1.6          (rms      09-Mar-93):     (goto-char (point-min))
+1.6          (rms      09-Mar-93):     (if whole-message (re-search-forward subject nil t)
+1.119        (gerd     31-May-01):       (string-match subject (let ((subj (mail-fetch-field "Subject")))
+1.119        (gerd     31-May-01): 			      (if subj
+1.119        (gerd     31-May-01): 				  (funcall rmail-summary-line-decoder subj)
+1.119        (gerd     31-May-01): 				""))))))
+1.13         (rms      03-Jun-93): 
+1.90         (rms      27-Sep-96): ;;;###autoload
+1.13         (rms      03-Jun-93): (defun rmail-summary-by-senders (senders)
+1.13         (rms      03-Jun-93):   "Display a summary of all messages with the given SENDERS.
+1.13         (rms      03-Jun-93): SENDERS is a string of names separated by commas."
+1.13         (rms      03-Jun-93):   (interactive "sSenders to summarize by: ")
+1.13         (rms      03-Jun-93):   (rmail-new-summary
+1.13         (rms      03-Jun-93):    (concat "senders " senders)
+1.24         (rms      08-Jan-94):    (list 'rmail-summary-by-senders senders)
+1.13         (rms      03-Jun-93):    'rmail-message-senders-p
+1.13         (rms      03-Jun-93):    (mail-comma-list-regexp senders)))
+1.13         (rms      03-Jun-93): 
+1.13         (rms      03-Jun-93): (defun rmail-message-senders-p (msg senders)
+1.13         (rms      03-Jun-93):   (save-restriction
+1.13         (rms      03-Jun-93):     (goto-char (rmail-msgbeg msg))
+1.13         (rms      03-Jun-93):     (search-forward "\n*** EOOH ***\n")
+1.13         (rms      03-Jun-93):     (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
+1.13         (rms      03-Jun-93):     (string-match senders (or (mail-fetch-field "From") ""))))
+1.1          (jimb     30-Nov-90): 
+1.6          (rms      09-Mar-93): ;; General making of a summary buffer.
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defvar rmail-summary-symbol-number 0)
+1.6          (rms      09-Mar-93): 
+1.134        (rms      03-Jul-05): (defvar rmail-new-summary-line-count)
+1.134        (rms      03-Jul-05): 
+1.6          (rms      09-Mar-93): (defun rmail-new-summary (description redo-form function &rest args)
+1.1          (jimb     30-Nov-90):   "Create a summary of selected messages.
+1.1          (jimb     30-Nov-90): DESCRIPTION makes part of the mode line of the summary buffer.
+1.1          (jimb     30-Nov-90): For each message, FUNCTION is applied to the message number and ARGS...
+1.1          (jimb     30-Nov-90): and if the result is non-nil, that message is included.
+1.1          (jimb     30-Nov-90): nil for FUNCTION means all messages."
+1.1          (jimb     30-Nov-90):   (message "Computing summary lines...")
+1.6          (rms      09-Mar-93):   (let (sumbuf mesg was-in-summary)
+1.6          (rms      09-Mar-93):     (save-excursion
+1.6          (rms      09-Mar-93):       ;; Go to the Rmail buffer.
+1.6          (rms      09-Mar-93):       (if (eq major-mode 'rmail-summary-mode)
+1.118        (gerd     08-May-01): 	  (setq was-in-summary t))
+1.118        (gerd     08-May-01):       (set-buffer rmail-buffer)
+1.6          (rms      09-Mar-93):       ;; Find its summary buffer, or make one.
+1.11         (rms      28-May-93):       (setq sumbuf
+1.11         (rms      28-May-93): 	    (if (and rmail-summary-buffer
+1.11         (rms      28-May-93): 		     (buffer-name rmail-summary-buffer))
+1.11         (rms      28-May-93): 		rmail-summary-buffer
+1.11         (rms      28-May-93): 	      (generate-new-buffer (concat (buffer-name) "-summary"))))
+1.6          (rms      09-Mar-93):       (setq mesg rmail-current-message)
+1.6          (rms      09-Mar-93):       ;; Filter the messages; make or get their summary lines.
+1.6          (rms      09-Mar-93):       (let ((summary-msgs ())
+1.134        (rms      03-Jul-05): 	    (rmail-new-summary-line-count 0))
+1.6          (rms      09-Mar-93): 	(let ((msgnum 1)
+1.36         (kwzh     09-Apr-94): 	      (buffer-read-only nil)
+1.36         (kwzh     09-Apr-94): 	      (old-min (point-min-marker))
+1.36         (kwzh     09-Apr-94): 	      (old-max (point-max-marker)))
+1.36         (kwzh     09-Apr-94): 	  ;; Can't use save-restriction here; that doesn't work if we
+1.36         (kwzh     09-Apr-94): 	  ;; plan to modify text outside the original restriction.
+1.36         (kwzh     09-Apr-94): 	  (save-excursion
+1.36         (kwzh     09-Apr-94): 	    (widen)
+1.36         (kwzh     09-Apr-94): 	    (goto-char (point-min))
+1.36         (kwzh     09-Apr-94): 	    (while (>= rmail-total-messages msgnum)
+1.36         (kwzh     09-Apr-94): 	      (if (or (null function)
+1.36         (kwzh     09-Apr-94): 		      (apply function (cons msgnum args)))
+1.36         (kwzh     09-Apr-94): 		  (setq summary-msgs
+1.36         (kwzh     09-Apr-94): 			(cons (cons msgnum (rmail-make-summary-line msgnum))
+1.36         (kwzh     09-Apr-94): 			      summary-msgs)))
+1.36         (kwzh     09-Apr-94): 	      (setq msgnum (1+ msgnum)))
+1.36         (kwzh     09-Apr-94): 	    (setq summary-msgs (nreverse summary-msgs)))
+1.36         (kwzh     09-Apr-94): 	  (narrow-to-region old-min old-max))
+1.11         (rms      28-May-93): 	;; Temporarily, while summary buffer is unfinished,
+1.11         (rms      28-May-93): 	;; we "don't have" a summary.
+1.11         (rms      28-May-93): 	(setq rmail-summary-buffer nil)
+1.118        (gerd     08-May-01): 	(if rmail-enable-mime
+1.118        (gerd     08-May-01): 	    (with-current-buffer rmail-view-buffer
+1.118        (gerd     08-May-01): 	      (setq rmail-summary-buffer nil)))
+1.11         (rms      28-May-93): 	(save-excursion
+1.11         (rms      28-May-93): 	  (let ((rbuf (current-buffer))
+1.94         (handa    26-Feb-97): 		(vbuf rmail-view-buffer)
+1.11         (rms      28-May-93): 		(total rmail-total-messages))
+1.11         (rms      28-May-93): 	    (set-buffer sumbuf)
+1.11         (rms      28-May-93): 	    ;; Set up the summary buffer's contents.
+1.11         (rms      28-May-93): 	    (let ((buffer-read-only nil))
+1.11         (rms      28-May-93): 	      (erase-buffer)
+1.11         (rms      28-May-93): 	      (while summary-msgs
+1.11         (rms      28-May-93): 		(princ (cdr (car summary-msgs)) sumbuf)
+1.11         (rms      28-May-93): 		(setq summary-msgs (cdr summary-msgs)))
+1.11         (rms      28-May-93): 	      (goto-char (point-min)))
+1.11         (rms      28-May-93): 	    ;; Set up the rest of its state and local variables.
+1.11         (rms      28-May-93): 	    (setq buffer-read-only t)
+1.11         (rms      28-May-93): 	    (rmail-summary-mode)
+1.11         (rms      28-May-93): 	    (make-local-variable 'minor-mode-alist)
+1.83         (rms      12-Jun-96): 	    (setq minor-mode-alist (list (list t (concat ": " description))))
+1.11         (rms      28-May-93): 	    (setq rmail-buffer rbuf
+1.94         (handa    26-Feb-97): 		  rmail-view-buffer vbuf
+1.11         (rms      28-May-93): 		  rmail-summary-redo redo-form
+1.11         (rms      28-May-93): 		  rmail-total-messages total))))
+1.11         (rms      28-May-93):       (setq rmail-summary-buffer sumbuf))
+1.6          (rms      09-Mar-93):     ;; Now display the summary buffer and go to the right place in it.
+1.6          (rms      09-Mar-93):     (or was-in-summary
+1.70         (rms      21-Aug-95): 	(progn
+1.70         (rms      21-Aug-95): 	  (if (and (one-window-p)
+1.70         (rms      21-Aug-95): 		   pop-up-windows (not pop-up-frames))
+1.70         (rms      21-Aug-95): 	      ;; If there is just one window, put the summary on the top.
+1.70         (rms      21-Aug-95): 	      (progn
+1.70         (rms      21-Aug-95): 		(split-window (selected-window) rmail-summary-window-size)
+1.70         (rms      21-Aug-95): 		(select-window (next-window (frame-first-window)))
+1.70         (rms      21-Aug-95): 		(pop-to-buffer sumbuf)
+1.70         (rms      21-Aug-95): 		;; If pop-to-buffer did not use that window, delete that
+1.70         (rms      21-Aug-95): 		;; window.  (This can happen if it uses another frame.)
+1.70         (rms      21-Aug-95): 		(if (not (eq sumbuf (window-buffer (frame-first-window))))
+1.70         (rms      21-Aug-95): 		    (delete-other-windows)))
+1.70         (rms      21-Aug-95): 	    (pop-to-buffer sumbuf))
+1.70         (rms      21-Aug-95): 	  (set-buffer rmail-buffer)
+1.70         (rms      21-Aug-95): 	  ;; This is how rmail makes the summary buffer reappear.
+1.70         (rms      21-Aug-95): 	  ;; We do this here to make the window the proper size.
+1.70         (rms      21-Aug-95): 	  (rmail-select-summary nil)
+1.70         (rms      21-Aug-95): 	  (set-buffer rmail-summary-buffer)))
+1.6          (rms      09-Mar-93):     (rmail-summary-goto-msg mesg t t)
+1.69         (rms      17-Aug-95):     (rmail-summary-construct-io-menu)
+1.6          (rms      09-Mar-93):     (message "Computing summary lines...done")))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): ;; Low levels of generating a summary.
+1.1          (jimb     30-Nov-90): 
+1.1          (jimb     30-Nov-90): (defun rmail-make-summary-line (msg)
+1.1          (jimb     30-Nov-90):   (let ((line (or (aref rmail-summary-vector (1- msg))
+1.1          (jimb     30-Nov-90): 		  (progn
+1.134        (rms      03-Jul-05): 		    (setq rmail-new-summary-line-count
+1.134        (rms      03-Jul-05): 			  (1+ rmail-new-summary-line-count))
+1.134        (rms      03-Jul-05): 		    (if (zerop (% rmail-new-summary-line-count 10))
+1.1          (jimb     30-Nov-90): 			(message "Computing summary lines...%d"
+1.134        (rms      03-Jul-05): 				 rmail-new-summary-line-count))
+1.147        (miles    03-Aug-07): 		    (rmail-make-summary-line-1 msg))))
+1.147        (miles    03-Aug-07): 	delpos)
+1.1          (jimb     30-Nov-90):     ;; Fix up the part of the summary that says "deleted" or "unseen".
+1.147        (miles    03-Aug-07):     (string-match "[0-9]+" line)
+1.147        (miles    03-Aug-07):     (aset line (match-end 0)
+1.147        (miles    03-Aug-07): 	  (if (rmail-message-deleted-p msg) ?D
+1.1          (jimb     30-Nov-90): 	    (if (= ?0 (char-after (+ 3 (rmail-msgbeg msg))))
+1.147        (miles    03-Aug-07): 		?- ?\s)))
+1.1          (jimb     30-Nov-90):     line))
+1.1          (jimb     30-Nov-90): 
+1.94         (handa    26-Feb-97): ;;;###autoload
+1.96         (rms      03-May-97): (defcustom rmail-summary-line-decoder (function identity)
+1.94         (handa    26-Feb-97):   "*Function to decode summary-line.
+1.94         (handa    26-Feb-97): 
+1.96         (rms      03-May-97): By default, `identity' is set."
+1.96         (rms      03-May-97):   :type 'function
+1.96         (rms      03-May-97):   :group 'rmail-summary)
+1.94         (handa    26-Feb-97): 
+1.1          (jimb     30-Nov-90): (defun rmail-make-summary-line-1 (msg)
+1.1          (jimb     30-Nov-90):   (goto-char (rmail-msgbeg msg))
+1.1          (jimb     30-Nov-90):   (let* ((lim (save-excursion (forward-line 2) (point)))
+1.1          (jimb     30-Nov-90): 	 pos
+1.1          (jimb     30-Nov-90): 	 (labels
+1.1          (jimb     30-Nov-90): 	  (progn
+1.1          (jimb     30-Nov-90): 	    (forward-char 3)
+1.1          (jimb     30-Nov-90): 	    (concat
+1.1          (jimb     30-Nov-90): ;	     (if (save-excursion (re-search-forward ",answered," lim t))
+1.1          (jimb     30-Nov-90): ;		 "*" "")
+1.1          (jimb     30-Nov-90): ;	     (if (save-excursion (re-search-forward ",filed," lim t))
+1.1          (jimb     30-Nov-90): ;		 "!" "")
+1.1          (jimb     30-Nov-90): 	     (if (progn (search-forward ",,") (eolp))
+1.1          (jimb     30-Nov-90): 		 ""
+1.1          (jimb     30-Nov-90): 	       (concat "{"
+1.1          (jimb     30-Nov-90): 		       (buffer-substring (point)
+1.130        (rms      30-Sep-03): 					 (progn (end-of-line)
+1.130        (rms      30-Sep-03): 						(backward-char)
+1.130        (rms      30-Sep-03): 						(if (looking-at ",")
+1.130        (rms      30-Sep-03): 						    (point)
+1.130        (rms      30-Sep-03): 						  (1+ (point)))))
+1.130        (rms      30-Sep-03): 		       " } ")))))
+1.1          (jimb     30-Nov-90): 	 (line
+1.1          (jimb     30-Nov-90): 	  (progn
+1.1          (jimb     30-Nov-90): 	    (forward-line 1)
+1.1          (jimb     30-Nov-90): 	    (if (looking-at "Summary-line: ")
+1.1          (jimb     30-Nov-90): 		(progn
+1.1          (jimb     30-Nov-90): 		  (goto-char (match-end 0))
+1.141        (rms      26-Jan-06): 		  (buffer-substring (point)
+1.141        (rms      26-Jan-06): 				    (progn (forward-line 1) (point))))))))
+1.1          (jimb     30-Nov-90):     ;; Obsolete status lines lacking a # should be flushed.
+1.1          (jimb     30-Nov-90):     (and line
+1.1          (jimb     30-Nov-90): 	 (not (string-match "#" line))
+1.1          (jimb     30-Nov-90): 	 (progn
+1.1          (jimb     30-Nov-90): 	   (delete-region (point)
+1.1          (jimb     30-Nov-90): 			  (progn (forward-line -1) (point)))
+1.1          (jimb     30-Nov-90): 	   (setq line nil)))
+1.1          (jimb     30-Nov-90):     ;; If we didn't get a valid status line from the message,
+1.1          (jimb     30-Nov-90):     ;; make a new one and put it in the message.
+1.1          (jimb     30-Nov-90):     (or line
+1.1          (jimb     30-Nov-90): 	(let* ((case-fold-search t)
+1.1          (jimb     30-Nov-90): 	       (next (rmail-msgend msg))
+1.1          (jimb     30-Nov-90): 	       (beg (if (progn (goto-char (rmail-msgbeg msg))
+1.1          (jimb     30-Nov-90): 			       (search-forward "\n*** EOOH ***\n" next t))
+1.1          (jimb     30-Nov-90): 			(point)
+1.1          (jimb     30-Nov-90): 		      (forward-line 1)
+1.1          (jimb     30-Nov-90): 		      (point)))
+1.1          (jimb     30-Nov-90): 	       (end (progn (search-forward "\n\n" nil t) (point))))
+1.1          (jimb     30-Nov-90): 	  (save-restriction
+1.1          (jimb     30-Nov-90): 	    (narrow-to-region beg end)
+1.1          (jimb     30-Nov-90): 	    (goto-char beg)
+1.1          (jimb     30-Nov-90): 	    (setq line (rmail-make-basic-summary-line)))
+1.1          (jimb     30-Nov-90): 	  (goto-char (rmail-msgbeg msg))
+1.1          (jimb     30-Nov-90): 	  (forward-line 2)
+1.1          (jimb     30-Nov-90): 	  (insert "Summary-line: " line)))
+1.1          (jimb     30-Nov-90):     (setq pos (string-match "#" line))
+1.1          (jimb     30-Nov-90):     (aset rmail-summary-vector (1- msg)
+1.94         (handa    26-Feb-97): 	  (funcall rmail-summary-line-decoder
+1.121        (gerd     05-Oct-01): 		   (concat (format "%5d  " msg)
+1.94         (handa    26-Feb-97): 			   (substring line 0 pos)
+1.94         (handa    26-Feb-97): 			   labels
+1.94         (handa    26-Feb-97): 			   (substring line (1+ pos)))))
+1.94         (handa    26-Feb-97):     ))
+1.1          (jimb     30-Nov-90): 
+1.112        (gerd     03-Apr-00): ;;;###autoload
+1.112        (gerd     03-Apr-00): (defcustom rmail-user-mail-address-regexp nil
+1.112        (gerd     03-Apr-00):   "*Regexp matching user mail addresses.
+1.112        (gerd     03-Apr-00): If non-nil, this variable is used to identify the correspondent
+1.112        (gerd     03-Apr-00): when receiving new mail.  If it matches the address of the sender,
+1.112        (gerd     03-Apr-00): the recipient is taken as correspondent of a mail.
+1.112        (gerd     03-Apr-00): If nil \(default value\), your `user-login-name' and `user-mail-address'
+1.112        (gerd     03-Apr-00): are used to exclude yourself as correspondent.
+1.112        (gerd     03-Apr-00): 
+1.112        (gerd     03-Apr-00): Usually you don't have to set this variable, except if you collect mails
+1.112        (gerd     03-Apr-00): sent by you under different user names.
+1.125        (lektu    02-Jul-02): Then it should be a regexp matching your mail addresses.
+1.112        (gerd     03-Apr-00): 
+1.112        (gerd     03-Apr-00): Setting this variable has an effect only before reading a mail."
+1.112        (gerd     03-Apr-00):   :type '(choice (const :tag "None" nil) regexp)
+1.112        (gerd     03-Apr-00):   :group 'rmail-retrieve
+1.112        (gerd     03-Apr-00):   :version "21.1")
+1.112        (gerd     03-Apr-00): 
+1.1          (jimb     30-Nov-90): (defun rmail-make-basic-summary-line ()
+1.1          (jimb     30-Nov-90):   (goto-char (point-min))
+1.1          (jimb     30-Nov-90):   (concat (save-excursion
+1.1          (jimb     30-Nov-90): 	    (if (not (re-search-forward "^Date:" nil t))
+1.1          (jimb     30-Nov-90): 		"      "
+1.1          (jimb     30-Nov-90): 	      (cond ((re-search-forward "\\([^0-9:]\\)\\([0-3]?[0-9]\\)\\([- \t_]+\\)\\([adfjmnos][aceopu][bcglnprtvy]\\)"
+1.1          (jimb     30-Nov-90): 		      (save-excursion (end-of-line) (point)) t)
+1.1          (jimb     30-Nov-90): 		     (format "%2d-%3s"
+1.132        (lektu    16-May-05): 			     (string-to-number (buffer-substring
+1.132        (lektu    16-May-05):                                                 (match-beginning 2)
+1.132        (lektu    16-May-05):                                                 (match-end 2)))
+1.1          (jimb     30-Nov-90): 			     (buffer-substring
+1.1          (jimb     30-Nov-90): 			      (match-beginning 4) (match-end 4))))
+1.1          (jimb     30-Nov-90): 		    ((re-search-forward "\\([^a-z]\\)\\([adfjmnos][acepou][bcglnprtvy]\\)\\([-a-z \t_]*\\)\\([0-9][0-9]?\\)"
+1.1          (jimb     30-Nov-90): 		      (save-excursion (end-of-line) (point)) t)
+1.1          (jimb     30-Nov-90): 		     (format "%2d-%3s"
+1.132        (lektu    16-May-05): 			     (string-to-number (buffer-substring
+1.132        (lektu    16-May-05):                                                 (match-beginning 4)
+1.132        (lektu    16-May-05):                                                 (match-end 4)))
+1.1          (jimb     30-Nov-90): 			     (buffer-substring
+1.1          (jimb     30-Nov-90): 			      (match-beginning 2) (match-end 2))))
+1.86         (miles    02-Jul-96): 		    ((re-search-forward "\\(19\\|20\\)\\([0-9][0-9]\\)-\\([01][0-9]\\)-\\([0-3][0-9]\\)"
+1.86         (miles    02-Jul-96): 		      (save-excursion (end-of-line) (point)) t)
+1.86         (miles    02-Jul-96): 		     (format "%2s%2s%2s"
+1.86         (miles    02-Jul-96): 			     (buffer-substring
+1.86         (miles    02-Jul-96): 			      (match-beginning 2) (match-end 2))
+1.86         (miles    02-Jul-96): 			     (buffer-substring
+1.86         (miles    02-Jul-96): 			      (match-beginning 3) (match-end 3))
+1.86         (miles    02-Jul-96): 			     (buffer-substring
+1.86         (miles    02-Jul-96): 			      (match-beginning 4) (match-end 4))))
+1.1          (jimb     30-Nov-90): 		    (t "??????"))))
+1.1          (jimb     30-Nov-90): 	  "  "
+1.1          (jimb     30-Nov-90): 	  (save-excursion
+1.128        (rms      09-Apr-03): 	    (let* ((from (and (re-search-forward "^From:[ \t]*" nil t)
+1.128        (rms      09-Apr-03): 			      (mail-strip-quoted-names
+1.128        (rms      09-Apr-03): 			       (buffer-substring
+1.128        (rms      09-Apr-03): 				(1- (point))
+1.128        (rms      09-Apr-03): 				;; Get all the lines of the From field
+1.128        (rms      09-Apr-03): 				;; so that we get a whole comment if there is one,
+1.128        (rms      09-Apr-03): 				;; so that mail-strip-quoted-names can discard it.
+1.128        (rms      09-Apr-03): 				(let ((opoint (point)))
+1.128        (rms      09-Apr-03): 				  (while (progn (forward-line 1)
+1.128        (rms      09-Apr-03): 						(looking-at "[ \t]")))
+1.128        (rms      09-Apr-03): 				  ;; Back up over newline, then trailing spaces or tabs
+1.128        (rms      09-Apr-03): 				  (forward-char -1)
+1.128        (rms      09-Apr-03): 				  (skip-chars-backward " \t")
+1.128        (rms      09-Apr-03): 				  (point))))))
+1.128        (rms      09-Apr-03): 		   len mch lo)
+1.128        (rms      09-Apr-03): 	      (if (or (null from)
+1.128        (rms      09-Apr-03): 		      (string-match
+1.128        (rms      09-Apr-03): 		       (or rmail-user-mail-address-regexp
+1.128        (rms      09-Apr-03): 			   (concat "^\\("
+1.128        (rms      09-Apr-03): 				   (regexp-quote (user-login-name))
+1.128        (rms      09-Apr-03): 				   "\\($\\|@\\)\\|"
+1.128        (rms      09-Apr-03): 				   (regexp-quote
+1.128        (rms      09-Apr-03): 				    ;; Don't lose if run from init file
+1.128        (rms      09-Apr-03): 				    ;; where user-mail-address is not
+1.128        (rms      09-Apr-03): 				    ;; set yet.
+1.128        (rms      09-Apr-03): 				    (or user-mail-address
+1.128        (rms      09-Apr-03): 					(concat (user-login-name) "@"
+1.128        (rms      09-Apr-03): 						(or mail-host-address
+1.128        (rms      09-Apr-03): 						    (system-name)))))
+1.128        (rms      09-Apr-03): 				   "\\>\\)"))
+1.128        (rms      09-Apr-03): 		       from))
+1.128        (rms      09-Apr-03): 		  ;; No From field, or it's this user.
+1.128        (rms      09-Apr-03): 		  (save-excursion
+1.128        (rms      09-Apr-03): 		    (goto-char (point-min))
+1.128        (rms      09-Apr-03): 		    (if (not (re-search-forward "^To:[ \t]*" nil t))
+1.128        (rms      09-Apr-03): 			nil
+1.128        (rms      09-Apr-03): 		      (setq from
+1.128        (rms      09-Apr-03): 			    (concat "to: "
+1.128        (rms      09-Apr-03): 				    (mail-strip-quoted-names
+1.128        (rms      09-Apr-03): 				     (buffer-substring
+1.128        (rms      09-Apr-03): 				      (point)
+1.128        (rms      09-Apr-03): 				      (progn (end-of-line)
+1.128        (rms      09-Apr-03): 					     (skip-chars-backward " \t")
+1.128        (rms      09-Apr-03): 					     (point)))))))))
+1.128        (rms      09-Apr-03): 	      (if (null from)
+1.128        (rms      09-Apr-03): 		  "                         "
+1.1          (jimb     30-Nov-90): 		(setq len (length from))
+1.1          (jimb     30-Nov-90): 		(setq mch (string-match "[@%]" from))
+1.1          (jimb     30-Nov-90): 		(format "%25s"
+1.1          (jimb     30-Nov-90): 			(if (or (not mch) (<= len 25))
+1.1          (jimb     30-Nov-90): 			    (substring from (max 0 (- len 25)))
+1.1          (jimb     30-Nov-90): 			  (substring from
+1.40         (rms      06-May-94): 				     (setq lo (cond ((< (- mch 14) 0) 0)
+1.40         (rms      06-May-94): 						    ((< len (+ mch 11))
+1.1          (jimb     30-Nov-90): 						     (- len 25))
+1.40         (rms      06-May-94): 						    (t (- mch 14))))
+1.1          (jimb     30-Nov-90): 				     (min len (+ lo 25))))))))
+1.92         (rms      04-Oct-96):           (if rmail-summary-line-count-flag
+1.91         (rms      04-Oct-96): 	      (save-excursion
+1.91         (rms      04-Oct-96): 		(save-restriction
+1.91         (rms      04-Oct-96): 		  (widen)
+1.91         (rms      04-Oct-96): 		  (let ((beg (rmail-msgbeg msgnum))
+1.91         (rms      04-Oct-96): 			(end (rmail-msgend msgnum))
+1.91         (rms      04-Oct-96): 			lines)
+1.91         (rms      04-Oct-96): 		    (save-excursion
+1.91         (rms      04-Oct-96): 		      (goto-char beg)
+1.91         (rms      04-Oct-96): 		      ;; Count only lines in the reformatted header,
+1.91         (rms      04-Oct-96): 		      ;; if we have reformatted it.
+1.91         (rms      04-Oct-96): 		      (search-forward "\n*** EOOH ***\n" end t)
+1.91         (rms      04-Oct-96): 		      (setq lines (count-lines (point) end)))
+1.91         (rms      04-Oct-96): 		    (format (cond
+1.91         (rms      04-Oct-96): 			     ((<= lines     9) "   [%d]")
+1.91         (rms      04-Oct-96): 			     ((<= lines    99) "  [%d]")
+1.91         (rms      04-Oct-96): 			     ((<= lines   999) " [%3d]")
+1.91         (rms      04-Oct-96): 			     (t		    "[%d]"))
+1.91         (rms      04-Oct-96): 			    lines))))
+1.91         (rms      04-Oct-96):             " ")
+1.79         (erik     26-Feb-96): 	  " #"				;The # is part of the format.
+1.1          (jimb     30-Nov-90): 	  (if (re-search-forward "^Subject:" nil t)
+1.1          (jimb     30-Nov-90): 	      (progn (skip-chars-forward " \t")
+1.1          (jimb     30-Nov-90): 		     (buffer-substring (point)
+1.1          (jimb     30-Nov-90): 				       (progn (end-of-line)
+1.1          (jimb     30-Nov-90): 					      (point))))
+1.1          (jimb     30-Nov-90): 	    (re-search-forward "[\n][\n]+" nil t)
+1.1          (jimb     30-Nov-90): 	    (buffer-substring (point) (progn (end-of-line) (point))))
+1.1          (jimb     30-Nov-90): 	  "\n"))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): ;; Simple motion in a summary buffer.
+1.1          (jimb     30-Nov-90): 
+1.1          (jimb     30-Nov-90): (defun rmail-summary-next-all (&optional number)
+1.1          (jimb     30-Nov-90):   (interactive "p")
+1.7          (rms      13-Mar-93):   (forward-line (if number number 1))
+1.59         (rms      15-Oct-94):   ;; It doesn't look nice to move forward past the last message line.
+1.59         (rms      15-Oct-94):   (and (eobp) (> number 0)
+1.59         (rms      15-Oct-94):        (forward-line -1))
+1.7          (rms      13-Mar-93):   (display-buffer rmail-buffer))
+1.1          (jimb     30-Nov-90): 
+1.1          (jimb     30-Nov-90): (defun rmail-summary-previous-all (&optional number)
+1.1          (jimb     30-Nov-90):   (interactive "p")
+1.7          (rms      13-Mar-93):   (forward-line (- (if number number 1)))
+1.59         (rms      15-Oct-94):   ;; It doesn't look nice to move forward past the last message line.
+1.59         (rms      15-Oct-94):   (and (eobp) (< number 0)
+1.59         (rms      15-Oct-94):        (forward-line -1))
+1.7          (rms      13-Mar-93):   (display-buffer rmail-buffer))
+1.1          (jimb     30-Nov-90): 
+1.1          (jimb     30-Nov-90): (defun rmail-summary-next-msg (&optional number)
+1.6          (rms      09-Mar-93):   "Display next non-deleted msg from rmail file.
+1.6          (rms      09-Mar-93): With optional prefix argument NUMBER, moves forward this number of non-deleted
+1.6          (rms      09-Mar-93): messages, or backward if NUMBER is negative."
+1.1          (jimb     30-Nov-90):   (interactive "p")
+1.1          (jimb     30-Nov-90):   (forward-line 0)
+1.15         (rms      04-Jun-93):   (and (> number 0) (end-of-line))
+1.1          (jimb     30-Nov-90):   (let ((count (if (< number 0) (- number) number))
+1.1          (jimb     30-Nov-90): 	(search (if (> number 0) 're-search-forward 're-search-backward))
+1.6          (rms      09-Mar-93): 	(non-del-msg-found nil))
+1.6          (rms      09-Mar-93):     (while (and (> count 0) (setq non-del-msg-found
+1.143        (eliz     11-Mar-06): 				  (or (funcall search "^.....[^D]" nil t)
+1.6          (rms      09-Mar-93): 				      non-del-msg-found)))
+1.7          (rms      13-Mar-93):       (setq count (1- count))))
+1.15         (rms      04-Jun-93):   (beginning-of-line)
+1.127        (jpw      06-Feb-03):   (display-buffer rmail-view-buffer))
+1.1          (jimb     30-Nov-90): 
+1.1          (jimb     30-Nov-90): (defun rmail-summary-previous-msg (&optional number)
+1.127        (jpw      06-Feb-03):   "Display previous non-deleted msg from rmail file.
+1.127        (jpw      06-Feb-03): With optional prefix argument NUMBER, moves backward this number of
+1.127        (jpw      06-Feb-03): non-deleted messages."
+1.1          (jimb     30-Nov-90):   (interactive "p")
+1.1          (jimb     30-Nov-90):   (rmail-summary-next-msg (- (if number number 1))))
+1.1          (jimb     30-Nov-90): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-next-labeled-message (n labels)
+1.127        (jpw      06-Feb-03):   "Show next message with LABELS.  Defaults to last labels used.
+1.6          (rms      09-Mar-93): With prefix argument N moves forward N messages with these labels."
+1.6          (rms      09-Mar-93):   (interactive "p\nsMove to next msg with labels: ")
+1.88         (kwzh     13-Jul-96):   (let (msg)
+1.88         (kwzh     13-Jul-96):     (save-excursion
+1.88         (kwzh     13-Jul-96):       (set-buffer rmail-buffer)
+1.88         (kwzh     13-Jul-96):       (rmail-next-labeled-message n labels)
+1.88         (kwzh     13-Jul-96):       (setq msg rmail-current-message))
+1.88         (kwzh     13-Jul-96):     (rmail-summary-goto-msg msg)))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-previous-labeled-message (n labels)
+1.127        (jpw      06-Feb-03):   "Show previous message with LABELS.  Defaults to last labels used.
+1.6          (rms      09-Mar-93): With prefix argument N moves backward N messages with these labels."
+1.6          (rms      09-Mar-93):   (interactive "p\nsMove to previous msg with labels: ")
+1.88         (kwzh     13-Jul-96):   (let (msg)
+1.88         (kwzh     13-Jul-96):     (save-excursion
+1.88         (kwzh     13-Jul-96):       (set-buffer rmail-buffer)
+1.88         (kwzh     13-Jul-96):       (rmail-previous-labeled-message n labels)
+1.88         (kwzh     13-Jul-96):       (setq msg rmail-current-message))
+1.88         (kwzh     13-Jul-96):     (rmail-summary-goto-msg msg)))
+1.64         (rms      05-Feb-95): 
+1.64         (rms      05-Feb-95): (defun rmail-summary-next-same-subject (n)
+1.64         (rms      05-Feb-95):   "Go to the next message in the summary having the same subject.
+1.64         (rms      05-Feb-95): With prefix argument N, do this N times.
+1.64         (rms      05-Feb-95): If N is negative, go backwards."
+1.64         (rms      05-Feb-95):   (interactive "p")
+1.140        (as       08-Jan-06):   (let ((forward (> n 0))
+1.140        (as       08-Jan-06): 	search-regexp i found)
+1.140        (as       08-Jan-06):     (with-current-buffer rmail-buffer
+1.140        (as       08-Jan-06):       (setq search-regexp (rmail-current-subject-regexp)
+1.140        (as       08-Jan-06): 	    i rmail-current-message))
+1.64         (rms      05-Feb-95):     (save-excursion
+1.64         (rms      05-Feb-95):       (while (and (/= n 0)
+1.64         (rms      05-Feb-95): 		  (if forward
+1.64         (rms      05-Feb-95): 		      (not (eobp))
+1.64         (rms      05-Feb-95): 		    (not (bobp))))
+1.64         (rms      05-Feb-95): 	(let (done)
+1.64         (rms      05-Feb-95): 	  (while (and (not done)
+1.64         (rms      05-Feb-95): 		      (if forward
+1.64         (rms      05-Feb-95): 			  (not (eobp))
+1.64         (rms      05-Feb-95): 			(not (bobp))))
+1.64         (rms      05-Feb-95): 	    ;; Advance thru summary.
+1.64         (rms      05-Feb-95): 	    (forward-line (if forward 1 -1))
+1.64         (rms      05-Feb-95): 	    ;; Get msg number of this line.
+1.132        (lektu    16-May-05): 	    (setq i (string-to-number
+1.64         (rms      05-Feb-95): 		     (buffer-substring (point)
+1.121        (gerd     05-Oct-01): 				       (min (point-max) (+ 6 (point))))))
+1.64         (rms      05-Feb-95): 	    ;; See if that msg has desired subject.
+1.64         (rms      05-Feb-95): 	    (save-excursion
+1.64         (rms      05-Feb-95): 	      (set-buffer rmail-buffer)
+1.64         (rms      05-Feb-95): 	      (save-restriction
+1.64         (rms      05-Feb-95): 		(widen)
+1.64         (rms      05-Feb-95): 		(goto-char (rmail-msgbeg i))
+1.64         (rms      05-Feb-95): 		(search-forward "\n*** EOOH ***\n")
+1.64         (rms      05-Feb-95): 		(let ((beg (point)) end)
+1.64         (rms      05-Feb-95): 		  (search-forward "\n\n")
+1.64         (rms      05-Feb-95): 		  (setq end (point))
+1.64         (rms      05-Feb-95): 		  (goto-char beg)
+1.64         (rms      05-Feb-95): 		  (setq done (re-search-forward search-regexp end t))))))
+1.64         (rms      05-Feb-95): 	  (if done (setq found i)))
+1.64         (rms      05-Feb-95): 	(setq n (if forward (1- n) (1+ n)))))
+1.64         (rms      05-Feb-95):     (if found
+1.64         (rms      05-Feb-95): 	(rmail-summary-goto-msg found)
+1.64         (rms      05-Feb-95):       (error "No %s message with same subject"
+1.64         (rms      05-Feb-95): 	     (if forward "following" "previous")))))
+1.64         (rms      05-Feb-95): 
+1.64         (rms      05-Feb-95): (defun rmail-summary-previous-same-subject (n)
+1.64         (rms      05-Feb-95):   "Go to the previous message in the summary having the same subject.
+1.64         (rms      05-Feb-95): With prefix argument N, do this N times.
+1.64         (rms      05-Feb-95): If N is negative, go forwards instead."
+1.64         (rms      05-Feb-95):   (interactive "p")
+1.64         (rms      05-Feb-95):   (rmail-summary-next-same-subject (- n)))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): ;; Delete and undelete summary commands.
+1.6          (rms      09-Mar-93): 
+1.95         (rms      16-Apr-97): (defun rmail-summary-delete-forward (&optional count)
+1.6          (rms      09-Mar-93):   "Delete this message and move to next nondeleted one.
+1.6          (rms      09-Mar-93): Deleted messages stay in the file until the \\[rmail-expunge] command is given.
+1.95         (rms      16-Apr-97): A prefix argument serves as a repeat count;
+1.95         (rms      16-Apr-97): a negative argument means to delete and move backward."
+1.95         (rms      16-Apr-97):   (interactive "p")
+1.97         (rms      19-May-97):   (unless (numberp count) (setq count 1))
+1.95         (rms      16-Apr-97):   (let (end del-msg
+1.95         (rms      16-Apr-97): 	    (backward (< count 0)))
+1.95         (rms      16-Apr-97):     (while (/= count 0)
+1.95         (rms      16-Apr-97):       (rmail-summary-goto-msg)
+1.95         (rms      16-Apr-97):       (with-current-buffer rmail-buffer
+1.95         (rms      16-Apr-97): 	(rmail-delete-message)
+1.95         (rms      16-Apr-97): 	(setq del-msg rmail-current-message))
+1.23         (rms      30-Dec-93):       (rmail-summary-mark-deleted del-msg)
+1.23         (rms      30-Dec-93):       (while (and (not (if backward (bobp) (eobp)))
+1.25         (rms      08-Jan-94): 		  (save-excursion (beginning-of-line)
+1.53         (rms      27-Sep-94): 				  (looking-at " *[0-9]+D")))
+1.60         (rms      15-Oct-94): 	(forward-line (if backward -1 1)))
+1.60         (rms      15-Oct-94):       ;; It looks ugly to move to the empty line at end of buffer.
+1.60         (rms      15-Oct-94):       (and (eobp) (not backward)
+1.95         (rms      16-Apr-97): 	   (forward-line -1))
+1.95         (rms      16-Apr-97):       (setq count
+1.95         (rms      16-Apr-97): 	    (if (> count 0) (1- count) (1+ count))))))
+1.1          (jimb     30-Nov-90): 
+1.95         (rms      16-Apr-97): (defun rmail-summary-delete-backward (&optional count)
+1.6          (rms      09-Mar-93):   "Delete this message and move to previous nondeleted one.
+1.95         (rms      16-Apr-97): Deleted messages stay in the file until the \\[rmail-expunge] command is given.
+1.95         (rms      16-Apr-97): A prefix argument serves as a repeat count;
+1.95         (rms      16-Apr-97): a negative argument means to delete and move forward."
+1.95         (rms      16-Apr-97):   (interactive "p")
+1.95         (rms      16-Apr-97):   (rmail-summary-delete-forward (- count)))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-mark-deleted (&optional n undel)
+1.76         (kwzh     24-Jan-96):   ;; Since third arg is t, this only alters the summary, not the Rmail buf.
+1.10         (rms      25-May-93):   (and n (rmail-summary-goto-msg n t t))
+1.10         (rms      25-May-93):   (or (eobp)
+1.63         (rms      20-Jan-95):       (not (overlay-get rmail-summary-overlay 'face))
+1.10         (rms      25-May-93):       (let ((buffer-read-only nil))
+1.10         (rms      25-May-93): 	(skip-chars-forward " ")
+1.10         (rms      25-May-93): 	(skip-chars-forward "[0-9]")
+1.10         (rms      25-May-93): 	(if undel
+1.10         (rms      25-May-93): 	    (if (looking-at "D")
+1.10         (rms      25-May-93): 		(progn (delete-char 1) (insert " ")))
+1.10         (rms      25-May-93): 	  (delete-char 1)
+1.10         (rms      25-May-93): 	  (insert "D"))))
+1.6          (rms      09-Mar-93):   (beginning-of-line))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-mark-undeleted (n)
+1.6          (rms      09-Mar-93):   (rmail-summary-mark-deleted n t))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-deleted-p (&optional n)
+1.6          (rms      09-Mar-93):   (save-excursion
+1.6          (rms      09-Mar-93):     (and n (rmail-summary-goto-msg n nil t))
+1.6          (rms      09-Mar-93):     (skip-chars-forward " ")
+1.6          (rms      09-Mar-93):     (skip-chars-forward "[0-9]")
+1.6          (rms      09-Mar-93):     (looking-at "D")))
+1.1          (jimb     30-Nov-90): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-undelete (&optional arg)
+1.6          (rms      09-Mar-93):   "Undelete current message.
+1.6          (rms      09-Mar-93): Optional prefix ARG means undelete ARG previous messages."
+1.6          (rms      09-Mar-93):   (interactive "p")
+1.6          (rms      09-Mar-93):   (if (/= arg 1)
+1.6          (rms      09-Mar-93):       (rmail-summary-undelete-many arg)
+1.26         (rms      26-Jan-94):     (let ((buffer-read-only nil)
+1.26         (rms      26-Jan-94): 	  (opoint (point)))
+1.6          (rms      09-Mar-93):       (end-of-line)
+1.6          (rms      09-Mar-93):       (cond ((re-search-backward "\\(^ *[0-9]*\\)\\(D\\)" nil t)
+1.6          (rms      09-Mar-93): 	     (replace-match "\\1 ")
+1.6          (rms      09-Mar-93): 	     (rmail-summary-goto-msg)
+1.118        (gerd     08-May-01): 	     (if rmail-enable-mime
+1.118        (gerd     08-May-01): 		 (set-buffer rmail-buffer)
+1.118        (gerd     08-May-01): 	       (pop-to-buffer rmail-buffer))
+1.6          (rms      09-Mar-93): 	     (and (rmail-message-deleted-p rmail-current-message)
+1.6          (rms      09-Mar-93): 		  (rmail-undelete-previous-message))
+1.118        (gerd     08-May-01): 	     (if rmail-enable-mime
+1.118        (gerd     08-May-01): 		 (pop-to-buffer rmail-view-buffer))
+1.26         (rms      26-Jan-94): 	     (pop-to-buffer rmail-summary-buffer))
+1.26         (rms      26-Jan-94): 	    (t (goto-char opoint))))))
+1.1          (jimb     30-Nov-90): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-undelete-many (&optional n)
+1.6          (rms      09-Mar-93):   "Undelete all deleted msgs, optional prefix arg N means undelete N prev msgs."
+1.6          (rms      09-Mar-93):   (interactive "P")
+1.6          (rms      09-Mar-93):   (save-excursion
+1.6          (rms      09-Mar-93):     (set-buffer rmail-buffer)
+1.6          (rms      09-Mar-93):     (let* ((init-msg (if n rmail-current-message rmail-total-messages))
+1.6          (rms      09-Mar-93): 	   (rmail-current-message init-msg)
+1.6          (rms      09-Mar-93): 	   (n (or n rmail-total-messages))
+1.6          (rms      09-Mar-93): 	   (msgs-undeled 0))
+1.6          (rms      09-Mar-93):       (while (and (> rmail-current-message 0)
+1.6          (rms      09-Mar-93): 		  (< msgs-undeled n))
+1.6          (rms      09-Mar-93): 	(if (rmail-message-deleted-p rmail-current-message)
+1.6          (rms      09-Mar-93): 	    (progn (rmail-set-attribute "deleted" nil)
+1.6          (rms      09-Mar-93): 		   (setq msgs-undeled (1+ msgs-undeled))))
+1.6          (rms      09-Mar-93): 	(setq rmail-current-message (1- rmail-current-message)))
+1.6          (rms      09-Mar-93):       (set-buffer rmail-summary-buffer)
+1.6          (rms      09-Mar-93):       (setq rmail-current-message init-msg msgs-undeled 0)
+1.6          (rms      09-Mar-93):       (while (and (> rmail-current-message 0)
+1.6          (rms      09-Mar-93): 		  (< msgs-undeled n))
+1.6          (rms      09-Mar-93): 	(if (rmail-summary-deleted-p rmail-current-message)
+1.6          (rms      09-Mar-93): 	    (progn (rmail-summary-mark-undeleted rmail-current-message)
+1.6          (rms      09-Mar-93): 		   (setq msgs-undeled (1+ msgs-undeled))))
+1.6          (rms      09-Mar-93): 	(setq rmail-current-message (1- rmail-current-message))))
+1.6          (rms      09-Mar-93):     (rmail-summary-goto-msg)))
+1.6          (rms      09-Mar-93): 
+1.1          (jimb     30-Nov-90): ;; Rmail Summary mode is suitable only for specially formatted data.
+1.1          (jimb     30-Nov-90): (put 'rmail-summary-mode 'mode-class 'special)
+1.1          (jimb     30-Nov-90): 
+1.1          (jimb     30-Nov-90): (defun rmail-summary-mode ()
+1.6          (rms      09-Mar-93):   "Rmail Summary Mode is invoked from Rmail Mode by using \\<rmail-mode-map>\\[rmail-summary].
+1.6          (rms      09-Mar-93): As commands are issued in the summary buffer, they are applied to the
+1.6          (rms      09-Mar-93): corresponding mail messages in the rmail buffer.
+1.1          (jimb     30-Nov-90): 
+1.6          (rms      09-Mar-93): All normal editing commands are turned off.
+1.21         (rms      23-Nov-93): Instead, nearly all the Rmail mode commands are available,
+1.21         (rms      23-Nov-93): though many of them move only among the messages in the summary.
+1.6          (rms      09-Mar-93): 
+1.21         (rms      23-Nov-93): These additional commands exist:
+1.21         (rms      23-Nov-93): 
+1.21         (rms      23-Nov-93): \\[rmail-summary-undelete-many]	Undelete all or prefix arg deleted messages.
+1.21         (rms      23-Nov-93): \\[rmail-summary-wipe] Delete the summary and go to the Rmail buffer.
+1.21         (rms      23-Nov-93): 
+1.21         (rms      23-Nov-93): Commands for sorting the summary:
+1.21         (rms      23-Nov-93): 
+1.21         (rms      23-Nov-93): \\[rmail-summary-sort-by-date] Sort by date.
+1.21         (rms      23-Nov-93): \\[rmail-summary-sort-by-subject] Sort by subject.
+1.21         (rms      23-Nov-93): \\[rmail-summary-sort-by-author] Sort by author.
+1.21         (rms      23-Nov-93): \\[rmail-summary-sort-by-recipient] Sort by recipient.
+1.21         (rms      23-Nov-93): \\[rmail-summary-sort-by-correspondent] Sort by correspondent.
+1.33         (kwzh     07-Apr-94): \\[rmail-summary-sort-by-lines] Sort by lines.
+1.117        (gerd     07-May-01): \\[rmail-summary-sort-by-labels] Sort by labels."
+1.1          (jimb     30-Nov-90):   (interactive)
+1.1          (jimb     30-Nov-90):   (kill-all-local-variables)
+1.1          (jimb     30-Nov-90):   (setq major-mode 'rmail-summary-mode)
+1.1          (jimb     30-Nov-90):   (setq mode-name "RMAIL Summary")
+1.1          (jimb     30-Nov-90):   (setq truncate-lines t)
+1.1          (jimb     30-Nov-90):   (setq buffer-read-only t)
+1.1          (jimb     30-Nov-90):   (set-syntax-table text-mode-syntax-table)
+1.6          (rms      09-Mar-93):   (make-local-variable 'rmail-buffer)
+1.94         (handa    26-Feb-97):   (make-local-variable 'rmail-view-buffer)
+1.6          (rms      09-Mar-93):   (make-local-variable 'rmail-total-messages)
+1.6          (rms      09-Mar-93):   (make-local-variable 'rmail-current-message)
+1.6          (rms      09-Mar-93):   (setq rmail-current-message nil)
+1.6          (rms      09-Mar-93):   (make-local-variable 'rmail-summary-redo)
+1.6          (rms      09-Mar-93):   (setq rmail-summary-redo nil)
+1.6          (rms      09-Mar-93):   (make-local-variable 'revert-buffer-function)
+1.58         (simon    12-Oct-94):   (make-local-variable 'font-lock-defaults)
+1.58         (simon    12-Oct-94):   (setq font-lock-defaults '(rmail-summary-font-lock-keywords t))
+1.34         (kwzh     07-Apr-94):   (rmail-summary-enable)
+1.133        (lute     26-May-05):   (run-mode-hooks 'rmail-summary-mode-hook))
+1.1          (jimb     30-Nov-90): 
+1.34         (kwzh     07-Apr-94): ;; Summary features need to be disabled during edit mode.
+1.34         (kwzh     07-Apr-94): (defun rmail-summary-disable ()
+1.35         (kwzh     07-Apr-94):   (use-local-map text-mode-map)
+1.77         (simon    25-Jan-96):   (remove-hook 'post-command-hook 'rmail-summary-rmail-update t)
+1.35         (kwzh     07-Apr-94):   (setq revert-buffer-function nil))
+1.34         (kwzh     07-Apr-94): 
+1.34         (kwzh     07-Apr-94): (defun rmail-summary-enable ()
+1.35         (kwzh     07-Apr-94):   (use-local-map rmail-summary-mode-map)
+1.77         (simon    25-Jan-96):   (add-hook 'post-command-hook 'rmail-summary-rmail-update nil t)
+1.35         (kwzh     07-Apr-94):   (setq revert-buffer-function 'rmail-update-summary))
+1.34         (kwzh     07-Apr-94): 
+1.89         (rms      19-Sep-96): (defvar rmail-summary-put-back-unseen nil
+1.89         (rms      19-Sep-96):   "Used for communicating between calls to `rmail-summary-rmail-update'.
+1.89         (rms      19-Sep-96): If it moves to a message within an Incremental Search, and removes
+1.89         (rms      19-Sep-96): the `unseen' attribute from that message, it sets this flag
+1.89         (rms      19-Sep-96): so that if the next motion between messages is in the same Incremental
+1.89         (rms      19-Sep-96): Search, the `unseen' attribute is restored.")
+1.89         (rms      19-Sep-96): 
+1.7          (rms      13-Mar-93): ;; Show in Rmail the message described by the summary line that point is on,
+1.7          (rms      13-Mar-93): ;; but only if the Rmail buffer is already visible.
+1.6          (rms      09-Mar-93): ;; This is a post-command-hook in summary buffers.
+1.6          (rms      09-Mar-93): (defun rmail-summary-rmail-update ()
+1.37         (kwzh     19-Apr-94):   (let (buffer-read-only)
+1.37         (kwzh     19-Apr-94):     (save-excursion
+1.37         (kwzh     19-Apr-94):       ;; If at end of buffer, pretend we are on the last text line.
+1.37         (kwzh     19-Apr-94):       (if (eobp)
+1.37         (kwzh     19-Apr-94): 	  (forward-line -1))
+1.37         (kwzh     19-Apr-94):       (beginning-of-line)
+1.37         (kwzh     19-Apr-94):       (skip-chars-forward " ")
+1.132        (lektu    16-May-05):       (let ((msg-num (string-to-number (buffer-substring
+1.132        (lektu    16-May-05):                                         (point)
+1.132        (lektu    16-May-05):                                         (progn (skip-chars-forward "0-9")
+1.132        (lektu    16-May-05):                                                (point))))))
+1.89         (rms      19-Sep-96): 	;; Always leave `unseen' removed
+1.89         (rms      19-Sep-96): 	;; if we get out of isearch mode.
+1.89         (rms      19-Sep-96): 	;; Don't let a subsequent isearch restore that `unseen'.
+1.89         (rms      19-Sep-96): 	(if (not isearch-mode)
+1.89         (rms      19-Sep-96): 	    (setq rmail-summary-put-back-unseen nil))
+1.89         (rms      19-Sep-96): 
+1.37         (kwzh     19-Apr-94): 	(or (eq rmail-current-message msg-num)
+1.100        (kwzh     16-Oct-97): 	    (let ((window (get-buffer-window rmail-view-buffer t))
+1.37         (kwzh     19-Apr-94): 		  (owin (selected-window)))
+1.89         (rms      19-Sep-96): 	      (if isearch-mode
+1.89         (rms      19-Sep-96): 		  (save-excursion
+1.89         (rms      19-Sep-96): 		    (set-buffer rmail-buffer)
+1.89         (rms      19-Sep-96): 		    ;; If we first saw the previous message in this search,
+1.89         (rms      19-Sep-96): 		    ;; and we have gone to a different message while searching,
+1.89         (rms      19-Sep-96): 		    ;; put back `unseen' on the former one.
+1.102        (kwzh     04-Jun-98): 		    (if rmail-summary-put-back-unseen
+1.103        (kwzh     22-Jun-98): 			(rmail-set-attribute "unseen" t
+1.103        (kwzh     22-Jun-98): 					     rmail-current-message))
+1.89         (rms      19-Sep-96): 		    ;; Arrange to do that later, for the new current message,
+1.89         (rms      19-Sep-96): 		    ;; if it still has `unseen'.
+1.89         (rms      19-Sep-96): 		    (setq rmail-summary-put-back-unseen
+1.89         (rms      19-Sep-96): 			  (rmail-message-labels-p msg-num ", ?\\(unseen\\),")))
+1.89         (rms      19-Sep-96): 		(setq rmail-summary-put-back-unseen nil))
+1.89         (rms      19-Sep-96): 
+1.89         (rms      19-Sep-96): 	      ;; Go to the desired message.
+1.37         (kwzh     19-Apr-94): 	      (setq rmail-current-message msg-num)
+1.89         (rms      19-Sep-96): 
+1.89         (rms      19-Sep-96): 	      ;; Update the summary to show the message has been seen.
+1.37         (kwzh     19-Apr-94): 	      (if (= (following-char) ?-)
+1.37         (kwzh     19-Apr-94): 		  (progn
+1.37         (kwzh     19-Apr-94): 		    (delete-char 1)
+1.37         (kwzh     19-Apr-94): 		    (insert " ")))
+1.89         (rms      19-Sep-96): 
+1.37         (kwzh     19-Apr-94): 	      (if window
+1.37         (kwzh     19-Apr-94): 		  ;; Using save-window-excursion would cause the new value
+1.14         (rms      03-Jun-93): 		  ;; of point to get lost.
+1.14         (rms      03-Jun-93): 		  (unwind-protect
+1.14         (rms      03-Jun-93): 		      (progn
+1.14         (rms      03-Jun-93): 			(select-window window)
+1.56         (rms      11-Oct-94): 			(rmail-show-message msg-num t))
+1.37         (kwzh     19-Apr-94): 		    (select-window owin))
+1.49         (rms      26-Aug-94): 		(if (buffer-name rmail-buffer)
+1.49         (rms      26-Aug-94): 		    (save-excursion
+1.49         (rms      26-Aug-94): 		      (set-buffer rmail-buffer)
+1.63         (rms      20-Jan-95): 		      (rmail-show-message msg-num t))))))
+1.63         (rms      20-Jan-95): 	(rmail-summary-update-highlight nil)))))
+1.145        (gm       07-Jun-07): 
+1.145        (gm       07-Jun-07): (defun rmail-summary-save-buffer ()
+1.145        (gm       07-Jun-07):   "Save the buffer associated with this RMAIL summary."
+1.145        (gm       07-Jun-07):   (interactive)
+1.145        (gm       07-Jun-07):   (save-window-excursion
+1.145        (gm       07-Jun-07):     (save-excursion
+1.145        (gm       07-Jun-07):       (switch-to-buffer rmail-buffer)
+1.145        (gm       07-Jun-07):       (save-buffer))))
+1.145        (gm       07-Jun-07): 
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (if rmail-summary-mode-map
+1.6          (rms      09-Mar-93):     nil
+1.6          (rms      09-Mar-93):   (setq rmail-summary-mode-map (make-keymap))
+1.6          (rms      09-Mar-93):   (suppress-keymap rmail-summary-mode-map)
+1.98         (rms      04-Aug-97): 
+1.98         (rms      04-Aug-97):   (define-key rmail-summary-mode-map [mouse-2] 'rmail-summary-mouse-goto-message)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "a"      'rmail-summary-add-label)
+1.84         (rms      22-Jun-96):   (define-key rmail-summary-mode-map "b"      'rmail-summary-bury)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "c"      'rmail-summary-continue)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "d"      'rmail-summary-delete-forward)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\C-d"   'rmail-summary-delete-backward)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "e"      'rmail-summary-edit-current-message)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "f"      'rmail-summary-forward)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "g"      'rmail-summary-get-new-mail)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "h"      'rmail-summary)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "i"      'rmail-summary-input)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "j"      'rmail-summary-goto-msg)
+1.110        (gerd     12-Dec-99):   (define-key rmail-summary-mode-map "\C-m"   'rmail-summary-goto-msg)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "k"      'rmail-summary-kill-label)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "l"      'rmail-summary-by-labels)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\e\C-h" 'rmail-summary)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\e\C-l" 'rmail-summary-by-labels)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\e\C-r" 'rmail-summary-by-recipients)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\e\C-s" 'rmail-summary-by-regexp)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\e\C-t" 'rmail-summary-by-topic)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "m"      'rmail-summary-mail)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\M-m"   'rmail-summary-retry-failure)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "n"      'rmail-summary-next-msg)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\en"    'rmail-summary-next-all)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\e\C-n" 'rmail-summary-next-labeled-message)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "o"      'rmail-summary-output-to-rmail-file)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\C-o"   'rmail-summary-output)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "p"      'rmail-summary-previous-msg)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\ep"    'rmail-summary-previous-all)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\e\C-p" 'rmail-summary-previous-labeled-message)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "q"      'rmail-summary-quit)
+1.101        (rms      23-May-98):   (define-key rmail-summary-mode-map "Q"      'rmail-summary-wipe)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "r"      'rmail-summary-reply)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "s"      'rmail-summary-expunge-and-save)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\es"    'rmail-summary-search)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "t"      'rmail-summary-toggle-header)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "u"      'rmail-summary-undelete)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\M-u"   'rmail-summary-undelete-many)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "x"      'rmail-summary-expunge)
+1.101        (rms      23-May-98):   (define-key rmail-summary-mode-map "w"      'rmail-summary-output-body)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "."      'rmail-summary-beginning-of-message)
+1.137        (eliz     12-Aug-05):   (define-key rmail-summary-mode-map "/"      'rmail-summary-end-of-message)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "<"      'rmail-summary-first-message)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map ">"      'rmail-summary-last-message)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map " "      'rmail-summary-scroll-msg-up)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "\177"   'rmail-summary-scroll-msg-down)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-mode-map "?"      'describe-mode)
+1.64         (rms      05-Feb-95):   (define-key rmail-summary-mode-map "\C-c\C-n" 'rmail-summary-next-same-subject)
+1.64         (rms      05-Feb-95):   (define-key rmail-summary-mode-map "\C-c\C-p" 'rmail-summary-previous-same-subject)
+1.18         (rms      22-Jun-93):   (define-key rmail-summary-mode-map "\C-c\C-s\C-d"
+1.18         (rms      22-Jun-93):     'rmail-summary-sort-by-date)
+1.18         (rms      22-Jun-93):   (define-key rmail-summary-mode-map "\C-c\C-s\C-s"
+1.18         (rms      22-Jun-93):     'rmail-summary-sort-by-subject)
+1.18         (rms      22-Jun-93):   (define-key rmail-summary-mode-map "\C-c\C-s\C-a"
+1.18         (rms      22-Jun-93):     'rmail-summary-sort-by-author)
+1.18         (rms      22-Jun-93):   (define-key rmail-summary-mode-map "\C-c\C-s\C-r"
+1.18         (rms      22-Jun-93):     'rmail-summary-sort-by-recipient)
+1.18         (rms      22-Jun-93):   (define-key rmail-summary-mode-map "\C-c\C-s\C-c"
+1.18         (rms      22-Jun-93):     'rmail-summary-sort-by-correspondent)
+1.18         (rms      22-Jun-93):   (define-key rmail-summary-mode-map "\C-c\C-s\C-l"
+1.18         (rms      22-Jun-93):     'rmail-summary-sort-by-lines)
+1.33         (kwzh     07-Apr-94):   (define-key rmail-summary-mode-map "\C-c\C-s\C-k"
+1.117        (gerd     07-May-01):     'rmail-summary-sort-by-labels)
+1.145        (gm       07-Jun-07):   (define-key rmail-summary-mode-map "\C-x\C-s" 'rmail-summary-save-buffer)
+1.6          (rms      09-Mar-93):   )
+1.6          (rms      09-Mar-93): 
+1.17         (rms      22-Jun-93): ;;; Menu bar bindings.
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar] (make-sparse-keymap))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar classify]
+1.17         (rms      22-Jun-93):   (cons "Classify" (make-sparse-keymap "Classify")))
+1.17         (rms      22-Jun-93): 
+1.49         (rms      26-Aug-94): (define-key rmail-summary-mode-map [menu-bar classify output-menu]
+1.49         (rms      26-Aug-94):   '("Output (Rmail Menu)..." . rmail-summary-output-menu))
+1.49         (rms      26-Aug-94): 
+1.49         (rms      26-Aug-94): (define-key rmail-summary-mode-map [menu-bar classify input-menu]
+1.68         (kwzh     30-May-95):   '("Input Rmail File (menu)..." . rmail-input-menu))
+1.49         (rms      26-Aug-94): 
+1.51         (rms      19-Sep-94): (define-key rmail-summary-mode-map [menu-bar classify input-menu]
+1.51         (rms      19-Sep-94):   '(nil))
+1.51         (rms      19-Sep-94): 
+1.51         (rms      19-Sep-94): (define-key rmail-summary-mode-map [menu-bar classify output-menu]
+1.51         (rms      19-Sep-94):   '(nil))
+1.51         (rms      19-Sep-94): 
+1.101        (rms      23-May-98): (define-key rmail-summary-mode-map [menu-bar classify output-body]
+1.101        (rms      23-May-98):   '("Output (body)..." . rmail-summary-output-body))
+1.101        (rms      23-May-98): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar classify output-inbox]
+1.47         (rms      02-Aug-94):   '("Output (inbox)..." . rmail-summary-output))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar classify output]
+1.47         (rms      02-Aug-94):   '("Output (Rmail)..." . rmail-summary-output-to-rmail-file))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar classify kill-label]
+1.47         (rms      02-Aug-94):   '("Kill Label..." . rmail-summary-kill-label))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar classify add-label]
+1.47         (rms      02-Aug-94):   '("Add Label..." . rmail-summary-add-label))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar summary]
+1.17         (rms      22-Jun-93):   (cons "Summary" (make-sparse-keymap "Summary")))
+1.17         (rms      22-Jun-93): 
+1.85         (rms      25-Jun-96): (define-key rmail-summary-mode-map [menu-bar summary senders]
+1.85         (rms      25-Jun-96):   '("By Senders..." . rmail-summary-by-senders))
+1.85         (rms      25-Jun-96): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar summary labels]
+1.47         (rms      02-Aug-94):   '("By Labels..." . rmail-summary-by-labels))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar summary recipients]
+1.47         (rms      02-Aug-94):   '("By Recipients..." . rmail-summary-by-recipients))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar summary topic]
+1.47         (rms      02-Aug-94):   '("By Topic..." . rmail-summary-by-topic))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar summary regexp]
+1.47         (rms      02-Aug-94):   '("By Regexp..." . rmail-summary-by-regexp))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar summary all]
+1.17         (rms      22-Jun-93):   '("All" . rmail-summary))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar mail]
+1.17         (rms      22-Jun-93):   (cons "Mail" (make-sparse-keymap "Mail")))
+1.17         (rms      22-Jun-93): 
+1.45         (rms      02-Aug-94): (define-key rmail-summary-mode-map [menu-bar mail rmail-summary-get-new-mail]
+1.44         (rms      31-Jul-94):   '("Get New Mail" . rmail-summary-get-new-mail))
+1.44         (rms      31-Jul-94): 
+1.46         (rms      02-Aug-94): (define-key rmail-summary-mode-map [menu-bar mail lambda]
+1.44         (rms      31-Jul-94):   '("----"))
+1.42         (rms      29-Jul-94): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar mail continue]
+1.17         (rms      22-Jun-93):   '("Continue" . rmail-summary-continue))
+1.44         (rms      31-Jul-94): 
+1.44         (rms      31-Jul-94): (define-key rmail-summary-mode-map [menu-bar mail resend]
+1.57         (rms      11-Oct-94):   '("Re-send..." . rmail-summary-resend))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar mail forward]
+1.17         (rms      22-Jun-93):   '("Forward" . rmail-summary-forward))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar mail retry]
+1.17         (rms      22-Jun-93):   '("Retry" . rmail-summary-retry-failure))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar mail reply]
+1.17         (rms      22-Jun-93):   '("Reply" . rmail-summary-reply))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar mail mail]
+1.17         (rms      22-Jun-93):   '("Mail" . rmail-summary-mail))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar delete]
+1.17         (rms      22-Jun-93):   (cons "Delete" (make-sparse-keymap "Delete")))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar delete expunge/save]
+1.17         (rms      22-Jun-93):   '("Expunge/Save" . rmail-summary-expunge-and-save))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar delete expunge]
+1.17         (rms      22-Jun-93):   '("Expunge" . rmail-summary-expunge))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar delete undelete]
+1.17         (rms      22-Jun-93):   '("Undelete" . rmail-summary-undelete))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar delete delete]
+1.17         (rms      22-Jun-93):   '("Delete" . rmail-summary-delete-forward))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar move]
+1.17         (rms      22-Jun-93):   (cons "Move" (make-sparse-keymap "Move")))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar move search-back]
+1.47         (rms      02-Aug-94):   '("Search Back..." . rmail-summary-search-backward))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar move search]
+1.47         (rms      02-Aug-94):   '("Search..." . rmail-summary-search))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar move previous]
+1.17         (rms      22-Jun-93):   '("Previous Nondeleted" . rmail-summary-previous-msg))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar move next]
+1.17         (rms      22-Jun-93):   '("Next Nondeleted" . rmail-summary-next-msg))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar move last]
+1.17         (rms      22-Jun-93):   '("Last" . rmail-summary-last-message))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar move first]
+1.17         (rms      22-Jun-93):   '("First" . rmail-summary-first-message))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar move previous]
+1.17         (rms      22-Jun-93):   '("Previous" . rmail-summary-previous-all))
+1.17         (rms      22-Jun-93): 
+1.17         (rms      22-Jun-93): (define-key rmail-summary-mode-map [menu-bar move next]
+1.17         (rms      22-Jun-93):   '("Next" . rmail-summary-next-all))
+1.17         (rms      22-Jun-93): 
+1.98         (rms      04-Aug-97): (defun rmail-summary-mouse-goto-message (event)
+1.98         (rms      04-Aug-97):   "Select the message whose summary line you click on."
+1.98         (rms      04-Aug-97):   (interactive "@e")
+1.98         (rms      04-Aug-97):   (goto-char (posn-point (event-end event)))
+1.98         (rms      04-Aug-97):   (rmail-summary-goto-msg))
+1.76         (kwzh     24-Jan-96): 
+1.98         (rms      04-Aug-97): (defun rmail-summary-goto-msg (&optional n nowarn skip-rmail)
+1.98         (rms      04-Aug-97):   "Go to message N in the summary buffer and the Rmail buffer.
+1.98         (rms      04-Aug-97): If N is nil, use the message corresponding to point in the summary
+1.98         (rms      04-Aug-97): and move to that message in the Rmail buffer.
+1.76         (kwzh     24-Jan-96): 
+1.98         (rms      04-Aug-97): If NOWARN, don't say anything if N is out of range.
+1.98         (rms      04-Aug-97): If SKIP-RMAIL, don't do anything to the Rmail buffer."
+1.1          (jimb     30-Nov-90):   (interactive "P")
+1.1          (jimb     30-Nov-90):   (if (consp n) (setq n (prefix-numeric-value n)))
+1.1          (jimb     30-Nov-90):   (if (eobp) (forward-line -1))
+1.1          (jimb     30-Nov-90):   (beginning-of-line)
+1.54         (rms      06-Oct-94):   (let* ((obuf (current-buffer))
+1.54         (rms      06-Oct-94): 	 (buf rmail-buffer)
+1.54         (rms      06-Oct-94): 	 (cur (point))
+1.54         (rms      06-Oct-94): 	 message-not-found
+1.132        (lektu    16-May-05): 	 (curmsg (string-to-number
+1.54         (rms      06-Oct-94): 		  (buffer-substring (point)
+1.121        (gerd     05-Oct-01): 				    (min (point-max) (+ 6 (point))))))
+1.54         (rms      06-Oct-94): 	 (total (save-excursion (set-buffer buf) rmail-total-messages)))
+1.29         (rms      19-Mar-94):     ;; If message number N was specified, find that message's line
+1.29         (rms      19-Mar-94):     ;; or set message-not-found.
+1.29         (rms      19-Mar-94):     ;; If N wasn't specified or that message can't be found.
+1.29         (rms      19-Mar-94):     ;; set N by default.
+1.1          (jimb     30-Nov-90):     (if (not n)
+1.1          (jimb     30-Nov-90): 	(setq n curmsg)
+1.1          (jimb     30-Nov-90):       (if (< n 1)
+1.1          (jimb     30-Nov-90): 	  (progn (message "No preceding message")
+1.1          (jimb     30-Nov-90): 		 (setq n 1)))
+1.131        (eliz     01-Nov-03):       (if (and (> n total)
+1.131        (eliz     01-Nov-03): 	       (> total 0))
+1.1          (jimb     30-Nov-90): 	  (progn (message "No following message")
+1.1          (jimb     30-Nov-90): 		 (goto-char (point-max))
+1.76         (kwzh     24-Jan-96): 		 (rmail-summary-goto-msg nil nowarn skip-rmail)))
+1.1          (jimb     30-Nov-90):       (goto-char (point-min))
+1.121        (gerd     05-Oct-01):       (if (not (re-search-forward (format "^%5d[^0-9]" n) nil t))
+1.1          (jimb     30-Nov-90): 	  (progn (or nowarn (message "Message %d not found" n))
+1.1          (jimb     30-Nov-90): 		 (setq n curmsg)
+1.29         (rms      19-Mar-94): 		 (setq message-not-found t)
+1.1          (jimb     30-Nov-90): 		 (goto-char cur))))
+1.1          (jimb     30-Nov-90):     (beginning-of-line)
+1.1          (jimb     30-Nov-90):     (skip-chars-forward " ")
+1.1          (jimb     30-Nov-90):     (skip-chars-forward "0-9")
+1.1          (jimb     30-Nov-90):     (save-excursion (if (= (following-char) ?-)
+1.1          (jimb     30-Nov-90): 			(let ((buffer-read-only nil))
+1.1          (jimb     30-Nov-90): 			  (delete-char 1)
+1.1          (jimb     30-Nov-90): 			  (insert " "))))
+1.63         (rms      20-Jan-95):     (rmail-summary-update-highlight message-not-found)
+1.1          (jimb     30-Nov-90):     (beginning-of-line)
+1.6          (rms      09-Mar-93):     (if skip-rmail
+1.6          (rms      09-Mar-93): 	nil
+1.22         (rms      23-Dec-93):       (let ((selwin (selected-window)))
+1.22         (rms      23-Dec-93): 	(unwind-protect
+1.22         (rms      23-Dec-93): 	    (progn (pop-to-buffer buf)
+1.22         (rms      23-Dec-93): 		   (rmail-show-message n))
+1.50         (rms      13-Sep-94): 	  (select-window selwin)
+1.50         (rms      13-Sep-94): 	  ;; The actions above can alter the current buffer.  Preserve it.
+1.50         (rms      13-Sep-94): 	  (set-buffer obuf))))))
+1.63         (rms      20-Jan-95): 
+1.63         (rms      20-Jan-95): ;; Update the highlighted line in an rmail summary buffer.
+1.63         (rms      20-Jan-95): ;; That should be current.  We highlight the line point is on.
+1.63         (rms      20-Jan-95): ;; If NOT-FOUND is non-nil, we turn off highlighting.
+1.63         (rms      20-Jan-95): (defun rmail-summary-update-highlight (not-found)
+1.63         (rms      20-Jan-95):   ;; Make sure we have an overlay to use.
+1.63         (rms      20-Jan-95):   (or rmail-summary-overlay
+1.63         (rms      20-Jan-95):       (progn
+1.63         (rms      20-Jan-95): 	(make-local-variable 'rmail-summary-overlay)
+1.63         (rms      20-Jan-95): 	(setq rmail-summary-overlay (make-overlay (point) (point)))))
+1.63         (rms      20-Jan-95):   ;; If this message is in the summary, use the overlay to highlight it.
+1.63         (rms      20-Jan-95):   ;; Otherwise, don't highlight anything.
+1.63         (rms      20-Jan-95):   (if not-found
+1.63         (rms      20-Jan-95):       (overlay-put rmail-summary-overlay 'face nil)
+1.63         (rms      20-Jan-95):     (move-overlay rmail-summary-overlay
+1.63         (rms      20-Jan-95): 		  (save-excursion (beginning-of-line)
+1.63         (rms      20-Jan-95): 				  (skip-chars-forward " ")
+1.63         (rms      20-Jan-95): 				  (point))
+1.63         (rms      20-Jan-95): 		  (save-excursion (end-of-line) (point)))
+1.63         (rms      20-Jan-95):     (overlay-put rmail-summary-overlay 'face 'highlight)))
+1.6          (rms      09-Mar-93): 
+1.1          (jimb     30-Nov-90): (defun rmail-summary-scroll-msg-up (&optional dist)
+1.61         (rms      20-Nov-94):   "Scroll the Rmail window forward.
+1.61         (rms      20-Nov-94): If the Rmail window is displaying the end of a message,
+1.61         (rms      20-Nov-94): advance to the next message."
+1.1          (jimb     30-Nov-90):   (interactive "P")
+1.61         (rms      20-Nov-94):   (if (eq dist '-)
+1.61         (rms      20-Nov-94):       (rmail-summary-scroll-msg-down nil)
+1.94         (handa    26-Feb-97):     (let ((rmail-buffer-window (get-buffer-window rmail-view-buffer)))
+1.61         (rms      20-Nov-94):       (if rmail-buffer-window
+1.61         (rms      20-Nov-94): 	  (if (let ((rmail-summary-window (selected-window)))
+1.61         (rms      20-Nov-94): 		(select-window rmail-buffer-window)
+1.61         (rms      20-Nov-94): 		(prog1
+1.61         (rms      20-Nov-94): 		    ;; Is EOB visible in the buffer?
+1.61         (rms      20-Nov-94): 		    (save-excursion
+1.61         (rms      20-Nov-94): 		      (let ((ht (window-height (selected-window))))
+1.61         (rms      20-Nov-94): 			(move-to-window-line (- ht 2))
+1.61         (rms      20-Nov-94): 			(end-of-line)
+1.61         (rms      20-Nov-94): 			(eobp)))
+1.61         (rms      20-Nov-94): 		  (select-window rmail-summary-window)))
+1.82         (rms      04-Apr-96): 	      (if (not rmail-summary-scroll-between-messages)
+1.82         (rms      04-Apr-96): 		  (error "End of buffer")
+1.82         (rms      04-Apr-96): 		(rmail-summary-next-msg (or dist 1)))
+1.94         (handa    26-Feb-97): 	    (let ((other-window-scroll-buffer rmail-view-buffer))
+1.61         (rms      20-Nov-94): 	      (scroll-other-window dist)))
+1.93         (rms      14-Dec-96): 	;; If it isn't visible at all, show the beginning.
+1.93         (rms      14-Dec-96): 	(rmail-summary-beginning-of-message)))))
+1.1          (jimb     30-Nov-90): 
+1.1          (jimb     30-Nov-90): (defun rmail-summary-scroll-msg-down (&optional dist)
+1.61         (rms      20-Nov-94):   "Scroll the Rmail window backward.
+1.93         (rms      14-Dec-96): If the Rmail window is now displaying the beginning of a message,
+1.93         (rms      14-Dec-96): move to the previous message."
+1.1          (jimb     30-Nov-90):   (interactive "P")
+1.61         (rms      20-Nov-94):   (if (eq dist '-)
+1.61         (rms      20-Nov-94):       (rmail-summary-scroll-msg-up nil)
+1.118        (gerd     08-May-01):     (let ((rmail-buffer-window (get-buffer-window rmail-view-buffer)))
+1.61         (rms      20-Nov-94):       (if rmail-buffer-window
+1.61         (rms      20-Nov-94): 	  (if (let ((rmail-summary-window (selected-window)))
+1.61         (rms      20-Nov-94): 		(select-window rmail-buffer-window)
+1.61         (rms      20-Nov-94): 		(prog1
+1.61         (rms      20-Nov-94): 		    ;; Is BOB visible in the buffer?
+1.61         (rms      20-Nov-94): 		    (save-excursion
+1.61         (rms      20-Nov-94): 		      (move-to-window-line 0)
+1.61         (rms      20-Nov-94): 		      (beginning-of-line)
+1.61         (rms      20-Nov-94): 		      (bobp))
+1.61         (rms      20-Nov-94): 		  (select-window rmail-summary-window)))
+1.82         (rms      04-Apr-96): 	      (if (not rmail-summary-scroll-between-messages)
+1.82         (rms      04-Apr-96): 		  (error "Beginning of buffer")
+1.82         (rms      04-Apr-96): 		(rmail-summary-previous-msg (or dist 1)))
+1.118        (gerd     08-May-01): 	    (let ((other-window-scroll-buffer rmail-view-buffer))
+1.61         (rms      20-Nov-94): 	      (scroll-other-window-down dist)))
+1.93         (rms      14-Dec-96): 	;; If it isn't visible at all, show the beginning.
+1.93         (rms      14-Dec-96): 	(rmail-summary-beginning-of-message)))))
+1.1          (jimb     30-Nov-90): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-beginning-of-message ()
+1.6          (rms      09-Mar-93):   "Show current message from the beginning."
+1.6          (rms      09-Mar-93):   (interactive)
+1.137        (eliz     12-Aug-05):   (rmail-summary-show-message 'BEG))
+1.137        (eliz     12-Aug-05): 
+1.137        (eliz     12-Aug-05): (defun rmail-summary-end-of-message ()
+1.137        (eliz     12-Aug-05):   "Show bottom of current message."
+1.137        (eliz     12-Aug-05):   (interactive)
+1.137        (eliz     12-Aug-05):   (rmail-summary-show-message 'END))
+1.137        (eliz     12-Aug-05): 
+1.137        (eliz     12-Aug-05): (defun rmail-summary-show-message (where)
+1.137        (eliz     12-Aug-05):   "Show current mail message.
+1.137        (eliz     12-Aug-05): Position it according to WHERE which can be BEG or END"
+1.93         (rms      14-Dec-96):   (if (and (one-window-p) (not pop-up-frames))
+1.93         (rms      14-Dec-96):       ;; If there is just one window, put the summary on the top.
+1.118        (gerd     08-May-01):       (let ((buffer rmail-view-buffer))
+1.93         (rms      14-Dec-96): 	(split-window (selected-window) rmail-summary-window-size)
+1.93         (rms      14-Dec-96): 	(select-window (frame-first-window))
+1.118        (gerd     08-May-01): 	(pop-to-buffer rmail-view-buffer)
+1.93         (rms      14-Dec-96): 	;; If pop-to-buffer did not use that window, delete that
+1.93         (rms      14-Dec-96): 	;; window.  (This can happen if it uses another frame.)
+1.93         (rms      14-Dec-96): 	(or (eq buffer (window-buffer (next-window (frame-first-window))))
+1.93         (rms      14-Dec-96): 	    (delete-other-windows)))
+1.118        (gerd     08-May-01):     (pop-to-buffer rmail-view-buffer))
+1.137        (eliz     12-Aug-05):   (cond
+1.137        (eliz     12-Aug-05):    ((eq where 'BEG)
+1.137        (eliz     12-Aug-05): 	(goto-char (point-min))
+1.137        (eliz     12-Aug-05): 	(search-forward "\n\n"))
+1.137        (eliz     12-Aug-05):    ((eq where 'END)
+1.137        (eliz     12-Aug-05): 	(goto-char (point-max))
+1.137        (eliz     12-Aug-05): 	(recenter (1- (window-height))))
+1.137        (eliz     12-Aug-05):    )
+1.6          (rms      09-Mar-93):   (pop-to-buffer rmail-summary-buffer))
+1.84         (rms      22-Jun-96): 
+1.84         (rms      22-Jun-96): (defun rmail-summary-bury ()
+1.84         (rms      22-Jun-96):   "Bury the Rmail buffer and the Rmail summary buffer."
+1.84         (rms      22-Jun-96):   (interactive)
+1.84         (rms      22-Jun-96):   (let ((buffer-to-bury (current-buffer)))
+1.84         (rms      22-Jun-96):     (let (window)
+1.84         (rms      22-Jun-96):       (while (setq window (get-buffer-window rmail-buffer))
+1.84         (rms      22-Jun-96): 	(set-window-buffer window (other-buffer rmail-buffer)))
+1.84         (rms      22-Jun-96):       (bury-buffer rmail-buffer))
+1.84         (rms      22-Jun-96):     (switch-to-buffer (other-buffer buffer-to-bury))
+1.84         (rms      22-Jun-96):     (bury-buffer buffer-to-bury)))
+1.6          (rms      09-Mar-93): 
+1.1          (jimb     30-Nov-90): (defun rmail-summary-quit ()
+1.6          (rms      09-Mar-93):   "Quit out of Rmail and Rmail summary."
+1.1          (jimb     30-Nov-90):   (interactive)
+1.6          (rms      09-Mar-93):   (rmail-summary-wipe)
+1.1          (jimb     30-Nov-90):   (rmail-quit))
+1.1          (jimb     30-Nov-90): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-wipe ()
+1.6          (rms      09-Mar-93):   "Kill and wipe away Rmail summary, remaining within Rmail."
+1.1          (jimb     30-Nov-90):   (interactive)
+1.6          (rms      09-Mar-93):   (save-excursion (set-buffer rmail-buffer) (setq rmail-summary-buffer nil))
+1.118        (gerd     08-May-01):   (let ((local-rmail-buffer rmail-view-buffer))
+1.6          (rms      09-Mar-93):     (kill-buffer (current-buffer))
+1.6          (rms      09-Mar-93):     ;; Delete window if not only one.
+1.6          (rms      09-Mar-93):     (if (not (eq (selected-window) (next-window nil 'no-minibuf)))
+1.6          (rms      09-Mar-93): 	(delete-window))
+1.21         (rms      23-Nov-93):     ;; Switch windows to the rmail buffer, or switch to it in this window.
+1.21         (rms      23-Nov-93):     (pop-to-buffer local-rmail-buffer)))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-expunge ()
+1.6          (rms      09-Mar-93):   "Actually erase all deleted messages and recompute summary headers."
+1.6          (rms      09-Mar-93):   (interactive)
+1.6          (rms      09-Mar-93):   (save-excursion
+1.6          (rms      09-Mar-93):     (set-buffer rmail-buffer)
+1.115        (gerd     12-Dec-00):     (when (rmail-expunge-confirmed)
+1.114        (gerd     04-Dec-00):       (rmail-only-expunge)))
+1.6          (rms      09-Mar-93):   (rmail-update-summary))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-expunge-and-save ()
+1.6          (rms      09-Mar-93):   "Expunge and save RMAIL file."
+1.6          (rms      09-Mar-93):   (interactive)
+1.6          (rms      09-Mar-93):   (save-excursion
+1.6          (rms      09-Mar-93):     (set-buffer rmail-buffer)
+1.115        (gerd     12-Dec-00):     (when (rmail-expunge-confirmed)
+1.114        (gerd     04-Dec-00):       (rmail-only-expunge)))
+1.15         (rms      04-Jun-93):   (rmail-update-summary)
+1.15         (rms      04-Jun-93):   (save-excursion
+1.14         (rms      03-Jun-93):     (set-buffer rmail-buffer)
+1.28         (kwzh     09-Feb-94):     (save-buffer))
+1.28         (kwzh     09-Feb-94):   (set-buffer-modified-p nil))
+1.6          (rms      09-Mar-93): 
+1.99         (rms      27-Aug-97): (defun rmail-summary-get-new-mail (&optional file-name)
+1.99         (rms      27-Aug-97):   "Get new mail and recompute summary headers.
+1.99         (rms      27-Aug-97): 
+1.99         (rms      27-Aug-97): Optionally you can specify the file to get new mail from.  In this case,
+1.99         (rms      27-Aug-97): the file of new mail is not changed or deleted.  Noninteractively, you can
+1.99         (rms      27-Aug-97): pass the inbox file name as an argument.  Interactively, a prefix
+1.99         (rms      27-Aug-97): argument says to read a file name and use that file as the inbox."
+1.99         (rms      27-Aug-97):   (interactive
+1.99         (rms      27-Aug-97):    (list (if current-prefix-arg
+1.99         (rms      27-Aug-97): 	     (read-file-name "Get new mail from file: "))))
+1.15         (rms      04-Jun-93):   (let (msg)
+1.15         (rms      04-Jun-93):     (save-excursion
+1.15         (rms      04-Jun-93):       (set-buffer rmail-buffer)
+1.99         (rms      27-Aug-97):       (rmail-get-new-mail file-name)
+1.15         (rms      04-Jun-93):       ;; Get the proper new message number.
+1.15         (rms      04-Jun-93):       (setq msg rmail-current-message))
+1.15         (rms      04-Jun-93):     ;; Make sure that message is displayed.
+1.73         (rms      30-Nov-95):     (or (zerop msg)
+1.73         (rms      30-Nov-95): 	(rmail-summary-goto-msg msg))))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-input (filename)
+1.6          (rms      09-Mar-93):   "Run Rmail on file FILENAME."
+1.6          (rms      09-Mar-93):   (interactive "FRun rmail on RMAIL file: ")
+1.15         (rms      04-Jun-93):   ;; We switch windows here, then display the other Rmail file there.
+1.15         (rms      04-Jun-93):   (pop-to-buffer rmail-buffer)
+1.15         (rms      04-Jun-93):   (rmail filename))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-first-message ()
+1.6          (rms      09-Mar-93):   "Show first message in Rmail file from summary buffer."
+1.6          (rms      09-Mar-93):   (interactive)
+1.134        (rms      03-Jul-05):   (with-no-warnings
+1.134        (rms      03-Jul-05):     (beginning-of-buffer)))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-last-message ()
+1.6          (rms      09-Mar-93):   "Show last message in Rmail file from summary buffer."
+1.6          (rms      09-Mar-93):   (interactive)
+1.134        (rms      03-Jul-05):   (with-no-warnings
+1.134        (rms      03-Jul-05):     (end-of-buffer))
+1.6          (rms      09-Mar-93):   (forward-line -1))
+1.6          (rms      09-Mar-93): 
+1.148        (dann     27-Nov-07): (declare-function rmail-abort-edit "rmailedit" ())
+1.148        (dann     27-Nov-07): (declare-function rmail-cease-edit "rmailedit"())
+1.148        (dann     27-Nov-07): (declare-function rmail-set-label "rmailkwd" (l state &optional n))
+1.148        (dann     27-Nov-07): (declare-function rmail-output-read-file-name "rmailout" ())
+1.148        (dann     27-Nov-07): (declare-function rmail-output-read-rmail-file-name  "rmailout" ())
+1.148        (dann     27-Nov-07): (declare-function mail-send-and-exit "sendmail" (&optional arg))
+1.148        (dann     27-Nov-07): 
+1.6          (rms      09-Mar-93): (defvar rmail-summary-edit-map nil)
+1.6          (rms      09-Mar-93): (if rmail-summary-edit-map
+1.6          (rms      09-Mar-93):     nil
+1.6          (rms      09-Mar-93):   (setq rmail-summary-edit-map
+1.19         (rms      12-Nov-93): 	(nconc (make-sparse-keymap) text-mode-map))
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-edit-map "\C-c\C-c" 'rmail-cease-edit)
+1.6          (rms      09-Mar-93):   (define-key rmail-summary-edit-map "\C-c\C-]" 'rmail-abort-edit))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-edit-current-message ()
+1.6          (rms      09-Mar-93):   "Edit the contents of this message."
+1.6          (rms      09-Mar-93):   (interactive)
+1.6          (rms      09-Mar-93):   (pop-to-buffer rmail-buffer)
+1.6          (rms      09-Mar-93):   (rmail-edit-current-message)
+1.6          (rms      09-Mar-93):   (use-local-map rmail-summary-edit-map))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-cease-edit ()
+1.6          (rms      09-Mar-93):   "Finish editing message, then go back to Rmail summary buffer."
+1.6          (rms      09-Mar-93):   (interactive)
+1.6          (rms      09-Mar-93):   (rmail-cease-edit)
+1.6          (rms      09-Mar-93):   (pop-to-buffer rmail-summary-buffer))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-abort-edit ()
+1.6          (rms      09-Mar-93):   "Abort edit of current message; restore original contents.
+1.6          (rms      09-Mar-93): Go back to summary buffer."
+1.6          (rms      09-Mar-93):   (interactive)
+1.6          (rms      09-Mar-93):   (rmail-abort-edit)
+1.6          (rms      09-Mar-93):   (pop-to-buffer rmail-summary-buffer))
+1.6          (rms      09-Mar-93): 
+1.17         (rms      22-Jun-93): (defun rmail-summary-search-backward (regexp &optional n)
+1.17         (rms      22-Jun-93):   "Show message containing next match for REGEXP.
+1.17         (rms      22-Jun-93): Prefix argument gives repeat count; negative argument means search
+1.17         (rms      22-Jun-93): backwards (through earlier messages).
+1.17         (rms      22-Jun-93): Interactively, empty argument means use same regexp used last time."
+1.17         (rms      22-Jun-93):   (interactive
+1.17         (rms      22-Jun-93):     (let* ((reversep (>= (prefix-numeric-value current-prefix-arg) 0))
+1.17         (rms      22-Jun-93): 	   (prompt
+1.139        (rfrancoi 24-Sep-05): 	    (concat (if reversep "Reverse " "") "Rmail search (regexp"))
+1.17         (rms      22-Jun-93): 	   regexp)
+1.139        (rfrancoi 24-Sep-05):       (setq prompt
+1.139        (rfrancoi 24-Sep-05): 	    (concat prompt
+1.139        (rfrancoi 24-Sep-05): 		    (if rmail-search-last-regexp
+1.139        (rfrancoi 24-Sep-05): 			(concat ", default "
+1.139        (rfrancoi 24-Sep-05): 				rmail-search-last-regexp "): ")
+1.139        (rfrancoi 24-Sep-05): 		      "): ")))
+1.17         (rms      22-Jun-93):       (setq regexp (read-string prompt))
+1.17         (rms      22-Jun-93):       (cond ((not (equal regexp ""))
+1.17         (rms      22-Jun-93): 	     (setq rmail-search-last-regexp regexp))
+1.17         (rms      22-Jun-93): 	    ((not rmail-search-last-regexp)
+1.17         (rms      22-Jun-93): 	     (error "No previous Rmail search string")))
+1.17         (rms      22-Jun-93):       (list rmail-search-last-regexp
+1.17         (rms      22-Jun-93): 	    (prefix-numeric-value current-prefix-arg))))
+1.17         (rms      22-Jun-93):   ;; Don't use save-excursion because that prevents point from moving
+1.17         (rms      22-Jun-93):   ;; properly in the summary buffer.
+1.17         (rms      22-Jun-93):   (let ((buffer (current-buffer)))
+1.17         (rms      22-Jun-93):     (unwind-protect
+1.17         (rms      22-Jun-93): 	(progn
+1.17         (rms      22-Jun-93): 	  (set-buffer rmail-buffer)
+1.17         (rms      22-Jun-93): 	  (rmail-search regexp (- n)))
+1.17         (rms      22-Jun-93):       (set-buffer buffer))))
+1.17         (rms      22-Jun-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-search (regexp &optional n)
+1.6          (rms      09-Mar-93):   "Show message containing next match for REGEXP.
+1.6          (rms      09-Mar-93): Prefix argument gives repeat count; negative argument means search
+1.6          (rms      09-Mar-93): backwards (through earlier messages).
+1.6          (rms      09-Mar-93): Interactively, empty argument means use same regexp used last time."
+1.6          (rms      09-Mar-93):   (interactive
+1.6          (rms      09-Mar-93):     (let* ((reversep (< (prefix-numeric-value current-prefix-arg) 0))
+1.6          (rms      09-Mar-93): 	   (prompt
+1.139        (rfrancoi 24-Sep-05): 	    (concat (if reversep "Reverse " "") "Rmail search (regexp"))
+1.6          (rms      09-Mar-93): 	   regexp)
+1.139        (rfrancoi 24-Sep-05):       (setq prompt
+1.139        (rfrancoi 24-Sep-05): 	    (concat prompt
+1.139        (rfrancoi 24-Sep-05): 		    (if rmail-search-last-regexp
+1.139        (rfrancoi 24-Sep-05): 			(concat ", default "
+1.139        (rfrancoi 24-Sep-05): 				rmail-search-last-regexp "): ")
+1.139        (rfrancoi 24-Sep-05): 		      "): ")))
+1.6          (rms      09-Mar-93):       (setq regexp (read-string prompt))
+1.6          (rms      09-Mar-93):       (cond ((not (equal regexp ""))
+1.6          (rms      09-Mar-93): 	     (setq rmail-search-last-regexp regexp))
+1.6          (rms      09-Mar-93): 	    ((not rmail-search-last-regexp)
+1.6          (rms      09-Mar-93): 	     (error "No previous Rmail search string")))
+1.6          (rms      09-Mar-93):       (list rmail-search-last-regexp
+1.6          (rms      09-Mar-93): 	    (prefix-numeric-value current-prefix-arg))))
+1.17         (rms      22-Jun-93):   ;; Don't use save-excursion because that prevents point from moving
+1.17         (rms      22-Jun-93):   ;; properly in the summary buffer.
+1.17         (rms      22-Jun-93):   (let ((buffer (current-buffer)))
+1.17         (rms      22-Jun-93):     (unwind-protect
+1.17         (rms      22-Jun-93): 	(progn
+1.17         (rms      22-Jun-93): 	  (set-buffer rmail-buffer)
+1.17         (rms      22-Jun-93): 	  (rmail-search regexp n))
+1.17         (rms      22-Jun-93):       (set-buffer buffer))))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-toggle-header ()
+1.6          (rms      09-Mar-93):   "Show original message header if pruned header currently shown, or vice versa."
+1.6          (rms      09-Mar-93):   (interactive)
+1.118        (gerd     08-May-01):   (save-window-excursion
+1.6          (rms      09-Mar-93):     (set-buffer rmail-buffer)
+1.66         (rms      31-Mar-95):     (rmail-toggle-header))
+1.66         (rms      31-Mar-95):   ;; Inside save-excursion, some changes to point in the RMAIL buffer are lost.
+1.66         (rms      31-Mar-95):   ;; Set point to point-min in the RMAIL buffer, if it is visible.
+1.118        (gerd     08-May-01):   (let ((window (get-buffer-window rmail-view-buffer)))
+1.66         (rms      31-Mar-95):     (if window
+1.66         (rms      31-Mar-95):         ;; Using save-window-excursion would lose the new value of point.
+1.66         (rms      31-Mar-95):         (let ((owin (selected-window)))
+1.66         (rms      31-Mar-95):           (unwind-protect
+1.66         (rms      31-Mar-95):               (progn
+1.66         (rms      31-Mar-95):                 (select-window window)
+1.66         (rms      31-Mar-95):                 (goto-char (point-min)))
+1.66         (rms      31-Mar-95):             (select-window owin))))))
+1.66         (rms      31-Mar-95): 
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-add-label (label)
+1.6          (rms      09-Mar-93):   "Add LABEL to labels associated with current Rmail message.
+1.6          (rms      09-Mar-93): Completion is performed over known labels when reading."
+1.14         (rms      03-Jun-93):   (interactive (list (save-excursion
+1.14         (rms      03-Jun-93): 		       (set-buffer rmail-buffer)
+1.14         (rms      03-Jun-93): 		       (rmail-read-label "Add label"))))
+1.6          (rms      09-Mar-93):   (save-excursion
+1.6          (rms      09-Mar-93):     (set-buffer rmail-buffer)
+1.6          (rms      09-Mar-93):     (rmail-add-label label)))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-kill-label (label)
+1.6          (rms      09-Mar-93):   "Remove LABEL from labels associated with current Rmail message.
+1.6          (rms      09-Mar-93): Completion is performed over known labels when reading."
+1.14         (rms      03-Jun-93):   (interactive (list (save-excursion
+1.14         (rms      03-Jun-93): 		       (set-buffer rmail-buffer)
+1.14         (rms      03-Jun-93): 		       (rmail-read-label "Kill label"))))
+1.6          (rms      09-Mar-93):   (save-excursion
+1.6          (rms      09-Mar-93):     (set-buffer rmail-buffer)
+1.6          (rms      09-Mar-93):     (rmail-set-label label nil)))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): ;;;; *** Rmail Summary Mailing Commands ***
+1.6          (rms      09-Mar-93): 
+1.116        (gerd     12-Mar-01): (defun rmail-summary-override-mail-send-and-exit ()
+1.127        (jpw      06-Feb-03):   "Replace bindings to `mail-send-and-exit' with `rmail-summary-send-and-exit'."
+1.116        (gerd     12-Mar-01):   (use-local-map (copy-keymap (current-local-map)))
+1.116        (gerd     12-Mar-01):   (dolist (key (where-is-internal 'mail-send-and-exit))
+1.116        (gerd     12-Mar-01):     (define-key (current-local-map) key 'rmail-summary-send-and-exit)))
+1.116        (gerd     12-Mar-01): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-mail ()
+1.6          (rms      09-Mar-93):   "Send mail in another window.
+1.6          (rms      09-Mar-93): While composing the message, use \\[mail-yank-original] to yank the
+1.6          (rms      09-Mar-93): original message into it."
+1.6          (rms      09-Mar-93):   (interactive)
+1.65         (rms      19-Feb-95):   (let ((window (get-buffer-window rmail-buffer)))
+1.65         (rms      19-Feb-95):     (if window
+1.65         (rms      19-Feb-95): 	(select-window window)
+1.65         (rms      19-Feb-95):       (set-buffer rmail-buffer)))
+1.65         (rms      19-Feb-95):   (rmail-start-mail nil nil nil nil nil (current-buffer))
+1.116        (gerd     12-Mar-01):   (rmail-summary-override-mail-send-and-exit))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-continue ()
+1.6          (rms      09-Mar-93):   "Continue composing outgoing message previously being composed."
+1.6          (rms      09-Mar-93):   (interactive)
+1.65         (rms      19-Feb-95):   (let ((window (get-buffer-window rmail-buffer)))
+1.65         (rms      19-Feb-95):     (if window
+1.65         (rms      19-Feb-95): 	(select-window window)
+1.65         (rms      19-Feb-95):       (set-buffer rmail-buffer)))
+1.27         (kwzh     31-Jan-94):   (rmail-start-mail t))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-reply (just-sender)
+1.6          (rms      09-Mar-93):   "Reply to the current message.
+1.6          (rms      09-Mar-93): Normally include CC: to all other recipients of original message;
+1.27         (kwzh     31-Jan-94): prefix argument means ignore them.  While composing the reply,
+1.27         (kwzh     31-Jan-94): use \\[mail-yank-original] to yank the original message into it."
+1.6          (rms      09-Mar-93):   (interactive "P")
+1.118        (gerd     08-May-01):   (let ((window (get-buffer-window rmail-view-buffer)))
+1.65         (rms      19-Feb-95):     (if window
+1.65         (rms      19-Feb-95): 	(select-window window)
+1.118        (gerd     08-May-01):       (set-buffer rmail-view-buffer)))
+1.27         (kwzh     31-Jan-94):   (rmail-reply just-sender)
+1.116        (gerd     12-Mar-01):   (rmail-summary-override-mail-send-and-exit))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-retry-failure ()
+1.6          (rms      09-Mar-93):   "Edit a mail message which is based on the contents of the current message.
+1.6          (rms      09-Mar-93): For a message rejected by the mail system, extract the interesting headers and
+1.6          (rms      09-Mar-93): the body of the original message; otherwise copy the current message."
+1.6          (rms      09-Mar-93):   (interactive)
+1.65         (rms      19-Feb-95):   (let ((window (get-buffer-window rmail-buffer)))
+1.65         (rms      19-Feb-95):     (if window
+1.65         (rms      19-Feb-95): 	(select-window window)
+1.65         (rms      19-Feb-95):       (set-buffer rmail-buffer)))
+1.27         (kwzh     31-Jan-94):   (rmail-retry-failure)
+1.116        (gerd     12-Mar-01):   (rmail-summary-override-mail-send-and-exit))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): (defun rmail-summary-send-and-exit ()
+1.6          (rms      09-Mar-93):   "Send mail reply and return to summary buffer."
+1.6          (rms      09-Mar-93):   (interactive)
+1.6          (rms      09-Mar-93):   (mail-send-and-exit t))
+1.6          (rms      09-Mar-93): 
+1.20         (rms      14-Nov-93): (defun rmail-summary-forward (resend)
+1.20         (rms      14-Nov-93):   "Forward the current message to another user.
+1.20         (rms      14-Nov-93): With prefix argument, \"resend\" the message instead of forwarding it;
+1.20         (rms      14-Nov-93): see the documentation of `rmail-resend'."
+1.20         (rms      14-Nov-93):   (interactive "P")
+1.6          (rms      09-Mar-93):   (save-excursion
+1.65         (rms      19-Feb-95):     (let ((window (get-buffer-window rmail-buffer)))
+1.65         (rms      19-Feb-95):       (if window
+1.65         (rms      19-Feb-95): 	  (select-window window)
+1.65         (rms      19-Feb-95): 	(set-buffer rmail-buffer)))
+1.20         (rms      14-Nov-93):     (rmail-forward resend)
+1.116        (gerd     12-Mar-01):     (rmail-summary-override-mail-send-and-exit)))
+1.57         (rms      11-Oct-94): 
+1.57         (rms      11-Oct-94): (defun rmail-summary-resend ()
+1.127        (jpw      06-Feb-03):   "Resend current message using `rmail-resend'."
+1.57         (rms      11-Oct-94):   (interactive)
+1.57         (rms      11-Oct-94):   (save-excursion
+1.65         (rms      19-Feb-95):     (let ((window (get-buffer-window rmail-buffer)))
+1.65         (rms      19-Feb-95):       (if window
+1.65         (rms      19-Feb-95): 	  (select-window window)
+1.65         (rms      19-Feb-95): 	(set-buffer rmail-buffer)))
+1.57         (rms      11-Oct-94):     (call-interactively 'rmail-resend)))
+1.6          (rms      09-Mar-93): 
+1.6          (rms      09-Mar-93): ;; Summary output commands.
+1.6          (rms      09-Mar-93): 
+1.108        (kwzh     13-Jun-99): (defun rmail-summary-output-to-rmail-file (&optional file-name n)
+1.6          (rms      09-Mar-93):   "Append the current message to an Rmail file named FILE-NAME.
+1.6          (rms      09-Mar-93): If the file does not exist, ask if it should be created.
+1.6          (rms      09-Mar-93): If file is being visited, the message is appended to the Emacs
+1.104        (kwzh     10-Sep-98): buffer visiting that file.
+1.104        (kwzh     10-Sep-98): 
+1.104        (kwzh     10-Sep-98): A prefix argument N says to output N consecutive messages
+1.104        (kwzh     10-Sep-98): starting with the current one.  Deleted messages are skipped and don't count."
+1.107        (rms      04-Jan-99):   (interactive
+1.107        (rms      04-Jan-99):    (progn (require 'rmailout)
+1.107        (rms      04-Jan-99): 	  (list (rmail-output-read-rmail-file-name)
+1.107        (rms      04-Jan-99): 		(prefix-numeric-value current-prefix-arg))))
+1.109        (kwzh     15-Jun-99):   (let ((i 0) prev-msg)
+1.126        (lektu    04-Feb-03):     (while
+1.109        (kwzh     15-Jun-99): 	(and (< i n)
+1.109        (kwzh     15-Jun-99): 	     (progn (rmail-summary-goto-msg)
+1.109        (kwzh     15-Jun-99): 		    (not (eq prev-msg
+1.109        (kwzh     15-Jun-99): 			     (setq prev-msg
+1.126        (lektu    04-Feb-03): 				   (with-current-buffer rmail-buffer
+1.109        (kwzh     15-Jun-99): 				     rmail-current-message))))))
+1.107        (rms      04-Jan-99):       (setq i (1+ i))
+1.107        (rms      04-Jan-99):       (with-current-buffer rmail-buffer
+1.107        (rms      04-Jan-99): 	(let ((rmail-delete-after-output nil))
+1.107        (rms      04-Jan-99): 	  (rmail-output-to-rmail-file file-name 1)))
+1.107        (rms      04-Jan-99):       (if rmail-delete-after-output
+1.107        (rms      04-Jan-99): 	  (rmail-summary-delete-forward nil)
+1.107        (rms      04-Jan-99): 	(if (< i n)
+1.107        (rms      04-Jan-99): 	    (rmail-summary-next-msg 1))))))
+1.107        (rms      04-Jan-99): 
+1.107        (rms      04-Jan-99): (defun rmail-summary-output (&optional file-name n)
+1.107        (rms      04-Jan-99):   "Append this message to Unix mail file named FILE-NAME.
+1.107        (rms      04-Jan-99): 
+1.107        (rms      04-Jan-99): A prefix argument N says to output N consecutive messages
+1.107        (rms      04-Jan-99): starting with the current one.  Deleted messages are skipped and don't count."
+1.107        (rms      04-Jan-99):   (interactive
+1.107        (rms      04-Jan-99):    (progn (require 'rmailout)
+1.107        (rms      04-Jan-99): 	  (list (rmail-output-read-file-name)
+1.107        (rms      04-Jan-99): 		(prefix-numeric-value current-prefix-arg))))
+1.124        (rms      23-Feb-02):   (let ((i 0) prev-msg)
+1.124        (rms      23-Feb-02):     (while
+1.124        (rms      23-Feb-02): 	(and (< i n)
+1.124        (rms      23-Feb-02): 	     (progn (rmail-summary-goto-msg)
+1.124        (rms      23-Feb-02): 		    (not (eq prev-msg
+1.124        (rms      23-Feb-02): 			     (setq prev-msg
+1.124        (rms      23-Feb-02): 				   (with-current-buffer rmail-buffer
+1.124        (rms      23-Feb-02): 				     rmail-current-message))))))
+1.107        (rms      04-Jan-99):       (setq i (1+ i))
+1.107        (rms      04-Jan-99):       (with-current-buffer rmail-buffer
+1.107        (rms      04-Jan-99): 	(let ((rmail-delete-after-output nil))
+1.107        (rms      04-Jan-99): 	  (rmail-output file-name 1)))
+1.107        (rms      04-Jan-99):       (if rmail-delete-after-output
+1.107        (rms      04-Jan-99): 	  (rmail-summary-delete-forward nil)
+1.107        (rms      04-Jan-99): 	(if (< i n)
+1.107        (rms      04-Jan-99): 	    (rmail-summary-next-msg 1))))))
+1.49         (rms      26-Aug-94): 
+1.49         (rms      26-Aug-94): (defun rmail-summary-output-menu ()
+1.49         (rms      26-Aug-94):   "Output current message to another Rmail file, chosen with a menu.
+1.49         (rms      26-Aug-94): Also set the default for subsequent \\[rmail-output-to-rmail-file] commands.
+1.49         (rms      26-Aug-94): The variables `rmail-secondary-file-directory' and
+1.49         (rms      26-Aug-94): `rmail-secondary-file-regexp' control which files are offered in the menu."
+1.49         (rms      26-Aug-94):   (interactive)
+1.49         (rms      26-Aug-94):   (save-excursion
+1.49         (rms      26-Aug-94):     (set-buffer rmail-buffer)
+1.49         (rms      26-Aug-94):     (let ((rmail-delete-after-output nil))
+1.49         (rms      26-Aug-94):       (call-interactively 'rmail-output-menu)))
+1.24         (rms      08-Jan-94):   (if rmail-delete-after-output
+1.25         (rms      08-Jan-94):       (rmail-summary-delete-forward nil)))
+1.51         (rms      19-Sep-94): 
+1.51         (rms      19-Sep-94): (defun rmail-summary-construct-io-menu ()
+1.51         (rms      19-Sep-94):   (let ((files (rmail-find-all-files rmail-secondary-file-directory)))
+1.71         (rms      06-Sep-95):     (if files
+1.51         (rms      19-Sep-94): 	(progn
+1.51         (rms      19-Sep-94): 	  (define-key rmail-summary-mode-map [menu-bar classify input-menu]
+1.126        (lektu    04-Feb-03): 	    (cons "Input Rmail File"
+1.126        (lektu    04-Feb-03): 		  (rmail-list-to-menu "Input Rmail File"
+1.71         (rms      06-Sep-95): 				      files
+1.51         (rms      19-Sep-94): 				      'rmail-summary-input)))
+1.51         (rms      19-Sep-94): 	  (define-key rmail-summary-mode-map [menu-bar classify output-menu]
+1.126        (lektu    04-Feb-03): 	    (cons "Output Rmail File"
+1.126        (lektu    04-Feb-03): 		  (rmail-list-to-menu "Output Rmail File"
+1.71         (rms      06-Sep-95): 				      files
+1.71         (rms      06-Sep-95): 				      'rmail-summary-output-to-rmail-file))))
+1.71         (rms      06-Sep-95):       (define-key rmail-summary-mode-map [menu-bar classify input-menu]
+1.71         (rms      06-Sep-95): 	'("Input Rmail File" . rmail-disable-menu))
+1.71         (rms      06-Sep-95):       (define-key rmail-summary-mode-map [menu-bar classify output-menu]
+1.71         (rms      06-Sep-95): 	'("Output Rmail File" . rmail-disable-menu)))))
+1.51         (rms      19-Sep-94): 
+1.101        (rms      23-May-98): (defun rmail-summary-output-body (&optional file-name)
+1.101        (rms      23-May-98):   "Write this message body to the file FILE-NAME.
+1.101        (rms      23-May-98): FILE-NAME defaults, interactively, from the Subject field of the message."
+1.101        (rms      23-May-98):   (interactive)
+1.101        (rms      23-May-98):   (save-excursion
+1.101        (rms      23-May-98):     (set-buffer rmail-buffer)
+1.101        (rms      23-May-98):     (let ((rmail-delete-after-output nil))
+1.101        (rms      23-May-98):       (if file-name
+1.101        (rms      23-May-98): 	  (rmail-output-body-to-file file-name)
+1.101        (rms      23-May-98): 	(call-interactively 'rmail-output-body-to-file))))
+1.101        (rms      23-May-98):   (if rmail-delete-after-output
+1.101        (rms      23-May-98):       (rmail-summary-delete-forward nil)))
+1.18         (rms      22-Jun-93): 
+1.18         (rms      22-Jun-93): ;; Sorting messages in Rmail Summary buffer.
+1.18         (rms      22-Jun-93): 
+1.18         (rms      22-Jun-93): (defun rmail-summary-sort-by-date (reverse)
+1.18         (rms      22-Jun-93):   "Sort messages of current Rmail summary by date.
+1.18         (rms      22-Jun-93): If prefix argument REVERSE is non-nil, sort them in reverse order."
+1.18         (rms      22-Jun-93):   (interactive "P")
+1.18         (rms      22-Jun-93):   (rmail-sort-from-summary (function rmail-sort-by-date) reverse))
+1.18         (rms      22-Jun-93): 
+1.18         (rms      22-Jun-93): (defun rmail-summary-sort-by-subject (reverse)
+1.18         (rms      22-Jun-93):   "Sort messages of current Rmail summary by subject.
+1.18         (rms      22-Jun-93): If prefix argument REVERSE is non-nil, sort them in reverse order."
+1.18         (rms      22-Jun-93):   (interactive "P")
+1.18         (rms      22-Jun-93):   (rmail-sort-from-summary (function rmail-sort-by-subject) reverse))
+1.18         (rms      22-Jun-93): 
+1.18         (rms      22-Jun-93): (defun rmail-summary-sort-by-author (reverse)
+1.18         (rms      22-Jun-93):   "Sort messages of current Rmail summary by author.
+1.18         (rms      22-Jun-93): If prefix argument REVERSE is non-nil, sort them in reverse order."
+1.18         (rms      22-Jun-93):   (interactive "P")
+1.18         (rms      22-Jun-93):   (rmail-sort-from-summary (function rmail-sort-by-author) reverse))
+1.18         (rms      22-Jun-93): 
+1.18         (rms      22-Jun-93): (defun rmail-summary-sort-by-recipient (reverse)
+1.18         (rms      22-Jun-93):   "Sort messages of current Rmail summary by recipient.
+1.18         (rms      22-Jun-93): If prefix argument REVERSE is non-nil, sort them in reverse order."
+1.18         (rms      22-Jun-93):   (interactive "P")
+1.18         (rms      22-Jun-93):   (rmail-sort-from-summary (function rmail-sort-by-recipient) reverse))
+1.18         (rms      22-Jun-93): 
+1.18         (rms      22-Jun-93): (defun rmail-summary-sort-by-correspondent (reverse)
+1.18         (rms      22-Jun-93):   "Sort messages of current Rmail summary by other correspondent.
+1.18         (rms      22-Jun-93): If prefix argument REVERSE is non-nil, sort them in reverse order."
+1.18         (rms      22-Jun-93):   (interactive "P")
+1.18         (rms      22-Jun-93):   (rmail-sort-from-summary (function rmail-sort-by-correspondent) reverse))
+1.18         (rms      22-Jun-93): 
+1.18         (rms      22-Jun-93): (defun rmail-summary-sort-by-lines (reverse)
+1.18         (rms      22-Jun-93):   "Sort messages of current Rmail summary by lines of the message.
+1.18         (rms      22-Jun-93): If prefix argument REVERSE is non-nil, sort them in reverse order."
+1.18         (rms      22-Jun-93):   (interactive "P")
+1.18         (rms      22-Jun-93):   (rmail-sort-from-summary (function rmail-sort-by-lines) reverse))
+1.18         (rms      22-Jun-93): 
+1.117        (gerd     07-May-01): (defun rmail-summary-sort-by-labels (reverse labels)
+1.117        (gerd     07-May-01):   "Sort messages of current Rmail summary by labels.
+1.33         (kwzh     07-Apr-94): If prefix argument REVERSE is non-nil, sort them in reverse order.
+1.33         (kwzh     07-Apr-94): KEYWORDS is a comma-separated list of labels."
+1.33         (kwzh     07-Apr-94):   (interactive "P\nsSort by labels: ")
+1.33         (kwzh     07-Apr-94):   (rmail-sort-from-summary
+1.33         (kwzh     07-Apr-94):    (function (lambda (reverse)
+1.117        (gerd     07-May-01): 	       (rmail-sort-by-labels reverse labels)))
+1.33         (kwzh     07-Apr-94):    reverse))
+1.33         (kwzh     07-Apr-94): 
+1.18         (rms      22-Jun-93): (defun rmail-sort-from-summary (sortfun reverse)
+1.18         (rms      22-Jun-93):   "Sort Rmail messages from Summary buffer and update it after sorting."
+1.18         (rms      22-Jun-93):   (require 'rmailsort)
+1.30         (kwzh     30-Mar-94):   (let ((selwin (selected-window)))
+1.30         (kwzh     30-Mar-94):     (unwind-protect
+1.30         (kwzh     30-Mar-94): 	(progn (pop-to-buffer rmail-buffer)
+1.30         (kwzh     30-Mar-94): 	       (funcall sortfun reverse))
+1.30         (kwzh     30-Mar-94):       (select-window selwin))))
+1.2          (eric     30-May-92): 
+1.113        (fx       25-May-00): (provide 'rmailsum)
+1.113        (fx       25-May-00): 
+1.150        (monnier  10-Apr-08): ;; arch-tag: 556079ee-75c1-47f5-9884-2e0a0bc6c5a1
+1.2          (eric     30-May-92): ;;; rmailsum.el ends here

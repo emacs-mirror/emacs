@@ -3,8 +3,9 @@
 ;; Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008  Free Software Foundation, Inc.
 
-;; Author: Ray Blaak <blaak@infomatch.com>
-;; Maintainer: FSF  (Blaak's email addr bounces, Aug 2005)
+;; Authors: Ray Blaak <blaak@infomatch.com>,
+;;          Simon South <ssouth@member.fsf.org>
+;; Maintainer: Simon South <ssouth@member.fsf.org>
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -238,10 +239,14 @@ are followed by an expression.")
 (defconst delphi-decl-sections '(type const var label resourcestring)
   "Denotes the start of a declaration section.")
 
+(defconst delphi-interface-types '(dispinterface interface)
+  "Interface types.")
+
 (defconst delphi-class-types '(class object)
   "Class types.")
 
-(defconst delphi-composite-types `(,@delphi-class-types record)
+(defconst delphi-composite-types
+  `(,@delphi-class-types ,@delphi-interface-types record)
   "Types that contain declarations within them.")
 
 (defconst delphi-unit-sections
@@ -835,8 +840,9 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
       (delphi-stmt-line-indent-of token delphi-indent-level))))
 
 (defun delphi-composite-type-start (token last-token)
-  ;; Returns true (actually the last-token) if the pair equals (= class) or (=
-  ;; record), and nil otherwise.
+  ;; Returns true (actually the last-token) if the pair equals (= class), (=
+  ;; dispinterface), (= interface), (= object), or (= record), and nil
+  ;; otherwise.
   (if (and (eq 'equals (delphi-token-kind token))
            (delphi-is (delphi-token-kind last-token) delphi-composite-types))
       last-token))
@@ -1327,7 +1333,29 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
                                          delphi-indent-level)))
 
          ;; In unit sections we indent right to the left.
-         ((delphi-is token-kind delphi-unit-sections) (throw 'done 0))
+         ((delphi-is token-kind delphi-unit-sections)
+          (throw 'done
+                 ;; Handle specially the case of "interface", which can be used
+                 ;; to start either a unit section or an interface definition.
+                 (if (delphi-is token-kind delphi-interface-types)
+                     (progn
+                       ;; Find the previous non-whitespace token.
+                       (while (progn
+                                (setq last-token token
+                                      token (delphi-previous-token token)
+                                      token-kind (delphi-token-kind token))
+                                (and token
+                                     (delphi-is token-kind
+                                                delphi-whitespace))))
+                       ;; If this token is an equals sign, "interface" is being
+                       ;; used to start an interface definition and we should
+                       ;; treat it as a composite type; otherwise, we should
+                       ;; consider it the start of a unit section.
+                       (if (and token (eq token-kind 'equals))
+                           (delphi-line-indent-of last-token
+                                                  delphi-indent-level)
+                         0))
+                   0)))
 
          ;; A previous terminator means we can stop.
          ((delphi-is token-kind delphi-previous-terminators)

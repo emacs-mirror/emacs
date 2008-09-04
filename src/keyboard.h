@@ -171,7 +171,6 @@ struct kboard
     char echo_after_prompt;
   };
 
-#ifdef MULTI_KBOARD
 /* Temporarily used before a frame has been opened. */
 extern KBOARD *initial_kboard;
 
@@ -188,12 +187,6 @@ extern KBOARD *all_kboards;
 
 /* Nonzero in the single-kboard state, 0 in the any-kboard state.  */
 extern int single_kboard;
-#else
-extern KBOARD the_only_kboard;
-#define current_kboard (&the_only_kboard)
-#define all_kboards (&the_only_kboard)
-#define single_kboard 1
-#endif
 
 /* Total number of times read_char has returned.  */
 extern int num_input_events;
@@ -372,7 +365,10 @@ typedef struct _widget_value
   /* next one in the list */
   struct _widget_value*	next;
 } widget_value;
-#endif
+
+extern widget_value *xmalloc_widget_value P_ ((void));
+extern widget_value *digest_single_submenu P_ ((int, int, int));
+#endif /* HAVE_NS || HAVE_NTGUI */
 
 
 /* Macros for dealing with lispy events.  */

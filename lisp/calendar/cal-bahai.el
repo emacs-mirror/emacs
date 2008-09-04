@@ -199,9 +199,9 @@ Reads a year, month and day."
 ;;;###holiday-autoload
 (defun holiday-bahai (month day string)
   "Holiday on MONTH, DAY (Bahá'í) called STRING.
-If MONTH, DAY (Bahá'í) is visible, the value returned is corresponding
-Gregorian date in the form of the list (((month day year) STRING)).  Returns
-nil if it is not visible in the current calendar window."
+If MONTH, DAY (Bahá'í) is visible in the current calendar window,
+returns the corresponding Gregorian date in the form of the
+list (((month day year) STRING)).  Otherwise, returns nil."
   ;; Since the calendar window shows 3 months at a time, there are
   ;; approx +/- 45 days either side of the central month.
   ;; Since the Bahai months have 19 days, this means up to +/- 3 months.

@@ -1,13 +1,13 @@
 -*- outline -*-
 
+** When assignments are received, fix ns-emacs.texi copyright.
+
+** General update for ns-emacs.texi post-merge.
+
 
 * POST_MERGE CLEANUP
 
-** remove aliases from x- to ns- in ns-win.el and replace by function renames
-
 ** remove all the /* 23 */ comments from the source code
-
-** replace all references to PENDING: with something else
 
 
 * CURSOR BUGS:
@@ -26,8 +26,7 @@
 
 * OTHER BUGS
 
-** Find out why char_quoted() in syntax.c gets called with charpos < 2 ||
-   bytepos < 2 only under NS port.
+** Fix #include ordering for src/ns*.
 
 ** Remove Feval calls relating to insert working text in isearch mode.
 
@@ -52,15 +51,13 @@
 
 ** Ctrl-F2 won't pull up menus
 
-** set were-is-preferred-modifier to Qsuper when ns-extended-platform-support
-   mode on (and recompute menubar bindings if needed)
-
 
 * OTHER / LOW PRIORITY:
 
 ** better recog of unicode scripts / Greek / composition
 
-** Ctrl-g not picked up in all situations get --experimental-ctrl-g in 'compile' working better
+** Ctrl-g not picked up in all situations;
+   get --experimental-ctrl-g in 'compile' working better
 
 ** Exec-dump not working on GNUstep (so slow startup).
 

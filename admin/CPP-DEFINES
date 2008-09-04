@@ -3,8 +3,6 @@ of their use.  Feel free to add more macros and more categories.
 
 ** Distinguishing OSes **
 
-MAC_OS8		Compiling for Mac OS Classic (v8 or v9). No longer supported, all code using it can be removed.
-MAC_OSX		Compiling for Mac OS X.  Not bare Darwin.
 CYGWIN		Compiling the Cygwin port.
 __CYGWIN__	Ditto
 MSDOS		Compiling the MS-DOS port.
@@ -16,14 +14,12 @@ DOS_NT		Compiling for either the MS-DOS or native MS-Windows port.
 WINDOWSNT	Compiling the native MS-Windows (W32) port.
 __MINGW32__	Compiling the W32 port with the MinGW port of GCC.
 _MSC_VER	Compiling the W32 port with the Microsoft C compiler.
-USE_LISP_UNION_TYPE Define it in lisp.h to make Lisp_Object be a union type instead of the default int.
+DARWIN_OS	Compiling on Mac OS X or pure Darwin (and using s/darwin.h).
 
 ** Distinguishing GUIs **
 
 HAVE_NTGUI	Use the native W32 GUI for windows, frames, menus&scrollbars.
-MAC_OS		Compiling for the `mac' window-system.
-HAVE_CARBON	Compile support for the Carbon GUI.  Requires MAC_OS?
-HAVE_NS	Use the NeXT/OpenStep/Cocoa UI under Mac OS X or GNUstep.
+HAVE_NS		Use the NeXT/OpenStep/Cocoa UI under Mac OS X or GNUstep.
 NS_IMPL_GNUSTEP	Compile support for GNUSTEP implementation of NS GUI API.
 NS_IMPL_COCOA	Compile support for Cocoa (Apple) implementation of NS GUI API.
 HAVE_X11	Compile support for the X11 GUI.
@@ -38,14 +34,24 @@ USE_GTK		Use the Gtk   toolkit for menus&scrollbars.  Requires HAVE_X11.
 FRAME_TERMCAP_P	A tty (character terminal) frame.
 FRAME_X_P	A frame on X Window system.
 FRAME_MSDOS_P	An MS-DOS frame (used only by the DOS port).
-FRAME_MAC_P	A Mac frame.
 FRAME_W32_P	A frame using native MS-Windows GUI.
 FRAME_WINDOW_P	A GUI frame (like X, w32, etc.)
 
+** Support for accessing other processes on the system **
+
+HAVE_PROCFS     The /proc filesystem is supported.
+LISTPROC        A function that returns a list of PIDs of system processes.
+PROCATTR        A function that returns attributes of a process.
+
 ** Compile-time options **
+
 REL_ALLOC	Compile in the relocatable memory allocator ralloc.c.
 SYSTEM_MALLOC	Use the system library's malloc.
 subprocesses    System can use subprocesses (for M-x shell for example).  Defined by default, only MSDOS undefines it.
+USE_LISP_UNION_TYPE Define it in lisp.h to make Lisp_Object be a union type instead of the default int.
+
+** Misc macros
+USER_FULL_NAME   If defined, overrides the default pw->pw_gecos for getting at the full user name.  Only MSDOS overrides the default.
 
 ** Replace, the definition is trivial: SWITCH_ENUM_CAST
 
@@ -104,7 +110,6 @@ FILE_SYSTEM_CASE
 FIRST_PTY_LETTER
 FLOAT_CHECK_DOMAIN
 FSCALE
-Fread
 GAP_USE_BCOPY
 GC_LISP_OBJECT_ALIGNMENT
 GC_MARK_SECONDARY_STACK
@@ -116,7 +121,6 @@ GNU_LINUX
 GNU_MALLOC
 HAVE_AIX_SMT_EXP
 HAVE_ALLOCA
-HAVE_AVAILABILITYMACROS_H
 HAVE_BCMP
 HAVE_BCOPY
 HAVE_CBRT
@@ -225,7 +229,6 @@ LIB_MATH
 LIB_MOTIF
 LIB_STANDARD
 LINKER
-LINK_CRTL_SHARE
 LINUX_VERSION_CODE
 LISP_FLOAT_TYPE
 LNOFLSH
@@ -237,10 +240,8 @@ MAIL_USE_LOCKF
 MAIL_USE_POP
 MAIL_USE_SYSTEM_LOCK
 MAXPATHLEN
-MAX_PRINT_CHARS
 MIN_PTY_KERNEL_VERSION -- only used on Mac
 MODE_LINE_BINARY_TEXT
-MULTI_KBOARD
 MUST_UNDEF__STDC__
 NARROWPROTO
 NEED_BSDTTY
@@ -249,13 +250,12 @@ NEED_LIBW
 NEED_UNISTD_H
 NLIST_STRUCT
 NOMULTIPLEJOBS
-NONSYSTEM_DIR_LIBRARY
 NOT_C_CODE
 NOT_USING_MOTIF
 NO_ABORT
 NO_ARG_ARRAY
+NO_DIR_LIBRARY
 NO_EDITRES
-NO_HYPHENS_IN_FILENAMES
 NO_MATHERR
 NO_REMAP
 NO_SHARED_LIBS
@@ -293,7 +293,6 @@ SEGMENT_MASK
 SEPCHAR
 SETPGRP_RELEASES_CTTY
 SETUP_SLAVE_PTY
-SHARABLE_LIB_BUG
 SIGALRM
 SIGCHLD
 SIGHUP
@@ -317,7 +316,6 @@ TAB3
 TABDLY
 TERM
 TERMINFO
-TEXT_END
 TEXT_START
 THIS_IS_CONFIGURE
 THIS_IS_MAKEFILE
@@ -337,7 +335,6 @@ USG5_4
 USG_SUBTTY_WORKS
 VALBITS
 VIRT_ADDR_VARIES
-VMS
 WORDS_BIG_ENDIAN
 WRETCODE
 XINT

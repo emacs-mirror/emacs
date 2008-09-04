@@ -522,15 +522,14 @@ which will run faster and will not set the mark or print anything."
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
 
-(defun read-regexp (prompt)
+(defun read-regexp (prompt &optional default)
   "Read regexp as a string using the regexp history and some useful defaults.
-Prompt for a regular expression with PROMPT in the minibuffer.
-Provide the last element of the regexp history as the basic default,
-and return it on typing RET.  Additional defaults are the string
-at point, the last isearch regexp, the last isearch string, and the
-last replacement regexp.  Return the regexp as a string."
-  (let* ((default (car regexp-history))
-	 (defaults
+Prompt for a regular expression with PROMPT (without a colon and
+space) in the minibuffer.  The optional string argument DEFAULT
+provides the basic default value, that is returned on typing RET.
+Additional defaults are the string at point, the last isearch regexp,
+the last isearch string, and the last replacement regexp."
+  (let* ((defaults
 	   (list (regexp-quote
 		  (or (funcall (or find-tag-default-function
 				   (get major-mode 'find-tag-default-function)
@@ -1022,7 +1021,8 @@ which means to discard all text properties."
       (nreverse result))))
 
 (defun occur-read-primary-args ()
-  (list (read-regexp "List lines matching regexp")
+  (list (read-regexp "List lines matching regexp"
+		     (car regexp-history))
 	(when current-prefix-arg
 	  (prefix-numeric-value current-prefix-arg))))
 

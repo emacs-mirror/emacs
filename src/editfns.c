@@ -67,6 +67,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define NULL 0
 #endif
 
+#ifndef USER_FULL_NAME
+#define USER_FULL_NAME pw->pw_gecos
+#endif
+
 #ifndef USE_CRT_DLL
 extern char **environ;
 #endif
@@ -1370,7 +1374,7 @@ name, or nil if there is no such user.  */)
   if (!pw)
     return Qnil;
 
-  p = (unsigned char *) pw->pw_gecos;
+  p = (unsigned char *) USER_FULL_NAME;
   /* Chop off everything after the first comma. */
   q = (unsigned char *) index (p, ',');
   full = make_string (p, q ? q - p : strlen (p));

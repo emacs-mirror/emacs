@@ -333,7 +333,7 @@ Other parts are the same as a `hangul3-input-method-cho'."
                         'jong
                         (aref hangul-queue 4)
                         char)))))
-             (aset hangul-queue 6 char)))
+             (aset hangul-queue 5 char)))
       (hangul-insert-character hangul-queue)
     (if (zerop (apply '+ (append hangul-queue nil)))
 	(hangul-insert-character (setq hangul-queue (vector 0 0 0 0 char 0)))

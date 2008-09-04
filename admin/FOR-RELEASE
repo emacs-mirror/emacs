@@ -24,29 +24,6 @@ sk	Miroslav Vaško
 
 ** Try to reorder NEWS: most important things first, related items together.
 
-* WINDOWS SUPPORT BUGS
-
-These don't need to be fixed before a release, but we call the
-attention of Windows users to fixing them.
-
-** Drew Adams 12 Aug bug rpt: overlay display artifact: trace left behind
-Verify that the new font backend eliminates this and other Cleartype related
-problems.
-
-** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
-  (Did we decide that is unreproducible?)
-
-* BUGS WAITING FOR MORE USER INPUT
-
-** raman@users.sf.net, sep 7: Emacs 23.0.50: Segfaults in alloc.c (batch process)
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00690.html
-
-** undefined reference getopt_long
-Report by Daniel C. Bastos <dbast0s@yahoo.com.br> on bug-gnu-emacs
-from 2007-08-27.  Impossible to procede without more input from OP (as
-of 20070912, emails are bouncing) or someone else who can reproduce this.
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01497.html
-
 * BUGS
 
 ** Does deleting frames run Lisp code?  If so, can we get rid of that?
@@ -56,63 +33,20 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01330.html
 ** Why were the calls to x_fully_uncatch_errors commented out in eval.c?
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01987.html
 
-** grep et al should use font-lock to do highlighting, so that they respect font-lock-mode.
-"can't turn off font-lock"
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00548.html
-
-** mah@everybody.org, Sep 18: erc causes emacs to hang with multi-tty
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01765.html
-
-** jbw@macs.hw.ac.uk, Sep 18: before-string property has no effect if display property is empty
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00094.html
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01816.html
-
-** sdl.web@gmail.com, Sep 24: TLS infinite loop.
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01720.html
-
-** herring@lanl.gov: find-func: can no longer find adviced subrs
-This ought to work.
-
-** \\{...} produces duplicate entries
-http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg00209.html
-
-** menu indications of key bindings for remapped commands
-http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg01339.html
-
 ** rms: gnus-dired.el is a mistake.  Those features should not
 be part of Gnus.  They should be moved to some other part of Emacs.
 rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
 minimized.  I don't know what is left to do here.
 
 ** sdl.web@gmail.com, 30 Oct: ps-lpr-switches has no effect
+http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg02091.html
 
-** timh@insightful.com, 9 Nov: X-coding-system incompatibility, and workaround
+Fixed by this change?
 
-** multi-tty does not work correctly.
-If the server is started from a tty frame and emacsclient creates an
-X11 frame, the tty frame gets confused, it thinks it is an X11 frame
-when trying to do a C-z.  This worked with server.el version 1.136, it
-broke after that.
-http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg00545.html
-Also emacsclient does not work on Windows, it also worked with
-server.el version 1.136.
-http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00710.html
+2007-11-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-** skeleton bug? Or is it now working as documented?
-http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01335.html
-
-** move verilog-mode.el compile patterns into compile.el?
-http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00234.html
-
-** stack-trace-on-error segfaults infloop
-http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg02031.html
-
-** han@mijncomputer.nl, Feb 3: emacsclient misbehaves
-
-** Mouse clicks on the menubar don't currently work with a console
-Following the direct use of Gpm, the menubar now needs to be
-considered a special part of the screen in Emacs on a console.
-http://lists.gnu.org/archive/html/emacs-devel/2007-06/msg00277.html
+	* ps-print.el: [...]
+	(ps-do-despool): If ps-lpr-switches is not a list, force it to be one.
 
 ** unicode-merge issues:
 
@@ -124,6 +58,8 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
 ** Clean up Emacs.app references in code and documentation.
 
 * DOCUMENTATION
+
+** Verify if doc/emacs/macos.texi is still useful, remove it if it is not.
 
 ** Document multi-tty features
 http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01639.html
@@ -173,44 +109,43 @@ abbrevs.texi
 ack.texi
 anti.texi
 arevert-xtra.texi
-basic.texi
+basic.texi        -- cyd
 buffers.texi
 building.texi
-calendar.texi
-cal-xtra.texi
+calendar.texi     -- rgm
+cal-xtra.texi     -- rgm
 cmdargs.texi
 commands.texi     -- cyd
 custom.texi
 dired.texi
 dired-xtra.texi
-display.texi
+display.texi      -- cyd
 emacs.texi        -- cyd
 emacs-xtra.texi
 emerge-xtra.texi
 entering.texi     -- cyd
 files.texi
 fixit.texi
-fortran-xtra.texi
+fortran-xtra.texi -- rgm
 frames.texi
 glossary.texi
-gnu.texi
-gpl.texi
 help.texi
 indent.texi
-killing.texi
+killing.texi      -- cyd
 kmacro.texi
-macos.texi
+macos.texi     -- contents need to be evaluated and see what is still
+relevant after the NS merge.
 maintaining.texi
 major.texi
 mark.texi         -- cyd
-mini.texi
+mini.texi         -- cyd
 misc.texi
 msdog.texi
 msdog-xtra.texi
 mule.texi
 m-x.texi
 programs.texi
-regs.texi
+regs.texi         -- cyd
 rmail.texi
 screen.texi       -- cyd
 search.texi
@@ -234,7 +169,6 @@ control.texi
 customize.texi
 debugging.texi
 display.texi
-doclicense.texi
 edebug.texi
 elisp.texi
 errors.texi
@@ -265,23 +199,23 @@ positions.texi
 processes.texi
 searching.texi
 sequences.texi
-spellfile
 streams.texi
 strings.texi
 symbols.texi
 syntax.texi
 text.texi
 tips.texi
-two.el
 variables.texi
 windows.texi
 
 * PLANNED ADDITIONS
-** CEDET
-** Emacs.app
+
+** CEDET (not for 23.1 due to paperwork issues, perhaps for 23.2)
 ** ruby-mode
 ** js2-mode
 ** pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
+** gas-mode ?
+
 
 Local variables:
 mode: outline

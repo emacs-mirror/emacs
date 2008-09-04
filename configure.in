@@ -141,7 +141,6 @@ OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
 OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
-OPTION_DEFAULT_OFF([carbon],[use Carbon GUI on Mac OS X.  This is unsupported!])
 OPTION_DEFAULT_OFF([ns],[use nextstep (Cocoa or GNUstep) windowing system])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
@@ -154,12 +153,12 @@ OPTION_DEFAULT_ON([makeinfo],[don't require makeinfo for building manuals])
 
 dnl Can remove these in Emacs 24.
 AC_ARG_WITH([gtk],,
-  AC_MSG_ERROR([--with-gtk has been removed.  Use --with-x-toolkit to
-specify a toolkit.]),,)
+  [AC_MSG_ERROR([--with-gtk has been removed.  Use --with-x-toolkit to
+specify a toolkit.])],,)
 
 AC_ARG_WITH([gcc],,
-  AC_MSG_ERROR([--with-gcc has been removed.  Set the `CC' environment
-  variable to specify a compiler.]),,)
+  [AC_MSG_ERROR([--with-gcc has been removed.  Set the `CC' environment
+variable to specify a compiler.])],,)
 
 AC_ARG_WITH([pkg-config-prog],dnl
 [AS_HELP_STRING([--with-pkg-config-prog=PATH],
@@ -170,20 +169,16 @@ if test "X${with_pkg_config_prog}" != X; then
    fi
 fi
 
-AC_ARG_ENABLE(carbon-app,
-[AS_HELP_STRING([--enable-carbon-app@<:@=DIR@:>@],
-                [specify install directory for Emacs.app on Mac OS X
-		 [DIR=/Application]])],
-[ carbon_appdir_x=${enableval}])
-
 AC_ARG_ENABLE(cocoa-experimental-ctrl-g,
-[  --enable-cocoa-experimental-ctrl-g        enable experimental improved ctrl-g recognition],
-   EN_COCOA_EXPERIMENTAL_CTRL_G=yes,
+[AS_HELP_STRING([--enable-cocoa-experimental-ctrl-g],
+                [enable experimental improved ctrl-g recognition])],
+   EN_COCOA_EXPERIMENTAL_CTRL_G=$enableval,
    EN_COCOA_EXPERIMENTAL_CTRL_G=no)
 
 AC_ARG_ENABLE(ns-self-contained,
-[  --disable-ns-self-contained        disable self contained build under NS],
-   EN_NS_SELF_CONTAINED=no,
+[AS_HELP_STRING([--disable-ns-self-contained],
+                [disable self contained build under NeXTstep])],
+   EN_NS_SELF_CONTAINED=$enableval,
    EN_NS_SELF_CONTAINED=yes)
 
 AC_ARG_ENABLE(asserts,
@@ -1214,12 +1209,6 @@ else
   fi
 fi
 
-HAVE_CARBON=no
-if test "${with_carbon}" != no; then
-  AC_CHECK_HEADER(Carbon/Carbon.h, HAVE_CARBON=yes)
-  test "${HAVE_CARBON}" = yes && window_system=mac
-fi
-
 HAVE_NS=no
 NS_IMPL_COCOA=no
 NS_IMPL_GNUSTEP=no
@@ -1249,9 +1238,16 @@ if test "${with_ns}" != no; then
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
   fi
   AC_CHECK_HEADER(AppKit/AppKit.h, HAVE_NS=yes)
+  NS_HAVE_NSINTEGER=yes
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <Foundation/NSObjCRuntime.h>],
+                                     [NSInteger i;])],
+		    ns_have_nsinteger=yes,
+		    ns_have_nsinteger=no)
+  if test $ns_have_nsinteger = no; then
+    NS_HAVE_NSINTEGER=no
+  fi
 fi
 if test "${HAVE_NS}" = yes; then
-  test "${window_system}" = mac && HAVE_CARBON=no
   window_system=nextstep
   with_xft=no
   with_freetype=no
@@ -1282,7 +1278,7 @@ dnl use the toolkit if we have gtk, or X11R5 or newer.
       * ) USE_X_TOOLKIT=maybe ;;
     esac
   ;;
-  nextstep | mac | none )
+  nextstep | none )
     HAVE_X_WINDOWS=no
     HAVE_X11=no
     USE_X_TOOLKIT=none
@@ -1475,7 +1471,7 @@ fi
 
 ### Use -lrsvg-2 if available, unless `--with-rsvg=no' is specified.
 HAVE_RSVG=no
-if test "${HAVE_X11}" = "yes" || test "${HAVE_CARBON}" = "yes"; then
+if test "${HAVE_X11}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.0.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
@@ -1751,9 +1747,6 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
   elif test "${HAVE_GTK}" = "yes"; then
     AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
     USE_TOOLKIT_SCROLL_BARS=yes
-  elif test "${HAVE_CARBON}" = "yes"; then
-    AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
-    USE_TOOLKIT_SCROLL_BARS=yes
   elif test "${HAVE_NS}" = "yes"; then
     AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
     USE_TOOLKIT_SCROLL_BARS=yes
@@ -1815,7 +1808,7 @@ fi
 
 ## Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
 HAVE_XFT=maybe
-if test "x${with_freetype}" = "xno"; then
+if test "x${with_freetype}" = "xno" || test "x${with_x}" = "xno"; then
   with_xft="no";
 fi
 if test "x${with_xft}" != "xno"; then
@@ -1855,7 +1848,7 @@ if test "${HAVE_XFT}" = "yes"; then
   dnl As we use Xft, we anyway use freetype.
   dnl In this case, there's no need of additional CFLAGS and LIBS.
   HAVE_FREETYPE=yes
-elif test "x${with_freetype}" != "xno"; then
+elif test "x${with_freetype}" != "xno" && test "x${with_x}" != "xno"; then
 
   PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes, HAVE_FREETYPE=no)
   if test "${HAVE_FREETYPE}" = "yes"; then
@@ -2051,32 +2044,23 @@ fi
 dnl Check for malloc/malloc.h on darwin
 AC_CHECK_HEADER(malloc/malloc.h, [AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.])])
 
-### Use Mac OS X Carbon API to implement GUI.
-if test "${HAVE_CARBON}" = "yes"; then
-  AC_DEFINE(HAVE_CARBON, 1, [Define to 1 if you are using the Carbon API on Mac OS X.])
-  AC_CHECK_HEADERS(AvailabilityMacros.h)
-  ## Specify the install directory
-  carbon_appdir=
-  if test "${carbon_appdir_x}" != ""; then
-    case ${carbon_appdir_x} in
-      y | ye | yes)  carbon_appdir=/Applications ;;
-      * ) carbon_appdir=${carbon_appdir_x} ;;
-    esac
-  fi
-  # We also have mouse menus.
-  HAVE_MENUS=yes
-fi
 ### Use NeXTstep API to implement GUI.
 if test "${HAVE_NS}" = "yes"; then
   AC_DEFINE(HAVE_NS, 1, [Define to 1 if you are using the NeXTstep API, either GNUstep or Cocoa on Mac OS X.])
   if test "${NS_IMPL_COCOA}" = "yes"; then
     AC_DEFINE(NS_IMPL_COCOA, 1, [Define to 1 if you are using NS windowing under MacOS X.])
+    GNU_OBJC_CFLAGS=
+    LIB_SRC_EXTRA_INSTALLABLES=mac-fix-env
   fi
   if test "${EN_COCOA_EXPERIMENTAL_CTRL_G}" = "yes"; then
     AC_DEFINE(COCOA_EXPERIMENTAL_CTRL_G, 1, [Define to 1 if you are trying experimental enhanced Ctrl-g support using NS windowing under MacOS X.])
   fi
   if test "${NS_IMPL_GNUSTEP}" = "yes"; then
     AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])
+    GNU_OBJC_CFLAGS="-fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
+  fi
+  if test "${NS_HAVE_NSINTEGER}" = "yes"; then
+    AC_DEFINE(NS_HAVE_NSINTEGER, 1, [Define to 1 if `NSInteger' is defined.])
   fi
   # We also have mouse menus.
   HAVE_MENUS=yes
@@ -2256,7 +2240,9 @@ if test "${with_kerberos}" != no; then
   fi
 
   if test "${with_kerberos5}" != no; then
-    AC_CHECK_HEADERS(krb5.h)
+    AC_CHECK_HEADERS(krb5.h,
+      [AC_CHECK_MEMBERS([krb5_error.text, krb5_error.e_text],,,
+		        [#include <krb5.h>])])
   else
     AC_CHECK_HEADERS(des.h,,
 		     [AC_CHECK_HEADERS(kerberosIV/des.h,,
@@ -2476,12 +2462,15 @@ AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
 AC_SUBST(GETLOADAVG_LIBS)
-AC_SUBST(carbon_appdir)
 AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
 AC_SUBST(ns_appresdir)
 AC_SUBST(ns_appsrc)
 AC_SUBST(GNUSTEP_MAKEFILES)
+AC_SUBST(GNUSTEP_SYSTEM_HEADERS)
+AC_SUBST(GNUSTEP_SYSTEM_LIBRARIES)
+AC_SUBST(GNU_OBJC_CFLAGS)
+AC_SUBST(LIB_SRC_EXTRA_INSTALLABLES)
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
@@ -2572,16 +2561,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 AH_BOTTOM([
 /* If we're using X11/Carbon/GNUstep, define some consequences.  */
-#if defined HAVE_X_WINDOWS || defined(HAVE_CARBON) || defined(HAVE_NS)
+#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
 #define HAVE_WINDOW_SYSTEM
-#define MULTI_KBOARD
 #define HAVE_MOUSE
-#endif
-
-/* Multi-tty support relies on MULTI_KBOARD.  It seems safe to turn it
-   on unconditionally. */
-#ifndef MULTI_KBOARD
-#define MULTI_KBOARD
 #endif
 
 /* Sadly for now, GNUstep dump does not work.  */
@@ -2589,17 +2571,10 @@ AH_BOTTOM([
 #define CANNOT_DUMP
 #endif
 
-/* TODO: These are used for the Carbon port only. */
-#undef MAC_OS
-#undef MAC_OSX
-
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
-
-/* We have blockinput.h.  */
-#define DO_BLOCK_INPUT
 
 /* Define HAVE_SOUND if we have sound support.  We know it works
    and compiles only on the specified platforms.   For others,
@@ -2630,35 +2605,33 @@ AH_BOTTOM([
 #define INLINE
 #endif
 
+/* `subprocesses' should be defined if you want to
+   have code for asynchronous subprocesses
+   (as used in M-x compile and M-x shell).
+   Only MSDOS does not support this (it overrides
+   this in its config_opsysfile below).  */
+
+#define subprocesses
+
 /* Include the os and machine dependent files.  */
 #include config_opsysfile
 #include config_machfile
 
 /* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
   (There is probably a better place to do this, but right now the Cocoa
-   side does this in s/darwin.h, following the Carbon port, and we cannot
+   side does this in s/darwin.h and we cannot
    parallel this exactly since GNUstep is multi-OS. */
 #ifdef HAVE_NS
-# ifdef C_SWITCH_SYSTEM
-# undef C_SWITCH_SYSTEM
-# endif
+#define OTHER_FILES ns-app
 # ifdef NS_IMPL_GNUSTEP
 /* See also .m.o rule in Makefile.in */
-#  define C_SWITCH_X_SYSTEM -MMD -MP -D_REENTRANT -fPIC -fno-strict-aliasing
-#  define GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE
-#  define OTHER_FILES ns-app
-# else /* NS_IMPL_COCOA */
-#  define C_SWITCH_X_SYSTEM
-#  define GNU_OBJC_CFLAGS
-# endif /* NS_IMPL_COCOA */
+/* FIXME: are all these flags really needed?  Document here why.  */
+#  define C_SWITCH_X_SYSTEM -D_REENTRANT -fPIC -fno-strict-aliasing
+/* GNUStep needs a bit more pure memory.  Of the existing knobs,
+SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
+#  define SYSTEM_PURESIZE_EXTRA 30000
+# endif /* NS_IMPL_GNUSTEP */
 #endif /* HAVE_NS */
-
-/* Define `subprocesses' should be defined if you want to
-   have code for asynchronous subprocesses
-   (as used in M-x compile and M-x shell).
-   Only MSDOS does not support this.  */
-
-#define subprocesses
 
 /* SIGTYPE is the macro we actually use.  */
 #ifndef SIGTYPE
@@ -2891,16 +2864,6 @@ if test "$USE_X_TOOLKIT" = GTK; then
   toolkit for Emacs.  See etc/PROBLEMS for more information."
   ;;
   esac
-fi
-
-
-if test "$HAVE_CARBON" = "yes"; then
-   echo
-   echo "Warning: The Mac Carbon port is currently unsupported and has
-known problems.  It is not recommended for use by non-developers.
-The NeXTstep port (--with-ns) is an alternative.
-Read the emacs-devel archives for more information."
-   echo
 fi
 
 if test "$HAVE_NS" = "yes"; then

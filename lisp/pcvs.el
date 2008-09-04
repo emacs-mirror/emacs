@@ -757,7 +757,8 @@ clear what alternative to use.
 - NOARGS will get all the arguments from the *cvs* buffer and will
   always behave as if called interactively.
 - DOUBLE is the generic case."
-  (declare (debug (&define sexp lambda-list stringp ("interactive" interactive) def-body)))
+  (declare (debug (&define sexp lambda-list stringp ("interactive" interactive) def-body))
+	   (doc-string 3))
   (let ((style (cvs-cdr fun))
 	(fun (cvs-car fun)))
     (cond

@@ -1005,7 +1005,7 @@ find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
         {
           entry
             = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_VALUE];
-          if ((int) (EMACS_INT)client_data == i)
+          if ((int) (EMACS_INT)client_data ==  &XVECTOR (menu_items)->contents[i]/*i*/)
             {
               if (keymaps != 0)
                 {

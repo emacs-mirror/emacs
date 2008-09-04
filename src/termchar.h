@@ -70,6 +70,34 @@ struct tty_display_info
   struct frame *previous_frame;
   int previous_color_mode;
 
+#ifdef MSDOS
+  /* These variables describe the range of text currently shown in its
+     mouse-face, together with the window they apply to.  As long as
+     the mouse stays within this range, we need not redraw anything on
+     its account.  Rows and columns are glyph matrix positions in
+     MOUSE_FACE_WINDOW.  */
+  int mouse_face_beg_row, mouse_face_beg_col;
+  int mouse_face_end_row, mouse_face_end_col;
+  int mouse_face_past_end;
+  Lisp_Object mouse_face_window;
+  int mouse_face_face_id;
+
+  /* 1 if a mouse motion event came and we didn't handle it right away because
+     gc was in progress.  */
+  int mouse_face_deferred_gc;
+
+  /* FRAME and X, Y position of mouse when last checked for
+     highlighting.  X and Y can be negative or out of range for the frame.  */
+  struct frame *mouse_face_mouse_frame;
+  int mouse_face_mouse_x, mouse_face_mouse_y;
+
+  /* Nonzero means defer mouse-motion highlighting.  */
+  int mouse_face_defer;
+
+  /* Nonzero means that the mouse highlight should not be shown.  */
+  int mouse_face_hidden;
+#endif	/* !MSDOS */
+
   /* Strings, numbers and flags taken from the termcap entry.  */
 
   char *TS_ins_line;		/* "al" */
@@ -192,7 +220,8 @@ extern struct tty_display_info *tty_list;
 
 
 #define FRAME_TTY(f)                            \
-  ((f)->output_method == output_termcap         \
+  (((f)->output_method == output_termcap	\
+    || (f)->output_method == output_msdos_raw)	\
    ? (f)->terminal->display_info.tty            \
    : (abort(), (struct tty_display_info *) 0))
 

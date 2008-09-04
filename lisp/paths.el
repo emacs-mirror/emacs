@@ -176,15 +176,13 @@ Its name should end with a slash.")
   :group 'environment
   :type 'file)
 
-(defvar term-file-prefix (if (eq system-type 'vax-vms) "[.term]" "term/") "\
+(defvar term-file-prefix "term/" "\
 If non-nil, Emacs startup does (load (concat term-file-prefix (getenv \"TERM\")))
 You may set this variable to nil in your `.emacs' file if you do not wish
 the terminal-initialization file to be loaded.")
 
 (defvar abbrev-file-name
-  (if (eq system-type 'vax-vms)
-      "~/abbrev.def"
-    (convert-standard-filename "~/.abbrev_defs"))
+  (convert-standard-filename "~/.abbrev_defs")
   "*Default name of file to read abbrevs from.")
 
 ;; arch-tag: bae27ffb-9944-4c87-b569-30d4635a99e1

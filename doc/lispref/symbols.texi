@@ -537,8 +537,8 @@ stored in the property list @var{plist}.  For example,
      @result{} 4
 (plist-get '(foo 4 bad) 'foo)
      @result{} 4
-(plist-get '(foo 4 bad) 'bar)
-     @result{} @code{wrong-type-argument} error
+(plist-get '(foo 4 bad) 'bad)
+     @result{} @code{nil}
 @end example
 
 It accepts a malformed @var{plist} argument and always returns @code{nil}

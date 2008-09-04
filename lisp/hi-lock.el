@@ -398,7 +398,8 @@ and \\[next-history-element] to retrieve default values.
 \(See info node `Minibuffer History'.)"
   (interactive
    (list
-    (hi-lock-regexp-okay (read-regexp "Regexp to highlight line"))
+    (hi-lock-regexp-okay
+     (read-regexp "Regexp to highlight line" (car regexp-history)))
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
@@ -421,7 +422,8 @@ and \\[next-history-element] to retrieve default values.
 \(See info node `Minibuffer History'.)"
   (interactive
    (list
-    (hi-lock-regexp-okay (read-regexp "Regexp to highlight"))
+    (hi-lock-regexp-okay
+     (read-regexp "Regexp to highlight" (car regexp-history)))
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
@@ -439,11 +441,13 @@ lower-case letters made case insensitive."
    (list
     (hi-lock-regexp-okay
      (hi-lock-process-phrase
-      (read-regexp "Phrase to highlight")))
+      (read-regexp "Phrase to highlight" (car regexp-history))))
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
   (hi-lock-set-pattern regexp face))
+
+(declare-function x-popup-menu "xmenu.c" (position menu))
 
 ;;;###autoload
 (defalias 'unhighlight-regexp 'hi-lock-unface-buffer)

@@ -1,3 +1,41 @@
+2008-08-25  Francesco Potortì  <pot@gnu.org>
+
+	* etags.c (main): Do not use static space for the tagfile string.
+
+2008-08-17  Francesco Potortì  <pot@gnu.org>
+
+	* etags.c (main): Use canonicalize_filename on tags file name.
+	(relative_filename): Revert 3.85: do not collapse slashes here.
+	(absolute_dirname): Remove useless call to canonicalize_filename.
+	(canonicalize_filename): Collapse multiple slashes here.
+
+2008-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (INSTALLABLES): Add LIB_SRC_EXTRA_INSTALLABLES.  Do
+	not special case for NS_IMPL_COCOA.
+
+2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Makefile.in (CFLAGS): Drop -universal under NS_IMPL_COCOA.
+	(.m.o): Dispense with GNUstep-specific flags.
+
+2008-08-05  Ulrich Mueller  <ulm@gentoo.org>
+
+	* pop.c (socket_connection): Add conditionals for
+	HAVE_KRB5_ERROR_TEXT and HAVE_KRB5_ERROR_E_TEXT to support
+	compilation with MIT Kerberos and Heimdal, respectively.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* etags.c:
+	* emacsclient.c: Remove VMS support.
+
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove support for Mac Carbon.
+	* makefile.w32-in:
+	* emacsclient.c: Remove code for Carbon.
+
 2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (mac-fix-env): Remove #ifdef around rule.
@@ -1343,8 +1381,8 @@
 	(attribute_hidden): Define if not defind.
 	(__getopt_initialized): Use attribute_hidden.
 	(__libc_argc, __libc_argv): Renamed from original_argc, etc.
-	(__getopt_nonoption_flags, nonoption_flags_max_len, nonoption_flags_len):
-	Conditional on USE_NONOPTION_FLAGS.
+	(__getopt_nonoption_flags, nonoption_flags_max_len)
+	(nonoption_flags_len): Conditional on USE_NONOPTION_FLAGS.
 	(SWAP_FLAGS): New definitions.
 	(exchange): Test USE_NONOPTION_FLAGS.
 	(_getopt_initialize): Test USE_NONOPTION_FLAGS.
@@ -1871,7 +1909,7 @@
 
 2002-02-03  Paul Eggert  <eggert@twinsun.com>
 
-	* rcs2log(Copyright): Update to 2002.
+	* rcs2log (Copyright): Update to 2002.
 	(AWK, TMPDIR): Work around portability problem in broken shells that
 	don't understand `: ${VAR=val}'.
 	(SORT_K_OPTIONS): New var, for hosts that conform to POSIX 1003.1-2001.

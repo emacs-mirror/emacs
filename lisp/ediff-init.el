@@ -1400,8 +1400,6 @@ Instead, C-h would jump to previous difference."
 ;;;  (file-name-as-directory
 ;;;   (cond ((memq system-type '(ms-dos windows-nt))
 ;;;	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
-;;;	 ((memq system-type '(vax-vms axp-vms))
-;;;	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "SYS$SCRATCH:"))
 ;;;	 (t
 ;;;	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
   "*Prefix to put on Ediff temporary file names.

@@ -56,6 +56,9 @@ Package: emacs
 Version: 23.0.60
 Severity: minor
 
+This can include tags.  Some things (e.g. submitter) don't seem to
+work here.
+
 Otherwise, send mail to the control server, control@emacsbugs.donarmstrong.com.
 At the start of the message body, supply the desired commands, one per
 line:
@@ -97,15 +100,25 @@ listed is the master.  E.g.:
 
 forcemerge 123 124 125 ...
 
+*** To unmerge bugs:
+To disconnect a bug from all bugs it is merged with:
+
+unmerge 123
+
+This command accepts only one bug number.
+
 *** To set severity:
 severity 123 critical|grave|serious|important|normal|minor|wishlist
 
 See http://emacsbugs.donarmstrong.com/Developer#severities for the meanings.
 
-*** To set the onwer of a bug:
+*** To set the owner of a bug:
 owner 123 A Hacker <none@example.com>
 
 The shorthand `!' means your own address.
+
+*** To remove the owner of a bug:
+noowner 123
 
 *** To mark a bug as fixed in a particular version:
 fixed 123 23.0.60
@@ -115,3 +128,12 @@ notfixed 123 23.0.60
 
 ** To remove spam from the tracker, move it to the `spam' pseudo-package:
 reassign 123 spam
+
+** To change the title of a bug:
+retitle 123 Some New Title
+
+** To change the submitter address:
+submitter 123 none@example.com
+
+Note that it does not seem to work to specify "Submitter:" in the
+pseudo-header when first reporting a bug.

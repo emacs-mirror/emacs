@@ -1803,9 +1803,9 @@ is non-nil if the user has supplied the password interactively.
 		    ;; in case of multiple inboxes that need moving.
 		    (concat ".newmail-"
 			    (file-name-nondirectory
-			     (if (memq system-type '(windows-nt cygwin))
-				 ;; cannot have "po:" in file name
-				 (substring file 3)
+			     (if (memq system-type '(windows-nt cygwin ms-dos))
+				 ;; cannot have colons in file name
+				 (replace-regexp-in-string ":" "-" file)
 			       file)))
 		    ;; Use the directory of this rmail file
 		    ;; because it's a nuisance to use the homedir

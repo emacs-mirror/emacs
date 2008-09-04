@@ -36,6 +36,31 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 ** cua.el, cua-mode.el: remove old versions.
 
 
+* Changes in Emacs 22.3
+
+** Support for several obsolete platforms will be removed in the next
+major version of Emacs: Apollo, Acorn, Alliant, Amdahl, Altos 3068,
+Bull DPX/2, Bull SPS-7, AT&T UNIX 7300, AT&T 3b, Aviion Berkeley 4.1
+to 4.3, Celerity, Clipper, Convergent S series, Convex, Cydra, DG/UX,
+Dual, Elxsi, ESIX, Fujitsu F301, GEC 63, Gould, Honeywell XPS100,
+i860, IBM ps/2 aix386, Harris CXUX, Harris Night Hawk 1200/3000,
+Harris Power PC, HP 9000 series 200 or 300, HLH Orion, Hitachi
+SR2001/SR2201, IBM PS/2, Integrated Solutions 386, Integrated
+Solutions Optimum V, Iris, Irix < v6, ISC Unix, ISI 68000, Masscomp
+5000, Megatest 68000, Motorola System V/88, ns16000, National
+Semiconductor 32000, osf1 (s/osf*) Paragon i860, PFU A-series, Plexus,
+Pyramid, RTU 3.0, RISCiX SCO 3.2, sh3el, Sinix, Stride, Sun 1-3, Sun
+RoadRunner, Sequent Symmetry, Sony News, SunOS 4, System V rel 0 to 3,
+Tadpole 68k machines, tahoe, Tandem Integrity S2, targon31, Tektronix,
+TI Nu, NCR Tower 32, U-station, Ultrix, UMAX, UniPlus 5.2, Whitechapel
+Computer Works MG1, Wicat, and Xenix.
+
+*** Support for systems without alloca will be removed.
+
+*** Support for Sun windows will be removed.
+
+*** Support for VMS will be removed.
+
 * Incompatible Editing Changes in Emacs 22.3
 
 ** The following input methods were removed in Emacs 22.2, but this was

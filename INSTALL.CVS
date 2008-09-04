@@ -61,6 +61,12 @@ should be sent to emacs-pretest-bug@gnu.org rather than gnu.emacs.help
 or gnu.emacs.bug.  Ideally, use M-x report-emacs-bug RET which will
 send it to the proper place.
 
+Because the CVS version of Emacs is a work in progress, it will
+sometimes fail to build.  Please wait a day or so (and check the bug
+and development mailing list archives) before reporting such problems.
+In most cases, the problem is known about and is just waiting for
+someone to fix it.
+
 
 Note on using SSH to access the CVS repository from inside Emacs
 ----------------------------------------------------------------

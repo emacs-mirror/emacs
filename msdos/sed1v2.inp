@@ -21,8 +21,11 @@ s/^[ \f\t][ \f\t]*$//
 s/^ /	/
 s/\.h\.in/.h-in/
 /^	LC_ALL=C \$(RUN_TEMACS)/i\
-	stubedit temacs.exe minstack=100k
+	stubedit temacs.exe minstack=1024k
 /^	LC_ALL=C.*\$(RUN_TEMACS)/s/LC_ALL=C/set &;/
+/-batch -l loadup/a\
+	stubify emacs\
+	stubedit emacs.exe minstack=2048k
 /^MAKE *=/s/^/# /
 /^SHELL *=/s/^/# /
 /^srcdir *=/s/@[^@\n]*@/./
@@ -30,16 +33,21 @@ s/\.h\.in/.h-in/
 /^CC *=/s/@[^@\n]*@/gcc/
 /^CPP *=/s/@[^@\n]*@/gcc -e/
 /^CFLAGS *=/s/@[^@\n]*@/-O2 -gcoff/
+/^ALL_CFLAGS *=/s/@[^@\n]*@//g
 /^CPPFLAGS *=/s/@[^@\n]*@//
 /^LDFLAGS *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
+/^LIBES *=/,/^ *$/ {
+  s/@[^@\n]*@//g
+}
 /^LIBOBJS *=/s/@[^@\n]*@/getloadavg.o/
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
 /^LIBSOUND *=/s/@LIBSOUND@//
 /^CFLAGS_SOUND *=/s/@CFLAGS_SOUND@//
 /^RSVG_LIBS *=/s/@RSVG_LIBS@//
 /^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
-/^EXEEXT *=/s/@EXEEXT@//
+/^EXEEXT *=/s/@EXEEXT@/.exe/
+/^version *=/s/@[^@\n]*@//
 /^LN_S *=/s/@[^@\n]*@/ln -s/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
@@ -49,23 +57,24 @@ s/\.h\.in/.h-in/
 /^[ 	]*$/d
 /^temacs:/s/prefix-args//
 /^temacs:/s/stamp-oldxmenu//
+/^RUN_TEMACS *=/s|`/bin/pwd`|.|
 /^	mv \.\/\.gdbinit/d
 /^	if test -f/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
 /^	else mv \.\/\.gdbinit/d
 /^	#/d
 /^	cd.*make-docfile/s!$!; cd ${dot}${dot}/src!
+/^	@: /d
+/^	-\{0,1\}ln -/s/ln -f/cp -pf/
+/^[ 	]touch /s/touch/djecho $@ >/
 s/bootstrap-emacs/b-emacs/
 s/bootstrap-temacs/b-temacs/
 s/bootstrap-doc/b-doc/
 /rm -f bootstrap-emacs/s/b-emacs/b-emacs b-emacs.exe/
-/^	els=/c\
-	${libsrc}make-docfile -o ${etc}DOC -d ${srcdir} ${SOME_MACHINE_LISP:.elc=.el} ${shortlisp:.elc=.el} ${SOME_MACHINE_OBJECTS} ${obj}
 s/echo.*buildobj.lst/dj&/
 /^	mv -f emacs/a\
-	stubify b-emacs\
-	stubedit b-emacs.exe minstack=1024k\
-	rm -f emacs.exe temacs.exe emacs
-/^	rm -f/s/\\#/#/
+	stubedit b-emacs.exe minstack=3072k
+/^	-\{0,1\}rm -f/s/\\#/#/
+/^	@\{0,1\}cd ..\/lisp; /s|$|\; cd ../src|
 
 # arch-tag: c7e3aacb-4162-460e-99f9-4252bca68d2c

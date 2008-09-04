@@ -9,16 +9,20 @@
   Emacs @dfn{registers} are compartments where you can save text,
 rectangles, positions, and other things for later use.  Once you save
 text or a rectangle in a register, you can copy it into the buffer
-once, or many times; you can move point to a position saved in a
-register once, or many times.
+once, or many times; once you save a position in a register, you can
+jump back to that position once, or many times.
+
+  Each register has a name that consists of a single character, which
+we will denote by @var{r}; @var{r} can be a letter (such as @samp{a})
+or a number (such as @samp{1}); case matters, so register @samp{a} is
+not the same as register @samp{A}.
 
 @findex view-register
-  Each register has a name, which consists of a single character.  A
-register can store a number, a piece of text, a rectangle, a position,
-a window configuration, or a file name, but only one thing at any
-given time.  Whatever you store in a register remains there until you
-store something else in that register.  To see what a register @var{r}
-contains, use @kbd{M-x view-register}.
+  A register can store a position, a piece of text, a rectangle, a
+number, a window configuration, or a file name, but only one thing at
+any given time.  Whatever you store in a register remains there until
+you store something else in that register.  To see what register
+@var{r} contains, use @kbd{M-x view-register}:
 
 @table @kbd
 @item M-x view-register @key{RET} @var{r}
@@ -44,30 +48,28 @@ seem to belong in this chapter.
 @section Saving Positions in Registers
 @cindex saving position in a register
 
-  Saving a position records a place in a buffer so that you can move
-back there later.  Moving to a saved position switches to that buffer
-and moves point to that place in it.
-
 @table @kbd
 @item C-x r @key{SPC} @var{r}
-Save position of point in register @var{r} (@code{point-to-register}).
+Record the position of point and the current buffer in register
+@var{r} (@code{point-to-register}).
 @item C-x r j @var{r}
-Jump to the position saved in register @var{r} (@code{jump-to-register}).
+Jump to the position and buffer saved in register @var{r}
+(@code{jump-to-register}).
 @end table
 
 @kindex C-x r SPC
 @findex point-to-register
-  To save the current position of point in a register, choose a name
-@var{r} and type @kbd{C-x r @key{SPC} @var{r}}.  The register @var{r}
-retains the position thus saved until you store something else in that
-register.
+  Typing @kbd{C-x r @key{SPC}} (@code{point-to-register}), followed by
+a character @kbd{@var{r}}, saves both the position of point and the
+current buffer in register @var{r}.  The register retains this
+information until you store something else in it.
 
 @kindex C-x r j
 @findex jump-to-register
-  The command @kbd{C-x r j @var{r}} moves point to the position recorded
-in register @var{r}.  The register is not affected; it continues to
-hold the same position.  You can jump to the saved position any number
-of times.
+  The command @kbd{C-x r j @var{r}} switches to the buffer recorded in
+register @var{r}, and moves point to the recorded position.  The
+contents of the register are not changed, so you can jump to the saved
+position any number of times.
 
   If you use @kbd{C-x r j} to go to a saved position, but the buffer it
 was saved from has been killed, @kbd{C-x r j} tries to create the buffer
@@ -95,24 +97,27 @@ Prepend region to text in register @var{r}.
 @end table
 
 @kindex C-x r s
-@kindex C-x r i
 @findex copy-to-register
-@findex insert-register
   @kbd{C-x r s @var{r}} stores a copy of the text of the region into
-the register named @var{r}.  @kbd{C-u C-x r s @var{r}}, the same
-command with a numeric argument, deletes the text from the buffer as
-well; you can think of this as ``moving'' the region text into the register.
+the register named @var{r}.  If the mark is inactive, Emacs first
+reactivates the mark where it was last set.  The mark is deactivated
+at the end of this command.  @xref{Mark}.  @kbd{C-u C-x r s @var{r}},
+the same command with a prefix argument, copies the text into register
+@var{r} and deletes the text from the buffer as well; you can think of
+this as ``moving'' the region text into the register.
 
 @findex append-to-register
 @findex prepend-to-register
   @kbd{M-x append-to-register @key{RET} @var{r}} appends the copy of
 the text in the region to the text already stored in the register
-named @var{r}.  If invoked with a numeric argument, it deletes the
+named @var{r}.  If invoked with a prefix argument, it deletes the
 region after appending it to the register.  The command
 @code{prepend-to-register} is similar, except that it @emph{prepends}
-the region text to the text in the register, rather than
+the region text to the text in the register instead of
 @emph{appending} it.
 
+@kindex C-x r i
+@findex insert-register
   @kbd{C-x r i @var{r}} inserts in the buffer the text from register
 @var{r}.  Normally it leaves point before the text and places the mark
 after, but with a numeric argument (@kbd{C-u}) it puts point after the
@@ -122,9 +127,9 @@ text and the mark before.
 @section Saving Rectangles in Registers
 @cindex saving rectangle in a register
 
-  A register can contain a rectangle instead of linear text.  The
-rectangle is represented as a list of strings.  @xref{Rectangles}, for
-basic information on how to specify a rectangle in the buffer.
+  A register can contain a rectangle instead of linear text.
+@xref{Rectangles}, for basic information on how to specify a rectangle
+in the buffer.
 
 @table @kbd
 @findex copy-rectangle-to-register
@@ -155,7 +160,8 @@ as sorting a rectangle.  @xref{Sorting}.
 @kindex C-x r f
   You can save the window configuration of the selected frame in a
 register, or even the configuration of all windows in all frames, and
-restore the configuration later.
+restore the configuration later.  @xref{Windows}, for information
+about window configurations.
 
 @table @kbd
 @item C-x r w @var{r}
@@ -283,10 +289,10 @@ default bookmark file automatically.  This saving and loading is how
 bookmarks persist from one Emacs session to the next.
 
 @vindex bookmark-save-flag
-  If you set the variable @code{bookmark-save-flag} to 1, then each
-command that sets a bookmark will also save your bookmarks; this way,
-you don't lose any bookmark values even if Emacs crashes.  (The value,
-if a number, says how many bookmark modifications should go by between
+  If you set the variable @code{bookmark-save-flag} to 1, each command
+that sets a bookmark will also save your bookmarks; this way, you
+don't lose any bookmark values even if Emacs crashes.  (The value, if
+a number, says how many bookmark modifications should go by between
 saving.)
 
 @vindex bookmark-search-size

@@ -40,46 +40,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define INCLUDED_FCNTL
 #include <fcntl.h>
 #else /* neither HAVE_TERMIO nor HAVE_TERMIOS */
-#ifndef VMS
 #ifndef DOS_NT
 #include <sgtty.h>
 #endif /* not DOS_NT */
-#else /* VMS */
-#include <descrip.h>
-static struct iosb
-{
-  short status;
-  short offset;
-  short termlen;
-  short term;
-} input_iosb;
-
-extern int waiting_for_ast;
-extern int stop_input;
-extern int input_ef;
-extern int timer_ef;
-extern int process_ef;
-extern int input_eflist;
-extern int timer_eflist;
-
-static $DESCRIPTOR (input_dsc, "TT");
-static int terminator_mask[2] = { 0, 0 };
-
-static struct sensemode {
-  short status;
-  unsigned char xmit_baud;
-  unsigned char rcv_baud;
-  unsigned char crfill;
-  unsigned char lffill;
-  unsigned char parity;
-  unsigned char unused;
-  char class;
-  char type;
-  short scr_wid;
-  unsigned long tt_char : 24, scr_len : 8;
-  unsigned long tt2_char;
-} sensemode_iosb;
-#endif /* VMS */
 #endif /* not HAVE_TERMIOS */
 #endif /* not HAVE_TERMIO */
 
@@ -174,48 +137,47 @@ static struct sensemode {
    EMACS_SET_TTY_PGRP(int FD, int *PGID) sets the terminal FD's
    current process group to *PGID.  Return -1 if there is an error.  */
 
-#ifdef HPUX
 /* HPUX tty process group stuff doesn't work, says the anonymous voice
    from the past.  */
-#else
+#ifndef HPUX
 #ifdef TIOCGPGRP
 #define EMACS_HAVE_TTY_PGRP
 #else
 #ifdef HAVE_TERMIOS
 #define EMACS_HAVE_TTY_PGRP
-#endif
-#endif
-#endif
+#endif /* HAVE_TERMIOS */
+#endif /* TIOCGPGRP */
+#endif /* not HPUX */
 
 #ifdef EMACS_HAVE_TTY_PGRP
 
-#if defined (HAVE_TERMIOS) && ! defined (BSD_TERMIOS)
+#if defined (HAVE_TERMIOS)
 
 #define EMACS_GET_TTY_PGRP(fd, pgid) (*(pgid) = tcgetpgrp ((fd)))
 #define EMACS_SET_TTY_PGRP(fd, pgid) (tcsetpgrp ((fd), *(pgid)))
 
-#else
+#else /* not HAVE_TERMIOS */
 #ifdef TIOCSPGRP
 
 #define EMACS_GET_TTY_PGRP(fd, pgid) (ioctl ((fd), TIOCGPGRP, (pgid)))
 #define EMACS_SET_TTY_PGRP(fd, pgid) (ioctl ((fd), TIOCSPGRP, (pgid)))
 
-#endif
-#endif
+#endif /* TIOCSPGRP */
+#endif /* HAVE_TERMIOS */
 
-#else
+#else /* not EMACS_SET_TTY_PGRP */
 
 /* Just ignore this for now and hope for the best */
 #define EMACS_GET_TTY_PGRP(fd, pgid) 0
 #define EMACS_SET_TTY_PGRP(fd, pgif) 0
 
-#endif
+#endif /* not EMACS_SET_TTY_PGRP */
 
 /* EMACS_GETPGRP (arg) returns the process group of the process.  */
 
 #if defined (GETPGRP_VOID)
 #  define EMACS_GETPGRP(x) getpgrp()
-#else
+#else /* !GETPGRP_VOID */
 #  define EMACS_GETPGRP(x) getpgrp(x)
 #endif /* !GETPGRP_VOID */
 
@@ -254,34 +216,30 @@ struct emacs_tty {
    for dummy get and set definitions.  */
 #ifdef HAVE_TCATTR
   struct termios main;
-#else
+#else /* not HAVE_TCATTR */
 #ifdef HAVE_TERMIO
   struct termio main;
-#else
-#ifdef VMS
-  struct sensemode main;
-#else
+#else /* not HAVE_TERMIO */
 #ifdef DOS_NT
   int main;
 #else  /* not DOS_NT */
   struct sgttyb main;
 #endif /* not DOS_NT */
-#endif
-#endif
-#endif
+#endif /* not HAVE_TERMIO */
+#endif /* not HAVE_TCATTR */
 
 /* If we have TERMIOS, we don't need to do this - they're taken care of
    by the tc*attr calls.  */
 #ifndef HAVE_TERMIOS
 #ifdef HAVE_LTCHARS
   struct ltchars ltchars;
-#endif
+#endif /* HAVE_LTCHARS */
 
 #ifdef HAVE_TCHARS
   struct tchars tchars;
   int lmode;
-#endif
-#endif
+#endif /* HAVE_TCHARS */
+#endif /* not defined HAVE_TERMIOS */
 };
 
 /* Define EMACS_GET_TTY and EMACS_SET_TTY,
@@ -304,9 +262,9 @@ extern int emacs_set_tty P_ ((int, struct emacs_tty *, int));
 
 #ifdef TABDLY
 #define EMACS_TTY_TABS_OK(p) (((p)->main.c_oflag & TABDLY) != TAB3)
-#else
+#else /* not TABDLY */
 #define EMACS_TTY_TABS_OK(p) 1
-#endif
+#endif /* not TABDLY */
 
 #else /* not def HAVE_TERMIOS */
 #ifdef HAVE_TERMIO
@@ -314,11 +272,6 @@ extern int emacs_set_tty P_ ((int, struct emacs_tty *, int));
 #define EMACS_TTY_TABS_OK(p) (((p)->main.c_oflag & TABDLY) != TAB3)
 
 #else /* neither HAVE_TERMIO nor HAVE_TERMIOS */
-#ifdef VMS
-
-#define EMACS_TTY_TABS_OK(p) (((p)->main.tt_char & TT$M_MECHTAB) != 0)
-
-#else
 
 #ifdef DOS_NT
 #define EMACS_TTY_TABS_OK(p) 0
@@ -326,7 +279,6 @@ extern int emacs_set_tty P_ ((int, struct emacs_tty *, int));
 #define EMACS_TTY_TABS_OK(p) (((p)->main.sg_flags & XTABS) != XTABS)
 #endif /* not DOS_NT */
 
-#endif /* not def VMS */
 #endif /* not def HAVE_TERMIO */
 #endif /* not def HAVE_TERMIOS */
 

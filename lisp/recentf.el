@@ -300,7 +300,7 @@ used as shortcuts to open the Nth file."
 ;;; Utilities
 ;;
 (defconst recentf-case-fold-search
-  (memq system-type '(vax-vms windows-nt cygwin))
+  (memq system-type '(windows-nt cygwin))
   "Non-nil if recentf searches and matches should ignore case.")
 
 (defsubst recentf-string-equal (s1 s2)

@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 ;;
-;; Defines the minor mode `minibuffer-indicate-depth-mode'.
+;; Defines the minor mode `minibuffer-depth-indicate-mode'.
 ;;
 ;; When active, any recursive use of the minibuffer will show
 ;; the recursion depth in the minibuffer prompt.  This is only
@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-(defvar minibuf-depth-indicator-function nil
+(defvar minibuffer-depth-indicator-function nil
   "If non-nil, function to set up the minibuffer depth indicator.
 It is called with one argument, the minibuffer depth,
 and must return a string.")
@@ -38,24 +38,24 @@ and must return a string.")
 ;; An overlay covering the prompt.  This is a buffer-local variable in
 ;; each affected minibuffer.
 ;;
-(defvar minibuf-depth-overlay)
-(make-variable-buffer-local 'minibuf-depth-overlay)
+(defvar minibuffer-depth-overlay)
+(make-variable-buffer-local 'minibuffer-depth-overlay)
 
 ;; This function goes on minibuffer-setup-hook
-(defun minibuf-depth-setup-minibuffer ()
-  "Set up a minibuffer for `minibuffer-indicate-depth-mode'.
+(defun minibuffer-depth-setup ()
+  "Set up a minibuffer for `minibuffer-depth-indicate-mode'.
 The prompt should already have been inserted."
   (when (> (minibuffer-depth) 1)
-    (setq minibuf-depth-overlay (make-overlay (point-min) (1+ (point-min))))
-    (overlay-put minibuf-depth-overlay 'before-string
-		 (if minibuf-depth-indicator-function
-		     (funcall minibuf-depth-indicator-function (minibuffer-depth))
+    (setq minibuffer-depth-overlay (make-overlay (point-min) (1+ (point-min))))
+    (overlay-put minibuffer-depth-overlay 'before-string
+		 (if minibuffer-depth-indicator-function
+		     (funcall minibuffer-depth-indicator-function (minibuffer-depth))
 		   (propertize (format "[%d]" (minibuffer-depth)) 'face 'highlight)))
-    (overlay-put minibuf-depth-overlay 'evaporate t)))
+    (overlay-put minibuffer-depth-overlay 'evaporate t)))
 
 ;;;###autoload
-(define-minor-mode minibuffer-indicate-depth-mode
-  "Toggle Minibuffer Indicate Depth mode.
+(define-minor-mode minibuffer-depth-indicate-mode
+  "Toggle Minibuffer Depth Indication mode.
 When active, any recursive use of the minibuffer will show
 the recursion depth in the minibuffer prompt.  This is only
 useful if `enable-recursive-minibuffers' is non-nil.
@@ -64,11 +64,11 @@ With prefix argument ARG, turn on if positive, otherwise off.
 Returns non-nil if the new state is enabled."
   :global t
   :group 'minibuffer
-  (if minibuffer-indicate-depth-mode
+  (if minibuffer-depth-indicate-mode
       ;; Enable the mode
-      (add-hook 'minibuffer-setup-hook 'minibuf-depth-setup-minibuffer)
+      (add-hook 'minibuffer-setup-hook 'minibuffer-depth-setup)
     ;; Disable the mode
-    (remove-hook 'minibuffer-setup-hook 'minibuf-depth-setup-minibuffer)))
+    (remove-hook 'minibuffer-setup-hook 'minibuffer-depth-setup)))
 
 (provide 'mb-depth)
 

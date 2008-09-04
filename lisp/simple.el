@@ -687,13 +687,14 @@ useful for editing binary files."
 			 (eq overwrite-mode 'overwrite-mode-binary))
 		     (read-quoted-char)
 		   (read-char)))))
-    ;; Assume character codes 0240 - 0377 stand for characters in some
-    ;; single-byte character set, and convert them to Emacs
-    ;; characters.
-    (if (and enable-multibyte-characters
-	     (>= char ?\240)
-	     (<= char ?\377))
-	(setq char (unibyte-char-to-multibyte char)))
+    ;; This used to assume character codes 0240 - 0377 stand for
+    ;; characters in some single-byte character set, and converted them
+    ;; to Emacs characters.  But in 23.1 this feature is deprecated
+    ;; in favor of inserting the corresponding Unicode characters.
+    ;; (if (and enable-multibyte-characters
+    ;;          (>= char ?\240)
+    ;;          (<= char ?\377))
+    ;;     (setq char (unibyte-char-to-multibyte char)))
     (if (> arg 0)
 	(if (eq overwrite-mode 'overwrite-mode-binary)
 	    (delete-char arg)))
@@ -2011,11 +2012,15 @@ to the end of the list of defaults just after the default value."
 The arguments are the same as the ones of `read-from-minibuffer',
 except READ and KEYMAP are missing and HIST defaults
 to `shell-command-history'."
-  (apply 'read-from-minibuffer prompt initial-contents
-         minibuffer-local-shell-command-map
-         nil
-         (or hist 'shell-command-history)
-         args))
+  (minibuffer-with-setup-hook
+      (lambda ()
+	(set (make-local-variable 'minibuffer-default-add-function)
+	     'minibuffer-default-add-shell-commands))
+    (apply 'read-from-minibuffer prompt initial-contents
+	   minibuffer-local-shell-command-map
+	   nil
+	   (or hist 'shell-command-history)
+	   args)))
 
 (defun shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
@@ -2069,13 +2074,9 @@ specifies the value of ERROR-BUFFER."
 
   (interactive
    (list
-    (minibuffer-with-setup-hook
-	(lambda ()
-	  (set (make-local-variable 'minibuffer-default-add-function)
-	       'minibuffer-default-add-shell-commands))
-      (read-shell-command "Shell command: " nil nil
-			  (and buffer-file-name
-			       (file-relative-name buffer-file-name))))
+    (read-shell-command "Shell command: " nil nil
+			(and buffer-file-name
+			     (file-relative-name buffer-file-name)))
     current-prefix-arg
     shell-command-default-error-buffer))
   ;; Look for a handler in case default-directory is a remote file name.
@@ -4507,6 +4508,8 @@ other purposes."
 			    (copy-tree fringe-indicator-alist)))))))
 	 (set-default symbol value)))
 
+(defvar visual-line--saved-state nil)
+
 (define-minor-mode visual-line-mode
   "Redefine simple editing commands to act on visual lines, not logical lines.
 This also turns on `word-wrap' in the buffer."
@@ -4515,6 +4518,15 @@ This also turns on `word-wrap' in the buffer."
   :lighter " wrap"
   (if visual-line-mode
       (progn
+	(set (make-local-variable 'visual-line--saved-state) nil)
+	;; Save the local values of some variables, to be restored if
+	;; visual-line-mode is turned off.
+	(dolist (var '(line-move-visual truncate-lines
+		       truncate-partial-width-windows
+		       word-wrap fringe-indicator-alist))
+	  (if (local-variable-p var)
+	      (push (cons var (symbol-value var))
+		    visual-line--saved-state)))
 	(set (make-local-variable 'line-move-visual) t)
 	(set (make-local-variable 'truncate-partial-width-windows) nil)
 	(setq truncate-lines nil
@@ -4526,7 +4538,10 @@ This also turns on `word-wrap' in the buffer."
     (kill-local-variable 'word-wrap)
     (kill-local-variable 'truncate-lines)
     (kill-local-variable 'truncate-partial-width-windows)
-    (kill-local-variable 'fringe-indicator-alist)))
+    (kill-local-variable 'fringe-indicator-alist)
+    (dolist (saved visual-line--saved-state)
+      (set (make-local-variable (car saved)) (cdr saved)))
+    (kill-local-variable 'visual-line--saved-state)))
 
 (defun turn-on-visual-line-mode ()
   (visual-line-mode 1))
@@ -5526,11 +5541,15 @@ This also applies to other functions such as `choose-completion'
 and `mouse-choose-completion'.")
 
 (defvar completion-base-size nil
-  "Number of chars at beginning of minibuffer not involved in completion.
-This is a local variable in the completion list buffer
-but it talks about the buffer in `completion-reference-buffer'.
-If this is nil, it means to compare text to determine which part
-of the tail end of the buffer's text is involved in completion.")
+  "Number of chars before point not involved in completion.
+This is a local variable in the completion list buffer.
+It refers to the chars in the minibuffer if completing in the
+minibuffer, or in `completion-reference-buffer' otherwise.
+Only characters in the field at point are included.
+
+If nil, Emacs determines which part of the tail end of the
+buffer's text is involved in completion by comparing the text
+directly.")
 
 (defun delete-completion-window ()
   "Delete the completion list window.
@@ -5593,12 +5612,15 @@ With prefix argument N, move N items (negative N means move backward)."
     (setq completion (buffer-substring-no-properties beg end))
     (let ((owindow (selected-window)))
       (if (and (one-window-p t 'selected-frame)
-	       (window-dedicated-p (selected-window)))
+	       (window-dedicated-p owindow))
 	  ;; This is a special buffer's frame
 	  (iconify-frame (selected-frame))
 	(or (window-dedicated-p (selected-window))
 	    (bury-buffer)))
-      (select-window owindow))
+      (select-window
+       (or (and (buffer-live-p buffer)
+		(get-buffer-window buffer))
+	   owindow)))
     (choose-completion-string completion buffer base-size)))
 
 ;; Delete the longest partial match for STRING
@@ -6103,7 +6125,6 @@ call `normal-erase-is-backspace-mode' (which see) instead."
        (if (if (eq normal-erase-is-backspace 'maybe)
                (and (not noninteractive)
                     (or (memq system-type '(ms-dos windows-nt))
-                        (eq window-system 'mac)
                         (and (memq window-system '(x))
                              (fboundp 'x-backspace-delete-keys-p)
                              (x-backspace-delete-keys-p))
@@ -6153,7 +6174,7 @@ See also `normal-erase-is-backspace'."
     (set-terminal-parameter nil 'normal-erase-is-backspace
 			    (if enabled 1 0))
 
-    (cond ((or (memq window-system '(x w32 mac ns pc))
+    (cond ((or (memq window-system '(x w32 ns pc))
 	       (memq system-type '(ms-dos windows-nt)))
 	   (let* ((bindings
 		   `(([C-delete] [C-backspace])

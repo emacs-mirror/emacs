@@ -717,9 +717,11 @@ for a remote directory.  This feature is used by Auto Revert Mode."
     (and (stringp dirname)
 	 (not (when noconfirm (file-remote-p dirname)))
 	 (file-readable-p dirname)
+	 ;; Do not auto-revert when the dired buffer can be currently
+	 ;; written by the user as in `wdired-mode'.
+	 buffer-read-only
 	 (dired-directory-changed-p dirname))))
 
-;; Separate function from dired-noselect for the sake of dired-vms.el.
 (defun dired-internal-noselect (dir-or-list &optional switches mode)
   ;; If there is an existing dired buffer for DIRNAME, just leave
   ;; buffer as it is (don't even call dired-revert).
@@ -1068,6 +1070,7 @@ If HDR is non-nil, insert a header line with the directory name."
 		 (dired-move-to-end-of-filename)
 		 (point))
 	       '(mouse-face highlight
+		 dired-filename t
 		 help-echo "mouse-2: visit this file in other window")))
 	(error nil))
       (forward-line 1))))
@@ -1194,7 +1197,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "#" 'dired-flag-auto-save-files)
     (define-key map "." 'dired-clean-directory)
     (define-key map "~" 'dired-flag-backup-files)
-    (define-key map "&" 'dired-flag-garbage-files)
     ;; Upper case keys (except !) for operating on the marked files
     (define-key map "A" 'dired-do-search)
     (define-key map "C" 'dired-do-copy)
@@ -1213,6 +1215,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "X" 'dired-do-shell-command)
     (define-key map "Z" 'dired-do-compress)
     (define-key map "!" 'dired-do-shell-command)
+    (define-key map "&" 'dired-do-async-shell-command)
     ;; Comparison commands
     (define-key map "=" 'dired-diff)
     (define-key map "\M-=" 'dired-backup-diff)
@@ -1240,6 +1243,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "%H" 'dired-do-hardlink-regexp)
     (define-key map "%R" 'dired-do-rename-regexp)
     (define-key map "%S" 'dired-do-symlink-regexp)
+    (define-key map "%&" 'dired-flag-garbage-files)
     ;; Commands for marking and unmarking.
     (define-key map "*" nil)
     (define-key map "**" 'dired-mark-executables)
@@ -1295,6 +1299,11 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ;; hiding
     (define-key map "$" 'dired-hide-subdir)
     (define-key map "\M-$" 'dired-hide-all)
+    ;; isearch
+    (define-key map (kbd "M-s a C-s")   'dired-do-isearch)
+    (define-key map (kbd "M-s a M-C-s") 'dired-do-isearch-regexp)
+    (define-key map (kbd "M-s f C-s")   'dired-isearch-filenames)
+    (define-key map (kbd "M-s f M-C-s") 'dired-isearch-filenames-regexp)
     ;; misc
     (define-key map "\C-x\C-q" 'dired-toggle-read-only)
     (define-key map "?" 'dired-summary)
@@ -1406,6 +1415,12 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar immediate dashes]
       '("--"))
 
+    (define-key map [menu-bar immediate isearch-filenames-regexp]
+      '(menu-item "Isearch Regexp in File Names..." dired-isearch-filenames-regexp
+		  :help "Incrementally search for regexp in file names only"))
+    (define-key map [menu-bar immediate isearch-filenames]
+      '(menu-item "Isearch in File Names..." dired-isearch-filenames
+		  :help "Incrementally search for string in file names only."))
     (define-key map [menu-bar immediate compare-directories]
       '(menu-item "Compare Directories..." dired-compare-directories
 		  :help "Mark files with different attributes in two dired buffers"))
@@ -1560,6 +1575,12 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar operate search]
       '(menu-item "Search Files..." dired-do-search
 		  :help "Search marked files for regexp"))
+    (define-key map [menu-bar operate isearch-regexp]
+      '(menu-item "Isearch Regexp Files..." dired-do-isearch-regexp
+		  :help "Incrementally search marked files for regexp"))
+    (define-key map [menu-bar operate isearch]
+      '(menu-item "Isearch Files..." dired-do-isearch
+		  :help "Incrementally search marked files for string"))
     (define-key map [menu-bar operate chown]
       '(menu-item "Change Owner..." dired-do-chown
 		  :visible (not (memq system-type '(ms-dos windows-nt)))
@@ -1714,6 +1735,7 @@ Keybindings:
   (when (featurep 'dnd)
     (set (make-local-variable 'dnd-protocol-alist)
 	 (append dired-dnd-protocol-alist dnd-protocol-alist)))
+  (add-hook 'isearch-mode-hook 'dired-isearch-filenames-setup nil t)
   (run-mode-hooks 'dired-mode-hook))
 
 ;; Idiosyncratic dired commands that don't deal with marks.
@@ -1967,8 +1989,7 @@ Optional arg GLOBAL means to replace all matches."
   ;;"Convert FILE (a file name relative to DIR) to an absolute file name."
   ;; We can't always use expand-file-name as this would get rid of `.'
   ;; or expand in / instead default-directory if DIR=="".
-  ;; This should be good enough for ange-ftp, but might easily be
-  ;; redefined (for VMS?).
+  ;; This should be good enough for ange-ftp.
   ;; It should be reasonably fast, though, as it is called in
   ;; dired-get-filename.
   (concat (or dir default-directory) file))
@@ -2534,7 +2555,7 @@ non-empty directories is allowed."
 (defun dired-internal-do-deletions (l arg)
   ;; L is an alist of files to delete, with their buffer positions.
   ;; ARG is the prefix arg.
-  ;; Filenames are absolute (VMS needs this for logical search paths).
+  ;; Filenames are absolute.
   ;; (car L) *must* be the *last* (bottommost) file in the dired buffer.
   ;; That way as changes are made in the buffer they do not shift the
   ;; lines still to be changed, so the (point) values in L stay valid.
@@ -3296,6 +3317,7 @@ Anything else means ask for each directory."
   (message-box
    "Dired recursive copies are currently disabled.\nSee the variable `dired-recursive-copies'."))
 
+(declare-function x-popup-menu "xmenu.c" (position menu))
 
 (defun dired-dnd-do-ask-action (uri)
   ;; No need to get actions and descriptions from the source,
@@ -3422,9 +3444,6 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 	     '(dired-mode . dired-restore-desktop-buffer))
 
 
-(if (eq system-type 'vax-vms)
-    (load "dired-vms"))
-
 (provide 'dired)
 
 (run-hooks 'dired-load-hook)		; for your customizations

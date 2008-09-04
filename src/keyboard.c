@@ -51,9 +51,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #include <time.h>
 #else /* not MSDOS */
-#ifndef VMS
 #include <sys/ioctl.h>
-#endif
 #endif /* not MSDOS */
 
 #include "syssignal.h"
@@ -76,10 +74,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32term.h"
 #endif /* HAVE_NTGUI */
 
-#ifdef MAC_OS
-#include "macterm.h"
-#endif
-
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
@@ -99,14 +93,10 @@ int interrupt_input_pending;
 
 #define KBD_BUFFER_SIZE 4096
 
-#ifdef MULTI_KBOARD
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
 KBOARD *all_kboards;
 int single_kboard;
-#else
-KBOARD the_only_kboard;
-#endif
 
 /* Non-nil disable property on a command means
    do not execute it; call disabled-command-function's value instead.  */
@@ -479,14 +469,11 @@ Lisp_Object Qmouse_fixup_help_message;
 /* Symbols to denote kinds of events.  */
 Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
-#if defined (WINDOWSNT) || defined (MAC_OS)
+#if defined (WINDOWSNT)
 Lisp_Object Qlanguage_change;
 #endif
 Lisp_Object Qdrag_n_drop;
 Lisp_Object Qsave_session;
-#ifdef MAC_OS
-Lisp_Object Qmac_apple_event;
-#endif
 #ifdef HAVE_DBUS
 Lisp_Object Qdbus_event;
 #endif
@@ -642,9 +629,7 @@ static void save_getcjmp ();
 static void restore_getcjmp P_ ((jmp_buf));
 static Lisp_Object apply_modifiers P_ ((int, Lisp_Object));
 static void clear_event P_ ((struct input_event *));
-#ifdef MULTI_KBOARD
 static Lisp_Object restore_kboard_configuration P_ ((Lisp_Object));
-#endif
 static SIGTYPE interrupt_signal P_ ((int signalnum));
 static void handle_interrupt P_ ((void));
 static void timer_start_idle P_ ((void));
@@ -1038,7 +1023,6 @@ recursive_edit_unwind (buffer)
 static void
 any_kboard_state ()
 {
-#ifdef MULTI_KBOARD
 #if 0 /* Theory: if there's anything in Vunread_command_events,
 	 it will right away be read by read_key_sequence,
 	 and then if we do switch KBOARDS, it will go into the side
@@ -1052,7 +1036,6 @@ any_kboard_state ()
   Vunread_command_events = Qnil;
 #endif
   single_kboard = 0;
-#endif
 }
 
 /* Switch to the single-kboard state, making current_kboard
@@ -1061,9 +1044,7 @@ any_kboard_state ()
 void
 single_kboard_state ()
 {
-#ifdef MULTI_KBOARD
   single_kboard = 1;
-#endif
 }
 #endif
 
@@ -1074,10 +1055,8 @@ void
 not_single_kboard_state (kboard)
      KBOARD *kboard;
 {
-#ifdef MULTI_KBOARD
   if (kboard == current_kboard)
     single_kboard = 0;
-#endif
 }
 
 /* Maintain a stack of kboards, so other parts of Emacs
@@ -1096,7 +1075,6 @@ void
 push_kboard (k)
      struct kboard *k;
 {
-#ifdef MULTI_KBOARD
   struct kboard_stack *p
     = (struct kboard_stack *) xmalloc (sizeof (struct kboard_stack));
 
@@ -1105,13 +1083,11 @@ push_kboard (k)
   kboard_stack = p;
 
   current_kboard = k;
-#endif
 }
 
 void
 pop_kboard ()
 {
-#ifdef MULTI_KBOARD
   struct terminal *t;
   struct kboard_stack *p = kboard_stack;
   int found = 0;
@@ -1132,7 +1108,6 @@ pop_kboard ()
     }
   kboard_stack = p->next;
   xfree (p);
-#endif
 }
 
 /* Switch to single_kboard mode, making current_kboard the only KBOARD
@@ -1149,7 +1124,6 @@ void
 temporarily_switch_to_single_kboard (f)
      struct frame *f;
 {
-#ifdef MULTI_KBOARD
   int was_locked = single_kboard;
   if (was_locked)
     {
@@ -1174,7 +1148,6 @@ temporarily_switch_to_single_kboard (f)
   single_kboard = 1;
   record_unwind_protect (restore_kboard_configuration,
                          (was_locked ? Qt : Qnil));
-#endif
 }
 
 #if 0 /* This function is not needed anymore.  */
@@ -1188,7 +1161,6 @@ record_single_kboard_state ()
 }
 #endif
 
-#ifdef MULTI_KBOARD
 static Lisp_Object
 restore_kboard_configuration (was_locked)
      Lisp_Object was_locked;
@@ -1206,7 +1178,6 @@ restore_kboard_configuration (was_locked)
     }
   return Qnil;
 }
-#endif
 
 
 /* Handle errors that are not handled at inner levels
@@ -1256,10 +1227,8 @@ cmd_error (data)
 
   Vinhibit_quit = Qnil;
 #if 0 /* This shouldn't be necessary anymore. --lorentey */
-#ifdef MULTI_KBOARD
   if (command_loop_level == 0 && minibuf_level == 0)
     any_kboard_state ();
-#endif
 #endif
 
   return make_number (0);
@@ -1539,9 +1508,7 @@ command_loop_1 ()
   int prev_modiff = 0;
   struct buffer *prev_buffer = NULL;
 #if 0 /* This shouldn't be necessary anymore.  --lorentey  */
-#ifdef MULTI_KBOARD
   int was_locked = single_kboard;
-#endif
 #endif
   int already_adjusted = 0;
 
@@ -1994,10 +1961,8 @@ command_loop_1 ()
 	  && NILP (current_kboard->Vprefix_arg))
 	finalize_kbd_macro_chars ();
 #if 0 /* This shouldn't be necessary anymore.  --lorentey  */
-#ifdef MULTI_KBOARD
       if (!was_locked)
         any_kboard_state ();
-#endif
 #endif
     }
 }
@@ -2029,13 +1994,9 @@ adjust_point_for_property (last_pt, modified)
       /* FIXME: check `intangible'.  */
       if (check_composition
 	  && PT > BEGV && PT < ZV
-	  && get_property_and_range (PT, Qcomposition, &val, &beg, &end, Qnil)
-	  && COMPOSITION_VALID_P (beg, end, val)
-	  && beg < PT /* && end > PT   <- It's always the case.  */
-	  && (last_pt <= beg || last_pt >= end))
+	  && (beg = composition_adjust_point (last_pt)) != PT)
 	{
-	  xassert (end > PT);
-	  SET_PT (PT < last_pt ? beg : end);
+	  SET_PT (beg);
 	  check_display = check_invisible = 1;
 	}
       check_composition = 0;
@@ -2787,7 +2748,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       if (!NILP (Vinhibit_quit))
 	Vquit_flag = Qnil;
 
-#ifdef MULTI_KBOARD
       {
 	KBOARD *kb = FRAME_KBOARD (XFRAME (selected_frame));
 	if (kb != current_kboard)
@@ -2815,7 +2775,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
             return make_number (-2); /* wrong_kboard_jmpbuf */
 	  }
       }
-#endif
       goto non_reread;
     }
 
@@ -2991,7 +2950,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	}
     }
 
-#ifdef MULTI_KBOARD
   /* If current_kboard's side queue is empty check the other kboards.
      If one of them has data that we have not yet seen here,
      switch to it and process the data waiting for it.
@@ -3013,7 +2971,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
             return make_number (-2); /* wrong_kboard_jmpbuf */
 	  }
     }
-#endif
 
  wrong_kboard:
 
@@ -3043,7 +3000,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       c = kbd_buffer_get_event (&kb, used_mouse_menu, end_time);
       restore_getcjmp (save_jump);
 
-#ifdef MULTI_KBOARD
       if (! NILP (c) && (kb != current_kboard))
 	{
 	  Lisp_Object link = kb->kbd_queue;
@@ -3068,7 +3024,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	  UNGCPRO;
           return make_number (-2);
 	}
-#endif
     }
 
   /* Terminate Emacs in batch mode if at eof.  */
@@ -3711,7 +3666,6 @@ readable_events (flags)
 /* Set this for debugging, to have a way to get out */
 int stop_character;
 
-#ifdef MULTI_KBOARD
 static KBOARD *
 event_to_kboard (event)
      struct input_event *event;
@@ -3731,7 +3685,6 @@ event_to_kboard (event)
   else
     return FRAME_KBOARD (XFRAME (frame));
 }
-#endif
 
 
 Lisp_Object Vthrow_on_input;
@@ -3781,7 +3734,6 @@ kbd_buffer_store_event_hold (event, hold_quit)
 
       if (c == quit_char)
 	{
-#ifdef MULTI_KBOARD
 	  KBOARD *kb = FRAME_KBOARD (XFRAME (event->frame_or_window));
 	  struct input_event *sp;
 
@@ -3805,7 +3757,6 @@ kbd_buffer_store_event_hold (event, hold_quit)
 		}
 	      return;
 	    }
-#endif
 
 	  if (hold_quit)
 	    {
@@ -4058,9 +4009,6 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
       /* One way or another, wait until input is available; then, if
 	 interrupt handlers have not read it, read it now.  */
 
-#ifdef OLDVMS
-      wait_for_kbd_input ();
-#else
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
 #ifdef SIGIO
       gobble_input (0);
@@ -4091,7 +4039,6 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
       if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
 	/* Pass 1 for EXPECT since we just waited to have input.  */
 	read_avail_input (1);
-#endif /* not VMS */
     }
 
   if (CONSP (Vunread_command_events))
@@ -4116,13 +4063,9 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 
       last_event_timestamp = event->timestamp;
 
-#ifdef MULTI_KBOARD
       *kbp = event_to_kboard (event);
       if (*kbp == 0)
 	*kbp = current_kboard;  /* Better than returning null ptr?  */
-#else
-      *kbp = &the_only_kboard;
-#endif
 
       obj = Qnil;
 
@@ -4149,7 +4092,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 #endif
 	}
 
-#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+#if defined (HAVE_X11) || defined (HAVE_NTGUI) \
     || defined (HAVE_NS)
       else if (event->kind == DELETE_WINDOW_EVENT)
 	{
@@ -4159,7 +4102,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
-#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+#if defined (HAVE_X11) || defined (HAVE_NTGUI) \
     || defined (HAVE_NS)
       else if (event->kind == ICONIFY_EVENT)
 	{
@@ -4182,7 +4125,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	  XSETBUFFER (obj, current_buffer);
 	  kbd_fetch_ptr = event + 1;
 	}
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined(HAVE_NS) || defined (USE_GTK)
       else if (event->kind == MENU_BAR_ACTIVATE_EVENT)
 	{
@@ -4192,16 +4135,11 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	    x_activate_menubar (XFRAME (event->frame_or_window));
 	}
 #endif
-#if defined (WINDOWSNT) || defined (MAC_OS)
+#if defined (WINDOWSNT)
       else if (event->kind == LANGUAGE_CHANGE_EVENT)
 	{
-#ifdef MAC_OS
-	  /* Make an event (language-change (KEY_SCRIPT)).  */
-	  obj = Fcons (make_number (event->code), Qnil);
-#else
 	  /* Make an event (language-change (FRAME CHARSET LCID)).  */
 	  obj = Fcons (event->frame_or_window, Qnil);
-#endif
 	  obj = Fcons (Qlanguage_change, Fcons (obj, Qnil));
 	  kbd_fetch_ptr = event + 1;
 	}
@@ -4292,7 +4230,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	    {
 	      obj = make_lispy_event (event);
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined(MAC_OS) \
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined(HAVE_NS) || defined (USE_GTK)
 	      /* If this was a menu selection, then set the flag to inhibit
 		 writing to last_nonmenu_event.  Don't do this if the event
@@ -6095,7 +6033,7 @@ make_lispy_event (event)
       }
 #endif /* HAVE_MOUSE */
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined(HAVE_NS) || defined (USE_GTK)
     case MENU_BAR_EVENT:
       if (EQ (event->arg, event->frame_or_window))
@@ -6133,19 +6071,6 @@ make_lispy_event (event)
 
     case SAVE_SESSION_EVENT:
       return Qsave_session;
-
-#ifdef MAC_OS
-    case MAC_APPLE_EVENT:
-      {
-	Lisp_Object spec[2];
-
-	spec[0] = event->x;
-	spec[1] = event->y;
-	return Fcons (Qmac_apple_event,
-		      Fcons (Fvector (2, spec),
-			     Fcons (event->arg, Qnil)));
-      }
-#endif
 
 #ifdef HAVE_DBUS
     case DBUS_EVENT:
@@ -6972,7 +6897,6 @@ gobble_input (expected)
   xd_read_queued_messages ();
 #endif /* HAVE_DBUS */
 
-#ifndef VMS
 #ifdef SIGIO
   if (interrupt_input)
     {
@@ -6997,7 +6921,6 @@ gobble_input (expected)
 #endif
 #endif
     read_avail_input (expected);
-#endif
 }
 
 /* Put a BUFFER_SWITCH_EVENT in the buffer
@@ -7045,16 +6968,10 @@ record_asynch_buffer_change ()
     }
 }
 
-#ifndef VMS
-
 /* Read any terminal input already buffered up by the system
    into the kbd_buffer, but do not wait.
 
    EXPECTED should be nonzero if the caller knows there is some input.
-
-   Except on VMS, all input is read by this function.
-   If interrupt_input is nonzero, this function MUST be called
-   only when SIGIO is blocked.
 
    Returns the number of keyboard chars read, or -1 meaning
    this is a bad time to try to read input.  */
@@ -7155,7 +7072,8 @@ tty_read_avail_input (struct terminal *terminal,
   if (!terminal->name)		/* Don't read from a dead terminal. */
     return 0;
 
-  if (terminal->type != output_termcap)
+  if (terminal->type != output_termcap
+      && terminal->type != output_msdos_raw)
     abort ();
 
   /* XXX I think the following code should be moved to separate hook
@@ -7163,6 +7081,12 @@ tty_read_avail_input (struct terminal *terminal,
 #ifdef WINDOWSNT
   return 0;
 #else /* not WINDOWSNT */
+  if (! tty->term_initted)      /* In case we get called during bootstrap. */
+    return 0;
+
+  if (! tty->input)
+    return 0;                   /* The terminal is suspended. */
+
 #ifdef MSDOS
   n_to_read = dos_keysns ();
   if (n_to_read == 0)
@@ -7172,13 +7096,6 @@ tty_read_avail_input (struct terminal *terminal,
   nread = 1;
 
 #else /* not MSDOS */
-
-  if (! tty->term_initted)      /* In case we get called during bootstrap. */
-    return 0;
-
-  if (! tty->input)
-    return 0;                   /* The terminal is suspended. */
-
 #ifdef HAVE_GPM
   if (gpm_tty == tty)
   {
@@ -7303,7 +7220,6 @@ tty_read_avail_input (struct terminal *terminal,
 
   return nread;
 }
-#endif /* not VMS */
 
 void
 handle_async_input ()
@@ -9424,14 +9340,11 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       else
 	{
 	  {
-#ifdef MULTI_KBOARD
 	    KBOARD *interrupted_kboard = current_kboard;
 	    struct frame *interrupted_frame = SELECTED_FRAME ();
-#endif
 	    key = read_char (NILP (prompt), nmaps,
 			     (Lisp_Object *) submaps, last_nonmenu_event,
 			     &used_mouse_menu, NULL);
-#ifdef MULTI_KBOARD
 	    if (INTEGERP (key) && XINT (key) == -2) /* wrong_kboard_jmpbuf */
 	      {
 		int found = 0;
@@ -9480,7 +9393,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
 		goto replay_sequence;
 	      }
-#endif
 	  }
 
 	  /* read_char returns t when it shows a menu and the user rejects it.
@@ -11080,24 +10992,16 @@ handle_interrupt ()
  */
       sys_suspend ();
 #else
-#ifdef VMS
-      if (sys_suspend () == -1)
-	{
-	  printf ("Not running as a subprocess;\n");
-	  printf ("you can continue or abort.\n");
-	}
-#else /* not VMS */
       /* Perhaps should really fork an inferior shell?
 	 But that would not provide any way to get back
 	 to the original shell, ever.  */
       printf ("No support for stopping a process on this operating system;\n");
       printf ("you can continue or abort.\n");
-#endif /* not VMS */
 #endif /* not SIGTSTP */
 #ifdef MSDOS
       /* We must remain inside the screen area when the internal terminal
 	 is used.  Note that [Enter] is not echoed by dos.  */
-      cursor_to (0, 0);
+      cursor_to (SELECTED_FRAME (), 0, 0);
 #endif
       /* It doesn't work to autosave while GC is in progress;
 	 the code used for auto-saving doesn't cope with the mark bit.  */
@@ -11131,11 +11035,7 @@ handle_interrupt ()
 #ifdef MSDOS
       printf ("\r\nAbort?  (y or n) ");
 #else /* not MSDOS */
-#ifdef VMS
-      printf ("Abort (and enter debugger)? (y or n) ");
-#else /* not VMS */
       printf ("Abort (and dump core)? (y or n) ");
-#endif /* not VMS */
 #endif /* not MSDOS */
       fflush (stdout);
       if (((c = getchar ()) & ~040) == 'Y')
@@ -11237,11 +11137,6 @@ See also `current-input-mode'.  */)
 #else /* not SIGIO */
   new_interrupt_input = 0;
 #endif /* not SIGIO */
-
-/* Our VMS input only works by interrupts, as of now.  */
-#ifdef VMS
-  new_interrupt_input = 1;
-#endif
 
   if (new_interrupt_input != interrupt_input)
     {
@@ -11566,8 +11461,6 @@ wipe_kboard (kb)
   xfree (kb->kbd_macro_buffer);
 }
 
-#ifdef MULTI_KBOARD
-
 /* Free KB and memory referenced from it.  */
 
 void
@@ -11596,8 +11489,6 @@ delete_kboard (kb)
   xfree (kb);
 }
 
-#endif /* MULTI_KBOARD */
-
 void
 init_keyboard ()
 {
@@ -11624,9 +11515,7 @@ init_keyboard ()
   internal_last_event_frame = Qnil;
   Vlast_event_frame = internal_last_event_frame;
 
-#ifdef MULTI_KBOARD
   current_kboard = initial_kboard;
-#endif
   /* Re-initialize the keyboard again.  */
   wipe_kboard (current_kboard);
   init_kboard (current_kboard);
@@ -11662,11 +11551,6 @@ init_keyboard ()
   interrupt_input = 1;
 #else
   interrupt_input = 0;
-#endif
-
-/* Our VMS input only works by interrupts, as of now.  */
-#ifdef VMS
-  interrupt_input = 1;
 #endif
 
   sigfree ();
@@ -11767,7 +11651,7 @@ syms_of_keyboard ()
   staticpro (&Qfunction_key);
   Qmouse_click = intern ("mouse-click");
   staticpro (&Qmouse_click);
-#if defined (WINDOWSNT) || defined (MAC_OS)
+#if defined (WINDOWSNT)
   Qlanguage_change = intern ("language-change");
   staticpro (&Qlanguage_change);
 #endif
@@ -11776,11 +11660,6 @@ syms_of_keyboard ()
 
   Qsave_session = intern ("save-session");
   staticpro (&Qsave_session);
-
-#ifdef MAC_OS
-  Qmac_apple_event = intern ("mac-apple-event");
-  staticpro (&Qmac_apple_event);
-#endif
 
 #ifdef HAVE_DBUS
   Qdbus_event = intern ("dbus-event");
@@ -12474,14 +12353,12 @@ Help functions bind this to allow help on disabled menu items
 and tool-bar buttons.  */);
   Venable_disabled_menus_and_buttons = Qnil;
 
-#ifdef MULTI_KBOARD
   /* Create the initial keyboard. */
   initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (initial_kboard);
   /* Vwindow_system is left at t for now.  */
   initial_kboard->next_kboard = all_kboards;
   all_kboards = initial_kboard;
-#endif
 }
 
 void

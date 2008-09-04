@@ -27,13 +27,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* BSD4_3 and BSD4_4 are already defined in sys/param.h */
 #define BSD_SYSTEM
 
-/* MAC_OS is used to conditionally compile code common to both MAC_OS8
-   and MAC_OSX.  */
-#ifdef MAC_OSX
-#ifdef HAVE_CARBON
-#define MAC_OS
-#endif
-#endif
+/* More specific than the above two.  We cannot use __APPLE__ as this
+   may not be defined on non-OSX Darwin, and we cannot define DARWIN
+   here because Panther and lower CoreFoundation.h uses DARWIN to
+   distinguish OS X from pure Darwin. */
+
+#define DARWIN_OS
+
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
@@ -133,18 +133,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 #define HAVE_SOCKETS
 
-/* In Carbon, asynchronous I/O (using SIGIO) can't be used for window
-   events because they don't come from sockets, even though it works
-   fine on tty's.  */
 /* This seems to help in Ctrl-G detection under Cocoa, however at the cost
-   of some quirks that may or may not bother a given user. */
-#if defined (HAVE_CARBON) || defined (COCOA_EXPERIMENTAL_CTRL_G)
+   of some quirks that may or may not bother a given user.
+   It was earlier commented that "In Carbon, asynchronous I/O (using SIGIO)
+   can't be used for window events because they don't come from sockets,
+   even though it works fine on tty's.  Uncertain about situation in Cocoa. */
+#ifdef COCOA_EXPERIMENTAL_CTRL_G
 #define NO_SOCK_SIGIO
-#endif
-
-/* Extra initialization calls in main for Mac OS X system type.  */
-#ifdef HAVE_CARBON
-#define SYMS_SYSTEM syms_of_mac()
 #endif
 
 /* Definitions for how to dump.  Copied from nextstep.h.  */
@@ -158,71 +153,34 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Definitions for how to compile & link.  */
 
-/* Link in the Carbon or AppKit lib. */
 #ifdef HAVE_NS
-/* PENDING: can this target be specified in a clearer way? */
-#define OTHER_FILES ns-app
-/* XXX: lresolv is here because configure when testing #undefs res_init,
-        a macro in /usr/include/resolv.h for res_9_init, not in stdc lib. */
-#define LIBS_MACGUI -framework AppKit -lresolv
+#define LIBS_NSGUI -framework AppKit
 #define SYSTEM_PURESIZE_EXTRA 200000
 #define HEADERPAD_EXTRA 6C8
 #else /* !HAVE_NS */
+#define LIBS_NSGUI
 #define HEADERPAD_EXTRA 690
-
-/* This is for the Carbon port.  Under the NeXTstep port, this is still picked
-   up during preprocessing, but is undone in config.in. */
-#define C_SWITCH_SYSTEM -fpascal-strings -DMAC_OSX
-
-#ifdef HAVE_CARBON
-
-/* We need a little extra space, see ../../lisp/loadup.el. */
-#define SYSTEM_PURESIZE_EXTRA 30000
-
-/* Link in the Carbon lib. */
-#define LIBS_MACGUI -framework Carbon LIBS_IMAGE
-
-#ifdef HAVE_AVAILABILITYMACROS_H
-#include <AvailabilityMacros.h>
-#endif
-/* Tell src/Makefile.in to create files in the Mac OS X application
-   bundle mac/Emacs.app.  */
-#define OTHER_FILES macosx-app
-
-/* Whether to use the Image I/O framework for reading images.  */
-#ifndef USE_MAC_IMAGE_IO
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040 && (MAC_OS_X_VERSION_MIN_REQUIRED >= 1040 || MAC_OS_X_VERSION_MIN_REQUIRED < 1020)
-#define USE_MAC_IMAGE_IO 1
-#endif
-#endif
-
-/* If the Image I/O framework is not used, fall back on QuickTime.  */
-#if USE_MAC_IMAGE_IO
-#define LIBS_IMAGE
-#else
-#define LIBS_IMAGE -framework QuickTime
-#endif
-
-/* Reroute calls to SELECT to the version defined in mac.c to fix the
-   problem of Emacs requiring an extra return to be typed to start
-   working when started from the command line.  */
-#if defined (emacs) || defined (temacs)
-#define select sys_select
-#endif
-
-#else   /* !HAVE_CARBON */
-#define LIBS_MACGUI
-#endif	/* HAVE_CARBON */
-
 #endif /* !HAVE_NS */
+
+/* On Darwin, res_init appears not to be useful: see bug#562 and
+   http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01467.html  */
+
+#undef HAVE_RES_INIT
+#undef HAVE_LIBRESOLV
 
 /* The -headerpad option tells ld (see man page) to leave room at the
    end of the header for adding load commands.  Needed for dumping.
    0x690 is the total size of 30 segment load commands (at 56
    each); under Cocoa 31 commands are required.  */
-#define LD_SWITCH_SYSTEM_TEMACS -prebind LIBS_MACGUI -Xlinker -headerpad -Xlinker HEADERPAD_EXTRA
+#define LD_SWITCH_SYSTEM_TEMACS -prebind LIBS_NSGUI -Xlinker -headerpad -Xlinker HEADERPAD_EXTRA
 
 #define C_SWITCH_SYSTEM_TEMACS -Dtemacs
+
+#ifdef temacs
+#define malloc unexec_malloc
+#define realloc unexec_realloc
+#define free unexec_free
+#endif
 
 /* The ncurses library has been moved out of the System framework in
    Mac OS X 10.2.  So if ./configure detects it, set the command-line
@@ -263,12 +221,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It is already a controlling terminal of subprocess, because we did
    ioctl TIOCSCTTY.  */
 #define DONT_REOPEN_PTY
-
-#ifdef temacs
-#define malloc unexec_malloc
-#define realloc unexec_realloc
-#define free unexec_free
-#endif
 
 /* This makes create_process in process.c save and restore signal
    handlers correctly.  Suggested by Nozomu Ando.*/

@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "character.h"
 #include "category.h"
+#include "composite.h"
 #include "indent.h"
 #include "keyboard.h"
 #include "frame.h"
@@ -33,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termopts.h"
 #include "disptab.h"
 #include "intervals.h"
+#include "dispextern.h"
 #include "region-cache.h"
 
 /* Indentation can insert tabs if this is non-zero;
@@ -278,32 +280,6 @@ skip_invisible (pos, next_boundary_p, to, window)
   if (NILP (window) ? inv_p == 1 : inv_p)
     return *next_boundary_p;
   return pos;
-}
-
-/* If a composition starts at POS/POS_BYTE and it doesn't stride over
-   POINT, set *LEN / *LEN_BYTE to the character and byte lengths, *WIDTH
-   to the width, and return 1.  Otherwise, return 0.  */
-
-static int
-check_composition (pos, pos_byte, point, len, len_byte, width)
-     int pos, pos_byte, point;
-     int *len, *len_byte, *width;
-{
-  Lisp_Object prop;
-  EMACS_INT start, end;
-  int id;
-
-  if (! find_composition (pos, -1, &start, &end, &prop, Qnil)
-      || pos != start || point < end
-      || !COMPOSITION_VALID_P (start, end, prop))
-    return 0;
-  if ((id = get_composition_id (pos, pos_byte, end - pos, prop, Qnil)) < 0)
-    return 0;
-
-  *len = COMPOSITION_LENGTH (prop);
-  *len_byte = CHAR_TO_BYTE (end) - pos_byte;
-  *width = composition_table[id]->width;
-  return 1;
 }
 
 /* Set variables WIDTH and BYTES for a multibyte sequence starting at P.
@@ -556,6 +532,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  struct composition_it cmp_it;
 
   /* Start the scan at the beginning of this line with column number 0.  */
   register EMACS_INT col = 0, prev_col = 0;
@@ -573,6 +550,9 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
   }
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
+  bzero (&cmp_it, sizeof cmp_it);
+  cmp_it.id = -1;
+  composition_compute_stop_pos (&cmp_it, scan, scan_byte, end, Qnil);
 
   /* Scan forward to the target position.  */
   while (scan < end)
@@ -599,20 +579,6 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 	break;
       prev_col = col;
 
-      { /* Check composition sequence.  */
-	int len, len_byte, width;
-
-	if (check_composition (scan, scan_byte, end,
-			       &len, &len_byte, &width))
-	  {
-	    scan += len;
-	    scan_byte += len_byte;
-	    if (scan <= end)
-	      col += width;
-	    continue;
-	  }
-      }
-
       { /* Check display property.  */
 	EMACS_INT end;
 	int width = check_display_width (scan, col, &end);
@@ -626,6 +592,29 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 	      }
 	  }
       }
+
+      /* Check composition sequence.  */
+      if (cmp_it.id >= 0
+	  || (scan == cmp_it.stop_pos
+	      && composition_reseat_it (&cmp_it, scan, scan_byte, end,
+					XWINDOW (selected_window), NULL, Qnil)))
+	composition_update_it (&cmp_it, scan, scan_byte, Qnil);
+      if (cmp_it.id >= 0)
+	{
+	  scan += cmp_it.nchars;
+	  scan_byte += cmp_it.nbytes;
+	  if (scan <= end)
+	    col += cmp_it.width;
+	  if (cmp_it.to == cmp_it.nglyphs)
+	    {
+	      cmp_it.id = -1;
+	      composition_compute_stop_pos (&cmp_it, scan, scan_byte, end,
+					    Qnil);
+	    }
+	  else
+	    cmp_it.from = cmp_it.to;
+	  continue;
+	}
 
       c = FETCH_BYTE (scan_byte);
 
@@ -1195,6 +1184,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   EMACS_INT prev_tab_offset;	/* Previous tab offset.  */
   EMACS_INT continuation_glyph_width;
 
+  struct composition_it cmp_it;
+
   XSETBUFFER (buffer, current_buffer);
   XSETWINDOW (window, win);
 
@@ -1235,6 +1226,10 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   pos_byte = prev_pos_byte = CHAR_TO_BYTE (from);
   contin_hpos = 0;
   prev_tab_offset = tab_offset;
+  bzero (&cmp_it, sizeof cmp_it);
+  cmp_it.id = -1;
+  composition_compute_stop_pos (&cmp_it, pos, pos_byte, to, Qnil);
+
   while (1)
     {
       while (pos == next_boundary)
@@ -1522,21 +1517,29 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  EMACS_INT i, n;
 	  Lisp_Object charvec;
 
-	  c = FETCH_BYTE (pos_byte);
-
 	  /* Check composition sequence.  */
-	  {
-	    int len, len_byte, width;
+	  if (cmp_it.id >= 0
+	      || (pos == cmp_it.stop_pos
+		  && composition_reseat_it (&cmp_it, pos, pos_byte, to, win,
+					    NULL, Qnil)))
+	    composition_update_it (&cmp_it, pos, pos_byte, Qnil);
+	  if (cmp_it.id >= 0)
+	    {
+	      pos += cmp_it.nchars;
+	      pos_byte += cmp_it.nbytes;
+	      hpos += cmp_it.width;
+	      if (cmp_it.to == cmp_it.nglyphs)
+		{
+		  cmp_it.id = -1;
+		  composition_compute_stop_pos (&cmp_it, pos, pos_byte, to,
+						Qnil);
+		}
+	      else
+		cmp_it.from = cmp_it.to;
+	      continue;
+	    }
 
-	    if (check_composition (pos, pos_byte, to, &len, &len_byte, &width))
-	      {
-		pos += len;
-		pos_byte += len_byte;
-		hpos += width;
-		continue;
-	      }
-	  }
-
+	  c = FETCH_BYTE (pos_byte);
 	  pos++, pos_byte++;
 
 	  /* Perhaps add some info to the width_run_cache.  */
@@ -2055,44 +2058,34 @@ whether or not it is currently displayed in some window.  */)
     }
   else
     {
-      int it_start, oselective, it_overshoot_expected, first_x;
+      int it_start, oselective, first_x, it_overshoot_expected;
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
       first_x = it.first_visible_x;
+      it_start = IT_CHARPOS (it);
+
+      /* See comments below for why we calculate this.  */
+      if (XINT (lines) > 0)
+	{
+	  if (it.cmp_it.id >= 0)
+	    it_overshoot_expected = 1;
+	  if (it.method == GET_FROM_STRING)
+	    {
+	      const char *s = SDATA (it.string);
+	      const char *e = s + SBYTES (it.string);
+	      while (s < e && *s != '\n')
+		++s;
+	      it_overshoot_expected = (s == e) ? -1 : 0;
+	    }
+	  else
+	    it_overshoot_expected = (it.method == GET_FROM_IMAGE
+				     || it.method == GET_FROM_STRETCH);
+	}
 
       /* Scan from the start of the line containing PT.  If we don't
 	 do this, we start moving with IT->current_x == 0, while PT is
-	 really at some x > 0.  The effect is, in continuation lines, that
-	 we end up with the iterator placed at where it thinks X is 0,
-	 while the end position is really at some X > 0, the same X that
-	 PT had.  */
-      it_start = IT_CHARPOS (it);
-
-      /* We expect the call to move_it_to, further down, to overshoot
-	 if the starting point is on an image, stretch glyph,
-	 composition, or Lisp string.  We won't need to backtrack in
-	 this situation, except for one corner case: when the Lisp
-	 string contains a newline.  */
-      if (it.method == GET_FROM_STRING)
-	{
-	  const char *s = SDATA (it.string);
-	  const char *e = s + SBYTES (it.string);
-
-	  while (s < e && *s != '\n')
-	    ++s;
-
-	  /* If there is no newline in the string, we need to check
-	     whether there is a newline immediately after the string
-	     in move_it_to below.  This may happen if there is an
-	     overlay with an after-string just before the newline.  */
-	  it_overshoot_expected = (s == e) ? -1 : 0;
-	}
-      else
-	it_overshoot_expected = (it.method == GET_FROM_IMAGE
-				 || it.method == GET_FROM_STRETCH
-				 || it.method == GET_FROM_COMPOSITION);
-
+	 really at some x > 0.  */
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = 0;
       /* Temporarily disable selective display so we don't move too far */
@@ -2101,21 +2094,57 @@ whether or not it is currently displayed in some window.  */)
       move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
       it.selective = oselective;
 
-      /* Move back if we got too far.  This may happen if
-	 truncate-lines is on and PT is beyond right margin.
-	 Don't go back if the overshoot is expected (see above).  */
-      if (IT_CHARPOS (it) > it_start && XINT (lines) > 0
-	  && (!it_overshoot_expected
-	      || (it_overshoot_expected < 0
-		  && it.method == GET_FROM_BUFFER
-		  && it.c == '\n')))
-	move_it_by_lines (&it, -1, 0);
-
-      it.vpos = 0;
-      /* Do this even if LINES is 0, so that we move back
-	 to the beginning of the current line as we ought.  */
-      if (XINT (lines) >= 0 || IT_CHARPOS (it) > 0)
-	move_it_by_lines (&it, XINT (lines), 0);
+      if (XINT (lines) <= 0)
+	{
+	  it.vpos = 0;
+	  /* Do this even if LINES is 0, so that we move back to the
+	     beginning of the current line as we ought.  */
+	  if (XINT (lines) == 0 || IT_CHARPOS (it) > 0)
+	    move_it_by_lines (&it, XINT (lines), 0);
+	}
+      else
+	{
+	  if (IT_CHARPOS (it) > PT)
+	    {
+	      /* IT may move too far if truncate-lines is on and PT
+		 lies beyond the right margin.  In that case,
+		 backtrack unless the starting point is on an image,
+		 stretch glyph, composition, or Lisp string.  */
+	      if (!it_overshoot_expected
+		  /* Also, backtrack if the Lisp string contains no
+		     newline, but there is a newline right after it.
+		     In this case, IT overshoots if there is an
+		     after-string just before the newline.  */
+		  || (it_overshoot_expected < 0
+		      && it.method == GET_FROM_BUFFER
+		      && it.c == '\n'))
+		move_it_by_lines (&it, -1, 0);
+	      it.vpos = 0;
+	      move_it_by_lines (&it, XINT (lines), 0);
+	    }
+	  else
+	    {
+	      /* Otherwise, we are at the first row occupied by PT,
+		 which might span multiple screen lines (e.g., if it's
+		 on a multi-line display string).  We want to start
+		 from the last line that it occupies.  */
+	      if (PT < ZV)
+		{
+		  while (IT_CHARPOS (it) <= PT)
+		    {
+		      it.vpos = 0;
+		      move_it_by_lines (&it, 1, 0);
+		    }
+		  if (XINT (lines) > 1)
+		    move_it_by_lines (&it, XINT (lines) - 1, 0);
+		}
+	      else
+		{
+		  it.vpos = 0;
+		  move_it_by_lines (&it, XINT (lines), 0);
+		}
+	    }
+	}
 
       /* Move to the goal column, if one was specified.  */
       if (!NILP (lcols))

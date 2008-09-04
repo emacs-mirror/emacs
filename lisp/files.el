@@ -70,8 +70,7 @@ the name it is linked to."
   :group 'abbrev
   :group 'find-file)
 
-;; Turn off backup files on VMS since it has version numbers.
-(defcustom make-backup-files (not (eq system-type 'vax-vms))
+(defcustom make-backup-files t
   "Non-nil means make a backup of a file the first time it is saved.
 This can be done by renaming the file or by copying.
 
@@ -103,15 +102,15 @@ But it is local only if you make it local.")
 (defcustom backup-by-copying nil
  "Non-nil means always use copying to create backup files.
 See documentation of variable `make-backup-files'."
- :type 'boolean
- :group 'backup)
+  :type 'boolean
+  :group 'backup)
 
 (defcustom backup-by-copying-when-linked nil
  "Non-nil means use copying to create backups for files with multiple names.
 This causes the alternate names to refer to the latest version as edited.
 This variable is relevant only if `backup-by-copying' is nil."
- :type 'boolean
- :group 'backup)
+  :type 'boolean
+  :group 'backup)
 
 (defcustom backup-by-copying-when-mismatch nil
   "Non-nil means create backups by copying if this preserves owner or group.
@@ -190,8 +189,6 @@ If the buffer is visiting a new file, the value is nil.")
   (file-name-as-directory
    (cond ((memq system-type '(ms-dos windows-nt))
 	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
-	 ((memq system-type '(vax-vms axp-vms))
-	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "SYS$SCRATCH:"))
 	 (t
 	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
   "The directory for writing temporary files."
@@ -216,7 +213,6 @@ have fast storage with limited space, such as a RAM disk."
 (declare-function dired-unmark "dired" (arg))
 (declare-function dired-do-flagged-delete "dired" (&optional nomessage))
 (declare-function dos-8+3-filename "dos-fns" (filename))
-(declare-function vms-read-directory "vms-patch" (dirname switches buffer))
 (declare-function view-mode-disable "view" ())
 
 (defvar file-name-invalid-regexp
@@ -330,12 +326,6 @@ add a final newline, whenever you save a file that really needs one."
 
 (defcustom auto-save-default t
   "Non-nil says by default do auto-saving of every file-visiting buffer."
-  :type 'boolean
-  :group 'auto-save)
-
-(defcustom auto-save-visited-file-name nil
-  "Non-nil says auto-save a buffer in the file it is visiting, when practical.
-Normally auto-save files are written under other names."
   :type 'boolean
   :group 'auto-save)
 
@@ -625,8 +615,7 @@ Directories are separated by occurrences of `path-separator'
   "Change current directory to given absolute file name DIR."
   ;; Put the name into directory syntax now,
   ;; because otherwise expand-file-name may give some bad results.
-  (if (not (eq system-type 'vax-vms))
-      (setq dir (file-name-as-directory dir)))
+  (setq dir (file-name-as-directory dir))
   (setq dir (abbreviate-file-name (expand-file-name dir)))
   (if (not (file-directory-p dir))
       (if (file-exists-p dir)
@@ -1422,14 +1411,18 @@ home directory is a root directory) and removes automounter prefixes
 	     (file-exists-p (file-name-directory
 			     (substring filename (1- (match-end 0))))))
 	(setq filename (substring filename (1- (match-end 0)))))
-    (let ((tail directory-abbrev-alist))
+    ;; Avoid treating /home/foo as /home/Foo during `~' substitution.
+    ;; To fix this right, we need a `file-name-case-sensitive-p'
+    ;; function, but we don't have that yet, so just guess.
+    (let ((case-fold-search 
+	   (memq system-type '(ms-dos windows-nt darwin cygwin))))
       ;; If any elt of directory-abbrev-alist matches this name,
       ;; abbreviate accordingly.
-      (while tail
-	(if (string-match (car (car tail)) filename)
+      (dolist (dir-abbrev directory-abbrev-alist)
+	(if (string-match (car dir-abbrev) filename)
 	    (setq filename
-		  (concat (cdr (car tail)) (substring filename (match-end 0)))))
-	(setq tail (cdr tail)))
+		  (concat (cdr dir-abbrev)
+			  (substring filename (match-end 0))))))
       ;; Compute and save the abbreviated homedir name.
       ;; We defer computing this until the first time it's needed, to
       ;; give time for directory-abbrev-alist to be set properly.
@@ -1461,11 +1454,7 @@ home directory is a root directory) and removes automounter prefixes
       filename)))
 
 (defcustom find-file-not-true-dirname-list nil
-  "List of logical names for which visiting shouldn't save the true dirname.
-On VMS, when you visit a file using a logical name that searches a path,
-you may or may not want the visited file name to record the specific
-directory where the file was found.  If you *do not* want that, add the logical
-name to this list as a string."
+  "List of logical names for which visiting shouldn't save the true dirname."
   :type '(repeat (string :tag "Name"))
   :group 'find-file)
 
@@ -1765,15 +1754,6 @@ Do you want to revisit the file normally now? ")
 	(setq buffer-file-truename
 	      (abbreviate-file-name (file-truename buffer-file-name))))
       (setq buffer-file-number number)
-      ;; On VMS, we may want to remember which directory in a search list
-      ;; the file was found in.
-      (and (eq system-type 'vax-vms)
-	   (let (logical)
-	     (if (string-match ":" (file-name-directory filename))
-		 (setq logical (substring (file-name-directory filename)
-					  0 (match-beginning 0))))
-	     (not (member logical find-file-not-true-dirname-list)))
-	   (setq buffer-file-name buffer-file-truename))
       (if find-file-visit-truename
 	  (setq buffer-file-name (expand-file-name buffer-file-truename)))
       ;; Set buffer's default directory to that of the file.
@@ -1984,8 +1964,6 @@ in that case, this function acts as if `enable-local-variables' were t."
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
     (report-errors "File mode specification error: %s"
       (set-auto-mode))
-    (report-errors "Project local-variables error: %s"
-      (hack-project-variables))
     (report-errors "File local-variables error: %s"
       (hack-local-variables)))
   ;; Turn font lock off and on, to make sure it takes account of
@@ -2108,7 +2086,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.js\\'" . java-mode)		; javascript-mode would be better
-     ("\\.d?v\\'" . verilog-mode)
+     ("\\.[ds]?v\\'" . verilog-mode)
      ;; .emacs or .gnus or .viper following a directory delimiter in
      ;; Unix, MSDOG or VMS syntax.
      ("[]>:/\\]\\..*\\(emacs\\|gnus\\|viper\\)\\'" . emacs-lisp-mode)
@@ -2414,7 +2392,7 @@ we don't actually set it to the same mode the buffer already has."
 	    (while name
 	      ;; Find first matching alist entry.
 	      (setq mode
-		    (if (memq system-type '(vax-vms windows-nt cygwin))
+		    (if (memq system-type '(windows-nt cygwin))
 			;; System is case-insensitive.
 			(let ((case-fold-search t))
 			  (assoc-default name auto-mode-alist
@@ -2521,7 +2499,8 @@ Otherwise, return nil; point may be changed."
 ;;; Handling file local variables
 
 (defvar ignored-local-variables
-  '(ignored-local-variables safe-local-variable-values)
+  '(ignored-local-variables safe-local-variable-values
+    file-local-variables-alist)
   "Variables to be ignored in a file's local variable spec.")
 
 (defvar hack-local-variables-hook nil
@@ -2534,7 +2513,7 @@ in order to initialize other data structure based on them.")
 Each element is a cons cell (VAR . VAL), where VAR is a variable
 symbol and VAL is a value that is considered safe."
   :group 'find-file
-  :type  'alist)
+  :type 'alist)
 
 (defcustom safe-local-eval-forms '((add-hook 'write-file-hooks 'time-stamp))
   "Expressions that are considered safe in an `eval:' local variable.
@@ -2636,13 +2615,31 @@ asking you for confirmation."
 
 (put 'c-set-style 'safe-local-eval-function t)
 
+(defvar file-local-variables-alist nil
+  "Alist of file-local variable settings in the current buffer.
+Each element in this list has the form (VAR . VALUE), where VAR
+is a file-local variable (a symbol) and VALUE is the value
+specified.  The actual value in the buffer may differ from VALUE,
+if it is changed by the major or minor modes, or by the user.")
+(make-variable-buffer-local 'file-local-variables-alist)
+
+(defvar before-hack-local-variables-hook nil
+  "Normal hook run before setting file-local variables.
+It is called after checking for unsafe/risky variables and
+setting `file-local-variables-alist', and before applying the
+variables stored in `file-local-variables-alist'.  A hook
+function is allowed to change the contents of this alist.
+
+This hook is called only if there is at least one file-local
+variable to set.")
+
 (defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars project)
   "Get confirmation before setting up local variable values.
 ALL-VARS is the list of all variables to be set up.
 UNSAFE-VARS is the list of those that aren't marked as safe or risky.
 RISKY-VARS is the list of those that are marked as risky.
 PROJECT is a directory name if these settings come from directory-local
-settings; nil otherwise."
+settings, or nil otherwise."
   (if noninteractive
       nil
     (let ((name (if buffer-file-name
@@ -2787,20 +2784,27 @@ and VAL is the specified value."
 	  mode-specified
 	result))))
 
-(defun hack-local-variables-apply (result project)
-  "Apply an alist of local variable settings.
-RESULT is the alist.
-Will query the user when necessary."
+(defun hack-local-variables-filter (variables project)
+  "Filter local variable settings, querying the user if necessary.
+VARIABLES is the alist of variable-value settings.  This alist is
+ filtered based on the values of `ignored-local-variables',
+ `enable-local-eval', `enable-local-variables', and (if necessary)
+ user interaction.  The results are added to
+ `file-local-variables-alist', without applying them.
+PROJECT is a directory name if these settings come from
+ directory-local settings, or nil otherwise."
+  ;; Strip any variables that are in `ignored-local-variables'.
   (dolist (ignored ignored-local-variables)
-    (setq result (assq-delete-all ignored result)))
+    (setq variables (assq-delete-all ignored variables)))
+  ;; If `enable-local-eval' is nil, strip eval "variables".
   (if (null enable-local-eval)
-      (setq result (assq-delete-all 'eval result)))
-  (when result
-    (setq result (nreverse result))
+      (setq variables (assq-delete-all 'eval variables)))
+  (setq variables (nreverse variables))
+  (when variables
     ;; Find those variables that we may want to save to
     ;; `safe-local-variable-values'.
     (let (risky-vars unsafe-vars)
-      (dolist (elt result)
+      (dolist (elt variables)
 	(let ((var (car elt))
 	      (val (cdr elt)))
 	  ;; Don't query about the fake variables.
@@ -2814,22 +2818,21 @@ Will query the user when necessary."
 		   (push elt risky-vars))
 	      (push elt unsafe-vars))))
       (if (eq enable-local-variables :safe)
-	  ;; If caller wants only the safe variables,
-	  ;; install only them.
-	  (dolist (elt result)
+	  ;; If caller wants only safe variables, store only these.
+	  (dolist (elt variables)
 	    (unless (or (member elt unsafe-vars)
 			(member elt risky-vars))
-	      (hack-one-local-variable (car elt) (cdr elt))))
-	;; Query, except in the case where all are known safe
-	;; if the user wants no query in that case.
+	      (push elt file-local-variables-alist)))
+	;; Query, unless all are known safe or the user wants no
+	;; querying.
 	(if (or (and (eq enable-local-variables t)
 		     (null unsafe-vars)
 		     (null risky-vars))
 		(eq enable-local-variables :all)
 		(hack-local-variables-confirm
-		 result unsafe-vars risky-vars project))
-	    (dolist (elt result)
-	      (hack-one-local-variable (car elt) (cdr elt))))))))
+		 variables unsafe-vars risky-vars project))
+	    (dolist (elt variables)
+	      (push elt file-local-variables-alist)))))))
 
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
@@ -2838,6 +2841,10 @@ is specified, returning t if it is specified."
   (let ((enable-local-variables
 	 (and local-enable-local-variables enable-local-variables))
 	result)
+    (unless mode-only
+      (setq file-local-variables-alist nil)
+      (report-errors "Project local-variables error: %s"
+	(hack-project-variables)))
     (when (or mode-only enable-local-variables)
       (setq result (hack-local-variables-prop-line mode-only))
       ;; Look for "Local variables:" line in last page.
@@ -2918,15 +2925,20 @@ is specified, returning t if it is specified."
 					  (indirect-variable var))
 					val) result)
 			  (error nil)))))
-		  (forward-line 1)))))))
-
-      ;; We've read all the local variables.  Now, return whether the
-      ;; mode is specified (if MODE-ONLY is non-nil), or set the
-      ;; variables (if MODE-ONLY is nil.)
-      (if mode-only
-	  result
-	(hack-local-variables-apply result nil)
-	(run-hooks 'hack-local-variables-hook)))))
+		  (forward-line 1))))))))
+    ;; Now we've read all the local variables.
+    ;; If MODE-ONLY is non-nil, return whether the mode was specified.
+    (cond (mode-only result)
+	  ;; Otherwise, set the variables.
+	  (enable-local-variables
+	   (hack-local-variables-filter result nil)
+	   (when file-local-variables-alist
+	     (setq file-local-variables-alist
+		   (nreverse file-local-variables-alist))
+	     (run-hooks 'before-hack-local-variables-hook)
+	     (dolist (elt file-local-variables-alist)
+	       (hack-one-local-variable (car elt) (cdr elt))))
+	   (run-hooks 'hack-local-variables-hook)))))
 
 (defun safe-local-variable-p (sym val)
   "Non-nil if SYM is safe as a file-local variable with value VAL.
@@ -2977,11 +2989,15 @@ It is dangerous if either of these conditions are met:
       (and (eq (car exp) 'put)
 	   (hack-one-local-variable-quotep (nth 1 exp))
 	   (hack-one-local-variable-quotep (nth 2 exp))
-	   (let ((prop (nth 1 (nth 2 exp))) (val (nth 3 exp)))
-	     (cond ((eq prop 'lisp-indent-hook)
-		    ;; Only allow safe values of lisp-indent-hook;
-		    ;; not functions.
-		    (or (numberp val) (equal val ''defun)))
+	   (let ((prop (nth 1 (nth 2 exp)))
+		 (val (nth 3 exp)))
+	     (cond ((memq prop '(lisp-indent-hook
+				 lisp-indent-function
+				 scheme-indent-function))
+		    ;; Only allow safe values (not functions).
+		    (or (numberp val)
+			(and (hack-one-local-variable-quotep val)
+			     (eq (nth 1 val) 'defun))))
 		   ((eq prop 'edebug-form-spec)
 		    ;; Only allow indirect form specs.
 		    ;; During bootstrapping, edebug-basic-spec might not be
@@ -3168,8 +3184,12 @@ is found.  Returns the new class name."
 (declare-function c-postprocess-file-styles "cc-mode" ())
 
 (defun hack-project-variables ()
-  "Set local variables in a buffer based on project settings."
-  (when (and (buffer-file-name) (not (file-remote-p (buffer-file-name))))
+  "Read local variables for the current buffer based on project settings.
+Store the project variables in `file-local-variables-alist',
+without applying them."
+  (when (and enable-local-variables
+	     (buffer-file-name)
+	     (not (file-remote-p (buffer-file-name))))
     ;; Find the settings file.
     (let ((settings (project-find-settings-file (buffer-file-name)))
 	  (class nil)
@@ -3186,14 +3206,7 @@ is found.  Returns the new class name."
 	       (project-collect-binding-list (project-get-alist class)
 					     root-dir nil)))
 	  (when bindings
-	    (hack-local-variables-apply bindings root-dir)
-	    ;; Special case C and derived modes.  Note that CC-based
-	    ;; modes don't work with derived-mode-p.  In general I
-	    ;; think modes could use an auxiliary method which is
-	    ;; called after local variables are hacked.
-	    (and (boundp 'c-buffer-is-cc-mode)
-		 c-buffer-is-cc-mode
-		 (c-postprocess-file-styles))))))))
+	    (hack-local-variables-filter bindings root-dir)))))))
 
 
 (defcustom change-major-mode-with-file-name t
@@ -3250,8 +3263,6 @@ the old visited file has been renamed to the new name FILENAME."
     (setq buffer-file-name filename)
     (if filename			; make buffer name reflect filename.
 	(let ((new-name (file-name-nondirectory buffer-file-name)))
-	  (if (eq system-type 'vax-vms)
-	      (setq new-name (downcase new-name)))
 	  (setq default-directory (file-name-directory buffer-file-name))
 	  ;; If new-name == old-name, renaming would add a spurious <2>
 	  ;; and it's considered as a feature in rename-buffer.
@@ -3490,22 +3501,11 @@ we do not remove backup version numbers, only true file version numbers."
     (if handler
 	(funcall handler 'file-name-sans-versions name keep-backup-version)
       (substring name 0
-		 (if (eq system-type 'vax-vms)
-		     ;; VMS version number is (a) semicolon, optional
-		     ;; sign, zero or more digits or (b) period, option
-		     ;; sign, zero or more digits, provided this is the
-		     ;; second period encountered outside of the
-		     ;; device/directory part of the file name.
-		     (or (string-match ";[-+]?[0-9]*\\'" name)
-			 (if (string-match "\\.[^]>:]*\\(\\.[-+]?[0-9]*\\)\\'"
-					   name)
-			     (match-beginning 1))
-			 (length name))
-		   (if keep-backup-version
-		       (length name)
-		     (or (string-match "\\.~[-[:alnum:]:#@^._]+~\\'" name)
-			 (string-match "~\\'" name)
-			 (length name))))))))
+		 (if keep-backup-version
+		     (length name)
+		   (or (string-match "\\.~[-[:alnum:]:#@^._]+~\\'" name)
+		       (string-match "~\\'" name)
+		       (length name)))))))
 
 (defun file-ownership-preserved-p (file)
   "Return t if deleting FILE and rewriting it would preserve the owner."
@@ -3708,8 +3708,6 @@ the index in the name where the version number begins."
       (string-to-number (substring fn backup-extract-version-start -1))
       0))
 
-;; I believe there is no need to alter this behavior for VMS;
-;; since backup files are not made on VMS, it should not get called.
 (defun find-backup-file-name (fn)
   "Find a file name for a backup file FN, and suggestions for deletions.
 Value is a list whose car is the name for the backup file
@@ -3955,19 +3953,6 @@ Before and after saving the buffer, this function runs
     (if (buffer-modified-p)
 	(let ((recent-save (recent-auto-save-p))
 	      setmodes)
-	  ;; On VMS, rename file and buffer to get rid of version number.
-	  (if (and (eq system-type 'vax-vms)
-		   (not (string= buffer-file-name
-				 (file-name-sans-versions buffer-file-name))))
-	      (let (buffer-new-name)
-		;; Strip VMS version number before save.
-		(setq buffer-file-name
-		      (file-name-sans-versions buffer-file-name))
-		;; Construct a (unique) buffer name to correspond.
-		(let ((buf (create-file-buffer (downcase buffer-file-name))))
-		  (setq buffer-new-name (buffer-name buf))
-		  (kill-buffer buf))
-		(rename-buffer buffer-new-name)))
 	  ;; If buffer has no file name, ask user for one.
 	  (or buffer-file-name
 	      (let ((filename
@@ -5007,15 +4992,13 @@ by `sh' are supported."
     (concat "\\`" result "\\'")))
 
 (defcustom list-directory-brief-switches
-  (if (eq system-type 'vax-vms) "" "-CF")
+  "-CF"
   "Switches for `list-directory' to pass to `ls' for brief listing."
   :type 'string
   :group 'dired)
 
 (defcustom list-directory-verbose-switches
-  (if (eq system-type 'vax-vms)
-      "/PROTECTION/SIZE/DATE/OWNER/WIDTH=(OWNER:10)"
-    "-l")
+    "-l"
   "Switches for `list-directory' to pass to `ls' for verbose listing."
   :type 'string
   :group 'dired)
@@ -5299,8 +5282,6 @@ normally equivalent short `-D' option is just passed on to
     (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)
-      (if (eq system-type 'vax-vms)
-	  (vms-read-directory file switches (current-buffer))
 	(let (result (beg (point)))
 
 	  ;; Read the actual directory using `insert-directory-program'.
@@ -5529,7 +5510,7 @@ normally equivalent short `-D' option is just passed on to
 		      ;; Replace "total" with "used", to avoid confusion.
 		      (replace-match "total used in directory" nil nil nil 1)
 		      (end-of-line)
-		      (insert " available " available)))))))))))
+		      (insert " available " available))))))))))
 
 (defun insert-directory-adj-pos (pos error-lines)
   "Convert `ls --dired' file name position value POS to a buffer position.
@@ -5581,7 +5562,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 				(buffer-list))))
 	   (yes-or-no-p "Modified buffers exist; exit anyway? "))
        (or (not (fboundp 'process-list))
-	   ;; process-list is not defined on VMS.
+	   ;; process-list is not defined on MSDOS.
 	   (let ((processes (process-list))
 		 active)
 	     (while processes
@@ -5783,10 +5764,22 @@ FROM (or 0 if nil) is the orginal modes of the file to be chmod'ed."
 (defun read-file-modes (&optional prompt orig-file)
   "Read file modes in octal or symbolic notation.
 PROMPT is used as the prompt, default to `File modes (octal or symbolic): '.
-ORIG-FILE is the original file of which modes will be change."
+ORIG-FILE is the original file of which modes will be changed."
   (let* ((modes (or (if orig-file (file-modes orig-file) 0)
 		    (error "File not found")))
-	 (value (read-string (or prompt "File modes (octal or symbolic): "))))
+	 (modestr (and (stringp orig-file)
+		       (nth 8 (file-attributes orig-file))))
+	 (default
+	   (and (stringp modestr)
+		(string-match "^.\\(...\\)\\(...\\)\\(...\\)$" modestr)
+		(replace-regexp-in-string
+		 "-" ""
+		 (format "u=%s,g=%s,o=%s"
+			 (match-string 1 modestr)
+			 (match-string 2 modestr)
+			 (match-string 3 modestr)))))
+	 (value (read-string (or prompt "File modes (octal or symbolic): ")
+			     nil nil default)))
     (save-match-data
       (if (string-match "^[0-7]+" value)
 	  (string-to-number value 8)

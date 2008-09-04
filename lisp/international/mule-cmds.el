@@ -35,7 +35,6 @@
 (autoload 'widget-value "wid-edit")
 
 (defvar mac-system-coding-system)
-(defvar mac-system-locale)
 
 ;;; MULE related key bindings and menus.
 
@@ -148,7 +147,7 @@
   t)
 (define-key-after set-coding-system-map [set-terminal-coding-system]
   '(menu-item "For Terminal" set-terminal-coding-system
-	      :enable (null (memq initial-window-system '(x w32 mac ns)))
+	      :enable (null (memq initial-window-system '(x w32 ns)))
 	      :help "How to encode terminal output")
   t)
 (define-key-after set-coding-system-map [separator-3]
@@ -1843,7 +1842,8 @@ specifies the character set for the major languages of Western Europe."
 	(funcall func)))
 
   (setq current-iso639-language
-	(get-language-info language-name 'iso639-language))
+	(or (get-language-info language-name 'iso639-language)
+	    current-iso639-language))
 
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
@@ -2502,18 +2502,6 @@ See also `locale-charset-language-names', `locale-language-names',
 		    (= 0 (length locale))) ; nil or empty string
 	  (setq locale (getenv (pop vars) frame)))))
 
-    (unless locale
-      ;; The two tests are kept separate so the byte-compiler sees
-      ;; that mac-get-preference is only called after checking its existence.
-      (when (fboundp 'mac-get-preference)
-        (setq locale (mac-get-preference "AppleLocale"))
-        (unless locale
-          (let ((languages (mac-get-preference "AppleLanguages")))
-            (unless (= (length languages) 0) ; nil or empty vector
-              (setq locale (aref languages 0)))))))
-    (unless (or locale (not (boundp 'mac-system-locale)))
-      (setq locale mac-system-locale))
-
     (when locale
       (setq locale (locale-translate locale))
 
@@ -2523,7 +2511,10 @@ See also `locale-charset-language-names', `locale-language-names',
       ;; want to set them to the same value as LC_CTYPE.
       (when locale-name
 	(setq system-messages-locale locale)
-	(setq system-time-locale locale)))
+	(setq system-time-locale locale))
+
+      (if (string-match "^[a-z][a-z]" locale)
+	  (setq current-iso639-language (intern (match-string 0 locale)))))
 
     (setq woman-locale
           (or system-messages-locale
@@ -2546,8 +2537,7 @@ See also `locale-charset-language-names', `locale-language-names',
 		 (when locale
 		   (if (string-match "\\.\\([^@]+\\)" locale)
 		       (locale-charset-to-coding-system
-			(match-string 1 locale))))
-		 (and (eq system-type 'macos) mac-system-coding-system))))
+			(match-string 1 locale)))))))
 
 	(if (consp language-name)
 	    ;; locale-language-names specify both lang-env and coding.
@@ -2802,9 +2792,11 @@ If there's no description string for VALUE, return nil."
      (function (lambda (x) (format "#x%02X" x))))
    str " "))
 
-(defun encode-coding-char (char coding-system)
+(defun encode-coding-char (char coding-system &optional charset)
   "Encode CHAR by CODING-SYSTEM and return the resulting string.
-If CODING-SYSTEM can't safely encode CHAR, return nil."
+If CODING-SYSTEM can't safely encode CHAR, return nil.
+The 3rd optional argument CHARSET, if non-nil, is a charset preferred
+on encoding."
   (let* ((str1 (string-as-multibyte (string char)))
 	 (str2 (string-as-multibyte (string char char)))
 	 (found (find-coding-systems-string str1))
@@ -2820,6 +2812,9 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
 	;; string and two-char string, then check how many bytes at the
 	;; tail of both encoded strings are the same.
 
+	(when charset
+	  (put-text-property 0 1 'charset charset str1)
+	  (put-text-property 0 2 'charset charset str2))
 	(setq enc1 (encode-coding-string str1 coding-system)
 	      i1 (length enc1)
 	      enc2 (encode-coding-string str2 coding-system)
@@ -2846,16 +2841,63 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
 (defvar nonascii-insert-offset 0 "This variable is obsolete.")
 (defvar nonascii-translation-table nil "This variable is obsolete.")
 
+(defvar ucs-names nil
+  "Alist of cached (CHAR-NAME . CHAR-CODE) pairs.")
+
+(defun ucs-names ()
+  "Return alist of (CHAR-NAME . CHAR-CODE) pairs cached in `ucs-names'."
+  (or ucs-names
+      (setq ucs-names
+	    (let (name names)
+	      (dotimes (c #xEFFFF)
+		(unless (or
+			 (and (>= c #x3400 ) (<= c #x4dbf )) ; CJK Ideograph Extension A
+			 (and (>= c #x4e00 ) (<= c #x9fff )) ; CJK Ideograph
+			 (and (>= c #xd800 ) (<= c #xfaff )) ; Private/Surrogate
+			 (and (>= c #x20000) (<= c #x2ffff)) ; CJK Ideograph Extension B
+			 )
+		  (if (setq name (get-char-code-property c 'name))
+		      (setq names (cons (cons name c) names)))
+		  (if (setq name (get-char-code-property c 'old-name))
+		      (setq names (cons (cons name c) names)))))
+	      names))))
+
+(defvar ucs-completions (lazy-completion-table ucs-completions ucs-names)
+  "Lazy completion table for completing on Unicode character names.")
+
+(defun read-char-by-name (prompt)
+  "Read a character by its Unicode name or hex number string.
+Display PROMPT and read a string that represents a character by its
+Unicode property `name' or `old-name'.  You can type a few of first
+letters of the Unicode name and use completion.  This function also
+accepts a hexadecimal number of Unicode code point or a number in
+hash notation, e.g. #o21430 for octal, #x2318 for hex, or #10r8984
+for decimal.  Returns a character as a number."
+  (let* ((completion-ignore-case t)
+	 (input (completing-read prompt ucs-completions)))
+    (cond
+     ((string-match "^[0-9a-fA-F]+$" input)
+      (string-to-number input 16))
+     ((string-match "^#" input)
+      (read input))
+     (t
+      (cdr (assoc-string input (ucs-names) t))))))
+
 (defun ucs-insert (arg)
   "Insert a character of the given Unicode code point.
-Interactively, prompts for a hex string giving the code."
-  (interactive "sUnicode (hex): ")
-  (or (integerp arg)
+Interactively, prompts for a Unicode character name or a hex number
+using `read-char-by-name'."
+  (interactive (list (read-char-by-name "Unicode (name or hex): ")))
+  (if (stringp arg)
       (setq arg (string-to-number arg 16)))
-  (if (or (< arg 0) (> arg #x10FFFF))
-      (error "Not a Unicode character code: 0x%X" arg))
+  (cond
+   ((not (integerp arg))
+    (error "Not a Unicode character code: %S" arg))
+   ((or (< arg 0) (> arg #x10FFFF))
+    (error "Not a Unicode character code: 0x%X" arg)))
   (insert-and-inherit arg))
 
+(define-key ctl-x-map "8\r" 'ucs-insert)
 
 ;; arch-tag: b382c432-4b36-460e-bf4c-05efd0bb18dc
 ;;; mule-cmds.el ends here

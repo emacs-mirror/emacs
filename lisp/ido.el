@@ -322,8 +322,6 @@
 
 ;;; Code:
 
-(provide 'ido)
-
 (defvar cua-inhibit-cua-keys)
 
 ;;; User Variables
@@ -1506,7 +1504,9 @@ This function also adds a hook to the minibuffer."
       (if ido-minor-mode-map-entry
 	  (setcdr ido-minor-mode-map-entry map)
 	(setq ido-minor-mode-map-entry (cons 'ido-mode map))
-	(add-to-list 'minor-mode-map-alist ido-minor-mode-map-entry)))))
+	(add-to-list 'minor-mode-map-alist ido-minor-mode-map-entry))))
+
+  (message "Ido mode %s" (if ido-mode "enabled" "disabled")))
 
 
 (defun ido-everywhere (arg)
@@ -4654,6 +4654,7 @@ DEF, if non-nil, is the default value."
 	(ido-choice-list choices))
     (ido-read-internal 'list prompt hist def require-match initial-input)))
 
+(provide 'ido)
 
 ;; arch-tag: b63a3500-1735-41bd-8a01-05373f0864da
 ;;; ido.el ends here

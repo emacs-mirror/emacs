@@ -76,10 +76,12 @@ This is the same as `thai-tis620' with the addition of no-break-space."
   :charset-list '(iso-8859-11))
 
 ;; For automatic composition.
-(let ((chars ",TQTUVWXYZghijklmn(B"))
+(let ((chars ",TQTUVWXYZghijklmn(B")
+      (elt '(["[,T!(B-,TO(B].[,Thijkl(B]?,TS(B?" 1 thai-composition-function]
+	     [nil 0 thai-composition-function])))
   (dotimes (i (length chars))
-    (aset composition-function-table (aref chars i)
-	  'thai-composition-function)))
+    (aset composition-function-table (aref chars i) elt)))
+(aset composition-function-table ?,TS(B '(["[,T!(B-,TO(B]." 1 thai-composition-function]))
 
 (provide 'thai)
 

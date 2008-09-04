@@ -645,6 +645,7 @@ extern Lisp_Object Vtranslation_table_vector;
 extern Lisp_Object Vchar_width_table;
 extern Lisp_Object Vchar_direction_table;
 extern Lisp_Object Vchar_unify_table;
+extern Lisp_Object Vunicode_category_table;
 
 extern Lisp_Object string_escape_byte8 P_ ((Lisp_Object));
 

@@ -2821,7 +2821,10 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 			    " ")
 			   (t
 			    (cdr comint-completion-addsuffix))))
-	 (filename (or (comint-match-partial-filename) ""))
+	 (filename (comint-match-partial-filename))
+	 (filename-beg (if filename (match-beginning 0) (point)))
+	 (filename-end (if filename (match-end 0) (point)))
+	 (filename (or filename ""))
 	 (filedir (file-name-directory filename))
 	 (filenondir (file-name-nondirectory filename))
 	 (directory (if filedir (comint-directory filedir) default-directory))
@@ -2839,9 +2842,12 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	   (comint-dynamic-list-filename-completions))
 	  (t                            ; Completion string returned.
 	   (let ((file (concat (file-name-as-directory directory) completion)))
-	     (insert (comint-quote-filename
-		      (substring (directory-file-name completion)
-				 (length filenondir))))
+	     ;; Insert completion.  Note that the completion string
+	     ;; may have a different case than what's in the prompt,
+	     ;; if read-file-name-completion-ignore-case is non-nil,
+	     (delete-region filename-beg filename-end)
+	     (if filedir (insert filedir))
+	     (insert (comint-quote-filename (directory-file-name completion)))
 	     (cond ((symbolp (file-name-completion completion directory))
 		    ;; We inserted a unique completion.
 		    (insert (if (file-directory-p file) dirsuffix filesuffix))
@@ -2955,7 +2961,7 @@ See also `comint-dynamic-complete-filename'."
 	  (message "No completions of %s" filename))
       (comint-dynamic-list-completions
        (mapcar 'comint-quote-filename completions)
-       filenondir))))
+       (comint-quote-filename filenondir)))))
 
 
 ;; This is bound locally in a *Completions* buffer to the list of

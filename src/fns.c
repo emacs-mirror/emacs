@@ -25,15 +25,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #include <time.h>
 
-#ifndef MAC_OS
-/* On Mac OS, defining this conflicts with precompiled headers.  */
-
 /* Note on some machines this defines `vector' as a typedef,
    so make sure we don't use that name in this file.  */
 #undef vector
 #define vector *****
-
-#endif  /* ! MAC_OSX */
 
 #include "lisp.h"
 #include "commands.h"
@@ -5237,7 +5232,10 @@ Used by `featurep' and `require', and altered by `provide'.  */);
   DEFVAR_BOOL ("use-dialog-box", &use_dialog_box,
     doc: /* *Non-nil means mouse commands use dialog boxes to ask questions.
 This applies to `y-or-n-p' and `yes-or-no-p' questions asked by commands
-invoked by mouse clicks and mouse menu items.  */);
+invoked by mouse clicks and mouse menu items.
+
+On some platforms, file selection dialogs are also enabled if this is
+non-nil.  */);
   use_dialog_box = 1;
 
   DEFVAR_BOOL ("use-file-dialog", &use_file_dialog,

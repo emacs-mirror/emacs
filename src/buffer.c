@@ -5312,7 +5312,6 @@ init_buffer ()
   if (!pwd)
     fatal ("`get_current_dir_name' failed: %s\n", strerror (errno));
 
-#ifndef VMS
   /* Maybe this should really use some standard subroutine
      whose definition is filename syntax dependent.  */
   len = strlen (pwd);
@@ -5323,7 +5322,6 @@ init_buffer ()
       pwd[len] = DIRECTORY_SEP;
       pwd[len + 1] = '\0';
     }
-#endif /* not VMS */
 
   current_buffer->directory = make_unibyte_string (pwd, strlen (pwd));
   if (! NILP (buffer_defaults.enable_multibyte_characters))
@@ -5763,7 +5761,10 @@ or tab character nearest to the right window edge.
 If nil, continuation lines are wrapped at the right screen edge.
 
 This variable has no effect if long lines are truncated (see
-`truncate-lines' and `truncate-partial-width-windows').  */);
+`truncate-lines' and `truncate-partial-width-windows').  If you use
+word-wrapping, you might want to reduce the value of
+`truncate-partial-width-windows', since wrapping can make text readable
+in narrower windows.  */);
 
 #ifdef DOS_NT
   DEFVAR_PER_BUFFER ("buffer-file-type", &current_buffer->buffer_file_type,
@@ -5826,7 +5827,7 @@ in a file, save the ^M as a newline.  */);
 
 #ifndef old
   DEFVAR_PER_BUFFER ("selective-display-ellipses",
-		    &current_buffer->selective_display_ellipses,
+		     &current_buffer->selective_display_ellipses,
 		     Qnil,
 		     doc: /* Non-nil means display ... on previous line when a line is invisible.  */);
 #endif
@@ -5991,10 +5992,10 @@ If you move point off the bottom, the window scrolls automatically.
 This variable controls how far it scrolls.  The value nil, the default,
 means scroll to center point.  A fraction means scroll to put point
 that fraction of the window's height from the bottom of the window.
-When the value is 0.0, point goes at the bottom line, which in the simple
-case that you moved off with C-f means scrolling just one line.  1.0 means
-point goes at the top, so that in that simple case, the window
-scrolls by a full window height.  Meaningful values are
+When the value is 0.0, point goes at the bottom line, which in the
+simple case that you moved off with C-f means scrolling just one line.
+1.0 means point goes at the top, so that in that simple case, the
+window scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
 
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
@@ -6004,10 +6005,10 @@ If you move point off the top, the window scrolls automatically.
 This variable controls how far it scrolls.  The value nil, the default,
 means scroll to center point.  A fraction means scroll to put point
 that fraction of the window's height from the top of the window.
-When the value is 0.0, point goes at the top line, which in the simple
-case that you moved off with C-b means scrolling just one line.  1.0 means
-point goes at the bottom, so that in that simple case, the window
-scrolls by a full window height.  Meaningful values are
+When the value is 0.0, point goes at the top line, which in the
+simple case that you moved off with C-b means scrolling just one line.
+1.0 means point goes at the bottom, so that in that simple case, the
+window scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
 
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
@@ -6024,8 +6025,8 @@ No information is given about the length of the text after the change.
 Buffer changes made while executing the `before-change-functions'
 don't call any before-change or after-change functions.
 That's because these variables are temporarily set to nil.
-As a result, a hook function cannot straightforwardly alter the value of
-these variables.  See the Emacs Lisp manual for a way of
+As a result, a hook function cannot straightforwardly alter the
+value of these variables.  See the Emacs Lisp manual for a way of
 accomplishing an equivalent result by using other variables.
 
 If an unhandled error happens in running these functions,
@@ -6045,8 +6046,8 @@ and the post-change beginning and end are at the same place.)
 Buffer changes made while executing the `after-change-functions'
 don't call any before-change or after-change functions.
 That's because these variables are temporarily set to nil.
-As a result, a hook function cannot straightforwardly alter the value of
-these variables.  See the Emacs Lisp manual for a way of
+As a result, a hook function cannot straightforwardly alter the
+value of these variables.  See the Emacs Lisp manual for a way of
 accomplishing an equivalent result by using other variables.
 
 If an unhandled error happens in running these functions,

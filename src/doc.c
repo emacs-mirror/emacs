@@ -58,28 +58,6 @@ extern Lisp_Object Voverriding_local_map, Qclosure;
 
 extern Lisp_Object Qremap;
 
-/* For VMS versions with limited file name syntax,
-   convert the name to something VMS will allow.  */
-static void
-munge_doc_file_name (name)
-     char *name;
-{
-#ifdef VMS
-#ifndef NO_HYPHENS_IN_FILENAMES
-  extern char * sys_translate_unix (char *ufile);
-  strcpy (name, sys_translate_unix (name));
-#else /* NO_HYPHENS_IN_FILENAMES */
-  char *p = name;
-  while (*p)
-    {
-      if (*p == '-')
-	*p = '_';
-      p++;
-    }
-#endif /* NO_HYPHENS_IN_FILENAMES */
-#endif /* VMS */
-}
-
 /* Buffer used for reading from documentation file.  */
 static char *get_doc_string_buffer;
 static int get_doc_string_buffer_size;
@@ -169,7 +147,6 @@ get_doc_string (filepos, unibyte, definition)
       name = (char *) alloca (minsize + SCHARS (file) + 8);
       strcpy (name, SDATA (Vdoc_directory));
       strcat (name, SDATA (file));
-      munge_doc_file_name (name);
     }
   else
     {
@@ -186,7 +163,6 @@ get_doc_string (filepos, unibyte, definition)
 	     So check in ../etc. */
 	  strcpy (name, "../etc/");
 	  strcat (name, SDATA (file));
-	  munge_doc_file_name (name);
 
 	  fd = emacs_open (name, O_RDONLY, 0);
 	}
@@ -627,7 +603,6 @@ the same file name is found in the `doc-directory'.  */)
       strcpy (name, SDATA (Vdoc_directory));
     }
   strcat (name, SDATA (filename)); 	/*** Add this line ***/
-  munge_doc_file_name (name);
 
   /* Vbuild_files is nil when temacs is run, and non-nil after that.  */
   if (NILP (Vbuild_files))

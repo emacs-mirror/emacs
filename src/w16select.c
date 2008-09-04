@@ -500,19 +500,25 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
   BLOCK_INPUT;
 
+  if (!open_clipboard ())
+    goto error;
+
   nbytes = SBYTES (string);
   src = SDATA (string);
 
-  /* Since we are now handling multilingual text, we must consider
-     encoding text for the clipboard.  */
-  charset_info = find_charset_in_text (src, SCHARS (string), nbytes,
-				       NULL, Qnil);
-
-  if (charset_info == 0)
+  /* Do we need to encode this text?  */
+  for (dst = src; dst < src + nbytes; dst++)
     {
-      /* No multibyte character in OBJ.  We need not encode it, but we
+      if (*dst == '\0' || *dst >= 0x80)
+	break;
+    }
+  if (dst >= src + nbytes)
+    {
+      /* No multibyte characters in text.  We need not encode it, but we
 	 will have to convert it to DOS CR-LF style.  */
       no_crlf_conversion = 0;
+      Vlast_coding_system_used = Qraw_text;
+      dst = NULL;	/* so we don't try to free a random pointer */
     }
   else
     {
@@ -521,33 +527,23 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
       int bufsize;
       struct coding_system coding;
       unsigned char *htext2;
+      Lisp_Object coding_system =
+	NILP (Vnext_selection_coding_system) ?
+	Vselection_coding_system : Vnext_selection_coding_system;
 
-      if (NILP (Vnext_selection_coding_system))
-	Vnext_selection_coding_system = Vselection_coding_system;
-      setup_coding_system
-	(Fcheck_coding_system (Vnext_selection_coding_system), &coding);
-      if (SYMBOLP (coding.pre_write_conversion)
-	  && !NILP (Ffboundp (coding.pre_write_conversion)))
-	{
-	  string = run_pre_post_conversion_on_str (string, &coding, 1);
-	  src = SDATA (string);
-	  nbytes = SBYTES (string);
-	}
-      coding.src_multibyte = 1;
-      coding.dst_multibyte = 0;
+      setup_coding_system (Fcheck_coding_system (coding_system), &coding);
+      coding.dst_bytes = nbytes * 4;
+      coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
       Vnext_selection_coding_system = Qnil;
       coding.mode |= CODING_MODE_LAST_BLOCK;
-      Vlast_coding_system_used = coding.symbol;
-      bufsize = encoding_buffer_size (&coding, nbytes);
-      dst = (unsigned char *) xmalloc (bufsize);
-      encode_coding (&coding, src, dst, nbytes, bufsize);
+      dst = coding.destination;
+      encode_coding_object (&coding, string, 0, 0,
+			    SCHARS (string), nbytes, Qnil);
       no_crlf_conversion = 1;
       nbytes = coding.produced;
+      Vlast_coding_system_used = CODING_ID_NAME (coding.id);
       src = dst;
     }
-
-  if (!open_clipboard ())
-    goto error;
 
   ok = empty_clipboard ()
     && ((put_status
@@ -555,7 +551,6 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 	== 0);
 
   if (!no_crlf_conversion)
-    Vlast_coding_system_used = Qraw_text;
   close_clipboard ();
 
   if (ok) goto unblock;
@@ -601,9 +596,9 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
      Lisp_Object frame;
 {
   unsigned data_size, truelen;
-  unsigned char *htext;
+  unsigned char *htext = NULL;
   Lisp_Object ret = Qnil;
-  int no_crlf_conversion, require_encoding = 0;
+  int no_crlf_conversion, require_decoding = 0;
 
   if (NILP (frame))
     frame = Fselected_frame ();
@@ -637,39 +632,30 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
       {
 	if (htext[i] >= 0x80)
 	  {
-	    require_encoding = 1;
+	    require_decoding = 1;
 	    break;
 	  }
       }
   }
-  if (require_encoding)
+  if (require_decoding)
     {
       int bufsize;
       unsigned char *buf;
       struct coding_system coding;
+      Lisp_Object coding_system = Vnext_selection_coding_system;
 
-      if (NILP (Vnext_selection_coding_system))
-	Vnext_selection_coding_system = Vselection_coding_system;
-      setup_coding_system
-	(Fcheck_coding_system (Vnext_selection_coding_system), &coding);
-      coding.src_multibyte = 0;
-      coding.dst_multibyte = 1;
-      Vnext_selection_coding_system = Qnil;
-      coding.mode |= CODING_MODE_LAST_BLOCK;
-      /* We explicitely disable composition handling because selection
-	 data should not contain any composition sequence.  */
-      coding.composing = COMPOSITION_DISABLED;
       truelen = get_clipboard_data (CF_OEMTEXT, htext, data_size, 1);
-      bufsize = decoding_buffer_size (&coding, truelen);
-      buf = (unsigned char *) xmalloc (bufsize);
-      decode_coding (&coding, htext, buf, truelen, bufsize);
-      ret = make_string_from_bytes ((char *) buf,
-				    coding.produced_char, coding.produced);
-      xfree (buf);
-      if (SYMBOLP (coding.post_read_conversion)
-	  && !NILP (Ffboundp (coding.post_read_conversion)))
-	ret = run_pre_post_conversion_on_str (ret, &coding, 0);
-      Vlast_coding_system_used = coding.symbol;
+      if (NILP (coding_system))
+	coding_system = Vselection_coding_system;
+      setup_coding_system (Fcheck_coding_system (coding_system), &coding);
+      coding.source = htext;
+      coding.mode |= CODING_MODE_LAST_BLOCK;
+      /* We explicitly disable composition handling because selection
+	 data should not contain any composition sequence.  */
+      coding.mode &= CODING_ANNOTATION_MASK;
+      decode_coding_object (&coding, Qnil, 0, 0, truelen, truelen, Qt);
+      ret = coding.dst_object;
+      Vlast_coding_system_used = CODING_ID_NAME (coding.id);
     }
   else
     {
@@ -678,6 +664,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
     }
 
   xfree (htext);
+  Vnext_selection_coding_system = Qnil;
 
  closeclip:
   close_clipboard ();

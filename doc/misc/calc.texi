@@ -3,7 +3,7 @@
 @c smallbook
 @setfilename ../../info/calc
 @c [title]
-@settitle GNU Emacs Calc 2.1 Manual
+@settitle GNU Emacs Calc Manual
 @setchapternewpage odd
 @comment %**end of header (This is for running Texinfo on a region.)
 
@@ -85,7 +85,12 @@
 @end iftex
 
 @copying
+@ifinfo
 This file documents Calc, the GNU Emacs calculator.
+@end ifinfo
+@ifnotinfo
+This file documents Calc, the GNU Emacs calculator, included with GNU Emacs 23.1.
+@end ifnotinfo
 
 Copyright @copyright{} 1990, 1991, 2001, 2002, 2003, 2004,
 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
@@ -114,7 +119,7 @@ developing GNU and promoting software freedom.''
 @sp 6
 @center @titlefont{Calc Manual}
 @sp 4
-@center GNU Emacs Calc Version 2.1
+@center GNU Emacs Calc
 @c [volume]
 @sp 5
 @center Dave Gillespie
@@ -766,7 +771,7 @@ Stack; the lower window is a picture of a typical calculator keypad.
 |1:  -5
 |    .
 |--%*-Calc: 12 Deg       (Calcul
-|----+-----Calc 2.1------+----1
+|----+----+--Calc---+----+----1
 |FLR |CEIL|RND |TRNC|CLN2|FLT |
 |----+----+----+----+----+----|
 | LN |EXP |    |ABS |IDIV|MOD |
@@ -9797,12 +9802,6 @@ the stack but resets everything else to its initial state; with a
 negative prefix argument, @kbd{C-x * 0} preserves the contents of the
 stack but resets everything else to its default state.
 
-@pindex calc-version
-The @kbd{M-x calc-version} command displays the current version number
-of Calc and the name of the person who installed it on your system.
-(This information is also present in the @samp{*Calc Trail*} buffer,
-and in the output of the @kbd{h h} command.)
-
 @node Help Commands, Stack Basics, Basic Commands, Introduction
 @section Help Commands
 
@@ -18570,8 +18569,8 @@ function briefly; for a more detailed discussion (including some nifty
 diagrams), consult Steele's book.
 
 Note that the branch cuts for @code{arctan} and @code{arctanh} were
-changed between the first and second editions of Steele.  Versions of
-Calc starting with 2.00 follow the second edition.
+changed between the first and second editions of Steele.  Recent
+versions of Calc follow the second edition.
 
 The new branch cuts exactly match those of the HP-28/48 calculators.
 They also match those of Mathematica 1.2, except that Mathematica's
@@ -29586,7 +29585,7 @@ original buffer.
 
 @smallexample
 @group
-|----+-----Calc 2.1------+----1
+|----+----+--Calc---+----+----1
 |FLR |CEIL|RND |TRNC|CLN2|FLT |
 |----+----+----+----+----+----|
 | LN |EXP |    |ABS |IDIV|MOD |
@@ -35064,7 +35063,7 @@ CVS tree.  See @uref{http://savannah.gnu.org/projects/emacs}.
 @appendix Calc Summary
 
 @noindent
-This section includes a complete list of Calc 2.1 keystroke commands.
+This section includes a complete list of Calc keystroke commands.
 Each line lists the stack entries used by the command (top-of-stack
 last), the keystrokes themselves, the prompts asked by the command,
 and the result of the command (also with top-of-stack last).
@@ -35870,7 +35869,7 @@ keystrokes are not listed in this summary.
 @r{    v w@:    H V H   @:n            @:    31  @:histogram@:(v,w,n)}
 @r{  v1 v2@:      V I   @:mop aop      @:    22  @:inner@:(mop,aop,v1,v2)}
 @r{      m@:      V J   @:             @:     1  @:ctrn@:(m)}
-@r{  m1 m2@:      V K   @:             @:        @:kron(m1,m2)}
+@r{  m1 m2@:      V K   @:             @:        @:kron@:(m1,m2)}
 @r{      m@:      V L   @:             @:     1  @:lud@:(m)}
 @r{      v@:      V M   @:op           @: 22,23  @:map@:(op,v)}
 @r{      v@:      V N   @:             @:     1  @:cnorm@:(v)}

@@ -2422,6 +2422,8 @@ DATE is (month day year).  Calendars that do not apply are omitted."
            (format "Mayan date: %s"
                    (calendar-mayan-date-string date))))))
 
+(declare-function x-popup-menu "xmenu.c" (position menu))
+
 (defun calendar-print-other-dates (&optional event)
   "Show dates on other calendars for date under the cursor.
 If called by a mouse-event, pops up a menu with the result."

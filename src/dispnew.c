@@ -59,10 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32term.h"
 #endif /* HAVE_NTGUI */
 
-#ifdef MAC_OS
-#include "macterm.h"
-#endif /* MAC_OS */
-
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
@@ -3394,7 +3390,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   update_begin (f);
 #ifdef MSDOS
   if (FRAME_MSDOS_P (f))
-    set_terminal_modes (FRAME_TERMINAL (f));
+    FRAME_TERMINAL (f)->set_terminal_modes_hook (FRAME_TERMINAL (f));
 #endif
   clear_frame (f);
   clear_current_matrices (f);
@@ -6840,12 +6836,7 @@ init_display ()
   if (! inhibit_window_system && ! display_arg)
     {
       char *display;
-#ifdef VMS
-      display = getenv ("DECW$DISPLAY");
-#else
       display = getenv ("DISPLAY");
-#endif
-
       display_arg = (display != 0 && *display != 0);
 
       if (display_arg && !x_display_ok (display))
@@ -6887,16 +6878,6 @@ init_display ()
     }
 #endif /* HAVE_NTGUI */
 
-#ifdef MAC_OS
-  if (!inhibit_window_system)
-    {
-      Vinitial_window_system = intern ("mac");
-      Vwindow_system_version = make_number (1);
-      adjust_frame_glyphs_initially ();
-      return;
-    }
-#endif /* MAC_OS */
-
 #ifdef HAVE_NS
   if (!inhibit_window_system
 #ifndef CANNOT_DUMP
@@ -6926,39 +6907,14 @@ init_display ()
 #endif
   if (!terminal_type)
     {
-#ifdef VMS
-      fprintf (stderr, "Please specify your terminal type.\n\
-For types defined in VMS, use  set term /device=TYPE.\n\
-For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
-\(The quotation marks are necessary since terminal types are lower case.)\n");
-#else /* not VMS */
-
 #ifdef HAVE_WINDOW_SYSTEM
       if (! inhibit_window_system)
 	fprintf (stderr, "Please set the environment variable DISPLAY or TERM (see `tset').\n");
       else
 #endif /* HAVE_WINDOW_SYSTEM */
 	fprintf (stderr, "Please set the environment variable TERM; see `tset'.\n");
-#endif /* not VMS */
       exit (1);
     }
-
-#ifdef VMS
-  /* VMS DCL tends to up-case things, so down-case term type.
-     Hardly any uppercase letters in terminal types; should be none.  */
-  {
-    char *new = (char *) xmalloc (strlen (terminal_type) + 1);
-    char *p;
-
-    strcpy (new, terminal_type);
-
-    for (p = new; *p; p++)
-      if (isupper (*p))
-	*p = tolower (*p);
-
-    terminal_type = new;
-  }
-#endif /* VMS */
 
   {
     struct terminal *t;
@@ -6988,7 +6944,13 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
     Fmodify_frame_parameters
       (selected_frame, Fcons (Fcons (Qtty_type,
                                      Ftty_type (selected_frame)), Qnil));
-    Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qtty, Qnil), Qnil));
+    if (t->display_info.tty->name)
+      Fmodify_frame_parameters (selected_frame,
+				Fcons (Fcons (Qtty, build_string (t->display_info.tty->name)),
+				       Qnil));
+    else
+      Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qtty, Qnil),
+						       Qnil));
   }
 
   {
@@ -7010,13 +6972,6 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
   /* Set up faces of the initial terminal frame of a dumped Emacs.  */
   if (initialized
       && !noninteractive
-#ifdef MSDOS
-      /* The MSDOS terminal turns on its ``window system'' relatively
-	 late into the startup, so we cannot do the frame faces'
-	 initialization just yet.  It will be done later by pc-win.el
-	 and internal_terminal_init.  */
-      && (strcmp (terminal_type, "internal") != 0 || inhibit_window_system)
-#endif
       && NILP (Vinitial_window_system))
     {
       /* For the initial frame, we don't have any way of knowing what

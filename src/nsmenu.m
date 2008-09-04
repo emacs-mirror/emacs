@@ -53,8 +53,6 @@ int menu_trace_num = 0;
 #include "nsmenu_common.c"
 #endif
 
-extern struct widget_value;
-
 extern Lisp_Object Qundefined, Qmenu_enable, Qmenu_bar_update_hook;
 extern Lisp_Object QCtoggle, QCradio;
 
@@ -65,7 +63,10 @@ extern Lisp_Object Voverriding_local_map, Voverriding_local_map_menu_flag,
 		   Qoverriding_local_map, Qoverriding_terminal_local_map;
 
 extern long context_menu_value;
-EmacsMenu *mainMenu, *svcsMenu;
+EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
+
+/* Nonzero means a menu is currently active.  */
+static int popup_activated_flag;
 
 /* NOTE: toolbar implementation is at end,
   following complete menu implementation. */
@@ -93,6 +94,13 @@ void
 free_frame_menubar (struct frame *f)
 {
   return;
+}
+
+
+int
+popup_activated ()
+{
+  return popup_activated_flag;
 }
 
 
@@ -594,9 +602,10 @@ name_is_separator (name)
   return [NSString stringWithFormat: @"%c", tpos[2]];
 }
 
-- (id <NSMenuItem>)addItemWithWidgetValue: (void *)wvptr
+
+- (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr
 {
-  id <NSMenuItem> item;
+  NSMenuItem *item;
   widget_value *wv = (widget_value *)wvptr;
 
   if (name_is_separator (wv->name))
@@ -663,7 +672,7 @@ name_is_separator (name)
   /* add new contents */
   for (; wv != NULL; wv = wv->next)
     {
-      id <NSMenuItem> item = [self addItemWithWidgetValue: wv];
+      NSMenuItem *item = [self addItemWithWidgetValue: wv];
 
       if (wv->contents)
         {
@@ -691,10 +700,9 @@ name_is_separator (name)
 - (EmacsMenu *)addSubmenuWithTitle: (char *)title forFrame: (struct frame *)f
 {
   NSString *titleStr = [NSString stringWithUTF8String: title];
-  id <NSMenuItem> item
-      = [self addItemWithTitle: titleStr
-                        action: nil /*@selector (menuDown:) */
-	         keyEquivalent: @""];
+  NSMenuItem *item = [self addItemWithTitle: titleStr
+                                     action: nil /*@selector (menuDown:) */
+                              keyEquivalent: @""];
   EmacsMenu *submenu = [[EmacsMenu alloc] initWithTitle: titleStr frame: f];
   [self setSubmenu: submenu forItem: item];
   [submenu release];
@@ -1107,7 +1115,7 @@ ns_popup_menu (Lisp_Object position, Lisp_Object menu)
 #endif
 
       wv_title->name = (char *) SDATA (title);
-      wv_title->enabled = NULL;
+      wv_title->enabled = NO;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->help = Qnil;
       wv_title->next = wv_sep;
@@ -1120,10 +1128,13 @@ ns_popup_menu (Lisp_Object position, Lisp_Object menu)
   free_menubar_widget_value_tree (first_wv);
   unbind_to (specpdl_count2, Qnil);
 
+  popup_activated_flag = 1;
   tem = [pmenu runMenuAt: p forFrame: f keymaps: keymaps];
+  popup_activated_flag = 0;
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
 
   UNBLOCK_INPUT;
+  discard_menu_items ();
   unbind_to (specpdl_count, Qnil);
   UNGCPRO;
 
@@ -1514,8 +1525,9 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   p.y = (int)f->top_pos + (FRAME_LINE_HEIGHT (f) * f->text_lines)/2;
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents
                                            isQuestion: isQ];
-
+  popup_activated_flag = 1;
   tem = [dialog runDialogAt: p];
+  popup_activated_flag = 0;
 
   [dialog close];
 
@@ -1735,7 +1747,7 @@ void process_dialog (id window, Lisp_Object list)
     return self;
 
   seltag = [[sellist objectAtIndex: 0] tag];
-  if (seltag == XHASH (Qundefined)) // FIXME: BIG UGLY HACK!!
+  if (seltag != XHASH (Qundefined)) // FIXME: BIG UGLY HACK!!
     [NSApp stopModalWithCode: seltag];
   return self;
 }
@@ -1937,6 +1949,12 @@ for instance using the window manager, then this produces a quit and
   return ns_popup_dialog (position, contents, header);
 }
 
+DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
+       doc: /* Return t if a menu or popup dialog is active.  */)
+     ()
+{
+  return popup_activated () ? Qt : Qnil;
+}
 
 /* ==========================================================================
 
@@ -1950,6 +1968,7 @@ syms_of_nsmenu ()
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);
   defsubr (&Sns_reset_menu);
+  defsubr (&Smenu_or_popup_active_p);
   staticpro (&menu_items);
   menu_items = Qnil;
 

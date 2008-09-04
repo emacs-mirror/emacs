@@ -1,0 +1,164 @@
+1.25         (pj       15-Jul-01): ;;; rmailedit.el --- "RMAIL edit mode"  Edit the current message
+1.3          (eric     30-May-92): 
+1.40         (gm       12-Jun-08): ;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
+1.40         (gm       12-Jun-08): ;;   2007, 2008 Free Software Foundation, Inc.
+1.6          (eric     22-Jul-92): 
+1.4          (eric     16-Jul-92): ;; Maintainer: FSF
+1.5          (eric     17-Jul-92): ;; Keywords: mail
+1.1          (jla      31-Oct-89): 
+1.1          (jla      31-Oct-89): ;; This file is part of GNU Emacs.
+1.1          (jla      31-Oct-89): 
+1.39         (gm       06-May-08): ;; GNU Emacs is free software: you can redistribute it and/or modify
+1.1          (jla      31-Oct-89): ;; it under the terms of the GNU General Public License as published by
+1.39         (gm       06-May-08): ;; the Free Software Foundation, either version 3 of the License, or
+1.39         (gm       06-May-08): ;; (at your option) any later version.
+1.1          (jla      31-Oct-89): 
+1.1          (jla      31-Oct-89): ;; GNU Emacs is distributed in the hope that it will be useful,
+1.1          (jla      31-Oct-89): ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+1.1          (jla      31-Oct-89): ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+1.1          (jla      31-Oct-89): ;; GNU General Public License for more details.
+1.1          (jla      31-Oct-89): 
+1.1          (jla      31-Oct-89): ;; You should have received a copy of the GNU General Public License
+1.39         (gm       06-May-08): ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+1.25         (pj       15-Jul-01): 
+1.25         (pj       15-Jul-01): ;;; Commentary:
+1.1          (jla      31-Oct-89): 
+1.4          (eric     16-Jul-92): ;;; Code:
+1.1          (jla      31-Oct-89): 
+1.1          (jla      31-Oct-89): (require 'rmail)
+1.1          (jla      31-Oct-89): 
+1.23         (gerd     07-May-01): (defcustom rmail-edit-mode-hook nil
+1.23         (gerd     07-May-01):   "List of functions to call when editing an RMAIL message."
+1.23         (gerd     07-May-01):   :type 'hook
+1.24         (gerd     07-May-01):   :version "21.1"
+1.23         (gerd     07-May-01):   :group 'rmail-edit)
+1.23         (gerd     07-May-01): 
+1.18         (kwzh     08-Apr-98): (defvar rmail-old-text)
+1.18         (kwzh     08-Apr-98): 
+1.1          (jla      31-Oct-89): (defvar rmail-edit-map nil)
+1.1          (jla      31-Oct-89): (if rmail-edit-map
+1.1          (jla      31-Oct-89):     nil
+1.7          (rms      20-Jul-93):   ;; Make a keymap that inherits text-mode-map.
+1.18         (kwzh     08-Apr-98):   (setq rmail-edit-map (make-sparse-keymap))
+1.18         (kwzh     08-Apr-98):   (set-keymap-parent rmail-edit-map text-mode-map)
+1.1          (jla      31-Oct-89):   (define-key rmail-edit-map "\C-c\C-c" 'rmail-cease-edit)
+1.1          (jla      31-Oct-89):   (define-key rmail-edit-map "\C-c\C-]" 'rmail-abort-edit))
+1.1          (jla      31-Oct-89): 
+1.1          (jla      31-Oct-89): ;; Rmail Edit mode is suitable only for specially formatted data.
+1.1          (jla      31-Oct-89): (put 'rmail-edit-mode 'mode-class 'special)
+1.1          (jla      31-Oct-89): 
+1.36         (dann     25-Nov-07): (declare-function rmail-summary-disable "" ())
+1.36         (dann     25-Nov-07): (declare-function rmail-summary-enable "rmailsum" ())
+1.36         (dann     25-Nov-07): 
+1.1          (jla      31-Oct-89): (defun rmail-edit-mode ()
+1.1          (jla      31-Oct-89):   "Major mode for editing the contents of an RMAIL message.
+1.1          (jla      31-Oct-89): The editing commands are the same as in Text mode, together with two commands
+1.1          (jla      31-Oct-89): to return to regular RMAIL:
+1.23         (gerd     07-May-01):   *  \\[rmail-abort-edit] cancels the changes
+1.1          (jla      31-Oct-89):      you have made and returns to RMAIL
+1.23         (gerd     07-May-01):   *  \\[rmail-cease-edit] makes them permanent.
+1.23         (gerd     07-May-01): This functions runs the normal hook `rmail-edit-mode-hook'.
+1.1          (jla      31-Oct-89): \\{rmail-edit-map}"
+1.29         (lute     14-Jun-05):   (delay-mode-hooks (text-mode))
+1.1          (jla      31-Oct-89):   (use-local-map rmail-edit-map)
+1.1          (jla      31-Oct-89):   (setq major-mode 'rmail-edit-mode)
+1.1          (jla      31-Oct-89):   (setq mode-name "RMAIL Edit")
+1.1          (jla      31-Oct-89):   (if (boundp 'mode-line-modified)
+1.1          (jla      31-Oct-89):       (setq mode-line-modified (default-value 'mode-line-modified))
+1.1          (jla      31-Oct-89):     (setq mode-line-format (default-value 'mode-line-format)))
+1.9          (kwzh     07-Apr-94):   (if (rmail-summary-exists)
+1.10         (kwzh     07-Apr-94):       (save-excursion
+1.10         (kwzh     07-Apr-94): 	(set-buffer rmail-summary-buffer)
+1.10         (kwzh     07-Apr-94): 	(rmail-summary-disable)))
+1.28         (lute     26-May-05):   (run-mode-hooks 'rmail-edit-mode-hook))
+1.1          (jla      31-Oct-89): 
+1.20         (rms      27-May-98): (defvar rmail-old-pruned nil)
+1.20         (rms      27-May-98): (put 'rmail-old-pruned 'permanent-local t)
+1.20         (rms      27-May-98): 
+1.21         (rms      13-Jul-98): (defvar rmail-edit-saved-coding-system nil)
+1.21         (rms      13-Jul-98): (put 'rmail-edit-saved-coding-system 'permanent-local t)
+1.21         (rms      13-Jul-98): 
+1.17         (rms      27-Sep-96): ;;;###autoload
+1.1          (jla      31-Oct-89): (defun rmail-edit-current-message ()
+1.1          (jla      31-Oct-89):   "Edit the contents of this message."
+1.1          (jla      31-Oct-89):   (interactive)
+1.20         (rms      27-May-98):   (make-local-variable 'rmail-old-pruned)
+1.20         (rms      27-May-98):   (setq rmail-old-pruned (rmail-msg-is-pruned))
+1.21         (rms      13-Jul-98):   (make-local-variable 'rmail-edit-saved-coding-system)
+1.21         (rms      13-Jul-98):   (setq rmail-edit-saved-coding-system save-buffer-coding-system)
+1.20         (rms      27-May-98):   (rmail-toggle-header 0)
+1.1          (jla      31-Oct-89):   (rmail-edit-mode)
+1.21         (rms      13-Jul-98):   ;; As the local value of save-buffer-coding-system is deleted by
+1.21         (rms      13-Jul-98):   ;; rmail-edit-mode, we restore the original value.
+1.21         (rms      13-Jul-98):   (make-local-variable 'save-buffer-coding-system)
+1.21         (rms      13-Jul-98):   (setq save-buffer-coding-system rmail-edit-saved-coding-system)
+1.1          (jla      31-Oct-89):   (make-local-variable 'rmail-old-text)
+1.1          (jla      31-Oct-89):   (setq rmail-old-text (buffer-substring (point-min) (point-max)))
+1.1          (jla      31-Oct-89):   (setq buffer-read-only nil)
+1.14         (kwzh     25-Apr-95):   (force-mode-line-update)
+1.1          (jla      31-Oct-89):   (if (and (eq (key-binding "\C-c\C-c") 'rmail-cease-edit)
+1.1          (jla      31-Oct-89): 	   (eq (key-binding "\C-c\C-]") 'rmail-abort-edit))
+1.1          (jla      31-Oct-89):       (message "Editing: Type C-c C-c to return to Rmail, C-c C-] to abort")
+1.16         (kwzh     25-Jan-96):     (message "%s" (substitute-command-keys
+1.20         (rms      27-May-98): 		   "Editing: Type \\[rmail-cease-edit] to return to Rmail, \\[rmail-abort-edit] to abort"))))
+1.1          (jla      31-Oct-89): 
+1.1          (jla      31-Oct-89): (defun rmail-cease-edit ()
+1.1          (jla      31-Oct-89):   "Finish editing message; switch back to Rmail proper."
+1.1          (jla      31-Oct-89):   (interactive)
+1.9          (kwzh     07-Apr-94):   (if (rmail-summary-exists)
+1.10         (kwzh     07-Apr-94):       (save-excursion
+1.10         (kwzh     07-Apr-94): 	(set-buffer rmail-summary-buffer)
+1.10         (kwzh     07-Apr-94): 	(rmail-summary-enable)))
+1.1          (jla      31-Oct-89):   ;; Make sure buffer ends with a newline.
+1.1          (jla      31-Oct-89):   (save-excursion
+1.1          (jla      31-Oct-89):     (goto-char (point-max))
+1.1          (jla      31-Oct-89):     (if (/= (preceding-char) ?\n)
+1.1          (jla      31-Oct-89): 	(insert "\n"))
+1.1          (jla      31-Oct-89):     ;; Adjust the marker that points to the end of this message.
+1.1          (jla      31-Oct-89):     (set-marker (aref rmail-message-vector (1+ rmail-current-message))
+1.1          (jla      31-Oct-89): 		(point)))
+1.1          (jla      31-Oct-89):   (let ((old rmail-old-text))
+1.14         (kwzh     25-Apr-95):     (force-mode-line-update)
+1.18         (kwzh     08-Apr-98):     (kill-all-local-variables)
+1.1          (jla      31-Oct-89):     (rmail-mode-1)
+1.40         (gm       12-Jun-08):     (if (boundp 'tool-bar-map)
+1.40         (gm       12-Jun-08): 	(set (make-local-variable 'tool-bar-map) rmail-tool-bar-map))
+1.18         (kwzh     08-Apr-98):     (rmail-variables)
+1.21         (rms      13-Jul-98):     ;; As the local value of save-buffer-coding-system is changed by
+1.21         (rms      13-Jul-98):     ;; rmail-variables, we restore the original value.
+1.21         (rms      13-Jul-98):     (setq save-buffer-coding-system rmail-edit-saved-coding-system)
+1.1          (jla      31-Oct-89):     (if (and (= (length old) (- (point-max) (point-min)))
+1.1          (jla      31-Oct-89): 	     (string= old (buffer-substring (point-min) (point-max))))
+1.1          (jla      31-Oct-89): 	()
+1.1          (jla      31-Oct-89):       (setq old nil)
+1.1          (jla      31-Oct-89):       (rmail-set-attribute "edited" t)
+1.1          (jla      31-Oct-89):       (if (boundp 'rmail-summary-vector)
+1.1          (jla      31-Oct-89): 	  (progn
+1.1          (jla      31-Oct-89): 	    (aset rmail-summary-vector (1- rmail-current-message) nil)
+1.1          (jla      31-Oct-89): 	    (save-excursion
+1.1          (jla      31-Oct-89): 	      (rmail-widen-to-current-msgbeg
+1.19         (rms      01-May-98): 		(function (lambda ()
+1.1          (jla      31-Oct-89): 			    (forward-line 2)
+1.1          (jla      31-Oct-89): 			    (if (looking-at "Summary-line: ")
+1.1          (jla      31-Oct-89): 				(let ((buffer-read-only nil))
+1.1          (jla      31-Oct-89): 				  (delete-region (point)
+1.1          (jla      31-Oct-89): 						 (progn (forward-line 1)
+1.19         (rms      01-May-98): 							(point))))))))))))
+1.19         (rms      01-May-98):     (save-excursion
+1.20         (rms      27-May-98):       (rmail-show-message)
+1.20         (rms      27-May-98):       (rmail-toggle-header (if rmail-old-pruned 1 0))))
+1.22         (gerd     18-Nov-99):   (run-hooks 'rmail-mode-hook)
+1.1          (jla      31-Oct-89):   (setq buffer-read-only t))
+1.1          (jla      31-Oct-89): 
+1.1          (jla      31-Oct-89): (defun rmail-abort-edit ()
+1.1          (jla      31-Oct-89):   "Abort edit of current message; restore original contents."
+1.1          (jla      31-Oct-89):   (interactive)
+1.1          (jla      31-Oct-89):   (delete-region (point-min) (point-max))
+1.1          (jla      31-Oct-89):   (insert rmail-old-text)
+1.13         (rms      09-Aug-94):   (rmail-cease-edit)
+1.13         (rms      09-Aug-94):   (rmail-highlight-headers))
+1.1          (jla      31-Oct-89): 
+1.26         (rost     15-Nov-02): (provide 'rmailedit)
+1.26         (rost     15-Nov-02): 
+1.38         (monnier  10-Apr-08): ;; arch-tag: 93c22709-a14a-46c1-ab91-52c3f5a0ec12
+1.3          (eric     30-May-92): ;;; rmailedit.el ends here

@@ -157,7 +157,7 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 #endif
 
 /* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
-#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined MAC_OSX || defined(NS_IMPL_COCOA)
+#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined DARWIN_OS
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
 /* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
@@ -2376,7 +2376,7 @@ int hash_lookup P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned *));
 int hash_put P_ ((struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		  unsigned));
 void hash_clear P_ ((struct Lisp_Hash_Table *));
-void remove_hash_entry P_ ((struct Lisp_Hash_Table *, int));
+void init_weak_hash_tables P_ ((void));
 extern void init_fns P_ ((void));
 EXFUN (Fsxhash, 1);
 EXFUN (Fmake_hash_table, MANY);
@@ -3306,6 +3306,9 @@ extern void syms_of_ccl P_ ((void));
 /* Defined in dired.c */
 EXFUN (Ffile_attributes, 2);
 extern void syms_of_dired P_ ((void));
+extern Lisp_Object directory_files_internal P_ ((Lisp_Object, Lisp_Object,
+						 Lisp_Object, Lisp_Object,
+						 int, Lisp_Object));
 
 /* Defined in term.c */
 extern void syms_of_term P_ ((void));
@@ -3314,6 +3317,9 @@ extern void fatal P_ ((const char *msgid, ...)) NO_RETURN;
 /* Defined in terminal.c */
 EXFUN (Fdelete_terminal, 2);
 extern void syms_of_terminal P_ ((void));
+
+/* Defined in font.c */
+extern void syms_of_font P_ ((void));
 
 #ifdef HAVE_WINDOW_SYSTEM
 /* Defined in fontset.c */
@@ -3355,29 +3361,15 @@ extern void syms_of_xterm P_ ((void));
 EXFUN (Fmsdos_downcase_filename, 1);
 #endif
 
-#ifdef MAC_OS
-/* Defined in macfns.c */
-extern void syms_of_macfns P_ ((void));
-
-/* Defined in macselect.c */
-extern void syms_of_macselect P_ ((void));
-
-/* Defined in macterm.c */
-extern void syms_of_macterm P_ ((void));
-
-/* Defined in macmenu.c */
-extern void syms_of_macmenu P_ ((void));
-
-/* Defined in mac.c */
-extern void syms_of_mac P_ ((void));
-#ifdef MAC_OSX
-extern void init_mac_osx_environment P_ ((void));
-#endif /* MAC_OSX */
-#endif /* MAC_OS */
-
 #ifdef HAVE_MENUS
-/* Defined in (x|mac|w32)fns.c...  */
+/* Defined in (x|w32)fns.c, nsfns.m...  */
 extern int have_menus_p P_ ((void));
+#endif
+
+#ifdef HAVE_DBUS
+/* Defined in dbusbind.c */
+void xd_read_queued_messages P_ ((void));
+void syms_of_dbusbind P_ ((void));
 #endif
 
 /* Nonzero means Emacs has already been initialized.

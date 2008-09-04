@@ -1804,10 +1804,14 @@ if the top entry was made under your user name on the current date.
 for the opposite way of working---generating ChangeLog entries from
 the revision control log.
 
-  In the @samp{*VC-Log*} buffer, @kbd{C-c C-f} (@kbd{M-x
-log-edit-show-files}) shows the list of files to be committed in case
-you need to check that.  (This can be a list of more than one file if
-you use VC Directory Mode or PCL-CVS.)
+@findex log-edit-show-files
+@findex log-edit-show-diff
+  In the @samp{*VC-Log*} buffer, @kbd{C-c C-f}
+(@code{log-edit-show-files}) shows the list of files to be committed
+in case you need to check that.  (This can be a list of more than one
+file if you use VC Directory Mode or PCL-CVS.)  @kbd{C-c C-d}
+(@code{log-edit-show-diff}) shows the diffs for the files to be
+committed.
 @iftex
 @xref{VC Directory Mode,,,emacs-xtra, Specialized Emacs Features},
 @end iftex
@@ -1955,37 +1959,50 @@ also use the following keys to browse the annotations of past revisions,
 view diffs, or view log entries:
 
 @table @kbd
-@item P
+@item p
 Annotate the previous revision, that is to say, the revision before
 the one currently annotated.  A numeric prefix argument is a repeat
-count, so @kbd{C-u 10 P} would take you back 10 revisions.
+count, so @kbd{C-u 10 p} would take you back 10 revisions.
 
-@item N
+@item n
 Annotate the next revision---the one after the revision currently
 annotated.  A numeric prefix argument is a repeat count.
 
-@item J
+@item j
 Annotate the revision indicated by the current line.
 
-@item A
+@item a
 Annotate the revision before the one indicated by the current line.
 This is useful to see the state the file was in before the change on
 the current line was made.
 
-@item D
+@item f
+Show in a buffer the file revision indicated by the current line.
+
+@item d
 Display the diff between the current line's revision and the previous
 revision.  This is useful to see what the current line's revision
 actually changed in the file.
 
-@item L
+@item D
+Display the diff between the current line's revision and the previous
+revision for all files in the changeset (for VC systems that support
+changesets).  This is useful to see what the current line's revision
+actually changed in the tree.
+
+@item l
 Show the log of the current line's revision.  This is useful to see
 the author's description of the changes in the revision on the current
 line.
 
-@item W
+@item w
 Annotate the working revision--the one you are editing.  If you used
-@kbd{P} and @kbd{N} to browse to other revisions, use this key to
+@kbd{p} and @kbd{n} to browse to other revisions, use this key to
 return to your working revision.
+
+@item v
+Toggle the annotation visibility.  This is useful for looking just at
+the file contents without distraction from the annotations.
 @end table
 
 @node Secondary VC Commands
@@ -2073,8 +2090,8 @@ output appears in a separate window.  The point is centered at the
 revision of the file that is currently being visited.
 
   In the change log buffer, you can use the following keys to move
-between the logs of revisions and of files, to view past revisions, and
-to view diffs:
+between the logs of revisions and of files, to view past revisions, to
+modify change comments, to view annotations and to view diffs:
 
 @table @kbd
 @item p
@@ -2112,6 +2129,13 @@ in the log buffer
 @end ifnottex
 It also takes a numeric prefix argument as a repeat count.
 
+@item a
+Annotate the revision indicated by the current line.
+
+@item e
+Modify the change comment displayed at point.  Note that not all VC
+systems support modifying change comments.
+
 @item f
 Visit the revision indicated at the current line, like typing @kbd{C-x
 v ~} and specifying this revision's ID (@pxref{Old Revisions}).
@@ -2119,8 +2143,14 @@ v ~} and specifying this revision's ID (@pxref{Old Revisions}).
 @item d
 Display the diff (@pxref{Comparing Files}) between the revision
 indicated at the current line and the next earlier revision.  This is
-useful to see what actually changed when the revision indicated on the
-current line was committed.
+useful to see what actually changed in the file when the revision
+indicated on the current line was committed.
+
+@item D
+Display the changeset diff (@pxref{Comparing Files}) between the
+revision indicated at the current line and the next earlier revision.
+This is useful to see all the changes to all files that the revision
+indicated on the current line did when it was committed.
 @end table
 
 @node VC Undo
@@ -2533,66 +2563,100 @@ manipulate and apply parts of patches:
 
 @table @kbd
 @item M-n
+@findex diff-hunk-next
 Move to the next hunk-start (@code{diff-hunk-next}).
 
 @item M-p
+@findex diff-hunk-prev
 Move to the previous hunk-start (@code{diff-hunk-prev}).
 
 @item M-@}
+@findex diff-file-next
 Move to the next file-start, in a multi-file patch
 (@code{diff-file-next}).
 
 @item M-@{
+@findex diff-file-prev
 Move to the previous file-start, in a multi-file patch
 (@code{diff-file-prev}).
 
 @item M-k
+@findex diff-hunk-kill
 Kill the hunk at point (@code{diff-hunk-kill}).
 
 @item M-K
+@findex diff-file-kill
 In a multi-file patch, kill the current file part.
 (@code{diff-file-kill}).
 
 @item C-c C-a
+@findex diff-apply-hunk
 Apply this hunk to its target file (@code{diff-apply-hunk}).  With a
 prefix argument of @kbd{C-u}, revert this hunk.
 
 @item C-c C-c
-Go to the source corresponding to this hunk (@code{diff-goto-source}).
+@findex diff-goto-source
+Go to the source file and line corresponding to this hunk
+(@code{diff-goto-source}).
 
 @item C-c C-e
+@findex diff-ediff-patch
 Start an Ediff session with the patch (@code{diff-ediff-patch}).
 @xref{Top, Ediff, Ediff, ediff, The Ediff Manual}.
 
 @item C-c C-n
+@findex diff-restrict-view
 Restrict the view to the current hunk (@code{diff-restrict-view}).
 @xref{Narrowing}.  With a prefix argument of @kbd{C-u}, restrict the
-view to the current patch of a multiple file patch.  To widen again,
-use @kbd{C-x n w}.
+view to the current file of a multiple-file patch.  To widen again,
+use @kbd{C-x n w} (@code{widen}).
 
 @item C-c C-r
+@findex diff-reverse-direction
 Reverse the direction of comparison for the entire buffer
 (@code{diff-reverse-direction}).
 
 @item C-c C-s
+@findex diff-split-hunk
 Split the hunk at point (@code{diff-split-hunk}).  This is for
-manually editing patches, and only works with the unified diff format.
+manually editing patches, and only works with the @dfn{unified diff
+format} produced by the @option{-u} or @option{--unified} options to
+the @command{diff} program.  If you need to split a hunk in the
+@dfn{context diff format} produced by the @option{-c} or
+@option{--context} options to @command{diff}, first convert the buffer
+to the unified diff format with @kbd{C-c C-u}.
+
+@item C-c C-d
+@findex diff-unified->context
+Convert the entire buffer to the @dfn{context diff format}
+(@code{diff-unified->context}).  With a prefix argument, convert only
+the text within the region.
 
 @item C-c C-u
-Convert the entire buffer to unified format
+@findex diff-context->unified
+Convert the entire buffer to unified diff format
 (@code{diff-context->unified}).  With a prefix argument, convert
 unified format to context format.  When the mark is active, convert
 only the text within the region.
 
 @item C-c C-w
+@findex diff-refine-hunk
 Refine the current hunk so that it disregards changes in whitespace
 (@code{diff-refine-hunk}).
+
+@item C-x 4 A
+@findex diff-add-change-log-entries-other-window
+@findex add-change-log-entry-other-window@r{, in Diff mode}
+Generate a ChangeLog entry, like @kbd{C-x 4 a} does (@pxref{Change
+Log}), for each one of the hunks
+(@code{diff-add-change-log-entries-other-window}).  This creates a
+skeleton of the log of changes that you can later fill with the actual
+descriptions of the changes.  @kbd{C-x 4 a} itself in Diff mode
+operates on behalf of the current hunk's file, but gets the function
+name from the patch itself.  This is useful for making log entries for
+functions that are deleted by the patch.
 @end table
 
-  @kbd{C-x 4 a} in Diff mode operates on behalf of the target file,
-but gets the function name from the patch itself.  @xref{Change Log}.
-This is useful for making log entries for functions that are deleted
-by the patch.
 
 @node Misc File Ops
 @section Miscellaneous File Operations

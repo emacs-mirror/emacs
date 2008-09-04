@@ -62,7 +62,6 @@
 /^#undef GNU_MALLOC *$/s/^.*$/#define GNU_MALLOC 1/
 /^#undef REL_ALLOC *$/s/^.*$/#define REL_ALLOC 1/
 
-s/^#define USER_FULL_NAME .*$/#define USER_FULL_NAME (getenv ("NAME"))/
 s/^#undef STACK_DIRECTION *$/#define STACK_DIRECTION -1/
 s/^#undef EMACS_CONFIGURATION *$/#define EMACS_CONFIGURATION "i386-pc-msdosdjgpp"/
 s/^#undef EMACS_CONFIG_OPTIONS *$/#define EMACS_CONFIG_OPTIONS "msdos"/

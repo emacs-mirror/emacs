@@ -57,6 +57,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "syssignal.h"
 #include "systty.h"
 #include "intervals.h"
+#ifdef MSDOS
+#include "msdos.h"
+static int been_here = -1;
+#endif
 
 /* For now, don't try to include termcap.h.  On some systems,
    configure finds a non-standard termcap.h that the main build
@@ -74,9 +78,6 @@ extern int tgetnum P_ ((char *id));
 #include "cm.h"
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
-#endif
-#ifdef MAC_OS
-#include "macterm.h"
 #endif
 
 #ifndef O_RDWR
@@ -595,11 +596,21 @@ encode_terminal_code (src, src_len, coding)
     {
       if (src->type == COMPOSITE_GLYPH)
 	{
-	  struct composition *cmp = composition_table[src->u.cmp_id];
+	  struct composition *cmp;
+	  Lisp_Object gstring;
 	  int i;
 
 	  nbytes = buf - encode_terminal_src;
-	  required = MAX_MULTIBYTE_LENGTH * cmp->glyph_len;
+	  if (src->u.cmp.automatic)
+	    {
+	      gstring = composition_gstring_from_id (src->u.cmp.id);
+	      required = src->u.cmp.to - src->u.cmp.from;
+	    }
+	  else
+	    {
+	      cmp = composition_table[src->u.cmp.id];
+	      required = MAX_MULTIBYTE_LENGTH * cmp->glyph_len;
+	    }
 
 	  if (encode_terminal_src_size < nbytes + required)
 	    {
@@ -609,15 +620,27 @@ encode_terminal_code (src, src_len, coding)
 	      buf = encode_terminal_src + nbytes;
 	    }
 
-	  for (i = 0; i < cmp->glyph_len; i++)
-	    {
-	      int c = COMPOSITION_GLYPH (cmp, i);
+	  if (src->u.cmp.automatic)
+	    for (i = src->u.cmp.from; i < src->u.cmp.to; i++)
+	      {
+		Lisp_Object g = LGSTRING_GLYPH (gstring, i);
+		int c = LGLYPH_CHAR (g);
 
-	      if (! char_charset (c, charset_list, NULL))
-		break;
-	      buf += CHAR_STRING (c, buf);
-	      nchars++;
-	    }
+		if (! char_charset (c, charset_list, NULL))
+		  break;
+		buf += CHAR_STRING (c, buf);
+		nchars++;
+	      }
+	  else
+	    for (i = 0; i < cmp->glyph_len; i++)
+	      {
+		int c = COMPOSITION_GLYPH (cmp, i);
+
+		if (! char_charset (c, charset_list, NULL))
+		  break;
+		buf += CHAR_STRING (c, buf);
+		nchars++;
+	      }
 	  if (i == 0)
 	    {
 	      /* The first character of the composition is not encodable.  */
@@ -1744,7 +1767,20 @@ append_composite_glyph (it)
     {
       glyph->type = COMPOSITE_GLYPH;
       glyph->pixel_width = it->pixel_width;
-      glyph->u.cmp_id = it->cmp_id;
+      glyph->u.cmp.id = it->cmp_it.id;
+      if (it->cmp_it.ch < 0)
+	{
+	  glyph->u.cmp.automatic = 0;
+	  glyph->u.cmp.id = it->cmp_it.id;
+	}
+      else
+	{
+	  glyph->u.cmp.automatic = 1;
+	  glyph->u.cmp.id = it->cmp_it.id;
+	  glyph->u.cmp.from = it->cmp_it.from;
+	  glyph->u.cmp.to = it->cmp_it.to;
+	}
+
       glyph->face_id = it->face_id;
       glyph->padding_p = 0;
       glyph->charpos = CHARPOS (it->position);
@@ -1765,14 +1801,23 @@ static void
 produce_composite_glyph (it)
      struct it *it;
 {
-  struct composition *cmp = composition_table[it->cmp_id];
   int c;
 
-  xassert (cmp->glyph_len > 0);
-  c = COMPOSITION_GLYPH (cmp, 0);
-  it->pixel_width = CHAR_WIDTH (it->c);
-  it->nglyphs = 1;
+  if (it->cmp_it.ch < 0)
+    {
+      struct composition *cmp = composition_table[it->cmp_it.id];
 
+      c = COMPOSITION_GLYPH (cmp, 0);
+      it->pixel_width = CHAR_WIDTH (it->c);
+    }
+  else
+    {
+      Lisp_Object gstring = composition_gstring_from_id (it->cmp_it.id);
+
+      it->pixel_width = composition_gstring_width (gstring, it->cmp_it.from,
+						   it->cmp_it.to, NULL);
+    }
+  it->nglyphs = 1;
   if (it->glyph_row)
     append_composite_glyph (it);
 }
@@ -2070,7 +2115,7 @@ is not on a tty device.  */)
     return make_number (t->display_info.tty->TN_max_colors);
 }
 
-#ifndef WINDOWSNT
+#ifndef DOS_NT
 
 /* Declare here rather than in the function, as in the rest of Emacs,
    to work around an HPUX compiler bug (?). See
@@ -2191,7 +2236,7 @@ set_tty_color_mode (tty, f)
     }
 }
 
-#endif /* !WINDOWSNT */
+#endif /* !DOS_NT */
 
 
 
@@ -2202,7 +2247,7 @@ get_tty_terminal (Lisp_Object terminal, int throw)
 {
   struct terminal *t = get_terminal (terminal, throw);
 
-  if (t && t->type != output_termcap)
+  if (t && t->type != output_termcap && t->type != output_msdos_raw)
     {
       if (throw)
         error ("Device %d is not a termcap terminal device", t->id);
@@ -2231,7 +2276,7 @@ get_named_tty (name)
 
   for (t = terminal_list; t; t = t->next_terminal)
     {
-      if (t->type == output_termcap
+      if ((t->type == output_termcap || t->type == output_msdos_raw)
           && !strcmp (t->display_info.tty->name, name)
           && TERMINAL_ACTIVE_P (t))
         return t;
@@ -2252,7 +2297,7 @@ frame's terminal).  */)
 {
   struct terminal *t = get_terminal (terminal, 1);
 
-  if (t->type != output_termcap)
+  if (t->type != output_termcap && t->type != output_msdos_raw)
     return Qnil;
 
   if (t->display_info.tty->type)
@@ -2262,7 +2307,7 @@ frame's terminal).  */)
 }
 
 DEFUN ("controlling-tty-p", Fcontrolling_tty_p, Scontrolling_tty_p, 0, 1, 0,
-       doc: /* Return non-nil if TERMINAL is on the controlling tty of the Emacs process.
+       doc: /* Return non-nil if TERMINAL is the controlling tty of the Emacs process.
 
 TERMINAL can be a terminal id, a frame or nil (meaning the selected
 frame's terminal).  This function always returns nil if TERMINAL
@@ -2272,7 +2317,8 @@ is not on a tty device.  */)
 {
   struct terminal *t = get_terminal (terminal, 1);
 
-  if (t->type != output_termcap || strcmp (t->display_info.tty->name, DEV_TTY))
+  if ((t->type != output_termcap && t->type != output_msdos_raw)
+      || strcmp (t->display_info.tty->name, DEV_TTY) != 0)
     return Qnil;
   else
     return Qt;
@@ -2344,11 +2390,15 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
 
       reset_sys_modes (t->display_info.tty);
 
+#ifdef subprocesses
       delete_keyboard_wait_descriptor (fileno (f));
+#endif
 
+#ifndef MSDOS
       fclose (f);
       if (f != t->display_info.tty->output)
         fclose (t->display_info.tty->output);
+#endif
 
       t->display_info.tty->input = 0;
       t->display_info.tty->output = 0;
@@ -2395,6 +2445,10 @@ the currently selected frame. */)
       if (get_named_tty (t->display_info.tty->name))
         error ("Cannot resume display while another display is active on the same device");
 
+#ifdef MSDOS
+      t->display_info.tty->output = stdout;
+      t->display_info.tty->input  = stdin;
+#else  /* !MSDOS */
       fd = emacs_open (t->display_info.tty->name, O_RDWR | O_NOCTTY, 0);
 
       if (fd == -1)
@@ -2405,8 +2459,11 @@ the currently selected frame. */)
 
       t->display_info.tty->output = fdopen (fd, "w+");
       t->display_info.tty->input = t->display_info.tty->output;
+#endif
 
+#ifdef subprocesses
       add_keyboard_wait_descriptor (fd);
+#endif
 
       if (FRAMEP (t->display_info.tty->top_frame))
         FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
@@ -3214,7 +3271,7 @@ set_tty_hooks (struct terminal *terminal)
 static void
 dissociate_if_controlling_tty (int fd)
 {
-#ifndef WINDOWSNT
+#ifndef DOS_NT
   int pgid;
   EMACS_GET_TTY_PGRP (fd, &pgid); /* If tcgetpgrp succeeds, fd is the ctty. */
   if (pgid != -1)
@@ -3242,7 +3299,7 @@ dissociate_if_controlling_tty (int fd)
 #endif  /* ! TIOCNOTTY */
 #endif  /* ! USG */
     }
-#endif	/* !WINDOWSNT */
+#endif	/* !DOS_NT */
 }
 
 static void maybe_fatal();
@@ -3291,7 +3348,15 @@ init_tty (char *name, char *terminal_type, int must_succeed)
     return terminal;
 
   terminal = create_terminal ();
+#ifdef MSDOS
+  if (been_here > 0)
+    maybe_fatal (1, 0, 0, "Attempt to create another terminal %s", "",
+		 name, "");
+  been_here = 1;
+  tty = &the_only_display_info;
+#else
   tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
+#endif
   bzero (tty, sizeof (struct tty_display_info));
   tty->next = tty_list;
   tty_list = tty;
@@ -3303,7 +3368,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
   Wcm_clear (tty);
 
-#ifndef WINDOWSNT
+#ifndef DOS_NT
   set_tty_hooks (terminal);
 
   {
@@ -3353,9 +3418,11 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
   tty->type = xstrdup (terminal_type);
 
+#ifdef subprocesses
   add_keyboard_wait_descriptor (fileno (tty->input));
-
 #endif
+
+#endif	/* !DOS_NT */
 
   encode_terminal_src_size = 0;
   encode_terminal_dst_size = 0;
@@ -3365,8 +3432,16 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   mouse_face_window = Qnil;
 #endif
 
+#ifdef DOS_NT
 #ifdef WINDOWSNT
   initialize_w32_display (terminal);
+#else  /* MSDOS */
+  if (strcmp (terminal_type, "internal") == 0)
+    terminal->type = output_msdos_raw;
+  initialize_msdos_display (terminal);
+#endif	/* MSDOS */
+  tty->output = stdout;
+  tty->input = stdin;
   /* The following two are inaccessible from w32console.c.  */
   terminal->delete_frame_hook = &delete_tty_output;
   terminal->delete_terminal_hook = &delete_tty;
@@ -3375,12 +3450,13 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   terminal->name = xstrdup (name);
   tty->type = xstrdup (terminal_type);
 
-  tty->output = stdout;
-  tty->input = stdin;
+#ifdef subprocesses
   add_keyboard_wait_descriptor (0);
+#endif
 
   Wcm_clear (tty);
 
+#ifdef WINDOWSNT
   {
     struct frame *f = XFRAME (selected_frame);
 
@@ -3391,6 +3467,14 @@ init_tty (char *name, char *terminal_type, int must_succeed)
     FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
     FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
   }
+#else  /* MSDOS */
+  {
+    int height, width;
+    get_tty_size (fileno (tty->input), &width, &height);
+    FrameCols (tty) = width;
+    FrameRows (tty) = height;
+  }
+#endif	/* MSDOS */
   tty->delete_in_insert_mode = 1;
 
   UseTabs (tty) = 0;
@@ -3400,13 +3484,17 @@ init_tty (char *name, char *terminal_type, int must_succeed)
      display.  In doing a trace, it didn't seem to be called much, so I
      don't think we're losing anything by turning it off.  */
   terminal->line_ins_del_ok = 0;
+#ifdef WINDOWSNT
   terminal->char_ins_del_ok = 1;
-
   baud_rate = 19200;
+#else  /* MSDOS */
+  terminal->char_ins_del_ok = 0;
+  init_baud_rate (fileno (tty->input));
+#endif	/* MSDOS */
 
   tty->TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
 
-#else  /* not WINDOWSNT */
+#else  /* not DOS_NT */
 
   Wcm_clear (tty);
 
@@ -3492,12 +3580,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   Down (tty) = tgetstr ("do", address);
   if (!Down (tty))
     Down (tty) = tgetstr ("nl", address); /* Obsolete name for "do" */
-#ifdef VMS
-  /* VMS puts a carriage return before each linefeed,
-     so it is not safe to use linefeeds.  */
-  if (Down (tty) && Down (tty)[0] == '\n' && Down (tty)[1] == '\0')
-    Down (tty) = 0;
-#endif /* VMS */
   if (tgetflag ("bs"))
     Left (tty) = "\b";		  /* can't possibly be longer! */
   else				  /* (Actually, "bs" is obsolete...) */
@@ -3573,8 +3655,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   tty->TF_underscore = tgetflag ("ul");
   tty->TF_teleray = tgetflag ("xt");
 
-#endif /* !WINDOWSNT  */
-#ifdef MULTI_KBOARD
+#endif /* !DOS_NT  */
   terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
   terminal->kboard->Vwindow_system = Qnil;
@@ -3586,12 +3667,9 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
      prompt in the mini-buffer.  */
   if (current_kboard == initial_kboard)
     current_kboard = terminal->kboard;
-#ifndef WINDOWSNT
+#ifndef DOS_NT
   term_get_fkeys (address, terminal->kboard);
-#endif
-#endif
 
-#ifndef WINDOWSNT
   /* Get frame size from system, or else from termcap.  */
   {
     int height, width;
@@ -3616,15 +3694,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 #endif
 
   TabWidth (tty) = tgetnum ("tw");
-
-#ifdef VMS
-  /* These capabilities commonly use ^J.
-     I don't know why, but sending them on VMS does not work;
-     it causes following spaces to be lost, sometimes.
-     For now, the simplest fix is to avoid using these capabilities ever.  */
-  if (Down (tty) && Down (tty)[0] == '\n')
-    Down (tty) = 0;
-#endif /* VMS */
 
   if (!tty->TS_bell)
     tty->TS_bell = "\07";
@@ -3741,13 +3810,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     {
       maybe_fatal (must_succeed, NULL, terminal,
                    "Terminal type \"%s\" is not powerful enough to run Emacs",
-#ifdef VMS
-                   "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
-It lacks the ability to position the cursor.\n\
-If that is not the actual type of terminal you have, use either the\n\
-DCL command `SET TERMINAL/DEVICE= ...' for DEC-compatible terminals,\n\
-or `define EMACS_TERM \"terminal type\"' for non-DEC terminals.",
-#else /* not VMS */
 # ifdef TERMINFO
                    "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
 It lacks the ability to position the cursor.\n\
@@ -3763,7 +3825,6 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 # endif /* TERMINFO */
-#endif /*VMS */
                    terminal_type);
     }
 
@@ -3804,7 +3865,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Don't do this.  I think termcap may still need the buffer. */
   /* xfree (buffer); */
 
-#endif /* not WINDOWSNT */
+#endif /* not DOS_NT */
 
   /* Init system terminal modes (RAW or CBREAK, etc.).  */
   init_sys_modes (tty);
@@ -3909,7 +3970,9 @@ delete_tty (struct terminal *terminal)
 
   if (tty->input)
     {
+#ifdef subprocesses
       delete_keyboard_wait_descriptor (fileno (tty->input));
+#endif
       if (tty->input != stdin)
         fclose (tty->input);
     }
@@ -3987,11 +4050,11 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   staticpro (&mouse_face_window);
 #endif /* HAVE_GPM */
 
-#ifndef WINDOWSNT
+#ifndef DOS_NT
   default_orig_pair = NULL;
   default_set_foreground = NULL;
   default_set_background = NULL;
-#endif /* WINDOWSNT */
+#endif /* !DOS_NT */
 }
 
 

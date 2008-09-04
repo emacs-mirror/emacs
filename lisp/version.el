@@ -67,8 +67,6 @@ to the system configuration; look at `system-configuration' instead."
 		       ((featurep 'x-toolkit) ", X toolkit")
 		       ((featurep 'ns)
 			(format ", *Step %s" ns-version-string))
-		       ((boundp 'mac-carbon-version-string)
-			(concat ", Carbon Version " mac-carbon-version-string))
 		       (t ""))
 		 (if (and (boundp 'x-toolkit-scroll-bars)
 			  (memq x-toolkit-scroll-bars '(xaw xaw3d)))
@@ -87,7 +85,7 @@ to the system configuration; look at `system-configuration' instead."
 (defalias 'version 'emacs-version)
 
 ;; We put version info into the executable in the form that `ident' uses.
-(or (memq system-type '(vax-vms windows-nt))
+(or (eq system-type 'windows-nt)
     (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
 		      " $\n")))
 

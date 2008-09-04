@@ -255,9 +255,20 @@ List has a form of (file-name full-file-name (attribute-list))"
 Symbolic modes like `g+w' are allowed."
   (interactive "P")
   (let* ((files (dired-get-marked-files t arg))
+	 (modestr (and (stringp (car files))
+		       (nth 8 (file-attributes (car files)))))
+	 (default
+	   (and (stringp modestr)
+		(string-match "^.\\(...\\)\\(...\\)\\(...\\)$" modestr)
+		(replace-regexp-in-string
+		 "-" ""
+		 (format "u=%s,g=%s,o=%s"
+			 (match-string 1 modestr)
+			 (match-string 2 modestr)
+			 (match-string 3 modestr)))))
 	 (modes (dired-mark-read-string
 		 "Change mode of %s to: " nil
-		 'chmod arg files))
+		 'chmod arg files default))
 	 (num-modes (if (string-match "^[0-7]+" modes)
 			(string-to-number modes 8))))
     (dolist (file files)
@@ -358,14 +369,14 @@ Uses the shell command coming from variables `lpr-command' and
 ;; If the current file was used, the list has but one element and ARG
 ;; does not matter. (It is non-nil, non-integer in that case, namely '(4)).
 
-(defun dired-mark-read-string (prompt initial op-symbol arg files)
-  ;; PROMPT for a string, with INITIAL input.
+(defun dired-mark-read-string (prompt initial op-symbol arg files &optional default)
+  ;; PROMPT for a string, with INITIAL input and DEFAULT value.
   ;; Other args are used to give user feedback and pop-up:
   ;; OP-SYMBOL of command, prefix ARG, marked FILES.
   (dired-mark-pop-up
    nil op-symbol files
    (function read-string)
-   (format prompt (dired-mark-prompt arg files)) initial))
+   (format prompt (dired-mark-prompt arg files)) initial nil default))
 
 ;;; Cleaning a directory: flagging some backups for deletion.
 
@@ -489,6 +500,26 @@ FILES are affected."
      #'read-shell-command
      (format prompt (dired-mark-prompt arg files))
      nil nil)))
+
+;;;###autoload
+(defun dired-do-async-shell-command (command &optional arg file-list)
+  "Run a shell command COMMAND on the marked files asynchronously.
+
+Like `dired-do-shell-command' but if COMMAND doesn't end in ampersand,
+adds `* &' surrounded by whitespace and executes the command asynchronously.
+The output appears in the buffer `*Async Shell Command*'."
+  (interactive
+   (let ((files (dired-get-marked-files t current-prefix-arg)))
+     (list
+      ;; Want to give feedback whether this file or marked files are used:
+      (dired-read-shell-command "& on %s: " current-prefix-arg files)
+      current-prefix-arg
+      files)))
+  (unless (string-match "[*?][ \t]*\\'" command)
+    (setq command (concat command " *")))
+  (unless (string-match "&[ \t]*\\'" command)
+    (setq command (concat command " &")))
+  (dired-do-shell-command command arg file-list))
 
 ;; The in-background argument is only needed in Emacs 18 where
 ;; shell-command doesn't understand an appended ampersand `&'.
@@ -1088,7 +1119,6 @@ See Info node `(emacs)Subdir switches' for more details."
   ;; or wildcard lines.
   ;; Important: never moves into the next subdir.
   ;; DIR is assumed to be unhidden.
-  ;; Will probably be redefined for VMS etc.
   (save-excursion
     (or (dired-goto-subdir dir) (error "This cannot happen"))
     (forward-line 1)
@@ -1916,7 +1946,6 @@ This function takes some pains to conform to `ls -lR' output."
     (save-excursion (dired-mark-remembered mark-alist))
     (restore-buffer-modified-p modflag)))
 
-;; This is a separate function for dired-vms.
 (defun dired-insert-subdir-validate (dirname &optional switches)
   ;; Check that it is valid to insert DIRNAME with SWITCHES.
   ;; Signal an error if invalid (e.g. user typed `i' on `..').
@@ -2279,7 +2308,86 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 ;;;###end dired-ins.el
 
 
+;; Search only in file names in the Dired buffer.
+
+(defcustom dired-isearch-filenames nil
+  "*If non-nil, Isearch in Dired matches only file names."
+  :type '(choice (const :tag "No restrictions" nil)
+		 (const :tag "Isearch only in file names" dired-filename))
+  :group 'dired
+  :version "23.1")
+
+(defvar dired-isearch-orig-success-function nil)
+
+(defun dired-isearch-filenames-toggle ()
+  "Toggle file names searching on or off.
+When on, Isearch checks the success of the current matching point
+using the function `dired-isearch-success-function' that matches only
+at file names.  When off, it uses the default function
+`isearch-success-function-default'."
+  (interactive)
+  (setq isearch-success-function
+	(if (eq isearch-success-function 'dired-isearch-success-function)
+	    'isearch-success-function-default
+	  'dired-isearch-success-function))
+  (setq isearch-success t isearch-adjusted t)
+  (isearch-update))
+
+;;;###autoload
+(defun dired-isearch-filenames-setup ()
+  "Set up isearch to search in Dired file names.
+Intended to be added to `isearch-mode-hook'."
+  (when dired-isearch-filenames
+    (define-key isearch-mode-map "\M-sf" 'dired-isearch-filenames-toggle)
+    (setq dired-isearch-orig-success-function
+	  (default-value 'isearch-success-function))
+    (setq-default isearch-success-function 'dired-isearch-success-function)
+    (add-hook 'isearch-mode-end-hook 'dired-isearch-filenames-end nil t)))
+
+(defun dired-isearch-filenames-end ()
+  "Clean up the Dired file name search after terminating isearch."
+  (define-key isearch-mode-map "\M-sf" nil)
+  (setq-default isearch-success-function dired-isearch-orig-success-function)
+  (remove-hook 'isearch-mode-end-hook 'dired-isearch-filenames-end t))
+
+(defun dired-isearch-success-function (beg end)
+  "Match only at visible regions with the text property `dired-filename'."
+  (and (isearch-success-function-default beg end)
+       (if dired-isearch-filenames
+	   (text-property-not-all (min beg end) (max beg end)
+				  'dired-filename nil)
+	 t)))
+
+;;;###autoload
+(defun dired-isearch-filenames ()
+  "Search for a string using Isearch only in file names in the Dired buffer."
+  (interactive)
+  (let ((dired-isearch-filenames t))
+    (isearch-forward)))
+
+;;;###autoload
+(defun dired-isearch-filenames-regexp ()
+  "Search for a regexp using Isearch only in file names in the Dired buffer."
+  (interactive)
+  (let ((dired-isearch-filenames t))
+    (isearch-forward-regexp)))
+
+
 ;; Functions for searching in tags style among marked files.
+
+;;;###autoload
+(defun dired-do-isearch ()
+  "Search for a string through all marked files using Isearch."
+  (interactive)
+  (multi-isearch-files
+   (dired-get-marked-files nil nil 'dired-nondirectory-p)))
+
+;;;###autoload
+(defun dired-do-isearch-regexp ()
+  "Search for a regexp through all marked files using Isearch."
+  (interactive)
+  (multi-isearch-files-regexp
+   (dired-get-marked-files nil nil 'dired-nondirectory-p)))
 
 ;;;###autoload
 (defun dired-do-search (regexp)

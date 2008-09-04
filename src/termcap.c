@@ -144,9 +144,6 @@ find_capability (bp, cap)
   return NULL;
 }
 
-/* These are already defined in the System framework in Mac OS X and
-   cause prebinding to fail.  */
-#ifndef MAC_OSX
 int
 tgetnum (cap)
      char *cap;
@@ -180,7 +177,6 @@ tgetstr (cap, area)
     return NULL;
   return tgetst1 (ptr, area);
 }
-#endif /* MAC_OSX */
 
 #ifdef IS_EBCDIC_HOST
 /* Table, indexed by a character in range 0200 to 0300 with 0200 subtracted,
@@ -345,11 +341,7 @@ short ospeed;
 int tputs_baud_rate;
 #endif
 
-/* Already defined in the System framework in Mac OS X and causes
-   prebinding to fail.  */
-#ifndef MAC_OSX
 char PC;
-#endif  /* MAC_OSX */
 
 #ifndef emacs
 /* Actual baud rate if positive;
@@ -357,20 +349,12 @@ char PC;
 
 static int speeds[] =
   {
-#ifdef VMS
-    0, 50, 75, 110, 134, 150, -3, -6, -12, -18,
-    -20, -24, -36, -48, -72, -96, -192
-#else /* not VMS */
     0, 50, 75, 110, 135, 150, -2, -3, -6, -12,
     -18, -24, -48, -96, -192, -288, -384, -576, -1152
-#endif /* not VMS */
   };
 
 #endif /* not emacs */
 
-/* Already defined in the System framework in Mac OS X and causes
-   prebinding to fail.  */
-#ifndef MAC_OSX
 void
 tputs (str, nlines, outfun)
      register char *str;
@@ -433,7 +417,6 @@ tputs (str, nlines, outfun)
   while (padcount-- > 0)
     (*outfun) (PC);
 }
-#endif /* MAC_OSX */
 
 /* Finding the termcap entry in the termcap data base.  */
 
@@ -453,34 +436,6 @@ static char *gobble_line ();
 static int compare_contin ();
 static int name_match ();
 
-#ifdef VMS
-
-#include <rmsdef.h>
-#include <fab.h>
-#include <nam.h>
-#include <starlet.h>
-
-static int
-valid_filename_p (fn)
-     char *fn;
-{
-  struct FAB fab = cc$rms_fab;
-  struct NAM nam = cc$rms_nam;
-  char esa[NAM$C_MAXRSS];
-
-  fab.fab$l_fna = fn;
-  fab.fab$b_fns = strlen(fn);
-  fab.fab$l_nam = &nam;
-  fab.fab$l_fop = FAB$M_NAM;
-
-  nam.nam$l_esa = esa;
-  nam.nam$b_ess = sizeof esa;
-
-  return SYS$PARSE(&fab, 0, 0) == RMS$_NORMAL;
-}
-
-#else /* !VMS */
-
 #ifdef MSDOS /* MW, May 1993 */
 static int
 valid_filename_p (fn)
@@ -491,8 +446,6 @@ valid_filename_p (fn)
 #else
 #define valid_filename_p(fn) (*(fn) == '/')
 #endif
-
-#endif /* !VMS */
 
 /* Find the termcap entry data for terminal type NAME
    and store it in the block that BP points to.
@@ -505,9 +458,6 @@ valid_filename_p (fn)
    0 if the data base is accessible but the type NAME is not defined
    in it, and some other value otherwise.  */
 
-/* Already defined in the System framework in Mac OS X and causes
-   prebinding to fail.  */
-#ifndef MAC_OSX
 int
 tgetent (bp, name)
      char *bp, *name;
@@ -666,7 +616,6 @@ tgetent (bp, name)
   term_entry = bp;
   return 1;
 }
-#endif /* MAC_OSX */
 
 /* Given file open on FD and buffer BUFP,
    scan the file from the beginning until a line is found

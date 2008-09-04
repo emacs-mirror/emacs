@@ -185,7 +185,7 @@ and VALUE is the value which is given to that frame parameter
 (defconst command-line-ns-option-alist
   '(("-NSAutoLaunch" 1 ns-ignore-1-arg)
     ("-NXAutoLaunch" 1 ns-ignore-1-arg)
-    ("-macosx" 0 ns-ignore-0-arg)
+    ("-macosx" 0 ignore)
     ("-NSHost" 1 ns-ignore-1-arg)
     ("-_NSMachLaunch" 1 ns-ignore-1-arg)
     ("-MachLaunch" 1 ns-ignore-1-arg)
@@ -491,20 +491,19 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
         ;; the end, because the subdirs.el files may add elements to the end
         ;; of load-path and we want to take it into account.
         (setq tail (cdr tail))))
-    (unless (eq system-type 'vax-vms)
-      ;; If the PWD environment variable isn't accurate, delete it.
-      (let ((pwd (getenv "PWD")))
-	(and (stringp pwd)
-	     ;; Use FOO/., so that if FOO is a symlink, file-attributes
-	     ;; describes the directory linked to, not FOO itself.
-	     (or (equal (file-attributes
-			 (concat (file-name-as-directory pwd) "."))
-			(file-attributes
-			 (concat (file-name-as-directory default-directory)
-				 ".")))
-		 (setq process-environment
-		       (delete (concat "PWD=" pwd)
-			       process-environment))))))
+    ;; If the PWD environment variable isn't accurate, delete it.
+    (let ((pwd (getenv "PWD")))
+      (and (stringp pwd)
+	   ;; Use FOO/., so that if FOO is a symlink, file-attributes
+	   ;; describes the directory linked to, not FOO itself.
+	   (or (equal (file-attributes
+		       (concat (file-name-as-directory pwd) "."))
+		      (file-attributes
+		       (concat (file-name-as-directory default-directory)
+			       ".")))
+	       (setq process-environment
+		     (delete (concat "PWD=" pwd)
+			     process-environment)))))
     (setq default-directory (abbreviate-file-name default-directory))
     (let ((menubar-bindings-done nil))
       (unwind-protect
@@ -738,21 +737,25 @@ opening the first frame (e.g. open a connection to an X server).")
     (setq eol-mnemonic-dos  "(DOS)"
           eol-mnemonic-mac  "(Mac)")))
 
-  ;; Make sure window system's init file was loaded in loadup.el if using a window system.
+  ;; Make sure window system's init file was loaded in loadup.el if
+  ;; using a window system.
   (condition-case error
     (unless noninteractive
       (if (and initial-window-system
 	       (not (featurep
-		     (intern (concat (symbol-name initial-window-system) "-win")))))
+		     (intern
+		      (concat (symbol-name initial-window-system) "-win")))))
 	  (error "Unsupported window system `%s'" initial-window-system))
       ;; Process window-system specific command line parameters.
       (setq command-line-args
-	    (funcall (or (cdr (assq initial-window-system handle-args-function-alist))
-			 (error "Unsupported window system `%s'" initial-window-system))
-		     command-line-args))
+	    (funcall
+	     (or (cdr (assq initial-window-system handle-args-function-alist))
+		 (error "Unsupported window system `%s'" initial-window-system))
+	     command-line-args))
       ;; Initialize the window system. (Open connection, etc.)
-      (funcall (or (cdr (assq initial-window-system window-system-initialization-alist))
-		   (error "Unsupported window system `%s'" initial-window-system))))
+      (funcall
+       (or (cdr (assq initial-window-system window-system-initialization-alist))
+	   (error "Unsupported window system `%s'" initial-window-system))))
     ;; If there was an error, print the error message and exit.
     (error
      (princ
@@ -886,7 +889,7 @@ opening the first frame (e.g. open a connection to an X server).")
   ;; only because all other settings of no-blinking-cursor are here.
   (unless (or noninteractive
 	      emacs-basic-display
-	      (and (memq window-system '(x w32 mac ns))
+	      (and (memq window-system '(x w32 ns))
 		   (not (member (x-get-resource "cursorBlink" "CursorBlink")
 				'("off" "false")))))
     (setq no-blinking-cursor t))
@@ -927,7 +930,11 @@ opening the first frame (e.g. open a connection to an X server).")
   ;; since users can connect to color-capable terminals and also
   ;; switch color support on or off in mid-session by setting the
   ;; tty-color-mode frame parameter.
-  (tty-register-default-colors)
+  ;; Exception: the `pc' ``window system'' has only 16 fixed colors,
+  ;; and they are already set at this point by a suitable function in
+  ;; window-system-initialization-alist.
+  (or (eq initial-window-system 'pc)
+      (tty-register-default-colors))
 
   ;; Record whether the tool-bar is present before the user and site
   ;; init files are processed.  frame-notice-user-settings uses this
@@ -1007,8 +1014,6 @@ opening the first frame (e.g. open a connection to an X server).")
 				   "~/_emacs"
 				 ;; But default to .emacs if _emacs does not exist.
 				 "~/.emacs")))
-			    ((eq system-type 'vax-vms)
-			     "sys$login:.emacs")
 			    (t
 			     (concat "~" init-file-user "/.emacs")))))
 		      ;; This tells `load' to store the file name found

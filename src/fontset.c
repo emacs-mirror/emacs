@@ -50,9 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
-#ifdef MAC_OS
-#include "macterm.h"
-#endif
 #include "termhooks.h"
 
 #include "font.h"
@@ -422,16 +419,16 @@ reorder_font_vector (font_group, font)
 
       if (! font_match_p (font_spec, font_object))
 	{
-	  Lisp_Object repertory = FONT_DEF_REPERTORY (font_def);
+	  Lisp_Object encoding = FONT_DEF_ENCODING (font_def);
 
-	  if (! NILP (repertory))
+	  if (! NILP (encoding))
 	    {
 	      Lisp_Object tail;
 
 	      for (tail = Vcharset_ordered_list;
 		   ! EQ (tail, Vcharset_non_preferred_head) && CONSP (tail);
 		   score += 0x100, tail = XCDR (tail))
-		if (EQ (repertory, XCAR (tail)))
+		if (EQ (encoding, XCAR (tail)))
 		  break;
 	    }
 	  else
@@ -875,7 +872,7 @@ face_for_char (f, face, c, pos, object)
      int c, pos;
      Lisp_Object object;
 {
-  Lisp_Object fontset, rfont_def;
+  Lisp_Object fontset, rfont_def, charset;
   int face_id;
   int id;
 
@@ -887,11 +884,12 @@ face_for_char (f, face, c, pos, object)
   xassert (!BASE_FONTSET_P (fontset));
 
   if (pos < 0)
-    id = -1;
+    {
+      id = -1;
+      charset = Qnil;
+    }
   else
     {
-      Lisp_Object charset;
-
       charset = Fget_char_property (make_number (pos), Qcharset, object);
       if (NILP (charset))
 	id = -1;
@@ -906,6 +904,7 @@ face_for_char (f, face, c, pos, object)
 	}
     }
 
+  font_deferred_log ("font for", Fcons (make_number (c), charset), Qnil);
   rfont_def = fontset_font (fontset, c, face, id);
   if (VECTORP (rfont_def))
     {
@@ -932,6 +931,56 @@ face_for_char (f, face, c, pos, object)
     }
   xassert (face_id >= 0);
   return face_id;
+}
+
+
+Lisp_Object
+font_for_char (face, c, pos, object)
+     struct face *face;
+     int c, pos;
+     Lisp_Object object;
+{
+  Lisp_Object fontset, rfont_def, charset;
+  int face_id;
+  int id;
+
+  if (ASCII_CHAR_P (c))
+    {
+      Lisp_Object font_object;
+
+      XSETFONT (font_object, face->ascii_face->font);
+      return font_object;
+    }
+
+  xassert (fontset_id_valid_p (face->fontset));
+  fontset = FONTSET_FROM_ID (face->fontset);
+  xassert (!BASE_FONTSET_P (fontset));
+  if (pos < 0)
+    {
+      id = -1;
+      charset = Qnil;
+    }
+  else
+    {
+      charset = Fget_char_property (make_number (pos), Qcharset, object);
+      if (NILP (charset))
+	id = -1;
+      else if (CHARSETP (charset))
+	{
+	  Lisp_Object val;
+
+	  val = assoc_no_quit (charset, Vfont_encoding_charset_alist);
+	  if (CONSP (val) && CHARSETP (XCDR (val)))
+	    charset = XCDR (val);
+	  id = XINT (CHARSET_SYMBOL_ID (charset));
+	}
+    }
+
+  font_deferred_log ("font for", Fcons (make_number (c), charset), Qnil);
+  rfont_def = fontset_font (fontset, c, face, id);
+  return (VECTORP (rfont_def)
+	  ? RFONT_DEF_OBJECT (rfont_def)
+	  : Qnil);
 }
 
 

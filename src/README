@@ -5,8 +5,7 @@ See the end of the file for license conditions.
 
 This directory contains the source files for the C component of GNU Emacs.
 Nothing in this directory is needed for using Emacs once it is built
-and installed, if the dumped Emacs (on Unix systems) or the Emacs
-executable and map files (on VMS systems) are copied elsewhere.
+and installed, if the dumped Emacs (on Unix systems) is copied elsewhere.
 
 See the files ../README and then ../INSTALL for installation instructions.
 
@@ -17,20 +16,6 @@ same script then uses `cpp' to produce the machine-dependent
 controls the compilation of Emacs.  Most of this should work
 transparently to the user; you should only need to run `../configure',
 and then type `make'.
-
-See the file VMSBUILD in this directory for instructions on compiling,
-linking and building Emacs on VMS.
-
-The files `*.com' and `temacs.opt' are used on VMS only.
-The files `vlimit.h', `ioclt.h' and `param.h' are stubs to
-allow compilation on VMS with the minimum amount of #ifdefs.
-
-`uaf.h' contains VMS uaf structure definitions.  This is only needed if
-you define READ_SYSUAF.  This should only be done for single-user
-systems where you are not overly concerned with security, since it
-either requires that you install Emacs with SYSPRV or make SYSUAF.DAT
-world readable.  Otherwise, Emacs can determine information about the
-current user, but no one else.
 
 
 This file is part of GNU Emacs.

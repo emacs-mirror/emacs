@@ -8,12 +8,12 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 8.0.3+CVS
+@set VERSION 8.1
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2008-03-16
-@set UPDATE-MONTH March, 2008
+@set UPDATED 2008-08-18
+@set UPDATE-MONTH August, 2008
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -199,8 +199,8 @@ more niceties about GNU Emacs and MH@. Now I'm fully hooked on both of
 them.
 
 The MH-E package is distributed with GNU Emacs@footnote{Version
-@value{VERSION} of MH-E will appear in GNU Emacs 22.1. It is supported
-in GNU Emacs 21, as well as XEmacs 21 (except for versions
+@value{VERSION} of MH-E will appear in GNU Emacs 23.1. It is supported
+in GNU Emacs 21 and 22, as well as XEmacs 21 (except for versions
 21.5.9-21.5.16). It is compatible with MH versions 6.8.4 and higher,
 all versions of nmh, and GNU mailutils 1.0 and higher.}, so you
 shouldn't have to do anything special to use it. Gnus is also
@@ -533,15 +533,15 @@ to install MH or tell MH-E where to find MH.
 
 @cindex Debian
 @cindex nmh
-@cindex GNU mailutils
+@cindex GNU mailutils MH
 
 If you don't have MH on your system already, you must install a
 variant of MH. The Debian mh-e package does this for you automatically
 (@pxref{Getting MH-E}). Most people use
 @uref{http://www.nongnu.org/nmh/, nmh}, but you may be interested in
-trying out @uref{http://www.gnu.org/software/mailutils/, GNU
-mailutils}, which supports IMAP. Your GNU/Linux distribution probably
-has packages for both of these.
+trying out @uref{http://www.gnu.org/software/mailutils/, GNU mailutils
+MH}, which supports IMAP. Your GNU/Linux distribution probably has
+packages for both of these.
 
 @cindex @command{install-mh}
 @cindex MH commands, @command{install-mh}
@@ -580,14 +580,15 @@ There are several options MH-E uses to interact with your MH
 installation. The option @code{mh-variant} specifies the variant used
 by MH-E (@pxref{Options}). The default setting of this option is
 @samp{Auto-detect} which means that MH-E will automatically choose the
-first of nmh, MH, or GNU mailutils that it finds in the directories
+first of nmh, MH, or GNU mailutils MH that it finds in the directories
 listed in @code{mh-path} (which you can customize),
 @code{mh-sys-path}, and @code{exec-path}. If MH-E can't find MH at
 all, you may have to customize @code{mh-path} and add the directory in
 which the command @command{mhparam} is located. If, on the other hand,
-you have both nmh and mailutils installed (for example) and
+you have both nmh and GNU mailutils MH installed (for example) and
 @code{mh-variant-in-use} was initialized to nmh but you want to use
-mailutils, then you can set @code{mh-variant} to @samp{mailutils}.
+GNU mailutils MH, then you can set @code{mh-variant} to
+@samp{gnu-mh}.
 
 @vindex mh-flists-present-flag
 @vindex mh-lib
@@ -705,7 +706,7 @@ left out the menu bar and tool bar in all of the example screens.}:
 To: wohler
 cc:
 Subject: Test
-X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+X-Mailer: MH-E 8.1; nmh 1.1; GNU Emacs 23.1
 --------
 This is a test message to get the wheels churning...#
 
@@ -788,7 +789,7 @@ You should see the scan line for your message, and perhaps others. Use
 -:%%  @{+inbox/select@} 4 msgs (1-4)   Bot L4     (MH-Folder Show)---------
 To: wohler
 Subject: Test
-X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+X-Mailer: MH-E 8.1; nmh 1.1; GNU Emacs 23.1
 Date: Fri, 17 Mar 2006 10:49:11 -0800
 From: Bill Wohler <wohler@@stop.mail-abuse.org>
 
@@ -836,14 +837,14 @@ In-reply-to: <31054.1142621351@@stop.mail-abuse.org>
 References: <31054.1142621351@@stop.mail-abuse.org>
 Comments: In-reply-to Bill Wohler <wohler@@stop.mail-abuse.org>
    message dated "Fri, 17 Mar 2006 10:49:11 -0800."
-X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+X-Mailer: MH-E 8.1; nmh 1.1; GNU Emacs 23.1
 --------
 #
 
 --:--  @{draft@}  All L10     (MH-Letter)----------------------------------
 To: wohler
 Subject: Test
-X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+X-Mailer: MH-E 8.1; nmh 1.1; GNU Emacs 23.1
 Date: Fri, 17 Mar 2006 10:49:11 -0800
 From: Bill Wohler <wohler@@stop.mail-abuse.org>
 
@@ -1492,7 +1493,7 @@ Binding} of @samp{m}.
 @cindex Unix commands, @command{xbuffy}
 
 You can use @command{xbuffy} to automate the incorporation of this
-mail using the Emacs 22 command @command{emacsclient} as follows:
+mail using the Emacs 23 command @command{emacsclient} as follows:
 
 @smallexample
 box ~/mail/mh-e
@@ -1600,6 +1601,14 @@ Display message (@code{mh-show}).
 @findex mh-header-display
 @item , (comma)
 Display message with all header fields (@code{mh-header-display}).
+@c -------------------------
+@cindex @samp{Message > Show Message with Preferred Alternative} menu item
+@cindex menu item, @samp{Message > Show Message with Preferred Alternative}
+@kindex : (colon)
+@findex mh-show-preferred-alternative
+@item : (colon)
+Display message with the default preferred alternative
+(@code{mh-show-preferred-alternative}).
 @c -------------------------
 @kindex ; (semicolon)
 @findex mh-toggle-mh-decode-mime-flag
@@ -2478,6 +2487,15 @@ Many people prefer to see the @samp{text/plain} alternative rather
 than the @samp{text/html} alternative. To do this in MH-E, customize
 the option @code{mm-discouraged-alternatives}, and add
 @samp{text/html}. The next best alternative, if any, will be shown.
+
+@findex mh-show-preferred-alternative
+@kindex : (colon)
+
+Occasionally, though, you might want to see the preferred alternative.
+The command @kbd{:} (@code{mh-show-preferred-alternative}) displays
+the message with the default preferred alternative. This is as if
+@code{mm-discouraged-alternatives} is set to @samp{nil}. Use the
+command @key{RET} (@code{mh-show}) to show the message normally again.
 
 @kindex K i
 @findex mh-folder-inline-mime-part
@@ -3536,6 +3554,7 @@ you want to process refiles or deletes first and then either run
 @kindex x
 @vindex mh-after-commands-processed-hook
 @vindex mh-before-commands-processed-hook
+@vindex mh-current-folder
 
 The command @kbd{x} runs @code{mh-before-commands-processed-hook}
 before the commands are processed and
@@ -3928,6 +3947,10 @@ On means the MH-Show buffer is displayed using @kbd{r}
 The following hooks are available.
 
 @vtable @code
+@item mh-annotate-msg-hook
+Hook run by @code{mh-annotate-msg} after annotation (default:
+@code{nil}).
+@c -------------------------
 @item mh-forward-hook
 Hook run by @code{mh-forward} on a forwarded letter (default:
 @code{nil}).
@@ -3937,8 +3960,19 @@ Hook run by @code{mh-letter-mode} on a new letter (default:
 @code{nil}).
 @end vtable
 
-The functions and options introduced here are explained in more detail
-in the following sections.
+@findex mh-annotate-msg
+@vindex mh-annotate-list
+@vindex mh-annotate-msg-hook
+@vindex mh-current-folder
+
+A hook that is called whenever a message is sent and after the scan
+lines and message are annotated is @code{mh-annotate-msg-hook}. Hook
+functions can access the current folder name with
+@code{mh-current-folder} and obtain the message numbers of the
+annotated messages with @code{mh-annotate-list}.
+
+The rest of the functions and options introduced here are explained in
+more detail in the following sections.
 
 @menu
 * Composing::
@@ -4267,6 +4301,9 @@ which is the case if @command{send}@footnote{See the section
 in the MH book.} is compiled with the @sc{berk} option (which many
 people abhor). If you find that MH will not allow you to redistribute
 a message that has been redistributed before, turn off this option.
+
+The hook @code{mh-annotate-msg-hook} is run after annotating the
+message and scan line (@pxref{Sending Mail}).
 
 @node Editing Again,  , Redistributing, Sending Mail
 @section Editing Old Drafts and Bounced Messages
@@ -5407,7 +5444,7 @@ details from the user.
 To: wohler
 cc:
 Subject: Test of MIME
-X-Mailer: MH-E 8.0; nmh 1.1; GNU Emacs 22.1
+X-Mailer: MH-E 8.1; nmh 1.1; GNU Emacs 23.1
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="=-=-="
 --------
@@ -5619,6 +5656,9 @@ In case the MH @command{send} program@footnote{See the section
 @uref{@value{MH-BOOK-HOME}/sensen.html, Sending Some Mail: comp send}
 in the MH book.} is installed under a different name, use
 @code{mh-send-prog} to tell MH-E the name.
+
+The hook @code{mh-annotate-msg-hook} is run after annotating the
+message and scan line (@pxref{Sending Mail}).
 
 @node Killing Draft,  , Sending Message, Editing Drafts
 @section Killing the Draft
@@ -8011,13 +8051,14 @@ width is 4, so you would use @samp{(mh-set-cmd-note 4)}.
 The default setting for @code{mh-scan-format-file} is @samp{Use MH-E
 scan Format}. This means that the format string will be taken from the
 either @code{mh-scan-format-mh} or @code{mh-scan-format-nmh} depending
-on whether MH or nmh (or GNU mailutils) is in use. This setting also
-enables you to turn on the option @code{mh-adaptive-cmd-note-flag}.
-You can also set this option to @samp{Use Default scan Format} to get
-the same output as you would get if you ran @command{scan} from the
-shell. If you have a format file that you want MH-E to use but not MH,
-you can set this option to @samp{Specify a scan Format File} and enter
-the name of your format file.
+on whether MH or nmh (or GNU mailutils MH) is in use. This setting
+also enables you to turn on the option
+@code{mh-adaptive-cmd-note-flag}. You can also set this option to
+@samp{Use Default scan Format} to get the same output as you would get
+if you ran @command{scan} from the shell. If you have a format file
+that you want MH-E to use but not MH, you can set this option to
+@samp{Specify a scan Format File} and enter the name of your format
+file.
 
 @vindex mh-scan-format-file
 @vindex mh-scan-format-mh
@@ -8026,7 +8067,7 @@ the name of your format file.
 The scan format that MH-E uses when @code{mh-scan-format-file} is set
 to its default of @samp{Use MH-E scan Format} is held in the variables
 @code{mh-scan-format-nmh} and @code{mh-scan-format-mh} depending on
-whether you are using nmh (or GNU mailutils) or not. Typically, you
+whether you are using nmh (or GNU mailutils MH) or not. Typically, you
 create your own format files rather than modifying these variables.
 The value of @code{mh-scan-format-nmh} is:
 
@@ -8874,14 +8915,18 @@ introduced in the version 7 series around the time of Emacs 21.4
 in 1994.
 
 Version 8 development was mostly driven by the rewrite of the manual.
-It also brought mailutils support, S/MIME support, picon support, and
-an improved interface for hiding header fields. The CVS repository was
-migrated from SourceForge to Savannah (only for those files that were
-already part of Emacs) and the software was completely reorganized to
-push back two decades of entropy. Version 8 will appear in Emacs 22.1,
-expected to be released in 2006.
+It also brought GNU mailutils MH support, S/MIME support, picon
+support, and an improved interface for hiding header fields. The CVS
+repository was migrated from SourceForge to Savannah (only for those
+files that were already part of Emacs) and the software was completely
+reorganized to push back two decades of entropy. Version 8 appeared in
+Emacs 22.1 in 2006.
 
-Bill Wohler, February 2006
+Development was then quiet for a couple of years. Emacs 23.1, which is
+due out in 2009, will contain version 8.1. This version includes a few
+new features and several bug fixes.
+
+Bill Wohler, August 2008
 
 @node GFDL, Key Index, History, Top
 @appendix GNU FREE DOCUMENTATION LICENSE

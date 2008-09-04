@@ -29,9 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #include "w32term.h"
 #endif
-#ifdef MAC_OS
-#include "macterm.h"
-#endif
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
@@ -70,6 +67,10 @@ Lisp_Object Vx_resource_class;
 
 Lisp_Object Vframe_alpha_lower_limit;
 
+#endif
+
+#ifdef HAVE_NS
+Lisp_Object Qns_parse_geometry;
 #endif
 
 Lisp_Object Qframep, Qframe_live_p;
@@ -206,7 +207,6 @@ DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
 Value is t for a termcap frame (a character-only terminal),
 `x' for an Emacs frame that is really an X window,
 `w32' for an Emacs frame that is a window on MS-Windows display,
-`mac' for an Emacs frame on a Macintosh Carbon display,
 `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
 `pc' for a direct-write MS-DOS frame.
 See also `frame-live-p'.  */)
@@ -437,11 +437,9 @@ make_frame_without_minibuffer (mini_window, kb, display)
   if (!NILP (mini_window))
     CHECK_LIVE_WINDOW (mini_window);
 
-#ifdef MULTI_KBOARD
   if (!NILP (mini_window)
       && FRAME_KBOARD (XFRAME (XWINDOW (mini_window)->frame)) != kb)
     error ("Frame and minibuffer must be on the same terminal");
-#endif
 
   /* Make a frame containing just a root window.  */
   f = make_frame (0);
@@ -587,20 +585,23 @@ make_terminal_frame (struct terminal *terminal)
 
   f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
   f->async_visible = 1;		/* Don't let visible be cleared later. */
+  f->terminal = terminal;
+  f->terminal->reference_count++;
 #ifdef MSDOS
-  f->output_data.x = &the_only_x_display;
+  f->output_data.tty->display_info = &the_only_display_info;
   if (!inhibit_window_system
       && (!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame))
 	  || XFRAME (selected_frame)->output_method == output_msdos_raw))
     {
       f->output_method = output_msdos_raw;
+#if 0
       /* This initialization of foreground and background pixels is
 	 only important for the initial frame created in temacs.  If
 	 we don't do that, we get black background and foreground in
-	 the dumped Emacs because the_only_x_display is a static
+	 the dumped Emacs because the_only_display_info is a static
 	 variable, hence it is born all-zeroes, and zero is the code
 	 for the black color.  Other frames all inherit their pixels
-	 from what's already in the_only_x_display.  */
+	 from what's already in the_only_display_info.  */
       if ((!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame)))
 	  && FRAME_BACKGROUND_PIXEL (f) == 0
 	  && FRAME_FOREGROUND_PIXEL (f) == 0)
@@ -608,28 +609,17 @@ make_terminal_frame (struct terminal *terminal)
 	  FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
 	  FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
 	}
+#endif
     }
   else
     f->output_method = output_termcap;
 #else
   {
     f->output_method = output_termcap;
-    f->terminal = terminal;
-    f->terminal->reference_count++;
     create_tty_output (f);
 
     FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
     FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
-
-    FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
-    FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
-
-    /* Set the top frame to the newly created frame. */
-    if (FRAMEP (FRAME_TTY (f)->top_frame)
-        && FRAME_LIVE_P (XFRAME (FRAME_TTY (f)->top_frame)))
-      XFRAME (FRAME_TTY (f)->top_frame)->async_visible = 2; /* obscured */
-
-    FRAME_TTY (f)->top_frame = frame;
   }
 
 #ifdef CANNOT_DUMP
@@ -637,6 +627,16 @@ make_terminal_frame (struct terminal *terminal)
   FRAME_BACKGROUND_PIXEL(f) = FACE_TTY_DEFAULT_BG_COLOR;
 #endif
 #endif /* MSDOS */
+
+  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+
+  /* Set the top frame to the newly created frame. */
+  if (FRAMEP (FRAME_TTY (f)->top_frame)
+      && FRAME_LIVE_P (XFRAME (FRAME_TTY (f)->top_frame)))
+    XFRAME (FRAME_TTY (f)->top_frame)->async_visible = 2; /* obscured */
+
+  FRAME_TTY (f)->top_frame = frame;
 
   if (!noninteractive)
     init_frame_faces (f);
@@ -702,16 +702,9 @@ affects all frames on the same terminal device.  */)
     abort ();
 #else /* not MSDOS */
 
-#if 0
-  /* This can happen for multi-tty when using both terminal frames and
-     Carbon frames. */
-  if (sf->output_method != output_mac)
-    error ("Not running on a Macintosh screen; cannot make a new Macintosh frame");
-#else
 #if 0                           /* This should work now! */
   if (sf->output_method != output_termcap)
     error ("Not using an ASCII terminal now; cannot make a new ASCII frame");
-#endif
 #endif
 #endif /* not MSDOS */
 
@@ -724,6 +717,13 @@ affects all frames on the same terminal device.  */)
         terminal = XCDR (terminal);
         t = get_terminal (terminal, 1);
       }
+#ifdef MSDOS
+    if (t && t != the_only_display_info.terminal)
+      /* msdos.c assumes a single tty_display_info object.  */
+      error ("Multiple terminals are not supported on this platform");
+    if (!t)
+      t = the_only_display_info.terminal;
+#endif
   }
 
   if (!t)
@@ -876,7 +876,7 @@ do_switch_frame (frame, track, for_deletion)
   if (!for_deletion && FRAME_HAS_MINIBUF_P (sf))
     resize_mini_window (XWINDOW (FRAME_MINIBUF_WINDOW (sf)), 1);
 
-  if (FRAME_TERMCAP_P (XFRAME (frame)))
+  if (FRAME_TERMCAP_P (XFRAME (frame)) || FRAME_MSDOS_P (XFRAME (frame)))
     {
       if (FRAMEP (FRAME_TTY (XFRAME (frame))->top_frame))
 	/* Mark previously displayed frame as now obscured.  */
@@ -1470,10 +1470,6 @@ But FORCE inhibits this too.  */)
   if (FRAME_X_P (f))
     x_clear_frame_selections (f);
 #endif
-#ifdef MAC_OS
-  if (FRAME_MAC_P (f))
-    x_clear_frame_selections (f);
-#endif
 
   /* Free glyphs.
      This function must be called before the window tree of the
@@ -1528,10 +1524,8 @@ But FORCE inhibits this too.  */)
         kb = NULL;
 	Fdelete_terminal (tmp, NILP (force) ? Qt : force);
       }
-#ifdef MULTI_KBOARD
     else
       kb = terminal->kboard;
-#endif
   }
 
   /* If we've deleted the last_nonminibuf_frame, then try to find
@@ -2524,7 +2518,9 @@ so that `frame-parameters' will return them.
 
 The value of frame parameter FOO can also be accessed
 as a frame-local binding for the variable FOO, if you have
-enabled such bindings for that variable with `make-variable-frame-local'.  */)
+enabled such bindings for that variable with `make-variable-frame-local'.
+Note that this functionality is obsolete as of Emacs 22.2, and its
+use is not recommended.  Explicitly check for a frame-parameter instead.  */)
      (frame, alist)
      Lisp_Object frame, alist;
 {
@@ -4069,6 +4065,25 @@ x_default_parameter (f, alist, prop, deflt, xprop, xclass, type)
 
 
 
+#ifdef HAVE_NS
+
+/* We used to define x-parse-geometry directly in ns-win.el, but that
+   confused make-docfile: the documentation string in ns-win.el was
+   used for x-parse-geometry even in non-NS builds..  */
+
+DEFUN ("x-parse-geometry", Fx_parse_geometry, Sx_parse_geometry, 1, 1, 0,
+       doc: /* Parse a Nextstep-style geometry string STRING.
+Returns an alist of the form ((top . TOP), (left . LEFT) ... ).
+The properties returned may include `top', `left', `height', and `width'.
+This works by calling `ns-parse-geometry'.  */)
+     (string)
+     Lisp_Object string;
+{
+  call1 (Qns_parse_geometry, string);
+}
+
+#else /* !HAVE_NS */
+
 DEFUN ("x-parse-geometry", Fx_parse_geometry, Sx_parse_geometry, 1, 1, 0,
        doc: /* Parse an X-style geometry string STRING.
 Returns an alist of the form ((top . TOP), (left . LEFT) ... ).
@@ -4087,12 +4102,6 @@ or a list (- N) meaning -N pixels relative to bottom/right corner.  */)
 
   geometry = XParseGeometry ((char *) SDATA (string),
 			     &x, &y, &width, &height);
-
-#if 0
-  if (!!(geometry & XValue) != !!(geometry & YValue))
-    error ("Must specify both x and y position, or neither");
-#endif
-
   result = Qnil;
   if (geometry & XValue)
     {
@@ -4127,6 +4136,8 @@ or a list (- N) meaning -N pixels relative to bottom/right corner.  */)
 
   return result;
 }
+#endif /* HAVE_NS */
+
 
 /* Calculate the desired size and position of frame F.
    Return the flags saying which aspects were specified.
@@ -4434,6 +4445,11 @@ syms_of_frame ()
   Qterminal_live_p = intern ("terminal-live-p");
   staticpro (&Qterminal_live_p);
 
+#ifdef HAVE_NS
+  Qns_parse_geometry = intern ("ns-parse-geometry");
+  staticpro (&Qns_parse_geometry);
+#endif
+
   {
     int i;
 
@@ -4500,7 +4516,7 @@ Setting this variable does not affect existing frames, only new ones.  */);
   DEFVAR_LISP ("default-frame-scroll-bars", &Vdefault_frame_scroll_bars,
 	       doc: /* Default position of scroll bars on this window-system.  */);
 #ifdef HAVE_WINDOW_SYSTEM
-#if defined(HAVE_NTGUI) || defined(MAC_OS) || defined(NS_IMPL_COCOA)
+#if defined(HAVE_NTGUI) || defined(NS_IMPL_COCOA)
   /* MS-Windows and Mac OS X have scroll bars on the right by default.  */
   Vdefault_frame_scroll_bars = Qright;
 #else
@@ -4567,7 +4583,7 @@ You should set this variable to tell Emacs how your window manager
 handles focus, since there is no way in general for Emacs to find out
 automatically.  */);
 #ifdef HAVE_WINDOW_SYSTEM
-#if defined(HAVE_NTGUI) || defined(MAC_OS) || defined(HAVE_NS)
+#if defined(HAVE_NTGUI) || defined(HAVE_NS)
   focus_follows_mouse = 0;
 #else
   focus_follows_mouse = 1;

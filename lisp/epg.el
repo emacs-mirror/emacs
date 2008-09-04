@@ -185,7 +185,7 @@
   (cons 'epg-context
 	(vector (or protocol 'OpenPGP) armor textmode include-certs
 		cipher-algorithm digest-algorithm compress-algorithm
-		#'epg-passphrase-callback-function
+		(list #'epg-passphrase-callback-function)
 		nil
 		nil nil nil nil nil nil)))
 
@@ -328,7 +328,9 @@ This function is for internal use only."
   "Set the function used to query passphrase."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 7 passphrase-callback))
+  (aset (cdr context) 7 (if (consp passphrase-callback)
+			    passphrase-callback
+			  (list passphrase-callback))))
 
 (defun epg-context-set-progress-callback (context
 					  progress-callback)
@@ -336,7 +338,9 @@ This function is for internal use only."
 If optional argument HANDBACK is specified, it is passed to PROGRESS-CALLBACK."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 8 progress-callback))
+  (aset (cdr context) 8 (if (consp progress-callback)
+			    progress-callback
+			  (list progress-callback))))
 
 (defun epg-context-set-signers (context signers)
   "Set the list of key-id for signing."
@@ -1239,13 +1243,10 @@ This function is for internal use only."
 	      (progn
 		(setq passphrase
 		      (funcall
-		       (if (consp (epg-context-passphrase-callback context))
-			   (car (epg-context-passphrase-callback context))
-			 (epg-context-passphrase-callback context))
+		       (car (epg-context-passphrase-callback context))
 		       context
 		       epg-key-id
-		       (if (consp (epg-context-passphrase-callback context))
-			   (cdr (epg-context-passphrase-callback context)))))
+		       (cdr (epg-context-passphrase-callback context))))
 		(when passphrase
 		  (setq passphrase-with-new-line (concat passphrase "\n"))
 		  (epg--clear-string passphrase)
@@ -1493,16 +1494,13 @@ This function is for internal use only."
   (if (and (epg-context-progress-callback context)
 	   (string-match "\\`\\([^ ]+\\) \\([^ ]\\) \\([0-9]+\\) \\([0-9]+\\)"
 			 string))
-      (funcall (if (consp (epg-context-progress-callback context))
-		   (car (epg-context-progress-callback context))
-		 (epg-context-progress-callback context))
+      (funcall (car (epg-context-progress-callback context))
 	       context
 	       (match-string 1 string)
 	       (match-string 2 string)
 	       (string-to-number (match-string 3 string))
 	       (string-to-number (match-string 4 string))
-	       (if (consp (epg-context-progress-callback context))
-		   (cdr (epg-context-progress-callback context))))))
+	       (cdr (epg-context-progress-callback context)))))
 
 (defun epg--status-ENC_TO (context string)
   (if (string-match "\\`\\([0-9A-Za-z]+\\) \\([0-9]+\\) \\([0-9]+\\)" string)

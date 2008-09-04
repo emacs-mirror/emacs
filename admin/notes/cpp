@@ -7,9 +7,7 @@ into object files, but also for creating
 	lib-src/Makefile
 
 (delimited by comment "start of cpp stuff").  some cpp implementations
-insert whitespace in between tokens, which explains the "$(dot)$(dot)"
-and "UNEXEC_ALIAS" workarounds for unixoid systems and the bundled
-tradcpp/ for vms.  [NOTE: tradcpp/ not yet checked in.]
+insert whitespace in between tokens.
 
 during makefile creation, the preprocessor symbol NOT_C_CODE is defined.
 this should not be defined for normal .c file compilation.

@@ -94,7 +94,7 @@ Prompt for component type and index subtypes."
 
 (define-skeleton ada-case
   "Build skeleton case statement.
-Prompt for the selector expression. Also builds the first when clause."
+Prompt for the selector expression.  Also builds the first when clause."
   "[selector expression]: "
   "case " str " is" \n
   > "when " ("discrete choice: " str " | ") -3 " =>" \n
@@ -266,7 +266,7 @@ prompting for the boolean-expression."
 
 
 (define-skeleton ada-package-body
-  "Insert a skeleton package body --  includes a begin statement."
+  "Insert a skeleton package body -- includes a begin statement."
   "[package name]: "
   "package body " str " is" \n
   > _ \n
@@ -275,7 +275,7 @@ prompting for the boolean-expression."
 
 
 (define-skeleton ada-private
-  "Undent and start a private section of a package spec. Reindent."
+  "Undent and start a private section of a package spec.  Reindent."
   ()
   < "private" \n
   >)

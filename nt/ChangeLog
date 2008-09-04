@@ -1,7 +1,15 @@
+2008-08-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (LISTPROC, PROCATTR): New macros.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (MULTI_KBOARD): Remove.
+
 2008-07-23  Jason Rumney  <jasonr@gnu.org>
 
-        * configure.bat: New option --profile.
-        * gmake.defs: Set cflags and ldflags for profiling when specified.
+	* configure.bat: New option --profile.
+	* gmake.defs: Set cflags and ldflags for profiling when specified.
 
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -14,7 +22,7 @@
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 
-	* nmake.defs:
+	* nmake.defs (FONT_CFLAGS):
 	* gmake.defs (FONT_CFLAGS): Remove.
 	(EMACS_EXTRA_C_FLAGS): Don't include FONT_CFLAGS.
 	(CFLAGS): Don't include WIN32_LEAN_AND_MEAN, _WIN32_WINNT, -D$(ARCH)

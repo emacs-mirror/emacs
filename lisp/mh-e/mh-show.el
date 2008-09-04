@@ -104,7 +104,7 @@ Use the command \\[mh-show] to show the message normally again."
 ;;;###mh-autoload
 (defun  mh-show-preferred-alternative ()
   "Display message with the default preferred alternative.
-I.e. we set \\mm-discouraged-alternatives to nil.
+This is as if `mm-discouraged-alternatives' is set to nil.
 
 Use the command \\[mh-show] to show the message normally again."
   (interactive)

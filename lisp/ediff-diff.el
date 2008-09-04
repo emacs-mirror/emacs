@@ -56,7 +56,6 @@ Must produce output compatible with Unix's diff3 program."
   (cond ((eq system-type 'emx) "cmd") ; OS/2
 	((memq system-type '(ms-dos windows-nt windows-95))
 	 shell-file-name) ; no standard name on MS-DOS
-	((memq system-type '(vax-vms axp-vms)) "*dcl*") ; VMS
 	(t  "sh")) ; UNIX
   "*The shell used to run diff and patch.
 If user's .profile or .cshrc files are set up correctly, any shell
@@ -336,9 +335,7 @@ one optional arguments, diff-number to refine.")
     (erase-buffer)
     (insert (ediff-with-current-buffer diff-buff (buffer-string)))
     (goto-char (point-min))
-    (delete-matching-lines ok-regexp)
-    (if (memq system-type '(vax-vms axp-vms))
-	(delete-matching-lines "^$")))
+    (delete-matching-lines ok-regexp))
   ;; If diff reports errors, show them then quit.
   (if (/= 0 (ediff-with-current-buffer ediff-error-buffer (buffer-size)))
       (let ((ctl-buf ediff-control-buffer)

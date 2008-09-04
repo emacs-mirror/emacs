@@ -1688,7 +1688,7 @@ Replace <file-name> or <<file-name>> with filename."
 
 (defun filesets-cmd-isearch-getargs ()
   "Get arguments for `multi-isearch-files' and `multi-isearch-files-regexp'."
-  (list files))
+  (and (boundp 'files) (list files)))
 
 (defun filesets-cmd-shell-command-getargs ()
   "Get arguments for `filesets-cmd-shell-command'."

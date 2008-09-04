@@ -50,8 +50,6 @@ Use (derived-mode-p 'text-mode) instead.")
 (defvar text-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\e\t" 'ispell-complete-word)
-    (define-key map "\es" 'center-line)
-    (define-key map "\eS" 'center-paragraph)
     map)
   "Keymap for `text-mode'.
 Many other modes, such as `mail-mode', `outline-mode' and `indented-text-mode',
@@ -123,6 +121,9 @@ both existing buffers and buffers that you subsequently create."
     (message "Auto Fill %s in Text modes"
 	     (if enable-mode "enabled" "disabled"))))
 
+
+(define-key facemenu-keymap "\eS" 'center-paragraph)
+
 (defun center-paragraph ()
   "Center each nonblank line in the paragraph at or after point.
 See `center-line' for more info."
@@ -149,6 +150,8 @@ See `center-line' for more info."
 	(or (save-excursion (skip-chars-forward " \t") (eolp))
 	    (center-line))
 	(forward-line 1)))))
+
+(define-key facemenu-keymap "\es" 'center-line)
 
 (defun center-line (&optional nlines)
   "Center the line point is on, within the width specified by `fill-column'.

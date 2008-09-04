@@ -124,42 +124,20 @@ Root must be the root of an Emacs source tree."
 			 (rx (and "\"ProductVersion\"" (0+ space) ?,
 				  (0+ space) ?\" (submatch (1+ (in "0-9, ")))
 				  "\\0\"")))
-    ;; Some files in the "mac" subdirectory also contain the version
-    ;; number.
-    (set-version-in-file
-     root "mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings"
-     version (rx (and "CFBundleShortVersionString" (0+ space) ?= (0+ space) ?\"
-		      (submatch (1+ (in "0-9."))))))
-    (set-version-in-file
-     root "mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings"
-     version (rx (and "CFBundleGetInfoString" (0+ space) ?= (0+ space) ?\"
-		      (submatch (1+ (in "0-9."))))))
-    (set-version-in-file root "mac/src/Emacs.r" (car version-components)
-			 (rx (and "GNU Emacs " (submatch (1+ (in "0-9")))
-				  " for Mac OS")))
-    (set-version-in-file root "mac/src/Emacs.r" (car version-components)
-			 (rx (and (submatch (1+ (in "0-9"))) (0+ space) ?\,
-				  (0+ space) "/* Major revision in BCD */")))
-    (set-version-in-file root "mac/src/Emacs.r" (cadr version-components)
-			 (rx (and (submatch (1+ (in "0-9"))) (0+ space) ?\,
-				  (0+ space) "/* Minor revision in BCD */")))
-    (set-version-in-file root "mac/src/Emacs.r" (cadr (cdr version-components))
-			 (rx (and (submatch (1+ (in "0-9"))) (0+ space) ?\,
-				  (0+ space) "/* Non-final release # */")))
-    (set-version-in-file root "mac/src/Emacs.r" version
-			 (rx (and (submatch (1+ (in "0-9."))) (0+ space) ?\" ?\,
-				  (0+ space) "/* Short version number */")))
-    (set-version-in-file root "mac/src/Emacs.r" version
-			 (rx (and "/* Short version number */" (0+ space) ?\"
-				  (submatch (1+ (in "0-9."))))))
-    (let* ((third-component (string-to-number (cadr (cdr version-components))))
-	   (release (cond ((>= third-component 90) "alpha")
-			  ((>= third-component 50) "development")
-			  (t "final"))))
-      (set-version-in-file
-       root "mac/src/Emacs.r" release
-       (rx (and (submatch (1+ (in "a-z"))) (0+ space) ?\, (0+ space)
-		"/* development, alpha, beta, or final (release) */")))))
+    ;; Likewise for emacsclient.rc
+    (set-version-in-file root "nt/emacsclient.rc" comma-version
+			 (rx (and "FILEVERSION" (1+ space)
+				  (submatch (1+ (in "0-9,"))))))
+    (set-version-in-file root "nt/emacsclient.rc" comma-version
+			 (rx (and "PRODUCTVERSION" (1+ space)
+				  (submatch (1+ (in "0-9,"))))))
+    (set-version-in-file root "nt/emacsclient.rc" comma-space-version
+			 (rx (and "\"FileVersion\"" (0+ space) ?, (0+ space)
+				  ?\" (submatch (1+ (in "0-9, "))) "\\0\"")))
+    (set-version-in-file root "nt/emacsclient.rc" comma-space-version
+			 (rx (and "\"ProductVersion\"" (0+ space) ?,
+				  (0+ space) ?\" (submatch (1+ (in "0-9, ")))
+				  "\\0\""))))
   ;; nextstep.
   (set-version-in-file
    root "nextstep/Cocoa/Emacs.base/Contents/Info.plist"
@@ -211,29 +189,8 @@ Root must be the root of an Emacs source tree."
   (set-version-in-file root "lib-src/rcs2log" copyright
 		       (rx (and "Copyright" (0+ space) ?= (0+ space)
 				?\' (submatch (1+ nonl)))))
-  (set-version-in-file
-   root "mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings"
-   copyright (rx (and "CFBundleGetInfoString" (0+ space) ?= (0+ space) ?\"
-                      (1+ anything)
-                      (submatch "Copyright" (1+ (not (in ?\")))))))
   ;; This one is a nuisance, as it needs to be split over two lines.
   (string-match "\\(.*[0-9]\\{4\\} *\\)\\(.*\\)" copyright)
-  (let ((csign "\\0xa9")
-        (cyear (match-string 1 copyright))  ; "Copyright (C) 2007 "
-        (owner (match-string 2 copyright))) ; "Free Software Foundation, Inc."
-    (set-version-in-file root "mac/src/Emacs.r"
-                         (regexp-quote
-                          (replace-regexp-in-string "(C)"
-                                                    (regexp-quote csign) cyear))
-                         (rx (and
-                              (submatch "Copyright" (0+ space) (eval csign)
-                                        (0+ space) (= 4 num)
-                                        (0+ (not (in ?\")))) ?\")))
-    (set-version-in-file root "mac/src/Emacs.r" owner
-                         (rx (and ?\"
-                              (submatch (1+ (not (in ?\"))))
-                              ?\" (0+ space)
-                              "/* Long version number */"))))
   ;; nextstep.
   (set-version-in-file
    root "nextstep/Cocoa/Emacs.base/Contents/Info.plist"

@@ -1,0 +1,190 @@
+RCS file: /cvsroot/emacs/emacs/lisp/mail/rmailsort.el,v
+Working file: rmailsort.el
+head: 1.39
+branch:
+locks: strict
+access list:
+symbolic names:
+	remove-vms: 1.39
+	before-remove-vms: 1.39
+	remove-carbon: 1.39
+	before-remove-carbon: 1.39
+	before-merge-emacs-app-to-trunk: 1.39
+	font-backend: 1.38.0.2
+	font-backend-base: 1.38
+	EMACS_22_2: 1.34.2.2
+	EMACS_PRETEST_22_1_92: 1.34.2.2
+	lisp-bob: 1.37
+	EMACS_PRETEST_22_1_91: 1.34.2.2
+	merge-unicode-to-trunk: 1.37
+	before-merge-unicode-to-trunk: 1.37
+	EMACS_PRETEST_22_1_90: 1.34.2.2
+	lexbind-base: 1.39
+	merge-multi-tty-to-trunk: 1.35
+	before-merge-multi-tty-to-trunk: 1.35
+	EMACS_22_1: 1.34
+	EMACS_PRETEST_22_0_990: 1.34
+	multi-tty: 1.34.0.4
+	multi-tty-base: 1.35
+	EMACS_22_BRANCHPOINT: 1.34
+	EMACS_PRETEST_22_0_99: 1.34
+	EMACS_22_BASE: 1.34.0.2
+	EMACS_PRETEST_22_0_98: 1.34
+	EMACS_PRETEST_22_0_97: 1.34
+	EMACS_PRETEST_22_0_96: 1.34
+	EMACS_PRETEST_22_0_95: 1.34
+	EMACS_PRETEST_22_0_94: 1.34
+	EMACS_PRETEST_22_0_93: 1.34
+	EMACS_PRETEST_22_0_92: 1.33
+	EMACS_PRETEST_22_0_91: 1.33
+	EMACS_PRETEST_22_0_90: 1.33
+	unicode-post-font-backend: 1.29.6.4
+	unicode-pre-font-backend: 1.29.6.4
+	unicode-xft: 1.29.6.4.0.2
+	unicode-xft-base: 1.29.6.5
+	ttn-vms-21-2-B4: 1.28
+	ttn-vms-21-2-B3: 1.28
+	ttn-vms-21-2-B2: 1.28
+	XFT_JHD_BRANCH_base: 1.30
+	XFT_JHD_BRANCH: 1.30.0.4
+	EMACS_19_34: 1.24
+	after-merge-gnus-5_10: 1.30
+	before-merge-gnus-5_10: 1.30
+	gnus-5_10-post-merge-josefsson: 1.30
+	gnus-5_10-pre-merge-josefsson: 1.30
+	gnus-5_10-post-merge-yamaoka: 1.30
+	gnus-5_10-pre-merge-yamaoka: 1.30
+	gnus-5_10-branch: 1.30.0.2
+	gnus-5_10-branchpoint: 1.30
+	emacs-unicode-2-pre-sync: 1.29.6.1
+	ttn-vms-21-3-stash: 1.28.0.12
+	ttn-vms-21-2-stash: 1.28.0.10
+	EMACS_21_2: 1.28
+	handa-temp-tag: 1.30
+	emacs-bidi: 1.29.0.8
+	emacs-bidi-base: 1.29
+	emacs-unicode-2: 1.29.0.6
+	emacs-unicode-2-base: 1.37
+	Boehm-GC: 1.29.0.4
+	Boehm-GC-base: 1.29
+	EMACS_21_3: 1.28
+	rmail-mbox-branch: 1.29.0.2
+	RMAIL-MBOX-BASE: 1.29
+	EMACS_PRETEST_21_2_95: 1.28
+	EMACS_PRETEST_21_2_94: 1.28
+	EMACS_PRETEST_21_2_93: 1.28
+	EMACS_PRETEST_21_2_92: 1.28
+	EMACS_PRETEST_21_2_91: 1.28
+	lexbind: 1.28.0.8
+	emacs-unicode: 1.28.0.6
+	emacs-unicode-base: 1.28
+	fx-branch-base: 1.26
+	EMACS_21_1: 1.28
+	EMACS_21_1_RC: 1.28.0.4
+	EMACS_21_1_BASE: 1.28
+	patches_21_0: 1.28.0.2
+	patches_21_0_base: 1.28
+	EMACS_PRETEST_21_0_106: 1.28
+	EMACS_PRETEST_21_0_105: 1.28
+	EMACS_PRETEST_21_0_104: 1.27
+	EMACS_20_2: 1.26
+	gerd_big: 1.27.0.8
+	gerd_int: 1.27.0.6
+	gerd_dbe: 1.27.0.4
+	gerd_defvaralias: 1.27.0.2
+	EMACS_20_4: 1.26
+	EMACS_PRETEST_21_0_103: 1.27
+	EMACS_PRETEST_21_0_102: 1.26
+	EMACS_PRETEST_21_0_101: 1.26
+	EMACS_PRETEST_21_0_100: 1.26
+	EMACS_PRETEST_21_0_99: 1.26
+	EMACS_PRETEST_21_0_98: 1.26
+	fx-branch: 1.26.0.2
+	EMACS_PRETEST_21_0_97: 1.26
+	EMACS_PRETEST_21_0_96: 1.26
+	EMACS_PRETEST_21_0_95: 1.26
+	EMACS_PRETEST_21_0_93: 1.26
+	EMACS_PRETEST_21_0_92: 1.26
+	EMACS_PRETEST_21_0_91: 1.26
+	EMACS_PRETEST_21_0_90: 1.26
+keyword substitution: kv
+total revisions: 66;	selected revisions: 66
+description:
+;;; rmailsort.el --- Rmail: sort messages.
+----------------------------
+revision 1.39 (patched)
+date: 2008-05-06 07:22:28 +0000;  author: gm;  state: Exp;  lines: +4 -6;  commitid: nPdVwGEZ0V6bhS1t;
+Switch to recommended form of GPLv3 permissions notice.
+----------------------------
+revision 1.38 (patched)
+date: 2008-04-10 14:10:20 +0000;  author: monnier;  state: Exp;  lines: +1 -1;  commitid: vwbWV2GwRKWGmzYs;
+Fix up comment convention on the arch-tag lines.
+----------------------------
+revision 1.37 (patched)
+date: 2008-01-08 20:45:06 +0000;  author: miles;  state: Exp;  lines: +1 -1;  commitid: GLqjDoDkbCnkxEMs;
+Merge from emacs--rel--22
+
+Revision: emacs@sv.gnu.org/emacs--devo--0--patch-987
+----------------------------
+revision 1.36 (patched)
+date: 2007-11-25 16:48:31 +0000;  author: dann;  state: Exp;  lines: +1 -0;  commitid: AG5BA1V4T2VeEYGs;
+* mail/mspools.el (rmail-get-new-mail):
+* mail/reporter.el (mail-position-on-field, mail-text):
+* mail/rmail.el (mail-position-on-field, mail-text-start)
+(rmail-update-summary):
+* mail/rmailedit.el (rmail-summary-disable)
+(rmail-summary-enable):
+* mail/rmailmsc.el (rmail-parse-file-inboxes)
+(rmail-show-message):
+* mail/rmailout.el (rmail-update-summary):
+* mail/rmailsort.el (rmail-update-summary):
+* mail/sendmail.el (dired-move-to-filename, dired-get-filename)
+(dired-view-file):
+* mail/uce.el (mail-strip-quoted-names):
+* mail/undigest.el (rmail-update-summary):
+* mail/unrmail.el (mail-strip-quoted-names):
+* ediff.el (diff-latest-backup-file): Declare as functions.
+
+* obsolete/mlsupport.el (ml-previous-page): Fix typo.
+(kill-to-end-of-line):
+* obsolete/rnews.el (news-set-minor-modes): Remove non working
+functions.
+----------------------------
+revision 1.35 (irrelevant)
+date: 2007-07-26 05:27:14 +0000;  author: miles;  state: Exp;  lines: +1 -1;  commitid: IKTBbGNFxqtbNers;
+Merge from emacs--rel--22
+
+Patches applied:
+
+ * emacs--rel--22  (patch 70-73)
+
+   - Update from CVS
+
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+   * Relicense all FSF files to GPLv3 or later.
+
+Revision: emacs@sv.gnu.org/emacs--devo--0--patch-828
+----------------------------
+revision 1.34 (patched)
+date: 2007-01-21 02:59:07 +0000;  author: gm;  state: Exp;  lines: +1 -1;
+branches:  1.34.2;  1.34.4;
+Add 2007 to copyright years.
+----------------------------
+revision 1.33 (patched)
+date: 2006-02-06 12:31:40 +0000;  author: ttn;  state: Exp;  lines: +1 -1;
+Update years in copyright notice; nfc.
+----------------------------
+revision 1.32 (applied)
+date: 2005-08-06 18:54:05 +0000;  author: ttn;  state: Exp;  lines: +2 -1;
+Update years in copyright notice; nfc.
+----------------------------
+revision 1.31 (irrelevant)
+date: 2005-07-04 17:46:22 +0000;  author: lute;  state: Exp;  lines: +2 -2;
+Update FSF's address.
+----------------------------
+revision 1.30 (applied)
+date: 2003-09-01 15:45:32 +0000;  author: miles;  state: Exp;  lines: +1 -0;
+branches:  1.30.4;
+Add arch taglines
+----------------------------

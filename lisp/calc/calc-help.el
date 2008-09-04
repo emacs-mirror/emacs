@@ -416,8 +416,7 @@ C-w  Describe how there is no warranty for Calc."
 (defun calc-full-help ()
   (interactive)
   (with-output-to-temp-buffer "*Help*"
-    (princ (format "GNU Emacs Calculator version %s.\n"
-		   calc-version))
+    (princ "GNU Emacs Calculator.\n")
     (princ "  By Dave Gillespie.\n")
     (princ (format "  %s\n\n" emacs-copyright))
     (princ "Type `h s' for a more detailed summary.\n")

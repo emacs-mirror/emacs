@@ -1,3 +1,19 @@
+2008-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* org-mac-message.el (do-applescript): Fix declaration.
+
+2008-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* org-exp.el (org-export-as-html): Let-bind `i'.
+
+	* org.el (org-renumber-ordered-list): Fix bob/bobp typo.
+	(org-extract-attributes): Let-bind `key', `value'.
+	(org-make-tags-matcher): Let-bind `time-p'.
+
+2008-07-27  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-install.el: New file.
+
 2008-07-26  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-exp.el (org-export-html-style)

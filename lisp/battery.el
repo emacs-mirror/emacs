@@ -47,6 +47,10 @@
 	((and (eq system-type 'gnu/linux)
 	      (file-directory-p "/proc/acpi/battery"))
 	 'battery-linux-proc-acpi)
+	((and (eq system-type 'gnu/linux)
+	      (file-directory-p "/sys/class/power_supply/")
+	      (directory-files "/sys/class/power_supply/" nil "BAT[0-9]$"))
+	 'battery-linux-sysfs)
 	((and (eq system-type 'darwin)
 	      (condition-case nil
 		  (with-temp-buffer
@@ -70,6 +74,8 @@ introduced by a `%' character in a control string."
 (defcustom battery-echo-area-format
   (cond ((eq battery-status-function 'battery-linux-proc-acpi)
 	 "Power %L, battery %B at %r (%p%% load, remaining time %t)")
+	((eq battery-status-function 'battery-linux-sysfs)
+	 "Power %L, battery %B (%p%% load)")
 	((eq battery-status-function 'battery-pmset)
 	 "%L power, battery %B (%p%% load, remaining time %t)")
 	(battery-status-function
@@ -276,7 +282,7 @@ The following %-sequences are provided:
 
 (defun battery-linux-proc-acpi ()
   "Get ACPI status information from Linux kernel.
-This function works only with the new `/proc/acpi/' format introduced
+This function works only with the `/proc/acpi/' format introduced
 in Linux version 2.4.20 and 2.6.0.
 
 The following %-sequences are provided:
@@ -388,6 +394,85 @@ The following %-sequences are provided:
 			     (floor (/ capacity
 				       (/ (float full-capacity) 100)))))
 		       "N/A")))))
+
+
+;;; `/sys/class/power_supply/BATN' interface for Linux.
+
+(defun battery-linux-sysfs ()
+  "Get ACPI status information from Linux kernel.
+This function works only with the new `/sys/class/power_supply/'
+format introduced in Linux version 2.4.25.
+
+The following %-sequences are provided:
+%c Current capacity (mAh or mWh)
+%B Battery status (verbose)
+%p Battery load percentage
+%L AC line status (verbose)"
+  (let (charging-state
+	(charge-full 0.0)
+	(charge-now 0.0)
+	(energy-full 0.0)
+	(energy-now 0.0))
+    ;; SysFS provides information about each battery present in the
+    ;; system in a separate subdirectory.  We are going to merge the
+    ;; available information together.
+    (with-temp-buffer
+      (dolist (dir (ignore-errors
+		    (directory-files
+		     "/sys/class/power_supply/" t "BAT[0-9]$")))
+	(erase-buffer)
+	(ignore-errors (insert-file-contents
+			(expand-file-name "uevent" dir)))
+	(when (re-search-forward "POWER_SUPPLY_PRESENT=1$" nil t)
+	  (goto-char (point-min))
+	  (and (re-search-forward "POWER_SUPPLY_STATUS=\\(.*\\)$" nil t)
+	       (member charging-state '("Unknown" "Full" nil))
+	       (setq charging-state (match-string 1)))
+	  (let (full-string now-string)
+	    ;; Sysfs may list either charge (mAh) or energy (mWh).
+	    ;; Keep track of both, and choose which to report later.
+	    (cond ((and (re-search-forward
+			 "POWER_SUPPLY_CHARGE_FULL=\\([0-9]*\\)$" nil t)
+			(setq full-string (match-string 1))
+			(re-search-forward
+			 "POWER_SUPPLY_CHARGE_NOW=\\([0-9]*\\)$" nil t)
+			(setq now-string (match-string 1)))
+		   (setq charge-full (+ charge-full
+					(string-to-number full-string))
+			 charge-now  (+ charge-now
+					(string-to-number now-string))))
+		  ((and (re-search-forward
+			 "POWER_SUPPLY_ENERGY_FULL=\\([0-9]*\\)$" nil t)
+			(setq full-string (match-string 1))
+			(re-search-forward
+			 "POWER_SUPPLY_ENERGY_NOW=\\([0-9]*\\)$" nil t)
+			(setq now-string (match-string 1)))
+		   (setq energy-full (+ energy-full
+					(string-to-number full-string))
+			 energy-now  (+ energy-now
+					(string-to-number now-string)))))))))
+    (list (cons ?c (cond ((or (> charge-full 0) (> charge-now 0))
+			  (number-to-string charge-now))
+			 ((or (> energy-full 0) (> energy-now 0))
+			  (number-to-string energy-now))
+			 (t "N/A")))
+	  (cons ?B (or charging-state "N/A"))
+	  (cons ?p (cond ((> charge-full 0)
+			  (format "%.1f"
+				  (/ (* 100 charge-now) charge-full)))
+			 ((> energy-full 0)
+			  (format "%.1f"
+				  (/ (* 100 energy-now) energy-full)))
+			 (t "N/A")))
+	  (cons ?L (if (file-readable-p "/sys/class/power_supply/AC/online")
+		       (if (battery-search-for-one-match-in-files
+			    (list "/sys/class/power_supply/AC/online"
+				  "/sys/class/power_supply/ACAD/online")
+			    "1" 0)
+			   "AC"
+			 "BAT")
+		     "N/A")))))
+
 
 
 ;;; `pmset' interface for Darwin (OS X).

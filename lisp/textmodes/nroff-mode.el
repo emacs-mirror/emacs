@@ -144,6 +144,14 @@ closing requests for requests that are used in matched pairs."
        (concat "[.']\\|" paragraph-start))
   (set (make-local-variable 'paragraph-separate)
        (concat "[.']\\|" paragraph-separate))
+  ;; Don't auto-fill directive lines starting . or ' since they normally
+  ;; have to be one line.  But do auto-fill comments .\" .\# and '''.
+  ;; Comment directives (those starting . or ') are [.'][ \t]*\\[#"]
+  ;; or ''', and this regexp is everything except those.  So [.']
+  ;; followed by not backslash and not ' or followed by backslash but
+  ;; then not # or "
+  (set (make-local-variable 'auto-fill-inhibit-regexp)
+       "[.'][ \t]*\\([^ \t\\']\\|\\\\[^#\"]\\)")
   ;; comment syntax added by mit-erl!gildea 18 Apr 86
   (set (make-local-variable 'comment-start) "\\\" ")
   (set (make-local-variable 'comment-start-skip) "\\\\[\"#][ \t]*")

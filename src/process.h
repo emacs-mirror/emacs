@@ -152,7 +152,7 @@ extern int synch_process_termsig;
 extern int synch_process_retcode;
 
 /* The name of the file open to get a null file, or a data sink.
-   VMS, MS-DOS, and OS/2 redefine this.  */
+   MS-DOS, and OS/2 redefine this.  */
 #ifndef NULL_DEVICE
 #define NULL_DEVICE "/dev/null"
 #endif
@@ -160,6 +160,14 @@ extern int synch_process_retcode;
 /* Nonzero means don't run process sentinels.  This is used
    when exiting.  */
 extern int inhibit_sentinels;
+
+extern Lisp_Object w32_list_system_processes P_ ((void));
+extern Lisp_Object w32_system_process_attributes P_ ((Lisp_Object));
+
+extern Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname;
+extern Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime;
+extern Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
+extern Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtpgid, Qcstime;
 
 /* arch-tag: dffedfc4-d7bc-4b58-a26f-c16155449c72
    (do not change this comment) */

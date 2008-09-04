@@ -1261,7 +1261,9 @@ If `vera-intelligent-tab' is nil, always indent line."
   (interactive "*P")
   (if vera-intelligent-tab
       (progn
-	(cond ((memq (char-syntax (preceding-char)) '(?w ?_))
+	(cond ((and (not (featurep 'xemacs)) (use-region-p))
+	       (vera-indent-region (region-beginning) (region-end) nil))
+	      ((memq (char-syntax (preceding-char)) '(?w ?_))
 	       (let ((case-fold-search t)
 		     (case-replace nil)
 		     (hippie-expand-only-buffers

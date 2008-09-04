@@ -1683,6 +1683,9 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
 
 /* Lisp functions for creating and removing buffer-local variables.  */
 
+/* Obsolete since 22.2.  NB adjust doc of modify-frame-parameters
+   when/if this is removed.  */
+
 DEFUN ("make-variable-frame-local", Fmake_variable_frame_local, Smake_variable_frame_local,
        1, 1, "vMake Variable Frame Local: ",
        doc: /* Enable VARIABLE to have frame-local bindings.
@@ -1699,7 +1702,9 @@ The only way to create a frame-local binding for VARIABLE in a frame
 is to set the VARIABLE frame parameter of that frame.  See
 `modify-frame-parameters' for how to set frame parameters.
 
-Buffer-local bindings take precedence over frame-local bindings.  */)
+Note that since Emacs 23.1, variables cannot be both buffer-local and
+frame-local any more (buffer-local bindings used to take precedence over
+frame-local bindings).  */)
      (variable)
      register Lisp_Object variable;
 {
@@ -3285,10 +3290,6 @@ arith_error (signo)
      must reestablish each time */
   signal (signo, arith_error);
 #endif /* USG */
-#ifdef VMS
-  /* VMS systems are like USG.  */
-  signal (signo, arith_error);
-#endif /* VMS */
   sigsetmask (SIGEMPTYMASK);
 
   SIGNAL_THREAD_CHECK (signo);

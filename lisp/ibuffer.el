@@ -1245,8 +1245,7 @@ a new window in the current frame, splitting vertically."
 				  dired-directory
 				(car dired-directory)))
 			 (bound-and-true-p list-buffers-directory))))
-	(and dirname (expand-file-name dirname)))
-      ""))
+	(and dirname (expand-file-name dirname)))))
 
 (define-ibuffer-op ibuffer-do-save ()
   "Save marked buffers as with `save-buffer'."
@@ -1768,7 +1767,7 @@ If point is on a group name, this function operates on that group."
 	     (t (format "%d files" total))))))
   (let ((directory-abbrev-alist ibuffer-directory-abbrev-alist))
     (abbreviate-file-name
-     (ibuffer-buffer-file-name))))
+     (or (ibuffer-buffer-file-name) ""))))
 
 (define-ibuffer-column filename-and-process
   (:name "Filename/Process"

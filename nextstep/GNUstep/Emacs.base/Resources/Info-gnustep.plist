@@ -10,7 +10,7 @@
 	"Scott Bender (OpenStep)",
 	"Christian Limpach (NeXTStep)",
 	"Carl Edman (NeXTStep)",
-	"..see http://emacs-app.sf.net"
+	"..see http://emacs-app.sf.net/authorship.html"
     );
     Copyright = "Copyright (C) 2008 Free Software Foundation, Inc.";
     CopyrightDescription = "Released under the GNU General Public License Version 3 or later";
@@ -133,5 +133,5 @@
 	    };
 	},
     );
-    URL = "http://emacs-app.sf.net";
+    URL = "http://www.gnu.org/software/emacs";
 }

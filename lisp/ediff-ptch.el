@@ -61,7 +61,7 @@ case the default value for this variable should be changed."
 
 ;; the default backup extension
 (defconst ediff-default-backup-extension
-  (if (memq system-type '(vax-vms axp-vms emx ms-dos))
+  (if (memq system-type '(emx ms-dos))
       "_orig" ".orig"))
 
 

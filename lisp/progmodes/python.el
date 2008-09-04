@@ -1547,7 +1547,9 @@ buffer for a list of commands.)"
   ;; invoked.  Would support multiple processes better.
   (when (or new (not (comint-check-proc python-buffer)))
     (with-current-buffer
-	(let* ((cmdlist (append (python-args-to-list cmd) '("-i")))
+	(let* ((cmdlist
+		(append (python-args-to-list cmd)
+			'("-i" "-c" "import sys; sys.path.remove('')")))
 	       (path (getenv "PYTHONPATH"))
 	       (process-environment	; to import emacs.py
 		(cons (concat "PYTHONPATH="

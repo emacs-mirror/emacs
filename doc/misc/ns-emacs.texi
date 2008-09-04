@@ -12,11 +12,35 @@
 @finalout
 @end iftex
 
+@copying
+This document describes Emacs.app for GNUstep and MacOS X.
+
+Copyright @copyright{} 1994, 1997, 2005, 2006, 2007, 2008 Free Software
+Foundation, Inc.
+
+Copyright @copyright{} 2001 Christophe de Dinechin.
+Copyright @copyright{} 1997 Christian Limpach.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''.
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
+developing GNU and promoting software freedom.''
+@end quotation
+@end copying
+
+
 @titlepage
 @sp 10
 @center @titlefont{Emacs.app}
 
-@center (Version 9.0-rc1, April, 2006)
+@center (Version 9.0-rc3, November, 2007)
 
 @sp 2
 @center Carl Edman
@@ -31,33 +55,6 @@
 @sp 2
 
 @end titlepage
-
-@unnumbered Distribution
-@*
-Copyright @copyright{} 1994 Carl Edman.@*
-Copyright @copyright{} 1997 Christian Limpach.
-Copyright @copyright{} 1997 Scott Bender.
-Copyright @copyright{} 2001 Christophe de Dinechin.
-Copyright @copyright{} 2005-07 Adrian Robert.
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-@ignore
-Permission is granted to process this file through Tex and print the
-results, provided the printed document carries copying permission
-notice identical to this one except for the removal of this paragraph
-(this paragraph not being relevant to the printed manual).
-
-@end ignore
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided that the entire
-resulting derived work is distributed under the terms of a permission
-notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the same conditions as for modified versions.
 
 @ignore
 @menu
@@ -74,10 +71,9 @@ into another language, under the same conditions as for modified versions.
 @top Emacs.app
 
 Emacs.app for GNUstep and MacOS X (http://emacs-app.sf.net) is a version of
-GNU Emacs CVS unicode-2 branch (currently planned to be released as Emacs 23)
-which adds support for the GNUstep and MacOS X systems via the OpenStep APIs
-(referred to as "Cocoa" under OS X).  Support for NeXTstep, OpenStep, and
-Rhapsody systems has been dropped.  For those systems, use "Emacs-on-Aqua",
+GNU Emacs which adds support for the GNUstep and MacOS X systems via the
+OpenStep APIs (referred to as "Cocoa" under OS X).  For support for
+NeXTstep, OpenStep, and Rhapsody systems, try the older "Emacs-on-Aqua",
 available at http://emacs-on-aqua.sf.net.
 
 This port leaves most of the core functions of Emacs unchanged and is
@@ -159,7 +155,7 @@ menu, or through the standard Cmd-t and Cmd-C.  These are easier to use than
 Emacs's own methods for setting these items.  To use the color panel, drag
 from it to an emacs frame.  The foreground (or background, if shift is held
 down) of the face at that point will be changed.  To finalize settings for
-either color or font, choose 'Save Preferences' from under the Help menu.  To
+either color or font, choose 'Save Options' from under the Options menu.  To
 discard these settings, create a new frame and close the altered one.
 
 @item
@@ -449,15 +445,16 @@ combo box.
 @node Customization, Tips and Tricks, Preferences Panel, Top
 @section Customization
 
-Under X, resources are used to customize the behavior of Emacs to the needs of
-the user.  These resources are queried programmatically with the
-@code{x-get-resource} function.  Under NS defaults fulfill a similar function.
-They can be read using the @code{ns-get-resource} function.  Calls to
-@code{x-get-resource} are automatically mapped to @code{ns-get-resource}.
-From the command line, the command `@code{defaults read Emacs}' will show
-these resources as of last Emacs quit, and individual resources can be
-read/written by commands like `@code{defaults read Emacs Foo}' and
-`@code{defaults write Emacs Foo barvalue}'.
+Under X, resources are used to customize the behavior of Emacs to the
+needs of the user.  These resources are queried programmatically with
+the @code{x-get-resource} function.  Under NS defaults fulfill a
+similar function.  They can be read using the @code{ns-get-resource}
+function.  Calls to @code{x-get-resource} are automatically mapped to
+@code{ns-get-resource}.  From the command line, the command
+`@code{defaults read org.gnu.Emacs}' will show these resources as of
+last Emacs quit, and individual resources can be read/written by
+commands like `@code{defaults read Emacs Foo}' and `@code{defaults
+write Emacs Foo barvalue}'.
 
 Calling the function @code{ns-save-preferences} in lisp, or selecting ``Save
 Options'' from the 'Options' menu will automatically write out the defaults
@@ -982,8 +979,7 @@ Also a number of others have contributed code.  Steve Nygard
 <nygard@@telusplanet.net> got emacs to dump under OpenStep.  The font panel
 code was Andrew Athan's <athan@@object.com> work.  Joe Reiss
 <jreiss@@magnus.acs.ohio-state.edu> both created the beautiful icons you see
-and wrote the popup menu and dialog box code as well as much else.  (Actually,
-Joe's icon became the one used for the Mac Carbon port..)
+and wrote the popup menu and dialog box code as well as much else.
 
 Finally, suggestions from Darcy Brockbank, Timothy Bissell, Scott Byer, David
 Griffiths, Scott Hess, Eberhard Mandler, John C. Randolph, and Bradley Taylor

@@ -1451,7 +1451,7 @@ instead of a single condition name.  Then it handles all of them.
 
 When a handler handles an error, control returns to the `condition-case'
 and it executes the handler's BODY...
-with VAR bound to (SIGNALED-CONDITIONS . SIGNAL-DATA) from the error.
+with VAR bound to (ERROR-SYMBOL . SIGNAL-DATA) from the error.
 (If VAR is nil, the handler can't access that information.)
 Then the value of the last BODY form is returned from the `condition-case'
 expression.
@@ -1949,6 +1949,36 @@ skip_debugger (conditions, data)
   return 0;
 }
 
+/* Call the debugger if calling it is currently enabled for CONDITIONS.
+   SIG and DATA describe the signal, as in find_handler_clause.  */
+
+static int
+maybe_call_debugger (conditions, sig, data)
+     Lisp_Object conditions, sig, data;
+{
+  Lisp_Object combined_data;
+
+  combined_data = Fcons (sig, data);
+
+  if (
+      /* Don't try to run the debugger with interrupts blocked.
+	 The editing loop would return anyway.  */
+      ! INPUT_BLOCKED_P
+      /* Does user want to enter debugger for this kind of error?  */
+      && (EQ (sig, Qquit)
+	  ? debug_on_quit
+	  : wants_debugger (Vdebug_on_error, conditions))
+      && ! skip_debugger (conditions, combined_data)
+      /* rms: what's this for? */
+      && when_entered_debugger < num_nonmacro_input_events)
+    {
+      call_debugger (Fcons (Qerror, Fcons (combined_data, Qnil)));
+      return 1;
+    }
+
+  return 0;
+}
+
 /* Value of Qlambda means we have called debugger and user has continued.
    There are two ways to pass SIG and DATA:
     = SIG is the error symbol, and DATA is the rest of the data.
@@ -1985,16 +2015,18 @@ find_handler_clause (handlers, conditions, sig, data)
     {
       if (!NILP (sig) && wants_debugger (Vstack_trace_on_error, conditions))
 	{
+	  max_lisp_eval_depth += 15;
 	  max_specpdl_size++;
-    #ifdef PROTOTYPES
+#ifdef PROTOTYPES
 	  internal_with_output_to_temp_buffer ("*Backtrace*",
 					       (Lisp_Object (*) (Lisp_Object)) Fbacktrace,
 					       Qnil);
-    #else
+#else
 	  internal_with_output_to_temp_buffer ("*Backtrace*",
 					       Fbacktrace, Qnil);
-    #endif
+#endif
 	  max_specpdl_size--;
+	  max_lisp_eval_depth -= 15;
 	}
 
       if (!debugger_considered)
@@ -2047,36 +2079,6 @@ find_handler_clause (handlers, conditions, sig, data)
     }
 
   return Qnil;
-}
-
-/* Call the debugger if calling it is currently enabled for CONDITIONS.
-   SIG and DATA describe the signal, as in find_handler_clause.  */
-
-int
-maybe_call_debugger (conditions, sig, data)
-     Lisp_Object conditions, sig, data;
-{
-  Lisp_Object combined_data;
-
-  combined_data = Fcons (sig, data);
-
-  if (
-      /* Don't try to run the debugger with interrupts blocked.
-	 The editing loop would return anyway.  */
-      ! INPUT_BLOCKED_P
-      /* Does user wants to enter debugger for this kind of error?  */
-      && (EQ (sig, Qquit)
-	  ? debug_on_quit
-	  : wants_debugger (Vdebug_on_error, conditions))
-      && ! skip_debugger (conditions, combined_data)
-      /* rms: what's this for? */
-      && when_entered_debugger < num_nonmacro_input_events)
-    {
-      call_debugger (Fcons (Qerror, Fcons (combined_data, Qnil)));
-      return 1;
-    }
-
-  return 0;
 }
 
 /* dump an error message; called like printf */

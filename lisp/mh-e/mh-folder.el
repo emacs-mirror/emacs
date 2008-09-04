@@ -1758,7 +1758,7 @@ If UPDATE, append the scan lines, otherwise replace."
       (goto-char scan-start)
       (cond ((looking-at "scan: no messages in")
              (keep-lines mh-scan-valid-regexp)) ; Flush random scan lines
-            ((looking-at (if (mh-variant-p 'mu-mh)
+            ((looking-at (if (mh-variant-p 'gnu-mh)
                              "scan: message set .* does not exist"
                            "scan: bad message list "))
              (keep-lines mh-scan-valid-regexp))

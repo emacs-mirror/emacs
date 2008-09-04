@@ -808,30 +808,21 @@ without having to answer no to the individual message prompts."
   :type 'boolean)
 
 
-;; I provided a default for VMS because someone asked for it (the
-;; normal default doesn't work there), but, puh-lease!, it is a user
-;; definable option, so if you don't like the default, change it to
-;; whatever you want.  I am unable to directly test the VMS goop
-;; provided here by levitte@lp.se (Richard Levitte - VMS Whacker).
 (defcustom feedmail-queue-directory
-  (if (memq system-type '(axp-vms vax-vms))
-      (expand-file-name (concat (getenv "HOME") "[.MAIL.Q]"))
-    (concat (getenv "HOME") "/mail/q"))
+  (concat (getenv "HOME") "/mail/q")
   "*Name of a directory where messages will be queued.
 Directory will be created if necessary.  Should be a string that
-doesn't end with a slash.  Default, except on VMS, is \"$HOME/mail/q\"."
+doesn't end with a slash.  Default is \"$HOME/mail/q\"."
   :group 'feedmail-queue
   :type 'string
   )
 
 
 (defcustom feedmail-queue-draft-directory
-  (if (memq system-type '(axp-vms vax-vms))
-      (expand-file-name (concat (getenv "HOME") "[.MAIL.DRAFT]"))
-    (concat (getenv "HOME") "/mail/draft"))
+  (concat (getenv "HOME") "/mail/draft")
   "*Name of a directory where draft messages will be queued.
 Directory will be created if necessary.  Should be a string that
-doesn't end with a slash.  Default, except on VMS, is \"$HOME/mail/draft\"."
+doesn't end with a slash.  Default is \"$HOME/mail/draft\"."
   :group 'feedmail-queue
   :type 'string
   )

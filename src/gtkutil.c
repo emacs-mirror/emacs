@@ -36,6 +36,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include <gdk/gdkkeysyms.h>
 
+#ifdef HAVE_XFT
+#include <X11/Xft/Xft.h>
+#endif
 
 #define FRAME_TOTAL_PIXEL_HEIGHT(f) \
   (FRAME_PIXEL_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f))

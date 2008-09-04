@@ -1085,7 +1085,7 @@ ae  -> ä
 aee -> ae
 oe  -> ö
 oee -> oe
-ue  -> ü
+ue  -> ü (not after a/e/q)
 uee -> ue
 sz  -> ß
 szz -> sz
@@ -1108,7 +1108,14 @@ szz -> sz
  ("UEE" ["UE"])
  ("uee" ["ue"])
  ("szz" ["sz"])
- )
+ ("ge" ["ge"])
+ ("eue" ["eue"])
+ ("Eue" ["Eue"])
+ ("aue" ["aue"])
+ ("Aue" ["Aue"])
+ ("que" ["que"])
+ ("Que" ["Que"]) 
+)
 
 (quail-define-package
  "icelandic-postfix" "Latin-1" "IS<" t

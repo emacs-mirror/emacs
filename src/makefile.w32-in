@@ -1405,6 +1405,7 @@ $(BLD)/w32uniscribe.$(O): \
 	$(CONFIG_H) \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
+	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/font.h \
 	$(SRC)/fontset.h \

@@ -61,14 +61,6 @@ typedef XImage *XImagePtr;
 typedef HDC XImagePtr_or_DC;
 #endif
 
-#ifdef MAC_OS
-#include "macgui.h"
-typedef struct mac_display_info Display_Info;
-/* Mac equivalent of XImage.  */
-typedef Pixmap XImagePtr;
-typedef XImagePtr XImagePtr_or_DC;
-#endif
-
 #ifdef HAVE_NS
 #include "nsgui.h"
 /* following typedef needed to accomodate the MSDOS port, believe it or not */
@@ -282,7 +274,7 @@ enum glyph_type
   /* Glyph describes a character.  */
   CHAR_GLYPH,
 
-  /* Glyph describes a composition sequence.  */
+  /* Glyph describes a static composition.  */
   COMPOSITE_GLYPH,
 
   /* Glyph describes an image.  */
@@ -398,8 +390,17 @@ struct glyph
     /* Character code for character glyphs (type == CHAR_GLYPH).  */
     unsigned ch;
 
-    /* Composition ID for composition glyphs (type == COMPOSITION_GLYPH)  */
-    unsigned cmp_id;
+    /* Sub-structures for type == COMPOSITION_GLYPH.  */
+    struct
+    {
+      /* Flag to tell if the composition is automatic or not.  */
+      unsigned automatic : 1;
+      /* ID of the composition.  */
+      unsigned id    : 23;
+      /* Start and end indices of glyhs of the composition.  */
+      unsigned from : 4;
+      unsigned to : 4;
+    } cmp;
 
     /* Image ID for image glyphs (type == IMAGE_GLYPH).  */
     unsigned img_id;
@@ -1173,14 +1174,15 @@ struct glyph_string
   /* Font in which this string is to be drawn.  */
   struct font *font;
 
-  /* Non-null means this string describes (part of) a composition.
-     All characters from char2b are drawn composed.  */
+  /* Non-null means this string describes (part of) a static
+     composition.  */
   struct composition *cmp;
 
-  /* Index of this glyph string's first character in the glyph
-     definition of CMP.  If this is zero, this glyph string describes
-     the first character of a composition.  */
-  int gidx;
+  /* If not negative, this string describes a compos.  */
+  int cmp_id;
+
+  /* Start and end glyph indices in a glyph-string.  */
+  int cmp_from, cmp_to;
 
   /* 1 means this glyph strings face has to be drawn to the right end
      of the window's drawing area.  */
@@ -1220,7 +1222,7 @@ struct glyph_string
   unsigned padding_p : 1;
 
   /* The GC to use for drawing this glyph string.  */
-#if defined(HAVE_X_WINDOWS) || defined(MAC_OS)
+#if defined(HAVE_X_WINDOWS)
   GC gc;
 #endif
 #if defined(HAVE_NTGUI)
@@ -1782,7 +1784,7 @@ enum display_element_type
   /* A normal character.  */
   IT_CHARACTER,
 
-  /* A composition sequence.  */
+  /* A composition (static and automatic).  */
   IT_COMPOSITION,
 
   /* An image.  */
@@ -1846,7 +1848,6 @@ struct it_slice
 enum it_method {
   GET_FROM_BUFFER = 0,
   GET_FROM_DISPLAY_VECTOR,
-  GET_FROM_COMPOSITION,
   GET_FROM_STRING,
   GET_FROM_C_STRING,
   GET_FROM_IMAGE,
@@ -1855,6 +1856,30 @@ enum it_method {
 };
 
 #define IT_STACK_SIZE 4
+
+/* Iterator for composition (both for static and automatic).  */
+struct composition_it
+{
+  /* Next position at which to check the composition.  */
+  EMACS_INT stop_pos;
+  /* ID number of the composition or glyph-string.  If negative, we
+     are not iterating over a composition now.  */
+  int id;
+  /* If non-negative, character that triggers the automatic
+     composition at `stop_pos', and this is an automatic compositoin.
+     If negative, this is a static composition..  */
+  int ch;
+  /* If non-negative, number of glyphs of the glyph-string.  */
+  int nglyphs;
+  /* Number of characters and bytes of the current grapheme cluster.  */
+  int nchars, nbytes;
+  /* Indices of the glyphs for the current grapheme cluster.  */
+  int from, to;
+  /* Width of the current grapheme cluster in units of pixels on a
+     graphic display and in units of canonical characters on a
+     terminal display.  */
+  int width;
+};
 
 struct it
 {
@@ -1978,6 +2003,7 @@ struct it
     int string_nchars;
     int end_charpos;
     int stop_charpos;
+    struct composition_it cmp_it;
     int face_id;
 
     /* Save values specific to a given method.  */
@@ -1991,8 +2017,6 @@ struct it
       /* method == GET_FROM_COMPOSITION */
       struct {
 	Lisp_Object object;
-	int c, len;
-	int cmp_id, cmp_len;
       } comp;
       /* method == GET_FROM_STRETCH */
       struct {
@@ -2089,9 +2113,9 @@ struct it
      and length in bytes of the composition.  */
   int c, len;
 
-  /* If what == IT_COMPOSITION, identification number and length in
-     chars of a composition.  */
-  int cmp_id, cmp_len;
+  /* If what == IT_COMPOSITION, iterator substructure for the
+     composition.  */
+  struct composition_it cmp_it;
 
   /* The character to display, possibly translated to multibyte
      if unibyte_display_via_language_environment is set.  This
@@ -2814,10 +2838,6 @@ void compute_fringe_widths P_ ((struct frame *, int));
 void w32_init_fringe P_ ((struct redisplay_interface *));
 void w32_reset_fringes P_ ((void));
 #endif
-#ifdef MAC_OS
-void mac_init_fringe P_ ((struct redisplay_interface *));
-#endif
-
 /* Defined in image.c */
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2922,9 +2942,6 @@ void gamma_correct P_ ((struct frame *, XColor *));
 #endif
 #ifdef WINDOWSNT
 void gamma_correct P_ ((struct frame *, COLORREF *));
-#endif
-#ifdef MAC_OS
-void gamma_correct P_ ((struct frame *, unsigned long *));
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM

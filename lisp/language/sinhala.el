@@ -33,7 +33,7 @@
 (set-char-table-range 
  composition-function-table
  '(#xD80 . #xDFF)
- (list (cons "[\xD80-\xDFF\x200C\x200D]+" 'font-shape-text)))
+ (list (vector "[\xD80-\xDFF\x200C\x200D]+" 0 'font-shape-gstring)))
 
 ;; arch-tag: 87b9ad3b-5090-422f-b942-eb85b9d52e7c
 ;; sinhala.el ends here

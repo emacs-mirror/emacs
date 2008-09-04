@@ -72,6 +72,10 @@ opinions.
 Summary of changes to "Calc"
 ------- -- ------- --  ----
 
+Emacs 23.1:
+
+* Remove version numbering; use Emacs version for reference.
+
 * Added support for using registers.
 
 * Added support for Yacas, Maxima and Giac languages.

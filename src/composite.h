@@ -38,8 +38,6 @@ enum composition_method {
   COMPOSITION_WITH_ALTCHARS,
   /* Compose by specified composition rules with alternate characters.  */
   COMPOSITION_WITH_RULE_ALTCHARS,
-  /* Compose by specified lispy glyph-string.  */
-  COMPOSITION_WITH_GLYPH_STRING,
   /* This is not a method.  */
   COMPOSITION_NO
 };
@@ -90,10 +88,6 @@ extern Lisp_Object composition_temp;
        ? COMPOSITION_RELATIVE						\
        : (INTEGERP (composition_temp) || STRINGP (composition_temp))	\
        ? COMPOSITION_WITH_ALTCHARS					\
-       : (VECTORP (composition_temp)					\
-	  && ASIZE (composition_temp) >= 2				\
-	  && VECTORP (AREF (composition_temp, 0)))			\
-       ? COMPOSITION_WITH_GLYPH_STRING					\
        : COMPOSITION_WITH_RULE_ALTCHARS)))
 
 /* Return 1 if the composition is valid.  It is valid if length of
@@ -216,6 +210,7 @@ extern Lisp_Object composition_hash_table;
 extern Lisp_Object Qauto_composed;
 extern Lisp_Object Vauto_composition_function;
 extern Lisp_Object Qauto_composition_function;
+extern Lisp_Object Vcomposition_function_table;
 
 extern int get_composition_id P_ ((int, int, int, Lisp_Object, Lisp_Object));
 extern int find_composition P_ ((int, int, EMACS_INT *, EMACS_INT *, Lisp_Object *,
@@ -228,8 +223,107 @@ extern void syms_of_composite P_ ((void));
 extern void compose_text P_ ((int, int, Lisp_Object, Lisp_Object,
 			      Lisp_Object));
 
+/* Macros for lispy glyph-string.  This is completely different from
+   struct glyph_string.  */
+
+#define LGSTRING_HEADER(lgs) AREF (lgs, 0)
+#define LGSTRING_SET_HEADER(lgs, header) ASET (lgs, 0, header)
+
+#define LGSTRING_FONT(lgs) AREF (LGSTRING_HEADER (lgs), 0)
+#define LGSTRING_CHAR(lgs, i) AREF (LGSTRING_HEADER (lgs), (i) + 1)
+#define LGSTRING_CHAR_LEN(lgs) (ASIZE (LGSTRING_HEADER (lgs)) - 1)
+
+#define LGSTRING_SET_FONT(lgs, val) ASET (LGSTRING_HEADER (lgs), 0, (val))
+#define LGSTRING_SET_CHAR(lgs, i, c) ASET (LGSTRING_HEADER (lgs), (i) + 1, (c))
+
+#define LGSTRING_ID(lgs) AREF (lgs, 1)
+#define LGSTRING_SET_ID(lgs, id) ASET (lgs, 1, id)
+
+#define LGSTRING_GLYPH_LEN(lgs) (ASIZE ((lgs)) - 2)
+#define LGSTRING_GLYPH(lgs, idx) AREF ((lgs), (idx) + 2)
+#define LGSTRING_SET_GLYPH(lgs, idx, val) ASET ((lgs), (idx) + 2, (val))
+
+/* Vector size of Lispy glyph.  */
+enum lglyph_indices
+  {
+    LGLYPH_IX_FROM, LGLYPH_IX_TO,  LGLYPH_IX_CHAR, LGLYPH_IX_CODE,
+    LGLYPH_IX_WIDTH, LGLYPH_IX_LBEARING, LGLYPH_IX_RBEARING,
+    LGLYPH_IX_ASCENT, LGLYPH_IX_DESCENT, LGLYPH_IX_ADJUSTMENT,
+    /* Not an index.  */
+    LGLYPH_SIZE
+  };
+
+#define LGLYPH_NEW() Fmake_vector (make_number (LGLYPH_SIZE), Qnil)
+#define LGLYPH_FROM(g) XINT (AREF ((g), LGLYPH_IX_FROM))
+#define LGLYPH_TO(g) XINT (AREF ((g), LGLYPH_IX_TO))
+#define LGLYPH_CHAR(g) XINT (AREF ((g), LGLYPH_IX_CHAR))
+#define LGLYPH_CODE(g)						\
+  (NILP (AREF ((g), LGLYPH_IX_CODE))				\
+   ? FONT_INVALID_CODE						\
+   : CONSP (AREF ((g), LGLYPH_IX_CODE))				\
+   ? ((XFASTINT (XCAR (AREF ((g), LGLYPH_IX_CODE))) << 16)	\
+      | (XFASTINT (XCDR (AREF ((g), LGLYPH_IX_CODE)))))		\
+   : XFASTINT (AREF ((g), LGLYPH_IX_CODE)))
+#define LGLYPH_WIDTH(g) XINT (AREF ((g), LGLYPH_IX_WIDTH))
+#define LGLYPH_LBEARING(g) XINT (AREF ((g), LGLYPH_IX_LBEARING))
+#define LGLYPH_RBEARING(g) XINT (AREF ((g), LGLYPH_IX_RBEARING))
+#define LGLYPH_ASCENT(g) XINT (AREF ((g), LGLYPH_IX_ASCENT))
+#define LGLYPH_DESCENT(g) XINT (AREF ((g), LGLYPH_IX_DESCENT))
+#define LGLYPH_ADJUSTMENT(g) AREF ((g), LGLYPH_IX_ADJUSTMENT)
+#define LGLYPH_SET_FROM(g, val) ASET ((g), LGLYPH_IX_FROM, make_number (val))
+#define LGLYPH_SET_TO(g, val) ASET ((g), LGLYPH_IX_TO, make_number (val))
+#define LGLYPH_SET_CHAR(g, val) ASET ((g), LGLYPH_IX_CHAR, make_number (val))
+/* Callers must assure that VAL is not negative!  */
+#define LGLYPH_SET_CODE(g, val)						\
+  do {									\
+    if (val == FONT_INVALID_CODE)					\
+      ASET ((g), LGLYPH_IX_CODE, Qnil);					\
+    else if ((EMACS_INT)val > MOST_POSITIVE_FIXNUM)			\
+      ASET ((g), LGLYPH_IX_CODE, Fcons (make_number ((val) >> 16),	\
+					make_number ((val) & 0xFFFF)));	\
+    else								\
+      ASET ((g), LGLYPH_IX_CODE, make_number (val));			\
+  } while (0)
+      
+#define LGLYPH_SET_WIDTH(g, val) ASET ((g), LGLYPH_IX_WIDTH, make_number (val))
+#define LGLYPH_SET_LBEARING(g, val) ASET ((g), LGLYPH_IX_LBEARING, make_number (val))
+#define LGLYPH_SET_RBEARING(g, val) ASET ((g), LGLYPH_IX_RBEARING, make_number (val))
+#define LGLYPH_SET_ASCENT(g, val) ASET ((g), LGLYPH_IX_ASCENT, make_number (val))
+#define LGLYPH_SET_DESCENT(g, val) ASET ((g), LGLYPH_IX_DESCENT, make_number (val))
+#define LGLYPH_SET_ADJUSTMENT(g, val) ASET ((g), LGLYPH_IX_ADJUSTMENT, (val))
+
+#define LGLYPH_XOFF(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
+			? XINT (AREF (LGLYPH_ADJUSTMENT (g), 0)) : 0)
+#define LGLYPH_YOFF(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
+			? XINT (AREF (LGLYPH_ADJUSTMENT (g), 1)) : 0)
+#define LGLYPH_WADJUST(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
+			   ? XINT (AREF (LGLYPH_ADJUSTMENT (g), 2)) : 0)
+
+struct composition_it;
+struct face;
+struct font_metrics;
+
+extern Lisp_Object composition_gstring_put_cache P_ ((Lisp_Object, int));
+extern Lisp_Object composition_gstring_from_id P_ ((int));
+extern int composition_gstring_p P_ ((Lisp_Object));
+extern int composition_gstring_width P_ ((Lisp_Object, int, int,
+					  struct font_metrics *));
+
+extern void composition_compute_stop_pos P_ ((struct composition_it *,
+					      EMACS_INT, EMACS_INT, EMACS_INT,
+					      Lisp_Object));
+extern int composition_reseat_it P_ ((struct composition_it *,
+				      EMACS_INT, EMACS_INT, EMACS_INT,
+				      struct window *, struct face *,
+				      Lisp_Object));
+extern int composition_update_it P_ ((struct composition_it *,
+				      EMACS_INT, EMACS_INT, Lisp_Object));
+
+extern int composition_adjust_point P_ ((EMACS_INT));
+
 EXFUN (Fcompose_region_internal, 4);
 EXFUN (Fcompose_string_internal, 5);
+EXFUN (Fcomposition_get_gstring, 4);
 
 #endif /* not EMACS_COMPOSITE_H */
 

@@ -385,6 +385,7 @@ extern Lisp_Object Vx_pixel_size_width_font_regexp;
 
 extern struct x_display_info *x_display_info_for_display P_ ((Display *));
 extern struct x_display_info *x_display_info_for_name P_ ((Lisp_Object));
+extern void x_set_frame_alpha P_ ((struct frame *));
 
 extern struct x_display_info *x_term_init P_ ((Lisp_Object, char *, char *));
 extern int x_display_ok  P_ ((const char *));

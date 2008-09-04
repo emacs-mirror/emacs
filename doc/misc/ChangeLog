@@ -1,3 +1,105 @@
+2008-08-23  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Shell Command Guessing):
+	Mention dired-guess-shell-case-fold-search.  (Bug#417)
+
+2008-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trampver.texi: Update release number.
+
+2008-08-18  Brian Cully  <bjc@kublai.com>  (tiny change)
+
+	* ns-emacs.texi: Update version.
+	(Introduction): Correct menu location for options save.
+	(Customization): Note that defaults are stored under org.gnu.Emacs.
+
+2008-08-18  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.1.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.1.
+
+2008-08-11  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Getting Started): Rename variant mu-mh to gnu-mh and be
+	explicit about GNU mailutils MH elsewhere (with thanks to Darel
+	Henman) (closes SF #1768928).
+
+2008-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* ns-emacs.texi: Use @copying.  Change copyright of authors with
+	assignment to FSF.  Change license to GFDL.
+	(Top): Remove outdated references.
+
+2008-08-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Sorting the Summary Buffer, Summary Sorting): Add
+	gnus-summary-sort-by-most-recent-number and
+	gnus-summary-sort-by-most-recent-date.
+	(Summary Sorting): Explain prefix argument.
+
+2008-08-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Saving Articles): Mention symbolic prefix `r' for
+	gnus-summary-pipe-output.
+
+2008-08-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Receiving Method Calls): Document error handling of own
+	D-Bus methods.
+
+2008-08-01  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Reading Mail)
+	(Viewing Attachments):  Describe new function
+	mh-show-preferred-alternative.
+	(Sending Mail, Redistributing, Sending Message): Describe new hook
+	mh-annotate-msg-hook.
+
+2008-07-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Arguments and Signatures): Fix example.
+	(Synchronous Methods): New defun `dbus-call-method-non-blocking'.
+	(Asynchronous Methods): New node.
+	(Errors and Events): Describe extended layout of `dbus-event'.  New
+	defun `dbus-event-message-type'.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ediff.texi: Remove VMS support.
+
+2008-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add mairix-el.
+	($(infodir)/mairix-el), mairix-el.dvi): New targets.
+
+2008-07-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in: Add mairix-el targets.
+
+2008-07-29  David Engster  <deng@randomsample.de>
+
+	* mairix-el.texi: New file.
+
+2008-07-28  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* ada-mode.texi: Document using GNAT project files as Emacs Ada mode
+	project files.  Delete 'main_unit' project variable; not needed.  Allow
+	process environment variables wherever project variables are allowed.
+	Add tutorial section on multiple GNAT project files.
+
+2008-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.14.
+
+	* trampver.texi: Update release number.
+
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ns-emacs.texi:
+	* faq.texi: Remove mentions of Mac Carbon.
+
 2008-07-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Saving Articles): Describe the 2nd argument of

@@ -1,3 +1,30 @@
+2008-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* CPP-DEFINES: Add USER_FULL_NAME.
+
+2008-08-16  Jason Rumney  <jasonr@gnu.org>
+
+	* admin.el (set-version): Set version in nt/emacsclient.rc
+
+2008-08-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nt/dump.bat: Fix mixed EOLs.
+
+2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* CPP_DEFINES: Add DARWIN_OS.  Move USE_LISP_UNION_TYPE away from OS's.
+
+2008-08-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* CPP-DEFINES: Add defines for accessing system processes.
+
+2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* make-tarball.txt:
+	* admin.el:
+	* FOR-RELEASE:
+	* CPP-DEFINES: Remove mentions of Mac Carbon.
+
 2008-07-16  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-version, set-copyright): Add nextstep/ files.

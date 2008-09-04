@@ -83,8 +83,6 @@
     (tex	. "supporting code for the TeX formatter")
     (tools	. "programming tools")
     (unix	. "front-ends/assistants for, or emulators of, UNIX-like features")
-;; Not a custom group and not currently useful.
-;;    (vms	. "support code for vms")
     (wp		. "word processing")
     ))
 

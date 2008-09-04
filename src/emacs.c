@@ -27,10 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <sys/file.h>
 
-#ifdef VMS
-#include <ssdef.h>
-#endif
-
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -351,8 +347,8 @@ int fatal_error_in_progress;
 void (*fatal_error_signal_hook) P_ ((void));
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-/* When compiled with GTK and running under Gnome, or Carbon under Mac
-   OS X, multiple threads may be created.  Keep track of our main
+/* When compiled with GTK and running under Gnome,
+   multiple threads may be created.  Keep track of our main
    thread to make sure signals are delivered to it (see syssignal.h).  */
 
 pthread_t main_thread;
@@ -378,9 +374,6 @@ fatal_error_signal (sig)
       shut_down_emacs (sig, 0, Qnil);
     }
 
-#ifdef VMS
-  LIB$STOP (SS$_ABORT);
-#else
   /* Signal the same code; this time it will really be fatal.
      Remember that since we're in a signal handler, the signal we're
      going to send is probably blocked, so we have to unblock it if we
@@ -393,7 +386,6 @@ fatal_error_signal (sig)
     fatal_error_signal_hook ();
 
   kill (getpid (), fatal_error_code);
-#endif /* not VMS */
 }
 
 #ifdef SIGDANGER
@@ -591,14 +583,6 @@ DEFUN ("invocation-directory", Finvocation_directory, Sinvocation_directory,
 }
 
 
-#ifdef VMS
-#ifdef LINK_CRTL_SHARE
-#ifdef SHARABLE_LIB_BUG
-extern noshare char **environ;
-#endif /* SHARABLE_LIB_BUG */
-#endif /* LINK_CRTL_SHARE */
-#endif /* VMS */
-
 #ifdef HAVE_TZSET
 /* A valid but unlikely value for the TZ environment value.
    It is OK (though a bit slower) if the user actually chooses this value.  */
@@ -785,16 +769,7 @@ bug_reporting_address ()
 
 /* ARGSUSED */
 int
-main (argc, argv
-#ifdef VMS
-, envp
-#endif
-)
-     int argc;
-     char **argv;
-#ifdef VMS
-     char **envp;
-#endif
+main (int argc, char **argv)
 {
 #if GC_MARK_STACK
   Lisp_Object dummy;
@@ -837,7 +812,8 @@ main (argc, argv
     run_time_remap (argv[0]);
 #endif
 
-#if defined (MAC_OSX) || defined (NS_IMPL_COCOA)
+/* If using unexmacosx.c (set by s/darwin.h), we must do this. */
+#ifdef DARWIN_OS
   if (!initialized)
     unexec_init_emacs_zone ();
 #endif
@@ -920,42 +896,6 @@ main (argc, argv
       skip_args = 0;
     }
 #endif
-
-#ifdef MAC_OSX
-  /* Skip process serial number passed in the form -psn_x_y as
-     command-line argument.  The WindowServer adds this option when
-     Emacs is invoked from the Finder or by the `open' command.  In
-     these cases, the working directory becomes `/', so we change it
-     to the user's home directory.  */
-  if (argc > skip_args + 1 && strncmp (argv[skip_args+1], "-psn_", 5) == 0)
-    {
-      chdir (getenv ("HOME"));
-      skip_args++;
-    }
-#endif /* MAC_OSX */
-
-#ifdef VMS
-  /* If -map specified, map the data file in.  */
-  {
-    char *file;
-    if (argmatch (argv, argc, "-map", "--map-data", 3, &file, &skip_args))
-      mapin_data (file);
-  }
-
-#ifdef LINK_CRTL_SHARE
-#ifdef SHARABLE_LIB_BUG
-  /* Bletcherous shared libraries!  */
-  if (!stdin)
-    stdin = fdopen (0, "r");
-  if (!stdout)
-    stdout = fdopen (1, "w");
-  if (!stderr)
-    stderr = fdopen (2, "w");
-  if (!environ)
-    environ = envp;
-#endif /* SHARABLE_LIB_BUG */
-#endif /* LINK_CRTL_SHARE */
-#endif /* VMS */
 
 #if defined (HAVE_SETRLIMIT) && defined (RLIMIT_STACK)
   /* Extend the stack space available.
@@ -1284,27 +1224,6 @@ main (argc, argv
 	 CANNOT_DUMP is defined.  */
       syms_of_keyboard ();
 
-#ifdef MAC_OS8
-      /* init_window_once calls make_terminal_frame which on Mac OS
-         creates a full-fledge output_mac type frame.  This does not
-         work correctly before syms_of_textprop, syms_of_macfns,
-         syms_of_ccl, syms_of_fontset, syms_of_xterm, syms_of_search,
-         syms_of_frame, mac_term_init, and init_keyboard have already
-         been called.  */
-      syms_of_textprop ();
-      syms_of_macfns ();
-      syms_of_ccl ();
-      syms_of_fontset ();
-      syms_of_macterm ();
-      syms_of_macmenu ();
-      syms_of_macselect ();
-      syms_of_search ();
-      syms_of_frame ();
-
-      init_atimer ();
-      mac_term_init (build_string ("Mac"), NULL, NULL);
-      init_keyboard ();
-#endif
       /* Called before syms_of_fileio, because it sets up Qerror_condition.  */
       syms_of_data ();
       syms_of_fileio ();
@@ -1416,11 +1335,12 @@ main (argc, argv
           if (!strncmp(argv[skip_args], "-psn", 4))
             {
               skip_args += 1;
+              chdir (getenv ("HOME"));
             }
-          else
+          else if (skip_args+1 < argc && !strncmp(argv[skip_args+1], "-psn", 4))
             {
-              if (skip_args+1 < argc && !strncmp(argv[skip_args+1], "-psn", 4))
-                  skip_args += 2;
+              skip_args += 2;
+              chdir (getenv ("HOME"));
             }
         }
 #endif
@@ -1508,11 +1428,6 @@ main (argc, argv
   init_ntproc ();	/* must precede init_editfns.  */
 #endif
 
-#if defined (MAC_OSX) && defined (HAVE_CARBON)
-  if (initialized)
-    init_mac_osx_environment ();
-#endif
-
 #ifdef HAVE_NS
 #ifndef CANNOT_DUMP
   if (initialized)
@@ -1558,7 +1473,6 @@ main (argc, argv
       /* The basic levels of Lisp must come first.  */
       /* And data must come first of all
 	 for the sake of symbols like error-message.  */
-      /* Called before init_window_once for Mac OS Classic.  */
       syms_of_data ();
       syms_of_chartab ();
       syms_of_lread ();
@@ -1605,9 +1519,6 @@ main (argc, argv
 #endif
       syms_of_textprop ();
       syms_of_composite ();
-#ifdef VMS
-      syms_of_vmsproc ();
-#endif /* VMS */
 #ifdef WINDOWSNT
       syms_of_ntproc ();
 #endif /* WINDOWSNT */
@@ -1641,13 +1552,9 @@ main (argc, argv
       syms_of_fontset ();
 #endif /* HAVE_NTGUI */
 
-#if defined (MAC_OSX) && defined (HAVE_CARBON)
-      syms_of_macterm ();
-      syms_of_macfns ();
-      syms_of_macmenu ();
-      syms_of_macselect ();
-      syms_of_fontset ();
-#endif /* MAC_OSX && HAVE_CARBON */
+#ifdef MSDOS
+      syms_of_xmenu ();
+#endif	/* MSDOS */
 
 #ifdef HAVE_NS
       syms_of_nsterm ();
@@ -1692,16 +1599,8 @@ main (argc, argv
   init_editfns (); /* init_process uses Voperating_system_release. */
   init_process (); /* init_display uses add_keyboard_wait_descriptor. */
   init_keyboard ();	/* This too must precede init_sys_modes.  */
-#ifdef VMS
-  init_vmsproc ();	/* And this too.  */
-#endif /* VMS */
   if (!noninteractive)
-    {
-#ifdef VMS
-      init_vms_input ();/* init_display calls get_tty_size, that needs this.  */
-#endif /* VMS */
-      init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
-    }
+    init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
   init_fns ();
   init_xdisp ();
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1710,9 +1609,6 @@ main (argc, argv
 #endif /* HAVE_WINDOW_SYSTEM */
   init_macros ();
   init_floatfns ();
-#ifdef VMS
-  init_vmsfns ();
-#endif /* VMS */
 #ifdef HAVE_SOUND
   init_sound ();
 #endif
@@ -1817,9 +1713,6 @@ struct standard_args standard_args[] =
   { "-version", "--version", 150, 0 },
 #ifdef HAVE_SHM
   { "-nl", "--no-shared-memory", 140, 0 },
-#endif
-#ifdef VMS
-  { "-map", "--map-data", 130, 0 },
 #endif
   { "-t", "--terminal", 120, 1 },
   { "-nw", "--no-window-system", 110, 0 },
@@ -2099,12 +1992,6 @@ all of which are called before Emacs is actually killed.  */)
 
   UNGCPRO;
 
-/* Is it really necessary to do this deassign
-   when we are going to exit anyway?  */
-/* #ifdef VMS
-  stop_vms_input ();
- #endif  */
-
   shut_down_emacs (0, 0, STRINGP (arg) ? arg : Qnil);
 
   /* If we have an auto-save list file,
@@ -2170,10 +2057,6 @@ shut_down_emacs (sig, no_x, stuff)
 
 #ifdef CLASH_DETECTION
   unlock_all_files ();
-#endif
-
-#ifdef VMS
-  kill_vms_processes ();
 #endif
 
 #if 0 /* This triggers a bug in XCloseDisplay and is not needed.  */
@@ -2312,9 +2195,6 @@ You must run Emacs in batch mode in order to dump it.  */)
 #endif
 
   fflush (stdout);
-#ifdef VMS
-  mapout_data (SDATA (filename));
-#else
   /* Tell malloc where start of impure now is.  */
   /* Also arrange for warnings when nearly out of space.  */
 #ifndef SYSTEM_MALLOC
@@ -2345,7 +2225,6 @@ You must run Emacs in batch mode in order to dump it.  */)
 #ifdef DOUG_LEA_MALLOC
   free (malloc_state_ptr);
 #endif
-#endif /* not VMS */
 
   Vpurify_flag = tem;
 
@@ -2503,7 +2382,6 @@ Special values:
   `ms-dos'      compiled as an MS-DOS application.
   `windows-nt'  compiled as a native W32 application.
   `cygwin'      compiled using the Cygwin library.
-  `vax-vms'     compiled for a (Open)VMS system.
 Anything else indicates some sort of Unix system.  */);
   Vsystem_type = intern (SYSTEM_TYPE);
 

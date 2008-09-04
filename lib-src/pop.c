@@ -1254,11 +1254,12 @@ socket_connection (host, flags)
       krb5_free_principal (kcontext, server);
       if (rem)
 	{
+	  strcpy (pop_error, KRB_ERROR);
+	  strncat (pop_error, error_message (rem),
+		   ERROR_MAX - sizeof (KRB_ERROR));
+#if defined HAVE_KRB5_ERROR_TEXT
 	  if (err_ret && err_ret->text.length)
 	    {
-	      strcpy (pop_error, KRB_ERROR);
-	      strncat (pop_error, error_message (rem),
-		       ERROR_MAX - sizeof (KRB_ERROR));
 	      strncat (pop_error, " [server says '",
 		       ERROR_MAX - strlen (pop_error) - 1);
 	      strncat (pop_error, err_ret->text.data,
@@ -1267,12 +1268,17 @@ socket_connection (host, flags)
 	      strncat (pop_error, "']",
 		       ERROR_MAX - strlen (pop_error) - 1);
 	    }
-	  else
+#elif defined HAVE_KRB5_ERROR_E_TEXT
+	  if (err_ret && err_ret->e_text && strlen(*err_ret->e_text))
 	    {
-	      strcpy (pop_error, KRB_ERROR);
-	      strncat (pop_error, error_message (rem),
-		       ERROR_MAX - sizeof (KRB_ERROR));
+	      strncat (pop_error, " [server says '",
+		       ERROR_MAX - strlen (pop_error) - 1);
+	      strncat (pop_error, *err_ret->e_text,
+		       ERROR_MAX - strlen (pop_error) - 1);
+	      strncat (pop_error, "']",
+		       ERROR_MAX - strlen (pop_error) - 1);
 	    }
+#endif
 	  if (err_ret)
 	    krb5_free_error (kcontext, err_ret);
 	  krb5_auth_con_free (kcontext, auth_context);

@@ -23,8 +23,7 @@ For each step, check for possible errors.
 
 6.  Commit configure, README, doc/emacs/emacs.texi,
     doc/lispref/elisp.texi, etc/AUTHORS, lisp/version.el,    
-    mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings,
-    mac/src/Emacs.r, nt/emacs.rc.  Copy lisp/loaddefs.el to
+    nt/emacs.rc.  Copy lisp/loaddefs.el to
     lisp/ldefs-boot.el and commit lisp/ldefs-boot.el.  For a release,
     also commit the ChangeLog files in all directories.
 

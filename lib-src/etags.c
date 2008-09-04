@@ -59,14 +59,14 @@ University of California, as described above. */
 
 /*
  * Authors:
- * 1983	Ctags originally by Ken Arnold.
- * 1984	Fortran added by Jim Kleckner.
- * 1984	Ed Pelegri-Llopart added C typedefs.
- * 1985	Emacs TAGS format by Richard Stallman.
- * 1989	Sam Kendall added C++.
+ * 1983 Ctags originally by Ken Arnold.
+ * 1984 Fortran added by Jim Kleckner.
+ * 1984 Ed Pelegri-Llopart added C typedefs.
+ * 1985 Emacs TAGS format by Richard Stallman.
+ * 1989 Sam Kendall added C++.
  * 1992 Joseph B. Wells improved C and C++ parsing.
- * 1993	Francesco Potortì reorganized C and C++.
- * 1994	Line-by-line regexp tags by Tom Tromey.
+ * 1993 Francesco Potortì reorganized C and C++.
+ * 1994 Line-by-line regexp tags by Tom Tromey.
  * 2001 Nested classes by Francesco Potortì (concept by Mykola Dzyuba).
  * 2002 #line directives by Francesco Potortì.
  *
@@ -75,11 +75,11 @@ University of California, as described above. */
 
 /*
  * If you want to add support for a new language, start by looking at the LUA
- * language, which is the simplest.  Alternatively, consider shipping a
- * configuration file containing regexp definitions for etags.
+ * language, which is the simplest.  Alternatively, consider distributing etags
+ * together with a configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.38";
+char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -172,13 +172,8 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38";
    extern void exit __P((int));
    extern void free __P((void *));
    extern void *memmove __P((void *, const void *, unsigned long));
-#  ifdef VMS
-#   define EXIT_SUCCESS	1
-#   define EXIT_FAILURE	0
-#  else /* no VMS */
-#   define EXIT_SUCCESS	0
-#   define EXIT_FAILURE	1
-#  endif
+#  define EXIT_SUCCESS	0
+#  define EXIT_FAILURE	1
 # endif
 #endif /* !WINDOWSNT */
 
@@ -897,7 +892,7 @@ etags --help --lang=ada.");
 # define EMACS_NAME "standalone"
 #endif
 #ifndef VERSION
-# define VERSION "17.38"
+# define VERSION "17.38.1.4"
 #endif
 static void
 print_version ()
@@ -1094,131 +1089,6 @@ Relative ones are stored relative to the output file's directory.\n");
 }
 
 
-#ifdef VMS			/* VMS specific functions */
-
-#define	EOS	'\0'
-
-/* This is a BUG!  ANY arbitrary limit is a BUG!
-   Won't someone please fix this?  */
-#define	MAX_FILE_SPEC_LEN	255
-typedef struct	{
-  short   curlen;
-  char    body[MAX_FILE_SPEC_LEN + 1];
-} vspec;
-
-/*
- v1.05 nmm 26-Jun-86 fn_exp - expand specification of list of file names
- returning in each successive call the next file name matching the input
- spec. The function expects that each in_spec passed
- to it will be processed to completion; in particular, up to and
- including the call following that in which the last matching name
- is returned, the function ignores the value of in_spec, and will
- only start processing a new spec with the following call.
- If an error occurs, on return out_spec contains the value
- of in_spec when the error occurred.
-
- With each successive file name returned in out_spec, the
- function's return value is one. When there are no more matching
- names the function returns zero. If on the first call no file
- matches in_spec, or there is any other error, -1 is returned.
-*/
-
-#include	<rmsdef.h>
-#include	<descrip.h>
-#define		OUTSIZE	MAX_FILE_SPEC_LEN
-static short
-fn_exp (out, in)
-     vspec *out;
-     char *in;
-{
-  static long context = 0;
-  static struct dsc$descriptor_s o;
-  static struct dsc$descriptor_s i;
-  static bool pass1 = TRUE;
-  long status;
-  short retval;
-
-  if (pass1)
-    {
-      pass1 = FALSE;
-      o.dsc$a_pointer = (char *) out;
-      o.dsc$w_length = (short)OUTSIZE;
-      i.dsc$a_pointer = in;
-      i.dsc$w_length = (short)strlen(in);
-      i.dsc$b_dtype = DSC$K_DTYPE_T;
-      i.dsc$b_class = DSC$K_CLASS_S;
-      o.dsc$b_dtype = DSC$K_DTYPE_VT;
-      o.dsc$b_class = DSC$K_CLASS_VS;
-    }
-  if ((status = lib$find_file(&i, &o, &context, 0, 0)) == RMS$_NORMAL)
-    {
-      out->body[out->curlen] = EOS;
-      return 1;
-    }
-  else if (status == RMS$_NMF)
-    retval = 0;
-  else
-    {
-      strcpy(out->body, in);
-      retval = -1;
-    }
-  lib$find_file_end(&context);
-  pass1 = TRUE;
-  return retval;
-}
-
-/*
-  v1.01 nmm 19-Aug-85 gfnames - return in successive calls the
-  name of each file specified by the provided arg expanding wildcards.
-*/
-static char *
-gfnames (arg, p_error)
-     char *arg;
-     bool *p_error;
-{
-  static vspec filename = {MAX_FILE_SPEC_LEN, "\0"};
-
-  switch (fn_exp (&filename, arg))
-    {
-    case 1:
-      *p_error = FALSE;
-      return filename.body;
-    case 0:
-      *p_error = FALSE;
-      return NULL;
-    default:
-      *p_error = TRUE;
-      return filename.body;
-    }
-}
-
-#ifndef OLD  /* Newer versions of VMS do provide `system'.  */
-system (cmd)
-     char *cmd;
-{
-  error ("%s", "system() function not implemented under VMS");
-}
-#endif
-
-#define	VERSION_DELIM	';'
-char *massage_name (s)
-     char *s;
-{
-  char *start = s;
-
-  for ( ; *s; s++)
-    if (*s == VERSION_DELIM)
-      {
-	*s = EOS;
-	break;
-      }
-    else
-      *s = lowcase (*s);
-  return start;
-}
-#endif /* VMS */
-
-
 int
 main (argc, argv)
      int argc;
@@ -1231,9 +1101,6 @@ main (argc, argv)
   int current_arg, file_count;
   linebuffer filename_lb;
   bool help_asked = FALSE;
-#ifdef VMS
-  bool got_err;
-#endif
  char *optstring;
  int opt;
 
@@ -1384,7 +1251,7 @@ main (argc, argv)
     }
 
   if (tagfile == NULL)
-    tagfile = CTAGS ? "tags" : "TAGS";
+    tagfile = savestr (CTAGS ? "tags" : "TAGS");
   cwd = etags_getcwd ();	/* the current working directory */
   if (cwd[strlen (cwd) - 1] != '/')
     {
@@ -1392,12 +1259,16 @@ main (argc, argv)
       cwd = concat (oldcwd, "/", "");
       free (oldcwd);
     }
-  /* Relative file names are made relative to the current directory. */
+
+  /* Compute base directory for relative file names. */
   if (streq (tagfile, "-")
       || strneq (tagfile, "/dev/", 5))
-    tagfiledir = cwd;
+    tagfiledir = cwd;		 /* relative file names are relative to cwd */
   else
-    tagfiledir = absolute_dirname (tagfile, cwd);
+    {
+      canonicalize_filename (tagfile);
+      tagfiledir = absolute_dirname (tagfile, cwd);
+    }
 
   init ();			/* set up boolean "functions" */
 
@@ -1441,21 +1312,7 @@ main (argc, argv)
 	  analyse_regex (argbuffer[i].what);
 	  break;
 	case at_filename:
-#ifdef VMS
-	  while ((this_file = gfnames (argbuffer[i].what, &got_err)) != NULL)
-	    {
-	      if (got_err)
-		{
-		  error ("can't find file %s\n", this_file);
-		  argc--, argv++;
-		}
-	      else
-		{
-		  this_file = massage_name (this_file);
-		}
-#else
 	      this_file = argbuffer[i].what;
-#endif
 	      /* Input file named "-" means read file names from stdin
 		 (one per line) and use them. */
 	      if (streq (this_file, "-"))
@@ -1468,9 +1325,6 @@ main (argc, argv)
 		}
 	      else
 		process_file_name (this_file, lang);
-#ifdef VMS
-	    }
-#endif
 	  break;
         case at_stdin:
           this_file = argbuffer[i].what;
@@ -1570,7 +1424,7 @@ get_compressor_from_suffix (file, extptr)
   compressor *compr;
   char *slash, *suffix;
 
-  /* This relies on FN to be after canonicalize_filename,
+  /* File has been processed by canonicalize_filename,
      so we don't need to consider backslashes on DOS_NT.  */
   slash = etags_strrchr (file, '/');
   suffix = etags_strrchr (file, '.');
@@ -6371,7 +6225,7 @@ readline (lbp, stream)
 		  discard_until_line_directive = FALSE; /* found it */
 		  name = lbp->buffer + start;
 		  *endp = '\0';
-		  canonicalize_filename (name); /* for DOS */
+		  canonicalize_filename (name);
 		  taggedabsname = absolute_filename (name, tagfiledir);
 		  if (filename_is_absolute (name)
 		      || filename_is_absolute (curfdp->infname))
@@ -6786,14 +6640,8 @@ relative_filename (file, dir)
 
   /* Build a sequence of "../" strings for the resulting relative file name. */
   i = 0;
-  while (*dp == '/')
-    ++dp;
   while ((dp = etags_strchr (dp + 1, '/')) != NULL)
-    {
-      i += 1;
-      while (*dp == '/')
-	++dp;
-    }
+    i += 1;
   res = xnew (3*i + strlen (fp + 1) + 1, char);
   res[0] = '\0';
   while (i-- > 0)
@@ -6880,7 +6728,6 @@ absolute_dirname (file, dir)
   char *slashp, *res;
   char save;
 
-  canonicalize_filename (file);
   slashp = etags_strrchr (file, '/');
   if (slashp == NULL)
     return savestr (dir);
@@ -6905,27 +6752,38 @@ filename_is_absolute (fn)
 	  );
 }
 
-/* Translate backslashes into slashes.  Works in place. */
+/* Upcase DOS drive letter and collapse separators into single slashes.
+   Works in place. */
 static void
 canonicalize_filename (fn)
      register char *fn;
 {
+  register char* cp;
+  char sep = '/';
+
 #ifdef DOS_NT
   /* Canonicalize drive letter case.  */
   if (fn[0] != '\0' && fn[1] == ':' && ISLOWER (fn[0]))
     fn[0] = upcase (fn[0]);
-  /* Convert backslashes to slashes.  */
-  for (; *fn != '\0'; fn++)
-    if (*fn == '\\')
-      *fn = '/';
-#else
-  /* No action. */
-  fn = NULL;			/* shut up the compiler */
+
+  sep = '\\';
 #endif
+
+  /* Collapse multiple separators into a single slash. */
+  for (cp = fn; *cp != '\0'; cp++, fn++)
+    if (*cp == sep)
+      {
+	*fn = '/';
+	while (cp[1] == sep)
+	  cp++;
+      }
+    else
+      *fn = *cp;
+  *fn = '\0';
 }
 
 
-/* Initialize a linebuffer for use */
+/* Initialize a linebuffer for use. */
 static void
 linebuffer_init (lbp)
      linebuffer *lbp;

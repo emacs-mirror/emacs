@@ -2445,6 +2445,9 @@ comint mode, which see."
   :group 'gud
   :type 'boolean)
 
+(declare-function tramp-file-name-localname "tramp" (vec))
+(declare-function tramp-dissect-file-name "tramp" (name &optional nodefault))
+
 ;; Perform initializations common to all debuggers.
 ;; The first arg is the specified command line,
 ;; which starts with the program to debug.
@@ -2502,7 +2505,9 @@ comint mode, which see."
       (if w
  	  (setcar w
  		  (if (file-remote-p default-directory)
- 		      (setq file (file-name-nondirectory file))
+		      ;; Tramp has already been loaded if we are here.
+		      (setq file (tramp-file-name-localname
+				  (tramp-dissect-file-name file)))
  		    file))))
     (apply 'make-comint (concat "gud" filepart) program nil
 	   (if massage-args (funcall massage-args file args) args))

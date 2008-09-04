@@ -489,77 +489,6 @@ struct font_bitmap
 #define FONT_PIXEL_SIZE_QUANTUM 1
 
 struct face;
-struct composition;
-
-/* Macros for lispy glyph-string.  */
-enum lgstring_indices
-  {
-    LGSTRING_IX_FONT, LGSTRING_IX_WIDTH,
-    LGSTRING_IX_LBEARING, LGSTRING_IX_RBEARING,
-    LGSTRING_IX_ASCENT, LGSTRING_IX_DESCENT
-  };
-#define LGSTRING_SLOT(lgs, ix) AREF (AREF ((lgs), 0), ix)
-#define LGSTRING_FONT(lgs) LGSTRING_SLOT (lgs, LGSTRING_IX_FONT)
-#define LGSTRING_WIDTH(lgs) XINT (LGSTRING_SLOT (lgs, LGSTRING_IX_WIDTH))
-#define LGSTRING_LBEARING(lgs) XINT (LGSTRING_SLOT (lgs, LGSTRING_IX_LBEARING))
-#define LGSTRING_RBEARING(lgs) XINT (LGSTRING_SLOT (lgs, LGSTRING_IX_RBEARING))
-#define LGSTRING_ASCENT(lgs) XINT (LGSTRING_SLOT (lgs, LGSTRING_IX_ASCENT))
-#define LGSTRING_DESCENT(lgs) XINT (LGSTRING_SLOT (lgs, LGSTRING_IX_DESCENT))
-#define LGSTRING_SET_SLOT(lgs, ix, val) ASET (AREF ((lgs), 0), ix, (val))
-#define LGSTRING_SET_FONT(lgs, val)     \
-  LGSTRING_SET_SLOT(lgs, LGSTRING_IX_FONT, (val))
-#define LGSTRING_SET_WIDTH(lgs, val)	\
-  LGSTRING_SET_SLOT(lgs, LGSTRING_IX_WIDTH, make_number (val))
-#define LGSTRING_SET_LBEARING(lgs, val) \
-  LGSTRING_SET_SLOT(lgs, LGSTRING_IX_LBEARING, make_number (val))
-#define LGSTRING_SET_RBEARING(lgs, val)	\
-  LGSTRING_SET_SLOT(lgs, LGSTRING_IX_RBEARING, make_number (val))
-#define LGSTRING_SET_ASCENT(lgs, val)	\
-  LGSTRING_SET_SLOT(lgs, LGSTRING_IX_ASCENT, make_number (val))
-#define LGSTRING_SET_DESCENT(lgs, val)	\
-  LGSTRING_SET_SLOT(lgs, LGSTRING_IX_DESCENT, make_number (val))
-
-#define LGSTRING_LENGTH(lgs) (ASIZE ((lgs)) - 1)
-#define LGSTRING_GLYPH(lgs, idx) AREF ((lgs), (idx) + 1)
-#define LGSTRING_SET_GLYPH(lgs, idx, val) ASET ((lgs), (idx) + 1, (val))
-
-/* Vector size of Lispy glyph.  */
-enum lglyph_indices
-  {
-    LGLYPH_IX_FROM, LGLYPH_IX_TO,  LGLYPH_IX_CHAR, LGLYPH_IX_CODE,
-    LGLYPH_IX_WIDTH, LGLYPH_IX_LBEARING, LGLYPH_IX_RBEARING,
-    LGLYPH_IX_ASCENT, LGLYPH_IX_DESCENT, LGLYPH_IX_ADJUSTMENT,
-    /* Not an index.  */
-    LGLYPH_SIZE
-  };
-#define LGLYPH_FROM(g) XINT (AREF ((g), LGLYPH_IX_FROM))
-#define LGLYPH_TO(g) XINT (AREF ((g), LGLYPH_IX_TO))
-#define LGLYPH_CHAR(g) XINT (AREF ((g), LGLYPH_IX_CHAR))
-#define LGLYPH_CODE(g) XUINT (AREF ((g), LGLYPH_IX_CODE))
-#define LGLYPH_WIDTH(g) XINT (AREF ((g), LGLYPH_IX_WIDTH))
-#define LGLYPH_LBEARING(g) XINT (AREF ((g), LGLYPH_IX_LBEARING))
-#define LGLYPH_RBEARING(g) XINT (AREF ((g), LGLYPH_IX_RBEARING))
-#define LGLYPH_ASCENT(g) XINT (AREF ((g), LGLYPH_IX_ASCENT))
-#define LGLYPH_DESCENT(g) XINT (AREF ((g), LGLYPH_IX_DESCENT))
-#define LGLYPH_ADJUSTMENT(g) AREF ((g), LGLYPH_IX_ADJUSTMENT)
-#define LGLYPH_SET_FROM(g, val) ASET ((g), LGLYPH_IX_FROM, make_number (val))
-#define LGLYPH_SET_TO(g, val) ASET ((g), LGLYPH_IX_TO, make_number (val))
-#define LGLYPH_SET_CHAR(g, val) ASET ((g), LGLYPH_IX_CHAR, make_number (val))
-/* FIXME: we should use make_uint_number here.  */
-#define LGLYPH_SET_CODE(g, val) ASET ((g), LGLYPH_IX_CODE, make_number (val))
-#define LGLYPH_SET_WIDTH(g, val) ASET ((g), LGLYPH_IX_WIDTH, make_number (val))
-#define LGLYPH_SET_LBEARING(g, val) ASET ((g), LGLYPH_IX_RBEARING, make_number (val))
-#define LGLYPH_SET_RBEARING(g, val) ASET ((g), LGLYPH_IX_LBEARING, make_number (val))
-#define LGLYPH_SET_ASCENT(g, val) ASET ((g), LGLYPH_IX_ASCENT, make_number (val))
-#define LGLYPH_SET_DESCENT(g, val) ASET ((g), LGLYPH_IX_DESCENT, make_number (val))
-#define LGLYPH_SET_ADJUSTMENT(g, val) ASET ((g), LGLYPH_IX_ADJUSTMENT, (val))
-
-#define LGLYPH_XOFF(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
-			? XINT (AREF (LGLYPH_ADJUSTMENT (g), 0)) : 0)
-#define LGLYPH_YOFF(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
-			? XINT (AREF (LGLYPH_ADJUSTMENT (g), 1)) : 0)
-#define LGLYPH_WADJUST(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
-			   ? XINT (AREF (LGLYPH_ADJUSTMENT (g), 2)) : 0)
 
 #define FONT_INVALID_CODE 0xFFFFFFFF
 
@@ -696,7 +625,7 @@ struct font_driver
 
   /* Optional.
      Make the font driver ready for frame F.  Usually this function
-     makes some data specific to F and store it in F by calling
+     makes some data specific to F and stores it in F by calling
      font_put_frame_data ().  */
   int (*start_for_frame) P_ ((FRAME_PTR f));
   
@@ -707,17 +636,18 @@ struct font_driver
 
   /* Optional.
 
-     Shape text in LGSTRING.  See the docstring of `font-make-gstring'
-     for the format of LGSTRING.  If the (N+1)th element of LGSTRING
-     is nil, input of shaping is from the 1st to (N)th elements.  In
-     each input glyph, FROM, TO, CHAR, and CODE are already set.
+     Shape text in GSTRING.  See the docstring of
+     `composition-get-gstring' for the format of GSTRING.  If the
+     (N+1)th element of GSTRING is nil, input of shaping is from the
+     1st to (N)th elements.  In each input glyph, FROM, TO, CHAR, and
+     CODE are already set.
 
      This function updates all fields of the input glyphs.  If the
      output glyphs (M) are more than the input glyphs (N), (N+1)th
-     through (M)th elements of LGSTRING are updated possibly by making
-     a new glyph object and storing it in LGSTRING.  If (M) is greater
-     than the length of LGSTRING, nil should be return.  In that case,
-     this function is called again with the larger LGSTRING.  */
+     through (M)th elements of GSTRING are updated possibly by making
+     a new glyph object and storing it in GSTRING.  If (M) is greater
+     than the length of GSTRING, nil should be return.  In that case,
+     this function is called again with the larger GSTRING.  */
   Lisp_Object (*shape) P_ ((Lisp_Object lgstring));
 
   /* Optional.
@@ -827,12 +757,10 @@ extern void free_font_driver_list P_ ((FRAME_PTR f));
 extern Lisp_Object font_update_drivers P_ ((FRAME_PTR f, Lisp_Object list));
 extern Lisp_Object font_at P_ ((int c, EMACS_INT pos, struct face *face,
 				struct window *w, Lisp_Object object));
-extern EMACS_INT font_range P_ ((EMACS_INT pos, EMACS_INT limit,
-				 struct face *face, FRAME_PTR f,
-				 Lisp_Object object));
-
-extern struct font *font_prepare_composition P_ ((struct composition *cmp,
-						  FRAME_PTR f));
+extern Lisp_Object font_range (EMACS_INT, EMACS_INT *,
+			       struct window *, struct face *,
+			       Lisp_Object);
+extern void font_fill_lglyph_metrics P_ ((Lisp_Object, Lisp_Object));
 
 extern Lisp_Object font_put_extra P_ ((Lisp_Object font, Lisp_Object prop,
                                        Lisp_Object val));
@@ -857,9 +785,6 @@ extern struct font_driver xftfont_driver;
 extern struct font_driver w32font_driver;
 extern struct font_driver uniscribe_font_driver;
 #endif	/* WINDOWSNT */
-#ifdef MAC_OS
-extern struct font_driver atmfont_driver;
-#endif	/* MAC_OS */
 #ifdef HAVE_NS
 extern struct font_driver nsfont_driver;
 #endif	/* HAVE_NS */
@@ -869,6 +794,7 @@ extern struct font_driver nsfont_driver;
 #endif
 
 extern void font_add_log P_ ((char *, Lisp_Object, Lisp_Object));
+extern void font_deferred_log P_ ((char *, Lisp_Object, Lisp_Object));
 
 #ifdef FONT_DEBUG
 #define font_assert(X)	do {if (!(X)) abort ();} while (0)

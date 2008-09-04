@@ -50,7 +50,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "../src/bitmaps/stipple.xbm"
 
 #else
-#ifndef VMS
 
 #include <X11/bitmaps/dimple1>
 #include <X11/bitmaps/dimple3>
@@ -66,23 +65,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/bitmaps/cntr_ptrmsk>
 #include <X11/bitmaps/stipple>
 
-#else
-
-#include "[-.src.bitmaps]dimple1.xbm"
-#include "[-.src.bitmaps]dimple3.xbm"
-#include "[-.src.bitmaps]gray1.xbm"
-#include "[-.src.bitmaps]gray3.xbm"
-#include "[-.src.bitmaps]crosswv.xbm"
-
-#include "[-.src.bitmaps]leftptr.xbm"
-#include "[-.src.bitmaps]leftpmsk.xbm"
-#include "[-.src.bitmaps]rtptr.xbm"
-#include "[-.src.bitmaps]rtpmsk.xbm"
-#include "[-.src.bitmaps]cntrptr.xbm"
-#include "[-.src.bitmaps]cntrpmsk.xbm"
-#include "[-.src.bitmaps]stipple.xbm"
-
-#endif /* VMS */
 #endif /* not EMACS_BITMAP_FILES */
 
 #define DEF_FREEZE		0

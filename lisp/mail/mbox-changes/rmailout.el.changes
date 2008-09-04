@@ -1,0 +1,280 @@
+RCS file: /cvsroot/emacs/emacs/lisp/mail/rmailout.el,v
+Working file: rmailout.el
+head: 1.81
+branch:
+locks: strict
+access list:
+symbolic names:
+	remove-vms: 1.81
+	before-remove-vms: 1.81
+	remove-carbon: 1.81
+	before-remove-carbon: 1.81
+	before-merge-emacs-app-to-trunk: 1.81
+	font-backend: 1.80.0.2
+	font-backend-base: 1.80
+	EMACS_22_2: 1.75.2.2
+	EMACS_PRETEST_22_1_92: 1.75.2.2
+	lisp-bob: 1.79
+	EMACS_PRETEST_22_1_91: 1.75.2.2
+	merge-unicode-to-trunk: 1.79
+	before-merge-unicode-to-trunk: 1.79
+	EMACS_PRETEST_22_1_90: 1.75.2.2
+	lexbind-base: 1.81
+	merge-multi-tty-to-trunk: 1.76
+	before-merge-multi-tty-to-trunk: 1.76
+	EMACS_22_1: 1.75
+	EMACS_PRETEST_22_0_990: 1.75
+	multi-tty: 1.75.0.4
+	multi-tty-base: 1.76
+	EMACS_22_BRANCHPOINT: 1.75
+	EMACS_PRETEST_22_0_99: 1.75
+	EMACS_22_BASE: 1.75.0.2
+	EMACS_PRETEST_22_0_98: 1.75
+	EMACS_PRETEST_22_0_97: 1.75
+	EMACS_PRETEST_22_0_96: 1.75
+	EMACS_PRETEST_22_0_95: 1.75
+	EMACS_PRETEST_22_0_94: 1.75
+	EMACS_PRETEST_22_0_93: 1.75
+	EMACS_PRETEST_22_0_92: 1.74
+	EMACS_PRETEST_22_0_91: 1.74
+	EMACS_PRETEST_22_0_90: 1.73
+	unicode-post-font-backend: 1.66.6.7
+	unicode-pre-font-backend: 1.66.6.7
+	unicode-xft: 1.66.6.7.0.2
+	unicode-xft-base: 1.66.6.9
+	ttn-vms-21-2-B4: 1.65
+	ttn-vms-21-2-B3: 1.65
+	ttn-vms-21-2-B2: 1.65
+	XFT_JHD_BRANCH_base: 1.67
+	XFT_JHD_BRANCH: 1.67.0.4
+	EMACS_19_34: 1.43
+	after-merge-gnus-5_10: 1.67
+	before-merge-gnus-5_10: 1.67
+	gnus-5_10-post-merge-josefsson: 1.67
+	gnus-5_10-pre-merge-josefsson: 1.67
+	gnus-5_10-post-merge-yamaoka: 1.67
+	gnus-5_10-pre-merge-yamaoka: 1.67
+	gnus-5_10-branch: 1.67.0.2
+	gnus-5_10-branchpoint: 1.67
+	emacs-unicode-2-pre-sync: 1.66.6.1
+	ttn-vms-21-3-stash: 1.65.4.1.0.2
+	ttn-vms-21-2-stash: 1.65.0.10
+	EMACS_21_2: 1.65
+	handa-temp-tag: 1.67
+	emacs-bidi: 1.66.0.8
+	emacs-bidi-base: 1.66
+	emacs-unicode-2: 1.66.0.6
+	emacs-unicode-2-base: 1.79
+	Boehm-GC: 1.66.0.4
+	Boehm-GC-base: 1.66
+	EMACS_21_3: 1.65.4.1
+	rmail-mbox-branch: 1.66.0.2
+	RMAIL-MBOX-BASE: 1.66
+	EMACS_PRETEST_21_2_95: 1.65
+	EMACS_PRETEST_21_2_94: 1.65
+	EMACS_PRETEST_21_2_93: 1.65
+	EMACS_PRETEST_21_2_92: 1.65
+	EMACS_PRETEST_21_2_91: 1.65
+	lexbind: 1.65.0.8
+	emacs-unicode: 1.65.0.6
+	emacs-unicode-base: 1.65
+	fx-branch-base: 1.61
+	EMACS_21_1: 1.65
+	EMACS_21_1_RC: 1.65.0.4
+	EMACS_21_1_BASE: 1.65
+	patches_21_0: 1.65.0.2
+	patches_21_0_base: 1.65
+	EMACS_PRETEST_21_0_106: 1.65
+	EMACS_PRETEST_21_0_105: 1.65
+	EMACS_PRETEST_21_0_104: 1.64
+	EMACS_20_2: 1.49
+	gerd_big: 1.63.0.8
+	gerd_int: 1.63.0.6
+	gerd_dbe: 1.63.0.4
+	gerd_defvaralias: 1.63.0.2
+	EMACS_20_4: 1.60
+	EMACS_PRETEST_21_0_103: 1.63
+	EMACS_PRETEST_21_0_102: 1.62
+	EMACS_PRETEST_21_0_101: 1.62
+	EMACS_PRETEST_21_0_100: 1.62
+	EMACS_PRETEST_21_0_99: 1.61
+	EMACS_PRETEST_21_0_98: 1.61
+	fx-branch: 1.61.0.2
+	EMACS_PRETEST_21_0_97: 1.61
+	EMACS_PRETEST_21_0_96: 1.61
+	EMACS_PRETEST_21_0_95: 1.61
+	EMACS_PRETEST_21_0_93: 1.61
+	EMACS_PRETEST_21_0_92: 1.61
+	EMACS_PRETEST_21_0_91: 1.61
+	EMACS_PRETEST_21_0_90: 1.61
+keyword substitution: kv
+total revisions: 125;	selected revisions: 125
+description:
+;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file.
+----------------------------
+revision 1.81 (patched)
+date: 2008-05-06 07:22:27 +0000;  author: gm;  state: Exp;  lines: +4 -6;  commitid: nPdVwGEZ0V6bhS1t;
+Switch to recommended form of GPLv3 permissions notice.
+----------------------------
+revision 1.80 (patched)
+date: 2008-04-10 14:10:20 +0000;  author: monnier;  state: Exp;  lines: +1 -1;  commitid: vwbWV2GwRKWGmzYs;
+Fix up comment convention on the arch-tag lines.
+----------------------------
+revision 1.79 (patched)
+date: 2008-01-08 20:45:08 +0000;  author: miles;  state: Exp;  lines: +1 -1;  commitid: GLqjDoDkbCnkxEMs;
+Merge from emacs--rel--22
+
+Revision: emacs@sv.gnu.org/emacs--devo--0--patch-987
+----------------------------
+revision 1.78 (rewritten)
+date: 2007-12-06 18:18:13 +0000;  author: deego;  state: Exp;  lines: +1 -1;  commitid: yyQGP90vuBpXMoIs;
+Fix buggy calls to `error'.
+----------------------------
+revision 1.77 (patched)
+date: 2007-11-25 16:48:31 +0000;  author: dann;  state: Exp;  lines: +2 -0;  commitid: AG5BA1V4T2VeEYGs;
+* mail/mspools.el (rmail-get-new-mail):
+* mail/reporter.el (mail-position-on-field, mail-text):
+* mail/rmail.el (mail-position-on-field, mail-text-start)
+(rmail-update-summary):
+* mail/rmailedit.el (rmail-summary-disable)
+(rmail-summary-enable):
+* mail/rmailmsc.el (rmail-parse-file-inboxes)
+(rmail-show-message):
+* mail/rmailout.el (rmail-update-summary):
+* mail/rmailsort.el (rmail-update-summary):
+* mail/sendmail.el (dired-move-to-filename, dired-get-filename)
+(dired-view-file):
+* mail/uce.el (mail-strip-quoted-names):
+* mail/undigest.el (rmail-update-summary):
+* mail/unrmail.el (mail-strip-quoted-names):
+* ediff.el (diff-latest-backup-file): Declare as functions.
+
+* obsolete/mlsupport.el (ml-previous-page): Fix typo.
+(kill-to-end-of-line):
+* obsolete/rnews.el (news-set-minor-modes): Remove non working
+functions.
+----------------------------
+revision 1.76 (irrelevant)
+date: 2007-07-26 05:27:13 +0000;  author: miles;  state: Exp;  lines: +1 -1;  commitid: IKTBbGNFxqtbNers;
+Merge from emacs--rel--22
+
+Patches applied:
+
+ * emacs--rel--22  (patch 70-73)
+
+   - Update from CVS
+
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+   * Relicense all FSF files to GPLv3 or later.
+
+Revision: emacs@sv.gnu.org/emacs--devo--0--patch-828
+----------------------------
+revision 1.75 (patched)
+date: 2007-01-21 02:59:07 +0000;  author: gm;  state: Exp;  lines: +1 -1;
+branches:  1.75.2;  1.75.4;
+Add 2007 to copyright years.
+----------------------------
+revision 1.74 (applied)
+date: 2006-11-13 10:25:40 +0000;  author: lektu;  state: Exp;  lines: +1 -1;
+(rmail-output-body-to-file): Use `format', not `message', in `y-or-n-p' call.
+----------------------------
+revision 1.73 (patched)
+date: 2006-02-06 12:31:40 +0000;  author: ttn;  state: Exp;  lines: +1 -1;
+Update years in copyright notice; nfc.
+----------------------------
+revision 1.72 (defer)
+date: 2006-01-21 13:16:05 +0000;  author: eliz;  state: Exp;  lines: +5 -3;
+(rmail-output): Don't use content-type if it is nil.
+----------------------------
+revision 1.71 (applied)
+date: 2005-11-04 14:51:08 +0000;  author: eliz;  state: Exp;  lines: +5 -5;
+(rmail-output-to-rmail-file, rmail-output): Doc fix.
+----------------------------
+revision 1.70 (applied)
+date: 2005-09-24 13:43:59 +0000;  author: rfrancoise;  state: Exp;  lines: +4 -4;
+2005-09-24  Emilio C. Lopes  <eclig@gmx.net>
+
+	* woman.el (woman-file-name):
+	* wid-edit.el (widget-file-prompt-value)
+	(widget-coding-system-prompt-value):
+	* w32-fns.el (set-w32-system-coding-system):
+	* vc.el (vc-version-diff, vc-annotate):
+	* textmodes/reftex-auc.el (reftex-arg-cite)
+	(reftex-arg-index-tag):
+	* textmodes/refer.el (refer-get-bib-files):
+	* textmodes/artist.el (artist-figlet-choose-font):
+	* terminal.el (terminal-emulator):
+	* replace.el (occur-read-primary-args):
+	* rect.el (string-rectangle, string-insert-rectangle):
+	* ps-print.el (ps-print-preprint):
+	* progmodes/pascal.el (pascal-goto-defun):
+	* progmodes/etags.el (visit-tags-table, visit-tags-table-buffer):
+	* progmodes/compile.el (compilation-find-file):
+	* printing.el (pr-interactive-n-up):
+	* play/animate.el (animate-birthday-present):
+	* net/rcompile.el (remote-compile):
+	* man.el (man, Man-goto-section, Man-follow-manual-reference):
+	* mail/rmailsum.el (rmail-summary-search-backward)
+	(rmail-summary-search):
+	* mail/rmailout.el (rmail-output-read-rmail-file-name)
+	(rmail-output-read-file-name):
+	* mail/rmail.el (rmail-search, rmail-search-backwards):
+	* mail/mailabbrev.el (merge-mail-abbrevs, rebuild-mail-abbrevs):
+	* locate.el (locate):
+	* international/quail.el (quail-show-keyboard-layout):
+	* international/mule.el (set-buffer-file-coding-system)
+	(revert-buffer-with-coding-system, set-file-name-coding-system)
+	(set-terminal-coding-system, set-keyboard-coding-system)
+	(set-next-selection-coding-system):
+	* international/mule-diag.el (describe-coding-system)
+	(describe-font, describe-fontset):
+	* international/mule-cmds.el (universal-coding-system-argument)
+	(search-unencodable-char, describe-input-method)
+	(set-language-environment, describe-language-environment):
+	* international/codepage.el (codepage-setup):
+	* international/code-pages.el (codepage-setup):
+	* info.el (Info-search, Info-follow-reference)
+	(Info-search-backward):
+	* emacs-lisp/advice.el (ad-read-advised-function)
+	(ad-read-advice-class, ad-clear-cache, ad-activate)
+	(ad-deactivate, ad-update, ad-unadvise, ad-read-advice-name)
+	(ad-enable-advice, ad-disable-advice, ad-remove-advice)
+	(ad-read-regexp):
+	* ediff-util.el (ediff-toggle-regexp-match):
+	* ediff-ptch.el (ediff-prompt-for-patch-file):
+	* dired-aux.el (dired-diff):
+	* diff.el (diff):
+	* cus-edit.el (custom-variable-prompt):
+	* calendar/timeclock.el (timeclock-ask-for-project):
+	* calc/calcalg3.el (calc-get-fit-variables):
+	* calc/calc-store.el (calc-edit-variable)
+	(calc-permanent-variable):
+	* vc-mcvs.el (vc-mcvs-register):
+	* shadowfile.el (shadow-define-literal-group):
+	* woman.el (woman-file-name):
+	* vc.el (vc-version-diff, vc-merge):
+	* textmodes/reftex-index.el (reftex-index-complete-tag):
+	* format.el (format-decode-buffer, format-decode-region):
+	* emulation/viper-cmd.el (viper-read-string-with-history):
+	* emacs-lisp/debug.el (cancel-debug-on-entry):
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	* ediff.el (ediff-merge-revisions)
+	(ediff-merge-revisions-with-ancestor, ediff-revision):
+	* completion.el (interactive-completion-string-reader):
+	* calc/calc-prog.el (calc-user-define-formula):
+	Follow convention for reading with the minibuffer.
+----------------------------
+revision 1.69 (applied)
+date: 2005-08-06 18:54:05 +0000;  author: ttn;  state: Exp;  lines: +2 -1;
+Update years in copyright notice; nfc.
+----------------------------
+revision 1.68 (irrelevant)
+date: 2005-07-04 17:46:22 +0000;  author: lute;  state: Exp;  lines: +2 -2;
+Update FSF's address.
+----------------------------
+revision 1.67 (applied)
+date: 2003-09-01 15:45:31 +0000;  author: miles;  state: Exp;  lines: +1 -0;
+branches:  1.67.4;
+Add arch taglines
+----------------------------

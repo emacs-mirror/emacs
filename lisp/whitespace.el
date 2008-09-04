@@ -161,10 +161,10 @@
 ;; There are also the following useful commands:
 ;;
 ;; `whitespace-newline-mode'
-;;    Toggle newline minor mode visualization ("nl" on modeline).
+;;    Toggle NEWLINE minor mode visualization ("nl" on modeline).
 ;;
 ;; `global-whitespace-newline-mode'
-;;    Toggle newline global minor mode visualization ("NL" on modeline).
+;;    Toggle NEWLINE global minor mode visualization ("NL" on modeline).
 ;;
 ;; `whitespace-report'
 ;;    Report some blank problems in buffer.
@@ -308,6 +308,10 @@
 ;; Acknowledgements
 ;; ----------------
 ;;
+;; Thanks to David Reitter <david.reitter@gmail.com> for suggesting a
+;; `whitespace-newline' initialization with low contrast relative to
+;; the background color.
+;;
 ;; Thanks to Stephen Deasey <sdeasey@gmail.com> for the
 ;; `indent-tabs-mode' usage suggestion.
 ;;
@@ -337,7 +341,7 @@
 ;; "long" lines.  See EightyColumnRule (EmacsWiki).
 ;;
 ;; Thanks to Yanghui Bian <yanghuibian@gmail.com> for indicating a new
-;; newline character mapping.
+;; NEWLINE character mapping.
 ;;
 ;; Thanks to Pete Forman <pete.forman@westgeo.com> for indicating
 ;; whitespace-mode.el on XEmacs.
@@ -570,10 +574,10 @@ and `newline'."
 
 (defface whitespace-newline
   '((((class color) (background dark))
-     (:background "grey26" :foreground "aquamarine3" :bold t))
+     (:foreground "darkgray" :bold nil))
     (((class color) (background light))
-     (:background "linen"  :foreground "aquamarine3" :bold t))
-    (t (:bold t :underline t)))
+     (:foreground "lightgray" :bold nil))
+    (t (:underline t :bold nil)))
   "Face used to visualize NEWLINE char mapping.
 
 See `whitespace-display-mappings'."
@@ -1008,7 +1012,10 @@ Any other value is treated as nil."
 If ARG is null, toggle whitespace visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
-Only useful with a windowing system."
+Only useful with a windowing system.
+
+See also `whitespace-style', `whitespace-newline' and
+`whitespace-display-mappings'."
   :lighter    " ws"
   :init-value nil
   :global     nil
@@ -1025,14 +1032,19 @@ Only useful with a windowing system."
 
 ;;;###autoload
 (define-minor-mode whitespace-newline-mode
-  "Toggle newline minor mode visualization (\"nl\" on modeline).
+  "Toggle NEWLINE minor mode visualization (\"nl\" on modeline).
 
-If ARG is null, toggle newline visualization.
+If ARG is null, toggle NEWLINE visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
 Only useful with a windowing system.
 
-See also `whitespace-newline'."
+Use `whitespace-newline-mode' only for NEWLINE visualization
+exclusively.  For other visualizations, including NEWLINE
+visualization together with (HARD) SPACEs and/or TABs, please,
+use `whitespace-mode'.
+
+See also `whitespace-newline' and `whitespace-display-mappings'."
   :lighter    " nl"
   :init-value nil
   :global     nil
@@ -1054,7 +1066,10 @@ See also `whitespace-newline'."
 If ARG is null, toggle whitespace visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
-Only useful with a windowing system."
+Only useful with a windowing system.
+
+See also `whitespace-style', `whitespace-newline' and
+`whitespace-display-mappings'."
   :lighter    " WS"
   :init-value nil
   :global     t
@@ -1103,14 +1118,19 @@ Only useful with a windowing system."
 
 ;;;###autoload
 (define-minor-mode global-whitespace-newline-mode
-  "Toggle newline global minor mode visualization (\"NL\" on modeline).
+  "Toggle NEWLINE global minor mode visualization (\"NL\" on modeline).
 
-If ARG is null, toggle newline visualization.
+If ARG is null, toggle NEWLINE visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
 Only useful with a windowing system.
 
-See also `whitespace-newline'."
+Use `global-whitespace-newline-mode' only for NEWLINE
+visualization exclusively.  For other visualizations, including
+NEWLINE visualization together with (HARD) SPACEs and/or TABs,
+please, use `global-whitespace-mode'.
+
+See also `whitespace-newline' and `whitespace-display-mappings'."
   :lighter    " NL"
   :init-value nil
   :global     t

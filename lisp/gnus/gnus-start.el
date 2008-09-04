@@ -2799,9 +2799,7 @@ If FORCE is non-nil, the .newsrc file is read."
                                    (if (and (eq system-type 'ms-dos)
                                             (not (gnus-long-file-names)))
                                        "%s#%d.tm#" ; MSDOS limits files to 8+3
-                                     (if (memq system-type '(vax-vms axp-vms))
-                                         "%s$tmp$%d"
-                                       "%s#tmp#%d"))
+				     "%s#tmp#%d")
                                    working-dir (setq i (1+ i))))
                             (file-exists-p working-file)))
 

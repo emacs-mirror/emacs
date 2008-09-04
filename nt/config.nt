@@ -81,7 +81,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* If we're using any sort of window system, define some consequences.  */
 #ifdef HAVE_X_WINDOWS
 #define HAVE_WINDOW_SYSTEM
-#define MULTI_KBOARD
 #define HAVE_MOUSE
 #endif
 
@@ -464,6 +463,10 @@ extern char *getenv ();
 void w32_abort (void) NO_RETURN;
 #endif
 #endif
+
+/* Support for listing processes and their attributes.  */
+#define LISTPROC w32_list_system_processes
+#define PROCATTR w32_system_process_attributes
 
 /* Prevent accidental use of features unavailable in
    older Windows versions we still support.  */

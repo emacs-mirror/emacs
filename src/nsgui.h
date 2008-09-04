@@ -75,20 +75,16 @@ typedef unichar XChar2b;
 #define XCHAR2B_BYTE2(chp) \
  ((*chp) & 0x00ff)
 
-#define FACE_DEFAULT (~0)
-
 
 /* XXX: xfaces requires these structures, but the question is are we
         forced to use them? */
 typedef struct _XGCValues
 {
+  unsigned long foreground;
+  unsigned long background;
 #ifdef __OBJC__
-  NSColor *foreground;
-  NSColor *background;
   struct ns_font *font;
 #else
-  void *foreground;
-  void *background;
   void *font;
 #endif
 } XGCValues;

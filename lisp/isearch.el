@@ -491,6 +491,9 @@ This is like `describe-bindings', but displays only isearch keys."
     (define-key map "\M-r" 'isearch-toggle-regexp)
     (define-key map "\M-e" 'isearch-edit-string)
 
+    (define-key map "\M-sr" 'isearch-toggle-regexp)
+    (define-key map "\M-sw" 'isearch-toggle-word)
+
     (define-key map [?\M-%] 'isearch-query-replace)
     (define-key map [?\C-\M-%] 'isearch-query-replace-regexp)
     (define-key map "\M-so" 'isearch-occur)
@@ -506,6 +509,7 @@ This is like `describe-bindings', but displays only isearch keys."
     (define-key map "\M-\t" 'isearch-complete-edit)
     (define-key map "\C-s"  'isearch-forward-exit-minibuffer)
     (define-key map "\C-r"  'isearch-reverse-exit-minibuffer)
+    (define-key map "\C-w"  'isearch-edit-string-set-word)
     (define-key map "\C-f"  'isearch-yank-char-in-minibuffer)
     (define-key map [right] 'isearch-yank-char-in-minibuffer)
     map)
@@ -596,6 +600,7 @@ Each set is a vector of the form:
 (define-key esc-map "\C-s" 'isearch-forward-regexp)
 (define-key global-map "\C-r" 'isearch-backward)
 (define-key esc-map "\C-r" 'isearch-backward-regexp)
+(define-key search-map "w" 'isearch-forward-word)
 
 ;; Entry points to isearch-mode.
 
@@ -630,13 +635,9 @@ Type \\[isearch-quote-char] to quote control character to search for it.
 If you try to exit with the search string still empty, it invokes
  nonincremental search.
 
-Type \\[isearch-query-replace] to start `query-replace' with string to\
- replace from last search string.
-Type \\[isearch-query-replace-regexp] to start `query-replace-regexp'\
- with string to replace from last search string.
-
 Type \\[isearch-toggle-case-fold] to toggle search case-sensitivity.
 Type \\[isearch-toggle-regexp] to toggle regular-expression mode.
+Type \\[isearch-toggle-word] to toggle word mode.
 Type \\[isearch-edit-string] to edit the search string in the minibuffer.
 
 Also supported is a search ring of the previous 16 search strings.
@@ -644,6 +645,15 @@ Type \\[isearch-ring-advance] to search for the next item in the search ring.
 Type \\[isearch-ring-retreat] to search for the previous item in the search\
  ring.
 Type \\[isearch-complete] to complete the search string using the search ring.
+
+Type \\[isearch-query-replace] to run `query-replace' with string to\
+ replace from last search string.
+Type \\[isearch-query-replace-regexp] to run `query-replace-regexp'\
+ with the last search string.
+Type \\[isearch-occur] to run `occur' that shows\
+ the last search string.
+Type \\[isearch-highlight-regexp] to run `highlight-regexp'\
+ that highlights the last search string.
 
 Type \\[isearch-describe-bindings] to display all isearch key bindings.
 Type \\[isearch-describe-key] to display documentation of isearch key.
@@ -674,8 +684,8 @@ the calling function until the search is done."
   "\
 Do incremental search forward for regular expression.
 With a prefix argument, do a regular string search instead.
-Like ordinary incremental search except that your input
-is treated as a regexp.  See \\[isearch-forward] for more info.
+Like ordinary incremental search except that your input is treated
+as a regexp.  See the command `isearch-forward' for more information.
 
 In regexp incremental searches, a space or spaces normally matches
 any whitespace (the variable `search-whitespace-regexp' controls
@@ -684,11 +694,21 @@ and nothing else, enter C-q SPC."
   (interactive "P\np")
   (isearch-mode t (null not-regexp) nil (not no-recursive-edit)))
 
+(defun isearch-forward-word (&optional not-word no-recursive-edit)
+  "\
+Do incremental search forward for a sequence of words.
+With a prefix argument, do a regular string search instead.
+Like ordinary incremental search except that your input is treated
+as a sequence of words without regard to how the words are separated.
+See the command `isearch-forward' for more information."
+  (interactive "P\np")
+  (isearch-mode t nil nil (not no-recursive-edit) (null not-word)))
+
 (defun isearch-backward (&optional regexp-p no-recursive-edit)
   "\
 Do incremental search backward.
 With a prefix argument, do a regular expression search instead.
-See \\[isearch-forward] for more information."
+See the command `isearch-forward' for more information."
   (interactive "P\np")
   (isearch-mode nil (not (null regexp-p)) nil (not no-recursive-edit)))
 
@@ -696,8 +716,8 @@ See \\[isearch-forward] for more information."
   "\
 Do incremental search backward for regular expression.
 With a prefix argument, do a regular string search instead.
-Like ordinary incremental search except that your input
-is treated as a regexp.  See \\[isearch-forward] for more info."
+Like ordinary incremental search except that your input is treated
+as a regexp.  See the command `isearch-forward' for more information."
   (interactive "P\np")
   (isearch-mode nil (null not-regexp) nil (not no-recursive-edit)))
 
@@ -1092,31 +1112,11 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	  ;; that can change their values.
 	  (setq old-point (point) old-other-end isearch-other-end)
 
-	  (isearch-message) ;; for read-char
 	  (unwind-protect
-	      (let* (;; Why does following read-char echo?
-		     ;;(echo-keystrokes 0) ;; not needed with above message
-		     (e (let ((cursor-in-echo-area t))
-			  (read-event)))
+	      (let* ((message-log-max nil)
 		     ;; Binding minibuffer-history-symbol to nil is a work-around
 		     ;; for some incompatibility with gmhist.
-		     (minibuffer-history-symbol)
-		     (message-log-max nil))
-		;; If the first character the user types when we prompt them
-		;; for a string is the yank-word character, then go into
-		;; word-search mode.  Otherwise unread that character and
-		;; read a key the normal way.
-		;; Word search does not apply (yet) to regexp searches,
-		;; no check is made here.
-		(message "%s" (isearch-message-prefix nil nil t))
-		(if (memq (lookup-key isearch-mode-map (vector e))
-			  '(isearch-yank-word
-			    isearch-yank-word-or-char))
-		    (setq isearch-word t;; so message-prefix is right
-			  isearch-new-word t)
-		  (cancel-kbd-macro-events)
-		  (isearch-unread e))
-		(setq cursor-in-echo-area nil)
+		     (minibuffer-history-symbol))
 		(setq isearch-new-string
                       (read-from-minibuffer
                        (isearch-message-prefix nil nil isearch-nonincremental)
@@ -1189,6 +1189,15 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
     (quit  ; handle abort-recursive-edit
      (isearch-abort)  ;; outside of let to restore outside global values
      )))
+
+;; Obsolete usage of `C-s M-e C-w'.  Remove after 23.1.
+(defvar isearch-new-word)
+(defun isearch-edit-string-set-word ()
+  "Do word search after exiting `isearch-edit-string'."
+  (interactive)
+  (message "This feature is obsolete since 23.1; use `M-s w' instead.")
+  (setq isearch-word t isearch-new-word t))
+
 
 (defun isearch-nonincremental-exit-minibuffer ()
   (interactive)
@@ -1303,6 +1312,13 @@ Use `isearch-exit' to quit without signaling."
   (setq isearch-success t isearch-adjusted t)
   (isearch-update))
 
+(defun isearch-toggle-word ()
+  "Toggle word searching on or off."
+  (interactive)
+  (setq isearch-word (not isearch-word))
+  (setq isearch-success t isearch-adjusted t)
+  (isearch-update))
+
 (defun isearch-toggle-case-fold ()
   "Toggle case folding in searching on or off."
   (interactive)
@@ -1368,22 +1384,32 @@ string.  NLINES has the same meaning as in `occur'."
 (declare-function hi-lock-regexp-okay "hi-lock" (regexp))
 (declare-function hi-lock-read-face-name "hi-lock" ())
 
-(defun isearch-highlight-regexp (regexp &optional face)
+(defun isearch-highlight-regexp ()
   "Run `highlight-regexp' with regexp from the current search string.
-Interactively, REGEXP is the current search regexp or a quoted search
-string.  FACE has the same meaning as in `highlight-regexp'."
-  (interactive
-   (list
-    (progn
-      (require 'hi-lock nil t)
-      (hi-lock-regexp-okay
-       (if isearch-regexp isearch-string (regexp-quote isearch-string))))
-    (hi-lock-read-face-name)))
+It exits Isearch mode and calls `hi-lock-face-buffer' with its regexp
+argument from the last search regexp or a quoted search string,
+and reads its face argument using `hi-lock-read-face-name'."
+  (interactive)
   (isearch-done)
   (isearch-clean-overlays)
-  ;; (add-to-history 'hi-lock-regexp-history regexp)
-  (let ((case-fold-search isearch-case-fold-search))
-    (hi-lock-face-buffer regexp face)))
+  (require 'hi-lock nil t)
+  (let ((string (cond (isearch-regexp isearch-string)
+		      ((if (and (eq isearch-case-fold-search t)
+				search-upper-case)
+			   (isearch-no-upper-case-p
+			    isearch-string isearch-regexp)
+			 isearch-case-fold-search)
+		       ;; Turn isearch-string into a case-insensitive
+		       ;; regexp.
+		       (mapconcat
+			(lambda (c)
+			  (let ((s (string c)))
+			    (if (string-match "[[:alpha:]]" s)
+				(format "[%s%s]" (upcase s) (downcase s))
+			      (regexp-quote s))))
+			isearch-string ""))
+		      (t (regexp-quote isearch-string)))))
+    (hi-lock-face-buffer string (hi-lock-read-face-name))))
 
 
 (defun isearch-delete-char ()
@@ -1667,8 +1693,6 @@ Scroll-bar or mode-line events are processed appropriately."
 ;; Scroll-bar functions:
 (if (fboundp 'scroll-bar-toolkit-scroll)
     (put 'scroll-bar-toolkit-scroll 'isearch-scroll t))
-(if (fboundp 'mac-handle-scroll-bar-event)
-    (put 'mac-handle-scroll-bar-event 'isearch-scroll t))
 (if (fboundp 'w32-handle-scroll-bar-event)
     (put 'w32-handle-scroll-bar-event 'isearch-scroll t))
 

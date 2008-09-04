@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "21. Juni 2008, 17:35:21 (ulf)"
+;; Time-stamp:  "25. August 2008, 19:39:28 (ulf)"
 
 ;; ======================================================================
 
@@ -100,8 +100,22 @@
 
 (defcustom newsticker-treeview-own-frame
   nil
-  "Decides whether newsticker creates and uses its own frame."
+  "Decides whether newsticker treeview creates and uses its own frame."
   :type 'boolean
+  :group 'newsticker-treeview)
+
+(defcustom newsticker-treeview-treewindow-width
+  30
+  "Width of tree window in treeview layout.
+See also `newsticker-treeview-listwindow-height'."
+  :type 'int
+  :group 'newsticker-treeview)
+
+(defcustom newsticker-treeview-listwindow-height
+  10
+  "Height of list window in treeview layout.
+See also `newsticker-treeview-treewindow-width'."
+  :type 'int
   :group 'newsticker-treeview)
 
 (defcustom newsticker-treeview-automatically-mark-displayed-items-as-old
@@ -1379,6 +1393,13 @@ Move to next item unless DONT-PROCEED is non-nil."
                             newsticker--treeview-current-vfeed)
                         (newsticker--treeview-get-selected-item)))
 
+(defun newsticker-treeview-browse-url-item ()
+  "Convert current item to HTML and call `browse-url' on result."
+  (interactive)
+  (newsticker-browse-url-item (or newsticker--treeview-current-feed
+                                  newsticker--treeview-current-vfeed)
+                              (newsticker--treeview-get-selected-item)))
+
 (defun newsticker--treeview-set-current-node (node)
   "Make NODE the current node."
   (save-excursion
@@ -1809,6 +1830,7 @@ Remove obsolete feeds as well."
   (let ((map (make-sparse-keymap 'newsticker-treeview-mode-map)))
     (define-key map " " 'newsticker-treeview-next-page)
     (define-key map "a" 'newsticker-add-url)
+    (define-key map "b" 'newsticker-treeview-browse-url-item)
     (define-key map "F" 'newsticker-treeview-prev-feed)
     (define-key map "f" 'newsticker-treeview-next-feed)
     (define-key map "g" 'newsticker-treeview-get-news)
@@ -1923,10 +1945,10 @@ POS gives the position where EVENT occurred."
   (setq newsticker--treeview-windows nil)
   (setq newsticker--treeview-buffers nil)
   (delete-other-windows)
-  (split-window-horizontally 25)
+  (split-window-horizontally newsticker-treeview-treewindow-width)
   (add-to-list 'newsticker--treeview-windows (selected-window) t)
   (other-window 1)
-  (split-window-vertically 10)
+  (split-window-vertically newsticker-treeview-listwindow-height)
   (add-to-list 'newsticker--treeview-windows (selected-window) t)
   (other-window 1)
   (add-to-list 'newsticker--treeview-windows (selected-window) t)

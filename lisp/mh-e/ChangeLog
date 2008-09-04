@@ -1,3 +1,34 @@
+2008-08-18  Bill Wohler	 <wohler@newt.com>
+
+	Release MH-E version 8.1.
+  
+	* mh-e.el (Version, mh-version): Update for release 8.1.
+
+2008-08-11  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-variant-mh-info, mh-variant-nmh-info)
+	(mh-variant-set-variant, mh-variant-p, mh-profile-component)
+	(mh-variant-set, mh-variant, mh-scan-format-file): Fix typo in
+	docstring.
+
+	* mh-comp.el (mh-reply)
+	* mh-e.el (mh-sys-path, mh-variant-info,mh-variant-mu-mh-info)
+	(mh-variant-p, mh-profile-component, mh-variant-set, mh-variant)
+	(mh-scan-format-file)
+	* mh-folder.el (mh-regenerate-headers)
+	* mh-scan.el (mh-scan-format)
+	* mh-search.el (mh-pick-regexp-builder): Rename variant mu-mh to
+	gnu-mh and be explicit about GNU mailutils MH in docstrings (with
+	thanks to Darel Henman) (closes SF #1768928).
+
+2008-08-01  Bill Wohler  <wohler@newt.com>
+
+	* mh-show.el (mh-show-preferred-alternative)
+	* mh-e.el (mh-annotate-msg-hook): Sync docstring with manual.
+
+	* mh-comp.el (mh-send-letter, mh-redistribute): Mention
+	mh-annotate-msg-hook in docstring.
+
 2008-06-29  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Add invisible
@@ -161,7 +192,7 @@
 	no longer included in reverse order (closes SF #1730393).
 
 	* mh-mime.el (mh-mml-forward-message): Forward messages as inline
-	attatchments (closes SF #1378993).
+	attachments (closes SF #1378993).
 
 2008-02-06  Richard Stallman  <rms@gnu.org>
 

@@ -5,10 +5,6 @@ for Emacs functions and variables.
 
 `forms-d2.dat' is an example data file used by forms-d2.el.
 
-`termcap.src' is included mainly for VMS.  It is a copy of the
-`/etc/termcap' file used on Unix.
-
-
 COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 
 File: emacs.icon

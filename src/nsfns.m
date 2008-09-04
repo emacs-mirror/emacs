@@ -78,7 +78,6 @@ extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
 extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
 
 Lisp_Object Qnone;
-Lisp_Object Qns_frame_parameter;
 Lisp_Object Qbuffered;
 Lisp_Object Qfontsize;
 
@@ -281,7 +280,7 @@ interpret_services_menu (NSMenu *menu, Lisp_Object prefix, Lisp_Object old)
    -------------------------------------------------------------------------- */
 {
   int i, count;
-  id<NSMenuItem> item;
+  NSMenuItem *item;
   const char *name;
   Lisp_Object nameStr;
   unsigned short key;
@@ -414,6 +413,8 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 
+/* FIXME: adapt to generics */
+
 static void
 ns_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
@@ -435,7 +436,6 @@ ns_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     }
   update_face_from_frame_parameter (f, Qcursor_color, arg);
 }
-
 
 static void
 ns_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
@@ -929,27 +929,18 @@ ns_cursor_type_to_lisp (int arg)
     }
 }
 
-
-static void
-ns_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+/* this is like x_set_cursor_type defined in xfns.c */
+void
+ns_set_cursor_type (f, arg, oldval)
+     FRAME_PTR f;
+     Lisp_Object arg, oldval;
 {
-  int val;
+  set_frame_cursor_types (f, arg);
 
-  val = ns_lisp_to_cursor_type (arg);
-  if (val >= 0)
-    {
-      f->output_data.ns->desired_cursor =val;
-    }
-  else
-    {
-      store_frame_param (f, Qcursor_type, oldval);
-      error ("the `cursor-type' frame parameter should be either `no', `box', \
-`hollow', `underscore' or `bar'.");
-    }
-
-  update_mode_lines++;
+  /* Make sure the cursor gets redrawn.  */
+  cursor_type_changed = 1;
 }
-
+
 
 /* 23: called to set mouse pointer color, but all other terms use it to
        initialize pointer types (and don't set the color ;) */
@@ -1024,7 +1015,8 @@ frame_parm_handler ns_frame_parm_handlers[] =
   x_set_fringe_width, /* generic OK */
   0, /* x_set_wait_for_wm, will ignore */
   0,  /* x_set_fullscreen will ignore */
-  x_set_font_backend /* generic OK */
+  x_set_font_backend, /* generic OK */
+  0
 };
 
 
@@ -1057,6 +1049,10 @@ be shared by the new frame.  */)
 
   check_ns ();
 
+  /* Seems a little strange, but other terms do it. Perhaps the code below
+     is modifying something? */
+  parms = Fcopy_alist (parms);
+
   display = x_get_arg (dpyinfo, parms, Qterminal, 0, 0, RES_TYPE_STRING);
   if (EQ (display, Qunbound))
     display = Qnil;
@@ -1075,6 +1071,8 @@ be shared by the new frame.  */)
 
   if (STRINGP (name))
     Vx_resource_name = name;
+  else
+    Vx_resource_name = Vinvocation_name;
 
   parent = x_get_arg (dpyinfo, parms, Qparent_id, 0, 0, RES_TYPE_NUMBER);
   if (EQ (parent, Qunbound))
@@ -1136,7 +1134,7 @@ be shared by the new frame.  */)
 
   f->icon_name = x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title",
                             RES_TYPE_STRING);
-  if (EQ (f->icon_name, Qunbound) || (XTYPE (f->icon_name) != Lisp_String))
+  if (! STRINGP (f->icon_name))
     f->icon_name = Qnil;
 
   FRAME_NS_DISPLAY_INFO (f) = dpyinfo;
@@ -1275,18 +1273,18 @@ be shared by the new frame.  */)
   Vframe_list = Fcons (frame, Vframe_list);
   /*FRAME_NS_DISPLAY_INFO (f)->reference_count++; */
 
+  x_default_parameter (f, parms, Qicon_type, Qnil, "bitmapIcon", "BitmapIcon",
+                      RES_TYPE_SYMBOL);
+  x_default_parameter (f, parms, Qauto_raise, Qnil, "autoRaise", "AutoRaiseLower",
+                      RES_TYPE_BOOLEAN);
+  x_default_parameter (f, parms, Qauto_lower, Qnil, "autoLower", "AutoLower",
+                      RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qcursor_type, Qbox, "cursorType", "CursorType",
                       RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qscroll_bar_width, Qnil, "scrollBarWidth",
                       "ScrollBarWidth", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qicon_type, Qnil, "bitmapIcon", "BitmapIcon",
-                      RES_TYPE_SYMBOL);
-  x_default_parameter (f, parms, Qauto_raise, Qnil, "autoRaise", "AutoRaise",
-                      RES_TYPE_BOOLEAN);
-  x_default_parameter (f, parms, Qauto_lower, Qnil, "autoLower", "AutoLower",
-                      RES_TYPE_BOOLEAN);
-  x_default_parameter (f, parms, Qbuffered, Qt, "buffered", "Buffered",
-                      RES_TYPE_BOOLEAN);
+  x_default_parameter (f, parms, Qalpha, Qnil, "alpha", "Alpha",
+                      RES_TYPE_NUMBER);
 
   width = FRAME_COLS (f);
   height = FRAME_LINES (f);
@@ -1442,7 +1440,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
     dirS = [dirS stringByExpandingTildeInPath];
 
   panel = NILP (isLoad) ?
-    [EmacsSavePanel savePanel] : [EmacsOpenPanel openPanel];
+    (id)[EmacsSavePanel savePanel] : (id)[EmacsOpenPanel openPanel];
 
   [panel setTitle: promptS];
 
@@ -1990,13 +1988,110 @@ DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
     (str)
     Lisp_Object str;
 {
+/* TODO: If GNUstep ever implements precomposedStringWithCanonicalMapping,
+         remove this. */
   NSString *utfStr;
 
   CHECK_STRING (str);
-  utfStr = [[NSString stringWithUTF8String: SDATA (str)]
-             precomposedStringWithCanonicalMapping];
+  utfStr = [NSString stringWithUTF8String: SDATA (str)];
+  if (![utfStr respondsToSelector:
+                 @selector (precomposedStringWithCanonicalMapping)])
+    {
+      message1
+        ("Warning: ns-convert-utf8-nfd-to-nfc unsupported under GNUstep.\n");
+      return Qnil;
+    }
+  else
+    utfStr = [utfStr precomposedStringWithCanonicalMapping];
   return build_string ([utfStr UTF8String]);
 }
+
+
+#ifdef NS_IMPL_COCOA
+
+/* Compile and execute the AppleScript SCRIPT and return the error
+   status as function value.  A zero is returned if compilation and
+   execution is successful, in which case *RESULT is set to a Lisp
+   string or a number containing the resulting script value.  Otherwise,
+   1 is returned. */
+static int
+ns_do_applescript (script, result)
+     Lisp_Object script, *result;
+{
+  NSAppleEventDescriptor *desc;
+  NSDictionary* errorDict;
+  NSAppleEventDescriptor* returnDescriptor = NULL;
+
+  NSAppleScript* scriptObject =
+    [[NSAppleScript alloc] initWithSource:
+			     [NSString stringWithUTF8String: SDATA (script)]];
+
+  returnDescriptor = [scriptObject executeAndReturnError: &errorDict];
+  [scriptObject release];
+  
+  *result = Qnil;
+  
+  if (returnDescriptor != NULL)
+    {
+      // successful execution
+      if (kAENullEvent != [returnDescriptor descriptorType])
+        {
+	  *result = Qt;
+	  // script returned an AppleScript result
+	  if ((typeUnicodeText == [returnDescriptor descriptorType]) ||
+	      (typeUTF16ExternalRepresentation 
+	       == [returnDescriptor descriptorType]) ||
+	      (typeUTF8Text == [returnDescriptor descriptorType]) ||
+	      (typeCString == [returnDescriptor descriptorType]))
+	    {
+	      desc = [returnDescriptor coerceToDescriptorType: typeUTF8Text];
+	      if (desc)
+		*result = build_string([[desc stringValue] UTF8String]);
+	    }
+	  else
+            {
+	      /* use typeUTF16ExternalRepresentation? */
+	      // coerce the result to the appropriate ObjC type
+	      desc = [returnDescriptor coerceToDescriptorType: typeUTF8Text];
+	      if (desc)
+		*result = make_number([desc int32Value]);
+            }
+        }
+    }
+  else
+    {
+      // no script result, return error
+      return 1;
+    }
+  return 0;
+}
+
+DEFUN ("ns-do-applescript", Fns_do_applescript, Sns_do_applescript, 1, 1, 0,
+       doc: /* Execute AppleScript SCRIPT and return the result.  If
+compilation and execution are successful, the resulting script value
+is returned as a string, a number or, in the case of other constructs,
+t.  In case the execution fails, an error is signaled. */)
+    (script)
+    Lisp_Object script;
+{
+  Lisp_Object result;
+  long status;
+
+  CHECK_STRING (script);
+  check_ns ();
+
+  BLOCK_INPUT;
+  status = ns_do_applescript (script, &result);
+  UNBLOCK_INPUT;
+  if (status == 0)
+    return result;
+  else if (!STRINGP (result))
+    error ("AppleScript error %d", status);
+  else
+    error ("%s", SDATA (result));
+}
+#endif
+
 
 
 /* ==========================================================================
@@ -2121,92 +2216,6 @@ x_sync (Lisp_Object frame)
    ========================================================================== */
 
 
-#ifdef NS_IMPL_COCOA
-
-/* Compile and execute the AppleScript SCRIPT and return the error
-   status as function value.  A zero is returned if compilation and
-   execution is successful, in which case *RESULT is set to a Lisp
-   string or a number containing the resulting script value.  Otherwise,
-   1 is returned. */
-
-static int
-do_applescript (script, result)
-     Lisp_Object script, *result;
-{
-  NSAppleEventDescriptor *desc;
-  NSDictionary* errorDict;
-  NSAppleEventDescriptor* returnDescriptor = NULL;
-
-  NSAppleScript* scriptObject =
-    [[NSAppleScript alloc] initWithSource:
-			     [NSString stringWithUTF8String: SDATA (script)]];
-
-  returnDescriptor = [scriptObject executeAndReturnError: &errorDict];
-  [scriptObject release];
-  
-  *result = Qnil;
-  
-  if (returnDescriptor != NULL)
-    {
-      // successful execution
-      if (kAENullEvent != [returnDescriptor descriptorType])
-        {
-	  *result = Qt;
-	  // script returned an AppleScript result
-	  if ((typeUnicodeText == [returnDescriptor descriptorType]) ||
-	      (typeUTF16ExternalRepresentation 
-	       == [returnDescriptor descriptorType]) ||
-	      (typeUTF8Text == [returnDescriptor descriptorType]) ||
-	      (typeCString == [returnDescriptor descriptorType]))
-	    {
-	      desc = [returnDescriptor coerceToDescriptorType: typeUTF8Text];
-	      if (desc)
-		*result = build_string([[desc stringValue] UTF8String]);
-	    }
-	  else
-            {
-	      /* use typeUTF16ExternalRepresentation? */
-	      // coerce the result to the appropriate ObjC type
-	      desc = [returnDescriptor coerceToDescriptorType: typeUTF8Text];
-	      if (desc)
-		*result = make_number([desc int32Value]);
-            }
-        }
-    }
-  else
-    {
-      // no script result, return error
-      return 1;
-    }
-  return 0;
-}
-
-DEFUN ("do-applescript", Fdo_applescript, Sdo_applescript, 1, 1, 0,
-       doc: /* Execute AppleScript SCRIPT and return the result.  If
-compilation and execution are successful, the resulting script value
-is returned as a string, a number or, in the case of other constructs,
-t.  In case the execution fails, an error is signaled. */)
-    (script)
-    Lisp_Object script;
-{
-  Lisp_Object result;
-  long status;
-
-  CHECK_STRING (script);
-  check_ns ();
-
-  BLOCK_INPUT;
-  status = do_applescript (script, &result);
-  UNBLOCK_INPUT;
-  if (status == 0)
-    return result;
-  else if (!STRINGP (result))
-    error ("AppleScript error %d", status);
-  else
-    error ("%s", SDATA (result));
-}
-#endif
-
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* Return t if the current Nextstep display supports the color COLOR.
 The optional argument FRAME is currently ignored.  */)
@@ -2312,6 +2321,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
   check_ns ();
   return make_number ((int) [ns_get_screen (display) frame].size.height);
 }
+
 
 DEFUN ("display-usable-bounds", Fns_display_usable_bounds,
        Sns_display_usable_bounds, 0, 1, 0,
@@ -2601,8 +2611,6 @@ syms_of_nsfns ()
 {
   int i;
 
-  Qns_frame_parameter = intern ("ns-frame-parameter");
-  staticpro (&Qns_frame_parameter);
   Qnone = intern ("none");
   staticpro (&Qnone);
   Qbuffered = intern ("bufferd");
@@ -2639,7 +2647,7 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sns_font_name);
   defsubr (&Sns_list_colors);
 #ifdef NS_IMPL_COCOA
-  defsubr (&Sdo_applescript);
+  defsubr (&Sns_do_applescript);
 #endif
   defsubr (&Sxw_color_defined_p);
   defsubr (&Sxw_color_values);

@@ -166,6 +166,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				    (const :tag "always" t)))
              ;; fileio.c
              (delete-by-moving-to-trash auto-save boolean "23.1")
+	     (auto-save-visited-file-name auto-save boolean)
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "22.1")
@@ -200,42 +201,6 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)
 						    (integer :tag "time" 2)
 						    (other :tag "on")))
-	     ;; macselect.c
-	     (mac-dnd-known-types mac (repeat string) "22.1")
-	     ;; macterm.c
-	     (mac-control-modifier mac (choice (const :tag "No modifier" nil)
-					       (const control) (const meta)
-					       (const alt) (const hyper)
-					       (const super)) "22.1")
-	     (mac-command-modifier mac (choice (const :tag "No modifier" nil)
-					       (const control) (const meta)
-					       (const alt) (const hyper)
-					       (const super)) "22.1")
-	     (mac-option-modifier mac (choice (const :tag "No modifier (work as option)" nil)
-					      (const control) (const meta)
-					      (const alt) (const hyper)
-					      (const super)) "22.1")
-	     (mac-function-modifier mac
-				    (choice (const :tag "No modifier (work as function)" nil)
-					    (const control) (const meta)
-					    (const alt) (const hyper)
-					    (const super)) "22.1")
-	     (mac-emulate-three-button-mouse mac
-					     (choice (const :tag "No emulation" nil)
-						     (const :tag "Option->2, Command->3" t)
-						     (const :tag "Command->2, Option->3" reverse))
-				    "22.1")
-	     (mac-wheel-button-is-mouse-2 mac boolean "22.1")
-	     (mac-pass-command-to-system mac boolean "22.1")
-	     (mac-pass-control-to-system mac boolean "22.1")
-	     (mac-allow-anti-aliasing mac boolean "22.1")
-	     (mac-ts-script-language-on-focus mac
-					      (choice (const :tag "System default behavior" nil)
-						      (const :tag "Restore to script/language used in the last focus frame" t)
-						      (cons :tag "Specify script/language"
-							    (integer :tag "Script code")
-							    (integer :tag "Language code")))
-					      "22.1")
 
 ;; This is not good news because it will use the wrong
 ;; version-specific directories when you upgrade.  We need
@@ -252,6 +217,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			     (choice (const :tag "Infinite" t) integer)
 			     "22.1")
 	     (history-delete-duplicates minibuffer boolean "22.1")
+	     (read-buffer-completion-ignore-case minibuffer boolean "23.1")
+
 	     (minibuffer-prompt-properties
 	      minibuffer
 	      (list
@@ -320,7 +287,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (scroll-margin windows integer)
 	     (hscroll-margin windows integer "22.1")
 	     (hscroll-step windows number "22.1")
-	     (truncate-partial-width-windows display boolean)
+	     (truncate-partial-width-windows display boolean "23.1")
 	     (mode-line-inverse-video mode-line boolean)
 	     (mode-line-in-non-selected-windows mode-line boolean "22.1")
 	     (line-number-display-limit display
@@ -387,8 +354,6 @@ since it could result in memory overflow and make Emacs crash."
 		       (eq system-type 'ms-dos))
 		      ((string-match "\\`w32-" (symbol-name symbol))
 		       (eq system-type 'windows-nt))
- 		      ((string-match "\\`mac-" (symbol-name symbol))
- 		       (featurep 'mac-carbon))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
 		       (featurep 'gtk))
 		      ((string-match "\\`x-" (symbol-name symbol))

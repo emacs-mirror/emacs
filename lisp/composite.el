@@ -391,35 +391,6 @@ after a sequence of character events."
 
 ;;; Automatic character composition.
 
-(defvar composition-function-table
-  (make-char-table nil)
-  "Char table of functions for automatic character composition.
-For each character that has to be composed automatically with
-preceding and/or following characters, this char table contains
-a function to call to compose that character.
-
-An element, if non-nil, is FUNC or an alist of PATTERNs vs FUNCs,
-where PATTERNs are regular expressions and FUNCs are functions.
-If the element is FUNC, FUNC itself determines the region to
-compose.
-
-Each function is called with 4 arguments, FROM, TO, FONT-OBJECT,
-and STRING.
-
-If STRING is nil, FROM and TO are positions specifying the region
-matching with PATTERN in the current buffer, and the function has
-to compose character in that region (possibly with characters
-preceding FROM).  FONT-OBJECT may be nil if not
-available (e.g. for the case of terminal).  The return value of
-the function is the end position where characters are composed,
-or nil if no composition is made.
-
-Otherwise, STRING is a string, and FROM and TO are indices into
-the string.  In this case, the function has to compose a
-character in the string.  The others are the same as above.
-
-See also the documentation of `auto-composition-mode'.")
-
 ;; Copied from font-lock.el.
 (eval-when-compile
   ;; Borrowed from lazy-lock.el.
@@ -441,111 +412,288 @@ See also the documentation of `auto-composition-mode'.")
 
 (put 'save-buffer-state 'lisp-indent-function 1)
 
-(defsubst terminal-composition-base-character-p (ch)
-  (not (memq (get-char-code-property ch 'general-category)
-	     '(Mn Mc Me Zs Zl Zp Cc Cf Cs))))
+;; These macros must match with C macros LGSTRING_XXX and LGLYPH_XXX in font.h
+(defsubst lgstring-header (gstring) (aref gstring 0))
+(defsubst lgstring-set-header (gstring header) (aset gstring 0 header))
+(defsubst lgstring-font (gstring) (aref (lgstring-header gstring) 0))
+(defsubst lgstring-char (gstring i) (aref (lgstring-header gstring) (1+ i)))
+(defsubst lgstring-char-len (gstring) (1- (length (lgstring-header gstring))))
+(defsubst lgstring-shaped-p (gstring) (aref gstring 1))
+(defsubst lgstring-set-id (gstring id) (aset gstring 1 id))
+(defsubst lgstring-glyph (gstring i) (aref gstring (+ i 2)))
+(defsubst lgstring-glyph-len (gstring) (- (length gstring) 2))
+(defsubst lgstring-set-glyph (gstring i glyph) (aset gstring (+ i 2) glyph))
 
-(defun terminal-composition-function (from to font-object string)
-  "General composition function used on terminal.
-Non-spacing characters are composed with the preceding spacing
-character.  All non-spacing characters has this function in
-`terminal-composition-function-table'."
-  (let ((pos from))
-    (if string
-	(progn
-	  (while (and (< pos to)
-		      (= (aref char-width-table (aref string pos)) 0))
-	    (setq pos (1+ pos)))
-	  (if (and (> from 0)
-		   (terminal-composition-base-character-p
-		    (aref string (1- from))))
-	      (compose-string string (1- from) pos)
-	    (compose-string string from pos
-			    (concat " " (buffer-substring from pos)))))
-      (while (and (< pos to)
-		  (= (aref char-width-table (char-after pos)) 0))
-	(setq pos (1+ pos)))
-      (if (and (> from (point-min))
-	       (terminal-composition-base-character-p (char-after (1- from))))
-	  (compose-region (1- from) pos)
-	(compose-region from pos
-			(concat " " (buffer-substring from pos)))))
-    pos))
+(defsubst lglyph-from (glyph) (aref glyph 0))
+(defsubst lglyph-to (glyph) (aref glyph 1))
+(defsubst lglyph-char (glyph) (aref glyph 2))
+(defsubst lglyph-code (glyph) (aref glyph 3))
+(defsubst lglyph-width (glyph) (aref glyph 4))
+(defsubst lglyph-lbearing (glyph) (aref glyph 5))
+(defsubst lglyph-rbearing (glyph) (aref glyph 6))
+(defsubst lglyph-ascent (glyph) (aref glyph 7))
+(defsubst lglyph-descent (glyph) (aref glyph 8))
+(defsubst lglyph-adjustment (glyph) (aref glyph 9))
 
-(defvar terminal-composition-function-table
-  (let ((table (make-char-table nil)))
-    (map-char-table
-     #'(lambda (key val)
-	 (if (= val 0) (set-char-table-range table key
-					     'terminal-composition-function)))
-     char-width-table)
-    table)
-  "Char table of functions for automatic character composition on terminal.
-This is like `composition-function-table' but used when Emacs is running
-on a terminal.")
+(defsubst lglyph-set-from-to (glyph from to)
+  (progn (aset glyph 0 from) (aset glyph 1 to)))
+(defsubst lglyph-set-char (glyph char) (aset glyph 2 char))
+(defsubst lglyph-set-width (glyph width) (aset glyph 4 width))
+(defsubst lglyph-set-adjustment (glyph &optional xoff yoff wadjust)
+  (aset glyph 9 (vector (or xoff 0) (or yoff 0) (or wadjust 0))))
 
-(defun auto-compose-chars (from to window string)
-  "Compose characters in the region between FROM and TO.
-WINDOW is a window displaying the current buffer.
+(defsubst lglyph-copy (glyph) (copy-sequence glyph))
+
+(defun lgstring-insert-glyph (gstring idx glyph)
+  (let ((nglyphs (lgstring-glyph-len gstring))
+	(i idx) g)
+    (while (and (< i nglyphs) (setq g (lgstring-glyph gstring i)))
+      (setq i (1+ i)))
+    (if (= i nglyphs)
+	(setq gstring (vconcat gstring (vector glyph)))
+      (if (< (1+ i) nglyphs)
+	  (lgstring-set-glyph gstring (1+ i) nil)))
+    (while (> i idx)
+      (lgstring-set-glyph gstring i (lgstring-glyph gstring (1- i)))
+      (setq i (1- i)))
+    (lgstring-set-glyph gstring i glyph)
+    gstring))
+
+(defun compose-glyph-string (gstring from to)
+  (let ((glyph (lgstring-glyph gstring from))
+	from-pos to-pos
+	ascent descent lbearing rbearing)
+    (setq from-pos (lglyph-from glyph)
+	  to-pos (lglyph-to (lgstring-glyph gstring (1- to))))
+    (lglyph-set-from-to glyph from-pos to-pos)
+    (setq from (1+ from))
+    (while (and (< from to)
+		(setq glyph (lgstring-glyph gstring from)))
+      (lglyph-set-from-to glyph from-pos to-pos)
+      (let ((xoff (if (<= (lglyph-rbearing glyph) 0) 0
+		    (- (lglyph-width glyph)))))
+	(lglyph-set-adjustment glyph xoff 0 0))
+      (setq from (1+ from)))
+    gstring))
+
+(defun compose-glyph-string-relative (gstring from to &optional gap)
+  (let ((font-object (lgstring-font gstring))
+	(glyph (lgstring-glyph gstring from))
+	from-pos to-pos
+	ascent descent lbearing rbearing)
+    (if gap
+	(setq gap (floor (* (font-get font-object :size) gap)))
+      (setq gap 0))
+    (setq from-pos (lglyph-from glyph)
+	  to-pos (lglyph-to (lgstring-glyph gstring (1- to)))
+	  ascent (lglyph-ascent glyph)
+	  descent (lglyph-descent glyph))
+    (lglyph-set-from-to glyph from-pos to-pos)
+    (setq from (1+ from))
+    (while (< from to)
+      (setq glyph (lgstring-glyph gstring from))
+      (lglyph-set-from-to glyph from-pos to-pos)
+      (let ((this-ascent (lglyph-ascent glyph))
+	    (this-descent (lglyph-descent glyph))
+	    xoff yoff wadjust)
+	(setq xoff (if (<= (lglyph-rbearing glyph) 0) 0
+		     (- (lglyph-width glyph))))
+	(if (> this-ascent 0)
+	    (if (< this-descent 0)
+		(setq yoff (- 0 ascent gap this-descent)
+		      ascent (+ ascent gap this-ascent this-descent))
+	      (setq yoff 0))
+	  (setq yoff (+ descent gap this-ascent)
+		descent (+ descent gap this-ascent this-descent)))
+	(if (or (/= xoff 0) (/= yoff 0))
+	    (lglyph-set-adjustment glyph xoff yoff 0)))
+      (setq from (1+ from)))
+    gstring))
+
+(defun compose-gstring-for-graphic (gstring)
+  "Compose glyph-string GSTRING for graphic display.
+Non-spacing characters are composed with the preceding base
+character.  If the preceding character is not a base character,
+each non-spacing character is composed as a spacing character by
+a padding space before and/or after the character.
+
+All non-spacing characters has this function in
+`composition-function-table' unless overwritten."
+  (let* ((header (lgstring-header gstring))
+	 (nchars (lgstring-char-len gstring))
+	 (nglyphs (lgstring-glyph-len gstring))
+	 (glyph (lgstring-glyph gstring 0)))
+    (cond
+     ;; A non-spacing character not following a proper base character.
+     ((= nchars 1)
+      (let ((lbearing (lglyph-lbearing glyph))
+	    (rbearing (lglyph-rbearing glyph))
+	    (width (lglyph-width glyph))
+	    xoff wadjust)
+	(if (< lbearing 0)
+	    (setq xoff (- lbearing))
+	  (setq xoff 0 lbearing 0))
+	(if (< rbearing width)
+	    (setq rbearing width))
+	(lglyph-set-adjustment glyph xoff 0 (- rbearing lbearing))
+	gstring))
+
+     ;; This sequence doesn't start with a proper base character.
+     ((memq (get-char-code-property (lgstring-char gstring 0)
+				    'general-category)
+	    '(Mn Mc Me Zs Zl Zp Cc Cf Cs))
+      nil)
+
+     ;; A base character and the following non-spacing characters.
+     (t
+      (let ((gstr (font-shape-gstring gstring)))
+	(if (and gstr
+		 (> (lglyph-to (lgstring-glyph gstr 0)) 0))
+	    gstr
+	  ;; The shaper of the font couldn't shape the gstring.
+	  ;; Shape them according to canonical-combining-class.
+	  (lgstring-set-id gstring nil)
+	  (let* ((width (lglyph-width glyph))
+		 (ascent (lglyph-ascent glyph))
+		 (descent (lglyph-descent glyph))
+		 (rbearing (lglyph-rbearing glyph))
+		 (lbearing (lglyph-lbearing glyph))
+		 (center (/ (+ lbearing rbearing) 2))
+		 (gap (round (* (font-get (lgstring-font gstring) :size) 0.1)))
+		 xoff yoff)
+	    (dotimes (i nchars)
+	      (setq glyph (lgstring-glyph gstring i))
+	      (when (> i 0)
+		(let* ((class (get-char-code-property
+			       (lglyph-char glyph) 'canonical-combining-class))
+		       (lb (lglyph-lbearing glyph))
+		       (rb (lglyph-rbearing glyph))
+		       (as (lglyph-ascent glyph))
+		       (de (lglyph-descent glyph))
+		       (ce (/ (+ lb rb) 2))
+		       xoff yoff)
+		  (if (and
+		       class (>= class 200) (<= class 240)
+		       (cond
+			((= class 200)
+			 (setq xoff (- lbearing ce)
+			       yoff (if (> as 0) 0 (+ descent as))))
+			((= class 202)
+			 (if (> as 0) (setq as 0))
+			 (setq xoff (- center ce)
+			       yoff (if (> as 0) 0 (+ descent as))))
+			((= class 204)
+			 (if (> as 0) (setq as 0))
+			 (setq xoff (- rbearing ce)
+			       yoff (if (> as 0) 0 (+ descent as))))
+			((= class 208)
+			 (setq xoff (- lbearing rb)))
+			((= class 210)
+			 (setq xoff (- rbearing lb)))
+			((= class 212)
+			 (setq xoff (- lbearing ce)
+			       yoff (if (>= de 0) 0 (- ascent de))))
+			((= class 214)
+			 (setq xoff (- center ce)
+			       yoff (if (>= de 0) 0 (- ascent de))))
+			((= class 216)
+			 (setq xoff (- rbearing ce)
+			       yoff (if (>= de 0) 0 (- ascent de))))
+			((= class 218)
+			 (setq xoff (- lbearing ce)
+			       yoff (if (> as 0) 0 (+ descent as gap))))
+			((= class 220)
+			 (setq xoff (- center ce)
+			       yoff (if (> as 0) 0 (+ descent as gap))))
+			((= class 222)
+			 (setq xoff (- rbearing ce)
+			       yoff (if (> as 0) 0 (+ descent as gap))))
+			((= class 224)
+			 (setq xoff (- lbearing rb)))
+			((= class 226)
+			 (setq xoff (- rbearing lb)))
+			((= class 228)
+			 (setq xoff (- lbearing ce)
+			       yoff (if (>= de 0) 0 (- ascent de gap))))
+			((= class 230)
+			 (setq xoff (- center ce)
+			       yoff (if (>= de 0) 0 (- ascent de gap))))
+			((= class 232)
+			 (setq xoff (- rbearing ce)
+			       yoff (if (>= de 0) 0 (- ascent de gap))))))
+		      (lglyph-set-adjustment glyph (- xoff width) yoff))))))
+	  (let ((i 0))
+	    (while (and (< i nglyphs) (setq glyph (lgstring-glyph gstring i)))
+	      (lglyph-set-from-to glyph 0 (1- nchars))
+	      (setq i (1+ i))))
+	  gstring))))))
+
+(let ((elt '(["\\C^\\c^+" 1 compose-gstring-for-graphic]
+	     [nil 0 compose-gstring-for-graphic])))
+  (map-char-table
+   #'(lambda (key val)
+       (if (= val 0)
+	   (set-char-table-range composition-function-table key elt)))
+   char-width-table))
+
+(defun compose-gstring-for-terminal (gstring)
+  "Compose glyph string GSTRING for terminal display.
+Non-spacing characters are composed with the preceding base
+character.  If the preceding character is not a base character,
+each non-spacing character is composed as a spacing character by
+a prepending a space before it."
+  (let* ((header (lgstring-header gstring))
+	 (nchars (lgstring-char-len gstring))
+	 (nglyphs (lgstring-glyph-len gstring))
+	 (i 0)
+	 glyph)
+    (while (and (< i nglyphs)
+		(setq glyph (lgstring-glyph gstring i)))
+      (if (= (lglyph-width glyph) 0)
+	  (progn
+	    ;; Compose by prepending a space.
+	    (setq gstring (lgstring-insert-glyph gstring i (lglyph-copy glyph))
+		  nglyphs (lgstring-glyph-len gstring))
+	    (lglyph-set-char (lgstring-glyph gstring i) 32)
+	    (setq i (+ 2)))
+	(let ((from (lglyph-from glyph))
+	      (to (lglyph-to glyph))
+	      (j (1+ i)))
+	  (while (and (< j nglyphs)
+		      (setq glyph (lgstring-glyph gstring j))
+		      (= (lglyph-width glyph) 0))
+	    (setq to (lglyph-to glyph)
+		  j (1+ j)))
+	  (while (< i j)
+	    (setq glyph (lgstring-glyph gstring i))
+	    (lglyph-set-from-to glyph from to)
+	    (setq i (1+ i))))))
+    gstring))
+
+
+(defun auto-compose-chars (func from to font-object string)
+  "Compose the characters at FROM by FUNC.
+FUNC is called with one argument GSTRING which is built for characters
+in the region FROM (inclusive) and TO (exclusive).
+
+If the character are composed on a graphic display, FONT-OBJECT
+is a font to use.
+
+Otherwise, FONT-OBJECT is nil, and the fucntion
+`compose-gstring-for-terminal' is used instead of FUNC.
+
 If STRING is non-nil, it is a string, and FROM and TO are indices
 into the string.  In that case, compose characters in the string.
 
+The value is a gstring containing information for shaping the characters.
+
 This function is the default value of `auto-composition-function' (which see)."
-  (save-buffer-state nil
-    (save-excursion
-      (save-restriction
-	(save-match-data
-	  (let ((table (if (display-graphic-p)
-			   composition-function-table
-			 terminal-composition-function-table))
-		(start from))
-	    (setq to (or (text-property-any (1+ from) to 'auto-composed t
-					    string)
-			 to))
-	    (if string
-		(while (< from to)
-		  (let* ((ch (aref string from))
-			 (elt (aref table ch))
-			 font-obj newpos)
-		    (when (and elt
-			       (or (not (display-graphic-p))
-				   (setq font-obj (font-at from window string))))
-		      (if (functionp elt)
-			  (setq newpos (funcall elt from to font-obj string))
-			(while (and elt
-				    (or (not (eq (string-match (caar elt) string
-							       from)
-						 from))
-					(not (setq newpos
-						   (funcall (cdar elt) from
-							    (match-end 0)
-							    font-obj string)))))
-			  (setq elt (cdr elt)))))
-		    (if (and newpos (> newpos from))
-			(setq from newpos)
-		      (setq from (1+ from)))))
-	      (narrow-to-region from to)
-	      (while (< from to)
-		  (let* ((ch (char-after from))
-			 (elt (aref table ch))
-			 func pattern font-obj newpos)
-		    (when (and elt
-			       (or (not (display-graphic-p))
-				   (setq font-obj (font-at from window))))
-		      (if (functionp elt)
-			  (setq newpos (funcall elt from to font-obj nil))
-			(goto-char from)
-			(while (and elt
-				    (or (not (looking-at (caar elt)))
-					(not (setq newpos
-						   (funcall (cdar elt) from
-							    (match-end 0)
-							    font-obj nil)))))
-			  (setq elt (cdr elt)))))
-		    (if (and newpos (> newpos from))
-			(setq from newpos)
-		      (setq from (1+ from))))))
-	    (put-text-property start to 'auto-composed t string)))))))
+  (let ((gstring (composition-get-gstring from to font-object string)))
+    (if (lgstring-shaped-p gstring)
+	gstring
+      (or font-object
+	  (setq func 'compose-gstring-for-terminal))
+      (funcall func gstring))))
 
 (make-variable-buffer-local 'auto-composition-function)
 

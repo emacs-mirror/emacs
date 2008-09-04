@@ -56,14 +56,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifndef VMS
 #if 1 /* Used to be #ifdef EMACS_BITMAP_FILES, but this should always work.  */
 #include "bitmaps/gray.xbm"
 #else
 #include <X11/bitmaps/gray>
-#endif
-#else
-#include "[.bitmaps]gray.xbm"
 #endif
 
 #ifdef USE_GTK
@@ -3143,11 +3139,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
-#ifdef MULTI_KBOARD
   kb = dpyinfo->terminal->kboard;
-#else
-  kb = &the_only_kboard;
-#endif
 
   if (!dpyinfo->terminal->name)
     error ("Terminal is not live, can't create new frames on it");

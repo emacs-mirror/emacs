@@ -2214,7 +2214,6 @@ Useful links:
      (file-name-as-directory
       (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
 	  (cond (ps-windows-system "c:/temp")
-		((memq system-type '(vax-vms axp-vms)) "SYS$SCRATCH:")
 		(t "/tmp")
 		)))))
   "*Specify a directory for temporary files during printing.

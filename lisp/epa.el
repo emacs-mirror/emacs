@@ -269,7 +269,8 @@ You should bind this variable with `let', but do not set it globally.")
   :help-echo 'epa--key-widget-help-echo)
 
 (defun epa--key-widget-action (widget &optional event)
-  (epa--show-key (widget-get widget :value)))
+  (save-selected-window
+    (epa--show-key (widget-get widget :value))))
 
 (defun epa--key-widget-value-create (widget)
   (let* ((key (widget-get widget :value))

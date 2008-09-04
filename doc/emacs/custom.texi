@@ -1307,7 +1307,7 @@ directory @file{src/imported}.
 define a project class using @code{define-project-bindings}, and then
 to tell Emacs which directory roots correspond to that class, using
 @code{set-directory-project}.  You can put calls to these functions in
-your @file{.emacs}; this can useful when you can't put
+your @file{.emacs}; this can be useful when you can't put
 @file{.dir-settings.el} in the directory for some reason.  For
 example, you could apply settings to an unwriteable directory this
 way:
