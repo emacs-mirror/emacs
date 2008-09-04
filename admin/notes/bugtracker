@@ -4,6 +4,29 @@ The Emacs Bug Tracker can be found at http://emacsbugs.donarmstrong.com/
 
 For a list of all bugs, see http://emacsbugs.donarmstrong.com/emacs
 
+** How do I report a bug in Emacs now?
+The same way as you always did.  Send mail to bug-gnu-emacs@gnu.org,
+or use M-x report-emacs-bug.
+
+The only differences are:
+
+i) Your report will be assigned a number and generate an automatic reply.
+
+ii) Optionally, you can set some database parameters when you first
+report a bug (see "Setting bug parameters" below).
+
+iii) If you want to CC: someone, use X-Debbugs-CC: (see below).
+
+Once your report is filed and assigned a number, it is sent out to the
+bug mailing list.  In some cases, it may be appropriate to just file a
+bug, without sending out a copy.  To do this, send mail to
+quiet@emacsbugs.donarmstrong.com.
+
+** How do I reply to an existing bug report?
+Reply to 123@emacsbugs.donarmstrong.com, replacing 123 with the number
+of the bug you are interested in.  Cc anyone you like.  Do NOT send
+a copy to the bug list, since this may generate a new report.  The
+only time to send mail to the bug list is to create a new report.
 
 ** When reporting a bug, to send a Cc to another address
 (e.g. bug-cc-mode@gnu.org), do not just use a Cc: header.
@@ -56,6 +79,7 @@ Package: emacs
 Version: 23.0.60
 Severity: minor
 
+Optionally, add a sub-package, eg Package: emacs,calendar.
 This can include tags.  Some things (e.g. submitter) don't seem to
 work here.
 
