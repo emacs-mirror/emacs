@@ -1,3 +1,8 @@
+2008-09-04  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-buffer-internal, ido-file-internal): Pass on other-window
+	and other-frame methods when switching between file and buffer modes.
+
 2008-09-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* info.el (Info-dir-remove-duplicates): Narrow buffer when
