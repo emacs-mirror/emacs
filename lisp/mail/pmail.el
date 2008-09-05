@@ -1560,6 +1560,7 @@ updated file.  It returns t if it got any new messages."
 
 	    (if (zerop new-messages)
 		(when (or file-name pmail-inbox-list)
+		  (pmail-show-message)
 		  (message "(No new mail has arrived)"))
 
 	      ;; Process the new messages for spam using the integrated
