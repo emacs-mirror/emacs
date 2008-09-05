@@ -1869,6 +1869,10 @@ struct composition_it
      composition at `stop_pos', and this is an automatic compositoin.
      If negative, this is a static composition..  */
   int ch;
+  /* If this an automatic composition, how many charaters to look back
+     from the position where a character triggering the composition
+     exists.  */
+  int lookback;
   /* If non-negative, number of glyphs of the glyph-string.  */
   int nglyphs;
   /* Number of characters and bytes of the current grapheme cluster.  */
