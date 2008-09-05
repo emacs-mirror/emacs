@@ -1,3 +1,7 @@
+2008-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.3 released.
+
 2008-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* makefile.MPW (MacObjects): Add mactoolbox.c.x.

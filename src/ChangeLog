@@ -1,3 +1,7 @@
+2008-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.3 released.
+
 2008-09-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (mac_draw_rectangle) [USE_CG_DRAWING]:

@@ -1,3 +1,7 @@
+2008-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.3 released.
+
 2008-04-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (ALL): Move $(CLIENTRES) from here...

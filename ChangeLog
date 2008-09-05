@@ -1,3 +1,7 @@
+2008-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.3 released.
+
 2008-08-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* make-dist: Omit info/.arch-inventory.
