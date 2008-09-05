@@ -1,3 +1,8 @@
+2008-09-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--try-to-split-window): Don't split when window
+	is not splittable in last disjunct.  (Bug#888)
+
 2008-09-05  Kenichi Handa  <handa@m17n.org>
 
 	* language/tibetan.el: Fix setting of composition-function-table.
@@ -57,7 +62,7 @@
 2008-09-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* calc/calc.el (calc-dispatch-map): Fix handling of upcased and
-	control-prefixed keys.  (Bug #835)
+	control-prefixed keys.  (Bug#835)
 
 2008-09-02  Chong Yidong  <cyd@stupidchicken.com>
 
