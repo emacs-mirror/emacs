@@ -365,7 +365,7 @@ single_menu_item (key, item, dummy, skp_v)
       return;
     }
 
-#ifdef HAVE_X_WINDOWS
+#if defined(HAVE_X_WINDOWS) || defined(MSDOS)
 #ifndef HAVE_BOXES
   /* Simulate radio buttons and toggle boxes by putting a prefix in
      front of them.  */
@@ -435,7 +435,7 @@ single_menu_item (key, item, dummy, skp_v)
     item_string = concat2 (item_string, build_string (" >"));
 #endif
 
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_X_WINDOWS || MSDOS */
 
   push_menu_item (item_string, enabled, key,
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF],
