@@ -1,3 +1,8 @@
+2008-09-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu.c (single_menu_item) [!HAVE_BOXES]: Enable emulation of
+	toggle boxes and radio buttons on MS-DOS as well.
+
 2008-09-05  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (autocmp_chars): Check lookback count.
