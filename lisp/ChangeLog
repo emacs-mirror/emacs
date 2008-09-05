@@ -1,3 +1,8 @@
+2008-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-get-filename): Rewrite octal escape character
+	processor (bug#885).
+
 2008-09-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-edit.el (custom-button-pressed): Default to inverse-video.
