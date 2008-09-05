@@ -1,5 +1,10 @@
 2008-09-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* international/quail.el: Require help-mode.
+	(quail-help-init): Function removed.
+	(quail-keyboard-layout-button, quail-keyboard-customize-button):
+	Define directly.
+
 	* dired.el (dired-get-filename): Rewrite octal escape character
 	processor (bug#885).
 
