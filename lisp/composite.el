@@ -294,7 +294,7 @@ If the character at POS has `composition' property, the value is a list
 of FROM, TO, and VALID-P.
 
 FROM and TO specify the range of text that has the same `composition'
-property, VALID-P is non-nil if and only if this composition is valid.
+property, VALID-P is t if this composition is valid, and nil if not.
 
 If there's no composition at POS, and the optional 2nd argument LIMIT
 is non-nil, search for a composition toward LIMIT.
@@ -318,9 +318,16 @@ and composition rules as described in `compose-region'.
 
 MOD-FUNC is a modification function of the composition.
 
-WIDTH is a number of columns the composition occupies on the screen."
+WIDTH is a number of columns the composition occupies on the screen.
+
+When Automatic Compostion mode is on, this function also finds a
+chunk of text that is automatically composed.  If such a chunk is
+found closer to POS than the position that has `composition'
+property, the value is a list of FROM, TO, and a glyph gstring
+the specify how the chunk is composed.  See the function
+`composition-get-gstring' for the format of the glyph string."
   (let ((result (find-composition-internal pos limit string detail-p)))
-    (if (and detail-p result (nth 2 result) (not (nth 3 result)))
+    (if (and detail-p (> (length result) 3) (nth 2 result) (not (nth 3 result)))
 	;; This is a valid rule-base composition.
 	(decode-composition-components (nth 2 result) 'nocopy))
     result))
