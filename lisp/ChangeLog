@@ -1,5 +1,7 @@
 2008-09-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* cus-edit.el (custom-button-pressed): Default to inverse-video.
+
 	* term/pc-win.el (msdos-face-setup): Setup faces for all frames,
 	not just for terminal-frame.
 
