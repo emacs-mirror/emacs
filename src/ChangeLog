@@ -1,3 +1,15 @@
+2008-09-05  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (autocmp_chars): Check lookback count.
+	(composition_compute_stop_pos): Set cmp_it->lookback.
+	(composition_reseat_it): Check lookback count.
+	(struct position_record): New struct.
+	(FORWARD_CHAR, BACKWARD_CHAR, CHAR_COMPOSABLE_P): New macros.
+	(find_automatic_composition): New function.
+	(composition_adjust_point): Use find_automatic_composition.
+
+	* dispextern.h (struct composition_it): New member lookback.
+
 2008-09-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* indent.c (Fvertical_motion): Don't call move_it_by_lines again
