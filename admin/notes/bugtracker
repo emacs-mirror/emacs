@@ -114,13 +114,17 @@ tags 123 + wontfix
 
 *** To merge bugs:
 Eg when bad replies create a bunch of new bugs for the same report.
-Bugs must all be in the same state, but need not have the same tags.  E.g.:
+Bugs must all be in the same state (e.g. same package(s) and severity),
+but need not have the same tags (tags are merged). E.g.:
 
 merge 123 124 125 ...
 
+Note that merging does not affect titles.  In particular, a "retitle"
+of merged bugs only affects individual bugs, not all of them.
+
 *** Forcing a merge:
-Like `merge', but bugs need not be in the same state.  The first one
-listed is the master.  E.g.:
+Like `merge', but bugs need not be in the same state.  The packages
+must still match though.  The first one listed is the master.  E.g.:
 
 forcemerge 123 124 125 ...
 
