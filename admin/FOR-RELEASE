@@ -48,16 +48,9 @@ Fixed by this change?
 	* ps-print.el: [...]
 	(ps-do-despool): If ps-lpr-switches is not a list, force it to be one.
 
-** unicode-merge issues:
-
-*** The data segment size increased after the unicode-2 merge.
-The "data" size increased for emacs from ~4MB to ~11MB on x86.
-The temacs sizes are comparable.
-http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
+* DOCUMENTATION
 
 ** Clean up Emacs.app references in code and documentation.
-
-* DOCUMENTATION
 
 ** Verify if doc/emacs/macos.texi is still useful, remove it if it is not.
 
