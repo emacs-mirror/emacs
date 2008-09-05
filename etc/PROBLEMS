@@ -2637,6 +2637,18 @@ does not work with this version of ncurses.
 
 The fix is to install a newer version of ncurses, such as version 4.2.
 
+** Bootstrapping
+
+Bootstrapping (compiling the .el files) is normally only necessary
+with CVS builds, since they the .elc files are pre-compiled in releases.
+
+*** "No rule to make target" with Ubuntu 8.04 make 3.81-3build1
+
+Compiling the lisp files fails at random places, complaining:
+"No rule to make target `/path/to/some/lisp.elc'".
+The causes of this problem are not understood.  Using GNU make 3.81 compiled
+from source, rather than the Ubuntu version, worked. See Bug#327,821.
+
 ** Dumping
 
 *** Linux: Segfault during `make bootstrap' under certain recent versions of the Linux kernel.
