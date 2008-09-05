@@ -837,8 +837,8 @@ by `split-window' or `split-window-preferred-function'."
 	       ;; minibuffer window, attempt to split it vertically
 	       ;; disregarding the value of `split-height-threshold'.
 	       (let ((split-height-threshold 0))
-		 (window--splittable-p window)
-		 (split-window window)))))))
+		 (and (window--splittable-p window)
+		      (split-window window))))))))
 
 (defun window--frame-usable-p (frame)
   "Return frame FRAME if it can be used to display another buffer."
