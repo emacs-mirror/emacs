@@ -31614,7 +31614,7 @@ Zone out, completely.
 ;;;;;;  "url/url-nfs.el" "url/url-proxy.el" "url/url-vars.el" "url/vc-dav.el"
 ;;;;;;  "vc-hooks.el" "vcursor.el" "version.el" "vms-patch.el" "vmsproc.el"
 ;;;;;;  "vt-control.el" "vt100-led.el" "w32-fns.el" "w32-vars.el"
-;;;;;;  "widget.el" "window.el" "x-dnd.el") (18621 48126 934567))
+;;;;;;  "widget.el" "window.el" "x-dnd.el") (18625 23607 152932))
 
 ;;;***
 
