@@ -1915,17 +1915,11 @@ Otherwise, an error occurs in these cases."
 	  ;; Get rid of the mouse-face property that file names have.
 	  (set-text-properties 0 (length file) nil file)
 	  ;; Unquote names quoted by ls or by dired-insert-directory.
-	  ;; Using read to unquote is much faster than substituting
-	  ;; \007 (4 chars) -> ^G  (1 char) etc. in a lisp loop.
-	  (setq file
-		(read
-		 (concat "\""
-			 ;; Some ls -b don't escape quotes, argh!
-			 ;; This is not needed for GNU ls, though.
-			 (or (dired-string-replace-match
-			      "\\([^\\]\\|\\`\\)\"" file "\\1\\\\\"" nil t)
-			     file)
-			 "\"")))
+	  (while (string-match
+		  "\\(?:[^\\]\\|\\`\\)\\(\\\\[0-7][0-7][0-7]\\)" file)
+	    (setq file (replace-match
+			(read (concat "\"" (match-string 1 file)  "\""))
+			nil t file 1)))
 	  ;; The above `read' will return a unibyte string if FILE
 	  ;; contains eight-bit-control/graphic characters.
 	  (if (and enable-multibyte-characters
