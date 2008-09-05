@@ -2073,6 +2073,9 @@ and `face'."
      (:box (:line-width 2 :style released-button)
 	   :background "grey90" :foreground "black"))
     (t
+     ;; This is for text terminals that support mouse, like GPM mouse
+     ;; or the MS-DOS terminal: inverse-video makes the button stand
+     ;; out on mouse-over.
      (:inverse-video t)))
   "Mouse face for custom buffer buttons if `custom-raised-buttons' is non-nil."
   :version "22.1"
@@ -2095,9 +2098,6 @@ and `face'."
      (:box (:line-width 2 :style pressed-button)
 	   :background "lightgrey" :foreground "black"))
     (t
-     ;; This is for text terminals that support mouse, like GPM mouse
-     ;; or the MS-DOS terminal: inverse-video makes the button stand
-     ;; out on mouse-over.
      (:inverse-video t)))
   "Face for pressed custom buttons if `custom-raised-buttons' is non-nil."
   :version "21.1"
