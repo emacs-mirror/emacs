@@ -1,3 +1,13 @@
+2008-09-05  Kenichi Handa  <handa@m17n.org>
+
+	* language/tibetan.el: Fix setting of composition-function-table.
+
+	* composite.el (find-composition): Mention about the automatic
+	composition in the docstring.
+
+	* descr-text.el (describe-char): Fix handling of automatic
+	composition.
+
 2008-09-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/tramp-cache.el (tramp-flush-file-function): Fix typo in docstring.
