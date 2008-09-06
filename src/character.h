@@ -101,14 +101,14 @@ extern char unibyte_has_multibyte_table[256];
   } while (0)
 
 
-/* If C is not ASCII, make it multibyte.  It assumes C < 256.  */
+/* If C is not ASCII, make it multibyte.  Assumes C < 256.  */
 #define MAKE_CHAR_MULTIBYTE(c) \
   (eassert ((c) >= 0 && (c) < 256), (c) = unibyte_to_multibyte_table[(c)])
 
 /* This is the maximum byte length of multibyte form.  */
 #define MAX_MULTIBYTE_LENGTH 5
 
-/* Return a Lisp character whose character code is C.  It assumes C is
+/* Return a Lisp character whose character code is C.  Assumes C is
    a valid character code.  */
 #define make_char(c) make_number (c)
 
@@ -118,8 +118,7 @@ extern char unibyte_has_multibyte_table[256];
 /* Nonzero iff X is a character.  */
 #define CHARACTERP(x) (NATNUMP (x) && XFASTINT (x) <= MAX_CHAR)
 
-/* Nonzero iff C is valid as a character code.  GENERICP is not used
-   now.  */
+/* Nonzero iff C is valid as a character code.  GENERICP is not used.  */
 #define CHAR_VALID_P(c, genericp) ((unsigned) (c) <= MAX_CHAR)
 
 /* Check if Lisp object X is a character or not.  */
@@ -200,9 +199,9 @@ extern char unibyte_has_multibyte_table[256];
    2)
 
 
-/* Store multibyte form of the character C in P.  The caller should
-   allocate at least MAX_MULTIBYTE_LENGTH bytes area at P in advance.
-   And, advance P to the end of the multibyte form.  */
+/* Store multibyte form of the character C in P and advance P to the
+   end of the multibyte form.  The caller should allocate at least
+   MAX_MULTIBYTE_LENGTH bytes area at P in advance.  */
 
 #define CHAR_STRING_ADVANCE(c, p)		\
   do {						\
@@ -233,8 +232,8 @@ extern char unibyte_has_multibyte_table[256];
 	(ASCII_BYTE_P (byte) || LEADING_CODE_P (byte))  */
 #define CHAR_HEAD_P(byte) (((byte) & 0xC0) != 0x80)
 
-/* Just kept for backward compatibility.  This macro will be removed
-   in the future.  */
+/* Kept for backward compatibility.  This macro will be removed in the
+   future.  */
 #define BASE_LEADING_CODE_P LEADING_CODE_P
 
 /* How many bytes a character that starts with BYTE occupies in a
@@ -265,7 +264,7 @@ extern char unibyte_has_multibyte_table[256];
   (bytes) = BYTES_BY_CHAR_HEAD (*(str))
 
 /* The byte length of multibyte form at unibyte string P ending at
-   PEND.  If STR doesn't point a valid multibyte form, return 0.  */
+   PEND.  If STR doesn't point to a valid multibyte form, return 0.  */
 
 #define MULTIBYTE_LENGTH(p, pend)				\
   (p >= pend ? 0						\
@@ -281,7 +280,7 @@ extern char unibyte_has_multibyte_table[256];
    : 0)
 
 
-/* Like MULTIBYTE_LENGTH but don't check the ending address.  */
+/* Like MULTIBYTE_LENGTH, but don't check the ending address.  */
 
 #define MULTIBYTE_LENGTH_NO_CHECK(p)			\
   (!((p)[0] & 0x80) ? 1					\
@@ -295,8 +294,8 @@ extern char unibyte_has_multibyte_table[256];
    : (p)[0] == 0xF8 && ((p)[1] & 0xF0) == 0x80 ? 5	\
    : 0)
 
-/* If P is before LIMIT, advance P to the next character boundary.  It
-   assumes that P is already at a character boundary of the sane
+/* If P is before LIMIT, advance P to the next character boundary.
+   Assumes that P is already at a character boundary of the same
    mulitbyte form whose end address is LIMIT.  */
 
 #define NEXT_CHAR_BOUNDARY(p, limit)	\
@@ -307,7 +306,7 @@ extern char unibyte_has_multibyte_table[256];
 
 
 /* If P is after LIMIT, advance P to the previous character boundary.
-   It assumes that P is already at a character boundary of the sane
+   Assumes that P is already at a character boundary of the same
    mulitbyte form whose beginning address is LIMIT.  */
 
 #define PREV_CHAR_BOUNDARY(p, limit)					\
@@ -340,7 +339,7 @@ extern char unibyte_has_multibyte_table[256];
    : string_char ((p), NULL, NULL))
 
 
-/* Like STRING_CHAR but set ACTUAL_LEN to the length of multibyte
+/* Like STRING_CHAR, but set ACTUAL_LEN to the length of multibyte
    form.  The argument LEN is ignored.  It will be removed in the
    future.  */
 
@@ -360,7 +359,7 @@ extern char unibyte_has_multibyte_table[256];
    : string_char ((p), NULL, &actual_len))
 
 
-/* Like STRING_CHAR but advance P to the end of multibyte form.  */
+/* Like STRING_CHAR, but advance P to the end of multibyte form.  */
 
 #define STRING_CHAR_ADVANCE(p)					\
   (!((p)[0] & 0x80)						\
@@ -405,8 +404,8 @@ extern char unibyte_has_multibyte_table[256];
     }									\
   while (0)
 
-/* Like FETCH_STRING_CHAR_ADVANCE but return a multibyte character eve
-   if STRING is unibyte.  */
+/* Like FETCH_STRING_CHAR_ADVANCE, but return a multibyte character
+   even if STRING is unibyte.  */
 
 #define FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE(OUTPUT, STRING, CHARIDX, BYTEIDX) \
   do                                                                          \
@@ -430,7 +429,7 @@ extern char unibyte_has_multibyte_table[256];
   while (0)
 
 
-/* Like FETCH_STRING_CHAR_ADVANCE but assumes STRING is multibyte.  */
+/* Like FETCH_STRING_CHAR_ADVANCE, but assumes STRING is multibyte.  */
 
 #define FETCH_STRING_CHAR_ADVANCE_NO_CHECK(OUTPUT, STRING, CHARIDX, BYTEIDX) \
   do    								     \
@@ -445,7 +444,7 @@ extern char unibyte_has_multibyte_table[256];
   while (0)
 
 
-/* Like FETCH_STRING_CHAR_ADVANCE but fetch character from the current
+/* Like FETCH_STRING_CHAR_ADVANCE, but fetch character from the current
    buffer.  */
 
 #define FETCH_CHAR_ADVANCE(OUTPUT, CHARIDX, BYTEIDX)		\
@@ -469,7 +468,7 @@ extern char unibyte_has_multibyte_table[256];
   while (0)
 
 
-/* Like FETCH_CHAR_ADVANCE but assumes the current buffer is multibyte.  */
+/* Like FETCH_CHAR_ADVANCE, but assumes the current buffer is multibyte.  */
 
 #define FETCH_CHAR_ADVANCE_NO_CHECK(OUTPUT, CHARIDX, BYTEIDX)	\
   do    							\
@@ -484,7 +483,7 @@ extern char unibyte_has_multibyte_table[256];
   while (0)
 
 
-/* Increase the buffer byte position POS_BYTE of the current buffer to
+/* Increment the buffer byte position POS_BYTE of the current buffer to
    the next character boundary.  No range checking of POS.  */
 
 #define INC_POS(pos_byte)				\
@@ -494,7 +493,7 @@ extern char unibyte_has_multibyte_table[256];
   } while (0)
 
 
-/* Decrease the buffer byte position POS_BYTE of the current buffer to
+/* Decrement the buffer byte position POS_BYTE of the current buffer to
    the previous character boundary.  No range checking of POS.  */
 
 #define DEC_POS(pos_byte)			\
@@ -541,7 +540,7 @@ extern char unibyte_has_multibyte_table[256];
   while (0)
 
 
-/* Increase the buffer byte position POS_BYTE of the current buffer to
+/* Increment the buffer byte position POS_BYTE of the current buffer to
    the next character boundary.  This macro relies on the fact that
    *GPT_ADDR and *Z_ADDR are always accessible and the values are
    '\0'.  No range checking of POS_BYTE.  */
@@ -553,7 +552,7 @@ extern char unibyte_has_multibyte_table[256];
   } while (0)
 
 
-/* Decrease the buffer byte position POS_BYTE of the current buffer to
+/* Decrement the buffer byte position POS_BYTE of the current buffer to
    the previous character boundary.  No range checking of POS_BYTE.  */
 
 #define BUF_DEC_POS(buf, pos_byte)					\
@@ -598,7 +597,7 @@ extern char unibyte_has_multibyte_table[256];
 
 
 /* Return the width of ASCII character C.  The width is measured by
-   how many columns occupied on the screen when displayed in the
+   how many columns C will occupy on the screen when displayed in the
    current buffer.  */
 
 #define ASCII_CHAR_WIDTH(c)						\
@@ -611,7 +610,7 @@ extern char unibyte_has_multibyte_table[256];
       : ((NILP (current_buffer->ctl_arrow) ? 4 : 2))))
 
 /* Return the width of character C.  The width is measured by how many
-   columns occupied on the screen when displayed in the current
+   columns C will occupy on the screen when displayed in the current
    buffer.  */
 
 #define CHAR_WIDTH(c)		\
