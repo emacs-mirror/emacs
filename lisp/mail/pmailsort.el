@@ -33,9 +33,8 @@
 
 (autoload 'timezone-make-date-sortable "timezone")
 
-(declare-function pmail-dont-reply-to "mail-utils" (destinations))
-(declare-function pmail-desc-get-marker-end "pmailsort" (msgnum))
-(declare-function pmail-desc-get-marker-start "pmailsort" (msgnum))
+;(declare-function pmail-desc-get-marker-end "pmailsort" (msgnum))
+;(declare-function pmail-desc-get-marker-start "pmailsort" (msgnum))
 (declare-function pmail-update-summary "pmailsum" (&rest ignore))
 
 ;; Sorting messages in Pmail buffer
@@ -109,7 +108,8 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
   (let ((ans ""))
     (while (and fields (string= ans ""))
       (setq ans
-	    (pmail-dont-reply-to
+	    ;; NB despite the name, this lives in mail-utils.el.
+	    (rmail-dont-reply-to
 	     (mail-strip-quoted-names
 	      (or (pmail-fetch-field msg (car fields)) ""))))
       (setq fields (cdr fields)))
