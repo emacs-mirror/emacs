@@ -1445,7 +1445,7 @@ original copy."
 
 ;;;; *** Pmail input ***
 
-(declare-function pmail-spam-filter "pmail-spam-filter" (msg))
+;;;(declare-function pmail-spam-filter "pmail-spam-filter" (msg))
 (declare-function pmail-summary-goto-msg "pmailsum" (&optional n nowarn skip-pmail))
 (declare-function pmail-summary-mark-undeleted "pmailsum" (n))
 (declare-function pmail-summary-mark-deleted "pmailsum" (&optional n undel))
