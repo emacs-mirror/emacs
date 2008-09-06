@@ -686,51 +686,52 @@ current buffer to the complete file name.
 Optional arg BUFFER-FILE overrides `buffer-file-name'."
   ;; If we are called from a diff, first switch to the source buffer;
   ;; in order to respect buffer-local settings of change-log-default-name, etc.
-  (let ((buff (if (eq major-mode 'diff-mode)
-		  (car (ignore-errors (diff-find-source-location))))))
-    (with-current-buffer (if (buffer-live-p buff) buff
-			   (current-buffer))
+  (with-current-buffer (let ((buff (if (eq major-mode 'diff-mode)
+				       (car (ignore-errors
+					     (diff-find-source-location))))))
+			 (if (buffer-live-p buff) buff
+			   (current-buffer)))
       ;; If user specified a file name or if this buffer knows which one to use,
       ;; just use that.
-      (or file-name
-	  (setq file-name (and change-log-default-name
-			       (file-name-directory change-log-default-name)
-			       change-log-default-name)))
-      (progn
-	;; Chase links in the source file
-	;; and use the change log in the dir where it points.
-	(setq file-name (or (and (or buffer-file buffer-file-name)
-				 (file-name-directory
-				  (file-chase-links
-				   (or buffer-file buffer-file-name))))
-			    default-directory))
-	(if (file-directory-p file-name)
-	    (setq file-name (expand-file-name (change-log-name) file-name)))
-	;; Chase links before visiting the file.
-	;; This makes it easier to use a single change log file
-	;; for several related directories.
-	(setq file-name (file-chase-links file-name))
-	(setq file-name (expand-file-name file-name))
-	;; Move up in the dir hierarchy till we find a change log file.
-	(let ((file1 file-name)
-	      parent-dir)
-	  (while (and (not (or (get-file-buffer file1) (file-exists-p file1)))
-		      (progn (setq parent-dir
+    (or file-name
+	(setq file-name (and change-log-default-name
+			     (file-name-directory change-log-default-name)
+			     change-log-default-name))
+	(progn
+	  ;; Chase links in the source file
+	  ;; and use the change log in the dir where it points.
+	  (setq file-name (or (and (or buffer-file buffer-file-name)
 				   (file-name-directory
-				    (directory-file-name
-				     (file-name-directory file1))))
-			     ;; Give up if we are already at the root dir.
-			     (not (string= (file-name-directory file1)
-					   parent-dir))))
-	    ;; Move up to the parent dir and try again.
-	    (setq file1 (expand-file-name
-			 (file-name-nondirectory (change-log-name))
-			 parent-dir)))
-	  ;; If we found a change log in a parent, use that.
-	  (if (or (get-file-buffer file1) (file-exists-p file1))
-	      (setq file-name file1))))
-      ;; Make a local variable in this buffer so we needn't search again.
-      (set (make-local-variable 'change-log-default-name) file-name)))
+				    (file-chase-links
+				     (or buffer-file buffer-file-name))))
+			      default-directory))
+	  (if (file-directory-p file-name)
+	      (setq file-name (expand-file-name (change-log-name) file-name)))
+	  ;; Chase links before visiting the file.
+	  ;; This makes it easier to use a single change log file
+	  ;; for several related directories.
+	  (setq file-name (file-chase-links file-name))
+	  (setq file-name (expand-file-name file-name))
+	  ;; Move up in the dir hierarchy till we find a change log file.
+	  (let ((file1 file-name)
+		parent-dir)
+	    (while (and (not (or (get-file-buffer file1) (file-exists-p file1)))
+			(progn (setq parent-dir
+				     (file-name-directory
+				      (directory-file-name
+				       (file-name-directory file1))))
+			       ;; Give up if we are already at the root dir.
+			       (not (string= (file-name-directory file1)
+					     parent-dir))))
+	      ;; Move up to the parent dir and try again.
+	      (setq file1 (expand-file-name
+			   (file-name-nondirectory (change-log-name))
+			   parent-dir)))
+	    ;; If we found a change log in a parent, use that.
+	    (if (or (get-file-buffer file1) (file-exists-p file1))
+		(setq file-name file1)))))
+    ;; Make a local variable in this buffer so we needn't search again.
+    (set (make-local-variable 'change-log-default-name) file-name))
   file-name)
 
 (defun add-log-file-name (buffer-file log-file)
