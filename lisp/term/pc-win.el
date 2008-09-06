@@ -269,7 +269,7 @@ are fixed-pitch."
      ((stringp help)
       (unless msdos-previous-message
         (setq msdos-previous-message (current-message)))
-      (let ((message-truncate-lines t)
+      (let ((message-truncate-lines nil)
             (message-log-max nil))
         (message "%s" (replace-regexp-in-string "\n" ", " help))))
      ((stringp msdos-previous-message)
