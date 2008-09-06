@@ -1,3 +1,7 @@
+2008-09-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tooltip.el (tooltip-mode): Initialize unconditionally to t.
+
 2008-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* add-log.el (diff-find-source-location): Declare.
