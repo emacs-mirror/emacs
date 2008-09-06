@@ -1458,14 +1458,15 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 ;;     (setq symbol-file-load-history-loaded t)))
 
 (defun symbol-file (symbol &optional type)
-  "Return the input source in which SYMBOL was defined.
-The value is an absolute file name.
-It can also be nil, if the definition is not associated with any file.
+  "Return the name of the file that defined SYMBOL.
+The value is normally an absolute file name.  It can also be nil,
+if the definition is not associated with any file.  If SYMBOL
+specifies an autoloaded function, the value can be a relative
+file name without extension.
 
-If TYPE is nil, then any kind of definition is acceptable.
-If TYPE is `defun' or `defvar', that specifies function
-definition only or variable definition only.
-`defface' specifies a face definition only."
+If TYPE is nil, then any kind of definition is acceptable.  If
+TYPE is `defun', `defvar', or `defface', that specifies function
+definition, variable definition, or face definition only."
   (if (and (or (null type) (eq type 'defun))
 	   (symbolp symbol) (fboundp symbol)
 	   (eq 'autoload (car-safe (symbol-function symbol))))
