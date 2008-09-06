@@ -52,6 +52,7 @@
   :type '(choice (const :tag "default" nil)
 		 string)
   :group 'change-log)
+;;;###autoload
 (put 'change-log-default-name 'safe-local-variable 'string-or-null-p)
 
 (defcustom change-log-mode-hook nil
