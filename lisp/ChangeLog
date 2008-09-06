@@ -1,3 +1,7 @@
+2008-09-06  Kenichi Handa  <handa@m17n.org>
+
+	* language/lao.el: Fix setting of composition-function-table.
+
 2008-09-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* term/pc-win.el (msdos-show-help): Don't truncate lines while
