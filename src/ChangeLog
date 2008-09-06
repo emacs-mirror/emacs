@@ -1,5 +1,8 @@
 2008-09-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* xmenu.c (xmenu_show) [!HAVE_X_WINDOWS]: If frame has a
+	minibuffer, don't let lower part of menu invade the echo area.
+
 	* msdos.c (IT_menu_display): Use STRING_CHAR_ADVANCE instead of a
 	"char *q" to access menu text and advance through it.  Revert the
 	change that displayed ">" instead of ASCII character 0x10.
