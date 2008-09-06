@@ -53,7 +53,6 @@
 (defvar mail-abbrev-syntax-table)
 (defvar mail-abbrevs)
 (defvar messages-head)
-(defvar pmail-use-spam-filter)
 (defvar rsf-beep)
 (defvar rsf-sleep-after-message)
 (defvar total-messages)
@@ -799,8 +798,11 @@ The first parenthesized expression should match the MIME-charset name.")
 
 (defvar pmail-enable-multibyte nil)
 
-;; Avoid errors.
-(defvar pmail-use-spam-filter nil)
+;; XXX rmail-spam-filter hasn't been tested at all with the mbox
+;; branch. --enberg
+(defvar pmail-use-spam-filter nil
+  "*Non-nil to activate the rmail spam filter with pmail.
+WARNING - this has not been tested at all with pmail.")
 
 (defun pmail-require-mime-maybe ()
   "Require `pmail-mime-feature' if that is non-nil.
@@ -1445,8 +1447,8 @@ original copy."
 
 ;;;; *** Pmail input ***
 
-;;;(declare-function pmail-spam-filter "pmail-spam-filter" (msg))
-(declare-function pmail-summary-goto-msg "pmailsum" (&optional n nowarn skip-pmail))
+(declare-function pmail-summary-goto-msg "pmailsum"
+                  (&optional n nowarn skip-pmail))
 (declare-function pmail-summary-mark-undeleted "pmailsum" (n))
 (declare-function pmail-summary-mark-deleted "pmailsum" (&optional n undel))
 (declare-function rfc822-addresses "rfc822" (header-text))
@@ -1566,12 +1568,10 @@ updated file.  It returns t if it got any new messages."
 	      ;; Process the new messages for spam using the integrated
 	      ;; spam filter.  The spam filter can mark messages for
 	      ;; deletion and can output a message.
-	      ;; XXX pmail-spam-filter hasn't been tested at all with
-	      ;; the mbox branch. --enberg
 	      (setq current-message (pmail-first-unseen-message))
 	      (when pmail-use-spam-filter
 		(while (<= current-message pmail-total-messages)
-		  (pmail-spam-filter current-message)
+		  (rmail-spam-filter current-message)
 		  (setq current-message (1+ current-message))))
 	      ;; Make the first unseen message the current message and
 	      ;; update the summary buffer, if one exists.
