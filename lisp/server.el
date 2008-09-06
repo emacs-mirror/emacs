@@ -986,7 +986,7 @@ The following commands are accepted by the client:
           (message "%s" (substitute-command-keys
                          "When done with this frame, type \\[delete-frame]")))
          ((not (null buffers))
-          (server-switch-buffer (car buffers))
+          (server-switch-buffer (car buffers) nil (cdr (car files)))
           (run-hooks 'server-switch-hook)
           (unless nowait
             (message "%s" (substitute-command-keys
@@ -1206,14 +1206,18 @@ starts server process and that is all.  Invoked by \\[server-edit]."
     (server-clients (apply 'server-switch-buffer (server-done)))
     (t (message "No server editing buffers exist"))))
 
-(defun server-switch-buffer (&optional next-buffer killed-one)
+(defun server-switch-buffer (&optional next-buffer killed-one filepos)
   "Switch to another buffer, preferably one that has a client.
 Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it.
 
 KILLED-ONE is t in a recursive call if we have already killed one
 temp-file server buffer.  This means we should avoid the final
 \"switch to some other buffer\" since we've already effectively
-done that."
+done that.
+
+FILEPOS specifies a new buffer position for NEXT-BUFFER, if we
+visit NEXT-BUFFER in an existing window.  If non-nil, it should
+be a cons cell (LINENUMBER . COLUMNNUMBER)."
   (if (null next-buffer)
       (progn
 	(let ((rest server-clients))
@@ -1238,10 +1242,14 @@ done that."
 	  (funcall server-window next-buffer)
 	(let ((win (get-buffer-window next-buffer 0)))
 	  (if (and win (not server-window))
-	      ;; The buffer is already displayed: just reuse the window.
+	      ;; The buffer is already displayed: just reuse the
+	      ;; window.  If FILEPOS is non-nil, use it to replace the
+	      ;; window's own value of point.
               (progn
                 (select-window win)
-                (set-buffer next-buffer))
+                (set-buffer next-buffer)
+		(when filepos
+		  (server-goto-line-column filepos)))
 	    ;; Otherwise, let's find an appropriate window.
 	    (cond ((window-live-p server-window)
 		   (select-window server-window))
