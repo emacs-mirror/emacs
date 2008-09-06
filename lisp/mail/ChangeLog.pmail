@@ -20,6 +20,7 @@
 	Doc fix for actual definition.
 	(pmail-get-new-mail): Call rmail-spam-filter rather than non-existent
 	pmail-spam-filter.
+	(rmail-spam-filter): Autoload it.
 
 2008-09-05  Paul Reilly  <pmr@pajato.com>
 
