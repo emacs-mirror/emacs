@@ -1,5 +1,7 @@
 2008-09-06  Glenn Morris  <rgm@gnu.org>
 
+	* help-mode.el (help-xref-forward-stack): Doc fix.
+
 	* add-log.el (change-log-default-name): Autoload safety.
 
 2008-09-05 Wilson Snyder <wsnyder@wsnyder.org>
