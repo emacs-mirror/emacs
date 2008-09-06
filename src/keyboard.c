@@ -1361,7 +1361,8 @@ top_level_1 ()
 }
 
 DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
-       doc: /* Exit all recursive editing levels.  */)
+       doc: /* Exit all recursive editing levels.
+This also exits all active minibuffers.  */)
      ()
 {
 #ifdef HAVE_WINDOW_SYSTEM
