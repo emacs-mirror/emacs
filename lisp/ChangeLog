@@ -1,5 +1,8 @@
 2008-09-06  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/sh-script.el (sh-get-kw): Remove '()' from the list of
+	unallowed characters; added 2006-10-10 without comment.  (Bug#753)
+
 	* Makefile.in (ELCFILES): Update.
 
 2008-09-06  Chong Yidong  <cyd@stupidchicken.com>
