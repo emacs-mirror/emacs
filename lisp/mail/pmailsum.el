@@ -217,7 +217,6 @@
 (declare-function pmail-cease-edit "pmailedit"())
 (declare-function pmail-set-label "pmailkwd" (l state &optional n))
 (declare-function pmail-output-read-file-name "pmailout" ())
-(declare-function pmail-output-read-pmail-file-name  "pmailout" ())
 (declare-function mail-comma-list-regexp "mail-utils" (labels))
 (declare-function mail-send-and-exit "sendmail" (&optional arg))
 (declare-function mail-strip-quoted-names "mail-utils" (address))
