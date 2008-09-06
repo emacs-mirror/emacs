@@ -1,3 +1,9 @@
+2008-09-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-switch-buffer): New arg.
+	(server-execute): If reusing an existing window, set file position
+	if required.
+
 2008-09-06  Kenichi Handa  <handa@m17n.org>
 
 	* language/lao.el: Fix setting of composition-function-table.
