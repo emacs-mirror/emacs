@@ -1,5 +1,9 @@
 2008-09-06  Glenn Morris  <rgm@gnu.org>
 
+	* add-log.el (diff-find-source-location): Declare.
+	(find-change-log): If called from a diff buffer, try to switch to the
+	source buffer (e.g. to respect change-log-default-name there).
+
 	* progmodes/sh-script.el (sh-get-kw): Remove '()' from the list of
 	unallowed characters; added 2006-10-10 without comment.  (Bug#753)
 
