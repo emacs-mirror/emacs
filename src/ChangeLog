@@ -1,3 +1,7 @@
+2008-09-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* process.c (Fsystem_process_attributes): Doc fix.
+
 2008-09-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (Ftop_level): Doc fix.
