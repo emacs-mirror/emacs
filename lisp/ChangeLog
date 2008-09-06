@@ -1,3 +1,8 @@
+2008-09-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/pc-win.el (msdos-show-help): Don't truncate lines while
+	displaying help echo messages.
+
 2008-09-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* subr.el (symbol-file): Fix doc-string.
