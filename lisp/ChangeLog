@@ -40,6 +40,15 @@
 	in a highlighted region: indent each line in region according to
 	mode.  Supply this so it works in XEmacs and older Emacs.
 
+2008-09-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: Fix auto-cleanup on kill prevents killing read-only
+	buffers (bug#360). New version 11.2.1.
+	(whitespace-action): New value `warn-read-only' to give a warning when
+	buffer is read-only and whitespace action is cleanup or auto-cleanup.
+	(whitespace-cleanup, whitespace-cleanup-region): Code fix.
+	(whitespace-warn-read-only): New fun.
+
 2008-09-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* international/quail.el: Require help-mode.
