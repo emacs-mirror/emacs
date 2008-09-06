@@ -21,7 +21,7 @@
 	returning wrong search results on Emacs 22.1.
 	(verilog-modi-cache-results, verilog-auto): Fix warning message
 	about "toggling font-lock-mode."
-	(verilog-auto): Fix loosing font-lock on errors.
+	(verilog-auto): Fix losing font-lock on errors.
 	(verilog-auto-inst-param-value, verilog-mode-version)
 	(verilog-mode-version-date, verilog-read-inst-param-value)
 	(verilog-auto-inst, verilog-auto-inst-param)
@@ -37,7 +37,7 @@
 	introduces a statement which requires an endproperty keyword, and
 	sometimes it doesn't, dependening on the work before the property
 	word. If property is prefixed with assert, assume or cover
-	keyword, then the statement is ended with a ';' Otherwise,
+	keyword, then the statement is ended with a ';'.  Otherwise,
 	property is like task or specify, and is followed by some number
 	of statements, which are ended with an endproperty keyword.
 	(electric-verilog-tab): Support Emacs 22.2 style handling of tab
