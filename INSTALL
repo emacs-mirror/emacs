@@ -225,7 +225,8 @@ DETAILED BUILDING AND INSTALLATION:
 
 (This is for a Unix or Unix-like system.  For MS-DOS and Windows 3.X,
 see below; search for MSDOG.  For Windows 9X, Windows ME, Windows NT,
-and Windows 2000, see the file nt/INSTALL.)
+Windows 2000, Windows XP/2003, and Windows Vista/2008, see the file
+nt/INSTALL.)
 
 1) Make sure your system has enough swapping space allocated to handle
 a program whose pure code is 1.5 MB and whose data area is at
@@ -811,20 +812,21 @@ to run lisp/Makefile, as all the Lisp files are distributed in
 byte-compiled form as well.
 
 If you are building the MSDOG version of Emacs on an MSDOG-like system
-which supports long file names (e.g. Windows 95), you need to make
-sure that long file names are handled consistently both when you
-unpack the distribution and compile it.  If you intend to compile with
-DJGPP v2.0 or later, and long file names support is enabled (LFN=y in
-the environment), you need to unpack Emacs distribution in a way that
-doesn't truncate the original long filenames to the DOS 8.3 namespace;
-the easiest way to do this is to use djtar program which comes with
-DJGPP, since it will note the LFN setting and behave accordingly.
-DJGPP v1 doesn't support long filenames, so you must unpack Emacs with
-a program that truncates the filenames to 8.3 naming as it extracts
-files; again, using djtar after setting LFN=n is the recommended way.
-You can build Emacs with LFN=n even if you use DJGPP v2, if some of
-your tools don't support long file names: just ensure that LFN is set
-to `n' during both unpacking and compiling.
+which supports long file names (e.g. Windows 9X or Windows XP), you
+need to make sure that long file names are handled consistently both
+when you unpack the distribution and compile it.  If you intend to
+compile with DJGPP v2.0 or later, and long file names support is
+enabled (LFN=y in the environment), you need to unpack Emacs
+distribution in a way that doesn't truncate the original long
+filenames to the DOS 8.3 namespace; the easiest way to do this is to
+use djtar program which comes with DJGPP, since it will note the LFN
+setting and behave accordingly.  DJGPP v1 doesn't support long
+filenames, so you must unpack Emacs with a program that truncates the
+filenames to 8.3 naming as it extracts files; again, using djtar after
+setting LFN=n is the recommended way.  You can build Emacs with LFN=n
+even if you use DJGPP v2, if some of your tools don't support long
+file names: just ensure that LFN is set to `n' during both unpacking
+and compiling.
 
 (By the time you read this, you have already unpacked the Emacs
 distribution, but if the explanations above imply that you should have
@@ -835,7 +837,7 @@ into problems during the build process.)
 It is important to understand that the runtime support of long file
 names by the Emacs binary is NOT affected by the LFN setting during
 compilation; Emacs compiled with DJGPP v2.0 or later will always
-support long file names on Windows 9X no matter what was the setting
+support long file names on Windows no matter what was the setting
 of LFN at compile time.  However, if you compiled with LFN disabled
 and want to enable LFN support after Emacs was already built, you need
 to make sure that the support files in the lisp, etc and info
@@ -876,12 +878,12 @@ rerun CONFIG.BAT.  If you have neither ECHO.EXE nor DJECHO.EXE, you
 should be able to find them in your djdevNNN.zip archive (where NNN is
 the DJGPP version number).
 
-On Windows NT or Windows 2000, running "config msdos" might print an
-error message like "VDM has been already loaded".  This is because
-those systems have a program called `redir.exe' which is incompatible
-with a program by the same name supplied with DJGPP, which is used by
-config.bat.  To resolve this, move the DJGPP's `bin' subdirectory to
-the front of your PATH environment variable.
+On Windows NT, Windows 2000/XP/Vista, running "config msdos" might
+print an error message like "VDM has been already loaded".  This is
+because those systems have a program called `redir.exe' which is
+incompatible with a program by the same name supplied with DJGPP,
+which is used by config.bat.  To resolve this, move the DJGPP's `bin'
+subdirectory to the front of your PATH environment variable.
 
 To install the international fonts, chdir to the intlfonts-X.Y
 directory created when you unpacked the intlfonts distribution (X.Y is
