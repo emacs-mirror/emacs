@@ -67,7 +67,7 @@ To use the element, do (apply FUNCTION ARGS) then goto the point.")
 (make-variable-buffer-local 'help-xref-stack)
 
 (defvar help-xref-forward-stack nil
-  "The stack of used to navigate help forwards  after using the back button.
+  "A stack used to navigate help forwards after using the back button.
 Used by `help-follow' and `help-xref-go-forward'.
 An element looks like (POSITION FUNCTION ARGS...).
 To use the element, do (apply FUNCTION ARGS) then goto the point.")
