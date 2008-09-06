@@ -1481,6 +1481,8 @@ If delete fails, truncate them to zero length."
 	  (file-error (write-region (point) (point) file)))
       (file-error nil))))
 
+(autoload 'rmail-spam-filter "rmail-spam-filter")
+
 (defun pmail-get-new-mail (&optional file-name)
   "Move any new mail from this mail file's inbox files.
 The inbox files for the primary mail file are determined using
