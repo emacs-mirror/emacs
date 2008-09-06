@@ -11,6 +11,9 @@
 
 2008-09-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* textmodes/ispell.el (ispell-command-loop): Suspend ispell if the
+	user enters a mouse event in another frame, or a special event.
+
 	* server.el (server-switch-buffer): New arg.
 	(server-execute): If reusing an existing window, set file position
 	if required.
