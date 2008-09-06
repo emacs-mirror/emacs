@@ -1,3 +1,10 @@
+2008-09-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Recursive Edit): Note that top-level exits active
+	minibuffers.
+
+	* trouble.texi (Quitting): Likewise.
+
 2008-08-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.texi (Top): Add Temporary Face Changes xref.
