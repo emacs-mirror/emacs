@@ -1,4 +1,4 @@
-;;; lao.el --- support for Lao -*- coding: iso-2022-7bit; no-byte-compile: t -*-
+;;; lao.el --- support for Lao -*- coding: utf-8; no-byte-compile: t -*-
 
 ;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
@@ -46,8 +46,40 @@
 	 (features lao-util)
 	 (documentation . t)))
 
-(set-char-table-range composition-function-table '(#xE80 . #xEDF)
-		      '(("[\xE80-\xEDF]+" . lao-composition-function)))
+(let ((consonant "ກ-ຮໜໝ")
+      (tone "່-໌")
+      (vowel-upper-lower "ັິ-ົໍ")
+      (semivowel-lower "ຼ")
+      (fallback-rule [nil 0 compose-gstring-for-graphic]))
+  ;;            target characters    regexp
+  ;;            -----------------    ------
+  (dolist (l `((,vowel-upper-lower . "[c].[t]?")
+	       (,tone .              "[c].")
+	       (,semivowel-lower .   "[c].[v][t]?")
+	       (,semivowel-lower .   "[c].[t]")))
+    (let* ((chars (car l))
+	   (len (length chars))
+	   ;; Replace `c', `t', `v' to consonant, tone, and vowel.
+	   (regexp (mapconcat #'(lambda (c)
+				  (cond ((= c ?c) consonant)
+					((= c ?t) tone)
+					((= c ?v) vowel-upper-lower)
+					(t (string c))))
+			      (cdr l) ""))
+	   ;; Element of composition-function-table.
+	   (elt (list (vector regexp 1 'lao-composition-function)
+		      fallback-rule))
+	   ch)
+      (dotimes (i len)
+	(setq ch (aref chars i))
+	(if (and (> i 1) (= (aref chars (1- i)) ?-))
+	    ;; End of character range.
+	    (set-char-table-range composition-function-table
+				  (cons (aref chars (- i 2)) ch) elt)
+	  (if (or (= (1+ i) len)
+		  (and (/= ch ?-) (/= (aref chars (1+ i)) ?-)))
+	      ;; A character not forming a range.
+	      (set-char-table-range composition-function-table ch elt)))))))
 
 (provide 'lao)
 
