@@ -42,6 +42,11 @@
 
 2008-09-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
+	* whitespace.el (whitespace-kill-buffer-hook, whitespace-action): Don't
+	clean up a buffer when killing it.
+
+2008-09-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
 	* whitespace.el: Fix auto-cleanup on kill prevents killing read-only
 	buffers (bug#360). New version 11.2.1.
 	(whitespace-action): New value `warn-read-only' to give a warning when

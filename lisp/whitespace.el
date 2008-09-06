@@ -2403,15 +2403,16 @@ It should be added buffer-locally to `write-file-functions'."
 (defun whitespace-kill-buffer-hook ()
   "Action to be taken when buffer is killed.
 It should be added buffer-locally to `kill-buffer-hook'."
-  (whitespace-action)
+  (whitespace-action t)
   nil)					; continue hook processing
 
 
-(defun whitespace-action ()
+(defun whitespace-action (&optional is-killing-buffer)
   "Action to be taken when buffer is killed or written.
 Return t when the action should be aborted."
   (cond ((memq 'auto-cleanup whitespace-action)
-	 (whitespace-cleanup)
+	 (unless is-killing-buffer
+	   (whitespace-cleanup))
 	 nil)
 	((memq 'abort-on-bogus whitespace-action)
 	 (whitespace-report nil t))
