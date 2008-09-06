@@ -1,3 +1,7 @@
+2008-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* add-log.el (change-log-default-name): Autoload safety.
+
 2008-09-05 Wilson Snyder <wsnyder@wsnyder.org>
 
 	* verilog-mode.el (verilog-library-extensions): Enable .sv
