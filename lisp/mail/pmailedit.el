@@ -153,5 +153,9 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
 
 (provide 'pmailedit)
 
+;; Local Variables:
+;; change-log-default-name: "ChangeLog.pmail"
+;; End:
+
 ;; arch-tag: 9524f335-12cc-4e95-9e9b-3208dc30550b
 ;;; pmailedit.el ends here

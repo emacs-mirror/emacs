@@ -248,5 +248,9 @@ Arguments are MSG and FIELD."
 
 (provide 'pmailsort)
 
+;; Local Variables:
+;; change-log-default-name: "ChangeLog.pmail"
+;; End:
+
 ;; arch-tag: 665da245-f6a7-4115-ad8c-ba19216988d5
 ;;; pmailsort.el ends here

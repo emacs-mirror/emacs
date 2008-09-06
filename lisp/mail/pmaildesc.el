@@ -451,5 +451,9 @@ set to the hyphen character (-)."
 
 (provide 'pmaildesc)
 
+;; Local Variables:
+;; change-log-default-name: "ChangeLog.pmail"
+;; End:
+
 ;; arch-tag: 9f70b890-ad54-414e-abb2-0845e3e4eb1a
 ;;; pmaildesc.el ends here

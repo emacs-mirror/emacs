@@ -406,5 +406,9 @@ This calls `pmail-mime-show' to do the real job."
 
 (provide 'pmailmm)
 
+;; Local Variables:
+;; change-log-default-name: "ChangeLog.pmail"
+;; End:
+
 ;; arch-tag: 3f2c5e5d-1aef-4512-bc20-fd737c9d5dd9
 ;;; pmailmm.el ends here
