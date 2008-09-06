@@ -756,6 +756,16 @@ ELCFILES = \
 	$(lisp)/mail/mailpost.elc \
 	$(lisp)/mail/metamail.elc \
 	$(lisp)/mail/mspools.elc \
+	$(lisp)/mail/pmail.elc \
+	$(lisp)/mail/pmaildesc.elc \
+	$(lisp)/mail/pmailedit.elc \
+	$(lisp)/mail/pmailhdr.elc \
+	$(lisp)/mail/pmailkwd.elc \
+	$(lisp)/mail/pmailmm.elc \
+	$(lisp)/mail/pmailmsc.elc \
+	$(lisp)/mail/pmailout.elc \
+	$(lisp)/mail/pmailsort.elc \
+	$(lisp)/mail/pmailsum.elc \
 	$(lisp)/mail/reporter.elc \
 	$(lisp)/mail/rfc2368.elc \
 	$(lisp)/mail/rfc822.elc \
