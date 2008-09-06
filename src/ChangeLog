@@ -1,3 +1,9 @@
+2008-09-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (IT_menu_display): Use STRING_CHAR_ADVANCE instead of a
+	"char *q" to access menu text and advance through it.  Revert the
+	change that displayed ">" instead of ASCII character 0x10.
+
 2008-09-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu.c (single_menu_item) [!HAVE_BOXES]: Enable emulation of
