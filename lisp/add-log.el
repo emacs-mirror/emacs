@@ -665,6 +665,8 @@ nil, by matching `change-log-version-number-regexp-list'."
 			regexps nil))))
 	    version)))))
 
+(declare-function diff-find-source-location "diff-mode"
+		  (&optional other-file reverse))
 
 ;;;###autoload
 (defun find-change-log (&optional file-name buffer-file)
@@ -682,12 +684,18 @@ directory and its successive parents for a file so named.
 Once a file is found, `change-log-default-name' is set locally in the
 current buffer to the complete file name.
 Optional arg BUFFER-FILE overrides `buffer-file-name'."
-  ;; If user specified a file name or if this buffer knows which one to use,
-  ;; just use that.
-  (or file-name
-      (setq file-name (and change-log-default-name
-			   (file-name-directory change-log-default-name)
-			   change-log-default-name))
+  ;; If we are called from a diff, first switch to the source buffer;
+  ;; in order to respect buffer-local settings of change-log-default-name, etc.
+  (let ((buff (if (eq major-mode 'diff-mode)
+		  (car (ignore-errors (diff-find-source-location))))))
+    (with-current-buffer (if (buffer-live-p buff) buff
+			   (current-buffer))
+      ;; If user specified a file name or if this buffer knows which one to use,
+      ;; just use that.
+      (or file-name
+	  (setq file-name (and change-log-default-name
+			       (file-name-directory change-log-default-name)
+			       change-log-default-name)))
       (progn
 	;; Chase links in the source file
 	;; and use the change log in the dir where it points.
@@ -720,9 +728,9 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
 			 parent-dir)))
 	  ;; If we found a change log in a parent, use that.
 	  (if (or (get-file-buffer file1) (file-exists-p file1))
-	      (setq file-name file1)))))
-  ;; Make a local variable in this buffer so we needn't search again.
-  (set (make-local-variable 'change-log-default-name) file-name)
+	      (setq file-name file1))))
+      ;; Make a local variable in this buffer so we needn't search again.
+      (set (make-local-variable 'change-log-default-name) file-name)))
   file-name)
 
 (defun add-log-file-name (buffer-file log-file)
