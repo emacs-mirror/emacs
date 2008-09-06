@@ -1,3 +1,20 @@
+2008-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* pmailsort.el (pmail-dont-reply-to, pmail-desc-get-marker-end)
+	(pmail-desc-get-marker-start): Remove declarations of undefined
+	functions.
+	(pmail-select-correspondent): Use rmail-dont-reply-to from mail-utils
+	rather than non-existent pmail-dont-reply-to.
+
+	* pmailkwd.el (pmail-maybe-set-message-counters)
+	(pmail-set-message-deleted-p):
+	* pmailmsc.el (pmail-parse-file-inboxes):
+	* pmailsum.el (pmail-output-read-pmail-file-name):
+	Remove unused declarations.
+
+	* pmail.el (pmail-spam-filter): Remove declaration of undefined
+	function.
+
 2008-09-05  Paul Reilly  <pmr@pajato.com>
 
 	* pmail.el (pmail-get-new-mail): When there are no new messages, invoke
