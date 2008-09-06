@@ -5,6 +5,8 @@
 	functions.
 	(pmail-select-correspondent): Use rmail-dont-reply-to from mail-utils
 	rather than non-existent pmail-dont-reply-to.
+	(pmail-sort-messages): Use pmail-desc-get-start, pmail-desc-get-end
+	rather than non-existent `marker-' functions.
 
 	* pmailkwd.el (pmail-maybe-set-message-counters)
 	(pmail-set-message-deleted-p):
@@ -14,6 +16,10 @@
 
 	* pmail.el (pmail-spam-filter): Remove declaration of undefined
 	function.
+	(pmail-use-spam-filter): Remove un-needed variable declaration.
+	Doc fix for actual definition.
+	(pmail-get-new-mail): Call rmail-spam-filter rather than non-existent
+	pmail-spam-filter.
 
 2008-09-05  Paul Reilly  <pmr@pajato.com>
 
