@@ -1,3 +1,7 @@
+2008-09-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (Ftop_level): Doc fix.
+
 2008-09-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* xmenu.c (xmenu_show) [!HAVE_X_WINDOWS]: If frame has a
