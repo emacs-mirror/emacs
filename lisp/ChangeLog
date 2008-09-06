@@ -1,3 +1,46 @@
+2008-09-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el: Require time-date.
+	(proced-command-alist, proced-command, proced-goal-header-re)
+	(proced-sorting-schemes-alist, proced-sorting-scheme)
+	(proced-header-alist, proced-sorting-schemes-re)
+	(proced-skip-regexp, proced-next-line, proced-previous-line)
+	(proced-listing-type, proced-sorting-scheme-p): Removed.
+	(proced-grammar-alist, proced-custom-attributes)
+	(proced-format-alist, proced-format, proced-filter-alist)
+	(proced-filter, proced-sort, proced-goal-attribute)
+	(proced-timer-interval, proced-timer-flag, proced-timer)
+	(proced-process-alist, proced-sort-internal, proced-process-tree)
+	(proced-header-help-echo, proced-field-help-echo): New variables.
+	(proced-pid-at-point, proced-timer, proced-mark-process-alist)
+	(proced-omit-process, proced-filter, proced-process-tree)
+	(proced-filter-children, proced-children-pids)
+	(proced-filter-parents, proced-<, proced-string-lessp)
+	(proced-time-lessp, proced-xor, proced-sort-p)
+	(proced-format-time, proced-format-start, proced-format-ttname)
+	(proced-format, proced-process-attributes): New functions.
+	(proced-toggle-timer-flag, proced-mark-children)
+	(proced-mark-parents, proced-filter-interactive)
+	(proced-filter-attribute, proced-sort-interactive)
+	(proced-sort-header, proced-format-interactive): New commands.
+	(proced-move-to-goal-column): Use goal-column.
+	(proced-mode): Use proced-timer.
+	(proced-do-mark-all): Display process count.  Use use-region-p.
+	Simplify.
+	(proced-omit-processes): Use use-region-p.
+	(proced-sort-pcpu, proced-sort-pmem, proced-sort-pid)
+	(proced-sort-start, proced-sort-time, proced-sort-user): Use
+	proced-sort-interactive.
+	(proced-sort): Make it a function that performs the actual sort.
+	(proced-update): New arg revert.  Use proced-process-alist,
+	proced-filter, proced-sort, proced-format, and
+	proced-grammar-alist.  Preserve position of point based on fields.
+	Make header line and fields clickable.
+	(proced-send-signal): Use proced-pid-at-point and
+	proced-process-alist.
+	(proced-why): Use save-selected-window.
+	(proced-log): Use buffer-read-only.
+
 2008-09-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tooltip.el (tooltip-mode): Initialize unconditionally to t.
