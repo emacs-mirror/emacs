@@ -1,5 +1,7 @@
 2008-09-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* callproc.c (Fcall_process): Canonicalize current directory name.
+
 	* xdisp.c (move_it_to): When moving by vpos, ensure that the
 	iterator advances to the next line if the current line ends in a
 	continued tab.
