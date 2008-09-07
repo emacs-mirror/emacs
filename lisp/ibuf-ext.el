@@ -1337,7 +1337,7 @@ a prefix argument reverses the meaning of that variable."
 		       ;; Use explicitly specified switches
 		       ,@(if (listp switches) switches (list switches))
 		       ,@(if (or old new)
-			     (list "-L" old
+			     (list "-L" (shell-quote-argument old)
 				   "-L" (shell-quote-argument
 					 (format "Buffer %s" (buffer-name buffer)))))
 		       ,(shell-quote-argument (or oldtmp old))
