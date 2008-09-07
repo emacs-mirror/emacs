@@ -46,13 +46,24 @@ For each step, check for possible errors.
     TAG is EMACS_PRETEST_XX_YY_ZZZ for a pretest, EMACS_XX_YY for a
     release.
 
-11.  admin/make-announcement OLD NEW
-    This creates an announcement for pretests.  OLD is the version used
-    to make deltas with respect to NEW.  Announcements for releases need
-    to be crafted by hand.  Use an older announcement to start with:
-    look in ssh://fencepost.gnu.org/~pot/emacs-tarballs/.
+    Shortly before the release, cut the branch with the following commands:
 
-12. Now you should upload the files to the GNU ftp server.  In order to
+    cvs rtag EMACS_`NUMBER'_BASE
+    cvs rtag -b EMACS_`NUMBER'_RC -r EMACS_`NUMBER'_BASE
+
+    where `NUMBER' is the major version number of the release.  This
+    makes it easier to see what changes have been applied to the
+    branch with:
+
+    cvs diff -r EMACS_`NUMBER'_BASE -r EMACS_`NUMBER'_RC
+
+    or merge changes back to the trunk with "cvs update -j", if
+    necessary.
+
+    After doing this, increase the version number on the trunk as per
+    step 4.
+
+11. Now you should upload the files to the GNU ftp server.  In order to
     do that, you must be registered as an Emacs maintainer and have your
     GPG key acknowledged by the ftp people.  Mail <ftp-upload@gnu.org>
     for instructions.  Once you are there, for each file FILE to be
@@ -68,29 +79,16 @@ For each step, check for possible errors.
     For a pretest, place the files in /incoming/alpha instead, so that
     they appear on ftp://alpha.gnu.org/.
 
-13. After five minutes, verify that the files are visible at
+    For a release, upload a bz2 tarfile as well; this can save a lot
+    of bandwidth.
+
+12. After five minutes, verify that the files are visible at
     ftp://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, at
     ftp://ftp.gnu.org/gnu/emacs/ for a release.
 
-14. For a pretest, let Richard Stallman <rms@gnu.org> know about the new
-    pretest and tell him to announce it using the announcement you prepared.
-    Remind him to set a Reply-to header to <emacs-pretest-bug@gnu.org>.
+13. For a pretest, announce it on emacs-devel and BCC the pretesters.
+    For a release, announce it on info-gnu@gnu.org,
+    info-gnu-emacs@gnu.org, and emacs-devel.
 
-15. Shortly before the release, cut the branch with the following commands:
-
-    cvs rtag EMACS_`NUMBER'_BASE
-    cvs rtag -b EMACS_`NUMBER'_RC -r EMACS_`NUMBER'_BASE
-
-where `NUMBER' is the major version number of the release.  This makes it
-easier to  see what changes have been applied to the branch with:
-
-    cvs diff -r EMACS_`NUMBER'_BASE -r EMACS_`NUMBER'_RC
-
-or merge changes back to the trunk with "cvs update -j", if necessary.
-
-After doing this, increase the version number on the trunk as per step 4.
-
-16. For a release, Richard should prepare the announcement himself,
-    possibly starting from a previous announcment.
 
 # arch-tag: c23c771f-ca26-4584-8a04-50ecf0989390
