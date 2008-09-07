@@ -1,3 +1,8 @@
+2008-09-07  Johan Euphrosine  <proppy@aminche.com>  (tiny change)
+
+	* ibuf-ext.el (ibuffer-diff-buffer-with-file-1): Shell quote
+	buffer's filename.
+
 2008-09-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* subr.el (cancel-change-group): Widen buffer temporarily when
