@@ -1,3 +1,8 @@
+2008-09-07  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+
+	* progmodes/flymake.el (flymake-parse-err-lines): Filter out
+	errors occurring in different files.
+
 2008-09-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
         * vc-bzr.el (vc-bzr-extra-fileinfo): New defstruct.
