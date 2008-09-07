@@ -7216,8 +7216,18 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	     associated with the tab are displayed on the current
 	     line.  Since it->current_x does not include these glyphs,
 	     we use it->last_visible_x instead.  */
-	  it->continuation_lines_width +=
-	    (it->c == '\t') ? it->last_visible_x : it->current_x;
+	  if (it->c == '\t')
+	    {
+	      it->continuation_lines_width += it->last_visible_x;
+	      /* When moving by vpos, ensure that the iterator really
+		 advances to the next line (bug#847).  Fixme: do we
+		 need to do this in other circumstances?  */
+	      if ((op & MOVE_TO_VPOS)
+		  && !(op & (MOVE_TO_X | MOVE_TO_POS)))
+		set_iterator_to_next (it, 0);
+	    }
+	  else
+	    it->continuation_lines_width += it->current_x;
 	  break;
 
 	default:
