@@ -1,3 +1,8 @@
+2008-09-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* subr.el (cancel-change-group): Widen buffer temporarily when
+	undoing changes.  (Bug#810)
+
 2008-09-07  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-stop-subjob): Using jdb, suspend threads
