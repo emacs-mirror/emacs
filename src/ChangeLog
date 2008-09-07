@@ -1,3 +1,7 @@
+2008-09-07  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* process.c (Fsystem_process_attributes): Doc fix.
+
 2008-09-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* callproc.c (Fcall_process): Canonicalize current directory name.
