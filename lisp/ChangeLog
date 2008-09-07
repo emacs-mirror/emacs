@@ -1,3 +1,9 @@
+2008-09-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+        * vc-bzr.el (vc-bzr-extra-fileinfo): New defstruct.
+        (vc-bzr-status-printer): New function.
+        (vc-bzr-after-dir-status): Deal with renamed files.
+
 2008-09-07  Johan Euphrosine  <proppy@aminche.com>  (tiny change)
 
 	* ibuf-ext.el (ibuffer-diff-buffer-with-file-1): Shell quote
