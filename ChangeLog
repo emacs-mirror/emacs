@@ -1,3 +1,7 @@
+2008-09-07  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Distribute doc/man/ChangeLog.
+
 2008-08-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Disable XFT and Freetype when without X.
