@@ -1189,11 +1189,17 @@ struct position_record
 /* Update the members of POSTION to the next character boundary.  */
 #define FORWARD_CHAR(POSITION, STOP)					\
   do {									\
-    if ((POSITION).pos == (STOP))					\
-      (POSITION).p = GAP_END_ADDR;					\
     (POSITION).pos++;							\
-    (POSITION).pos_byte += BYTES_BY_CHAR_HEAD (*((POSITION).p));	\
-    (POSITION).p += BYTES_BY_CHAR_HEAD (*((POSITION).p));		\
+    if ((POSITION).pos == (STOP))					\
+      {									\
+	(POSITION).p = GAP_END_ADDR;					\
+	(POSITION).pos_byte = GPT_BYTE;					\
+      }									\
+    else								\
+      {									\
+	(POSITION).p += BYTES_BY_CHAR_HEAD (*((POSITION).p));		\
+	(POSITION).pos_byte += BYTES_BY_CHAR_HEAD (*((POSITION).p));	\
+      }									\
   } while (0)
 
 /* Update the members of POSTION to the previous character boundary.  */
