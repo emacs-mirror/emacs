@@ -1,3 +1,9 @@
+2008-09-07  Andreas Schwab  <schwab@suse.de>
+
+	* callproc.c (Fcall_process): Don't hold references to string data
+	across garbage collection.  Move initialisation of new_argv down
+	to avoid compiler bug.
+
 2008-09-07  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* process.c (Fsystem_process_attributes): Doc fix.
