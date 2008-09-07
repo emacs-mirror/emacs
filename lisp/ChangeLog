@@ -1,3 +1,8 @@
+2008-09-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* complete.el (PC-do-completion): Don't replace buffer
+	contents (bug#227).
+
 2008-09-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* loadhist.el (unload-feature-special-hooks):
