@@ -8220,14 +8220,14 @@ DEFUN ("system-process-attributes", Fsystem_process_attributes,
 
 Value is an alist where each element is a cons cell of the form
 
-    \(ATTR . VALUE)
+    \(KEY . VALUE)
 
 If this functionality is unsupported, the value is nil.
 
 See `list-system-processes' for getting a list of all process IDs.
 
-The attributes that this function may return are listed below,
-together with the type of the associated value (in parentheses).
+The KEYs of the attributes that this function may return are listed
+below, together with the type of the associated VALUE (in parentheses).
 Not all platforms support all of these attributes; unsupported
 attributes will not appear in the returned alist.
 Unless explicitly indicated otherwise, numbers can have either
