@@ -1,3 +1,8 @@
+2008-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature-special-hooks):
+	Add `choose-completion-string-functions'.
+
 2008-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el (vc-svn-root):
@@ -201,8 +206,7 @@
 	* composite.el (find-composition): Mention about the automatic
 	composition in the docstring.
 
-	* descr-text.el (describe-char): Fix handling of automatic
-	composition.
+	* descr-text.el (describe-char): Fix handling of automatic composition.
 
 2008-09-04  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -5553,7 +5557,6 @@
 	hollow if not in innermost frame.
 
 2008-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
-
 	Make `checkout-model' apply to filesets.
 	* vc-hooks.el (vc-checkout-model): Rewrite.
 	(vc-before-save, vc-after-save): Adjust callers accordingly.
