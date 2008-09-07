@@ -1,3 +1,7 @@
+2008-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fbuffer_swap_text): Reset window->point markers.
+
 2008-09-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* process.c (Fsystem_process_attributes): Doc fix.
