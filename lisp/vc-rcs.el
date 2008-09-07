@@ -835,9 +835,6 @@ systime, or nil if there is none.  Also, reposition point."
 ;;; Internal functions
 ;;;
 
-(defun vc-rcs-root (dir)
-  (vc-find-root dir "RCS" t))
-
 (defun vc-rcs-workfile-is-newer (file)
   "Return non-nil if FILE is newer than its RCS master.
 This likely means that FILE has been changed with respect

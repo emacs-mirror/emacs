@@ -321,12 +321,10 @@ non-nil if FILE exists and its contents were successfully inserted."
     (set-buffer-modified-p nil)
     t))
 
-(defun vc-find-root (file witness &optional invert)
+(defun vc-find-root (file witness)
   "Find the root of a checked out project.
 The function walks up the directory tree from FILE looking for WITNESS.
-If WITNESS if not found, return nil, otherwise return the root.
-Optional arg INVERT non-nil reverses the sense of the check;
-the root is the last directory for which WITNESS *is* found."
+If WITNESS if not found, return nil, otherwise return the root."
   ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
   ;; witnesses in /home or in /.
   (setq file (abbreviate-file-name file))
@@ -349,16 +347,11 @@ the root is the last directory for which WITNESS *is* found."
                       (and prev-user (not (equal user prev-user))))
                     (string-match vc-ignore-dir-regexp file)))
       (setq try (file-exists-p (expand-file-name witness file)))
-      (cond ((and invert (not try)) (setq root prev-file))
-            ((and (not invert) try) (setq root file))
+      (cond (try (setq root file))
             ((equal file (setq prev-file file
                                file (file-name-directory
                                      (directory-file-name file))))
              (setq file nil))))
-    ;; Handle the case where ~/WITNESS exists and the original FILE is "~".
-    ;; (This occurs, for example, when placing dotfiles under RCS.)
-    (when (and (not root) invert prev-file)
-      (setq root prev-file))
     root))
 
 ;; Access functions to file properties

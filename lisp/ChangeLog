@@ -1,3 +1,11 @@
+2008-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el (vc-svn-root):
+	* vc-sccs.el (vc-sccs-root):
+	* vc-rcs.el (vc-rcs-root):
+	* vc-cvs.el (vc-cvs-root): Delete.
+	* vc-hooks.el (vc-find-root): Remove `invert' argument.
+
 2008-09-07  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
 
 	* progmodes/flymake.el (flymake-parse-err-lines): Filter out
@@ -5,9 +13,9 @@
 
 2008-09-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
-        * vc-bzr.el (vc-bzr-extra-fileinfo): New defstruct.
-        (vc-bzr-status-printer): New function.
-        (vc-bzr-after-dir-status): Deal with renamed files.
+	* vc-bzr.el (vc-bzr-extra-fileinfo): New defstruct.
+	(vc-bzr-status-printer): New function.
+	(vc-bzr-after-dir-status): Deal with renamed files.
 
 2008-09-07  Johan Euphrosine  <proppy@aminche.com>  (tiny change)
 
@@ -31,7 +39,7 @@
 	(proced-sorting-schemes-alist, proced-sorting-scheme)
 	(proced-header-alist, proced-sorting-schemes-re)
 	(proced-skip-regexp, proced-next-line, proced-previous-line)
-	(proced-listing-type, proced-sorting-scheme-p): Removed.
+	(proced-listing-type, proced-sorting-scheme-p): Remove.
 	(proced-grammar-alist, proced-custom-attributes)
 	(proced-format-alist, proced-format, proced-filter-alist)
 	(proced-filter, proced-sort, proced-goal-attribute)
@@ -55,15 +63,14 @@
 	Simplify.
 	(proced-omit-processes): Use use-region-p.
 	(proced-sort-pcpu, proced-sort-pmem, proced-sort-pid)
-	(proced-sort-start, proced-sort-time, proced-sort-user): Use
-	proced-sort-interactive.
+	(proced-sort-start, proced-sort-time, proced-sort-user):
+	Use proced-sort-interactive.
 	(proced-sort): Make it a function that performs the actual sort.
 	(proced-update): New arg revert.  Use proced-process-alist,
 	proced-filter, proced-sort, proced-format, and
 	proced-grammar-alist.  Preserve position of point based on fields.
 	Make header line and fields clickable.
-	(proced-send-signal): Use proced-pid-at-point and
-	proced-process-alist.
+	(proced-send-signal): Use proced-pid-at-point and proced-process-alist.
 	(proced-why): Use save-selected-window.
 	(proced-log): Use buffer-read-only.
 
@@ -118,25 +125,24 @@
 	(verilog-submit-bug-report): Update author support URLs.
 	(verilog-delete-auto, verilog-auto-inout-module)
 	(verilog-auto-inout-comp, verilog-auto): Add AUTOINOUTCOMP for
-	creating complemented testbench modules.  Suggested by Yishay
-	Belkind.
-	(verilog-auto-inst-port, verilog-simplify-range-expression): When
-	verilog-auto-inst-param-value is set, don't require a
+	creating complemented testbench modules.  Suggested by Yishay Belkind.
+	(verilog-auto-inst-port, verilog-simplify-range-expression):
+	When verilog-auto-inst-param-value is set, don't require a
 	AUTO_TEMPLATE to expand parameter substitutions.  Suggested by
 	Yishay Belkind.
 	(verilog-auto-inst-param-value): Add safe variable.
-	(verilog-re-search-forward, verilog-re-search-backward): Fix
-	returning wrong search results on Emacs 22.1.
+	(verilog-re-search-forward, verilog-re-search-backward):
+	Fix returning wrong search results on Emacs 22.1.
 	(verilog-modi-cache-results, verilog-auto): Fix warning message
 	about "toggling font-lock-mode."
 	(verilog-auto): Fix losing font-lock on errors.
 	(verilog-auto-inst-param-value, verilog-mode-version)
 	(verilog-mode-version-date, verilog-read-inst-param-value)
 	(verilog-auto-inst, verilog-auto-inst-param)
-	(verilog-auto-inst-port, verilog-simplify-range-expression): Allow
-	parameters to be replaced with their values, on the expansion of
-	an AUTOINST with Verilog 2001 style parameter settings.  Suggested
-	by David Rogoff.
+	(verilog-auto-inst-port, verilog-simplify-range-expression):
+	Allow parameters to be replaced with their values, on the expansion of
+	an AUTOINST with Verilog 2001 style parameter settings.
+	Suggested by David Rogoff.
 
 2008-09-05  Michael McNamara  <mac@mail.brushroad.com>
 
@@ -154,8 +160,8 @@
 
 2008-09-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* whitespace.el (whitespace-kill-buffer-hook, whitespace-action): Don't
-	clean up a buffer when killing it.
+	* whitespace.el (whitespace-kill-buffer-hook, whitespace-action):
+	Don't clean up a buffer when killing it.
 
 2008-09-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
