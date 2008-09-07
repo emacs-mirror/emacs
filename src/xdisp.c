@@ -19532,7 +19532,7 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
 /* Fill glyph string S with composition components specified by S->cmp.
 
    BASE_FACE is the base face of the composition.
-   S->gidx is the index of the first component for S.
+   S->cmp_from is the index of the first component for S.
 
    OVERLAPS non-zero means S should draw the foreground only, and use
    its physical height for clipping.  See also draw_glyphs.
@@ -19547,7 +19547,7 @@ fill_composite_glyph_string (s, base_face, overlaps)
 {
   int i;
   /* For all glyphs of this composition, starting at the offset
-     S->gidx, until we reach the end of the definition or encounter a
+     S->cmp_from, until we reach the end of the definition or encounter a
      glyph that requires the different face, add it to S.  */
   struct face *face;
 

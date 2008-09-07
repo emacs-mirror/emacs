@@ -904,14 +904,14 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     int hi, lo;
     char isComposite = 0; /* s->first_glyph->type == COMPOSITE_GLYPH; */
     /* FIXME: composition: no vertical displacement is considered. */
-    t+= s->gidx; /* advance into composition */
-    for (i =0; i<s->nchars - s->gidx; i++, t++)
+    t+= s->cmp_from; /* advance into composition */
+    for (i =0; i<s->nchars - s->cmp_from; i++, t++)
       {
         hi = (*t & 0xFF00) >> 8;
         lo = *t & 0x00FF;
         if (isComposite)
           {
-            cwidth = s->cmp->offsets[s->gidx++ * 2] - twidth;
+            cwidth = s->cmp->offsets[s->cmp_from++ * 2] - twidth;
           }
         else
           {
@@ -1094,13 +1094,13 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       [col set];
 
     CGContextSetTextPosition (gcontext, r.origin.x, r.origin.y);
-    CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->gidx,
+    CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->cmp_from,
                                     advances, len);
 
     if (face->overstrike)
       {
         CGContextSetTextPosition (gcontext, r.origin.x+0.5, r.origin.y);
-        CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->gidx,
+        CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->cmp_from,
                                         advances, len);
       }
 

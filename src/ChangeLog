@@ -1,3 +1,10 @@
+2008-09-07  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nsfont.m (nsfont_draw): Fix the references to missing gidx data
+	member to point to cmp_from.
+
+	* xdisp.c: Doc fix for references to gidx data member.
+
 2008-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (Fbuffer_swap_text): Reset window->point markers.
