@@ -236,9 +236,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   char *outf, *tempfile;
   int outfilefd;
 #endif
-#if 0
-  int mask;
-#endif
   struct coding_system process_coding; /* coding-system of process output */
   struct coding_system argument_coding;	/* coding-system of arguments */
   /* Set to the return value of Ffind_operation_coding_system.  */
@@ -374,6 +371,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	 a sensible default. */
       current_dir = build_string ("~/");
     current_dir = expand_and_dir_to_file (current_dir, Qnil);
+    current_dir = Ffile_name_as_directory (current_dir);
+
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
 			 Fcons (current_buffer->directory, Qnil));
@@ -473,10 +472,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  emacs_close (filefd);
 	  report_file_error ("Creating process pipe", Qnil);
 	}
-#endif
-#if 0
-      /* Replaced by close_process_descs */
-      set_exclusive_use (fd[0]);
 #endif
     }
 
