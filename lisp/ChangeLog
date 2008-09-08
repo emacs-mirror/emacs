@@ -1,3 +1,8 @@
+2008-09-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* help-fns.el (find-lisp-object-file-name): Handle case where
+	library is compressed.
+
 2008-09-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* complete.el (PC-do-completion): Don't replace buffer
