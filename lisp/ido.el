@@ -386,7 +386,7 @@ call the function `ido-everywhere'."
   "*List of regexps or functions matching buffer names to ignore.
 For example, traditional behavior is not to list buffers whose names begin
 with a space, for which the regexp is `\\` '.  See the source file for
-example functions that filter buffernames."
+example functions that filter buffer names."
   :type '(repeat (choice regexp function))
   :group 'ido)
 
@@ -497,7 +497,7 @@ Value can be toggled within `ido' using `ido-toggle-regexp'."
 
 (defcustom ido-enable-prefix nil
   "*Non-nil means only match if the entered text is a prefix of file name.
-This behavior is like the standard emacs-completion.
+This behavior is like the standard Emacs completion.
 If nil, match if the entered text is an arbitrary substring.
 Value can be toggled within `ido' using `ido-toggle-prefix'."
   :type 'boolean
@@ -533,14 +533,14 @@ Note that the non-ido equivalent command is recorded."
   :group 'ido)
 
 (defcustom ido-max-prospects 12
-  "*Non-zero means that the prospect list will be limited to than number of items.
+  "*Non-zero means that the prospect list will be limited to that number of items.
 For a long list of prospects, building the full list for the minibuffer can take a
 non-negligible amount of time; setting this variable reduces that time."
   :type 'integer
   :group 'ido)
 
 (defcustom ido-max-file-prompt-width 0.35
-  "*Non-zero means that the prompt string be limited to than number of characters.
+  "*Non-zero means that the prompt string be limited to that number of characters.
 If value is a floating point number, it specifies a fraction of the frame width."
   :type '(choice
 	  (integer :tag "Characters" :value 20)
@@ -611,7 +611,7 @@ A tramp file name uses the following syntax: /method:user@host:filename."
   :group 'ido)
 
 (defcustom ido-merge-ftp-work-directories nil
-  "*If nil means merging ignores ftp file names in the work directory list."
+  "*If nil, merging ignores ftp file names in the work directory list."
   :type 'boolean
   :group 'ido)
 
@@ -670,7 +670,7 @@ If zero, UNC host shares are not cached."
 
 (defcustom ido-max-work-file-list 10
   "*Maximum number of names of recently opened files to record.
-This is the list the file names (sans directory) which have most recently
+This is the list of the file names (sans directory) which have most recently
 been opened.  See `ido-work-file-list' and `ido-save-directory-list-file'."
   :type 'integer
   :group 'ido)
@@ -757,7 +757,7 @@ ask user whether to create buffer, or 'never to never create new buffer."
 (defcustom ido-setup-hook  nil
   "*Hook run after the ido variables and keymap have been setup.
 The dynamic variable `ido-cur-item' contains the current type of item that
-is read by ido, possible values are file, dir, buffer, and list.
+is read by ido; possible values are file, dir, buffer, and list.
 Additional keys can be defined in `ido-completion-map'."
   :type 'hook
   :group 'ido)
@@ -855,7 +855,7 @@ variables:
   max-width - the max width of the resulting dirname; nil means no limit
   prompt    - the basic prompt (e.g. \"Find File: \")
   literal   - the string shown if doing \"literal\" find; set to nil to omit
-  vc-off    - the string shown if version control is inhibited; set to nit to omit
+  vc-off    - the string shown if version control is inhibited; set to nil to omit
   prefix    - either nil or a fixed prefix for the dirname
 
 The following variables are available, but should not be changed:
@@ -2362,7 +2362,7 @@ If cursor is not at the end of the user input, move to end of input."
 	      (ido-record-command method dirname)
 	      (ido-record-work-directory)
 	      (funcall method dirname))
-	     ((y-or-n-p (format "Directory %s does not exist. Create it? " filename))
+	     ((y-or-n-p (format "Directory %s does not exist.  Create it? " filename))
 	      (ido-record-command method dirname)
 	      (ido-record-work-directory dirname)
 	      (make-directory-internal dirname)
@@ -2541,10 +2541,10 @@ If no merge has yet taken place, toggle automatic merging option."
 (defun ido-magic-forward-char (arg)
   "Move forward in user input or perform magic action.
 If no user input is present, or at end of input, perform magic actions:
-C-x C-b ... C-f  switch to ido-find-file.
-C-x C-f ... C-f  fallback to non-ido find-file.
-C-x C-d ... C-f  fallback to non-ido brief dired.
-C-x d ... C-f    fallback to non-ido dired."
+C-x C-b ... C-f  switch to `ido-find-file'.
+C-x C-f ... C-f  fallback to non-ido `find-file'.
+C-x C-d ... C-f  fallback to non-ido brief `dired'.
+C-x d ... C-f    fallback to non-ido `dired'."
   (interactive "P")
   (cond
    ((or arg (not (eobp)))
@@ -2588,7 +2588,7 @@ C-x C-b C-b  fallback to non-ido `switch-to-buffer'."
 (defun ido-magic-delete-char (arg)
   "Delete following char in user input or perform magic action.
 If at end of user input, perform magic actions:
-C-x C-f ... C-d  enter dired on current directory."
+C-x C-f ... C-d  enter `dired' on current directory."
   (interactive "P")
   (cond
    ((or arg (not (eobp)))
@@ -2886,7 +2886,7 @@ If input stack is non-empty, delete current directory component."
 
 (defun ido-pop-dir (arg)
   "Pop directory from input stack back to input.
-With \\[universal-argument], pop all element."
+With \\[universal-argument], pop all elements."
   (interactive "P")
   (when ido-input-stack
     (setq ido-exit (if arg 'pop-all 'pop))

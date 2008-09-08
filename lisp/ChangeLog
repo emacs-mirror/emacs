@@ -1,3 +1,12 @@
+2008-09-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-file-internal): Fix typo in prompt.
+	(ido-merge-ftp-work-directories, ido-max-work-file-list): Doc fixes.
+	(ido-max-prospects, ido-max-file-prompt-width, ido-ignore-buffers)
+	(ido-enable-prefix, ido-setup-hook, ido-rewrite-file-prompt-functions)
+	(ido-magic-forward-char, ido-magic-delete-char, ido-pop-dir):
+	Fix typos in docstrings.
+
 2008-09-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* help-fns.el (describe-function-1): Don't print extra newline
@@ -13,7 +22,7 @@
 	* complete.el (PC-do-completion): Don't replace buffer
 	contents (bug#227).
 
-2008-09-05  Juanma Barranquero  <lekktu@gmail.com>
+2008-09-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* loadhist.el (unload-feature-special-hooks):
 	Add `choose-completion-string-functions'.
@@ -137,7 +146,7 @@
 
 	* add-log.el (change-log-default-name): Autoload safety.
 
-2008-09-05 Wilson Snyder <wsnyder@wsnyder.org>
+2008-09-05 Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* verilog-mode.el (verilog-library-extensions): Enable .sv
 	filename extensions to call verilog-mode.
