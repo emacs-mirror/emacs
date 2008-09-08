@@ -2070,7 +2070,7 @@ whether or not it is currently displayed in some window.  */)
 	{
 	  if (it.cmp_it.id >= 0)
 	    it_overshoot_expected = 1;
-	  if (it.method == GET_FROM_STRING)
+	  else if (it.method == GET_FROM_STRING)
 	    {
 	      const char *s = SDATA (it.string);
 	      const char *e = s + SBYTES (it.string);
