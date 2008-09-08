@@ -295,7 +295,9 @@ suitable file is found, return nil."
 	;; When the Elisp source file can be found in the install
 	;; directory return the name of that file - `file-name' should
 	;; have become an absolute file name ny now.
-	(and (file-readable-p lib-name) lib-name)))
+	(or (and (file-readable-p lib-name) lib-name)
+	    ;; The library might be compressed.
+	    (and (file-readable-p (concat lib-name ".gz")) lib-name))))
      ((let* ((lib-name (file-name-nondirectory file-name))
 	     ;; The next form is from `describe-simplify-lib-file-name'.
 	     (file-name
