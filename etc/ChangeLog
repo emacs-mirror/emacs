@@ -1,3 +1,7 @@
+2008-09-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* TODO: Remove the entry describing auto-encryption.
+
 2008-08-26  Robert J. Chassell  <bob@rattlesnake.com>
 
         * PROBLEMS: Prevent pasting a region twice on an xterm or rxvt in X.

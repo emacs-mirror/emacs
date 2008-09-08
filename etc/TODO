@@ -366,12 +366,6 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 
 ** Add a cpio mode, more or less like tar mode.
 
-** Implement a variant of uncompress.el or jka-compr.el that works with
-  GNU Privacy Guard for encryption.  [Code exists but isn't assigned.
-  See the Gnus development sources for assigned code concerning GPG
-  use with mail, which is probably a good start.]  See also
-  http://www.loveshack.ukfsn.org/emacs/auto-crypt.tgz.
-
 ** Save undo information in special temporary files, and reload it
   when needed for undoing.  This could extend undo capacity.
 
