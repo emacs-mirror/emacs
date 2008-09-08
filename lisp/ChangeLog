@@ -1,3 +1,8 @@
+2008-09-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* help-fns.el (describe-function-1): Don't print extra newline
+	after filling.
+
 2008-09-08  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* help-fns.el (find-lisp-object-file-name): Handle case where
