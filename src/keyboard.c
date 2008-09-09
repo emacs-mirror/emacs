@@ -9154,16 +9154,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
   from_string = Qnil;
 
-  /* The multi-tty merge moved the code below to right after
-   `replay_sequence' which caused all these translation maps to be applied
-   repeatedly, even tho their doc says very clearly they are not applied to
-   their own output.
-   The reason for this move was: "We may switch keyboards between rescans,
-   so we need to reinitialize fkey and keytran before each replay".
-   This move was wrong (even if we switch keyboards, keybuf still holds the
-   keys we've read already from the original keyboard and some of those keys
-   may have already been translated).  So there may still be a bug out there
-   lurking.  */
+  /* We jump here when we need to reinitialize fkey and keytran; this
+     happens if we switch keyboards between rescans.  */
+ replay_entire_sequence:
+
   indec.map = indec.parent = current_kboard->Vinput_decode_map;
   fkey.map = fkey.parent = current_kboard->Vlocal_function_key_map;
   keytran.map = keytran.parent = Vkey_translation_map;
@@ -9360,7 +9354,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		    /* Don't touch interrupted_kboard when it's been
 		       deleted. */
 		    delayed_switch_frame = Qnil;
-		    goto replay_sequence;
+		    goto replay_entire_sequence;
 		  }
 
 		if (!NILP (delayed_switch_frame))
@@ -9392,7 +9386,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		mock_input = 0;
 		orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
 		orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
-		goto replay_sequence;
+		goto replay_entire_sequence;
 	      }
 	  }
 
