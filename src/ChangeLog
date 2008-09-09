@@ -1,5 +1,8 @@
 2008-09-09  Kenichi Handa  <handa@m17n.org>
 
+	* ftfont.c (ftfont_shape_by_flt): Use "combining" FLT for ASCII
+	characters.
+
 	* composite.c (FORWARD_CHAR): Fix calculation
 	of (POSITION).pos_byte.
 
