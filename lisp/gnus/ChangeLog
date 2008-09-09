@@ -1,3 +1,8 @@
+2008-09-08  David Engster  <dengste@eml.cc>
+
+	* nnmairix.el (nnmairix-create-server-and-default-group): Require match
+	in completing-read for back end server.
+
 2008-09-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* message.el (message-confirm-send): New variable to confirm sending a

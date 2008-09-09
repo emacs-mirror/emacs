@@ -4521,9 +4521,11 @@ mh= ... your nnml/mh folders which should be indexed ...
 mbox = ... your mbox files which should be indexed ...
 @end example
 
-Specify all your maildir/nnml folders and mbox files (relative to the
-base directory!) you want to index with mairix.  See the man-page for
-mairixrc for details.
+This specifies all your mail folders and mbox files (relative to the
+base directory!) you want to index with mairix.  Note that the
+@code{nnml} back end saves mails in MH format, so you have to put those
+directories in the @code{mh} line.  See the example at the end of this
+section and mairixrc's man-page for further details.
 
 @example
 omit=zz_mairix-*
@@ -4591,14 +4593,17 @@ The @strong{name} of the @code{nnmairix} server---choose whatever you
 want.
 
 @item
-The @strong{mail back end} where mairix should stores its
-searches.  Currently @code{nnmaildir}, @code{nnimap} and @code{nnml} are
-supported.  As explained above, for locally stored mails, this can be an
-existing mail back end where you store your mails.  However, you can also
-create e.g. a new @code{nnmaildir} server exclusively for
-@code{nnmairix} in your secondary select methods (@pxref{Finding the
-News}).  If you want to use mairix remotely on an @acronym{IMAP} server,
-you have to choose the corresponding @code{nnimap} back end here.
+The name of the @strong{back end server} where mairix should store its
+searches.  This must be a full server name, like @code{nnml:mymail}.
+Just hit @kbd{TAB} to see the available servers.  Currently, servers
+which are accessed through @code{nnmaildir}, @code{nnimap} and
+@code{nnml} are supported.  As explained above, for locally stored
+mails, this can be an existing server where you store your mails.
+However, you can also create e.g. a new @code{nnmaildir} server
+exclusively for @code{nnmairix} in your secondary select methods
+(@pxref{Finding the News}).  If you want to use mairix remotely on an
+@acronym{IMAP} server, you have to choose the corresponding
+@code{nnimap} server here.
 
 @item
 @vindex nnmairix-mairix-search-options

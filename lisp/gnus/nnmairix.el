@@ -877,7 +877,7 @@ All necessary information will be queried from the user."
   (interactive)
   (let* ((name (read-string "Name of the mairix server: "))
 	(server (completing-read "Back end server (TAB for completion): "
-				 (nnmairix-get-valid-servers)))
+				 (nnmairix-get-valid-servers) nil 1))
 	(mairix (read-string "Command to call mairix: " "mairix"))
 	(defaultgroup (read-string "Default search group: "))
 	(backend (symbol-name (car (gnus-server-to-method server))))
