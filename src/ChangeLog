@@ -5,6 +5,10 @@
 
 	* composite.c (FORWARD_CHAR): Fix calculation
 	of (POSITION).pos_byte.
+	(composition_compute_stop_pos): Limit the search of composition to
+	at most 500 characters ahead.  If we reach the limit or find a
+	newline, set cmp_it->ch to -2 and return 0.
+	(composition_reseat_it): Handle the case that cmp_it->ch is -2.
 
 2008-09-08  Kenichi Handa  <handa@m17n.org>
 
