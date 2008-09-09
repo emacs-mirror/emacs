@@ -1197,8 +1197,8 @@ struct position_record
       }									\
     else								\
       {									\
-	(POSITION).p += BYTES_BY_CHAR_HEAD (*((POSITION).p));		\
 	(POSITION).pos_byte += BYTES_BY_CHAR_HEAD (*((POSITION).p));	\
+	(POSITION).p += BYTES_BY_CHAR_HEAD (*((POSITION).p));		\
       }									\
   } while (0)
 
