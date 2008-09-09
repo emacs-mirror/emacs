@@ -994,7 +994,11 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
 {
   EMACS_INT start, end, c;
   Lisp_Object prop, val;
+  /* This is from forward_to_next_line_start in xdisp.c.  */
+  const int MAX_NEWLINE_DISTANCE = 500;
 
+  if (endpos > charpos + MAX_NEWLINE_DISTANCE)
+    endpos = charpos + MAX_NEWLINE_DISTANCE;
   cmp_it->stop_pos = endpos;
   if (find_composition (charpos, endpos, &start, &end, &prop, string)
       && COMPOSITION_VALID_P (start, end, prop))
@@ -1020,6 +1024,8 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
 	FETCH_STRING_CHAR_ADVANCE (c, string, charpos, bytepos);
       else
 	FETCH_CHAR_ADVANCE (c, charpos, bytepos);
+      if (c == '\n')
+	break;
       val = CHAR_TABLE_REF (Vcomposition_function_table, c);
       if (! NILP (val))
 	{
@@ -1040,6 +1046,11 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
 	      break;
 	    }
 	}
+    }
+  if (charpos == endpos)
+    {
+      cmp_it->stop_pos = endpos;
+      cmp_it->ch = -2;
     }
 }
 
@@ -1062,6 +1073,13 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
      struct face *face;
      Lisp_Object string;
 {
+  if (cmp_it->ch == -2)
+    {
+      composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string);
+      if (cmp_it->ch == -2)
+	return 0;
+    }
+
   if (cmp_it->ch < 0)
     {
       /* We are looking at a static composition.  */
