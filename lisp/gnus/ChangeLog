@@ -1,3 +1,10 @@
+2008-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-strip-charset-parameters): Remove.
+	(gnus-mime-set-charset-parameters): New function.
+	(gnus-mime-view-part-as-charset): Use it to correctly display part
+	specifying wrong charset.
+
 2008-09-08  David Engster  <dengste@eml.cc>
 
 	* nnmairix.el (nnmairix-create-server-and-default-group): Require match

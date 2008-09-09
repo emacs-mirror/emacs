@@ -5138,8 +5138,9 @@ Compressed files like .gz and .bz2 are decompressed."
 	   (mm-string-to-multibyte contents)))
 	(goto-char b)))))
 
-(defun gnus-mime-strip-charset-parameters (handle)
-  "Strip charset parameters from HANDLE."
+(defun gnus-mime-set-charset-parameters (handle)
+  "Set charset to parameters in HANDLE.
+The value of `gnus-newsgroup-charset' is used as a charset."
   (if (stringp (car handle))
       (mapc #'gnus-mime-strip-charset-parameters (cdr handle))
     (let* ((type (mm-handle-type (if (equal (mm-handle-media-type handle)
@@ -5150,8 +5151,10 @@ Compressed files like .gz and .bz2 are decompressed."
 				       (mm-handle-cache handle))
 				   handle)))
 	   (charset (assq 'charset (cdr type))))
-      (when charset
-	(delq charset type)))))
+      (if charset
+	  (setcdr charset (symbol-name gnus-newsgroup-charset))
+	(setcdr type (cons (cons 'charset (symbol-name gnus-newsgroup-charset))
+			   (cdr type)))))))
 
 (defun gnus-mime-view-part-as-charset (&optional handle arg)
   "Insert the MIME part under point into the current buffer using the
@@ -5172,7 +5175,7 @@ specified charset."
 			       (mm-read-coding-system "Charset: "))))
 	      (if (mm-handle-undisplayer handle)
 		  (mm-remove-part handle)))
-	(gnus-mime-strip-charset-parameters handle)
+	(gnus-mime-set-charset-parameters handle)
 	(when (and (consp (setq form (cdr-safe fun)))
 		   (setq form (ignore-errors
 				(assq 'gnus-mime-display-alternative form)))
