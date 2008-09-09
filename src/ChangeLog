@@ -1,3 +1,8 @@
+2008-09-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_key_sequence): Reapply translation maps when
+	switching keyboards.
+
 2008-09-09  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_shape_by_flt): Use "combining" FLT for ASCII
