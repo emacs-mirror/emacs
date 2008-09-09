@@ -4658,6 +4658,13 @@ DEF, if non-nil, is the default value."
 	(ido-choice-list choices))
     (ido-read-internal 'list prompt hist def require-match initial-input)))
 
+(defun ido-unload-function ()
+  "Unload the Ido library."
+  (ido-mode -1)
+  (setq minor-mode-map-alist (assq-delete-all 'ido-mode minor-mode-map-alist))
+  ;; continue standard unloading
+  nil)
+
 (provide 'ido)
 
 ;; arch-tag: b63a3500-1735-41bd-8a01-05373f0864da

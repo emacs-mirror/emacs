@@ -1,3 +1,7 @@
+2008-09-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-unload-function): New function.
+
 2008-09-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-file-internal): Fix typo in prompt.
