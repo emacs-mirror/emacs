@@ -833,6 +833,8 @@ redefined it as a function.  The following element is always
 function.
 @item (autoload . @var{fun})
 The function @var{fun} was defined as an autoload.
+@item (defface . @var{face})
+The face @var{face} was defined.
 @item (require . @var{feature})
 The feature @var{feature} was required.
 @item (provide . @var{feature})

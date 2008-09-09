@@ -1,3 +1,7 @@
+2008-09-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loading.texi (Where Defined): Add `defface' item.
+
 2008-09-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* loading.texi (Where Defined): Fix description of symbol-file.
@@ -62,7 +66,7 @@
 
 	* book-spine.texinfo: Set version to 23.0.60.
 	* vol1.texi (EMACSVER):
-	* vol2.texi (EMACSVER):	Set to 23.0.60.
+	* vol2.texi (EMACSVER): Set to 23.0.60.
 
 	* elisp.texi, vol1.texi, vol2.texi: Update Back-Cover Text
 	as per maintain.info.
