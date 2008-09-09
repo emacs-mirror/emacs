@@ -1,5 +1,11 @@
 2008-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-art.el (gnus-mime-set-charset-parameters): Add new argument
+	`charset'; fix name of function called recursively.
+	(gnus-mime-view-part-as-charset): Don't bind gnus-newsgroup-charset.
+
+2008-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
 	* gnus-art.el (gnus-mime-strip-charset-parameters): Remove.
 	(gnus-mime-set-charset-parameters): New function.
 	(gnus-mime-view-part-as-charset): Use it to correctly display part
