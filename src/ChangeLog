@@ -1,3 +1,13 @@
+2008-09-09  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (FORWARD_CHAR): Fix calculation
+	of (POSITION).pos_byte.
+
+2008-09-08  Kenichi Handa  <handa@m17n.org>
+
+	* indent.c (Fvertical_motion): Be sure to set
+	it_overshoot_expected if it.cmp_it.id is non-nengative.
+
 2008-09-07  Andreas Schwab  <schwab@suse.de>
 
 	* callproc.c (Fcall_process): Don't hold references to string data
