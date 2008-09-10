@@ -1,3 +1,8 @@
+2008-09-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-group-make-useful-group): Don't use the compiler
+	macro caddr in the interactive form since it won't be expanded.
+
 2008-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mime-set-charset-parameters): Add new argument
