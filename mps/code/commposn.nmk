@@ -43,7 +43,7 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awlu
      mmdw.lib mmsw.lib mps.lib mpsplan.lib mpsplcb.lib \
      mpsdy.dll:
 !IFDEF VARIETY
-	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
+	$(MAKE) /n /nologo /f $(PFM).nmk TARGET=$@ variety
 !ELSE
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 !ENDIF
