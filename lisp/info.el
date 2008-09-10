@@ -3128,7 +3128,7 @@ If FORK is a string, it is the name to use for the new buffer."
 ;; Common subroutine.
 (defun Info-try-follow-nearest-node (&optional fork)
   "Follow a node reference near point.  Return non-nil if successful.
-If FORK is non-nil, it i spassed to `Info-goto-node'."
+If FORK is non-nil, it is passed to `Info-goto-node'."
   (let (node)
     (cond
      ((Info-get-token (point) "[hf]t?tps?://" "[hf]t?tps?://\\([^ \t\n\"`({<>})']+\\)")
