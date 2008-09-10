@@ -1,5 +1,7 @@
 2008-09-10  Kenichi Handa  <handa@m17n.org>
 
+	* xdisp.c (handle_composition_prop): Set it->cmp_it.ch to -1.
+
 	* font.c (Ffont_shape_gstring): Make glyphs of non-nil adjustment
 	compose a grapheme cluster with the preceding base glyph.
 
