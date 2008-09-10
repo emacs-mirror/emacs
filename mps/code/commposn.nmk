@@ -1,0 +1,360 @@
+# commpost.nmk: SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
+#
+# $Id$
+# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+#
+# DESCRIPTION
+#
+# Second common makefile fragment for w3*mv.nmk.  See commpre.nmk
+
+
+# PSEUDO-TARGETS
+
+# "all" builds all the varieties of all targets
+# %%TARGET: Add the target to the all dependencies, if it uses the
+# CONFIG_PROD_MPS configuration, to swall if CONFIG_PROD_EPCORE
+
+all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe\
+     mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
+     finalcv.exe fin1658a.exe finaltest.exe \
+     arenacv.exe bttest.exe teletest.exe \
+     abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
+     locbwcss.exe locusss.exe \
+     eventcnv.exe \
+     mps.lib mpsplan.lib
+
+swall: mmsw.lib replaysw.exe
+
+
+# Convenience targets
+
+# %%TARGET: Add a pseudo-target for the new target here, first rule for
+# variety-dependent targets, and second for variety-independent ones.
+
+mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
+     mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
+     finalcv.exe fin1658a.exe finaltest.exe \
+     arenacv.exe bttest.exe teletest.exe \
+     expt825.exe \
+     abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
+     walkt0.exe locbwcss.exe locusss.exe \
+     exposet0.exe \
+     replay.exe replaysw.exe eventcnv.exe \
+     mmdw.lib mmsw.lib mps.lib mpsplan.lib mpsplcb.lib \
+     mpsdy.dll:
+!IFDEF VARIETY
+	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
+!ELSE
+	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
+!ENDIF
+
+# "clean" removes the directory containing the build results.
+# Depends on there being no file called "clean".
+# Since we can't know whether we have rmdir, try with deltree as well.
+
+clean:
+	$(ECHO) $(PFM): $@
+	-echo y | rmdir/s $(PFM)
+	-deltree /Y $(PFM)
+
+# target target
+# %%VARIETY: Optionally, add a recursive make call for the new variety,
+#  if it should be built by default.
+# Only the varieties needed for development and internal customers are made.
+# Depends on there being no file called "target".
+
+!IFDEF TARGET
+!IFNDEF VARIETY
+target:
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hi variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=ci variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=ti variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=wi variety
+!ENDIF
+!ENDIF
+
+# variety
+# Depends on there being no file called "variety".
+
+!IFDEF VARIETY
+!IFDEF TARGET
+variety: $(PFM)\$(VARIETY)\$(TARGET)
+!ENDIF
+!ENDIF
+
+mpsicv.cov:
+	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=cv variety
+
+# FORCE
+# Used to force a target to be built.
+# Depends on there being no file called "FORCE".
+FORCE:
+
+
+# GENUINE TARGETS
+#
+# Each line defines an executable or library target to be built and the object
+# files it is build from.  For an executable these lines add dependencies to
+# the generic rules below, and should not include commands to execute.
+# For a library this is not possible and the target should include commands
+# to build it.
+# %%TARGET: Add your new target here
+
+
+!IFDEF VARIETY
+
+# .special.version: version.obj has a special rule so that it is always
+# built.  This rule has no commands, meaning that the commands from
+# other rules (the implicit .c -> .obj rule in particular) will be used.
+# (Actually, there's a MS bug that causes this to randomly fail to build.)
+$(PFM)\$(VARIETY)\version.obj: FORCE
+
+$(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
+	$(MRGOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\fin1658a.exe: $(PFM)\$(VARIETY)\fin1658a.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
+	$(MRGOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\finaltest.exe: $(PFM)\$(VARIETY)\finaltest.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
+	$(MRGOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\expt825.exe: $(PFM)\$(VARIETY)\expt825.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
+	$(MRGOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ)
+
+$(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
+	$(PFM)\$(VARIETY)\poolmvff.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\apss.exe: $(PFM)\$(VARIETY)\apss.obj \
+	$(PFM)\$(VARIETY)\poolmvff.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\bttest.exe: $(PFM)\$(VARIETY)\bttest.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\teletest.exe: $(PFM)\$(VARIETY)\teletest.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\lockutw3.exe: $(PFM)\$(VARIETY)\lockutw3.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\mpsicv.exe: $(PFM)\$(VARIETY)\mpsicv.obj \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
+	$(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
+	$(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\amcsshe.exe: $(PFM)\$(VARIETY)\amcsshe.obj \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
+	$(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
+	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
+	$(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\amssshe.exe: $(PFM)\$(VARIETY)\amssshe.obj \
+	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
+	$(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\segsmss.exe: $(PFM)\$(VARIETY)\segsmss.obj \
+	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
+	$(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\locbwcss.exe: $(PFM)\$(VARIETY)\locbwcss.obj \
+	$(PFM)\$(VARIETY)\poolmvff.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\locusss.exe: $(PFM)\$(VARIETY)\locusss.obj \
+	$(PFM)\$(VARIETY)\poolmvff.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
+	$(DWOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ)
+
+$(PFM)\$(VARIETY)\awlut.exe:  $(PFM)\$(VARIETY)\awlut.obj \
+        $(FMTTESTOBJ) \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ) $(AWLOBJ)
+
+$(PFM)\$(VARIETY)\awluthe.exe:  $(PFM)\$(VARIETY)\awluthe.obj \
+	$(FMTTESTOBJ) \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ) $(AWLOBJ)
+
+$(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(POOLNOBJ)
+
+$(PFM)\$(VARIETY)\qs.exe: $(PFM)\$(VARIETY)\qs.obj \
+	$(AMCOBJ) $(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\arenacv.exe:  $(PFM)\$(VARIETY)\arenacv.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\abqtest.exe: $(PFM)\$(VARIETY)\abqtest.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\cbstest.exe: $(PFM)\$(VARIETY)\cbstest.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\btcv.exe: $(PFM)\$(VARIETY)\btcv.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\eventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
+	$(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\table.obj
+
+$(PFM)\$(VARIETY)\replay.exe: $(PFM)\$(VARIETY)\replay.obj \
+  $(PFM)\$(VARIETY)\eventrep.obj \
+  $(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\table.obj \
+  $(MPMOBJ) $(AWLOBJ) $(AMSOBJ) $(POOLNOBJ) $(AMCOBJ) $(SNCOBJ) \
+  $(PFM)\$(VARIETY)\poolmvff.obj $(PFM)\$(VARIETY)\mpsliban.obj
+
+# Have to rename the object file, because the names must match, or
+# the template rule for .exe.obj won't be used.
+$(PFM)\$(VARIETY)\replaysw.obj: $(PFM)\$(VARIETY)\replay.obj
+	$(ECHO) $@
+	copy $** $@ >nul:
+
+$(PFM)\$(VARIETY)\replaysw.exe: $(PFM)\$(VARIETY)\replaysw.obj \
+  $(PFM)\$(VARIETY)\eventrep.obj \
+  $(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\table.obj \
+  $(PFM)\$(VARIETY)\fmtpstst.obj $(TESTLIBOBJ) \
+  $(PFM)\$(VARIETY)\mpsliban.obj $(SWOBJ)
+
+$(PFM)\$(VARIETY)\messtest.exe: $(PFM)\$(VARIETY)\messtest.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\steptest.exe: $(PFM)\$(VARIETY)\steptest.obj \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
+	$(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\walkt0.exe: $(PFM)\$(VARIETY)\walkt0.obj \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
+	$(TESTLIBOBJ)	
+
+$(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
+	$(TESTLIBOBJ)	
+
+$(PFM)\$(VARIETY)\mmsw.lib: $(SWOBJ)
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ) \
+        $(AWLOBJ) $(LOOBJ) $(SNCOBJ)
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\$(VARIETY)\mps.lib: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
+        $(MVFFOBJ) $(AMSOBJ) $(AWLOBJ)
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+# We would like to use $** in the linker command line here, but we
+# cannot because the target, mpsdy.dll, depends on the w3gen.def file,
+# but this is not to be treated as an object on the linker line.  Sorry
+# about the repetition of the object list.
+$(PFM)\$(VARIETY)\mpsdy.dll: $(PFM)\$(VARIETY)\mpslibcb.obj \
+	$(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
+	$(MVFFOBJ) $(AMSOBJ) $(AWLOBJ) w3gen.def 
+	$(ECHO) $@
+	$(LINKER) $(LINKFLAGS) /def:w3gen.def /dll /OUT:$@ \
+	  $(PFM)\$(VARIETY)\mpslibcb.obj \
+	  $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
+	  $(MVFFOBJ) $(AMSOBJ) $(AWLOBJ)
+
+$(PFM)\$(VARIETY)\mpsplan.lib: $(PLINTHOBJ)
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\$(VARIETY)\mpsplcb.lib: $(PFM)\$(VARIETY)\mpslibcb.obj
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+!ENDIF
+
+
+# GENERIC RULES
+
+# Object files
+
+{}.c{$(PFM)\$(VARIETY)}.obj:
+	$(ECHO) $@
+	@if not exist $(PFM) mkdir $(PFM)
+	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$@ $<
+
+{}.asm{$(PFM)\$(VARIETY)}.obj:
+	$(ECHO) $@
+	@if not exist $(PFM) mkdir $(PFM)
+	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
+	ml /nologo /c /coff /Fo$@ $<
+
+# Coverage files
+#{$(PFM)\$(VARIETY)}.exe{$(PFM)\$(VARIETY)}.cov:
+#	$(ECHO) $@
+#	cd $(PFM)\$(VARIETY)
+#	prep /nologo /lv  $(<F)
+#	profile /nologo $(<B)
+#	prep /nologo /m $(<B)
+#	plist /nologo /D ..\.. $(<B) > $(@F)
+
+
+# Executables
+
+{$(PFM)\$(VARIETY)}.obj{$(PFM)\$(VARIETY)}.exe:
+	$(ECHO) $@
+	$(LINKER) $(LINKFLAGS) /OUT:$@ $(**)
+
+
+# C. COPYRIGHT AND LICENSE
+#
+# Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# All rights reserved.  This is an open source license.  Contact
+# Ravenbrook for commercial licensing options.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+# 
+# 3. Redistributions in any form must be accompanied by information on how
+# to obtain complete source code for this software and any accompanying
+# software that uses this software.  The source code must either be
+# included in the distribution or be available for no more than the cost
+# of distribution plus a nominal fee, and must be freely redistributable
+# under reasonable conditions.  For an executable file, complete source
+# code means the source code for all modules it contains. It does not
+# include source code for modules or files that typically accompany the
+# major components of the operating system on which the executable file
+# runs.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+# USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
