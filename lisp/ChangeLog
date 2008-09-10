@@ -1,3 +1,8 @@
+2008-09-10  Stephen Berman  <stephen.berman@gmx.net>
+
+	* info.el (Info-mouse-follow-nearest-node): Follow links to different
+	manuals.  (Bug#886)
+
 2008-09-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-unload-function): New function.
