@@ -1000,6 +1000,7 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
   if (endpos > charpos + MAX_NEWLINE_DISTANCE)
     endpos = charpos + MAX_NEWLINE_DISTANCE;
   cmp_it->stop_pos = endpos;
+  cmp_it->ch = -2;
   if (find_composition (charpos, endpos, &start, &end, &prop, string)
       && COMPOSITION_VALID_P (start, end, prop))
     {
@@ -1043,15 +1044,12 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
 	      cmp_it->lookback = XFASTINT (AREF (elt, 1));
 	      cmp_it->stop_pos = charpos - 1 - cmp_it->lookback;
 	      cmp_it->ch = c;
-	      break;
+	      return;
 	    }
 	}
     }
-  if (charpos == endpos)
-    {
-      cmp_it->stop_pos = endpos;
-      cmp_it->ch = -2;
-    }
+  cmp_it->stop_pos = charpos;
+  cmp_it->ch = -2;
 }
 
 /* Check if the character at CHARPOS (and BYTEPOS) is composed
