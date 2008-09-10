@@ -1,3 +1,10 @@
+2008-09-10  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Ffont_shape_gstring): Make glyphs of non-nil adjustment
+	compose a grapheme cluster with the preceding base glyph.
+
+	* composite.c (composition_compute_stop_pos): Fix previous change.
+
 2008-09-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (character.o, chartab.o): Fix config.h typo.
