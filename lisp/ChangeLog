@@ -1,3 +1,7 @@
+2008-09-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer): Fix doc-string typo.
+
 2008-09-10  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (compose-gstring-for-graphic): Fix previous change.
