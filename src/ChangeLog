@@ -4,6 +4,7 @@
 	compose a grapheme cluster with the preceding base glyph.
 
 	* composite.c (composition_compute_stop_pos): Fix previous change.
+	Reset cmp_it->id to -1 at first.
 
 2008-09-10  Glenn Morris  <rgm@gnu.org>
 
