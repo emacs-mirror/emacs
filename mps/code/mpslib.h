@@ -15,7 +15,6 @@
 
 #include <stddef.h>
 
-#pragma warning( disable : 4996 )
 
 extern int mps_lib_get_EOF(void);
 #define mps_lib_EOF     (mps_lib_get_EOF())

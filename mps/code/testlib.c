@@ -70,6 +70,9 @@ mps_addr_t rnd_addr(void)
 
 /* randomize -- randomize the generator, or initialize to replay */
 
+/* for sscanf */
+#pragma warning( disable : 4996 )
+
 void randomize(int argc, char **argv)
 {
   int i, k, n;
