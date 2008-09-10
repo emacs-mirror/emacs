@@ -912,7 +912,7 @@ Return WINDOW."
   "Make buffer BUFFER-OR-NAME appear in some window but don't select it.
 BUFFER-OR-NAME must be a buffer or the name of an existing
 buffer.  Return the window chosen to display BUFFER-OR-NAME or
-nil is no such window is found.
+nil if no such window is found.
 
 Optional argument NOT-THIS-WINDOW non-nil means display the
 buffer in a window other than the selected one, even if it is
