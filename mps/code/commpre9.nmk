@@ -128,7 +128,7 @@ CFLAGSCOMMONPRE = /nologo /W4 /WX $(PFMDEFS) $(CFLAGSTARGETPRE)
 CFLAGSCOMMONPOST = $(CFLAGSTARGETPOST)
 
 # Flags for use in the variety combinations
-CFLAGSHOT = /Ox /DNDEBUG
+CFLAGSHOT = /O2 /DNDEBUG
 # We used to have /GZ here (stack probe).
 # Note that GZ is specific to version 12 of the cl tool.  drj 2003-11-04
 # It is ignored on earlier versions of the cl tool.
@@ -158,7 +158,7 @@ CFTI = /DCONFIG_VAR_TI $(CRTFLAGSC)  $(CFLAGSCOOL) $(CFLAGSINTERNAL)
 # %%VARIETY: define a macro containing the flags for the new variety
 LINKER = link
 LINKFLAGSCOMMON = /nologo
-LINKFLAGSINTERNAL = /DEBUG:full
+LINKFLAGSINTERNAL =
 LINKFLAGSEXTERNAL = /RELEASE
 
 LFWE = $(LINKFLAGSWHITE)  $(LINKFLAGSEXTERNAL)
