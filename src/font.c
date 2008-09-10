@@ -4224,7 +4224,7 @@ created glyph-string.  Otherwise, the value is nil.  */)
 {
   struct font *font;
   Lisp_Object font_object, n, glyph;
-  int i;
+  int i, j, from, to;
   
   if (! composition_gstring_p (gstring))
     signal_error ("Invalid glyph-string: ", gstring);
@@ -4250,23 +4250,42 @@ created glyph-string.  Otherwise, the value is nil.  */)
     return Qnil;
   
   glyph = LGSTRING_GLYPH (gstring, 0);
-  for (i = 1; i < LGSTRING_GLYPH_LEN (gstring); i++)
+  from = LGLYPH_FROM (glyph);
+  to = LGLYPH_TO (glyph);
+  for (i = 1, j = 0; i < LGSTRING_GLYPH_LEN (gstring); i++)
     {
       Lisp_Object this = LGSTRING_GLYPH (gstring, i);
 
       if (NILP (this))
 	break;
       if (NILP (LGLYPH_ADJUSTMENT (this)))
-	glyph = this;
+	{
+	  if (j < i - 1)
+	    for (; j < i; j++)
+	      {
+		glyph = LGSTRING_GLYPH (gstring, j);
+		LGLYPH_SET_FROM (glyph, from);
+		LGLYPH_SET_TO (glyph, to);
+	      }
+	  from = LGLYPH_FROM (this);
+	  to = LGLYPH_TO (this);
+	  j = i;
+	}
       else
 	{
-	  int from = LGLYPH_FROM (glyph);
-	  int to = LGLYPH_TO (glyph);
-
-	  LGLYPH_SET_FROM (this, from);
-	  LGLYPH_SET_TO (this, to);
+	  if (from > LGLYPH_FROM (this))
+	    from = LGLYPH_FROM (this);
+	  if (to < LGLYPH_TO (this))
+	    to = LGLYPH_TO (this);
 	}
     }
+  if (j < i - 1)
+    for (; j < i; j++)
+      {
+	glyph = LGSTRING_GLYPH (gstring, j);
+	LGLYPH_SET_FROM (glyph, from);
+	LGLYPH_SET_TO (glyph, to);
+      }
   return composition_gstring_put_cache (gstring, XINT (n));
 }
 
