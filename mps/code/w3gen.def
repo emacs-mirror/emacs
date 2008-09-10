@@ -113,6 +113,7 @@ mps_ap_frame_push
 ; mpsavm.h
 mps_arena_class_vmnz
 mps_arena_class_vm
+mps_arena_vm_growth
 ; mpsacl.h
 mps_arena_class_cl
 ; mpscamc.h
