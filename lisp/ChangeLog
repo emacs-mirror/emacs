@@ -1,5 +1,8 @@
 2008-09-10  Chong Yidong  <cyd@stupidchicken.com>
 
+	* replace.el (perform-replace): Don't set inhibit-read-only using
+	query-replace-skip-read-only (bug#956).
+
 	* edmacro.el (edmacro-parse-keys): Fix last change to omit macros
 	of the <<foo>> form.
 
