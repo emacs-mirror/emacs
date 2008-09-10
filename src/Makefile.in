@@ -1041,10 +1041,10 @@ category.o: category.c category.h buffer.h charset.h keymap.h	\
 	character.h $(config_h)
 ccl.o: ccl.c ccl.h charset.h character.h coding.h $(config_h)
 character.o: character.c character.h buffer.h charset.h composite.h disptab.h \
-   $(config.h)
+   $(config_h)
 charset.o: charset.c charset.h character.h buffer.h coding.h composite.h \
    disptab.h $(config_h)
-chartab.o: charset.h character.h $(config.h)
+chartab.o: charset.h character.h $(config_h)
 coding.o: coding.c coding.h ccl.h buffer.h character.h charset.h intervals.h composite.h \
 	window.h dispextern.h frame.h termhooks.h $(config_h)
 cm.o: cm.c frame.h cm.h termhooks.h termchar.h $(config_h)
