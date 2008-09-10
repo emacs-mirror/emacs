@@ -1,3 +1,7 @@
+2008-09-10  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (compose-gstring-for-graphic): Fix previous change.
+
 2008-09-10  Glenn Morris  <rgm@gnu.org>
 
 	* info.el (Info-try-follow-nearest-node): Fix doc typo.
@@ -242,6 +246,7 @@
 
 	* composite.el (find-composition): Mention about the automatic
 	composition in the docstring.
+	(compose-gstring-for-graphic): Fix handling "above" marks.
 
 	* descr-text.el (describe-char): Fix handling of automatic composition.
 
