@@ -1,3 +1,7 @@
+2008-09-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (character.o, chartab.o): Fix config.h typo.
+
 2008-09-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (read_key_sequence): Reapply translation maps when
