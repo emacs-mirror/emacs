@@ -1,3 +1,7 @@
+2008-09-10  Glenn Morris  <rgm@gnu.org>
+
+	* info.el (Info-try-follow-nearest-node): Fix doc typo.
+
 2008-09-10  Stephen Berman  <stephen.berman@gmx.net>
 
 	* info.el (Info-mouse-follow-nearest-node): Follow links to different
