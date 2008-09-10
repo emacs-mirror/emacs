@@ -3099,7 +3099,7 @@ Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \
 At end of the node's text, moves to the next node, or up if none."
   (interactive "e")
   (mouse-set-point click)
-  (and (not (Info-try-follow-nearest-node))
+  (and (not (Info-follow-nearest-node))
        (save-excursion (forward-line 1) (eobp))
        (Info-next-preorder)))
 
