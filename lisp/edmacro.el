@@ -697,7 +697,7 @@ This function assumes that the events can be stored in a string."
 	     (times 1)
 	     key)
 	;; Try to catch events of the form "<as df>".
-	(if (string-match "^<[^ >\t\n\f][^>\t\n\f]*>" word)
+	(if (string-match "^<[^ <>\t\n\f][^>\t\n\f]*>" word)
 	    (setq word (match-string 0 word)
 		  pos (+ word-beg (match-end 0)))
 	  (setq word (substring string word-beg word-end)
