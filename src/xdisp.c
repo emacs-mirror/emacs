@@ -4679,6 +4679,7 @@ handle_composition_prop (it)
 
       if (it->cmp_it.id >= 0)
 	{
+	  it->cmp_it.ch = -1;
 	  it->cmp_it.nchars = COMPOSITION_LENGTH (prop);
 	  it->cmp_it.nglyphs = -1;
 	}
