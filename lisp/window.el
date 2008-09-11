@@ -1029,6 +1029,9 @@ insist on finding another window even if the specified buffer is
 already visible in the selected window, and ignore
 `same-window-regexps' and `same-window-buffer-names'.
 
+If the window to show BUFFER-OR-NAME is not on the selected
+frame, raise that window's frame and give it input focus.
+
 This function returns the buffer it switched to.  This uses the
 function `display-buffer' as a subroutine; see the documentation
 of `display-buffer' for additional customization information.
@@ -1043,9 +1046,21 @@ at the front of the list of recently selected ones."
            (or (get-buffer buffer-or-name)
                (let ((buf (get-buffer-create buffer-or-name)))
                  (set-buffer-major-mode buf)
-                 buf)))))
+                 buf))))
+	(old-window (selected-window))
+	(old-frame (selected-frame))
+	new-window new-frame)
     (set-buffer buffer)
-    (select-window (display-buffer buffer other-window) norecord)
+    (setq new-window (display-buffer buffer other-window) norecord)
+    (unless (eq new-window old-window)
+      ;; `display-buffer' has chosen another window.
+      (setq new-frame (window-frame new-window))
+      (unless (eq new-frame old-frame)
+	;; `display-buffer' has chosen another frame, make sure it gets
+	;; input focus and is risen.
+	(select-frame-set-input-focus new-frame))
+      ;; Make sure the window chosen by `display-buffer' gets selected.
+      (select-window new-window))
     buffer))
 
 ;; I think this should be the default; I think people will prefer it--rms.
