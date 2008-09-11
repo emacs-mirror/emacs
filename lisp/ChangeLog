@@ -1,3 +1,9 @@
+2008-09-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (pop-to-buffer): If the window for buffer-or-name is
+	not on the selected frame, raise that window's frame and give it
+	input focus.  (Bug#745)
+
 2008-09-11  Glenn Morris  <rgm@gnu.org>
 
 	* ido.el (ido-mode): Initialize with custom-initialize-default.
