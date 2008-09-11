@@ -1,3 +1,8 @@
+2008-09-11  Magnus Henoch  <mange@freemail.hu>
+
+	* quail/cyrillic.el ("cyrillic-translit"): Add g' for Ukrainian G
+	with upturn.
+
 2008-09-02  Carsten Bormann <cabo@tzi.org>
 
 	* quail/latin-post.el ("german-postfix"): do not translate ue to
