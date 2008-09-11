@@ -1,3 +1,8 @@
+2008-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* ido.el (ido-mode): Initialize with custom-initialize-default.
+	(Bug#947).
+
 2008-09-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* replace.el (perform-replace): Don't set inhibit-read-only using
