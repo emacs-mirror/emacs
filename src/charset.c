@@ -2142,7 +2142,7 @@ syms_of_charset ()
   defsubr (&Scharset_id_internal);
 
   DEFVAR_LISP ("charset-map-path", &Vcharset_map_path,
-	       doc: /* *Lisp of directories to search for charset map files.  */);
+	       doc: /* *List of directories to search for charset map files.  */);
   Vcharset_map_path = Qnil;
 
   DEFVAR_LISP ("charset-list", &Vcharset_list,
