@@ -1,3 +1,12 @@
+2008-09-12  Kenichi Handa  <handa@m17n.org>
+
+	* indent.c (scan_for_column): Don't handle automatic composition
+	if the current buffer is not associated with a window.
+
+	* composite.c (composition_reseat_it): If the current buffer is
+	not associated with a window, ignore the automatic composition.
+	(find_automatic_composition): Likewise.
+
 2008-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term.c (close_gpm): New fun extracted from Fgpm_mouse_stop.
