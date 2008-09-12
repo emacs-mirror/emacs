@@ -1,3 +1,21 @@
+2008-09-12  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-sort-header): New face.
+	(proced-sort-header-face): New variable.
+	(proced-format): Allow format value nil.  Use
+	proced-sort-header-face for header of sort column.
+	(proced-format-args): New function.
+	(proced-grammar-alist, proced-timer-flag, proced-process-alist)
+	(proced-header-help-echo, proced-field-help-echo, proced-timer)
+	(proced-toggle-timer-flag, proced, proced-mode): Doc fix.
+	(proced-refine): Renamed from proced-filter-attribute.  Doc fix.
+	(proced-sort-header): Bind also to mouse-1.
+	(proced-move-to-goal-column): Return position of point.
+	(proced-filter-interactive): Always revert listing.
+	(proced-format-ttname): Simplify.
+	(proced-update): Do not keep undo information.  Put point at
+	beginning of buffer if we generate the first listing.
+
 2008-09-12  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-scroll-up-or-next-page)
