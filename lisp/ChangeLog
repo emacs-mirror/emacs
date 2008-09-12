@@ -1,3 +1,8 @@
+2008-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* indent.el (indent-line-function): Doc fix.
+	* progmodes/sh-script.el (sh-font-lock-open-heredoc): Doc fix.
+
 2008-09-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (pop-to-buffer): If the window for buffer-or-name is
