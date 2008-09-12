@@ -1003,7 +1003,7 @@ If non-nil INDENTED indicates that the EOF was indented."
 (defun sh-font-lock-open-heredoc (start string)
   "Determine the syntax of the \\n after a <<EOF.
 START is the position of <<.
-STRING is the actual word used as delimiter (f.ex. \"EOF\").
+STRING is the actual word used as delimiter (e.g. \"EOF\").
 INDENTED is non-nil if the here document's content (and the EOF mark) can
 be indented (i.e. a <<- was used rather than just <<).
 Point is at the beginning of the next line."
