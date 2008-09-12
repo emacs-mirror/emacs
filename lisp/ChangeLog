@@ -1,3 +1,9 @@
+2008-09-12  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-scroll-up-or-next-page)
+	(doc-view-scroll-down-or-previous-page): Fix scrolling in case of
+	vertically split windows.
+
 2008-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-mode-map): Don't bind \t and \r.

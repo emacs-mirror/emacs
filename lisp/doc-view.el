@@ -422,7 +422,8 @@ Can be `dvi', `pdf', or `ps'.")
     (let ((cur-page (doc-view-current-page)))
       (doc-view-next-page)
       (when (/= cur-page (doc-view-current-page))
-	(image-scroll-down nil)))))
+	(image-bob)
+	(image-bol 1)))))
 
 (defun doc-view-scroll-down-or-previous-page ()
   "Scroll page down if possible, else goto previous page."
@@ -431,7 +432,8 @@ Can be `dvi', `pdf', or `ps'.")
     (let ((cur-page (doc-view-current-page)))
       (doc-view-previous-page)
       (when (/= cur-page (doc-view-current-page))
-	(image-scroll-up nil)))))
+	(image-eob)
+	(image-bol 1)))))
 
 ;;;; Utility Functions
 
