@@ -533,6 +533,8 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   struct composition_it cmp_it;
+  Lisp_Object window;
+  struct window *w;
 
   /* Start the scan at the beginning of this line with column number 0.  */
   register EMACS_INT col = 0, prev_col = 0;
@@ -548,6 +550,9 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
   SET_PT_BOTH (opoint, opoint_byte);
   next_boundary = scan;
   }
+
+  window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
+  w = ! NILP (window) ? XWINDOW (window) : NULL;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   bzero (&cmp_it, sizeof cmp_it);
@@ -597,7 +602,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
       if (cmp_it.id >= 0
 	  || (scan == cmp_it.stop_pos
 	      && composition_reseat_it (&cmp_it, scan, scan_byte, end,
-					XWINDOW (selected_window), NULL, Qnil)))
+					w, NULL, Qnil)))
 	composition_update_it (&cmp_it, scan, scan_byte, Qnil);
       if (cmp_it.id >= 0)
 	{
