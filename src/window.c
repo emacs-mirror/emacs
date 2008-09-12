@@ -3281,14 +3281,6 @@ change_window_heights (window, n)
 
 int window_select_count;
 
-Lisp_Object
-Fset_window_buffer_unwind (obuf)
-     Lisp_Object obuf;
-{
-  Fset_buffer (obuf);
-  return Qnil;
-}
-
 EXFUN (Fset_window_fringes, 4);
 EXFUN (Fset_window_scroll_bars, 4);
 
@@ -3407,16 +3399,12 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
      I doubt it's worth the trouble.  */
   windows_or_buffers_changed++;
 
-  /* We must select BUFFER for running the window-scroll-functions.
-     If WINDOW is selected, switch permanently.
-     Otherwise, switch but go back to the ambient buffer afterward.  */
-  if (EQ (window, selected_window))
-    Fset_buffer (buffer);
+  /* We must select BUFFER for running the window-scroll-functions.  */
   /* We can't check ! NILP (Vwindow_scroll_functions) here
      because that might itself be a local variable.  */
-  else if (window_initialized)
+  if (window_initialized)
     {
-      record_unwind_protect (Fset_window_buffer_unwind, Fcurrent_buffer ());
+      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
       Fset_buffer (buffer);
     }
 
