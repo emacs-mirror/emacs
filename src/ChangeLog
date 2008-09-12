@@ -1,3 +1,7 @@
+2008-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* charset.c (init_charset): Warn if etc/charsets not found.  (Bug#909)
+
 2008-09-11  Glenn Morris  <rgm@gnu.org>
 
 	* charset.c (charset-map-path): Doc fix.
