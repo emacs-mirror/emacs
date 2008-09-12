@@ -1,5 +1,7 @@
 2008-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/f90.el (f90-mode-map): Don't bind \t and \r.
+
 	* indent.el (indent-line-function): Doc fix.
 	* progmodes/sh-script.el (sh-font-lock-open-heredoc): Doc fix.
 
