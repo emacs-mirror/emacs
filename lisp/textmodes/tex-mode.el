@@ -500,7 +500,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
        (list "\\$\\$\\([^$]+\\)\\$\\$" 1 'tex-math-face)
        ;; Heading args.
        (list (concat slash headings "\\*?" opt arg)
-	     ;; If ARG ends up matching too much (if the {} don't match, f.ex)
+	     ;; If ARG ends up matching too much (if the {} don't match, e.g.)
 	     ;; jit-lock will do funny things: when updating the buffer
 	     ;; the re-highlighting is only done locally so it will just
 	     ;; match the local line, but defer-contextually will
