@@ -1,6 +1,6 @@
 /* Basic character set support.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+     2008  Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -2044,9 +2044,18 @@ Return charset identification number of CHARSET.  */)
 void
 init_charset ()
 {
-  Vcharset_map_path
-    = Fcons (Fexpand_file_name (build_string ("charsets"), Vdata_directory),
-	     Qnil);
+  Lisp_Object tempdir;
+  tempdir = Fexpand_file_name (build_string ("charsets"), Vdata_directory);
+  if (access (SDATA (tempdir), 0) < 0)
+    {
+      dir_warning ("Error: charsets directory (%s) does not exist.\n\
+Emacs will not function correctly without the character map files.\n\
+Please check your installation!\n",
+                   tempdir);
+      /* TODO should this be a fatal error?  (Bug#909)  */
+    }
+
+  Vcharset_map_path = Fcons (tempdir, Qnil);
 }
 
 
