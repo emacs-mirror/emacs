@@ -1,5 +1,11 @@
 2008-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term.c (close_gpm): New fun extracted from Fgpm_mouse_stop.
+	(Fgpm_mouse_stop): Use it.
+	* termhooks.h (close_gpm): Declare.
+	* keyboard.c (tty_read_avail_input): Forcefully close the gpm
+	connection if Gpm_GetEvent fails.
+
 	* window.c (set_window_buffer): Always preserve current-buffer.
 
 2008-09-12  Glenn Morris  <rgm@gnu.org>

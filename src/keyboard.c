@@ -7110,6 +7110,9 @@ tty_read_avail_input (struct terminal *terminal,
       while (gpm = Gpm_GetEvent (&event), gpm == 1) {
 	  nread += handle_one_term_event (tty, &event, &hold_quit);
       }
+      if (gpm < 0)
+	/* Presumably the GPM daemon has closed the connection.  */
+	close_gpm ();
       if (hold_quit.kind != NO_EVENT)
 	  kbd_buffer_store_event (&hold_quit);
       if (nread)

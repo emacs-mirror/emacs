@@ -3128,6 +3128,15 @@ Gpm-mouse can only be activated for one tty at a time.  */)
     }
 }
 
+void
+close_gpm ()
+{
+  if (gpm_fd >= 0)
+    delete_gpm_wait_descriptor (gpm_fd);
+  while (Gpm_Close()); /* close all the stack */
+  gpm_tty = NULL;
+}
+
 DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
        0, 0, 0,
        doc: /* Close a connection to Gpm.  */)
@@ -3141,10 +3150,7 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
   if (!tty || gpm_tty != tty)
     return Qnil;       /* Not activated on this terminal, nothing to do.  */
 
-  if (gpm_fd >= 0)
-    delete_gpm_wait_descriptor (gpm_fd);
-  while (Gpm_Close()); /* close all the stack */
-  gpm_tty = NULL;
+  close_gpm ();
   return Qnil;
 }
 #endif /* HAVE_GPM */
