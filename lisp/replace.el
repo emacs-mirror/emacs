@@ -1665,8 +1665,7 @@ make, or the user didn't cancel the call."
 		    (funcall (car replacements) (cdr replacements)
 			     replace-count)))
 	    (if (not query-flag)
-		(let ((inhibit-read-only
-		       query-replace-skip-read-only))
+		(progn
 		  (unless (or literal noedit)
 		    (replace-highlight
 		     (nth 0 real-match-data) (nth 1 real-match-data)
