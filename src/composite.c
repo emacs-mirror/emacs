@@ -1260,7 +1260,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
   Lisp_Object window;
   struct window *w;
 
-  window = Fget_buffer_create (Fcurrent_buffer ());
+  window = Fget_buffer_create (Fcurrent_buffer (), Qnil);
   if (NILP (window))
     return 0;
   w = XWINDOW (window);
