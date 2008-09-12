@@ -1093,7 +1093,7 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
       cmp_it->nchars = end - start;
       cmp_it->nglyphs = composition_table[cmp_it->id]->glyph_len;
     }
-  else
+  else if (w)
     {
       Lisp_Object val, elt;
       int i;
@@ -1119,6 +1119,8 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
 	  break;
       cmp_it->nglyphs = i;
     }
+  else
+    goto no_composition;
   cmp_it->from = 0;
   return 1;
 
@@ -1255,7 +1257,13 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
   Lisp_Object check_val, val, elt;
   int check_lookback;
   int c;
+  Lisp_Object window;
   struct window *w;
+
+  window = Fget_buffer_create (Fcurrent_buffer ());
+  if (NILP (window))
+    return 0;
+  w = XWINDOW (window);
 
   orig.pos = pos;
   if (NILP (string))
@@ -1279,7 +1287,6 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
     {
       tail = min (tail, limit + 3);
     }
-  w = XWINDOW (selected_window);
   cur = orig;
 
  retry:
