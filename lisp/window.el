@@ -1053,14 +1053,13 @@ at the front of the list of recently selected ones."
     (set-buffer buffer)
     (setq new-window (display-buffer buffer other-window) norecord)
     (unless (eq new-window old-window)
-      ;; `display-buffer' has chosen another window.
+      ;; `display-buffer' has chosen another window, select it.
+      (select-window new-window)
       (setq new-frame (window-frame new-window))
       (unless (eq new-frame old-frame)
 	;; `display-buffer' has chosen another frame, make sure it gets
 	;; input focus and is risen.
-	(select-frame-set-input-focus new-frame))
-      ;; Make sure the window chosen by `display-buffer' gets selected.
-      (select-window new-window))
+	(select-frame-set-input-focus new-frame)))
     buffer))
 
 ;; I think this should be the default; I think people will prefer it--rms.
