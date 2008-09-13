@@ -842,13 +842,23 @@ the user during startup."
 
 (defun select-frame-set-input-focus (frame)
   "Select FRAME, raise it, and set input focus, if possible."
-    (select-frame frame)
-    (raise-frame frame)
-    ;; Ensure, if possible, that frame gets input focus.
-    (when (memq (window-system frame) '(x w32 ns))
-      (x-focus-frame frame))
-    (when focus-follows-mouse
-      (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
+  (select-frame frame)
+  (raise-frame frame)
+  ;; Ensure, if possible, that frame gets input focus.
+  (when (memq (window-system frame) '(x w32 ns))
+    (x-focus-frame frame))
+  (when focus-follows-mouse
+    ;; When the mouse cursor is not in FRAME's selected window move it
+    ;; there to avoid that some other window gets selected when focus
+    ;; follows mouse.
+    (condition-case nil
+	(let ((window (frame-selected-window frame))
+	      (coordinates (cdr-safe (mouse-position))))
+	  (unless (and (car-safe coordinates)
+		       (coordinates-in-window-p coordinates window))
+	    (let ((edges (window-inside-edges (frame-selected-window frame))))
+	      (set-mouse-position frame (nth 2 edges) (nth 1 edges)))))
+      (error nil))))
 
 (defun other-frame (arg)
   "Select the ARGth different visible frame on current display, and raise it.
