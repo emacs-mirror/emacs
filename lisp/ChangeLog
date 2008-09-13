@@ -1,3 +1,10 @@
+2008-09-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (select-frame-set-input-focus): With focus follows
+	mouse move mouse cursor to right window.
+	* window.el (pop-to-buffer): Select window before calling
+	select-frame-set-input-focus.
+
 2008-09-12  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-sort-header): New face.
