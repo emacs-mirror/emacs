@@ -207,9 +207,9 @@ Cut buffers are considered obsolete; you should use selections instead."
   (x-store-cut-buffer-internal 'CUT_BUFFER0 string))
 
 
-;;; Functions to convert the selection into various other selection types.
-;;; Every selection type that Emacs handles is implemented this way, except
-;;; for TIMESTAMP, which is a special case.
+;; Functions to convert the selection into various other selection types.
+;; Every selection type that Emacs handles is implemented this way, except
+;; for TIMESTAMP, which is a special case.
 
 (defun xselect-convert-to-string (selection type value)
   (let (str coding)
