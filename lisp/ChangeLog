@@ -1,8 +1,17 @@
+2008-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-find-file-name): Rename `batch' to `noprompt' and
+	be more honest when we don't know.
+	(diff-tell-file-name): Don't prompt before the actual prompt.
+	(diff-mode): Don't prompt in add-log-buffer-file-name-function.
+	(diff-find-source-location): Add `noprompt' argument.
+	(diff-current-defun): Don't prompt.
+
 2008-09-14  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-mark-face, proced-marked-face)
-	(proced-sort-header-face): Removed.
-	(proced-font-lock-keywords): Simplified.
+	(proced-sort-header-face): Remove.
+	(proced-font-lock-keywords): Simplify.
 	(proced-format): Use face proced-sort-header.
 	(proced-format-interactive, proced-sort-interactive)
 	(proced-filter-interactive): Only call proced-update if the scheme
@@ -12,8 +21,8 @@
 2008-09-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* add-log.el (change-log-find-window): New variable.
-	(change-log-goto-source-1, change-log-goto-source): Set
-	change-log-find-window to window displaying source.
+	(change-log-goto-source-1, change-log-goto-source):
+	Set change-log-find-window to window displaying source.
 	(change-log-next-error): Select window specified by
 	change-log-find-window.
 
@@ -28,13 +37,13 @@
 
 	* proced.el (proced-sort-header): New face.
 	(proced-sort-header-face): New variable.
-	(proced-format): Allow format value nil.  Use
-	proced-sort-header-face for header of sort column.
+	(proced-format): Allow format value nil.
+	Use proced-sort-header-face for header of sort column.
 	(proced-format-args): New function.
 	(proced-grammar-alist, proced-timer-flag, proced-process-alist)
 	(proced-header-help-echo, proced-field-help-echo, proced-timer)
 	(proced-toggle-timer-flag, proced, proced-mode): Doc fix.
-	(proced-refine): Renamed from proced-filter-attribute.  Doc fix.
+	(proced-refine): Rename from proced-filter-attribute.  Doc fix.
 	(proced-sort-header): Bind also to mouse-1.
 	(proced-move-to-goal-column): Return position of point.
 	(proced-filter-interactive): Always revert listing.
@@ -337,7 +346,7 @@
 
 2008-09-04  Juanma Barranquero  <lekktu@gmail.com>
 
-	* net/tramp-cache.el (tramp-flush-file-function): Fix typo in docstring.
+	* net/tramp-cache.el (tramp-flush-file-function): Fix docstring typo.
 	(tramp-parse-connection-properties): Reflow docstring.
 
 2008-09-04  Kim F. Storm  <storm@cua.dk>
@@ -410,9 +419,9 @@
 
 2008-09-01  Chong Yidong  <cyd@stupidchicken.com>
 
-	* minibuffer.el (completion-pcm--pattern->regex): When
-	completion-ignore-case is non-nil, generate a regexp that ignores
-	case.
+	* minibuffer.el (completion-pcm--pattern->regex):
+	When completion-ignore-case is non-nil, generate a regexp that
+	ignores case.
 
 	* window.el (recenter-top-bottom): Doc fix.
 
@@ -427,7 +436,7 @@
 2008-09-01  Martin Rudalics  <rudalics@gmx.at>
 
 	* help-fns.el (describe-simplify-lib-file-name)
-	(find-source-lisp-file): Removed.
+	(find-source-lisp-file): Remove.
 	(find-lisp-object-file-name): New function giving preference to
 	files found via load-path instead of loaddefs.el.
 	(describe-function-1): Use new function instead of the removed
@@ -439,8 +448,8 @@
 
 	* international/mule-diag.el (font-show-log): Fix previous change.
 
-	* international/mule-cmds.el (set-language-environment): Don't
-	overwrite current-iso639-language if the current language
+	* international/mule-cmds.el (set-language-environment):
+	Don't overwrite current-iso639-language if the current language
 	environment doesn't provide that data.
 	(set-locale-environment): Set current-iso639-language from the
 	locale name.
@@ -483,7 +492,7 @@
 	These changes are to adjust the automatic composition for the new
 	implementation (avoid using text property).
 
-	* composite.el (composition-function-table): Declaration moved to
+	* composite.el (composition-function-table): Move declaration to
 	composite.c.
 	(terminal-composition-base-character-p): Delete it.
 	(terminal-composition-function): Delete it.
@@ -519,8 +528,8 @@
 	(tamil-composable-pattern, kannada-composable-pattern)
 	(malayalam-composable-pattern): New variables.
 
-	* international/characters.el (unicode-category-table): Setup
-	unicode-category-table.
+	* international/characters.el (unicode-category-table):
+	Setup unicode-category-table.
 
 	* international/fontset.el (setup-default-fontset): Prepend
 	iso10646-1 fonts to the fallback font groups instead of appending.
@@ -574,7 +583,7 @@
 
 2008-08-27  Tomas Abrahamsson  <tab@lysator.liu.se>
 
-	* textmodes/artist.el (artist-mode-init): Added comment on the
+	* textmodes/artist.el (artist-mode-init): Add comment on the
 	setting up of the `artist-replacement-table' array.
 	(artist-get-replacement-char): New defsubst.
 	(artist-get-char-at-xy-conv, artist-replace-char)
@@ -582,7 +591,7 @@
 	accessing `artist-replacement-table' directly.
 	Reported by Rubén Berenguel <ruben@maia.ub.es>.
 
-	(artist-mt): Fixed structures for cut and copy operations.
+	(artist-mt): Fix structures for cut and copy operations.
 
 2008-08-27  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -646,10 +655,10 @@
 	(newsticker-treeview-treewindow-width): New.
 	(newsticker-treeview-listwindow-height): New.
 	(newsticker-treeview-browse-url-item): New.
-	(newsticker-treeview-mode-map): Added
-	newsticker-treeview-browse-url-item.
-	(newsticker--treeview-window-init): Use
-	newsticker-treeview-treewindow-width and
+	(newsticker-treeview-mode-map):
+	Add newsticker-treeview-browse-url-item.
+	(newsticker--treeview-window-init):
+	Use newsticker-treeview-treewindow-width and
 	newsticker-treeview-listwindow-height.
 
 	* net/newst-reader.el (newsticker-browse-url-item): New.
@@ -685,7 +694,7 @@
 	keys we will be remapping via local-function-key-map.
 	(msdos-setup-keyboard): New function.
 
-	* term/pc-win.el (msdos-create-frame-with-faces): Renamed from
+	* term/pc-win.el (msdos-create-frame-with-faces): Rename from
 	make-msdos-frame.
 	(terminal-init-internal): New function, errors out if called.
 	(msdos-initialize-window-system): New function.
@@ -745,9 +754,9 @@
 
 2008-08-21  Chong Yidong  <cyd@stupidchicken.com>
 
-	* minibuffer.el (completion--try-word-completion): Disable
-	partial-completion when considering the addition of a space or
-	hyphen.
+	* minibuffer.el (completion--try-word-completion):
+	Disable partial-completion when considering the addition of a space
+	or hyphen.
 
 2008-08-21  John Paul Wallington  <jpw@pobox.com>
 
@@ -803,8 +812,8 @@
 
 2008-08-18  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emulation/edt.el (edt-default-emulation-setup): Share
-	global-buffers-menu-map with the emulated global map.
+	* emulation/edt.el (edt-default-emulation-setup):
+	Share global-buffers-menu-map with the emulated global map.
 
 2008-08-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -833,10 +842,10 @@
 	(proced-log-buffer): New variable.
 	(proced-mark-all, proced-unmark-all, proced-do-mark-al): Operate on
 	region if transient-mark-mode is turned on and the region is active.
-	(proced-omit-processes): Renamed from proced-hide-processes to
+	(proced-omit-processes): Rename from proced-hide-processes to
 	avoid key clash with describe-mode (bound to h).  Search for
 	marked processes starting from point-min.
-	(proced-header-space): Removed.
+	(proced-header-space): Remove.
 	(proced-send-signal): Handle errors.  Operate on current process
 	if no process is marked.
 	(proced-why): New command.
@@ -902,8 +911,8 @@
 
 2008-08-13  Glenn Morris  <rgm@gnu.org>
 
-	* eshell/esh-cmd.el (eshell/which): Handle the case where no description
-	is found.
+	* eshell/esh-cmd.el (eshell/which): Handle the case where no
+	description is found.
 
 2008-08-12  Alan Mackenzie  <acm@muc.de>
 
@@ -923,8 +932,8 @@
 
 2008-08-11  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/cc-defs.el (c-emacs-features): Check
-	beginning-of-defun-raw instead of beginning-of-defun, and avoid
+	* progmodes/cc-defs.el (c-emacs-features):
+	Check beginning-of-defun-raw instead of beginning-of-defun, and avoid
 	moving point during the test.
 
 	* emacs-lisp/lisp.el (beginning-of-defun): Doc fix.
@@ -962,7 +971,7 @@
 	* net/xesam.el (xesam-search-engines): Add Debbugs hit fields.
 	(xesam-refresh-entry): Add Debbugs handling.  Insert a widget
 	"DONE", when all hits are retrieved.
-	(xesam-search): autoload it.
+	(xesam-search): Autoload it.
 
 2008-08-11  John Paul Wallington  <jpw@pobox.com>
 
@@ -1200,8 +1209,8 @@
 	Extend docstring.  Adapt implementation according to new
 	`dbus-event' layout.
 	(dbus-event-service-name, dbus-event-path-name)
-	(dbus-event-interface-name, dbus-event-member-name): Adapt
-	implementation according to new `dbus-event' layout.
+	(dbus-event-interface-name, dbus-event-member-name):
+	Adapt implementation according to new `dbus-event' layout.
 	(dbus-set-property): Correct `dbus-introspect-get-attribute' call.
 
 	* net/xesam.el (xesam-type, xesam-query, xesam-xml-string): New defvar.
@@ -1232,13 +1241,13 @@
 
 	* mb-depth.el: Unify all names under one common name prefix
 	`minibuffer-depth-'.
-	(minibuffer-depth-indicator-function): Renamed from
+	(minibuffer-depth-indicator-function): Rename from
 	`minibuf-depth-indicator-function'.
-	(minibuffer-depth-overlay): Renamed from
+	(minibuffer-depth-overlay): Rename from
 	`minibuf-depth-overlay'.
-	(minibuffer-depth-setup): Renamed from
+	(minibuffer-depth-setup): Rename from
 	`minibuf-depth-setup-minibuffer'.
-	(minibuffer-depth-indicate-mode): Renamed from
+	(minibuffer-depth-indicate-mode): Rename from
 	`minibuffer-indicate-depth-mode'.
 
 2008-07-31  Juri Linkov  <juri@jurta.org>
