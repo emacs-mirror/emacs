@@ -271,7 +271,8 @@ cons pairs, see `proced-process-attributes'.")
 (defvar proced-marker-char ?*		; the answer is 42
   "In proced, the current mark character.")
 
-;; face and font-lock code taken from dired
+;; Faces and font-lock code taken from dired,
+;; but face variables are deprecated for new code.
 (defgroup proced-faces nil
   "Faces used by Proced."
   :group 'proced
@@ -281,22 +282,16 @@ cons pairs, see `proced-process-attributes'.")
   '((t (:inherit font-lock-constant-face)))
   "Face used for proced marks."
   :group 'proced-faces)
-(defvar proced-mark-face 'proced-mark
-  "Face name used for proced marks.")
 
 (defface proced-marked
   '((t (:inherit font-lock-warning-face)))
   "Face used for marked processes."
   :group 'proced-faces)
-(defvar proced-marked-face 'proced-marked
-  "Face name used for marked processes.")
 
 (defface proced-sort-header
   '((t (:inherit font-lock-keyword-face)))
   "Face used for header of attribute used for sorting."
   :group 'proced-faces)
-(defvar proced-sort-header-face 'proced-sort-header
-  "Face name used for header of attribute used for sorting.")
 
 (defvar proced-re-mark "^[^ \n]"
   "Regexp matching a marked line.
@@ -328,14 +323,12 @@ Important: the match ends just after the marker.")
   "Help string shown when mouse is over a refinable field.")
 
 (defvar proced-font-lock-keywords
-  (list
-   ;;
-   ;; Proced marks.
-   (list proced-re-mark '(0 proced-mark-face))
-   ;;
-   ;; Marked files.
-   (list (concat "^[" (char-to-string proced-marker-char) "]")
-         '(".+" (proced-move-to-goal-column) nil (0 proced-marked-face)))))
+  `(;; (Any) proced marks.
+    (,proced-re-mark . 'proced-mark)
+    ;; Processes marked with `proced-marker-char'
+    ;; Should we make sure that only certain attributes are font-locked?
+    (,(concat "^[" (char-to-string proced-marker-char) "]")
+     ".+" (proced-move-to-goal-column) nil (0 'proced-marked))))
 
 (defvar proced-mode-map
   (let ((km (make-sparse-keymap)))
@@ -786,8 +779,10 @@ Set variable `proced-filter' to SCHEME.  Revert listing."
    (let ((scheme (completing-read "Filter: "
                                   proced-filter-alist nil t)))
      (list (if (string= "" scheme) nil (intern scheme)))))
-  (setq proced-filter scheme)
-  (proced-update t))
+  ;; only update if necessary
+  (unless (eq proced-filter scheme)
+    (setq proced-filter scheme)
+    (proced-update t)))
 
 (defun proced-process-tree (process-alist)
   "Return process tree for PROCESS-ALIST.
@@ -976,8 +971,10 @@ in the mode line, using \"+\" or \"-\" for ascending or descending order."
                                   proced-grammar-alist nil t)))
      (list (if (string= "" scheme) nil (intern scheme))
            current-prefix-arg)))
-  (setq proced-sort scheme)
-  (proced-update revert))
+  ;; only update if necessary
+  (when (or (not (eq proced-sort scheme)) revert)
+    (setq proced-sort scheme)
+    (proced-update revert)))
 
 (defun proced-sort-pcpu (&optional revert)
   "Sort Proced buffer by percentage CPU time (%CPU)."
@@ -1013,13 +1010,13 @@ in the mode line, using \"+\" or \"-\" for ascending or descending order."
   "Sort Proced listing based on an attribute.
 EVENT is a mouse event with starting position in the header line.
 It is converted in the corresponding attribute key.
-This updates the variable `proced-sort'."
+This command updates the variable `proced-sort'."
   (interactive "e\nP")
   (let ((start (event-start event))
         col key)
     (save-selected-window
       (select-window (posn-window start))
-      (setq col (+ (1- (car (posn-col-row start)))
+      (setq col (+ (1- (car (posn-actual-col-row start)))
                    (window-hscroll)))
       (when (and (<= 0 col) (< col (length proced-header-line)))
         (setq key (get-text-property col 'proced-key proced-header-line))
@@ -1107,7 +1104,7 @@ Replace newline characters by \"^J\" (two characters)."
 
         ;; highlight the header of the sort column
         (if (eq key proced-sort)
-            (setq hprops (append `(face ,proced-sort-header-face) hprops)))
+            (setq hprops (append '(face proced-sort-header) hprops)))
         (goto-char (point-min))
         (cond ( ;; fixed width of output field
                (numberp (nth 3 grammar))
@@ -1179,8 +1176,10 @@ With prefix REVERT non-nil revert listing."
                                   proced-format-alist nil t)))
      (list (if (string= "" scheme) nil (intern scheme))
            current-prefix-arg)))
-  (setq proced-format scheme)
-  (proced-update revert))
+  ;; only update if necessary
+  (when (or (not (eq proced-format scheme)) revert)
+    (setq proced-format scheme)
+    (proced-update revert)))
 
 ;; generate listing
 
