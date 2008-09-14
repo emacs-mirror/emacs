@@ -3673,7 +3673,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       if (bufpos == inserted)
 	{
-	  specpdl_ptr--;
 	  /* Truncate the buffer to the size of the file.  */
 	  if (same_at_start == same_at_end)
 	    nochange = 1;
