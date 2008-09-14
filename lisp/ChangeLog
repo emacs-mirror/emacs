@@ -1,3 +1,11 @@
+2008-09-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* add-log.el (change-log-find-window): New variable.
+	(change-log-goto-source-1, change-log-goto-source): Set
+	change-log-find-window to window displaying source.
+	(change-log-next-error): Select window specified by
+	change-log-find-window.
+
 2008-09-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.el (select-frame-set-input-focus): With focus follows
