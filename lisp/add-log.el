@@ -414,6 +414,7 @@ the tag and whose cdr is the position where the tag was found."
 
 (defvar change-log-find-head nil)
 (defvar change-log-find-tail nil)
+(defvar change-log-find-window nil)
 
 (defun change-log-goto-source-1 (tag regexp file buffer
 				     &optional window first last)
@@ -456,7 +457,8 @@ BUFFER denoting the last match for TAG in the last search."
 		;; Record this as first match when there's none.
 		(unless first (setq first last)))))))
     (if (or last first)
-	(with-selected-window (or window (display-buffer buffer))
+	(with-selected-window
+	    (setq change-log-find-window (or window (display-buffer buffer)))
 	  (if last
 	      (progn
 		(when (or (< last (point-min)) (> last (point-max)))
@@ -511,7 +513,8 @@ try to visit the file for the change under `point' instead."
 	  ;; We either have not found a suitable file name or `file-2'
 	  ;; provides a "better" file name wrt `point'.  Go to the
 	  ;; buffer of `file-2' instead.
-	  (display-buffer (find-file-noselect file-2)))
+	  (setq change-log-find-window
+		(display-buffer (find-file-noselect file-2))))
 	 (t
 	  (setq change-log-find-head
 		(list tag (concat "\\_<" (regexp-quote tag) "\\_>")
@@ -524,7 +527,7 @@ try to visit the file for the change under `point' instead."
 		     tag file)))))))))
 
 (defun change-log-next-error (&optional argp reset)
-  "Move to the Nth (default 1) next match in an Occur mode buffer.
+  "Move to the Nth (default 1) next match in a ChangeLog buffer.
 Compatibility function for \\[next-error] invocations."
   (interactive "p")
   (let* ((argp (or argp 0))
@@ -544,10 +547,11 @@ Compatibility function for \\[next-error] invocations."
   (beginning-of-line)
   ;; if we found a place to visit...
   (when (looking-at change-log-file-names-re)
-    (change-log-goto-source)
-    ;; go to the file itself
-    (let ((file (nth 2 change-log-find-head)))
-      (when file (pop-to-buffer (find-file-noselect file))))))
+    (let (change-log-find-window)
+      (change-log-goto-source)
+      (when change-log-find-window
+	;; Select window displaying source file.
+	(select-window change-log-find-window)))))
 
 (defvar change-log-mode-map
   (let ((map (make-sparse-keymap)))
