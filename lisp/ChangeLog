@@ -139,6 +139,11 @@
 	* progmodes/gud.el (gud-stop-subjob): Using jdb, suspend threads
 	with gud-stop-subjob rather than exit debugger.
 
+2008-09-07  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el: Compose combining characters only when it
+	follows an character matching with "[[:alpha:]]".
+
 2008-09-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el: Require time-date.
