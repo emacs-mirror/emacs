@@ -1,3 +1,14 @@
+2008-09-14  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-mark-face, proced-marked-face)
+	(proced-sort-header-face): Removed.
+	(proced-font-lock-keywords): Simplified.
+	(proced-format): Use face proced-sort-header.
+	(proced-format-interactive, proced-sort-interactive)
+	(proced-filter-interactive): Only call proced-update if the scheme
+	has changed.
+	(proced-sort-header): Use posn-actual-col-row.
+
 2008-09-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* add-log.el (change-log-find-window): New variable.
