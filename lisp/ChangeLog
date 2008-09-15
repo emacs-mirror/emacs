@@ -1,3 +1,8 @@
+2008-09-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* files.el (file-truename): Don't raise args-out-of-range error
+	when filename has no separator on windows-nt.  (Bug#982)
+
 2008-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-find-file-name): Rename `batch' to `noprompt' and
