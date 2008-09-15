@@ -1,3 +1,12 @@
+2008-09-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-rcs.el (vc-rcs-steal-lock, vc-rcs-checkout): Fix docstring typos.
+	(vc-rcs-fetch-master-state, vc-rcs-system-release): Doc fixes.
+
+2008-09-15  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
+
+	* vc-rcs.el (vc-rcs-rollback): Fix typos in docstring.
+
 2008-09-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* files.el (file-truename): Don't raise args-out-of-range error
@@ -295,7 +304,7 @@
 	Better support for the property statement.  Sometimes this keyword
 	introduces a statement which requires an endproperty keyword, and
 	sometimes it doesn't, dependening on the work before the property
-	word. If property is prefixed with assert, assume or cover
+	word.  If property is prefixed with assert, assume or cover
 	keyword, then the statement is ended with a ';'.  Otherwise,
 	property is like task or specify, and is followed by some number
 	of statements, which are ended with an endproperty keyword.
@@ -311,7 +320,7 @@
 2008-09-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: Fix auto-cleanup on kill prevents killing read-only
-	buffers (bug#360). New version 11.2.1.
+	buffers (bug#360).  New version 11.2.1.
 	(whitespace-action): New value `warn-read-only' to give a warning when
 	buffer is read-only and whitespace action is cleanup or auto-cleanup.
 	(whitespace-cleanup, whitespace-cleanup-region): Code fix.
@@ -1408,7 +1417,7 @@
 2008-07-30  Michael McNamara  <mac@mail.brushroad.com>
 
 	* progmodes/verilog-mode.el (verilog-do-indent): Remove special indent
-	for declarations inside a parenthetical list. The code is ill-advised,
+	for declarations inside a parenthetical list.  The code is ill-advised,
 	and doesn't work given user defined types.
 	(verilog-set-auto-endcomments): Enhance function automatic
 	endcomment to support functions that return user defined types.

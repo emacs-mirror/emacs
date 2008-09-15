@@ -406,7 +406,7 @@ whether to remove it."
 	 (vc-switches 'RCS 'checkout)))
 
 (defun vc-rcs-checkout (file &optional editable rev)
-  "Retrieve a copy of a saved version of FILE. If FILE is a directory,
+  "Retrieve a copy of a saved version of FILE.  If FILE is a directory,
 attempt the checkout for all registered files beneath it."
   (if (file-directory-p file)
       (mapc 'vc-rcs-checkout (vc-expand-dirs (list file)))
@@ -473,7 +473,7 @@ attempt the checkout for all registered files beneath it."
 
 (defun vc-rcs-rollback (files)
   "Roll back, undoing the most recent checkins of FILES.  Directories are
-expanded to all regidtered subfuiles in them."
+expanded to all registered subfiles in them."
   (if (not files)
       (error "RCS backend doesn't support directory-level rollback."))
   (dolist (file (vc-expand-dirs files))
@@ -527,7 +527,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-rcs-steal-lock (file &optional rev)
   "Steal the lock on the current workfile for FILE and revision REV.
-If FUILEis a directory, steal the lock on all registered files beneath it.
+If FILE is a directory, steal the lock on all registered files beneath it.
 Needs RCS 5.6.2 or later for -M."
   (if (file-directory-p file)
       (mapc 'vc-rcs-steal-lock (vc-expand-dirs (list file)))
@@ -861,7 +861,7 @@ to its master version."
 
 (defun vc-rcs-fetch-master-state (file &optional working-revision)
   "Compute the master file's idea of the state of FILE.
-If a WORKFILE-VERSION is given, compute the state of that version,
+If a WORKING-REVISION is given, compute the state of that version,
 otherwise determine the workfile version based on the master file.
 This function sets the properties `vc-working-revision' and
 `vc-checkout-model' to their correct values, based on the master
@@ -1063,7 +1063,7 @@ CVS releases are handled reasonably, too \(1.3 < 1.4* < 1.5\)."
 
 (defun vc-rcs-system-release ()
   "Return the RCS release installed on this system, as a string.
-Return symbol UNKNOWN if the release cannot be deducted.  The user can
+Return symbol `unknown' if the release cannot be deducted.  The user can
 override this using variable `vc-rcs-release'.
 
 If the user has not set variable `vc-rcs-release' and it is nil,
