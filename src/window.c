@@ -3496,11 +3496,11 @@ DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
        doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
 If WINDOW is not already selected, make WINDOW's buffer current
 and make WINDOW the frame's selected window.  Return WINDOW.
-Optional second arg NORECORD non-nil means
-do not put this buffer at the front of the list of recently selected ones.
+Optional second arg NORECORD non-nil means do not put this buffer
+at the front of the list of recently selected ones.
 
-Note that the main editor command loop
-selects the buffer of the selected window before each command.  */)
+Note that the main editor command loop selects the buffer of the
+selected window before each command.  */)
      (window, norecord)
      register Lisp_Object window, norecord;
 {
@@ -3513,8 +3513,12 @@ selects the buffer of the selected window before each command.  */)
   w = XWINDOW (window);
   w->frozen_window_start_p = 0;
 
-  ++window_select_count;
-  XSETFASTINT (w->use_time, window_select_count);
+  if (NILP (norecord))
+    {
+      ++window_select_count;
+      XSETFASTINT (w->use_time, window_select_count);
+    }
+
   if (EQ (window, selected_window))
     return window;
 
