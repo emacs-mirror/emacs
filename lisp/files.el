@@ -856,10 +856,14 @@ containing it, until no links are left at any level.
                   missing rest)
               (if longname
                   (setq filename longname)
-                ;; include the preceding directory separator in the missing
+                ;; Include the preceding directory separator in the missing
                 ;; part so subsequent recursion on the rest works.
                 (setq missing (concat "/" (file-name-nondirectory filename)))
-                (setq rest (substring filename 0 (* -1 (length missing))))
+		(let ((length (length missing)))
+		  (setq rest
+			(if (> length (length filename))
+			    ""
+			  (substring filename 0 (- length)))))
                 (setq filename (concat (file-truename rest) missing))))))
 	(setq done t)))
 
