@@ -1,3 +1,21 @@
+2008-09-15  Paul Reilly  <pmr@pajato.com>
+
+	* pmail.el:
+	The Rmail/mbox merge has been abandoned in favor of a restart using
+	the current rmail.el file.  A comprehensive list of changes will be
+	supplied when pmail.el is morphed back into rmail.el
+
+	The current status is that pmail.el supports basic Rmail navigation
+	(no summary support) and shows the current message in a special
+	buffer using buffer-swap-text.  No decoding is done yet.  That is the
+	next step.
+
+	* mbox-trunk-annotations/rmail.el.annotation, mbox-trunk-annotations/rmailedit.el.annotation, mbox-trunk-annotations/rmailkwd.el.annotation, mbox-trunk-annotations/rmailmsc.el.annotation, mbox-trunk-annotations/rmailout.el.annotation, mbox-trunk-annotations/rmailsort.el.annotation:
+	Rmail/mbox merge abandoned. Remove stale files.
+
+	* mbox-changes/rmail.el.changes, mbox-changes/rmailedit.el.changes, mbox-changes/rmailkwd.el.changes, mbox-changes/rmailmsc.el.changes, mbox-changes/rmailout.el.changes, mbox-changes/rmailsort.el.changes, mbox-changes/rmailsum.el.changes:
+	Rmail/mbox merge abandoned.  Remove stale files.
+
 2008-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* pmailsort.el (pmail-dont-reply-to, pmail-desc-get-marker-end)
