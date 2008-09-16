@@ -1,3 +1,7 @@
+2008-09-16  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg-start-verify): Pass "--verify" to gpgsm.
+
 2008-09-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc-rcs.el (vc-rcs-steal-lock, vc-rcs-checkout): Fix docstring typos.
