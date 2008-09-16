@@ -670,7 +670,7 @@ nil, by matching `change-log-version-number-regexp-list'."
 	    version)))))
 
 (declare-function diff-find-source-location "diff-mode"
-		  (&optional other-file reverse))
+		  (&optional other-file reverse noprompt))
 
 ;;;###autoload
 (defun find-change-log (&optional file-name buffer-file)
