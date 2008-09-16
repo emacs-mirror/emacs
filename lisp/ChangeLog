@@ -1,3 +1,10 @@
+2008-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* add-log.el (diff-find-source-location): Update declaration.
+
+	* progmodes/make-mode.el (makefile-match-function-end):
+	Move point.  (Bug#983)
+
 2008-09-16  Daiki Ueno  <ueno@unixuser.org>
 
 	* epg.el (epg-start-verify): Pass "--verify" to gpgsm.
