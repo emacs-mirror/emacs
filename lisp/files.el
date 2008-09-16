@@ -1074,24 +1074,22 @@ documentation for additional customization information."
 
 (defun switch-to-buffer-other-frame (buffer &optional norecord)
   "Switch to buffer BUFFER in another frame.
-Optional second arg NORECORD non-nil means
-do not put this buffer at the front of the list of recently selected ones.
+Optional second arg NORECORD non-nil means do not put this
+buffer at the front of the list of recently selected ones.
 This function returns the buffer it switched to.
 
-This uses the function `display-buffer' as a subroutine; see its
-documentation for additional customization information."
+This uses the function `display-buffer' as a subroutine; see
+its documentation for additional customization information."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
   (let ((pop-up-frames t)
 	same-window-buffer-names same-window-regexps)
-    (prog1
-	(pop-to-buffer buffer t norecord)
-      (raise-frame (window-frame (selected-window))))))
+    (pop-to-buffer buffer t norecord)))
 
 (defun display-buffer-other-frame (buffer)
-  "Switch to buffer BUFFER in another frame.
-This uses the function `display-buffer' as a subroutine; see its
-documentation for additional customization information."
+  "Display buffer BUFFER in another frame.
+This uses the function `display-buffer' as a subroutine; see
+its documentation for additional customization information."
   (interactive "BDisplay buffer in other frame: ")
   (let ((pop-up-frames t)
 	same-window-buffer-names same-window-regexps
