@@ -1,3 +1,7 @@
+2008-09-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Echo Area Customization): Fix typo.
+
 2008-09-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* loading.texi (Where Defined): Add `defface' item.

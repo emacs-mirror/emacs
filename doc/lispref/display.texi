@@ -559,7 +559,7 @@ truncated to fit it, as in Emacs 20 and before.
   The variable @code{max-mini-window-height}, which specifies the
 maximum height for resizing minibuffer windows, also applies to the
 echo area (which is really a special use of the minibuffer window.
-@xref{Minibuffer Misc}.
+@xref{Minibuffer Misc}.).
 
 @node Warnings
 @section Reporting Warnings
