@@ -841,24 +841,26 @@ the user during startup."
 (declare-function x-focus-frame "xfns.c" (frame))
 
 (defun select-frame-set-input-focus (frame)
-  "Select FRAME, raise it, and set input focus, if possible."
+  "Select FRAME, raise it, and set input focus, if possible.
+If `mouse-autoselect-window' is non-nil, also move mouse cursor
+to FRAME's selected window.  Otherwise, if `focus-follows-mouse'
+is non-nil, move mouse cursor to FRAME."
   (select-frame frame)
   (raise-frame frame)
-  ;; Ensure, if possible, that frame gets input focus.
+  ;; Ensure, if possible, that FRAME gets input focus.
   (when (memq (window-system frame) '(x w32 ns))
     (x-focus-frame frame))
-  (when focus-follows-mouse
-    ;; When the mouse cursor is not in FRAME's selected window move it
-    ;; there to avoid that some other window gets selected when focus
-    ;; follows mouse.
-    (condition-case nil
-	(let ((window (frame-selected-window frame))
-	      (coordinates (cdr-safe (mouse-position))))
-	  (unless (and (car-safe coordinates)
-		       (coordinates-in-window-p coordinates window))
-	    (let ((edges (window-inside-edges (frame-selected-window frame))))
-	      (set-mouse-position frame (nth 2 edges) (nth 1 edges)))))
-      (error nil))))
+  ;; Move mouse cursor if necessary.
+  (cond
+   (mouse-autoselect-window
+    (let ((edges (window-inside-edges (frame-selected-window frame))))
+      ;; Move mouse cursor into FRAME's selected window to avoid that
+      ;; Emacs mouse-autoselects another window.
+      (set-mouse-position frame (nth 2 edges) (nth 1 edges))))
+   (focus-follows-mouse
+    ;; Move mouse cursor into FRAME to avoid that another frame gets
+    ;; selected by the window manager.
+    (set-mouse-position frame (1- (frame-width frame)) 0))))
 
 (defun other-frame (arg)
   "Select the ARGth different visible frame on current display, and raise it.
@@ -934,16 +936,9 @@ If there is no frame by that name, signal an error."
        (list input))))
   (let* ((frame-names-alist (make-frame-names-alist))
 	 (frame (cdr (assoc name frame-names-alist))))
-    (or frame
-	(error "There is no frame named `%s'" name))
-    (make-frame-visible frame)
-    (raise-frame frame)
-    (select-frame frame)
-    ;; Ensure, if possible, that frame gets input focus.
-    (cond ((memq (window-system frame) '(x w32 ns))
-	   (x-focus-frame frame)))
-    (when focus-follows-mouse
-      (set-mouse-position frame (1- (frame-width frame)) 0))))
+    (if frame
+	(select-frame-set-input-focus frame)
+      (error "There is no frame named `%s'" name))))
 
 ;;;; Frame configurations
 
