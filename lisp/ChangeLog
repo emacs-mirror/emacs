@@ -1,3 +1,14 @@
+2008-09-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (select-frame-set-input-focus): With non-nil
+	mouse-autoselect-window always move mouse cursor to frame's
+	selected window.  Otherwise restore pre 2008-09-13 behavior.
+	(select-frame-by-name): Use select-frame-set-input-focus.
+
+	* files.el (switch-to-buffer-other-frame): Don't raise frame since
+	pop-to-buffer already does it.
+	(display-buffer-other-frame): Fix doc-string.
+
 2008-09-16  Glenn Morris  <rgm@gnu.org>
 
 	* add-log.el (diff-find-source-location): Update declaration.
