@@ -2109,7 +2109,7 @@ whether or not it is currently displayed in some window.  */)
 	}
       else
 	{
-	  if (IT_CHARPOS (it) > PT)
+	  if (IT_CHARPOS (it) > it_start)
 	    {
 	      /* IT may move too far if truncate-lines is on and PT
 		 lies beyond the right margin.  In that case,
@@ -2135,7 +2135,7 @@ whether or not it is currently displayed in some window.  */)
 		 from the last line that it occupies.  */
 	      if (PT < ZV)
 		{
-		  while (IT_CHARPOS (it) <= PT)
+		  while (IT_CHARPOS (it) <= it_start)
 		    {
 		      it.vpos = 0;
 		      move_it_by_lines (&it, 1, 0);
