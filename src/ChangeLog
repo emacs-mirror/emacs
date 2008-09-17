@@ -1,3 +1,8 @@
+2008-09-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Use position reported by iterator
+	instead of PT for determining screen motion (bug#943).
+
 2008-09-17  Romain Francoise  <romain@orebokech.com>
 
 	* composite.c (composition_adjust_point): Fix int/EMACS_INT mixup.
