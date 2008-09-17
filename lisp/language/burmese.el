@@ -37,6 +37,6 @@
 	     (documentation . t)))
 
 (set-char-table-range composition-function-table '(#x1000 . #x107F)
-		      '(("[\x1000-\x107F\x200C\x200D]+" . font-shape-text)))
+		      '(["[\x1000-\x107F\x200C\x200D]+" 0 font-shape-gstring]))
 
 ;; arch-tag: 8ba5f4cd-ef89-4008-b784-397edd0cb32e
