@@ -3123,6 +3123,10 @@ If FORK is a string, it is the name to use for the new buffer."
 	    (Info-goto-node
 	     (Info-extract-menu-item (match-string-no-properties 1)) fork)
 	    t)))
+      (and (eq this-command 'Info-mouse-follow-nearest-node)
+	   ;; Don't raise an error when mouse-1 is bound to this - it's
+	   ;; often used to simply select the window or frame.
+	   (eq 'mouse-1 (event-basic-type last-input-event)))
       (error "Point neither on reference nor in menu item description")))
 
 ;; Common subroutine.
