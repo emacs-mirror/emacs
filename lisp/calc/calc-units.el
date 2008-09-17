@@ -473,19 +473,19 @@ If EXPR is nil, return nil."
 	 (setq expr (math-mul expr uold)))
      (setq defunits (math-get-default-units expr))
      (setq unew (or new-units
-		    (math-read-expr
-		     (read-string
-                      (concat
-                       (if uoldname
-                           (concat "Old temperature units: "
-                                   uoldname
-                                   ", new units")
-                         "New temperature units")
-                       (if defunits
-                           (concat " (default "
-                                   defunits
-                                   "): ")
-                         ": "))))))
+                    (read-string
+                     (concat
+                      (if uoldname
+                          (concat "Old temperature units: "
+                                  uoldname
+                                  ", new units")
+                        "New temperature units")
+                      (if defunits
+                          (concat " (default "
+                                  defunits
+                                  "): ")
+                        ": ")))))
+     (setq unew (math-read-expr (if (string= unew "") defunits unew)))
      (when (eq (car-safe unew) 'error)
        (error "Bad format in units expression: %s" (nth 2 unew)))
      (math-put-default-units unew)
