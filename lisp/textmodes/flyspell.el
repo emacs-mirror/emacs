@@ -1166,35 +1166,19 @@ Mostly we check word delimiters."
 	      res))))))))
 
 ;;*---------------------------------------------------------------------*/
-;;*    flyspell-tex-math-initialized ...                                */
-;;*---------------------------------------------------------------------*/
-(defvar flyspell-tex-math-initialized nil)
-
-;;*---------------------------------------------------------------------*/
 ;;*    flyspell-math-tex-command-p ...                                  */
 ;;*    -------------------------------------------------------------    */
-;;*    This function uses the texmathp package to check if (point)      */
-;;*    is within a tex command. In order to avoid using                 */
-;;*    condition-case each time we use the variable                     */
-;;*    flyspell-tex-math-initialized to make a special case the first   */
-;;*    time that function is called.                                    */
+;;*    This function uses the texmathp package to check if point        */
+;;*    is within a TeX math environment. `texmathp' can yield errors    */
+;;*    if the document is currently not valid TeX syntax.               */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-math-tex-command-p ()
   (when (fboundp 'texmathp)
-    (cond
-     (flyspell-check-tex-math-command
-      nil)
-     ((eq flyspell-tex-math-initialized t)
-      (texmathp))
-     ((eq flyspell-tex-math-initialized 'error)
-      nil)
-     (t
-      (setq flyspell-tex-math-initialized t)
+    (if flyspell-check-tex-math-command
+        nil
       (condition-case nil
           (texmathp)
-        (error (progn
-                 (setq flyspell-tex-math-initialized 'error)
-                 nil)))))))
+        (error nil)))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-tex-command-p ...                                       */
