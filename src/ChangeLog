@@ -1,3 +1,8 @@
+2008-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* composite.c (Fcomposition_get_gstring): Yet another int/Lisp_Oject
+	mixup (YAILOM).
+
 2008-09-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* indent.c (Fvertical_motion): Use position reported by iterator

@@ -1489,6 +1489,7 @@ must be ignore.  */)
      Lisp_Object font_object, from, to, string;
 {
   Lisp_Object gstring, header;
+  EMACS_INT frompos, topos;
 
   if (! NILP (font_object))
     CHECK_FONT_OBJECT (font_object);
@@ -1496,8 +1497,13 @@ must be ignore.  */)
   gstring = gstring_lookup_cache (header);
   if (! NILP (gstring))
     return gstring;
-  if (LGSTRING_GLYPH_LEN (gstring_work) < to - from)
-    gstring_work = Fmake_vector (make_number (to - from + 2), Qnil);
+
+  /* Maybe we should check this at the function's entry.  --Stef  */
+  CHECK_NATNUM (from); frompos = XINT (from);
+  CHECK_NATNUM (to);   topos = XINT (to);
+
+  if (LGSTRING_GLYPH_LEN (gstring_work) < topos - frompos)
+    gstring_work = Fmake_vector (make_number (topos - frompos + 2), Qnil);
   LGSTRING_SET_HEADER (gstring_work, header);
   LGSTRING_SET_ID (gstring_work, Qnil);
   fill_gstring_body (gstring_work);
