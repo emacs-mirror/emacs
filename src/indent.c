@@ -2133,7 +2133,7 @@ whether or not it is currently displayed in some window.  */)
 		 which might span multiple screen lines (e.g., if it's
 		 on a multi-line display string).  We want to start
 		 from the last line that it occupies.  */
-	      if (PT < ZV)
+	      if (it_start < ZV)
 		{
 		  while (IT_CHARPOS (it) <= it_start)
 		    {
