@@ -1,3 +1,9 @@
+2008-09-16  Markus Triska  <markus.triska@gmx.at>
+
+	* textmodes/flyspell.el (flyspell-math-tex-command-p): Always
+	catch errors raised in `texmathp'.
+	(flyspell-tex-math-initialized): Remove.
+
 2008-09-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.el (select-frame-set-input-focus): With non-nil
