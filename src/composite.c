@@ -1429,7 +1429,7 @@ composition_adjust_point (last_pt)
     return PT;
 
   /* Next check the automatic composition.  */
-  if (! find_automatic_composition (PT, -1, &beg, &end, &val, Qnil)
+  if (! find_automatic_composition (PT, (EMACS_INT) -1, &beg, &end, &val, Qnil)
       || beg == PT)
     return PT;
   for (i = 0; i < LGSTRING_GLYPH_LEN (val); i++)
