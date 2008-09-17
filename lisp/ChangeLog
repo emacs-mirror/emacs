@@ -1,3 +1,8 @@
+2008-09-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (calc-convert-temperature):  Use default
+	units when appropriate.
+
 2008-09-16  Markus Triska  <markus.triska@gmx.at>
 
 	* textmodes/flyspell.el (flyspell-math-tex-command-p): Always
