@@ -1,3 +1,7 @@
+2008-09-17  Kenichi Handa  <handa@m17n.org>
+
+	* language/burmese.el: Fix setting of composition-function-table.
+
 2008-09-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* info.el (Info-follow-nearest-node): Don't raise an error for
