@@ -1496,6 +1496,8 @@ must be ignore.  */)
   gstring = gstring_lookup_cache (header);
   if (! NILP (gstring))
     return gstring;
+  if (LGSTRING_GLYPH_LEN (gstring_work) < to - from)
+    gstring_work = Fmake_vector (make_number (to - from + 2), Qnil);
   LGSTRING_SET_HEADER (gstring_work, header);
   LGSTRING_SET_ID (gstring_work, Qnil);
   fill_gstring_body (gstring_work);
