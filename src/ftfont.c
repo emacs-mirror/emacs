@@ -1850,7 +1850,7 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
       flt_font_ft.flt_font.family = Mnil;
     else
       flt_font_ft.flt_font.family
-	= msymbol ((char *) SDATA (SYMBOL_NAME (family)));
+	= msymbol ((char *) SDATA (Fdowncase (SYMBOL_NAME (family))));
   }
   flt_font_ft.flt_font.x_ppem = ft_face->size->metrics.x_ppem;
   flt_font_ft.flt_font.y_ppem = ft_face->size->metrics.y_ppem;
