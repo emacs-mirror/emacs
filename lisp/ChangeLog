@@ -1,3 +1,8 @@
+2008-09-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* help-macro.el (make-help-screen): Preserve key bindings
+	established in help-mode call when exiting this macro.
+
 2008-09-17  Kenichi Handa  <handa@m17n.org>
 
 	* language/burmese.el: Fix setting of composition-function-table.
