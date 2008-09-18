@@ -3503,6 +3503,23 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 
    ========================================================================== */
 
+int
+x_display_pixel_height (dpyinfo)
+     struct ns_display_info *dpyinfo;
+{
+  NSScreen *screen = [NSScreen mainScreen];
+  return [screen frame].size.height;
+}
+
+int
+x_display_pixel_width (dpyinfo)
+     struct ns_display_info *dpyinfo;
+{
+  NSScreen *screen = [NSScreen mainScreen];
+  return [screen frame].size.width;
+}
+
+
 static Lisp_Object ns_string_to_lispmod (const char *s)
 /* --------------------------------------------------------------------------
      Convert modifier name to lisp symbol
@@ -3602,8 +3619,6 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
     NSScreen *screen = [NSScreen mainScreen];
     NSWindowDepth depth = [screen depth];
 
-    dpyinfo->width = [screen frame].size.width;
-    dpyinfo->height = [screen frame].size.height;
     dpyinfo->resx = 72.27; /* used 75.0, but this makes pt == pixel, expected */
     dpyinfo->resy = 72.27;
     dpyinfo->color_p = ![NSDeviceWhiteColorSpace isEqualToString:
