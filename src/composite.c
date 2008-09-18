@@ -812,9 +812,8 @@ fill_gstring_header (header, start, end, font_object, string)
       CHECK_STRING (string);
       if (! STRING_MULTIBYTE (current_buffer->enable_multibyte_characters))
 	error ("Attempt to shape unibyte text");
-      CHECK_NATNUM (start);
+      /* FROM and TO are checked by the caller.  */
       from = XINT (start);
-      CHECK_NATNUM (end);
       to = XINT (end);
       if (from < 0 || from > to || to > SCHARS (string))
 	args_out_of_range_3 (string, start, end);
@@ -1027,7 +1026,10 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
       else
 	FETCH_CHAR_ADVANCE (c, charpos, bytepos);
       if (c == '\n')
-	break;
+	{
+	  cmp_it->ch = -2;
+	  break;
+	}
       val = CHAR_TABLE_REF (Vcomposition_function_table, c);
       if (! NILP (val))
 	{
@@ -1050,7 +1052,6 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
 	}
     }
   cmp_it->stop_pos = charpos;
-  cmp_it->ch = -2;
 }
 
 /* Check if the character at CHARPOS (and BYTEPOS) is composed
@@ -1491,6 +1492,8 @@ must be ignore.  */)
   Lisp_Object gstring, header;
   EMACS_INT frompos, topos;
 
+  CHECK_NATNUM (from);
+  CHECK_NATNUM (to);
   if (! NILP (font_object))
     CHECK_FONT_OBJECT (font_object);
   header = fill_gstring_header (Qnil, from, to, font_object, string);
@@ -1498,10 +1501,8 @@ must be ignore.  */)
   if (! NILP (gstring))
     return gstring;
 
-  /* Maybe we should check this at the function's entry.  --Stef  */
-  CHECK_NATNUM (from); frompos = XINT (from);
-  CHECK_NATNUM (to);   topos = XINT (to);
-
+  frompos = XINT (from);
+  topos = XINT (to);
   if (LGSTRING_GLYPH_LEN (gstring_work) < topos - frompos)
     gstring_work = Fmake_vector (make_number (topos - frompos + 2), Qnil);
   LGSTRING_SET_HEADER (gstring_work, header);
