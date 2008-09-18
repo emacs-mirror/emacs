@@ -107,10 +107,6 @@ struct w32_display_info
   /* Number of bits per pixel on this screen.  */
   int n_cbits;
 
-  /* Dimensions of this screen.  */
-  int height, width;
-  int height_in,width_in;
-
   /* Mask of things that cause the mouse to be grabbed.  */
   int grabbed;
 
@@ -237,6 +233,10 @@ Lisp_Object display_x_get_resource P_ ((struct w32_display_info *,
 					Lisp_Object, Lisp_Object));
 
 extern struct w32_display_info *w32_term_init ();
+
+extern int x_display_pixel_height P_ ((struct w32_display_info *));
+extern int x_display_pixel_width P_ ((struct w32_display_info *));
+
 
 #define PIX_TYPE COLORREF
 
