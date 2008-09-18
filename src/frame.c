@@ -2862,6 +2862,7 @@ x_fullscreen_adjust (f, width, height, top_pos, left_pos)
 {
   int newwidth = FRAME_COLS (f);
   int newheight = FRAME_LINES (f);
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
   *top_pos = f->top_pos;
   *left_pos = f->left_pos;
@@ -2870,7 +2871,7 @@ x_fullscreen_adjust (f, width, height, top_pos, left_pos)
     {
       int ph;
 
-      ph = FRAME_X_DISPLAY_INFO (f)->height;
+      ph = x_display_pixel_height (dpyinfo);
       newheight = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, ph);
       ph = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, newheight) - f->y_pixels_diff;
       newheight = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, ph);
@@ -2881,7 +2882,7 @@ x_fullscreen_adjust (f, width, height, top_pos, left_pos)
     {
       int pw;
 
-      pw = FRAME_X_DISPLAY_INFO (f)->width;
+      pw = x_display_pixel_width (dpyinfo);
       newwidth = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pw);
       pw = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, newwidth) - f->x_pixels_diff;
       newwidth = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pw);
