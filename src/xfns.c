@@ -3656,7 +3656,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-  return make_number (dpyinfo->width);
+  return make_number (x_display_pixel_width (dpyinfo));
 }
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
@@ -3670,7 +3670,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-  return make_number (dpyinfo->height);
+  return make_number (x_display_pixel_height (dpyinfo));
 }
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
@@ -4962,9 +4962,10 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
     *root_y = XINT (top);
   else if (*root_y + XINT (dy) <= 0)
     *root_y = 0; /* Can happen for negative dy */
-  else if (*root_y + XINT (dy) + height <= FRAME_X_DISPLAY_INFO (f)->height)
+  else if (*root_y + XINT (dy) + height
+	   <= x_display_pixel_height (FRAME_X_DISPLAY_INFO (f)))
     /* It fits below the pointer */
-      *root_y += XINT (dy);
+    *root_y += XINT (dy);
   else if (height + XINT (dy) <= *root_y)
     /* It fits above the pointer.  */
     *root_y -= height + XINT (dy);
@@ -4976,7 +4977,8 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
     *root_x = XINT (left);
   else if (*root_x + XINT (dx) <= 0)
     *root_x = 0; /* Can happen for negative dx */
-  else if (*root_x + XINT (dx) + width <= FRAME_X_DISPLAY_INFO (f)->width)
+  else if (*root_x + XINT (dx) + width
+	   <= x_display_pixel_width (FRAME_X_DISPLAY_INFO (f)))
     /* It fits to the right of the pointer.  */
     *root_x += XINT (dx);
   else if (width + XINT (dx) <= *root_x)
