@@ -1696,8 +1696,9 @@ menu_position_func (menu, x, y, push_in, user_data)
 {
   struct next_popup_x_y* data = (struct next_popup_x_y*)user_data;
   GtkRequisition req;
-  int disp_width = FRAME_X_DISPLAY_INFO (data->f)->width;
-  int disp_height = FRAME_X_DISPLAY_INFO (data->f)->height;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (data->f);
+  int disp_width = x_display_pixel_width (dpyinfo);
+  int disp_height = x_display_pixel_height (dpyinfo);
 
   *x = data->x;
   *y = data->y;
