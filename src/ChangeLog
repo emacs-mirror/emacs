@@ -1,3 +1,9 @@
+2008-09-18  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (fill_gstring_header): Don't check FROM and TO here.
+	(composition_compute_stop_pos): Fix handling of static composition.
+	(Fcomposition_get_gstring): Check FROM and TO at first.
+
 2008-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* composite.c (Fcomposition_get_gstring): Yet another int/Lisp_Oject
