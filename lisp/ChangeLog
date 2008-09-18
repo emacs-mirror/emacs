@@ -1,3 +1,8 @@
+2008-09-18  Simon Josefsson  <simon@josefsson.org>
+
+	* files.el (auto-mode-alist): Use sieve-mode for .sv, .siv, and
+	.sieve files.
+
 2008-09-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* help-macro.el (make-help-screen): Preserve key bindings
