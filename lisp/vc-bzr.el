@@ -468,15 +468,17 @@ REV non-nil gets an error."
 (defun vc-bzr-show-log-entry (revision)
   "Find entry for patch name REVISION in bzr change log buffer."
   (goto-char (point-min))
-  (let (case-fold-search)
-    (if (re-search-forward
-	 ;; "revno:" can appear either at the beginning of a line, or indented.
-	 (concat "^[ ]*-+\n[ ]*revno: "
-		 ;; The revision can contain ".", quote it so that it
-		 ;; does not interfere with regexp matching.
-		 (regexp-quote revision) "$") nil t)
-        (beginning-of-line 0)
-      (goto-char (point-min)))))
+  (when revision
+    (let (case-fold-search)
+      (if (re-search-forward
+	   ;; "revno:" can appear either at the beginning of a line,
+	   ;; or indented.
+	   (concat "^[ ]*-+\n[ ]*revno: "
+		   ;; The revision can contain ".", quote it so that it
+		   ;; does not interfere with regexp matching.
+		   (regexp-quote revision) "$") nil t)
+	  (beginning-of-line 0)
+	(goto-char (point-min))))))
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."

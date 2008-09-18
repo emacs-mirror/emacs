@@ -1,3 +1,9 @@
+2008-09-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-show-log-entry):
+	* vc-git.el (vc-git-show-log-entry): Deal with a nil argument,
+	C-x v l for a directory uses that.
+
 2008-09-18  Simon Josefsson  <simon@josefsson.org>
 
 	* files.el (auto-mode-alist): Use sieve-mode for .sv, .siv, and
