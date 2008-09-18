@@ -1,3 +1,43 @@
+2008-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.h (x_display_info): Remove `height' and `width' members.
+
+	* nsterm.h (ns_display_info): Remove `height' and `width' members.
+
+	* w32term.h (w32_display_info): Remove `height', `width',
+	`height_in', and `width_in' members.
+
+	* xterm.c (x_display_pixel_height, x_display_pixel_width): New
+	functions.
+	(x_calc_absolute_position): Use them.
+	(x_term_init): Omit removed `height' and `width' members.
+
+	* w32term.c (x_display_pixel_height, x_display_pixel_width): New
+	functions.
+	(w32_read_socket, x_calc_absolute_position): Use them.
+	(w32_initialize_display_info, w32_term_init): Omit removed members
+	of w32_display_info.
+
+	* nsterm.m (x_display_pixel_height, x_display_pixel_width): New
+	functions.
+	(ns_initialize_display_info): Omit removed members of
+	ns_display_info.
+
+	* xterm.c (x_display_pixel_height, x_display_pixel_width): New
+	functions.
+	(x_calc_absolute_position): Use them.
+	(x_term_init): Omit removed `height' and `width' members.
+
+	* xfns.c (Fx_display_pixel_width, Fx_display_pixel_height)
+	(compute_tip_xy): Use x_display_pixel_height and
+	x_display_pixel_width.
+
+	* frame.c (x_fullscreen_adjust): Use x_display_pixel_height and
+	x_display_pixel_width.
+
+	* xmenu.c (menu_position_func): Use x_display_pixel_height and
+	x_display_pixel_width.
+
 2008-09-18  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (fill_gstring_header): Don't check FROM and TO here.
