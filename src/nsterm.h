@@ -502,8 +502,7 @@ struct ns_display_info
 
   struct ns_color_table *color_table;
 
-  /* 23: Dimensions and DPI resolution of this screen */
-  int height, width;
+  /* 23: DPI resolution of this screen */
   double resx, resy;
 
   /* 23: Mask of things that cause the mouse to be grabbed */
@@ -801,6 +800,9 @@ extern int ns_image_height (void *img);
 extern unsigned long ns_get_pixel (void *img, int x, int y);
 extern void ns_put_pixel (void *img, int x, int y, unsigned long argb);
 extern void ns_set_alpha (void *img, int x, int y, unsigned char a);
+
+extern int x_display_pixel_height P_ ((struct ns_display_info *));
+extern int x_display_pixel_width P_ ((struct ns_display_info *));
 
 /* This in nsterm.m */
 extern unsigned long ns_get_rgb_color (struct frame *f,
