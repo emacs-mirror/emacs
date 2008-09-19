@@ -1429,7 +1429,7 @@ main (argc, argv)
       char *type = egetenv ("TERM");
       char *tty_name = NULL;
 #ifndef WINDOWSNT
-      tty_name = ttyname (fileno (stdin));
+      tty_name = ttyname (fileno (stdout));
 #endif
 
       if (! tty_name)
