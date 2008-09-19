@@ -48,6 +48,9 @@ Fixed by this change?
 	* ps-print.el: [...]
 	(ps-do-despool): If ps-lpr-switches is not a list, force it to be one.
 
+** In C, use EMACS_INT for variables and structure members
+for buffer/string positions.  E.g. struct it, struct text_pos.
+
 * DOCUMENTATION
 
 ** Clean up Emacs.app references in code and documentation.
