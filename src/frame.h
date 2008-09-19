@@ -216,11 +216,6 @@ struct frame
      be used for output.  */
   unsigned glyphs_initialized_p : 1;
 
-  /* frame opacity
-     alpha[0]: alpha transparency of the active frame
-     alpha[1]: alpha transparency of inactive frames   */
-  double alpha[2];
-
   /* Set to non-zero in change_frame_size when size of frame changed
      Clear the frame in clear_garbaged_frames if set.  */
   unsigned resized_p : 1;
@@ -484,6 +479,11 @@ struct frame
 
   /* The baud rate that was used to calculate costs for this frame.  */
   int cost_calculation_baud_rate;
+
+  /* frame opacity
+     alpha[0]: alpha transparency of the active frame
+     alpha[1]: alpha transparency of inactive frames   */
+  double alpha[2];
 
   /* Exponent for gamma correction of colors.  1/(VIEWING_GAMMA *
      SCREEN_GAMMA) where viewing_gamma is 0.4545 and SCREEN_GAMMA is a

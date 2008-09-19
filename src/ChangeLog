@@ -1,3 +1,10 @@
+2008-09-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.h (struct frame): Move alpha from the middle of bitfields.
+
+	* window.h (struct window): Move frozen_window_start_p after the
+	rest of the bitfields to reduce padding.
+
 2008-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.h (x_display_info): Remove `height' and `width' members.
@@ -38,6 +45,7 @@
 	* xmenu.c (menu_position_func): Use x_display_pixel_height and
 	x_display_pixel_width.
 
+>>>>>>> 1.6978
 2008-09-18  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (fill_gstring_header): Don't check FROM and TO here.
@@ -143,6 +151,7 @@
 	* indent.c (Fvertical_motion): Be sure to set
 	it_overshoot_expected if it.cmp_it.id is non-nengative.
 
+>>>>>>> 1.6977
 2008-09-07  Andreas Schwab  <schwab@suse.de>
 
 	* callproc.c (Fcall_process): Don't hold references to string data
