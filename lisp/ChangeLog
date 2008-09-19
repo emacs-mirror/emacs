@@ -1,7 +1,7 @@
 2008-09-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/sgml-mode.el (sgml-tag-syntax-table): Remove prefix
-	flag from "'" entry in sgml-tag-syntax-table.
+	flag from "'" entry in sgml-tag-syntax-table.  (Bug#946)
 
 2008-09-19  Miles Bader  <miles@gnu.org>
 
