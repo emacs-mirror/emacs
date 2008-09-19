@@ -4628,7 +4628,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
 
-  return make_number (dpyinfo->width);
+  return make_number (x_display_pixel_width (dpyinfo));
 }
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
@@ -4642,7 +4642,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
 
-  return make_number (dpyinfo->height);
+  return make_number (x_display_pixel_height (dpyinfo));
 }
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
@@ -5597,8 +5597,8 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
       /* Default min and max values.  */
       min_x = 0;
       min_y = 0;
-      max_x = FRAME_W32_DISPLAY_INFO (f)->width;
-      max_y = FRAME_W32_DISPLAY_INFO (f)->height;
+      max_x = x_display_pixel_width (FRAME_W32_DISPLAY_INFO (f));
+      max_y = x_display_pixel_height (FRAME_W32_DISPLAY_INFO (f));
 
       BLOCK_INPUT;
       GetCursorPos (&pt);

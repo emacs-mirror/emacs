@@ -1,3 +1,10 @@
+2008-09-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.c (x_fullscreen_adjust): Declare var as Display_Info.
+
+	* w32fns.c (Fx_display_pixel_width, Fx_display_pixel_height)
+	(compute_tip_xy): Use x_display_pixel_width, x_display_pixel_height.
+
 2008-09-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* dispextern.h (struct it): Move line_wrap away from the middle of
