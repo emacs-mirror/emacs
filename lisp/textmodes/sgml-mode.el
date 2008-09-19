@@ -158,6 +158,9 @@ This takes effect when first loading the `sgml-mode' library.")
   (let ((table (sgml-make-syntax-table sgml-specials)))
     (dolist (char '(?\( ?\) ?\{ ?\} ?\[ ?\] ?$ ?% ?& ?* ?+ ?/))
       (modify-syntax-entry char "." table))
+    (unless (memq ?' sgml-specials)
+      ;; Avoid that skipping a tag backwards skips any "'" prefixing it.
+      (modify-syntax-entry ?' "w" table))
     table)
   "Syntax table used to parse SGML tags.")
 
