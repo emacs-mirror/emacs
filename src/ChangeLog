@@ -1,5 +1,8 @@
 2008-09-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* process.c (procfs_system_process_attributes): Fix cmdline in
+	case /proc/PID/cmdline is empty.
+
 	* xterm.c (x_wm_set_size_hint): Use x_display_pixel_width and
 	x_display_pixel_height.
 
