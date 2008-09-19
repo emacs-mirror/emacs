@@ -1,3 +1,8 @@
+2008-09-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_wm_set_size_hint): Use x_display_pixel_width and
+	x_display_pixel_height.
+
 2008-09-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frame.c (x_fullscreen_adjust): Declare var as Display_Info.
