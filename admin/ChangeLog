@@ -1,3 +1,8 @@
+2008-09-19  Kenichi Handa  <handa@m17n.org>
+
+	* FOR-RELEASE: Add an item for using EMACS_INT for buffer/string
+	positions.
+
 2008-08-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* CPP-DEFINES: Add USER_FULL_NAME.
