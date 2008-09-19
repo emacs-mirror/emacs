@@ -7419,17 +7419,17 @@ procfs_system_process_attributes (pid)
   fd = emacs_open (fn, O_RDONLY, 0);
   if (fd >= 0)
     {
-      for (cmdsize = 0; emacs_read (fd, &c, 1) == 1; cmdsize++)
+      for (cmdline_size = 0; emacs_read (fd, &c, 1) == 1; cmdline_size++)
 	{
 	  if (isspace (c) || c == '\\')
-	    cmdsize++;	/* for later quoting, see below */
+	    cmdline_size++;	/* for later quoting, see below */
 	}
-      if (cmdsize)
+      if (cmdline_size)
 	{
-	  cmdline = xmalloc (cmdsize + 1);
+	  cmdline = xmalloc (cmdline_size + 1);
 	  lseek (fd, 0L, SEEK_SET);
 	  cmdline[0] = '\0';
-	  if ((nread = read (fd, cmdline, cmdsize)) >= 0)
+	  if ((nread = read (fd, cmdline, cmdline_size)) >= 0)
 	    cmdline[nread++] = '\0';
 	  /* We don't want trailing null characters.  */
 	  for (p = cmdline + nread - 1; p > cmdline && !*p; p--)
@@ -7446,18 +7446,18 @@ procfs_system_process_attributes (pid)
 	      else if (*p == '\0')
 		*p = ' ';
 	    }
-	  cmdsize = nread;
+	  cmdline_size = nread;
 	}
       else
 	{
-	  cmdsize = strlen (cmd) + 2;
-	  cmdline = xmalloc (cmdsize + 1);
+	  cmdline_size = cmdsize + 2;
+	  cmdline = xmalloc (cmdline_size + 1);
 	  strcpy (cmdline, "[");
-	  strcat (strcat (cmdline, cmd), "]");
+	  strcat (strncat (cmdline, cmd, cmdsize), "]");
 	}
       emacs_close (fd);
       /* Command line is encoded in locale-coding-system; decode it.  */
-      cmd_str = make_unibyte_string (cmdline, cmdsize);
+      cmd_str = make_unibyte_string (cmdline, cmdline_size);
       decoded_cmd = code_convert_string_norecord (cmd_str,
 						  Vlocale_coding_system, 0);
       xfree (cmdline);
