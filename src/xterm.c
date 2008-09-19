@@ -9619,10 +9619,10 @@ x_wm_set_size_hint (f, flags, user_position)
 
   size_hints.width_inc = FRAME_COLUMN_WIDTH (f);
   size_hints.height_inc = FRAME_LINE_HEIGHT (f);
-  size_hints.max_width
-    = FRAME_X_DISPLAY_INFO (f)->width - FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
-  size_hints.max_height
-    = FRAME_X_DISPLAY_INFO (f)->height - FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
+  size_hints.max_width = x_display_pixel_width (FRAME_X_DISPLAY_INFO (f))
+    - FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
+  size_hints.max_height = x_display_pixel_height (FRAME_X_DISPLAY_INFO (f))
+    - FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
 
   /* Calculate the base and minimum sizes.
 
