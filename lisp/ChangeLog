@@ -1,4 +1,9 @@
-2008-09-19  Miles Bader  <Miles Bader <miles@gnu.org>>
+2008-09-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/sgml-mode.el (sgml-tag-syntax-table): Remove prefix
+	flag from "'" entry in sgml-tag-syntax-table.
+
+2008-09-19  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-output-filter): Make field properties for
 	output text front-sticky.
