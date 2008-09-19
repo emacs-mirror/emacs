@@ -1504,7 +1504,7 @@ main (argc, argv)
 	       file:stream, and treated as absolute.
 	       The user can still pass a file:stream if desired (for example,
 	       .\X:Y), but it is not very useful, as Emacs currently does a
-	       very bad job of dealing wih NTFS streams. */
+	       very bad job of dealing with NTFS streams. */
 	    {
 	      char *filename = (char *) xmalloc (MAX_PATH);
 	      DWORD size;
