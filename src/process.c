@@ -7248,7 +7248,7 @@ procfs_system_process_attributes (pid)
   ssize_t nread;
   const char *cmd;
   char *cmdline = NULL;
-  size_t cmdsize;
+  size_t cmdsize, cmdline_size;
   unsigned char c;
   int proc_id, ppid, uid, gid, pgrp, sess, tty, tpgid, thcount;
   unsigned long long utime, stime, cutime, cstime, start;
