@@ -2042,9 +2042,9 @@ struct it
     unsigned avoid_cursor_p : 1;
 
     /* properties from display property that are reset by another display property. */
+    short voffset;
     Lisp_Object space_width;
     Lisp_Object font_height;
-    short voffset;
   }
   stack[IT_STACK_SIZE];
 
@@ -2068,8 +2068,6 @@ struct it
   /* 1 means control characters are translated into the form `^C'
      where the `^' can be replaced by a display table entry.  */
   unsigned ctl_arrow_p : 1;
-
-  enum line_wrap_method line_wrap;
 
   /* Non-zero means that the current face has a box.  */
   unsigned face_box_p : 1;
@@ -2106,6 +2104,8 @@ struct it
      descent/ascent (line-height property).  Reset after this glyph.  */
   unsigned constrain_row_ascent_descent_p : 1;
 
+  enum line_wrap_method line_wrap;
+
   /* The ID of the default face to use.  One of DEFAULT_FACE_ID,
      MODE_LINE_FACE_ID, etc, depending on what we are displaying.  */
   int base_face_id;
@@ -2140,6 +2140,9 @@ struct it
   /* Computed from the value of the `raise' property.  */
   short voffset;
 
+  /* Number of columns per \t.  */
+  short tab_width;
+
   /* Value of the `height' property, if any; nil if none.  */
   Lisp_Object font_height;
 
@@ -2149,9 +2152,6 @@ struct it
      during mode-line update.  Position is a position in object.  */
   Lisp_Object object;
   struct text_pos position;
-
-  /* Number of columns per \t.  */
-  short tab_width;
 
   /* Width in pixels of truncation and continuation glyphs.  */
   short truncation_pixel_width, continuation_pixel_width;

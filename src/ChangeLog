@@ -1,3 +1,9 @@
+2008-09-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dispextern.h (struct it): Move line_wrap away from the middle of
+	bitfields.  Move voffset in struct iterator_stack_entry after the
+	bitfields.  Move tab_width near after another short.
+
 2008-09-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frame.h (struct frame): Move alpha from the middle of bitfields.
