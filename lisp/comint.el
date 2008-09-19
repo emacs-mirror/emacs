@@ -1774,7 +1774,9 @@ Make backspaces delete the previous character."
               (let ((inhibit-read-only t)
 		    (inhibit-modification-hooks t))
                 (add-text-properties comint-last-output-start (point)
-                                     '(rear-nonsticky t
+                                     '(front-sticky
+				       (field inhibit-line-move-field-capture)
+				       rear-nonsticky t
 				       field output
 				       inhibit-line-move-field-capture t))))
 

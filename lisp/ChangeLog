@@ -1,3 +1,8 @@
+2008-09-19  Miles Bader  <Miles Bader <miles@gnu.org>>
+
+	* comint.el (comint-output-filter): Make field properties for
+	output text front-sticky.
+
 2008-09-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-show-log-entry):
