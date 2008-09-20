@@ -869,7 +869,7 @@ which see."
 (defcustom lisp-indent-offset nil
   "If non-nil, indent second line of expressions that many more columns."
   :group 'lisp
-  :type '(choice nil integer))
+  :type '(choice (const nil) integer))
 (put 'lisp-body-indent 'safe-local-variable
      (lambda (x) (or (null x) (integerp x))))
 
