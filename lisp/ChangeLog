@@ -1,3 +1,10 @@
+2008-09-20  Glenn Morris  <rgm@gnu.org>
+
+	* play/fortune.el: Remove leading `*' from defcustom docs.
+	(fortune-program-options): Doc fix.  Allow to be a string again.
+	Add :version.
+	(fortune-in-buffer): Handle fortune-program-options as a string.
+
 2008-09-20  Justin Bogner  <mail@justinbogner.com>  (tiny change)
 
 	* play/fortune.el (fortune-program-options): Change to a list.
