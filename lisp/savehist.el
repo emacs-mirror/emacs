@@ -318,12 +318,13 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 		(dolist (elt value)
 		  (let ((start (point)))
 		    (insert " ")
-		    (prin1 elt (current-buffer))
-		    ;; Try to read the element we just printed.
+		    ;; Print and try to read the element we just printed.
 		    (condition-case nil
-			(save-excursion
-			  (goto-char start)
-			  (read (current-buffer)))
+			(progn
+			  (prin1 elt (current-buffer))
+			  (save-excursion
+			    (goto-char start)
+			    (read (current-buffer))))
 		      (error
 		       ;; If reading it gets an error, comment it out.
 		       (goto-char start)
