@@ -1,3 +1,8 @@
+2008-09-20  Jim Blandy  <jimb@red-bean.com>
+
+	* files.texi (Numbered Backups): Reference File Variables, as well.
+	Remove discussion of Rmail's implementation.
+
 2008-09-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* misc.texi (Recursive Edit): Note that top-level exits active
