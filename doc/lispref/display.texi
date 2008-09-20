@@ -1803,6 +1803,11 @@ kind of customization item (@pxref{Customization}) which the user can
 customize using the Customization buffer (@pxref{Easy Customization,,,
 emacs, The GNU Emacs Manual}).
 
+  People are sometimes tempted to create variables whose values specify
+which faces to use (for example, Font-Lock does this).  In the vast
+majority of cases, this is not necessary, and simply using faces
+directly is preferable.
+
 @defmac defface face spec doc [keyword value]@dots{}
 This declares @var{face} as a customizable face that defaults
 according to @var{spec}.  You should not quote the symbol @var{face},
