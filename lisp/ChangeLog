@@ -4,6 +4,7 @@
 	(fortune-program-options): Doc fix.  Allow to be a string again.
 	Add :version.
 	(fortune-in-buffer): Handle fortune-program-options as a string.
+	Don't rely on fortune program accepting options after fortune file.
 
 2008-09-20  Justin Bogner  <mail@justinbogner.com>  (tiny change)
 
