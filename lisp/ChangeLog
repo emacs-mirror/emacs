@@ -1,3 +1,8 @@
+2008-09-20  Ami Fischman  <ami@fischman.org>
+
+	* savehist.el (savehist-save): Handle errors in writing as well as
+	reading.
+
 2008-09-20  Michael Olson  <mwolson@gnu.org>
 
 	* emacs-lisp/tq.el (tq-create): Disable undo in tq buffer in order
