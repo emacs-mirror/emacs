@@ -5,7 +5,9 @@
 
 2008-09-20  Glenn Morris  <rgm@gnu.org>
 
-	* fileio.c (Frename_file): Avoid copying to trash if a rename involves
+	* fileio.c (Qdelete_by_moving_to_trash): New Lisp_Object.
+	(syms_of_fileio): Add Qdelete_by_moving_to_trash.
+	(Frename_file): Avoid copying to trash if a rename involves
 	a delete.  (Bug#964).
 
 2008-09-20  Eli Zaretskii  <eliz@gnu.org>
