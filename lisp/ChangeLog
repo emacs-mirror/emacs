@@ -1,3 +1,8 @@
+2008-09-20  David De La Harpe Golden  <david@harpegolden.net>
+
+        * files.el (move-file-to-trash): Avoid recursive trashing if
+	rename-file calls delete-file.
+
 2008-09-20  Glenn Morris  <rgm@gnu.org>
 
 	* play/fortune.el: Remove leading `*' from defcustom docs.
