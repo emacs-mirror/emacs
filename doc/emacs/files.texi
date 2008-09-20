@@ -591,9 +591,9 @@ Never make numbered backups; always make single backups.
 The usual way to set this variable is globally, through your
 @file{.emacs} file or the customization buffer.  However, you can set
 @code{version-control} locally in an individual buffer to control the
-making of backups for that buffer's file.  For example, Rmail mode
-locally sets @code{version-control} to @code{never} to make sure that
-there is only one backup for an Rmail file.  @xref{Locals}.
+making of backups for that buffer's file (@pxref{Locals}).  You can
+have Emacs set @code{version-control} locally whenever you visit a
+given file (@pxref{File Variables}).
 
 @cindex @env{VERSION_CONTROL} environment variable
   If you set the environment variable @env{VERSION_CONTROL}, to tell
