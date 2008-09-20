@@ -1,3 +1,8 @@
+2008-09-20  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-indent-offset):
+	Fix custom type.  (Bug#1011)
+
 2008-09-20  David De La Harpe Golden  <david@harpegolden.net>
 
         * files.el (move-file-to-trash): Avoid recursive trashing if
