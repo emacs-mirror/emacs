@@ -2231,6 +2231,7 @@ This is what happens in interactive use with M-x.  */)
     {
       if (errno == EXDEV)
 	{
+          int count;
 #ifdef S_IFLNK
           symlink_target = Ffile_symlink_p (file);
           if (! NILP (symlink_target))
@@ -2244,7 +2245,10 @@ This is what happens in interactive use with M-x.  */)
 			NILP (ok_if_already_exists) ? Qnil : Qt,
 			Qt, Qt);
 
+	  count = SPECPDL_INDEX ();
+	  specbind (intern ("delete-by-moving-to-trash"), Qnil);
 	  Fdelete_file (file);
+	  unbind_to (count, Qnil);
 	}
       else
 	report_file_error ("Renaming", list2 (file, newname));
