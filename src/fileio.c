@@ -201,6 +201,8 @@ int write_region_inhibit_fsync;
    Fdelete_directory.  */
 int delete_by_moving_to_trash;
 
+Lisp_Object Qdelete_by_moving_to_trash;
+
 /* Lisp function for moving files to trash.  */
 Lisp_Object Qmove_file_to_trash;
 
@@ -2246,7 +2248,7 @@ This is what happens in interactive use with M-x.  */)
 			Qt, Qt);
 
 	  count = SPECPDL_INDEX ();
-	  specbind (intern ("delete-by-moving-to-trash"), Qnil);
+	  specbind (Qdelete_by_moving_to_trash, Qnil);
 	  Fdelete_file (file);
 	  unbind_to (count, Qnil);
 	}
@@ -5669,6 +5671,7 @@ A non-nil value may result in data loss!  */);
 When non-nil, the function `move-file-to-trash' will be used by
 `delete-file' and `delete-directory'.  */);
   delete_by_moving_to_trash = 0;
+  Qdelete_by_moving_to_trash = intern ("delete-by-moving-to-trash");
   Qmove_file_to_trash = intern ("move-file-to-trash");
   staticpro (&Qmove_file_to_trash);
 
