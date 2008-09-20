@@ -593,7 +593,8 @@ The usual way to set this variable is globally, through your
 @code{version-control} locally in an individual buffer to control the
 making of backups for that buffer's file (@pxref{Locals}).  You can
 have Emacs set @code{version-control} locally whenever you visit a
-given file (@pxref{File Variables}).
+given file (@pxref{File Variables}).  Some modes, such as Rmail mode,
+set this variable.
 
 @cindex @env{VERSION_CONTROL} environment variable
   If you set the environment variable @env{VERSION_CONTROL}, to tell
