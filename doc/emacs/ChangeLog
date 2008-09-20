@@ -1,7 +1,7 @@
 2008-09-20  Glenn Morris  <rgm@gnu.org>
 
 	* files.texi (Numbered Backups): Mention that some modes set
-	vesion-control.
+	version-control.
 
 2008-09-20  Jim Blandy  <jimb@red-bean.com>
 
