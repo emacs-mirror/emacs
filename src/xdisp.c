@@ -5940,14 +5940,51 @@ get_next_display_element (it)
   if (it->face_box_p
       && it->s == NULL)
     {
-      int face_id;
-      struct face *face;
+      if (it->method == GET_FROM_STRING && it->sp)
+	{
+	  int face_id = underlying_face_id (it);
+	  struct face *face = FACE_FROM_ID (it->f, face_id);
 
-      it->end_of_box_run_p
-	= ((face_id = face_after_it_pos (it),
-	    face_id != it->face_id)
-	   && (face = FACE_FROM_ID (it->f, face_id),
-	       face->box == FACE_NO_BOX));
+	  if (face)
+	    {
+	      if (face->box == FACE_NO_BOX)
+		{
+		  /* If the box comes from face properties in a
+		     display string, check faces in that string.  */
+		  int string_face_id = face_after_it_pos (it);
+		  it->end_of_box_run_p
+		    = (FACE_FROM_ID (it->f, string_face_id)->box
+		       == FACE_NO_BOX);
+		}
+	      /* Otherwise, the box comes from the underlying face.
+		 If this is the last string character displayed, check
+		 the next buffer location.  */
+	      else if ((IT_STRING_CHARPOS (*it) >= SCHARS (it->string) - 1)
+		       && (it->current.overlay_string_index
+			   == it->n_overlay_strings - 1))
+		{
+		  EMACS_INT ignore;
+		  int next_face_id;
+		  struct text_pos pos = it->current.pos;
+		  INC_TEXT_POS (pos, it->multibyte_p);
+
+		  next_face_id = face_at_buffer_position
+		    (it->w, CHARPOS (pos), it->region_beg_charpos,
+		     it->region_end_charpos, &ignore,
+		     (IT_CHARPOS (*it) + TEXT_PROP_DISTANCE_LIMIT), 0);
+		  it->end_of_box_run_p
+		    = (FACE_FROM_ID (it->f, next_face_id)->box
+		       == FACE_NO_BOX);
+		}
+	    }
+	}
+      else
+	{
+	  int face_id = face_after_it_pos (it);
+	  it->end_of_box_run_p
+	    = (face_id != it->face_id
+	       && FACE_FROM_ID (it->f, face_id)->box == FACE_NO_BOX);
+	}
     }
 
   /* Value is 0 if end of buffer or string reached.  */
