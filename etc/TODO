@@ -147,6 +147,9 @@ like make-backup-file-name-function for non-numeric backup files.
 ** `dired-mode' should specify the semantics of `buffer-modified-p' for
 dired buffers and DTRT WRT `auto-revert-mode'. 
 
+** Check uses of prin1 for error-handling.
+http://lists.gnu.org/archive/html/emacs-devel/2008-08/msg00456.html
+
 * Important features:
 
 ** Having tabs above a window to switch buffers in it.
