@@ -1,3 +1,12 @@
+2008-09-19  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-grammar-alist, proced-custom-attributes)
+	(proced-format-alist, proced-format, proced-filter-alist)
+	(proced-filter, proced-sort): Use defcustom.
+	(proced-mode): Fix docstring.
+	(proced-process-attributes): Handle return value nil of functions
+	in proced-custom-attributes.
+
 2008-09-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/sgml-mode.el (sgml-tag-syntax-table): Remove prefix
