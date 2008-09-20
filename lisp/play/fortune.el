@@ -87,9 +87,9 @@ Normally you won't have a reason to change it."
   "Program to select a fortune cookie."
   :type 'string
   :group 'fortune)
-(defcustom fortune-program-options ""
-  "Options to pass to the fortune program (a string)."
-  :type 'string
+(defcustom fortune-program-options ()
+  "Options to pass to the fortune program."
+  :type '(repeat string)
   :group 'fortune)
 (defcustom fortune-strfile "strfile"
   "Program to compute a new fortune database."
@@ -299,11 +299,10 @@ when supplied, specifies the file to choose the fortune from."
       (if fortune-always-compile
 	  (fortune-compile fort-file))
 
-      (call-process
-        fortune-program  ;; programm to call
-	nil fortune-buffer nil ;; INFILE BUFFER DISPLAYP
-	(concat fortune-program-options fort-file)))))
-
+      (apply 'call-process
+             fortune-program  ;; program to call
+             nil fortune-buffer nil ;; INFILE BUFFER DISPLAYP
+             fort-file fortune-program-options))))
 
 ;;;###autoload
 (defun fortune (&optional file)
