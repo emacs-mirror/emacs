@@ -318,7 +318,7 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 		(dolist (elt value)
 		  (let ((start (point)))
 		    (insert " ")
-		    ;; Print and try to read the element we just printed.
+		    ;; Try to print and then to read an element.
 		    (condition-case nil
 			(progn
 			  (prin1 elt (current-buffer))
@@ -326,7 +326,7 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 			    (goto-char start)
 			    (read (current-buffer))))
 		      (error
-		       ;; If reading it gets an error, comment it out.
+		       ;; If writing or reading gave an error, comment it out.
 		       (goto-char start)
 		       (insert "\n")
 		       (while (not (eobp))
