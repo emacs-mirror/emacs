@@ -85,6 +85,7 @@ to a tcp server on another machine."
 			    (generate-new-buffer
 			     (concat " tq-temp-"
 				     (process-name process)))))))
+    (buffer-disable-undo (tq-buffer tq))
     (set-process-filter process
 			`(lambda (proc string)
 			   (tq-filter ',tq string)))
