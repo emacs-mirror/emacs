@@ -1,7 +1,7 @@
 ;;; fortune.el --- use fortune to create signatures
 
-;; Copyright (C) 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;  2008  Free Software Foundation, Inc.
 
 ;; Author: Holger Schauer <Holger.Schauer@gmx.de>
 ;; Keywords: games utils mail
@@ -70,12 +70,12 @@
   :group 'mail)
 
 (defcustom fortune-dir "~/docs/ascii/misc/fortunes/"
-  "*The directory to look in for local fortune cookies files."
+  "The directory to look in for local fortune cookies files."
   :type 'directory
   :group 'fortune)
 (defcustom fortune-file
   (expand-file-name "usenet" fortune-dir)
-  "*The file in which local fortune cookies will be stored."
+  "The file in which local fortune cookies will be stored."
   :type 'file
   :group 'fortune)
 (defcustom fortune-database-extension  ".dat"
@@ -88,8 +88,10 @@ Normally you won't have a reason to change it."
   :type 'string
   :group 'fortune)
 (defcustom fortune-program-options ()
-  "Options to pass to the fortune program."
-  :type '(repeat string)
+  "List of options to pass to the fortune program."
+  :type '(choice (repeat (string :tag "Option"))
+                 (string :tag "Obsolete string of options"))
+  :version "23.1"
   :group 'fortune)
 (defcustom fortune-strfile "strfile"
   "Program to compute a new fortune database."
@@ -107,7 +109,7 @@ Set this to \"\" if you would like to see the output."
   :group 'fortune)
 
 (defcustom fortune-always-compile t
-  "*Non-nil means automatically compile fortune files.
+  "Non-nil means automatically compile fortune files.
 If nil, you must invoke `fortune-compile' manually to do that."
   :type 'boolean
   :group 'fortune)
@@ -125,11 +127,11 @@ No need to add an `in'."
   :type 'string
   :group 'fortune-signature)
 (defcustom fortune-sigstart ""
-  "*Some text to insert before the fortune cookie, in a mail signature."
+  "Some text to insert before the fortune cookie, in a mail signature."
   :type 'string
   :group 'fortune-signature)
 (defcustom fortune-sigend ""
-  "*Some text to insert after the fortune cookie, in a mail signature."
+  "Some text to insert after the fortune cookie, in a mail signature."
   :type 'string
   :group 'fortune-signature)
 
@@ -300,9 +302,11 @@ when supplied, specifies the file to choose the fortune from."
 	  (fortune-compile fort-file))
 
       (apply 'call-process
-             fortune-program  ;; program to call
-             nil fortune-buffer nil ;; INFILE BUFFER DISPLAYP
-             fort-file fortune-program-options))))
+             fortune-program            ; program to call
+             nil fortune-buffer nil     ; INFILE BUFFER DISPLAY
+             (append (if (stringp fortune-program-options)
+                         (split-string fortune-program-options)
+                       fortune-program-options) (list fortune-file))))))
 
 ;;;###autoload
 (defun fortune (&optional file)
