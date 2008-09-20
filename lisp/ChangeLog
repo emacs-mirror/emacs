@@ -1,3 +1,8 @@
+2008-09-20  Michael Olson  <mwolson@gnu.org>
+
+	* emacs-lisp/tq.el (tq-create): Disable undo in tq buffer in order
+	to provide a minimal performance boost.
+
 2008-09-19  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-grammar-alist, proced-custom-attributes)
