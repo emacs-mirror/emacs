@@ -5828,7 +5828,8 @@ Returns nil on success."
       (and (string-match fn trash-dir)
            (error "Filename `%s' is same or parent directory of trash-directory"
                   filename))
-      (rename-file fn new-fn)))))
+      (let ((delete-by-moving-to-trash nil))
+        (rename-file fn new-fn))))))
 
 
 (define-key ctl-x-map "\C-f" 'find-file)
