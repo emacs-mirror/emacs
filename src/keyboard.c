@@ -10966,11 +10966,7 @@ handle_interrupt ()
   cancel_echoing ();
 
   /* XXX This code needs to be revised for multi-tty support. */
-  if (!NILP (Vquit_flag)
-#ifndef MSDOS
-      && get_named_tty ("/dev/tty")
-#endif
-      )
+  if (!NILP (Vquit_flag) && get_named_tty ("/dev/tty"))
     {
       /* If SIGINT isn't blocked, don't let us be interrupted by
 	 another SIGINT, it might be harmful due to non-reentrancy
@@ -11172,7 +11168,7 @@ See also `current-input-mode'.  */)
 {
   struct terminal *t = get_terminal (terminal, 1);
   struct tty_display_info *tty;
-  if (t == NULL || t->type != output_termcap)
+  if (t == NULL || (t->type != output_termcap && t->type != output_msdos_raw))
     return Qnil;
   tty = t->display_info.tty;
 
@@ -11217,7 +11213,7 @@ See also `current-input-mode'.  */)
   struct tty_display_info *tty;
   int new_meta;
 
-  if (t == NULL || t->type != output_termcap)
+  if (t == NULL || (t->type != output_termcap && t->type != output_msdos_raw))
     return Qnil;
   tty = t->display_info.tty;
 
@@ -11257,7 +11253,7 @@ See also `current-input-mode'.  */)
 {
   struct terminal *t = get_named_tty ("/dev/tty");
   struct tty_display_info *tty;
-  if (t == NULL || t->type != output_termcap)
+  if (t == NULL || (t->type != output_termcap && t->type != output_msdos_raw))
     return Qnil;
   tty = t->display_info.tty;
 
@@ -11321,7 +11317,7 @@ The elements of this list correspond to the arguments of
   struct frame *sf = XFRAME (selected_frame);
 
   val[0] = interrupt_input ? Qt : Qnil;
-  if (FRAME_TERMCAP_P (sf))
+  if (FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf))
     {
       val[1] = FRAME_TTY (sf)->flow_control ? Qt : Qnil;
       val[2] = (FRAME_TTY (sf)->meta_key == 2
