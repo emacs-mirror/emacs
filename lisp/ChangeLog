@@ -1,3 +1,8 @@
+2008-09-20  Justin Bogner  <mail@justinbogner.com>  (tiny change)
+
+	* play/fortune.el (fortune-program-options): Change to a list.
+	(fortune-in-buffer): Use apply.
+
 2008-09-20  Ulrich Mueller  <ulm@kph.uni-mainz.de>
 
 	* emacs-lisp/authors.el: Change encoding of file to utf-8.
