@@ -1,3 +1,7 @@
+2008-09-20  Vincent Belaïche  <vincent.b.1@hotmail.fr>
+
+	* calc/calc-vec.el (calcFunc-venum): Properly handle intervals.
+
 2008-09-20  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-indent-offset):
