@@ -1,3 +1,11 @@
+2008-09-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (Fset_quit_char, Fset_input_meta_mode)
+	(Fset_output_flow_control, Fcurrent_input_mode): Support MSDOS
+	frames as well as termcap frames.
+	(handle_interrupt): Remove "#ifndef MSDOS" around the call to
+	get_named_tty.
+
 2008-09-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* process.c (procfs_system_process_attributes): Fix cmdline in
