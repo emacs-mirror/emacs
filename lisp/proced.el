@@ -28,7 +28,6 @@
 ;; listed.  See `proced-mode' for getting started.
 ;;
 ;; To do:
-;; - use defcustom where appropriate
 ;; - interactive temporary customizability of flags in `proced-grammar-alist'
 ;; - allow "sudo kill PID", "renice PID"
 ;;
@@ -84,7 +83,7 @@ the external command (usually \"kill\")."
 ;;
 ;; It would be neat if one could temporarily override the following
 ;; predefined rules.
-(defvar proced-grammar-alist
+(defcustom proced-grammar-alist
   '( ;; attributes defined in `system-process-attributes'
     (euid    "EUID"    "%d" right proced-< nil (euid pid) (nil t nil))
     (user    "USER"    nil left proced-string-lessp nil (user pid) (nil t nil))
@@ -128,9 +127,9 @@ Each element has the form
 
   (KEY NAME FORMAT JUSTIFY PREDICATE REVERSE SORT-SCHEME REFINE-FLAGS).
 
-KEY is the car of a process attribute.
+Symbol KEY is the car of a process attribute.
 
-NAME appears in the header line.
+String NAME appears in the header line.
 
 FORMAT specifies the format for displaying the attribute values.
 It can be a string passed to `format'.  It can be a function called
@@ -165,14 +164,37 @@ the value of attribute KEY of the process at the position of point
 using PREDICATE.
 If PREDICATE yields non-nil, the process is accepted if LESS-B is non-nil.
 If PREDICATE yields 'equal, the process is accepted if EQUAL-B is non-nil.
-If PREDICATE yields nil, the process is accepted if LARGER-B is non-nil.")
+If PREDICATE yields nil, the process is accepted if LARGER-B is non-nil."
+  :group 'proced
+  :type '(repeat (list :tag "Attribute"
+                       (symbol :tag "Key")
+                       (string :tag "Header")
+                       (choice :tag "Format"
+                               (const :tag "None" nil)
+                               (string :tag "Format String")
+                               (function :tag "Formatting Function"))
+                       (choice :tag "Justification"
+                               (const :tag "left" left)
+                               (const :tag "right" right)
+                               (integer :tag "width"))
+                       (function :tag "Predicate")
+                       (boolean :tag "Reverse Sort Order")
+                       (repeat :tag "Sort Scheme" (symbol :tag "Key"))
+                       (list :tag "Refine Flags"
+                             (boolean :tag "Less")
+                             (boolean :tag "Equal")
+                             (boolean :tag "Larger")))))
 
-(defvar proced-custom-attributes nil
+(defcustom proced-custom-attributes nil
   "List of functions defining custom attributes.
 This variable extends the functionality of `proced-process-attributes'.
 Each function is called with one argument, the list of attributes
 of a system process.  It returns a cons cell of the form (KEY . VALUE)
-like `system-process-attributes'.")
+like `system-process-attributes'.  This cons cell is appended to the list
+returned by `proced-process-attributes'.
+If the function returns nil, the value is ignored."
+  :group 'proced
+  :type '(repeat (function :tag "Attribute")))
 
 ;; Formatting and sorting rules are defined "per attribute".  If formatting
 ;; and / or sorting should use more than one attribute, it appears more
@@ -181,7 +203,7 @@ like `system-process-attributes'.")
 ;; Would it be advantageous to have yet more general methods available?)
 ;; Sorting can also be based on attributes that are invisible in the listing.
 
-(defvar proced-format-alist
+(defcustom proced-format-alist
   '((short user pid pcpu pmem start time args)
     (medium user pid pcpu pmem vsize rss ttname state start time args)
     (long user euid group pid pri nice pcpu pmem vsize rss ttname state
@@ -191,17 +213,23 @@ like `system-process-attributes'.")
              start time utime stime ctime cutime cstime etime args))
   "Alist of formats of listing.
 The car of each element is a symbol, the name of the format.
-The cdr is a list of keys appearing in `proced-grammar-alist'.")
+The cdr is a list of keys appearing in `proced-grammar-alist'."
+  :group 'proced
+  :type '(alist :key-type (symbol :tag "Format Name")
+                :value-type (repeat :tag "Keys" (symbol :tag ""))))
 
-(defvar proced-format 'short
+(defcustom proced-format 'short
   "Current format of Proced listing.
 It can be the car of an element of `proced-format-alist'.
-It can also be a list of keys appearing in `proced-grammar-alist'.")
+It can also be a list of keys appearing in `proced-grammar-alist'."
+  :group 'proced
+  :type '(choice (symbol :tag "Format Name")
+                 (repeat :tag "Keys" (symbol :tag ""))))
 (make-variable-buffer-local 'proced-format)
 
 ;; FIXME: is there a better name for filter `user' that does not coincide
 ;; with an attribute key?
-(defvar proced-filter-alist
+(defcustom proced-filter-alist
   `((user (user . ,(concat "\\`" (user-real-login-name) "\\'")))
     (user-running (user . ,(concat "\\`" (user-real-login-name) "\\'"))
                   (state . "\\`[Rr]\\'"))
@@ -223,20 +251,38 @@ An elementary filter can be one of the following:
 \(function . FUN) For each process, apply function FUN to list of attributes
                  of each.  Accept the process if FUN returns non-nil.
 \(fun-all . FUN)  Apply function FUN to entire process list.
-                 FUN must return the filtered list.")
+                 FUN must return the filtered list."
+  :group 'proced
+  :type '(repeat (cons :tag "Filter"
+                       (symbol :tag "Filter Name")
+                       (repeat :tag "Filters"
+                               (choice (cons :tag "Key . Regexp" (symbol :tag "Key") regexp)
+                                       (cons :tag "Key . Function" (symbol :tag "Key") function)
+                                       (cons :tag "Function" (const :tag "Key: function" function) function)
+                                       (cons :tag "Fun-all" (const :tag "Key: fun-all" fun-all) function))))))
 
-(defvar proced-filter 'user
+(defcustom proced-filter 'user
   "Current filter of proced listing.
 It can be the car of an element of `proced-filter-alist'.
 It can also be a list of elementary filters as in the cdrs of the elements
-of `proced-filter-alist'.")
+of `proced-filter-alist'."
+  :group 'proced
+  :type '(choice (symbol :tag "Filter Name")
+                 (repeat :tag "Filters"
+                         (choice (cons :tag "Key . Regexp" (symbol :tag "Key") regexp)
+                                 (cons :tag "Key . Function" (symbol :tag "Key") function)
+                                 (cons :tag "Function" (const :tag "Key: function" function) function)
+                                 (cons :tag "Fun-all" (const :tag "Key: fun-all" fun-all) function)))))
 (make-variable-buffer-local 'proced-filter)
 
-(defvar proced-sort 'pcpu
+(defcustom proced-sort 'pcpu
   "Current sort scheme for proced listing.
 It must be the KEY of an element of `proced-grammar-alist'.
 It can also be a list of KEYs as in the SORT-SCHEMEs of the elements
-of `proced-grammar-alist'.")
+of `proced-grammar-alist'."
+  :group 'proced
+  :type '(choice (symbol :tag "Sort Scheme")
+                 (repeat :tag "Key List" (symbol :tag "Key"))))
 (make-variable-buffer-local 'proced-format)
 
 (defcustom proced-goal-attribute 'args
@@ -246,7 +292,7 @@ of `proced-grammar-alist'.")
                  (symbol :tag "key")))
 
 (defcustom proced-timer-interval 5
-  "Time interval in seconds for updating Proced buffers."
+  "Time interval in seconds for auto updating Proced buffers."
   :group 'proced
   :type 'integer)
 
@@ -301,14 +347,14 @@ Important: the match ends just after the marker.")
   "Headers in Proced buffer as a string.")
 (make-variable-buffer-local 'proced-header-line)
 
-(defvar proced-log-buffer "*Proced log*"
-  "Name of Proced Log buffer.")
-
 (defvar proced-process-tree nil
   "Process tree of listing (internal variable).")
 
 (defvar proced-timer nil
   "Stores if Proced timer is already installed.")
+
+(defvar proced-log-buffer "*Proced log*"
+  "Name of Proced Log buffer.")
 
 (defconst proced-help-string
   "(n)ext, (p)revious, (m)ark, (u)nmark, (k)ill, (q)uit (type ? for more help)"
@@ -487,7 +533,8 @@ Return nil if point is not on a process line."
 
 (define-derived-mode proced-mode nil "Proced"
   "Mode for displaying UNIX system processes and sending signals to them.
-Type \\<proced-mode-map>\\[proced-mark] to mark a process for later commands.
+Type \\[proced] to start a Proced session.  In a Proced buffer
+type \\<proced-mode-map>\\[proced-mark] to mark a process for later commands.
 Type \\[proced-send-signal] to send signals to marked processes.
 
 The initial content of a listing is defined by the variable `proced-filter'
@@ -1191,7 +1238,8 @@ This alist can be customized via `proced-custom-attributes'."
                    (utime (cdr (assq 'utime attributes)))
                    (stime (cdr (assq 'stime attributes)))
                    (cutime (cdr (assq 'cutime attributes)))
-                   (cstime (cdr (assq 'cstime attributes))))
+                   (cstime (cdr (assq 'cstime attributes)))
+                   attr)
               (setq attributes
                     (append (list (cons 'pid pid))
                             (if (and utime stime)
@@ -1200,7 +1248,8 @@ This alist can be customized via `proced-custom-attributes'."
                                 (list (cons 'ctime (time-add cutime cstime))))
                             attributes))
               (dolist (fun proced-custom-attributes)
-                (push (funcall fun attributes) attributes))
+                (if (setq attr (funcall fun attributes))
+                    (push attr attributes)))
               (cons pid attributes)))
           (list-system-processes)))
 
@@ -1266,8 +1315,8 @@ Suppress status information if QUIET is nil."
                     (match-beginning 0)
                   (match-end 0)))))
 
-    ;; restore process marks and buffer position (if possible)
-    ;; FIXME: sometimes this puts point in the middle of the proced buffer
+    ;; Restore process marks and buffer position (if possible).
+    ;; Sometimes this puts point in the middle of the proced buffer
     ;; where it is not interesting.  Is there a better / more flexible solution?
     (goto-char (point-min))
     (let (pid mark new-pos)
