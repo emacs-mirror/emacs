@@ -27,17 +27,31 @@ Manual}, last updated @value{UPDATED}.
 Copyright @copyright{} 1995, 2001, 2002, 2003, 2005, 2006, 2007, 2008
 Free Software Foundation, Inc.
 
+@c This dual license has been agreed upon by the FSF.
+
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.2 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
-and with the Back-Cover Texts as in (a) below.  A copy of the license
-is included in the section entitled ``GNU Free Documentation License.''
+under the terms of either:
+
+@enumerate a
+@item
+the GNU Free Documentation License, Version 1.2 or any later version
+published by the Free Software Foundation; with no Invariant Sections,
+with the Front-Cover texts being ``A GNU Manual,'' and with the
+Back-Cover Texts as in (a) below. A copy of the license is included in
+the section entitled ``GNU Free Documentation License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
+modify this GNU manual. Buying copies from the FSF supports it in
 developing GNU and promoting software freedom.''
+
+@item
+the GNU General Public License as published by the Free Software
+Foundation; either version 3, or (at your option) any later version. A
+copy of the license is included in the section entitled ``GNU General
+Public License.''
+@end enumerate
+
 @end quotation
 @end copying
 
@@ -107,6 +121,7 @@ developing GNU and promoting software freedom.''
 * Odds and Ends::               Odds and Ends
 * History::                     History of MH-E
 * GFDL::                        GNU Free Documentation License
+* GPL::                         GNU General Public License
 * Key Index::                   Key (Character) Index
 * Command Index::               Command Index
 * Option Index::                Option (Variable) Index
@@ -8928,11 +8943,15 @@ new features and several bug fixes.
 
 Bill Wohler, August 2008
 
-@node GFDL, Key Index, History, Top
-@appendix GNU FREE DOCUMENTATION LICENSE
+@node GFDL, GPL, History, Top
+@appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node Key Index, Command Index, GFDL, Top
+@node GPL, Key Index, GFDL, Top
+@appendix GNU General Public License
+@include gpl.texi
+
+@node Key Index, Command Index, GPL, Top
 @unnumbered Key (Character) Index
 @printindex ky
 
