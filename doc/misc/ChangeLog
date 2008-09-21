@@ -1,3 +1,14 @@
+2008-09-22  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.1.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.1.
+
+	* mh-e.texi: Retain dual license as agreed to by the FSF.
+	However, bump GPL to Version 3.
+	Use @include for license text.
+
 2008-09-19  Katsumi Yamaoka <yamaoka@jpl.org>
 
 	* gnus.texi (Top, Setup, Fancy splitting to parent)
@@ -27,13 +38,6 @@
 	* ns-emacs.texi: Update version.
 	(Introduction): Correct menu location for options save.
 	(Customization): Note that defaults are stored under org.gnu.Emacs.
-
-2008-08-18  Bill Wohler  <wohler@newt.com>
-
-	Release MH-E manual version 8.1.
-
-	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
-	release 8.1.
 
 2008-08-11  Bill Wohler  <wohler@newt.com>
 
