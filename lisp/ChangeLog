@@ -1,3 +1,8 @@
+2008-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.el (frame-initialize): Remove spurious setting of
+	special-display-function with the default value.
+
 2008-09-20  Vincent Belaïche  <vincent.b.1@hotmail.fr>
 
 	* calc/calc-vec.el (calcFunc-venum): Properly handle intervals.

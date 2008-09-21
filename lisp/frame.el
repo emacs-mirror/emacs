@@ -210,9 +210,6 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	   (not noninteractive)
 	   (not (eq initial-window-system 'pc)))
       (progn
-	;; Turn on special-display processing only if there's a window system.
-	(setq special-display-function 'special-display-popup-frame)
-
 	;; If there is no frame with a minibuffer besides the terminal
 	;; frame, then we need to create the opening frame.  Make sure
 	;; it has a minibuffer, but let initial-frame-alist omit the
