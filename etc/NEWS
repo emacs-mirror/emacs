@@ -130,6 +130,11 @@ Now, the default behavior is to open a new Emacs frame by default.
 Use the -c option to get the old behavior of opening files in the
 currently selected Emacs frame.
 
+*** Emacs can now start in background, as a daemon when using the
+--daemon command line argument.  It disconnects from the terminal and
+starts the server.  Clients can connect and create graphical or
+terminal frames using emacsclient.
+
 *** The new command close-display-connection closes a connection to a
 remote display.
 

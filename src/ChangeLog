@@ -1,3 +1,11 @@
+2008-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c (standard_args): Add --daemon.
+	(main): Disconnect from the terminal when --daemon is passed.
+	(is_daemon): New variable.
+	(Fdaemonp): New function.
+	(syms_of_emacs): Defsubr it.
+
 2008-09-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (get_next_display_element): Handle string display

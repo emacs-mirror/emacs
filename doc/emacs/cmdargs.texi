@@ -277,6 +277,15 @@ option and @samp{-Q} are the only options that block it.
 Start emacs with minimum customizations.  This is like using @samp{-q}
 and @samp{--no-site-file}, but also disables the startup screen.
 
+@item -daemon
+@opindex -daemon
+@itemx --daemon
+@opindex --daemon
+Start emacs in background as a daemon (i.e. it will disconnect from the
+terminal), do not open any frames and start the server.  Clients can
+connect and create graphical or terminal frames using
+@code{emacsclient}.
+
 @item --no-splash
 @opindex --no-splash
 @vindex inhibit-splash-screen
