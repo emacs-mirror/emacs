@@ -1,3 +1,13 @@
+2008-09-19  Katsumi Yamaoka <yamaoka@jpl.org>
+
+	* gnus.texi (Top, Setup, Fancy splitting to parent)
+	(Store custom flags and keywords, Store arbitrary data): Clean up
+	markup.
+
+2008-09-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (The Gnus Registry): Document it.
+
 2008-09-08  David Engster  <dengste@eml.cc>
 
 	* gnus.texi (nnmairix): Point out that nnml uses MH format.  Clarify

@@ -1,3 +1,19 @@
+2008-09-17  Simon Josefsson  <simon@josefsson.org>
+
+	* sieve-manage.el (sieve-manage-is-string): Accept literals too.
+	Reported by Arnt Gulbrandsen <arnt@oryx.com>.
+
+2008-09-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-use-long-group-names): Make t the
+	default, it's better.
+
+2008-09-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-sum.el (gnus-summary-insert-line): Trap errors on setting the
+	summary line gnus-number property and ignore them (with a warning
+	message).
+
 2008-09-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-group.el (gnus-group-make-useful-group): Don't use the compiler
