@@ -1,6 +1,7 @@
 2008-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* startup.el (command-line): Start the server when in daemon mode.
+	Remove always true test.
 
 	* frame.el (frame-initialize): Remove spurious setting of
 	special-display-function with the default value.

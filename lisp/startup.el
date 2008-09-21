@@ -888,8 +888,7 @@ opening the first frame (e.g. open a connection to an X server).")
       ;; any oxof those.
       (server-start)
     ;; Under X Window, this creates the X frame and deletes the terminal frame.
-    (when (fboundp 'frame-initialize)
-      (frame-initialize)))
+    (frame-initialize))
 
   ;; Turn off blinking cursor if so specified in X resources.  This is here
   ;; only because all other settings of no-blinking-cursor are here.
