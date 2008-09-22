@@ -1,7 +1,11 @@
+2008-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.texi (Top): Remove Kill Errors from menu.
+
 2008-09-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* fixit.texi (Fixit): Favor C-/ keybinding for undo throughout.  Link
-	to Erasing node.
+	* fixit.texi (Fixit): Favor C-/ keybinding for undo throughout.
+	Link to Erasing node.
 	(Undo): Reorganize paragraphs for logical flow.  Move keybinding
 	rationale to a footnote.
 	(Kill Errors): Remove node, due to redundancy with Erasing.
