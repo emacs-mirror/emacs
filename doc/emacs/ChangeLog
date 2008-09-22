@@ -4,8 +4,15 @@
 
 2008-09-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* fixit.texi (Fixit): Favor C-/ keybinding for undo throughout.
-	Link to Erasing node.
+	* kmacro.texi (Basic Keyboard Macro): Make F3 and F4 the preferred
+	interface for defining macros.  Simplify examples.  Note that C-g quits
+	macro definitions.
+	(Keyboard Macro Counter): Document using F3 to insert counter. Give
+	usage example.
+	(Keyboard Macro Query): Organize query responses in a table.
+
+	* fixit.texi (Fixit): Favor C-/ keybinding for undo throughout.  Link
+	to Erasing node.
 	(Undo): Reorganize paragraphs for logical flow.  Move keybinding
 	rationale to a footnote.
 	(Kill Errors): Remove node, due to redundancy with Erasing.
