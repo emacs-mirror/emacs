@@ -1071,9 +1071,9 @@ main (int argc, char **argv)
       exit (0);
     }
 
-#ifndef DOS_NT
   if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args))
     {
+#ifndef DOS_NT
       pid_t f = fork();
       int nfd;
       if (f > 0)
@@ -1093,11 +1093,11 @@ main (int argc, char **argv)
 #ifdef HAVE_SETSID
       setsid();
 #endif
-    }
 #else /* DOS_NT */
-  fprintf (stderr, "This platform does not support the -daemon flag.\n");
-  exit (1);
+      fprintf (stderr, "This platform does not support the -daemon flag.\n");
+      exit (1);
 #endif /* DOS_NT */
+    }
 
   if (! noninteractive)
     {

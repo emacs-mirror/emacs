@@ -1,3 +1,7 @@
+2008-09-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c (main): Place #ifdef.in the proper place.
+
 2008-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs.c (standard_args): Add --daemon.
