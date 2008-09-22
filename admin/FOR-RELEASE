@@ -128,7 +128,7 @@ glossary.texi
 help.texi
 indent.texi
 killing.texi      -- cyd
-kmacro.texi
+kmacro.texi       -- cyd
 macos.texi     -- contents need to be evaluated and see what is still
  relevant after the NS merge.  (If this is here, why is ns-emacs.texi
  relegated to doc/misc?)
