@@ -1,3 +1,8 @@
+2008-09-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* undo.c (record_point): Don't call Fundo_boundary for first
+	change.  (Bug#731)
+
 2008-09-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs.c (Fdaemonp): Doc fix.
