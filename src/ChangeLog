@@ -1,3 +1,8 @@
+2008-09-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (compute_tip_xy): Use x_display_pixel_width and
+	x_display_pixel_height.
+
 2008-09-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* undo.c (record_point): Don't call Fundo_boundary for first
