@@ -2417,7 +2417,8 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
   /* Ensure in bounds.  (Note, screen origin = lower left.) */
   if (pt.x + XINT (dx) <= 0)
     *root_x = 0; /* Can happen for negative dx */
-  else if (pt.x + XINT (dx) + width <= FRAME_NS_DISPLAY_INFO (f)->width)
+  else if (pt.x + XINT (dx) + width
+	   <= x_display_pixel_width (FRAME_NS_DISPLAY_INFO (f)))
     /* It fits to the right of the pointer.  */
     *root_x = pt.x + XINT (dx);
   else if (width + XINT (dx) <= pt.x)
@@ -2430,12 +2431,13 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
   if (pt.y - XINT (dy) - height >= 0)
     /* It fits below the pointer.  */
     *root_y = pt.y - height - XINT (dy);
-  else if (pt.y + XINT (dy) + height <= FRAME_NS_DISPLAY_INFO (f)->height)
+  else if (pt.y + XINT (dy) + height
+	   <= x_display_pixel_height (FRAME_NS_DISPLAY_INFO (f)))
     /* It fits above the pointer */
       *root_y = pt.y + XINT (dy);
   else
     /* Put it on the top.  */
-    *root_y = FRAME_NS_DISPLAY_INFO (f)->height - height;
+    *root_y = x_display_pixel_height (FRAME_NS_DISPLAY_INFO (f)) - height;
 }
 
 
