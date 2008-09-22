@@ -79,7 +79,13 @@ record_point (pt)
   if (NILP (pending_boundary))
     pending_boundary = Fcons (Qnil, Qnil);
 
-  if (current_buffer != last_undo_buffer)
+  if ((current_buffer != last_undo_buffer)
+      /* Don't call Fundo_boundary for the first change.  Otherwise we
+	 risk overwriting last_boundary_position in Fundo_boundary with
+	 PT of the current buffer and as a consequence not insert an
+	 undo boundary because last_boundary_position will equal pt in
+	 the test at the end of the present function (Bug#731).  */
+      && (MODIFF > SAVE_MODIFF))
     Fundo_boundary ();
   last_undo_buffer = current_buffer;
 
