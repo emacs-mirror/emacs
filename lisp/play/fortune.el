@@ -306,7 +306,7 @@ when supplied, specifies the file to choose the fortune from."
              nil fortune-buffer nil     ; INFILE BUFFER DISPLAY
              (append (if (stringp fortune-program-options)
                          (split-string fortune-program-options)
-                       fortune-program-options) (list fortune-file))))))
+                       fortune-program-options) (list fort-file))))))
 
 ;;;###autoload
 (defun fortune (&optional file)

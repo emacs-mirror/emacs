@@ -1,3 +1,9 @@
+2008-09-22  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* play/fortune.el (fortune-in-buffer): Fix a bug which forced
+	usage of `fortune-file' even though a FILE argument was passed to
+	the function.
+
 2008-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* startup.el (command-line): Start the server when in daemon mode.
