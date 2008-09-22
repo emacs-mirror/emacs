@@ -1074,20 +1074,20 @@ main (int argc, char **argv)
   if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args))
     {
 #ifndef DOS_NT
-      pid_t f = fork();
+      pid_t f = fork ();
       int nfd;
       if (f > 0)
-	exit(0);
+	exit (0);
       if (f < 0)
 	{
 	  fprintf (stderr, "Cannot fork!\n");
-	  exit(1);
+	  exit (1);
 	}
 
-      nfd = open("/dev/null", O_RDWR);
-      dup2(nfd, 0);
-      dup2(nfd, 1);
-      dup2(nfd, 2);
+      nfd = open ("/dev/null", O_RDWR);
+      dup2 (nfd, 0);
+      dup2 (nfd, 1);
+      dup2 (nfd, 2);
       close (nfd);
       is_daemon = 1;
 #ifdef HAVE_SETSID
@@ -2383,8 +2383,8 @@ decode_env_path (evarname, defalt)
 }
 
 DEFUN ("daemonp", Fdaemonp, Sdaemonp, 0, 0, 0,
-       doc: /* Make the current emacs process a daemon.*/)
-  (void)
+       doc: /* Return t if the current emacs process is a daemon.  */)
+  ()
 {
   return is_daemon ? Qt : Qnil;
 }

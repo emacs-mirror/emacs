@@ -1,6 +1,10 @@
+2008-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (Fdaemonp): Doc fix.
+
 2008-09-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* emacs.c (main): Place #ifdef.in the proper place.
+	* emacs.c (main): Place #ifdef in the proper place.
 
 2008-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
