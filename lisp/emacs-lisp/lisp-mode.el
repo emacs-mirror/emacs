@@ -1027,7 +1027,10 @@ is the buffer position of the start of the containing expression."
                      ;; where it begins, so find that one, instead.
                      (save-excursion
                        (goto-char calculate-lisp-indent-last-sexp)
-                       (while (and (not (looking-back "^[ \t]*"))
+		       ;; Handle prefix characters and whitespace
+		       ;; following an open paren.  (Bug#1012)
+                       (backward-prefix-chars)
+                       (while (and (not (looking-back "^[ \t]*\\|([ \t]+"))
                                    (or (not containing-sexp)
                                        (< (1+ containing-sexp) (point))))
                          (forward-sexp -1)
