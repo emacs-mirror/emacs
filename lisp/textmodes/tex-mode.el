@@ -2586,15 +2586,18 @@ There might be text before point."
 	  (member (match-string 2) tex-verbatim-environments)
 	  0)
      ;; Put leading close-paren where the matching open paren would be.
-     (and (or (eq (latex-syntax-after) ?\))
-	      ;; Try to handle escaped close parens.
-	      (and (looking-at "\\\\\\([])}]\\)")
-		   (goto-char (match-beginning 1))))
-	  (ignore-errors
-	    (save-excursion
-	      (latex-skip-close-parens)
-	      (latex-backward-sexp-1)
-	      (latex-find-indent 'virtual))))
+     (and (let (escaped)
+	    (or (eq (latex-syntax-after) ?\))
+		;; Try to handle escaped close parens but keep original
+		;; position if it doesn't work out.
+		(setq escaped (looking-at "\\\\\\([])}]\\)")))
+	    (ignore-errors
+	      (save-excursion
+		(when escaped
+		  (goto-char (match-beginning 1)))
+		(latex-skip-close-parens)
+		(latex-backward-sexp-1)
+		(latex-find-indent 'virtual)))))
      ;; Default (maybe an argument)
      (let ((pos (point))
 	   ;; Outdent \item if necessary.
