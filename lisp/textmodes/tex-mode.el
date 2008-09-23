@@ -2585,8 +2585,11 @@ There might be text before point."
      (and (looking-at "\\\\\\(begin\\|end\\) *{\\([^\n}]+\\)")
 	  (member (match-string 2) tex-verbatim-environments)
 	  0)
-     ;; Put leading close-paren where the matching open brace would be.
-     (and (eq (latex-syntax-after) ?\))
+     ;; Put leading close-paren where the matching open paren would be.
+     (and (or (eq (latex-syntax-after) ?\))
+	      ;; Try to handle escaped close parens.
+	      (and (looking-at "\\\\\\([])}]\\)")
+		   (goto-char (match-beginning 1))))
 	  (ignore-errors
 	    (save-excursion
 	      (latex-skip-close-parens)
