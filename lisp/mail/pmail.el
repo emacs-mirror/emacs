@@ -910,7 +910,7 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
     (pmail-maybe-set-message-counters)
     (unwind-protect
 	(unless (and (not file-name-arg) (pmail-get-new-mail))
-	  (pmail-show-message (pmail-first-unseen-message)))
+	  (pmail-show-message-maybe (pmail-first-unseen-message)))
       (progn
 	(if pmail-display-summary (pmail-summary))
 	(pmail-construct-io-menu)
@@ -984,6 +984,18 @@ Note:   This is the header of an pmail file.
 Note:   If you are seeing it in pmail,
 Note:    it means the file has no messages in it.\n\^_")))
 
+(defun pmail-get-coding-system ()
+  "Return a suitable coding system to use for the mail message in
+the region."
+  (let ((content-type-header (mail-fetch-field "content-type"))
+	separator)
+    (save-excursion
+      (setq separator (search-forward "\n\n")))
+    (if (and content-type-header
+	     (string-match pmail-mime-charset-pattern content-type-header))
+	(substring content-type-header (match-beginning 1) (match-end 1))
+      'undecided)))
+
 ;; Decode Babyl formatted part at the head of current buffer by
 ;; pmail-file-coding-system, or if it is nil, do auto conversion.
 
@@ -1036,7 +1048,7 @@ Note:    it means the file has no messages in it.\n\^_")))
   (define-key pmail-mode-map "g"      'pmail-get-new-mail)
   (define-key pmail-mode-map "h"      'pmail-summary)
   (define-key pmail-mode-map "i"      'pmail-input)
-  (define-key pmail-mode-map "j"      'pmail-show-message)
+  (define-key pmail-mode-map "j"      'pmail-show-message-maybe)
   (define-key pmail-mode-map "k"      'pmail-kill-label)
   (define-key pmail-mode-map "l"      'pmail-summary-by-labels)
   (define-key pmail-mode-map "\e\C-h" 'pmail-summary)
@@ -1252,7 +1264,7 @@ Instead, these commands are available:
 \\[pmail-previous-message]	Move to Previous message whether deleted or not.
 \\[pmail-first-message]	Move to the first message in Pmail file.
 \\[pmail-last-message]	Move to the last message in Pmail file.
-\\[pmail-show-message]	Jump to message specified by numeric position in file.
+\\[pmail-show-message-maybe]	Jump to message specified by numeric position in file.
 \\[pmail-search]	Search for string and show message it is found in.
 \\[pmail-delete-forward]	Delete this message, move to next nondeleted.
 \\[pmail-delete-backward]	Delete this message, move to previous nondeleted.
@@ -1298,7 +1310,7 @@ Instead, these commands are available:
 	(goto-char (point-max))
 	(set-buffer-multibyte t)))
     (pmail-set-message-counters)
-    (pmail-show-message pmail-total-messages)
+    (pmail-show-message-maybe pmail-total-messages)
     (when finding-pmail-file
       (when pmail-display-summary
 	(pmail-summary))
@@ -1339,7 +1351,10 @@ Instead, these commands are available:
   (make-local-variable 'pmail-buffer)
   (setq pmail-buffer (current-buffer))
   (make-local-variable 'pmail-view-buffer)
-  (setq pmail-view-buffer (pmail-generate-viewer-buffer))
+  (save-excursion
+    (setq pmail-view-buffer (pmail-generate-viewer-buffer))
+    (set-buffer pmail-view-buffer)
+    (set-buffer-multibyte t))
   (make-local-variable 'pmail-summary-buffer)
   (make-local-variable 'pmail-summary-vector)
   (make-local-variable 'pmail-current-message)
@@ -1421,7 +1436,7 @@ Instead, these commands are available:
 	  (set-buffer-multibyte t))
       (goto-char (point-max))
       (pmail-set-message-counters)
-      (pmail-show-message pmail-total-messages)
+      (pmail-show-message-maybe pmail-total-messages)
       (run-hooks 'pmail-mode-hook))))
 
 ;; Return a list of files from this buffer's Mail: option.
@@ -1501,7 +1516,7 @@ original copy."
     (goto-char (pmail-msgend pmail-current-message))
     (insert string)
     (pmail-forget-messages)
-    (pmail-show-message number)
+    (pmail-show-message-maybe number)
     (message "Message duplicated")))
 
 ;;;###autoload
@@ -1774,12 +1789,12 @@ It returns t if it got any new messages."
 
 		;; Move to the first new message
 		;; unless we have other unseen messages before it.
-		(pmail-show-message (pmail-first-unseen-message))
+		(pmail-show-message-maybe (pmail-first-unseen-message))
 		(run-hooks 'pmail-after-get-new-mail-hook)
 		(setq found t))))
 	  found)
       ;; Don't leave the buffer screwed up if we get a disk-full error.
-      (or found (pmail-show-message)))))
+      (or found (pmail-show-message-maybe)))))
 
 (defun pmail-parse-url (file)
   "Parse the supplied URL. Return (list MAILBOX-NAME REMOTE PASSWORD GOT-PASSWORD)
@@ -1976,13 +1991,13 @@ is non-nil if the user has supplied the password interactively.
 
 ;; Decode the region specified by FROM and TO by CODING.
 ;; If CODING is nil or an invalid coding system, decode by `undecided'.
-(defun pmail-decode-region (from to coding)
+(defun pmail-decode-region (from to coding &optional destination)
   (if (or (not coding) (not (coding-system-p coding)))
       (setq coding 'undecided))
   ;; Use -dos decoding, to remove ^M characters left from base64 or
   ;; rogue qp-encoded text.
-  (decode-coding-region from to
-			(coding-system-change-eol-conversion coding 1))
+  (decode-coding-region
+   from to (coding-system-change-eol-conversion coding 1) destination)
   ;; Don't reveal the fact we used -dos decoding, as users generally
   ;; will not expect the PMAIL buffer to use DOS EOL format.
   (setq buffer-file-coding-system
@@ -2382,8 +2397,7 @@ those header fields whose names match that regexp.  Otherwise,
 copy all header fields whose names do not match
 `rmail-ignored-headers' (unless they also match
 `rmail-nonignored-headers')."
-  (let ((result "")
-	(header-start-regexp "\n[^ \t]")
+  (let ((header-start-regexp "\n[^ \t]")
 	lim)
     (with-current-buffer pmail-buffer
       (when (search-forward "\n\n" nil t)
@@ -2398,7 +2412,7 @@ copy all header fields whose names do not match
 	  (cond
 	   ;; Handle the case where all headers should be copied.
 	   ((eq pmail-header-style 'full)
-	    (setq result (buffer-substring beg (point-max))))
+	    (prepend-to-buffer pmail-view-buffer beg (point-max)))
 	   ;; Handle the case where the headers matching the diplayed
 	   ;; headers regexp should be copied.
 	   ((and pmail-displayed-headers (null ignored-headers))
@@ -2408,7 +2422,7 @@ copy all header fields whose names do not match
 			      (1+ (match-beginning 0))
 			    (point-max))))
 	      (when (looking-at pmail-displayed-headers)
-		(setq result (concat result (buffer-substring (point) lim))))
+		(append-to-buffer pmail-view-buffer (point) lim))
 	      (goto-char lim)))
 	   ;; Handle the ignored headers.
 	   ((or ignored-headers (setq ignored-headers pmail-ignored-headers))
@@ -2420,19 +2434,9 @@ copy all header fields whose names do not match
 	      (if (and (looking-at ignored-headers)
 		       (not (looking-at pmail-nonignored-headers)))
 		  (goto-char lim)
-		(setq result (concat result (buffer-substring (point) lim)))
+		(append-to-buffer pmail-view-buffer (point) lim)
 		(goto-char lim))))
-	   (t (error "No headers selected for display!"))))))
-    result))
-
-(defun pmail-copy-body (beg end)
-  "Return the message body to be displayed in the view buffer.
-BEG and END marks the start and end positions of the message in
-the mail buffer."
-  (with-current-buffer pmail-buffer
-    (if (search-forward "\n\n" nil t)
-	(buffer-substring (point) end)
-      (error "Invalid message format: no header/body separator"))))
+	   (t (error "No headers selected for display!"))))))))
 
 (defun pmail-toggle-header (&optional arg)
   "Show original message header if pruned header currently shown, or vice versa.
@@ -2444,7 +2448,7 @@ otherwise, show it in full."
 	 ((and (numberp arg) (> arg 0)) 'normal)
 	 ((eq pmail-header-style 'full) 'normal)
 	 (t 'full)))
-  (pmail-show-message))
+  (pmail-show-message-maybe))
 
 ;; Lifted from repos-count-screen-lines.
 ;; Return number of screen lines between START and END.
@@ -2750,7 +2754,7 @@ the message.  Point is at the beginning of the message."
   (let ((pmail-show-message-hook
 	 (list (function (lambda ()
 			   (goto-char (point-min)))))))
-    (pmail-show-message pmail-current-message)))
+    (pmail-show-message-maybe pmail-current-message)))
 
 (defun pmail-end-of-message ()
   "Show bottom of current message."
@@ -2759,7 +2763,7 @@ the message.  Point is at the beginning of the message."
 	 (list (function (lambda ()
 			   (goto-char (point-max))
 			   (recenter (1- (window-height))))))))
-    (pmail-show-message pmail-current-message)))
+    (pmail-show-message-maybe pmail-current-message)))
 
 (defun pmail-unknown-mail-followup-to ()
   "Handle a \"Mail-Followup-To\" header field with an unknown mailing list.
@@ -2801,7 +2805,7 @@ If so restore the actual mbox message collection."
       (buffer-swap-text pmail-view-buffer)
       (setq pmail-buffers-swapped-p nil))))
 
-(defun pmail-show-message (&optional n no-summary)
+(defun pmail-show-message-maybe (&optional n no-summary)
   "Show message number N (prefix argument), counting from start of file.
 If summary buffer is currently displayed, update current message there also."
   (interactive "p")
@@ -2816,39 +2820,10 @@ If summary buffer is currently displayed, update current message there also."
 	  (with-current-buffer pmail-view-buffer
 	    (erase-buffer)
 	    (setq blurb "No mail.")))
-      (if (not n)
-	  (setq n pmail-current-message)
-	(cond ((<= n 0)
-	       (setq n 1
-		     pmail-current-message 1
-		     blurb "No previous message"))
-	      ((> n pmail-total-messages)
-	       (setq n pmail-total-messages
-		     pmail-current-message pmail-total-messages
-		     blurb "No following message"))
-	      (t
-	       (setq pmail-current-message n))))
-      (let ((buf pmail-buffer)
-	    (beg (pmail-msgbeg n))
-	    (end (pmail-msgend n))
-	    headers body)
-	(goto-char beg)
-	(setq headers (pmail-copy-headers beg end)
-	      body (pmail-copy-body beg end))
-	(pmail-set-attribute pmail-unseen-attr-index nil)
-	(with-current-buffer pmail-view-buffer
-	  (erase-buffer)
-	  (insert headers "\n")
-	  (pmail-highlight-headers)
-	  (insert body)
-	  (goto-char (point-min)))))
+      (setq blurb (pmail-show-message n)))
     (when mail-mailing-lists
       (pmail-unknown-mail-followup-to))
     (if transient-mark-mode (deactivate-mark))
-    (pmail-display-labels)
-    (buffer-swap-text pmail-view-buffer)
-    (setq pmail-buffers-swapped-p t)
-    (run-hooks 'pmail-show-message-hook)
     ;; If there is a summary buffer, try to move to this message
     ;; in that buffer.  But don't complain if this message
     ;; is not mentioned in the summary.
@@ -2862,6 +2837,93 @@ If summary buffer is currently displayed, update current message there also."
       (pmail-auto-file))
     (if blurb
 	(message blurb))))
+
+(defun pmail-is-text-p ()
+  "Return t if the region contains a text message, nil
+otherwise."
+  (save-excursion
+    (let ((text-regexp "\\(text\\|message\\)/")
+	  (content-type-header (mail-fetch-field "content-type")))
+      ;; The message is text if either there is no content type header
+      ;; (a default of "text/plain; charset=US-ASCII" is assumed) or
+      ;; the base content type is either text or message.
+      (or (not content-type-header)
+	  (string-match text-regexp content-type-header)))))
+
+(defun pmail-show-message (&optional msg)
+  "Show message MSG using a special view buffer.
+Return text to display in the minibuffer if MSG is out of
+range (displaying a reasonable choice as well), nil otherwise.
+The current mail message becomes the message displayed."
+  (let ((mbox-buf pmail-buffer)
+	(view-buf pmail-view-buffer)
+	blurb beg end body-start coding-system character-coding is-text-message)
+    (if (not msg)
+	(setq msg pmail-current-message))
+    (cond ((<= msg 0)
+	   (setq msg 1
+		 pmail-current-message 1
+		 blurb "No previous message"))
+	  ((> msg pmail-total-messages)
+	   (setq msg pmail-total-messages
+		 pmail-current-message pmail-total-messages
+		 blurb "No following message"))
+	  (t (setq pmail-current-message msg)))
+    (with-current-buffer pmail-buffer
+      ;; Mark the message as seen, bracket the message in the mail
+      ;; buffer and determine the coding system the transfer encoding.
+      (pmail-set-attribute pmail-unseen-attr-index nil)
+      (setq beg (pmail-msgbeg msg)
+	    end (pmail-msgend msg))
+      (widen)
+      (narrow-to-region beg end)
+      (goto-char beg)
+      (setq body-start (search-forward "\n\n" nil t))
+      (narrow-to-region beg (point))
+      (goto-char beg)
+      (setq character-coding (mail-fetch-field "content-transfer-encoding")
+	    is-text-message (pmail-is-text-p)
+	    coding-system (pmail-get-coding-system))
+      (widen)
+      (narrow-to-region beg end)
+      ;; Decode the message body into an empty view buffer using a
+      ;; unibyte temporary buffer where the character decoding takes
+      ;; place.
+      (with-current-buffer pmail-view-buffer
+	(erase-buffer))
+      (with-temp-buffer
+	(set-buffer-multibyte nil)
+	(insert-buffer-substring mbox-buf body-start end)
+	(cond
+	 ((string= character-coding "quoted-printable")
+	  (mail-unquote-printable-region (point-min) (point-max)))
+	 ((and (string= character-coding "base64") is-text-message)
+	  (base64-decode-region (point-min) (point-max)))
+	 ((eq character-coding 'uuencode)
+	  (error "Not supported yet."))
+	 (t))
+	(pmail-decode-region (point-min) (point-max) coding-system view-buf))
+      ;; Copy the headers to the front of the message view buffer.
+      (with-current-buffer pmail-view-buffer
+	(goto-char (point-min)))
+      (pmail-copy-headers beg end)
+      ;; Add the separator (blank line) between headers and body;
+      ;; highlight the message, activate any URL like text and add
+      ;; special highlighting for and quoted material.
+      (with-current-buffer pmail-view-buffer
+	(insert "\n")
+	(goto-char (point-min))
+	(pmail-highlight-headers)
+	;(pmail-activate-urls)
+	;(pmail-process-quoted-material)
+	)
+      ;; Update the mode-line with message status information and swap
+      ;; the view buffer/mail buffer contents.
+      (pmail-display-labels)
+      (buffer-swap-text pmail-view-buffer)
+      (setq pmail-buffers-swapped-p t)
+      (run-hooks 'pmail-show-message-hook))
+    blurb))
 
 ;; Find all occurrences of certain fields, and highlight them.
 (defun pmail-highlight-headers ()
@@ -2950,7 +3012,7 @@ With prefix arg N, moves forward N messages, or backward if N is negative."
   (interactive "p")
   (set-buffer pmail-buffer)
   (pmail-maybe-set-message-counters)
-  (pmail-show-message (+ pmail-current-message n)))
+  (pmail-show-message-maybe (+ pmail-current-message n)))
 
 (defun pmail-previous-message (n)
   "Show previous message whether deleted or not.
@@ -2978,7 +3040,7 @@ Returns t if a new message is being shown, nil otherwise."
       (if (not (pmail-message-deleted-p current))
 	  (setq lastwin current n (1+ n))))
     (if (/= lastwin pmail-current-message)
- 	(progn (pmail-show-message lastwin)
+ 	(progn (pmail-show-message-maybe lastwin)
  	       t)
       (if (< n 0)
 	  (message "No previous nondeleted message"))
@@ -2997,13 +3059,13 @@ or forward if N is negative."
   "Show first message in file."
   (interactive)
   (pmail-maybe-set-message-counters)
-  (pmail-show-message 1))
+  (pmail-show-message-maybe (< 1 pmail-total-messages)))
 
 (defun pmail-last-message ()
   "Show last message in file."
   (interactive)
   (pmail-maybe-set-message-counters)
-  (pmail-show-message pmail-total-messages))
+  (pmail-show-message-maybe pmail-total-messages))
 
 (defun pmail-what-message ()
   (let ((where (point))
@@ -3113,7 +3175,7 @@ Interactively, empty argument means use same regexp used last time."
 	    (setq n (+ n (if reversep 1 -1)))))
       (if win
 	  (progn
-	    (pmail-show-message msg)
+	    (pmail-show-message-maybe msg)
 	    ;; Search forward (if this is a normal search) or backward
 	    ;; (if this is a reverse search) through this message to
 	    ;; position point.  This search may fail because REGEXP
@@ -3245,7 +3307,7 @@ If N is negative, go backwards instead."
 	    (if done (setq found i)))
 	  (setq n (if forward (1- n) (1+ n))))))
     (if found
-	(pmail-show-message found)
+	(pmail-show-message-maybe found)
       (error "No %s message with same subject"
 	     (if forward "following" "previous")))))
 
@@ -3281,7 +3343,7 @@ If N is negative, go forwards instead."
     (if (= msg 0)
 	(error "No previous deleted message")
       (if (/= msg pmail-current-message)
-	  (pmail-show-message msg))
+	  (pmail-show-message-maybe msg))
       (pmail-set-attribute pmail-deleted-attr-index nil)
       (if (pmail-summary-exists)
 	  (save-excursion
@@ -3416,8 +3478,7 @@ See also user-option `pmail-confirm-expunge'."
       (if (not win)
 	  (narrow-to-region (- (buffer-size) omin) (- (buffer-size) omax)))
       (if (not dont-show)
-	  (pmail-show-message
-	   (if (zerop pmail-current-message) 1 nil)))
+	  (pmail-show-message-maybe (< pmail-current-message pmail-total-messages)))
       (pmail-swap-buffers-maybe)
       (if pmail-enable-mime
 	  (goto-char (+ (point-min) opoint))
