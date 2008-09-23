@@ -1,3 +1,26 @@
+2008-09-23  Paul Reilly  <pmr@pajato.com>
+
+	* pmail.el:
+	First pass at handling decoding the mbox message into the view buffer.
+
+2008-09-16  Paul Reilly  <pmr@pajato.com>
+
+	* subdirs.el: Remove file.
+
+2008-09-15  author  <author@lilly>
+
+	* ChangeLog.pmail: *** empty log message ***
+
+	* pmail.el:
+	The Rmail/mbox merge has been abandoned in favor of a restart using
+	the current rmail.el file.  A comprehensive list of changes will be
+	supplied when pmail.el is morphed back into rmail.el
+
+	The current status is that pmail.el supports basic Rmail navigation
+	(no summary support) and shows the current message in a special
+	buffer using buffer-swap-text.  No decoding is done yet.  That is the
+	next step.
+
 2008-09-15  Paul Reilly  <pmr@pajato.com>
 
 	* pmail.el:
