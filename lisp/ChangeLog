@@ -1,3 +1,8 @@
+2008-09-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/tex-mode.el (latex-find-indent): Try to handle
+	escaped close parens correctly.  (Bug#954)
+
 2008-09-22  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* play/fortune.el (fortune-in-buffer): Fix a bug which forced
