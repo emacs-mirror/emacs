@@ -2586,12 +2586,13 @@ See also `with-temp-file' and `with-output-to-string'."
   (declare (indent 0) (debug t))
   `(let ((standard-output
 	  (get-buffer-create (generate-new-buffer-name " *string-output*"))))
-     (let ((standard-output standard-output))
-       ,@body)
-     (with-current-buffer standard-output
-       (prog1
-	   (buffer-string)
-	 (kill-buffer nil)))))
+     (unwind-protect
+	 (progn
+	   (let ((standard-output standard-output))
+	     ,@body)
+	   (with-current-buffer standard-output
+	     (buffer-string)))
+       (kill-buffer standard-output))))
 
 (defmacro with-local-quit (&rest body)
   "Execute BODY, allowing quits to terminate BODY but not escape further.
