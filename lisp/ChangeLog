@@ -1,3 +1,9 @@
+2008-09-23  Markus Sauermann <markus@sauermann-consulting.de>  (tiny change)
+
+	* emacs-lisp/emacslisp-mode.el (calculate-lisp-indent): Fix
+	indentation problem with keyword symbols when a list starts with
+	,@ or spaces.  (Bug#1012)
+
 2008-09-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/tex-mode.el (latex-find-indent): Try to handle
