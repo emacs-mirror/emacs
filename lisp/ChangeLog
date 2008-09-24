@@ -1,5 +1,8 @@
 2008-09-24  Chong Yidong  <cyd@stupidchicken.com>
 
+	* server.el (server-buffer-done): Avoid changing the buffer when
+	deleting the client's frame (bug#640).
+
 	* vc.el (vc-default-mark-resolved): New function.
 
 2008-09-24  Stephen Berman  <stephen.berman@gmx.net>
