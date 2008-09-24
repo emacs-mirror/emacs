@@ -6892,6 +6892,10 @@ init_display ()
     }
 #endif
 
+  /* If running as a daemon, no need to initialize any frames/terminal. */
+  if (is_daemon)
+    return;
+
   /* If no window system has been specified, try to use the terminal.  */
   if (! isatty (0))
     {

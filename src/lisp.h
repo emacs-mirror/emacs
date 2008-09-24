@@ -3118,6 +3118,8 @@ void synchronize_system_time_locale P_ ((void));
 void shut_down_emacs P_ ((int, int, Lisp_Object));
 /* Nonzero means don't do interactive redisplay and don't change tty modes */
 extern int noninteractive;
+/* Nonzero means Emacs was started as a daemon.  */
+extern int is_daemon;
 /* Nonzero means don't do use window-system-specific display code */
 extern int inhibit_window_system;
 /* Nonzero means that a filter or a sentinel is running.  */

@@ -1,3 +1,9 @@
+2008-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h (is_daemon): Declare.
+	* dispnew.c (init_display): Do not try to initialize the terminal
+	when running as a daemon.
+
 2008-09-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsfns.m (compute_tip_xy): Use x_display_pixel_width and
