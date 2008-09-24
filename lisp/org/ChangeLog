@@ -426,7 +426,7 @@
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-faces.el (org-column): Document how this face is being used
-	and why sometimes the background faces shines through.
+	and why sometimes the background faces shine through.
 
 	* org-mhe.el (org-mhe-follow-link): Improve handling of searches.
 
