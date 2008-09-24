@@ -1,3 +1,7 @@
+2008-09-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc.el (vc-default-mark-resolved): New function.
+
 2008-09-24  Stephen Berman  <stephen.berman@gmx.net>
 
 	* mail/rfc822.el (rfc822-addresses): Prevent rfc822-bad-address
