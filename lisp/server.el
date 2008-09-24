@@ -1084,7 +1084,13 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 	  ;; tell it that it is done, and forget it entirely.
 	  (unless buffers
 	    (server-log "Close" proc)
-	    (server-delete-client proc)))))
+	    (if for-killing
+		;; `server-delete-client' might delete the client's
+		;; frames, which might change the current buffer.  We
+		;; don't want that (bug#640).
+		(save-current-buffer
+		  (server-delete-client proc))
+	      (server-delete-client proc))))))
     (when (and (bufferp buffer) (buffer-name buffer))
       ;; We may or may not kill this buffer;
       ;; if we do, do not call server-buffer-done recursively
