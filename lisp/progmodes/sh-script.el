@@ -495,8 +495,13 @@ This is buffer-local in every such buffer.")
 		  :help "Set the indentation for the current line"))
 
     (define-key menu-map [sh-pair]
-      '(menu-item "Insert braces and quotes in pairs" (lambda () (interactive) (setq skeleton-pair (not skeleton-pair)))
-		  :button (:toggle . skeleton-pair)
+      '(menu-item "Insert braces and quotes in pairs"
+		  (lambda ()
+		    (interactive)
+		    (require 'skeleton)
+		    (setq skeleton-pair (not skeleton-pair)))
+		  :button (:toggle . (and (boundp 'skeleton-pair)
+					  skeleton-pair))
 		  :help "Inserting a brace or quote automatically inserts the matching pair"))
 
     (define-key menu-map [sh-s0] '("--"))
