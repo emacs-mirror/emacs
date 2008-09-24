@@ -1,5 +1,8 @@
 2008-09-24  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/sh-script.el (sh-mode-map): Don't assume that skeleton
+	is loaded.
+
 	* server.el (server-buffer-done): Avoid changing the buffer when
 	deleting the client's frame (bug#640).
 
