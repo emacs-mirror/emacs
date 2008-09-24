@@ -292,12 +292,15 @@
 	  (goto-char (point-min))
 	  (let ((list ())
 		tem
-		rfc822-address-start); this is for rfc822-bad-address
-	    (rfc822-nuke-whitespace)
-	    (while (not (eobp))
-	      (setq rfc822-address-start (point))
-	      (setq tem
-		    (catch 'address ; this is for rfc822-bad-address
+		;; This is for rfc822-bad-address.  Give it a non-nil
+		;; initial value to prevent rfc822-bad-address from
+		;; raising a wrong-type-argument error
+		(rfc822-address-start (point)))
+	    (catch 'address ; this is for rfc822-bad-address
+	      (rfc822-nuke-whitespace)
+	      (while (not (eobp))
+		(setq rfc822-address-start (point))
+		(setq tem
 		      (cond ((rfc822-looking-at ?\,)
 			     nil)
 			    ((looking-at "[][\000-\037@;:\\.>)]")
@@ -306,14 +309,14 @@
 			       (format "Strange character \\%c found"
 				       (preceding-char))))
 			    (t
-			     (rfc822-addresses-1 t)))))
-	      (cond ((null tem))
-		    ((stringp tem)
-		     (setq list (cons tem list)))
-		    (t
-		     (setq list (nconc (nreverse tem) list)))))
-	    (nreverse list)))
-      (and buf (kill-buffer buf))))))
+			     (rfc822-addresses-1 t))))
+		(cond ((null tem))
+		      ((stringp tem)
+		       (setq list (cons tem list)))
+		      (t
+		       (setq list (nconc (nreverse tem) list)))))
+	      (nreverse list))))
+	(and buf (kill-buffer buf))))))
 
 (provide 'rfc822)
 
