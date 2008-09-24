@@ -2457,6 +2457,15 @@ to provide the `find-revision' operation instead."
   (funcall update-function
            (mapcar (lambda (file) (list file default-state)) files)))
 
+(defun vc-default-mark-resolved (backend files)
+  (message
+   (substitute-command-keys
+    "Conflicts have been resolved in %s.  \
+Type \\[vc-next-action] to check in changes.")
+   (if (> (length files) 1)
+       (format "%d files" (length files))
+     "this file")))
+
 (defun vc-check-headers ()
   "Check if the current file has any headers in it."
   (interactive)
