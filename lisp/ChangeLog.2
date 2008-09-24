@@ -1239,7 +1239,7 @@
 
 1987-05-12  Richard M. Stallman  (rms@prep)
 
-	* loadefs.el (sentence-end): Treat `}' like `)'.
+	* loaddefs.el (sentence-end): Treat `}' like `)'.
 
 	* buff-menu.el (buffer-menu-mode):
 	Run buffer-menu-mode-hook.
@@ -1805,7 +1805,7 @@
 	* rmail.el (rmail-forward):
 	* sendmail.el (mail-send-and-exit): Don't count minibuffer window
 	when deciding whether there is only one window.
-	These are done by definining subroutine one-window-p in a way that
+	These are done by defining subroutine one-window-p in a way that
 	works in old versions of Emacs.
 
 1987-01-30  Richard Mlynarik  (mly@prep)
@@ -2531,7 +2531,7 @@
 	* echistory.el (electric-command-history):
 	Delete no-op `let'.
 
-	* compile.el (compile1): Flush v17 compatibility code to sett
+	* compile.el (compile1): Flush v17 compatibility code to set
 	mode-line-format.
 	* info.el (Info-set-mode-line, Info-edit): Ditto.
 	* shell.el (shell-mode, inferior-lisp-mode): Ditto.
@@ -2963,7 +2963,7 @@
 
 	* bytecomp.el:
 	Don't compile (mark) specially -- lisp code shouldn't
-	call this function very freqently.
+	call this function very frequently.
 
 	* startup.el (command-line-1):
 	(let ((load-path (cons default-directory load-path))) (load ...))
@@ -3827,7 +3827,7 @@
 
 	* outline.el: Pervasive changes; new features, changed keys.
 
-	* files.el (backup-bufer):
+	* files.el (backup-buffer):
 	If cannot write backup under normal name, write it in ~/%backup%.
 	Preserve the last-modified time when backing up by copying.
 
@@ -3983,7 +3983,7 @@
 
 1986-05-19  Richard M. Stallman  (rms@prep)
 
-	* mh-e.el (mh-get-new-mail): Handle error messages reeived from `inc'.
+	* mh-e.el (mh-get-new-mail): Handle error messages received from `inc'.
 
 1986-05-15  Richard M. Stallman  (rms@prep)
 

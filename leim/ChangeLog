@@ -497,7 +497,7 @@
 
 2004-05-10  Andreas Schwab  <schwab@suse.de>
 
-	* Makefile.in (all): Readd dependency on ${WORLD} so that lisp
+	* Makefile.in (all): Re-add dependency on ${WORLD} so that lisp
 	files are compiled when bootstrapping.
 
 2004-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -511,14 +511,14 @@
 
 2004-05-04  Kenichi Handa  <handa@m17n.org>
 
-	* Makefile.in (TIT-SOURCES): Prepend ${srcdir} to each elemnt.
+	* Makefile.in (TIT-SOURCES): Prepend ${srcdir} to each element.
 	(MISC-SOURCES): Likewise.
 
 2004-05-01  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (OTHERS): Rename from MISC.
 	(MISC): Rename from MISC-DIC.
-	(WORLD): Adjute for the above changes.
+	(WORLD): Adjust for the above changes.
 	(TIT-MISC, NON-TIT-MISC): New targets.
 	(all): Don't depend on ${WORLD}.
 	(.NOTPARALLEL, .NO_PARALLEL, ${TIT}, ${MSIC-IDC}): Remove these targets.
@@ -1092,7 +1092,7 @@
 	"japanese-hiragana", "japanese-katakana".
 	(quail-japanese-kana-state): Delete this variable.
 	(quail-japanese-toggle-kana): Don't use quail-japanese-kana-state,
-	instead check if there's any Hiraganas in the converison region.
+	instead check if there's any Hiraganas in the conversion region.
 
 2001-03-14  Kenichi Handa  <handa@mule.m17n.org>
 
@@ -1105,7 +1105,7 @@
 2001-03-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/ethiopic.el ("ethiopic"): Docstring adjusted for the
-	change of the speicial key bindings.
+	change of the special key bindings.
 
 2001-02-22  Kenichi Handa  <handa@etl.go.jp>
 
@@ -1810,7 +1810,7 @@
 
 	* quail/lrt.el (lrt-vowel-table): Some elements corrected.
 	("lao-lrt"): Doc-string of this Quail package modified.
-	Some tranlation rules added.
+	Some translation rules added.
 
 	* quail/lao.el (lao-keyboard-mapping): Some elements corrected.
 	(lao-quail-define-rules): Some translation rules corrected.
@@ -1835,7 +1835,7 @@
 1997-08-04  Valery Alexeev  <valery@domovoy.math.uga.edu>
 
 	* quail/cyrillic.el (cyrillic-translit): Doc-string of the package
-	modified.  Several tranlation rules modified.
+	modified.  Several translation rules modified.
 
 1997-08-04  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
@@ -1867,12 +1867,12 @@
 	* quail/ethiopic.el: Change Quail package name to "ethiopic".
 	(ethio-toggle-punctuation): Give "ethiopic" to quail-defrule.
 
-	* Makefile.in (TIT): New variable, contatination of TIT-GB and
+	* Makefile.in (TIT): New variable, concatenation of TIT-GB and
 	TIT-BIG5.
 	(RUN-EMACS): Do not set EMACSLOADPATH.
-	(ASIA): Include TIBEAN.
+	(ASIA): Include TIBETAN.
 	(all): Remove stamp-bytecomp from dependency list.
-	({$TIT}): New target, substitues the target ${TIT-GB} ${TIT-BIG5}.
+	({$TIT}): New target, substitutes the target ${TIT-GB} ${TIT-BIG5}.
 	(%.el): Make a link for byte-compiled file too.
 	(stamp-bytecomp): Target deleted.
 	(leim-list.el): Run Emacs with loading quail.
@@ -1894,7 +1894,7 @@
 1997-07-17  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* Makefile.in: Modified to avoid *.el files being regarded
-	as intermidiate files and deleted by GNU make.
+	as intermediate files and deleted by GNU make.
 
 	* quail/lrt.el (lrt-vowel-table): Change "ow" -> "ao", "am" -> "arm".
 	(lrt-handle-maa-sakod): Correctly handle the case that

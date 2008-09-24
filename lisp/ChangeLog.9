@@ -188,7 +188,7 @@
 	(cperl-contract-levels): Restore position.
 	(cperl-beautify-level): Likewise.
 	(cperl-beautify-regexp): Likewise.
-	(cperl-commentify): Rudimental support for length=1 runs
+	(cperl-commentify): Rudimentary support for length=1 runs.
 	(cperl-find-pods-heres): Process 1-char long REx comments too /a#/x
 	 After 4.25:
 	(cperl-commentify): Was recognizing length=2 "strings" as length=1.
@@ -341,7 +341,7 @@
 2001-10-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* master.el (master-mode): Use define-minor-mode instead of
-	easy-mmode-define-minor-mode.  Add autload cookie.
+	easy-mmode-define-minor-mode.  Add autoload cookie.
 	(Commentary): Remove the line showing how to autoload master-mode,
 	since it's always autoloaded.
 
@@ -902,7 +902,7 @@
 	(mail-do-fcc): Add a comment.
 	(mail-reply-to): Doc fix.
 	(mail-signature): Make ATPOINT optional.
-	(mail-yank-original): Use cond instead of nestled if.
+	(mail-yank-original): Use cond instead of nested if.
 
 2001-09-26  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -1620,7 +1620,7 @@
 
 	* comint.el (comint-send-input): Add `inhibit-line-move-field-capture'
 	property to input-terminating `boundary' overlays to avoid
-	line-move wierdness.
+	line-move weirdness.
 
 2001-08-16  Gerd Moellmann  <gerd@gnu.org>
 
@@ -4204,7 +4204,7 @@
 	depth 8.
 
 	* emacs-lisp/checkdoc.el (checkdoc-common-verbs-wrong-voice):
-	Add an antry for ``converts''.
+	Add an entry for ``converts''.
 
 	* language/slovak.el ("Slovak"): Add documentation string.
 	From Pavel@Janik.cz (Pavel Janík).
@@ -4953,7 +4953,7 @@
 	<lyongu@yahoo.com>.
 	(term-set-escape-char): Bind M-x to execute-extended-command in
 	term-raw-escape-map.
-	(term-move-columns): Don't try to move to negagive column.
+	(term-move-columns): Don't try to move to negative column.
 	(term-emulate-terminal): Insert a string before deleting a text to
 	overwrite.
 
@@ -6630,7 +6630,7 @@
 	XEmacs.  Return temporary faces instead of cons cells for XEmacs.
 	(ansi-color-make-color-map): Use ansi-color-make-face.
 	(ansi-color-get-face): Avoid face text property '(nil) as results
-	in an errow for XEmacs.
+	in an error for XEmacs.
 
 2000-01-09  Alex Schroeder  <alex@gnu.org>
 
@@ -7080,7 +7080,7 @@
 
 2000-12-21  Dave Pearson  <davep@davep.org>
 
-	* quickurl.el: Commentry change, I've moved my web site.
+	* quickurl.el: Commentary change, I've moved my web site.
 
 2000-12-21  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
@@ -7955,7 +7955,7 @@
 	(antlr-no-action-keywords): New constant with value nil.
 	(antlr-font-lock-keywords-alist): Use it.  Old value would break
 	syntax highlighting in Emacs-21.0.
-	(antlr-default-directory): Emacs/XEmacs dependend function.
+	(antlr-default-directory): Emacs/XEmacs dependent function.
 	(antlr-read-shell-command): Ditto.
 	(antlr-with-displaying-help-buffer): Ditto.
 
@@ -8337,7 +8337,7 @@
 	Use provide.
 
 	* cus-edit.el (custom-buffer-create-internal): Save some consing.
-	(custom-variable-set): Improve validation error mesage.
+	(custom-variable-set): Improve validation error message.
 
 	* rect.el (string-rectangle): Revert last change.
 	(string-rectangle-line): New arg DELETE.
@@ -9751,7 +9751,7 @@
 
 2000-10-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* progmodes/cmacexp.el: Update the euthor's email address.
+	* progmodes/cmacexp.el: Update the author's email address.
 
 2000-10-24  Miles Bader  <miles@lsi.nec.co.jp>
 
@@ -14185,7 +14185,7 @@
 2000-08-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* terminal.el (terminal-emulator): Fix args to `concat'.  Now
-	concat doesn't accept interger.
+	concat doesn't accept integer.
 
 	* international/kkc.el: Remove SKK from Keywords.  Require
 	ja-dic-utl instead of skkdic-utl.
@@ -14395,7 +14395,7 @@
 	(ispell-skip-html): Renamed from ispell-skip-sgml.
 	(ispell-begin-skip-region-regexp, ispell-skip-region)
 	(ispell-minor-check): Improved html skipping support to skip across
-	code, and recognize `&' commands without propper `;' syntax;
+	code, and recognize `&' commands without proper `;' syntax;
 	(ispell-process-line): Fix alignment error when manually
 	correcting spelling.
 	(ispell): Fix comment string.
@@ -15531,7 +15531,7 @@
 	paragraphs on the first or last line of a file.
 	(ada-format-paramlist): Fix handling of default parameter values.
 	(ada-get-body-name): New function.
-	(ada-get-current-indent): Optimized by searchling directly for an
+	(ada-get-current-indent): Optimized by searching directly for an
 	existing generic part or a statement outside of it.  Handle
 	ada-indent-align-comments when indenting comments Replaced some
 	regexps by testing directly the next character. This results in a
@@ -15596,7 +15596,7 @@
 	(ada-compile): Removed.
 	(ada-compile-application, ada-compile-current, ada-check-current):
 	Set the compilation-search-path so that compile.el automatically
-	finds the sources in src_dir.  Automatic scrollong of the
+	finds the sources in src_dir.  Automatic scrolling of the
 	compilation buffer.  C-uC-cC-c asks for confirmation before
 	compiling
 	(ada-compile-current): New parameter, prj-field
@@ -16812,7 +16812,7 @@
 
 	* international/mule.el
 	(after-insert-file-set-buffer-file-coding-system): If the buffer
-	size is greater than INSERTED, judget that we are not visiting.
+	size is greater than INSERTED, judge that we are not visiting.
 
 2000-06-07  Rajesh Vaidheeswarran  <rv@gnu.org>
 
@@ -17493,7 +17493,7 @@
 
 	* international/quail.el (quail-show-guidance-buf): Set
 	current-input-method of the guidance buffer to the name of the
-	curren input method.
+	current input method.
 
 2000-05-23  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -17680,7 +17680,7 @@
 	charsets eight-bit-control and eight-bit-graphic.
 	(list-iso-charset-chars): Likewise.
 	(list-block-of-chars): If CHARSET is not chat-table, insert 8-bit
-	charactes as is.  Use indent-to to align characters.
+	characters as is.  Use indent-to to align characters.
 
 	* international/mule-cmds.el (find-multibyte-characters): Never
 	exclude charsets eight-bit-control and eight-bit-graphic.
@@ -18327,7 +18327,7 @@
 2000-04-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (clone-indirect-buffer-other-window): New command.
-	(clone-indirect-buffer): Add optional arg NORECROD.
+	(clone-indirect-buffer): Add optional arg NORECORD.
 	(toplevel): Bind `C-x 4 c' to clone-indirect-buffer-other-window.
 
 	* help.el (resize-temp-buffer-window): Use count-screen-lines.
@@ -18474,7 +18474,7 @@
 2000-04-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/ispell.el (ispell-menu-map): Menu items rearranged and
-	converted to the new menu-item format, names silightly changed,
+	converted to the new menu-item format, names slightly changed,
 	help strings added.
 
 	Support for spelling without async subprocesses:
@@ -19031,7 +19031,7 @@
 	instead the corresponding data is stored in the default fontset.
 	(register-alternate-fontnames): Function removed.
 	(resolved-ascii-font): Variable removed.
-	(x-compose-font-name): Ignore the second argument REDOCE.
+	(x-compose-font-name): Ignore the second argument REDUCE.
 	(x-complement-fontset-spec): Complement only an ASCII font and
 	element for those charsets than can use that ASCII font.
 	(generate-fontset-menu): Don't refer to global-fontset-alist,
@@ -20600,7 +20600,7 @@
 	(ps-spool-config): Initialization fix.
 	(ps-print-prologue-1, ps-print-prologue-2)
 	(ps-print-duplex-feature): PostScript code moved to separated file.
-	(ps-background-image): Little code reformating.
+	(ps-background-image): Little code reformatting.
 	(ps-begin-file, ps-begin-job): Fix code.
 	(ps-postscript-code-directory, ps-mark-code-directory): New vars.
 	(ps-prologue-file): New fun.

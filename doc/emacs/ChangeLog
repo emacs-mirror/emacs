@@ -2651,7 +2651,7 @@
 
 2006-01-29  Richard M. Stallman  <rms@gnu.org>
 
-	* screen.texi: Minor cleaups.
+	* screen.texi: Minor cleanups.
 	(Screen): Clean up the intro paragraphs.
 	(Mode Line): Lots of rewriting.  Handle frame-name better.
 	eol-mnemonic-... vars moved out.
@@ -2839,7 +2839,7 @@
 2005-12-09  Kim F. Storm  <storm@cua.dk>
 
 	* killing.texi (CUA Bindings): Describe how to use C-x and C-c as
-	prefix keys even when mark is active.  Decribe that RET moves
+	prefix keys even when mark is active.  Describe that RET moves
 	cursor to next corner in rectangle; clarify insert around rectangle.
 
 2005-12-08  Luc Teirlinck  <teirllm@auburn.edu>
@@ -3382,7 +3382,7 @@
 	(Language Environments): List all language environments.
 	Intlfonts contains fonts for most supported scripts, not all..
 	(Select Input Method): Refer to C-u C-x = to see how to type to
-	input a specifc character.
+	input a specific character.
 	(Recognize Coding): Fix typo, china-iso-8bit -> chinese-iso-8bit.
 
 2005-06-23  Juanma Barranquero  <lekktu@gmail.com>
@@ -4284,7 +4284,7 @@
 	of list-colors-display.  Add a pointer to the X docs about colors.
 
 	* cmdargs.texi (Colors): Mention 16-, 88- and 256-color modes.
-	Impove docs of list-colors-display.
+	Improve docs of list-colors-display.
 
 2005-02-03  Lute Kamstra  <lute@gnu.org>
 
@@ -4498,7 +4498,7 @@
 	* cmdargs.texi, doclicense.texi, xresources.texi, emacs.texi:
 	* entering.texi: Rename Command Line to Emacs Invocation.
 
-	* misc.texi (Term Mode): Correcty describe C-c.
+	* misc.texi (Term Mode): Correctly describe C-c.
 
 	* custom.texi (Easy Customization): Move up to section level,
 	before Variables.  Avoid using the term "variable"; say "option".
@@ -4943,7 +4943,7 @@
 2004-05-29  Alan Mackenzie  <acm@muc.de>
 
 	* programs.texi: Update for CC Mode 5.30 and incidental amendments.
-	("AWK"): Is consistently thus spelt throughout.
+	("AWK"): Is consistently thus spelled throughout.
 	(AWK, Pike): Document as "C-like modes".
 	(@kbd{M-j}): Document as alternative to @kbd{C-M-j}.
 	(M-x man): Supersedes M-x manual-entry.

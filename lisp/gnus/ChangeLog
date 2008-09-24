@@ -8404,7 +8404,7 @@
 	* gnus-art.el (gnus-mime-inline-part): Decode parts according to
 	the coding cookies; decompress compressed parts.
 
-	* mml.el (mml-generate-mime-1): Add the charaset parameter according
+	* mml.el (mml-generate-mime-1): Add the charset parameter according
 	to the value which a user specified manually or the coding cookie.
 
 	* mm-util.el (mm-string-to-multibyte): New function.

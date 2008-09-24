@@ -99,7 +99,7 @@
 	(bookmark-insert-buffer-name): Doc string.
 	(bookmark-set): Take optional NAME argument.
 	(bookmark-bmenu-select): Use member to test for string's presence.
-	Use a more efficent test at end, as suggested by Mikio Nakajima.
+	Use a more efficient test at end, as suggested by Mikio Nakajima.
 
 1995-06-17  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -375,7 +375,7 @@
 	* term.el (term-escape-char, term-set-escape-char): Add doc-string.
 	(term-mouse-paste): Add XEmacs support.
 
-	* term.el: Various speed enhencements:
+	* term.el: Various speed enhancements:
 	(term-handle-scroll): Don't clear term-current-row; maybe adjust it.
 	(term-down): Don't call term-adjust-current-row-cache if we've
 	done term-handle-scroll.
@@ -919,7 +919,7 @@
 	(ada-create-syntax-table): Correct comments explaining use of 2nd
 	syntax table.  Added creation of ada-mode-symbol-syntax-table
 	with '_' as word constituent.
-	(ada-adjust-case): Add test, if symbol is preceeded by a "'".
+	(ada-adjust-case): Add test, if symbol is preceded by a "'".
 	If true, change case according to ada-case-attribute.
 	(ada-which-function-are-we-in): New routine.  Save name of the current
 	function in the old buffer; we can place cursor now at the same
@@ -3260,7 +3260,7 @@
 
 1995-02-13  Jeff Dwork  <jeff.dwork@amd.com>
 
-	* ehelp.el (electric-help-map): Use supress-keymap instead of
+	* ehelp.el (electric-help-map): Use suppress-keymap instead of
 	filling keymap with undefined commands.  Bind R like r.
 	Substitute electric-command-apropos for command-apropos.
 	(electric-apropos): New function.
@@ -3414,11 +3414,11 @@
 	More robust checking of parameter to make-string.
 	(term-update-mode-line): New function.  Call it whenever we change
 	char/line/paging mode.  Now includes "page" in mode-line-process
-	if paging is abled.
+	if paging is enabled.
 
 	* term.el: Remove causes for byte-compilation to complain:
 	(term-terminal-pos): Declare x and y in let-binding.
-	(term-send-invisible): Remove bogus second "iteractive" call.
+	(term-send-invisible): Remove bogus second "interactive" call.
 	(term-*): Provide defvars for lots of buffer-local variables.
 	(term-mode): Make comments and initial value setting from
 	here to the corresponding defvar.
@@ -3673,7 +3673,7 @@
 	(find-tag-file-order): New variable added.  This contains the name of
 	the function used to qualify a matched filename.
 	(last-tag-file): New variable; stores the filename looked for via
-	find-tag fmaily of functions.
+	find-tag family of functions.
 	(find-tag-in-order): In case tag searched for is a file, don't do
 	anything fancy to locate position of tag in file.  Just seek to
 	beginning of file.
@@ -4501,7 +4501,7 @@
 	(reporter-status-message, reporter-status-count): New variables.
 
 	* reporter.el (reporter-update-status, reporter-beautify-list)
-	reporter-dump-variable): Now smarter about formating variables
+	reporter-dump-variable): Now smarter about formatting variables
 	with list values.  Checks the value of reporter-dont-compact-list.
 
 1994-12-23  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -4512,7 +4512,7 @@
 1994-12-22  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* bibtex.el (bibtex-string, bibtex-preamble): Use forward-line.
-	(sort-subr): Don't call autload for this--that's done in loaddefs.el.
+	(sort-subr): Don't call autoload for this--that's done in loaddefs.el.
 	(bibtex-mode): Add autoload cookie.
 
 	* server.el (server-switch-buffer): Cope with dead frames and windows.
@@ -4628,7 +4628,7 @@
 	keys).
 	(bibtex-mode-map): Function narrow-to-bibtex-entry and counterpart
 	widen and function hide-bibtex-entry-bodies and counterpart
-	show-all bounded to appropriate local keys.
+	show-all bound to appropriate local keys.
 	(bibtex-abbrev-table): Deleted
 	(bibtex-current-entry-label, put-string-on-kill-ring): Deleted
 	(AUCTeX provides all the functionality needed for citation
@@ -4637,7 +4637,7 @@
 	bibtex-clean-entry): Hacked for speed (bibtex-pop-previous and
 	bibtex-pop-next were to slow for larger BibTeX files).
 	(bibtex-pop-previous, bibtex-pop-next): Delimiters from previous
-	or next entry are changed to actual delimters if necessary.
+	or next entry are changed to actual delimiters if necessary.
 	(bibtex-entry): Fixed bug (False entry wasn't reported in error
 	message if bibtex-entry was called with undefined reference name).
 	(bibtex-entry-field-alist, bibtex-entry, bibtex-make-field,
@@ -4661,7 +4661,7 @@
 	(bibtex-clean-entry): If optional field crossref is empty or
 	missing, former optional fields (if bibtex-include-OPTcrossref was
 	t) are necessary again.  bibtex-clean-entry complains if they are
-	empty but not if they are missing, so you can intenionally omit
+	empty but not if they are missing, so you can intentionally omit
 	them, e. g. for a pseudo @Journal entry (needed for
 	crossreferences) made out of an @article with missing non-optional
 	fields.
@@ -5507,7 +5507,7 @@
 
 1994-10-26  Michael Ernst  <mernst@research.microsoft.com>
 
-	* ispell.el (ispell-message-text-end): Match Postcript 3 like 2.
+	* ispell.el (ispell-message-text-end): Match Postscript 3 like 2.
 
 1994-10-26  Ed Reingold  <reingold@albert.gnu.ai.mit.edu>
 
@@ -5844,7 +5844,7 @@
 
 	* hilit19.el (hilit-set-mode-patterns - lisp-mode): Fix regexp
 	for 'defconstant' that leads to an infinite loop.
-	Hilight the 'list' keyword.
+	Highlight the 'list' keyword.
 
 1994-10-13  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -5991,7 +5991,7 @@
 
 1994-10-11  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* hilit19.el (calendar-mode): Delete the regexps for diary, hollidays.
+	* hilit19.el (calendar-mode): Delete the regexps for diary, holidays.
 
 	* tex-mode.el (compare-windows-whitespace): Eliminate initial value.
 
@@ -6622,7 +6622,7 @@
 	(c-get-offset): Accept ++ and -- symbols.
 
 	* cc-mode.el (c-guess-basic-syntax):
-	CASE 9C: added small performance improvment to c-in-literal call.
+	CASE 9C: added small performance improvement to c-in-literal call.
 
 	* cc-mode.el (c-beginning-of-statement-1): Use c-in-literal-cache,
 	and limit backscanning in CASE 5 to known, non-literal position.
@@ -7328,7 +7328,7 @@
 1994-09-01  Espen Skoglund  (espensk@tklab1.cs.uit.no)
 
 	* pascal.el (pascal-indent-declaration): Indent correctly
-	when record blocks are used within parameterlists.
+	when record blocks are used within parameter lists.
 	(pascal-declaration-beg): Strange -0 argument removed.
 	(pascal-type-completion): Fix typo in regexp.
 	(pascal-get-lineup-indent): Use match-end instead of end-of-line.

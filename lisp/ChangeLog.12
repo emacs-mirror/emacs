@@ -1080,7 +1080,7 @@
 	(xml-parse-dtd, xml-parse-elem-type, xml-substitute-special):
 	Return to use of the -no-properties variants.  There was
 	consensus on emacs-devel that the speed of these variants was
-	prefered since we are usually parsing files (from the internet
+	preferred since we are usually parsing files (from the internet
 	or on disk) instead of XML created in Emacs.
 
 	* eshell/esh-mode.el (eshell-handle-ansi-color): New function.
@@ -1610,7 +1610,7 @@
 	(org-table-sort-lines): Rewrite from scratch.
 	(org-link-search): New argument AVOID-POS.
 	(org-print-icalendar-entries): Remove argument CATEGORY.
-	(org-run-agenda-series): Remove argument WONDOW.
+	(org-run-agenda-series): Remove argument WINDOW.
 	(org-next-link, org-previous-link): New commands.
 	(org-agenda-date-format): New option.
 	(org-table-iterate): New command.
@@ -2288,7 +2288,7 @@
 
 	* emacs-lisp/bytecomp.el (byte-compile-disable-print-circle):
 	New variable.
-	(byte-compile-output-file-form): Bing print-circle to nil if
+	(byte-compile-output-file-form): Bind print-circle to nil if
 	byte-compile-output-file-form is not nil.
 	(byte-compile-output-docform): Likewise.
 
@@ -3370,7 +3370,7 @@
 	* textmodes/refer.el (refer-find-entry): Doc fix.
 	(refer-bib-files-regexp, refer-bib-directory, refer-bib-files)
 	(refer-cache-bib-files, refer-find-next-entry, refer-yank-key):
-	Fix tipos in docstrings.
+	Fix typos in docstrings.
 
 	* progmodes/idlwave.el (idlwave-library-path): Fix typos in docstring.
 
@@ -4384,7 +4384,7 @@
 	(org-prepare-agenda, org-prepare-agenda-buffers)
 	(org-run-agenda-series, org-timeline, org-agenda-list)
 	(org-todo-list, org-tags-view): Call `org-agenda-prepare' and set
-	the text property inticating the agenda type.
+	the text property indicating the agenda type.
 	(org-agenda-post-command-hook): Get agenda type from text property
 	at point.
 	(org-agenda): Handle command sets.  Set `org-agenda-last-arguments'
@@ -4408,7 +4408,7 @@
 	(org-complete): Better completion in in-buffer option lines.
 	(org-in-item-p): New function.
 	(org-org-menu): Add entries for checkboxes.
-	(org-cycle): Extra brouping in outline-regexp, because it is used
+	(org-cycle): Extra grouping in outline-regexp, because it is used
 	in a search with "^" prepended.
 	(org-provide-checkbox-statistics): New option.
 	(org-set-font-lock-defaults): Highlight checkbox statistics.
@@ -4796,7 +4796,7 @@
 	(allout-doublecheck-at-and-shallower): Reduce the limit to reduce
 	the amount of yanked topics that can be aberrant.
 	(allout-do-doublecheck): Encapsulate this multiply-used recipe in
-	a function, and supplement with inihibition of doublechecking
+	a function, and supplement with inhibition of doublechecking
 	during yanks.
 	(allout-beginning-of-line, allout-next-heading)
 	(allout-previous-heading, allout-goto-prefix-doublechecked)
@@ -4918,7 +4918,7 @@
 	(server-auth-key): New variable.
 	(server-ensure-safe-dir): Create nonexistent parent dirs.
 	Ignore Unix-style file modes on Windows.
-	(server-start): Crete a TCP or Unix socket according to the value
+	(server-start): Create a TCP or Unix socket according to the value
 	of `server-use-tcp'.  For TCP sockets, create the id/auth file in
 	`server-auth-dir' directory.
 	(server-process-filter): Delete process if authentication
@@ -5167,7 +5167,7 @@
 2006-10-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/flyspell.el (flyspell-word-search-backward):
-	Set inhibit-point-motion-hooks to avoid looping due to intangibile
+	Set inhibit-point-motion-hooks to avoid looping due to intangible
 	text.
 
 2006-10-16  Richard Stallman  <rms@gnu.org>
@@ -5399,7 +5399,7 @@
 		Fontify unmatched "]" in function-name face.
 		Mark first-char of HERE-doc as `front-sticky'.
 		Reset `front-sticky' property when needed.
-	(cperl-calculate-indent): Indents //x -RExen accordning to parens level.
+	(cperl-calculate-indent): Indents //x -RExen according to parens level.
 	(cperl-to-comment-or-eol): Recognize ends of `syntax-type' constructs.
 	(cperl-backward-to-noncomment): Recognize stringy `syntax-type'
 		constructs.  Support `narrow'ed buffers.
@@ -5482,7 +5482,7 @@
 	(beginning-of-buffer): Replace two occurrences with goto-char...
 	(cperl-calculate-indent): `char-after' could be nil...
 	(cperl-find-pods-heres): REx can start after "[" too.
-		Hightlight (??{}) in RExen too.
+		Highlight (??{}) in RExen too.
 	(cperl-maybe-white-and-comment-rex): New constant
 	(cperl-white-and-comment-rex): Likewise.
 		XXXX Not very efficient, but hard to make
@@ -5504,7 +5504,7 @@
 		Don't special-case REx with non-empty 1st line.
 	(cperl-find-pods-heres): In RExen, highlight non-literal backslashes.
 		Invert highlighting of charclasses:
-			now the envelop is highlighted.
+			now the envelope is highlighted.
 		Highlight many others 0-length builtins.
 	(cperl-praise): Mention indenting and highlight in RExen.
 
@@ -5567,7 +5567,7 @@
 	After 5.20:
 	initial comment: Extend copyright, fix email address.
 	(cperl-indent-comment-at-column-0): New customization variable.
-	(cperl-comment-indent): Indentation after $#a would increasy by 1.
+	(cperl-comment-indent): Indentation after $#a would increase by 1.
 	(cperl-mode): Make `defun-prompt-regexp' grok BEGIN/END etc.
 	(cperl-find-pods-heres): Mark CODE of s///e as `syntax-type' `multiline'
 	(cperl-at-end-of-expr): Would fail if @BAR=12 follows after ";".
@@ -5777,7 +5777,7 @@
 
 2006-10-01  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el (allout-current-depth): Do aberrent check only at or
+	* allout.el (allout-current-depth): Do aberrant check only at or
 	below doublecheck depth.
 	(allout-chart-subtree): Make it explicit that LEVELS being nil
 	means unlimited depth.  Drop undocumented support for LEVELS value
@@ -5848,7 +5848,7 @@
 2006-09-29  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-file-remote-p): Get regexp from list.
-	(org-archive-subtree): Remove erraneous `]' from character list.
+	(org-archive-subtree): Remove erroneous `]' from character list.
 
 2006-09-28  Jonathan Yavner  <jyavner@member.fsf.org>
 
@@ -6273,7 +6273,7 @@
 	(allout-previous-visible-heading): Position consistently when
 	interactive.
 	(allout-forward-current-level): Base on allout-previous-sibling
-	rather than (differently) reimplmenting the algorithm.  Remove some
+	rather than (differently) reimplementing the algorithm.  Remove some
 	unused variables.
 	(allout-solicit-alternate-bullet): Present default choice stripped
 	of text properties.
@@ -6303,7 +6303,7 @@
 	(allout-yank-processing): Restore exposure layout as recorded by
 	allout-kill-*, as used to happen.
 	(allout-annotate-hidden, allout-hide-by-annotation): New routines
-	for preseving and restoring exposure layout across kills.
+	for preserving and restoring exposure layout across kills.
 	(allout-toggle-subtree-encryption): Run allout-exposure-change-hook.
 	(allout-encrypt-string): Strip text properties.
 	Rearranged order and outline-headings for some of the
@@ -6327,7 +6327,7 @@
 	* help.el (describe-key): Handle C-h k in *Help* buffer; collect
 	all necessary information about the event before erasing *Help*.
 
-	* simple.el (line-move-partial): Use window-line-visiblity to
+	* simple.el (line-move-partial): Use window-line-visibility to
 	quickly check whether last line is partially visible, and only do
 	the hard (and slow) part in that case.
 
@@ -6517,7 +6517,7 @@
 	(dired-copy-file): Remove condition-case.
 	(dired-copy-file-recursive): Check for errors on all file
 	operations, and add them to dired-create-files-failures.
-	Check file file-date-erorr here too.
+	Check file file-date-error here too.
 	(dired-create-files): Check dired-create-files-failures
 	and report those errors too.
 
@@ -7280,7 +7280,7 @@
 	(org-back-to-heading, org-on-heading-p, org-up-heading-all)
 	(org-show-subtree, org-show-entry, org-make-options-regexp):
 	Remove compatibility support for old outline-mode.
-	(org-check-occur-regexp): Funtion removed.
+	(org-check-occur-regexp): Function removed.
 	(org-on-heading-p, org-back-to-heading): Made defalias.
 	(org-set-local): New defsubst.
 	(org-set-regexps-and-options, org-mode)
@@ -7362,7 +7362,7 @@
 	allout-exposure-change-hook for other kinds of structural outline
 	edits.
 	(allout-encryption-plaintext-sanitization-regexps): New encryption
-	customization variable, by which cooperating modes can provde
+	customization variable, by which cooperating modes can provide
 	massage of the plaintext without actually being passed it.
 	(allout-encryption-ciphertext-rejection-regexps)
 	(allout-encryption-ciphertext-rejection-ceiling): New encryption
@@ -7374,8 +7374,8 @@
 	disposition.  The new encryption ciphertext rejection variable is
 	used to ensure that the ciphertext does not contain text that
 	would be recognized as outline structural elements by allout.
-	Substite allout-beginning-of-line and allout-end-of-line for
-	conventionall beginning-of-line and end-of-line bindings.
+	Substitute allout-beginning-of-line and allout-end-of-line for
+	conventional beginning-of-line and end-of-line bindings.
 	If allout-old-style-prefixes is non-nil, don't nullify it on mode
 	activation!
 	(allout-beginning-of-line): Respect `allout-beginning-of-line-cycles'.
@@ -10202,7 +10202,7 @@
 
 	* progmodes/gud.el (gdb-force-update): Delete defvar
 	(gud-speedbar-buttons): ...and references to it.  Use window-start
-	to try to keep positon in watch expression.
+	to try to keep position in watch expression.
 
 2006-05-03  Richard Stallman  <rms@gnu.org>
 
@@ -10574,7 +10574,7 @@
 	Fontify TODO keywords.
 	(org-insert-link): Preserve relative path in ../ links.
 	(org-export-as-html): Convert links pointing to .org files into
-	links that will work beteen the exported HTML files.
+	links that will work between the exported HTML files.
 	(org-todo-list): Fix bug when arg=0.
 	(org-insert-heading): More fine-tuning.
 
@@ -10881,7 +10881,7 @@
 	(org-table-align): Use `org-string-width'.
 	(defgroup): Completely new group structure for custom variables.
 	(org-agenda-files): Option: Single file name allowed.  Function:
-	Optional argument unrestrited means ignore any restricitons.
+	Optional argument unrestricted means ignore any restrictions.
 	(org-install-agenda-files-menu): Find a buffer in Org-mode before
 	trying to modify the menu.  Use generalized access to
 	`org-agenda-files.'
@@ -11715,7 +11715,7 @@
 	elements.
 	(gdb-find-watch-expression): Make it work for arrays too.
 	Follow change to gdb-var-list.
-	(gud-watch): Allow the user to enter variable name with a prexix
+	(gud-watch): Allow the user to enter variable name with a prefix
 	arg.  Create keybindings.
 	(gdb-var-create-handler, gdb-var-evaluate-expression-handler)
 	(gdb-var-list-children-handler, gdb-var-update-handler)
@@ -12499,7 +12499,7 @@
 2006-02-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buff-menu.el (list-buffers-noselect): Turn also "\n" into a
-	strech spec so it doesn't display as "^J" on the header line
+	stretch spec so it doesn't display as "^J" on the header line
 	when `Buffer-menu-use-header-line' is t.
 
 2006-02-20  Nick Roberts  <nickrob@snap.net.nz>
@@ -12508,7 +12508,7 @@
 	of string arguments if desired.
 
 	* progmodes/gud.el (gud-speedbar-buttons): Fontify watch
-	expessions.
+	expressions.
 
 	* progmodes/gdb-ui.el (gdb-speedbar-expand-node): Force update
 	of speedbar.
@@ -12787,7 +12787,7 @@
 	text.
 
 	(allout-flag-region): Use overlays instead of selective-display
-	for invisible text - by inheritence from the properties of
+	for invisible text - by inheritance from the properties of
 	allout-overlay-category in mainline Emacs, and applied
 	property-by-property in XEmacs, some recent versions of which
 	don't inherit the properties from the category.  Provisions to
@@ -13033,7 +13033,7 @@
 	(tumme-thumbnail-storage): Add choice `standard' for Thumbnail
 	Managing Standard.
 	(tumme-cmd-create-thumbnail-options): Use %w and %h instead of %s.
-	Fix dostring.
+	Fix docstring.
 	(tumme-cmd-create-temp-image-options): Use %w and %h instead of %x
 	and %y.  Fix docstring.
 	(tumme-cmd-pngnq-program, tumme-cmd-pngcrush-program)
@@ -15116,7 +15116,7 @@
 2005-12-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* log-view.el (log-view-file-re, log-view-message-re): Use shy groups.
-	(log-view-font-lock-keywords): Ajust subgroup numbers.
+	(log-view-font-lock-keywords): Adjust subgroup numbers.
 	(log-view-current-tag): Don't hard code the number of subgroups.
 
 2005-12-20  Juri Linkov  <juri@jurta.org>
@@ -15720,7 +15720,7 @@
 2005-12-08  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--rectangle-aux-replace):
-	Fix indention of text on right side of replaced rectangle.
+	Fix indentation of text on right side of replaced rectangle.
 
 2005-12-09  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -15809,7 +15809,7 @@
 	widgets for AWK to c-doc-comment-style, c-require-final-newline
 	and c-default-style.  Add a defcustom for awk-mode-hook.
 	Give c-syntactic-element and c-syntactic-context doc-strings by
-	directly setting their `variable-documentation' propery.
+	directly setting their `variable-documentation' property.
 	This allows Emacs 22.1 to read these with C-h v.
 
 	* progmodes/cc-awk.el: Apply a tidy-up patch (from Stefan Monnier).
@@ -16193,7 +16193,7 @@
 	(c-awk-one-line-possibly-open-string-re)
 	(c-awk-regexp-one-line-possibly-open-char-class-re)
 	(c-awk-one-line-possibly-open-regexp-re)
-	(c-awk-one-line-non-syn-ws*-re): New defonsts.
+	(c-awk-one-line-non-syn-ws*-re): New defconsts.
 	(c-awk-at-vsemi-p, c-awk-vsemi-status-unknown-p): New functions.
 
 	Amend the concept of "virtual semicolons" (in the indentation
@@ -16203,7 +16203,7 @@
 	property is still physically set on the EOL.)  Remove the specific
 	tests for awk-mode, thus facilitating the introduction of other
 	language modes where EOLs can end statements.
-	(Note: The funtionality in cc-cmds.el, specifically
+	(Note: The functionality in cc-cmds.el, specifically
 	c-beginning/end-of-statement has yet to be amended.)
 
 	* progmodes/cc-defs.el (c-at-vsemi-p, c-vsemi-status-unknown-p):
@@ -16331,7 +16331,7 @@
 	only four small places that needed it to work.  Some places that
 	previously did `widen' are removed now, which has the effect that
 	`c-guess-basic-syntax' never will look at things outside the
-	current narrowment now.  The anchor position for `topmost-intro'
+	current narrowing now.  The anchor position for `topmost-intro'
 	is affected by this, but it was so bogus it was basically useless
 	before, and now it's equally bogus but in a slightly different way.
 
@@ -16529,7 +16529,7 @@
 	the generic label case (CASE 15) - removed CASE 5E.
 
 	(c-font-lock-declarations): Add recognition of labels in the
-	same round since we need to handle labels in parallell with other
+	same round since we need to handle labels in parallel with other
 	declarations to recognize both accurately.  It should also improve
 	speed.
 
@@ -16659,7 +16659,7 @@
 2005-12-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-fonts.el, cc-langs.el: Use `c-simple-ws' instead of
-	hardcoded char classes whereever possible.  Changed a couple of
+	hardcoded char classes wherever possible.  Changed a couple of
 	places to use skip by syntax instead of skip by char class.
 
 	* progmodes/cc-langs.el (c-unterminated-block-comment-regexp):
@@ -18698,7 +18698,7 @@
 	(rcirc-trap-errors-flag): Rename from `rcirc-trap-errors' change
 	default.
 	(rcirc-handler-generic): Trigger activity.
-	(rcirc-send-message): Create the buffor of the target.
+	(rcirc-send-message): Create the buffer of the target.
 	(rcirc-generate-new-buffer-name): Rename from `rcirc-get-buffer-name'.
 	(rcirc-get-buffer): Just return nil if there is no matching buffer.
 	(rcirc-multiline-edit-cancel): Remove function.
@@ -18876,7 +18876,7 @@
 	* progmodes/perl-mode.el (perl-font-lock-special-syntactic-constructs):
 	Rename from perl-font-lock-syntactic-face-function.
 	Change the calling convention so it can be used as a font-lock MATCHER.
-	Do the parse-partial-sexp loop outselves.
+	Do the parse-partial-sexp loop ourselves.
 	(perl-font-lock-syntactic-keywords): Use it.
 	(perl-mode): Don't set font-lock-syntactic-face-function any more.
 
@@ -22609,7 +22609,7 @@
 	(smerge-find-conflict): Instead, add an overlay here.
 	Also check for the case where we're inside a conflict already, so as to
 	obviate the need for font-lock-multiline, which is unbearably slow with
-	large conflicts and ciomplex font-lock patterns.
+	large conflicts and complex font-lock patterns.
 	(smerge-remove-props): Remove overlay rather than text-properties.
 	(smerge-mode): Don't set font-lock-multiline.
 	Remove overlays when turned off.
@@ -23786,7 +23786,7 @@
 	* frame.el (set-frame-font, cursor-in-non-selected-windows):
 	Fix typo in docstring.
 	(set-screen-width, set-screen-height): Delete redundant info in
-	doctrings.
+	docstrings.
 	(new-frame, screen-height, screen-width): Declare with
 	`define-obsolete-function-alias'.
 	(delete-frame-hook, blink-cursor): Declare with
@@ -24649,7 +24649,7 @@
 	New modes C,I.  Honor the %= parameter in the current table.
 	Avoid unnecessary re-align by using the NEW argument to
 	`org-table-justify-field-maybe'.
-	(org-calc-default-modes): Default for date-format mimicks org-mode.
+	(org-calc-default-modes): Default for date-format mimics org-mode.
 	(org-agenda, org-timeline): Quote argument in org-agenda-redo-command.
 
 2005-07-03  Luc Teirlinck  <teirllm@auburn.edu>
@@ -27770,7 +27770,7 @@
 2005-05-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* subr.el (post-command-idle-hook, post-command-idle-delay):
-	Remove obsoletion of post-command-idle-hook and
+	Remove obsolescence of post-command-idle-hook and
 	post-command-idle-delay.
 
 	* faces.el (list-faces-display): Provide button when describe-face
@@ -32276,7 +32276,7 @@
 	Y-WITH-DIAERESIS, I-WITH-DOT-ABOVE, DOTLESS-i.
 
 	* case-table.el (get-upcase-table): New function.
-	(copy-case-table): Copy upcaes table too if non-nil.
+	(copy-case-table): Copy upcase table too if non-nil.
 	(set-case-syntax-delims): Maintain upcase table too.
 	(set-case-syntax-pair): Likewise.
 	(set-upcase-syntax, set-downcase-syntax): New functions.

@@ -271,7 +271,7 @@
 1996-07-13  François Pinard  <pinard@iro.umontreal.ca>
 
 	* allout.el (outline-resolve-xref): Do not mistake a blank line
-	following an xref (@) bullet as part of the rerefenced file name.
+	following an xref (@) bullet as part of the referenced file name.
 
 1996-07-13  Christopher J. Madsen  <ac608@yfn.ysu.edu>
 
@@ -707,7 +707,7 @@
 
 	* skeleton.el (skeleton-autowrap): New variable.
 	(skeleton-abbrev-cleanup): Added variable documentation.
-	(skeleton-proxy): Added optional autowrappping feature.
+	(skeleton-proxy): Added optional autowrapping feature.
 	(skeleton-proxy, skeleton-abbrev-cleanup): Use `post-command-hook'
 	instead of someday to be obsolete defer.
 
@@ -792,7 +792,7 @@
 	* smtpmail.el (smtpmail-read-response): Goto smtpmail-read-point
 	on every iteration to deal with multiple line banners.
 
-	* smptmail.el (smtpmail-via-smtp): Bracket names in FROM
+	* smtpmail.el (smtpmail-via-smtp): Bracket names in FROM
 	and RCPT TO commands.
 
 1996-06-18  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
@@ -852,7 +852,7 @@
 
 1996-06-14  Ed Reingold  <reingold@albert.gnu.ai.mit.edu>
 
-	* cal-tex.el (cal-tex-mini-calendar): Add optional paramter COLSEP.
+	* cal-tex.el (cal-tex-mini-calendar): Add optional parameter COLSEP.
 	(cal-tex-cursor-filofax-year): Use it.  Also, adjust other sizes.
 
 1996-06-13  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
@@ -1128,7 +1128,7 @@
 
 	* cmacexp.el (c-macro-expansion): Delete ??! trigraph in uniquestring.
 	Use same syntax table in outbuf as in inbuf.
-	Insert newline instead of space at end, for proprocessors which
+	Insert newline instead of space at end, for preprocessors which
 	don't like truncated lines.
 
 1996-05-21  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
@@ -1795,7 +1795,7 @@
 	(gomoku-emacs-won, gomoku-font-lock-O-face, gomoku-font-lock-X-face)
 	(gomoku-font-lock-keywords): New variables.
 	(gomoku-mode): Use it and make buffer read-only for user.
-	(gomoku-terminate-game): Remove (ding) -- maybe should be optonal.
+	(gomoku-terminate-game): Remove (ding) -- maybe should be optional.
 	(gomoku-init-display): Rewritten, makes fields intangible so you
 	can't go in between.  Make free fields have mouse-face.
 	(gomoku-cross-qtuple): Take account of intangible text, and that
@@ -2491,7 +2491,7 @@
 
 	* viper.el: Added face support for devices that have faces.
 	(vip-forward-paragraph, vip-backward-paragraph): Now work
-	corretly when they are used as motion specs in other commands.
+	correctly when they are used as motion specs in other commands.
 	(vip-set-hooks): Added viper to tcl-mode-hook.
 
 	* viper-util.el (vip-has-face-support-p, vip-abbreviate-file-name):
@@ -3196,7 +3196,7 @@
 	(f90-mode): Call hilit-set-mode-patterns if defined.
 	(f90-auto-hilit19): New variable.
 	(f90-fill-region): Bind f90-auto-hilit19 to nil.
-	(f90-update-line): Rehilight if appropriate.
+	(f90-update-line): Rehighlight if appropriate.
 
 1996-01-24  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
@@ -4027,7 +4027,7 @@
 	* jka-compr.el (auto-compression-mode): This is now a stub function
 	that calls toggle-auto-compression, and is put bodily into loaddefs.el.
 	(toggle-auto-compression): Renamed from auto-compression-mode.
-	Not autloaded.
+	Not autoloaded.
 
 1995-12-28  Karl Eichwalder  <ke@ke.Central.DE>
 
@@ -4371,7 +4371,7 @@
 	* yow.el (apropos-zippy): New command.
 	(yow-load-message, yow-after-load-message): New constants.
 	(yow, read-zippyism): Use them.
-	Now KEN and BARBIE are PERMANENTLY ADDICTED to MIND-ALTERING DRUGS..
+	Now KEN and BARBIE are PERMANENTLY ADDICTED to MIND-ALTERING DRUGS.
 
 1995-12-19  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
@@ -4910,7 +4910,7 @@
 
 1995-11-17  Ed Reingold  <reingold@spiff.gnu.ai.mit.edu>
 
-	* cal-coptic.el: Fix epoch of Ethiopiac calendar.
+	* cal-coptic.el: Fix epoch of Ethiopic calendar.
 
 	* cal-chinese.el: Minor fixes.
 
@@ -5110,7 +5110,7 @@
 
 	* facemenu.el (facemenu-unlisted-faces): Remove font-lock faces from
 	the default list.  The list of face names was out of sync; to
-	prevent this from happenning again I made font-lock.el, and other
+	prevent this from happening again I made font-lock.el, and other
 	packages that create "private" faces, put them on the list
 	themselves.  This should give them a better chance of being
 	updated when the packages are changed.
@@ -5777,7 +5777,7 @@
 1995-10-12  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* help.el (variable-at-point, function-called-at-point):
-	Fix revious changes.
+	Fix previous changes.
 
 	* iso-transl.el: Handle aliases dead-acute,...
 
@@ -6742,7 +6742,7 @@
 	since `newline-and-indent' doesn't either.  Don't turn a trailing
 	quoted tab into a space.
 	(sh-mode): Use new `skeleton-newline-indent-rigidly'.
-	(sh-set-shell): Make maximum font-locking also hightlight keywords
+	(sh-set-shell): Make maximum font-locking also highlight keywords
 	after ``' and `!'.  (The latter is for ksh '93 but should't hurt other
 	shells.)
 
@@ -7393,7 +7393,7 @@
 	(ada-format-paramlist): Simplified a regexp.
 	(ada-indent-current): On first line of the buffer, indent to column 0.
 	Don't reindent if new position is the same as the old one.  Thus, a
-	correcly indended line is not modified.
+	correctly indended line is not modified.
 	(ada-get-indent-subprog): Simplified a regexp.
 	(ada-goto-matching-decl-start): Distinguish between normal type
 	declaration and protected types, which are more like procedures.

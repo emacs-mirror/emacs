@@ -608,7 +608,7 @@
 
 2007-12-04  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* configure.in: Give package name and verision to AC_INIT.
+	* configure.in: Give package name and version to AC_INIT.
 
 2007-12-03  Magnus Henoch  <mange@freemail.hu>
 
@@ -4471,7 +4471,7 @@
 1995-06-22  Paul Eggert  <eggert@twinsun.com>
 
 	* configure.in: Treat SunOS 4.1.4 like SunOS 4.1.3.  (Likewise for
-	SunOS 4.1.5 thorugh 4.1.9, should they ever exist.)
+	SunOS 4.1.5 through 4.1.9, should they ever exist.)
 
 1995-06-22  Paul Eggert  <eggert@twinsun.com>
 
@@ -5169,7 +5169,7 @@
 1994-05-03  Morten Welinder  (terra@diku.dk)
 
 	* config.bat: Added possibility for different file name
-	transscriptions in lib-src.
+	transcriptions in lib-src.
 
 1994-05-03  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -5804,7 +5804,7 @@
 	and #define HAVE_AIX_SMT_EXP if we do.  This is present in some
 	versions of AIX, and needs to be passed to the loader.
 
-	* configure.in: Test for the availablility of the
+	* configure.in: Test for the availability of the
 	XScreenResourceString function.
 
 1993-07-30  David J. MacKenzie  (djm@frob.eng.umd.edu)
@@ -6077,7 +6077,7 @@
 
 	* Makefile.in (src:, lib-src:, FRC:): force the src and lib-src
 	targets to be executed even if make remembers that it has already
-	stisfied FRC.
+	satisfied FRC.
 
 1993-05-29  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -6975,7 +6975,7 @@
 
 1992-08-14  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* make-dist: taught it about vcdiff and rcs2log, added --newer
+	* make-dist: Taught it about vcdiff and rcs2log, added --newer
 	option for generating incremental distributions.  Stopped it from
 	generating a TAGS file into the distribution; that sucker is
 	*big*, and easily enough generated with the toplevel makefile.

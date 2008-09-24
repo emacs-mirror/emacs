@@ -2676,7 +2676,7 @@
 2006-04-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* gnus.texi (Spam Package): Major revision of the text.
-	Previouly this node was "Filtering Spam Using The Spam ELisp Package".
+	Previously this node was "Filtering Spam Using The Spam ELisp Package".
 
 2006-04-20  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -2837,7 +2837,7 @@
 
 2006-03-17  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.texi: Use smallexample and smalllisp consistenly.
+	* mh-e.texi: Use smallexample and smalllisp consistently.
 	(Sending Mail Tour): Update method of entering
 	addresses and subject.
 	(Sending Mail Tour, Reading Mail Tour, Processing Mail Tour)
@@ -4641,7 +4641,7 @@
 
 2003-10-26  Per Abrahamsen  <abraham@dina.kvl.dk>
 
-	* widget.texi (Defining New Widgets): Document new beavior of
+	* widget.texi (Defining New Widgets): Document new behavior of
 	:buttons and :children keywords.
 
 2003-10-22  Miles Bader  <miles@gnu.org>

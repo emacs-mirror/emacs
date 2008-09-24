@@ -6790,12 +6790,12 @@
 	broken connections by opening a new connection and repeating the
 	failed command.
 	(nntp-retrieve-headers-with-xover): Some NNTP servers respond to
-	XOVER commands preceeding the active articles with the nov entry
+	XOVER commands preceding the active articles with the nov entry
 	of the first available article.  When gnus connected to such a
 	server, the unexpected nov entry would result in duplicate lines
 	in the agent's overview file.  This patch fixes the duplicate
 	lines problem and improves performance by skipping over all
-	articles IDs that preceed the first nov entry in the server's
+	articles IDs that precede the first nov entry in the server's
 	reply.
 
 2002-12-11  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -7318,7 +7318,7 @@
 
 2002-10-22  TSUCHIYA Masatoshi  <tsuchiya@namazu.org>
 
-	* pgg.el (pgg-snarf-keys): Do not refer unbinded local variables.
+	* pgg.el (pgg-snarf-keys): Do not refer unbound local variables.
 
 2002-10-22  Simon Josefsson  <jas@extundo.com>
 
@@ -8731,7 +8731,7 @@
 
 2002-05-18  Jesper Harder  <harder@ifa.au.dk>
 
-	* gnus-sum.el (gnus-dependencies-add-header): Avoid one unecessary
+	* gnus-sum.el (gnus-dependencies-add-header): Avoid one unnecessary
 	call to gnus-parent-id when we check for References loops.
 	(gnus-summary-prepare-threads): Avoid simplifying every Subject
 	twice by saving the simplified subject string in simp-subject.
@@ -9137,7 +9137,7 @@
 
 2002-04-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-art.el (gnus-article-prepare): Place point on the emtpy
+	* gnus-art.el (gnus-article-prepare): Place point on the empty
 	header line.
 
 2002-04-11  Per Abrahamsen  <abraham@dina.kvl.dk>
@@ -13532,7 +13532,7 @@
 	expiry-target.  (Otherwise nnml will be in a inconsistent internal
 	state causing all kind of problems.)
 	(nnml-request-expire-articles): If `nnml-article-to-file' or
-	`file-attributes' failes, return article as un-expirable instead
+	`file-attributes' fail, return article as un-expirable instead
 	of treating it as expired.
 
 2001-08-31  Sam Steingold  <sds@gnu.org>

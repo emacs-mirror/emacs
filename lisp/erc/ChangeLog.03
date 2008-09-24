@@ -347,7 +347,7 @@
 	Fix paren-in-column-zero bug in docstring.
 	Add a sort of bogus, but still better :type.
 	Add autojoin and netsplit by default.
-	(erc-update-modules): Dont barf with an error if `require' fails.
+	(erc-update-modules): Don't barf with an error if `require' fails.
 	We can still error out if the mode is not defined.
 
 2003-08-31  Andreas Fuchs  <asf@void.at>
@@ -579,7 +579,7 @@
 	    This no longer raises a bad-syntax error - was this a catch-all to stop a
 	    backtrace? Does it belong?
 	(erc-cmd-APPENDTOPIC): the correct way to display help when you want to
-	    accept an abitrary string is to (signal 'wrong-number-of-arguments nil).
+	    accept an arbitrary string is to (signal 'wrong-number-of-arguments nil).
 	    This fixes a bug where people could not /at topics with a space in them.
 
 2003-06-09  Damien Elmes  <erc@repose.cx>
@@ -657,7 +657,7 @@
 
 	* erc-truncate.el 1.2: remove require of erc-log
 	(erc-truncate-buffer-to-size): use erc-save-buffer-in-logs when it's
-	there, else, dont.
+	there, else, don't.
 
 2003-04-29  Andreas Fuchs  <asf@void.at>
 
@@ -821,7 +821,7 @@
 	  of user friendliness.
 	(define-erc-module): the enable and disable routines now update erc-modules
 	    accordingly
-	erc-modules: new variable controllig the modules which erc has loaded/will
+	erc-modules: new variable controlling the modules which erc has loaded/will
 	    load. when customising, it will automatically enable modules. it won't
 	    automatically disable modules which are removed, yet.
 	(erc-update-modules): enable all modules in `erc-modules'
@@ -1036,7 +1036,7 @@
 	notify the user we're trying to connect when using asych
 	    connections
 
-	* erc.el 1.486 (erc-connect): support an asyncronous connection
+	* erc.el 1.486 (erc-connect): support an asynchronous connection
 	(erc-process-sentinel): ditto
 
 	* erc-track.el 1.48:
@@ -1048,7 +1048,7 @@
 	    a command
 
 	* erc.el 1.484: (erc-save-buffer-in-logs):
-	    - check for a sensibile region before saving the buffer. if the
+	    - check for a sensible region before saving the buffer. if the
 	      connection process is killed early on, there is not a sensible region
 	      to save
 	    - don't set buffer-file-name on save. we don't need it, and it means we
@@ -1363,7 +1363,7 @@
 	again.
 	(erc): Require cl for delete-if.
 	(erc-button-remove-old-buttons): Rewrote using delete-if to
-	prevent exceesive consing.  Having the marker list is still ugly,
+	prevent excesive consing.  Having the marker list is still ugly,
 	so another solution needs to be found.
 
 2003-01-17  Jorgen Schaefer  <forcer@users.sourceforge.net>
@@ -1388,7 +1388,7 @@
 	* erc.el 1.454: erc-banlist-*: return nil so further hooks are called
 
 	* erc.el 1.453 (erc-server-368):
-	supress "end of ban list" messages - use /listbans now
+	suppress "end of ban list" messages - use /listbans now
 
 	* erc.el 1.452 (erc-send-current-line):
 	removed the check for leading whitespace again - the
@@ -1411,7 +1411,7 @@
 
 	* erc.el 1.448:
 	* (erc-remove-channel-member): Do not use delq, modify the list using setcdr like delq does.
-	In theory, this should be way faster since the list doesnt get traverse two times.
+	In theory, this should be way faster since the list doesn't get traverse two times.
 	Measurement didn't show any real difference though :(, this system is flawed for channels with >300 users it seems...
 	Also moved some defcustoms up.
 
@@ -1475,7 +1475,7 @@
 	* erc.el 1.441:
 	erc-error-face: setting a background doesn't work so well with multi-line
 	    messages, so we don't. fg color is negotiable ;-)
-	(erc-cmd-QUERY): fixed, new doco, supress (erc-delete-query) until we fix it
+	(erc-cmd-QUERY): fixed, new doco, suppress (erc-delete-query) until we fix it
 	(erc-send-current-line): allow multi-line messages provided they don't start
 	    with a slash - there's no need to prohibit them if the slash isn't the
 	    first character
@@ -1484,7 +1484,7 @@
 	* bunch of extra cmds fixed, nick, sv etc.
 
 	* erc.el 1.439 (erc-cmd-HELP): fixed
-	(erc-extract-command-from-line): when deterimining canon-defun, make sure we
+	(erc-extract-command-from-line): when determining canon-defun, make sure we
 	    have a valid symbol
 	(erc-cmd-KICK): fixed
 
@@ -1572,13 +1572,13 @@
 	do appropriate comparisons, simplified.
 	* (erc-dcc-list-add): New functions
 	various callers of (cons (list ...) erc-dcc-list) updated.
-	Other stuff I'm to bored to document now
+	Other stuff I'm too bored to document now
 
 2003-01-15  Jorgen Schaefer  <forcer@users.sourceforge.net>
 
 	* erc-stamp.el 1.24 (erc-insert-timestamp-right):
 	Removed redundant code that overrid the
-	window-width. Now substracts (length string) from every found
+	window-width. Now subtracts (length string) from every found
 	indentation positions.
 
 2003-01-14  Mario Lang  <mlang@delysid.org>
@@ -1734,7 +1734,7 @@
 	(erc-notify-NICK): Changed to make it IRC-case-insensitive when comparing nicks.
 	(erc-notify-QUIT): Changed to make it IRC-case-insensitive when comparing nicks.
 	(erc-cmd-NOTIFY): Now "/notify -l" lists the nicks on your notify list.  Now
-	    when you remove a nick from your notify list, you no longer recieve a spurious
+	    when you remove a nick from your notify list, you no longer receive a spurious
 	    signoff notification for that nick.  Changed to make it IRC-case-insensitive when
 	    comparing nicks.
 
@@ -1934,7 +1934,7 @@
 
 	* erc-dcc.el 1.21 (erc-dcc-chat): Add docstring
 	Add self-test.
-	Fix error if /dcc chat nick doesnt find the nick
+	Fix error if /dcc chat nick doesn't find the nick
 
 2003-01-08  Francis Litterio  <franl@users.sourceforge.net>
 
@@ -2097,7 +2097,7 @@
 	* erc-dcc.el 1.2: make /dcc LIST work
 
 	* erc-dcc.el 1.1:
-	Initial checkin, dont use it!  its really far from complete.  Hackers: help!
+	Initial checkin, don't use it!  its really far from complete.  Hackers: help!
 
 	* erc-notify.el 1.11:
 	New function erc-notify-NICK, and added signon/off hooks which were missing

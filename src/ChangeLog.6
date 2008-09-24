@@ -250,7 +250,7 @@
 	* config.in (HAVE_TERMIOS_H): Add #undef.
 	* cm.h [HAVE_TERMIOS_H]: Declare ospeed as speed_t.
 	* sysdep.c [HAVE_TERMIOS_H]: Likewise.
-	* dispnew.c: Don't delare ospeed; cm.h already did it.
+	* dispnew.c: Don't declare ospeed; cm.h already did it.
 	* terminfo.c: Use <config.h>.
 	[HAVE_TERMIOS_H]: Declare ospeed as speed_t.
 	[USG]: Include <string.h>.
@@ -1158,7 +1158,7 @@
 	(sys_fopen, sys_open): Map file names, and ensure file handle is
 	non-inheritable.
 
-	(stat): Replace buggy library function.  Fake reaonsable i-node
+	(stat): Replace buggy library function.  Fake reasonable i-node
 	values by hashing the canonical file name, and use uid/gid values
 	determined by init_user_info.
 
@@ -1457,7 +1457,7 @@
 	(Ffile_name_absolute_p) [DOS_NT]: Be strict about drive specs.
 	(check_executable) [DOS_NT]: Test st_mode on NT.
 	(Ffile_readable_p) [DOS_NT]: Use access instead of open on NT.
-	(Ffile_modes) [DOS_NT]: Don't embelish st_mode value on NT.
+	(Ffile_modes) [DOS_NT]: Don't embellish st_mode value on NT.
 	(Fread_file_name) [DOS_NT]: Correct dir seps in HOME.
 	(syms_of_fileio): Add Vdirectory_sep_char.
 
@@ -4375,7 +4375,7 @@
 
 	* insdel.c (signal_after_change): Call report_interval_modification.
 
-	* textprop.c (call_mod_hooks): Moved from intevals.c.
+	* textprop.c (call_mod_hooks): Moved from intervals.c.
 	(verify_interval_modification): Moved from intervals.c.
 	(interval_insert_behind_hooks, interval_insert_in_front_hooks):
 	New variables.
@@ -4425,7 +4425,7 @@
 	* configure.in (LOCALTIME_CACHE): Define if tzset exists and
 	if localtime caches TZ.  Check for tzset.
 
-	* emacs.c (main): Call tzset only if LOCALTIME_CACHE isdefined;
+	* emacs.c (main): Call tzset only if LOCALTIME_CACHE is defined;
 	not all Suns have this bug.
 	* m/pmax.h, s/386bsd.h, s/bsd386.h, s/freebsd.h, s/gnu.h,
 	* s/netbsd.h (LOCALTIME_CACHE): Remove; now configured automatically.
@@ -5274,7 +5274,7 @@
 	(PTY_TTY_NAME_SPRINTF): New definitions.
 
 	* dispnew.c (update_frame): Pretend cursor is in echo area
-	rather than put it in a minuffer hidden by the echo area.
+	rather than put it in a minibuffer hidden by the echo area.
 
 1995-06-27  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 

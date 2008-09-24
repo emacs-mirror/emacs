@@ -831,7 +831,7 @@
 	`require-final-newline'.
 
 	* erc-viper.el: New file. This is where all ERC/Viper
-	compatiibilty code should live. When and if ERC is bundled with
+	compatibility code should live. When and if ERC is bundled with
 	Emacs, some of the hacks in this file should be merged into Viper
 	itself.
 

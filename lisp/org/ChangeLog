@@ -50,7 +50,7 @@
 
 	* org.el (org-make-link-string): Remove link attributes from
 	description.
-	(org-open-at-point): Remove link attributes bevore using the path.
+	(org-open-at-point): Remove link attributes before using the path.
 
 	* org-exp.el (org-export-as-html): Handle link attributes.
 
@@ -88,7 +88,7 @@
 	published and files skipped.
 
 	* org-exp.el (org-export-preprocess-string): Swap link
-	normalization and inernal link targeting.
+	normalization and internal link targeting.
 
 	* org-publish.el (org-publish-needed-p): Create timestamp
 	directory when it does not exist.
@@ -107,7 +107,7 @@
 
 	* org.el (org-time=, org-time<, org-time<=, org-time>)
 	(org-time>=, org-time<>, org-2ft): New functions.
-	(org-op-to-function): Also provide for the time testing fucntions.
+	(org-op-to-function): Also provide for the time testing functions.
 
 	* org-exp.el (org-export-html-style-default): New constant.
 
@@ -130,9 +130,9 @@
 	lines without the "file:" prefix if the file path is an absolute
 	path or starts with ".".
 
-	* org-clock.el (org-clocktable-shift): Also undertand yesterday,
+	* org-clock.el (org-clocktable-shift): Also understand yesterday,
 	lastweek etc.
-	(org-clock-special-range): Also undertand yesterday, lastweek etc.
+	(org-clock-special-range): Also understand yesterday, lastweek etc.
 
 	* org.el (org-agenda-skip-archived-trees): Docstring now
 	discourages using this.
@@ -246,7 +246,7 @@
 	interaction between clocking-in from the agenda, and  automatic
 	task state switching.
 
-	* org-macs.el (org-with-point-at): Bug fix in macro defintion.
+	* org-macs.el (org-with-point-at): Bug fix in macro definition.
 
 	* org.el (org-beginning-of-line, org-end-of-line): Make sure the
 	zmacs-region stays after this command in XEmacs.
@@ -342,7 +342,7 @@
 	(org-export-normalize-links)
 	(org-export-concatenate-multiline-links)
 	(org-export-concatenate-multiline-emphasis): New functions,
-	obtained from spliiting the export preprocessor.
+	obtained from spliting the export preprocessor.
 
 	* org-table.el (org-table-recalculate): Improve error message if
 	the row number is invalid.
@@ -426,7 +426,7 @@
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-faces.el (org-column): Document how this face is being used
-	and why sometimes the background faces shine through.
+	and why sometimes the background faces shines through.
 
 	* org-mhe.el (org-mhe-follow-link): Improve handling of searches.
 
@@ -458,7 +458,7 @@
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-exp.el (org-print-icalendar-entries): Make sure DTEND is
-	shifted by one day if theere is a date range without an end
+	shifted by one day if there is a date range without an end
 	time.
 
 	* org.el (org-try-structure-completion): New function.

@@ -953,7 +953,7 @@
 
 	* erc-pcomplete.el 1.11: * Fix emacs/xemacs compatibility
 
-	* debian/scripts/install 1.10: * Dont compile erc-compat, fix ELCDIR
+	* debian/scripts/install 1.10: * Don't compile erc-compat, fix ELCDIR
 
 	* debian/control 1.5: * Change maintainer field
 
@@ -1080,13 +1080,13 @@
 	2) (misfeature) ERC notices the user in the minibuffer when it
 	   ignores something - this can get very annoying, since the
 	   minibuffer is also visible when not looking at ERC buffers.
-	   Added a customizeable variable for this, the default is nil.
+	   Added a customizable variable for this, the default is nil.
 	3) (wishlist) There is no IGNORE or UNIGNORE command.
 	   Added.
 	4) (wishlist) Some IRC clients, notably irssi, allow the user to
 	   ignore "replies" to ignored people. A reply is defined as a
 	   line starting with "nick:", where nick is the nick of an
-	   ignored person. Added that functionaly.
+	   ignored person. Added that functionality.
 	Done by Jorgen Schaefer <forcer@forcix.cx>
 
 2002-11-02  Alex Schroeder  <alex@gnu.org>
@@ -1198,7 +1198,7 @@
 	(erc-stamp-disable): Renamed erc-stamp-destroy.
 	(erc-timestamp-mode): Use new names.
 
-	* erc.el 1.300: Removed autload for erc-complete and
+	* erc.el 1.300: Removed autoload for erc-complete and
 	erc-track-modified-channels-mode -- the autoload cookie should do
 	that instead.
 	(erc-input-message): Doc string, removed binding for erc-complete.
@@ -1456,7 +1456,7 @@
 
 2002-06-17  Diane Murray  <disumu@x3y2z1.net>
 
-	* erc.el 1.287: * added beginning suport for 005 numerics:
+	* erc.el 1.287: * added beginning support for 005 numerics:
 	  - added buffer local variable erc-server-parameters
 	  - added erc-server-005, which sets erc-server-parameters if the server has
 	    used this code to show its parameters
@@ -1534,7 +1534,7 @@
 	* erc.el 1.283:
 	* added erc-set-channel-limit, erc-set-channel-key, erc-toggle-channel-mode
 
-	* added erc-get-channel-mode-from-keypress, which is binded to C-c m
+	* added erc-get-channel-mode-from-keypress, which is bound to C-c m
 	  sends the next character which is typed to one of the 3 new functions
 	  - did not remove erc-invite-only-mode and it's key binding in case
 	    people are used to it, although it probably should be removed...
@@ -1756,7 +1756,7 @@
 	  - added variable erc-whowas-on-nosuchnick
 	  - in erc-server-401 do WHOWAS if erc-whowas-on-nosuchnick is non-nil
 
-	* erc.el 1.267: forgot documentaion for erc-nickserv-alist
+	* erc.el 1.267: forgot documentation for erc-nickserv-alist
 
 	* erc.el 1.266: NickServ identification changed and enhanced:
 	- erc-nickserv-identify-autodetect now called from erc-server-NOTICE-hook
@@ -1777,7 +1777,7 @@
 	  - in erc-fill-variable: set fill-column to value of erc-fill-column
 
 	* erc.el 1.265: erc.el:
-	* fixed bug where topic wasn't being set when chanel name was provided
+	* fixed bug where topic wasn't being set when channel name was provided
 
 	erc-fill.el:
 	* filling with erc-fill-variable now works with custom defined fill width:
@@ -1946,7 +1946,7 @@
 	* erc-chess.el 1.5: more fixing.
 
 	Now, the 'match question works. It sends an accept back.
-	But display popup doesnt work..
+	But display popup doesn't work..
 
 	* erc-chess.el 1.4: fixup (still far from working)
 
@@ -1978,7 +1978,7 @@
 	fixup release, far from ready for real usage, but it appears to work.
 
 	* erc.el 1.242:
-	speed improvments based on elp-instrument-package RET erc- RET results
+	speed improvements based on elp-instrument-package RET erc- RET results
 
 	* erc-chess.el 1.1: initial version.
 	please test it
@@ -1988,7 +1988,7 @@
 
 	(as usual, blank password)
 
-	Add the resulting dir to your load-path and reqire erc-chess.
+	Add the resulting dir to your load-path and require erc-chess.
 
 	Usage: Just do /chess nickname
 	The remote end much use erc, as no other irc client I know of supports this ...
@@ -2070,7 +2070,7 @@
 
 	* erc-track.el 1.4:
 	experimental: Added face support to mode-line channel activity tracker.
-	Currently we use the faces used for indicating in the buffer (erc-pal-face for channels with pal acitivity...)
+	Currently we use the faces used for indicating in the buffer (erc-pal-face for channels with pal activity...)
 
 2002-03-05  Mario Lang  <mlang@delysid.org>
 
@@ -2084,12 +2084,12 @@
 
 	* erc-track.el 1.2: Implemented channel name shortening.
 	Vars erc-track-cutoff says: all channel names longer than this will be shortened.
-	Var erc-track-minimum-channel-length says: dont make names shorten than this.
+	Var erc-track-minimum-channel-length says: don't make names shorten than this.
 	(Thanks go out to kensanata for the nice unique-substrings utility function).
 
 	* erc.el 1.233: silly typo corrected
 
-	* erc.el 1.232:	* erc.el 1.232: * New varialbe: erc-common-server-name-suffixes
+	* erc.el 1.232:	* erc.el 1.232: * New variable: erc-common-server-name-suffixes
 	  This alist can be used to change the server names displayed in mode-line
 	  to a shorter version..
 	* New function: erc-shorten-server-name (uses var above)
@@ -2169,7 +2169,7 @@
 	Demonstrates how the new hook system can be nicely used.
 
 	* erc.el 1.221:
-	new hook: erc-default-server-hook. This one gets called if we dont have anything defined for a certain IRC server message.
+	new hook: erc-default-server-hook. This one gets called if we don't have anything defined for a certain IRC server message.
 	New function: erc-default-server-handler. (used by above hook).
 	New function: erc-debug-missing-hooks: Used by above hook to save a list of unimplemented server messages.
 	New function: erc-server-buffer, erc-server-buffer-p.
@@ -2311,7 +2311,7 @@
 
 	* erc.el 1.204: Use nreverse instead of reverse.
 	Use eq instead of equal where possible.
-	Rewrote erc-get-buffer to not use find-if (find-if does very deep function-call nesting, which isnt good ina  defun which is called so often)
+	Rewrote erc-get-buffer to not use find-if (find-if does very deep function-call nesting, which isn't good in a defun which is called so often)
 
 2002-02-13  Mario Lang  <mlang@delysid.org>
 
@@ -2339,7 +2339,7 @@
 
 	* servers.pl 1.1:
 	Script to convert mircs servers.ini to a elisp salist kind of thing.
-	(development tool, it doesnt help you much as a user)
+	(development tool, it doesn't help you much as a user)
 
 	* erc.el 1.201:
 	* erc-display-line-buffer: renamed to erc-display-line-1

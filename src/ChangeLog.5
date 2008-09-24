@@ -1586,7 +1586,7 @@
 	Use XMISCTYPE instead of that.
 
 	* alloc.c (Fmake_marker, mark_object): Use XMISCTYPE.
-	(clear_marks, gc_sweep): Use u_marker union elt to extrat misc type.
+	(clear_marks, gc_sweep): Use u_marker union elt to extract misc type.
 
 	* lread.c (defvar_int, defvar_bool, defvar_lisp_nopro, defvar_kboard)
 	(defvar_per_buffer): Use XMISCTYPE.
@@ -3446,7 +3446,7 @@
 	* s/aix3-1.h (AIXHFT): Define.
 	* m/ibmrs6000.h (OBJECTS_MACHINE): Define only if AIXHFT.
 
-	* sysdep.c (init_sys_modes): Tes AIXHFT, not AIX.
+	* sysdep.c (init_sys_modes): Test AIXHFT, not AIX.
 	(reset_sys_modes): Test AIXHFT.
 	(hft_init, hft_reset): Test AIXHFT, not AIX.
 
@@ -3830,7 +3830,7 @@
 	(display_mode_line): Unset the var.
 	(decode_mode_spec): Set the var if %c was seen.
 
-1994-10-30  voelker  <voelker@cs.washington.edu>
+1994-10-30  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* makefile.nt: New file.
 	* nt.c, nt.h: New files.
@@ -3919,7 +3919,7 @@
 	(Finsert_file_types): Test DOS_NT instead of MSDOS.
 	Rename local var try to trytry.
 
-	* fileio.c (Fadd_name_to_file): Wlways fail.
+	* fileio.c (Fadd_name_to_file): Always fail.
 	(Frename_file) [WINDOWSNT]: Use MoveFile, not link and unlink,
 	and check for both ERROR_FILE_EXISTS and ERROR_ALREADY_EXISTS.
 	(Fmake_directory_internal) [WINDOWSNT]: Invoke mkdir without the mask.
@@ -3955,7 +3955,7 @@
 	Use the return value of child_setup to get the child's pid;
 	don't call vfork etc. explicitly.
 
-	* callproc.c [WINDOWSNT]: Add includes.	 Defone NOMINMAX, _P_NOWAIT.
+	* callproc.c [WINDOWSNT]: Add includes.	 Define NOMINMAX, _P_NOWAIT.
 	(Vbinary_process_input, Vbinary_process_output)
 	(Qbuffer_file_type): Test DOS_NT, not MSDOS.
 	(syms_of_callproc): Test DOS_NT, not MSDOS.
@@ -4406,7 +4406,7 @@
 
 	* xterm.h (XDISPLAY): Macro deleted.
 	(XFlushQueue): Macro deleted.  All callers changed.
-	(DISPLAY_SCREEN_ARG): Maco deleted.
+	(DISPLAY_SCREEN_ARG): Macro deleted.
 	(DISPLAY_CELLS): Macro deleted.
 	(WINDOWINFO_TYPE): Macro deleted.
 

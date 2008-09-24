@@ -540,7 +540,7 @@
 
 	* c-mode.el (calculate-c-indent):
 	Use new variable c-brace-imaginary-offset for statements
-	inside a brace that isn't firstthing in its line.
+	inside a brace that isn't first thing in its line.
 
 	* startup.el (command-line):
 	Catch errors in init file and continue.
@@ -560,7 +560,7 @@
 	If directory is specified, use file TAGS in that directory.
 
 	* buff-menu.el (Buffer-menu-select):
-	Divide the entire screen hight to compute window sizes,
+	Divide the entire screen height to compute window sizes,
 	since we are going to divide up the entire screen.
 
 	* bytecomp.el (various):
@@ -704,7 +704,7 @@
 	Insert a blank line after each message in the CC file.
 
 	* fill.el (fill-region):
-	It was not loking at the prefix arg!
+	It was not looking at the prefix arg!
 
 	* loaddefs.el, nroff-mode.el:
 	Add autoload for nroff-mode.  Change its doc string a little.
@@ -988,7 +988,7 @@
 	Recompile all 40 files affected; reduces Emacs pure code about 4k.
 
 	* info.el:
-	(Info-select-node): was searching unboundedly for "execute:".
+	(Info-select-node): Was searching unboundedly for "execute:".
 	(Info-follow-reference): Was called Info-footnote.
 	  Also, handle presence of spaces and newlines in ref names.
 	(Info-extract-menu-node-name): Handle presence of spaces and
@@ -1589,7 +1589,7 @@
 	mail-strip-quoted-names: flush spaces before stuff being flushed.
 	 Compensate for change to mail-string-delete.
 	 Use fact that string-match sets match-end.
-	rmail-dont-reply-to: flush extra spaces, comms after deleted name.
+	rmail-dont-reply-to: flush extra spaces, commas after deleted name.
 	 Compensate for change to mail-string-delete.
 	 Use fact that string-match sets match-end.
 
@@ -1722,7 +1722,7 @@
 
 	* files.el (find-backup-file-name):
 	Make numeric backup names end in # rather than ~
-	so they arenot automatically deleted when two days old.
+	so they are not automatically deleted when two days old.
 
 	* nroff-mode.el (nroff-mode):
 	Make all .-commands separate paragraphs.
@@ -1984,7 +1984,7 @@
 	Don't query for reverting read-only buffers.
 
 	* time.el (display-time-filter):
-	If we have lots of tims received at once, quickly discard all but
+	If we have lots of times received at once, quickly discard all but
 	last few.
 
 	* files.el (after-find-file):
@@ -2027,7 +2027,7 @@
 1985-09-02  Richard M. Stallman  (rms@mit-prep)
 
 	* rmail.el (rmail-expunge):
-	If all mesages thru current one get expunged, show message 1.
+	If all messages thru current one get expunged, show message 1.
 
 	* debug.el (debug):
 	Bind debug-on-error and print-length to avoid various
@@ -2109,7 +2109,7 @@
 
 	* c-mode.el (c-comment-indent)
 	Return a valid value when used within a comment.
-	(such as when inenting when comment-multi-line is non-nil)
+	(such as when indenting when comment-multi-line is non-nil)
 	Associated changes to
 	 c-indent-line, c-calculate-indent-within-comment
 
@@ -2551,7 +2551,7 @@
 	* electric.el: Allow specification of prompt to
 	Electric-command-loop.  Interpret nil max-height argument to
 	Electric-pop-up-window as license to grab as much of the screen as
-	necessary if buffer wont fit; also fix fencepost neglect to
+	necessary if buffer won't fit; also fix fencepost neglect to
 	account for modeline in height computations.
 
 1985-06-12  Richard Mlynarik  (mly@mit-prep)
@@ -2636,7 +2636,7 @@
 1985-06-09  K. Shane Hartman  (shane@mit-prep)
 
 	* dired.el:
-	Fix bugs in dired introduced by use of auto-save-file-name-p.  Dont
+	Fix bugs in dired introduced by use of auto-save-file-name-p.  Don't
 	call it if it isn't fbound (just look for `#').  Add second arg to
 	dired-get-filename which says just return nil (no error) if there
 	is no filename on line.  Rename dired-mark-backup-and-temp-files
@@ -2664,7 +2664,7 @@
 	error, when it killed a buffer line, it neglected to move back,
 	thereby sitting on potential `K' which was missed. Wrap
 	save-excursion around kill-buffer, it seems that kill-buffer changes
-	something when it asks about mod file (dont ask me ...).
+	something when it asks about mod file (don't ask me ...).
 	Buffer-menu-do-saves was searching for "\n.S", it meant re-search.
 	Teach Buffer-menu-unmark how to handle `%' and `*' at same time.
 
@@ -3041,7 +3041,7 @@
 	  Also, most messages were spurious.
 	news-goto-news-group: it had duplicate definitions.
 	  Flushed both of them; use news-go-to-news-group instead.
-	various: standardized elipses in messages.
+	various: standardized ellipses in messages.
 	  Use error rather than message where appropriate.
 
 1985-05-21  Richard Mlynarik  (mly@mit-prep)
@@ -3064,7 +3064,7 @@
 1985-05-21  K. Shane Hartman  (shane@mit-prep)
 
 	* view.el:
-	Flush skip commands since they dont make much sense.  Make searches,
+	Flush skip commands since they don't make much sense.  Make searches,
 	goto-line's center display at point found with dot at beginning of
 	line.  Use mark ring and provide mark manipulation commands.  C-l
 	is recenter.  Improve documentation.

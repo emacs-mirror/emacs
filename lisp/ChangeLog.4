@@ -214,7 +214,7 @@
 	(ispell): New function.
 	(ispell-region): Assure choices and checked buffer selections correct.
 	reindented.
-	(ispell-highlight-spelling-errors): Prefix ispell- to highlght fns.
+	(ispell-highlight-spelling-errors): Prefix ispell- to highlight fns.
 	(ispell-complete-word): Heuristic to respect case of completed words.
 	(ispell-command-loop): Non-character events ignored.  Reindented.
 	(ispell-message): Various improvements.
@@ -864,7 +864,7 @@
 
 	* tempo.el: New file.
 
-	* mail-hist.el: New fike.
+	* mail-hist.el: New file.
 
 	* mldrag.el: New file.
 
@@ -975,7 +975,7 @@
 	   exposed, not verified, to facilitate smooth undo sequences.)
 	 - 'hot-spot' navigation implemented.  When the cursor is on a
 	   topic's bullet, regular-character keystrokes will be
-	   interepreted as if they were preceded by ^C, when
+	   interpreted as if they were preceded by ^C, when
 	   appropriate, so users can navigate and adjust exposure,
 	   etc, with single-stroke commands.
 	 - Lucid emacs accommodated.
@@ -1546,7 +1546,7 @@
 	expression is just a variable.
 
 	* dired-aux.el (dired-add-entry): Set opoint at beginning of line.
-	No need to explicitly discard direcory from file name.
+	No need to explicitly discard directory from file name.
 
 1994-04-11  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -1776,7 +1776,7 @@
 	(edebug-recursive-edit): Reset global variables to outside values.
 	(edebug-outside-excursion): Set outside values of global variables
 	in case they were changed by side effect.
-	(edebug-instrument-callee): Use edebug-original-read instaed of read.
+	(edebug-instrument-callee): Use edebug-original-read instead of read.
 	(edebug-eval-result-list): While evaluating evaluation list,
 	bind edebug-execution-mode and edebug-trace to nil.
 
@@ -2913,7 +2913,7 @@
 1994-02-14  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* files.el (interpreter-mode-alist): New variable.
-	(set-auto-mode): Use that for chosing a mode.
+	(set-auto-mode): Use that for choosing a mode.
 
 1994-02-14  Karl Heuer  (kwzh@geech.gnu.ai.mit.edu)
 
@@ -4809,7 +4809,7 @@
 	* page-ext.el: Revise documentation.  Add `provide'.
 	(pages-directory-for-adding-addresses-narrowing-p):
 	New user option for adding addresses.  Default to narrowing.
-	(pages-directory-for-addresses): Intall user settable options.
+	(pages-directory-for-addresses): Install user settable options.
 	(add-new-page): Insert new page in specified location.
 	(original-page-delimiter): Set default value to "^^L".
 
@@ -4909,7 +4909,7 @@
 1993-11-10  Brian Fox  (bfox@mole.gnu.ai.mit.edu)
 
 	* rmail.el (rmail-start-mail): Don't do other frame unless we have
-	a window system, irregardless of the state of rmail-mail-new-frame.
+	a window system, regardless of the state of rmail-mail-new-frame.
 
 	* man.el (Man-filter-list): Include anything starting with
 	alphabetics, and containing "Last change:".
@@ -4917,7 +4917,7 @@
 	Man-translate-references has already done the right thing.
 
 	* info.el (Info-extract-menu-item): Quote `*' in the menu-item
-	leadin re-search to prevent us from finding node names which
+	leading re-search to prevent us from finding node names which
 	contain the text of another node name within them.
 
 	* files.el (find-backup-file-name): Don't fatal-error on
@@ -7326,7 +7326,7 @@
 	(try-expand-line, try-expand-line-all-buffers)
 	(try-expand-all-abbrevs, try-expand-dabbrev)
 	(try-expand-dabbrev-all-buffers): No unnecessary "resetting" of the
-	epansion, when no expansion is done (caused the buffer to be
+	expansion, when no expansion is done (caused the buffer to be
 	marked as changed, although nothing was done, among other things).
 	(he-reset-string): Undoing of last expansion at a later occasion, now
 	undoes correctly (before, it garbled things up).
@@ -8511,7 +8511,7 @@
 	to make them more readable.
 	(calendar-time-zone, calendar-standard-time-zone-name)
 	(calendar-daylight-time-zone-name, calendar-daylight-savings-ends)
-	(calendar-daylight-savings-starts): Don't autload them.
+	(calendar-daylight-savings-starts): Don't autoload them.
 
 1993-06-07  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -8892,7 +8892,7 @@
 
 	* timer.el (run-at-time): Pass args to start-process in right order.
 
-	* info.el (Info-get-token): Check that thesecond search succeeded.
+	* info.el (Info-get-token): Check that the second search succeeded.
 
 	* edebug.el: Provide edebug.
 

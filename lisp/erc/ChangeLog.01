@@ -129,7 +129,7 @@
 	  It uses a list as internal representation now, so all silly string-parsing
 	  related bugs should be gone.
 	  Use (erc-track-modified-channels-minor-mode t) now to toggle this functionality.
-	  Dont set the erc-track-modified-channels-minor-mode variable yourself, use the toggle function
+	  Don't set the erc-track-modified-channels-minor-mode variable yourself, use the toggle function
 
 2001-11-29  Gergely Nagy  <algernon@debian.org>
 
@@ -226,7 +226,7 @@
 2001-11-23  Mario Lang  <mlang@delysid.org>
 
 	* erc-bbdb.el 1.6:
-	* new function erc-BBDB-NICK to handle nickname anotation on a nick-change event of a known record
+	* new function erc-BBDB-NICK to handle nickname annotation on a nick-change event of a known record
 
 	* erc.el 1.148: * Remove erc-rename-buffer, its no longer necessary
 	* Remove erc-autoop-*. it was broken, and needed rewrite anyway
@@ -337,7 +337,7 @@
 	* erc.el 1.129: fixed it
 
 	* erc.el 1.128:
-	*** We switched over. New server message parsing/handling is running now. Thansk to the zenirc developers for the great ideas I got from the code!!!!! Go and test it, poke at it, bug me on irc about problems
+	*** We switched over. New server message parsing/handling is running now. Thanks to the zenirc developers for the great ideas I got from the code!!!!! Go and test it, poke at it, bug me on irc about problems
 
 	* erc.el 1.127: *** empty log message ***
 
@@ -367,7 +367,7 @@
 	  Now, all the server word replies are finished. Going to numreplies now
 
 	* erc.el 1.119:
-	* debugging fascilities for the transition. C-x 2 C-x o M-x ielm RET erc-server-vectors RET ; to get a list of all server messages currently not handled in the new code. Feel free to pick one and implement it
+	* debugging facilities for the transition. C-x 2 C-x o M-x ielm RET erc-server-vectors RET ; to get a list of all server messages currently not handled in the new code. Feel free to pick one and implement it
 
 	* erc.el 1.118: * erc-server-KICK and erc-server-TOPIC. new functions
 	* erc-server-305-or-306 and erc-server-311-or-314
@@ -431,10 +431,10 @@
 	* erc.el 1.100:
 	* added second timestamp-format (erc-away-timestamp-format) for marking msgs when being away
 
-	* erc-complete.el 1.2: fixed silly deffun
+	* erc-complete.el 1.2: fixed silly defun
 
 	* erc.el 1.99: * Rewrote erc-load-irc-script (simplified)
-	* Removed depricated code
+	* Removed deprecated code
 
 	* erc-speak.el 1.15: * reflect changes in erc.el
 
@@ -457,14 +457,14 @@
 	* erc.el 1.95: * Reduction patch 2
 	  This time, we move the input ring handling into erc-ring.el
 	  Remember that you need (require 'erc-ring) in your .emacs to get the input handling as a feature
-	  And remeber, that you dont need it if you dont use input ring :-)
+	  And remeber, that you don't need it if you don't use input ring :-)
 
 	* erc-ring.el 1.1: * Initial checkin
 
 	* erc.el 1.94: * The great reduction patch :-)
 	  moved relevant function from erc.el to new file erc-menu.el and erc-imenu.el
 
-	* erc-imenu.el 1.1: nitial version
+	* erc-imenu.el 1.1: Initial version
 
 	* erc-menu.el 1.1: * Initial version
 
@@ -495,7 +495,7 @@
 
 	* erc.el 1.88:
 	* Changed timestamping when away to use erc-timestamp-format and append the timestamp instead of prepending it..
-	* minor cleanup, s/(if (not /(unless/ and thelike
+	* minor cleanup, s/(if (not /(unless/ and the like
 
 2001-11-06  Tijs van Bakel  <smoke@wanadoo.nl>
 
@@ -521,7 +521,7 @@
 	Renamed erc-message-notices to erc-minibuffer-notice, and renamed erc-prevent-minibuffer-privmsg to erc-minibuffer-privmsg, inverting its functionality
 
 	* erc.el 1.81: Added support for channel names starting with & + and !.
-	Also, many changes partially discussed on the mailinglist:
+	Also, many changes partially discussed on the mailing list:
 
 		* erc.el (cl): Add requirement for cl package.
 		(erc-buffer-list): Make this variable global again.
@@ -626,7 +626,7 @@
 
 	* erc-speak.el 1.14:
 	* Added a new personality for channel name announcement, This makes streams of flooded channels much easier to listen to, 
-	  especially if you are on more than one channel simultaniously.
+	  especially if you are on more than one channel simultaneously.
 
 	* erc.el 1.75:
 	* Made the completion postfix customizable through erc-nick-completion-postfix
@@ -643,7 +643,7 @@
 	* Removed now really obsolete code. Package size reduced by 50%
 
 	* erc-speak.el 1.10:
-	* Very important fix! Now erc-speak is really complete. Messages dont get cut anymore. Be sure to use auditory icons, 
+	* Very important fix! Now erc-speak is really complete. Messages don't get cut anymore. Be sure to use auditory icons, 
 	  it's reallllly cool now!!!
 
 	* erc-speak.el 1.9: *** empty log message ***
@@ -795,7 +795,7 @@
 2001-09-26  Mario Lang  <mlang@delysid.org>
 
 	* erc.el 1.54: * Fixed completion (alex)
-	  * Now popup buffer doesnt destroy your window configuration.
+	  * Now popup buffer doesn't destroy your window configuration.
 	* Fixed away handling (incomplete)
 
 2001-09-24  Mario Lang  <mlang@delysid.org>
@@ -816,7 +816,7 @@
 2001-09-20  Mario Lang  <mlang@delysid.org>
 
 	* erc.el 1.50:
-	* Fix (erc-cmd-names): This should fix C-c C-n too, hoepfully it was the right fix and doesnt break anything else.
+	* Fix (erc-cmd-names): This should fix C-c C-n too, hopefully it was the right fix and doesn't break anything else.
 
 	* erc.el 1.49: * Fixes XEmacs easymenu usage (2nd time).
 
@@ -859,7 +859,7 @@
 2001-08-07  Mario Lang  <mlang@delysid.org>
 
 	* erc.el 1.41:
-	Checked in lathis code and modified it slightly. Still unsure about set-window-buffer advice, current attempt doesnt seem to work.
+	Checked in lathis code and modified it slightly. Still unsure about set-window-buffer advice, current attempt doesn't seem to work.
 	Removed (nick -> #channel) from mode-line. (CLOSED) and (AWAY...) should still be displayed when appropriate
 
 2001-08-06  Mario Lang  <mlang@delysid.org>
@@ -909,7 +909,7 @@
 2001-07-26  Mario Lang  <mlang@delysid.org>
 
 	* erc.el 1.29:
-	fixed one occurence of a setq with only one argument (XEmacs didnt like that)
+	fixed one occurence of a setq with only one argument (XEmacs didn't like that)
 
 	* erc.el 1.28:
 	Added erc-next-line-add-newlines customisation possibility.
@@ -1001,7 +1001,7 @@
 	Insert (erc-current-nick) instead of (erc-display-prompt). good night :)
 
 	* erc.el 1.9:
-	small, but it was anoying, so I just did it (defcustom for erc-join-buffer and erc-join-info-buffer)
+	small, but it was annoying, so I just did it (defcustom for erc-join-buffer and erc-join-info-buffer)
 
 2001-06-29  Alex Schroeder  <alex@gnu.org>
 

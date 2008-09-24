@@ -16,8 +16,8 @@
 
 2008-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* Makefile.in (INSTALLABLES): Add LIB_SRC_EXTRA_INSTALLABLES.  Do
-	not special case for NS_IMPL_COCOA.
+	* Makefile.in (INSTALLABLES): Add LIB_SRC_EXTRA_INSTALLABLES.
+	Do not special case for NS_IMPL_COCOA.
 
 2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -766,7 +766,7 @@
 	set up TCP sockets.
 	(set_local_socket): New function to create and set up Unix
 	socket (code moved from previous implementation).
-	(set_socket): New function to chose between TCP and Unix sockets.
+	(set_socket): New function to choose between TCP and Unix sockets.
 	(main): Use SEND_STRING and SEND_QUOTED.  Most code moved to
 	set_local_socket.  Use set_socket.  Get answers from server.el with
 	recv(), not file stream functions.
@@ -966,7 +966,7 @@
 2005-09-15  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (update-game-score.o): New target.
-	Compile and link this progranm separately.
+	Compile and link this program separately.
 	(update-game-score${EXEEXT}): Use GETOPTDEPTS.
 
 2005-09-11  Jason Rumney  <jasonr@gnu.org>
@@ -1312,7 +1312,7 @@
 2003-02-15  Richard M. Stallman  <rms@gnu.org>
 
 	* cvtmail.c: Cast result of malloc and realloc.
-	Don't include stdlib.h, becuase config.h does.
+	Don't include stdlib.h, because config.h does.
 	(malloc, realloc): Declarations deleted.
 
 	* yow.c (yow): Cast result of malloc and realloc.
@@ -1383,7 +1383,7 @@
 	* getopt.c (const): Move outside !HAVE_CONFIG_H conditional.
 	(libintl.h): Include this if _LIBC.  Otherwise include gettext.h.
 	(wchar.h): Include, maybe.
-	(attribute_hidden): Define if not defind.
+	(attribute_hidden): Define if not defined.
 	(__getopt_initialized): Use attribute_hidden.
 	(__libc_argc, __libc_argv): Renamed from original_argc, etc.
 	(__getopt_nonoption_flags, nonoption_flags_max_len)
@@ -1603,7 +1603,7 @@
 	(main): Treat -c option as a backward compatibility hack.
 	(main, find_entries): Init and free filebuf.
 	(find_entries): Call regex_tag_multiline after the regular parser.
-	(scan_separators): Check for untermintaed regexp and return NULL.
+	(scan_separators): Check for unterminated regexp and return NULL.
 	(analyse_regex, add_regex): Remove the ignore_case argument, which
 	is now a modifier to the regexp.  All callers changed.
 	(add_regex): Manage the regexp modifiers.
@@ -1646,7 +1646,7 @@
 
 	* etags.c: Improvements and bug squashing in TeX handling.
 	(TeX_commands): Skip comments.
-	(TEX_defenv): Now contains more contructs.
+	(TEX_defenv): Now contains more constructs.
 	(TEX_cmt): Make it a static char and move it before TeX_commands.
 	(TeX_commands): Shorten the tag to the brace after the name.
 	(TeX_commands): Names now include the initial backslash.
@@ -1732,7 +1732,7 @@
 
 	* etags.c (get_language_from_filename): Add one argument.
 	(strcaseeq): New function.
-	(get_language_from_filename): Use it to do a case insenstitive
+	(get_language_from_filename): Use it to do a case insensitive
 	comparison if called with appropriate args.
 	(find_entries): Try with case insensitive match.
 	(process_file): Bug fixed.
@@ -1756,7 +1756,7 @@
 	to a file description structure.
 	(curfile, curfiledir, curtagfname, curlang, nocharno)
 	(forced_lang): Global variables removed in favor of fdhead and
-	curfdp, pointers to file description strucures.
+	curfdp, pointers to file description structures.
 	(longopts, main, print_help): Use the CTAGS conditional to include
 	or exclude options that work on etags or ctags only.
 	(process_file, find_entries, pfnote, add_node, put_entries)
@@ -2645,7 +2645,7 @@
 	* etags.c (iswhite): Redefine not to consider '\0' as white
 	space, and use it throughout in place of isspace, thus preventing a
 	potential signed char to int conversion problem.
-	(MSDOS): #undefine befere redefining
+	(MSDOS): #undefine before redefining.
 
 2000-02-04  Francesco Potortì  <pot@gnu.org>
 
@@ -3374,7 +3374,7 @@
 	(init): Cleanup and init _nin.
 	(new_pfnote): New function.
 	(make_C_tag) [traditional_tag_style]: Use it.
-	(traditional_tag_style): Costant set to TRUE for now.
+	(traditional_tag_style): Constant set to TRUE for now.
 
 1997-05-14  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
@@ -3699,11 +3699,11 @@
 	(datearg): When computing default from ChangeLog, handle ISO format
 	dates in addition to old-fashioned dates from Emacs 19.31 and earlier.
 	Don't worry about hh:mm:ss since the resolution is now by day.
-	Use emtpy datearg, not empty rlog_options, to decide whether to pass
+	Use empty datearg, not empty rlog_options, to decide whether to pass
 	"$datearg" option to $rlog.
 	(logTZ): New variable, set to TZ specified by change-log-time-zone-rule.
 	(month_data): Remove `mo'; no longer needed.
-	(rlog_options): Use -zLT for localltime output, if `rlog' supports it.
+	(rlog_options): Use -zLT for localtime output, if `rlog' supports it.
 
 	Match `revision' line of rlog output more accurately.
 
@@ -3920,9 +3920,9 @@
 
 1996-03-08  Anders Lindgren  <andersl@csd.uu.se>
 
-	* etags.c: New Languange Erlang added.
-	(Erlang_functions, erlang_func, erlang_attribute, erlang_atom,
-	erlang_white): New functions.
+	* etags.c: New Language Erlang added.
+	(Erlang_functions, erlang_func, erlang_attribute, erlang_atom)
+	(erlang_white): New functions.
 	(Erlang_suffixes): New suffix list.
 	(lang_names): Erlang entry added.
 	(prolog_getit): Accepts headers spanning several lines.
@@ -5101,7 +5101,7 @@
 	* etags.c (absolute_pathnames, cwd): Added global vars.
 	(longopts, print_help, main, process_file): Put absolute filenames
 	in the tag file if the -A --absolute-pathnames option is used.
-	(print_help): Alfabetically order the options.
+	(print_help): Alphabetically order the options.
 	(malloc, realloc, strcpy, strncpy, strcmp): Remove extern declar.
 
 1994-02-09  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -5322,7 +5322,7 @@
 
 1993-09-14  Brian Fox  (bfox@ai.mit.edu)
 
-	* Makefile.in (archlibdir): Only install execuatables internally
+	* Makefile.in (archlibdir): Only install executables internally
 	used by emacs; don't install bindir binaries here.
 
 1993-09-24  Paul Eggert  (eggert@twinsun.com)
@@ -5678,7 +5678,7 @@
 	* test-distrib.c (main): Take the name of the distribution file to
 	test from the command line.
 
-	* timer.c: Fix mispellings of get_date function's name.
+	* timer.c: Fix misspellings of get_date function's name.
 
 1993-05-12  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
 
@@ -6063,7 +6063,7 @@
 
 1992-04-20  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* etags.c (print_help): Remember not to imbed raw newlines in
+	* etags.c (print_help): Remember not to embed raw newlines in
 	strings - end the lines with `\n\'.
 
 1992-04-17  Jim Blandy  (jimb@pogo.cs.oberlin.edu)

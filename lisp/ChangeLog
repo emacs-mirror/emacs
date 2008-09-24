@@ -333,7 +333,7 @@
 2008-09-07  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el: Compose combining characters only when it
-	follows an character matching with "[[:alpha:]]".
+	follows a character matching with "[[:alpha:]]".
 
 2008-09-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
@@ -452,7 +452,7 @@
 	* verilog-mode.el (verilog-beg-block-re-ordered, verilog-calc-1):
 	Better support for the property statement.  Sometimes this keyword
 	introduces a statement which requires an endproperty keyword, and
-	sometimes it doesn't, dependening on the work before the property
+	sometimes it doesn't, depending on the work before the property
 	word.  If property is prefixed with assert, assume or cover
 	keyword, then the statement is ended with a ';'.  Otherwise,
 	property is like task or specify, and is followed by some number
@@ -1015,7 +1015,7 @@
 	(proced-log, proced-log-summary): New functions.
 	(proced-help): Use proced-why.
 	* textmodes/bibtex.el (bibtex-entry-format): Mark as safe.
-	(bibtex-autokey-year-title-separator): Fix doscstring.
+	(bibtex-autokey-year-title-separator): Fix docstring.
 
 2008-08-17  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -1140,7 +1140,7 @@
 
 	* ibuffer.el (ibuffer-buffer-file-name): Return nil rather than
 	empty string when no filename.
-	(define-ibuffer-column filename): Accomodate that change.
+	(define-ibuffer-column filename): Accommodate that change.
 
 	* ibuf-ext.el (ibuffer-define-filter filename): Use plain old
 	`buffer-file-name' instead of `ibuffer-buffer-file-name'.
@@ -1399,7 +1399,7 @@
 	(isearch-backward, isearch-backward-regexp): Doc fix - make a link
 	to the command `isearch-forward' instead of displaying "See C-s".
 	(isearch-highlight-regexp): Remove arguments `regexp' and `face'
-	with their interactive specifictions.  Move reading the face name to
+	with their interactive specifications.  Move reading the face name to
 	the main body after calls to isearch-done and isearch-clean-overlays.
 
 	* mb-depth.el: Unify all names under one common name prefix
@@ -1550,7 +1550,7 @@
 	* image-mode.el (image-mode): Set image-mode-text-map when image
 	cannot be displayed.
 
-2008-07-30  Stepehen Leake  <stephen_leake@stephe-leake.org>
+2008-07-30  Stephen Leake  <stephen_leake@stephe-leake.org>
 
 	* progmodes/ada-prj.el (ada-prj-initialize-values): Fix use of deleted
 	ada-xref-set-default-prj-values.
@@ -1576,7 +1576,7 @@
 	(verilog-forward-sexp, verilog-forward-wa, verilog-calc-1)
 	(verilog-leap-to-head): Support the new virtual and/or protected
 	tasks, as well as extern declarations of tasks for indenting and
-	for foward/backward expression.
+	for forward/backward expression.
 
 2008-07-30  Wilson Snyder  <wsnyder@wsnyder.org>
 
@@ -4047,7 +4047,7 @@
 2008-06-08  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (compile, compile-always, bootstrap-prepare):
-	Explictly pass EMACS to sub-makes that use it, for non-GNU makes.
+	Explicitly pass EMACS to sub-makes that use it, for non-GNU makes.
 
 2008-06-07  Jihyun Cho  <jihyun.jo@gmail.com>
 
@@ -5111,7 +5111,7 @@
 
 2008-05-14  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el (vc-deduce-fileset): Do the right thing when visting a
+	* vc.el (vc-deduce-fileset): Do the right thing when visiting a
 	buffer (say, a log buffer or diff buffer) with a vc-dir buffer
 	as parent.
 
@@ -5145,7 +5145,7 @@
 
 	* international/fontset.el (setup-default-fontset): For kana, han,
 	hangul, and cjk-misc, move an entry with font-spec at the end.
-	(generate-fontset-menu): Exclue fontset-auto* from the list.
+	(generate-fontset-menu): Exclude fontset-auto* from the list.
 
 	* composite.el (compose-chars-after): Assume that WINDOW is always
 	non-nil.
@@ -6122,7 +6122,7 @@
 	(org-entry-get): Respect value `selective' for the INHERIT argument.
 	(org-tag-inherit-p, org-property-inherit-p): New functions.
 	(org-agenda-format-date-aligned): Allow 10 characters for
-	weekday, to acomodate German locale.
+	weekday, to accommodate German locale.
 	(org-add-archive-files): New function.
 	(org-agenda-files): New argument `ext', to get archive files as well.
 	(org-tbl-menu): Protect the use of variables that
@@ -6211,7 +6211,7 @@
 2008-04-27  Jason Riedy  <jason@acm.org>
 
 	* org/org-table.el (orgtbl-to-generic): Add a :remove-nil-lines
-	parameter that supresses lines that evaluate to NIL.
+	parameter that suppresses lines that evaluate to NIL.
 	(orgtbl-get-fmt): New inline function for
 	picking apart formats that may be lists.
 	(orgtbl-apply-fmt): New inline function for applying formats that
@@ -6299,7 +6299,7 @@
 	(org-export-preprocess-string): Rename from
 	`org-cleaned-string-for-export'.
 	(org-export-html-style): Made target class look like normal text.
-	(org-export-as-html): Make use of the better proprocessing in
+	(org-export-as-html): Make use of the better preprocessing in
 	`org-cleaned-string-for-export'.
 	(org-cleaned-string-for-export): Better treatment of heuristic
 	targets, many more internal links will now work in HTML export.
@@ -6486,7 +6486,7 @@
 	(completion-emacs22-try-completion): Place cursor after the /, as was
 	done in Emacs-22's minibuffer-complete-word.
 	Fix bug reported by David Hansen <david.hansen@gmx.net>.
-	(completion-emacs22-try-completion): Merge all mergable text rather
+	(completion-emacs22-try-completion): Merge all mergeable text rather
 	than just /.
 	(completion-pcm--delim-wild-regex): New var.
 	(completion-pcm-word-delimiters): New custom.
@@ -7116,7 +7116,7 @@
 	* international/mule.el (char-coding-system-table):
 	Remove redundant obsolescence info in docstring.
 	(charset-list, generic-char-p, set-char-table-default):
-	Fix typos in obsolescence decarations.
+	Fix typos in obsolescence declarations.
 
 	* international/mule-diag.el (non-iso-charset-alist):
 	Fix typo in obsolescence declaration.
@@ -8194,7 +8194,7 @@
 	* emacs-lisp/autoload.el (autoload-ensure-default-file):
 	Provide a feature.
 	* calendar/calendar.el, calendar/diary-lib.el, calendar/holidays.el:
-	Require loaddef file rather than loading it.
+	Require loaddefs file rather than loading it.
 	* Makefile.in ($(lisp)/mh-e/mh-loaddefs.el): Simplify rule now that
 	autoload-ensure-default-file provides a feature.
 
@@ -10629,7 +10629,7 @@
 	buffer.  Side effects first need to be studied carefully.
 	(org-get-tags-at): Fix the structure of the condition-case statement.
 	(org-ts-regexp0, org-repeat-re, org-display-custom-time)
-	(org-timestamp-change): Fix regulear expressions to swallow the
+	(org-timestamp-change): Fix regular expressions to swallow the
 	extra character for repeat-shift control.
 	(org-auto-repeat-maybe): Implement the new repeater mechanisms.
 	(org-get-legal-level): Alias to `org-get-valid-level'.
@@ -10646,7 +10646,7 @@
 	it no longer seem necessary.
 	(org-follow-link-hook): New hook.
 	(org-agenda-custom-commands): Add "Component" as a tag for each
-	item in a command serie.
+	item in a command series.
 	(org-open-at-point): Run `org-follow-link-hook'.
 	(org-agenda-schedule): Bugfix: don't display marker type when it
 	is nil.
@@ -10685,7 +10685,7 @@
 	`include-columns' argument in the call to
 	`org-buffer-property-keys'.
 	(org-buffer-property-keys): New argument `include-columns', to
-	include properties expected by any of the COLUMS formats in the
+	include properties expected by any of the COLUMNS formats in the
 	current buffer.
 	(org-cleaned-string-for-export): Get rid of drawers first, so that
 	they will be removed also in the text before the first headline.
@@ -10700,7 +10700,7 @@
 	(org-agenda-get-deadlines): Allow `org-deadline-warning-days' to
 	be 0.
 	(org-update-checkbox-count): Revamp to deal with hierarchical
-	beckboxes.  This was a patch from Miguel A. Figueroa-Villanueva.
+	checkboxes.  This was a patch from Miguel A. Figueroa-Villanueva.
 	(org-remove-timestamp-with-keyword): New function.
 	(org-schedule, org-deadline):
 	Use `org-remove-timestamp-with-keyword' to make sure all such time
@@ -11504,7 +11504,7 @@
 
 2008-03-05  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* subr.el (read-quoted-char): Resolve modifers of the character
+	* subr.el (read-quoted-char): Resolve modifiers of the character
 	event.
 
 	* comint.el (comint-exec-1): Don't change the coding-system for
@@ -11682,7 +11682,7 @@
 	Expand all viper-cond-compile-for-xemacs-or-emacs calls to a
 	featurep test.
 
-	Replace obselete frame-local variables with frame-parameters.
+	Replace obsolete frame-local variables with frame-parameters.
 	* emulation/viper-init.el (viper-replace-overlay-cursor-color)
 	(viper-insert-state-cursor-color, viper-emacs-state-cursor-color)
 	(viper-vi-state-cursor-color): Only call make-variable-frame-local
