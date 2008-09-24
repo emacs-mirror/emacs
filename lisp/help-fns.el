@@ -398,7 +398,9 @@ suitable file is found, return nil."
 	(princ " in `")
 	;; We used to add .el to the file name,
 	;; but that's completely wrong when the user used load-file.
-	(princ (if (eq file-name 'C-source) "C source code" file-name))
+	(princ (if (eq file-name 'C-source)
+		   "C source code"
+		 (file-name-nondirectory file-name)))
 	(princ "'")
 	;; Make a hyperlink to the library.
 	(with-current-buffer standard-output
@@ -597,7 +599,9 @@ it is displayed along with the global value."
 	      (if file-name
 		  (progn
 		    (princ " is a variable defined in `")
-		    (princ (if (eq file-name 'C-source) "C source code" file-name))
+		    (princ (if (eq file-name 'C-source)
+			       "C source code"
+			     (file-name-nondirectory file-name)))
 		    (princ "'.\n")
 		    (with-current-buffer standard-output
 		      (save-excursion
