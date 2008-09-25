@@ -1,3 +1,7 @@
+2008-09-25  Glenn Morris  <rgm@gnu.org>
+
+	* ffap.el (ffap-fixup-url): Don't call url-normalize-url.  (Bug#898)
+
 2008-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc.el (vc-mark-resolved): Move message here from
