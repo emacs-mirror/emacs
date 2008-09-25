@@ -2781,6 +2781,9 @@ See `term-prompt-regexp'."
 				       str i))
 		   (when (not funny) (setq funny str-length))
 		   (cond ((> funny i)
+			  ;; Decode the string before counting
+			  ;; characters, to avoid garbling of certain
+			  ;; multibyte characters (bug#1006).
 			  (setq decoded-substring
 				(decode-coding-string
 				 (substring str i funny)
