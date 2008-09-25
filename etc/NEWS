@@ -297,6 +297,7 @@ on the regexp command prefix map.
 list accessible by M-n instead of pushing all guesses temporarily into
 the history list.
 
++++
 ** In Isearch mode, a special case of typing `C-w' at the beginning of
 the minibuffer that toggles word search (i.e. using key sequences
 `C-s RET C-w' or `C-s M-e C-w') is obsolete.  You can use the global key
