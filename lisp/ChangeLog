@@ -1,7 +1,20 @@
+2008-09-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* generic-x.el (generic-other-modes): Fix typo in docstring.
+	(generic-use-find-file-hook, generic-lines-to-scan)
+	(generic-find-file-regexp, generic-ignore-files-regexp)
+	(generic-define-mswindows-modes, generic-define-unix-modes):
+	Remove `*' from docstring.
+	(generic-mode-find-file-hook): Use `string-match-p'.
+	(apache-log-generic-mode, mailagent-rules-generic-mode)
+	(prototype-generic-mode, pkginfo-generic-mode, javascript-generic-mode)
+	(java-manifest-generic-mode, java-properties-generic-mode)
+	(alias-generic-mode): Doc fix: use "Generic mode" in docstrings
+	for consistency with other modes in generic-x.el.
+
 2008-09-25  Martin Rudalics  <rudalics@gmx.at>
 
-	* textmodes/tex-mode.el (latex-handle-escaped-parens): New
-	variable.
+	* textmodes/tex-mode.el (latex-handle-escaped-parens): New variable.
 	(latex-backward-sexp-1, latex-forward-sexp-1): Treat escaped
 	parens specially only if latex-handle-escaped-parens is non-nil.
 	(latex-indent-within-escaped-parens): New option.
@@ -51,7 +64,7 @@
 	* subr.el (with-output-to-string): Make sure that the temporary
 	buffer gets killed.
 
-2008-09-23  Markus Sauermann <markus@sauermann-consulting.de>  (tiny change)
+2008-09-23  Markus Sauermann  <markus@sauermann-consulting.de>  (tiny change)
 
 	* emacs-lisp/emacslisp-mode.el (calculate-lisp-indent): Fix
 	indentation problem with keyword symbols when a list starts with
