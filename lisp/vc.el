@@ -1286,18 +1286,18 @@ After check-out, runs the normal hook `vc-checkout-hook'."
   (run-hooks 'vc-checkout-hook))
 
 (defun vc-mark-resolved (backend files)
-  (with-vc-properties
-   files
-   (vc-call-backend backend 'mark-resolved files)
-   (message
-    (substitute-command-keys
-     "Conflicts have been resolved in %s.  \
+  (prog1 (with-vc-properties
+	  files
+	  (vc-call-backend backend 'mark-resolved files)
+	  ;; FIXME: Is this TRTD?  Might not be.
+	  `((vc-state . edited)))
+    (message
+     (substitute-command-keys
+      "Conflicts have been resolved in %s.  \
 Type \\[vc-next-action] to check in changes.")
-    (if (> (length files) 1)
-	(format "%d files" (length files))
-      "this file"))
-   ;; FIXME: Is this TRTD?  Might not be.
-   `((vc-state . edited))))
+     (if (> (length files) 1)
+	 (format "%d files" (length files))
+       "this file"))))
 
 (defun vc-steal-lock (file rev owner)
   "Steal the lock on FILE."
