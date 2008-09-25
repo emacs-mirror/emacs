@@ -2115,19 +2115,21 @@ set_search_regs (beg_byte, nbytes)
   XSETBUFFER (last_thing_searched, current_buffer);
 }
 
-/* Given a string of words separated by word delimiters,
-  compute a regexp that matches those exact words
-  separated by arbitrary punctuation.  */
+/* Given STRING, a string of words separated by word delimiters,
+   compute a regexp that matches those exact words separated by
+   arbitrary punctuation.  If LAX is nonzero, the end of the string
+   need not match a word boundary unless it ends in whitespace.  */
 
 static Lisp_Object
-wordify (string)
+wordify (string, lax)
      Lisp_Object string;
+     int lax;
 {
   register unsigned char *p, *o;
   register int i, i_byte, len, punct_count = 0, word_count = 0;
   Lisp_Object val;
   int prev_c = 0;
-  int adjust;
+  int adjust, whitespace_at_end;
 
   CHECK_STRING (string);
   p = SDATA (string);
@@ -2150,11 +2152,18 @@ wordify (string)
     }
 
   if (SYNTAX (prev_c) == Sword)
-    word_count++;
+    {
+      word_count++;
+      whitespace_at_end = 0;
+    }
+  else
+    whitespace_at_end = 1;
+
   if (!word_count)
     return empty_unibyte_string;
 
-  adjust = - punct_count + 5 * (word_count - 1) + 4;
+  adjust = - punct_count + 5 * (word_count - 1)
+    + ((lax && !whitespace_at_end) ? 2 : 4);
   if (STRING_MULTIBYTE (string))
     val = make_uninit_multibyte_string (len + adjust,
 					SBYTES (string)
@@ -2192,8 +2201,11 @@ wordify (string)
       prev_c = c;
     }
 
-  *o++ = '\\';
-  *o++ = 'b';
+  if (!lax || whitespace_at_end)
+    {
+      *o++ = '\\';
+      *o++ = 'b';
+    }
 
   return val;
 }
@@ -2250,7 +2262,7 @@ Optional fourth argument is repeat count--search for successive occurrences.  */
      (string, bound, noerror, count)
      Lisp_Object string, bound, noerror, count;
 {
-  return search_command (wordify (string), bound, noerror, count, -1, 1, 0);
+  return search_command (wordify (string, 0), bound, noerror, count, -1, 1, 0);
 }
 
 DEFUN ("word-search-forward", Fword_search_forward, Sword_search_forward, 1, 4,
@@ -2265,7 +2277,45 @@ Optional fourth argument is repeat count--search for successive occurrences.  */
      (string, bound, noerror, count)
      Lisp_Object string, bound, noerror, count;
 {
-  return search_command (wordify (string), bound, noerror, count, 1, 1, 0);
+  return search_command (wordify (string, 0), bound, noerror, count, 1, 1, 0);
+}
+
+DEFUN ("word-search-backward-lax", Fword_search_backward_lax, Sword_search_backward_lax, 1, 4,
+       "sWord search backward: ",
+       doc: /* Search backward from point for STRING, ignoring differences in punctuation.
+Set point to the beginning of the occurrence found, and return point.
+
+Unlike `word-search-backward', the end of STRING need not match a word
+boundary unless it ends in whitespace.
+
+An optional second argument bounds the search; it is a buffer position.
+The match found must not extend before that position.
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.  */)
+     (string, bound, noerror, count)
+     Lisp_Object string, bound, noerror, count;
+{
+  return search_command (wordify (string, 1), bound, noerror, count, -1, 1, 0);
+}
+
+DEFUN ("word-search-forward-lax", Fword_search_forward_lax, Sword_search_forward_lax, 1, 4,
+       "sWord search: ",
+       doc: /* Search forward from point for STRING, ignoring differences in punctuation.
+Set point to the end of the occurrence found, and return point.
+
+Unlike `word-search-forward', the end of STRING need not match a word
+boundary unless it ends in whitespace.
+
+An optional second argument bounds the search; it is a buffer position.
+The match found must not extend after that position.
+Optional third argument, if t, means if fail just return nil (no error).
+  If not nil and not t, move to limit of search and return nil.
+Optional fourth argument is repeat count--search for successive occurrences.  */)
+     (string, bound, noerror, count)
+     Lisp_Object string, bound, noerror, count;
+{
+  return search_command (wordify (string, 1), bound, noerror, count, 1, 1, 0);
 }
 
 DEFUN ("re-search-backward", Fre_search_backward, Sre_search_backward, 1, 4,
@@ -3235,6 +3285,8 @@ is to bind it with `let' around a small expression.  */);
   defsubr (&Ssearch_backward);
   defsubr (&Sword_search_forward);
   defsubr (&Sword_search_backward);
+  defsubr (&Sword_search_forward_lax);
+  defsubr (&Sword_search_backward_lax);
   defsubr (&Sre_search_forward);
   defsubr (&Sre_search_backward);
   defsubr (&Sposix_search_forward);
