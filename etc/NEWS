@@ -373,7 +373,7 @@ completion items to the minibuffer.  The same principle applies to
 incremental search commands as well: C-s or C-M-s starts searching
 the default values and after the end of defaults they continue
 searching minibuffer completion items.
-
+---
 *** Minibuffer input of shell commands now comes with completion.
 
 *** In the `C-x d' (Dired) prompt, typing M-n gives the visited file
@@ -395,7 +395,7 @@ switch-to-buffer (such as C-x b and C-x C-f) do not fail any more when
 used in a minibuffer or a dedicated window.  Instead, they fallback on
 using pop-to-buffer, which will use some other window.  This change
 has no effect when enable-recursive-minibuffers is nil (the default).
-
++++
 *** Isearch started in the minibuffer searches in the minibuffer history.
 Reverse Isearch commands (C-r, C-M-r) search in previous minibuffer
 history elements, and forward Isearch commands (C-s, C-M-s) search in
@@ -762,7 +762,7 @@ window shall be automatically selected when invoking help.
 position of point in help window (for example in `view-lossage').
 
 ** Isearch
-
++++
 *** New command `isearch-forward-word' bound globally to `M-s w' starts
 incremental word search.  New command `isearch-toggle-word' bound to the
 same key `M-s w' in Isearch mode toggles word searching on or off
@@ -773,11 +773,11 @@ mode runs `highlight-regexp' (`hi-lock-face-buffer') with the current
 search string as its regexp argument.  The same key `M-s h r' and
 other keys on the `M-s h' prefix are bound globally to the command
 `highlight-regexp' and other hi-lock commands.
-
++++
 *** New command `isearch-occur' bound to `M-s o' in Isearch mode
 runs `occur' with the current search string.  The same key `M-s o'
 is bound globally to the command `occur'.
-
+---
 *** Isearch can now search through multiple ChangeLog files.
 When running Isearch in a ChangeLog file, if the search fails,
 then another C-s tries searching the previous ChangeLog,
@@ -787,16 +787,16 @@ This is enabled if multi-isearch-search is non-nil.
 *** Two new commands to start Isearch on a list of marked buffers
 for buff-menu.el and ibuffer.el are bound to the keys `M-s a C-s' and
 `M-s a M-C-s'.
-
-*** The part of an Isearch that failed to match is highlighted in `isearch-fail'
-face.
++++
+*** The part of an Isearch that failed to match is highlighted in
+`isearch-fail' face.
 
 *** `C-h C-h' in Isearch mode displays isearch-specific Help screen,
 `C-h b' displays all Isearch key bindings, `C-h k' displays the full
 documentation of the given Isearch key sequence, `C-h m' displays
 documentation of Isearch mode.  All the rest Help commands exit Isearch mode
 and execute their global definitions.
-
++++
 *** When started in the minibuffer, Isearch searches in the minibuffer
 history.  See `Minibuffer changes', above.
 
@@ -1234,6 +1234,11 @@ to `automatic-all' and `exit-current' for multi-buffer interactive replacement.
 
 *** The variable `inhibit-changing-match-data', if non-nil, prevents
 the search and match primitives from changing the match data.
+
+*** New functions `word-search-forward-lax' and `word-search-backward-lax'.
+These are like `word-search-forward and `word-search-backward', except
+that the end of the search string need not match a word boundary,
+unless it ends in whitespace.
 
 ** File handling changes
 
