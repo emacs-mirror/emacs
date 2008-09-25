@@ -153,9 +153,17 @@
 
 
 ;;;###autoload
+(defcustom Info-split-threshold 262144
+  "The number of characters by which `Info-split' splits an info file."
+  :type 'integer
+  :version "23.1"
+  :group 'texinfo)
+
+;;;###autoload
 (defun Info-split ()
   "Split an info file into an indirect file plus bounded-size subfiles.
-Each subfile will be up to 50,000 characters plus one node.
+Each subfile will be up to the number of characters that
+`Info-split-threshold' specifies, plus one node.
 
 To use this command, first visit a large Info file that has a tag
 table.  The buffer is modified into a (small) indirect info file which
@@ -167,7 +175,7 @@ file name.  The indirect file still functions as an Info file, but it
 contains just the tag table and a directory of subfiles."
 
   (interactive)
-  (if (< (buffer-size) 70000)
+  (if (< (buffer-size) (+ 20000 Info-split-threshold))
       (error "This is too small to be worth splitting"))
   (goto-char (point-min))
   (search-forward "\^_")
@@ -192,7 +200,7 @@ contains just the tag table and a directory of subfiles."
       (narrow-to-region (point-min) (point))
       (goto-char (point-min))
       (while (< (1+ (point)) (point-max))
-	(goto-char (min (+ (point) 50000) (point-max)))
+	(goto-char (min (+ (point) Info-split-threshold) (point-max)))
 	(search-forward "\^_" nil 'move)
 	(setq subfiles
 	      (cons (list (+ start chars-deleted)

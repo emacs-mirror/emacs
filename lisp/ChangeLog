@@ -1,3 +1,11 @@
+2008-09-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* informat.el (Info-split-threshold): New variable.
+	(Info-split): Use it.
+
+	* textmodes/texinfmt.el (texinfo-format-buffer):
+	Use Info-split-threshold to decide whether to split Info files.
+
 2008-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/octave-mod.el (octave-mode-menu): Fix incorrect
