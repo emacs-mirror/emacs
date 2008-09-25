@@ -1,3 +1,8 @@
+2008-09-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.texi (Sending Variables): Fixed variable documentation to
+	avoid the "y/n" wording.
+
 2008-09-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* message.texi (Sending Variables): Added `message-confirm-send' doc.

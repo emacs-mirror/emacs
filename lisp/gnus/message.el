@@ -442,7 +442,7 @@ nil means let mailer mail back a message to report errors."
   :type 'boolean)
 
 (defcustom message-confirm-send nil
-  "Non-nil means when sending a message ask for y/n confirmation."
+  "When non-nil, ask for confirmation when sending a message."
   :group 'message-sending
   :group 'message-mail
   :version "22.3" ;; No Gnus

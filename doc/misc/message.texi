@@ -2225,7 +2225,7 @@ if @code{nil} let the mailer mail back a message to report errors.
 
 @item message-confirm-send
 @vindex message-confirm-send
-If non-@code{nil} display a y/n prompt before actually sending the
+When non-@code{nil}, Gnus will ask for confirmation when sending a
 message.
 
 @end table

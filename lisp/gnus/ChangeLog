@@ -1,3 +1,13 @@
+2008-09-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.el (message-confirm-send): Fixed variable documentation to
+	avoid the "y/n" wording.
+
+2008-09-25  Francis Litterio <flitterio@gmail.com>  (tiny change)
+
+	* message.el (message-set-auto-save-file-name): Save to a different
+	filename so multiple messages (especially drafts) can be recovered.
+
 2008-09-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* message.el (message-confirm-send): Add appropriate version.
