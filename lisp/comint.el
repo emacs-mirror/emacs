@@ -2848,7 +2848,7 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	     ;; may have a different case than what's in the prompt,
 	     ;; if read-file-name-completion-ignore-case is non-nil,
 	     (delete-region filename-beg filename-end)
-	     (if filedir (insert filedir))
+	     (if filedir (insert (comint-quote-filename filedir)))
 	     (insert (comint-quote-filename (directory-file-name completion)))
 	     (cond ((symbolp (file-name-completion completion directory))
 		    ;; We inserted a unique completion.
