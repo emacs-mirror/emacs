@@ -1,3 +1,8 @@
+2008-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.c (wordify): New argument for lax word-ends.
+	(Fword_search_forward_lax, Fword_search_backward_lax): New funs.
+
 2008-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* lisp.h (is_daemon): Declare.
