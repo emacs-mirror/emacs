@@ -374,11 +374,10 @@ Incremental Search
 * Repeat Isearch::      Searching for the same string again.
 * Error in Isearch::    When your string is not found.
 * Special Isearch::     Special input in incremental search.
-* Non-ASCII Isearch::   How to search for non-ASCII characters.
 * Isearch Yank::        Commands that grab text into the search string
                           or else edit the search string.
-* Highlight Isearch::   Isearch highlights the other possible matches.
 * Isearch Scroll::      Scrolling during an incremental search.
+* Isearch Minibuffer::  Incremental search of the minibuffer history.
 * Slow Isearch::        Incremental search features for slow terminals.
 
 Replacement Commands
