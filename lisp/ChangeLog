@@ -1,3 +1,8 @@
+2008-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* isearch.el (isearch-search-fun): Use word-search-forward-lax and
+	word-search-backward-lax for incremental word search.
+
 2008-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* generic-x.el (generic-other-modes): Fix typo in docstring.
