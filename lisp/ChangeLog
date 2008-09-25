@@ -1,3 +1,9 @@
+2008-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc.el (vc-mark-resolved): Move message here from
+	vc-default-mark-resolved.
+	(vc-default-mark-resolved): Change to an alias for ignore.
+
 2008-09-24  Andreas Politz  <politza@fh-trier.de>  (tiny change)
 
 	* term.el (term-emulate-terminal): Encode input string before
