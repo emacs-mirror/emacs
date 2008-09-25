@@ -1,5 +1,8 @@
 2008-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/octave-mod.el (octave-mode-menu): Fix incorrect
+	quoting.
+
 	* comint.el (comint-dynamic-complete-as-filename): Quote directory
 	name when reinserting it.
 
