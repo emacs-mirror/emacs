@@ -1,3 +1,12 @@
+2008-09-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.texi (Sending Variables): Added `message-confirm-send' doc.
+
+2008-09-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (The Gnus Registry): Don't give argument to @item used in
+	@enumerate section so as to be able to be formatted with MAKEINFO=no.
+
 2008-09-22  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E manual version 8.1.
@@ -9,7 +18,7 @@
 	However, bump GPL to Version 3.
 	Use @include for license text.
 
-2008-09-19  Katsumi Yamaoka <yamaoka@jpl.org>
+2008-09-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Top, Setup, Fancy splitting to parent)
 	(Store custom flags and keywords, Store arbitrary data): Clean up

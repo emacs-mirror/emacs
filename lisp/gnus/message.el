@@ -445,6 +445,7 @@ nil means let mailer mail back a message to report errors."
   "Non-nil means when sending a message ask for y/n confirmation."
   :group 'message-sending
   :group 'message-mail
+  :version "22.3" ;; No Gnus
   :link '(custom-manual "(message)Sending Variables")
   :type 'boolean)
 
@@ -6296,13 +6297,22 @@ are not included."
     (if (gnus-alive-p)
 	(setq message-draft-article
 	      (nndraft-request-associate-buffer "drafts"))
+
+      ;; If Gnus were alive, draft messages would be saved in the drafts folder.
+      ;; But Gnus is not alive, so arrange to save the draft message in a
+      ;; regular file in message-auto-save-directory.  Append a unique
+      ;; time-based suffix to the filename to allow multiple drafts to be saved
+      ;; simultaneously without overwriting each other (which mimics the
+      ;; functionality of the Gnus drafts folder).
       (setq buffer-file-name (expand-file-name
+			      (concat
 			      (if (memq system-type
 					'(ms-dos ms-windows windows-nt
 						 cygwin cygwin32 win32 w32
 						 mswindows))
 				  "message"
 				"*message*")
+			       (format-time-string "-%Y%m%d-%H%M%S"))
 			      message-auto-save-directory))
       (setq buffer-auto-save-file-name (make-auto-save-file-name)))
     (clear-visited-file-modtime)

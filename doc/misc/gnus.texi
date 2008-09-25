@@ -26506,7 +26506,6 @@ Save table: (spam-stat-save)
 
 @node The Gnus Registry
 @section The Gnus Registry
-
 @cindex registry
 @cindex split
 @cindex track
@@ -26521,25 +26520,28 @@ Although they will be explained in detail shortly, here's a quick list
 of said features in case your attention span is...  never mind.
 
 @enumerate
+@item
+Split messages to their parent
 
-@item Split messages to their parent
 This keeps discussions in the same group.  You can use the subject and
 the sender in addition to the Message-ID.  Several strategies are
 available.
 
-@item Store custom flags and keywords
+@item
+Store custom flags and keywords
+
 The registry can store custom flags and keywords for a message.  For
 instance, you can mark a message ``To-Do'' this way and the flag will
 persist whether the message is in the nnimap, nnml, nnmaildir,
 etc. backends.
 
-@item Store arbitrary data
+@item
+Store arbitrary data
+
 Through a simple ELisp API, the registry can remember any data for a
 message.  A built-in inverse map, when activated, allows quick lookups
 of all messages matching a particular set of criteria.
-
 @end enumerate
-
 
 @menu
 * Setup::                       
