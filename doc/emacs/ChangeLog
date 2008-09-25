@@ -1,3 +1,23 @@
+2008-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.texi (Search): Shorten introduction.
+	(Basic Isearch): Add command table.  Discuss reverse isearch and
+	isearch highlighting.
+	(Repeat Isearch): Move lazy highlighting discussion here.  Add search
+	ring to cindex.
+	(Special Isearch): Move input methods discussion here.
+	(Non-ASCII Isearch): Node deleted, merged with Special Isearch.
+	(Isearch Yank): Node deleted, and contents moved into Basic Isearch and
+	Repeat Isearch.
+	(Isearch Minibuffer): New node.
+	(Word Search): Document new word search commands.
+	(Regexp Example): Simplify example using sentence-end-base variable.
+	(Replace): Reword introduction.
+	(Unconditional Replace): Remove unnecessary example.
+	(Other Repeating Search): Document new `M-s o' binding.
+
+	* emacs.texi (Top): Update node listings.
+
 2008-09-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs.texi (Top): Remove Kill Errors from menu.
