@@ -1289,6 +1289,13 @@ After check-out, runs the normal hook `vc-checkout-hook'."
   (with-vc-properties
    files
    (vc-call-backend backend 'mark-resolved files)
+   (message
+    (substitute-command-keys
+     "Conflicts have been resolved in %s.  \
+Type \\[vc-next-action] to check in changes.")
+    (if (> (length files) 1)
+	(format "%d files" (length files))
+      "this file"))
    ;; FIXME: Is this TRTD?  Might not be.
    `((vc-state . edited))))
 
@@ -2452,19 +2459,11 @@ to provide the `find-revision' operation instead."
       (message "Checking out %s...done" file))))
 
 (defalias 'vc-default-revision-completion-table 'ignore)
+(defalias 'vc-default-mark-resolved 'ignore)
 
 (defun vc-default-dir-status-files (backend dir files default-state update-function)
   (funcall update-function
            (mapcar (lambda (file) (list file default-state)) files)))
-
-(defun vc-default-mark-resolved (backend files)
-  (message
-   (substitute-command-keys
-    "Conflicts have been resolved in %s.  \
-Type \\[vc-next-action] to check in changes.")
-   (if (> (length files) 1)
-       (format "%d files" (length files))
-     "this file")))
 
 (defun vc-check-headers ()
   "Check if the current file has any headers in it."
