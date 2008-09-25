@@ -1,3 +1,14 @@
+2008-09-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/tex-mode.el (latex-handle-escaped-parens): New
+	variable.
+	(latex-backward-sexp-1, latex-forward-sexp-1): Treat escaped
+	parens specially only if latex-handle-escaped-parens is non-nil.
+	(latex-indent-within-escaped-parens): New option.
+	(latex-find-indent): Bind latex-handle-escaped-parens to
+	latex-indent-within-escaped-parens.  Do not treat escaped parens
+	specially when this is nil.  (Bug#954)
+
 2008-09-25  Glenn Morris  <rgm@gnu.org>
 
 	* ffap.el (ffap-fixup-url): Don't call url-normalize-url.  (Bug#898)
