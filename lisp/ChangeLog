@@ -1,3 +1,8 @@
+2008-09-24  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+
+	* term.el (term-emulate-terminal): Encode input string before
+	checking its length.
+
 2008-09-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/sh-script.el (sh-mode-map): Don't assume that skeleton
