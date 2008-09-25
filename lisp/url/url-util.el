@@ -167,6 +167,8 @@ Strips out default port numbers, etc."
 	  type (url-type data))
     (if (member type '("www" "about" "mailto" "info"))
 	(setq retval url)
+      ;; FIXME all this does, and all this function seems to do in
+      ;; most cases, is remove any trailing "#anchor" part of a url.
       (setf (url-target data) nil)
       (setq retval (url-recreate-url data)))
     retval))
