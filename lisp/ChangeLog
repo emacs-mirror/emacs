@@ -1,5 +1,8 @@
 2008-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* comint.el (comint-dynamic-complete-as-filename): Quote directory
+	name when reinserting it.
+
 	* isearch.el (isearch-search-fun): Use word-search-forward-lax and
 	word-search-backward-lax for incremental word search.
 
