@@ -1,3 +1,14 @@
+2008-09-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in ($(lisp)/progmodes/cc-mode.elc): Remove.
+	($(lisp)/progmodes/cc-align.elc, $(lisp)/progmodes/cc-cmds.elc)
+	($(lisp)/progmodes/cc-compat.elc, $(lisp)/progmodes/cc-defs.elc)
+	($(lisp)/progmodes/cc-engine.elc)
+	($(lisp)/progmodes/cc-fonts.elc, $(lisp)/progmodes/cc-langs.elc)
+	($(lisp)/progmodes/cc-mode.elc, $(lisp)/progmodes/cc-styles.elc)
+	($(lisp)/progmodes/cc-subword.elc)
+	($(lisp)/progmodes/cc-vars.elc): New dependencies.
+
 2008-09-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* informat.el (Info-split-threshold): New variable.
