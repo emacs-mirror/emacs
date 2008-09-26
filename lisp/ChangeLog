@@ -1,3 +1,8 @@
+2008-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* startup.el (command-line): Turn on menu-bar-mode and
+	tool-bar-mode when running as a daemon.
+
 2008-09-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(lisp)/progmodes/cc-mode.elc): Remove.

@@ -899,19 +899,23 @@ opening the first frame (e.g. open a connection to an X server).")
 				'("off" "false")))))
     (setq no-blinking-cursor t))
 
-  ;; If frame was created with a menu bar, set menu-bar-mode on.
-  (unless (or noninteractive
-	      emacs-basic-display
-              (and (memq initial-window-system '(x w32))
-                   (<= (frame-parameter nil 'menu-bar-lines) 0)))
+  ;; If we run as a daemon, or frame was created with a menu bar, set
+  ;; menu-bar-mode on.
+  (when (or (daemonp)
+	    (not (or noninteractive
+		     emacs-basic-display
+		     (and (memq initial-window-system '(x w32))
+			  (<= (frame-parameter nil 'menu-bar-lines) 0)))))
     (menu-bar-mode 1))
 
-  ;; If frame was created with a tool bar, switch tool-bar-mode on.
-  (unless (or noninteractive
-	      emacs-basic-display
-              (not (display-graphic-p))
-              (<= (frame-parameter nil 'tool-bar-lines) 0))
-    (tool-bar-mode 1))
+  ;; If we run as a daemon or frame was created with a tool bar,
+  ;; switch tool-bar-mode on.
+  (when (or (daemonp)
+	   (not (or noninteractive
+		    emacs-basic-display
+		    (not (display-graphic-p))
+		    (<= (frame-parameter nil 'tool-bar-lines) 0))))
+	   (tool-bar-mode 1))
 
   ;; Can't do this init in defcustom because the relevant variables
   ;; are not set.
