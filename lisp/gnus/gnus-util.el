@@ -57,6 +57,7 @@
 (autoload 'rmail-show-message "rmail")
 (autoload 'nnheader-narrow-to-headers "nnheader")
 (autoload 'nnheader-replace-chars-in-string "nnheader")
+(autoload 'mail-header-remove-comments "mail-parse")
 
 (eval-and-compile
   (cond
