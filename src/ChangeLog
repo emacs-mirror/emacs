@@ -1,3 +1,12 @@
+2008-09-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* composite.c (Fcomposition_get_gstring)
+	(Fcompose_region_internal, Fcompose_string_internal)
+	(Ffind_composition_internal): Doc fix.
+	(syms_of_composite) <compose-chars-after-function>: Doc fix.
+	(syms_of_composite) <auto-composition-function>: Doc fix.
+	(syms_of_composite) <composition-function-table>: Doc fix.
+
 2008-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* search.c (wordify): New argument for lax word-ends.
