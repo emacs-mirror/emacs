@@ -1168,7 +1168,9 @@ This function is for internal use only."
     (setq epg-pending-status-list status-list)
     (while (and (eq (process-status (epg-context-process context)) 'run)
 		epg-pending-status-list)
-      (accept-process-output (epg-context-process context) 1))))
+      (accept-process-output (epg-context-process context) 1))
+    (if epg-pending-status-list
+	(epg-context-set-result-for context 'error 'exit))))
 
 (defun epg-wait-for-completion (context)
   "Wait until the `epg-gpg-program' process completes."

@@ -1,3 +1,9 @@
+2008-09-27  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg-wait-for-status): Check if there is no pending
+	status.
+	Reported by Ted Romer <ted@romerfamily.com>.
+
 2008-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* startup.el (command-line): Turn on menu-bar-mode and
