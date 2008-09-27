@@ -1,3 +1,8 @@
+2008-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* play/solitaire.el (solitaire-mode-map): Bind "\r" rather
+	than [return].  (Bug#1031)
+
 2008-09-27  Peter Dyballa  <Peter_Dyballa@Freenet.DE>
 
 	* calendar/calendar.el (solar-sunrises-buffer): Fix typo.
