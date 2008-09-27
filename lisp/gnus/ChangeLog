@@ -1,3 +1,7 @@
+2008-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (mail-header-remove-comments): Autoload it.
+
 2008-09-27  Andreas Schwab  <schwab@suse.de>
 
 	* gnus-util.el (gnus-split-references): Strip comments.
