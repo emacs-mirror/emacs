@@ -1,3 +1,7 @@
+2008-09-27  Peter Dyballa  <Peter_Dyballa@Freenet.DE>
+
+	* calendar/calendar.el (solar-sunrises-buffer): Fix typo.
+
 2008-09-27  Daiki Ueno  <ueno@unixuser.org>
 
 	* epg.el (epg-wait-for-status): Check if there is no pending
