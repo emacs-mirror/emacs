@@ -660,7 +660,7 @@ encode_terminal_code (src, src_len, coding)
 
 	  if (GLYPH_INVALID_P (g) || GLYPH_SIMPLE_P (tbase, tlen, g))
 	    {
-	      /* This glyph doesn't has an entry in Vglyph_table.  */
+	      /* This glyph doesn't have an entry in Vglyph_table.  */
 	      c = src->u.ch;
 	    }
 	  else
