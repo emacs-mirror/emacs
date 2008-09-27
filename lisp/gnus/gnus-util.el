@@ -625,7 +625,7 @@ ARGS are passed to `message'."
 (defun gnus-split-references (references)
   "Return a list of Message-IDs in REFERENCES."
   (let ((beg 0)
-	(references (or references ""))
+	(references (mail-header-remove-comments (or references "")))
 	ids)
     (while (string-match "<[^<]+[^< \t]" references beg)
       (push (substring references (match-beginning 0) (setq beg (match-end 0)))
@@ -652,8 +652,9 @@ If N, return the Nth ancestor instead."
 	  (while (nthcdr n ids)
 	    (setq ids (cdr ids)))
 	  (car ids))
-      (when (string-match "\\(<[^<]+>\\)[ \t]*\\'" references)
-	(match-string 1 references)))))
+      (let ((references (mail-header-remove-comments references)))
+	(when (string-match "\\(<[^<]+>\\)[ \t]*\\'" references)
+	  (match-string 1 references))))))
 
 (defun gnus-buffer-live-p (buffer)
   "Say whether BUFFER is alive or not."
