@@ -397,7 +397,7 @@ struct glyph
       unsigned automatic : 1;
       /* ID of the composition.  */
       unsigned id    : 23;
-      /* Start and end indices of glyhs of the composition.  */
+      /* Start and end indices of glyphs of the composition.  */
       unsigned from : 4;
       unsigned to : 4;
     } cmp;
