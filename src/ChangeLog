@@ -1,3 +1,8 @@
+2008-09-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfont.m (nsfont_draw): Fix up composition rendering (cmp_from,
+	etc.).
+
 2008-09-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* composite.c (Fcomposition_get_gstring)

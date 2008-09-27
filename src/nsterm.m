@@ -2536,11 +2536,11 @@ hide_hourglass ()
 
 
 static inline NSRect
+ns_fix_rect_ibw (NSRect r, int fibw, int frame_pixel_width)
 /* --------------------------------------------------------------------------
     Under NS we draw internal borders inside fringes, and want full-width
     rendering to go all the way to edge.  This function makes that correction.
    -------------------------------------------------------------------------- */
-ns_fix_rect_ibw (NSRect r, int fibw, int frame_pixel_width)
 {
   if (r.origin.y <= fibw+1)
     {
@@ -5040,6 +5040,7 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 
   if (emacsframe != old_focus)
     dpyinfo->x_focus_frame = emacsframe;
+
   /*/last_mouse_frame = emacsframe;? */
 
   if (val >= 0)

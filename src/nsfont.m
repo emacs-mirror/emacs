@@ -902,16 +902,16 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     XCharStruct *cs;
     int cwidth, twidth = 0;
     int hi, lo;
-    char isComposite = 0; /* s->first_glyph->type == COMPOSITE_GLYPH; */
+    char isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
     /* FIXME: composition: no vertical displacement is considered. */
-    t+= s->cmp_from; /* advance into composition */
-    for (i =0; i<s->nchars - s->cmp_from; i++, t++)
+    t += s->cmp_from; /* advance into composition */
+    for (i = s->cmp_from; i < s->nchars; i++, t++)
       {
         hi = (*t & 0xFF00) >> 8;
         lo = *t & 0x00FF;
         if (isComposite)
           {
-            cwidth = s->cmp->offsets[s->cmp_from++ * 2] - twidth;
+            cwidth = s->cmp->offsets[i * 2] /* (H offset) */ - twidth;
           }
         else
           {
