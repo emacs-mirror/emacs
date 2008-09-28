@@ -881,13 +881,8 @@ opening the first frame (e.g. open a connection to an X server).")
 
   (run-hooks 'before-init-hook)
 
-  (if (daemonp)
-      ;; Just start the server here, no need to run
-      ;; `frame-initialize', it deals with creating a frame and
-      ;; setting the parameters for the initial frame, we don't need
-      ;; any oxof those.
-      (server-start)
-    ;; Under X Window, this creates the X frame and deletes the terminal frame.
+  ;; Under X Window, this creates the X frame and deletes the terminal frame.
+  (unless (daemonp)
     (frame-initialize))
 
   ;; Turn off blinking cursor if so specified in X resources.  This is here
@@ -1223,6 +1218,13 @@ opening the first frame (e.g. open a connection to an X server).")
 
   ;; If -batch, terminate after processing the command options.
   (if noninteractive (kill-emacs t))
+
+  ;; In daemon mode, start the server to allow clients to connect.
+  ;; This is done after loading the user's init file and after
+  ;; processing all command line arguments to allow e.g. `server-name'
+  ;; to be changed before the server starts.
+  (when (daemonp)
+    (server-start))
 
   ;; Run emacs-session-restore (session management) if started by
   ;; the session manager and we have a session manager connection.

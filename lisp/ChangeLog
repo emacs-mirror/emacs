@@ -1,3 +1,7 @@
+2008-09-28  Romain Francoise  <romain@orebokech.com>
+
+	* startup.el (command-line): Start the daemon server later.
+
 2008-09-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* subr.el (read-quoted-char): Call char-resolve-modifiers
