@@ -1405,7 +1405,7 @@ OP is a symbol such as `diff'.
 In decreasing order of preference, returns the value of:
 vc-BACKEND-OP-switches (e.g. `vc-cvs-diff-switches');
 vc-OP-switches (e.g. `vc-diff-switches'); or, in the case of
-diff only, `vc-diff-switches'.
+diff only, `diff-switches'.
 
 If the chosen value is not a string or a list, returns nil.
 This is so that you may set, e.g. `vc-svn-diff-switches' to t in order
