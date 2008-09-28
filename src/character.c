@@ -1011,12 +1011,12 @@ usage: (unibyte-string &rest BYTES)  */)
   return make_string_from_bytes ((char *) buf, n, p - buf);
 }
 
-DEFUN ("char-resolve-modifers", Fchar_resolve_modifiers,
+DEFUN ("char-resolve-modifiers", Fchar_resolve_modifiers,
        Schar_resolve_modifiers, 1, 1, 0,
        doc: /* Resolve modifiers in the character CHAR.
 The value is a character with modifiers resolved into the character
 code.  Unresolved modifiers are kept in the value.
-usage: (char-resolve-modifers CHAR)  */)
+usage: (char-resolve-modifiers CHAR)  */)
      (character)
      Lisp_Object character;
 {
