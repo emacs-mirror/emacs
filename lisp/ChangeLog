@@ -1,3 +1,7 @@
+2008-09-28  Glenn Morris  <rgm@gnu.org>
+
+	* vc.el (vc-switches): Give it a doc string.
+
 2008-09-28  Romain Francoise  <romain@orebokech.com>
 
 	* comint.el (comint-show-output): Adjust to stickiness changes of
