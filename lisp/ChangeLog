@@ -1,5 +1,8 @@
 2008-09-28  Romain Francoise  <romain@orebokech.com>
 
+	* comint.el (comint-show-output): Adjust to stickiness changes of
+	the output field.
+
 	* startup.el (command-line): Start the daemon server later.
 
 2008-09-28  Martin Rudalics  <rudalics@gmx.at>
