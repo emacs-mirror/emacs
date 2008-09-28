@@ -1742,7 +1742,7 @@ any other non-digit terminates the character code and is then used as input."))
       ;; bound to some prefix in function-key-map or key-translation-map.
       (setq translated
 	    (if (integerp char)
-		(char-resolve-modifers char)
+		(char-resolve-modifiers char)
 	      char))
       (let ((translation (lookup-key local-function-key-map (vector char))))
 	(if (arrayp translation)
