@@ -1398,6 +1398,18 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
       'undecided))
 
 (defun vc-switches (backend op)
+  "Return a list of vc-BACKEND switches for operation OP.
+BACKEND is a symbol such as `CVS', which will be downcased.
+OP is a symbol such as `diff'.
+
+In decreasing order of preference, returns the value of:
+vc-BACKEND-OP-switches (e.g. `vc-cvs-diff-switches');
+vc-OP-switches (e.g. `vc-diff-switches'); or, in the case of
+diff only, `vc-diff-switches'.
+
+If the chosen value is not a string or a list, returns nil.
+This is so that you may set, e.g. `vc-svn-diff-switches' to t in order
+to override the value of `vc-diff-switches' and `diff-switches'."
   (let ((switches
 	 (or (when backend
 	       (let ((sym (vc-make-backend-sym
