@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>MPS Wiki: ARTICLE-TITLE</title>
+  <title>MPS Wiki: Build System</title>
   <style type = "text/css">
     <!--
     div.banner {text-align:center}
@@ -30,34 +30,57 @@
 
 <hr />
 
-<h1>MPS Wiki: ARTICLE-TITLE</h1>
+<h1>MPS Wiki: Build System</h1>
 
 <address>
 <a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
-2007-01-01
+2008-09-29
 </address>
 
 </div>
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
-<pre>
-replace ARTICLE-TITLE throughout
-correct Document Author (above) and Document History (below)
-add YOUR ARTICLE HERE.
-</pre>
+<h2>MPS Build System</h2>
+
+<p> Buildsys (the MPS build system) does these things:</p>
+
+<p> Exist 3 dimensions:</p>
+<ul>
+  <li> PFM -- platform</li>
+  <li> TARGET -- the build product (library, test-executable, etc) you want to build</li>
+  <li> VARIETY -- eg debug, release, etc</li>
+</ul>
+
+<p> 
+You can specify these if you wish.  Indeed, you *must* specify PFM, by passing its makefile to make (or nmake) with the -f (or /f) flag.  You may specify TARGET and VARIETY on the command-line to make ("VARIETY=di").
+</p>
+
+<p> 
+If you don't specify TARGET and VARIETY, the buildsys uses the following defaults:</p>
+<ul>
+  <li> for TARGET, default is the pseudo-target "all", which is a list that includes mps.a (or mps.lib) and many unit tests;</li>
+  <li> for VARIETY, default is to recursively invoke make (or nmake) for each of 'the usual varieties'.</li>
+</ul>
+
+<p>
+(The pseudo-targets that fill-in these defaults have confusing names: the rule that expands varieties is called "target:" (probably because the TARGET is known by this point), and the rule invoked when TARGET and VARIETY are both known is called "variety:").
+</p>
+
+<p> Once values for PFM, TARGET, and VARIETY are known, there's a rule that prepends the path "PFM/VARIETY/" to TARGET, to make sure that the built files will appear in the appropriate subdirectory.  (Effectively making "foo" a useful shorthand for "PFM/VARIETY/foo").
+</p>
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2007-01-01  RHSK  Created.
+  2008-09-29  RHSK  Created.
 </pre>
 
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 2007 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 2008 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
