@@ -71,6 +71,12 @@ If you don't specify TARGET and VARIETY, the buildsys uses the following default
 <p> Once values for PFM, TARGET, and VARIETY are known, there's a rule that prepends the path "PFM/VARIETY/" to TARGET, to make sure that the built files will appear in the appropriate subdirectory.  (Effectively making "foo" a useful shorthand for "PFM/VARIETY/foo").
 </p>
 
+<h3>How to see the compiler-flags, etc, used by the build</h3>
+
+<p> Try defining NOISY=1 on the make command line.</p>
+
+<p> Or, start by finding the final recursive make call: it will be the command-line that ends with the pseudo-target "variety".  Edit comm.gmk (or commpost.nmk) and add the -n (or /n) flag to that make command.</p>
+
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
