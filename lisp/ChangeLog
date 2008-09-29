@@ -1,3 +1,11 @@
+2008-09-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-remote-p): Precise doc string; IDENTIFICATION can
+	also be `localname'.
+
+	* net/ange-ftp.el (ange-ftp-file-remote-p): Handle `localname' as
+	identification.
+
 2008-09-28  Glenn Morris  <rgm@gnu.org>
 
 	* vc.el (vc-switches): Give it a doc string.
