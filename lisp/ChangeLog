@@ -1,3 +1,7 @@
+2008-09-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc-hooks.el (vc-file-clearprops): Check, that FILE is a string.
+
 2008-09-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (locate-dominating-file): Take file-attributes of
@@ -9,7 +13,7 @@
 	also be `localname'.
 
 	* net/ange-ftp.el (ange-ftp-file-remote-p): Handle `localname' as
-	identification.
+	IDENTIFICATION.
 
 2008-09-28  Glenn Morris  <rgm@gnu.org>
 
