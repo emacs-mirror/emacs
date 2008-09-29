@@ -238,7 +238,10 @@ VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
 
 (defun vc-file-clearprops (file)
   "Clear all VC properties of FILE."
-  (setplist (intern file vc-file-prop-obarray) nil))
+  ;; Sometimes, Tramp runs into trouble, FILE is nil then.  We shall
+  ;; avoid an error in this case.
+  (when (stringp file)
+    (setplist (intern file vc-file-prop-obarray) nil)))
 
 
 ;; We keep properties on each symbol naming a backend as follows:
