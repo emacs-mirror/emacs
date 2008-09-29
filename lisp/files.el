@@ -771,8 +771,9 @@ Furthermore, relative file names do not work across remote connections.
 
 IDENTIFICATION specifies which part of the identification shall
 be returned as string.  IDENTIFICATION can be the symbol
-`method', `user' or `host'; any other value is handled like nil
-and means to return the complete identification string.
+`method', `user', `host' or `localname'; any other value is
+handled like nil and means to return the complete identification
+string.
 
 If CONNECTED is non-nil, the function returns an identification only
 if FILE is located on a remote system, and a connection is established
@@ -1416,7 +1417,7 @@ home directory is a root directory) and removes automounter prefixes
     ;; Avoid treating /home/foo as /home/Foo during `~' substitution.
     ;; To fix this right, we need a `file-name-case-sensitive-p'
     ;; function, but we don't have that yet, so just guess.
-    (let ((case-fold-search 
+    (let ((case-fold-search
 	   (memq system-type '(ms-dos windows-nt darwin cygwin))))
       ;; If any elt of directory-abbrev-alist matches this name,
       ;; abbreviate accordingly.
