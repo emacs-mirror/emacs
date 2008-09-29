@@ -1,3 +1,8 @@
+2008-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (locate-dominating-file): Take file-attributes of
+	`dir', not of `file' (which never changes).
+
 2008-09-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (file-remote-p): Precise doc string; IDENTIFICATION can
