@@ -732,7 +732,7 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
                   ;; things like /net and /afs.  This assumes that all the
                   ;; files inside a project belong to the same user.
                   (let ((prev-user user))
-                    (setq user (nth 2 (file-attributes file)))
+                    (setq user (nth 2 (file-attributes dir)))
                     (or (null prev-user) (equal user prev-user))))
         (if (setq files (and (file-directory-p dir)
                              (directory-files dir 'full regexp)))
