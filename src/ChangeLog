@@ -1,3 +1,7 @@
+2008-09-29  Andreas Schwab  <schwab@suse.de>
+
+	* keyboard.c (syms_of_keyboard) <input-decode-map>: Doc fix.
+
 2008-09-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* character.c (Fchar_resolve_modifiers): Rewrite Elisp function

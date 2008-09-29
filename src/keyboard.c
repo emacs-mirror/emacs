@@ -12212,7 +12212,7 @@ This is used mainly for mapping ASCII function key sequences into
 real Emacs function key events (symbols).
 
 The `read-key-sequence' function replaces any subsequence bound by
-`local-function-key-map' with its binding.  Contrary to `function-key-map',
+`input-key-map' with its binding.  Contrary to `function-key-map',
 this map applies its rebinding regardless of the presence of an ordinary
 binding.  So it is more like `key-translation-map' except that it applies
 before `function-key-map' rather than after.
