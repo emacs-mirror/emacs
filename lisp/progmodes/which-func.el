@@ -1,7 +1,7 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006
+;;   2007, 2008  Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -153,10 +153,10 @@ Zero means compute the Imenu menu regardless of size."
 ;;;###autoload (put 'which-func-format 'risky-local-variable t)
 
 (defvar which-func-imenu-joiner-function #'last
-  "Function to call when using imenu to join together multiple
-levels of nomenclature. Called with a single argument, a list of
-strings giving the names of the menus we had to traverse to get
-to the item. Return a single string, the new name of the item.")
+  "Function to join together multiple levels of imenu nomenclature.
+Called with a single argument, a list of strings giving the names
+of the menus we had to traverse to get to the item.  Returns a
+single string, the new name of the item.")
 
 (defvar which-func-cleanup-function nil
   "Function to transform a string before displaying it in the mode line.
