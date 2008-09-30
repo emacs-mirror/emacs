@@ -1,3 +1,13 @@
+2008-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Coding Systems): Don't mention codepage-setup.
+
+	* msdog-xtra.texi (MS-DOS Printing, MS-DOS and MULE): No need to create
+	cpNNN coding systems anymore.
+	(MS-DOS and MULE): Don't mention code-pages.el.  Don't mention support
+	for unibyte mode.  Don't mention line-drawing characters.  Don't
+	mention dos-unsupported-char-glyph.
+
 2008-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* search.texi (Search): Shorten introduction.
