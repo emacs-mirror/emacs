@@ -104,7 +104,7 @@
       (error "Attempt to visit less than an entire file"))
   (setq file (expand-file-name file))
   (let* ((local-copy
-	  (condition-case inl
+	  (condition-case nil
 	      (epa-file-run-real-handler #'file-local-copy (list file))
 	    (error)))
 	 (local-file (or local-copy file))

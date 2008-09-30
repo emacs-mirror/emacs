@@ -1,3 +1,7 @@
+2008-09-30  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-insert-file-contents): Fix typo.
+
 2008-09-30  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/which-func.el (which-func-imenu-joiner-function): Doc fix.
