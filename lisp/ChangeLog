@@ -1,3 +1,13 @@
+2008-09-30  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-standard-units): Add entries used to
+	display the the values in the units buffer.
+	(math-build-units-table):  Add entries to the units table to be used
+	to display the values in the units buffer.
+	(math-build-units-table-buffer):  Use the display entry of the units
+	table when non-nil.
+	(calc-define-unit): Add option to enter display value of unit.
+
 2008-09-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* vc-hooks.el (vc-file-clearprops): Check, that FILE is a string.
