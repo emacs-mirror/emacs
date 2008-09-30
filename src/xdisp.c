@@ -7258,11 +7258,12 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	    {
 	      it->continuation_lines_width += it->last_visible_x;
 	      /* When moving by vpos, ensure that the iterator really
-		 advances to the next line (bug#847).  Fixme: do we
-		 need to do this in other circumstances?  */
-	      if ((op & MOVE_TO_VPOS)
-		  && !(op & (MOVE_TO_X | MOVE_TO_POS)))
-		set_iterator_to_next (it, 0);
+		 advances to the next line (bug#847, bug#969).  Fixme:
+		 do we need to do this in other circumstances?  */
+	      if (it->current_x != it->last_visible_x
+		  && (op & MOVE_TO_VPOS)
+	      	  && !(op & (MOVE_TO_X | MOVE_TO_POS)))
+	      	set_iterator_to_next (it, 0);
 	    }
 	  else
 	    it->continuation_lines_width += it->current_x;
