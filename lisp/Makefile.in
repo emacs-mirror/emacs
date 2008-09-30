@@ -680,7 +680,6 @@ ELCFILES = \
 	$(lisp)/informat.elc \
 	$(lisp)/international/ccl.elc \
 	$(lisp)/international/characters.elc \
-	$(lisp)/international/codepage.elc \
 	$(lisp)/international/encoded-kb.elc \
 	$(lisp)/international/fontset.elc \
 	$(lisp)/international/isearch-x.elc \
