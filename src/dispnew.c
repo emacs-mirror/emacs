@@ -6465,6 +6465,9 @@ currently selected frame.  */)
 
   tty = t->display_info.tty;
 
+  if (! tty->output)
+    error ("Terminal is currently suspended");
+
   if (tty->termscript)
     {
       fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);

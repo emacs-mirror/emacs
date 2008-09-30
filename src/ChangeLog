@@ -1,3 +1,8 @@
+2008-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dispnew.c (Fsend_string_to_terminal): Don't try to send a string to
+	a suspended terminal.
+
 2008-09-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_signature): Use strcat instead of sprintf.
@@ -30,13 +35,11 @@
 
 2008-09-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* dispnew.c (init_display): Return earlier when running as a
-	daemon.
+	* dispnew.c (init_display): Return earlier when running as a daemon.
 
 2008-09-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* nsfont.m (nsfont_draw): Fix up composition rendering (cmp_from,
-	etc.).
+	* nsfont.m (nsfont_draw): Fix up composition rendering (cmp_from, ...).
 
 2008-09-27  Eli Zaretskii  <eliz@gnu.org>
 
