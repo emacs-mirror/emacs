@@ -1,3 +1,8 @@
+2008-09-30  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (User Defined Units): Mention how to enter optional display
+	string.
+
 2008-09-25  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* message.texi (Sending Variables): Fixed variable documentation to
