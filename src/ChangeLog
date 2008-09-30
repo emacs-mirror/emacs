@@ -1,3 +1,8 @@
+2008-09-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (move_it_to): Don't advance the iterator if the last tab
+	in a continued line coincides with a line beginning.
+
 2008-09-29  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfont.m (nsfont_trait_distance): Fix bug.
