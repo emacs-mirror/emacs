@@ -1,5 +1,10 @@
 2008-09-30  Eli Zaretskii  <eliz@gnu.org>
 
+	* international/codepage.el: File removed, as even ms-dos doesn't
+	need it anymore.
+
+	* loadup.el [ms-dos]: Don't load ccl and codepage.
+
 	* term/internal.el: Remove coding: cookie and no-byte-compile flag.
 	(IT-character-translations, cjk-codepages-alist): Remove variables.
 	(IT-display-table-setup, dos-cpNNN-setup): Remove functions.
