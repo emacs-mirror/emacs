@@ -178,7 +178,7 @@ nsfont_fmember_to_entity (NSString *family, NSArray *famMember)
     {
       fprintf (stderr, "created font_entity:\n    ");
       debug_print (font_entity);
-     }
+    }
 
   [suffix release];
   free (escapedFamily);
@@ -190,12 +190,12 @@ nsfont_fmember_to_entity (NSString *family, NSArray *famMember)
 static int
 nsfont_trait_distance (unsigned int traits1, unsigned int traits2)
 {
-  int i, d =0;
-  for (i =0; i<sizeof (unsigned int)*8; i++)
+  int i, d = 0;
+  for (i = 0; i < sizeof (unsigned int) * 8; i++)
     {
       d += (traits1 & 0x1) ^ (traits2 & 0x1);
-      traits1 >> 1;
-      traits2 >> 1;
+      traits1 >>= 1;
+      traits2 >>= 1;
     }
   return d;
 }
@@ -267,7 +267,7 @@ nsfont_get_cache (FRAME_PTR frame)
 
 
 /* List fonts exactly matching with FONT_SPEC on FRAME.  The value
-   is a vector of font-entities.  This is the sole API that
+   is a **list** of font-entities.  This is the sole API that
    allocates font-entities.  */
 static Lisp_Object
 nsfont_list (Lisp_Object frame, Lisp_Object font_spec)
@@ -349,7 +349,7 @@ nsfont_list (Lisp_Object frame, Lisp_Object font_spec)
   if (NSFONT_TRACE)
       fprintf (stderr, "    Returning %d entities.\n", XINT (Flength (list)));
 
-  return (NILP (list) ? Qnil : Fvconcat (1, &list));/* Qnil was null_vector */
+  return list;
 }
 
 
@@ -540,8 +540,9 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   family = nsfont_get_family (font_entity);
   if (NSFONT_TRACE)
     {
-      fprintf (stderr, "family: '%s'\ttraits = %ld\tbold = %d\n",
-               [family UTF8String], traits, traits & NSBoldFontMask);
+      fprintf (stderr, "family: '%s'\ttraits = %ld\tbold = %d\titalic = %d\n",
+               [family UTF8String], traits, traits & NSBoldFontMask,
+               traits & NSItalicFontMask);
     }
 
   /* see http://cocoadev.com/forums/comments.php?DiscussionID =74 */
@@ -575,6 +576,8 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
           return Qnil;
         }
     }
+
+//NSLog(@"%@\n",nsfont);
 
 #if 0
   {
