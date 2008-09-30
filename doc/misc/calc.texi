@@ -27877,7 +27877,11 @@ typing @kbd{u d rod} defines the new unit @samp{rod} to be equivalent to
 16.5 feet.  The unit conversion and simplification commands will now
 treat @code{rod} just like any other unit of length.  You will also be
 prompted for an optional English description of the unit, which will
-appear in the Units Table.
+appear in the Units Table.  If you wish the definition of this unit to
+be displayed in a special way in the Units Table buffer (such as with an
+asterisk to indicate an approximate value), then you can call this
+command with an argument, @kbd{C-u u d}; you will then also be prompted
+for a string that will be used to display the definition.
 
 @kindex u u
 @pindex calc-undefine-unit
