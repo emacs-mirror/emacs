@@ -6378,6 +6378,7 @@ not have a face in `gnus-article-boring-faces'."
 				      (point))))
 		(when (and (not not-restore-window)
 			   new-sum-point
+			   (window-live-p win)
 			   (with-current-buffer (window-buffer win)
 			     (eq major-mode 'gnus-summary-mode)))
 		  (set-window-point win new-sum-point)

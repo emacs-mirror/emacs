@@ -445,7 +445,7 @@ nil means let mailer mail back a message to report errors."
   "When non-nil, ask for confirmation when sending a message."
   :group 'message-sending
   :group 'message-mail
-  :version "22.3" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :link '(custom-manual "(message)Sending Variables")
   :type 'boolean)
 
@@ -5633,7 +5633,8 @@ subscribed address (and not the additional To and Cc header contents)."
 		(mapcar (lambda (rhs) (or (cadr (split-string rhs "@")) ""))
 			(mapcar 'downcase
 				(mapcar
-				 'car (mail-header-parse-addresses field))))))
+				 'cadr
+				 (mail-extract-address-components field t))))))
 	(setq ace (if (string-match "\\`[[:ascii:]]+\\'" rhs)
 		      rhs
 		    (downcase (idna-to-ascii rhs))))

@@ -1,3 +1,8 @@
+2008-09-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-read-summary-keys): Check if summary window
+	exists.
+
 2008-09-27  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-util.el (mail-header-remove-comments): Autoload it.
@@ -7,12 +12,23 @@
 	* gnus-util.el (gnus-split-references): Strip comments.
 	(gnus-parent-id): Likewise.
 
+2008-09-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-confirm-send): Fix version.
+
+2008-09-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-idna-to-ascii-rhs-1): Use
+	mail-extract-address-components rather than mail-header-parse-addresses
+	that is an alias by default to ietf-drums-parse-addresses that does not
+	support non-ASCII names in headers' contents.
+
 2008-09-25  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* message.el (message-confirm-send): Fixed variable documentation to
 	avoid the "y/n" wording.
 
-2008-09-25  Francis Litterio <flitterio@gmail.com>  (tiny change)
+2008-09-25  Francis Litterio  <flitterio@gmail.com>  (tiny change)
 
 	* message.el (message-set-auto-save-file-name): Save to a different
 	filename so multiple messages (especially drafts) can be recovered.
