@@ -1,3 +1,7 @@
+2008-09-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mml.el (mml-menu): Don't assume mml2015 is bound.
+
 2008-09-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-read-summary-keys): Check if summary window
