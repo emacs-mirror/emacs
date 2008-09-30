@@ -1,3 +1,9 @@
+2008-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/mail-utils.el (mail-unquote-printable-region): Use
+	insert-byte instead of insert-char, when the UNIBYTE arg is
+	non-nil.
+
 2008-09-30  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-file.el (epa-file-insert-file-contents): Fix typo.
