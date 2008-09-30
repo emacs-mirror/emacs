@@ -626,8 +626,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
 
 #ifdef MSDOS
 #define MSDOS_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
- ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc \
- ${lispsource}international/ccl.elc ${lispsource}international/codepage.elc
+ ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc
 
 #else
 #define MSDOS_SUPPORT
@@ -867,7 +866,6 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/mwheel.elc ../lisp/tool-bar.elc \
   ../lisp/x-dnd.elc \
   ../lisp/international/ccl.elc \
-  ../lisp/international/codepage.elc \
   ../lisp/international/fontset.elc \
   ../lisp/mouse.elc \
   ../lisp/term/x-win.elc \
