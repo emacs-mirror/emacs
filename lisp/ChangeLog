@@ -1,3 +1,9 @@
+2008-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el (xterm-turn-on-modify-other-keys)
+	(xterm-turn-off-modify-other-keys, xterm-remove-modify-other-keys):
+	Don't forget to pass `terminal' to `send-string-to-terminal'.
+
 2008-09-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* vc-hooks.el (vc-file-clearprops): Revert change from 2008-09-29.
@@ -19,8 +25,8 @@
 	* term/internal.el: Remove coding: cookie and no-byte-compile flag.
 	(IT-character-translations, cjk-codepages-alist): Remove variables.
 	(IT-display-table-setup, dos-cpNNN-setup): Remove functions.
-	(IT-unicode-translations): Remove charset and base elements.  Add
-	translations for Latin-1 characters.
+	(IT-unicode-translations): Remove charset and base elements.
+	Add translations for Latin-1 characters.
 	(IT-setup-unicode-display): Accept a CODING argument.  Don't use
 	base and chset elements of IT-unicode-translations.  Don't wrap
 	translation in "{...}".  Set up translations only for characters
@@ -32,8 +38,8 @@
 	condition-case, instead of calling file-directory-p, which stats
 	the directory one more time.
 
-	* mail/mail-utils.el (mail-unquote-printable-region): Use
-	insert-byte instead of insert-char, when the UNIBYTE arg is
+	* mail/mail-utils.el (mail-unquote-printable-region):
+	Use insert-byte instead of insert-char, when the UNIBYTE arg is
 	non-nil.
 
 2008-09-30  Daiki Ueno  <ueno@unixuser.org>
@@ -106,8 +112,7 @@
 
 2008-09-27  Daiki Ueno  <ueno@unixuser.org>
 
-	* epg.el (epg-wait-for-status): Check if there is no pending
-	status.
+	* epg.el (epg-wait-for-status): Check if there is no pending status.
 	Reported by Ted Romer <ted@romerfamily.com>.
 
 2008-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
