@@ -734,8 +734,9 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
                   (let ((prev-user user))
                     (setq user (nth 2 (file-attributes dir)))
                     (or (null prev-user) (equal user prev-user))))
-        (if (setq files (and (file-directory-p dir)
-                             (directory-files dir 'full regexp)))
+        (if (setq files (condition-case nil
+			    (directory-files dir 'full regexp)
+			  (error nil)))
             (throw 'found (car files))
           (if (equal dir
                      (setq dir (file-name-directory
