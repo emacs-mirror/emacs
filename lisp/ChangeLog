@@ -1,3 +1,8 @@
+2008-09-30  Daniel Colascione  <danc@merrillpress.com>
+
+	* imenu.el (imenu--split-menu): Fix bug with shared lists that deleted
+	some nested menu items.
+
 2008-09-30  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (math-standard-units): Add entries used to
