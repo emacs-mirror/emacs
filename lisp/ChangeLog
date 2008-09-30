@@ -1,5 +1,9 @@
 2008-09-30  Eli Zaretskii  <eliz@gnu.org>
 
+	* files.el (locate-dominating-file): Wrap directory-files with
+	condition-case, instead of calling file-directory-p, which stats
+	the directory one more time.
+
 	* mail/mail-utils.el (mail-unquote-printable-region): Use
 	insert-byte instead of insert-char, when the UNIBYTE arg is
 	non-nil.
