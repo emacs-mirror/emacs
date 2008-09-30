@@ -190,8 +190,6 @@ WINDOW_SUPPORT = \
 OTHER_PLATFORM_SUPPORT = \
 	$(lispsource)dos-fns.elc \
 	$(lispsource)dos-vars.elc \
-	$(lispsource)international/ccl.elc \
-	$(lispsource)international/codepage.elc \
 	$(lispsource)x-dnd.elc \
 	$(lispsource)term/x-win.elc
 
