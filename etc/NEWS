@@ -821,6 +821,12 @@ way as gud-mode does for debugging C programs with gdb.
 remote files, if there is no established connection to the
 corresponding remote host.
 
+** TeX modes
+
+*** New option latex-indent-within-escaped-parens
+permits to customize indentation of LaTeX environments delimited
+by escaped parens.
+
 ** T-mouse Mode
 
 *** If the gpm mouse server is running and t-mouse-mode is enabled,
