@@ -1,4 +1,4 @@
-2008-09-30  Michael Albinus  <albinus@arthur>
+2008-09-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_signature): Use strcat instead of sprintf.
 
