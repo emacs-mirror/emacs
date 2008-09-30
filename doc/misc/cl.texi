@@ -5153,7 +5153,7 @@ Emacs Lisp:
         collect (if flag x (funcall func x))))
 
 (defun add-odd-elements (list x)
-  (map-odd-elements (lambda (a) (+ a x))) list)
+  (map-odd-elements (lambda (a) (+ a x)) list))
 @end example
 
 @noindent

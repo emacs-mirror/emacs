@@ -1,3 +1,7 @@
+2008-09-30  Magnus Henoch  <mange@freemail.hu>
+
+	* cl.texi (Porting Common Lisp): Fix parenthesis order in example.
+
 2008-09-30  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (User Defined Units): Mention how to enter optional display
