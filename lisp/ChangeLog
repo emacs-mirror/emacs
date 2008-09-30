@@ -1,4 +1,11 @@
+2008-09-30  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/which-func.el (which-func-imenu-joiner-function): Doc fix.
+
 2008-09-30  Daniel Colascione  <danc@merrillpress.com>
+
+	* progmodes/which-func.el (which-func-imenu-joiner-function): New.
+	(which-function): Handle nested imenu trees.
 
 	* imenu.el (imenu--split-menu): Fix bug with shared lists that deleted
 	some nested menu items.
