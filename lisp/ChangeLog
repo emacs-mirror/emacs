@@ -1,5 +1,7 @@
 2008-09-30  Eli Zaretskii  <eliz@gnu.org>
 
+	* Makefile.in (ELCFILES): Remove codepage.elc.
+
 	* international/codepage.el: File removed, as even ms-dos doesn't
 	need it anymore.
 
