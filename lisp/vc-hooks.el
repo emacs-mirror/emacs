@@ -238,10 +238,7 @@ VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
 
 (defun vc-file-clearprops (file)
   "Clear all VC properties of FILE."
-  ;; Sometimes, Tramp runs into trouble, FILE is nil then.  We shall
-  ;; avoid an error in this case.
-  (when (stringp file)
-    (setplist (intern file vc-file-prop-obarray) nil)))
+  (setplist (intern file vc-file-prop-obarray) nil))
 
 
 ;; We keep properties on each symbol naming a backend as follows:
@@ -943,9 +940,12 @@ Returns t if checkout was successful, nil otherwise.
 Used in `find-file-not-found-functions'."
   ;; When a file does not exist, ignore cached info about it
   ;; from a previous visit.
-  (vc-file-clearprops buffer-file-name)
-  (let ((backend (vc-backend buffer-file-name)))
-    (when backend (vc-call-backend backend 'find-file-not-found-hook))))
+  ;; We check that `buffer-file-name' is non-nil.  It should be always
+  ;; the case, but in conjunction with Tramp, it might be nil.  M. Albinus.
+  (when buffer-file-name
+    (vc-file-clearprops buffer-file-name)
+    (let ((backend (vc-backend buffer-file-name)))
+      (when backend (vc-call-backend backend 'find-file-not-found-hook)))))
 
 (defun vc-default-find-file-not-found-hook (backend)
   ;; This used to do what vc-rcs-find-file-not-found-hook does, but it only
