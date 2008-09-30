@@ -1,5 +1,17 @@
 2008-09-30  Eli Zaretskii  <eliz@gnu.org>
 
+	* term/internal.el: Remove coding: cookie and no-byte-compile flag.
+	(IT-character-translations, cjk-codepages-alist): Remove variables.
+	(IT-display-table-setup, dos-cpNNN-setup): Remove functions.
+	(IT-unicode-translations): Remove charset and base elements.  Add
+	translations for Latin-1 characters.
+	(IT-setup-unicode-display): Accept a CODING argument.  Don't use
+	base and chset elements of IT-unicode-translations.  Don't wrap
+	translation in "{...}".  Set up translations only for characters
+	for which unencodable-char-position returns non-nil.
+	(dos-codepage-setup): Don't use special-case codepages in
+	cjk-codepages-alist.
+
 	* files.el (locate-dominating-file): Wrap directory-files with
 	condition-case, instead of calling file-directory-p, which stats
 	the directory one more time.
