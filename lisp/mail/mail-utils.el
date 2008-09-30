@@ -141,8 +141,9 @@ as Rmail does."
 		     (if unibyte
 			 (progn
 			   (replace-match "")
-			   ;; insert-char will insert this as unibyte,
-			   (insert-char char 1))
+			   ;; insert-byte will insert this as a
+			   ;; corresponding eight-bit character.
+			   (insert-byte char 1))
 		       (replace-match (make-string 1 char) t t))))
 		  (noerror
 		   (setq failed t))
