@@ -1,3 +1,9 @@
+2008-10-01  Glenn Morris  <rgm@gnu.org>
+
+	* filesets.el (filesets-menu-name): Fix type.
+	(filesets-menu-path, filesets-menu-before): Fix types.
+	Change defaults to be consistent with recentf.  (Bug#1056)
+
 2008-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/xterm.el (xterm-turn-on-modify-other-keys)
