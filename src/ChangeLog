@@ -1,6 +1,8 @@
 2008-10-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* nsfont.m (nsfont_open): Reenable the cache.
+	* nsfont.m (nsfont_spec_to_traits): Use UnXX masks only for non-normal
+	styles.
+	(nsfont_open): Reenable the cache.
 
 2008-10-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
