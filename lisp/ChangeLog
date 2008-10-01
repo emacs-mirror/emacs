@@ -1,3 +1,8 @@
+2008-10-01  Magnus Henoch  <mange@freemail.hu>
+
+	* net/tls.el (open-tls-stream): Show the actual command being
+	executed, instead of the format string.
+
 2008-10-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* term/internal.el (dos-locale-alist): New alist.
