@@ -344,10 +344,7 @@ This also sets the following values:
 	     (or (not coding-system)
 		 (coding-system-get coding-system 'ascii-compatible-p)))
 	(setq default-file-name-coding-system coding-system)))
-  ;; If coding-system is nil, honor that on MS-DOS as well, so
-  ;; that they could reset the terminal coding system.
-  (unless (and (eq window-system 'pc) coding-system)
-    (setq default-terminal-coding-system coding-system))
+  (setq default-terminal-coding-system coding-system)
   (setq default-keyboard-coding-system coding-system)
   ;; Preserve eol-type from existing default-process-coding-systems.
   ;; On non-unix-like systems in particular, these may have been set
@@ -1789,13 +1786,11 @@ The default status is as follows:
       ;; The following 2 lines undo the 8-bit display that we set up
       ;; in standard-display-european-internal, which see.  This is in
       ;; case the user has used standard-display-european earlier in
-      ;; this session.  (The MS-DOS port doesn't use that setup, so it
-      ;; doesn't need to undo it.)
+      ;; this session.
       (when standard-display-table
 	(dotimes (i 128)
 	  (aset standard-display-table (+ i 128) nil))))
-    (or (eq window-system 'pc)
-	(set-terminal-coding-system (or coding-system coding) display))))
+    (set-terminal-coding-system (or coding-system coding) display)))
 
 (defun set-language-environment (language-name)
   "Set up multi-lingual environment for using LANGUAGE-NAME.
@@ -1967,7 +1962,7 @@ Setting this variable directly does not take effect.  See
   ;; defined.
   (let ((nonascii (get-language-info language-name 'nonascii-translation)))
     (if (eq window-system 'pc)
-	(setq nonascii (intern "cp%d" dos-codepage)))
+	(setq nonascii (intern (format "cp%d" dos-codepage))))
     (or (and (charsetp nonascii)
 	     (get-charset-property nonascii :ascii-compatible-p))
 	(setq nonascii 'iso-8859-1))
