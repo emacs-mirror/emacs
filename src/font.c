@@ -2765,12 +2765,18 @@ font_matching_entity (f, attrs, spec)
   struct font_driver_list *driver_list = f->font_driver_list;
   Lisp_Object ftype, size, entity;
   Lisp_Object frame;
+  Lisp_Object work = Fcopy_font_spec (spec);
 
   XSETFRAME (frame, f);
   ftype = AREF (spec, FONT_TYPE_INDEX);
   size = AREF (spec, FONT_SIZE_INDEX);
   if (FLOATP (size))
     ASET (spec, FONT_SIZE_INDEX, make_number (font_pixel_size (f, spec)));
+
+  FONT_SET_STYLE (work, FONT_WEIGHT_INDEX, attrs[LFACE_WEIGHT_INDEX]);
+  FONT_SET_STYLE (work, FONT_SLANT_INDEX, attrs[LFACE_SLANT_INDEX]);
+  FONT_SET_STYLE (work, FONT_WIDTH_INDEX, attrs[LFACE_SWIDTH_INDEX]);
+
   entity = Qnil;
   for (; driver_list; driver_list = driver_list->next)
     if (driver_list->on
@@ -2779,14 +2785,14 @@ font_matching_entity (f, attrs, spec)
 	Lisp_Object cache = font_get_cache (f, driver_list->driver);
 	Lisp_Object copy;
 
-	ASET (spec, FONT_TYPE_INDEX, driver_list->driver->type);
-	entity = assoc_no_quit (spec, XCDR (cache));
+	ASET (work, FONT_TYPE_INDEX, driver_list->driver->type);
+	entity = assoc_no_quit (work, XCDR (cache));
 	if (CONSP (entity))
 	  entity = XCDR (entity);
 	else
 	  {
-	    entity = driver_list->driver->match (frame, spec);
-	    copy = Fcopy_font_spec (spec);
+	    entity = driver_list->driver->match (frame, work);
+	    copy = Fcopy_font_spec (work);
 	    ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
 	    XSETCDR (cache, Fcons (Fcons (copy, entity), XCDR (cache)));
 	  }
@@ -2795,7 +2801,7 @@ font_matching_entity (f, attrs, spec)
       }
   ASET (spec, FONT_TYPE_INDEX, ftype);
   ASET (spec, FONT_SIZE_INDEX, size);
-  font_add_log ("match", spec, entity);
+  font_add_log ("match", work, entity);
   return entity;
 }
 
@@ -3166,7 +3172,13 @@ font_find_for_lface (f, attrs, spec, c)
   else
     {
       Lisp_Object alters
-	= Fassoc_string (val, Vface_alternative_font_family_alist, Qt);
+	= Fassoc_string (val, Vface_alternative_font_family_alist,
+#ifndef HAVE_NS
+			 Qt
+#else
+			 Qnil
+#endif
+			 );
 
       if (! NILP (alters))
 	{
