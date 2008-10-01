@@ -2770,9 +2770,9 @@ font_matching_entity (f, attrs, spec)
   XSETFRAME (frame, f);
   ftype = AREF (spec, FONT_TYPE_INDEX);
   size = AREF (spec, FONT_SIZE_INDEX);
-  if (FLOATP (size))
-    ASET (spec, FONT_SIZE_INDEX, make_number (font_pixel_size (f, spec)));
 
+  if (FLOATP (size))
+    ASET (work, FONT_SIZE_INDEX, make_number (font_pixel_size (f, spec)));
   FONT_SET_STYLE (work, FONT_WEIGHT_INDEX, attrs[LFACE_WEIGHT_INDEX]);
   FONT_SET_STYLE (work, FONT_SLANT_INDEX, attrs[LFACE_SLANT_INDEX]);
   FONT_SET_STYLE (work, FONT_WIDTH_INDEX, attrs[LFACE_SWIDTH_INDEX]);
@@ -2799,8 +2799,6 @@ font_matching_entity (f, attrs, spec)
 	if (! NILP (entity))
 	  break;
       }
-  ASET (spec, FONT_TYPE_INDEX, ftype);
-  ASET (spec, FONT_SIZE_INDEX, size);
   font_add_log ("match", work, entity);
   return entity;
 }
