@@ -370,7 +370,7 @@
 	* erc-log.el (log): Use erc-away-time.  Remove unnecessary check.
 	Pass `buffer' argument to erc-log-setup-logging instead of setting
 	the current buffer.  Ditto for erc-log-disable-logging.
-	(erc-log-setup-logging, erc-log-disable-loggin): Accept a `buffer'
+	(erc-log-setup-logging, erc-log-disable-logging): Accept a `buffer'
 	argument.
 
 	* erc-list.el (erc-chanlist): Use erc-with-server-buffer.
@@ -1091,7 +1091,7 @@
 	(erc-speedbar-goto-buffer): Fix compiler warning.
 
 	* erc-ibuffer.el: Use `define-ibuffer-filter' instead of
-	`ibuffer-degine-limiter'.  Use `define-ibuffer-column' instead of
+	`ibuffer-define-limiter'.  Use `define-ibuffer-column' instead of
 	`ibuffer-define-column'.  Require 'ibuf-ext so that the macros
 	work without compiler warnings.
 

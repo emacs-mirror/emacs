@@ -10868,7 +10868,7 @@
 	(org-table-create-or-convert-from-region): New commands
 	(org-table-toggle-vline-visibility): Command removed.
 	(org-table-convert-region): Made a command.
-	(orgtbl-deleta-backward-char, orgtbl-delete-char): Remove commands.
+	(orgtbl-delete-backward-char, orgtbl-delete-char): Remove commands.
 	Replace with the normal org- functions.
 	(org-self-insert-command): Don't trigger realign unnecessarily
 	when blanking a field that is not full.
@@ -12282,7 +12282,7 @@
 	* progmodes/cc-langs.el (c-mode-menu): Add menu items for Electric
 	Mode and Subword Mode.
 
-	* progmodes/cc-engine.el (c-beginning-of-statment-1): Distinguish
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): Distinguish
 	real labels ("case 1:" or "foo:") from non-labels ("public:").
 	(c-forward-objc-directive): Replace c-forward-token-2 with crude
 	coding; c-f-t-2 doesn't move over a token at EOB.
@@ -20335,10 +20335,10 @@
 
 2005-10-14  Chong Yidong  <cyd@stupidchicken.com>
 
-	* longlines.el (longlinges-search-function)
+	* longlines.el (longlines-search-function)
 	(longlines-search-forward, longlines-search-backward): New functions.
 	(longlines-mode): Set isearch-search-fun-function to
-	longlinges-search-function.
+	longlines-search-function.
 
 	* mouse.el (mouse-drag-region-1): Handle the case where a
 	double-click event is bound to an arbitrary function.
@@ -20494,7 +20494,7 @@
 	(tags-select-tags-table): Pass `button' to the action function.
 	(select-tags-table): Place the side-info on button properties rather
 	than in hidden text.  Abbreviate file names.
-	(select-tags-table-mode-map): Inherit rather than copy buttom-map.
+	(select-tags-table-mode-map): Inherit rather than copy button-map.
 	(select-tags-table-select): Add `button' argument.
 	Get side-info from the button property rather than from hidden text.
 
@@ -24865,7 +24865,7 @@
 	* emulation/edt.el (edt-last-copied-word): Add defvar.
 	(zmacs-region-stays): Likewise.
 	(edt-mark-section-wisely): Use c-mark-function for C.
-	Use makr-defun for Fortran.
+	Use mark-defun for Fortran.
 	(time-string): defvar deleted.
 	(edt-display-the-time): Don't set time-string.
 
@@ -31471,7 +31471,7 @@
 	computed.
 
 	* startup.el (command-line): Use it for temporary-file-directory,
-	small-emporary-file-directory, auto-save-file-name-transforms,
+	small-temporary-file-directory, auto-save-file-name-transforms,
 	blink-cursor-mode, and normal-erase-is-backspace.
 
 	* font-lock.el (font-lock-fontify-keywords-region): Ensure forward

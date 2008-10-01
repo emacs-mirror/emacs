@@ -2684,7 +2684,7 @@
 	(math-do-integral): Set `math-linear-subst-tried' to nil.
 	(math-do-integral-methods): Use `math-linear-subst-tried' to
 	determine what type of substitution to try.
-	(math-integ-try-linear-substituion):
+	(math-integ-try-linear-substitution):
 	Set `math-linear-subst-tried' to t.
 
 2004-11-08  Kim F. Storm  <storm@cua.dk>

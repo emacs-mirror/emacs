@@ -18993,7 +18993,7 @@
 	* coding.c (coding_system_accept_latin_extra_p): Delete this
 	function.
 	(find_safe_codings): Pay attention to
-	the property tranlsation-table-for-encode of each codings.
+	the property translation-table-for-encode of each codings.
 	(syms_of_coding): Give Qtranslation_table the extra slot number 2.
 
 2003-05-01  Stefan Monnier  <monnier@cs.yale.edu>
@@ -19583,7 +19583,7 @@
 	(x_intersect_rectangles): New generic functions for use by xdisp.c
 	and GUI front-ends.
 	(syms_of_xdisp): Initialize and staticpro help_echo* variables.
-	Defvar_bool "x-streach-cursor" and "mouse-autoselect-window" here.
+	Defvar_bool "x-stretch-cursor" and "mouse-autoselect-window" here.
 
 	* dispextern.h (Display_Info): Generic typedef for *_display_info.
 	(NativeRectangle): Generic typedef for rectangle type.
@@ -25322,7 +25322,7 @@
 	* msdos.c (x_autoselect_window_p): New variable.
 	(syms_of_msdos): Defvar it.
 	(dos_rawgetc): If x_autoselect_window_p is set, select the window in
-	which the last mouse movement occured, unless it is already selected.
+	which the last mouse movement occurred, unless it is already selected.
 
 	* xdisp.c (automatic_hscroll_margin, Vautomatic_hscroll_step):
 	New variables.

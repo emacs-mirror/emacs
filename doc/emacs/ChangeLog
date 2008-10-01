@@ -92,7 +92,7 @@
 	* cal-xtra.texi (Advanced Calendar/Diary Usage): Tweak some menu
 	descriptions.
 	(Calendar Customizing): Tweak layout description.
-	Move calenday-today-marker and calendar-today face to the other
+	Move calendar-today-marker and calendar-today face to the other
 	markers.  Condense calendar-star-date and calendar-mark-today
 	description.
 	(Holiday Customizing): Add oriental and solar holidays.

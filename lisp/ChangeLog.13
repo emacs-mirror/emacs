@@ -38,10 +38,10 @@
 	* ps-print.el: Some face attributes (like :strike-through) were not
 	being recognised.  Reported by Leo <sdl.web@gmail.com>.
 	(ps-print-version): New version 7.3.2.
-	(ps-screen-to-bit-face): Fix code.  Call ps-face-strikout-p,
+	(ps-screen-to-bit-face): Fix code.  Call ps-face-strikeout-p,
 	ps-face-overline-p and ps-face-box-p functions.
 
-	* ps-def.el (ps-face-strikout-p, ps-face-overline-p, ps-face-box-p):
+	* ps-def.el (ps-face-strikeout-p, ps-face-overline-p, ps-face-box-p):
 	New functions.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
@@ -724,7 +724,7 @@
 	 Don't set it up in defvar.
 	(fill-nospace-between-words-table): New variable.
 	(fill-delete-newlines): Check fill-nospace-between-words-table
-	instead of charset property nospcae-between-words.
+	instead of charset property nospace-between-words.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -877,7 +877,7 @@
 
 	* international/mule.el (ctext-non-standard-encodings-alist):
 	Add an entry for gbk-0.
-	(ctext-post-read-conversion): Use multibyt-char-to-unibyte to read
+	(ctext-post-read-conversion): Use multibyte-char-to-unibyte to read
 	a row 8-bit.
 
 	* language/chinese.el ("Chinese-GBK"):
@@ -986,7 +986,7 @@
 2008-02-01  Zhang Wei  <id.brep@gmail.com>
 
 	* language/chinese.el (chinese-iso-8bit): Fix mime-charset of
-	chiense-iso-8bit.
+	chinese-iso-8bit.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2900,7 +2900,7 @@
 	(charset-quoted-standard-p): Delete.
 	(charsetp): Move to charset.c.
 	(charset-info, charset-id, charset-bytes, charset-width)
-	(charset-directioin, charset-iso-graphic-plane)
+	(charset-direction, charset-iso-graphic-plane)
 	(charset-reverse-charset): Delete.
 	(charset-dimension, charset-chars, charset-iso-final-char)
 	(charset-description, charset-short-name, charset-long-name):
@@ -5252,8 +5252,8 @@
 	(nxml-attribute-local-name, nxml-namespace-attribute-xmlns)
 	(nxml-namespace-attribute-colon, nxml-namespace-attribute-prefix)
 	(nxml-attribute-value, nxml-attribute-value-delimiter)
-	(nxml-namespace-attibute-value)
-	(nxml-namespace-attribure-value-delimiter)
+	(nxml-namespace-attribute-value)
+	(nxml-namespace-attribute-value-delimiter)
 	(nxml-prolog-literal-delimiter, nxml-prolog-literal-content)
 	(nxml-prolog-keyword, nxml-markup-declaration-delimiter, nxml-hash)
 	(nxml-glyph): Rename, removing -face suffix.
@@ -15406,7 +15406,7 @@
 
 2007-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* progmodes/vera-mode.el (vera-mode): Fix `commend-end-skip' setting.
+	* progmodes/vera-mode.el (vera-mode): Fix `comment-end-skip' setting.
 	(vera-font-lock-match-item): Fix doc string.
 	(vera-in-comment-p): Remove unused function.
 	(vera-skip-forward-literal, vera-skip-backward-literal): Improve code,
@@ -15516,7 +15516,7 @@
 
 2007-06-19  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc.el (calc-multiplication-has-precendence):
+	* calc/calc.el (calc-multiplication-has-precedence):
 	New variable.
 	(math-standard-ops, math-standard-ops-p, math-expr-ops):
 	New functions.

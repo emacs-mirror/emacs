@@ -180,7 +180,7 @@
 	(erc-generate-log-file-name-long): Doc: Mention
 	erc-generate-log-file-name-function.
 	(erc-save-buffer-in-logs): Use erc-logging-enabled and
-	erc-current-logfile.  Doc: Mention erc-logging-enabbled.
+	erc-current-logfile.  Doc: Mention erc-logging-enabled.
 
 	(erc-encode-string-for-target): Only do the real work when
 	featurep mule; else just return the string unchanged.
@@ -970,7 +970,7 @@
 	* erc-bbdb.el 1.17:
 	* Create a global-minor-mode (i.e., make it a proper erc-module)
 
-	* erc.el 1.316: * (define-erc-modle): New defmacro
+	* erc.el 1.316: * (define-erc-module): New defmacro
 
 2002-11-16  Jorgen Schaefer  <forcer@users.sourceforge.net>
 
@@ -1181,7 +1181,7 @@
 	* erc-notify.el 1.5: Add pcomplete support
 
 	* erc.el 1.301:
-	Remove autoload statments, remove autoload cookie from erc-mode and erc-info-mode
+	Remove autoload statements, remove autoload cookie from erc-mode and erc-info-mode
 
 	* erc-fill.el 1.14, erc-match.el 1.11: add/remove autoload cookies
 
@@ -1332,7 +1332,7 @@
 2002-07-22  Mario Lang  <mlang@delysid.org>
 
 	* erc.el 1.294:
-	Removed timestamp related code and moved into erc-stampe.l
+	Removed timestamp related code and moved into erc-stamp.el
 
 	* erc-stamp.el 1.1:
 	Timestamping code moved out of erc.el. Additional, now we can timestamp either on the left or on the right side
@@ -1571,7 +1571,7 @@
 	* added undefined-ctcp error message to english catalog
 
 	* changed some (when (not erc-disable-ctcp-replies) to use unless instead
-	  and some if's without else statments to use when or use
+	  and some if's without else statements to use when or use
 
 	* CTCP replies now use erc-display-message, formatted as notices
 
@@ -2327,7 +2327,7 @@
 	* erc.el 1.202: * erc-format-nick-function: New variable.
 	* (erc-format-nick): The default for above var. Just return the nick.
 	* (erc-format-@nick): Prefix NICK with @ or + if OP or VOICE.
-	* Removed erc-track-modified-channels related code and moved into erc-tracke.l
+	* Removed erc-track-modified-channels related code and moved into erc-track.el
 	   Its auto-loaded now
 
 	* erc-track.el 1.1: Split code from erc.el

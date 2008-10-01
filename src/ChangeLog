@@ -278,7 +278,7 @@
 2008-09-08  Kenichi Handa  <handa@m17n.org>
 
 	* indent.c (Fvertical_motion): Be sure to set
-	it_overshoot_expected if it.cmp_it.id is non-nengative.
+	it_overshoot_expected if it.cmp_it.id is non-negative.
 
 2008-09-07  Andreas Schwab  <schwab@suse.de>
 
@@ -4501,7 +4501,7 @@
 	(RFONT_DEF_SET_SCORE, RFONT_DEF_NEW): New macros.
 	(fontset_compare_rfontdef): New function.
 	(reorder_font_vector): Remove the argument CHARSET-ID.  Sort
-	ront-defs by qsort.  Adjusted for the change of font-group vector.
+	rfont-defs by qsort.  Adjusted for the change of font-group vector.
 	(load_font_get_repertory): Deleted.
 	(fontset_find_font): Use new macros to ref/set elements of
 	font-def and rfont-def.
@@ -4551,7 +4551,7 @@
 	(ftfont_match): Use ftfont_spec_pattern to get a pattern.
 	(ftfont_list_family): Don't downcase names.
 	(ftfont_free_entity): Deleted.
-	(ftfont_open): Return a font-ojbect.  Adjusted for the change of
+	(ftfont_open): Return a font-object.  Adjusted for the change of
 	struct font.  Get underline_thickness and underline_position from
 	font property.  Don't update dpyinfo->smallest_font_height and
 	dpyinfo->smallest_char_width.
@@ -4560,7 +4560,7 @@
 	(ftfont_encode_char, ftfont_text_extents): Likewise.
 
 	* ftxfont.c (ftxfont_list): Return a list, not vector.
-	(ftxfont_open): Return a font-ojbect.  Adjusted for the change of
+	(ftxfont_open): Return a font-object.  Adjusted for the change of
 	struct font.  Get underline_thickness and underline_position from
 	font property.  Don't update dpyinfo->smallest_font_height and
 	dpyinfo->smallest_char_width.
@@ -4678,7 +4678,7 @@
 	(xfont_list): Return a list, not vector.
 	(xfont_match): If the font doesn't have QCname property, generate
 	a name from the other font properties.
-	(xfont_open): Return a font-ojbect.  Adjusted for the change of
+	(xfont_open): Return a font-object.  Adjusted for the change of
 	struct font.  Get underline_thickness and underline_position from
 	font property.  Don't update dpyinfo->smallest_font_height and
 	dpyinfo->smallest_char_width.
@@ -8225,7 +8225,7 @@
 	(ftxfont_draw_bitmap): Fix arg to ftfont_driver.get_bitmap.
 	(ftxfont_draw_backgrond): Fix filling region.
 	(ftxfont_default_fid): New function.
-	(ftxfont_open): Set xfotn->fid to the return value of
+	(ftxfont_open): Set xfont->fid to the return value of
 	ftxfont_default_fid.
 	(ftxfont_prepare_face): Use ftxfont_create_gcs to create GCs.
 	(ftxfont_done_face): Free only GCs that are created by
@@ -9421,7 +9421,7 @@
 	(print_prune_string_charset): New function.
 	(print_object): Call print_prune_string_charset if
 	Vprint_charset_text_property is not t.
-	(print_interval): Print nothing if itnerval->plist is nil.
+	(print_interval): Print nothing if interval->plist is nil.
 	(syms_of_print): Declare Vprint_charset_text_property as a lisp
 	variable.  Init and staticpro print_prune_charset_plist.
 
@@ -11587,7 +11587,7 @@
 	* category.c: Include "character.h".
 	(copy_category_entry): New function.
 	(copy_category_table): Call map_char_table and copy_category_entry.
-	(Fmake_category_table): Initialize all top-vel slots.
+	(Fmake_category_table): Initialize all top-level slots.
 	(char_category_set): New function.
 	(modify_lower_category_set): Delete.
 	(Fmodify_category_entry): Call char_table_ref_and_range.

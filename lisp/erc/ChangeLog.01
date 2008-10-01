@@ -679,7 +679,7 @@
 2001-10-20  Alex Schroeder  <alex@gnu.org>
 
 	* erc.el 1.70:
-	Replaced all occurences of put-text-property with a call to
+	Replaced all occurrences of put-text-property with a call to
 	erc-put-text-property.
 	(erc-put-text-property): New function.
 	(erc-tracking-modified-channels): Moved to the front of the file such
@@ -780,7 +780,7 @@
 	* Changed some (if ...) without else part to (when ...)
 	* Some (while ...) to use (dolist ...)
 	* Fix for completion popup generating tracebacks.
-	* New function erc-arrange-session-in-mulptiple-windows
+	* New function erc-arrange-session-in-multiple-windows
 	* Lots of other stuff, read the diff
 
 2001-10-02  Mario Lang  <mlang@delysid.org>
@@ -909,7 +909,7 @@
 2001-07-26  Mario Lang  <mlang@delysid.org>
 
 	* erc.el 1.29:
-	fixed one occurence of a setq with only one argument (XEmacs didn't like that)
+	fixed one occurrence of a setq with only one argument (XEmacs didn't like that)
 
 	* erc.el 1.28:
 	Added erc-next-line-add-newlines customisation possibility.

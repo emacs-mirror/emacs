@@ -5195,7 +5195,7 @@
 2008-05-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-annotate-show-diff-revision-at-line): Change
-	vc-diff-internal arg to match what vc-deduce-fileseset returns now.
+	vc-diff-internal arg to match what vc-deduce-fileset returns now.
 
 2008-05-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -5295,7 +5295,7 @@
 	* vc-dispatcher.el (vc-dispatcher-selection): Change the returned
 	list to a cons so the caller can get back both expanded and
 	unexpanded filesets.
-	* vc.el (vc-deduce-fileseset, vc-next-action, vc-diff-internal)
+	* vc.el (vc-deduce-fileset, vc-next-action, vc-diff-internal)
 	(vc-merge, vc-version-diff, vc-print-log, vc-revert, vc-rollback):
 	Change handling of selection-set returns as required.
 
@@ -8611,7 +8611,7 @@
 	Rename insert-monthly-hebrew-diary-entry.  Keep old name as alias.
 	(diary-hebrew-insert-yearly-entry):
 	Rename insert-yearly-hebrew-diary-entry.  Keep old name as alias.
-	(calender-hebrew-list-yahrzeits): Rename list-yahrzeit-dates.
+	(calendar-hebrew-list-yahrzeits): Rename list-yahrzeit-dates.
 	Keep old name as alias.
 	(diary-hebrew-omer): Rename diary-omer.  Keep old name as alias.
 	(diary-hebrew-yahrzeit): Rename diary-yahrzeit.  Keep old name as alias.
@@ -11791,7 +11791,7 @@
 2008-03-05  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-ext.el (calc-extended-command-history): New variable.
-	(calc-exectute-extended-command): Use `calc-extended-command-history'.
+	(calc-execute-extended-command): Use `calc-extended-command-history'.
 
 2008-03-05  Dan Nicolaescu  <dann@ics.uci.edu>
 

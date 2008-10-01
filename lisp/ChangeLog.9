@@ -8109,7 +8109,7 @@
 
 2000-11-27  Dave Pearson  <davep@hagbard.demon.co.uk>
 
-	* play/5x5.el (5x5-play-solution): Bind hinhibit-quit to t.
+	* play/5x5.el (5x5-play-solution): Bind inhibit-quit to t.
 
 2000-11-27  Andrew Innes  <andrewi@gnu.org>
 
@@ -9495,7 +9495,7 @@
 	* ediff-init.el (ediff-before-setup-hook): New hook.
 	Several typos fixed in various docstrings.
 	* ediff-merg.el (ediff-show-clashes-only): Docstring typo fixed.
-	* ediff-nult.el (ediff-before-session-group-setup-hooks): New hook.
+	* ediff-mult.el (ediff-before-session-group-setup-hooks): New hook.
 	(ediff-show-meta-buffer): Run ediff-before-session-group-setup-hooks.
 	* ediff-util.el (ediff-setup): Run ediff-before-setup-hook.
 	(ediff-other-buffer): Use selected buffers if in Buffer-menu buffer.
@@ -10929,7 +10929,7 @@
 
 	* net/net-utils.el (nslookup-font-lock-keywords)
 	(ftp-font-lock-keywords, smbclient-font-lock-keywords):
-	Ignore the value of wqindow-system; always define keywords
+	Ignore the value of window-system; always define keywords.
 
 2000-10-05  Kenichi Handa  <handa@etl.go.jp>
 
@@ -16823,7 +16823,7 @@
 2000-06-07  John Wiegley  <johnw@gnu.org>
 
 	* align.el (align-dq-string-modes, align-sq-string-modes)
-	(align-open-comment-modes): Add pyhton-mode.
+	(align-open-comment-modes): Add python-mode.
 	(align-rules-list): Use get-text-property instead of
 	text-properties-at.
 	(align-rules-list): Add python-assignment.
@@ -17123,7 +17123,7 @@
 	non-precomposed characters.
 	(tibetan-decompose-string): Likewise.
 	(tibetan-composition-function): Fix args to
-	thibetan-compose-string.
+	tibetan-compose-string.
 
 	* language/tibetan.el (tibetan-composable-pattern): More
 	characters included.
@@ -17679,7 +17679,7 @@
 	* international/mule-diag.el (list-character-sets-1): Handle
 	charsets eight-bit-control and eight-bit-graphic.
 	(list-iso-charset-chars): Likewise.
-	(list-block-of-chars): If CHARSET is not chat-table, insert 8-bit
+	(list-block-of-chars): If CHARSET is not char-table, insert 8-bit
 	characters as is.  Use indent-to to align characters.
 
 	* international/mule-cmds.el (find-multibyte-characters): Never

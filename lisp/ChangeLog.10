@@ -363,7 +363,7 @@
 	hardcoded comment start regexps with `c-comment-start-regexp'.
 
 	* progmodes/cc-mode.el: Added an association for pike-mode on
-	`intepreter-mode-alist'.
+	`interpreter-mode-alist'.
 
 	* progmodes/cc-mode.el: Add the `auto-mode-alist' entries to
 	the end instead of the start of the list, to avoid overriding
@@ -3962,7 +3962,7 @@
 	(quail-update-guidance): Just update quail-guidance-str, not
 	display it.
 	(quail-get-translations): Renamed from quail-show-translations.
-	Return a string instead of inserting it in quail-guaidance-buf.
+	Return a string instead of inserting it in quail-guidance-buf.
 
 2003-04-11  Kenichi Handa  <handa@m17n.org>
 
@@ -4933,7 +4933,7 @@
 	Remove forced `turn-on-font-lock'.
 	Remove `hippie-expand-only-buffers' setting.
 	Update online documentation and web address.
-	(vhdl-comment-uncomment-region): Remove usage of `commend-dwim' again.
+	(vhdl-comment-uncomment-region): Remove usage of `comment-dwim' again.
 	Change ARG for uncommenting.
 	(vhdl-speedbar-make-*-line): Fix for displaying XEmacs speedbar images.
 	(vhdl-fontify-buffer): Toggle font-lock-mode for better recovery.
@@ -5100,7 +5100,7 @@
 	(vhdl-warning, vhdl-warning-when-idle)
 	(vhdl-widget-directory-validate, vhdl-work-library)
 	(vhdl-write-file-hooks-init): New functions.
-	(vhdl-aappend, vhdl-add-warning, vhdl-align-noindent-buffer)
+	(vhdl-append, vhdl-add-warning, vhdl-align-noindent-buffer)
 	(vhdl-align-noindent-region, vhdl-create-customize-menu)
 	(vhdl-forward-unit, vhdl-modify-date-init, vhdl-project-switch)
 	(vhdl-scan-file-contents, vhdl-speedbar-display-hierarchy)
@@ -6432,7 +6432,7 @@
 	well in the Lisp manual.
 
 	* jka-compr.el (jka-compr-insert-file-contents):
-	Call docode-coding-inserted-region.
+	Call decode-coding-inserted-region.
 
 2003-01-24  John Paul Wallington  <jpw@gnu.org>
 
@@ -9215,7 +9215,7 @@
 	frame from frame of selected window.
 	(ediff-frame-has-dedicated-windows): Don't select any frames to avoid
 	changing selected windows.
-	(ediff-setup-control-frame): Make sure auto-rase is properly set for
+	(ediff-setup-control-frame): Make sure auto-raise is properly set for
 	the control frame.
 
 2002-10-10  Simon Josefsson  <jas@extundo.com>
@@ -14556,7 +14556,7 @@
 2002-05-23  Colin Walters  <walters@verbum.org>
 
 	* replace.el (occur-engine): Include all text properties except
-	mouse-face on the newline at the end of occurences.
+	mouse-face on the newline at the end of occurrences.
 
 2002-05-23  Kim F. Storm  <storm@cua.dk>
 
@@ -14570,7 +14570,7 @@
 	* apropos.el (apropos-show-scores, apropos-orig-regexp)
 	(apropos-all-regexp, apropos-synonyms, apropos-words)
 	(apropos-all-words): New variables.
-	(aprpos-words-to-regexp, apropos-rewrite-regexp)
+	(apropos-words-to-regexp, apropos-rewrite-regexp)
 	(apropos-calc-scores, apropos-score-str, apropos-score-doc)
 	(apropos-score-symbol): New functions.
 	(apropos-command, apropos, apropos-value, apropos-documentation):
@@ -18726,7 +18726,7 @@
 
 	* international/mule-conf.el (ctext-no-compositions): New coding
 	system.
-	(compount-text-no-extensions): Renamed from compound-text.
+	(compound-text-no-extensions): Renamed from compound-text.
 	(x-ctext-no-extensions, ctext-no-extensions): Aliases for
 	compound-text-no-extensions.
 	(compound-text): Redefined using post-read and pre-write conversions.
@@ -19524,7 +19524,7 @@
 	(pc-select-restore-mode): New macros.
 	(pc-selection-mode): Completely rewrote the body of the function;
 	the main goal was to make pc-selection-mode "turn-off"-able, like
-	other minor modes.  Use define-minore-mode instead of just a
+	other minor modes.  Use define-minor-mode instead of just a
 	defun.  Store the key bindings into four alists:
 	pc-select-default-key-bindings, pc-select-extra-key-bindings,
 	pc-select-meta-moves-sexps-key-bindings, and
@@ -21437,7 +21437,7 @@
 	* menu-bar.el (menu-bar-read-lispref, menu-bar-read-lispintro)
 	(menu-bar-read-emacs-man, search-emacs-glossary)
 	(emacs-index-search, elisp-index-search): New functions.
-	(apropso-documentation, apropos, apropos-value, apropos-variable)
+	(apropos-documentation, apropos, apropos-value, apropos-variable)
 	(apropos-commands): Modify menu item names and help text.
 	(elisp-index-search, emacs-index-search, emacs-glossary):
 	New menu items.
@@ -22017,7 +22017,7 @@
 	* progmodes/cc-engine.el (c-parse-state): Typo.  From Martin Stjernholm.
 
 	* mwheel.el (mouse-wheel-scroll-amount): Allow float values.
-	(mouse-wheel-progessive-speed): New var.
+	(mouse-wheel-progressive-speed): New var.
 	(mwheel-scroll): Use it and handle float values.
 
 	* lazy-lock.el (lazy-lock-install-hooks): Remove make-local-hook.

@@ -4873,7 +4873,7 @@
 	"\r", call comint-send-input on no arguments, and then use
 	comint-send-string to send the carriage return.
 	(kermit-clean-filter): Call re-search-backward, not
-	re-search-backware.
+	re-search-backward.
 	(kermit-clean-on): Remove extra quote from doc string.
 
 	* informat.el (batch-info-validate): Don't pass any arguments to
@@ -5166,7 +5166,7 @@
 	move by sentences.
 
 	* compile.el (compile-history): New variable.
-	(compile): Specify history list copile-history, with
+	(compile): Specify history list compile-history, with
 	compile-command as initial contents.
 	(grep): Specify constant "grep -n" as initial input,
 	and history list grep-history.
@@ -5590,7 +5590,7 @@
 	* loadup.el, ispell.el, isearch.el, holidays.el, fortran.el,
 	* files.el, etags.el, emerge.el, electric.el, edebug.el, dired.el,
 	* diary.el, csharp.el, compile.el, comint.el, calendar.el,
-	* buff-mune.el, bg-mouse.el, appt.el, abbrevlist.el, term/x-win.el,
+	* buff-menu.el, bg-mouse.el, appt.el, abbrevlist.el, term/x-win.el,
 	* term/wyse50.el, term/vt200.el, term/vt100.el: All uses changed.
 	* screen.el (screen-height, screen-width, set-screen-height)
 	(set-screen-width): Defined as aliases for frame-height,
@@ -6464,7 +6464,7 @@
 
 1992-05-05  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* terminal.el (terminal-emulator): Use process-enironment, not env.
+	* terminal.el (terminal-emulator): Use process-environment, not env.
 	Get rid of code that used start-subprocess.
 
 1992-05-03  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
@@ -6654,7 +6654,7 @@
 	* compile.el (compilation-mode-hook): New variable.
 	(compilation-mode): Run it.
 	(compilation-search-path): Made user variable, added autoload cookie.
-	(compilaton-window-height): Added autoload cookie.
+	(compilation-window-height): Added autoload cookie.
 
 1992-02-27  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
@@ -6869,7 +6869,7 @@
 
 1991-10-31  Richard Mlynarik  (mly@peduncle)
 
-	* ebuff-menu.el (eletric-buffer-menu-mode-map): Define
+	* ebuff-menu.el (electric-buffer-menu-mode-map): Define
 	< and > to scroll-left and scroll-right per user suggestion.
 
 1991-10-31  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
@@ -10636,7 +10636,7 @@
 
 1989-10-03  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* x-mouse.el (x-insert-selecton, x-select): New functions.
+	* x-mouse.el (x-insert-selection, x-select): New functions.
 
 	* mouse.el (mouse-motion, track-mouse, mouse-select-buffer-line)
 	(mouse-boxing, mouse-erase-box, incr-scroll-down)
@@ -11145,7 +11145,7 @@
 
 1989-05-23  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* rmailsum.el: Added C-d (rmail-summarey-delete-backward) to
+	* rmailsum.el: Added C-d (rmail-summary-delete-backward) to
 	rmail-summary-mode-map.
 
 1989-05-22  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -11723,7 +11723,7 @@
 	* ftp.el (ftp-write-file): Do save-excursion.
 	(ftp-write-file-hook): Clear modified-flag here.
 	(ftp-setup-write-file-hooks): Clear read-only flag here.
-	(ftp-sentinal): If input, clear modified flag.
+	(ftp-sentinel): If input, clear modified flag.
 	Don't bind buffer-read-only across (kill-buffer (current-buffer)).
 
 	* texinfmt.el (texinfo-format-sp): New fn; handle @sp.

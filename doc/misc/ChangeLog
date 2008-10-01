@@ -1663,7 +1663,7 @@
 	* tramp.texi (trampfn): Expand macro implementation in order to handle
 	empty arguments.
 	(trampfnmhl, trampfnuhl, trampfnhl): Remove macros.  Replace all
-	occurencies by trampfn.
+	occurrences by trampfn.
 	(Frequently Asked Questions): Extend example code for host
 	identification in the modeline.  Add bbdb to approaches shortening Tramp
 	file names to be typed.
@@ -4635,7 +4635,7 @@
 
 2003-11-02  Michael Albinus  <Michael.Albinus@alcatel.de>
 
-	* tramp.texi (all): Harmonize all occurences of @tramp{}.
+	* tramp.texi (all): Harmonize all occurrences of @tramp{}.
 	(Top): Mention japanese manual only if flag `jamanual' is set.
 	Insert section `Japanese manual' in menu.
 

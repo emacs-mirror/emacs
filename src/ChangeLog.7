@@ -808,7 +808,7 @@
 1998-06-12  Ken'ichi Handa  <handa@melange.gnu.org>
 
 	* fileio.c (Finsert_file_contents): Undo the previous change for
-	handling set-ault-coding.
+	handling set-auto-coding.
 
 1998-06-11  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -2174,10 +2174,10 @@
 	(ccl_driver): Adjusted for the above changes.
 	(resolve_symbol_ccl_program): New function.
 	(Fccl_execute): The arg CCL-PROGRAM can be a symbol of CCL
-	program.  If CCL-PRGRAM is a vector, convert symbols in it to ID
+	program.  If CCL-PROGRAM is a vector, convert symbols in it to ID
 	numbers by resolve_symbol_ccl_program.
 	(Fccl_execute_on_string): Likewise.
-	(Fregister_ccl_program): If the arg CCL-PRGRAM is a vector,
+	(Fregister_ccl_program): If the arg CCL-PROGRAM is a vector,
 	convert symbols in it to ID numbers by resolve_symbol_ccl_program.
 
 	* ccl.h (Vccl_program_table, Qccl_program_idx): Extern them.
@@ -3702,7 +3702,7 @@
 	Update coding->heading_ascii.
 	(detect_eol_type): New arg SKIP.
 	(detect_eol): Adjusted for the change of detect_eol_type.
-	(ccl_codign_driver): New function.
+	(ccl_coding_driver): New function.
 	(decode_coding): Arg CONSUMED deleted, and the meaning of return
 	value changed.  Update members produced, produced_char, consumed,
 	consumed_char of the struct *coding.

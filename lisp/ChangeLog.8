@@ -748,7 +748,7 @@
 	* cc-vars.el (c-comment-prefix-regexp): New variable used to
 	recognize the comment fill prefix inside comments.
 	(c-block-comment-prefix): New name for
-	`c-comment-contiuation-stars', which is now obsolete.  It's
+	`c-comment-continuation-stars', which is now obsolete.  It's
 	generalized to handle any character sequence.
 	(c-ignore-auto-fill): New variable used to selectively disable
 	Auto Fill mode in specific contexts.
@@ -2953,7 +2953,7 @@
 	(mouse-drag-mode-line): Call it.
 	(mouse-drag-header-line): New.
 	(toplevel): Bind down-mouse-1 on header lines to
-	mouse-drage-header-line.
+	mouse-drag-header-line.
 
 1999-09-08  Gerd Moellmann  <gerd@gnu.org>
 
@@ -5148,7 +5148,7 @@
 
 	* emulation/crisp.el (crisp-mode-map): Don't inherit global-map.
 	Enter it on minor-mode-map-alist.
-	(crisp-mode): Re-named from `crsip-mode-enabled'.  Users changed.
+	(crisp-mode): Re-named from `crisp-mode-enabled'.  Users changed.
 	Autoload.  Add custom setter.
 	(crisp-mark-line): Doc fix.
 	(crisp-mode): Autoload.  Re-write not to frob keymaps directly.
@@ -5785,7 +5785,7 @@
 	speedbar-generic-item-info, speedbar-item-info-file-helper,
 	speedbar-item-delete, speedbar-insert-generic-list,
 	speedbar-timer-fn, speedbar-check-vc-this-line,
-	speedbar-check-obj-this-line, speedbar-fetch-dynaic-etags,
+	speedbar-check-obj-this-line, speedbar-fetch-dynamic-etags,
 	speedbar-buffers-item-info) Use speedbar-message.
 	(speedbar-item-info) Limit `message-log-max'.
 	(speedbar-item-load, speedbar-item-copy, speedbar-item-rename,
@@ -5993,7 +5993,7 @@
 
 	* simple.el (what-cursor-position): To show the character's
 	encoding, use encoded-string-description instead of information
-	of chaset-origin-alist.
+	of charset-origin-alist.
 
 	* international/mule-cmds.el (iso-2022-control-alist): New variable.
 	(encoded-code-description): New function.
@@ -6319,7 +6319,7 @@
 	description about charset-origin-alist.
 
 	* international/mule.el: Comment added for a new coding system
-	property `charset-origin-alit'.
+	property `charset-origin-alist'.
 	(make-translation-table): This variable deleted.
 
 	* language/chinese.el (chinese-big5): Add charset-origin-alist
@@ -8243,7 +8243,7 @@
 	then if there are multibyte file names, change it to multibyte.
 	(tar-mode): Get char position from tar-header-offset.
 	(tar-extract): Avoid multibyte<->unibyte conversion in
-	insert-buffer-subsring by setting both buffers unibyte
+	insert-buffer-substring by setting both buffers unibyte
 	temporarily.
 	(tar-copy): Set the buffer unibyte while doing a work.  Write
 	without code conversion.
@@ -8252,7 +8252,7 @@
 	(tar-clear-modification-flags): Compare byte position with
 	tar-header-offset.
 	(tar-subfile-save-buffer): Avoid multibyte<->unibyte conversion in
-	insert-buffer-subsring by setting both buffers unibyte
+	insert-buffer-substring by setting both buffers unibyte
 	temporarily.  Pay attention to multibyteness while updating the
 	descriptor-line.
 	(tar-mode-write-file): Write without code conversion.

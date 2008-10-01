@@ -166,7 +166,7 @@
 
 2003-10-25  Mario Lang  <mlang@delysid.org>
 
-	* erc.el 1.577: Fix typo tuncate->rruncate
+	* erc.el 1.577: Fix typo tuncate->truncate
 
 2003-10-24  Mario Lang  <mlang@delysid.org>
 
@@ -1697,7 +1697,7 @@
 	* buffer-local variables erc-dcc-sent-marker and erc-dcc-send-confirmed marker removed
 	  Keep This info in erc-dcc-member :sent and :confirmed plist values
 	* :	* :buffer plist for :type 'SEND removed, since we can get this with (marker-buffer 
-	* erc-dcc-send-connect-hook: New hook, defaults to erc-dcc-send-block and erc-dcc-send-conntected, which now prints a msg...
+	* erc-dcc-send-connect-hook: New hook, defaults to erc-dcc-send-block and erc-dcc-send-connected, which now prints a msg...
 
 	* erc-dcc.el 1.46:
 	* (erc-dcc-chat-accept): Renamed from erc-dcc-chat. Callers updated.

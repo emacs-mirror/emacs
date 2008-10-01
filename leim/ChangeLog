@@ -1704,7 +1704,7 @@
 
 1997-08-30  Naoto TAKAHASHI  <ntakahas@etl.go.jp>
 
-	* quail/ethiopic.el ("ethiopic"): Doc-sring fixed.  Change the arg
+	* quail/ethiopic.el ("ethiopic"): Doc-string fixed.  Change the arg
 	TRANSLATION-KEYS.
 	(quail-mode-map): Change binding for ethio-insert-ethio-space.
 	(quail-mode-hook): Check the current Quail package name.
@@ -1911,8 +1911,8 @@
 	* quail/japanese.el: Doc-string of Quail package japanese modified.
 
 	* Makefile.in: Rules re-written to avoid tricky code.
-	(CHINEGE-GB): Include quail/py-punct.elc.
-	(CHINEGE-BIG5): Include quail/py-punct-b5.elc.
+	(CHINESE-GB): Include quail/py-punct.elc.
+	(CHINESE-BIG5): Include quail/py-punct-b5.elc.
 
 1997-07-10  Kenichi Handa  <handa@etl.go.jp>
 

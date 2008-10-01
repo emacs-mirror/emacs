@@ -1181,7 +1181,7 @@
 
 	* term-supdup.el:
 	New file.
-	Defines supdup-contol-map, supdup-control-meta-map
+	Defines supdup-control-map, supdup-control-meta-map
 	for characters which don't exist in ascii.
 	Uses 0237 (m-c-_) as control escape -- this is what the supdup server
 	uses.
@@ -1201,7 +1201,7 @@
 
 1985-11-21  Richard Mlynarik  (mly@prep)
 
-	* abbrev.el (quietry-read-abbrev-file):
+	* abbrev.el (quietly-read-abbrev-file):
 	Fix typo.  Fix documentation of edit-abbrevs.
 
 	* options.el:
@@ -2225,7 +2225,7 @@
 1985-07-10  Richard Mlynarik  (mly@mit-prep)
 
 	* ebuff-menu.el (Electric-buffer-menu-undefined)
-	Don't call substritute-command-keys if keybindings are default,
+	Don't call substitute-command-keys if keybindings are default,
 	with resultant couple-of-orders-of-magnitude speedup.
 	RMS: this is what my changes to Fsubstitute_command_keys in doc.c
 	were supposed to do.
@@ -3149,7 +3149,7 @@
 
 1985-05-16  Richard Mlynarik  (mly@mit-prep)
 
-	* simple.el: make <help> i run info
+	* simple.el: Make <help> i run info.
 
 	* sundry changes to go with changes in src/fileio.c making
 	copy-file, rename-file, add-name take an optional third argument.
@@ -3158,11 +3158,11 @@
 	there in two places to make things work until everybody is running
 	an emacs which takes the extra arg (marked "** KLUDGE **".) Remember
 	to remove the kludge at that time!
-	Mods to files.el, loadup.el, rmail.el
+	Mods to files.el, loadup.el, rmail.el.
 
-	* added autoloading function electic-buffer-list
+	* added autoloading function electric-buffer-list.
 
-	* buff-menu.el: make splitting screen between > 2 buffers work
+	* buff-menu.el: Make splitting screen between > 2 buffers work.
 
 1985-05-16  K. Shane Hartman  (shane@mit-prep)
 

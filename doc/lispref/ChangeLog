@@ -6055,7 +6055,7 @@
 	(Defining Minor Modes): Keyword args for define-minor-mode.
 	(Search-based Fontification): Explain managing other properties.
 	(Other Font Lock Variables): Add font-lock-extra-managed-props.
-	(Faces for Font Lock): Add font-locl-preprocessor-face.
+	(Faces for Font Lock): Add font-lock-preprocessor-face.
 	(Hooks): Add run-mode-hooks and delay-mode-hooks.
 
 	* variables.texi (Creating Buffer-Local): Add buffer-local-value.

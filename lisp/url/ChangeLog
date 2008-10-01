@@ -1432,7 +1432,7 @@
 	* lisp/url-http.el (url-http): Make sure that we signal an error
 	when we cannot open a network connection for whatever reason.
 	Before, it would just silently clean up after itself and the user
-	got absolutely no indication that an error had occured.  If the
+	got absolutely no indication that an error had occurred.  If the
 	error should truly be ignored, the caller should do that for us.
 	(url-http-chunked-encoding-after-change-function): Doh!  Need to
 	user marker-position in some log messages now that
