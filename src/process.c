@@ -1221,7 +1221,7 @@ a socket connection.  */)
   return XPROCESS (process)->type;
 }
 #endif
-  
+
 DEFUN ("process-type", Fprocess_type, Sprocess_type, 1, 1, 0,
        doc: /* Return the connection type of PROCESS.
 The value is either the symbol `real', `network', or `serial'.
@@ -4137,9 +4137,9 @@ It is read into the process' buffers or given to their filter functions.
 Non-nil arg PROCESS means do not return until some output has been received
 from PROCESS.
 
-Non-nil second arg SECONDS and third arg MILLISEC are number of
-seconds and milliseconds to wait; return after that much time whether
-or not there is input.  If SECONDS is a floating point number,
+Non-nil second arg SECONDS and third arg MILLISEC are number of seconds
+and milliseconds to wait; return after that much time whether or not
+there is any subprocess output.  If SECONDS is a floating point number,
 it specifies a fractional number of seconds to wait.
 The MILLISEC argument is obsolete and should be avoided.
 
@@ -7136,7 +7136,7 @@ static void
 get_up_time (time_t *sec, unsigned *usec)
 {
   FILE *fup;
-  
+
   *sec = *usec = 0;
 
   BLOCK_INPUT;
