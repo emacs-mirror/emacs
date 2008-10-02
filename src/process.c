@@ -7404,7 +7404,9 @@ procfs_system_process_attributes (pid)
 			 attrs);
 	  time_from_jiffies (utime + stime, clocks_per_sec, &sec, &usec);
 	  pcpu = (sec + usec / 1000000.0) / (EMACS_SECS (telapsed) + EMACS_USECS (telapsed) / 1000000.0);
-	  attrs = Fcons (Fcons (Qpcpu, make_float (pcpu)), attrs);
+	  if (pcpu > 1.0)
+	    pcpu = 1.0;
+	  attrs = Fcons (Fcons (Qpcpu, make_float (100 * pcpu)), attrs);
 	  pmem = 4.0 * 100 * rss / procfs_get_total_memory ();
 	  if (pmem > 100)
 	    pmem = 100;
