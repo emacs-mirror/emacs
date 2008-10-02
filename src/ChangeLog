@@ -1,3 +1,25 @@
+2008-10-02  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.h (ns_cursor_types, ns_output.desired_cursor_color)
+	(ns_output.current_cursor, ns_output.desired_cursor)
+	(ns_output.last_inactive, FRAME_CURSOR, FRAME_NEW_CURSOR)
+	(FRAME_NEW_CURSOR_COLOR): Remove.
+
+	* nsfns.m (ns_set_cursor_color): Use FRAME_CURSOR_COLOR.
+	(ns_lisp_to_cursor_type, ns_cursor_type_to_lisp): Use core emacs
+	enumeration (HOLLOW_BOX_CURSOR, etc.).
+
+	* nsterm.m (ns_frame_rehighlight): Remove commented code.
+	(draw_window_cursor): Simplify code.
+	(EmacsView-windowDidBecomeKey:,-windowDidResignKey:): Don't
+	change cursor type. In latter, call rehighlight instead of doing
+	updates manually.
+	(EmacsPrefsController-setPanelFromValues,-setValuesFromPanel): Use
+	core emacs cursor types.
+
+	* xdisp.c (draw_glyphs): Don't call notice_overwritten_cursor() under
+	NS.
+
 2008-10-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* process.c (Faccept_process_output): Fix doc-string.

@@ -547,7 +547,6 @@ ns_update_begin (struct frame *f)
 {
   NSView *view = FRAME_NS_VIEW (f);
   NSTRACE (ns_update_begin);
-/*fprintf (stderr, "\\%p\n", f); */
 
   ns_updating_frame = f;
   [view lockFocus];
@@ -683,7 +682,7 @@ ns_focus (struct frame *f, NSRect *r, int n)
      the entire window.
    -------------------------------------------------------------------------- */
 {
-  NSTRACE (ns_focus);
+//  NSTRACE (ns_focus);
 #ifdef NS_IMPL_GNUSTEP
   NSRect u;
     if (n == 2)
@@ -756,7 +755,7 @@ ns_unfocus (struct frame *f)
      Internal: Remove focus on given frame
    -------------------------------------------------------------------------- */
 {
-  NSTRACE (ns_unfocus);
+//  NSTRACE (ns_unfocus);
 
   if (gsaved)
     {
@@ -957,17 +956,10 @@ ns_frame_rehighlight (struct frame *frame)
   if (dpyinfo->x_highlight_frame &&
          dpyinfo->x_highlight_frame != old_highlight)
     {
-      /* as of 20080602 the lower and raise are superfluous */
       if (old_highlight)
-        {
-          /*ns_lower_frame (old_highlight); */
           x_update_cursor (old_highlight, 1);
-        }
       if (dpyinfo->x_highlight_frame)
-        {
-          /*ns_raise_frame (dpyinfo->x_highlight_frame); */
           x_update_cursor (dpyinfo->x_highlight_frame, 1);
-        }
     }
 }
 
@@ -1227,11 +1219,13 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
 }
 
 
+
 /* ==========================================================================
 
     Color management
 
    ========================================================================== */
+
 
 NSColor *
 ns_lookup_indexed_color (unsigned long idx, struct frame *f)
@@ -1665,7 +1659,7 @@ note_mouse_movement (struct frame *frame, float x, float y)
      known as last_mouse_glyph.
      ------------------------------------------------------------------------ */
 {
-  NSTRACE (note_mouse_movement);
+//  NSTRACE (note_mouse_movement);
 
   XSETFRAME (last_mouse_motion_frame, frame);
   
@@ -1927,6 +1921,8 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 
   if (!view || !face)
     return;
+
+  NSTRACE (ns_clear_frame_area);
 
   r = NSIntersectionRect (r, [view frame]);
   ns_focus (f, &r, 1);
@@ -2262,31 +2258,22 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
                        int on_p, int active_p)
 /* --------------------------------------------------------------------------
      External call (RIF): draw cursor
-     (modeled after x_draw_window_cursor and erase_phys_cursor.
-     FIXME: erase_phys_cursor is called from display_and_set_cursor,
-     called from update_window_cursor/x_update_window_end/...
-     Why do we have to duplicate this code?
+     (modeled after x_draw_window_cursor
+     FIXME: cursor_width is effectively bogus -- it sometimes gets set
+     in xdisp.c set_frame_cursor_types, sometimes left uninitialized;
+     DON'T USE IT (no other terms do)
    -------------------------------------------------------------------------- */
 {
   NSRect r, s;
   int fx, fy, h;
   struct frame *f = WINDOW_XFRAME (w);
   struct glyph *phys_cursor_glyph;
-  int overspill;
-  char drawGlyph = 0, cursorType, oldCursorType;
-  int new_cursor_type;
-  int new_cursor_width;
-  int active_cursor;
-  enum draw_glyphs_face hl;
-  struct glyph_matrix *active_glyphs = w->current_matrix;
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  int hpos = w->phys_cursor.hpos;
-  int vpos = w->phys_cursor.vpos;
-  struct glyph_row *cursor_row;
+  int overspill, cursorToDraw;
 
   NSTRACE (dumpcursor);
+//fprintf(stderr, "drawcursor (%d,%d) activep = %d\tonp = %d\tc_type = %d\twidth = %d\n",x,y, active_p,on_p,cursor_type,cursor_width);
 
-  if (!on_p) // check this?    && !w->phys_cursor_on_p)
+  if (!on_p)
 	return;
 
   w->phys_cursor_type = cursor_type;
@@ -2294,7 +2281,6 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 
   if (cursor_type == NO_CURSOR)
     {
-      w->phys_cursor_on_p = 0;
       w->phys_cursor_width = 0;
       return;
     }
@@ -2324,151 +2310,51 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   if (overspill > 0)
     r.size.width -= overspill;
 
-  oldCursorType = FRAME_CURSOR (f);
-  cursorType = FRAME_CURSOR (f) = FRAME_NEW_CURSOR (f);
-  /* TODO: 23: use emacs stored cursor color instead of ns-specific */
-  f->output_data.ns->current_cursor_color
-    = f->output_data.ns->desired_cursor_color;
-
   /* TODO: only needed in rare cases with last-resort font in HELLO..
      should we do this more efficiently? */
-  ns_clip_to_row (w, glyph_row, -1, NO);
-/*  ns_focus (f, &r, 1); */
+  ns_clip_to_row (w, glyph_row, -1, NO); /* do ns_focus(f, &r, 1); if remove */
+  [FRAME_CURSOR_COLOR (f) set];
 
-  /* Why would this be needed?
-     if (FRAME_LAST_INACTIVE (f))
+#ifdef NS_IMPL_COCOA
+  /* TODO: This makes drawing of cursor plus that of phys_cursor_glyph
+           atomic.  Cleaner ways of doing this should be investigated.
+           One way would be to set a global variable DRAWING_CURSOR
+  	   when making the call to draw_phys..(), don't focus in that
+  	   case, then move the ns_unfocus() here after that call. */
+  NSDisableScreenUpdates ();
+#endif
+
+  cursorToDraw = active_p ? cursor_type : HOLLOW_BOX_CURSOR;
+  switch (cursorToDraw)
     {
-      * previously hollow box; clear entire area *
-      [FRAME_BACKGROUND_COLOR (f) set];
+    case NO_CURSOR:
+      break;
+    case FILLED_BOX_CURSOR:
       NSRectFill (r);
-      drawGlyph = 1;
-      FRAME_LAST_INACTIVE (f) = NO;
-    }
-  */
-
-  /* prepare to draw */
-  if (cursorType == no_highlight || cursor_type == NO_CURSOR)
-    {
-      /* clearing for blink: erase the cursor itself */
-
-      /* No cursor displayed or row invalidated => nothing to do on the
-	 screen.  */
-      if (w->phys_cursor_type == NO_CURSOR)
-	return;
-
-      /* VPOS >= active_glyphs->nrows means that window has been resized.
-	 Don't bother to erase the cursor.  */
-      if (vpos >= active_glyphs->nrows)
-	return;
-
-      /* If row containing cursor is marked invalid, there is nothing we
-	 can do.  */
-      cursor_row = MATRIX_ROW (active_glyphs, vpos);
-      if (!cursor_row->enabled_p)
-	return;
-
-      /* If line spacing is > 0, old cursor may only be partially visible in
-	 window after split-window.  So adjust visible height.  */
-      cursor_row->visible_height = min (cursor_row->visible_height,
-					window_text_bottom_y (w) - cursor_row->y);
-
-      /* If row is completely invisible, don't attempt to delete a cursor which
-	 isn't there.  This can happen if cursor is at top of a window, and
-	 we switch to a buffer with a header line in that window.  */
-      if (cursor_row->visible_height <= 0)
-	return;
-
-      /* If cursor is in the fringe, erase by drawing actual bitmap there.  */
-      if (cursor_row->cursor_in_fringe_p)
-	{
-	  cursor_row->cursor_in_fringe_p = 0;
-	  draw_fringe_bitmap (w, cursor_row, 0);
-	  return;
-	}
-
-      /* This can happen when the new row is shorter than the old one.
-	 In this case, either draw_glyphs or clear_end_of_line
-	 should have cleared the cursor.  Note that we wouldn't be
-	 able to erase the cursor in this case because we don't have a
-	 cursor glyph at hand.  */
-      if (w->phys_cursor.hpos >= cursor_row->used[TEXT_AREA])
-	return;
-
-      /* If the cursor is in the mouse face area, redisplay that when
-	 we clear the cursor.  */
-      if (! NILP (dpyinfo->mouse_face_window)
-	  && w == XWINDOW (dpyinfo->mouse_face_window)
-	  && (vpos > dpyinfo->mouse_face_beg_row
-	      || (vpos == dpyinfo->mouse_face_beg_row
-		  && hpos >= dpyinfo->mouse_face_beg_col))
-	  && (vpos < dpyinfo->mouse_face_end_row
-	      || (vpos == dpyinfo->mouse_face_end_row
-		  && hpos < dpyinfo->mouse_face_end_col))
-	  /* Don't redraw the cursor's spot in mouse face if it is at the
-	     end of a line (on a newline).  The cursor appears there, but
-	     mouse highlighting does not.  */
-	  && cursor_row->used[TEXT_AREA] > hpos)
-	hl = DRAW_MOUSE_FACE;
-      else
-	hl = DRAW_NORMAL_TEXT;
-      drawGlyph = 1; // just draw the Glyph
+      break;
+    case HOLLOW_BOX_CURSOR:
+      NSRectFill (r);
       [FRAME_BACKGROUND_COLOR (f) set];
-
-#ifdef NS_IMPL_COCOA
-      NSDisableScreenUpdates ();
-#endif
-    }
-  else
-    { 
-      cursorType = cursor_type;
-      hl = DRAW_CURSOR;
+      NSRectFill (NSInsetRect (r, 1, 1));
       [FRAME_CURSOR_COLOR (f) set];
-    
-
-      if (!active_p)
-	{
-	  /* inactive window: ignore what we just set and use a hollow box */
-	  cursorType = HOLLOW_BOX_CURSOR;
-	}
-
-#ifdef NS_IMPL_COCOA
-      NSDisableScreenUpdates ();
-#endif
-
-      switch (cursorType)
-	{
-	case NO_CURSOR: // no_highlight:
-	  break;
-	case FILLED_BOX_CURSOR: //filled_box:
-	  NSRectFill (r);
-	  drawGlyph = 1;
-	  break;
-	case HOLLOW_BOX_CURSOR: //hollow_box:
-	  NSRectFill (r);
-	  [FRAME_BACKGROUND_COLOR (f) set];
-	  NSRectFill (NSInsetRect (r, 1, 1));
-	  [FRAME_CURSOR_COLOR (f) set];
-	  drawGlyph = 1;
-	  break;
-	case HBAR_CURSOR: // underscore:
-	  s = r;
-	  s.origin.y += lrint (0.75 * s.size.height);
-	  s.size.height = cursor_width; //lrint (s.size.height * 0.25);
-	  NSRectFill (s);
-	  break;
-	case BAR_CURSOR: //bar:
-	  s = r;
-	  s.size.width = cursor_width;
-	  NSRectFill (s);
-	  drawGlyph = 1;
-	  break;
-	}
+      break;
+    case HBAR_CURSOR:
+      s = r;
+      s.origin.y += lrint (0.75 * s.size.height);
+      s.size.height = lrint (s.size.height * 0.25);
+      NSRectFill (s);
+      break;
+    case BAR_CURSOR:
+      s = r;
+      s.size.width = min (cursor_width, 2); //FIXME(see above)
+      NSRectFill (s);
+      break;
     }
   ns_unfocus (f);
 
-  /* if needed, draw the character under the cursor */
-  if (drawGlyph)
-    draw_phys_cursor_glyph (w, glyph_row, hl);
+  /* draw the character under the cursor */
+  if (cursorToDraw != NO_CURSOR)
+    draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
 
 #ifdef NS_IMPL_COCOA
   NSEnableScreenUpdates ();
@@ -2486,6 +2372,8 @@ ns_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct face *face;
   NSRect r = NSMakeRect (x, y0, 2, y1-y0);
+
+  NSTRACE (ns_draw_vertical_window_border);
 
   face = FACE_FROM_ID (f, VERTICAL_BORDER_FACE_ID);
   if (face)
@@ -2935,7 +2823,7 @@ ns_draw_glyph_string (struct glyph_string *s)
 
   NSTRACE (ns_draw_glyph_string);
 
-  if (s->next && s->right_overhang && !s->for_overlaps/* && s->hl != DRAW_CURSOR*/)
+  if (s->next && s->right_overhang && !s->for_overlaps/*&&s->hl!=DRAW_CURSOR*/)
     {
       int width;
       struct glyph_string *next;
@@ -4376,6 +4264,8 @@ extern void update_window_cursor (struct window *w, int on);
   if (newFont = [sender convertFont:
                            ((struct nsfont_info *)face->font)->nsfont])
     {
+      SET_FRAME_GARBAGED (emacsframe); /* now needed as of 2008/10 */
+
       emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
       emacs_event->modifiers = 0;
       emacs_event->code = KEY_NS_CHANGE_FONT;
@@ -4853,7 +4743,7 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (emacsframe);
   Lisp_Object frame;
 
-  NSTRACE (mouseMoved);
+//  NSTRACE (mouseMoved);
 
   last_mouse_movement_time = EV_TIMESTAMP (e);
   last_mouse_motion_position
@@ -5031,8 +4921,8 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 
 
 - (void)windowDidBecomeKey: (NSNotification *)notification
+/* cf. x_detect_focus_change(), x_focus_changed(), x_new_focus_frame() */
 {
-  int val = ns_lisp_to_cursor_type (get_frame_param (emacsframe, Qcursor_type));
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (emacsframe);
   struct frame *old_focus = dpyinfo->x_focus_frame;
 
@@ -5040,14 +4930,6 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 
   if (emacsframe != old_focus)
     dpyinfo->x_focus_frame = emacsframe;
-
-  /*/last_mouse_frame = emacsframe;? */
-
-  if (val >= 0)
-    {
-      FRAME_NEW_CURSOR (emacsframe) = val;
-/*    x_update_cursor (emacsframe, 1); // will happen in ns_frame_rehighlight */
-    }
 
   ns_frame_rehighlight (emacsframe);
 
@@ -5060,27 +4942,20 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 
 
 - (void)windowDidResignKey: (NSNotification *)notification
+/* cf. x_detect_focus_change(), x_focus_changed(), x_new_focus_frame() */
 {
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (emacsframe);
   NSTRACE (windowDidResignKey);
 
-  if (!windowClosing && [[self window] isVisible] == YES)
-    {
-      FRAME_NEW_CURSOR (emacsframe) = hollow_box;
-      x_update_cursor (emacsframe, 1);
-      FRAME_LAST_INACTIVE (emacsframe) = YES;
-    }
-
-  if (dpyinfo->x_highlight_frame == emacsframe)
-    dpyinfo->x_highlight_frame = 0;
   if (dpyinfo->x_focus_frame == emacsframe)
     dpyinfo->x_focus_frame = 0;
 
-  if (dpyinfo->mouse_face_mouse_frame == emacsframe)
-    {
-      clear_mouse_face (dpyinfo);
-      dpyinfo->mouse_face_mouse_frame = 0;
-    }
+  ns_frame_rehighlight (emacsframe);
+
+  /* FIXME: for some reason needed on second and subsequent clicks away
+            from sole-frame Emacs to get hollow box to show */
+  if (!windowClosing && [[self window] isVisible] == YES)
+    x_update_cursor (emacsframe, 1);
 
   if (emacs_event)
     {
@@ -6084,9 +5959,9 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 #endif
 
   [expandSpaceSlider setFloatValue: prevExpandSpace];
-  [cursorTypeMatrix selectCellWithTag: (cursorType == filled_box ? 1 :
-                                        (cursorType == bar ? 2 :
-                                         (cursorType == underscore ? 3 : 4)))];
+  [cursorTypeMatrix selectCellWithTag: (cursorType == FILLED_BOX_CURSOR ? 1 :
+                                        (cursorType == BAR_CURSOR ? 2 :
+                                         (cursorType == HBAR_CURSOR ? 3 : 4)))];
   selectItemWithTag (alternateModMenu,
 		     parse_solitary_modifier (ns_alternate_modifier));
   selectItemWithTag (commandModMenu,
@@ -6105,7 +5980,6 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 
 - (void) setValuesFromPanel
 {
-  int cursorTag = [[cursorTypeMatrix selectedCell] tag];
   int altTag = [[alternateModMenu selectedItem] tag];
   int cmdTag = [[commandModMenu selectedItem] tag];
 #ifdef NS_IMPL_COCOA
@@ -6113,6 +5987,11 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   int fnTag = [[functionModMenu selectedItem] tag];
 #endif
   float expandSpace = [expandSpaceSlider floatValue];
+  int cursorTag = [[cursorTypeMatrix selectedCell] tag];
+  Lisp_Object cursor_type = ns_cursor_type_to_lisp
+       ( cursorTag == 1 ? FILLED_BOX_CURSOR
+       : cursorTag == 2 ? BAR_CURSOR
+       : cursorTag == 3 ? HBAR_CURSOR : HOLLOW_BOX_CURSOR);
 
   if (expandSpace != prevExpandSpace)
     {
@@ -6123,12 +6002,10 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
            x_set_window_size (frame, 0, frame->text_cols, frame->text_lines); */
       prevExpandSpace = expandSpace;
     }
-  FRAME_NEW_CURSOR (frame)
-    = (cursorTag == 1 ? filled_box
-       : cursorTag == 2 ? bar
-       : cursorTag == 3 ? underscore : hollow_box);
-  store_frame_param (frame, Qcursor_type,
-                    ns_cursor_type_to_lisp (FRAME_NEW_CURSOR (frame)));
+
+  store_frame_param (frame, Qcursor_type, cursor_type);
+  ns_set_cursor_type(frame, cursor_type, Qnil);  /* FIXME: do only if changed */
+
   ns_alternate_modifier = ns_mod_to_lisp (altTag);
   ns_command_modifier = ns_mod_to_lisp (cmdTag);
 #ifdef NS_IMPL_COCOA

@@ -383,16 +383,6 @@ typedef unsigned long NSUInteger;
 
    ========================================================================== */
 
-enum ns_cursor_types
-{
-   no_highlight =0,
-   filled_box,
-   hollow_box,
-   underscore,
-   bar
-};
-
-
 /* could use list to store these, but rest of emacs has a big infrastructure
    for managing a table of bitmap "records" */
 struct ns_bitmap_record
@@ -560,16 +550,14 @@ struct ns_output
 #ifdef __OBJC__
   EmacsView *view;
   id miniimage;
-  NSColor *current_cursor_color;
-  NSColor *desired_cursor_color;
+  NSColor *cursor_color;
   NSColor *foreground_color;
   NSColor *background_color;
   EmacsToolbar *toolbar;
 #else
   void *view;
   void *miniimage;
-  void *current_cursor_color;
-  void *desired_cursor_color;
+  void *cursor_color;
   void *foreground_color;
   void *background_color;
   void *toolbar;
@@ -599,8 +587,6 @@ struct ns_output
 
   Lisp_Object icon_top;
   Lisp_Object icon_left;
-  enum ns_cursor_types current_cursor, desired_cursor;
-  unsigned char last_inactive;
 
   /* The size of the extra width currently allotted for vertical
      scroll bars, in pixels.  */
@@ -656,12 +642,8 @@ struct x_output
 #define FRAME_DEFAULT_FACE(f) FACE_FROM_ID (f, DEFAULT_FACE_ID)
 
 #define FRAME_NS_VIEW(f) ((f)->output_data.ns->view)
-#define FRAME_CURSOR(f)  ((f)->output_data.ns->current_cursor)
-#define FRAME_CURSOR_COLOR(f) ((f)->output_data.ns->current_cursor_color)
-#define FRAME_NEW_CURSOR_COLOR(f) ((f)->output_data.ns->desired_cursor_color)
-#define FRAME_NEW_CURSOR(f)  ((f)->output_data.ns->desired_cursor)
+#define FRAME_CURSOR_COLOR(f) ((f)->output_data.ns->cursor_color)
 #define FRAME_POINTER_TYPE(f) ((f)->output_data.ns->current_pointer)
-#define FRAME_LAST_INACTIVE(f) ((f)->output_data.ns->last_inactive)
 
 #define FRAME_FONT(f) ((f)->output_data.ns->font)
 

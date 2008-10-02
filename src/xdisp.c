@@ -20503,6 +20503,9 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
   for (s = head; s; s = s->next)
     FRAME_RIF (f)->draw_glyph_string (s);
 
+#ifndef HAVE_NS
+  /* When focus a sole frame and move horizontally, this sets on_p to 0
+     causing a failure to erase prev cursor position. */
   if (area == TEXT_AREA
       && !row->full_width_p
       /* When drawing overlapping rows, only the glyph strings'
@@ -20519,6 +20522,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
       notice_overwritten_cursor (w, TEXT_AREA, x0, x1,
 				 row->y, MATRIX_ROW_BOTTOM_Y (row));
     }
+#endif
 
   /* Value is the x-position up to which drawn, relative to AREA of W.
      This doesn't include parts drawn because of overhangs.  */

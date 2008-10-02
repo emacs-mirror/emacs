@@ -413,8 +413,6 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 
-/* FIXME: adapt to generics */
-
 static void
 ns_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
@@ -426,8 +424,8 @@ ns_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       error ("Unknown color");
     }
 
-  [f->output_data.ns->desired_cursor_color release];
-  f->output_data.ns->desired_cursor_color = [col retain];
+  [FRAME_CURSOR_COLOR (f) release];
+  FRAME_CURSOR_COLOR (f) = [col retain];
 
   if (FRAME_VISIBLE_P (f))
     {
@@ -436,6 +434,7 @@ ns_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     }
   update_face_from_frame_parameter (f, Qcursor_color, arg);
 }
+
 
 static void
 ns_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
@@ -906,11 +905,11 @@ ns_lisp_to_cursor_type (Lisp_Object arg)
   else if (XTYPE (arg) == Lisp_Symbol)
     str = SDATA (SYMBOL_NAME (arg));
   else return -1;
-  if (!strcmp (str, "box"))	 return filled_box;
-  if (!strcmp (str, "hollow"))	 return hollow_box;
-  if (!strcmp (str, "underscore")) return underscore;
-  if (!strcmp (str, "bar"))	 return bar;
-  if (!strcmp (str, "no"))	 return no_highlight;
+  if (!strcmp (str, "box"))	return FILLED_BOX_CURSOR;
+  if (!strcmp (str, "hollow"))	return HOLLOW_BOX_CURSOR;
+  if (!strcmp (str, "hbar"))	return HBAR_CURSOR;
+  if (!strcmp (str, "bar"))	return BAR_CURSOR;
+  if (!strcmp (str, "no"))	return NO_CURSOR;
   return -1;
 }
 
@@ -920,12 +919,12 @@ ns_cursor_type_to_lisp (int arg)
 {
   switch (arg)
     {
-    case filled_box: return Qbox;
-    case hollow_box: return intern ("hollow");
-    case underscore: return intern ("underscore");
-    case bar:	     return intern ("bar");
-    case no_highlight:
-    default:	     return intern ("no");
+    case FILLED_BOX_CURSOR: return Qbox;
+    case HOLLOW_BOX_CURSOR: return intern ("hollow");
+    case HBAR_CURSOR:	    return intern ("hbar");
+    case BAR_CURSOR:	    return intern ("bar");
+    case NO_CURSOR:
+    default:		    return intern ("no");
     }
 }
 
