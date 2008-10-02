@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 11.2.1
+;; Version: 11.2.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -302,7 +302,7 @@
 ;;				turned on.
 ;;
 ;; `whitespace-action'		Specify which action is taken when a
-;;				buffer is visited, killed or written.
+;;				buffer is visited or written.
 ;;
 ;;
 ;; Acknowledgements
@@ -316,8 +316,8 @@
 ;; `indent-tabs-mode' usage suggestion.
 ;;
 ;; Thanks to Eric Cooper <ecc@cmu.edu> for the suggestion to have hook
-;; actions when buffer is written or killed as the original whitespace
-;; package had.
+;; actions when buffer is written as the original whitespace package
+;; had.
 ;;
 ;; Thanks to nschum (EmacsWiki) for the idea about highlight "long"
 ;; lines tail.  See EightyColumnRule (EmacsWiki).
@@ -967,7 +967,7 @@ C++ modes only."
 
 
 (defcustom whitespace-action nil
-  "*Specify which action is taken when a buffer is visited, killed or written.
+  "*Specify which action is taken when a buffer is visited or written.
 
 It's a list containing some or all of the following values:
 
@@ -982,14 +982,14 @@ It's a list containing some or all of the following values:
 			when local whitespace is turned on.
 
    auto-cleanup		cleanup any bogus whitespace when buffer is
-			written or killed.
+			written.
 			See `whitespace-cleanup' and
 			`whitespace-cleanup-region'.
 
    abort-on-bogus	abort if there is any bogus whitespace and the
-			buffer is written or killed.
+			buffer is written.
 
-   warn-read-only	give a warning if `cleanup' or `auto-cleanup'
+   warn-if-read-only	give a warning if `cleanup' or `auto-cleanup'
 			is included in `whitespace-action' and the
 			buffer is read-only.
 
@@ -1002,7 +1002,7 @@ Any other value is treated as nil."
 			  (const :tag "Report On Bogus" report-on-bogus)
 			  (const :tag "Auto Cleanup" auto-cleanup)
 			  (const :tag "Abort On Bogus" abort-on-bogus)
-			  (const :tag "Warn Read-Only" warn-read-only))))
+			  (const :tag "Warn If Read-Only" warn-if-read-only))))
   :group 'whitespace)
 
 
@@ -2083,7 +2083,7 @@ resultant list will be returned."
 (defun whitespace-turn-on ()
   "Turn on whitespace visualization."
   ;; prepare local hooks
-  (whitespace-add-local-hook)
+  (add-hook 'write-file-functions 'whitespace-write-file-hook nil t)
   ;; create whitespace local buffer environment
   (set (make-local-variable 'whitespace-font-lock-mode) nil)
   (set (make-local-variable 'whitespace-font-lock) nil)
@@ -2106,7 +2106,7 @@ resultant list will be returned."
 
 (defun whitespace-turn-off ()
   "Turn off whitespace visualization."
-  (whitespace-remove-local-hook)
+  (remove-hook 'write-file-functions 'whitespace-write-file-hook t)
   (when whitespace-active-style
     (whitespace-color-off)
     (whitespace-display-char-off)))
@@ -2379,50 +2379,21 @@ resultant list will be returned."
 	 (whitespace-report nil t))))
 
 
-(defun whitespace-add-local-hook ()
-  "Add some whitespace hooks locally."
-  (add-hook 'write-file-functions 'whitespace-write-file-hook nil t)
-  (add-hook 'kill-buffer-hook 'whitespace-kill-buffer-hook nil t))
-
-
-(defun whitespace-remove-local-hook ()
-  "Remove some whitespace hooks locally."
-  (remove-hook 'write-file-functions 'whitespace-write-file-hook t)
-  (remove-hook 'kill-buffer-hook 'whitespace-kill-buffer-hook t))
-
-
 (defun whitespace-write-file-hook ()
   "Action to be taken when buffer is written.
 It should be added buffer-locally to `write-file-functions'."
-  (when (whitespace-action)
-    (error "Abort write due to whitespace problems in %s"
-	   (buffer-name)))
-  nil)					; continue hook processing
-
-
-(defun whitespace-kill-buffer-hook ()
-  "Action to be taken when buffer is killed.
-It should be added buffer-locally to `kill-buffer-hook'."
-  (whitespace-action t)
-  nil)					; continue hook processing
-
-
-(defun whitespace-action (&optional is-killing-buffer)
-  "Action to be taken when buffer is killed or written.
-Return t when the action should be aborted."
   (cond ((memq 'auto-cleanup whitespace-action)
-	 (unless is-killing-buffer
-	   (whitespace-cleanup))
-	 nil)
+	 (whitespace-cleanup))
 	((memq 'abort-on-bogus whitespace-action)
-	 (whitespace-report nil t))
-	(t
-	 nil)))
+	 (when (whitespace-report nil t)
+	   (error "Abort write due to whitespace problems in %s"
+		  (buffer-name)))))
+  nil)					; continue hook processing
 
 
 (defun whitespace-warn-read-only (msg)
   "Warn if buffer is read-only."
-  (when (memq 'warn-read-only whitespace-action)
+  (when (memq 'warn-if-read-only whitespace-action)
     (message "Can't %s: %s is read-only" msg (buffer-name))))
 
 
