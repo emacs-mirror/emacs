@@ -1,3 +1,9 @@
+2008-10-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (inhibit-frame-set-background-mode): New var.
+	(frame-set-background-mode): Use it to avoid a loop in
+	face-spec-recalc.
+
 2008-10-02  Glenn Morris  <rgm@gnu.org>
 
 	* vc-bzr.el (vc-bzr-diff): Use vc-switches rather than the obsolete
