@@ -4,6 +4,11 @@ Copyright (C) 1992, 1994, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
 See the end of the file for license conditions.
 
 
+This file contains general information.  For more specific information
+for the Windows, and GNUStep/Mac OS X ports, also see the files
+nt/INSTALL and nextstep/INSTALL.
+
+
 BASIC INSTALLATION
 
 The simplest way to build Emacs is to use the `configure' shell script
