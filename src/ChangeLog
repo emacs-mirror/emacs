@@ -1,3 +1,10 @@
+2008-10-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* gmalloc.c (__sbrk): Also define for uClibc.
+
+	* s/gnu-linux.h (GNU_LIBRARY_PENDING_OUTPUT_COUNT): Add definition
+	for uClibc.
+
 2008-10-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfont.m (nsfont_spec_to_traits): Use UnXX masks only for non-normal
