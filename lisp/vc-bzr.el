@@ -485,7 +485,7 @@ REV non-nil gets an error."
   ;; `bzr diff' exits with code 1 if diff is non-empty.
   (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*") 'async files
          "--diff-options" (mapconcat 'identity
-                                     (vc-diff-switches-list bzr)
+                                     (vc-switches 'bzr 'diff)
 				     " ")
          ;; This `when' is just an optimization because bzr-1.2 is *much*
          ;; faster when the revision argument is not given.
