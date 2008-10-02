@@ -1,3 +1,8 @@
+2008-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* vc-bzr.el (vc-bzr-diff): Use vc-switches rather than the obsolete
+	vc-diff-switches.
+
 2008-10-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: Eliminate whitespace-kill-buffer-hook functionality,
