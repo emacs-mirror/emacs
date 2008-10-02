@@ -1,3 +1,8 @@
+2008-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* mm-util.el (mm-codepage-setup): Tweak codepage error.
+	Silence compiler warning.
+
 2008-09-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mml.el (mml-menu): Don't assume mml2015 is bound.
