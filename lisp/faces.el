@@ -1839,82 +1839,88 @@ variable with `setq'; this won't have the expected effect."
 (declare-function x-get-resource "frame.c"
 		  (attribute class &optional component subclass))
 
+(defvar inhibit-frame-set-background-mode nil)
+
 (defun frame-set-background-mode (frame)
   "Set up display-dependent faces on FRAME.
 Display-dependent faces are those which have different definitions
 according to the `background-mode' and `display-type' frame parameters."
-  (let* ((bg-resource
-	  (and (window-system frame)
-	       (x-get-resource "backgroundMode" "BackgroundMode")))
-	 (bg-color (frame-parameter frame 'background-color))
-	 (terminal-bg-mode (terminal-parameter frame 'background-mode))
-	 (tty-type (tty-type frame))
-	 (bg-mode
-	  (cond (frame-background-mode)
-		(bg-resource
-		 (intern (downcase bg-resource)))
-		(terminal-bg-mode)
-		((and (null (window-system frame))
-		      ;; Unspecified frame background color can only
-		      ;; happen on tty's.
-		      (member bg-color '(nil unspecified "unspecified-bg")))
-		 ;; There is no way to determine the background mode
-		 ;; automatically, so we make a guess based on the
-		 ;; terminal type.
-		 (if (and tty-type
-			  (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
-					tty-type))
-		     'light
-		   'dark))
-		((equal bg-color "unspecified-fg") ; inverted colors
-		 (if (and tty-type
-			  (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
-					tty-type))
-		     'dark
-		   'light))
-		((>= (apply '+ (color-values bg-color frame))
-		    ;; Just looking at the screen, colors whose
-		    ;; values add up to .6 of the white total
-		    ;; still look dark to me.
-		    (* (apply '+ (color-values "white" frame)) .6))
-		 'light)
-		(t 'dark)))
-	 (display-type
-	  (cond ((null (window-system frame))
-		 (if (tty-display-color-p frame) 'color 'mono))
-		((display-color-p frame)
-		 'color)
-		((x-display-grayscale-p frame)
-		 'grayscale)
-		(t 'mono)))
-	 (old-bg-mode
-	  (frame-parameter frame 'background-mode))
-	 (old-display-type
-	  (frame-parameter frame 'display-type)))
+  (unless inhibit-frame-set-background-mode
+    (let* ((bg-resource
+	    (and (window-system frame)
+		 (x-get-resource "backgroundMode" "BackgroundMode")))
+	   (bg-color (frame-parameter frame 'background-color))
+	   (terminal-bg-mode (terminal-parameter frame 'background-mode))
+	   (tty-type (tty-type frame))
+	   (bg-mode
+	    (cond (frame-background-mode)
+		  (bg-resource (intern (downcase bg-resource)))
+		  (terminal-bg-mode)
+		  ((and (null (window-system frame))
+			;; Unspecified frame background color can only
+			;; happen on tty's.
+			(member bg-color '(nil unspecified "unspecified-bg")))
+		   ;; There is no way to determine the background mode
+		   ;; automatically, so we make a guess based on the
+		   ;; terminal type.
+		   (if (and tty-type
+			    (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
+					  tty-type))
+		       'light
+		     'dark))
+		  ((equal bg-color "unspecified-fg") ; inverted colors
+		   (if (and tty-type
+			    (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
+					  tty-type))
+		       'dark
+		     'light))
+		  ((>= (apply '+ (color-values bg-color frame))
+		       ;; Just looking at the screen, colors whose
+		       ;; values add up to .6 of the white total
+		       ;; still look dark to me.
+		       (* (apply '+ (color-values "white" frame)) .6))
+		   'light)
+		  (t 'dark)))
+	   (display-type
+	    (cond ((null (window-system frame))
+		   (if (tty-display-color-p frame) 'color 'mono))
+		  ((display-color-p frame)
+		   'color)
+		  ((x-display-grayscale-p frame)
+		   'grayscale)
+		  (t 'mono)))
+	   (old-bg-mode
+	    (frame-parameter frame 'background-mode))
+	   (old-display-type
+	    (frame-parameter frame 'display-type)))
 
-    (unless (and (eq bg-mode old-bg-mode) (eq display-type old-display-type))
-      (let ((locally-modified-faces nil))
-	;; Before modifying the frame parameters, we collect a list of
-	;; faces that don't match what their face-spec says they should
-	;; look like; we then avoid changing these faces below.
-	;; These are the faces whose attributes were modified on FRAME.
-	;; We use a negative list on the assumption that most faces will
-	;; be unmodified, so we can avoid consing in the common case.
-	(dolist (face (face-list))
-	  (and (not (get face 'face-override-spec))
-	       (not (face-spec-match-p face
-				       (face-user-default-spec face)
-				       (selected-frame)))
-	       (push face locally-modified-faces)))
-	;; Now change to the new frame parameters
-	(modify-frame-parameters frame
-				 (list (cons 'background-mode bg-mode)
-				       (cons 'display-type display-type)))
-	;; For all named faces, choose face specs matching the new frame
-	;; parameters, unless they have been locally modified.
-	(dolist (face (face-list))
-	  (unless (memq face locally-modified-faces)
-	    (face-spec-recalc face frame)))))))
+      (unless (and (eq bg-mode old-bg-mode) (eq display-type old-display-type))
+	(let ((locally-modified-faces nil)
+	      ;; Prevent face-spec-recalc from calling this function
+	      ;; again, resulting in a loop (bug#911).
+	      (inhibit-frame-set-background-mode t))
+	  ;; Before modifying the frame parameters, collect a list of
+	  ;; faces that don't match what their face-spec says they
+	  ;; should look like.  We then avoid changing these faces
+	  ;; below.  These are the faces whose attributes were
+	  ;; modified on FRAME.  We use a negative list on the
+	  ;; assumption that most faces will be unmodified, so we can
+	  ;; avoid consing in the common case.
+	  (dolist (face (face-list))
+	    (and (not (get face 'face-override-spec))
+		 (not (face-spec-match-p face
+					 (face-user-default-spec face)
+					 (selected-frame)))
+		 (push face locally-modified-faces)))
+	  ;; Now change to the new frame parameters
+	  (modify-frame-parameters frame
+				   (list (cons 'background-mode bg-mode)
+					 (cons 'display-type display-type)))
+	  ;; For all named faces, choose face specs matching the new frame
+	  ;; parameters, unless they have been locally modified.
+	  (dolist (face (face-list))
+	    (unless (memq face locally-modified-faces)
+	      (face-spec-recalc face frame))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
