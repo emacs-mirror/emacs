@@ -2067,7 +2067,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.mss\\'" . scribe-mode)
      ("\\.f9[05]\\'" . f90-mode)
      ("\\.indent\\.pro\\'" . fundamental-mode) ; to avoid idlwave-mode
-     ("\\.pro\\'" . idlwave-mode)
+     ("\\.\\(pro\\|PRO\\)\\'" . idlwave-mode)
      ("\\.prolog\\'" . prolog-mode)
      ("\\.tar\\'" . tar-mode)
      ;; The list of archive file extensions should be in sync with
