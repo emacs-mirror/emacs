@@ -1,3 +1,12 @@
+2008-10-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnml.el (nnml-request-expire-articles): Check if the function set to
+	`nnmail-expiry-target' returns the symbol `delete'.
+
+	* nnfolder.el (nnfolder-request-expire-articles): Ditto.
+
+	* nnmail.el (nnmail-expiry-target): Fix custom type.
+
 2008-10-02  Glenn Morris  <rgm@gnu.org>
 
 	* mm-util.el (mm-codepage-setup): Tweak codepage error.
