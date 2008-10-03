@@ -1122,6 +1122,7 @@ ELCFILES = \
 	$(lisp)/tempo.elc \
 	$(lisp)/term.elc \
 	$(lisp)/term/common-win.elc \
+	$(lisp)/term/internal.elc \
 	$(lisp)/term/ns-win.elc \
 	$(lisp)/term/pc-win.elc \
 	$(lisp)/term/rxvt.elc \
@@ -1314,6 +1315,7 @@ compile-always: doit
 	$(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
 
 ## In case any files are missing from ELCFILES.
+## Why is the UnicodeData check needed, when these files are no-byte-compile?
 compile-last:
 	@wd=$(lisp); $(setwins); \
 	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
