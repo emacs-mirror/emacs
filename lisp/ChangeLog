@@ -1,5 +1,7 @@
 2008-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* frame.el (set-default-font): Make obsolete.
+
 	* jka-cmpr-hook.el (jka-compr-compression-info-list)
 	(jka-compr-mode-alist-additions): Also match `.tbz2'.
 
