@@ -1014,7 +1014,7 @@ If FRAME is omitted, describe the currently selected frame."
 (declare-function x-list-fonts "xfaces.c"
                   (pattern &optional face frame maximum width))
 
-(defalias 'set-default-font 'set-frame-font)
+(define-obsolete-function-alias 'set-default-font 'set-frame-font "23.1")
 (defun set-frame-font (font-name &optional keep-size)
   "Set the font of the selected frame to FONT-NAME.
 When called interactively, prompt for the name of the font to use.
