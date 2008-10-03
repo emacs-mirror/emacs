@@ -912,9 +912,7 @@ commands act on the files in those directories displayed in the
   (let ((buffer-read-only nil))
     (erase-buffer)
     (set (make-local-variable 'vc-dir-process-buffer) nil)
-    (set (make-local-variable 'vc-ewoc)
-	 (ewoc-create #'vc-dir-status-printer
-		      (vc-dir-headers vc-dir-backend default-directory)))
+    (set (make-local-variable 'vc-ewoc) (ewoc-create #'vc-dir-status-printer))
     (set (make-local-variable 'revert-buffer-function)
 	 'vc-dir-revert-buffer-function)
     (set (make-local-variable 'list-buffers-directory)
@@ -1032,7 +1030,8 @@ Throw an error if another update process is in progress."
                        (vc-dir-refresh-files
                         (mapcar 'vc-dir-fileinfo->name remaining)
                         'up-to-date)
-                     (setq mode-line-process nil))))))))))))
+                     (setq mode-line-process nil)))))))))
+      (ewoc-set-hf vc-ewoc (vc-dir-headers backend def-dir) ""))))
 
 (defun vc-dir-show-fileentry (file)
   "Insert an entry for a specific file into the current *VC-dir* listing.
