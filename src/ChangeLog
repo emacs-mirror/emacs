@@ -2,6 +2,7 @@
 
 	* image.c (x_clear_image_1): Under NS, call ns_free_indexed_color with
 	correct arguments.
+	* menu.c (find_and_return_menu_selection) Add cast.
 
 2008-10-03  Glenn Morris  <rgm@gnu.org>
 
