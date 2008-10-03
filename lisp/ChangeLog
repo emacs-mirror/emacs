@@ -1,3 +1,7 @@
+2008-10-03  Mario Lang  <mlang@delysid.org>
+
+	* nxml/xmltok.el (xmltok-forward): Simplify.
+
 2008-10-03  Glenn Morris  <rgm@gnu.org>
 
 	* frame.el (set-default-font): Make obsolete.
