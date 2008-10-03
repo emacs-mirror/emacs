@@ -1,5 +1,8 @@
 2008-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* jka-cmpr-hook.el (jka-compr-compression-info-list)
+	(jka-compr-mode-alist-additions): Also match `.tbz2'.
+
 	* progmodes/idlwave.el (auto-mode-alist): Remove unnecessary autoload.
 	* files.el (auto-mode-alist): Add .PRO as per above autoload.
 
