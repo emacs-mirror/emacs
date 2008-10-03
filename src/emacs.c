@@ -257,6 +257,7 @@ read the main documentation for these command-line arguments.\n\
 Initialization options:\n\
 \n\
 --batch                     do not do interactive display; implies -q\n\
+--daemon                    start a server in the background\n\
 --debug-init                enable Emacs Lisp debugger for init file\n\
 --display, -d DISPLAY       use X server DISPLAY\n\
 --multibyte, --no-unibyte   inhibit the effect of EMACS_UNIBYTE\n\
