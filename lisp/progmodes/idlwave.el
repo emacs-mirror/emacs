@@ -9369,8 +9369,6 @@ This function was written since `list-abbrevs' looks terrible for IDLWAVE mode."
 ;; Will only work on systems which support this.
 (or idlwave-routines (idlwave-start-load-rinfo-timer))
 
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.[Pp][Rr][Oo]\\'" . idlwave-mode))
-
 ;; Run the hook
 (run-hooks 'idlwave-load-hook)
 
