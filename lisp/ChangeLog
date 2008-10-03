@@ -1,3 +1,7 @@
+2008-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-dir-status-files): New function.
+
 2008-10-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--display-buffer-1): Don't care about
