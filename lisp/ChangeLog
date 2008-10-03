@@ -4,6 +4,8 @@
 
 2008-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (ELCFILES): Update.
+
 	* frame.el (set-default-font): Make obsolete.
 	* mouse.el (mouse-set-font): Use set-frame-font.
 
