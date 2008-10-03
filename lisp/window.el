@@ -885,8 +885,8 @@ is higher than WINDOW."
 	(error nil)))))
 
 (defun window--display-buffer-1 (window)
-  "Deiconify the frame containing the window WINDOW.
-Do not deiconify the selected frame.  Return WINDOW."
+  "Raise the frame containing the window WINDOW.
+Do not raise the selected frame.  Return WINDOW."
   (let* ((frame (window-frame window))
 	 (visible (frame-visible-p frame)))
     (unless (or (not visible)
@@ -896,8 +896,6 @@ Do not deiconify the selected frame.  Return WINDOW."
 		;; is visible.
 		(and (minibuffer-window-active-p (selected-window))
 		     (eq frame (window-frame (minibuffer-selected-window)))))
-      (when (eq visible 'icon)
-	(make-frame-visible frame))
       (raise-frame frame))
     window))
 
