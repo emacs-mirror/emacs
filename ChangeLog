@@ -1,3 +1,10 @@
+2008-08-28  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* configure.in: Report USE_TOOLKIT_SCROLLBARS as such (not mentioning
+	"X") to avoid confusion.
+
+	* configure: Regenerate.
+
 2008-09-07  Romain Francoise  <romain@orebokech.com>
 
 	* make-dist: Distribute doc/man/ChangeLog.
