@@ -1,3 +1,8 @@
+2008-10-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--display-buffer-1): Don't care about
+	visibility since raise-frame does.
+
 2008-10-03  Mario Lang  <mlang@delysid.org>
 
 	* nxml/xmltok.el (xmltok-forward): Simplify.
