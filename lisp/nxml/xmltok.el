@@ -315,16 +315,14 @@ and VALUE-END, otherwise a STRING giving the value."
 	   (cond ((> space-count 0)
 		  (setq xmltok-type 'space))
 		 (t
-		  (goto-char (1+ (point)))
+		  (forward-char 1)
 		  (xmltok-scan-after-lt))))
 	  ((eq ch ?\&)
 	   (cond ((> space-count 0)
 		  (setq xmltok-type 'space))
 		 (t
-		  (goto-char (1+ (point)))
-		  (xmltok-scan-after-amp
-		   (lambda (start end)
-		     (xmltok-handle-entity start end))))))
+		  (forward-char 1)
+		  (xmltok-scan-after-amp 'xmltok-handle-entity))))
 	  ((re-search-forward "[<&]\\|\\(]]>\\)" nil t)
 	   (cond ((not (match-beginning 1))
 		  (goto-char (match-beginning 0))
