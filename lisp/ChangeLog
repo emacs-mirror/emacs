@@ -1,7 +1,7 @@
 2008-10-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/compile.el (compilation-start): Make sure to move to
-	point-max only when we are in the compilation buffer.
+	point-max only when we are in the compilation buffer. (Bug#1073)
 
 2008-10-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
