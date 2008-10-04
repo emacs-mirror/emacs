@@ -24,9 +24,17 @@ quiet@emacsbugs.donarmstrong.com.
 
 ** How do I reply to an existing bug report?
 Reply to 123@emacsbugs.donarmstrong.com, replacing 123 with the number
-of the bug you are interested in.  Cc anyone you like.  Do NOT send
-a copy to the bug list, since this may generate a new report.  The
-only time to send mail to the bug list is to create a new report.
+of the bug you are interested in.  NB this only sends mail to the
+bug-list, it does NOT (?) send a CC to the original bug submitter.
+So you need to explicitly CC him/her (and anyone else you like).
+
+(Many people think the submitter SHOULD be automatically subscribed
+to subsequent discussion, but this does not seem to be implemented.
+See http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=37078)
+
+Do NOT send a separate copy to the bug list, since this may generate a
+new report. The only time to send mail to the bug list is to create a
+new report.
 
 ** When reporting a bug, to send a Cc to another address
 (e.g. bug-cc-mode@gnu.org), do not just use a Cc: header.
@@ -34,7 +42,13 @@ Instead, use "X-Debbugs-CC:".  This ensures the Cc address will get a
 mail with the bug report number in.
 
 ** To not get acknowledgement mail from the tracker,
-add an "X-Debbugs-No-Ack:" header (with any value).
+add an "X-Debbugs-No-Ack:" header (with any value).  If you use Gnus,
+you can add an element to gnus-posting-styles to do this automatically, eg:
+
+("gnu-emacs\\(-pretest\\)?-bug"
+   ("X-Debbugs-No-Ack" "yes"))
+
+(adjust the regexp according to the name you use for the bug lists)
 
 ** To record a bug in the tracker without sending mail to the bug list.
 This can be useful to make a note of something discussed on
