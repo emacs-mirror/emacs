@@ -838,7 +838,7 @@ ns_ring_bell ()
           r.origin.y += (r.size.height - dim.y) / 2;
           r.size.width = dim.x;
           r.size.height = dim.y;
-          /* XXX: cacheImageInRect under GNUSTEP does not account for
+          /* XXX: cacheImageInRect under GNUstep does not account for
              offset in x_set_window_size, so overestimate (4 fine on Cocoa) */
           surr = NSInsetRect (r, -10, -10);
           ns_focus (frame, &surr, 1);

@@ -1592,7 +1592,7 @@ See also the function `ns-server-vendor'.  */)
      (display)
      Lisp_Object display;
 {
-  /* FIXME: return GUI version on GNUSTEP, ?? on OS X */
+  /* FIXME: return GUI version on GNUstep, ?? on OS X */
   return build_string ("1.0");
 }
 
