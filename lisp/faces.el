@@ -2007,7 +2007,8 @@ Value is the new frame created."
 	  ;; Make sure the tool-bar is ready to be enabled.  The
 	  ;; `tool-bar-lines' frame parameter will not take effect
 	  ;; without this call.
-	  (tool-bar-setup frame)
+	  (when tool-bar-mode
+	    (tool-bar-setup frame))
 	  (if (null visibility-spec)
 	      (make-frame-visible frame)
 	    (modify-frame-parameters frame (list visibility-spec)))

@@ -1,5 +1,8 @@
 2008-10-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* faces.el (x-create-frame-with-faces): Only setup the toolbar if
+	tool-bar-mode is on.
+
 	* vc-svn.el (vc-svn-dir-status-files):
 	* vc-cvs.el (vc-cvs-dir-status-files): New function.
 
