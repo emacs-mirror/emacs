@@ -1,5 +1,13 @@
 2008-10-04  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (redisplay_internal): If frame switched, redisplay the
+	whole thing on MSDOS frames as well as on a TTY.
+
+	* dispnew.c (update_frame): Flush termscript for MSDOS frames as
+	well as for TTY.
+	(Fopen_termscript): Allow opening a termscript on MSDOS frames as
+	well as on a TTY.
+
 	* sysdep.c (init_sys_modes): Set FRAME_GARBAGED_P for MSDOS frames
 	as well as for TTY.
 
