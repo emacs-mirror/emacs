@@ -57,7 +57,7 @@ a GIF library.
 *** Emacs now supports multi-page TIFF images.
 
 ** New NeXTSTEP-based port
-This provides support for GNUStep (via the GNUStep libraries) and Mac
+This provides support for GNUstep (via the GNUstep libraries) and Mac
 OS X (via the Cocoa libraries).
 
 Specify --with-ns to configure for this. By default, a self-contained

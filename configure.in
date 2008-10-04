@@ -2627,7 +2627,7 @@ AH_BOTTOM([
 /* See also .m.o rule in Makefile.in */
 /* FIXME: are all these flags really needed?  Document here why.  */
 #  define C_SWITCH_X_SYSTEM -D_REENTRANT -fPIC -fno-strict-aliasing
-/* GNUStep needs a bit more pure memory.  Of the existing knobs,
+/* GNUstep needs a bit more pure memory.  Of the existing knobs,
 SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #  define SYSTEM_PURESIZE_EXTRA 30000
 # endif /* NS_IMPL_GNUSTEP */
