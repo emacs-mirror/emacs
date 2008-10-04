@@ -173,6 +173,11 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-exec-after
    `(vc-svn-after-dir-status (quote ,callback))))
 
+(defun vc-svn-dir-status-files (dir files default-state callback)
+  (apply 'vc-svn-command (current-buffer) 'async nil "status" files)
+  (vc-exec-after
+   `(vc-svn-after-dir-status (quote ,callback))))
+
 (defun vc-svn-status-extra-headers (dir)
   "Generate extra status headers for a Subversion working copy."
   (vc-svn-command "*vc*" 0 nil "info")

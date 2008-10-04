@@ -916,6 +916,12 @@ state."
   (vc-exec-after
    `(vc-cvs-after-dir-status (quote ,update-function))))
 
+(defun vc-cvs-dir-status-files (dir files default-state update-function)
+  "Create a list of conses (file . state) for DIR."
+  (apply 'vc-cvs-command (current-buffer) 'async dir "-f" "status" files)
+  (vc-exec-after
+   `(vc-cvs-after-dir-status (quote ,update-function))))
+
 (defun vc-cvs-file-to-string (file)
   "Read the content of FILE and return it as a string."
   (condition-case nil
