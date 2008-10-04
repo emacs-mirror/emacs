@@ -3954,11 +3954,12 @@ update_frame (f, force_p, inhibit_hairy_id_p)
       paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p);
       update_end (f);
 
-      if (FRAME_TERMCAP_P (f))
+      if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
         {
           if (FRAME_TTY (f)->termscript)
             fflush (FRAME_TTY (f)->termscript);
-          fflush (FRAME_TTY (f)->output);
+	  if (FRAME_TERMCAP_P (f))
+	    fflush (FRAME_TTY (f)->output);
         }
 
       /* Check window matrices for lost pointers.  */
@@ -6421,7 +6422,8 @@ FILE = nil means just close any termscript file currently open.  */)
 {
   struct tty_display_info *tty;
 
-  if (! FRAME_TERMCAP_P (SELECTED_FRAME ()))
+  if (! FRAME_TERMCAP_P (SELECTED_FRAME ())
+      && ! FRAME_MSDOS_P (SELECTED_FRAME ()))
     error ("Current frame is not on a tty device");
 
   tty = CURTTY ();
