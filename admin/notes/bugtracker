@@ -149,6 +149,16 @@ unmerge 123
 
 This command accepts only one bug number.
 
+*** To clone bugs:
+Useful when one report refers to more than one bug.
+
+clone 123 -1 [-2 ...]
+retitle -1 second bug
+retitle -2 third bug
+
+The negative numbers provide a way to refer to the cloned bugs (which
+will be assigned proper numbers).
+
 *** To set severity:
 severity 123 critical|grave|serious|important|normal|minor|wishlist
 
