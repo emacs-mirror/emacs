@@ -1279,11 +1279,15 @@ Returns the compilation buffer created."
 	  (setq compilation-in-progress
 		(cons proc compilation-in-progress))))
       ;; Now finally cd to where the shell started make/grep/...
-      (setq default-directory thisdir))
-    (if (buffer-local-value 'compilation-scroll-output outbuf)
-	(save-selected-window
-	  (select-window outwin)
-	  (goto-char (point-max))))
+      (setq default-directory thisdir)
+      ;; The following form selected outwin ever since revision 1.183,
+      ;; so possibly messing up point in some other window (bug#1073).
+      ;; Moved into the scope of with-current-buffer, though still with
+      ;; complete disregard for the case when compilation-scroll-output
+      ;; equals 'first-error (martin 2008-10-04).
+      (when compilation-scroll-output
+	(goto-char (point-max))))
+
     ;; Make it so the next C-x ` will use this buffer.
     (setq next-error-last-buffer outbuf)))
 
