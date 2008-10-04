@@ -1,5 +1,8 @@
 2008-10-04  Glenn Morris  <rgm@gnu.org>
 
+	* vc-svn.el (vc-svn-after-dir-status): Handle `svn status -u' output.
+	(vc-svn-dir-status): Respect vc-stay-local-p.  (Bug#1046)
+
 	* vc-cvs.el (vc-cvs-dir-status-heuristic): New function.
 	(vc-cvs-dir-status): Respect vc-stay-local-p.  (Bug#1046)
 
