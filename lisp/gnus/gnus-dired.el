@@ -69,7 +69,7 @@
   (define-key gnus-dired-mode-map "\C-c\C-m\C-p" 'gnus-dired-print))
 
 ;; FIXME: Make it customizable, change the default to `mail-user-agent' when
-;; this file if renamed (e.g. to `dired-mime.el').
+;; this file is renamed (e.g. to `dired-mime.el').
 
 (defcustom gnus-dired-mail-mode 'gnus-user-agent ;; mail-user-agent
   "Your preference for a mail composition package.
