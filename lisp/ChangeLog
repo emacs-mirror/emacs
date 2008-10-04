@@ -1,3 +1,8 @@
+2008-10-04  David J. Biesack  <David.Biesack@sas.com>  (tiny change)
+
+	* progmodes/antlr-mode.el (antlr-font-lock-additional-keywords):
+	Fix typo.  (Bug#1074)
+
 2008-10-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/compile.el (compilation-start): Make sure to move to
