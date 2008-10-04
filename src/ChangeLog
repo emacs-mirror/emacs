@@ -1298,10 +1298,10 @@
 
 	* nsfns.m (ns_frame_parm_handlers): Add empty entry for x_set_alpha.
 
-	* nsterm.m (EmacsApp -application:openFiles:): GNUStep does not
+	* nsterm.m (EmacsApp -application:openFiles:): GNUstep does not
 	define NSApplicationDelegateReplySuccess.
 	(EmacsView -converstationIdentifier): Use long instead of
-	NSInteger for GNUStep, since it doesn't have NSInteger.
+	NSInteger for GNUstep, since it doesn't have NSInteger.
 
 	* xmenu.c: Revert last change.
 
@@ -1741,7 +1741,7 @@
 
 	* Makefile.in (C_SWITCH_SITE, LD_SWITCH_SITE): Remove, unused.
 	Remove all references.
-	(temacs): Add GNUStep specific ld flags.
+	(temacs): Add GNUstep specific ld flags.
 
 	* nsterm.m (syms_of_nsterm): Provide ns, not ns-windowing,
 	similarly to what X does.
