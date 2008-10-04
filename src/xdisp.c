@@ -11394,7 +11394,7 @@ redisplay_internal (preserve_echo_area)
   if (face_change_count)
     ++windows_or_buffers_changed;
 
-  if (FRAME_TERMCAP_P (sf)
+  if ((FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf))
       && FRAME_TTY (sf)->previous_frame != sf)
     {
       /* Since frames on a single ASCII terminal share the same
