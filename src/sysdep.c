@@ -1412,7 +1412,8 @@ init_sys_modes (tty_out)
       frame_garbaged = 1;
       FOR_EACH_FRAME (tail, frame)
         {
-          if (FRAME_TERMCAP_P (XFRAME (frame))
+          if ((FRAME_TERMCAP_P (XFRAME (frame))
+	       || FRAME_MSDOS_P (XFRAME (frame)))
               && FRAME_TTY (XFRAME (frame)) == tty_out)
             FRAME_GARBAGED_P (XFRAME (frame)) = 1;
         }
