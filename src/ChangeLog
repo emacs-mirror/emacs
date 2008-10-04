@@ -1,5 +1,8 @@
 2008-10-04  Eli Zaretskii  <eliz@gnu.org>
 
+	* sysdep.c (init_sys_modes): Set FRAME_GARBAGED_P for MSDOS frames
+	as well as for TTY.
+
 	* systime.h (EMACS_TIME_CMP): Cast EMACS_SECS values to `long'.
 
 	* dispnew.c (change_frame_size_1): Set FrameRows and FrameCols for
