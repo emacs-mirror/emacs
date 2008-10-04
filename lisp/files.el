@@ -976,7 +976,11 @@ If SUFFIX is non-nil, add that at the end of the file name."
 		     (progn
 		       (setq file
 			     (make-temp-name
-			      (expand-file-name prefix temporary-file-directory)))
+                              (if (zerop (length prefix))
+                                  (file-name-as-directory
+                                   temporary-file-directory)
+                                (expand-file-name prefix
+                                                  temporary-file-directory))))
 		       (if suffix
 			   (setq file (concat file suffix)))
 		       (if dir-flag
