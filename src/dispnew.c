@@ -6356,7 +6356,9 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
 	set_window_height (FRAME_ROOT_WINDOW (f),
 			   newheight - FRAME_TOP_MARGIN (f), 2);
 
-      if (FRAME_TERMCAP_P (f) && !pretend)
+      /* MSDOS frames cannot PRETEND, as they change frame size by
+	 manipulating video hardware.  */
+      if ((FRAME_TERMCAP_P (f) && !pretend) || FRAME_MSDOS_P (f))
 	FrameRows (FRAME_TTY (f)) = newheight;
     }
 
@@ -6366,7 +6368,9 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
       if (FRAME_HAS_MINIBUF_P (f))
 	set_window_width (FRAME_MINIBUF_WINDOW (f), new_frame_total_cols, 0);
 
-      if (FRAME_TERMCAP_P (f) && !pretend)
+      /* MSDOS frames cannot PRETEND, as they change frame size by
+	 manipulating video hardware.  */
+      if ((FRAME_TERMCAP_P (f) && !pretend) || FRAME_MSDOS_P (f))
 	FrameCols (FRAME_TTY (f)) = newwidth;
 
       if (WINDOWP (f->tool_bar_window))
