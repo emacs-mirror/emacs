@@ -1,5 +1,7 @@
 2008-10-04  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (make-temp-file): Handle empty `prefix'.  (Bug#1081)
+
 	* vc-svn.el (vc-svn-after-dir-status): Handle `svn status -u' output.
 	(vc-svn-dir-status): Respect vc-stay-local-p.  (Bug#1046)
 
