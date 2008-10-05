@@ -41,10 +41,10 @@
 (require 'mail-utils)
 (eval-when-compile (require 'mule-util)) ; for detect-coding-with-priority
 
-(defconst pmail-attribute-header "X-BABYL-V6-ATTRIBUTES"
+(defconst pmail-attribute-header "X-RMAIL-ATTRIBUTES"
   "The header that stores the Pmail attribute data.")
 
-(defconst pmail-keyword-header "X-BABYL-V6-KEYWORDS"
+(defconst pmail-keyword-header "X-RMAIL-KEYWORDS"
   "The header that stores the Pmail keyword data.")
 
 ;;; Attribute indexes
@@ -80,9 +80,6 @@
     (?U "unseen")]
   "An array that provides a mapping between an attribute index,
 it's character representation and it's display representation.")
-
-(defconst pmail-attribute-field-name "x-babyl-v6-attributes"
-  "The message header field added by Rmail to maintain status.")
 
 (defvar deleted-head)
 (defvar font-lock-fontified)
@@ -857,20 +854,6 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
 	 ;; Use find-buffer-visiting, not get-file-buffer, for those users
 	 ;; who have find-file-visit-truename set to t.
 	 (existed (find-buffer-visiting file-name))
-	 ;; This binding is necessary because we must decide if we
-	 ;; need code conversion while the buffer is unibyte
-	 ;; (i.e. enable-multibyte-characters is nil).
-         (pmail-enable-multibyte
-          (if existed
-	      (with-current-buffer existed enable-multibyte-characters)
-            (default-value 'enable-multibyte-characters)))
-	 ;; Since the file may contain messages of different encodings
-	 ;; at the tail (non-BYBYL part), we can't decode them at once
-	 ;; on reading.  So, at first, we read the file without text
-	 ;; code conversion, then decode the messages one by one by
-	 ;; pmail-decode-babyl-format or
-	 ;; pmail-convert-to-babyl-format.
-	 (coding-system-for-read (and pmail-enable-multibyte 'raw-text))
 	 run-mail-hook msg-shown)
     ;; Like find-file, but in the case where a buffer existed
     ;; and the file was reverted, recompute the message-data.
@@ -955,7 +938,15 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
 	((equal (point-min) (point-max))
 	 (message "Empty Pmail file."))
 	((looking-at "From "))
-	(t (error "Invalid mbox format mail file."))))
+	(t (pmail-error-bad-format))))
+
+(defun pmail-error-bad-format (&optional msgnum)
+  "Report that the buffer contains a message that is not RFC2822
+compliant.
+MSGNUM, if present, indicates the malformed message."
+  (if msgnum
+      (error "Message %s is not a valid RFC2822 message." msgnum)
+    (error "Invalid mbox format mail file.")))
 
 (defun pmail-convert-babyl-to-mbox ()
   "Convert the mail file from Babyl version 5 to mbox."
@@ -1350,6 +1341,7 @@ Instead, these commands are available:
   (make-local-variable 'pmail-deleted-vector)
   (make-local-variable 'pmail-buffer)
   (setq pmail-buffer (current-buffer))
+  (set-buffer-multibyte nil)
   (make-local-variable 'pmail-view-buffer)
   (save-excursion
     (setq pmail-view-buffer (pmail-generate-viewer-buffer))
@@ -1639,162 +1631,152 @@ It returns t if it got any new messages."
   ;; Get rid of all undo records for this buffer.
   (or (eq buffer-undo-list t)
       (setq buffer-undo-list nil))
+  (pmail-get-new-mail-1 file-name))
+
+(defun pmail-get-new-mail-1 (file-name)
+  "Continuation of 'pmail-get-new-mail.  Sort of a procedural
+abstraction kind of thing to manage the code size.  Return t if
+new messages are found, nil otherwise."
   (let ((all-files (if file-name (list file-name)
 		     pmail-inbox-list))
 	(pmail-enable-multibyte (default-value 'enable-multibyte-characters))
 	found)
     (unwind-protect
+	(when all-files
+	  (let ((opoint (point))
+		(delete-files ())
+		;; If buffer has not changed yet, and has not been
+		;; saved yet, don't replace the old backup file now.
+		(make-backup-files (and make-backup-files (buffer-modified-p)))
+		(buffer-read-only nil)
+		;; Don't make undo records for what we do in getting
+		;; mail.
+		(buffer-undo-list t)
+		success files file-last-names)
+	    ;; Pull files off all-files onto files as long as there is
+	    ;; no name conflict.  A conflict happens when two inbox
+	    ;; file names have the same last component.
+	    (while (and all-files
+			(not (member (file-name-nondirectory (car all-files))
+				     file-last-names)))
+	      (setq files (cons (car all-files) files)
+		    file-last-names
+		    (cons (file-name-nondirectory (car all-files)) files))
+	      (setq all-files (cdr all-files)))
+	    ;; Put them back in their original order.
+	    (setq files (nreverse files))
+	    (goto-char (point-max))
+	    (skip-chars-backward " \t\n") ; just in case of brain damage
+	    (delete-region (point) (point-max)) ; caused by require-final-newline
+	    (setq found (pmail-get-new-mail-2 file-name files delete-files))))
+      found)
+    ;; Don't leave the buffer screwed up if we get a disk-full error.
+    (or found (pmail-show-message-maybe))))
+
+(defun pmail-get-new-mail-2 (file-name files delete-files)
+  "Return t if new messages are detected without error, nil otherwise."
+  (save-excursion
+    (save-restriction
+      (let ((new-messages 0)
+	    (spam-filter-p (and (featurep 'pmail-spam-filter) pmail-use-spam-filter))
+	    blurb success suffix)
+	(narrow-to-region (point) (point))
+	;; Read in the contents of the inbox files, renaming them as
+	;; necessary, and adding to the list of files to delete
+	;; eventually.
+	(if file-name
+	    (pmail-insert-inbox-text files nil)
+	  (setq delete-files (pmail-insert-inbox-text files t)))
+	;; Scan the new text and convert each message to
+	;; Pmail/mbox format.
+	(goto-char (point-min))
+	(unwind-protect
+	    (setq new-messages (pmail-add-mbox-headers)
+		  success t)
+	  ;; Try to delete the garbage just inserted.
+	  (or success (delete-region (point-min) (point-max)))
+	  ;; If we could not convert the file's inboxes, rename the
+	  ;; files we tried to read so we won't over and over again.
+	  (if (and (not file-name) (not success))
+	      (let ((delfiles delete-files)
+		    (count 0))
+		(while delfiles
+		  (while (file-exists-p (format "PMAILOSE.%d" count))
+		    (setq count (1+ count)))
+		  (rename-file (car delfiles) (format "PMAILOSE.%d" count))
+		  (setq delfiles (cdr delfiles))))))
+	;; Determine if there are messages.
+	(unless (zerop new-messages)
+	  ;; There are.  Process them.
+	  (goto-char (point-min))
+	  (pmail-count-new-messages)
+	  (run-hooks 'pmail-get-new-mail-hook)
+	  (save-buffer))
+	;; Delete the old files, now that the Pmail file is saved.
+	(while delete-files
+	  (condition-case ()
+	      ;; First, try deleting.
+	      (condition-case ()
+		  (delete-file (car delete-files))
+		(file-error
+		 ;; If we can't delete it, truncate it.
+		 (write-region (point) (point) (car delete-files))))
+	    (file-error nil))
+	  (setq delete-files (cdr delete-files)))
+	(if (zerop new-messages)
+	    (when (or file-name pmail-inbox-list)
+	      (message "(No new mail has arrived)"))
+	  ;; Generate the spam message.
+	  (setq blurb (if spam-filter-p
+			  (pmail-get-new-mail-filter-spam new-messages)
+			"")))
+	(if (pmail-summary-exists)
+	    (pmail-select-summary (pmail-update-summary)))
+	(setq suffix (if (= 1 new-messages) "" "s"))
+	(message "%d new message%s read%s" new-messages suffix blurb)
+	(when spam-filter-p
+	  (if rsf-beep (beep t))
+	  (sleep-for rsf-sleep-after-message))
+    
+	;; Move to the first new message
+	;; unless we have other unseen messages before it.
+	(pmail-show-message-maybe (pmail-first-unseen-message))
+	(run-hooks 'pmail-after-get-new-mail-hook)
+	(> new-messages 0)))))
+
+(defun pmail-get-new-mail-filter-spam (new-message-count)
+  "Process new messages for spam."
+  (let* ((old-messages (- pmail-total-messages new-message-count))
+	 (rsf-number-of-spam 0)
+	 (rsf-scanned-message-number (1+ old-messages))
+	 ;; save deletion flags of old messages: vector starts at zero
+	 ;; (is one longer that no of messages), therefore take 1+
+	 ;; old-messages
+	 (save-deleted (substring pmail-deleted-vector 0 (1+ old-messages)))
+	 blurb)
+    ;; set all messages to undeleted
+    (setq pmail-deleted-vector (make-string (1+ pmail-total-messages) ?\ ))
+    (while (<= rsf-scanned-message-number pmail-total-messages)
+      (progn
+	(if (not (pmail-spam-filter rsf-scanned-message-number))
+	    (progn (setq rsf-number-of-spam (1+ rsf-number-of-spam))))
+	(setq rsf-scanned-message-number (1+ rsf-scanned-message-number))))
+    (if (> rsf-number-of-spam 0)
 	(progn
-	  (while all-files
-	    (let ((opoint (point))
-		  (new-messages 0)
-		  (rsf-number-of-spam 0)
-		  (delete-files ())
-		  ;; If buffer has not changed yet, and has not been saved yet,
-		  ;; don't replace the old backup file now.
-		  (make-backup-files (and make-backup-files (buffer-modified-p)))
-		  (buffer-read-only nil)
-		  ;; Don't make undo records for what we do in getting mail.
-		  (buffer-undo-list t)
-		  success
-		  ;; Files to insert this time around.
-		  files
-		  ;; Last names of those files.
-		  file-last-names)
-	      ;; Pull files off all-files onto files
-	      ;; as long as there is no name conflict.
-	      ;; A conflict happens when two inbox file names
-	      ;; have the same last component.
-	      (while (and all-files
-			  (not (member (file-name-nondirectory (car all-files))
-				       file-last-names)))
-		(setq files (cons (car all-files) files)
-		      file-last-names
-		      (cons (file-name-nondirectory (car all-files)) files))
-		(setq all-files (cdr all-files)))
-	      ;; Put them back in their original order.
-	      (setq files (nreverse files))
-
-	      (goto-char (point-max))
-	      (skip-chars-backward " \t\n") ; just in case of brain damage
-	      (delete-region (point) (point-max)) ; caused by require-final-newline
-	      (save-excursion
-		(save-restriction
-		  (narrow-to-region (point) (point))
-		  ;; Read in the contents of the inbox files,
-		  ;; renaming them as necessary,
-		  ;; and adding to the list of files to delete eventually.
-		  (if file-name
-		      (pmail-insert-inbox-text files nil)
-		    (setq delete-files (pmail-insert-inbox-text files t)))
-		  ;; Scan the new text and convert each message to mbox format.
-		  (goto-char (point-min))
-		  (unwind-protect
-		      (save-excursion
-			(setq new-messages (pmail-add-babyl-headers)
-			      success t))
-		    ;; Try to delete the garbage just inserted.
-		    (or success (delete-region (point-min) (point-max)))
-		    ;; If we could not convert the file's inboxes,
-		    ;; rename the files we tried to read
-		    ;; so we won't over and over again.
-		    (if (and (not file-name) (not success))
-			(let ((delfiles delete-files)
-			      (count 0))
-			  (while delfiles
-			    (while (file-exists-p (format "PMAILOSE.%d" count))
-			      (setq count (1+ count)))
-			    (rename-file (car delfiles)
-					 (format "PMAILOSE.%d" count))
-			    (setq delfiles (cdr delfiles))))))
-		  (or (zerop new-messages)
-		      (let (success)
-			(goto-char (point-min))
-			(pmail-count-new-messages)
-			(run-hooks 'pmail-get-new-mail-hook)
-			(save-buffer)))
-		  ;; Delete the old files, now that babyl file is saved.
-		  (while delete-files
-		    (condition-case ()
-			;; First, try deleting.
-			(condition-case ()
-			    (delete-file (car delete-files))
-			  (file-error
-			   ;; If we can't delete it, truncate it.
-			   (write-region (point) (point) (car delete-files))))
-		      (file-error nil))
-		    (setq delete-files (cdr delete-files)))))
-	      (if (= new-messages 0)
-		  (progn (goto-char opoint)
-			 (if (or file-name pmail-inbox-list)
-			     (message "(No new mail has arrived)")))
-		;; check new messages to see if any of them is spam:
-		(if (and (featurep 'pmail-spam-filter)
-			 pmail-use-spam-filter)
-		    (let*
-			((old-messages (- pmail-total-messages new-messages))
-                         (rsf-scanned-message-number (1+ old-messages))
-                         ;; save deletion flags of old messages: vector starts
-                         ;; at zero (is one longer that no of messages),
-                         ;; therefore take 1+ old-messages
-                         (save-deleted
-                          (substring pmail-deleted-vector 0 (1+
-                          old-messages))))
-                      ;; set all messages to undeleted
-                      (setq pmail-deleted-vector
-                            (make-string (1+ pmail-total-messages) ?\ ))
-		      (while (<= rsf-scanned-message-number
-		      pmail-total-messages)
-			(progn
-			  (if (not (pmail-spam-filter rsf-scanned-message-number))
-			      (progn (setq rsf-number-of-spam (1+ rsf-number-of-spam)))
-			    )
-			  (setq rsf-scanned-message-number (1+ rsf-scanned-message-number))
-			  ))
-		      (if (> rsf-number-of-spam 0)
-			  (progn
-			    (when (pmail-expunge-confirmed)
-                              (pmail-only-expunge t))
-                            ))
-                      (setq pmail-deleted-vector
-                            (concat
-                             save-deleted
-                             (make-string (- pmail-total-messages old-messages)
-                                          ?\ )))
-		      ))
- 		(if (pmail-summary-exists)
-		    (pmail-select-summary
-		     (pmail-update-summary)))
-		(message "%d new message%s read%s"
-			 new-messages (if (= 1 new-messages) "" "s")
-			 ;; print out a message on number of spam messages found:
-			 (if (and (featurep 'pmail-spam-filter)
-				  pmail-use-spam-filter
-				  (> rsf-number-of-spam 0))
-			     (cond ((= 1 new-messages)
-				    ", and appears to be spam")
-				   ((= rsf-number-of-spam new-messages)
-				    ", and all appear to be spam")
-				   ((> rsf-number-of-spam 1)
-				    (format ", and %d appear to be spam"
-					    rsf-number-of-spam))
-				   (t
-				    ", and 1 appears to be spam"))
-			   ""))
-		(when (and (featurep 'pmail-spam-filter)
-			   pmail-use-spam-filter
-			   (> rsf-number-of-spam 0))
-		  (if rsf-beep (beep t))
-		  (sleep-for rsf-sleep-after-message))
-
-		;; Move to the first new message
-		;; unless we have other unseen messages before it.
-		(pmail-show-message-maybe (pmail-first-unseen-message))
-		(run-hooks 'pmail-after-get-new-mail-hook)
-		(setq found t))))
-	  found)
-      ;; Don't leave the buffer screwed up if we get a disk-full error.
-      (or found (pmail-show-message-maybe)))))
+	  (when (pmail-expunge-confirmed)
+	    (pmail-only-expunge t))))
+    (setq pmail-deleted-vector
+	  (concat save-deleted
+		  (make-string (- pmail-total-messages old-messages) ?\ )))
+    ;; Generate a return value message based on the number of spam
+    ;; messages found.
+    (cond
+     ((zerop rsf-number-of-spam) "")
+     ((= 1 new-message-count) ", and appears to be spam")
+     ((= rsf-number-of-spam new-message-count) ", and all appear to be spam")
+     ((> rsf-number-of-spam 1)
+      (format ", and %d appear to be spam" rsf-number-of-spam))
+     (t ", and 1 appears to be spam"))))
 
 (defun pmail-parse-url (file)
   "Parse the supplied URL. Return (list MAILBOX-NAME REMOTE PASSWORD GOT-PASSWORD)
@@ -2004,36 +1986,47 @@ is non-nil if the user has supplied the password interactively.
 	(setq last-coding-system-used
 	      (coding-system-change-eol-conversion coding 0))))
 
-(defun pmail-add-babyl-headers ()
+(defun pmail-add-header (name value)
+  "Add a message header named NAME with value VALUE.
+The current buffer is narrowed to the headers for some
+message (including the blank line separator)."
+  ;; Position point at the end of the headers but before the blank
+  ;; line separating the headers from the body.
+  (goto-char (point-max))
+  (forward-char -1)
+  (insert name ": " value "\n"))
+  
+(defun pmail-add-mbox-headers ()
   "Validate the RFC2822 format for the new messages.  Point, at
 entry should be looking at the first new message.  An error will
 be thrown if the new messages are not RCC2822 compliant.  Lastly,
 unless one already exists, add an Rmail attribute header to the
-new messages in the region "
-  (let ((count 0)
-	(start (point))
-	limit)
-    ;; Detect an empty inbox file.
-    (unless (= start (point-max))
-      ;; Scan the new messages to establish a count and to insure that
-      ;; an attribute header is present.
-      (while (looking-at "From ")
-	;; Determine if a new attribute header needs to be added to
-	;; the message.
-	(if (search-forward "\n\n" nil t)
-	    (progn
-	      (setq count (1+ count))
-	      (forward-char -1)
-	      (narrow-to-region start (point))
-	      (unless (mail-fetch-field pmail-attribute-header)
-		(insert pmail-attribute-header ": ------U\n"))
-	      (widen))
-	  (error "Invalid mbox format detected in inbox file"))
-	;; Move to the next message.
-	(if (search-forward "\n\nFrom " nil 'move)
-	    (forward-char -5))
-	(setq start (point))))
-    count))
+new messages in the region.  Return the number of new messages."
+  (save-excursion
+    (let ((count 0)
+	  (start (point))
+	  (value "------U")
+	  limit)
+      ;; Detect an empty inbox file.
+      (unless (= start (point-max))
+	;; Scan the new messages to establish a count and to insure that
+	;; an attribute header is present.
+	(while (looking-at "From ")
+	  ;; Determine if a new attribute header needs to be added to
+	  ;; the message.
+	  (if (search-forward "\n\n" nil t)
+	      (progn
+		(setq count (1+ count))
+		(narrow-to-region start (point))
+		(unless (mail-fetch-field pmail-attribute-header)
+		  (pmail-add-header pmail-attribute-header value))
+		(widen))
+	    (pmail-error-bad-format))
+	  ;; Move to the next message.
+	  (if (search-forward "\n\nFrom " nil 'move)
+	      (forward-char -5))
+	  (setq start (point))))
+      count)))
 
 ;; the  pmail-break-forwarded-messages  feature is not implemented
 (defun pmail-convert-to-babyl-format ()
@@ -2407,7 +2400,7 @@ copy all header fields whose names do not match
 	  (narrow-to-region beg (point))
 	  (goto-char (point-min))
 	  (unless (re-search-forward header-start-regexp nil t)
-	    (error "Invalid mbox format; no header follows the From message separator."))
+	    (pmail-error-bad-format))
 	  (forward-char -1)
 	  (cond
 	   ;; Handle the case where all headers should be copied.
@@ -2478,13 +2471,13 @@ current mail message will be used otherwise."
 	      (progn
 		(narrow-to-region beg end)
 		(mail-fetch-field name))
-	    (error "Invalid mbox format encountered.")))))))
+	    (pmail-error-bad-format msg)))))))
   
 (defun pmail-get-attr-names (&optional msg)
   "Return the message attributes in a comma separated string.
 MSG, if set identifies the message number to use.  The current
 mail message will be used otherwise."
-  (let ((value (pmail-get-header pmail-attribute-field-name msg))
+  (let ((value (pmail-get-header pmail-attribute-header msg))
 	result temp)
     (dotimes (index (length value))
       (setq temp (and (not (= ?- (aref value index)))
@@ -2530,7 +2523,7 @@ for the current message."
 
 (defun pmail-get-attr-value (attr state)
   "Return the character value for ATTR.
-ATTR is a (numberic) index, an offset into the mbox attribute
+ATTR is a (numeric) index, an offset into the mbox attribute
 header value. STATE is one of nil, t, or a character value."
   (cond
    ((numberp state) state)
@@ -2588,8 +2581,48 @@ match for the regexp ATTRS."
 	(and limit
 	     (search-forward (concat pmail-attribute-header ": ") limit t)
 	     (looking-at attrs))))))
+
+(defun pmail-message-unseen-p (msgnum)
+  "Test the unseen attribute for message MSGNUM.
+Return non-nil if the unseen attribute is set, nil otherwise."
+  (pmail-message-attr-p msgnum "......U"))
+
 
 ;;;; *** Pmail Message Selection And Support ***
+
+;; (defun pmail-get-collection-buffer ()
+;;   "Return the buffer containing the mbox formatted messages."
+;;   (if (eq major-mode 'pmail-mode)
+;;       (if pmail-buffers-swapped-p
+;; 	  pmail-view-buffer
+;; 	pmail-buffer)
+;;     (error "The current buffer must be in Pmail mode.")))
+
+(defun pmail-use-collection-buffer ()
+  "Insure that the Pmail buffer contains the message collection.
+Return the current message number if the Pmail buffer is in a
+swapped state, i.e. it currently contains a single decoded
+message rather than an entire message collection, nil otherwise."
+  (let (result)
+    (when pmail-buffers-swapped-p
+      (buffer-swap-text pmail-view-buffer)
+      (setq pmail-buffers-swapped-p nil
+	    result pmail-current-message))
+    result))
+
+(defun pmail-use-viewer-buffer (&optional msgnum)
+  "Insure that the Pmail buffer contains the current message.
+If message MSGNUM is non-nil make it the current message and
+display it.  Return nil."
+  (let (result)
+    (cond
+     ((not pmail-buffers-swapped-p)
+      (let ((message (or msgnum pmail-current-message)))
+	(pmail-show-message message)))
+     ((and msgnum (/= msgnum pmail-current-message))
+      (pmail-show-message msgnum))
+     (t))
+    result))
 
 (defun pmail-msgend (n)
   (marker-position (aref pmail-message-vector (1+ n))))
@@ -2722,7 +2755,7 @@ the message.  Point is at the beginning of the message."
   ;; addition to inlining.
   (save-excursion
     (setq deleted-head
-	  (cons (if (and (search-forward "X-BABYL-V6-ATTRIBUTES: " message-end t)
+	  (cons (if (and (search-forward (concat pmail-attribute-header ": ") message-end t)
 			 (looking-at "?D"))
 		    ?D
 		  ?\ ) deleted-head))))
@@ -2820,21 +2853,21 @@ If summary buffer is currently displayed, update current message there also."
 	  (with-current-buffer pmail-view-buffer
 	    (erase-buffer)
 	    (setq blurb "No mail.")))
-      (setq blurb (pmail-show-message n)))
-    (when mail-mailing-lists
-      (pmail-unknown-mail-followup-to))
-    (if transient-mark-mode (deactivate-mark))
-    ;; If there is a summary buffer, try to move to this message
-    ;; in that buffer.  But don't complain if this message
-    ;; is not mentioned in the summary.
-    ;; Don't do this at all if we were called on behalf
-    ;; of cursor motion in the summary buffer.
-    (and (pmail-summary-exists) (not no-summary)
-	 (let ((curr-msg pmail-current-message))
-	   (pmail-select-summary
-	    (pmail-summary-goto-msg curr-msg t t))))
-    (with-current-buffer pmail-buffer
-      (pmail-auto-file))
+      (setq blurb (pmail-show-message n))
+      (when mail-mailing-lists
+	(pmail-unknown-mail-followup-to))
+      (if transient-mark-mode (deactivate-mark))
+      ;; If there is a summary buffer, try to move to this message
+      ;; in that buffer.  But don't complain if this message
+      ;; is not mentioned in the summary.
+      ;; Don't do this at all if we were called on behalf
+      ;; of cursor motion in the summary buffer.
+      (and (pmail-summary-exists) (not no-summary)
+	   (let ((curr-msg pmail-current-message))
+	     (pmail-select-summary
+	      (pmail-summary-goto-msg curr-msg t t))))
+      (with-current-buffer pmail-buffer
+	(pmail-auto-file)))
     (if blurb
 	(message blurb))))
 
