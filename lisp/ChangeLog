@@ -1,3 +1,9 @@
+2008-10-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-after-dir-status): Parse the output for non
+	existent files.
+	(vc-bzr-dir-status-files): New function.
+
 2008-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (make-temp-file): Handle empty `prefix'.  (Bug#1081)

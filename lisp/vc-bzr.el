@@ -611,6 +611,9 @@ stream.  Standard error output is discarded."
 		       ("?  " . unregistered)
 		       ;; No such state, but we need to distinguish this case.
 		       ("R  " . renamed)
+		       ;; For a non existent file FOO, the output is:
+		       ;; bzr: ERROR: Path(s) do not exist: FOO
+		       ("bzr" . not-found)
                        ;; Ignore "P " and "P." for pending patches.
                        ))
 	(translated nil)
@@ -640,6 +643,8 @@ stream.  Standard error output is discarded."
 		(old-name (match-string 1)))
 	    (push (list new-name 'edited
 		      (vc-bzr-create-extra-fileinfo old-name)) result)))
+	 ;; do nothing for non existent files
+	 ((eq translated 'not-found))
 	 (t
 	  (push (list (buffer-substring-no-properties
 		       (+ (point) 4)
@@ -654,6 +659,11 @@ stream.  Standard error output is discarded."
   (vc-exec-after
    `(vc-bzr-after-dir-status (quote ,update-function))))
 
+(defun vc-bzr-dir-status-files (dir files default-state update-function)
+  "Return a list of conses (file . state) for DIR."
+  (apply 'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
+  (vc-exec-after
+   `(vc-bzr-after-dir-status (quote ,update-function))))
 ;;; Revision completion
 
 (defun vc-bzr-revision-completion-table (files)
