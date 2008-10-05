@@ -1,3 +1,8 @@
+2008-10-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/mule-cmds.el (universal-coding-system-argument):
+	Handle digit-argument too.
+
 2008-10-05  Mario Lang  <mlang@delysid.org>
 
 	* xml.el (xml-parse-string): Use skip-chars-forward.
