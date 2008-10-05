@@ -287,7 +287,7 @@ wrong, use this command again to toggle back to the right mode."
 	 (cmd (key-binding keyseq))
 	 prefix)
 
-    (when (eq cmd 'universal-argument)
+    (when (memq cmd '(universal-argument digit-argument))
       (call-interactively cmd)
 
       ;; Process keys bound in `universal-argument-map'.
