@@ -1,3 +1,7 @@
+2008-10-05  Mario Lang  <mlang@delysid.org>
+
+	* xml.el (xml-parse-string): Use skip-chars-forward.
+
 2008-10-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-after-dir-status): Parse the output for non
