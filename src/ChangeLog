@@ -1,3 +1,8 @@
+2008-10-06  Andreas Schwab  <schwab@suse.de>
+
+	* sysdep.c (sys_signal): Always set SA_RESTART when
+	noninteractively.
+
 2008-10-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.c (Vbefore_init_time, Vafter_init_time): Moved from
