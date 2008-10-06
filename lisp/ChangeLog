@@ -1,3 +1,9 @@
+2008-10-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (before-init-time, after-init-time): Move into
+	emacs.c.
+	(command-line): Set after-init-time to nil before initialization.
+
 2008-10-06  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (math-standard-units): Update the values
