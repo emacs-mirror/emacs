@@ -131,6 +131,9 @@ Lisp_Object Vinvocation_directory;
    nil means get them only from PATH_LOADSEARCH.  */
 Lisp_Object Vinstallation_directory;
 
+/* The values of `current-time' before and after Emacs initialization.  */
+Lisp_Object Vbefore_init_time, Vafter_init_time;
+
 /* Hook run by `kill-emacs' before it does really anything.  */
 Lisp_Object Vkill_emacs_hook;
 
@@ -2497,6 +2500,15 @@ was found.  */);
   DEFVAR_LISP ("previous-system-time-locale", &Vprevious_system_time_locale,
 	       doc: /* Most recently used system locale for time.  */);
   Vprevious_system_time_locale = Qnil;
+
+  DEFVAR_LISP ("before-init-time", &Vbefore_init_time,
+	       doc: /* Value of `current-time' before Emacs begins initialization.  */);
+  Vbefore_init_time = Qnil;
+
+  DEFVAR_LISP ("after-init-time", &Vafter_init_time,
+	       doc: /* Value of `current-time' after loading the init files.
+This is nil during initialization.  */);
+  Vafter_init_time = Qnil;
 }
 
 /* arch-tag: 7bfd356a-c720-4612-8ab6-aa4222931c2e
