@@ -1,3 +1,13 @@
+2008-10-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.c (Vbefore_init_time, Vafter_init_time): Moved from
+	startup.el.
+
+	* lisp.h: (Vbefore_init_time, Vafter_init_time): Declare.
+
+	* gtkutil.c (x_wm_set_size_hint): Return immediately if called
+	during initialization.
+
 2008-10-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_internal): If frame switched, redisplay the
