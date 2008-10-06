@@ -830,13 +830,14 @@ state."
 	(file nil)
 	(result nil)
 	(missing nil)
+	(ignore-next nil)
 	(subdir default-directory))
     (goto-char (point-min))
     (while
 	;; Look for either a file entry, an unregistered file, or a
 	;; directory change.
 	(re-search-forward
-	 "\\(^=+\n\\([^=c?\n].*\n\\|\n\\)+\\)\\|\\(\\(^?? .*\n\\)+\\)\\|\\(^cvs status: Examining .*\n\\)"
+	 "\\(^=+\n\\([^=c?\n].*\n\\|\n\\)+\\)\\|\\(\\(^?? .*\n\\)+\\)\\|\\(^cvs status: \\(Examining\\|nothing\\) .*\n\\)"
 	 nil t)
       ;; FIXME: get rid of narrowing here.
       (narrow-to-region (match-beginning 0) (match-end 0))
@@ -850,6 +851,21 @@ state."
 		    (expand-file-name (match-string 1) subdir)))
 	(push (list file 'unregistered) result)
 	(forward-line 1))
+      (when (looking-at "cvs status: nothing known about")
+	;; We asked about a non existent file.  The output looks like this:
+
+	;; cvs status: nothing known about `lisp/v.diff'
+	;; ===================================================================
+	;; File: no file v.diff            Status: Unknown
+	;;
+	;;    Working revision:    No entry for v.diff
+	;;    Repository revision: No revision control file
+	;;
+
+	;; Due to narrowing in this iteration we only see the "cvs
+	;; status:" line, so just set a flag so that we can ignore the
+	;; file in the next iteration.
+	(setq ignore-next t))
       ;; A file entry.
       (when (re-search-forward "^File: \\(no file \\)?\\(.*[^ \t]\\)[ \t]+Status: \\(.*\\)" nil t)
 	(setq missing (match-string 1))
@@ -868,8 +884,10 @@ state."
 	       ((string-match "File had conflicts " status-str) 'conflict)
 	       ((string-match "Unknown" status-str) 'unregistered)
 	       (t 'edited)))
-	(unless (eq status 'up-to-date)
-	  (push (list file status) result)))
+	(if ignore-next
+	    (setq ignore-next nil)
+	  (unless (eq status 'up-to-date)
+	    (push (list file status) result))))
       (goto-char (point-max))
       (widen))
     (funcall update-function result))

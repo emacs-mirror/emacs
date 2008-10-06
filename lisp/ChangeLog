@@ -1,3 +1,8 @@
+2008-10-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-cvs.el (vc-cvs-after-dir-status): Parse the output for non
+	existent files.
+
 2008-10-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* international/mule-cmds.el (universal-coding-system-argument):
