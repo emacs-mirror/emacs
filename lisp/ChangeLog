@@ -1,3 +1,7 @@
+2008-10-06  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/syntax.el (syntax-ppss): Doc fix.
+
 2008-10-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* mail/footnote.el: Remove * in defcustom docstrings and tell

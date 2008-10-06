@@ -122,7 +122,7 @@ point (where the PPSS is equivalent to nil).")
 	  syntax-ppss-stats))
 
 (defun syntax-ppss (&optional pos)
-  "Parse-Partial-Sexp State at POS.
+  "Parse-Partial-Sexp State at POS, defaulting to point.
 The returned value is the same as `parse-partial-sexp' except that
 the 2nd and 6th values of the returned state cannot be relied upon.
 Point is at POS when this function returns."
