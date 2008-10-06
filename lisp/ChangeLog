@@ -1,3 +1,7 @@
+2008-10-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bookmark.el (bookmark-unload-function): New function.
+
 2008-10-06  Andreas Schwab  <schwab@suse.de>
 
 	* emacs-lisp/syntax.el (syntax-ppss): Doc fix.
@@ -7,9 +11,9 @@
 	* mail/footnote.el: Remove * in defcustom docstrings and tell
 	for most options that customizing them doesn't affect buffers
 	already displaying footnotes.
-	(Footnote-refresh-footnotes, Footnote-renumber-footnotes): Fix
-	handling of text properties and identical start/end tags.  Do
-	not use format when renumbering.
+	(Footnote-refresh-footnotes, Footnote-renumber-footnotes):
+	Fix handling of text properties and identical start/end tags.
+	Do not use format when renumbering.
 	(Footnote-set-style): Make it work.
 	(Footnote-insert-numbered-footnote): Simplify.
 	(Footnote-narrow-to-footnotes, Footnote-insert-footnote)
@@ -214,9 +218,9 @@
 
 	* calc/calc-units.el (math-standard-units): Add entries used to
 	display the the values in the units buffer.
-	(math-build-units-table):  Add entries to the units table to be used
+	(math-build-units-table): Add entries to the units table to be used
 	to display the values in the units buffer.
-	(math-build-units-table-buffer):  Use the display entry of the units
+	(math-build-units-table-buffer): Use the display entry of the units
 	table when non-nil.
 	(calc-define-unit): Add option to enter display value of unit.
 
