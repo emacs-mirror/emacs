@@ -934,97 +934,95 @@ x_wm_set_size_hint (f, flags, user_position)
      long flags;
      int user_position;
 {
-  if (FRAME_GTK_OUTER_WIDGET (f))
-  {
-    /* Must use GTK routines here, otherwise GTK resets the size hints
-       to its own defaults.  */
-    GdkGeometry size_hints;
-    gint hint_flags = 0;
-    int base_width, base_height;
-    int min_rows = 0, min_cols = 0;
-    int win_gravity = f->win_gravity;
+  /* Don't set size hints during initialization; that apparently leads
+     to a race condition.  See the thread at
+     http://lists.gnu.org/archive/html/emacs-devel/2008-10/msg00033.html  */
+  if (NILP (Vafter_init_time) || !FRAME_GTK_OUTER_WIDGET (f))
+    return;
 
-    if (flags)
-      {
-        memset (&size_hints, 0, sizeof (size_hints));
-        f->output_data.x->size_hints = size_hints;
-        f->output_data.x->hint_flags = hint_flags;
-      }
-     else
-       flags = f->size_hint_flags;
+  /* Must use GTK routines here, otherwise GTK resets the size hints
+     to its own defaults.  */
+  GdkGeometry size_hints;
+  gint hint_flags = 0;
+  int base_width, base_height;
+  int min_rows = 0, min_cols = 0;
+  int win_gravity = f->win_gravity;
 
-    size_hints = f->output_data.x->size_hints;
-    hint_flags = f->output_data.x->hint_flags;
+  if (flags)
+    {
+      memset (&size_hints, 0, sizeof (size_hints));
+      f->output_data.x->size_hints = size_hints;
+      f->output_data.x->hint_flags = hint_flags;
+    }
+  else
+    flags = f->size_hint_flags;
 
-    hint_flags |= GDK_HINT_RESIZE_INC | GDK_HINT_MIN_SIZE;
-    size_hints.width_inc = FRAME_COLUMN_WIDTH (f);
-    size_hints.height_inc = FRAME_LINE_HEIGHT (f);
+  size_hints = f->output_data.x->size_hints;
+  hint_flags = f->output_data.x->hint_flags;
 
-    hint_flags |= GDK_HINT_BASE_SIZE;
-    base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
-    base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0)
-      + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
+  hint_flags |= GDK_HINT_RESIZE_INC | GDK_HINT_MIN_SIZE;
+  size_hints.width_inc = FRAME_COLUMN_WIDTH (f);
+  size_hints.height_inc = FRAME_LINE_HEIGHT (f);
 
-    check_frame_size (f, &min_rows, &min_cols);
+  hint_flags |= GDK_HINT_BASE_SIZE;
+  base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
+  base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0)
+    + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
 
-    size_hints.base_width = base_width;
-    size_hints.base_height = base_height;
-    size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
-    size_hints.min_height = base_height + min_rows * size_hints.height_inc;
+  check_frame_size (f, &min_rows, &min_cols);
 
+  size_hints.base_width = base_width;
+  size_hints.base_height = base_height;
+  size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
+  size_hints.min_height = base_height + min_rows * size_hints.height_inc;
 
-    /* These currently have a one to one mapping with the X values, but I
-       don't think we should rely on that.  */
-    hint_flags |= GDK_HINT_WIN_GRAVITY;
-    size_hints.win_gravity = 0;
-    if (win_gravity == NorthWestGravity)
-      size_hints.win_gravity = GDK_GRAVITY_NORTH_WEST;
-    else if (win_gravity == NorthGravity)
-      size_hints.win_gravity = GDK_GRAVITY_NORTH;
-    else if (win_gravity == NorthEastGravity)
-      size_hints.win_gravity = GDK_GRAVITY_NORTH_EAST;
-    else if (win_gravity == WestGravity)
-      size_hints.win_gravity = GDK_GRAVITY_WEST;
-    else if (win_gravity == CenterGravity)
-      size_hints.win_gravity = GDK_GRAVITY_CENTER;
-    else if (win_gravity == EastGravity)
-      size_hints.win_gravity = GDK_GRAVITY_EAST;
-    else if (win_gravity == SouthWestGravity)
-      size_hints.win_gravity = GDK_GRAVITY_SOUTH_WEST;
-    else if (win_gravity == SouthGravity)
-      size_hints.win_gravity = GDK_GRAVITY_SOUTH;
-    else if (win_gravity == SouthEastGravity)
-      size_hints.win_gravity = GDK_GRAVITY_SOUTH_EAST;
-    else if (win_gravity == StaticGravity)
-      size_hints.win_gravity = GDK_GRAVITY_STATIC;
+  /* These currently have a one to one mapping with the X values, but I
+     don't think we should rely on that.  */
+  hint_flags |= GDK_HINT_WIN_GRAVITY;
+  size_hints.win_gravity = 0;
+  if (win_gravity == NorthWestGravity)
+    size_hints.win_gravity = GDK_GRAVITY_NORTH_WEST;
+  else if (win_gravity == NorthGravity)
+    size_hints.win_gravity = GDK_GRAVITY_NORTH;
+  else if (win_gravity == NorthEastGravity)
+    size_hints.win_gravity = GDK_GRAVITY_NORTH_EAST;
+  else if (win_gravity == WestGravity)
+    size_hints.win_gravity = GDK_GRAVITY_WEST;
+  else if (win_gravity == CenterGravity)
+    size_hints.win_gravity = GDK_GRAVITY_CENTER;
+  else if (win_gravity == EastGravity)
+    size_hints.win_gravity = GDK_GRAVITY_EAST;
+  else if (win_gravity == SouthWestGravity)
+    size_hints.win_gravity = GDK_GRAVITY_SOUTH_WEST;
+  else if (win_gravity == SouthGravity)
+    size_hints.win_gravity = GDK_GRAVITY_SOUTH;
+  else if (win_gravity == SouthEastGravity)
+    size_hints.win_gravity = GDK_GRAVITY_SOUTH_EAST;
+  else if (win_gravity == StaticGravity)
+    size_hints.win_gravity = GDK_GRAVITY_STATIC;
 
-    if (flags & PPosition) hint_flags |= GDK_HINT_POS;
-    if (flags & USPosition) hint_flags |= GDK_HINT_USER_POS;
-    if (flags & USSize) hint_flags |= GDK_HINT_USER_SIZE;
+  if (flags & PPosition) hint_flags |= GDK_HINT_POS;
+  if (flags & USPosition) hint_flags |= GDK_HINT_USER_POS;
+  if (flags & USSize) hint_flags |= GDK_HINT_USER_SIZE;
 
-    if (user_position)
-      {
-        hint_flags &= ~GDK_HINT_POS;
-        hint_flags |= GDK_HINT_USER_POS;
-      }
+  if (user_position)
+    {
+      hint_flags &= ~GDK_HINT_POS;
+      hint_flags |= GDK_HINT_USER_POS;
+    }
 
-    if (hint_flags != f->output_data.x->hint_flags
-        || memcmp (&size_hints,
-                   &f->output_data.x->size_hints,
-                   sizeof (size_hints)) != 0)
-      {
-        BLOCK_INPUT;
-
-        gtk_window_set_geometry_hints (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                                       NULL,
-                                       &size_hints,
-                                       hint_flags);
-
-        f->output_data.x->size_hints = size_hints;
-        f->output_data.x->hint_flags = hint_flags;
-        UNBLOCK_INPUT;
-      }
-  }
+  if (hint_flags != f->output_data.x->hint_flags
+      || memcmp (&size_hints,
+		 &f->output_data.x->size_hints,
+		 sizeof (size_hints)) != 0)
+    {
+      BLOCK_INPUT;
+      gtk_window_set_geometry_hints (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+				     NULL, &size_hints, hint_flags);
+      f->output_data.x->size_hints = size_hints;
+      f->output_data.x->hint_flags = hint_flags;
+      UNBLOCK_INPUT;
+    }
 }
 
 /* Change background color of a frame.
