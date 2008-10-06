@@ -1,3 +1,22 @@
+2008-10-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* mail/footnote.el: Remove * in defcustom docstrings and tell
+	for most options that customizing them doesn't affect buffers
+	already displaying footnotes.
+	(Footnote-refresh-footnotes, Footnote-renumber-footnotes): Fix
+	handling of text properties and identical start/end tags.  Do
+	not use format when renumbering.
+	(Footnote-set-style): Make it work.
+	(Footnote-insert-numbered-footnote): Simplify.
+	(Footnote-narrow-to-footnotes, Footnote-insert-footnote)
+	(Footnote-goto-footnote): Fix handling of empty section tag.
+	(Footnote-delete-footnote): Fix handling of identical start/end
+	tags, empty section tag, and spaced footnotes.  Do not use
+	kill-region.
+	(footnote-mode): Make most options buffer-local to avoid that
+	customizing messes up handling of footnotes in buffers that
+	already display them.
+
 2008-10-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* faces.el (x-create-frame-with-faces): Undo previous change.
