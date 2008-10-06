@@ -1,3 +1,8 @@
+2008-10-06  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-standard-units): Update the values
+	of the units.
+
 2008-10-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bookmark.el (bookmark-unload-function): New function.
