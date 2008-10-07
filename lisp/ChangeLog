@@ -1,3 +1,9 @@
+2008-10-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Use display-warning to warn about an
+	init file error.
+	(command-line-1): Remove init file error delay.
+
 2008-10-07  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
 
 	* rx-new.el (rx-constituents): Change `anything' to call
