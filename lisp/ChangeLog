@@ -1,3 +1,8 @@
+2008-10-07  T. V. Raman  <raman@users.sourceforge.net>
+
+	* json.el (json-advance): Use forward-char.
+	(json-skip-whitespace): Use skip-syntax-forward.
+
 2008-10-07  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el: Amend several doc strings and comments.
