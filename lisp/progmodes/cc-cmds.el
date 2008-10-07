@@ -3096,46 +3096,41 @@ non-nil."
 		    (c-parsing-error nil)
 		    ;; shut up any echo msgs on indiv lines
 		    (c-echo-syntactic-information-p nil)
-		    (in-macro (and c-auto-align-backslashes
-				   (c-save-buffer-state ()
-				     (save-excursion (c-beginning-of-macro)))
-				   start))
+		    (macro-start
+		     (and (c-save-buffer-state ()
+			    (save-excursion (c-beginning-of-macro)))
+			  start))
 		    (c-fix-backslashes nil)
 		    syntax)
 		(unwind-protect
 		    (progn
 		      (c-progress-init start end 'c-indent-region)
-		      (while (and (bolp)
+
+		      (while (and (bolp) ;; One line each time round the loop.
 				  (not (eobp))
 				  (< (point) endmark))
 			;; update progress
 			(c-progress-update)
 			;; skip empty lines
-			(skip-chars-forward " \t\n")
-			(beginning-of-line)
-			;; Get syntax and indent.
-			(c-save-buffer-state nil
-			  (setq syntax (c-guess-basic-syntax)))
-			(if (and c-auto-align-backslashes
-				 (assq 'cpp-macro syntax))
-			    ;; Record macro start.
-			    (setq in-macro (point)))
-			(if in-macro
-			    (if (looking-at "\\s *\\\\$")
-				(forward-line)
-			      (c-indent-line syntax t t)
-			      (if (progn (end-of-line)
-					 (not (eq (char-before) ?\\)))
-				  (progn
-				    ;; Fixup macro backslashes.
-				    (forward-line)
-				    (c-backslash-region in-macro (point) nil)
-				    (setq in-macro nil))
-				(forward-line)))
-			  (c-indent-line syntax t t)
-			  (forward-line)))
-		      (if in-macro
-			  (c-backslash-region in-macro (c-point 'bopl) nil t)))
+			(unless (or (looking-at "\\s *$")
+				    (and macro-start (looking-at "\\s *\\\\$")))
+			  ;; Get syntax and indent.
+			  (c-save-buffer-state nil
+			    (setq syntax (c-guess-basic-syntax)))
+			  (c-indent-line syntax t t))
+
+			(if (assq 'cpp-macro syntax) ; New macro?
+			    (setq macro-start (point))
+			  (when (and macro-start ; End of old macro?
+				     c-auto-align-backslashes
+				     (not (eq (char-before (c-point 'eol)) ?\\)))
+			    ;; Fixup macro backslashes.
+			    (c-backslash-region macro-start (c-point 'bonl) nil)
+			    (setq macro-start nil)))
+			(forward-line))
+
+		      (if (and macro-start c-auto-align-backslashes)
+			  (c-backslash-region macro-start (c-point 'bopl) nil t)))
 		  (set-marker endmark nil)
 		  (c-progress-fini 'c-indent-region))
 		(c-echo-parsing-error quiet))
