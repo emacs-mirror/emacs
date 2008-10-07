@@ -4127,7 +4127,8 @@ directory, so that Emacs will know its current contents."
 (defun ange-ftp-file-remote-p (file &optional identification connected)
   (let* ((parsed (ange-ftp-ftp-name file))
 	 (host (nth 0 parsed))
-	 (user (nth 1 parsed)))
+	 (user (nth 1 parsed))
+	 (localname (nth 2 parsed)))
     (and (or (not connected)
 	     (let ((proc (get-process (ange-ftp-ftp-process-buffer host user))))
 	       (and proc (processp proc)
@@ -4136,6 +4137,7 @@ directory, so that Emacs will know its current contents."
 	  ((eq identification 'method) (and parsed "ftp"))
 	  ((eq identification 'user) user)
 	  ((eq identification 'host) host)
+	  ((eq identification 'localname) localname)
 	  (t (ange-ftp-replace-name-component file ""))))))
 
 (defun ange-ftp-load (file &optional noerror nomessage nosuffix)

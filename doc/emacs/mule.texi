@@ -711,16 +711,7 @@ MS-DOS software.  The names of these coding systems are
 codepage.  You can use these encodings just like any other coding
 system; for example, to visit a file encoded in codepage 850, type
 @kbd{C-x @key{RET} c cp850 @key{RET} C-x C-f @var{filename}
-@key{RET}}@footnote{
-In the MS-DOS port of Emacs, you need to create a @code{cp@var{nnn}}
-coding system with @kbd{M-x codepage-setup}, before you can use it.
-@iftex
-@xref{MS-DOS and MULE,,,emacs-extra,Specialized Emacs Features}.
-@end iftex
-@ifnottex
-@xref{MS-DOS and MULE}.
-@end ifnottex
-}.
+@key{RET}}.
 
   In addition to converting various representations of non-@acronym{ASCII}
 characters, a coding system can perform end-of-line conversion.  Emacs

@@ -559,7 +559,7 @@ truncated to fit it, as in Emacs 20 and before.
   The variable @code{max-mini-window-height}, which specifies the
 maximum height for resizing minibuffer windows, also applies to the
 echo area (which is really a special use of the minibuffer window.
-@xref{Minibuffer Misc}.
+@xref{Minibuffer Misc}.).
 
 @node Warnings
 @section Reporting Warnings
@@ -1802,6 +1802,11 @@ face name a special meaning in one frame if you wish.
 kind of customization item (@pxref{Customization}) which the user can
 customize using the Customization buffer (@pxref{Easy Customization,,,
 emacs, The GNU Emacs Manual}).
+
+  People are sometimes tempted to create variables whose values specify
+which faces to use (for example, Font-Lock does this).  In the vast
+majority of cases, this is not necessary, and simply using faces
+directly is preferable.
 
 @defmac defface face spec doc [keyword value]@dots{}
 This declares @var{face} as a customizable face that defaults

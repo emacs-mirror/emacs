@@ -3130,6 +3130,7 @@ extern void syms_of_frame P_ ((void));
 /* defined in emacs.c */
 extern Lisp_Object decode_env_path P_ ((char *, char *));
 extern Lisp_Object Vinvocation_name, Vinvocation_directory;
+extern Lisp_Object Vbefore_init_time, Vafter_init_time;
 extern Lisp_Object Vinstallation_directory;
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 EXFUN (Fkill_emacs, 1);
@@ -3146,6 +3147,8 @@ void synchronize_system_time_locale P_ ((void));
 void shut_down_emacs P_ ((int, int, Lisp_Object));
 /* Nonzero means don't do interactive redisplay and don't change tty modes */
 extern int noninteractive;
+/* Nonzero means Emacs was started as a daemon.  */
+extern int is_daemon;
 /* Nonzero means don't do use window-system-specific display code */
 extern int inhibit_window_system;
 /* Nonzero means that a filter or a sentinel is running.  */

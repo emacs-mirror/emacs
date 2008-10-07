@@ -624,27 +624,27 @@ versions of xterm."
     (clear-face-cache)))
 
 (defun xterm-turn-on-modify-other-keys ()
-  "Turn on the modifyOtherKeys feature of xterm."
+  "Turn the modifyOtherKeys feature of xterm back on."
   (let ((terminal (frame-terminal (selected-frame))))
     (when (and (terminal-live-p terminal)
 	       (memq terminal xterm-modify-other-keys-terminal-list))
-      (send-string-to-terminal "\e[>4;1m"))))
+      (send-string-to-terminal "\e[>4;1m" terminal))))
 
 (defun xterm-turn-off-modify-other-keys (&optional frame)
-  "Turn off the modifyOtherKeys feature of xterm."
+  "Temporarily turn off the modifyOtherKeys feature of xterm."
   (let ((terminal (when frame (frame-terminal frame))))
-    (when (and (frame-live-p terminal)
+    (when (and (terminal-live-p terminal)
                (memq terminal xterm-modify-other-keys-terminal-list))
-      (send-string-to-terminal "\e[>4m"))))
+      (send-string-to-terminal "\e[>4m" terminal))))
 
 (defun xterm-remove-modify-other-keys (&optional terminal)
-  "Turn off the modifyOtherKeys feature of xterm and remove frame from consideration."
+  "Turn off the modifyOtherKeys feature of xterm for good."
   (setq terminal (and terminal (frame-terminal (selected-frame))))
   (when (and (terminal-live-p terminal)
 	     (memq terminal xterm-modify-other-keys-terminal-list))
     (setq xterm-modify-other-keys-terminal-list
 	  (delq terminal xterm-modify-other-keys-terminal-list))
-    (send-string-to-terminal "\e[>4m")))
+    (send-string-to-terminal "\e[>4m" terminal)))
 
 ;; arch-tag: 12e7ebdd-1e6c-4b25-b0f9-35ace25e855a
 ;;; xterm.el ends here

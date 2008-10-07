@@ -6,15 +6,17 @@
 @settitle Programming in Emacs Lisp
 @syncodeindex vr cp
 @syncodeindex fn cp
-@setchapternewpage odd
 @finalout
 
 @c ---------
 @c <<<< For hard copy printing, this file is now
 @c      set for smallbook, which works for all sizes
 @c      of paper, and with Postscript figures >>>>
+@set smallbook
+@ifset smallbook
 @smallbook
 @clear  largebook
+@end ifset
 @set print-postscript-figures
 @c set largebook
 @c clear print-postscript-figures
@@ -22,8 +24,20 @@
 
 @comment %**end of header
 
+@c per rms and peterb, use 10pt fonts for the main text, mostly to
+@c save on paper cost.  
+@c Do this inside @tex for now, so current makeinfo does not complain.
+@tex
+@ifset smallbook
+@fonttextsize 10
+\global\let\urlcolor=\Black % don't print links in grayscale
+\global\let\linkcolor=\Black
+@end ifset
+\global\hbadness=6666 % don't worry about not-too-underfull boxes
+@end tex
+
 @set edition-number 3.08
-@set update-date 12 September 2007
+@set update-date 4 October 2008
 @ignore
  ## Summary of shell commands to create various output formats:
 
@@ -317,9 +331,9 @@ every node in every chapter.
 @c right handed page after the Table of Contents; hence the following
 @c setting must be for an odd negative number.
 
-@iftex
-@global@pageno = -11
-@end iftex
+@c iftex
+@c global@pageno = -11
+@c end iftex
 
 @menu
 * Preface::                     What to look for.
@@ -2715,7 +2729,7 @@ When I do this in Info, the value returned by evaluating
 @code{(buffer-name)} is @file{"*info*"}, and the value returned by
 evaluating @code{(buffer-file-name)} is @file{nil}.
 
-On the other hand, while I am writing this Introduction, the value
+On the other hand, while I am writing this document, the value
 returned by evaluating @code{(buffer-name)} is
 @file{"introduction.texinfo"}, and the value returned by evaluating
 @code{(buffer-file-name)} is
@@ -6461,7 +6475,8 @@ and avoids clobbering the mark."
                           ;; Avoid overflow for large buffer sizes!
                           (* (prefix-numeric-value arg)
                              (/ size 10))
-                        (/ (+ 10 (* size (prefix-numeric-value arg))) 10)))
+                        (/ (+ 10 (* size (prefix-numeric-value arg)))
+                           10)))
                  (point-min))))
   (if arg (forward-line 1)))
 @end group
@@ -7771,7 +7786,8 @@ Goes backward if ARG is negative; error if CHAR not found."
   (if (char-table-p translation-table-for-input)
       (setq char (or (aref translation-table-for-input char) char)))
   (kill-region (point) (progn
-                         (search-forward (char-to-string char) nil nil arg)
+                         (search-forward (char-to-string char)
+                                         nil nil arg)
                          (point))))
 @end group
 @end smallexample
@@ -11551,8 +11567,8 @@ tests the value of @code{list}.  Since the value of @code{list} is
 not evaluated.  The function as a whole then returns @code{nil}.
 
 @need 1200
-When you evaluate @code{(print-elements-recursively animals)} in the
-@file{*scratch*} buffer, you see this result:
+When you evaluate the expression @code{(print-elements-recursively
+animals)} in the @file{*scratch*} buffer, you see this result:
 
 @smallexample
 @group
@@ -11694,7 +11710,7 @@ The innermost expression of the else-part is evaluated, which decrements
 
 The number 2 is passed to the @code{triangle-recursively} function.
 
-We know what happens when Emacs evaluates @code{triangle-recursively} with
+We already know what happens when Emacs evaluates @code{triangle-recursively} with
 an argument of 2.  After going through the sequence of actions described
 earlier, it returns a value of 3.  So that is what will happen here.
 
@@ -17844,9 +17860,9 @@ which is a standard part of the distribution.)
 @noindent
 This expression autoloads the @code{html-helper-mode} function.  It
 takes it from the @file{html-helper-mode.el} file (or from the byte
-compiled file @file{html-helper-mode.elc}, if it exists.)  The file
-must be located in a directory specified by @code{load-path}.  The
-documentation says that this is a mode to help you edit documents
+compiled version @file{html-helper-mode.elc}, if that exists.)  The
+file must be located in a directory specified by @code{load-path}.
+The documentation says that this is a mode to help you edit documents
 written in the HyperText Markup Language.  You can call this mode
 interactively by typing @kbd{M-x html-helper-mode}.  (You need to
 duplicate the function's regular documentation in the autoload
@@ -22659,22 +22675,21 @@ MENU ENTRY: NODE NAME.
 @c Place biographical information on right-hand (verso) page
 
 @tex
+\par\vfill\supereject
 \ifodd\pageno
-    \par\vfill\supereject
     \global\evenheadline={\hfil} \global\evenfootline={\hfil}
     \global\oddheadline={\hfil} \global\oddfootline={\hfil}
-    \page\hbox{}\page
+    %\page\hbox{}\page
 \else
-    \par\vfill\supereject
-    \par\vfill\supereject
+%    \par\vfill\supereject
     \global\evenheadline={\hfil} \global\evenfootline={\hfil}
     \global\oddheadline={\hfil} \global\oddfootline={\hfil}
-    \page\hbox{}\page
-    \page\hbox{}\page
+    %\page\hbox{}%\page
+    %\page\hbox{}%\page
 \fi
 @end tex
 
-@page
+@c page
 @w{ }
 
 @c ================ Biographical information ================
@@ -22701,19 +22716,19 @@ abiding interest in social and economic history and flies his own
 airplane.
 @end quotation
 
-@page
-@w{ }
+@c @page
+@c @w{ }
+@c
+@c @c Prevent page number on blank verso, so eject it first.
+@c @tex
+@c \par\vfill\supereject
+@c @end tex
 
-@c Prevent page number on blank verso, so eject it first.
-@tex
-\par\vfill\supereject
-@end tex
-
-@iftex
-@headings off
-@evenheading @thispage @| @| @thistitle
-@oddheading            @| @| @thispage
-@end iftex
+@c @iftex
+@c @headings off
+@c @evenheading @thispage @| @| @thistitle
+@c @oddheading            @| @| @thispage
+@c @end iftex
 
 @bye
 

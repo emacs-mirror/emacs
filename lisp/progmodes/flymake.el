@@ -854,11 +854,9 @@ Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
                                       (flymake-ler-file line-err-info)))
 	(setq line-err-info (flymake-ler-set-full-file line-err-info real-file-name))
 
-	(if (flymake-same-files real-file-name source-file-name)
-	    (setq line-err-info (flymake-ler-set-file line-err-info nil))
-	  (setq line-err-info (flymake-ler-set-file line-err-info (file-name-nondirectory real-file-name))))
-
-	(setq err-info-list (flymake-add-err-info err-info-list line-err-info)))
+	(when (flymake-same-files real-file-name source-file-name)
+	  (setq line-err-info (flymake-ler-set-file line-err-info nil))
+	  (setq err-info-list (flymake-add-err-info err-info-list line-err-info))))
       (flymake-log 3 "parsed '%s', %s line-err-info" (nth idx lines) (if line-err-info "got" "no"))
       (setq idx (1+ idx)))
     err-info-list))

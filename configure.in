@@ -2627,7 +2627,7 @@ AH_BOTTOM([
 /* See also .m.o rule in Makefile.in */
 /* FIXME: are all these flags really needed?  Document here why.  */
 #  define C_SWITCH_X_SYSTEM -D_REENTRANT -fPIC -fno-strict-aliasing
-/* GNUStep needs a bit more pure memory.  Of the existing knobs,
+/* GNUstep needs a bit more pure memory.  Of the existing knobs,
 SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #  define SYSTEM_PURESIZE_EXTRA 30000
 # endif /* NS_IMPL_GNUSTEP */
@@ -2846,7 +2846,7 @@ echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}
 echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
 echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
 
-echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
+echo "  Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 
 if test $USE_XASSERTS = yes; then

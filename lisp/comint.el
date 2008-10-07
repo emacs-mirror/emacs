@@ -1774,7 +1774,9 @@ Make backspaces delete the previous character."
               (let ((inhibit-read-only t)
 		    (inhibit-modification-hooks t))
                 (add-text-properties comint-last-output-start (point)
-                                     '(rear-nonsticky t
+                                     '(front-sticky
+				       (field inhibit-line-move-field-capture)
+				       rear-nonsticky t
 				       field output
 				       inhibit-line-move-field-capture t))))
 
@@ -2123,11 +2125,7 @@ Sets mark to the value of point when this command is run."
 	   (set-window-start (selected-window) (point))
 	   (comint-skip-prompt))
 	  (t
-	   (let* ((beg (field-beginning pos))
-		  (pt (if (= (point-min) beg)
-			  (point-min)
-			(1+ beg))))
-	     (goto-char pt))
+	   (goto-char (field-beginning pos))
 	   (set-window-start (selected-window) (point))))))
 
 
@@ -2846,7 +2844,7 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	     ;; may have a different case than what's in the prompt,
 	     ;; if read-file-name-completion-ignore-case is non-nil,
 	     (delete-region filename-beg filename-end)
-	     (if filedir (insert filedir))
+	     (if filedir (insert (comint-quote-filename filedir)))
 	     (insert (comint-quote-filename (directory-file-name completion)))
 	     (cond ((symbolp (file-name-completion completion directory))
 		    ;; We inserted a unique completion.

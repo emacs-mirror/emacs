@@ -413,8 +413,6 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 
-/* FIXME: adapt to generics */
-
 static void
 ns_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
@@ -426,8 +424,8 @@ ns_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       error ("Unknown color");
     }
 
-  [f->output_data.ns->desired_cursor_color release];
-  f->output_data.ns->desired_cursor_color = [col retain];
+  [FRAME_CURSOR_COLOR (f) release];
+  FRAME_CURSOR_COLOR (f) = [col retain];
 
   if (FRAME_VISIBLE_P (f))
     {
@@ -436,6 +434,7 @@ ns_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     }
   update_face_from_frame_parameter (f, Qcursor_color, arg);
 }
+
 
 static void
 ns_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
@@ -906,11 +905,11 @@ ns_lisp_to_cursor_type (Lisp_Object arg)
   else if (XTYPE (arg) == Lisp_Symbol)
     str = SDATA (SYMBOL_NAME (arg));
   else return -1;
-  if (!strcmp (str, "box"))	 return filled_box;
-  if (!strcmp (str, "hollow"))	 return hollow_box;
-  if (!strcmp (str, "underscore")) return underscore;
-  if (!strcmp (str, "bar"))	 return bar;
-  if (!strcmp (str, "no"))	 return no_highlight;
+  if (!strcmp (str, "box"))	return FILLED_BOX_CURSOR;
+  if (!strcmp (str, "hollow"))	return HOLLOW_BOX_CURSOR;
+  if (!strcmp (str, "hbar"))	return HBAR_CURSOR;
+  if (!strcmp (str, "bar"))	return BAR_CURSOR;
+  if (!strcmp (str, "no"))	return NO_CURSOR;
   return -1;
 }
 
@@ -920,12 +919,12 @@ ns_cursor_type_to_lisp (int arg)
 {
   switch (arg)
     {
-    case filled_box: return Qbox;
-    case hollow_box: return intern ("hollow");
-    case underscore: return intern ("underscore");
-    case bar:	     return intern ("bar");
-    case no_highlight:
-    default:	     return intern ("no");
+    case FILLED_BOX_CURSOR: return Qbox;
+    case HOLLOW_BOX_CURSOR: return intern ("hollow");
+    case HBAR_CURSOR:	    return intern ("hbar");
+    case BAR_CURSOR:	    return intern ("bar");
+    case NO_CURSOR:
+    default:		    return intern ("no");
     }
 }
 
@@ -1593,7 +1592,7 @@ See also the function `ns-server-vendor'.  */)
      (display)
      Lisp_Object display;
 {
-  /* FIXME: return GUI version on GNUSTEP, ?? on OS X */
+  /* FIXME: return GUI version on GNUstep, ?? on OS X */
   return build_string ("1.0");
 }
 
@@ -2417,7 +2416,8 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
   /* Ensure in bounds.  (Note, screen origin = lower left.) */
   if (pt.x + XINT (dx) <= 0)
     *root_x = 0; /* Can happen for negative dx */
-  else if (pt.x + XINT (dx) + width <= FRAME_NS_DISPLAY_INFO (f)->width)
+  else if (pt.x + XINT (dx) + width
+	   <= x_display_pixel_width (FRAME_NS_DISPLAY_INFO (f)))
     /* It fits to the right of the pointer.  */
     *root_x = pt.x + XINT (dx);
   else if (width + XINT (dx) <= pt.x)
@@ -2430,12 +2430,13 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
   if (pt.y - XINT (dy) - height >= 0)
     /* It fits below the pointer.  */
     *root_y = pt.y - height - XINT (dy);
-  else if (pt.y + XINT (dy) + height <= FRAME_NS_DISPLAY_INFO (f)->height)
+  else if (pt.y + XINT (dy) + height
+	   <= x_display_pixel_height (FRAME_NS_DISPLAY_INFO (f)))
     /* It fits above the pointer */
       *root_y = pt.y + XINT (dy);
   else
     /* Put it on the top.  */
-    *root_y = FRAME_NS_DISPLAY_INFO (f)->height - height;
+    *root_y = x_display_pixel_height (FRAME_NS_DISPLAY_INFO (f)) - height;
 }
 
 

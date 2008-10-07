@@ -52,6 +52,7 @@
   :type '(choice (const :tag "default" nil)
 		 string)
   :group 'change-log)
+;;;###autoload
 (put 'change-log-default-name 'safe-local-variable 'string-or-null-p)
 
 (defcustom change-log-mode-hook nil
@@ -413,6 +414,7 @@ the tag and whose cdr is the position where the tag was found."
 
 (defvar change-log-find-head nil)
 (defvar change-log-find-tail nil)
+(defvar change-log-find-window nil)
 
 (defun change-log-goto-source-1 (tag regexp file buffer
 				     &optional window first last)
@@ -455,7 +457,8 @@ BUFFER denoting the last match for TAG in the last search."
 		;; Record this as first match when there's none.
 		(unless first (setq first last)))))))
     (if (or last first)
-	(with-selected-window (or window (display-buffer buffer))
+	(with-selected-window
+	    (setq change-log-find-window (or window (display-buffer buffer)))
 	  (if last
 	      (progn
 		(when (or (< last (point-min)) (> last (point-max)))
@@ -510,7 +513,8 @@ try to visit the file for the change under `point' instead."
 	  ;; We either have not found a suitable file name or `file-2'
 	  ;; provides a "better" file name wrt `point'.  Go to the
 	  ;; buffer of `file-2' instead.
-	  (display-buffer (find-file-noselect file-2)))
+	  (setq change-log-find-window
+		(display-buffer (find-file-noselect file-2))))
 	 (t
 	  (setq change-log-find-head
 		(list tag (concat "\\_<" (regexp-quote tag) "\\_>")
@@ -523,7 +527,7 @@ try to visit the file for the change under `point' instead."
 		     tag file)))))))))
 
 (defun change-log-next-error (&optional argp reset)
-  "Move to the Nth (default 1) next match in an Occur mode buffer.
+  "Move to the Nth (default 1) next match in a ChangeLog buffer.
 Compatibility function for \\[next-error] invocations."
   (interactive "p")
   (let* ((argp (or argp 0))
@@ -543,10 +547,11 @@ Compatibility function for \\[next-error] invocations."
   (beginning-of-line)
   ;; if we found a place to visit...
   (when (looking-at change-log-file-names-re)
-    (change-log-goto-source)
-    ;; go to the file itself
-    (let ((file (nth 2 change-log-find-head)))
-      (when file (pop-to-buffer (find-file-noselect file))))))
+    (let (change-log-find-window)
+      (change-log-goto-source)
+      (when change-log-find-window
+	;; Select window displaying source file.
+	(select-window change-log-find-window)))))
 
 (defvar change-log-mode-map
   (let ((map (make-sparse-keymap)))
@@ -664,6 +669,8 @@ nil, by matching `change-log-version-number-regexp-list'."
 			regexps nil))))
 	    version)))))
 
+(declare-function diff-find-source-location "diff-mode"
+		  (&optional other-file reverse noprompt))
 
 ;;;###autoload
 (defun find-change-log (&optional file-name buffer-file)
@@ -681,47 +688,54 @@ directory and its successive parents for a file so named.
 Once a file is found, `change-log-default-name' is set locally in the
 current buffer to the complete file name.
 Optional arg BUFFER-FILE overrides `buffer-file-name'."
-  ;; If user specified a file name or if this buffer knows which one to use,
-  ;; just use that.
-  (or file-name
-      (setq file-name (and change-log-default-name
-			   (file-name-directory change-log-default-name)
-			   change-log-default-name))
-      (progn
-	;; Chase links in the source file
-	;; and use the change log in the dir where it points.
-	(setq file-name (or (and (or buffer-file buffer-file-name)
-				 (file-name-directory
-				  (file-chase-links
-				   (or buffer-file buffer-file-name))))
-			    default-directory))
-	(if (file-directory-p file-name)
-	    (setq file-name (expand-file-name (change-log-name) file-name)))
-	;; Chase links before visiting the file.
-	;; This makes it easier to use a single change log file
-	;; for several related directories.
-	(setq file-name (file-chase-links file-name))
-	(setq file-name (expand-file-name file-name))
-	;; Move up in the dir hierarchy till we find a change log file.
-	(let ((file1 file-name)
-	      parent-dir)
-	  (while (and (not (or (get-file-buffer file1) (file-exists-p file1)))
-		      (progn (setq parent-dir
+  ;; If we are called from a diff, first switch to the source buffer;
+  ;; in order to respect buffer-local settings of change-log-default-name, etc.
+  (with-current-buffer (let ((buff (if (eq major-mode 'diff-mode)
+				       (car (ignore-errors
+					     (diff-find-source-location))))))
+			 (if (buffer-live-p buff) buff
+			   (current-buffer)))
+      ;; If user specified a file name or if this buffer knows which one to use,
+      ;; just use that.
+    (or file-name
+	(setq file-name (and change-log-default-name
+			     (file-name-directory change-log-default-name)
+			     change-log-default-name))
+	(progn
+	  ;; Chase links in the source file
+	  ;; and use the change log in the dir where it points.
+	  (setq file-name (or (and (or buffer-file buffer-file-name)
 				   (file-name-directory
-				    (directory-file-name
-				     (file-name-directory file1))))
-			     ;; Give up if we are already at the root dir.
-			     (not (string= (file-name-directory file1)
-					   parent-dir))))
-	    ;; Move up to the parent dir and try again.
-	    (setq file1 (expand-file-name
-			 (file-name-nondirectory (change-log-name))
-			 parent-dir)))
-	  ;; If we found a change log in a parent, use that.
-	  (if (or (get-file-buffer file1) (file-exists-p file1))
-	      (setq file-name file1)))))
-  ;; Make a local variable in this buffer so we needn't search again.
-  (set (make-local-variable 'change-log-default-name) file-name)
+				    (file-chase-links
+				     (or buffer-file buffer-file-name))))
+			      default-directory))
+	  (if (file-directory-p file-name)
+	      (setq file-name (expand-file-name (change-log-name) file-name)))
+	  ;; Chase links before visiting the file.
+	  ;; This makes it easier to use a single change log file
+	  ;; for several related directories.
+	  (setq file-name (file-chase-links file-name))
+	  (setq file-name (expand-file-name file-name))
+	  ;; Move up in the dir hierarchy till we find a change log file.
+	  (let ((file1 file-name)
+		parent-dir)
+	    (while (and (not (or (get-file-buffer file1) (file-exists-p file1)))
+			(progn (setq parent-dir
+				     (file-name-directory
+				      (directory-file-name
+				       (file-name-directory file1))))
+			       ;; Give up if we are already at the root dir.
+			       (not (string= (file-name-directory file1)
+					     parent-dir))))
+	      ;; Move up to the parent dir and try again.
+	      (setq file1 (expand-file-name
+			   (file-name-nondirectory (change-log-name))
+			   parent-dir)))
+	    ;; If we found a change log in a parent, use that.
+	    (if (or (get-file-buffer file1) (file-exists-p file1))
+		(setq file-name file1)))))
+    ;; Make a local variable in this buffer so we needn't search again.
+    (set (make-local-variable 'change-log-default-name) file-name))
   file-name)
 
 (defun add-log-file-name (buffer-file log-file)

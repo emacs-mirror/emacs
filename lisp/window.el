@@ -837,8 +837,8 @@ by `split-window' or `split-window-preferred-function'."
 	       ;; minibuffer window, attempt to split it vertically
 	       ;; disregarding the value of `split-height-threshold'.
 	       (let ((split-height-threshold 0))
-		 (window--splittable-p window)
-		 (split-window window)))))))
+		 (and (window--splittable-p window)
+		      (split-window window))))))))
 
 (defun window--frame-usable-p (frame)
   "Return frame FRAME if it can be used to display another buffer."
@@ -885,8 +885,8 @@ is higher than WINDOW."
 	(error nil)))))
 
 (defun window--display-buffer-1 (window)
-  "Deiconify the frame containing the window WINDOW.
-Do not deiconify the selected frame.  Return WINDOW."
+  "Raise the frame containing the window WINDOW.
+Do not raise the selected frame.  Return WINDOW."
   (let* ((frame (window-frame window))
 	 (visible (frame-visible-p frame)))
     (unless (or (not visible)
@@ -896,8 +896,6 @@ Do not deiconify the selected frame.  Return WINDOW."
 		;; is visible.
 		(and (minibuffer-window-active-p (selected-window))
 		     (eq frame (window-frame (minibuffer-selected-window)))))
-      (when (eq visible 'icon)
-	(make-frame-visible frame))
       (raise-frame frame))
     window))
 
@@ -912,7 +910,7 @@ Return WINDOW."
   "Make buffer BUFFER-OR-NAME appear in some window but don't select it.
 BUFFER-OR-NAME must be a buffer or the name of an existing
 buffer.  Return the window chosen to display BUFFER-OR-NAME or
-nil is no such window is found.
+nil if no such window is found.
 
 Optional argument NOT-THIS-WINDOW non-nil means display the
 buffer in a window other than the selected one, even if it is
@@ -1029,6 +1027,9 @@ insist on finding another window even if the specified buffer is
 already visible in the selected window, and ignore
 `same-window-regexps' and `same-window-buffer-names'.
 
+If the window to show BUFFER-OR-NAME is not on the selected
+frame, raise that window's frame and give it input focus.
+
 This function returns the buffer it switched to.  This uses the
 function `display-buffer' as a subroutine; see the documentation
 of `display-buffer' for additional customization information.
@@ -1043,9 +1044,20 @@ at the front of the list of recently selected ones."
            (or (get-buffer buffer-or-name)
                (let ((buf (get-buffer-create buffer-or-name)))
                  (set-buffer-major-mode buf)
-                 buf)))))
+                 buf))))
+	(old-window (selected-window))
+	(old-frame (selected-frame))
+	new-window new-frame)
     (set-buffer buffer)
-    (select-window (display-buffer buffer other-window) norecord)
+    (setq new-window (display-buffer buffer other-window) norecord)
+    (unless (eq new-window old-window)
+      ;; `display-buffer' has chosen another window, select it.
+      (select-window new-window)
+      (setq new-frame (window-frame new-window))
+      (unless (eq new-frame old-frame)
+	;; `display-buffer' has chosen another frame, make sure it gets
+	;; input focus and is risen.
+	(select-frame-set-input-focus new-frame)))
     buffer))
 
 ;; I think this should be the default; I think people will prefer it--rms.

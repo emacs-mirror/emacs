@@ -647,7 +647,7 @@ password is remembered in the buffer."
 	 (prog1
 	     (match-string 1)
 	   (goto-char (match-end 0))))
-	((looking-at (concat "{\\([0-9]+\\)}" sieve-manage-server-eol))
+	((looking-at (concat "{\\([0-9]+\\+?\\)}" sieve-manage-server-eol))
 	 (let ((pos (match-end 0))
 	       (len (string-to-number (match-string 1))))
 	   (if (< (point-max) (+ pos len))

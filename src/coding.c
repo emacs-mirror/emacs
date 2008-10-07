@@ -6972,10 +6972,10 @@ make_conversion_work_buffer (multibyte)
     }
   else
     {
-      name = Vcode_conversion_workbuf_name;
-      workbuf = Fget_buffer_create (name);
       if (NILP (Vcode_conversion_reused_workbuf))
-	Vcode_conversion_reused_workbuf = workbuf;
+	Vcode_conversion_reused_workbuf
+	  = Fget_buffer_create (Vcode_conversion_workbuf_name);
+      workbuf = Vcode_conversion_reused_workbuf;
     }
   current = current_buffer;
   set_buffer_internal (XBUFFER (workbuf));

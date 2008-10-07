@@ -1412,7 +1412,8 @@ init_sys_modes (tty_out)
       frame_garbaged = 1;
       FOR_EACH_FRAME (tail, frame)
         {
-          if (FRAME_TERMCAP_P (XFRAME (frame))
+          if ((FRAME_TERMCAP_P (XFRAME (frame))
+	       || FRAME_MSDOS_P (XFRAME (frame)))
               && FRAME_TTY (XFRAME (frame)) == tty_out)
             FRAME_GARBAGED_P (XFRAME (frame)) = 1;
         }
@@ -2123,7 +2124,8 @@ sys_signal (int signal_number, signal_handler_t action)
   struct sigaction new_action, old_action;
   sigemptyset (&new_action.sa_mask);
   new_action.sa_handler = action;
-#if defined (SA_RESTART) && ! defined (BROKEN_SA_RESTART) && !defined(SYNC_INPUT)
+  new_action.sa_flags = 0;
+#if defined (SA_RESTART)
   /* Emacs mostly works better with restartable system services. If this
      flag exists, we probably want to turn it on here.
      However, on some systems this resets the timeout of `select'
@@ -2133,9 +2135,10 @@ sys_signal (int signal_number, signal_handler_t action)
      When SYNC_INPUT is set, we don't want SA_RESTART because we need to poll
      for pending input so we need long-running syscalls to be interrupted
      after a signal that sets the interrupt_input_pending flag.  */
-  new_action.sa_flags = SA_RESTART;
-#else
-  new_action.sa_flags = 0;
+# if defined (BROKEN_SA_RESTART) || defined(SYNC_INPUT)
+  if (noninteractive)
+# endif
+    new_action.sa_flags = SA_RESTART;
 #endif
   sigaction (signal_number, &new_action, &old_action);
   return (old_action.sa_handler);

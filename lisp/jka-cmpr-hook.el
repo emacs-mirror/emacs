@@ -207,7 +207,7 @@ options through Custom does this automatically."
      "bzip2ing"        "bzip2"         nil
      "bunzip2ing"      "bzip2"         ("-d")
      nil t "BZh"]
-    ["\\.tbz\\'"
+    ["\\.tbz2?\\'"
      "bzip2ing"        "bzip2"         nil
      "bunzip2ing"      "bzip2"         ("-d")
      nil nil "BZh"]
@@ -286,7 +286,7 @@ variables.  Setting this through Custom does that automatically."
   :group 'jka-compr)
 
 (defcustom jka-compr-mode-alist-additions
-  (list (cons "\\.tgz\\'" 'tar-mode) (cons "\\.tbz\\'" 'tar-mode))
+  (list (cons "\\.tgz\\'" 'tar-mode) (cons "\\.tbz2?\\'" 'tar-mode))
   "List of pairs added to `auto-mode-alist' when installing jka-compr.
 Uninstalling jka-compr removes all pairs from `auto-mode-alist' that
 installing added.

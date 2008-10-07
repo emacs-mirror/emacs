@@ -156,11 +156,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* new C libio names */
 #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
   ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
-#else /* !_IO_STDIO_H */
+#elif defined (__UCLIBC__)
+/* using the uClibc library */
+#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
+  ((FILE)->__bufpos - (FILE)->__bufstart)
+#else /* !_IO_STDIO_H && ! __UCLIBC__ */
 /* old C++ iostream names */
 #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
   ((FILE)->_pptr - (FILE)->_pbase)
-#endif /* !_IO_STDIO_H */
+#endif /* !_IO_STDIO_H && ! __UCLIBC__ */
 #endif /* emacs */
 
 /* Ask GCC where to find libgcc.a.  */

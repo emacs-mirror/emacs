@@ -257,12 +257,6 @@ There is no `condition-case' around the running of these functions;
 therefore, if you set `debug-on-error' non-nil in `.emacs',
 an error in one of these functions will invoke the debugger.")
 
-(defvar before-init-time nil
-  "Value of `current-time' before Emacs begins initialization.")
-
-(defvar after-init-time nil
-  "Value of `current-time' after loading the init files.")
-
 (defvar emacs-startup-hook nil
   "Normal hook run after loading init files and handling the command line.")
 
@@ -700,6 +694,7 @@ opening the first frame (e.g. open a connection to an X server).")
 
 (defun command-line ()
   (setq before-init-time (current-time)
+	after-init-time nil
         command-line-default-directory default-directory)
 
   ;; Choose a reasonable location for temporary files.
@@ -882,7 +877,7 @@ opening the first frame (e.g. open a connection to an X server).")
   (run-hooks 'before-init-hook)
 
   ;; Under X Window, this creates the X frame and deletes the terminal frame.
-  (when (fboundp 'frame-initialize)
+  (unless (daemonp)
     (frame-initialize))
 
   ;; Turn off blinking cursor if so specified in X resources.  This is here
@@ -894,19 +889,23 @@ opening the first frame (e.g. open a connection to an X server).")
 				'("off" "false")))))
     (setq no-blinking-cursor t))
 
-  ;; If frame was created with a menu bar, set menu-bar-mode on.
-  (unless (or noninteractive
-	      emacs-basic-display
-              (and (memq initial-window-system '(x w32))
-                   (<= (frame-parameter nil 'menu-bar-lines) 0)))
+  ;; If we run as a daemon, or frame was created with a menu bar, set
+  ;; menu-bar-mode on.
+  (when (or (daemonp)
+	    (not (or noninteractive
+		     emacs-basic-display
+		     (and (memq initial-window-system '(x w32))
+			  (<= (frame-parameter nil 'menu-bar-lines) 0)))))
     (menu-bar-mode 1))
 
-  ;; If frame was created with a tool bar, switch tool-bar-mode on.
-  (unless (or noninteractive
-	      emacs-basic-display
-              (not (display-graphic-p))
-              (<= (frame-parameter nil 'tool-bar-lines) 0))
-    (tool-bar-mode 1))
+  ;; If we run as a daemon or frame was created with a tool bar,
+  ;; switch tool-bar-mode on.
+  (when (or (daemonp)
+	   (not (or noninteractive
+		    emacs-basic-display
+		    (not (display-graphic-p))
+		    (<= (frame-parameter nil 'tool-bar-lines) 0))))
+	   (tool-bar-mode 1))
 
   ;; Can't do this init in defcustom because the relevant variables
   ;; are not set.
@@ -1214,6 +1213,13 @@ opening the first frame (e.g. open a connection to an X server).")
 
   ;; If -batch, terminate after processing the command options.
   (if noninteractive (kill-emacs t))
+
+  ;; In daemon mode, start the server to allow clients to connect.
+  ;; This is done after loading the user's init file and after
+  ;; processing all command line arguments to allow e.g. `server-name'
+  ;; to be changed before the server starts.
+  (when (daemonp)
+    (server-start))
 
   ;; Run emacs-session-restore (session management) if started by
   ;; the session manager and we have a session manager connection.

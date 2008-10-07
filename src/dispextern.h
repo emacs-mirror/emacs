@@ -397,7 +397,7 @@ struct glyph
       unsigned automatic : 1;
       /* ID of the composition.  */
       unsigned id    : 23;
-      /* Start and end indices of glyhs of the composition.  */
+      /* Start and end indices of glyphs of the composition.  */
       unsigned from : 4;
       unsigned to : 4;
     } cmp;
@@ -1867,8 +1867,14 @@ struct composition_it
   int id;
   /* If non-negative, character that triggers the automatic
      composition at `stop_pos', and this is an automatic compositoin.
-     If negative, this is a static composition..  */
+     If negative, this is a static composition.  This is set to -2
+     temporarily if searching of composition reach a limit or a
+     newline.  */
   int ch;
+  /* If this an automatic composition, how many charaters to look back
+     from the position where a character triggering the composition
+     exists.  */
+  int lookback;
   /* If non-negative, number of glyphs of the glyph-string.  */
   int nglyphs;
   /* Number of characters and bytes of the current grapheme cluster.  */
@@ -2036,9 +2042,9 @@ struct it
     unsigned avoid_cursor_p : 1;
 
     /* properties from display property that are reset by another display property. */
+    short voffset;
     Lisp_Object space_width;
     Lisp_Object font_height;
-    short voffset;
   }
   stack[IT_STACK_SIZE];
 
@@ -2062,8 +2068,6 @@ struct it
   /* 1 means control characters are translated into the form `^C'
      where the `^' can be replaced by a display table entry.  */
   unsigned ctl_arrow_p : 1;
-
-  enum line_wrap_method line_wrap;
 
   /* Non-zero means that the current face has a box.  */
   unsigned face_box_p : 1;
@@ -2100,6 +2104,8 @@ struct it
      descent/ascent (line-height property).  Reset after this glyph.  */
   unsigned constrain_row_ascent_descent_p : 1;
 
+  enum line_wrap_method line_wrap;
+
   /* The ID of the default face to use.  One of DEFAULT_FACE_ID,
      MODE_LINE_FACE_ID, etc, depending on what we are displaying.  */
   int base_face_id;
@@ -2134,6 +2140,9 @@ struct it
   /* Computed from the value of the `raise' property.  */
   short voffset;
 
+  /* Number of columns per \t.  */
+  short tab_width;
+
   /* Value of the `height' property, if any; nil if none.  */
   Lisp_Object font_height;
 
@@ -2143,9 +2152,6 @@ struct it
      during mode-line update.  Position is a position in object.  */
   Lisp_Object object;
   struct text_pos position;
-
-  /* Number of columns per \t.  */
-  short tab_width;
 
   /* Width in pixels of truncation and continuation glyphs.  */
   short truncation_pixel_width, continuation_pixel_width;

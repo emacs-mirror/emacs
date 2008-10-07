@@ -3281,14 +3281,6 @@ change_window_heights (window, n)
 
 int window_select_count;
 
-Lisp_Object
-Fset_window_buffer_unwind (obuf)
-     Lisp_Object obuf;
-{
-  Fset_buffer (obuf);
-  return Qnil;
-}
-
 EXFUN (Fset_window_fringes, 4);
 EXFUN (Fset_window_scroll_bars, 4);
 
@@ -3407,16 +3399,12 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
      I doubt it's worth the trouble.  */
   windows_or_buffers_changed++;
 
-  /* We must select BUFFER for running the window-scroll-functions.
-     If WINDOW is selected, switch permanently.
-     Otherwise, switch but go back to the ambient buffer afterward.  */
-  if (EQ (window, selected_window))
-    Fset_buffer (buffer);
+  /* We must select BUFFER for running the window-scroll-functions.  */
   /* We can't check ! NILP (Vwindow_scroll_functions) here
      because that might itself be a local variable.  */
-  else if (window_initialized)
+  if (window_initialized)
     {
-      record_unwind_protect (Fset_window_buffer_unwind, Fcurrent_buffer ());
+      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
       Fset_buffer (buffer);
     }
 
@@ -3508,11 +3496,11 @@ DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
        doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
 If WINDOW is not already selected, make WINDOW's buffer current
 and make WINDOW the frame's selected window.  Return WINDOW.
-Optional second arg NORECORD non-nil means
-do not put this buffer at the front of the list of recently selected ones.
+Optional second arg NORECORD non-nil means do not put this buffer
+at the front of the list of recently selected ones.
 
-Note that the main editor command loop
-selects the buffer of the selected window before each command.  */)
+Note that the main editor command loop selects the buffer of the
+selected window before each command.  */)
      (window, norecord)
      register Lisp_Object window, norecord;
 {
@@ -3525,8 +3513,12 @@ selects the buffer of the selected window before each command.  */)
   w = XWINDOW (window);
   w->frozen_window_start_p = 0;
 
-  ++window_select_count;
-  XSETFASTINT (w->use_time, window_select_count);
+  if (NILP (norecord))
+    {
+      ++window_select_count;
+      XSETFASTINT (w->use_time, window_select_count);
+    }
+
   if (EQ (window, selected_window))
     return window;
 

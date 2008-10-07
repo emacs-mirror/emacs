@@ -40,7 +40,7 @@
   "Function to indent the current line.
 This function will be called with no arguments.
 If it is called somewhere where auto-indentation cannot be done
-\(f.ex. inside a string), the function should simply return `noindent'.
+\(e.g. inside a string), the function should simply return `noindent'.
 Setting this function is all you need to make TAB indent appropriately.
 Don't rebind TAB unless you really need to.")
 

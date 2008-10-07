@@ -117,7 +117,8 @@ from a file."
 (defvar unload-feature-special-hooks
   '(after-change-functions after-insert-file-functions
     after-make-frame-functions auto-fill-function before-change-functions
-    blink-paren-function buffer-access-fontify-functions command-line-functions
+    blink-paren-function buffer-access-fontify-functions
+    choose-completion-string-functions command-line-functions
     comment-indent-function compilation-finish-functions delete-frame-functions
     disabled-command-function find-file-not-found-functions
     font-lock-beginning-of-syntax-function font-lock-fontify-buffer-function

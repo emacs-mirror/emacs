@@ -827,6 +827,7 @@ Various
 * Fuzzy Matching::              What's the big fuzz?
 * Thwarting Email Spam::        Simple ways to avoid unsolicited commercial email.
 * Spam Package::                A package for filtering and processing spam.
+* The Gnus Registry::           A package for tracking messages by Message-ID.
 * Other modes::                 Interaction with other modes.
 * Various Various::             Things that are really various.
 
@@ -4521,9 +4522,11 @@ mh= ... your nnml/mh folders which should be indexed ...
 mbox = ... your mbox files which should be indexed ...
 @end example
 
-Specify all your maildir/nnml folders and mbox files (relative to the
-base directory!) you want to index with mairix.  See the man-page for
-mairixrc for details.
+This specifies all your mail folders and mbox files (relative to the
+base directory!) you want to index with mairix.  Note that the
+@code{nnml} back end saves mails in MH format, so you have to put those
+directories in the @code{mh} line.  See the example at the end of this
+section and mairixrc's man-page for further details.
 
 @example
 omit=zz_mairix-*
@@ -4591,14 +4594,17 @@ The @strong{name} of the @code{nnmairix} server---choose whatever you
 want.
 
 @item
-The @strong{mail back end} where mairix should stores its
-searches.  Currently @code{nnmaildir}, @code{nnimap} and @code{nnml} are
-supported.  As explained above, for locally stored mails, this can be an
-existing mail back end where you store your mails.  However, you can also
-create e.g. a new @code{nnmaildir} server exclusively for
-@code{nnmairix} in your secondary select methods (@pxref{Finding the
-News}).  If you want to use mairix remotely on an @acronym{IMAP} server,
-you have to choose the corresponding @code{nnimap} back end here.
+The name of the @strong{back end server} where mairix should store its
+searches.  This must be a full server name, like @code{nnml:mymail}.
+Just hit @kbd{TAB} to see the available servers.  Currently, servers
+which are accessed through @code{nnmaildir}, @code{nnimap} and
+@code{nnml} are supported.  As explained above, for locally stored
+mails, this can be an existing server where you store your mails.
+However, you can also create e.g. a new @code{nnmaildir} server
+exclusively for @code{nnmairix} in your secondary select methods
+(@pxref{Finding the News}).  If you want to use mairix remotely on an
+@acronym{IMAP} server, you have to choose the corresponding
+@code{nnimap} server here.
 
 @item
 @vindex nnmairix-mairix-search-options
@@ -22735,6 +22741,7 @@ four days, Gnus will decay the scores four times, for instance.
 * Fuzzy Matching::              What's the big fuzz?
 * Thwarting Email Spam::        Simple ways to avoid unsolicited commercial email.
 * Spam Package::                A package for filtering and processing spam.
+* The Gnus Registry::           A package for tracking messages by Message-ID.
 * Other modes::                 Interaction with other modes.
 * Various Various::             Things that are really various.
 @end menu
@@ -26496,6 +26503,222 @@ Repeat for any other non-spam group you need...
 Reduce table size: (spam-stat-reduce-size)
 Save table: (spam-stat-save)
 @end smallexample
+
+@node The Gnus Registry
+@section The Gnus Registry
+@cindex registry
+@cindex split
+@cindex track
+
+The Gnus registry is a package that tracks messages by their
+Message-ID across all backends.  This allows Gnus users to do several
+cool things, be the envy of the locals, get free haircuts, and be
+experts on world issues.  Well, maybe not all of those, but the
+features are pretty cool.
+
+Although they will be explained in detail shortly, here's a quick list
+of said features in case your attention span is...  never mind.
+
+@enumerate
+@item
+Split messages to their parent
+
+This keeps discussions in the same group.  You can use the subject and
+the sender in addition to the Message-ID.  Several strategies are
+available.
+
+@item
+Store custom flags and keywords
+
+The registry can store custom flags and keywords for a message.  For
+instance, you can mark a message ``To-Do'' this way and the flag will
+persist whether the message is in the nnimap, nnml, nnmaildir,
+etc. backends.
+
+@item
+Store arbitrary data
+
+Through a simple ELisp API, the registry can remember any data for a
+message.  A built-in inverse map, when activated, allows quick lookups
+of all messages matching a particular set of criteria.
+@end enumerate
+
+@menu
+* Setup::                       
+* Fancy splitting to parent::   
+* Store custom flags and keywords::  
+* Store arbitrary data::        
+@end menu
+
+@node Setup
+@subsection Setup
+
+Fortunately, setting up the Gnus registry is pretty easy:
+
+@lisp
+(setq gnus-registry-max-entries 2500
+      gnus-registry-use-long-group-names t)
+
+(gnus-registry-initialize)
+@end lisp
+
+This adds registry saves to Gnus newsrc saves (which happen on exit
+and when you press @kbd{s} from the @code{*Group*} buffer.  It also
+adds registry calls to article actions in Gnus (copy, move, etc.)  so
+it's not easy to undo the initialization.  See
+@code{gnus-registry-initialize} for the gory details.
+
+Here are other settings used by the author of the registry (understand
+what they do before you copy them blindly).
+
+@lisp
+(setq
+ gnus-registry-split-strategy 'majority
+ gnus-registry-ignored-groups '(("nntp" t)
+                                ("nnrss" t)
+                                ("spam" t)
+                                ("train" t))
+ gnus-registry-max-entries 500000
+ gnus-registry-use-long-group-names t
+ gnus-registry-track-extra '(sender subject))
+@end lisp
+
+They say: keep a lot of messages around, use long group names, track
+messages by sender and subject (not just parent Message-ID), and when
+the registry splits incoming mail, use a majority rule to decide where
+messages should go if there's more than one possibility.  In addition,
+the registry should ignore messages in groups that match ``nntp'',
+``nnrss'', ``spam'', or ``train.''
+
+You are doubtless impressed by all this, but you ask: ``I am a Gnus
+user, I customize to live.  Give me more.''  Here you go, these are
+the general settings.
+
+@defvar gnus-registry-unfollowed-groups
+The groups that will not be followed by
+@code{gnus-registry-split-fancy-with-parent}.  They will still be
+remembered by the registry.  This is a list of regular expressions.
+@end defvar
+
+@defvar gnus-registry-ignored-groups
+The groups that will not be remembered by the registry.  This is a
+list of regular expressions, also available through Group/Topic
+customization (so you can ignore or keep a specific group or a whole
+topic).
+@end defvar
+
+@defvar gnus-registry-use-long-group-names
+Whether the registry will use long group names.  It's recommended to
+set this to @code{t}, although everything works if you don't.  Future
+functionality will require it.
+@end defvar
+
+@defvar gnus-registry-max-entries
+The number (an integer or @code{nil} for unlimited) of entries the
+registry will keep.
+@end defvar
+
+@defvar gnus-registry-cache-file
+The file where the registry will be stored between Gnus sessions.
+@end defvar
+
+@node Fancy splitting to parent
+@subsection Fancy splitting to parent
+
+Simply put, this lets you put followup e-mail where it belongs.
+
+Every message has a Message-ID, which is unique, and the registry
+remembers it.  When the message is moved or copied, the registry will
+notice this and offer the new group as a choice to the splitting
+strategy.
+
+When a followup is made, usually it mentions the original message's
+Message-ID in the headers.  The registry knows this and uses that
+mention to find the group where the original message lives.  You only
+have to put a rule like this:
+
+@lisp
+(setq nnimap-my-split-fancy '(|
+
+      ;; split to parent: you need this
+      (: gnus-registry-split-fancy-with-parent)
+
+      ;; other rules, as an example
+      (: spam-split)
+      ;; default mailbox
+      "mail")
+@end lisp
+
+in your fancy split setup.  In addition, you may want to customize the
+following variables.
+
+@defvar gnus-registry-track-extra
+This is a list of symbols, so it's best to change it from the
+Customize interface.  By default it's @code{nil}, but you may want to
+track @code{subject} and @code{sender} as well when splitting by parent.
+It may work for you.  It can be annoying if your mail flow is large and
+people don't stick to the same groups.
+@end defvar
+
+@defvar gnus-registry-split-strategy
+This is a symbol, so it's best to change it from the Customize
+interface.  By default it's @code{nil}, but you may want to set it to
+@code{majority} or @code{first} to split by sender or subject based on
+the majority of matches or on the first found.
+@end defvar
+
+@node Store custom flags and keywords
+@subsection Store custom flags and keywords
+
+The registry lets you set custom flags and keywords per message.  You
+can use the Gnus->Registry Marks menu or the @kbd{M M x} keyboard
+shortcuts, where @code{x} is the first letter of the mark's name.
+
+@defvar gnus-registry-marks
+The custom marks that the registry can use.  You can modify the
+default list, if you like.  If you do, you'll have to exit Emacs
+before they take effect (you can also unload the registry and reload
+it or evaluate the specific macros you'll need, but you probably don't
+want to bother).  Use the Customize interface to modify the list.
+
+By default this list has the @code{Important}, @code{Work},
+@code{Personal}, @code{To-Do}, and @code{Later} marks.  They all have
+keyboard shortcuts like @kbd{M M i} for Important, using the first
+letter.
+@end defvar
+
+@defun gnus-registry-mark-article
+Call this function to mark an article with a custom registry mark.  It
+will offer the available marks for completion.
+@end defun
+
+@node Store arbitrary data
+@subsection Store arbitrary data
+
+The registry has a simple API that uses a Message-ID as the key to
+store arbitrary data (as long as it can be converted to a list for
+storage).
+
+@defun gnus-registry-store-extra-entry (id key value)
+Store @code{value} in the extra data key @code{key} for message
+@code{id}.
+@end defun
+
+@defun gnus-registry-delete-extra-entry (id key)
+Delete the extra data key @code{key} for message @code{id}.
+@end defun
+
+@defun gnus-registry-fetch-extra (id key)
+Get the extra data key @code{key} for message @code{id}.
+@end defun
+
+@defvar gnus-registry-extra-entries-precious
+If any extra entries are precious, their presence will make the
+registry keep the whole entry forever, even if there are no groups for
+the Message-ID and if the size limit of the registry is reached.  By
+default this is just @code{(marks)} so the custom registry marks are
+precious.
+@end defvar
 
 @node Other modes
 @section Interaction with other modes

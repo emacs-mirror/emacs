@@ -1018,7 +1018,7 @@ calendar."
 (defconst lunar-phases-buffer "*Phases of Moon*"
   "Name of the buffer used for the lunar phases.")
 
-(defconst solar-sunrises-buffer "*Sunrise/Sunset Times"
+(defconst solar-sunrises-buffer "*Sunrise/Sunset Times*"
   "Name of buffer used for sunrise/sunset times.")
 
 (defconst calendar-hebrew-yahrzeit-buffer "*Yahrzeits*"

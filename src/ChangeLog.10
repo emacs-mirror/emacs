@@ -356,7 +356,7 @@
 2007-03-10  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (redisplay_window): Don't automatically select a new window
-	start for a contination line during mouse-click.
+	start for a continuation line during mouse-click.
 
 2007-03-09  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -3223,7 +3223,7 @@
 
 2006-07-04  Kim F. Storm  <storm@cua.dk>
 
-	* xterm.c (x_delete_display): Don't free or derefence NULL pointers.
+	* xterm.c (x_delete_display): Don't free or dereference NULL pointers.
 
 2006-07-04  Kenichi Handa  <handa@m17n.org>
 
@@ -3382,13 +3382,13 @@
 2006-06-16  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (struct it): Add union to iterator stack to save
-	image, composition, and stretch specific paramters.
+	image, composition, and stretch specific parameters.
 
 	* xdisp.c (next_overlay_string): Fix assert.
 	(push_it, pop_it): Handle composition and stretch specific values.
 	Only handle it->slice in image (for now).
 	(back_to_previous_visible_line_start): Continue search if newline is
-	part of a compisition.  Simplify.
+	part of a composition.  Simplify.
 	(reseat_1): Set it->object to buffer.
 	(set_iterator_to_next): Set it->object to string or buffer, when
 	setting it->method to GET_FROM_STRING or GET_FROM_BUFFER.
@@ -5054,7 +5054,7 @@
 
 	* frame.h (struct frame): New member n_tool_bar_rows.
 
-	* xdisp.c: Minimize the unpleasent visual impact of the requirement
+	* xdisp.c: Minimize the unpleasant visual impact of the requirement
 	that non-toolkit tool-bars must occupy an integral number of screen
 	lines, by distributing the rows evenly over the tool-bar screen area.
 	(Vtool_bar_border): New variable.
@@ -5951,7 +5951,7 @@
 	(XCHARSTRUCTROW_CHAR_VALID_P, XCHARSTRUCTROW_SET_CHAR_VALID):
 	New macros.
 	(struct MacFontStruct): Add member `bounds'.  Remove member
-	`per_char'.  All uses for QuichDraw Text fonts are changed to
+	`per_char'.  All uses for QuickDraw Text fonts are changed to
 	`bounds.per_char'.  ATSUI font bounds are represented as an array
 	`bounds.rows' of XCharStructRow's, each of which consists of a
 	bitmap of valid entries and an array of char bounds.
@@ -5996,7 +5996,7 @@
 	(parse_single_submenu, digest_single_submenu): New functions.
 	(single_submenu): Function deleted, replaced by those two.
 	(install_menu_quit_handler) [HAVE_CANCELMENUTRACKING]: Don't create
-	or dispose of EventHandlerUPP.  Install hander to all submenus.
+	or dispose of EventHandlerUPP.  Install handler to all submenus.
 	(mac_menu_show) [!HAVE_MULTILINGUAL_MENU]: Use ENCODE_MENU_STRING
 	instead of ENCODE_SYSTEM.
 	(free_frame_menubar, fill_submenu, fill_menu): Don't use NULL for
@@ -8604,7 +8604,7 @@
 
 	* xdisp.c (Qno_break_space): New variable.
 	(syms_of_xdisp): Initialize it.
-	(get_next_display_element): Add no-break space and soft hypen
+	(get_next_display_element): Add no-break space and soft hyphen
 	codes for iso8859-2 and iso8859-5.  Don't add `\' for them.
 	Use `no-break-space' face for no-break spaces.
 
@@ -9315,7 +9315,7 @@
 	routines also on Mac OS Classic.
 	(init_font_name_table) [!TARGET_API_MAC_CARBON]:
 	Use add_font_name_table_entry.
-	(mac_do_list_fonts): Regard 0 in XLFD scaleble fields as
+	(mac_do_list_fonts): Regard 0 in XLFD scalable fields as
 	specified.  Derive unspecified scalable fields from specified one.
 	(x_list_fonts): Consider Valternate_fontname_alist.
 	(kDefaultFontSize): Change value from 9 to 12.
@@ -9575,7 +9575,7 @@
 	(fast_string_match_ignore_case): Likewise.
 	(search_buffer): Fix checking of boyer-moore usability.
 	(boyer_moore): Calculate translate_prev_byte1/2/3 in advance.
-	No need of tranlating characters in PAT.  Fix calculation of
+	No need of translating characters in PAT.  Fix calculation of
 	simple_translate.
 
 2005-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -10299,7 +10299,7 @@
 	zero before clearing area.
 
 	* xselect.c (x_reply_selection_request): Pass long array to
-	XChangeProperty so that 64 bit longs are handeled correctly.
+	XChangeProperty so that 64 bit longs are handled correctly.
 	(x_get_window_property): If format is 32 and long is bigger than 32
 	bits convert data from XGetWindowProperty from long array to int array.
 	(lisp_data_to_selection_data): When the input is a vector and the
@@ -10317,7 +10317,7 @@
 
 2005-02-07  Kim F. Storm  <storm@cua.dk>
 
-	* undo.c (Fprimitive_undo): Record max one dummmy apply element.
+	* undo.c (Fprimitive_undo): Record max one dummy apply element.
 
 2005-02-06  Richard M. Stallman  <rms@gnu.org>
 
@@ -10543,7 +10543,7 @@
 
 	* xdisp.c (pos_visible_p): Replace FULLY arg by RTOP and RBOT args
 	to return number of partially invisible pixels at top and bottom
-	of the dislay row at POS.
+	of the display row at POS.
 
 	* lisp.h (pos_visible_p): Fix prototype.
 
@@ -11929,7 +11929,7 @@
 	of the window by redisplay.
 
 	* xdisp.c (init_iterator): Clear it.max_extra_line_spacing.
-	(move_it_vertically_backward): Don't recure to move further back.
+	(move_it_vertically_backward): Don't recurse to move further back.
 	(move_it_vertically): Remove superfluous condition.
 	(move_it_by_lines): Clear last_height when moved 0 lines.
 	(resize_mini_window): Use it.max_extra_line_spacing.
@@ -12053,7 +12053,7 @@
 	(fontset_pattern_regexp): Change the meaning of the second arg.
 	(Fnew_fontset): Call fs_query_fontset, not Fquery_fontset.
 	(check_fontset_name): Try NAME as literal at first, and if it
-	failes, try NAME as pattern.
+	fails, try NAME as pattern.
 
 2004-11-07  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -12643,7 +12643,7 @@
 	(mac_get_window_bounds): New function.
 	(x_calc_absolute_position): Use the difference of width and height
 	between the inner and outer window.
-	(x_set_offset): Specify window position by the coordinae of the
+	(x_set_offset): Specify window position by the coordinate of the
 	outer window.  Adjust the position if the title bar is completely
 	outside the screen.
 	(app_is_suspended, app_sleep_time): Remove unused variables.
@@ -12686,7 +12686,7 @@
 	(x_draw_vertical_border): Do not draw line if frame has scroll bars.
 
 	* window.c (coordinates_in_window): Relax check for cursor
-	on vertial border between mode lines.
+	on vertical border between mode lines.
 	(Fset_window_fringes): Do not allow negative widths.
 	(Fset_window_scroll_bars): Likewise.
 
@@ -12961,8 +12961,8 @@
 	Use SetWindowTitleWithCFString.
 	(Fx_server_version): Get correct OS version.
 
-	* macmenu.c (add_menu_item): Remove unused variable `i'.
-	Don't let separator items destroy refence constants of other menu items.
+	* macmenu.c (add_menu_item): Remove unused variable `i'.  Don't let
+	separator items destroy reference constants of other menu items.
 
 	* macterm.c (x_update_end): Move SetPortWindowPort to inside
 	BLOCK_INPUT.
@@ -13739,7 +13739,7 @@
 	ccl->eof_ic on EOF.
 	(ccl_debug_hook): New function.
 	(struct ccl_prog_stack): New member eof_ic.
-	(ccl_driver): Handle EOF in subrountine call correctly.
+	(ccl_driver): Handle EOF in subroutine call correctly.
 
 2004-06-11  Kenichi Handa  <handa@m17n.org>
 
@@ -13964,7 +13964,7 @@
 	* alloc.c: Undo Kim's recent changes and fix the same bug differently.
 	(marker_blocks_pending_free): Remove.
 	(Fgarbage_collect): Sweep after cleaning up undo-lists.
-	Mark the undo lists after claning them up.
+	Mark the undo lists after cleaning them up.
 	Don't free block in marker_blocks_pending_free.
 	(mark_buffer): Don't mark undo_list.
 	(gc_sweep): Sweep hash-tables and strings first.
@@ -14043,7 +14043,7 @@
 	the removed cons cells.
 	(mark_object): Undo previous change - disallow Lisp_Misc_Free objects.
 	(gc_sweep): Clear cons_blocks before sweeping strings, so we don't have
-	any cons cells pointing to unallocated stings.
+	any cons cells pointing to unallocated strings.
 	Do not lisp_free any marker blocks, as there may still be pointers
 	to them from buffer undo lists at this stage of GC.
 
@@ -15139,7 +15139,7 @@
 	(syms_of_xfns): Move image related symbols to image.c.
 	(init_xfns): Remove; initialization moved to init_image in image.c.
 
-	* lisp.h (syms_of_image, init_image): Add protoypes.
+	* lisp.h (syms_of_image, init_image): Add prototypes.
 	(init_xfns): Remove prototype.
 
 	* dispextern.h (x_bitmap_height, x_bitmap_width, x_bitmap_pixmap)
@@ -15155,7 +15155,7 @@
 
 2004-03-09  Kenichi Handa  <handa@etlken2>
 
-	* coding.c (decode_coding_emacs_mule): Handle insufficent source
+	* coding.c (decode_coding_emacs_mule): Handle insufficient source
 	correctly.
 
 2004-03-04  Richard M. Stallman  <rms@gnu.org>
@@ -15180,7 +15180,7 @@
 
 2004-03-02  Kenichi Handa  <handa@m17n.org>
 
-	* doc.c (Fsubstitute_command_keys): Fix counding bytes.
+	* doc.c (Fsubstitute_command_keys): Fix counting bytes.
 
 2004-03-02  Kim F. Storm  <storm@cua.dk>
 
@@ -15644,7 +15644,7 @@
 	(prev_read): Remove variable.
 	(read_avail_input_buf): New static event buffer array.
 	(in_read_avail_input): New static variable to handle re-entrancy.
-	(read_avail_input): Change buf to pinter to read_avail_input_buf.
+	(read_avail_input): Change buf to pointer to read_avail_input_buf.
 	Use in_read_avail_input to handle re-entrance; when re-entered,
 	fully initialize and use tmp_buf array instead of read_avail_input_buf.
 	Do not initialize read_avail_input_buf in full here; instead assume it
@@ -16131,7 +16131,7 @@
 	instead of related indicator fields.
 	Compare exact_window_width_line_p and cursor_in_mouse_face_p indicators.
 	(direct_output_for_insert): Handle exact width lines like
-	contined lines.  Call update_window_fringes.
+	continued lines.  Call update_window_fringes.
 	(update_window): Call update_window_fringes.
 	(scrolling_window): Don't skip desired rows with changed bitmaps.
 	Check if fringe bitmaps changes when assigning scrolled rows.
@@ -16552,7 +16552,7 @@
 	(append_stretch_glyph): Change ascent arg to be actual value
 	in pixels rather than ratio to height.  Callers changed.
 	(calc_pixel_width_or_height): New aux function, implementing
-	pixel based artihmetic for glyph widths and heights.
+	pixel based arithmetic for glyph widths and heights.
 	(produce_stretch_glyph): Use calc_pixel_width_or_height for
 	:width, :height, :align-to, and :ascent, thus allowing these to
 	be specified in pixels as well as multiples of characters.
@@ -17318,7 +17318,7 @@
 
 	* xfns.c (Fx_create_frame): Set property WM_CLIENT_LEADER.
 
-	* Makefile.in (xsmfns.o): Add more depenedencies.
+	* Makefile.in (xsmfns.o): Add more dependencies.
 
 2003-08-21  Dave Love  <fx@gnu.org>
 
@@ -18239,7 +18239,7 @@
 	win_gravity, size_hint_flags, border_width, internal_border_width,
 	line_height, fringe_cols, left_fringe_width, right_fringe_width,
 	want_fullscreen.  All uses changed.
-	(struct frame): New member column_width contaning the canonical
+	(struct frame): New member column_width containing the canonical
 	column width, analogue to line_height.  All uses changed.
 	(struct frame): Rename members scroll_bar_pixel_width to
 	config_scroll_bar_width, and scroll_bar_cols to
@@ -18483,8 +18483,8 @@
 	and vertical_scroll_bar_type.
 	(coordinates_in_window): Adapt to new fringe/margin positions
 	and per-window fringes and scroll-bars.
-	Fix bug related to incorrectly adjusting coordinates by
-	frame's internal_border_width (the effect normally negible since
+	Fix bug related to incorrectly adjusting coordinates by frame's
+	internal_border_width (the effect normally negligible since
 	the internal_border_width is typically 0 or 1 pixel, but very
 	noticeable for an internal_border_width of e.g. 25 pixels).
 	Upon successful return (other than ON_NOTHING), the coordinates
@@ -18993,7 +18993,7 @@
 	* coding.c (coding_system_accept_latin_extra_p): Delete this
 	function.
 	(find_safe_codings): Pay attention to
-	the property tranlsation-table-for-encode of each codings.
+	the property translation-table-for-encode of each codings.
 	(syms_of_coding): Give Qtranslation_table the extra slot number 2.
 
 2003-05-01  Stefan Monnier  <monnier@cs.yale.edu>
@@ -19408,7 +19408,7 @@
 	expanding, look again for a handler and invoke it.  This is needed
 	for filenames like "/foo/../user@host:/bar/../baz" -- the first
 	expansion produces "/user@host:/bar/../baz" which needs to be
-	expanded again for the finame result "/user@host:/baz".
+	expanded again for the filename result "/user@host:/baz".
 
 2003-03-28  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -19583,7 +19583,7 @@
 	(x_intersect_rectangles): New generic functions for use by xdisp.c
 	and GUI front-ends.
 	(syms_of_xdisp): Initialize and staticpro help_echo* variables.
-	Defvar_bool "x-streach-cursor" and "mouse-autoselect-window" here.
+	Defvar_bool "x-stretch-cursor" and "mouse-autoselect-window" here.
 
 	* dispextern.h (Display_Info): Generic typedef for *_display_info.
 	(NativeRectangle): Generic typedef for rectangle type.
@@ -20204,7 +20204,7 @@
 2003-02-17  Richard M. Stallman  <rms@gnu.org>
 
 	* keyboard.c (this_command_key_count_reset): New variable.
-	Initiatize to 0 where this_command_key_count is set.
+	Initialize to 0 where this_command_key_count is set.
 	(read_char): Save and restore this_command_key_count_reset
 	around input method code.
 	(read_char): If this_command_key_count_reset, echo reread commands.
@@ -20270,7 +20270,7 @@
 	(Fstart_process): Initialize the member `filter_multibyte' of
 	struct Lisp_Process.
 	(create_process): Call setup_process_coding_systems.
-	(Fmake_network_process): New keyward `:filter-multibyte'.
+	(Fmake_network_process): New keyword `:filter-multibyte'.
 	Initialize the member `filter_multibyte' of struct Lisp_Process.
 	Call setup_process_coding_systems.
 	(server_accept_connection): Call setup_process_coding_systems.
@@ -20569,7 +20569,7 @@
 
 	* w32term.c (note_mode_line_highlight): Delete #if 0 to enable
 	function w32_define_cursor.
-	(note_mouse_highlight): Initialize, setup cursor accoding to mouse
+	(note_mouse_highlight): Initialize, setup cursor according to mouse
 	position, change member name output_data.x to output_data.w32 and
 	add function w32_define_cursor.
 	(show_mouse_face): Delete #if 0 to enable function w32_define_cursor
@@ -21380,7 +21380,7 @@
 2002-11-24  Steven Tamm  <steventamm@mac.com>
 
 	* unexmacosx.c (unexec_realloc): Use malloc_default_zone to
-	determine the size of pointers alloced in unexed space instead
+	determine the size of pointers alloc'ed in unexed space instead
 	of using possibly invalid emacs_zone pointers.  This fixes the
 	binary incompatibility problems caused by updates to libSystem.B.
 
@@ -22826,8 +22826,8 @@
 	* m/att3b.h (XINT): Don't define.
 	(VALBITS, VALMASK, XTYPE): Deleted.
 	(DATA_SEG_BITS): Define.
-	* m/gec63.h (VALBITS, VALAMASK, XTYPE, XSETTYPE, XPNTR, XSET,
-	ARRAY_MARK_FLAG): Deleted.
+	* m/gec63.h (VALBITS, VALMASK, XTYPE, XSETTYPE, XPNTR, XSET)
+	(ARRAY_MARK_FLAG): Deleted.
 	(DATA_SEG_BITS): Define.
 	* m/pfa50.h (VALBITS, VALMASK, XTYPE): Deleted.
 	(DATA_SEG_BITS): Define.
@@ -23603,7 +23603,7 @@
 	is Qcompound_text_with_extensions.
 
 	* xselect.c (lisp_data_to_selection_data): Always set selection
-	type as string if x_encode_text returns streingp non-NULL.
+	type as string if x_encode_text returns stringp non-NULL.
 
 	* s/netbsd.h: Include /usr/pkg in the run time shared library path.
 
@@ -23667,7 +23667,7 @@
 	New variables.
 	(syms_of_fileio): DEFVAR_LISP them.
 	(read_file_name_cleanup): New unwind function.
-	(Fread_file_name_internal): Only return completions satifying
+	(Fread_file_name_internal): Only return completions satisfying
 	Vread_file_name_predicate.  Temporarily unwind protect and rebind
 	default-directory while checking completions against the predicate.
 	(Fread_file_name): Added PREDICATE argument.  Specbind it to
@@ -24029,7 +24029,7 @@
 	* fontset.c [MAC_OS]: Set Vdefault_fontset to ETL Fixed instead of
 	Apple Monaco.
 
-	* process.c (QCfamily, QCfilte): Declare extern.
+	* process.c (QCfamily, QCfilter): Declare extern.
 	(wait_reading_process_input) [MAC_OSX]: Clear bit for stdin before
 	calling select.
 
@@ -24151,7 +24151,7 @@
 
 2002-04-19  Dave Lambert  <dlambert@acm.org>
 
-	Theses change implement an underscore-like (`hbar') cursor.
+	These changes implement an underscore-like (`hbar') cursor.
 
 	* xterm.h (text_cursor_kinds): New enumeration member HBAR_CURSOR.
 
@@ -25322,7 +25322,7 @@
 	* msdos.c (x_autoselect_window_p): New variable.
 	(syms_of_msdos): Defvar it.
 	(dos_rawgetc): If x_autoselect_window_p is set, select the window in
-	which the last mouse movement occured, unless it is already selected.
+	which the last mouse movement occurred, unless it is already selected.
 
 	* xdisp.c (automatic_hscroll_margin, Vautomatic_hscroll_step):
 	New variables.
@@ -27326,7 +27326,7 @@
 2001-10-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (grow_mini_window): Handle case that the root
-	window is already smaller than the nominal mininum height.
+	window is already smaller than the nominal minimum height.
 
 2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 

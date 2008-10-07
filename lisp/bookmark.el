@@ -2078,6 +2078,12 @@ This also runs `bookmark-exit-hook'."
 
 (add-hook 'kill-emacs-hook 'bookmark-exit-hook-internal)
 
+(defun bookmark-unload-function ()
+  "Unload the Bookmark library."
+  (when bookmark-save-flag (bookmark-save))
+  ;; continue standard unloading
+  nil)
+
 
 (run-hooks 'bookmark-load-hook)
 

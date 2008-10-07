@@ -280,6 +280,11 @@ struct window
        Currently only used for menu bar windows of frames.  */
     unsigned pseudo_window_p : 1;
 
+    /* 1 means the window start of this window is frozen and may not
+       be changed during redisplay.  If point is not in the window,
+       accept that.  */
+    unsigned frozen_window_start_p : 1;
+
     /* Amount by which lines of this window are scrolled in
        y-direction (smooth scrolling).  */
     int vscroll;
@@ -287,11 +292,6 @@ struct window
     /* Z_BYTE - the buffer position of the last glyph in the current matrix
        of W.  Only valid if WINDOW_END_VALID is not nil.  */
     int window_end_bytepos;
-
-    /* 1 means the window start of this window is frozen and may not
-       be changed during redisplay.  If point is not in the window,
-       accept that.  */
-    unsigned frozen_window_start_p : 1;
 };
 
 /* 1 if W is a minibuffer window.  */

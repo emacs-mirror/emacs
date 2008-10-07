@@ -4,6 +4,37 @@ The Emacs Bug Tracker can be found at http://emacsbugs.donarmstrong.com/
 
 For a list of all bugs, see http://emacsbugs.donarmstrong.com/emacs
 
+** How do I report a bug in Emacs now?
+The same way as you always did.  Send mail to bug-gnu-emacs@gnu.org,
+or use M-x report-emacs-bug.
+
+The only differences are:
+
+i) Your report will be assigned a number and generate an automatic reply.
+
+ii) Optionally, you can set some database parameters when you first
+report a bug (see "Setting bug parameters" below).
+
+iii) If you want to CC: someone, use X-Debbugs-CC: (see below).
+
+Once your report is filed and assigned a number, it is sent out to the
+bug mailing list.  In some cases, it may be appropriate to just file a
+bug, without sending out a copy.  To do this, send mail to
+quiet@emacsbugs.donarmstrong.com.
+
+** How do I reply to an existing bug report?
+Reply to 123@emacsbugs.donarmstrong.com, replacing 123 with the number
+of the bug you are interested in.  NB this only sends mail to the
+bug-list, it does NOT (?) send a CC to the original bug submitter.
+So you need to explicitly CC him/her (and anyone else you like).
+
+(Many people think the submitter SHOULD be automatically subscribed
+to subsequent discussion, but this does not seem to be implemented.
+See http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=37078)
+
+Do NOT send a separate copy to the bug list, since this may generate a
+new report. The only time to send mail to the bug list is to create a
+new report.
 
 ** When reporting a bug, to send a Cc to another address
 (e.g. bug-cc-mode@gnu.org), do not just use a Cc: header.
@@ -11,7 +42,13 @@ Instead, use "X-Debbugs-CC:".  This ensures the Cc address will get a
 mail with the bug report number in.
 
 ** To not get acknowledgement mail from the tracker,
-add an "X-Debbugs-No-Ack:" header (with any value).
+add an "X-Debbugs-No-Ack:" header (with any value).  If you use Gnus,
+you can add an element to gnus-posting-styles to do this automatically, eg:
+
+("gnu-emacs\\(-pretest\\)?-bug"
+   ("X-Debbugs-No-Ack" "yes"))
+
+(adjust the regexp according to the name you use for the bug lists)
 
 ** To record a bug in the tracker without sending mail to the bug list.
 This can be useful to make a note of something discussed on
@@ -56,6 +93,7 @@ Package: emacs
 Version: 23.0.60
 Severity: minor
 
+Optionally, add a sub-package, eg Package: emacs,calendar.
 This can include tags.  Some things (e.g. submitter) don't seem to
 work here.
 
@@ -90,13 +128,17 @@ tags 123 + wontfix
 
 *** To merge bugs:
 Eg when bad replies create a bunch of new bugs for the same report.
-Bugs must all be in the same state, but need not have the same tags.  E.g.:
+Bugs must all be in the same state (e.g. same package(s) and severity),
+but need not have the same tags (tags are merged). E.g.:
 
 merge 123 124 125 ...
 
+Note that merging does not affect titles.  In particular, a "retitle"
+of merged bugs only affects individual bugs, not all of them.
+
 *** Forcing a merge:
-Like `merge', but bugs need not be in the same state.  The first one
-listed is the master.  E.g.:
+Like `merge', but bugs need not be in the same state.  The packages
+must still match though.  The first one listed is the master.  E.g.:
 
 forcemerge 123 124 125 ...
 
@@ -106,6 +148,16 @@ To disconnect a bug from all bugs it is merged with:
 unmerge 123
 
 This command accepts only one bug number.
+
+*** To clone bugs:
+Useful when one report refers to more than one bug.
+
+clone 123 -1 [-2 ...]
+retitle -1 second bug
+retitle -2 third bug
+
+The negative numbers provide a way to refer to the cloned bugs (which
+will be assigned proper numbers).
 
 *** To set severity:
 severity 123 critical|grave|serious|important|normal|minor|wishlist

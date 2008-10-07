@@ -494,9 +494,7 @@ Returns one of:
 (defun xml-parse-string ()
   "Parse the next whatever.  Could be a string, or an element."
   (let* ((pos (point))
-	 (string (progn (if (search-forward "<" nil t)
-			    (forward-char -1)
-			  (goto-char (point-max)))
+	 (string (progn (skip-chars-forward "^<")
 			(buffer-substring-no-properties pos (point)))))
     ;; Clean up the string.  As per XML specifications, the XML
     ;; processor should always pass the whole string to the

@@ -1,7 +1,7 @@
 ;;; solitaire.el --- game of solitaire in Emacs Lisp
 
-;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Jan Schormann <Jan.Schormann@rechen-gilde.de>
 ;; Created: Fri afternoon, Jun  3,  1994
@@ -50,7 +50,7 @@
     (define-key map "\C-b" 'solitaire-left)
     (define-key map "\C-p" 'solitaire-up)
     (define-key map "\C-n" 'solitaire-down)
-    (define-key map [return] 'solitaire-move)
+    (define-key map "\r" 'solitaire-move)
     (define-key map [remap undo] 'solitaire-undo)
     (define-key map " " 'solitaire-do-check)
     (define-key map "q" 'quit-window)

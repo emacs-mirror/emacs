@@ -1,3 +1,445 @@
+2008-10-06  Andreas Schwab  <schwab@suse.de>
+
+	* sysdep.c (sys_signal): Always set SA_RESTART when
+	noninteractively.
+
+2008-10-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.c (Vbefore_init_time, Vafter_init_time): Moved from
+	startup.el.
+
+	* lisp.h: (Vbefore_init_time, Vafter_init_time): Declare.
+
+	* gtkutil.c (x_wm_set_size_hint): Return immediately if called
+	during initialization.
+
+2008-10-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_internal): If frame switched, redisplay the
+	whole thing on MSDOS frames as well as on a TTY.
+
+	* dispnew.c (update_frame): Flush termscript for MSDOS frames as
+	well as for TTY.
+	(Fopen_termscript): Allow opening a termscript on MSDOS frames as
+	well as on a TTY.
+
+	* sysdep.c (init_sys_modes): Set FRAME_GARBAGED_P for MSDOS frames
+	as well as for TTY.
+
+	* systime.h (EMACS_TIME_CMP): Cast EMACS_SECS values to `long'.
+
+	* dispnew.c (change_frame_size_1): Set FrameRows and FrameCols for
+	MSDOS frames as well.
+
+2008-10-02  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* image.c (x_clear_image_1): Under NS, call ns_free_indexed_color with
+	correct arguments.
+	* menu.c (find_and_return_menu_selection) Add cast.
+
+2008-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (USAGE1): Add --daemon.
+
+2008-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (procfs_system_process_attributes): Multiply `pcpu' by
+	100, so it's in percents as advertised.
+
+2008-10-02  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.h (ns_cursor_types, ns_output.desired_cursor_color)
+	(ns_output.current_cursor, ns_output.desired_cursor)
+	(ns_output.last_inactive, FRAME_CURSOR, FRAME_NEW_CURSOR)
+	(FRAME_NEW_CURSOR_COLOR): Remove.
+
+	* nsfns.m (ns_set_cursor_color): Use FRAME_CURSOR_COLOR.
+	(ns_lisp_to_cursor_type, ns_cursor_type_to_lisp): Use core emacs
+	enumeration (HOLLOW_BOX_CURSOR, etc.).
+
+	* nsterm.m (ns_frame_rehighlight): Remove commented code.
+	(draw_window_cursor): Simplify code.
+	(EmacsView-windowDidBecomeKey:,-windowDidResignKey:): Don't
+	change cursor type. In latter, call rehighlight instead of doing
+	updates manually.
+	(EmacsPrefsController-setPanelFromValues,-setValuesFromPanel): Use
+	core emacs cursor types.
+
+	* xdisp.c (draw_glyphs): Don't call notice_overwritten_cursor() under
+	NS.
+
+2008-10-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* process.c (Faccept_process_output): Fix doc-string.
+
+2008-10-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* gmalloc.c (__sbrk): Also define for uClibc.
+
+	* s/gnu-linux.h (GNU_LIBRARY_PENDING_OUTPUT_COUNT): Add definition
+	for uClibc.
+
+2008-10-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfont.m (nsfont_spec_to_traits): Use UnXX masks only for non-normal
+	styles.
+	(nsfont_open): Reenable the cache.
+
+2008-10-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* font.c (font_matching_entity): Reflect ATTRS in font selection.
+	(font_find_for_lface) [HAVE_NS]: Don't ignore case.
+
+2008-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dispnew.c (Fsend_string_to_terminal): Don't try to send a string to
+	a suspended terminal.
+
+2008-09-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_signature): Use strcat instead of sprintf.
+
+2008-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (MSDOS_SUPPORT): Remove ccl.elc and codepage.elc.
+
+2008-09-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (move_it_to): Don't advance the iterator if the last tab
+	in a continued line coincides with a line beginning.
+
+2008-09-29  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfont.m (nsfont_trait_distance): Fix bug.
+	(nsfont_list): Return a list rather than a vector (syncs with Handa
+	changes of 2008-05-14).
+	(nsfont_open): Improve logging.
+
+2008-09-29  Andreas Schwab  <schwab@suse.de>
+
+	* keyboard.c (syms_of_keyboard) <input-decode-map>: Doc fix.
+
+2008-09-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* character.c (Fchar_resolve_modifiers): Rewrite Elisp function
+	name as char-resolve-modifiers.
+	Reported by: Markus Triska <markus.triska@gmx.at>
+
+2008-09-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dispnew.c (init_display): Return earlier when running as a daemon.
+
+2008-09-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfont.m (nsfont_draw): Fix up composition rendering (cmp_from, ...).
+
+2008-09-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* composite.c (Fcomposition_get_gstring)
+	(Fcompose_region_internal, Fcompose_string_internal)
+	(Ffind_composition_internal): Doc fix.
+	(syms_of_composite) <compose-chars-after-function>: Doc fix.
+	(syms_of_composite) <auto-composition-function>: Doc fix.
+	(syms_of_composite) <composition-function-table>: Doc fix.
+
+2008-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.c (wordify): New argument for lax word-ends.
+	(Fword_search_forward_lax, Fword_search_backward_lax): New funs.
+
+2008-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h (is_daemon): Declare.
+	* dispnew.c (init_display): Do not try to initialize the terminal
+	when running as a daemon.
+
+2008-09-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (compute_tip_xy): Use x_display_pixel_width and
+	x_display_pixel_height.
+
+2008-09-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* undo.c (record_point): Don't call Fundo_boundary for first
+	change.  (Bug#731)
+
+2008-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (Fdaemonp): Doc fix.
+
+2008-09-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c (main): Place #ifdef in the proper place.
+
+2008-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c (standard_args): Add --daemon.
+	(main): Disconnect from the terminal when --daemon is passed.
+	(is_daemon): New variable.
+	(Fdaemonp): New function.
+	(syms_of_emacs): Defsubr it.
+
+2008-09-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (get_next_display_element): Handle string display
+	correctly when checking for the end of a box run.
+
+2008-09-20  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Qdelete_by_moving_to_trash): New Lisp_Object.
+	(syms_of_fileio): Add Qdelete_by_moving_to_trash.
+	(Frename_file): Avoid copying to trash if a rename involves
+	a delete.  (Bug#964).
+
+2008-09-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (Fset_quit_char, Fset_input_meta_mode)
+	(Fset_output_flow_control, Fcurrent_input_mode): Support MSDOS
+	frames as well as termcap frames.
+	(handle_interrupt): Remove "#ifndef MSDOS" around the call to
+	get_named_tty.
+
+2008-09-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (procfs_system_process_attributes): Fix cmdline in
+	case /proc/PID/cmdline is empty.
+
+	* xterm.c (x_wm_set_size_hint): Use x_display_pixel_width and
+	x_display_pixel_height.
+
+2008-09-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.c (x_fullscreen_adjust): Declare var as Display_Info.
+
+	* w32fns.c (Fx_display_pixel_width, Fx_display_pixel_height)
+	(compute_tip_xy): Use x_display_pixel_width, x_display_pixel_height.
+
+2008-09-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dispextern.h (struct it): Move line_wrap away from the middle of
+	bitfields.  Move voffset in struct iterator_stack_entry after the
+	bitfields.  Move tab_width near after another short.
+
+2008-09-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.h (struct frame): Move alpha from the middle of bitfields.
+
+	* window.h (struct window): Move frozen_window_start_p after the
+	rest of the bitfields to reduce padding.
+
+2008-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.h (x_display_info): Remove `height' and `width' members.
+
+	* nsterm.h (ns_display_info): Remove `height' and `width' members.
+
+	* w32term.h (w32_display_info): Remove `height', `width',
+	`height_in', and `width_in' members.
+
+	* xterm.c (x_display_pixel_height, x_display_pixel_width): New
+	functions.
+	(x_calc_absolute_position): Use them.
+	(x_term_init): Omit removed `height' and `width' members.
+
+	* w32term.c (x_display_pixel_height, x_display_pixel_width): New
+	functions.
+	(w32_read_socket, x_calc_absolute_position): Use them.
+	(w32_initialize_display_info, w32_term_init): Omit removed members
+	of w32_display_info.
+
+	* nsterm.m (x_display_pixel_height, x_display_pixel_width): New
+	functions.
+	(ns_initialize_display_info): Omit removed members of
+	ns_display_info.
+
+	* xterm.c (x_display_pixel_height, x_display_pixel_width): New
+	functions.
+	(x_calc_absolute_position): Use them.
+	(x_term_init): Omit removed `height' and `width' members.
+
+	* xfns.c (Fx_display_pixel_width, Fx_display_pixel_height)
+	(compute_tip_xy): Use x_display_pixel_height and
+	x_display_pixel_width.
+
+	* frame.c (x_fullscreen_adjust): Use x_display_pixel_height and
+	x_display_pixel_width.
+
+	* xmenu.c (menu_position_func): Use x_display_pixel_height and
+	x_display_pixel_width.
+
+2008-09-18  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (fill_gstring_header): Don't check FROM and TO here.
+	(composition_compute_stop_pos): Fix handling of static composition.
+	(Fcomposition_get_gstring): Check FROM and TO at first.
+
+2008-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* composite.c (Fcomposition_get_gstring): Yet another int/Lisp_Oject
+	mixup (YAILOM).
+
+2008-09-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Use position reported by iterator
+	instead of PT for determining screen motion (bug#943).
+
+2008-09-17  Romain Francoise  <romain@orebokech.com>
+
+	* composite.c (composition_adjust_point): Fix int/EMACS_INT mixup.
+
+2008-09-17  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_shape_by_flt): Downcase family name.
+
+	* composite.c (Fcomposition_get_gstring): Make bigger gstring_work
+	if necessary.
+
+2008-09-16  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (make_conversion_work_buffer): Avoid calling
+	Fget_buffer_create if it is not necessary.
+
+2008-09-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fselect_window): Don't update window_select_count and
+	use_time when norecord is not nil.
+
+2008-09-14  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): Delete incorrect decrement of
+	specpdl_ptr.
+
+2008-09-12  Kenichi Handa  <handa@m17n.org>
+
+	* indent.c (scan_for_column): Don't handle automatic composition
+	if the current buffer is not associated with a window.
+
+	* composite.c (composition_reseat_it): If the current buffer is
+	not associated with a window, ignore the automatic composition.
+	(find_automatic_composition): Likewise.
+
+2008-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.c (close_gpm): New fun extracted from Fgpm_mouse_stop.
+	(Fgpm_mouse_stop): Use it.
+	* termhooks.h (close_gpm): Declare.
+	* keyboard.c (tty_read_avail_input): Forcefully close the gpm
+	connection if Gpm_GetEvent fails.
+
+	* window.c (set_window_buffer): Always preserve current-buffer.
+
+2008-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* charset.c (init_charset): Warn if etc/charsets not found.  (Bug#909)
+
+2008-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* charset.c (charset-map-path): Doc fix.
+
+2008-09-10  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (handle_composition_prop): Set it->cmp_it.ch to -1.
+
+	* font.c (Ffont_shape_gstring): Make glyphs of non-nil adjustment
+	compose a grapheme cluster with the preceding base glyph.
+
+	* composite.c (composition_compute_stop_pos): Fix previous change.
+	Reset cmp_it->id to -1 at first.
+
+2008-09-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (character.o, chartab.o): Fix config.h typo.
+
+2008-09-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_key_sequence): Reapply translation maps when
+	switching keyboards.
+
+2008-09-09  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_shape_by_flt): Use "combining" FLT for ASCII
+	characters.
+
+	* composite.c (FORWARD_CHAR): Fix calculation
+	of (POSITION).pos_byte.
+	(composition_compute_stop_pos): Limit the search of composition to
+	at most 500 characters ahead.  If we reach the limit or find a
+	newline, set cmp_it->ch to -2 and return 0.
+	(composition_reseat_it): Handle the case that cmp_it->ch is -2.
+
+2008-09-08  Kenichi Handa  <handa@m17n.org>
+
+	* indent.c (Fvertical_motion): Be sure to set
+	it_overshoot_expected if it.cmp_it.id is non-negative.
+
+2008-09-07  Andreas Schwab  <schwab@suse.de>
+
+	* callproc.c (Fcall_process): Don't hold references to string data
+	across garbage collection.  Move initialisation of new_argv down
+	to avoid compiler bug.
+
+2008-09-07  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* process.c (Fsystem_process_attributes): Doc fix.
+
+2008-09-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* callproc.c (Fcall_process): Canonicalize current directory name.
+
+	* xdisp.c (move_it_to): When moving by vpos, ensure that the
+	iterator advances to the next line if the current line ends in a
+	continued tab.
+
+2008-09-07  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nsfont.m (nsfont_draw): Fix the references to missing gidx data
+	member to point to cmp_from.
+
+	* xdisp.c: Doc fix for references to gidx data member.
+
+2008-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fbuffer_swap_text): Reset window->point markers.
+
+2008-09-07  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (FORWARD_CHAR): Check STOP after
+	incrementing (POSITION).pos.
+
+2008-09-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* process.c (Fsystem_process_attributes): Doc fix.
+
+2008-09-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (Ftop_level): Doc fix.
+
+2008-09-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* xmenu.c (xmenu_show) [!HAVE_X_WINDOWS]: If frame has a
+	minibuffer, don't let lower part of menu invade the echo area.
+
+	* msdos.c (IT_menu_display): Use STRING_CHAR_ADVANCE instead of a
+	"char *q" to access menu text and advance through it.  Revert the
+	change that displayed ">" instead of ASCII character 0x10.
+
+2008-09-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu.c (single_menu_item) [!HAVE_BOXES]: Enable emulation of
+	toggle boxes and radio buttons on MS-DOS as well.
+
+2008-09-05  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (autocmp_chars): Check lookback count.
+	(composition_compute_stop_pos): Set cmp_it->lookback.
+	(composition_reseat_it): Check lookback count.
+	(struct position_record): New struct.
+	(FORWARD_CHAR, BACKWARD_CHAR, CHAR_COMPOSABLE_P): New macros.
+	(find_automatic_composition): New function.
+	(composition_adjust_point): Use find_automatic_composition.
+
+	* dispextern.h (struct composition_it): New member lookback.
+
 2008-09-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* indent.c (Fvertical_motion): Don't call move_it_by_lines again
@@ -121,7 +563,7 @@
 
 	* composite.h (enum composition_method): Delete
 	COMPOSITION_WITH_GLYPH_STRING.
-	(COMPOSITION_METHOD): Dont' check COMPOSITION_WITH_GLYPH_STRING.
+	(COMPOSITION_METHOD): Don't check COMPOSITION_WITH_GLYPH_STRING.
 	(Vcomposition_function_table): Extern it.
 	(LGSTRING_XXX, LGLYPH_XXX): Macros moved from font.h.
 	(composition_gstring_put_cache, composition_gstring_from_id)
@@ -549,7 +991,7 @@
 
 	* font.c (Vfont_log_deferred): New variable.
 	(font_add_log): Check Vfont_log_deferred.
-	(font_deferred_log): New funciton.
+	(font_deferred_log): New function.
 
 	* font.h (font_deferred_log): Extern it.
 
@@ -700,7 +1142,7 @@
 
 	* config.in: Regenerate.
 
-	* Makefile.in (emacs): Remove ndef NS conditional for 'emacs
+	* Makefile.in (emacs): Remove ifndef NS conditional for 'emacs
 	-list-load-path-shadows'.
 	(nsgui.h): Reduce number of things depending on it.
 
@@ -871,10 +1313,10 @@
 
 	* nsfns.m (ns_frame_parm_handlers): Add empty entry for x_set_alpha.
 
-	* nsterm.m (EmacsApp -application:openFiles:): GNUStep does not
+	* nsterm.m (EmacsApp -application:openFiles:): GNUstep does not
 	define NSApplicationDelegateReplySuccess.
 	(EmacsView -converstationIdentifier): Use long instead of
-	NSInteger for GNUStep, since it doesn't have NSInteger.
+	NSInteger for GNUstep, since it doesn't have NSInteger.
 
 	* xmenu.c: Revert last change.
 
@@ -1314,7 +1756,7 @@
 
 	* Makefile.in (C_SWITCH_SITE, LD_SWITCH_SITE): Remove, unused.
 	Remove all references.
-	(temacs): Add GNUStep specific ld flags.
+	(temacs): Add GNUstep specific ld flags.
 
 	* nsterm.m (syms_of_nsterm): Provide ns, not ns-windowing,
 	similarly to what X does.
@@ -1443,7 +1885,7 @@
 
 2008-07-21  Kenichi Handa  <handa@m17n.org>
 
-	* ftfont.c (adjust_anchor): Check if DetalValue is not NULL.
+	* ftfont.c (adjust_anchor): Check if DeltaValue is not NULL.
 
 2008-07-20  Andreas Schwab  <schwab@suse.de>
 
@@ -1696,7 +2138,7 @@
 	* m/m68k.h (linux): Use GNU_LINUX instead.
 	Remove boilerplate comments.
 
-	* m/intel386.h: Undo reactoring from previous change.
+	* m/intel386.h: Undo refactoring from previous change.
 	(LIB_STANDARD): All systems that define USG define LIB_STANDARD
 	too, remove dead code.
 	(linux): Use GNU_LINUX instead.
@@ -2179,7 +2621,7 @@
 	(fontset_find_font): Change the format of an element of a realized
 	fontset.  Use fontset_get_font_group.
 	(fontset_font): Try the current fontset, the default fontset, the
-	fallbacks of the current fonset, and the fallbacks of the default
+	fallbacks of the current fontset, and the fallbacks of the default
 	fontset in this order.
 	(face_for_char): Delete the shortcut to use the current font.
 	(fontset_from_font): Don't set fonts for Latin in the fontset.
@@ -2775,7 +3217,7 @@
 
 2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* w32fns.c, xfnc.c (x_default_font_parameter): Only set `font-param'
+	* w32fns.c, xfns.c (x_default_font_parameter): Only set `font-param'
 	for explicit `font' parameters.
 
 	* frame.c (x_set_font): Remove unexplained call to fix inf-recursion.
@@ -2797,7 +3239,7 @@
 
 	* font.c (font_parse_xlfd): Fix previous change.
 	(font_parse_fcname): Don't use :fc-unknown-spec.
-	(FRAME_X_DISPLAY_INFO): Besure to have at least 1 pixel height.
+	(FRAME_X_DISPLAY_INFO): Be sure to have at least 1 pixel height.
 	(Fcopy_font_spec): Preserve the order of elements in FONT_EXTRA.
 	(font_add_log): Prepend the driver name to the resulting fonts.
 
@@ -4151,7 +4593,7 @@
 	(RFONT_DEF_SET_SCORE, RFONT_DEF_NEW): New macros.
 	(fontset_compare_rfontdef): New function.
 	(reorder_font_vector): Remove the argument CHARSET-ID.  Sort
-	ront-defs by qsort.  Adjusted for the change of font-group vector.
+	rfont-defs by qsort.  Adjusted for the change of font-group vector.
 	(load_font_get_repertory): Deleted.
 	(fontset_find_font): Use new macros to ref/set elements of
 	font-def and rfont-def.
@@ -4201,7 +4643,7 @@
 	(ftfont_match): Use ftfont_spec_pattern to get a pattern.
 	(ftfont_list_family): Don't downcase names.
 	(ftfont_free_entity): Deleted.
-	(ftfont_open): Return a font-ojbect.  Adjusted for the change of
+	(ftfont_open): Return a font-object.  Adjusted for the change of
 	struct font.  Get underline_thickness and underline_position from
 	font property.  Don't update dpyinfo->smallest_font_height and
 	dpyinfo->smallest_char_width.
@@ -4210,11 +4652,11 @@
 	(ftfont_encode_char, ftfont_text_extents): Likewise.
 
 	* ftxfont.c (ftxfont_list): Return a list, not vector.
-	(ftxfont_open): Return a font-ojbect.  Adjusted for the change of
+	(ftxfont_open): Return a font-object.  Adjusted for the change of
 	struct font.  Get underline_thickness and underline_position from
 	font property.  Don't update dpyinfo->smallest_font_height and
 	dpyinfo->smallest_char_width.
-	(ftxfont_close): Don't decrese FRAME_X_DISPLAY_INFO (f)->n_fonts.
+	(ftxfont_close): Don't decrease FRAME_X_DISPLAY_INFO (f)->n_fonts.
 	(ftxfont_draw): Adjusted for the change of struct font.
 
 	* image.c (image_ascent): Don't include "charset.h".  Include
@@ -4328,7 +4770,7 @@
 	(xfont_list): Return a list, not vector.
 	(xfont_match): If the font doesn't have QCname property, generate
 	a name from the other font properties.
-	(xfont_open): Return a font-ojbect.  Adjusted for the change of
+	(xfont_open): Return a font-object.  Adjusted for the change of
 	struct font.  Get underline_thickness and underline_position from
 	font property.  Don't update dpyinfo->smallest_font_height and
 	dpyinfo->smallest_char_width.
@@ -4341,7 +4783,7 @@
 
 	* xftfont.c (xftfont_list): Adjusted for the change of `list'
 	callback function.
-	(xftfont_match): Adjusted for the fontmat change of font-entity.
+	(xftfont_match): Adjusted for the format change of font-entity.
 	(xftfont_open): Adjusted for the format change of font-entity and
 	font-object.  Adjusted for the change of struct font.  Return a
 	font-object.  Don't update dpyinfo->smallest_font_height and
@@ -5820,7 +6262,7 @@
 	(xg_frame_set_char_size): Call x_wm_size_hint_off before resizing.
 	(x_wm_set_size_hint): Set size hints on the edit widget only, not
 	the whole frame.
-	(xg_create_tool_bar): Move attachement of the tool bar to
+	(xg_create_tool_bar): Move attachment of the tool bar to
 	xg_pack_tool_bar.  Do not attach the tool bar if there are no items.
 	(free_frame_tool_bar): Remove call to SET_FRAME_GARBAGED.
 
@@ -6160,7 +6602,7 @@
 	when enable_font_backend is set.
 
 	* xdisp.c (handle_composition_prop): Set it->c to the fist
-	characte of the composed region.
+	character of the composed region.
 	(fill_composite_glyph_string): Set base_face->font_info to
 	s->font_info.  Get a face for ascii from base_face->ascii_face.
 	(BUILD_COMPOSITE_GLYPH_STRING): Call fill_composite_glyph_string
@@ -6287,8 +6729,8 @@
 
 	* frame.c (Qnoelisp): New symbol.
 	(syms_of_frame): Initialize it.
-	(Fdelete_frame): Use it to distinguish a mere `force' passed from
-	someharmles Elisp code, from a strong `force' from x_connection_closed.
+	(Fdelete_frame): Use it to distinguish a mere `force' passed from some
+	harmless Elisp code, from a strong `force' from x_connection_closed.
 	* frame.h (Qnoelisp): Declare.
 	* xterm.c (x_connection_closed): Pass `noelisp'.
 
@@ -6389,7 +6831,7 @@
 	(x_iconify_frame): Ditto.
 
 	* xterm.h (struct x_display_info): Add AtomXatom_XEMBED.
-	(enum xembed_info, enum xerm srmbed_message, enum xembed_focus)
+	(enum xembed_info, enum xembed_message, enum xembed_focus)
 	(enum xembed_modifier, enum xembed_accelerator): New.
 	(xembed_set_info, xembed_send_message): Declare.
 	(FRAME_X_EMBEDDED_P): New.
@@ -7198,7 +7640,7 @@
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_draw): If s->font_info != s->face->font_info,
-	create a temporal XftDraw object.
+	create a temporary XftDraw object.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -7343,7 +7785,7 @@
 	(w32font_open): Don't populate subranges.
 	(w32font_has_char): Use script Lisp symbols, not subrange bitmask.
 	(w32font_encode_char): Always return unicode code-point as-is.
-	(w32font_text_extents): Supply a tranformation matrix to
+	(w32font_text_extents): Supply a transformation matrix to
 	GetGlyphOutline.  Never look up by glyph index.  Avoid looping
 	twice.  Use unicode version of GetTexExtentPoint32 instead of
 	glyph index version.
@@ -7637,7 +8079,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* xrdb.c (x_load_resources): Setup the default fontSet X reource.
+	* xrdb.c (x_load_resources): Setup the default fontSet X resource.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -7693,7 +8135,7 @@
 	(ftfont_open): Set font->format.
 	(ftfont_font_format): New function.
 
-	* font.h (struct font): New memeber format.
+	* font.h (struct font): New member format.
 
 	* font.c (Qopentype): New variable.
 	(syms_of_font): Defsym it.
@@ -7765,7 +8207,7 @@
 
 	* xterm.c (x_draw_composite_glyph_string_foreground): Don't draw
 	TAB.  Adjust for the change of s->char2b which always points to
-	the first elememnt of allocated memory.
+	the first element of allocated memory.
 
 	* xftfont.c (xftfont_text_extents): Fix calculation of descent value.
 
@@ -7808,7 +8250,7 @@
 	(ftfont_list): Don't check :name property.
 	(ftfont_match): New function.
 	(ftfont_pattern_entity): If the pattern doesn't contain
-	FC_SPACING, don't assuce FC_MONO.
+	FC_SPACING, don't assume FC_MONO.
 
 	* font.h (struct font_driver): New member `match'.
 	(font_update_drivers): Adjust prototype.
@@ -7875,7 +8317,7 @@
 	(ftxfont_draw_bitmap): Fix arg to ftfont_driver.get_bitmap.
 	(ftxfont_draw_backgrond): Fix filling region.
 	(ftxfont_default_fid): New function.
-	(ftxfont_open): Set xfotn->fid to the return value of
+	(ftxfont_open): Set xfont->fid to the return value of
 	ftxfont_default_fid.
 	(ftxfont_prepare_face): Use ftxfont_create_gcs to create GCs.
 	(ftxfont_done_face): Free only GCs that are created by
@@ -8082,14 +8524,14 @@
 	(enum font_spacing): New enum.
 	(FONT_PIXEL_SIZE_QUANTUM): New macro.
 
-	* font.c (POINT_TO_PIXEL): Don't divice POINT by 10.
+	* font.c (POINT_TO_PIXEL): Don't divide POINT by 10.
 	(QCspacing, QCdpi): New variables.
 	(syms_of_font): Initialize them.
 	(font_pixel_size): New function.
 	(font_put_extra): New function.
 	(font_parse_xlfd): Fix handling of font size.  Add QCdpi property
 	in FONT_EXTRA.
-	(font_parse_fcname): Handle enumenrated values (e.g. bold).
+	(font_parse_fcname): Handle enumerated values (e.g. bold).
 	Fix handling font size.  Add QCname property that contains only
 	unknown properties.
 	(font_score): Change argument.  Change caller.  Pay attention to
@@ -8277,7 +8719,7 @@
 	(register_xftdraw, check_xftdraw): Delete them.
 	(xftfont_prepare_face): Don't call register_xftdraw.
 	(xftfont_done_face): Don't call check_xftdraw.
-	(xftfont_draw): Get backroudn color only when with_background is
+	(xftfont_draw): Get background color only when with_background is
 	nonzero.
 
 	* xfont.c (xfont_encode_char): Fix calculation of char2b.
@@ -8690,7 +9132,7 @@
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): In unibyte case, decide to
-	display in octal form by checking a chacter by
+	display in octal form by checking a character by
 	UNIBYTE_CHAR_HAS_MULTIBYTE_P.
 
 	* charset.c (Fset_unibyte_charset): Setup unibyte_has_multibyte_table.
@@ -8721,13 +9163,13 @@
 
 	* lread.c (read1): Fix reading of a char-table.
 
-	* print.c (print_object): Include sub char-table in cicularities
+	* print.c (print_object): Include sub char-table in circularities
 	detection.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* keymap.c (where_is_internal_2): Fix for the case that KEY is a
-	cons.  Append the found sequences in car of ARGS instead of prepending.
+	* keymap.c (where_is_internal_2): Fix for the case that KEY is a cons.
+	Append the found sequences in car of ARGS instead of prepending.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -8773,7 +9215,7 @@
 	refer to face->font.
 	(split_font_name_into_vector, build_font_name_from_vector)
 	(lookup_non_ascii_face, realize_non_ascii_face): Define them only
-	whne HAVE_WINDOW_SYSTEM is defined.
+	when HAVE_WINDOW_SYSTEM is defined.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -8841,7 +9283,7 @@
 	to get a font name.
 	(Ffontset_info): Adjust for the change of fontset_font.
 
-	* coding.c (emacs_mule_char): Check invalid code more regidly.
+	* coding.c (emacs_mule_char): Check invalid code more rigidly.
 
 	* character.h (LEADING_CODE_LATIN_1_MIN)
 	(LEADING_CODE_LATIN_1_MAX): Delete these macros.
@@ -9071,7 +9513,7 @@
 	(print_prune_string_charset): New function.
 	(print_object): Call print_prune_string_charset if
 	Vprint_charset_text_property is not t.
-	(print_interval): Print nothing if itnerval->plist is nil.
+	(print_interval): Print nothing if interval->plist is nil.
 	(syms_of_print): Declare Vprint_charset_text_property as a lisp
 	variable.  Init and staticpro print_prune_charset_plist.
 
@@ -9177,7 +9619,7 @@
 
 	* fileio.c (kill_workbuf_unwind): Delete this function.
 	(Finsert_file_contents): Adjust the call of detect_coding_system.
-	Get conversion_buffer by code_conversion_save.  Use the macor
+	Get conversion_buffer by code_conversion_save.  Use the macro
 	CODING_MAY_REQUIRE_DECODING.  After decoding, update
 	coding_system.
 
@@ -9196,7 +9638,7 @@
 	(detect_coding): Don't detect eol.  Fix for utf-16 detection.
 	(decode_eol): In case of CRLF->LF conversion, use del_range_2 on
 	each change.
-	(decode_coding): Pay attention to undo_list.  Do eol convesion for
+	(decode_coding): Pay attention to undo_list.  Do eol conversion for
 	all types of coding-systems (if necessary).
 	(Vcode_conversion_work_buf_list): Delete it.
 	(Vcode_conversion_reused_workbuf): Rename from
@@ -9376,7 +9818,7 @@
 	change of find_charsets_in_text.
 	(Fsplit_char): Fix doc.  Never return unknown.
 
-	* chartab.c (char_table_translate): Use CHARACTERP, not INETEGERP.
+	* chartab.c (char_table_translate): Use CHARACTERP, not INTEGERP.
 
 	* coding.c (Fdefine_coding_system_alias): Update
 	Vcoding_system_list.
@@ -9648,7 +10090,7 @@
 	instead of record_unwind_protect.
 	(decode_coding_object, encode_coding_object): Likewise.  Recover PT.
 	(detect_coding_system): Delete unused variable `mask'.
-	(Fdefine_coding_system_internal): Delete unused vaiable id.
+	(Fdefine_coding_system_internal): Delete unused variable id.
 
 	* fileio.c (kill_workbuf_unwind): New function.
 	(Finsert_file_contents): On replacing, call
@@ -10184,7 +10626,7 @@
 	convert it to the corresponding byte value.
 
 	* charset.c (Fset_unibyte_charset): If the dimension of CHARSET is
-	not 1, singals an error.  Update the elements of
+	not 1, signals an error.  Update the elements of
 	unibyte_to_multibyte_table.
 	(init_charset_once): Initialize unibyte_to_multibyte_table.
 	(syms_of_charset): Define the charset `iso-8859-1'.
@@ -10308,7 +10750,7 @@
 
 	* character.h (MAKE_CHAR_UNIBYTE, MAKE_CHAR_MULTIBYTE): New macros.
 
-	* character.c (_fetch_multibyte_char_len): Delet this variable.
+	* character.c (_fetch_multibyte_char_len): Delete this variable.
 	(syms_of_character): Setup Vprintable_chars.
 
 	* editfns.c (Fchar_equal): Fix for the unibyte case.
@@ -10608,7 +11050,7 @@
 	(read_multibyte): Delete.
 	(readbyte_for_lambda, readbyte_from_file, readbyte_from_string)
 	(read_emacs_mule_char): New functions.
-	(Fload): Even if the file doesn't have the extention ".elc", if
+	(Fload): Even if the file doesn't have the extension ".elc", if
 	safe_to_load_p returns a positive version number, assume that the
 	file contains bytecompiled code.  If the version is less than 22,
 	load the file while decoding multibyte sequences by emacs-mule.
@@ -10654,7 +11096,7 @@
 	(Funify_charset): New optional arg DEUNIFY.  If it is non-nil,
 	deunify intead of unify a charset.
 	(string_xstring_p): Add `const' to local variables.
-	(find_charsets_in_text): Add `const' to arguemnts and local variables.
+	(find_charsets_in_text): Add `const' to arguments and local variables.
 	(encode_char): Adjust for the change of Funify_charset.  Fix
 	detecting of invalid code.
 	(Fset_charset_priority): Increment charset_ordered_list_tick.
@@ -10680,7 +11122,7 @@
 
 	* fns.c: Move coding.h.
 	(Qcodeset, Qdays, Qmonths): New.
-	(concat): Use CHARACTERP instead of INTERGERP.
+	(concat): Use CHARACTERP instead of INTEGERP.
 	(Flocale_codeset): Delete.
 	(Flanginfo): New function.
 	(syms_of_fns): Change accordingly.
@@ -11054,7 +11496,7 @@
 2008-02-01  Yong Lu  <lyongu@asia-infonet.com>
 
 	* charset.c (read_hex): Don't treat SPC as a comment starter.
-	(decode_char): If CODE_POINT_TO_INDEX retruns -1, always return -1.
+	(decode_char): If CODE_POINT_TO_INDEX returns -1, always return -1.
 	(Fdecode_char): Fix typo.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -11092,7 +11534,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* search.c (boyer_moore): Fix handling of mulitbyte character
+	* search.c (boyer_moore): Fix handling of multibyte character
 	translation.
 
 	* xdisp.c (display_mode_element): When the variable `elt' is
@@ -11125,7 +11567,7 @@
 	alloc_destination.
 	(Fdefine_coding_system_alias): Register ALIAS in
 	Vcoding_system_alist.
-	(syms_of_coding): Define `no-convesion' coding system at the tail.
+	(syms_of_coding): Define `no-conversion' coding system at the tail.
 
 	* fileio.c (Finsert_file_contents): Set coding_system instead of
 	val.  If the current buffer is multibyte, always call
@@ -11237,7 +11679,7 @@
 	* category.c: Include "character.h".
 	(copy_category_entry): New function.
 	(copy_category_table): Call map_char_table and copy_category_entry.
-	(Fmake_category_table): Initialize all top-vel slots.
+	(Fmake_category_table): Initialize all top-level slots.
 	(char_category_set): New function.
 	(modify_lower_category_set): Delete.
 	(Fmodify_category_entry): Call char_table_ref_and_range.
@@ -11865,7 +12307,7 @@
 	Reported by Tom Tromey <tromey@redhat.com>.
 	(XD_ERROR, XD_DEBUG_MESSAGE)
 	(XD_DEBUG_VALID_LISP_OBJECT_P): Wrap code with "do ... while (0)".
-	(xd_append_arg): Part for basic D-Bus types rewitten.
+	(xd_append_arg): Part for basic D-Bus types rewritten.
 	(xd_retrieve_arg): Split implementation of DBUS_TYPE_BYTE and
 	DBUS_TYPE_(U)INT16.  Don't call XD_DEBUG_MESSAGE with "%f" if not
 	appropriate.

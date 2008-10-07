@@ -226,8 +226,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   int bufsize = CALLPROC_BUFFER_SIZE_MIN;
   int count = SPECPDL_INDEX ();
 
-  register const unsigned char **new_argv
-    = (const unsigned char **) alloca ((max (2, nargs - 2)) * sizeof (char *));
+  register const unsigned char **new_argv;
   struct buffer *old = current_buffer;
   /* File to use for stderr in the child.
      t means use same as standard output.  */
@@ -235,9 +234,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
   char *outf, *tempfile;
   int outfilefd;
-#endif
-#if 0
-  int mask;
 #endif
   struct coding_system process_coding; /* coding-system of process output */
   struct coding_system argument_coding;	/* coding-system of arguments */
@@ -374,6 +370,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	 a sensible default. */
       current_dir = build_string ("~/");
     current_dir = expand_and_dir_to_file (current_dir, Qnil);
+    current_dir = Ffile_name_as_directory (current_dir);
+
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
 			 Fcons (current_buffer->directory, Qnil));
@@ -415,7 +413,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       && SREF (path, 1) == ':')
     path = Fsubstring (path, make_number (2), Qnil);
 
-  new_argv[0] = SDATA (path);
+  new_argv = (const unsigned char **)
+    alloca (max (2, nargs - 2) * sizeof (char *));
   if (nargs > 4)
     {
       register int i;
@@ -429,13 +428,15 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  if (CODING_REQUIRE_ENCODING (&argument_coding))
 	    /* We must encode this argument.  */
 	    args[i] = encode_coding_string (&argument_coding, args[i], 1);
-	  new_argv[i - 3] = SDATA (args[i]);
 	}
       UNGCPRO;
-      new_argv[nargs - 3] = 0;
+      for (i = 4; i < nargs; i++)
+	new_argv[i - 3] = SDATA (args[i]);
+      new_argv[i - 3] = 0;
     }
   else
     new_argv[1] = 0;
+  new_argv[0] = SDATA (path);
 
 #ifdef MSDOS /* MW, July 1993 */
   if ((outf = egetenv ("TMPDIR")))
@@ -473,10 +474,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  emacs_close (filefd);
 	  report_file_error ("Creating process pipe", Qnil);
 	}
-#endif
-#if 0
-      /* Replaced by close_process_descs */
-      set_exclusive_use (fd[0]);
 #endif
     }
 

@@ -103,7 +103,7 @@ and then returns."
 		    ;; sections, *excluding* where we switch buffers
 		    ;; and where we execute the chosen help command.
 		    (local-map (make-sparse-keymap))
-		    (minor-mode-map-alist nil)
+		    (new-minor-mode-map-alist minor-mode-map-alist)
 		    (prev-frame (selected-frame))
 		    config new-frame key char)
 	       (if (string-match "%THIS-KEY%" help-screen)
@@ -111,7 +111,7 @@ and then returns."
 			 (replace-match (key-description (substring (this-command-keys) 0 -1))
 					t t help-screen)))
 	       (unwind-protect
-		   (progn
+		   (let ((minor-mode-map-alist nil))
 		     (setcdr local-map ,helped-map)
 		     (define-key local-map [t] 'undefined)
 		     ;; Make the scroll bar keep working normally.
@@ -140,7 +140,9 @@ and then returns."
 			   (let ((inhibit-read-only t))
 			     (erase-buffer)
 			     (insert help-screen))
-			   (help-mode)
+			   (let ((minor-mode-map-alist new-minor-mode-map-alist))
+			     (help-mode)
+			     (setq new-minor-mode-map-alist minor-mode-map-alist))
 			   (goto-char (point-min))
 			   (while (or (memq char (append help-event-list
 							 (cons help-char '(?? ?\C-v ?\s ?\177 delete backspace vertical-scroll-bar ?\M-v))))
@@ -191,8 +193,8 @@ and then returns."
 			   (ding)))))
 		 (if new-frame (iconify-frame new-frame))
 		 (if config
-		     (set-window-configuration config))))))
-     )))
+		     (set-window-configuration config))
+		 (setq minor-mode-map-alist new-minor-mode-map-alist))))))))
 
 (provide 'help-macro)
 

@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 11.2
+;; Version: 11.2.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -302,7 +302,7 @@
 ;;				turned on.
 ;;
 ;; `whitespace-action'		Specify which action is taken when a
-;;				buffer is visited, killed or written.
+;;				buffer is visited or written.
 ;;
 ;;
 ;; Acknowledgements
@@ -316,8 +316,8 @@
 ;; `indent-tabs-mode' usage suggestion.
 ;;
 ;; Thanks to Eric Cooper <ecc@cmu.edu> for the suggestion to have hook
-;; actions when buffer is written or killed as the original whitespace
-;; package had.
+;; actions when buffer is written as the original whitespace package
+;; had.
 ;;
 ;; Thanks to nschum (EmacsWiki) for the idea about highlight "long"
 ;; lines tail.  See EightyColumnRule (EmacsWiki).
@@ -967,7 +967,7 @@ C++ modes only."
 
 
 (defcustom whitespace-action nil
-  "*Specify which action is taken when a buffer is visited, killed or written.
+  "*Specify which action is taken when a buffer is visited or written.
 
 It's a list containing some or all of the following values:
 
@@ -982,12 +982,16 @@ It's a list containing some or all of the following values:
 			when local whitespace is turned on.
 
    auto-cleanup		cleanup any bogus whitespace when buffer is
-			written or killed.
+			written.
 			See `whitespace-cleanup' and
 			`whitespace-cleanup-region'.
 
    abort-on-bogus	abort if there is any bogus whitespace and the
-			buffer is written or killed.
+			buffer is written.
+
+   warn-if-read-only	give a warning if `cleanup' or `auto-cleanup'
+			is included in `whitespace-action' and the
+			buffer is read-only.
 
 Any other value is treated as nil."
   :type '(choice :tag "Actions"
@@ -997,7 +1001,8 @@ Any other value is treated as nil."
 			  (const :tag "Cleanup When On" cleanup)
 			  (const :tag "Report On Bogus" report-on-bogus)
 			  (const :tag "Auto Cleanup" auto-cleanup)
-			  (const :tag "Abort On Bogus" abort-on-bogus))))
+			  (const :tag "Abort On Bogus" abort-on-bogus)
+			  (const :tag "Warn If Read-Only" warn-if-read-only))))
   :group 'whitespace)
 
 
@@ -1428,18 +1433,23 @@ The problems cleaned up are:
 
 See `whitespace-style', `indent-tabs-mode' and `tab-width' for
 documentation."
-  (interactive "@*")
-  (if (and (or transient-mark-mode
-	       current-prefix-arg)
-	   mark-active)
-      ;; region active
-      ;; PROBLEMs 1 and 2 are not handled in region
-      ;; PROBLEM 3: 8 or more SPACEs at bol
-      ;; PROBLEM 4: SPACEs before TAB
-      ;; PROBLEM 5: SPACEs or TABs at eol
-      ;; PROBLEM 6: 8 or more SPACEs after TAB
-      (whitespace-cleanup-region (region-beginning) (region-end))
-    ;; whole buffer
+  (interactive "@")
+  (cond
+   ;; read-only buffer
+   (buffer-read-only
+    (whitespace-warn-read-only "cleanup"))
+   ;; region active
+   ((and (or transient-mark-mode
+	     current-prefix-arg)
+	 mark-active)
+    ;; PROBLEMs 1 and 2 are not handled in region
+    ;; PROBLEM 3: 8 or more SPACEs at bol
+    ;; PROBLEM 4: SPACEs before TAB
+    ;; PROBLEM 5: SPACEs or TABs at eol
+    ;; PROBLEM 6: 8 or more SPACEs after TAB
+    (whitespace-cleanup-region (region-beginning) (region-end)))
+   ;; whole buffer
+   (t
     (save-excursion
       (save-match-data
 	;; PROBLEM 1: empty lines at bob
@@ -1458,7 +1468,7 @@ documentation."
     ;; PROBLEM 4: SPACEs before TAB
     ;; PROBLEM 5: SPACEs or TABs at eol
     ;; PROBLEM 6: 8 or more SPACEs after TAB
-    (whitespace-cleanup-region (point-min) (point-max))))
+    (whitespace-cleanup-region (point-min) (point-max)))))
 
 
 ;;;###autoload
@@ -1501,85 +1511,89 @@ The problems cleaned up are:
 
 See `whitespace-style', `indent-tabs-mode' and `tab-width' for
 documentation."
-  (interactive "@*r")
-  (let ((rstart           (min start end))
-	(rend             (copy-marker (max start end)))
-	(indent-tabs-mode whitespace-indent-tabs-mode)
-	(tab-width        whitespace-tab-width)
-	overwrite-mode			; enforce no overwrite
-	tmp)
-    (save-excursion
-      (save-match-data
-	;; PROBLEM 1: 8 or more SPACEs at bol
-	(cond
-	 ;; ACTION: replace 8 or more SPACEs at bol by TABs, if
-	 ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs by
-	 ;; SPACEs.
-	 ((memq 'indentation whitespace-style)
-	  (let ((regexp (whitespace-indentation-regexp)))
-	    (goto-char rstart)
-	    (while (re-search-forward regexp rend t)
-	      (setq tmp (current-indentation))
-	      (goto-char (match-beginning 0))
-	      (delete-horizontal-space)
-	      (unless (eolp)
-		(indent-to tmp)))))
-	 ;; ACTION: replace 8 or more SPACEs at bol by TABs.
-	 ((memq 'indentation::tab whitespace-style)
-	  (whitespace-replace-action
-	   'tabify rstart rend
-	   (whitespace-indentation-regexp 'tab) 0))
-	 ;; ACTION: replace TABs by SPACEs.
-	 ((memq 'indentation::space whitespace-style)
-	  (whitespace-replace-action
-	   'untabify rstart rend
-	   (whitespace-indentation-regexp 'space) 0)))
-	;; PROBLEM 3: SPACEs or TABs at eol
-	;; ACTION: remove all SPACEs or TABs at eol
-	(when (memq 'trailing whitespace-style)
-	  (whitespace-replace-action
-	   'delete-region rstart rend
-	   whitespace-trailing-regexp 1))
-	;; PROBLEM 4: 8 or more SPACEs after TAB
-	(cond
-	 ;; ACTION: replace 8 or more SPACEs by TABs, if
-	 ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs by
-	 ;; SPACEs.
-	 ((memq 'space-after-tab whitespace-style)
-	  (whitespace-replace-action
-	   (if whitespace-indent-tabs-mode 'tabify 'untabify)
-	   rstart rend (whitespace-space-after-tab-regexp) 1))
-	 ;; ACTION: replace 8 or more SPACEs by TABs.
-	 ((memq 'space-after-tab::tab whitespace-style)
-	  (whitespace-replace-action
-	   'tabify rstart rend
-	   (whitespace-space-after-tab-regexp 'tab) 1))
-	 ;; ACTION: replace TABs by SPACEs.
-	 ((memq 'space-after-tab::space whitespace-style)
-	  (whitespace-replace-action
-	   'untabify rstart rend
-	   (whitespace-space-after-tab-regexp 'space) 1)))
-	;; PROBLEM 2: SPACEs before TAB
-	(cond
-	 ;; ACTION: replace SPACEs before TAB by TABs, if
-	 ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs by
-	 ;; SPACEs.
-	 ((memq 'space-before-tab whitespace-style)
-	  (whitespace-replace-action
-	   (if whitespace-indent-tabs-mode 'tabify 'untabify)
-	   rstart rend whitespace-space-before-tab-regexp
-	   (if whitespace-indent-tabs-mode 1 2)))
-	 ;; ACTION: replace SPACEs before TAB by TABs.
-	 ((memq 'space-before-tab::tab whitespace-style)
-	  (whitespace-replace-action
-	   'tabify rstart rend
-	   whitespace-space-before-tab-regexp 1))
-	 ;; ACTION: replace TABs by SPACEs.
-	 ((memq 'space-before-tab::space whitespace-style)
-	  (whitespace-replace-action
-	   'untabify rstart rend
-	   whitespace-space-before-tab-regexp 2)))))
-    (set-marker rend nil)))		; point marker to nowhere
+  (interactive "@r")
+  (if buffer-read-only
+      ;; read-only buffer
+      (whitespace-warn-read-only "cleanup region")
+    ;; non-read-only buffer
+    (let ((rstart           (min start end))
+	  (rend             (copy-marker (max start end)))
+	  (indent-tabs-mode whitespace-indent-tabs-mode)
+	  (tab-width        whitespace-tab-width)
+	  overwrite-mode		; enforce no overwrite
+	  tmp)
+      (save-excursion
+	(save-match-data
+	  ;; PROBLEM 1: 8 or more SPACEs at bol
+	  (cond
+	   ;; ACTION: replace 8 or more SPACEs at bol by TABs, if
+	   ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs
+	   ;; by SPACEs.
+	   ((memq 'indentation whitespace-style)
+	    (let ((regexp (whitespace-indentation-regexp)))
+	      (goto-char rstart)
+	      (while (re-search-forward regexp rend t)
+		(setq tmp (current-indentation))
+		(goto-char (match-beginning 0))
+		(delete-horizontal-space)
+		(unless (eolp)
+		  (indent-to tmp)))))
+	   ;; ACTION: replace 8 or more SPACEs at bol by TABs.
+	   ((memq 'indentation::tab whitespace-style)
+	    (whitespace-replace-action
+	     'tabify rstart rend
+	     (whitespace-indentation-regexp 'tab) 0))
+	   ;; ACTION: replace TABs by SPACEs.
+	   ((memq 'indentation::space whitespace-style)
+	    (whitespace-replace-action
+	     'untabify rstart rend
+	     (whitespace-indentation-regexp 'space) 0)))
+	  ;; PROBLEM 3: SPACEs or TABs at eol
+	  ;; ACTION: remove all SPACEs or TABs at eol
+	  (when (memq 'trailing whitespace-style)
+	    (whitespace-replace-action
+	     'delete-region rstart rend
+	     whitespace-trailing-regexp 1))
+	  ;; PROBLEM 4: 8 or more SPACEs after TAB
+	  (cond
+	   ;; ACTION: replace 8 or more SPACEs by TABs, if
+	   ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs
+	   ;; by SPACEs.
+	   ((memq 'space-after-tab whitespace-style)
+	    (whitespace-replace-action
+	     (if whitespace-indent-tabs-mode 'tabify 'untabify)
+	     rstart rend (whitespace-space-after-tab-regexp) 1))
+	   ;; ACTION: replace 8 or more SPACEs by TABs.
+	   ((memq 'space-after-tab::tab whitespace-style)
+	    (whitespace-replace-action
+	     'tabify rstart rend
+	     (whitespace-space-after-tab-regexp 'tab) 1))
+	   ;; ACTION: replace TABs by SPACEs.
+	   ((memq 'space-after-tab::space whitespace-style)
+	    (whitespace-replace-action
+	     'untabify rstart rend
+	     (whitespace-space-after-tab-regexp 'space) 1)))
+	  ;; PROBLEM 2: SPACEs before TAB
+	  (cond
+	   ;; ACTION: replace SPACEs before TAB by TABs, if
+	   ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs
+	   ;; by SPACEs.
+	   ((memq 'space-before-tab whitespace-style)
+	    (whitespace-replace-action
+	     (if whitespace-indent-tabs-mode 'tabify 'untabify)
+	     rstart rend whitespace-space-before-tab-regexp
+	     (if whitespace-indent-tabs-mode 1 2)))
+	   ;; ACTION: replace SPACEs before TAB by TABs.
+	   ((memq 'space-before-tab::tab whitespace-style)
+	    (whitespace-replace-action
+	     'tabify rstart rend
+	     whitespace-space-before-tab-regexp 1))
+	   ;; ACTION: replace TABs by SPACEs.
+	   ((memq 'space-before-tab::space whitespace-style)
+	    (whitespace-replace-action
+	     'untabify rstart rend
+	     whitespace-space-before-tab-regexp 2)))))
+      (set-marker rend nil))))		; point marker to nowhere
 
 
 (defun whitespace-replace-action (action rstart rend regexp index)
@@ -2069,7 +2083,7 @@ resultant list will be returned."
 (defun whitespace-turn-on ()
   "Turn on whitespace visualization."
   ;; prepare local hooks
-  (whitespace-add-local-hook)
+  (add-hook 'write-file-functions 'whitespace-write-file-hook nil t)
   ;; create whitespace local buffer environment
   (set (make-local-variable 'whitespace-font-lock-mode) nil)
   (set (make-local-variable 'whitespace-font-lock) nil)
@@ -2092,7 +2106,7 @@ resultant list will be returned."
 
 (defun whitespace-turn-off ()
   "Turn off whitespace visualization."
-  (whitespace-remove-local-hook)
+  (remove-hook 'write-file-functions 'whitespace-write-file-hook t)
   (when whitespace-active-style
     (whitespace-color-off)
     (whitespace-display-char-off)))
@@ -2365,44 +2379,22 @@ resultant list will be returned."
 	 (whitespace-report nil t))))
 
 
-(defun whitespace-add-local-hook ()
-  "Add some whitespace hooks locally."
-  (add-hook 'write-file-functions 'whitespace-write-file-hook nil t)
-  (add-hook 'kill-buffer-hook 'whitespace-kill-buffer-hook nil t))
-
-
-(defun whitespace-remove-local-hook ()
-  "Remove some whitespace hooks locally."
-  (remove-hook 'write-file-functions 'whitespace-write-file-hook t)
-  (remove-hook 'kill-buffer-hook 'whitespace-kill-buffer-hook t))
-
-
 (defun whitespace-write-file-hook ()
   "Action to be taken when buffer is written.
 It should be added buffer-locally to `write-file-functions'."
-  (when (whitespace-action)
-    (error "Abort write due to whitespace problems in %s"
-	   (buffer-name)))
-  nil)					; continue hook processing
-
-
-(defun whitespace-kill-buffer-hook ()
-  "Action to be taken when buffer is killed.
-It should be added buffer-locally to `kill-buffer-hook'."
-  (whitespace-action)
-  nil)					; continue hook processing
-
-
-(defun whitespace-action ()
-  "Action to be taken when buffer is killed or written.
-Return t when the action should be aborted."
   (cond ((memq 'auto-cleanup whitespace-action)
-	 (whitespace-cleanup)
-	 nil)
+	 (whitespace-cleanup))
 	((memq 'abort-on-bogus whitespace-action)
-	 (whitespace-report nil t))
-	(t
-	 nil)))
+	 (when (whitespace-report nil t)
+	   (error "Abort write due to whitespace problems in %s"
+		  (buffer-name)))))
+  nil)					; continue hook processing
+
+
+(defun whitespace-warn-read-only (msg)
+  "Warn if buffer is read-only."
+  (when (memq 'warn-if-read-only whitespace-action)
+    (message "Can't %s: %s is read-only" msg (buffer-name))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

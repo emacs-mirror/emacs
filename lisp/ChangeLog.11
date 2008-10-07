@@ -194,7 +194,7 @@
 
 	* hexl.el (hexlify-buffer): Remove fontification here.
 	Use font lock mechanism instead.
-	(hexl-font-lock-keywords): New font lock kewords.
+	(hexl-font-lock-keywords): New font lock keywords.
 	(hexl-mode-old-font-lock-keywords): New variable.
 	(hexl-mode): Store the old font lock keywords.
 	(hexl-mode-exit): Restore the old font lock keywords.
@@ -2684,7 +2684,7 @@
 	(math-do-integral): Set `math-linear-subst-tried' to nil.
 	(math-do-integral-methods): Use `math-linear-subst-tried' to
 	determine what type of substitution to try.
-	(math-integ-try-linear-substituion):
+	(math-integ-try-linear-substitution):
 	Set `math-linear-subst-tried' to t.
 
 2004-11-08  Kim F. Storm  <storm@cua.dk>
@@ -4827,7 +4827,7 @@
 2004-08-30  John Paul Wallington  <jpw@gnu.org>
 
 	* textmodes/tex-mode.el (tex-validate-buffer): Use distinct
-	strings rather than programatically constructing message.
+	strings rather than programmatically constructing message.
 
 2004-08-30  Richard M. Stallman  <rms@gnu.org>
 
@@ -6069,7 +6069,7 @@
 	(encode-char): Likewise.
 
 	* international/utf-16.el (utf-16-decode-ucs): Handle a surrogate
-	pair correctly.  Call ccl-mule-utf-untrans for untranslable chars.
+	pair correctly.  Call ccl-mule-utf-untrans for untranslatable chars.
 	(utf-16le-decode-loop): Set r5 to -1 before loop.
 	(utf-16be-decode-loop): Likewise.
 	(ccl-decode-mule-utf-16le): Add EOF processing block.
@@ -10091,7 +10091,7 @@
 	(tramp-smb-process-running): Remove.  Since we acknowledge the
 	virtual prompt for shares, there's no need for distinction of
 	reading shares (process ends afterwards) and interactive mode of
-	smblient.
+	smbclient.
 	(tramp-smb-open-connection): Setting process sentinel removed.
 	(tramp-smb-errors): Add "NT_STATUS_WRONG_PASSWORD" and
 	"NT_STATUS_NETWORK_ACCESS_DENIED".
@@ -11849,7 +11849,7 @@
 	* iswitchb.el (iswitchb-read-buffer,iswitchb-exit-minibuffer):
 	iswitchb-exit is set to 'usefirst when user selects buffer at head
 	of list using RET.  (Selecting buffers at the head of the list was
-	broken if the substring was also a complete buffername.)
+	broken if the substring was also a complete buffer name.)
 
 2003-11-23  Kim F. Storm  <storm@cua.dk>
 

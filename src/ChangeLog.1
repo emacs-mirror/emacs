@@ -497,7 +497,7 @@
 
 	* xdisp.c (try_window_id):
 	Use adjusted hpos of bp in computation of ep.
-	Adjustde hpos can be negative after a continuation.
+	Adjusted hpos can be negative after a continuation.
 
 	* fileio.c (Finsert_file_contents):
 	Was failing to update n as chars were read.
@@ -660,7 +660,7 @@
 	* keyboard.c (fake_suspend):
 	Use execlp, not execl.
 
-	* sysdep.c (random, srqndom):
+	* sysdep.c (random, srandom):
 	Add dummy for srandom => srand.  Enable both for 4.1 and USG.
 	* fns.c (Frandom):
 	Remove conditional; let those dummies serve.
@@ -856,7 +856,7 @@
 	Don't consider spaces at beginning as special if line is
 	highlighted.
 	Avoids losing the inverse-video on leading spaces in mode lines
-	on terminals where erasing does not turn on highlightig (vt100?).
+	on terminals where erasing does not turn on highlighting (vt100?).
 
 	* process.c (pty):
 	On UNIPLUS, don't try opening other side.
@@ -1238,7 +1238,7 @@
 	Suppress "Loading %s... done" if noninteractive.
 
 	* alloc.c (Fgarbage_collect):
-	Suppress "garbage collecing..." message if noninteractive.
+	Suppress "garbage collecting..." message if noninteractive.
 
 	* regex.c (re_compile_pattern):
 	Fix error message (double "\"'s for c compiler).
@@ -3041,7 +3041,7 @@
 	(Kernel bug).
 
 	* keyboard.c (kbd_buffer_get_char):
-	If wait_reading_process_input returns and kbd_count stil 0,
+	If wait_reading_process_input returns and kbd_count still 0,
 	gobble the buffered input.
 
 1985-06-01  Richard M. Stallman  (rms@mit-prep)
@@ -3167,7 +3167,7 @@
 	(enable_recursive_minibuffers) so that Real Men may confuse
 	themselves.  (Some commands such as c-h f can also use it) (This
 	is not quite the right thing for commands to bind to read their
-	arguments since it enables arbitrary recursiveness, not just one
+	arguments since it enables arbitrary recursion, not just one
 	level to read args.)
 
 	* buffer.c
@@ -3431,7 +3431,7 @@
 
 	* fileio.c: Added optional third arg ok-if-exists to
 	rename-file, make-symbolic-link, add-name-to-file and copy-file.
-	If the destrination filename exists, then if ok-if-exists
+	If the destination filename exists, then if ok-if-exists
 	is non-nil it is silently bashed; else if the function was
 	called interactively the user is queried as to whether s/he
 	wants to bash the file; otherwise (ok-if-exists nil, non-interactive)

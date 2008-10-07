@@ -1,7 +1,7 @@
 ;;; make-mode.el --- makefile editing commands for Emacs
 
-;; Copyright (C) 1992, 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -1761,11 +1761,12 @@ Then prompts for all required parameters."
   "To be called as an anchored matcher by font-lock.
 The anchor must have matched the opening parens in the first group."
   (let ((s (match-string-no-properties 1)))
-    (setq s (cond ((string= s "(") "\\(.*?\\)[ \t]*)")
-		  ((string= s "{") "\\(.*?\\)[ \t]*}")
-		  ((string= s "((") "\\(.*?\\)[ \t]*))")
-		  ((string= s "{{") "\\(.*?\\)[ \t]*}}")))
-    (if s (looking-at s))))
+    ;; FIXME forward-sexp or somesuch would be better?
+    (if (setq s (cond ((string= s "(") ")")
+		      ((string= s "{") "}")
+		      ((string= s "((") "))")
+		      ((string= s "{{") "}}")))
+	(re-search-forward (concat "\\(.*\\)[ \t]*" s) (line-end-position) t))))
 
 (defun makefile-match-dependency (bound)
   "Search for `makefile-dependency-regex' up to BOUND.

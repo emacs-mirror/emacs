@@ -500,7 +500,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
        (list "\\$\\$\\([^$]+\\)\\$\\$" 1 'tex-math-face)
        ;; Heading args.
        (list (concat slash headings "\\*?" opt arg)
-	     ;; If ARG ends up matching too much (if the {} don't match, f.ex)
+	     ;; If ARG ends up matching too much (if the {} don't match, e.g.)
 	     ;; jit-lock will do funny things: when updating the buffer
 	     ;; the re-highlighting is only done locally so it will just
 	     ;; match the local line, but defer-contextually will
@@ -1482,18 +1482,25 @@ Mark is left at original location."
     (push-mark)
     (goto-char spot)))
 
+(defvar latex-handle-escaped-parens t)
+
 ;; Don't think this one actually _needs_ (for the purposes of
 ;; tex-mode) to handle escaped parens.
+;; Does not handle escaped parens when latex-handle-escaped-parens is nil.
 (defun latex-backward-sexp-1 ()
   "Like (backward-sexp 1) but aware of multi-char elements and escaped parens."
   (let ((pos (point))
 	(forward-sexp-function))
     (backward-sexp 1)
-    (cond ((looking-at "\\\\\\(begin\\>\\|[[({]\\)")
+    (cond ((looking-at
+	    (if latex-handle-escaped-parens
+		"\\\\\\(begin\\>\\|[[({]\\)"
+	      "\\\\begin\\>"))
 	   (signal 'scan-error
 		   (list "Containing expression ends prematurely"
 			 (point) (prog1 (point) (goto-char pos)))))
-	  ((looking-at "\\\\\\([])}]\\)")
+	  ((and latex-handle-escaped-parens
+		(looking-at "\\\\\\([])}]\\)"))
 	   (tex-last-unended-eparen (match-string 1)))
 	  ((eq (char-after) ?{)
 	   (let ((newpos (point)))
@@ -1508,6 +1515,7 @@ Mark is left at original location."
 ;; begin/end blocks.
 ;; Needs to handle escaped parens for tex-validate-*.
 ;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00038.html
+;; Does not handle escaped parens when latex-handle-escaped-parens is nil.
 (defun latex-forward-sexp-1 ()
   "Like (forward-sexp 1) but aware of multi-char elements and escaped parens."
   (let ((pos (point))
@@ -1528,12 +1536,14 @@ Mark is left at original location."
 	(tex-next-unmatched-end))
        ;; A better way to handle this, \( .. \) etc, is probably to
        ;; temporarily change the syntax of the \ in \( to punctuation.
-       ((looking-back "\\\\[])}]")
+       ((and latex-handle-escaped-parens
+	     (looking-back "\\\\[])}]"))
 	(signal 'scan-error
 		(list "Containing expression ends prematurely"
 		      (- (point) 2) (prog1 (point)
 				      (goto-char pos)))))
-       ((looking-back "\\\\\\([({[]\\)")
+       ((and latex-handle-escaped-parens
+	     (looking-back "\\\\\\([({[]\\)"))
 	(tex-next-unmatched-eparen (match-string 1)))
        (t (goto-char newpos))))))
 
@@ -2568,97 +2578,115 @@ Runs the shell command defined by `tex-show-queue-command'."
 	    (indent-line-to indent)
 	  (save-excursion (indent-line-to indent)))))))
 
+(defcustom latex-indent-within-escaped-parens nil
+  "Non-nil means add extra indent to text within escaped parens.
+When this is non-nil, text within matching pairs of escaped
+parens is indented at the column following the open paren.  The
+default value does not add any extra indent thus providing the
+behavior of Emacs 22 and earlier."
+  :type 'boolean
+  :group 'tex
+  :version "23.1")
+
 (defun latex-find-indent (&optional virtual)
   "Find the proper indentation of text after point.
 VIRTUAL if non-nil indicates that we're only trying to find the indentation
   in order to determine the indentation of something else.
 There might be text before point."
-  (save-excursion
-    (skip-chars-forward " \t")
-    (or
-     ;; Stick the first line at column 0.
-     (and (= (point-min) (line-beginning-position)) 0)
-     ;; Trust the current indentation, if such info is applicable.
-     (and virtual (save-excursion (skip-chars-backward " \t&") (bolp))
-	  (current-column))
-     ;; Stick verbatim environments to the left margin.
-     (and (looking-at "\\\\\\(begin\\|end\\) *{\\([^\n}]+\\)")
-	  (member (match-string 2) tex-verbatim-environments)
-	  0)
-     ;; Put leading close-paren where the matching open brace would be.
-     (and (eq (latex-syntax-after) ?\))
-	  (ignore-errors
-	    (save-excursion
-	      (latex-skip-close-parens)
-	      (latex-backward-sexp-1)
-	      (latex-find-indent 'virtual))))
-     ;; Default (maybe an argument)
-     (let ((pos (point))
-	   ;; Outdent \item if necessary.
-	   (indent (if (looking-at tex-indent-item-re) (- tex-indent-item) 0))
-	   up-list-pos)
-       ;; Find the previous point which determines our current indentation.
-       (condition-case err
-	   (progn
-	     (latex-backward-sexp-1)
-	     (while (> (current-column) (current-indentation))
-	       (latex-backward-sexp-1)))
-	 (scan-error
-	  (setq up-list-pos (nth 2 err))))
-       (cond
-	((= (point-min) pos) 0) ; We're really just indenting the first line.
-	((integerp up-list-pos)
-	 ;; Have to indent relative to the open-paren.
-	 (goto-char up-list-pos)
-	 (if (and (not tex-indent-allhanging)
-		  (save-excursion
-		    ;; Make sure we're an argument to a macro and
-		    ;; that the macro is at the beginning of a line.
-		    (condition-case nil
-			(progn
-			  (while (eq (char-syntax (char-after)) ?\()
-			    (forward-sexp -1))
-			  (and (eq (char-syntax (char-after)) ?/)
-			       (progn (skip-chars-backward " \t&")
-				      (bolp))))
-		      (scan-error nil)))
-		  (> pos (progn (latex-down-list)
-				(forward-comment (point-max))
-				(point))))
-		 ;; Align with the first element after the open-paren.
-	     (current-column)
-	   ;; We're the first element after a hanging brace.
+  (let ((latex-handle-escaped-parens latex-indent-within-escaped-parens))
+    (save-excursion
+      (skip-chars-forward " \t")
+      (or
+       ;; Stick the first line at column 0.
+       (and (= (point-min) (line-beginning-position)) 0)
+       ;; Trust the current indentation, if such info is applicable.
+       (and virtual (save-excursion (skip-chars-backward " \t&") (bolp))
+	    (current-column))
+       ;; Stick verbatim environments to the left margin.
+       (and (looking-at "\\\\\\(begin\\|end\\) *{\\([^\n}]+\\)")
+	    (member (match-string 2) tex-verbatim-environments)
+	    0)
+       ;; Put leading close-paren where the matching open paren would be.
+       (let (escaped)
+	 (and (or (eq (latex-syntax-after) ?\))
+		  ;; Try to handle escaped close parens but keep
+		  ;; original position if it doesn't work out.
+		  (and latex-handle-escaped-parens
+		       (setq escaped (looking-at "\\\\\\([])}]\\)"))))
+	      (ignore-errors
+	       (save-excursion
+		 (when escaped
+		   (goto-char (match-beginning 1)))
+		 (latex-skip-close-parens)
+		 (latex-backward-sexp-1)
+		 (latex-find-indent 'virtual)))))
+       ;; Default (maybe an argument)
+       (let ((pos (point))
+	     ;; Outdent \item if necessary.
+	     (indent (if (looking-at tex-indent-item-re) (- tex-indent-item) 0))
+	     up-list-pos)
+	 ;; Find the previous point which determines our current indentation.
+	 (condition-case err
+	     (progn
+	       (latex-backward-sexp-1)
+	       (while (> (current-column) (current-indentation))
+		 (latex-backward-sexp-1)))
+	   (scan-error
+	    (setq up-list-pos (nth 2 err))))
+	 (cond
+	  ((= (point-min) pos) 0) ; We're really just indenting the first line.
+	  ((integerp up-list-pos)
+	   ;; Have to indent relative to the open-paren.
 	   (goto-char up-list-pos)
-	   (+ (if (and (looking-at "\\\\begin *{\\([^\n}]+\\)")
-		       (member (match-string 1)
-			       latex-noindent-environments))
-		  0 tex-indent-basic)
-	      indent (latex-find-indent 'virtual))))
-	;; We're now at the "beginning" of a line.
-	((not (and (not virtual) (eq (char-after) ?\\)))
-	 ;; Nothing particular here: just keep the same indentation.
-	 (+ indent (current-column)))
-	;; We're now looking at a macro call.
-	((looking-at tex-indent-item-re)
-	 ;; Indenting relative to an item, have to re-add the outdenting.
-	 (+ indent (current-column) tex-indent-item))
-	(t
-	 (let ((col (current-column)))
-	   (if (or (not (eq (char-syntax (or (char-after pos) ?\s)) ?\())
-		   ;; Can't be an arg if there's an empty line inbetween.
-		   (save-excursion (re-search-forward "^[ \t]*$" pos t)))
-	       ;; If the first char was not an open-paren, there's
-	       ;; a risk that this is really not an argument to the
-	       ;; macro at all.
-	       (+ indent col)
-	     (forward-sexp 1)
-	     (if (< (line-end-position)
-		    (save-excursion (forward-comment (point-max))
-				    (point)))
-		 ;; we're indenting the first argument.
-		 (min (current-column) (+ tex-indent-arg col))
-	       (skip-syntax-forward " ")
-	       (current-column))))))))))
+	   (if (and (not tex-indent-allhanging)
+		    (save-excursion
+		      ;; Make sure we're an argument to a macro and
+		      ;; that the macro is at the beginning of a line.
+		      (condition-case nil
+			  (progn
+			    (while (eq (char-syntax (char-after)) ?\()
+			      (forward-sexp -1))
+			    (and (eq (char-syntax (char-after)) ?/)
+				 (progn (skip-chars-backward " \t&")
+					(bolp))))
+			(scan-error nil)))
+		    (> pos (progn (latex-down-list)
+				  (forward-comment (point-max))
+				  (point))))
+	       ;; Align with the first element after the open-paren.
+	       (current-column)
+	     ;; We're the first element after a hanging brace.
+	     (goto-char up-list-pos)
+	     (+ (if (and (looking-at "\\\\begin *{\\([^\n}]+\\)")
+			 (member (match-string 1)
+				 latex-noindent-environments))
+		    0 tex-indent-basic)
+		indent (latex-find-indent 'virtual))))
+	  ;; We're now at the "beginning" of a line.
+	  ((not (and (not virtual) (eq (char-after) ?\\)))
+	   ;; Nothing particular here: just keep the same indentation.
+	   (+ indent (current-column)))
+	  ;; We're now looking at a macro call.
+	  ((looking-at tex-indent-item-re)
+	   ;; Indenting relative to an item, have to re-add the outdenting.
+	   (+ indent (current-column) tex-indent-item))
+	  (t
+	   (let ((col (current-column)))
+	     (if (or (not (eq (char-syntax (or (char-after pos) ?\s)) ?\())
+		     ;; Can't be an arg if there's an empty line inbetween.
+		     (save-excursion (re-search-forward "^[ \t]*$" pos t)))
+		 ;; If the first char was not an open-paren, there's
+		 ;; a risk that this is really not an argument to the
+		 ;; macro at all.
+		 (+ indent col)
+	       (forward-sexp 1)
+	       (if (< (line-end-position)
+		      (save-excursion (forward-comment (point-max))
+				      (point)))
+		   ;; we're indenting the first argument.
+		   (min (current-column) (+ tex-indent-arg col))
+		 (skip-syntax-forward " ")
+		 (current-column)))))))))))
 ;;; DocTeX support
 
 (defun doctex-font-lock-^^A ()

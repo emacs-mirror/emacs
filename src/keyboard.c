@@ -1361,7 +1361,8 @@ top_level_1 ()
 }
 
 DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
-       doc: /* Exit all recursive editing levels.  */)
+       doc: /* Exit all recursive editing levels.
+This also exits all active minibuffers.  */)
      ()
 {
 #ifdef HAVE_WINDOW_SYSTEM
@@ -7109,6 +7110,9 @@ tty_read_avail_input (struct terminal *terminal,
       while (gpm = Gpm_GetEvent (&event), gpm == 1) {
 	  nread += handle_one_term_event (tty, &event, &hold_quit);
       }
+      if (gpm < 0)
+	/* Presumably the GPM daemon has closed the connection.  */
+	close_gpm ();
       if (hold_quit.kind != NO_EVENT)
 	  kbd_buffer_store_event (&hold_quit);
       if (nread)
@@ -9153,16 +9157,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
   from_string = Qnil;
 
-  /* The multi-tty merge moved the code below to right after
-   `replay_sequence' which caused all these translation maps to be applied
-   repeatedly, even tho their doc says very clearly they are not applied to
-   their own output.
-   The reason for this move was: "We may switch keyboards between rescans,
-   so we need to reinitialize fkey and keytran before each replay".
-   This move was wrong (even if we switch keyboards, keybuf still holds the
-   keys we've read already from the original keyboard and some of those keys
-   may have already been translated).  So there may still be a bug out there
-   lurking.  */
+  /* We jump here when we need to reinitialize fkey and keytran; this
+     happens if we switch keyboards between rescans.  */
+ replay_entire_sequence:
+
   indec.map = indec.parent = current_kboard->Vinput_decode_map;
   fkey.map = fkey.parent = current_kboard->Vlocal_function_key_map;
   keytran.map = keytran.parent = Vkey_translation_map;
@@ -9359,7 +9357,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		    /* Don't touch interrupted_kboard when it's been
 		       deleted. */
 		    delayed_switch_frame = Qnil;
-		    goto replay_sequence;
+		    goto replay_entire_sequence;
 		  }
 
 		if (!NILP (delayed_switch_frame))
@@ -9391,7 +9389,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		mock_input = 0;
 		orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
 		orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
-		goto replay_sequence;
+		goto replay_entire_sequence;
 	      }
 	  }
 
@@ -10968,11 +10966,7 @@ handle_interrupt ()
   cancel_echoing ();
 
   /* XXX This code needs to be revised for multi-tty support. */
-  if (!NILP (Vquit_flag)
-#ifndef MSDOS
-      && get_named_tty ("/dev/tty")
-#endif
-      )
+  if (!NILP (Vquit_flag) && get_named_tty ("/dev/tty"))
     {
       /* If SIGINT isn't blocked, don't let us be interrupted by
 	 another SIGINT, it might be harmful due to non-reentrancy
@@ -11174,7 +11168,7 @@ See also `current-input-mode'.  */)
 {
   struct terminal *t = get_terminal (terminal, 1);
   struct tty_display_info *tty;
-  if (t == NULL || t->type != output_termcap)
+  if (t == NULL || (t->type != output_termcap && t->type != output_msdos_raw))
     return Qnil;
   tty = t->display_info.tty;
 
@@ -11219,7 +11213,7 @@ See also `current-input-mode'.  */)
   struct tty_display_info *tty;
   int new_meta;
 
-  if (t == NULL || t->type != output_termcap)
+  if (t == NULL || (t->type != output_termcap && t->type != output_msdos_raw))
     return Qnil;
   tty = t->display_info.tty;
 
@@ -11259,7 +11253,7 @@ See also `current-input-mode'.  */)
 {
   struct terminal *t = get_named_tty ("/dev/tty");
   struct tty_display_info *tty;
-  if (t == NULL || t->type != output_termcap)
+  if (t == NULL || (t->type != output_termcap && t->type != output_msdos_raw))
     return Qnil;
   tty = t->display_info.tty;
 
@@ -11323,7 +11317,7 @@ The elements of this list correspond to the arguments of
   struct frame *sf = XFRAME (selected_frame);
 
   val[0] = interrupt_input ? Qt : Qnil;
-  if (FRAME_TERMCAP_P (sf))
+  if (FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf))
     {
       val[1] = FRAME_TTY (sf)->flow_control ? Qt : Qnil;
       val[2] = (FRAME_TTY (sf)->meta_key == 2
@@ -12218,7 +12212,7 @@ This is used mainly for mapping ASCII function key sequences into
 real Emacs function key events (symbols).
 
 The `read-key-sequence' function replaces any subsequence bound by
-`local-function-key-map' with its binding.  Contrary to `function-key-map',
+`input-key-map' with its binding.  Contrary to `function-key-map',
 this map applies its rebinding regardless of the presence of an ordinary
 binding.  So it is more like `key-translation-map' except that it applies
 before `function-key-map' rather than after.

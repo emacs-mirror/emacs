@@ -1102,13 +1102,13 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     ["PGG manual" (lambda () (interactive) (message-info mml2015-use))
      ;; XEmacs barfs on :visible.
      ,@(if (featurep 'xemacs) nil
-	 '(:visible (equal mml2015-use 'pgg)))
+	 '(:visible (and (boundp 'mml2015-use) (equal mml2015-use 'pgg))))
      ,@(if (featurep 'xemacs) '(t)
 	 '(:help "Display the PGG manual"))]
-    ["EasyPG manual" (lambda () (interactive) (message-info mml2015-use))
+    ["EasyPG manual" (lambda () (interactive) (require 'mml2015) (message-info mml2015-use))
      ;; XEmacs barfs on :visible.
      ,@(if (featurep 'xemacs) nil
-	 '(:visible (equal mml2015-use 'epg)))
+	 '(:visible (and (boundp 'mml2015-use) (equal mml2015-use 'epg))))
      ,@(if (featurep 'xemacs) '(t)
 	 '(:help "Display the EasyPG manual"))]))
 

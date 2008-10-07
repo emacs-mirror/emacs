@@ -398,9 +398,6 @@ revert all subfiles."
 ;;; Internal functions
 ;;;
 
-(defun vc-sccs-root (dir)
-  (vc-find-root dir "SCCS" t))
-
 ;; This function is wrapped with `progn' so that the autoload cookie
 ;; copies the whole function itself into loaddefs.el rather than just placing
 ;; a (autoload 'vc-sccs-search-project-dir "vc-sccs") which would not

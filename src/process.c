@@ -1221,7 +1221,7 @@ a socket connection.  */)
   return XPROCESS (process)->type;
 }
 #endif
-  
+
 DEFUN ("process-type", Fprocess_type, Sprocess_type, 1, 1, 0,
        doc: /* Return the connection type of PROCESS.
 The value is either the symbol `real', `network', or `serial'.
@@ -4137,9 +4137,9 @@ It is read into the process' buffers or given to their filter functions.
 Non-nil arg PROCESS means do not return until some output has been received
 from PROCESS.
 
-Non-nil second arg SECONDS and third arg MILLISEC are number of
-seconds and milliseconds to wait; return after that much time whether
-or not there is input.  If SECONDS is a floating point number,
+Non-nil second arg SECONDS and third arg MILLISEC are number of seconds
+and milliseconds to wait; return after that much time whether or not
+there is any subprocess output.  If SECONDS is a floating point number,
 it specifies a fractional number of seconds to wait.
 The MILLISEC argument is obsolete and should be avoided.
 
@@ -7136,7 +7136,7 @@ static void
 get_up_time (time_t *sec, unsigned *usec)
 {
   FILE *fup;
-  
+
   *sec = *usec = 0;
 
   BLOCK_INPUT;
@@ -7248,7 +7248,7 @@ procfs_system_process_attributes (pid)
   ssize_t nread;
   const char *cmd;
   char *cmdline = NULL;
-  size_t cmdsize;
+  size_t cmdsize, cmdline_size;
   unsigned char c;
   int proc_id, ppid, uid, gid, pgrp, sess, tty, tpgid, thcount;
   unsigned long long utime, stime, cutime, cstime, start;
@@ -7404,7 +7404,9 @@ procfs_system_process_attributes (pid)
 			 attrs);
 	  time_from_jiffies (utime + stime, clocks_per_sec, &sec, &usec);
 	  pcpu = (sec + usec / 1000000.0) / (EMACS_SECS (telapsed) + EMACS_USECS (telapsed) / 1000000.0);
-	  attrs = Fcons (Fcons (Qpcpu, make_float (pcpu)), attrs);
+	  if (pcpu > 1.0)
+	    pcpu = 1.0;
+	  attrs = Fcons (Fcons (Qpcpu, make_float (100 * pcpu)), attrs);
 	  pmem = 4.0 * 100 * rss / procfs_get_total_memory ();
 	  if (pmem > 100)
 	    pmem = 100;
@@ -7419,17 +7421,17 @@ procfs_system_process_attributes (pid)
   fd = emacs_open (fn, O_RDONLY, 0);
   if (fd >= 0)
     {
-      for (cmdsize = 0; emacs_read (fd, &c, 1) == 1; cmdsize++)
+      for (cmdline_size = 0; emacs_read (fd, &c, 1) == 1; cmdline_size++)
 	{
 	  if (isspace (c) || c == '\\')
-	    cmdsize++;	/* for later quoting, see below */
+	    cmdline_size++;	/* for later quoting, see below */
 	}
-      if (cmdsize)
+      if (cmdline_size)
 	{
-	  cmdline = xmalloc (cmdsize + 1);
+	  cmdline = xmalloc (cmdline_size + 1);
 	  lseek (fd, 0L, SEEK_SET);
 	  cmdline[0] = '\0';
-	  if ((nread = read (fd, cmdline, cmdsize)) >= 0)
+	  if ((nread = read (fd, cmdline, cmdline_size)) >= 0)
 	    cmdline[nread++] = '\0';
 	  /* We don't want trailing null characters.  */
 	  for (p = cmdline + nread - 1; p > cmdline && !*p; p--)
@@ -7446,18 +7448,18 @@ procfs_system_process_attributes (pid)
 	      else if (*p == '\0')
 		*p = ' ';
 	    }
-	  cmdsize = nread;
+	  cmdline_size = nread;
 	}
       else
 	{
-	  cmdsize = strlen (cmd) + 2;
-	  cmdline = xmalloc (cmdsize + 1);
+	  cmdline_size = cmdsize + 2;
+	  cmdline = xmalloc (cmdline_size + 1);
 	  strcpy (cmdline, "[");
-	  strcat (strcat (cmdline, cmd), "]");
+	  strcat (strncat (cmdline, cmd, cmdsize), "]");
 	}
       emacs_close (fd);
       /* Command line is encoded in locale-coding-system; decode it.  */
-      cmd_str = make_unibyte_string (cmdline, cmdsize);
+      cmd_str = make_unibyte_string (cmdline, cmdline_size);
       decoded_cmd = code_convert_string_norecord (cmd_str,
 						  Vlocale_coding_system, 0);
       xfree (cmdline);
@@ -7492,14 +7494,14 @@ DEFUN ("system-process-attributes", Fsystem_process_attributes,
 
 Value is an alist where each element is a cons cell of the form
 
-    \(ATTR . VALUE)
+    \(KEY . VALUE)
 
 If this functionality is unsupported, the value is nil.
 
 See `list-system-processes' for getting a list of all process IDs.
 
-The attributes that this function may return are listed below,
-together with the type of the associated value (in parentheses).
+The KEYs of the attributes that this function may return are listed
+below, together with the type of the associated VALUE (in parentheses).
 Not all platforms support all of these attributes; unsupported
 attributes will not appear in the returned alist.
 Unless explicitly indicated otherwise, numbers can have either
@@ -8220,14 +8222,14 @@ DEFUN ("system-process-attributes", Fsystem_process_attributes,
 
 Value is an alist where each element is a cons cell of the form
 
-    \(ATTR . VALUE)
+    \(KEY . VALUE)
 
 If this functionality is unsupported, the value is nil.
 
 See `list-system-processes' for getting a list of all process IDs.
 
-The attributes that this function may return are listed below,
-together with the type of the associated value (in parentheses).
+The KEYs of the attributes that this function may return are listed
+below, together with the type of the associated VALUE (in parentheses).
 Not all platforms support all of these attributes; unsupported
 attributes will not appear in the returned alist.
 Unless explicitly indicated otherwise, numbers can have either

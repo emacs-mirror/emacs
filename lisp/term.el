@@ -2718,7 +2718,11 @@ See `term-prompt-regexp'."
 
 (defun term-emulate-terminal (proc str)
   (with-current-buffer (process-buffer proc)
-    (let* ((i 0) char funny count save-point save-marker old-point temp win
+    (let* ((i 0) char funny
+	   count       ; number of decoded chars in substring
+	   count-bytes ; number of bytes
+	   decoded-substring
+	   save-point save-marker old-point temp win
 	   (buffer-undo-list t)
 	   (selected (selected-window))
 	   last-win
@@ -2777,6 +2781,13 @@ See `term-prompt-regexp'."
 				       str i))
 		   (when (not funny) (setq funny str-length))
 		   (cond ((> funny i)
+			  ;; Decode the string before counting
+			  ;; characters, to avoid garbling of certain
+			  ;; multibyte characters (bug#1006).
+			  (setq decoded-substring
+				(decode-coding-string
+				 (substring str i funny)
+				 locale-coding-system))
 			  (cond ((eq term-terminal-state 1)
 				 ;; We are in state 1, we need to wrap
 				 ;; around.  Go to the beginning of
@@ -2785,21 +2796,31 @@ See `term-prompt-regexp'."
 				 (term-down 1 t)
 				 (term-move-columns (- (term-current-column)))
 				 (setq term-terminal-state 0)))
-			  (setq count (- funny i))
+			  (setq count (length decoded-substring))
 			  (setq temp (- (+ (term-horizontal-column) count)
 					term-width))
 			  (cond ((<= temp 0)) ;; All count chars fit in line.
 				((> count temp)	;; Some chars fit.
 				 ;; This iteration, handle only what fits.
 				 (setq count (- count temp))
+				 (setq count-bytes
+				       (length
+					(encode-coding-string
+					 (substring decoded-substring 0 count)
+					 'binary)))
 				 (setq temp 0)
-				 (setq funny (+ count i)))
+				 (setq funny (+ count-bytes i)))
 				((or (not (or term-pager-count
 					      term-scroll-with-delete))
 				     (>  (term-handle-scroll 1) 0))
 				 (term-adjust-current-row-cache 1)
 				 (setq count (min count term-width))
-				 (setq funny (+ count i))
+				 (setq count-bytes
+				       (length
+					(encode-coding-string
+					 (substring decoded-substring 0 count)
+					 'binary)))
+				 (setq funny (+ count-bytes i))
 				 (setq term-start-line-column
 				       term-current-column))
 				(t ;; Doing PAGER processing.
@@ -2813,7 +2834,7 @@ See `term-prompt-regexp'."
 			  ;; following point if not eob nor insert-mode.
 			  (let ((old-column (current-column))
 				columns pos)
-			    (insert (decode-coding-string (substring str i funny) locale-coding-system))
+			    (insert decoded-substring)
 			    (setq term-current-column (current-column)
 				  columns (- term-current-column old-column))
 			    (when (not (or (eobp) term-insert-mode))

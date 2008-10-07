@@ -288,6 +288,11 @@ If a number, only buffers greater than this size have fontification messages."
 ;; We now allow a FACENAME in `font-lock-keywords' to be any expression that
 ;; returns a face.  So the easiest thing is to continue using these variables,
 ;; rather than sometimes evaling FACENAME and sometimes not.  sm.
+
+;; Note that in new code, in the vast majority of cases there is no
+;; need to create variables that specify face names.  Simply using
+;; faces directly is enough.  Font-lock is not a template to be
+;; followed in this area.
 (defvar font-lock-comment-face		'font-lock-comment-face
   "Face name to use for comments.")
 

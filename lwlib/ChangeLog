@@ -245,7 +245,7 @@
 
 	* xlwmenu.c (xlwMenuResources): New resource.
 	(find_next_selectable): Return current item when the menu is not
-	poped up.
+	popped up.
 	Rename `inactive_gc' to `disabled_gc'.
 	Use lighter/darker color for disabled menu items instead of using
 	stipple.  Use stipple only when better color can not be

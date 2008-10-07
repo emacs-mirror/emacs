@@ -5138,10 +5138,14 @@ Compressed files like .gz and .bz2 are decompressed."
 	   (mm-string-to-multibyte contents)))
 	(goto-char b)))))
 
-(defun gnus-mime-strip-charset-parameters (handle)
-  "Strip charset parameters from HANDLE."
+(defun gnus-mime-set-charset-parameters (handle charset)
+  "Set CHARSET to parameters in HANDLE.
+CHARSET may either be a string or a symbol."
+  (unless (stringp charset)
+    (setq charset (symbol-name charset)))
   (if (stringp (car handle))
-      (mapc #'gnus-mime-strip-charset-parameters (cdr handle))
+      (dolist (h (cdr handle))
+	(gnus-mime-set-charset-parameters h charset))
     (let* ((type (mm-handle-type (if (equal (mm-handle-media-type handle)
 					    "message/external-body")
 				     (progn
@@ -5149,9 +5153,10 @@ Compressed files like .gz and .bz2 are decompressed."
 					 (mm-extern-cache-contents handle))
 				       (mm-handle-cache handle))
 				   handle)))
-	   (charset (assq 'charset (cdr type))))
-      (when charset
-	(delq charset type)))))
+	   (param (assq 'charset (cdr type))))
+      (if param
+	  (setcdr param charset)
+	(setcdr type (cons (cons 'charset charset) (cdr type)))))))
 
 (defun gnus-mime-view-part-as-charset (&optional handle arg)
   "Insert the MIME part under point into the current buffer using the
@@ -5161,18 +5166,18 @@ specified charset."
   (let ((handle (or handle (get-text-property (point) 'gnus-data)))
 	(fun (get-text-property (point) 'gnus-callback))
 	(gnus-newsgroup-ignored-charsets 'gnus-all)
-	gnus-newsgroup-charset form preferred parts)
+	charset form preferred parts)
     (when handle
       (when (prog1
 		(and fun
-		     (setq gnus-newsgroup-charset
+		     (setq charset
 			   (or (cdr (assq
 				     arg
 				     gnus-summary-show-article-charset-alist))
 			       (mm-read-coding-system "Charset: "))))
 	      (if (mm-handle-undisplayer handle)
 		  (mm-remove-part handle)))
-	(gnus-mime-strip-charset-parameters handle)
+	(gnus-mime-set-charset-parameters handle charset)
 	(when (and (consp (setq form (cdr-safe fun)))
 		   (setq form (ignore-errors
 				(assq 'gnus-mime-display-alternative form)))
@@ -6373,6 +6378,7 @@ not have a face in `gnus-article-boring-faces'."
 				      (point))))
 		(when (and (not not-restore-window)
 			   new-sum-point
+			   (window-live-p win)
 			   (with-current-buffer (window-buffer win)
 			     (eq major-mode 'gnus-summary-mode)))
 		  (set-window-point win new-sum-point)

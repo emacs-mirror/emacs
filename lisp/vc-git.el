@@ -491,12 +491,13 @@
 REVISION may have the form BRANCH, BRANCH~N,
 or BRANCH^ (where \"^\" can be repeated)."
   (goto-char (point-min))
-  (search-forward "\ncommit" nil t
-                  (cond ((string-match "~\\([0-9]\\)$" revision)
-                         (1+ (string-to-number (match-string 1 revision))))
-                        ((string-match "\\^+$" revision)
-                         (1+ (length (match-string 0 revision))))
-                        (t nil)))
+  (when revision
+    (search-forward "\ncommit" nil t
+		    (cond ((string-match "~\\([0-9]\\)$" revision)
+			   (1+ (string-to-number (match-string 1 revision))))
+			  ((string-match "\\^+$" revision)
+			   (1+ (length (match-string 0 revision))))
+			  (t nil))))
   (beginning-of-line))
 
 (defun vc-git-diff (files &optional rev1 rev2 buffer)

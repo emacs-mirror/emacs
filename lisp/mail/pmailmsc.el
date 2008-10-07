@@ -32,7 +32,6 @@
 (defvar pmail-inbox-list)
 
 (declare-function mail-parse-comma-list "mail-utils" ())
-(declare-function pmail-parse-file-inboxes "pmail" ())
 (declare-function pmail-show-message "pmail" (&optional n no-summary))
 
 ;;;###autoload
@@ -58,6 +57,10 @@ If FILE-NAME is empty, remove any existing inbox list."
 	       (file-name-nondirectory (buffer-file-name)))
       (setq pmail-inbox-list inbox-list)))
   (pmail-show-message pmail-current-message))
+
+;; Local Variables:
+;; change-log-default-name: "ChangeLog.pmail"
+;; End:
 
 ;; arch-tag: 94614a62-2a0a-4e25-bac9-06f461ed4c60
 ;;; pmailmsc.el ends here

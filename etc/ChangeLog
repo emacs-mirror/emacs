@@ -1,6 +1,10 @@
+2008-09-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* TODO: Remove the entry describing auto-encryption.
+
 2008-08-26  Robert J. Chassell  <bob@rattlesnake.com>
 
-        * PROBLEMS: Prevent pasting a region twice on an xterm or rxvt in X.
+	* PROBLEMS: Prevent pasting a region twice on an xterm or rxvt in X.
 
 2008-08-23  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -9,7 +13,7 @@
 2008-08-18  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.1.
- 
+
 	* NEWS, MH-E-NEWS: Update for MH-E release 8.1.
 
 2008-08-14  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
@@ -74,7 +78,7 @@
 
 2008-07-11  Kenichi Handa  <handa@m17n.org>
 
-	* HELLO: Change the Arabic words apearing in Non-ASCII examples to
+	* HELLO: Change the Arabic words appearing in Non-ASCII examples to
 	iso-8859-6 characters.
 
 2008-07-02  Francesc Rocher  <rocher@member.fsf.org>
@@ -274,7 +278,7 @@
 2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* HELLO: Add Bengali, Gujarati, Khmer, Myanmar, Oriya, Sinhala,
-	Telugu.  Fix ISO-2022 desginations in Cantonese line.
+	Telugu.  Fix ISO-2022 designations in Cantonese line.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -3168,7 +3172,7 @@
 
 2000-12-15  Miles Bader  <miles@gnu.org>
 
-	* DEBUG: Add note aboute using `inverse-video' to detect excessive
+	* DEBUG: Add note about using `inverse-video' to detect excessive
 	screen redraw.
 
 2000-12-07  Dave Love  <fx@gnu.org>

@@ -1,3 +1,109 @@
+2008-10-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnml.el (nnml-request-expire-articles): Check if the function set to
+	`nnmail-expiry-target' returns the symbol `delete'.
+
+	* nnfolder.el (nnfolder-request-expire-articles): Ditto.
+
+	* nnmail.el (nnmail-expiry-target): Fix custom type.
+
+2008-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* mm-util.el (mm-codepage-setup): Tweak codepage error.
+	Silence compiler warning.
+
+2008-09-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mml.el (mml-menu): Don't assume mml2015 is bound.
+
+2008-09-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-read-summary-keys): Check if summary window
+	exists.
+
+2008-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (mail-header-remove-comments): Autoload it.
+
+2008-09-27  Andreas Schwab  <schwab@suse.de>
+
+	* gnus-util.el (gnus-split-references): Strip comments.
+	(gnus-parent-id): Likewise.
+
+2008-09-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-confirm-send): Fix version.
+
+2008-09-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-idna-to-ascii-rhs-1): Use
+	mail-extract-address-components rather than mail-header-parse-addresses
+	that is an alias by default to ietf-drums-parse-addresses that does not
+	support non-ASCII names in headers' contents.
+
+2008-09-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.el (message-confirm-send): Fixed variable documentation to
+	avoid the "y/n" wording.
+
+2008-09-25  Francis Litterio  <flitterio@gmail.com>  (tiny change)
+
+	* message.el (message-set-auto-save-file-name): Save to a different
+	filename so multiple messages (especially drafts) can be recovered.
+
+2008-09-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.el (message-confirm-send): Add appropriate version.
+
+2008-09-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mm-view.el (mm-pkcs7-enveloped-magic): Fix extra parenthesis in
+	defvar.
+
+2008-09-22  Daiki Ueno  <ueno@unixuser.org>
+
+	* mm-view.el (mm-pkcs7-signed-magic): Use literals.
+	(mm-pkcs7-enveloped-magic): Ditto.
+
+2008-09-17  Simon Josefsson  <simon@josefsson.org>
+
+	* sieve-manage.el (sieve-manage-is-string): Accept literals too.
+	Reported by Arnt Gulbrandsen <arnt@oryx.com>.
+
+2008-09-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-use-long-group-names): Make t the
+	default, it's better.
+
+2008-09-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-sum.el (gnus-summary-insert-line): Trap errors on setting the
+	summary line gnus-number property and ignore them (with a warning
+	message).
+
+2008-09-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-group-make-useful-group): Don't use the compiler
+	macro caddr in the interactive form since it won't be expanded.
+
+2008-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-set-charset-parameters): Add new argument
+	`charset'; fix name of function called recursively.
+	(gnus-mime-view-part-as-charset): Don't bind gnus-newsgroup-charset.
+
+2008-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-strip-charset-parameters): Remove.
+	(gnus-mime-set-charset-parameters): New function.
+	(gnus-mime-view-part-as-charset): Use it to correctly display part
+	specifying wrong charset.
+
+2008-09-08  David Engster  <dengste@eml.cc>
+
+	* nnmairix.el (nnmairix-create-server-and-default-group): Require match
+	in completing-read for back end server.
+
 2008-09-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* message.el (message-confirm-send): New variable to confirm sending a
@@ -8365,7 +8471,7 @@
 	* gnus-art.el (gnus-mime-inline-part): Decode parts according to
 	the coding cookies; decompress compressed parts.
 
-	* mml.el (mml-generate-mime-1): Add the charaset parameter according
+	* mml.el (mml-generate-mime-1): Add the charset parameter according
 	to the value which a user specified manually or the coding cookie.
 
 	* mm-util.el (mm-string-to-multibyte): New function.

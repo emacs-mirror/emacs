@@ -106,7 +106,7 @@
 	(change-log-find-version): Renamed to
 	change-log-version-number-search
 	(add-log-file-name-function): New.
-	(change-log-search-vc-number): Added END paramaeter.  Added doc
+	(change-log-search-vc-number): Added END parameter.  Added doc
 	string to function.
 	(change-log-version-rcs): Renamed.  Was
 	change-log-search-vc-number.
@@ -748,7 +748,7 @@
 	* cc-vars.el (c-comment-prefix-regexp): New variable used to
 	recognize the comment fill prefix inside comments.
 	(c-block-comment-prefix): New name for
-	`c-comment-contiuation-stars', which is now obsolete.  It's
+	`c-comment-continuation-stars', which is now obsolete.  It's
 	generalized to handle any character sequence.
 	(c-ignore-auto-fill): New variable used to selectively disable
 	Auto Fill mode in specific contexts.
@@ -1070,7 +1070,7 @@
 	(face-valid-attribute-values): Call defined-colors for all types
 	of frames.
 	(defined-colors, color-defined-p, color-values, display-color-p):
-	New finctions.
+	New functions.
 	(x-defined-colors, x-color-defined-p, x-color-values,
 	x-display-color-p): Aliases for the above.
 
@@ -2953,7 +2953,7 @@
 	(mouse-drag-mode-line): Call it.
 	(mouse-drag-header-line): New.
 	(toplevel): Bind down-mouse-1 on header lines to
-	mouse-drage-header-line.
+	mouse-drag-header-line.
 
 1999-09-08  Gerd Moellmann  <gerd@gnu.org>
 
@@ -3484,7 +3484,7 @@
 	(reftex-insert-docstruct): Adapted to work with the index stuff.
 	(reftex-parse-from-file): Find index entries as well.
 	(reftex-toc-toggle-index): New function
-	(reftex-toc-map): `i' is now used to togle the index, File
+	(reftex-toc-map): `i' is now used to toggle the index, File
 	boundaries has been moved to `F'.
 	(reftex-select-label-map): Toggling display of file boundaries is
 	now on the `F' key, for consistency with `reftex-toc-map'.
@@ -4718,9 +4718,9 @@
 1999-07-12  Espen Skoglund  <espensk@stud.cs.uit.no>
 
 	* progmodes/pascal.el (pascal-beg-of-defun): More intuitive behavior
-	when having nested functons.
-	(pascal-indent-nested-functions) (pascal-indent-line)
-	(pascal-calculate-indent) (pascal-get-lineup-indent): Support for
+	when having nested functions.
+	(pascal-indent-nested-functions, pascal-indent-line)
+	(pascal-calculate-indent, pascal-get-lineup-indent): Support for
 	indenting nested functions.
 
 1999-07-09  Richard Stallman  <rms@gnu.org>
@@ -5148,7 +5148,7 @@
 
 	* emulation/crisp.el (crisp-mode-map): Don't inherit global-map.
 	Enter it on minor-mode-map-alist.
-	(crisp-mode): Re-named from `crsip-mode-enabled'.  Users changed.
+	(crisp-mode): Re-named from `crisp-mode-enabled'.  Users changed.
 	Autoload.  Add custom setter.
 	(crisp-mark-line): Doc fix.
 	(crisp-mode): Autoload.  Re-write not to frob keymaps directly.
@@ -5785,7 +5785,7 @@
 	speedbar-generic-item-info, speedbar-item-info-file-helper,
 	speedbar-item-delete, speedbar-insert-generic-list,
 	speedbar-timer-fn, speedbar-check-vc-this-line,
-	speedbar-check-obj-this-line, speedbar-fetch-dynaic-etags,
+	speedbar-check-obj-this-line, speedbar-fetch-dynamic-etags,
 	speedbar-buffers-item-info) Use speedbar-message.
 	(speedbar-item-info) Limit `message-log-max'.
 	(speedbar-item-load, speedbar-item-copy, speedbar-item-rename,
@@ -5993,7 +5993,7 @@
 
 	* simple.el (what-cursor-position): To show the character's
 	encoding, use encoded-string-description instead of information
-	of chaset-origin-alist.
+	of charset-origin-alist.
 
 	* international/mule-cmds.el (iso-2022-control-alist): New variable.
 	(encoded-code-description): New function.
@@ -6319,7 +6319,7 @@
 	description about charset-origin-alist.
 
 	* international/mule.el: Comment added for a new coding system
-	property `charset-origin-alit'.
+	property `charset-origin-alist'.
 	(make-translation-table): This variable deleted.
 
 	* language/chinese.el (chinese-big5): Add charset-origin-alist
@@ -6336,7 +6336,7 @@
 	charset-origin-alist property.
 	("Vietnamese"): Remove charset-origin-alist property.
 
-	* simple.el (what-cursor-position): Don't use the varialbe
+	* simple.el (what-cursor-position): Don't use the variable
 	charset-origin-alist, but use charset-origin-alist property of
 	buffer-file-coding-system to decide external character set code.
 
@@ -6830,10 +6830,10 @@
 1999-01-18  Ken'ichi Handa  <handa@gnu.org>
 
 	* international/ccl.el (ccl-compile-translate-character): Handle
-	the case that a tranlation table is CCL register correctly.
+	the case that a translation table is CCL register correctly.
 
 	* international/mule-cmds.el (select-safe-coding-system):
-	Hightlight at most 256 characters.
+	Highlight at most 256 characters.
 
 1999-01-18  Dave Love  <fx@gnu.org>
 
@@ -6972,7 +6972,7 @@
 1999-01-15  Johan Vromans  <jvromans@squirrel.nl>
 
 	* forms.el (forms--show-record): Convert integers to string
-	expicitly since concat will no longer accept integers.
+	explicitly since concat will no longer accept integers.
 	(forms-print): Use local `total-nb-records' since
 	`forms--total-records' will be inaccessible after buffer switching.
 
@@ -7197,7 +7197,7 @@
 1998-01-05  Torbjorn Einarsson  <T.Einarsson@clab.ericsson.se>
 
 	* progmodes/f90.el: Change of regular expressions for type to
-	correct highlighting and identation. Some small fixes for
+	correct highlighting and indentation.  Some small fixes for
 	compatibility with XEmacs.
 
 1999-01-05  Stephen Eglen  <stephen@gnu.org>
@@ -7223,7 +7223,7 @@
 	help and force it on current frame.
 	(reftex-default-bibliography): New function.
 	(reftex-access-parse-file): Check consistency after loading a
-	parse file.  When inconsistent, enfore rescan.
+	parse file.  When inconsistent, enforce rescan.
 	(reftex-check-parse-consistency): New function.
 	(easy-menu-define): Options section drastically shortened.
 
@@ -7431,7 +7431,7 @@
 	$a-1 ? foo : bar; was a considered a regexp.
 	`<< (' was considered a start of HERE-doc.
 	mark qq[]-etc sections as syntax-type=string
-	Was not processing sub protos after a comment ine.
+	Was not processing sub protos after a comment line.
 	Was treating $a++ <= 5 as a glob.
 	Tolerate unfinished REx at end-of-buffer.
 	`unwind-protect' was left commented.
@@ -7488,7 +7488,7 @@
 	(cperl-fontify-m-as-s): New configuration variable.
 	(cperl-electric-pod): Check for after-expr was performed
 	inside of POD too.
-	(cperl-backward-to-noncomment): Cetter treatment of PODs and HEREs.
+	(cperl-backward-to-noncomment): Better treatment of PODs and HEREs.
 	(cperl-clobber-mode-lists): New configuration variable.
 	(cperl-not-bad-style-regexp): Updated.
 	Init: `cperl-is-face' was busted.
@@ -7597,7 +7597,7 @@
 	(speedbar-frame-mode) Do not specify height if it is in the param list.
 	Use default y position w/out changing it.
 	If default x position is a list, keep, calculate the non-list X
-	value when devining an initial position.
+	value when defining an initial position.
 	(speedbar-this-file-in-vc) Fix SCCS to use s. not p. files.
 	(speedbar-tag-group-name-minimum-length): New variable.
 	(speedbar-frame-parameter): New compatibility function.
@@ -7607,8 +7607,8 @@
 	naming conventions.
 	(speedbar-create-tag-hierarchy): Enable buffer local version of
 	`speedbar-tag-hierarchy-method' in the buffer we are tagging.
-	(speedbar-line-path) Make DEPTH param optional.  Devine it if absent.
-	the case, derive it from the cursor location in speedbar.
+	(speedbar-line-path): Make DEPTH param optional.  Define it if absent.
+	In that case, derive it from the cursor location in speedbar.
 
 1998-12-17  Eli Zaretskii  <eliz@mescaline.gnu.org>
 
@@ -7726,7 +7726,7 @@
 	(ps-mule-set-ascii-font): New fun.
 	(ps-mule-skip-same-charset): Fun deleted.
 	(ps-mule-plot-string): Set ps-mule-current-charset.
-	(ps-mule-initialize): Add autload cookie.  Don't set
+	(ps-mule-initialize): Add autoload cookie.  Don't set
 	ps-mule-font-info-database here.
 	(ps-mule-begin-job): Renamed from ps-mule-begin.  Update
 	ps-mule-font-info-database and ps-control-or-escape-regexp.
@@ -7751,7 +7751,7 @@
 
 	* ps-print.el (ps-mule-font-info-database): Doc-string modified.
 	(ps-mule-external-libraries): New element FEATURE.
-	(ps-mule-init-external-library): Ajusted for the above change.
+	(ps-mule-init-external-library): Adjusted for the above change.
 	(ps-mule-generate-font): Likewise.
 	(ps-mule-generate-glyphs): Likewise.
 	(ps-mule-prepare-font): Likewise.
@@ -8243,7 +8243,7 @@
 	then if there are multibyte file names, change it to multibyte.
 	(tar-mode): Get char position from tar-header-offset.
 	(tar-extract): Avoid multibyte<->unibyte conversion in
-	insert-buffer-subsring by setting both buffers unibyte
+	insert-buffer-substring by setting both buffers unibyte
 	temporarily.
 	(tar-copy): Set the buffer unibyte while doing a work.  Write
 	without code conversion.
@@ -8252,7 +8252,7 @@
 	(tar-clear-modification-flags): Compare byte position with
 	tar-header-offset.
 	(tar-subfile-save-buffer): Avoid multibyte<->unibyte conversion in
-	insert-buffer-subsring by setting both buffers unibyte
+	insert-buffer-substring by setting both buffers unibyte
 	temporarily.  Pay attention to multibyteness while updating the
 	descriptor-line.
 	(tar-mode-write-file): Write without code conversion.
@@ -8342,7 +8342,7 @@
 
 	* international/mule-util.el (compose-chars-component): Signal
 	error if CH is a rule-based composition character.
-	(compose-chars): Signal error if an already compsed character is
+	(compose-chars): Signal error if an already composed character is
 	going to be composed by rule-base.
 
 	* term/x-win.el: If a resolved ASCII font name doesn't conform to
@@ -9024,7 +9024,7 @@
 1998-10-09  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
 	* faces.el (frame-set-background-mode):
-	Don't do anythung for text-only or MSDOS frame.
+	Don't do anything for text-only or MSDOS frame.
 
 1998-10-08  Kenichi Handa  <handa@etl.go.jp>
 
@@ -9225,7 +9225,7 @@
 1998-09-27  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
 
 	* octave-inf.el (inferior-octave-prompt): Also match prompts of the
-	form `octave.bin:1>' which come from using precopiled binary versions.
+	form `octave.bin:1>' which come from using precompiled binary versions.
 
 1998-09-27  Richard Stallman  <rms@psilocin.ai.mit.edu>
 

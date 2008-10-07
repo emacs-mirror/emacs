@@ -2269,6 +2269,26 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
       if (m->buffer == current_buffer)
 	m->buffer = other_buffer;
   }
+  { /* Some of the C code expects that w->buffer == w->pointm->buffer.
+       So since we just swapped the markers between the two buffers, we need
+       to undo the effect of this swap for window markers.  */
+    Lisp_Object w = Fselected_window (), ws = Qnil;
+    Lisp_Object buf1, buf2;
+    XSETBUFFER (buf1, current_buffer); XSETBUFFER (buf2, other_buffer);
+
+    while (NILP (Fmemq (w, ws)))
+      {
+	ws = Fcons (w, ws);
+	if (MARKERP (XWINDOW (w)->pointm)
+	    && (EQ (XWINDOW (w)->buffer, buf1)
+		|| EQ (XWINDOW (w)->buffer, buf2)))
+	  Fset_marker (XWINDOW (w)->pointm,
+		       make_number (BUF_BEGV (XBUFFER (XWINDOW (w)->buffer))),
+		       XWINDOW (w)->buffer);
+	w = Fnext_window (w, Qt, Qt);
+      }
+  }
+
   if (current_buffer->text->intervals)
     (eassert (EQ (current_buffer->text->intervals->up.obj, buffer)),
      XSETBUFFER (current_buffer->text->intervals->up.obj, current_buffer));

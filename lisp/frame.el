@@ -210,9 +210,6 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	   (not noninteractive)
 	   (not (eq initial-window-system 'pc)))
       (progn
-	;; Turn on special-display processing only if there's a window system.
-	(setq special-display-function 'special-display-popup-frame)
-
 	;; If there is no frame with a minibuffer besides the terminal
 	;; frame, then we need to create the opening frame.  Make sure
 	;; it has a minibuffer, but let initial-frame-alist omit the
@@ -841,14 +838,26 @@ the user during startup."
 (declare-function x-focus-frame "xfns.c" (frame))
 
 (defun select-frame-set-input-focus (frame)
-  "Select FRAME, raise it, and set input focus, if possible."
-    (select-frame frame)
-    (raise-frame frame)
-    ;; Ensure, if possible, that frame gets input focus.
-    (when (memq (window-system frame) '(x w32 ns))
-      (x-focus-frame frame))
-    (when focus-follows-mouse
-      (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
+  "Select FRAME, raise it, and set input focus, if possible.
+If `mouse-autoselect-window' is non-nil, also move mouse cursor
+to FRAME's selected window.  Otherwise, if `focus-follows-mouse'
+is non-nil, move mouse cursor to FRAME."
+  (select-frame frame)
+  (raise-frame frame)
+  ;; Ensure, if possible, that FRAME gets input focus.
+  (when (memq (window-system frame) '(x w32 ns))
+    (x-focus-frame frame))
+  ;; Move mouse cursor if necessary.
+  (cond
+   (mouse-autoselect-window
+    (let ((edges (window-inside-edges (frame-selected-window frame))))
+      ;; Move mouse cursor into FRAME's selected window to avoid that
+      ;; Emacs mouse-autoselects another window.
+      (set-mouse-position frame (nth 2 edges) (nth 1 edges))))
+   (focus-follows-mouse
+    ;; Move mouse cursor into FRAME to avoid that another frame gets
+    ;; selected by the window manager.
+    (set-mouse-position frame (1- (frame-width frame)) 0))))
 
 (defun other-frame (arg)
   "Select the ARGth different visible frame on current display, and raise it.
@@ -924,16 +933,9 @@ If there is no frame by that name, signal an error."
        (list input))))
   (let* ((frame-names-alist (make-frame-names-alist))
 	 (frame (cdr (assoc name frame-names-alist))))
-    (or frame
-	(error "There is no frame named `%s'" name))
-    (make-frame-visible frame)
-    (raise-frame frame)
-    (select-frame frame)
-    ;; Ensure, if possible, that frame gets input focus.
-    (cond ((memq (window-system frame) '(x w32 ns))
-	   (x-focus-frame frame)))
-    (when focus-follows-mouse
-      (set-mouse-position frame (1- (frame-width frame)) 0))))
+    (if frame
+	(select-frame-set-input-focus frame)
+      (error "There is no frame named `%s'" name))))
 
 ;;;; Frame configurations
 
@@ -1012,7 +1014,7 @@ If FRAME is omitted, describe the currently selected frame."
 (declare-function x-list-fonts "xfaces.c"
                   (pattern &optional face frame maximum width))
 
-(defalias 'set-default-font 'set-frame-font)
+(define-obsolete-function-alias 'set-default-font 'set-frame-font "23.1")
 (defun set-frame-font (font-name &optional keep-size)
   "Set the font of the selected frame to FONT-NAME.
 When called interactively, prompt for the name of the font to use.

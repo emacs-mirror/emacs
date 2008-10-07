@@ -459,6 +459,20 @@ x_set_frame_alpha (f)
     pfnSetLayeredWindowAttributes (window, 0, opac, LWA_ALPHA);
 }
 
+int
+x_display_pixel_height (dpyinfo)
+     struct w32_display_info *dpyinfo;
+{
+  return GetDeviceCaps (GetDC (GetDesktopWindow ()), VERTRES);
+}
+
+int
+x_display_pixel_width (dpyinfo)
+     struct w32_display_info *dpyinfo;
+{
+  return GetDeviceCaps (GetDC (GetDesktopWindow ()), HORZRES);
+}
+
 
 /***********************************************************************
 		    Starting and ending an update
@@ -4686,11 +4700,10 @@ w32_read_socket (sd, expected, hold_quit)
 
 	  if (f)
 	    {
-	      dpyinfo->width = (short) LOWORD (msg.msg.lParam);
-	      dpyinfo->height = (short) HIWORD (msg.msg.lParam);
 	      dpyinfo->n_cbits = msg.msg.wParam;
-	      DebPrint (("display change: %d %d\n", dpyinfo->width,
-			 dpyinfo->height));
+	      DebPrint (("display change: %d %d\n",
+			 (short) LOWORD (msg.msg.lParam),
+			 (short) HIWORD (msg.msg.lParam)));
 	    }
 
 	  check_visibility = 1;
@@ -5313,13 +5326,13 @@ x_calc_absolute_position (f)
   /* Treat negative positions as relative to the rightmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
-    f->left_pos = (FRAME_W32_DISPLAY_INFO (f)->width
+    f->left_pos = (x_display_pixel_width (FRAME_W32_DISPLAY_INFO (f))
 		   - FRAME_PIXEL_WIDTH (f)
 		   + f->left_pos
 		   - (left_right_borders_width - 1));
 
   if (flags & YNegative)
-    f->top_pos = (FRAME_W32_DISPLAY_INFO (f)->height
+    f->top_pos = (x_display_pixel_height (FRAME_W32_DISPLAY_INFO (f))
 		  - FRAME_PIXEL_HEIGHT (f)
 		  + f->top_pos
 		  - (top_bottom_borders_height - 1));
@@ -5952,8 +5965,6 @@ w32_initialize_display_info (display_name)
      with values obtained from system metrics.  */
   dpyinfo->resx = 1;
   dpyinfo->resy = 1;
-  dpyinfo->height_in = 1;
-  dpyinfo->width_in = 1;
   dpyinfo->n_planes = 1;
   dpyinfo->n_cbits = 4;
   dpyinfo->n_fonts = 0;
@@ -6180,8 +6191,6 @@ w32_term_init (display_name, xrm_option, resource_name)
 
   hdc = GetDC (GetDesktopWindow ());
 
-  dpyinfo->height = GetDeviceCaps (hdc, VERTRES);
-  dpyinfo->width = GetDeviceCaps (hdc, HORZRES);
   dpyinfo->root_window = GetDesktopWindow ();
   dpyinfo->n_planes = GetDeviceCaps (hdc, PLANES);
   dpyinfo->n_cbits = GetDeviceCaps (hdc, BITSPIXEL);
@@ -6189,8 +6198,6 @@ w32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->resy = GetDeviceCaps (hdc, LOGPIXELSY);
   dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
   dpyinfo->terminal->image_cache = make_image_cache ();
-  dpyinfo->height_in = dpyinfo->height / dpyinfo->resx;
-  dpyinfo->width_in = dpyinfo->width / dpyinfo->resy;
   ReleaseDC (GetDesktopWindow (), hdc);
 
   /* initialise palette with white and black */

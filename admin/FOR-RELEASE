@@ -48,16 +48,12 @@ Fixed by this change?
 	* ps-print.el: [...]
 	(ps-do-despool): If ps-lpr-switches is not a list, force it to be one.
 
-** unicode-merge issues:
-
-*** The data segment size increased after the unicode-2 merge.
-The "data" size increased for emacs from ~4MB to ~11MB on x86.
-The temacs sizes are comparable.
-http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
-
-** Clean up Emacs.app references in code and documentation.
+** In C, use EMACS_INT for variables and structure members
+for buffer/string positions.  E.g. struct it, struct text_pos.
 
 * DOCUMENTATION
+
+** Clean up Emacs.app references in code and documentation.
 
 ** Verify if doc/emacs/macos.texi is still useful, remove it if it is not.
 
@@ -125,16 +121,17 @@ emacs-xtra.texi
 emerge-xtra.texi
 entering.texi     -- cyd
 files.texi
-fixit.texi
+fixit.texi        -- cyd
 fortran-xtra.texi -- rgm
 frames.texi
 glossary.texi
 help.texi
 indent.texi
 killing.texi      -- cyd
-kmacro.texi
+kmacro.texi       -- cyd
 macos.texi     -- contents need to be evaluated and see what is still
-relevant after the NS merge.
+ relevant after the NS merge.  (If this is here, why is ns-emacs.texi
+ relegated to doc/misc?)
 maintaining.texi
 major.texi
 mark.texi         -- cyd

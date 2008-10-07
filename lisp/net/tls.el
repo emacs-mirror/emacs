@@ -224,18 +224,20 @@ Fourth arg PORT is an integer specifying a port to connect to."
     (with-current-buffer buffer
       (message "Opening TLS connection to `%s'..." host)
       (while (and (not done) (setq cmd (pop cmds)))
-	(message "Opening TLS connection with `%s'..." cmd)
 	(let ((process-connection-type tls-process-connection-type)
+	      (formatted-cmd
+	       (format-spec
+		cmd
+		(format-spec-make
+		 ?h host
+		 ?p (if (integerp port)
+			(int-to-string port)
+		      port))))
 	      response)
+	  (message "Opening TLS connection with `%s'..." formatted-cmd)
 	  (setq process (start-process
 			 name buffer shell-file-name shell-command-switch
-			 (format-spec
-			  cmd
-			  (format-spec-make
-			   ?h host
-			   ?p (if (integerp port)
-				  (int-to-string port)
-				port)))))
+			 formatted-cmd))
 	  (while (and process
 		      (memq (process-status process) '(open run))
 		      (progn
@@ -244,7 +246,7 @@ Fourth arg PORT is an integer specifying a port to connect to."
 					 tls-success nil t)))))
 	    (unless (accept-process-output process 1)
 	      (sit-for 1)))
-	  (message "Opening TLS connection with `%s'...%s" cmd
+	  (message "Opening TLS connection with `%s'...%s" formatted-cmd
 		   (if done "done" "failed"))
 	  (if (not done)
 	      (delete-process process)

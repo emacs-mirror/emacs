@@ -1,3 +1,12 @@
+2008-10-04  Karl Berry  <karl@gnu.org>
+
+	* emacs-lisp-intro.texi: Apply similar formatting changes as for
+	the emacs and lispref manuals, to save pages.  A couple minor
+	rewordings and reformatting of code to avoid overfull and
+	underfull lines. 
+	(edition-number): bump to 3.08.
+	(update-date): bump to 4 October 2008.
+
 2008-06-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (distclean): Remove makefile.

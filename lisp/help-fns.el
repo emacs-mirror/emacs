@@ -297,7 +297,9 @@ suitable file is found, return nil."
 	;; When the Elisp source file can be found in the install
 	;; directory return the name of that file - `file-name' should
 	;; have become an absolute file name ny now.
-	(and (file-readable-p lib-name) lib-name)))
+	(or (and (file-readable-p lib-name) lib-name)
+	    ;; The library might be compressed.
+	    (and (file-readable-p (concat lib-name ".gz")) lib-name))))
      ((let* ((lib-name (file-name-nondirectory file-name))
 	     ;; The next form is from `describe-simplify-lib-file-name'.
 	     (file-name
@@ -406,7 +408,9 @@ suitable file is found, return nil."
 	(princ " in `")
 	;; We used to add .el to the file name,
 	;; but that's completely wrong when the user used load-file.
-	(princ (if (eq file-name 'C-source) "C source code" file-name))
+	(princ (if (eq file-name 'C-source)
+		   "C source code"
+		 (file-name-nondirectory file-name)))
 	(princ "'")
 	;; Make a hyperlink to the library.
 	(with-current-buffer standard-output
@@ -451,11 +455,13 @@ suitable file is found, return nil."
 			(princ (mapconcat 'key-description keys ", "))
 			(princ ", and many ordinary text characters"))
 		    (princ "many ordinary text characters"))))
-	  (when (or remapped keys non-modified-keys)
-	    (princ ".")
-              (terpri))))
-        (with-current-buffer (help-buffer) (fill-region-as-paragraph pt2 (point)))
-        (terpri)))
+	      (when (or remapped keys non-modified-keys)
+		(princ ".")
+		(terpri))))
+	  (with-current-buffer (help-buffer)
+	    (fill-region-as-paragraph pt2 (point))
+	    (unless (looking-back "\n\n")
+	      (terpri))))))
     (let* ((arglist (help-function-arglist def))
 	   (doc (documentation function))
 	   (usage (help-split-fundoc doc function)))
@@ -619,7 +625,9 @@ it is displayed along with the global value."
 	      (if file-name
 		  (progn
 		    (princ " is a variable defined in `")
-		    (princ (if (eq file-name 'C-source) "C source code" file-name))
+		    (princ (if (eq file-name 'C-source)
+			       "C source code"
+			     (file-name-nondirectory file-name)))
 		    (princ "'.\n")
 		    (with-current-buffer standard-output
 		      (save-excursion

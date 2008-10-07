@@ -1624,7 +1624,7 @@ x_clear_image_1 (f, img, pixmap_p, mask_p, colors_p)
       img->pixmap = NO_PIXMAP;
 #ifdef HAVE_NS
       if (img->background_valid)
-        ns_free_indexed_color(img->background);
+        ns_free_indexed_color(img->background, f);
 #endif
       img->background_valid = 0;
     }

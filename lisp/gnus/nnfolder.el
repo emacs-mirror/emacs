@@ -472,11 +472,11 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 		(let ((nnfolder-current-directory nil))
 		  (when (functionp target)
 		    (setq target (funcall target newsgroup)))
-		  (if (and target
-			   (or (gnus-request-group target)
-			       (gnus-request-create-group target)))
-		      (nnmail-expiry-target-group target newsgroup)
-		    (setq target nil))))
+		  (when (and target (not (eq target 'delete)))
+		    (if (or (gnus-request-group target)
+			    (gnus-request-create-group target))
+			(nnmail-expiry-target-group target newsgroup)
+		      (setq target nil)))))
 	      (nnfolder-possibly-change-group newsgroup server))
 	    (when target
 	      (nnheader-message 5 "Deleting article %d in %s..."

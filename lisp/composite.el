@@ -294,7 +294,7 @@ If the character at POS has `composition' property, the value is a list
 of FROM, TO, and VALID-P.
 
 FROM and TO specify the range of text that has the same `composition'
-property, VALID-P is non-nil if and only if this composition is valid.
+property, VALID-P is t if this composition is valid, and nil if not.
 
 If there's no composition at POS, and the optional 2nd argument LIMIT
 is non-nil, search for a composition toward LIMIT.
@@ -318,9 +318,16 @@ and composition rules as described in `compose-region'.
 
 MOD-FUNC is a modification function of the composition.
 
-WIDTH is a number of columns the composition occupies on the screen."
+WIDTH is a number of columns the composition occupies on the screen.
+
+When Automatic Compostion mode is on, this function also finds a
+chunk of text that is automatically composed.  If such a chunk is
+found closer to POS than the position that has `composition'
+property, the value is a list of FROM, TO, and a glyph gstring
+the specify how the chunk is composed.  See the function
+`composition-get-gstring' for the format of the glyph string."
   (let ((result (find-composition-internal pos limit string detail-p)))
-    (if (and detail-p result (nth 2 result) (not (nth 3 result)))
+    (if (and detail-p (> (length result) 3) (nth 2 result) (not (nth 3 result)))
 	;; This is a valid rule-base composition.
 	(decode-composition-components (nth 2 result) 'nocopy))
     result))
@@ -572,63 +579,71 @@ All non-spacing characters has this function in
 		       (de (lglyph-descent glyph))
 		       (ce (/ (+ lb rb) 2))
 		       xoff yoff)
-		  (if (and
-		       class (>= class 200) (<= class 240)
-		       (cond
-			((= class 200)
-			 (setq xoff (- lbearing ce)
-			       yoff (if (> as 0) 0 (+ descent as))))
-			((= class 202)
-			 (if (> as 0) (setq as 0))
-			 (setq xoff (- center ce)
-			       yoff (if (> as 0) 0 (+ descent as))))
-			((= class 204)
-			 (if (> as 0) (setq as 0))
-			 (setq xoff (- rbearing ce)
-			       yoff (if (> as 0) 0 (+ descent as))))
-			((= class 208)
-			 (setq xoff (- lbearing rb)))
-			((= class 210)
-			 (setq xoff (- rbearing lb)))
-			((= class 212)
-			 (setq xoff (- lbearing ce)
-			       yoff (if (>= de 0) 0 (- ascent de))))
-			((= class 214)
-			 (setq xoff (- center ce)
-			       yoff (if (>= de 0) 0 (- ascent de))))
-			((= class 216)
-			 (setq xoff (- rbearing ce)
-			       yoff (if (>= de 0) 0 (- ascent de))))
-			((= class 218)
-			 (setq xoff (- lbearing ce)
-			       yoff (if (> as 0) 0 (+ descent as gap))))
-			((= class 220)
-			 (setq xoff (- center ce)
-			       yoff (if (> as 0) 0 (+ descent as gap))))
-			((= class 222)
-			 (setq xoff (- rbearing ce)
-			       yoff (if (> as 0) 0 (+ descent as gap))))
-			((= class 224)
-			 (setq xoff (- lbearing rb)))
-			((= class 226)
-			 (setq xoff (- rbearing lb)))
-			((= class 228)
-			 (setq xoff (- lbearing ce)
-			       yoff (if (>= de 0) 0 (- ascent de gap))))
-			((= class 230)
-			 (setq xoff (- center ce)
-			       yoff (if (>= de 0) 0 (- ascent de gap))))
-			((= class 232)
-			 (setq xoff (- rbearing ce)
-			       yoff (if (>= de 0) 0 (- ascent de gap))))))
-		      (lglyph-set-adjustment glyph (- xoff width) yoff))))))
+		  (when (and class (>= class 200) (<= class 240))
+		    (setq xoff 0 yoff 0)
+		    (cond
+		     ((= class 200)
+		      (setq xoff (- lbearing ce)
+			    yoff (if (> as 0) 0 (+ descent as))))
+		     ((= class 202)
+		      (if (> as 0) (setq as 0))
+		      (setq xoff (- center ce)
+			    yoff (if (> as 0) 0 (+ descent as))))
+		     ((= class 204)
+		      (if (> as 0) (setq as 0))
+		      (setq xoff (- rbearing ce)
+			    yoff (if (> as 0) 0 (+ descent as))))
+		     ((= class 208)
+		      (setq xoff (- lbearing rb)))
+		     ((= class 210)
+		      (setq xoff (- rbearing lb)))
+		     ((= class 212)
+		      (setq xoff (- lbearing ce)
+			    yoff (if (>= de 0) 0 (- (- ascent) de))))
+		     ((= class 214)
+		      (setq xoff (- center ce)
+			    yoff (if (>= de 0) 0 (- (- ascent) de))))
+		     ((= class 216)
+		      (setq xoff (- rbearing ce)
+			    yoff (if (>= de 0) 0 (- (- ascent) de))))
+		     ((= class 218)
+		      (setq xoff (- lbearing ce)
+			    yoff (if (> as 0) 0 (+ descent as gap))))
+		     ((= class 220)
+		      (setq xoff (- center ce)
+			    yoff (if (> as 0) 0 (+ descent as gap))))
+		     ((= class 222)
+		      (setq xoff (- rbearing ce)
+			    yoff (if (> as 0) 0 (+ descent as gap))))
+		     ((= class 224)
+		      (setq xoff (- lbearing rb)))
+		     ((= class 226)
+		      (setq xoff (- rbearing lb)))
+		     ((= class 228)
+		      (setq xoff (- lbearing ce)
+			    yoff (if (>= de 0) 0 (- (- ascent) de gap))))
+		     ((= class 230)
+		      (setq xoff (- center ce)
+			    yoff (if (>= de 0) 0 (- (- ascent) de gap))))
+		     ((= class 232)
+		      (setq xoff (- rbearing ce)
+			    yoff (if (>= de 0) 0 (- (+ ascent de) gap)))))
+		    (lglyph-set-adjustment glyph (- xoff width) yoff)
+		    (setq lb (+ lb xoff)
+			  rb (+ lb xoff)
+			  as (- as yoff)
+			  de (+ de yoff)))
+		  (if (< ascent as)
+		      (setq ascent as))
+		  (if (< descent de)
+		      (setq descent de))))))
 	  (let ((i 0))
 	    (while (and (< i nglyphs) (setq glyph (lgstring-glyph gstring i)))
 	      (lglyph-set-from-to glyph 0 (1- nchars))
 	      (setq i (1+ i))))
 	  gstring))))))
 
-(let ((elt '(["\\C^\\c^+" 1 compose-gstring-for-graphic]
+(let ((elt '(["[[:alpha:]]\\c^+" 1 compose-gstring-for-graphic]
 	     [nil 0 compose-gstring-for-graphic])))
   (map-char-table
    #'(lambda (key val)

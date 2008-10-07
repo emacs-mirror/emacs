@@ -150,12 +150,14 @@ extern Lisp_Object make_time __P ((time_t));
 #endif
 
 /* Compare times T1 and T2.  Value is 0 if T1 and T2 are the same.
-   Value is < 0 if T1 is less than T2.  Value is > 0 otherwise.  */
+   Value is < 0 if T1 is less than T2.  Value is > 0 otherwise.  (Cast
+   to long is for those platforms where time_t is an unsigned
+   type, and where otherwise T1 will always be grater than T2.)  */
 
-#define EMACS_TIME_CMP(T1, T2)			\
-  (EMACS_SECS (T1) - EMACS_SECS (T2)		\
-   + (EMACS_SECS (T1) == EMACS_SECS (T2)	\
-      ? EMACS_USECS (T1) - EMACS_USECS (T2)	\
+#define EMACS_TIME_CMP(T1, T2)				\
+  ((long)EMACS_SECS (T1) - (long)EMACS_SECS (T2)	\
+   + (EMACS_SECS (T1) == EMACS_SECS (T2)		\
+      ? EMACS_USECS (T1) - EMACS_USECS (T2)		\
       : 0))
 
 /* Compare times T1 and T2 for equality, inequality etc.  */

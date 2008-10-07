@@ -495,8 +495,13 @@ This is buffer-local in every such buffer.")
 		  :help "Set the indentation for the current line"))
 
     (define-key menu-map [sh-pair]
-      '(menu-item "Insert braces and quotes in pairs" (lambda () (interactive) (setq skeleton-pair (not skeleton-pair)))
-		  :button (:toggle . skeleton-pair)
+      '(menu-item "Insert braces and quotes in pairs"
+		  (lambda ()
+		    (interactive)
+		    (require 'skeleton)
+		    (setq skeleton-pair (not skeleton-pair)))
+		  :button (:toggle . (and (boundp 'skeleton-pair)
+					  skeleton-pair))
 		  :help "Inserting a brace or quote automatically inserts the matching pair"))
 
     (define-key menu-map [sh-s0] '("--"))
@@ -1003,7 +1008,7 @@ If non-nil INDENTED indicates that the EOF was indented."
 (defun sh-font-lock-open-heredoc (start string)
   "Determine the syntax of the \\n after a <<EOF.
 START is the position of <<.
-STRING is the actual word used as delimiter (f.ex. \"EOF\").
+STRING is the actual word used as delimiter (e.g. \"EOF\").
 INDENTED is non-nil if the here document's content (and the EOF mark) can
 be indented (i.e. a <<- was used rather than just <<).
 Point is at the beginning of the next line."
@@ -2591,7 +2596,7 @@ If AND-MOVE is non-nil then move to end of word."
 	(goto-char where))
     (prog1
 	(buffer-substring (point)
-			  (progn (skip-chars-forward "^ \t\n;&|()")(point)))
+			  (progn (skip-chars-forward "^ \t\n;&|")(point)))
       (unless and-move
 	(goto-char start)))))
 

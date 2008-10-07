@@ -877,7 +877,7 @@ which see."
 (defcustom lisp-indent-offset nil
   "If non-nil, indent second line of expressions that many more columns."
   :group 'lisp
-  :type '(choice nil integer))
+  :type '(choice (const nil) integer))
 (put 'lisp-body-indent 'safe-local-variable
      (lambda (x) (or (null x) (integerp x))))
 
@@ -1035,7 +1035,10 @@ is the buffer position of the start of the containing expression."
                      ;; where it begins, so find that one, instead.
                      (save-excursion
                        (goto-char calculate-lisp-indent-last-sexp)
-                       (while (and (not (looking-back "^[ \t]*"))
+		       ;; Handle prefix characters and whitespace
+		       ;; following an open paren.  (Bug#1012)
+                       (backward-prefix-chars)
+                       (while (and (not (looking-back "^[ \t]*\\|([ \t]+"))
                                    (or (not containing-sexp)
                                        (< (1+ containing-sexp) (point))))
                          (forward-sexp -1)

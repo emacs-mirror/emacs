@@ -364,11 +364,11 @@ non-nil.")
 		      nnml-article-file-alist)
 		  (when (functionp target)
 		    (setq target (funcall target group)))
-		  (if (and target
-			   (or (gnus-request-group target)
-			       (gnus-request-create-group target)))
-		      (nnmail-expiry-target-group target group)
-		    (setq target nil))))
+		  (when (and target (not (eq target 'delete)))
+		    (if (or (gnus-request-group target)
+			    (gnus-request-create-group target))
+			(nnmail-expiry-target-group target group)
+		      (setq target nil)))))
 	      ;; Maybe directory is changed during nnmail-expiry-target-group.
 	      (nnml-possibly-change-directory group server))
 	    (if target

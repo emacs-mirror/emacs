@@ -67,6 +67,7 @@ Emacs misc features
 * Flymake: (flymake). A universal on-the-fly syntax checker.
 * Forms: (forms).	Emacs package for editing data bases
 			  by filling in forms.
+* NS-Emacs: (ns-emacs).	Emacs.app for GNUstep and MacOS X.
 * PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
 * RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
 * Remember: (remember). Simple information manager for Emacs

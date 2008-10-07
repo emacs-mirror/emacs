@@ -1464,14 +1464,15 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 ;;     (setq symbol-file-load-history-loaded t)))
 
 (defun symbol-file (symbol &optional type)
-  "Return the input source in which SYMBOL was defined.
-The value is an absolute file name.
-It can also be nil, if the definition is not associated with any file.
+  "Return the name of the file that defined SYMBOL.
+The value is normally an absolute file name.  It can also be nil,
+if the definition is not associated with any file.  If SYMBOL
+specifies an autoloaded function, the value can be a relative
+file name without extension.
 
-If TYPE is nil, then any kind of definition is acceptable.
-If TYPE is `defun' or `defvar', that specifies function
-definition only or variable definition only.
-`defface' specifies a face definition only."
+If TYPE is nil, then any kind of definition is acceptable.  If
+TYPE is `defun', `defvar', or `defface', that specifies function
+definition, variable definition, or face definition only."
   (if (and (or (null type) (eq type 'defun))
 	   (symbolp symbol) (fboundp symbol)
 	   (eq 'autoload (car-safe (symbol-function symbol))))
@@ -1747,7 +1748,7 @@ any other non-digit terminates the character code and is then used as input."))
       ;; bound to some prefix in function-key-map or key-translation-map.
       (setq translated
 	    (if (integerp char)
-		(char-resolve-modifers char)
+		(char-resolve-modifiers char)
 	      char))
       (let ((translation (lookup-key local-function-key-map (vector char))))
 	(if (arrayp translation)
@@ -1998,26 +1999,30 @@ This finishes the change group by reverting all of its changes."
   (dolist (elt handle)
     (with-current-buffer (car elt)
       (setq elt (cdr elt))
-      (let ((old-car
-             (if (consp elt) (car elt)))
-            (old-cdr
-             (if (consp elt) (cdr elt))))
-        ;; Temporarily truncate the undo log at ELT.
-        (when (consp elt)
-          (setcar elt nil) (setcdr elt nil))
-        (unless (eq last-command 'undo) (undo-start))
-        ;; Make sure there's no confusion.
-        (when (and (consp elt) (not (eq elt (last pending-undo-list))))
-          (error "Undoing to some unrelated state"))
-        ;; Undo it all.
-        (save-excursion
-          (while (listp pending-undo-list) (undo-more 1)))
-        ;; Reset the modified cons cell ELT to its original content.
-        (when (consp elt)
-          (setcar elt old-car)
-          (setcdr elt old-cdr))
-        ;; Revert the undo info to what it was when we grabbed the state.
-        (setq buffer-undo-list elt)))))
+      (save-restriction
+	;; Widen buffer temporarily so if the buffer was narrowed within
+	;; the body of `atomic-change-group' all changes can be undone.
+	(widen)
+	(let ((old-car
+	       (if (consp elt) (car elt)))
+	      (old-cdr
+	       (if (consp elt) (cdr elt))))
+	  ;; Temporarily truncate the undo log at ELT.
+	  (when (consp elt)
+	    (setcar elt nil) (setcdr elt nil))
+	  (unless (eq last-command 'undo) (undo-start))
+	  ;; Make sure there's no confusion.
+	  (when (and (consp elt) (not (eq elt (last pending-undo-list))))
+	    (error "Undoing to some unrelated state"))
+	  ;; Undo it all.
+	  (save-excursion
+	    (while (listp pending-undo-list) (undo-more 1)))
+	  ;; Reset the modified cons cell ELT to its original content.
+	  (when (consp elt)
+	    (setcar elt old-car)
+	    (setcdr elt old-cdr))
+	  ;; Revert the undo info to what it was when we grabbed the state.
+	  (setq buffer-undo-list elt))))))
 
 ;;;; Display-related functions.
 
@@ -2587,12 +2592,13 @@ See also `with-temp-file' and `with-output-to-string'."
   (declare (indent 0) (debug t))
   `(let ((standard-output
 	  (get-buffer-create (generate-new-buffer-name " *string-output*"))))
-     (let ((standard-output standard-output))
-       ,@body)
-     (with-current-buffer standard-output
-       (prog1
-	   (buffer-string)
-	 (kill-buffer nil)))))
+     (unwind-protect
+	 (progn
+	   (let ((standard-output standard-output))
+	     ,@body)
+	   (with-current-buffer standard-output
+	     (buffer-string)))
+       (kill-buffer standard-output))))
 
 (defmacro with-local-quit (&rest body)
   "Execute BODY, allowing quits to terminate BODY but not escape further.

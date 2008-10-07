@@ -723,7 +723,7 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 	  (fs (diff-hunk-file-names current-prefix-arg)))
      (unless fs (error "No file name to look for"))
      (list old (read-file-name (format "File for %s: " (car fs))
-			       nil (diff-find-file-name old) t))))
+			       nil (diff-find-file-name old 'noprompt) t))))
   (let ((fs (diff-hunk-file-names old)))
     (unless fs (error "No file name to look for"))
     (push (cons fs name) diff-remembered-files-alist)))
@@ -756,11 +756,10 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 	       (list (if old (match-string 2) (match-string 4))
 		     (if old (match-string 4) (match-string 2)))))))))
 
-(defun diff-find-file-name (&optional old batch prefix)
+(defun diff-find-file-name (&optional old noprompt prefix)
   "Return the file corresponding to the current patch.
 Non-nil OLD means that we want the old file.
-Non-nil BATCH means to prefer returning an incorrect answer than to prompt
-the user.
+Non-nil NOPROMPT means to prefer returning nil than to prompt the user.
 PREFIX is only used internally: don't use it."
   (unless (equal diff-remembered-defdir default-directory)
     ;; Flush diff-remembered-files-alist if the default-directory is changed.
@@ -801,16 +800,15 @@ PREFIX is only used internally: don't use it."
 	    (boundp 'cvs-pcl-cvs-dirchange-re)
 	    (save-excursion
 	      (re-search-backward cvs-pcl-cvs-dirchange-re nil t))
-	    (diff-find-file-name old batch (match-string 1)))
-       ;; Invent something, if necessary.
-       (when batch
-         (or (car fs) default-directory))
+	    (diff-find-file-name old noprompt (match-string 1)))
        ;; if all else fails, ask the user
-       (let ((file (read-file-name (format "Use file %s: " (or (first fs) ""))
-				   nil (first fs) t (first fs))))
-	 (set (make-local-variable 'diff-remembered-files-alist)
-	      (cons (cons fs file) diff-remembered-files-alist))
-	 file)))))
+       (unless noprompt
+         (let ((file (read-file-name (format "Use file %s: "
+                                             (or (first fs) ""))
+                                     nil (first fs) t (first fs))))
+           (set (make-local-variable 'diff-remembered-files-alist)
+                (cons (cons fs file) diff-remembered-files-alist))
+           file))))))
 
 
 (defun diff-ediff-patch ()
@@ -1286,7 +1284,7 @@ a diff with \\[diff-reverse-direction].
   (set (make-local-variable 'add-log-current-defun-function)
        'diff-current-defun)
   (set (make-local-variable 'add-log-buffer-file-name-function)
-       'diff-find-file-name))
+       (lambda () (diff-find-file-name nil 'noprompt))))
 
 ;;;###autoload
 (define-minor-mode diff-minor-mode
@@ -1547,7 +1545,7 @@ Whitespace differences are ignored."
 
 (defsubst diff-xor (a b) (if a (if (not b) a) b))
 
-(defun diff-find-source-location (&optional other-file reverse)
+(defun diff-find-source-location (&optional other-file reverse noprompt)
   "Find out (BUF LINE-OFFSET POS SRC DST SWITCHED).
 BUF is the buffer corresponding to the source file.
 LINE-OFFSET is the offset between the expected and actual positions
@@ -1555,7 +1553,8 @@ LINE-OFFSET is the offset between the expected and actual positions
 POS is a pair (BEG . END) indicating the position of the text in the buffer.
 SRC and DST are the two variants of text as returned by `diff-hunk-text'.
   SRC is the variant that was found in the buffer.
-SWITCHED is non-nil if the patch is already applied."
+SWITCHED is non-nil if the patch is already applied.
+NOPROMPT, if non-nil, means not to prompt the user."
   (save-excursion
     (let* ((other (diff-xor other-file diff-jump-to-old-file))
 	   (char-offset (- (point) (progn (diff-beginning-of-hunk 'try-harder)
@@ -1565,8 +1564,8 @@ SWITCHED is non-nil if the patch is already applied."
            ;; (e.g. because an empty line truncates the hunk mid-course),
            ;; leading to potentially nasty surprises for the user.
            (_ (diff-sanity-check-hunk))
-	   (hunk (buffer-substring (point)
-				   (save-excursion (diff-end-of-hunk) (point))))
+	   (hunk (buffer-substring
+                  (point) (save-excursion (diff-end-of-hunk) (point))))
 	   (old (diff-hunk-text hunk reverse char-offset))
 	   (new (diff-hunk-text hunk (not reverse) char-offset))
 	   ;; Find the location specification.
@@ -1578,7 +1577,8 @@ SWITCHED is non-nil if the patch is already applied."
                                 diff-context-mid-hunk-header-re nil t)
 			 (error "Can't find the hunk separator"))
 		       (match-string 1)))))
-	   (file (or (diff-find-file-name other) (error "Can't find the file")))
+	   (file (or (diff-find-file-name other noprompt)
+                     (error "Can't find the file")))
 	   (buf (find-file-noselect file)))
       ;; Update the user preference if he so wished.
       (when (> (prefix-numeric-value other-file) 8)
@@ -1718,23 +1718,27 @@ For use in `add-log-current-defun-function'."
     (when (looking-at diff-hunk-header-re)
       (forward-line 1)
       (re-search-forward "^[^ ]" nil t))
-    (destructuring-bind (buf line-offset pos src dst &optional switched)
-	(diff-find-source-location)
-      (beginning-of-line)
-      (or (when (memq (char-after) '(?< ?-))
-	    ;; Cursor is pointing at removed text.  This could be a removed
-	    ;; function, in which case, going to the source buffer will
-	    ;; not help since the function is now removed.  Instead,
-	    ;; try to figure out the function name just from the code-fragment.
-	    (let ((old (if switched dst src)))
-	      (with-temp-buffer
-		(insert (car old))
-		(funcall (buffer-local-value 'major-mode buf))
-		(goto-char (+ (point-min) (cdr old)))
-		(add-log-current-defun))))
-	  (with-current-buffer buf
-	    (goto-char (+ (car pos) (cdr src)))
-	    (add-log-current-defun))))))
+    (destructuring-bind (&optional buf line-offset pos src dst switched)
+        ;; Use `noprompt' since this is used in which-func-mode and such.
+	(ignore-errors                ;Signals errors in place of prompting.
+          (diff-find-source-location nil nil 'noprompt))
+      (when buf
+        (beginning-of-line)
+        (or (when (memq (char-after) '(?< ?-))
+              ;; Cursor is pointing at removed text.  This could be a removed
+              ;; function, in which case, going to the source buffer will
+              ;; not help since the function is now removed.  Instead,
+              ;; try to figure out the function name just from the
+              ;; code-fragment.
+              (let ((old (if switched dst src)))
+                (with-temp-buffer
+                  (insert (car old))
+                  (funcall (buffer-local-value 'major-mode buf))
+                  (goto-char (+ (point-min) (cdr old)))
+                  (add-log-current-defun))))
+            (with-current-buffer buf
+              (goto-char (+ (car pos) (cdr src)))
+              (add-log-current-defun)))))))
 
 (defun diff-ignore-whitespace-hunk ()
   "Re-diff the current hunk, ignoring whitespace differences."

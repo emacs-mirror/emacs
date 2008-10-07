@@ -1,3 +1,19 @@
+2008-09-20  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Defining Faces): Recommend against face variables.
+
+2008-09-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Echo Area Customization): Fix typo.
+
+2008-09-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loading.texi (Where Defined): Add `defface' item.
+
+2008-09-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* loading.texi (Where Defined): Fix description of symbol-file.
+
 2008-08-26  Jason Rumney  <jasonr@gnu.org>
 
 	* display.texi (TIFF Images): New section describing :index property.
@@ -58,7 +74,7 @@
 
 	* book-spine.texinfo: Set version to 23.0.60.
 	* vol1.texi (EMACSVER):
-	* vol2.texi (EMACSVER):	Set to 23.0.60.
+	* vol2.texi (EMACSVER): Set to 23.0.60.
 
 	* elisp.texi, vol1.texi, vol2.texi: Update Back-Cover Text
 	as per maintain.info.
@@ -1962,7 +1978,7 @@
 2006-05-30  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Line Height): Fix errors in description of
-	default line height and line-height properyty.
+	default line height and line-height property.
 
 	* nonascii.texi (Default Coding Systems): Further clarification.
 
@@ -3415,7 +3431,7 @@
 
 2005-05-24  Nick Roberts  <nickrob@snap.net.nz>
 
-	* frames.texi (Dialog Boxes): Descibe new optional argument.
+	* frames.texi (Dialog Boxes): Describe new optional argument.
 
 2005-05-23  Lute Kamstra  <lute@gnu.org>
 
@@ -3725,7 +3741,7 @@
 
 2005-04-01  Kenichi Handa  <handa@m17n.org>
 
-	* nonascii.texi (Coding System Basics): Describe about rondtrip
+	* nonascii.texi (Coding System Basics): Describe about roundtrip
 	identity of coding systems.
 
 2005-03-29  Chong Yidong  <cyd@stupidchicken.com>
@@ -4097,7 +4113,7 @@
 	(Building Lists): Explain trivial cases of number-sequence.
 
 	* hash.texi (Hash Tables): Add desc to menu items.
-	(Creating Hash): Expain "full" means "make larger",
+	(Creating Hash): Explain "full" means "make larger".
 	(Hash Access): Any object can be a key.
 	State value of maphash.
 
@@ -6039,7 +6055,7 @@
 	(Defining Minor Modes): Keyword args for define-minor-mode.
 	(Search-based Fontification): Explain managing other properties.
 	(Other Font Lock Variables): Add font-lock-extra-managed-props.
-	(Faces for Font Lock): Add font-locl-preprocessor-face.
+	(Faces for Font Lock): Add font-lock-preprocessor-face.
 	(Hooks): Add run-mode-hooks and delay-mode-hooks.
 
 	* variables.texi (Creating Buffer-Local): Add buffer-local-value.

@@ -929,7 +929,7 @@ group.  The string matched by the first group is highlighted with
    `((antlr-invalidate-context-cache)
      ("\\$setType[ \t]*(\\([A-Za-z\300-\326\330-\337]\\sw*\\))"
       (1 antlr-tokendef-face))
-     ("\\$\\sw+" (0 keyword-face))
+     ("\\$\\sw+" (0 antlr-keyword-face))
      ;; the tokens are already fontified as string/docstrings:
      (,(lambda (limit)
 	 (if antlr-font-lock-literal-regexp

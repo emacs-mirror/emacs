@@ -49,10 +49,9 @@ all pop-up help appears in the echo area.)
 When Tooltip mode is disabled, Emacs displays one line of
 the help text in the echo area, and does not make a pop-up window."
   :global t
-  :init-value (not (or noninteractive
-		       emacs-basic-display
-		       (not (display-graphic-p))
-		       (not (fboundp 'x-show-tip))))
+  ;; Even if we start on a text-only terminal, make this non-nil by
+  ;; default because we can open a graphical frame later (multi-tty).
+  :init-value t
   :initialize 'custom-initialize-safe-default
   :group 'tooltip
   (unless (or (null tooltip-mode) (fboundp 'x-show-tip))

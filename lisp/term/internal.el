@@ -1,4 +1,4 @@
-;;; internal.el --- support for PC internal terminal -*- coding: raw-text; no-byte-compile: t -*-
+;;; internal.el --- support for PC internal terminal
 
 ;; Copyright (C) 1993, 1994, 1998, 1999, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
@@ -82,16 +82,10 @@
 ;;
 ;;   Since each codepage can usually display character of a single
 ;;   MULE charset, Emacs can display a single MULE charset with the
-;;   glyphs of the current codepage.  The mapping from DOS codepages
-;;   to MULE charsets is established by the charset property of the
-;;   cpNNN-decode-table variables in codepage.el, which also
-;;   defines translation tables for each such pair, and a bunch of
-;;   functions to generate coding systems that use those translation
-;;   tables to convert codepage-encoded text to the appropriate MULE
-;;   charset and back.  When Emacs starts on DOS, it automatically
-;;   sets its default coding systems for file I/O and terminal output
-;;   according to the currend DOS codepage, given by the
-;;   `dos-codepage' variable.
+;;   glyphs of the current codepage.  When Emacs starts on DOS, it
+;;   automatically sets its default coding systems for file I/O and
+;;   terminal output according to the currend DOS codepage, given by
+;;   the `dos-codepage' variable.
 ;;
 ;;   This leaves us with the problem of displaying character sets
 ;;   other than the one which maps directly into the current codepage.
@@ -99,204 +93,26 @@
 ;;   defining a display table where each character that doesn't have a
 ;;   glyph in some codepage is mapped to a string which represents it.
 ;;   For example, a small c with cedilla is mapped to the string
-;;   "{,c}" (the braces serve as a sign that this is a single
-;;   character).  A nice feature of the display tables is that Emacs
+;;   ",c".  A nice feature of the display tables is that Emacs
 ;;   knows that the string represents a single character, and thus
 ;;   cursor motion works as you'd expect: a single `C-f' moves past
 ;;   the entire string which represents a single character.
 ;; ----------------------------------------------------------------------
 
-(defvar IT-character-translations
-  '(
-    (latin-iso8859-1
-     . [255 "!I" "|c" "Pd" "$$" "Ye" "|" "SE" "\"" "(c)"
-        "_a" "<<" "~" "--" "(R)" "'-" "^o" "+-" "^2" "^3"
-	"'" "u" ".P" "^." "'," "^1" "_o" ">>" "1/4" "1/2"
-	"3/4" "?I" "`A" "A'" "A^" "~A" "\"A" "Ao" "AE" ",C"
-	"`E" "E'" "E^" "\"E" "`I" "I'" "I^" "\"I" "-D" "~N"
-	"`O" "O'" "O^" "~O" "\"O" "*x" "/O" "`U" "U'" "U^"
-	"\"U" "Y'" "-P" "ss" "`a" "a'" "a^" "~a" "\"a" "ao"
-	"ae" ",c" "`e" "e'" "e^" "\"e" "`i" "i'" "i^" "\"i"
-	"-d" "~n" "`o" "o'" "o^" "~o" "\"o" "-:" "/o" "`u"
-	"u'" "u^" "\"u" "y'" "-p" "\"y"]
-     )
-    (latin-iso8859-2
-     . [255 "A;" "'(" "/L" "$$" "L<" "S'" "SE" "\"" "S<"
-	",S" "T<" "Z'" "--" "Z<" "Z^." "^o" "a;" "';" "/l"
-	"'" "l<" "s'" "'<" "'," "s<" ",s" "t<" "z'" "'"
-	"z<" "z^." "R'" "A'" "A^" "A(" "\"A" "L'" "C'" ",C"
-	"C<" "E'" "E;" "E:" "E<" "I'" "I^" "D<" "/D" "N'"
-	"N<" "O'" "O^" "O''" "\"O" "*x" "R<" "U^0" "U'" "U''"
-	"\"U" "Y'" ",T" "ss" "r'" "a'" "a^" "a(" "\"a" "l'"
-	"c'" ",c" "c<" "e'" "e;" "\"e" "e<" "i'" "i^" "d<"
-	"/d" "n'" "n<" "o'" "o^" "o''" "\"o" "-:" "r<" "u^0"
-	"u'" "u''" "\"u" "y'" ",t" "'."]
-     )
-    (latin-iso8859-3
-     . [255 "/H" "'(" "Pd" "$$" " " "H^" "SE" "\"" "I^."
-	",S" "G(" "J^" "--" " " "Z^." "^o" "/h" "^2" "^3"
-	"'" "u" "h^" "." "'," "i^." ",s" "g(" "j^" "1/2"
-	" " "z^." "`A" "A'" "A^" " " "\"A" "C^." "C^" ",C"
-	"`E" "E'" "E^" "\"E" "`I" "I'" "I^" "\"I" " " "~N"
-	"`O" "O'" "O^" "G^." "\"O" "*x" "G^" "`U" "U'" "U^"
-	"\"U" "U(" "S^" "ss" "`a" "a'" "a^" " " "\"a" "c^."
-	"c^" ",c" "`e" "e'" "e^" "\"e" "`i" "i'" "i^" "\"i"
-	" " "~n" "`o" "o'" "o^" "g^." "\"o" "-:" "g^" "`u"
-	"u'" "u^" "\"u" "u(" "s^" "^."]
-     )
-    (latin-iso8859-4
-     . [255 "A;" "kk" ",R" "$$" "?I" ",L" "SE" "\"" "S<"
-	"E-" ",G" "/T" "--" "Z<" "'-" "^o" "a;" "';" ",r"
-	"'" "~i" ",l" "'<" "'," "s<" "e-" ",g" "/t" "NG"
-	"z<" "ng" "A-" "A'" "A^" "~A" "\"A" "Ao" "AE" "I;"
-	"C<" "E'" "E;" "\"E" "E^." "I'" "I^" "I-" "/D" ",N"
-	"O-" ",K" "O^" "~O" "\"O" "*x" "/O" "U;" "U'" "U^"
-	"\"U" "~U" "U-" "ss" "a-" "a'" "a^" "~a" "\"a" "ao"
-	"ae" "i;" "c<" "e'" "e;" "\"e" "e^." "i'" "i^" "i-"
-	"/d" ",n" "o-" ",k" "o^" "~o" "\"o" "-:" "/o" "u;"
-	"u'" "u^" "\"u" "~u" "u-" "^."]
-     )
-    (cyrillic-iso8859-5
-     . [255 "\"E" "Dj" "Gj" "IE" "Dz" "Ii" "Ji" "JE" "Lj"
-	"Nj" "Ts" "Kj" 240 "V%" "Dzh"  65  "B="  66 226
-	68  69  "Z%"  51  85 "J="  75 "L="  77  72
-	79  "P="  80  67  84  89 232  88 "C=" "C%"
-	"S%" "Sc" "=\"" "Y=" "%\"" "Ee" "Yu" "Ya" 97  98
-	"v=" "g=" 103 101 "z%" "z=" 117 "j=" 107 "l="
-	"m=" "n=" 111 110 112 99 "t=" 121 "f=" 120
-	"c=" "c%" "s%" "sc" "='" "y=" "%'" "ee" "yu" "ya"
-	"N0" "\"e" "dj" "gj" "ie" "dz" "ii" "ji" "je" "lj"
-	"nj" "ts" "kj"  21 "v%" "dzh"]
-     )
-    (arabic-iso8859-6
-     . [255 nil nil nil "$$" nil nil nil nil nil
-	nil nil ",+" "--" nil nil nil nil nil nil
-	nil nil nil nil nil nil nil ";+" nil nil
-	nil "?+" nil "H'" "aM" "aH" "wH" "ah" "yH"
-	"a+" "b+" "tm" "t+" "tk" "g+" "hk" "x+" "d+" "dk"
-	"r+" "z+" "s+" "sn" "c+" "dd" "tj" "zH" "e+" "i+"
-	nil nil nil nil nil "++" "f+" "q+" "k+" "l+"
-	"m+" "n+" "h+" "w+" "j+" "y+" ":+" "\"+" "=+" "/+"
-	"'+" "1+" "3+" "0+" nil nil nil nil nil nil
-	nil nil nil nil nil nil nil]
-     )
-    (greek-iso8859-7
-     . [255 "9'" "'9" "Pd" nil nil "|" "SE" "\"" "(c)"
-	nil "<<" "~" "--" nil "-M" "^o" "+-" "^2" "^3"
-	"'" "'%" "'A" "^." "'E" "'H" "'I" ">>" "'O" "1/2"
-	"'Y" "W%" "i3" 65 66 "G*" "D*" 69 90 72
-	"TH" 73 74 "L*" 77 78 "C*" 79 "P*" 80
-	nil "S*" 84 89 "F*" 88 "Q*" "W*" "\"I" "\"Y"
-	"a%" "e%" "y%" "i%" "u3" "a*" "b*" "g*" "d*" "e*"
-	"z*" "y*" "h*" "i*" 107 "l*" "m*" "n*" "c*" 111
-	"p*" "r*" "*s" "s*" "t*" 117 "f*" "x*" "q*" "w*"
-	"\"i" "\"u" "'o" "'u" "'w" nil]
-     )
-    ;; Note: some of the characters undefined according to ISO 8859-8
-    ;; in the ranges 190..220 and 250..255 are replaced with SI 1311-1
-    ;; points (Niqud) and bidi formatting characters
-    (hebrew-iso8859-8
-     . [255 nil "|c" "Pd" "$$" "Ye" "|" "SE" "\"" "(c)"
-	"*x" "<<" "~" "--" "(R)" "'-" "^o" "+-" "^2" "^3"
-	"'" "u" ".P" "^." "'," "^1" "-:" ">>" "1/4" "1/2"
-	"3/4" nil ":'" "v:" "-:" "-':" ".'" ".." "v'" "-'"
-	"-," "`." nil "\\." "(.)" "|'" "`-" "`=" "||" nil
-	nil "::" nil nil nil nil nil nil nil "LRO"
-	"RLO" "PDF" nil "=2" "A+" "B+" "G+" "D+" "H+" "W+"
-	"Z+" "X+" "Tj" "J+" "K%" "K+" "L+" "M%" "M+" "N%"
-	"N+" "S+" "E+" "P%" "P+" "Zj" "ZJ" "Q+" "R+" "Sh"
-	"T+" "LRE" "RLE" "LRM" "RLM" nil]
-     )
-    (latin-iso8859-9
-     . [255 "!I" "|c" "Pd" "$$" "Ye" "|" "SE" "\"" "(c)"
-        "_a" "<<" "~" "--" "(R)" "'-" "^o" "+-" "^2" "^3"
-	"'" "u" ".P" "^." "'," "^1" "_o" ">>" "1/4" "1/2"
-	"3/4" "?I" "`A" "A'" "A^" "~A" "\"A" "Ao" "AE" ",C"
-	"`E" "E'" "E^" "\"E" "`I" "I'" "I^" "\"I" "G(" "~N"
-	"`O" "O'" "O^" "~O" "\"O" "*x" "/O" "`U" "U'" "U^"
-	"\"U" "I^." ",S" "ss" "`a" "a'" "a^" "~a" "\"a" "ao"
-	"ae" ",c" "`e" "e'" "e<" "\"e" "e^." "i'" "i^" "i-"
-	"g(" "~n" "`o" "o'" "o^" "~o" "\"o" "-:" "/o" "`u"
-	"u'" "u^" "\"u" "i." ",s" "\"y"]
-     )
-    (latin-iso8859-14
-     . [255 "B`" "b`" "Pd" "C`" "c`" "D`" "SE" "`W" "(c)"
-	"W'" "d`" "`Y" "--" "(R)" "\"Y" "F`" "f`" "G`" "g`"
-	"M`" "m`" ".P" "P`" "`w" "p`" "w'" "S`" "`y" "\"W"
-	"\"w" "s`" "`A" "A'" "A^" "~A" "\"A" "Ao" "AE" ",C"
-	"`E" "E'" "E^" "\"E" "`I" "I'" "I^" "\"I" "W^" "~N"
-	"`O" "O'" "O^" "~O" "\"O" "T`" "/O" "`U" "U'" "U^"
-	"\"U" "Y'" "Y^" "ss" "`a" "a'" "a^" "~a" "\"a" "ao"
-	"ae" ",c" "`e" "e'" "e^" "\"e" "`i" "i'" "i^" "\"i"
-	"w^" "~n" "`o" "o'" "o^" "~o" "\"o" "t`" "/o" "`u"
-	"u'" "u^" "\"u" "y'" "y^" "\"y"]
-    )
-    (latin-iso8859-15
-     . [255 "!I" "|c" "Pd" "E=" "Ye" "S<" "SE" "s<" "(c)"
-        "_a" "<<" "~" "--" "(R)" "'-" "^o" "+-" "^2" "^3"
-	"Z<" "u" ".P" "^." "z<" "^1" "_o" ">>" "OE" "oe"
-	"\"Y" "?I" "`A" "A'" "A^" "~A" "\"A" "Ao" "AE" ",C"
-	"`E" "E'" "E^" "\"E" "`I" "I'" "I^" "\"I" "-D" "~N"
-	"`O" "O'" "O^" "~O" "\"O" "*x" "/O" "`U" "U'" "U^"
-	"\"U" "Y'" "|P" "ss" "`a" "a'" "a^" "~a" "\"a" "ao"
-	"ae" ",c" "`e" "e'" "e^" "\"e" "`i" "i'" "i^" "\"i"
-	"-d" "~n" "`o" "o'" "o^" "~o" "\"o" "-:" "/o" "`u"
-	"u'" "u^" "\"u" "y'" "|p" "\"y"]
-     )
-    )
-  "An alist of MULE ISO-8859 character sets and the strings that
-should be used to represent the characters from each set on a DOS
-terminal which does not have corresponding glyphs built into the
-installed codepage.")
-
-(defun IT-display-table-setup (codepage &optional table)
-  "Set up display table TABLE for a DOS terminal which supports
-glyphs built into the codepage CODEPAGE.
-
-If TABLE is nil or omitted, `standard-display-table' is used."
-  (let* ((surrogates IT-character-translations)
-	 (disp-tab (or table standard-display-table))
-	 (built-in-set (cp-charset-for-codepage codepage))
-	 (offset (cp-offset-for-codepage codepage))
-	 (cp-decoder
-	  (symbol-value (intern-soft (format "%s-decode-table" codepage))))
-	 (cp-decoder-len (length cp-decoder))
-	 (c offset)
-	 association chset)
-    ;; Undo the effects of previous call (where they may have used
-    ;; a different codepage) by reverting the display table for the
-    ;; built-in charset to its pristine shape.
-    (while (< c 256)
-      (aset disp-tab (make-char built-in-set c) nil)
-      (setq c (1+ c)))
-    (while surrogates
-      (setq association (car surrogates))
-      (setq chset (car association))
-      (let* ((vector (cdr association))
-	     (veclen (length vector))
-	     (i 0)
-	     glyph)
-	(while (< i veclen)
-	  (setq glyph (aref vector i))
-	  (or glyph (setq glyph dos-unsupported-char-glyph))
-	  (if (or (not (equal chset built-in-set))
-		  (>= i cp-decoder-len)
-		  (null (aref cp-decoder i)))
-	      (aset disp-tab (make-char chset (+ i (logand offset 127)))
-		    (vconcat
-		     (if (numberp glyph)
-			 (char-to-string glyph)
-		       (if (> (length glyph) 1) (concat "{" glyph "}")
-			 glyph)))))
-	  (setq i (1+ i))))
-      (setq surrogates (cdr surrogates)))))
-
 (defvar IT-unicode-translations
   '(
-    (mule-unicode-0100-24ff		; charset
-     256				; base
-     256 563				; first, last
-     [ "A-" "a-" "A(" "a(" "A;" "a;" "C'" "c'" "C>" "c>" ; Latin Extended-A
+    (160 563				; first, last
+     [ 255 "!I" "|c" "Pd" "$$" "Ye" "|" "SE" "\"" "(c)" ; Latin-1
+       "_a" "<<" "~" "--" "(R)" "'-" "^o" "+-" "^2" "^3"
+       "'" "u" ".P" "^." "'," "^1" "_o" ">>" "1/4" "1/2"
+       "3/4" "?I" "`A" "A'" "A^" "~A" "\"A" "Ao" "AE" ",C"
+       "`E" "E'" "E^" "\"E" "`I" "I'" "I^" "\"I" "-D" "~N"
+       "`O" "O'" "O^" "~O" "\"O" "*x" "/O" "`U" "U'" "U^"
+       "\"U" "Y'" "-P" "ss" "`a" "a'" "a^" "~a" "\"a" "ao"
+       "ae" ",c" "`e" "e'" "e^" "\"e" "`i" "i'" "i^" "\"i"
+       "-d" "~n" "`o" "o'" "o^" "~o" "\"o" "-:" "/o" "`u"
+       "u'" "u^" "\"u" "y'" "-p" "\"y" ; 255
+       "A-" "a-" "A(" "a(" "A;" "a;" "C'" "c'" "C>" "c>" ; Latin Extended-A
        "C." "c." "C<" "c<" "D<" "d<" "D/" "d/" "E-" "e-"
        "E(" "e(" "E." "e." "E;" "e;" "E<" "e<" "G>" "g>"
        "G(" "g(" "G." "g." "G," "g," "H>" "h>" "H/" "h/"
@@ -330,9 +146,7 @@ If TABLE is nil or omitted, `standard-display-table' is used."
 
      )
 
-    (mule-unicode-0100-24ff		; charset
-     256				; base
-     884 1123				; first, last
+    (884 1123				; first, last
      [ "'" "," nil nil nil nil "j3" nil nil nil        ; Greek
        "?;" nil nil nil nil nil "'*" "'%" "A%" ".*"
        "E%" "Y%" "I%" nil "O%" nil "U%" "W%" "i3" "A*"
@@ -359,9 +173,7 @@ If TABLE is nil or omitted, `standard-display-table' is used."
        "nj" "ts" "kj" "v%" "`i=" "dz" "OM=" "om=" "Y3" "y3"] ; 0x463
      )
 
-    (mule-unicode-0100-24ff		; charset
-     256				; base
-     1454 1645				; first, last
+    (1454 1645				; first, last
      [ nil nil ":'" "v:" "-:" "-':" ".'" ".." "v'" "-'"
        "-," "`." nil "\\." "(.)" "|'" "`-" nil "||" nil
        nil "::"  nil nil nil nil nil nil nil nil
@@ -384,9 +196,7 @@ If TABLE is nil or omitted, `standard-display-table' is used."
        "6a" "7a" "8a" "9a" "a%" "a." "a," "a*" ]
      )
 
-    (mule-unicode-0100-24ff		; charset
-     256				; base
-     7680 9450				; first, last
+    (7680 9450				; first, last
      [ "A-0" "a-0" "B." "b." "B-." "b-." "B_" "b_" "C,'" "c,'" ; Lat Ext Add
        "D." "d." "D-." "d-." "D_" "d_" "D," "d," "D->" "d->"
        "E-!" "e-!" "E-'" "e-'" "E->" "e->" "E-?" "e-?" "E,(" "e,("
@@ -568,170 +378,247 @@ If TABLE is nil or omitted, `standard-display-table' is used."
      )
     )
 
-  "A list of mule-unicode-* character sets and the strings that
-should be used to represent the characters from each set on a DOS
-terminal which does not have corresponding glyphs built into the
-installed codepage.")
+  "A list of strings that should be used to represent Unicode
+characters on a DOS terminal which does not have corresponding
+glyphs built into the installed codepage.")
 
-(defun IT-setup-unicode-display (&optional table)
+(defun IT-setup-unicode-display (coding &optional table)
   "Set up display table TABLE for displaying mule-unicode-* characters
-on a DOS terminal.  If TABLE is nil or omitted, `standard-display-table'
-is used."
-  (interactive)
+on a DOS terminal whose codepage provides the coding-system CODING.
+If TABLE is nil or omitted, `standard-display-table' is used."
+  (interactive "zCode page: ")
   (let ((disp-tab (or table standard-display-table))
 	(tail IT-unicode-translations)
 	translation)
     (while tail
       (setq translation (car tail) tail (cdr tail))
-      (let* ((chset (car translation))
-	     (base (nth 1 translation))
-	     (first (nth 2 translation))
-	     (last (nth 3 translation))
-	     (table (nth 4 translation))
+      (let* ((first (car translation))
+	     (last (nth 1 translation))
+	     (table (nth 2 translation))
 	     (i 0)
-	     (this (- first base))
+	     (this first)
 	     glyph)
 	(while (<= i (- last first))
 	  (setq glyph (aref table i))
-	  (or glyph (setq glyph dos-unsupported-char-glyph))
-	  (aset disp-tab (make-char chset
-				    (+ (/ this 96) 32)
-				    (+ (% this 96) 32))
-		(vconcat
-		 (if (numberp glyph)
-		     (char-to-string glyph)
-		   (if (> (length glyph) 1) (concat "{" glyph "}")
-		     glyph))))
+	  (when (and glyph
+		     (unencodable-char-position 0 1 coding nil (string this)))
+	    (aset disp-tab this
+		  (vconcat (if (numberp glyph)
+			       (string glyph)
+			     glyph))))
 	  (setq i (1+ i) this (1+ this)))))))
 
-(defun dos-cpNNN-setup (codepage)
-  "Set up the MULE environment using the DOS codepage CODEPAGE.
+(defvar dos-codepage)
+(defvar dos-country-code)
 
-This function creates the coding system cpNNN (where NNN is the value
-of the argument CODEPAGE), and then uses this coding system to set up
-display tables, and the language environment options as appropriate."
-  (let* ((cp (format "cp%s" codepage))
-	 (charset (cp-charset-for-codepage cp))
-	 (offset (cp-offset-for-codepage cp)))
-    (cp-make-coding-systems-for-codepage cp charset offset)
-    ;; This is done by set-language-environment.
-    ;;(setq nonascii-translation-table
-    ;;     (symbol-value (intern (concat cp "-nonascii-translation-table"))))
-    (set-language-environment (cp-language-for-codepage cp))
-    (set-default-coding-systems (intern (concat cp "-dos")))
-    (set-selection-coding-system (intern (concat cp "-dos")))
-    (set-terminal-coding-system
-     (setq default-terminal-coding-system (intern (concat cp
-							  "-unix"))))
-    (IT-display-table-setup cp)
-    ;; It's time: too many input methods in leim/quail produce
-    ;; Unicode characters.  Let the user see them.
-    (IT-setup-unicode-display)
-    (prefer-coding-system (intern (concat cp "-dos")))
-    (if default-enable-multibyte-characters
-	;; We want this in multibyte version only, since unibyte version
-	;; should not convert non-ASCII characters at all.
-	(setq unibyte-display-via-language-environment t)
-      ;; Let the unibyte version behave as Emacs 19 did.  In particular,
-      ;; let it use and display native codepage-specific glyphs for
-      ;; non-ASCII characters.  For this to work correctly, we need to
-      ;; establish the correspondence between lower-case letters and their
-      ;; upper-case brethren, as appropriate for the codepage in use.  The
-      ;; code below makes this happen.
-      ;; (In the multibyte mode, the appropriate tables are prepared
-      ;; elsewhere, since multibyte Emacs uses normal MULE character sets,
-      ;; which are supported on all platforms.)
-      (let* ((i 128)
-	     (modify (function
-		      (lambda (ch sy)
-			(modify-syntax-entry ch sy text-mode-syntax-table)
-			(if (boundp 'tex-mode-syntax-table)
-			    (modify-syntax-entry ch sy tex-mode-syntax-table))
-			(modify-syntax-entry ch sy (standard-syntax-table))
-			)))
-	     (table (standard-case-table))
-	     ;; The following are strings of letters, first lower then
-	     ;; upper case.  This will look funny on terminals which
-	     ;; display other code pages.  In particular, what is
-	     ;; displayed as blanks or triangles are not what they
-	     ;; look like at all!  (Use `C-x =' to see what they
-	     ;; really are.)
-	     (chars
-	      (cond
-	       ((= codepage 850)
-		"áÄÅöÇêÉ∂ÑéÖ∑Üè∆«†µà“â”ä‘ãÿå◊çﬁ°÷ëíì‚îôï„¢‡õùñÍ£ÈóÎòYÏÌ°I£È§•–—ÁË")
-	       ((= codepage 865)
-		"áÄÅöÇêÉAÑéÖAÜèàEâEäEãIåIçIëíìOîôïOñU£UòYõù†A°I¢O£U§•")
-	       ;; default is 437
-	       (t "áÄÅöÇêÉAÑéÖAÜèàEâEäEãIåIçIëíìOîôïOñU£UòY†A°I¢O£U§•"))))
-
-	(while (< i 256)
-	  (funcall modify i "_")
-	  (setq i (1+ i)))
-
-	(setq i 0)
-	(while (< i (length chars))
-	  (let ((ch1 (aref chars i))
-		(ch2 (aref chars (1+ i))))
-	    (if (> ch2 127)
-		(set-case-syntax-pair ch2 ch1 table))
-	    (setq i (+ i 2))))
-	(save-excursion
-	  (mapcar (lambda (b) (set-buffer b) (set-case-table table))
-		  (buffer-list)))
-	(set-standard-case-table table)))
-    ;; Some codepages have sporadic support for Latin-1, Greek, and
-    ;; symbol glyphs, which don't belong to their native character
-    ;; set.  It's a nuisance to have all those glyphs here, for all
-    ;; the codepages (for starters, I don't even have references for
-    ;; all the codepages).  So I provide a hook for those who want to
-    ;; squeeze every bit of support out of their terminal/font.
-    (run-hooks 'dos-codepage-setup-hook)
-    ))
-
-(defvar cjk-codepages-alist
-  '((932 "Japanese" japanese-shift-jis)
-    (950 "Chinese-BIG5" cn-big5)
-    (936 "Chinese-GB" cn-gb-2312)
-    (949 "Korean" euc-kr))
-  "An alist of Far-Eastern codepages and the names of the associated
-language and supported coding system.")
+;; The following alist was compiled from:
+;;
+;; Ralf Brown's Interrupt List. file INTERRUP.F, D-2138, Table 01400
+;; http://www.ethnologue.com/country_index.asp (official languages)
+;; http://unicode.org/onlinedat/languages.html
+;; http://unicode.org/onlinedat/countries.html
+;;
+;; Only the official languages listed for each country.
+;;
+(defvar dos-locale-alist
+  '((  1 . "en_US")
+    (  2 . "fr_CA")
+    (  3 . "es_MX")  ; what the heck is "Latin America"?
+    (  4 . "en_CA")
+    (  7 . "ru_RU")
+    ( 20 . "ar_EG")
+    ( 27 . "af_ZA")
+    ( 30 . "el_GR")
+    ( 31 . "nl_NL")
+    ( 32 . "nl_BE")
+    ( 33 . "fr_FR")
+    ( 34 . "es_ES")
+    ( 35 . "bg_BG")
+    ( 36 . "hu_HU")
+    ( 38 . "sh_YU")
+    ( 39 . "it_IT")
+    ( 40 . "ro_RO")
+    ( 41 . "de_CH")
+    ( 42 . "cs_CZ")
+    ( 43 . "de_AT")
+    ( 44 . "en_UK")
+    ( 45 . "da_DK")
+    ( 46 . "sv_SE")
+    ( 47 . "no_NO")
+    ( 48 . "pl_PL")
+    ( 49 . "de_DE")
+    ( 51 . "es_PE")
+    ( 52 . "es_MX")
+    ( 53 . "es_CU")
+    ( 54 . "es_AR")
+    ( 55 . "pt_BR")
+    ( 56 . "es_CL")
+    ( 57 . "es_CO")
+    ( 58 . "es_VE")
+    ( 60 . "ms_MY")
+    ( 61 . "en_AU")
+    ( 62 . "id_ID")
+    ( 63 . "fil_PH")
+    ( 64 . "en_NZ")
+    ( 65 . "zh_SG")
+    ( 66 . "th_TH")
+    ( 81 . "ja_JP")
+    ( 82 . "ko_KR")
+    ( 84 . "vi_VN")
+    ( 86 . "zh_CN")
+    ( 88 . "zh_TW")
+    ( 90 . "tr_TR")
+    ( 91 . "hi_IN")
+    ( 92 . "ur_PK")
+    ( 93 . "ps_AF")
+    ( 94 . "si_LK")
+    ( 98 . "fa_IR")
+    ( 99 . "en"   )
+    (102 . "he_IL")
+    (112 . "be_BY")
+    (212 . "ar_MA")
+    (213 . "ar_DZ")
+    (216 . "ar_TN")
+    (218 . "ar_LY")
+    (220 . "en_GM")
+    (221 . "fr_SN")
+    (222 . "mey_MR")
+    (223 . "fr_ML")
+    (224 . "fr_GN")
+    (227 . "fr_NE")
+    (228 . "fr_TG")
+    (230 . "fr_MU")
+    (231 . "en_LR")
+    (232 . "en_SL")
+    (233 . "en_GH")
+    (234 . "en_NG")
+    (235 . "ar_TD")
+    (236 . "fr_CF")
+    (237 . "fr_CM")
+    (241 . "fr_GA")
+    (242 . "fr_CG")
+    (243 . "sw_ZR")
+    (244 . "pt_AO")
+    (245 . "pt_GW")
+    (249 . "ar_SD")
+    (250 . "fr_RW")
+    (251 . "am_ET")
+    (252 . "so_SO")
+    (253 . "fr_DJ")
+    (254 . "sw_KE")
+    (255 . "sw_TZ")
+    (256 . "en_UG")
+    (257 . "fr_BI")
+    (259 . "pt_MZ")
+    (260 . "en_ZM")
+    (261 . "mg_MG")
+    (263 . "en_ZW")
+    (264 . "en_NA")
+    (265 . "en_MW")
+    (266 . "st_LS")
+    (267 . "en_BW")
+    (268 . "en_SZ")
+    (299 . "kl_GL")
+    (350 . "en_GI")
+    (351 . "pt_PT")
+    (352 . "fr_LU")
+    (353 . "ga_IE")
+    (354 . "is_IS")
+    (355 . "sq_AL")
+    (356 . "mt_MT")
+    (357 . "gr_CY")
+    (358 . "fi_FI")
+    (359 . "bg_BG")
+    (370 . "lt_LT")
+    (371 . "lv_LV")
+    (372 . "et_EE")
+    (373 . "mo_MD")
+    (380 . "uk_UA")
+    (381 . "sr_RS")
+    (384 . "hr_HR")
+    (385 . "hr_HR")
+    (386 . "sl_SI")
+    (387 . "bs_BA")
+    (388 . "sr_BA")
+    (389 . "mk_MK")
+    (421 . "cs_CZ")
+    (422 . "sk_SK")
+    (502 . "es_GT")
+    (503 . "es_SV")
+    (504 . "es_HN")
+    (505 . "es_NI")
+    (506 . "es_CR")
+    (507 . "es_PA")
+    (509 . "ht_HT")
+    (590 . "fr_GP")
+    (591 . "es_BO")
+    (592 . "en_GY")
+    (593 . "es_EC")
+    (594 . "fr_GF")
+    (595 . "gn_PY")
+    (596 . "fr_MQ")
+    (597 . "nl_SR")
+    (598 . "es_UY")
+    (785 . "ar"   )
+    (804 . "uk_UA")
+    (850 . "ko_KP")
+    (855 . "km_KH")
+    (856 . "lo_LA")
+    (880 . "bn_BD")
+    (886 . "zh_TW")
+    (960 . "dv_MV")
+    (961 . "ar_LB")
+    (962 . "ar_JO")
+    (963 . "ar_SY")
+    (964 . "ar_IQ")
+    (965 . "ar_KW")
+    (966 . "ar_SA")
+    (967 . "ar_YE")
+    (968 . "ar_OM")
+    (969 . "ar_YE")
+    (971 . "ar_AE")
+    (972 . "he_IL")
+    (973 . "ar_BH")
+    (974 . "ar_QA")
+    (975 . "dz_BT")
+    (976 . "mn_MN")
+    (977 . "ne_NP")
+    (995 . "my_MM")
+    )
+    "Alist of MS-DOS country codes and the corresponding locale names.")
 
 (defun dos-codepage-setup ()
-  "Set up the MULE environment as appropriate for the installed DOS codepage.
+  "Set up multilingual environment for the installed DOS codepage.
 
 This function sets coding systems, display tables, and the language
 environment options as appropriate for the current value of `dos-codepage'.
 
-This function is automatically run at startup via the `term-setup-hook'
-list.  You can (and should) also run it whenever the value of
+This function is automatically run at startup via the `after-init-hook'
+list.  You can (and should) also run it if and when the value of
 `dos-codepage' changes."
   (interactive)
-  (let* ((desc (cdr (assq dos-codepage cjk-codepages-alist)))
-	 (lang (car desc))
-	 (coding (car (cdr desc)))
-	 coding-dos coding-unix)
-    (if (null desc)
-	(ignore) ; (dos-cpNNN-setup dos-codepage))  FIXME
-      ;; We've got one of the Far-Eastern codepages which support
-      ;; MULE native coding systems directly.
-      (setq coding-dos (intern (format "%s-dos" coding))
-	    coding-unix (intern (format "%s-unix" coding)))
-      (set-language-environment lang)
-      (set-selection-coding-system coding-dos)
-      (setq file-name-coding-system coding-unix)
-      (set-terminal-coding-system
-       (setq default-terminal-coding-system coding-unix))
-      ;; Assume they support non-ASCII Latin characters like the IBM
-      ;; codepage 437 does.
-      ;(IT-display-table-setup "cp437")
-      ;; It's time: too many input methods in leim/quail produce
-      ;; Unicode characters.  Let the user see them.
-      ;(IT-setup-unicode-display)
-      (prefer-coding-system coding-dos)
-      (if default-enable-multibyte-characters
-	  (setq unibyte-display-via-language-environment t))
-      )))
+  (let ((locale (cdr (assq dos-country-code dos-locale-alist)))
+	(coding (format "cp%s" dos-codepage))
+	coding-dos coding-unix)
+    (setq coding-dos (intern (format "%s-dos" coding))
+	  coding-unix (intern (format "%s-unix" coding)))
+    (setq locale (if locale
+		     (format "%s.cp%s" locale dos-codepage)
+		   "en_US.cp437"))
+    (set-locale-environment locale)
+    (set-selection-coding-system coding-dos)
+    (IT-setup-unicode-display coding-unix)
+    (prefer-coding-system coding-dos)
+    (and default-enable-multibyte-characters
+	 (setq unibyte-display-via-language-environment t))
+    ;; Some codepages have sporadic support for Latin-1, Greek, and
+    ;; symbol glyphs, which don't belong to their native character
+    ;; set.  It's a nuisance to have all those glyphs here, for all
+    ;; the codepages (for starters, I don't even have references for
+    ;; all the codepages).  So provide a hook for those who want to
+    ;; squeeze every bit of support out of their terminal/font.
+    (run-hooks 'dos-codepage-setup-hook)
+    ))
 
 ;; arch-tag: eea04c06-7311-4b5a-b531-3c1be1b070af
 ;;; internal.el ends here

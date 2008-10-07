@@ -147,6 +147,9 @@ like make-backup-file-name-function for non-numeric backup files.
 ** `dired-mode' should specify the semantics of `buffer-modified-p' for
 dired buffers and DTRT WRT `auto-revert-mode'. 
 
+** Check uses of prin1 for error-handling.
+http://lists.gnu.org/archive/html/emacs-devel/2008-08/msg00456.html
+
 * Important features:
 
 ** Having tabs above a window to switch buffers in it.
@@ -345,7 +348,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   Bison input files, for instance, or other kinds of text
   where one language is embedded in another language.  See
   http://www.loveshack.ukfsn.org/emacs/multi-mode.el and also
-  mmm-mode, as reference for approaches took by others.
+  mmm-mode, as reference for approaches taken by others.
 
 ** Arrange a way for an input method to return the first character
   immediately, then replace it later.  So that C-s a with
@@ -365,12 +368,6 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   Love started on this.]
 
 ** Add a cpio mode, more or less like tar mode.
-
-** Implement a variant of uncompress.el or jka-compr.el that works with
-  GNU Privacy Guard for encryption.  [Code exists but isn't assigned.
-  See the Gnus development sources for assigned code concerning GPG
-  use with mail, which is probably a good start.]  See also
-  http://www.loveshack.ukfsn.org/emacs/auto-crypt.tgz.
 
 ** Save undo information in special temporary files, and reload it
   when needed for undoing.  This could extend undo capacity.
@@ -484,14 +481,12 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
 ** Provide portable undumping using mmap (per gerd design).
 
 ** Make byte-compile avoid binding an expanded defsubst's args
-when the body only calls primitives.
+  when the body only calls primitives.
 
 ** Use the XIE X extension, if available, for image display.
 
 ** Make monochrome images display using the foreground and background
   colors of the applicable faces.
-
-** Face remapping.
 
 ** Make `format-time-string' preserve text properties like `format'.
 
@@ -583,13 +578,11 @@ when the body only calls primitives.
   packages (e.g. tamago, anthy) or an input method via XIM.
 
 ** Let LEIM handle the Mode_switch key like XIM does (i.e. a toggle like C-\
-but which can also be used as a modifier).
+   but which can also be used as a modifier).
 
 ** Improve Help buffers: Change the face of previously visited links (like
-   Info, but also with regard to namespace), add a forward button to make the
-   Help buffer more browser like and gives the value of lisp expressions
-   e.g auto-mode-alist, the right face. [nickrob@snap.net.nz has a patch
-   for this for inclusion after 22.1].
+   Info, but also with regard to namespace), and give the value of
+   lisp expressions, e.g auto-mode-alist, the right face.
 
 ** Possibly make `list-holidays' eval items in the calendar-holidays variable.
    See thread
@@ -641,7 +634,7 @@ but which can also be used as a modifier).
    For use by sml-mode, python-mode, tex-mode, scheme-mode, lisp-mode,
    haskell-mode, tuareg-mode, ...
 
-** Make SYNC_INPUT the default.
+** Make SYNC_INPUT the default. [true since 2008-03-11]
    All loops using immediate_quit need to be checked to ensure that
    C-g can interrupt them, in case of an infinite loop.  Once we
    switch to using SYNC_INPUT, we can remove the BLOCK_INPUTs in the
@@ -656,32 +649,6 @@ but which can also be used as a modifier).
 * Other known bugs:
 
 ** `make-frame' forgets unhandled parameters, at least for X11 frames.
-** The \\{...} keymap dump output does not correctly remove shadowed entries:
-From: "Drew Adams" <drew.adams@oracle.com>
-
-(define-key minibuffer-local-map [(control ?=)] 'foo)
-(define-key minibuffer-local-completion-map [(control ?=)] 'foo)
-
-(defun toto () "\\{minibuffer-local-completion-map}"  4)
-
-C-h f toto shows a duplicate entry for C-=:
-
-toto is a Lisp function.
-(toto)
-
-key             binding
-- ---             -------
-
-C-g		abort-recursive-edit
-TAB		minibuffer-complete
-C-j		exit-minibuffer
-RET		exit-minibuffer
-ESC		Prefix Command
-SPC		minibuffer-complete-word
-?		minibuffer-completion-help
-C-=		foo
-C-=		foo
-...
 
 ** a two-char comment-starter whose two chars are symbol constituents will
 not be noticed if it appears within a word.

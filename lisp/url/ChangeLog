@@ -1229,7 +1229,7 @@
 	(url-dav-process-response): Make sure that we create a DAV:status
 	property when parsing a singleton response.
 	(url-dav-file-attributes): If the properties returned did not have
-	a succesful HTTP response code, then ignore them and use the
+	a successful HTTP response code, then ignore them and use the
 	HEAD-based attributes.
 
 	* lisp/vc-dav.el: Added full copyright information.
@@ -1266,7 +1266,7 @@
 	(url-dav-process-DAV:lockdiscovery): Can now correctly parse
 	DAV:lockdiscovery nodes, so that we can find out who has a
 	resource locked and properly parse the reponse to a LOCK request.
-	(url-dav-process-DAV:status): Now parses ou the numeric status
+	(url-dav-process-DAV:status): Now parses out the numeric status
 	from the HTTP response line.
 	(url-dav-process-response): New function to handle all the
 	parsing of an XML response from WebDAV.  This handles all the
@@ -1432,7 +1432,7 @@
 	* lisp/url-http.el (url-http): Make sure that we signal an error
 	when we cannot open a network connection for whatever reason.
 	Before, it would just silently clean up after itself and the user
-	got absolutely no indication that an error had occured.  If the
+	got absolutely no indication that an error had occurred.  If the
 	error should truly be ignored, the caller should do that for us.
 	(url-http-chunked-encoding-after-change-function): Doh!  Need to
 	user marker-position in some log messages now that
@@ -1813,7 +1813,7 @@
 
 	* lisp/url-http.el (url-http-parse-headers): Need to make the
 	connection as 'free' when we get a 304 response (found in cache),
-	or when a keep-alive conneection timed out, it would re-parse the
+	or when a keep-alive connection timed out, it would re-parse the
 	headers and dispatch to the callback again.  Eek.
 
 2000-10-02  William M. Perry  <wmperry@aventail.com>

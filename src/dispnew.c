@@ -3954,11 +3954,12 @@ update_frame (f, force_p, inhibit_hairy_id_p)
       paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p);
       update_end (f);
 
-      if (FRAME_TERMCAP_P (f))
+      if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
         {
           if (FRAME_TTY (f)->termscript)
             fflush (FRAME_TTY (f)->termscript);
-          fflush (FRAME_TTY (f)->output);
+	  if (FRAME_TERMCAP_P (f))
+	    fflush (FRAME_TTY (f)->output);
         }
 
       /* Check window matrices for lost pointers.  */
@@ -6356,7 +6357,9 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
 	set_window_height (FRAME_ROOT_WINDOW (f),
 			   newheight - FRAME_TOP_MARGIN (f), 2);
 
-      if (FRAME_TERMCAP_P (f) && !pretend)
+      /* MSDOS frames cannot PRETEND, as they change frame size by
+	 manipulating video hardware.  */
+      if ((FRAME_TERMCAP_P (f) && !pretend) || FRAME_MSDOS_P (f))
 	FrameRows (FRAME_TTY (f)) = newheight;
     }
 
@@ -6366,7 +6369,9 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
       if (FRAME_HAS_MINIBUF_P (f))
 	set_window_width (FRAME_MINIBUF_WINDOW (f), new_frame_total_cols, 0);
 
-      if (FRAME_TERMCAP_P (f) && !pretend)
+      /* MSDOS frames cannot PRETEND, as they change frame size by
+	 manipulating video hardware.  */
+      if ((FRAME_TERMCAP_P (f) && !pretend) || FRAME_MSDOS_P (f))
 	FrameCols (FRAME_TTY (f)) = newwidth;
 
       if (WINDOWP (f->tool_bar_window))
@@ -6417,7 +6422,8 @@ FILE = nil means just close any termscript file currently open.  */)
 {
   struct tty_display_info *tty;
 
-  if (! FRAME_TERMCAP_P (SELECTED_FRAME ()))
+  if (! FRAME_TERMCAP_P (SELECTED_FRAME ())
+      && ! FRAME_MSDOS_P (SELECTED_FRAME ()))
     error ("Current frame is not on a tty device");
 
   tty = CURTTY ();
@@ -6464,6 +6470,9 @@ currently selected frame.  */)
     error ("Unknown terminal device");
 
   tty = t->display_info.tty;
+
+  if (! tty->output)
+    error ("Terminal is currently suspended");
 
   if (tty->termscript)
     {
@@ -6823,6 +6832,10 @@ init_display ()
 #endif /* CANNOT_DUMP */
     signal (SIGWINCH, window_change_signal);
 #endif /* SIGWINCH */
+
+  /* If running as a daemon, no need to initialize any frames/terminal. */
+  if (is_daemon)
+    return;
 
   /* If the user wants to use a window system, we shouldn't bother
      initializing the terminal.  This is especially important when the

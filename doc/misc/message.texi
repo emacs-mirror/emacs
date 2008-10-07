@@ -2223,6 +2223,11 @@ non-@code{nil}, attach local files as external parts.
 If non-@code{nil} wait for and display errors when sending a message;
 if @code{nil} let the mailer mail back a message to report errors.
 
+@item message-confirm-send
+@vindex message-confirm-send
+When non-@code{nil}, Gnus will ask for confirmation when sending a
+message.
+
 @end table
 
 

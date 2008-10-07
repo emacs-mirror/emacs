@@ -40,7 +40,7 @@
 
 
 (if (not (featurep 'ns))
-    (error "%s: Loading ns-win.el but not compiled for GNUStep/MacOS"
+    (error "%s: Loading ns-win.el but not compiled for GNUstep/MacOS"
 	   (invocation-name)))
 
 (eval-when-compile (require 'cl))

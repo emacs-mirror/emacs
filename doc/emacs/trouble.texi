@@ -116,13 +116,14 @@ it executes as an ordinary command, and Emacs doesn't notice it until
 it is ready for the next command.
 
 @findex top-level
-  The command @kbd{M-x top-level} is equivalent to ``enough'' @kbd{C-]}
-commands to get you out of all the levels of recursive edits that you
-are in.  @kbd{C-]} gets you out one level at a time, but @kbd{M-x
-top-level} goes out all levels at once.  Both @kbd{C-]} and @kbd{M-x
-top-level} are like all other commands, and unlike @kbd{C-g}, in that
-they take effect only when Emacs is ready for a command.  @kbd{C-]} is
-an ordinary key and has its meaning only because of its binding in the
+  The command @kbd{M-x top-level} is equivalent to ``enough''
+@kbd{C-]} commands to get you out of all the levels of recursive edits
+that you are in; it also exits the minibuffer if it is active.
+@kbd{C-]} gets you out one level at a time, but @kbd{M-x top-level}
+goes out all levels at once.  Both @kbd{C-]} and @kbd{M-x top-level}
+are like all other commands, and unlike @kbd{C-g}, in that they take
+effect only when Emacs is ready for a command.  @kbd{C-]} is an
+ordinary key and has its meaning only because of its binding in the
 keymap.  @xref{Recursive Edit}.
 
   @kbd{C-x u} (@code{undo}) is not strictly speaking a way of canceling

@@ -3740,10 +3740,12 @@ buffer that was in action when the last article was fetched."
     (if (= gnus-tmp-lines -1)
 	(setq gnus-tmp-lines "?")
       (setq gnus-tmp-lines (number-to-string gnus-tmp-lines)))
-      (gnus-put-text-property
-     (point)
-     (progn (eval gnus-summary-line-format-spec) (point))
-       'gnus-number gnus-tmp-number)
+    (condition-case ()
+	(gnus-put-text-property
+	 (point)
+	 (progn (eval gnus-summary-line-format-spec) (point))
+	 'gnus-number gnus-tmp-number)
+      (error (gnus-message 5 "Error updating the summary line")))
     (when (gnus-visual-p 'summary-highlight 'highlight)
       (forward-line -1)
       (gnus-run-hooks 'gnus-summary-update-hook)
@@ -5351,15 +5353,15 @@ or a straight list of headers."
 		(setq gnus-tmp-lines "?")
 	      (setq gnus-tmp-lines (number-to-string gnus-tmp-lines)))
               (gnus-put-text-property
-	     (point)
-	     (progn (eval gnus-summary-line-format-spec) (point))
+	       (point)
+	       (progn (eval gnus-summary-line-format-spec) (point))
                'gnus-number number)
-	    (when gnus-visual-p
-	      (forward-line -1)
-	      (gnus-run-hooks 'gnus-summary-update-hook)
-	      (forward-line 1))
+	      (when gnus-visual-p
+		(forward-line -1)
+		(gnus-run-hooks 'gnus-summary-update-hook)
+		(forward-line 1))
 
-	    (setq gnus-tmp-prev-subject simp-subject)))
+	      (setq gnus-tmp-prev-subject simp-subject)))
 
 	(when (nth 1 thread)
 	  (push (list (max 0 gnus-tmp-level)

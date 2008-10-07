@@ -1696,8 +1696,9 @@ menu_position_func (menu, x, y, push_in, user_data)
 {
   struct next_popup_x_y* data = (struct next_popup_x_y*)user_data;
   GtkRequisition req;
-  int disp_width = FRAME_X_DISPLAY_INFO (data->f)->width;
-  int disp_height = FRAME_X_DISPLAY_INFO (data->f)->height;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (data->f);
+  int disp_width = x_display_pixel_width (dpyinfo);
+  int disp_height = x_display_pixel_height (dpyinfo);
 
   *x = data->x;
   *y = data->y;
@@ -2775,6 +2776,23 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       y -= (uly + height) - dispheight;
       uly = dispheight - height;
     }
+#ifndef HAVE_X_WINDOWS
+  if (FRAME_HAS_MINIBUF_P (f) && uly+height > dispheight - 1)
+    {
+      /* Move the menu away of the echo area, to avoid overwriting the
+	 menu with help echo messages or vice versa.  */
+      if (BUFFERP (echo_area_buffer[0]) && WINDOWP (echo_area_window))
+	{
+	  y -= WINDOW_TOTAL_LINES (XWINDOW (echo_area_window));
+	  uly -= WINDOW_TOTAL_LINES (XWINDOW (echo_area_window));
+	}
+      else
+	{
+	  y--;
+	  uly--;
+	}
+    }
+#endif
   if (ulx < 0) x -= ulx;
   if (uly < 0) y -= uly;
 

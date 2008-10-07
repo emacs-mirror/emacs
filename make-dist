@@ -725,7 +725,8 @@ echo "Making links to \`doc/lispintro'"
 
 echo "Making links to \`doc/man'"
 (cd doc/man
- ln *.1 ../../${tempdir}/doc/man)
+ ln *.1 ../../${tempdir}/doc/man
+ ln ChangeLog ../../${tempdir}/doc/man)
 
 ### It would be nice if they could all be symlinks to top-level copy, but
 ### you're not supposed to have any symlinks in distribution tar files.

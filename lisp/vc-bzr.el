@@ -52,7 +52,8 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'vc))                        ; for vc-exec-after
+  (require 'vc)  ;; for vc-exec-after
+  (require 'vc-dir))
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -467,22 +468,24 @@ REV non-nil gets an error."
 (defun vc-bzr-show-log-entry (revision)
   "Find entry for patch name REVISION in bzr change log buffer."
   (goto-char (point-min))
-  (let (case-fold-search)
-    (if (re-search-forward
-	 ;; "revno:" can appear either at the beginning of a line, or indented.
-	 (concat "^[ ]*-+\n[ ]*revno: "
-		 ;; The revision can contain ".", quote it so that it
-		 ;; does not interfere with regexp matching.
-		 (regexp-quote revision) "$") nil t)
-        (beginning-of-line 0)
-      (goto-char (point-min)))))
+  (when revision
+    (let (case-fold-search)
+      (if (re-search-forward
+	   ;; "revno:" can appear either at the beginning of a line,
+	   ;; or indented.
+	   (concat "^[ ]*-+\n[ ]*revno: "
+		   ;; The revision can contain ".", quote it so that it
+		   ;; does not interfere with regexp matching.
+		   (regexp-quote revision) "$") nil t)
+	  (beginning-of-line 0)
+	(goto-char (point-min))))))
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
   ;; `bzr diff' exits with code 1 if diff is non-empty.
   (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*") 'async files
          "--diff-options" (mapconcat 'identity
-                                     (vc-diff-switches-list bzr)
+                                     (vc-switches 'bzr 'diff)
 				     " ")
          ;; This `when' is just an optimization because bzr-1.2 is *much*
          ;; faster when the revision argument is not given.
@@ -576,6 +579,22 @@ stream.  Standard error output is discarded."
     ;; else fall back to default vc.el representation
     (vc-default-prettify-state-info 'Bzr file)))
 
+(defstruct (vc-bzr-extra-fileinfo
+            (:copier nil)
+            (:constructor vc-bzr-create-extra-fileinfo (extra-name))
+            (:conc-name vc-bzr-extra-fileinfo->))
+  extra-name)         ;; original name for rename targets, new name for
+
+(defun vc-bzr-status-printer (info)
+  "Pretty-printer for the vc-dir-fileinfo structure."
+  (let ((extra (vc-dir-fileinfo->extra info)))
+    (vc-default-status-printer 'Bzr info)
+    (when extra
+      (insert (propertize
+	       (format "   (renamed from %s)"
+		       (vc-bzr-extra-fileinfo->extra-name extra))
+	       'face 'font-lock-comment-face)))))
+
 ;; FIXME: this needs testing, it's probably incomplete.
 (defun vc-bzr-after-dir-status (update-function)
   (let ((status-str nil)
@@ -589,6 +608,12 @@ stream.  Standard error output is discarded."
                        ;; For conflicts, should we list the .THIS/.BASE/.OTHER?
 		       ("C  " . conflict)
 		       ("?  " . unregistered)
+		       ("?  " . unregistered)
+		       ;; No such state, but we need to distinguish this case.
+		       ("R  " . renamed)
+		       ;; For a non existent file FOO, the output is:
+		       ;; bzr: ERROR: Path(s) do not exist: FOO
+		       ("bzr" . not-found)
                        ;; Ignore "P " and "P." for pending patches.
                        ))
 	(translated nil)
@@ -598,23 +623,33 @@ stream.  Standard error output is discarded."
 	(setq status-str
 	      (buffer-substring-no-properties (point) (+ (point) 3)))
 	(setq translated (cdr (assoc status-str translation)))
-	;; For conflicts the file appears twice in the listing: once
-	;; with the M flag and once with the C flag, so take care not
-	;; to add it twice to `result'.  Ugly.
-	(if (eq translated 'conflict)
-	    (let* ((file
-		    (buffer-substring-no-properties
-		     ;;For files with conflicts the format is:
-		     ;;C   Text conflict in FILENAME
-		     ;; Bah.
-		     (+ (point) 21) (line-end-position)))
-		   (entry (assoc file result)))
-	      (when entry
-		(setf (nth 1 entry) 'conflict)))
+	(cond
+	 ((eq translated 'conflict)
+	  ;; For conflicts the file appears twice in the listing: once
+	  ;; with the M flag and once with the C flag, so take care
+	  ;; not to add it twice to `result'.  Ugly.
+	  (let* ((file
+		  (buffer-substring-no-properties
+		   ;;For files with conflicts the format is:
+		   ;;C   Text conflict in FILENAME
+		   ;; Bah.
+		   (+ (point) 21) (line-end-position)))
+		 (entry (assoc file result)))
+	    (when entry
+	      (setf (nth 1 entry) 'conflict))))
+	 ((eq translated 'renamed)
+	  (re-search-forward "R   \\(.*\\) => \\(.*\\)$" (line-end-position) t)
+	  (let ((new-name (match-string 2))
+		(old-name (match-string 1)))
+	    (push (list new-name 'edited
+		      (vc-bzr-create-extra-fileinfo old-name)) result)))
+	 ;; do nothing for non existent files
+	 ((eq translated 'not-found))
+	 (t
 	  (push (list (buffer-substring-no-properties
 		       (+ (point) 4)
 		       (line-end-position))
-		      translated) result))
+		      translated) result)))
 	(forward-line))
       (funcall update-function result)))
 
@@ -624,6 +659,11 @@ stream.  Standard error output is discarded."
   (vc-exec-after
    `(vc-bzr-after-dir-status (quote ,update-function))))
 
+(defun vc-bzr-dir-status-files (dir files default-state update-function)
+  "Return a list of conses (file . state) for DIR."
+  (apply 'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
+  (vc-exec-after
+   `(vc-bzr-after-dir-status (quote ,update-function))))
 ;;; Revision completion
 
 (defun vc-bzr-revision-completion-table (files)

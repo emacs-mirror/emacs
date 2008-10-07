@@ -166,7 +166,7 @@ and don't split the file if large.  You can use `Info-tagify' and
     (Info-tagify)
     (if nosplit
         nil
-      (if (> (buffer-size) 100000)
+      (if (> (buffer-size) (+ 50000 Info-split-threshold))
           (progn
             (message (setq lastmessage "Splitting Info file..."))
             (Info-split))))

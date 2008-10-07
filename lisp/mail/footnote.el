@@ -46,66 +46,78 @@
   :group 'message)
 
 (defcustom footnote-mode-line-string " FN"
-  "*String to display in modes section of the mode-line."
+  "String to display in modes section of the mode-line."
   :group 'footnote)
 
 (defcustom footnote-mode-hook nil
-  "*Hook functions run when footnote-mode is activated."
+  "Hook functions run when footnote-mode is activated."
   :type 'hook
   :group 'footnote)
 
 (defcustom footnote-narrow-to-footnotes-when-editing nil
-  "*If set, narrow to footnote text body while editing a footnote."
+  "If non-nil, narrow to footnote text body while editing a footnote."
   :type 'boolean
   :group 'footnote)
 
 (defcustom footnote-prompt-before-deletion t
-  "*If set, prompt before deleting a footnote.
+  "If non-nil, prompt before deleting a footnote.
 There is currently no way to undo deletions."
   :type 'boolean
   :group 'footnote)
 
 (defcustom footnote-spaced-footnotes t
-  "If set true it will put a blank line between each footnote.
-If nil, no blank line will be inserted."
+  "If non-nil, insert an empty line between footnotes.
+Customizing this variable has no effect on buffers already
+displaying footnotes."
   :type 'boolean
   :group 'footnote)
 
-(defcustom footnote-use-message-mode t
-  "*If non-nil assume Footnoting will be done in message-mode."
+(defcustom footnote-use-message-mode t ; Nowhere used.
+  "If non-nil, assume Footnoting will be done in `message-mode'."
   :type 'boolean
   :group 'footnote)
 
 (defcustom footnote-body-tag-spacing 2
-  "*Number of blanks separating a footnote body tag and its text."
+  "Number of spaces separating a footnote body tag and its text.
+Customizing this variable has no effect on buffers already
+displaying footnotes."
   :type 'integer
   :group 'footnote)
 
 (defvar footnote-prefix [(control ?c) ?!]
-  "*When not using message mode, the prefix to bind in `mode-specific-map'")
+  "*When not using `message-mode', the prefix to bind in `mode-specific-map'")
 
 ;;; Interface variables that probably shouldn't be changed
 
 (defcustom footnote-section-tag "Footnotes: "
-  "*Tag inserted at beginning of footnote section."
-  :version "22.1"
+  "Tag inserted at beginning of footnote section.
+If you set this to the empty string, no tag is inserted and the
+value of `footnote-section-tag-regexp' is ignored.  Customizing
+this variable has no effect on buffers already displaying
+footnotes."
   :type 'string
   :group 'footnote)
 
 (defcustom footnote-section-tag-regexp "Footnotes\\(\\[.\\]\\)?: "
-  "*Regexp which indicates the start of a footnote section.
-See also `footnote-section-tag'."
+  "Regexp which indicates the start of a footnote section.
+This variable is disregarded when `footnote-section-tag' is the
+empty string.  Customizing this variable has no effect on buffers
+already displaying footnotes."
   :type 'regexp
   :group 'footnote)
 
 ;; The following three should be consumed by footnote styles.
 (defcustom footnote-start-tag "["
-  "*String used to denote start of numbered footnote."
+  "String used to denote start of numbered footnote.
+Should not be set to the empty string.  Customizing this variable
+has no effect on buffers already displaying footnotes."
   :type 'string
   :group 'footnote)
 
 (defcustom footnote-end-tag "]"
-  "*String used to denote end of numbered footnote."
+  "String used to denote end of numbered footnote.
+Should not be set to the empty string.  Customizing this variable
+has no effect on buffers already displaying footnotes."
   :type 'string
   :group 'footnote)
 
@@ -293,7 +305,7 @@ See footnote-han.el, footnote-greek.el and footnote-hebrew.el for more
 exciting styles.")
 
 (defcustom footnote-style 'numeric
-  "*Default style used for footnoting.
+  "Default style used for footnoting.
 numeric == 1, 2, 3, ...
 english-lower == a, b, c, ...
 english-upper == A, B, C, ...
@@ -303,8 +315,8 @@ latin == ¹ ² ³ º ª § ¶
 See also variables `footnote-start-tag' and `footnote-end-tag'.
 
 Customizing this variable has no effect on buffers already
-displaying footnotes.  You can change the style of existing
-buffers using the command `Footnote-set-style'."
+displaying footnotes.  To change the style of footnotes in such a
+buffer use the command `Footnote-set-style'."
   :type (cons 'choice (mapcar (lambda (x) (list 'const (car x)))
 			      footnote-style-alist))
   :group 'footnote)
@@ -341,16 +353,21 @@ styles."
 	(setq locn (cdr alist))
 	(while locn
 	  (goto-char (car locn))
-	  (search-backward footnote-start-tag nil t)
-	  (when (looking-at (concat
-			     (regexp-quote footnote-start-tag)
-			     "\\(" index-regexp "+\\)"
-			     (regexp-quote footnote-end-tag)))
-	    (replace-match (concat
-			    footnote-start-tag
-			    (Footnote-index-to-string (1+ i))
-			    footnote-end-tag)
-			   nil "\\1"))
+	  ;; Try to handle the case where `footnote-start-tag' and
+	  ;; `footnote-end-tag' are the same string.
+	  (when (looking-back (concat
+			       (regexp-quote footnote-start-tag)
+			       "\\(" index-regexp "+\\)"
+			       (regexp-quote footnote-end-tag))
+			      (line-beginning-position))
+	    (replace-match
+	     (propertize
+	      (concat
+	       footnote-start-tag
+	       (Footnote-index-to-string (1+ i))
+	       footnote-end-tag)
+	      'footnote-number (1+ i) footnote-mouse-highlight t)
+	     nil "\\1"))
 	  (setq locn (cdr locn)))
 	(setq i (1+ i))))
 
@@ -362,11 +379,14 @@ styles."
 			   (regexp-quote footnote-start-tag)
 			   "\\(" index-regexp "+\\)"
 			   (regexp-quote footnote-end-tag)))
-	  (replace-match (concat
-			  footnote-start-tag
-			  (Footnote-index-to-string (1+ i))
-			  footnote-end-tag)
-			 nil "\\1"))
+	  (replace-match
+	   (propertize
+	    (concat
+	     footnote-start-tag
+	     (Footnote-index-to-string (1+ i))
+	     footnote-end-tag)
+	    'footnote-number (1+ i))
+	   nil "\\1"))
 	(setq i (1+ i))))))
 
 (defun Footnote-assoc-index (key alist)
@@ -397,23 +417,21 @@ styles."
    (list (intern (completing-read
 		  "Footnote Style: "
 		  obarray #'Footnote-style-p 'require-match))))
-  (setq footnote-style style))
+  (let ((old (Footnote-assoc-index footnote-style footnote-style-alist)))
+    (setq footnote-style style)
+    (Footnote-refresh-footnotes (nth 2 (nth old footnote-style-alist)))))
 
 ;; Internal functions
 (defun Footnote-insert-numbered-footnote (arg &optional mousable)
   "Insert numbered footnote at (point)."
-  (let* ((start (point))
-	 (end (progn
-		(insert-before-markers (concat footnote-start-tag
-					       (Footnote-index-to-string arg)
-					       footnote-end-tag))
-		(point))))
-
-    (add-text-properties start end
-			 (list 'footnote-number arg))
-    (when mousable
-      (add-text-properties start end
-			   (list footnote-mouse-highlight t)))))
+  (let ((string (concat footnote-start-tag
+			(Footnote-index-to-string arg)
+			footnote-end-tag)))
+    (insert-before-markers
+     (if mousable
+	 (propertize
+	  string 'footnote-number arg footnote-mouse-highlight t)
+       (propertize string 'footnote-number arg)))))
 
 (defun Footnote-renumber (from to pointer-alist text-alist)
   "Renumber a single footnote."
@@ -422,29 +440,27 @@ styles."
     (setcar text-alist to)
     (while posn-list
       (goto-char (car posn-list))
-      (search-backward footnote-start-tag nil t)
-      (when (looking-at (format "%s%s%s"
-				(regexp-quote footnote-start-tag)
-				(Footnote-current-regexp)
-				(regexp-quote footnote-end-tag)))
-	(add-text-properties (match-beginning 0) (match-end 0)
-			     (list 'footnote-number to))
-	(replace-match (format "%s%s%s"
-			       footnote-start-tag
-			       (Footnote-index-to-string to)
-			       footnote-end-tag)))
+      (when (looking-back (concat (regexp-quote footnote-start-tag)
+				  (Footnote-current-regexp)
+				  (regexp-quote footnote-end-tag))
+			  (line-beginning-position))
+	(replace-match
+	 (propertize
+	  (concat footnote-start-tag
+		  (Footnote-index-to-string to)
+		  footnote-end-tag)
+	  'footnote-number to footnote-mouse-highlight t)))
       (setq posn-list (cdr posn-list)))
     (goto-char (cdr text-alist))
-    (when (looking-at (format "%s%s%s"
-			      (regexp-quote footnote-start-tag)
+    (when (looking-at (concat (regexp-quote footnote-start-tag)
 			      (Footnote-current-regexp)
 			      (regexp-quote footnote-end-tag)))
-      (add-text-properties (match-beginning 0) (match-end 0)
-			   (list 'footnote-number to))
-      (replace-match (format "%s%s%s"
-			     footnote-start-tag
-			     (Footnote-index-to-string to)
-			     footnote-end-tag) nil t))))
+      (replace-match
+       (propertize
+	(concat footnote-start-tag
+		(Footnote-index-to-string to)
+		footnote-end-tag)
+	'footnote-number to)))))
 
 ;; Not needed?
 (defun Footnote-narrow-to-footnotes ()
@@ -453,8 +469,13 @@ styles."
   (goto-char (point-max))
   (when (re-search-backward footnote-signature-separator nil t)
     (let ((end (point)))
-      (when (re-search-backward (concat "^" footnote-section-tag-regexp) nil t)
-	(narrow-to-region (point) end)))))
+      (cond
+       ((and (not (string-equal footnote-section-tag ""))
+	     (re-search-backward
+	      (concat "^" footnote-section-tag-regexp) nil t))
+	(narrow-to-region (point) end))
+       (footnote-text-marker-alist
+	(narrow-to-region (cdar footnote-text-marker-alist) end))))))
 
 (defun Footnote-goto-char-point-max ()
   "Move to end of buffer or prior to start of .signature."
@@ -463,7 +484,7 @@ styles."
       (point)))
 
 (defun Footnote-insert-text-marker (arg locn)
-  "Insert a marker pointing to footnote arg, at buffer location locn."
+  "Insert a marker pointing to footnote ARG, at buffer location LOCN."
   (let ((marker (make-marker)))
     (unless (assq arg footnote-text-marker-alist)
       (set-marker marker locn)
@@ -473,7 +494,7 @@ styles."
 	    (Footnote-sort footnote-text-marker-alist)))))
 
 (defun Footnote-insert-pointer-marker (arg locn)
-  "Insert a marker pointing to footnote arg, at buffer location locn."
+  "Insert a marker pointing to footnote ARG, at buffer location LOCN."
   (let ((marker (make-marker))
 	alist)
     (set-marker marker locn)
@@ -486,12 +507,16 @@ styles."
 	    (Footnote-sort footnote-pointer-marker-alist)))))
 
 (defun Footnote-insert-footnote (arg)
-  "Insert a footnote numbered arg, at (point)."
+  "Insert a footnote numbered ARG, at (point)."
   (push-mark)
   (Footnote-insert-pointer-marker arg (point))
   (Footnote-insert-numbered-footnote arg t)
   (Footnote-goto-char-point-max)
-  (if (re-search-backward (concat "^" footnote-section-tag-regexp) nil t)
+  (if (cond
+       ((not (string-equal footnote-section-tag ""))
+	(re-search-backward (concat "^" footnote-section-tag-regexp) nil t))
+       (footnote-text-marker-alist
+	(goto-char (cdar footnote-text-marker-alist))))
       (save-restriction
 	(when footnote-narrow-to-footnotes-when-editing
 	  (Footnote-narrow-to-footnotes))
@@ -509,12 +534,18 @@ styles."
 		       nil t)
 		  (unless (beginning-of-line) t))
 		(Footnote-goto-char-point-max)
-		(re-search-backward (concat "^" footnote-section-tag-regexp) nil t))))
+		(cond
+		 ((not (string-equal footnote-section-tag ""))
+		  (re-search-backward
+		   (concat "^" footnote-section-tag-regexp) nil t))
+		 (footnote-text-marker-alist
+		  (goto-char (cdar footnote-text-marker-alist)))))))
     (unless (looking-at "^$")
       (insert "\n"))
     (when (eobp)
       (insert "\n"))
-    (insert footnote-section-tag "\n"))
+    (unless (string-equal footnote-section-tag "")
+      (insert footnote-section-tag "\n")))
   (let ((old-point (point)))
     (Footnote-insert-numbered-footnote arg nil)
     (Footnote-insert-text-marker arg old-point)))
@@ -608,7 +639,7 @@ by using `Footnote-back-to-message'."
 
 (defun Footnote-delete-footnote (&optional arg)
   "Delete a numbered footnote.
-With no parameter, delete the footnote under (point).  With arg specified,
+With no parameter, delete the footnote under (point).  With ARG specified,
 delete the footnote with that number."
   (interactive "*P")
   (unless arg
@@ -625,13 +656,22 @@ delete the footnote with that number."
       (while (car locn)
 	(save-excursion
 	  (goto-char (car locn))
-	  (let* ((end (point))
-		 (start (search-backward footnote-start-tag nil t)))
-	    (kill-region start end)))
+	  (when (looking-back (concat (regexp-quote footnote-start-tag)
+				      (Footnote-current-regexp)
+				      (regexp-quote footnote-end-tag))
+			      (line-beginning-position))
+	    (delete-region (match-beginning 0) (match-end 0))))
 	(setq locn (cdr locn)))
       (save-excursion
 	(goto-char (cdr alist-txt))
-	(kill-region (point) (search-forward "\n\n" nil t)))
+	(delete-region
+	 (point)
+	 (if footnote-spaced-footnotes
+	     (search-forward "\n\n" nil t)
+	   (save-restriction
+	     (end-of-line)
+	     (next-single-char-property-change
+	      (point) 'footnote-number nil (Footnote-goto-char-point-max))))))
       (setq footnote-pointer-marker-alist
 	    (delq alist-ptr footnote-pointer-marker-alist))
       (setq footnote-text-marker-alist
@@ -640,16 +680,20 @@ delete the footnote with that number."
       (when (and (null footnote-text-marker-alist)
 		 (null footnote-pointer-marker-alist))
 	(save-excursion
-	  (let* ((end (Footnote-goto-char-point-max))
-		 (start (1- (re-search-backward
-			     (concat "^" footnote-section-tag-regexp)
-			     nil t))))
-	    (forward-line -1)
-	    (when (looking-at "\n")
-	      (kill-line))
-	    (kill-region start (if (< end (point-max))
-				   end
-				 (point-max)))))))))
+	  (if (not (string-equal footnote-section-tag ""))
+	      (let* ((end (Footnote-goto-char-point-max))
+		     (start (1- (re-search-backward
+				 (concat "^" footnote-section-tag-regexp)
+				 nil t))))
+		(forward-line -1)
+		(when (looking-at "\n")
+		  (kill-line))
+		(delete-region start (if (< end (point-max))
+					 end
+				       (point-max))))
+	    (Footnote-goto-char-point-max)
+	    (when (looking-back "\n\n")
+	      (kill-line -1))))))))
 
 (defun Footnote-renumber-footnotes (&optional arg)
   "Renumber footnotes, starting from 1."
@@ -667,22 +711,25 @@ delete the footnote with that number."
 
 (defun Footnote-goto-footnote (&optional arg)
   "Jump to the text of a footnote.
-With no parameter, jump to the text of the footnote under (point).  With arg
+With no parameter, jump to the text of the footnote under (point).  With ARG
 specified, jump to the text of that footnote."
   (interactive "P")
-  (let (footnote)
-    (if arg
-	(setq footnote (assq arg footnote-text-marker-alist))
-      (when (setq arg (Footnote-under-cursor))
-	(setq footnote (assq arg footnote-text-marker-alist))))
-    (if footnote
-	(goto-char (cdr footnote))
-      (if (eq arg 0)
-	  (progn
-	    (goto-char (point-max))
-	    (re-search-backward (concat "^" footnote-section-tag-regexp))
-	    (forward-line 1))
-	(error "I don't see a footnote here")))))
+  (unless arg
+    (setq arg (Footnote-under-cursor)))
+  (let ((footnote (assq arg footnote-text-marker-alist)))
+    (cond
+     (footnote
+      (goto-char (cdr footnote)))
+     ((eq arg 0)
+      (goto-char (point-max))
+      (cond
+       ((not (string-equal footnote-section-tag ""))
+	(re-search-backward (concat "^" footnote-section-tag-regexp))
+	(forward-line 1))
+       (footnote-text-marker-alist
+	(goto-char (cdar footnote-text-marker-alist)))))
+     (t
+      (error "I don't see a footnote here")))))
 
 (defun Footnote-back-to-message (&optional arg)
   "Move cursor back to footnote referent.
@@ -723,12 +770,13 @@ being set it is automatically widened."
 key		binding
 ---		-------
 
-\\[Footnote-renumber-footnotes]		Footnote-renumber-footnotes
-\\[Footnote-goto-footnote]		Footnote-goto-footnote
-\\[Footnote-delete-footnote]		Footnote-delete-footnote
-\\[Footnote-cycle-style]		Footnote-cycle-style
-\\[Footnote-back-to-message]		Footnote-back-to-message
 \\[Footnote-add-footnote]		Footnote-add-footnote
+\\[Footnote-back-to-message]		Footnote-back-to-message
+\\[Footnote-delete-footnote]		Footnote-delete-footnote
+\\[Footnote-goto-footnote]		Footnote-goto-footnote
+\\[Footnote-renumber-footnotes]		Footnote-renumber-footnotes
+\\[Footnote-cycle-style]		Footnote-cycle-style
+\\[Footnote-set-style]		Footnote-set-style
 "
   (interactive "*P")
   ;; (filladapt-mode t)
@@ -738,6 +786,12 @@ key		binding
   (when footnote-mode
     ;; (Footnote-setup-keybindings)
     (make-local-variable 'footnote-style)
+    (make-local-variable 'footnote-body-tag-spacing)
+    (make-local-variable 'footnote-spaced-footnotes)
+    (make-local-variable 'footnote-section-tag)
+    (make-local-variable 'footnote-section-tag-regexp)
+    (make-local-variable 'footnote-start-tag)
+    (make-local-variable 'footnote-end-tag)
     (if (fboundp 'force-mode-line-update)
 	(force-mode-line-update)
       (set-buffer-modified-p (buffer-modified-p)))

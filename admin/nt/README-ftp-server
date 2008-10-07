@@ -5,9 +5,9 @@ See the end of the file for license conditions.
 		      Precompiled Distributions of
 			   Emacs for Windows
 
-			  PRETEST Version 22.2.91
+			     Version 22.3
 
-			     August 27, 2008
+			  September 7, 2008
 		
   This directory contains precompiled distributions for GNU Emacs
   on Windows NT/2000/XP/Vista and Windows 95/98/Me.  This port is a
@@ -15,7 +15,7 @@ See the end of the file for license conditions.
   Foundation; the precompiled distributions are provided here for
   convenience since the majority of Windows users are not accustomed
   to compiling programs themselves.  Corresponding source can be found
-  in the parent directory in emacs-22.2.91.tar.gz.
+  in the parent directory in emacs-22.3.tar.gz.
 
   If you have access to the World Wide Web, I would recommend pointing
   your favorite web browser to the following document (if you haven't
@@ -27,9 +27,9 @@ See the end of the file for license conditions.
 
   If you want to redistribute any of the precompiled distributions of
   Emacs, be careful to check the implications of the GPL.  For instance,
-  if you put the emacs-22.2.91-bin-i386.tar.gz file from this directory on
+  if you put the emacs-22.3-bin-i386.tar.gz file from this directory on
   an Internet site, you must arrange to distribute the source files of
-  the SAME version (i.e. ../emacs-22.2.91.tar.gz).
+  the SAME version (i.e. ../emacs-22.3.tar.gz).
 
   Making a link to our copy of the source is NOT sufficient, since we
   might upgrade to a new version while you are still distributing the
@@ -38,8 +38,8 @@ See the end of the file for license conditions.
 
 * Files in this directory
 
-  + emacs-22.2.91-bin-i386.zip
-    Windows binaries of Emacs-22.2.91, with all lisp code and documentation
+  + emacs-22.3-bin-i386.zip
+    Windows binaries of Emacs-22.3, with all lisp code and documentation
     included.
 
     Download this file if you want a single installation package, and
@@ -50,8 +50,8 @@ See the end of the file for license conditions.
     If you need the C source code at a later date, it will be safe to
     unpack the source distribution on top of this installation.
 
-  + emacs-22.2.91-barebin-i386.zip
-    Windows binaries of Emacs-22.2.91, without lisp code or documentation.
+  + emacs-22.3-barebin-i386.zip
+    Windows binaries of Emacs-22.3, without lisp code or documentation.
 
     Download this file if you already have the source distribution, or
     if you need to redump the emacs.exe executable.
@@ -66,12 +66,12 @@ See the end of the file for license conditions.
     a basic Makefile for compiling with mingw32 and a .def file for
     generating a DLL with the appropriate exports in addition to the
     source code to provide the subset of functionality Emacs uses from
-    libXpm. This corresponds to the libXpm.dll in emacs-22.2.91-bin-i386.zip
-    and emacs-22.2.91-barebin-i386.zip.
+    libXpm. This corresponds to the libXpm.dll in emacs-22.3-bin-i386.zip
+    and emacs-22.3-barebin-i386.zip.
 
 * Image support
 
-  Emacs 22.2.91 contains support for images, however for most image formats
+  Emacs 22.3 contains support for images, however for most image formats
   supporting libraries are required.  This distribution has been tested
   with the libraries that are distributed with GTK for Windows, and the
   libraries found at http://gnuwin32.sourceforge.net/. The following image
@@ -226,7 +226,7 @@ See the end of the file for license conditions.
   about the Windows port and related software packages. Note that as
   of writing, most of the information in that FAQ was for Emacs-21.3
   and earlier versions, so some information may not be relevant to
-  Emacs-22.2.91.
+  Emacs-22.3.
 
   In addition to the FAQ, there is a mailing list for discussing issues
   related to the Windows port of Emacs.  For information about the

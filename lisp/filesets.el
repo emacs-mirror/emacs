@@ -307,21 +307,25 @@ SYM to VAL and return t.  If INIT-FLAG is non-nil, set with
 (defcustom filesets-menu-name "Filesets"
   "Filesets' menu name."
   :set (function filesets-set-default)
-  :type 'sexp
+  :type 'string
   :group 'filesets)
 
-(defcustom filesets-menu-path nil
+(defcustom filesets-menu-path '("File")	; cf recentf-menu-path
   "The menu under which the filesets menu should be inserted.
 See `add-submenu' for documentation."
   :set (function filesets-set-default)
-  :type 'sexp
+  :type '(choice (const :tag "Top Level" nil)
+		 (sexp :tag "Menu Path"))
+  :version "23.1"			; was nil
   :group 'filesets)
 
-(defcustom filesets-menu-before "File"
+(defcustom filesets-menu-before "Open File..." ; cf recentf-menu-before
   "The name of a menu before which this menu should be added.
 See `add-submenu' for documentation."
   :set (function filesets-set-default)
-  :type 'sexp
+  :type '(choice (string :tag "Name")
+                 (const :tag "Last" nil))
+  :version "23.1"			; was "File"
   :group 'filesets)
 
 (defcustom filesets-menu-in-menu nil

@@ -24297,7 +24297,7 @@ echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}
 echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
 echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
 
-echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
+echo "  Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 
 if test $USE_XASSERTS = yes; then

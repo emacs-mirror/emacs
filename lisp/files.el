@@ -732,10 +732,11 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
                   ;; things like /net and /afs.  This assumes that all the
                   ;; files inside a project belong to the same user.
                   (let ((prev-user user))
-                    (setq user (nth 2 (file-attributes file)))
+                    (setq user (nth 2 (file-attributes dir)))
                     (or (null prev-user) (equal user prev-user))))
-        (if (setq files (and (file-directory-p dir)
-                             (directory-files dir 'full regexp)))
+        (if (setq files (condition-case nil
+			    (directory-files dir 'full regexp)
+			  (error nil)))
             (throw 'found (car files))
           (if (equal dir
                      (setq dir (file-name-directory
@@ -771,8 +772,9 @@ Furthermore, relative file names do not work across remote connections.
 
 IDENTIFICATION specifies which part of the identification shall
 be returned as string.  IDENTIFICATION can be the symbol
-`method', `user' or `host'; any other value is handled like nil
-and means to return the complete identification string.
+`method', `user', `host' or `localname'; any other value is
+handled like nil and means to return the complete identification
+string.
 
 If CONNECTED is non-nil, the function returns an identification only
 if FILE is located on a remote system, and a connection is established
@@ -856,10 +858,14 @@ containing it, until no links are left at any level.
                   missing rest)
               (if longname
                   (setq filename longname)
-                ;; include the preceding directory separator in the missing
+                ;; Include the preceding directory separator in the missing
                 ;; part so subsequent recursion on the rest works.
                 (setq missing (concat "/" (file-name-nondirectory filename)))
-                (setq rest (substring filename 0 (* -1 (length missing))))
+		(let ((length (length missing)))
+		  (setq rest
+			(if (> length (length filename))
+			    ""
+			  (substring filename 0 (- length)))))
                 (setq filename (concat (file-truename rest) missing))))))
 	(setq done t)))
 
@@ -970,7 +976,11 @@ If SUFFIX is non-nil, add that at the end of the file name."
 		     (progn
 		       (setq file
 			     (make-temp-name
-			      (expand-file-name prefix temporary-file-directory)))
+                              (if (zerop (length prefix))
+                                  (file-name-as-directory
+                                   temporary-file-directory)
+                                (expand-file-name prefix
+                                                  temporary-file-directory))))
 		       (if suffix
 			   (setq file (concat file suffix)))
 		       (if dir-flag
@@ -1070,24 +1080,22 @@ documentation for additional customization information."
 
 (defun switch-to-buffer-other-frame (buffer &optional norecord)
   "Switch to buffer BUFFER in another frame.
-Optional second arg NORECORD non-nil means
-do not put this buffer at the front of the list of recently selected ones.
+Optional second arg NORECORD non-nil means do not put this
+buffer at the front of the list of recently selected ones.
 This function returns the buffer it switched to.
 
-This uses the function `display-buffer' as a subroutine; see its
-documentation for additional customization information."
+This uses the function `display-buffer' as a subroutine; see
+its documentation for additional customization information."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
   (let ((pop-up-frames t)
 	same-window-buffer-names same-window-regexps)
-    (prog1
-	(pop-to-buffer buffer t norecord)
-      (raise-frame (window-frame (selected-window))))))
+    (pop-to-buffer buffer t norecord)))
 
 (defun display-buffer-other-frame (buffer)
-  "Switch to buffer BUFFER in another frame.
-This uses the function `display-buffer' as a subroutine; see its
-documentation for additional customization information."
+  "Display buffer BUFFER in another frame.
+This uses the function `display-buffer' as a subroutine; see
+its documentation for additional customization information."
   (interactive "BDisplay buffer in other frame: ")
   (let ((pop-up-frames t)
 	same-window-buffer-names same-window-regexps
@@ -1414,7 +1422,7 @@ home directory is a root directory) and removes automounter prefixes
     ;; Avoid treating /home/foo as /home/Foo during `~' substitution.
     ;; To fix this right, we need a `file-name-case-sensitive-p'
     ;; function, but we don't have that yet, so just guess.
-    (let ((case-fold-search 
+    (let ((case-fold-search
 	   (memq system-type '(ms-dos windows-nt darwin cygwin))))
       ;; If any elt of directory-abbrev-alist matches this name,
       ;; abbreviate accordingly.
@@ -2063,7 +2071,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.mss\\'" . scribe-mode)
      ("\\.f9[05]\\'" . f90-mode)
      ("\\.indent\\.pro\\'" . fundamental-mode) ; to avoid idlwave-mode
-     ("\\.pro\\'" . idlwave-mode)
+     ("\\.\\(pro\\|PRO\\)\\'" . idlwave-mode)
      ("\\.prolog\\'" . prolog-mode)
      ("\\.tar\\'" . tar-mode)
      ;; The list of archive file extensions should be in sync with
@@ -2105,6 +2113,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
      ("\\.[eE]?[pP][sS]\\'" . ps-mode)
      ("\\.\\(?:PDF\\|DVI\\|pdf\\|dvi\\)\\'" . doc-view-mode)
      ("configure\\.\\(ac\\|in\\)\\'" . autoconf-mode)
+     ("\\.s\\(v\\|iv\\|ieve\\)\\'" . sieve-mode)
      ("BROWSE\\'" . ebrowse-tree-mode)
      ("\\.ebrowse\\'" . ebrowse-tree-mode)
      ("#\\*mail\\*" . mail-mode)
@@ -5825,7 +5834,8 @@ Returns nil on success."
       (and (string-match fn trash-dir)
            (error "Filename `%s' is same or parent directory of trash-directory"
                   filename))
-      (rename-file fn new-fn)))))
+      (let ((delete-by-moving-to-trash nil))
+        (rename-file fn new-fn))))))
 
 
 (define-key ctl-x-map "\C-f" 'find-file)

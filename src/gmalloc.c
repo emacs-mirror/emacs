@@ -1706,17 +1706,17 @@ MA 02110-1301, USA.  */
 #include <malloc.h>
 #endif
 
-#ifndef	__GNU_LIBRARY__
+/* uClibc defines __GNU_LIBRARY__, but it is not completely
+   compatible.  */
+#if !defined(__GNU_LIBRARY__) || defined(__UCLIBC__)
 #define	__sbrk	sbrk
-#endif
-
-#ifdef __GNU_LIBRARY__
+#else /* __GNU_LIBRARY__ && ! defined (__UCLIBC__) */
 /* It is best not to declare this and cast its result on foreign operating
    systems with potentially hostile include files.  */
 
 #include <stddef.h>
 extern __ptr_t __sbrk PP ((ptrdiff_t increment));
-#endif
+#endif /* __GNU_LIBRARY__ && ! defined (__UCLIBC__) */
 
 #ifndef NULL
 #define NULL 0

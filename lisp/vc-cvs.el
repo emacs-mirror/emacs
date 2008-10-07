@@ -6,8 +6,6 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id$
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -691,9 +689,6 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 ;;; Internal functions
 ;;;
 
-(defun vc-cvs-root (dir)
-  (vc-find-root dir "CVS" t))
-
 (defun vc-cvs-command (buffer okstatus files &rest flags)
   "A wrapper around `vc-do-command' for use in vc-cvs.el.
 The difference to vc-do-command is that this function always invokes `cvs',
@@ -835,13 +830,14 @@ state."
 	(file nil)
 	(result nil)
 	(missing nil)
+	(ignore-next nil)
 	(subdir default-directory))
     (goto-char (point-min))
     (while
 	;; Look for either a file entry, an unregistered file, or a
 	;; directory change.
 	(re-search-forward
-	 "\\(^=+\n\\([^=c?\n].*\n\\|\n\\)+\\)\\|\\(\\(^?? .*\n\\)+\\)\\|\\(^cvs status: Examining .*\n\\)"
+	 "\\(^=+\n\\([^=c?\n].*\n\\|\n\\)+\\)\\|\\(\\(^?? .*\n\\)+\\)\\|\\(^cvs status: \\(Examining\\|nothing\\) .*\n\\)"
 	 nil t)
       ;; FIXME: get rid of narrowing here.
       (narrow-to-region (match-beginning 0) (match-end 0))
@@ -855,6 +851,21 @@ state."
 		    (expand-file-name (match-string 1) subdir)))
 	(push (list file 'unregistered) result)
 	(forward-line 1))
+      (when (looking-at "cvs status: nothing known about")
+	;; We asked about a non existent file.  The output looks like this:
+
+	;; cvs status: nothing known about `lisp/v.diff'
+	;; ===================================================================
+	;; File: no file v.diff            Status: Unknown
+	;;
+	;;    Working revision:    No entry for v.diff
+	;;    Repository revision: No revision control file
+	;;
+
+	;; Due to narrowing in this iteration we only see the "cvs
+	;; status:" line, so just set a flag so that we can ignore the
+	;; file in the next iteration.
+	(setq ignore-next t))
       ;; A file entry.
       (when (re-search-forward "^File: \\(no file \\)?\\(.*[^ \t]\\)[ \t]+Status: \\(.*\\)" nil t)
 	(setq missing (match-string 1))
@@ -873,8 +884,10 @@ state."
 	       ((string-match "File had conflicts " status-str) 'conflict)
 	       ((string-match "Unknown" status-str) 'unregistered)
 	       (t 'edited)))
-	(unless (eq status 'up-to-date)
-	  (push (list file status) result)))
+	(if ignore-next
+	    (setq ignore-next nil)
+	  (unless (eq status 'up-to-date)
+	    (push (list file status) result))))
       (goto-char (point-max))
       (widen))
     (funcall update-function result))
@@ -908,14 +921,52 @@ state."
   ;;   (funcall update-function result)))
   )
 
+;; Based on vc-cvs-dir-state-heuristic from Emacs 22.
+(defun vc-cvs-dir-status-heuristic (dir update-function &optional basedir)
+  "Find the CVS state of all files in DIR, using only local information."
+  (let (file basename status result dirlist)
+    (with-temp-buffer
+      (vc-cvs-get-entries dir)
+      (goto-char (point-min))
+      (while (not (eobp))
+        (if (looking-at "D/\\([^/]*\\)////")
+            (push (expand-file-name (match-string 1) dir) dirlist)
+          ;; CVS-removed files are not taken under VC control.
+          (when (looking-at "/\\([^/]*\\)/[^/-]")
+            (setq basename (match-string 1)
+                  file (expand-file-name basename dir)
+                  status (or (vc-file-getprop file 'vc-state)
+                             (vc-cvs-parse-entry file t)))
+            (unless (eq status 'up-to-date)
+              (push (list (if basedir
+                              (file-relative-name file basedir)
+                            basename)
+                          status) result))))
+        (forward-line 1)))
+    (dolist (subdir dirlist)
+      (setq result (append result
+                           (vc-cvs-dir-status-heuristic subdir nil
+                                                        (or basedir dir)))))
+    (if basedir result
+      (funcall update-function result))))
+
 (defun vc-cvs-dir-status (dir update-function)
   "Create a list of conses (file . state) for DIR."
-  (vc-cvs-command (current-buffer) 'async dir "-f" "status")
-  ;; Alternative implementation: use the "update" command instead of
-  ;; the "status" command.
-  ;; (vc-cvs-command (current-buffer) 'async
-  ;; 		  (file-relative-name dir)
-  ;; 		  "-f" "-n" "update" "-d" "-P")
+  ;; FIXME check all files in DIR instead?
+  (if (vc-stay-local-p dir)
+      (vc-cvs-dir-status-heuristic dir update-function)
+    (vc-cvs-command (current-buffer) 'async dir "-f" "status")
+    ;; Alternative implementation: use the "update" command instead of
+    ;; the "status" command.
+    ;; (vc-cvs-command (current-buffer) 'async
+    ;; 		  (file-relative-name dir)
+    ;; 		  "-f" "-n" "update" "-d" "-P")
+    (vc-exec-after
+     `(vc-cvs-after-dir-status (quote ,update-function)))))
+
+(defun vc-cvs-dir-status-files (dir files default-state update-function)
+  "Create a list of conses (file . state) for DIR."
+  (apply 'vc-cvs-command (current-buffer) 'async dir "-f" "status" files)
   (vc-exec-after
    `(vc-cvs-after-dir-status (quote ,update-function))))
 

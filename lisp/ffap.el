@@ -633,8 +633,9 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
    ((and ffap-url-unwrap-local (ffap-url-unwrap-local url)))
    ((and ffap-url-unwrap-remote ffap-ftp-regexp
 	 (ffap-url-unwrap-remote url)))
-   ((fboundp 'url-normalize-url)	; may autoload url (part of w3)
-    (url-normalize-url url))
+   ;; All this seems to do is remove any trailing "#anchor" part (Bug#898).
+;;;   ((fboundp 'url-normalize-url)	; may autoload url (part of w3)
+;;;    (url-normalize-url url))
    (url)))
 
 

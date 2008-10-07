@@ -42,12 +42,15 @@
 ;; * registered (file)                         OK
 ;; * state (file)                              OK
 ;; - state-heuristic (file)                    NOT NEEDED
+;; - dir-status (dir update-function)          OK
+;; - dir-status-files (dir files ds uf)        OK
+;; - status-extra-headers (dir)                OK
+;; - status-printer (fileinfo)                 OK
 ;; * working-revision (file)                   OK
 ;; - latest-on-branch-p (file)                 ??
 ;; * checkout-model (files)                    OK
 ;; - workfile-unchanged-p (file)               OK
 ;; - mode-line-string (file)                   NOT NEEDED
-;; - prettify-state-info (file)                OK
 ;; STATE-CHANGING FUNCTIONS
 ;; * register (files &optional rev comment)    OK
 ;; * create-repo ()                            OK
@@ -496,6 +499,11 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-dir-status (dir update-function)
   (vc-hg-command (current-buffer) 'async dir "status" "-C")
+  (vc-exec-after
+   `(vc-hg-after-dir-status (quote ,update-function))))
+
+(defun vc-hg-dir-status-files (dir files default-state update-function)
+  (apply 'vc-hg-command (current-buffer) 'async dir "status" "-C" files)
   (vc-exec-after
    `(vc-hg-after-dir-status (quote ,update-function))))
 

@@ -238,27 +238,27 @@ parenthetical grouping.")
 
 (defvar octave-mode-menu
   '("Octave"
-    '("Lines"
+    ("Lines"
       ["Previous Code Line"	octave-previous-code-line t]
       ["Next Code Line"		octave-next-code-line t]
       ["Begin of Continuation"	octave-beginning-of-line t]
       ["End of Continuation"	octave-end-of-line t]
       ["Split Line at Point"	octave-indent-new-comment-line t])
-    '("Blocks"
+    ("Blocks"
       ["Next Block"		octave-forward-block t]
       ["Previous Block"		octave-backward-block t]
       ["Down Block"		octave-down-block t]
       ["Up Block"		octave-backward-up-block t]
       ["Mark Block"		octave-mark-block t]
       ["Close Block"		octave-close-block t])
-    '("Functions"
+    ("Functions"
       ["Begin of Function"	octave-beginning-of-defun t]
       ["End of Function"	octave-end-of-defun t]
       ["Mark Function"		octave-mark-defun t]
       ["Indent Function"	octave-indent-defun t]
       ["Insert Function"	octave-insert-defun t])
     "-"
-    '("Debug"
+    ("Debug"
       ["Send Current Line"	octave-send-line t]
       ["Send Current Block"	octave-send-block t]
       ["Send Current Function"	octave-send-defun t]

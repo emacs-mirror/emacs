@@ -4679,6 +4679,7 @@ handle_composition_prop (it)
 
       if (it->cmp_it.id >= 0)
 	{
+	  it->cmp_it.ch = -1;
 	  it->cmp_it.nchars = COMPOSITION_LENGTH (prop);
 	  it->cmp_it.nglyphs = -1;
 	}
@@ -5939,14 +5940,51 @@ get_next_display_element (it)
   if (it->face_box_p
       && it->s == NULL)
     {
-      int face_id;
-      struct face *face;
+      if (it->method == GET_FROM_STRING && it->sp)
+	{
+	  int face_id = underlying_face_id (it);
+	  struct face *face = FACE_FROM_ID (it->f, face_id);
 
-      it->end_of_box_run_p
-	= ((face_id = face_after_it_pos (it),
-	    face_id != it->face_id)
-	   && (face = FACE_FROM_ID (it->f, face_id),
-	       face->box == FACE_NO_BOX));
+	  if (face)
+	    {
+	      if (face->box == FACE_NO_BOX)
+		{
+		  /* If the box comes from face properties in a
+		     display string, check faces in that string.  */
+		  int string_face_id = face_after_it_pos (it);
+		  it->end_of_box_run_p
+		    = (FACE_FROM_ID (it->f, string_face_id)->box
+		       == FACE_NO_BOX);
+		}
+	      /* Otherwise, the box comes from the underlying face.
+		 If this is the last string character displayed, check
+		 the next buffer location.  */
+	      else if ((IT_STRING_CHARPOS (*it) >= SCHARS (it->string) - 1)
+		       && (it->current.overlay_string_index
+			   == it->n_overlay_strings - 1))
+		{
+		  EMACS_INT ignore;
+		  int next_face_id;
+		  struct text_pos pos = it->current.pos;
+		  INC_TEXT_POS (pos, it->multibyte_p);
+
+		  next_face_id = face_at_buffer_position
+		    (it->w, CHARPOS (pos), it->region_beg_charpos,
+		     it->region_end_charpos, &ignore,
+		     (IT_CHARPOS (*it) + TEXT_PROP_DISTANCE_LIMIT), 0);
+		  it->end_of_box_run_p
+		    = (FACE_FROM_ID (it->f, next_face_id)->box
+		       == FACE_NO_BOX);
+		}
+	    }
+	}
+      else
+	{
+	  int face_id = face_after_it_pos (it);
+	  it->end_of_box_run_p
+	    = (face_id != it->face_id
+	       && FACE_FROM_ID (it->f, face_id)->box == FACE_NO_BOX);
+	}
     }
 
   /* Value is 0 if end of buffer or string reached.  */
@@ -7216,8 +7254,19 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	     associated with the tab are displayed on the current
 	     line.  Since it->current_x does not include these glyphs,
 	     we use it->last_visible_x instead.  */
-	  it->continuation_lines_width +=
-	    (it->c == '\t') ? it->last_visible_x : it->current_x;
+	  if (it->c == '\t')
+	    {
+	      it->continuation_lines_width += it->last_visible_x;
+	      /* When moving by vpos, ensure that the iterator really
+		 advances to the next line (bug#847, bug#969).  Fixme:
+		 do we need to do this in other circumstances?  */
+	      if (it->current_x != it->last_visible_x
+		  && (op & MOVE_TO_VPOS)
+	      	  && !(op & (MOVE_TO_X | MOVE_TO_POS)))
+	      	set_iterator_to_next (it, 0);
+	    }
+	  else
+	    it->continuation_lines_width += it->current_x;
 	  break;
 
 	default:
@@ -11345,7 +11394,7 @@ redisplay_internal (preserve_echo_area)
   if (face_change_count)
     ++windows_or_buffers_changed;
 
-  if (FRAME_TERMCAP_P (sf)
+  if ((FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf))
       && FRAME_TTY (sf)->previous_frame != sf)
     {
       /* Since frames on a single ASCII terminal share the same
@@ -19532,7 +19581,7 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
 /* Fill glyph string S with composition components specified by S->cmp.
 
    BASE_FACE is the base face of the composition.
-   S->gidx is the index of the first component for S.
+   S->cmp_from is the index of the first component for S.
 
    OVERLAPS non-zero means S should draw the foreground only, and use
    its physical height for clipping.  See also draw_glyphs.
@@ -19547,7 +19596,7 @@ fill_composite_glyph_string (s, base_face, overlaps)
 {
   int i;
   /* For all glyphs of this composition, starting at the offset
-     S->gidx, until we reach the end of the definition or encounter a
+     S->cmp_from, until we reach the end of the definition or encounter a
      glyph that requires the different face, add it to S.  */
   struct face *face;
 
@@ -20454,6 +20503,9 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
   for (s = head; s; s = s->next)
     FRAME_RIF (f)->draw_glyph_string (s);
 
+#ifndef HAVE_NS
+  /* When focus a sole frame and move horizontally, this sets on_p to 0
+     causing a failure to erase prev cursor position. */
   if (area == TEXT_AREA
       && !row->full_width_p
       /* When drawing overlapping rows, only the glyph strings'
@@ -20470,6 +20522,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
       notice_overwritten_cursor (w, TEXT_AREA, x0, x1,
 				 row->y, MATRIX_ROW_BOTTOM_Y (row));
     }
+#endif
 
   /* Value is the x-position up to which drawn, relative to AREA of W.
      This doesn't include parts drawn because of overhangs.  */

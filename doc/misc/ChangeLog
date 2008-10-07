@@ -1,3 +1,52 @@
+2008-09-30  Magnus Henoch  <mange@freemail.hu>
+
+	* cl.texi (Porting Common Lisp): Fix parenthesis order in example.
+
+2008-09-30  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (User Defined Units): Mention how to enter optional display
+	string.
+
+2008-09-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.texi (Sending Variables): Fixed variable documentation to
+	avoid the "y/n" wording.
+
+2008-09-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.texi (Sending Variables): Added `message-confirm-send' doc.
+
+2008-09-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (The Gnus Registry): Don't give argument to @item used in
+	@enumerate section so as to be able to be formatted with MAKEINFO=no.
+
+2008-09-22  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.1.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.1.
+
+	* mh-e.texi: Retain dual license as agreed to by the FSF.
+	However, bump GPL to Version 3.
+	Use @include for license text.
+
+2008-09-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Top, Setup, Fancy splitting to parent)
+	(Store custom flags and keywords, Store arbitrary data): Clean up
+	markup.
+
+2008-09-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (The Gnus Registry): Document it.
+
+2008-09-08  David Engster  <dengste@eml.cc>
+
+	* gnus.texi (nnmairix): Point out that nnml uses MH format.  Clarify
+	section about choosing back end servers.
+
 2008-08-23  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.texi (Shell Command Guessing):
@@ -12,13 +61,6 @@
 	* ns-emacs.texi: Update version.
 	(Introduction): Correct menu location for options save.
 	(Customization): Note that defaults are stored under org.gnu.Emacs.
-
-2008-08-18  Bill Wohler  <wohler@newt.com>
-
-	Release MH-E manual version 8.1.
-
-	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
-	release 8.1.
 
 2008-08-11  Bill Wohler  <wohler@newt.com>
 
@@ -1621,7 +1663,7 @@
 	* tramp.texi (trampfn): Expand macro implementation in order to handle
 	empty arguments.
 	(trampfnmhl, trampfnuhl, trampfnhl): Remove macros.  Replace all
-	occurencies by trampfn.
+	occurrences by trampfn.
 	(Frequently Asked Questions): Extend example code for host
 	identification in the modeline.  Add bbdb to approaches shortening Tramp
 	file names to be typed.
@@ -2657,7 +2699,7 @@
 2006-04-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* gnus.texi (Spam Package): Major revision of the text.
-	Previouly this node was "Filtering Spam Using The Spam ELisp Package".
+	Previously this node was "Filtering Spam Using The Spam ELisp Package".
 
 2006-04-20  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -2818,7 +2860,7 @@
 
 2006-03-17  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.texi: Use smallexample and smalllisp consistenly.
+	* mh-e.texi: Use smallexample and smalllisp consistently.
 	(Sending Mail Tour): Update method of entering
 	addresses and subject.
 	(Sending Mail Tour, Reading Mail Tour, Processing Mail Tour)
@@ -4593,7 +4635,7 @@
 
 2003-11-02  Michael Albinus  <Michael.Albinus@alcatel.de>
 
-	* tramp.texi (all): Harmonize all occurences of @tramp{}.
+	* tramp.texi (all): Harmonize all occurrences of @tramp{}.
 	(Top): Mention japanese manual only if flag `jamanual' is set.
 	Insert section `Japanese manual' in menu.
 
@@ -4622,7 +4664,7 @@
 
 2003-10-26  Per Abrahamsen  <abraham@dina.kvl.dk>
 
-	* widget.texi (Defining New Widgets): Document new beavior of
+	* widget.texi (Defining New Widgets): Document new behavior of
 	:buttons and :children keywords.
 
 2003-10-22  Miles Bader  <miles@gnu.org>

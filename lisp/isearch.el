@@ -2167,7 +2167,7 @@ Can be changed via `isearch-search-fun-function' for special needs."
       (funcall isearch-search-fun-function)
     (cond
      (isearch-word
-      (if isearch-forward 'word-search-forward 'word-search-backward))
+      (if isearch-forward 'word-search-forward-lax 'word-search-backward-lax))
      (isearch-regexp
       (if isearch-forward 're-search-forward 're-search-backward))
      (t

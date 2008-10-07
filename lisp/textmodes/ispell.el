@@ -1858,14 +1858,23 @@ Global `ispell-quit' set to start location to continue spell session."
 		  (let (message-log-max)
 		    (message (concat "C-h or ? for more options; SPC to leave "
 				     "unchanged, Character to replace word")))
-		  (let ((inhibit-quit t))
-		    (setq char (if (fboundp 'read-char-exclusive)
-				   (read-char-exclusive)
-				 (read-char))
-			  skipped 0)
-		    (if (or quit-flag (= char ?\C-g)) ; C-g is like typing X
-			(setq char ?X
-			      quit-flag nil)))
+		  (let ((inhibit-quit t)
+			(input-valid t))
+		    (setq char nil skipped 0)
+		    ;; If the user types C-g, or generates some other
+		    ;; non-character event (such as a frame switch
+		    ;; event), stop ispell.  As a special exception,
+		    ;; ignore mouse events occuring in the same frame.
+		    (while (and input-valid (not (characterp char)))
+		      (setq char (read-event))
+		      (setq input-valid
+			    (or (characterp char)
+				(and (mouse-event-p char)
+				     (eq (selected-frame)
+					 (window-frame
+					  (posn-window (event-start char))))))))
+		    (when (or quit-flag (not input-valid) (= char ?\C-g))
+		      (setq char ?X quit-flag nil)))
 		  ;; Adjust num to array offset skipping command characters.
 		  (let ((com-chars command-characters))
 		    (while com-chars

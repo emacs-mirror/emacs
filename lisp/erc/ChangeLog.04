@@ -739,7 +739,7 @@
 
 	* erc.el, erc-backend.el (erc-cmd-BANLIST): Added a missing "'"
 	that was preventing /BANLIST from working.  In erc-backend.el,
-	added server repsonse handler for 367 and 368 reponses to get
+	added server response handler for 367 and 368 responses to get
 	/BANLIST working.
 
 2004-05-26  Francis Litterio  <franl@users.sourceforge.net>
@@ -806,7 +806,7 @@
 
 2004-05-17  Mario Lang  <mlang@delysid.org>
 
-	* erc-log.el: Dont autoload a define-key statement, erc-mode-map
+	* erc-log.el: Don't autoload a define-key statement, erc-mode-map
 	might not be known yet
 
 2004-05-16  Lawrence Mitchell  <wence@gmx.li>
@@ -827,7 +827,7 @@
 	(391): New.
 	(406, 432): Use ?n, not ?c in `erc-display-message'.
 	(431, 445, 446, 451, 462, 463, 464, 465, 481, 483, 485, 491, 501,
-	502): All error responsess with no arguments grouped together.
+	502): All error responses with no arguments grouped together.
 
 2004-05-14  Diane Murray  <disumu@x3y2z1.net>
 
@@ -1715,7 +1715,7 @@
 	* erc.el: Added erc-server-001 which runs when the server sends
 	its welcome message.  It sets the current-nick to reflect the
 	server's settings.  This fixes a bug where nicks that were too long
-	and got truncated by ther server were still set to the old value.
+	and got truncated by the server were still set to the old value.
 	(nickname-in-use): If user wants to try again manually, let user
 	know that the nick is taken.  If not, go through erc-default-nicks
 	until none are left, and then try one last time with
@@ -2064,7 +2064,7 @@
 	the event hook.
 	(erc-cmd-IDLE): New function.  Implements the new /IDLE command.
 	Usage: /IDLE NICK (erc-seconds-to-string): New function.  Converts
-	a number of seconds to an Engligh phrase.
+	a number of seconds to an English phrase.
 
 2004-01-02  Francis Litterio  <franl@users.sourceforge.net>
 

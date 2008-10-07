@@ -1664,7 +1664,7 @@
 	Don't update the menubar the first time it is created via x_window.
 	(initialize_frame_menubar): Pass 1 to set_frame_menubar.
 
-	* widget.c (set_frame_size): Dont compute any geometry management.
+	* widget.c (set_frame_size): Don't compute any geometry management.
 
 1994-03-31  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -2722,7 +2722,7 @@
 
 1994-02-11  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
-	* xfns.c (x_set_menu_bar_lines) [USE_X_TOOLKIT]: Dont Call
+	* xfns.c (x_set_menu_bar_lines) [USE_X_TOOLKIT]: Don't call
 	XtDestroyWidget but free_frame_menubar.
 	Undo previous changes.
 	* xterm.c (x_destroy_window) [USE_X_TOOLKIT]: Call free_frame_menubar.
@@ -2962,7 +2962,7 @@
 
 1994-01-29  Karl Heuer  (kwzh@mole.gnu.ai.mit.edu)
 
-	* keymap.c (currrent_minor_maps): Scale by sizeof when allocating
+	* keymap.c (current_minor_maps): Scale by sizeof when allocating
 	objects.
 
 	* buffer.c (Fkill_all_local_variables): Follow symbol forwarding.
@@ -3402,7 +3402,7 @@
 	(Fwrite_region) [MSDOS]: Use text/binary mode as specified by
 	buffer_file_type.
 	(syms_of_fileio) [MSDOS]: Set Qfind_buffer_file_type.
-	(Fsubstitute_in_file_name) [MSDOS]: Ignore case in environtment
+	(Fsubstitute_in_file_name) [MSDOS]: Ignore case in environment
 	variable.
 
 	* floatfns.c [MSDOS]: Don't define HAVE_MATHERR.
@@ -3508,7 +3508,7 @@
 	rebalance only the node which may have become unbalanced.
 	Iterate until the current node is balanced.
 	(balance_possible_root_interval): New function.
-	(balance_intervals): Move the interation into rebalance_an_interval.
+	(balance_intervals): Move the iteration into rebalance_an_interval.
 	(balance_intervals_internal): New subroutine of balance_intervals.
 	(split_interval_right, split_interval_left): Speed up by
 	not checking LEAF_INTERVAL_P.
@@ -4009,7 +4009,7 @@
 
 	* callproc.c (init_callproc): Maybe add ../lib-src to exec-path
 	and maybe store it in exec-directory.
-	Mabe put ../etc into data-directory.
+	Maybe put ../etc into data-directory.
 	(init_callproc_1): Part of init_callproc is split out.
 	* emacs.c (main): Call init_callproc and init_callproc_1.
 
@@ -4303,7 +4303,7 @@
 	* search.c (skip_chars): Finish reenabling checks for buffer bounds.
 	Use XINT, not XFASTINT, when testing.
 
-	* fileio.c (Fwrite_region): Fix minor bugs in POS arg to awrite.
+	* fileio.c (Fwrite_region): Fix minor bugs in POS arg to a_write.
 
 	* xterm.c (syms_of_xterm): Initialize last_mouse_scroll_bar.
 
@@ -6588,7 +6588,7 @@
 	Save and restore Vdeactivate_mark.
 
 	* xfns.c (x_set_menu_bar_lines_1): Adjust just the uppermost child
-	in a vertical split.  Adjust the hight counter to the top.
+	in a vertical split.  Adjust the height counter to the top.
 	(x_set_menu_bar_lines): Don't change overall frame height.
 
 1993-06-04  Francesco Potortì  (pot@cnuce.cnr.it)
@@ -6784,7 +6784,7 @@
 1993-05-31  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* syntax.c (Fforward_comment): Set point to where scan stops,
-	thus moving acros whitespace.  When moving fwd, treat Sendcomment
+	thus moving across whitespace.  When moving fwd, treat Sendcomment
 	as whitespace; likewise for Scomment when moving back.
 	(scan_sexps_forward): New arg COMMENTSTOP.
 	(Fparse_partial_sexp): Likewise.
@@ -6809,7 +6809,7 @@
 	(C_SWITCH_SYSTEM): Defined.
 
 	* xterm.c: Include systty.h; don't mess with FIONREAD.
-	Don't include termio.h dorectly.
+	Don't include termio.h directly.
 
 	* intervals.c (interval_deletion_adjustment): Delete unreachable abort.
 
@@ -6846,7 +6846,7 @@
 	(BROKEN_TIOCGWINSZ, LIB_X11_LIB): Add #undef.
 
 	* sysdep.c (child_setup_tty) [AIX SIGNALS_VIA_CHARACTERS]: Install
-	something usefull in the VQUIT and VINTR.
+	something useful in the VQUIT and VINTR.
 	(emacs_set_tty): Try only 10 times to call tcsetattr.
 	Don't use memcmp to test what it did.
 

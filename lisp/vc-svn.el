@@ -1,6 +1,7 @@
 ;;; vc-svn.el --- non-resident support for Subversion version-control
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -146,7 +147,9 @@ If you want to force an empty list of arguments, use t."
   "SVN-specific state heuristic."
   (vc-svn-state file 'local))
 
-(defun vc-svn-after-dir-status (callback)
+;; FIXME it would be better not to have the "remote" argument,
+;; but to distinguish the two output formats based on content.
+(defun vc-svn-after-dir-status (callback &optional remote)
   (let ((state-map '((?A . added)
                      (?C . conflict)
                      (?D . removed)
@@ -156,11 +159,18 @@ If you want to force an empty list of arguments, use t."
                      (?? . unregistered)
                      ;; This is what vc-svn-parse-status does.
                      (?~ . edited)))
+	(re (if remote "^\\(.\\)..... \\([ *]\\) +[-0-9]+ +\\(.*\\)$"
+	      ;; Subexp 2 is a dummy in this case, so the numbers match.
+	      "^\\(.\\)....\\(.\\) \\(.*\\)$"))
        result)
     (goto-char (point-min))
-    (while (re-search-forward "^\\(.\\)..... \\(.*\\)$" nil t)
+    (while (re-search-forward re nil t)
       (let ((state (cdr (assq (aref (match-string 1) 0) state-map)))
-           (filename (match-string 2)))
+	    (filename (match-string 3)))
+	(and remote (string-equal (match-string 2) "*")
+	     ;; FIXME are there other possible combinations?
+	     (cond ((eq state 'edited) (setq state 'needs-merge))
+		   ((not state) (setq state 'needs-update))))
        (when state
          (setq result (cons (list filename state) result)))))
     (funcall callback result)))
@@ -169,7 +179,15 @@ If you want to force an empty list of arguments, use t."
   "Run 'svn status' for DIR and update BUFFER via CALLBACK.
 CALLBACK is called as (CALLBACK RESULT BUFFER), where
 RESULT is a list of conses (FILE . STATE) for directory DIR."
-  (vc-svn-command (current-buffer) 'async nil "status")
+  ;; FIXME should this rather be all the files in dir?
+  (let ((remote (not (vc-stay-local-p dir))))
+    (vc-svn-command (current-buffer) 'async nil "status"
+		    (if remote "-u"))
+  (vc-exec-after
+     `(vc-svn-after-dir-status (quote ,callback) ,remote))))
+
+(defun vc-svn-dir-status-files (dir files default-state callback)
+  (apply 'vc-svn-command (current-buffer) 'async nil "status" files)
   (vc-exec-after
    `(vc-svn-after-dir-status (quote ,callback))))
 
@@ -532,9 +550,6 @@ NAME is assumed to be a URL."
   "Name of the SVN executable."
   :type 'string
   :group 'vc)
-
-(defun vc-svn-root (dir)
-  (vc-find-root dir vc-svn-admin-directory t))
 
 (defun vc-svn-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-svn.el.

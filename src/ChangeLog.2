@@ -53,12 +53,12 @@
 	* xterm.c (XTread_socket): If HAVE_SELECT, call xfixscreen
 	before waiting.
 
-	* dispnew.c (update_line): comments added.
+	* dispnew.c (update_line): Comments added.
 
 	* xterm.c (writechars): Output only the chars specified
 	even if in update; don't clear to end.
 	(XTread_socket): Check O_NDELAY only if it and F_GETFL are defined.
-	(x_term_init) [IBMRTAIX]: do call gethostname.
+	(x_term_init) [IBMRTAIX]: Do call gethostname.
 	() [IBMRTAIX]: Include sys/time, not time.
 
 1988-08-23  Chris Hanson  (cph@kleph)
@@ -456,10 +456,10 @@
 
 	* sysdep.c [VMS]: RAB's never a macro; let RAB$C_BID control rab.h.
 
-	* sysdep.c [VMS] (sys_getenv): only if value of lib$sys_trnlog
+	* sysdep.c [VMS] (sys_getenv): Only if value of lib$sys_trnlog
 	is exactly 1 does it mean it found something.
 
-	* sysdep.c (creat_copy_attrs): Downcase remaining SYS$OPEN, SSY$CLOSE.
+	* sysdep.c (creat_copy_attrs): Downcase remaining SYS$OPEN, SYS$CLOSE.
 
 1988-04-25  Richard Stallman  (rms@lucky-charms.ai.mit.edu)
 
@@ -893,7 +893,7 @@
 1988-01-22  Richard Stallman  (rms@frosted-flakes)
 
 	* m-ibmrt.h: Add some AIX conditionals; output on BSD should
-	be unchnged.  Perhaps will now run on AIX.
+	be unchanged.  Perhaps will now run on AIX.
 
 1988-01-21  Richard Stallman  (rms@frosted-flakes)
 
@@ -1601,7 +1601,7 @@
 	(`3.5 turbo'). (<8704150216.AA21012@orville.arpa>)
 
 	* unexec.c: iris code (is USG, but has struct exec)
-	* sysdep.c: iris utimes emulatation. (HAVE_TIMEVAL)
+	* sysdep.c: iris utimes emulation. (HAVE_TIMEVAL)
 
 	* process.c: (IRIS)
 	#include <sysmacros.h>
@@ -1629,7 +1629,7 @@
 1987-04-10  Richard Mlynarik  (mly@prep)
 
 	* window.c (Fset_window_configuration):
-	Don't unchain markers -- this window configuation may be used
+	Don't unchain markers -- this window configuration may be used
 	again.  Let normal GC unchain them.
 
 1987-04-08  Richard Mlynarik  (mly@prep)
@@ -1670,7 +1670,7 @@
 
 	* emacs.c (main): Call syms_of_xmenu only if HAVE_X_MENU.
 	* ymakefile: Use new switch HAVE_X_MENU to decide whether
-	to includ xmenu.c
+	to include xmenu.c
 	* config.h-dist: Tell people about this flag.
 
 1987-03-20  Richard Mlynarik  (mly@prep)
@@ -1753,7 +1753,7 @@
 
 	* term.c (term_init): Don't use Down on VMS if it's a ^J.
 	Fix C syntax errors in fatal error message.
-	Distinguish failure to open termcap fle from undefined term type.
+	Distinguish failure to open termcap file from undefined term type.
 
 	* s-vms.h: Increase DATA_START by 512.  #define abort sys_abort.
 	Flush LIBS_DEBUG defn since ymakefile not used.
@@ -1986,7 +1986,7 @@
 	Fsave_window_excursion.
 
 	Also fixed a bug in which point was not being restored in
-	buffer currrent at end of save-window-excursion and that buffer
+	buffer current at end of save-window-excursion and that buffer
 	was not current when the config was recorded (It is supposed
 	to not be restored if it was current at the start)
 
@@ -2048,7 +2048,7 @@
 
 1987-02-12  Richard M. Stallman  (rms@prep)
 
-	* xdisp.c (try_window): Fix paren errer in checking hpos
+	* xdisp.c (try_window): Fix paren error in checking hpos
 	against hscroll.  This caused window_end_pos to be wrong
 	when there was hscroll.
 
@@ -2060,7 +2060,7 @@
 	is truncation.
 
 	* xdisp.c (display_string): mincol==-1 means no minimum.
-	* xdisp.c (display_text_line): Use -1 for mincol of minibuf promp.
+	* xdisp.c (display_text_line): Use -1 for mincol of minibuf prompt.
 
 1987-02-11  Richard M. Stallman  (rms@prep)
 
@@ -2835,7 +2835,7 @@
 	* process.c (change_msgs):
 
 	* search.c (Freplace_match): Use upcase_initials_region
-	insead of duplicating it.
+	instead of duplicating it.
 
 	* keyboard.c (Frecursive_edit): If not the top-level edit,
 	specbind standard-output and standard-input to t.
@@ -2888,7 +2888,7 @@
 	If visiting and file doesn't exist, finish visiting (updating
 	various buffer slots) before getting error, and set modtime to -1.
 
-	* bytecode.c (Fbytecode): Rarrange all the Bvarref cases to
+	* bytecode.c (Fbytecode): Rearrange all the Bvarref cases to
 	share most of the code.  Likewise for Bvarset, Bvarbind
 	and Bunbind cases.  Makes it smaller and makes all
 	Bvarrefs use the fast inline code.
@@ -2960,7 +2960,7 @@
 
 	* m-alliant.h, m-mg1.h: New machines supported.
 
-	* ymakefile: Make START_FILES a preprocesser variable
+	* ymakefile: Make START_FILES a preprocessor variable
 	and don't change it if already defined.
 	* m-gould.h: Move special gould value of START_FILES here.
 
@@ -3539,7 +3539,7 @@
 	* callint.c (Fcall_interactively):
 	Remove extreme weirdness of storing (int) "" where a Lisp_Object
 	was expected (in visargs)
-	Slighly more informative error message for bad interactive code
+	Slightly more informative error message for bad interactive code
 	letter.
 
 	* abbrev.c (Funexpand_abbrev):
@@ -3557,7 +3557,7 @@
 	* xterm.c: Load sys/types.h explicitly if xterm.h doesn't do it.
 
 	* keyboard.c (interrupt_signal):
-	Delete suprious `)' in HAVE_X_WINDOWS case.
+	Delete spurious `)' in HAVE_X_WINDOWS case.
 
 1986-10-03  Richard Mlynarik  (mly@prep)
 
@@ -3847,7 +3847,7 @@
 	* emacs.c (main)
 	Under X, accept "-display" switch as synonym for "-d"
 
-	* eval.c (spedcbind)
+	* eval.c (specbind)
 	Don't make Lisp_Buffer_Objfwd's buffer-local when just binding.
 	(so now (let ((case-fold-search t))) doesn't force buffer-localness)
 	However, setting a binding will still make it buffer-local.
@@ -4437,40 +4437,40 @@
 	do the setpgrp here before reopening the pty rather than
 	waiting for child_setup.
 
-	* window.c (make_window): size given to make_vector
+	* window.c (make_window): Size given to make_vector
 	was one too small.
 
 1986-07-10  Richard M. Stallman  (rms@prep)
 
-	* keymap.c (Fdescribe_bindings): change XSETTYPE/XSETBUFFER to
+	* keymap.c (Fdescribe_bindings): Change XSETTYPE/XSETBUFFER to
 	XSET.
-	(describe_command): change XSETSTRING to XSET.
-	* window.c (Fmove_to_window_line): delete unused start =.
-	* xdisp.c (DoDsp) delete unused all_windows initializer.
-	* dispnew.c (update_line): delete unused osp =.
-	* minibuf.c (do_completion): delete unused completedp initializer.
-	* search.c (Freplace_match): delete unused some_multiletter_word init.
-	* alloc.c (gc_sweep): delete unused next initializers.
-	* fns.c (concat): after error on non-int elt for string,
+	(describe_command): Change XSETSTRING to XSET.
+	* window.c (Fmove_to_window_line): Delete unused start =.
+	* xdisp.c (DoDsp): Delete unused all_windows initializer.
+	* dispnew.c (update_line): Delete unused osp =.
+	* minibuf.c (do_completion): Delete unused completedp initializer.
+	* search.c (Freplace_match): Delete unused some_multiletter_word init.
+	* alloc.c (gc_sweep): Delete unused next initializers.
+	* fns.c (concat): After error on non-int elt for string,
 	   do store the new value from the error handler.
-	* lread.c (read1): comment out unused end =.
-	* lread.c (read_list): delete unused tail =.
+	* lread.c (read1): Comment out unused end =.
+	* lread.c (read_list): Delete unused tail =.
 	* data.c (Fmake_variable_buffer_local):
-	  if value type is Lisp_Some_Buffer_Local_Value,
+	  If value type is Lisp_Some_Buffer_Local_Value,
 	  change it to Lisp_Buffer_Local_Value permanently.
-	* undo.c (record_block): delete unused cp =.
+	* undo.c (record_block): Delete unused cp =.
 	  Don't bother reallocing if n = 0 after first batch.
 	* fileio.c (Fverify_visited_file_modtime):
 	  If CHECK_BUFFER changes buf, use the changed value.
 
 1986-07-07  Richard M. Stallman  (rms@prep)
 
-	* alloc.c (mark_buffer): mark the selective_display_ellipses slot.
+	* alloc.c (mark_buffer): Mark the selective_display_ellipses slot.
 
 1986-06-25  Richard M. Stallman  (rms@prep)
 
 	* window.c (Frecenter): Fix bug in last change:
-	change applied to M-- arg ratherthan C-u by mistake.
+	change applied to M-- arg rather than C-u by mistake.
 
 1986-06-19  Richard M. Stallman  (rms@prep)
 
@@ -4668,7 +4668,7 @@
 
 	* buffer.c (record_buffer):
 	Don't use Frassq, Fmemq or Fdelq since their loops
-	allow quitting.  Write a spacial loop by hand.
+	allow quitting.  Write a special loop by hand.
 
 1986-06-05  Richard M. Stallman  (rms@prep)
 

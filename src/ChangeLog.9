@@ -757,7 +757,7 @@
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
 	This adds a post-gc-hook that's run with GC inhibited.
-	Requested by Francois Pinard.  XEmacs has it.  Added to NEWS.
+	Requested by François Pinard.  XEmacs has it.  Added to NEWS.
 
 	* alloc.c (Vpost_gc_hook, Qpost_gc_hook): New variables.
 	(syms_of_alloc): DEFVAR_LISP post-gc-hook, initialize Qpost_gc_hook.
@@ -2252,7 +2252,7 @@
 2001-03-28  Paul Eggert  <eggert@twinsun.com>
 
 	* editfns.c (Ffloat_time): Fix off-by-factor-of-10 bug in the
-	microseconds calcuation.  Avoid double-rounding problem.
+	microseconds calculation.  Avoid double-rounding problem.
 	In doc string, warn that the result is approximate.
 
 2001-03-28  Gerd Moellmann  <gerd@gnu.org>
@@ -2985,7 +2985,7 @@
 	* xdisp.c (update_menu_bar): Run activate-menu-bar-hook with
 	safe_run_hooks.
 
-	* emacs.c (malloc_initialize_hook): Handle case thet `environ'
+	* emacs.c (malloc_initialize_hook): Handle case that `environ'
 	is null.
 
 	* ralloc.c (__morecore) [!SYSTEM_MALLOC]: Move declaration
@@ -3357,9 +3357,9 @@
 
 	* fontset.c (font_family_registry): Even if FONTNAME conform to
 	XLFD, if it specifies other fields than family and registry,
-	return FONTANME.  New argument FORCE if nonzero cancel that feature.
+	return FONTNAME.  New argument FORCE if nonzero cancel that feature.
 	(fontset_font_pattern): Call font_family_registry with FORCE 1 for
-	a signle byte character.  Don't set FAMILY part to nil here.
+	a single byte character.  Don't set FAMILY part to nil here.
 	It is handled by the caller choose_face_font.
 	(Fnew_fontset): Call font_family_registry with FORCE 0.
 	(Fset_fontset_font): Likewise.
@@ -3433,7 +3433,7 @@
 
 2001-01-25  Kenichi Handa  <handa@etl.go.jp>
 
-	* ccl.h (sturct ccl_program): New member suppress_error.
+	* ccl.h (struct ccl_program): New member suppress_error.
 
 	* ccl.c (ccl_driver): If ccl->suppress_error is nonzero, don't
 	insert error message to the output.
@@ -4980,13 +4980,13 @@
 	(font_list): Include fonts of all alternative registries.
 	(FONT_POINT_SIZE_QUANTUM): New macro.
 	(better_font_p): Ignore point size difference less than
-	FONT_POINT_SIZE_QUANTUM.  Use registry_prioprity as a last resort.
+	FONT_POINT_SIZE_QUANTUM.  Use registry_priority as a last resort.
 
 	* xterm.c (x_produce_glyphs): If a font for a component of
 	a composition is not found, use 1 pixel dot ascent and 0 dot
 	descent value to avoid displaying terribly tall empty boxes.
 
-	* ccl.c (stack_idx_of_map_multiple): Don't use C initializier.
+	* ccl.c (stack_idx_of_map_multiple): Don't use C initializer.
 
 2000-12-03  Ken Raeburn  <raeburn@gnu.org>
 
@@ -6225,7 +6225,7 @@
 	* alloc.c (toplevel) [SYSTEM_MALLOC || DOUG_LEA_MALLOC]: Undef
 	GC_MALLOC_CHECK.
 	(toplevel) [GC_MARK_STACK || GC_MALLOC_CHECK]: Move mem_node
-	structure definition and related variabled to the top of the file.
+	structure definition and related variables to the top of the file.
 	Include this code when GC_MALLOC_CHECK is defined.
 	(lisp_malloc, lisp_free) [GC_MALLOC_CHECK]: Don't
 	register/unregister allocated region.
@@ -6907,7 +6907,7 @@
 	* charset.h (UNIBYTE_STR_AS_MULTIBYTE_P): Fix previous change.
 
 	* ccl.c (Fccl_execute_on_string): Make multibyte string correctly.
-	If output buffer is too small, signal an appropriated error.
+	If output buffer is too small, signal an appropriate error.
 
 2000-09-18  Dave Love  <fx@gnu.org>
 
@@ -7790,7 +7790,7 @@
 
 	* editfns.c (find_field): Formatting changes.
 	(toplevel): Some old-style function forward declarations
-	changed to prototypes, some new protypes added, some functions
+	changed to prototypes, some new prototypes added, some functions
 	made static.
 
 	* lisp.h (set_time_zone_rule): Add prototype.
@@ -9743,7 +9743,7 @@
 	* charset.c (update_charset_table): Update the table
 	bytes_by_char_head.
 	(init_charset_once): Initialize elements of bytes_by_char_head to
-	1 except for leading codes for private charases.
+	1 except for leading codes for private charsets.
 
 	* charset.h (CHARSET_8_BIT_GRAPHIC): Define as 0x80.
 	(UNIBYTE_STR_AS_MULTIBYTE_P): Fix for an invalid multibyte sequence.
@@ -10111,7 +10111,7 @@
 	* fontset.c (syms_of_fontset): Adjust the font name for ascii of
 	the default fontset to what Emacs uses by default.
 	(check_registry_encoding): This function deleted.
-	(Fset_fontset_font): Remove the adhoc condition for the default
+	(Fset_fontset_font): Remove the ad hoc condition for the default
 	fontset.  Allow cons in FONTNAME.
 
 	* fns.c (map_char_table): Ignore char-table entries for
@@ -10284,7 +10284,7 @@
 	invalid multibyte sequence.
 	(parse_str_as_multibyte, str_as_multibyte, str_to_multibyte)
 	(str_as_unibyte): New functions.
-	(Fstring): Simpified by assuming that byte combining never happens.
+	(Fstring): Simplified by assuming that byte combining never happens.
 	(init_charset_once): Initialization for
 	LEADING_CODE_8_BIT_CONTROL.
 	(syms_of_charset): Intern and staticpro Qeight_bit_control and
@@ -10408,7 +10408,7 @@
 	* fileio.c (Finsert_file_contents): Setup src_multibyte and
 	dst_multibyte members of coding.  On handling REPLACE on unibyte
 	buffer, convert the result of decode_coding to unibyte.  On
-	inserting into a mutibyte buffer, always call code_convert_region.
+	inserting into a multibyte buffer, always call code_convert_region.
 	(e_write): Setup coding->src_multibyte according to the
 	multibyteness of the source (buffer or string).
 
@@ -10441,7 +10441,7 @@
 	(adjust_markers_for_replace): Likewise.
 	(ADJUST_CHAR_POS, combine_bytes, byte_combining_error)
 	(CHECK_BYTE_COMBINING_FOR_INSERT): Deleted.
-	(copy_text): Delete unused local varialbe c_save.  For converting
+	(copy_text): Delete unused local variable c_save.  For converting
 	to multibyte, be sure to make all 8-bit characters in valid
 	multibyte form.
 	(count_size_as_multibyte): Handle 8-bit characters correctly.
@@ -10588,7 +10588,7 @@
 	code detecting help events that should be ignored.
 
 	* xdisp.c (handle_single_display_prop): Don't try to set PT if
-	we're interating over a string.
+	we're iterating over a string.
 
 2000-05-09  Dave Love  <fx@gnu.org>
 
@@ -11073,7 +11073,7 @@
 2000-04-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* term.c (TN_no_color_video): New variable.
-	(term_init): Intitialize TN_no_color_video.
+	(term_init): Initialize TN_no_color_video.
 	(enum no_color_bit): New enumeration.
 	(MAY_USE_WITH_COLORS_P): New macro.
 	(turn_on_face): Use it to determine if attributes may be used
@@ -11552,7 +11552,7 @@
 
 	* fontset.h (FONT_NOT_OPENED, FONT_NOT_FOUND): Macros removed.
 	(struct fontset_info, struct fontset_data): Structs removed.
-	(allloc_fontset_data, free_fontset_data, fs_regiser_fontset)
+	(alloc_fontset_data, free_fontset_data, fs_regiser_fontset)
 	(Vglobale_fontset_alist, font_idx_temp): Externs removed.
 	(fs_load_font, fs_query_fontset): Adjusted for new argument.
 	(fs_free_face_fontset, fontset_font_pattern)
@@ -11986,7 +11986,7 @@
 	returns a mask not set in PRIORITIES.
 	(detect_eol_type_in_2_octet_form): New function.
 	(detect_eol): selects detect_eol_type_XXX to call according to
-	cooding->category_idx.
+	coding->category_idx.
 	(detect_coding_system): Remove `nil' coding-system in the result.
 	(Fupdate_coding_systems_internal): Update all coding-categories.
 
@@ -12302,7 +12302,7 @@
 	Fx_hide_busy_cursor.
 
 	* dispextern.h (Fx_show_busy_cursor, Fx_hide_busy_cursor):
-	Remove prototyoes.
+	Remove prototypes.
 	(start_busy_cursor, cancel_busy_cursor): Add prototypes.
 
 	* lisp.h (Fx_hide_busy_cursor): Remove prototype.
@@ -12427,7 +12427,7 @@
 
 2000-02-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* xfaces.c (tty_defined_color): Don't return faulire indication
+	* xfaces.c (tty_defined_color): Don't return failure indication
 	for unspecified-fg and unspecified-bg pseudo-colors.
 
 2000-02-17  Gerd Moellmann  <gerd@gnu.org>
@@ -12480,7 +12480,7 @@
 	emacs.c, floatfns.c, fns.c, lread.c, print.c, config.in, lisp.h,
 	Makefile.in: Remove `LISP_FLOAT_TYPE' and `standalone'.
 
-	* frame.c (make_frame): Set frame initiallly to `garbaged'.
+	* frame.c (make_frame): Set frame initially to `garbaged'.
 
 2000-02-17  Kenichi Handa  <handa@etl.go.jp>
 

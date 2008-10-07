@@ -2461,7 +2461,7 @@ choose a font."
 	(while fonts
 	  (condition-case nil
 	      (progn
-		(set-default-font (car fonts))
+		(set-frame-font (car fonts))
 		(setq font (car fonts))
 		(setq fonts nil))
 	    (error

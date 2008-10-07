@@ -1013,7 +1013,8 @@ are included.  Should handle most cases.  However:
 Russian alphabet: a b v=w g d e yo=jo zh z i j=j' k l m n o p r s t
 u f h=kh=x c ch sh shch=sj=/s=/sht ~ y ' e\\ yu=ju ya=ja=q
 
-Also included are Ukrainian ,Lt(B (YE) = \"/e\" and ,Lw(B (YI) = \"yi\",
+Also included are Ukrainian ,Lt(B (YE) = \"/e\", ,Lw(B (YI) = \"yi\",
+$,1)Q(B (GHE WITH UPTURN) = \"g'\",
 Belarusian ,L~(B (SHORT U) = \"u~\",
 Serbo-Croatian ,Lr(B (DJE) = \"/d\", ,L{(B (CHJE)= \"/ch\",
 Macedonian ,Ls(B (GJE) = \"/g\", ,Lu(B (DZE) = \"/s\", ,L|(B (KJE) = \"/k\",
@@ -1055,10 +1056,12 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  ("Ya" ?,LO(B) ("YA" ?,LO(B) ("Ja" ?,LO(B) ("JA" ?,LO(B) ("Q" ?,LO(B)
 
  ("/e" ?,Lt(B) ("yi" ?,Lw(B) ("u'" ?,L~(B) ("u~" ?,L~(B)
+ ("g'" ?$,1)Q(B)
  ("/d" ?,Lr(B) ("/ch" ?,L{(B)
  ("/g" ?,Ls(B) ("/s" ?,Lu(B) ("/k" ?,L|(B)
  ("/i" ?,Lv(B) ("/j" ?,Lx(B) ("/l" ?,Ly(B) ("/n" ?,Lz(B) ("/z" ?,L(B)
  ("/E" ?,L$(B) ("YE" ?,L$(B) ("Yi" ?,L'(B) ("YI" ?,L'(B) ("U'" ?,L.(B) ("U~" ?,L.(B)
+ ("G'" ?$,1)P(B)
  ("/D" ?,L"(B) ("/Ch" ?,L+(B) ("/CH" ?,L+(B)
  ("/G" ?,L#(B) ("/S" ?,L%(B) ("/K" ?,L,(B)
  ("/I" ?,L&(B) ("/J" ?,L((B) ("/L" ?,L)(B) ("/N" ?,L*(B) ("/Z" ?,L/(B)

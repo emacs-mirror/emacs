@@ -202,8 +202,6 @@
       ;; ``window system'', which generally behaves like a terminal.
       (load "term/pc-win")
       (load "ls-lisp")
-      (load "international/ccl")	; codepage.el uses CCL en/decoder
-      (load "international/codepage")	; internal.el uses cpNNN coding systems
       (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
 (if (eq system-type 'macos)
     (progn

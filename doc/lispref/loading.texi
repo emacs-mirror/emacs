@@ -798,12 +798,15 @@ with a call to @code{provide}.  The order of the elements in the
 
 @defun symbol-file symbol &optional type
 This function returns the name of the file that defined @var{symbol}.
-If @var{type} is @code{nil}, then any kind of definition is
-acceptable.  If @var{type} is @code{defun} or @code{defvar}, that
-specifies function definition only or variable definition only.
+If @var{type} is @code{nil}, then any kind of definition is acceptable.
+If @var{type} is @code{defun}, @code{defvar}, or @code{defface}, that
+specifies function definition, variable definition, or face definition
+only.
 
-The value is normally an absolute file name.  It can also be
-@code{nil}, if the definition is not associated with any file.
+The value is normally an absolute file name.  It can also be @code{nil},
+if the definition is not associated with any file.  If @var{symbol}
+specifies an autoloaded function, the value can be a relative file name
+without extension.
 @end defun
 
   The basis for @code{symbol-file} is the data in the variable
@@ -830,6 +833,8 @@ redefined it as a function.  The following element is always
 function.
 @item (autoload . @var{fun})
 The function @var{fun} was defined as an autoload.
+@item (defface . @var{face})
+The face @var{face} was defined.
 @item (require . @var{feature})
 The feature @var{feature} was required.
 @item (provide . @var{feature})

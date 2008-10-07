@@ -458,12 +458,6 @@
 ;;
 ;; MISCELLANEOUS
 ;;
-;; - root (dir)
-;;
-;;   Return DIR's "root" directory, that is, a parent directory of
-;;   DIR for which the same backend as used for DIR applies.  If no
-;;   such parent exists, this function should return DIR.
-;;
 ;; - make-version-backups-p (file)
 ;;
 ;;   Return non-nil if unmodified repository revisions of FILE should be
@@ -1292,11 +1286,18 @@ After check-out, runs the normal hook `vc-checkout-hook'."
   (run-hooks 'vc-checkout-hook))
 
 (defun vc-mark-resolved (backend files)
-  (with-vc-properties
-   files
-   (vc-call-backend backend 'mark-resolved files)
-   ;; FIXME: Is this TRTD?  Might not be.
-   `((vc-state . edited))))
+  (prog1 (with-vc-properties
+	  files
+	  (vc-call-backend backend 'mark-resolved files)
+	  ;; FIXME: Is this TRTD?  Might not be.
+	  `((vc-state . edited)))
+    (message
+     (substitute-command-keys
+      "Conflicts have been resolved in %s.  \
+Type \\[vc-next-action] to check in changes.")
+     (if (> (length files) 1)
+	 (format "%d files" (length files))
+       "this file"))))
 
 (defun vc-steal-lock (file rev owner)
   "Steal the lock on FILE."
@@ -1397,6 +1398,18 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
       'undecided))
 
 (defun vc-switches (backend op)
+  "Return a list of vc-BACKEND switches for operation OP.
+BACKEND is a symbol such as `CVS', which will be downcased.
+OP is a symbol such as `diff'.
+
+In decreasing order of preference, returns the value of:
+vc-BACKEND-OP-switches (e.g. `vc-cvs-diff-switches');
+vc-OP-switches (e.g. `vc-diff-switches'); or, in the case of
+diff only, `diff-switches'.
+
+If the chosen value is not a string or a list, returns nil.
+This is so that you may set, e.g. `vc-svn-diff-switches' to t in order
+to override the value of `vc-diff-switches' and `diff-switches'."
   (let ((switches
 	 (or (when backend
 	       (let ((sym (vc-make-backend-sym
@@ -2458,6 +2471,7 @@ to provide the `find-revision' operation instead."
       (message "Checking out %s...done" file))))
 
 (defalias 'vc-default-revision-completion-table 'ignore)
+(defalias 'vc-default-mark-resolved 'ignore)
 
 (defun vc-default-dir-status-files (backend dir files default-state update-function)
   (funcall update-function

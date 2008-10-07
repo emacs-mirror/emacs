@@ -1,7 +1,7 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006
+;;   2007, 2008  Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -152,6 +152,12 @@ Zero means compute the Imenu menu regardless of size."
   :type 'sexp)
 ;;;###autoload (put 'which-func-format 'risky-local-variable t)
 
+(defvar which-func-imenu-joiner-function #'last
+  "Function to join together multiple levels of imenu nomenclature.
+Called with a single argument, a list of strings giving the names
+of the menus we had to traverse to get to the item.  Returns a
+single string, the new name of the item.")
+
 (defvar which-func-cleanup-function nil
   "Function to transform a string before displaying it in the mode line.
 The function is called with one argument, the string to display.
@@ -281,25 +287,38 @@ If no function name is found, return nil."
 	       (boundp 'imenu--index-alist) imenu--index-alist)
       (let ((alist imenu--index-alist)
             (minoffset (point-max))
-            offset elem pair mark)
-        (while alist
-          (setq elem  (car-safe alist)
-                alist (cdr-safe alist))
-          ;; Elements of alist are either ("name" . marker), or
-          ;; ("submenu" ("name" . marker) ... ).
-          (unless (listp (cdr elem))
-              (setq elem (list elem)))
-          (while elem
-            (setq pair (car elem)
-                  elem (cdr elem))
-            (and (consp pair)
-                 (number-or-marker-p (setq mark (cdr pair)))
-                 (if (>= (setq offset (- (point) mark)) 0)
-                     (if (< offset minoffset) ; find the closest item
-                         (setq minoffset offset
-                               name (car pair)))
-                   ;; Entries in order, so can skip all those after point.
-                   (setq elem nil)))))))
+            offset pair mark imstack namestack)
+        ;; Elements of alist are either ("name" . marker), or
+        ;; ("submenu" ("name" . marker) ... ). The list can be
+        ;; arbitrarily nested.
+        (while (or alist imstack)
+          (if alist
+              (progn
+                (setq pair (car-safe alist)
+                      alist (cdr-safe alist))
+
+                (cond ((atom pair))     ; skip anything not a cons
+
+                      ((imenu--subalist-p pair)
+                       (setq imstack   (cons alist imstack)
+                             namestack (cons (car pair) namestack)
+                             alist     (cdr pair)))
+
+                      ((number-or-marker-p (setq mark (cdr pair)))
+                       (if (>= (setq offset (- (point) mark)) 0)
+                           (if (< offset minoffset) ; find the closest item
+                               (setq minoffset offset
+                                     name (funcall
+                                           which-func-imenu-joiner-function
+                                           (reverse (cons (car pair) namestack)))))
+                         ;; Entries in order, so can skip all those after point.
+                         (setq alist nil
+                               imstack nil)))))
+
+            (setq alist     (car imstack)
+                  namestack (cdr namestack)
+                  imstack   (cdr imstack))))))
+
     ;; Try using add-log support.
     (when (and (null name) (boundp 'add-log-current-defun-function)
 	       add-log-current-defun-function)

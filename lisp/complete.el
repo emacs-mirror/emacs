@@ -456,14 +456,7 @@ GOTO-END is non-nil, however, it instead replaces up to END."
     ;; Check if buffer contents can already be considered complete
     (if (and (eq mode 'exit)
 	     (test-completion str table pred))
-	(progn
-	  ;; If completion-ignore-case is non-nil, insert the
-	  ;; completion string since that may have a different case.
-	  (when completion-ignore-case
-	    (setq str (PC-try-completion str table pred))
-	    (delete-region beg end)
-	    (insert str))
-	  'complete)
+	'complete
 
       ;; Do substitutions in directory names
       (and filename

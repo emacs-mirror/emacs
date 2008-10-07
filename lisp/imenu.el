@@ -483,6 +483,8 @@ element recalculates the buffer's index alist.")
 
 ;; Split LIST into sublists of max length N.
 ;; Example (imenu--split '(1 2 3 4 5 6 7 8) 3)-> '((1 2 3) (4 5 6) (7 8))
+;;
+;; The returned list DOES NOT share structure with LIST.
 (defun imenu--split (list n)
   (let ((remain list)
 	(result '())
@@ -504,10 +506,15 @@ element recalculates the buffer's index alist.")
 
 ;;; Split the alist MENULIST into a nested alist, if it is long enough.
 ;;; In any case, add TITLE to the front of the alist.
+;;; If IMENU--RESCAN-ITEM is present in MENULIST, it is moved to the
+;;; beginning of the returned alist.
+;;;
+;;; The returned alist DOES NOT share structure with MENULIST.
 (defun imenu--split-menu (menulist title)
-  (let (keep-at-top tail)
+  (let ((menulist (copy-sequence menulist))
+        keep-at-top tail)
     (if (memq imenu--rescan-item menulist)
-	(setq keep-at-top (cons imenu--rescan-item nil)
+	(setq keep-at-top (list imenu--rescan-item)
 	      menulist (delq imenu--rescan-item menulist)))
     (setq tail menulist)
     (dolist (item tail)
@@ -515,7 +522,7 @@ element recalculates the buffer's index alist.")
 	(push item keep-at-top)
 	(setq menulist (delq item menulist))))
     (if imenu-sort-function
-	(setq menulist (sort (copy-sequence menulist) imenu-sort-function)))
+	(setq menulist (sort menulist imenu-sort-function)))
     (if (> (length menulist) imenu-max-items)
 	(setq menulist
 	      (mapcar
@@ -527,6 +534,9 @@ element recalculates the buffer's index alist.")
 
 ;;; Split up each long alist that are nested within ALIST
 ;;; into nested alists.
+;;;
+;;; Return a split and sorted copy of ALIST. The returned alist DOES
+;;; NOT share structure with ALIST.
 (defun imenu--split-submenus (alist)
   (mapcar (function
 	   (lambda (elt)

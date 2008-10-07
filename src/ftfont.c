@@ -1813,6 +1813,7 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
   EMACS_UINT len = LGSTRING_GLYPH_LEN (lgstring);
   EMACS_UINT i;
   struct MFLTFontFT flt_font_ft;
+  MFLT *flt = NULL;
 
   if (! m17n_flt_initialized)
     {
@@ -1849,7 +1850,7 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
       flt_font_ft.flt_font.family = Mnil;
     else
       flt_font_ft.flt_font.family
-	= msymbol ((char *) SDATA (SYMBOL_NAME (family)));
+	= msymbol ((char *) SDATA (Fdowncase (SYMBOL_NAME (family))));
   }
   flt_font_ft.flt_font.x_ppem = ft_face->size->metrics.x_ppem;
   flt_font_ft.flt_font.y_ppem = ft_face->size->metrics.y_ppem;
@@ -1861,9 +1862,14 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
   flt_font_ft.font = font;
   flt_font_ft.ft_face = ft_face;
   flt_font_ft.otf = otf;
+  if (ASCII_CHAR_P (gstring.glyphs[0].c))
+    /* A little bit ad hoc.  Perhaps, shaper must get script and
+       language information, and select a proper flt for them
+       here.  */
+    flt = mflt_get (msymbol ("combining"));
   for (i = 0; i < 3; i++)
     {
-      int result = mflt_run (&gstring, 0, len, &flt_font_ft.flt_font, NULL);
+      int result = mflt_run (&gstring, 0, len, &flt_font_ft.flt_font, flt);
       if (result != -2)
 	break;
       gstring.allocated += gstring.allocated;

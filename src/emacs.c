@@ -131,6 +131,9 @@ Lisp_Object Vinvocation_directory;
    nil means get them only from PATH_LOADSEARCH.  */
 Lisp_Object Vinstallation_directory;
 
+/* The values of `current-time' before and after Emacs initialization.  */
+Lisp_Object Vbefore_init_time, Vafter_init_time;
+
 /* Hook run by `kill-emacs' before it does really anything.  */
 Lisp_Object Vkill_emacs_hook;
 
@@ -232,6 +235,9 @@ int noninteractive;
 
 int noninteractive1;
 
+/* Nonzero means Emacs was started as a daemon.  */
+int is_daemon = 0;
+
 /* Save argv and argc.  */
 char **initial_argv;
 int initial_argc;
@@ -254,6 +260,7 @@ read the main documentation for these command-line arguments.\n\
 Initialization options:\n\
 \n\
 --batch                     do not do interactive display; implies -q\n\
+--daemon                    start a server in the background\n\
 --debug-init                enable Emacs Lisp debugger for init file\n\
 --display, -d DISPLAY       use X server DISPLAY\n\
 --multibyte, --no-unibyte   inhibit the effect of EMACS_UNIBYTE\n\
@@ -1068,6 +1075,34 @@ main (int argc, char **argv)
       exit (0);
     }
 
+  if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args))
+    {
+#ifndef DOS_NT
+      pid_t f = fork ();
+      int nfd;
+      if (f > 0)
+	exit (0);
+      if (f < 0)
+	{
+	  fprintf (stderr, "Cannot fork!\n");
+	  exit (1);
+	}
+
+      nfd = open ("/dev/null", O_RDWR);
+      dup2 (nfd, 0);
+      dup2 (nfd, 1);
+      dup2 (nfd, 2);
+      close (nfd);
+      is_daemon = 1;
+#ifdef HAVE_SETSID
+      setsid();
+#endif
+#else /* DOS_NT */
+      fprintf (stderr, "This platform does not support the -daemon flag.\n");
+      exit (1);
+#endif /* DOS_NT */
+    }
+
   if (! noninteractive)
     {
 #ifdef BSD_PGRPS
@@ -1719,6 +1754,7 @@ struct standard_args standard_args[] =
   { "-nw", "--no-windows", 110, 0 },
   { "-batch", "--batch", 100, 0 },
   { "-script", "--script", 100, 1 },
+  { "-daemon", "--daemon", 99, 0 },
   { "-help", "--help", 90, 0 },
   { "-no-unibyte", "--no-unibyte", 83, 0 },
   { "-multibyte", "--multibyte", 82, 0 },
@@ -2350,6 +2386,13 @@ decode_env_path (evarname, defalt)
   return Fnreverse (lpath);
 }
 
+DEFUN ("daemonp", Fdaemonp, Sdaemonp, 0, 0, 0,
+       doc: /* Return t if the current emacs process is a daemon.  */)
+  ()
+{
+  return is_daemon ? Qt : Qnil;
+}
+
 void
 syms_of_emacs ()
 {
@@ -2368,6 +2411,7 @@ syms_of_emacs ()
 
   defsubr (&Sinvocation_name);
   defsubr (&Sinvocation_directory);
+  defsubr (&Sdaemonp);
 
   DEFVAR_LISP ("command-line-args", &Vcommand_line_args,
 	       doc: /* Args passed by shell to Emacs, as a list of strings.
@@ -2456,6 +2500,15 @@ was found.  */);
   DEFVAR_LISP ("previous-system-time-locale", &Vprevious_system_time_locale,
 	       doc: /* Most recently used system locale for time.  */);
   Vprevious_system_time_locale = Qnil;
+
+  DEFVAR_LISP ("before-init-time", &Vbefore_init_time,
+	       doc: /* Value of `current-time' before Emacs begins initialization.  */);
+  Vbefore_init_time = Qnil;
+
+  DEFVAR_LISP ("after-init-time", &Vafter_init_time,
+	       doc: /* Value of `current-time' after loading the init files.
+This is nil during initialization.  */);
+  Vafter_init_time = Qnil;
 }
 
 /* arch-tag: 7bfd356a-c720-4612-8ab6-aa4222931c2e

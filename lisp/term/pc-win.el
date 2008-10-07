@@ -86,20 +86,20 @@
 ;(modify-frame-parameters terminal-frame default-frame-alist)
 
 (defun msdos-face-setup ()
-  "Set up initial faces for the MS-DOS display."
-  (set-face-foreground 'bold "yellow" terminal-frame)
-  (set-face-foreground 'italic "red" terminal-frame)
-  (set-face-foreground 'bold-italic "lightred" terminal-frame)
-  (set-face-foreground 'underline "white" terminal-frame)
+  "Initial setup of faces for the MS-DOS display."
+  (set-face-foreground 'bold "yellow")
+  (set-face-foreground 'italic "red")
+  (set-face-foreground 'bold-italic "lightred")
+  (set-face-foreground 'underline "white")
 
   (make-face 'msdos-menu-active-face)
   (make-face 'msdos-menu-passive-face)
   (make-face 'msdos-menu-select-face)
-  (set-face-foreground 'msdos-menu-active-face "white" terminal-frame)
-  (set-face-foreground 'msdos-menu-passive-face "lightgray" terminal-frame)
-  (set-face-background 'msdos-menu-active-face "blue" terminal-frame)
-  (set-face-background 'msdos-menu-passive-face "blue" terminal-frame)
-  (set-face-background 'msdos-menu-select-face "red" terminal-frame))
+  (set-face-foreground 'msdos-menu-active-face "white")
+  (set-face-foreground 'msdos-menu-passive-face "lightgray")
+  (set-face-background 'msdos-menu-active-face "blue")
+  (set-face-background 'msdos-menu-passive-face "blue")
+  (set-face-background 'msdos-menu-select-face "red"))
 
 (defun msdos-handle-reverse-video (frame parameters)
   "Handle the reverse-video frame parameter on MS-DOS frames."
@@ -269,7 +269,7 @@ are fixed-pitch."
      ((stringp help)
       (unless msdos-previous-message
         (setq msdos-previous-message (current-message)))
-      (let ((message-truncate-lines t)
+      (let ((message-truncate-lines nil)
             (message-log-max nil))
         (message "%s" (replace-regexp-in-string "\n" ", " help))))
      ((stringp msdos-previous-message)

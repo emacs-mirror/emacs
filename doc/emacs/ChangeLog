@@ -1,3 +1,76 @@
+2008-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Coding Systems): Don't mention codepage-setup.
+
+	* msdog-xtra.texi (MS-DOS Printing, MS-DOS and MULE): No need to create
+	cpNNN coding systems anymore.
+	(MS-DOS and MULE): Don't mention code-pages.el.  Don't mention support
+	for unibyte mode.  Don't mention line-drawing characters.  Don't
+	mention dos-unsupported-char-glyph.
+
+2008-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.texi (Search): Shorten introduction.
+	(Basic Isearch): Add command table.  Discuss reverse isearch and
+	isearch highlighting.
+	(Repeat Isearch): Move lazy highlighting discussion here.  Add search
+	ring to cindex.
+	(Special Isearch): Move input methods discussion here.
+	(Non-ASCII Isearch): Node deleted, merged with Special Isearch.
+	(Isearch Yank): Node deleted, and contents moved into Basic Isearch and
+	Repeat Isearch.
+	(Isearch Minibuffer): New node.
+	(Word Search): Document new word search commands.
+	(Regexp Example): Simplify example using sentence-end-base variable.
+	(Replace): Reword introduction.
+	(Unconditional Replace): Remove unnecessary example.
+	(Other Repeating Search): Document new `M-s o' binding.
+
+	* emacs.texi (Top): Update node listings.
+
+2008-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.texi (Top): Remove Kill Errors from menu.
+
+2008-09-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* kmacro.texi (Basic Keyboard Macro): Make F3 and F4 the preferred
+	interface for defining macros.  Simplify examples.  Note that C-g quits
+	macro definitions.
+	(Keyboard Macro Counter): Document using F3 to insert counter. Give
+	usage example.
+	(Keyboard Macro Query): Organize query responses in a table.
+
+	* fixit.texi (Fixit): Favor C-/ keybinding for undo throughout.  Link
+	to Erasing node.
+	(Undo): Reorganize paragraphs for logical flow.  Move keybinding
+	rationale to a footnote.
+	(Kill Errors): Remove node, due to redundancy with Erasing.
+	(Spelling): Move discussion of flyspell to end.  Note new behavior of
+	M-$ in active region.  Remove non-ispell-specific keybindings from
+	table.
+
+2008-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cmdargs.texi (Initial Options): Document --daemon.
+
+2008-09-20  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Numbered Backups): Mention that some modes set
+	version-control.
+
+2008-09-20  Jim Blandy  <jimb@red-bean.com>
+
+	* files.texi (Numbered Backups): Reference File Variables, as well.
+	Remove discussion of Rmail's implementation.
+
+2008-09-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Recursive Edit): Note that top-level exits active
+	minibuffers.
+
+	* trouble.texi (Quitting): Likewise.
+
 2008-08-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.texi (Top): Add Temporary Face Changes xref.
@@ -19,7 +92,7 @@
 	* cal-xtra.texi (Advanced Calendar/Diary Usage): Tweak some menu
 	descriptions.
 	(Calendar Customizing): Tweak layout description.
-	Move calenday-today-marker and calendar-today face to the other
+	Move calendar-today-marker and calendar-today face to the other
 	markers.  Condense calendar-star-date and calendar-mark-today
 	description.
 	(Holiday Customizing): Add oriental and solar holidays.
@@ -2608,7 +2681,7 @@
 
 2006-01-29  Richard M. Stallman  <rms@gnu.org>
 
-	* screen.texi: Minor cleaups.
+	* screen.texi: Minor cleanups.
 	(Screen): Clean up the intro paragraphs.
 	(Mode Line): Lots of rewriting.  Handle frame-name better.
 	eol-mnemonic-... vars moved out.
@@ -2796,7 +2869,7 @@
 2005-12-09  Kim F. Storm  <storm@cua.dk>
 
 	* killing.texi (CUA Bindings): Describe how to use C-x and C-c as
-	prefix keys even when mark is active.  Decribe that RET moves
+	prefix keys even when mark is active.  Describe that RET moves
 	cursor to next corner in rectangle; clarify insert around rectangle.
 
 2005-12-08  Luc Teirlinck  <teirllm@auburn.edu>
@@ -3339,7 +3412,7 @@
 	(Language Environments): List all language environments.
 	Intlfonts contains fonts for most supported scripts, not all..
 	(Select Input Method): Refer to C-u C-x = to see how to type to
-	input a specifc character.
+	input a specific character.
 	(Recognize Coding): Fix typo, china-iso-8bit -> chinese-iso-8bit.
 
 2005-06-23  Juanma Barranquero  <lekktu@gmail.com>
@@ -4241,7 +4314,7 @@
 	of list-colors-display.  Add a pointer to the X docs about colors.
 
 	* cmdargs.texi (Colors): Mention 16-, 88- and 256-color modes.
-	Impove docs of list-colors-display.
+	Improve docs of list-colors-display.
 
 2005-02-03  Lute Kamstra  <lute@gnu.org>
 
@@ -4455,7 +4528,7 @@
 	* cmdargs.texi, doclicense.texi, xresources.texi, emacs.texi:
 	* entering.texi: Rename Command Line to Emacs Invocation.
 
-	* misc.texi (Term Mode): Correcty describe C-c.
+	* misc.texi (Term Mode): Correctly describe C-c.
 
 	* custom.texi (Easy Customization): Move up to section level,
 	before Variables.  Avoid using the term "variable"; say "option".
@@ -4900,7 +4973,7 @@
 2004-05-29  Alan Mackenzie  <acm@muc.de>
 
 	* programs.texi: Update for CC Mode 5.30 and incidental amendments.
-	("AWK"): Is consistently thus spelt throughout.
+	("AWK"): Is consistently thus spelled throughout.
 	(AWK, Pike): Document as "C-like modes".
 	(@kbd{M-j}): Document as alternative to @kbd{C-M-j}.
 	(M-x man): Supersedes M-x manual-entry.

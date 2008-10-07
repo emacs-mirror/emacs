@@ -1168,7 +1168,9 @@ This function is for internal use only."
     (setq epg-pending-status-list status-list)
     (while (and (eq (process-status (epg-context-process context)) 'run)
 		epg-pending-status-list)
-      (accept-process-output (epg-context-process context) 1))))
+      (accept-process-output (epg-context-process context) 1))
+    (if epg-pending-status-list
+	(epg-context-set-result-for context 'error 'exit))))
 
 (defun epg-wait-for-completion (context)
   "Wait until the `epg-gpg-program' process completes."
@@ -2013,8 +2015,12 @@ If you are unsure, use synchronous version of this function
 	    (process-send-eof (epg-context-process context))))
     ;; Normal (or cleartext) signature.
     (if (epg-data-file signature)
-	(epg--start context (list "--" (epg-data-file signature)))
-      (epg--start context '("-"))
+	(epg--start context (if (eq (epg-context-protocol context) 'CMS)
+				(list "--verify" "--" (epg-data-file signature))
+			      (list "--" (epg-data-file signature))))
+      (epg--start context (if (eq (epg-context-protocol context) 'CMS)
+			      '("--verify" "-")
+			    '("-")))
       (if (eq (process-status (epg-context-process context)) 'run)
 	  (process-send-string (epg-context-process context)
 			       (epg-data-string signature)))

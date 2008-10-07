@@ -2153,7 +2153,8 @@ immediately to the command level of the previous recursive edit.  If you
 wish, you can then abort the next recursive editing level.
 
   Alternatively, the command @kbd{M-x top-level} aborts all levels of
-recursive edits, returning immediately to the top-level command reader.
+recursive edits, returning immediately to the top-level command
+reader.  It also exits the minibuffer, if it is active.
 
   The text being edited inside the recursive edit need not be the same text
 that you were editing at top level.  It depends on what the recursive edit

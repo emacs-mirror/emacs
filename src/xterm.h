@@ -141,9 +141,6 @@ struct x_display_info
   /* Number of planes on this screen.  */
   int n_planes;
 
-  /* Dimensions of this screen.  */
-  int height, width;
-
   /* Mask of things that cause the mouse to be grabbed.  */
   int grabbed;
 
@@ -954,6 +951,8 @@ extern void set_vertical_scroll_bar P_ ((struct window *));
 extern int x_dispatch_event P_ ((XEvent *, Display *));
 extern unsigned int x_x_to_emacs_modifiers P_ ((struct x_display_info *,
 						unsigned));
+extern int x_display_pixel_height P_ ((struct x_display_info *));
+extern int x_display_pixel_width P_ ((struct x_display_info *));
 
 /* Defined in xselect.c */
 

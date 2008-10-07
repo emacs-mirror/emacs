@@ -23,18 +23,9 @@
 
 ;;; Commentary:
 
-;; All commands run from the summary buffer update the buffer local
-;; variable `pmail-current-message'.  As part of the post command
-;; processing point is moved to the beginning of the line describing
-;; the current message.
-
-;;; History:
-
 ;; Extended by Bob Weiner of Motorola
 ;;   Provided all commands from pmail-mode in pmail-summary-mode and made key
 ;;   bindings in both modes wholly compatible.
-
-;; Overhauled by Paul Reilly to support mbox format.
 
 ;;; Code:
 
@@ -51,176 +42,28 @@
 
 ;;;###autoload
 (defcustom pmail-summary-line-count-flag t
-  "*Non-nil if Pmail summary should show the number of lines in each message."
+  "*Non-nil means Pmail summary should show the number of lines in each message."
   :type 'boolean
   :group 'pmail-summary)
+
+(defconst pmail-summary-header "X-BABYL-V6-SUMMARY"
+  "The header that stores the Pmail summary line.")
 
 (defvar pmail-summary-font-lock-keywords
   '(("^.....D.*" . font-lock-string-face)			; Deleted.
     ("^.....-.*" . font-lock-type-face)				; Unread.
     ;; Neither of the below will be highlighted if either of the above are:
-    ("^.....[^D-]....\\(......\\)" 1 font-lock-keyword-face)	; Date.
+    ("^.....[^D-] \\(......\\)" 1 font-lock-keyword-face)	; Date.
     ("{ \\([^\n}]+\\) }" 1 font-lock-comment-face))		; Labels.
   "Additional expressions to highlight in Pmail Summary mode.")
 
-(defvar pmail-summary-redo nil
-  "Private storage for Pmail summary history.")
+(defvar pmail-summary-redo
+  "(FUNCTION . ARGS) to regenerate this Pmail summary buffer.")
 
-(defvar pmail-summary-overlay nil
-  "Private storage for an Pmail summary overlay cache")
+(defvar pmail-summary-overlay nil)
 (put 'pmail-summary-overlay 'permanent-local t)
 
-(defvar pmail-summary-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    (define-key map [mouse-2] 'pmail-summary-mouse-goto-message)
-    (define-key map "a"      'pmail-summary-add-label)
-    (define-key map "b"      'pmail-summary-bury)
-    (define-key map "B"      'pmail-summary-browse-body)
-    (define-key map "c"      'pmail-summary-continue)
-    (define-key map "d"      'pmail-summary-delete-forward)
-    (define-key map "\C-d"   'pmail-summary-delete-backward)
-    (define-key map "e"      'pmail-summary-edit-current-message)
-    (define-key map "f"      'pmail-summary-forward)
-    (define-key map "g"      'pmail-summary-get-new-mail)
-    (define-key map "h"      'pmail-summary)
-    (define-key map "i"      'pmail-summary-input)
-    (define-key map "j"      'pmail-summary-goto-msg)
-    (define-key map "\C-m"   'pmail-summary-goto-msg)
-    (define-key map "k"      'pmail-summary-kill-label)
-    (define-key map "l"      'pmail-summary-by-labels)
-    (define-key map "\e\C-h" 'pmail-summary)
-    (define-key map "\e\C-l" 'pmail-summary-by-labels)
-    (define-key map "\e\C-r" 'pmail-summary-by-recipients)
-    (define-key map "\e\C-f" 'pmail-summary-by-senders)
-    (define-key map "\e\C-s" 'pmail-summary-by-regexp)
-    (define-key map "\e\C-t" 'pmail-summary-by-topic)
-    (define-key map "m"      'pmail-summary-mail)
-    (define-key map "\M-m"   'pmail-summary-retry-failure)
-    (define-key map "n"      'pmail-summary-next-msg)
-    (define-key map "\en"    'pmail-summary-next-all)
-    (define-key map "\e\C-n" 'pmail-summary-next-labeled-message)
-    (define-key map "o"      'pmail-summary-output)
-    (define-key map "\C-o"   'pmail-summary-output)
-    (define-key map "p"      'pmail-summary-previous-msg)
-    (define-key map "\ep"    'pmail-summary-previous-all)
-    (define-key map "\e\C-p" 'pmail-summary-previous-labeled-message)
-    (define-key map "q"      'pmail-summary-quit)
-    (define-key map "Q"      'pmail-summary-wipe)
-    (define-key map "r"      'pmail-summary-reply)
-    (define-key map "s"      'pmail-summary-expunge-and-save)
-    (define-key map "\es"    'pmail-summary-search)
-    (define-key map "t"      'pmail-summary-toggle-header)
-    (define-key map "u"      'pmail-summary-undelete)
-    (define-key map "\M-u"   'pmail-summary-undelete-many)
-    (define-key map "x"      'pmail-summary-expunge)
-    (define-key map "w"      'pmail-summary-output-body)
-    (define-key map "."      'pmail-summary-beginning-of-message)
-    (define-key map "/"      'pmail-summary-end-of-message)
-    (define-key map "<"      'pmail-summary-first-message)
-    (define-key map ">"      'pmail-summary-last-message)
-    (define-key map " "      'pmail-summary-scroll-msg-up)
-    (define-key map "\177"   'pmail-summary-scroll-msg-down)
-    (define-key map "?"      'describe-mode)
-    (define-key map "\C-c\C-n" 'pmail-summary-next-same-subject)
-    (define-key map "\C-c\C-p" 'pmail-summary-previous-same-subject)
-    (define-key map "\C-c\C-s\C-d" 'pmail-summary-sort-by-date)
-    (define-key map "\C-c\C-s\C-s" 'pmail-summary-sort-by-subject)
-    (define-key map "\C-c\C-s\C-a" 'pmail-summary-sort-by-author)
-    (define-key map "\C-c\C-s\C-r" 'pmail-summary-sort-by-recipient)
-    (define-key map "\C-c\C-s\C-c" 'pmail-summary-sort-by-correspondent)
-    (define-key map "\C-c\C-s\C-l" 'pmail-summary-sort-by-lines)
-    (define-key map "\C-c\C-s\C-k" 'pmail-summary-sort-by-labels)
-    (define-key map [menu-bar] (make-sparse-keymap))
-    (define-key map [menu-bar classify]
-      (cons "Classify" (make-sparse-keymap "Classify")))
-    (define-key map [menu-bar classify output-menu]
-      '("Output (Pmail Menu)..." . pmail-summary-output-menu))
-    (define-key map [menu-bar classify input-menu]
-      '("Input Pmail File (menu)..." . pmail-input-menu))
-    (define-key map [menu-bar classify input-menu] '(nil))
-    (define-key map [menu-bar classify output-menu] '(nil))
-    (define-key map [menu-bar classify output-body]
-      '("Output (body)..." . pmail-summary-output-body))
-    (define-key map [menu-bar classify output-inbox]
-      '("Output (inbox)..." . pmail-summary-output))
-    (define-key map [menu-bar classify output]
-      '("Output (Pmail)..." . pmail-summary-output))
-    (define-key map [menu-bar classify kill-label]
-      '("Kill Label..." . pmail-summary-kill-label))
-    (define-key map [menu-bar classify add-label]
-      '("Add Label..." . pmail-summary-add-label))
-    (define-key map [menu-bar summary]
-      (cons "Summary" (make-sparse-keymap "Summary")))
-    (define-key map [menu-bar summary senders]
-      '("By Senders..." . pmail-summary-by-senders))
-    (define-key map [menu-bar summary labels]
-      '("By Labels..." . pmail-summary-by-labels))
-    (define-key map [menu-bar summary recipients]
-      '("By Recipients..." . pmail-summary-by-recipients))
-    (define-key map [menu-bar summary topic]
-      '("By Topic..." . pmail-summary-by-topic))
-    (define-key map [menu-bar summary regexp]
-      '("By Regexp..." . pmail-summary-by-regexp))
-    (define-key map [menu-bar summary all]
-      '("All" . pmail-summary))
-    (define-key map [menu-bar mail]
-      (cons "Mail" (make-sparse-keymap "Mail")))
-    (define-key map [menu-bar mail pmail-summary-get-new-mail]
-      '("Get New Mail" . pmail-summary-get-new-mail))
-    (define-key map [menu-bar mail lambda]
-      '("----"))
-    (define-key map [menu-bar mail continue]
-      '("Continue" . pmail-summary-continue))
-    (define-key map [menu-bar mail resend]
-      '("Re-send..." . pmail-summary-resend))
-    (define-key map [menu-bar mail forward]
-      '("Forward" . pmail-summary-forward))
-    (define-key map [menu-bar mail retry]
-      '("Retry" . pmail-summary-retry-failure))
-    (define-key map [menu-bar mail reply]
-      '("Reply" . pmail-summary-reply))
-    (define-key map [menu-bar mail mail]
-      '("Mail" . pmail-summary-mail))
-    (define-key map [menu-bar delete]
-      (cons "Delete" (make-sparse-keymap "Delete")))
-    (define-key map [menu-bar delete expunge/save]
-      '("Expunge/Save" . pmail-summary-expunge-and-save))
-    (define-key map [menu-bar delete expunge]
-      '("Expunge" . pmail-summary-expunge))
-    (define-key map [menu-bar delete undelete]
-      '("Undelete" . pmail-summary-undelete))
-    (define-key map [menu-bar delete delete]
-      '("Delete" . pmail-summary-delete-forward))
-    (define-key map [menu-bar move]
-      (cons "Move" (make-sparse-keymap "Move")))
-    (define-key map [menu-bar move search-back]
-      '("Search Back..." . pmail-summary-search-backward))
-    (define-key map [menu-bar move search]
-      '("Search..." . pmail-summary-search))
-    (define-key map [menu-bar move previous]
-      '("Previous Nondeleted" . pmail-summary-previous-msg))
-    (define-key map [menu-bar move next]
-      '("Next Nondeleted" . pmail-summary-next-msg))
-    (define-key map [menu-bar move last]
-      '("Last" . pmail-summary-last-message))
-    (define-key map [menu-bar move first]
-      '("First" . pmail-summary-first-message))
-    (define-key map [menu-bar move previous]
-      '("Previous" . pmail-summary-previous-all))
-    (define-key map [menu-bar move next]
-      '("Next" . pmail-summary-next-all))
-    map)
-  "Keymap for `pmail-summary-mode'.")
-
-(declare-function pmail-abort-edit "pmailedit" ())
-(declare-function pmail-cease-edit "pmailedit"())
-(declare-function pmail-set-label "pmailkwd" (l state &optional n))
-(declare-function pmail-output-read-file-name "pmailout" ())
-(declare-function pmail-output-read-pmail-file-name  "pmailout" ())
-(declare-function mail-comma-list-regexp "mail-utils" (labels))
-(declare-function mail-send-and-exit "sendmail" (&optional arg))
-(declare-function mail-strip-quoted-names "mail-utils" (address))
+(defvar pmail-summary-mode-map nil)
 
 ;; Entry points for making a summary buffer.
 
@@ -248,7 +91,7 @@ LABELS should be a string containing the desired labels, separated by commas."
   (pmail-new-summary (concat "labels " labels)
 		     (list 'pmail-summary-by-labels labels)
 		     'pmail-message-labels-p
-		     (mail-comma-list-regexp labels)))
+		     (concat ", \\(" (mail-comma-list-regexp labels) "\\),")))
 
 ;;;###autoload
 (defun pmail-summary-by-recipients (recipients &optional primary-only)
@@ -280,6 +123,9 @@ Emacs will list the header line in the PMAIL-summary."
 		     'pmail-message-regexp-p
                      regexp))
 
+;; pmail-summary-by-topic
+;; 1989 R.A. Schnitzler
+
 ;;;###autoload
 (defun pmail-summary-by-topic (subject &optional whole-message)
   "Display a summary of all messages with the given SUBJECT.
@@ -290,6 +136,8 @@ SUBJECT is a string of regexps separated by commas."
   (interactive
    (let* ((subject (with-current-buffer pmail-buffer
 		     (pmail-current-subject)))
+	  (subject-re (with-current-buffer pmail-buffer
+			(pmail-current-subject-regexp)))
 	  (prompt (concat "Topics to summarize by (regexp"
 			  (if subject ", default current subject" "")
 			  "): ")))
@@ -301,115 +149,56 @@ SUBJECT is a string of regexps separated by commas."
    (mail-comma-list-regexp subject) whole-message))
 
 (defun pmail-message-subject-p (msg subject &optional whole-message)
-  "Return non-nil if SUBJECT is found in MSG.
-If WHOLE-MESSAGE is nil only the subject header will be searched,
-otherwise the whole message will be searched for text matching
-SUBJECT.  Return nil to indicate that SUBJECT is not found,
-non-nil otherwise."
   (save-restriction
+    (goto-char (pmail-msgbeg msg))
+    (search-forward "\n*** EOOH ***\n" (pmail-msgend msg) 'move)
     (narrow-to-region
-     (pmail-desc-get-start msg)
-     (pmail-desc-get-end msg))
+     (point)
+     (progn (search-forward (if whole-message "\^_" "\n\n")) (point)))
     (goto-char (point-min))
-    (if whole-message
-	(re-search-forward subject nil t))
-    (string-match subject
-		  (let ((subj (pmail-header-get-header "subject")))
-		    (if subj
-			(funcall pmail-summary-line-decoder subj)
-		      "")))))
+    (if whole-message (re-search-forward subject nil t)
+      (string-match subject (let ((subj (mail-fetch-field "Subject")))
+			      (if subj
+				  (funcall pmail-summary-line-decoder subj)
+				""))))))
 
 ;;;###autoload
 (defun pmail-summary-by-senders (senders)
   "Display a summary of all messages with the given SENDERS.
 SENDERS is a string of names separated by commas."
-  (interactive
-   (let* ((sender (when pmail-current-message
-		    (pmail-desc-get-sender pmail-current-message)))
-	  (sender-re (with-current-buffer pmail-buffer
-		       (regexp-quote sender)))
-	  (prompt (concat "Senders to summarize by (regexp"
-			  (if sender ", default current sender" "")
-			  "): ")))
-     (list (read-string prompt nil nil sender))))
+  (interactive "sSenders to summarize by: ")
   (pmail-new-summary
    (concat "senders " senders)
    (list 'pmail-summary-by-senders senders)
    'pmail-message-senders-p
    (mail-comma-list-regexp senders)))
 
-(defun pmail-message-senders-p (msg sender)
-  "Return non-nil if SENDER is found in MSG.
-The From header is tested."
+(defun pmail-message-senders-p (msg senders)
   (save-restriction
-    (narrow-to-region
-     (pmail-desc-get-start msg)
-     (pmail-desc-get-end msg))
-    (goto-char (point-min))
-    (string-match sender (or (mail-fetch-field "From") ""))))
+    (goto-char (pmail-msgbeg msg))
+    (search-forward "\n*** EOOH ***\n")
+    (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
+    (string-match senders (or (mail-fetch-field "From") ""))))
 
-;;;; General making of a summary buffer.
+;; General making of a summary buffer.
 
 (defvar pmail-summary-symbol-number 0)
 
-(defun pmail-new-summary (description redo-form function &rest args)
+(defvar pmail-new-summary-line-count)
+
+(defun pmail-new-summary (desc redo func &rest args)
   "Create a summary of selected messages.
-DESCRIPTION makes part of the mode line of the summary buffer.
-For each message, FUNCTION is applied to the message number and ARGS...
+DESC makes part of the mode line of the summary buffer. REDO is form ...
+For each message, FUNC is applied to the message number and ARGS...
 and if the result is non-nil, that message is included.
 nil for FUNCTION means all messages."
   (message "Computing summary lines...")
-  (let ((summary-msgs ())
-        (new-summary-line-count 0)
-        (msgnum 1)
-        current-message sumbuf was-in-summary)
-    (save-excursion
-      ;; Go to the Pmail buffer.
+  (let (mesg was-in-summary)
+    (with-current-buffer pmail-buffer
       (if (eq major-mode 'pmail-summary-mode)
 	  (setq was-in-summary t))
-      (set-buffer pmail-buffer)
-      ;; Find its summary buffer, or make one.
-      (setq current-message pmail-current-message
-	    sumbuf
-	    (if (and pmail-summary-buffer
-		     (buffer-name pmail-summary-buffer))
-		pmail-summary-buffer
-	      (generate-new-buffer (concat (buffer-name) "-summary"))))
-      ;; Collect the message summaries based on the filtering
-      ;; argument (FUNCTION).
-      (while (>= pmail-total-messages msgnum)
-	(if (or (null function)
-		(apply function (cons msgnum args)))
-	    (setq summary-msgs
-		  (cons (cons msgnum (pmail-summary-get-summary-line msgnum))
-			summary-msgs)))
-	(setq msgnum (1+ msgnum)))
-      (setq summary-msgs (nreverse summary-msgs))
-      ;; Place the collected summaries into the summary buffer.
-      (setq pmail-summary-buffer nil)
-      (save-excursion
-	(let ((rbuf (current-buffer))
-	      (vbuf pmail-view-buffer)
-	      (total pmail-total-messages))
-	  (set-buffer sumbuf)
-	  ;; Set up the summary buffer's contents.
-	  (let ((buffer-read-only nil))
-	    (erase-buffer)
-	    (while summary-msgs
-	      (princ (cdr (car summary-msgs)) sumbuf)
-	      (setq summary-msgs (cdr summary-msgs)))
-	    (goto-char (point-min)))
-	  ;; Set up the rest of its state and local variables.
-	  (setq buffer-read-only t)
-	  (pmail-summary-mode)
-	  (make-local-variable 'minor-mode-alist)
-	  (setq minor-mode-alist (list (list t (concat ": " description))))
-	  (setq pmail-buffer rbuf
-		pmail-view-buffer vbuf
-		pmail-summary-redo redo-form
-		pmail-total-messages total
-		pmail-current-message current-message)))
-      (setq pmail-summary-buffer sumbuf))
+      (setq mesg pmail-current-message
+	    pmail-summary-buffer (pmail-new-summary-1 desc redo func args)))
     ;; Now display the summary buffer and go to the right place in it.
     (or was-in-summary
 	(progn
@@ -419,22 +208,118 @@ nil for FUNCTION means all messages."
 	      (progn
 		(split-window (selected-window) pmail-summary-window-size)
 		(select-window (next-window (frame-first-window)))
-		(pop-to-buffer sumbuf)
+		(pop-to-buffer pmail-summary-buffer)
 		;; If pop-to-buffer did not use that window, delete that
 		;; window.  (This can happen if it uses another frame.)
-		(if (not (eq sumbuf (window-buffer (frame-first-window))))
+		(if (not (eq pmail-summary-buffer (window-buffer (frame-first-window))))
 		    (delete-other-windows)))
-	    (pop-to-buffer sumbuf))
+	    (pop-to-buffer pmail-summary-buffer))
 	  (set-buffer pmail-buffer)
 	  ;; This is how pmail makes the summary buffer reappear.
 	  ;; We do this here to make the window the proper size.
 	  (pmail-select-summary nil)
 	  (set-buffer pmail-summary-buffer)))
-    (pmail-summary-goto-msg current-message nil t)
+    (pmail-summary-goto-msg mesg t t)
     (pmail-summary-construct-io-menu)
     (message "Computing summary lines...done")))
+
+(defun pmail-new-summary-1 (description form function &rest args)
+  "Filter messages to obtain summary lines.
+DESCRIPTION is added to the mode line.
+
+Return the summary buffer by invoking FUNCTION on each message
+passing the message number and ARGS...
+
+REDO is a form ...
+
+The current buffer must be a Pmail buffer either containing a
+collection of mbox formatted messages or displaying a single
+message."
+  (let ((summary-msgs ())
+	(pmail-new-summary-line-count 0)
+	(sumbuf (pmail-get-create-summary-buffer)))
+    (let ((swap (pmail-use-collection-buffer))
+	  (msgnum 1)
+	  (buffer-read-only nil)
+	  (old-min (point-min-marker))
+	  (old-max (point-max-marker)))
+      ;; Can't use save-restriction here; that doesn't work if we
+      ;; plan to modify text outside the original restriction.
+      (save-excursion
+	(widen)
+	(goto-char (point-min))
+	(while (>= pmail-total-messages msgnum)
+	  (if (or (null function)
+		  (apply function (cons msgnum args)))
+	      (setq summary-msgs
+		    (cons (cons msgnum (pmail-get-summary msgnum))
+			  summary-msgs)))
+	  (setq msgnum (1+ msgnum))
+	  ;; Provide a periodic User progress message.
+	  (if (zerop (% pmail-new-summary-line-count 10))
+	      (message "Computing summary lines...%d"
+		       pmail-new-summary-line-count)))
+	(setq summary-msgs (nreverse summary-msgs)))
+      (narrow-to-region old-min old-max))
+
+    ;; Temporarily, while summary buffer is unfinished,
+    ;; we "don't have" a summary.
+    ;;
+    ;; I have not a clue what this clause is doing.  If you read this
+    ;; chunk of code and have a clue, then please email that clue to
+    ;; pmr@pajato.com
+    (setq pmail-summary-buffer nil)
+    (if pmail-enable-mime
+	(with-current-buffer pmail-buffer
+	  (setq pmail-summary-buffer nil)))
+
+    (save-excursion
+      (let ((rbuf (current-buffer))
+	    (total pmail-total-messages))
+	(set-buffer sumbuf)
+	;; Set up the summary buffer's contents.
+	(let ((buffer-read-only nil))
+	  (erase-buffer)
+	  (while summary-msgs
+	    (princ (cdr (car summary-msgs)) sumbuf)
+	    (setq summary-msgs (cdr summary-msgs)))
+	  (goto-char (point-min)))
+	;; Set up the rest of its state and local variables.
+	(setq buffer-read-only t)
+	(pmail-summary-mode)
+	(make-local-variable 'minor-mode-alist)
+	(setq minor-mode-alist (list (list t (concat ": " description))))
+	(setq pmail-buffer rbuf
+	      pmail-summary-redo form
+	      pmail-total-messages total)))
+    sumbuf))
+
+(defun pmail-get-create-summary-buffer ()
+  "Obtain a summary buffer by re-using an existing summary
+buffer, or by creating a new summary buffer."
+  (if (and pmail-summary-buffer (buffer-name pmail-summary-buffer))
+      pmail-summary-buffer
+    (generate-new-buffer (concat (buffer-name) "-summary"))))
+	    
 
-;;;; Low levels of generating a summary.
+;; Low levels of generating a summary.
+
+(defun pmail-get-summary (msgnum)
+  "Return the summary line for message MSGNUM.
+If the message has a summary line already, it will be stored in
+the message as a header and simply returned, otherwise the
+summary line is created, saved in the message header, cached and
+returned.
+
+The current buffer contains the unrestricted message collection."
+  (let ((line (aref pmail-summary-vector (1- msgnum))))
+    (unless line
+      ;; Register a summary line for MSGNUM.
+      (setq pmail-new-summary-line-count (1+ pmail-new-summary-line-count)
+	    line (pmail-get-create-summary-line msgnum))
+      ;; Cache the summary line for use during this Pmail session.
+      (aset pmail-summary-vector (1- msgnum) line))
+    line))
 
 ;;;###autoload
 (defcustom pmail-summary-line-decoder (function identity)
@@ -444,41 +329,205 @@ By default, `identity' is set."
   :type 'function
   :group 'pmail-summary)
 
+(defun pmail-get-create-summary-line (msgnum)
+  "Return the summary line for message MSGNUM.
+Obtain the message summary from the header if it is available
+otherwise create it and store it in the message header.
+
+The current buffer contains the unrestricted message collection."
+  (let ((beg (pmail-msgbeg msgnum))
+	(end (pmail-msgend msgnum))
+	result)
+    (goto-char beg)
+    (if (search-forward "\n\n" end t)
+	(save-restriction
+	  (narrow-to-region beg (point))
+	  ;; Generate a status line from the message and put it in the
+	  ;; message.
+	  (setq result (mail-fetch-field pmail-summary-header))
+	  (unless result
+	    (setq result (pmail-create-summary msgnum))
+	    (pmail-add-header pmail-summary-header result)))
+      (pmail-error-bad-format msgnum))
+    result))
+
+(defun pmail-get-summary-labels ()
+  "Return a coded string wrapped in curly braces denoting the status labels.
+
+The current buffer is narrowed to the message headers for
+the message being processed."
+  (let ((status (mail-fetch-field pmail-attribute-header))
+	(index 0)
+	(result "")
+	char)
+    ;; Strip off the read/unread and the deleted attribute which are
+    ;; handled separately.
+    (setq status (concat (substring status 0 1) (substring status 2 6)))
+    (while (< index (length status))
+      (unless (string= "-" (setq char (substring status index (1+ index))))
+	(setq result (concat result char)))
+      (setq index (1+ index)))
+    (when (> (length result) 0)
+      (setq result (concat "{" result "}")))
+    result))
+
+(defun pmail-create-summary (msgnum)
+  "Return the summary line for message MSGNUM.
+The current buffer is narrowed to the header for message MSGNUM."
+  (goto-char (point-min))
+  (let ((line (pmail-make-basic-summary-line))
+	(labels (pmail-get-summary-labels))
+	pos prefix status suffix)
+    (setq pos (string-match "#" line)
+	  status (cond
+		  ((pmail-message-deleted-p msgnum) ?D)
+		  ((pmail-message-unseen-p msgnum) ?-)
+		  (t ? ))
+	  prefix (format "%5d%c %s" msgnum status (substring line 0 pos))
+	  suffix (substring line (1+ pos)))
+    (funcall pmail-summary-line-decoder (concat prefix labels suffix))))
+
 ;;;###autoload
-(defcustom pmail-user-mail-address-regexp
-  (concat "^\\("
-	  (regexp-quote (user-login-name))
-	  "\\($\\|@\\)\\|"
-	  (regexp-quote
-	   (or user-mail-address
-	       (concat (user-login-name) "@"
-		       (or mail-host-address
-			   (system-name)))))
-	  "\\>\\)")
+(defcustom pmail-user-mail-address-regexp nil
   "*Regexp matching user mail addresses.
 If non-nil, this variable is used to identify the correspondent
-when receiving new mail.  If it matches the address of the
-sender, the recipient is taken as correspondent of a mail.  It is
-initialized based on your `user-login-name' and
-`user-mail-address'.
+when receiving new mail.  If it matches the address of the sender,
+the recipient is taken as correspondent of a mail.
+If nil \(default value\), your `user-login-name' and `user-mail-address'
+are used to exclude yourself as correspondent.
 
-Usually you don't have to set this variable, except if you
-collect mails sent by you under different user names.  Then it
-should be a regexp matching your mail addresses.
+Usually you don't have to set this variable, except if you collect mails
+sent by you under different user names.
+Then it should be a regexp matching your mail addresses.
 
 Setting this variable has an effect only before reading a mail."
   :type '(choice (const :tag "None" nil) regexp)
   :group 'pmail-retrieve
   :version "21.1")
 
+(defun pmail-make-basic-summary-line ()
+  (goto-char (point-min))
+  (concat (save-excursion
+	    (if (not (re-search-forward "^Date:" nil t))
+		"      "
+	      (cond ((re-search-forward "\\([^0-9:]\\)\\([0-3]?[0-9]\\)\\([- \t_]+\\)\\([adfjmnos][aceopu][bcglnprtvy]\\)"
+		      (save-excursion (end-of-line) (point)) t)
+		     (format "%2d-%3s"
+			     (string-to-number (buffer-substring
+                                                (match-beginning 2)
+                                                (match-end 2)))
+			     (buffer-substring
+			      (match-beginning 4) (match-end 4))))
+		    ((re-search-forward "\\([^a-z]\\)\\([adfjmnos][acepou][bcglnprtvy]\\)\\([-a-z \t_]*\\)\\([0-9][0-9]?\\)"
+		      (save-excursion (end-of-line) (point)) t)
+		     (format "%2d-%3s"
+			     (string-to-number (buffer-substring
+                                                (match-beginning 4)
+                                                (match-end 4)))
+			     (buffer-substring
+			      (match-beginning 2) (match-end 2))))
+		    ((re-search-forward "\\(19\\|20\\)\\([0-9][0-9]\\)-\\([01][0-9]\\)-\\([0-3][0-9]\\)"
+		      (save-excursion (end-of-line) (point)) t)
+		     (format "%2s%2s%2s"
+			     (buffer-substring
+			      (match-beginning 2) (match-end 2))
+			     (buffer-substring
+			      (match-beginning 3) (match-end 3))
+			     (buffer-substring
+			      (match-beginning 4) (match-end 4))))
+		    (t "??????"))))
+	  "  "
+	  (save-excursion
+	    (let* ((from (and (re-search-forward "^From:[ \t]*" nil t)
+			      (mail-strip-quoted-names
+			       (buffer-substring
+				(1- (point))
+				;; Get all the lines of the From field
+				;; so that we get a whole comment if there is one,
+				;; so that mail-strip-quoted-names can discard it.
+				(let ((opoint (point)))
+				  (while (progn (forward-line 1)
+						(looking-at "[ \t]")))
+				  ;; Back up over newline, then trailing spaces or tabs
+				  (forward-char -1)
+				  (skip-chars-backward " \t")
+				  (point))))))
+		   len mch lo)
+	      (if (or (null from)
+		      (string-match
+		       (or pmail-user-mail-address-regexp
+			   (concat "^\\("
+				   (regexp-quote (user-login-name))
+				   "\\($\\|@\\)\\|"
+				   (regexp-quote
+				    ;; Don't lose if run from init file
+				    ;; where user-mail-address is not
+				    ;; set yet.
+				    (or user-mail-address
+					(concat (user-login-name) "@"
+						(or mail-host-address
+						    (system-name)))))
+				   "\\>\\)"))
+		       from))
+		  ;; No From field, or it's this user.
+		  (save-excursion
+		    (goto-char (point-min))
+		    (if (not (re-search-forward "^To:[ \t]*" nil t))
+			nil
+		      (setq from
+			    (concat "to: "
+				    (mail-strip-quoted-names
+				     (buffer-substring
+				      (point)
+				      (progn (end-of-line)
+					     (skip-chars-backward " \t")
+					     (point)))))))))
+	      (if (null from)
+		  "                         "
+		(setq len (length from))
+		(setq mch (string-match "[@%]" from))
+		(format "%25s"
+			(if (or (not mch) (<= len 25))
+			    (substring from (max 0 (- len 25)))
+			  (substring from
+				     (setq lo (cond ((< (- mch 14) 0) 0)
+						    ((< len (+ mch 11))
+						     (- len 25))
+						    (t (- mch 14))))
+				     (min len (+ lo 25))))))))
+          (if pmail-summary-line-count-flag
+	      (save-excursion
+		(save-restriction
+		  (widen)
+		  (let ((beg (pmail-msgbeg msgnum))
+			(end (pmail-msgend msgnum))
+			lines)
+		    (save-excursion
+		      (goto-char beg)
+		      ;; Count only lines in the reformatted header,
+		      ;; if we have reformatted it.
+		      (search-forward "\n*** EOOH ***\n" end t)
+		      (setq lines (count-lines (point) end)))
+		    (format (cond
+			     ((<= lines     9) "   [%d]")
+			     ((<= lines    99) "  [%d]")
+			     ((<= lines   999) " [%3d]")
+			     (t		    "[%d]"))
+			    lines))))
+            " ")
+	  " #"				;The # is part of the format.
+	  (if (re-search-forward "^Subject:" nil t)
+	      (progn (skip-chars-forward " \t")
+		     (buffer-substring (point)
+				       (progn (end-of-line)
+					      (point))))
+	    (re-search-forward "[\n][\n]+" nil t)
+	    (buffer-substring (point) (progn (end-of-line) (point))))
+	  "\n"))
 
-;;;; Simple motion in a summary buffer.
+;; Simple motion in a summary buffer.
 
 (defun pmail-summary-next-all (&optional number)
-  "Move to an nearby message.
-If NUMBER is positive then move forward NUMBER messages.  If NUMBER is
-negative then move backwards NUMBER messages.  If NUMBER is nil then
-move forward one message."
   (interactive "p")
   (forward-line (if number number 1))
   ;; It doesn't look nice to move forward past the last message line.
@@ -496,14 +545,20 @@ move forward one message."
 
 (defun pmail-summary-next-msg (&optional number)
   "Display next non-deleted msg from pmail file.
-With optional prefix argument NUMBER, moves forward this number of
-non-deleted messages, or backward if NUMBER is negative."
+With optional prefix argument NUMBER, moves forward this number of non-deleted
+messages, or backward if NUMBER is negative."
   (interactive "p")
-  (let (msg)
-    (with-current-buffer pmail-buffer
-      (pmail-next-undeleted-message number)
-      (setq msg pmail-current-message))
-    (pmail-summary-goto-msg msg)))
+  (forward-line 0)
+  (and (> number 0) (end-of-line))
+  (let ((count (if (< number 0) (- number) number))
+	(search (if (> number 0) 're-search-forward 're-search-backward))
+	(non-del-msg-found nil))
+    (while (and (> count 0) (setq non-del-msg-found
+				  (or (funcall search "^.....[^D]" nil t)
+				      non-del-msg-found)))
+      (setq count (1- count))))
+  (beginning-of-line)
+  (display-buffer pmail-buffer))
 
 (defun pmail-summary-previous-msg (&optional number)
   "Display previous non-deleted msg from pmail file.
@@ -513,7 +568,7 @@ non-deleted messages."
   (pmail-summary-next-msg (- (if number number 1))))
 
 (defun pmail-summary-next-labeled-message (n labels)
-  "Show next message with LABEL.  Defaults to last labels used.
+  "Show next message with LABELS.  Defaults to last labels used.
 With prefix argument N moves forward N messages with these labels."
   (interactive "p\nsMove to next msg with labels: ")
   (let (msg)
@@ -521,10 +576,10 @@ With prefix argument N moves forward N messages with these labels."
       (set-buffer pmail-buffer)
       (pmail-next-labeled-message n labels)
       (setq msg pmail-current-message))
-    (setq pmail-current-message msg)))
+    (pmail-summary-goto-msg msg)))
 
 (defun pmail-summary-previous-labeled-message (n labels)
-  "Show previous message with LABEL.  Defaults to last labels used.
+  "Show previous message with LABELS.  Defaults to last labels used.
 With prefix argument N moves backward N messages with these labels."
   (interactive "p\nsMove to previous msg with labels: ")
   (let (msg)
@@ -532,15 +587,52 @@ With prefix argument N moves backward N messages with these labels."
       (set-buffer pmail-buffer)
       (pmail-previous-labeled-message n labels)
       (setq msg pmail-current-message))
-    (setq pmail-current-message msg)))
+    (pmail-summary-goto-msg msg)))
 
 (defun pmail-summary-next-same-subject (n)
   "Go to the next message in the summary having the same subject.
 With prefix argument N, do this N times.
 If N is negative, go backwards."
   (interactive "p")
-  (with-current-buffer pmail-buffer
-    (pmail-next-same-subject n)))
+  (let ((forward (> n 0))
+	search-regexp i found)
+    (with-current-buffer pmail-buffer
+      (setq search-regexp (pmail-current-subject-regexp)
+	    i pmail-current-message))
+    (save-excursion
+      (while (and (/= n 0)
+		  (if forward
+		      (not (eobp))
+		    (not (bobp))))
+	(let (done)
+	  (while (and (not done)
+		      (if forward
+			  (not (eobp))
+			(not (bobp))))
+	    ;; Advance thru summary.
+	    (forward-line (if forward 1 -1))
+	    ;; Get msg number of this line.
+	    (setq i (string-to-number
+		     (buffer-substring (point)
+				       (min (point-max) (+ 6 (point))))))
+	    ;; See if that msg has desired subject.
+	    (save-excursion
+	      (set-buffer pmail-buffer)
+	      (save-restriction
+		(widen)
+		(goto-char (pmail-msgbeg i))
+		(search-forward "\n*** EOOH ***\n")
+		(let ((beg (point)) end)
+		  (search-forward "\n\n")
+		  (setq end (point))
+		  (goto-char beg)
+		  (setq done (re-search-forward search-regexp end t))))))
+	  (if done (setq found i)))
+	(setq n (if forward (1- n) (1+ n)))))
+    (if found
+	(pmail-summary-goto-msg found)
+      (error "No %s message with same subject"
+	     (if forward "following" "previous")))))
 
 (defun pmail-summary-previous-same-subject (n)
   "Go to the previous message in the summary having the same subject.
@@ -548,7 +640,6 @@ With prefix argument N, do this N times.
 If N is negative, go forwards instead."
   (interactive "p")
   (pmail-summary-next-same-subject (- n)))
-
 
 ;; Delete and undelete summary commands.
 
@@ -571,11 +662,11 @@ a negative argument means to delete and move backward."
 		  (save-excursion (beginning-of-line)
 				  (looking-at " *[0-9]+D")))
 	(forward-line (if backward -1 1)))
+      ;; It looks ugly to move to the empty line at end of buffer.
+      (and (eobp) (not backward)
+	   (forward-line -1))
       (setq count
-	    (if (> count 0) (1- count) (1+ count))))
-    ;; Update the summary buffer current message counter and show the
-    ;; message in the Pmail buffer.
-    (pmail-summary-goto-msg (pmail-summary-get-message-at-point))))
+	    (if (> count 0) (1- count) (1+ count))))))
 
 (defun pmail-summary-delete-backward (&optional count)
   "Delete this message and move to previous nondeleted one.
@@ -587,7 +678,7 @@ a negative argument means to delete and move forward."
 
 (defun pmail-summary-mark-deleted (&optional n undel)
   ;; Since third arg is t, this only alters the summary, not the Pmail buf.
-  (and n (pmail-summary-goto-msg n t))
+  (and n (pmail-summary-goto-msg n t t))
   (or (eobp)
       (not (overlay-get pmail-summary-overlay 'face))
       (let ((buffer-read-only nil))
@@ -604,9 +695,11 @@ a negative argument means to delete and move forward."
   (pmail-summary-mark-deleted n t))
 
 (defun pmail-summary-deleted-p (&optional n)
-  (unless n (setq n pmail-current-message))
-  (with-current-buffer pmail-buffer
-    (pmail-desc-deleted-p n)))
+  (save-excursion
+    (and n (pmail-summary-goto-msg n nil t))
+    (skip-chars-forward " ")
+    (skip-chars-forward "[0-9]")
+    (looking-at "D")))
 
 (defun pmail-summary-undelete (&optional arg)
   "Undelete current message.
@@ -616,40 +709,44 @@ Optional prefix ARG means undelete ARG previous messages."
       (pmail-summary-undelete-many arg)
     (let ((buffer-read-only nil)
 	  (opoint (point)))
-      (goto-char (line-end-position))
-      (if (not (re-search-backward "\\(^ *[0-9]*\\)\\(D\\)" nil t))
-	  (goto-char opoint)
-	(replace-match "\\1 ")
-	(pmail-summary-goto-msg)
-	(if pmail-enable-mime
-	    (set-buffer pmail-buffer)
-	  (pop-to-buffer pmail-buffer))
-	(when (pmail-message-deleted-p pmail-current-message)
-	  (pmail-undelete-previous-message))
-	(when pmail-enable-mime
-	  (pop-to-buffer pmail-view-buffer))
-	(pop-to-buffer pmail-summary-buffer)))))
+      (end-of-line)
+      (cond ((re-search-backward "\\(^ *[0-9]*\\)\\(D\\)" nil t)
+	     (replace-match "\\1 ")
+	     (pmail-summary-goto-msg)
+	     (if pmail-enable-mime
+		 (set-buffer pmail-buffer)
+	       (pop-to-buffer pmail-buffer))
+	     (and (pmail-message-deleted-p pmail-current-message)
+		  (pmail-undelete-previous-message))
+	     (if pmail-enable-mime
+		 (pop-to-buffer pmail-buffer))
+	     (pop-to-buffer pmail-summary-buffer))
+	    (t (goto-char opoint))))))
 
 (defun pmail-summary-undelete-many (&optional n)
   "Undelete all deleted msgs, optional prefix arg N means undelete N prev msgs."
   (interactive "P")
-  (with-current-buffer pmail-buffer
+  (save-excursion
+    (set-buffer pmail-buffer)
     (let* ((init-msg (if n pmail-current-message pmail-total-messages))
 	   (pmail-current-message init-msg)
 	   (n (or n pmail-total-messages))
 	   (msgs-undeled 0))
-      (while (and (> pmail-current-message 0) (< msgs-undeled n))
-	(when (pmail-message-deleted-p pmail-current-message)
-	  (pmail-set-attribute "deleted" nil)
-	  (setq msgs-undeled (1+ msgs-undeled)))
+      (while (and (> pmail-current-message 0)
+		  (< msgs-undeled n))
+	(if (pmail-message-deleted-p pmail-current-message)
+	    (progn (pmail-set-attribute "deleted" nil)
+		   (setq msgs-undeled (1+ msgs-undeled))))
 	(setq pmail-current-message (1- pmail-current-message)))
-      (with-current-buffer pmail-summary-buffer
-	(setq pmail-current-message init-msg msgs-undeled 0)
-	(while (and (> pmail-current-message 0) (< msgs-undeled n))
-	  (when (pmail-summary-deleted-p pmail-current-message)
-	    (pmail-summary-mark-undeleted pmail-current-message)
-	    (setq msgs-undeled (1+ msgs-undeled)))
-	  (setq pmail-current-message (1- pmail-current-message)))))))
+      (set-buffer pmail-summary-buffer)
+      (setq pmail-current-message init-msg msgs-undeled 0)
+      (while (and (> pmail-current-message 0)
+		  (< msgs-undeled n))
+	(if (pmail-summary-deleted-p pmail-current-message)
+	    (progn (pmail-summary-mark-undeleted pmail-current-message)
+		   (setq msgs-undeled (1+ msgs-undeled))))
+	(setq pmail-current-message (1- pmail-current-message))))
+    (pmail-summary-goto-msg)))
 
 ;; Pmail Summary mode is suitable only for specially formatted data.
 (put 'pmail-summary-mode 'mode-class 'special)
@@ -668,22 +765,6 @@ These additional commands exist:
 \\[pmail-summary-undelete-many]	Undelete all or prefix arg deleted messages.
 \\[pmail-summary-wipe] Delete the summary and go to the Pmail buffer.
 
-Commands for filtering the summary:
-
-\\[pmail-summary-by-labels] Filter by label.
-\\[pmail-summary-by-topic] Filter by Subject.
-      Filter by the entire message (header and body) if given a
-      prefix argument.
-\\[pmail-summary-by-senders] Filter by From field.
-\\[pmail-summary-by-recipients] Filter by To, From, and Cc fields.
-      Filter by To and From only if given a prefix argument.
-
-The commands listed above take comma-separated lists of regular
-expressions.
-
-\\[pmail-summary-by-regexp] Filter by any header line.
-\\[pmail-summary] Restore the default summary.
-
 Commands for sorting the summary:
 
 \\[pmail-summary-sort-by-date] Sort by date.
@@ -701,7 +782,6 @@ Commands for sorting the summary:
   (setq buffer-read-only t)
   (set-syntax-table text-mode-syntax-table)
   (make-local-variable 'pmail-buffer)
-  (make-local-variable 'pmail-view-buffer)
   (make-local-variable 'pmail-total-messages)
   (make-local-variable 'pmail-current-message)
   (setq pmail-current-message nil)
@@ -731,101 +811,289 @@ the `unseen' attribute from that message, it sets this flag
 so that if the next motion between messages is in the same Incremental
 Search, the `unseen' attribute is restored.")
 
+;; Show in Pmail the message described by the summary line that point is on,
+;; but only if the Pmail buffer is already visible.
+;; This is a post-command-hook in summary buffers.
 (defun pmail-summary-pmail-update ()
-  "Update the Pmail summary buffer.
-Put the cursor on the beginning of the line containing the
-current message and highlight the buffer.  Show in Pmail the
-message described by the summary line that point is on, but only
-if the Pmail buffer is already visible.  This is on
-`post-command-hook' in summary buffers."
   (let (buffer-read-only)
     (save-excursion
       ;; If at end of buffer, pretend we are on the last text line.
-      (when (eobp)
-	(forward-line -1))
-      ;; Determine the message number corresponding to line point is on.
+      (if (eobp)
+	  (forward-line -1))
       (beginning-of-line)
       (skip-chars-forward " ")
       (let ((msg-num (string-to-number (buffer-substring
-					(point)
-					(progn (skip-chars-forward "0-9")
-					       (point))))))
-	;; Always leave `unseen' removed if we get out of isearch mode.
-	;; Don't let a subsequent isearch restore `unseen'.
-	(when (not isearch-mode)
-	  (setq pmail-summary-put-back-unseen nil))
+                                        (point)
+                                        (progn (skip-chars-forward "0-9")
+                                               (point))))))
+	;; Always leave `unseen' removed
+	;; if we get out of isearch mode.
+	;; Don't let a subsequent isearch restore that `unseen'.
+	(if (not isearch-mode)
+	    (setq pmail-summary-put-back-unseen nil))
+
 	(or (eq pmail-current-message msg-num)
-	    (let ((window (get-buffer-window pmail-view-buffer t))
+	    (let ((window (get-buffer-window pmail-buffer t))
 		  (owin (selected-window)))
 	      (if isearch-mode
 		  (save-excursion
 		    (set-buffer pmail-buffer)
-		    ;; If we first saw the previous message in this
-		    ;; search, and we have gone to a different message
-		    ;; while searching, put back `unseen' on the former
-		    ;; one.
+		    ;; If we first saw the previous message in this search,
+		    ;; and we have gone to a different message while searching,
+		    ;; put back `unseen' on the former one.
 		    (if pmail-summary-put-back-unseen
 			(pmail-set-attribute "unseen" t
 					     pmail-current-message))
 		    ;; Arrange to do that later, for the new current message,
 		    ;; if it still has `unseen'.
 		    (setq pmail-summary-put-back-unseen
-			  (member "unseen" (pmail-desc-get-keywords msg-num))))
+			  (pmail-message-attr-p msg-num pmail-unseen-attr-index)))
 		(setq pmail-summary-put-back-unseen nil))
+
 	      ;; Go to the desired message.
 	      (setq pmail-current-message msg-num)
+
 	      ;; Update the summary to show the message has been seen.
-	      (when (= (following-char) ?-)
-		(delete-char 1)
-		(insert " "))
+	      (if (= (following-char) ?-)
+		  (progn
+		    (delete-char 1)
+		    (insert " ")))
+
 	      (if window
 		  ;; Using save-window-excursion would cause the new value
 		  ;; of point to get lost.
 		  (unwind-protect
 		      (progn
 			(select-window window)
-			(pmail-show-message msg-num t))
+			(pmail-show-message-maybe msg-num t))
 		    (select-window owin))
-		(when (buffer-name pmail-buffer)
-		  (save-excursion
+		(if (buffer-name pmail-buffer)
+		    (save-excursion
 		      (set-buffer pmail-buffer)
-		      (pmail-show-message msg-num t))))))
+		      (pmail-show-message-maybe msg-num t))))))
 	(pmail-summary-update-highlight nil)))))
+
+(defun pmail-summary-save-buffer ()
+  "Save the buffer associated with this PMAIL summary."
+  (interactive)
+  (save-window-excursion
+    (save-excursion
+      (switch-to-buffer pmail-buffer)
+      (save-buffer))))
+
+
+(if pmail-summary-mode-map
+    nil
+  (setq pmail-summary-mode-map (make-keymap))
+  (suppress-keymap pmail-summary-mode-map)
+
+  (define-key pmail-summary-mode-map [mouse-2] 'pmail-summary-mouse-goto-message)
+  (define-key pmail-summary-mode-map "a"      'pmail-summary-add-label)
+  (define-key pmail-summary-mode-map "b"      'pmail-summary-bury)
+  (define-key pmail-summary-mode-map "c"      'pmail-summary-continue)
+  (define-key pmail-summary-mode-map "d"      'pmail-summary-delete-forward)
+  (define-key pmail-summary-mode-map "\C-d"   'pmail-summary-delete-backward)
+  (define-key pmail-summary-mode-map "e"      'pmail-summary-edit-current-message)
+  (define-key pmail-summary-mode-map "f"      'pmail-summary-forward)
+  (define-key pmail-summary-mode-map "g"      'pmail-summary-get-new-mail)
+  (define-key pmail-summary-mode-map "h"      'pmail-summary)
+  (define-key pmail-summary-mode-map "i"      'pmail-summary-input)
+  (define-key pmail-summary-mode-map "j"      'pmail-summary-goto-msg)
+  (define-key pmail-summary-mode-map "\C-m"   'pmail-summary-goto-msg)
+  (define-key pmail-summary-mode-map "k"      'pmail-summary-kill-label)
+  (define-key pmail-summary-mode-map "l"      'pmail-summary-by-labels)
+  (define-key pmail-summary-mode-map "\e\C-h" 'pmail-summary)
+  (define-key pmail-summary-mode-map "\e\C-l" 'pmail-summary-by-labels)
+  (define-key pmail-summary-mode-map "\e\C-r" 'pmail-summary-by-recipients)
+  (define-key pmail-summary-mode-map "\e\C-s" 'pmail-summary-by-regexp)
+  (define-key pmail-summary-mode-map "\e\C-t" 'pmail-summary-by-topic)
+  (define-key pmail-summary-mode-map "m"      'pmail-summary-mail)
+  (define-key pmail-summary-mode-map "\M-m"   'pmail-summary-retry-failure)
+  (define-key pmail-summary-mode-map "n"      'pmail-summary-next-msg)
+  (define-key pmail-summary-mode-map "\en"    'pmail-summary-next-all)
+  (define-key pmail-summary-mode-map "\e\C-n" 'pmail-summary-next-labeled-message)
+  (define-key pmail-summary-mode-map "o"      'pmail-summary-output-to-pmail-file)
+  (define-key pmail-summary-mode-map "\C-o"   'pmail-summary-output)
+  (define-key pmail-summary-mode-map "p"      'pmail-summary-previous-msg)
+  (define-key pmail-summary-mode-map "\ep"    'pmail-summary-previous-all)
+  (define-key pmail-summary-mode-map "\e\C-p" 'pmail-summary-previous-labeled-message)
+  (define-key pmail-summary-mode-map "q"      'pmail-summary-quit)
+  (define-key pmail-summary-mode-map "Q"      'pmail-summary-wipe)
+  (define-key pmail-summary-mode-map "r"      'pmail-summary-reply)
+  (define-key pmail-summary-mode-map "s"      'pmail-summary-expunge-and-save)
+  (define-key pmail-summary-mode-map "\es"    'pmail-summary-search)
+  (define-key pmail-summary-mode-map "t"      'pmail-summary-toggle-header)
+  (define-key pmail-summary-mode-map "u"      'pmail-summary-undelete)
+  (define-key pmail-summary-mode-map "\M-u"   'pmail-summary-undelete-many)
+  (define-key pmail-summary-mode-map "x"      'pmail-summary-expunge)
+  (define-key pmail-summary-mode-map "w"      'pmail-summary-output-body)
+  (define-key pmail-summary-mode-map "."      'pmail-summary-beginning-of-message)
+  (define-key pmail-summary-mode-map "/"      'pmail-summary-end-of-message)
+  (define-key pmail-summary-mode-map "<"      'pmail-summary-first-message)
+  (define-key pmail-summary-mode-map ">"      'pmail-summary-last-message)
+  (define-key pmail-summary-mode-map " "      'pmail-summary-scroll-msg-up)
+  (define-key pmail-summary-mode-map "\177"   'pmail-summary-scroll-msg-down)
+  (define-key pmail-summary-mode-map "?"      'describe-mode)
+  (define-key pmail-summary-mode-map "\C-c\C-n" 'pmail-summary-next-same-subject)
+  (define-key pmail-summary-mode-map "\C-c\C-p" 'pmail-summary-previous-same-subject)
+  (define-key pmail-summary-mode-map "\C-c\C-s\C-d"
+    'pmail-summary-sort-by-date)
+  (define-key pmail-summary-mode-map "\C-c\C-s\C-s"
+    'pmail-summary-sort-by-subject)
+  (define-key pmail-summary-mode-map "\C-c\C-s\C-a"
+    'pmail-summary-sort-by-author)
+  (define-key pmail-summary-mode-map "\C-c\C-s\C-r"
+    'pmail-summary-sort-by-recipient)
+  (define-key pmail-summary-mode-map "\C-c\C-s\C-c"
+    'pmail-summary-sort-by-correspondent)
+  (define-key pmail-summary-mode-map "\C-c\C-s\C-l"
+    'pmail-summary-sort-by-lines)
+  (define-key pmail-summary-mode-map "\C-c\C-s\C-k"
+    'pmail-summary-sort-by-labels)
+  (define-key pmail-summary-mode-map "\C-x\C-s" 'pmail-summary-save-buffer)
+  )
+
+;;; Menu bar bindings.
+
+(define-key pmail-summary-mode-map [menu-bar] (make-sparse-keymap))
+
+(define-key pmail-summary-mode-map [menu-bar classify]
+  (cons "Classify" (make-sparse-keymap "Classify")))
+
+(define-key pmail-summary-mode-map [menu-bar classify output-menu]
+  '("Output (Pmail Menu)..." . pmail-summary-output-menu))
+
+(define-key pmail-summary-mode-map [menu-bar classify input-menu]
+  '("Input Pmail File (menu)..." . pmail-input-menu))
+
+(define-key pmail-summary-mode-map [menu-bar classify input-menu]
+  '(nil))
+
+(define-key pmail-summary-mode-map [menu-bar classify output-menu]
+  '(nil))
+
+(define-key pmail-summary-mode-map [menu-bar classify output-body]
+  '("Output (body)..." . pmail-summary-output-body))
+
+(define-key pmail-summary-mode-map [menu-bar classify output-inbox]
+  '("Output (inbox)..." . pmail-summary-output))
+
+(define-key pmail-summary-mode-map [menu-bar classify output]
+  '("Output (Pmail)..." . pmail-summary-output-to-pmail-file))
+
+(define-key pmail-summary-mode-map [menu-bar classify kill-label]
+  '("Kill Label..." . pmail-summary-kill-label))
+
+(define-key pmail-summary-mode-map [menu-bar classify add-label]
+  '("Add Label..." . pmail-summary-add-label))
+
+(define-key pmail-summary-mode-map [menu-bar summary]
+  (cons "Summary" (make-sparse-keymap "Summary")))
+
+(define-key pmail-summary-mode-map [menu-bar summary senders]
+  '("By Senders..." . pmail-summary-by-senders))
+
+(define-key pmail-summary-mode-map [menu-bar summary labels]
+  '("By Labels..." . pmail-summary-by-labels))
+
+(define-key pmail-summary-mode-map [menu-bar summary recipients]
+  '("By Recipients..." . pmail-summary-by-recipients))
+
+(define-key pmail-summary-mode-map [menu-bar summary topic]
+  '("By Topic..." . pmail-summary-by-topic))
+
+(define-key pmail-summary-mode-map [menu-bar summary regexp]
+  '("By Regexp..." . pmail-summary-by-regexp))
+
+(define-key pmail-summary-mode-map [menu-bar summary all]
+  '("All" . pmail-summary))
+
+(define-key pmail-summary-mode-map [menu-bar mail]
+  (cons "Mail" (make-sparse-keymap "Mail")))
+
+(define-key pmail-summary-mode-map [menu-bar mail pmail-summary-get-new-mail]
+  '("Get New Mail" . pmail-summary-get-new-mail))
+
+(define-key pmail-summary-mode-map [menu-bar mail lambda]
+  '("----"))
+
+(define-key pmail-summary-mode-map [menu-bar mail continue]
+  '("Continue" . pmail-summary-continue))
+
+(define-key pmail-summary-mode-map [menu-bar mail resend]
+  '("Re-send..." . pmail-summary-resend))
+
+(define-key pmail-summary-mode-map [menu-bar mail forward]
+  '("Forward" . pmail-summary-forward))
+
+(define-key pmail-summary-mode-map [menu-bar mail retry]
+  '("Retry" . pmail-summary-retry-failure))
+
+(define-key pmail-summary-mode-map [menu-bar mail reply]
+  '("Reply" . pmail-summary-reply))
+
+(define-key pmail-summary-mode-map [menu-bar mail mail]
+  '("Mail" . pmail-summary-mail))
+
+(define-key pmail-summary-mode-map [menu-bar delete]
+  (cons "Delete" (make-sparse-keymap "Delete")))
+
+(define-key pmail-summary-mode-map [menu-bar delete expunge/save]
+  '("Expunge/Save" . pmail-summary-expunge-and-save))
+
+(define-key pmail-summary-mode-map [menu-bar delete expunge]
+  '("Expunge" . pmail-summary-expunge))
+
+(define-key pmail-summary-mode-map [menu-bar delete undelete]
+  '("Undelete" . pmail-summary-undelete))
+
+(define-key pmail-summary-mode-map [menu-bar delete delete]
+  '("Delete" . pmail-summary-delete-forward))
+
+(define-key pmail-summary-mode-map [menu-bar move]
+  (cons "Move" (make-sparse-keymap "Move")))
+
+(define-key pmail-summary-mode-map [menu-bar move search-back]
+  '("Search Back..." . pmail-summary-search-backward))
+
+(define-key pmail-summary-mode-map [menu-bar move search]
+  '("Search..." . pmail-summary-search))
+
+(define-key pmail-summary-mode-map [menu-bar move previous]
+  '("Previous Nondeleted" . pmail-summary-previous-msg))
+
+(define-key pmail-summary-mode-map [menu-bar move next]
+  '("Next Nondeleted" . pmail-summary-next-msg))
+
+(define-key pmail-summary-mode-map [menu-bar move last]
+  '("Last" . pmail-summary-last-message))
+
+(define-key pmail-summary-mode-map [menu-bar move first]
+  '("First" . pmail-summary-first-message))
+
+(define-key pmail-summary-mode-map [menu-bar move previous]
+  '("Previous" . pmail-summary-previous-all))
+
+(define-key pmail-summary-mode-map [menu-bar move next]
+  '("Next" . pmail-summary-next-all))
 
 (defun pmail-summary-mouse-goto-message (event)
   "Select the message whose summary line you click on."
   (interactive "@e")
   (goto-char (posn-point (event-end event)))
-  (setq pmail-current-message (pmail-summary-get-message-at-point))
-  (pmail-summary-pmail-update))
-
-(defun pmail-summary-get-message-at-point ()
-  "Return the message number corresponding to the line containing point.
-If the summary buffer contains no messages, nil is returned."
-  (save-excursion
-    ;; Position point at the beginning of a line.
-    (if (eobp)
-        (forward-line -1)
-      (forward-line 0))
-    ;; Parse the message number.
-    (string-to-number
-     (buffer-substring (point) (min (point-max) (+ 6 (point)))))))
+  (pmail-summary-goto-msg))
 
 (defun pmail-summary-goto-msg (&optional n nowarn skip-pmail)
   "Go to message N in the summary buffer and the Pmail buffer.
 If N is nil, use the message corresponding to point in the summary
-buffer and move to that message in the Pmail buffer.
+and move to that message in the Pmail buffer.
 
 If NOWARN, don't say anything if N is out of range.
 If SKIP-PMAIL, don't do anything to the Pmail buffer."
   (interactive "P")
   (if (consp n) (setq n (prefix-numeric-value n)))
-  ;; Do the end of buffer adjustment.
   (if (eobp) (forward-line -1))
   (beginning-of-line)
-  ;; Set N to the current message unless it was already set by the
-  ;; caller.
-  (unless n (setq n (pmail-summary-get-message-at-point)))
   (let* ((obuf (current-buffer))
 	 (buf pmail-buffer)
 	 (cur (point))
@@ -833,25 +1101,27 @@ If SKIP-PMAIL, don't do anything to the Pmail buffer."
 	 (curmsg (string-to-number
 		  (buffer-substring (point)
 				    (min (point-max) (+ 6 (point))))))
-	 (total (with-current-buffer buf
-		  pmail-total-messages)))
-    ;; Do a validity check on N.  If it is valid then set the current
-    ;; summary message to N.  `pmail-summary-pmail-update' will then
-    ;; actually move point to the selected message.
-    (if (< n 1)
-	(progn (message "No preceding message")
-	       (setq n 1)))
-    (if (and (> n total)
-	     (> total 0))
-	(progn (message "No following message")
-	       (goto-char (point-max))
-	       (pmail-summary-goto-msg nil nowarn skip-pmail)))
-    (goto-char (point-min))
-    (if (not (re-search-forward (format "^%5d[^0-9]" n) nil t))
-	(progn (or nowarn (message "Message %d not found" n))
-	       (setq n curmsg)
-	       (setq message-not-found t)
-	       (goto-char cur)))
+	 (total (save-excursion (set-buffer buf) pmail-total-messages)))
+    ;; If message number N was specified, find that message's line
+    ;; or set message-not-found.
+    ;; If N wasn't specified or that message can't be found.
+    ;; set N by default.
+    (if (not n)
+	(setq n curmsg)
+      (if (< n 1)
+	  (progn (message "No preceding message")
+		 (setq n 1)))
+      (if (and (> n total)
+	       (> total 0))
+	  (progn (message "No following message")
+		 (goto-char (point-max))
+		 (pmail-summary-goto-msg nil nowarn skip-pmail)))
+      (goto-char (point-min))
+      (if (not (re-search-forward (format "^%5d[^0-9]" n) nil t))
+	  (progn (or nowarn (message "Message %d not found" n))
+		 (setq n curmsg)
+		 (setq message-not-found t)
+		 (goto-char cur))))
     (beginning-of-line)
     (skip-chars-forward " ")
     (skip-chars-forward "0-9")
@@ -861,10 +1131,8 @@ If SKIP-PMAIL, don't do anything to the Pmail buffer."
 			  (insert " "))))
     (pmail-summary-update-highlight message-not-found)
     (beginning-of-line)
-    ;; Determine if the Pmail buffer needs to be processed.
     (if skip-pmail
 	nil
-      ;; It does.
       (let ((selwin (selected-window)))
 	(unwind-protect
 	    (progn (pop-to-buffer buf)
@@ -900,7 +1168,7 @@ advance to the next message."
   (interactive "P")
   (if (eq dist '-)
       (pmail-summary-scroll-msg-down nil)
-    (let ((pmail-buffer-window (get-buffer-window pmail-view-buffer)))
+    (let ((pmail-buffer-window (get-buffer-window pmail-buffer)))
       (if pmail-buffer-window
 	  (if (let ((pmail-summary-window (selected-window)))
 		(select-window pmail-buffer-window)
@@ -915,7 +1183,7 @@ advance to the next message."
 	      (if (not pmail-summary-scroll-between-messages)
 		  (error "End of buffer")
 		(pmail-summary-next-msg (or dist 1)))
-	    (let ((other-window-scroll-buffer pmail-view-buffer))
+	    (let ((other-window-scroll-buffer pmail-buffer))
 	      (scroll-other-window dist)))
 	;; If it isn't visible at all, show the beginning.
 	(pmail-summary-beginning-of-message)))))
@@ -927,7 +1195,7 @@ move to the previous message."
   (interactive "P")
   (if (eq dist '-)
       (pmail-summary-scroll-msg-up nil)
-    (let ((pmail-buffer-window (get-buffer-window pmail-view-buffer)))
+    (let ((pmail-buffer-window (get-buffer-window pmail-buffer)))
       (if pmail-buffer-window
 	  (if (let ((pmail-summary-window (selected-window)))
 		(select-window pmail-buffer-window)
@@ -941,7 +1209,7 @@ move to the previous message."
 	      (if (not pmail-summary-scroll-between-messages)
 		  (error "Beginning of buffer")
 		(pmail-summary-previous-msg (or dist 1)))
-	    (let ((other-window-scroll-buffer pmail-view-buffer))
+	    (let ((other-window-scroll-buffer pmail-buffer))
 	      (scroll-other-window-down dist)))
 	;; If it isn't visible at all, show the beginning.
 	(pmail-summary-beginning-of-message)))))
@@ -961,21 +1229,23 @@ move to the previous message."
 Position it according to WHERE which can be BEG or END"
   (if (and (one-window-p) (not pop-up-frames))
       ;; If there is just one window, put the summary on the top.
-      (let ((buffer pmail-view-buffer))
+      (let ((buffer pmail-buffer))
 	(split-window (selected-window) pmail-summary-window-size)
 	(select-window (frame-first-window))
-	(pop-to-buffer pmail-view-buffer)
+	(pop-to-buffer pmail-buffer)
 	;; If pop-to-buffer did not use that window, delete that
 	;; window.  (This can happen if it uses another frame.)
 	(or (eq buffer (window-buffer (next-window (frame-first-window))))
 	    (delete-other-windows)))
-    (pop-to-buffer pmail-view-buffer))
-  (cond ((eq where 'BEG)
-	 (goto-char (point-min))
-	 (search-forward "\n\n"))
-	((eq where 'END)
-	 (goto-char (point-max))
-	 (recenter (1- (window-height)))))
+    (pop-to-buffer pmail-buffer))
+  (cond
+   ((eq where 'BEG)
+	(goto-char (point-min))
+	(search-forward "\n\n"))
+   ((eq where 'END)
+	(goto-char (point-max))
+	(recenter (1- (window-height))))
+   )
   (pop-to-buffer pmail-summary-buffer))
 
 (defun pmail-summary-bury ()
@@ -999,7 +1269,7 @@ Position it according to WHERE which can be BEG or END"
   "Kill and wipe away Pmail summary, remaining within Pmail."
   (interactive)
   (save-excursion (set-buffer pmail-buffer) (setq pmail-summary-buffer nil))
-  (let ((local-pmail-buffer pmail-view-buffer))
+  (let ((local-pmail-buffer pmail-buffer))
     (kill-buffer (current-buffer))
     ;; Delete window if not only one.
     (if (not (eq (selected-window) (next-window nil 'no-minibuf)))
@@ -1010,17 +1280,23 @@ Position it according to WHERE which can be BEG or END"
 (defun pmail-summary-expunge ()
   "Actually erase all deleted messages and recompute summary headers."
   (interactive)
-  (set-buffer pmail-buffer)
-  (pmail-expunge)
-  (set-buffer pmail-summary-buffer))
+  (save-excursion
+    (set-buffer pmail-buffer)
+    (when (pmail-expunge-confirmed)
+      (pmail-only-expunge)))
+  (pmail-update-summary))
 
 (defun pmail-summary-expunge-and-save ()
   "Expunge and save PMAIL file."
   (interactive)
-  (set-buffer pmail-buffer)
-  (pmail-expunge)
-  (save-buffer)
-  (set-buffer pmail-summary-buffer)
+  (save-excursion
+    (set-buffer pmail-buffer)
+    (when (pmail-expunge-confirmed)
+      (pmail-only-expunge)))
+  (pmail-update-summary)
+  (save-excursion
+    (set-buffer pmail-buffer)
+    (save-buffer))
   (set-buffer-modified-p nil))
 
 (defun pmail-summary-get-new-mail (&optional file-name)
@@ -1033,14 +1309,15 @@ argument says to read a file name and use that file as the inbox."
   (interactive
    (list (if current-prefix-arg
 	     (read-file-name "Get new mail from file: "))))
-  (let (current-message new-mail)
-    (with-current-buffer pmail-buffer
-      (setq new-mail (pmail-get-new-mail file-name)
-	    current-message pmail-current-message))
-    ;; If new mail was found, display of the correct message was
-    ;; done elsewhere.
-    (unless new-mail
-      (pmail-summary-goto-msg current-message nil t))))
+  (let (msg)
+    (save-excursion
+      (set-buffer pmail-buffer)
+      (pmail-get-new-mail file-name)
+      ;; Get the proper new message number.
+      (setq msg pmail-current-message))
+    ;; Make sure that message is displayed.
+    (or (zerop msg)
+	(pmail-summary-goto-msg msg))))
 
 (defun pmail-summary-input (filename)
   "Run Pmail on file FILENAME."
@@ -1062,12 +1339,20 @@ argument says to read a file name and use that file as the inbox."
     (end-of-buffer))
   (forward-line -1))
 
-(defvar pmail-summary-edit-map
-  (let ((map (nconc (make-sparse-keymap) text-mode-map)))
-    (define-key map "\C-c\C-c" 'pmail-cease-edit)
-    (define-key map "\C-c\C-]" 'pmail-abort-edit)
-    map)
-  "Mode map to use when editing the pmail summary.")
+(declare-function pmail-abort-edit "pmailedit" ())
+(declare-function pmail-cease-edit "pmailedit"())
+(declare-function pmail-set-label "pmailkwd" (l state &optional n))
+(declare-function pmail-output-read-file-name "pmailout" ())
+(declare-function pmail-output-read-pmail-file-name  "pmailout" ())
+(declare-function mail-send-and-exit "sendmail" (&optional arg))
+
+(defvar pmail-summary-edit-map nil)
+(if pmail-summary-edit-map
+    nil
+  (setq pmail-summary-edit-map
+	(nconc (make-sparse-keymap) text-mode-map))
+  (define-key pmail-summary-edit-map "\C-c\C-c" 'pmail-cease-edit)
+  (define-key pmail-summary-edit-map "\C-c\C-]" 'pmail-abort-edit))
 
 (defun pmail-summary-edit-current-message ()
   "Edit the contents of this message."
@@ -1156,29 +1441,46 @@ Interactively, empty argument means use same regexp used last time."
 (defun pmail-summary-toggle-header ()
   "Show original message header if pruned header currently shown, or vice versa."
   (interactive)
-  (with-current-buffer pmail-buffer
-    (pmail-toggle-header)))
+  (save-window-excursion
+    (set-buffer pmail-buffer)
+    (pmail-toggle-header))
+  ;; Inside save-excursion, some changes to point in the PMAIL buffer are lost.
+  ;; Set point to point-min in the PMAIL buffer, if it is visible.
+  (let ((window (get-buffer-window pmail-buffer)))
+    (if window
+        ;; Using save-window-excursion would lose the new value of point.
+        (let ((owin (selected-window)))
+          (unwind-protect
+              (progn
+                (select-window window)
+                (goto-char (point-min)))
+            (select-window owin))))))
+
 
 (defun pmail-summary-add-label (label)
   "Add LABEL to labels associated with current Pmail message.
 Completion is performed over known labels when reading."
-  (interactive (list (with-current-buffer pmail-buffer
+  (interactive (list (save-excursion
+		       (set-buffer pmail-buffer)
 		       (pmail-read-label "Add label"))))
-  (with-current-buffer pmail-buffer
+  (save-excursion
+    (set-buffer pmail-buffer)
     (pmail-add-label label)))
 
 (defun pmail-summary-kill-label (label)
   "Remove LABEL from labels associated with current Pmail message.
 Completion is performed over known labels when reading."
-  (interactive (list (with-current-buffer pmail-buffer
-		       (pmail-read-label "Kill label" t))))
-  (with-current-buffer pmail-buffer
-    (pmail-kill-label label)))
+  (interactive (list (save-excursion
+		       (set-buffer pmail-buffer)
+		       (pmail-read-label "Kill label"))))
+  (save-excursion
+    (set-buffer pmail-buffer)
+    (pmail-set-label label nil)))
 
 ;;;; *** Pmail Summary Mailing Commands ***
 
 (defun pmail-summary-override-mail-send-and-exit ()
-  "Replace bindings to 'mail-send-and-exit with 'pmail-summary-send-and-exit"
+  "Replace bindings to `mail-send-and-exit' with `pmail-summary-send-and-exit'."
   (use-local-map (copy-keymap (current-local-map)))
   (dolist (key (where-is-internal 'mail-send-and-exit))
     (define-key (current-local-map) key 'pmail-summary-send-and-exit)))
@@ -1210,10 +1512,10 @@ Normally include CC: to all other recipients of original message;
 prefix argument means ignore them.  While composing the reply,
 use \\[mail-yank-original] to yank the original message into it."
   (interactive "P")
-  (let ((window (get-buffer-window pmail-view-buffer)))
+  (let ((window (get-buffer-window pmail-buffer)))
     (if window
 	(select-window window)
-      (set-buffer pmail-view-buffer)))
+      (set-buffer pmail-buffer)))
   (pmail-reply just-sender)
   (pmail-summary-override-mail-send-and-exit))
 
@@ -1257,7 +1559,7 @@ see the documentation of `pmail-resend'."
 	(set-buffer pmail-buffer)))
     (call-interactively 'pmail-resend)))
 
-;;;; Summary output commands.
+;; Summary output commands.
 
 (defun pmail-summary-output-to-pmail-file (&optional file-name n)
   "Append the current message to an Pmail file named FILE-NAME.
@@ -1269,7 +1571,7 @@ A prefix argument N says to output N consecutive messages
 starting with the current one.  Deleted messages are skipped and don't count."
   (interactive
    (progn (require 'pmailout)
-	  (list (pmail-output-read-file-name)
+	  (list (pmail-output-read-pmail-file-name)
 		(prefix-numeric-value current-prefix-arg))))
   (let ((i 0) prev-msg)
     (while
@@ -1415,83 +1717,6 @@ KEYWORDS is a comma-separated list of labels."
 	(progn (pop-to-buffer pmail-buffer)
 	       (funcall sortfun reverse))
       (select-window selwin))))
-
-(defun pmail-summary-get-sender (n)
-  "Return the sender for message N.
-If sender matches `pmail-user-mail-address-regexp' or
-`user-mail-address', return the to-address instead."
-  (let ((sender (pmail-desc-get-sender n)))
-    (if (or (null sender)
-	    (and pmail-user-mail-address-regexp
-		 (string-match pmail-user-mail-address-regexp sender)))
-	;; Either no sender known, or it's this user.
-	(save-restriction
-	  (narrow-to-region (pmail-desc-get-start n)
-			    (pmail-desc-get-end n))
-	  (concat "to: " (mail-strip-quoted-names
-			  (pmail-header-get-header "to"))))
-      sender)))
-
-(defun pmail-summary-get-line-count (n)
-  "Return a string containing the number of lines in message N.
-If `pmail-summary-line-count-flag' is nil, return the empty string."
-  (if pmail-summary-line-count-flag
-      (let ((lines (pmail-desc-get-line-count n)))
-	(format (cond ((<= lines     9) "   [%d]")
-		      ((<= lines    99) "  [%d]")
-		      ((<= lines   999) " [%3d]")
-		      (t "[%d]"))
-		lines))
-    ""))
-
-(defun pmail-summary-get-summary-attributes (n)
-  "Return the attribute character codes for message N.
-`-' means an unseen message, `D' means marked for deletion."
-  (format "%s%s%s%s%s"
-          (cond ((pmail-desc-attr-p pmail-desc-unseen-index n) "-")
-                ((pmail-desc-attr-p pmail-desc-deleted-index n) "D")
-                (t " "))
-          (or (pmail-desc-get-attr-code pmail-desc-answered-index n) " ")
-          (or (pmail-desc-get-attr-code pmail-desc-filed-index n) " ")
-          (or (pmail-desc-get-attr-code pmail-desc-edited-index n) " ")
-          (or (pmail-desc-get-attr-code pmail-desc-stored-index n) " ")))
-
-(defun pmail-summary-get-summary-line (n)
-  "Return a summary line for message N."
-  (let (keywords str subj)
-    (dolist (keyword (pmail-desc-get-keywords n))
-      (when (and (pmail-keyword-p keyword)
-		 (not (pmail-attribute-p keyword)))
-	(setq keywords (cons keyword keywords))))
-    (setq keywords (nreverse keywords)
-	  str (if keywords
-		  (concat "{ " (mapconcat 'identity keywords " ") " } ")
-		"")
-	  subj (replace-regexp-in-string "\\s-+" " "
-					 (pmail-desc-get-subject n)))
-    (funcall pmail-summary-line-decoder
-	     (format "%5s%s%6s %25.25s%s %s\n"
-		     n
-		     (pmail-summary-get-summary-attributes n)
-		     (concat (pmail-desc-get-day-number n) "-"
-			     (pmail-desc-get-month n))
-		     (pmail-summary-get-sender n)
-		     (pmail-summary-get-line-count n)
-		     (concat str subj)))))
-
-(defun pmail-summary-update (n)
-  "Rewrite the summary line for message N."
-  (with-current-buffer pmail-buffer
-    ;; we need to do this in the pmail-buffer lest the keywords are
-    ;; not recognized
-    (let ((summary (pmail-summary-get-summary-line n)))
-      (with-current-buffer pmail-summary-buffer
-	(save-excursion
-	  (let ((buffer-read-only nil))
-	    (pmail-summary-goto-msg n)
-	    ;; summary line includes newline at the end
-	    (delete-region (point) (1+ (line-end-position)))
-	    (insert summary)))))))
 
 (provide 'pmailsum)
 

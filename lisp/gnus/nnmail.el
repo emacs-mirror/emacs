@@ -199,7 +199,7 @@ The return value should be `delete' or a group name (a string)."
   :version "21.1"
   :group 'nnmail-expire
   :type '(choice (const delete)
-		 (function :format "%v" nnmail-)
+		 function
 		 string))
 
 (defcustom nnmail-fancy-expiry-targets nil

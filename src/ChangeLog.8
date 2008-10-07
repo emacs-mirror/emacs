@@ -279,7 +279,7 @@
 
 1999-12-15  Kenichi Handa  <handa@etl.go.jp>
 
-	* coding.c (code_convert_region): Fix the secoding arg to
+	* coding.c (code_convert_region): Fix the second arg to
 	update_compositions.
 
 1999-12-15  Kenichi Handa  <handa@etl.go.jp>
@@ -514,7 +514,7 @@
 	(get_property_and_range): Extern it.
 	(Vtext_property_default_nonsticky): Extern it.
 
-	* intervals.c (adjust_intervals_for_insertion): To check stickines
+	* intervals.c (adjust_intervals_for_insertion): To check stickiness
 	of properties, pay attention to text-property-default-nonsticky.
 	(merge_properties_sticky): Likewise.
 	(get_property_and_range): New function.
@@ -799,7 +799,7 @@
 	(FRAME_MODE_LINE_PARAM_FACE, FRAME_COMPUTED_FACES)
 	(FRAME_N_COMPUTED_FACES, FRAME_SIZE_COMPUTED_FACES)
 	(FRAME_DEFAULT_FACE, FRAME_MODE_LINE_FACE, unload_color): Remove
-	unused macro definintions.
+	unused macro definitions.
 
 	* msdos.c (IT_set_frame_parameters): Don't call
 	recompute_basic_faces, the next redisplay will, anyway.
@@ -1987,7 +1987,7 @@
 	(casify_region): Ditto.
 
 	* filelock.c (get_boot_time): Put local variable used in
-	conditinally compiled section in #ifdef.
+	conditionally compiled section in #ifdef.
 	(toplevel): Include stdio.h.
 
 	* keymap.c (Flookup_key, Faccessible_keymaps, describe_vector)
@@ -2261,7 +2261,7 @@
 
 1999-09-14  Andreas Schwab  <schwab@gnu.org>
 
-	* process.c (Fopen_network_stream): Avoid socket decriptor leak.
+	* process.c (Fopen_network_stream): Avoid socket descriptor leak.
 
 	* lisp.h: Declare close_file_unwind.
 
@@ -2852,7 +2852,7 @@
 	(x_alloc_lighter_color): Call x_alloc_lighter_color with new
 	parameter list.
 
-	* xterm.h: Change protorype of x_alloc_nearest_color.
+	* xterm.h: Change prototype of x_alloc_nearest_color.
 
 1999-09-03  Richard Stallman  <rms@gnu.org>
 
@@ -2958,7 +2958,7 @@
 
 1999-09-03  Kenichi Handa  <handa@etl.go.jp>
 
-	The following changes are for the new handling of mulitbyte
+	The following changes are for the new handling of multibyte
 	sequence.  Now, except for a composite character, no multibyte
 	character in string/buffer has trailing garbage bytes.  For
 	instance, the length of string "\201\300\300" is now 2, the first
@@ -3148,7 +3148,7 @@
 1999-08-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* syntax.c (Fforward_word): If in a mini-buffer and moving
-	backwards, stop in front of the prompt to prevent accidentially
+	backwards, stop in front of the prompt to prevent accidentally
 	moving into the read-only prompt.
 
 	* window.c (Frecenter): Clear frame if called with nil or no arg.
@@ -3333,7 +3333,7 @@
 
 1999-08-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* fns.c (hash_lookup): Test with EQ before calling key comparion
+	* fns.c (hash_lookup): Test with EQ before calling key comparison
 	function.
 	(hash_remove): Ditto.
 	(cmpfn_eq): Removed.
@@ -3352,7 +3352,7 @@
 
 	* dispnew.c (do_pending_window_change): Add parameter `safe'.
 	(change_frame_size): Ditto.
-	(change_frame_size_1): Ditto.  Deley size changes if redisplaying
+	(change_frame_size_1): Ditto.  Delay size changes if redisplaying
 	and not called from a safe place.
 	(window_change_signal): Call change_frame_size with new parameter.
 
@@ -3423,7 +3423,7 @@
 	(redisplay_window): Check for mini-window displaying echo area
 	message differently.
 	(syms_of_xdisp): Initialize Vmessage_stack and echo area buffers.
-	Remove initialzation of removed variables.
+	Remove initialization of removed variables.
 	(init_xdisp): Remove references to removed variables.
 
 	* dispnew.c (adjust_frame_message_buffer): Removed references
@@ -3556,7 +3556,7 @@
 	* dispnew.c (direct_output_for_insert): Use
 	Vshow_trailing_whitespace instead of former iterator member
 	show_trailing_whitespace_p.
-	(direct_output_forward_char): Don't do it if hightlighting
+	(direct_output_forward_char): Don't do it if highlighting
 	trailing whitespace.
 
 	* xdisp.c (Qshow_trailing_whitespace): Removed.
@@ -3611,7 +3611,7 @@
 	Simplify clearing "under" scroll bar.
 
 	* window.c (Qfixed_window_size): New.
-	(syms_of_window): Initialiaze it.
+	(syms_of_window): Initialize it.
 	(check_all_windows): Add return type void.
 	(window_fixed_size_p): New.  Return non-zero if window
 	is fixed-size.
@@ -3685,7 +3685,7 @@
 
 	* lread.c (read_escape): For Control modifier, pay attention to
 	multibyte character.
-	(read1): Likewise.  Singal error or a multibyte character which
+	(read1): Likewise.  Signal error or a multibyte character which
 	has a modifer bit.  Check validity of Shift modifer.
 
 	* charset.c (non_ascii_char_to_string): Handle modifier bits as
@@ -4125,7 +4125,7 @@
 	* xrdb.c (x_load_resources): Set double-click time defaults
 	for Motif list boxes from double-click-time.
 
-	* fns.c (Vhash_table_tests): Remvoed.
+	* fns.c (Vhash_table_tests): Removed.
 	(Qhash_table_test): New.
 	(syms_of_fns): Initialize Qhash_table_test.
 	(Fmake_hash_table): Look up user-defined tests in symbol prop
@@ -5030,7 +5030,7 @@
 	(Finternal_set_lisp_face_attribute): Likewise.
 
 	* xfaces.c (load_color): Change the last argument type to enum
-	lface_attribute_index from int.  And addec code for underling coloring.
+	lface_attribute_index from int.  And add code for underling coloring.
 	(load_face_colors): Pass LFACE_*_INDEX to load_color.
 
 1999-02-12  Gerd Moellmann  <gerd@gnu.org>
@@ -5346,7 +5346,7 @@
 	(Fx_file_dialog): New.
 	* fileio.c (Fread_file_name): Call it.
 
-	* xrdb.c (x_load_resources): Add default resoures for file
+	* xrdb.c (x_load_resources): Add default resources for file
 	selection dialog.
 
 1998-11-14  Gerd Moellmann  <gerd@gnu.org>
@@ -5355,7 +5355,7 @@
 	is active.
 
 	* keyboard.c (timer_check): Inhibit busy cursor around calls to
-	timer-event-handler.  This busy cursor tends to be anoying if
+	timer-event-handler.  This busy cursor tends to be annoying if
 	fontifying stealthily.
 
 	* dispnew.c (direct_output_for_insert): Give up if current row
@@ -6368,9 +6368,9 @@
 	* dispextern.h (struct glyph): Add bit multibyte_p.
 	(struct face): New member registry holding the registry and
 	encoding of the X font of the face.
-	(FACE_UNIBYTE_P): Value is non-zero if face is for unibye text.
+	(FACE_UNIBYTE_P): Value is non-zero if face is for unibyte text.
 	(enum face_id): Add BASIC_FACE_ID_SENTINEL.
-	(FACE_SUITABLE_FOR_CHARSET_P): Handle charset < 0 meansing unibyte
+	(FACE_SUITABLE_FOR_CHARSET_P): Handle charset < 0 meaning unibyte
 	text.
 	(struct iterator_stack_entry): Add multibyte_p.
 
@@ -6671,7 +6671,7 @@
 
 	* buffer.c (init_buffer_once): Add default for `indicate-zv-lines'.
 	(init_buffer_once): New variable `default-indicate-zv-lines'.
-	(syms_of_buffer): New buffer-local varianle `indicate-zv-lines'.
+	(syms_of_buffer): New buffer-local variable `indicate-zv-lines'.
 
 	* xdisp.c (redisplay_window): Don't try moving the cursor
 	if current glyph row w->last_cursor.vpos isn't enabled.
@@ -6759,7 +6759,7 @@
 	cursor face extend to end of line.
 
 	* xdisp.c (append_space): If adding space of default face,
-	make sure glyph ist produced with right face.
+	make sure glyph is produced with right face.
 
 	* xterm.c (x_clear_glyph_string_rect): Draw a rectangle in the
 	background color of a glyph string.
@@ -7113,7 +7113,7 @@
 	* dispextern.h (ITERATOR_AT_END_OF_LINE_P): Test for
 	DISP_CHARACTER.
 
-	* xterm.c (x_produce_image_glyph): Poduce image glyphs.
+	* xterm.c (x_produce_image_glyph): Produce image glyphs.
 	(x_produce_glyphs): Call x_produce_glyphs for DISP_IMAGE.
 
 1998-05-02  Gerd Moellmann  <gerd@gnu.org>
@@ -7211,7 +7211,7 @@
 
 	* xfaces.c (split_font_name): Don't reject scalable fonts.
 
-	* xterm.c (x_list_fonts): Set code exclusing scalable fonts
+	* xterm.c (x_list_fonts): Set code excluding scalable fonts
 	in #if 0.
 
 	* xfaces.c (xlfd_point_size): Return 0 for fonts whose real
@@ -7528,7 +7528,7 @@
 	(init_iterator): Do it here.
 
 	* xfaces.c (choose_face_font): Check that swidth doesn't change
-	for subusequent attributes.
+	for subsequent attributes.
 	(xlfd_point_size): Return int.
 
 	* xdisp.c (redisplay_internal, echo_area-display): If realized
@@ -9494,7 +9494,7 @@
 
 	* xdisp.c (redisplay_internal): Optimization 1 change partially
 	reverted.  Check this again later.
-	(skip_via_matrix): Remove redundent test for
+	(skip_via_matrix): Remove redundant test for
 	MATRIX_ROW_DISPLAYS_TEXT_P.
 
 1997-10-27  Gerd Moellmann  <gerd@acm.org>
@@ -9531,7 +9531,7 @@
 
 	* xdisp.c (skip_in_display_line_to): Use SET_INFO_FROM_CURSOR.
 
-	* xterm.c (XTget_display_info): Handle 3D facess.
+	* xterm.c (XTget_display_info): Handle 3D faces.
 	(draw_glyphs): Ditto.
 
 	* xdisp.c (Fdump_redisplay_state): Change interactive spec to "p".
@@ -9579,7 +9579,7 @@
 	* dispnew.c (check_current_matrix_invariants): Check nrows for zero.
 	(check_current_matrix_invariants): Check used counts.
 
-	* Revisiob v114.
+	* Revision v114.
 
 	* dispnew.c (scrolling): Use hash codes from rows.
 
@@ -9625,7 +9625,7 @@
 
 	* xterm.c (XTclear_end_of_line): Respect right_to_left_p.
 
-	* xdisp.c (try_window_id): Clear desired matrix if not successul.
+	* xdisp.c (try_window_id): Clear desired matrix if not successful.
 
 	* xdisp.c (try_window_id): Call update_window_begin_hook/end_hook.
 
@@ -9673,7 +9673,7 @@
 	(increment_glyph_row_buffer_positions): Stop adjusting at
 	glyphs with positions <= 0.
 
-	* dispextern.h (struct glyph_pos): Structure desribing a text
+	* dispextern.h (struct glyph_pos): Structure describing a text
 	position including position in overlay.
 	(struct glyph_row): Use it for start and end positions.
 	(struct display_cursor): Use it.
@@ -9785,7 +9785,7 @@
 
 	* xdisp.c (skip_via_matrix): Check for overlay arrow.
 
-	* region-cache.h: functino prototypes with PROTO.
+	* region-cache.h: Function prototypes with PROTO.
 
 	* dispnew.c (buffer_posn_from_coords): Use -1 as skip position.
 
@@ -9936,7 +9936,7 @@
 
 1997-08-21  Gerd Moellmann  <gerd@acm.org>
 
-	* dispnew.c (clear_glyph_matrix): Additional argument specifiying
+	* dispnew.c (clear_glyph_matrix): Additional argument specifying
 	that rows should really be cleared.  Used for current matrices.
 
 	* dispnew.c (scrolling_window): Bug fix.
@@ -9972,7 +9972,7 @@
 
 	* dispnew.c (scrolling_window): Simplified.
 
-	* xterm.c (x_draw_3d_border): Inset rectangle by line width.
+	* xterm.c (x_draw_3d_border): Insert rectangle by line width.
 
 	* dispnew.c (update_window): Add FRAME_MODE_LINE_BORDER_WIDTH
 	to mode line row->x.
@@ -10142,7 +10142,7 @@
 	* dispnew.c (adjust_frame_glyphs): Don't set frame garbaged
 	since update will follow soon.
 
-	* xdisp.c (echo_area_display): Unitialized variable.
+	* xdisp.c (echo_area_display): Uninitialized variable.
 
 	* xterm.c (draw_bitmap): Previously draw_truncation; draw
 	overlay arrow bitmap.
@@ -10160,8 +10160,7 @@
 
 	* dispextern.h: Take FRAME_TRUNC_WIDTH into account.
 
-	* dispnew.c (update_window_line): Call after_update_windwo_line-
-	hook.
+	* dispnew.c (update_window_line): Call after_update_window_line_hook.
 
 	* xdisp.c (display_line): Set overlay_arrow_p in row.
 
@@ -10554,7 +10553,7 @@
 	* window.c (mark_window_cursors_off): Mark all cursors in
 	window tree off.
 
-	* xterm.c (x_display_box_cursor): Window paraemter.  Use
+	* xterm.c (x_display_box_cursor): Window parameter.  Use
 	window matrix.
 	(glyph_to_pixel_pos): Convert matrix pos -> pixels.
 	(pixel_to_glyph_pos): Convert pixel pos -> matrix pos.
@@ -10821,7 +10820,7 @@
 
 1997-07-05  Gerd Moellmann  <gerd@acm.org>
 
-	* dispnew.c (scroll_frame_lines): Don't assume first scolled
+	* dispnew.c (scroll_frame_lines): Don't assume first scrolled
 	line is non-empty.
 	(realloc_glyph_pool): Don't add 1 to the pool size.
 	(adjust_glyph_matrix): Don't add 1 to pointers to glyph areas.
@@ -11011,7 +11010,7 @@
 	Returns 1 if pool changed.
 	(matrix_row): Additional check for lost pointers to glyph rows.
 	(compute_matrices): Additional parameter DIM_P set means that no
-	allocation should take place.  Addtional parameter
+	allocation should take place.  Additional parameter
 	ANY_WINDOWS_CHANGED_P set if any windows matrix has changed.
 	(compute_leaf_matrix): Additional parameter CHANGED_P set to 1
 	when window matrix changes.  Additional parameter DIM_ONLY_P set
@@ -11523,7 +11522,7 @@
 
 	* ccl.c (ccl_prog_stack_struct): Declare it as static.
 	(ccl_driver): Setup stack_idx and ccl_prog correctly.  Update them
-	before returing.
+	before returning.
 	(setup_ccl_program): Initialize ccl->stack_idx to 0.
 
 1999-05-03  Jason Rumney  <jasonr@altavista.net>
@@ -12211,7 +12210,7 @@
 	* xterm.c (x_new_fontset): For ASCII font, don't use the font name
 	returned by x_new_font (the resolved one) but use the font name
 	set in the fontset specification.
-	(x_load_font): For the height of font, if normarl ascent and
+	(x_load_font): For the height of font, if normal ascent and
 	descent value are larger than those in max_bounds field, use the
 	former.
 
@@ -12722,7 +12721,7 @@
 
 	* fns.c (string_char_to_byte): Handle invalid multibyte sequence
 	correctly.
-	(string_byte_to_char): Likesize.
+	(string_byte_to_char): Likewise.
 
 	* print.c (printchar): When outputting a multibyte character to
 	echo area, always set message_enable_multibyte to 1.
@@ -13139,7 +13138,7 @@
 
 	* charset.h (SPLIT_NON_ASCII_CHAR): Check dimension of an invalid
 	character correctly.
-	(STRING_CHAR): Handle an invalid charater correctly.
+	(STRING_CHAR): Handle an invalid character correctly.
 
 1998-11-05  Kenichi Handa  <handa@etl.go.jp>
 
@@ -13183,7 +13182,7 @@
 1998-11-04  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.c (string_to_non_ascii_char): Change the check for the
-	varidity of multibyte form.
+	validity of multibyte form.
 	(update_charset_table): Check validity of BYTES.  Don't set
 	bytes_by_char_head here.
 	(init_charset_once): Set bytes_by_char_head completely.
@@ -13250,11 +13249,11 @@
 	(insert_from_string_1): Set *(GPT_ADDR) to 0 before calling
 	CHECK_BYTE_COMBINING_FOR_INSERT.
 	(insert_from_buffer_1): Likewise.
-	(adjust_after_replace): Check the posibility of inhibitted byte
+	(adjust_after_replace): Check the possibility of inhibitted byte
 	combining correctly.
 	(replace_range): Before signaling an error for inhibitted byte
 	combining, recover the buffer in a safe state.
-	(del_range_2): Check the posibility of inhibitted byte combining
+	(del_range_2): Check the possibility of inhibitted byte combining
 	correctly.
 
 1998-10-30  Andreas Schwab  <schwab@delysid.gnu.org>
@@ -13298,7 +13297,7 @@
 	* editfns.c (Fsubst_char_in_region): Fix previous change.
 	(Ftranslate_region): Fix previous change.
 
-	* insdel.c (check_markers): Check if markers are at character boundry.
+	* insdel.c (check_markers): Check if markers are at character boundary.
 	(adjust_markers_for_insert): Fix previous change.
 	(count_combining_before): Don't limit the check at BEGV.
 	(count_combining_after): Don't limit the check at ZV.
@@ -13364,7 +13363,7 @@
 
 1998-10-23  Kenichi Handa  <handa@etl.go.jp>
 
-	* coding.c (code_convert_region): While preserving the orignal
+	* coding.c (code_convert_region): While preserving the original
 	point, pay attention to the byte combining problem.
 
 	* fns.c (Fbase64_decode_region): Pay attention to the byte
@@ -13401,7 +13400,7 @@
 
 1998-10-21  Jason Rumney  <jasonr@altavista.net>
 
-	* x-list-font.c (Fx_list_fonts): Access frame parameters throught
+	* x-list-font.c (Fx_list_fonts): Access frame parameters through
 	general macros.   Don't call x_list_font directory, instead call a
 	function set in list_fonts_func.
 
@@ -13627,7 +13626,7 @@
 1998-09-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (check_composing_code): Fix previous change.  Now it
-	alwasy returns 0 or -1.
+	always returns 0 or -1.
 	(decode_coding_iso2022): Adjusted for the above change.
 	(encode_coding_iso2022): When encoding the last block, flush out
 	tailing garbage bytes.
@@ -13639,7 +13638,7 @@
 	(SHRINK_CONVERSION_REGION): New macro.
 	(code_convert_region): Call SHRINK_CONVERSION_REGION.  Delete text
 	properties here.
-	(code_convert_region): In the case of encoding, always calulate
+	(code_convert_region): In the case of encoding, always calculate
 	correct character number.
 	(code_convert_string): Call SHRINK_CONVERSION_REGION.
 	(code_convert_region1): Don't delete text properties here.
@@ -13730,7 +13729,7 @@
 	(adjust_after_replace): Record deletion of combining after bytes
 	with the correct position.
 	(replace_range): Likewise.  Record the actual deletion after
-	recoding deletions of combining bytes.
+	recording deletions of combining bytes.
 
 	* xdisp.c (message_log_check_duplicate): Count byte length of the
 	latest message correctly.
@@ -13799,7 +13798,7 @@
 	ACTUAL_LEN even if LEN is too short to have a valid multibyte form.
 	(STRING_CHAR_AND_CHAR_LENGTH): Likewise.
 
-	* coding.c (ccl_coding_driver): Always calculate correct mulibyte
+	* coding.c (ccl_coding_driver): Always calculate correct multibyte
 	chars in produced byte sequence.
 	(Ffind_operation_coding_system): Doc-string fixed.
 

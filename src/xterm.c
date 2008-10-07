@@ -526,6 +526,20 @@ x_set_frame_alpha (f)
   x_uncatch_errors ();
 }
 
+int
+x_display_pixel_height (dpyinfo)
+     struct x_display_info *dpyinfo;
+{
+  return HeightOfScreen (dpyinfo->screen);
+}
+
+int
+x_display_pixel_width (dpyinfo)
+     struct x_display_info *dpyinfo;
+{
+  return WidthOfScreen (dpyinfo->screen);
+}
+
 
 /***********************************************************************
 		    Starting and ending an update
@@ -8335,8 +8349,8 @@ x_calc_absolute_position (f)
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
-    f->left_pos = (FRAME_X_DISPLAY_INFO (f)->width
-                   - FRAME_PIXEL_WIDTH (f) + f->left_pos);
+    f->left_pos = x_display_pixel_width (FRAME_X_DISPLAY_INFO (f))
+      - FRAME_PIXEL_WIDTH (f) + f->left_pos;
 
   {
     int height = FRAME_PIXEL_HEIGHT (f);
@@ -8357,8 +8371,9 @@ x_calc_absolute_position (f)
     XtVaGetValues (f->output_data.x->column_widget, XtNheight, &height, NULL);
 #endif
 
-  if (flags & YNegative)
-    f->top_pos = (FRAME_X_DISPLAY_INFO (f)->height - height + f->top_pos);
+    if (flags & YNegative)
+      f->top_pos = x_display_pixel_height (FRAME_X_DISPLAY_INFO (f))
+	- height + f->top_pos;
   }
 
   /* The left_pos and top_pos
@@ -9604,10 +9619,10 @@ x_wm_set_size_hint (f, flags, user_position)
 
   size_hints.width_inc = FRAME_COLUMN_WIDTH (f);
   size_hints.height_inc = FRAME_LINE_HEIGHT (f);
-  size_hints.max_width
-    = FRAME_X_DISPLAY_INFO (f)->width - FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
-  size_hints.max_height
-    = FRAME_X_DISPLAY_INFO (f)->height - FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
+  size_hints.max_width = x_display_pixel_width (FRAME_X_DISPLAY_INFO (f))
+    - FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
+  size_hints.max_height = x_display_pixel_height (FRAME_X_DISPLAY_INFO (f))
+    - FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
 
   /* Calculate the base and minimum sizes.
 
@@ -10193,8 +10208,6 @@ x_term_init (display_name, xrm_option, resource_name)
 				     DefaultScreen (dpyinfo->display));
   select_visual (dpyinfo);
   dpyinfo->cmap = DefaultColormapOfScreen (dpyinfo->screen);
-  dpyinfo->height = HeightOfScreen (dpyinfo->screen);
-  dpyinfo->width = WidthOfScreen (dpyinfo->screen);
   dpyinfo->root_window = RootWindowOfScreen (dpyinfo->screen);
   dpyinfo->client_leader_window = 0;
   dpyinfo->grabbed = 0;

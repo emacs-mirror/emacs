@@ -163,7 +163,7 @@
 
 2005-06-08  Peter S Galbraith  <psg@debian.org>
 
-	* mh-comp.el (mh-insert-auto-fields): Inset identity regardless of
+	* mh-comp.el (mh-insert-auto-fields): Insert identity regardless of
 	whether one was already set, since if one used a default identity
 	it would never be overridden (closes SF #1204506).
 
@@ -1879,7 +1879,7 @@
 	info about it for `mh-variants'.
 
 	* mh-e.el (mh-regenerate-headers): mu-mh has different error
-	message for a invalid mesage list.
+	message for a invalid message list.
 
 2003-08-18  Peter S Galbraith  <psg@debian.org>
 
@@ -4464,7 +4464,7 @@
 	lines. So it is OK for mh-get-msg-num to fail once in a while.
 
 	* mh-index.el (mh-index-update-maps): Make the parsing of messages
-	that need to annotated with the X-MHE-Checksum header more robust.
+	that need to be annotated with the X-MHE-Checksum header more robust.
 	If the search yielded no results then an error was being produced.
 	(mh-index-search): Enable automatic threading of index folders if
 	mh-show-threads-flag is non-nil (closes SF #709667).
@@ -6986,7 +6986,7 @@
 	Moved all defgroups, defcustoms, and deffaces to mh-customize.el
 	(closes SF #643722) .
 
-	* mh-identity.el (mh-comp-loaded): New variable in a desparate
+	* mh-identity.el (mh-comp-loaded): New variable in a desperate
 	attempt to prevent an infinite loop.
 	(eval-when-compile): Was able to remove these defvars as they are
 	now predefined in mh-loaddefs and mh-customize.
@@ -10630,7 +10630,7 @@
 2001-12-01  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-e.el: Update the documentation for the regexps used by
-	`mh-folder-font-lock-keywords' to specify how many parethesized
+	`mh-folder-font-lock-keywords' to specify how many parenthesized
 	expressions they are expected to have and what those expressions
 	are expected to match.
 
@@ -10822,7 +10822,7 @@
 	(mh-toggle-subject-thread): New command to toggle between a new
 	'subject sequence or the wide view of a folder.
 	(mh-delete-subject-thread): New command to delete all following
-	messages with similar subject lines (leaving preceeding ones
+	messages with similar subject lines (leaving preceding ones
 	untouched).
 	(mh-next-unseen-subject-thread): New command to create and move to
 	a new subject thread created from the next unseen message as a
@@ -10908,7 +10908,7 @@
 2001-11-25  Peter S Galbraith  <psg@debian.org>
 
 	* mh-utils.el (mh-highlight-citation-p): New variable to determine
-	whether to hightlight citations in message body with gnus,
+	whether to highlight citations in message body with gnus,
 	font-lock or not at all.
 	(mh-show-font-lock-keywords): removed citations from keywords.
 	(mh-show-font-lock-keywords-with-cite): New variable, equivalent
@@ -11253,7 +11253,7 @@
 	resulting message is still fully MIME.
 	* mh-utils.el (mh-decode-quoted-printable): New function to run
 	mimedecode on the current buffer.
-	* mh-utils.el (mh-display-msg): Conditionnaly call
+	* mh-utils.el (mh-display-msg): Conditionally call
 	mh-decode-quoted-printable function if mh-decode-quoted-printable
 	variable is set, to view messages containing quoted-printable
 	characters into 8-bit.

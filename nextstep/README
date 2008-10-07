@@ -2,7 +2,7 @@ Copyright (C) 2008 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 This directory contains the files needed to build Emacs on
-Nextstep-based platforms, including GNUStep and Mac OS X.
+Nextstep-based platforms, including GNUstep and Mac OS X.
 
 The Nextstep support code works on many POSIX systems (and possibly
 W32) using the GNUstep libraries, and on MacOS X systems using the

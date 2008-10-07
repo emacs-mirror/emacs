@@ -121,20 +121,18 @@ nsfont_spec_to_traits (Lisp_Object font_spec)
 
   n = FONT_WEIGHT_NUMERIC (font_spec);
   if (n != -1)
-      traits |= (n > STYLE_REF) ? NSBoldFontMask : NSUnboldFontMask;
+      traits |= (n > STYLE_REF) ? NSBoldFontMask
+        			: (n < STYLE_REF) ? NSUnboldFontMask : 0;
 
   n = FONT_SLANT_NUMERIC (font_spec);
   if (n != -1)
-      traits |= (n > STYLE_REF) ? NSItalicFontMask : NSUnitalicFontMask;
+      traits |= (n > STYLE_REF) ? NSItalicFontMask
+        			: (n < STYLE_REF) ? NSUnitalicFontMask : 0;
 
   n = FONT_WIDTH_NUMERIC (font_spec);
   if (n > -1)
-    {
-      if (n < STYLE_REF - 10)
-        traits |= NSCondensedFontMask;
-      else if (n > STYLE_REF + 10)
-        traits |= NSExpandedFontMask;
-    }
+      traits |= (n > STYLE_REF + 10) ? NSExpandedFontMask
+       			 	: (n < STYLE_REF - 10) ? NSExpandedFontMask : 0;
 
 /*fprintf (stderr, "  returning traits = %u\n", traits); */
   return traits;
@@ -178,7 +176,7 @@ nsfont_fmember_to_entity (NSString *family, NSArray *famMember)
     {
       fprintf (stderr, "created font_entity:\n    ");
       debug_print (font_entity);
-     }
+    }
 
   [suffix release];
   free (escapedFamily);
@@ -190,12 +188,12 @@ nsfont_fmember_to_entity (NSString *family, NSArray *famMember)
 static int
 nsfont_trait_distance (unsigned int traits1, unsigned int traits2)
 {
-  int i, d =0;
-  for (i =0; i<sizeof (unsigned int)*8; i++)
+  int i, d = 0;
+  for (i = 0; i < sizeof (unsigned int) * 8; i++)
     {
       d += (traits1 & 0x1) ^ (traits2 & 0x1);
-      traits1 >> 1;
-      traits2 >> 1;
+      traits1 >>= 1;
+      traits2 >>= 1;
     }
   return d;
 }
@@ -267,7 +265,7 @@ nsfont_get_cache (FRAME_PTR frame)
 
 
 /* List fonts exactly matching with FONT_SPEC on FRAME.  The value
-   is a vector of font-entities.  This is the sole API that
+   is a **list** of font-entities.  This is the sole API that
    allocates font-entities.  */
 static Lisp_Object
 nsfont_list (Lisp_Object frame, Lisp_Object font_spec)
@@ -349,7 +347,7 @@ nsfont_list (Lisp_Object frame, Lisp_Object font_spec)
   if (NSFONT_TRACE)
       fprintf (stderr, "    Returning %d entities.\n", XINT (Flength (list)));
 
-  return (NILP (list) ? Qnil : Fvconcat (1, &list));/* Qnil was null_vector */
+  return list;
 }
 
 
@@ -377,7 +375,7 @@ nsfont_match (Lisp_Object frame, Lisp_Object font_spec)
     fprintf (stderr, "adstyle: '%s'\n", SDATA (tem));
 #endif
   tem = AREF (font_spec, FONT_REGISTRY_INDEX);
-  if (!EQ (tem, Qiso10646_1) && !EQ (tem, Qunicode_bmp))
+  if (!NILP (tem) && !EQ (tem, Qiso10646_1) && !EQ (tem, Qunicode_bmp))
     return nsfont_fallback_entity ();
 
   family = nsfont_get_family (font_spec);
@@ -500,26 +498,17 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   Lisp_Object font_object;
   int i;
   int fixLeopardBug;
-#if 0
   static NSMutableDictionary *fontCache = nil;
+  NSNumber *cached;
 
   /* 2008/03/08: The same font may end up being requested for different
      entities, due to small differences in numeric values or other issues,
      or for different copies of the same entity.  Therefore we cache to
      avoid creating multiple struct font objects (with metrics cache, etc.)
      for the same NSFont object.
-     2008/06/01: This is still an issue, but after font backend refactoring
-     caching will be more difficult, needs to be reworked before enabling. */
+     2008/06/01: This is still an issue after font backend refactoring. */
   if (fontCache == nil)
     fontCache = [[NSMutableDictionary alloc] init];
-#endif
-
-  font_object = font_make_object (VECSIZE (struct nsfont_info), font_entity,
-                                  pixel_size);
-  font_info = (struct nsfont_info *) XFONT_OBJECT (font_object);
-  font = (struct font *)font_info;
-  if (!font)
-    return Qnil; /* FIXME: this copies w32, but causes a segfault */
 
   if (NSFONT_TRACE)
     {
@@ -540,8 +529,9 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   family = nsfont_get_family (font_entity);
   if (NSFONT_TRACE)
     {
-      fprintf (stderr, "family: '%s'\ttraits = %ld\tbold = %d\n",
-               [family UTF8String], traits, traits & NSBoldFontMask);
+      fprintf (stderr, "family: '%s'\ttraits = %ld\tbold = %d\titalic = %d\n",
+               [family UTF8String], traits, traits & NSBoldFontMask,
+               traits & NSItalicFontMask);
     }
 
   /* see http://cocoadev.com/forums/comments.php?DiscussionID =74 */
@@ -576,26 +566,32 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
         }
     }
 
-#if 0
-  {
-    NSNumber *cached = [fontCache objectForKey: nsfont];
-    if (cached != nil && !synthItal)
-      {
-fprintf (stderr, "*** CACHE HIT!\n");
-        struct font_info *existing =
-          (struct nsfont_info *)[cached unsignedLongValue];
-        /* ... */
-      }
-    else
-      {
-        if (!synthItal)
-          [fontCache
-            setObject: [NSNumber numberWithUnsignedLong:
-                                   (unsigned long)font_info]
-               forKey: nsfont];
-      }
-  }
-#endif
+  if (NSFONT_TRACE)
+    NSLog (@"%@\n", nsfont);
+
+  /* Check the cache */
+  cached = [fontCache objectForKey: nsfont];
+  if (cached != nil && !synthItal)
+    {
+      if (NSFONT_TRACE)
+        fprintf(stderr, "*** nsfont_open CACHE HIT!\n");
+      return (Lisp_Object)[cached unsignedLongValue];
+    }
+  else
+    {
+      font_object = font_make_object (VECSIZE (struct nsfont_info),
+                                      font_entity, pixel_size);
+      if (!synthItal)
+        [fontCache
+          setObject: [NSNumber numberWithUnsignedLong:
+                                 (unsigned long)font_object]
+          forKey: nsfont];
+    }
+
+  font_info = (struct nsfont_info *) XFONT_OBJECT (font_object);
+  font = (struct font *)font_info;
+  if (!font)
+    return Qnil; /* FIXME: other terms do, but return Qnil causes segfault */
 
   font_info->glyphs = (unsigned short **)
     xmalloc (0x100 * sizeof (unsigned short *));
@@ -606,8 +602,7 @@ fprintf (stderr, "*** CACHE HIT!\n");
   bzero (font_info->glyphs, 0x100 * sizeof (unsigned short *));
   bzero (font_info->metrics, 0x100 * sizeof (struct font_metrics *));
 
-
-BLOCK_INPUT;
+  BLOCK_INPUT;
 
   /* for metrics */
   sfont = [nsfont screenFont];
@@ -902,16 +897,16 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     XCharStruct *cs;
     int cwidth, twidth = 0;
     int hi, lo;
-    char isComposite = 0; /* s->first_glyph->type == COMPOSITE_GLYPH; */
+    char isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
     /* FIXME: composition: no vertical displacement is considered. */
-    t+= s->gidx; /* advance into composition */
-    for (i =0; i<s->nchars - s->gidx; i++, t++)
+    t += s->cmp_from; /* advance into composition */
+    for (i = s->cmp_from; i < s->nchars; i++, t++)
       {
         hi = (*t & 0xFF00) >> 8;
         lo = *t & 0x00FF;
         if (isComposite)
           {
-            cwidth = s->cmp->offsets[s->gidx++ * 2] - twidth;
+            cwidth = s->cmp->offsets[i * 2] /* (H offset) */ - twidth;
           }
         else
           {
@@ -1094,13 +1089,13 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       [col set];
 
     CGContextSetTextPosition (gcontext, r.origin.x, r.origin.y);
-    CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->gidx,
+    CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->cmp_from,
                                     advances, len);
 
     if (face->overstrike)
       {
         CGContextSetTextPosition (gcontext, r.origin.x+0.5, r.origin.y);
-        CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->gidx,
+        CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->cmp_from,
                                         advances, len);
       }
 

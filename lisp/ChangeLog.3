@@ -1020,7 +1020,7 @@
 	(picture-beginning-of-line): New function.
 	(picture-mode-map): Use substitute-key-definition.
 
-	* gud.el (gud-format-command): Fix %f expansion to send ondly the
+	* gud.el (gud-format-command): Fix %f expansion to send only the
 	basename of files to gdb.
 
 1993-04-27  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
@@ -1063,7 +1063,7 @@
 	* cmacexp.el: Installed Francesco Potortì's enhanced and
 	cleaned-up version, see its commentary for details.
 
-	* tex-mode.el: Doc fixes.  Also a few teaks to pacify the
+	* tex-mode.el: Doc fixes.  Also a few tweaks to pacify the
 	byte-compiler.
 
 	* terminal.el: Some defvars moved.
@@ -1374,8 +1374,8 @@
 	* emerge.el (emerge-with-ancestor): Applied Donald Erway's fix
 	patch, which included the following explanatory comment: "D.Erway
 	- This used to just do emerge-get-diff3-group on 2, then on
-	3. This was incorrect, since the file 3 info for a diff can
-	preceed the file 2 info for that same diff. So we save and restore
+	3.  This was incorrect, since the file 3 info for a diff can
+	precede the file 2 info for that same diff.  So we save and restore
 	point to overcome this."
 
 1993-04-09  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
@@ -2151,7 +2151,7 @@
 
 	* term/sun.el: Headers added, [again] changed to [redo].  This
 	package is a hairball and should probably be scrapped if we
-	can find or built abetter one.
+	can find or built a better one.
 
 	* term/tvi970.el: Headers added, [enter] changed to [kp-enter].
 
@@ -2540,7 +2540,7 @@
 1993-02-24  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* term/x-win.el (scroll-bar-mode, scroll-bar-mode): Move these
-	functions to scrolbar.el.
+	functions to scrollbar.el.
 	* scrollbar.el (scroll-bar-mode, scroll-bar-mode): Here they are.
 	Make scroll-bar-mode set the {vertical,horizontal}-scrollbars
 	parameters in default-frame-alist, and modify all extant screens
@@ -3279,7 +3279,7 @@
 	* emerge.el (emerge-file-names): Use `temp-buffer-show-function',
 	not `temp-buffer-show-hook'.
 	(emerge-combine-versions-edit): Fix misarranged cond expression;
-	the t is an `else' clause, not a function call in the preceeding
+	the t is an `else' clause, not a function call in the preceding
 	clause.
 
 	* simula.el (simula-calculate-indent): Call backward-word with the
@@ -3350,7 +3350,7 @@
 
 	* fortran.el: Version 1.28.8.
 	(fortran-indent-to-column): Make turning of lines that begin with
-	`fortran-continuation-string' into properly formated continuation
+	`fortran-continuation-string' into properly formatted continuation
 	lines work for fortran TAB mode.
 
 	* fortran.el: Version 1.28.7a.
@@ -4379,7 +4379,7 @@
 	Exclude everything before line where comment starts.
 
 	* add-log.el (add-log-current-defun): Fix test for LOCATION
-	in range, for instace of DEFUN macro.
+	in range, for instance of DEFUN macro.
 
 	* simple.el (open-line): Fix fill-prefix case.
 
@@ -4873,7 +4873,7 @@
 	"\r", call comint-send-input on no arguments, and then use
 	comint-send-string to send the carriage return.
 	(kermit-clean-filter): Call re-search-backward, not
-	re-search-backware.
+	re-search-backward.
 	(kermit-clean-on): Remove extra quote from doc string.
 
 	* informat.el (batch-info-validate): Don't pass any arguments to
@@ -5166,7 +5166,7 @@
 	move by sentences.
 
 	* compile.el (compile-history): New variable.
-	(compile): Specify history list copile-history, with
+	(compile): Specify history list compile-history, with
 	compile-command as initial contents.
 	(grep): Specify constant "grep -n" as initial input,
 	and history list grep-history.
@@ -5590,7 +5590,7 @@
 	* loadup.el, ispell.el, isearch.el, holidays.el, fortran.el,
 	* files.el, etags.el, emerge.el, electric.el, edebug.el, dired.el,
 	* diary.el, csharp.el, compile.el, comint.el, calendar.el,
-	* buff-mune.el, bg-mouse.el, appt.el, abbrevlist.el, term/x-win.el,
+	* buff-menu.el, bg-mouse.el, appt.el, abbrevlist.el, term/x-win.el,
 	* term/wyse50.el, term/vt200.el, term/vt100.el: All uses changed.
 	* screen.el (screen-height, screen-width, set-screen-height)
 	(set-screen-width): Defined as aliases for frame-height,
@@ -6464,7 +6464,7 @@
 
 1992-05-05  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* terminal.el (terminal-emulator): Use process-enironment, not env.
+	* terminal.el (terminal-emulator): Use process-environment, not env.
 	Get rid of code that used start-subprocess.
 
 1992-05-03  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
@@ -6654,7 +6654,7 @@
 	* compile.el (compilation-mode-hook): New variable.
 	(compilation-mode): Run it.
 	(compilation-search-path): Made user variable, added autoload cookie.
-	(compilaton-window-height): Added autoload cookie.
+	(compilation-window-height): Added autoload cookie.
 
 1992-02-27  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
@@ -6869,7 +6869,7 @@
 
 1991-10-31  Richard Mlynarik  (mly@peduncle)
 
-	* ebuff-menu.el (eletric-buffer-menu-mode-map): Define
+	* ebuff-menu.el (electric-buffer-menu-mode-map): Define
 	< and > to scroll-left and scroll-right per user suggestion.
 
 1991-10-31  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
@@ -7595,7 +7595,7 @@
 
 	* isearch.el (search-exit-char): As per the opinion poll results,
 	change this to RET.
-	(isearch): Change miscellanous internals so that newline is
+	(isearch): Change miscellaneous internals so that newline is
 	automatically quoted, and change the docstring and comments to say
 	that RET exits the search.
 
@@ -8514,7 +8514,7 @@
 	statement down several lines.
 
 	* appt.el: Changed list-diary-entries-hook to diary-display-hook
-	to be compatible with new version of the calendar/diary packgage.
+	to be compatible with new version of the calendar/diary package.
 
 1990-11-21  Robert J. Chassell  (bob@gnu.ai.mit.edu)
 
@@ -8617,7 +8617,7 @@
 	regexp matches, set default-directory to that directory, and push it
 	on compilation-directory-stack.  When the leave-directory regexp
 	matches, pop the stack to find the matching directory, and set
-	default-directory to that.  This change requries RE_NREGS to be (at
+	default-directory to that.  This change requires RE_NREGS to be (at
 	least 26) (it's been upped from 10 to 30 in v19 ../src/regex.h).
 	(compilation-finish-hook): New variable, a hook to run when a
 	compilation finishes.  Called with two args: the compilation buffer
@@ -8730,7 +8730,7 @@
 	* calc-trail.el, calc-undo.el, calc-units.el, calc-vec.el,
 	* calc-yank.el, calc.el: New files for a very complete RPN
 	calculator which supports integer, rational, floating-point,
-	comples, matrix and symbolic arithmetic to arbitrary precision.
+	complex, matrix and symbolic arithmetic to arbitrary precision.
 
 	* edmacro.el: New file, a keyboard macro editor.  On its own
 	probably not very useful, but in the context of calc programmability
@@ -9503,7 +9503,7 @@
 	* texinfmt.el (texinfo-format-include): Include files ending with
 	".texi" as well as ".texinfo" and ".tex".
 
-	* texinfmt.el: Define @shortcontents, like @summaryconents, as
+	* texinfmt.el: Define @shortcontents, like @summarycontents, as
 	'texinfo-discard-line-with-args.
 
 1990-06-20  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -10343,7 +10343,7 @@
 	(all functions containing the word `hebrew').
 	(list-diary-entries, mark-diary-entries)
 	(include-other-diary-files, mark-included-diary-files):
-	Added the possibity of `shared diary files' with a recursive
+	Added the possibility of `shared diary files' with a recursive
 	include mechanism like the C preprocessor
 	(list-calendar-holidays): Eliminated the 'special class of holidays,
 	rewriting the entire mechanism to make it more general.
@@ -10636,7 +10636,7 @@
 
 1989-10-03  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* x-mouse.el (x-insert-selecton, x-select): New functions.
+	* x-mouse.el (x-insert-selection, x-select): New functions.
 
 	* mouse.el (mouse-motion, track-mouse, mouse-select-buffer-line)
 	(mouse-boxing, mouse-erase-box, incr-scroll-down)
@@ -10779,7 +10779,7 @@
 	traversal---sequentially through the file, each pointing to the next
 	node regardless of its hierarchical level, and to create or update a
 	menu or menus (preserving pre-existing descriptions, if any), to create
-	a master menu for a Texinfo file accordng to the Manual recommendation.
+	a master menu for a Texinfo file according to the Manual recommendation.
 
 1989-09-11  Richard Stallman  (rms@mole.ai.mit.edu)
 
@@ -11110,7 +11110,7 @@
 
 	* bib-mode.el: New file.
 
-	* sendmail.el (mail-mode-syntax-table): Seperate syntax table
+	* sendmail.el (mail-mode-syntax-table): Separate syntax table
 	for mail mode.  Makes % a separator.
 
 1989-05-31  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -11145,7 +11145,7 @@
 
 1989-05-23  Joseph Arceneaux  (jla@apple-gunkies.ai.mit.edu)
 
-	* rmailsum.el: Added C-d (rmail-summarey-delete-backward) to
+	* rmailsum.el: Added C-d (rmail-summary-delete-backward) to
 	rmail-summary-mode-map.
 
 1989-05-22  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -11278,7 +11278,7 @@
 1989-05-08  Joseph Arceneaux  (jla@rice-chex.ai.mit.edu)
 
 	* x-mouse.el (x-cut-text): sit-for 1 when warping mouse to mark.
-	Also removed code dupicated by mouse.el
+	Also removed code duplicated by mouse.el.
 	(x-trace-mouse): Debugging function which prints out mouse events
 	as they arrive.
 	(x-paste-text): Don't set point before inserting cut text; too
@@ -11705,7 +11705,7 @@
 
 1989-02-04  Richard Stallman  (rms@mole.ai.mit.edu)
 
-	* files.el: Make certain variables permenant if they are local.
+	* files.el: Make certain variables permanent if they are local.
 	* ftp.el: Likewise.
 
 	* dired.el (dired-rename-file): If file is visited, offer
@@ -11723,7 +11723,7 @@
 	* ftp.el (ftp-write-file): Do save-excursion.
 	(ftp-write-file-hook): Clear modified-flag here.
 	(ftp-setup-write-file-hooks): Clear read-only flag here.
-	(ftp-sentinal): If input, clear modified flag.
+	(ftp-sentinel): If input, clear modified flag.
 	Don't bind buffer-read-only across (kill-buffer (current-buffer)).
 
 	* texinfmt.el (texinfo-format-sp): New fn; handle @sp.

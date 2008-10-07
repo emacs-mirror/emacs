@@ -144,8 +144,8 @@ and no extra data."
   :group 'gnus-registry
   :type 'boolean)
 
-(defcustom gnus-registry-use-long-group-names nil
-  "Whether the registry should use long group names (BUGGY)."
+(defcustom gnus-registry-use-long-group-names t
+  "Whether the registry should use long group names."
   :group 'gnus-registry
   :type 'boolean)
 

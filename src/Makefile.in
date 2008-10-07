@@ -626,8 +626,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
 
 #ifdef MSDOS
 #define MSDOS_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
- ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc \
- ${lispsource}international/ccl.elc ${lispsource}international/codepage.elc
+ ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc
 
 #else
 #define MSDOS_SUPPORT
@@ -867,7 +866,6 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/mwheel.elc ../lisp/tool-bar.elc \
   ../lisp/x-dnd.elc \
   ../lisp/international/ccl.elc \
-  ../lisp/international/codepage.elc \
   ../lisp/international/fontset.elc \
   ../lisp/mouse.elc \
   ../lisp/term/x-win.elc \
@@ -1041,10 +1039,10 @@ category.o: category.c category.h buffer.h charset.h keymap.h	\
 	character.h $(config_h)
 ccl.o: ccl.c ccl.h charset.h character.h coding.h $(config_h)
 character.o: character.c character.h buffer.h charset.h composite.h disptab.h \
-   $(config.h)
+   $(config_h)
 charset.o: charset.c charset.h character.h buffer.h coding.h composite.h \
    disptab.h $(config_h)
-chartab.o: charset.h character.h $(config.h)
+chartab.o: charset.h character.h $(config_h)
 coding.o: coding.c coding.h ccl.h buffer.h character.h charset.h intervals.h composite.h \
 	window.h dispextern.h frame.h termhooks.h $(config_h)
 cm.o: cm.c frame.h cm.h termhooks.h termchar.h $(config_h)

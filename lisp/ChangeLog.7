@@ -211,7 +211,7 @@
 	they used to do some other jobs than what done by
 	set-language-environment, those jobs are done in
 	setup-XXX-environment-internal now.
-	("LANUGAGE-ENVIRONMENT"): Delete property setup-function or change
+	("LANGUAGE-ENVIRONMENT"): Delete property setup-function or change
 	the value to setup-XXX-environment-internal.  Add properties
 	nonascii-translation, input-method, features, unibyte-syntax, and
 	unibyte-display.
@@ -359,14 +359,14 @@
 	(quail-conversion-str): New variable.
 	(quail-input-method): Bind buffer-undo-list to t.
 	Show Quail guidance buffer if necessary.
-	(quail-delete-region): Move the definintion before the first
+	(quail-delete-region): Move the definition before the first
 	calling place.
 	(quail-start-translation): Handle the case the arg KEY is nil.
 	Bind echo-keystrokes and help-char.  Initialize quail-current-str
 	to "".  If input-method-use-echo-area is non-nil, call
 	read-key-sequence with appropriate PROMPT arg.  Setup
 	last-command-event by local variable `keyseq'.  Generate an event
-	list form quail-current-str.  If input-methodd-exit-on-first-char
+	list form quail-current-str.  If input-method-exit-on-first-char
 	is non-nil, return only the first event.
 	(quail-start-conversion): Likewise.  Initialize
 	quail-conversion-str to "".  Generate an event list form
@@ -430,7 +430,7 @@
 1998-08-04  Eric Ludlam  <zappo@mescaline.gnu.org>
 
 	* speedbar.el (speedbar-refresh): Removed special code to remove
-	the speedbar update message.  Not necesary here.
+	the speedbar update message.  Not necessary here.
 	(speedbar-timer-fn): Add code to remove the updating message and
 	thus restore the minibuffer.
 	(speedbar-center-buffer-smartly): Fixed center error to handle
@@ -678,7 +678,7 @@
 	(flyspell-incorrect-face, flyspell-duplicate-face): Fix typos.
 	(flyspell-check-pre-word-p): Check for word syntax in previous char.
 	(flyspell-word): Set process-kill-without-query for Ispell.
-	(flyspell-region): Put region args in order; use right percantage.
+	(flyspell-region): Put region args in order; use right percentage.
 	(flyspell-properties-at-p): Rename arg to POS; doc fix.
 	(flyspell-highlight-incorrect-region):
 	Check flyspell-highlight-properties first.
@@ -754,7 +754,7 @@
 	revert-buffer.
 	(archive-arc-rename-entry, archive-zip-chmod-entry): Set buffer
 	unibyte before handling binary archive data.
-	(archive-lzh-rename-entry, archive-lzh-ogm, rchive-zip-chmod-entry):
+	(archive-lzh-rename-entry, archive-lzh-ogm, archive-zip-chmod-entry):
 	Likewise.
 	(archive-lzh-summarize): Set local variable efnname to the decoded
 	file name.  If default-enable-multibyte-characters is non-nil, set
@@ -778,7 +778,7 @@
 1998-07-24  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
 
 	* calendar/cal-tex.el (cal-tex-latexify-list):
-	Ignore specifer in diary entry.
+	Ignore specifier in diary entry.
 
 1998-07-24  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -796,7 +796,7 @@
 1998-07-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (auto-coding-alist): New variable.
-	(set-auto-coding): Arguemnt FILENAME is added.  Check
+	(set-auto-coding): Argument FILENAME is added.  Check
 	auto-coding-alist at first.
 
 	* international/kkc.el (kkc-region): Unwind-protect the conversion
@@ -1215,13 +1215,13 @@
 	(speedbar-file-lists): Filter out some directories.
 	(speedbar-make-tag-line): Can hide brackets.
 	(speedbar-change-expand-button-char): Protect invisible text prop.
-	(speedbar-insert-files-at-point): Ignore case during comares.
+	(speedbar-insert-files-at-point): Ignore case during compares.
 	(speedbar-apply-one-tag-hierarchy-method)
 	(speedbar-create-tag-hierarchy): New functions.
 	(speedbar-insert-generic-list): Now calls hierarchy functions on tags.
 	(speedbar-update-contents): Handles localized support.
 	(speedbar-update-directory-contents): Uses fn for expansion list.
-	Fixed directory cacheing bug.
+	Fixed directory caching bug.
 	(speedbar-timer-fn): Calls localized support function.
 	(speedbar-stealthy-update-recurse): New variable.
 	(speedbar-stealthy-updates): Handle new stealth function format.
@@ -1237,7 +1237,7 @@
 	(speedbar-dir-follow): Turn of smart-adjust to disable cache use.
 	(speedbar-directory-buttons-follow): Hack for W32 emacs directories.
 	(speedbar-buffers-key-map): New key map.
-	(speedbar-buffer-easymenu-definition): New meny items.
+	(speedbar-buffer-easymenu-definition): New menu items.
 	(speedbar-buffer-buttons, speedbar-buffer-buttons-temp)
 	(speedbar-buffer-buttons-engine, speedbar-buffer-click)
 	(speedbar-buffer-kill-buffer, speedbar-buffer-revert-buffer):
@@ -1424,7 +1424,7 @@
 
 	* textmodes/texinfmt.el (texinfmt-version): Update version.
 	number which is used in header of texinfmt-produced Info files.
-	(texinfo-format-buffer): Now always tagify, on accout of @anchor.
+	(texinfo-format-buffer): Now always tagify, on account of @anchor.
 	(texi-format-region): Always tagify.
 	(texi2info):          Always tagify.
 	(texinfo-anchor):     Add @anchor command as place to which
@@ -1486,7 +1486,7 @@
 	Reading checkdoc-param comment no longer depends on list syntax.
 	Fixed various error string spelling & format.
 	(checkdoc-in-sample-code-p): List starting with all caps word is
-	now condsidered sample code.
+	now considered sample code.
 	(checkdoc-in-example-string-p, checkdoc-proper-noun-region-engine)
 	(checkdoc-sentencespace-region-engine): New functions.
 	(checkdoc-ispell-docstring-engine): Disable spell checking during
@@ -1525,7 +1525,7 @@
 	(create-fontset-from-ascii-font): New function.
 
 	* term/x-win.el: Fill weight and slant fields of a fontset
-	generted from the specified ASCII font by values got from the
+	generated from the specified ASCII font by values got from the
 	resolved ASCII font name.
 
 1998-07-02  Richard Stallman  <rms@psilocin.ai.mit.edu>
@@ -1668,7 +1668,7 @@
 
 1998-06-26  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
-	* mail/mailalias.el (mail-complete): Fix the test of (mail-heder-end).
+	* mail/mailalias.el (mail-complete): Fix the test of (mail-header-end).
 
 1998-06-26  Kenichi Handa  <handa@etl.go.jp>
 
@@ -1934,7 +1934,7 @@
 	buffer argument.
 
 	* mail/rmailout.el (rmail-output): Handle directories properly
-	in suggestions fro the alist.
+	in suggestions for the alist.
 
 1998-06-21  Dan Nicolaescu  <done@ece.arizona.edu>
 
@@ -1946,7 +1946,7 @@
 1998-06-21  Dan Nicolaescu  <done@ece.arizona.edu>
 
 	Add support for loading the files that contain :version when doing
-	`custoize-changed-options' so it can know which variables have
+	`customize-changed-options' so it can know which variables have
 	changed even in files that were not loaded at the time it was called.
 	* cus-edit.el (customize-changed-options): Remeber all the
 	versions and load the corresponding files before we show the
@@ -1999,7 +1999,7 @@
 	(devanagari-char-to-glyph-rules): Likewise.
 
 	* language/ethio-util.el: Delete codes for ethio-mode, which
-	includes deletion of varialble ethio-mode, variable
+	includes deletion of variable ethio-mode, variable
 	ethio-mode-map, and function ethio-mode.
 	(exit-ethiopic-environment-data): New variable.
 	(setup-ethiopic-environment): Recode information of changed key
@@ -2013,7 +2013,7 @@
 	lang. env. to exit-ethiopic-environment.
 
 	* term/x-win.el: When creating a fontset from a specified ASCII
-	font, don't use the resolved fon tname for the new fontset name.
+	font, don't use the resolved font name for the new fontset name.
 
 1998-06-19  Karl Heuer  <kwzh@gnu.org>
 
@@ -2061,7 +2061,7 @@
 
 	* wid-edit.el (widget-default-get): Doc fix.
 	(widget-editable-list-entry-create): Apply :value-to-external to
-	the value returned from wiget-default-get.
+	the value returned from widget-default-get.
 
 1998-06-14  Ken'ichi Handa  <handa@melange.gnu.org>
 
@@ -3281,7 +3281,7 @@
 
 1998-05-14  Ed Reingold  <reingold@melange.gnu.org>
 
-	* calendar/cal-hebrew.el (holiday-passover-etc): Fix mispelling.
+	* calendar/cal-hebrew.el (holiday-passover-etc): Fix misspelling.
 
 1998-05-14  Eli Zaretskii  <eliz@mescaline.gnu.org>
 
@@ -3840,7 +3840,7 @@
 	Don't set paragraph-start or paragraph-separate.
 	(news-setup): Set them here.
 	(news-inews): Use mail-header-end, etc.
-	Use mail-sendmail-delmit-header at the end.
+	Use mail-sendmail-delimit-header at the end.
 
 	* mail/emacsbug.el (report-emacs-bug): Use rfc822-goto-eoh.
 
@@ -4378,7 +4378,7 @@
 
 	* cus-edit.el (customize-changed-options): Add support for showing
 	groups with a :version option.
-	It's recomended that all new packages added to the distribution
+	It's recommended that all new packages added to the distribution
 	contain a :version option in the toplevel defgroup.
 
 1998-04-18  Stephen Eglen  <stephen@gnu.org>
@@ -4764,7 +4764,7 @@
 	not a generic char.
 
 	* international/mule-cmds.el (describe-language-environment):
-	Print the languge environment at the head.
+	Print the language environment at the head.
 
 	* language/czech.el: Put Czech lang. env. under European.
 
@@ -5319,7 +5319,7 @@
 
 	* dired-aux.el (dired-run-shell-command): Maybe run handler.
 
-	* simple.el (shell-command-on-region): Ammend message to report
+	* simple.el (shell-command-on-region): Amend message to report
 	success or failure when no process output.
 
 1998-03-23  Andreas Schwab  <schwab@gnu.org>
@@ -5942,7 +5942,7 @@
 
 	* files.el (insert-directory): Bind coding-system-for-write.
 	Don't encode filename here because call-process encodes the
-	arguments by codign-system-for-write.
+	arguments by coding-system-for-write.
 
 1998-03-03  Richard Stallman  <rms@psilocin.gnu.org>
 
@@ -6252,7 +6252,7 @@
 	enable-multibyte-characters to nil.
 
 	* language/china-util.el (setup-chinese-cns-environment): Correct
-	the settting of default-input-method.
+	the setting of default-input-method.
 
 	* international/mule-cmds.el (select-safe-coding-system): Kill the
 	warning buffer before returning.
@@ -6721,7 +6721,7 @@
 
 1998-02-02  Ed Reingold  <reingold@melange.gnu.org>
 
-	* calendar/calendar.el (general-holidays): Fix mispelling.
+	* calendar/calendar.el (general-holidays): Fix misspelling.
 
 1998-02-02  Dan Nicolaescu  <done@ece.arizona.edu>
 
@@ -7156,7 +7156,7 @@
 	(list-subset-p): New function.
 	(select-safe-coding-system): New function.
 	(set-language-info): New optional args DESCRIBE-MAP and SETUP-MAP.
-	(set-language-info-alist): New optionla arg PARENTS.  Call
+	(set-language-info-alist): New optional arg PARENTS.  Call
 	set-language-info with appropriate DESCRIBE-MAP and SETUP-MAP args.
 	(set-language-environment-coding-systems): New function.
 
@@ -7265,7 +7265,7 @@
 
 	* international/mule-conf.el (oldjis-newjis-jisroman-ascii): New
 	character unification table.
-	(standarad-character-unification-table-for-decode): Initialize to
+	(standard-character-unification-table-for-decode): Initialize to
 	`unification-table' property of `oldjis-newjis-jisroman-ascii'.
 
 1998-01-21  Erik Naggum  <erik@naggum.no>
@@ -8482,8 +8482,7 @@
 	* international/mule-diag.el (list-input-methods): Handle the case
 	that title of input method is not a simple string.  Show users
 	an informative message when leim is not yet installed.
-	(describe-coding-system): Print safe charasets of the coding
-	system.
+	(describe-coding-system): Print safe charsets of the coding system.
 
 	* international/mule-util.el (find-safe-coding-system): New function.
 
@@ -8579,8 +8578,7 @@
 	element 0 of inclass-p, not element 1.
 
 	* progmodes/cc-cmds.el (c-progress-init, c-progress-fini):
-	Be slient if c-progress-interval
-	is nil.
+	Be silent if c-progress-interval is nil.
 
 	* progmodes/cc-vars.el (c-progress-interval): Document new semantics.
 
@@ -8689,7 +8687,7 @@
 	(1) Make all coding systems (including aliases and subsidiaries)
 	directly have coding-spec vector in `coding-system' property.
 	(2) Properties of a coding system (except for `coding-system' and
-	`eol-type') is embeded in PLIST slot of coding-spec vector.
+	`eol-type') is embedded in PLIST slot of coding-spec vector.
 	(coding-spec-plist-idx): Initialize to 3.
 	(coding-system-spec-ref): Deleted.
 	(coding-system-spec): Moved from src/coding.c.
@@ -8713,7 +8711,7 @@
 	(after-insert-file-set-buffer-file-coding-system): Change
 	enable-multibyte-characters only when
 	find-new-buffer-file-coding-system returns non-nil value.
-	(find-new-buffer-file-coding-system): Adjusted for the abobe change.
+	(find-new-buffer-file-coding-system): Adjusted for the above change.
 
 	* international/mule-cmds.el (read-multilingual-string): Use
 	current-input-method prior to default-input-method.  Don't bind
@@ -8862,7 +8860,7 @@
 
 1997-10-21  Jason Rumney  <jasonr@pec.co.nz>
 
-	* nnkiboze.el (nnkiboze-request-delete-group): Transliate file
+	* nnkiboze.el (nnkiboze-request-delete-group): Translate file
 	chars.
 
 1997-10-21  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
@@ -9586,7 +9584,7 @@
 	(gnus-picons-x-face-sentinel): Simplified.  Use processes alist.
 	(gnus-picons-display-x-face): Explicitly request an xface image.
 	Always call gnus-picons-prepare-for-annotations.  Use processes alist.
-	(nus-picons-lookup-internal): New function.
+	(gnus-picons-lookup-internal): New function.
 	(gnus-picons-lookup): Use it.
 	(gnus-picons-lookup-user-internal): Ditto.
 	(gnus-picons-display-picon-or-name): No more xface-p argument.
@@ -9628,11 +9626,11 @@
 1997-10-21  Erik Toubro Nielsen  <erik@ifad.dk>
 
 	* gnus-sum.el (gnus-summary-exit): Returned to the wrong topic in
-	certain obscure cases if selected group occured in multiple
+	certain obscure cases if selected group occurred in multiple
 	topics.
 
 	* gnus-topic.el (gnus-topic-update-topic): Did not preserve point
-	on the same instance of a group if group occured in multiple
+	on the same instance of a group if group occurred in multiple
 	topics.  Caused gnus-summary-exit to return to wrong topic if the
 	selected group was in more than one topic.
 
@@ -9904,7 +9902,7 @@
 	`reftex-make-regexp-allow-for-ctrl-m'.
 	(reftex-nearest-match): New function.
 	(reftex-auto-mode-alist): New function.
-	(reftex-make-desparate-section-regexp): New funtion.
+	(reftex-make-desparate-section-regexp): New function.
 	(reftex-get-file-buffer-force): Rewritten to use new variable
 	`reftex-initialize-temporary-buffers'.
 	(reftex-label-alist-builtin): Use abbreviated regexps.
@@ -11167,7 +11165,7 @@
 
 	* international/mule.el (set-auto-coding): Name changed from
 	auto-file-coding-system.  The argument STRING is now a
-	concatination of the heading 1K-byte and the tailing 3K-byte of a
+	concatenation of the heading 1K-byte and the tailing 3K-byte of a
 	file.
 	(set-auto-coding-function): Set it to `set-auto-coding'.
 
@@ -11247,7 +11245,7 @@
 	Master buffer is now in fundamental mode.
 	(reftex-access-scan-info): Name of master buffer changed.
 	(reftex-section-regexp): Is now computed from section levels,
-	not set independantly.
+	not set independently.
 	(reftex-section-levels): Made customizable.
 	(reftex-label): Interpret % escapes in prefix.  Use label format
 	if given.
@@ -11639,7 +11637,7 @@
 	(last): New function.
 
 	* emacs-lisp/cl.el (caar, cadr, cdar, cddr): Moved to subr.el.
-	(last): Function renmed to last*.
+	(last): Function renamed to last*.
 	* emacs-lisp/cl-macs.el (cl-loop-let): Use last*.
 
 	* time.el (display-time-hook): Minor doc fix.
@@ -11651,7 +11649,7 @@
 
 	* textmodes/sgml-mode.el (sgml-mode-common):
 	Set paragraph-start like paragraph-separate.
-	Do match a line which is just a <...> construct after whitespac.e
+	Do match a line which is just a <...> construct after whitespace.
 	Set adaptive-fill-regexp to match whitespace only.
 
 	* emacs-lisp/autoload.el (update-file-autoloads):
@@ -11780,7 +11778,7 @@
 	* language/cyrillic.el: Make describe-cyrillic-environment-map and
 	setup-cyrillic-environment-map prefix commands and bind [Cyrillic]
 	to them in describe-environment-map and setup-environment-map
-	respectively.  Divide language environemnt "Cyrillic" into three:
+	respectively.  Divide language environment "Cyrillic" into three:
 	"Cyrillic-ISO", "Cyrillic-KOI8", and "Cyrillic-ALTERNATIVNYJ".
 
 	* international/mule.el (auto-file-coding-system): New function.
@@ -11900,7 +11898,7 @@
 	function non-interactive.  Add quail-kill-guidance-buf to
 	kill-buffer-hook locally.
 	(quail-start-translation): Check if the current Quail package
-	requires keyboard tranlation feature.
+	requires keyboard translation feature.
 	(quail-start-translation-in-conversion-mode): Likewise.
 	(quail-terminate-translation): Run hooks in
 	input-method-after-insert-chunk-hook.
@@ -12653,7 +12651,7 @@
 	characters, copied from quoted-insert.
 
 	* emacs-lisp/pp.el (pp-to-string): Use
-	emacs-lisp-mode-sytax-table.
+	emacs-lisp-mode-syntax-table.
 
 	* international/quail.el (quail-update-leim-list-file): Go to the
 	beginning of the package file, in case it was already visited.
@@ -12867,7 +12865,7 @@
 1997-07-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* faces.el (set-face-font-auto): Create a fontset if FONT is a
-	fontset not instanciated fontset.
+	fontset not instantiated fontset.
 
 	* international/fontset.el (fontset-name-p): New function.
 	(uninstanciated-fontset-alist): New variable.
@@ -13041,7 +13039,7 @@
 	* jka-compr.el (jka-compr-added-to-file-coding-system-alist): New var.
 	(jka-compr-insert-file-contents): Set coding-system-for-read
 	according to file name after removing compression suffix.
-	(jka-compr-install): Add elemets to file-coding-system-alist.
+	(jka-compr-install): Add elements to file-coding-system-alist.
 	(jka-compr-uninstall): Remove elements from file-coding-system-alist.
 
 	* international/mule-conf.el (file-coding-system-alist):
@@ -13251,7 +13249,7 @@
 
 1997-07-22  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper.el: Further twidling with require viper-init.
+	* viper.el: Further twiddling with require viper-init.
 
 1997-07-21  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
@@ -13393,7 +13391,7 @@
 	* isearch.el (search-invisible): Fix typo.
 	(isearch-search): Bind inhibit-point-motion-hooks because we might
 	have to search inside invisible and intangible text.
-	(isearch-open-overlay-temporary): Delete forgoten debug message.
+	(isearch-open-overlay-temporary): Delete forgotten debug message.
 	(isearch-range-invisible): Fix typo in doc-string.
 
 1997-07-18  Stephen Eglen  <stephene@cogs.susx.ac.uk>
@@ -13584,7 +13582,7 @@
 	* language/english.el (setup-english-environment): Adjusted for
 	the change of coding category names.
 
-	* language/japan-util.el (setup-japanese-environemnt): Adjusted
+	* language/japan-util.el (setup-japanese-environment): Adjusted
 	for the change of coding category names.  Set default-input-method
 	correctly.
 
@@ -13890,7 +13888,7 @@
 	Define coding system aliases.
 
 	* wid-edit.el (widget-choose): Using keyboard, if all choices are
-	diabled, just report an error.
+	disabled, just report an error.
 
 	* cus-edit.el (custom-load-symbol): Don't reload a preloaded file.
 
@@ -14155,7 +14153,7 @@
 	(quail-get-translation): Change the format of DEF part.
 	(quail-lookup-key): Make the second argument LEN optional.  Reset
 	quail-current-translations to nil.
-	(quail-map-definition): New funtion.
+	(quail-map-definition): New function.
 	(quail-get-current-str): New function.
 	(quail-guidance-translations-starting-column): New variable.
 	(quail-update-current-translations): New function.
@@ -14395,7 +14393,7 @@
 	(custom-group-value-create): Ditto.
 
 	* wid-edit.el (widget-button-click): Steal up event if key is not
-	bounbd in `widget-global-map'.
+	bound in `widget-global-map'.
 
 	* cus-edit.el (custom-tree-insert-prefix): Renamed from
 	`custom-tree-insert'.
@@ -14425,7 +14423,7 @@
 1997-06-24  Inge Frick  <inge@nada.kth.se>
 
 	* view.el: Changed some documentation.
-	(view-exits-all-viewing-windows): Nev variable
+	(view-exits-all-viewing-windows): New variable
 	replaces view-exit-all-windows-at-exit.
 	(view-exit-all-windows-at-exit): Variable deleted.
 	(view-mode-enter): Doesn't set view-exit-action if
@@ -14882,7 +14880,7 @@
 	lao.mule -> MuleLao, Mule.Tibetan-X -> MuleTibetan-X.
 	(x-complement-fontset-spec): Optimization for latin-iso8859-1.
 
-	* mule-cmds.el: Define mouse-set-font in mule-menu-keymap agian.
+	* mule-cmds.el: Define mouse-set-font in mule-menu-keymap again.
 
 1997-06-20  Karl Heuer  <kwzh@gnu.ai.mit.edu>
 
@@ -14969,7 +14967,7 @@
 
 	* bindings.el (complete-symbol): New function.
 	(complete-tag): Definition deleted.
-	(esc-map): Bind M-TAB to compete-symbol.
+	(esc-map): Bind M-TAB to complete-symbol.
 
 	* info-look.el: Replaces libc.el.
 	(info-complete-symbol): If MODE is nil, use the default value.
@@ -15045,23 +15043,23 @@
 	* mule-util.el (coding-system-parent): New function.
 	(coding-system-lessp): New function.
 	(coding-system-list): Sort coding systems by coding-system-lessp.
-	An element of returned list is always coing system, never be a
+	An element of returned list is always coding system, never be a
 	cons.
 	(modify-coding-system-alist): Renamed from
 	set-coding-system-alist.
 	(prefer-coding-system): New function.
 	(compose-chars-component): But fix for handling a composite
-	character of no compositon rule.
+	character of no composition rule.
 
 	* mule-diag.el (list-character-sets): Set major mode of *Help*
 	buffer to help-mode.
 	(describe-coding-system): If user input null for coding system,
 	call describe-current-coding-system.
 	(describe-current-coding-system-briefly): Doc-string modified.
-	(print-coding-system-briefly): Print parent and alises of coding
+	(print-coding-system-briefly): Print parent and aliases of coding
 	system.
 	(describe-current-coding-system): Show more information neatly.
-	(list-coding-systems): If called interactively, dont' list up
+	(list-coding-systems): If called interactively, don't list up
 	coding categories.
 	(list-input-methods): New function.
 	(mule-diag): Call list-input-methods for listing input methods.
@@ -15112,7 +15110,7 @@
 	* language/japan-util.el, language/lao-util.el,
 	* language/thai-util.el, language/tibet-util.el,
 	* language/viet-util.el: Provide XXX-util instead of
-	* language/XXX-util.  Delete local variable declartion.
+	* language/XXX-util.  Delete local variable declaration.
 
 	* language/ethio-util.el (ethio-fidel-to-tex-map): Correct several
 	elements.
@@ -15254,7 +15252,7 @@
 	w3-version "WWW 2.3.64 1996/06/02 06:20:23" alpha, which
 	uses the 'widget package rather than the old w3-zone-at.
 	Bug was reported by JENS.
-	Adopted comments and doc strings to Emacs coding
+	Adapted comments and doc strings to Emacs coding
 	conventions.  Reorganized.  Retired v18 support.
 	(ffap-bindings): Offers a default installation.
 	(ffap-string-at-point): Modified arguments.
@@ -15468,7 +15466,7 @@
 
 	* wid-browse.el (widget-minor-mode): Fixed mistake in
 	widget-minor-mode - it had semantics of non-interactive calling
-	reveresed.
+	reversed.
 
 1997-06-14  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -15926,7 +15924,7 @@
 	buffers.
 
 	* bibtex.el (bibtex-convert-alien): New function to convert a
-	buffer not created by BibTeX mode to a format, whichs enables all
+	buffer not created by BibTeX mode to a format, which enables all
 	features of BibTeX mode.
 	(bibtex-mode): Small bug fix for call to bibtex-parse-keys.
 
@@ -15992,7 +15990,7 @@
 	bibtex-end-of-entry.
 
 	* bibtex.el (bibtex-end-of-entry): Don't use forward-sexp anymore,
-	since this fails on entries with non-escaped souble-quotes.  Use
+	since this fails on entries with non-escaped double-quotes.  Use
 	search-bibtex-reference instead (though it is slower, it is more
 	reliable).
 	(bibtex-ispell-abstract): Use normal regexps created by
@@ -16261,7 +16259,7 @@
 	process for the current buffer.
 	(command-execute-with-coding-system): New function.
 	(universal-coding-system-argument): Make it handle
-	universal-arguement correctly.
+	universal-argument correctly.
 	(describe-language-support): Call coding-system-doc-string instead
 	of coding-system-docstring.
 
@@ -16415,7 +16413,7 @@
 	* diff.el (diff-command): Fix previous change.
 
 	* startup.el (command-line): If environment specifies ISO 8859,
-	always set up for both singe-byte and multibyte operation.
+	always set up for both single-byte and multibyte operation.
 	But set-language-environment does most of the job now.
 
 1997-06-06  Simon Marshall  <simon@diazepam.gnu.ai.mit.edu>
@@ -16670,7 +16668,7 @@
 	(widget-field-value-delete): Delete overlay.
 
 	* wid-edit.el (widget-specify-field-update): Specify both
-	`ballon-help' and `help-echo'.
+	`balloon-help' and `help-echo'.
 
 	* wid-edit.el (visibility): Change "more" to "show".
 
@@ -16708,7 +16706,7 @@
 
 	* wid-edit.el (set-text-properties): Redefine for broken XEmacsen.
 	(widget-field-value-get): Remove workaround.
-	(widget-specify-button): Specify both `ballon-help' and `help-echo'.
+	(widget-specify-button): Specify both `balloon-help' and `help-echo'.
 
 1997-06-01  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -17491,7 +17489,7 @@
 	(ada-format-paramlist): Changed all `accept' to `access'.
 	(ada-insert-paramlist): Changed all `accept' to `access'.
 	(ada-in-comment-p): Use standard Emacs way `parse-partial-sexp'.
-	(ada-font-lock-keywords-1): Regexps in not byte-compiled code bahave
+	(ada-font-lock-keywords-1): Regexps in not byte-compiled code behave
 	different than byte-compiled regexps.
 	Change order of some ored entries.
 
@@ -17564,7 +17562,7 @@
 	(m4-start-m4): New function.
 	(m4-end-m4): New function.
 	(m4-m4-buffer, m4-m4-region): Now use m4-start-m4.
-	(m4-font-lock-keywords): Collaps 4 regex's into 1.
+	(m4-font-lock-keywords): Collapse 4 regex's into 1.
 
 1997-05-19  Per Abrahamsen  <abraham@dina.kvl.dk>
 
@@ -17710,7 +17708,7 @@
 	(ansi-term-inv-fg-faces-vector): Define with defvar.
 	(ansi-term-inv-bg-faces-vector): Likewise.
 	(ansi-term-bg-faces-vector, ansi-term-fg-faces-vector): Likewise.
-	(term-ignore-error): New mcro.
+	(term-ignore-error): New macro.
 
 	* lpr.el (lpr-page-header-switches): Use -F, not -f.
 
@@ -17953,7 +17951,7 @@
 	Rename bv-length to backup-extract-version-start.
 
 	* files.el (backup-extract-version-start): New variable.
-	(find-backup-file-namem, backup-extract-version):
+	(find-backup-file-name, backup-extract-version):
 	Rename bv-length to backup-extract-version-start.
 
 	* files.el (auto-mode-alist): Shuffle a few elements.
@@ -18020,7 +18018,7 @@
 
 	* language/chinese.el (pre-write-encode-hz): Make it work for the
 	case the arg FROM is a string.
-	(setup-chinese-cns-environemnt): Set default-input-method to
+	(setup-chinese-cns-environment): Set default-input-method to
 	quail-quich-cns.
 
 	* language/devan-util.el (in-is13194-devanagari-post-read-conversion):
@@ -18042,7 +18040,7 @@
 
 	* language/european.el: Typo in comment fixed.
 
-	* language/japanese.el (setup-japanese-environemnt): Set
+	* language/japanese.el (setup-japanese-environment): Set
 	sendmail-coding-system and rmail-file-coding-system to
 	'iso-2022-jp.
 
@@ -18061,7 +18059,7 @@
 
 	* mule-cmds.el (build-describe-language-support-function)
 	(build-set-language-environment-function): The functions deleted.
-	(set-language-info): Doc-string modified.  Chage handling of
+	(set-language-info): Doc-string modified.  Change handling of
 	special keys describe-function and setup-function.
 	(read-language-name): Return nil if a language specified doesn't
 	have KEY.
@@ -18083,7 +18081,7 @@
 	(make-coding-system): Describe about INIT-BOL and DESIGNATION-BOL
 	in doc-string.
 	(find-new-buffer-file-coding-system): Doc-string modified.
-	(make-unitication-table): New function.
+	(make-unification-table): New function.
 
 	* quail.el (use-quail-package): Error message added.
 	(quail-mode): Make sure to have quail-mode-map at the head of
@@ -18161,7 +18159,7 @@
 1997-05-07  Edward M Reingold  <emr@silver.wisdom.weizmann.ac.il>
 
 	* cal-hebrew.el (holiday-passover-etc): Postpone date of Yom
-	HaShoah to Monday if it falls on Sunday (as per ammendment passed
+	HaShoah to Monday if it falls on Sunday (as per amendment passed
 	by the Israeli Kenesset, May, 1997).
 
 1997-05-06  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
@@ -18447,7 +18445,7 @@
 	(rmail-forward, rmail-retry-failure): Likewise.
 	(rmail-mark-message): Accept an element of rmail-mark-message as arg.
 
-	* mh-comp.el (mh-smail-batch): Accpt &rest arg `ignored'.
+	* mh-comp.el (mh-smail-batch): Accept &rest arg `ignored'.
 
 	* bindings.el: Bind C-x m, C-x 4 m, C-x 5 m to compose-mail...
 
@@ -19143,7 +19141,7 @@
 	(custom-load-symbol): Use it.
 	(custom-mode-customize-menu): New menu.
 	(custom-mode): Use it.
-	Code moved to te end of the file.
+	Code moved to the end of the file.
 
 	* cus-edit.el (custom-buffer-create-internal): Split out from
 	`custom-buffer-create'.
@@ -19379,7 +19377,7 @@
 
 	* fontset.el (x-charset-registries): Add Tibetan entries.
 
-	* lanugage/devanagari.el, language/devan-util.el,
+	* language/devanagari.el, language/devan-util.el,
 	* language/indian.el: Handle more Devanagari characters correctly.
 
 	* language/english.el: New file.
@@ -19746,8 +19744,7 @@
 
 1997-03-18  Naoto TAKAHASHI  <ntakahas@etl.go.jp>
 
-	* mule-conf.el: Change short and long names for Ethipic character
-	set.
+	* mule-conf.el: Change short and long names for Ethiopic character set.
 
 	* fontset.el (x-charset-registries): Change entry for Ethiopic.
 
@@ -19773,7 +19770,7 @@
 	(x-complement-fontset-spec): Call x-compose-font-name with t for
 	the above argument.
 
-	* faces.el (set-face-font): Allow specifing fontset for the arg FONT.
+	* faces.el (set-face-font): Allow specifying fontset for the arg FONT.
 
 	* mule-conf.el (alternate-charset-table): Change each entry from
 	list to dot pair.
@@ -20046,8 +20043,7 @@
 	* mule.el: Initialize a global variable use-default-ascent.
 	(make-coding-system): Set charset (symbol) instead of charset-id.
 	(integer) in FLAGS of ISO-2022 type coding systems.  For ISO-2022
-	type conding systems, new flags INIT-BOL DESIGNATION-BOL are
-	added.
+	type coding systems, new flags INIT-BOL DESIGNATION-BOL are added.
 	(define-coding-system-alias): Coding style changed.
 	(charset-list): Incorrect macro definition changed to correct
 	defsubst.
@@ -20383,7 +20379,7 @@
 	broken out of mouse-buffer-menu.
 
 	* derived.el (define-derived-mode): Add derived-mode-parent
-	property to the defived mode command name.
+	property to the derived mode command name.
 
 1997-02-07  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -21520,7 +21516,7 @@
 	No need to set comment-start-skip directly here.
 
 	* sh-script.el (sh-mode-syntax-table): Turn on comment syntax for #,
-	comment-end for newline, string for `, and excape for $.
+	comment-end for newline, string for `, and escape for $.
 	rc can use the same as sh.  Move csh after sh.
 	(sh-comment-prefix, sh-font-lock-keywords-only): Variables deleted.
 	(sh-mode): Adjust setting of font-lock-defaults.
@@ -21986,11 +21982,11 @@
 
 	(c-guess-basic-syntax): CASE 5G: Although we still test on
 	c-recognize-knr-p, this is no longer user configurable, and no
-	longer imposes potentially disasterous impact on performance.
+	longer imposes potentially disastrous impact on performance.
 	Adopt c-mode.el assumption that argdecls are indented at least one
 	space and that function headers are not indented.  This prevents
 	us from potentially searching back to the top of the file when
-	looking at a large number of top-level delarations.
+	looking at a large number of top-level declarations.
 
 	(c-gnu-impose-minimum): New function.
 
@@ -22376,7 +22372,7 @@
 
 1996-09-19  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper.el (vip-autoindent): No longert moves insert point.
+	* viper.el (vip-autoindent): No longer moves insert point.
 	(vip-paren-match): Now pays no attention to comments and
 	leaves region active.
 	* viper-util.el (vip-convert-standard-file-name): New function.
@@ -22868,7 +22864,7 @@
 	(ange-ftp-before-parse-ls-hook): Add defvar.
 
 	* server.el (server-visit-files): New argument NOWAIT.
-	Don't record on server-buffer-clienjts if NOWAIT.
+	Don't record on server-buffer-clients if NOWAIT.
 	(server-process-filter): Pass NOWAIT arg based on data from server.
 	Don't record in server-clients if NOWAIT.
 

@@ -368,7 +368,7 @@
 1999-07-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* mainmake.v2 (SHELL, MAKESHELL): Don't use /dos/command, it can
-	invoke an incompatible version of COMAMND.COM.
+	invoke an incompatible version of COMMAND.COM.
 
 1999-05-19  Eli Zaretskii  <eliz@gnu.org>
 

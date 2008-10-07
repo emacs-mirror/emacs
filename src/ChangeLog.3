@@ -325,7 +325,7 @@
 
 	* xfns.c (Fx_list_fonts): Remember that FACE may not have a font
 	specified.  Don't specify 30000 as the maximum limit on the number
-	of fontns returned - 2000 is more reasonable.
+	of fonts returned - 2000 is more reasonable.
 
 	* xfaces.c (build_face, unload_font, free_frame_faces): Don't
 	forget to block input while making X calls.
@@ -1843,7 +1843,7 @@
 
 1993-03-20  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
-	Use the `visiblity' parameter to determine the initial state of
+	Use the `visibility' parameter to determine the initial state of
 	the frame, instead of the `iconic-startup' and
 	`suppress-initial-map' parameters.
 	* xfns.c (x_icon): Test the Qvisibility parameter against Qicon,
@@ -2017,7 +2017,7 @@
 	`frame-live-p'.
 	* window.c (Fwindow_live_p): Renamed from Flive_window_p.
 	* lisp.h (CHECK_LIVE_WINDOW): Change to use Qwindow_live_p.
-	(Qwindow_live_p): Extern declaration renamed fom Qlive_window_p.
+	(Qwindow_live_p): Extern declaration renamed from Qlive_window_p.
 
 1993-03-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -3610,7 +3610,7 @@
 	Replaced with...
 	(last_mouse_scrollbar): New variable.
 	(note_mouse_movement): Clear last_mouse_scrollbar when we have
-	receieved a new motion.
+	received a new motion.
 	(syms_of_xterm): Staticpro last_mouse_scrollbar.
 
 	* xterm.c (note_mouse_position): Renamed to note_mouse_movement,
@@ -5109,8 +5109,8 @@
 	(EVENT_START, EVENT_END): Two new accessors, to get at the
 	starting and ending position of an event.
 	(POSN_WINDOW, POSN_BUFFER_POSN, PONS_SCROLLBAR_BUTTON)
-	(POSN_WINDOW_POSN, POSN_TIMESTAMP): New macros, to futher
-	diasassemble the values returned by EVENT_START and EVENT_END.
+	(POSN_WINDOW_POSN, POSN_TIMESTAMP): New macros, to further
+	disassemble the values returned by EVENT_START and EVENT_END.
 	* keyboard.c (echo_char, read_char): Apply EVENT_HEAD without first
 	testing for EVENT_HAS_PARAMETERS; EVENT_HEAD works properly on
 	all sorts of events now.
@@ -6774,7 +6774,7 @@
 	current x_id_name.
 	* xdisp.c (display_mode_line): If we should set the frame's name,
 	but there is only one frame currently active, call x_set_name with
-	nil as the name; this will display samething generically
+	nil as the name; this will display something generically
 	appropriate.
 
 1992-07-20  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
@@ -7012,7 +7012,7 @@
 	`LINKNAME', to conform with the docstring.
 
 	* Makefile.in (CPP): Pass `-Is -Im' to CPP, to make sure that
-	machine- and system-dependend files can include each other
+	machine- and system-dependent files can include each other
 	properly.
 	* ymakefile (CFLAGS): Add those directories to the #include path
 	here too.
@@ -7678,7 +7678,7 @@
 	* doc.c (Fdocumentation): Use EQ (x, y) instead of XSYMBOL (x) ==
 	XSYMBOL (y).
 
-	* doc.c (Fdocumentation): When decyphering a function made from
+	* doc.c (Fdocumentation): When deciphering a function made from
 	conses, use 'else if' for the chain of alternatives instead of
 	just 'if'.  It used to be that each alternative returned, but
 	that's not true anymore.
@@ -7762,7 +7762,7 @@
 	* syssignal.h (sigunblock): New macro, taken from 18.58's
 	emacssignal.h file.
 	* sysdep.c (request_sigio): Use the sigunblock macro to enable
-	reciept of SIGWINCH, instead of the dysfunctional sigblockx.
+	receipt of SIGWINCH, instead of the dysfunctional sigblockx.
 
 1992-05-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -8000,7 +8000,7 @@
 	* process.c (send_process): This used to set a handler to
 	catch SIGPIPEs when writing to a subprocess, and then set the
 	handler to SIGDFL after writing, but this would stomp on the
-	SIGPIPE handler for for the X connection.  So restore the prevous
+	SIGPIPE handler for the X connection.  So restore the previous
 	handler instead of changing to SIGDFL.
 
 1992-04-18  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -9185,7 +9185,7 @@
 	(mouse_position_hook): New, simpler interface.
 	* keyboard.c (struct movement, movement_buf, movement_ptr):
 	Replaced by...
-	(mouse_moved): This flag, to be used in conjuction with
+	(mouse_moved): This flag, to be used in conjunction with
 	mouse_position_hook.
 	(EVENT_QUEUES_EMPTY): Adjusted to use mouse_moved instead of
 	movement_buf and movement_ptr.
@@ -10328,7 +10328,7 @@
 	since all we really need is x_focus_screen; all other issues are
 	the realm and responsibility of the window manager.
 	(x_new_selected_screen): Renamed to x_new_focus_screen, and
-	modified not to do thiogs inappropriate for signal handlers.
+	modified not to do things inappropriate for signal handlers.
 	(XTread_socket): Change the handling of EnterNotify, LeaveNotify,
 	FocusOut and FocusIn events to use x_new_selected_screen, and
 	ditched code that deals with x_mouse_screen and x_input_screen,
@@ -10975,7 +10975,7 @@
 	function; static variables inside functions don't always work in
 	Emacs.
 
-	* editfns.c (in_accessible_range): Deleted - insufficently
+	* editfns.c (in_accessible_range): Deleted - insufficiently
 	general.
 	(clip_to_bounds): New function, much like in_accessible_range,
 	except that the upper and lower bounds are arguments.
@@ -12694,7 +12694,7 @@
 
 1990-08-19  Joseph Arceneaux  (jla@geech)
 
-	* xterm.c (dumplyphs): Last vestige of MScreenWidth removed.
+	* xterm.c (dumpglyphs): Last vestige of MScreenWidth removed.
 	* config.h: MScreenWidth, MScreenHeight definitions removed.
 
 1990-08-18  Joseph Arceneaux  (jla@geech)
@@ -12748,7 +12748,7 @@
 
 	* xdisp.c (display_mode_line): Set desired_glyphs->bufp to 0 for
 	mode line.
-	All occurences of struct screen * replaced with SCREEN_PTR.
+	All occurrences of struct screen * replaced with SCREEN_PTR.
 
 1990-08-13  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
@@ -13630,7 +13630,7 @@
 	wasted the cursor.  Break out of loop if no display line.
 	Use mode line cursor if we're there.
 	(x_y_pos): New function.
-	(x_set_font): Dont' set x_font_{width,height}, they are gone.
+	(x_set_font): Don't set x_font_{width,height}, they are gone.
 
 1990-03-22  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
@@ -14028,7 +14028,7 @@
 	* xterm.c (XTread_socket): Return a motion event when mouse enters
 	scrollbar or window.
 	(x_make_screen_invisible): Use the new X11R4 function XWithdrawWindow.
-	(x_iconify_screen): Use the X11R4 function XIconfifyWindow.
+	(x_iconify_screen): Use the X11R4 function XIconifyWindow.
 	(dumpglyfs): Use the new face structure.
 
 	* xfns.c (install_vertical_scrollbar, install_horizontal_scrollbar):
@@ -14109,7 +14109,7 @@
 
 	* keyboard.c (read_key_sequence): Function keys are now lisp symbols.
 	(kbd_buffer_store_char): Abort if store pointer past
-	buffer.  Temproarry; This shouldn't be able to happen.
+	buffer.  Temporary; this shouldn't be able to happen.
 	(read_key_sequence): #ifdef HAVE_X_WINDOWS code
 	which handles complex objects.
 	(command_loop_1): Check not termcap screen before
@@ -14365,7 +14365,7 @@
 
 	* config.h-dist (C_SWITCH_SITE, LD_SWITCH_SITE): Mention these.
 	(HAVE_X11): Renamed from X11 and defined by default.
-	It shoukld have no effect when not using X.
+	It should have no effect when not using X.
 
 1989-11-14  Joseph Arceneaux  (jla@spiff)
 
@@ -14943,7 +14943,7 @@
 	(x11_encode_mouse_button): Encoding a la X11, except for one
 	kludge.  This is used only for motion events.
 
-	* xterm.c (XTread_socket): Handle motion eveots.
+	* xterm.c (XTread_socket): Handle motion events.
 
 1989-07-26  Joseph Arceneaux  (jla@spiff)
 
@@ -15115,7 +15115,7 @@
 	elements for X10; these variables are handled in event processing
 	for X11.
 	(x_make_screen_invisible): Send an UnmapNotify event to the root
-	window to aprise the window manager of the change.
+	window to apprise the window manager of the change.
 	(XTread_socket): Catch VisibilityNotify events.
 
 1989-06-25  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -15668,7 +15668,7 @@
 	Delete gray_bits; this value made global.
 	Don't call install_*_scrollbar here.
 	(x_set_horizontal_scrollbar): Define this for real.
-	(x_set_vertical_scrollbar): Corrent args to install_vertical_scrollbar.
+	(x_set_vertical_scrollbar): Correct args to install_vertical_scrollbar.
 	(install_vertical_scrollbar): New local slider_pixmap, and set it.
 	Delete locals GC_values, temp_gc.
 	Change arrow_width, arrow_height (appears to be undefined) to 16.

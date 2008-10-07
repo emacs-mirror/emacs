@@ -143,7 +143,7 @@ Remove also properties of all files in subdirectories."
 ;; not show proper directory contents when a file has been copied or
 ;; deleted before.
 (defun tramp-flush-file-function ()
-  "Flush all Tramp cache properties from buffer-file-name."
+  "Flush all Tramp cache properties from `buffer-file-name'."
   (let ((bfn (if (stringp (buffer-file-name))
 		 (buffer-file-name)
 	       default-directory)))
@@ -289,8 +289,7 @@ KEY identifies the connection, it is either a process or a vector."
 (defun tramp-parse-connection-properties (method)
   "Return a list of (user host) tuples allowed to access for METHOD.
 This function is added always in `tramp-get-completion-function'
-for all methods.  Resulting data are derived from connection
-history."
+for all methods.  Resulting data are derived from connection history."
   (let (res)
     (maphash
      '(lambda (key value)

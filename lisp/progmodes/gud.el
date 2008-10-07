@@ -139,7 +139,9 @@ Used to grey out relevant toolbar icons.")
   (with-current-buffer gud-comint-buffer
     (if (string-equal gud-target-name "emacs")
 	(comint-stop-subjob)
-      (comint-interrupt-subjob))))
+      (if (eq gud-minor-mode 'jdb)
+	  (gud-call "suspend")
+	(comint-interrupt-subjob)))))
 
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info (debugger)" . gud-goto-info)

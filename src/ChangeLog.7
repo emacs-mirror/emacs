@@ -22,7 +22,7 @@
 
 1998-08-18  Kenichi Handa  <handa@etl.go.jp>
 
-	* ccl.c (CCL_READ_CHAR): If eof is encounterd while processing the
+	* ccl.c (CCL_READ_CHAR): If eof is encountered while processing the
 	last block, don't just finish but processes eol block of the
 	current CCL program.
 	(ccl_driver): Add a new jump label ccl_repeat for the above change.
@@ -312,7 +312,7 @@
 	(coding_category_name): Include "coding-category-ccl".
 	(detect_coding_ccl): New function.
 	(setup_coding_system): Setup coding->spec.ccl.valid_codes from the
-	coding system priority `valid-codes' for CCL based coding systesm.
+	coding system priority `valid-codes' for CCL based coding systems.
 	(detect_coding_mask): Check also a CCL based coding system.
 	(Fupdate_coding_systems_internal): Renamed from
 	Fupdate_iso_coding_systems.
@@ -372,7 +372,7 @@
 	* fileio.c (Finsert_file_contents): Call Vset_auto_coding_function
 	with two arguments.
 	(Fwrite_region): If buffer-file-coding-system is set locally, use
-	the coding system whithout checking file-coding-system-alist.
+	the coding system without checking file-coding-system-alist.
 	(syms_of_fileio): Docstring of set-auto-coding-function adjusted
 	for the change of argument number.
 
@@ -485,7 +485,7 @@
 	* ccl.c: Typo in comments fixed.
 
 	* coding.c (DECODE_ISO_CHARACTER): While decoding two-byte code,
-	if the sencond byte is invalid, produce the first byte as is.
+	if the second byte is invalid, produce the first byte as is.
 
 	* fontset.c (fs_load_font): Typo in comments fixed.
 
@@ -723,7 +723,7 @@
 	* process.c (read_process_output): Handle carryover correctly.
 
 	* xterm.c (dumpglyphs): Check the case that FACE_FONT (face) is
-	NULL.  While displaing cursor with non-default face, if the
+	NULL.  While displaying cursor with non-default face, if the
 	variable `font' is NULL, don't set GCFont.
 
 1998-06-19  Richard Stallman  <rms@gnu.org>
@@ -808,7 +808,7 @@
 1998-06-12  Ken'ichi Handa  <handa@melange.gnu.org>
 
 	* fileio.c (Finsert_file_contents): Undo the previous change for
-	handling set-ault-coding.
+	handling set-auto-coding.
 
 1998-06-11  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -1240,7 +1240,7 @@
 	* coding.h: Change terms unify/unification to
 	translate/translation respectively throughout the file.
 
-	* fns.c (concat): Fix bug in concatinating a list of multibyte and
+	* fns.c (concat): Fix bug in concatenating a list of multibyte and
 	unibyte characters.
 
 	* lisp.h (Vnonascii_translation_table): Name changed from
@@ -2174,10 +2174,10 @@
 	(ccl_driver): Adjusted for the above changes.
 	(resolve_symbol_ccl_program): New function.
 	(Fccl_execute): The arg CCL-PROGRAM can be a symbol of CCL
-	program.  If CCL-PRGRAM is a vector, convert symbols in it to ID
+	program.  If CCL-PROGRAM is a vector, convert symbols in it to ID
 	numbers by resolve_symbol_ccl_program.
 	(Fccl_execute_on_string): Likewise.
-	(Fregister_ccl_program): If the arg CCL-PRGRAM is a vector,
+	(Fregister_ccl_program): If the arg CCL-PROGRAM is a vector,
 	convert symbols in it to ID numbers by resolve_symbol_ccl_program.
 
 	* ccl.h (Vccl_program_table, Qccl_program_idx): Extern them.
@@ -3702,7 +3702,7 @@
 	Update coding->heading_ascii.
 	(detect_eol_type): New arg SKIP.
 	(detect_eol): Adjusted for the change of detect_eol_type.
-	(ccl_codign_driver): New function.
+	(ccl_coding_driver): New function.
 	(decode_coding): Arg CONSUMED deleted, and the meaning of return
 	value changed.  Update members produced, produced_char, consumed,
 	consumed_char of the struct *coding.
@@ -3724,7 +3724,7 @@
 	string.
 
 	* fileio.c (Finsert_file_contents): Adjusted for the change of
-	struct coding_system and function decode_coding.  For normail file
+	struct coding_system and function decode_coding.  For normal file
 	reading, use code_convert_region.
 	(Fwrite_region): Adjusted for the change of struct coding_system.
 	(e_write): Adjusted for the change of encode_coding.
@@ -3824,7 +3824,7 @@
 	(CCL_IterateMultipleMap, CCL_TranslateMultipleMap):
 	New macros for CCL Commands.
 	(EXCMD): New macro.
-	(ccl_driver): New case lable `CCL_Extention'.
+	(ccl_driver): New case label `CCL_Extention'.
 	(setup_ccl_program): Initialize the member `private_state' of CCL.
 	(Fregister_ccl_program): Delete unused variable IDX.
 	(Fregister_ccl_translation_table): New function.
@@ -4949,7 +4949,7 @@
 	* buffer.h: Add more prototypes and function declarations.
 
 	* print.c (printchar): Declare `work' as unsigned char.
-	(internal_with_output_to_temp_buffer): Protoype parameter
+	(internal_with_output_to_temp_buffer): Prototype parameter
 	FUNCTION.
 	(Ferror_message_string): Remove extra argument of
 	print_error_message.
@@ -5288,7 +5288,7 @@
 
 	* emacs.c (shut_down_emacs): Call `dos_cleanup'.
 
-	* msdos.c (mouse_get_pos): Remove reduntant call to `int86'.
+	* msdos.c (mouse_get_pos): Remove redundant call to `int86'.
 	Clear the mouse-moved flag for all frames.  Update last mouse
 	position.
 	(IT_set_menu_bar_lines): Remove.
@@ -5753,7 +5753,7 @@
 	Pass in new parameter to w32_kbd_mods_to_emacs.
 	Handle WM_DISPLAYCHANGE, WINDOWPOSCHANGED, ACTIVATE, SHOWWINDOW,
 	INITMENU, and ACTIVATEAPP messages.
-	Explicitly check for visibile and obscured frames, and to see if
+	Explicitly check for visible and obscured frames, and to see if
 	any event should cause a redisplay.
 
 	(x_display_bar_cursor): Don't check whether frame is updating here.
@@ -6007,7 +6007,7 @@
 	detect it as no-conversion.
 	(decode_coding): Handle coding_type_raw_text.
 	(encode_coding): Likewise.
-	(Fdetect_coding_region): Ajusted for the above changes.
+	(Fdetect_coding_region): Adjusted for the above changes.
 	(shrink_conversion_area): Handle coding_type_raw_text.
 
 	* coding.h (coding_type): New member coding_type_raw_text.
@@ -6433,7 +6433,7 @@
 	* callproc.c (Fcall_process_region): Use cdr part (not car part)
 	of Vdefault_process_coding_system for writing out text.
 
-	* coding.c (detect_coding_iso2022): Do not exclude posibility of
+	* coding.c (detect_coding_iso2022): Do not exclude possibility of
 	7-bit encoding when designation to G1 occurs.  If CSI, SS2, or SS3
 	is found, return CODING_CATEGORY_MASK_ISO_8_ELSE.
 	(Fdetect_coding_region): Doc-string modified.
@@ -6491,7 +6491,7 @@
 1997-07-31  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
 	* coding.c (encode_coding_iso2022): When source data ends not at
-	character boundardy, set data in coding->carryover correctly, and
+	character boundary, set data in coding->carryover correctly, and
 	set SRC to SRC_END.
 	(encode_coding_sjis_big5): Likewise.
 	(encode_coding): Don't set coding->carryover_size to 0.
@@ -7006,7 +7006,7 @@
 
 	* window.c: Include blockinput.h.
 	(Fset_window_configuration): Block input around frobbing the frame.
-	Preseve point in the current buffer if we do not switch
+	Preserve point in the current buffer if we do not switch
 	to a different one.
 
 1997-07-06  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
@@ -7367,7 +7367,7 @@
 	* fontset.h (font_idx_temp): Extern it.
 	(FS_LOAD_FONT): New macro.
 
-	* fontset.c (font_idx_temp): New temprary variable used in
+	* fontset.c (font_idx_temp): New temporary variable used in
 	FS_LOAD_FONT.
 
 	* xfaces.c (Fset_face_attribute_internal): Use FS_LOAD_FONT
@@ -7524,7 +7524,7 @@
 	name to iso-latin-1.
 	(lisp_data_to_selection_data): Likewise.
 
-	* xterm.c (dumpglyph): Shift baseline for such a font that is
+	* xterm.c (dumpglyphs): Shift baseline for such a font that is
 	shorter but ascent or descent exceed the line height.
 	For a larger font, draw a small hook at right-bottom edge instead
 	of a rectangle.
@@ -7635,7 +7635,7 @@
 
 	* xterm.c (process_expose_from_menu, XTread_socket):
 	Set has_been_visible field.
-	(x_make_frame_visible): Don't do XMoveWindow unles has_been_visible.
+	(x_make_frame_visible): Don't do XMoveWindow unless has_been_visible.
 
 	* xterm.h (struct x_output): New field has_been_visible.
 
@@ -7918,7 +7918,7 @@
 	* fontset.c (fontset_pattern_regexp): Cast to (char *) before
 	assigning to P0.
 
-	* ccl.c (struct ccl_prog_stack): Declear the member ccl_prog as
+	* ccl.c (struct ccl_prog_stack): Declare the member ccl_prog as
 	Lisp_Object *.
 
 	* editfns.c: Declare Fuser_full_name as Lisp_Object in advance to
@@ -8107,7 +8107,7 @@
 	and clip-large-size-font modified.
 
 	* xfns.c (Fx_create_frame): Delete code for handling the X
-	resouce "Fontset".
+	resource "Fontset".
 
 	* xselect.c (selection_data_to_lisp_data): If TYPE is `STRING'
 	and DATA contains 8-bit codes, decode them as Latin-1 characters.
@@ -8369,7 +8369,7 @@
 	(char_quoted): Move earlier, update gl_state when needed.
 	(find_defun_start): Update gl_state when needed.
 	(back_comment): New function.
-	(Scomment_fence, Sstring_fence): New delimeter char classes
+	(Scomment_fence, Sstring_fence): New delimiter char classes
 	denoted by `!' and `|'.
 	(Fchar_syntax, Fmatching_paren): Update gl_state to whole-buffer state.
 	(scan_words): Update gl_state when needed.

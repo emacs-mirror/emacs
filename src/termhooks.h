@@ -643,5 +643,9 @@ extern void delete_terminal P_ ((struct terminal *));
 /* The initial terminal device, created by initial_term_init. */
 extern struct terminal *initial_terminal;
 
+#ifdef HAVE_GPM
+extern void close_gpm (void);
+#endif
+
 /* arch-tag: 33a00ecc-52b5-4186-a410-8801ac9f087d
    (do not change this comment) */

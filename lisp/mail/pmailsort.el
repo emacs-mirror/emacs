@@ -33,9 +33,6 @@
 
 (autoload 'timezone-make-date-sortable "timezone")
 
-(declare-function pmail-dont-reply-to "mail-utils" (destinations))
-(declare-function pmail-desc-get-marker-end "pmailsort" (msgnum))
-(declare-function pmail-desc-get-marker-start "pmailsort" (msgnum))
 (declare-function pmail-update-summary "pmailsum" (&rest ignore))
 
 ;; Sorting messages in Pmail buffer
@@ -109,7 +106,8 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
   (let ((ans ""))
     (while (and fields (string= ans ""))
       (setq ans
-	    (pmail-dont-reply-to
+	    ;; NB despite the name, this lives in mail-utils.el.
+	    (rmail-dont-reply-to
 	     (mail-strip-quoted-names
 	      (or (pmail-fetch-field msg (car fields)) ""))))
       (setq fields (cdr fields)))
@@ -176,8 +174,8 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	  (setq sort-lists
 		(cons (list (funcall keyfun msgnum) ;Make sorting key
 			    (eq pmail-current-message msgnum) ;True if current
-			    (pmail-desc-get-marker-start msgnum)
-			    (pmail-desc-get-marker-end msgnum))
+			    (pmail-desc-get-start msgnum)
+			    (pmail-desc-get-end msgnum))
 		      sort-lists))
 	  (if (zerop (% msgnum 10))
 	      (message "Finding sort keys...%d" msgnum))
@@ -247,6 +245,10 @@ Arguments are MSG and FIELD."
   (timezone-make-date-sortable date "GMT" "GMT"))
 
 (provide 'pmailsort)
+
+;; Local Variables:
+;; change-log-default-name: "ChangeLog.pmail"
+;; End:
 
 ;; arch-tag: 665da245-f6a7-4115-ad8c-ba19216988d5
 ;;; pmailsort.el ends here

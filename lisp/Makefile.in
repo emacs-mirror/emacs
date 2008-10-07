@@ -687,7 +687,6 @@ ELCFILES = \
 	$(lisp)/informat.elc \
 	$(lisp)/international/ccl.elc \
 	$(lisp)/international/characters.elc \
-	$(lisp)/international/codepage.elc \
 	$(lisp)/international/encoded-kb.elc \
 	$(lisp)/international/fontset.elc \
 	$(lisp)/international/isearch-x.elc \
@@ -763,6 +762,16 @@ ELCFILES = \
 	$(lisp)/mail/mailpost.elc \
 	$(lisp)/mail/metamail.elc \
 	$(lisp)/mail/mspools.elc \
+	$(lisp)/mail/pmail.elc \
+	$(lisp)/mail/pmaildesc.elc \
+	$(lisp)/mail/pmailedit.elc \
+	$(lisp)/mail/pmailhdr.elc \
+	$(lisp)/mail/pmailkwd.elc \
+	$(lisp)/mail/pmailmm.elc \
+	$(lisp)/mail/pmailmsc.elc \
+	$(lisp)/mail/pmailout.elc \
+	$(lisp)/mail/pmailsort.elc \
+	$(lisp)/mail/pmailsum.elc \
 	$(lisp)/mail/reporter.elc \
 	$(lisp)/mail/rfc2368.elc \
 	$(lisp)/mail/rfc822.elc \
@@ -1120,6 +1129,7 @@ ELCFILES = \
 	$(lisp)/tempo.elc \
 	$(lisp)/term.elc \
 	$(lisp)/term/common-win.elc \
+	$(lisp)/term/internal.elc \
 	$(lisp)/term/ns-win.elc \
 	$(lisp)/term/pc-win.elc \
 	$(lisp)/term/rxvt.elc \
@@ -1312,6 +1322,7 @@ compile-always: doit
 	$(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
 
 ## In case any files are missing from ELCFILES.
+## Why is the UnicodeData check needed, when these files are no-byte-compile?
 compile-last:
 	@wd=$(lisp); $(setwins); \
 	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
@@ -1358,15 +1369,6 @@ compile-after-backup: backup-compiled-files compile-always
 # earlier ones.
 recompile: doit $(LOADDEFS) $(lisp)/progmodes/cc-mode.elc
 	$(emacs) --eval "(batch-byte-recompile-directory 0)" $(lisp)
-
-# CC Mode uses a compile time macro system which causes a compile time
-# dependency in cc-mode.elc on the macros in cc-langs.el and the
-# version string in cc-defs.el.
-$(lisp)/progmodes/cc-mode.elc: \
-	$(lisp)/progmodes/cc-mode.el \
-	$(lisp)/progmodes/cc-langs.el \
-	$(lisp)/progmodes/cc-defs.el
-	$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
 
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in loaddefs.el.
@@ -1457,4 +1459,51 @@ check-declare:
 	$(emacs) -l $(lisp)/emacs-lisp/check-declare \
 	  --eval '(check-declare-directory "$(lisp)")'
 
+# Dependencies
+
+# CC Mode uses a compile time macro system which causes a compile time
+# dependency in cc-*.elc files on the macros in other cc-*.el and the
+# version string in cc-defs.el.
+$(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-awk.elc\
+ $(lisp)/progmodes/cc-cmds.elc $(lisp)/progmodes/cc-compat.elc\
+ $(lisp)/progmodes/cc-engine.elc $(lisp)/progmodes/cc-fonts.elc\
+ $(lisp)/progmodes/cc-langs.elc $(lisp)/progmodes/cc-menus.elc\
+ $(lisp)/progmodes/cc-mode.elc $(lisp)/progmodes/cc-styles.elc\
+ $(lisp)/progmodes/cc-subword.elc $(lisp)/progmodes/cc-vars.elc: \
+   $(lisp)/progmodes/cc-bytecomp.elc $(lisp)/progmodes/cc-defs.elc
+
+$(lisp)/progmodes/cc-align.elc: \
+   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc
+
+$(lisp)/progmodes/cc-cmds.elc: \
+   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc
+
+$(lisp)/progmodes/cc-compat.elc: \
+   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-styles.elc \
+   $(lisp)/progmodes/cc-engine.elc
+
+$(lisp)/progmodes/cc-defs.elc: $(lisp)/progmodes/cc-bytecomp.elc \
+   $(lisp)/emacs-lisp/cl.elc $(lisp)/emacs-lisp/regexp-opt.elc
+
+$(lisp)/progmodes/cc-engine.elc: $(lisp)/progmodes/cc-langs.elc \
+   $(lisp)/progmodes/cc-vars.elc
+
+$(lisp)/progmodes/cc-fonts.elc: $(lisp)/progmodes/cc-langs.elc \
+   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc \
+   $(lisp)/font-lock.elc
+
+$(lisp)/progmodes/cc-langs.elc: $(lisp)/progmodes/cc-vars.elc \
+   $(lisp)/emacs-lisp/cl.elc
+
+$(lisp)/progmodes/cc-mode.elc: $(lisp)/progmodes/cc-langs.elc \
+   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc \
+   $(lisp)/progmodes/cc-styles.elc $(lisp)/progmodes/cc-cmds.elc \
+   $(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-menus.elc
+
+$(lisp)/progmodes/cc-styles.elc: $(lisp)/progmodes/cc-vars.elc \
+   $(lisp)/progmodes/cc-align.elc
+
+$(lisp)/progmodes/cc-subword.elc: $(lisp)/progmodes/cc-cmds.elc
+
+$(lisp)/progmodes/cc-vars.elc: $(lisp)/custom.elc $(lisp)/widget.elc
 # Makefile ends here.

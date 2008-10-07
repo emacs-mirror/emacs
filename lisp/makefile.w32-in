@@ -320,15 +320,6 @@ compile-after-backup: backup-compiled-files compile-always
 recompile: mh-autoloads doit $(lisp)/progmodes/cc-mode.elc
 	$(emacs) --eval $(ARGQUOTE)(batch-byte-recompile-directory 0)$(ARGQUOTE) $(lisp)
 
-# CC Mode uses a compile time macro system which causes a compile time
-# dependency in cc-mode.elc on the macros in cc-langs.el and the
-# version string in cc-defs.el.
-$(lisp)/progmodes/cc-mode.elc: \
-	$(lisp)/progmodes/cc-mode.el \
-	$(lisp)/progmodes/cc-langs.el \
-	$(lisp)/progmodes/cc-defs.el
-	$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(lisp)/progmodes/cc-mode.el
-
 $(lisp)/calendar/cal-loaddefs.el:
 	"$(EMACS)" $(EMACSOPT) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
@@ -477,3 +468,51 @@ distclean: clean
 
 maintainer-clean: bootstrap-clean distclean
 	- $(DEL) $(AUTOGENEL)
+
+# Dependencies
+
+# CC Mode uses a compile time macro system which causes a compile time
+# dependency in cc-*.elc files on the macros in other cc-*.el and the
+# version string in cc-defs.el.
+$(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-awk.elc\
+ $(lisp)/progmodes/cc-cmds.elc $(lisp)/progmodes/cc-compat.elc\
+ $(lisp)/progmodes/cc-engine.elc $(lisp)/progmodes/cc-fonts.elc\
+ $(lisp)/progmodes/cc-langs.elc $(lisp)/progmodes/cc-menus.elc\
+ $(lisp)/progmodes/cc-mode.elc $(lisp)/progmodes/cc-styles.elc\
+ $(lisp)/progmodes/cc-subword.elc $(lisp)/progmodes/cc-vars.elc: \
+   $(lisp)/progmodes/cc-bytecomp.elc $(lisp)/progmodes/cc-defs.elc
+
+$(lisp)/progmodes/cc-align.elc: \
+   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc
+
+$(lisp)/progmodes/cc-cmds.elc: \
+   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc
+
+$(lisp)/progmodes/cc-compat.elc: \
+   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-styles.elc \
+   $(lisp)/progmodes/cc-engine.elc
+
+$(lisp)/progmodes/cc-defs.elc: $(lisp)/progmodes/cc-bytecomp.elc \
+   $(lisp)/emacs-lisp/cl.elc $(lisp)/emacs-lisp/regexp-opt.elc
+
+$(lisp)/progmodes/cc-engine.elc: $(lisp)/progmodes/cc-langs.elc \
+   $(lisp)/progmodes/cc-vars.elc
+
+$(lisp)/progmodes/cc-fonts.elc: $(lisp)/progmodes/cc-langs.elc \
+   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc \
+   $(lisp)/font-lock.elc
+
+$(lisp)/progmodes/cc-langs.elc: $(lisp)/progmodes/cc-vars.elc \
+   $(lisp)/emacs-lisp/cl.elc
+
+$(lisp)/progmodes/cc-mode.elc: $(lisp)/progmodes/cc-langs.elc \
+   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc \
+   $(lisp)/progmodes/cc-styles.elc $(lisp)/progmodes/cc-cmds.elc \
+   $(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-menus.elc
+
+$(lisp)/progmodes/cc-styles.elc: $(lisp)/progmodes/cc-vars.elc \
+   $(lisp)/progmodes/cc-align.elc
+
+$(lisp)/progmodes/cc-subword.elc: $(lisp)/progmodes/cc-cmds.elc
+
+$(lisp)/progmodes/cc-vars.elc: $(lisp)/custom.elc $(lisp)/widget.elc

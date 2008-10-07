@@ -604,8 +604,9 @@ This also matches some punctuation characters which need conversion.")
 (defvar tibetan-decomposed-temp nil)
 
 ;; For automatic composition.
-(set-char-table-range composition-function-table '(#xF00 . #xFD1)
-		      '(("[\xF00-\xFD1]+" . tibetan-composition-function)))
+(set-char-table-range 
+ composition-function-table '(#xF00 . #xFD1)
+ (list (vector tibetan-composable-pattern 0 'font-shape-gstring)))
 
 (provide 'tibetan)
 

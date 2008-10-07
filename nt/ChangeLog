@@ -583,7 +583,7 @@
 
 	* makefile.w32-in (bootstrap-nmake): When nmake'ing bootstrap on
 	the lisp/ directory, set SHELL to $(SHELLTYPE); this avoids
-	calling non-existent cmdproxy.exe on bootstrappings after a
+	calling non-existent cmdproxy.exe on bootstrapping after a
 	previous install followed by realclean.
 
 	* nmake.defs: Add quote in comment to resync font-locking.
@@ -940,14 +940,14 @@
 
 2001-01-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* configure.bat: Make sure redirection is preceeded by a blank, to
+	* configure.bat: Make sure redirection is preceded by a blank, to
 	avoid problems with "1>>foo" when CMD.EXE is the shell, which eats
 	up the "1" part.  From Rob Giardina <rob@criticalpointsoftware.com>.
 
 2001-01-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* INSTALL: Copy the table of tested combinations of development
-	tools from confuigure.bat.  Add suggestion to install Bash on
+	tools from configure.bat.  Add suggestion to install Bash on
 	Windows 9X.
 
 	* configure.bat: Don't copy lisp/Makefile, it doesn't exist; copy
@@ -1360,7 +1360,7 @@
 
 	* cmdproxy.c (get_env_size): New function.
 	(spawn): Explicitly pass in environment when creating subprocess.
-	(main): Cleaup error messages.
+	(main): Cleanup error messages.
 	Specify dynamically sized environment block for real shell.
 	Pass on unhandled switches to real shell.
 	Quote program name.

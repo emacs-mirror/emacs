@@ -7,10 +7,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,9 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -32,7 +30,7 @@
 
 ;; (autoload 'pmail-mime "pmailmm"
 ;;   "Show MIME message." t)
-;; (add-hook 'pmail-mode-hook    
+;; (add-hook 'pmail-mode-hook
 ;;           (lambda ()
 ;;             (define-key pmail-mode-map (kbd "v")
 ;;               'pmail-mime)))
@@ -408,5 +406,9 @@ This calls `pmail-mime-show' to do the real job."
 
 (provide 'pmailmm)
 
+;; Local Variables:
+;; change-log-default-name: "ChangeLog.pmail"
+;; End:
+
 ;; arch-tag: 3f2c5e5d-1aef-4512-bc20-fd737c9d5dd9
-;; pmailmm.el ends here
+;;; pmailmm.el ends here

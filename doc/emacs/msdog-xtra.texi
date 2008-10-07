@@ -402,8 +402,7 @@ MULE}.  When you print to such printers from Windows, you can use the
 @kbd{M-x lpr-buffer}; Emacs will then convert the text to the DOS
 codepage that you specify.  For example, @kbd{C-x RET c cp850-dos RET
 M-x lpr-region RET} will print the region while converting it to the
-codepage 850 encoding.  You may need to create the @code{cp@var{nnn}}
-coding system with @kbd{M-x codepage-setup}.
+codepage 850 encoding.
 
 @vindex dos-printer
 @vindex dos-ps-printer
@@ -432,17 +431,12 @@ describes these aspects.
 
   The description below is largely specific to the MS-DOS port of
 Emacs, especially where it talks about practical implications for
-Emacs users.  For other operating systems, see the @file{code-pages.el}
-package, which implements support for MS-DOS- and MS-Windows-specific
-encodings for all platforms other than MS-DOS.
+Emacs users.
 
 @table @kbd
 @item M-x dos-codepage-setup
 Set up Emacs display and coding systems as appropriate for the current
 DOS codepage.
-
-@item M-x codepage-setup
-Create a coding system for a certain DOS codepage.
 @end table
 
 @cindex codepage, MS-DOS
@@ -467,21 +461,6 @@ without rebooting, we describe here how a stock MS-DOS system
 behaves.}.  Much the same limitation applies when you run DOS
 executables on other systems such as MS-Windows.
 
-@cindex unibyte operation @r{(MS-DOS)}
-  If you invoke Emacs on MS-DOS with the @samp{--unibyte} option
-@iftex
-(@pxref{Initial Options,,,emacs, the Emacs Manual}),
-@end iftex
-@ifnottex
-(@pxref{Initial Options}),
-@end ifnottex
-Emacs does not perform any conversion of non-@acronym{ASCII}
-characters.  Instead, it reads and writes any non-@acronym{ASCII}
-characters verbatim, and sends their 8-bit codes to the display
-verbatim.  Thus, unibyte Emacs on MS-DOS supports the current
-codepage, whatever it may be, but cannot even represent any other
-characters.
-
 @vindex dos-codepage
   For multibyte operation on MS-DOS, Emacs needs to know which
 characters the chosen DOS codepage can display.  So it queries the
@@ -505,7 +484,7 @@ The special features described in the rest of this section mostly
 pertain to codepages that encode ISO 8859 character sets.
 
   For the codepages which correspond to one of the ISO character sets,
-Emacs knows the character set name based on the codepage number.  Emacs
+Emacs knows the character set based on the codepage number.  Emacs
 automatically creates a coding system to support reading and writing
 files that use the current codepage, and uses this coding system by
 default.  The name of this coding system is @code{cp@var{nnn}}, where
@@ -554,60 +533,13 @@ knows the language.)  Even though the character may occupy several
 columns on the screen, it is really still just a single character, and
 all Emacs commands treat it as one.
 
-@cindex IBM graphics characters (MS-DOS)
-@cindex box-drawing characters (MS-DOS)
-@cindex line-drawing characters (MS-DOS)
-  Not all characters in DOS codepages correspond to ISO 8859
-characters---some are used for other purposes, such as box-drawing
-characters and other graphics.  Emacs maps these characters to two
-special character sets called @code{eight-bit-control} and
-@code{eight-bit-graphic}, and displays them as their IBM glyphs.
-However, you should be aware that other systems might display these
-characters differently, so you should avoid them in text that might be
-copied to a different operating system, or even to another DOS machine
-that uses a different codepage.
-
-@vindex dos-unsupported-character-glyph
-  Emacs supports many other characters sets aside from ISO 8859, but it
-cannot display them on MS-DOS.  So if one of these multibyte characters
-appears in a buffer, Emacs on MS-DOS displays them as specified by the
-@code{dos-unsupported-character-glyph} variable; by default, this glyph
-is an empty triangle.  Use the @kbd{C-u C-x =} command to display the
-actual code and character set of such characters.
-@iftex
-@xref{Position Info,,,emacs, the Emacs Manual}.
-@end iftex
-@ifnottex
-@xref{Position Info}.
-@end ifnottex
-
-@findex codepage-setup
-  By default, Emacs defines a coding system to support the current
-codepage.  To define a coding system for some other codepage (e.g., to
-visit a file written on a DOS machine in another country), use the
-@kbd{M-x codepage-setup} command.  It prompts for the 3-digit code of
-the codepage, with completion, then creates the coding system for the
-specified codepage.  You can then use the new coding system to read and
-write files, but you must specify it explicitly for the file command
-when you want to use it
-@iftex
-(@pxref{Text Coding,,,emacs, the Emacs Manual}).
-@end iftex
-@ifnottex
-(@pxref{Text Coding}).
-@end ifnottex
-
-  These coding systems are also useful for visiting a file encoded using
-a DOS codepage, using Emacs running on some other operating system.
-
 @cindex MS-Windows codepages
   MS-Windows provides its own codepages, which are different from the
 DOS codepages for the same locale.  For example, DOS codepage 850
 supports the same character set as Windows codepage 1252; DOS codepage
 855 supports the same character set as Windows codepage 1251, etc.
 The MS-Windows version of Emacs uses the current codepage for display
-when invoked with the @samp{-nw} option.  Support for codepages in the
-Windows port of Emacs is part of the @file{code-pages.el} package.
+when invoked with the @samp{-nw} option.
 
 @node MS-DOS Processes
 @subsection Subprocesses on MS-DOS

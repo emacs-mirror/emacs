@@ -1221,7 +1221,7 @@ Return t if the file exists and loads successfully.  */)
      2000-09-21: It's not possible to just check for the file loaded
      being a member of Vloads_in_progress.  This fails because of the
      way the byte compiler currently works; `provide's are not
-     evaluted, see font-lock.el/jit-lock.el as an example.  This
+     evaluated, see font-lock.el/jit-lock.el as an example.  This
      leads to a certain amount of ``normal'' recursion.
 
      Also, just loading a file recursively is not always an error in

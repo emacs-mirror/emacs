@@ -3556,7 +3556,7 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 {
   int i, j, face, width,  mx, my, enabled, mousehere, row, col;
   struct glyph *text, *p;
-  char *q;
+  const unsigned char *q;
   struct frame *sf = SELECTED_FRAME();
 
   menu_help_message = NULL;
@@ -3590,18 +3590,19 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
       p++;
       for (j = 0, q = menu->text[i]; *q; j++)
 	{
-	  if (*q > 26)
+	  unsigned c = STRING_CHAR_ADVANCE (q);
+
+	  if (c > 26)
 	    {
-	      BUILD_CHAR_GLYPH (*p, *q++, face, 0);
+	      BUILD_CHAR_GLYPH (*p, c, face, 0);
 	      p++;
 	    }
 	  else	/* make '^x' */
 	    {
-	      /* FIXME: need to handle non-ASCII characters!  */
 	      BUILD_CHAR_GLYPH (*p, '^', face, 0);
 	      p++;
 	      j++;
-	      BUILD_CHAR_GLYPH (*p, *q++ + 64, face, 0);
+	      BUILD_CHAR_GLYPH (*p, c + 64, face, 0);
 	      p++;
 	    }
 	}
@@ -3614,9 +3615,9 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
       for (; j < max_width - 2; j++, p++)
 	BUILD_CHAR_GLYPH (*p, ' ', face, 0);
 
-      /* FIXME: should use Unicode codepoint for what Emacs 22.x
-	 displayed here.  */
-      BUILD_CHAR_GLYPH (*p, menu->submenu[i] ? '>' : ' ', face, 0);
+      /* 16 is the character code of a character that on DOS terminal
+	 produces a nice-looking right-pointing arrow glyph.  */
+      BUILD_CHAR_GLYPH (*p, menu->submenu[i] ? 16 : ' ', face, 0);
       p++;
       IT_write_glyphs (sf, text, max_width);
     }

@@ -298,7 +298,7 @@ xd_signature (signature, dtype, parent_type, object)
 	  strcat (signature, x);
 	  elt = CDR_SAFE (XD_NEXT_VALUE (elt));
 	}
-      sprintf (signature, "%s%c", signature, DBUS_STRUCT_END_CHAR);
+      strcat (signature, DBUS_STRUCT_END_CHAR_AS_STRING);
       break;
 
     case DBUS_TYPE_DICT_ENTRY:
@@ -335,7 +335,7 @@ xd_signature (signature, dtype, parent_type, object)
 			     CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
 
       /* Closing signature.  */
-      sprintf (signature, "%s%c", signature, DBUS_DICT_ENTRY_END_CHAR);
+      strcat (signature, DBUS_DICT_ENTRY_END_CHAR_AS_STRING);
       break;
 
     default:
