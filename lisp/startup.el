@@ -1069,28 +1069,20 @@ opening the first frame (e.g. open a connection to an X server).")
 		(funcall inner)
 		(setq init-file-had-error nil))
 	    (error
-	     (let ((message-log-max nil))
-	       (with-current-buffer (get-buffer-create "*Messages*")
-		 (insert "\n\n"
-			 (format "An error has occurred while loading `%s':\n\n"
-				 user-init-file)
-			 (format "%s%s%s"
-				 (get (car error) 'error-message)
-				 (if (cdr error) ": " "")
-				 (mapconcat (lambda (s) (prin1-to-string s t)) (cdr error) ", "))
-			 "\n\n"
-			 "To ensure normal operation, you should investigate and remove the\n"
-			 "cause of the error in your initialization file.  Start Emacs with\n"
-			 "the `--debug-init' option to view a complete error backtrace.\n\n"))
-	       (message "Error in init file: %s%s%s"
-			(get (car error) 'error-message)
-			(if (cdr error) ": " "")
-			(mapconcat 'prin1-to-string (cdr error) ", "))
-	       (let ((pop-up-windows nil))
-		 (pop-to-buffer "*Messages*"))
-	       (setq init-file-had-error t)))))
+	     (display-warning
+	      'initialization
+	      (format "An error occurred while loading `%s':\n\n%s%s%s\n\n\
+To ensure normal operation, you should investigate and remove the
+cause of the error in your initialization file.  Start Emacs with
+the `--debug-init' option to view a complete error backtrace."
+		      user-init-file
+		      (get (car error) 'error-message)
+		      (if (cdr error) ": " "")
+		      (mapconcat (lambda (s) (prin1-to-string s t)) (cdr error) ", "))
+	      :warning)
+	     (setq init-file-had-error t))))
 
-	(if (and deactivate-mark transient-mark-mode)
+      (if (and deactivate-mark transient-mark-mode)
 	    (with-current-buffer (window-buffer)
 	      (deactivate-mark)))
 
@@ -2051,17 +2043,12 @@ A fancy display is used on graphic displays, normal otherwise."
 
 (defun command-line-1 (command-line-args-left)
   (display-startup-echo-area-message)
-
-  ;; Delay 2 seconds after an init file error message
-  ;; was displayed, so user can read it.
-  (when init-file-had-error
-    (sit-for 2))
-
   (when (and pure-space-overflow
 	     (not noninteractive))
     (display-warning
      'initialization
-     "Building Emacs overflowed pure space.  (See the node Pure Storage in the Lisp manual for details.)"
+     "Building Emacs overflowed pure space.\
+  (See the node Pure Storage in the Lisp manual for details.)"
      :warning))
 
   (let ((file-count 0)
