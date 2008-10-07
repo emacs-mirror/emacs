@@ -1,5 +1,7 @@
 2008-10-07  Alan Mackenzie  <acm@muc.de>
 
+	* progmodes/cc-engine.el: Amend several doc strings and comments.
+
 	* progmodes/cc-cmds.el (c-indent-line-or-region): Fix so that
 	indenting a macro followed by blank lines doesn't backslash the
 	following non-blank line into the macro.
