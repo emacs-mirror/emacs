@@ -2135,6 +2135,8 @@ sys_signal (int signal_number, signal_handler_t action)
      When SYNC_INPUT is set, we don't want SA_RESTART because we need to poll
      for pending input so we need long-running syscalls to be interrupted
      after a signal that sets the interrupt_input_pending flag.  */
+  /* Non-interactive keyboard input goes through stdio, where we always
+     want restartable system calls.  */
 # if defined (BROKEN_SA_RESTART) || defined(SYNC_INPUT)
   if (noninteractive)
 # endif
