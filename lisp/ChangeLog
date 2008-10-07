@@ -1,3 +1,9 @@
+2008-10-07  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-indent-line-or-region): Fix so that
+	indenting a macro followed by blank lines doesn't backslash the
+	following non-blank line into the macro.
+
 2008-10-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (before-init-time, after-init-time): Move into
