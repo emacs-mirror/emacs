@@ -516,9 +516,9 @@ fontset_find_font (fontset, c, face, id, fallback)
      int id, fallback;
 {
   Lisp_Object elt, vec, font_group;
-  int i;
-  FRAME_PTR f = XFRAME (FONTSET_FRAME (fontset));
-  int charset_matched = -1;
+  int i, charset_matched = -1;
+  FRAME_PTR f = (FRAMEP (FONTSET_FRAME (fontset)))
+    ? XFRAME (selected_frame) : XFRAME (FONTSET_FRAME (fontset));
 
   font_group = fontset_get_font_group (fontset, fallback ? -1 : c);
   if (! CONSP (font_group))
