@@ -1,3 +1,9 @@
+2008-10-08  Michael Olson  <mwolson@gnu.org>
+
+	* ibuffer.el (ibuffer-shrink-to-fit): Force redisplay, so that we
+	can avoid a bad interaction with programs that add functions to
+	the window-scroll-functions hook.  This fixes Bug #858.
+
 2008-10-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (command-line): Use display-warning to warn about an
