@@ -1153,6 +1153,9 @@ a new window in the current frame, splitting vertically."
     (ibuffer-redisplay t)))
 
 (defun ibuffer-shrink-to-fit (&optional owin)
+  ;; Make sure that redisplay is performed, otherwise there can be a
+  ;; bad interaction with code in the window-scroll-functions hook
+  (redisplay t)
   (fit-window-to-buffer nil (when owin (/ (frame-height)
 					  (length (window-list (selected-frame)))))))
 
