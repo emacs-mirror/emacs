@@ -1,3 +1,7 @@
+2008-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-unload-function): New function.
+
 2008-10-08  Sven Joachim  <svenjoac@gmx.de>
 
 	* eshell/em-cmpl.el, eshell/em-hist.el, eshell/em-ls.el:
@@ -65,8 +69,7 @@
 
 2008-10-06  Chong Yidong  <cyd@stupidchicken.com>
 
-	* startup.el (before-init-time, after-init-time): Move into
-	emacs.c.
+	* startup.el (before-init-time, after-init-time): Move into emacs.c.
 	(command-line): Set after-init-time to nil before initialization.
 
 2008-10-06  Jay Belanger  <jay.p.belanger@gmail.com>
