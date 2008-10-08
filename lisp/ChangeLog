@@ -1,3 +1,9 @@
+2008-10-08  Sven Joachim  <svenjoac@gmx.de>
+
+	* eshell/em-cmpl.el, eshell/em-hist.el, eshell/em-ls.el:
+	* eshell/esh-cmd.el, eshell/esh-ext.el, eshell/esh-io.el:
+	For clarity, explictly require cl.
+
 2008-10-08  Michael Olson  <mwolson@gnu.org>
 
 	* ibuffer.el (ibuffer-shrink-to-fit): Force redisplay, so that we
