@@ -2,7 +2,7 @@
 
 	* eshell/em-cmpl.el, eshell/em-hist.el, eshell/em-ls.el:
 	* eshell/esh-cmd.el, eshell/esh-ext.el, eshell/esh-io.el:
-	For clarity, explictly require cl.
+	For clarity, explicitly require cl.
 
 2008-10-08  Michael Olson  <mwolson@gnu.org>
 
