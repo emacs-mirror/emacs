@@ -1464,6 +1464,21 @@ name of buffer configuration."
   (setq bs--marked-buffers nil)
   (bs--show-with-configuration (bs--configuration-name-for-prefix-arg arg)))
 
+;; ----------------------------------------------------------------------
+;; Cleanup
+;; ----------------------------------------------------------------------
+
+(defun bs-unload-function ()
+  "Unload the Buffer Selection library."
+  (let ((bs-buf (get-buffer "*buffer-selection*")))
+    (when bs-buf
+      (with-current-buffer bs-buf
+	(when (eq major-mode 'bs-mode)
+	  (bs-kill)
+	  (kill-buffer bs-buf)))))
+  ;; continue standard unloading
+  nil)
+
 ;; Now provide feature bs
 (provide 'bs)
 
