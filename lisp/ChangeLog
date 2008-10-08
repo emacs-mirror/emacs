@@ -44,7 +44,7 @@
 	(rx-to-string): Call rx-form, rx-group-if. Refine definition of
 	NO-GROUP.
 
-2008-10-07  T. V. Raman  <raman@users.sourceforge.net>
+2008-10-07  T. V. Raman  <raman@users.sourceforge.net>  (tiny change)
 
 	* json.el (json-advance): Use forward-char.
 	(json-skip-whitespace): Use skip-syntax-forward.
