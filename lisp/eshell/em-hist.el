@@ -55,6 +55,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl))
+
 (require 'ring)
 (require 'esh-opt)
 (require 'em-pred)

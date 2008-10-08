@@ -33,6 +33,7 @@
 (provide 'esh-ext)
 
 (eval-when-compile
+  (require 'cl)
   (require 'esh-cmd))
 (require 'esh-util)
 
