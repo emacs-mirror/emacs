@@ -99,7 +99,7 @@
 	{
 	    NSPortName = Emacs;
 	    NSMessage = requestService;
-	    NSUserData = open-selection
+	    NSUserData = open-selection;
 	    NSSendTypes = (NSStringPboardType);
 	    NSMenuItem = {
 		default = "Emacs.app/New Buffer Containing Selection";
@@ -108,7 +108,7 @@
 	{
 	    NSPortName = Emacs;
 	    NSMessage = requestService;
-	    NSUserData = open-file
+	    NSUserData = open-file;
 	    NSSendTypes = (NSStringPboardType);
 	    NSMenuItem = {
 		default = "Emacs.app/Open Selected File";
@@ -117,7 +117,7 @@
 	{
 	    NSPortName = Emacs;
 	    NSMessage = requestService;
-	    NSUserData = mail-selection
+	    NSUserData = mail-selection;
 	    NSSendTypes = (NSStringPboardType);
 	    NSMenuItem = {
 		default = "Emacs.app/Email Selection";
@@ -126,7 +126,7 @@
 	{
 	    NSPortName = Emacs;
 	    NSMessage = requestService;
-	    NSUserData = mail-to
+	    NSUserData = mail-to;
 	    NSSendTypes = (NSStringPboardType);
 	    NSMenuItem = {
 		default = "Emacs.app/Send Email to Selected Address";
