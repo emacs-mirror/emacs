@@ -15,7 +15,8 @@ i) Your report will be assigned a number and generate an automatic reply.
 ii) Optionally, you can set some database parameters when you first
 report a bug (see "Setting bug parameters" below).
 
-iii) If you want to CC: someone, use X-Debbugs-CC: (see below).
+iii) If you want to CC: someone, use X-Debbugs-CC: (this is important;
+see below).
 
 Once your report is filed and assigned a number, it is sent out to the
 bug mailing list.  In some cases, it may be appropriate to just file a
@@ -37,9 +38,11 @@ new report. The only time to send mail to the bug list is to create a
 new report.
 
 ** When reporting a bug, to send a Cc to another address
-(e.g. bug-cc-mode@gnu.org), do not just use a Cc: header.
+(e.g. bug-cc-mode@gnu.org), do NOT just use a Cc: header.
 Instead, use "X-Debbugs-CC:".  This ensures the Cc address will get a
-mail with the bug report number in.
+mail with the bug report number in.  If you do not do this, each reply
+in the subsequent discussion will end up creating a new bug.  This is
+annoying.
 
 ** To not get acknowledgement mail from the tracker,
 add an "X-Debbugs-No-Ack:" header (with any value).  If you use Gnus,
