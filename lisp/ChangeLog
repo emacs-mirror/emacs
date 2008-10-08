@@ -26,9 +26,8 @@
 
 2008-10-07  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
 
-	* rx-new.el (rx-constituents): Change `anything' to call
-	rx-anything. Change `not-wordchar' assignment to "\\W" from
-	"[^[:word:]]".
+	* rx-new.el (rx-constituents): Change `anything' to call rx-anything.
+	Change `not-wordchar' assignment to "\\W" from "[^[:word:]]".
 	(rx-group-if): New function.
 	(rx-parent): New variable.
 	(rx-and, rx-or): Put shy groups only when necessary.
@@ -36,27 +35,26 @@
 	(rx-anything): New function.
 	(rx-any-delete-from-range, rx-any-condense-range)
 	(rx-check-any-string): New functions.
-	(rx-check-any): Return result as a list. Don't convert chars to
-	strings. Don't prepend "\\" to "^". Don't search for close
-	bracket. Check char category string. Call rx-form instead of
-	rx-to-string.
+	(rx-check-any): Return result as a list.  Don't convert chars to
+	strings.  Don't prepend "\\" to "^".  Don't search for close bracket.
+	Check char category string.  Call rx-form instead of rx-to-string.
 	(rx-any): Rebuid to complete the function.
-	(rx-check-not): Fix char category regexp pattern string. Call
-	rx-form instead of rx-to-string.
-	(rx-not): Call rx-form instead of rx-to-string. Convert "[^]" to
-	"[^^]". Call regexp-quote for one char string when not called from
-	rx-not. Add "\\w", and toggle to upcase. Add the case of
+	(rx-check-not): Fix char category regexp pattern string.
+	Call rx-form instead of rx-to-string.
+	(rx-not): Call rx-form instead of rx-to-string.  Convert "[^]" to
+	"[^^]".  Call regexp-quote for one char string when not called from
+	rx-not.  Add "\\w", and toggle to upcase.  Add the case of
 	"\\[SCBW]" to toggle.
-	(rx-=, rx->=, rx -**, rx-repeat, rx-submatch): Call rx-form
+	(rx-=, rx->=, rx-**, rx-repeat, rx-submatch): Call rx-form
 	instead of rx-to-string.
-	(rx-kleene): Call rx-form instead of rx-to-string. Call
-	rx-group-if to adjust putting of shy groups.
+	(rx-kleene): Call rx-form instead of rx-to-string.
+	Call rx-group-if to adjust putting of shy groups.
 	(rx-atomic-p): Make check more precisely.
 	(rx-eval, rx-greedy): Call rx-form instead of rx-to-string.
 	(rx-regexp): Call rx-group-if.
 	(rx-form): New function.
-	(rx-to-string): Call rx-form, rx-group-if. Refine definition of
-	NO-GROUP.
+	(rx-to-string): Call rx-form, rx-group-if.
+	Refine definition of NO-GROUP.
 
 2008-10-07  T. V. Raman  <raman@users.sourceforge.net>  (tiny change)
 
@@ -148,7 +146,7 @@
 2008-10-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/compile.el (compilation-start): Make sure to move to
-	point-max only when we are in the compilation buffer. (Bug#1073)
+	point-max only when we are in the compilation buffer.  (Bug#1073)
 
 2008-10-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -248,7 +246,7 @@
 	* vc-hooks.el (vc-file-clearprops): Revert change from 2008-09-29.
 	(vc-file-not-found-hook): Check, that `buffer-file-name' is
 	non-nil.  It is not clear, whether this is only fixing symptoms on
-	an error. OTOH, in all other cases, the call of `vc-file-clearprops'
+	an error.  OTOH, in all other cases, the call of `vc-file-clearprops'
 	is embedded by that check.  So it might be TRT.  Suggested by Dan
 	Nicolaescu <dann@ics.uci.edu>.
 
