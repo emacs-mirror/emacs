@@ -1,3 +1,7 @@
+2008-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fontset.c (fontset_find_font): Check frame validity.
+
 2008-10-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* gtkutil.c (xg_display_open): Reset default display if none
