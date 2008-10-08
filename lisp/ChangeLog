@@ -1,3 +1,7 @@
+2008-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* json.el (json-skip-whitespace): Fix last change.
+
 2008-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs-unload-function): New function.
