@@ -1,3 +1,8 @@
+2008-10-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (Fraise_frame): On text-only terminals select frame in
+	order to make it visible.  (Bug#1061)
+
 2008-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fontset.c (fontset_find_font): Check frame validity.
