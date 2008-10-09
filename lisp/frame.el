@@ -630,8 +630,8 @@ TTY should be the file name of the tty device to use.  TYPE
 should be the terminal type string of TTY, for example \"xterm\"
 or \"vt100\".  The optional third argument PARAMETERS specifies
 additional frame parameters."
-  ;; Use "F" rather than "f" to avoid reading from devices that don't
-  ;; like that.
+  ;; Use "F" rather than "f", in case the device does not exist, as
+  ;; far as the filesystem is concerned.
   (interactive "FOpen frame on tty device: \nsTerminal type of %s: ")
   (unless tty
     (error "Invalid terminal device"))
