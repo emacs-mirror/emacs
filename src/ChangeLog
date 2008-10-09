@@ -1,3 +1,8 @@
+2008-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispnew.c (update_text_area): Avoid looping due to large glyph
+	overhangs (bug#1070).
+
 2008-10-09  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (face_for_char): If face->fontset is negative, just
