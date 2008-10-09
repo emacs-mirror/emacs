@@ -1,3 +1,8 @@
+2008-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (make_terminal_frame) [MSDOS]: Remove unused #ifdef'ed
+	away code.
+
 2008-10-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dispnew.c (update_text_area): Avoid looping due to large glyph
