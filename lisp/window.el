@@ -710,8 +710,15 @@ See also `same-window-buffer-names'."
   :group 'windows)
 
 (defcustom pop-up-frames nil
-  "Non-nil means `display-buffer' should make a separate frame."
-  :type 'boolean
+  "Whether `display-buffer' should make a separate frame.
+If nil, never make a seperate frame.
+If the value is `graphic-only', make a separate frame
+on graphic displays only.
+Any other non-nil value means always make a separate frame."
+  :type '(choice
+	  (const :tag "Never" nil)
+	  (const :tag "On graphic displays only" graphic-only)
+	  (const :tag "Always" t))
   :group 'windows)
 
 (defcustom display-buffer-reuse-frames nil
@@ -931,7 +938,8 @@ A specific frame - consider windows on that frame only.
 
 nil - consider windows on the selected frame \(actually the
 last non-minibuffer frame\) only.  If, however, either
-`display-buffer-reuse-frames' or `pop-up-frames' is non-nil,
+`display-buffer-reuse-frames' or `pop-up-frames' is non-nil
+\(non-nil and not graphic-only on a text-only terminal),
 consider all visible or iconified frames."
   (interactive "BDisplay buffer:\nP")
   (let* ((can-use-selected-window
@@ -945,6 +953,11 @@ consider all visible or iconified frames."
 		     buffer-or-name
 		   (get-buffer buffer-or-name)))
 	 (name-of-buffer (buffer-name buffer))
+	 ;; On text-only terminals do not pop up a new frame when
+	 ;; `pop-up-frames' equals graphic-only.
+	 (use-pop-up-frames (if (eq pop-up-frames 'graphic-only)
+				(display-graphic-p)
+			      pop-up-frames))
 	 ;; `frame-to-use' is the frame where to show `buffer' - either
 	 ;; the selected frame or the last nonminibuffer frame.
 	 (frame-to-use
@@ -967,7 +980,8 @@ consider all visible or iconified frames."
       ;; If the buffer's name tells us to use the selected window do so.
       (window--display-buffer-2 buffer (selected-window)))
      ((let ((frames (or frame
-			(and (or pop-up-frames display-buffer-reuse-frames
+			(and (or use-pop-up-frames
+				 display-buffer-reuse-frames
 				 (not (last-nonminibuffer-frame)))
 			     0)
 			(last-nonminibuffer-frame))))
@@ -983,7 +997,7 @@ consider all visible or iconified frames."
 	     (when pars
 	       (funcall special-display-function
 			buffer (if (listp pars) pars))))))
-     ((or pop-up-frames (not frame-to-use))
+     ((or use-pop-up-frames (not frame-to-use))
       ;; We want or need a new frame.
       (window--display-buffer-2
        buffer (frame-selected-window (funcall pop-up-frame-function))))
