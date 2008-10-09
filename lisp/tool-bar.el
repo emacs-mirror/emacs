@@ -52,12 +52,13 @@ conveniently adding tool bar items."
   :global t
   :group 'mouse
   :group 'frames
-  (and (display-images-p)
-       (modify-all-frames-parameters (list (cons 'tool-bar-lines
-						 (if tool-bar-mode 1 0))))
-       (if (and tool-bar-mode
-		(display-graphic-p))
-	   (tool-bar-setup))))
+  (if tool-bar-mode
+      (progn
+  	(dolist (frame (frame-list))
+  	  (if (display-graphic-p frame)
+  	      (set-frame-parameter frame 'tool-bar-lines 1)))
+  	(tool-bar-setup))
+    (modify-all-frames-parameters (list (cons 'tool-bar-lines 0)))))
 
 ;;;###autoload
 ;; Used in the Show/Hide menu, to have the toggle reflect the current frame.
@@ -257,10 +258,16 @@ holds a keymap."
 ;;; Set up some global items.  Additions/deletions up for grabs.
 
 (defvar tool-bar-setup nil
-  "Set to t if the tool-bar has been set up by `tool-bar-setup'.")
+  "Non-nil if the tool-bar has been set up by `tool-bar-setup'.")
 
 (defun tool-bar-setup (&optional frame)
-  (unless tool-bar-setup
+  (unless (or tool-bar-setup
+	      (null tool-bar-mode)
+	      ;; No-op if the initial frame is on a tty, deferring
+	      ;; action until called from x-create-frame-with-faces.
+	      ;; Tool-bar icons can depend on X settings, which are
+	      ;; initially unavailable in this case.
+	      (not (display-graphic-p frame)))
     (with-selected-frame (or frame (selected-frame))
       ;; People say it's bad to have EXIT on the tool bar, since users
       ;; might inadvertently click that button.
