@@ -876,7 +876,11 @@ face_for_char (f, face, c, pos, object)
   int face_id;
   int id;
 
-  if (ASCII_CHAR_P (c))
+  /* If face->fontset is negative (that happens when no font is found
+     for face), just return face->ascii_face because we can't do
+     anything.  Perhaps, we should fix the callers to assure
+     that face->fontset is always valid.  */
+  if (ASCII_CHAR_P (c) || face->fontset < 0)
     return face->ascii_face->id;
 
   xassert (fontset_id_valid_p (face->fontset));
