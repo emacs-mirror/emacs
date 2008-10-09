@@ -630,12 +630,16 @@ TTY should be the file name of the tty device to use.  TYPE
 should be the terminal type string of TTY, for example \"xterm\"
 or \"vt100\".  The optional third argument PARAMETERS specifies
 additional frame parameters."
-  (interactive "fOpen frame on tty device: \nsTerminal type of %s: ")
+  ;; Use "F" rather than "f" to avoid reading from devices that don't
+  ;; like that.
+  (interactive "FOpen frame on tty device: \nsTerminal type of %s: ")
   (unless tty
     (error "Invalid terminal device"))
   (unless type
     (error "Invalid terminal type"))
-  (make-frame `((window-system . nil) (tty . ,tty) (tty-type . ,type) . ,parameters)))
+  (if (eq window-system 'pc)
+      (make-frame `((window-system . pc) (tty . ,tty) (tty-type . ,type) . ,parameters))
+    (make-frame `((window-system . nil) (tty . ,tty) (tty-type . ,type) . ,parameters))))
 
 (declare-function x-close-connection "xfns.c" (terminal))
 
