@@ -2665,11 +2665,13 @@ font_delete_unmatched (list, spec, size)
       if (prop < FONT_SPEC_MAX
 	  && INTEGERP (AREF (spec, FONT_DPI_INDEX))
 	  && INTEGERP (AREF (entity, FONT_DPI_INDEX))
+	  && XINT (AREF (entity, FONT_DPI_INDEX)) != 0
 	  && ! EQ (AREF (spec, FONT_DPI_INDEX), AREF (entity, FONT_DPI_INDEX)))
 	prop = FONT_SPEC_MAX;
       if (prop < FONT_SPEC_MAX
 	  && INTEGERP (AREF (spec, FONT_AVGWIDTH_INDEX))
 	  && INTEGERP (AREF (entity, FONT_AVGWIDTH_INDEX))
+	  && XINT (AREF (entity, FONT_AVGWIDTH_INDEX)) != 0
 	  && ! EQ (AREF (spec, FONT_AVGWIDTH_INDEX),
 		   AREF (entity, FONT_AVGWIDTH_INDEX)))
 	prop = FONT_SPEC_MAX;
