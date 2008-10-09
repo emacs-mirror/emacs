@@ -125,6 +125,14 @@ by these regular expressions."
   :version "21.1"
   :group 'vc)
 
+(defcustom vc-cvs-dir-stay-local nil
+  "*Non-nil means use local operations when possible for remote repositories.
+This avoids slow queries over the network and instead uses heuristics
+and past information to determine the current status of files for `vc-dir'."
+  :type 'boolean
+  :version "23.1"
+  :group 'vc)
+
 (defcustom vc-cvs-sticky-date-format-string "%c"
   "*Format string for mode-line display of sticky date.
 Format is according to `format-time-string'.  Only used if
@@ -953,7 +961,7 @@ state."
 (defun vc-cvs-dir-status (dir update-function)
   "Create a list of conses (file . state) for DIR."
   ;; FIXME check all files in DIR instead?
-  (if (vc-stay-local-p dir)
+  (if vc-cvs-dir-stay-local
       (vc-cvs-dir-status-heuristic dir update-function)
     (vc-cvs-command (current-buffer) 'async dir "-f" "status")
     ;; Alternative implementation: use the "update" command instead of
