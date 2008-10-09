@@ -2004,7 +2004,7 @@ DEFUN ("raise-frame", Fraise_frame, Sraise_frame, 0, 1, "",
 If FRAME is invisible or iconified, make it visible.
 If you don't specify a frame, the selected frame is used.
 If Emacs is displaying on an ordinary terminal or some other device which
-doesn't support multiple overlapping frames, this function does nothing.  */)
+doesn't support multiple overlapping frames, this function selects FRAME.  */)
      (frame)
      Lisp_Object frame;
 {
@@ -2016,8 +2016,12 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
 
   f = XFRAME (frame);
 
-  /* Do like the documentation says. */
-  Fmake_frame_visible (frame);
+  if (FRAME_TERMCAP_P (f))
+    /* On a text-only terminal select FRAME.  */
+    Fselect_frame (frame);
+  else
+    /* Do like the documentation says. */
+    Fmake_frame_visible (frame);
 
   if (FRAME_TERMINAL (f)->frame_raise_lower_hook)
     (*FRAME_TERMINAL (f)->frame_raise_lower_hook) (f, 1);
@@ -3413,7 +3417,7 @@ x_set_font_backend (f, new_value, old_value)
       && !CONSP (new_value))
     {
       char *p0, *p1;
-	
+
       CHECK_STRING (new_value);
       p0 = p1 = SDATA (new_value);
       new_value = Qnil;
