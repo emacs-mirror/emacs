@@ -592,25 +592,7 @@ make_terminal_frame (struct terminal *terminal)
   if (!inhibit_window_system
       && (!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame))
 	  || XFRAME (selected_frame)->output_method == output_msdos_raw))
-    {
-      f->output_method = output_msdos_raw;
-#if 0
-      /* This initialization of foreground and background pixels is
-	 only important for the initial frame created in temacs.  If
-	 we don't do that, we get black background and foreground in
-	 the dumped Emacs because the_only_display_info is a static
-	 variable, hence it is born all-zeroes, and zero is the code
-	 for the black color.  Other frames all inherit their pixels
-	 from what's already in the_only_display_info.  */
-      if ((!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame)))
-	  && FRAME_BACKGROUND_PIXEL (f) == 0
-	  && FRAME_FOREGROUND_PIXEL (f) == 0)
-	{
-	  FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
-	  FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
-	}
-#endif
-    }
+    f->output_method = output_msdos_raw;
   else
     f->output_method = output_termcap;
 #else
