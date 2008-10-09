@@ -4475,6 +4475,7 @@ update_text_area (w, vpos)
       struct glyph *desired_glyph = desired_row->glyphs[TEXT_AREA];
       int overlapping_glyphs_p = current_row->contains_overlapping_glyphs_p;
       int desired_stop_pos = desired_row->used[TEXT_AREA];
+      int abort_skipping = 0;
 
       /* If the desired row extends its face to the text area end, and
 	 unless the current row also does so at the same position,
@@ -4494,7 +4495,7 @@ update_text_area (w, vpos)
 	 in common.  */
       while (i < stop)
 	{
-	  int can_skip_p = 1;
+	  int can_skip_p = !abort_skipping;
 
 	  /* Skip over glyphs that both rows have in common.  These
 	     don't have to be written.  We can't skip if the last
@@ -4511,11 +4512,13 @@ update_text_area (w, vpos)
 
 	      rif->get_glyph_overhangs (glyph, XFRAME (w->frame),
 					&left, &right);
-	      can_skip_p = right == 0;
+	      can_skip_p = (right == 0 && !abort_skipping);
 	    }
 
 	  if (can_skip_p)
 	    {
+	      int start_hpos = i;
+
 	      while (i < stop
 		     && GLYPH_EQUAL_P (desired_glyph, current_glyph))
 		{
@@ -4547,6 +4550,12 @@ update_text_area (w, vpos)
 		      x -= desired_glyph->pixel_width;
 		      left -= desired_glyph->pixel_width;
 		    }
+
+		  /* Abort the skipping algorithm if we end up before
+		     our starting point, to avoid looping (bug#1070).
+		     This can happen when the lbearing is larger than
+		     the pixel width.  */
+		  abort_skipping = (i < start_hpos);
 		}
 	    }
 
