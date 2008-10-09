@@ -1,3 +1,11 @@
+2008-10-09  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (face_for_char): If face->fontset is negative, just
+	return ascii_face.
+
+	* font.c (font_delete_unmatched): Fix previous change.  Don't
+	reject an entity if DPI and AVGWIDTH of an entity are 0.
+
 2008-10-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (Fraise_frame): On text-only terminals select frame in
