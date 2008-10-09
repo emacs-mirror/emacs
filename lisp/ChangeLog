@@ -1,5 +1,8 @@
 2008-10-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* frame.el (make-frame-on-tty): Use "F" inside interactive.  Support
+	`pc' ``window-system''.
+
 	* progmodes/compile.el (compilation-start): Resurrect the version
 	for systems that don't support asynchronous subprocesses.
 
