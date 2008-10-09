@@ -1246,38 +1246,70 @@ Returns the compilation buffer created."
 	    (funcall compilation-process-setup-function))
 	(compilation-set-window-height outwin)
 	;; Start the compilation.
-	(let ((proc
-	       (if (eq mode t)
-		   ;; comint uses `start-file-process'.
-		   (get-buffer-process
-		    (with-no-warnings
-		      (comint-exec
-		       outbuf (downcase mode-name)
-		       (if (file-remote-p default-directory)
-			   "/bin/sh"
-			 shell-file-name)
-		       nil `("-c" ,command))))
-		 (start-file-process-shell-command (downcase mode-name)
-						   outbuf command))))
-	  ;; Make the buffer's mode line show process state.
+	(if (fboundp 'start-process)
+	    (let ((proc
+		   (if (eq mode t)
+		       ;; comint uses `start-file-process'.
+		       (get-buffer-process
+			(with-no-warnings
+			  (comint-exec
+			   outbuf (downcase mode-name)
+			   (if (file-remote-p default-directory)
+			       "/bin/sh"
+			     shell-file-name)
+			   nil `("-c" ,command))))
+		     (start-file-process-shell-command (downcase mode-name)
+						       outbuf command))))
+	      ;; Make the buffer's mode line show process state.
+	      (setq mode-line-process
+		    (list (propertize ":%s" 'face 'compilation-warning)))
+	      (set-process-sentinel proc 'compilation-sentinel)
+	      (unless (eq mode t)
+		;; Keep the comint filter, since it's needed for proper handling
+		;; of the prompts.
+		(set-process-filter proc 'compilation-filter))
+	      ;; Use (point-max) here so that output comes in
+	      ;; after the initial text,
+	      ;; regardless of where the user sees point.
+	      (set-marker (process-mark proc) (point-max) outbuf)
+	      (when compilation-disable-input
+		(condition-case nil
+		    (process-send-eof proc)
+		  ;; The process may have exited already.
+		  (error nil)))
+	      (setq compilation-in-progress
+		    (cons proc compilation-in-progress)))
+	  ;; No asynchronous processes available.
+	  (message "Executing `%s'..." command)
+	  ;; Fake modeline display as if `start-process' were run.
 	  (setq mode-line-process
-		(list (propertize ":%s" 'face 'compilation-warning)))
-	  (set-process-sentinel proc 'compilation-sentinel)
-          (unless (eq mode t)
-            ;; Keep the comint filter, since it's needed for proper handling
-            ;; of the prompts.
-            (set-process-filter proc 'compilation-filter))
-	  ;; Use (point-max) here so that output comes in
-	  ;; after the initial text,
-	  ;; regardless of where the user sees point.
-	  (set-marker (process-mark proc) (point-max) outbuf)
-	  (when compilation-disable-input
-	    (condition-case nil
-		(process-send-eof proc)
-	      ;; The process may have exited already.
-	      (error nil)))
-	  (setq compilation-in-progress
-		(cons proc compilation-in-progress))))
+		(list (propertize ":run" 'face 'compilation-warning)))
+	  (force-mode-line-update)
+	  (sit-for 0)			; Force redisplay
+	  (save-excursion
+	    ;; Insert the output at the end, after the initial text,
+	    ;; regardless of where the user sees point.
+	    (goto-char (point-max))
+	    (let* ((buffer-read-only nil) ; call-process needs to modify outbuf
+		   (status (call-process shell-file-name nil outbuf nil "-c"
+					 command)))
+	      (cond ((numberp status)
+		     (compilation-handle-exit
+		      'exit status
+		      (if (zerop status)
+			  "finished\n"
+			(format "exited abnormally with code %d\n" status))))
+		    ((stringp status)
+		     (compilation-handle-exit 'signal status
+					      (concat status "\n")))
+		    (t
+		     (compilation-handle-exit 'bizarre status status)))))
+	  ;; Without async subprocesses, the buffer is not yet
+	  ;; fontified, so fontify it now.
+	  (let ((font-lock-verbose nil)) ; shut up font-lock messages
+	    (font-lock-fontify-buffer))
+	  (set-buffer-modified-p nil)
+	  (message "Executing `%s'...done" command)))
       ;; Now finally cd to where the shell started make/grep/...
       (setq default-directory thisdir)
       ;; The following form selected outwin ever since revision 1.183,
