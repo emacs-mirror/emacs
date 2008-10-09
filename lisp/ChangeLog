@@ -1,3 +1,9 @@
+2008-10-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (pop-up-frames): Add choice graphic-only.
+	(display-buffer): When pop-up-frames equals graphic-only do
+	not pop up new frame on text-only terminals.  (Bug#1061)
+
 2008-10-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-cvs.el (vc-cvs-dir-stay-local): New variable.
