@@ -1063,10 +1063,10 @@ at the front of the list of recently selected ones."
 	(old-frame (selected-frame))
 	new-window new-frame)
     (set-buffer buffer)
-    (setq new-window (display-buffer buffer other-window) norecord)
+    (setq new-window (display-buffer buffer other-window))
     (unless (eq new-window old-window)
       ;; `display-buffer' has chosen another window, select it.
-      (select-window new-window)
+      (select-window new-window norecord)
       (setq new-frame (window-frame new-window))
       (unless (eq new-frame old-frame)
 	;; `display-buffer' has chosen another frame, make sure it gets
