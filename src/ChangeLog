@@ -1,3 +1,7 @@
+2008-10-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Decrease to 10000.
+
 2008-10-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.c (make_terminal_frame) [MSDOS]: Remove unused #ifdef'ed
