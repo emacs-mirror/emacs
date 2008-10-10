@@ -325,6 +325,7 @@ taking continued lines and variable-width characters into account.
 Setting `line-move-visual' to nil reverts this to the previous
 behavior (motion by logical lines based on buffer contents alone).
 
++++
 ** C-x C-c now invokes `save-buffers-kill-terminal', and C-z now
 invokes `suspend-frame'.  This change is for compatibility with the
 new multi-tty support (see `Improved X Window System support' above).
