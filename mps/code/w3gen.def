@@ -3,6 +3,11 @@
 ; ...actually, this file HAS BEEN HAND-EDITED, because that is easier than regenerating it.
 ; ...The end result should be identical to what expgen.sh would produce, if run on these sources.
 ; ...See job001935 for why.  RHSK 2008-09-30.
+; ------ Cut here when delivering to client for use as a list of mps-functions-to-export ------
+; This file (when delivered) is identical to $Id$
+; To use: 
+;  - edit, so that only the mps functions you wish to export are listed,
+;  - specify /def:mps-fns-to-export.def when you link your binary.
 EXPORTS
 ; mps.h
 mps_ap_fill_with_reservoir_permit
