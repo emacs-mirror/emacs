@@ -1998,7 +1998,10 @@ to the end of the list of defaults just after the default value."
   "Dynamically complete shell command at point."
   (interactive)
   (require 'shell)
-  (run-hook-with-args-until-success 'shell-dynamic-complete-functions))
+  (let ((comint-delimiter-argument-list shell-delimiter-argument-list)
+	(comint-file-name-chars shell-file-name-chars)
+	(comint-file-name-quote-list shell-file-name-quote-list))
+    (run-hook-with-args-until-success 'shell-dynamic-complete-functions)))
 
 (defvar minibuffer-local-shell-command-map
   (let ((map (make-sparse-keymap)))
