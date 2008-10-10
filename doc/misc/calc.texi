@@ -953,9 +953,9 @@ To leave Embedded mode, type @kbd{C-x * e} again.  The mode line
 and keyboard will revert to the way they were before.
 
 The related command @kbd{C-x * w} operates on a single word, which
-generally means a single number, inside text.  It uses any
-non-numeric characters rather than blank lines to delimit the
-formula it reads.  Here's an example of its use:
+generally means a single number, inside text.  It searches for an
+expression which ``looks'' like a number containing the point.
+Here's an example of its use:
 
 @smallexample
 A slope of one-third corresponds to an angle of 1 degrees.
@@ -30748,11 +30748,10 @@ other one, except it now uses @samp{\'} (``end-of-buffer'') and
 of describing a blank line that is more appropriate for this
 case).
 
-@vindex calc-embedded-open-word
-@vindex calc-embedded-close-word
-The @code{calc-embedded-open-word} and @code{calc-embedded-close-word}
-variables are similar expressions used when you type @kbd{C-x * w}
-instead of @kbd{C-x * e} to enable Embedded mode.
+@vindex calc-embedded-word-regexp
+The @code{calc-embedded-word-regexp} variable holds a regular expression
+used to define an expression to look for (a ``word'') when you type
+@kbd{C-x * w} to enable Embedded mode.
 
 @vindex calc-embedded-open-plain
 The @code{calc-embedded-open-plain} variable is a string which
@@ -34883,26 +34882,21 @@ It consists of a list of lists of the form
 @code{nil}.
 @end defvar
 
-@defvar  calc-embedded-open-word
-@defvarx calc-embedded-close-word
-@defvarx calc-embedded-open-close-word-alist
+@defvar  calc-embedded-word-regexp
+@defvarx calc-embedded-word-regexp-alist
 See @ref{Customizing Embedded Mode}.@*
-The variables @code{calc-embedded-open-word} and
-@code{calc-embedded-close-word} control the region that Calc will
-activate when Embedded mode is entered with @kbd{C-x * w}.  They are
-regular expressions.
+The variable @code{calc-embedded-word-regexp} determines the expression
+that Calc will activate when Embedded mode is entered with @kbd{C-x *
+w}.  It is a regular expressions.
 
-The default values of @code{calc-embedded-open-word} and
-@code{calc-embedded-close-word} are @code{"^\\|[^-+0-9.eE]"} and 
-@code{"$\\|[^-+0-9.eE]"} respectively.
+The default value of @code{calc-embedded-word-regexp} is
+@code{"[-+]?[0-9]+\\(\\.[0-9]+\\)?\\([eE][-+]?[0-9]+\\)?"}.
 
-The variable @code{calc-embedded-open-close-word-alist} is used to
-set @code{calc-embedded-open-word} and
-@code{calc-embedded-close-word} to different regular
-expressions depending on the major mode of the editing buffer.
+The variable @code{calc-embedded-word-regexp-alist} is used to
+set @code{calc-embedded-word-regexp} to a different regular
+expression depending on the major mode of the editing buffer.
 It consists of a list of lists of the form 
-@code{(@var{MAJOR-MODE}  @var{OPEN-WORD-REGEXP}
-@var{CLOSE-WORD-REGEXP})}, and its default value is
+@code{(@var{MAJOR-MODE}  @var{WORD-REGEXP})}, and its default value is
 @code{nil}.
 @end defvar
 
