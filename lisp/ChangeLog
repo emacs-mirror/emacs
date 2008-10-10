@@ -1,3 +1,8 @@
+2008-10-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (command-line): Don't invoke tool-bar-mode if it is
+	not fboundp.
+
 2008-10-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (command-line): Enable tool-bar-mode as long as it is
