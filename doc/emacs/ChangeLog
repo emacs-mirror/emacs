@@ -1,3 +1,8 @@
+2008-10-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* entering.texi (Exiting): Document change of C-x C-c to
+	save-buffers-kill-terminal.  Document kill-emacs.
+
 2008-09-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (Coding Systems): Don't mention codepage-setup.
