@@ -1,3 +1,12 @@
+2008-10-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* info.el (Info-extract-menu-counting): New argment no-detail to
+	skip detailed node listings.
+	(Info-forward-node): New argument not-up to inhibit going up.
+	(Info-final-node): Call Info-extract-menu-counting and
+	Info-forward-node with the new arguments set to avoid infinite
+	looping.  (Bug#1116)
+
 2008-10-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* startup.el (command-line): Don't invoke tool-bar-mode if it is
