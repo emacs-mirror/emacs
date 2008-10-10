@@ -1,3 +1,13 @@
+2008-10-10  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-embedded-word-regexp)
+	(calc-embedded-word-regexp-alist): New variables.
+	(calc-embedded-open-word, calc-embedded-close-word)
+	(calc-embedded-open-close-word-alist): Remove unused variables.
+
+	* calc/calc-embed.el (calc-embedded-make-info): Use
+	`calc-embedded-word-regexp' to find words.
+
 2008-10-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* info.el (Info-extract-menu-counting): New argment no-detail to
