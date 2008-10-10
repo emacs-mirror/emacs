@@ -193,12 +193,14 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 /* Define one of these for easier conditionals.  */
 #ifdef HAVE_X_WINDOWS
-/* We need a little extra space, see ../../lisp/loadup.el */
+/* We need a little extra space, see ../../lisp/loadup.el.  */
 #define SYSTEM_PURESIZE_EXTRA 15000
 #define LIBX11_SYSTEM -lxext -lsys
 #else
-/* We need a little extra space, see ../../lisp/loadup.el */
-#define SYSTEM_PURESIZE_EXTRA 100000
+/* We may need a little extra space, see ../../lisp/loadup.el.  As of
+   20081010, 1193600 bytes are used at dump time, which is even less
+   than BASE_PURESIZE.  So the extra below is just paranoia.  */
+#define SYSTEM_PURESIZE_EXTRA 10000
 #endif
 
 /* Tell the garbage collector that setjmp is known to save all
