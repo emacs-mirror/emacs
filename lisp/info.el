@@ -2412,17 +2412,21 @@ new buffer."
 	(Info-extract-menu-node-name nil (Info-index-node))))))
 
 ;; If COUNT is nil, use the last item in the menu.
-(defun Info-extract-menu-counting (count)
+(defun Info-extract-menu-counting (count &optional no-detail)
   (let ((case-fold-search t))
     (save-excursion
-      (let ((case-fold-search t))
+      (let ((case-fold-search t)
+	    (bound (when (and no-detail
+			      (re-search-forward
+			       "^[ \t-]*The Detailed Node Listing" nil t))
+		     (match-beginning 0))))
 	(goto-char (point-min))
-	(or (search-forward "\n* menu:" nil t)
+	(or (search-forward "\n* menu:" bound t)
 	    (error "No menu in this node"))
 	(if count
-	    (or (search-forward "\n* " nil t count)
+	    (or (search-forward "\n* " bound t count)
 		(error "Too few items in menu"))
-	  (while (search-forward "\n* " nil t)
+	  (while (search-forward "\n* " bound t)
 	    nil))
 	(Info-extract-menu-node-name nil (Info-index-node))))))
 
@@ -2445,17 +2449,19 @@ N is the digit argument used to invoke this command."
   (Info-goto-node "Top")
   (let ((Info-history nil)
 	(case-fold-search t))
-    ;; Go to the last node in the menu of Top.
-    (Info-goto-node (Info-extract-menu-counting nil))
+    ;; Go to the last node in the menu of Top.  But don't delve into
+    ;; detailed node listings.
+    (Info-goto-node (Info-extract-menu-counting nil t))
     ;; If the last node in the menu is not last in pointer structure,
-    ;; move forward until we can't go any farther.
-    (while (Info-forward-node t t) nil)
+    ;; move forward (but not down- or upward - see bug#1116) until we
+    ;; can't go any farther.
+    (while (Info-forward-node t t t) nil)
     ;; Then keep moving down to last subnode, unless we reach an index.
     (while (and (not (Info-index-node))
 		(save-excursion (search-forward "\n* Menu:" nil t)))
       (Info-goto-node (Info-extract-menu-counting nil)))))
 
-(defun Info-forward-node (&optional not-down no-error)
+(defun Info-forward-node (&optional not-down not-up no-error)
   "Go forward one node, considering all nodes as forming one sequence."
   (interactive)
   (goto-char (point-min))
@@ -2473,7 +2479,8 @@ N is the digit argument used to invoke this command."
 	  ((save-excursion (search-backward "next:" nil t))
 	   (Info-next)
 	   t)
-	  ((and (save-excursion (search-backward "up:" nil t))
+	  ((and (not not-up)
+		(save-excursion (search-backward "up:" nil t))
 		;; Use string-equal, not equal, to ignore text props.
 		(not (string-equal (downcase (Info-extract-pointer "up"))
 				   "top")))
@@ -2481,7 +2488,7 @@ N is the digit argument used to invoke this command."
 	     (Info-up)
 	     (let (Info-history success)
 	       (unwind-protect
-		   (setq success (Info-forward-node t no-error))
+		   (setq success (Info-forward-node t nil no-error))
 		 (or success (Info-goto-node old-node))))))
 	  (no-error nil)
 	  (t (error "No pointer forward from this node")))))
