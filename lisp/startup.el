@@ -902,6 +902,7 @@ opening the first frame (e.g. open a connection to an X server).")
   ;; even in tty frames, which means that there is a tool-bar if Emacs
   ;; later opens a graphical frame.
   (unless (or noninteractive emacs-basic-display
+	      (not (fboundp 'tool-bar-mode))
   	      ;; The tool-bar-lines parameter is nil if starting on a
   	      ;; tty; it is 0 if starting on a graphical display with
   	      ;; the toolbar disabled via X resources.
