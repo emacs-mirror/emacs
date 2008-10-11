@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "25. August 2008, 19:39:28 (ulf)"
+;; Time-stamp:  "11. Oktober 2008, 16:29:36 (ulf)"
 
 ;; ======================================================================
 
@@ -630,8 +630,8 @@ If CLEAR-BUFFER is non-nil the list buffer is completely erased."
   "Sort the newsticker list window buffer by the column clicked on.
 Optional argument EVENT is the mouse event that triggered this action."
   (interactive (list last-input-event))
-  (if e (mouse-select-window e))
-  (let* ((pos (event-start e))
+  (if event (mouse-select-window event))
+  (let* ((pos (event-start event))
 	 (obj (posn-object pos))
 	 (sort-order (if obj
                       (get-text-property (cdr obj) 'sort-order (car obj))
