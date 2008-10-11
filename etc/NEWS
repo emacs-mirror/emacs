@@ -483,6 +483,7 @@ called with a prefix and the default directory is a remote file name.
 This is because some file name handlers (like ange-ftp) are not able to
 run processes remotely.
 
++++
 *** The new command kill-matching-buffers kills buffers whose name
 matches a regexp.
 
@@ -1129,6 +1130,7 @@ like this:
 	(foo bar)
       ((debug error) nil))
 
++++
 ** clone-indirect-buffer now runs the clone-indirect-buffer-hook.
 
 ** `beginning-of-defun-function' now takes one argument, the count
