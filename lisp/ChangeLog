@@ -1,3 +1,9 @@
+2008-10-11  Romain Francoise  <romain@orebokech.com>
+
+	* help.el (view-lossage): Fix docstring, lossage is now 300 keys.
+	* kmacro.el (kmacro-edit-lossage): Ditto.
+	* edmacro.el (edit-kbd-macro): Ditto.
+
 2008-10-11  Ulf Jasper  <ulf@web.de>
 
 	* net/newst-treeview.el (newsticker--treeview-list-sort-by-column):

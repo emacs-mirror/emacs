@@ -37,7 +37,7 @@
 ;;  * `M-x' followed by a command name, to edit a named command
 ;;    whose definition is a keyboard macro.
 ;;
-;;  * `C-h l' (view-lossage), to edit the 100 most recent keystrokes
+;;  * `C-h l' (view-lossage), to edit the 300 most recent keystrokes
 ;;    and install them as the "current" macro.
 ;;
 ;;  * any key sequence whose definition is a keyboard macro.
@@ -96,7 +96,7 @@ Default nil means to write characters above \\177 in octal notation.")
   "Edit a keyboard macro.
 At the prompt, type any key sequence which is bound to a keyboard macro.
 Or, type `C-x e' or RET to edit the last keyboard macro, `C-h l' to edit
-the last 100 keystrokes as a keyboard macro, or `M-x' to edit a macro by
+the last 300 keystrokes as a keyboard macro, or `M-x' to edit a macro by
 its command name.
 With a prefix argument, format the macro in a more concise way."
   (interactive "kKeyboard macro to edit (C-x e, M-x, C-h l, or keys): \nP")

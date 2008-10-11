@@ -453,7 +453,7 @@ is specified by the variable `message-log-max'."
   (view-help-file "MORE.STUFF"))
 
 (defun view-lossage ()
-  "Display last 100 input keystrokes.
+  "Display last 300 input keystrokes.
 
 To record all your input on a file, use `open-dribble-file'."
   (interactive)
