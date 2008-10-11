@@ -159,19 +159,19 @@ ICON.xbm, using `find-image'."
 	 (colors (nconc (if (eq fg 'unspecified) nil (list :foreground fg))
 			(if (eq bg 'unspecified) nil (list :background bg))))
 	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
-	 (xpm-lo-spec (if (> (display-color-cells) 256)
-			  nil
-			(list :type 'xpm :file
-                              (concat "low-color/" icon ".xpm"))))
+	 (xpm-lo-spec (list :type 'xpm :file
+			    (concat "low-color/" icon ".xpm")))
 	 (pbm-spec (append (list :type 'pbm :file
                                  (concat icon ".pbm")) colors))
 	 (xbm-spec (append (list :type 'xbm :file
                                  (concat icon ".xbm")) colors))
 	 (image-exp `(tool-bar-find-image
-                      (if (display-color-p)
-                          ',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec)
-                        ',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec)))))
-
+		      (cond ((not (display-color-p))
+			     ',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))
+			    ((< (display-color-cells) 256)
+			     ',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec))
+			    (t
+			     ',(list xpm-spec pbm-spec xbm-spec))))))
     (define-key-after map (vector key)
       `(menu-item ,(symbol-name key) ,def :image ,image-exp ,@props))))
 
@@ -211,18 +211,19 @@ holds a keymap."
 	 (colors (nconc (if (eq fg 'unspecified) nil (list :foreground fg))
 			(if (eq bg 'unspecified) nil (list :background bg))))
 	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
-	 (xpm-lo-spec (if (> (display-color-cells) 256)
-			  nil
-			(list :type 'xpm :file
-                              (concat "low-color/" icon ".xpm"))))
+	 (xpm-lo-spec (list :type 'xpm :file
+			    (concat "low-color/" icon ".xpm")))
 	 (pbm-spec (append (list :type 'pbm :file
                                  (concat icon ".pbm")) colors))
 	 (xbm-spec (append (list :type 'xbm :file
                                  (concat icon ".xbm")) colors))
 	 (image-exp `(tool-bar-find-image
-                      (if (display-color-p)
-                          ',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec)
-                        ',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))))
+		      (cond ((not (display-color-p))
+			     ',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))
+			    ((< (display-color-cells) 256)
+			     ',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec))
+			    (t
+			     ',(list xpm-spec pbm-spec xbm-spec)))))
 	 submap key)
     ;; We'll pick up the last valid entry in the list of keys if
     ;; there's more than one.
@@ -262,12 +263,7 @@ holds a keymap."
 
 (defun tool-bar-setup (&optional frame)
   (unless (or tool-bar-setup
-	      (null tool-bar-mode)
-	      ;; No-op if the initial frame is on a tty, deferring
-	      ;; action until called from x-create-frame-with-faces.
-	      ;; Tool-bar icons can depend on X settings, which are
-	      ;; initially unavailable in this case.
-	      (not (display-graphic-p frame)))
+	      (null tool-bar-mode))
     (with-selected-frame (or frame (selected-frame))
       ;; People say it's bad to have EXIT on the tool bar, since users
       ;; might inadvertently click that button.
