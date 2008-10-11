@@ -1,3 +1,7 @@
+2008-10-11  Romain Francoise  <romain@orebokech.com>
+
+	* kmacro.texi (Edit Keyboard Macro): Lossage is now 300 keys.
+
 2008-10-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buffers.texi (Buffers): Add xrefs to Mode Line and Lisp Interaction.
