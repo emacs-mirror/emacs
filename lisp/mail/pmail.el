@@ -1203,33 +1203,32 @@ the region."
 
 ;; Pmail toolbar
 (defvar pmail-tool-bar-map
-  (if (display-graphic-p)
-      (let ((map (make-sparse-keymap)))
-	(tool-bar-local-item-from-menu 'pmail-get-new-mail "mail/inbox"
-				       map pmail-mode-map)
-	(tool-bar-local-item-from-menu 'pmail-next-undeleted-message "right-arrow"
-				       map pmail-mode-map)
-	(tool-bar-local-item-from-menu 'pmail-previous-undeleted-message "left-arrow"
-				       map pmail-mode-map)
-	(tool-bar-local-item-from-menu 'pmail-search "search"
-				       map pmail-mode-map)
-	(tool-bar-local-item-from-menu 'pmail-input "open"
-				       map pmail-mode-map)
-	(tool-bar-local-item-from-menu 'pmail-mail "mail/compose"
-				       map pmail-mode-map)
-	(tool-bar-local-item-from-menu 'pmail-reply "mail/reply-all"
-				       map pmail-mode-map)
-	(tool-bar-local-item-from-menu 'pmail-forward "mail/forward"
-				       map pmail-mode-map)
-	(tool-bar-local-item-from-menu 'pmail-delete-forward "close"
-				       map pmail-mode-map)
-	(tool-bar-local-item-from-menu 'pmail-output "mail/move"
-				       map pmail-mode-map)
-	(tool-bar-local-item-from-menu 'pmail-output-body-to-file "mail/save"
-				       map pmail-mode-map)
-	(tool-bar-local-item-from-menu 'pmail-expunge "delete"
-				       map pmail-mode-map)
-	map)))
+  (let ((map (make-sparse-keymap)))
+    (tool-bar-local-item-from-menu 'pmail-get-new-mail "mail/inbox"
+				   map pmail-mode-map)
+    (tool-bar-local-item-from-menu 'pmail-next-undeleted-message "right-arrow"
+				   map pmail-mode-map)
+    (tool-bar-local-item-from-menu 'pmail-previous-undeleted-message "left-arrow"
+				   map pmail-mode-map)
+    (tool-bar-local-item-from-menu 'pmail-search "search"
+				   map pmail-mode-map)
+    (tool-bar-local-item-from-menu 'pmail-input "open"
+				   map pmail-mode-map)
+    (tool-bar-local-item-from-menu 'pmail-mail "mail/compose"
+				   map pmail-mode-map)
+    (tool-bar-local-item-from-menu 'pmail-reply "mail/reply-all"
+				   map pmail-mode-map)
+    (tool-bar-local-item-from-menu 'pmail-forward "mail/forward"
+				   map pmail-mode-map)
+    (tool-bar-local-item-from-menu 'pmail-delete-forward "close"
+				   map pmail-mode-map)
+    (tool-bar-local-item-from-menu 'pmail-output "mail/move"
+				   map pmail-mode-map)
+    (tool-bar-local-item-from-menu 'pmail-output-body-to-file "mail/save"
+				   map pmail-mode-map)
+    (tool-bar-local-item-from-menu 'pmail-expunge "delete"
+				   map pmail-mode-map)
+    map))
 
 
 
