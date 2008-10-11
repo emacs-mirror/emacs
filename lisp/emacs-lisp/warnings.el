@@ -268,7 +268,7 @@ See also `warning-series', `warning-prefix-function' and
 	    (goto-char warning-series)))
 	(if (nth 2 level-info)
 	    (funcall (nth 2 level-info)))
-	(if noninteractive
+     (cond (noninteractive
 	    ;; Noninteractively, take the text we inserted
 	    ;; in the warnings buffer and print it.
 	    ;; Do this unconditionally, since there is no way
@@ -280,17 +280,28 @@ See also `warning-series', `warning-prefix-function' and
 		(goto-char end)
 		(if (bolp)
 		    (forward-char -1))
-		(message "%s" (buffer-substring start (point)))))
-	  ;; Interactively, decide whether the warning merits
-	  ;; immediate display.
-	  (or (< (warning-numeric-level level)
-		 (warning-numeric-level warning-minimum-level))
-	      (warning-suppress-p type warning-suppress-types)
-	      (let ((window (display-buffer buffer)))
-		(when (and (markerp warning-series)
-			   (eq (marker-buffer warning-series) buffer))
-		  (set-window-start window warning-series))
-		(sit-for 0)))))))
+		(message "%s" (buffer-substring start (point))))))
+	   ((and (daemonp) (null after-init-time))
+	    ;; Warnings assigned during daemon initialization go into
+	    ;; the messages buffer.
+	    (message "%s"
+		     (with-current-buffer buffer
+		       (save-excursion
+			 (goto-char end)
+			 (if (bolp)
+			     (forward-char -1))
+			 (buffer-substring start (point))))))
+	   (t
+	    ;; Interactively, decide whether the warning merits
+	    ;; immediate display.
+	    (or (< (warning-numeric-level level)
+		   (warning-numeric-level warning-minimum-level))
+		(warning-suppress-p type warning-suppress-types)
+		(let ((window (display-buffer buffer)))
+		  (when (and (markerp warning-series)
+			     (eq (marker-buffer warning-series) buffer))
+		    (set-window-start window warning-series))
+		  (sit-for 0))))))))
 
 ;;;###autoload
 (defun lwarn (type level message &rest args)
