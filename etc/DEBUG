@@ -180,7 +180,7 @@ to get the same result.  Here is how:
 
 Here's a related example of macros and the GDB `define' command.
 There are many Lisp vectors such as `recent_keys', which contains the
-last 100 keystrokes.  We can print this Lisp vector
+last 300 keystrokes.  We can print this Lisp vector
 
 p recent_keys
 pr
