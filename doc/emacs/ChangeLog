@@ -1,3 +1,15 @@
+2008-10-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffers.texi (Buffers): Add xrefs to Mode Line and Lisp Interaction.
+	(Select Buffer): Mention use of minibuffer history.  Describe default
+	value of default-major-mode.  Mention that C-x 4 b selects the other
+	window.
+	(List Buffers): Document CRM indicators in the order they appear.
+	(Kill Buffer): Document new command kill-matching buffers.
+	(Several Buffers): Move explanation of the relationship between buffer
+	list and buffer menu to the top.
+	(Indirect Buffers): Document new variable clone-indirect-buffer-hook.
+
 2008-10-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* entering.texi (Exiting): Document change of C-x C-c to
