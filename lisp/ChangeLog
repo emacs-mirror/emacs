@@ -5,6 +5,17 @@
 	display colors into the image expression.
 	(tool-bar-setup): Don't be a no-op on ttys.
 
+	* info.el (info-tool-bar-map): Initialize it unconditionally.
+
+	* progmodes/gud.el (gud-tool-bar-map): Initialize it
+	unconditionally.
+
+	* progmodes/grep.el (grep-mode-tool-bar-map): Initialize it
+	unconditionally.
+
+	* progmodes/compile.el (compilation-mode-tool-bar-map): Initialize
+	it unconditionally.
+
 2008-10-11  Romain Francoise  <romain@orebokech.com>
 
 	* help.el (view-lossage): Fix docstring, lossage is now 300 keys.
