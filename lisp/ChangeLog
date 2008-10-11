@@ -1,3 +1,8 @@
+2008-10-11  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-treeview.el (newsticker--treeview-list-sort-by-column):
+	Fixed variable names.
+
 2008-10-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* startup.el (command-line): Revert 2008-09-26 change, not
