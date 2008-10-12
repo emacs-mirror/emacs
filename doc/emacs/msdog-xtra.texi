@@ -14,7 +14,7 @@ the MS-DOS ``operating system'' (also known as ``MS-DOG'').
 @iftex
 Information about Emacs and Microsoft's current operating system
 Windows (also known as ``Losedows'') is in the main Emacs manual
-(@pxref{Microsoft Systems,,, emacs, the Emacs Manual}).
+(@pxref{Microsoft Windows,,, emacs, the Emacs Manual}).
 @end iftex
 @ifnottex
 Information about peculiarities common to MS-DOS and Microsoft's
