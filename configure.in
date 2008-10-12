@@ -1876,10 +1876,12 @@ dnl Does the new font backend require it, or can it work without it?
 fi
 
 HAVE_M17N_FLT=no
-if test "${with_m17n_flt}" != "no"; then
-  PKG_CHECK_MODULES(M17N_FLT, m17n-flt, HAVE_M17N_FLT=yes, HAVE_M17N_FLT=no)
-  if test "$HAVE_M17N_FLT" = "yes"; then
-    AC_DEFINE(HAVE_M17N_FLT, 1, [Define to 1 if using libm17n-flt.])
+if test "${HAVE_LIBOTF}" = yes; then
+  if test "${with_m17n_flt}" != "no"; then
+    PKG_CHECK_MODULES(M17N_FLT, m17n-flt, HAVE_M17N_FLT=yes, HAVE_M17N_FLT=no)
+    if test "$HAVE_M17N_FLT" = "yes"; then
+      AC_DEFINE(HAVE_M17N_FLT, 1, [Define to 1 if using libm17n-flt.])
+    fi
   fi
 fi
 

@@ -13181,7 +13181,8 @@ _ACEOF
 fi
 
 HAVE_M17N_FLT=no
-if test "${with_m17n_flt}" != "no"; then
+if test "${HAVE_LIBOTF}" = yes; then
+  if test "${with_m17n_flt}" != "no"; then
 
   succeeded=no
 
@@ -13276,12 +13277,13 @@ echo "${ECHO_T}no" >&6; }
      HAVE_M17N_FLT=no
   fi
 
-  if test "$HAVE_M17N_FLT" = "yes"; then
+    if test "$HAVE_M17N_FLT" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_M17N_FLT 1
 _ACEOF
 
+    fi
   fi
 fi
 
@@ -18746,13 +18748,11 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -18792,13 +18792,11 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
