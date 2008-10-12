@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06b
+;; Version: 6.09a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -87,10 +87,12 @@ negates this setting for the duration of the command."
 	   (from (mail-header-from header))
 	   (message-id (mail-header-id header))
 	   (date (mail-header-date header))
+	   (extra (mail-header-extra header))
+	   (to (cdr (assoc 'To extra)))
 	   (subject (gnus-summary-subject-string))
 	   desc link)
       (org-store-link-props :type "gnus" :from from :subject subject
-			    :message-id message-id :group group)
+			    :message-id message-id :group group :to to)
       (setq desc (org-email-link-description))
       (if (org-xor current-prefix-arg org-usenet-links-prefer-google)
 	  (setq link

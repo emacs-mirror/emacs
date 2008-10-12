@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06b
+;; Version: 6.09a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -34,15 +34,17 @@
   (require 'cl))
 (require 'org)
 
+(declare-function remember-mode "remember" ())
 (declare-function remember "remember" (&optional initial))
 (declare-function remember-buffer-desc "remember" ())
 (declare-function remember-finalize "remember" ())
 (defvar remember-save-after-remembering)
-(defvar remember-data-file)
 (defvar remember-register)
 (defvar remember-buffer)
 (defvar remember-handler-functions)
 (defvar remember-annotation-functions)
+(defvar org-clock-heading)
+(defvar org-clock-heading-for-remember)
 
 (defgroup org-remember nil
   "Options concerning interaction with remember.el."
@@ -133,8 +135,11 @@ Furthermore, the following %-escapes will be replaced with content:
   %x          content of the X clipboard
   %^C         Interactive selection of which kill or clip to use
   %^L         Like %^C, but insert as link
+  %k          title of currently clocked task
+  %K          link to currently clocked task
   %^g         prompt for tags, with completion on tags in target file
   %^G         prompt for tags, with completion all tags in all agenda files
+  %^{prop}p   Prompt the user for a value for property `prop'
   %:keyword   specific information for certain link types, see below
   %[pathname] insert the contents of the file given by `pathname'
   %(sexp)     evaluate elisp `(sexp)' and replace with the result
@@ -164,8 +169,8 @@ calendar           |  %:type %:date"
   :get (lambda (var) ; Make sure all entries have at least 5 elements
 	 (mapcar (lambda (x)
 		   (if (not (stringp (car x))) (setq x (cons "" x)))
-		   (cond ((= (length x) 4) (append x '("")))
-			 ((= (length x) 3) (append x '("" "")))
+		   (cond ((= (length x) 4) (append x '(nil)))
+			 ((= (length x) 3) (append x '(nil nil)))
 			 (t x)))
 		 (default-value var)))
   :type '(repeat
@@ -176,6 +181,7 @@ calendar           |  %:type %:date"
 		(string :tag "Template")
 		(choice :tag "Destination file"
 		 (file :tag "Specify")
+		 (function :tag "Function")
 		 (const :tag "Use `org-default-notes-file'" nil))
 		(choice :tag "Destin. headline"
 		 (string :tag "Specify")
@@ -207,8 +213,8 @@ user each time a remember buffer with a running clock is filed away.  "
 
 ;;;###autoload
 (defun org-remember-insinuate ()
-  "Setup remember.el for use wiht Org-mode."
-  (require 'remember)
+  "Setup remember.el for use with Org-mode."
+  (org-require-remember)
   (setq remember-annotation-functions '(org-remember-annotation))
   (setq remember-handler-functions '(org-remember-handler))
   (add-hook 'remember-mode-hook 'org-remember-apply-template))
@@ -300,26 +306,33 @@ RET at beg-of-buf -> Append to file as level 2 headline
       (cddr (assoc char templates)))))
 
 (defun org-get-x-clipboard (value)
-  "Get the value of the x clibboard, in a way that also works with XEmacs."
+  "Get the value of the x clibboard, compatible with XEmacs, and GNU Emacs 21."
   (if (eq window-system 'x)
-      (let ((x (if org-xemacs-p
-		   (org-no-warnings (get-selection-no-error value))
-		 (and (fboundp 'x-selection-value)
-		      (x-selection-value value)))))
-	(and (> (length x) 0) (set-text-properties 0 (length x) nil x) x))))
+      (let ((x (org-get-x-clipboard-compat value)))
+	(if x (org-no-properties x)))))
 
 ;;;###autoload
 (defun org-remember-apply-template (&optional use-char skip-interactive)
   "Initialize *remember* buffer with template, invoke `org-mode'.
 This function should be placed into `remember-mode-hook' and in fact requires
 to be run from that hook to function properly."
+  (when (and (boundp 'initial) (stringp initial))
+    (setq initial (org-no-properties initial))
+    (remove-text-properties 0 (length initial) '(read-only t) initial))
   (if org-remember-templates
       (let* ((entry (org-select-remember-template use-char))
 	     (ct (or org-overriding-default-time (org-current-time)))
+	     (dct (decode-time ct))
+	     (ct1
+	      (if (< (nth 2 dct) org-extend-today-until)
+		  (encode-time 0 59 23 (1- (nth 3 dct)) (nth 4 dct) (nth 5 dct))
+		ct))
 	     (tpl (car entry))
 	     (plist-p (if org-store-link-plist t nil))
-	     (file (if (and (nth 1 entry) (stringp (nth 1 entry))
-			    (string-match "\\S-" (nth 1 entry)))
+	     (file (if (and (nth 1 entry) 
+			    (or (and (stringp (nth 1 entry))
+				     (string-match "\\S-" (nth 1 entry)))
+				(functionp (nth 1 entry))))
 		       (nth 1 entry)
 		     org-default-notes-file))
 	     (headline (nth 2 entry))
@@ -346,11 +359,24 @@ to be run from that hook to function properly."
 		      (replace-match "[\\1[%^{Link description}]]" nil nil v-a)
 		    v-a))
 	     (v-n user-full-name)
+	     (v-k (if (marker-buffer org-clock-marker)
+		      (substring-no-properties org-clock-heading)))
+	     (v-K (if (marker-buffer org-clock-marker)
+		      (org-make-link-string
+		       (buffer-file-name (marker-buffer org-clock-marker))
+		       org-clock-heading)))
+	     v-I
 	     (org-startup-folded nil)
+	     (org-inhibit-startup t)
 	     org-time-was-given org-end-time-was-given x
 	     prompt completions char time pos default histvar)
+
+	(when (functionp file)
+	  (setq file (funcall file)))
 	(when (and file (not (file-name-absolute-p file)))
 	  (setq file (expand-file-name file org-directory)))
+
+
 	(setq org-store-link-plist
 	      (append (list :annotation v-a :initial v-i)
 		      org-store-link-plist))
@@ -358,20 +384,23 @@ to be run from that hook to function properly."
 	(erase-buffer)
 	(insert (substitute-command-keys
 		 (format
-"## Filing location: Select interactively, default, or last used:
+"## %s  \"%s\" -> \"* %s\"
+## C-u C-c C-c  like C-c C-c, and immediately visit note at target location
+## C-0 C-c C-c  \"%s\" -> \"* %s\"
 ## %s  to select file and header location interactively.
-## %s  \"%s\" -> \"* %s\"
-## C-u C-u C-c C-c  \"%s\" -> \"* %s\"
+## C-2 C-c C-c  as child of the currently clocked item
 ## To switch templates, use `\\[org-remember]'.  To abort use `C-c C-k'.\n\n"
-		  (if org-remember-store-without-prompt "    C-u C-c C-c" "        C-c C-c")
-		  (if org-remember-store-without-prompt "        C-c C-c" "    C-u C-c C-c")
+		  (if org-remember-store-without-prompt "    C-c C-c" "    C-1 C-c C-c")
 		  (abbreviate-file-name (or file org-default-notes-file))
 		  (or headline "")
 		  (or (car org-remember-previous-location) "???")
-		  (or (cdr org-remember-previous-location) "???"))))
-	(insert tpl) (goto-char (point-min))
+		  (or (cdr org-remember-previous-location) "???")
+		  (if org-remember-store-without-prompt "C-1 C-c C-c" "        C-c C-c"))))
+	(insert tpl)
+	(goto-char (point-min))
+
 	;; Simple %-escapes
-	(while (re-search-forward "%\\([tTuUaiAcx]\\)" nil t)
+	(while (re-search-forward "%\\([tTuUaiAcxkKI]\\)" nil t)
 	  (when (and initial (equal (match-string 0) "%i"))
 	    (save-match-data
 	      (let* ((lead (buffer-substring
@@ -417,7 +446,7 @@ to be run from that hook to function properly."
 		 (replace-match x t t))))
 
 	;; Turn on org-mode in the remember buffer, set local variables
-	(org-mode)
+	(let ((org-inhibit-startup t)) (org-mode))
 	(org-set-local 'org-finish-function 'org-remember-finalize)
 	(if (and file (string-match "\\S-" file) (not (file-directory-p file)))
 	    (org-set-local 'org-default-notes-file file))
@@ -425,7 +454,7 @@ to be run from that hook to function properly."
 	    (org-set-local 'org-remember-default-headline headline))
 	;; Interactive template entries
 	(goto-char (point-min))
-	(while (re-search-forward "%^\\({\\([^}]*\\)}\\)?\\([gGtTuUCL]\\)?" nil t)
+	(while (re-search-forward "%^\\({\\([^}]*\\)}\\)?\\([gGtTuUCLp]\\)?" nil t)
 	  (setq char (if (match-end 3) (match-string 3))
 		prompt (if (match-end 2) (match-string 2)))
 	  (goto-char (match-beginning 0))
@@ -470,6 +499,22 @@ to be run from that hook to function properly."
 						   (car clipboards)
 						   '(clipboards . 1)
 						   (car clipboards))))))
+	   ((equal char "p")
+	    (let*
+		((prop (substring-no-properties prompt))
+		 (allowed (with-current-buffer
+			      (get-buffer (file-name-nondirectory file))
+			    (org-property-get-allowed-values nil prop 'table)))
+		 (existing (with-current-buffer
+			       (get-buffer (file-name-nondirectory file))
+			     (mapcar 'list (org-property-values prop))))
+		 (propprompt (concat "Value for " prop ": "))
+		 (val (if allowed
+			  (org-completing-read propprompt allowed nil
+					       'req-match)
+			(org-completing-read propprompt existing nil nil
+					     "" nil ""))))
+	      (org-set-property prop val)))
 	   (char
 	    ;; These are the date/time related ones
 	    (setq org-time-was-given (equal (upcase char) char))
@@ -488,7 +533,7 @@ to be run from that hook to function properly."
 	(if (re-search-forward "%\\?" nil t)
 	    (replace-match "")
 	  (and (re-search-forward "^[^#\n]" nil t) (backward-char 1))))
-    (org-mode)
+    (let ((org-inhibit-startup t)) (org-mode))
     (org-set-local 'org-finish-function 'org-remember-finalize))
   (when (save-excursion
 	  (goto-char (point-min))
@@ -556,6 +601,7 @@ note stored by remember.
 Lisp programs can set ORG-FORCE-REMEMBER-TEMPLATE-CHAR to a character
 associated with a template in `org-remember-templates'."
   (interactive "P")
+  (org-require-remember)
   (cond
    ((equal goto '(4)) (org-go-to-remember-target))
    ((equal goto '(16)) (org-remember-goto-last-stored))
@@ -617,39 +663,38 @@ The user is queried for the template."
 ;;;###autoload
 (defun org-remember-handler ()
   "Store stuff from remember.el into an org file.
-First prompts for an org file.  If the user just presses return, the value
-of `org-default-notes-file' is used.
-Then the command offers the headings tree of the selected file in order to
-file the text at a specific location.
-You can either immediately press RET to get the note appended to the
-file, or you can use vertical cursor motion and visibility cycling (TAB) to
-find a better place.  Then press RET or <left> or <right> in insert the note.
+When the template has specified a file and a headline, the entry is filed
+there, or in the location defined by `org-default-notes-file' and
+`org-remember-default-headline'.
 
-Key      Cursor position   Note gets inserted
------------------------------------------------------------------------------
-RET      buffer-start      as level 1 heading at end of file
-RET      on headline       as sublevel of the heading at cursor
-RET      no heading        at cursor position, level taken from context.
-			   Or use prefix arg to specify level manually.
-<left>   on headline       as same level, before current heading
-<right>  on headline       as same level, after current heading
+If no defaults have been defined, or if the current prefix argument
+is 1 (so you must use `C-1 C-c C-c' to exit remember), an interactive
+process is used to select the target location.
 
-So the fastest way to store the note is to press RET RET to append it to
-the default file.  This way your current train of thought is not
-interrupted, in accordance with the principles of remember.el.
-You can also get the fast execution without prompting by using
-C-u C-c C-c to exit the remember buffer.  See also the variable
-`org-remember-store-without-prompt'.
+When the prefix is 0 (i.e. when remember is exited with `C-0 C-c C-c'),
+the entry is filed to the same location as the previous note.
 
-Before being stored away, the function ensures that the text has a
-headline, i.e. a first line that starts with a \"*\".  If not, a headline
-is constructed from the current date and some additional data.
+When the prefix is 2 (i.e. when remember is exited with `C-2 C-c C-c'),
+the entry is fild as a subentry of the entry where the clock is
+currently running.
+
+When `C-u' has been used as prefix argument, the note is stored and emacs
+moves point to the new location of the note, so that editing can be
+continued there (smilar to inserting \"%&\" into the tempate).
+
+Before storing the note, the function ensures that the text has an
+org-mode-style headline, i.e. a first line that starts with
+a \"*\".  If not, a headline is constructed from the current date and
+some additional data.
 
 If the variable `org-adapt-indentation' is non-nil, the entire text is
 also indented so that it starts in the same column as the headline
 \(i.e. after the stars).
 
 See also the variable `org-reverse-note-order'."
+  (when (and (equal current-prefix-arg 2)
+	     (not (marker-buffer org-clock-marker)))
+    (error "No runing clock"))
   (when (org-bound-and-true-p org-jump-to-target-location)
     (let* ((end (min (point-max) (1+ (point))))
 	   (beg (point)))
@@ -666,15 +711,17 @@ See also the variable `org-reverse-note-order'."
   (catch 'quit
     (if org-note-abort (throw 'quit nil))
     (let* ((visitp (org-bound-and-true-p org-jump-to-target-location))
-	   (fastp (org-xor (equal current-prefix-arg '(4))
+	   (previousp (and (member current-prefix-arg '((16) 0))
+			   org-remember-previous-location))
+	   (clockp (equal current-prefix-arg 2))
+	   (fastp (org-xor (equal current-prefix-arg 1)
 			   org-remember-store-without-prompt))
 	   (file (cond
 		  (fastp org-default-notes-file)
 		  ((and (eq org-remember-interactive-interface 'refile)
 			org-refile-targets)
 		   org-default-notes-file)
-		  ((not (and (equal current-prefix-arg '(16))
-			     org-remember-previous-location))
+		  ((not previousp)
 		   (org-get-org-file))))
 	   (heading org-remember-default-headline)
 	   (visiting (and file (org-find-base-buffer-visiting file)))
@@ -682,10 +729,16 @@ See also the variable `org-reverse-note-order'."
 	   (org-startup-align-all-tables nil)
 	   (org-goto-start-pos 1)
 	   spos exitcmd level reversed txt)
-      (if (and (equal current-prefix-arg '(16)) org-remember-previous-location)
-	  (setq file (car org-remember-previous-location)
-		heading (cdr org-remember-previous-location)
-		fastp t))
+      (when (equal current-prefix-arg '(4))
+	(setq visitp t))
+      (when previousp
+	(setq file (car org-remember-previous-location)
+	      heading (cdr org-remember-previous-location)
+	      fastp t))
+      (when clockp
+	(setq file (buffer-file-name (marker-buffer org-clock-marker))
+	      heading org-clock-heading-for-remember
+	      fastp t))
       (setq current-prefix-arg nil)
       ;; Modify text so that it becomes a nice subtree which can be inserted
       ;; into an org tree.
@@ -739,7 +792,6 @@ See also the variable `org-reverse-note-order'."
 		(setq org-goto-start-pos (or (match-beginning 0) (point-min))))
 	       ((eq heading 'bottom)
 		(goto-char (point-max))
-		(re-search-backward "^\\* " nil t)
 		(or (bolp) (newline))
 		(setq org-goto-start-pos (point)))
 	       ((and (stringp heading) (string-match "\\S-" heading))
@@ -761,7 +813,7 @@ See also the variable `org-reverse-note-order'."
 	    (cond
 	     ((and fastp (memq heading '(top bottom)))
 	      (setq spos org-goto-start-pos
-			  exitcmd (if (eq heading 'top) 'left 'right)))
+			  exitcmd (if (eq heading 'top) 'left nil)))
 	     (fastp (setq spos org-goto-start-pos
 			  exitcmd 'return))
 	     ((eq org-remember-interactive-interface 'outline)
@@ -816,6 +868,12 @@ See also the variable `org-reverse-note-order'."
 		     (move-marker org-remember-last-stored-marker (point)))
 		    (t (error "This should not happen"))))
 
+		  ((eq heading 'bottom)
+		   (org-paste-subtree 1 txt)
+		   (and org-auto-align-tags (org-set-tags nil t))
+		   (bookmark-set "org-remember-last-stored")
+		   (move-marker org-remember-last-stored-marker (point)))
+
 		  ((and (bobp) (not reversed))
 		   ;; Put it at the end, one level below level 1
 		   (save-restriction
@@ -857,10 +915,40 @@ See also the variable `org-reverse-note-order'."
 
   t)    ;; return t to indicate that we took care of this note.
 
-
 (defun org-do-remember (&optional initial)
   "Call remember."
   (remember initial))
+
+(defun org-require-remember ()
+  "Make sure remember is loaded, or install our own emergency version of it."
+  (condition-case nil
+      (require 'remember)
+    (error
+     ;; Lets install our own micro version of remember
+     (defvar remember-register ?R)
+     (defvar remember-mode-hook nil)
+     (defvar remember-handler-functions nil)
+     (defvar remember-buffer "*Remember*")
+     (defvar remember-save-after-remembering t)
+     (defvar remember-annotation-functions '(buffer-file-name))
+     (defun remember-finalize ()
+       (run-hook-with-args-until-success 'remember-handler-functions)
+       (when (equal remember-buffer (buffer-name))
+	 (kill-buffer (current-buffer))
+	 (jump-to-register remember-register)))
+     (defun remember-mode ()
+       (fundamental-mode)
+       (setq mode-name "Remember")
+       (run-hooks 'remember-mode-hook))
+     (defun remember (&optional initial)
+       (window-configuration-to-register remember-register)
+       (let* ((annotation (run-hook-with-args-until-success
+			   'remember-annotation-functions)))
+	 (switch-to-buffer-other-window (get-buffer-create remember-buffer))
+	 (remember-mode)))
+     (defun remember-buffer-desc ()
+       (buffer-substring (point-min) (save-excursion (goto-char (point-min))
+						     (point-at-eol)))))))
 
 (provide 'org-remember)
 

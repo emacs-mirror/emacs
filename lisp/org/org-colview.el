@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06b
+;; Version: 6.09a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -147,7 +147,7 @@ This is the compiled version of the format.")
 	 (face (list color 'org-column ref-face))
 	 (pl (or (get-text-property (point-at-bol) 'prefix-length) 0))
 	 (cphr (get-text-property (point-at-bol) 'org-complex-heading-regexp))
-	 pom property ass width f string ov column val modval s1 s2)
+	 pom property ass width f string ov column val modval s1 s2 title)
     ;; Check if the entry is in another buffer.
     (unless props
       (if (eq major-mode 'org-agenda-mode)
@@ -158,6 +158,7 @@ This is the compiled version of the format.")
     ;; Walk the format
     (while (setq column (pop fmt))
       (setq property (car column)
+	    title (nth 1 column)
 	    ass (if (equal property "ITEM")
 		    (cons "ITEM"
 			  (save-match-data
@@ -171,12 +172,18 @@ This is the compiled version of the format.")
 		      (length property))
 	    f (format "%%-%d.%ds | " width width)
 	    val (or (cdr ass) "")
-	    modval (if (equal property "ITEM")
-		       (if (org-mode-p)
-			   (org-columns-cleanup-item
-			    val org-columns-current-fmt-compiled)
-			 (org-agenda-columns-cleanup-item
-			  val pl cphr org-columns-current-fmt-compiled))))
+	    modval (or (and org-columns-modify-value-for-display-function
+			    (functionp
+			     org-columns-modify-value-for-display-function)
+			    (funcall
+			     org-columns-modify-value-for-display-function
+			     title val))
+		       (if (equal property "ITEM")
+			   (if (org-mode-p)
+			       (org-columns-cleanup-item
+				val org-columns-current-fmt-compiled)
+			     (org-agenda-columns-cleanup-item
+			      val pl cphr org-columns-current-fmt-compiled)))))
       (setq s2 (org-columns-add-ellipses (or modval val) width))
       (setq string (format f s2))
       ;; Create the overlay
@@ -531,7 +538,8 @@ an integer, select that value."
 		      (and (memq
 			    (nth 4 (assoc key org-columns-current-fmt-compiled))
 			    '(checkbox checkbox-n-of-m checkbox-percent))
-			   '("[ ]" "[X]"))))
+			   '("[ ]" "[X]"))
+		      (org-colview-construct-allowed-dates value)))
 	 nval)
     (when (integerp nth)
       (setq nth (1- nth))
@@ -580,6 +588,27 @@ an integer, select that value."
       (and (nth 3 (assoc key org-columns-current-fmt-compiled))
 	   (org-columns-update key))))))
 
+(defun org-colview-construct-allowed-dates (s)
+  "Construct a list of three dates around the date in S.
+This respects the format of the time stamp in S, active or non-active,
+and also including time or not.  S must be just a time stamp, no text
+around it."
+  (when (string-match (concat "^" org-ts-regexp3 "$") s)
+    (let* ((time (org-parse-time-string s 'nodefaults))
+	   (active (equal (string-to-char s) ?<))
+	   (fmt (funcall (if (nth 1 time) 'cdr 'car) org-time-stamp-formats))
+	   time-before time-after)
+      (unless active (setq fmt (concat "[" (substring fmt 1 -1) "]")))
+      (setf (car time) (or (car time) 0))
+      (setf (nth 1 time) (or (nth 1 time) 0))
+      (setf (nth 2 time) (or (nth 2 time) 0))
+      (setq time-before (copy-sequence time))
+      (setq time-after (copy-sequence time))
+      (setf (nth 3 time-before) (1- (nth 3 time)))
+      (setf (nth 3 time-after) (1+ (nth 3 time)))
+      (mapcar (lambda (x) (format-time-string fmt (apply 'encode-time x)))
+	      (list time-before time time-after)))))
+
 (defun org-verify-version (task)
   (cond
    ((eq task 'columns)
@@ -595,7 +624,6 @@ an integer, select that value."
 (defun org-columns-get-format-and-top-level ()
   (let (fmt)
     (when (condition-case nil (org-back-to-heading) (error nil))
-      (move-marker org-entry-property-inherited-from nil)
       (setq fmt (org-entry-get nil "COLUMNS" t)))
     (setq fmt (or fmt org-columns-default-format))
     (org-set-local 'org-columns-current-fmt fmt)
@@ -1052,8 +1080,9 @@ PARAMS is a property list of parameters:
 	(hlines (plist-get params :hlines))
 	(vlines (plist-get params :vlines))
 	(maxlevel (plist-get params :maxlevel))
+	(content-lines (org-split-string (plist-get params :content) "\n"))
 	(skip-empty-rows (plist-get params :skip-empty-rows))
-	tbl id idpos nfields tmp)
+	tbl id idpos nfields tmp recalc line)
     (save-excursion
       (save-restriction
 	(when (setq id (plist-get params :id))
@@ -1088,12 +1117,22 @@ PARAMS is a property list of parameters:
 			  tbl))
 	(setq tbl (append tbl (list (cons "/" (make-list nfields "<>"))))))
       (setq pos (point))
+      (when content-lines
+	(while (string-match "^#" (car content-lines))
+	  (insert (pop content-lines) "\n")))
       (insert (org-listtable-to-string tbl))
       (when (plist-get params :width)
 	(insert "\n|" (mapconcat (lambda (x) (format "<%d>" (max 3 x)))
 				 org-columns-current-widths "|")))
-      (goto-char pos)
-      (org-table-align))))
+      (while (setq line (pop content-lines))
+	(when (string-match "^#" line)
+	  (insert "\n" line)
+	  (when (string-match "^#\\+TBLFM" line)
+	    (setq recalc t))))
+      (if recalc
+	  (progn (goto-char pos) (org-table-recalculate 'all))
+	(goto-char pos)
+	(org-table-align)))))
 
 (defun org-listtable-to-string (tbl)
   "Convert a listtable TBL to a string that contains the Org-mode table.

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06b
+;; Version: 6.09a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -191,7 +191,7 @@ t:      accept as input and present for editing"
     calc-angle-mode    deg
     calc-prefer-frac   nil
     calc-symbolic-mode nil
-    calc-date-format (YYYY "-" MM "-" DD " " Www (" " HH ":" mm))
+    calc-date-format (YYYY "-" MM "-" DD " " Www (" " hh ":" mm))
     calc-display-working-message t
     )
   "List with Calc mode settings for use in calc-eval for table formulas.
@@ -865,6 +865,7 @@ in order to easily repeat the interval."
 	 (field (org-table-get-field))
 	 (non-empty (string-match "[^ \t]" field))
 	 (beg (org-table-begin))
+	 (orig-n n)
 	 txt)
     (org-table-check-inside-data-field)
     (if non-empty
@@ -881,12 +882,14 @@ in order to easily repeat the interval."
 		  (org-table-goto-column colpos t)
 		  (if (and (looking-at
 			    "|[ \t]*\\([^| \t][^|]*?\\)[ \t]*|")
-			   (= (setq n (1- n)) 0))
+			   (<= (setq n (1- n)) 0))
 		      (throw 'exit (match-string 1))))))))
     (if txt
 	(progn
 	  (if (and org-table-copy-increment
-		   (string-match "^[0-9]+$" txt))
+		   (not (equal orig-n 0))
+		   (string-match "^[0-9]+$" txt)
+		   (< (string-to-number txt) 100000000))
 	      (setq txt (format "%d" (+ (string-to-number txt) 1))))
 	  (insert txt)
 	  (org-move-to-column col)
@@ -1641,7 +1644,7 @@ If NLAST is a number, only the NLAST fields will actually be summed."
 					items1)))
 	     (res (apply '+ numbers))
 	     (sres (if (= org-timecnt 0)
-		       (format "%g" res)
+		       (number-to-string res)
 		     (setq diff (* 3600 res)
 			   h (floor (/ diff 3600)) diff (mod diff 3600)
 			   m (floor (/ diff 60)) diff (mod diff 60)
@@ -3312,7 +3315,6 @@ to execute outside of tables."
 	  '("\C-c{"              org-table-toggle-formula-debugger)
 	  '("\C-m"               org-table-next-row)
 	  '([(shift return)]     org-table-copy-down)
-	  '("\C-c\C-q"           org-table-wrap-region)
 	  '("\C-c?"              org-table-field-info)
 	  '("\C-c "              org-table-blank-field)
 	  '("\C-c+"              org-table-sum)
@@ -3486,8 +3488,13 @@ overwritten, and the table is not marked as requiring realignment."
 	(goto-char (match-beginning 0))
 	(self-insert-command N))
     (setq org-table-may-need-update t)
-    (let (orgtbl-mode)
-      (call-interactively (key-binding (vector last-input-event))))))
+    (let (orgtbl-mode a)
+      (call-interactively 
+       (key-binding
+	(or (and (listp function-key-map)
+		 (setq a (assoc last-input-event function-key-map))
+		 (cdr a))
+	    (vector last-input-event)))))))
 
 (defvar orgtbl-exp-regexp "^\\([-+]?[0-9][0-9.]*\\)[eE]\\([-+]?[0-9]+\\)$"
   "Regular expression matching exponentials as produced by calc.")
@@ -3552,6 +3559,7 @@ a radio table."
 	(delete-region beg (point))))
     (insert txt "\n")))
 
+;;;###autoload
 (defun org-table-to-lisp (&optional txt)
   "Convert the table at point to a Lisp structure.
 The structure will be a list.  Each item is either the symbol `hline'

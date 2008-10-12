@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06b
+;; Version: 6.09a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -381,6 +381,15 @@ belong to the weekend.")
   (when (fboundp 'set-face-attribute)
     (set-face-attribute 'org-agenda-date-weekend nil :weight 'bold)))
 
+(defface org-scheduled
+  (org-compatible-face nil
+    '((((class color) (min-colors 88) (background light)) (:foreground "DarkGreen"))
+      (((class color) (min-colors 88) (background dark)) (:foreground "PaleGreen"))
+      (((class color) (min-colors 8)) (:foreground "green"))
+      (t (:bold t :italic t))))
+  "Face for items scheduled for a certain day."
+  :group 'org-faces)
+
 (defface org-scheduled-today
   (org-compatible-face nil
     '((((class color) (min-colors 88) (background light)) (:foreground "DarkGreen"))
@@ -389,6 +398,7 @@ belong to the weekend.")
       (t (:bold t :italic t))))
   "Face for items scheduled for a certain day."
   :group 'org-faces)
+
 
 (defface org-scheduled-previously
   (org-compatible-face nil

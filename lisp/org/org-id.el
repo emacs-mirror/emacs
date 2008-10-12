@@ -4,7 +4,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06b
+;; Version: 6.09a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -29,12 +29,15 @@
 ;; are provided that create and retrieve such identifiers, and that find
 ;; entries based on the identifier.
 
-;; Identifiers consist of a prefix (default "Org") and a compact encoding
-;; of the creation time of the ID, with microsecond accuracy.  This virtually
+;; Identifiers consist of a prefix (default "Org" given by the variable
+;; `org-id-prefix') and a unique part that can be created by a number
+;; of different methods, see the variable `org-id-method'.
+;; Org has a builtin method that uses a compact encoding of the creation
+;; time of the ID, with microsecond accuracy.  This virtually
 ;; guarantees globally unique identifiers, even if several people are
 ;; creating ID's at the same time in files that will eventually be used
-;; together.  Even higher security can be achieved by using different
-;; prefix values for each collaborator or file.
+;; together.  As an exernal method `uuidgen' is supported, if installed
+;; on the system.
 ;;
 ;; This file defines the following API:
 ;;
@@ -75,7 +78,25 @@
   :tag "Org ID"
   :group 'org)
 
-(defcustom org-id-prefix "Org"
+(defcustom org-id-method 'org
+  "The method that should be used to create new ID's.
+
+An ID will consist of the prefix specified in `org-id-prefix', and a unique
+part created by the method this variable specifies.
+
+Allowed values are:
+
+org        Org's own internal method, using an encoding of the current time,
+           and the current domain of the computer.  This method will
+           honor the variable `org-id-include-domain'.
+
+uuidgen    Call the external command uuidgen."
+  :group 'org-id
+  :type '(choice
+	  (const :tag "Org's internal method" org)
+	  (const :tag "external: uuidgen" uuidgen)))
+
+(defcustom org-id-prefix nil
   "The prefix for IDs.
 
 This may be a string, or it can be nil to indicate that no prefix is required.
@@ -89,7 +110,9 @@ to have no space characters in them."
 (defcustom org-id-include-domain t
   "Non-nil means, add the domain name to new IDs.
 This ensures global uniqueness of ID's, and is also suggested by
-RFC 2445 in combination with RFC 822."
+RFC 2445 in combination with RFC 822.  This is only relevant if
+`org-id-method' is `org'.  When uuidgen is used, the domain will never
+be added."
   :group 'org-id
   :type 'boolean)
 
@@ -213,7 +236,7 @@ With optional argument MARKERP, return the position as a new marker."
 
 An ID consists of two parts separated by a colon:
 - a prefix
-- an encoding of the current time to micro-second accuracy
+- a unique part that will be created according to `org-id-method'.
 
 PREFIX can specify the prefix, the default is given by the variable
 `org-id-prefix'.  However, if PREFIX is the symbol `none', don't use any
@@ -221,62 +244,69 @@ prefix even if `org-id-prefix' specifies one.
 
 So a typical ID could look like \"Org:4nd91V40HI\"."
   (let* ((prefix (if (eq prefix 'none)
-		     nil
-		   (or prefix org-id-prefix)))
-	 (etime (org-id-time-to-b62))
-	 (postfix (if org-id-include-domain
-		      (progn
-			(require 'message)
-			(concat "@" (message-make-fqdn))))))
-    (if prefix
-	(concat prefix ":" etime postfix)
-      (concat etime postfix))))
+		     ""
+		   (concat (or prefix org-id-prefix) ":")))
+	 unique)
+    (if (equal prefix ":") (setq prefix ""))
+    (cond
+     ((eq org-id-method 'uuidgen)
+      (setq unique (substring (shell-command-to-string "uuidgen") 1 -1)))
+     ((eq org-id-method 'org)
+      (let* ((etime (org-id-reverse-string (org-id-time-to-b36)))
+	     (postfix (if org-id-include-domain
+			  (progn
+			    (require 'message)
+			    (concat "@" (message-make-fqdn))))))
+	(setq unique (concat etime postfix))))
+     (t (error "Invalid `org-id-method'")))
+    (concat prefix unique)))
 
-(defun org-id-int-to-b62-one-digit (i)
+(defun org-id-reverse-string (s)
+  (mapconcat 'char-to-string (nreverse (string-to-list s)) ""))
+
+(defun org-id-int-to-b36-one-digit (i)
   "Turn an integer between 0 and 61 into a single character 0..9, A..Z, a..z."
   (cond
    ((< i 10) (+ ?0 i))
-   ((< i 36) (+ ?A i -10))
-   ((< i 62) (+ ?a i -36))
-   (t (error "Larger that 61"))))
+   ((< i 36) (+ ?a i -10))
+   (t (error "Larger that 35"))))
 
-(defun org-id-b62-to-int-one-digit (i)
+(defun org-id-b36-to-int-one-digit (i)
   "Turn a character 0..9, A..Z, a..z into a number 0..61.
 The input I may be a character, or a single-letter string."
   (and (stringp i) (setq i (string-to-char i)))
   (cond
    ((and (>= i ?0) (<= i ?9)) (- i ?0))
-   ((and (>= i ?A) (<= i ?Z)) (+ (- i ?A) 10))
-   ((and (>= i ?a) (<= i ?z)) (+ (- i ?a) 36))
-   (t (error "Invalid b62 letter"))))
+   ((and (>= i ?a) (<= i ?z)) (+ (- i ?a) 10))
+   (t (error "Invalid b36 letter"))))
 
-(defun org-id-int-to-b62 (i &optional length)
-  "Convert an integer to a base-62 number represented as a string."
+(defun org-id-int-to-b36 (i &optional length)
+  "Convert an integer to a base-36 number represented as a string."
   (let ((s ""))
     (while (> i 0)
       (setq s (concat (char-to-string
-		       (org-id-int-to-b62-one-digit (mod i 62))) s)
-	    i (/ i 62)))
+		       (org-id-int-to-b36-one-digit (mod i 36))) s)
+	    i (/ i 36)))
     (setq length (max 1 (or length 1)))
     (if (< (length s) length)
 	(setq s (concat (make-string (- length (length s)) ?0) s)))
     s))
 
-(defun org-id-b62-to-int (s)
-  "Convert a base-62 string into the corresponding integer."
+(defun org-id-b36-to-int (s)
+  "Convert a base-36 string into the corresponding integer."
   (let ((r 0))
-    (mapc (lambda (i) (setq r (+ (* r 62) (org-id-b62-to-int-one-digit i))))
+    (mapc (lambda (i) (setq r (+ (* r 36) (org-id-b36-to-int-one-digit i))))
 	  s)
     r))
 
-(defun org-id-time-to-b62 (&optional time)
+(defun org-id-time-to-b36 (&optional time)
   "Encode TIME as a 10-digit string.
 This string holds the time to micro-second accuracy, and can be decoded
 using `org-id-decode'."
   (setq time (or time (current-time)))
-  (concat (org-id-int-to-b62 (nth 0 time) 3)
-	  (org-id-int-to-b62 (nth 1 time) 3)
-	  (org-id-int-to-b62 (or (nth 2 time) 0) 4)))
+  (concat (org-id-int-to-b36 (nth 0 time) 4)
+	  (org-id-int-to-b36 (nth 1 time) 4)
+	  (org-id-int-to-b36 (or (nth 2 time) 0) 4)))
 
 (defun org-id-decode (id)
   "Split ID into the prefix and the time value that was used to create it.
@@ -287,9 +317,10 @@ and time is the usual three-integer representation of time."
     (if (= 2 (length parts))
 	(setq prefix (car parts) time (nth 1 parts))
       (setq prefix nil time (nth 0 parts)))
-    (setq time (list (org-id-b62-to-int (substring time 0 3))
-		     (org-id-b62-to-int (substring time 3 6))
-		     (org-id-b62-to-int (substring time 6 10))))
+    (setq time (org-id-reverse-string time))
+    (setq time (list (org-id-b36-to-int (substring time 0 4))
+		     (org-id-b36-to-int (substring time 4 8))
+		     (org-id-b36-to-int (substring time 8 12))))
     (cons prefix time)))
 
 ;; Storing ID locations (files)

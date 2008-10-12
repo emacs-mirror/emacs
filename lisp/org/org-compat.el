@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06b
+;; Version: 6.09a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -29,6 +29,8 @@
 ;; versions of GNU Emacs.
 
 ;;; Code:
+
+(require 'org-macs)
 
 (defconst org-xemacs-p (featurep 'xemacs)) ; not used by org.el itself
 (defconst org-format-transports-properties-p
@@ -245,6 +247,22 @@ that can be added."
          (set-extent-property (car ext-inv-spec) 'invisible
 			      (cadr ext-inv-spec))))
    (move-to-column column force)))
+
+(defun org-get-x-clipboard-compat (value)
+  "Get the clipboard value on XEmacs or Emacs 21"
+  (cond (org-xemacs-p (org-no-warnings (get-selection-no-error value)))
+	((fboundp 'x-get-selection)
+	 (condition-case nil
+	     (or (x-get-selection value 'UTF8_STRING)
+		 (x-get-selection value 'COMPOUND_TEXT)
+		 (x-get-selection value 'STRING)
+		 (x-get-selection value 'TEXT))
+	   (error nil)))))
+
+(defun org-propertize (string &rest properties)
+  (if (featurep 'xemacs)
+      (add-text-properties 0 (length string) properties string)
+    (apply 'propertize string properties)))
  
 (provide 'org-compat)
 

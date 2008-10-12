@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06b
+;; Version: 6.09a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -86,6 +86,10 @@ The function is called with point at the beginning of the headline."
   :group 'org-clock
   :type 'function)
 
+(defcustom org-clock-string-limit 0
+  "Maximum length of clock strings in the modeline. 0 means no limit"
+  :group 'org-clock
+  :type 'integer)
 
 ;;; The clock for measuring work time.
 
@@ -94,6 +98,7 @@ The function is called with point at the beginning of the headline."
 
 (defvar org-mode-line-timer nil)
 (defvar org-clock-heading "")
+(defvar org-clock-heading-for-remember "")
 (defvar org-clock-start-time "")
 
 (defvar org-clock-history nil
@@ -106,6 +111,9 @@ of a different task.")
 
 (defvar org-clock-interrupted-task (make-marker)
   "Marker pointing to the task that has been interrupted by the current clock.")
+
+(defvar org-clock-mode-map (make-sparse-keymap))
+(define-key org-clock-mode-map [mode-line mouse-2] 'org-clock-goto)
 
 (defun org-clock-history-push (&optional pos buffer)
   "Push a marker to the clock history."
@@ -190,15 +198,24 @@ of a different task.")
       (when (and cat task)
 	(insert (format "[%c] %-15s %s\n" i cat task))
 	(cons i marker)))))
-  
+
 (defun org-update-mode-line ()
   (let* ((delta (- (time-to-seconds (current-time))
-                   (time-to-seconds org-clock-start-time)))
+		   (time-to-seconds org-clock-start-time)))
 	 (h (floor delta 3600))
 	 (m (floor (- delta (* 3600 h)) 60)))
     (setq org-mode-line-string
-	  (propertize (format (concat "-[" org-time-clocksum-format " (%s)]") h m org-clock-heading)
-		      'help-echo "Org-mode clock is running"))
+	  (org-propertize
+	   (let ((clock-string (format (concat "-[" org-time-clocksum-format " (%s)]")
+				       h m org-clock-heading))
+		 (help-text "Org-mode clock is running. Mouse-2 to go there."))
+	     (if (and (> org-clock-string-limit 0)
+		      (> (length clock-string) org-clock-string-limit))
+		 (org-propertize (substring clock-string 0 org-clock-string-limit)
+			     'help-echo (concat help-text ": " org-clock-heading))
+	       (org-propertize clock-string 'help-echo help-text)))
+	   'local-map org-clock-mode-map
+	   'mouse-face '(face mode-line-highlight)))
     (force-mode-line-update)))
 
 (defvar org-clock-mode-line-entry nil
@@ -253,13 +270,18 @@ the clocking selection, associated with the letter `d'."
 					      org-clock-in-switch-to-state
 					      "\\>"))))
 	    (org-todo org-clock-in-switch-to-state))
-	  (if (and org-clock-heading-function
-		   (functionp org-clock-heading-function))
-	      (setq org-clock-heading (funcall org-clock-heading-function))
-	    (if (looking-at org-complex-heading-regexp)
-		(setq org-clock-heading (match-string 4))
-	      (setq org-clock-heading "???")))
-	  (setq org-clock-heading (propertize org-clock-heading 'face nil))
+	  (setq org-clock-heading-for-remember 
+		(and (looking-at org-complex-heading-regexp)
+		     (match-end 4)
+		     (org-trim (buffer-substring (match-end 1) (match-end 4)))))
+	  (setq org-clock-heading
+		(cond ((and org-clock-heading-function
+			    (functionp org-clock-heading-function))
+		       (funcall org-clock-heading-function))
+		      ((looking-at org-complex-heading-regexp)
+		       (match-string 4))
+		      (t "???")))
+	  (setq org-clock-heading (org-propertize org-clock-heading 'face nil))
 	  (org-clock-find-position)
 	  
 	  (insert "\n") (backward-char 1)
@@ -306,6 +328,7 @@ the clocking selection, associated with the letter `d'."
 	;; Wrap current entries into a new drawer
 	(goto-char last)
 	(beginning-of-line 2)
+	(if (org-at-item-p) (org-end-of-item))
 	(insert ":END:\n")
 	(beginning-of-line 0)
 	(org-indent-line-function)
@@ -368,7 +391,8 @@ If there is no running clock, throw an error, unless FAIL-QUIETLY is set."
 	       (delete-char 1)))
 	(move-marker org-clock-marker nil)
 	(when org-log-note-clock-out
-	  (org-add-log-setup 'clock-out))
+	  (org-add-log-setup 'clock-out nil nil nil
+			     (concat "# Task: " (org-get-heading t) "\n\n")))
 	(when org-mode-line-timer
 	  (cancel-timer org-mode-line-timer)
 	  (setq org-mode-line-timer nil))

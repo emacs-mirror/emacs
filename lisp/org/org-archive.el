@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06b
+;; Version: 6.09a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -353,6 +353,7 @@ sibling does not exist, it will be created at the end of the subtree."
 	(current-time)))
       (outline-up-heading 1 t)
       (hide-subtree)
+      (org-cycle-show-empty-lines 'folded)
       (goto-char pos))))
 
 (defun org-archive-all-done (&optional tag)
