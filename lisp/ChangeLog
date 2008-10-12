@@ -1,5 +1,7 @@
 2008-10-12  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (ELCFILES): Update.
+
 	* simple.el (shell-delimiter-argument-list, shell-file-name-chars)
 	(shell-file-name-quote-list): Declare.
 
