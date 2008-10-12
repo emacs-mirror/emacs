@@ -3,8 +3,8 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.06b
-@set DATE July 2008
+@set VERSION 6.09a
+@set DATE October 2008
 
 @dircategory Emacs
 @direntry
@@ -87,7 +87,7 @@ license to the document, as described in section 6 of the license.
 * Tags::                        Tagging headlines and matching sets of tags
 * Properties and Columns::      Storing information about an entry
 * Dates and Times::             Making items useful for planning
-* Remember::                    Quickly adding nodes to the outline tree
+* Capture::                     Creating tasks and attaching files
 * Agenda Views::                Collecting information into views
 * Embedded LaTeX::              LaTeX fragments and formulas
 * Exporting::                   Sharing and publishing of notes
@@ -135,6 +135,7 @@ Tables
 * Column groups::               Grouping to trigger vertical lines
 * Orgtbl mode::                 The table editor as minor mode
 * The spreadsheet::             The table editor has spreadsheet capabilities
+* Org Plot::                    Plotting from org tables
 
 The spreadsheet
 
@@ -229,6 +230,11 @@ Deadlines and scheduling
 * Inserting deadline/schedule::  Planning items
 * Repeated tasks::              Items that show up again and again
 
+Capture
+
+* Remember::                    Capture new tasks/ideas with little interruption
+* Attachments::                 Add files to tasks.
+
 Remember
 
 * Setting up Remember::         Some code for .emacs to get things going
@@ -280,6 +286,7 @@ Embedded LaTeX
 Exporting
 
 * Markup rules::                Which structures are recognized?
+* Selective export::            Using tags to select and exclude trees
 * Export options::              Per-file export settings
 * The export dispatcher::       How to access exporter commands
 * ASCII export::                Exporting to plain ASCII
@@ -768,9 +775,9 @@ CONTENTS view up to headlines of level N will be shown.  Note that inside
 tables, @kbd{S-@key{TAB}} jumps to the previous field.
 
 @cindex show all, command
-@kindex C-c C-a
-@item C-c C-a
-Show all.
+@kindex C-u C-u C-u @key{TAB}
+@item C-u C-u C-u @key{TAB}
+Show all, including drawers.
 @kindex C-c C-r
 @item C-c C-r
 Reveal context around point, showing the current entry, the following heading
@@ -890,11 +897,16 @@ of a headline), then a headline like the current one will be inserted
 after the end of the subtree.
 @kindex C-@key{RET}
 @item C-@key{RET}
-Insert a new heading after the current subtree, same level as the
-current headline.  This command works from anywhere in the entry.
+Just like @kbd{M-@key{RET}}, but if the heading is inserted after the current,
+insert it actually after the entire subtree.
 @kindex M-S-@key{RET}
 @item M-S-@key{RET}
 Insert new TODO entry with same level as current heading.
+@kindex C-S-@key{RET}
+@item C-S-@key{RET}
+Insert new TODO entry with same level as current heading.  Like
+@kbd{C-@key{RET}}, the new headline will be inserted after the current
+subtree.
 @kindex M-@key{left}
 @item M-@key{left}
 Promote current heading by one level.
@@ -1366,6 +1378,7 @@ calculator).
 * Column groups::               Grouping to trigger vertical lines
 * Orgtbl mode::                 The table editor as minor mode
 * The spreadsheet::             The table editor has spreadsheet capabilities
+* Org Plot::                    Plotting from org tables
 @end menu
 
 @node Built-in table editor, Narrow columns, Tables, Tables
@@ -1508,7 +1521,7 @@ blank all fields in the rectangle.  So this is the ``cut'' operation.
 @kindex C-c C-x C-y
 @item C-c C-x C-y
 Paste a rectangular region into a table.
-The upper right corner ends up in the current field.  All involved fields
+The upper left corner ends up in the current field.  All involved fields
 will be overwritten.  If the rectangle does not fit into the present table,
 the table is enlarged as needed.  The process ignores horizontal separator
 lines.
@@ -1540,12 +1553,12 @@ be inserted with @kbd{C-y}.
 @c
 @kindex S-@key{RET}
 @item S-@key{RET}
-When current field is empty, copy from first non-empty field above.
-When not empty, copy current field down to next row and move cursor
-along with it.  Depending on the variable
-@code{org-table-copy-increment}, integer field values will be
-incremented during copy.  This key is also used by CUA mode
-(@pxref{Cooperation}).
+When current field is empty, copy from first non-empty field above.  When not
+empty, copy current field down to next row and move cursor along with it.
+Depending on the variable @code{org-table-copy-increment}, integer field
+values will be incremented during copy.  Integers that are too large will not
+be incremented.  Also, a @code{0} prefix argument temporarily dispables the
+increment.  This key is also used by CUA mode (@pxref{Cooperation}).
 
 @tsubheading{Miscellaneous}
 @kindex C-c `
@@ -1693,7 +1706,7 @@ construct La@TeX{} tables with the underlying ease and power of
 Orgtbl mode, including spreadsheet capabilities.  For details, see
 @ref{Tables in arbitrary syntax}.
 
-@node The spreadsheet,  , Orgtbl mode, Tables
+@node The spreadsheet, Org Plot, Orgtbl mode, Tables
 @section The spreadsheet
 @cindex calculations, in tables
 @cindex spreadsheet capabilities
@@ -2160,9 +2173,8 @@ to reserve the first column of the table for special marking characters.
 @kindex C-#
 @item C-#
 Rotate the calculation mark in first column through the states @samp{},
-@samp{#}, @samp{*}, @samp{!}, @samp{$}.  The meaning of these characters
-is discussed below.  When there is an active region, change all marks in
-the region.
+@samp{#}, @samp{*}, @samp{!}, @samp{$}.  When there is an active region,
+change all marks in the region.
 @end table
 
 Here is an example of a table that collects exam results of students and
@@ -2178,7 +2190,6 @@ makes use of these features:
 | ^ |         |     m1 |     m2 |     m3 |    mt |      |
 |---+---------+--------+--------+--------+-------+------|
 | # | Peter   |     10 |      8 |     23 |    41 |  8.2 |
-| # | Sara    |      6 |     14 |     19 |    39 |  7.8 |
 | # | Sam     |      2 |      4 |      3 |     9 |  1.8 |
 |---+---------+--------+--------+--------+-------+------|
 |   | Average |        |        |        |  29.7 |      |
@@ -2253,6 +2264,87 @@ functions.
 #+TBLFM: $5=taylor($2,$4,$3);n3
 @end group
 @end example
+
+@page
+@node Org Plot,  , The spreadsheet, Tables
+@section Org Plot
+@cindex graph, in tables
+@cindex plot tables using gnuplot
+
+Org Plot can produce 2D and 3D graphs of information stored in org tables
+using @file{Gnuplot} (see @uref{http://www.gnuplot.info/, the Gnuplot
+website}) and @file{gnuplot-mode} (see
+@uref{http://cars9.uchicago.edu/~ravel/software/gnuplot-mode.html, the
+gnuplot-mode website}).  To see this in action ensure that you have both
+Gnuplot and Gnuplot-mode installed on your system, then call
+@code{org-plot/gnuplot} on the following table.
+
+@example
+@group
+#+PLOT: title:"Citas" ind:1 deps:(3) type:2d with:histograms set:"yrange [0:]"
+| Sede      | Max cites | H-index |
+|-----------+-----------+---------|
+| Chile     |    257.72 |   21.39 |
+| Leeds     |    165.77 |   19.68 |
+| Sao Paolo |     71.00 |   11.50 |
+| Stockholm |    134.19 |   14.33 |
+| Morelia   |    257.56 |   17.67 |
+@end group
+@end example
+
+Notice that Org Plot is smart enough to apply the tables headers as labels.
+Further control over the labels, type, content, and appearance of plots can
+be exercised through the @code{#+Plot:} lines preceding a table.  See below
+for a complete list of Org plot options.  For more information and examples
+@uref{http://orgmode.org/worg/org-tutorials/org-plot.php, the org-plot
+tutorial}.
+
+@subsubheading Plot Options
+
+@table @code
+@item set
+Specify any @file{gnuplot} option to be set when graphing.
+
+@item title
+Specify the title of the plot.
+
+@item ind
+Specify which column of the table to use as the @code{x} axis.
+
+@item deps
+Specify (as a comma seperated list with no spaces) which columns of the table
+to graph against the ind (defaults to all other columns).
+
+@item type
+Specify whether the plot will be @code{2d}, @code{3d}, or @code{grid}.
+
+@item with
+Specify a @code{with} option to be inserted for every col being plotted
+(e.g. @code{lines}, @code{points}, @code{boxes}, @code{impulses}, etc...).
+Defaults to 'lines'.
+
+@item file
+If you want to plot to a file specify the @code{"path/to/desired/output-file"}.
+
+@item labels
+List of labels to be used for the deps (defaults to column headers if they
+exist).
+
+@item line
+Specify an entire line to be inserted in the gnuplot script.
+
+@item map
+When plotting @code{3d} or @code{grid} types, set this to @code{t} to graph a
+flat mapping rather than a @code{3d} slope.
+
+@item script
+If you want total control you can specify a script file (place the file name
+between double quotes) which will be used to plot.  Before plotting, every
+instance of @code{$datafile} in the specified script will be replaced with
+the path to the generated data file.  Note even if you set this option you
+may still want to specify the plot type, as that can impact the content of
+the data file.
+@end table
 
 @node Hyperlinks, TODO Items, Tables, Top
 @chapter Hyperlinks
@@ -2524,17 +2616,16 @@ link and description parts of the link.
 @kindex C-c C-o
 @item C-c C-o
 Open link at point.  This will launch a web browser for URLs (using
-@command{browse-url-at-point}), run VM/MH-E/Wanderlust/Rmail/Gnus/BBDB
-for the corresponding links, and execute the command in a shell link.
-When the cursor is on an internal link, this commands runs the
-corresponding search.  When the cursor is on a TAG list in a headline,
-it creates the corresponding TAGS view.  If the cursor is on a time
-stamp, it compiles the agenda for that date.  Furthermore, it will visit
-text and remote files in @samp{file:} links with Emacs and select a
-suitable application for local non-text files.  Classification of files
-is based on file extension only.  See option @code{org-file-apps}.  If
-you want to override the default application and visit the file with
-Emacs, use a @kbd{C-u} prefix.
+@command{browse-url-at-point}), run VM/MH-E/Wanderlust/Rmail/Gnus/BBDB for
+the corresponding links, and execute the command in a shell link.  When the
+cursor is on an internal link, this commands runs the corresponding search.
+When the cursor is on a TAG list in a headline, it creates the corresponding
+TAGS view.  If the cursor is on a time stamp, it compiles the agenda for that
+date.  Furthermore, it will visit text and remote files in @samp{file:} links
+with Emacs and select a suitable application for local non-text files.
+Classification of files is based on file extension only.  See option
+@code{org-file-apps}.  If you want to override the default application and
+visit the file with Emacs, use a @kbd{C-u} prefix.
 @c
 @kindex mouse-2
 @kindex mouse-1
@@ -3619,15 +3710,6 @@ release, number of tracks, and so on.
 Properties can be conveniently edited and viewed in column view
 (@pxref{Column view}).
 
-Properties are like tags, but with a value.  For example, in a file
-where you document bugs and plan releases of a piece of software,
-instead of using tags like @code{:release_1:}, @code{:release_2:}, it
-can be more efficient to use a property @code{:Release:} with a value
-@code{1.0} or @code{2.0}.  Second, you can use properties to implement
-(very basic) database capabilities in an Org buffer, for example to
-create a list of Music CD's you own.  You can edit and view properties
-conveniently in column view (@pxref{Column view}).
-
 @menu
 * Property syntax::             How properties are spelled out
 * Special properties::          Access to other Org mode features
@@ -3775,7 +3857,7 @@ If the comparison value is enclosed in double quotes @emph{and} angular
 brackets (like @samp{DEADLINE<="<2008-12-24 18:30>"}), both values are
 assumed to be date/time specifications in the standard Org way@footnote{The
 only special values that will be recognized are @samp{"<now>"} for now, and
-@samp{"<today"} today at 0:00 hours, i.e. without a time specification.}, and
+@samp{"<today>"} today at 0:00 hours, i.e. without a time specification.}, and
 the comparison will be done accordingly.
 @item
 If the comparison value is enclosed
@@ -4028,7 +4110,7 @@ current column view.
 Make the column narrower/wider by one character.
 @kindex S-M-@key{right}
 @item S-M-@key{right}
-Insert a new column, to the right of the current column.
+Insert a new column, to the left of the current column.
 @kindex S-M-@key{left}
 @item S-M-@key{left}
 Delete the current column.
@@ -4083,8 +4165,8 @@ column view is @code{ITEM}.
 The following commands insert or update the dynamic block:
 
 @table @kbd
-@kindex C-c C-x r
-@item C-c C-x r
+@kindex C-c C-x i
+@item C-c C-x i
 Insert a dynamic block capturing a column view.  You will be prompted
 for the scope or id of the view.
 @kindex C-c C-c
@@ -4099,6 +4181,11 @@ Update all dynamic blocks (@pxref{Dynamic blocks}).  This is useful if
 you have several clock table blocks in a buffer.
 @end table
 
+You can add formulas to the column view table and you may add plotting
+instructions in front of the table - these will survive an update of the
+block.  If there is a @code{#+TBLFM:} after the table, the table will
+actually be recalculated automatically after an update.
+
 @node Property API,  , Column view, Properties and Columns
 @section The Property API
 @cindex properties, API
@@ -4109,7 +4196,7 @@ be used by Emacs Lisp programs to work with properties and to implement
 features based on them.  For more information see @ref{Using the
 property API}.
 
-@node Dates and Times, Remember, Properties and Columns, Top
+@node Dates and Times, Capture, Properties and Columns, Top
 @chapter Dates and Times
 @cindex dates
 @cindex times
@@ -4220,9 +4307,10 @@ format.
 @table @kbd
 @kindex C-c .
 @item C-c .
-Prompt for a date and insert a corresponding time stamp.  When the
-cursor is at a previously used time stamp, it is updated to NOW.  When
-this command is used twice in succession, a time range is inserted.
+Prompt for a date and insert a corresponding time stamp.  When the cursor is
+at an existing time stamp in the buffer, the command is used to modify this
+timestamp instead of inserting a new one.  When this command is used twice in
+succession, a time range is inserted.
 @c
 @kindex C-u C-c .
 @item C-u C-c .
@@ -4788,8 +4876,23 @@ option @code{org-agenda-columns-add-appointments-to-effort-sum}.  The
 appointments on a day that take place over a specified time interval will
 then also be added to the load estimate of the day.
 
-@node Remember, Agenda Views, Dates and Times, Top
-@chapter Remember
+
+@node Capture, Agenda Views, Dates and Times, Top
+@chapter Capture
+@cindex capture
+
+An important part of any organization system is the ability to quickly
+capture new ideas and tasks, and to associate reference material with them.
+Org uses the @file{remember} package to create tasks, and stores files
+related to a task (@i{attachments}) in a special directory.
+
+@menu
+* Remember::                    Capture new tasks/ideas with little interruption
+* Attachments::                 Add files to tasks.
+@end menu
+
+@node Remember, Attachments, Capture, Capture
+@section Remember
 @cindex @file{remember.el}
 
 The @i{Remember} package by John Wiegley lets you store quick notes with
@@ -4810,7 +4913,7 @@ interactively, on the fly.
 @end menu
 
 @node Setting up Remember, Remember templates, Remember, Remember
-@section Setting up Remember
+@subsection Setting up Remember
 
 The following customization will tell @i{remember} to use org files as
 target, and to create annotations compatible with Org links.
@@ -4838,7 +4941,7 @@ inserted by the selected remember template (see below) will default to
 the cursor date in the agenda, rather than to the current date.
 
 @node Remember templates, Storing notes, Setting up Remember, Remember
-@section Remember templates
+@subsection Remember templates
 @cindex templates, for remember
 
 In combination with Org, you can use templates to generate
@@ -4918,7 +5021,10 @@ insertion of content:
 %^C         @r{Interactive selection of which kill or clip to use.}
 %^L         @r{Like @code{%^C}, but insert as link.}
 %^g         @r{prompt for tags, with completion on tags in target file.}
+%k          @r{title of currently clocked task}
+%K          @r{link to currently clocked task}
 %^G         @r{prompt for tags, with completion all tags in all agenda files.}
+%^@{prop@}p   @r{Prompt the user for a value for property @code{prop}}
 %:keyword   @r{specific information for certain link types, see below}
 %[pathname] @r{insert the contents of the file given by @code{pathname}}
 %(sexp)     @r{evaluate elisp @code{(sexp)} and replace with the result}
@@ -4962,7 +5068,7 @@ If you change your mind about which template to use, call
 template that will be filled with the previous context information.
 
 @node Storing notes, Refiling notes, Remember templates, Remember
-@section Storing notes
+@subsection Storing notes
 
 When you are finished preparing a note with @i{remember}, you have to press
 @kbd{C-c C-c} to file the note away.  If you have started the clock in the
@@ -4976,11 +5082,12 @@ specified in the template, or it will use the default file and headlines.
 The window configuration will be restored, sending you back to the working
 context before the call to @code{remember}.  To re-use the location found
 during the last call to @code{remember}, exit the remember buffer with
-@kbd{C-u C-u C-c C-c}, i.e. specify a double prefix argument to @kbd{C-c
-C-c}.
+@kbd{C-0 C-c C-c}, i.e. specify a zero prefix argument to @kbd{C-c C-c}.
+Another special case is @kbd{C-2 C-c C-c} which files the note as a child of
+the currently clocked item.
 
 If you want to store the note directly to a different place, use
-@kbd{C-u C-c C-c} instead to exit remember@footnote{Configure the
+@kbd{C-1 C-c C-c} instead to exit remember@footnote{Configure the
 variable @code{org-remember-store-without-prompt} to make this behavior
 the default.}.  The handler will then first prompt for a target file -
 if you press @key{RET}, the value specified for the template is used.
@@ -5012,15 +5119,14 @@ then leads to the following result.
       @tab at cursor position, level taken from context.
 @end multitable
 
-Before inserting the text into a tree, the function ensures that the
-text has a headline, i.e. a first line that starts with a @samp{*}.  If
-not, a headline is constructed from the current date and some additional
-data.  If you have indented the text of the note below the headline, the
-indentation will be adapted if inserting the note into the tree requires
-demotion from level 1.
+Before inserting the text into a tree, the function ensures that the text has
+a headline, i.e. a first line that starts with a @samp{*}.  If not, a
+headline is constructed from the current date.  If you have indented the text
+of the note below the headline, the indentation will be adapted if inserting
+the note into the tree requires demotion from level 1.
 
 @node Refiling notes,  , Storing notes, Remember
-@section Refiling notes
+@subsection Refiling notes
 @cindex refiling notes
 
 Remember is usually used to quickly capture notes and tasks into one or
@@ -5051,7 +5157,88 @@ Use the refile interface to jump to a heading.
 Jump to the location where @code{org-refile} last moved a tree to.
 @end table
 
-@node Agenda Views, Embedded LaTeX, Remember, Top
+@node Attachments,  , Remember, Capture
+@section Attachments
+@cindex attachments
+
+It is often useful to associate reference material with an outline node/task.
+Small chunks of plain text can simply be stored in the subtree of a project.
+Hyperlinks (@pxref{Hyperlinks}) can be used to establish associations with
+files that live elsewhere on your computer or in the cloud, like emails or
+source code files belonging to a project.  Another method is @i{attachments},
+which are files located in a directory belonging to an outline node.  Org
+uses directories named by the unique ID of each entry.  These directories are
+located in the @file{data} directory which lives in the same directory where
+your org-file lives@footnote{If you move entries or Org-files from one
+directory to the next, you may want to configure @code{org-attach-directory}
+to contain an absolute path.}.  If you initialize this directory with
+@code{git-init}, Org will automatically commit changes when it sees them.
+The attachment system has been contributed to Org by John Wiegley.
+
+@noindent The following commands deal with attachments.
+
+@table @kbd
+
+@kindex C-c C-a
+@item C-c C-a
+The dispatcher for commands related to the attachment system.  After these
+keys, a list of commands is displayed and you need to press an additional key
+to select a command:
+
+@table @kbd
+@kindex C-c C-a a 
+@item a 
+Select a file and move it into the task's attachment directory.  The file
+will be copied, moved, or linked, depending on @code{org-attach-method}.
+Note that hard links are not supported on all systems.
+
+@kindex C-c C-a c
+@kindex C-c C-a m 
+@kindex C-c C-a l 
+@item c/m/l
+Attach a file using the copy/move/link method.
+Note that hard links are not supported on all systems.
+
+@kindex C-c C-a n
+@item n
+Create a new attachment as an Emacs buffer.
+
+@kindex C-c C-a z
+@item z
+Synchronize the current task with its attachment directory, in case you added
+attachments yourself.
+
+@kindex C-c C-a o
+@item o
+Open current task's attachment.  If there are more than one, prompt for a
+file name first.  Opening will follow the rules set by @code{org-file-apps}.
+For more details, see the information on following hyperlings
+(@pxref{Handling links}).
+
+@kindex C-c C-a O
+@item O
+Also open the attachment, but force opening the file in Emacs.
+
+@kindex C-c C-a f
+@item f
+Open the current task's attachment directory.
+
+@kindex C-c C-a F
+@item F
+Also open the directory, but force using @code{dired} in Emacs.
+
+@kindex C-c C-a d
+@item d
+Select and delete a single attachment.
+
+@kindex C-c C-a D
+@item D
+Delete all of a task's attachments.  A safer way is to open the directory in
+dired and delete from there.
+@end table
+@end table
+
+@node Agenda Views, Embedded LaTeX, Capture, Top
 @chapter Agenda Views
 @cindex agenda views
 
@@ -5072,8 +5259,8 @@ for specific dates,
 a @emph{TODO list} that covers all unfinished
 action items,
 @item
-a @emph{tags view}, showings headlines based on
-the tags associated with them,
+a @emph{match view}, showings headlines based on the tags, properties and
+TODO state associated with them,
 @item
 a @emph{timeline view} that shows all events in a single Org file,
 in time-sorted view,
@@ -5267,13 +5454,13 @@ paper agenda, showing all the tasks for the current week or day.
 @cindex org-agenda, command
 @kindex C-c a a
 @item C-c a a
-Compile an agenda for the current week from a list of org files.  The
-agenda shows the entries for each day.  With a numeric
-prefix@footnote{For backward compatibility, the universal prefix
-@kbd{C-u} causes all TODO entries to be listed before the agenda.  This
-feature is deprecated, use the dedicated TODO list, or a block agenda
-instead.}  (like @kbd{C-u 2 1 C-c a a}) you may set the number of days
-to be displayed (see also the variable @code{org-agenda-ndays})
+Compile an agenda for the current week from a list of org files.  The agenda
+shows the entries for each day.  With a numeric prefix@footnote{For backward
+compatibility, the universal prefix @kbd{C-u} causes all TODO entries to be
+listed before the agenda.  This feature is deprecated, use the dedicated TODO
+list, or a block agenda instead (@pxref{Block agenda}).}  (like @kbd{C-u 2 1
+C-c a a}) you may set the number of days to be displayed (see also the
+variable @code{org-agenda-ndays})
 @end table
 
 Remote editing from the agenda buffer means, for example, that you can
@@ -5400,6 +5587,7 @@ and omit the sublevels from the global list.  Configure the variable
 @cindex matching, of tags
 @cindex matching, of properties
 @cindex tags view
+@cindex match view
 
 If headlines in the agenda files are marked with @emph{tags}
 (@pxref{Tags}), you can select headlines based on the tags that apply
@@ -5499,9 +5687,9 @@ work for you.  The built-in default assumes that all your projects are
 level-2 headlines, and that a project is not stuck if it has at least
 one entry marked with a TODO keyword TODO or NEXT or NEXTACTION.
 
-Lets assume that you, in your own way of using Org mode, identify
+Let's assume that you, in your own way of using Org mode, identify
 projects with a tag PROJECT, and that you use a TODO keyword MAYBE to
-indicate a project that should not be considered yet.  Lets further
+indicate a project that should not be considered yet.  Let's further
 assume that the TODO keyword DONE marks finished projects, and that NEXT
 and TODO indicate next actions.  The tag @@SHOP indicates shopping and
 is a next action even without the NEXT tag.  Finally, if the project
@@ -5799,21 +5987,31 @@ that entry would be in the original buffer (taken from a property, from a
 @code{#+COLUMNS} line, or from the default variable
 @code{org-columns-default-format}), will be used in the agenda.
 
-@tsubheading{Query editing}
+@tsubheading{Secondary filtering and query editing}
 @cindex query editing, in agenda
+
+@kindex /
+@item /
+Filter the current agenda view with respect to a tag.  You will be prompted
+for a tag selection letter.  Pressing @key{TAB} at that prompt will offer use
+completion to select a tag (including any tags that do not have a selection
+character).  The command then hides all entries that do not contain or
+inherit this tag.  When called with prefix arg, remove the entries that
+@emph{do} have the tag.  A second @kbd{/} at the prompt will unhide any
+hidden entries.
 
 @kindex [
 @kindex ]
 @kindex @{
 @kindex @}
 @item [ ] @{ @}
-In the @i{search view} (@pxref{Keyword search}), these keys add new
-search words (@kbd{[} and @kbd{]}) or new regular expressions (@kbd{@{}
-and @kbd{@}}) to the query string.  The opening bracket/brace will add a
-positive search term prefixed by @samp{+}, indicating that this search
-term @i{must} occur/match in the entry.  Closing bracket/brace add a
-negative search term which @i{must not} occur/match in the entry for it
-to be selected.
+In the @i{search view} (@pxref{Keyword search}), these keys add new search
+words (@kbd{[} and @kbd{]}) or new regular expressions (@kbd{@{} and
+@kbd{@}}) to the query string.  The opening bracket/brace will add a positive
+search term prefixed by @samp{+}, indicating that this search term @i{must}
+occur/match in the entry.  The closing bracket/brace will add a negative
+search term which @i{must not} occur/match in the entry for it to be
+selected.
 
 
 @tsubheading{Remote editing}
@@ -5889,6 +6087,10 @@ key for this.
 @item -
 @itemx S-@key{down}
 Decrease the priority of the current item.
+@c
+@kindex C-c C-a
+@item C-c C-a
+Dispatcher for all command related to attachments.
 @c
 @kindex C-c C-s
 @item C-c C-s
@@ -6537,7 +6739,8 @@ Angles are written as Greek letters \alpha, \beta and \gamma.
 
 During HTML export (@pxref{HTML export}), these symbols are translated
 into the proper syntax for HTML, for the above examples this is
-@samp{&alpha;} and @samp{&rarr;}, respectively.
+@samp{&alpha;} and @samp{&rarr;}, respectively.  If you need such a symbol
+inside a word, terminate it like this: @samp{\Aacute@{@}stor}.
 
 @node Subscripts and superscripts, LaTeX fragments, Math symbols, Embedded LaTeX
 @section Subscripts and superscripts
@@ -6722,6 +6925,7 @@ Org mode only supports export, not import of these different formats.
 
 @menu
 * Markup rules::                Which structures are recognized?
+* Selective export::            Using tags to select and exclude trees
 * Export options::              Per-file export settings
 * The export dispatcher::       How to access exporter commands
 * ASCII export::                Exporting to plain ASCII
@@ -6731,7 +6935,7 @@ Org mode only supports export, not import of these different formats.
 * iCalendar export::            Exporting in iCalendar format
 @end menu
 
-@node Markup rules, Export options, Exporting, Exporting
+@node Markup rules, Selective export, Exporting, Exporting
 @section Markup rules
 
 When exporting Org mode documents,  the exporter tries to reflect the
@@ -6858,8 +7062,11 @@ can use this construct, which can also be used to format poetry.
 
 @example
 #+BEGIN_VERSE
-Everything should be made as simple as possible,
-but not any simpler -- Albert Einstein
+ Great clouds overhead
+ Tiny black birds rise and fall
+ Snow covers Emacs
+ 
+     -- AlexSchroeder
 #+END_VERSE
 @end example
 
@@ -6920,7 +7127,16 @@ example:
 @item C-c '
 Edit the source code example at point in its native mode.  This works by
 switching to an indirect buffer, narrowing the buffer and switching to the
-other mode.  You need to exit by pressing @kbd{C-c '} again.
+other mode.  You need to exit by pressing @kbd{C-c '} again@footnote{Upon
+exit, lines starting with @samp{*} or @samp{#} will get a comma prepended, to
+keep them from being interpreted by Org as outline nodes or special
+comments.  These commas will be striped for editing with @kbd{C-c '}, and
+also for export.}.  Fixed-width
+regions (where each line starts with a colon followed by a space) will be
+edited using @code{artist-mode}@footnote{You may select a different-mode with
+the variable @code{org-edit-fixed-width-region-mode}.} to allow creating
+ASCII drawings easily.  Using this command in an empty line will create a new
+fixed-width region.
 @end table
 
 
@@ -7047,7 +7263,28 @@ never be exported.  Also entire subtrees starting with the word
 Toggle the COMMENT keyword at the beginning of an entry.
 @end table
 
-@node Export options, The export dispatcher, Markup rules, Exporting
+@node Selective export, Export options, Markup rules, Exporting
+@section Selective export
+@cindex export, selective by tags
+
+You may use tags to select the parts of a document that should be exported,
+or to exclude parts from export.  This behavior is governed by two variables:
+@code{org-export-select-tags} and @code{org-export-exclude-tags}.
+
+Org first checks if any of the @emph{select} tags is present in the buffer.
+If yes, all trees that do not carry one of these tags will be excluded.  If a
+selected tree is a subtree, the heading hierarchy above it will also be
+selected for export, but not the text below those headings.
+
+@noindent
+If none of the select tags is found, the whole buffer will be selected for
+export.
+
+@noindent
+Finally, all subtrees that are marked by any of the @emph{exclude} tags will
+be removed from the export buffer.
+
+@node Export options, The export dispatcher, Selective export, Exporting
 @section Export options
 @cindex options, for export
 
@@ -7074,6 +7311,8 @@ Insert template with export options, see example below.
 @cindex #+OPTIONS:
 @cindex #+LINK_UP:
 @cindex #+LINK_HOME:
+@cindex #+EXPORT_SELECT_TAGS:
+@cindex #+EXPORT_EXCLUDE_TAGS:
 @example
 #+TITLE:     the title to be shown (default is the buffer name)
 #+AUTHOR:    the author (default taken from @code{user-full-name})
@@ -7085,6 +7324,8 @@ Insert template with export options, see example below.
 #+OPTIONS:   H:2 num:t toc:t \n:nil @@:t ::t |:t ^:t f:t TeX:t ...
 #+LINK_UP:   the ``up'' link of an exported page
 #+LINK_HOME: the ``home'' link of an exported page
+#+EXPORT_SELECT_TAGS:   Tags that select a tree for export
+#+EXPORT_EXCLUDE_TAGS:  Tags that exclude a tree from export
 @end example
 
 @noindent
@@ -7381,27 +7622,15 @@ Each exported files contains a compact default style that defines these
 classes in a basic way.  You may overwrite these settings, or add to them by
 using the variables @code{org-export-html-style} (for Org-wide settings) and
 @code{org-export-html-style-extra} (for more granular settings, like
-file-local settings).  If you want to use a file-local style, you may use
-file variables, best wrapped into a COMMENT section at the end of the outline
-tree.  For example@footnote{Under Emacs 21, the continuation lines for a
-variable value should have no @samp{#} at the start of the line.}:
+file-local settings).  To set the latter variable individually for each
+file, you can use
 
 @example
-* COMMENT html style specifications
-
-# Local Variables:
-# org-export-html-style-extra: 
-#  "<style>
-#   p  @{font-weight: normal; color: gray; @}
-#   h1 @{color: black; @}
-#   </style>"
-# End:
+#+STYLE: <link rel="stylesheet" type="text/css" href="stylesheet.css" />
 @end example
 
-Remember to execute @kbd{M-x normal-mode} after changing this to make the new
-style immediately visible to Emacs.  This command restarts Org mode for the
-current buffer and forces Emacs to re-evaluate the local variables section in
-the buffer.
+@noindent
+For longer style definitions, you can use several such lines.
 
 @c FIXME: More about header and footer styles
 @c FIXME: Talk about links and targets.
@@ -7595,7 +7824,10 @@ stamps as VEVENT, and TODO items as VTODO.  It will also create events from
 deadlines that are in non-TODO items.  Deadlines and scheduling dates in TODO
 items will be used to set the start and due dates for the todo
 entry@footnote{See the variables @code{org-icalendar-use-deadline} and
-@code{org-icalendar-use-scheduled}.}.
+@code{org-icalendar-use-scheduled}.}.  As categories, it will use the tags
+locally defined in the heading, and the file/tree category@footnote{To add
+inherited tags or the TODO state, configure the variable
+@code{org-icalendar-categories}.}. 
 
 The iCalendar standard requires each entry to have a globally unique
 identifier (UID).  Org creates these identifiers during export.  If you set
@@ -7816,6 +8048,8 @@ respective variable for details.
 @item @code{:auto-postamble}        @tab @code{org-export-html-auto-postamble}
 @item @code{:author}                @tab @code{user-full-name}
 @item @code{:email}                 @tab @code{user-mail-address}
+@item @code{:select-tags}           @tab @code{org-export-select-tags}
+@item @code{:exclude-tags}          @tab @code{org-export-exclude-tags}
 @end multitable
 
 If you use several email addresses, separate them by a semi-column.
@@ -8332,9 +8566,11 @@ the variable @code{org-hide-leading-stars} or change this on a per-file basis
 with
 
 @example
-#+STARTUP: showstars
 #+STARTUP: hidestars
 @end example
+
+@noindent
+Note that the opposite behavior is selected with @code{showstars}.
 
 With hidden stars, the tree becomes:
 
@@ -8658,6 +8894,8 @@ distribution, others are available somewhere on the web.
       to publish the same file using either org-publish or Muse.
 @item @file{org-panel.el} by @i{Lennard Borgman}
       Simplified and display-aided access to some Org commands.
+@c @item @file{org-plot.el} by @i{Eric Schulte}
+@c      Plotting Org tables with Gnuplot.
 @item @file{org-registry.el} by @i{Bastien Guerry}
       A registry for Org links, to find out from where links point to a given
       file or location.
@@ -8700,7 +8938,7 @@ Org.
 
 Org has a large number of hyperlink types built-in
 (@pxref{Hyperlinks}).  If you would like to add new link types, it
-provides an interface for doing so.  Lets look at an example file
+provides an interface for doing so.  Let's look at an example file
 @file{org-man.el} that will add support for creating links like
 @samp{[[man:printf][The printf manpage]]} to show Unix manual pages inside
 emacs:
@@ -8755,7 +8993,7 @@ You would activate this new link type in @file{.emacs} with
 @end lisp
 
 @noindent
-Lets go through the file and see what it does.
+Let's go through the file and see what it does.
 @enumerate
 @item
 It does @code{(require 'org)} to make sure that @file{org.el} has been
@@ -9307,6 +9545,16 @@ Get all property keys in the current buffer.
 Insert a property drawer at point.
 @end defun
 
+@defun org-entry-put-multivalued-property pom property &rest values
+Set PROPERTY at point-or-marker POM to VALUES.  VALUES should be a list of
+strings.  They will be concatenated, with spaces as separators.
+@end defun
+
+@defun org-entry-get-multivalued-property pom property
+Treat the value of the property PROPERTY as a whitespace-separated list of
+values and return the values as a list of strings.
+@end defun
+
 @defun org-entry-add-to-multivalued-property pom property value
 Treat the value of the property PROPERTY as a whitespace-separated list of
 values and make sure that VALUE is in this list.
@@ -9341,7 +9589,7 @@ arguments, with the cursor positioned at the beginning of the headline.
 The return values of all calls to the function will be collected and
 returned as a list.
 
-MATCH is a tags/property/todo match as it is used in the agenda tags view.
+MATCH is a tags/property/todo match as it is used in the agenda match view.
 Only headlines that are matched by this query will be considered during
 the iteration.  When MATCH is nil or t, all headlines will be
 visited by the iteration.
@@ -9513,6 +9761,9 @@ has been prolific with patches, ideas, and bug reports.
 task state change logging, and the clocktable.  His clear explanations have
 been critical when we started to adopt the GIT version control system.
 @item
+@i{Manuel Hermenegildo} has contributed various ideas, small fixed and
+patches.
+@item
 @i{Phil Jackson} wrote @file{org-irc.el}.
 @item
 @i{Scott Jaderholm} proposed footnotes, control over whitespace between
@@ -9575,6 +9826,8 @@ of feedback, developed and applied standards to the Org documentation.
 @i{Christian Schlauer} proposed angular brackets around links, among
 other things.
 @item
+@i{Eric Schulte} wrote @file{org-plot.el}.
+@item
 Linking to VM/BBDB/Gnus was first inspired by @i{Tom Shannon}'s
 @file{organizer-mode.el}.
 @item
@@ -9584,6 +9837,9 @@ Linking to VM/BBDB/Gnus was first inspired by @i{Tom Shannon}'s
 subtrees.
 @item
 @i{Dale Smith} proposed link abbreviations.
+@item
+@i{James TD Smith} has contributed a large number of patches for useful
+tweaks and features.
 @item
 @i{Adam Spiers} asked for global linking commands, inspired the link
 extension system, added support for mairix, and proposed the mapping API.
@@ -9605,8 +9861,9 @@ system.
 development of Org was fully independent because I was not aware of the
 existence of these packages.  But with time I have accasionally looked
 at John's code and learned a lot from it.  John has also contributed a
-number of great ideas and patches directly to Org, including the file
-@code{org-mac-message.el}'
+number of great ideas and patches directly to Org, including the attachment
+system (@file{org-attach.el}) and integration with Apple Mail
+(@file{org-mac-message.el}).
 @item
 @i{Carsten Wimmer} suggested some changes and helped fix a bug in
 linking to Gnus.
