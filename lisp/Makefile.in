@@ -918,6 +918,7 @@ ELCFILES = \
 	$(lisp)/obsolete/x-menu.elc \
 	$(lisp)/org/org-agenda.elc \
 	$(lisp)/org/org-archive.elc \
+	$(lisp)/org/org-attach.elc \
 	$(lisp)/org/org-bbdb.elc \
 	$(lisp)/org/org-bibtex.elc \
 	$(lisp)/org/org-clock.elc \
@@ -932,11 +933,13 @@ ELCFILES = \
 	$(lisp)/org/org-install.elc \
 	$(lisp)/org/org-irc.elc \
 	$(lisp)/org/org-jsinfo.elc \
+	$(lisp)/org/org-list.elc \
 	$(lisp)/org/org-mac-message.elc \
 	$(lisp)/org/org-macs.elc \
 	$(lisp)/org/org-mew.elc \
 	$(lisp)/org/org-mhe.elc \
 	$(lisp)/org/org-mouse.elc \
+	$(lisp)/org/org-plot.elc \
 	$(lisp)/org/org-publish.elc \
 	$(lisp)/org/org-remember.elc \
 	$(lisp)/org/org-rmail.elc \
