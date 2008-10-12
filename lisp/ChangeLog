@@ -1,5 +1,8 @@
 2008-10-12  Chong Yidong  <cyd@stupidchicken.com>
 
+	* startup.el (command-line): If toolbar is disabled but ought to
+	be initialized, call tool-bar-setup.
+
 	* tool-bar.el (tool-bar-setup): Variable deleted.
 	(tool-bar-setup): Set it up unconditionally.
 
