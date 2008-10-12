@@ -45,13 +45,11 @@
 	* PROBLEMS:
 	* MACHINES: Remove VMS info.
 
->>>>>>> 1.736
 2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* PROBLEMS:
 	* MACHINES: Remove mentions of Mac Carbon.
 
->>>>>>> 1.727
 2008-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* NEWS: New function `diff-show-trailing-blanks' in diff-mode.el.
