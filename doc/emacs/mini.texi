@@ -54,8 +54,8 @@ is in use, keystrokes do not echo.
   Commands such as @kbd{C-x C-f} (@code{find-file}) use the minibuffer
 to read a file name argument (@pxref{Basic Files}).  When the
 minibuffer is used to read a file name, it typically starts out with
-some initial text---the @dfn{default directory}, which ends in a
-slash.  For example, it may start out like this:
+some initial text ending in a slash.  This is the @dfn{default
+directory}.  For example, it may start out like this:
 
 @example
 Find File: /u2/emacs/src/
@@ -64,7 +64,8 @@ Find File: /u2/emacs/src/
 @noindent
 Here, @samp{Find File:@: } is the prompt and @samp{/u2/emacs/src/} is
 the default directory.  If you now type @kbd{buffer.c} as input, that
-specifies the file @file{/u2/emacs/src/buffer.c}.
+specifies the file @file{/u2/emacs/src/buffer.c}.  @xref{File Names},
+for information about the default directory.
 
   You can specify the parent directory by adding @file{..}: for
 example, @file{/u2/emacs/src/../lisp/simple.el} is equivalent to
@@ -89,13 +90,26 @@ Find File: /u2/emacs/src//etc/termcap
 Emacs interprets a double slash as ``ignore everything before the
 second slash in the pair.''  In the example above,
 @samp{/u2/emacs/src/} is ignored, so the argument you supplied is
-@file{/etc/termcap}.  Similarly, Emacs interprets a tilde (@samp{~})
-as your home directory, ignoring everything before the tilde.
+@file{/etc/termcap}.  The ignored part of the file name is dimmed if
+the terminal allows it (to disable this dimming, turn off File Name
+Shadow mode with the command @kbd{M-x file-name-shadow-mode}.)
 
-  The ignored part of the file name is dimmed if the terminal allows
-it.  To disable this dimming, turn off File Name Shadow mode, a minor
-mode, with the command @kbd{M-x file-name-shadow-mode}.
+@cindex home directory shorthand
+  Emacs interprets @samp{~/} as your home directory.  Thus,
+@samp{~/foo/bar.txt} specifies a file named @samp{bar.txt}, inside a
+directory named @samp{foo}, which is in turn located in your home
+directory.  In addition, @file{~@var{user-id}/} means the home
+directory of a user whose login name is @code{user-id}.  Any leading
+directory name in front of the @samp{~} is ignored: thus,
+@samp{/u2/emacs/~/foo/bar.txt} is equivalent to @samp{~/foo/bar.txt}.
 
+  On MS-Windows and MS-DOS systems, where a user doesn't have a home
+directory, Emacs replaces @file{~/} with the value of the environment
+variable @code{HOME}; see @ref{General Variables}.  On these systems,
+the @file{~@var{user-id}/} construct is supported only for the current
+user, i.e., only if @var{user-id} is the current user's login name.
+
+@vindex insert-default-directory
   To prevent Emacs from inserting the default directory when reading
 file names, change the variable @code{insert-default-directory} to
 @code{nil}.  In that case, the minibuffer starts out empty.
