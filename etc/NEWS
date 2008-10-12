@@ -1203,6 +1203,9 @@ unless there's no other window.
 *** New option split-window-preferred-function can be set to a function
 to override the default splitting mechanism of display-buffer.
 
+*** If pop-up-frames has the value `graphic-only', display-buffer only
+makes a separate frame on graphic displays.
+
 ** Minibuffer and completion changes
 +++
 *** A list of default values can be specified for the DEFAULT argument of
