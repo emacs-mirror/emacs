@@ -89,25 +89,33 @@ Find File: /u2/emacs/src//etc/termcap
 @findex file-name-shadow-mode
 Emacs interprets a double slash as ``ignore everything before the
 second slash in the pair.''  In the example above,
-@samp{/u2/emacs/src/} is ignored, so the argument you supplied is
+@file{/u2/emacs/src/} is ignored, so the argument you supplied is
 @file{/etc/termcap}.  The ignored part of the file name is dimmed if
 the terminal allows it (to disable this dimming, turn off File Name
 Shadow mode with the command @kbd{M-x file-name-shadow-mode}.)
 
 @cindex home directory shorthand
-  Emacs interprets @samp{~/} as your home directory.  Thus,
-@samp{~/foo/bar.txt} specifies a file named @samp{bar.txt}, inside a
-directory named @samp{foo}, which is in turn located in your home
+  Emacs interprets @file{~/} as your home directory.  Thus,
+@file{~/foo/bar.txt} specifies a file named @file{bar.txt}, inside a
+directory named @file{foo}, which is in turn located in your home
 directory.  In addition, @file{~@var{user-id}/} means the home
-directory of a user whose login name is @code{user-id}.  Any leading
-directory name in front of the @samp{~} is ignored: thus,
-@samp{/u2/emacs/~/foo/bar.txt} is equivalent to @samp{~/foo/bar.txt}.
+directory of a user whose login name is @var{user-id}.  Any leading
+directory name in front of the @file{~} is ignored: thus,
+@file{/u2/emacs/~/foo/bar.txt} is equivalent to @file{~/foo/bar.txt}.
 
-  On MS-Windows and MS-DOS systems, where a user doesn't have a home
-directory, Emacs replaces @file{~/} with the value of the environment
-variable @code{HOME}; see @ref{General Variables}.  On these systems,
-the @file{~@var{user-id}/} construct is supported only for the current
-user, i.e., only if @var{user-id} is the current user's login name.
+  On MS-Windows and MS-DOS systems, where a user doesn't always have a
+home directory, Emacs uses several alternatives.  For MS-Windows, see
+@ref{Windows HOME}; for MS-DOS, see
+@ifnottex
+@ref{MS-DOS File Names, HOME on MS-DOS}.
+@end ifnottex
+@iftex
+@ref{MS-DOS File Names, HOME on MS-DOS,, emacs, the Emacs Manual}, in
+the main Emacs manual.
+@end iftex
+On these systems, the @file{~@var{user-id}/} construct is supported
+only for the current user, i.e., only if @var{user-id} is the current
+user's login name.
 
 @vindex insert-default-directory
   To prevent Emacs from inserting the default directory when reading
