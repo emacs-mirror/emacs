@@ -1994,6 +1994,10 @@ to the end of the list of defaults just after the default value."
 	(append minibuffer-default commands)
       (cons minibuffer-default commands))))
 
+(defvar shell-delimiter-argument-list)
+(defvar shell-file-name-chars)
+(defvar shell-file-name-quote-list)
+
 (defun minibuffer-complete-shell-command ()
   "Dynamically complete shell command at point."
   (interactive)
