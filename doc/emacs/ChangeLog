@@ -13,6 +13,7 @@
 
 	* cmdargs.texi (General Variables): Change Numbered Backups xref to
 	Backup Names.
+	(Initial Options): Document renamed variable inhibit-startup-screen.
 
 2008-10-11  Romain Francoise  <romain@orebokech.com>
 
