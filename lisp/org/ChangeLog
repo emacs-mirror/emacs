@@ -1,3 +1,7 @@
+2008-10-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-plot.el: Switch coding system to unix.
+
 2008-10-12  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-edit-fixed-width-region): Exclude final newline from
