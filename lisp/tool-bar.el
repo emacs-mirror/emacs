@@ -57,7 +57,8 @@ conveniently adding tool bar items."
   	(dolist (frame (frame-list))
   	  (if (display-graphic-p frame)
   	      (set-frame-parameter frame 'tool-bar-lines 1)))
-  	(tool-bar-setup))
+	(if (= 1 (length (default-value 'tool-bar-map))) ; not yet setup
+	    (tool-bar-setup)))
     (modify-all-frames-parameters (list (cons 'tool-bar-lines 0)))))
 
 ;;;###autoload
@@ -258,66 +259,59 @@ holds a keymap."
 
 ;;; Set up some global items.  Additions/deletions up for grabs.
 
-(defvar tool-bar-setup nil
-  "Non-nil if the tool-bar has been set up by `tool-bar-setup'.")
+(defun tool-bar-setup ()
+  ;; People say it's bad to have EXIT on the tool bar, since users
+  ;; might inadvertently click that button.
+  ;;(tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
+  (tool-bar-add-item-from-menu 'find-file "new")
+  (tool-bar-add-item-from-menu 'menu-find-file-existing "open")
+  (tool-bar-add-item-from-menu 'dired "diropen")
+  (tool-bar-add-item-from-menu 'kill-this-buffer "close")
+  (tool-bar-add-item-from-menu 'save-buffer "save" nil
+			       :visible '(or buffer-file-name
+					     (not (eq 'special
+						      (get major-mode
+							   'mode-class)))))
+  (tool-bar-add-item-from-menu 'write-file "saveas" nil
+			       :visible '(or buffer-file-name
+					     (not (eq 'special
+						      (get major-mode
+							   'mode-class)))))
+  (tool-bar-add-item-from-menu 'undo "undo" nil
+			       :visible '(not (eq 'special (get major-mode
+								'mode-class))))
+  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [cut])
+			       "cut" nil
+			       :visible '(not (eq 'special (get major-mode
+								'mode-class))))
+  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [copy])
+			       "copy")
+  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [paste])
+			       "paste" nil
+			       :visible '(not (eq 'special (get major-mode
+								'mode-class))))
+  (tool-bar-add-item-from-menu 'nonincremental-search-forward "search")
+  ;;(tool-bar-add-item-from-menu 'ispell-buffer "spell")
 
-(defun tool-bar-setup (&optional frame)
-  (unless (or tool-bar-setup
-	      (null tool-bar-mode))
-    (with-selected-frame (or frame (selected-frame))
-      ;; People say it's bad to have EXIT on the tool bar, since users
-      ;; might inadvertently click that button.
-      ;;(tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
-      (tool-bar-add-item-from-menu 'find-file "new")
-      (tool-bar-add-item-from-menu 'menu-find-file-existing "open")
-      (tool-bar-add-item-from-menu 'dired "diropen")
-      (tool-bar-add-item-from-menu 'kill-this-buffer "close")
-      (tool-bar-add-item-from-menu 'save-buffer "save" nil
-				   :visible '(or buffer-file-name
-						 (not (eq 'special
-							  (get major-mode
-							       'mode-class)))))
-      (tool-bar-add-item-from-menu 'write-file "saveas" nil
-				   :visible '(or buffer-file-name
-						 (not (eq 'special
-							  (get major-mode
-							       'mode-class)))))
-      (tool-bar-add-item-from-menu 'undo "undo" nil
-				   :visible '(not (eq 'special (get major-mode
-								    'mode-class))))
-      (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [cut])
-				   "cut" nil
-				   :visible '(not (eq 'special (get major-mode
-								    'mode-class))))
-      (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [copy])
-				   "copy")
-      (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [paste])
-				   "paste" nil
-				   :visible '(not (eq 'special (get major-mode
-								    'mode-class))))
-      (tool-bar-add-item-from-menu 'nonincremental-search-forward "search")
-      ;;(tool-bar-add-item-from-menu 'ispell-buffer "spell")
+  ;; There's no icon appropriate for News and we need a command rather
+  ;; than a lambda for Read Mail.
+  ;;(tool-bar-add-item-from-menu 'compose-mail "mail/compose")
 
-      ;; There's no icon appropriate for News and we need a command rather
-      ;; than a lambda for Read Mail.
-      ;;(tool-bar-add-item-from-menu 'compose-mail "mail/compose")
+  (tool-bar-add-item-from-menu 'print-buffer "print")
 
-      (tool-bar-add-item-from-menu 'print-buffer "print")
+  ;; tool-bar-add-item-from-menu itself operates on
+  ;; (default-value 'tool-bar-map), but when we don't use that function,
+  ;; we must explicitly operate on the default value.
 
-      ;; tool-bar-add-item-from-menu itself operates on
-      ;; (default-value 'tool-bar-map), but when we don't use that function,
-      ;; we must explicitly operate on the default value.
+  (let ((tool-bar-map (default-value 'tool-bar-map)))
+    (tool-bar-add-item "preferences" 'customize 'customize
+		       :help "Edit preferences (customize)")
 
-      (let ((tool-bar-map (default-value 'tool-bar-map)))
-        (tool-bar-add-item "preferences" 'customize 'customize
-                           :help "Edit preferences (customize)")
-
-        (tool-bar-add-item "help" (lambda ()
-                                    (interactive)
-                                    (popup-menu menu-bar-help-menu))
-                           'help
-                           :help "Pop up the Help menu"))
-      (setq tool-bar-setup t))))
+    (tool-bar-add-item "help" (lambda ()
+				(interactive)
+				(popup-menu menu-bar-help-menu))
+		       'help
+		       :help "Pop up the Help menu")))
 
 
 (provide 'tool-bar)
