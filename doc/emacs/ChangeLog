@@ -1,3 +1,11 @@
+2008-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog-xtra.texi (MS-DOS): Fix bad pxref.
+
+	* mini.texi (Minibuffer File): Fix markup in last change.  Refer to
+	elsewhere in the manual instead of describing yet again the intricacies
+	of $HOME on MS-Windows and MS-DOS.
+
 2008-10-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mini.texi (Minibuffer File): Add xref to File Names.
