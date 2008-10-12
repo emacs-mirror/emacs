@@ -1,3 +1,19 @@
+2008-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (File Names): Reorganize description.
+	(Visiting): Add xref to Mode Line.  Copyedits.
+	(Save Commands): Mention prefix behavior of C-x C-s.
+	(Numbered Backups): Node deleted.
+	(Backup Names): Contents of Numbered Backups moved here.  State default
+	of version-control variable.
+	(Reverting): Copyedits.
+	(Version Control): Add additional version control systems.
+
+	* emacs.texi (Top): Delete Numbered Backups node.
+
+	* cmdargs.texi (General Variables): Change Numbered Backups xref to
+	Backup Names.
+
 2008-10-11  Romain Francoise  <romain@orebokech.com>
 
 	* kmacro.texi (Edit Keyboard Macro): Lossage is now 300 keys.
