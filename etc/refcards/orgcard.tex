@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{6.06a}
+\def\orgversionnumber{6.09a}
 \def\versionyear{2008}          % latest update
 \def\year{2008}                 % latest copyright year
 
@@ -290,10 +290,9 @@ are preserved on all copies.
 
 \key{rotate current subtree between states}{TAB}
 \key{rotate entire buffer between states}{S-TAB}
-\key{show the whole file}{C-c C-a}
+\key{restore property-dependent startup visibility}{C-u C-u TAB}
+\metax{show the whole file, including drawers}{C-u C-u C-u TAB}
 \key{reveal context around point}{C-c C-r}
-\key{show subtree in indirect buffer, ded.\ frame}{C-c C-k}
-%\key{show branches}{C-c C-k}
 
 \section{Motion}
 
@@ -308,6 +307,7 @@ are preserved on all copies.
 \key{insert new heading/item at current level}{M-RET}
 \key{insert new heading after subtree}{C-RET}
 \key{insert new TODO entry/checkbox item}{M-S-RET}
+\key{insert TODO entry/ckbx after subtree}{C-S-RET}
 
 \key{promote/demote heading}{M-LEFT/RIGHT}
 \metax{promote/demote current subtree}{M-S-LEFT/RIGHT}
@@ -339,7 +339,7 @@ are preserved on all copies.
 % FIXME: this is garbage
 \key{construct a sparse tree by various criteria}{C-c /}
 \key{view TODO's in sparse tree}{C-c C-v}
-\key{global TODO list in agenda mode}{C-c t$^1$}
+\key{global TODO list in agenda mode}{C-c a t$^1$}
 \key{time sorted view of current org file}{C-c a L}
 %\key{agenda for the week}{C-c a$^1$}
 %\key{agenda for date at cursor}{C-c C-o}
@@ -449,9 +449,9 @@ formula, \kbd{:=} a field formula.
 \key{...force open in emacs/other window}{mouse-3}
 \key{record a position in mark ring}{C-c \%}
 \key{jump back to last followed link(s)}{C-c \&}
-\key{Find next link}{C-c C-x C-n}
-\key{Find previous link}{C-c C-x C-p}
-\key{Edit code snippet of file at point}{C-c '}
+\key{find next link}{C-c C-x C-n}
+\key{find previous link}{C-c C-x C-p}
+\key{edit code snippet of file at point}{C-c '}
 {\bf Internal Links}
 
 \key{\kbd{<<My Target>>}}{\rm target}
@@ -550,7 +550,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{special commands in property lines}{C-c C-c}
 \key{next/previous allowed value}{S-left/right}
 \key{turn on column view}{C-c C-x C-c}
-\key{capture columns view in dynamic block}{C-c C-x r}
+\key{capture columns view in dynamic block}{C-c C-x i}
 
 \key{quit column view}{q}
 \key{next/previous allowed value}{S-left/right}
@@ -607,12 +607,12 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{compile agenda for the current week}{C-c a a$^1$}
 \key{compile global TODO list}{C-c a t$^1$}
 \key{compile TODO list for specific keyword}{C-c a T$^1$}
-\key{match tags in agenda files}{C-c a m$^1$}
-\key{match tags in TODO entries}{C-c a M$^1$}
+\key{match tags, ODO kwds, properties}{C-c a m$^1$}
+\key{match only in TODO entries}{C-c a M$^1$}
 \key{find stuck projects}{C-c a \#$^1$}
 \key{show timeline of current org file}{C-c a L$^1$}
 \key{configure custom commands}{C-c a C$^1$}
-\key{configure stuck projects}{C-c a !$^1$}
+%\key{configure stuck projects}{C-c a !$^1$}
 \key{agenda for date at cursor}{C-c C-o}
 
 {\bf Commands available in an agenda buffer}
@@ -637,6 +637,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{toggle display of logbook entries}{l}
 \key{toggle inclusion of archived trees/files}{v / C-u v}
 \key{refresh agenda buffer with any changes}{r / g}
+\key{filter with repect to a tag}{/}
 \key{save all org-mode buffers}{s}
 \key{display next/previous day,week,...}{RIGHT/LEFT}
 \key{goto today}{.}
@@ -646,13 +647,13 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{digit argument}{0-9}
 \key{change state of current TODO item}{t}
 \key{kill item and source}{C-k}
-\key{archive the subtree}{\$ / a / A}
+\key{archive the subtree (file/tag/sibling)}{\$ / a / A}
 \key{show tags of current headline}{T}
 \key{set tags for current headline/region}{:}
-\key{toggle ARCHIVE tag}{a}
 \key{set priority of current item}{p}
 \key{raise/lower priority of current item}{S-UP/DOWN$^3$}
 \key{display weighted priority of current item}{P}
+\key{run an attachment command}{C-c C-a}
 \key{schedule/set deadline for this item}{C-c C-s/d}
 \key{change timestamp to one day earlier/later}{S-LEFT/RIGHT$^3$}
 \key{change timestamp to today}{>}
