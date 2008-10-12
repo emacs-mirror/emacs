@@ -33,10 +33,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <otf.h>
 #ifdef HAVE_M17N_FLT
 #include <m17n-flt.h>
-extern Lisp_Object ftfont_shape_by_flt P_ ((Lisp_Object, struct font *,
-					    FT_Face, OTF *));
-#endif	/* HAVE_LIBOTF */
 #endif	/* HAVE_M17N_FLT */
+#endif	/* HAVE_LIBOTF */
 
 #endif	/* EMACS_FTFONT_H */
 

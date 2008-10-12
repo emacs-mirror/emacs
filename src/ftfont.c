@@ -1803,7 +1803,7 @@ static int m17n_flt_initialized;
 
 extern Lisp_Object QCfamily;
 
-Lisp_Object
+static Lisp_Object
 ftfont_shape_by_flt (lgstring, font, ft_face, otf)
      Lisp_Object lgstring;
      struct font *font;
