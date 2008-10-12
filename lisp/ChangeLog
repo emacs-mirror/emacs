@@ -5,8 +5,6 @@
 
 	* faces.el (x-create-frame-with-faces): Don't call tool-bar-setup.
 
-	* frame.el: Remove unneeded function declaration.
-
 	* progmodes/grep.el (grep-mode-tool-bar-map): Check if
 	tool-bar-map has been initialized before setting it up.
 
