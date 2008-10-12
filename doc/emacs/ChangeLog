@@ -1,5 +1,9 @@
 2008-10-12  Chong Yidong  <cyd@stupidchicken.com>
 
+	* mini.texi (Minibuffer File): Add xref to File Names.
+	(Minibuffer File): Add discussion of `~' in file names.  Add
+	insert-default-directory index reference.
+
 	* files.texi (File Names): Reorganize description.
 	(Visiting): Add xref to Mode Line.  Copyedits.
 	(Save Commands): Mention prefix behavior of C-x C-s.
