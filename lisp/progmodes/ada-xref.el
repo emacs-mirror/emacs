@@ -406,8 +406,8 @@ Assumes environment variable ADA_PROJECT_PATH is set properly."
 
 	  ;; Set properties
 	  (setq plist (plist-put plist 'gpr_file gpr-file))
-	  (setq plist (plist-put plist 'src_dir (reverse src-dir)))
-	  (plist-put plist 'obj_dir (reverse obj-dir))
+	  (setq plist (plist-put plist 'src_dir src-dir))
+	  (plist-put plist 'obj_dir obj-dir)
 	  )
       (kill-buffer nil)
       (message "Parsing %s ... done" gpr-file)

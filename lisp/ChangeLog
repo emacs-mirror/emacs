@@ -1,3 +1,11 @@
+2008-10-12  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-mode.el (ada-get-indent-end, ada-goto-matching-start):
+	Add support for extended return statement.
+
+	* progmodes/ada-xref.el (ada-gnat-parse-gpr): Don't reverse src-dir
+	and obj-dir; keep user order.
+
 2008-10-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ELCFILES): Update.
