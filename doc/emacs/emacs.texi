@@ -439,7 +439,6 @@ Saving Files
 
 Backup Files
 
-* One or Many: Numbered Backups. Whether to make one backup file or many.
 * Names: Backup Names.		How backup files are named.
 * Deletion: Backup Deletion.	Emacs deletes excess numbered backups.
 * Copying: Backup Copying.	Backups can be made by copying or renaming.
