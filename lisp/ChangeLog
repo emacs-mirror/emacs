@@ -1,3 +1,18 @@
+2008-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tool-bar.el (tool-bar-setup): Variable deleted.
+	(tool-bar-setup): Set it up unconditionally.
+
+	* faces.el (x-create-frame-with-faces): Don't call tool-bar-setup.
+
+	* frame.el: Remove unneeded function declaration.
+
+	* progmodes/grep.el (grep-mode-tool-bar-map): Check if
+	tool-bar-map has been initialized before setting it up.
+
+	* progmodes/compile.el (compilation-mode-tool-bar-map): Check if
+	tool-bar-map has been initialized before setting it up.
+
 2008-10-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/warnings.el (display-warning): Issue a message if
