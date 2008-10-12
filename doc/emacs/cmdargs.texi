@@ -288,14 +288,15 @@ connect and create graphical or terminal frames using
 
 @item --no-splash
 @opindex --no-splash
-@vindex inhibit-splash-screen
+@vindex inhibit-startup-screen
 @cindex splash screen
 @cindex startup message
 Do not display a splash screen on startup.  You can also achieve this
-effect by setting the variable @code{inhibit-splash-screen} to
+effect by setting the variable @code{inhibit-startup-screen} to
 non-@code{nil} in you personal init file (but @emph{not} in
 @file{site-start.el}).  (This variable was called
-@code{inhibit-startup-message} in previous Emacs versions.)
+@code{inhibit-splash-screen} or @code{inhibit-startup-message} in
+previous Emacs versions.)
 
 @item --no-desktop
 @opindex --no-desktop
@@ -597,7 +598,7 @@ does not use @env{TZ} at all.
 The user's login name.  See also @env{LOGNAME}.  On MS-DOS, this
 defaults to @samp{root}.
 @item VERSION_CONTROL
-Used to initialize the @code{version-control} variable (@pxref{Numbered Backups}).
+Used to initialize the @code{version-control} variable (@pxref{Backup Names}).
 @end table
 
 @node Misc Variables
