@@ -1,3 +1,7 @@
+2008-10-12  Andreas Schwab  <schwab@suse.de>
+
+	* font.c: Don't include <m17n-flt.h>.
+
 2008-10-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Decrease to 10000.
