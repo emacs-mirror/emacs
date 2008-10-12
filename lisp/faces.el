@@ -1977,7 +1977,6 @@ Value is the new parameter list."
 
 (declare-function x-create-frame "xfns.c" (parms))
 (declare-function x-setup-function-keys "term/x-win" (frame))
-(declare-function tool-bar-setup "tool-bar" (&optional frame))
 
 (defun x-create-frame-with-faces (&optional parameters)
   "Create a frame from optional frame parameters PARAMETERS.
@@ -2004,10 +2003,6 @@ Value is the new frame created."
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame)
 	  (face-set-after-frame-default frame parameters)
-	  ;; Make sure the tool-bar is ready to be enabled.  The
-	  ;; `tool-bar-lines' frame parameter will not take effect
-	  ;; without this call.
-	  (tool-bar-setup frame)
 	  (if (null visibility-spec)
 	      (make-frame-visible frame)
 	    (modify-frame-parameters frame (list visibility-spec)))
