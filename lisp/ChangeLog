@@ -1,3 +1,7 @@
+2008-10-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-service-emacs, dbus-path-emacs): New defconst.
+
 2008-10-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (command-line): If toolbar is disabled but ought to
