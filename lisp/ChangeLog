@@ -11,6 +11,8 @@
 	* progmodes/cc-cmds.el (c-indent-region): (c-indent-region): Fix
 	previous patch so that the function works on one-line macros.
 
+	* progmodes/cc-engine.el: Amend several doc strings and comments.
+
 2008-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hooks.el (vc-stay-local): Add a new choice and default to it.
@@ -220,8 +222,6 @@
 	(json-skip-whitespace): Use skip-syntax-forward.
 
 2008-10-07  Alan Mackenzie  <acm@muc.de>
-
-	* progmodes/cc-engine.el: Amend several doc strings and comments.
 
 	* progmodes/cc-cmds.el (c-indent-line-or-region): Fix so that
 	indenting a macro followed by blank lines doesn't backslash the
