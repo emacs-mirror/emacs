@@ -1,3 +1,9 @@
+2008-10-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mark.texi (Shift Selection): Correct case in node name.
+
+	* emacs.texi (Top): Update node order in Mark chapter.
+
 2008-10-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog-xtra.texi (MS-DOS): Fix bad pxref.
