@@ -1,3 +1,8 @@
+2008-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c (longopts, print_help_and_exit): Add -nw.
+	(decode_options): Use getopt_long_only.
+
 2008-09-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Remove ccl.elc and
