@@ -1267,7 +1267,7 @@ without qualification, we mean a Lisp macro, not a keyboard macro.
 
 @node Primitive Function Type
 @subsection Primitive Function Type
-@cindex special forms
+@cindex primitive function
 
   A @dfn{primitive function} is a function callable from Lisp but
 written in the C programming language.  Primitive functions are also
