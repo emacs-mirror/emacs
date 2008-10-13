@@ -1,3 +1,17 @@
+2008-10-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi (Top): Add a @detailmenu entry for "Frame-Local
+	Variables".
+
+	* variables.texi (Frame-Local Variables): New section.
+	(Buffer-Local Variables): Add an xref to it.
+	(Intro to Buffer-Local, Creating Buffer-Local): A variable cannot
+	have both frame-local and buffer-local binding.
+
+	* frames.texi (Frames): Mention multiple tty frames.
+	(Frame Parameters, Parameter Access): Mention frame-local variable
+	bindings.
+
 2008-09-20  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Defining Faces): Recommend against face variables.
