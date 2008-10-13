@@ -41,6 +41,7 @@ variable.
 * Buffer-Local Variables::  Variable values in effect only in one buffer.
 * Future Local Variables::  New kinds of local values we might add some day.
 * File Local Variables::  Handling local variable lists in files.
+* Frame-Local Variables:: Frame-local bindings for variables.
 * Variable Aliases::      Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
@@ -1088,7 +1089,8 @@ additional, unusual kinds of variable binding, such as
 @dfn{buffer-local} bindings, which apply only in one buffer.  Having
 different values for a variable in different buffers is an important
 customization method.  (A few variables have bindings that are local
-to each terminal; see @ref{Multiple Displays}.)
+to each terminal; see @ref{Multiple Displays}.  You can also have
+frame-local bindings for variables; see @ref{Frame-Local Variables}.)
 
 @menu
 * Intro to Buffer-Local::      Introduction and concepts.
@@ -1187,6 +1189,10 @@ buffer-local binding of buffer @samp{b}.
 values when you visit the file.  @xref{File Variables,,, emacs, The
 GNU Emacs Manual}.
 
+  A variable cannot be both buffer-local and frame-local
+(@pxref{Frame-Local Variables}) or terminal-local (@pxref{Multiple
+Displays}).
+
 @node Creating Buffer-Local
 @subsection Creating and Deleting Buffer-Local Bindings
 
@@ -1238,9 +1244,9 @@ is not current either on entry to or exit from the @code{let}.  This is
 because @code{let} does not distinguish between different kinds of
 bindings; it knows only which variable the binding was made for.
 
-If the variable is terminal-local, this function signals an error.  Such
-variables cannot have buffer-local bindings as well.  @xref{Multiple
-Displays}.
+If the variable is terminal-local (@pxref{Multiple Displays}), or
+frame-local (@pxref{Frame-Local Variables}), this function signals an
+error.  Such variables cannot have buffer-local bindings as well.
 
 @strong{Warning:} do not use @code{make-local-variable} for a hook
 variable.  The hook variables are automatically made buffer-local as
@@ -1665,6 +1671,35 @@ such predicates (it's safe if any predicate succeeds), or @code{t}
   Text properties are also potential loopholes, since their values
 could include functions to call.  So Emacs discards all text
 properties from string values specified for file local variables.
+
+@node Frame-Local Variables
+@section Frame-Local Values for Variables
+@cindex frame-local variables
+
+  In addition to buffer-local variable bindings (@pxref{Buffer-Local
+Variables}), Emacs supports @dfn{frame-local} bindings.  A frame-local
+binding for a variable is in effect in a frame for which it was
+defined.  Note that you cannot have frame-local bindings for a
+variable that has a buffer-local binding.
+
+  To define a frame-specific binding for a variable @var{var} in frame
+@var{frame}, set the @var{var} frame parameter for that frame:
+
+@lisp
+  (modify-frame-parameters @var{frame} '((@var{var} . @var{value})))
+@end lisp
+
+@noindent
+This causes the variable @var{var} to be bound to the specified
+@var{value} in the named @var{frame}.  @xref{Parameter Access,
+modify-frame-parameters}.
+
+@findex make-variable-frame-local@r{, deprecated}
+  Use of @code{make-variable-frame-local} for defining frame-local
+bindings is deprecated since Emacs 22.2.
+
+  To check the frame-specific values of such variables, use
+@code{frame-parameter} (@pxref{Parameter Access, frame-parameter}).
 
 @node Variable Aliases
 @section Variable Aliases
