@@ -3096,9 +3096,10 @@ non-nil."
 		    (c-parsing-error nil)
 		    ;; shut up any echo msgs on indiv lines
 		    (c-echo-syntactic-information-p nil)
-		    (macro-start
+		    (ml-macro-start	; Start pos of multi-line macro.
 		     (and (c-save-buffer-state ()
 			    (save-excursion (c-beginning-of-macro)))
+			  (eq (char-before (c-point 'eol)) ?\\)
 			  start))
 		    (c-fix-backslashes nil)
 		    syntax)
@@ -3113,24 +3114,28 @@ non-nil."
 			(c-progress-update)
 			;; skip empty lines
 			(unless (or (looking-at "\\s *$")
-				    (and macro-start (looking-at "\\s *\\\\$")))
+				    (and ml-macro-start (looking-at "\\s *\\\\$")))
 			  ;; Get syntax and indent.
 			  (c-save-buffer-state nil
 			    (setq syntax (c-guess-basic-syntax)))
 			  (c-indent-line syntax t t))
 
-			(if (assq 'cpp-macro syntax) ; New macro?
-			    (setq macro-start (point))
-			  (when (and macro-start ; End of old macro?
-				     c-auto-align-backslashes
-				     (not (eq (char-before (c-point 'eol)) ?\\)))
-			    ;; Fixup macro backslashes.
-			    (c-backslash-region macro-start (c-point 'bonl) nil)
-			    (setq macro-start nil)))
+			(if ml-macro-start
+			    ;; End of current multi-line macro?
+			    (when (and c-auto-align-backslashes
+				       (not (eq (char-before (c-point 'eol)) ?\\)))
+			      ;; Fixup macro backslashes.
+			      (c-backslash-region ml-macro-start (c-point 'bonl) nil)
+			      (setq ml-macro-start nil))
+			  ;; New multi-line macro?
+			  (if (and (assq 'cpp-macro syntax)
+				   (eq (char-before (c-point 'eol)) ?\\))
+			    (setq ml-macro-start (point))))
+
 			(forward-line))
 
-		      (if (and macro-start c-auto-align-backslashes)
-			  (c-backslash-region macro-start (c-point 'bopl) nil t)))
+		      (if (and ml-macro-start c-auto-align-backslashes)
+			  (c-backslash-region ml-macro-start (c-point 'bopl) nil t)))
 		  (set-marker endmark nil)
 		  (c-progress-fini 'c-indent-region))
 		(c-echo-parsing-error quiet))
