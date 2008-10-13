@@ -1,3 +1,8 @@
+2008-10-13  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-indent-region): (c-indent-region): Fix
+	previous patch so that the function works on one-line macros.
+
 2008-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hooks.el (vc-stay-local): Add a new choice and default to it.
