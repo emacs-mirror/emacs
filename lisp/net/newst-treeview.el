@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "11. Oktober 2008, 16:29:36 (ulf)"
+;; Time-stamp:  "13. Oktober 2008, 20:34:41 (ulf)"
 
 ;; ======================================================================
 
@@ -263,6 +263,7 @@ their id stays constant."
 
 ;; ======================================================================
 
+(unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
 (declare-function w3m-toggle-inline-images "ext:w3m" (&optional force no-cache))
 
 (defun newsticker--treeview-render-text (start end)

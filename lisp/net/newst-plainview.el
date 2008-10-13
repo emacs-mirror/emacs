@@ -6,7 +6,7 @@
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "15. Juni 2008, 09:41:55 (ulf)"
+;; Time-stamp:  "13. Oktober 2008, 20:34:21 (ulf)"
 
 ;; ======================================================================
 
@@ -595,6 +595,7 @@ This does NOT start the retrieval timers."
         (newsticker--debug-msg "Getting news for %s" (symbol-name feed))
         (newsticker-get-news (symbol-name feed)))))
 
+(unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
 (declare-function w3m-toggle-inline-image "ext:w3m" (&optional force no-cache))
 
 (defun newsticker-w3m-show-inline-images ()
