@@ -1,15 +1,15 @@
 2008-10-13  Ulf Jasper  <ulf.jasper@web.de>
 
-	* net/newst-plainview.el (w3m-toggle-inline-image): Define
-	'declare-function if necessary, for compatibility.
+	* net/newst-plainview.el (w3m-toggle-inline-image):
+	Define 'declare-function if necessary, for compatibility.
 
-	* net/newst-treeview.el (w3m-toggle-inline-images): Define
-	'declare-function if necessary, for compatibility.
+	* net/newst-treeview.el (w3m-toggle-inline-images):
+	Define 'declare-function if necessary, for compatibility.
 
 2008-10-13  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-cmds.el (c-indent-region): (c-indent-region): Fix
-	previous patch so that the function works on one-line macros.
+	* progmodes/cc-cmds.el (c-indent-region): Fix previous patch
+	so that the function works on one-line macros.
 
 	* progmodes/cc-engine.el: Amend several doc strings and comments.
 
