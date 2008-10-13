@@ -1,5 +1,13 @@
 2008-10-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* objects.texi (Primitive Function Type): Move "@cindex special
+	forms" from here...
+
+	* eval.texi (Special Forms): ...to here.
+
+	* functions.texi (What Is a Function): `functionp' returns nil for
+	special forms.  Add an xref.
+
 	* elisp.texi (Top): Add a @detailmenu entry for "Frame-Local
 	Variables".
 
