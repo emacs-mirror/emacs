@@ -1038,6 +1038,7 @@ freetype library, giving access to a wider range of font formats.
 
 * Incompatible Lisp Changes in Emacs 23.1
 
++++
 ** Variables cannot be both buffer-local and frame-local any more.
 
 ** `functionp' returns nil for special forms.
