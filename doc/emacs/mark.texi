@@ -42,7 +42,7 @@ non-@code{nil}, each window highlights its own region.
 * Using Region::	Summary of ways to operate on contents of the region.
 * Mark Ring::   	Previous mark positions saved so you can go back there.
 * Global Mark Ring::    Previous mark positions in various buffers.
-* Shift selection::     Using shifted cursor motion keys.
+* Shift Selection::     Using shifted cursor motion keys.
 * Persistent Mark::	Keeping the mark active all the time.
 @end menu
 
@@ -98,14 +98,15 @@ position of point but want to move the other end of the region (where
 the mark is).  Using @kbd{C-x C-x} a second time, if necessary, puts
 the mark at the new position with point back at its original position.
 
-  You can also set the mark with the mouse (@pxref{Mouse Commands}).
-If you press the left mouse button (@kbd{down-mouse-1}) and drag the
-mouse across a range of text while holding down this button, this sets
-the mark where you first pressed the mouse button and puts point where
-you release it.  Alternatively, clicking the right mouse button
-(@kbd{mouse-3}) sets the mark at point and then moves point to where
-you clicked.  Using the mouse to mark a region also copies the region
-into the kill ring (@pxref{Kill Ring}).
+  You can also set the mark with the mouse.  If you press the left
+mouse button (@kbd{down-mouse-1}) and drag the mouse across a range of
+text while holding down this button, this sets the mark where you
+first pressed the mouse button and puts point where you release it.
+Alternatively, clicking the right mouse button (@kbd{mouse-3}) sets
+the mark at point and then moves point to where you clicked.  Using
+the mouse to mark a region also copies the region into the kill ring
+(@pxref{Kill Ring}).  @xref{Mouse Commands}, for a more detailed
+description of these mouse commands.
 
 @cindex shift-selection
   Finally, you can set the mark by holding down the shift key while
@@ -116,7 +117,7 @@ point, but only if there is no active mark set via shift-selection.
 The mark set by mouse commands and by shift-selection behaves slightly
 differently from the usual mark: any subsequent unshifted cursor
 motion command deactivates it automatically.  For details, @xref{Shift
-selection}.
+Selection}.
 
   Whenever the mark is active, you can deactivate it by typing
 @kbd{C-g} (@pxref{Quitting}).  The mark is also automatically
@@ -304,8 +305,8 @@ the buffer and position of the latest entry in the global ring.  It also
 rotates the ring, so that successive uses of @kbd{C-x C-@key{SPC}} take
 you to earlier buffers and mark positions.
 
-@node Shift selection
-@section Shift selection
+@node Shift Selection
+@section Shift Selection
 @cindex shift-selection
 
   If you hold down the shift key while typing a cursor motion command,
