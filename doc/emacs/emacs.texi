@@ -302,9 +302,10 @@ The Mark and the Region
 * Setting Mark::	Commands to set the mark.
 * Marking Objects::	Commands to put region around textual units.
 * Using Region::	Summary of ways to operate on contents of the region.
+* Mark Ring::   	Previous mark positions saved so you can go back there.
+* Global Mark Ring::    Previous mark positions in various buffers.
+* Shift Selection::     Using shifted cursor motion keys.
 * Persistent Mark::	Keeping the mark active all the time.
-* Mark Ring::		Previous mark positions saved so you can go back there.
-* Global Mark Ring::	Previous mark positions in various buffers.
 
 Killing and Moving Text
 
