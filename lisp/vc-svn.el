@@ -180,7 +180,8 @@ If you want to force an empty list of arguments, use t."
 CALLBACK is called as (CALLBACK RESULT BUFFER), where
 RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; FIXME should this rather be all the files in dir?
-  (let ((remote (not (vc-stay-local-p dir))))
+  (let* ((local (vc-stay-local-p dir))
+	 (remote (and local (not (eq local 'only-file)))))
     (vc-svn-command (current-buffer) 'async nil "status"
 		    (if remote "-u"))
   (vc-exec-after

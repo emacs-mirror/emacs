@@ -105,10 +105,14 @@ This is only meaningful if you don't use the implicit checkout model
   :version "21.1"
   :group 'vc)
 
-(defcustom vc-cvs-stay-local t
+(defcustom vc-cvs-stay-local 'only-file
   "*Non-nil means use local operations when possible for remote repositories.
 This avoids slow queries over the network and instead uses heuristics
 and past information to determine the current status of a file.
+
+If value is the symbol `only-file' `vc-dir' will connect to the
+server, but heuristics will be used to determine the status for
+all other VC operations.
 
 The value can also be a regular expression or list of regular
 expressions to match against the host name of a repository; then VC
@@ -117,19 +121,12 @@ can be a list of regular expressions where the first element is the
 symbol `except'; then VC always stays local except for hosts matched
 by these regular expressions."
   :type '(choice (const :tag "Always stay local" t)
-                (const :tag "Don't stay local" nil)
+		 (const :tag "Only for file operations" 'only-file)
+		 (const :tag "Don't stay local" nil)
                  (list :format "\nExamine hostname and %v" :tag "Examine hostname ..."
                        (set :format "%v" :inline t (const :format "%t" :tag "don't" except))
                        (regexp :format " stay local,\n%t: %v" :tag "if it matches")
                        (repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
-  :version "21.1"
-  :group 'vc)
-
-(defcustom vc-cvs-dir-stay-local nil
-  "*Non-nil means use local operations when possible for remote repositories.
-This avoids slow queries over the network and instead uses heuristics
-and past information to determine the current status of files for `vc-dir'."
-  :type 'boolean
   :version "23.1"
   :group 'vc)
 
@@ -961,17 +958,18 @@ state."
 (defun vc-cvs-dir-status (dir update-function)
   "Create a list of conses (file . state) for DIR."
   ;; FIXME check all files in DIR instead?
-  (if vc-cvs-dir-stay-local
-      (vc-cvs-dir-status-heuristic dir update-function)
-    (vc-cvs-command (current-buffer) 'async dir "-f" "status")
-    ;; Alternative implementation: use the "update" command instead of
-    ;; the "status" command.
-    ;; (vc-cvs-command (current-buffer) 'async
-    ;; 		  (file-relative-name dir)
-    ;; 		  "-f" "-n" "update" "-d" "-P")
-    (vc-exec-after
-     `(vc-cvs-after-dir-status (quote ,update-function)))))
-
+  (let ((local (vc-stay-local-p dir)))
+    (if (and local (not (eq local 'only-file)))
+	(vc-cvs-dir-status-heuristic dir update-function)
+      (vc-cvs-command (current-buffer) 'async dir "-f" "status")
+      ;; Alternative implementation: use the "update" command instead of
+      ;; the "status" command.
+      ;; (vc-cvs-command (current-buffer) 'async
+      ;; 		  (file-relative-name dir)
+      ;; 		  "-f" "-n" "update" "-d" "-P")
+      (vc-exec-after
+       `(vc-cvs-after-dir-status (quote ,update-function))))))
+  
 (defun vc-cvs-dir-status-files (dir files default-state update-function)
   "Create a list of conses (file . state) for DIR."
   (apply 'vc-cvs-command (current-buffer) 'async dir "-f" "status" files)

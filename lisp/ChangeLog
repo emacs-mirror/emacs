@@ -1,3 +1,13 @@
+2008-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-stay-local): Add a new choice and default to it.
+
+	* vc-cvs.el (vc-cvs-dir-stay-local): Remove.
+	(vc-cvs-stay-local): Add a new choice and default to it.
+	(vc-cvs-dir-status): Use the new vc-stay-local choice.
+
+	* vc-svn.el (vc-svn-dir-status): Use the new vc-stay-local choice.
+
 2008-10-12  Stephen Leake  <stephen_leake@member.fsf.org>
 
 	* progmodes/ada-mode.el (ada-get-indent-end, ada-goto-matching-start):

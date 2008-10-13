@@ -142,10 +142,14 @@ See also variable `vc-consult-headers'."
 	   (funcall vc-mistrust-permissions
 		    (vc-backend-subdirectory-name file)))))
 
-(defcustom vc-stay-local t
+(defcustom vc-stay-local 'only-file
   "Non-nil means use local operations when possible for remote repositories.
 This avoids slow queries over the network and instead uses heuristics
 and past information to determine the current status of a file.
+
+If value is the symbol `only-file' `vc-dir' will connect to the
+server, but heuristics will be used to determine the status for
+all other VC operations.
 
 The value can also be a regular expression or list of regular
 expressions to match against the host name of a repository; then VC
@@ -153,13 +157,15 @@ only stays local for hosts that match it.  Alternatively, the value
 can be a list of regular expressions where the first element is the
 symbol `except'; then VC always stays local except for hosts matched
 by these regular expressions."
-  :type '(choice (const :tag "Always stay local" t)
+  :type '(choice
+	  (const :tag "Always stay local" t)
+	  (const :tag "Only for file operations" 'only-file)
 	  (const :tag "Don't stay local" nil)
 	  (list :format "\nExamine hostname and %v" :tag "Examine hostname ..."
 		(set :format "%v" :inline t (const :format "%t" :tag "don't" except))
 		(regexp :format " stay local,\n%t: %v" :tag "if it matches")
 		(repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
-  :version "22.1"
+  :version "23.1"
   :group 'vc)
 
 (defun vc-stay-local-p (file)
