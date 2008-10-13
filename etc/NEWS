@@ -1041,6 +1041,7 @@ freetype library, giving access to a wider range of font formats.
 +++
 ** Variables cannot be both buffer-local and frame-local any more.
 
++++
 ** `functionp' returns nil for special forms.
 I.e., it only returns t for objects that can be passed to `funcall'.
 
