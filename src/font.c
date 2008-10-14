@@ -2996,7 +2996,9 @@ font_clear_prop (attrs, prop)
   if (! FONTP (font))
     return;
   if (NILP (AREF (font, prop))
-      && prop != FONT_FAMILY_INDEX && prop != FONT_FOUNDRY_INDEX
+      && prop != FONT_FAMILY_INDEX
+      && prop != FONT_FOUNDRY_INDEX
+      && prop != FONT_WIDTH_INDEX
       && prop != FONT_SIZE_INDEX)
     return;
   font = Fcopy_font_spec (font);
@@ -3018,6 +3020,8 @@ font_clear_prop (attrs, prop)
       ASET (font, FONT_SPACING_INDEX, Qnil);
       ASET (font, FONT_AVGWIDTH_INDEX, Qnil);
     }
+  else if (prop == FONT_WIDTH_INDEX)
+    ASET (font, FONT_AVGWIDTH_INDEX, Qnil);
   attrs[LFACE_FONT_INDEX] = font;
 }
 
