@@ -3356,12 +3356,16 @@ FRAME 0 means change the face on all frames, and change the default
     signal_error ("Invalid face attribute name", attr);
 
   if (prop_index)
-    /* If a font-related attribute other than QCfont and QCfontset is
-       specified, and if the original QCfont attribute has a font
-       (font-spec or font-object), set the corresponding property in
-       the font to nil so that the font selector doesn't think that
-       the attribute is mandatory.  */
-    font_clear_prop (XVECTOR (lface)->contents, prop_index);
+    {
+      /* If a font-related attribute other than QCfont and QCfontset
+	 is specified, and if the original QCfont attribute has a font
+	 (font-spec or font-object), set the corresponding property in
+	 the font to nil so that the font selector doesn't think that
+	 the attribute is mandatory.  Also, clear the average
+	 width.  */
+      font_clear_prop (XVECTOR (lface)->contents, prop_index);
+      font_clear_prop (XVECTOR (lface)->contents, FONT_AVGWIDTH_INDEX);
+    }
 
   /* Changing a named face means that all realized faces depending on
      that face are invalid.  Since we cannot tell which realized faces
