@@ -94,7 +94,7 @@
 	   (overlay-put global-hl-line-overlay 'face hl-line-face))))
 
 (defcustom hl-line-sticky-flag t
-  "*Non-nil means highlight the current line in all windows.
+  "Non-nil means highlight the current line in all windows.
 Otherwise Hl-Line mode will highlight only in the selected
 window.  Setting this variable takes effect the next time you use
 the command `hl-line-mode' to turn Hl-Line mode on."
@@ -155,8 +155,8 @@ addition to `hl-line-highlight' on `post-command-hook'."
 
 (defun hl-line-unhighlight ()
   "Deactivate the Hl-Line overlay on the current line."
-  (if hl-line-overlay
-      (delete-overlay hl-line-overlay)))
+  (when hl-line-overlay
+    (delete-overlay hl-line-overlay)))
 
 ;;;###autoload
 (define-minor-mode global-hl-line-mode
@@ -187,8 +187,8 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
 
 (defun global-hl-line-unhighlight ()
   "Deactivate the Global-Hl-Line overlay on the current line."
-  (if global-hl-line-overlay
-      (delete-overlay global-hl-line-overlay)))
+  (when global-hl-line-overlay
+    (delete-overlay global-hl-line-overlay)))
 
 (defun hl-line-move (overlay)
   "Move the Hl-Line overlay.
@@ -206,6 +206,16 @@ the line including the point by OVERLAY."
     (if tmp
 	(move-overlay overlay b e)
       (move-overlay overlay 1 1))))
+
+(defun hl-line-unload-function ()
+  "Unload the Hl-Line library."
+  (global-hl-line-mode -1)
+  (save-current-buffer
+    (dolist (buffer (buffer-list))
+      (set-buffer buffer)
+      (when hl-line-mode (hl-line-mode -1))))
+  ;; continue standard unloading
+  nil)
 
 (provide 'hl-line)
 
