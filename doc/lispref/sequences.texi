@@ -658,30 +658,38 @@ name.  @xref{Splitting Characters}, for a description of generic characters.
 @end defun
 
 @defun map-char-table function char-table
-This function calls @var{function} for each element of @var{char-table}.
+This function calls the specified @var{function} for each element of
+@var{char-table} that has a non-@code{nil} value.
 @var{function} is called with two arguments, a key and a value.  The key
 is a possible @var{range} argument for @code{char-table-range}---either
-a valid character or a generic character---and the value is
-@code{(char-table-range @var{char-table} @var{key})}.
+a valid character or a cons cell @code{(@var{from} . @var{to})},
+specifying a range of characters that share the same value.  The value is
+what @code{(char-table-range @var{char-table} @var{key})} returns.
 
 Overall, the key-value pairs passed to @var{function} describe all the
 values stored in @var{char-table}.
 
-The return value is always @code{nil}; to make this function useful,
-@var{function} should have side effects.  For example,
-here is how to examine each element of the syntax table:
+The return value is always @code{nil}; to make calls to
+@code{map-char-table} useful, @var{function} should have side effects.
+For example, here is how to examine the elements of the syntax table:
 
 @example
 (let (accumulator)
-  (map-char-table
-   #'(lambda (key value)
-       (setq accumulator
-             (cons (list key value) accumulator)))
-   (syntax-table))
-  accumulator)
+   (map-char-table
+    #'(lambda (key value)
+	(setq accumulator
+	      (cons (list
+		     (if (consp key)
+			 (list (car key) (cdr key))
+		       key)
+		     value)
+		    accumulator)))
+    (syntax-table))
+   accumulator)
 @result{}
-((475008 nil) (474880 nil) (474752 nil) (474624 nil)
- ... (5 (3)) (4 (3)) (3 (3)) (2 (3)) (1 (3)) (0 (3)))
+(((2597602 4194303) (2)) ((2597523 2597601) (3))
+ ... (65379 (5 . 65378)) (65378 (4 . 65379)) (65377 (1))
+ ... (12 (0)) (11 (3)) (10 (12)) (9 (0)) ((0 8) (3)))
 @end example
 @end defun
 
