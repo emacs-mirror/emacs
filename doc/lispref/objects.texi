@@ -1351,7 +1351,7 @@ editing.
 * Frame Type::		Windows subdivide frames.
 * Window Configuration Type::   Recording the way a frame is subdivided.
 * Frame Configuration Type::    Recording the status of all frames.
-* Process Type::        A process running on the underlying OS.
+* Process Type::        A subprocess of Emacs running on the underlying OS.
 * Stream Type::         Receive or send characters.
 * Keymap Type::         What function a keystroke invokes.
 * Overlay Type::        How an overlay is represented.
