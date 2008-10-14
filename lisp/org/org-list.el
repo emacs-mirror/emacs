@@ -1039,4 +1039,5 @@ Valid parameters PARAMS are
 
 (provide 'org-list)
 
+;; arch-tag: 73cf50c1-200f-4d1d-8a53-4e842a5b11c8
 ;;; org-list.el ends here

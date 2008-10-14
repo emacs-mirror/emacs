@@ -311,4 +311,5 @@ line directly before or after the table."
 
 (provide 'org-plot)
 
+;; arch-tag: 5763f7c6-0c75-416d-b070-398ee4ec0eca
 ;;; org-plot.el ends here
