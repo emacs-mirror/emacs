@@ -29,9 +29,13 @@ signals, obtain status information, receive output from the process, or
 send input to it.
 
 @defun processp object
-This function returns @code{t} if @var{object} is a process,
-@code{nil} otherwise.
+This function returns @code{t} if @var{object} represents an Emacs
+subprocess, @code{nil} otherwise.
 @end defun
+
+  In addition to subprocesses of the current Emacs session, you can
+also access other processes running on your machine.  @xref{System
+Processes}.
 
 @menu
 * Subprocess Creation::      Functions that start subprocesses.
@@ -46,6 +50,7 @@ This function returns @code{t} if @var{object} is a process,
 * Output from Processes::    Collecting output from an asynchronous subprocess.
 * Sentinels::                Sentinels run when process run-status changes.
 * Query Before Exit::        Whether to query if exiting will kill a process.
+* System Processes::         Accessing other processes running on your system.
 * Transaction Queues::	     Transaction-based communication with subprocesses.
 * Network::                  Opening network connections.
 * Network Servers::          Network servers let Emacs accept net connections.
@@ -1028,7 +1033,7 @@ This function sends a signal to process @var{process}.  The argument
 
 The @var{process} argument can be a system process @acronym{ID}; that
 allows you to send signals to processes that are not children of
-Emacs.
+Emacs.  @xref{System Processes}.
 @end defun
 
 @node Output from Processes
@@ -1565,6 +1570,185 @@ is like this:
 @end group
 @end smallexample
 @end defun
+
+@node System Processes
+@section Accessing Other Processes
+@cindex system processes
+
+  In addition to accessing and manipulating processes that are
+subprocesses of the current Emacs session, Emacs Lisp programs can
+also access other processes running on the same machine.  We call
+these @dfn{system processes}, to distinguish between them and Emacs
+subprocesses.
+
+  Emacs provides several primitives for accessing system processes.
+Not all platforms support these primitives; on those which don't,
+these primitives return @code{nil}.
+
+@defun list-system-processes
+This function returns a list of all the processes running on the
+system.  Each process is identified by its @acronym{PID}, a numerical
+process ID that is assigned by the OS and distinguishes the process
+from all the other processes running on the same machine at the same
+time.
+@end defun
+
+@defun system-process-attributes pid
+This function returns an alist of attributes for the process specified
+by its process ID @var{pid}.  Each association in the alist is of the
+form @code{(@var{key} . @var{value})}, where @var{key} designates the
+attribute and @var{value} is the value of that attribute.  The various
+attribute @var{key}'s that this function can return are listed below.
+Not all platforms support all of these attributes; if an attribute is
+not supported, its association will not appear in the returned alist.
+Values that are numbers can be either integer or floating-point,
+depending on the magnitude of the value.
+
+@table @code
+@item euid
+The effective user ID of the user who invoked the process.  The
+corresponding @var{value} is a number.  If the process was invoked by
+the same user who runs the current Emacs session, the value is
+identical to what @code{user-uid} returns (@pxref{User
+Identification}).
+
+@item user
+User name corresponding to the process's effective user ID, a string.
+
+@item egid
+The group ID of the effective user ID, a number.
+
+@item group
+Group name corresponding to the effective user's group ID, a string.
+
+@item comm
+The name of the command that runs in the process.  This is a string
+that usually specifies the name of the executable file of the process,
+without the leading directories.  However, some special system
+processes can report strings that do not correspond to an executable
+file of a program.
+
+@item state
+The state code of the process.  This is a short string that encodes
+the scheduling state of the process.  Here's a list of the most
+frequently seen codes:
+
+@table @code
+@item ``D''
+uninterruptible sleep (usually I/O)
+@item ``R''
+running
+@item ``S''
+interruptible sleep (waiting for some event)
+@item ``T''
+stopped, e.g., by a job control signal
+@item ``Z''
+``zombie'': a process that terminated, but not reaped by its parent
+@end table
+
+@noindent
+For the full list of the possible states, see the manual page of the
+@command{ps} command.
+
+@item ppid
+The process ID of the parent process, a number.
+
+@item pgrp
+The process group ID of the process, a number.
+
+@item sess
+The session ID of the process.  This is a number that is the process
+ID of the process's @dfn{session leader}.
+
+@item ttname
+A string that is the name of the process's controlling terminal.  On
+Unix and GNU systems, this is normally the file name of the
+corresponding terminal device, such as @file{/dev/pts65}.
+
+@item tpgid
+The numerical process group ID of the foreground process group that
+uses the process's terminal.
+
+@item minflt
+The number of minor page faults caused by the process since its
+beginning.  (Minor page faults are those that don't involve reading
+from disk.)
+
+@item majflt
+The number of major page faults caused by the process since its
+beginning.  (Major page faults require a disk to be read, and are thus
+more expensive than minor page faults.)
+
+@item cminflt
+@itemx cmajflt
+Like @code{minflt} and @code{majflt}, but include the number of page
+faults for all the child processes of the given process.
+
+@item utime
+Time spent by the process in the user context, for running the
+application's code.  The corresponding @var{value} is in the
+@w{@code{(@var{high} @var{low} @var{microsec})}} format, the same
+format used by functions @code{current-time} (@pxref{Time of Day,
+current-time}) and @code{file-attributes} (@pxref{File Attributes}).
+
+@item stime
+Time spent by the process in the system (kernel) context, for
+processing system calls.  The corresponding @var{value} is in the same
+format as for @code{utime}.
+
+@item cutime
+@itemx cstime
+Like @code{utime} and @code{stime}, but includes the times of all the
+child processes of the given process.
+
+@item pri
+The numerical priority of the process.
+
+@item nice
+The @dfn{nice value} of the process, a number.  Processes with smaller
+nice value get scheduled more favorably.
+
+@item thcount
+The number of threads in the process.
+
+@item start
+The time the process was started, in the @w{@code{(@var{high}
+@var{low} @var{microsec})}} format used by @code{current-time} and
+@code{file-attributes}.
+
+@item etime
+The time elapsed since the process started, in the @w{@code{(@var{high}
+@var{low} @var{microsec})}} format.
+
+@item vsize
+The virtual memory size of the process, measured in kilobytes.
+
+@item rss
+The size of the process's @dfn{resident set}, the number of kilobytes
+occupied by the process in the machine's physical memory.
+
+@item pcpu
+The percentage of the CPU time used by the process since it started.
+The corresponding @var{value} is a floating-point number between 0 and
+100.
+
+@item pmem
+The percentage of the total physical memory installed on the machine
+used by the process's resident set.  The value is a floating-point
+number between 0 and 100.
+
+@item args
+The command-line with which the process was invoked.  This is a string
+in which individual command-line arguments are separated by blanks;
+whitespace characters that are embedded in the arguments are quoted as
+appropriate for the system's shell: escaped by backslash characters on
+GNU and Unix, and enclosed in double quote characters on Windows.
+Thus, this command-line string can be directly used in primitives such
+as @code{shell-command}.
+@end table
+
+@end defun
+
 
 @node Transaction Queues
 @section Transaction Queues
