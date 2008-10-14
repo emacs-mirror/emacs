@@ -1,3 +1,9 @@
+2008-10-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-process-one-action): Embed regexp in
+	parentheses, before adding end-of-buffer construct.  Suggested by
+	Markus Triska <markus.triska@gmx.at>.
+
 2008-10-13  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-plainview.el (w3m-toggle-inline-image):
