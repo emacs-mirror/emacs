@@ -36,6 +36,8 @@ copy mpstd.h %mpsreleasename%\include
 copy mpsw3.h %mpsreleasename%\include
 copy mpswin.h %mpsreleasename%\include
 
+copy w3gen.def %mpsreleasename%\lib\mps-fns.def
+
 mkdir %mpsreleasename%\lib
 mkdir %mpsreleasename%\lib\w3i3
 
