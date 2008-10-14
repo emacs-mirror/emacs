@@ -1,3 +1,8 @@
+2008-10-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): If the font is to
+	be updated, clear its average width field too.
+
 2008-10-12  Andreas Schwab  <schwab@suse.de>
 
 	* ftfont.c (ftfont_shape_by_flt): Make static.
