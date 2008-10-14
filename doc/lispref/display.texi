@@ -2907,7 +2907,7 @@ If @var{name} is @code{nil}, this function modifies the default
 fontset, whose short name is @samp{fontset-default}.
 
 @var{character} may be a cons; @code{(@var{from} . @var{to})}, where
-@var{from} and @var{to} are non-generic characters.  In that case, use
+@var{from} and @var{to} are character codepoints.  In that case, use
 @var{fontname} for all characters in the range @var{from} and @var{to}
 (inclusive).
 
