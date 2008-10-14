@@ -1,5 +1,14 @@
 2008-10-14  Eli Zaretskii  <eliz@gnu.org>
 
+	* processes.texi (System Processes): New section.
+	(Processes, Signals to Processes): Add xrefs to it.
+
+	* objects.texi (Editing Types): A `process' is a subprocess of
+	Emacs, not just any process running on the OS.
+
+	* elisp.texi (Top): Adjust the @detailmenu for the above two
+	changes.
+
 	* sequences.texi (Char-Tables): Remove documentation of
 	set-char-table-default, which has no effect since Emacs 23.
 	<char-table-range, set-char-table-range>: Don't mention generic
