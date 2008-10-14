@@ -1286,6 +1286,7 @@ The character code space is now 0x0..0x3FFFFF with no gap.
 Characters of code 0x0..0x10FFFF are Unicode characters of the same code points.
 Characters of code 0x3FFF80..0x3FFFFF are raw 8-bit bytes.
 
++++
 Generic characters no longer exist.
 
 In buffers and strings, characters are represented by UTF-8 byte
@@ -1294,6 +1295,9 @@ sequences in a multibyte buffer/string.
 The concept of a charset has changed.  A single character may belong
 to multiple charsets (e.g. a-grave, U+00E0, belongs to charsets
 unicode, iso-8859-1, iso-8859-3, etc).
+
+*** The functions `split-char' and `make-char' now accept up to 4
+positional codes instead of just 2.
 
 *** The functions `encode-char' and `decode-char' now accept any character sets.
 
