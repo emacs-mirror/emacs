@@ -434,6 +434,7 @@ returns a list consisting of the symbol @code{unknown} and @var{character}.
 @end example
 @end defun
 
+@c FIXME: update split-char and make-char
 @cindex generate characters in charsets
 @defun make-char charset &optional code1 code2
 This function returns the character in character set @var{charset} whose
@@ -452,32 +453,6 @@ before they are used to index @var{charset}.  Thus you may use, for
 instance, an ISO 8859 character code rather than subtracting 128, as
 is necessary to index the corresponding Emacs charset.
 @end defun
-
-@cindex generic characters
-  If you call @code{make-char} with no @var{byte-values}, the result is
-a @dfn{generic character} which stands for @var{charset}.  A generic
-character is an integer, but it is @emph{not} valid for insertion in the
-buffer as a character.  It can be used in @code{char-table-range} to
-refer to the whole character set (@pxref{Char-Tables}).
-@code{char-valid-p} returns @code{nil} for generic characters.
-For example:
-
-@example
-(make-char 'latin-iso8859-1)
-     @result{} 2176
-(char-valid-p 2176)
-     @result{} nil
-(char-valid-p 2176 t)
-     @result{} t
-(split-char 2176)
-     @result{} (latin-iso8859-1 0)
-@end example
-
-The character sets @code{ascii}, @code{eight-bit-control}, and
-@code{eight-bit-graphic} don't have corresponding generic characters.  If
-@var{charset} is one of them and you don't supply @var{code1},
-@code{make-char} returns the character code corresponding to the
-smallest code in @var{charset}.
 
 @node Scanning Charsets
 @section Scanning for Character Sets
@@ -541,17 +516,6 @@ The arguments and the forms in each argument are processed in order,
 and if a previous form already translates @var{to} to some other
 character, say @var{to-alt}, @var{from} is also translated to
 @var{to-alt}.
-
-You can also map one whole character set into another character set with
-the same dimension.  To do this, you specify a generic character (which
-designates a character set) for @var{from} (@pxref{Splitting Characters}).
-In this case, if @var{to} is also a generic character, its character
-set should have the same dimension as @var{from}'s.  Then the
-translation table translates each character of @var{from}'s character
-set into the corresponding character of @var{to}'s character set.  If
-@var{from} is a generic character and @var{to} is an ordinary
-character, then the translation table translates every character of
-@var{from}'s character set into @var{to}.
 @end defun
 
   In decoding, the translation table's translations are applied to the
