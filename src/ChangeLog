@@ -1,3 +1,8 @@
+2008-10-14  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_clear_prop): When clearing font width, clear the
+	average width field too.
+
 2008-10-12  Andreas Schwab  <schwab@suse.de>
 
 	* ftfont.c (ftfont_shape_by_flt): Make static.
