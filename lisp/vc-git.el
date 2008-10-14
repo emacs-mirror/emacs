@@ -492,7 +492,7 @@ REVISION may have the form BRANCH, BRANCH~N,
 or BRANCH^ (where \"^\" can be repeated)."
   (goto-char (point-min))
   (when revision
-    (search-forward "\ncommit" nil t
+    (search-forward (format "\ncommit %s" revision) nil t
 		    (cond ((string-match "~\\([0-9]\\)$" revision)
 			   (1+ (string-to-number (match-string 1 revision))))
 			  ((string-match "\\^+$" revision)

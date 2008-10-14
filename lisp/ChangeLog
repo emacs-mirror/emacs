@@ -1,3 +1,8 @@
+2008-10-14  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+
+	* vc-git.el (vc-git-show-log-entry): Include the revision in the
+	search string.
+
 2008-10-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-process-one-action): Embed regexp in
