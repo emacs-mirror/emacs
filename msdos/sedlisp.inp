@@ -20,7 +20,7 @@
 /^SHELL *=/i\
 export FNCASE=y
 
-/^lisp=/s|@srcdir@|.|
+/^lisp=/s|@srcdir@|$(shell pwd)|
 /^VPATH=/s|@srcdir@|.|
 /^srcdir=/s|@srcdir@|.|
 /^bootstrap-clean:/a\
