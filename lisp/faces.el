@@ -705,30 +705,40 @@ must be t or nil in that case.  A value of `unspecified' is not allowed.
 VALUE is the name of a face from which to inherit attributes, or a list
 of face names.  Attributes from inherited faces are merged into the face
 like an underlying face would be, with higher priority than underlying faces."
-  (let ((where (if (null frame) 0 frame)))
-    (setq args (purecopy args))
+  (setq args (purecopy args))
+  (let ((where (if (null frame) 0 frame))
+	(spec args)
+	family foundry)
     ;; If we set the new-frame defaults, this face is modified outside Custom.
     (if (memq where '(0 t))
 	(put (or (get face 'face-alias) face) 'face-modified t))
+    ;; If family and/or foundry are specified, set it first.  Certain
+    ;; face attributes, e.g. :weight semi-condensed, are not supported
+    ;; in every font.  See bug#1127.
+    (while spec
+      (cond ((eq (car spec) :family)
+	     (setq family (cadr spec)))
+	    ((eq (car spec) :foundry)
+	     (setq foundry (cadr spec))))
+      (setq spec (cddr spec)))
+    (when (or family foundry)
+      (when (and (stringp family)
+		 (string-match "\\([^-]*\\)-\\([^-]*\\)" family))
+	(unless foundry
+	  (setq foundry (match-string 2 family)))
+	(setq family (match-string 1 family)))
+      (when (stringp family)
+	(internal-set-lisp-face-attribute face :family (purecopy family)
+					  where))
+      (when (stringp foundry)
+	(internal-set-lisp-face-attribute face :foundry (purecopy foundry)
+					  where)))
     (while args
-      ;; Don't recursively set the attributes from the frame's font param
-      ;; when we update the frame's font param from the attributes.
-      (if (and (eq (car args) :family)
-	       (stringp (cadr args))
-	       (string-match "\\([^-]*\\)-\\([^-]*\\)" (cadr args)))
-	  (let ((foundry (match-string 1 (cadr args)))
-		(family (match-string 2 (cadr args))))
-	    (internal-set-lisp-face-attribute face :foundry
-					      (purecopy foundry)
-					      where)
-	    (internal-set-lisp-face-attribute face :family
-					      (purecopy family)
-					      where))
+      (unless (memq (car args) '(:family :foundry))
 	(internal-set-lisp-face-attribute face (car args)
 					  (purecopy (cadr args))
 					  where))
-      (setq args (cdr (cdr args))))))
-
+      (setq args (cddr args)))))
 
 (defun make-face-bold (face &optional frame noerror)
   "Make the font of FACE be bold, if possible.
@@ -1526,16 +1536,6 @@ See `defface' for information about the format and meaning of SPEC."
       ;; When we change a face based on a spec from outside custom,
       ;; record it for future frames.
       (put (or (get face 'face-alias) face) 'face-override-spec spec))
-;;; RMS 29 dec 2007: Perhaps this code should be reinstated.
-;;; That depends on whether the overriding spec
-;;; or the default face attributes
-;;; should take priority.
-;;;     ;; Clear all the new-frame default attributes for this face.
-;;;     ;; face-spec-reset-face won't do it right.
-;;;     (let ((facevec (cdr (assq face face-new-frame-defaults))))
-;;;       (dotimes (i (length facevec))
-;;; 	(unless (= i 0)
-;;; 	  (aset facevec i 'unspecified))))
     ;; Reset each frame according to the rules implied by all its specs.
     (dolist (frame (frame-list))
       (face-spec-recalc face frame))))
@@ -1556,23 +1556,7 @@ then the override spec."
 
 (defun face-spec-set-2 (face frame spec)
   "Set the face attributes of FACE on FRAME according to SPEC."
-  (let* ((attrs (face-spec-choose spec frame)))
-    (while attrs
-      (let ((attribute (car attrs))
-	    (value (car (cdr attrs))))
-	;; Support some old-style attribute names and values.
-	(case attribute
-	  (:bold (setq attribute :weight value (if value 'bold 'normal)))
-	  (:italic (setq attribute :slant value (if value 'italic 'normal)))
-	  ((:foreground :background)
-	   ;; Compatibility with 20.x.  Some bogus face specs seem to
-	   ;; exist containing things like `:foreground nil'.
-	   (if (null value) (setq value 'unspecified)))
-	  (t (unless (assq attribute face-x-resources)
-	       (setq attribute nil))))
-	(when attribute
-	  (set-face-attribute face frame attribute value)))
-      (setq attrs (cdr (cdr attrs))))))
+  (apply 'set-face-attribute face frame (face-spec-choose spec frame)))
 
 (defun face-attr-match-p (face attrs &optional frame)
   "Return t if attributes of FACE match values in plist ATTRS.
