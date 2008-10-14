@@ -875,22 +875,14 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
     (setq pmail-buffers-swapped-p nil)
     (if (eq major-mode 'pmail-edit-mode)
 	(error "Exit Pmail Edit mode before getting new mail"))
-    (if (and existed (> (buffer-size) 0))
-	;; Buffer not new and not empty; ensure in proper mode, but that's all.
-	(or (eq major-mode 'pmail-mode)
-	    (progn (pmail-mode-2)
-		   (setq run-mail-hook t)))
-      (setq run-mail-hook t)
-      (pmail-mode-2)
-      (pmail-convert-file-maybe)
-      (goto-char (point-max)))
-    ;; As we have read a file by raw-text, the buffer is set to
-    ;; unibyte.  We must make it multibyte if necessary.
-    (if (and pmail-enable-multibyte
-	     (not enable-multibyte-characters))
-	(set-buffer-multibyte t))
-    ;; If necessary, scan to find all the messages.
+    ;; Insure that the Rmail file is in mbox format, the buffer is in
+    ;; Pmail mode and has been scanned to find all the messages.
+    (pmail-convert-file-maybe)
+    (unless (eq major-mode 'pmail-mode)
+      (pmail-mode-2))
+    (goto-char (point-max))
     (pmail-maybe-set-message-counters)
+    ;; Show the first unread message and process summary mode.
     (unwind-protect
 	(unless (and (not file-name-arg) (pmail-get-new-mail))
 	  (pmail-show-message-maybe (pmail-first-unseen-message)))
