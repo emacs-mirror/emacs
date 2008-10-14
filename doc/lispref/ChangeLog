@@ -1,5 +1,15 @@
 2008-10-14  Eli Zaretskii  <eliz@gnu.org>
 
+	* sequences.texi (Char-Tables): Remove documentation of
+	set-char-table-default, which has no effect since Emacs 23.
+	<char-table-range, set-char-table-range>: Don't mention generic
+	characters and charsets.  Add a cons cell as a possible argument.
+
+	* nonascii.texi (Splitting Characters)
+	(Translation of Characters): Don't mention generic characters.
+
+	* display.texi (Fontsets): Don't mention generic characters.
+
 	* sequences.texi (Char-Tables): `map-char-table' can now call its
 	argument FUNCTION with a cons cell as KEY. 
 
