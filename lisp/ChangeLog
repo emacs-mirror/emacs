@@ -1,3 +1,9 @@
+2008-10-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (set-face-attribute): Set family and foundry before
+	other attributes.
+	(face-spec-set-2): Pass unmodified args to set-face-attribute.
+
 2008-10-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* hl-line.el (hl-line-unload-function): New function.
