@@ -3364,7 +3364,6 @@ FRAME 0 means change the face on all frames, and change the default
 	 the attribute is mandatory.  Also, clear the average
 	 width.  */
       font_clear_prop (XVECTOR (lface)->contents, prop_index);
-      font_clear_prop (XVECTOR (lface)->contents, FONT_AVGWIDTH_INDEX);
     }
 
   /* Changing a named face means that all realized faces depending on
