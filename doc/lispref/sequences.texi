@@ -576,13 +576,8 @@ otherwise @code{nil}.
 This function returns the subtype symbol of @var{char-table}.
 @end defun
 
-@defun set-char-table-default char-table char new-default
-This function sets the default value of generic character @var{char}
-in @var{char-table} to @var{new-default}.
-
 There is no special function to access default values in a char-table.
 To do that, use @code{char-table-range} (see below).
-@end defun
 
 @defun char-table-parent char-table
 This function returns the parent of @var{char-table}.  The parent is
@@ -619,15 +614,9 @@ Refers to the default value.
 Refers to the element for character @var{char}
 (supposing @var{char} is a valid character code).
 
-@item @var{charset}
-Refers to the value specified for the whole character set
-@var{charset} (@pxref{Character Sets}).
-
-@item @var{generic-char}
-A generic character stands for a character set, or a row of a
-character set; specifying the generic character as argument is
-equivalent to specifying the character set name.  @xref{Splitting
-Characters}, for a description of generic characters.
+@item @code{(@var{from} . @var{to})}
+A cons cell refers to all the characters in the inclusive range
+@samp{[@var{from}..@var{to}]}.
 @end table
 @end defun
 
@@ -646,14 +635,9 @@ Refers to the whole range of character codes.
 Refers to the element for character @var{char}
 (supposing @var{char} is a valid character code).
 
-@item @var{charset}
-Refers to the value specified for the whole character set
-@var{charset} (@pxref{Character Sets}).
-
-@item @var{generic-char}
-A generic character stands for a character set; specifying the generic
-character as argument is equivalent to specifying the character set
-name.  @xref{Splitting Characters}, for a description of generic characters.
+@item @code{(@var{from} . @var{to})}
+A cons cell refers to all the characters in the inclusive range
+@samp{[@var{from}..@var{to}]}.
 @end table
 @end defun
 
