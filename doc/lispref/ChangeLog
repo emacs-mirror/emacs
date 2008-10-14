@@ -1,3 +1,8 @@
+2008-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* sequences.texi (Char-Tables): `map-char-table' can now call its
+	argument FUNCTION with a cons cell as KEY. 
+
 2008-10-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* objects.texi (Primitive Function Type): Move "@cindex special
