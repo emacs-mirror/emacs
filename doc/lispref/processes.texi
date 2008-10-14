@@ -1634,16 +1634,16 @@ the scheduling state of the process.  Here's a list of the most
 frequently seen codes:
 
 @table @code
-@item ``D''
+@item "D"
 uninterruptible sleep (usually I/O)
-@item ``R''
+@item "R"
 running
-@item ``S''
+@item "S"
 interruptible sleep (waiting for some event)
-@item ``T''
+@item "T"
 stopped, e.g., by a job control signal
-@item ``Z''
-``zombie'': a process that terminated, but not reaped by its parent
+@item "Z"
+``zombie'': a process that terminated, but was not reaped by its parent
 @end table
 
 @noindent
@@ -1705,8 +1705,8 @@ child processes of the given process.
 The numerical priority of the process.
 
 @item nice
-The @dfn{nice value} of the process, a number.  Processes with smaller
-nice value get scheduled more favorably.
+The @dfn{nice value} of the process, a number.  (Processes with smaller
+nice values get scheduled more favorably.)
 
 @item thcount
 The number of threads in the process.
