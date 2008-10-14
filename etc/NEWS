@@ -1045,6 +1045,7 @@ freetype library, giving access to a wider range of font formats.
 ** `functionp' returns nil for special forms.
 I.e., it only returns t for objects that can be passed to `funcall'.
 
++++
 ** The behavior of map-char-table has changed.  It may call the
 specified function with a cons (FROM . TO) as a key if characters in
 that range have the same value.
