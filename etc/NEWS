@@ -1118,6 +1118,7 @@ Use this instead of "~/.emacs.d".
 property, `kill-all-local-variables' does not remove it from the local
 value of the hook variable; it remains even if you change major modes.
 
++++
 ** `frame-inherited-parameters' lets new frames inherit parameters from
 the selected frame.
 
