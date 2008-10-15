@@ -1163,18 +1163,19 @@ implies the effect of @code{find-file-existing-other-name}.
 @section Version Control
 @cindex version control
 
-  @dfn{Version control systems} are packages that can record multiple
-versions of a source file, usually storing the unchanged parts of the
-file just once.  Version control systems also record history information
-such as the creation time of each version, who created it, and a
-description of what was changed in that version.
+  A @dfn{version control system} is a package that can record multiple
+versions of a source file, storing information such as the creation
+time of each version, who created it, and a description of what was
+changed in that version.
 
   The Emacs version control interface is called VC.  Its commands work
-with different version control systems---currently, it supports CVS,
-GNU Arch, RCS, Subversion, SCCS, Mercurial, Monotone, Bazaar, and Git.
-Of these, the GNU project distributes CVS, GNU Arch, RCS, and Bazaar.
+with different version control systems; currently, it supports GNU
+Arch, Bazaar, CVS, Git, Mercurial, Monotone, RCS, SCCS, and
+Subversion.  Of these, the GNU project distributes CVS, GNU Arch, RCS,
+and Bazaar.
 
-  VC is enabled by default in Emacs.  To disable it, set the
+  VC is enabled automatically whenever you visit a file that is
+governed by a version control system.  To disable VC entirely, set the
 customizable variable @code{vc-handled-backends} to @code{nil}
 @iftex
 (@pxref{Customizing VC,,,emacs-xtra, Specialized Emacs Features}).
@@ -1232,125 +1233,137 @@ you want to use.
 reversibility, the ability to back up to a saved, known-good state when
 you discover that some modification you did was a mistake or a bad idea.
 
-  Version-control systems also support concurrency, the ability to
+  Version control systems also support concurrency: the ability to
 have many people modifying the same collection of code or documents
 knowing that conflicting modifications can be detected and resolved.
 
-  Version-control systems give you the capability to attach a history
-to your data, explanatory comments about the intention behind each 
-change to it.  Even for a programmer working solo change histories
-are an important aid to memory; for a multi-person project they 
-become a vitally important form of communication among developers.
+  Version control systems give you the capability to attach a history
+to your data, such as explanatory comments about the intention behind
+each change to it.  Even for a programmer working solo, change
+histories are an important aid to memory; for a multi-person project,
+they are a vitally important form of communication among developers.
 
 @node Version Control Systems
 @subsubsection Supported Version Control Systems
 
 @cindex back end (version control)
   VC currently works with many different version control systems or
-``back ends'': SCCS, RCS, CVS, Subversion, GNU Arch,
-git, and Mercurial.
+``back ends'':
 @comment Omitting bzr because support is very scratchy and incomplete.
 
+
+@itemize @bullet
+
 @cindex SCCS
-  SCCS was the first version-control system ever built, and was long ago
+@item
+SCCS was the first version control system ever built, and was long ago
 superseded by later and more advanced ones; Emacs supports it only for
 backward compatibility and historical reasons.  VC compensates for
-certain features missing in SCCS (tag names for releases, for example) by
-implementing them itself. Some other VC features, such as multiple
-branches, are not available with SCCS.  Since SCCS is non-free you
-should not use it; use its free replacement CSSC instead.  But you
-should use CSSC only if for some reason you cannot use a more 
-recent and better-designed version-control system.
+certain features missing in SCCS (e.g., tag names for releases) by
+implementing them itself. Other VC features, such as multiple
+branches, are simply unavailable.  Since SCCS is non-free, we
+recommend avoiding it.
+
+@cindex CSSC
+@item
+CSSC is a free replacement for SCCS.  You should use CSSC only if, for
+some reason, you cannot use a more recent and better-designed
+version-control system.
 
 @cindex RCS
-  RCS is the free version control system around which VC was initially
-built.  Almost everything you can do with RCS can be done through VC.  You
-cannot use RCS over the network, though, and it only works at the level
-of individual files, rather than projects.  You should use it if you
-want a simple, yet reliable tool for handling individual files.
+@item
+RCS is the free version control system around which VC was initially
+built.  Almost everything you can do with RCS can be done through VC.
+However, you cannot use RCS over the network, and it only works at the
+level of individual files rather than projects.
 
 @cindex CVS
-  CVS is the free version control system that was until recently (as of
-2007) used for the majority of free software projects, though it is now
-being superseded by other systems.  It allows concurrent
-multi-user development either locally or over the network.  Some of its
-shortcomings, corrected by newer systems such as Subversion or GNU Arch,
-are that it lacks atomic commits or support for renaming files.  VC
-supports all basic editing operations under CVS, but for some less
-common tasks you still need to call CVS from the command line.  Note
-also that before using CVS you must set up a repository, which is a
-subject too complex to treat here.
+@item
+CVS is the free version control system that was, until recently (circa
+2008), used for the majority of free software projects.  Nowadays, it
+is slowly being superseded by other systems.  CVS allows concurrent
+multi-user development either locally or over the network.  It lacks
+support for atomic commits or file moving/renaming.  VC supports all
+basic editing operations under CVS.  For some less common tasks, you
+still need to call CVS from the command line.  Note also that before
+using CVS you must set up a repository, which is a subject too complex
+to treat here.
 
 @cindex SVN
 @cindex Subversion
-  Subversion is a free version control system designed to be similar
-to CVS but without CVS's problems, and is now (2007) rapidly
-superseding CVS.  Subversion supports atomic commits of filesets, and
-versions directories, symbolic links, meta-data, renames, copies, and
-deletes.  It can be used via http or via its own protocol.
+@item
+Subversion (SVN) is a free version control system designed to be
+similar to CVS but without its problems.  It supports atomic commits
+of filesets, and versioning of directories, symbolic links, meta-data,
+renames, copies, and deletes.
 
 @cindex GNU Arch
 @cindex Arch
-  GNU Arch is a new version control system that is designed for
-distributed work.  It differs in many ways from old well-known
-systems, such as CVS and RCS.  It supports different transports for
-interoperating between users, offline operations, and it has good
-branching and merging features.  It also supports atomic commits of
-filesets, and keeps a history of file renaming and moving.  VC
+@item
+GNU Arch is a version control system designed for distributed work.
+It differs in many ways from older systems like CVS and RCS.  It
+provides different methods for interoperating between users, support
+for offline operations, and good branching and merging features.  It
+also supports atomic commits of filesets and file moving/renaming.  VC
 does not support all operations provided by GNU Arch, so you must
-sometimes invoke it from the command line, or use a specialized
-module.
+sometimes invoke it from the command line.
 
 @cindex git
-  git is a version-control system invented by Linus Torvalds to
-support Linux kernel development.  Like GNU Arch, it supports atomic
-commits of filesets, and keeps a history of file renaming and
-moving.  One significant feature of git is that it largely abolishes
-the notion of a single centralized repository; instead, each working
-copy of a git project is its own repository and coordination is done
-through repository-sync operations.  VC fully supports git, except
-that it doesn't do news merges and repository sync operations must
-be done from the command line.
+@item
+Git is a version control system invented by Linus Torvalds to support
+Linux kernel development.  It supports atomic commits of filesets and
+file moving/renaming.  One significant feature of git is that it
+largely abolishes the notion of a single centralized repository;
+instead, each working copy of a git project is its own repository and
+coordination is done through repository-sync operations.  VC supports
+most git operations, with the exception of news merges and repository
+syncing; these must be done from the command line.
 
 @cindex hg
 @cindex Mercurial
-  Mercurial is a distributed version-control systems broadly
-resembling GNU Arch and git, with atomic fileset commits and
-rename/move histories.  Like git it is fully decentralized.
-VC fully supports Mercurial, except for repository sync operations
-which still need to be done from the command line.
+@item
+Mercurial (hg) is a distributed version control system broadly
+resembling GNU Arch and git, with atomic fileset commits and file
+moving/renaming.  Like git, it is fully decentralized.  VC supports
+most Mercurial commands, with the exception of repository sync
+operations; this needs to be done from the command line.
+
+@cindex bzr
+@cindex Bazaar
+@item
+Bazaar (bzr) is a version control system that supports both
+repository-based and distributed versioning, with atomic fileset
+commits and file moving/renaming.  VC supports most basic editing
+operations under Bazaar.
+@end itemize
 
 @node VCS Concepts
 @subsubsection Concepts of Version Control
 
 @cindex repository
 @cindex registered file
-   When a file is under version control, we also say that it is
+   When a file is under version control, we say that it is
 @dfn{registered} in the version control system.  The system has a
-@dfn{repository} which stores both the file's present state plus its
+@dfn{repository} which stores both the file's present state and its
 change history---enough to reconstruct the current version or any
-earlier version.  The repository will also contain a @dfn{log entry} for
-each change to the file, describing in words what was modified in that 
-revision.
+earlier version.  The repository also contains other information, such
+as @dfn{log entries} that describe the changes made to each file.
 
 @cindex work file
 @cindex checking out files
-  A file checked out of a version-control repository is sometimes
-called the @dfn{work file}.  You edit the work file and make changes
-in it, as you would with an ordinary file.  After you are done with a
-set of changes, you @dfn{check in} or @dfn{commit} the file, which
-records the changes in the repository, along with a log entry for
-them.
+  A file @dfn{checked out} of a repository is called the @dfn{work
+file}.  You edit the work file and make changes in it, as you would
+with an ordinary file.  After you are done with a set of changes, you
+@dfn{check in} or @dfn{commit} the file; this records the changes in
+the repository, along with a log entry for those changes.
 
 @cindex revision
 @cindex revision ID
   A copy of a file stored in a repository is called a @dfn{revision}.
 The history of a file is a sequence of revisions.  Each revisions is
-named by a @dfn{revision ID}.  In older VCSes (such as SCCS and RCS),
-the simplest kind of revision ID consisted of a @dfn{dot-pair};
-integers (the @dfn{major} and @dfn{minor} revisions) separated by a
-dot.  Newer VCSes tend to use @dfn{monotonic} revision IDs that are
-simple integers counting from 1.
+named by a @dfn{revision ID}.  The format of the revision ID depends
+on the version control system; in the simplest case, it is just an
+integer.
 
   To go beyond these basic concepts, you will need to understand three
 ways in which version-control systems can differ from each other.  They
@@ -1361,24 +1374,24 @@ to understand as you use it.
 
 @cindex locking versus merging
   A version control system typically has some mechanism to coordinate
-between users who want to change the same file.  One method is
-@dfn{locking} (analogous to the locking that Emacs uses to detect
-simultaneous editing of a file, but distinct from it).  In a locking
-system, such as SCCS, you must @dfn{lock} a file before you start to
-edit it.  The other method is @dfn{merging}; the system tries to 
-merge your changes with other people's changes when you check them in.
+between users who want to change the same file.  There are two ways to
+do this: locking and merging.
 
-  With version control locking, work files are normally read-only so
-that you cannot change them.  You ask the version control system to make
-a work file writable for you by locking it; only one user can do
-this at any given time.  When you check in your changes, that unlocks
-the file, making the work file read-only again.  This allows other users
-to lock the file to make further changes.
+  In a version control system that uses locking, work files are
+normally read-only.  To edit a file, you ask the version control
+system to make it writable for you by @dfn{locking} it; only one user
+can lock a given file at any given time.  This procedure is analogous
+to, but different from, the locking that Emacs uses to detect
+simultaneous editing of ordinary files (@pxref{Interlocking}).  When
+you check in your changes, that unlocks the file, and the work file
+becomes read-only again.  Other users may then lock the file for
+making their own changes.
 
-  By contrast, a merging system lets each user check out and modify a
-work file at any time.  When you check in a file, the system will
-attempt to merge your changes with any others checked into the
-repository since you checked out the file.
+  In a version control system that uses merging, each user may check
+out and modify a work file at any time.  The system allows you to
+@dfn{merge} your work file, which may contain changes that have not
+been checked in, with the latest changes that others have checked into
+the repository.
 
   Both locking and merging systems can have problems when multiple users
 try to modify the same file at the same time.  Locking systems have
@@ -1392,46 +1405,42 @@ have to be resolved by human judgment and communication.
 told to operate in a merging style.  CVS and Subversion are
 merge-based by default but can be told to operate in a locking mode.
 Most later version-control systems, such as GNU Arch, git, and
-Mercurial, have been based exclusively on merging rather than locking.
-This is because experience has shown that the merging-based approach
-is generally superior to the locking one, both in convenience to
-developers and in minimizing the number and severity of conflicts that
-actually occur.
+Mercurial, are based exclusively on merging rather than locking.  This
+is because experience has shown that merging is generally superior to
+locking, both in convenience to developers and in minimizing the
+number and severity of conflicts that actually occur.  Sometimes,
+newer version control systems may have locks retrofitted onto them for
+reasons having nothing to do with technology@footnote{Usually the
+control-freak instincts of managers.}.
 
-   While it is rather unlikely that anyone will ever again build a
-fundamentally locking-based rather than merging-based version-control
-system in the future, merging-based version-systems sometimes have locks
-retrofitted onto them for reasons having nothing to do with technology.
-@footnote{Usually the control-freak instincts of managers.}  For this
-reason, and to support older systems still in use, VC mode supports
-both locking and merging version control and tries to hide the differences
-between them as much as possible.
+  VC mode supports both locking and merging version control and tries
+to hide the differences between them as much as possible.
 
 @cindex files versus changesets.
   On SCCS, RCS, CVS, and other early version-control systems, checkins
 and other operations are @dfn{file-based}; each file has its own
 @dfn{master file} with its own comment and revision history separate
 from that of all other files in the system.  Later systems, beginning
-with Subversion, are @dfn{changeset-based}; a checkin under these
-may include changes to several files and that change set is treated as
-a unit by the system.  Any comment associated with the change belongs
-to no single file, but is attached to the changeset itself.
+with Subversion, are @dfn{changeset-based}: a checkin may include
+changes to several files, and the entire set of changes is treated as
+a unit by the system.  Any comment associated with the change does not
+belong to a single file, but to the changeset itself.
 
-  Changeset-based version control is in general both more flexible and
-more powerful than file-based version control; usually, when a change to
+  Changeset-based version control is generally more flexible and
+powerful than file-based version control; usually, when a change to
 multiple files has to be backed out, it's good to be able to easily
-identify and remove all of it.  But it took some years for designers to
-figure that out, and while file-based systems are passing out of use
-there are lots of legacy repositories still to be dealt with at time of
-writing in 2007.
+identify and remove all of it.  But it took some years for designers
+to figure that out, and while file-based systems are passing out of
+use there are lots of legacy repositories still to be dealt with at
+time of writing (2008).
 
-  In fact, older versions of VC mode supported only file-based systems,
-leading to some unhappy results when it was used to drive
-changeset-based ones---the Subversion support, for example, used to break
-up changesets into multiple per-file commits.  This has been fixed, but
-it has left a legacy in VC-mode's terminology.  The terms ``checkin'' 
-and ``checkout'' are associated with file-based and locking-based
-systems and a bit archaic; nowadays those operations are usually called
+  Older versions of VC supported only file-based systems, leading to
+some unhappy results when it was used to drive changeset-based
+ones---the Subversion support, for example, used to break up
+changesets into multiple per-file commits.  This has been fixed, but
+it has left a legacy in VC's terminology.  The terms ``checkin'' and
+``checkout'' are associated with file-based and locking-based systems
+and a bit archaic; nowadays those operations are usually called
 ``commit'' and ``update''.
 
 @cindex centralized vs. decentralized
@@ -1443,8 +1452,8 @@ single point of failure---if the repository server is down all work
 stops.  The other is that you need to be connected live to the server to
 do checkins and checkouts; if you're offline, you can't work.
 
-  Newer version-control systems like GNU Arch, git, Mercurial, and Bzr
-are @dfn{decentralized}.  A project may have several different
+  Newer version-control systems like GNU Arch, git, Mercurial, and
+Bazaar are @dfn{decentralized}.  A project may have several different
 repositories, and these systems support a sort of super-merge between
 repositories that tries to reconcile their change histories.  At the
 limit, each developer has his/her own repository, and repository
