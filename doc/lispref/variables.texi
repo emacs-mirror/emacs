@@ -1361,8 +1361,10 @@ buffer-local variables interactively.
 
 @defun kill-all-local-variables
 This function eliminates all the buffer-local variable bindings of the
-current buffer except for variables marked as ``permanent.''  As a
-result, the buffer will see the default values of most variables.
+current buffer except for variables marked as ``permanent'' and local
+hook functions that have a non-@code{nil} @code{permanent-local-hook}
+property (@pxref{Setting Hooks}).  As a result, the buffer will see
+the default values of most variables.
 
 This function also resets certain other information pertaining to the
 buffer: it sets the local keymap to @code{nil}, the syntax table to the
