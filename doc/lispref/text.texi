@@ -1056,7 +1056,8 @@ If @var{n} is zero, indicating a request for the latest kill,
 consulting the kill ring.  If that value is a function and calling it
 returns a string or a list of several string, @code{current-kill}
 pushes the strings onto the kill ring and returns the first string.
-It also sets the yanking pointer to point to that new entry,
+It also sets the yanking pointer to point to the kill-ring entry of
+the first string returned by @code{interprogram-paste-function},
 regardless of the value of @var{do-not-move}.  Otherwise,
 @code{current-kill} does not treat a zero value for @var{n} specially:
 it returns the entry pointed at by the yanking pointer and does not
