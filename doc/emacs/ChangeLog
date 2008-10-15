@@ -1,3 +1,9 @@
+2008-10-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Mouse Commands, Cut/Paste Other App): Rewrite.
+	(Cut/Paste Other App): Document select-active-regions and
+	x-select-enable-primary.
+
 2008-10-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mark.texi (Shift Selection): Correct case in node name.
