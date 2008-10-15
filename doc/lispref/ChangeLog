@@ -1,5 +1,8 @@
 2008-10-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* text.texi (Low-Level Kill Ring): interprogram-paste-function can
+	now return a list of strings.
+
 	* control.texi (Handling Errors): Document ignore-errors.
 
 	* frames.texi (Creating Frames): Document frame-inherited-parameters.
