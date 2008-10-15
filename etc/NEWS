@@ -433,12 +433,12 @@ via face remapping (see below).
 *** FIXME face-remap
 
 ** Primary selection changes
-
++++
 *** If `select-active-regions' is t, setting the mark automatically
 makes the new region into the primary selection (for interaction with
 other window applications).  If you enable this, you might want to
 bind `mouse-yank-primary' to Mouse-2.
-
++++
 *** You can disable kill ring commands from accessing the primary
 selection by setting `x-select-enable-primary' to nil.
 
