@@ -1113,6 +1113,7 @@ don't, these primitives will return nil.
 ** New variable `user-emacs-directory'.
 Use this instead of "~/.emacs.d".
 
++++
 ** If a local hook function has a non-nil `permanent-local-hook'
 property, `kill-all-local-variables' does not remove it from the local
 value of the hook variable; it remains even if you change major modes.
