@@ -1054,12 +1054,13 @@ If @var{n} is zero, indicating a request for the latest kill,
 @code{current-kill} calls the value of
 @code{interprogram-paste-function} (documented below) before
 consulting the kill ring.  If that value is a function and calling it
-returns a string, @code{current-kill} pushes that string onto the kill
-ring and returns it.  It also sets the yanking pointer to point to
-that new entry, regardless of the value of @var{do-not-move}.
-Otherwise, @code{current-kill} does not treat a zero value for @var{n}
-specially: it returns the entry pointed at by the yanking pointer and
-does not move the yanking pointer.
+returns a string or a list of several string, @code{current-kill}
+pushes the strings onto the kill ring and returns the first string.
+It also sets the yanking pointer to point to that new entry,
+regardless of the value of @var{do-not-move}.  Otherwise,
+@code{current-kill} does not treat a zero value for @var{n} specially:
+it returns the entry pointed at by the yanking pointer and does not
+move the yanking pointer.
 @end defun
 
 @defun kill-new string &optional replace yank-handler
@@ -1102,9 +1103,19 @@ If the value is a function, @code{current-kill} calls it to get the
 then that value is used as the ``most recent kill.''  If it returns
 @code{nil}, then the front of the kill ring is used.
 
-The normal use of this hook is to get the window system's primary
+To facilitate support for window systems that support multiple
+selections, this function may also return a list of strings.  In that
+case, the first string is used as the ``most recent kill'', and all
+the other strings are pushed onto the kill ring, for easy access by
+@code{yank-pop}.
+
+The normal use of this function is to get the window system's primary
 selection as the most recent kill, even if the selection belongs to
-another application.  @xref{Window System Selections}.
+another application.  @xref{Window System Selections}.  However, if
+the selection was provided by the current Emacs session, this function
+should return @code{nil}.  (If it is hard to tell whether Emacs or
+some other program provided the selection, it should be good enough to
+use @code{string=} to compare it with the last text Emacs provided.)
 @end defvar
 
 @defvar interprogram-cut-function
@@ -1118,7 +1129,7 @@ The second, optional, argument has the same meaning as the @var{push}
 argument to @code{x-set-cut-buffer} (@pxref{Definition of
 x-set-cut-buffer}) and only affects the second and later cut buffers.
 
-The normal use of this hook is to set the window system's primary
+The normal use of this function is to set the window system's primary
 selection (and first cut buffer) from the newly killed text.
 @xref{Window System Selections}.
 @end defvar
