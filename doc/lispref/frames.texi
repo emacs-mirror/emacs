@@ -98,6 +98,12 @@ variable @code{default-frame-alist}; parameters not specified even there
 default from the standard X resources or whatever is used instead on
 your system.
 
+After the frame is created, this function applies to it the
+parameters, if any, listed in the value of
+@code{frame-inherited-parameters} (see below) and not present in the
+argument, taking the values from the frame that was selected when
+@code{make-frame} was called.
+
 The set of possible parameters depends in principle on what kind of
 window system Emacs uses to display its frames.  @xref{Window Frame
 Parameters}, for documentation of individual parameters you can specify.
@@ -118,6 +124,15 @@ frame.
 An abnormal hook run by @code{make-frame} after it creates the frame.
 Each function in @code{after-make-frame-functions} receives one argument, the
 frame just created.
+@end defvar
+
+@defvar frame-inherited-parameters
+This variable specifies the list of frame parameters that a newly
+created frame inherits from the currently selected frame.  For each
+parameter (a symbol) that is an element in the list and is not present
+in the argument to @code{make-frame}, the function sets the value of
+that parameter in the created frame to its value in the selected
+frame.
 @end defvar
 
 @node Multiple Displays
@@ -256,6 +271,12 @@ frame.
 
 You can use this function to define frame-local bindings for
 variables, see @ref{Frame-Local Variables}.
+@end defun
+
+@defun set-frame-parameter frame parm value
+This function sets the the frame parameter @var{parm} to the specified
+@var{value}.  If @var{frame} is @code{nil}, it defaults to the
+selected frame.
 @end defun
 
 @defun modify-all-frames-parameters alist
