@@ -1,5 +1,9 @@
 2008-10-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* variables.texi (Creating Buffer-Local): Add an xref to "Setting
+	Hooks" for the effect of kill-all-local-variables on local hook
+	functions.
+
 	* modes.texi (Major Mode Conventions, Mode Line Variables):
 	`mode-name' need not be a string.  xref to "Mode Line Data" for
 	details, and to "Emulating Mode Line" for computing a string
