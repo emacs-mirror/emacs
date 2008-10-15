@@ -555,11 +555,15 @@ every buffer-modifying primitive sets @code{deactivate-mark}.  The
 consequence of this is that commands that modify the buffer normally
 make the mark inactive.
 
-Lisp programs can set @code{transient-mark-mode} to @code{only} to
-enable Transient Mark mode for the following command only.  During
-that following command, the value of @code{transient-mark-mode} is
-@code{identity}.  If it is still @code{identity} at the end of the
-command, it changes to @code{nil}.
+Lisp programs can set @code{transient-mark-mode} to non-@code{nil},
+non-@code{t} values to enable Transient Mark mode temporarily.  If the
+value is @code{lambda}, Transient Mark Mode is automatically turned
+off after any action, such as buffer modification, that would normally
+deactivate the mark.  If the value is @w{@code{(only . @var{oldval})}},
+then @code{transient-mark-mode} is set to the value @var{oldval} after
+any subsequent command that moves point and is not shift-translated
+(@pxref{Key Sequence Input, shift-translation}), or after any other
+action that would normally deactivate the mark.
 @end defopt
 
 @defopt mark-even-if-inactive
@@ -625,6 +629,20 @@ The value of this variable is the maximum size of @code{mark-ring}.  If
 more marks than this are pushed onto the @code{mark-ring},
 @code{push-mark} discards an old mark when it adds a new one.
 @end defopt
+
+@defun handle-shift-selection &optional deactivate
+This function checks whether the current command was invoked via shift
+translation (@pxref{Key Sequence Input, shift-translation}), and if
+so, sets the mark and temporarily activates the region, unless the
+region is already temporarily activated in this way.  If the command
+was invoked without shift translation, or if the optional argument
+@var{deactivate} is non-nil, the function deactivates the mark.  This
+function is called whenever a command with a @samp{^} character in its
+@code{interactive} spec (@pxref{Interactive Codes, ^}) is invoked
+while @code{shift-select-mode} (@pxref{Shift Selection,,, emacs, The
+GNU Emacs Manual}) is non-@code{nil}.
+
+@end defun
 
 @node The Region
 @section The Region
