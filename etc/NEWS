@@ -1164,6 +1164,7 @@ undefined functions.
 
 ** Changes to interactive function handling
 
++++
 *** The new interactive spec code ^ says to first call
 handle-shift-selection if shift-select-mode is non-nil, before reading
 the command arguments.  This is used for shift-selection (see above).
