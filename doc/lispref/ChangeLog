@@ -1,5 +1,8 @@
 2008-10-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* frames.texi (Creating Frames): Document frame-inherited-parameters.
+	(Parameter Access): Document set-frame-parameter.
+
 	* variables.texi (Creating Buffer-Local): Add an xref to "Setting
 	Hooks" for the effect of kill-all-local-variables on local hook
 	functions.
