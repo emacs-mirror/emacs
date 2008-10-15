@@ -1,5 +1,8 @@
 2008-10-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* positions.texi (List Motion): beginning-of-defun-function can
+	now accept an argument.
+
 	* text.texi (Low-Level Kill Ring): interprogram-paste-function can
 	now return a list of strings.
 
