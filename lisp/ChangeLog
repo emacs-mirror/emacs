@@ -1,3 +1,15 @@
+2008-10-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* find-file.el (ff-get-file): Doc fix.
+	(ff-get-file-name): Use `let', not `let*'.
+	(ff-search-directories): Fix typo in docstring.
+	(ff-pre-find-hook, ff-pre-load-hook, ff-post-load-hook)
+	(ff-not-found-hook, ff-file-created-hook, ff-case-fold-search)
+	(ff-always-in-other-window, ff-ignore-include, ff-always-try-to-create)
+	(ff-quiet-mode, ff-other-file-alist, cc-search-directories)
+	(cc-other-file-alist, modula2-other-file-alist):
+	Remove spurious * in docstrings.
+
 2008-10-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (set-face-attribute): Set family and foundry before
