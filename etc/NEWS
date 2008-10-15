@@ -1148,6 +1148,7 @@ like this:
 +++
 ** clone-indirect-buffer now runs the clone-indirect-buffer-hook.
 
++++
 ** `beginning-of-defun-function' now takes one argument, the count
 given to `beginning-of-defun'.
 
