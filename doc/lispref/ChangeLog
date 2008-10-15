@@ -1,11 +1,16 @@
 2008-10-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* internals.texi (Writing Emacs Primitives): The interactive spec
+	of a primitive can be a Lisp form.
+
 	* markers.texi (The Mark): Document the `lambda' and `(only . OLD)'
 	values of transient-mark-mode.  Document handle-shift-selection.
 
 	* commands.texi (Using Interactive, Interactive Codes): Document `^'.
 	(Interactive Examples): Show an example of `^'.
 	(Key Sequence Input): Document this-command-keys-shift-translated.
+	(Defining Commands, Using Interactive): The interactive-form of a
+	function can be added via its symbol's property.
 
 	* positions.texi (List Motion): beginning-of-defun-function can
 	now accept an argument.
