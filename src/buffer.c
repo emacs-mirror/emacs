@@ -5696,8 +5696,9 @@ its hooks should not expect certain variables such as
   DEFVAR_PER_BUFFER ("mode-name", &current_buffer->mode_name,
                      Qnil,
 		     doc: /* Pretty name of current buffer's major mode.
-Usually a string.  See `mode-line-format' for other possible forms.
-Use the function `format-mode-line' to get the value as a string.  */);
+Usually a string, but can use any of the constructs for `mode-line-format',
+which see.
+Format with `format-mode-line' to produce a string value.  */);
 
   DEFVAR_PER_BUFFER ("local-abbrev-table", &current_buffer->abbrev_table, Qnil,
 		     doc: /* Local (mode-specific) abbrev table of current buffer.  */);
