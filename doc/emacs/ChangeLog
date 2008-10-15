@@ -1,5 +1,10 @@
 2008-10-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* files.texi (Version Control): Copyedits.  Add Bazaar.
+	(Version Control Systems): List different VCS's using an itemized list.
+	Add Bazaar.
+	(VCS Concepts): Copyedits.  Tweak description of file merging.
+
 	* frames.texi (Mouse Commands, Cut/Paste Other App): Rewrite.
 	(Cut/Paste Other App): Document select-active-regions and
 	x-select-enable-primary.
