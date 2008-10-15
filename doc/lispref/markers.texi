@@ -557,7 +557,7 @@ make the mark inactive.
 
 Lisp programs can set @code{transient-mark-mode} to non-@code{nil},
 non-@code{t} values to enable Transient Mark mode temporarily.  If the
-value is @code{lambda}, Transient Mark Mode is automatically turned
+value is @code{lambda}, Transient Mark mode is automatically turned
 off after any action, such as buffer modification, that would normally
 deactivate the mark.  If the value is @w{@code{(only . @var{oldval})}},
 then @code{transient-mark-mode} is set to the value @var{oldval} after
