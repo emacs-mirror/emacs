@@ -186,20 +186,31 @@ give to that buffer:
 
 @cindex @samp{*} in @code{interactive}
 @cindex read-only buffers in interactive
-If the first character in the string is @samp{*}, then an error is
+If @samp{*} appears at the beginning of the string, then an error is
 signaled if the buffer is read-only.
 
 @cindex @samp{@@} in @code{interactive}
 @c Emacs 19 feature
-If the first character in the string is @samp{@@}, and if the key
+If @samp{@@} appears at the beginning of the string, and if the key
 sequence used to invoke the command includes any mouse events, then
 the window associated with the first of those events is selected
 before the command is run.
 
-You can use @samp{*} and @samp{@@} together; the order does not matter.
-Actual reading of arguments is controlled by the rest of the prompt
-string (starting with the first character that is not @samp{*} or
-@samp{@@}).
+@cindex @samp{^} in @code{interactive}
+@cindex shift-selection, and @code{interactive} spec
+If @samp{^} appears at the beginning of the string, and if the command
+was invoked through @dfn{shift-translation}, set the mark and activate
+the region temporarily, or extend an already active region, before the
+command is run.  If the command was invoked without shift-translation,
+and the region is temporarily active, deactivate the region before the
+command is run.  Shift-translation is controlled on the user level by
+@code{shift-select-mode}; see @ref{Shift Selection,,, emacs, The GNU
+Emacs Manual}.
+
+You can use @samp{*}, @samp{@@}, and @code{^} together; the order does
+not matter.  Actual reading of arguments is controlled by the rest of
+the prompt string (starting with the first character that is not
+@samp{*}, @samp{@@}, or @samp{^}).
 
 @item
 It may be a Lisp expression that is not a string; then it should be a
@@ -315,6 +326,13 @@ Signal an error if the current buffer is read-only.  Special.
 @item @@
 Select the window mentioned in the first mouse event in the key
 sequence that invoked this command.  Special.
+
+@item ^
+If the command was invoked through shift-translation, set the mark and
+activate the region temporarily, or extend an already active region,
+before the command is run.  If the command was invoked without
+shift-translation, and the region is temporarily active, deactivate
+the region before the command is run.  Special.
 
 @item a
 A function name (i.e., a symbol satisfying @code{fboundp}).  Existing,
@@ -492,7 +510,9 @@ argument value.  Completion, Existing, Prompt.
 
 @group
 (defun foo2 (n)             ; @r{@code{foo2} takes one argument,}
-    (interactive "p")       ;   @r{which is the numeric prefix.}
+    (interactive "^p")      ;   @r{which is the numeric prefix.}
+                            ; @r{under @code{shift-select-mode},}
+                            ;   @r{will activate or extend region.}
     (forward-word (* 2 n)))
      @result{} foo2
 @end group
@@ -2214,10 +2234,20 @@ returns the key sequence as a vector, never as a string.
 
 @cindex upper case key sequence
 @cindex downcasing in @code{lookup-key}
+@cindex shift-translation
 If an input character is upper-case (or has the shift modifier) and
 has no key binding, but its lower-case equivalent has one, then
 @code{read-key-sequence} converts the character to lower case.  Note
 that @code{lookup-key} does not perform case conversion in this way.
+
+@vindex this-command-keys-shift-translated
+When reading input results in such a @dfn{shift-translation}, Emacs
+sets the variable @code{this-command-keys-shift-translated} to a
+non-nil value.  Lisp programs can examine this variable if they need
+to modify their behavior when invoked by shift-translated keys.  For
+example, the function @code{handle-shift-selection} examines the value
+of this variable to determine how to activate or deactivate the region
+(@pxref{The Mark, handle-shift-selection}).
 
 The function @code{read-key-sequence} also transforms some mouse events.
 It converts unbound drag events into click events, and discards unbound
