@@ -1131,6 +1131,7 @@ this map rather than to function-key-map now.
 +++
 ** `ignore-errors' is now a standard macro (does not require the CL package).
 
++++
 ** `interprogram-paste-function' can now return one string or a list
 of strings.  In the latter case, Emacs puts the second and following
 strings on the kill ring.
