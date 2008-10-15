@@ -1,3 +1,7 @@
+2008-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (syms_of_buffer): Doc fix.
+
 2008-10-14  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_clear_prop): When clearing font width, clear the
