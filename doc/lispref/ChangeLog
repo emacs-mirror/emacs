@@ -1,3 +1,10 @@
+2008-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (Major Mode Conventions, Mode Line Variables):
+	`mode-name' need not be a string.  xref to "Mode Line Data" for
+	details, and to "Emulating Mode Line" for computing a string
+	value.
+
 2008-10-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* processes.texi (System Processes): New section.
