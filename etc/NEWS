@@ -1128,6 +1128,7 @@ applies before function-key-map.  Also it is terminal-local contrary to
 key-translation-map.  Terminal-specific key-sequences are generally added to
 this map rather than to function-key-map now.
 
++++
 ** `ignore-errors' is now a standard macro (does not require the CL package).
 
 ** `interprogram-paste-function' can now return one string or a list
