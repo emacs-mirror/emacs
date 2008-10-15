@@ -1,5 +1,12 @@
 2008-10-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* markers.texi (The Mark): Document the `lambda' and `(only . OLD)'
+	values of transient-mark-mode.  Document handle-shift-selection.
+
+	* commands.texi (Using Interactive, Interactive Codes): Document `^'.
+	(Interactive Examples): Show an example of `^'.
+	(Key Sequence Input): Document this-command-keys-shift-translated.
+
 	* positions.texi (List Motion): beginning-of-defun-function can
 	now accept an argument.
 
