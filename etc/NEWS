@@ -1169,10 +1169,12 @@ undefined functions.
 handle-shift-selection if shift-select-mode is non-nil, before reading
 the command arguments.  This is used for shift-selection (see above).
 
++++
 *** Built-in functions can now have an interactive specification that
 is not a prompt string.  If the `intspec' parameter of a `DEFUN'
 starts with a `(', the string is evaluated as a Lisp form.
 
++++
 *** The interactive-form of a function can be added post-facto via the
 `interactive-form' symbol property.  Mostly useful to add complex
 interactive forms to subroutines.
