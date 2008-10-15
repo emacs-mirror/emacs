@@ -737,7 +737,10 @@ The default is @code{t}.
 @defvar beginning-of-defun-function
 If non-@code{nil}, this variable holds a function for finding the
 beginning of a defun.  The function @code{beginning-of-defun}
-calls this function instead of using its normal method.
+calls this function instead of using its normal method, passing it its
+optional argument.  If the argument is non-@code{nil}, the function
+should move back by that many functions, like
+@code{beginning-of-defun} does.
 @end defvar
 
 @defvar end-of-defun-function
