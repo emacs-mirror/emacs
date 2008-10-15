@@ -274,7 +274,7 @@ variables, see @ref{Frame-Local Variables}.
 @end defun
 
 @defun set-frame-parameter frame parm value
-This function sets the the frame parameter @var{parm} to the specified
+This function sets the frame parameter @var{parm} to the specified
 @var{value}.  If @var{frame} is @code{nil}, it defaults to the
 selected frame.
 @end defun
