@@ -1187,6 +1187,7 @@ enabled and there is an active region.  This is NOT the best function
 to use to test whether a command should operate on the region instead
 of the usual behavior -- for that, use `use-region-p'.
 
++++
 *** If a command sets `transient-mark-mode' to (only . OLDVAL), that
 means to activate transient-mark-mode temporarily, until the next
 unshifted point motion command or mark deactivation.  Afterwards,
