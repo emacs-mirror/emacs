@@ -1122,6 +1122,7 @@ value of the hook variable; it remains even if you change major modes.
 ** `frame-inherited-parameters' lets new frames inherit parameters from
 the selected frame.
 
++++
 ** New keymap `input-decode-map' overrides like key-translation-map, but
 applies before function-key-map.  Also it is terminal-local contrary to
 key-translation-map.  Terminal-specific key-sequences are generally added to
