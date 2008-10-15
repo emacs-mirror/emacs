@@ -1,3 +1,8 @@
+2008-10-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* international/mule-conf.el: Add `utf8' and `UTF8' as
+	aliases for the `utf-8' coding system.
+
 2008-10-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* find-file.el (ff-get-file): Doc fix.
