@@ -891,7 +891,9 @@ establishing an error handler, with the special form
 
 @noindent
 This deletes the file named @var{filename}, catching any error and
-returning @code{nil} if an error occurs.
+returning @code{nil} if an error occurs@footnote{
+Actually, you should use @code{ignore-errors} in such a simple case;
+see below.}.
 
   The @code{condition-case} construct is often used to trap errors that
 are predictable, such as failure to open a file in a call to
@@ -1088,6 +1090,23 @@ including those signaled with @code{error}:
 @result{} 2
 @end group
 @end smallexample
+
+@defmac ignore-errors body@dots{}
+This construct executes @var{body}, ignoring any errors that occur
+during its execution.  If the execution is without error,
+@code{ignore-errors} returns the value of the last form in @var{body};
+otherwise, it returns @code{nil}.
+
+Here's the example at the beginning of this subsection rewritten using
+@code{ignore-errors}:
+
+@smallexample
+@group
+  (ignore-errors
+   (delete-file filename))
+@end group
+@end smallexample
+@end defmac
 
 @node Error Symbols
 @subsubsection Error Symbols and Condition Names
