@@ -1,3 +1,7 @@
+2008-10-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* markers.texi (The Mark): Document use-region-p.
+
 2008-10-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* internals.texi (Writing Emacs Primitives): The interactive spec
