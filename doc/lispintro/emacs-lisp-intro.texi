@@ -11541,7 +11541,7 @@ different thread of execution, with different arguments than the first
 instance.
 
 Put in yet another way, if the list is not empty, the first robot
-assemblies a second robot and tells it what to do; the second robot is
+assembles a second robot and tells it what to do; the second robot is
 a different individual from the first, but is the same model.
 
 When the second evaluation occurs, the @code{when} expression is
