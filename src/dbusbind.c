@@ -785,9 +785,7 @@ object is returned instead of a list containing this single Lisp object.
 
   => "i686"
 
-usage: (dbus-call-method
-         BUS SERVICE PATH INTERFACE METHOD
-         &optional :timeout TIMEOUT &rest ARGS)  */)
+usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TIMEOUT &rest ARGS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -969,9 +967,7 @@ Example:
 
   -| i686
 
-usage: (dbus-call-method-asynchronously
-         BUS SERVICE PATH INTERFACE METHOD HANDLER
-         &optional :timeout TIMEOUT &rest ARGS)  */)
+usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLER &optional :timeout TIMEOUT &rest ARGS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;

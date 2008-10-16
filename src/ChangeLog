@@ -1,3 +1,9 @@
+2008-10-16  Magnus Henoch  <mange@freemail.hu>
+
+	* dbusbind.c (Fdbus_call_method): Unbreak usage line.
+	(Fdbus_call_method_asynchronously): Ditto.
+	This change makes C-h f display the argument list.
+
 2008-10-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fileio.c (Fexpand_file_name): Doc fix.
