@@ -829,6 +829,10 @@ all sections related to a subject, put something appropriate into the
 			      (Man-width (frame-width))
 			      ((window-width))))))
 	(setenv "GROFF_NO_SGR" "1")
+	;; Since man-db 2.4.3-1, man writes plain text with no escape
+	;; sequences when stdout is not a tty.	In 2.5.0, the following
+	;; env-var was added to allow control of this (see Debian Bug#340673).
+	(setenv "MAN_KEEP_FORMATTING" "1")
 	(if (fboundp 'start-process)
 	    (set-process-sentinel
 	     (start-process manual-program buffer
