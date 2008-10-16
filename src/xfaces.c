@@ -3217,6 +3217,9 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCforeground))
     {
+      /* Compatibility with 20.x.  */
+      if (NILP (value))
+	value = Qunspecified;
       if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  /* Don't check for valid color names here because it depends
@@ -3231,6 +3234,9 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCbackground))
     {
+      /* Compatibility with 20.x.  */
+      if (NILP (value))
+	value = Qunspecified;
       if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  /* Don't check for valid color names here because it depends
