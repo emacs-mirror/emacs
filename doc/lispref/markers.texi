@@ -423,7 +423,11 @@ to the editor command loop by setting @code{deactivate-mark} to a
 non-@code{nil} value (but this causes deactivation only if Transient
 Mark mode is enabled).
 
-  The main motivation for using Transient Mark mode is that this mode
+  Certain editing commands that normally apply to text near point,
+work on the region when Transient Mode is enabled and the mark is
+active.  This is the main motivation for using Transient Mark mode.
+
+  Another motivation for using Transient Mark mode is that this mode
 also enables highlighting of the region when the mark is active.
 @xref{Display}.
 
@@ -555,6 +559,11 @@ every buffer-modifying primitive sets @code{deactivate-mark}.  The
 consequence of this is that commands that modify the buffer normally
 make the mark inactive.
 
+Certain commands normally apply to text near point, but in Transient
+Mark mode when the mark is active, they apply to the region instead.
+These commands should call @code{use-region-p} to test whether they
+should operate on the region.
+
 Lisp programs can set @code{transient-mark-mode} to non-@code{nil},
 non-@code{t} values to enable Transient Mark mode temporarily.  If the
 value is @code{lambda}, Transient Mark mode is automatically turned
@@ -565,6 +574,14 @@ any subsequent command that moves point and is not shift-translated
 (@pxref{Key Sequence Input, shift-translation}), or after any other
 action that would normally deactivate the mark.
 @end defopt
+
+@deffn Subroutine use-region-p
+This function returns @code{t} if Transient Mark mode is enabled, the
+mark is active, and there's a valid region in the buffer.  Commands
+that operate on the region (instead of on text near point) when
+there's an active mark should use this subroutine to test whether to
+do that.
+@end deffn
 
 @defopt mark-even-if-inactive
 If this is non-@code{nil}, Lisp programs and the Emacs user can use the
@@ -598,8 +615,11 @@ Otherwise it does nothing.
 @end defun
 
 @defvar mark-active
-The mark is active when this variable is non-@code{nil}.  This variable
-is always buffer-local in each buffer.
+The mark is active when this variable is non-@code{nil}.  This
+variable is always buffer-local in each buffer.  Do @emph{not} use the
+value of this variable to decide whether a command that normally
+operates on text near point should operate on the region instead.  Use
+the @code{use-region-p} subroutine (see above) for that.
 @end defvar
 
 @defvar activate-mark-hook
