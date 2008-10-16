@@ -1,3 +1,8 @@
+2008-10-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* international/mule-conf.el: Removed `utf8' and `UTF8' aliases
+	after discussion.
+
 2008-10-16  Magnus Henoch  <mange@freemail.hu>
 
 	* vc-arch.el (vc-arch-dir-status): New function.

@@ -1274,9 +1274,6 @@ is treated as a character."
   :bom '(utf-8-with-signature . utf-8))
 
 (define-coding-system-alias 'mule-utf-8 'utf-8)
-;; common aliases
-(define-coding-system-alias 'utf8 'utf-8)
-(define-coding-system-alias 'UTF8 'utf-8)
 
 (define-coding-system 'utf-8-emacs
   "Support for all Emacs characters (including non-Unicode characters)."
