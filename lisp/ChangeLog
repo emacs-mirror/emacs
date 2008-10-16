@@ -1,3 +1,8 @@
+2008-10-16  Magnus Henoch  <mange@freemail.hu>
+
+	* vc-arch.el (vc-arch-dir-status): New function.
+	(vc-arch-after-dir-status): New function.
+
 2008-10-16  Glenn Morris  <rgm@gnu.org>
 
 	* man.el (Man-getpage-in-background): Force recent `man's to output
