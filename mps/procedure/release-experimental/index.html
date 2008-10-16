@@ -89,10 +89,11 @@
 <ol>
 
 <li><p> Clean directory, Sync to origin, Build: </p>
-  <blockquote><pre><code>  p4 sync code/...#0
-  rm -rf code
-  p4 sync code/...@NNNNNN
-  code/w3build.bat</code></pre></blockquote>
+  <blockquote><pre><code># (you may wish to check for opened files first)
+p4 revert code/...
+rm -rf code
+p4 sync -f code/...@NNNNNN
+code/w3build.bat</code></pre></blockquote>
 </li>
 
 <li><p> Make Zip Archive, in development branch's release directory, using Windows GUI:</p>
