@@ -1,3 +1,8 @@
+2008-10-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-fns.el (w32-check-shell-configuration): Doc fix.
+	(w32-add-charset-info): Fix typo in docstring.
+
 2008-10-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* international/mule-conf.el: Removed `utf8' and `UTF8' aliases
