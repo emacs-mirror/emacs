@@ -1177,6 +1177,7 @@ interactive forms to subroutines.
 
 ** Region changes
 
++++
 *** Commands should use `use-region-p' to test whether there is
 an active region that they should operate on.
 
