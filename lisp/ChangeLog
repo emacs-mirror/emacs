@@ -1,3 +1,8 @@
+2008-10-16  Glenn Morris  <rgm@gnu.org>
+
+	* man.el (Man-getpage-in-background): Force recent `man's to output
+	escape sequences even when stdout is not a tty.  (Bug#1142)
+
 2008-10-15  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* international/mule-conf.el: Add `utf8' and `UTF8' as
