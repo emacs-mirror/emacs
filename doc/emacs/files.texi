@@ -1248,7 +1248,7 @@ they are a vitally important form of communication among developers.
 
 @cindex back end (version control)
   VC currently works with many different version control systems or
-``back ends'':
+@dfn{back ends}:
 @comment Omitting bzr because support is very scratchy and incomplete.
 
 
@@ -1260,7 +1260,7 @@ SCCS was the first version control system ever built, and was long ago
 superseded by later and more advanced ones; Emacs supports it only for
 backward compatibility and historical reasons.  VC compensates for
 certain features missing in SCCS (e.g., tag names for releases) by
-implementing them itself. Other VC features, such as multiple
+implementing them itself.  Other VC features, such as multiple
 branches, are simply unavailable.  Since SCCS is non-free, we
 recommend avoiding it.
 
@@ -1310,7 +1310,7 @@ sometimes invoke it from the command line.
 
 @cindex git
 @item
-Git is a version control system invented by Linus Torvalds to support
+Git is a distributed version control system invented by Linus Torvalds to support
 Linux kernel development.  It supports atomic commits of filesets and
 file moving/renaming.  One significant feature of git is that it
 largely abolishes the notion of a single centralized repository;
@@ -1331,7 +1331,7 @@ operations; this needs to be done from the command line.
 @cindex bzr
 @cindex Bazaar
 @item
-Bazaar (bzr) is a version control system that supports both
+Bazaar (bzr) is a distributed version control system that supports both
 repository-based and distributed versioning, with atomic fileset
 commits and file moving/renaming.  VC supports most basic editing
 operations under Bazaar.
@@ -1404,7 +1404,7 @@ have to be resolved by human judgment and communication.
   SCCS always uses locking.  RCS is lock-based by default but can be
 told to operate in a merging style.  CVS and Subversion are
 merge-based by default but can be told to operate in a locking mode.
-Most later version-control systems, such as GNU Arch, git, and
+Most distributed version-control systems, such as GNU Arch, git, and
 Mercurial, are based exclusively on merging rather than locking.  This
 is because experience has shown that merging is generally superior to
 locking, both in convenience to developers and in minimizing the
@@ -1431,8 +1431,8 @@ powerful than file-based version control; usually, when a change to
 multiple files has to be backed out, it's good to be able to easily
 identify and remove all of it.  But it took some years for designers
 to figure that out, and while file-based systems are passing out of
-use there are lots of legacy repositories still to be dealt with at
-time of writing (2008).
+use, there are lots of legacy repositories still to be dealt with as
+of this writing (2008).
 
   Older versions of VC supported only file-based systems, leading to
 some unhappy results when it was used to drive changeset-based
