@@ -1,5 +1,7 @@
 2008-10-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* fileio.c (Fexpand_file_name): Doc fix.
+
 	* xfaces.c (Finternal_set_lisp_face_attribute): Make null values
 	of :foreground and :background equivalent to unspecified (20.x
 	compatibility).
