@@ -642,9 +642,9 @@ A cons cell refers to all the characters in the inclusive range
 @end defun
 
 @defun map-char-table function char-table
-This function calls the specified @var{function} for each element of
-@var{char-table} that has a non-@code{nil} value.
-@var{function} is called with two arguments, a key and a value.  The key
+This function calls its argument @var{function} for each element of
+@var{char-table} that has a non-@code{nil} value.  The call to
+@var{function} is with two arguments, a key and a value.  The key
 is a possible @var{range} argument for @code{char-table-range}---either
 a valid character or a cons cell @code{(@var{from} . @var{to})},
 specifying a range of characters that share the same value.  The value is
