@@ -876,7 +876,7 @@ Tramp uses the package `auth-source' to read passwords from a file, if
 necessary.
 
 ** VC and related modes
-
++++
 *** VC now supports applying VC operations to a set of files at a time.
 This enables VC to work much more effectively with changeset-oriented
 version-control systems such as Subversion, GNU Arch, Mercurial, Git
@@ -890,20 +890,16 @@ directory or a set of files/directories.
 *** Clicking on the VC mode-line entry now pops the VC menu.
 
 *** The VC mode-line entry now has a tooltip that explains the VC file status.
-
++++
 *** In VC Annotate mode, for VC systems that support changesets, you can
 see the diff for the whole changeset (not only for the current file)
-by typing the D key.
-
+by typing the D key.  Using the "Show changeset diff of revision at
+line" menu entry does the same thing.
++++
 *** In VC Annotate mode, you can type v to toggle the annotation visibility.
-
++++
 *** In VC Annotate mode, you can type f to show the file revision on
 the current line.
-
-*** In VC Annotate mode, for VC systems that support changesets, you
-can see the diff for the whole changeset (not only for the current
-file) by typing the D key or using the "Show changeset diff of
-revision at line" menu entry.
 
 *** Asynchronous VC commands display [Waiting...] in the mode-line
 of the corresponding buffer as long as the asynchronous process is
