@@ -104,13 +104,16 @@ version/VERSION/...</code> </blockquote> </li>
 
 <li>
 
-  <p> Sync the version sources to the CHANGELEVEL you determined in step 2.1.  Sync the version sources to a clean area of the disk, to be sure that there are no extraneous files around. </p>
+  <p> Sync the version sources to precisely the CHANGELEVEL you determined in step 2.1, with no extraneous files, by using the following procedure: </p>
 
   <blockquote> <code>
-    p4 sync version/VERSION/...#none <br />
+    # (you may wish to check for opened files first)<br />
+    p4 revert version/VERSION/...<br />
     rm -rf version/VERSION <br />
-    p4 sync version/VERSION/...@CHANGELEVEL
+    p4 sync -f version/VERSION/...@CHANGELEVEL
   </code> </blockquote>
+
+  <p> <em>(Note: "revert" and "sync -f" are required: otherwise p4-opened or forced-writeable files may remain or be omitted; see [<a href="#ref-1">1</a>].)</em> </p>
 
 </li>
 
@@ -223,9 +226,24 @@ RELEASE."  </p></li>
 
 <h2><a id="section-A" name="section-A">A. References</a></h2>
 
-<!-- Template Entry
-
 <table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-1" name="ref-1" href="http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt">1</a>]</td>
+
+  <td>
+    "revert ; rm ; sync -f";
+    RHSK;
+    &lt;URL: <a href="http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt">http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt</a>&gt;;
+    2008-10-16.
+  </td>
+
+</tr>
+
+</table>
+
+<!-- Template Entry
 
 <tr valign="top">
 
@@ -239,8 +257,6 @@ RELEASE."  </p></li>
   </td>
 
 </tr>
-
-</table>
 
 -->
 
