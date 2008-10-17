@@ -1,3 +1,7 @@
+2008-10-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fsplit_window): Rename arg horflag to horizontal.
+
 2008-10-17  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_otf_features): Fix indexing
