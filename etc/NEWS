@@ -36,6 +36,10 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 ** cua.el, cua-mode.el: remove old versions.
 
 
+* Lisp Changes in Emacs 22.4
+
+** New coding system alias `emacs-internal'.
+
 * Changes in Emacs 22.3
 
 ** Support for several obsolete platforms will be removed in the next

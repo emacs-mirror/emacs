@@ -1,3 +1,7 @@
+2008-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-conf.el (emacs-internal): New coding system alias.
+
 2008-09-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.3 released.
