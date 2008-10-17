@@ -1,3 +1,7 @@
+2008-10-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* abbrev.el (define-abbrev): Doc fix.
+
 2008-10-17  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-defun-name): Make it work for "struct
