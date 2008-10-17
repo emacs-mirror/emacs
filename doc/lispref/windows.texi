@@ -87,7 +87,7 @@ window edges with respect to the screen or frame
 the buffer it displays
 
 @item
-position within the buffer at the upper left of the window
+buffer position at the upper left corner of the window
 
 @item
 amount of horizontal scrolling, in columns
@@ -273,7 +273,7 @@ characters; see @ref{Display Tables}.
 This function splits the selected window into two windows, one above the
 other, leaving the upper of the two windows selected, with @var{size}
 lines.  (If @var{size} is negative, then the lower of the two windows
-gets @minus{} @var{size} lines and the upper window gets the rest, but
+gets @minus{}@var{size} lines and the upper window gets the rest, but
 the upper window is still the one selected.)  However, if
 @code{split-window-keep-point} (see below) is @code{nil}, then either
 window can be selected.
@@ -292,15 +292,15 @@ in each of the two windows to avoid scrolling.  (This is useful on
 slow terminals.)  It selects whichever window contains the screen line
 that point was previously on.
 
-This variable only affects the behavior of @code{split-window-vertically}.
-It has no effect on the other functions described here.
+This variable affects the behavior of @code{split-window-vertically}
+only.  It has no effect on the other functions described here.
 @end defopt
 
 @deffn Command split-window-horizontally &optional size
 This function splits the selected window into two windows
 side-by-side, leaving the selected window on the left with @var{size}
 columns.  If @var{size} is negative, the rightmost window gets
-@minus{} @var{size} columns, but the leftmost window still remains
+@minus{}@var{size} columns, but the leftmost window still remains
 selected.
 
 This function is basically an interface to @code{split-window}.
@@ -315,7 +315,7 @@ You could define a simplified version of the function like this:
 @group
   (let ((size (and arg (prefix-numeric-value arg))))
     (and size (< size 0)
-	 (setq size (+ (window-width) size)))
+         (setq size (+ (window-width) size)))
     (split-window nil size t)))
 @end group
 @end smallexample
