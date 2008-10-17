@@ -69,24 +69,41 @@ adds the directory's subdirectories to the list, and these will be
 scanned in their turn.  The files @file{subdirs.el} are normally
 generated automatically by Emacs installation.
 
+@vindex before-init-time
+@item
+It records in the variable @code{before-init-time} the value of
+@code{current-time} (@pxref{Time of Day}).  It also sets
+@code{after-init-time} to @code{nil}, so as to signal Lisp programs
+that Emacs initialization is in progress.
+
+@vindex initial-window-system@r{, and startup}
+@vindex window-system-initialization-alist
+@item
+It loads the initialization library for the window system specified by
+the variable @code{initial-window-system}.  This library's name is
+@file{term/@var{windowsystem}-win.el}, where @var{windowsystem} is the
+value of @code{initial-window-system}.  From that library, it calls
+the appropriate initialization function.  The initialization function
+is specified by @code{window-system-initialization-alist}, for each
+supported window system.
+
 @item
 It sets the language environment and the terminal coding system,
 if requested by environment variables such as @code{LANG}.
-
-@item
-It loads the initialization library for the window system, if you are
-using a window system.  This library's name is
-@file{term/@var{windowsystem}-win.el}.
 
 @item
 It processes the initial options.  (Some of them are handled
 even earlier than this.)
 
 @item
-It initializes the window frame and faces, if appropriate.
+It runs the normal hook @code{before-init-hook}.
 
 @item
-It runs the normal hook @code{before-init-hook}.
+It initializes the window frame and faces, if appropriate, and turns
+on the menu bar and tool bar, if the initial frame needs them.
+
+@item
+It registers the default colors for text-only terminals.
 
 @item
 It loads the library @file{site-start} (if any), unless the option
@@ -108,6 +125,21 @@ command line.)  The library's file name is usually @file{default.el}.
 @cindex @file{default.el}
 
 @item
+It loads your abbrevs from the file specified by
+@code{abbrev-file-name} (@pxref{Abbrev Files, abbrev-file-name}), if
+that file exists and can be read.  (This is not done in @samp{-batch}
+mode.)
+
+@vindex after-init-time
+@item
+It records in the variable @code{after-init-time} the value of
+@code{current-time}.  This variable was set to @code{nil} at the
+beginning of the Emacs session initialization (see above), so setting
+it to the current time both signals that the initialization phase is
+over, and, together with @code{before-init-time}, provides the
+measurement of how long it took.
+
+@item
 It runs the normal hook @code{after-init-hook}.
 
 @item
@@ -116,8 +148,13 @@ the buffer @samp{*scratch*} is still current and still in Fundamental
 mode.
 
 @item
-It loads the terminal-specific Lisp file, if any, except when in batch
-mode or using a window system.
+It loads the terminal-specific Lisp library, if any, except when in
+batch mode or when the variable @code{initial-window-system} (see
+above) specifies a non-@code{nil} window system.  The name of this
+library is computed from the value of the variable
+@code{term-file-prefix}; for the details, see @ref{Terminal-Specific}.
+
+If the value of @code{term-file-prefix} is @code{nil}, this step is skipped.
 
 @item
 It displays the initial echo area message, unless you have suppressed
@@ -139,11 +176,21 @@ It runs @code{window-setup-hook}.  @xref{Window Systems}.
 
 @item
 It displays copyleft, nonwarranty, and basic use information, provided
-the value of @code{inhibit-startup-message} is @code{nil}, you didn't
+the value of @code{inhibit-startup-screen} is @code{nil}, you didn't
 specify @samp{--no-splash} or @samp{-Q}.
+
+@item
+If the command-line arguments specified @option{--daemon}, @c FIXME: xref
+it calls @code{server-start} (@pxref{Emacs Server,,, emacs, The GNU
+Emacs Manual}).
+
+@item
+If started by the X session manager, it calls
+@code{emacs-session-restore} passing it as argument the ID of the
+previous session.  @c FIXME: add an xref to the Emacs manual!
 @end enumerate
 
-@defopt inhibit-startup-message
+@defopt inhibit-startup-screen
 This variable inhibits the initial startup messages (the nonwarranty,
 etc.).  If it is non-@code{nil}, then the messages are not printed.
 
@@ -152,6 +199,9 @@ you are familiar with the contents of the startup message.  Do not set
 this variable in the init file of a new user, or in a way that affects
 more than one user, because that would prevent new users from receiving
 the information they are supposed to see.
+
+@code{inhibit-startup-message} is an alias for this variable, for
+back-compatibility.
 @end defopt
 
 @defopt inhibit-startup-echo-area-message
