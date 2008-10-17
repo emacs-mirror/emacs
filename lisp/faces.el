@@ -1556,7 +1556,14 @@ then the override spec."
 
 (defun face-spec-set-2 (face frame spec)
   "Set the face attributes of FACE on FRAME according to SPEC."
-  (apply 'set-face-attribute face frame (face-spec-choose spec frame)))
+  (let* ((spec (face-spec-choose spec frame))
+	 attrs)
+    (while spec
+      (when (assq (car spec) face-x-resources)
+	(push (car spec) attrs)
+	(push (cadr spec) attrs))
+      (setq spec (cddr spec)))
+    (apply 'set-face-attribute face frame (nreverse attrs))))
 
 (defun face-attr-match-p (face attrs &optional frame)
   "Return t if attributes of FACE match values in plist ATTRS.
