@@ -1330,9 +1330,72 @@ seconds since the epoch, to a time value and returns that.  To perform
 the inverse conversion, use @code{float-time}.
 @end defun
 
+@defun format-seconds format-string seconds
+This function converts its argument @var{seconds} into a string of
+years, days, hours, etc., according to @var{format-string}.  The
+argument @var{format-string} may contain @samp{%}-sequences which
+control the conversion.  Here is a table of what the
+@samp{%}-sequences mean:
+
+@table @samp
+@item %y
+@itemx %Y
+The number of full 365-day years.
+@item %d
+@itemx %D
+The number of full days.
+@item %h
+@itemx %H
+The number of full hours.
+@item %m
+@itemx %M
+The number of full minutes.
+@item %s
+@itemx %S
+The number of seconds.
+@item %z
+Non-printing control flag.  When it is used, other specifiers must be
+given in the order of decreasing size, i.e.@: years before days, hours
+before minutes, etc.  Nothing will be produced in the result string to
+the left of @samp{%z} until the first non-zero conversion is
+encountered.  For example, the default format used by
+@code{emacs-uptime} (@pxref{Processor Run Time, emacs-uptime})
+@w{@code{"%Y, %D, %H, %M, %z%S"}} means that the number of seconds
+will always be produced, but years, days, hours, and minutes will only
+be shown if they are non-zero.
+@item %%
+Produces a literal @samp{%}.
+@end table
+
+Upper-case format sequences produce the units in addition to the
+numbers, lower-case formats produce only the numbers.
+
+You can also specify the field width by following the @samp{%} with a
+number; shorter numbers will be padded with blanks.  An optional
+period before the width requests zero-padding instead.  For example,
+@code{"%.3Y"} might produce @code{"004 years"}.
+
+@emph{Warning:} This function works only with values of @var{seconds}
+that don't exceed @code{most-positive-fixnum} (@pxref{Integer Basics,
+most-positive-fixnum}).
+@end defun
+
 @node Processor Run Time
 @section Processor Run time
 @cindex processor run time
+@cindex Emacs process run time
+
+  Emacs provides several functions and primitives that return time,
+both elapsed and processor time, used by the Emacs process.
+
+@defun emacs-uptime &optional format
+This function returns a string representing the Emacs
+@dfn{uptime}---the elapsed wall-clock time this instance of Emacs is
+running.  The string is formatted according to the optional argument
+@var{format}.  For the available format descriptors, see @ref{Time
+Parsing, format-seconds}.  If @var{format} is nil or omitted, it
+defaults to @code{"%Y, %D, %H, %M, %z%S"}.
+@end defun
 
 @defun get-internal-run-time
 This function returns the processor run time used by Emacs as a list
@@ -1349,8 +1412,19 @@ $high*2^{16}+low$.
 The third element, @var{microsec}, gives the microseconds (or 0 for
 systems that return time with the resolution of only one second).
 
+Note that the time returned by this function excludes the time Emacs
+was not using the processor, and if the Emacs process has several
+threads, the returned value is the sum of the processor times used up
+by all Emacs threads.
+
 If the system doesn't provide a way to determine the processor run
-time, get-internal-run-time returns the same time as current-time.
+time, @code{get-internal-run-time} returns the same time as
+@code{current-time}.
+@end defun
+
+@defun emacs-init-time
+This function returns the duration of the Emacs initialization
+(@pxref{Startup Summary}) in seconds, as a string.
 @end defun
 
 @node Time Calculations
