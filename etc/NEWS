@@ -286,6 +286,12 @@ inside of --eval command line arguments in order to access
 following arguments.
 
 ** The abbrev file is no longer read at startup in batch mode.
+
+** Emacs now supports invocation by an X session manager.
+It can save a session and restore it later.  See the documentation of
+the functions `emacs-session-save' and `emacs-session-restore'.
+(Actually, this feature was introduced with Emacs 22, but it was not
+documented.)
 
 * Incompatible Editing Changes in Emacs 23.1
 
@@ -1195,6 +1201,7 @@ reset transient-mark-mode to the value OLDVAL.  The values `only' and
 
 ** Emacs session information
 
++++
 *** The new variables `before-init-time' and `after-init-time' record the
 value of `current-time' before and after Emacs loads the init files.
 
