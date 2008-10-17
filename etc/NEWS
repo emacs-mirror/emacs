@@ -1212,8 +1212,10 @@ reset transient-mark-mode to the value OLDVAL.  The values `only' and
 *** The new variables `before-init-time' and `after-init-time' record the
 value of `current-time' before and after Emacs loads the init files.
 
++++
 *** The new function `emacs-uptime' returns the uptime of an Emacs instance.
 
++++
 *** The new function `emacs-init-time' returns the duration of the
 Emacs initialization.
 
@@ -1550,6 +1552,7 @@ times the default column width.
 
 ** Miscellaneous new functions
 
++++
 *** `format-seconds' converts a number of seconds into a readable
 string of days, hours, etc.
 
