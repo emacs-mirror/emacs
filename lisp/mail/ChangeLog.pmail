@@ -1,3 +1,17 @@
+2008-10-17  Paul Reilly  <pmr@pajato.com>
+
+	* pmail.el (pmail):
+	Remove a redundant message counter reset call; try to
+	minimize the attempts to show a message (ideally it should be done
+	once and only once).
+
+	(pmail-convert-babyl-to-mbox): Set up the global message variables
+	after inserting the converted mbox file into the Pmail buffer; avoid
+	an unecessary message display function call.
+
+	(pmail-show-message-maybe): Use the current message number when the
+	optional argument is not passed.
+
 2008-10-14  Paul Reilly  <pmr@pajato.com>
 
 	* pmail.el (pmail): Check for babyl conversion early; ignore multibyte.
