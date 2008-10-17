@@ -1,3 +1,8 @@
+2008-10-17  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_otf_features): Fix indexing
+	gsub_gpos->FeatureList.Feature.  Check the validity of indices.
+
 2008-10-16  Magnus Henoch  <mange@freemail.hu>
 
 	* dbusbind.c (Fdbus_call_method): Unbreak usage line.
