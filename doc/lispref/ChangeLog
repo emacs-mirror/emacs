@@ -5,6 +5,8 @@
 	`window-system-initialization-alist'.  Document reading the
 	abbrevs file.  Document the call to `server-start' under --daemon.
 	Rearrange a bit to be consistent with the code flow.
+	(Processor Run Time): Document `emacs-uptime' and `emacs-init-time'.
+	(Time Parsing): Document `format-seconds'.
 
 2008-10-17  Martin Rudalics  <rudalics@gmx.at>
 
