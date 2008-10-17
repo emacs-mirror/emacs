@@ -530,8 +530,9 @@ EXPANSION should usually be a string.
 To undefine an abbrev, define it with EXPANSION = nil.
 If HOOK is non-nil, it should be a function of no arguments;
 it is called after EXPANSION is inserted.
-If EXPANSION is not a string, the abbrev is a special one,
- which does not expand in the usual way but only runs HOOK.
+If EXPANSION is not a string (and not nil), the abbrev is a
+ special one, which does not expand in the usual way but only
+ runs HOOK.
 
 PROPS is a property list.  The following properties are special:
 - `:count': the value for the abbrev's usage-count, which is incremented each
