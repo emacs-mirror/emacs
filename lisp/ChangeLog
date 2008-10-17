@@ -1,3 +1,8 @@
+2008-10-17  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-defun-name): Make it work for "struct
+	foo bar [] = { ...".
+
 2008-10-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (face-spec-set-2): Don't pass invalid attributes to
