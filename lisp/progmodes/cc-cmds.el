@@ -1704,17 +1704,16 @@ with a brace block."
 
 	;; Pick out the defun name, according to the type of defun.
 	(cond
+	  ;; struct, union, enum, or similar:
 	 ((and (looking-at c-type-prefix-key)
 	       (progn (c-forward-token-2 2) ; over "struct foo "
-		      (eq (char-after) ?\{)))
-	  ;; struct, union, enum, or similar:
-	  (c-backward-syntactic-ws)
-	  (setq name-end (point))
-	  (buffer-substring-no-properties
-	   (progn
-	     (c-backward-token-2 2)
-	     (point))
-	   name-end))
+		      (or (eq (char-after) ?\{)
+			  (looking-at c-symbol-key)))) ; "struct foo bar ..."
+	  (save-match-data (c-forward-token-2))
+	  (when (eq (char-after) ?\{)
+	    (c-backward-token-2)
+	    (looking-at c-symbol-key))
+	  (match-string-no-properties 0))
 
 	 ((looking-at "DEFUN\\_>")
 	  ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
