@@ -855,28 +855,28 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
 	 ;; who have find-file-visit-truename set to t.
 	 (existed (find-buffer-visiting file-name))
 	 run-mail-hook msg-shown)
-    ;; Like find-file, but in the case where a buffer existed
-    ;; and the file was reverted, recompute the message-data.
-    ;; We used to bind enable-local-variables to nil here,
-    ;; but that should not be needed now that pmail-mode
-    ;; sets it locally to nil.
-    ;; (Binding a variable locally with let is not safe if it has
-    ;; buffer-local bindings.)
+    ;; Determine if an existing mail file has been changed behind the
+    ;; scene...
     (if (and existed (not (verify-visited-file-modtime existed)))
+	;; The mail file has been changed.  Revisit it and reset the
+	;; message state variables when in pmail mode.
 	(progn
 	  (find-file file-name)
 	  (when (and (verify-visited-file-modtime existed)
 		     (eq major-mode 'pmail-mode))
-	    (pmail-forget-messages)
 	    (pmail-set-message-counters)))
+      ;; The mail file is either unchanged or not visited.  Visit it.
       (switch-to-buffer
        (let ((enable-local-variables nil))
 	 (find-file-noselect file-name))))
+    ;; Insure that the collection and view buffers are in sync and
+    ;; insure that a message is not being edited.
     (setq pmail-buffers-swapped-p nil)
     (if (eq major-mode 'pmail-edit-mode)
 	(error "Exit Pmail Edit mode before getting new mail"))
     ;; Insure that the Rmail file is in mbox format, the buffer is in
-    ;; Pmail mode and has been scanned to find all the messages.
+    ;; Pmail mode and has been scanned to find all the messages
+    ;; (setting the global message variables in the process).
     (pmail-convert-file-maybe)
     (unless (eq major-mode 'pmail-mode)
       (pmail-mode-2))
@@ -884,9 +884,11 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
     (pmail-maybe-set-message-counters)
     ;; Show the first unread message and process summary mode.
     (unwind-protect
-	(unless (and (not file-name-arg) (pmail-get-new-mail))
-	  (pmail-show-message-maybe (pmail-first-unseen-message)))
+	;; Only get new mail when there is not a file name argument.
+	(unless file-name-arg
+	  (pmail-get-new-mail))
       (progn
+	(pmail-show-message-maybe (pmail-first-unseen-message))
 	(if pmail-display-summary (pmail-summary))
 	(pmail-construct-io-menu)
 	(if run-mail-hook
@@ -951,7 +953,9 @@ MSGNUM, if present, indicates the malformed message."
 	  (message "Replacing BABYL format with mbox format...")
 	  (let ((inhibit-read-only t))
 	    (erase-buffer)
-	    (insert-file-contents-literally new-file))
+	    (insert-file-contents-literally new-file)
+	    (goto-char (point-max))
+	    (pmail-set-message-counters))
 	  (message "Replacing BABYL format with mbox format...done"))
       (delete-file old-file)
       (delete-file new-file))))
@@ -1670,7 +1674,7 @@ new messages are found, nil otherwise."
     (save-restriction
       (let ((new-messages 0)
 	    (spam-filter-p (and (featurep 'pmail-spam-filter) pmail-use-spam-filter))
-	    blurb success suffix)
+	    blurb result success suffix)
 	(narrow-to-region (point) (point))
 	;; Read in the contents of the inbox files, renaming them as
 	;; necessary, and adding to the list of files to delete
@@ -1729,11 +1733,13 @@ new messages are found, nil otherwise."
 	  (if rsf-beep (beep t))
 	  (sleep-for rsf-sleep-after-message))
     
-	;; Move to the first new message
-	;; unless we have other unseen messages before it.
-	(pmail-show-message-maybe (pmail-first-unseen-message))
+	;; Establish the return value and move to the first new
+	;; message unless we have other unseen messages before it.
+	(setq result (> new-messages 0))
+	(when result
+	  (pmail-show-message-maybe (pmail-first-unseen-message)))
 	(run-hooks 'pmail-after-get-new-mail-hook)
-	(> new-messages 0)))))
+	result))))
 
 (defun pmail-get-new-mail-filter-spam (new-message-count)
   "Process new messages for spam."
@@ -2838,13 +2844,14 @@ If summary buffer is currently displayed, update current message there also."
   (pmail-swap-buffers-maybe)
   (pmail-maybe-set-message-counters)
   (widen)
-  (let (blurb)
+  (let ((msgnum (or n pmail-current-message))
+	blurb)
     (if (zerop pmail-total-messages)
 	(save-excursion
 	  (with-current-buffer pmail-view-buffer
 	    (erase-buffer)
 	    (setq blurb "No mail.")))
-      (setq blurb (pmail-show-message n))
+      (setq blurb (pmail-show-message msgnum))
       (when mail-mailing-lists
 	(pmail-unknown-mail-followup-to))
       (if transient-mark-mode (deactivate-mark))
