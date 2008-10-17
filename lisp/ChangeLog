@@ -1,3 +1,11 @@
+2008-10-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-fns.el (w32-list-locales): Decode output of `w32-get-locale-info'
+	according to `locale-coding-system'.  (This fixes trivial bug reported
+	as part of bug#1179).
+	Sort list of valid locale ids (EnumSystemLocales does not guarantee any
+	particular order).  Use `when'.
+
 2008-10-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32-fns.el (w32-check-shell-configuration): Doc fix.

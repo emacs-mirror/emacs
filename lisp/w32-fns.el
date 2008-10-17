@@ -217,18 +217,19 @@ You should set this to t when using a non-system shell.\n\n"))))
 (defun w32-list-locales ()
   "List the name and id of all locales supported by Windows."
   (interactive)
-  (if (null w32-valid-locales)
-      (setq w32-valid-locales (w32-get-valid-locale-ids)))
+  (when (null w32-valid-locales)
+    (setq w32-valid-locales (sort (w32-get-valid-locale-ids) #'<)))
   (switch-to-buffer-other-window (get-buffer-create "*Supported Locales*"))
   (erase-buffer)
   (insert "LCID\tAbbrev\tFull name\n\n")
-  (insert (mapconcat
-	   '(lambda (x)
-	      (format "%d\t%s\t%s"
-		      x
-		      (w32-get-locale-info x)
-		      (w32-get-locale-info x t)))
-	   w32-valid-locales "\n"))
+  (insert (decode-coding-string (mapconcat
+				 (lambda (x)
+				   (format "%d\t%s\t%s"
+					   x
+					   (w32-get-locale-info x)
+					   (w32-get-locale-info x t)))
+				 w32-valid-locales "\n")
+				locale-coding-system))
   (insert "\n")
   (goto-char (point-min)))
 
