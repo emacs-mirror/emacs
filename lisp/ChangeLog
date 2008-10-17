@@ -1,3 +1,8 @@
+2008-10-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (face-spec-set-2): Don't pass invalid attributes to
+	set-face-attribute.
+
 2008-10-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32-fns.el (w32-list-locales): Decode output of `w32-get-locale-info'
