@@ -3732,18 +3732,17 @@ make_dummy_parent (window)
 DEFUN ("split-window", Fsplit_window, Ssplit_window, 0, 3, "",
        doc: /* Split WINDOW, putting SIZE lines in the first of the pair.
 WINDOW defaults to selected one and SIZE to half its size.
-If optional third arg HORFLAG is non-nil, split side by side
-and put SIZE columns in the first of the pair.  In that case,
-SIZE includes that window's scroll bar, or the divider column to its right.
+If optional third arg HORIZONTAL is non-nil, split side by side and put
+SIZE columns in the first of the pair.  In that case, SIZE includes that
+window's scroll bar, or the divider column to its right.
 Interactively, all arguments are nil.
-
 Returns the newly created window (which is the lower or rightmost one).
 The upper or leftmost window is the original one, and remains selected
 if it was selected before.
 
-See Info node `(elisp)Splitting Windows' for more details and examples.*/)
-     (window, size, horflag)
-     Lisp_Object window, size, horflag;
+See Info node `(elisp)Splitting Windows' for more details and examples.  */)
+     (window, size, horizontal)
+     Lisp_Object window, size, horizontal;
 {
   register Lisp_Object new;
   register struct window *o, *p;
@@ -3760,7 +3759,7 @@ See Info node `(elisp)Splitting Windows' for more details and examples.*/)
 
   if (NILP (size))
     {
-      if (!NILP (horflag))
+      if (!NILP (horizontal))
 	/* Calculate the size of the left-hand window, by dividing
 	   the usable space in columns by two.
 	   We round up, since the left-hand window may include
@@ -3777,10 +3776,10 @@ See Info node `(elisp)Splitting Windows' for more details and examples.*/)
 
   if (MINI_WINDOW_P (o))
     error ("Attempt to split minibuffer window");
-  else if (window_fixed_size_p (o, !NILP (horflag), 0))
+  else if (window_fixed_size_p (o, !NILP (horizontal), 0))
     error ("Attempt to split fixed-size window");
 
-  if (NILP (horflag))
+  if (NILP (horizontal))
     {
       int window_safe_height = window_min_size_2 (o, 0, 0);
 
@@ -3847,7 +3846,7 @@ See Info node `(elisp)Splitting Windows' for more details and examples.*/)
 
   /* Apportion the available frame space among the two new windows */
 
-  if (!NILP (horflag))
+  if (!NILP (horizontal))
     {
       p->total_lines = o->total_lines;
       p->top_line = o->top_line;
