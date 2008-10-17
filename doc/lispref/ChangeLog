@@ -1,3 +1,11 @@
+2008-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* os.texi (Startup Summary): Document `before-init-time' and
+	`after-init-time'.  Document `initial-window-system' and
+	`window-system-initialization-alist'.  Document reading the
+	abbrevs file.  Document the call to `server-start' under --daemon.
+	Rearrange a bit to be consistent with the code flow.
+
 2008-10-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Basic Windows, Splitting Windows): Fix whitespace
