@@ -1,5 +1,9 @@
 2008-10-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* files.texi (Changing Files): Document symbolic input of file
+	modes to `set-file-modes'.  Document `read-file-modes' and
+	`file-modes-symbolic-to-number'.
+
 	* maps.texi (Standard Keymaps): Document `multi-query-replace-map'
 	and `search-map'.
 
