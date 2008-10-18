@@ -1541,7 +1541,7 @@ number.  If it is a complete symbolic specification of mode bits, as
 in @code{"u=rwx"}, the function converts it to the equivalent numeric
 value using @code{file-modes-symbolic-to-number} and returns the
 result.  If the specification is relative, as in @code{"o+g"}, then
-the permissions on which the specification is based is taken from the
+the permissions on which the specification is based are taken from the
 mode bits of @var{base-file}.  If @var{base-file} is omitted or
 @code{nil}, the function uses @code{0} as the base mode bits.  The
 complete and relative specifications can be combined, as in
