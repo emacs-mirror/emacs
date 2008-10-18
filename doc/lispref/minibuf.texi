@@ -203,24 +203,22 @@ This function works by calling the
 @end smallexample
 @end defun
 
-@defun read-regexp prompt &optional default
+@defun read-regexp prompt &optional default-value
 This function reads a regular expression as a string from the
 minibuffer and returns it.  The argument @var{prompt} is used as in
 @code{read-from-minibuffer}.  The keymap used is
 @code{minibuffer-local-map}, and @code{regexp-history} is used as the
 history list (@pxref{Minibuffer History, regexp-history}).
 
-The optional argument @var{default}, if non-@code{nil}, specifies a
-default value to return if the user enters null input.  As
-in @code{read-from-minibuffer} it should be a string, a list of
-strings, or @code{nil} which is equivalent to an empty string.  When
-@var{default} is a string, that string is the default value.  When it
-is a list of strings, the first string is the default value.  To this
-default @code{read-regexp} adds a few other useful candidates, and
-passes them to @code{read-from-minibuffer} to make them available to
-the user as the ``future minibuffer history list'' (@pxref{Minibuffer
-History, future list,, emacs, The GNU Emacs Manual}).  These
-candidates are:
+The optional argument @var{default-value} specifies a default value to
+return if the user enters null input; it should be a string, or
+@code{nil} which is equivalent to an empty string.
+
+In addition, @code{read-regexp} collects a few useful candidates for
+input and passes them to @code{read-from-minibuffer}, to make them
+available to the user as the ``future minibuffer history list''
+(@pxref{Minibuffer History, future list,, emacs, The GNU Emacs
+Manual}).  These candidates are:
 
 @itemize @minus
 @item
