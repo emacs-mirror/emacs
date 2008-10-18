@@ -1487,12 +1487,20 @@ levels of parent directories.
 See also @code{delete-directory} in @ref{Create/Delete Dirs}.
 @end deffn
 
-@defun set-file-modes filename mode
+@deffn Command set-file-modes filename mode
 This function sets mode bits of @var{filename} to @var{mode} (which
-must be an integer).  Only the low 12 bits of @var{mode} are used.
+must be an integer when the function is called non-interactively).
+Only the low 12 bits of @var{mode} are used.
+
+Interactively, @var{mode} is read from the minibuffer using
+@code{read-file-modes}, which accepts mode bits either as a number or
+as a character string representing the mode bits symbolically.  See
+the description of @code{read-file-modes} below for the supported
+forms of symbolic notation for mode bits.
+
 This function recursively follows symbolic links at all levels for
 @var{filename}.
-@end defun
+@end deffn
 
 @c Emacs 19 feature
 @defun set-default-file-modes mode
@@ -1520,6 +1528,35 @@ the default file protection has no effect.
 @defun default-file-modes
 This function returns the current default protection value.
 @end defun
+
+@defun read-file-modes &optional prompt base-file
+This function reads file mode bits from the minibuffer.  The optional
+argument @var{prompt} specifies a non-default prompt.  Second optional
+argument @var{base-file} is the name of a file on whose permissions to
+base the mode bits that this function returns, if what the user types
+specifies mode bits relative to permissions of an existing file.
+
+If user input represents an octal number, this function returns that
+number.  If it is a complete symbolic specification of mode bits, as
+in @code{"u=rwx"}, the function converts it to the equivalent numeric
+value using @code{file-modes-symbolic-to-number} and returns the
+result.  If the specification is relative, as in @code{"o+g"}, then
+the permissions on which the specification is based is taken from the
+mode bits of @var{base-file}.  If @var{base-file} is omitted or
+@code{nil}, the function uses @code{0} as the base mode bits.  The
+complete and relative specifications can be combined, as in
+@code{"u+r,g+rx,o+r,g-w"}.  @xref{File Permissions,,, coreutils, The
+@sc{gnu} @code{Coreutils} Manual}, for detailed description of
+symbolic mode bits specifications.
+@end defun
+
+@deffn Subroutine file-modes-symbolic-to-number modes &optional base-modes
+This subroutine converts a symbolic specification of file mode bits in
+@var{modes} into the equivalent numeric value.  If the symbolic
+specification is based on an existing file, that file's mode bits are
+taken from the optional argument @var{base-modes}; if that argument is
+omitted or nil, it defaults to zero, i.e.@: no access rights at all.
+@end deffn
 
 @defun set-file-times filename &optional time
 This function sets the access and modification times of @var{filename}
