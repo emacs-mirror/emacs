@@ -5694,8 +5694,11 @@ only these files will be asked to be saved."
 ;; Symbolic modes and read-file-modes.
 
 (defun file-modes-char-to-who (char)
-  "Convert CHAR to a who-mask from a symbolic mode notation.
-CHAR is in [ugoa] and represents the users on which rights are applied."
+  "Convert CHAR to a numeric bit-mask for extracting mode bits.
+CHAR is in [ugoa] and represents the category of users (Owner, Group,
+Others, or All) for whom to produce the mask.
+The bit-mask that is returned extracts from mode bits the access rights
+for the specified category of users."
   (cond ((= char ?u) #o4700)
 	((= char ?g) #o2070)
 	((= char ?o) #o1007)
@@ -5703,9 +5706,9 @@ CHAR is in [ugoa] and represents the users on which rights are applied."
 	(t (error "%c: bad `who' character" char))))
 
 (defun file-modes-char-to-right (char &optional from)
-  "Convert CHAR to a right-mask from a symbolic mode notation.
-CHAR is in [rwxXstugo] and represents a right.
-If CHAR is in [Xugo], the value is extracted from FROM (or 0 if nil)."
+  "Convert CHAR to a numeric value of mode bits.
+CHAR is in [rwxXstugo] and represents symbolic access permissions.
+If CHAR is in [Xugo], the value is taken from FROM (or 0 if omitted)."
   (or from (setq from 0))
   (cond ((= char ?r) #o0444)
 	((= char ?w) #o0222)
@@ -5723,10 +5726,13 @@ If CHAR is in [Xugo], the value is extracted from FROM (or 0 if nil)."
 	(t (error "%c: bad right character" char))))
 
 (defun file-modes-rights-to-number (rights who-mask &optional from)
-  "Convert a right string to a right-mask from a symbolic modes notation.
-RIGHTS is the right string, it should match \"([+=-][rwxXstugo]+)+\".
-WHO-MASK is the mask number of the users on which the rights are to be applied.
-FROM (or 0 if nil) is the orginal modes of the file to be chmod'ed."
+  "Convert a symbolic mode string specification to an equivalent number.
+RIGHTS is the symbolic mode spec, it should match \"([+=-][rwxXstugo]+)+\".
+WHO-MASK is the bit-mask specifying the category of users to which to
+apply the access permissions.  See `file-modes-char-to-who'.
+FROM (or 0 if nil) gives the mode bits on which to base permissions if
+RIGHTS request to add, remove, or set permissions based on existing ones,
+as in \"og+rX-w\"."
   (let* ((num-rights (or from 0))
 	 (list-rights (string-to-list rights))
 	 (op (pop list-rights)))
@@ -5752,7 +5758,9 @@ MODES is the string to convert, it should match
 \"[ugoa]*([+-=][rwxXstugo]+)+,...\".
 See (info \"(coreutils)File permissions\") for more information on this
 notation.
-FROM (or 0 if nil) is the orginal modes of the file to be chmod'ed."
+FROM (or 0 if nil) gives the mode bits on which to base permissions if
+MODES request to add, remove, or set permissions based on existing ones,
+as in \"og+rX-w\"."
   (save-match-data
     (let ((case-fold-search nil)
 	  (num-modes (or from 0)))
@@ -5771,9 +5779,11 @@ FROM (or 0 if nil) is the orginal modes of the file to be chmod'ed."
       num-modes)))
 
 (defun read-file-modes (&optional prompt orig-file)
-  "Read file modes in octal or symbolic notation.
+  "Read file modes in octal or symbolic notation and return its numeric value.
 PROMPT is used as the prompt, default to `File modes (octal or symbolic): '.
-ORIG-FILE is the original file of which modes will be changed."
+ORIG-FILE is the name of a file on whose mode bits to base returned
+permissions if what user types requests to add, remove, or set permissions
+based on existing mode bits, as in \"og+rX-w\"."
   (let* ((modes (or (if orig-file (file-modes orig-file) 0)
 		    (error "File not found")))
 	 (modestr (and (stringp orig-file)
@@ -5795,8 +5805,8 @@ ORIG-FILE is the original file of which modes will be changed."
 	(file-modes-symbolic-to-number value modes)))))
 
 
-;; Trash can handling.
-(defcustom trash-directory "~/.Trash"
+;; Trashcan handling.
+(defcustom trash-directory (convert-standard-filename "~/.Trash")
   "Directory for `move-file-to-trash' to move files and directories to.
 This directory is only used when the function `system-move-file-to-trash' is
 not defined.  Relative paths are interpreted relative to `default-directory'.
