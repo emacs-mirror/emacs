@@ -1,5 +1,12 @@
 2008-10-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* minibuf.texi (Text from Minibuffer): Document `read-regexp'.
+	(Completion Commands, Reading File Names): Rename
+	`minibuffer-local-must-match-filename-map' to
+	`minibuffer-local-filename-must-match-map'.
+	(Minibuffer Completion): The `require-match' argument to
+	`completing-read' can now have the value `confirm-only'.
+
 	* windows.texi (Displaying Buffers): Minor wording fix.
 	(Choosing Window): `split-height-threshold' can now be nil.
 	Document `split-width-threshold'.  `pop-up-frames' can have the
