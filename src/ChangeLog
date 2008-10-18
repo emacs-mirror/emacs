@@ -1,3 +1,14 @@
+2008-10-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_width, Fset_window_start)
+	(Fwindow_parameters, Fwindow_parameter, Fset_window_parameter)
+	(Fdelete_windows_on, Freplace_buffer_in_windows): Make
+	doc-strings follow code and Elisp manual more closely.
+	(Fwindow_dedicated_p): Make window argument optional.
+	(Fset_window_dedicated_p): Rename argument "arg" to "flag".
+	(Fset_window_buffer): Respect any non-nil dedicated value for
+	window.  Rename "buffer" argument to "buffer_or_name".
+
 2008-10-18  Ulrich Mueller  <ulm@gentoo.org>
 
 	* m/sh3.h: New file, machine description for SuperH.
