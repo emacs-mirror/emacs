@@ -1272,13 +1272,18 @@ completion-all-completions-with-base-size.
 *** New function `match-substitute-replacement' returns the result of
 `replace-match' without actually using it in the buffer.
 
++++
 *** The new variable `replace-search-function' determines the function
-to use for searching in query-replace and replace-string.
+to use for searching in query-replace and replace-string.  The
+function it specifies is called by `perform-replace' when its 4th
+argument is nil.
 
++++
 *** The new variable `replace-re-search-function' determines the
 function to use for searching in `query-replace-regexp',
 `replace-regexp', `query-replace-regexp-eval', and
-`map-query-replace-regexp'.
+`map-query-replace-regexp'.  The function it specifies is called by
+`perform-replace' when its 4th argument is non-nil.
 
 *** New keymap `search-map' bound to `M-s' provides global bindings
 for search related commands.
