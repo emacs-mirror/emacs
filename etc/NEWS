@@ -501,6 +501,10 @@ matches a regexp.
 *** The new commands `pp-macroexpand-expression' and
 `pp-macroexpand-last-sexp' pretty-print macro expansions.
 
+*** The new command `set-file-modes' allows to set file's mode bits.
+The mode bits can be specified in symbolic notation, like with GNU
+Coreutils, in addition to an octal number.
+
 
 * New Modes and Packages in Emacs 23.1
 
@@ -1305,6 +1309,7 @@ unless it ends in whitespace.
 
 ** File handling changes
 
++++
 *** set-file-modes is now interactive and can take the mode value in
 symbolic notation thanks to auxiliary functions.
 
