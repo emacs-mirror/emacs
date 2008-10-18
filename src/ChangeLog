@@ -1,3 +1,7 @@
+2008-10-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fset_file_modes): Doc fix.
+
 2008-10-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fwindow_width, Fset_window_start)
