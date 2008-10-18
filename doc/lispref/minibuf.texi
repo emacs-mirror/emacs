@@ -101,9 +101,11 @@ was supplied when Emacs was started.
 
   Most often, the minibuffer is used to read text as a string.  It can
 also be used to read a Lisp object in textual form.  The most basic
-primitive for minibuffer input is @code{read-from-minibuffer}; it can do
-either one.  There are also specialized commands for reading
-commands, variables, file names, etc. (@pxref{Completion}).
+primitive for minibuffer input is @code{read-from-minibuffer}; it can
+do either one.  Regular expressions (@pxref{Regular Expressions}) are
+a special kind of strings; use @code{read-regexp} for their minibuffer
+input.  There are also specialized commands for reading commands,
+variables, file names, etc.@: (@pxref{Completion}).
 
   In most cases, you should not call minibuffer input functions in the
 middle of a Lisp function.  Instead, do all minibuffer input as part of
@@ -199,6 +201,40 @@ This function works by calling the
     value))
 @end group
 @end smallexample
+@end defun
+
+@defun read-regexp prompt &optional default
+This function reads a regular expression as a string from the
+minibuffer and returns it.  The argument @var{prompt} is used as in
+@code{read-from-minibuffer}.  The keymap used is
+@code{minibuffer-local-map}, and @code{regexp-history} is used as the
+history list (@pxref{Minibuffer History, regexp-history}).
+
+The optional argument @var{default}, if non-@code{nil}, specifies a
+default value to return if the user enters null input.  As
+in @code{read-from-minibuffer} it should be a string, a list of
+strings, or @code{nil} which is equivalent to an empty string.  When
+@var{default} is a string, that string is the default value.  When it
+is a list of strings, the first string is the default value.  To this
+default @code{read-regexp} adds a few other useful candidates, and
+passes them to @code{read-from-minibuffer} to make them available to
+the user as the ``future minibuffer history list'' (@pxref{Minibuffer
+History, future list,, emacs, The GNU Emacs Manual}).  These
+candidates are:
+
+@itemize @minus
+@item
+The Word or symbol at point.
+@item
+The last regexp used in an incremental search.
+@item
+The last string used in an incremental search.
+@item
+The last string or pattern used in query-replace commands.
+@end itemize
+
+This function works by calling the @code{read-from-minibuffer}
+function, after computing the list of defaults as described above.
 @end defun
 
 @defvar minibuffer-allow-text-properties
@@ -839,9 +875,12 @@ of test-completion}.
 If @var{require-match} is @code{nil}, the exit commands work regardless
 of the input in the minibuffer.  If @var{require-match} is @code{t}, the
 usual minibuffer exit commands won't exit unless the input completes to
-an element of @var{collection}.  If @var{require-match} is neither
-@code{nil} nor @code{t}, then the exit commands won't exit unless the
-input already in the buffer matches an element of @var{collection}.
+an element of @var{collection}.  If @var{require-match} is
+@code{confirm-only}, the user can exit with any input, but she will
+asked for a confirmation if the input is not an element of
+@var{collection}.  Any other value of @var{require-match} behaves like
+@code{t}, except that the exit commands won't exit if it does non-null
+completion.
 
 However, empty input is always permitted, regardless of the value of
 @var{require-match}; in that case, @code{completing-read} returns the
@@ -1058,7 +1097,7 @@ except that it does not bind @key{SPC}.  This keymap is used by the
 function @code{read-file-name}.
 @end defvar
 
-@defvar minibuffer-local-must-match-filename-map
+@defvar minibuffer-local-filename-must-match-map
 This is like @code{minibuffer-local-must-match-map}
 except that it does not bind @key{SPC}.  This keymap is used by the
 function @code{read-file-name}.
@@ -1257,7 +1296,7 @@ acceptable.
 @code{read-file-name} uses
 @code{minibuffer-local-filename-completion-map} as the keymap if
 @var{existing} is @code{nil}, and uses
-@code{minibuffer-local-must-match-filename-map} if @var{existing} is
+@code{minibuffer-local-filename-must-match-map} if @var{existing} is
 non-@code{nil}.  @xref{Completion Commands}.
 
 The argument @var{directory} specifies the directory to use for
