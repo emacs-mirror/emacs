@@ -2843,7 +2843,10 @@ DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2,
        "(let ((file (read-file-name \"File: \")))			\
 	  (list file (read-file-modes nil file)))",
        doc: /* Set mode bits of file named FILENAME to MODE (an integer).
-Only the 12 low bits of MODE are used.  */)
+Only the 12 low bits of MODE are used.
+
+Interactively, mode bits are read by `read-file-modes', which accepts
+symbolic notation, like GNU Coreutils do.  */)
   (filename, mode)
      Lisp_Object filename, mode;
 {
