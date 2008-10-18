@@ -877,7 +877,7 @@ of the input in the minibuffer.  If @var{require-match} is @code{t}, the
 usual minibuffer exit commands won't exit unless the input completes to
 an element of @var{collection}.  If @var{require-match} is
 @code{confirm-only}, the user can exit with any input, but she will
-asked for a confirmation if the input is not an element of
+be asked for a confirmation if the input is not an element of
 @var{collection}.  Any other value of @var{require-match} behaves like
 @code{t}, except that the exit commands won't exit if it does non-null
 completion.
