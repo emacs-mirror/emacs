@@ -951,15 +951,19 @@ Precisely how @code{display-buffer} finds or creates a window depends on
 the variables described below.
 @end deffn
 
-@defun split-window-preferred-function window
+@defvar split-window-preferred-function
 This variable specifies how to split a window.  Its value, if
 non-@code{nil}, should be a function of one argument, which is a
 window.  If this variable specifies a function, @code{display-buffer}
 will call it with one or more candidate windows when it looks for a
-window to split.  If the argument @var{window} fits, the function is
+window to split.  If the argument window fits, the function is
 expected to split it and return a new window.  If the function returns
-@code{nil}, then @var{window} will not be split.
-@end defun
+@code{nil}, then this window will not be split.
+
+If the value of this variable is @code{nil}, @code{display-buffer}
+uses the other variables described below to decide whether and which
+window to split.
+@end defvar
 
 @defopt display-buffer-reuse-frames
 If this variable is non-@code{nil}, @code{display-buffer} searches
