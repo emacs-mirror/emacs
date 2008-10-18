@@ -1,7 +1,11 @@
 2008-10-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* maps.texi (Standard Keymaps): Document `multi-query-replace-map'
+	and `search-map'.
+
 	* searching.texi (Search and Replace): Document
 	`replace-search-function' and `replace-re-search-function'.
+	Document `multi-query-replace-map'.
 
 	* minibuf.texi (Text from Minibuffer): Document `read-regexp'.
 	(Completion Commands, Reading File Names): Rename
