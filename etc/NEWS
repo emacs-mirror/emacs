@@ -1221,16 +1221,21 @@ Emacs initialization.
 
 ** Changes affecting display-buffer
 
++++
 *** New value nil for split-height-threshold inhibits vertical splitting
 unless there's no other window.
 
++++
 *** New option split-width-threshold controls horizontal splitting.
 
++++
 *** A window can be split horizontally even when it's not full-width.
 
++++
 *** New option split-window-preferred-function can be set to a function
 to override the default splitting mechanism of display-buffer.
 
++++
 *** If pop-up-frames has the value `graphic-only', display-buffer only
 makes a separate frame on graphic displays.
 
