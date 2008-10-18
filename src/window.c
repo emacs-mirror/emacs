@@ -515,9 +515,11 @@ WINDOW defaults to the selected window.  */)
 
 DEFUN ("window-width", Fwindow_width, Swindow_width, 0, 1, 0,
        doc: /* Return the number of display columns in WINDOW.
-This is the width that is usable columns available for text in WINDOW.
-If you want to find out how many columns WINDOW takes up,
-use  (let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))).  */)
+WINDOW defaults to the selected window.
+
+Note: The return value is the number of columns available for text in
+WINDOW.  If you want to find out how many columns WINDOW takes up, use
+(let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))).  */)
      (window)
      Lisp_Object window;
 {
@@ -1234,9 +1236,9 @@ Return POS.  */)
 
 DEFUN ("set-window-start", Fset_window_start, Sset_window_start, 2, 3, 0,
        doc: /* Make display in WINDOW start at position POS in WINDOW's buffer.
-Return POS.
-Optional third arg NOFORCE non-nil inhibits next redisplay
-from overriding motion of point in order to display at this exact start.  */)
+WINDOW defaults to the selected window.  Return POS.
+Optional third arg NOFORCE non-nil inhibits next redisplay from
+overriding motion of point in order to display at this exact start.  */)
      (window, pos, noforce)
      Lisp_Object window, pos, noforce;
 {
@@ -1257,10 +1259,17 @@ from overriding motion of point in order to display at this exact start.  */)
   return pos;
 }
 
+
 DEFUN ("window-dedicated-p", Fwindow_dedicated_p, Swindow_dedicated_p,
-       1, 1, 0,
-       doc: /* Return WINDOW's dedicated object, usually t or nil.
-See also `set-window-dedicated-p'.  */)
+       0, 1, 0,
+       doc: /* Return non-nil when WINDOW is dedicated to its buffer.
+WINDOW defaults to the selected window.
+
+When a window is dedicated to its buffer, `display-buffer' and
+`set-window-buffer' will refrain from displaying another buffer in it.
+`get-lru-window' and `get-largest-window' treat dedicated windows
+specially.  `delete-windows-on' and `replace-buffer-in-windows'
+sometimes delete a dedicated window and the containing frame.  */)
      (window)
      Lisp_Object window;
 {
@@ -1269,26 +1278,31 @@ See also `set-window-dedicated-p'.  */)
 
 DEFUN ("set-window-dedicated-p", Fset_window_dedicated_p,
        Sset_window_dedicated_p, 2, 2, 0,
-       doc: /* Control whether WINDOW is dedicated to the buffer it displays.
-If it is dedicated, Emacs will not automatically change
-which buffer appears in it.
-The second argument is the new value for the dedication flag;
-non-nil means yes.  */)
-     (window, arg)
-     Lisp_Object window, arg;
+       doc: /* Mark WINDOW as dedicated according to FLAG.
+WINDOW defaults to the selected window.  FLAG non-nil means mark WINDOW
+as dedicated to its buffer.  FLAG nil means mark WINDOW as nondedicated.
+Return FLAG.
+
+When a window is dedicated to its buffer, `display-buffer' and
+`set-window-buffer' will refrain from displaying another buffer in it.
+`get-lru-window' and `get-largest-window' treat dedicated windows
+specially.  `delete-windows-on' and `replace-buffer-in-windows'
+sometimes delete a dedicated window and the containing frame.  */)
+     (window, flag)
+     Lisp_Object window, flag;
 {
   register struct window *w = decode_window (window);
 
-  w->dedicated = arg;
-
+  w->dedicated = flag;
   return w->dedicated;
 }
 
+
 DEFUN ("window-parameters", Fwindow_parameters, Swindow_parameters,
        0, 1, 0,
-       doc: /* Return the parameters-alist of window WINDOW.
-It is a list of elements of the form (PARAMETER . VALUE).
-If WINDOW is omitted, return information on the currently selected window.  */)
+       doc: /* Return the parameters of WINDOW and their values.
+WINDOW defaults to the selected window.  The return value is a list of
+elements of the form (PARAMETER . VALUE). */)
      (window)
      Lisp_Object window;
 {
@@ -1297,8 +1311,8 @@ If WINDOW is omitted, return information on the currently selected window.  */)
 
 DEFUN ("window-parameter", Fwindow_parameter, Swindow_parameter,
        2, 2, 0,
-       doc:  /* Return WINDOW's value for parameter PARAMETER.
-If WINDOW is nil, describe the currently selected window.  */)
+       doc:  /* Return WINDOW's value for PARAMETER.
+WINDOW defaults to the selected window.  */)
      (window, parameter)
      Lisp_Object window, parameter;
 {
@@ -1308,12 +1322,10 @@ If WINDOW is nil, describe the currently selected window.  */)
   return CDR_SAFE (result);
 }
 
-
 DEFUN ("set-window-parameter", Fset_window_parameter,
        Sset_window_parameter, 3, 3, 0,
-       doc: /* Set window parameter PARAMETER to VALUE on WINDOW.
-If WINDOW is nil, use the currently selected window.
-Return VALUE.  */)
+       doc: /* Set WINDOW's value of PARAMETER to VALUE.
+WINDOW defaults to the selected window.  Return VALUE.  */)
      (window, parameter, value)
      Lisp_Object window, parameter, value;
 {
@@ -2488,7 +2500,9 @@ If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
 If FRAME is nil, search all frames.
 If FRAME is t, search only the selected frame.
-If FRAME is a frame, search only that frame.  */)
+If FRAME is a frame, search only that frame.
+When a window showing BUFFER is dedicated and the only window of its
+frame, that frame is deleted when there are other frames left.  */)
      (buffer, frame)
      Lisp_Object buffer, frame;
 {
@@ -2513,7 +2527,10 @@ DEFUN ("replace-buffer-in-windows", Freplace_buffer_in_windows,
        Sreplace_buffer_in_windows,
        1, 1, "bReplace buffer in windows: ",
        doc: /* Replace BUFFER with some other buffer in all windows showing it.
-BUFFER may be a buffer or the name of an existing buffer.  */)
+BUFFER may be a buffer or the name of an existing buffer.
+When a window showing BUFFER is dedicated that window is deleted.  When
+that window is the only window on its frame, that frame is deleted too
+when there are other frames left.  */)
      (buffer)
      Lisp_Object buffer;
 {
@@ -3449,38 +3466,35 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
 
 
 DEFUN ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 3, 0,
-       doc: /* Make WINDOW display BUFFER as its contents.
-BUFFER can be a buffer or the name of an existing buffer.
-Optional third arg KEEP-MARGINS non-nil means that WINDOW's current
-display margins, fringe widths, and scroll bar settings are maintained;
-the default is to reset these from BUFFER's local settings or the frame
-defaults.
+       doc: /* Make WINDOW display BUFFER-OR-NAME as its contents.
+WINDOW defaults to the selected window.  BUFFER-OR-NAME must be a buffer
+or the name of an existing buffer.  Optional third argument KEEP-MARGINS
+non-nil means that WINDOW's current display margins, fringe widths, and
+scroll bar settings are preserved; the default is to reset these from
+the local settings for BUFFER-OR-NAME or the frame defaults.  Return nil
+
+This function throws an error when WINDOW is dedicated to its buffer and
+does not already display BUFFER-OR-NAME.
 
 This function runs the hook `window-scroll-functions'.  */)
-     (window, buffer, keep_margins)
-     register Lisp_Object window, buffer, keep_margins;
+     (window, buffer_or_name, keep_margins)
+     register Lisp_Object window, buffer_or_name, keep_margins;
 {
-  register Lisp_Object tem;
+  register Lisp_Object tem, buffer;
   register struct window *w = decode_window (window);
 
   XSETWINDOW (window, w);
-  buffer = Fget_buffer (buffer);
+  buffer = Fget_buffer (buffer_or_name);
   CHECK_BUFFER (buffer);
-
   if (NILP (XBUFFER (buffer)->name))
     error ("Attempt to display deleted buffer");
 
   tem = w->buffer;
-  if (NILP (tem))
-    error ("Window is deleted");
-  else if (! EQ (tem, Qt))	/* w->buffer is t when the window
-				   is first being set up.  */
+  if (!EQ (tem, Qt))
+    /* w->buffer is t when the window is first being set up.  */
     {
-      if (!EQ (tem, buffer))
-	if (EQ (w->dedicated, Qt))
-	  error ("Window is dedicated to `%s'", SDATA (XBUFFER (tem)->name));
-	else
-	  w->dedicated = Qnil;
+      if (!NILP (w->dedicated) && !EQ (tem, buffer))
+	error ("Window is dedicated to `%s'", SDATA (XBUFFER (tem)->name));
 
       unshow_buffer (w);
     }
@@ -3489,8 +3503,8 @@ This function runs the hook `window-scroll-functions'.  */)
   return Qnil;
 }
 
-/* Note that selected_window can be nil
-   when this is called from Fset_window_configuration.  */
+/* Note that selected_window can be nil when this is called from
+   Fset_window_configuration.  */
 
 DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
        doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
