@@ -1340,19 +1340,19 @@ control the conversion.  Here is a table of what the
 @table @samp
 @item %y
 @itemx %Y
-The number of full 365-day years.
+The integer number of 365-day years.
 @item %d
 @itemx %D
-The number of full days.
+The integer number of days.
 @item %h
 @itemx %H
-The number of full hours.
+The integer number of hours.
 @item %m
 @itemx %M
-The number of full minutes.
+The integer number of minutes.
 @item %s
 @itemx %S
-The number of seconds.
+The integer number of seconds.
 @item %z
 Non-printing control flag.  When it is used, other specifiers must be
 given in the order of decreasing size, i.e.@: years before days, hours
@@ -1391,10 +1391,10 @@ both elapsed and processor time, used by the Emacs process.
 @defun emacs-uptime &optional format
 This function returns a string representing the Emacs
 @dfn{uptime}---the elapsed wall-clock time this instance of Emacs is
-running.  The string is formatted according to the optional argument
-@var{format}.  For the available format descriptors, see @ref{Time
-Parsing, format-seconds}.  If @var{format} is nil or omitted, it
-defaults to @code{"%Y, %D, %H, %M, %z%S"}.
+running.  The string is formatted by @code{format-seconds} according
+to the optional argument @var{format}.  For the available format
+descriptors, see @ref{Time Parsing, format-seconds}.  If @var{format}
+is nil or omitted, it defaults to @code{"%Y, %D, %H, %M, %z%S"}.
 @end defun
 
 @defun get-internal-run-time
