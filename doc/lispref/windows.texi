@@ -794,7 +794,7 @@ See the preceding section for
 @ifnottex
 @xref{Buffers and Windows}, for
 @end ifnottex
-low-level functions that give you more precise control.  All of these
+low-level primitives that give you more precise control.  All of these
 functions work by calling @code{set-window-buffer}.
 
   Do not use the functions in this section in order to make a buffer
@@ -951,6 +951,16 @@ Precisely how @code{display-buffer} finds or creates a window depends on
 the variables described below.
 @end deffn
 
+@defun split-window-preferred-function window
+This variable specifies how to split a window.  Its value, if
+non-@code{nil}, should be a function of one argument, which is a
+window.  If this variable specifies a function, @code{display-buffer}
+will call it with one or more candidate windows when it looks for a
+window to split.  If the argument @var{window} fits, the function is
+expected to split it and return a new window.  If the function returns
+@code{nil}, then @var{window} will not be split.
+@end defun
+
 @defopt display-buffer-reuse-frames
 If this variable is non-@code{nil}, @code{display-buffer} searches
 existing frames for a window displaying the buffer.  If the buffer is
@@ -964,16 +974,31 @@ variables, described below.
 @defopt pop-up-windows
 This variable controls whether @code{display-buffer} makes new windows.
 If it is non-@code{nil} and there is only one window, then that window
-is split.  If it is @code{nil}, then @code{display-buffer} does not
-split the single window, but uses it whole.
+is split vertically.  If it is @code{nil}, then @code{display-buffer}
+does not split the single window, but uses it whole.
 @end defopt
 
 @defopt split-height-threshold
-This variable determines when @code{display-buffer} may split a window,
-if there are multiple windows.  @code{display-buffer} always splits the
-largest window if it has at least this many lines.  If the largest
-window is not this tall, it is split only if it is the sole window and
-@code{pop-up-windows} is non-@code{nil}.
+This variable determines when @code{display-buffer} may split a window
+vertically, if there are multiple windows.  If the value is a number,
+@code{display-buffer} splits the largest window if it has at least
+this many lines.  If the largest window is not this tall, or if the
+value of this variable is @code{nil}, @code{display-buffer} tries to
+split some window horizontally, subject to restrictions of
+@code{split-width-threshold} (see below).  If splitting horizontally
+is impossible, @code{display-buffer} will split a window vertically
+only if it's the only window on its frame and not the minibuffer
+window, and only if @code{pop-up-windows} is non-@code{nil}.
+Otherwise, @code{display-buffer} uses one of the existing windows.
+@end defopt
+
+@defopt split-width-threshold
+This variable determines when @code{display-buffer} may split a window
+horizontally.  If the value is a number, @code{display-buffer} may
+split a window if it has at least this many columns.  If the value of
+this variable is @code{nil}, @code{display-buffer} will not split any
+windows horizontally.  (It still might split some window vertically,
+though, see above.)
 @end defopt
 
 @defopt even-window-heights
@@ -989,10 +1014,13 @@ will be left alone.
 @defopt pop-up-frames
 This variable controls whether @code{display-buffer} makes new frames.
 If it is non-@code{nil}, @code{display-buffer} looks for an existing
-window already displaying the desired buffer, on any visible frame.  If
-it finds one, it returns that window.  Otherwise it makes a new frame.
-The variables @code{pop-up-windows} and @code{split-height-threshold} do
-not matter if @code{pop-up-frames} is non-@code{nil}.
+window already displaying the desired buffer, on any visible frame.
+If it finds one, it returns that window.  Otherwise it makes a new
+frame, unless the variable's value is @code{graphic-only} and the
+selected frame is not on a graphic display.  The variables
+@code{pop-up-windows}, @code{split-height-threshold}, and
+@code{split-width-threshold} do not matter if @code{pop-up-frames} is
+non-@code{nil}.
 
 If @code{pop-up-frames} is @code{nil}, then @code{display-buffer} either
 splits a window or reuses one.
