@@ -966,6 +966,10 @@ a case-insensitive match is tried."
 
 	    (Info-select-node)
 	    (goto-char (point-min))
+	    (forward-line 1)		       ; skip header line
+	    (when (> Info-breadcrumbs-depth 0) ; skip breadcrumbs line
+	      (forward-line 1))
+
 	    (cond (anchorpos
                    (let ((new-history (list Info-current-file
                                             (substring-no-properties nodename))))
