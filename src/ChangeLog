@@ -1,3 +1,7 @@
+2008-10-18  Ulrich Mueller  <ulm@gentoo.org>
+
+	* m/sh3.h: New file, machine description for SuperH.
+
 2008-10-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fsplit_window): Rename arg horflag to horizontal.

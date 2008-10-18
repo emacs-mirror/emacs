@@ -1,3 +1,7 @@
+2008-10-18  Ulrich Mueller  <ulm@gentoo.org>
+
+	* configure.in: Add support for GNU/Linux on SuperH.
+
 2008-10-12  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Only check for m17n-flt if HAVE_LIBOTF.

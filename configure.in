@@ -540,6 +540,11 @@ dnl see the `changequote' comment above.
     machine=xtensa opsys=gnu-linux
     ;;
 
+  ## SuperH Linux-based GNU system
+  sh[34]*-*-linux-gnu* )
+    machine=sh3 opsys=gnu-linux
+  ;;
+
   * )
     unported=yes
   ;;

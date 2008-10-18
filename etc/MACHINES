@@ -426,6 +426,12 @@ Sun 4 (sparc), Sun 386 (sparc-sun-solaris2.*,
   (now remapped as part of the text).  These are never
   swapped in.
 
+SuperH (sh[34]*-*-linux-gnu)
+
+  Emacs 23.0.60 was reported to work on GNU/Linux (October 2008).
+  Tested on a little-endian sh4 system (cpu type SH7751R) running
+  Gentoo Linux 2008.0.
+
 Tadpole 68K (m68k-tadpole-sysv)
 
   Changes merged in 19.1.
