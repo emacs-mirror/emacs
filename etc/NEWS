@@ -1263,6 +1263,7 @@ via M-n when reading a regexp in the minibuffer.
 *** minibuffer-local-must-match-filename-map is now named
 minibuffer-local-filename-must-match-map.
 
+---
 *** `all-completions' may now return the base size in the last cdr.
 Since this means the returned list is not properly nil-terminated, this
 is an incompatible change and is thus enabled by the new variable
