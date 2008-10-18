@@ -239,6 +239,11 @@ This only has an effect if `Info-hide-note-references' is non-nil."
   :type 'boolean
   :group 'info)
 
+(defcustom Info-breadcrumbs-depth 4
+  "Depth of breadcrumbs to display.
+0 means do not display breadcrumbs."
+  :type 'integer)
+
 (defcustom Info-search-whitespace-regexp "\\s-+"
   "*If non-nil, regular expression to match a sequence of whitespace chars.
 This applies to Info search for regular expressions.
@@ -306,6 +311,11 @@ Marker points nowhere if file has no tag table.")
 
 (defvar Info-file-supports-index-cookies nil
   "Non-nil if current Info file supports index cookies.")
+
+(defvar Info-file-supports-index-cookies-list nil
+  "List of Info files with information about index cookies support.
+Each element of the list is a list (FILENAME SUPPORTS-INDEX-COOKIES)
+where SUPPORTS-INDEX-COOKIES can be either t or nil.")
 
 (defvar Info-index-alternatives nil
   "List of possible matches for last `Info-index' command.")
@@ -458,6 +468,34 @@ Do the right thing if the file has been compressed or zipped."
 	    (apply 'call-process-region (point-min) (point-max)
 		   (car decoder) t t nil (cdr decoder))))
       (insert-file-contents fullname visit))))
+
+(defun Info-file-supports-index-cookies (&optional file)
+  "Return non-nil value if FILE supports Info index cookies.
+Info index cookies were first introduced in 4.7, and all later
+makeinfo versions output them in index nodes, so we can reply
+solely on the makeinfo version.  This function caches the information
+in `Info-file-supports-index-cookies-list'."
+  (or file (setq file Info-current-file))
+  (or (assoc file Info-file-supports-index-cookies-list)
+      ;; Skip virtual Info files
+      (and (or (not (stringp file))
+	       (member file '("dir" apropos history toc)))
+           (setq Info-file-supports-index-cookies-list
+		 (cons (cons file nil) Info-file-supports-index-cookies-list)))
+      (save-excursion
+	(let ((found nil))
+	  (goto-char (point-min))
+	  (condition-case ()
+	      (if (and (re-search-forward
+			"makeinfo[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
+			(line-beginning-position 3) t)
+		       (not (version< (match-string 1) "4.7")))
+		  (setq found t))
+	    (error nil))
+	  (setq Info-file-supports-index-cookies-list
+		(cons (cons file found) Info-file-supports-index-cookies-list)))))
+  (cdr (assoc file Info-file-supports-index-cookies-list)))
+
 
 (defun Info-default-dirs ()
   (let ((source (expand-file-name "info/" source-directory))
@@ -845,18 +883,8 @@ a case-insensitive match is tried."
                 (info-insert-file-contents filename nil)
                 (setq default-directory (file-name-directory filename))))
               (set-buffer-modified-p nil)
-
-	      ;; Check makeinfo version for index cookie support
-	      (let ((found nil))
-		(goto-char (point-min))
-		(condition-case ()
-		    (if (and (re-search-forward
-			      "makeinfo[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
-			      (line-beginning-position 3) t)
-			     (not (version< (match-string 1) "4.7")))
-			(setq found t))
-		  (error nil))
-		(set (make-local-variable 'Info-file-supports-index-cookies) found))
+	      (set (make-local-variable 'Info-file-supports-index-cookies)
+		   (Info-file-supports-index-cookies filename))
 
               ;; See whether file has a tag table.  Record the location if yes.
               (goto-char (point-max))
@@ -2750,7 +2778,7 @@ following nodes whose names also contain the word \"Index\"."
       (and (or (not (stringp file))
 	       (member file '("dir" apropos history toc)))
            (setq Info-index-nodes (cons (cons file nil) Info-index-nodes)))
-      (if Info-file-supports-index-cookies
+      (if (Info-file-supports-index-cookies file)
 	  ;; Find nodes with index cookie
 	  (let* ((default-directory (or (and (stringp file)
 					     (file-name-directory
@@ -2787,7 +2815,7 @@ following nodes whose names also contain the word \"Index\"."
 	    nodes)
 	;; Else find nodes with the word "Index" in the node name
 	(let ((case-fold-search t)
-	      Info-history Info-history-list Info-fontify-maximum-menu-size
+	      Info-history Info-history-list Info-fontify-maximum-menu-size Info-point-loc
 	      nodes node)
 	  (condition-case nil
 	      (with-temp-buffer
@@ -2815,12 +2843,13 @@ following nodes whose names also contain the word \"Index\"."
   "Return non-nil value if NODE is an index node.
 If NODE is nil, check the current Info node.
 If FILE is nil, check the current Info file."
+  (or file (setq file Info-current-file))
   (if (or (and node (not (equal node Info-current-node)))
-          (assoc (or file Info-current-file) Info-index-nodes))
+          (assoc file Info-index-nodes))
       (member (or node Info-current-node) (Info-index-nodes file))
     ;; Don't search all index nodes if request is only for the current node
     ;; and file is not in the cache of index nodes
-    (if Info-file-supports-index-cookies
+    (if (Info-file-supports-index-cookies file)
 	(save-excursion
 	  (goto-char (+ (or (save-excursion
 			      (search-backward "\n\^_" nil t))
@@ -3760,11 +3789,6 @@ the variable `Info-file-list-for-emacs'."
     (define-key keymap [follow-link] 'mouse-face)
     keymap)
   "Keymap to put on the Up link in the text or the header line.")
-
-(defcustom Info-breadcrumbs-depth 4
-  "Depth of breadcrumbs to display.
-0 means do not display breadcrumbs."
-  :type 'integer)
 
 (defun Info-insert-breadcrumbs ()
   (let ((nodes (Info-toc-nodes Info-current-file))
