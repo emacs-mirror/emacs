@@ -1625,8 +1625,8 @@ The argument @var{replacements} specifies what to replace occurrences
 with.  If it is a string, that string is used.  It can also be a list of
 strings, to be used in cyclic order.
 
-If @var{replacements} is a cons cell, @code{(@var{function}
-. @var{data})}, this means to call @var{function} after each match to
+If @var{replacements} is a cons cell, @w{@code{(@var{function}
+. @var{data})}}, this means to call @var{function} after each match to
 get the replacement text.  This function is called with two arguments:
 @var{data}, and the number of replacements already made.
 
@@ -1642,6 +1642,13 @@ Normally, the keymap @code{query-replace-map} defines the possible
 user responses for queries.  The argument @var{map}, if
 non-@code{nil}, specifies a keymap to use instead of
 @code{query-replace-map}.
+
+This function uses one of two functions to search for the next
+occurrence of @var{from-string}.  These functions are specified by the
+values of two variables: @code{replace-re-search-function} and
+@code{replace-search-function}.  The former is called when the
+argument @var{regexp-flag} is non-@code{nil}, the latter when it is
+@code{nil}.
 @end defun
 
 @defvar query-replace-map
@@ -1711,6 +1718,22 @@ use this answer.
 @item help
 Display some help, then ask again.
 @end table
+
+@defvar replace-search-function
+This variable specifies a function that @code{perform-replace} calls
+to search for the next string to replace.  Its default value is
+@code{search-forward}.  Any other value should name a function of 3
+arguments: the first 3 arguments of @code{search-forward}
+(@pxref{String Search}).
+@end defvar
+
+@defvar replace-re-search-function
+This variable specifies a function that @code{perform-replace} calls
+to search for the next regexp to replace.  Its default value is
+@code{re-search-forward}.  Any other value should name a function of 3
+arguments: the first 3 arguments of @code{re-search-forward}
+(@pxref{Regexp Search}).
+@end defvar
 
 @node Standard Regexps
 @section Standard Regular Expressions Used in Editing
