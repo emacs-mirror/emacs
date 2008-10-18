@@ -1,3 +1,8 @@
+2008-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* doc-view.el (doc-view-pdf->txt, doc-view-ps->pdf): Give an error if
+	the needed external programs were not found.
+
 2008-10-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (trash-directory): Run thru `convert-standard-filename'.
