@@ -1285,9 +1285,11 @@ function to use for searching in `query-replace-regexp',
 `map-query-replace-regexp'.  The function it specifies is called by
 `perform-replace' when its 4th argument is non-nil.
 
++++
 *** New keymap `search-map' bound to `M-s' provides global bindings
 for search related commands.
 
++++
 *** New keymap `multi-query-replace-map' contains additonal keys bound
 to `automatic-all' and `exit-current' for multi-buffer interactive replacement.
 
