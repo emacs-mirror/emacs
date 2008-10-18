@@ -1,3 +1,10 @@
+2008-10-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* windows.texi (Displaying Buffers): Minor wording fix.
+	(Choosing Window): `split-height-threshold' can now be nil.
+	Document `split-width-threshold'.  `pop-up-frames' can have the
+	value `graphic-only'.
+
 2008-10-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* os.texi (Startup Summary): Document `before-init-time' and
