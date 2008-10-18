@@ -1281,6 +1281,11 @@ is treated as a character."
   :mnemonic ?U
   :charset-list '(emacs))
 
+;; The encoding used internally.  This encoding is meant to be able to save
+;; any multibyte buffer without losing information.  It can change between
+;; Emacs releases, tho, so should only be used for internal files.
+(define-coding-system-alias 'emacs-internal 'utf-8-emacs-unix)
+
 (define-coding-system 'utf-16le
   "UTF-16LE (little endian, no signature (BOM))."
   :coding-type 'utf-16

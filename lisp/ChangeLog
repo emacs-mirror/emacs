@@ -1,3 +1,7 @@
+2008-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-conf.el (emacs-internal): New coding system alias.
+
 2008-10-18  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-find-node-2): Put initial point below the header line
@@ -3083,8 +3087,8 @@
 	frame-specific X resource settings.  Set faces using a list of
 	frame parameters explicitly passed to the calling
 	function (e.g. make-frame).
-	(x-create-frame-with-faces, tty-create-frame-with-faces): Supply
-	explicit frame parameter list to face-set-after-frame-default.
+	(x-create-frame-with-faces, tty-create-frame-with-faces):
+	Supply explicit frame parameter list to face-set-after-frame-default.
 
 2008-07-08  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
 
