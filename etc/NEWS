@@ -505,6 +505,9 @@ matches a regexp.
 The mode bits can be specified in symbolic notation, like with GNU
 Coreutils, in addition to an octal number.
 
+*** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
+requires confirmation before opening a non-existent file.
+
 
 * New Modes and Packages in Emacs 23.1
 
@@ -1312,9 +1315,6 @@ unless it ends in whitespace.
 +++
 *** set-file-modes is now interactive and can take the mode value in
 symbolic notation thanks to auxiliary functions.
-
-*** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
-requires confirmation before opening a non-existent file.
 
 ** Process changes
 +++
