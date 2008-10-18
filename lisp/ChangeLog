@@ -1,3 +1,8 @@
+2008-10-18  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-find-node-2): Put initial point below the header line
+	and breadcrumbs line.
+
 2008-10-18  Glenn Morris  <rgm@gnu.org>
 
 	* doc-view.el (doc-view-pdf->txt, doc-view-ps->pdf): Give an error if
