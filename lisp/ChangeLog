@@ -4,6 +4,17 @@
 
 2008-10-18  Juri Linkov  <juri@jurta.org>
 
+	* info.el (Info-file-supports-index-cookies-list): New variable.
+	(Info-file-supports-index-cookies): New function.
+	(Info-find-node-2, Info-index-nodes, Info-index-node): Use it.
+	(Info-index-nodes): Let-bind Info-point-loc to nil for files
+	without an index cookie to ignore it when Info-index-nodes is
+	called during navigating from an index node with line numbers.
+	(Info-index-node): Set file to Info-current-file if nil.  (Bug#1118)
+
+	* info.el (Info-breadcrumbs-depth): Move defcustom higher to the
+	variable definition section.
+
 	* info.el (Info-find-node-2): Put initial point below the header line
 	and breadcrumbs line.
 
