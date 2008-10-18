@@ -1719,6 +1719,12 @@ use this answer.
 Display some help, then ask again.
 @end table
 
+@defvar multi-query-replace-map
+This variable holds a keymap that extends @code{query-replace-map} by
+providing additional keybindings that are useful in multi-buffer
+replacements.
+@end defvar
+
 @defvar replace-search-function
 This variable specifies a function that @code{perform-replace} calls
 to search for the next string to replace.  Its default value is
