@@ -1,10 +1,14 @@
 2008-10-19  Chong Yidong  <cyd@stupidchicken.com>
 
-	* frames.texi (Cut/Paste Other App): Document
-	yank-pop-change-selection.
+	* frames.texi: Use @key throughout for mouse clicks.
+	(Cut/Paste Other App): Document yank-pop-change-selection.
 	(Secondary Selection): Fix modified mouse click syntax.
 	(Clipboard): Describe Cut, Copy and Paste commands.
 	(Mouse References): Not all references are in read-only buffers.
+	Copyedits.
+	(Creating Frames): Add xref to Init File.
+	(Frame Commands): Add xref to Exiting.
+	(Scroll Bars): Document GTK vs toolkit behavior.
 
 2008-10-15  Chong Yidong  <cyd@stupidchicken.com>
 
