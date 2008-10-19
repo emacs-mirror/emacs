@@ -316,11 +316,6 @@ character."
 
 (define-coding-system-alias 'binary 'no-conversion)
 
-;; The encoding used internally.  This encoding is meant to be able to save
-;; any multibyte buffer without losing information.  It can change between
-;; Emacs releases, tho, so should only be used for internal files.
-(define-coding-system-alias 'emacs-internal 'emacs-mule-unix)
-
 (put 'undecided 'coding-system
      (vector t ?- "No conversion on encoding, automatic conversion on decoding"
 	     (list 'alias-coding-systems '(undecided)
@@ -348,6 +343,11 @@ byte."
  nil
  '((safe-charsets . t)
    (composition . t)))
+
+;; The encoding used internally.  This encoding is meant to be able to save
+;; any multibyte buffer without losing information.  It can change between
+;; Emacs releases, tho, so should only be used for internal files.
+(define-coding-system-alias 'emacs-internal 'emacs-mule-unix)
 
 (make-coding-system
  'raw-text 5 ?t
