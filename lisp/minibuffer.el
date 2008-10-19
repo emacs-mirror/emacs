@@ -96,14 +96,6 @@ Like CL's `some'."
     (or res
         (if firsterror (signal (car firsterror) (cdr firsterror))))))
 
-(defun apply-partially (fun &rest args)
-  "Do a \"curried\" partial application of FUN to ARGS.
-ARGS is a list of the first N arguments to pass to FUN.
-The result is a new function that takes the remaining arguments,
-and calls FUN."
-  (lexical-let ((fun fun) (args1 args))
-    (lambda (&rest args2) (apply fun (append args1 args2)))))
-
 (defun complete-with-action (action table string pred)
   "Perform completion ACTION.
 STRING is the string to complete.
