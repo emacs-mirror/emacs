@@ -1581,6 +1581,7 @@ times the default column width.
 *** `format-seconds' converts a number of seconds into a readable
 string of days, hours, etc.
 
++++
 *** `apply-partially' performs a "curried" application of a function.
 
 *** `read-shell-command' does what its name says, with completion.  It
