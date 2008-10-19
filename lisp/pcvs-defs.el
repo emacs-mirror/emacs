@@ -75,7 +75,7 @@ versions, such as the one in SunOS-4.")
 ;;  cvsrc options
 ;;
 
-(defcustom cvs-cvsrc-file "~/.cvsrc"
+(defcustom cvs-cvsrc-file (convert-standard-filename "~/.cvsrc")
   "Path to your cvsrc file."
   :group 'pcl-cvs
   :type '(file))
