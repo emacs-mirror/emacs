@@ -1,5 +1,7 @@
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* functions.texi (Calling Functions): Document `apply-partially'.
+
 	* hooks.texi (Standard Hooks): Mention
 	`before-hack-local-variables-hook' and `hack-local-variables-hook'.
 
