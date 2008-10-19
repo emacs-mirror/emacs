@@ -1204,7 +1204,7 @@ Used by the hooks for remember.el."
   :group 'org-remember
   :type 'directory)
 
-(defcustom org-default-notes-file "~/.notes"
+(defcustom org-default-notes-file (convert-standard-filename "~/.notes")
   "Default target for storing notes.
 Used by the hooks for remember.el.  This can be a string, or nil to mean
 the value of `remember-data-file'.
