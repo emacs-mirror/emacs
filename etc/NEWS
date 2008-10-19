@@ -1324,6 +1324,7 @@ but obeys file handlers.  The file handler is chosen based on
 and `process-file-shell-command' are also new; they call internally
 `start-file-process' and `process-file', respectively.
 
++++
 *** The new function `process-lines' executes an external program and
 returns its output as a list of lines.
 
