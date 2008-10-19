@@ -116,7 +116,7 @@ be added."
   :group 'org-id
   :type 'boolean)
 
-(defcustom org-id-locations-file "~/.org-id-locations"
+(defcustom org-id-locations-file (convert-standard-filename "~/.org-id-locations")
   "The file for remembering the last ID number generated."
   :group 'org-id
   :type 'file)
