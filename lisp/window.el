@@ -1194,15 +1194,19 @@ lines than are actually needed in the case where some error may be present."
 	  (enlarge-window delta))))))
 
 
-(defun enlarge-window-horizontally (arg)
-  "Make current window ARG columns wider."
+(defun enlarge-window-horizontally (columns)
+  "Make selected window COLUMNS wider.
+Interactively, if no argument is given, make selected window one
+column wider."
   (interactive "p")
-  (enlarge-window arg t))
+  (enlarge-window columns t))
 
-(defun shrink-window-horizontally (arg)
-  "Make current window ARG columns narrower."
+(defun shrink-window-horizontally (columns)
+  "Make selected window COLUMNS narrower.
+Interactively, if no argument is given, make selected window one
+column narrower."
   (interactive "p")
-  (shrink-window arg t))
+  (shrink-window columns t))
 
 (defun window-buffer-height (window)
   "Return the height (in screen lines) of the buffer that WINDOW is displaying."
