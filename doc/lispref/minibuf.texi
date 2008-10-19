@@ -632,7 +632,8 @@ for reading certain kinds of names with completion.
 * Completion Commands::    Minibuffer commands that do completion.
 * High-Level Completion::  Convenient special cases of completion
                              (reading buffer name, file name, etc.)
-* Reading File Names::     Using completion to read file names.
+* Reading File Names::     Using completion to read file names and
+                             shell commands.
 * Programmed Completion::  Writing your own completion-function.
 @end menu
 
@@ -1102,7 +1103,7 @@ function @code{read-file-name}.
 @end defvar
 
 @node High-Level Completion
-@subsection High-Level Completion  Functions
+@subsection High-Level Completion Functions
 
   This section describes the higher-level convenient functions for
 reading certain sorts of names with completion.
@@ -1275,9 +1276,9 @@ and @code{read-input-method-name}, in @ref{Input Methods}.
 @cindex read file names
 @cindex prompt for file name
 
-  Here is another high-level completion function, designed for reading a
-file name.  It provides special features including automatic insertion
-of the default directory.
+  Here is a couple of other high-level completion function, designed
+for reading file names and shell commands.  They provide special
+features including automatic insertion of the default directory.
 
 @defun read-file-name prompt &optional directory default existing initial predicate
 This function reads a file name in the minibuffer, prompting with
@@ -1459,6 +1460,31 @@ The file is @point{}
 @end group
 @end example
 @end defopt
+
+@defun read-shell-command prompt &optional initial-contents hist &rest args
+This function reads a shell command from the minibuffer, prompting
+with @var{prompt} and providing intelligent completion.  It completes
+the first word of the command using candidates that are appropriate
+for command names.  The rest of the shell command arguments are
+completed as file names.
+
+This function works by calling @code{read-from-minibuffer}
+(@pxref{Text from Minibuffer}), passing it
+@code{minibuffer-local-shell-command-map} as the @var{keymap}
+argument.  The optional arguments @var{initial-contents} and
+@var{hist} are passed to @code{read-from-minibuffer} unaltered, except
+that if @var{hist} is omitted or @code{nil}, it defaults to
+@code{shell-command-history} (@pxref{Minibuffer History,
+shell-command-history}), and the @var{read} argument is passed as
+@code{nil}.  The rest of @var{args}, if present, are used by
+@code{read-from-minibuffer} as its @var{default} and
+@var{inherit-input-method} arguments.
+@end defun
+
+@defvar minibuffer-local-shell-command-map
+This keymap is used by @code{read-shell-command} for completing
+command and file names that are part of a shell command.
+@end defvar
 
 @node Programmed Completion
 @subsection Programmed Completion
