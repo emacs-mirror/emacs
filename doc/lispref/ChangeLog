@@ -1,5 +1,12 @@
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* hooks.texi (Standard Hooks): Mention
+	`before-hack-local-variables-hook' and `hack-local-variables-hook'.
+
+	* variables.texi (File Local Variables): Document
+	`file-local-variables-alist', `before-hack-local-variables-hook'
+	and `hack-local-variables-hook'.
+
 	* processes.texi (Synchronous Processes): Document `process-lines'.
 
 	* customize.texi (Variable Definitions): Document
