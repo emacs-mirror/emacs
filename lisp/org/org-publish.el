@@ -276,7 +276,8 @@ When nil, do no timestamp checking and always publish all files."
   :group 'org-publish
   :type 'boolean)
 
-(defcustom org-publish-timestamp-directory "~/.org-timestamps/"
+(defcustom org-publish-timestamp-directory
+  (convert-standard-filename "~/.org-timestamps/")
   "Name of directory in which to store publishing timestamps."
   :group 'org-publish
   :type 'directory)
