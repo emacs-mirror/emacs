@@ -104,7 +104,7 @@ minibuffer histories, such as `compile-command' or `kill-ring'."
    ((and (featurep 'xemacs) (file-directory-p "~/.xemacs/"))
     "~/.xemacs/history")
    ;; For users without `~/.emacs.d/' or `~/.xemacs/'.
-   (t "~/.emacs-history"))
+   (t (convert-standard-filename "~/.emacs-history")))
   "*File name where minibuffer history is saved to and loaded from.
 The minibuffer history is a series of Lisp expressions loaded
 automatically when `savehist-mode' is turned on.  See `savehist-mode'
