@@ -1,3 +1,11 @@
+2008-10-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_dedicated_p, Fset_window_dedicated_p):
+	Mention kill-buffer in doc-string.
+	(Fset_window_buffer): Reinsert tem check removed in last commit.
+	(Fenlarge_window, Fshrink_window): Have argument names and
+	doc-string follow Elisp manual more closely.
+
 2008-10-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fset_file_modes): Doc fix.
