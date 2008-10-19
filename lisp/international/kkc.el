@@ -41,7 +41,7 @@
   "String denoting KKC input method.
 This string is shown at mode line when users are in KKC mode.")
 
-(defvar kkc-init-file-name "~/.kkcrc"
+(defvar kkc-init-file-name (convert-standard-filename "~/.kkcrc")
   "Name of a file which contains user's initial setup code for KKC.")
 
 ;; A flag to control a file specified by `kkc-init-file-name'.
