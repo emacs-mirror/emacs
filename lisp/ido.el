@@ -908,7 +908,7 @@ ido is running.  Copied from `icomplete-minibuffer-setup-hook'."
   :type 'hook
   :group 'ido)
 
-(defcustom ido-save-directory-list-file "~/.ido.last"
+(defcustom ido-save-directory-list-file (convert-standard-filename "~/.ido.last")
   "File in which the ido state is saved between invocations.
 Variables stored are: `ido-last-directory-list', `ido-work-directory-list',
 `ido-work-file-list', and `ido-dir-file-cache'.
