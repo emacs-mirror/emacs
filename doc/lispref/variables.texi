@@ -1578,7 +1578,7 @@ function does not look for the @samp{mode:} local variable in the
 @code{enable-local-variables} into account (@pxref{Auto Major Mode}).
 
 This function works by walking the alist stored in
-@code{file-local-variables-alist}, and applies each local variable in
+@code{file-local-variables-alist} and applying each local variable in
 turn.  It calls @code{before-hack-local-variables-hook} and
 @code{hack-local-variables-hook} before and after applying the
 variables, respectively.
