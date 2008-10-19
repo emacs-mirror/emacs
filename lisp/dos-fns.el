@@ -200,12 +200,21 @@ shell requires it (see `w32-shell-dos-semantics')."
 
 ;; File names defined in preloaded packages can be incorrect or
 ;; invalid if long file names were available during dumping, but not
-;; at runtime, and the default file name begins with a period.  Their
-;; defcustom's need to be reevaluated at startup.  To update the list
-;; of defcustom's below, run the command "M-x apropos-value RET ~/\. RET".
+;; at runtime, or vice versa, and if the default file name begins with
+;; a period.  Their defcustom's need to be reevaluated at startup.  To
+;; see if the list of defcustom's below is up to date, run the command
+;; "M-x apropos-value RET ~/\. RET".
 (defun dos-reevaluate-defcustoms ()
-  (custom-reevaluate-setting 'abbrev-file-name)
-  (custom-reevaluate-setting 'calc-settings-file)
+  ;; This was computed in paths.el, but that was at dump time.
+  (setq abbrev-file-name
+	(if (msdos-long-file-names)
+	    "~/.abbrev_defs"
+	  "~/_abbrev.defs"))
+  ;; This was computed in loaddefs.el, but that was at dump time.
+  (setq calc-settings-file
+	(if (msdos-long-file-names)
+	    "~/.calc.el"
+	  "~/_calc.el"))
   (custom-reevaluate-setting 'trash-directory))
 
 (add-hook 'before-init-hook 'dos-reevaluate-defcustoms)
