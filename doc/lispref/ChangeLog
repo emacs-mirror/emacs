@@ -1,3 +1,8 @@
+2008-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* customize.texi (Variable Definitions): Document
+	custom-reevaluate-setting.
+
 2008-10-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Choosing Window, Deleting Windows)
