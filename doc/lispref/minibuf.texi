@@ -222,7 +222,7 @@ Manual}).  These candidates are:
 
 @itemize @minus
 @item
-The Word or symbol at point.
+The word or symbol at point.
 @item
 The last regexp used in an incremental search.
 @item
