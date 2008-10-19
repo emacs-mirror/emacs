@@ -237,13 +237,13 @@ mode menus have been improved to include more functionality.
 +++
 *** The mode-line displays a `@', instead of `-', if the
 default-directory for the current buffer is on a remote machine.
-
+---
 *** The mode-line displays a mode menu when mouse-1 is clicked on a
 minor mode, in the same way as it already did for major modes.
 
 *** The `mode-line-emphasis' face is used to highlight certain
 mode-line information (e.g. waiting for a VC command to finish).
-
+---
 *** The mode-line tooltips have been improved to provide more details.
 
 *** The VC, line/colum number and minor mode indicators on the mode
@@ -431,7 +431,7 @@ buffer only on the second attempt to complete.  This was already
 supported in `partial-completion-mode'.
 
 ** Face changes
-
++++
 *** S-down-mouse-1 now pops up a menu for changing the font and text
 size of the default face in the current buffer.  The face is changed
 via face remapping (see below).
