@@ -1,3 +1,8 @@
+2008-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuf.texi (Reading File Names): Document `read-shell-command'
+	and `minibuffer-local-shell-command-map'.
+
 2008-10-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Resizing Windows): Remove var{} around "window" in
