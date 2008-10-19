@@ -67,7 +67,7 @@ See the command `recentf-save-list'."
   :group 'recentf
   :type 'integer)
 
-(defcustom recentf-save-file "~/.recentf"
+(defcustom recentf-save-file (convert-standard-filename "~/.recentf")
   "File to save the recent list into."
   :group 'recentf
   :type 'file
