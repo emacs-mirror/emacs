@@ -1,3 +1,9 @@
+2008-10-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows): Remove var{} around "window" in
+	documentation of enlarge-window.
+	Rewrite documentation of window-min-height and window-min-width.
+
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* functions.texi (Calling Functions): Document `apply-partially'.
