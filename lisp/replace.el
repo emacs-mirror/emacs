@@ -223,20 +223,21 @@ only matches surrounded by word boundaries.
 Fourth and fifth arg START and END specify the region to operate on.
 
 To customize possible responses, change the \"bindings\" in `query-replace-map'."
-  (interactive (let ((common
-		      (query-replace-read-args
-		       (if (and transient-mark-mode mark-active)
-			 "Query replace in region"
-			 "Query replace")
-			 nil)))
-		 (list (nth 0 common) (nth 1 common) (nth 2 common)
-		       ;; These are done separately here
-		       ;; so that command-history will record these expressions
-		       ;; rather than the values they had this time.
-		       (if (and transient-mark-mode mark-active)
-			   (region-beginning))
-		       (if (and transient-mark-mode mark-active)
-			   (region-end)))))
+  (interactive
+   (let ((common
+	  (query-replace-read-args
+	   (concat "Query replace"
+		   (if current-prefix-arg " word" "")
+		   (if (and transient-mark-mode mark-active) " in region" ""))
+	   nil)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common)
+	   ;; These are done separately here
+	   ;; so that command-history will record these expressions
+	   ;; rather than the values they had this time.
+	   (if (and transient-mark-mode mark-active)
+	       (region-beginning))
+	   (if (and transient-mark-mode mark-active)
+	       (region-end)))))
   (perform-replace from-string to-string t nil delimited nil nil start end))
 
 (define-key esc-map "%" 'query-replace)
@@ -289,9 +290,10 @@ Use \\[repeat-complex-command] after this command for details."
   (interactive
    (let ((common
 	  (query-replace-read-args
-	   (if (and transient-mark-mode mark-active)
-	       "Query replace regexp in region"
-	     "Query replace regexp")
+	   (concat "Query replace"
+		   (if current-prefix-arg " word" "")
+		   " regexp"
+		   (if (and transient-mark-mode mark-active) " in region" ""))
 	   t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
 	   ;; These are done separately here
@@ -447,9 +449,10 @@ and TO-STRING is also null.)"
   (interactive
    (let ((common
 	  (query-replace-read-args
-	   (if (and transient-mark-mode mark-active)
-	       "Replace string in region"
-	     "Replace string")
+	   (concat "Replace"
+		   (if current-prefix-arg " word" "")
+		   " string"
+		   (if (and transient-mark-mode mark-active) " in region" ""))
 	   nil)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
 	   (if (and transient-mark-mode mark-active)
@@ -504,9 +507,10 @@ which will run faster and will not set the mark or print anything."
   (interactive
    (let ((common
 	  (query-replace-read-args
-	   (if (and transient-mark-mode mark-active)
-	       "Replace regexp in region"
-	     "Replace regexp")
+	   (concat "Replace"
+		   (if current-prefix-arg " word" "")
+		   " regexp"
+		   (if (and transient-mark-mode mark-active) " in region" ""))
 	   t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
 	   (if (and transient-mark-mode mark-active)
@@ -1716,6 +1720,7 @@ make, or the user didn't cancel the call."
 			 (with-output-to-temp-buffer "*Help*"
 			   (princ
 			    (concat "Query replacing "
+				    (if delimited-flag "word " "")
 				    (if regexp-flag "regexp " "")
 				    from-string " with "
 				    next-replacement ".\n\n"
