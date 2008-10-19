@@ -6,7 +6,8 @@
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* textmodes/remember.el (remember-data-file):
-	* shadowfile.el (shadow-initialize) <shadow-info-file, shadow-todo-file>:
+	* shadowfile.el (shadow-initialize)
+	<shadow-info-file, shadow-todo-file>:
 	* savehist.el (savehist-file):
 	* recentf.el (recentf-save-file):
 	* pcvs-defs.el (cvs-cvsrc-file):
