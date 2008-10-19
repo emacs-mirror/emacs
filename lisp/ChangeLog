@@ -1,5 +1,14 @@
 2008-10-19  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-query-replace, isearch-query-replace-regexp):
+	Add arg `delimited' as in `query-replace' for the case when
+	isearch-allow-scroll=t and the user types C-u M-%.  Doc fix.
+	Add more indicators to the prompt ("word" and "in region").
+
+	* replace.el (query-replace, query-replace-regexp)
+	(replace-string, replace-regexp, perform-replace): Add "word"
+	indicatiors to the prompt for word delimited replacements.
+
 	* replace.el (read-regexp): Rename arg `default' to `default-value'.
 	Doc fix.
 
