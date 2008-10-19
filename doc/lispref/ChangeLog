@@ -1,7 +1,9 @@
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* processes.texi (Synchronous Processes): Document `process-lines'.
+
 	* customize.texi (Variable Definitions): Document
-	custom-reevaluate-setting.
+	`custom-reevaluate-setting'.
 
 2008-10-18  Martin Rudalics  <rudalics@gmx.at>
 
