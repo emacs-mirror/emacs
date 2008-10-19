@@ -1,3 +1,16 @@
+2008-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix Bug #1183:
+
+	* ediff-diff.el (ediff-exec-process): For buffer jobs, bind
+	coding-system-for-read to ediff-coding-system-for-write.
+
+	* ediff-util.el (ediff-make-temp-file): Unconditionally bind
+	coding-system-for-write to ediff-coding-system-for-write.
+
+	* ediff-init.el (ediff-coding-system-for-read): Doc fix.
+	(ediff-coding-system-for-write): Set to emacs-internal.
+
 2008-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-conf.el (emacs-internal): New coding system alias.
