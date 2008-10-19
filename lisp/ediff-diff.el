@@ -1207,7 +1207,13 @@ delimiter regions"))
 ;; args.
 (defun ediff-exec-process (program buffer synch options &rest files)
   (let ((data (match-data))
-	(coding-system-for-read ediff-coding-system-for-read)
+	;; If this is a buffer job, we are diffing temporary files
+	;; produced by Emacs with ediff-coding-system-for-write, so
+	;; use the same encoding to read the results.
+	(coding-system-for-read
+	 (if (string-match "buffer" (symbol-name ediff-job-name))
+	     ediff-coding-system-for-write
+	   ediff-coding-system-for-read))
 	args)
     (setq args (append (split-string options) files))
     (setq args (delete "" (delq nil args))) ; delete nil and "" from arguments
