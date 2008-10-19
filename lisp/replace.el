@@ -522,13 +522,14 @@ which will run faster and will not set the mark or print anything."
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
 
-(defun read-regexp (prompt &optional default)
+(defun read-regexp (prompt &optional default-value)
   "Read regexp as a string using the regexp history and some useful defaults.
 Prompt for a regular expression with PROMPT (without a colon and
-space) in the minibuffer.  The optional string argument DEFAULT
-provides the basic default value, that is returned on typing RET.
-Additional defaults are the string at point, the last isearch regexp,
-the last isearch string, and the last replacement regexp."
+space) in the minibuffer.  The optional argument DEFAULT-VALUE
+provides the value to display in the minibuffer prompt that is
+returned if the user just types RET.
+Values available via M-n are the string at point, the last isearch
+regexp, the last isearch string, and the last replacement regexp."
   (let* ((defaults
 	   (list (regexp-quote
 		  (or (funcall (or find-tag-default-function
@@ -544,12 +545,13 @@ the last isearch string, and the last replacement regexp."
 	 (history-add-new-input nil)
 	 (input
 	  (read-from-minibuffer
-	   (if default
-	       (format "%s (default %s): " prompt (query-replace-descr default))
+	   (if default-value
+	       (format "%s (default %s): " prompt
+		       (query-replace-descr default-value))
 	     (format "%s: " prompt))
 	   nil nil nil 'regexp-history defaults t)))
     (if (equal input "")
-	default
+	default-value
       (prog1 input
 	(add-to-history 'regexp-history input)))))
 
