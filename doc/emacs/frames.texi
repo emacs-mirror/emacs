@@ -232,13 +232,12 @@ Select the text you drag across, in the form of whole lines.
 @cindex X selection
 @cindex primary selection
 @cindex selection, primary
-  When running Emacs under the X window system, you can transfer text
-between Emacs and other X applications using the @dfn{primary
-selection}.  The primary selection is sometimes also referred to as
-the @dfn{X selection}.  It @emph{not} the same thing as the
-@dfn{clipboard}, a separate facility used on desktop environments such
-as Gnome, and on operating systems such as Microsoft Windows
-(@pxref{Clipboard}).
+  When running Emacs under the X window system, you can easily
+transfer text between Emacs and other X applications using the
+@dfn{primary selection} (also called the @dfn{X selection}).  This is
+@emph{not} the same thing as the @dfn{clipboard}, which is a separate
+facility used on desktop environments such as Gnome, and on operating
+systems such as Microsoft Windows (@pxref{Clipboard}).
 
   Under X, whenever you select some text in Emacs by dragging or
 clicking the mouse (@pxref{Mouse Commands}), it is also saved in the
@@ -254,12 +253,17 @@ contents of the primary selection are lost.
 such as @kbd{M-w} (@code{kill-ring-save}), that text is also saved in
 the primary selection.  @xref{Killing}.
 
+@vindex select-active-regions
+@vindex yank-pop-change-selection
   If you set the region using the keyboard, the text within the region
-is not saved to the primary selection.  However, if you change the
-variable @code{select-active-regions} to @code{t}, the region is
-automatically saved to the primary selection each time you activate
-the mark (however, the primary selection is @emph{not} updated if you
-subsequently change the region by moving point).
+is not normally saved to the primary selection.  However, if you
+change the variable @code{select-active-regions} to @code{t}, the
+region is saved to the primary selection each time you activate the
+mark (the primary selection is @emph{not} updated if you subsequently
+change the region by moving point).  If you change the variable
+@code{yank-pop-change-selection} to @code{t}, rotating the kill ring
+with @kbd{M-y} (@code{yank-pop}) also saves the new yank to the
+primary selection (@pxref{Yanking}).
 
 @cindex cut buffer
 @vindex x-cut-buffer-max
@@ -290,89 +294,97 @@ different data type by modifying the variable
 @subsection Secondary Selection
 @cindex secondary selection
 
-  The @dfn{secondary selection} is another way of selecting text using
-the X Window System.  It does not use point or the mark, so you can
-use it to kill text without setting point or the mark.
+  In addition to the primary selection, the X Window System provides a
+second similar facility known as the @dfn{secondary selection}.
+Nowadays, few X applications make use of the secondary selection, but
+you can access it using the following Emacs commands:
 
 @table @kbd
 @findex mouse-set-secondary
 @kindex M-Drag-Mouse-1
-@item M-Drag-Mouse-1
+@item M-@key{Drag-Mouse-1}
 Set the secondary selection, with one end at the place where you press
 down the button, and the other end at the place where you release it
-(@code{mouse-set-secondary}).  The highlighting appears and changes as
-you drag.  You can control the appearance of the highlighting by
-customizing the @code{secondary-selection} face (@pxref{Face
-Customization}).
+(@code{mouse-set-secondary}).  The selected text is highlighted, using
+the @code{secondary-selection} face, as you drag.  The window scrolls
+automatically if you drag the mouse off the top or bottom of the
+window, just like @code{mouse-set-region} (@pxref{Mouse Commands}).
 
-If you move the mouse off the top or bottom of the window while
-dragging, the window scrolls at a steady rate until you move the mouse
-back into the window.  This way, you can mark regions that don't fit
-entirely on the screen.
-
-This way of setting the secondary selection does not alter the kill ring.
+This command does not alter the kill ring.
 
 @findex mouse-start-secondary
 @kindex M-Mouse-1
-@item M-Mouse-1
+@item M-@key{Mouse-1}
 Set one endpoint for the @dfn{secondary selection}
 (@code{mouse-start-secondary}).
 
 @findex mouse-secondary-save-then-kill
 @kindex M-Mouse-3
-@item M-Mouse-3
-Make a secondary selection, using the place specified with @kbd{M-Mouse-1}
-as the other end (@code{mouse-secondary-save-then-kill}).  This also
-puts the selected text in the kill ring.  A second click at the same
+@item M-@key{Mouse-3}
+Set the secondary selection, with one end at the position clicked and
+the other at the position specified with @kbd{M-Mouse-1}
+(@code{mouse-secondary-save-then-kill}).  This also puts the selected
+text in the kill ring.  A second @kbd{M-@key{Mouse-3}} at the same
 place kills the secondary selection just made.
 
 @findex mouse-yank-secondary
 @kindex M-Mouse-2
-@item M-Mouse-2
-Insert the secondary selection where you click
-(@code{mouse-yank-secondary}).  This places point at the end of the
-yanked text.
+@item M-@key{Mouse-2}
+Insert the secondary selection where you click, placing point at the
+end of the yanked text (@code{mouse-yank-secondary}).
 @end table
 
-Double or triple clicking of @kbd{M-Mouse-1} operates on words and
-lines, much like @kbd{Mouse-1}.
+Double or triple clicking of @kbd{M-@key{Mouse-1}} operates on words
+and lines, much like @key{Mouse-1}.
 
-If @code{mouse-yank-at-point} is non-@code{nil}, @kbd{M-Mouse-2} yanks
-at point.  Then it does not matter precisely where you click, or even
-which of the frame's windows you click on.  @xref{Mouse Commands}.
+If @code{mouse-yank-at-point} is non-@code{nil}, @kbd{M-@key{Mouse-2}}
+yanks at point.  Then it does not matter precisely where you click, or
+even which of the frame's windows you click on.  @xref{Mouse
+Commands}.
 
 @node Clipboard
 @subsection Using the Clipboard
 @cindex clipboard
+
+  In desktop environments such as Gnome, and operating systems such as
+Microsoft Windows and Mac OS X, you can transfer data (usually text)
+between different applications using the @dfn{clipboard}.  The
+clipboard is distinct from the primary selection and secondary
+selection discussed earlier.  You can access the clipboard through the
+@samp{Edit} menu of the menu bar (@pxref{Menu Bar}).
+
+@cindex cut
+@findex clipboard-kill-region
+  The command @code{clipboard-kill-region}, which is bound to the
+@code{Cut} menu item, kills the region and saves it in the clipboard.
+
+@cindex copy
+@findex clipboard-kill-ring-save
+  The command @code{clipboard-kill-ring-save}, which is bound to the
+@code{Copy} menu item, copies the region to the kill ring and saves it
+in the clipboard.
+
+@cindex paste
+  The @code{Paste} menu item in the Edit menu yanks the contents of
+the clipboard at point.
+
 @vindex x-select-enable-clipboard
-@findex menu-bar-enable-clipboard
-@cindex OpenWindows
-@cindex Gnome
-
-  Apart from the primary and secondary selection types, Emacs can
-handle the @dfn{clipboard} selection type which is used by some
-desktop environments, such as Gnome.
-
-  The command @kbd{M-x menu-bar-enable-clipboard} makes the @code{Cut},
-@code{Paste} and @code{Copy} menu items, as well as the keys of the same
-names, all use the clipboard.
-
-  You can customize the variable @code{x-select-enable-clipboard} to make
-the Emacs yank functions consult the clipboard before the primary
+  You can customize the variable @code{x-select-enable-clipboard} to
+make the Emacs yank functions consult the clipboard before the primary
 selection, and to make the kill functions to store in the clipboard as
-well as the primary selection.  Otherwise they do not access the
-clipboard at all.  Using the clipboard is the default on MS-Windows and Mac,
-but not on other systems.
+well as the primary selection.  Otherwise, these commands do not
+access the clipboard at all.  Using the clipboard is the default on
+MS-Windows and Mac OS, but not on other systems.
 
 @node Mouse References
 @section Following References with the Mouse
 @kindex Mouse-1 @r{(selection)}
 @kindex Mouse-2 @r{(selection)}
 
-  Some read-only Emacs buffers include references you can follow, or
-commands you can activate.  These include names of files, of buffers,
-of possible completions, of matches for a pattern, as well as the
-buttons in Help buffers and customization buffers.  You can follow the
+  Some Emacs buffers include references you can follow, or commands
+you can activate.  These include names of files, of buffers, of
+possible completions, of matches for a pattern, as well as the buttons
+in Help buffers and customization buffers.  You can follow the
 reference or activate the command by moving point to it and typing
 @key{RET}.  You can also do this with the mouse, using either
 @kbd{Mouse-1} or @kbd{Mouse-2}.
