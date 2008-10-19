@@ -302,6 +302,12 @@ mode (@code{eval-defun}), a special feature of @code{eval-defun}
 arranges to set the variable unconditionally, without testing whether
 its value is void.  (The same feature applies to @code{defvar}.)
 @xref{Defining Variables}.
+
+If you put a @code{defcustom} in a file that is preloaded at dump time
+(@pxref{Building Emacs}), and the standard value installed for the
+variable at that time might not be correct, use
+@code{custom-reevaluate-setting}, described below, to re-evaluate the
+standard value during or after Emacs startup.
 @end defmac
 
   @code{defcustom} accepts the following additional keywords:
@@ -451,6 +457,25 @@ Internally, @code{defcustom} uses the symbol property
 and @code{saved-value} to record the value saved by the user with the
 customization buffer.  Both properties are actually lists whose car is
 an expression which evaluates to the value.
+
+@defun custom-reevaluate-setting symbol
+This function re-evaluates the standard value of a user-customizable
+variable declared via @code{defcustom}.  (If the variable was
+customized, this function re-evaluates the saved value instead.)  This
+is useful for customizable options that are defined before their value
+could be computed correctly, such as variables defined in packages
+that are loaded at dump time, but depend on the run-time information.
+For example, the value could be a file whose precise name depends on
+the hierarchy of files when Emacs runs, or a name of a program that
+needs to be searched at run time.
+
+The argument @var{symbol} is the symbol of the variable whose value
+you want to re-evaluate.
+
+A good place to put calls to this function is in the function
+@code{command-line} that is run during startup (@pxref{Startup Summary})
+or in the various hooks it calls.
+@end defun
 
 @node Customization Types
 @section Customization Types
