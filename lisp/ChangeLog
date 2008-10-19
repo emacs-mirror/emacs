@@ -1,12 +1,17 @@
+2008-10-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (enlarge-window-horizontally, shrink-window-horizontally):
+	Make argument names follow Elisp manual.
+
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
-	* textmodes/remember.el (remember-data-file): 
-	* shadowfile.el (shadow-initialize) <shadow-info-file, shadow-todo-file>: 
-	* savehist.el (savehist-file): 
-	* recentf.el (recentf-save-file): 
-	* pcvs-defs.el (cvs-cvsrc-file): 
-	* international/kkc.el (kkc-init-file-name): 
-	* ido.el (ido-save-directory-list-file): 
+	* textmodes/remember.el (remember-data-file):
+	* shadowfile.el (shadow-initialize) <shadow-info-file, shadow-todo-file>:
+	* savehist.el (savehist-file):
+	* recentf.el (recentf-save-file):
+	* pcvs-defs.el (cvs-cvsrc-file):
+	* international/kkc.el (kkc-init-file-name):
+	* ido.el (ido-save-directory-list-file):
 	* calendar/todo-mode.el (todo-file-do, todo-file-done)
 	(todo-file-top): Run file names that begin with a period thru
 	`convert-standard-filename'.
