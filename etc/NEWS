@@ -472,18 +472,16 @@ is on a different frame.
 *** New functions window-parameters, window-parameter, set-window-parameter.
 
 ** Miscellaneous changes:
-
 +++
 *** C-l is bound to the new command recenter-top-bottom, rather than recenter.
 This moves the current line to window center, top and bottom on
 successive invokations.
 
 *** scroll-preserve-screen-position also preserves the column position.
-
++++
 *** If `yank-pop-change-selection' is t, rotating the kill ring also
 updates the selection or clipboard to the current yank, just as M-w
 would do so with the text it copies to the kill ring.
-
 +++
 *** C-M-% now shows replacement as it would look in the buffer, with
 `\N' and `\&' substituted according to the match.  Old behavior can be
@@ -493,7 +491,6 @@ restored by customizing `query-replace-show-replacement'.
 called with a prefix and the default directory is a remote file name.
 This is because some file name handlers (like ange-ftp) are not able to
 run processes remotely.
-
 +++
 *** The new command kill-matching-buffers kills buffers whose name
 matches a regexp.
