@@ -1316,6 +1316,10 @@ unless it ends in whitespace.
 *** set-file-modes is now interactive and can take the mode value in
 symbolic notation thanks to auxiliary functions.
 
++++
+*** file-local-variables-alist stores an alist of file-local
+variables defined in the current buffer.
+
 ** Process changes
 +++
 *** The new function `start-file-process' is similar to `start-process',
@@ -1390,9 +1394,6 @@ This replaces `char-valid-p', which is now obsolete.
 a character code property.
 
 *** New variables:
-
-**** file-local-variables-alist stores an alist of file-local
-variables defined in the current buffer.
 
 **** `find-word-boundary-function-table' is a char-table of functions to
 search for a word boundary.
@@ -1528,6 +1529,7 @@ which is not used directly any more.
 
 *** New hooks:
 
++++
 **** before-hack-local-variables-hook is called after setting new
 variable file-local-variables-alist, and before actually applying the
 file-local variables.
