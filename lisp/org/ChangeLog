@@ -1,3 +1,10 @@
+2008-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* org.el (org-default-notes-file): 
+	* org-publish.el (org-publish-timestamp-directory): 
+	* org-id.el (org-id-locations-file): Run file names that begin
+	with a period thru `convert-standard-filename'.
+
 2008-10-12  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-plot.el: Switch coding system to unix.
