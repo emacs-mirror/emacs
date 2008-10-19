@@ -1268,8 +1268,8 @@ WINDOW defaults to the selected window.
 When a window is dedicated to its buffer, `display-buffer' and
 `set-window-buffer' will refrain from displaying another buffer in it.
 `get-lru-window' and `get-largest-window' treat dedicated windows
-specially.  `delete-windows-on' and `replace-buffer-in-windows'
-sometimes delete a dedicated window and the containing frame.  */)
+specially.  `delete-windows-on', `replace-buffer-in-windows' and
+`kill-buffer' can delete a dedicated window and the containing frame.  */)
      (window)
      Lisp_Object window;
 {
@@ -1286,8 +1286,8 @@ Return FLAG.
 When a window is dedicated to its buffer, `display-buffer' and
 `set-window-buffer' will refrain from displaying another buffer in it.
 `get-lru-window' and `get-largest-window' treat dedicated windows
-specially.  `delete-windows-on' and `replace-buffer-in-windows'
-sometimes delete a dedicated window and the containing frame.  */)
+specially.  `delete-windows-on', `replace-buffer-in-windows' and
+`kill-buffer' can delete a dedicated window and the containing frame.  */)
      (window, flag)
      Lisp_Object window, flag;
 {
@@ -3490,7 +3490,9 @@ This function runs the hook `window-scroll-functions'.  */)
     error ("Attempt to display deleted buffer");
 
   tem = w->buffer;
-  if (!EQ (tem, Qt))
+  if (NILP (tem))
+    error ("Window is deleted");
+  else if (!EQ (tem, Qt))
     /* w->buffer is t when the window is first being set up.  */
     {
       if (!NILP (w->dedicated) && !EQ (tem, buffer))
@@ -3887,17 +3889,19 @@ See Info node `(elisp)Splitting Windows' for more details and examples.  */)
 }
 
 DEFUN ("enlarge-window", Fenlarge_window, Senlarge_window, 1, 2, "p",
-       doc: /* Make current window ARG lines bigger.
-From program, optional second arg non-nil means grow sideways ARG columns.
-Interactively, if an argument is not given, make the window one line bigger.
-If HORIZONTAL is non-nil, enlarge horizontally instead of vertically.
-This function can delete windows, even the second window, if they get
-too small.  */)
-     (arg, horizontal)
-     Lisp_Object arg, horizontal;
+       doc: /* Make selected window SIZE lines taller.
+Interactively, if no argument is given, make the selected window one
+line taller.  If optional argument HORIZONTAL is non-nil, make selected
+window wider by SIZE columns.  If SIZE is negative, shrink the window by
+-SIZE lines or columns.  Return nil.
+
+This function can delete windows if they get too small.  The size of
+fixed size windows is not altered by this function.  */)
+     (size, horizontal)
+     Lisp_Object size, horizontal;
 {
-  CHECK_NUMBER (arg);
-  enlarge_window (selected_window, XINT (arg), !NILP (horizontal));
+  CHECK_NUMBER (size);
+  enlarge_window (selected_window, XINT (size), !NILP (horizontal));
 
   run_window_configuration_change_hook (SELECTED_FRAME ());
 
@@ -3905,15 +3909,19 @@ too small.  */)
 }
 
 DEFUN ("shrink-window", Fshrink_window, Sshrink_window, 1, 2, "p",
-       doc: /* Make current window ARG lines smaller.
-From program, optional second arg non-nil means shrink sideways arg columns.
-Interactively, if an argument is not given, make the window one line smaller.
-Only siblings to the right or below are changed.  */)
-     (arg, side)
-     Lisp_Object arg, side;
+       doc: /* Make selected window SIZE lines smaller.
+Interactively, if no argument is given, make the selected window one
+line smaller.  If optional argument HORIZONTAL is non-nil, make the
+window narrower by SIZE columns.  If SIZE is negative, enlarge selected
+window by -SIZE lines or columns.  Return nil.
+
+This function can delete windows if they get too small.  The size of
+fixed size windows is not altered by this function. */)
+     (size, horizontal)
+     Lisp_Object size, horizontal;
 {
-  CHECK_NUMBER (arg);
-  enlarge_window (selected_window, -XINT (arg), !NILP (side));
+  CHECK_NUMBER (size);
+  enlarge_window (selected_window, -XINT (size), !NILP (horizontal));
 
   run_window_configuration_change_hook (SELECTED_FRAME ());
 
