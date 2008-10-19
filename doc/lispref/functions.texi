@@ -725,6 +725,41 @@ For an interesting example of using @code{apply}, see @ref{Definition
 of mapcar}.
 @end defun
 
+@cindex partial application of functions
+@cindex currying
+  Sometimes, it is useful to fix some of the function's arguments at
+certain values, and leave the rest of arguments for when the function
+is actually called.  The act of fixing some of the function's
+arguments is called @dfn{partial application} of the function@footnote{
+This is related to, but different from @dfn{currying}, which
+transforms a function that takes multiple arguments in such a way that
+it can be called as a chain of functions, each one with a single
+argument.}.
+The result is a new function that accepts the rest of
+arguments and calls the original function with all the arguments
+combined.  Emacs provides a function for partial evaluation:
+
+@defun apply-partially func &rest args
+This function returns a new function which, when called, will call
+@var{func} with the list of arguments composed from @var{args} and
+additional arguments specified at the time of the call.  If @var{func}
+accepts @var{n} arguments, then a call to @code{apply-partially} with
+@w{@code{@var{m} < @var{n}}} arguments will produce a new function of
+@w{@code{@var{n} - @var{m}}} arguments.
+
+Here's an example of using @code{apply-partially} to produce a
+function @code{incr}, that will increment its argument by one, based
+on the Emacs Lisp primitive @code{+}:
+
+@example
+(fset 'incr (apply-partially '+ 1))
+@group
+(incr 10)
+     @result{} 11
+@end group
+@end example
+@end defun
+
 @cindex functionals
   It is common for Lisp functions to accept functions as arguments or
 find them in data structures (especially in hook variables and property
