@@ -202,7 +202,7 @@ always kill the region if one exists.
 time.  Emacs activates the region around the selected text, which is
 also copied to the kill ring.
 
-@table @kbd
+@table @key
 @item Double-Mouse-1
 Select the text around the word which you click on.
 
@@ -299,10 +299,10 @@ second similar facility known as the @dfn{secondary selection}.
 Nowadays, few X applications make use of the secondary selection, but
 you can access it using the following Emacs commands:
 
-@table @kbd
+@table @key
 @findex mouse-set-secondary
 @kindex M-Drag-Mouse-1
-@item M-@key{Drag-Mouse-1}
+@item M-Drag-Mouse-1
 Set the secondary selection, with one end at the place where you press
 down the button, and the other end at the place where you release it
 (@code{mouse-set-secondary}).  The selected text is highlighted, using
@@ -314,13 +314,13 @@ This command does not alter the kill ring.
 
 @findex mouse-start-secondary
 @kindex M-Mouse-1
-@item M-@key{Mouse-1}
+@item M-Mouse-1
 Set one endpoint for the @dfn{secondary selection}
 (@code{mouse-start-secondary}).
 
 @findex mouse-secondary-save-then-kill
 @kindex M-Mouse-3
-@item M-@key{Mouse-3}
+@item M-Mouse-3
 Set the secondary selection, with one end at the position clicked and
 the other at the position specified with @kbd{M-Mouse-1}
 (@code{mouse-secondary-save-then-kill}).  This also puts the selected
@@ -329,18 +329,17 @@ place kills the secondary selection just made.
 
 @findex mouse-yank-secondary
 @kindex M-Mouse-2
-@item M-@key{Mouse-2}
+@item M-Mouse-2
 Insert the secondary selection where you click, placing point at the
 end of the yanked text (@code{mouse-yank-secondary}).
 @end table
 
-Double or triple clicking of @kbd{M-@key{Mouse-1}} operates on words
-and lines, much like @key{Mouse-1}.
+Double or triple clicking of @key{M-Mouse-1} operates on words and
+lines, much like @key{Mouse-1}.
 
-If @code{mouse-yank-at-point} is non-@code{nil}, @kbd{M-@key{Mouse-2}}
-yanks at point.  Then it does not matter precisely where you click, or
-even which of the frame's windows you click on.  @xref{Mouse
-Commands}.
+If @code{mouse-yank-at-point} is non-@code{nil}, @key{M-Mouse-2} yanks
+at point.  Then it does not matter precisely where you click, or even
+which of the frame's windows you click on.  @xref{Mouse Commands}.
 
 @node Clipboard
 @subsection Using the Clipboard
@@ -381,50 +380,46 @@ MS-Windows and Mac OS, but not on other systems.
 @kindex Mouse-1 @r{(selection)}
 @kindex Mouse-2 @r{(selection)}
 
-  Some Emacs buffers include references you can follow, or commands
-you can activate.  These include names of files, of buffers, of
-possible completions, of matches for a pattern, as well as the buttons
-in Help buffers and customization buffers.  You can follow the
-reference or activate the command by moving point to it and typing
-@key{RET}.  You can also do this with the mouse, using either
-@kbd{Mouse-1} or @kbd{Mouse-2}.
+@vindex mouse-highlight
+  Some Emacs buffers include @dfn{buttons} which perform some action,
+such as following a reference.  A button is a stretch of text that
+usually stands out in some way; it may be underlined, or a box may be
+drawn around it.  If you move the mouse over a button, the shape of
+the mouse cursor changes and the button lights up (if you change the
+variable @code{mouse-highlight} to @code{nil}, Emacs disables this
+highlighting).
 
-  Since yanking text into a read-only buffer is not allowed, these
-buffers generally define @kbd{Mouse-2} to follow a reference or
-activate a command.  For example, if you click @kbd{Mouse-2} on a file
-name in a Dired buffer, you visit that file.  If you click
-@kbd{Mouse-2} on an error message in the @samp{*Compilation*} buffer,
-you go to the source code for that error message.  If you click
-@kbd{Mouse-2} on a completion in the @samp{*Completions*} buffer, you
-choose that completion.
+  You can activate a button by moving point to it and typing
+@key{RET}, or by clicking either @kbd{Mouse-1} or @kbd{Mouse-2} on the
+button.  For example, typing @key{RET} or clicking on a file name in a
+Dired buffer visits that file (@pxref{Dired}).  Doing it on an error
+message in the @samp{*Compilation*} buffer goes to the source code for
+that error message (@pxref{Compilation}).  Doing it on a completion in
+the @samp{*Completions*} buffer chooses that completion
+(@pxref{Completion}).
 
-  However, most applications use @kbd{Mouse-1} to do this sort of
-thing, so Emacs implements this too.  If you click @kbd{Mouse-1}
-quickly on a reference or button, it follows or activates.  If you
-click slowly, it moves point as usual.  Dragging, meaning moving the
-mouse while it is held down, also has its usual behavior of setting
-the region.
+  Although clicking @key{Mouse-1} on a button usually activates that
+button, if you hold the mouse button down for a short period of time
+before releasing it (specifically, for more than 450 milliseconds),
+then Emacs moves point where you clicked instead.  This behavior
+allows you to use the mouse to move point over a button without
+following it.  Dragging, meaning moving the mouse while it is held
+down, has its usual behavior of setting the region.
 
 @vindex mouse-1-click-in-non-selected-windows
-  Normally, the @kbd{Mouse-1} click behavior is performed on links in
-any window.  The variable @code{mouse-1-click-in-non-selected-windows}
-controls whether @kbd{Mouse-1} has this behavior even in non-selected
-windows, or only in the selected window.
-
-@vindex mouse-highlight
-  You can usually tell when @kbd{Mouse-1} and @kbd{Mouse-2} have this
-special sort of meaning because the sensitive text highlights when you
-move the mouse over it.  The variable @code{mouse-highlight} controls
-whether to do this highlighting always (even when such text appears
-where the mouse already is), never, or only immediately after you move
-the mouse.
+  Normally, clicking @key{Mouse-1} on a button activates the button
+even if it is in an un-selected window.  If you change the variable
+@code{mouse-1-click-in-non-selected-windows} to @code{nil}, clicking
+@key{Mouse-1} on a button in an un-selected window moves point to the
+clicked position and selects that window, without activating the
+button.
 
 @vindex mouse-1-click-follows-link
-  In Emacs versions before 22, only @kbd{Mouse-2} follows links and
-@kbd{Mouse-1} always sets point.  If you prefer this older behavior,
-set the variable @code{mouse-1-click-follows-link} to @code{nil}.
-This variable also lets you choose various other alternatives for
-following links with the mouse.  Type @kbd{C-h v
+  In Emacs versions before 22, only @kbd{Mouse-2} activates buttons
+and @kbd{Mouse-1} always sets point.  If you prefer this older
+behavior, set the variable @code{mouse-1-click-follows-link} to
+@code{nil}.  This variable also lets you choose various other
+alternatives for following links with the mouse.  Type @kbd{C-h v
 mouse-1-click-follows-link @key{RET}} for more details.
 
 @node Menu Mouse Clicks
@@ -433,7 +428,7 @@ mouse-1-click-follows-link @key{RET}} for more details.
   Several mouse clicks with the @key{CTRL} and @key{SHIFT} modifiers
 bring up menus.
 
-@table @kbd
+@table @key
 @item C-Mouse-1
 @kindex C-Mouse-1
 This menu is for selecting a buffer.
@@ -461,7 +456,8 @@ present in the menu bar---not just the mode-specific ones---so that
 you can access them without having to display the menu bar.
 
 @item S-Mouse-1
-This menu is for specifying the frame's default font.
+This menu is for changing the default face within the window's buffer.
+@xref{Temporary Face Changes}.
 @end table
 
 @node Mode Line Mouse
@@ -557,8 +553,8 @@ frame.  This runs @code{find-file-read-only-other-frame}.
 
 @cindex default-frame-alist
 @cindex initial-frame-alist
-@cindex face customization, in @file{~/.emacs}
-@cindex color customization, in @file{~/.emacs}
+@cindex face customization, in init file
+@cindex color customization, in init file
   You can control the appearance of new frames you create by setting the
 frame parameters in @code{default-frame-alist}.  You can use the
 variable @code{initial-frame-alist} to specify parameters that affect
@@ -566,10 +562,9 @@ only the initial frame.  @xref{Initial Parameters,,, elisp, The Emacs
 Lisp Reference Manual}, for more information.
 
 @cindex font (default)
-  The easiest way to specify the principal font for all your Emacs
-frames is with an X resource (@pxref{Font X}), but you can also do it by
-modifying @code{default-frame-alist} to specify the @code{font}
-parameter, as shown here:
+  For instance, one way to specify the principal font for all your
+Emacs frames is to modify @code{default-frame-alist} to specify the
+@code{font} parameter (@pxref{Font X}):
 
 @example
 (add-to-list 'default-frame-alist '(font . "10x20"))
@@ -583,9 +578,9 @@ Here's a similar example for specifying a foreground color:
 @end example
 
 @noindent
-By putting such customizations in your @file{~/.emacs} init file, you
-can control the appearance of all the frames Emacs creates, including
-the initial one.
+By putting such customizations in your init file, you can control the
+appearance of all the frames Emacs creates, including the initial one.
+@xref{Init File}.
 
 @node Frame Commands
 @section Frame Commands
@@ -598,24 +593,20 @@ the initial one.
 @findex iconify-or-deiconify-frame
 Iconify the selected Emacs frame (@code{iconify-or-deiconify-frame}).
 When typed on an Emacs frame's icon, deiconify instead.
-
-The normal meaning of @kbd{C-z}, to suspend Emacs, is not useful under
-a graphical display that allows multiple applications to operate
-simultaneously in their own windows, so Emacs gives @kbd{C-z} a
-different binding in that case.
+@xref{Exiting}.
 
 @item C-x 5 0
 @kindex C-x 5 0
 @findex delete-frame
-Delete the selected frame (@code{delete-frame}).  This is not allowed if
-there is only one frame.
+Delete the selected frame (@code{delete-frame}).  This is not allowed
+if there is only one frame.
 
 @item C-x 5 o
 @kindex C-x 5 o
 @findex other-frame
-Select another frame, raise it, and warp the mouse to it so that it
-stays selected.  If you repeat this command, it cycles through all the
-frames on your terminal.
+Select another frame, raise it, and warp the mouse to it.  If you
+repeat this command, it cycles through all the frames on your
+terminal.
 
 @item C-x 5 1
 @kindex C-x 5 1
@@ -624,21 +615,20 @@ Delete all frames except the selected one.
 @end table
 
 @vindex focus-follows-mouse
-  To make the command @kbd{C-x 5 o} work properly, you must tell Emacs
-how the system (or the window manager) generally handles
-focus-switching between windows.  There are two possibilities: either
-simply moving the mouse onto a window selects it (gives it focus), or
-you have to click on it in a suitable way to do so.  On X, this focus
-policy also affects whether the focus is given to a frame that Emacs
-raises.  Unfortunately there is no way Emacs can find out
-automatically which way the system handles this, so you have to
-explicitly say, by setting the variable @code{focus-follows-mouse}.
-If just moving the mouse onto a window selects it, that variable
-should be @code{t}; if a click is necessary, the variable should be
-@code{nil}.
+  To make the command @kbd{C-x 5 o} work properly, you should tell
+Emacs how the system (or the window manager) handles focus-switching
+between windows.  There are two possibilities: either simply moving
+the mouse onto a window selects it (gives it focus), or you have to
+click on it to do so.  On X, this focus policy also affects whether
+the focus is given to a frame that Emacs raises.  Unfortunately there
+is no way Emacs can find out automatically which way the system
+handles this, so you have to explicitly say, by setting the variable
+@code{focus-follows-mouse}.  If just moving the mouse onto a window
+selects it, that variable should be @code{t}; if a click is necessary,
+the variable should be @code{nil}.  The default is @code{t}.
 
-The window manager that is part of MS-Windows always gives focus to a
-frame that raises, so this variable has no effect in the native
+  The window manager that is part of MS-Windows always gives focus to
+a frame that raises, so this variable has no effect in the native
 MS-Windows build of Emacs.
 
 @node Speedbar
@@ -721,15 +711,14 @@ single keyboard, and it treats all the commands arriving from these
 screens as a single stream of input.
 
   When you open frames on different X servers, Emacs makes a separate
-input stream for each server.  This way, two users can type
-simultaneously on the two displays, and Emacs will not garble their
-input.  Each server also has its own selected frame.  The commands you
-enter with a particular X server apply to that server's selected frame.
+input stream for each server.  Each server also has its own selected
+frame.  The commands you enter with a particular X server apply to
+that server's selected frame.
 
-  Despite these features, people using the same Emacs job from different
-displays can still interfere with each other if they are not careful.
-For example, if any one types @kbd{C-x C-c}, that exits the Emacs job
-for all of them!
+  It is even possible to use this feature to let two or more users
+type simultaneously on the two displays, within the same Emacs job.
+In practice, however, the different users can easily interfere with
+each others' edits if they are not careful.
 
 @node Special Buffer Frames
 @section Special Buffer Frames
@@ -804,16 +793,8 @@ whether that feature is also in use for the same buffer name.
 @cindex Auto-Raise mode
 @cindex Auto-Lower mode
 
-@kindex S-Mouse-1
-  You can specify the font and colors used for text display, and the
-colors for the frame borders, the cursor, and the mouse cursor, by
-customizing the faces @code{default}, @code{border}, @code{cursor} and
-@code{mouse}.  @xref{Face Customization}.  You can also set a frame's
-default font through a pop-up menu.  Press @kbd{S-Mouse-1} to activate
-this menu.
-
   These commands are available for controlling the window management
-behavior of the selected frame.
+behavior of the selected frame:
 
 @table @kbd
 @findex auto-raise-mode
@@ -857,43 +838,45 @@ Parameters,,, elisp, The Emacs Lisp Reference Manual}.
 @cindex mode, Scroll Bar
 
   On graphical displays, Emacs normally makes a @dfn{scroll bar} at
-the left of each Emacs window.@footnote{Placing it at the left is
-usually more useful with overlapping frames with text starting at the
-left margin.}  The scroll bar runs the height of the window, and shows
-a moving rectangular inner box which represents the portion of the
-buffer currently displayed.  The entire height of the scroll bar
-represents the entire length of the buffer.
+the left of each Emacs window, and running the height of the
+window.@footnote{Placing it at the left is usually more useful with
+overlapping frames with text starting at the left margin.}
 
-  You can use @kbd{Mouse-2} (normally, the middle button) in the scroll
-bar to move or drag the inner box up and down.  If you move it to the
-top of the scroll bar, you see the top of the buffer.  If you move it to
-the bottom of the scroll bar, you see the bottom of the buffer.
+  When Emacs is compiled with GTK support on the X window system, or
+in operating systems such as Microsoft Windows or Mac OS, you can use
+the scroll bar as you do in other graphical applications.  If you
+click @key{Mouse-1} on the scroll bar's up and down buttons, that
+scrolls the window by one line at a time.  Clicking @key{Mouse-1}
+above or below the scroll bar's inner box scrolls the window by nearly
+the entire height of the window, like @kbd{M-v} and @kbd{C-v}
+respectively (@pxref{Moving Point}).  Dragging the inner box with
+@key{Mouse-1} scrolls the window continuously.
 
-  The left and right buttons in the scroll bar scroll by controlled
-increments.  @kbd{Mouse-1} (normally, the left button) moves the line at
-the level where you click up to the top of the window.  @kbd{Mouse-3}
-(normally, the right button) moves the line at the top of the window
-down to the level where you click.  By clicking repeatedly in the same
-place, you can scroll by the same distance over and over.
+  If Emacs is compiled without GTK support on the X window system, the
+scroll bar behaves differently.  The scroll bar's inner box is drawn
+to represent the portion of the buffer currently displayed, with the
+entire height of the scroll bar representing the entire length of the
+buffer.  @key{Mouse-1} anywhere on the scroll bar scrolls forward like
+@kbd{C-v}, and @key{Mouse-3} scrolls backward like @kbd{M-v}.
+Clicking @key{Mouse-2} in the scroll bar lets you move or drag the
+inner box up and down.
 
   You can also click @kbd{C-Mouse-2} in the scroll bar to split a
 window vertically.  The split occurs on the line where you click.
 
 @findex scroll-bar-mode
 @vindex scroll-bar-mode
-  You can enable or disable Scroll Bar mode with the command @kbd{M-x
-scroll-bar-mode}.  With no argument, it toggles the use of scroll
-bars.  With an argument, it turns use of scroll bars on if and only if
-the argument is positive.  This command applies to all frames,
-including frames yet to be created.  Customize the variable
-@code{scroll-bar-mode} to control the use of scroll bars at startup.
-You can use it to specify that they are placed at the right of windows
-if you prefer that.  You have to set this variable through the
-@samp{Customize} interface (@pxref{Easy Customization}), or it will
-not work properly.
-
-  You can also use the X resource @samp{verticalScrollBars} to control
-the initial setting of Scroll Bar mode.  @xref{Resources}.
+  You can toggle the use of the scroll bar with the command @kbd{M-x
+scroll-bar-mode}.  With a prefix argument, this command turns use of
+scroll bars on if and only if the argument is positive.  This command
+applies to all frames, including frames yet to be created.  Customize
+the variable @code{scroll-bar-mode} to control the use of scroll bars
+at startup.  You can use it to specify that they are placed at the
+right of windows if you prefer that.  You have to set this variable
+through the @samp{Customize} interface (@pxref{Easy Customization}),
+or it will not work properly.  You can also use the X resource
+@samp{verticalScrollBars} to control the initial setting of Scroll Bar
+mode.  @xref{Resources}.
 
 @findex toggle-scroll-bar
   To enable or disable scroll bars for just the selected frame, use the
