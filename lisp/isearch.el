@@ -1333,9 +1333,15 @@ Use `isearch-exit' to quit without signaling."
   (sit-for 1)
   (isearch-update))
 
-(defun isearch-query-replace (&optional regexp-flag)
-  "Start `query-replace' with string to replace from last search string."
-  (interactive)
+(defun isearch-query-replace (&optional delimited regexp-flag)
+  "Start `query-replace' with string to replace from last search string.
+The arg DELIMITED (prefix arg if interactive), if non-nil, means replace
+only matches surrounded by word boundaries.  Note that using the prefix arg
+is possible only when `isearch-allow-scroll' is non-nil, and it don't
+always provides the correct matches for `query-replace', so the preferred
+way to run word replacements from Isearch is `M-s w ... M-%'."
+  (interactive
+   (list current-prefix-arg))
   (barf-if-buffer-read-only)
   (if regexp-flag (setq isearch-regexp t))
   (let ((case-fold-search isearch-case-fold-search)
@@ -1356,16 +1362,21 @@ Use `isearch-exit' to quit without signaling."
      isearch-string
      (query-replace-read-to
       isearch-string
-      (if isearch-regexp "Query replace regexp" "Query replace")
+      (concat "Query replace"
+	      (if (or delimited isearch-word) " word" "")
+	      (if isearch-regexp " regexp" "")
+	      (if (and transient-mark-mode mark-active) " in region" ""))
       isearch-regexp)
-     t isearch-regexp isearch-word nil nil
+     t isearch-regexp (or delimited isearch-word) nil nil
      (if (and transient-mark-mode mark-active) (region-beginning))
      (if (and transient-mark-mode mark-active) (region-end)))))
 
-(defun isearch-query-replace-regexp ()
-  "Start `query-replace-regexp' with string to replace from last search string."
-  (interactive)
-  (isearch-query-replace t))
+(defun isearch-query-replace-regexp (&optional delimited)
+  "Start `query-replace-regexp' with string to replace from last search string.
+See `isearch-query-replace' for more information."
+  (interactive
+   (list current-prefix-arg))
+  (isearch-query-replace delimited t))
 
 (defun isearch-occur (regexp &optional nlines)
   "Run `occur' with regexp to search from the current search string.
