@@ -1,5 +1,8 @@
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* elisp.texi (Top): Make descriptive text for "Reading File Names"
+	match the corresponding menu in minibuf.texi.
+
 	* minibuf.texi (Reading File Names): Document `read-shell-command'
 	and `minibuffer-local-shell-command-map'.
 
