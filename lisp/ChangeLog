@@ -1,5 +1,8 @@
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* dos-fns.el (dos-reevaluate-defcustoms): New function.  Add it to
+	before-init-hook.
+
 	Fix Bug #1183:
 
 	* ediff-diff.el (ediff-exec-process): For buffer jobs, bind
