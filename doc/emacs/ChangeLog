@@ -1,3 +1,11 @@
+2008-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Cut/Paste Other App): Document
+	yank-pop-change-selection.
+	(Secondary Selection): Fix modified mouse click syntax.
+	(Clipboard): Describe Cut, Copy and Paste commands.
+	(Mouse References): Not all references are in read-only buffers.
+
 2008-10-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.texi (Version Control): Copyedits.  Add Bazaar.
