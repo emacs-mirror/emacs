@@ -472,7 +472,7 @@ Do the right thing if the file has been compressed or zipped."
 (defun Info-file-supports-index-cookies (&optional file)
   "Return non-nil value if FILE supports Info index cookies.
 Info index cookies were first introduced in 4.7, and all later
-makeinfo versions output them in index nodes, so we can reply
+makeinfo versions output them in index nodes, so we can rely
 solely on the makeinfo version.  This function caches the information
 in `Info-file-supports-index-cookies-list'."
   (or file (setq file Info-current-file))
