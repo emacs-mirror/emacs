@@ -162,9 +162,12 @@ Lisp_Object Vdbus_debug;
    : (FLOATP (object)) ? DBUS_TYPE_DOUBLE				\
    : (STRINGP (object)) ? DBUS_TYPE_STRING				\
    : (XD_DBUS_TYPE_P (object)) ? XD_SYMBOL_TO_DBUS_TYPE (object)	\
-   : (CONSP (object)) ? ((XD_DBUS_TYPE_P (CAR_SAFE (object)))		\
-			 ? XD_SYMBOL_TO_DBUS_TYPE (CAR_SAFE (object))	\
-			 : DBUS_TYPE_ARRAY)				\
+   : (CONSP (object))							\
+   ? ((XD_DBUS_TYPE_P (CAR_SAFE (object)))				\
+      ? ((XD_BASIC_DBUS_TYPE (XD_SYMBOL_TO_DBUS_TYPE (CAR_SAFE (object)))) \
+	 ? DBUS_TYPE_ARRAY						\
+	 : XD_SYMBOL_TO_DBUS_TYPE (CAR_SAFE (object)))			\
+      : DBUS_TYPE_ARRAY)						\
    : DBUS_TYPE_INVALID)
 
 /* Return a list pointer which does not have a Lisp symbol as car.  */
