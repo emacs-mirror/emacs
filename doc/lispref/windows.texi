@@ -2066,9 +2066,9 @@ window at a time until that window is used up, then takes from another.
 If a window from which lines are stolen shrinks below
 @code{window-min-height} lines, that window disappears.
 
-If @var{horizontal} is non-@code{nil}, this function makes
-@var{window} wider by @var{size} columns, stealing columns instead of
-lines.  If a window from which columns are stolen shrinks below
+If @var{horizontal} is non-@code{nil}, this function makes the window
+@var{size} columns wider, stealing columns instead of lines.  If a
+window from which columns are stolen shrinks below
 @code{window-min-width} columns, that window disappears.
 
 If the requested size would exceed that of the window's frame, then the
@@ -2193,21 +2193,20 @@ functions to a minimum height and width.
 @defopt window-min-height
 The value of this variable determines how short a window may become
 before it is automatically deleted.  Making a window smaller than
-@code{window-min-height} automatically deletes it, and no window may
-be created shorter than this.  The default value is 4.
-
-The absolute minimum window height is one; actions that change window
-sizes reset this variable to one if it is less than one.
+@code{window-min-height} automatically deletes it, and no window may be
+created shorter than this.  The value is measured in line units.  When
+the window wants a mode- and/or header-line, they are counted as one
+line each.  The default value of this variable is 4.  A value less than
+1 is ignored.
 @end defopt
 
 @defopt window-min-width
 The value of this variable determines how narrow a window may become
 before it is automatically deleted.  Making a window smaller than
 @code{window-min-width} automatically deletes it, and no window may be
-created narrower than this.  The default value is 10.
-
-The absolute minimum window width is two; actions that change window
-sizes reset this variable to two if it is less than two.
+created narrower than this.  The value is measured in characters and
+includes any fringes or the scroll bar.  The default value is 10.  A
+value less than 2 is ignored.
 @end defopt
 
 @node Coordinates and Windows
