@@ -1979,7 +1979,7 @@ stdout will be intermixed in the output stream.")
 
 (defun minibuffer-default-add-shell-commands ()
   "Return a list of all commands associted with the current file.
-This function is used to add all related commands retieved by `mailcap'
+This function is used to add all related commands retrieved by `mailcap'
 to the end of the list of defaults just after the default value."
   (interactive)
   (let* ((filename (if (listp minibuffer-default)
