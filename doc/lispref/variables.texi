@@ -1577,11 +1577,37 @@ function does not look for the @samp{mode:} local variable in the
 @w{@samp{-*-}} line.  @code{set-auto-mode} does that, also taking
 @code{enable-local-variables} into account (@pxref{Auto Major Mode}).
 
+This function works by walking the alist stored in
+@code{file-local-variables-alist}, and applies each local variable in
+turn.  It calls @code{before-hack-local-variables-hook} and
+@code{hack-local-variables-hook} before and after applying the
+variables, respectively.
+
 If the optional argument @var{mode-only} is non-@code{nil}, then all
 this function does is return @code{t} if the @w{@samp{-*-}} line or
 the local variables list specifies a mode and @code{nil} otherwise.
 It does not set the mode nor any other file local variable.
 @end defun
+
+@defvar file-local-variables-alist
+This buffer-local variable holds the alist of file-local variable
+settings.  Each element of the alist is of the form
+@w{@code{(@var{var} . @var{value})}}, where @var{var} is a symbol of
+the local variable and @var{value} is its value.  When Emacs visits a
+file, it first collects all the file-local variables into this alist,
+and then the @code{hack-local-variables} function applies them one by
+one.
+@end defvar
+
+@defvar before-hack-local-variables-hook
+Emacs calls this hook immediately before applying file-local variables
+stored in @code{file-local-variables-alist}.
+@end defvar
+
+@defvar hack-local-variables-hook
+Emacs calls this hook immediately after it finishes applying
+file-local variables stored in @code{file-local-variables-alist}.
+@end defvar
 
   If a file local variable could specify a function that would
 be called later, or an expression that would be executed later, simply
