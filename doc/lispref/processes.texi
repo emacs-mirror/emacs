@@ -65,7 +65,7 @@ Processes}.
 @node Subprocess Creation
 @section Functions that Create Subprocesses
 
-  There are three functions that create a new subprocess in which to run
+  There are three primitives that create a new subprocess in which to run
 a program.  One of them, @code{start-process}, creates an asynchronous
 process and returns a process object (@pxref{Asynchronous Processes}).
 The other two, @code{call-process} and @code{call-process-region},
@@ -447,6 +447,21 @@ This function is like @code{call-process-shell-command}, but uses
 @defun shell-command-to-string command
 This function executes @var{command} (a string) as a shell command,
 then returns the command's output as a string.
+@end defun
+
+@defun process-lines program &rest args
+This function runs @var{program} in a separate process, waits for it
+to finish, and returns its output as a list of strings.  Each string
+in the list holds a single line of text output by the program; the
+end-of-line characters are stripped from each line.  The arguments
+beyond @var{program}, @var{args}, are strings that specify
+command-line arguments with which to run the program.
+
+If @var{program} exits with a non-zero exit status, this function
+signals an error.
+
+This function works by calling @code{call-process}, so program output
+is decoded in the same way as for @code{call-process}.
 @end defun
 
 @node Asynchronous Processes
