@@ -630,7 +630,8 @@ Completion
 * Completion Commands::     Minibuffer commands that do completion.
 * High-Level Completion::   Convenient special cases of completion
                               (reading buffer name, file name, etc.)
-* Reading File Names::      Using completion to read file names.
+* Reading File Names::      Using completion to read file names and
+                              shell commands.
 * Programmed Completion::   Finding the completions for a given file name.
 
 Command Loop
