@@ -1,3 +1,8 @@
+2008-10-19  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (read-regexp): Rename arg `default' to `default-value'.
+	Doc fix.
+
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (apply-partially): Moved here from minibuffer.el.  Doc fix.
