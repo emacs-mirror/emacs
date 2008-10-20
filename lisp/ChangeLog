@@ -1,3 +1,7 @@
+2008-10-20  Andreas Schwab  <schwab@suse.de>
+
+	* subr.el (split-string-and-unquote): Simplify regexp.
+
 2008-10-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (top-level): Require `cl' when compiling.
