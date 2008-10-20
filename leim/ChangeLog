@@ -1,3 +1,8 @@
+2008-10-20  Kenichi Handa  <handa@m17n.org>
+
+	* quail/indian.el (inscript-mlm-keytable): New variable.
+	(malayalam-inscript): Use inscript-mlm-keytable.
+
 2008-09-11  Magnus Henoch  <mange@freemail.hu>
 
 	* quail/cyrillic.el ("cyrillic-translit"): Add g' for Ukrainian G
