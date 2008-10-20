@@ -1,3 +1,7 @@
+2008-10-20  İsmail Dönmez  <ismail@namtrac.org>  (tiny change)
+
+	* url-auth.el (url-basic-auth): Encode password string.
+
 2008-08-30  Glenn Morris  <rgm@gnu.org>
 
 	* url-http.el (url-https-expand-file-name): Resolve directly to
