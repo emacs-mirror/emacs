@@ -2846,7 +2846,7 @@ DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2,
 Only the 12 low bits of MODE are used.
 
 Interactively, mode bits are read by `read-file-modes', which accepts
-symbolic notation, like GNU Coreutils do.  */)
+symbolic notation, like the `chmod' command from GNU Coreutils.  */)
   (filename, mode)
      Lisp_Object filename, mode;
 {
