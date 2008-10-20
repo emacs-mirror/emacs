@@ -81,6 +81,26 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
 
+/* w3i3m9 clone-platform, differs from w3i3mv only in MPS_PF_STRING
+ * and compiler options.
+ */
+
+#elif defined(CONFIG_PF_W3I3M9) \
+      || defined(_MSC_VER) && (_MSC_VER >= 1500) && defined(_WIN32) && defined(_M_IX86)
+#if defined(CONFIG_PF_W3I3M9) \
+      && ! ( defined(_MSC_VER) && (_MSC_VER >= 1500) && defined(_WIN32) && defined(_M_IX86) )
+#error "CONFIG_PF_W3I3M9 inconsistent with target platform detected"
+#endif
+#define MPS_PF_W3I3MV
+#define MPS_PF_STRING   "w3i3m9"
+#define MPS_OS_W3
+#define MPS_ARCH_I3
+#define MPS_BUILD_MV
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    8
+
 /* Visual C++ 2.0, Books Online, C/C++ Book, Preprocessor Reference,
  * Chapter 1: The Preprocessor, Macros, Predefined Macros.
  * Alignment of 4 would work, but the MS library uses 8 bytes for
@@ -90,6 +110,11 @@
 
 #elif defined(CONFIG_PF_W3I3MV) \
       || defined(_MSC_VER) && defined(_WIN32) && defined(_M_IX86)
+#if defined(CONFIG_PF_W3I3MV) \
+      && ! ( defined(_MSC_VER) && (_MSC_VER < 1500) && defined(_WIN32) && defined(_M_IX86) )
+#error "CONFIG_PF_W3I3MV inconsistent with target platform detected"
+/* (See w3i3m9 clone-platform, above) */
+#endif
 #define MPS_PF_W3I3MV
 #define MPS_PF_STRING   "w3i3mv"
 #define MPS_OS_W3
