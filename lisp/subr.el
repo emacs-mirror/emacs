@@ -25,9 +25,6 @@
 
 ;;; Code:
 
-;; This is for lexical-let in apply-partially.
-(eval-when-compile (require 'cl))
-
 (defvar custom-declare-variable-list nil
   "Record `defcustom' calls made before `custom.el' is loaded to handle them.
 Each element of this list holds the arguments to one call to `defcustom'.")
@@ -74,6 +71,11 @@ the end of FILE must be all on the same line.  For example:
 For more information, see Info node `elisp(Declaring Functions)'."
   ;; Does nothing - byte-compile-declare-function does the work.
   nil)
+
+;; This is for lexical-let in apply-partially.  It is here because cl
+;; needs declare-function, defined above.
+(eval-when-compile (require 'cl))
+
 
 ;;;; Basic Lisp macros.
 
