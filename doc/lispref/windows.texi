@@ -404,7 +404,7 @@ winds up with a single window showing another buffer chosen with
 is dedicated and there are other frames left, the window's frame is
 deleted.
 
-The argument @var{frame} controls which frames to operate on.  This
+The argument @var{frame} specifies which frames to operate on.  This
 function does not use it in quite the same way as the other functions
 which scan all windows; specifically, the values @code{t} and @code{nil}
 have the opposite of their meanings in other functions.  Here are the
@@ -498,7 +498,7 @@ candidate.  Dedicated windows are never candidates unless the
 @var{dedicated} argument is non-@code{nil}, so if all
 existing windows are dedicated, the value is @code{nil}.
 
-The argument @var{frame} controls which windows are considered.
+The argument @var{frame} specifies which windows are considered.
 
 @itemize @bullet
 @item
@@ -526,7 +526,7 @@ If there are two candidate windows of the same size, this function
 prefers the one that comes first in the cyclic ordering of windows
 (see following section), starting from the selected window.
 
-The argument @var{frame} controls which set of windows to
+The argument @var{frame} specifies which set of windows to
 consider.  See @code{get-lru-window}, above.
 @end defun
 
@@ -577,7 +577,7 @@ if typed when @var{window} is selected.  If @var{window} is the only
 window visible, then this function returns @var{window}.  If omitted,
 @var{window} defaults to the selected window.
 
-The value of the argument @var{minibuf} controls whether the
+The value of the argument @var{minibuf} specifies whether the
 minibuffer is included in the window order.  Normally, when
 @var{minibuf} is @code{nil}, the minibuffer is included if it is
 currently active; this is the behavior of @kbd{C-x o}.  (The minibuffer
@@ -670,7 +670,7 @@ with @var{window}.  If @var{frame} is @code{nil} or omitted,
 @code{window-list} uses the selected frame instead; if @var{window} is
 @code{nil} or omitted, it uses the selected window.
 
-The value of @var{minibuf} controls if the minibuffer window is
+The value of @var{minibuf} specifies if the minibuffer window is
 included in the result list.  If @var{minibuf} is @code{t}, the result
 always includes the minibuffer window.  If @var{minibuf} is @code{nil}
 or omitted, that includes the minibuffer window if it is active.  If
@@ -744,7 +744,7 @@ several such windows, then the function returns the first one in the
 cyclic ordering of windows, starting from the selected window.
 @xref{Cyclic Window Ordering}.
 
-The argument @var{all-frames} controls which windows to consider.
+The argument @var{all-frames} specifies which windows to consider.
 
 @itemize @bullet
 @item
@@ -984,14 +984,14 @@ variables, described below.
 @end defopt
 
 @defopt pop-up-windows
-This variable controls whether @code{display-buffer} makes new windows.
+This variable specifies whether @code{display-buffer} makes new windows.
 If it is non-@code{nil} and there is only one window, then that window
 is split vertically.  If it is @code{nil}, then @code{display-buffer}
 does not split the single window, but uses it whole.
 @end defopt
 
 @defopt split-height-threshold
-This variable controls when @code{display-buffer} may split a window
+This variable specifies when @code{display-buffer} may split a window
 vertically, if there are multiple windows.  If the value is a number,
 @code{display-buffer} splits the largest window if it has at least
 this many lines.  If the largest window is not this tall, or if the
@@ -1005,7 +1005,7 @@ Otherwise, @code{display-buffer} uses one of the existing windows.
 @end defopt
 
 @defopt split-width-threshold
-This variable controls when @code{display-buffer} may split a window
+This variable specifies when @code{display-buffer} may split a window
 horizontally.  If the value is a number, @code{display-buffer} may
 split a window if it has at least this many columns.  If the value of
 this variable is @code{nil}, @code{display-buffer} will not split any
@@ -1014,7 +1014,7 @@ though, see above.)
 @end defopt
 
 @defopt even-window-heights
-This variable controls whether @code{display-buffer} should even out
+This variable specifies whether @code{display-buffer} should even out
 window heights if the buffer gets displayed in an existing window,
 above or beneath another existing window.  If
 @code{even-window-heights} is @code{t}, the default, window heights
@@ -1024,7 +1024,7 @@ original window heights will be left alone.
 
 @c Emacs 19 feature
 @defopt pop-up-frames
-This variable controls whether @code{display-buffer} makes new frames.
+This variable specifies whether @code{display-buffer} makes new frames.
 If it is non-@code{nil}, @code{display-buffer} looks for an existing
 window already displaying the desired buffer, on any visible frame.
 If it finds one, it returns that window.  Otherwise it makes a new
@@ -2191,7 +2191,7 @@ fixed-size window, if there is no other alternative.
 functions to a minimum height and width.
 
 @defopt window-min-height
-The value of this variable controls how short a window may become
+The value of this variable specifies how short a window may become
 before it is automatically deleted.  Making a window smaller than
 @code{window-min-height} automatically deletes it, and no window may be
 created shorter than this.  The value is measured in line units.  When
@@ -2201,7 +2201,7 @@ line each.  The default value of this variable is 4.  A value less than
 @end defopt
 
 @defopt window-min-width
-The value of this variable controls how narrow a window may become
+The value of this variable specifies how narrow a window may become
 before it is automatically deleted.  Making a window smaller than
 @code{window-min-width} automatically deletes it, and no window may be
 created narrower than this.  The value is measured in characters and
