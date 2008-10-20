@@ -118,6 +118,12 @@ mps_clock_t mps_clocks_per_sec(void)
 }
 
 
+#ifdef MPS_BUILD_MV
+/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
+/* Objects to: getenv.  See job001934. */
+#pragma warning( disable : 4996 )
+#endif
+
 unsigned long mps_lib_telemetry_control(void)
 {
   char *s;
