@@ -24,6 +24,10 @@
 ;;; Commentary:
 
 ;;; Code:
+
+;; This is for lexical-let in apply-partially.
+(eval-when-compile (require 'cl))
+
 (defvar custom-declare-variable-list nil
   "Record `defcustom' calls made before `custom.el' is loaded to handle them.
 Each element of this list holds the arguments to one call to `defcustom'.")
