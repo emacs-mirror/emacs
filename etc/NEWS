@@ -852,7 +852,7 @@ permits to customize indentation of LaTeX environments delimited
 by escaped parens.
 
 ** T-mouse Mode
-
+---
 *** If the gpm mouse server is running and t-mouse-mode is enabled,
 Emacs uses a Unix socket in a GNU/Linux console to talk to server,
 rather than faking events using the client program mev.  This C level
