@@ -838,11 +838,11 @@ Parameters,,, elisp, The Emacs Lisp Reference Manual}.
 @cindex mode, Scroll Bar
 
   On graphical displays, Emacs normally makes a @dfn{scroll bar} at
-the left of each Emacs window, and running the height of the
+the left of each Emacs window, running the height of the
 window.@footnote{Placing it at the left is usually more useful with
 overlapping frames with text starting at the left margin.}
 
-  When Emacs is compiled with GTK support on the X window system, or
+  When Emacs is compiled with GTK+ support on the X window system, or
 in operating systems such as Microsoft Windows or Mac OS, you can use
 the scroll bar as you do in other graphical applications.  If you
 click @key{Mouse-1} on the scroll bar's up and down buttons, that
@@ -852,12 +852,12 @@ the entire height of the window, like @kbd{M-v} and @kbd{C-v}
 respectively (@pxref{Moving Point}).  Dragging the inner box with
 @key{Mouse-1} scrolls the window continuously.
 
-  If Emacs is compiled without GTK support on the X window system, the
-scroll bar behaves differently.  The scroll bar's inner box is drawn
-to represent the portion of the buffer currently displayed, with the
-entire height of the scroll bar representing the entire length of the
-buffer.  @key{Mouse-1} anywhere on the scroll bar scrolls forward like
-@kbd{C-v}, and @key{Mouse-3} scrolls backward like @kbd{M-v}.
+  If Emacs is compiled without GTK+ support on the X window system,
+the scroll bar behaves differently.  The scroll bar's inner box is
+drawn to represent the portion of the buffer currently displayed, with
+the entire height of the scroll bar representing the entire length of
+the buffer.  @key{Mouse-1} anywhere on the scroll bar scrolls forward
+like @kbd{C-v}, and @key{Mouse-3} scrolls backward like @kbd{M-v}.
 Clicking @key{Mouse-2} in the scroll bar lets you move or drag the
 inner box up and down.
 
@@ -989,11 +989,13 @@ tool-bar-mode} or by customizing the option @code{tool-bar-mode}.
   A dialog box is a special kind of menu for asking you a yes-or-no
 question or some other special question.  Many Emacs commands use a
 dialog box to ask a yes-or-no question, if you used the mouse to
-invoke the command to begin with.
+invoke the command that led to the question.
 
-  You can customize the variable @code{use-dialog-box} to suppress the
-use of dialog boxes.  This also controls whether to use file selection
-windows (but those are not supported on all platforms).
+  To disable the use of dialog boxes, change the variable
+@code{use-dialog-box} to @code{nil}.  In that case, Emacs always
+performs yes-or-no prompts using the echo area and keyboard input.
+This variable also controls whether to use file selection windows (but
+those are not supported on all platforms).
 
 @vindex use-file-dialog
   A file selection window is a special kind of dialog box for asking
@@ -1003,24 +1005,22 @@ other kinds of dialogs.  This variable has no effect if you have
 suppressed all dialog boxes with the variable @code{use-dialog-box}.
 
 @vindex x-gtk-show-hidden-files
-  For Gtk+ version 2.4 and newer, Emacs use the Gtk+ file chooser
-dialog.  Emacs adds a toggle button that enables and disables showing
-of hidden files (files starting with a dot) in that dialog.  The
-variable @code{x-gtk-show-hidden-files} controls whether to show
-hidden files by default.
-
 @vindex x-gtk-use-old-file-dialog
-  For Gtk+ versions 2.4 through 2.10, you can select the old file
-dialog (@code{gtk-file-selector}) by setting the variable
-@code{x-gtk-use-old-file-dialog} to a non-@code{nil} value.  If it is
-@code{nil}, Emacs uses @code{gtk-file-chooser}.  If Emacs is built
-with a Gtk+ version that has only one file dialog, this variable has
-no effect.
-
 @vindex x-gtk-file-dialog-help-text
-  Emacs adds help text to the Gtk+ file chooser dialog.  The variable
-@code{x-gtk-file-dialog-help-text} specifies the text to add; if it is
-@code{nil}, that disables the added text.
+  When Emacs is compiled with GTK+ support, it uses the GTK+ ``file
+chooser'' dialog.  Emacs adds an additional toggle button to this
+dialog, which you can use to enable or disable the display of hidden
+files (files starting with a dot) in that dialog.  If you want this
+toggle to be activated by default, change the variable
+@code{x-gtk-show-hidden-files} to @code{t}.  In addition, Emacs adds
+help text to the GTK+ file chooser dialog; to disable this help text,
+change the variable @code{x-gtk-file-dialog-help-text} to @code{nil}.
+
+  In GTK+ versions 2.4 through 2.10, you can choose to use an older
+version of the GTK+ file dialog by setting the variable
+@code{x-gtk-use-old-file-dialog} to a non-@code{nil} value.  If Emacs
+is built with a GTK+ version that has only one file dialog, this
+variable has no effect.
 
 @node Tooltips
 @section Tooltips
@@ -1117,7 +1117,7 @@ in the mode line when the frame is selected.
 @cindex mouse support
 @cindex terminal emulators, mouse support
 
-Some terminal emulators support mouse clicks in the terminal window.
+Some text-only terminals support mouse clicks in the terminal window.
 
 @cindex xterm
 In a terminal emulator which is compatible with @code{xterm},
@@ -1129,9 +1129,9 @@ press the mouse button.  Xterm Mouse mode is a global minor mode
 (@pxref{Minor Modes}).  Repeating the command turns the mode off
 again.
 
-In the console on GNU/Linux, you can use @kbd{M-x t-mouse-mode}.  You
-need to have the gpm package installed and running on your system in
-order for this to work.
+In the console on GNU/Linux, you can use @kbd{M-x t-mouse-mode} to
+enable terminal mouse support.  You must have the gpm package
+installed and running on your system in order for this to work.
 
 @ignore
    arch-tag: 7dcf3a31-a43b-45d4-a900-445b10d77e49
