@@ -998,6 +998,7 @@ This variable also controls whether to use file selection windows (but
 those are not supported on all platforms).
 
 @vindex use-file-dialog
+@cindex file selection dialog, how to disable
   A file selection window is a special kind of dialog box for asking
 for file names.  You can customize the variable @code{use-file-dialog}
 to suppress the use of file selection windows, even if you still want
@@ -1005,8 +1006,9 @@ other kinds of dialogs.  This variable has no effect if you have
 suppressed all dialog boxes with the variable @code{use-dialog-box}.
 
 @vindex x-gtk-show-hidden-files
-@vindex x-gtk-use-old-file-dialog
 @vindex x-gtk-file-dialog-help-text
+@cindex hidden files, in GTK+ file chooser
+@cindex help text, in GTK+ file chooser
   When Emacs is compiled with GTK+ support, it uses the GTK+ ``file
 chooser'' dialog.  Emacs adds an additional toggle button to this
 dialog, which you can use to enable or disable the display of hidden
@@ -1016,6 +1018,7 @@ toggle to be activated by default, change the variable
 help text to the GTK+ file chooser dialog; to disable this help text,
 change the variable @code{x-gtk-file-dialog-help-text} to @code{nil}.
 
+@vindex x-gtk-use-old-file-dialog
   In GTK+ versions 2.4 through 2.10, you can choose to use an older
 version of the GTK+ file dialog by setting the variable
 @code{x-gtk-use-old-file-dialog} to a non-@code{nil} value.  If Emacs
