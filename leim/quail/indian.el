@@ -178,6 +178,29 @@
     (;; Inscripts
      ?# ?$ ?^ ?* ?\])))
 
+(defvar inscript-mlm-keytable
+  '(
+    (;; VOWELS  (18)
+     (?D nil) (?E ?e) (?F ?f) (?R ?r) (?G ?g) (?T ?t)
+     (?+ ?=) ("F]" "f]") (?! ?@) (?S ?s) (?Z ?z) (?W ?w)
+     (?| ?\\) (?~ ?`) (?A ?a) (?Q ?q) ("+]" "=]") ("R]" "r]"))
+    (;; CONSONANTS (42)
+     ?k ?K ?i ?I ?U                ;; GRUTTALS
+     ?\; ?: ?p ?P ?}               ;; PALATALS
+     ?' ?\" ?\[ ?{ ?C              ;; CEREBRALS
+     ?l ?L ?o ?O ?v ?V             ;; DENTALS
+     ?h ?H ?y ?Y ?c                ;; LABIALS
+     ?/ ?j ?J ?n ?N "N]" ?b        ;; SEMIVOWELS
+     ?M ?< ?m ?u                   ;; SIBILANTS
+     "k]" "K]" "i]" "p]" "[]" "{]" "H]" "/]" ;; NUKTAS
+     ?% ?&)
+    (;; Misc Symbols (7)
+     ?X ?x ?_ ">]" ?d "X]" ?>)
+    (;; Digits
+     ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)
+    (;; Inscripts
+     ?# ?$ ?^ ?* ?\])))
+
 (defvar inscript-tml-keytable
   '(
     (;; VOWELS  (18)
@@ -260,7 +283,7 @@
 (if nil
     (quail-define-package "malayalam-inscript" "Malayalam" "MlmIS" t "Malayalam keyboard Inscript"))
 (quail-define-inscript-package
- indian-mlm-base-table inscript-dev-keytable
+ indian-mlm-base-table inscript-mlm-keytable
  "malayalam-inscript" "Malayalam" "MlmIS"
  "Malayalam keyboard Inscript.")
 
