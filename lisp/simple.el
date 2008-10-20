@@ -29,6 +29,9 @@
 
 ;;; Code:
 
+;; This is for lexical-let in apply-partially.
+(eval-when-compile (require 'cl))
+
 (declare-function widget-convert "wid-edit" (type &rest args))
 (declare-function shell-mode "shell" ())
 
@@ -2477,7 +2480,6 @@ objects of file handler invocation."
   (let ((fh (find-file-name-handler default-directory 'start-file-process)))
     (if fh (apply fh 'start-file-process name buffer program program-args)
       (apply 'start-process name buffer program program-args))))
-
 
 
 (defvar universal-argument-map
@@ -6246,6 +6248,16 @@ works by saving the value of `buffer-invisibility-spec' and setting it to nil."
     (set (make-local-variable 'vis-mode-saved-buffer-invisibility-spec)
 	 buffer-invisibility-spec)
     (setq buffer-invisibility-spec nil)))
+
+;; Partial application of functions (similar to "currying").
+(defun apply-partially (fun &rest args)
+  "Return a function that is a partial application of FUN to ARGS.
+ARGS is a list of the first N arguments to pass to FUN.
+The result is a new function which does the same as FUN, except that
+the first N arguments are fixed at the values with which this function
+was called."
+  (lexical-let ((fun fun) (args1 args))
+    (lambda (&rest args2) (apply fun (append args1 args2)))))
 
 ;; Minibuffer prompt stuff.
 

@@ -3556,20 +3556,5 @@ is greater than \"1pre\" which is greater than \"1beta\" which is greater than
 \"1alpha\"."
   (version-list-= (version-to-list v1) (version-to-list v2)))
 
-
-;; This is for lexical-let in apply-partially.  It is here because cl
-;; needs various macros defined above.
-(eval-when-compile (require 'cl))
-
-(defun apply-partially (fun &rest args)
-  "Return a function that is a partial application of FUN to ARGS.
-ARGS is a list of the first N arguments to pass to FUN.
-The result is a new function which does the same as FUN, except that
-the first N arguments are fixed at the values with which this function
-was called."
-  (lexical-let ((fun fun) (args1 args))
-    (lambda (&rest args2) (apply fun (append args1 args2)))))
-
-
 ;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here
