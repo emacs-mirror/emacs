@@ -577,7 +577,7 @@ if typed when @var{window} is selected.  If @var{window} is the only
 window visible, then this function returns @var{window}.  If omitted,
 @var{window} defaults to the selected window.
 
-The value of the argument @var{minibuf} determines whether the
+The value of the argument @var{minibuf} controls whether the
 minibuffer is included in the window order.  Normally, when
 @var{minibuf} is @code{nil}, the minibuffer is included if it is
 currently active; this is the behavior of @kbd{C-x o}.  (The minibuffer
@@ -670,7 +670,7 @@ with @var{window}.  If @var{frame} is @code{nil} or omitted,
 @code{window-list} uses the selected frame instead; if @var{window} is
 @code{nil} or omitted, it uses the selected window.
 
-The value of @var{minibuf} determines if the minibuffer window is
+The value of @var{minibuf} controls if the minibuffer window is
 included in the result list.  If @var{minibuf} is @code{t}, the result
 always includes the minibuffer window.  If @var{minibuf} is @code{nil}
 or omitted, that includes the minibuffer window if it is active.  If
@@ -991,21 +991,21 @@ does not split the single window, but uses it whole.
 @end defopt
 
 @defopt split-height-threshold
-This variable determines when @code{display-buffer} may split a window
+This variable controls when @code{display-buffer} may split a window
 vertically, if there are multiple windows.  If the value is a number,
 @code{display-buffer} splits the largest window if it has at least
 this many lines.  If the largest window is not this tall, or if the
 value of this variable is @code{nil}, @code{display-buffer} tries to
 split some window horizontally, subject to restrictions of
 @code{split-width-threshold} (see below).  If splitting horizontally
-is impossible, @code{display-buffer} will split a window vertically
+is impossible, @code{display-buffer} splits a window vertically
 only if it's the only window on its frame and not the minibuffer
 window, and only if @code{pop-up-windows} is non-@code{nil}.
 Otherwise, @code{display-buffer} uses one of the existing windows.
 @end defopt
 
 @defopt split-width-threshold
-This variable determines when @code{display-buffer} may split a window
+This variable controls when @code{display-buffer} may split a window
 horizontally.  If the value is a number, @code{display-buffer} may
 split a window if it has at least this many columns.  If the value of
 this variable is @code{nil}, @code{display-buffer} will not split any
@@ -1014,12 +1014,12 @@ though, see above.)
 @end defopt
 
 @defopt even-window-heights
-This variable determines if @code{display-buffer} should even out window
-heights if the buffer gets displayed in an existing window, above or
-beneath another existing window.  If @code{even-window-heights} is
-@code{t}, the default, window heights will be evened out.  If
-@code{even-window-heights} is @code{nil}, the original window heights
-will be left alone.
+This variable controls whether @code{display-buffer} should even out
+window heights if the buffer gets displayed in an existing window,
+above or beneath another existing window.  If
+@code{even-window-heights} is @code{t}, the default, window heights
+will be evened out.  If @code{even-window-heights} is @code{nil}, the
+original window heights will be left alone.
 @end defopt
 
 @c Emacs 19 feature
@@ -2191,7 +2191,7 @@ fixed-size window, if there is no other alternative.
 functions to a minimum height and width.
 
 @defopt window-min-height
-The value of this variable determines how short a window may become
+The value of this variable controls how short a window may become
 before it is automatically deleted.  Making a window smaller than
 @code{window-min-height} automatically deletes it, and no window may be
 created shorter than this.  The value is measured in line units.  When
@@ -2201,7 +2201,7 @@ line each.  The default value of this variable is 4.  A value less than
 @end defopt
 
 @defopt window-min-width
-The value of this variable determines how narrow a window may become
+The value of this variable controls how narrow a window may become
 before it is automatically deleted.  Making a window smaller than
 @code{window-min-width} automatically deletes it, and no window may be
 created narrower than this.  The value is measured in characters and
