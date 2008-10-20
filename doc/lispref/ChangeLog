@@ -1,3 +1,10 @@
+2008-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (Shell Arguments): Document `split-string-and-unquote'
+	and `combine-and-quote-strings'.
+
+	* strings.texi (Creating Strings): Add xrefs for them.
+
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* elisp.texi (Top): Make descriptive text for "Reading File Names"
