@@ -3512,10 +3512,9 @@ Advanced commands:
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-history-forward)
   (make-local-variable 'Info-index-alternatives)
-  (setq header-line-format
-	(if Info-use-header-line
-	    '(:eval (get-text-property (point-min) 'header-line))
-	  nil)) ; so the header line isn't displayed
+  (if Info-use-header-line    ; do not override global header lines
+      (setq header-line-format
+ 	    '(:eval (get-text-property (point-min) 'header-line))))
   (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
   ;; This is for the sake of the invisible text we use handling titles.
   (make-local-variable 'line-move-ignore-invisible)
