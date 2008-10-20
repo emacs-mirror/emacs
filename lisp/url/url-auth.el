@@ -93,7 +93,8 @@ instead of the filename inheritance method."
 		       (cons file
 			     (setq retval
 				   (base64-encode-string
-				    (format "%s:%s" user pass)))))
+				    (format "%s:%s" user
+					    (encode-coding-string pass 'utf-8))))))
 		 (symbol-value url-basic-auth-storage))))
      (byserv
       (setq retval (cdr-safe (assoc file byserv)))
