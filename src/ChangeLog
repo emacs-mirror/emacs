@@ -1,3 +1,7 @@
+2008-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fset_file_modes): Doc fix.
+
 2008-10-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (XD_OBJECT_TO_DBUS_TYPE): Handle simple type symbols
