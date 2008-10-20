@@ -194,6 +194,43 @@ a shell command:
 @end example
 @end defun
 
+@cindex quoting and unquoting shell command line
+  The following two functions help creating shell commands from
+individual argument strings and taking shell command lines apart into
+individual arguments.
+
+@defun split-string-and-unquote string &optional separators
+This function splits @var{string} into substrings at matches for the
+regular expression @var{separators}, like @code{split-string} does
+(@pxref{Creating Strings}), but it additionally removes quoting from
+the substrings.  It then makes a list of the substrings and returns
+it.
+
+If @var{separators} is omitted or nil, it defaults to @code{"\\s-+"},
+which is a regular expression that matches one or more characters with
+whitespace syntax (@pxref{Syntax Class Table}).
+
+The quoting this function supports is of 2 styles: by enclosing a
+whole string in double quotes @code{"@dots{}"}, or by quoting
+individual characters with a backslash escape @samp{\}.  The latter is
+also used in Lisp strings, so this function can handle those as well.
+@end defun
+
+@defun combine-and-quote-strings list-of-strings &optional separator
+This function concatenates @var{list-of-strings} into a single string,
+quoting each string in the list that needs quoting as it goes.  It
+also sticks the @var{separator} string in between each pair of strings
+in the result, and returns that result.  If @var{separator} is omitted
+or @code{nil}, it defaults to a blank @code{" "}.
+
+The strings in @var{list-of-strings} that need quoting are those that
+include @var{separator} as their substring.  Quoting a string encloses
+it in double quotes @code{"@dots{}"}.  In the simplest case, if you
+are consing a shell command from the individual command-line
+arguments, every argument that includes embedded blanks will be
+quoted.
+@end defun
+
 @node Synchronous Processes
 @section Creating a Synchronous Process
 @cindex synchronous subprocess
