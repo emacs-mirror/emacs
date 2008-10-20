@@ -381,13 +381,13 @@ MS-Windows and Mac OS, but not on other systems.
 @kindex Mouse-2 @r{(selection)}
 
 @vindex mouse-highlight
-  Some Emacs buffers include @dfn{buttons} which perform some action,
-such as following a reference.  A button is a stretch of text that
-usually stands out in some way; it may be underlined, or a box may be
-drawn around it.  If you move the mouse over a button, the shape of
-the mouse cursor changes and the button lights up (if you change the
-variable @code{mouse-highlight} to @code{nil}, Emacs disables this
-highlighting).
+  Some Emacs buffers include @dfn{buttons}.  A button is a piece of
+text that performs some action when you activate it, such as following
+a reference.  Usually, a button's text is visually highlighted: it is
+underlined, or a box is drawn around it.  If you move the mouse over a
+button, the shape of the mouse cursor changes and the button lights up
+(if you change the variable @code{mouse-highlight} to @code{nil},
+Emacs disables this highlighting).
 
   You can activate a button by moving point to it and typing
 @key{RET}, or by clicking either @kbd{Mouse-1} or @kbd{Mouse-2} on the
@@ -403,12 +403,13 @@ button, if you hold the mouse button down for a short period of time
 before releasing it (specifically, for more than 450 milliseconds),
 then Emacs moves point where you clicked instead.  This behavior
 allows you to use the mouse to move point over a button without
-following it.  Dragging, meaning moving the mouse while it is held
-down, has its usual behavior of setting the region.
+following it.  Dragging---moving the mouse while it is held down---has
+its usual behavior of setting the region, even if you drag from or
+onto a button.
 
 @vindex mouse-1-click-in-non-selected-windows
   Normally, clicking @key{Mouse-1} on a button activates the button
-even if it is in an un-selected window.  If you change the variable
+even if it is in a nonselected window.  If you change the variable
 @code{mouse-1-click-in-non-selected-windows} to @code{nil}, clicking
 @key{Mouse-1} on a button in an un-selected window moves point to the
 clicked position and selects that window, without activating the
