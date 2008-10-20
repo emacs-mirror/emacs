@@ -1550,13 +1550,13 @@ complete and relative specifications can be combined, as in
 symbolic mode bits specifications.
 @end defun
 
-@deffn Subroutine file-modes-symbolic-to-number modes &optional base-modes
+@defun file-modes-symbolic-to-number modes &optional base-modes
 This subroutine converts a symbolic specification of file mode bits in
 @var{modes} into the equivalent numeric value.  If the symbolic
 specification is based on an existing file, that file's mode bits are
 taken from the optional argument @var{base-modes}; if that argument is
 omitted or nil, it defaults to zero, i.e.@: no access rights at all.
-@end deffn
+@end defun
 
 @defun set-file-times filename &optional time
 This function sets the access and modification times of @var{filename}

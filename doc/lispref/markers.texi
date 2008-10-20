@@ -575,13 +575,13 @@ any subsequent command that moves point and is not shift-translated
 action that would normally deactivate the mark.
 @end defopt
 
-@deffn Subroutine use-region-p
+@defun use-region-p
 This function returns @code{t} if Transient Mark mode is enabled, the
 mark is active, and there's a valid region in the buffer.  Commands
 that operate on the region (instead of on text near point) when
 there's an active mark should use this subroutine to test whether to
 do that.
-@end deffn
+@end defun
 
 @defopt mark-even-if-inactive
 If this is non-@code{nil}, Lisp programs and the Emacs user can use the
