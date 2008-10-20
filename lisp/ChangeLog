@@ -1,3 +1,8 @@
+2008-10-20  David Reitter <david.reitter@gmail.com>
+
+	* info.el (Info-mode): Do not remove an existing header line if
+	`Info-use-header-line' is nil.
+
 2008-10-19  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-query-replace, isearch-query-replace-regexp):
