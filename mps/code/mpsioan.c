@@ -35,7 +35,11 @@ extern int _flsbuf(unsigned char c, FILE *stream);
 
 static FILE *ioFile = NULL;
 
+#ifdef MPS_BUILD_MV
+/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
+/* Objects to: fopen.  See job001934. */
 #pragma warning( disable : 4996 )
+#endif
 
 mps_res_t mps_io_create(mps_io_t *mps_io_r)
 {
