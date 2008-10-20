@@ -1276,7 +1276,7 @@ and @code{read-input-method-name}, in @ref{Input Methods}.
 @cindex read file names
 @cindex prompt for file name
 
-  Here is a couple of other high-level completion function, designed
+  Here is a couple of other high-level completion functions, designed
 for reading file names and shell commands.  They provide special
 features including automatic insertion of the default directory.
 
@@ -1465,20 +1465,17 @@ The file is @point{}
 This function reads a shell command from the minibuffer, prompting
 with @var{prompt} and providing intelligent completion.  It completes
 the first word of the command using candidates that are appropriate
-for command names.  The rest of the shell command arguments are
-completed as file names.
+for command names, and the rest of the command words as file names.
 
-This function works by calling @code{read-from-minibuffer}
-(@pxref{Text from Minibuffer}), passing it
-@code{minibuffer-local-shell-command-map} as the @var{keymap}
-argument.  The optional arguments @var{initial-contents} and
-@var{hist} are passed to @code{read-from-minibuffer} unaltered, except
-that if @var{hist} is omitted or @code{nil}, it defaults to
+This function uses @code{minibuffer-local-shell-command-map} as the
+keymap for minibuffer input.  The @var{hist} argument specifies the
+history list to use; if is omitted or @code{nil}, it defaults to
 @code{shell-command-history} (@pxref{Minibuffer History,
-shell-command-history}), and the @var{read} argument is passed as
-@code{nil}.  The rest of @var{args}, if present, are used by
-@code{read-from-minibuffer} as its @var{default} and
-@var{inherit-input-method} arguments.
+shell-command-history}).  The optional argument @var{initial-contents}
+specifies the initial content of the minibuffer (@pxref{Initial
+Input}).  The rest of @var{args}, if present, are used as the
+@var{default} and @var{inherit-input-method} arguments in
+@code{read-from-minibuffer} (@pxref{Text from Minibuffer}).
 @end defun
 
 @defvar minibuffer-local-shell-command-map
