@@ -1599,9 +1599,16 @@ attributes of a given face.
 *** `window-full-width-p' returns t if a window is as wide as its
 frame.
 
-*** `split-string-and-unquote' does (what?)
++++
+*** `split-string-and-unquote' splits a string into a list of substrings
+on the boundaries of a given delimiter, and unquotes the substrings that
+are quoted.  Useful for taking apart shell commands.
 
-*** `combine-and-quote-strings' does (what?)
++++
+*** `combine-and-quote-strings' produces a single string from a list of strings
+sticking a separator string in between each pair, and quoting those
+strings that include the separator as their substring.  Useful for
+consing shell command lines from the individual arguments.
 
 *** `image-refresh' refreshes all images associated with a given image
 specification.
