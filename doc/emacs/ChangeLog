@@ -1,5 +1,34 @@
 2008-10-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* vc1-xtra.texi: Move nodes VC Directory Mode and VC Directory Commands
+	to files.texi.  Move contents of vc2-xtra.texi here.
+
+	* vc2-xtra.texi: File removed.
+
+	* vc-xtra.texi (Advanced VC Usage): Remove VC Directory Mode and VC
+	Directory Commands from the submenu.  Don't include deleted file
+	vc2-xtra.texi.
+
+	* files.texi (Visiting): Document find-file-confirm-nonexistent-file.
+	(Version Control): Add VC Directory Mode and VC Directory Commands to
+	the submenu.
+	(Why Version Control?): Use table format.
+	(Version Control Systems): Note that Meta-CVS support is gone.
+	(VCS Concepts): Note precisely when VC started supporting filesets.
+	Remove bogus xref to CVS Options node.
+	(Types of Log File): Copyedits.
+	(VC Mode Line): Document tooltips and mouse-1 on VC indicator.
+	(Basic VC Editing): Content moved from Selecting A Fileset and Doing
+	The Right Thing.
+	(Selecting A Fileset, Doing The Right Thing): Nodes deleted.
+	(Log Buffer): Reorganize node, putting C-c C-c description first.
+	(Old Revisions): Use CVS for example, not RCS.
+	(Secondary VC Commands): Remove VC Directory Mode and VC Directory
+	Commands from the submenu, putting them under Version Control.
+	(VC Directory Mode): Move node contents here from vc1-xtra.texi; we
+	need to include it in the manual unconditionally, since it is now
+	crucial to using distributed version control systems.
+
 	* major.texi (Choosing Modes): Make mode selection sequence more
 	obvious by describing the steps in order of priority.  Note that
 	magic-mode-alist is nil by default.  Document
