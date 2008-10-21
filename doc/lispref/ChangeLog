@@ -1,5 +1,7 @@
 2008-10-21  Eli Zaretskii  <eliz@gnu.org>
 
+	* processes.texi (Serial Ports): Fix wording and improve markup.
+
 	* searching.texi (Regexp Search): Document `string-match-p' and
 	`looking-at-p'.
 	(POSIX Regexps): Add an xref for "non-greedy".
