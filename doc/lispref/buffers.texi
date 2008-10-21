@@ -30,6 +30,7 @@ not be displayed in any windows.
 * Creating Buffers::    Functions that create buffers.
 * Killing Buffers::     Buffers exist until explicitly killed.
 * Indirect Buffers::    An indirect buffer shares text with some other buffer.
+* Swapping Text::       Swapping text between two buffers.
 * Buffer Gap::          The gap in the buffer.
 @end menu
 
@@ -1134,6 +1135,44 @@ This function returns the base buffer of @var{buffer}, which defaults
 to the current buffer.  If @var{buffer} is not indirect, the value is
 @code{nil}.  Otherwise, the value is another buffer, which is never an
 indirect buffer.
+@end defun
+
+@node Swapping Text
+@section Swapping Text Between Two Buffers
+@cindex swap text between buffers
+@cindex virtual buffers
+
+  Specialized modes sometimes need to let the user access from the
+same buffer several vastly different types of text.  For example, you
+may need to display a summary of the buffer text, in addition to
+letting the user access the text itself.
+
+  This could be implemented with multiple buffers (kept in sync when
+the user edits the text), or with narrowing (@pxref{Narrowing}).  But
+these alternatives might sometimes become tedious or prohibitively
+expensive, especially if each type of text requires expensive
+buffer-global operations in order to provide correct display and
+editing commands.
+
+  Emacs provides another facility for such modes: you can quickly swap
+buffer text between two buffers with @code{buffer-swap-text}.  This
+function is very fast because it doesn't move any text, it only
+changes the internal data structures of the buffer object to point to
+a different chunk of text.  Using it, you can pretend that a group of
+two or more buffers are actually a single virtual buffer that holds
+the contents of all the individual buffers together.
+
+@defun buffer-swap-text buffer
+This function swaps text between the current buffer and its argument
+@var{buffer}.  It signals an error if one of the two buffers is an
+indirect buffer (@pxref{Indirect Buffers}) or is a base buffer of an
+indirect buffer.
+
+All the buffer properties that are related to the buffer text are
+swapped as well: the positions of point and mark, all the markers, the
+overlays, the text properties, the undo list, the value of the
+@code{enable-multibyte-characters} flag (@pxref{Text Representations,
+enable-multibyte-characters}), etc.
 @end defun
 
 @node Buffer Gap
