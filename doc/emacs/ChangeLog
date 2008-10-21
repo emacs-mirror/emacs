@@ -1,3 +1,10 @@
+2008-10-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* major.texi (Choosing Modes): Make mode selection sequence more
+	obvious by describing the steps in order of priority.  Note that
+	magic-mode-alist is nil by default.  Document
+	magic-fallback-mode-alist.
+
 2008-10-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Mouse References): Copyedits.
