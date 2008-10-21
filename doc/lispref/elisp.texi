@@ -900,6 +900,7 @@ Buffers
 * Killing Buffers::         Buffers exist until explicitly killed.
 * Indirect Buffers::        An indirect buffer shares text with some
                               other buffer.
+* Swapping Text::           Swapping text between two buffers.
 * Buffer Gap::              The gap in the buffer.
 
 Windows
