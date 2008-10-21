@@ -1631,6 +1631,7 @@ port support (see Emacs changes, above).
 
 ** Miscellaneous new variables
 
++++
 *** `this-command-keys-shift-translated' is non-nil if the key
 sequence invoking the current command was found by shift-translation.
 
