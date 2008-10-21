@@ -28,8 +28,8 @@ these variables?  For those, I added these two concept index entries:
     @cindex help text, in GTK+ file chooser
 
 Thus, if a user types "i hidden files TAB" in Info, she will see the
-first entry, and if so if she types "i file chooser RET".  See why it
-is better?
+first entry, and so if she types "i file chooser RET".  See why it is
+better?
 
 The way to come up with useful index entries is to put yourself in the
 shoes of someone who looks for the information, and think about words
