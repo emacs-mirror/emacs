@@ -133,7 +133,7 @@ macos.texi     -- contents need to be evaluated and see what is still
  relevant after the NS merge.  (If this is here, why is ns-emacs.texi
  relegated to doc/misc?)
 maintaining.texi
-major.texi
+major.texi        -- cyd
 mark.texi         -- cyd
 mini.texi         -- cyd
 misc.texi
