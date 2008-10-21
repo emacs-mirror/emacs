@@ -71,11 +71,91 @@ the command to select that mode.  Thus, you can enter Lisp mode by
 executing @kbd{M-x lisp-mode}.
 
 @vindex auto-mode-alist
-  When you visit a file, Emacs usually chooses the right major mode based
-on the file's name.  For example, files whose names end in @samp{.c} are
-edited in C mode.  The correspondence between file names and major modes is
-controlled by the variable @code{auto-mode-alist}.  Its value is a list in
-which each element has this form,
+  When you visit a file, Emacs usually chooses the right major mode
+automatically.  Normally, the choice is made based on the file
+name---for example, files whose names end in @samp{.c} are normally
+edited in C mode---but sometimes the major mode is selected using the
+contents of the file.  Here is the exact procedure:
+
+  First, Emacs checks whether the file contains a file-local variable
+that specifies the major mode.  If so, it uses that major mode,
+ignoring all other criteria.  @xref{File Variables}.  There are
+several methods to specify a major mode using a file-local variable;
+the simplest is to put the mode name in the first nonblank line,
+preceded and followed by @samp{-*-}.  Other text may appear on the
+line as well.  For example,
+
+@example
+; -*-Lisp-*-
+@end example
+
+@noindent
+tells Emacs to use Lisp mode.  Note how the semicolon is used to make
+Lisp treat this line as a comment.  Alternatively, you could write
+
+@example
+; -*- mode: Lisp;-*-
+@end example
+
+@noindent
+The latter format allows you to specify local variables as well, like
+this:
+
+@example
+; -*- mode: Lisp; tab-width: 4; -*-
+@end example
+
+@vindex interpreter-mode-alist
+  Secondly, Emacs checks whether the file's contents begin with
+@samp{#!}.  If so, that indicates that the file can serve as an
+executable shell command, which works by running an interpreter named
+on the file's first line (the rest of the file is used as input to the
+interpreter).  Therefore, Emacs tries to use the interpreter name to
+choose a mode.  For instance, a file that begins with
+@samp{#!/usr/bin/perl} is opened in Perl mode.  The variable
+@code{interpreter-mode-alist} specifies the correspondence between
+interpreter program names and major modes.
+
+  When the first line starts with @samp{#!}, you usually cannot use
+the @samp{-*-} feature on the first line, because the system would get
+confused when running the interpreter.  So Emacs looks for @samp{-*-}
+on the second line in such files as well as on the first line.  The
+same is true for man pages which start with the magic string
+@samp{'\"} to specify a list of troff preprocessors.
+
+@vindex magic-mode-alist
+  Thirdly, Emacs tries to determine the major mode by looking at the
+text at the start of the buffer, based on the variable
+@code{magic-mode-alist}.  By default, this variable is @code{nil} (an
+empty list), so Emacs skips this step; however, you can customize it
+in your init file (@pxref{Init File}).  The value should be a list of
+elements of the form
+
+@example
+(@var{regexp} . @var{mode-function})
+@end example
+
+@noindent
+where @var{regexp} is a regular expression (@pxref{Regexps}), and
+@var{mode-function} is a Lisp function that toggles a major mode.  If
+the text at the beginning of the file matches @var{regexp}, Emacs
+chooses the major mode specified by @var{mode-function}.
+
+Alternatively, an element of @code{magic-mode-alist} may have the form
+
+@example
+(@var{match-function} . @var{mode-function})
+@end example
+
+@noindent
+where @var{match-function} is a Lisp function that is called at the
+beginning of the buffer; if the function returns non-@code{nil}, Emacs
+set the major mode wit @var{mode-function}.
+
+  Fourthly---if Emacs still hasn't found a suitable major mode---it
+looks at the file's name.  The correspondence between file names and
+major modes is controlled by the variable @code{auto-mode-alist}.  Its
+value is a list in which each element has this form,
 
 @example
 (@var{regexp} . @var{mode-function})
@@ -99,93 +179,30 @@ the element has the form @code{(@var{regexp} @var{mode-function}
 @var{mode-function}, Emacs discards the suffix that matched
 @var{regexp} and searches the list again for another match.
 
-@vindex magic-mode-alist
-  Sometimes the major mode is determined from the way the file's text
-begins.  The variable @code{magic-mode-alist} controls this.  Its value
-is a list of elements of these forms:
-
-@example
-(@var{regexp} . @var{mode-function})
-(@var{match-function} . @var{mode-function})
-@end example
-
-@noindent
-The first form looks like an element of @code{auto-mode-alist}, but it
-doesn't work the same: this @var{regexp} is matched against the text
-at the start of the buffer, not against the file name.  Likewise, the
-second form calls @var{match-function} at the beginning of the buffer,
-and if the function returns non-@code{nil}, the @var{mode-function} is
-called.  @code{magic-mode-alist} takes priority over
-@code{auto-mode-alist}.
-
-  You can specify the major mode to use for editing a certain file by
-special text in the first nonblank line of the file.  The
-mode name should appear in this line both preceded and followed by
-@samp{-*-}.  Other text may appear on the line as well.  For example,
-
-@example
-;-*-Lisp-*-
-@end example
-
-@noindent
-tells Emacs to use Lisp mode.  Such an explicit specification overrides
-any defaults based on the file name.  Note how the semicolon is used
-to make Lisp treat this line as a comment.
-
-  Another format of mode specification is
-
-@example
--*- mode: @var{modename};-*-
-@end example
-
-@noindent
-which allows you to specify local variables as well, like this:
-
-@example
--*- mode: @var{modename}; @var{var}: @var{value}; @dots{} -*-
-@end example
-
-@noindent
-@xref{File Variables}, for more information about this.
-
 @vindex auto-mode-case-fold
-  On systems with case-insensitive file names, only a single
-case-insensitive search through the @code{auto-mode-alist} is made.
-On other systems, Emacs normally performs a single case-sensitive
-search through the alist, but if you set this variable to a
-non-@code{nil} value, Emacs will perform a second case-insensitive
-search if the first search fails.
+  On systems with case-insensitive file names, such as Microsoft
+Windows, Emacs performs a single case-insensitive search through
+@code{auto-mode-alist}.  On other systems, Emacs normally performs a
+single case-sensitive search through the alist.  However, if you
+change the variable @code{auto-mode-case-fold} to @code{t}, Emacs
+performs a second case-insensitive search if the first search fails.
 
-@vindex interpreter-mode-alist
-  When a file's contents begin with @samp{#!}, it can serve as an
-executable shell command, which works by running an interpreter named on
-the file's first line.  The rest of the file is used as input to the
-interpreter.
-
-  When you visit such a file in Emacs, if the file's name does not
-specify a major mode, Emacs uses the interpreter name on the first line
-to choose a mode.  If the first line is the name of a recognized
-interpreter program, such as @samp{perl} or @samp{tcl}, Emacs uses a
-mode appropriate for programs for that interpreter.  The variable
-@code{interpreter-mode-alist} specifies the correspondence between
-interpreter program names and major modes.
-
-  When the first line starts with @samp{#!}, you cannot (on many
-systems) use the @samp{-*-} feature on the first line, because the
-system would get confused when running the interpreter.  So Emacs looks
-for @samp{-*-} on the second line in such files as well as on the
-first line.  The same is true for man pages which start with the magic
-string @samp{'\"} to specify a list of troff preprocessors (not all do,
-however).
-
+@vindex magic-fallback-mode-alist
+  Finally, if Emacs @emph{still} hasn't found a major mode to use, it
+compares the text at the start of the buffer to the variable
+@code{magic-fallback-mode-alist}.  This variable works like
+@code{magic-mode-alist}, described above, except that is consulted
+only after @code{auto-mode-alist}.  By default,
+@code{magic-fallback-mode-alist} contains forms that check for image
+files, HTML/XML/SGML files, and Postscript files.
 
 @vindex default-major-mode
   When you visit a file that does not specify a major mode to use, or
 when you create a new buffer with @kbd{C-x b}, the variable
 @code{default-major-mode} specifies which major mode to use.  Normally
 its value is the symbol @code{fundamental-mode}, which specifies
-Fundamental mode.  If @code{default-major-mode} is @code{nil}, the major
-mode is taken from the previously current buffer.
+Fundamental mode.  If @code{default-major-mode} is @code{nil}, the
+major mode is taken from the previously current buffer.
 
 @findex normal-mode
   If you change the major mode of a buffer, you can go back to the major
