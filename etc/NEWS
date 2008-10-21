@@ -1599,6 +1599,7 @@ useful for modes such as tar-mode, archive-mode, RMAIL.
 *** `face-all-attributes' returns an alist describing all the basic
 attributes of a given face.
 
++++
 *** `window-full-width-p' returns t if a window is as wide as its
 frame.
 
