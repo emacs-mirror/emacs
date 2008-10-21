@@ -4545,9 +4545,9 @@ This function refreshes any images having image specifications
 @code{nil}, the selected frame is used.  If @var{frame} is @code{t},
 the refresh is applied to all existing frames.
 
-This works by removing all image with image specifications matching
-@var{spec} from the image cache.  Thus, the next time the image is
-displayed, Emacs will load the image again.
+This works by removing from the image cache all the images whose image
+specifications match @var{spec}.  The next time Emacs needs to display
+such an image, it will reload the image anew.
 @end defun
 
 @defun clear-image-cache &optional filter
