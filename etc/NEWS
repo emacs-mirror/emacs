@@ -1618,6 +1618,7 @@ consing shell command lines from the individual arguments.
 *** `image-refresh' refreshes all images associated with a given image
 specification.
 
++++
 *** The two new functions `looking-at-p' and `string-match-p' can do
 the same matching as `looking-at' and `string-match' without changing
 the match data.
