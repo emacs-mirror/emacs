@@ -1595,6 +1595,7 @@ useful for modes such as tar-mode, archive-mode, RMAIL.
 +++
 *** `read-color' reads a color name using the minibuffer.
 
++++
 *** `face-all-attributes' returns an alist describing all the basic
 attributes of a given face.
 
