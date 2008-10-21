@@ -1819,6 +1819,9 @@ valid, and what they look like.  In some cases, the value depends on the
 @dfn{selected frame}, as described below; see @ref{Input Focus}, for the
 meaning of the term ``selected frame.''
 
+  To read user input of color names with completion, use
+@code{read-color} (@pxref{High-Level Completion, read-color}).
+
 @defun color-defined-p color &optional frame
 This function reports whether a color name is meaningful.  It returns
 @code{t} if so; otherwise, @code{nil}.  The argument @var{frame} says
