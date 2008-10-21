@@ -8442,7 +8442,8 @@ START and END are buffer positions.
 
 Optional 4th arguments DESTINATION specifies where the decoded text goes.
 If nil, the region between START and END is replaced by the decoded text.
-If buffer, the decoded text is inserted in the buffer.
+If buffer, the decoded text is inserted in that buffer after point (point
+does not move).
 In those cases, the length of the decoded text is returned.
 If DESTINATION is t, the decoded text is returned.
 
@@ -8464,7 +8465,8 @@ START and END are buffer positions.
 
 Optional 4th arguments DESTINATION specifies where the encoded text goes.
 If nil, the region between START and END is replace by the encoded text.
-If buffer, the encoded text is inserted in the buffer.
+If buffer, the encoded text is inserted in that buffer after point (point
+does not move).
 In those cases, the length of the encoded text is returned.
 If DESTINATION is t, the encoded text is returned.
 
@@ -8544,8 +8546,8 @@ Optional third arg NOCOPY non-nil means it is OK to return STRING itself
 if the decoding operation is trivial.
 
 Optional fourth arg BUFFER non-nil means that the decoded text is
-inserted in BUFFER instead of returned as a string.  In this case,
-the return value is the length of the decoded text.
+inserted in that buffer after point (point does not move).  In this
+case, the return value is the length of the decoded text.
 
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
@@ -8565,8 +8567,8 @@ Optional third arg NOCOPY non-nil means it is OK to return STRING
 itself if the encoding operation is trivial.
 
 Optional fourth arg BUFFER non-nil means that the encoded text is
-inserted in BUFFER instead of returned as a string.  In this case,
-the return value is the length of the encoded text.
+inserted in that buffer after point (point does not move).  In this
+case, the return value is the length of the encoded text.
 
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
