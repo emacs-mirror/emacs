@@ -1,3 +1,8 @@
+2008-10-21  Alan Mackenzie  <acm@muc.de>
+
+	* simple.el (undo-more): Add comment explaining the operations on
+	pending-undo-list and buffer-undo-list.
+
 2008-10-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (region-active-p): Doc fix.
