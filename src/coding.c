@@ -4975,16 +4975,20 @@ detect_coding_charset (coding, detect_info)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
-  Lisp_Object attrs, valids;
+  Lisp_Object attrs, valids, name;
   int found = 0;
   int head_ascii = coding->head_ascii;
+  int check_latin_extra = 0;
 
   detect_info->checked |= CATEGORY_MASK_CHARSET;
 
   coding = &coding_categories[coding_category_charset];
   attrs = CODING_ID_ATTRS (coding->id);
   valids = AREF (attrs, coding_attr_charset_valids);
-
+  name = CODING_ID_NAME (coding->id);
+  if (VECTORP (Vlatin_extra_code_table)
+      && strcmp ((char *) SDATA (SYMBOL_NAME (name)), "iso-8859-"))
+    check_latin_extra = 1;
   if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs)))
     src += head_ascii;
 
@@ -5003,7 +5007,13 @@ detect_coding_charset (coding, detect_info)
       if (NILP (val))
 	break;
       if (c >= 0x80)
-	found = CATEGORY_MASK_CHARSET;
+	{
+	  if (c < 0xA0
+	      && check_latin_extra
+	      && NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
+	    break;
+	  found = CATEGORY_MASK_CHARSET;
+	}
       if (INTEGERP (val))
 	{
 	  charset = CHARSET_FROM_ID (XFASTINT (val));
