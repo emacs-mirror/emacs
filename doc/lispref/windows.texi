@@ -2082,7 +2082,7 @@ other windows are ``robbed.''  If it would be necessary to alter the
 size of a fixed-size window, @code{enlarge-window} gets an error
 instead.
 
-If @var{size} is negative, this function shrinks the window by
+If @var{size} is negative, this function shrinks the selected window by
 @minus{}@var{size} lines or columns.  If that makes the window smaller
 than the minimum size (@code{window-min-height} and
 @code{window-min-width}), @code{enlarge-window} deletes the window.
