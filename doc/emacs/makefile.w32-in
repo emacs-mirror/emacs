@@ -51,7 +51,6 @@ EMACS_XTRA=\
 	$(srcdir)/emerge-xtra.texi \
 	$(srcdir)/vc-xtra.texi \
 	$(srcdir)/vc1-xtra.texi \
-	$(srcdir)/vc2-xtra.texi \
 	$(srcdir)/fortran-xtra.texi \
 	$(srcdir)/msdog-xtra.texi
 
