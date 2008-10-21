@@ -254,6 +254,7 @@ Set `delete-by-moving-to-trash' non-nil to use this.  Deleted files
 and directories will then be sent to the Recyle Bin on Windows, and
 to `trash-directory' on other systems.
 
++++
 ** Directory-local variables can now be defined.
 By default, Emacs looks in .dir-settings.el for directory-local
 variables.  For more information, see `set-directory-project' and
