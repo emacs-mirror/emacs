@@ -749,14 +749,17 @@ accepts @var{n} arguments, then a call to @code{apply-partially} with
 @w{@code{@var{m} < @var{n}}} arguments will produce a new function of
 @w{@code{@var{n} - @var{m}}} arguments.
 
-Here's an example of using @code{apply-partially} to produce a variant
-of the Emacs Lisp primitive @code{1+}, a function that increments its
-argument by one, based on the primitive @code{+}:
+Here's how we could define the built-in function @code{1+}, if it
+didn't exist, using @code{apply-partially} and @code{+}, another
+built-in function:
 
 @example
-(fset 'incr-by-one (apply-partially '+ 1))
 @group
-(incr-by-one 10)
+(defalias '1+ (apply-partially '+ 1)
+  "Increment argument by one.")
+@end group
+@group
+(1+ 10)
      @result{} 11
 @end group
 @end example
