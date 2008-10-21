@@ -2783,8 +2783,8 @@ functions that are deleted by the patch.
 
 @item M-x diff-show-trailing-whitespaces RET
 @findex diff-show-trailing-whitespaces
-Highlight syntactically problematic trailing whitespace characters
-(usually errors introduced when editing a patch).
+Highlight trailing whitespace characters, except for those used by the
+patch syntax (@pxref{Useless Whitespace}).
 @end table
 
 
