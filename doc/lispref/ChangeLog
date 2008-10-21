@@ -1,3 +1,7 @@
+2008-10-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows): Minor wording fix.
+
 2008-10-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* processes.texi (Shell Arguments): Document `split-string-and-unquote'
