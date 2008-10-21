@@ -1642,6 +1642,7 @@ sequence invoking the current command was found by shift-translation.
 *** `window-point-insertion-type' determines the insertion-type of the
 marker used for window-point.
 
+---
 *** bookmark provides `bookmark-make-record-function' so special major
 modes like Info can teach bookmark.el how to save and restore the
 relevant data.
