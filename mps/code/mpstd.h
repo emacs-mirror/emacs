@@ -16,6 +16,44 @@
 #ifndef mpstd_h
 #define mpstd_h
 
+/* DESIGN NOTES
+ * ------------
+ * [These should be moved to a proper buildsys design doc.  RHSK]
+ *
+ * mpstd.h does two main things:
+ *   1. platform detection by looking at preprocessor symbols;
+ *   2. setting variables (eg. MPS_PF_STRING, MPS_WORD_WIDTH).
+ *
+ * Sometimes the platform is *already* known by the buildsystem:
+ *   - the Global Graphics buildsystem always sets CONFIG_PF_*.
+ *   - the Ravenbrook buildsystem knows the platform and may (but 
+ *     typically does not) set CONFIG_PF_*.
+ *
+ * Regardless of this, mpstd.h still attempts to detect the platform.
+ * (This is intentional).  However if both CONFIG_PF_* and 
+ * CONFIG_PF_STRING are set, then mpstd.h performs a third function:
+ *   3. checking that the detected platform corresponds to that 
+ *      specified by CONFIG_PF_*.
+ *
+ * Sometimes no MPS buildsystem is in use, so the platform *must* 
+ * be detected.  For example, when client software #includes mps.h, 
+ * we want it to just work out of the box with whatever compiler is 
+ * being used.  In other words we do not require the client to define 
+ * CONFIG_PF_*.
+ * (This is the case that justifes mpstd.h doing platform detection 
+ * by looking at preprocessor symbols; otherwise we'd simply use 
+ * CONFIG_PF_*).
+ *
+ * mpstd.h fails if it cannot detect the platform (even if CONFIG_PF_*
+ * is specified).  This is intentional.  mpstd.h does *not* allow 
+ * CONFIG_PF_* to override the platform as detected from preprocessor 
+ * symbols.  This is intentional.
+ *
+ * References:
+ * GG buildsys use of CONFIG_PF_*:
+ *   <http://info.ravenbrook.com/mail/2005/03/01/15-45-17/0.txt>
+ */
+
 
 /* Irix 5/6 man cc and man abi.  We can't check for _ABIO32 (see
  * os.i5), as we have to support Irix 5.2, which doesn't define it.  We
@@ -85,11 +123,9 @@
  * and compiler options.
  */
 
-#elif defined(CONFIG_PF_W3I3M9) \
-      || defined(_MSC_VER) && (_MSC_VER >= 1500) && defined(_WIN32) && defined(_M_IX86)
-#if defined(CONFIG_PF_W3I3M9) \
-      && ! ( defined(_MSC_VER) && (_MSC_VER >= 1500) && defined(_WIN32) && defined(_M_IX86) )
-#error "CONFIG_PF_W3I3M9 inconsistent with target platform detected"
+#elif defined(_MSC_VER) && (_MSC_VER >= 1500) && defined(_WIN32) && defined(_M_IX86)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I3M9)
+#error "specified CONFIG_PF_... inconsistent with detected w3i3m9"
 #endif
 #define MPS_PF_W3I3MV
 #define MPS_PF_STRING   "w3i3m9"
@@ -108,12 +144,9 @@
  * VC malloc is 16!
  */
 
-#elif defined(CONFIG_PF_W3I3MV) \
-      || defined(_MSC_VER) && defined(_WIN32) && defined(_M_IX86)
-#if defined(CONFIG_PF_W3I3MV) \
-      && ! ( defined(_MSC_VER) && (_MSC_VER < 1500) && defined(_WIN32) && defined(_M_IX86) )
-#error "CONFIG_PF_W3I3MV inconsistent with target platform detected"
-/* (See w3i3m9 clone-platform, above) */
+#elif defined(_MSC_VER) && defined(_WIN32) && defined(_M_IX86)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3I3MV)
+#error "specified CONFIG_PF_... inconsistent with detected w3i3mv"
 #endif
 #define MPS_PF_W3I3MV
 #define MPS_PF_STRING   "w3i3mv"
