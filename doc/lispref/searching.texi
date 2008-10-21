@@ -1062,8 +1062,8 @@ the match is available as @code{(match-end 0)}.  @xref{Match Data}.
 @end defun
 
 @defun string-match-p regexp string &optional start
-This predicate function does what @code{string-match} does, but it has
-no side effect of modifying the match data.
+This predicate function does what @code{string-match} does, but it
+avoids modifying the match data.
 @end defun
 
 @defun looking-at regexp
