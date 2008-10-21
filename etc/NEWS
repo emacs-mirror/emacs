@@ -1588,6 +1588,7 @@ string of days, hours, etc.
 *** `read-shell-command' does what its name says, with completion.  It
 uses the minibuffer-local-shell-command-map for that.
 
++++
 *** `buffer-swap-text' swaps text between two buffers.  This can be
 useful for modes such as tar-mode, archive-mode, RMAIL.
 
