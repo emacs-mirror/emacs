@@ -1,3 +1,12 @@
+2008-10-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi (Top): Add "Swapping Text" to @detailmenu.
+
+	* positions.texi (Narrowing): Add an xref to "Swapping Text".
+
+	* buffers.texi (Swapping Text): New section, documents
+	`buffer-swap-text'.
+
 2008-10-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Resizing Windows): Minor wording fix.
