@@ -1,3 +1,8 @@
+2008-10-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (Fencode_coding_region, Fdecode_coding_region)
+	(Fdecode_coding_string, Fencode_coding_string): Doc fix.
+
 2008-10-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.c (Fget_buffer, Fbury_buffer, switch_to_buffer_1):
