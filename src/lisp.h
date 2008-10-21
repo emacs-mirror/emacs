@@ -2841,7 +2841,6 @@ extern void set_time_zone_rule P_ ((char *));
 /* defined in buffer.c */
 extern int mouse_face_overlay_overlaps P_ ((Lisp_Object));
 extern void nsberror P_ ((Lisp_Object)) NO_RETURN;
-extern char *no_switch_window P_ ((Lisp_Object window));
 EXFUN (Fset_buffer_multibyte, 1);
 EXFUN (Foverlay_start, 1);
 EXFUN (Foverlay_end, 1);
