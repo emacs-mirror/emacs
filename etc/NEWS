@@ -245,7 +245,7 @@ minor mode, in the same way as it already did for major modes.
 mode-line information (e.g. waiting for a VC command to finish).
 ---
 *** The mode-line tooltips have been improved to provide more details.
-
++++
 *** The VC, line/colum number and minor mode indicators on the mode
 line are now interactive: mouse-1 can be used on them to pop up a menu.
 
@@ -501,7 +501,7 @@ matches a regexp.
 *** The new command `set-file-modes' allows to set file's mode bits.
 The mode bits can be specified in symbolic notation, like with GNU
 Coreutils, in addition to an octal number.
-
++++
 *** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
 requires confirmation before opening a non-existent file.
 
@@ -903,13 +903,13 @@ This enables VC to work much more effectively with changeset-oriented
 version-control systems such as Subversion, GNU Arch, Mercurial, Git
 and Bzr.  VC will now pass a multiple-file commit to these systems as
 a single changeset.
-
++++
 *** vc-dir is a new command that displays file names and their VC
 status.  It allows to apply various VC operations to a file, a
 directory or a set of files/directories.
-
++++
 *** Clicking on the VC mode-line entry now pops the VC menu.
-
++++
 *** The VC mode-line entry now has a tooltip that explains the VC file status.
 +++
 *** In VC Annotate mode, for VC systems that support changesets, you can
@@ -921,23 +921,23 @@ line" menu entry does the same thing.
 +++
 *** In VC Annotate mode, you can type f to show the file revision on
 the current line.
-
+---
 *** Asynchronous VC commands display [Waiting...] in the mode-line
 of the corresponding buffer as long as the asynchronous process is
 active.
-
++++
 *** Log entries can be modified using the key "e" in log-view.
 For now only CVS, RCS, SCCS and SVN support this functionality.
 This is done by the `modify-change-comment' backend function.
-
++++
 *** In log-view-mode, for VC systems that support changesets, you can
 see the diff for the whole changeset (not only for the current file)
 by typing the D key or using the "Changeset Diff" menu entry.
-
++++
 *** In Log Edit mode,  C-c C-d now shows the diff for the files involved.
 
 *** vc-git supports the "git grep" command.
-
++++
 *** VC Support for Meta-CVS has been removed for lack of maintainer able
 to update it to the new VC.
 
@@ -1319,7 +1319,6 @@ unless it ends in whitespace.
 +++
 *** set-file-modes is now interactive and can take the mode value in
 symbolic notation thanks to auxiliary functions.
-
 +++
 *** file-local-variables-alist stores an alist of file-local
 variables defined in the current buffer.
