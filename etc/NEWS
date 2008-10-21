@@ -1592,6 +1592,7 @@ uses the minibuffer-local-shell-command-map for that.
 *** `buffer-swap-text' swaps text between two buffers.  This can be
 useful for modes such as tar-mode, archive-mode, RMAIL.
 
++++
 *** `read-color' reads a color name using the minibuffer.
 
 *** `face-all-attributes' returns an alist describing all the basic
