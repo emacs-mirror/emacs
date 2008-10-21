@@ -1623,6 +1623,7 @@ specification.
 the same matching as `looking-at' and `string-match' without changing
 the match data.
 
++++
 *** The two new functions `make-serial-process' and
 `serial-process-configure' provide a Lisp interface to the new serial
 port support (see Emacs changes, above).
