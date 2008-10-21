@@ -1,3 +1,7 @@
+2008-10-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (region-active-p): Doc fix.
+
 2008-10-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (apply-partially): Move from here...
