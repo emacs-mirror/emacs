@@ -628,6 +628,7 @@ specifies what to do when a buffer is visited, killed, or written.
 *** `apropos-library' describes the elements defined in a given library.
 *** Set `apropos-compact-layout' is you want a more compact (but wider) layout.
 
++++
 ** Archive Mode has basic support to browse Rar archives.
 
 ** BibTeX mode
@@ -712,15 +713,15 @@ This is controlled by `copyright-at-end-flag' (used by, e.g., change-log-mode).
 set a variable's `safe-local-variable' and `risky-local-variable' property.
 
 ** Diff mode
-
++++
 *** diff-refine-hunk highlights word-level details of changes in a diff hunk.
 It's used automatically as you move through hunks, see
 diff-auto-refine-mode.  It is bound to `C-c C-b'.
-
++++
 *** diff-add-change-log-entries-other-window iterates through the diff
 buffer and tries to create ChangeLog entries for each change.
 It is bound to `C-x 4 A'.
-
++++
 *** The new function `diff-show-trailing-whitespaces' shows
 trailing whitespace problems in the modified lines of a diff buffer.
 
