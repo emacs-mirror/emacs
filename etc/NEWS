@@ -1614,6 +1614,7 @@ sticking a separator string in between each pair, and quoting those
 strings that include the separator as their substring.  Useful for
 consing shell command lines from the individual arguments.
 
++++
 *** `image-refresh' refreshes all images associated with a given image
 specification.
 
