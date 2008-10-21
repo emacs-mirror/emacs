@@ -1,5 +1,7 @@
 2008-10-21  Eli Zaretskii  <eliz@gnu.org>
 
+	* display.texi (Attribute Functions): Document `face-all-attributes'.
+
 	* frames.texi (Color Names): Add an xref to `read-color'.
 
 	* minibuf.texi (High-Level Completion): Document `read-color'.
