@@ -1,5 +1,9 @@
 2008-10-21  Eli Zaretskii  <eliz@gnu.org>
 
+	* frames.texi (Color Names): Add an xref to `read-color'.
+
+	* minibuf.texi (High-Level Completion): Document `read-color'.
+
 	* elisp.texi (Top): Add "Swapping Text" to @detailmenu.
 
 	* positions.texi (Narrowing): Add an xref to "Swapping Text".
