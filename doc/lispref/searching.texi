@@ -334,6 +334,7 @@ preceding expression either once or not at all.  For example,
 @samp{ca?r} matches @samp{car} or @samp{cr}; nothing else.
 
 @item @samp{*?}, @samp{+?}, @samp{??}
+@cindex non-greedy repetition characters in regexp
 These are ``non-greedy'' variants of the operators @samp{*}, @samp{+}
 and @samp{?}.  Where those operators match the largest possible
 substring (consistent with matching the entire containing expression),
@@ -1060,6 +1061,11 @@ the match is available as @code{(match-end 0)}.  @xref{Match Data}.
 @end example
 @end defun
 
+@defun string-match-p regexp string &optional start
+This predicate function does what @code{string-match} does, but it has
+no side effect of modifying the match data.
+@end defun
+
 @defun looking-at regexp
 This function determines whether the text in the current buffer directly
 following point matches the regular expression @var{regexp}.  ``Directly
@@ -1069,7 +1075,8 @@ result is @code{t} if so, @code{nil} otherwise.
 
 This function does not move point, but it updates the match data, which
 you can access using @code{match-beginning} and @code{match-end}.
-@xref{Match Data}.
+@xref{Match Data}.  If you need to test for a match without modifying
+the match data, use @code{looking-at-p}, described below.
 
 In this example, point is located directly before the @samp{T}.  If it
 were anywhere else, the result would be @code{nil}.
@@ -1113,6 +1120,11 @@ comes back" twice.
 @end example
 @end defun
 
+@defun looking-at-p regexp
+This predicate function works like @code{looking-at}, but without
+updating the match data.
+@end defun
+
 @defvar search-spaces-regexp
 If this variable is non-@code{nil}, it should be a regular expression
 that says how to search for whitespace.  In that case, any group of
@@ -1142,8 +1154,9 @@ match, as required by POSIX.  This is much slower, so use these
 functions only when you really need the longest match.
 
   The POSIX search and match functions do not properly support the
-non-greedy repetition operators.  This is because POSIX backtracking
-conflicts with the semantics of non-greedy repetition.
+non-greedy repetition operators (@pxref{Regexp Special, non-greedy}).
+This is because POSIX backtracking conflicts with the semantics of
+non-greedy repetition.
 
 @defun posix-search-forward regexp &optional limit noerror repeat
 This is like @code{re-search-forward} except that it performs the full
