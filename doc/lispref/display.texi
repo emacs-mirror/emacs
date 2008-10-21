@@ -2217,6 +2217,15 @@ For example:
 @end example
 @end defun
 
+@defun face-all-attributes face &optional frame
+This function returns an alist of attributes of @var{face}.  The
+elements of the result are name-value pairs of the form
+@w{@code{(@var{attr-name} . @var{attr-value})}}.  Optional argument
+@var{frame} specifies the frame whose definition of @var{face} to
+return; if omitted or @code{nil}, the returned value describes the
+default attributes of @var{face} for newly created frames.
+@end defun
+
 @defun merge-face-attribute attribute value1 value2
 If @var{value1} is a relative value for the face attribute
 @var{attribute}, returns it merged with the underlying value
