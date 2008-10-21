@@ -1725,6 +1725,9 @@ then call `undo-more' one or more times to undo them."
       (error (concat "No further undo information"
 		     (and undo-in-region " for region"))))
   (let ((undo-in-progress t))
+    ;; Note: The following, while pulling elements off
+    ;; `pending-undo-list' will call primitive change functions which
+    ;; will push more elements onto `buffer-undo-list'.
     (setq pending-undo-list (primitive-undo n pending-undo-list))
     (if (null pending-undo-list)
 	(setq pending-undo-list t))))
