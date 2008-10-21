@@ -1,3 +1,8 @@
+2008-10-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacs.c (main): Unconditionally set PER_LINUX32 and exec
+	temacs when dumping if HAVE_PERSONALITY_LINUX32 is defined
+
 2008-10-21  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_charset): For iso-8859-* coding systems,
