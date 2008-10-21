@@ -2580,19 +2580,23 @@ this, it runs the program specified by
 
 @findex diff
 @vindex diff-switches
-  The command @kbd{M-x diff} compares two files, displaying the
-differences in an Emacs buffer named @samp{*diff*}.  It works by
-running the @code{diff} program, using options taken from the variable
-@code{diff-switches}.  The value of @code{diff-switches} should be a
-string; the default is @code{"-c"} to specify a context diff.
-@xref{Top,, Diff, diff, Comparing and Merging Files}, for more
-information about @command{diff} output formats.
+  The command @kbd{M-x diff} prompts for two file names, using the
+minibuffer, and displays the differences between the two files in a
+buffer named @samp{*diff*}.  This works by running the @command{diff}
+program, using options taken from the variable @code{diff-switches}.
+The value of @code{diff-switches} should be a string; the default is
+@code{"-c"} to specify a context diff.  @xref{Top,, Diff, diff,
+Comparing and Merging Files}, for more information about
+@command{diff} output formats.
+
+  The output of the @code{diff} command is shown using a major mode
+called Diff mode.  @xref{Diff Mode}.
 
 @findex diff-backup
-  The command @kbd{M-x diff-backup} compares a specified file with its most
-recent backup.  If you specify the name of a backup file,
-@code{diff-backup} compares it with the source file that it is a backup
-of.
+  The command @kbd{M-x diff-backup} compares a specified file with its
+most recent backup.  If you specify the name of a backup file,
+@code{diff-backup} compares it with the source file that it is a
+backup of.  In all other respects, this behaves like @kbd{M-x diff}.
 
 @findex compare-windows
   The command @kbd{M-x compare-windows} compares the text in the
@@ -2645,17 +2649,35 @@ merging files.
 @findex diff-mode
 @cindex patches, editing
 
-  Diff mode is used for the output of @kbd{M-x diff}; it is also
-useful for editing patches and comparisons produced by the
-@command{diff} program.  To select Diff mode manually, type @kbd{M-x
+  Diff mode is a major mode used for the output of @kbd{M-x diff} and
+other similar commands, as well as the output of the @command{diff}
+program.  This kind of output is called a @dfn{patch}, because it can
+be passed to the @command{patch} command to automatically apply the
+specified changes.  To select Diff mode manually, type @kbd{M-x
 diff-mode}.
 
-  One general feature of Diff mode is that manual edits to the patch
-automatically correct line numbers, including those in the hunk
-header, so that you can actually apply the edited patch.  Diff mode
-treats each hunk location as an ``error message,'' so that you can use
-commands such as @kbd{C-x '} to visit the corresponding source
-locations.  It also provides the following commands to navigate,
+@cindex hunk, diff
+  The changes specified in a patch are grouped into @dfn{hunks}, which
+are contiguous chunks of text that contain one or more changed lines.
+Hunks can also include unchanged lines to provide context for the
+changes.  Each hunk is preceded by a @dfn{hunk header}, which
+specifies the old and new line numbers at which the hunk occurs.  Diff
+mode highlights each hunk header, to distinguish it from the actual
+contents of the hunk.
+
+@vindex diff-update-on-the-fly
+  You can edit a Diff mode buffer like any other buffer.  (If it is
+read-only, you need to make it writable first.  @xref{Misc Buffer}.)
+Whenever you change a hunk, Diff mode attempts to automatically
+correct the line numbers in the hunk headers, to ensure that the diff
+remains ``correct''.  To disable automatic line number correction,
+change the variable @code{diff-update-on-the-fly} to @code{nil}.
+
+  Diff mode treats each hunk as an ``error message,'' similar to
+Compilation mode.  Thus, you can use commands such as @kbd{C-x '} to
+visit the corresponding source locations.  @xref{Compilation Mode}.
+
+  In addition, Diff mode provides the following commands to navigate,
 manipulate and apply parts of patches:
 
 @table @kbd
@@ -2690,6 +2712,12 @@ In a multi-file patch, kill the current file part.
 @findex diff-apply-hunk
 Apply this hunk to its target file (@code{diff-apply-hunk}).  With a
 prefix argument of @kbd{C-u}, revert this hunk.
+
+@item C-c C-b
+@findex diff-refine-hunk
+Highlight the changes of the hunk at point with a finer granularity
+(@code{diff-refine-hunk}).  This allows you to see exactly which parts
+of each changed line were actually changed.
 
 @item C-c C-c
 @findex diff-goto-source
@@ -2923,21 +2951,23 @@ requires the appropriate uncompression program.
 @cindex mode, archive
 @cindex @code{arc}
 @cindex @code{jar}
+@cindex @code{rar}
 @cindex @code{zip}
 @cindex @code{lzh}
 @cindex @code{zoo}
 @pindex arc
 @pindex jar
 @pindex zip
+@pindex rar
 @pindex lzh
 @pindex zoo
 @cindex Java class archives
 @cindex unzip archives
   A separate but similar Archive mode is used for archives produced by
-the programs @code{arc}, @code{jar}, @code{lzh}, @code{zip}, and
-@code{zoo}, which have extensions corresponding to the program names.
-Archive mode also works for those @code{exe} files that are
-self-extracting executables.
+the programs @code{arc}, @code{jar}, @code{lzh}, @code{zip},
+@code{rar}, and @code{zoo}, which have extensions corresponding to the
+program names.  Archive mode also works for those @code{exe} files
+that are self-extracting executables.
 
   The key bindings of Archive mode are similar to those in Tar mode,
 with the addition of the @kbd{m} key which marks a file for subsequent
@@ -2973,14 +3003,13 @@ syntax:
 @end example
 
 @noindent
-To carry out this request, Emacs uses either the FTP program or a
-remote-login program such as @command{ssh}, @command{rlogin}, or
-@command{telnet}.  You can always specify in the file name which
-method to use---for example,
-@file{/ftp:@var{user}@@@var{host}:@var{filename}} uses FTP, whereas
-@file{/ssh:@var{user}@@@var{host}:@var{filename}} uses @command{ssh}.
-When you don't specify a method in the file name, Emacs chooses
-the method as follows:
+To carry out this request, Emacs uses a remote-login program such as
+@command{ftp}, @command{ssh}, @command{rlogin}, or @command{telnet}.
+You can always specify in the file name which method to use---for
+example, @file{/ftp:@var{user}@@@var{host}:@var{filename}} uses FTP,
+whereas @file{/ssh:@var{user}@@@var{host}:@var{filename}} uses
+@command{ssh}.  When you don't specify a method in the file name,
+Emacs chooses the method as follows:
 
 @enumerate
 @item
