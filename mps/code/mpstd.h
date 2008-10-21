@@ -63,9 +63,11 @@
  * them.  Alignment from testing.
  */
 
-#if defined(CONFIG_PF_I5M2CC) \
-    || defined(__sgi) && defined(__unix) && defined(__mips) \
-       && defined(_SYSTYPE_SVR4) && (_MIPS_FPSET == 16)
+#if defined(__sgi) && defined(__unix) && defined(__mips) \
+    && defined(_SYSTYPE_SVR4) && (_MIPS_FPSET == 16)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_I5M2CC)
+#error "specified CONFIG_PF_... inconsistent with detected i5m2cc"
+#endif
 #define MPS_PF_I5M2CC
 #define MPS_PF_STRING   "i5m2cc"
 #define MPS_OS_I5
@@ -78,9 +80,11 @@
 
 /* See above.  Alignment from testing. */
 
-#elif defined(CONFIG_PF_IAM4CC) \
-      || defined(__sgi) && defined(__unix) && defined(__mips) \
-         && defined(_SYSTYPE_SVR4) && defined(_ABIN32)
+#elif defined(__sgi) && defined(__unix) && defined(__mips) \
+      && defined(_SYSTYPE_SVR4) && defined(_ABIN32)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_IAM4CC)
+#error "specified CONFIG_PF_... inconsistent with detected iam4cc"
+#endif
 #define MPS_PF_IAM4CC
 #define MPS_PF_STRING   "iam4cc"
 #define MPS_OS_IA
@@ -93,8 +97,10 @@
 
 /* winnt.h from MS VC 2.0 */
 
-#elif defined(CONFIG_PF_W3ALMV) \
-      || defined(_MSC_VER) && defined(_WIN32) && defined(_M_ALPHA)
+#elif defined(_MSC_VER) && defined(_WIN32) && defined(_M_ALPHA)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3ALMV)
+#error "specified CONFIG_PF_... inconsistent with detected w3almv"
+#endif
 #define MPS_PF_W3ALMV
 #define MPS_PF_STRING   "w3almv"
 #define MPS_OS_W3
@@ -107,8 +113,10 @@
 
 /* winnt.h from MS VC 2.0 */
 
-#elif defined(CONFIG_PF_W3PPMV) \
-      || defined(_MSC_VER) && defined(_WIN32) && defined(_M_PPC)
+#elif defined(_MSC_VER) && defined(_WIN32) && defined(_M_PPC)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_W3PPMV)
+#error "specified CONFIG_PF_... inconsistent with detected w3ppmv"
+#endif
 #define MPS_PF_W3PPMV
 #define MPS_PF_STRING   "w3ppmv"
 #define MPS_OS_W3
@@ -162,8 +170,10 @@
  * a way to determine the OS -- we assume MacOS 7.
  */
 
-#elif defined(CONFIG_PF_S760MW) \
-      || (defined(__MWERKS__) && __MC68K__ == 1)
+#elif (defined(__MWERKS__) && __MC68K__ == 1)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_S760MW)
+#error "specified CONFIG_PF_... inconsistent with detected s760mw"
+#endif
 #define MPS_PF_S760MW
 #define MPS_PF_STRING   "s760mw"
 #define MPS_OS_S7
@@ -178,8 +188,10 @@
  * a way to determine the OS -- we assume MacOS 7.
  */
 
-#elif defined(CONFIG_PF_S7PPMW) \
-      || defined(__MWERKS__) && __POWERPC__ == 1
+#elif defined(__MWERKS__) && __POWERPC__ == 1
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_S7PPMW)
+#error "specified CONFIG_PF_... inconsistent with detected s7ppmw"
+#endif
 #define MPS_PF_S7PPMW
 #define MPS_PF_STRING   "s7ppmw"
 #define MPS_OS_S7
@@ -196,8 +208,10 @@
  * which lets us determine the system version.
  */
 
-#elif defined(CONFIG_PF_S760AC) \
-      || defined(m68k) && (defined (applec) || defined(__SC__))
+#elif defined(m68k) && (defined (applec) || defined(__SC__))
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_S760AC)
+#error "specified CONFIG_PF_... inconsistent with detected s760ac"
+#endif
 #define MPS_PF_S760AC
 #define MPS_PF_STRING   "s760ac"
 #define MPS_OS_S7
@@ -214,8 +228,10 @@
  * which lets us determine the system version.
  */
 
-#elif defined(CONFIG_PF_S7PPAC) \
-      || defined(__PPCC__) || (defined(__MRC__) && defined(__POWERPC))
+#elif defined(__PPCC__) || (defined(__MRC__) && defined(__POWERPC))
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_S7PPAC)
+#error "specified CONFIG_PF_... inconsistent with detected s7ppac"
+#endif
 #define MPS_PF_S7PPAC
 #define MPS_PF_STRING   "s7ppac"
 #define MPS_OS_S7
@@ -231,9 +247,11 @@
  * ools/Preprocessor/Preprocessor.[ef].html>
  */
 
-#elif defined(CONFIG_PF_XCPPGC) \
-      || defined(__APPLE__) && defined(__ppc__) && defined(__MACH__) \
-         && defined(__GNUC__)
+#elif defined(__APPLE__) && defined(__ppc__) && defined(__MACH__) \
+      && defined(__GNUC__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_XCPPGC)
+#error "specified CONFIG_PF_... inconsistent with detected xcppgc"
+#endif
 #define MPS_PF_XCPPGC
 #define MPS_PF_STRING   "xcppgc"
 #define MPS_OS_XC
@@ -249,9 +267,11 @@
  * And above for xcppgc.
  */
 
-#elif defined(CONFIG_PF_XCI3GC) \
-      || defined(__APPLE__) && defined(__i386__) && defined(__MACH__) \
-         && defined(__GNUC__)
+#elif defined(__APPLE__) && defined(__i386__) && defined(__MACH__) \
+      && defined(__GNUC__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_XCI3GC)
+#error "specified CONFIG_PF_... inconsistent with detected xci3gc"
+#endif
 #define MPS_PF_XCI3GC
 #define MPS_PF_STRING   "xci3gc"
 #define MPS_OS_XC
@@ -264,9 +284,11 @@
 
 /* GCC 2.5.8, gcc -E -dM, (__SVR4 indicates Solaris) */
 
-#elif defined(CONFIG_PF_SUS8GC) \
-      || defined(__sun__) && defined(__sparc__) && defined(__GNUC__) \
-         && !defined(__svr4__)
+#elif defined(__sun__) && defined(__sparc__) && defined(__GNUC__) \
+      && !defined(__svr4__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_SUS8GC)
+#error "specified CONFIG_PF_... inconsistent with detected sus8gc"
+#endif
 #define MPS_PF_SUS8GC
 #define MPS_PF_STRING   "sus8gc"
 #define MPS_OS_SU
@@ -279,9 +301,11 @@
 
 /* LCC 3.4 (ish), man page */
 
-#elif defined(CONFIG_PF_SUS8LC) \
-      || defined(sun) && defined(sparc) && defined(__LCC__) \
-         && !defined(__svr4__)
+#elif defined(sun) && defined(sparc) && defined(__LCC__) \
+      && !defined(__svr4__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_SUS8LC)
+#error "specified CONFIG_PF_... inconsistent with detected sus8lc"
+#endif
 #define MPS_PF_SUS8LC
 #define MPS_PF_STRING   "sus8lc"
 #define MPS_OS_SU
@@ -294,9 +318,11 @@
 
 /* GCC 2.5.8, gcc -E -dM */
 
-#elif defined(CONFIG_PF_SOS8GC) \
-      || defined(__sun__) && defined(__sparc__) && defined(__GNUC__) \
-         && defined(__svr4__)
+#elif defined(__sun__) && defined(__sparc__) && defined(__GNUC__) \
+      && defined(__svr4__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_SOS8GC)
+#error "specified CONFIG_PF_... inconsistent with detected sos8gc"
+#endif
 #define MPS_PF_SOS8GC
 #define MPS_PF_STRING   "sos8gc"
 #define MPS_OS_SO
@@ -312,9 +338,11 @@
  * macros for that.
  */
 
-#elif defined(CONFIG_PF_SOS9SC) \
-      || defined(__sun) && defined(__SUNPRO_C) && defined(__SVR4) \
-         && defined(__sparc)
+#elif defined(__sun) && defined(__SUNPRO_C) && defined(__SVR4) \
+      && defined(__sparc)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_SOS9SC)
+#error "specified CONFIG_PF_... inconsistent with detected sos9sc"
+#endif
 #define MPS_PF_SOS9SC
 #define MPS_PF_STRING   "sos9sc"
 #define MPS_OS_SO
@@ -327,8 +355,10 @@
 
 /* GCC 2.6.3, gcc -E -dM */
 
-#elif defined(CONFIG_PF_O1ALGC) \
-      || defined(__osf__) && defined(__alpha__) && defined(__GNUC__)
+#elif defined(__osf__) && defined(__alpha__) && defined(__GNUC__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_O1ALGC)
+#error "specified CONFIG_PF_... inconsistent with detected o1algc"
+#endif
 #define MPS_PF_O1ALGC
 #define MPS_PF_STRING   "o1algc"
 #define MPS_OS_O1
@@ -341,8 +371,10 @@
 
 /* From the cc(1) man page */
 
-#elif defined(CONFIG_PF_O1ALCC) \
-      || defined(__osf__) && defined(__alpha) && defined(__DECC)
+#elif defined(__osf__) && defined(__alpha) && defined(__DECC)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_O1ALCC)
+#error "specified CONFIG_PF_... inconsistent with detected o1alcc"
+#endif
 #define MPS_PF_O1ALCC
 #define MPS_PF_STRING   "o1alcc"
 #define MPS_OS_O1
@@ -358,8 +390,10 @@
  * all 4.
  */
 
-#elif defined(CONFIG_PF_LII4GC) \
-      || defined(__linux__) && defined(__i386__) && defined(__GNUC__)
+#elif defined(__linux__) && defined(__i386__) && defined(__GNUC__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_LII4GC)
+#error "specified CONFIG_PF_... inconsistent with detected lii4gc"
+#endif
 #define MPS_PF_LII4GC
 #define MPS_PF_STRING   "lii4gc"
 #define MPS_OS_LI
@@ -372,8 +406,10 @@
 
 /* GCC 2.7.2, gcc -E -dM */
 
-#elif defined(CONFIG_PF_LIPPGC) \
-      || defined(__linux__) && defined(__PPC__) && defined(__GNUC__)
+#elif defined(__linux__) && defined(__PPC__) && defined(__GNUC__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_LIPPGC)
+#error "specified CONFIG_PF_... inconsistent with detected lippgc"
+#endif
 #define MPS_PF_LIPPGC
 #define MPS_PF_STRING   "lippgc"
 #define MPS_OS_LI
@@ -387,8 +423,10 @@
 /* GCC 2.95.3, gcc -E -dM
  */
 
-#elif defined(CONFIG_PF_FRI4GC) \
-      || defined(__FreeBSD__) && defined (__i386__) && defined (__GNUC__)
+#elif defined(__FreeBSD__) && defined (__i386__) && defined (__GNUC__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_FRI4GC)
+#error "specified CONFIG_PF_... inconsistent with detected fri4gc"
+#endif
 #define MPS_PF_FRI4GC
 #define MPS_PF_STRING   "fri4gc"
 #define MPS_OS_FR
@@ -409,7 +447,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002,2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
