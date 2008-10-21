@@ -1,5 +1,10 @@
 2008-10-21  Eli Zaretskii  <eliz@gnu.org>
 
+	* searching.texi (Regexp Search): Document `string-match-p' and
+	`looking-at-p'.
+	(POSIX Regexps): Add an xref for "non-greedy".
+	(Regexp Special): Add @cindex entry for "non-greedy".
+
 	* display.texi (Attribute Functions): Document `face-all-attributes'.
 	(Image Cache) <image-refresh>: Minor wording fixes.
 
