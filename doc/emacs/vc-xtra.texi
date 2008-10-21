@@ -13,8 +13,6 @@ described in the main Emacs manual (@pxref{Version Control,,,emacs,
 the Emacs Manual}).  This chapter describes more advanced VC usage.
 
 @menu
-* VC Directory Mode::       Listing files managed by version control.
-* VC Directory Commands:: Commands to use in a VC Dired buffer.
 * Remote Repositories::     Efficient access to remote VCS servers.
 * Revision Tags::           Symbolic names for revisions
 * Miscellaneous VC::        Various other commands and features of VC.
@@ -24,7 +22,6 @@ the Emacs Manual}).  This chapter describes more advanced VC usage.
 
 @iftex
 @include vc1-xtra.texi
-@include vc2-xtra.texi
 @end iftex
 
 @ignore
