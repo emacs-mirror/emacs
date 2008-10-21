@@ -1,3 +1,15 @@
+2008-10-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fget_buffer, Fbury_buffer, switch_to_buffer_1):
+	Rename arg "buffer" to "buffer_or_name".
+	(Fkill_buffer): Rename arg "buffer" to "buffer_or_name" and make
+	it optional.
+	(no_switch_window): Remove since the return value is not used.
+	(Fswitch_to_buffer):  Rename arg "buffer" to "buffer_or_name".
+	Consider window as dedicated when Fwindow_dedicated_p returns a
+	non-nil value.
+	* lisp.h: Remove prototype for no_switch_window.
+
 2008-10-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacs.c (main): Unconditionally set PER_LINUX32 and exec
