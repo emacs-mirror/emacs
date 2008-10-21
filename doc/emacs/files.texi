@@ -241,10 +241,14 @@ moves or copies the file into the displayed directory.  For details,
 see @ref{Drag and Drop}, and @ref{Misc Dired Features}.
 
 @cindex creating files
+@vindex find-file-confirm-nonexistent-file
   What if you want to create a new file?  Just visit it.  Emacs
 displays @samp{(New file)} in the echo area, but in other respects
 behaves as if you had visited an existing empty file.  If you make
-changes and save them, the file is created.
+changes and save them, the file is created.  If you change the
+variable @code{find-file-confirm-nonexistent-file} to @code{t}, then
+Emacs prompts you for confirmation before visiting a non-existent
+file.
 
 @kindex C-x C-v
 @findex find-alternate-file
@@ -1169,8 +1173,8 @@ time of each version, who created it, and a description of what was
 changed in that version.
 
   The Emacs version control interface is called VC.  Its commands work
-with different version control systems; currently, it supports GNU
-Arch, Bazaar, CVS, Git, Mercurial, Monotone, RCS, SCCS, and
+with several different version control systems; currently, it supports
+GNU Arch, Bazaar, CVS, Git, Mercurial, Monotone, RCS, SCCS/CSSC, and
 Subversion.  Of these, the GNU project distributes CVS, GNU Arch, RCS,
 and Bazaar.
 
@@ -1191,6 +1195,7 @@ customizable variable @code{vc-handled-backends} to @code{nil}
 * Basic VC Editing::    How to edit a file under version control.
 * Old Revisions::       Examining and comparing old versions.
 * Secondary VC Commands::    The commands used a little less frequently.
+* VC Directory Mode::   Listing files managed by version control.
 * Branches::            Multiple lines of development.
 @ifnottex
 * Remote Repositories:: Efficient access to remote CVS servers.
@@ -1205,10 +1210,10 @@ customizable variable @code{vc-handled-backends} to @code{nil}
 
   VC allows you to use a version control system from within Emacs,
 integrating the version control operations smoothly with editing.
-Though VC cannot completely bridge the gaps between version-control
-systems with widely differing capabilities, it does provide
-a uniform interface to many version control operations. Regardless of
-which version control system is in use, you will be able to do basic
+Though VC cannot completely bridge the gaps between version control
+systems with widely differing capabilities, it does provide a uniform
+interface to many version control operations. Regardless of which
+version control system is in use, you will be able to do basic
 operations in much the same way.
 
   This section provides a general overview of version control, and
@@ -1226,22 +1231,26 @@ you want to use.
 @node Why Version Control?
 @subsubsection Understanding the problems it addresses
 
-  Version control systems provide you with three important capabilities: 
-@dfn{reversibility}, @dfn{concurrency}, and @dfn{history}.
+  Version control systems provide you with three important
+capabilities:
 
-  The most basic capability you get from a version-control system is
-reversibility, the ability to back up to a saved, known-good state when
-you discover that some modification you did was a mistake or a bad idea.
+@itemize @bullet
+@item
+@dfn{Reversibility}: the ability to back up to a previous state if you
+discover that some modification you did was a mistake or a bad idea.
 
-  Version control systems also support concurrency: the ability to
-have many people modifying the same collection of code or documents
-knowing that conflicting modifications can be detected and resolved.
+@item
+@dfn{Concurrency}: the ability to have many people modifying the same
+collection of files knowing that conflicting modifications can be
+detected and resolved.
 
-  Version control systems give you the capability to attach a history
-to your data, such as explanatory comments about the intention behind
-each change to it.  Even for a programmer working solo, change
-histories are an important aid to memory; for a multi-person project,
-they are a vitally important form of communication among developers.
+@item
+@dfn{History}: the ability to attach historical data to your data,
+such as explanatory comments about the intention behind each change to
+it.  Even for a programmer working solo, change histories are an
+important aid to memory; for a multi-person project, they are a
+vitally important form of communication among developers.
+@end itemize
 
 @node Version Control Systems
 @subsubsection Supported Version Control Systems
@@ -1249,26 +1258,22 @@ they are a vitally important form of communication among developers.
 @cindex back end (version control)
   VC currently works with many different version control systems or
 @dfn{back ends}:
-@comment Omitting bzr because support is very scratchy and incomplete.
-
 
 @itemize @bullet
 
 @cindex SCCS
 @item
 SCCS was the first version control system ever built, and was long ago
-superseded by later and more advanced ones; Emacs supports it only for
-backward compatibility and historical reasons.  VC compensates for
-certain features missing in SCCS (e.g., tag names for releases) by
-implementing them itself.  Other VC features, such as multiple
-branches, are simply unavailable.  Since SCCS is non-free, we
-recommend avoiding it.
+superseded by more advanced ones.  VC compensates for certain features
+missing in SCCS (e.g., tag names for releases) by implementing them
+itself.  Other VC features, such as multiple branches, are simply
+unavailable.  Since SCCS is non-free, we recommend avoiding it.
 
 @cindex CSSC
 @item
 CSSC is a free replacement for SCCS.  You should use CSSC only if, for
-some reason, you cannot use a more recent and better-designed
-version-control system.
+some reason, you cannot use a more recent and better-designed version
+control system.
 
 @cindex RCS
 @item
@@ -1280,8 +1285,8 @@ level of individual files rather than projects.
 @cindex CVS
 @item
 CVS is the free version control system that was, until recently (circa
-2008), used for the majority of free software projects.  Nowadays, it
-is slowly being superseded by other systems.  CVS allows concurrent
+2008), used by the majority of free software projects.  Nowadays, it
+is slowly being superseded by newer systems.  CVS allows concurrent
 multi-user development either locally or over the network.  It lacks
 support for atomic commits or file moving/renaming.  VC supports all
 basic editing operations under CVS.  For some less common tasks, you
@@ -1337,6 +1342,10 @@ commits and file moving/renaming.  VC supports most basic editing
 operations under Bazaar.
 @end itemize
 
+  Previous versions of VC supported a version control system known as
+Meta-CVS.  This support has been dropped because of limited interest
+from users and developers.
+
 @node VCS Concepts
 @subsubsection Concepts of Version Control
 
@@ -1366,93 +1375,91 @@ on the version control system; in the simplest case, it is just an
 integer.
 
   To go beyond these basic concepts, you will need to understand three
-ways in which version-control systems can differ from each other.  They
-can be locking or merging; they can be file-based or changeset-based;
-and they can be centralized or decentralized.  VC handles all these
-choices, but they lead to differing behaviors which you will need
-to understand as you use it.
+ways in which version control systems can differ from each other.
+They can be locking-based or merging-based; they can be file-based or
+changeset-based; and they can be centralized or decentralized.  VC
+handles all these choices, but they lead to differing behaviors which
+you will need to understand as you use it.
 
 @cindex locking versus merging
   A version control system typically has some mechanism to coordinate
 between users who want to change the same file.  There are two ways to
-do this: locking and merging.
-
-  In a version control system that uses locking, work files are
-normally read-only.  To edit a file, you ask the version control
-system to make it writable for you by @dfn{locking} it; only one user
-can lock a given file at any given time.  This procedure is analogous
-to, but different from, the locking that Emacs uses to detect
-simultaneous editing of ordinary files (@pxref{Interlocking}).  When
-you check in your changes, that unlocks the file, and the work file
-becomes read-only again.  Other users may then lock the file for
-making their own changes.
+do this: merging and locking.
 
   In a version control system that uses merging, each user may check
-out and modify a work file at any time.  The system allows you to
+out and modify a work file at any time.  The system lets you
 @dfn{merge} your work file, which may contain changes that have not
 been checked in, with the latest changes that others have checked into
 the repository.
 
-  Both locking and merging systems can have problems when multiple users
-try to modify the same file at the same time.  Locking systems have
-@dfn{lock conflicts}; a user may try to check a file out and be unable
-to because it is locked.  In merging systems, @dfn{merge conflicts}
-happen when you check in a change to a file that conflicts with a change
-checked in by someone else after your checkout.  Both kinds of conflict
-have to be resolved by human judgment and communication.
+  Older version control systems use a @dfn{locking} scheme instead.
+Here, work files are normally read-only.  To edit a file, you ask the
+version control system to make it writable for you by @dfn{locking}
+it; only one user can lock a given file at any given time.  This
+procedure is analogous to, but different from, the locking that Emacs
+uses to detect simultaneous editing of ordinary files
+(@pxref{Interlocking}).  When you check in your changes, that unlocks
+the file, and the work file becomes read-only again.  Other users may
+then lock the file to make their own changes.
+
+  Both locking and merging systems can have problems when multiple
+users try to modify the same file at the same time.  Locking systems
+have @dfn{lock conflicts}; a user may try to check a file out and be
+unable to because it is locked.  In merging systems, @dfn{merge
+conflicts} happen when you check in a change to a file that conflicts
+with a change checked in by someone else after your checkout.  Both
+kinds of conflict have to be resolved by human judgment and
+communication.
 
   SCCS always uses locking.  RCS is lock-based by default but can be
 told to operate in a merging style.  CVS and Subversion are
 merge-based by default but can be told to operate in a locking mode.
-Most distributed version-control systems, such as GNU Arch, git, and
-Mercurial, are based exclusively on merging rather than locking.  This
-is because experience has shown that merging is generally superior to
-locking, both in convenience to developers and in minimizing the
-number and severity of conflicts that actually occur.  Sometimes,
-newer version control systems may have locks retrofitted onto them for
-reasons having nothing to do with technology@footnote{Usually the
-control-freak instincts of managers.}.
+Distributed version control systems, such as GNU Arch, git, and
+Mercurial, are exclusively merging-based.  Experience has shown that
+merging is superior to locking, both in convenience to developers and
+in minimizing the number and severity of conflicts that actually
+occur.  Sometimes, however, newer version control systems may have
+locks retrofitted onto them for reasons having nothing to do with
+technology@footnote{Usually the control-freak instincts of managers.}.
 
   VC mode supports both locking and merging version control and tries
 to hide the differences between them as much as possible.
 
 @cindex files versus changesets.
-  On SCCS, RCS, CVS, and other early version-control systems, checkins
-and other operations are @dfn{file-based}; each file has its own
-@dfn{master file} with its own comment and revision history separate
-from that of all other files in the system.  Later systems, beginning
-with Subversion, are @dfn{changeset-based}: a checkin may include
-changes to several files, and the entire set of changes is treated as
-a unit by the system.  Any comment associated with the change does not
-belong to a single file, but to the changeset itself.
+  On SCCS, RCS, CVS, and other early version control systems, version
+control operations are @dfn{file-based}: each file has its own comment
+and revision history separate from that of all other files in the
+system.  Later systems, beginning with Subversion, are
+@dfn{changeset-based}: a checkin may include changes to several files,
+and the entire set of changes is treated as a unit by the system.  Any
+comment associated with the change does not belong to a single file,
+but to the changeset itself.
 
-  Changeset-based version control is generally more flexible and
-powerful than file-based version control; usually, when a change to
-multiple files has to be backed out, it's good to be able to easily
-identify and remove all of it.  But it took some years for designers
-to figure that out, and while file-based systems are passing out of
-use, there are lots of legacy repositories still to be dealt with as
-of this writing (2008).
+  Changeset-based version control is more flexible and powerful than
+file-based version control; usually, when a change to multiple files
+has to be reversed, it's good to be able to easily identify and remove
+all of it.  But it took some years for designers to figure that out,
+and while file-based systems are passing out of use, there are lots of
+legacy repositories still to be dealt with as of this writing (2008).
 
-  Older versions of VC supported only file-based systems, leading to
-some unhappy results when it was used to drive changeset-based
-ones---the Subversion support, for example, used to break up
+  Prior to Emacs 23, VC supported only file-based systems, leading to
+unhappy results when it was used to drive changeset-based
+systems---the Subversion support, for example, used to break up
 changesets into multiple per-file commits.  This has been fixed, but
-it has left a legacy in VC's terminology.  The terms ``checkin'' and
+it has left a mark in VC's terminology.  The terms ``checkin'' and
 ``checkout'' are associated with file-based and locking-based systems
 and a bit archaic; nowadays those operations are usually called
 ``commit'' and ``update''.
 
-@cindex centralized vs. decentralized
-  Early version-control systems were designed around a @dfn{centralized}
-model in which each project has only one repository used by all
-developers.  SCCS, RCS, CVS, and Subversion share this kind of model.
-It has two important problems.  One is that a single repository is a
-single point of failure---if the repository server is down all work
-stops.  The other is that you need to be connected live to the server to
-do checkins and checkouts; if you're offline, you can't work.
+@cindex centralized vs. decentralized version control
+  Early version control systems were designed around a
+@dfn{centralized} model in which each project has only one repository
+used by all developers.  SCCS, RCS, CVS, and Subversion share this
+kind of model.  One problem with this approach is that a single
+repository is a single point of failure---if the repository server is
+down, all work stops.
 
-  Newer version-control systems like GNU Arch, git, Mercurial, and
+  Newer version control systems like GNU Arch, git, Mercurial, and
 Bazaar are @dfn{decentralized}.  A project may have several different
 repositories, and these systems support a sort of super-merge between
 repositories that tries to reconcile their change histories.  At the
@@ -1460,18 +1467,10 @@ limit, each developer has his/her own repository, and repository
 merges replace checkin/commit operations.
 
   VC's job is to help you manage the traffic between your personal
-workfiles and a repository.  Whether that repository is a single master
-or one of a network of peer repositories is not something VC has to care
-about.  Thus, the difference between a centralized and a decentralized
-version-control system is invisible to VC mode.
-
-@iftex
-(@pxref{CVS Options,,,emacs-xtra, Specialized Emacs Features}).
-@end iftex
-@ifnottex
-(@pxref{CVS Options}).
-@end ifnottex
-
+workfiles and a repository.  Whether that repository is a single
+master or one of a network of peer repositories is not something VC
+has to care about.  Thus, the difference between a centralized and a
+decentralized version control system is invisible to VC mode.
 
 @node Types of Log File
 @subsubsection Types of Log File
@@ -1479,43 +1478,44 @@ version-control system is invisible to VC mode.
 @cindex log File, types of
 @cindex version control log
 
-  Projects that use a revision control system can have @emph{two}
-types of log for changes.  One is the log maintained by the
-revision control system: each time you check in a change, you must
-fill out a @dfn{log entry} for the change (@pxref{Log Buffer}).  This
-kind of log is called the @dfn{version control log}, also the
-@dfn{revision control log}, @dfn{RCS log}, or @dfn{CVS log}.
+  Projects that use a version control system can have two types of log
+for changes.  One is the log maintained by the version control system:
+each time you check in a change, you fill out a @dfn{log entry} for
+the change (@pxref{Log Buffer}).  This is called the @dfn{version
+control log}.
 
   The other kind of log is the file @file{ChangeLog} (@pxref{Change
 Log}).  It provides a chronological record of all changes to a large
 portion of a program---typically one directory and its subdirectories.
 A small program would use one @file{ChangeLog} file; a large program
-may well merit a @file{ChangeLog} file in each major directory.
+may have a @file{ChangeLog} file in each major directory.
 @xref{Change Log}.
 
-  Actually, the fact that both kinds of log exist is partly a legacy from
-file-based version control.  Changelogs are a GNU convention, later 
-more widely adopted, that help developers to get a changeset-based
-view of a project even when its version-control system has that
-information split up in multiple file-based logs.  
+  Actually, the fact that both kinds of log exist is partly a legacy
+from file-based version control.  Changelogs are a GNU convention,
+later more widely adopted, that help developers to get a
+changeset-based view of a project even when its version control system
+has that information split up in multiple file-based logs.
 
-  Changeset-based version systems, on the other hand, often maintain
-a changeset-based modification log for the entire system that makes
-ChangeLogs mostly redundant.  The only advantage ChangeLogs retain is that
-it may be useful to be able to view the transaction history of a
-single directory separately from those of other directories.
+  Changeset-based version systems, on the other hand, often maintain a
+changeset-based modification log for the entire system that makes
+ChangeLogs somewhat redundant.  One advantage that ChangeLogs retain
+is that it is sometimes useful to be able to view the transaction
+history of a single directory separately from those of other
+directories.
 
-  A project maintained with version control can use just the
-version-control log, or it can use both kinds of logs.  It can
-handle some files one way and some files the other way.  Each project
-has its policy, which you should follow.
+  A project maintained with version control can use just the version
+control log, or it can use both kinds of logs.  It can handle some
+files one way and some files the other way.  Each project has its
+policy, which you should follow.
 
   When the policy is to use both, you typically want to write an entry
 for each change just once, then put it into both logs.  You can write
-the entry in @file{ChangeLog}, then copy it to the log buffer when you
-check in the change.  Or you can write the entry in the log buffer
-while checking in the change, and later use the @kbd{C-x v a} command
-to copy it to @file{ChangeLog}
+the entry in @file{ChangeLog}, then copy it to the log buffer with
+@kbd{C-c C-a} when checking in the change (@pxref{Log Buffer}).  Or
+you can write the entry in the log buffer while checking in the
+change, and later use the @kbd{C-x v a} command to copy it to
+@file{ChangeLog}
 @iftex
 (@pxref{Change Logs and VC,,,emacs-xtra, Specialized Emacs Features}).
 @end iftex
@@ -1537,6 +1537,13 @@ locking is not in use).  @samp{:} indicates that the file is locked, or
 that it is modified.  If the file is locked by some other user (for
 instance, @samp{jim}), that is displayed as @samp{RCS:jim:1.3}.
 
+  On a graphical display, you can move the mouse over this mode line
+indicator to pop up a ``tool-tip'', which displays a more verbose
+description of the version control status.  Pressing @key{Mouse-1}
+over the indicator pops up a menu of VC commands.  This menu is
+identical to the @samp{Version Control} menu item, which can be found
+in the @samp{Tools} menu on the menu bar.
+
 @vindex auto-revert-check-vc-info
   When Auto Revert mode (@pxref{Reverting}) reverts a buffer that is
 under version control, it updates the version control information in
@@ -1552,95 +1559,133 @@ system, but is usually not excessive.
 @node Basic VC Editing
 @subsection Basic Editing under Version Control
 
-@menu
-* Selecting A Fileset::    Choosing a set of files to operate on 
-* Doing The Right Thing::  Stepping forward in the development cycle
-* VC With A Locking VCS::  RCS in its default mode, SCCS, and optionally CVS.
-* VC With A Merging VCS::  Without locking: default mode for CVS.
-* Advanced C-x v v::       Advanced features available with a prefix argument.
-* Log Buffer::             Features available in log entry buffers.
-@end menu
-
-@node Selecting A Fileset
-@subsubsection Choosing the scope of your command
-
 @cindex filesets
-   Most VC commands operate on @dfn{filesets}.  A fileset is a 
-group of files that you have chosen to treat as a unit at the
-time you perform the command.  Filesets are the way that VC
-mode bridges the gap between file-based and changeset-based 
-version-control systems.
+   Most VC commands operate on @dfn{VC filesets}.  A VC fileset is a
+group of one or more files that are treated as a unit, for the
+purposes of version control.
 
-   If you are visiting a version-controlled file in the current buffer,
-the default fileset for any command is simply that one file.  If you
-are visiting a VC directory buffer, and some files in it are marked,
-your fileset is the marked files only.
+   If you are visiting a version-controlled file in the current
+buffer, the VC fileset is simply that one file.  If you are visiting a
+VC directory buffer, and some files in it are marked, the VC fileset
+consists of the marked files (@pxref{VC Directory Mode}).
 
-   All files in a fileset must be under the same version-control system.
-If they are not, VC mode will fail when you attempt to execute 
-a command on the fileset.
-
-   VC filesets are, essentially, a way to pass multiple file
-arguments as a group to underlying version-control commands.  For
-example, on Subversion a checkin with more than one file in its
-fileset will become a joint commit, as though you had typed
-@command{svn commit} with those file arguments at the shell command
-line in the directory of the selected buffer.
-
-   If you are accustomed to earlier versions of VC, the change in behavior
-you will notice is in the directory mode. Other than @kbd{C-x v v}, most
-VC-mode commands once operated on only one file selected by the line
-the cursor is on.  The change in the behavior of @kbd{C-x v v} outside
-VC Directory Mode is more subtle.  Formerly it operated in parallel on all
-marked files, but did not pass them to the version-control backends as
-a group.  Now it does, which enables VC to drive changeset-based
-version-control systems.
-
-   Emacs uses the concept of named filesets elsewhere
-(@pxref{Filesets}) to allow you to view and visit files in functional
-groups.  Unlike those, VC filesets are not named and don't persist
-across sessions.
-
-@node Doing The Right Thing
-@subsubsection Performing the next operation in the development cycle
-
-  The principal VC command is an all-purpose command that performs
-either locking or check-in on your current fileset, depending on 
-the situation.
+  The principal VC command is an all-purpose command, @kbd{C-x v v}
+(@code{vc-next-action}), that performs either locking, merging or a
+check-in on the current VC fileset, depending on the situation.  You
+can call @kbd{C-x v v} from a version-controlled file, or from the VC
+Directory buffer.
 
 @table @kbd
 @itemx C-x v v
-Perform the next logical version control operation on this file.
+Perform the next logical version control operation on the VC fileset.
 @end table
 
 @findex vc-next-action
 @kindex C-x v v
-  The precise action of this command depends on the state of the file,
-and whether the version control system uses locking or merging.  SCCS and
-RCS normally use locking; CVS and Subversion normally use
-merging but can be configured to do locking.  Later systems such as 
-GNU Arch and Mercurial always use merging.
+  The precise action of @kbd{C-x v v} depends on the state of the VC
+fileset, and whether the version control system uses locking or
+merging.  This is described in detail in the subsequent sections.
+
+  VC filesets are the way that VC mode bridges the gap between
+file-based and changeset-based version control systems.  They are,
+essentially, a way to pass multiple file arguments as a group to
+version control commands.  For example, on Subversion, a checkin with
+a multi-file VC fileset becomes a joint commit, as though you had
+typed @command{svn commit} with those file arguments at the shell
+command line.  All files in a VC fileset must be under the same
+version control system; if they are not, Emacs signals an error when
+you attempt to execute a command on the fileset.
+
+  If you are accustomed to previous versions of VC, most of the
+changes to VC in Emacs 23 are found in VC directory mode (@pxref{VC
+Directory Mode}).  When multiple files are marked in the VC directory
+buffer, they are treated as a VC fileset; typing @kbd{C-x v v} in the
+VC directory buffer passes them to the version control backends as a
+single unit.  Other commands in VC directory mode now act on the VC
+fileset, rather than the file on the current line.  These changes
+allow VC to interoperate correctly with changeset-based version
+control systems.
+
+  VC filesets are distinct from the ``named filesets'' used for
+viewing and visiting files in functional groups (@pxref{Filesets}).
+Unlike named filesets, VC filesets are not named and don't persist
+across sessions.
+
+@menu
+* VC With A Merging VCS::  Without locking: default mode for CVS.
+* VC With A Locking VCS::  RCS in its default mode, SCCS, and optionally CVS.
+* Advanced C-x v v::       Advanced features available with a prefix argument.
+* Log Buffer::             Features available in log entry buffers.
+@end menu
+
+@node VC With A Merging VCS
+@subsubsection Basic Version Control with Merging
+
+  When your version control system is merging-based (the default for
+CVS and all newer version control systems), work files are always
+writable; you need not do anything special to begin editing a file.
+The status indicator on the mode line is @samp{-} if the file is
+unmodified; it flips to @samp{:} as soon as you save any changes
+(@pxref{VC Mode Line}).
+
+  Here is what @kbd{C-x v v} does when using a merging-based system:
+
+@itemize @bullet
+@item
+If the work file is the same as in the repository, it does nothing.
+
+@item
+If you have not changed the work file, but some other user has checked
+in changes to the repository, @kbd{C-x v v} merges those changes into
+the work file.
+
+@item
+If you have made modifications to the work file, @kbd{C-x v v}
+attempts to check in your changes.  To do this, Emacs first reads the
+log entry for the new revision (@pxref{Log Buffer}).  If some other
+user has checked in changes to the repository since you last checked
+it out, the checkin fails.  In that case, type @kbd{C-x v v} again to
+merge those changes into your own work file; this puts the work file
+into a ``conflicted'' state.  Type @kbd{C-x v v} to clear the
+``conflicted'' state; VC then regards the file as up-to-date and
+modified, and you can try to check it in again.
+
+To pick up any recent changes from the repository @emph{without}
+trying to commit your own changes, type @kbd{C-x v m @key{RET}}.
+@xref{Merging}.
+@end itemize
+
+  These rules also apply when you use RCS in its ``non-locking'' mode,
+except that changes will not be automatically merged from the
+repository.  Nothing informs you if another user has checked in
+changes in the same file since you began editing it; when you check in
+your revision, his changes are removed (however, they remain in the
+repository and are thus not irrevocably lost).  Therefore, you must
+verify that the current revision is unchanged before checking in your
+changes.  In addition, locking is possible with RCS even in this mode:
+@kbd{C-x v v} with an unmodified file locks the file, just as it does
+with RCS in its normal locking mode (@pxref{VC With A Locking VCS}).
 
 @node VC With A Locking VCS
 @subsubsection Basic Version Control with Locking
 
-  If locking is used for the file (as with SCCS, and RCS in its default
-mode), @kbd{C-x v v} can either lock a file or check it in:
+  Under a locking-based version control system (such as SCCS, and RCS
+in its default mode), @kbd{C-x v v} does the following:
 
-@itemize @bullet
+ @itemize @bullet
 @item
-If the file is not locked, @kbd{C-x v v} locks it, and
-makes it writable so that you can change it.
+If the file is not locked, @kbd{C-x v v} locks it, and makes it
+writable so that you can change it.
 
 @item
-If the file is locked by you, and contains changes, @kbd{C-x v v} checks
-in the changes.  In order to do this, it first reads the log entry
-for the new revision.  @xref{Log Buffer}.
+If the file is locked by you, and contains changes, @kbd{C-x v v}
+checks in the changes.  In order to do this, it first reads the log
+entry for the new revision.  @xref{Log Buffer}.
 
 @item
 If the file is locked by you, but you have not changed it since you
-locked it, @kbd{C-x v v} releases the lock and makes the file read-only
-again.
+locked it, @kbd{C-x v v} releases the lock and makes the file
+read-only again.
 
 @item
 If the file is locked by some other user, @kbd{C-x v v} asks you whether
@@ -1651,56 +1696,6 @@ formerly locked the file, to inform him of what has happened.
 
   These rules also apply when you use CVS in locking mode, except
 that there is no such thing as stealing a lock.
-
-@node VC With A Merging VCS
-@subsubsection Basic Version Control with Merging
-
-  When your version-control system is merging-based rather than
-locking-based---the default for CVS and Subversion, and the way GNU
-Arch and more modern systems always work---work files are always
-writable; you do not need to do anything before you begin to edit a
-file.  The status indicator on the mode line is @samp{-} if the file
-is unmodified; it flips to @samp{:} as soon as you save any changes in
-the work file.
-
-  Here is what @kbd{C-x v v} does when using a merging-based system
-(such as CVS or Subversion in their default merging mode):
-
-@itemize @bullet
-@item
-If some other user has checked in changes into the repository, Emacs
-asks you whether you want to merge those changes into your own work
-file.  You must do this before you can check in your own changes.  (To
-pick up any recent changes from the repository @emph{without} trying
-to commit your own changes, type @kbd{C-x v m @key{RET}}.)
-@xref{Merging}.
-
-@item
-If there are no new changes in the repository, but you have made
-modifications in your work file, @kbd{C-x v v} checks in your changes.
-In order to do this, it first reads the log entry for the new revision.
-@xref{Log Buffer}.
-
-@item
-If the file is not modified, the @kbd{C-x v v} does nothing.
-@end itemize
-
-  These rules also apply when you use RCS in the mode that does not
-require locking, except that automatic merging of changes from the
-repository is not implemented.  Unfortunately, this means that nothing
-informs you if another user has checked in changes in the same file
-since you began editing it, and when this happens, his changes will be
-effectively removed when you check in your revision (though they will
-remain in the repository, so they will not be entirely lost).  You must
-therefore verify that the current revision is unchanged, before you
-check in your changes.
-
-  In addition, locking is possible with RCS even in this mode, although
-it is not required; @kbd{C-x v v} with an unmodified file locks the
-file, just as it does with RCS in its normal (locking) mode.
-
-  Later systems like CVS, Subversion and Arch will notice conflicting 
-changes in the repository automatically and notify you when they occur.
 
 @node Advanced C-x v v
 @subsubsection Advanced Control in @kbd{C-x v v}
@@ -1743,22 +1738,35 @@ Features}).
 @node Log Buffer
 @subsubsection Features of the Log Entry Buffer
 
-  When you check in changes, @kbd{C-x v v} first reads a log entry.  It
-pops up a buffer called @samp{*VC-Log*} for you to enter the log entry.
+  When you check in changes, Emacs pops up a buffer called
+@samp{*VC-Log*} for you to enter a log entry.
 
-  Sometimes the @samp{*VC-Log*} buffer contains default text when you enter it,
-typically the last log message entered.  If it does, mark and point
-are set around the entire contents of the buffer so that it is easy to
-kill the contents of the buffer with @kbd{C-w}.
+  After you have finished editing the log message, type @kbd{C-c C-c}
+to exit the buffer and commit the change.
+
+@findex log-edit-show-files
+@findex log-edit-show-diff
+  In the @samp{*VC-Log*} buffer, typing @kbd{C-c C-f}
+(@code{log-edit-show-files}) displays a list of files in the VC
+fileset you are committing.  If you called @kbd{C-x v v} directly from
+a work file, the VC fileset consists of that single file, so this
+command is not very useful.  If you called @kbd{C-x v v} from a VC
+directory buffer, the VC fileset may consist of multiple files
+(@pxref{VC Directory Mode}).
 
 @findex log-edit-insert-changelog
-  If you work by first writing entries in the @file{ChangeLog}
-(@pxref{Change Log}) and afterwards committing the change under revision
-control, you can generate the Log Edit text from the ChangeLog using
-@kbd{C-c C-a} (@kbd{log-edit-insert-changelog}).  This looks for
-entries for the file(s) concerned in the top entry in the ChangeLog
-and uses those paragraphs as the log text.  This text is only inserted
-if the top entry was made under your user name on the current date.
+  Type @kbd{C-c C-d} (@code{log-edit-show-diff}) to show a ``diff'' of
+the changes you have made (i.e., the differences between the work file
+and the repository revision from which you started editing the file).
+The diff is displayed in a special buffer in another window.
+@xref{Comparing Files}.
+
+  If you have written an entry in the @file{ChangeLog} (@pxref{Change
+Log}), type @kbd{C-c C-a} (@code{log-edit-insert-changelog}) to pull
+it into the @samp{*VC-Log*} buffer.  If the topmost item in the
+@file{ChangeLog} was made under your user name on the current date,
+this command searches that item for entries that match the file(s) to
+be committed; if found, these entries are inserted.
 @iftex
 @xref{Change Logs and VC,,,emacs-xtra, Specialized Emacs Features},
 @end iftex
@@ -1768,52 +1776,32 @@ if the top entry was made under your user name on the current date.
 for the opposite way of working---generating ChangeLog entries from
 the revision control log.
 
-@findex log-edit-show-files
-@findex log-edit-show-diff
-  In the @samp{*VC-Log*} buffer, @kbd{C-c C-f}
-(@code{log-edit-show-files}) shows the list of files to be committed
-in case you need to check that.  (This can be a list of more than one
-file if you use VC Directory Mode or PCL-CVS.)  @kbd{C-c C-d}
-(@code{log-edit-show-diff}) shows the diffs for the files to be
-committed.
-@iftex
-@xref{VC Directory Mode,,,emacs-xtra, Specialized Emacs Features},
-@end iftex
-@ifnottex
-@xref{VC Directory Mode},
-@end ifnottex
-and @ref{Top, , About PCL-CVS, pcl-cvs, PCL-CVS --- The Emacs
-Front-End to CVS}.)
-
-  When you have finished editing the log message, type @kbd{C-c C-c} to
-exit the buffer and commit the change.
-
-  To abort check-in, just @strong{don't} type @kbd{C-c C-c} in that
+  To abort a check-in, just @strong{don't} type @kbd{C-c C-c} in that
 buffer.  You can switch buffers and do other editing.  As long as you
 don't try to check in another file, the entry you were editing remains
-in the @samp{*VC-Log*} buffer, and you can go back to that buffer at any
-time to complete the check-in.
+in the @samp{*VC-Log*} buffer, and you can go back to that buffer at
+any time to complete the check-in.
 
   If you change several source files for the same reason, it is often
 convenient to specify the same log entry for many of the files.  (This
 is the normal way to do things on a changeset-oriented system, where
 comments are attached to changesets rather than the history of
-individual files.)  The most convenient way to do this is to mark all the
-files in VC Directory Mode and check in from there; the log buffer will
-carry the fileset information with it and do a group commit when you
-confirm it with @kbd{C-c C-c}.
+individual files.)  The most convenient way to do this is to mark all
+the files in VC Directory Mode and check in from there; the log buffer
+will carry the fileset information with it and do a group commit when
+you type @kbd{C-c C-c}.
 
-  However, you can also browse the history of previous log entries to
-duplicate a checkin comment. This can be useful when you want several
-files to have checkin comments that vary only slightly from each
-other. The commands @kbd{M-n}, @kbd{M-p}, @kbd{M-s} and @kbd{M-r} for
-doing this work just like the minibuffer history commands (except that
-these versions are used outside the minibuffer).
+  You can also browse the history of previous log entries to duplicate
+a checkin comment. This can be useful when you want several files to
+have checkin comments that vary only slightly from each other. The
+commands @kbd{M-n}, @kbd{M-p}, @kbd{M-s} and @kbd{M-r} for doing this
+work just like the minibuffer history commands (except that these
+versions are used outside the minibuffer).
 
 @vindex vc-log-mode-hook
-  Each time you check in a change, the log entry buffer is put into VC Log
-mode, which involves running two hooks: @code{text-mode-hook} and
-@code{vc-log-mode-hook}.  @xref{Hooks}.
+  Each time you check in a change, the log entry buffer is put into VC
+Log Edit mode, which involves running two hooks: @code{text-mode-hook}
+and @code{vc-log-mode-hook}.  @xref{Hooks}.
 
 @node Old Revisions
 @subsection Examining And Comparing Old Revisions
@@ -1834,54 +1822,59 @@ fileset with the working revision(s) from which you started editing.
 Compare the specified two repository revisions of the current fileset.
 
 @item C-x v g
-Display the file with per-line revision information and using colors.
+Display an annotated version of the file: for each line, show the
+latest revision in which it was modified.
 @end table
 
 @findex vc-revision-other-window
 @kindex C-x v ~
-  To examine an old revision in its entirety, visit the file and then type
-@kbd{C-x v ~ @var{revision} @key{RET}} (@code{vc-revision-other-window}).
-This puts the text of revision @var{revision} in a file named
-@file{@var{filename}.~@var{revision}~}, and visits it in its own buffer
-in a separate window.  (In RCS, you can also select an old revision
-and create a branch from it.  @xref{Branches}.)
+  To examine an old revision, visit the work file and type @kbd{C-x v
+~ @var{revision} @key{RET}} (@code{vc-revision-other-window}).  Here,
+@var{revision} is either the desired revision ID (@pxref{VCS
+Concepts}), or the name of a tag or branch
+@iftex
+(@pxref{Tags,,,emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{Tags}).
+@end ifnottex
+This command puts the text of the old revision in a file named
+@file{@var{filename}.~@var{revision}~}, and visits it in its own
+buffer in a separate window.
 
 @findex vc-diff
 @kindex C-x v =
-@kbd{C-x v =} compares the current buffer contents of each file in the
-current fileset (saving them in the file if necessary) with the
-repository revision from which you started editing each file (this is not
-necessarily the latest revision of the file).  The diff will be displayed
-in a special buffer in another window.
+  @kbd{C-x v =} (@code{vc-diff}) compares the current buffer contents
+of each file in the current VC fileset (saving them if necessary) with
+the repository revision from which you started editing.  Note that the
+latter may or may not be the latest revision of the file(s).  The diff
+is displayed in a special buffer in another window.  @xref{Comparing
+Files}.
 
 @findex vc-diff
 @kindex C-u C-x v =
-  You can compare two repository revisions of the current fileset with
-the command @kbd{C-u C-x v =} (@code{vc-diff}).  @kbd{C-u C-x v =} reads
-two revision ID or tags. The diff will be displayed in a special
-buffer in another window.
-
-  You can specify a checked-in revision by its ID; an empty input
-specifies the current contents of the work file (which may be different
-from all the checked-in revisions).  You can also specify a tag or branch name
+  To compare two arbitrary revisions of the current VC fileset, call
+@code{vc-diff} with a prefix argument: @kbd{C-u C-x v =}.  This
+prompts for two revision IDs, using the minibuffer, and displays the
+diff in a special buffer in another window.  Instead of providing a
+revision ID, you can give an empty input, which specifies the current
+contents of the work file; or a tag or branch name
 @iftex
-(@pxref{Tags,,,emacs-xtra, Specialized Emacs Features})
+(@pxref{Tags,,,emacs-xtra, Specialized Emacs Features}).
 @end iftex
 @ifnottex
-(@pxref{Tags})
+(@pxref{Tags}).
 @end ifnottex
-instead of one or both revision ID.
+If your version control system is file-based (e.g. CVS) rather than
+changeset-based (Subversion, GNU Arch, git, Mercurial), supplying a
+revision ID for a multi-file fileset (as opposed to a symbolic tag
+name) is unlikely to return diffs that are connected in any meaningful
+way.
 
-  Note that if your version-control system is file-oriented (SCCS,
-RCS, CVS) rather than fileset-oriented (Subversion, GNU Arch, git,
-Mercurial) specifying a revision of a multiple-file fileset by
-revision ID (as opposed to a symbolic tag name) is
-unlikely to return diffs that are connected in any meaningful way.
-
-  If you invoke @kbd{C-u C-x v =} or @kbd{C-u C-x v =} from a buffer
-that is neither visiting a version-controlled file nor a VC directory
-buffer, these commands will generate a diff of all registered files in
-the current directory and its subdirectories.
+  If you invoke @kbd{C-x v =} or @kbd{C-u C-x v =} from a buffer that
+is neither visiting a version-controlled file nor a VC directory
+buffer, these commands generate a diff of all registered files in the
+current directory and its subdirectories.
 
 @vindex vc-diff-switches
 @vindex vc-rcs-diff-switches
@@ -1891,8 +1884,8 @@ invoke @code{diff} this way, in addition to the options specified by
 @code{diff-switches} (@pxref{Comparing Files}), it receives those
 specified by @code{vc-diff-switches}, plus those specified for the
 specific back end by @code{vc-@var{backend}-diff-switches}.  For
-instance, when the version control back end is RCS, @code{diff} uses
-the options in @code{vc-rcs-diff-switches}.  The
+instance, when the version control back end is CVS, @code{diff} uses
+the options in @code{vc-cvs-diff-switches}.  The
 @samp{vc@dots{}diff-switches} variables are @code{nil} by default.
 
   The buffer produced by @kbd{C-x v =} supports the commands of
@@ -1904,13 +1897,13 @@ revisions are not, in general, present as files on your disk.)
 @findex vc-annotate
 @kindex C-x v g
   For some back ends, you can display the file @dfn{annotated} with
-per-line revision information and using colors to enhance the visual
-appearance, with the command @kbd{M-x vc-annotate}.  This creates a new
-buffer (the ``annotate buffer'') displaying the file's text, with each
-part colored to show how old it is.  Text colored red is new, blue means
-old, and intermediate colors indicate intermediate ages.  By default,
-the color is scaled over the full range of ages, such that the oldest
-changes are blue, and the newest changes are red.
+per-line revision information, by typing @kbd{C-x v g}
+(@code{vc-annotate}).  This creates a new buffer (the ``annotate
+buffer'') displaying the file's text, with each part colored to show
+how old it is.  Text colored red is new, blue means old, and
+intermediate colors indicate intermediate ages.  By default, the color
+is scaled over the full range of ages, such that the oldest changes
+are blue, and the newest changes are red.
 
   When you give a prefix argument to this command, Emacs reads two
 arguments using the minibuffer: the ID of which revision to display and
@@ -1972,17 +1965,12 @@ the file contents without distraction from the annotations.
 @node Secondary VC Commands
 @subsection The Secondary Commands of VC
 
-  This section explains the secondary commands of VC, those that you might
-use once a day.
+  This section explains the secondary commands of VC.
 
 @menu
 * Registering::         Putting a file under version control.
 * VC Status::           Viewing the VC status of files.
 * VC Undo::             Canceling changes before or after check-in.
-@ifnottex
-* VC Directory Mode::   Listing files managed by version control.
-* VC Directory Commands:: Commands to use in a VC directory buffer.
-@end ifnottex
 @end menu
 
 @node Registering
@@ -2048,14 +2036,16 @@ Display revision control state and change history.
 @kindex C-x v l
 @findex vc-print-log
   To view the detailed revision control status and history of a file,
-type @kbd{C-x v l} (@code{vc-print-log}).  It displays the history of
-changes to the current file, including the text of the log entries.  The
-output appears in a separate window.  The point is centered at the
-revision of the file that is currently being visited.
+type @kbd{C-x v l} (@code{vc-print-log}).  This pops up a special
+buffer named @samp{*vc-change-log*}, in a new window, that displays
+the history of changes to the current file, including the text of the
+log entries.  The point is centered at the revision of the file that
+is currently being visited.
 
-  In the change log buffer, you can use the following keys to move
-between the logs of revisions and of files, to view past revisions, to
-modify change comments, to view annotations and to view diffs:
+  In the @samp{*vc-change-log*} buffer, you can use the following keys
+to move between the logs of revisions and of files, to view past
+revisions, to modify change comments, to view annotations and to view
+diffs:
 
 @table @kbd
 @item p
@@ -2071,27 +2061,14 @@ count.
 
 @item P
 Move to the log of the previous file, when the logs of multiple files
-are in the log buffer
-@iftex
-(@pxref{VC Directory Mode,,,emacs-xtra, Specialized Emacs Features}).
-@end iftex
-@ifnottex
-(@pxref{VC Directory Mode}).
-@end ifnottex
-Otherwise, just move to the beginning of the log.  A numeric prefix
-argument is a repeat count, so @kbd{C-u 10 P} would move backward 10
-files.
+are in the log buffer (@pxref{VC Directory Mode}).  Otherwise, just
+move to the beginning of the log.  A numeric prefix argument is a
+repeat count, so @kbd{C-u 10 P} would move backward 10 files.
 
 @item N
 Move to the log of the next file, when the logs of multiple files are
-in the log buffer
-@iftex
-(@pxref{VC Directory Mode,,,emacs-xtra, Specialized Emacs Features}).
-@end iftex
-@ifnottex
-(@pxref{VC Directory Mode}).
-@end ifnottex
-It also takes a numeric prefix argument as a repeat count.
+in the log buffer (@pxref{VC Directory Mode}).  It also takes a
+numeric prefix argument as a repeat count.
 
 @item a
 Annotate the revision indicated by the current line.
@@ -2133,12 +2110,12 @@ This undoes your last check-in.
 @kindex C-x v u
 @findex vc-revert-buffer
   If you want to discard your current set of changes and revert to the
-working revision from which you started editing the file, use @kbd{C-x v u}
-(@code{vc-revert-buffer}).  This leaves the file unlocked; if locking
-is in use, you must first lock the file again before you change it
-again.  @kbd{C-x v u} requires confirmation, unless it sees that you
-haven't made any changes with respect to the master copy of the
-working revision.
+working revision from which you started editing the file, use @kbd{C-x
+v u} (@code{vc-revert-buffer}).  If the version control system is
+locking-based, this leaves the file unlocked, and you must lock it
+again before making new changes.  @kbd{C-x v u} requires confirmation,
+unless it sees that you haven't made any changes with respect to the
+master copy of the working revision.
 
   @kbd{C-x v u} is also the command to unlock a file if you lock it and
 then decide not to change it.
@@ -2148,17 +2125,173 @@ then decide not to change it.
   To cancel a change that you already checked in, use @kbd{C-x v c}
 (@code{vc-rollback}).  This command discards all record of the most
 recent checked-in revision, but only if your work file corresponds to
-that revision---you cannot use @kbd{C-x v c} to cancel a revision that is
-not the latest on its branch.  Note that many version-control systems do
-not support rollback at all; this command is something of a historical 
-relic.
+that revision---you cannot use @kbd{C-x v c} to cancel a revision that
+is not the latest on its branch.  Note that many version control
+systems do not support rollback at all; this command is something of a
+historical relic.
 
-@ifnottex
-@c vc1-xtra.texi needs extra level of lowering.
-@lowersections
-@include vc1-xtra.texi
-@raisesections
-@end ifnottex
+@node VC Directory Mode
+@subsection VC Directory Mode
+
+@kindex C-x v d
+@findex vc-dir
+  When you are working on a large program, it is often useful to find
+out which files have changed within an entire directory tree, or to
+view the status of all files under version control at once, and to
+perform version control operations on collections of files.  You can
+use the command @kbd{C-x v d} (@code{vc-dir}) to make a directory
+listing that includes only files relevant for version control.  This
+creates a @dfn{VC Directory buffer} and displays it in a separate
+window.
+
+@cindex PCL-CVS
+@pindex cvs
+@cindex CVS directory mode
+  The VC Directory buffer described here works with all the version
+control systems that VC supports.  Another more powerful facility,
+designed specifically for CVS, is called PCL-CVS.  @xref{Top, , About
+PCL-CVS, pcl-cvs, PCL-CVS --- The Emacs Front-End to CVS}.
+
+  The VC Directory buffer contains a list of version-controlled files
+in the current directory and its subdirectories.  Files which are
+up-to-date (have no local differences from the repository copy) are
+omitted; if all files in a directory are up-to-date, the directory is
+omitted as well.  (However, the directory in which @code{vc-dir} was
+run will always be shown as @file{./}.)  There is an exception to this
+rule: if VC mode detects that a file has changed to an up-to-date
+state since you last looked at it, that file and its state are shown.
+
+  If a directory uses more that one version control system, you can
+select which system to use for the @code{vc-dir} command by invoking
+@code{vc-dir} with a prefix argument: @kbd{C-u C-x v d}.
+
+  The line for an individual file shows the version control state of
+the file.  Under RCS and SCCS, the name of the user locking the file
+is shown; under CVS, an abbreviated version of the @samp{cvs status}
+output is used.  Here is an example using CVS:
+
+@smallexample
+@group
+                       ./
+    modified           file1.c
+    needs-update       file2.c
+    needs-merge        file3.c
+@end group
+@end smallexample
+
+@noindent
+In this example, @samp{file1.c} is modified with respect to the
+repository, and @samp{file2.c} is not.  @samp{file3.c} is modified,
+but other changes have also been checked in to the repository---you
+need to merge them with the work file before you can check it in.
+
+@vindex vc-stay-local
+@vindex vc-cvs-stay-local
+  In the above, if the repository were on a remote machine, VC only
+contacts it when the variable @code{vc-stay-local} (or
+@code{vc-cvs-stay-local}) is nil (@pxref{CVS Options}).  This is
+because access to the repository may be slow, or you may be working
+offline and not have access to the repository at all.  As a
+consequence, VC would not be able to tell you that @samp{file3.c} is
+in the ``merge'' state; you would learn that only when you try to
+check-in your modified copy of the file, or use a command such as
+@kbd{C-x v m}.
+
+  In practice, this is not a problem because CVS handles this case
+consistently whenever it arises.  In VC, you'll simply get prompted to
+merge the remote changes into your work file first.  The benefits of
+less network communication usually outweigh the disadvantage of not
+seeing remote changes immediately.
+
+@vindex vc-directory-exclusion-list
+  When a VC directory displays subdirectories it omits some that
+should never contain any files under version control.  By default,
+this includes Version Control subdirectories such as @samp{RCS} and
+@samp{CVS}; you can customize this by setting the variable
+@code{vc-directory-exclusion-list}.
+
+@menu
+* VC Directory Commands:: Commands to use in a VC directory buffer.
+@end menu
+
+@node VC Directory Commands
+@subsubsection VC Directory Commands
+
+  VC Directory mode has a full set of navigation and marking commands
+for picking out filesets.  Some of these are also available in a
+context menu invoked by the @kbd{mouse-2} button.
+
+  Up- and down-arrow keys move in the buffer; @kbd{n} and @kbd{p}  also
+move vertically as in other list-browsing modes.  @key{SPC} and
+@key{TAB} behave like down-arrow, and @key{BackTab} behaves like
+up-arrow.
+
+  Both @kbd{C-m} and @kbd{f} visit the file on the current
+line.  @kbd{o} visits that file in another window.  @kbd{q} dismisses
+the directory buffer.
+
+  @kbd{x} toggles hiding of up-to-date files.
+  
+  @kbd{m} marks the file or directory on the current line.  If the
+region is active, @kbd{m} marks all the files in the region.  There
+are some restrictions when marking: a file cannot be marked if any of
+its parent directories are marked, and a directory cannot be marked if
+any files in it or in its child directories are marked.
+
+  @kbd{M} marks all the files with the same VC state as the current
+file if the cursor is on a file.  If the cursor is on a directory, it
+marks all child files.  With a prefix argument: marks all files and
+directories.
+
+  @kbd{u} unmarks the file or directory on the current line.  If the
+region is active, it unmarks all the files in the region.
+
+  @kbd{U} marks all the files with the same VC state as the current file
+if the cursor is on a file.  If the cursor is on a directory, it
+unmarks all child files.  With a prefix argument: unmarks all marked
+files and directories.
+
+  It is possible to do search, search and replace, incremental search,
+and incremental regexp search on multiple files.  These commands will
+work on all the marked files or the current file if nothing is marked.
+If a directory is marked, the files in that directory shown in the VC
+directory buffer will be used.
+
+  @kbd{S} searches the marked files.
+
+  @kbd{Q} does a query replace on the marked files.
+
+  @kbd{M-s a C-s} does an incremental search on the marked files.
+
+  @kbd{M-s a C-M-s} does an incremental search on the marked files.
+
+  Commands are also accessible from the VC-dir menu.  Note that some VC
+backends use the VC-dir menu to make available extra backend specific
+commands.
+
+  Normal VC commands with the @kbd{C-x v} prefix work in VC directory
+buffers.  Some single-key shortcuts are available as well; @kbd{=},
+@kbd{+}, @kbd{l}, @kbd{i}, and @kbd{v} behave as through prefixed with
+@kbd{C-x v}.
+
+  The command @kbd{C-x v v} (@code{vc-next-action}) operates on all the
+marked files, so that you can check in several files at once.
+If the underlying VC supports atomic commits of multiple-file
+changesets, @kbd{C-x v v} with a selected set of modified but not
+committed files will commit all of them at once as a single changeset.
+
+  When @kbd{C-x v v} (@code{vc-next-action}) operates on a set of files,
+it requires that all of those files must be either in the same state or
+in compatible states; otherwise it will throw an error (added,
+modified and removed states are considered compatible).  Note that this
+differs from the behavior of older versions of VC, which did not have
+fileset operations and simply did @code{vc-next-action} on each file
+individually.
+
+  If any files are in a state that calls for commit, @kbd{C-x v v} reads a
+single log entry and uses it for the changeset as a whole.  If the
+underling VCS is file- rather than changeset-oriented, the log entry
+will be replicated into the history of each file.
 
 @node Branches
 @subsection Multiple Branches of a File
@@ -2372,7 +2505,7 @@ branch ID.  This ensures that Emacs knows which branch it is using
 during this particular editing session.
 
 @ifnottex
-@include vc2-xtra.texi
+@include vc1-xtra.texi
 @end ifnottex
 
 @node Directories
@@ -3083,8 +3216,8 @@ menu, where each existing fileset is represented by a submenu.
 
    Emacs uses the concept of a fileset elsewhere @pxref{Version
 Control} to describe sets of files to be treated as a group for
-purposes of version-control operations.  Those filesets are
-unnamed and do not persist across Emacs sessions.
+purposes of version control operations.  Those filesets are unnamed
+and do not persist across Emacs sessions.
 
 @ignore
    arch-tag: 768d32cb-e15a-4cc1-b7bf-62c00ee12250
