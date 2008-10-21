@@ -72,10 +72,10 @@ executing @kbd{M-x lisp-mode}.
 
 @vindex auto-mode-alist
   When you visit a file, Emacs usually chooses the right major mode
-automatically.  Normally, the choice is made based on the file
+automatically.  Normally, it makes the choice based on the file
 name---for example, files whose names end in @samp{.c} are normally
-edited in C mode---but sometimes the major mode is selected using the
-contents of the file.  Here is the exact procedure:
+edited in C mode---but sometimes it chooses the major mode based on
+the contents of the file.  Here is the exact procedure:
 
   First, Emacs checks whether the file contains a file-local variable
 that specifies the major mode.  If so, it uses that major mode,
@@ -106,7 +106,7 @@ this:
 @end example
 
 @vindex interpreter-mode-alist
-  Secondly, Emacs checks whether the file's contents begin with
+  Second, Emacs checks whether the file's contents begin with
 @samp{#!}.  If so, that indicates that the file can serve as an
 executable shell command, which works by running an interpreter named
 on the file's first line (the rest of the file is used as input to the
@@ -124,7 +124,7 @@ same is true for man pages which start with the magic string
 @samp{'\"} to specify a list of troff preprocessors.
 
 @vindex magic-mode-alist
-  Thirdly, Emacs tries to determine the major mode by looking at the
+  Third, Emacs tries to determine the major mode by looking at the
 text at the start of the buffer, based on the variable
 @code{magic-mode-alist}.  By default, this variable is @code{nil} (an
 empty list), so Emacs skips this step; however, you can customize it
@@ -152,7 +152,7 @@ where @var{match-function} is a Lisp function that is called at the
 beginning of the buffer; if the function returns non-@code{nil}, Emacs
 set the major mode wit @var{mode-function}.
 
-  Fourthly---if Emacs still hasn't found a suitable major mode---it
+  Fourth---if Emacs still hasn't found a suitable major mode---it
 looks at the file's name.  The correspondence between file names and
 major modes is controlled by the variable @code{auto-mode-alist}.  Its
 value is a list in which each element has this form,
