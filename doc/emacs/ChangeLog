@@ -31,7 +31,8 @@
 	(Comparing Files): Note that diff uses the minibuffer, and that the
 	output is shown using Diff mode.
 	(Diff Mode): Explain what "patch" and "hunk" mean.  Document
-	diff-update-on-the-fly and diff-refine-hunk.
+	diff-update-on-the-fly, diff-refine-hunk, and
+	diff-show-trailing-whitespaces.
 	(File Archives): Add rar support.
 
 	* major.texi (Choosing Modes): Make mode selection sequence more
