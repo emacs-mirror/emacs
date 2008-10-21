@@ -2780,6 +2780,11 @@ descriptions of the changes.  @kbd{C-x 4 a} itself in Diff mode
 operates on behalf of the current hunk's file, but gets the function
 name from the patch itself.  This is useful for making log entries for
 functions that are deleted by the patch.
+
+@item M-x diff-show-trailing-whitespaces RET
+@findex diff-show-trailing-whitespaces
+Highlight syntactically problematic trailing whitespace characters
+(usually errors introduced when editing a patch).
 @end table
 
 
