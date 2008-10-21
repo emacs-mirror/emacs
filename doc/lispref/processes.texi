@@ -2356,6 +2356,7 @@ If the vector does not include the port number, @var{p}, or if
 @section Communicating with Serial Ports
 @cindex @file{/dev/tty}
 @cindex @file{COM1}
+@cindex serial connections
 
   Emacs can communicate with serial ports.  For interactive use,
 @kbd{M-x serial-term} opens a terminal window.  In a Lisp program,
@@ -2497,15 +2498,15 @@ be configured.  If none of these arguments is given, the current
 buffer's process is used.
 
 @item :speed @var{speed}
-The speed of the serial port in bits per second, also called @dfn{baud
-rate}.  Any value can be given for @var{speed}, but most serial ports
-work only at a few defined values between 1200 and 115200, with 9600
-being the most common value.  If @var{speed} is @code{nil}, the serial
-port is not configured any further, i.e., all other arguments are
-ignored.  This may be useful for special serial ports such as
-Bluetooth-to-serial converters which can only be configured through AT
-commands sent through the connection.  A value of @code{nil} for
-@var{speed} can be used only for connections already opened by
+The speed of the serial port in bits per second, a.k.a.@: @dfn{baud
+rate}.  The value can be any number, but most serial ports work only
+at a few defined values between 1200 and 115200, with 9600 being the
+most common value.  If @var{speed} is @code{nil}, the function ignores
+all other arguments and does not configure the port.  This may be
+useful for special serial ports such as Bluetooth-to-serial converters
+which can only be configured through AT commands sent through the
+connection.  You can use the value of @code{nil} for @var{speed} only
+for connections that are already open by a previous call to
 @code{make-serial-process} or @code{serial-term}.
 
 @item :bytesize @var{bytesize}
