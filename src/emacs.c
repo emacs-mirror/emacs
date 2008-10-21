@@ -212,8 +212,8 @@ static void *my_heap_start;
 /* The gap between BSS end and heap start as far as we can tell.  */
 static unsigned long heap_bss_diff;
 
-/* If the gap between BSS end and heap start is larger than this we try to
-   work around it, and if that fails, output a warning in dump-emacs.  */
+/* If the gap between BSS end and heap start is larger than this
+   output a warning in dump-emacs.  */
 #define MAX_HEAP_BSS_DIFF (1024*1024)
 
 
@@ -861,29 +861,24 @@ main (int argc, char **argv)
     }
 
 #ifdef HAVE_PERSONALITY_LINUX32
-  /* See if there is a gap between the end of BSS and the heap.
-     In that case, set personality and exec ourself again.  */
   if (!initialized
       && (strcmp (argv[argc-1], "dump") == 0
           || strcmp (argv[argc-1], "bootstrap") == 0)
-      && heap_bss_diff > MAX_HEAP_BSS_DIFF)
+      && ! getenv ("EMACS_HEAP_EXEC"))
     {
-      if (! getenv ("EMACS_HEAP_EXEC"))
-        {
-          /* Set this so we only do this once.  */
-          putenv("EMACS_HEAP_EXEC=true");
+      /* Set this so we only do this once.  */
+      putenv("EMACS_HEAP_EXEC=true");
 
-	  /* A flag to turn off address randomization which is introduced
-	   in linux kernel shipped with fedora core 4 */
+      /* A flag to turn off address randomization which is introduced
+         in linux kernel shipped with fedora core 4 */
 #define ADD_NO_RANDOMIZE 0x0040000
-	  personality (PER_LINUX32 | ADD_NO_RANDOMIZE);
+      personality (PER_LINUX32 | ADD_NO_RANDOMIZE);
 #undef  ADD_NO_RANDOMIZE
 
-          execvp (argv[0], argv);
+      execvp (argv[0], argv);
 
-          /* If the exec fails, try to dump anyway.  */
-          perror ("execvp");
-        }
+      /* If the exec fails, try to dump anyway.  */
+      perror ("execvp");
     }
 #endif /* HAVE_PERSONALITY_LINUX32 */
 
