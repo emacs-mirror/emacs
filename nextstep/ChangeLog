@@ -1,3 +1,11 @@
+2008-10-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Cocoa/Emacs.base/Contents/Info.plist
+	* Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings
+	* GNUstep/Emacs.base/Resources/Emacs.desktop
+	* GNUstep/Emacs.base/Resources/Info-gnustep.plist: Replace 9.0 version
+	numbers with 23.0.60-involving strings.
+
 2008-10-08  Yavor Doganov  <yavor@gnu.org>  (tiny change)
 
 	* GNUstep/Emacs.base/Resources/Info-gnustep.plist:
