@@ -86,7 +86,10 @@ char panelOK = 0;
 
 /* Alist of elements (REGEXP . IMAGE) for images of icons associated
    to frames.*/
-Lisp_Object Vns_icon_type_alist;
+static Lisp_Object Vns_icon_type_alist;
+
+/* Toolkit version support. */
+static Lisp_Object Vns_version_string;
 
 EmacsTooltip *ns_tooltip;
 
@@ -950,6 +953,25 @@ ns_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 
+#define Str(x) #x
+#define Xstr(x) Str(x)
+
+static Lisp_Object
+ns_appkit_version ()
+{
+  char tmp[80];
+
+#ifdef NS_IMPL_GNUSTEP
+  sprintf(tmp, "gnustep-gui-%s", Xstr(GNUSTEP_GUI_VERSION));
+#elif defined(NS_IMPL_COCOA)
+  sprintf(tmp, "apple-appkit-%.2f", NSAppKitVersionNumber);
+#else
+  tmp = "ns-unknown";
+#endif
+  return build_string (tmp);
+}
+
+
 static void
 x_icon (struct frame *f, Lisp_Object parms)
 /* --------------------------------------------------------------------------
@@ -1018,6 +1040,13 @@ frame_parm_handler ns_frame_parm_handlers[] =
   0
 };
 
+
+
+/* ==========================================================================
+
+    Lisp definitions
+
+   ========================================================================== */
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
@@ -1321,12 +1350,6 @@ be shared by the new frame.  */)
 }
 
 
-/* ==========================================================================
-
-    Lisp definitions
-
-   ========================================================================== */
-
 DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
        doc: /* Set the input focus to FRAME.
 FRAME nil means use the selected frame.  */)
@@ -1575,7 +1598,6 @@ If omitted or nil, the selected frame's display is used.  */)
      (display)
      Lisp_Object display;
 {
-  check_ns ();
 #ifdef NS_IMPL_GNUSTEP
   return build_string ("GNU");
 #else
@@ -1592,8 +1614,7 @@ See also the function `ns-server-vendor'.  */)
      (display)
      Lisp_Object display;
 {
-  /* FIXME: return GUI version on GNUstep, ?? on OS X */
-  return build_string ("1.0");
+  return ns_appkit_version ();
 }
 
 
@@ -2639,6 +2660,10 @@ Example: Install an icon Gnus.tiff and execute the following code
 When you miniaturize a Group, Summary or Article frame, Gnus.tiff will
 be used as the image of the icon representing the frame.  */);
   Vns_icon_type_alist = Fcons (Qt, Qnil);
+
+  DEFVAR_LISP ("ns-version-string", &Vns_version_string,
+               doc: /* Toolkit version for NS Windowing.  */);
+  Vns_version_string = ns_appkit_version ();
 
   defsubr (&Sns_read_file_name);
   defsubr (&Sns_get_resource);

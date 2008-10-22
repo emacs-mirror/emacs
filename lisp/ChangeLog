@@ -1,3 +1,8 @@
+2008-10-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* version.el (emacs-version): Change '*Step' to 'NS' for consistency
+	with other documentation.
+
 2008-10-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* replace.el (how-many): Fix typo in docstring.

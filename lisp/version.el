@@ -66,7 +66,7 @@ to the system configuration; look at `system-configuration' instead."
 			(concat ", GTK+ Version " gtk-version-string))
 		       ((featurep 'x-toolkit) ", X toolkit")
 		       ((featurep 'ns)
-			(format ", *Step %s" ns-version-string))
+			(format ", NS %s" ns-version-string))
 		       (t ""))
 		 (if (and (boundp 'x-toolkit-scroll-bars)
 			  (memq x-toolkit-scroll-bars '(xaw xaw3d)))

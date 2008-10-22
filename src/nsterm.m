@@ -6379,13 +6379,6 @@ baseline level.  The default value is nil.  */);
 
   /* Tell emacs about this window system. */
   Fprovide (intern ("ns"), Qnil);
-  /* TODO: try to move this back into lisp,  ns-win.el loaded too late
-           right now */
-  {
-    Lisp_Object args[3] = { intern ("ns-version-string"), build_string ("9.0"),
-                    build_string ("NS Window system port version number.") };
-    Fdefconst (Flist (3, args));
-  }
 }
 
 
