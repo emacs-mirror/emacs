@@ -1,3 +1,11 @@
+2008-10-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Don't setup
+	find-word-boundary-function-table.
+	(next-word-boundary-han, next-word-boundary-kana): Delete them.
+	(word-combining-categories, word-separating-categories): Adjusted
+	to the change of the docstrings.
+
 2008-10-21  Alan Mackenzie  <acm@muc.de>
 
 	* simple.el (undo-more): Add comment explaining the operations on
