@@ -1,3 +1,10 @@
+2008-10-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Displaying Buffers): Reword documentation of
+	pop-to-buffer.
+	(Choosing Window): Rewrite documentation of display-buffer and
+	its options.
+
 2008-10-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* processes.texi (Serial Ports): Fix wording and improve markup.
