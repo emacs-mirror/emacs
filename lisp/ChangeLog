@@ -1,5 +1,7 @@
 2008-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* frame.el (make-frame-command): Doc fix.  Use display-graphic-p.
+
 	* thingatpt.el (sexp-at-point, symbol-at-point, number-at-point)
 	(list-at-point): Add docstrings.
 
