@@ -289,32 +289,31 @@ or @code{eight-bit-graphic}.
 @section Character Codes
 @cindex character codes
 
-  The unibyte and multibyte text representations use different character
-codes.  The valid character codes for unibyte representation range from
-0 to 255---the values that can fit in one byte.  The valid character
-codes for multibyte representation range from 0 to 524287, but not all
-values in that range are valid.  The values 128 through 255 are not
-entirely proper in multibyte text, but they can occur if you do explicit
-encoding and decoding (@pxref{Explicit Encoding}).  Some other character
-codes cannot occur at all in multibyte text.  Only the @acronym{ASCII} codes
-0 through 127 are completely legitimate in both representations.
+  The unibyte and multibyte text representations use different
+character codes.  The valid character codes for unibyte representation
+range from 0 to 255---the values that can fit in one byte.  The valid
+character codes for multibyte representation range from 0 to 4194303,
+but not all values in that range are valid.  The values 128 through
+255 do not usually show up in multibyte text, but they can occur if
+you do explicit encoding and decoding (@pxref{Explicit Encoding}).
+Some other character codes cannot occur at all in multibyte text.
+Only the @acronym{ASCII} codes 0 through 127 are completely legitimate
+in both representations.
 
-@defun char-valid-p charcode &optional genericp
-This returns @code{t} if @var{charcode} is valid (either for unibyte
-text or for multibyte text).
+@defun characterp charcode
+This returns @code{t} if @var{charcode} is a valid character, and
+@code{nil} otherwise.
 
 @example
-(char-valid-p 65)
+(characterp 65)
      @result{} t
-(char-valid-p 256)
+(characterp 256)
      @result{} nil
-(char-valid-p 2248)
+(characterp 4194303)
      @result{} t
+(characterp 4194304)
+     @result{} nil
 @end example
-
-If the optional argument @var{genericp} is non-@code{nil}, this
-function also returns @code{t} if @var{charcode} is a generic
-character (@pxref{Splitting Characters}).
 @end defun
 
 @node Character Sets
