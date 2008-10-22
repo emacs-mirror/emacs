@@ -1,3 +1,11 @@
+2008-10-22  Kenichi Handa  <handa@m17n.org>
+
+	* category.c (word_boundary_p): Check scripts instead of charset.
+	Handle nil value in word-separating-categories and
+	word-combining-categories.
+	(syms_of_category): Fix docstrings of word-separating-categories
+	and word-combining-categories.
+
 2008-10-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* coding.c (Fencode_coding_region, Fdecode_coding_region)
