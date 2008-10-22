@@ -314,26 +314,36 @@ using the function @code{ad-add-advice}.
 
 @defun ad-add-advice function advice class position
 Calling @code{ad-add-advice} adds @var{advice} as a piece of advice to
-@var{function} in class @var{class}.  The argument @var{advice}  has
+@var{function} in class @var{class}.  The argument @var{advice} has
 this form:
 
 @example
 (@var{name} @var{protected} @var{enabled} @var{definition})
 @end example
 
-Here @var{protected} and @var{enabled} are flags, and @var{definition}
-is the expression that says what the advice should do.  If @var{enabled}
-is @code{nil}, this piece of advice is initially disabled
-(@pxref{Enabling Advice}).
+@noindent
+Here, @var{protected} and @var{enabled} are flags; if @var{protected}
+is non-@code{nil}, the advice is protected against non-local exits
+(@pxref{Defining Advice}), and if @var{enabled} is @code{nil} the
+advice is initially disabled (@pxref{Enabling Advice}).
+@var{definition} should have the form
 
-If @var{function} already has one or more pieces of advice in the
-specified @var{class}, then @var{position} specifies where in the list
-to put the new piece of advice.  The value of @var{position} can either
-be @code{first}, @code{last}, or a number (counting from 0 at the
-beginning of the list).  Numbers outside the range are mapped to the
-beginning or the end of the range, whichever is closer.  The
-@var{position} value is ignored when redefining an existing piece of
-advice.
+@example
+(advice . @var{LAMBDA})
+@end example
+
+@noindent
+where @var{LAMBDA} is a lambda expression that is evaluated to run the
+advice.  @xref{Lambda Expressions}.
+
+If the @var{function} argument to @code{ad-add-advice} already has one
+or more pieces of advice in the specified @var{class}, then
+@var{position} specifies where in the list to put the new piece of
+advice.  The value of @var{position} can either be @code{first},
+@code{last}, or a number (counting from 0 at the beginning of the
+list).  Numbers outside the range are mapped to the beginning or the
+end of the range, whichever is closer.  The @var{position} value is
+ignored when redefining an existing piece of advice.
 
 If @var{function} already has a piece of @var{advice} with the same
 name, then the position argument is ignored and the old advice is
