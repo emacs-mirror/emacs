@@ -1,5 +1,7 @@
 2008-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* advice.texi (Computed Advice): Explain what DEFINITION is.
+
 	* nonascii.texi (Character Codes): Remove obsolete function
 	char-valid-p, and document characterp instead.
 
