@@ -437,15 +437,22 @@ Signal an error if the entire string was not used."
     (if (or (not pred) (funcall pred sexp)) sexp)))
 
 ;;;###autoload
-(defun sexp-at-point ()   (form-at-point 'sexp))
+(defun sexp-at-point ()
+  "Return the sexp at point, or nil if none is found."
+  (form-at-point 'sexp))
 ;;;###autoload
 (defun symbol-at-point ()
+  "Return the symbol at point, or nil if none is found."
   (let ((thing (thing-at-point 'symbol)))
     (if thing (intern thing))))
 ;;;###autoload
-(defun number-at-point () (form-at-point 'sexp 'numberp))
+(defun number-at-point ()
+  "Return the number at point, or nil if none is found."
+  (form-at-point 'sexp 'numberp))
 ;;;###autoload
-(defun list-at-point ()   (form-at-point 'list 'listp))
+(defun list-at-point ()
+  "Return the Lisp list at point, or nil if none is found."
+  (form-at-point 'list 'listp))
 
 ;; arch-tag: bb65a163-dae2-4055-aedc-fe11f497f698
 ;;; thingatpt.el ends here
