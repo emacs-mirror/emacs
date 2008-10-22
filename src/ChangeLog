@@ -1,5 +1,8 @@
 2008-10-22  Kenichi Handa  <handa@m17n.org>
 
+	* syntax.c (scan_words): Call word_boundary_p instead of comparing
+	scripts.
+
 	* category.c (word_boundary_p): Check scripts instead of charset.
 	Handle nil value in word-separating-categories and
 	word-combining-categories.
