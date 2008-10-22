@@ -1,3 +1,8 @@
+2008-10-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (unwind_create_frame) [!GLYPH_DEBUG]: Fix xassert.
+	Copied from 2005-02-03 change to xfns.c by Kim F. Storm.
+
 2008-10-22  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (scan_words): Call word_boundary_p instead of comparing
@@ -21,7 +26,7 @@
 	(Fkill_buffer): Rename arg "buffer" to "buffer_or_name" and make
 	it optional.
 	(no_switch_window): Remove since the return value is not used.
-	(Fswitch_to_buffer):  Rename arg "buffer" to "buffer_or_name".
+	(Fswitch_to_buffer): Rename arg "buffer" to "buffer_or_name".
 	Consider window as dedicated when Fwindow_dedicated_p returns a
 	non-nil value.
 	* lisp.h: Remove prototype for no_switch_window.
@@ -144,8 +149,7 @@
 
 2008-10-07  Chong Yidong  <cyd@stupidchicken.com>
 
-	* gtkutil.c (xg_display_open): Reset default display if none
-	exists.
+	* gtkutil.c (xg_display_open): Reset default display if none exists.
 	(xg_display_close): Allow Emacs to close all displays (bug#985).
 
 2008-10-06  Andreas Schwab  <schwab@suse.de>
@@ -158,7 +162,7 @@
 	* emacs.c (Vbefore_init_time, Vafter_init_time): Moved from
 	startup.el.
 
-	* lisp.h: (Vbefore_init_time, Vafter_init_time): Declare.
+	* lisp.h (Vbefore_init_time, Vafter_init_time): Declare.
 
 	* gtkutil.c (x_wm_set_size_hint): Return immediately if called
 	during initialization.
@@ -204,16 +208,16 @@
 	(FRAME_NEW_CURSOR_COLOR): Remove.
 
 	* nsfns.m (ns_set_cursor_color): Use FRAME_CURSOR_COLOR.
-	(ns_lisp_to_cursor_type, ns_cursor_type_to_lisp): Use core emacs
+	(ns_lisp_to_cursor_type, ns_cursor_type_to_lisp): Use core Emacs
 	enumeration (HOLLOW_BOX_CURSOR, etc.).
 
 	* nsterm.m (ns_frame_rehighlight): Remove commented code.
 	(draw_window_cursor): Simplify code.
 	(EmacsView-windowDidBecomeKey:,-windowDidResignKey:): Don't
-	change cursor type. In latter, call rehighlight instead of doing
+	change cursor type.  In latter, call rehighlight instead of doing
 	updates manually.
-	(EmacsPrefsController-setPanelFromValues,-setValuesFromPanel): Use
-	core emacs cursor types.
+	(EmacsPrefsController-setPanelFromValues,-setValuesFromPanel):
+	Use core Emacs cursor types.
 
 	* xdisp.c (draw_glyphs): Don't call notice_overwritten_cursor() under
 	NS.
