@@ -1,3 +1,10 @@
+2008-10-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (VC Mode Line): Use @kbd instead of @key for mouse
+	command.
+
+	* frames.texi: Use @kbd instead of @key for mouse commands throughout.
+
 2008-10-22  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* emacs.texi (Acknowledgments): Added myself to Acknowledgments
