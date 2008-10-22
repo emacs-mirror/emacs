@@ -1013,8 +1013,8 @@ It does this even if not called interactively.  To prevent the request
 for confirmation, clear the modified flag before calling
 @code{kill-buffer}.  @xref{Buffer Modification}.
 
-This function calls `replace-buffer-in-windows' for cleaning up all
-windows currently displaying the buffer to be killed.
+This function calls @code{replace-buffer-in-windows} for cleaning up
+all windows currently displaying the buffer to be killed.
 
 Killing a buffer that is already dead has no effect.
 
