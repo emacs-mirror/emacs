@@ -1,5 +1,7 @@
 2008-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* search.texi (Special Isearch): Document M-TAB is isearch.
+
 	* files.texi (VC Mode Line): Use @kbd instead of @key for mouse
 	command.
 
