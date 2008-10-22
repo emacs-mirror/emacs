@@ -5,6 +5,9 @@
 	(Choosing Window): Rewrite documentation of display-buffer and
 	its options.
 
+	* buffers.texi (Killing Buffers): Update documentation of
+	kill-buffer.
+
 2008-10-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* processes.texi (Serial Ports): Fix wording and improve markup.
