@@ -1,3 +1,11 @@
+2008-10-22  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Deal with page sizes for label printes.  Suggested by
+	Friedrich Delgado Friedrichs <friedel@nomaden.org>.
+	(ps-print-version): New version 7.3.3.
+	(ps-page-dimensions-database): New page sizes for label printers.
+	(ps-n-up-printing): Fix code.
+
 2008-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.el (make-frame-command): Doc fix.  Use display-graphic-p.
