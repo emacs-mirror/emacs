@@ -1,3 +1,8 @@
+2008-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule-cmds.el (universal-coding-system-argument):
+	Check for C-g.  (Bug#1205)
+
 2008-10-22  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Don't setup
@@ -5,11 +10,6 @@
 	(next-word-boundary-han, next-word-boundary-kana): Delete them.
 	(word-combining-categories, word-separating-categories): Adjusted
 	to the change of the docstrings.
-
-2008-10-21  Alan Mackenzie  <acm@muc.de>
-
-	* simple.el (undo-more): Add comment explaining the operations on
-	pending-undo-list and buffer-undo-list.
 
 2008-10-21  Chong Yidong  <cyd@stupidchicken.com>
 
