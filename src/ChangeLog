@@ -1,4 +1,8 @@
-2008-10-02  Adrian Robert  <Adrian.B.Robert@gmail.com>
+2008-10-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (next_element_from_buffer): Remove bogus xassert condition.
+
+2008-10-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfns.m (ns_appkit_version): New function.
 	(x-server-version): Use it.
@@ -6178,7 +6182,6 @@
 	* lisp.h (Fbuffer_list): Declare.
 
 2008-03-17  Jan Djärv  <jan.h.d@swipnet.se>
-
 	* gtkutil.c (free_frame_tool_bar): Only call gtk_container_remove if
 	handlebox_widget is != 0.
 
@@ -6649,7 +6652,6 @@
 
 	* intervals.h (INT_LISPLIKE): Remove.  It may misfire.
 	(NULL_INTERVAL_P, SET_INTERVAL_PARENT): Don't use it.
-
 2008-02-18  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fw32_shell_execute): Encode parameters.
@@ -12979,7 +12981,6 @@
 	* xdisp.c (load_overlay_strings): Fix copy&paste typo.
 
 2007-11-09  Jason Rumney  <jasonr@gnu.org>
-
 	* s/ms-w32.c (USE_TOOLKIT_SCROLL_BARS): Define.
 
 	* w32term.c (w32_scroll_bar_handle_click): Use SCROLL_BAR_CLICK_EVENT.

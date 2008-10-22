@@ -6444,10 +6444,7 @@ next_element_from_buffer (it)
 {
   int success_p = 1;
 
-  /* Check this assumption, otherwise, we would never enter the
-     if-statement, below.  */
-  xassert (IT_CHARPOS (*it) >= BEGV
-	   && IT_CHARPOS (*it) <= it->stop_charpos);
+  xassert (IT_CHARPOS (*it) >= BEGV);
 
   if (IT_CHARPOS (*it) >= it->stop_charpos)
     {
