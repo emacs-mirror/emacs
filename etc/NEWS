@@ -630,6 +630,8 @@ specifies what to do when a buffer is visited, killed, or written.
 
 +++
 ** Archive Mode has basic support to browse Rar archives.
+Note, however, that the free version of the unrar command only handles
+versions 1 and 2 of the Rar format.
 
 ** BibTeX mode
 
