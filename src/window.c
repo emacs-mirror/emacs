@@ -1263,13 +1263,17 @@ overriding motion of point in order to display at this exact start.  */)
 DEFUN ("window-dedicated-p", Fwindow_dedicated_p, Swindow_dedicated_p,
        0, 1, 0,
        doc: /* Return non-nil when WINDOW is dedicated to its buffer.
-WINDOW defaults to the selected window.
+More precisely, return the value assigned by the last call of
+set-window-dedicated-`p' for WINDOW or nil if that function was never
+called with WINDOW as its argument.  WINDOW defaults to the selected
+window.
 
 When a window is dedicated to its buffer, `display-buffer' and
 `set-window-buffer' will refrain from displaying another buffer in it.
 `get-lru-window' and `get-largest-window' treat dedicated windows
-specially.  `delete-windows-on', `replace-buffer-in-windows' and
-`kill-buffer' can delete a dedicated window and the containing frame.  */)
+specially.  `delete-windows-on', `replace-buffer-in-windows',
+`quit-window' and `kill-buffer' can delete a dedicated window and the
+containing frame.  */)
      (window)
      Lisp_Object window;
 {
@@ -1280,14 +1284,15 @@ DEFUN ("set-window-dedicated-p", Fset_window_dedicated_p,
        Sset_window_dedicated_p, 2, 2, 0,
        doc: /* Mark WINDOW as dedicated according to FLAG.
 WINDOW defaults to the selected window.  FLAG non-nil means mark WINDOW
-as dedicated to its buffer.  FLAG nil means mark WINDOW as nondedicated.
+as dedicated to its buffer.  FLAG nil means mark WINDOW as non-dedicated.
 Return FLAG.
 
 When a window is dedicated to its buffer, `display-buffer' and
 `set-window-buffer' will refrain from displaying another buffer in it.
 `get-lru-window' and `get-largest-window' treat dedicated windows
-specially.  `delete-windows-on', `replace-buffer-in-windows' and
-`kill-buffer' can delete a dedicated window and the containing frame.  */)
+specially.  `delete-windows-on', `replace-buffer-in-windows',
+`quit-window' and `kill-buffer' can delete a dedicated window and the
+containing frame.  */)
      (window, flag)
      Lisp_Object window, flag;
 {
@@ -1333,7 +1338,7 @@ WINDOW defaults to the selected window.  Return VALUE.  */)
   Lisp_Object old_alist_elt;
 
   old_alist_elt = Fassq (parameter, w->window_parameters);
-  if (EQ (old_alist_elt, Qnil))
+  if (NILP (old_alist_elt))
     w->window_parameters = Fcons (Fcons (parameter, value), w->window_parameters);
   else
     Fsetcdr (old_alist_elt, value);
@@ -2716,7 +2721,7 @@ window_min_size_2 (w, width_p, safe_p)
   if (width_p)
     {
       int safe_size = (MIN_SAFE_WINDOW_WIDTH
-		 + WINDOW_FRINGE_COLS (w)
+		       + WINDOW_FRINGE_COLS (w)
 		       + WINDOW_SCROLL_BAR_COLS (w));
 
       return safe_p ? safe_size : max (window_min_width, safe_size);
@@ -5286,7 +5291,7 @@ scroll_command (n, direction)
 }
 
 DEFUN ("scroll-up", Fscroll_up, Sscroll_up, 0, 1, "^P",
-       doc: /* Scroll text of current window upward ARG lines.
+       doc: /* Scroll text of selected window upward ARG lines.
 If ARG is omitted or nil, scroll upward by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll downward.
@@ -5300,7 +5305,7 @@ When calling from a program, supply as argument a number, nil, or `-'.  */)
 }
 
 DEFUN ("scroll-down", Fscroll_down, Sscroll_down, 0, 1, "^P",
-       doc: /* Scroll text of current window down ARG lines.
+       doc: /* Scroll text of selected window down ARG lines.
 If ARG is omitted or nil, scroll down by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll upward.
@@ -5467,7 +5472,7 @@ by this function.  This happens in an interactive call.  */)
 
 DEFUN ("minibuffer-selected-window", Fminibuffer_selected_window, Sminibuffer_selected_window, 0, 0, 0,
        doc: /* Return the window which was selected when entering the minibuffer.
-Returns nil, if current window is not a minibuffer window.  */)
+Returns nil, if selected window is not a minibuffer window.  */)
      ()
 {
   if (minibuf_level > 0
@@ -5537,13 +5542,13 @@ displayed_window_lines (w)
 
 
 DEFUN ("recenter", Frecenter, Srecenter, 0, 1, "P",
-       doc: /* Center point in window and redisplay frame.
+       doc: /* Center point in selected window and redisplay frame.
 With prefix argument ARG, recenter putting point on screen line ARG
-relative to the current window.  If ARG is negative, it counts up from the
+relative to the selected window.  If ARG is negative, it counts up from the
 bottom of the window.  (ARG should be less than the height of the window.)
 
 If ARG is omitted or nil, erase the entire frame and then redraw with point
-in the center of the current window.  If `auto-resize-tool-bars' is set to
+in the center of the selected window.  If `auto-resize-tool-bars' is set to
 `grow-only', this resets the tool-bar's height to the minimum height needed.
 
 Just C-u as prefix means put point in the center of the window
