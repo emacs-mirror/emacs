@@ -1464,7 +1464,7 @@ ESC or `q' to not overwrite any of the remaining files,
 					how-to)
   "Create a new file for each marked file.
 Prompts user for target, which is a directory in which to create
-  the new files.  Target may be a plain file if only one marked
+  the new files.  Target may also be a plain file if only one marked
   file exists.  The way the default for the target directory is
   computed depends on the value of `dired-dwim-target-directory'.
 OP-SYMBOL is the symbol for the operation.  Function `dired-mark-pop-up'
@@ -1474,30 +1474,23 @@ ARG as in `dired-get-marked-files'.
 Optional arg MARKER-CHAR as in `dired-create-files'.
 Optional arg OP1 is an alternate form for OPERATION if there is
   only one file.
-Optional arg HOW-TO is used to set the value of the into-dir variable
-  which determines how to treat target.
-  If into-dir is set to nil then target is not regarded as a directory,
-    there must be exactly one marked file, else error.
-  Else if into-dir is set to a list, then target is a generalized
-    directory (e.g. some sort of archive).  The first element of into-dir
-    must be a function with at least four arguments:
-      operation as OPERATION above.
-      rfn-list a list of the relative names for the marked files.
-      fn-list a list of the absolute names for the marked files.
-      target.
+Optional arg HOW-TO determiness how to treat the target.
+  If HOW-TO is nil, use `file-directory-p' to determine if the
+   target is a directory.  If so, the marked file(s) are created
+   inside that directory.  Otherwise, the target is a plain file;
+   an error is raised unless there is exactly one marked file.
+  If HOW-TO is t, target is always treated as a plain file.
+  Otherwise, HOW-TO should be a function of one argument, TARGET.
+   If its return value is nil, TARGET is regarded as a plain file.
+   If it return value is a list, TARGET is a generalized
+    directory (e.g. some sort of archive).  The first element of
+    this list must be a function with at least four arguments:
+      operation - as OPERATION above.
+      rfn-list  - list of the relative names for the marked files.
+      fn-list   - list of the absolute names for the marked files.
+      target    - the name of the target itself.
       The rest of into-dir are optional arguments.
-  Else into-dir is not a list.  Target is a directory.
-    The marked file(s) are created inside the target directory.
-
-  If HOW-TO is not given (or nil), then into-dir is set to true if
-    target is a directory and otherwise to nil.
-  Else if HOW-TO is t, then into-dir is set to nil.
-  Else HOW-TO is assumed to be a function of one argument, target,
-    that looks at target and returns a value for the into-dir
-    variable.  The function `dired-into-dir-with-symlinks' is provided
-    for the case (common when creating symlinks) that symbolic
-    links to directories are not to be considered as directories
-    (as `file-directory-p' would if HOW-TO had been nil)."
+   For any other return value, TARGET is treated as a directory."
   (or op1 (setq op1 operation))
   (let* ((fn-list (dired-get-marked-files nil arg))
 	 (rfn-list (mapcar (function dired-make-relative) fn-list))
