@@ -674,9 +674,11 @@ If DISPLAY is nil, that stands for the selected frame's display."
       (x-close-connection display))))
 
 (defun make-frame-command ()
-  "Make a new frame, and select it if the terminal displays only one frame."
+  "Make a new frame, on the same terminal as the selected frame.
+If the terminal is a text-only terminal, this also selects the
+new frame."
   (interactive)
-  (if (and window-system (not (eq window-system 'pc)))
+  (if (display-graphic-p)
       (make-frame)
     (select-frame (make-frame))))
 
