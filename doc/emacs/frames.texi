@@ -76,7 +76,7 @@ yanking using the mouse.
 @kindex Mouse-1
 @kindex Mouse-2
 @kindex Mouse-3
-@table @key
+@table @kbd
 @item Mouse-1
 Move point to where you click (@code{mouse-set-point}).
 
@@ -97,7 +97,7 @@ ring; on a second click, kill it (@code{mouse-save-then-kill}).
 
 @findex mouse-set-point
   The most basic mouse command is @code{mouse-set-point}, which is
-called by clicking with the left mouse button, @key{Mouse-1}, in the
+called by clicking with the left mouse button, @kbd{Mouse-1}, in the
 text area of a window.  This moves point to the position where you
 clicked.
 
@@ -115,7 +115,7 @@ position.
 
 @findex mouse-set-region
 @vindex mouse-drag-copy-region
-  Holding down @key{Mouse-1} and ``dragging'' the mouse over a stretch
+  Holding down @kbd{Mouse-1} and ``dragging'' the mouse over a stretch
 of text activates the region around that text
 (@code{mouse-set-region}).  @xref{Mark}.  Emacs places the mark where
 you started holding down the mouse button, and point where you release
@@ -133,7 +133,7 @@ on how far away from the window edge the mouse has gone; the variable
 
 @findex mouse-yank-at-click
 @vindex mouse-yank-at-point
-  Clicking with the middle mouse button, @key{Mouse-2}, moves point to
+  Clicking with the middle mouse button, @kbd{Mouse-2}, moves point to
 the position where you clicked and performs a yank
 (@code{mouse-yank-at-click}).  @xref{Yanking}.  If you change the
 variable @code{mouse-yank-at-point} to a non-@code{nil} value,
@@ -143,35 +143,35 @@ occurs at the existing point.  This variable also affects yanking the
 primary and secondary selections (@pxref{Cut/Paste Other App}).
 
 @findex mouse-save-then-kill
-  Clicking with the right mouse button, @key{Mouse-3}, runs the
+  Clicking with the right mouse button, @kbd{Mouse-3}, runs the
 command @code{mouse-save-then-kill}.  This performs several actions
 depending on where you click and the status of the region:
 
 @itemize @bullet
 @item
-If no region is active, clicking @key{Mouse-3} activates the region,
+If no region is active, clicking @kbd{Mouse-3} activates the region,
 placing the mark where point was and point at the clicked position.
 In addition, the text in the region is copied to the kill ring.
 
 @item
-If a region is active, clicking @key{Mouse-3} adjusts the nearer end
+If a region is active, clicking @kbd{Mouse-3} adjusts the nearer end
 of the region by moving it to the clicked position.  The adjusted
 region's text is copied to the kill ring; if the text in the original
 region was already on the kill ring, it replaces it there.
 
 @item
 If you originally specified the region using a double or triple
-@key{Mouse-1}, so that the region is defined to consist of entire
-words or lines, then adjusting the region with @key{Mouse-3} also
+@kbd{Mouse-1}, so that the region is defined to consist of entire
+words or lines, then adjusting the region with @kbd{Mouse-3} also
 proceeds by entire words or lines.
 
 @item
-If you use @key{Mouse-3} a second time consecutively, at the same
+If you use @kbd{Mouse-3} a second time consecutively, at the same
 place, that kills the region already selected.  Thus, the simplest way
-to kill text with the mouse is to click @key{Mouse-1} at one end, then
-click @key{Mouse-3} twice at the other end.  To copy the text into the
-kill ring without deleting it from the buffer, press @key{Mouse-3}
-just once---or just drag across the text with @key{Mouse-1}.  Then you
+to kill text with the mouse is to click @kbd{Mouse-1} at one end, then
+click @kbd{Mouse-3} twice at the other end.  To copy the text into the
+kill ring without deleting it from the buffer, press @kbd{Mouse-3}
+just once---or just drag across the text with @kbd{Mouse-1}.  Then you
 can copy it elsewhere by yanking it.
 @end itemize
 
@@ -202,7 +202,7 @@ always kill the region if one exists.
 time.  Emacs activates the region around the selected text, which is
 also copied to the kill ring.
 
-@table @key
+@table @kbd
 @item Double-Mouse-1
 Select the text around the word which you click on.
 
@@ -242,7 +242,7 @@ systems such as Microsoft Windows (@pxref{Clipboard}).
   Under X, whenever you select some text in Emacs by dragging or
 clicking the mouse (@pxref{Mouse Commands}), it is also saved in the
 primary selection.  You can then @dfn{paste} that text into any other
-X application, usually by clicking @key{Mouse-2} in that application.
+X application, usually by clicking @kbd{Mouse-2} in that application.
 Unlike the Emacs kill ring (@pxref{Kill Ring}), the primary selection
 has no ``memory'': each time you save something in the primary
 selection, either in Emacs or in another X application, the previous
@@ -275,7 +275,7 @@ inefficient, Emacs only does it if the text is shorter than the value
 of @code{x-cut-buffer-max} (the default is 20000 characters).
 
   You can yank the primary selection into Emacs using the usual yank
-commands, such as @kbd{C-y} (@code{yank}) and @key{Mouse-2}
+commands, such as @kbd{C-y} (@code{yank}) and @kbd{Mouse-2}
 (@code{mouse-yank-at-click}).  These commands actually check the
 primary selection before referring to the kill ring; if no primary
 selection is available, the kill ring contents are used.  To prevent
@@ -299,7 +299,7 @@ second similar facility known as the @dfn{secondary selection}.
 Nowadays, few X applications make use of the secondary selection, but
 you can access it using the following Emacs commands:
 
-@table @key
+@table @kbd
 @findex mouse-set-secondary
 @kindex M-Drag-Mouse-1
 @item M-Drag-Mouse-1
@@ -324,8 +324,8 @@ Set one endpoint for the @dfn{secondary selection}
 Set the secondary selection, with one end at the position clicked and
 the other at the position specified with @kbd{M-Mouse-1}
 (@code{mouse-secondary-save-then-kill}).  This also puts the selected
-text in the kill ring.  A second @kbd{M-@key{Mouse-3}} at the same
-place kills the secondary selection just made.
+text in the kill ring.  A second @kbd{M-Mouse-3} at the same place
+kills the secondary selection just made.
 
 @findex mouse-yank-secondary
 @kindex M-Mouse-2
@@ -334,10 +334,10 @@ Insert the secondary selection where you click, placing point at the
 end of the yanked text (@code{mouse-yank-secondary}).
 @end table
 
-Double or triple clicking of @key{M-Mouse-1} operates on words and
-lines, much like @key{Mouse-1}.
+Double or triple clicking of @kbd{M-Mouse-1} operates on words and
+lines, much like @kbd{Mouse-1}.
 
-If @code{mouse-yank-at-point} is non-@code{nil}, @key{M-Mouse-2} yanks
+If @code{mouse-yank-at-point} is non-@code{nil}, @kbd{M-Mouse-2} yanks
 at point.  Then it does not matter precisely where you click, or even
 which of the frame's windows you click on.  @xref{Mouse Commands}.
 
@@ -398,7 +398,7 @@ that error message (@pxref{Compilation}).  Doing it on a completion in
 the @samp{*Completions*} buffer chooses that completion
 (@pxref{Completion}).
 
-  Although clicking @key{Mouse-1} on a button usually activates that
+  Although clicking @kbd{Mouse-1} on a button usually activates that
 button, if you hold the mouse button down for a short period of time
 before releasing it (specifically, for more than 450 milliseconds),
 then Emacs moves point where you clicked instead.  This behavior
@@ -408,10 +408,10 @@ its usual behavior of setting the region, even if you drag from or
 onto a button.
 
 @vindex mouse-1-click-in-non-selected-windows
-  Normally, clicking @key{Mouse-1} on a button activates the button
+  Normally, clicking @kbd{Mouse-1} on a button activates the button
 even if it is in a nonselected window.  If you change the variable
 @code{mouse-1-click-in-non-selected-windows} to @code{nil}, clicking
-@key{Mouse-1} on a button in an un-selected window moves point to the
+@kbd{Mouse-1} on a button in an un-selected window moves point to the
 clicked position and selects that window, without activating the
 button.
 
@@ -429,7 +429,7 @@ mouse-1-click-follows-link @key{RET}} for more details.
   Several mouse clicks with the @key{CTRL} and @key{SHIFT} modifiers
 bring up menus.
 
-@table @key
+@table @kbd
 @item C-Mouse-1
 @kindex C-Mouse-1
 This menu is for selecting a buffer.
@@ -846,20 +846,20 @@ overlapping frames with text starting at the left margin.}
   When Emacs is compiled with GTK+ support on the X window system, or
 in operating systems such as Microsoft Windows or Mac OS, you can use
 the scroll bar as you do in other graphical applications.  If you
-click @key{Mouse-1} on the scroll bar's up and down buttons, that
-scrolls the window by one line at a time.  Clicking @key{Mouse-1}
+click @kbd{Mouse-1} on the scroll bar's up and down buttons, that
+scrolls the window by one line at a time.  Clicking @kbd{Mouse-1}
 above or below the scroll bar's inner box scrolls the window by nearly
 the entire height of the window, like @kbd{M-v} and @kbd{C-v}
 respectively (@pxref{Moving Point}).  Dragging the inner box with
-@key{Mouse-1} scrolls the window continuously.
+@kbd{Mouse-1} scrolls the window continuously.
 
   If Emacs is compiled without GTK+ support on the X window system,
 the scroll bar behaves differently.  The scroll bar's inner box is
 drawn to represent the portion of the buffer currently displayed, with
 the entire height of the scroll bar representing the entire length of
-the buffer.  @key{Mouse-1} anywhere on the scroll bar scrolls forward
-like @kbd{C-v}, and @key{Mouse-3} scrolls backward like @kbd{M-v}.
-Clicking @key{Mouse-2} in the scroll bar lets you move or drag the
+the buffer.  @kbd{Mouse-1} anywhere on the scroll bar scrolls forward
+like @kbd{C-v}, and @kbd{Mouse-3} scrolls backward like @kbd{M-v}.
+Clicking @kbd{Mouse-2} in the scroll bar lets you move or drag the
 inner box up and down.
 
   You can also click @kbd{C-Mouse-2} in the scroll bar to split a
