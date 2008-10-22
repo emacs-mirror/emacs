@@ -397,7 +397,8 @@ word_boundary_p (c1, c2)
   Lisp_Object tail;
   int default_result;
 
-  if (CHAR_CHARSET (c1) == CHAR_CHARSET (c2))
+  if (EQ (CHAR_TABLE_REF (Vchar_script_table, c1),
+	  CHAR_TABLE_REF (Vchar_script_table, c2)))
     {
       tail = Vword_separating_categories;
       default_result = 0;
@@ -420,10 +421,12 @@ word_boundary_p (c1, c2)
       Lisp_Object elt = XCAR (tail);
 
       if (CONSP (elt)
-	  && CATEGORYP (XCAR (elt))
-	  && CATEGORYP (XCDR (elt))
-	  && CATEGORY_MEMBER (XFASTINT (XCAR (elt)), category_set1)
-	  && CATEGORY_MEMBER (XFASTINT (XCDR (elt)), category_set2))
+	  && (NILP (XCAR (elt))
+	      || (CATEGORYP (XCAR (elt))
+		  && CATEGORY_MEMBER (XFASTINT (XCAR (elt)), category_set1)))
+	  && (NILP (XCDR (elt))
+	      || (CATEGORYP (XCDR (elt))
+		  && CATEGORY_MEMBER (XFASTINT (XCDR (elt)), category_set2))))
 	return !default_result;
     }
   return default_result;
@@ -468,35 +471,35 @@ syms_of_category ()
 
 Emacs treats a sequence of word constituent characters as a single
 word (i.e. finds no word boundary between them) only if they belong to
-the same charset.  But, exceptions are allowed in the following cases.
+the same script.  But, exceptions are allowed in the following cases.
 
-\(1) The case that characters are in different charsets is controlled
+\(1) The case that characters are in different scripts is controlled
 by the variable `word-combining-categories'.
 
-Emacs finds no word boundary between characters of different charsets
+Emacs finds no word boundary between characters of different scripts
 if they have categories matching some element of this list.
 
 More precisely, if an element of this list is a cons of category CAT1
 and CAT2, and a multibyte character C1 which has CAT1 is followed by
 C2 which has CAT2, there's no word boundary between C1 and C2.
 
-For instance, to tell that ASCII characters and Latin-1 characters can
-form a single word, the element `(?l . ?l)' should be in this list
-because both characters have the category `l' (Latin characters).
+For instance, to tell that Han characters followed by Hiragana
+characters can form a single word, the element `(?C . ?H)' should be
+in this list.
 
-\(2) The case that character are in the same charset is controlled by
+\(2) The case that character are in the same script is controlled by
 the variable `word-separating-categories'.
 
-Emacs find a word boundary between characters of the same charset
+Emacs find a word boundary between characters of the same script
 if they have categories matching some element of this list.
 
 More precisely, if an element of this list is a cons of category CAT1
 and CAT2, and a multibyte character C1 which has CAT1 is followed by
 C2 which has CAT2, there's a word boundary between C1 and C2.
 
-For instance, to tell that there's a word boundary between Japanese
-Hiragana and Japanese Kanji (both are in the same charset), the
-element `(?H . ?C) should be in this list.  */);
+For instance, to tell that there's a word boundary between Hiragana
+and Katakana (both are in the same script `kana'),
+the element `(?H . ?K) should be in this list.  */);
 
   Vword_combining_categories = Qnil;
 
