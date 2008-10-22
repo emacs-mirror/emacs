@@ -1,3 +1,8 @@
+2008-10-22  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* emacs.texi (Acknowledgments): Added myself to Acknowledgments
+	section.
+
 2008-10-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc1-xtra.texi: Move nodes VC Directory Mode and VC Directory Commands
