@@ -852,12 +852,13 @@ unless @var{norecord} is non-@code{nil}.
 @end deffn
 
 @defun pop-to-buffer buffer-or-name &optional other-window norecord
-This function makes @var{buffer-or-name} the current buffer and
-switches to it in some window, preferably not the window previously
-selected.  The ``popped-to'' window becomes the selected window within
-its frame.  The return value is the buffer that was switched to.
-If @var{buffer-or-name} is @code{nil}, that means to choose some
-other buffer, but you don't specify which.
+This function makes @var{buffer-or-name} the current buffer and switches
+to it in some window, preferably not the window previously selected.
+The ``popped-to'' window becomes the selected window.  Its frame is
+given the X server's focus if possible, see @ref{Input Focus}.  The
+return value is the buffer that was switched to.  If
+@var{buffer-or-name} is @code{nil}, that means to choose some other
+buffer, but you don't specify which.
 
 If the variable @code{pop-up-frames} is non-@code{nil},
 @code{pop-to-buffer} looks for a window in any visible frame already
@@ -919,9 +920,9 @@ functions and commands use this subroutine.  Here we describe how to use
 @code{display-buffer} and how to customize it.
 
 @deffn Command display-buffer buffer-or-name &optional not-this-window frame
-This command makes @var{buffer-or-name} appear in some window, like
-@code{pop-to-buffer}, but it does not select that window and does not
-make the buffer current.  The identity of the selected window is
+This command makes @var{buffer-or-name} appear in some window, but it
+does not select that window and does not make the buffer specified by
+@var{buffer-or-name} current.  The identity of the selected window is
 unaltered by this function.  @var{buffer-or-name} must be a buffer, or
 the name of an existing buffer.
 
@@ -959,6 +960,27 @@ Precisely how @code{display-buffer} finds or creates a window depends on
 the variables described below.
 @end deffn
 
+@defopt display-buffer-reuse-frames
+If this variable is non-@code{nil}, @code{display-buffer} searches
+existing frames for a window displaying @var{buffer-or-name}.  If the
+buffer is already displayed in a window in some frame,
+@code{display-buffer} makes the frame visible and raises it, to use that
+window.  If the buffer is not already displayed, or
+@code{display-buffer-reuse-frames} is @code{nil}, the behavior of
+@code{display-buffer} is determined by the variables described next.
+@end defopt
+
+@defopt pop-up-windows
+This variable specifies whether @code{display-buffer} is allowed to
+split (@pxref{Splitting Windows}) an existing window .  If it is
+non-@code{nil}, @code{display-buffer} tries to the split the largest or
+least recently used window on the selected frame.  (If the selected
+frame is a minibuffer-only frame, it tries to split a window on another
+frame instead.)  If @code{pop-up-windows} is nil or the variable
+@code{pop-up-frames} (see below) is non-@code{nil},
+@code{display-buffer} does not split any window.
+@end defopt
+
 @defvar split-window-preferred-function
 This variable specifies how to split a window.  Its value, if
 non-@code{nil}, should be a function of one argument, which is a
@@ -966,72 +988,68 @@ window.  If this variable specifies a function, @code{display-buffer}
 will call it with one or more candidate windows when it looks for a
 window to split.  If the argument window fits, the function is
 expected to split it and return a new window.  If the function returns
-@code{nil}, then this window will not be split.
+@code{nil}, the argument window will not be split.
 
 If the value of this variable is @code{nil}, @code{display-buffer}
-uses the other variables described below to decide whether and which
+uses the two variables described next to decide whether and which
 window to split.
 @end defvar
 
-@defopt display-buffer-reuse-frames
-If this variable is non-@code{nil}, @code{display-buffer} searches
-existing frames for a window displaying the buffer.  If the buffer is
-already displayed in a window in some frame, @code{display-buffer} makes
-the frame visible and raises it, to use that window.  If the buffer is
-not already displayed, or if @code{display-buffer-reuse-frames} is
-@code{nil}, @code{display-buffer}'s behavior is determined by other
-variables, described below.
-@end defopt
-
-@defopt pop-up-windows
-This variable specifies whether @code{display-buffer} makes new windows.
-If it is non-@code{nil} and there is only one window, then that window
-is split vertically.  If it is @code{nil}, then @code{display-buffer}
-does not split the single window, but uses it whole.
-@end defopt
-
 @defopt split-height-threshold
-This variable specifies when @code{display-buffer} may split a window
-vertically, if there are multiple windows.  If the value is a number,
-@code{display-buffer} splits the largest window if it has at least
-this many lines.  If the largest window is not this tall, or if the
-value of this variable is @code{nil}, @code{display-buffer} tries to
-split some window horizontally, subject to restrictions of
-@code{split-width-threshold} (see below).  If splitting horizontally
-is impossible, @code{display-buffer} splits a window vertically
-only if it's the only window on its frame and not the minibuffer
-window, and only if @code{pop-up-windows} is non-@code{nil}.
-Otherwise, @code{display-buffer} uses one of the existing windows.
+This variable specifies whether @code{display-buffer} may split a window
+vertically, provided there are multiple windows.  If the value is a
+number, @code{display-buffer} splits a window only if it has at least
+this many lines.  If no window is tall enough, or if the value of this
+variable is @code{nil}, @code{display-buffer} tries to split some window
+horizontally, subject to restrictions of @code{split-width-threshold}
+(see below).  If splitting horizontally is impossible too,
+@code{display-buffer} splits a window vertically only if it's the only
+window on its frame and not the minibuffer window, and only if
+@code{pop-up-windows} is non-@code{nil}.
+
+A window whose height is fixed (@pxref{Resizing Windows}) cannot be
+split vertically by @code{display-buffer}.  Also, @code{display-buffer}
+splits a window vertically only if it can accommodate two windows that
+are both at least `window-min-height' lines tall.  Moreover, if the
+window that shall be split has a mode-line, the window must be at least
+four lines tall in order to make sure that the new window can have a
+mode-line as well.  If the original window doesn't have a mode-line, a
+height of two lines suffices.
 @end defopt
 
 @defopt split-width-threshold
-This variable specifies when @code{display-buffer} may split a window
-horizontally.  If the value is a number, @code{display-buffer} may
-split a window if it has at least this many columns.  If the value of
-this variable is @code{nil}, @code{display-buffer} will not split any
-windows horizontally.  (It still might split some window vertically,
-though, see above.)
+This variable specifies whether @code{display-buffer} may split a window
+horizontally.  If the value is a number, @code{display-buffer} may split
+a window if it has at least this many columns.  If the value of this
+variable is @code{nil}, @code{display-buffer} will not split any windows
+horizontally.  (It still might split some window vertically, though, see
+above.)
+
+A window whose width is fixed (@pxref{Resizing Windows}) cannot be split
+horizontally by @code{display-buffer}.  Also, @code{display-buffer}
+splits a window horizontally only if it can accommodate two windows that
+are both at least `window-min-width' columns wide.
 @end defopt
 
 @defopt even-window-heights
 This variable specifies whether @code{display-buffer} should even out
-window heights if the buffer gets displayed in an existing window,
-above or beneath another existing window.  If
-@code{even-window-heights} is @code{t}, the default, window heights
-will be evened out.  If @code{even-window-heights} is @code{nil}, the
-original window heights will be left alone.
+window heights if the buffer gets displayed in an existing window, above
+or beneath another window.  If @code{even-window-heights} is
+non-@code{nil}, the default, window heights will be evened out.  If
+either of the involved window has fixed height (@pxref{Resizing
+Windows}) or @code{even-window-heights} is @code{nil}, the original
+window heights will be left alone.
 @end defopt
 
 @c Emacs 19 feature
 @defopt pop-up-frames
 This variable specifies whether @code{display-buffer} makes new frames.
 If it is non-@code{nil}, @code{display-buffer} looks for an existing
-window already displaying the desired buffer, on any visible frame.
-If it finds one, it returns that window.  Otherwise it makes a new
-frame, unless the variable's value is @code{graphic-only} and the
-selected frame is not on a graphic display.  The variables
-@code{pop-up-windows}, @code{split-height-threshold}, and
-@code{split-width-threshold} do not matter if @code{pop-up-frames} is
+window already displaying the desired buffer, on any visible frame.  If
+it finds one, it returns that window.  Otherwise it makes a new frame,
+unless the variable's value is @code{graphic-only} and the selected
+frame is not on a graphic display.  Note that the value of
+@code{pop-up-windows} does not matter if @code{pop-up-frames} is
 non-@code{nil}.
 
 If @code{pop-up-frames} is @code{nil}, then @code{display-buffer} either
@@ -1060,15 +1078,15 @@ more information about frame parameters.
 
 @defopt special-display-buffer-names
 A list of buffer names for buffers that should be displayed specially.
-If the buffer's name is in this list, @code{display-buffer} handles the
-buffer specially.
+If the name of @var{buffer-or-name} is in this list,
+@code{display-buffer} handles the buffer specially.
 
 By default, special display means to give the buffer a dedicated frame.
 
-If an element is a list, instead of a string, then the @sc{car} of the
-list is the buffer name, and the rest of the list says how to create
-the frame.  There are two possibilities for the rest of the list (its
-@sc{cdr}).  It can be an alist, specifying frame parameters, or it can
+If an element is a list, instead of a string, then the @sc{car} of that
+list is the buffer name, and the rest of that list says how to create
+the frame.  There are two possibilities for the rest of that list (its
+@sc{cdr}): It can be an alist, specifying frame parameters, or it can
 contain a function and arguments to give to it.  (The function's first
 argument is always the buffer to be displayed; the arguments from the
 list come after that.)
@@ -1178,16 +1196,19 @@ accept two arguments, the first two arguments that @code{display-buffer}
 received.  It should choose or create a window, display the specified
 buffer in it, and then return the window.
 
-This hook takes precedence over all the other options and hooks
-described above.
+This variable takes precedence over all the other options described
+above.
 @end defvar
 
 @c Emacs 19 feature
 @cindex dedicated window
-A window can be marked as @dfn{dedicated} to its buffer.  Then
-@code{display-buffer} will not try to use that window to display any
-other buffer.  @code{set-window-buffer} will signal an error when asked
-to display another buffer in it.  Both @code{get-lru-window} and
+If all options described above fail to produce a suitable window,
+@code{display-buffer} will try to use an existing window.  You can avoid
+that @code{display-buffer} uses a specific window by marking that window
+as @dfn{dedicated} to its buffer.  Then @code{display-buffer} will not
+try to use that window to display any other buffer.  Moreover,
+@code{set-window-buffer} will signal an error when asked to display
+another buffer in it.  Both @code{get-lru-window} and
 @code{get-largest-window} do not consider dedicated windows as
 candidates when their @var{dedicated} argument is non-@code{nil}.
 
@@ -1196,17 +1217,26 @@ is the only window on its frame, it will delete that frame as well if
 there are other frames left.  @code{replace-buffer-in-windows} deletes
 any dedicated window showing its buffer argument.  When such a window is
 the only window on its frame, that frame is deleted if there are other
-frames left.
+frames left.  If there are no more frames left, some other buffer is
+displayed in the window and the window is marked as non-dedicated.
 
 @defun window-dedicated-p &optional window
-This function returns non-@code{nil} if @var{window} is marked as
-dedicated; otherwise @code{nil}.
+This function returns non-@code{nil} if @var{window} is dedicated to its
+buffer and @code{nil} otherwise.  More precisely, the return value is
+the value assigned by the last call of @code{set-window-dedicated-p} for
+@var{window} or @code{nil} if that function was never called with
+@var{WINDOW} as its argument.
 @end defun
 
 @defun set-window-dedicated-p window flag
-This function marks @var{window} as dedicated if @var{flag} is
-non-@code{nil}, and nondedicated otherwise.
+This function marks @var{window} as dedicated to its buffer if
+@var{flag} is non-@code{nil}, and non-dedicated otherwise.
 @end defun
+
+As a last resort, @code{display-buffer} tries to display
+@var{buffer-or-name} on a new frame.  In this case, the value of
+@code{pop-up-frames} is disregarded.
+
 
 @node Window Point
 @section Windows and Point
@@ -2161,6 +2191,7 @@ This command returns non-@code{nil} if it actually shrank the window
 and @code{nil} otherwise.
 @end deffn
 
+@cindex fixed-size window
 @defvar window-size-fixed
 If this variable is non-@code{nil}, in any given buffer,
 then the size of any window displaying the buffer remains fixed
