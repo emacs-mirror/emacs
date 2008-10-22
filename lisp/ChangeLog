@@ -1,5 +1,8 @@
 2008-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* thingatpt.el (sexp-at-point, symbol-at-point, number-at-point)
+	(list-at-point): Add docstrings.
+
 	* dired.el (dired-get-marked-files, dired-map-over-marks): Doc
 	fixes.
 
