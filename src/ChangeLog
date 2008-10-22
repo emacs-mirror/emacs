@@ -1,3 +1,12 @@
+2008-10-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_dedicated_p, Fset_window_dedicated_p):
+	Reword doc-string.
+	(Fset_window_parameter): Use NILP.
+	(Fscroll_up, Fscroll_down, Fminibuffer_selected_window)
+	(Frecenter): Use "selected" instead of "current" window in
+	doc-strings.
+
 2008-10-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xdisp.c (next_element_from_buffer): Remove bogus xassert condition.
