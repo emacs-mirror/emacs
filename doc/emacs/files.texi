@@ -1908,7 +1908,7 @@ are blue, and the newest changes are red.
   When you give a prefix argument to this command, Emacs reads two
 arguments using the minibuffer: the ID of which revision to display and
 annotate (instead of the current file contents), and the time span in
-days the color range should cover.  
+days the color range should cover.
 
   From the annotate buffer, these and other color scaling options are
 available from the @samp{VC-Annotate} menu.  In this buffer, you can
@@ -2231,7 +2231,7 @@ line.  @kbd{o} visits that file in another window.  @kbd{q} dismisses
 the directory buffer.
 
   @kbd{x} toggles hiding of up-to-date files.
-  
+
   @kbd{m} marks the file or directory on the current line.  If the
 region is active, @kbd{m} marks all the files in the region.  There
 are some restrictions when marking: a file cannot be marked if any of
@@ -3024,11 +3024,22 @@ FTP.
 If the user name is @samp{ftp} or @samp{anonymous}, then Emacs uses
 FTP.
 @item
+If the variable @code{tramp-default-method} is set to @samp{ftp},
+then Emacs uses FTP.
+@item
+If @command{ssh-agent} is running, then Emacs uses @command{scp}.
+@item
 Otherwise, Emacs uses @command{ssh}.
 @end enumerate
 
+@cindex disabling remote files
 @noindent
-Remote file access through FTP is handled by the Ange-FTP package, which
+You can entirely turn off the remote file name feature by setting the
+variable @code{tramp-mode} to @code{nil}.  You can turn off the
+feature in individual cases by quoting the file name with @samp{/:}
+(@pxref{Quoted File Names}).
+
+  Remote file access through FTP is handled by the Ange-FTP package, which
 is documented in the following.  Remote file access through the other
 methods is handled by the Tramp package, which has its own manual.
 @xref{Top, The Tramp Manual,, tramp, The Tramp Manual}.
@@ -3081,15 +3092,6 @@ variable @code{ange-ftp-gateway-host}, and set
 to make remote file names work, but the procedure is complex.  You can
 read the instructions by typing @kbd{M-x finder-commentary @key{RET}
 ange-ftp @key{RET}}.
-
-@vindex file-name-handler-alist
-@cindex disabling remote files
-  You can entirely turn off the FTP file name feature by removing the
-entries @code{ange-ftp-completion-hook-function} and
-@code{ange-ftp-hook-function} from the variable
-@code{file-name-handler-alist}.  You can turn off the feature in
-individual cases by quoting the file name with @samp{/:} (@pxref{Quoted
-File Names}).
 
 @node Quoted File Names
 @section Quoted File Names
