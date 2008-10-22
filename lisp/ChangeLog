@@ -1,5 +1,8 @@
 2008-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dired.el (dired-get-marked-files, dired-map-over-marks): Doc
+	fixes.
+
 	* dired-aux.el (dired-do-create-files): Doc fix.
 
 2008-10-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
