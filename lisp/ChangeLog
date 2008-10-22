@@ -1,3 +1,8 @@
+2008-10-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* replace.el (how-many): Fix typo in docstring.
+	Reported by Leo <sdl.web@gmail.com>.
+
 2008-10-22  Glenn Morris  <rgm@gnu.org>
 
 	* international/mule-cmds.el (universal-coding-system-argument):

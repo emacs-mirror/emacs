@@ -703,7 +703,7 @@ starting on the same line at which another match ended is ignored."
   "Print and return number of matches for REGEXP following point.
 When called from Lisp and INTERACTIVE is omitted or nil, just return
 the number, do not print it; if INTERACTIVE is t, the function behaves
-in all respects has if it had been called interactively.
+in all respects as if it had been called interactively.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\')
 and `search-upper-case' is non-nil, the matching is case-sensitive.
