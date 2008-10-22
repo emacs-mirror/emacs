@@ -1,3 +1,8 @@
+2008-10-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Character Codes): Remove obsolete function
+	char-valid-p, and document characterp instead.
+
 2008-10-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Displaying Buffers): Reword documentation of
