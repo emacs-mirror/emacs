@@ -1539,7 +1539,7 @@ instance, @samp{jim}), that is displayed as @samp{RCS:jim:1.3}.
 
   On a graphical display, you can move the mouse over this mode line
 indicator to pop up a ``tool-tip'', which displays a more verbose
-description of the version control status.  Pressing @key{Mouse-1}
+description of the version control status.  Pressing @kbd{Mouse-1}
 over the indicator pops up a menu of VC commands.  This menu is
 identical to the @samp{Version Control} menu item, which can be found
 in the @samp{Tools} menu on the menu bar.
