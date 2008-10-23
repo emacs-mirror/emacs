@@ -1345,12 +1345,12 @@ decode_coding_utf_8 (coding)
 	src = src_base;
       else
 	{
-	  ONE_MORE_BYTE (c2);      
+	  ONE_MORE_BYTE (c2);
 	  if (! UTF_8_EXTRA_OCTET_P (c2))
 	    src = src_base;
 	  else
 	    {
-	      ONE_MORE_BYTE (c3);      
+	      ONE_MORE_BYTE (c3);
 	      if (! UTF_8_EXTRA_OCTET_P (c3))
 		src = src_base;
 	      else
@@ -6982,7 +6982,7 @@ make_conversion_work_buffer (multibyte)
     }
   else
     {
-      if (NILP (Vcode_conversion_reused_workbuf))
+      if (NILP (Fbuffer_live_p (Vcode_conversion_reused_workbuf)))
 	Vcode_conversion_reused_workbuf
 	  = Fget_buffer_create (Vcode_conversion_workbuf_name);
       workbuf = Vcode_conversion_reused_workbuf;

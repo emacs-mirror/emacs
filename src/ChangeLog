@@ -1,3 +1,9 @@
+2008-10-23  Noah Friedman  <friedman@splode.com>
+
+	* coding.c (make_conversion_work_buffer): Check that
+	Vcode_conversion_reused_workbuf is a live buffer, otherwise call
+	Fget_buffer_create.
+
 2008-10-23  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_add_log): Check the values of extra properties.
