@@ -1,3 +1,13 @@
+2008-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Function Bindings): Mention `flet' fails to deal with
+	byte-compiling things like `+'.
+
+	* ns-emacs.texi: Merge copyright years of author now with assignment
+	into FSF years.
+	(VER): Use it for easier automatic updating.  Use Emacs version rather
+	than standalone Emacs.app version.
+
 2008-10-12  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Lots of minor fixes.
