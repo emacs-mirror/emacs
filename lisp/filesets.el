@@ -976,9 +976,11 @@ being an association list with the fields:
 
 :tree ROOT-DIR PATTERN ... a base directory and a file pattern
 
-:pattern DIR PATTERN ... PATTERN is a regular expression comprising path
-and file pattern -- e.g. 'PATH/^REGEXP$'.  Note the `^' at the beginning
-of the file name pattern.
+:pattern DIR PATTERN ... a base directory and a regexp matching
+                         files in that directory.  Usually,
+                         PATTERN has the form '^REGEXP$'.  Unlike
+                         :tree, this form does not descend
+                         recursively into subdirectories.
 
 :filter-dirs-flag BOOLEAN ... is only used in conjunction with :tree.
 
