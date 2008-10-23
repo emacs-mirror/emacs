@@ -1,3 +1,13 @@
+2008-10-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffers.texi (Current Buffer): Reword documentation of
+	set-buffer.
+	(Buffer Names): Reword documentation of buffer-name.
+	(The Buffer List): For bury-buffer explain what happens with the
+	buffer's window.
+	(Creating Buffers): Say that get-buffer-create's arg is
+	buffer-or-name.
+
 2008-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* advice.texi (Computed Advice): Explain what DEFINITION is.
