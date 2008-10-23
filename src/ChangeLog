@@ -1,3 +1,8 @@
+2008-10-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* character.c (syms_of_character) <script-representative-chars>:
+	<unicode-category-table>: Doc fixes.
+
 2008-10-23  Noah Friedman  <friedman@splode.com>
 
 	* coding.c (make_conversion_work_buffer): Check that

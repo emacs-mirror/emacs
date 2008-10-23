@@ -1107,15 +1107,15 @@ It has one extra slot whose value is a list of script symbols.  */);
 	       doc: /* Alist of scripts vs the representative characters.
 Each element is a cons (SCRIPT . CHARS), where SCRIPT is a script name symbol,
 CHARS is a list or a vector of characters.
-If it is a list, all characters in the list is necessary for supporting SCRIPT.
+If it is a list, all characters in the list are necessary for supporting SCRIPT.
 If it is a vector, one of the characters in the vector is necessary.
 This variable is used to find a font for a specific script.  */);
   Vscript_representative_chars = Qnil;
 
   DEFVAR_LISP ("unicode-category-table", &Vunicode_category_table,
 	       doc: /* Char table of Unicode's "General Category".
-All Unicode characters has one of the following values (symbol):
-  Lw, Ll, Lt, Lm, Lo, Mn, Mc, Me, Nd, Nl, No, Pc, Pd, Ps, Pe, Pi, Pf, Po,
+All Unicode characters have one of the following values (symbol):
+  Lu, Ll, Lt, Lm, Lo, Mn, Mc, Me, Nd, Nl, No, Pc, Pd, Ps, Pe, Pi, Pf, Po,
   Sm, Sc, Sk, So, Zs, Zl, Zp, Cc, Cf, Cs, Co, Cn
 See The Unicode Standard for the meaning of those values.  */);
   /* The correct char-table is setup in characters.el.  */
