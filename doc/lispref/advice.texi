@@ -329,12 +329,12 @@ advice is initially disabled (@pxref{Enabling Advice}).
 @var{definition} should have the form
 
 @example
-(advice . @var{LAMBDA})
+(advice . @var{lambda})
 @end example
 
 @noindent
-where @var{LAMBDA} is a lambda expression that is evaluated to run the
-advice.  @xref{Lambda Expressions}.
+where @var{lambda} is a lambda expression; this lambda expression is
+called in order to perform the advice.  @xref{Lambda Expressions}.
 
 If the @var{function} argument to @code{ad-add-advice} already has one
 or more pieces of advice in the specified @var{class}, then
