@@ -1,5 +1,7 @@
 2008-10-23  Glenn Morris  <rgm@gnu.org>
 
+	* pcmpl-rpm.el (pcomplete/rpm): Doc fix.
+
 	* emacs-lisp/cl-macs.el (flet): Throw an error when trying to
 	byte-compile a redefinition of a function with special byte-compile
 	handling.  (Bug#411)
