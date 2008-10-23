@@ -1,3 +1,7 @@
+2008-10-23  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_add_log): Check the values of extra properties.
+
 2008-10-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fwindow_dedicated_p, Fset_window_dedicated_p):
