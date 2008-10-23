@@ -12,13 +12,15 @@
 @finalout
 @end iftex
 
+@c Easier to update automatically.
+@set VER 23.0.60
+
 @copying
 This document describes Emacs.app for GNUstep and MacOS X.
 
-Copyright @copyright{} 1994, 1997, 2005, 2006, 2007, 2008 Free Software
+Copyright @copyright{} 1994, 1997, 2001, 2005, 2006, 2007, 2008 Free Software
 Foundation, Inc.
 
-Copyright @copyright{} 2001 Christophe de Dinechin.
 Copyright @copyright{} 1997 Christian Limpach.
 
 @quotation
@@ -40,7 +42,7 @@ developing GNU and promoting software freedom.''
 @sp 10
 @center @titlefont{Emacs.app}
 
-@center (Version 9.0-rc3, November, 2007)
+@center (@value{VER}, November, 2007)
 
 @sp 2
 @center Carl Edman
