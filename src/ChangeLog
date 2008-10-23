@@ -1,3 +1,10 @@
+2008-10-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fget_buffer_create): Rename arg to buffer_or_name.
+	Reword doc-string.
+	(Fbury_buffer): In doc-string say what happens to the buffer's
+	window.
+
 2008-10-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* character.c (syms_of_character) <script-representative-chars>:
