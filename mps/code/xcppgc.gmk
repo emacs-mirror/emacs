@@ -5,6 +5,8 @@
 
 PFM = xcppgc
 
+PFMDEFS = -DCONFIG_PF_STRING="xcppgc" -DCONFIG_PF_XCPPGC
+
 MPMPF = lockix.c than.c vmix.c \
         protix.c protxcpp.c prmcan.c span.c
 MPMS = ssxcpp.s
