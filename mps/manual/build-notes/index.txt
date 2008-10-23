@@ -1,6 +1,6 @@
 MEMORY POOL SYSTEM BUILD NOTES
 
-Richard Kistruck, Ravenbrook Limited, 2005-02-02
+Richard Kistruck, Ravenbrook Limited; document started 2005-02-02
 
 
 CONTENTS
@@ -164,6 +164,19 @@ necessary to enable the new DLL version of the MPS, "mpsdy.dll".
 RHSK.
 See <http://www.ravenbrook.com/project/mps/master/manual/supplement/dll-notes/>
 
+2008-10-23 (1.108.3)
+New platform "w3i3m9" -- using Microsoft Visual C++ 9.0
+This platform is a clone of w3i3mv; the only differences are:
+  - compiler & linker options (see commpre9.nmk);
+  - use w3i3m9.nmk (not w3i3mv.nmk) to build it;
+  - the MPS_PF_STRING in version.c is "w3i3m9" (not "w3i3mv").
+The only reason for this to be separate from the w3i3mv platform is 
+to enable builds with version 6.0 and version 9.0 compilers to be 
+kept separate, to enable performance comparisons.  The w3i3m9 
+clone may merge back into w3i3mv in the future.
+RHSK.
+See <http://www.ravenbrook.com/project/mps/issue/job001944/>
+
 
 A. REFERENCES
 
@@ -174,11 +187,12 @@ B. DOCUMENT HISTORY
 2006-10-10  DRJ   Note re Intel Macs.
 2007-07-18  DRJ   Added platform support section.
 2007-12-21  RHSK  Note re PPC Mac compiler flags.
+2008-10-23  RHSK  Note re w3i3m9 (Windows Visual C++ 9.0) platform
 
 
 C. COPYRIGHT AND LICENSE
 
-Copyright (C) 2005,2006,2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright (C) 2005,2006,2007,2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved.  This is an open source license.  Contact
 Ravenbrook for commercial licensing options.
 
