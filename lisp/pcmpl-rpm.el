@@ -57,7 +57,7 @@
 These rules were taken from the output of `rpm --help' on a RedHat 6.1
 system.  They follow my interpretation of what followed, but since I'm
 not a major rpm user/builder, please send me any corrections you find.
-You can use \\[eshell-report-bug] to do so."
+You can use \\[report-emacs-bug] to do so."
   (let (mode)
     (while (<= pcomplete-index pcomplete-last)
       (unless mode
