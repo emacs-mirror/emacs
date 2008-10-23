@@ -2474,11 +2474,36 @@ font_match_p (spec, font)
       else if (EQ (key, QCscript))
 	{
 	  val2 = assq_no_quit (val, Vscript_representative_chars);
-	  if (! NILP (val2))
-	    for (val2 = XCDR (val2); CONSP (val2); val2 = XCDR (val2))
-	      if (font_encode_char (font, XINT (XCAR (val2)))
-		  == FONT_INVALID_CODE)
-		return 0;
+	  if (CONSP (val2))
+	    {
+	      val2 = XCDR (val2);
+	      if (CONSP (val2))
+		{
+		  /* All characters in the list must be supported.  */
+		  for (; CONSP (val2); val2 = XCDR (val2))
+		    {
+		      if (! NATNUMP (XCAR (val2)))
+			continue;
+		      if (font_encode_char (font, XFASTINT (XCAR (val2)))
+			  == FONT_INVALID_CODE)
+			return 0;
+		    }
+		}
+	      else if (VECTORP (val2))
+		{
+		  /* At most one character in the vector must be supported.  */
+		  for (i = 0; i < ASIZE (val2); i++)
+		    {
+		      if (! NATNUMP (AREF (val2, i)))
+			continue;
+		      if (font_encode_char (font, XFASTINT (AREF (val2, i)))
+			  != FONT_INVALID_CODE)
+			return break;
+		    }
+		  if (i == ASIZE (val2))
+		    return 0;
+		}
+	    }
 	}
       else if (EQ (key, QCotf))
 	{
@@ -3808,7 +3833,12 @@ specifying the font size.  It specifies the font size in pixels
 `:name'
 
 VALUE must be a string of XLFD-style or fontconfig-style font name.
-usage: (font-spec ARGS ...)  */)
+usage: (font-spec ARGS ...)
+
+`:script'
+
+VALUE must be a symbol representing a script that the font must
+support.  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -3904,7 +3934,13 @@ properties in TO.  */)
 
 DEFUN ("font-get", Ffont_get, Sfont_get, 2, 2, 0,
        doc: /* Return the value of FONT's property KEY.
-FONT is a font-spec, a font-entity, or a font-object.  */)
+FONT is a font-spec, a font-entity, or a font-object.
+KEY must be one of these symbols:
+  :family, :weight, :slant, :width, :foundry, :adstyle, :registry,
+  :size, :name, :script
+See the documentation of `font-spec' for their meanings.
+If FONT is a font-entity or font-object, the value of :script may be
+a list of scripts that are supported by the font.  */)
      (font, key)
      Lisp_Object font, key;
 {
