@@ -1,3 +1,9 @@
+2008-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Cocoa/Emacs.base/Contents/Info.plist:
+	* Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:
+	Fix copyright strings.
+
 2008-10-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Cocoa/Emacs.base/Contents/Info.plist
