@@ -1,6 +1,7 @@
 2008-10-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* filesets.el: Update author email.
+	(filesets-data): Doc fix.
 
 2008-10-23  Jens Petersen  <petersen@redhat.com>
 
