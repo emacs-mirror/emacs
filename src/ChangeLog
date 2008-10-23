@@ -1,3 +1,8 @@
+2008-10-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (fill_glyph_string): Fix typo in source (though the
+	poor beast has survived 9+ years and the jump from xterm.c!).
+
 2008-10-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.c (Fget_buffer_create): Rename arg to buffer_or_name.

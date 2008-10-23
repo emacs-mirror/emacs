@@ -6607,7 +6607,7 @@ next_element_from_composition (it)
       it->object = it->w->buffer;
       it->c = composition_update_it (&it->cmp_it, IT_CHARPOS (*it),
 				     IT_BYTEPOS (*it), Qnil);
-    }    
+    }
   return 1;
 }
 
@@ -8271,7 +8271,7 @@ ensure_echo_area_buffers ()
 	sprintf (name, " *Echo Area %d*", i);
 	echo_buffer[i] = Fget_buffer_create (build_string (name));
 	XBUFFER (echo_buffer[i])->truncate_lines = Qnil;
-	/* to force word wrap in echo area - 
+	/* to force word wrap in echo area -
 	   it was decided to postpone this*/
 	/* XBUFFER (echo_buffer[i])->word_wrap = Qt; */
 
@@ -19711,7 +19711,7 @@ fill_glyph_string (s, face_id, start, end, overlaps)
   xassert (s->nchars == 0);
   xassert (start >= 0 && end > start);
 
-  s->for_overlaps = overlaps,
+  s->for_overlaps = overlaps;
   glyph = s->row->glyphs[s->area] + start;
   last = s->row->glyphs[s->area] + end;
   voffset = glyph->voffset;
