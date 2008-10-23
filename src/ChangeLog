@@ -1,3 +1,7 @@
+2008-10-23  Ali Bahrami <ali_gnu@emvision.com>  (tiny change)
+
+	* s/sol2-10.h: New file.
+
 2008-10-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xdisp.c (fill_glyph_string): Fix typo in source (though the
