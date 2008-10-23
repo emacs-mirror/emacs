@@ -1,3 +1,9 @@
+2008-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (flet): Throw an error when trying to
+	byte-compile a redefinition of a function with special byte-compile
+	handling.  (Bug#411)
+
 2008-10-22  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Deal with page sizes for label printes.  Suggested by
