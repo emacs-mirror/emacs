@@ -1885,7 +1885,10 @@ the numeric keypad produces @code{kp-8}, which is translated to
 @code{kp-up}, which is translated to @key{UP}.  If you rebind a key
 such as @kbd{8} or @key{UP}, it affects the equivalent keypad key too.
 However, if you rebind a @samp{kp-} key directly, that won't affect
-its non-keypad equivalent.
+its non-keypad equivalent.  Note that the modified keys are not
+translated: for instance, if you hold down the @key{META} key while
+pressing the @samp{8} key on the numeric keypad, that generates
+@kbd{M-@key{kp-8}}.
 
   Emacs provides a convenient method for binding the numeric keypad
 keys, using the variables @code{keypad-setup},
