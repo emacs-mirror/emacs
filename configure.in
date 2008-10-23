@@ -475,7 +475,7 @@ dnl see the `changequote' comment above.
 		opsys=sol2-6
 		emacs_check_sunpro_c=yes
 		NON_GNU_CPP=/usr/ccs/lib/cpp
-
+		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2-10
 		emacs_check_sunpro_c=yes
