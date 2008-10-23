@@ -1,3 +1,8 @@
+2008-10-23  Ulrich Mueller  <ulm@kph.uni-mainz.de>
+
+	* international/mule-cmds.el (describe-language-environment):
+	Indent sample text.
+
 2008-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* pcmpl-rpm.el (pcomplete/rpm): Doc fix.
