@@ -2039,7 +2039,9 @@ Setting this variable directly does not take effect.  See
 	(condition-case nil
 	    (let ((str (eval (get-language-info language-name 'sample-text))))
 	      (if (stringp str)
-		  (insert "Sample text:\n  " str "\n\n")))
+		  (insert "Sample text:\n  "
+			  (replace-regexp-in-string "\n" "\n  " str)
+			  "\n\n")))
 	  (error nil))
 	(let ((input-method (get-language-info language-name 'input-method))
 	      (l (copy-sequence input-method-alist))
