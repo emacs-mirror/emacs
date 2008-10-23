@@ -4810,13 +4810,16 @@ font_add_log (action, arg, result)
 	   tail = XCDR (tail))
 	{
 	  elt = XCAR (tail);
-	  if (EQ (XCAR (elt), QCscript))
+	  if (EQ (XCAR (elt), QCscript)
+	      && SYMBOLP (XCDR (elt)))
 	    val = concat3 (val, SYMBOL_NAME (QCscript),
 			   concat2 (equalstr, SYMBOL_NAME (XCDR (elt))));
-	  else if (EQ (XCAR (elt), QClang))
+	  else if (EQ (XCAR (elt), QClang)
+		   && SYMBOLP (XCDR (elt)))
 	    val = concat3 (val, SYMBOL_NAME (QClang),
 			   concat2 (equalstr, SYMBOL_NAME (XCDR (elt))));
-	  else if (EQ (XCAR (elt), QCotf) && CONSP (XCDR (elt)))
+	  else if (EQ (XCAR (elt), QCotf)
+		   && CONSP (XCDR (elt)) && SYMBOLP (XCAR (XCDR (elt))))
 	    val = concat3 (val, SYMBOL_NAME (QCotf),
 			   concat2 (equalstr,
 				    SYMBOL_NAME (XCAR (XCDR (elt)))));
