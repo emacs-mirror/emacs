@@ -194,13 +194,14 @@ This function returns the current buffer.
 @end defun
 
 @defun set-buffer buffer-or-name
-This function makes @var{buffer-or-name} the current buffer.  This does
-not display the buffer in any window, so the user cannot necessarily see
-the buffer.  But Lisp programs will now operate on it.
+This function makes @var{buffer-or-name} the current buffer.  An error
+is signaled if @var{buffer-or-name} is not an existing buffer or the
+name of an existing buffer.  The return value is the buffer made
+current.
 
-This function returns the buffer identified by @var{buffer-or-name}.
-An error is signaled if @var{buffer-or-name} does not identify an
-existing buffer.
+This function does not display the buffer in any window, so the user
+cannot necessarily see the buffer.  But Lisp programs will now operate
+on it.
 @end defun
 
 @defspec save-current-buffer body@dots{}
@@ -270,8 +271,8 @@ space also initially disables recording undo information; see
 @ref{Undo}.
 
 @defun buffer-name &optional buffer
-This function returns the name of @var{buffer} as a string.  If
-@var{buffer} is not supplied, it defaults to the current buffer.
+This function returns the name of @var{buffer} as a string.
+@var{buffer} defaults to the current buffer.
 
 If @code{buffer-name} returns @code{nil}, it means that @var{buffer}
 has been killed.  @xref{Killing Buffers}.
@@ -883,8 +884,12 @@ buffer that you bury will come last in the value of @code{(buffer-list
 If @var{buffer-or-name} is @code{nil} or omitted, this means to bury the
 current buffer.  In addition, if the buffer is displayed in the selected
 window, this switches to some other buffer (obtained using
-@code{other-buffer}) in the selected window.  But if the buffer is
-displayed in some other window, it remains displayed there.
+@code{other-buffer}) in the selected window.  But if the selected window
+is dedicated to its buffer, it deletes that window if there are other
+windows left on its frame.  Otherwise, if the selected window is the
+only window on its frame, it iconifies that frame.  If
+@var{buffer-or-name} is displayed in some other window, it remains
+displayed there.
 
 To replace a buffer in all the windows that display it, use
 @code{replace-buffer-in-windows}.  @xref{Buffers and Windows}.
@@ -905,15 +910,16 @@ buffer and gives it a unique name.
 @code{create-file-buffer} (@pxref{Visiting Files}).  Starting a
 subprocess can also create a buffer (@pxref{Processes}).
 
-@defun get-buffer-create name
-This function returns a buffer named @var{name}.  It returns a live
-buffer with that name, if one exists; otherwise, it creates a new
-buffer.  The buffer does not become the current buffer---this function
-does not change which buffer is current.
+@defun get-buffer-create buffer-or-name
+This function returns a buffer named @var{buffer-or-name}.  An error is
+signaled if @var{buffer-or-name} is neither a string nor a buffer.  The
+buffer returned does not become the current buffer---this function does
+not change which buffer is current.
 
-If @var{name} is a buffer instead of a string, it is returned, even if
-it is dead.  An error is signaled if @var{name} is neither a string
-nor a buffer.
+If @var{buffer-or-name} is a string and a live buffer with that name
+exists, it returns that buffer.  If no such buffer exists, it creates a
+new buffer.  If @var{buffer-or-name} is a buffer instead of a string, it
+is returned as given, even if it is dead.
 
 @example
 @group
