@@ -334,22 +334,25 @@ get_truename_buffer (filename)
 int buffer_count;
 
 DEFUN ("get-buffer-create", Fget_buffer_create, Sget_buffer_create, 1, 1, 0,
-       doc: /* Return the buffer named NAME, or create such a buffer and return it.
-A new buffer is created if there is no live buffer named NAME.
-If NAME starts with a space, the new buffer does not keep undo information.
-If NAME is a buffer instead of a string, then it is the value returned.
-The value is never nil.  */)
-     (name)
-     register Lisp_Object name;
+       doc: /* Return the buffer specified by BUFFER-OR-NAME, creating a new one if needed.
+If BUFFER-OR-NAME is a string and a live buffer with that name exists,
+return that buffer.  If no such buffer exists, create a new buffer with
+that name and return it.  If BUFFER-OR-NAME starts with a space, the new
+buffer does not keep undo information.
+
+If BUFFER-OR-NAME is a buffer instead of a string, return it as given,
+even if it is dead.  The return value is never nil.  */)
+     (buffer_or_name)
+     register Lisp_Object buffer_or_name;
 {
-  register Lisp_Object buf;
+  register Lisp_Object buffer, name;
   register struct buffer *b;
 
-  buf = Fget_buffer (name);
-  if (!NILP (buf))
-    return buf;
+  buffer = Fget_buffer (buffer_or_name);
+  if (!NILP (buffer))
+    return buffer;
 
-  if (SCHARS (name) == 0)
+  if (SCHARS (buffer_or_name) == 0)
     error ("Empty string for buffer name is not allowed");
 
   b = allocate_buffer ();
@@ -403,7 +406,7 @@ The value is never nil.  */)
   b->begv_marker = Qnil;
   b->zv_marker = Qnil;
 
-  name = Fcopy_sequence (name);
+  name = Fcopy_sequence (buffer_or_name);
   STRING_SET_INTERVALS (name, NULL_INTERVAL);
   b->name = name;
 
@@ -417,17 +420,17 @@ The value is never nil.  */)
   b->name = name;
 
   /* Put this in the alist of all live buffers.  */
-  XSETBUFFER (buf, b);
-  Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
+  XSETBUFFER (buffer, b);
+  Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buffer), Qnil));
 
   /* An error in calling the function here (should someone redefine it)
      can lead to infinite regress until you run out of stack.  rms
      says that's not worth protecting against.  */
   if (!NILP (Ffboundp (Qucs_set_table_for_input)))
-    /* buf is on buffer-alist, so no gcpro.  */
-    call1 (Qucs_set_table_for_input, buf);
+    /* buffer is on buffer-alist, so no gcpro.  */
+    call1 (Qucs_set_table_for_input, buffer);
 
-  return buf;
+  return buffer;
 }
 
 
@@ -2047,7 +2050,10 @@ default.
 
 The argument may be a buffer name or an actual buffer object.  If
 BUFFER-OR-NAME is nil or omitted, bury the current buffer and remove it
-from the selected window if it is displayed there.  */)
+from the selected window if it is displayed there.  If the selected
+window is dedicated to its buffer, delete that window if there are other
+windows on the same frame.  If the selected window is the only window on
+its frame, iconify that frame.  */)
      (buffer_or_name)
      register Lisp_Object buffer_or_name;
 {
