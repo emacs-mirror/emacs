@@ -2498,7 +2498,7 @@ font_match_p (spec, font)
 			continue;
 		      if (font_encode_char (font, XFASTINT (AREF (val2, i)))
 			  != FONT_INVALID_CODE)
-			return break;
+			break;
 		    }
 		  if (i == ASIZE (val2))
 		    return 0;
