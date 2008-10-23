@@ -1328,10 +1328,14 @@ go back to their previous definitions, or lack thereof).
 	     (let ((func (list 'function*
 			       (list 'lambda (cadr x)
 				     (list* 'block (car x) (cddr x))))))
-	       (if (and (cl-compiling-file)
-			(boundp 'byte-compile-function-environment))
-		   (push (cons (car x) (eval func))
-			    byte-compile-function-environment))
+	       (when (cl-compiling-file)
+		 ;; Bug#411.  It would be nice to fix this.
+		 (and (get (car x) 'byte-compile)
+		      (error "Byte-compiling a redefinition of `%s' \
+will not work - use `labels' instead" (symbol-name (car x))))
+		 (and (boundp 'byte-compile-function-environment)
+		      (push (cons (car x) (eval func))
+			    byte-compile-function-environment)))
 	       (list (list 'symbol-function (list 'quote (car x))) func))))
 	  bindings)
 	 body))
