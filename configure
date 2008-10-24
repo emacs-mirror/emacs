@@ -1358,7 +1358,7 @@ Optional Packages:
   --with-kerberos5        support Kerberos version 5 authenticated POP
   --with-hesiod           support Hesiod to get the POP server host
   --without-sound         don't compile with sound support
-  --without-sync-input    Process async input synchronously
+  --without-sync-input    process async input synchronously
   --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes, lucid, athena,
                           motif, gtk, no)
   --without-xpm           don't compile with XPM image support
@@ -1382,7 +1382,10 @@ Optional Packages:
   --without-makeinfo      don't require makeinfo for building manuals
 
   --with-pkg-config-prog=PATH
-                          Path to pkg-config for finding GTK and librsvg
+                          path to pkg-config for finding GTK and librsvg
+  --with-gnustep-conf=PATH
+                          path to GNUstep.conf; default $GNUSTEP_CONFIG_FILE,
+                          or /etc/GNUstep/GNUstep.conf
   --with-x                use the X Window System
 
 Some influential environment variables:
@@ -2157,6 +2160,17 @@ if test "X${with_pkg_config_prog}" != X; then
       PKG_CONFIG="${with_pkg_config_prog}"
    fi
 fi
+
+
+# Check whether --with-gnustep-conf was given.
+if test "${with_gnustep_conf+set}" = set; then
+  withval=$with_gnustep_conf;
+fi
+
+test "X${with_gnustep_conf}" != X && test "${with_gnustep_conf}" != yes && \
+  GNUSTEP_CONFIG_FILE="${with_gnustep_conf}"
+test "X$GNUSTEP_CONFIG_FILE" = "X" && \
+     GNUSTEP_CONFIG_FILE=/etc/GNUstep/GNUstep.conf
 
 # Check whether --enable-cocoa-experimental-ctrl-g was given.
 if test "${enable_cocoa_experimental_ctrl_g+set}" = set; then
@@ -9204,15 +9218,15 @@ if test "${with_ns}" != no; then
      ns_appbindir=`pwd`/nextstep/Emacs.app/Contents/MacOS
      ns_appresdir=`pwd`/nextstep/Emacs.app/Contents/Resources
      ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
-  elif test -f /etc/GNUstep/GNUstep.conf; then
+  elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=`pwd`/nextstep/Emacs.app
      ns_appresdir=`pwd`/nextstep/Emacs.app/Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
-     GNUSTEP_MAKEFILES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_MAKEFILES)"
-     GNUSTEP_SYSTEM_HEADERS="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)"
-     GNUSTEP_SYSTEM_LIBRARIES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)"
+          GNUSTEP_MAKEFILES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_MAKEFILES)"
+     GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
+     GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
@@ -9345,6 +9359,12 @@ echo "${ECHO_T}$ac_cv_header_AppKit_AppKit_h" >&6; }
 fi
 if test $ac_cv_header_AppKit_AppKit_h = yes; then
   HAVE_NS=yes
+else
+  { { echo "$as_me:$LINENO: error: \`--with-ns' was specified, but the include
+  files are missing or cannot be compiled." >&5
+echo "$as_me: error: \`--with-ns' was specified, but the include
+  files are missing or cannot be compiled." >&2;}
+   { (exit 1); exit 1; }; }
 fi
 
 
@@ -18758,11 +18778,13 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -18802,11 +18824,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
