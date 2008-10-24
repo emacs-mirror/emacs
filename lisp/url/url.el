@@ -46,7 +46,7 @@
 
 
 (defcustom url-configuration-directory
-  (locate-user-emacs-file ".url/" "url/")
+  (locate-user-emacs-file "url/" ".url/")
   "Directory used by the URL package for cookies, history, etc."
   :type 'directory
   :group 'url)
