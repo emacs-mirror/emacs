@@ -1,3 +1,14 @@
+2008-10-24  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_otf_features): Fix previous change.
+	(ftfont_otf_capability): Check FeatureList.FeatureCount before
+	calling ftfont_otf_features.
+
+2008-10-23  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_match_p): Fix for the case that a vector of
+	characters is in script-representative-chars.
+
 2008-10-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_in_read_queued_messages): New variable.
