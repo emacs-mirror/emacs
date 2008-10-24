@@ -1360,7 +1360,7 @@ ftfont_otf_features (gsub_gpos)
 	  for (features = Qnil, k = otf_langsys->FeatureCount - 1; k >= 0; k--)
 	    {
 	      l = otf_langsys->FeatureIndex[k];
-	      if (l > gsub_gpos->FeatureList.FeatureCount)
+	      if (l >= gsub_gpos->FeatureList.FeatureCount)
 		continue;
 	      OTF_TAG_SYM (sym, gsub_gpos->FeatureList.Feature[l].FeatureTag);
 	      features = Fcons (sym, features);
@@ -1391,9 +1391,11 @@ ftfont_otf_capability (font)
   if (! otf)
     return Qnil;
   gsub_gpos = Fcons (Qnil, Qnil);
-  if (OTF_get_table (otf, "GSUB") == 0)
+  if (OTF_get_table (otf, "GSUB") == 0
+      && otf->gsub->FeatureList.FeatureCount > 0)
     XSETCAR (gsub_gpos, ftfont_otf_features (otf->gsub));
-  if (OTF_get_table (otf, "GPOS") == 0)
+  if (OTF_get_table (otf, "GPOS") == 0
+      && otf->gpos->FeatureList.FeatureCount > 0)
     XSETCDR (gsub_gpos, ftfont_otf_features (otf->gpos));
   return gsub_gpos;
 }
