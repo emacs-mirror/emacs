@@ -10,7 +10,6 @@
 	(image-dired-temp-rotate-image-file):
 	* savehist.el (savehist-file):
 	* server.el (server-auth-dir):
-	* startup.el (auto-save-list-file-prefix):
 	* thumbs.el (thumbs-thumbsdir):
 	* tutorial.el (tutorial--saved-dir):
 	* play/gamegrid.el (gamegrid-user-score-file-directory): Use it.
