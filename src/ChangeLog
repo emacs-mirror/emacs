@@ -1,3 +1,11 @@
+2008-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (handle_single_display_spec, handle_display_prop): Undo
+	2005-05-16 change.
+	(handle_stop): Pop iterator if it's loaded with an empty string.
+	(get_overlay_strings_1): Don't save iterator if it's loaded with
+	an empty string (bug#1201).
+
 2008-10-24  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_otf_features): Fix previous change.
