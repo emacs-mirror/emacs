@@ -1636,6 +1636,10 @@ the match data.
 `serial-process-configure' provide a Lisp interface to the new serial
 port support (see Emacs changes, above).
 
+*** `locate-user-emacs-file' helps packages to select the appropriate
+place to save user-specific files.  It defaults to `user-emacs-directory'
+unless the file already exists at $HOME.
+
 ** Miscellaneous new variables
 
 +++

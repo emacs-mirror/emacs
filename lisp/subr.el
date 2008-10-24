@@ -2156,7 +2156,24 @@ On other systems, this variable is normally always nil.")
     "~/.emacs.d/")
   "Directory beneath which additional per-user Emacs-specific files are placed.
 Various programs in Emacs store information in this directory.
-Note that this should end with a directory separator.")
+Note that this should end with a directory separator.
+See also `locate-user-emacs-file'.")
+
+(defun locate-user-emacs-file (new-name &optional old-name)
+  "Return an absolute per-user Emacs-specific file name.
+If OLD-NAME is non-nil and ~/OLD-NAME exists, return ~/OLD-NAME.
+Else return NEW-NAME in `user-emacs-directory', creating the
+directory if it does not exist."
+  (convert-standard-filename
+   (let* ((home (concat "~" (or init-file-user "")))
+	  (at-home (and old-name (expand-file-name old-name home))))
+     (if (and at-home (file-readable-p at-home))
+	 at-home
+       (unless (or purify-flag ;; don't create dir while dumping
+		   (file-accessible-directory-p
+		    (directory-file-name user-emacs-directory)))
+	 (make-directory user-emacs-directory t)) ;; don't catch errors
+       (expand-file-name new-name user-emacs-directory)))))
 
 
 ;;;; Misc. useful functions.

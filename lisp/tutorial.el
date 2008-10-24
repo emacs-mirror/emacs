@@ -625,7 +625,7 @@ with some explanatory links."
 
 (defun tutorial--saved-dir ()
   "Directory to which tutorials are saved."
-  (expand-file-name "tutorial" user-emacs-directory))
+  (locate-user-emacs-file "tutorial/"))
 
 (defun tutorial--saved-file ()
   "File name in which to save tutorials."

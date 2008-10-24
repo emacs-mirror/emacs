@@ -1,3 +1,7 @@
+2008-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: New function `locate-user-emacs-file'.
+
 2008-10-18  Ulrich Mueller  <ulm@gentoo.org>
 
 	* MACHINES: Add section for SuperH.

@@ -45,12 +45,8 @@
 (require 'url-util)
 
 
-;; FIXME convert-standard-filename?
 (defcustom url-configuration-directory
-  (if (and (file-directory-p user-emacs-directory)
-           (not (file-directory-p "~/.url")))
-      (expand-file-name "url" user-emacs-directory)
-    "~/.url")
+  (locate-user-emacs-file ".url/" "url/")
   "Directory used by the URL package for cookies, history, etc."
   :type 'directory
   :group 'url)

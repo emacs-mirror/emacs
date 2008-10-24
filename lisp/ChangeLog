@@ -1,3 +1,20 @@
+2008-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (locate-user-emacs-file): New function.
+	(user-emacs-directory): Mention it in docstring.
+
+	* completion.el (save-completions-file-name):
+	* filesets.el (filesets-menu-cache-file):
+	* image-dired.el (image-dired-dir, image-dired-db-file)
+	(image-dired-temp-image-file, image-dired-gallery-dir)
+	(image-dired-temp-rotate-image-file):
+	* savehist.el (savehist-file):
+	* server.el (server-auth-dir):
+	* startup.el (auto-save-list-file-prefix):
+	* thumbs.el (thumbs-thumbsdir):
+	* tutorial.el (tutorial--saved-dir):
+	* play/gamegrid.el (gamegrid-user-score-file-directory): Use it.
+
 2008-10-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* edmacro.el (edmacro-eight-bits, edmacro-mode): Fix docstring typos.

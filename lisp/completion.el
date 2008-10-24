@@ -296,13 +296,7 @@ See also `save-completions-retention-time'."
   :group 'completion)
 
 (defcustom save-completions-file-name
-  (let ((olddef (convert-standard-filename "~/.completions")))
-    (cond
-     ((file-readable-p olddef) olddef)
-     ((file-directory-p user-emacs-directory)
-      (convert-standard-filename
-       (expand-file-name "completions" user-emacs-directory)))
-     (t olddef)))
+  (locate-user-emacs-file "completions" ".completions")
   "The filename to save completions to."
   :type 'file
   :group 'completion)

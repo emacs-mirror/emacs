@@ -111,7 +111,7 @@ If set, the server accepts remote connections; otherwise it is local."
   :version "22.1")
 (put 'server-host 'risky-local-variable t)
 
-(defcustom server-auth-dir (concat user-emacs-directory "server/")
+(defcustom server-auth-dir (locate-user-emacs-file "server/")
   "Directory for server authentication files."
   :group 'server
   :type 'directory

@@ -96,15 +96,7 @@ minibuffer histories, such as `compile-command' or `kill-ring'."
   :group 'savehist)
 
 (defcustom savehist-file
-  (cond
-   ;; Backward compatibility with previous versions of savehist.
-   ((file-exists-p "~/.emacs-history") "~/.emacs-history")
-   ((and (not (featurep 'xemacs)) (file-directory-p user-emacs-directory))
-    (concat user-emacs-directory "history"))
-   ((and (featurep 'xemacs) (file-directory-p "~/.xemacs/"))
-    "~/.xemacs/history")
-   ;; For users without `~/.emacs.d/' or `~/.xemacs/'.
-   (t (convert-standard-filename "~/.emacs-history")))
+  (locate-user-emacs-file "history" ".emacs-history")
   "*File name where minibuffer history is saved to and loaded from.
 The minibuffer history is a series of Lisp expressions loaded
 automatically when `savehist-mode' is turned on.  See `savehist-mode'

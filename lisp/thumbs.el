@@ -65,7 +65,7 @@
   :version "22.1"
   :group 'multimedia)
 
-(defcustom thumbs-thumbsdir (concat user-emacs-directory "thumbs")
+(defcustom thumbs-thumbsdir (locate-user-emacs-file "thumbs")
   "*Directory to store thumbnails."
   :type 'directory
   :group 'thumbs)
