@@ -1,3 +1,12 @@
+2008-10-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_in_read_queued_messages): New variable.
+	(XD_SIGNAL1, XD_SIGNAL2, XD_SIGNAL3): New macros.  Throw
+	Qdbus_error.
+	(xd_read_queued_messages): Catch Qdbus_error from the macros.
+	(all): Replace xsignal1, xsignal2, xsignal3 by the respective
+	macro.  (Bug#1186).
+
 2008-10-23  Ali Bahrami <ali_gnu@emvision.com>  (tiny change)
 
 	* s/sol2-10.h: New file.
