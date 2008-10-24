@@ -97,7 +97,7 @@ fi
 
 OPTION_DEFAULT_ON([sound],[don't compile with sound support])
 
-OPTION_DEFAULT_ON([sync-input],[Process async input synchronously])
+OPTION_DEFAULT_ON([sync-input],[process async input synchronously])
 if test "$with_sync_input" = yes; then
    AC_DEFINE(SYNC_INPUT, 1, [Process async input synchronously.])
 fi
@@ -162,12 +162,19 @@ variable to specify a compiler.])],,)
 
 AC_ARG_WITH([pkg-config-prog],dnl
 [AS_HELP_STRING([--with-pkg-config-prog=PATH],
-                  [Path to pkg-config for finding GTK and librsvg])])
+                  [path to pkg-config for finding GTK and librsvg])])
 if test "X${with_pkg_config_prog}" != X; then
    if test "${with_pkg_config_prog}" != yes; then
       PKG_CONFIG="${with_pkg_config_prog}"
    fi
 fi
+
+AC_ARG_WITH([gnustep-conf],dnl
+[AS_HELP_STRING([--with-gnustep-conf=PATH],[path to GNUstep.conf; default $GNUSTEP_CONFIG_FILE, or /etc/GNUstep/GNUstep.conf])])
+test "X${with_gnustep_conf}" != X && test "${with_gnustep_conf}" != yes && \
+  GNUSTEP_CONFIG_FILE="${with_gnustep_conf}"
+test "X$GNUSTEP_CONFIG_FILE" = "X" && \
+     GNUSTEP_CONFIG_FILE=/etc/GNUstep/GNUstep.conf
 
 AC_ARG_ENABLE(cocoa-experimental-ctrl-g,
 [AS_HELP_STRING([--enable-cocoa-experimental-ctrl-g],
@@ -1233,15 +1240,16 @@ if test "${with_ns}" != no; then
      ns_appbindir=`pwd`/nextstep/Emacs.app/Contents/MacOS
      ns_appresdir=`pwd`/nextstep/Emacs.app/Contents/Resources
      ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
-  elif test -f /etc/GNUstep/GNUstep.conf; then
+  elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=`pwd`/nextstep/Emacs.app
      ns_appresdir=`pwd`/nextstep/Emacs.app/Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
-     GNUSTEP_MAKEFILES="$(. /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_MAKEFILES)"
-     GNUSTEP_SYSTEM_HEADERS="$(. /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)"
-     GNUSTEP_SYSTEM_LIBRARIES="$(. /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)"
+     dnl FIXME sourcing this 3 times in subshells seems inefficient.
+     GNUSTEP_MAKEFILES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_MAKEFILES)"
+     GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
+     GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
