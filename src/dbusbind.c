@@ -63,9 +63,38 @@ Lisp_Object Vdbus_registered_functions_table;
 /* Whether to debug D-Bus.  */
 Lisp_Object Vdbus_debug;
 
+/* Whether we are reading a D-Bus event.  */
+int xd_in_read_queued_messages = 0;
+
 
 /* We use "xd_" and "XD_" as prefix for all internal symbols, because
    we don't want to poison other namespaces with "dbus_".  */
+
+/* Raise a signal.  If we are reading events, we cannot signal; we
+   throw to xd_read_queued_messages then.  */
+#define XD_SIGNAL1(arg)							\
+  do {									\
+    if (xd_in_read_queued_messages)					\
+      Fthrow (Qdbus_error, Qnil);					\
+    else								\
+      xsignal1 (Qdbus_error, arg);					\
+  } while (0)
+
+#define XD_SIGNAL2(arg1, arg2)						\
+  do {									\
+    if (xd_in_read_queued_messages)					\
+      Fthrow (Qdbus_error, Qnil);					\
+    else								\
+      xsignal2 (Qdbus_error, arg1, arg2);				\
+  } while (0)
+
+#define XD_SIGNAL3(arg1, arg2, arg3)					\
+  do {									\
+    if (xd_in_read_queued_messages)					\
+      Fthrow (Qdbus_error, Qnil);					\
+    else								\
+      xsignal3 (Qdbus_error, arg1, arg2, arg3);				\
+  } while (0)
 
 /* Raise a Lisp error from a D-Bus ERROR.  */
 #define XD_ERROR(error)							\
@@ -76,7 +105,7 @@ Lisp_Object Vdbus_debug;
     /* Remove the trailing newline.  */					\
     if (strchr (s, '\n') != NULL)					\
       s[strlen (s) - 1] = '\0';						\
-    xsignal1 (Qdbus_error, build_string (s));				\
+    XD_SIGNAL1 (build_string (s));					\
   } while (0)
 
 /* Macros for debugging.  In order to enable them, build with
@@ -94,7 +123,7 @@ Lisp_Object Vdbus_debug;
     if (!valid_lisp_object_p (object))					\
       {									\
 	XD_DEBUG_MESSAGE ("%d Assertion failure", __LINE__);		\
-	xsignal1 (Qdbus_error, build_string ("Assertion failure"));	\
+	XD_SIGNAL1 (build_string ("Assertion failure"));		\
       }									\
   } while (0)
 
@@ -370,8 +399,7 @@ xd_append_arg (dtype, object, iter)
 	  unsigned char val = XUINT (object) & 0xFF;
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
-	    xsignal2 (Qdbus_error,
-		      build_string ("Unable to append argument"), object);
+	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
 	}
 
@@ -380,8 +408,7 @@ xd_append_arg (dtype, object, iter)
 	  dbus_bool_t val = (NILP (object)) ? FALSE : TRUE;
 	  XD_DEBUG_MESSAGE ("%c %s", dtype, (val == FALSE) ? "false" : "true");
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
-	    xsignal2 (Qdbus_error,
-		      build_string ("Unable to append argument"), object);
+	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
 	}
 
@@ -390,8 +417,7 @@ xd_append_arg (dtype, object, iter)
 	  dbus_int16_t val = XINT (object);
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
-	    xsignal2 (Qdbus_error,
-		      build_string ("Unable to append argument"), object);
+	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
 	}
 
@@ -400,8 +426,7 @@ xd_append_arg (dtype, object, iter)
 	  dbus_uint16_t val = XUINT (object);
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, (unsigned int) val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
-	    xsignal2 (Qdbus_error,
-		      build_string ("Unable to append argument"), object);
+	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
 	}
 
@@ -410,8 +435,7 @@ xd_append_arg (dtype, object, iter)
 	  dbus_int32_t val = XINT (object);
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
-	    xsignal2 (Qdbus_error,
-		      build_string ("Unable to append argument"), object);
+	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
 	}
 
@@ -420,8 +444,7 @@ xd_append_arg (dtype, object, iter)
 	  dbus_uint32_t val = XUINT (object);
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
-	    xsignal2 (Qdbus_error,
-		      build_string ("Unable to append argument"), object);
+	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
 	}
 
@@ -430,8 +453,7 @@ xd_append_arg (dtype, object, iter)
 	  dbus_int64_t val = XINT (object);
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
-	    xsignal2 (Qdbus_error,
-		      build_string ("Unable to append argument"), object);
+	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
 	}
 
@@ -440,8 +462,7 @@ xd_append_arg (dtype, object, iter)
 	  dbus_uint64_t val = XUINT (object);
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, (unsigned int) val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
-	    xsignal2 (Qdbus_error,
-		      build_string ("Unable to append argument"), object);
+	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
 	}
 
@@ -449,8 +470,7 @@ xd_append_arg (dtype, object, iter)
 	XD_DEBUG_MESSAGE ("%c %f", dtype, XFLOAT_DATA (object));
 	if (!dbus_message_iter_append_basic (iter, dtype,
 					     &XFLOAT_DATA (object)))
-	  xsignal2 (Qdbus_error,
-		    build_string ("Unable to append argument"), object);
+	  XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	return;
 
       case DBUS_TYPE_STRING:
@@ -460,8 +480,7 @@ xd_append_arg (dtype, object, iter)
 	  char *val = SDATA (Fstring_make_unibyte (object));
 	  XD_DEBUG_MESSAGE ("%c %s", dtype, val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
-	    xsignal2 (Qdbus_error,
-		      build_string ("Unable to append argument"), object);
+	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
 	}
       }
@@ -509,9 +528,8 @@ xd_append_arg (dtype, object, iter)
 			    SDATA (format2 ("%s", object, Qnil)));
 	  if (!dbus_message_iter_open_container (iter, dtype,
 						 signature, &subiter))
-	    xsignal3 (Qdbus_error,
-		      build_string ("Cannot open container"),
-		      make_number (dtype), build_string (signature));
+	    XD_SIGNAL3 (build_string ("Cannot open container"),
+			make_number (dtype), build_string (signature));
 	  break;
 
 	case DBUS_TYPE_VARIANT:
@@ -523,9 +541,8 @@ xd_append_arg (dtype, object, iter)
 			    SDATA (format2 ("%s", object, Qnil)));
 	  if (!dbus_message_iter_open_container (iter, dtype,
 						 signature, &subiter))
-	    xsignal3 (Qdbus_error,
-		      build_string ("Cannot open container"),
-		      make_number (dtype), build_string (signature));
+	    XD_SIGNAL3 (build_string ("Cannot open container"),
+			make_number (dtype), build_string (signature));
 	  break;
 
 	case DBUS_TYPE_STRUCT:
@@ -534,9 +551,8 @@ xd_append_arg (dtype, object, iter)
 	  XD_DEBUG_MESSAGE ("%c %s", dtype,
 			    SDATA (format2 ("%s", object, Qnil)));
 	  if (!dbus_message_iter_open_container (iter, dtype, NULL, &subiter))
-	    xsignal2 (Qdbus_error,
-		      build_string ("Cannot open container"),
-		      make_number (dtype));
+	    XD_SIGNAL2 (build_string ("Cannot open container"),
+			make_number (dtype));
 	  break;
 	}
 
@@ -553,9 +569,8 @@ xd_append_arg (dtype, object, iter)
 
       /* Close the subiteration.  */
       if (!dbus_message_iter_close_container (iter, &subiter))
-	xsignal2 (Qdbus_error,
-		  build_string ("Cannot close container"),
-		  make_number (dtype));
+	XD_SIGNAL2 (build_string ("Cannot close container"),
+		    make_number (dtype));
     }
 }
 
@@ -677,7 +692,7 @@ xd_initialize (bus)
   /* Parameter check.  */
   CHECK_SYMBOL (bus);
   if (!((EQ (bus, QCdbus_system_bus)) || (EQ (bus, QCdbus_session_bus))))
-    xsignal2 (Qdbus_error, build_string ("Wrong bus name"), bus);
+    XD_SIGNAL2 (build_string ("Wrong bus name"), bus);
 
   /* Open a connection to the bus.  */
   dbus_error_init (&derror);
@@ -691,7 +706,7 @@ xd_initialize (bus)
     XD_ERROR (derror);
 
   if (connection == NULL)
-    xsignal2 (Qdbus_error, build_string ("No connection"), bus);
+    XD_SIGNAL2 (build_string ("No connection"), bus);
 
   /* Return the result.  */
   return connection;
@@ -715,7 +730,7 @@ DEFUN ("dbus-get-unique-name", Fdbus_get_unique_name, Sdbus_get_unique_name,
   /* Request the name.  */
   name = dbus_bus_get_unique_name (connection);
   if (name == NULL)
-    xsignal1 (Qdbus_error, build_string ("No unique name available"));
+    XD_SIGNAL1 (build_string ("No unique name available"));
 
   /* Return.  */
   return build_string (name);
@@ -836,7 +851,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
 					   SDATA (method));
   UNGCPRO;
   if (dmessage == NULL)
-    xsignal1 (Qdbus_error, build_string ("Unable to create a new message"));
+    XD_SIGNAL1 (build_string ("Unable to create a new message"));
 
   /* Check for timeout parameter.  */
   if ((i+2 <= nargs) && (EQ ((args[i]), QCdbus_timeout)))
@@ -887,7 +902,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
     XD_ERROR (derror);
 
   if (reply == NULL)
-    xsignal1 (Qdbus_error, build_string ("No reply"));
+    XD_SIGNAL1 (build_string ("No reply"));
 
   XD_DEBUG_MESSAGE ("Message sent");
 
@@ -1018,7 +1033,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
 					   SDATA (interface),
 					   SDATA (method));
   if (dmessage == NULL)
-    xsignal1 (Qdbus_error, build_string ("Unable to create a new message"));
+    XD_SIGNAL1 (build_string ("Unable to create a new message"));
 
   /* Check for timeout parameter.  */
   if ((i+2 <= nargs) && (EQ ((args[i]), QCdbus_timeout)))
@@ -1061,7 +1076,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
   /* Send the message.  The message is just added to the outgoing
      message queue.  */
   if (!dbus_connection_send_with_reply (connection, dmessage, NULL, timeout))
-    xsignal1 (Qdbus_error, build_string ("Cannot send message"));
+    XD_SIGNAL1 (build_string ("Cannot send message"));
 
   XD_DEBUG_MESSAGE ("Message sent");
 
@@ -1120,8 +1135,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
       || (!dbus_message_set_destination (dmessage, SDATA (service))))
     {
       UNGCPRO;
-      xsignal1 (Qdbus_error,
-		build_string ("Unable to create a return message"));
+      XD_SIGNAL1 (build_string ("Unable to create a return message"));
     }
 
   UNGCPRO;
@@ -1159,7 +1173,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
   /* Send the message.  The message is just added to the outgoing
      message queue.  */
   if (!dbus_connection_send (connection, dmessage, NULL))
-    xsignal1 (Qdbus_error, build_string ("Cannot send message"));
+    XD_SIGNAL1 (build_string ("Cannot send message"));
 
   /* Flush connection to ensure the message is handled.  */
   dbus_connection_flush (connection);
@@ -1216,8 +1230,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
       || (!dbus_message_set_destination (dmessage, SDATA (service))))
     {
       UNGCPRO;
-      xsignal1 (Qdbus_error,
-		build_string ("Unable to create a error message"));
+      XD_SIGNAL1 (build_string ("Unable to create a error message"));
     }
 
   UNGCPRO;
@@ -1255,7 +1268,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
   /* Send the message.  The message is just added to the outgoing
      message queue.  */
   if (!dbus_connection_send (connection, dmessage, NULL))
-    xsignal1 (Qdbus_error, build_string ("Cannot send message"));
+    XD_SIGNAL1 (build_string ("Cannot send message"));
 
   /* Flush connection to ensure the message is handled.  */
   dbus_connection_flush (connection);
@@ -1340,7 +1353,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
 				      SDATA (signal));
   UNGCPRO;
   if (dmessage == NULL)
-    xsignal1 (Qdbus_error, build_string ("Unable to create a new message"));
+    XD_SIGNAL1 (build_string ("Unable to create a new message"));
 
   /* Initialize parameter list of message.  */
   dbus_message_iter_init_append (dmessage, &iter);
@@ -1375,7 +1388,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
   /* Send the message.  The message is just added to the outgoing
      message queue.  */
   if (!dbus_connection_send (connection, dmessage, NULL))
-    xsignal1 (Qdbus_error, build_string ("Cannot send message"));
+    XD_SIGNAL1 (build_string ("Cannot send message"));
 
   /* Flush connection to ensure the message is handled.  */
   dbus_connection_flush (connection);
@@ -1557,10 +1570,10 @@ xd_read_queued_messages ()
      Lisp errors during the call.  */
   if (HASH_TABLE_P (Vdbus_registered_functions_table))
     {
-      internal_condition_case_1 (xd_read_message, QCdbus_system_bus,
-				 Qerror, Fidentity);
-      internal_condition_case_1 (xd_read_message, QCdbus_session_bus,
-				 Qerror, Fidentity);
+      xd_in_read_queued_messages = 1;
+      internal_catch (Qdbus_error, xd_read_message, QCdbus_system_bus);
+      internal_catch (Qdbus_error, xd_read_message, QCdbus_session_bus);
+      xd_in_read_queued_messages = 0;
     }
 }
 
