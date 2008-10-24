@@ -1239,15 +1239,17 @@ if test "${with_ns}" != no; then
      ns_appbindir=`pwd`/nextstep/Emacs.app
      ns_appresdir=`pwd`/nextstep/Emacs.app/Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
-     GNUSTEP_MAKEFILES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_MAKEFILES)"
-     GNUSTEP_SYSTEM_HEADERS="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)"
-     GNUSTEP_SYSTEM_LIBRARIES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)"
+     GNUSTEP_MAKEFILES="$(. /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_MAKEFILES)"
+     GNUSTEP_SYSTEM_HEADERS="$(. /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)"
+     GNUSTEP_SYSTEM_LIBRARIES="$(. /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
   fi
-  AC_CHECK_HEADER(AppKit/AppKit.h, HAVE_NS=yes)
+  AC_CHECK_HEADER([AppKit/AppKit.h], [HAVE_NS=yes],
+  		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
+  files are missing or cannot be compiled.])])
   NS_HAVE_NSINTEGER=yes
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <Foundation/NSObjCRuntime.h>],
                                      [NSInteger i;])],
