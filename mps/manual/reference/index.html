@@ -4076,7 +4076,7 @@ href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t</a></cod
 <h4>Notes</h4>
 
 
-<h3>function <code><a id="mps_arena_has_addr" name="mps_arena_park">mps_arena_park</a></code></h3>
+<h3>function <code><a id="mps_arena_has_addr" name="mps_arena_has_addr">mps_arena_has_addr</a></code></h3>
 
 
 <h4>Name</h4>
@@ -5447,7 +5447,7 @@ object multiple times.</p>
 
 <p>Note that there is no guarantee that finalization will be prompt.</p>
 
-<a href="#mps_rank_weak">Weak references</a> do not prevent objects from
+<p><a href="#mps_rank_weak">Weak references</a> do not prevent objects from
 being finalized.  At the point that an object is finalized, weak references will
 still validly refer to the object.  The fact that an
 object is registered for finalization prevents weak references to that
@@ -10590,7 +10590,6 @@ mps_arena_step
 mps_arena_start_collect
 mps_arena_destroy
 mps_arena_reserved
-mps_arena_has_addr
 mps_arena_extend
 mps_arena_retract
 mps_fmt_create_fixed
@@ -10767,9 +10766,27 @@ MPS_PF_XCPPGC
 </tr>
 
 <tr valign="top">
+  <td>2003-01-01</td>
+  <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+  <td>[various edits in 2003]</td>
+</tr>
+
+<tr valign="top">
   <td>2006-06-06</td>
   <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
   <td>Marked copy format method as obsolete.</td>
+</tr>
+
+<tr valign="top">
+  <td>2007-06-19</td>
+  <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+  <td>mps_finalize and finalization messages: correct, clarify, and expand descriptions </td>
+</tr>
+
+<tr valign="top">
+  <td>2008-10-24</td>
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+  <td>mps_arena_has_addr entry: fix wrong title; remove from undocumented symbols list.  (Also: fix html tag error; add missing document history entries).</td>
 </tr>
 
 </table>
@@ -10777,7 +10794,7 @@ MPS_PF_XCPPGC
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p>This document is copyright &copy; 1997-2002, 2006 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options.</p>
+<p>This document is copyright &copy; 1997-2002, 2003, 2006, 2007, 2008 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options.</p>
 
 <p>Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:</p>
 
