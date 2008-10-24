@@ -2999,25 +2999,6 @@ init_from_display_pos (it, w, pos)
       it->method = GET_FROM_STRING;
     }
 
-#if 0 /* This is bogus because POS not having an overlay string
-	 position does not mean it's after the string.  Example: A
-	 line starting with a before-string and initialization of IT
-	 to the previous row's end position.  */
-  else if (it->current.overlay_string_index >= 0)
-    {
-      /* If POS says we're already after an overlay string ending at
-	 POS, make sure to pop the iterator because it will be in
-	 front of that overlay string.  When POS is ZV, we've thereby
-	 also ``processed'' overlay strings at ZV.  */
-      while (it->sp)
-	pop_it (it);
-      xassert (it->current.overlay_string_index == -1);
-      xassert (it->method == GET_FROM_BUFFER);
-      if (CHARPOS (pos->pos) == ZV)
-	it->overlay_strings_at_end_processed_p = 1;
-    }
-#endif /* 0 */
-
   if (CHARPOS (pos->string_pos) >= 0)
     {
       /* Recorded position is not in an overlay string, but in another
@@ -3133,11 +3114,23 @@ handle_stop (it)
 		{
 		  if (it->ellipsis_p)
 		    setup_for_ellipsis (it, 0);
+		  /* When handling a display spec, we might load an
+		     empty string.  In that case, discard it here.  We
+		     used to discard it in handle_single_display_spec,
+		     but that causes get_overlay_strings_1, above, to
+		     ignore overlay strings that we must check.  */
+		  if (STRINGP (it->string) && !SCHARS (it->string))
+		    pop_it (it);
 		  return;
 		}
-	      it->ignore_overlay_strings_at_pos_p = 1;
-	      it->string_from_display_prop_p = 0;
-	      handle_overlay_change_p = 0;
+	      else if (STRINGP (it->string) && !SCHARS (it->string))
+		pop_it (it);
+	      else
+		{
+		  it->ignore_overlay_strings_at_pos_p = 1;
+		  it->string_from_display_prop_p = 0;
+		  handle_overlay_change_p = 0;
+		}
 	      handled = HANDLED_RECOMPUTE_PROPS;
 	      break;
 	    }
@@ -4002,11 +3995,8 @@ handle_display_prop (it)
     }
   else
     {
-      int ret = handle_single_display_spec (it, prop, object, overlay,
-					    position, 0);
-      if (ret < 0)  /* Replaced by "", i.e. nothing. */
-	return HANDLED_RECOMPUTE_PROPS;
-      if (ret)
+      if (handle_single_display_spec (it, prop, object, overlay,
+				      position, 0))
 	display_replaced_p = 1;
     }
 
@@ -4053,8 +4043,7 @@ display_prop_end (it, object, start_pos)
    property ends.
 
    Value is non-zero if something was found which replaces the display
-   of buffer or string text.  Specifically, the value is -1 if that
-   "something" is "nothing". */
+   of buffer or string text.  */
 
 static int
 handle_single_display_spec (it, spec, object, overlay, position,
@@ -4379,11 +4368,6 @@ handle_single_display_spec (it, spec, object, overlay, position,
 
       if (STRINGP (value))
 	{
-	  if (SCHARS (value) == 0)
-	    {
-	      pop_it (it);
-	      return -1;  /* Replaced by "", i.e. nothing.  */
-	    }
 	  it->string = value;
 	  it->multibyte_p = STRING_MULTIBYTE (it->string);
 	  it->current.overlay_string_index = -1;
@@ -5032,7 +5016,11 @@ get_overlay_strings_1 (it, charpos, compute_stop_p)
       /* Save IT's settings.  They are restored after all overlay
 	 strings have been processed.  */
       xassert (!compute_stop_p || it->sp == 0);
-      push_it (it);
+
+      /* When called from handle_stop, there might be an empty display
+         string loaded.  In that case, don't bother saving it.  */
+      if (!STRINGP (it->string) || SCHARS (it->string))
+	push_it (it);
 
       /* Set up IT to deliver display elements from the first overlay
 	 string.  */
