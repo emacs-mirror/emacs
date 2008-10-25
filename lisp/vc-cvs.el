@@ -1000,8 +1000,8 @@ state."
 	     (with-temp-buffer
 	       (insert-file-contents "CVS/Repository")
 	       (goto-char (point-min))
-	       (re-search-forward "[^/\n]*" nil t)
-	       (concat (match-string 0) "\n"))
+	       (skip-chars-forward "^\n")
+	       (concat (buffer-substring (point-min) (point)) "\n"))
 	   (file-error nil))))
     (concat
      (cond (module
