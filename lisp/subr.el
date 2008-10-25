@@ -2483,14 +2483,14 @@ Similar to `call-process-shell-command', but calls `process-file'."
 
 ;;;; Lisp macros to do various things temporarily.
 
-(defmacro with-current-buffer (buffer &rest body)
-  "Execute the forms in BODY with BUFFER temporarily current.
-BUFFER can be a buffer or a buffer name.
-The value returned is the value of the last form in BODY.
-See also `with-temp-buffer'."
+(defmacro with-current-buffer (buffer-or-name &rest body)
+  "Execute the forms in BODY with BUFFER-OR-NAME temporarily current.
+BUFFER-OR-NAME must be a buffer or the name of an existing buffer.
+The value returned is the value of the last form in BODY.  See
+also `with-temp-buffer'."
   (declare (indent 1) (debug t))
   `(save-current-buffer
-     (set-buffer ,buffer)
+     (set-buffer ,buffer-or-name)
      ,@body))
 
 (defmacro with-selected-window (window &rest body)
