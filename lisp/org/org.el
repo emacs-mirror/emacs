@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.09a
+;; Version: 6.10c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -92,7 +92,7 @@
 
 ;;; Version
 
-(defconst org-version "6.09a"
+(defconst org-version "6.10c"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)
@@ -1140,6 +1140,7 @@ See `org-file-apps'.")
   '(
     (auto-mode . emacs)
     ("\\.x?html?\\'" . default)
+    ("\\.pdf\\'" . default)
     )
   "External applications for opening `file:path' items in a document.
 Org-mode uses system defaults for different file types, but
@@ -1426,6 +1427,27 @@ Lisp variable `state'."
   :group 'org-todo
   :type 'hook)
 
+(defcustom org-todo-state-tags-triggers nil
+  "Tag changes that should be triggered by TODO state changes.
+This is a list.  Each entry is
+
+  (state-change (tag . flag) .......)
+
+State-change can be a string with a state, and empty string to indicate the
+state that has no TODO keyword, or it can be one of the symbols `todo'
+or `done', meaning any not-done or done state, respectively."
+  :group 'org-todo
+  :group 'org-tags
+  :type '(repeat
+	  (cons (choice :tag "When changing to"
+		 (const :tag "Not-done state" todo)
+		 (const :tag "Done state" done)
+		 (string :tag "State"))
+		(repeat
+		 (cons :tag "Tag action"
+		       (string :tag "Tag")
+		       (choice (const :tag "Add" t) (const :tag "Remove" nil)))))))
+
 (defcustom org-log-done nil
   "Non-nil means, record a CLOSED timestamp when moving an entry to DONE.
 When equal to the list (done), also prompt for a closing note.
@@ -1490,6 +1512,16 @@ empty string.
 
 (unless (assq 'note org-log-note-headings)
   (push '(note . "%t") org-log-note-headings))
+
+(defcustom org-log-state-notes-insert-after-drawers nil
+  "Non-nil means, insert state change notes after any drawers in entry.
+Only the drawers that *immediately* follow the headline and the
+deadline/scheduled line are skipped.
+When nil, insert notes right after the heading and perhaps the line
+with deadline/scheduling if present."
+  :group 'org-todo
+  :group 'org-progress
+  :type 'boolean)
 
 (defcustom org-log-states-order-reversed t
   "Non-nil means, the latest state change note will be directly after heading.
@@ -1690,7 +1722,7 @@ This has influence for the following applications:
 
 IMPORTANT:  This is a feature whose implementation is and likely will
 remain incomplete.  Really, it is only here because past midnight seems to
-ne the favorite working time of John Wiegley :-)"
+be the favorite working time of John Wiegley :-)"
   :group 'org-time
   :type 'number)
 
@@ -2490,7 +2522,7 @@ Otherwise, return nil."
       (let ((re (concat "[ \t]*" org-clock-string
 			" *[[<]\\([^]>]+\\)[]>]\\(-+[[<]\\([^]>]+\\)[]>]"
 			"\\([ \t]*=>.*\\)?\\)?"))
-	    ts te h m s)
+	    ts te h m s neg)
 	(cond
 	 ((not (looking-at re))
 	  nil)
@@ -2512,11 +2544,13 @@ Otherwise, return nil."
 		      (apply 'encode-time (org-parse-time-string te)))
 		     (time-to-seconds
 		      (apply 'encode-time (org-parse-time-string ts))))
+		neg (< s 0)
+		s (abs s)
 		h (floor (/ s 3600))
 		s (- s (* 3600 h))
 		m (floor (/ s 60))
 		s (- s (* 60 s)))
-	  (insert " => " (format "%2d:%02d" h m))
+	  (insert " => " (format (if neg "-%d:%02d" "%2d:%02d") h m))
 	  t))))))
 
 (defun org-check-running-clock ()
@@ -4573,7 +4607,7 @@ but create the new hedline after the current line."
 			   (match-string 0))
 		       (error "*"))))
 	     (blank (cdr (assq 'heading org-blank-before-new-entry)))
-	     pos)
+	     pos hide-previous)
 	(cond
 	 ((and (org-on-heading-p) (bolp)
 	       (or (bobp)
@@ -4588,6 +4622,9 @@ but create the new hedline after the current line."
 	  nil)
 	 (t
 	  ;; in the middle of the line
+          (save-excursion
+            (end-of-line)
+            (setq hide-previous (org-invisible-p)))
 	  (org-show-entry)
 	  (let ((split
 		 (org-get-alist-option org-M-RET-may-split-line 'headline))
@@ -4618,6 +4655,10 @@ but create the new hedline after the current line."
 	(setq pos (point))
 	(end-of-line 1)
 	(unless (= (point) pos) (just-one-space) (backward-delete-char 1))
+        (when (and org-insert-heading-respect-content hide-previous)
+	  (save-excursion
+	    (outline-previous-visible-heading 1)
+	    (hide-entry)))
 	(run-hooks 'org-insert-heading-hook)))))
 
 (defun org-get-heading (&optional no-tags)
@@ -4641,20 +4682,20 @@ but create the new hedline after the current line."
 (defun org-insert-heading-respect-content ()
   (interactive)
   (let ((org-insert-heading-respect-content t))
-    (call-interactively 'org-insert-heading)))
+    (org-insert-heading t)))
 
-(defun org-insert-todo-heading-respect-content ()
-  (interactive)
+(defun org-insert-todo-heading-respect-content (&optional force-state)
+  (interactive "P")
   (let ((org-insert-heading-respect-content t))
-    (call-interactively 'org-insert-todo-todo-heading)))
+    (org-insert-todo-heading force-state t)))
 
-(defun org-insert-todo-heading (arg)
+(defun org-insert-todo-heading (arg &optional force-heading)
   "Insert a new heading with the same level and TODO state as current heading.
 If the heading has no TODO state, or if the state is DONE, use the first
 state (TODO by default).  Also with prefix arg, force first state."
   (interactive "P")
-  (when (not (org-insert-item 'checkbox))
-    (org-insert-heading)
+  (when (or force-heading (not (org-insert-item 'checkbox)))
+    (org-insert-heading force-heading)
     (save-excursion
       (org-back-to-heading)
       (outline-previous-heading)
@@ -7209,7 +7250,7 @@ and will therefore always be up-to-date.
 
 At the target location, the entry is filed as a subitem of the target heading.
 Depending on `org-reverse-note-order', the new subitem will either be the
-first of the last subitem.
+first or the last subitem.
 
 With prefix arg GOTO, the command will only visit the target location,
 not actually move anything.
@@ -7876,6 +7917,7 @@ For calling through lisp, arg is also interpreted in the following way:
 	    ;; This is a non-nil state, and we need to log it
 	    (org-add-log-setup 'state state 'findpos dolog)))
 	;; Fixup tag positioning
+	(org-todo-trigger-tag-changes state)
 	(and org-auto-align-tags (not org-setting-tags) (org-set-tags nil t))
 	(when org-provide-todo-statistics
 	  (org-update-parent-todo-statistics))
@@ -7942,6 +7984,21 @@ when there is a statistics cookie in the headline!
    (let (org-log-done org-log-states)   ; turn off logging
      (org-todo (if (= n-not-done 0) \"DONE\" \"TODO\"))))
 ")
+
+(defun org-todo-trigger-tag-changes (state)
+  "Apply the changes defined in `org-todo-state-tags-triggers'."
+  (let ((l org-todo-state-tags-triggers)
+	changes)
+    (when (or (not state) (equal state ""))
+      (setq changes (append changes (cdr (assoc "" l)))))
+    (when (and (stringp state) (> (length state) 0))
+      (setq changes (append changes (cdr (assoc state l)))))
+    (when (member state org-not-done-keywords)
+      (setq changes (append changes (cdr (assoc 'todo l)))))
+    (when (member state org-done-keywords)
+      (setq changes (append changes (cdr (assoc 'done l)))))
+    (dolist (c changes)
+      (org-toggle-tag (car c) (if (cdr c) 'on 'off)))))
 	 
 (defun org-local-logging (value)
   "Get logging settings from a property VALUE."
@@ -8346,13 +8403,19 @@ EXTRA is additional text that will be inserted into the notes buffer."
 	(org-back-to-heading t)
 	(narrow-to-region (point) (save-excursion 
 				    (outline-next-heading) (point)))
-	(while (re-search-forward
-		(concat "\\(" org-drawer-regexp "\\|" org-property-end-re "\\)")
-		(point-max) t) (forward-line))
 	(looking-at (concat outline-regexp "\\( *\\)[^\r\n]*"
 			    "\\(\n[^\r\n]*?" org-keyword-time-not-clock-regexp
 			    "[^\r\n]*\\)?"))
 	(goto-char (match-end 0))
+	(when (and org-log-state-notes-insert-after-drawers
+		   (save-excursion
+		     (forward-line) (looking-at org-drawer-regexp)))
+	    (progn (forward-line)
+		   (while (looking-at org-drawer-regexp)
+		     (goto-char (match-end 0))
+		     (re-search-forward org-property-end-re (point-max) t)
+		     (forward-line))
+		   (forward-line -1)))
 	(unless org-log-states-order-reversed
 	  (and (= (char-after) ?\n) (forward-char 1))
 	  (org-skip-over-state-notes)
@@ -8383,7 +8446,7 @@ EXTRA is additional text that will be inserted into the notes buffer."
   (org-switch-to-buffer-other-window "*Org Note*")
   (erase-buffer)
   (if (memq org-log-note-how '(time state))
-      (org-store-log-note)
+      (let (current-prefix-arg)	(org-store-log-note))
     (let ((org-inhibit-startup t)) (org-mode))
     (insert (format "# Insert note for %s.
 # Finish with C-c C-c, or cancel with C-c C-k.\n\n"
@@ -9127,6 +9190,15 @@ If ONOFF is `on' or `off', don't toggle but set to this state."
 	  (org-move-to-column (min ncol col) t))
       (goto-char pos))))
 
+(defun org-set-tags-command (&optional arg just-align)
+  "Call the set-tags command for the current entry."
+  (interactive "P")
+  (if (org-on-heading-p)
+      (org-set-tags arg just-align)
+    (save-excursion
+      (org-back-to-heading t)
+      (org-set-tags arg just-align))))
+
 (defun org-set-tags (&optional arg just-align)
   "Set the tags for the current headline.
 With prefix ARG, realign all tags in headings in the current buffer."
@@ -9756,6 +9828,11 @@ If WHICH is nil or `all', get all properties.  If WHICH is
 			  (org-columns-number-to-string (/ (float clocksum) 60.)
 						       'add_times))
 		    props))
+	  (unless (assoc "CATEGORY" props)
+	    (setq value (or (org-get-category)
+			    (progn (org-refresh-category-properties)
+				   (org-get-category))))
+	    (push (cons "CATEGORY" value) props))
 	  (append sum-props (nreverse props)))))))
 
 (defun org-entry-get (pom property &optional inherit)
@@ -12042,6 +12119,7 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
 (org-defkey org-mode-map "\C-c\C-xb" 'org-tree-to-indirect-buffer)
 (org-defkey org-mode-map "\C-c\C-j" 'org-goto)
 (org-defkey org-mode-map "\C-c\C-t" 'org-todo)
+(org-defkey org-mode-map "\C-c\C-q" 'org-set-tags-command)
 (org-defkey org-mode-map "\C-c\C-s" 'org-schedule)
 (org-defkey org-mode-map "\C-c\C-d" 'org-deadline)
 (org-defkey org-mode-map "\C-c;"    'org-toggle-comment)
@@ -12850,7 +12928,7 @@ See the individual commands for more information."
      ["Priority Up" org-shiftup t]
      ["Priority Down" org-shiftdown t])
     ("TAGS and Properties"
-     ["Set Tags" 'org-ctrl-c-ctrl-c (org-at-heading-p)]
+     ["Set Tags" 'org-set-tags-command t]
      ["Change tag in region" 'org-change-tag-in-region (org-region-active-p)]
      "--"
      ["Set property" 'org-set-property t]

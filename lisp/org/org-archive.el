@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.09a
+;; Version: 6.10c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -322,12 +322,13 @@ sibling does not exist, it will be created at the end of the subtree."
       (setq pos (point))
       (condition-case nil
 	  (outline-up-heading 1 t)
-	(error (goto-char (point-min))))
+	(error (setq e (point-max)) (goto-char (point-min))))
       (setq b (point))
-      (condition-case nil
-	  (org-end-of-subtree t t)
-	(error (goto-char (point-max))))
-      (setq e (point))
+      (unless e
+	(condition-case nil
+	    (org-end-of-subtree t t)
+	  (error (goto-char (point-max))))
+	(setq e (point)))
       (goto-char b)
       (unless (re-search-forward
 	       (concat "^" (regexp-quote leader)

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.09a
+;; Version: 6.10c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -856,6 +856,7 @@ in this hook gets a chance to modify this property list.  Each function
 must accept the property list as an argument, and must return the (possibly
 modified) list.")
 
+;; FIXME: should we fold case here?
 (defun org-infile-export-plist ()
   "Return the property list with file-local settings for export."
   (save-excursion
@@ -1008,6 +1009,8 @@ value of `org-export-run-in-background'."
 \[x] export as XOXO
 
 \[l] export as LaTeX
+\[p] export as LaTeX and process to PDF
+\[d] export as LaTeX, process to PDF, and open the resulting PDF document
 \[L] export as LaTeX to temporary buffer
 
 \[i] export current file as iCalendar file
@@ -1028,6 +1031,8 @@ value of `org-export-run-in-background'."
 	    (?R org-export-region-as-html nil)
 	    (?x org-export-as-xoxo t)
 	    (?l org-export-as-latex t)
+	    (?p org-export-as-pdf t)
+	    (?d org-export-as-pdf-and-open t)
 	    (?L org-export-as-latex-to-buffer nil)
 	    (?i org-export-icalendar-this-file t)
 	    (?I org-export-icalendar-all-agenda-files t)
@@ -1041,12 +1046,17 @@ value of `org-export-run-in-background'."
       (delete-other-windows)
       (with-output-to-temp-buffer "*Org Export/Publishing Help*"
 	(princ help))
+      (if (fboundp 'fit-window-to-buffer)
+	  (fit-window-to-buffer (get-buffer-window
+				 "*Org Export/Publishing Help*")))
       (message "Select command: ")
       (setq r1 (read-char-exclusive)))
     (setq r2 (if (< r1 27) (+ r1 96) r1))
     (unless (setq ass (assq r2 cmds))
       (error "No command associated with key %c" r1))
-    (if (and bg (nth 2 ass))
+    (if (and bg (nth 2 ass)
+	     (not (buffer-base-buffer))
+	     (not (org-region-active-p)))
 	;; execute in background
 	(let ((p (start-process
 		  (concat "Exporting " (file-name-nondirectory (buffer-file-name)))
@@ -1495,7 +1505,6 @@ on this string to produce the exported version."
 
       ;; Remove or replace comments
       (org-export-handle-comments (plist-get parameters :comments))
-
 
       (setq rtn (buffer-string)))
     (kill-buffer " org-mode-tmp")
@@ -2181,16 +2190,17 @@ underlined headlines.  The default is 3."
 	 (umax nil)
 	 (umax-toc nil)
 	 (case-fold-search nil)
+	 (bfname (buffer-file-name (or (buffer-base-buffer) (current-buffer))))
          (filename (concat (file-name-as-directory
 			    (org-export-directory :ascii opt-plist))
 			   (file-name-sans-extension
 			    (or (and subtree-p
 				     (org-entry-get (region-beginning)
 						    "EXPORT_FILE_NAME" t))
-				(file-name-nondirectory buffer-file-name)))
+				(file-name-nondirectory bfname)))
 			   ".txt"))
 	 (filename (if (equal (file-truename filename)
-			      (file-truename buffer-file-name))
+			      (file-truename bfname))
 		       (concat filename ".txt")
 		     filename))
 	 (buffer (find-file-noselect filename))
@@ -2204,7 +2214,7 @@ underlined headlines.  The default is 3."
 				(plist-get opt-plist :skip-before-1st-heading))
 			       (org-export-grab-title-from-buffer))
 			  (file-name-sans-extension
-			   (file-name-nondirectory buffer-file-name))))
+			   (file-name-nondirectory bfname))))
 	 (email       (plist-get opt-plist :email))
 	 (language    (plist-get opt-plist :language))
 	 (quote-re0   (concat "^[ \t]*" org-quote-string "\\>"))

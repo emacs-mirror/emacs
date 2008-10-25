@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.09a
+;; Version: 6.10c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -67,12 +67,16 @@ A nil value means, clock will keep running until stopped explicitly with
 
 (defcustom org-clock-in-switch-to-state nil
   "Set task to a special todo state while clocking it.
-The value should be the state to which the entry should be switched."
+The value should be the state to which the entry should be
+switched. If the value is a function, it must take one
+parameter (the current TODO state of the item) and return the
+state to switch it to."
   :group 'org-clock
   :group 'org-todo
   :type '(choice
 	  (const :tag "Don't force a state" nil)
-	  (string :tag "State")))
+	  (string :tag "State")
+	  (symbol :tag "Function")))
 
 (defcustom org-clock-history-length 5
   "Number of clock tasks to remember in history."
@@ -265,12 +269,16 @@ the clocking selection, associated with the letter `d'."
 	  (org-back-to-heading t)
 	  (or interrupting (move-marker org-clock-interrupted-task nil))
 	  (org-clock-history-push)
-	  (when (and org-clock-in-switch-to-state
-		     (not (looking-at (concat outline-regexp "[ \t]*"
-					      org-clock-in-switch-to-state
-					      "\\>"))))
-	    (org-todo org-clock-in-switch-to-state))
-	  (setq org-clock-heading-for-remember 
+	  (cond ((functionp org-clock-in-switch-to-state)
+		 (looking-at org-complex-heading-regexp)
+		 (let ((newstate (funcall org-clock-in-switch-to-state (match-string 2))))
+		   (if newstate (org-todo newstate))))
+		((and org-clock-in-switch-to-state
+		      (not (looking-at (concat outline-regexp "[ \t]*"
+					       org-clock-in-switch-to-state
+					       "\\>"))))
+		 (org-todo org-clock-in-switch-to-state)))
+	  (setq org-clock-heading-for-remember
 		(and (looking-at org-complex-heading-regexp)
 		     (match-end 4)
 		     (org-trim (buffer-substring (match-end 1) (match-end 4)))))
@@ -283,9 +291,9 @@ the clocking selection, associated with the letter `d'."
 		      (t "???")))
 	  (setq org-clock-heading (org-propertize org-clock-heading 'face nil))
 	  (org-clock-find-position)
-	  
+
 	  (insert "\n") (backward-char 1)
-	  (indent-relative)
+	  (org-indent-line-function)
 	  (insert org-clock-string " ")
 	  (setq org-clock-start-time (current-time))
 	  (setq ts (org-insert-time-stamp (current-time) 'with-hm 'inactive))
@@ -348,11 +356,12 @@ the clocking selection, associated with the letter `d'."
 	(or (bolp) (newline)))
       (when (eq t org-clock-into-drawer)
 	(insert ":CLOCK:\n:END:\n")
-	(beginning-of-line -1)
+	(beginning-of-line 0)
 	(org-indent-line-function)
+	(beginning-of-line 0)
 	(org-flag-drawer t)
-	(beginning-of-line 2)
-	(org-indent-line-function)))))
+	(org-indent-line-function)
+	(beginning-of-line 2)))))
 
 (defun org-clock-out (&optional fail-quietly)
   "Stop the currently running clock.

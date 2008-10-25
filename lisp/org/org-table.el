@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.09a
+;; Version: 6.10c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -43,7 +43,7 @@
 (declare-function org-format-org-table-html "org-exp" (lines &optional splice))
 (defvar orgtbl-mode) ; defined below
 (defvar orgtbl-mode-menu) ; defined when orgtbl mode get initialized
-
+(defvar org-export-html-table-tag) ; defined in org-exp.el
 (defvar constants-unit-system)
 
 (defcustom orgtbl-optimized (eq org-enable-table-editor 'optimized)
@@ -894,7 +894,7 @@ in order to easily repeat the interval."
 	  (insert txt)
 	  (org-move-to-column col)
 	  (if (and org-table-copy-increment (org-at-timestamp-p t))
-	      (org-timestamp-up 1)
+	      (org-timestamp-up-day)
 	    (org-table-maybe-recalculate-line))
 	  (org-table-align)
 	  (org-move-to-column col))
@@ -2116,7 +2116,8 @@ not overwrite the stored one."
 	;; Check for old vertical references
 	(setq form (org-rewrite-old-row-references form))
 	;; Insert complex ranges
-	(while (string-match org-table-range-regexp form)
+	(while (and (string-match org-table-range-regexp form)
+		    (> (length (match-string 0 form)) 1))
 	  (setq form
 		(replace-match
 		 (save-match-data
@@ -3926,6 +3927,7 @@ The general parameters :skip and :skipcols have already been applied when
 this function is called.  The function does *not* use `orgtbl-to-generic',
 so you cannot specify parameters for it."
   (let* ((splicep (plist-get params :splice))
+	 (html-table-tag org-export-html-table-tag)
 	 html)
     ;; Just call the formatter we already have
     ;; We need to make text lines for it, so put the fields back together.

@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
-;; Version: 6.09a
+;; Version: 6.10c
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org, wp, tex
@@ -36,6 +36,8 @@
 ;; The interactive functions are similar to those of the HTML exporter:
 ;;
 ;; M-x `org-export-as-latex'
+;; M-x `org-export-as-pdf'
+;; M-x `org-export-as-pdf-and-open'
 ;; M-x `org-export-as-latex-batch'
 ;; M-x `org-export-as-latex-to-buffer'
 ;; M-x `org-export-region-as-latex'
@@ -88,6 +90,7 @@
      "\\documentclass[11pt,a4paper]{article}
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
+\\usepackage{graphicx}
 \\usepackage{hyperref}"
      ("\\section{%s}" . "\\section*{%s}")
      ("\\subsection{%s}" . "\\subsection*{%s}")
@@ -98,6 +101,7 @@
      "\\documentclass[11pt,a4paper]{report}
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
+\\usepackage{graphicx}
 \\usepackage{hyperref}"
      ("\\part{%s}" . "\\part*{%s}")
      ("\\chapter{%s}" . "\\chapter*{%s}")
@@ -108,6 +112,7 @@
      "\\documentclass[11pt,a4paper]{book}
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
+\\usepackage{graphicx}
 \\usepackage{hyperref}"
      ("\\part{%s}" . "\\part*{%s}")
      ("\\chapter{%s}" . "\\chapter*{%s}")
@@ -120,30 +125,38 @@ associated information.  Here is the structure of each cell:
 
   \(class-name
     header-string
-    (unnumbered-section numbered-section\)
+    (numbered-section . unnumbered-section\)
     ...\)
 
 A %s formatter is mandatory in each section string and will be
-replaced by the title of the section."
+replaced by the title of the section.
+
+Instead of a cons cell (numbered . unnumbered), you can also provide a list
+of 2-4 elements,
+
+  (numbered-open numbered-close)
+
+or
+
+  (numbered-open numbered-close unnumbered-open unnumbered-close)
+
+providing opening and closing strings for an environment that should
+represent the document section.  The opening clause should have a %s
+to represent the section title."
   :group 'org-export-latex
-  :type '(repeat
+  :type '(repeat 
 	  (list (string :tag "LaTeX class")
 		(string :tag "LaTeX header")
-		(cons :tag "Level 1"
-		      (string :tag "Numbered")
-		      (string :tag "Unnumbered"))
-		(cons :tag "Level 2"
-		      (string :tag "Numbered")
-		      (string :tag "Unnumbered"))
-		(cons :tag "Level 3"
-		      (string :tag "Numbered")
-		      (string :tag "Unnumbered"))
-		(cons :tag "Level 4"
-		      (string :tag "Numbered")
-		      (string :tag "Unnumbered"))
-		(cons :tag "Level 5"
-		      (string :tag "Numbered")
-		      (string :tag "Unnumbered")))))
+		(repeat :tag "Levels" :inline t
+			(choice
+			 (cons :tag "Heading"
+			       (string :tag "numbered")
+			       (string :tag "unnumbered)"))
+			 (list :tag "Environment"
+			       (string :tag "Opening (numbered)  ")
+			       (string :tag "Closing (numbered)  ")
+			       (string :tag "Opening (unnumbered)")
+			       (string :tag "Closing (unnumbered)")))))))
 
 (defcustom org-export-latex-emphasis-alist
   '(("*" "\\textbf{%s}" nil)
@@ -223,6 +236,18 @@ Don't remove the keys, just change their values."
   "Coding system for the exported LaTex file."
   :group 'org-export-latex
   :type 'coding-system)
+
+(defgroup org-export-pdf nil
+  "Options for exporting Org-mode files to PDF, via LaTeX."
+  :tag "Org Export LaTeX"
+  :group 'org-export-latex
+  :group 'org-export)
+
+(defcustom org-export-pdf-remove-logfiles t
+  "Non-nil means, remove the logfiles produced by PDF production.
+These are the .aux, .log, .out, and .toc files."
+  :group 'org-export-latex
+  :type 'boolean)
 
 ;;; Autoload functions:
 
@@ -454,6 +479,44 @@ when PUB-DIR is set, use this as the publishing directory."
 	  (current-buffer))
       (set-window-configuration wcf))))
 
+;;;###autoload
+(defun org-export-as-pdf (arg &optional hidden ext-plist
+			      to-buffer body-only pub-dir)
+  "Export as LaTeX, then process through to PDF."
+  (interactive "P")
+  (message "Exporting to PDF...")
+  (let* ((wconfig (current-window-configuration))
+	 (lbuf (org-export-as-latex arg hidden ext-plist
+				    to-buffer body-only pub-dir))
+	 (file (buffer-file-name lbuf))
+	 (base (file-name-sans-extension (buffer-file-name lbuf)))
+	 (pdffile (concat base ".pdf")))
+    (and (file-exists-p pdffile) (delete-file pdffile))
+    (message "Processing LaTeX file...")
+    (shell-command (format "pdflatex -interaction nonstopmode %s"
+			   (shell-quote-argument file)))
+    (shell-command (format "pdflatex -interaction nonstopmode %s"
+			   (shell-quote-argument file)))
+    (message "Processing LaTeX file...done")
+    (if (not (file-exists-p pdffile))
+	(error "PDF file was not produced")
+      (set-window-configuration wconfig)
+      (when org-export-pdf-remove-logfiles
+	(dolist (ext '("aux" "log" "out" "toc"))
+	  (setq file (concat base "." ext))
+	  (and (file-exists-p file) (delete-file file))))
+      (message "Exporting to PDF...done")
+      pdffile)))
+
+;;;###autoload
+(defun org-export-as-pdf-and-open (arg)
+  "Export as LaTeX, then process through to PDF, and open."
+  (interactive "P")
+  (let ((pdffile (org-export-as-pdf arg)))
+    (if pdffile
+	(org-open-file pdffile)
+      (error "PDF file was not produced"))))
+
 ;;; Parsing functions:
 
 (defun org-export-latex-parse-global (level odd)
@@ -554,12 +617,18 @@ If NUM, export sections as numerical sections."
     (cond
      ;; Normal conversion
      ((<= level org-export-latex-sectioning-depth)
-      (let ((sec (nth (1- level) org-export-latex-sectioning)))
-	(insert (format (if num (car sec) (cdr sec)) heading) "\n"))
-      (when label (insert (format "\\label{%s}\n" label)))
-      (insert (org-export-latex-content content))
-      (cond ((stringp subcontent) (insert subcontent))
-	    ((listp subcontent) (org-export-latex-sub subcontent))))
+      (let* ((sec (nth (1- level) org-export-latex-sectioning))
+	     start end)
+	(if (consp (cdr sec))
+	    (setq start (nth (if num 0 2) sec)
+		  end (nth (if num 1 3) sec))
+	  (setq start (if num (car sec) (cdr sec))))
+	(insert (format start heading) "\n")
+	(when label (insert (format "\\label{%s}\n" label)))
+	(insert (org-export-latex-content content))
+	(cond ((stringp subcontent) (insert subcontent))
+	      ((listp subcontent) (org-export-latex-sub subcontent)))
+	(if end (insert end "\n"))))
      ;; At a level under the hl option: we can drop this subsection
      ((> level org-export-latex-sectioning-depth)
       (cond ((eq org-export-latex-low-levels 'description)
@@ -877,12 +946,15 @@ Convert CHAR depending on STRING-BEFORE and STRING-AFTER."
 			  ((string-match "[({]?\\([^)}]+\\)[)}]?" string-after)
 			   (format "%s%s{%s}" string-before char
 				   (match-string 1 string-after))))))
-	       ((and subsup
-		     (> (length string-after) 1)
+	       ((and (> (length string-after) 1)
+		     (or (eq subsup t)
+			 (and (equal subsup '{}) (eq (string-to-char string-after) ?\{)))
 		     (string-match "[({]?\\([^)}]+\\)[)}]?" string-after))
-		(format "$%s%s{%s}$" string-before char
-			(match-string 1 string-after)))
-	       (subsup (concat "$" string-before char string-after "$"))
+		(format "%s$%s{%s}$" string-before char
+			(if (> (match-end 1) (1+ (match-beginning 1)))
+			    (concat "\\mathrm{" (match-string 1 string-after) "}")
+			(match-string 1 string-after))))
+	       ((eq subsup t) (concat string-before "$" char string-after "$"))
 	       (t (org-export-latex-protect-string
 		   (concat string-before "\\" char "{}" string-after)))))
 	(t (org-export-latex-protect-string
@@ -1084,6 +1156,7 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
 	     (t (insert "\\texttt{" desc "}")))))))
 
 (defvar org-latex-entities)   ; defined below
+(defvar org-latex-entities-regexp)   ; defined below
 
 (defun org-export-latex-preprocess ()
   "Clean stuff in the LaTeX export."
@@ -1096,11 +1169,12 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
 
   ;; Preserve latex environments
   (goto-char (point-min))
-  (while (search-forward "\\begin{" nil t)
-    (let ((start (progn (beginning-of-line) (point)))
-          (end (or (and (search-forward "\\end{" nil t)
-                        (end-of-line) (point))
-                   (point-max))))
+  (while (re-search-forward "^[ \t]*\\begin{\\([a-zA-Z]+\\)}" nil t)
+    (let* ((start (progn (beginning-of-line) (point)))
+	   (end (or (and (re-search-forward 
+			  (concat "^[ \t]*\\end{" (match-string 1) "}" nil t)
+			  (point-at-eol)))
+		    (point-max))))
       (add-text-properties start end '(org-protected t))))
 
   ;; Convert LaTeX to \LaTeX{}
@@ -1139,7 +1213,7 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
 
   ;; Protect LaTeX entities
   (goto-char (point-min))
-  (while (re-search-forward (regexp-opt org-latex-entities) nil t)
+  (while (re-search-forward org-latex-entities-regexp nil t)
     (add-text-properties (match-beginning 0) (match-end 0)
 			 '(org-protected t)))
 
@@ -1204,8 +1278,9 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
   "Convert lists to LaTeX."
   (goto-char (point-min))
   (while (re-search-forward org-list-beginning-re nil t)
-    (beginning-of-line)
-    (insert (org-list-to-latex (org-list-parse-list t)) "\n")))
+    (org-if-unprotected
+     (beginning-of-line)
+     (insert (org-list-to-latex (org-list-parse-list t)) "\n"))))
 
 (defconst org-latex-entities
  '("\\!"
@@ -1382,6 +1457,15 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
    "\\vline"
    "\\vspace")
  "A list of LaTeX commands to be protected when performing conversion.")
+
+(defconst org-latex-entities-regexp
+  (let (names rest)
+    (dolist (x org-latex-entities)
+      (if (string-match "[a-z][A-Z]$" x)
+	  (push x names)
+	(push x rest)))
+    (concat "\\(" (regexp-opt (nreverse names)) "\\>\\)"
+	    "\\|\\(" (regexp-opt (nreverse rest)) "\\)")))
 
 (provide 'org-export-latex)
 

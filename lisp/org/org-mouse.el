@@ -4,7 +4,7 @@
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
-;; Version: 6.09a
+;; Version: 6.10c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -166,6 +166,18 @@ indirectly, for example, through the agenda buffer.")
   :group 'org-mouse
   :type 'string)
 
+(defcustom org-mouse-features
+  '(context-menu yank-link activate-stars activate-bullets activate-checkboxes)
+  "The features of org-mouse that should be activated.
+Changing this variable requires a restart of Emacs to get activated."
+  :group 'org-mouse
+  :type '(set :greedy t
+	      (const :tag "Mouse-3 shows context menu" context-menu)
+	      (const :tag "C-mouse-1 and mouse-3 move trees" move-tree)
+	      (const :tag "S-mouse-2 and drag-mouse-3 yank link" yank-link)
+	      (const :tag "Activate headline stars" activate-stars)
+	      (const :tag "Activate item bullets" activate-bullets)
+	      (const :tag "Activate checkboxes" activate-checkboxes)))	      
 
 (defun org-mouse-re-search-line (regexp)
   "Search the current line for a given regular expression."
@@ -410,7 +422,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 
 (defun org-mouse-tag-menu ()		;todo
   (append
-   (let ((tags (org-split-string (org-get-tags) ":")))
+   (let ((tags (org-get-tags)))
      (org-mouse-keyword-menu
       (sort (mapcar 'car (org-get-buffer-tags)) 'string-lessp)
       `(lambda (tag)
@@ -890,26 +902,42 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
   '(lambda ()
      (setq org-mouse-context-menu-function 'org-mouse-context-menu)
 
-;     (define-key org-mouse-map [follow-link] 'mouse-face)
-     (define-key org-mouse-map (if (featurep 'xemacs) [button3] [mouse-3]) nil)
-     (define-key org-mode-map [mouse-3] 'org-mouse-show-context-menu)
+     (when (memq 'context-menu org-mouse-features)
+       (define-key org-mouse-map (if (featurep 'xemacs) [button3] [mouse-3]) nil)
+       (define-key org-mode-map [mouse-3] 'org-mouse-show-context-menu))
      (define-key org-mode-map [down-mouse-1] 'org-mouse-down-mouse)
-     (define-key org-mouse-map [C-drag-mouse-1] 'org-mouse-move-tree)
-     (define-key org-mouse-map [C-down-mouse-1] 'org-mouse-move-tree-start)
-     (define-key org-mode-map [S-mouse-2] 'org-mouse-yank-link)
-     (define-key org-mode-map [drag-mouse-3] 'org-mouse-yank-link)
-     (define-key org-mouse-map [drag-mouse-3] 'org-mouse-move-tree)
-     (define-key org-mouse-map [down-mouse-3] 'org-mouse-move-tree-start)
+     (when (memq 'context-menu org-mouse-features)
+       (define-key org-mouse-map [C-drag-mouse-1] 'org-mouse-move-tree)
+       (define-key org-mouse-map [C-down-mouse-1] 'org-mouse-move-tree-start))
+     (when (memq 'yank-link org-mouse-features)
+       (define-key org-mode-map [S-mouse-2] 'org-mouse-yank-link)
+       (define-key org-mode-map [drag-mouse-3] 'org-mouse-yank-link))
+     (when (memq 'move-tree org-mouse-features)
+       (define-key org-mouse-map [drag-mouse-3] 'org-mouse-move-tree)
+       (define-key org-mouse-map [down-mouse-3] 'org-mouse-move-tree-start))
 
-     (font-lock-add-keywords nil
+     (when (memq 'activate-stars org-mouse-features)
+       (font-lock-add-keywords
+	nil
 	`((,outline-regexp
 	   0 `(face org-link mouse-face highlight keymap ,org-mouse-map)
-	   'prepend)
-	  ("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +"
-	   (1 `(face org-link keymap ,org-mouse-map mouse-face highlight) 'prepend))
-	  ("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[ X]\\]\\)"
+	   'prepend))
+ 	t))
+
+     (when (memq 'activate-bullets org-mouse-features)
+       (font-lock-add-keywords
+	nil
+	`(("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +"
+	   (1 `(face org-link keymap ,org-mouse-map mouse-face highlight)
+	      'prepend)))
+ 	t))
+
+     (when (memq 'activate-checkboxes org-mouse-features)
+       (font-lock-add-keywords
+	nil
+	`(("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[ X]\\]\\)"
 	   (2 `(face bold keymap ,org-mouse-map mouse-face highlight) t)))
- 	t)
+ 	t))
 
      (defadvice org-open-at-point (around org-mouse-open-at-point activate)
        (let ((context (org-context)))

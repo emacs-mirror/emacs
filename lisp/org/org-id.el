@@ -4,7 +4,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.09a
+;; Version: 6.10c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -116,7 +116,8 @@ be added."
   :group 'org-id
   :type 'boolean)
 
-(defcustom org-id-locations-file (convert-standard-filename "~/.org-id-locations")
+(defcustom org-id-locations-file (convert-standard-filename
+				  "~/.org-id-locations")
   "The file for remembering the last ID number generated."
   :group 'org-id
   :type 'file)

@@ -3,7 +3,7 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.09a
+@set VERSION 6.10c
 @set DATE October 2008
 
 @dircategory Emacs
@@ -291,7 +291,7 @@ Exporting
 * The export dispatcher::       How to access exporter commands
 * ASCII export::                Exporting to plain ASCII
 * HTML export::                 Exporting to HTML
-* LaTeX export::                Exporting to LaTeX
+* LaTeX and PDF export::        Exporting to LaTeX, and processing to PDF
 * XOXO export::                 Exporting to XOXO
 * iCalendar export::            Exporting in iCalendar format
 
@@ -321,9 +321,9 @@ HTML export
 * CSS support::                 Changing the appearance of the output
 * Javascript support::          Info and Folding in a web browser
 
-LaTeX export
+LaTeX and PDF export
 
-* LaTeX export commands::       How to invoke LaTeX export
+* LaTeX/PDF export commands::   
 * Quoting LaTeX code::          Incorporating literal LaTeX code
 * Sectioning structure::        Changing sectioning in LaTeX output
 
@@ -541,7 +541,7 @@ You need to fix the single quotes by hand, or copy from Info
 documentation.}
 @end iftex
 
-Add the following lines to your @file{.emacs} file.  The last two lines
+Add the following lines to your @file{.emacs} file.  The last three lines
 define @emph{global} keys for the commands @command{org-store-link},
 @command{org-agenda}, and @command{org-iswitchb} - please choose suitable
 keys yourself.
@@ -859,11 +859,14 @@ you can use the following keys to find your destination:
 @example
 @key{TAB}         @r{Cycle visibility.}
 @key{down} / @key{up}   @r{Next/previous visible headline.}
+@key{RET}         @r{Select this location.}
+@kbd{/}           @r{Do a Sparse-tree search}
+@r{The following keys work if you turn off @code{org-goto-auto-isearch}}
 n / p        @r{Next/previous visible headline.}
 f / b        @r{Next/previous headline same level.}
 u            @r{One level up.}
 0-9          @r{Digit argument.}
-@key{RET}         @r{Select this location.}
+q            @r{Quit}
 @end example
 @end table
 
@@ -897,8 +900,9 @@ of a headline), then a headline like the current one will be inserted
 after the end of the subtree.
 @kindex C-@key{RET}
 @item C-@key{RET}
-Just like @kbd{M-@key{RET}}, but if the heading is inserted after the current,
-insert it actually after the entire subtree.
+Just like @kbd{M-@key{RET}}, except when adding a new heading below the
+current heading, the new heading is placed after the body instead of before
+it.  This command works from anywhere in the entry.
 @kindex M-S-@key{RET}
 @item M-S-@key{RET}
 Insert new TODO entry with same level as current heading.
@@ -927,9 +931,7 @@ level).
 @item M-S-@key{down}
 Move subtree down (swap with next subtree of same level).
 @kindex C-c C-x C-w
-@kindex C-c C-x C-k
 @item C-c C-x C-w
-@itemx C-c C-x C-k
 Kill subtree, i.e. remove it from buffer but save in kill ring.
 With a numeric prefix argument N, kill N sequential subtrees.
 @kindex C-c C-x M-w
@@ -2272,12 +2274,10 @@ functions.
 @cindex plot tables using gnuplot
 
 Org Plot can produce 2D and 3D graphs of information stored in org tables
-using @file{Gnuplot} (see @uref{http://www.gnuplot.info/, the Gnuplot
-website}) and @file{gnuplot-mode} (see
-@uref{http://cars9.uchicago.edu/~ravel/software/gnuplot-mode.html, the
-gnuplot-mode website}).  To see this in action ensure that you have both
-Gnuplot and Gnuplot-mode installed on your system, then call
-@code{org-plot/gnuplot} on the following table.
+using @file{Gnuplot} @uref{http://www.gnuplot.info/} and @file{gnuplot-mode}
+@uref{http://cars9.uchicago.edu/~ravel/software/gnuplot-mode.html}.  To see
+this in action ensure that you have both Gnuplot and Gnuplot-mode installed
+on your system, then call @code{org-plot/gnuplot} on the following table.
 
 @example
 @group
@@ -2296,8 +2296,8 @@ Notice that Org Plot is smart enough to apply the tables headers as labels.
 Further control over the labels, type, content, and appearance of plots can
 be exercised through the @code{#+Plot:} lines preceding a table.  See below
 for a complete list of Org plot options.  For more information and examples
-@uref{http://orgmode.org/worg/org-tutorials/org-plot.php, the org-plot
-tutorial}.
+see the org-plot tutorial at
+@uref{http://legito.org/worg/org-tutorials/org-plot.php}.
 
 @subsubheading Plot Options
 
@@ -2312,8 +2312,10 @@ Specify the title of the plot.
 Specify which column of the table to use as the @code{x} axis.
 
 @item deps
-Specify (as a comma seperated list with no spaces) which columns of the table
-to graph against the ind (defaults to all other columns).
+Specify the columns to graph as a lisp style list, surrounded by parenthesis
+and separated by spaces for example @code{dep:(3 4)} to graph the third and
+fourth columns (defaults to graphing all other columns aside from the ind
+column).
 
 @item type
 Specify whether the plot will be @code{2d}, @code{3d}, or @code{grid}.
@@ -2895,6 +2897,10 @@ commands}).  @xref{Global TODO list}, for more information.
 Insert a new TODO entry below the current one.
 @end table
 
+@noindent
+Changing a TODO state can also trigger tag changes.  See the docstring of the
+option @code{org-todo-state-tags-triggers} for details.
+
 @node TODO extensions, Progress logging, TODO basics, TODO Items
 @section Extended use of TODO keywords
 @cindex extended TODO keywords
@@ -3225,7 +3231,6 @@ settings like @code{TODO(!)}.  For example
   :END:
 @end example
 
-
 @node Priorities, Breaking down tasks, Progress logging, TODO Items
 @section Priorities
 @cindex priorities
@@ -3471,8 +3476,8 @@ After a colon, @kbd{M-@key{TAB}} offers completion on tags.  There is
 also a special command for inserting tags:
 
 @table @kbd
-@kindex C-c C-c
-@item C-c C-c
+@kindex C-c C-q
+@item C-c C-q
 @cindex completion, of tags
 Enter new tags for the current headline.  Org mode will either offer
 completion or a special single-key interface for setting tags, see
@@ -3481,6 +3486,9 @@ to @code{org-tags-column}.  When called with a @kbd{C-u} prefix, all
 tags in the current buffer will be aligned to that column, just to make
 things look nice.  TAGS are automatically realigned after promotion,
 demotion, and TODO state changes (@pxref{TODO basics}).
+@kindex C-c C-c
+@item C-c C-c
+When the cursor is in a headline, this does the same as @kbd{C-c C-q}.
 @end table
 
 Org will support tag insertion based on a @emph{list of tags}.  By
@@ -4857,10 +4865,10 @@ you want to clock your time).  For a specific buffer you can use
 @end example
 
 @noindent
-or you can set up these values globally by customizing the variables
-@code{org-global-properties} and @code{org-columns-default-format}.  In
-particular if you want to use this setup also in the agenda, a global setup
-may be advised.
+or, even better, you can set up these values globally by customizing the
+variables @code{org-global-properties} and @code{org-columns-default-format}.
+In particular if you want to use this setup also in the agenda, a global
+setup may be advised.
 
 The way to assign estimates to individual items is then to switch to column
 mode, and to use @kbd{S-@key{right}} and @kbd{S-@key{left}} to change the
@@ -4876,6 +4884,10 @@ option @code{org-agenda-columns-add-appointments-to-effort-sum}.  The
 appointments on a day that take place over a specified time interval will
 then also be added to the load estimate of the day.
 
+Effort estimates can be used in secondary agenda filtering that is triggered
+with the @kbd{/} key in the agenda (@pxref{Agenda commands}).  If you have
+these estimates defined consistently, two or three key presses will narrow
+down the list to stuff that fits into an available time slot.
 
 @node Capture, Agenda Views, Dates and Times, Top
 @chapter Capture
@@ -5829,9 +5841,7 @@ sequence in which they are found in the agenda files.
 
 Sorting can be customized using the variable
 @code{org-agenda-sorting-strategy}, and may also include criteria based on
-the estimated effort of an entry.
-@c FIXME: link!!!!!!!!
-
+the estimated effort of an entry (@pxref{Effort estimates}).
 
 @node Agenda commands, Custom agenda views, Presentation and sorting, Agenda Views
 @section Commands in the agenda buffer
@@ -5988,17 +5998,48 @@ that entry would be in the original buffer (taken from a property, from a
 @code{org-columns-default-format}), will be used in the agenda.
 
 @tsubheading{Secondary filtering and query editing}
+@cindex filtering, by tag and effort, in agenda
+@cindex tag filtering, in agenda
+@cindex effort filtering, in agenda
 @cindex query editing, in agenda
 
 @kindex /
 @item /
-Filter the current agenda view with respect to a tag.  You will be prompted
-for a tag selection letter.  Pressing @key{TAB} at that prompt will offer use
-completion to select a tag (including any tags that do not have a selection
-character).  The command then hides all entries that do not contain or
-inherit this tag.  When called with prefix arg, remove the entries that
-@emph{do} have the tag.  A second @kbd{/} at the prompt will unhide any
-hidden entries.
+Filter the current agenda view with respect to a tag and/or effort estimates.
+The difference between this and a custom agenda commands is that filtering is
+very fast, so that you can switch quickly between different filters without
+having to recreate the agenda.
+
+You will be prompted for a tag selection letter.  Pressing @key{TAB} at that
+prompt will offer use completion to select a tag (including any tags that do
+not have a selection character).  The command then hides all entries that do
+not contain or inherit this tag.  When called with prefix arg, remove the
+entries that @emph{do} have the tag.  A second @kbd{/} at the prompt will
+turn off the filter and unhide any hidden entries.  If the first key you
+press is either @kbd{+} or @kbd{-}, the previous filter will be narrowed by
+requiring or forbidding the selected additional tag.  Instead of pressing
+@kbd{+} or @kbd{-}, you can also use the @kbd{\} command.
+
+In order to filter for effort estimates, you should set-up allowed
+efforts globally, for example
+@lisp
+(setq org-global-properties
+    '(("Effort_ALL". "0 0:10 0:30 1:00 2:00 3:00 4:00")))
+@end lisp
+You can then filter for an effort by first typing an operator, one of @kbd{<},
+@kbd{>}, and @kbd{=}, and then the one-digit index of an effort estimate in
+your array of allowed values, where @kbd{0} means the 10th value.  The filter
+will then restrict to entries with effort smaller-or-equal, equal, or
+larger-or-equal than the selected value.  If the digits 0-9 are not used as
+fast access keys to tags, you can also simply press the index digit directly
+without an operator.  In this case, @kbd{<} will be assumed.
+
+@kindex \
+@item \
+Narrow the current agenda filter by an additional condition.  When called with
+prefix arg, remove the entries that @emph{do} have the tag, or that do match
+the effort criterion.  You can achieve the same effect by pressing @kbd{+} or
+@kbd{-} as the first key after the @kbd{/} command.
 
 @kindex [
 @kindex ]
@@ -6520,7 +6561,8 @@ From the command line you may also use
 emacs -f org-batch-store-agenda-views -kill
 @end example
 @noindent
-or, if you need to modify some parameters
+or, if you need to modify some parameters@footnote{Quoting may depend on the
+system you use, please check th FAQ for examples.}
 @example
 emacs -eval '(org-batch-store-agenda-views                      \
               org-agenda-ndays 30                               \
@@ -6930,7 +6972,7 @@ Org mode only supports export, not import of these different formats.
 * The export dispatcher::       How to access exporter commands
 * ASCII export::                Exporting to plain ASCII
 * HTML export::                 Exporting to HTML
-* LaTeX export::                Exporting to LaTeX
+* LaTeX and PDF export::        Exporting to LaTeX, and processing to PDF
 * XOXO export::                 Exporting to XOXO
 * iCalendar export::            Exporting in iCalendar format
 @end menu
@@ -7454,7 +7496,7 @@ the body text.  Any indentation larger than this is adjusted to preserve
 the layout relative to the first line.  Should there be lines with less
 indentation than the first, these are left alone.
 
-@node HTML export, LaTeX export, ASCII export, Exporting
+@node HTML export, LaTeX and PDF export, ASCII export, Exporting
 @section HTML export
 @cindex HTML export
 
@@ -7698,19 +7740,23 @@ You can choose default values for these options by customizing the variable
 @code{org-infojs-options}.  If you always want to apply the script to your
 pages, configure the variable @code{org-export-html-use-infojs}.
 
-@node LaTeX export, XOXO export, HTML export, Exporting
-@section LaTeX export
+@node LaTeX and PDF export, XOXO export, HTML export, Exporting
+@section LaTeX and PDF export
 @cindex LaTeX export
+@cindex PDF export
 
-Org mode contains a La@TeX{} exporter written by Bastien Guerry.
+Org mode contains a La@TeX{} exporter written by Bastien Guerry.  With
+further processing, this backend is also used to produce PDF output.  Since
+the LaTeX output uses @file{hyperref} to implement links and cross
+references, the PDF output file will be fully linked.
 
 @menu
-* LaTeX export commands::       How to invoke LaTeX export
+* LaTeX/PDF export commands::   
 * Quoting LaTeX code::          Incorporating literal LaTeX code
 * Sectioning structure::        Changing sectioning in LaTeX output
 @end menu
 
-@node LaTeX export commands, Quoting LaTeX code, LaTeX export, LaTeX export
+@node LaTeX/PDF export commands, Quoting LaTeX code, LaTeX and PDF export, LaTeX and PDF export
 @subsection LaTeX export commands
 
 @table @kbd
@@ -7738,6 +7784,12 @@ buffer.
 @item M-x org-replace-region-by-latex
 Replace the active region (assumed to be in Org mode syntax) by La@TeX{}
 code.
+@kindex C-c C-e p
+@item C-c C-e p
+Export as LaTeX and then process to PDF.
+@kindex C-c C-e d
+@item C-c C-e d
+Export as LaTeX and then process to PDF, then open the resulting PDF file.
 @end table
 
 @cindex headline levels, for exporting
@@ -7757,7 +7809,7 @@ with a numeric prefix argument. For example,
 @noindent
 creates two levels of headings and does the rest as items.
 
-@node Quoting LaTeX code, Sectioning structure, LaTeX export commands, LaTeX export
+@node Quoting LaTeX code, Sectioning structure, LaTeX/PDF export commands, LaTeX and PDF export
 @subsection Quoting LaTeX code
 
 Embedded La@TeX{} as described in @ref{Embedded LaTeX} will be correctly
@@ -7778,7 +7830,7 @@ All lines between these markers are exported literally
 #+END_LaTeX
 @end example
 
-@node   Sectioning structure,  , Quoting LaTeX code, LaTeX export
+@node   Sectioning structure,  , Quoting LaTeX code, LaTeX and PDF export
 @subsection Sectioning structure
 @cindex LaTeX class
 @cindex LaTeX sectioning structure
@@ -7786,13 +7838,13 @@ All lines between these markers are exported literally
 By default, the La@TeX{} output uses the class @code{article}.
 
 You can change this globally by setting a different value for
-@code{org-export-latex-default-class} or locally by adding an option
-like @code{#+LaTeX_CLASS: myclass} in your file.  The class should be
-listed in @code{org-export-latex-classes}, where you can also define the
-sectioning structure for each class.
+@code{org-export-latex-default-class} or locally by adding an option like
+@code{#+LaTeX_CLASS: myclass} in your file.  The class should be listed in
+@code{org-export-latex-classes}, where you can also define the sectioning
+structure for each class, as well as defining additonal classes.
 
 
-@node XOXO export, iCalendar export, LaTeX export, Exporting
+@node XOXO export, iCalendar export, LaTeX and PDF export, Exporting
 @section XOXO export
 @cindex XOXO export
 
@@ -7984,14 +8036,14 @@ and @code{:exclude}.
 @cindex action, for publishing
 
 Publishing means that a file is copied to the destination directory and
-possibly transformed in the process.  The default transformation is to
-export Org files as HTML files, and this is done by the function
-@code{org-publish-org-to-html} which calls the HTML exporter
-(@pxref{HTML export}). But you also can publish your files in La@TeX{} by
-using the function @code{org-publish-org-to-latex} instead. Other files
-like images only need to be copied to the publishing destination. For
-non-Org files, you need to specify the publishing function.
-
+possibly transformed in the process.  The default transformation is to export
+Org files as HTML files, and this is done by the function
+@code{org-publish-org-to-html} which calls the HTML exporter (@pxref{HTML
+export}). But you also can publish your files in La@TeX{} by using the
+function @code{org-publish-org-to-latex} instead, or as PDF files using
+@code{org-publish-org-to-pdf}.  Other files like images only need to be
+copied to the publishing destination. For non-Org files, you need to provide
+your own publishing function:
 
 @multitable @columnfractions 0.3 0.7
 @item @code{:publishing-function}
@@ -8633,7 +8685,7 @@ tty you would rather use @kbd{C-c .} to re-insert the timestamp.
 @item @kbd{S-@key{TAB}}     @tab @kbd{C-u @key{TAB}}       @tab
 @item @kbd{M-@key{left}}    @tab @kbd{C-c C-x l}           @tab @kbd{@key{Esc} @key{left}}
 @item @kbd{M-S-@key{left}}  @tab @kbd{C-c C-x L}           @tab
-@item @kbd{M-@key{right}}   @tab @kbd{C-c C-x r}           @tab @kbd{@key{Esc} @key{right}}
+@item @kbd{M-@key{right}}   @tab @kbd{C-c C-x i}           @tab @kbd{@key{Esc} @key{right}}
 @item @kbd{M-S-@key{right}} @tab @kbd{C-c C-x R}           @tab
 @item @kbd{M-@key{up}}      @tab @kbd{C-c C-x u}           @tab @kbd{@key{Esc} @key{up}}
 @item @kbd{M-S-@key{up}}    @tab @kbd{C-c C-x U}           @tab
