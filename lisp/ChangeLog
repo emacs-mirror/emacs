@@ -1,4 +1,4 @@
-2008-10-25  Aaron S. Hawley  <aaronh@garden.org>  (tiny change)
+2008-10-25  Aaron S. Hawley  <aaronh@garden.org>
 
 	* thingatpt.el (end-of-sexp, beginning-of-sexp)
 	(forward-same-syntax): Omit default arguments to char-after and
