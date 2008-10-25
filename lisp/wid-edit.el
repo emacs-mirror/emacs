@@ -3742,7 +3742,8 @@ example:
   (require 'facemenu)			; for facemenu-color-alist
   (let* ((prefix (buffer-substring-no-properties (widget-field-start widget)
 						 (point)))
-	 (list (or facemenu-color-alist (defined-colors)))
+	 (list (or facemenu-color-alist
+		   (sort (defined-colors) 'string-lessp)))
 	 (completion (try-completion prefix list)))
     (cond ((eq completion t)
 	   (message "Exact match."))
