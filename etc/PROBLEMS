@@ -731,15 +731,31 @@ in Emacs, and then try spell-checking again.
 
 * Runtime problems related to font handling
 
-** Under X11, some characters appear as hollow boxes.
+** Characters are displayed as empty boxes or with wrong font under X.
+
+*** This can occur when two different versions of FontConfig are used.
+For example, XFree86 4.3.0 has one version and Gnome usually comes
+with a newer version.  Emacs compiled with Gtk+ will then use the
+newer version.  In most cases the problem can be temporarily fixed by
+stopping the application that has the error (it can be Emacs or any
+other application), removing ~/.fonts.cache-1, and then start the
+application again.  If removing ~/.fonts.cache-1 and restarting
+doesn't help, the application with problem must be recompiled with the
+same version of FontConfig as the rest of the system uses.  For KDE,
+it is sufficient to recompile Qt.
+
+*** Some fonts have a missing glyph and no default character.  This is
+known to occur for character number 160 (no-break space) in some
+fonts, such as Lucida but Emacs sets the display table for the unibyte
+and Latin-1 version of this character to display a space.
+
+*** Some of the fonts called for in your fontset may not exist on your
+X server.
 
 Each X11 font covers just a fraction of the characters that Emacs
 supports.  To display the whole range of Emacs characters requires
-many different fonts, collected into a fontset.
-
-If some of the fonts called for in your fontset do not exist on your X
-server, then the characters that have no font appear as hollow boxes.
-You can remedy the problem by installing additional fonts.
+many different fonts, collected into a fontset.  You can remedy the
+problem by installing additional fonts.
 
 The intlfonts distribution includes a full spectrum of fonts that can
 display all the characters Emacs supports.  The etl-unicode collection
@@ -748,22 +764,33 @@ of fonts (available from <URL:ftp://ftp.x.org/contrib/fonts/> and
 fonts that can display many Unicode characters; they can also be used
 by ps-print and ps-mule to print Unicode characters.
 
-Another cause of this for specific characters is fonts which have a
-missing glyph and no default character.  This is known to occur for
-character number 160 (no-break space) in some fonts, such as Lucida
-but Emacs sets the display table for the unibyte and Latin-1 version
-of this character to display a space.
-
 ** Under X11, some characters appear improperly aligned in their lines.
 
 You may have bad X11 fonts; try installing the intlfonts distribution
-or the etl-unicode collection (see the previous entry).
+or the etl-unicode collection (see above).
 
-** Certain fonts make each line take one pixel more than it "should".
+** Under X, an unexpected monospace font is used as the default font.
 
-This is because these fonts contain characters a little taller
-than the font's nominal height.  Emacs needs to make sure that
-lines do not overlap.
+When compiled with XFT, Emacs tries to use a default font named
+"monospace".  This is a "virtual font", which the operating system
+(Fontconfig) redirects to a suitable font such as DejaVu Sans Mono.
+On some systems, there exists a font that is actually named Monospace,
+which takes over the virtual font.  This is considered an operating
+system bug; see
+
+http://lists.gnu.org/archive/html/emacs-devel/2008-10/msg00696.html
+
+If you encounter this problem, set the default font to a specific font
+in your .Xresources or initialization file.  For instance, you can put
+the following in your .Xresources:
+
+Emacs.font: DejaVu Sans Mono 12
+
+** Certain fonts make each line take one pixel more than it should.
+
+This is because these fonts contain characters a little taller than
+the font's nominal height.  Emacs needs to make sure that lines do not
+overlap.
 
 ** Loading fonts is very slow.
 
@@ -812,20 +839,6 @@ character doesn't appear--you get a solid box instead.
 One user on a Linux-based GNU system reported that this problem went
 away with installation of a new X server.  The failing server was
 XFree86 3.1.1.  XFree86 3.1.2 works.
-
-** Characters are displayed as empty boxes or with wrong font under X.
-
-This can occur when two different versions of FontConfig are used.
-For example, XFree86 4.3.0 has one version and Gnome usually comes
-with a newer version.  Emacs compiled with Gtk+ will then use
-the newer version.  In most cases the problem can be temporarily
-fixed by stopping the application that has the error (it can be
-Emacs or any other application), removing ~/.fonts.cache-1,
-and then start the application again.
-If removing ~/.fonts.cache-1 and restarting doesn't help, the
-application with problem must be recompiled with the same version
-of FontConfig as the rest of the system uses.  For KDE, it is
-sufficient to recompile Qt.
 
 ** Emacs pauses for several seconds when changing the default font.
 
