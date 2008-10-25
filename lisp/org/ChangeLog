@@ -1,3 +1,126 @@
+2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-agenda.el (org-format-agenda-item)
+	(org-agenda-filter-make-matcher): Make sure tags are stored and
+	compared donwcased.
+
+2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-insert-todo-heading): Fix bug with force-heading
+	argument.
+
+2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-exp.el (org-export-as-ascii): Handle the case that we are
+	bulishing from an indirect buffer.
+
+	* org-table.el (org-table-copy-down): Fix bug with time stamp
+	increment.
+
+	* org-mouse.el (org-mouse-features): New option.
+	(org-mode-hook): Turn on features depending on
+	`org-mouse-features'.
+
+	* org.el (org-insert-heading-respect-content): Force heading
+	creation.
+	(org-insert-heading): keep the folding state of the heading before
+	the inserted one.
+
+2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-archive.el (org-archive-to-archive-sibling): Handle top
+	level headlines better.
+
+2008-10-26  Bastien Guerry  <bzg@altern.org>
+
+	* org-export-latex.el (org-export-latex-classes): Added
+	\usepackage{graphicx} to the default list of packages.
+
+2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-agenda.el (org-agenda-filter): Renamed from
+	`org-agenda-filter-tags'.
+
+2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-entry-properties): Add CATEGORY property, iven if it
+	is not defined as a property in this entry.
+	(org-add-log-note): Mask prefix argument when immediately storing
+	the note.
+
+	* org-agenda.el (org-agenda-filter-effort-default-operator): New
+	option.
+
+2008-10-26  James TD Smith  <ahktenzero@mohorovi.cc>
+
+	* org.el (org-add-log-setup): Bugfix; code to find insertion point
+	after drawers was skipping ahead one line too many, so notes were
+	inserted after the first note instead of before it.
+
+2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-agenda.el (org-agenda-filter-tags,org-agenda-filter-form):
+	New variables.
+	(org-prepare-agenda): Reset the filter tags.
+	(org-agenda-filter-by-tag, org-agenda-filter-by-tag-show-all):
+	Show filter tags in mode line.
+
+	* org-table.el (orgtbl-to-html): Bind `html-table-tag' for the
+	formatter.
+
+	* org-export-latex.el (org-latex-entities-regexp): New constant.
+	(org-export-as-pdf): Use two calls to `shell-command'.
+
+2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-export-latex.el (org-export-latex-treat-sub-super-char):
+	Honor the {} value of the subsuperscript setting.  Make sure that
+	longer subsuperscripts are typeset in a roman font.
+
+	* org.el (org-clock-update-time-maybe): Compute negative clock
+	intervals correctly.
+
+2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-add-log-setup): Respect
+	`org-log-state-notes-insert-after-drawers'.
+	(org-log-state-notes-insert-after-drawers): New option.
+	(org-todo-trigger-tag-changes): New function.
+	(org-todo): Call `org-todo-trigger-tag-changes'.
+
+2008-10-26  James TD Smith  <ahktenzero@mohorovi.cc>
+
+	* org.el (org-add-log-setup): Only skip drawers if the are
+	immediately after the scheduling keywords.
+
+	* org-clock.el (org-clock-in-switch-to-state): Allow this to be a
+	function
+	(org-clock-in): If `org-clock-in-switch-to-state' is a function,
+	call it with the current todo state to get the state to switch to
+	when clocking in.
+	(org-clock-in): Use org-indent-line-function to indent clock lines.
+	(org-clock-find-position): Fix indentation of empty clock drawers.
+
+2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-publish.el (org-publish-org-to): Handle case when
+	org-export-to-pdf does return a file name, not a buffer.
+	(org-publish-org-to-pdf): New function.
+
+	* org-export-latex.el (org-export-as-pdf)
+	(org-export-as-pdf-and-open): New commands.
+
+	* org-table.el (org-table-eval-formula): Avoid parsing Calc's HMS
+	forms as ranges.
+
+	* org-export-latex.el (org-export-latex-lists): Ignore lists-like
+	things in protexted regions.
+
+2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-export-latex.el (org-export-latex-preprocess): Improve
+	quoting of LaTeX environments.
+
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* org.el (org-default-notes-file): 
