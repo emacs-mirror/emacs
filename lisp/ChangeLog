@@ -1,3 +1,8 @@
+2008-10-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (get-buffer-window-list): Rename buffer argument to
+	buffer-or-name and make it optional.
+
 2008-10-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* completion.el (add-completion-to-head, add-completion): Doc fixes.
