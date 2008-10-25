@@ -1,5 +1,7 @@
 2008-10-25  Martin Rudalics  <rudalics@gmx.at>
 
+	* subr.el (with-current-buffer): Rename buffer argument to
+	buffer-or-name.
 	* window.el (get-buffer-window-list): Rename buffer argument to
 	buffer-or-name and make it optional.
 
