@@ -2414,18 +2414,25 @@ If FRAME is a frame, search only that frame.  */)
 		      frame);
 }
 
-DEFUN ("get-buffer-window", Fget_buffer_window, Sget_buffer_window, 1, 2, 0,
-       doc: /* Return a window currently displaying BUFFER, or nil if none.
-BUFFER can be a buffer or a buffer name.
+DEFUN ("get-buffer-window", Fget_buffer_window, Sget_buffer_window, 0, 2, 0,
+       doc: /* Return a window currently displaying BUFFER-OR-NAME, or nil if none.
+BUFFER-OR-NAME may be a buffer or a buffer name and defaults to the
+current buffer.
 If optional argument FRAME is `visible', search all visible frames.
 If optional argument FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
 If FRAME is nil, search only the selected frame.
 If FRAME is a frame, search only that frame.  */)
-     (buffer, frame)
-     Lisp_Object buffer, frame;
+     (buffer_or_name, frame)
+     Lisp_Object buffer_or_name, frame;
 {
-  buffer = Fget_buffer (buffer);
+  Lisp_Object buffer;
+
+  if (NILP (buffer_or_name))
+    buffer = Fcurrent_buffer ();
+  else
+    buffer = Fget_buffer (buffer_or_name);
+
   if (BUFFERP (buffer))
     return window_loop (GET_BUFFER_WINDOW, buffer, 1, frame);
   else
@@ -2436,12 +2443,11 @@ DEFUN ("delete-other-windows", Fdelete_other_windows, Sdelete_other_windows,
        0, 1, "",
        doc: /* Make WINDOW (or the selected window) fill its frame.
 Only the frame WINDOW is on is affected.
-This function tries to reduce display jumps
-by keeping the text previously visible in WINDOW
-in the same place on the frame.  Doing this depends on
-the value of (window-start WINDOW), so if calling this function
-in a program gives strange scrolling, make sure the window-start
-value is reasonable when this function is called.  */)
+This function tries to reduce display jumps by keeping the text
+previously visible in WINDOW in the same place on the frame.  Doing this
+depends on the value of (window-start WINDOW), so if calling this
+function in a program gives strange scrolling, make sure the
+window-start value is reasonable when this function is called.  */)
      (window)
      Lisp_Object window;
 {
@@ -2497,20 +2503,24 @@ value is reasonable when this function is called.  */)
 }
 
 DEFUN ("delete-windows-on", Fdelete_windows_on, Sdelete_windows_on,
-       1, 2, "bDelete windows on (buffer): ",
-       doc: /* Delete all windows showing BUFFER.
-BUFFER must be a buffer or the name of an existing buffer.
+       0, 2, "bDelete windows on (buffer): ",
+       doc: /* Delete all windows showing BUFFER-OR-NAME.
+BUFFER-OR-NAME may be a buffer or the name of an existing buffer and
+defaults to the current buffer.
+
 Optional second argument FRAME controls which frames are affected.
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
 If FRAME is nil, search all frames.
 If FRAME is t, search only the selected frame.
 If FRAME is a frame, search only that frame.
-When a window showing BUFFER is dedicated and the only window of its
-frame, that frame is deleted when there are other frames left.  */)
-     (buffer, frame)
-     Lisp_Object buffer, frame;
+When a window showing BUFFER-OR-NAME is dedicated and the only window of
+its frame, that frame is deleted when there are other frames left.  */)
+     (buffer_or_name, frame)
+     Lisp_Object buffer_or_name, frame;
 {
+  Lisp_Object buffer;
+
   /* FRAME uses t and nil to mean the opposite of what window_loop
      expects.  */
   if (NILP (frame))
@@ -2518,33 +2528,45 @@ frame, that frame is deleted when there are other frames left.  */)
   else if (EQ (frame, Qt))
     frame = Qnil;
 
-  if (!NILP (buffer))
+  if (NILP (buffer_or_name))
+    buffer = Fcurrent_buffer ();
+  else
     {
-      buffer = Fget_buffer (buffer);
+      buffer = Fget_buffer (buffer_or_name);
       CHECK_BUFFER (buffer);
-      window_loop (DELETE_BUFFER_WINDOWS, buffer, 0, frame);
     }
+
+  window_loop (DELETE_BUFFER_WINDOWS, buffer, 0, frame);
 
   return Qnil;
 }
 
 DEFUN ("replace-buffer-in-windows", Freplace_buffer_in_windows,
        Sreplace_buffer_in_windows,
-       1, 1, "bReplace buffer in windows: ",
-       doc: /* Replace BUFFER with some other buffer in all windows showing it.
-BUFFER may be a buffer or the name of an existing buffer.
-When a window showing BUFFER is dedicated that window is deleted.  When
-that window is the only window on its frame, that frame is deleted too
-when there are other frames left.  */)
-     (buffer)
-     Lisp_Object buffer;
+       0, 1, "bReplace buffer in windows: ",
+       doc: /* Replace BUFFER-OR-NAME with some other buffer in all windows showing it.
+BUFFER-OR-NAME may be a buffer or the name of an existing buffer and
+defaults to the current buffer.
+
+When a window showing BUFFER-OR-NAME is dedicated that window is
+deleted.  If that window is the only window on its frame, that frame is
+deleted too when there are other frames left.  If there are no other
+frames left, some other buffer is displayed in that window.  */)
+     (buffer_or_name)
+     Lisp_Object buffer_or_name;
 {
-  if (!NILP (buffer))
+  Lisp_Object buffer;
+
+  if (NILP (buffer_or_name))
+    buffer = Fcurrent_buffer ();
+  else
     {
-      buffer = Fget_buffer (buffer);
+      buffer = Fget_buffer (buffer_or_name);
       CHECK_BUFFER (buffer);
-      window_loop (UNSHOW_BUFFER, buffer, 0, Qt);
     }
+
+  window_loop (UNSHOW_BUFFER, buffer, 0, Qt);
+
   return Qnil;
 }
 
@@ -3319,7 +3341,7 @@ static Lisp_Object select_window_norecord (Lisp_Object window);
 void
 run_window_configuration_change_hook (struct frame *f)
 {
-      int count = SPECPDL_INDEX ();
+  int count = SPECPDL_INDEX ();
   Lisp_Object frame, global_wcch
     = Fdefault_value (Qwindow_configuration_change_hook);
   XSETFRAME (frame, f);
@@ -3327,11 +3349,11 @@ run_window_configuration_change_hook (struct frame *f)
   if (NILP (Vrun_hooks))
     return;
 
-      if (SELECTED_FRAME () != f)
-	{
-	  record_unwind_protect (Fselect_frame, Fselected_frame ());
-	  Fselect_frame (frame);
-	}
+  if (SELECTED_FRAME () != f)
+    {
+      record_unwind_protect (Fselect_frame, Fselected_frame ());
+      Fselect_frame (frame);
+    }
 
   /* Use the right buffer.  Matters when running the local hooks.  */
   if (current_buffer != XBUFFER (Fwindow_buffer (Qnil)))
@@ -3355,8 +3377,8 @@ run_window_configuration_change_hook (struct frame *f)
 	    select_window_norecord (window);
 	    run_funs (Fbuffer_local_value (Qwindow_configuration_change_hook,
 					   buffer));
-      unbind_to (count, Qnil);
-    }
+	    unbind_to (count, Qnil);
+	  }
       }
   }
 
@@ -3476,7 +3498,7 @@ WINDOW defaults to the selected window.  BUFFER-OR-NAME must be a buffer
 or the name of an existing buffer.  Optional third argument KEEP-MARGINS
 non-nil means that WINDOW's current display margins, fringe widths, and
 scroll bar settings are preserved; the default is to reset these from
-the local settings for BUFFER-OR-NAME or the frame defaults.  Return nil
+the local settings for BUFFER-OR-NAME or the frame defaults.  Return nil.
 
 This function throws an error when WINDOW is dedicated to its buffer and
 does not already display BUFFER-OR-NAME.
