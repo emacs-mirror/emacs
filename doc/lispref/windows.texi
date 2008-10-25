@@ -388,11 +388,11 @@ deleting the other windows in that frame.  If @var{window} is omitted or
 The return value is @code{nil}.
 @end deffn
 
-@deffn Command delete-windows-on buffer-or-name &optional frame
+@deffn Command delete-windows-on &optional buffer-or-name frame
 This function deletes all windows showing @var{buffer-or-name}.  If
 there are no windows showing @var{buffer-or-name}, it does nothing.
-@var{buffer-or-name} must be a buffer or the name of an existing
-buffer.
+@var{buffer-or-name} may be a buffer or the name of an existing buffer
+and defaults to the current buffer.
 
 @code{delete-windows-on} operates frame by frame.  If a frame has
 several windows showing different buffers, then those showing
@@ -737,14 +737,16 @@ selected window.
 @end example
 @end defun
 
-@defun get-buffer-window buffer-or-name &optional all-frames
+@defun get-buffer-window &optional buffer-or-name all-frames
 This function returns a window currently displaying
 @var{buffer-or-name}, or @code{nil} if there is none.  If there are
 several such windows, then the function returns the first one in the
 cyclic ordering of windows, starting from the selected window.
 @xref{Cyclic Window Ordering}.
 
-The argument @var{all-frames} specifies which windows to consider.
+@var{BUFFER-OR-NAME} may be a buffer or a buffer name and defaults to
+the current buffer.  The argument @var{all-frames} specifies which
+windows to consider:
 
 @itemize @bullet
 @item
@@ -760,13 +762,14 @@ If it is a frame, consider windows on that frame.
 @end itemize
 @end defun
 
-@defun get-buffer-window-list buffer-or-name &optional minibuf all-frames
-This function returns a list of all the windows currently displaying
-@var{buffer-or-name}.
+@defun get-buffer-window-list &optional buffer-or-name minibuf all-frames
+This function returns a list of all windows currently displaying
+@var{buffer-or-name}.  @var{buffer-or-name} may be a buffer or the name
+of an existing buffer and defaults to nil.
 
-The two optional arguments work like the optional arguments of
+The two remaining arguments work like the synonymous arguments of
 @code{next-window} (@pxref{Cyclic Window Ordering}); they are @emph{not}
-like the single optional argument of @code{get-buffer-window}.  Perhaps
+like the second optional argument of @code{get-buffer-window}.  Perhaps
 we should change @code{get-buffer-window} in the future to make it
 compatible with the other functions.
 @end defun
@@ -895,18 +898,21 @@ This function updates the buffer list just like @code{switch-to-buffer}
 unless @var{norecord} is non-@code{nil}.
 @end defun
 
-@deffn Command replace-buffer-in-windows buffer-or-name
+@deffn Command replace-buffer-in-windows &optional buffer-or-name
 This function replaces @var{buffer-or-name} in all windows displaying
 it with some other buffer.  It uses @code{other-buffer} to choose the
 other buffer.  In the usual applications of this function, you
 don't care which other buffer is used; you just want to make sure that
 @var{buffer-or-name} is no longer displayed.
 
-If the window displaying @var{buffer-or-name} is dedicated, and
-is not the only window on its frame, that window is deleted.  If that
-window is the only window on its frame and there are other frames left,
-the window's frame is deleted as well.  If there are no other frames left,
-some other buffer is displayed in that window.
+@var{buffer-or-name} may be a buffer or the name of an existing buffer
+and defaults to the current buffer.
+
+If a window displaying @var{buffer-or-name} is dedicated, and is not the
+only window on its frame, that window is deleted.  If that window is the
+only window on its frame and there are other frames left, the window's
+frame is deleted too.  If there are no other frames left, some other
+buffer is displayed in that window.
 
 This function returns @code{nil}.
 @end deffn
