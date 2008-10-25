@@ -1,3 +1,9 @@
+2008-10-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fget_buffer_window, Fdelete_windows_on)
+	(Freplace_buffer_in_windows): Make buffer argument optional and
+	rename to buffer_or_name.
+
 2008-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (handle_single_display_spec, handle_display_prop): Undo
