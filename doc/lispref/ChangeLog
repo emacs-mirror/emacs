@@ -1,5 +1,12 @@
 2008-10-25  Martin Rudalics  <rudalics@gmx.at>
 
+	* windows.texi (Deleting Windows): Update documentation of
+	delete-windows-on.
+	(Buffers and Windows): Update documentations of
+	get-buffer-window and get-buffer-window-list.
+	(Displaying Buffers): Update documentation of
+	replace-buffer-in-windows.
+
 	* buffers.texi (Current Buffer): Reword set-buffer and
 	with-current-buffer documentations.
 	(Creating Buffers): Reword documentation of get-buffer-create.
