@@ -169,7 +169,7 @@ a symbol as a valid THING."
       (nth 3 (parse-partial-sexp (point) orig)))))
 
 (defun end-of-sexp ()
-  (let ((char-syntax (char-syntax (char-after (point)))))
+  (let ((char-syntax (char-syntax (char-after))))
     (if (or (eq char-syntax ?\))
 	    (and (eq char-syntax ?\") (in-string-p)))
 	(forward-char 1)
@@ -178,7 +178,7 @@ a symbol as a valid THING."
 (put 'sexp 'end-op 'end-of-sexp)
 
 (defun beginning-of-sexp ()
-  (let ((char-syntax (char-syntax (char-before (point)))))
+  (let ((char-syntax (char-syntax (char-before))))
     (if (or (eq char-syntax ?\()
 	    (and (eq char-syntax ?\") (in-string-p)))
 	(forward-char -1)
@@ -405,10 +405,10 @@ with angle brackets.")
   (interactive "p")
   (while (< arg 0)
     (skip-syntax-backward
-     (char-to-string (char-syntax (char-after (1- (point))))))
+     (char-to-string (char-syntax (char-before))))
     (setq arg (1+ arg)))
   (while (> arg 0)
-    (skip-syntax-forward (char-to-string (char-syntax (char-after (point)))))
+    (skip-syntax-forward (char-to-string (char-syntax (char-after))))
     (setq arg (1- arg))))
 
 ;;  Aliases
