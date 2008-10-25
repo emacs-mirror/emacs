@@ -1,5 +1,8 @@
 2008-10-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* vc-cvs.el (vc-cvs-status-extra-headers): Use full directory name
+	when reporting the module.
+
 	* vc-dir.el (vc-dir-mode-map): Add follow-link behavior.
 
 	* wid-edit.el (widget-color-complete): Sort completions
