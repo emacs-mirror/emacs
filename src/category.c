@@ -95,7 +95,9 @@ Lisp_Object check_category_table ();
 DEFUN ("define-category", Fdefine_category, Sdefine_category, 2, 3, 0,
        doc: /* Define CATEGORY as a category which is described by DOCSTRING.
 CATEGORY should be an ASCII printing character in the range ` ' to `~'.
-DOCSTRING is the documentation string of the category.
+DOCSTRING is the documentation string of the category.  The first line
+should be a terse text (preferably less than 16 characters),
+and the rest lines should be the full description.
 The category is defined only in category table TABLE, which defaults to
 the current buffer's category table.  */)
      (category, docstring, table)
