@@ -194,10 +194,9 @@ This function returns the current buffer.
 @end defun
 
 @defun set-buffer buffer-or-name
-This function makes @var{buffer-or-name} the current buffer.  An error
-is signaled if @var{buffer-or-name} is not an existing buffer or the
-name of an existing buffer.  The return value is the buffer made
-current.
+This function makes @var{buffer-or-name} the current buffer.
+@var{buffer-or-name} must be an existing buffer or the name of an
+existing buffer.  The return value is the buffer made current.
 
 This function does not display the buffer in any window, so the user
 cannot necessarily see the buffer.  But Lisp programs will now operate
@@ -220,13 +219,12 @@ remains current.
 @defmac with-current-buffer buffer-or-name body@dots{}
 The @code{with-current-buffer} macro saves the identity of the current
 buffer, makes @var{buffer-or-name} current, evaluates the @var{body}
-forms, and finally restores the buffer.  The return value is the value
-of the last form in @var{body}.  The current buffer is restored even
-in case of an abnormal exit via @code{throw} or error (@pxref{Nonlocal
-Exits}).
+forms, and finally restores the current buffer.  @var{buffer-or-name}
+must specify an existing buffer or the name of an existing buffer.
 
-An error is signaled if @var{buffer-or-name} does not identify an
-existing buffer.
+The return value is the value of the last form in @var{body}.  The
+current buffer is restored even in case of an abnormal exit via
+@code{throw} or error (@pxref{Nonlocal Exits}).
 @end defmac
 
 @defmac with-temp-buffer body@dots{}
@@ -911,15 +909,15 @@ buffer and gives it a unique name.
 subprocess can also create a buffer (@pxref{Processes}).
 
 @defun get-buffer-create buffer-or-name
-This function returns a buffer named @var{buffer-or-name}.  An error is
-signaled if @var{buffer-or-name} is neither a string nor a buffer.  The
-buffer returned does not become the current buffer---this function does
-not change which buffer is current.
+This function returns a buffer named @var{buffer-or-name}.  The buffer
+returned does not become the current buffer---this function does not
+change which buffer is current.
 
-If @var{buffer-or-name} is a string and a live buffer with that name
-exists, it returns that buffer.  If no such buffer exists, it creates a
-new buffer.  If @var{buffer-or-name} is a buffer instead of a string, it
-is returned as given, even if it is dead.
+@var{buffer-or-name} must be either a string or an existing buffer.  If
+it is a string and a live buffer with that name already exists,
+@code{get-buffer-create} returns that buffer.  If no such buffer exists,
+it creates a new buffer.  If @var{buffer-or-name} is a buffer instead of
+a string, it is returned as given, even if it is dead.
 
 @example
 @group
