@@ -259,6 +259,7 @@ See `run-hooks'."
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
     (define-key map [down-mouse-3] 'vc-dir-menu)
     (define-key map [mouse-2] 'vc-dir-toggle-mark)
+    (define-key map [follow-link] 'mouse-face)
     (define-key map "x" 'vc-dir-hide-up-to-date)
     (define-key map "S" 'vc-dir-search) ;; FIXME: Maybe use A like dired?
     (define-key map "Q" 'vc-dir-query-replace-regexp)
