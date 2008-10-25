@@ -366,8 +366,8 @@ Used together with `image-dired-cmd-write-exif-data-options'."
   "%p -%t=\"%v\" \"%f\""
   "Format of command used to write EXIF data.
 Available options are %p which is replaced by
-`image-dired-cmd-write-exif-data-program', %f which is replaced by the
-image file name, %t which is replaced by the tag name and %v
+`image-dired-cmd-write-exif-data-program', %f which is replaced by
+the image file name, %t which is replaced by the tag name and %v
 which is replaced by the tag value."
   :type 'string
   :group 'image-dired)
@@ -397,7 +397,8 @@ Used by `image-dired-gallery-generate' to leave out \"hidden\" images."
 
 (defcustom image-dired-thumb-size (if (eq 'standard image-dired-thumbnail-storage) 128 100)
   "Size of thumbnails, in pixels.
-This is the default size for both `image-dired-thumb-width' and `image-dired-thumb-height'."
+This is the default size for both `image-dired-thumb-width'
+and `image-dired-thumb-height'."
   :type 'integer
   :group 'image-dired)
 
@@ -424,11 +425,11 @@ This is where you see the cursor."
 
 (defcustom image-dired-line-up-method 'dynamic
   "Default method for line-up of thumbnails in thumbnail buffer.
-Used by `image-dired-display-thumbs' and other functions that needs to
-line-up thumbnails.  Dynamic means to use the available width of the
-window containing the thumbnail buffer, Fixed means to use
-`image-dired-thumbs-per-row', Interactive is for asking the user, and No
-line-up means that no automatic line-up will be done."
+Used by `image-dired-display-thumbs' and other functions that needs
+to line-up thumbnails.  Dynamic means to use the available width of
+the window containing the thumbnail buffer, Fixed means to use
+`image-dired-thumbs-per-row', Interactive is for asking the user,
+and No line-up means that no automatic line-up will be done."
   :type '(choice :tag "Default line-up method"
                  (const :tag "Dynamic" dynamic)
 		 (const :tag "Fixed" fixed)
@@ -509,7 +510,7 @@ Used by `image-dired-copy-with-exif-file-name'."
   :group 'image-dired)
 
 (defcustom image-dired-show-all-from-dir-max-files 50
-  "Maximum number of files to show using `image-dired-show-all-from-dir'.
+  "Maximum number of files to show using `image-dired-show-all-from-dir'
 before warning the user."
   :type 'integer
   :group 'image-dired)
@@ -655,7 +656,7 @@ according to the Thumbnail Managing Standard."
 
 (defun image-dired-dired-after-readin-hook ()
   "Relocate existing thumbnail overlays in dired buffer after reverting.
-Move them to their corresponding files if they are still exist.
+Move them to their corresponding files if they still exist.
 Otherwise, delete overlays."
   (mapc (lambda (overlay)
           (when (overlay-get overlay 'put-image)
@@ -885,8 +886,8 @@ Signal error if there are problems creating it."
 
 (defun image-dired-write-tags (file-tags)
   "Write file tags to database.
-Write each file and tag in FILE-TAGS to the database.  FILE-TAGS
-is an alist in the following form:
+Write each file and tag in FILE-TAGS to the database.
+FILE-TAGS is an alist in the following form:
  ((FILE . TAG) ... )"
   (image-dired-sane-db-file)
   (let (end file tag)
@@ -1021,8 +1022,8 @@ With prefix argument ARG, remove tag from file at point."
 
 (defun image-dired-track-original-file ()
   "Track the original file in the associated dired buffer.
-See documentation for `image-dired-toggle-movement-tracking'.  Interactive
-use only useful if `image-dired-track-movement' is nil."
+See documentation for `image-dired-toggle-movement-tracking'.
+Interactive use only useful if `image-dired-track-movement' is nil."
   (interactive)
   (let ((old-buf (current-buffer))
         (dired-buf (image-dired-associated-dired-buffer))
@@ -1047,8 +1048,8 @@ position in the other buffer."
 
 (defun image-dired-track-thumbnail ()
   "Track current dired file's thumb in `image-dired-thumbnail-buffer'.
-This is almost the same as what `image-dired-track-original-file' does, but
-the other way around."
+This is almost the same as what `image-dired-track-original-file' does,
+but the other way around."
   (let ((file (dired-get-filename))
         (old-buf (current-buffer))
         prop-val found)
@@ -1071,8 +1072,8 @@ the other way around."
 
 (defun image-dired-dired-next-line (&optional arg)
   "Call `dired-next-line', then track thumbnail.
-This can safely replace `dired-next-line'.  With prefix argument, move
-ARG lines."
+This can safely replace `dired-next-line'.
+With prefix argument, move ARG lines."
   (interactive "P")
   (dired-next-line (or arg 1))
   (if image-dired-track-movement
@@ -1080,8 +1081,8 @@ ARG lines."
 
 (defun image-dired-dired-previous-line (&optional arg)
   "Call `dired-previous-line', then track thumbnail.
-This can safely replace `dired-previous-line'.  With prefix argument,
-move ARG lines."
+This can safely replace `dired-previous-line'.
+With prefix argument, move ARG lines."
   (interactive "P")
   (dired-previous-line (or arg 1))
   (if image-dired-track-movement
@@ -1158,7 +1159,7 @@ image."
 (defun image-dired-format-properties-string (buf file props comment)
   "Format display properties.
 BUF is the associated dired buffer, FILE is the original image file
-name, PROPS is a list of tags and COMMENT is the image files's
+name, PROPS is a list of tags and COMMENT is the image file's
 comment."
   (format-spec
    image-dired-display-properties-format
@@ -1588,7 +1589,7 @@ Note that n, p and <down> and <up> will be hijacked and bound to
 (defun image-dired-create-thumbs (&optional arg)
   "Create thumbnail images for all marked files in dired.
 With prefix argument ARG, create thumbnails even if they already exist
-\(i.e.  use this to refresh your thumbnails)."
+\(i.e. use this to refresh your thumbnails)."
   (interactive "P")
   (let (curr-file thumb-name files count)
     (setq files (dired-get-marked-files))
@@ -2048,8 +2049,8 @@ function.  The result is a couple of new files in
 
 (defun image-dired-write-comments (file-comments)
   "Write file comments to database.
-Write file comments to one or more files.  FILE-COMMENTS is an alist on
-the following form:
+Write file comments to one or more files.
+FILE-COMMENTS is an alist on the following form:
  ((FILE . COMMENT) ... )"
   (image-dired-sane-db-file)
   (let (end comment-beg-pos comment-end-pos file comment)
@@ -2149,7 +2150,7 @@ A `tag' is a keyword, a piece of meta data, associated with an
 image file and stored in image-dired's database file.  This command
 lets you input a regexp and this will be matched against all tags
 on all image files in the database file.  The files that have a
-matching tags will be marked in the dired buffer."
+matching tag will be marked in the dired buffer."
   (interactive)
   (image-dired-sane-db-file)
   (let ((tag (read-string "Mark tagged files (regexp): "))
@@ -2360,7 +2361,7 @@ image-dired-file-comment-list:
   "Generate gallery pages.
 First we create a couple of Lisp structures from the database to make
 it easier to generate, then HTML-files are created in
-`image-dired-gallery-dir'"
+`image-dired-gallery-dir'."
   (interactive)
   (if (eq 'per-directory image-dired-thumbnail-storage)
       (error "Currently, gallery generation is not supported \

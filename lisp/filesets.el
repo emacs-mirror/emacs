@@ -144,8 +144,8 @@ file -- before loading filesets.el.
 
 So, when should you think about setting this value to t? If filesets.el
 is loaded before user customizations.  Thus, if (require 'filesets)
-precedes the custom-set-variables command or, for XEmacs, if init.el is
-loaded before custom.el, set this variable to t.")
+precedes the `custom-set-variables' command or, for XEmacs, if init.el
+is loaded before custom.el, set this variable to t.")
 
 
 ;;; utils
@@ -849,10 +849,10 @@ subfile can't be found.
 in the pattern holding the subfile's name.  0 refers the whole
 match, 1 to the first group.
 
-:stubp FUNCTION ... if (FUNCTION MASTER INCLUDED-FILE) returns non-nil,
+:stubp FUNCTION ... If (FUNCTION MASTER INCLUDED-FILE) returns non-nil,
 INCLUDED-FILE is a stub -- see below.
 
-:stub-flag ... files of this type are stubs -- see below.
+:stub-flag ... Files of this type are stubs -- see below.
 
 :scan-depth INTEGER (default: 0) ... Whether included files should be
 rescanned.  Set this to 0 to disable re-scanning of included file.
@@ -1278,11 +1278,11 @@ the \"Grep <<selection>>\" command
 
 on-capture-output (:capture-output) ... Capture output of an external viewer
 
-on-ls ... not used
+on-ls ... Not used
 
-on-cmd ... not used
+on-cmd ... Not used
 
-on-close-all ... not used"
+on-close-all ... Not used"
   (let ((def (filesets-eviewer-get-props
 	      (or entry
 		  (filesets-get-external-viewer filename)))))

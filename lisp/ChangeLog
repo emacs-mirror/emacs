@@ -1,3 +1,36 @@
+2008-10-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* completion.el (add-completion-to-head, add-completion): Doc fixes.
+	(completion-search-next, add-completions-from-file):
+	Fix typos in docstrings.
+
+	* filesets.el (filesets-menu-ensure-use-cached)
+	(filesets-ingroup-patterns, filesets-filetype-property):
+	* tutorial.el (get-lang-string):
+	* play/gamegrid.el (gamegrid-score-file-length, gamegrid-add-score):
+	Fix typos in docstrings.
+
+	* image-dired.el (image-dired-dired-after-readin-hook): Doc fix.
+	(image-dired-line-up-method, image-dired-thumb-size)
+	(image-dired-cmd-write-exif-data-options, image-dired-write-tags)
+	(image-dired-track-original-file, image-dired-track-thumbnail)
+	(image-dired-dired-next-line, image-dired-dired-previous-line)
+	(image-dired-write-comments): Reflow docstrings.
+	(image-dired-show-all-from-dir-max-files)
+	(image-dired-format-properties-string, image-dired-create-thumbs)
+	(image-dired-mark-tagged-files, image-dired-gallery-generate):
+	Fix typos in docstrings.
+
+	* savehist.el (savehist-save-minibuffer-history, savehist-file)
+	(savehist-additional-variables, savehist-ignored-variables)
+	(savehist-file-modes, savehist-autosave-interval):
+	* startup.el (inhibit-startup-echo-area-message, inhibit-default-init)
+	(inhibit-startup-buffer-menu, mail-host-address, user-mail-address)
+	(fancy-splash-image):
+	* thumbs.el (thumbs-thumbsdir, thumbs-geometry, thumbs-relief)
+	(thumbs-conversion-program, thumbs-margin):
+	Remove spurious * in docstrings.
+
 2008-10-25  Aaron S. Hawley  <aaronh@garden.org>
 
 	* thingatpt.el (end-of-sexp, beginning-of-sexp)

@@ -62,7 +62,7 @@
 (defvar gamegrid-buffer-start 1)
 
 (defvar gamegrid-score-file-length 50
-  "Number of high scores to keep")
+  "Number of high scores to keep.")
 
 (defvar gamegrid-user-score-file-directory
   (locate-user-emacs-file "games/")
@@ -438,19 +438,19 @@ static unsigned char gamegrid_bits[] = {
   "Add the current score to the high score file.
 
 On POSIX systems there may be a shared game directory for all users in
-which the scorefiles are kept. On such systems Emacs doesn't create
-the score file FILE in this directory, if it doesn't already exist. In
-this case Emacs searches for FILE in the directory specified by
+which the scorefiles are kept.  On such systems Emacs doesn't create
+the score file FILE in this directory, if it doesn't already exist.
+In this case Emacs searches for FILE in the directory specified by
 `gamegrid-user-score-file-directory' and creates it there, if
 necessary.
 
 To add the score file for a game to the system wide shared game
 directory, create the file with the shell command \"touch\" in this
 directory and make sure that it is owned by the correct user and
-group. You probably need special user privileges to do this.
+group.  You probably need special user privileges to do this.
 
 On non-POSIX systems Emacs searches for FILE in the directory
-specified by the variable `temporary-file-directory'. If necessary,
+specified by the variable `temporary-file-directory'.  If necessary,
 FILE is created there."
   (case system-type
     ((ms-dos windows-nt)

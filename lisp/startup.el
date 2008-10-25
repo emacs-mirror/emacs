@@ -66,7 +66,7 @@ you are familiar with the contents of the startup screen."
 (defvar startup-screen-inhibit-startup-screen nil)
 
 (defcustom inhibit-startup-echo-area-message nil
-  "*Non-nil inhibits the initial startup echo area message.
+  "Non-nil inhibits the initial startup echo area message.
 Setting this variable takes effect
 only if you do it with the customization buffer
 or if your `.emacs' file contains a line of this form:
@@ -80,12 +80,12 @@ the startup message unless he personally acts to inhibit it."
   :group 'initialization)
 
 (defcustom inhibit-default-init nil
-  "*Non-nil inhibits loading the `default' library."
+  "Non-nil inhibits loading the `default' library."
   :type 'boolean
   :group 'initialization)
 
 (defcustom inhibit-startup-buffer-menu nil
-  "*Non-nil inhibits display of buffer list when more than 2 files are loaded."
+  "Non-nil inhibits display of buffer list when more than 2 files are loaded."
   :type 'boolean
   :group 'initialization)
 
@@ -329,7 +329,7 @@ this variable usefully is to set it while building and dumping Emacs."
 	  (error "Customizing `site-run-file' does not work")))
 
 (defcustom mail-host-address nil
-  "*Name of this machine, for purposes of naming users."
+  "Name of this machine, for purposes of naming users."
   :type '(choice (const nil) string)
   :group 'mail)
 
@@ -340,7 +340,7 @@ this variable usefully is to set it while building and dumping Emacs."
 						 (system-name))))
 			       ;; Empty string means "not set yet".
 			       "")
-  "*Full mailing address of this user.
+  "Full mailing address of this user.
 This is initialized with environment variable `EMAIL' or, as a
 fallback, using `mail-host-address'. This is done after your
 init file is read, in case it sets `mail-host-address'."
@@ -1383,7 +1383,7 @@ Each element in the list should be a list of strings or pairs
   :group 'initialization)
 
 (defcustom fancy-splash-image nil
-  "*The image to show in the splash screens, or nil for defaults."
+  "The image to show in the splash screens, or nil for defaults."
   :group 'fancy-splash-screen
   :type '(choice (const :tag "Default" nil)
 		 (file :tag "File")))

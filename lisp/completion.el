@@ -1163,7 +1163,7 @@ Returns the completion entry."
 (defun add-completion-to-head (completion-string)
   "If COMPLETION-STRING is not in the database, add it to prefix list.
 We add COMPLETION-STRING to the head of the appropriate prefix list,
-or it to the head of the list.
+or to the head of the list.
 COMPLETION-STRING must be longer than `completion-prefix-min-length'.
 Updates the saved string with the supplied string.
 This must be very fast.
@@ -1307,8 +1307,8 @@ String must be longer than `completion-prefix-min-length'."
 
 (defun add-completion (string &optional num-uses last-use-time)
   "Add STRING to completion list, or move it to head of list.
-The completion is altered appropriately if num-uses and/or last-use-time is
-specified."
+The completion is altered appropriately if NUM-USES and/or LAST-USE-TIME
+are specified."
   (interactive (interactive-completion-string-reader "Completion to add"))
   (check-completion-length string)
   (let* ((current-completion-source (if (interactive-p)
@@ -1457,7 +1457,7 @@ STRING must be longer than `completion-prefix-min-length'."
 (defun completion-search-next (index)
   "Return the next completion entry.
 If INDEX is out of sequence, reset and start from the top.
-If there are no more entries, try cdabbrev and returns only a string."
+If there are no more entries, try cdabbrev and return only a string."
   (cond
     ((= index (setq cmpl-last-index (1+ cmpl-last-index)))
      (completion-search-peek t))
@@ -1693,7 +1693,7 @@ Prefix args ::
 
 ;; User interface
 (defun add-completions-from-file (file)
-  "Parse possible completions from a FILE and add them to data base."
+  "Parse possible completions from a FILE and add them to database."
   (interactive "fFile: ")
   (setq file (expand-file-name file))
   (let* ((buffer (get-file-buffer file))

@@ -66,12 +66,12 @@
   :group 'multimedia)
 
 (defcustom thumbs-thumbsdir (locate-user-emacs-file "thumbs")
-  "*Directory to store thumbnails."
+  "Directory to store thumbnails."
   :type 'directory
   :group 'thumbs)
 
 (defcustom thumbs-geometry "100x100"
-  "*Size of thumbnails."
+  "Size of thumbnails."
   :type 'string
   :group 'thumbs)
 
@@ -100,7 +100,7 @@ When it reaches that size (in bytes), a warning is sent."
       "convert.exe"
     (or (executable-find "convert")
 	"/usr/X11R6/bin/convert"))
-  "*Name of conversion program for thumbnails generation.
+  "Name of conversion program for thumbnails generation.
 It must be 'convert'."
   :type 'string
   :group 'thumbs)
@@ -112,12 +112,12 @@ It must be 'convert'."
   :group 'thumbs)
 
 (defcustom thumbs-relief 5
-  "*Size of button-like border around thumbnails."
+  "Size of button-like border around thumbnails."
   :type 'integer
   :group 'thumbs)
 
 (defcustom thumbs-margin 2
-  "*Size of the margin around thumbnails.
+  "Size of the margin around thumbnails.
 This is where you see the cursor."
   :type 'integer
   :group 'thumbs)
