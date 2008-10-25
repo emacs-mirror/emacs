@@ -716,33 +716,84 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
                                 string nil action))
 (make-obsolete 'locate-file-completion 'locate-file-completion-table "23.1")
 
-(defun locate-dominating-file (file regexp)
-  "Look up the directory hierarchy from FILE for a file matching REGEXP."
-  (catch 'found
-    ;; `user' is not initialized yet because `file' may not exist, so we may
-    ;; have to walk up part of the hierarchy before we find the "initial UID".
-    (let ((user nil)
-          ;; Abbreviate, so as to stop when we cross ~/.
-          (dir (abbreviate-file-name (file-name-as-directory file)))
-          files)
-      (while (and dir
-                  ;; As a heuristic, we stop looking up the hierarchy of
-                  ;; directories as soon as we find a directory belonging to
-                  ;; another user.  This should save us from looking in
-                  ;; things like /net and /afs.  This assumes that all the
-                  ;; files inside a project belong to the same user.
-                  (let ((prev-user user))
-                    (setq user (nth 2 (file-attributes dir)))
-                    (or (null prev-user) (equal user prev-user))))
-        (if (setq files (condition-case nil
-			    (directory-files dir 'full regexp)
-			  (error nil)))
-            (throw 'found (car files))
-          (if (equal dir
-                     (setq dir (file-name-directory
-                                (directory-file-name dir))))
-              (setq dir nil))))
-      nil)))
+(defvar locate-dominating-stop-dir-regexp
+  "\\`\\(?:[\\/][\\/]\\|/\\(?:net\\|afs\\|\\.\\\.\\.\\)/\\)\\'"
+  "Regexp of directory names which stop the search in `locate-dominating-file'.
+Any directory whose name matches this regexp will be treated like
+a kind of root directory by `locate-dominating-file' which will stop its search
+when it bumps into it.
+The default regexp prevents fruitless and time-consuming attempts to find
+special files in directories in which filenames are interpreted as hostnames.")
+
+;; (defun locate-dominating-files (file regexp)
+;;   "Look up the directory hierarchy from FILE for a file matching REGEXP.
+;; Stop at the first parent where a matching file is found and return the list
+;; of files that that match in this directory."
+;;   (catch 'found
+;;     ;; `user' is not initialized yet because `file' may not exist, so we may
+;;     ;; have to walk up part of the hierarchy before we find the "initial UID".
+;;     (let ((user nil)
+;;           ;; Abbreviate, so as to stop when we cross ~/.
+;;           (dir (abbreviate-file-name (file-name-as-directory file)))
+;;           files)
+;;       (while (and dir
+;;                   ;; As a heuristic, we stop looking up the hierarchy of
+;;                   ;; directories as soon as we find a directory belonging to
+;;                   ;; another user.  This should save us from looking in
+;;                   ;; things like /net and /afs.  This assumes that all the
+;;                   ;; files inside a project belong to the same user.
+;;                   (let ((prev-user user))
+;;                     (setq user (nth 2 (file-attributes dir)))
+;;                     (or (null prev-user) (equal user prev-user))))
+;;         (if (setq files (condition-case nil
+;; 			    (directory-files dir 'full regexp 'nosort)
+;; 			  (error nil)))
+;;             (throw 'found files)
+;;           (if (equal dir
+;;                      (setq dir (file-name-directory
+;;                                 (directory-file-name dir))))
+;;               (setq dir nil))))
+;;       nil)))
+
+(defun locate-dominating-file (file name)
+  "Look up the directory hierarchy from FILE for a file named NAME.
+Stop at the first parent directory containing a file NAME return the directory.
+Return nil if not found."
+  ;; We used to use the above locate-dominating-files code, but the
+  ;; directory-files call is very costly, so we're much better off doing
+  ;; multiple calls using the code in here.
+  ;; 
+  ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
+  ;; `name' in /home or in /.
+  (setq file (abbreviate-file-name file))
+  (let ((root nil)
+        (prev-file file)
+        ;; `user' is not initialized outside the loop because
+        ;; `file' may not exist, so we may have to walk up part of the
+        ;; hierarchy before we find the "initial UID".
+        (user nil)
+        try)
+    (while (not (or root
+                    (null file)
+                    ;; FIXME: Disabled this heuristic because it is sometimes
+                    ;; inappropriate.
+                    ;; As a heuristic, we stop looking up the hierarchy of
+                    ;; directories as soon as we find a directory belonging
+                    ;; to another user.  This should save us from looking in
+                    ;; things like /net and /afs.  This assumes that all the
+                    ;; files inside a project belong to the same user.
+                    ;; (let ((prev-user user))
+                    ;;   (setq user (nth 2 (file-attributes file)))
+                    ;;   (and prev-user (not (equal user prev-user))))
+                    (string-match locate-dominating-stop-dir-regexp file)))
+      (setq try (file-exists-p (expand-file-name name file)))
+      (cond (try (setq root file))
+            ((equal file (setq prev-file file
+                               file (file-name-directory
+                                     (directory-file-name file))))
+             (setq file nil))))
+    root))
+
 
 (defun executable-find (command)
   "Search for COMMAND in `exec-path' and return the absolute file name.
@@ -3159,10 +3210,10 @@ If the file is in a registered project, a cons from
 `project-directory-alist' is returned.
 Otherwise this returns nil."
   (setq file (expand-file-name file))
-  (let* ((settings (locate-dominating-file file "\\`\\.dir-settings\\.el\\'"))
+  (let* ((settings (locate-dominating-file file ".dir-settings.el"))
          (pda nil))
     ;; `locate-dominating-file' may have abbreviated the name.
-    (if settings (setq settings (expand-file-name settings)))
+    (if settings (setq settings (expand-file-name ".dir-settings.el" settings)))
     (dolist (x project-directory-alist)
       (when (and (eq t (compare-strings file nil (length (car x))
                                         (car x) nil nil))
