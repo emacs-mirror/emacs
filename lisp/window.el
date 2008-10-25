@@ -193,11 +193,16 @@ Anything else means restrict to the selected frame."
 (defalias 'some-window 'get-window-with-predicate)
 
 ;; This should probably be written in C (i.e., without using `walk-windows').
-(defun get-buffer-window-list (buffer &optional minibuf all-frames)
-  "Return list of all windows displaying BUFFER, or nil if none.
-BUFFER can be a buffer or a buffer name.
+(defun get-buffer-window-list (&optional buffer-or-name minibuf all-frames)
+  "Return list of all windows displaying BUFFER-OR-NAME, or nil if none.
+BUFFER-OR-NAME may be a buffer or the name of an existing buffer
+and defaults to nil.
 See `walk-windows' for the meaning of MINIBUF and ALL-FRAMES."
-  (let ((buffer (if (bufferp buffer) buffer (get-buffer buffer))) windows)
+  (let ((buffer (cond
+		 ((not buffer-or-name) (current-buffer))
+		 ((bufferp buffer-or-name) buffer-or-name)
+		 (t (get-buffer buffer-or-name))))
+	windows)
     (walk-windows (function (lambda (window)
 			      (if (eq (window-buffer window) buffer)
 				  (setq windows (cons window windows)))))
