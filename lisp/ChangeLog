@@ -1,3 +1,10 @@
+2008-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* faces.el (face-font-family-alternatives): Add "CMU Typewriter Text"
+	to the courier family.
+	* textmodes/tex-mode.el (tex-verbatim): Don't use "monospace" which is
+	usually not serif'd and hence rather unlike verbatim's printed output.
+
 2008-10-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc-cvs.el (vc-cvs-status-extra-headers): Use full directory name

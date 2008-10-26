@@ -70,7 +70,7 @@ a font height that isn't optimal."
 ;; which are generally available.
 (defcustom face-font-family-alternatives
   '(("Monospace" "courier" "fixed")
-    ("courier" "fixed")
+    ("courier" "CMU Typewriter Text" "fixed")
     ("Sans Serif" "helv" "helvetica" "arial" "fixed")
     ("helv" "helvetica" "arial" "fixed"))
   "*Alist of alternative font family names.
