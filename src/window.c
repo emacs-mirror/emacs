@@ -3522,8 +3522,11 @@ This function runs the hook `window-scroll-functions'.  */)
   else if (!EQ (tem, Qt))
     /* w->buffer is t when the window is first being set up.  */
     {
-      if (!NILP (w->dedicated) && !EQ (tem, buffer))
-	error ("Window is dedicated to `%s'", SDATA (XBUFFER (tem)->name));
+      if (!EQ (tem, buffer))
+	if (EQ (w->dedicated, Qt))
+	  error ("Window is dedicated to `%s'", SDATA (XBUFFER (tem)->name));
+	else
+	  w->dedicated = Qnil;
 
       unshow_buffer (w);
     }

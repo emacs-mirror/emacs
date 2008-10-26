@@ -1,8 +1,12 @@
+2008-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fset_window_buffer): Undo 2008-10-18 change to re-instate
+	the distinction between non-nil and non-t value of `dedicated'.
+
 2008-10-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (read_char_minibuf_menu_prompt): Ensure that
-	read_char_minibuf_menu_text is large enough to hold the menu
-	string.
+	read_char_minibuf_menu_text is large enough to hold the menu string.
 
 2008-10-25  Martin Rudalics  <rudalics@gmx.at>
 
@@ -12,8 +16,8 @@
 
 2008-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xdisp.c (handle_single_display_spec, handle_display_prop): Undo
-	2005-05-16 change.
+	* xdisp.c (handle_single_display_spec, handle_display_prop):
+	Undo 2005-05-16 change.
 	(handle_stop): Pop iterator if it's loaded with an empty string.
 	(get_overlay_strings_1): Don't save iterator if it's loaded with
 	an empty string (bug#1201).
@@ -32,8 +36,7 @@
 2008-10-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_in_read_queued_messages): New variable.
-	(XD_SIGNAL1, XD_SIGNAL2, XD_SIGNAL3): New macros.  Throw
-	Qdbus_error.
+	(XD_SIGNAL1, XD_SIGNAL2, XD_SIGNAL3): New macros.  Throw Qdbus_error.
 	(xd_read_queued_messages): Catch Qdbus_error from the macros.
 	(all): Replace xsignal1, xsignal2, xsignal3 by the respective
 	macro.  (Bug#1186).
@@ -51,8 +54,7 @@
 
 	* buffer.c (Fget_buffer_create): Rename arg to buffer_or_name.
 	Reword doc-string.
-	(Fbury_buffer): In doc-string say what happens to the buffer's
-	window.
+	(Fbury_buffer): In doc-string say what happens to the buffer's window.
 
 2008-10-23  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -75,8 +77,7 @@
 	Reword doc-string.
 	(Fset_window_parameter): Use NILP.
 	(Fscroll_up, Fscroll_down, Fminibuffer_selected_window)
-	(Frecenter): Use "selected" instead of "current" window in
-	doc-strings.
+	(Frecenter): Use "selected" instead of "current" window in doc-strings.
 
 2008-10-22  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -159,8 +160,8 @@
 
 	* window.c (Fwindow_width, Fset_window_start)
 	(Fwindow_parameters, Fwindow_parameter, Fset_window_parameter)
-	(Fdelete_windows_on, Freplace_buffer_in_windows): Make
-	doc-strings follow code and Elisp manual more closely.
+	(Fdelete_windows_on, Freplace_buffer_in_windows):
+	Make doc-strings follow code and Elisp manual more closely.
 	(Fwindow_dedicated_p): Make window argument optional.
 	(Fset_window_dedicated_p): Rename argument "arg" to "flag".
 	(Fset_window_buffer): Respect any non-nil dedicated value for
@@ -228,8 +229,8 @@
 	* fontset.c (face_for_char): If face->fontset is negative, just
 	return ascii_face.
 
-	* font.c (font_delete_unmatched): Fix previous change.  Don't
-	reject an entity if DPI and AVGWIDTH of an entity are 0.
+	* font.c (font_delete_unmatched): Fix previous change.
+	Don't reject an entity if DPI and AVGWIDTH of an entity are 0.
 
 2008-10-09  Martin Rudalics  <rudalics@gmx.at>
 
@@ -247,13 +248,11 @@
 
 2008-10-06  Andreas Schwab  <schwab@suse.de>
 
-	* sysdep.c (sys_signal): Always set SA_RESTART when
-	noninteractively.
+	* sysdep.c (sys_signal): Always set SA_RESTART when noninteractively.
 
 2008-10-06  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs.c (Vbefore_init_time, Vafter_init_time): Moved from
-	startup.el.
+	* emacs.c (Vbefore_init_time, Vafter_init_time): Move from startup.el.
 
 	* lisp.h (Vbefore_init_time, Vafter_init_time): Declare.
 
@@ -306,8 +305,8 @@
 
 	* nsterm.m (ns_frame_rehighlight): Remove commented code.
 	(draw_window_cursor): Simplify code.
-	(EmacsView-windowDidBecomeKey:,-windowDidResignKey:): Don't
-	change cursor type.  In latter, call rehighlight instead of doing
+	(EmacsView-windowDidBecomeKey:,-windowDidResignKey:):
+	Don't change cursor type.  In latter, call rehighlight instead of doing
 	updates manually.
 	(EmacsPrefsController-setPanelFromValues,-setValuesFromPanel):
 	Use core Emacs cursor types.
