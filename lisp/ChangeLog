@@ -1,3 +1,10 @@
+2008-10-26  Kenichi Handa  <handa@m17n.org>
+
+	* help-fns.el (describe-categories): Display the terse legend at
+	the head.
+
+	* international/characters.el: Docstrings of categories improved.
+
 2008-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-mode): Don't impose ourselves on hippie.
