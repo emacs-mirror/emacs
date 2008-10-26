@@ -1,5 +1,7 @@
 2008-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/python.el (python-mode): Don't impose ourselves on hippie.
+
 	* faces.el (face-font-family-alternatives): Add "CMU Typewriter Text"
 	to the courier family.
 	* textmodes/tex-mode.el (tex-verbatim): Don't use "monospace" which is
