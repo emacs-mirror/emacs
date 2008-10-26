@@ -1,5 +1,8 @@
 2008-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* chartab.c (Foptimize_char_table): Make sure `ascii' doesn't point to
+	the previous unoptimized table.
+
 	* window.c (Fset_window_buffer): Undo 2008-10-18 change to re-instate
 	the distinction between non-nil and non-t value of `dedicated'.
 
