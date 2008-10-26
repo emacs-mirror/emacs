@@ -5,8 +5,22 @@
 
 	* vc-dir.el (vc-dir-mode-map): Add follow-link behavior.
 
-	* wid-edit.el (widget-color-complete): Sort completions
-	alphabetically.
+	* wid-edit.el (widget-color-complete): Sort completions alphabetically.
+
+2008-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (locate-dominating-stop-dir-regexp): New var.
+	(locate-dominating-file): Change arg from a regexp to a file name.
+	Rewrite using the vc-find-root code to avoid directory-files which is
+	too slow.  Obey locate-dominating-stop-dir-regexp.
+	Don't pay attention to changes in owner.
+	(project-find-settings-file): Adjust call to locate-dominating-file.
+
+	* progmodes/flymake.el (flymake-find-buildfile):
+	Adjust call to locate-dominating-file.
+
+	* vc-hooks.el (vc-find-root): Use locate-dominating-file.
+	(vc-ignore-dir-regexp): Use locate-dominating-stop-dir-regexp.
 
 2008-10-25  Martin Rudalics  <rudalics@gmx.at>
 
@@ -112,8 +126,7 @@
 	* thingatpt.el (sexp-at-point, symbol-at-point, number-at-point)
 	(list-at-point): Add docstrings.
 
-	* dired.el (dired-get-marked-files, dired-map-over-marks): Doc
-	fixes.
+	* dired.el (dired-get-marked-files, dired-map-over-marks): Doc fixes.
 
 	* dired-aux.el (dired-do-create-files): Doc fix.
 
@@ -137,8 +150,8 @@
 	* international/characters.el: Don't setup
 	find-word-boundary-function-table.
 	(next-word-boundary-han, next-word-boundary-kana): Delete them.
-	(word-combining-categories, word-separating-categories): Adjusted
-	to the change of the docstrings.
+	(word-combining-categories, word-separating-categories):
+	Adjust to the change of the docstrings.
 
 2008-10-21  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -179,7 +192,7 @@
 
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
-	* subr.el (apply-partially): Moved here from minibuffer.el.  Doc fix.
+	* subr.el (apply-partially): Move here from minibuffer.el.  Doc fix.
 
 	* simple.el (minibuffer-default-add-shell-commands): Doc fix.
 
@@ -400,16 +413,11 @@
 	display colors into the image expression.
 	(tool-bar-setup): Don't be a no-op on ttys.
 
-	* info.el (info-tool-bar-map): Initialize it unconditionally.
-
-	* progmodes/gud.el (gud-tool-bar-map): Initialize it
-	unconditionally.
-
-	* progmodes/grep.el (grep-mode-tool-bar-map): Initialize it
-	unconditionally.
-
-	* progmodes/compile.el (compilation-mode-tool-bar-map): Initialize
-	it unconditionally.
+	* info.el (info-tool-bar-map):
+	* progmodes/gud.el (gud-tool-bar-map):
+	* progmodes/grep.el (grep-mode-tool-bar-map):
+	* progmodes/compile.el (compilation-mode-tool-bar-map):
+	Initialize it unconditionally.
 
 2008-10-11  Romain Francoise  <romain@orebokech.com>
 
@@ -420,7 +428,7 @@
 2008-10-11  Ulf Jasper  <ulf@web.de>
 
 	* net/newst-treeview.el (newsticker--treeview-list-sort-by-column):
-	Fixed variable names.
+	Fix variable names.
 
 2008-10-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -429,8 +437,8 @@
 
 2008-10-10  Andreas Schwab  <schwab@suse.de>
 
-	* simple.el (minibuffer-complete-shell-command): Bind
-	comint-delimiter-argument-list, comint-file-name-chars and
+	* simple.el (minibuffer-complete-shell-command):
+	Bind comint-delimiter-argument-list, comint-file-name-chars and
 	comint-file-name-quote-list like shell-mode.
 
 2008-10-10  Martin Rudalics  <rudalics@gmx.at>
@@ -445,8 +453,8 @@
 	(calc-embedded-open-word, calc-embedded-close-word)
 	(calc-embedded-open-close-word-alist): Remove unused variables.
 
-	* calc/calc-embed.el (calc-embedded-make-info): Use
-	`calc-embedded-word-regexp' to find words.
+	* calc/calc-embed.el (calc-embedded-make-info):
+	Use `calc-embedded-word-regexp' to find words.
 
 2008-10-10  Martin Rudalics  <rudalics@gmx.at>
 
