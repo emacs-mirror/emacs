@@ -238,6 +238,10 @@ int noninteractive1;
 /* Nonzero means Emacs was started as a daemon.  */
 int is_daemon = 0;
 
+/* Pipe used to send exit notification to the daemon parent at
+   startup.  */
+static int daemon_pipe[2];
+
 /* Save argv and argc.  */
 char **initial_argv;
 int initial_argc;
@@ -1073,21 +1077,54 @@ main (int argc, char **argv)
   if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args))
     {
 #ifndef DOS_NT
-      pid_t f = fork ();
-      int nfd;
+      pid_t f;
+
+      /* Start as a daemon: fork a new child process which will run the
+	 rest of the initialization code, then exit.
+
+	 We want to avoid exiting before the server socket is ready, so
+	 use a pipe for synchronization.  The parent waits for the child
+	 to close its end of the pipe (using `daemon-initialized')
+	 before exiting.  */
+      if (pipe (daemon_pipe) == -1)
+	{
+	  fprintf (stderr, "Cannot pipe!\n");
+	  exit (1);
+	}
+
+      f = fork ();
       if (f > 0)
-	exit (0);
+	{
+	  int retval;
+	  char buf[1];
+
+	  /* Close unused writing end of the pipe.  */
+	  close (daemon_pipe[1]);
+
+	  /* Just wait for the child to close its end of the pipe.  */
+	  do
+	    {
+	      retval = read (daemon_pipe[0], &buf, 1);
+	    }
+	  while (retval == -1 && errno == EINTR);
+
+	  if (retval < 0)
+	    {
+	      fprintf (stderr, "Error reading status from child\n");
+	      exit (1);
+	    }
+
+	  close (daemon_pipe[0]);
+	  exit (0);
+	}
       if (f < 0)
 	{
 	  fprintf (stderr, "Cannot fork!\n");
 	  exit (1);
 	}
 
-      nfd = open ("/dev/null", O_RDWR);
-      dup2 (nfd, 0);
-      dup2 (nfd, 1);
-      dup2 (nfd, 2);
-      close (nfd);
+      /* Close unused reading end of the pipe.  */
+      close (daemon_pipe[0]);
       is_daemon = 1;
 #ifdef HAVE_SETSID
       setsid();
@@ -2388,6 +2425,35 @@ DEFUN ("daemonp", Fdaemonp, Sdaemonp, 0, 0, 0,
   return is_daemon ? Qt : Qnil;
 }
 
+DEFUN ("daemon-initialized", Fdaemon_initialized, Sdaemon_initialized, 0, 0, 0,
+       doc: /* Mark the Emacs daemon as being initialized.  */)
+  ()
+{
+  int nfd;
+
+  if (!is_daemon)
+    error ("This function can only be called if emacs is run as a daemon");
+
+  if (daemon_pipe[1] < 0)
+    error ("The daemon has already been initialized");
+
+  if (NILP (Vafter_init_time))
+    error ("This function can only be called after loading the init files");
+
+  /* Get rid of stdin, stdout and stderr.  */
+  open ("/dev/null", O_RDWR);
+  dup2 (nfd, 0);
+  dup2 (nfd, 1);
+  dup2 (nfd, 2);
+  close (nfd);
+
+  /* Closing the pipe will notify the parent that it can exit.  */
+  close (daemon_pipe[1]);
+  /* Set it to an invalid value so we know we've already run this function.  */
+  daemon_pipe[1] = -1;
+  return Qt;
+}
+
 void
 syms_of_emacs ()
 {
@@ -2407,6 +2473,7 @@ syms_of_emacs ()
   defsubr (&Sinvocation_name);
   defsubr (&Sinvocation_directory);
   defsubr (&Sdaemonp);
+  defsubr (&Sdaemon_initialized);
 
   DEFVAR_LISP ("command-line-args", &Vcommand_line_args,
 	       doc: /* Args passed by shell to Emacs, as a list of strings.

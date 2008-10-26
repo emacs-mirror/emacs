@@ -1,3 +1,8 @@
+2008-10-26  Romain Francoise  <romain@orebokech.com>
+
+	* startup.el (command-line): Call daemon-initialized after
+	starting the server.
+
 2008-10-26  Kenichi Handa  <handa@m17n.org>
 
 	* help-fns.el (describe-categories): Display the terse legend at

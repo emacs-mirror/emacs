@@ -1,3 +1,11 @@
+2008-10-26  Romain Francoise  <romain@orebokech.com>
+
+	* emacs.c (daemon_pipe): New variable
+	(main): Create a pipe before forking, make the parent exit only after
+	the child has closed its end of the pipe.  Move closing the
+	descriptors ...
+	(Fdaemon_initialized): ... here.  New function.
+
 2008-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* chartab.c (Foptimize_char_table): Make sure `ascii' doesn't point to

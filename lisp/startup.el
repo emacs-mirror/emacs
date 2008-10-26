@@ -1213,7 +1213,8 @@ the `--debug-init' option to view a complete error backtrace."
   ;; processing all command line arguments to allow e.g. `server-name'
   ;; to be changed before the server starts.
   (when (daemonp)
-    (server-start))
+    (server-start)
+    (daemon-initialized))
 
   ;; Run emacs-session-restore (session management) if started by
   ;; the session manager and we have a session manager connection.
