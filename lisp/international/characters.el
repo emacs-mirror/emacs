@@ -72,7 +72,7 @@ Japanese Hiragana characters of 2-byte character sets")
 Japanese Katakana characters of 2-byte character sets")
 (define-category ?N "2-byte Korean
 Korean Hangul characters of 2-byte character sets")
-(define-category ?Y "2-byte Cyril
+(define-category ?Y "2-byte Cyrillic
 Cyrillic characters of 2-byte character sets")
 (define-category ?I "Indian Glyphs")
 
@@ -89,7 +89,7 @@ lower diacritical mark (including lower vowel)")
 combining tone mark")
 (define-category ?5 "symbol")
 (define-category ?6 "digit")
-(define-category ?7 "diacritic on vowel
+(define-category ?7 "vowel diacritic
 vowel-modifying diacritical mark")
 (define-category ?8 "vowel-signs")
 (define-category ?9 "semivowel lower")
