@@ -1,3 +1,9 @@
+2008-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c (daemon_name): New variable.
+	(main): Deal with --daemon=SERVER_NAME.
+	(Fdaemonp): Return a name if one was passed to --daemon.
+
 2008-10-26  Romain Francoise  <romain@orebokech.com>
 
 	* emacs.c (daemon_pipe): New variable.

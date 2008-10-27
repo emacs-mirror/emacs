@@ -1,3 +1,9 @@
+2008-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* startup.el (server-name): Pacify byte compiler.
+	(command-line): If --daemon=SERVER_NAME was used, set server-name
+	before calling server-start.
+
 2008-10-26  Romain Francoise  <romain@orebokech.com>
 
 	* startup.el (command-line): Call daemon-initialized after

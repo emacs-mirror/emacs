@@ -693,6 +693,8 @@ opening the first frame (e.g. open a connection to an X server).")
 (declare-function tool-bar-mode "tool-bar" (&optional arg))
 (declare-function tool-bar-setup "tool-bar")
 
+(defvar server-name)
+
 (defun command-line ()
   (setq before-init-time (current-time)
 	after-init-time nil
@@ -1212,9 +1214,11 @@ the `--debug-init' option to view a complete error backtrace."
   ;; This is done after loading the user's init file and after
   ;; processing all command line arguments to allow e.g. `server-name'
   ;; to be changed before the server starts.
-  (when (daemonp)
-    (server-start)
-    (daemon-initialized))
+  (let ((dn (daemonp)))
+    (when dn
+      (when (stringp dn) (setq server-name dn))
+      (server-start)
+      (daemon-initialized)))
 
   ;; Run emacs-session-restore (session management) if started by
   ;; the session manager and we have a session manager connection.

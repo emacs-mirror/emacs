@@ -286,6 +286,10 @@ terminal), do not open any frames and start the server.  Clients can
 connect and create graphical or terminal frames using
 @code{emacsclient}.
 
+@item -daemon=@var{SERVER-NAME}
+Start emacs in background as a daemon, and start the server with the
+name set to @var{SERVER-NAME}.
+
 @item --no-splash
 @opindex --no-splash
 @vindex inhibit-startup-screen

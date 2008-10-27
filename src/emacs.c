@@ -237,6 +237,8 @@ int noninteractive1;
 
 /* Nonzero means Emacs was started as a daemon.  */
 int is_daemon = 0;
+/* Name for the server started by the daemon.*/
+static char *daemon_name;
 
 /* Pipe used to send exit notification to the daemon parent at
    startup.  */
@@ -796,6 +798,7 @@ main (int argc, char **argv)
 #endif
   int no_loadup = 0;
   char *junk = 0;
+  char *dname_arg = 0;
 
 #if GC_MARK_STACK
   extern Lisp_Object *stack_base;
@@ -1074,7 +1077,8 @@ main (int argc, char **argv)
       exit (0);
     }
 
-  if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args))
+  if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args)
+      || argmatch (argv, argc, "-daemon", "--daemon", 5, &dname_arg, &skip_args))
     {
 #ifndef DOS_NT
       pid_t f;
@@ -1123,6 +1127,8 @@ main (int argc, char **argv)
 	  exit (1);
 	}
 
+      if (dname_arg)
+       	daemon_name = xstrdup (dname_arg);
       /* Close unused reading end of the pipe.  */
       close (daemon_pipe[0]);
       is_daemon = 1;
@@ -2419,10 +2425,17 @@ decode_env_path (evarname, defalt)
 }
 
 DEFUN ("daemonp", Fdaemonp, Sdaemonp, 0, 0, 0,
-       doc: /* Return t if the current emacs process is a daemon.  */)
+       doc: /* Return non-nil if the current emacs process is a daemon.
+If the daemon was given a name argument, return that name. */)
   ()
 {
-  return is_daemon ? Qt : Qnil;
+  if (is_daemon)
+    if (daemon_name)
+      return build_string (daemon_name);
+    else
+      return Qt;
+  else
+    return Qnil;
 }
 
 DEFUN ("daemon-initialized", Fdaemon_initialized, Sdaemon_initialized, 0, 0, 0,
