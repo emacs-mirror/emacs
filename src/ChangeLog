@@ -1,6 +1,6 @@
 2008-10-26  Romain Francoise  <romain@orebokech.com>
 
-	* emacs.c (daemon_pipe): New variable
+	* emacs.c (daemon_pipe): New variable.
 	(main): Create a pipe before forking, make the parent exit only after
 	the child has closed its end of the pipe.  Move closing the
 	descriptors ...
@@ -39,7 +39,7 @@
 	(ftfont_otf_capability): Check FeatureList.FeatureCount before
 	calling ftfont_otf_features.
 
-2008-10-23  Kenichi Handa  <handa@m17n.org>
+2008-10-24  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_match_p): Fix for the case that a vector of
 	characters is in script-representative-chars.
@@ -52,7 +52,7 @@
 	(all): Replace xsignal1, xsignal2, xsignal3 by the respective
 	macro.  (Bug#1186).
 
-2008-10-23  Ali Bahrami <ali_gnu@emvision.com>  (tiny change)
+2008-10-23  Ali Bahrami  <ali_gnu@emvision.com>  (tiny change)
 
 	* s/sol2-10.h: New file.
 
