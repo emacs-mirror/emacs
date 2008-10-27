@@ -7441,7 +7441,7 @@ x_draw_bar_cursor (w, row, width, kind)
 			  WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
 			  WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
 						   row->height - width),
-			  cursor_glyph->pixel_width,
+			  min (FRAME_COLUMN_WIDTH (f), cursor_glyph->pixel_width),
 			  width);
 
       XSetClipMask (dpy, gc, None);
