@@ -606,15 +606,23 @@ as well as widgets, buttons, overlays, and text properties."
 		     (nglyphs (lgstring-glyph-len gstring))
 		     (i 0)
 		     glyph)
-		(insert " using this font:\n  "
-			(symbol-name (font-get font :type))
-			?:
-			(aref (query-font font) 0)
-			"\nby these glyphs:\n")
-		(while (and (< i nglyphs)
-			    (setq glyph (lgstring-glyph gstring i)))
-		  (insert (format "  %S\n" glyph))
-		  (setq i (1+ i))))
+		(if font
+		    (progn
+		      (insert " using this font:\n  "
+			      (symbol-name (font-get font :type))
+			      ?:
+			      (aref (query-font font) 0)
+			      "\nby these glyphs:\n")
+		      (while (and (< i nglyphs)
+				  (setq glyph (lgstring-glyph gstring i)))
+			(insert (format "  %S\n" glyph))
+			(setq i (1+ i))))
+		  (insert " by these characters:\n")
+		  (while (and (< i nglyphs)
+			      (setq glyph (lgstring-glyph gstring i)))
+		    (insert (format " %c (#x%d)\n"
+				    (lglyph-char glyph) (lglyph-char glyph)))
+		    (setq i (1+ i)))))
 	    (insert " by the rule:\n\t(")
 	    (let ((first t))
 	      (mapc (lambda (x)
