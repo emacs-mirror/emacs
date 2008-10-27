@@ -1,5 +1,11 @@
 2008-10-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* w32term.c (x_draw_bar_cursor): When hbar cursor is on over-sized
+	glyph, draw it with the default glyph width.
+
+	* xterm.c (x_draw_bar_cursor): When hbar cursor is on over-sized
+	glyph, draw it with the default glyph width.
+
 	* xdisp.c (try_scrolling): When computing the distance from the
 	scroll margin to PT, try moving some distance past the window
 	bottom before giving up.
