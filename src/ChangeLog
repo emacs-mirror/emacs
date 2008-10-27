@@ -1,8 +1,3 @@
-2008-10-27  Chong Yidong  <cyd@stupidchicken.com>
-
-	* xdisp.c (try_scrolling): When computing distance from the scroll
-	margin, don't use MOVE_TO_Y.
-
 2008-10-26  Romain Francoise  <romain@orebokech.com>
 
 	* emacs.c (daemon_pipe): New variable.
