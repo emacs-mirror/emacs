@@ -2341,6 +2341,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
     case HBAR_CURSOR:
       s = r;
       s.origin.y += lrint (0.75 * s.size.height);
+      s.size.width = min (FRAME_COLUMN_WIDTH (f), s.size.width);
       s.size.height = lrint (s.size.height * 0.25);
       NSRectFill (s);
       break;
