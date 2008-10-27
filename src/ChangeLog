@@ -1,5 +1,8 @@
 2008-10-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* nsterm.m (ns_draw_window_cursor): When hbar cursor is on
+	over-sized glyph, draw it with the default glyph width.
+
 	* w32term.c (x_draw_bar_cursor): When hbar cursor is on over-sized
 	glyph, draw it with the default glyph width.
 
