@@ -12622,7 +12622,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   struct text_pos pos, startp;
   struct it it;
   int this_scroll_margin, scroll_max, rc, height;
-  int dy = 0, amount_to_scroll = 0;
+  int dy = 0, amount_to_scroll = 0, scroll_down_p = 0;
   int extra_scroll_margin_lines = last_line_misfit ? 1 : 0;
   Lisp_Object aggressive;
   int scroll_limit = INT_MAX / FRAME_LINE_HEIGHT (f);
@@ -12687,7 +12687,8 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	     window, or below.  Compute the distance from the scroll
 	     margin to PT, and give up if the distance is greater than
 	     scroll_max.  */
-	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+	  move_it_to (&it, PT, -1, it.last_visible_y - 1, -1,
+		      MOVE_TO_POS | MOVE_TO_Y);
 
 	  /* To make point visible, we must move the window start down
 	     so that the cursor line is visible, which means we have
@@ -12696,11 +12697,18 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 
 	  if (dy > scroll_max)
 	    return SCROLLING_FAILED;
+
+	  scroll_down_p = 1;
 	}
     }
 
-  if (dy > 0)
+  if (scroll_down_p)
     {
+      /* Move the window start down.  If scrolling conservatively,
+	 move it just enough down to make point visible.  If
+	 scroll_step is set, move it down by scroll_step.  */
+      start_display (&it, w, startp);
+
       if (scroll_conservatively)
 	/* Set AMOUNT_TO_SCROLL to at least one line,
 	   and at most scroll_conservatively lines.  */
@@ -12725,14 +12733,10 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       if (amount_to_scroll <= 0)
 	return SCROLLING_FAILED;
 
-      /* Move the window start down.  If scrolling conservatively,
-	 move it just enough down to make point visible.  If
-	 scroll_step is set, move it down by scroll_step.  */
-      start_display (&it, w, startp);
-      move_it_vertically (&it, amount_to_scroll);
-
       /* If moving by amount_to_scroll leaves STARTP unchanged,
 	 move it down one screen line.  */
+
+      move_it_vertically (&it, amount_to_scroll);
       if (CHARPOS (it.current.pos) == CHARPOS (startp))
 	move_it_by_lines (&it, 1, 1);
       startp = it.current.pos;
