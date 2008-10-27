@@ -796,7 +796,7 @@ comes back" twice.
 
 @group
 (skip-chars-forward "a-zA-Z ")
-     @result{} nil
+     @result{} 18
 
 ---------- Buffer: foo ----------
 I read "The cat in the hat@point{}
