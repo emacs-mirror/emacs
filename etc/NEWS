@@ -1608,10 +1608,6 @@ useful for modes such as tar-mode, archive-mode, RMAIL.
 attributes of a given face.
 
 +++
-*** `window-full-width-p' returns t if a window is as wide as its
-frame.
-
-+++
 *** `split-string-and-unquote' splits a string into a list of substrings
 on the boundaries of a given delimiter, and unquotes the substrings that
 are quoted.  Useful for taking apart shell commands.
