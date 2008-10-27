@@ -20,3 +20,6 @@
  */
 #undef UNEXEC
 #define UNEXEC unexsol.o
+
+/* arch-tag: 7c51a134-5469-4d16-aa00-d69224640eeb
+   (do not change this comment) */
