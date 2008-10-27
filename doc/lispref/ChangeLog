@@ -1,3 +1,8 @@
+2008-10-27  Seweryn Kokot  <sewkokot@gmail.com>  (tiny change)
+
+	* positions.texi (Skipping Characters): Correct return value of
+	skip-chars-forward.
+
 2008-10-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Deleting Windows): Update documentation of
