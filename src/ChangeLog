@@ -1,3 +1,9 @@
+2008-10-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_scrolling): When computing the distance from the
+	scroll margin to PT, try moving some distance past the window
+	bottom before giving up.
+
 2008-10-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fwindow_dedicated_p, Fset_window_dedicated_p)
