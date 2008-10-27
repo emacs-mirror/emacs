@@ -12636,17 +12636,15 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   /* Compute scroll margin height in pixels.  We scroll when point is
      within this distance from the top or bottom of the window.  */
   if (scroll_margin > 0)
-    {
-      this_scroll_margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
-      this_scroll_margin *= FRAME_LINE_HEIGHT (f);
-    }
+    this_scroll_margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4)
+      * FRAME_LINE_HEIGHT (f);
   else
     this_scroll_margin = 0;
 
   /* Force scroll_conservatively to have a reasonable value, to avoid
-     overflow while computing how much to scroll.  Note that it's
-     fairly common for users to supply scroll-conservatively equal to
-     `most-positive-fixnum', which can be larger than INT_MAX.  */
+     overflow while computing how much to scroll.  Note that the user
+     can supply scroll-conservatively equal to `most-positive-fixnum',
+     which can be larger than INT_MAX.  */
   if (scroll_conservatively > scroll_limit)
     {
       scroll_conservatively = scroll_limit;
@@ -12668,7 +12666,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 
  too_near_end:
 
-  /* Decide whether we have to scroll down.  */
+  /* Decide whether to scroll down.  */
   if (PT > CHARPOS (startp))
     {
       int scroll_margin_y;
@@ -12683,17 +12681,17 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 
       if (PT > CHARPOS (it.current.pos))
 	{
-	  /* Point is in the scroll margin at the bottom of the
-	     window, or below.  Compute the distance from the scroll
-	     margin to PT, and give up if the distance is greater than
-	     scroll_max.  */
-	  move_it_to (&it, PT, -1, it.last_visible_y - 1, -1,
-		      MOVE_TO_POS | MOVE_TO_Y);
+	  int y0 = line_bottom_y (&it);
 
-	  /* To make point visible, we must move the window start down
-	     so that the cursor line is visible, which means we have
-	     to add in the height of the cursor line.  */
-	  dy = line_bottom_y (&it) - scroll_margin_y;
+	  /* Compute the distance from the scroll margin to PT
+	     (including the height of the cursor line).  Moving the
+	     iterator unconditionally to PT can be slow if PT is far
+	     away, so stop 10 lines past the window bottom (is there a
+	     way to do the right thing quickly?).  */
+	  move_it_to (&it, PT, -1,
+	  	      it.last_visible_y + 10 * FRAME_LINE_HEIGHT (f),
+	  	      -1, MOVE_TO_POS | MOVE_TO_Y);
+	  dy = line_bottom_y (&it) - y0;
 
 	  if (dy > scroll_max)
 	    return SCROLLING_FAILED;
@@ -12704,14 +12702,11 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 
   if (scroll_down_p)
     {
-      /* Move the window start down.  If scrolling conservatively,
-	 move it just enough down to make point visible.  If
-	 scroll_step is set, move it down by scroll_step.  */
-      start_display (&it, w, startp);
-
+      /* Point is in or below the bottom scroll margin, so move the
+	 window start down.  If scrolling conservatively, move it just
+	 enough down to make point visible.  If scroll_step is set,
+	 move it down by scroll_step.  */
       if (scroll_conservatively)
-	/* Set AMOUNT_TO_SCROLL to at least one line,
-	   and at most scroll_conservatively lines.  */
 	amount_to_scroll
 	  = min (max (dy, FRAME_LINE_HEIGHT (f)),
 		 FRAME_LINE_HEIGHT (f) * scroll_conservatively);
@@ -12733,10 +12728,10 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       if (amount_to_scroll <= 0)
 	return SCROLLING_FAILED;
 
-      /* If moving by amount_to_scroll leaves STARTP unchanged,
-	 move it down one screen line.  */
-
+      start_display (&it, w, startp);
       move_it_vertically (&it, amount_to_scroll);
+
+      /* If STARTP is unchanged, move it down another screen line.  */
       if (CHARPOS (it.current.pos) == CHARPOS (startp))
 	move_it_by_lines (&it, 1, 1);
       startp = it.current.pos;
