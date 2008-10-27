@@ -12687,8 +12687,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	     window, or below.  Compute the distance from the scroll
 	     margin to PT, and give up if the distance is greater than
 	     scroll_max.  */
-	  move_it_to (&it, PT, -1, it.last_visible_y - 1, -1,
-		      MOVE_TO_POS | MOVE_TO_Y);
+	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
 
 	  /* To make point visible, we must move the window start down
 	     so that the cursor line is visible, which means we have
