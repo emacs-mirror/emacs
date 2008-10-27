@@ -1,3 +1,9 @@
+2008-10-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_dedicated_p, Fset_window_dedicated_p)
+	(Fset_window_buffer): Explain in doc-string that a window can be
+	"strongly" dedicated to its buffer.
+
 2008-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs.c (daemon_name): New variable.
