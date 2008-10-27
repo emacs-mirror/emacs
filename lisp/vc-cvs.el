@@ -985,7 +985,7 @@ state."
 	(buffer-substring (point) (point-max)))
     (file-error nil)))
 
-(defun vc-cvs-status-extra-headers (dir)
+(defun vc-cvs-dir-extra-headers (dir)
   "Extract and represent per-directory properties of a CVS working copy."
   (let ((repo
 	 (condition-case nil

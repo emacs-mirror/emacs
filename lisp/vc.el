@@ -159,8 +159,8 @@
 ;;   and then do a (funcall UPDATE-FUNCTION RESULT nil)
 ;;   when all the results have been computed.
 ;;   To provide more backend specific functionality for `vc-dir'
-;;   the following functions might be needed: `status-extra-headers',
-;;   `status-printer', `extra-status-menu' and `dir-status-files'.
+;;   the following functions might be needed: `dir-extra-headers',
+;;   `dir-printer', `extra-dir-menu' and `dir-status-files'.
 ;;
 ;; - dir-status-files (dir files default-state update-function)
 ;;
@@ -170,11 +170,11 @@
 ;;   files. If not provided, the default is to consider that the files
 ;;   are in DEFAULT-STATE.
 ;;
-;; - status-extra-headers (dir)
+;; - dir-extra-headers (dir)
 ;;
 ;;   Return a string that will be added to the *vc-dir* buffer header.
 ;;
-;; - status-printer (fileinfo)
+;; - dir-printer (fileinfo)
 ;;
 ;;   Pretty print the `vc-dir-fileinfo' FILEINFO.
 ;;   If a backend needs to show more information than the default FILE
@@ -527,7 +527,7 @@
 ;;   to your backend and which does not map to any of the VC generic
 ;;   concepts.
 ;;
-;; - extra-status-menu ()
+;; - extra-dir-menu ()
 ;;
 ;;   Return a menu keymap, the items in the keymap will appear at the
 ;;   end of the VC Status menu.  The goal is to allow backends to

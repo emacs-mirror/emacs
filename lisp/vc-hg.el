@@ -44,8 +44,8 @@
 ;; - state-heuristic (file)                    NOT NEEDED
 ;; - dir-status (dir update-function)          OK
 ;; - dir-status-files (dir files ds uf)        OK
-;; - status-extra-headers (dir)                OK
-;; - status-printer (fileinfo)                 OK
+;; - dir-extra-headers (dir)                OK
+;; - dir-printer (fileinfo)                 OK
 ;; * working-revision (file)                   OK
 ;; - latest-on-branch-p (file)                 ??
 ;; * checkout-model (files)                    OK
@@ -429,12 +429,12 @@ REV is the revision to check out into WORKFILE."
   rename-state        ;; rename or copy state
   extra-name)         ;; original name for copies and rename targets, new name for
 
-(declare-function vc-default-status-printer "vc-dir" (backend fileentry))
+(declare-function vc-default-dir-printer "vc-dir" (backend fileentry))
 
-(defun vc-hg-status-printer (info)
+(defun vc-hg-dir-printer (info)
   "Pretty-printer for the vc-dir-fileinfo structure."
   (let ((extra (vc-dir-fileinfo->extra info)))
-    (vc-default-status-printer 'Hg info)
+    (vc-default-dir-printer 'Hg info)
     (when extra
       (insert (propertize
 	       (format "   (%s %s)"
@@ -507,7 +507,7 @@ REV is the revision to check out into WORKFILE."
   (vc-exec-after
    `(vc-hg-after-dir-status (quote ,update-function))))
 
-(defun vc-hg-status-extra-header (name &rest commands)
+(defun vc-hg-dir-extra-header (name &rest commands)
   (concat (propertize name 'face 'font-lock-type-face)
           (propertize
            (with-temp-buffer
@@ -515,16 +515,16 @@ REV is the revision to check out into WORKFILE."
              (buffer-substring-no-properties (point-min) (1- (point-max))))
            'face 'font-lock-variable-name-face)))
 
-(defun vc-hg-status-extra-headers (dir)
+(defun vc-hg-dir-extra-headers (dir)
   "Generate extra status headers for a Mercurial tree."
   (let ((default-directory dir))
     (concat
-     (vc-hg-status-extra-header "Root       : " "root") "\n"
-     (vc-hg-status-extra-header "Branch     : " "id" "-b") "\n"
-     (vc-hg-status-extra-header "Tags       : " "id" "-t") ; "\n"
+     (vc-hg-dir-extra-header "Root       : " "root") "\n"
+     (vc-hg-dir-extra-header "Branch     : " "id" "-b") "\n"
+     (vc-hg-dir-extra-header "Tags       : " "id" "-t") ; "\n"
      ;; these change after each commit
-     ;; (vc-hg-status-extra-header "Local num  : " "id" "-n") "\n"
-     ;; (vc-hg-status-extra-header "Global id  : " "id" "-i")
+     ;; (vc-hg-dir-extra-header "Local num  : " "id" "-n") "\n"
+     ;; (vc-hg-dir-extra-header "Global id  : " "id" "-i")
      )))
 
 ;; FIXME: this adds another top level menu, instead figure out how to

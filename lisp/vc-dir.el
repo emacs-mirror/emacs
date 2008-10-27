@@ -83,7 +83,7 @@ See `run-hooks'."
   ;; Used to keep the cursor on the file name column.
   (beginning-of-line)
   (unless (eolp)
-    ;; Must be in sync with vc-default-status-printer.
+    ;; Must be in sync with vc-default-dir-printer.
     (forward-char 25)))
 
 (defun vc-dir-prepare-status-buffer (bname dir backend &optional create-new)
@@ -913,7 +913,7 @@ commands act on the files in those directories displayed in the
   (let ((buffer-read-only nil))
     (erase-buffer)
     (set (make-local-variable 'vc-dir-process-buffer) nil)
-    (set (make-local-variable 'vc-ewoc) (ewoc-create #'vc-dir-status-printer))
+    (set (make-local-variable 'vc-ewoc) (ewoc-create #'vc-dir-printer))
     (set (make-local-variable 'revert-buffer-function)
 	 'vc-dir-revert-buffer-function)
     (set (make-local-variable 'list-buffers-directory)
@@ -926,14 +926,14 @@ commands act on the files in those directories displayed in the
 
 (defun vc-dir-headers (backend dir)
   "Display the headers in the *VC dir* buffer.
-It calls the `status-extra-headers' backend method to display backend
+It calls the `dir-extra-headers' backend method to display backend
 specific headers."
   (concat
    (propertize "VC backend : " 'face 'font-lock-type-face)
    (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
    (propertize "Working dir: " 'face 'font-lock-type-face)
    (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
-   (vc-call-backend backend 'status-extra-headers dir)
+   (vc-call-backend backend 'dir-extra-headers dir)
    "\n"))
 
 (defun vc-dir-refresh-files (files default-state)
@@ -1068,8 +1068,8 @@ outside of VC) and one wants to do some operation on it."
 	    (ewoc-delete vc-ewoc crt))
 	  (setq crt prev)))))
 
-(defun vc-dir-status-printer (fileentry)
-  (vc-call-backend vc-dir-backend 'status-printer fileentry))
+(defun vc-dir-printer (fileentry)
+  (vc-call-backend vc-dir-backend 'dir-printer fileentry))
 
 (defun vc-dir-deduce-fileset (&optional state-model-only-files)
   (let ((marked (vc-dir-marked-files))
@@ -1131,7 +1131,7 @@ Interactively, a prefix argument means to ask for the backend."
     (let ((use-vc-backend backend))
       (vc-dir-mode))))
 
-(defun vc-default-status-extra-headers (backend dir)
+(defun vc-default-dir-extra-headers (backend dir)
   ;; Be loud by default to remind people to add code to display
   ;; backend specific headers.
   ;; XXX: change this to return nil before the release.
@@ -1140,7 +1140,7 @@ Interactively, a prefix argument means to ask for the backend."
    (propertize "Please add backend specific headers here.  It's easy!"
 	       'face 'font-lock-warning-face)))
 
-(defun vc-default-status-printer (backend fileentry)
+(defun vc-default-dir-printer (backend fileentry)
   "Pretty print FILEENTRY."
   ;; If you change the layout here, change vc-dir-move-to-goal-column.
   (let* ((isdir (vc-dir-fileinfo->directory fileentry))

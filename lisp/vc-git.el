@@ -266,7 +266,7 @@
      (if (eq 0 (logand ?\111 old-perm)) "+x" "-x"))
   'face 'font-lock-type-face))
 
-(defun vc-git-status-printer (info)
+(defun vc-git-dir-printer (info)
   "Pretty-printer for the vc-dir-fileinfo structure."
   (let* ((isdir (vc-dir-fileinfo->directory info))
 	 (state (if isdir "" (vc-dir-fileinfo->state info)))
@@ -380,7 +380,7 @@
   "Return a list of (FILE STATE EXTRA) entries for FILES in DIR."
   (vc-git-dir-status-goto-stage 'update-index files update-function))
 
-(defun vc-git-status-extra-headers (dir)
+(defun vc-git-dir-extra-headers (dir)
   (let ((str (with-output-to-string
                (with-current-buffer standard-output
                  (vc-git--out-ok "symbolic-ref" "HEAD")))))

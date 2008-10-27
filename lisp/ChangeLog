@@ -1,5 +1,23 @@
 2008-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el: Rename VC methods that were missed when vc-status was
+	renamed to vc-dir.
+	* vc-svn.el (vc-svn-dir-extra-headers): Rename from
+	vc-svn-status-extra-headers.
+	* vc-hg.el (vc-hg-dir-printer): Rename from vc-hg-status-printer.
+	(vc-hg-dir-extra-header): Rename from vc-hg-status-extra-headers.
+	* vc-git.el (vc-git-dir-printer): Rename from vc-dir-status-printer.
+	(vc-git-dir-extra-headers): Rename from vc-git-status-extra-headers.
+	* vc-dir.el (vc-dir-mode): Use vc-dir-printer instead of
+	vc-dir-status-printer.
+	(vc-dir-headers): Use `dir-extra-headers' instead of
+	`status-extra-headers'
+	(vc-dir-printer): Rename from vc-dir-status-printer.
+	(vc-default-dir-extra-headers): Rename from
+	vc-default-status-extra-headers.
+	* vc-cvs.el (vc-cvs-dir-extra-headers): Rename from
+	vc-cvs-status-extra-headers.
+
 	* startup.el (server-name): Pacify byte compiler.
 	(command-line): If --daemon=SERVER_NAME was used, set server-name
 	before calling server-start.
