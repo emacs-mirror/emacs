@@ -1,3 +1,16 @@
+2008-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (pos_visible_p, redisplay_internal, message3_nolog)
+	(message2_nolog): Check FRAME_INITIAL_P instead of noninteractively.
+
+	* emacs.c (is_daemon): Remove.
+	(main): Don't set is_daemon.
+	(IS_DAEMON): New macro.
+	(Fdaemonp, Fdaemon_initialized): Use it.
+	(Fdaemon_initialized): Wrtie a char into the pipe to make sure the
+	parent exits.
+	(syms_of_emacs): Explicitly initialize daemon_pipe[1].
+
 2008-10-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsterm.m (ns_draw_window_cursor): When hbar cursor is on

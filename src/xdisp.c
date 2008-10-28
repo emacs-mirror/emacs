@@ -1323,7 +1323,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
   int visible_p = 0;
   struct buffer *old_buffer = NULL;
 
-  if (noninteractive)
+  if (FRAME_INITIAL_P (XFRAME (WINDOW_FRAME (w))))
     return visible_p;
 
   if (XBUFFER (w->buffer) != current_buffer)
@@ -7891,7 +7891,7 @@ message2_nolog (m, nbytes, multibyte)
   struct frame *sf = SELECTED_FRAME ();
   message_enable_multibyte = multibyte;
 
-  if (noninteractive)
+  if (FRAME_INITIAL_P (sf))
     {
       if (noninteractive_need_newline)
 	putc ('\n', stderr);
@@ -7990,7 +7990,7 @@ message3_nolog (m, nbytes, multibyte)
   struct frame *sf = SELECTED_FRAME ();
   message_enable_multibyte = multibyte;
 
-  if (noninteractive)
+  if (FRAME_INITIAL_P (sf))
     {
       if (noninteractive_need_newline)
 	putc ('\n', stderr);
@@ -8088,7 +8088,7 @@ message_with_string (m, string, log)
 	    putc ('\n', stderr);
 	  noninteractive_need_newline = 0;
 	  fprintf (stderr, m, SDATA (string));
-	  if (cursor_in_echo_area == 0)
+	  if (!cursor_in_echo_area)
 	    fprintf (stderr, "\n");
 	  fflush (stderr);
 	}
@@ -11300,7 +11300,7 @@ redisplay_internal (preserve_echo_area)
   /* No redisplay if running in batch mode or frame is not yet fully
      initialized, or redisplay is explicitly turned off by setting
      Vinhibit_redisplay.  */
-  if (noninteractive
+  if (FRAME_INITIAL_P (SELECTED_FRAME ())
       || !NILP (Vinhibit_redisplay))
     return;
 

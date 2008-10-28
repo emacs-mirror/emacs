@@ -235,14 +235,14 @@ int noninteractive;
 
 int noninteractive1;
 
-/* Nonzero means Emacs was started as a daemon.  */
-int is_daemon = 0;
 /* Name for the server started by the daemon.*/
 static char *daemon_name;
 
 /* Pipe used to send exit notification to the daemon parent at
    startup.  */
 static int daemon_pipe[2];
+
+#define IS_DAEMON (daemon_pipe[1] != 0)
 
 /* Save argv and argc.  */
 char **initial_argv;
@@ -1086,6 +1086,20 @@ main (int argc, char **argv)
       /* Start as a daemon: fork a new child process which will run the
 	 rest of the initialization code, then exit.
 
+	 Detaching a daemon requires the following steps:
+	 - fork
+	 - setsid
+	 - exit the parent
+	 - close the tty file-descriptors
+
+	 We only want to do the last 2 steps once the daemon is ready to
+	 serve requests, i.e. after loading .emacs (initialization).
+	 OTOH initialization may start subprocesses (e.g. ispell) and these
+	 should be run from the proper process (the one that will end up
+	 running as daemon) and with the proper "session id" in order for
+	 them to keep working after detaching, so fork and setsid need to be
+	 performed before initialization.
+
 	 We want to avoid exiting before the server socket is ready, so
 	 use a pipe for synchronization.  The parent waits for the child
 	 to close its end of the pipe (using `daemon-initialized')
@@ -1131,7 +1145,6 @@ main (int argc, char **argv)
        	daemon_name = xstrdup (dname_arg);
       /* Close unused reading end of the pipe.  */
       close (daemon_pipe[0]);
-      is_daemon = 1;
 #ifdef HAVE_SETSID
       setsid();
 #endif
@@ -2429,7 +2442,7 @@ DEFUN ("daemonp", Fdaemonp, Sdaemonp, 0, 0, 0,
 If the daemon was given a name argument, return that name. */)
   ()
 {
-  if (is_daemon)
+  if (IS_DAEMON)
     if (daemon_name)
       return build_string (daemon_name);
     else
@@ -2439,12 +2452,14 @@ If the daemon was given a name argument, return that name. */)
 }
 
 DEFUN ("daemon-initialized", Fdaemon_initialized, Sdaemon_initialized, 0, 0, 0,
-       doc: /* Mark the Emacs daemon as being initialized.  */)
+       doc: /* Mark the Emacs daemon as being initialized.
+This finishes the daemonization process by doing the other half of detaching
+from the parent process and its tty file descriptors.  */)
   ()
 {
   int nfd;
 
-  if (!is_daemon)
+  if (!IS_DAEMON)
     error ("This function can only be called if emacs is run as a daemon");
 
   if (daemon_pipe[1] < 0)
@@ -2460,7 +2475,14 @@ DEFUN ("daemon-initialized", Fdaemon_initialized, Sdaemon_initialized, 0, 0, 0,
   dup2 (nfd, 2);
   close (nfd);
 
-  /* Closing the pipe will notify the parent that it can exit.  */
+  /* Closing the pipe will notify the parent that it can exit.
+     FIXME: In case some other process inherited the pipe, closing it here
+     won't notify the parent because it's still open elsewhere, so we
+     additionally send a byte, just to make sure the parent really exits.
+     Instead, we should probably close the pipe in start-process and
+     call-process to make sure the pipe is never inherited by
+     subprocesses.  */
+  write (daemon_pipe[1], "\n", 1);
   close (daemon_pipe[1]);
   /* Set it to an invalid value so we know we've already run this function.  */
   daemon_pipe[1] = -1;
@@ -2584,6 +2606,9 @@ was found.  */);
 	       doc: /* Value of `current-time' after loading the init files.
 This is nil during initialization.  */);
   Vafter_init_time = Qnil;
+
+  /* Make sure IS_DAEMON starts up as false.  */
+  daemon_pipe[1] = 0;
 }
 
 /* arch-tag: 7bfd356a-c720-4612-8ab6-aa4222931c2e
