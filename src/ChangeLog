@@ -1,3 +1,7 @@
+2008-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* category.c (syms_of_category): Fix typo in docstring.
+
 2008-10-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* window.c (Fwindowp, Fwindow_live_p, Fwindow_minibuffer_p)

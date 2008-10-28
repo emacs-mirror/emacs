@@ -492,7 +492,7 @@ in this list.
 \(2) The case that character are in the same script is controlled by
 the variable `word-separating-categories'.
 
-Emacs find a word boundary between characters of the same script
+Emacs finds a word boundary between characters of the same script
 if they have categories matching some element of this list.
 
 More precisely, if an element of this list is a cons of category CAT1
