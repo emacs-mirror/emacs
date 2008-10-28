@@ -121,7 +121,7 @@ can be a list of regular expressions where the first element is the
 symbol `except'; then VC always stays local except for hosts matched
 by these regular expressions."
   :type '(choice (const :tag "Always stay local" t)
-		 (const :tag "Only for file operations" 'only-file)
+		 (const :tag "Only for file operations" only-file)
 		 (const :tag "Don't stay local" nil)
                  (list :format "\nExamine hostname and %v" :tag "Examine hostname ..."
                        (set :format "%v" :inline t (const :format "%t" :tag "don't" except))
@@ -969,7 +969,7 @@ state."
       ;; 		  "-f" "-n" "update" "-d" "-P")
       (vc-exec-after
        `(vc-cvs-after-dir-status (quote ,update-function))))))
-  
+
 (defun vc-cvs-dir-status-files (dir files default-state update-function)
   "Create a list of conses (file . state) for DIR."
   (apply 'vc-cvs-command (current-buffer) 'async dir "-f" "status" files)
