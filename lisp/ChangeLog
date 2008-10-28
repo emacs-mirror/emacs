@@ -2,7 +2,7 @@
 
 	* follow.el (follow-scroll-down, follow-calc-win-end)
 	(follow-estimate-first-window-start): Reduce effective window
-	height when header line is present.
+	height when header line is present.  (Bug#925)
 
 2008-10-28  Juanma Barranquero  <lekktu@gmail.com>
 
