@@ -4416,6 +4416,7 @@
 	(vc-hg-diff): If no file is passed, use default-directory for cwd.
 
 	* vc-bzr.el (vc-bzr-log-view-mode): Set log-view-per-file-logs.
+
 	* vc-svn.el (vc-svn-log-view-mode): New derived mode.
 
 2008-06-15  Michael Albinus  <michael.albinus@gmx.de>
