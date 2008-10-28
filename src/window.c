@@ -195,7 +195,7 @@ extern EMACS_INT scroll_margin;
 extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
-       doc: /* Returns t if OBJECT is a window.  */)
+       doc: /* Return t if OBJECT is a window.  */)
      (object)
      Lisp_Object object;
 {
@@ -203,7 +203,7 @@ DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
 }
 
 DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
-       doc: /* Returns t if OBJECT is a window which is currently visible.  */)
+       doc: /* Return t if OBJECT is a window which is currently visible.  */)
      (object)
      Lisp_Object object;
 {
@@ -284,7 +284,7 @@ used by that frame.  */)
 }
 
 DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 0, 1, 0,
-       doc: /* Returns non-nil if WINDOW is a minibuffer window.
+       doc: /* Return non-nil if WINDOW is a minibuffer window.
 WINDOW defaults to the selected window.  */)
      (window)
      Lisp_Object window;
@@ -897,7 +897,7 @@ DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
        doc: /* Return non-nil if COORDINATES are in WINDOW.
 COORDINATES is a cons of the form (X . Y), X and Y being distances
 measured in characters from the upper-left corner of the frame.
-\(0 .  0) denotes the character in the upper left corner of the
+\(0 . 0) denotes the character in the upper left corner of the
 frame.
 If COORDINATES are in the text portion of WINDOW,
    the coordinates relative to the window are returned.
@@ -3430,7 +3430,7 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
   bzero (&w->last_cursor, sizeof w->last_cursor);
   w->window_end_valid = Qnil;
   if (!(keep_margins_p && samebuf))
-    { /* If we're not actually changing the buffer, Don't reset hscroll and
+    { /* If we're not actually changing the buffer, don't reset hscroll and
 	 vscroll.  This case happens for example when called from
 	 change_frame_size_1, where we use a dummy call to
 	 Fset_window_buffer on the frame's selected window (and no other)
@@ -5451,7 +5451,7 @@ DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 2, "^P\np",
 Default for ARG is window width minus 2.
 Value is the total amount of leftward horizontal scrolling in
 effect after the change.
-If SET_MINIMUM is non-nil, the new scroll amount becomes the
+If SET-MINIMUM is non-nil, the new scroll amount becomes the
 lower bound for automatic scrolling, i.e. automatic scrolling
 will not scroll a window to a column less than the value returned
 by this function.  This happens in an interactive call.  */)
@@ -5481,7 +5481,7 @@ DEFUN ("scroll-right", Fscroll_right, Sscroll_right, 0, 2, "^P\np",
 Default for ARG is window width minus 2.
 Value is the total amount of leftward horizontal scrolling in
 effect after the change.
-If SET_MINIMUM is non-nil, the new scroll amount becomes the
+If SET-MINIMUM is non-nil, the new scroll amount becomes the
 lower bound for automatic scrolling, i.e. automatic scrolling
 will not scroll a window to a column less than the value returned
 by this function.  This happens in an interactive call.  */)

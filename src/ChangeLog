@@ -1,3 +1,9 @@
+2008-10-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fwindowp, Fwindow_live_p, Fwindow_minibuffer_p)
+	(Fcoordinates_in_window_p, Fscroll_left, Fscroll_right):
+	Fix typos in docstrings.
+
 2008-10-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs.c (daemon_pipe): Make non-static.
