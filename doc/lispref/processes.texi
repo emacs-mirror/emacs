@@ -791,8 +791,8 @@ This function returns the name of @var{process}.
 
 @defun process-status process-name
 This function returns the status of @var{process-name} as a symbol.
-The argument @var{process-name} must be a process, a buffer, a
-process name (string) or a buffer name (string).
+The argument @var{process-name} must be a process, a buffer, or a
+process name (a string).
 
 The possible values for an actual subprocess are:
 
@@ -822,10 +822,6 @@ if @var{process-name} is not the name of an existing process.
 @end table
 
 @smallexample
-@group
-(process-status "shell")
-     @result{} run
-@end group
 @group
 (process-status (get-buffer "*shell*"))
      @result{} run
