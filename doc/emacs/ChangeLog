@@ -1,3 +1,10 @@
+2008-10-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.texi (Indentation): Replace list with paragraphed text,
+	putting description of syntax-driven indentation first.  Document new
+	effect of active regions on tab.
+	(Tab Stops): Note that editable tab stops affect indentation commands.
+
 2008-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* cmdargs.texi (Initial Options): Document -daemon=SERVER_NAME.
