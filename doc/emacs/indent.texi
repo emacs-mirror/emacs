@@ -37,11 +37,11 @@ Indent from point to the next prespecified tab stop column
 Indent from point to under an indentation point in the previous line.
 @end table
 
-  In most major modes, the @key{tab} key runs the command
+  In most major modes, the @key{TAB} key runs the command
 @code{indent-for-tab-command}, which either performs indentation or
 inserts whitespace at point, depending on the situation.
 
-  In programming modes such as Lisp mode and C mode, @key{tab} indents
+  In programming modes such as Lisp mode and C mode, @key{TAB} indents
 the current line if the region is inactive.  If the region is active,
 it indents every line in the region (@pxref{Mark}).  Indentation means
 adding or removing some combination of space and tab characters
@@ -49,12 +49,12 @@ adding or removing some combination of space and tab characters
 makes sense given the text in the preceding lines.  Exactly how
 indentation is performed depends on the major mode.
 
-  In text modes, @key{tab} inserts some whitespace characters to
+  In text modes, @key{TAB} inserts some whitespace characters to
 advance point to the next tab stop (@pxref{Tab Stops}).  For the
 purposes of this command, the position of the first non-whitespace
 character on the preceding line is treated as an additional tab stop.
-You can therefore use @key{tab} to ``align'' point with the preceding
-line.  If the region is active, @key{tab} performs this action on
+You can therefore use @key{TAB} to ``align'' point with the preceding
+line.  If the region is active, @key{TAB} performs this action on
 every line in the region.
 
 @vindex tab-width
