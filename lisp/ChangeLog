@@ -1,3 +1,7 @@
+2008-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el: Require diff-mode at run-time as well.
+
 2008-10-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* vc-cvs.el (vc-cvs-stay-local): Fix typo in choice.

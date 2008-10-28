@@ -44,7 +44,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl) (require 'diff-mode))
+(eval-when-compile (require 'cl))
+(require 'diff-mode)                    ;For diff-auto-refine-mode.
 
 
 ;;; The real definition comes later.
