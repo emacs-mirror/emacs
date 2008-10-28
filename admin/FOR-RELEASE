@@ -126,7 +126,7 @@ fortran-xtra.texi -- rgm
 frames.texi       -- cyd
 glossary.texi
 help.texi
-indent.texi
+indent.texi       -- cyd
 killing.texi      -- cyd
 kmacro.texi       -- cyd
 macos.texi     -- contents need to be evaluated and see what is still
