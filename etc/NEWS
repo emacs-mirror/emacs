@@ -352,7 +352,7 @@ region is active.  Otherwise, it fills the current paragraph.
 *** When Transient Mark mode is on, M-$ now checks spelling of the
 region if the region is active.  Otherwise, it checks spelling of the
 word at point.
-
++++
 *** When Transient Mark mode is on, TAB now indents the region if the
 region is active.
 
