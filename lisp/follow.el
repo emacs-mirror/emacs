@@ -624,7 +624,7 @@ Works like `scroll-up' when not in Follow mode."
 	     (select-window win)
 	     (goto-char start)
 	     (vertical-motion (- (- (window-height win)
-				    1
+				    (if header-line-format 2 1)
 				    next-screen-context-lines)))
 	     (set-window-start win (point))
 	     (goto-char start)
@@ -887,7 +887,9 @@ Returns (end-pos end-of-buffer-p)"
       (prog1
 	  (save-excursion
 	    (goto-char (window-start))
-	    (setq height (- (window-height) 1))
+	    (setq height
+		  (- (window-height)
+		     (if header-line-format 2 1)))
 	    (setq buffer-end-p
 		  (if (bolp)
 		      (not (= height (vertical-motion height)))
@@ -1219,7 +1221,9 @@ position of the first window.  Otherwise it is a good guess."
       ;(setq exact (bolp))
       (vertical-motion 0 win)
       (while pred
-	(vertical-motion (- 1 (window-height (car pred))) (car pred))
+	(vertical-motion
+	 (- (if header-line-format 2 1)
+	    (window-height (car pred))) (car pred))
 	(if (not (bolp))
 	  (setq exact nil))
 	(setq pred (cdr pred)))
@@ -1353,7 +1357,7 @@ non-first windows in Follow mode."
 ;; the screen if it should be unaligned.
 ;;
 ;; We divide the check into two parts; whether we are at the end or not.
-;; This is due to the fact that the end can actaually be visible
+;; This is due to the fact that the end can actually be visible
 ;; in several window even though they are aligned.
 
 (defun follow-post-command-hook ()
