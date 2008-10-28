@@ -159,7 +159,7 @@ symbol `except'; then VC always stays local except for hosts matched
 by these regular expressions."
   :type '(choice
 	  (const :tag "Always stay local" t)
-	  (const :tag "Only for file operations" 'only-file)
+	  (const :tag "Only for file operations" only-file)
 	  (const :tag "Don't stay local" nil)
 	  (list :format "\nExamine hostname and %v" :tag "Examine hostname ..."
 		(set :format "%v" :inline t (const :format "%t" :tag "don't" except))
@@ -334,7 +334,7 @@ If WITNESS if not found, return nil, otherwise return the root."
   (let ((locate-dominating-stop-dir-regexp
          (or vc-ignore-dir-regexp locate-dominating-stop-dir-regexp)))
     (locate-dominating-file file witness)))
-    
+
 (define-obsolete-function-alias 'vc-find-root 'locate-dominating-file "23.1")
 
 ;; Access functions to file properties
