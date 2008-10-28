@@ -1,3 +1,10 @@
+2008-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* org-agenda.el (org-agenda-align-tags): Replace use of cl `adjoin'.
+
+	* org-list.el (outline-next-heading, outline-back-to-heading):
+	Fix declarations.
+
 2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-agenda.el (org-format-agenda-item)
