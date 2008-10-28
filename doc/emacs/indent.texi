@@ -5,6 +5,7 @@
 @node Indentation, Text, Major Modes, Top
 @chapter Indentation
 @cindex indentation
+@cindex tabs
 @cindex columns (indentation)
 
   This chapter describes the Emacs commands that add, remove, or
@@ -12,7 +13,7 @@ adjust indentation.
 
 @table @kbd
 @item @key{TAB}
-Indent the current line ``appropriately'' in a mode-dependent fashion.
+Indent the current line appropriately, in a mode-dependent fashion.
 @item @kbd{C-j}
 Perform @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
 @item M-^
@@ -36,47 +37,47 @@ Indent from point to the next prespecified tab stop column
 Indent from point to under an indentation point in the previous line.
 @end table
 
-  Emacs supports four general categories of operations that could all
-be called `indentation':
+  In most major modes, the @key{tab} key runs the command
+@code{indent-for-tab-command}, which either performs indentation or
+inserts whitespace at point, depending on the situation.
 
-@enumerate
-@item
-Insert a tab character.  You can type @kbd{C-q @key{TAB}} to do this.
+  In programming modes such as Lisp mode and C mode, @key{tab} indents
+the current line if the region is inactive.  If the region is active,
+it indents every line in the region (@pxref{Mark}).  Indentation means
+adding or removing some combination of space and tab characters
+(@dfn{whitespace characters}) at the start of the line, in a way that
+makes sense given the text in the preceding lines.  Exactly how
+indentation is performed depends on the major mode.
 
-A tab character is displayed as a stretch of whitespace which extends
-to the next display tab stop position, and the default width of a tab
-stop is eight.  @xref{Text Display}, for more details.
+  In text modes, @key{tab} inserts some whitespace characters to
+advance point to the next tab stop (@pxref{Tab Stops}).  For the
+purposes of this command, the position of the first non-whitespace
+character on the preceding line is treated as an additional tab stop.
+You can therefore use @key{tab} to ``align'' point with the preceding
+line.  If the region is active, @key{tab} performs this action on
+every line in the region.
 
-@item
-Insert whitespace up to the next tab stop.  You can set tab stops at
-your choice of column positions, then type @kbd{M-i} to advance to the
-next tab stop.  The default tab stop settings have a tab stop every
-eight columns, which means by default @kbd{M-i} inserts a tab
-character.  To set the tab stops, use @kbd{M-x edit-tab-stops}.
+@vindex tab-width
+  Indentation is often performed with the help of @dfn{tab characters}
+(ASCII code 9), which are displayed as a stretch of empty space
+extending to the next @dfn{display tab stop}.  By default, there is
+one display tab stop every eight columns; the number of columns is
+determined by the variable @code{tab-width}.  You can insert a single
+tab character by typing @kbd{C-q @key{TAB}}.  @xref{Text Display}.
 
-@item
-Align a line with the previous line.  More precisely, the command
-@kbd{M-x indent-relative} indents the current line under the beginning
-of some word in the previous line.  In Fundamental mode and in Text
-mode, @key{TAB} runs the command @code{indent-relative}.
+@findex edit-tab-stops
+@findex tab-to-tab-stop
+@kindex M-i
+  The command @kbd{M-i} (@code{tab-to-tab-stop}) adjusts the
+whitespace characters around point, inserting just enough whitespace
+to advance point up to the next tab stop.  By default, this involves
+deleting the existing whitespace and inserting a single tab character.
 
-@item
-The most sophisticated method is @dfn{syntax-driven indentation}.
-Most programming languages have an indentation convention.  For Lisp
-code, lines are indented according to their nesting in parentheses.  C
-code uses the same general idea, but many details are different.
-
-@kindex TAB
-Type @key{TAB} to do syntax-driven indentation, in a mode that
-supports it.  It realigns the current line according with the syntax
-of the preceding lines.  No matter where in the line you are when you
-type @key{TAB}, it aligns the line as a whole.
-@end enumerate
-
-  Normally, most of the above methods insert an optimal mix of tabs and
-spaces to align to the desired column.  @xref{Just Spaces}, for how to
-disable use of tabs.  However, @kbd{C-q @key{TAB}} always inserts a
-tab, even when tabs are disabled for the indentation commands.
+  Normally, most of these indentation commands insert an optimal mix
+of tabs and spaces to align to the desired column.  @xref{Just
+Spaces}, for how to disable use of tabs.  However, @kbd{C-q @key{TAB}}
+always inserts a tab, even when tabs are disabled for the indentation
+commands.
 
 @menu
 * Indentation Commands::  Various commands and techniques for indentation.
@@ -99,7 +100,7 @@ or else at the end of the line.
 @key{TAB}}.  To make an indented line after the current line, use
 @kbd{C-e C-j}.
 
-  If you just want to insert a tab character in the buffer, you can type
+  If you just want to insert a tab character in the buffer, type
 @kbd{C-q @key{TAB}}.
 
 @kindex C-M-o
@@ -182,11 +183,12 @@ next tab stop column.
 @findex edit-tab-stops-note-changes
 @kindex C-c C-c @r{(Edit Tab Stops)}
 @vindex tab-stop-list
-  You can specify the tab stops used by @kbd{M-i}.  They are stored in a
-variable called @code{tab-stop-list}, as a list of column-numbers in
-increasing order.
+  You can change the tab stops used by @kbd{M-i} and other indentation
+commands, so that they need not be spaced every eight characters, or
+even regularly spaced.  The tab stops are stored in the variable
+@code{tab-stop-list}, as a list of column numbers in increasing order.
 
-  The convenient way to set the tab stops is with @kbd{M-x
+  A convenient way to set the tab stops is with @kbd{M-x
 edit-tab-stops}, which creates and selects a buffer containing a
 description of the tab stop settings.  You can edit this buffer to
 specify different tab stops, and then type @kbd{C-c C-c} to make those
@@ -211,9 +213,12 @@ To install changes, type C-c C-c
   The first line contains a colon at each tab stop.  The remaining lines
 are present just to help you see where the colons are and know what to do.
 
-  Note that the tab stops that control @code{tab-to-tab-stop} have nothing
-to do with displaying tab characters in the buffer.  @xref{Text Display},
-for more information on that.
+  Note that the tab stops that control @code{tab-to-tab-stop} have
+nothing to do with how tab characters are displayed in the buffer.
+Tab characters are always displayed as empty spaces extending to the
+next display tab stop, which occurs every @code{tab-width} columns
+regardless of the contents of @code{tab-stop-list}.  @xref{Text
+Display}.
 
 @node Just Spaces,, Tab Stops, Indentation
 @section Tabs vs. Spaces
@@ -227,8 +232,9 @@ but there is a default value which you can change as well.
 @xref{Locals}.
 
   A tab is not always displayed in the same way.  By default, tabs are
-eight columns wide, but some people like to customize their tools to
-use a different tab width.  So by using spaces only, you can make sure
+eight columns wide, but some people like to customize their editors to
+use a different tab width (e.g., by changing the variable
+@code{tab-width} in Emacs).  By using spaces only, you can make sure
 that your file looks the same regardless of the tab width setting.
 
 @findex tabify
