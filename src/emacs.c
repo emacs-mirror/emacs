@@ -240,9 +240,7 @@ static char *daemon_name;
 
 /* Pipe used to send exit notification to the daemon parent at
    startup.  */
-static int daemon_pipe[2];
-
-#define IS_DAEMON (daemon_pipe[1] != 0)
+int daemon_pipe[2];
 
 /* Save argv and argc.  */
 char **initial_argv;

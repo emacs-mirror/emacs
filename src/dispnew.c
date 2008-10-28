@@ -6843,8 +6843,8 @@ init_display ()
 #endif /* SIGWINCH */
 
   /* If running as a daemon, no need to initialize any frames/terminal. */
-  if (is_daemon)
-    return;
+  if (IS_DAEMON)
+      return;
 
   /* If the user wants to use a window system, we shouldn't bother
      initializing the terminal.  This is especially important when the
