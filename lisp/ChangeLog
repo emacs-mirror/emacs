@@ -1,3 +1,8 @@
+2008-10-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* startup.el (inhibit-startup-screen): Reflow docstring.
+	(user-mail-address, tool-bar-images-pixel-height): Fix docstring typos.
+
 2008-10-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* face-remap.el (text-scale-increase, text-scale-decrease)

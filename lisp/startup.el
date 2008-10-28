@@ -55,8 +55,8 @@ directory using `find-file'.  If t, open the `*scratch*' buffer."
 (defcustom inhibit-startup-screen nil
   "Non-nil inhibits the startup screen.
 
-This is for use in your personal init file (but NOT site-start.el), once
-you are familiar with the contents of the startup screen."
+This is for use in your personal init file (but NOT site-start.el),
+once you are familiar with the contents of the startup screen."
   :type 'boolean
   :group 'initialization)
 
@@ -220,8 +220,8 @@ and VALUE is the value which is given to that frame parameter
     ("-cr" 1 ns-handle-switch cursor-color)
     ("-vb" 0 ns-handle-switch vertical-scroll-bars t)
     ("-hb" 0 ns-handle-switch horizontal-scroll-bars t)
-    ("-bd" 1 ns-handle-switch) 
-    ;; ("--border-width" 1 ns-handle-numeric-switch border-width) 
+    ("-bd" 1 ns-handle-switch)
+    ;; ("--border-width" 1 ns-handle-numeric-switch border-width)
     ;; ("--display" 1 ns-handle-display)
     ("--name" 1 ns-handle-name-switch)
     ("--title" 1 ns-handle-switch title)
@@ -342,7 +342,7 @@ this variable usefully is to set it while building and dumping Emacs."
 			       "")
   "Full mailing address of this user.
 This is initialized with environment variable `EMAIL' or, as a
-fallback, using `mail-host-address'. This is done after your
+fallback, using `mail-host-address'.  This is done after your
 init file is read, in case it sets `mail-host-address'."
   :type 'string
   :group 'mail)
@@ -603,7 +603,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ("--color"		  . "-color")))
 
 (defconst tool-bar-images-pixel-height 24
-  "Height in pixels of images in the tool bar.")
+  "Height in pixels of images in the tool-bar.")
 
 (defvar tool-bar-originally-present nil
   "Non-nil if tool-bars are present before user and site init files are read.")
