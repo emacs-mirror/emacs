@@ -38,8 +38,8 @@
 
 (declare-function org-invisible-p "org" ())
 (declare-function org-on-heading-p "org" (&optional invisible-ok))
-(declare-function outline-next-heading "org" ())
-(declare-function outline-back-to-heading "org" (&optional invisible-ok))
+(declare-function outline-next-heading "outline" ())
+(declare-function outline-back-to-heading "outline" (&optional invisible-ok))
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-back-over-empty-lines "org" ())
 (declare-function org-skip-whitespace "org" ())
