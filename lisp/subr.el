@@ -2169,10 +2169,12 @@ directory if it does not exist."
 	  (at-home (and old-name (expand-file-name old-name home))))
      (if (and at-home (file-readable-p at-home))
 	 at-home
-       (unless (or purify-flag ;; don't create dir while dumping
-		   (file-accessible-directory-p
-		    (directory-file-name user-emacs-directory)))
-	 (make-directory user-emacs-directory t)) ;; don't catch errors
+       ;; Make sure `user-emacs-directory' exists,
+       ;; unless we're in batch mode or dumping Emacs
+       (or noninteractive
+	   purify-flag
+	   (file-accessible-directory-p (directory-file-name user-emacs-directory))
+	   (make-directory user-emacs-directory))
        (expand-file-name new-name user-emacs-directory)))))
 
 
