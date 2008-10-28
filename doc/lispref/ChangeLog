@@ -1,3 +1,8 @@
+2008-10-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* processes.texi (Process Information): Note that process-status
+	does not accept buffer names.
+
 2008-10-27  Seweryn Kokot  <sewkokot@gmail.com>  (tiny change)
 
 	* positions.texi (Skipping Characters): Correct return value of
