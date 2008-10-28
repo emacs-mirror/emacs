@@ -1,3 +1,7 @@
+2008-10-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* vc-cvs.el (vc-cvs-stay-local): Fix typo in choice.
+
 2008-10-28  Phil Sung  <psung@mit.edu>  (tiny change)
 
 	* follow.el (follow-scroll-down, follow-calc-win-end)
