@@ -335,8 +335,6 @@ If WITNESS if not found, return nil, otherwise return the root."
          (or vc-ignore-dir-regexp locate-dominating-stop-dir-regexp)))
     (locate-dominating-file file witness)))
 
-(define-obsolete-function-alias 'vc-find-root 'locate-dominating-file "23.1")
-
 ;; Access functions to file properties
 ;; (Properties should be _set_ using vc-file-setprop, but
 ;; _retrieved_ only through these functions, which decide
