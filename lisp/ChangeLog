@@ -1,5 +1,8 @@
 2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
+	* minibuffer.el (delete-minibuffer-contents): Delete all
+	minibuffer contents instead of just the current field.
+
 	* tmm.el (tmm-get-keymap): Handle case where keyseq cache is
 	omitted.
 
