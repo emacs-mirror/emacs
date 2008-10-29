@@ -115,7 +115,7 @@ The Emacs 22 icon is available as `emacs22.png' in the same location.
 * Changes in Emacs 23.1
 
 ** Improved X Window System support
-
++++
 *** Emacs now supports using both X displays and ttys in one session.
 With an Emacs server active (M-x server-start), `emacsclient -t'
 creates a tty frame connected to the running emacs server.  You can
@@ -124,12 +124,12 @@ frame on the current $DISPLAY (or a tty frame if $DISPLAY is not set).
 
 You can test for the presence of this feature in your Lisp code by
 testing for the `multi-tty' feature.
-
++++
 **** Emacsclient can now open new terminal frames.
 Now, the default behavior is to open a new Emacs frame by default.
 Use the -c option to get the old behavior of opening files in the
 currently selected Emacs frame.
-
++++
 *** Emacs can now start in background, as a daemon when using the
 --daemon command line argument.  It disconnects from the terminal and
 starts the server.  Clients can connect and create graphical or
