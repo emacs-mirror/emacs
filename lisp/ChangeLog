@@ -1,3 +1,13 @@
+2008-10-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tooltip.el (tooltip-functions): Rename from `tooltip-hook',
+	to follow naming conventions for abnormal hooks.  Doc fix.
+	(tooltip-mode, tooltip-timeout): Use it.
+	(tooltip-hook): New obsolete alias.
+	(tooltip-help-tips): Doc fix.
+
+	* progmodes/gud.el (gud-tooltip-mode): Use `tooltip-functions'.
+
 2008-10-29  Ulrich Mueller  <ulm@gentoo.org>
 
 	* server.el (server-socket-dir): Use TMPDIR (default /tmp) instead

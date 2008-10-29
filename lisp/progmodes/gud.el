@@ -3249,11 +3249,11 @@ Treats actions as defuns."
       (progn
 	(add-hook 'change-major-mode-hook 'gud-tooltip-change-major-mode)
 	(add-hook 'pre-command-hook 'tooltip-hide)
-	(add-hook 'tooltip-hook 'gud-tooltip-tips)
+	(add-hook 'tooltip-functions 'gud-tooltip-tips)
 	(define-key global-map [mouse-movement] 'gud-tooltip-mouse-motion))
     (unless tooltip-mode (remove-hook 'pre-command-hook 'tooltip-hide)
     (remove-hook 'change-major-mode-hook 'gud-tooltip-change-major-mode)
-    (remove-hook 'tooltip-hook 'gud-tooltip-tips)
+    (remove-hook 'tooltip-functions 'gud-tooltip-tips)
     (define-key global-map [mouse-movement] 'ignore)))
   (gud-tooltip-activate-mouse-motions-if-enabled)
   (if (and gud-comint-buffer
