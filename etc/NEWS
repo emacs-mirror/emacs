@@ -355,7 +355,7 @@ word at point.
 +++
 *** When Transient Mark mode is on, TAB now indents the region if the
 region is active.
-
++++
 *** `use-empty-active-region' controls whether an empty active region
 in Transient Mark mode should make commands operate on that empty
 region.
