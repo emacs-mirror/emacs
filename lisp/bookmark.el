@@ -330,7 +330,8 @@ Otherwise look for the corresponding bookmark in `bookmark-alist'."
 (defun bookmark-get-bookmark-record (bookmark)
   "Return the guts of the entry for BOOKMARK in `bookmark-alist'.
 That is, all information but the name."
-  (let ((alist (cdr (bookmark-get-bookmark bookmark))))
+  (let ((alist (cdr (or (bookmark-get-bookmark bookmark)
+			(error "Invalid bookmark %s" bookmark)))))
     ;; The bookmark objects can either look like (NAME ALIST) or
     ;; (NAME . ALIST), so we have to distinguish the two here.
     (if (and (null (cdr alist)) (consp (caar alist)))
