@@ -505,8 +505,10 @@ WINDOW defaults to the selected window.  */)
 }
 
 DEFUN ("window-height", Fwindow_height, Swindow_height, 0, 1, 0,
-       doc: /* Return the number of lines in WINDOW (including its mode line).
-WINDOW defaults to the selected window.  */)
+       doc: /* Return the number of lines in WINDOW.
+WINDOW defaults to the selected window.
+
+The return value includes WINDOW's mode line and header line, if any.  */)
      (window)
      Lisp_Object window;
 {
@@ -1510,7 +1512,9 @@ children be children of that parent instead.  ***/
 }
 
 DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
-       doc: /* Remove WINDOW from the display.  Default is selected window.  */)
+       doc: /* Remove WINDOW from its frame.
+WINDOW defaults to the selected window.  Return nil.
+Signal an error when WINDOW is the only window on its frame.  */)
      (window)
      register Lisp_Object window;
 {
@@ -3514,7 +3518,8 @@ This function throws an error when WINDOW is strongly dedicated to its
 buffer (that is `window-dedicated-p' returns t for WINDOW) and does not
 already display BUFFER-OR-NAME.
 
-This function runs the hook `window-scroll-functions'.  */)
+This function runs `window-scroll-functions' before running
+`window-configuration-change-hook'.  */)
      (window, buffer_or_name, keep_margins)
      register Lisp_Object window, buffer_or_name, keep_margins;
 {
@@ -5765,8 +5770,9 @@ DEFUN ("window-text-height", Fwindow_text_height, Swindow_text_height,
        0, 1, 0,
        doc: /* Return the height in lines of the text display area of WINDOW.
 WINDOW defaults to the selected window.
-This doesn't include the mode-line (or header-line if any) or any
-partial-height lines in the text display area.  */)
+
+The return value does neither include the mode line or header line, if
+any, nor any partial-height lines in the text display area.  */)
      (window)
      Lisp_Object window;
 {
