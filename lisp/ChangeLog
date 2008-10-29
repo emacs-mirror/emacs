@@ -5,6 +5,7 @@
 	(bookmark--jump-via, bookmark-insert): Callers changed.
 	(bookmark-jump-noselect): Wrapper function for
 	bookmark-handle-bookmark.
+	(bookmark-get-bookmark-record): Signal error for invalid bookmark.
 
 	* textmodes/ispell.el (ispell-word): Use use-region-p.
 
