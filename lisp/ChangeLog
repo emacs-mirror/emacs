@@ -1,3 +1,7 @@
+2008-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* vc-hooks.el (vc-find-root): Remove bogus alias.
+
 2008-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/quail.el (quail-show-guidance): Don't create
@@ -14,7 +18,7 @@
 	* vc-cvs.el (vc-cvs-stay-local): Fix typo in choice.
 	* vc-hooks.el (vc-stay-local): Likewise.
 
-2008-10-28  Phil Sung  <psung@mit.edu>  (tiny change)
+2008-10-28  Phil Sung  <psung@mit.edu>
 
 	* follow.el (follow-scroll-down, follow-calc-win-end)
 	(follow-estimate-first-window-start): Reduce effective window
