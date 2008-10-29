@@ -1,5 +1,8 @@
 2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
+	* tmm.el (tmm-get-keymap): Handle case where keyseq cache is
+	omitted.
+
 	* bookmark.el (bookmark-handle-bookmark): Rename from
 	bookmark-jump-noselect.
 	(bookmark--jump-via, bookmark-insert): Callers changed.
