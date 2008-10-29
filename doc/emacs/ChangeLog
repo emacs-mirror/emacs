@@ -1,5 +1,7 @@
 2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
+	* emacs.texi (Top): Update node listings.
+
 	* misc.texi (Emacs Server): Rewrite.  Document daemon-mode.  Don't
 	mention obsolete emacs.bash script.
 	(Invoking emacsclient): Rewrite, moving optional arguments to
