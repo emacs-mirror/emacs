@@ -2467,7 +2467,7 @@ from the parent process and its tty file descriptors.  */)
     error ("This function can only be called after loading the init files");
 
   /* Get rid of stdin, stdout and stderr.  */
-  open ("/dev/null", O_RDWR);
+  nfd = open ("/dev/null", O_RDWR);
   dup2 (nfd, 0);
   dup2 (nfd, 1);
   dup2 (nfd, 2);
