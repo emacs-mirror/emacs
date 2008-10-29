@@ -269,6 +269,8 @@ fields are supported.")
 </request>"
   "The Xesam fulltext query XML.")
 
+(declare-function dbus-get-unique-name "dbusbind.c" (bus))
+
 (defvar xesam-dbus-unique-names
   (list (cons :system (dbus-get-unique-name :system))
 	(cons :session (dbus-get-unique-name :session)))
@@ -374,6 +376,8 @@ If PROPERTY is not existing, retrieve it from ENGINE first."
   "Remove service from `xesam-search-engines'."
   (setq xesam-search-engines
 	(delete (assoc (car args) xesam-search-engines) xesam-search-engines)))
+
+(defvar dbus-debug)
 
 (defun xesam-search-engines ()
   "Return Xesam search engines, stored in `xesam-search-engines'.
