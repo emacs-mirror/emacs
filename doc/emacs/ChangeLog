@@ -8,7 +8,8 @@
 	mention obsolete emacs.bash script.
 	(Invoking emacsclient): Rewrite, moving optional arguments to
 	emacsclient Options.
-	(emacsclient Options): New node.
+	(emacsclient Options): New node.  Document server-use-tcp and
+	server-host.
 
 2008-10-28  Chong Yidong  <cyd@stupidchicken.com>
 
