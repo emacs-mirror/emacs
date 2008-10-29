@@ -1,3 +1,11 @@
+2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Emacs Server): Rewrite.  Document daemon-mode.  Don't
+	mention obsolete emacs.bash script.
+	(Invoking emacsclient): Rewrite, moving optional arguments to
+	emacsclient Options.
+	(emacsclient Options): New node.
+
 2008-10-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* indent.texi (Indentation): Replace list with paragraphed text,
