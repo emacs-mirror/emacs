@@ -1,5 +1,7 @@
 2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
+	* mark.texi (Using Region): Document use-empty-active-region.
+
 	* emacs.texi (Top): Update node listings.
 
 	* misc.texi (Emacs Server): Rewrite.  Document daemon-mode.  Don't
