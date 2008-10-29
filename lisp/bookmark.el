@@ -934,7 +934,7 @@ Default to file name if it's nil."
 Useful for example to unhide text in `outline-mode'.")
 
 (defun bookmark--jump-via (bookmark display-function)
-  (bookmark-jump-noselect bookmark)
+  (bookmark-handle-bookmark bookmark)
   (save-current-buffer
     (funcall display-function (current-buffer)))
   (let ((win (get-buffer-window (current-buffer) 0)))
@@ -1003,7 +1003,15 @@ be retrieved from a VC backend, else return nil."
      ;; Last possibility: try VC
      (if (vc-backend file) file))))
 
+;; This function is present for Emacs 22 compatibility only.
 (defun bookmark-jump-noselect (bookmark)
+  "Return the location pointed to by the bookmark BOOKMARK.
+The return value has the form (BUFFER . POINT)."
+  (save-excursion
+    (bookmark-handle-bookmark bookmark)
+    (cons (current-buffer) (point))))
+
+(defun bookmark-handle-bookmark (bookmark)
   "Call BOOKMARK's handler or `bookmark-default-handler' if it has none.
 Changes current buffer and point and returns nil, or signals a `file-error'.
 BOOKMARK can be a bookmark record used internally by some other
@@ -1177,7 +1185,7 @@ this."
   (let ((orig-point (point))
 	(str-to-insert
 	 (save-current-buffer
-           (bookmark-jump-noselect bookmark)
+           (bookmark-handle-bookmark bookmark)
 	   (buffer-string))))
     (insert str-to-insert)
     (push-mark)
