@@ -1,3 +1,8 @@
+2008-10-29  Ulrich Mueller  <ulm@gentoo.org>
+
+	* server.el (server-socket-dir): Use TMPDIR (default /tmp) instead
+	of hardcoded /tmp.
+
 2008-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* net/xesam.el (dbus-get-unique-name, dbus-debug): Declare.

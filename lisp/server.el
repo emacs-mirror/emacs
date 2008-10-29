@@ -202,7 +202,8 @@ are done with it in the server.")
 
 (defvar server-name "server")
 
-(defvar server-socket-dir (format "/tmp/emacs%d" (user-uid))
+(defvar server-socket-dir
+  (format "%s/emacs%d" (or (getenv "TMPDIR") "/tmp") (user-uid))
   "The directory in which to place the server socket.")
 
 (defun server-clients-with (property value)

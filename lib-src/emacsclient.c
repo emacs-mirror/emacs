@@ -1128,6 +1128,7 @@ set_local_socket ()
     int default_sock = !socket_name;
     int saved_errno = 0;
     char *server_name = "server";
+    char *tmpdir;
 
     if (socket_name && !index (socket_name, '/') && !index (socket_name, '\\'))
       { /* socket_name is a file name component.  */
@@ -1138,9 +1139,12 @@ set_local_socket ()
 
     if (default_sock)
       {
- 	socket_name = alloca (100 + strlen (server_name));
- 	sprintf (socket_name, "/tmp/emacs%d/%s",
- 		 (int) geteuid (), server_name);
+	tmpdir = egetenv ("TMPDIR");
+	if (!tmpdir)
+	  tmpdir = "/tmp";
+	socket_name = alloca (32 + strlen (tmpdir) + strlen (server_name));
+	sprintf (socket_name, "%s/emacs%d/%s",
+		 tmpdir, (int) geteuid (), server_name);
       }
 
     if (strlen (socket_name) < sizeof (server.sun_path))
@@ -1174,9 +1178,10 @@ set_local_socket ()
 	    if (pw && (pw->pw_uid != geteuid ()))
 	      {
 		/* We're running under su, apparently. */
-		socket_name = alloca (100 + strlen (server_name));
-		sprintf (socket_name, "/tmp/emacs%d/%s",
-			 (int) pw->pw_uid, server_name);
+		socket_name = alloca (32 + strlen (tmpdir)
+				      + strlen (server_name));
+		sprintf (socket_name, "%s/emacs%d/%s",
+			 tmpdir, (int) pw->pw_uid, server_name);
 
 		if (strlen (socket_name) < sizeof (server.sun_path))
 		  strcpy (server.sun_path, socket_name);

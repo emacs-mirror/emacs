@@ -1,3 +1,8 @@
+2008-10-29  Ulrich Mueller  <ulm@gentoo.org>
+
+	* emacsclient.c (set_local_socket): Use TMPDIR (default /tmp)
+	instead of hardcoded /tmp.
+
 2008-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacsclient.c (longopts, print_help_and_exit): Add -nw.
