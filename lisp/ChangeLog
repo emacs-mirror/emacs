@@ -1,5 +1,7 @@
 2008-10-29  Glenn Morris  <rgm@gnu.org>
 
+	* net/xesam.el (dbus-get-unique-name, dbus-debug): Declare.
+
 	* vc-hooks.el (vc-find-root): Remove bogus alias.
 
 2008-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
