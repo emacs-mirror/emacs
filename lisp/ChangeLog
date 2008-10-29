@@ -1,3 +1,10 @@
+2008-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/quail.el (quail-show-guidance): Don't create
+	a guidance-frame if current buffer is not a minibuffer, since even if
+	selected-window is mini-p, the buffer will never be displayed in it, so
+	it wil be usable for guidance.
+
 2008-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el: Require diff-mode at run-time as well.
