@@ -1,3 +1,7 @@
+2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/ispell.el (ispell-word): Use use-region-p.
+
 2008-10-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* tooltip.el (tooltip-functions): Rename from `tooltip-hook',
