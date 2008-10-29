@@ -1,5 +1,11 @@
 2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
+	* bookmark.el (bookmark-handle-bookmark): Rename from
+	bookmark-jump-noselect.
+	(bookmark--jump-via, bookmark-insert): Callers changed.
+	(bookmark-jump-noselect): Wrapper function for
+	bookmark-handle-bookmark.
+
 	* textmodes/ispell.el (ispell-word): Use use-region-p.
 
 2008-10-29  Juanma Barranquero  <lekktu@gmail.com>
