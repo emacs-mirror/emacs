@@ -300,7 +300,9 @@ That is what completion commands operate on."
 (defun delete-minibuffer-contents ()
   "Delete all user input in a minibuffer.
 If the current buffer is not a minibuffer, erase its entire contents."
-  (delete-field))
+  ;; We used to do `delete-field' here, but when file name shadowing
+  ;; is on, the field doesn't cover the entire minibuffer contents.
+  (delete-region (minibuffer-prompt-end) (point-max)))
 
 (defcustom completion-auto-help t
   "Non-nil means automatically provide help for invalid completion input.
