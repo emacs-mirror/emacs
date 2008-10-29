@@ -153,8 +153,10 @@
 	     (setq win (selected-window)))
 	    (t
 	     (switch-to-buffer buf)))
-      (fit-window-to-buffer win max-height)
+      ;; Don't shrink the window, but expand it if necessary.
       (goto-char (point-min))
+      (unless (= (point-max) (window-end win))
+	(fit-window-to-buffer win max-height))
       win)))
 
 (provide 'electric)
