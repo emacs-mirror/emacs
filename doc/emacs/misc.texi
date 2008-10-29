@@ -1270,68 +1270,44 @@ window.
 @cindex server, using Emacs as
 @cindex @env{EDITOR} environment variable
 
-  Various programs such as @code{mail} can invoke your choice of editor
-to edit a particular piece of text, such as a message that you are
-sending.  By convention, most of these programs use the environment
-variable @env{EDITOR} to specify which editor to run.  If you set
-@env{EDITOR} to @samp{emacs}, they invoke Emacs---but in an
-inconvenient fashion, by starting a new, separate Emacs process.  This
-is inconvenient because it takes time and because the new Emacs process
-doesn't share the buffers with any existing Emacs process.
+  Various programs such as @command{mail} can invoke your choice of
+editor to edit a particular piece of text, such as a message that you
+are sending.  By convention, most of these programs use the
+environment variable @env{EDITOR} to specify which editor to run.  If
+you set @env{EDITOR} to @samp{emacs}, they invoke Emacs---but in an
+inconvenient way, by starting a new Emacs process.  This is
+inconvenient because the new Emacs process doesn't share buffers, a
+command history, or other kinds of information with any existing Emacs
+process.
 
-  You can arrange to use your existing Emacs process as the editor for
-programs like @code{mail} by using the Emacs client program and the
-server that is part of Emacs.  Here is how.
+  You can solve this problem by setting up Emacs as an @dfn{edit
+server}, so that it ``listens'' for external edit requests and acts
+accordingly.  There are two ways to start an Emacs server:
+
+@findex server-start
+  The first is to run the command @code{server-start} in an existing
+Emacs process: either type @kbd{M-x server-start}, or put the
+expression @code{(server-start)} in your initialization file
+(@pxref{Init File}).  The existing Emacs process is the server; when
+you exit Emacs, the server dies with the Emacs process.
+
+@cindex daemon, Emacs
+  The second way to start an Emacs server is to run Emacs as a
+@dfn{daemon}, using the @samp{--daemon} command-line option.
+@xref{Initial Options}.  When Emacs is started this way, it calls
+@code{server-start} after initialization, and returns control to the
+calling terminal instead of opening an initial frame; it then waits in
+the background, listening for edit requests.
 
 @cindex @env{TEXEDIT} environment variable
-@findex server-start
-  First, the preparations.  Within Emacs, call the function
-@code{server-start}.  (Your @file{.emacs} init file can do this
-automatically if you add the expression @code{(server-start)} to it,
-see @ref{Init File}.)  Then, outside Emacs, set the @env{EDITOR}
-environment variable to @samp{emacsclient}.  (Note that some programs
-use a different environment variable; for example, to make @TeX{} use
-@samp{emacsclient}, you should set the @env{TEXEDIT} environment
-variable to @samp{emacsclient +%d %s}.)
-
-@pindex emacs.bash
-@cindex Bash command to use Emacs server
-  As an alternative to using @code{emacsclient}, the file
-@file{etc/emacs.bash} defines a Bash command @code{edit} which will
-communicate with a running Emacs session, or start one if none exist.
-
-@kindex C-x #
-@findex server-edit
-  Now, whenever any program invokes your specified @env{EDITOR}
-program, the effect is to send a message to your principal Emacs telling
-it to visit a file.  (That's what the program @code{emacsclient} does.)
-Emacs displays the buffer immediately and you can immediately begin
-editing it in the already running Emacs session.
-
-  When you've finished editing that buffer, type @kbd{C-x #}
-(@code{server-edit}).  This saves the file and sends a message back to
-the @code{emacsclient} program telling it to exit.  The programs that
-use @env{EDITOR} wait for the ``editor'' (actually, @code{emacsclient})
-to exit.  @kbd{C-x #} also checks for other pending external requests
-to edit various files, and selects the next such file.
-
-  You can switch to a server buffer manually if you wish; you don't
-have to arrive at it with @kbd{C-x #}.  But @kbd{C-x #} is the way to
-say that you are finished with one.
-
-@vindex server-kill-new-buffers
-@vindex server-temp-file-regexp
-  Finishing with a server buffer also kills the buffer, unless it
-already existed in the Emacs session before the server asked to create
-it.  However, if you set @code{server-kill-new-buffers} to @code{nil},
-then a different criterion is used: finishing with a server buffer
-kills it if the file name matches the regular expression
-@code{server-temp-file-regexp}.  This is set up to distinguish certain
-``temporary'' files.
-
-@vindex server-window
-  If you set the variable @code{server-window} to a window or a frame,
-@kbd{C-x #} displays the server buffer in that window or in that frame.
+  Once an Emacs server is set up, you can use a shell command called
+@command{emacsclient} to connect to the existing Emacs process and
+tell it to visit a file.  If you set the @env{EDITOR} environment
+variable to @samp{emacsclient}, programs such as @command{mail} will
+use the existing Emacs process for editing.@footnote{Some programs use
+a different environment variable; for example, to make @TeX{} use
+@samp{emacsclient}, set the @env{TEXEDIT} environment variable to
+@samp{emacsclient +%d %s}.}
 
 @vindex server-name
   You can run multiple Emacs servers on the same machine by giving
@@ -1339,78 +1315,99 @@ each one a unique ``server name'', using the variable
 @code{server-name}.  For example, @kbd{M-x set-variable @key{RET}
 server-name @key{RET} foo @key{RET}} sets the server name to
 @samp{foo}.  The @code{emacsclient} program can specify a server by
-name using the @samp{-s} option.  @xref{Invoking emacsclient}.
-
-  While @code{mail} or another application is waiting for
-@code{emacsclient} to finish, @code{emacsclient} does not read terminal
-input.  So the terminal that @code{mail} was using is effectively
-blocked for the duration.  In order to edit with your principal Emacs,
-you need to be able to use it without using that terminal.  There are
-three ways to do this:
-
-@itemize @bullet
-@item
-Using a window system, run @code{mail} and the principal Emacs in two
-separate windows.  While @code{mail} is waiting for @code{emacsclient},
-the window where it was running is blocked, but you can use Emacs by
-switching windows.
-
-@item
-Using virtual terminals, run @code{mail} in one virtual terminal
-and run Emacs in another.
-
-@item
-Use Shell mode or Term mode in Emacs to run the other program such as
-@code{mail}; then, @code{emacsclient} blocks only the subshell under
-Emacs, and you can still use Emacs to edit the file.
-@end itemize
-
-  If you run @code{emacsclient} with the option @samp{--no-wait}, it
-returns immediately without waiting for you to ``finish'' the buffer
-in Emacs.  Note that server buffers created in this way are not killed
-automatically when you finish with them.
+name, using the @samp{-s} option (@pxref{emacsclient Options}).
 
 @menu
-* Invoking emacsclient:: Emacs client startup options.
+* Invoking emacsclient:: Connecting to the Emacs server.
+* emacsclient Options::  Emacs client startup options.
 @end menu
 
-@node Invoking emacsclient,, Emacs Server, Emacs Server
+@node Invoking emacsclient
 @subsection Invoking @code{emacsclient}
-@cindex @code{emacsclient} invocation and options
+@cindex @code{emacsclient} invocation
 
-  To run the @code{emacsclient} program, specify file names as arguments,
-and optionally line numbers as well, like this:
+  The simplest way to use the @command{emacsclient} program is to run
+the shell command @samp{emacsclient @var{file}}, where @var{file} is a
+file name.  This connects to an Emacs server, and tells that Emacs
+process to visit @var{file} in one of its existing frames---either a
+graphical frame, or one in a text-only terminal (@pxref{Frames}).  You
+can then select that frame to begin editing.@footnote{Or, if you are
+running the Emacs server's process on a separate virtual text-only
+terminal, switch to that virtual terminal.}
+
+  If there is no Emacs server, the @command{emacsclient} program halts
+with an error message.  If the Emacs process has no existing
+frame---which can happen if it was started as a daemon (@pxref{Emacs
+Server})---the above usage does not work; you need to use the
+@samp{-c} or @samp{-t} option to tell Emacs to create a new frame.
+@xref{emacsclient Options}.
+
+@kindex C-x #
+@findex server-edit
+  When you finish editing @var{file}, type @kbd{C-x #}
+(@code{server-edit}) in its buffer.  This saves the file and sends a
+message back to the @command{emacsclient} program, telling it to exit.
+Programs that use @env{EDITOR} usually wait for the ``editor''---in
+the case @command{emacsclient}---to exit before doing something else.
+
+  You can also call @command{emacsclient} with multiple file name
+arguments: @samp{emacsclient @var{file1} @var{file2} ...} tells the
+Emacs server to visit @var{file1}, @var{file2}, and so forth.  Emacs
+selects the buffer visiting @var{file1}, and buries the other buffers
+at the bottom of the buffer list (@pxref{Buffers}).  The
+@command{emacsclient} program exits once all the specified files are
+finished (i.e., once you have typed @kbd{C-x #} in each server
+buffer).
+
+@vindex server-kill-new-buffers
+@vindex server-temp-file-regexp
+  Finishing with a server buffer also kills the buffer, unless it
+already existed in the Emacs session before the server was asked to
+create it.  However, if you set @code{server-kill-new-buffers} to
+@code{nil}, then a different criterion is used: finishing with a
+server buffer kills it if the file name matches the regular expression
+@code{server-temp-file-regexp}.  This is set up to distinguish certain
+``temporary'' files.
+
+  Each @kbd{C-x #} checks for other pending external requests to edit
+various files, and selects the next such file.  You can switch to a
+server buffer manually if you wish; you don't have to arrive at it
+with @kbd{C-x #}.  But @kbd{C-x #} is the way to tell
+@command{emacsclient} that you are finished.
+
+@vindex server-window
+  If you set the variable @code{server-window} to a window or a frame,
+@kbd{C-x #} always displays the next server buffer in that window or
+in that frame.
+
+@node emacsclient Options
+@subsection @code{emacsclient} Options
+@cindex @code{emacsclient} options
+
+  You can pass some optional arguments to the @command{emacsclient}
+program, such as:
 
 @example
-emacsclient @r{@{}@r{[}+@var{line}@r{[}@var{column}@r{]}@r{]} @var{filename}@r{@}}@dots{}
+emacsclient -c +12 @var{file1} +4:3 @var{file2}
 @end example
 
 @noindent
-This tells Emacs to visit each of the specified files; if you specify a
-line number for a certain file, Emacs moves to that line in the file.
-If you specify a column number as well, Emacs puts point on that column
-in the line.
+The @samp{+@var{linenum}} or @samp{+@var{linenum}:@var{columnnum}}
+arguments specify line numbers, or line and column numbers, for the
+next file argument.  These behave like the command line arguments for
+Emacs itself.  @xref{Action Arguments}.
 
-  Ordinarily, @code{emacsclient} does not return until you use the
-@kbd{C-x #} command on each of these buffers.  When that happens,
-Emacs sends a message to the @code{emacsclient} program telling it to
-return.
+  The other optional arguments recognized by @command{emacsclient} are
+listed below:
 
-  If you invoke @code{emacsclient} for more than one file, the
-additional client buffers are buried at the bottom of the buffer list
-(@pxref{Buffers}).  If you call @kbd{C-x #} after you are done editing
-a client buffer, the next client buffer is automatically selected.
-
-  But if you use the option @samp{-n} or @samp{--no-wait} when running
-@code{emacsclient}, then it returns immediately.  (You can take as
-long as you like to edit the files in Emacs.)
-
-  The option @samp{-a @var{command}} or
-@samp{--alternate-editor=@var{command}} specifies a command to run if
-@code{emacsclient} fails to contact Emacs.  This is useful when
-running @code{emacsclient} in a script.  For example, the following
-setting for the @env{EDITOR} environment variable will always give you
-an editor, even if no Emacs server is running:
+@table @samp
+@item -a @var{command}
+@itemx --alternate-editor=@var{command}
+Specify a command to run if @code{emacsclient} fails to contact Emacs.
+This is useful when running @code{emacsclient} in a script.  For
+example, the following setting for the @env{EDITOR} environment
+variable will always give you an editor, even if no Emacs server is
+running:
 
 @example
 EDITOR="emacsclient --alternate-editor emacs +%d %s"
@@ -1418,39 +1415,88 @@ EDITOR="emacsclient --alternate-editor emacs +%d %s"
 
 @noindent
 @cindex @env{ALTERNATE_EDITOR} environment variable
-The environment variable @env{ALTERNATE_EDITOR} has the same effect, with
-the value of the @samp{--alternate-editor} option taking precedence.
+The environment variable @env{ALTERNATE_EDITOR} has the same effect,
+with the value of the @samp{--alternate-editor} option taking
+precedence.
 
-If you use several displays, you can tell Emacs on which display to
-open the given files with the @samp{-d @var{display}} or
-@samp{--display=@var{display}} option to @code{emacsclient}.  This is
-handy when connecting from home to an Emacs session running on your
-machine at your workplace.
+@item -c
+Create a new graphical frame, instead of using an existing Emacs
+frame.  Note that Emacs 23 can create a graphical frame even if it was
+started in a text-only terminal, provided it is able to connect to a
+graphical display.  If no graphical display is available, Emacs
+creates a new text-only terminal frame (@pxref{Frames}).  If you omit
+a filename argument while supplying the @samp{-c} option, the new
+frame displays the @samp{*scratch*} buffer (@pxref{Buffers}).
 
-If there is more than one Emacs server running, you can specify a
-server name with the @samp{-s @var{name}} or
-@samp{--socket-name=@var{name}} option to @code{emacsclient}.  (This
-option is not supported on MS-Windows.)
+@item -d @var{display}
+@itemx --display=@var{display}
+Tell Emacs to open the given files on the X display @var{display}
+(assuming there is more than one X display available).
 
-You can also use @code{emacsclient} to execute any piece of Emacs Lisp
-code, using the @samp{-e} or @samp{--eval} option.  When this option
-is given, the rest of the arguments is interpreted as a list of
-expressions to evaluate, not a list of files to visit.
+@item -e
+@itemx --eval
+Tell Emacs to evaluate some Emacs Lisp code, instead of visiting some
+files.  When this option is given, the arguments to
+@command{emacsclient} are interpreted as a list of expressions to
+evaluate, @emph{not} as a list of files to visit.
 
+@item -f @var{server-file}
+@itemx --server-file=@var{server-file}
 @cindex @env{EMACS_SERVER_FILE} environment variable
-When you start the Emacs server (by calling @code{server-start}),
-Emacs creates a file with information about TCP connection to the
-server: the host where Emacs is running, the port where it is
-listening, and an authentication string.  @code{emacsclient} uses this
-information if it needs to connect to the server via TCP.  By default,
-the file goes in the @file{~/.emacs.d/server/} directory@footnote{On
-MS-Windows, if @env{HOME} is not set or the TCP configuration file
-cannot be found there, Emacs also looks for the file in the
-@file{.emacs.d/server/} subdirectory of the directory pointed to by
-the @env{APPDATA} environment variable.}.  You can specify the file
-name to use with the @samp{-f @var{file}} or
-@samp{--server-file=@var{file}} options, or by setting
+@cindex server file
+Specify a @dfn{server file} for connecting to an Emacs server via TCP.
+
+Usually, an Emacs server uses an operating system feature called a
+``local socket'' to listen for connections.  Some operating systems,
+such as Microsoft Windows, do not support local sockets; in that case,
+Emacs uses TCP instead.  When you start the Emacs server (by calling
+@code{server-start}), Emacs creates a server file that contains some
+TCP connection information.  @command{emacsclient} needs this
+information to make the connection.  By default, the file goes in the
+@file{~/.emacs.d/server/}; on Microsoft Windows, if @env{HOME} is not
+set or the TCP configuration file cannot be found there, Emacs also
+looks for the file in the @file{.emacs.d/server/} subdirectory of the
+directory pointed to by the @env{APPDATA} environment variable.  You
+can specify a server file to use with the @samp{-f @var{server-file}}
+or @samp{--server-file=@var{server-file}} option, or by setting
 @env{EMACS_SERVER_FILE} environment variable to the file name.
+
+@item -n
+@itemx --no-wait
+Let @command{emacsclient} exit immediately, instead of waiting until
+all server buffers are finished.  You can take as long as you like to
+edit the server buffers within Emacs, and they are @emph{not} killed
+when you type @kbd{C-x #} in them.
+
+@item -s @var{server-name}
+@itemx --socket-name=@var{server-name}
+Connect to the Emacs server named @var{server-name}.  The server name
+is given by the variable @code{server-name} on the Emacs server.  If
+this option is omitted, @command{emacsclient} connects to the first
+server it finds.  (This option is not supported on MS-Windows.)
+
+@item -t
+@itemx --tty
+@itemx -nw
+Create a new Emacs frame on the current text-only terminal, instead of
+using an existing Emacs frame.  Note that Emacs 23 can open a
+text-only terminal even if it was started in another text-only
+terminal, or on a graphical display.  If you omit a filename argument
+while supplying this option, the new frame displays the
+@samp{*scratch*} buffer.  @xref{Buffers}.
+@end table
+
+  If you type @kbd{C-x C-c} (@code{save-buffers-kill-terminal}) in an
+Emacs frame created with @command{emacsclient}, via the @samp{-c} or
+@samp{-t} options, Emacs deletes the frame instead of killing the
+Emacs process itself.  On a text-only terminal frame created with the
+@samp{-t} option, this returns control to the terminal.  Emacs also
+marks all the server buffers for the client as finished, as though you
+had typed @kbd{C-x #} in all of them.
+
+  When Emacs is started as a daemon, all frames are considered client
+frames, so @kbd{C-x C-c} will never kill Emacs.  To kill the Emacs
+process, type @kbd{M-x kill-emacs}.
 
 @node Printing, Sorting, Emacs Server, Top
 @section Printing Hard Copies
