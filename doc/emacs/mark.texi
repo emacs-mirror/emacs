@@ -225,6 +225,16 @@ Save it in a buffer or a file (@pxref{Accumulating Text}).
   If Delete Selection mode is enabled, some commands delete the region
 when used while the mark is active.  @xref{Mouse Commands}.
 
+  Some commands have a default behavior when the region is inactive,
+but operate on the text in the region if the region is active.  For
+example, @kbd{M-$} (@code{ispell-word}) normally checks the spelling
+of the word at point, but it checks the text in the region if the
+region is active (@pxref{Spelling}).  Normally, such commands use
+their default behavior if the region is empty (i.e., if mark and point
+are at the same position).  If you want them to operate on the empty
+region, change the variable @code{use-empty-active-region} to
+@code{t}.
+
 @node Mark Ring
 @section The Mark Ring
 
