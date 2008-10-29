@@ -1,5 +1,8 @@
 2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
+	* electric.el (Electric-pop-up-window): Don't shrink the window if
+	it's already big enough.
+
 	* minibuffer.el (delete-minibuffer-contents): Delete all
 	minibuffer contents instead of just the current field.
 
