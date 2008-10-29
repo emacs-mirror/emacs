@@ -1444,22 +1444,32 @@ evaluate, @emph{not} as a list of files to visit.
 @itemx --server-file=@var{server-file}
 @cindex @env{EMACS_SERVER_FILE} environment variable
 @cindex server file
+@vindex server-use-tcp
+@vindex server-host
 Specify a @dfn{server file} for connecting to an Emacs server via TCP.
 
-Usually, an Emacs server uses an operating system feature called a
+An Emacs server usually uses an operating system feature called a
 ``local socket'' to listen for connections.  Some operating systems,
 such as Microsoft Windows, do not support local sockets; in that case,
-Emacs uses TCP instead.  When you start the Emacs server (by calling
-@code{server-start}), Emacs creates a server file that contains some
-TCP connection information.  @command{emacsclient} needs this
-information to make the connection.  By default, the file goes in the
-@file{~/.emacs.d/server/}; on Microsoft Windows, if @env{HOME} is not
-set or the TCP configuration file cannot be found there, Emacs also
-looks for the file in the @file{.emacs.d/server/} subdirectory of the
-directory pointed to by the @env{APPDATA} environment variable.  You
-can specify a server file to use with the @samp{-f @var{server-file}}
-or @samp{--server-file=@var{server-file}} option, or by setting
-@env{EMACS_SERVER_FILE} environment variable to the file name.
+Emacs uses TCP instead.  When you start the Emacs server, Emacs
+creates a server file containing some TCP information that
+@command{emacsclient} needs for making the connection.  By default,
+the server file is in @file{~/.emacs.d/server/}.  On Microsoft
+Windows, if @command{emacsclient} does not find the server file there,
+it looks in the @file{.emacs.d/server/} subdirectory of the directory
+pointed to by the @env{APPDATA} environment variable.  You can tell
+@command{emacsclient} to use a specific server file with the @samp{-f}
+or @samp{--server-file} option, or by setting the
+@env{EMACS_SERVER_FILE} environment variable.
+
+Even if local sockets are available, you can tell Emacs to use TCP by
+setting the variable @code{server-use-tcp} to @code{t}.  One advantage
+of TCP is that the server can accept connections from remote machines.
+For this to work, you must (i) set the variable @code{server-host} to
+the hostname or IP address of the machine on which the Emacs server
+runs, and (ii) provide @command{emacsclient} with the server file.
+(One convenient way to do the latter is to put the server file on a
+networked file system such as NFS.)
 
 @item -n
 @itemx --no-wait
