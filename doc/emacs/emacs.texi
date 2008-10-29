@@ -866,7 +866,8 @@ Running Shell Commands from Emacs
 
 Using Emacs as a Server
 
-* Invoking emacsclient:: Emacs client startup options.
+* Invoking emacsclient:: Connecting to the Emacs server.
+* emacsclient Options::  Emacs client startup options.
 
 Printing Hard Copies
 
