@@ -1,5 +1,8 @@
 2008-10-29  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacsclient.c (EXTRA_SPACE): New macro.
+	(get_server_config, set_local_socket): Use it.
+
 	* makefile.w32-in ($(BLD)/sorted-doc.$(O)): Remove spurious backslash.
 	Reported by Guillaume Conjat <gconjat.ext@orange-ftgroup.com>.
 

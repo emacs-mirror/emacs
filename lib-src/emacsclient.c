@@ -109,6 +109,10 @@ char *w32_getenv ();
 #ifndef NO_RETURN
 #define NO_RETURN
 #endif
+
+/* Additional space when allocating buffers for filenames, etc.  */
+#define EXTRA_SPACE 100
+
 
 /* Name used to invoke this program.  */
 char *progname;
@@ -316,8 +320,8 @@ w32_get_resource (predefined, key, type)
 	{
 	  result = (char *) xmalloc (cbData);
 
-	  if ((RegQueryValueEx (hrootkey, key, NULL, type, result, &cbData) != ERROR_SUCCESS) ||
-	      (*result == 0))
+	  if ((RegQueryValueEx (hrootkey, key, NULL, type, result, &cbData) != ERROR_SUCCESS)
+	      || (*result == 0))
 	    {
 	      free (result);
 	      result = NULL;
@@ -893,14 +897,16 @@ get_server_config (server, authentication)
 
       if (home)
         {
-          char *path = alloca (32 + strlen (home) + strlen (server_file));
+          char *path = alloca (strlen (home) + strlen (server_file)
+			       + EXTRA_SPACE);
           sprintf (path, "%s/.emacs.d/server/%s", home, server_file);
           config = fopen (path, "rb");
         }
 #ifdef WINDOWSNT
       if (!config && (home = egetenv ("APPDATA")))
         {
-          char *path = alloca (32 + strlen (home) + strlen (server_file));
+          char *path = alloca (strlen (home) + strlen (server_file)
+			       + EXTRA_SPACE);
           sprintf (path, "%s/.emacs.d/server/%s", home, server_file);
           config = fopen (path, "rb");
         }
@@ -1142,7 +1148,8 @@ set_local_socket ()
 	tmpdir = egetenv ("TMPDIR");
 	if (!tmpdir)
 	  tmpdir = "/tmp";
-	socket_name = alloca (32 + strlen (tmpdir) + strlen (server_name));
+	socket_name = alloca (strlen (tmpdir) + strlen (server_name)
+			      + EXTRA_SPACE);
 	sprintf (socket_name, "%s/emacs%d/%s",
 		 tmpdir, (int) geteuid (), server_name);
       }
@@ -1178,8 +1185,8 @@ set_local_socket ()
 	    if (pw && (pw->pw_uid != geteuid ()))
 	      {
 		/* We're running under su, apparently. */
-		socket_name = alloca (32 + strlen (tmpdir)
-				      + strlen (server_name));
+		socket_name = alloca (strlen (tmpdir) + strlen (server_name)
+				      + EXTRA_SPACE);
 		sprintf (socket_name, "%s/emacs%d/%s",
 			 tmpdir, (int) pw->pw_uid, server_name);
 
