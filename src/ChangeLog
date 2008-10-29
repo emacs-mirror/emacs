@@ -1,3 +1,10 @@
+2008-10-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_height, Fdelete_window, set_window_buffer)
+	(Fwindow_text_height): Clarify doc-strings.
+	* xdisp.c (syms_of_xdisp): Mention set-window-buffer in
+	doc-string of window-scroll-functions.
+
 2008-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* category.c (syms_of_category): Fix typo in docstring.
