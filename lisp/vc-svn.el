@@ -476,6 +476,7 @@ or svn+ssh://."
 (defun vc-svn-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SVN between two revisions of fileset FILES."
   (and oldvers
+       files
        (catch 'no
 	 (dolist (f files)
 	   (or (equal oldvers (vc-working-revision f))
