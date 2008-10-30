@@ -1825,6 +1825,8 @@ either XPointer or XPointer*.])dnl
 fi
 
 ### Start of font-backend section.
+PKG_CHECK_MODULES(FONTCONFIG, fontconfig >= 2.2.0, HAVE_FC=yes, HAVE_FC=no)
+test "${HAVE_FC}" = "no" && with_freetype=no
 
 ## Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
 HAVE_XFT=maybe
@@ -1868,16 +1870,11 @@ if test "${HAVE_XFT}" = "yes"; then
   dnl As we use Xft, we anyway use freetype.
   dnl In this case, there's no need of additional CFLAGS and LIBS.
   HAVE_FREETYPE=yes
+  FONTCONFIG_CFLAGS=
+  FONTCONFIG_LIBS=
 elif test "x${with_freetype}" != "xno" && test "x${with_x}" != "xno"; then
 
   PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes, HAVE_FREETYPE=no)
-  if test "${HAVE_FREETYPE}" = "yes"; then
-    PKG_CHECK_MODULES(FONTCONFIG, fontconfig, HAVE_FC=yes, HAVE_FC=no)
-    if test "${HAVE_FC}" = "no"; then
-      dnl Without fontconfig, we can't use freetype at the moment.
-      HAVE_FREETYPE=no
-    fi
-  fi
 fi
 
 HAVE_LIBOTF=no
