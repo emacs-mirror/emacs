@@ -3,6 +3,7 @@
 	* files.el (locate-dominating-stop-dir-regexp): Fix typo.
 
 	* resume.el: Move to obsolete/.
+	* Makefile.in (ELCFILES): Update.
 
 2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
