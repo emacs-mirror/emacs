@@ -910,6 +910,7 @@ ELCFILES = \
 	$(lisp)/obsolete/lazy-lock.elc \
 	$(lisp)/obsolete/old-whitespace.elc \
 	$(lisp)/obsolete/options.elc \
+	$(lisp)/obsolete/resume.elc \
 	$(lisp)/obsolete/rnews.elc \
 	$(lisp)/obsolete/rnewspost.elc \
 	$(lisp)/obsolete/sc.elc \
@@ -1091,7 +1092,6 @@ ELCFILES = \
 	$(lisp)/repeat.elc \
 	$(lisp)/replace.elc \
 	$(lisp)/reposition.elc \
-	$(lisp)/resume.elc \
 	$(lisp)/reveal.elc \
 	$(lisp)/rfn-eshadow.elc \
 	$(lisp)/rot13.elc \
