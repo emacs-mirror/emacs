@@ -1,3 +1,9 @@
+2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-process-filter): In daemon mode, default to
+	emacsclient's tty if not opening a new frame and only the
+	terminal-frame is available.
+
 2008-10-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (quit-window): Simplify code.  Say in doc-string
