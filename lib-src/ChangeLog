@@ -1,3 +1,8 @@
+2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacsclient.c (main): If using the current frame, send tty
+	information to Emacs in case daemon mode needs to occupy this tty.
+
 2008-10-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (EXTRA_SPACE): New macro.
