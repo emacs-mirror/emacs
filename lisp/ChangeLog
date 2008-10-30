@@ -1,3 +1,25 @@
+2008-10-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (idle-update-delay, next-error-highlight)
+	(next-error-highlight-no-select, next-error-recenter, next-error-hook)
+	(minibuffer-history-case-insensitive-variables, kill-ring-max)
+	(kill-read-only-ok, backward-delete-char-untabify-method)
+	(kill-whole-line, mark-ring-max, global-mark-ring-max)
+	(set-mark-command-repeat-pop, next-line-add-newlines, track-eol)
+	(goal-column, line-move-ignore-invisible, fill-prefix)
+	(auto-fill-inhibit-regexp, blink-matching-paren)
+	(blink-matching-paren-on-screen, blink-matching-paren-distance)
+	(blink-matching-delay, blink-matching-paren-dont-ignore-comments)
+	(read-mail-command, mail-user-agent): Remove * in defcustom docstrings.
+	(minibuffer-history-isearch-wrap, transient-mark-mode)
+	(next-logical-line, auto-fill-mode, line-number-mode)
+	(column-number-mode, size-indication-mode, clone-indirect-buffer)
+	(normal-erase-is-backspace-mode): Doc fixes.
+	(current-kill, transient-mark-mode, toggle-truncate-lines)
+	(visible-mode): Reflow docstrings.
+	(minibuffer-local-shell-command-map, interprogram-paste-function):
+	Fix typos in docstrings.
+
 2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-process-filter): In daemon mode, default to
@@ -29,8 +51,7 @@
 	* minibuffer.el (delete-minibuffer-contents): Delete all
 	minibuffer contents instead of just the current field.
 
-	* tmm.el (tmm-get-keymap): Handle case where keyseq cache is
-	omitted.
+	* tmm.el (tmm-get-keymap): Handle case where keyseq cache is omitted.
 
 	* bookmark.el (bookmark-handle-bookmark): Rename from
 	bookmark-jump-noselect.
