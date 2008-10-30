@@ -93,8 +93,7 @@ The function actually called to indent the line is determined by the value of
   (interactive "P")
   (cond
    ;; The region is active, indent it.
-   ((and transient-mark-mode mark-active
-	 (not (eq (region-beginning) (region-end))))
+   ((use-region-p)
     (indent-region (region-beginning) (region-end)))
    ((or ;; indent-to-left-margin is only meant for indenting,
 	;; so we force it to always insert a tab here.
