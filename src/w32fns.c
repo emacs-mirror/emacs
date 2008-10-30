@@ -4364,7 +4364,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parameters, Qborder_width, make_number (2),
 		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
 
-  /* We recognize either internalBorderWidth or internalBorder 
+  /* We recognize either internalBorderWidth or internalBorder
      (which is what xterm calls it).  */
   if (NILP (Fassq (Qinternal_border_width, parameters)))
     {
@@ -5534,14 +5534,20 @@ x_create_tip_frame (dpyinfo, parms, text)
      of the tooltip frame appear in pink.  Prevent this.  */
   {
     Lisp_Object bg = Fframe_parameter (frame, Qbackground_color);
+    Lisp_Object fg = Fframe_parameter (frame, Qforeground_color);
+    Lisp_Object colors = Qnil;
 
     /* Set tip_frame here, so that */
     tip_frame = frame;
     call2 (Qface_set_after_frame_default, frame, Qnil);
 
     if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
-      Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
-					      Qnil));
+      colors = Fcons (Fcons (Qbackground_color, bg), colors);
+    if (!EQ (fg, Fframe_parameter (frame, Qforeground_color)))
+      colors = Fcons (Fcons (Qforeground_color, fg), colors);
+
+    if (!NILP (colors))
+      Fmodify_frame_parameters (frame, colors);
   }
 
   f->no_split = 1;

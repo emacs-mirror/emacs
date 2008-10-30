@@ -1,3 +1,9 @@
+2008-10-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (x_create_tip_frame): Prevent default foreground color for
+	new frames overriding foreground for tooltips.  Based on similar patch
+	from Martin Rudalics <rudalics@gmx.at>.  (Bug#1032)
+
 2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.c (Fdaemon_initialized): Initialize nfd.
@@ -37,7 +43,7 @@
 	(main): Don't set is_daemon.
 	(IS_DAEMON): New macro.
 	(Fdaemonp, Fdaemon_initialized): Use it.
-	(Fdaemon_initialized): Wrtie a char into the pipe to make sure the
+	(Fdaemon_initialized): Write a char into the pipe to make sure the
 	parent exits.
 	(syms_of_emacs): Explicitly initialize daemon_pipe[1].
 
