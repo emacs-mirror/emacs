@@ -1,5 +1,7 @@
 2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
+	* indent.el (indent-for-tab-command): Use use-region-p.
+
 	* vc.el (vc-revert): Limit the length of the query string.
 
 2008-10-30  Juanma Barranquero  <lekktu@gmail.com>
