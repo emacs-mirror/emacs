@@ -1,3 +1,7 @@
+2008-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (locate-dominating-stop-dir-regexp): Fix typo.
+
 2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* electric.el (Electric-pop-up-window): Don't shrink the window if
