@@ -1,3 +1,8 @@
+2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Invoking emacsclient): If Emacs has no available frame, it
+	now uses emacsclient's terminal.
+
 2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mark.texi (Using Region): Document use-empty-active-region.
