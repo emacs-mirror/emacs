@@ -1395,51 +1395,33 @@ or if the window is the only window of its frame."
 	(error nil)))))
 
 (defun quit-window (&optional kill window)
-  "Quit the current buffer.  Bury it, and maybe delete the selected frame.
-\(The frame is deleted if it contains a dedicated window for the buffer.)
-With a prefix argument, kill the buffer instead.
-
-Noninteractively, if KILL is non-nil, then kill the current buffer,
-otherwise bury it.
-
-If WINDOW is non-nil, it specifies a window; we delete that window,
-and the buffer that is killed or buried is the one in that window."
-  (interactive "P")
-  (let ((buffer (window-buffer window))
-	(frame (window-frame (or window (selected-window))))
-	(window-solitary
-	 (save-selected-window
-	   (if window
-	       (select-window window))
-	   (one-window-p t)))
-	window-handled)
-
-    (save-selected-window
-      (if window
-	  (select-window window))
-      (or (window-minibuffer-p)
-	  (window-dedicated-p (selected-window))
-	  (switch-to-buffer (other-buffer))))
-
-    ;; Get rid of the frame, if it has just one dedicated window
-    ;; and other visible frames exist.
-    (and (or (window-minibuffer-p) (window-dedicated-p window))
-	 (delq frame (visible-frame-list))
-	 window-solitary
-	 (if (and (eq default-minibuffer-frame frame)
-		  (= 1 (length (minibuffer-frame-list))))
-	     (setq window nil)
-	   (delete-frame frame)
-	   (setq window-handled t)))
-
+  "Bury or kill (with KILL non-nil) the buffer displayed in WINDOW.
+KILL defaults to nil, WINDOW to the selected window.  If WINDOW
+is dedicated or a minibuffer window, delete it and, if it's the
+only window on its frame, delete its frame as well provided there
+are other frames left.  Otherwise, display some other buffer in
+the window."
+  (interactive)
+  (let* ((window (or window (selected-window)))
+	 (buffer (window-buffer window)))
+    (if (or (window-minibuffer-p window) (window-dedicated-p window))
+	(if (eq window (frame-root-window (window-frame window)))
+	    ;; If this is the only window on its frame, try to delete the
+	    ;; frame (`delete-windows-on' knows how to do that).
+	    (delete-windows-on buffer (selected-frame))
+	  ;; Other windows are left, delete this window.  But don't
+	  ;; throw an error if that fails for some reason.
+	  (condition-case nil
+	      (delete-window window)
+	    (error nil)))
+      ;; The window is neither dedicated nor a minibuffer window,
+      ;; display another buffer in it.
+      (with-selected-window window
+	(switch-to-buffer (other-buffer))))
     ;; Deal with the buffer.
     (if kill
 	(kill-buffer buffer)
-      (bury-buffer buffer))
-
-    ;; Maybe get rid of the window.
-    (and window (not window-handled) (not window-solitary)
-	 (delete-window window))))
+      (bury-buffer buffer))))
 
 (defvar recenter-last-op nil
   "Indicates the last recenter operation performed.
