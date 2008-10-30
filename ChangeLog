@@ -1,3 +1,7 @@
+2008-10-30  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>
+
+	* configure.in: Check fontconfig always.
+
 2008-10-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure (*-solaris2.[7-9]*): Fix typo.
