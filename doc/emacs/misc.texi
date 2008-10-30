@@ -1338,9 +1338,9 @@ terminal, switch to that virtual terminal.}
   If there is no Emacs server, the @command{emacsclient} program halts
 with an error message.  If the Emacs process has no existing
 frame---which can happen if it was started as a daemon (@pxref{Emacs
-Server})---the above usage does not work; you need to use the
-@samp{-c} or @samp{-t} option to tell Emacs to create a new frame.
-@xref{emacsclient Options}.
+Server})---then Emacs opens a frame on the terminal in which you
+called @command{emacsclient}, as though you had used the @samp{-t}
+option (@pxref{emacsclient Options}).
 
 @kindex C-x #
 @findex server-edit
