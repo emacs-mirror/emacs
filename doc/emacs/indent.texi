@@ -47,7 +47,8 @@ it indents every line in the region (@pxref{Mark}).  Indentation means
 adding or removing some combination of space and tab characters
 (@dfn{whitespace characters}) at the start of the line, in a way that
 makes sense given the text in the preceding lines.  Exactly how
-indentation is performed depends on the major mode.
+indentation is performed depends on the major mode.  @xref{Program
+Indent}.
 
   In text modes, @key{TAB} inserts some whitespace characters to
 advance point to the next tab stop (@pxref{Tab Stops}).  For the
