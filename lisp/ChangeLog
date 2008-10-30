@@ -1,3 +1,8 @@
+2008-10-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc-svn.el (vc-svn-diff): If files is nil don't set oldvers to
+	nil so that log-view-diff-changeset works.
+
 2008-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (locate-dominating-stop-dir-regexp): Fix typo.
