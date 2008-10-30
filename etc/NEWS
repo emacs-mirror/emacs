@@ -470,8 +470,6 @@ vertically and horizontally.
 *** pop-to-buffer now always sets input focus when the popped-to window
 is on a different frame.
 
-*** New functions window-parameters, window-parameter, set-window-parameter.
-
 ** Miscellaneous changes:
 +++
 *** C-l is bound to the new command recenter-top-bottom, rather than recenter.
@@ -1252,6 +1250,13 @@ to override the default splitting mechanism of display-buffer.
 +++
 *** If pop-up-frames has the value `graphic-only', display-buffer only
 makes a separate frame on graphic displays.
+
+** Window parameters can now be defined.
+These are analogous to frame parameters, but are associated with
+individual windows.
+
+*** The new functions window-parameters, window-parameter, and
+set-window-parameter are used to query and set window parameters.
 
 ** Minibuffer and completion changes
 +++
