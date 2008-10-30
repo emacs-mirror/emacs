@@ -1868,7 +1868,12 @@ to the working revision (except for keyword expansion)."
 	(unless (yes-or-no-p (format "%s seems up-to-date.  Revert anyway? " file))
 	  (error "Revert canceled"))))
     (when (vc-diff-internal vc-allow-async-revert vc-fileset nil nil)
-      (unless (yes-or-no-p (format "Discard changes in %s? " (vc-delistify files)))
+      (unless (yes-or-no-p
+	       (format "Discard changes in %s? "
+		       (let ((str (vc-delistify files)))
+			 (if (< (length str) 50)
+			     str
+			   (format "%d files" (length files))))))
 	(error "Revert canceled"))
       (delete-windows-on "*vc-diff*")
       (kill-buffer "*vc-diff*"))
