@@ -1,3 +1,7 @@
+2008-10-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure (*-solaris2.[7-9]*): Fix typo.
+
 2008-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (--without-sync-input, --with-pkg-config-prog):
