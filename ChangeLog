@@ -1,3 +1,7 @@
+2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* update-subdirs: Put obsolete directory last.
+
 2008-10-30  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>
 
 	* configure.in: Check fontconfig always.
