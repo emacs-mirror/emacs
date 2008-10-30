@@ -1,5 +1,7 @@
 2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
+	* indent.texi (Indentation): Link to Program Indent.
+
 	* misc.texi (Invoking emacsclient): If Emacs has no available frame, it
 	now uses emacsclient's terminal.
 
