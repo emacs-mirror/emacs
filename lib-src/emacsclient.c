@@ -1437,7 +1437,10 @@ main (argc, argv)
       send_to_emacs (emacs_socket, " ");
     }
 
-  if (tty)
+  /* If using the current frame, send tty information to Emacs anyway.
+     In daemon mode, Emacs may need to occupy this tty if no other
+     frame is available.  */
+  if (tty || current_frame)
     {
       char *type = egetenv ("TERM");
       char *tty_name = NULL;
