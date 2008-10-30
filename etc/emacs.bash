@@ -22,6 +22,8 @@
 
 ### Commentary:
 
+## This file is obsolete.  Use emacsclient -a instead.
+
 ## This defines a bash command named `edit' which contacts/resumes an
 ## existing emacs or starts a new one if none exists.
 
