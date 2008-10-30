@@ -1,3 +1,7 @@
+2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc.el (vc-revert): Limit the length of the query string.
+
 2008-10-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* simple.el (idle-update-delay, next-error-highlight)
