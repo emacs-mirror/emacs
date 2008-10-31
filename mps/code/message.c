@@ -30,20 +30,9 @@ static Bool MessageTypeEnabled(Arena arena, MessageType type);
 static void MessageDelete(Message message);
 
 
-/* MessageOnQueue -- is the message on the queue?
+/* Internal (MPM) Interface -- functions for message originator
  *
- * Message is on queue if and only if its ring is not a singleton.
  */
-
-Bool MessageOnQueue(Message message)
-{
-  AVERT(Message, message);
-
-  return !RingIsSingle(&message->queueRing);
-}
-
-
-/* Checking Functions */
 
 
 Bool MessageTypeCheck(MessageType type)
@@ -53,7 +42,6 @@ Bool MessageTypeCheck(MessageType type)
 
   return TRUE;
 }
-
 
 Bool MessageCheck(Message message)
 {
@@ -65,7 +53,6 @@ Bool MessageCheck(Message message)
 
   return TRUE;
 }
-
 
 Bool MessageClassCheck(MessageClass class)
 {
@@ -82,29 +69,6 @@ Bool MessageClassCheck(MessageClass class)
   return TRUE;
 }
 
-
-/* Internal Functions */
-
-
-/* returns the arena associated with a message */
-Arena MessageArena(Message message)
-{
-  AVERT(Message, message);
-
-  return message->arena;
-}
-
-
-/* return the class of a message */
-MessageClass MessageGetClass(Message message)
-{
-  AVERT(Message, message);
-
-  return message->class;
-}
-
-
-/* Initialises a message */
 void MessageInit(Arena arena, Message message, MessageClass class,
                  MessageType type)
 {
@@ -122,8 +86,6 @@ void MessageInit(Arena arena, Message message, MessageClass class,
   AVERT(Message, message);
 }
 
-
-/* Finishes a message */
 void MessageFinish(Message message)
 {
   AVERT(Message, message);
@@ -133,8 +95,22 @@ void MessageFinish(Message message)
   RingFinish(&message->queueRing);
 }
 
+Arena MessageArena(Message message)
+{
+  AVERT(Message, message);
 
-/* Posts a message to the arena's queue of pending messages */
+  return message->arena;
+}
+
+Bool MessageOnQueue(Message message)
+{
+  AVERT(Message, message);
+
+  /* message is on queue if and only if its ring is not a singleton. */
+  return !RingIsSingle(&message->queueRing);
+}
+
+/* Post a message to the arena's queue of pending messages */
 void MessagePost(Arena arena, Message message)
 {
   AVERT(Arena, arena);
@@ -151,8 +127,7 @@ void MessagePost(Arena arena, Message message)
   }
 }
 
-
-/* returns the Message at the head of the queue */
+/* Return the message at the head of the arena's queue */
 static Message MessageHead(Arena arena)
 {
   AVERT(Arena, arena);
@@ -161,23 +136,70 @@ static Message MessageHead(Arena arena)
   return MessageNodeMessage(RingNext(&arena->messageRing));
 }
 
-
-/* returns the type of a message */
-MessageType MessageGetType(Message message)
+/* Delete the message at the head of the queue (helper function). */
+static void MessageDeleteHead(Arena arena)
 {
-  AVERT(Message, message);
+  Message message;
 
-  return message->type;
+  AVERT(Arena, arena);
+  AVER(!RingIsSingle(&arena->messageRing));
+
+  message = MessageHead(arena);
+  AVERT(Message, message);
+  RingRemove(&message->queueRing);
+  MessageDelete(message);
+}
+
+/* Empty the queue by discarding all messages */
+void MessageEmpty(Arena arena)
+{
+  AVERT(Arena, arena);
+
+  while(!RingIsSingle(&arena->messageRing)) {
+    MessageDeleteHead(arena);
+  }
 }
 
 
-/* External Functions
+/* Delivery (Client) Interface -- functions for recipient
  *
- * These are actually the internal implementations of functions
- * exposed through the external interface */
+ * Most of these functions are exposed through the external MPS 
+ * interface.
+ */
 
 
-/* Determines whether the queue has any messages on it */
+static Bool MessageTypeEnabled(Arena arena, MessageType type)
+{
+  AVERT(Arena, arena);
+  AVER(MessageTypeCheck(type));
+
+  return BTGet(arena->enabledMessageTypes, type);
+}
+
+void MessageTypeEnable(Arena arena, MessageType type)
+{
+  AVERT(Arena, arena);
+  AVER(MessageTypeCheck(type));
+
+  BTSet(arena->enabledMessageTypes, type);
+}
+
+void MessageTypeDisable(Arena arena, MessageType type)
+{
+  Message message;
+
+  AVERT(Arena, arena);
+  AVER(MessageTypeCheck(type));
+
+  /* Flush existing messages of this type */
+  while(MessageGet(&message, arena, type)) {
+    MessageDelete(message);
+  }
+
+  BTRes(arena->enabledMessageTypes, type);
+}
+
+/* Any messages on the queue? */
 Bool MessagePoll(Arena arena)
 {
   AVERT(Arena, arena);
@@ -189,8 +211,7 @@ Bool MessagePoll(Arena arena)
   }
 }
 
-
-/* Determines the type of a message at the head of the queue */
+/* Return the type of the message at the head of the queue, if any */
 Bool MessageQueueType(MessageType *typeReturn, Arena arena)
 {
   Message message;
@@ -209,45 +230,7 @@ Bool MessageQueueType(MessageType *typeReturn, Arena arena)
   return TRUE;
 }
 
-
-/* Discards a message
- * (called from external interface) */
-void MessageDiscard(Arena arena, Message message)
-{
-  AVERT(Arena, arena);
-  AVERT(Message, message);
-
-  AVER(!MessageOnQueue(message));
-
-  MessageDelete(message);
-}
-
-
-/* Deletes the message at the head of the queue.
- * Internal function. */
-static void MessageDeleteHead(Arena arena)
-{
-  Message message;
-
-  AVERT(Arena, arena);
-  AVER(!RingIsSingle(&arena->messageRing));
-
-  message = MessageHead(arena);
-  AVERT(Message, message);
-  RingRemove(&message->queueRing);
-  MessageDelete(message);
-}
-
-/* Empties the queue by discarding all messages */
-void MessageEmpty(Arena arena)
-{
-  AVERT(Arena, arena);
-
-  while(!RingIsSingle(&arena->messageRing)) {
-    MessageDeleteHead(arena);
-  }
-}
-
+/* Get next message of specified type, removing it from the queue */
 Bool MessageGet(Message *messageReturn, Arena arena, MessageType type)
 {
   Ring node, next;
@@ -267,46 +250,40 @@ Bool MessageGet(Message *messageReturn, Arena arena, MessageType type)
   return FALSE;
 }
 
-
-static Bool MessageTypeEnabled(Arena arena, MessageType type)
+/* Discard a message (recipient has finished using it). */
+void MessageDiscard(Arena arena, Message message)
 {
   AVERT(Arena, arena);
-  AVER(MessageTypeCheck(type));
+  AVERT(Message, message);
 
-  return BTGet(arena->enabledMessageTypes, type);
-}
- 
+  AVER(!MessageOnQueue(message));
 
-void MessageTypeEnable(Arena arena, MessageType type)
-{
-  AVERT(Arena, arena);
-  AVER(MessageTypeCheck(type));
-
-  BTSet(arena->enabledMessageTypes, type);
+  MessageDelete(message);
 }
 
 
-void MessageTypeDisable(Arena arena, MessageType type)
+/* Message Methods, Generic
+ *
+ * (Some of these dispatch on message->class).
+ */
+
+
+/* Return the type of a message */
+MessageType MessageGetType(Message message)
 {
-  Message message;
+  AVERT(Message, message);
 
-  AVERT(Arena, arena);
-  AVER(MessageTypeCheck(type));
-
-  /* Flush existing messages of this type */
-  while(MessageGet(&message, arena, type)) {
-    MessageDelete(message);
-  }
-
-  BTRes(arena->enabledMessageTypes, type);
+  return message->type;
 }
 
+/* Return the class of a message */
+MessageClass MessageGetClass(Message message)
+{
+  AVERT(Message, message);
 
+  return message->class;
+}
 
-/* Dispatch Methods */
-
-
-/* generic message delete dispatch */
 static void MessageDelete(Message message)
 {
   AVERT(Message, message);
@@ -315,7 +292,10 @@ static void MessageDelete(Message message)
 }
 
 
-/* type specific dispatch methods */
+/* Message Method Dispatchers, Type-specific
+ *
+ */
+
 
 void MessageFinalizationRef(Ref *refReturn, Arena arena,
                             Message message)
@@ -330,7 +310,6 @@ void MessageFinalizationRef(Ref *refReturn, Arena arena,
 
   return;
 }
-
 
 Size MessageGCLiveSize(Message message)
 {
@@ -365,7 +344,9 @@ const char *MessageGCStartWhy(Message message)
 }
 
 
-/* type-specific stub methods */
+/* Message Method Stubs, Type-specific
+ *
+ */
 
 
 void MessageNoFinalizationRef(Ref *refReturn, Arena arena,
@@ -421,7 +402,7 @@ const char *MessageNoGCStartWhy(Message message)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
