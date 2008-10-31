@@ -1,3 +1,9 @@
+2008-10-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fnext_window, Fprevious_window): Rewrite doc-string.
+	(Fother_window): Rename argument and rewrite doc-string.
+	(select_window_norecord): Fix return value.  (Bug#1276)
+
 2008-10-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (x_create_tip_frame): Prevent default foreground color for
