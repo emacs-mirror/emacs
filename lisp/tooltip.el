@@ -121,7 +121,10 @@ the value of `tooltip-y-offset' is ignored."
   "Frame parameters used for tooltips.
 
 If `left' or `top' parameters are included, they specify the absolute
-position to pop up the tooltip."
+position to pop up the tooltip.
+
+Note that font and color parameters are ignored, and the attributes
+of the `tooltip' face are used instead."
   :type 'sexp
   :group 'tooltip)
 

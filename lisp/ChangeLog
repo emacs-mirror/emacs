@@ -1,3 +1,7 @@
+2008-10-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tooltip.el (tooltip-frame-parameters): Doc fix.
+
 2008-10-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-body-height, window-current-scroll-bars)
@@ -14,11 +18,6 @@
 	Rename args, rewrite doc-string, and simplify code.
 	(split-window-save-restore-data): Rename args and use
 	when instead of if.
-
-2008-10-29  Kenichi Handa  <handa@m17n.org>
-
-	* descr-text.el (describe-char): Fix terminal case (where font is
-	nil).
 
 2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -140,6 +139,10 @@
 
 	* startup.el (inhibit-startup-screen): Reflow docstring.
 	(user-mail-address, tool-bar-images-pixel-height): Fix docstring typos.
+
+2008-10-27  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Fix terminal case (where font is nil).
 
 2008-10-27  Juanma Barranquero  <lekktu@gmail.com>
 
