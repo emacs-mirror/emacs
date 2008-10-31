@@ -1,3 +1,8 @@
+2008-10-31  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* files.texi (Files): Add a section about document
+	files (doc-view-mode).
+
 2008-10-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* building.texi (Compilation Mode): Document
