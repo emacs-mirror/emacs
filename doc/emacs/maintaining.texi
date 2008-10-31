@@ -84,8 +84,18 @@ changed, not just to the next Change Log entry.  You can also use
 log files into a buffer in Change Log Mode, preserving the date
 ordering of entries.
 
-  Version control systems are another way to keep track of changes in your
-program and keep a change log.  @xref{Log Buffer}.
+  Version control systems are another way to keep track of changes in
+your program and keep a change log.  In the VC log buffer, typing
+@kbd{C-c C-a} (@code{log-edit-insert-changelog}) inserts the relevant
+Change Log entry, if one exists (@pxref{Log Buffer}).  You can also
+insert a VC log entry into a Change Log buffer by typing @kbd{C-x v a}
+(@code{vc-update-change-log}) in the Change Log buffer
+@iftex
+(@pxref{Change Logs and VC,,,emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{Change Logs and VC}).
+@end ifnottex
 
 @node Format of ChangeLog
 @section Format of ChangeLog
