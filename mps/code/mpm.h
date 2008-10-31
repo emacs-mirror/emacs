@@ -289,38 +289,36 @@ extern AbstractCollectPoolClass AbstractCollectPoolClassGet(void);
 
 
 /* Message Interface -- see <design/message/> */
-
+/* -- Internal (MPM) Interface -- functions for message originator */
 extern Bool MessageCheck(Message message);
 extern Bool MessageClassCheck(MessageClass class);
 extern Bool MessageTypeCheck(MessageType type);
-extern MessageClass MessageGetClass(Message message);
-extern Arena MessageArena(Message message);
 extern void MessageInit(Arena arena, Message message,
                         MessageClass class, MessageType type);
 extern void MessageFinish(Message message);
+extern Arena MessageArena(Message message);
 extern Bool MessageOnQueue(Message message);
 extern void MessagePost(Arena arena, Message message);
-extern Bool MessagePoll(Arena arena);
-extern MessageType MessageGetType(Message message);
-extern void MessageDiscard(Arena arena, Message message);
 extern void MessageEmpty(Arena arena);
-extern Bool MessageGet(Message *messageReturn, Arena arena,
-                       MessageType type);
-extern Bool MessageQueueType(MessageType *typeReturn, Arena arena);
+/* -- Delivery (Client) Interface -- functions for recipient */
 extern void MessageTypeEnable(Arena arena, MessageType type);
 extern void MessageTypeDisable(Arena arena, MessageType type);
-
-/* Message methods */
-
-/* Method dispatchers */
+extern Bool MessagePoll(Arena arena);
+extern Bool MessageQueueType(MessageType *typeReturn, Arena arena);
+extern Bool MessageGet(Message *messageReturn, Arena arena,
+                       MessageType type);
+extern void MessageDiscard(Arena arena, Message message);
+/* -- Message Methods, Generic */
+extern MessageType MessageGetType(Message message);
+extern MessageClass MessageGetClass(Message message);
+/* -- Message Method Dispatchers, Type-specific */
 extern void MessageFinalizationRef(Ref *refReturn,
                                    Arena arena, Message message);
 extern Size MessageGCLiveSize(Message message);
 extern Size MessageGCCondemnedSize(Message message);
 extern Size MessageGCNotCondemnedSize(Message message);
 extern const char *MessageGCStartWhy(Message message);
-
-/* Convenience methods */
+/* -- Message Method Stubs, Type-specific */
 extern void MessageNoFinalizationRef(Ref *refReturn,
                                      Arena arena, Message message);
 extern Size MessageNoGCLiveSize(Message message);
@@ -1050,7 +1048,7 @@ extern void DiagEnd(const char *tag);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
