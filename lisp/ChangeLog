@@ -1,3 +1,8 @@
+2008-10-29  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Fix terminal case (where font is
+	nil).
+
 2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* indent.el (indent-for-tab-command): Use use-region-p.
