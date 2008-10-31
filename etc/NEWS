@@ -686,14 +686,14 @@ associated with the current log entry.
 source code associated with a log entry.
 
 ** Compile and grep modes
-
+---
 *** The mode-line entry for the *compilation* and *grep* buffer is color coded.
 It has different colors for to show that: (a) the command is still
 running, (b) successful completion, (c) error.
-
++++
 *** compilation-auto-jump-to-first-error tells `compile' to jump to
 the first error encountered during compilations.
-
+---
 *** The `cc' alias for C++ files in `grep-file-aliases' has been
 improved. `hh' can be used to match C++ header files and `cchh' both
 C++ sources and headers.
@@ -955,7 +955,7 @@ with the face `eldoc-highlight-function-argument'.
 *** In Etags, the --members option is now the default.
 Use --no-members if you want the old default behavior of not tagging
 struct members in C, members variables in C++ and variables in PHP.
-
++++
 *** The `gdb' command only works with the graphical interface now.
 Use `gud-gdb' if you want the (old) text command mode.
 
