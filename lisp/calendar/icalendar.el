@@ -877,6 +877,21 @@ Finto iCalendar file: ")
 (defalias 'icalendar-convert-diary-to-ical 'icalendar-export-file)
 (make-obsolete 'icalendar-convert-diary-to-ical 'icalendar-export-file)
 
+(defvar icalendar--uid-count 0
+  "Auxiliary counter for creating unique ids.")
+
+(defun icalendar--create-uid ()
+  "Create a unique identifier.
+Use `current-time' and a counter to create unique ids. The
+counter is necessary for systems which do not provide resolution
+finer than a second."
+  (setq icalendar--uid-count (1+ icalendar--uid-count))
+  (format "emacs%d%d%d%d"
+          (car (current-time))
+          (cadr (current-time))
+          (car (cddr (current-time)))
+          icalendar--uid-count))
+
 ;;;###autoload
 (defun icalendar-export-region (min max ical-filename)
   "Export region in diary file to iCalendar format.
@@ -916,10 +931,8 @@ FExport diary data into iCalendar file: ")
         (if (match-beginning 2)
             (setq entry-rest (match-string 2))
           (setq entry-rest ""))
-        (setq header (format "\nBEGIN:VEVENT\nUID:emacs%d%d%d"
-                             (car (current-time))
-                             (cadr (current-time))
-                             (car (cddr (current-time)))))
+        (setq header (format "\nBEGIN:VEVENT\nUID:%s"
+                             (icalendar--create-uid)))
         (condition-case error-val
             (progn
               (setq contents-n-summary
