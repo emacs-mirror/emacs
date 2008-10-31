@@ -1,3 +1,8 @@
+2008-10-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Tell user to expect one "File not found" message
+	while the `doc' directory is being configured.
+
 2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* update-subdirs: Put obsolete directory last.
