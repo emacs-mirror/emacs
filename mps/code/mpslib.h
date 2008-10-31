@@ -14,7 +14,7 @@
 #define mpslib_h
 
 #include <stddef.h>
-#include "mps.h"  /* mps_clock_t */
+
 
 extern int mps_lib_get_EOF(void);
 #define mps_lib_EOF     (mps_lib_get_EOF())
@@ -36,6 +36,7 @@ extern void *(mps_lib_memcpy)(void *, const void *, size_t);
 extern int (mps_lib_memcmp)(const void *, const void *, size_t);
 
 
+typedef unsigned long mps_clock_t;
 extern mps_clock_t mps_clock(void);
 extern mps_clock_t mps_clocks_per_sec(void);
 
