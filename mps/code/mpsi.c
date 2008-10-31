@@ -1564,49 +1564,6 @@ mps_res_t mps_definalize(mps_arena_t mps_arena, mps_addr_t *refref)
 /* Messages */
 
 
-mps_bool_t mps_message_poll(mps_arena_t mps_arena)
-{
-  Bool b;
-  Arena arena = (Arena)mps_arena;
-
-  ArenaEnter(arena);
-
-  b = MessagePoll(arena);
-
-  ArenaLeave(arena);
-  return b;
-}
-
-
-mps_message_type_t mps_message_type(mps_arena_t mps_arena,
-                                    mps_message_t mps_message)
-{
-  Arena arena = (Arena)mps_arena;
-  Message message = (Message)mps_message;
-  MessageType type;
-
-  ArenaEnter(arena);
-
-  type = MessageGetType(message);
-
-  ArenaLeave(arena);
-
-  return (mps_message_type_t)type;
-}
-
-void mps_message_discard(mps_arena_t mps_arena,
-                         mps_message_t mps_message)
-{
-  Arena arena = (Arena)mps_arena;
-  Message message = (Message)mps_message;
-
-  ArenaEnter(arena);
-
-  MessageDiscard(arena, message);
-
-  ArenaLeave(arena);
-}
-
 void mps_message_type_enable(mps_arena_t mps_arena,
                              mps_message_type_t mps_type)
 {
@@ -1633,23 +1590,16 @@ void mps_message_type_disable(mps_arena_t mps_arena,
   ArenaLeave(arena);
 }
 
-mps_bool_t mps_message_get(mps_message_t *mps_message_return,
-                           mps_arena_t mps_arena,
-                           mps_message_type_t mps_type)
+mps_bool_t mps_message_poll(mps_arena_t mps_arena)
 {
   Bool b;
   Arena arena = (Arena)mps_arena;
-  MessageType type = (MessageType)mps_type;
-  Message message;
 
   ArenaEnter(arena);
 
-  b = MessageGet(&message, arena, type);
+  b = MessagePoll(arena);
 
   ArenaLeave(arena);
-  if (b) {
-    *mps_message_return = (mps_message_t)message;
-  }
   return b;
 }
 
@@ -1671,10 +1621,61 @@ mps_bool_t mps_message_queue_type(mps_message_type_t *mps_message_type_return,
   return b;
 }
 
+mps_bool_t mps_message_get(mps_message_t *mps_message_return,
+                           mps_arena_t mps_arena,
+                           mps_message_type_t mps_type)
+{
+  Bool b;
+  Arena arena = (Arena)mps_arena;
+  MessageType type = (MessageType)mps_type;
+  Message message;
 
-/* Message-Type-Specific Methods */
+  ArenaEnter(arena);
 
-/* MPS_MESSAGE_TYPE_FINALIZATION */
+  b = MessageGet(&message, arena, type);
+
+  ArenaLeave(arena);
+  if (b) {
+    *mps_message_return = (mps_message_t)message;
+  }
+  return b;
+}
+
+void mps_message_discard(mps_arena_t mps_arena,
+                         mps_message_t mps_message)
+{
+  Arena arena = (Arena)mps_arena;
+  Message message = (Message)mps_message;
+
+  ArenaEnter(arena);
+
+  MessageDiscard(arena, message);
+
+  ArenaLeave(arena);
+}
+
+
+/* Message Methods */
+
+/* -- All Message Types */
+
+mps_message_type_t mps_message_type(mps_arena_t mps_arena,
+                                    mps_message_t mps_message)
+{
+  Arena arena = (Arena)mps_arena;
+  Message message = (Message)mps_message;
+  MessageType type;
+
+  ArenaEnter(arena);
+
+  type = MessageGetType(message);
+
+  ArenaLeave(arena);
+
+  return (mps_message_type_t)type;
+}
+
+/* -- mps_message_type_finalization */
 
 void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
                                   mps_arena_t mps_arena,
@@ -1695,7 +1696,7 @@ void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
   ArenaLeave(arena);
 }
 
-/* MPS_MESSAGE_TYPE_GC */
+/* -- mps_message_type_gc */
 
 size_t mps_message_gc_live_size(mps_arena_t mps_arena,
                                               mps_message_t mps_message)
@@ -1745,7 +1746,8 @@ size_t mps_message_gc_not_condemned_size(mps_arena_t mps_arena,
   return (size_t)size;
 }
 
-/* MPS_MESSAGE_TYPE_GC_START */
+/* -- mps_message_type_gc_start */
+
 const char *mps_message_gc_start_why(mps_arena_t mps_arena,
   mps_message_t mps_message)
 {
@@ -1963,7 +1965,7 @@ void mps_chain_destroy(mps_chain_t mps_chain)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003, 2006, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
