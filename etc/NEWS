@@ -951,7 +951,7 @@ on the corresponding remote system.
 
 *** Eldoc highlights the function argument under point
 with the face `eldoc-highlight-function-argument'.
-
++++
 *** In Etags, the --members option is now the default.
 Use --no-members if you want the old default behavior of not tagging
 struct members in C, members variables in C++ and variables in PHP.
