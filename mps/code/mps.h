@@ -48,6 +48,7 @@ typedef size_t mps_align_t;     /* alignment (size_t) */
 typedef unsigned mps_rm_t;      /* root mode (unsigned) */
 typedef unsigned mps_rank_t;    /* ranks (unsigned) */
 typedef unsigned mps_message_type_t;    /* message type (unsigned) */
+typedef unsigned long mps_clock_t;  /* processor time */
 
 /* Result Codes */
 /* .result-codes: Keep in sync with <code/mpmtypes.h#result-codes> */
@@ -515,23 +516,28 @@ extern mps_word_t mps_collections(mps_arena_t);
 
 /* Messages */
 
-extern mps_bool_t mps_message_poll(mps_arena_t);
 extern void mps_message_type_enable(mps_arena_t, mps_message_type_t);
 extern void mps_message_type_disable(mps_arena_t, mps_message_type_t);
+extern mps_bool_t mps_message_poll(mps_arena_t);
+extern mps_bool_t mps_message_queue_type(mps_message_type_t *, mps_arena_t);
+
 extern mps_bool_t mps_message_get(mps_message_t *,
                                   mps_arena_t, mps_message_type_t);
 extern void mps_message_discard(mps_arena_t, mps_message_t);
-extern mps_bool_t mps_message_queue_type(mps_message_type_t *, mps_arena_t);
+
+/* Message Methods */
+
+/* -- All Message Types */
+
 extern mps_message_type_t mps_message_type(mps_arena_t, mps_message_t);
+extern mps_clock_t mps_message_clock(mps_arena_t, mps_message_t);
 
-/* Message Type Specific Methods */
-
-/* MPS_MESSAGE_TYPE_FINALIZATION */
+/* -- mps_message_type_finalization */
 
 extern void mps_message_finalization_ref(mps_addr_t *,
                                          mps_arena_t, mps_message_t);
 
-/* MPS_MESSAGE_TYPE_GC */
+/* -- mps_message_type_gc_start */
 
 extern size_t mps_message_gc_live_size(mps_arena_t, mps_message_t);
 
@@ -540,7 +546,7 @@ extern size_t mps_message_gc_condemned_size(mps_arena_t, mps_message_t);
 extern size_t mps_message_gc_not_condemned_size(mps_arena_t,
                                                 mps_message_t);
 
-/* MPS_MESSAGE_TYPE_GC_START */
+/* -- mps_message_type_gc_start */
 
 extern const char *mps_message_gc_start_why(mps_arena_t, mps_message_t);
 

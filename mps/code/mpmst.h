@@ -223,6 +223,7 @@ typedef struct MessageStruct {
   MessageType type;             /* Message Type */
   MessageClass class;           /* Message Class Structure */
   RingStruct queueRing;         /* Message queue ring */
+  mps_clock_t postedClock;      /* mps_clock() at post time */
 } MessageStruct;
 
 
