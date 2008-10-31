@@ -1,3 +1,10 @@
+2008-10-31  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--uid-count): New.
+	(icalendar--create-uid): New. Extracted from
+	`icalendar-export-region' and add uid counter.
+	(icalendar-export-region): Use `icalendar--create-uid'.
+
 2008-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* tooltip.el (tooltip-frame-parameters): Doc fix.
