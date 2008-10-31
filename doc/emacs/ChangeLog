@@ -1,3 +1,8 @@
+2008-10-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* maintaining.texi (Change Log): Document log-edit-insert-changelog and
+	vc-update-change-log.
+
 2008-10-31  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* files.texi (Files): Add a section about document
