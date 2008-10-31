@@ -62,6 +62,7 @@ Bool MessageCheck(Message message)
   CHECKL(MessageTypeCheck(message->type));
   CHECKU(MessageClass, message->class);
   CHECKL(RingCheck(&message->queueRing));
+  /* cannot check postedClock: no check for mps_clock_t */
 
   return TRUE;
 }
@@ -117,6 +118,7 @@ void MessageInit(Arena arena, Message message, MessageClass class,
   message->class = class;
   RingInit(&message->queueRing);
   message->type = type;
+  message->postedClock = 0;
   message->sig = MessageSig;
 
   AVERT(Message, message);
@@ -145,6 +147,7 @@ void MessagePost(Arena arena, Message message)
   AVER(!MessageOnQueue(message));
   if(MessageTypeEnabled(arena, message->type)) {
     RingAppend(&arena->messageRing, &message->queueRing);
+    message->postedClock = mps_clock();
   } else {
     /* discard message immediately if client hasn't enabled that type */
     MessageDiscard(arena, message);
