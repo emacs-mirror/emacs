@@ -1,3 +1,20 @@
+2008-10-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-body-height, window-current-scroll-bars)
+	(walk-windows, get-window-with-predicate, get-buffer-window-list)
+	(minibuffer-window-active-p, count-windows)
+	(window-safely-shrinkable-p, window--splittable-p)
+	(window--try-to-split-window, window--frame-usable-p)
+	(window--even-window-heights, window--display-buffer-1)
+	(window--display-buffer-2, set-window-text-height)
+	(fit-window-to-buffer, shrink-window-if-larger-than-buffer)
+	(truncated-partial-width-window-p): Rewrite doc-string.
+	(window-fixed-size-p): Simplify code.  Rewrite doc-string.
+	(split-window-vertically, split-window-horizontally):
+	Rename args, rewrite doc-string, and simplify code.
+	(split-window-save-restore-data): Rename args and use
+	when instead of if.
+
 2008-10-29  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Fix terminal case (where font is
