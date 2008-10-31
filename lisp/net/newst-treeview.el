@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "13. Oktober 2008, 20:34:41 (ulf)"
+;; Time-stamp:  "31. Oktober 2008, 20:44:46 (ulf)"
 
 ;; ======================================================================
 
@@ -575,7 +575,8 @@ The sort function is chosen according to the value of
             (forward-line 1)
             (beginning-of-line))))) ;; FIXME!?
     (when pos-sel
-      (set-window-point (newsticker--treeview-list-window) pos-sel))))
+      (if (window-live-p (newsticker--treeview-list-window))
+          (set-window-point (newsticker--treeview-list-window) pos-sel)))))
 
 (defun newsticker--treeview-list-clear-highlight ()
   "Clear the highlight in the treeview list buffer."
@@ -608,8 +609,9 @@ The sort function is chosen according to the value of
   "Update the faces and highlight in the treeview list buffer.
 If CLEAR-BUFFER is non-nil the list buffer is completely erased."
   (save-excursion
-    (set-window-buffer (newsticker--treeview-list-window)
-                       (newsticker--treeview-list-buffer))
+    (if (window-live-p (newsticker--treeview-list-window))
+        (set-window-buffer (newsticker--treeview-list-window)
+                           (newsticker--treeview-list-buffer)))
     (set-buffer (newsticker--treeview-list-buffer))
     (if clear-buffer
         (let ((inhibit-read-only t))
@@ -779,13 +781,15 @@ for the button."
       (let ((newsticker-treeview-automatically-mark-displayed-items-as-old nil))
         (newsticker-treeview-mark-item-old t)
         (newsticker--treeview-list-update-faces)))
-  (set-window-point (newsticker--treeview-item-window) 1))
+  (if (window-live-p (newsticker--treeview-item-window))
+      (set-window-point (newsticker--treeview-item-window) 1)))
 
 (defun newsticker--treeview-item-update ()
   "Update the treeview item buffer and window."
   (save-excursion
-    (set-window-buffer (newsticker--treeview-item-window)
-                       (newsticker--treeview-item-buffer))
+    (if (window-live-p (newsticker--treeview-item-window))
+        (set-window-buffer (newsticker--treeview-item-window)
+                           (newsticker--treeview-item-buffer)))
     (set-buffer (newsticker--treeview-item-buffer))
     (let ((inhibit-read-only t))
       (erase-buffer))
@@ -864,8 +868,9 @@ Optional arguments CHANGED-WIDGET and EVENT are ignored."
 (defun newsticker--treeview-tree-update ()
   "Update treeview tree buffer and window."
   (save-excursion
-    (set-window-buffer (newsticker--treeview-tree-window)
-                       (newsticker--treeview-tree-buffer))
+    (if (window-live-p (newsticker--treeview-tree-window))
+        (set-window-buffer (newsticker--treeview-tree-window)
+                           (newsticker--treeview-tree-buffer)))
     (set-buffer (newsticker--treeview-tree-buffer))
     (kill-all-local-variables)
     (let ((inhibit-read-only t))
@@ -1046,7 +1051,8 @@ Arguments IGNORE are ignored."
                       (save-excursion (beginning-of-line) (point))
                       (save-excursion (end-of-line) (1+ (point)))
                       (current-buffer)))
-      (set-window-point (newsticker--treeview-tree-window) pos))))
+      (if (window-live-p (newsticker--treeview-tree-window))
+          (set-window-point (newsticker--treeview-tree-window) pos)))))
 
 ;; ======================================================================
 ;;; Toolbar
@@ -1198,7 +1204,8 @@ Arguments IGNORE are ignored."
   (newsticker--treeview-item-update))
 
 (defun newsticker-treeview-update ()
-  "Update all treeview buffers and windows."
+  "Update all treeview buffers and windows.
+Note: does not update the layout."
   (interactive)
   (newsticker--cache-update)
   (newsticker--group-manage-orphan-feeds)
@@ -1267,6 +1274,7 @@ Arguments IGNORE are ignored."
 (defun newsticker-treeview-show-item ()
   "Show current item."
   (interactive)
+  (newsticker--treeview-restore-layout)
   (newsticker--treeview-list-update-highlight)
   (save-excursion
     (set-buffer (newsticker--treeview-list-buffer))
@@ -1281,7 +1289,7 @@ Arguments IGNORE are ignored."
 (defun newsticker-treeview-next-item ()
   "Move to next item."
   (interactive)
-  (newsticker--treeview-restore-buffers)
+  (newsticker--treeview-restore-layout)
   (save-current-buffer
     (set-buffer (newsticker--treeview-list-buffer))
     (if (newsticker--treeview-list-highlight-start)
@@ -1293,7 +1301,7 @@ Arguments IGNORE are ignored."
 (defun newsticker-treeview-prev-item ()
   "Move to previous item."
   (interactive)
-  (newsticker--treeview-restore-buffers)
+  (newsticker--treeview-restore-layout)
   (save-current-buffer
     (set-buffer (newsticker--treeview-list-buffer))
     (forward-line -1))
@@ -1302,7 +1310,7 @@ Arguments IGNORE are ignored."
 (defun newsticker-treeview-next-new-or-immortal-item ()
   "Move to next new or immortal item."
   (interactive)
-  (newsticker--treeview-restore-buffers)
+  (newsticker--treeview-restore-layout)
   (newsticker--treeview-list-clear-highlight)
   (catch 'found
     (let ((index (newsticker-treeview-next-item)))
@@ -1321,7 +1329,7 @@ Arguments IGNORE are ignored."
 (defun newsticker-treeview-prev-new-or-immortal-item ()
   "Move to previous new or immortal item."
   (interactive)
-  (newsticker--treeview-restore-buffers)
+  (newsticker--treeview-restore-layout)
   (newsticker--treeview-list-clear-highlight)
   (catch 'found
     (let ((index (newsticker-treeview-next-item)))
@@ -1368,7 +1376,8 @@ Move to next item unless DONT-PROCEED is non-nil."
   (when item
     (setcar (nthcdr 4 item) new-age)
     ;; clean up ticker FIXME
-    ))
+    )
+  (newsticker--cache-update))
 
 (defun newsticker-treeview-mark-list-items-old ()
   "Mark all listed items as old."
@@ -1409,9 +1418,6 @@ Move to next item unless DONT-PROCEED is non-nil."
           (widget-get node :nt-id))
     (setq newsticker--treeview-current-feed (widget-get node :nt-feed))
     (setq newsticker--treeview-current-vfeed (widget-get node :nt-vfeed))
-    ;;(message "newsticker--treeview-set-current-node %s/%s" (widget-get node :tag)
-    ;;       (widget-get node :nt-id))
-    ;;       node)
     (newsticker--treeview-tree-update-highlight)))
 
 (defun newsticker--treeview-get-first-child (node)
@@ -1516,7 +1522,7 @@ is activated."
 (defun newsticker-treeview-next-feed ()
   "Move to next feed."
   (interactive)
-  (newsticker--treeview-restore-buffers)
+  (newsticker--treeview-restore-layout)
   (let ((cur (newsticker--treeview-get-current-node)))
     ;;(message "newsticker-treeview-next-feed from %s"
     ;;       (widget-get cur :tag))
@@ -1532,7 +1538,7 @@ is activated."
 (defun newsticker-treeview-prev-feed ()
   "Move to previous feed."
   (interactive)
-  (newsticker--treeview-restore-buffers)
+  (newsticker--treeview-restore-layout)
   (let ((cur (newsticker--treeview-get-current-node)))
     (message "newsticker-treeview-prev-feed from %s"
              (widget-get cur :tag))
@@ -1893,6 +1899,7 @@ Remove obsolete feeds as well."
 (defun newsticker-treeview-tree-click (event)
   "Handle click EVENT on a tag in the newsticker tree."
   (interactive "e")
+  (newsticker--treeview-restore-layout)
   (save-excursion
     (switch-to-buffer (window-buffer (posn-window (event-end event))))
     (newsticker-treeview-tree-do-click (posn-point (event-end event)))))
@@ -1919,7 +1926,7 @@ POS gives the position where EVENT occurred."
                (newsticker--treeview-set-current-node w))))))
   (newsticker--treeview-tree-update-highlight))
 
-(defun newsticker--treeview-restore-buffers ()
+(defun newsticker--treeview-restore-layout ()
   "Restore treeview buffers."
   (catch 'error
     (dotimes (i 3)
