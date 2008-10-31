@@ -1,7 +1,18 @@
 2008-10-31  Chong Yidong  <cyd@stupidchicken.com>
 
+	* misc.texi (Document View): Renamed from Document Files, moved here
+	from files.texi.
+
+	* files.texi (Version Control): Moved to maintaining.texi.  Subnodes
+	moved as well.
+	(Document Files): Moved to misc.texi.
+
 	* maintaining.texi (Change Log): Document log-edit-insert-changelog and
 	vc-update-change-log.
+	(Version Control): Move here from files.texi.
+	(Format of ChangeLog): Make it a subnode of Change Log.
+
+	* emacs.texi (Top): Update node listing.
 
 2008-10-31  Tassilo Horn  <tassilo@member.fsf.org>
 
