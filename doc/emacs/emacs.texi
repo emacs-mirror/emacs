@@ -207,6 +207,7 @@ Advanced Features
 * Rmail::	        Reading mail in Emacs.
 * Dired::	        You can ``edit'' a directory to manage files in it.
 * Calendar/Diary::      The calendar and diary facilities.
+* Document View::      Viewing PDF, PS and DVI files.
 * Gnus::	        How to read netnews with Emacs.
 * Shell::	        Executing shell commands from Emacs.
 * Emacs Server::        Using Emacs as an editing server for @code{mail}, etc.
@@ -415,14 +416,12 @@ File Handling
 * Autorevert::          Auto Reverting non-file buffers.
 * Auto Save::           Auto Save periodically protects against loss of data.
 * File Aliases::        Handling multiple names for one file.
-* Version Control::     Version control systems (RCS, CVS and SCCS).
 * Directories::         Creating, deleting, and listing file directories.
 * Comparing Files::     Finding where two files differ.
 * Diff Mode::           Editing diff output.
 * Misc File Ops::       Other things you can do on files.
 * Compressed Files::    Accessing compressed files.
 * File Archives::       Operating on tar, zip, jar etc. archive files.
-* Document Files::      Viewing PDF, PS and DVI files.
 * Remote Files::        Accessing files on other sites.
 * Quoted File Names::   Quoting special characters in file names.
 * File Name Cache::     Completion against a list of files you often use.
@@ -451,19 +450,6 @@ Auto-Saving: Protection Against Disasters
                                   actually made until you save the file.
 * Control: Auto Save Control.   Controlling when and how often to auto-save.
 * Recover::		        Recovering text from auto-save files.
-
-Version Control
-
-* Introduction to VC::  How version control works in general.
-* VC Mode Line::        How the mode line shows version control status.
-* Basic VC Editing::    How to edit a file under version control.
-* Old Revisions::       Examining and comparing old revisions of files.
-* Secondary VC Commands:: The commands used a little less frequently.
-* Branches::            Multiple lines of development.
-* Remote Repositories:: Efficient access to remote CVS servers.
-* Revision Tags::       Symbolic names for revisions
-* Miscellaneous VC::    Various other commands and features of VC.
-* Customizing VC::      Variables that change VC's behavior.
 
 Using Multiple Buffers
 
@@ -710,11 +696,24 @@ Running Debuggers Under Emacs
 
 Maintaining Large Programs
 
+* Version Control::     Version control systems (RCS, CVS and SCCS).
 * Change Log::	        Maintaining a change history for your program.
-* Format of ChangeLog:: What the change log file looks like.
 * Tags::	        Go directly to any function in your program in one
 			  command.  Tags remembers which file it is in.
 * Emerge::              A convenient way of merging two versions of a program.
+
+Version Control
+
+* Introduction to VC::  How version control works in general.
+* VC Mode Line::        How the mode line shows version control status.
+* Basic VC Editing::    How to edit a file under version control.
+* Old Revisions::       Examining and comparing old revisions of files.
+* Secondary VC Commands:: The commands used a little less frequently.
+* Branches::            Multiple lines of development.
+* Remote Repositories:: Efficient access to remote CVS servers.
+* Revision Tags::       Symbolic names for revisions
+* Miscellaneous VC::    Various other commands and features of VC.
+* Customizing VC::      Variables that change VC's behavior.
 
 Tags Tables
 
