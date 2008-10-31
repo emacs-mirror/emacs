@@ -1910,7 +1910,7 @@ decode_next_window_args (window, minibuf, all_frames)
 }
 
 
-/* Return the next or previous window of WINDOW in canonical ordering
+/* Return the next or previous window of WINDOW in cyclic ordering
    of windows.  NEXT_P non-zero means return the next window.  See the
    documentation string of next-window for the meaning of MINIBUF and
    ALL_FRAMES.  */
@@ -1982,26 +1982,36 @@ next_window (window, minibuf, all_frames, next_p)
 
 
 DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
-       doc: /* Return next window after WINDOW in canonical ordering of windows.
-If omitted, WINDOW defaults to the selected window.
+       doc: /* Return window following WINDOW in cyclic ordering of windows.
+WINDOW defaults to the selected window. The optional arguments
+MINIBUF and ALL-FRAMES specify the set of windows to consider.
 
-Optional second arg MINIBUF t means count the minibuffer window even
-if not active.  MINIBUF nil or omitted means count the minibuffer iff
-it is active.  MINIBUF neither t nor nil means not to count the
-minibuffer even if it is active.
+MINIBUF t means consider the minibuffer window even if the
+minibuffer is not active.  MINIBUF nil or omitted means consider
+the minibuffer window only if the minibuffer is active.  Any
+other value means do not consider the minibuffer window even if
+the minibuffer is active.
 
 Several frames may share a single minibuffer; if the minibuffer
-counts, all windows on all frames that share that minibuffer count
-too.  Therefore, `next-window' can be used to iterate through the
-set of windows even when the minibuffer is on another frame.  If the
-minibuffer does not count, only windows from WINDOW's frame count.
+is active, all windows on all frames that share that minibuffer
+are considered too.  Therefore, if you are using a separate
+minibuffer frame and the minibuffer is active and MINIBUF says it
+counts, `next-window' considers the windows in the frame from
+which you entered the minibuffer, as well as the minibuffer
+window.
 
-Optional third arg ALL-FRAMES t means include windows on all frames.
-ALL-FRAMES nil or omitted means cycle within the frames as specified
-above.  ALL-FRAMES = `visible' means include windows on all visible frames.
-ALL-FRAMES = 0 means include windows on all visible and iconified frames.
-If ALL-FRAMES is a frame, restrict search to windows on that frame.
-Anything else means restrict to WINDOW's frame.
+ALL-FRAMES nil or omitted means consider all windows on WINDOW's
+ frame, plus the minibuffer window if specified by the MINIBUF
+ argument, see above.  If the minibuffer counts, consider all
+ windows on all frames that share that minibuffer too.
+ALL-FRAMES t means consider all windows on all existing frames.
+ALL-FRAMES `visible' means consider all windows on all visible
+ frames.
+ALL-FRAMES 0 means consider all windows on all visible and
+ iconified frames.
+ALL-FRAMES a frame means consider all windows on that frame only.
+Anything else means consider all windows on WINDOW's frame and no
+ others.
 
 If you use consistent values for MINIBUF and ALL-FRAMES, you can use
 `next-window' to iterate through the entire cycle of acceptable
@@ -2015,31 +2025,16 @@ windows, eventually ending up back at the window you started with.
 
 
 DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
-       doc: /* Return the window preceding WINDOW in canonical ordering of windows.
-If omitted, WINDOW defaults to the selected window.
+       doc: /* Return window preceding WINDOW in cyclic ordering of windows.
+WINDOW defaults to the selected window. The optional arguments
+MINIBUF and ALL-FRAMES specify the set of windows to consider.
+For the precise meaning of these arguments see `next-window'.
 
-Optional second arg MINIBUF t means count the minibuffer window even
-if not active.  MINIBUF nil or omitted means count the minibuffer iff
-it is active.  MINIBUF neither t nor nil means not to count the
-minibuffer even if it is active.
-
-Several frames may share a single minibuffer; if the minibuffer
-counts, all windows on all frames that share that minibuffer count
-too.  Therefore, `previous-window' can be used to iterate through
-the set of windows even when the minibuffer is on another frame.  If
-the minibuffer does not count, only windows from WINDOW's frame count
-
-Optional third arg ALL-FRAMES t means include windows on all frames.
-ALL-FRAMES nil or omitted means cycle within the frames as specified
-above.  ALL-FRAMES = `visible' means include windows on all visible frames.
-ALL-FRAMES = 0 means include windows on all visible and iconified frames.
-If ALL-FRAMES is a frame, restrict search to windows on that frame.
-Anything else means restrict to WINDOW's frame.
-
-If you use consistent values for MINIBUF and ALL-FRAMES, you can use
-`previous-window' to iterate through the entire cycle of acceptable
-windows, eventually ending up back at the window you started with.
-`next-window' traverses the same cycle, in the reverse order.  */)
+If you use consistent values for MINIBUF and ALL-FRAMES, you can
+use `previous-window' to iterate through the entire cycle of
+acceptable windows, eventually ending up back at the window you
+started with.  `next-window' traverses the same cycle, in the
+reverse order.  */)
      (window, minibuf, all_frames)
      Lisp_Object window, minibuf, all_frames;
 {
@@ -2048,21 +2043,28 @@ windows, eventually ending up back at the window you started with.
 
 
 DEFUN ("other-window", Fother_window, Sother_window, 1, 2, "p",
-       doc: /* Select the ARG'th different window on this frame.
-All windows on current frame are arranged in a cyclic order.
-This command selects the window ARG steps away in that order.
-A negative ARG moves in the opposite order.  The optional second
-argument ALL-FRAMES has the same meaning as in `next-window', which see.  */)
-     (arg, all_frames)
-     Lisp_Object arg, all_frames;
+       doc: /* Select another window in cyclic ordering of windows.
+COUNT specifies the number of windows to skip, starting with the
+selected window, before making the selection.  If COUNT is
+positive, skip COUNT windows forwards.  If COUNT is negative,
+skip -COUNT windows backwards.  COUNT zero means do not skip any
+window, so select the selected window.  In an interactive call,
+COUNT is the numeric prefix argument.  Return nil.
+
+This function uses `next-window' for finding the window to select.
+The argument ALL-FRAMES has the same meaning as in `next-window',
+but the MINIBUF argument of `next-window' is always effectively
+nil.  */)
+     (count, all_frames)
+     Lisp_Object count, all_frames;
 {
   Lisp_Object window;
   int i;
 
-  CHECK_NUMBER (arg);
+  CHECK_NUMBER (count);
   window = selected_window;
 
-  for (i = XINT (arg); i > 0; --i)
+  for (i = XINT (count); i > 0; --i)
     window = Fnext_window (window, Qnil, all_frames);
   for (; i < 0; ++i)
     window = Fprevious_window (window, Qnil, all_frames);
@@ -2096,7 +2098,7 @@ MINIBUF neither nil nor t means never include the minibuffer window.  */)
 }
 
 
-/* Return a list of windows in canonical ordering.  Arguments are like
+/* Return a list of windows in cyclic ordering.  Arguments are like
    for `next-window'.  */
 
 static Lisp_Object
@@ -3643,7 +3645,8 @@ static Lisp_Object
 select_window_norecord (window)
      Lisp_Object window;
 {
-  return Fselect_window (window, Qt);
+  return WINDOW_LIVE_P (window)
+    ? Fselect_window (window, Qt) : selected_window;
 }
 
 Lisp_Object
