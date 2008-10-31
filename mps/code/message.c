@@ -284,6 +284,14 @@ MessageClass MessageGetClass(Message message)
   return message->class;
 }
 
+/* Return the class of a message */
+mps_clock_t MessageGetClock(Message message)
+{
+  AVERT(Message, message);
+
+  return message->postedClock;
+}
+
 static void MessageDelete(Message message)
 {
   AVERT(Message, message);

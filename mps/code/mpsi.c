@@ -1675,6 +1675,23 @@ mps_message_type_t mps_message_type(mps_arena_t mps_arena,
   return (mps_message_type_t)type;
 }
 
+mps_clock_t mps_message_clock(mps_arena_t mps_arena,
+                              mps_message_t mps_message)
+{
+  Arena arena = (Arena)mps_arena;
+  Message message = (Message)mps_message;
+  mps_clock_t postedClock;  /* @@@@ should be Clock, not mps_clock_t */
+
+  ArenaEnter(arena);
+
+  postedClock = MessageGetClock(message);
+
+  ArenaLeave(arena);
+
+  return (mps_clock_t)postedClock;
+}
+
+
 /* -- mps_message_type_finalization */
 
 void mps_message_finalization_ref(mps_addr_t *mps_addr_return,

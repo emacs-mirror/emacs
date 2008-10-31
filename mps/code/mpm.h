@@ -311,6 +311,7 @@ extern void MessageDiscard(Arena arena, Message message);
 /* -- Message Methods, Generic */
 extern MessageType MessageGetType(Message message);
 extern MessageClass MessageGetClass(Message message);
+extern mps_clock_t MessageGetClock(Message message);
 /* -- Message Method Dispatchers, Type-specific */
 extern void MessageFinalizationRef(Ref *refReturn,
                                    Arena arena, Message message);

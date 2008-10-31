@@ -48,6 +48,7 @@ typedef size_t mps_align_t;     /* alignment (size_t) */
 typedef unsigned mps_rm_t;      /* root mode (unsigned) */
 typedef unsigned mps_rank_t;    /* ranks (unsigned) */
 typedef unsigned mps_message_type_t;    /* message type (unsigned) */
+typedef unsigned long mps_clock_t;  /* processor time */
 
 /* Result Codes */
 /* .result-codes: Keep in sync with <code/mpmtypes.h#result-codes> */
@@ -527,6 +528,7 @@ extern void mps_message_discard(mps_arena_t, mps_message_t);
 
 /* -- All Message Types */
 extern mps_message_type_t mps_message_type(mps_arena_t, mps_message_t);
+extern mps_clock_t mps_message_clock(mps_arena_t, mps_message_t);
 
 /* -- mps_message_type_finalization */
 extern void mps_message_finalization_ref(mps_addr_t *,
