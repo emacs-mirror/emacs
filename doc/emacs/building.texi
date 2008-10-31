@@ -65,7 +65,7 @@ directory.
 @vindex compile-command
   The default for the compilation command is normally @samp{make -k},
 which is correct most of the time for nontrivial programs.
-(@xref{Top,, Make, make, GNU Make Manual}.)  If you have done @kbd{M-x
+@xref{Top,, Make, make, GNU Make Manual}.  If you have done @kbd{M-x
 compile} before, the default each time is the command you used the
 previous time.  @code{compile} stores this command in the variable
 @code{compile-command}, so setting that variable specifies the default
@@ -194,11 +194,15 @@ compilation buffer produce automatic source display.
 @end table
 
 @findex compile-goto-error
+@vindex compilation-auto-jump-to-first-error
   You can visit the source for any particular error message by moving
 point in the @samp{*compilation*} buffer to that error message and
 typing @key{RET} (@code{compile-goto-error}).  Alternatively, you can
 click @kbd{Mouse-2} on the error message; you need not switch to the
-@samp{*compilation*} buffer first.
+@samp{*compilation*} buffer first.  If you set the variable
+@code{compilation-auto-jump-to-first-error} to a non-@code{nil} value,
+Emacs automatically jumps to the first error (if any exists) once
+compilation finishes.
 
 @kindex M-g M-n
 @kindex M-g n
@@ -442,6 +446,36 @@ Flymake, flymake, The Flymake Manual}.
 @cindex debuggers
 @cindex GUD library
 @cindex GDB
+
+Emacs provides two separate facilities for using external symbolic
+debuggers, which are programs for testing and debugging other
+programs:
+@itemize @bullet
+@item
+The Grand Unified Debugger (GUD) provides a simple, text-based
+interface for a wide variety of symbolic debuggers, including the GNU
+Debugger (GDB), the Perl debugger, the Python debugger, and the Java
+Debugger.
+
+@item
+The GDB Graphical Interface is an Emacs package that interacts with
+GDB to turn Emacs into a graphical ``integrated development
+environment'', or IDE.
+@end itemize
+
+  In addition, Emacs contains a built-in system for debugging Emacs
+Lisp programs.  @xref{Debugging,, The Lisp Debugger, elisp, the Emacs
+Lisp Reference Manual}, for information on the Emacs Lisp debugger.
+
+@menu
+* GUD::	                     The Grand Unified Debugger.
+* GDB Graphical Interface::  A mode that uses GDB features to implement
+                             a graphical Emacs debugging environment.
+@end menu
+
+@node GUD
+@subsection GUD
+@cindex GUD library
 @cindex DBX
 @cindex SDB
 @cindex XDB
@@ -450,68 +484,55 @@ Flymake, flymake, The Flymake Manual}.
 @cindex PDB
 
 @c Do you believe in GUD?
-The GUD (Grand Unified Debugger) library provides an interface to
-various symbolic debuggers from within Emacs.  We recommend the
-debugger GDB, which is free software, but GUD can also run DBX, SDB or
-XDB.  GUD can also serve as an interface to Perl's debugging mode, the
-Python debugger PDB, and to JDB, the Java Debugger.
-@xref{Debugging,, The Lisp Debugger, elisp, the Emacs Lisp Reference
-Manual}, for information on debugging Emacs Lisp programs.
+The GUD (Grand Unified Debugger) library provides an Emacs interface
+to a wide variety of symbolic debuggers.  Unlike the GDB graphical
+interface, which only runs GDB (@pxref{GDB Graphical Interface}), GUD
+can also run DBX, SDB, XDB, Perl's debugging mode, the Python debugger
+PDB, or the Java Debugger JDB.
 
 @menu
 * Starting GUD::	How to start a debugger subprocess.
 * Debugger Operation::	Connection between the debugger and source buffers.
 * Commands of GUD::	Key bindings for common commands.
 * GUD Customization::	Defining your own commands for GUD.
-* GDB Graphical Interface::  An enhanced mode that uses GDB features to
-                        implement a graphical debugging environment through
-                        Emacs.
 @end menu
 
 @node Starting GUD
-@subsection Starting GUD
+@subsubsection Starting GUD
 
-  There are several commands for starting a debugger, each corresponding
-to a particular debugger program.
+  There are several commands for starting a debugger under GUD, each
+corresponding to a particular debugger program.
 
 @table @kbd
-@item M-x gdb @key{RET} @var{file} @key{RET}
-@findex gdb
-Run GDB as a subprocess of Emacs.  This uses an IDE-like graphical
-interface; see @ref{GDB Graphical Interface}.  Only GDB works with the
-graphical interface.
-
 @item M-x gud-gdb @key{RET} @var{file} @key{RET}
 @findex gud-gdb
 Run GDB as a subprocess of Emacs.  This command creates a buffer for
 input and output to GDB, and switches to it.  If a GDB buffer already
-exists, it just switches to that buffer.
+exists, it just switches to that buffer.  (To run GDB in an IDE-like
+graphical interface instead, see @ref{GDB Graphical Interface}.)
 
 @item M-x dbx @key{RET} @var{file} @key{RET}
 @findex dbx
-Run DBX as a subprocess of Emacs.  Since Emacs does not implement a
-graphical interface for DBX, communication with DBX works by typing
-commands in the GUD interaction buffer.  The same is true for all
-the other supported debuggers.
+Run DBX as a subprocess of Emacs.
 
 @item M-x xdb @key{RET} @var{file} @key{RET}
 @findex xdb
 @vindex gud-xdb-directories
-Similar, but run XDB.  Use the variable
+Run XDB as a subprocess of Emacs.  Use the variable
 @code{gud-xdb-directories} to specify directories to search for source
 files.
 
 @item M-x sdb @key{RET} @var{file} @key{RET}
 @findex sdb
-Similar, but run SDB.
+Run SDB as a subprocess of Emacs.
 
-  Some versions of SDB do not mention source file names in their
+Some versions of SDB do not mention source file names in their
 messages.  When you use them, you need to have a valid tags table
 (@pxref{Tags}) in order for GUD to find functions in the source code.
-If you have not visited a tags table or the tags table doesn't list one
-of the functions, you get a message saying @samp{The sdb support
-requires a valid tags table to work}.  If this happens, generate a valid
-tags table in the working directory and try again.
+If you have not visited a tags table or the tags table doesn't list
+one of the functions, you get a message saying @samp{The sdb support
+requires a valid tags table to work}.  If this happens, generate a
+valid tags table in the working directory and try again.
 
 @item M-x perldb @key{RET} @var{file} @key{RET}
 @findex perldb
@@ -533,7 +554,7 @@ debugger supports.  However, shell wildcards and variables are not
 allowed.  GUD assumes that the first argument not starting with a
 @samp{-} is the executable file name.
 
-@c Running a debugger on a remote host
+@cindex remote host, debugging on
 Tramp provides a facility to debug programs on remote hosts
 (@pxref{Running a debugger on a remote host, Running a debugger on a
 remote host,, tramp, The Tramp Manual}), whereby both the debugger and
@@ -544,7 +565,7 @@ GDB remote debugging feature, for example (@pxref{Remote Debugging,,
 Debugging Remote Programs, gdb, The GNU debugger}).
 
 @node Debugger Operation
-@subsection Debugger Operation
+@subsubsection Debugger Operation
 
 @cindex fringes, and current execution line in GUD
   Generally when you run a debugger with GUD, the debugger uses an Emacs
@@ -591,7 +612,7 @@ interface supports GUD tooltips and assures they will not cause side
 effects.
 
 @node Commands of GUD
-@subsection Commands of GUD
+@subsubsection Commands of GUD
 
   The GUD interaction buffer uses a variant of Shell mode, so the
 Emacs commands of Shell mode are available (@pxref{Shell Mode}).  All
@@ -748,7 +769,7 @@ enter a tab as input to the program you are debugging with GDB.
 Instead, type @kbd{C-q @key{TAB}} to enter a tab.
 
 @node GUD Customization
-@subsection GUD Customization
+@subsubsection GUD Customization
 
 @vindex gdb-mode-hook
 @vindex dbx-mode-hook
@@ -823,13 +844,13 @@ Fully qualified class name derived from the expression surrounding point
 @node GDB Graphical Interface
 @subsection GDB Graphical Interface
 
-  By default, the command @code{gdb} starts GDB using a graphical
-interface, using Emacs windows for display program state information.
-In effect, this makes Emacs into an IDE (interactive development
-environment).  With it, you do not need to use textual GDB commands;
-you can control the debugging session with the mouse.  For example,
-you can click in the fringe of a source buffer to set a breakpoint
-there, or on a stack frame in the stack buffer to select that frame.
+  The command @code{gdb} starts GDB in a graphical interface, using
+Emacs windows for display program state information.  In effect, this
+makes Emacs into an IDE (interactive development environment).  With
+it, you do not need to use textual GDB commands; you can control the
+debugging session with the mouse.  For example, you can click in the
+fringe of a source buffer to set a breakpoint there, or on a stack
+frame in the stack buffer to select that frame.
 
   This mode requires telling GDB that its ``screen size'' is
 unlimited, so it sets the height and width accordingly.  For correct
@@ -1382,25 +1403,23 @@ used; its default is @code{t}.
 @node Lisp Interaction
 @section Lisp Interaction Buffers
 
-  The buffer @samp{*scratch*} which is selected when Emacs starts up is
-provided for evaluating Lisp expressions interactively inside Emacs.
+  When Emacs starts up, it contains a buffer named @samp{*scratch*},
+which is provided for evaluating Lisp expressions interactively inside
+Emacs.  Its major mode is Lisp Interaction mode.
 
-  The simplest way to use the @samp{*scratch*} buffer is to insert Lisp
-expressions and type @kbd{C-j} after each expression.  This command
-reads the Lisp expression before point, evaluates it, and inserts the
-value in printed representation before point.  The result is a complete
-typescript of the expressions you have evaluated and their values.
-
-  The @samp{*scratch*} buffer's major mode is Lisp Interaction mode, which
-is the same as Emacs-Lisp mode except for the binding of @kbd{C-j}.
+@findex eval-print-last-sexp
+@kindex C-j @r{(Lisp Interaction mode)}
+  The simplest way to use the @samp{*scratch*} buffer is to insert
+Lisp expressions and type @kbd{C-j} (@code{eval-print-last-sexp})
+after each expression.  This command reads the Lisp expression before
+point, evaluates it, and inserts the value in printed representation
+before point.  The result is a complete typescript of the expressions
+you have evaluated and their values.
 
 @findex lisp-interaction-mode
-  The rationale for this feature is that Emacs must have a buffer when
-it starts up, but that buffer is not useful for editing files since a
-new buffer is made for every file that you visit.  The Lisp interpreter
-typescript is the most useful thing I can think of for the initial
-buffer to do.  Type @kbd{M-x lisp-interaction-mode} to put the current
-buffer in Lisp Interaction mode.
+  All other commands in Lisp Interaction mode are the same as in Emacs
+Lisp mode.  You can enable Lisp Interaction mode by typing @kbd{M-x
+lisp-interaction-mode}.
 
 @findex ielm
   An alternative way of evaluating Emacs Lisp expressions interactively
