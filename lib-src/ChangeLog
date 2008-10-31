@@ -1,3 +1,7 @@
+2008-10-31  Andreas Schwab  <schwab@suse.de>
+
+	* emacsclient.c (main): Don't force sending tty when in eval mode.
+
 2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacsclient.c (main): If using the current frame, send tty
