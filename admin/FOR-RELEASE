@@ -140,12 +140,12 @@ misc.texi
 msdog.texi
 msdog-xtra.texi
 mule.texi
-m-x.texi
+m-x.texi          -- cyd
 programs.texi
 regs.texi         -- cyd
 rmail.texi
 screen.texi       -- cyd
-search.texi
+search.texi       -- cyd
 sending.texi
 text.texi
 trouble.texi
