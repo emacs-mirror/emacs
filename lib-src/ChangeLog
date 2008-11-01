@@ -1,3 +1,11 @@
+2008-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacsclient.c (main) [WINDOWSNT]: Don't ifdef away the call to
+	`ttyname'.
+	(w32_getenv): Treat $TERM specially: if not found in the
+	environment and in the Registry, return "w32console".
+	(ttyname) [WINDOWSNT]: New function.
+
 2008-10-31  Andreas Schwab  <schwab@suse.de>
 
 	* emacsclient.c (main): Don't force sending tty when in eval mode.
