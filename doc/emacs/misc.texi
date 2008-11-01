@@ -21,42 +21,41 @@ amusements.
 @end ifnottex
 
 @node Document View, Gnus, Calendar/Diary, Top
-
 @section Document Viewing
-@cindex mode, pdf, ps, dvi
+@cindex DVI file viewing
+@cindex PDF file
+@cindex PS file
 @cindex DocView mode
 @cindex mode, DocView
-@cindex document files
+@cindex document viewer (DocView)
 @findex doc-view-mode
 
-DocView mode is a document viewer for Emacs (@code{doc-view-mode}).
-It's capable of displaying PDF, PS and DVI files inside an Emacs buffer
-and provides some convenience features like slicing, zooming and
-searching inside the document.
+DocView mode (@code{doc-view-mode}) is a document viewer that operates
+within Emacs.  It provides convenience features such as slicing,
+zooming, and searching inside the document.
 
-@vindex doc-view-cache-directory
-This is done by using @command{gs} (GhostScript) to convert the document
-to a set of PNG images which are then displayed.  In order to omit
-double conversions of documents those images are cached in
-@code{doc-view-cache-directory}.
-
-@findex doc-view-minor-mode
 @findex doc-view-toggle-display
-By default Emacs opens all pdf and dvi files using DocView mode.  You'll
-be greeted with a welcome screen and as soon as the first page's
-conversion finished, it'll be displayed.  PostScript files are opened
-with @code{ps-mode} by default, but additionally
-@code{doc-view-minor-mode} is enabled, which adds the binding @kbd{C-c
-C-c} (@code{doc-view-toggle-display}) and toggles between the editing
-mode (@code{ps-mode} in case of PS files, @code{fundamental-mode} in
-case of PDF or DVI files) and DocView mode.
+When you visit a PDF or DVI file, Emacs begins in DocView mode: it
+displays a welcome screen and begins formatting the file, page by
+page.  It displays the first page once that has been formatted.  You
+can use @kbd{C-c C-c} (@code{doc-view-toggle-display}) to switch to
+editing the text of the PDF or DVI file.
+
+@findex doc-view-toggle-display
+For Postscript files, Emacs normally visits them in PS mode, but you
+can use @kbd{C-c C-c} to switch to viewing the formatted text with
+DocView.  For all these files, repeating @kbd{C-c C-c} toggles between
+DocView and the file text.
 
 @findex doc-view-enlarge
 @findex doc-view-shrink
-You can enlarge or shrink the document with @kbd{+}
-(@code{doc-view-enlarge}) and @kbd{-} (@code{doc-view-shrink}).
+@vindex doc-view-resolution
+When in DocView mode, you can enlarge or shrink the document with
+@kbd{+} (@code{doc-view-enlarge}) and @kbd{-}
+(@code{doc-view-shrink}).  To specify the default size for DocView,
+set or customize the variable @code{doc-view-resolution}.
 
-The DocView buffer can be buried with @kbd{q} and killed with @kbd{k}.
+You can kill the DocView buffer with @kbd{k} and bury it with @kbd{q}.
 
 @menu
 * Navigation::	Navigation inside DocView buffers.
@@ -68,24 +67,22 @@ The DocView buffer can be buried with @kbd{q} and killed with @kbd{k}.
 @node Navigation
 @subsection Navigation
 
-Inside DocView mode you can scroll the current page using the usual
-Emacs movement keys, that is the arrow keys or @kbd{C-p}, @kbd{C-n},
+When in DocView mode, you can scroll the current page using the usual
+Emacs movement keys; that is, the arrow keys or @kbd{C-p}, @kbd{C-n},
 @kbd{C-b} and @kbd{C-f}.
 
 @findex doc-view-next-page
 @findex doc-view-previous-page
-To go to the next page use @kbd{n}, @kbd{@key{next}} or @kbd{C-x ]}
-(@code{doc-view-next-page}), to go to the previous page use @kbd{p},
-@kbd{@key{prior}} or @kbd{C-x [} (@code{doc-view-previous-page}).
+To go to the next page, use @kbd{n}, @key{next} or @kbd{C-x ]}
+(@code{doc-view-next-page}).  To go to the previous page, use @kbd{p},
+@key{prior} or @kbd{C-x [} (@code{doc-view-previous-page}).
 
 @findex doc-view-scroll-up-or-next-page
 @findex doc-view-scroll-down-or-previous-page
-While reading a document it's convenient to scroll the current page and
-switch to the next one if it's already scrolled to the bottom.  This
-functionality is bound to @kbd{@key{SPC}}
-(@code{doc-view-scroll-up-or-next-page}).  @kbd{@key{DEL}} will do the
-same in the other direction
-(@code{doc-view-scroll-down-or-previous-page}).
+The @key{SPC} (@code{doc-view-scroll-up-or-next-page}) key is a
+convenient way to advance through the document.  It scrolls within the
+current page or advances to the next.  @key{DEL} moves backwards in a
+similar way direction (@code{doc-view-scroll-down-or-previous-page}).
 
 @findex doc-view-first-page
 @findex doc-view-last-page
@@ -99,79 +96,83 @@ To jump to a page by its number use @kbd{M-g M-g} or @kbd{M-g g}
 @node Searching
 @subsection Searching
 
-It's possible to search for a regular expression (@pxref{Regexps})
-inside documents.  In order to do that, the document file will be
-converted to text and the search will be performed in the text file.
-The interface to searching is inspired by @code{isearch}
-(@pxref{Incremental Search}).
+While in DocView mode you can search the file's text for a regular
+expression (@pxref{Regexps}).  The interface for searching is inspired
+by @code{isearch} (@pxref{Incremental Search}).
 
 @findex doc-view-search
 @findex doc-view-search-backward
-To initiate a search use @kbd{C-s} (@code{doc-view-search}) or @kbd{C-r}
-(@code{doc-view-search-backward}).  You'll be queried for a regular
-expression and after hitting @kbd{@key{RET}} the number of matches will
-be echoed.  Navigation between the matches is done by pressing @kbd{C-s}
-and @kbd{C-r} again.
+To initiate a search use @kbd{C-s} (@code{doc-view-search}) or
+@kbd{C-r} (@code{doc-view-search-backward}).  This reads a regular
+expression; after you finish it with @key{RET}, it echoes the number
+of matches found.  You can move forward and back among these matches
+by typing @kbd{C-s} and @kbd{C-r}.
 
 @findex doc-view-show-tooltip
-Since there's no possibility to show the match inside the image itself,
-a tooltip will be shown at the mouse position which lists all matching
-lines of the current page.  You can force the tooltip to be shown with
-@kbd{C-t} (@code{doc-view-show-tooltip}).
+DocView mode has no way to show the match inside the page image, so
+instead it displays a tooltip (at the mouse position) which lists all
+matching lines in the current page.  You can force display of this
+tooltip with @kbd{C-t} (@code{doc-view-show-tooltip}).
 
-To initiate a new search call @code{doc-view-search} with a prefix
-argument, i.e. @kbd{C-u C-s} or @kbd{C-u C-r} for a backward search.
+To start a new search, use the search command with a prefix argument;
+i.e., @kbd{C-u C-s} for a forward search or @kbd{C-u C-r} for a
+backward search.
 
 @node Slicing
 @subsection Slicing
 
-Quite often documents have huge margins for printing.  These are
-annoying when reading the document on a computer, because they use up
-screen space and thus can force inconvenient scrolling.
+Documents often have wide margins for printing.  They are annoying
+when reading the document on the screen, because they use up screen
+space and can cause inconvenient scrolling.
 
 @findex doc-view-set-slice
 @findex doc-view-set-slice-using-mouse
-To prevent you from that DocView lets you select the slice of the pages
-you're interested in.  To do that hit @kbd{s s}
-(@code{doc-view-set-slice}) to enter the top left pixel position and the
-slice's width and height.  A more convenient method is provided by
-@kbd{s m} (@code{doc-view-set-slice-using-mouse}), where you use the
-mouse to select the slice.
+With DocView you can hide these margins by selecting the @dfn{slice}
+of pages to display.  A slice is a rectangle within the page area;
+once you specify a slice in DocView, it applies to whichever page you
+look at.
+
+To specify the slice numerically, type @kbd{s s}
+(@code{doc-view-set-slice}); then enter the top left pixel position
+and the slice's width and height.
+@c ??? how does this work?
+                
+  A more convenient graphical way to specify the slice is with @kbd{s
+m} (@code{doc-view-set-slice-using-mouse}), where you use the mouse to
+select the slice.
+@c ??? How does this work?
 
 @findex doc-view-reset-slice
-To reset the selected slice use @kbd{s r} (@code{doc-view-reset-slice}).
+To cancel the selected slice, type @kbd{s r}
+(@code{doc-view-reset-slice}).  Then DocView shows the entire page
+including its entire margins.
 
 @node Conversion
 @subsection Conversion
 
-As said before DocView mode will automatically convert the document
-files when visiting them unless @code{doc-view-cache-directory} already
-contains the converted PNG images.  In that case it'll use the cached
-files.
+@vindex doc-view-cache-directory
+DocView works by using @command{gs} (GhostScript) to convert the
+document to a set of PNG images which are then displayed.  For
+efficiency it caches those images in @code{doc-view-cache-directory}.
 
 @findex doc-view-clear-cache
-You can clean up the cache directory with @code{M-x
-doc-view-clear-cache}.
-
-If a document has changed, it'll be converted anew when visiting it.
-DocView recognizes documents by the md5 sum of their contents.
+You can clear the cache directory with @code{M-x
+doc-view-clear-cache}.  But this should never be necessary, because
+DocView detects changed files based on the md5 checksum of the file
+contents.
 
 @findex doc-view-kill-proc
 @findex doc-view-kill-proc-and-buffer
-To force a reconversion of the currently viewed document hit @kbd{r} or
-@kbd{g} (@code{revert-buffer}).  Killing the converter process
-associated with the current buffer can be done with @kbd{K}
-(@code{doc-view-kill-proc}).  The key @kbd{k} will do the same and
-additionally kill the DocView buffer
-(@code{doc-view-kill-proc-and-buffer}).
+To force a reconversion of the currently viewed document, type @kbd{r}
+or @kbd{g} (@code{revert-buffer}).  To kill the converter process
+associated with the current buffer, type @kbd{K}
+(@code{doc-view-kill-proc}).  The command @kbd{k}
+(@code{doc-view-kill-proc-and-buffer}) kills the converter process and
+the DocView buffer.
 
 The zoom commands @kbd{+} (@code{doc-view-enlarge}) and @kbd{-}
-(@code{doc-view-shrink}) will also reconvert the current document using
-another resolution.  The current page will be converted first.
-
-@vindex doc-view-resolution
-The default resolution for conversion can be customized via the variable
-@code{doc-view-resolution}.
+(@code{doc-view-shrink}) need to reconvert the document at the new
+size.  The current page is converted first.
 
 @node Gnus, Shell, Document View, Top
 @section Gnus
