@@ -1347,6 +1347,7 @@ returns its output as a list of lines.
 
 ** Character code, representation, and charset changes.
 
++++
 The character code space is now 0x0..0x3FFFFF with no gap.
 Characters of code 0x0..0x10FFFF are Unicode characters of the same code points.
 Characters of code 0x3FFF80..0x3FFFFF are raw 8-bit bytes.
@@ -1354,6 +1355,7 @@ Characters of code 0x3FFF80..0x3FFFFF are raw 8-bit bytes.
 +++
 Generic characters no longer exist.
 
++++
 In buffers and strings, characters are represented by UTF-8 byte
 sequences in a multibyte buffer/string.
 
