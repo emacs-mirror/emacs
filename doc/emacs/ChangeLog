@@ -1,5 +1,16 @@
 2008-11-01  Chong Yidong  <cyd@stupidchicken.com>
 
+	* programs.texi (Program Modes): Link to Program Indent node.
+	(Left Margin Paren): Explain consequences of changing
+	open-paren-in-column-0-is-defun-start more concisely.
+	(Which Function, Program Indent, Info Lookup): Minor edits.
+	(Basic Indent): If region is active, TAB indents the region.
+	(Multi-line Indent): If region is active, TAB indents the region.  Note
+	that indent-region is useful when Transient Mark mode is off.
+	(Matching): The delimiter at the cursor is highlighted---the character
+	changes color.
+	(Symbol Completion): Link to Completion node.
+
 	* misc.texi (Invoking emacsclient): Describe how to use Emacs server in
 	a strictly text-only system.
 
