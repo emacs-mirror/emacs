@@ -28,11 +28,12 @@
 ;;; MD4 hash calculation
 
 (defvar md4-buffer (make-vector 4 '(0 . 0))
-  "work buffer of four 32-bit integers")
+  "Work buffer of four 32-bit integers.")
 
 (defun md4 (in n)
-  "Returns the MD4 hash string of 16 bytes long for a string IN of N
-bytes long.  N is required to handle strings containing character 0."
+  "Return the MD4 hash for a string IN of length N bytes.
+The returned hash is 16 bytes long.  N is required to handle
+strings containing the character 0."
   (let (m
 	(b (cons 0 (* n 8)))
 	(i 0)
@@ -115,8 +116,9 @@ bytes long.  N is required to handle strings containing character 0."
   (cons (logand (car x) (car y)) (logand (cdr x) (cdr y))))
 
 (defun md4-64 (m)
-  "Calculate md4 of 64 bytes chunk M which is represented as 16 pairs of
-32 bits integers.  The resulting md4 value is placed in md4-buffer."
+  "Calculate MD4 hash of M.
+M is a 64-bytes chunk, represented as 16 pairs of 32-bit integers.
+The resulting MD4 value is placed in `md4-buffer'."
   (let ((a (aref md4-buffer 0))
 	(b (aref md4-buffer 1))
 	(c (aref md4-buffer 2))
@@ -199,8 +201,9 @@ bytes long.  N is required to handle strings containing character 0."
     str))
 
 (defun md4-pack-int32 (int32)
-  "Pack 32 bits integer in a 4 bytes string as little endian.  A 32 bits
-integer is represented as a pair of two 16 bits integers (cons high low)."
+  "Pack 32 bits integer in a 4 bytes string as little endian.
+A 32 bits integer is represented as a pair of two 16 bits
+integers (cons high low)."
   (let ((str (make-string 4 0))
 	(h (car int32)) (l (cdr int32)))
     (aset str 0 (logand l 255))

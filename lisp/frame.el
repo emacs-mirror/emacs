@@ -51,7 +51,7 @@ Parameters specified here supersede the values given in `default-frame-alist'.")
 ;; But that's not necessary, because the default is to have one.
 ;; By not specifying it here, we let an X resource specify it.
 (defcustom initial-frame-alist nil
-  "*Alist of frame parameters for creating the initial X window frame.
+  "Alist of frame parameters for creating the initial X window frame.
 You can set this in your `.emacs' file; for example,
  (setq initial-frame-alist '((top . 1) (left . 1) (width . 80) (height . 55)))
 Parameters specified here supersede the values given in `default-frame-alist'.
@@ -76,7 +76,7 @@ as it appears, you need to use this three-step process:
   :group 'frames)
 
 (defcustom minibuffer-frame-alist '((width . 80) (height . 2))
-  "*Alist of frame parameters for initially creating a minibuffer frame.
+  "Alist of frame parameters for initially creating a minibuffer frame.
 You can set this in your `.emacs' file; for example,
  (setq minibuffer-frame-alist
    '((top . 1) (left . 1) (width . 80) (height . 2)))
@@ -88,7 +88,7 @@ Parameters specified here supersede the values given in
   :group 'frames)
 
 (defcustom pop-up-frame-alist nil
-  "*Alist of frame parameters used when creating pop-up frames.
+  "Alist of frame parameters used when creating pop-up frames.
 Pop-up frames are used for completions, help, and the like.
 This variable can be set in your init file, like this:
   (setq pop-up-frame-alist '((width . 80) (height . 20)))
@@ -108,7 +108,7 @@ It is called with no arguments and should return a newly created frame."
 
 (defcustom special-display-frame-alist
   '((height . 14) (width . 80) (unsplittable . t))
-  "*Alist of frame parameters used when creating special frames.
+  "Alist of frame parameters used when creating special frames.
 Special frames are used for buffers whose names are in
 `special-display-buffer-names' and for buffers whose names match
 one of the regular expressions in `special-display-regexps'.
@@ -1107,7 +1107,7 @@ To get the frame's current border color, use `frame-parameters'."
 
 (defun auto-raise-mode (arg)
   "Toggle whether or not the selected frame should auto-raise.
-With arg, turn auto-raise mode on if and only if arg is positive.
+With ARG, turn auto-raise mode on if and only if ARG is positive.
 Note that this controls Emacs's own auto-raise feature.
 Some window managers allow you to enable auto-raise for certain windows.
 You can use that for Emacs windows if you wish, but if you do,
@@ -1124,7 +1124,7 @@ that is beyond the control of Emacs and this command has no effect on it."
 
 (defun auto-lower-mode (arg)
   "Toggle whether or not the selected frame should auto-lower.
-With arg, turn auto-lower mode on if and only if arg is positive.
+With ARG, turn auto-lower mode on if and only if ARG is positive.
 Note that this controls Emacs's own auto-lower feature.
 Some window managers allow you to enable auto-lower for certain windows.
 You can use that for Emacs windows if you wish, but if you do,
@@ -1364,7 +1364,7 @@ the question is inapplicable to a certain kind of display."
 (declare-function x-display-visual-class "xfns.c" (&optional terminal))
 
 (defun display-visual-class (&optional display)
-  "Returns the visual class of DISPLAY.
+  "Return the visual class of DISPLAY.
 The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'."
   (let ((frame-type (framep-on-display display)))
@@ -1491,7 +1491,7 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 (make-variable-buffer-local 'show-trailing-whitespace)
 
 (defcustom show-trailing-whitespace nil
-  "*Non-nil means highlight trailing whitespace.
+  "Non-nil means highlight trailing whitespace.
 This is done in the face `trailing-whitespace'."
   :type 'boolean
   :group 'whitespace-faces)
@@ -1506,7 +1506,7 @@ This is done in the face `trailing-whitespace'."
   :group 'frames)
 
 (defcustom auto-hscroll-mode t
-  "*Allow or disallow automatic scrolling windows horizontally.
+  "Allow or disallow automatic scrolling windows horizontally.
 If non-nil, windows are automatically scrolled horizontally to make
 point visible."
   :version "21.1"
@@ -1523,12 +1523,12 @@ point visible."
   :group 'frames)
 
 (defcustom blink-cursor-delay 0.5
-  "*Seconds of idle time after which cursor starts to blink."
+  "Seconds of idle time after which cursor starts to blink."
   :type 'number
   :group 'cursor)
 
 (defcustom blink-cursor-interval 0.5
-  "*Length of cursor blink interval in seconds."
+  "Length of cursor blink interval in seconds."
   :type 'number
   :group 'cursor)
 
@@ -1602,20 +1602,20 @@ cursor display.  On a text-only terminal, this is not implemented."
 ;; Hourglass pointer
 
 (defcustom display-hourglass t
-  "*Non-nil means show an hourglass pointer, when Emacs is busy.
+  "Non-nil means show an hourglass pointer, when Emacs is busy.
 This feature only works when on a window system that can change
 cursor shapes."
   :type 'boolean
   :group 'cursor)
 
 (defcustom hourglass-delay 1
-  "*Seconds to wait before displaying an hourglass pointer when Emacs is busy."
+  "Seconds to wait before displaying an hourglass pointer when Emacs is busy."
   :type 'number
   :group 'cursor)
 
 
 (defcustom cursor-in-non-selected-windows t
-  "*Non-nil means show a hollow box cursor in non-selected windows.
+  "Non-nil means show a hollow box cursor in non-selected windows.
 If nil, don't show a cursor except in the selected window.
 If t, display a cursor related to the usual cursor type
  \(a solid box becomes hollow, a bar becomes a narrower bar).

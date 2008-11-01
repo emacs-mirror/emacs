@@ -1426,7 +1426,7 @@ that are not customizable options, as well as faces and groups
 ;;;###autoload
 (defun customize-apropos-options (regexp &optional arg)
   "Customize all loaded customizable options matching REGEXP.
-With prefix arg, include variables that are not customizable options
+With prefix ARG, include variables that are not customizable options
 \(but it is better to use `apropos-variable' if you want to find those)."
   (interactive "sCustomize options (regexp): \nP")
   (customize-apropos regexp (or arg 'options)))
@@ -1456,7 +1456,7 @@ links: groups have links to subgroups."
   :group 'custom-buffer)
 
 (defcustom custom-buffer-done-kill nil
-  "*Non-nil means exiting a Custom buffer should kill it."
+  "Non-nil means exiting a Custom buffer should kill it."
   :type 'boolean
   :version "22.1"
   :group 'custom-buffer)
@@ -2363,7 +2363,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 			   :background "dim gray")
 			  (t
 			   :slant italic))
-  "Face used for comments on variables or faces"
+  "Face used for comments on variables or faces."
   :version "21.1"
   :group 'custom-faces)
 ;; backward-compatibility alias
@@ -2378,7 +2378,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
     (((class grayscale) (background dark))
      (:foreground "LightGray" :weight bold :slant italic))
     (t (:weight bold)))
-  "Face used for variables or faces comment tags"
+  "Face used for variables or faces comment tags."
   :group 'custom-faces)
 ;; backward-compatibility alias
 (put 'custom-comment-tag-face 'face-alias 'custom-comment-tag)
@@ -3115,7 +3115,7 @@ Also change :reverse-video to :inverse-video."
 
 
 (defun custom-face-edit-attribute-tag (widget)
-  "Returns the first :tag property in WIDGET or one of its children."
+  "Return the first :tag property in WIDGET or one of its children."
   (let ((tag (widget-get widget :tag)))
     (or (and (not (equal tag "")) tag)
 	(let ((children (widget-get widget :children)))
@@ -4230,7 +4230,7 @@ and hence will not set `custom-file' to that file either."
 		       :doc
 		       "Please read entire docstring below before setting \
 this through Custom.
-Click om \"More\" \(or position point there and press RETURN)
+Click on \"More\" \(or position point there and press RETURN)
 if only the first line of the docstring is shown."))
   :group 'customize)
 

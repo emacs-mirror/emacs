@@ -1,3 +1,37 @@
+2008-11-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cus-edit.el (customize-apropos-options, custom-comment)
+	(custom-comment-tag, custom-face-edit-attribute-tag):
+	Fix typos in docstrings.
+	(custom-buffer-done-kill): Remove * from defcustom docstring.
+	(custom-file): Fix typo in doc of defcustom choice.
+
+	* frame.el (display-visual-class): Fix typo in docstring.
+	(initial-frame-alist, minibuffer-frame-alist, pop-up-frame-alist)
+	(special-display-frame-alist, show-trailing-whitespace)
+	(auto-hscroll-mode, blink-cursor-delay, blink-cursor-interval)
+	(display-hourglass, hourglass-delay, cursor-in-non-selected-windows):
+	Remove * from defcustom docstrings.
+
+	* md4.el (md4-buffer): Fix typo in docstring.
+	(md4, md4-64): Doc fixes.
+	(md4-pack-int32): Reflow docstring.
+
+	* paths.el (rmail-file-name): Remove * from defcustom docstring.
+	(prune-directory-list, gnus-nntp-service): Fix typos in docstrings.
+
+	* rect.el (open-rectangle): Reflow docstring.
+	(spaces-string): Fix docstring typo.  Use "?\s" instead of "? ".
+
+	* select.el (x-get-cut-buffer): Fix typo in docstring.
+
+	* timezone.el (timezone-zone-to-minute, timezone-time-from-absolute)
+	(timezone-time-zone-from-absolute, timezone-leap-year-p):
+	Fix typos in docstrings.
+
+	* emacs-lisp/assoc.el (asort, aelement, aput, aget, amake):
+	Fix typos in docstrings.
+
 2008-10-31  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-backend.el (newsticker--cache-update): Fix no-save case.
