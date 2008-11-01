@@ -1,3 +1,17 @@
+2008-11-01  Richard M. Stallman  <rms@gnu.org>
+
+	* maintaining.texi (Types of Log File): Change logs are older than
+	version control.
+	(VCS Concepts): Simplify and rearrange.
+	(Version Control Systems): Make it clear that Linux is only the kernel.
+	(VC Mode Line): Shorten reference to menu item.
+	(Basic VC Editing): Clarify VC fileset.  Shorten and simplify.
+	(VC Directory Mode): Minor cleanup.
+	Unchanged files are hidden, not omitted.
+	(VC Directory Commands): Shorten and simplify.
+	(Change Log Commands): New node, split from Change Logs.
+	(VC Directory Buffer): New node, split from VC Directory Mode.
+
 2008-10-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* misc.texi (Document View): Renamed from Document Files, moved here
