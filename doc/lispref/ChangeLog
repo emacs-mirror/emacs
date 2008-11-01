@@ -1,3 +1,9 @@
+2008-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Text Representations): Rewrite to make consistent
+	with Emacs 23 internal representation of characters.  Document
+	`unibyte-string'.
+
 2008-10-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* processes.texi (Process Information): Note that process-status
