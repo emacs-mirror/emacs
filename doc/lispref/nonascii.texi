@@ -10,11 +10,11 @@
 @cindex characters, multi-byte
 @cindex non-@acronym{ASCII} characters
 
-  This chapter covers the special issues relating to non-@acronym{ASCII}
-characters and how they are stored in strings and buffers.
+  This chapter covers the special issues relating to characters and
+how they are stored in strings and buffers.
 
 @menu
-* Text Representations::    Unibyte and multibyte representations
+* Text Representations::    How Emacs represents text.
 * Converting Representations::  Converting unibyte to multibyte and vice versa.
 * Selecting a Representation::  Treating a byte sequence as unibyte or multi.
 * Character Codes::         How unibyte and multibyte relate to
@@ -33,41 +33,62 @@ characters and how they are stored in strings and buffers.
 
 @node Text Representations
 @section Text Representations
-@cindex text representations
+@cindex text representation
 
-  Emacs has two @dfn{text representations}---two ways to represent text
-in a string or buffer.  These are called @dfn{unibyte} and
-@dfn{multibyte}.  Each string, and each buffer, uses one of these two
-representations.  For most purposes, you can ignore the issue of
-representations, because Emacs converts text between them as
-appropriate.  Occasionally in Lisp programming you will need to pay
-attention to the difference.
+  Emacs buffers and strings support a large repertoire of characters
+from many different scripts.  This is so users could type and display
+text in most any known written language.
+
+@cindex character codepoint
+@cindex codespace
+@cindex Unicode
+  To support this multitude of characters and scripts, Emacs closely
+follows the @dfn{Unicode Standard}.  The Unicode Standard assigns a
+unique number, called a @dfn{codepoint}, to each and every character.
+The range of codepoints defined by Unicode, or the Unicode
+@dfn{codespace}, is @code{0..10FFFF} (in hex) inclusive.  Emacs
+extends this range with codepoints in the range @code{3FFF80..3FFFFF},
+which it uses for representing raw 8-bit bytes that cannot be
+interpreted as characters.  Thus, a character codepoint in Emacs is a
+22-bit integer number.
+
+@cindex internal representation of characters
+@cindex characters, representation in buffers and strings
+@cindex multibyte text
+  To conserve memory, Emacs does not hold fixed-length 22-bit numbers
+that are codepoints of text characters within buffers and strings.
+Rather, Emacs uses a variable-length internal representation of
+characters, that stores each character as a sequence of 1 to 5 8-bit
+bytes, depending on the magnitude of its codepoint@footnote{
+This internal representation is based on one of the encodings defined
+by the Unicode Standard, called @dfn{UTF-8}, for representing any
+Unicode codepoint, but Emacs extends UTF-8 to represent the additional
+codepoints it uses for raw 8-bit bytes.}.
+For example, any @acronym{ASCII} character takes up only 1 byte, a
+Latin-1 character takes up 2 bytes, etc.  We call this representation
+of text @dfn{multibyte}, because it uses several bytes for each
+character.
+
+  Outside Emacs, characters can be represented in many different
+encodings, such as ISO-8859-1, GB-2312, Big-5, etc.  Emacs converts
+between these external encodings and the internal representation, as
+appropriate, when it reads text into a buffer or a string, or when it
+writes text to a disk file or passes it to some other process.
+
+  Occasionally, Emacs needs to hold and manipulate encoded text or
+binary non-text data in its buffer or string.  For example, when Emacs
+visits a file, it first reads the file's text verbatim into a buffer,
+and only then converts it to the internal representation.  Before the
+conversion, the buffer holds encoded text.
 
 @cindex unibyte text
-  In unibyte representation, each character occupies one byte and
-therefore the possible character codes range from 0 to 255.  Codes 0
-through 127 are @acronym{ASCII} characters; the codes from 128 through 255
-are used for one non-@acronym{ASCII} character set (you can choose which
-character set by setting the variable @code{nonascii-insert-offset}).
-
-@cindex leading code
-@cindex multibyte text
-@cindex trailing codes
-  In multibyte representation, a character may occupy more than one
-byte, and as a result, the full range of Emacs character codes can be
-stored.  The first byte of a multibyte character is always in the range
-128 through 159 (octal 0200 through 0237).  These values are called
-@dfn{leading codes}.  The second and subsequent bytes of a multibyte
-character are always in the range 160 through 255 (octal 0240 through
-0377); these values are @dfn{trailing codes}.
-
-  Some sequences of bytes are not valid in multibyte text: for example,
-a single isolated byte in the range 128 through 159 is not allowed.  But
-character codes 128 through 159 can appear in multibyte text,
-represented as two-byte sequences.  All the character codes 128 through
-255 are possible (though slightly abnormal) in multibyte text; they
-appear in multibyte buffers and strings when you do explicit encoding
-and decoding (@pxref{Explicit Encoding}).
+  Encoded text is not really text, as far as Emacs is concerned, but
+rather a sequence of raw 8-bit bytes.  We call buffers and strings
+that hold encoded text @dfn{unibyte} buffers and strings, because
+Emacs treats them as a sequence of individual bytes.  In particular,
+Emacs usually displays unibyte buffers and strings as octal codes such
+as @code{\237}.  We recommend that you never use unibyte buffers and
+strings except for manipulating encoded text or binary non-text data.
 
   In a buffer, the buffer-local value of the variable
 @code{enable-multibyte-characters} specifies the representation used.
@@ -77,7 +98,7 @@ when the string is constructed.
 @defvar enable-multibyte-characters
 This variable specifies the current buffer's text representation.
 If it is non-@code{nil}, the buffer contains multibyte text; otherwise,
-it contains unibyte text.
+it contains unibyte encoded text or binary non-text data.
 
 You cannot set this variable directly; instead, use the function
 @code{set-buffer-multibyte} to change a buffer's representation.
@@ -96,20 +117,22 @@ default value to @code{nil} early in startup.
 @end defvar
 
 @defun position-bytes position
-Return the byte-position corresponding to buffer position
+Buffer positions are measured in character units.  This function
+returns the byte-position corresponding to buffer position
 @var{position} in the current buffer.  This is 1 at the start of the
 buffer, and counts upward in bytes.  If @var{position} is out of
 range, the value is @code{nil}.
 @end defun
 
 @defun byte-to-position byte-position
-Return the buffer position corresponding to byte-position
-@var{byte-position} in the current buffer.  If @var{byte-position} is
-out of range, the value is @code{nil}.
+Return the buffer position, in character units, corresponding to
+byte-position @var{byte-position} in the current buffer.  If
+@var{byte-position} is out of range, the value is @code{nil}.
 @end defun
 
 @defun multibyte-string-p string
-Return @code{t} if @var{string} is a multibyte string.
+Return @code{t} if @var{string} is a multibyte string, @code{nil}
+otherwise.
 @end defun
 
 @defun string-bytes string
@@ -117,6 +140,11 @@ Return @code{t} if @var{string} is a multibyte string.
 This function returns the number of bytes in @var{string}.
 If @var{string} is a multibyte string, this can be greater than
 @code{(length @var{string})}.
+@end defun
+
+@defun unibyte-string &rest bytes
+This function concatenates all its argument @var{bytes} and makes the
+result a unibyte string.
 @end defun
 
 @node Converting Representations
