@@ -1485,9 +1485,7 @@ the shell command @samp{emacsclient @var{file}}, where @var{file} is a
 file name.  This connects to an Emacs server, and tells that Emacs
 process to visit @var{file} in one of its existing frames---either a
 graphical frame, or one in a text-only terminal (@pxref{Frames}).  You
-can then select that frame to begin editing.@footnote{Or, if you are
-running the Emacs server's process on a separate virtual text-only
-terminal, switch to that virtual terminal.}
+can then select that frame to begin editing.
 
   If there is no Emacs server, the @command{emacsclient} program halts
 with an error message.  If the Emacs process has no existing
@@ -1496,13 +1494,25 @@ Server})---then Emacs opens a frame on the terminal in which you
 called @command{emacsclient}, as though you had used the @samp{-t}
 option (@pxref{emacsclient Options}).
 
+  On a graphical display, switching to the Emacs server is
+straightforward---just select its (system-level) window.  If you are
+using a text-only terminal, there are two ways to switch between
+@command{emacsclient}'s shell and the Emacs server: (i) run the Emacs
+server and @command{emacsclient} on different virtual terminals, and
+switch to the Emacs server's virtual terminal after calling
+@command{emacsclient}; or (ii) call @command{emacsclient} from within
+the Emacs server itself, using Shell mode (@pxref{Interactive Shell})
+or Term mode (@pxref{Term Mode}); @code{emacsclient} blocks only the
+subshell under Emacs, and you can still use Emacs to edit the file.
+
 @kindex C-x #
 @findex server-edit
-  When you finish editing @var{file}, type @kbd{C-x #}
-(@code{server-edit}) in its buffer.  This saves the file and sends a
-message back to the @command{emacsclient} program, telling it to exit.
-Programs that use @env{EDITOR} usually wait for the ``editor''---in
-the case @command{emacsclient}---to exit before doing something else.
+  When you finish editing @var{file} in the Emacs server, type
+@kbd{C-x #} (@code{server-edit}) in its buffer.  This saves the file
+and sends a message back to the @command{emacsclient} program, telling
+it to exit.  Programs that use @env{EDITOR} usually wait for the
+``editor''---in the case @command{emacsclient}---to exit before doing
+something else.
 
   You can also call @command{emacsclient} with multiple file name
 arguments: @samp{emacsclient @var{file1} @var{file2} ...} tells the
