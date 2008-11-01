@@ -432,7 +432,7 @@ you attempt to execute a command on the fileset.
 is the main improvement to VC in Emacs 23.  When you mark multi-file
 VC in a VC Directory buffer, VC operations treat them as a VC fileset,
 and operate on them all at once if the version control system is
-changeset-based.  @xref{VC Directory Mode}
+changeset-based.  @xref{VC Directory Mode}.
 
   VC filesets are distinct from the ``named filesets'' used for
 viewing and visiting files in functional groups (@pxref{Filesets}).
