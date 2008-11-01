@@ -1,5 +1,8 @@
 2008-11-01  Chong Yidong  <cyd@stupidchicken.com>
 
+	* misc.texi (Invoking emacsclient): Describe how to use Emacs server in
+	a strictly text-only system.
+
 	* abbrevs.texi (Saving Abbrevs): Note that abbrev file is not loaded in
 	batch mode.
 
