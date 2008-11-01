@@ -353,8 +353,13 @@ w32_getenv (envvar)
 
   if (! (value = w32_get_resource (HKEY_CURRENT_USER, envvar, &dwType)) &&
       ! (value = w32_get_resource (HKEY_LOCAL_MACHINE, envvar, &dwType)))
-    /* Not found in the registry.  */
-    return NULL;
+    {
+      /* "w32console" is what Emacs on Windows uses for tty-type under -nw.  */
+      if (strcmp (envvar, "TERM") == 0)
+	return xstrdup ("w32console");
+      /* Found neither in the environment nor in the registry.  */
+      return NULL;
+    }
 
   if (dwType == REG_SZ)
     /* Registry; no need to expand.  */
@@ -434,6 +439,13 @@ w32_execvp (path, argv)
 
 #undef execvp
 #define execvp w32_execvp
+
+/* Emulation of ttyname for Windows.  */
+char *
+ttyname (int fd)
+{
+  return "CONOUT$";
+}
 
 #endif /* WINDOWSNT */
 
@@ -570,10 +582,8 @@ decode_options (argc, argv)
 
   if (!tty && display)
     window_system = 1;
-#if !defined (WINDOWSNT)
   else if (!current_frame)
     tty = 1;
-#endif
 
   /* --no-wait implies --current-frame on ttys when there are file
        arguments or expressions given.  */
@@ -1444,9 +1454,8 @@ main (argc, argv)
     {
       char *type = egetenv ("TERM");
       char *tty_name = NULL;
-#ifndef WINDOWSNT
+
       tty_name = ttyname (fileno (stdout));
-#endif
 
       if (! tty_name)
         {
