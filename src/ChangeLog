@@ -1,3 +1,7 @@
+2008-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* composite.c (fill_gstring_header): Fix copy/paste typo.
+
 2008-10-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fnext_window, Fprevious_window): Rewrite doc-string.
