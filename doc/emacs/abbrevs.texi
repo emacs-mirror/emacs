@@ -216,7 +216,6 @@ once.  This command is effective even if Abbrev mode is not enabled.
   Expanding any abbrev first runs the hook @code{pre-abbrev-expand-hook}
 (@pxref{Hooks}).
 
-@need 1500
 @node Editing Abbrevs
 @section Examining and Editing Abbrevs
 
@@ -303,6 +302,7 @@ that, when executed, define the same abbrevs that you currently have.
 @findex read-abbrev-file
 @findex quietly-read-abbrev-file
 @vindex abbrev-file-name
+@cindex abbrev file
   @kbd{M-x read-abbrev-file} reads a file name using the minibuffer
 and then reads the file, defining abbrevs according to the contents of
 the file.  The function @code{quietly-read-abbrev-file} is similar
@@ -312,7 +312,9 @@ file.  If either of these functions is called with @code{nil} as the
 argument, it uses the file name specified in the variable
 @code{abbrev-file-name}, which is by default @code{"~/.abbrev_defs"}.
 That file is your standard abbrev definition file, and Emacs loads
-abbrevs from it automatically when it starts up.
+abbrevs from it automatically when it starts up.  (As an exception,
+Emacs does not load the abbrev file when it is started in batch mode.
+@xref{Initial Options}, for a description of batch mode.)
 
 @vindex save-abbrevs
   Emacs will offer to save abbrevs automatically if you have changed
