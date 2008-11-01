@@ -1,5 +1,7 @@
 2008-11-01  Richard M. Stallman  <rms@gnu.org>
 
+	* misc.texi (Document View): Major rewrite.
+
 	* maintaining.texi (Types of Log File): Change logs are older than
 	version control.
 	(VCS Concepts): Simplify and rearrange.
