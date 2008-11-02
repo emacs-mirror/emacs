@@ -1,3 +1,28 @@
+2008-11-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (do_switch_frame): New argument NORECORD passed to
+	Fselect_window.
+	(Fselect_frame): New argument NORECORD passed to
+	do_switch_frame.
+	(Fset_frame_selected_window): New argument NORECORD passed to
+	Fselect_frame.
+	(Fhandle_switch_frame, Fdelete_frame): Handle NORECORD argument
+	in call of do_switch_frame.
+	(Fset_mouse_position, Fset_mouse_pixel_position, Fraise_frame):
+	Handle NORECORD argument in call of Fselect_frame.
+	* lisp.h (do_switch_frame, Fselect_frame)
+	(Fset_frame_selected_window): Adjust declarations.
+	* window.c (select_frame_norecord): New function.
+	(run_window_configuration_change_hook): Use it and call
+	Fselect_frame with NORECORD set.
+	(Fselect_window): Pass NORECORD to Fselect_frame.
+	(Fset_window_configuration): Handle NORECORD argument in call of
+	do_switch_frame.
+	* minibuf.c (choose_minibuf_frame): Handle NORECORD in call of
+	Fset_frame_selected_window.
+	* keyboard.c (command_loop_1): Handle NORECORD in call of
+	Fselect_frame (currently ifdefd).
+
 2008-11-02  Ulrich Mueller  <ulm@kph.uni-mainz.de>
 
 	* emacs.c (USAGE2): Untabify.
