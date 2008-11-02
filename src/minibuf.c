@@ -187,7 +187,7 @@ choose_minibuf_frame ()
       if (MINI_WINDOW_P (XWINDOW (FRAME_SELECTED_WINDOW (XFRAME (frame))))
 	  && !(EQ (frame, selected_frame)
 	       && minibuf_level > 0))
-	Fset_frame_selected_window (frame, Fframe_first_window (frame));
+	Fset_frame_selected_window (frame, Fframe_first_window (frame), Qnil);
   }
 }
 
