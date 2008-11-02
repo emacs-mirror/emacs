@@ -69,6 +69,27 @@ BODY remains selected."
 	 (if (window-live-p save-selected-window-window)
 	     (select-window save-selected-window-window))))))
 
+(defmacro save-selected-window-norecord (&rest body)
+  "Execute BODY, then select, but do not record previously selected window.
+This macro is like `save-selected-window' but changes neither the
+order of recently selected windows nor the buffer list."
+  `(let ((save-selected-window-window (selected-window))
+	 ;; It is necessary to save all of these, because calling
+	 ;; select-window changes frame-selected-window for whatever
+	 ;; frame that window is in.
+	 (save-selected-window-alist
+	  (mapcar (lambda (frame) (cons frame (frame-selected-window frame)))
+		  (frame-list))))
+     (save-current-buffer
+       (unwind-protect
+	   (progn ,@body)
+	 (dolist (elt save-selected-window-alist)
+	   (and (frame-live-p (car elt))
+		(window-live-p (cdr elt))
+		(set-frame-selected-window (car elt) (cdr elt) 'norecord)))
+	 (when (window-live-p save-selected-window-window)
+	   (select-window save-selected-window-window 'norecord))))))
+
 (defun window-body-height (&optional window)
   "Return number of lines in WINDOW available for actual buffer text.
 WINDOW defaults to the selected window.
@@ -162,13 +183,20 @@ ALL-FRAMES 0 means cycle through all windows on all visible and
 ALL-FRAMES a frame means cycle through all windows on that frame
  only.
 Anything else means cycle through all windows on WINDOW's frame
- and no others."
-  ;; If we start from the minibuffer window, don't fail to come back to it.
-  (if (window-minibuffer-p (selected-window))
-      (setq minibuf t))
-  (save-selected-window
-    (if (framep all-frames)
-	(select-window (frame-first-window all-frames)))
+ and no others.
+
+This function changes neither the order of recently selected
+windows nor the buffer list."
+  ;; If we start from the minibuffer window, don't fail to come
+  ;; back to it.
+  (when (window-minibuffer-p (selected-window))
+    (setq minibuf t))
+  ;; Make sure to not mess up the order of recently selected
+  ;; windows.  Use `save-selected-window-norecord' and `select-window'
+  ;; with second argument non-nil for this purpose.
+  (save-selected-window-norecord
+    (when (framep all-frames)
+      (select-window (frame-first-window all-frames) 'norecord))
     (let* (walk-windows-already-seen
 	   (walk-windows-current (selected-window)))
       (while (progn
@@ -1202,10 +1230,10 @@ where some error may be present."
       ;; bizarre displays because it also allows Emacs to make *other*
       ;; windows 1-line tall, which means that there's no more space for
       ;; the modeline.
-      (let ((window-min-height (min 2 height))) ;One text line plus a modeline.
+      (let ((window-min-height (min 2 height))) ; One text line plus a modeline.
 	(if (and window (not (eq window (selected-window))))
-	    (save-selected-window
-	      (select-window window)
+	    (save-selected-window-norecord
+	      (select-window window 'norecord)
 	      (enlarge-window delta))
 	  (enlarge-window delta))))))
 
@@ -1322,8 +1350,8 @@ Always return nil."
 	    (and (eobp) (bolp) (not (bobp))))
       (set-window-point window (1- (window-point window))))
 
-    (save-selected-window
-      (select-window window)
+    (save-selected-window-norecord
+      (select-window window 'norecord)
 
       ;; Adjust WINDOW to the nominally correct size (which may actually
       ;; be slightly off because of variable height text, etc).
@@ -1373,7 +1401,7 @@ Return non-nil if the window was shrunk, nil otherwise."
 	 (mini (frame-parameter frame 'minibuffer))
 	 (edges (window-edges window)))
     (if (and (not (eq window (frame-root-window frame)))
-	     (window-safely-shrinkable-p)
+	     (window-safely-shrinkable-p window)
 	     (pos-visible-in-window-p (point-min) window)
 	     (not (eq mini 'only))
 	     (or (not mini)
