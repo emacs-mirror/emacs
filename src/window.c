@@ -3353,6 +3353,7 @@ run_funs (Lisp_Object funs)
 }
 
 static Lisp_Object select_window_norecord (Lisp_Object window);
+static Lisp_Object select_frame_norecord (Lisp_Object frame);
 
 void
 run_window_configuration_change_hook (struct frame *f)
@@ -3367,8 +3368,8 @@ run_window_configuration_change_hook (struct frame *f)
 
   if (SELECTED_FRAME () != f)
     {
-      record_unwind_protect (Fselect_frame, Fselected_frame ());
-      Fselect_frame (frame);
+      record_unwind_protect (select_frame_norecord, Fselected_frame ());
+      Fselect_frame (frame, Qt);
     }
 
   /* Use the right buffer.  Matters when running the local hooks.  */
@@ -3561,7 +3562,8 @@ DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
 If WINDOW is not already selected, make WINDOW's buffer current
 and make WINDOW the frame's selected window.  Return WINDOW.
 Optional second arg NORECORD non-nil means do not put this buffer
-at the front of the list of recently selected ones.
+at the front of the list of recently selected ones and do not
+make this window the most recently selected one.
 
 Note that the main editor command loop selects the buffer of the
 selected window before each command.  */)
@@ -3594,7 +3596,7 @@ selected window before each command.  */)
 	 so that FRAME_FOCUS_FRAME is moved appropriately as we
 	 move around in the state where a minibuffer in a separate
 	 frame is active.  */
-      Fselect_frame (WINDOW_FRAME (w));
+      Fselect_frame (WINDOW_FRAME (w), norecord);
       /* Fselect_frame called us back so we've done all the work already.  */
       eassert (EQ (window, selected_window));
       return window;
@@ -3647,6 +3649,14 @@ select_window_norecord (window)
 {
   return WINDOW_LIVE_P (window)
     ? Fselect_window (window, Qt) : selected_window;
+}
+
+static Lisp_Object
+select_frame_norecord (frame)
+     Lisp_Object frame;
+{
+  return FRAME_LIVE_P (XFRAME (frame))
+    ? Fselect_frame (frame, Qt) : selected_frame;
 }
 
 Lisp_Object
@@ -6207,7 +6217,7 @@ the return value is nil.  Otherwise the value is t.  */)
          when the frame's old selected window has been deleted.  */
       if (f != selected_frame && FRAME_WINDOW_P (f))
 	do_switch_frame (WINDOW_FRAME (XWINDOW (data->root_window)),
-			 0, 0);
+			 0, 0, Qnil);
 #endif
 
       /* Set the screen height to the value it had before this function.  */
@@ -6250,7 +6260,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	 Fselect_window above totally superfluous; it still sets f's
 	 selected window.  */
       if (FRAME_LIVE_P (XFRAME (data->selected_frame)))
-	do_switch_frame (data->selected_frame, 0, 0);
+	do_switch_frame (data->selected_frame, 0, 0, Qnil);
 
       run_window_configuration_change_hook (f);
     }
