@@ -995,6 +995,57 @@ strprefix (char *prefix, char *string)
   return !strncmp (prefix, string, strlen (prefix));
 }
 
+/* Get tty name and type.  If successful, return the type in TTY_TYPE
+   and the name in TTY_NAME, and return 1.  Otherwise, fail if NOABORT
+   is zero, or return 0 if NOABORT is non-zero.  */
+
+int
+find_tty (char **tty_type, char **tty_name, int noabort)
+{
+  char *type = egetenv ("TERM");
+  char *name = ttyname (fileno (stdout));
+
+  if (!name)
+    {
+      if (noabort)
+	return 0;
+      else
+	{
+	  message (TRUE, "%s: could not get terminal name\n", progname);
+	  fail ();
+	}
+    }
+
+  if (!type)
+    {
+      if (noabort)
+	return 0;
+      else
+	{
+	  message (TRUE, "%s: please set the TERM variable to your terminal type\n",
+		   progname);
+	  fail ();
+	}
+    }
+
+  if (strcmp (type, "eterm") == 0)
+    {
+      if (noabort)
+	return 0;
+      else
+	{
+	  /* This causes nasty, MULTI_KBOARD-related input lockouts. */
+	  message (TRUE, "%s: opening a frame in an Emacs term buffer"
+		   " is not supported\n", progname);
+	  fail ();
+	}
+    }
+
+  *tty_name = name;
+  *tty_type = type;
+  return 1;
+}
+
 
 #if !defined (NO_SOCKETS_IN_FILE_SYSTEM)
 
@@ -1082,58 +1133,6 @@ handle_sigtstp (int signalnum)
   signal (signalnum, handle_sigtstp);
 
   errno = old_errno;
-}
-
-
-/* Get tty name and type.  If successful, return the type in TTY_TYPE
-   and the name in TTY_NAME, and return 1.  Otherwise, fail if NOABORT
-   is zero, or return 0 if NOABORT is non-zero.  */
-
-int
-find_tty (char **tty_type, char **tty_name, int noabort)
-{
-  char *type = egetenv ("TERM");
-  char *name = ttyname (fileno (stdout));
-
-  if (!name)
-    {
-      if (noabort)
-	return 0;
-      else
-	{
-	  message (TRUE, "%s: could not get terminal name\n", progname);
-	  fail ();
-	}
-    }
-
-  if (!type)
-    {
-      if (noabort)
-	return 0;
-      else
-	{
-	  message (TRUE, "%s: please set the TERM variable to your terminal type\n",
-		   progname);
-	  fail ();
-	}
-    }
-
-  if (strcmp (type, "eterm") == 0)
-    {
-      if (noabort)
-	return 0;
-      else
-	{
-	  /* This causes nasty, MULTI_KBOARD-related input lockouts. */
-	  message (TRUE, "%s: opening a frame in an Emacs term buffer"
-		   " is not supported\n", progname);
-	  fail ();
-	}
-    }
-
-  *tty_name = name;
-  *tty_type = type;
-  return 1;
 }
 
 
