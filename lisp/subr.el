@@ -2499,17 +2499,18 @@ also `with-temp-buffer'."
   "Execute the forms in BODY with WINDOW as the selected window.
 The value returned is the value of the last form in BODY.
 
-This macro saves and restores the current buffer, since otherwise
-its normal operation could potentially make a different
-buffer current.  It does not alter the buffer list ordering.
+This macro saves and restores the selected window, as well as the
+selected window of each frame.  It does not change the order of
+recently selected windows.  If the previously selected window of
+some frame is no longer live at the end of BODY, that frame's
+selected window is left alone.  If the selected window is no
+longer live, then whatever window is selected at the end of BODY
+remains selected.
 
-This macro saves and restores the selected window, as well as
-the selected window in each frame.  If the previously selected
-window of some frame is no longer live at the end of BODY, that
-frame's selected window is left alone.  If the selected window is
-no longer live, then whatever window is selected at the end of
-BODY remains selected.
-See also `with-temp-buffer'."
+This macro uses `save-current-buffer' to save and restore the
+current buffer, since otherwise its normal operation could
+potentially make a different buffer current.  It does not alter
+the buffer list ordering."
   (declare (indent 1) (debug t))
   ;; Most of this code is a copy of save-selected-window.
   `(let ((save-selected-window-window (selected-window))
@@ -2526,26 +2527,28 @@ See also `with-temp-buffer'."
 	 (dolist (elt save-selected-window-alist)
 	   (and (frame-live-p (car elt))
 		(window-live-p (cadr elt))
-		(set-frame-selected-window (car elt) (cadr elt))))
-	 (if (window-live-p save-selected-window-window)
-	     (select-window save-selected-window-window 'norecord))))))
+		(set-frame-selected-window (car elt) (cadr elt) 'norecord)))
+	 (when (window-live-p save-selected-window-window)
+	   (select-window save-selected-window-window 'norecord))))))
 
 (defmacro with-selected-frame (frame &rest body)
   "Execute the forms in BODY with FRAME as the selected frame.
 The value returned is the value of the last form in BODY.
-See also `with-temp-buffer'."
+
+This macro neither changes the order of recently selected windows
+nor the buffer list."
   (declare (indent 1) (debug t))
   (let ((old-frame (make-symbol "old-frame"))
 	(old-buffer (make-symbol "old-buffer")))
     `(let ((,old-frame (selected-frame))
 	   (,old-buffer (current-buffer)))
        (unwind-protect
-	   (progn (select-frame ,frame)
+	   (progn (select-frame ,frame 'norecord)
 		  ,@body)
-	 (if (frame-live-p ,old-frame)
-	     (select-frame ,old-frame))
-	 (if (buffer-live-p ,old-buffer)
-	     (set-buffer ,old-buffer))))))
+	 (when (frame-live-p ,old-frame)
+	   (select-frame ,old-frame 'norecord))
+	 (when (buffer-live-p ,old-buffer)
+	   (set-buffer ,old-buffer))))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
