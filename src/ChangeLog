@@ -1,3 +1,7 @@
+2008-11-02  Ulrich Mueller  <ulm@kph.uni-mainz.de>
+
+	* emacs.c (USAGE2): Untabify.
+
 2008-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* composite.c (fill_gstring_header): Fix copy/paste typo.
