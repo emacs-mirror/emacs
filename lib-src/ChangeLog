@@ -1,3 +1,10 @@
+2008-11-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacsclient.c (window_system): Delete redundant variable.
+	(decode_options): Don't use it.
+	(find_tty): New function.
+	(main): Use find_tty, and don't use window_system.
+
 2008-11-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacsclient.c (main) [WINDOWSNT]: Don't ifdef away the call to
