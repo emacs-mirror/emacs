@@ -784,11 +784,13 @@ affects all frames on the same terminal device.  */)
 
    FOR_DELETION non-zero means that the selected frame is being
    deleted, which includes the possibility that the frame's terminal
-   is dead.  */
+   is dead.
+
+   The value of NORECORD is passed as argument to Fselect_window.  */
 
 Lisp_Object
-do_switch_frame (frame, track, for_deletion)
-     Lisp_Object frame;
+do_switch_frame (frame, track, for_deletion, norecord)
+     Lisp_Object frame, norecord;
      int track, for_deletion;
 {
   struct frame *sf = SELECTED_FRAME ();
@@ -871,7 +873,7 @@ do_switch_frame (frame, track, for_deletion)
   if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))
     last_nonminibuf_frame = XFRAME (selected_frame);
 
-  Fselect_window (XFRAME (frame)->selected_window, Qnil);
+  Fselect_window (XFRAME (frame)->selected_window, norecord);
 
 #ifdef NS_IMPL_COCOA
   /* term gets no other notification of this */
@@ -890,21 +892,25 @@ do_switch_frame (frame, track, for_deletion)
   return frame;
 }
 
-DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 1, "e",
-       doc: /* Select the frame FRAME.
+DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 2, "e",
+       doc: /* Select FRAME.
 Subsequent editing commands apply to its selected window.
+Optional argument NORECORD means to neither change the order of
+recently selected windows nor the buffer list.
+
 The selection of FRAME lasts until the next time the user does
-something to select a different frame, or until the next time this
-function is called.  If you are using a window system, the previously
-selected frame may be restored as the selected frame after return to
-the command loop, because it still may have the window system's input
-focus.  On a text-only terminal, the next redisplay will display FRAME.
+something to select a different frame, or until the next time
+this function is called.  If you are using a window system, the
+previously selected frame may be restored as the selected frame
+after return to the command loop, because it still may have the
+window system's input focus.  On a text-only terminal, the next
+redisplay will display FRAME.
 
 This function returns FRAME, or nil if FRAME has been deleted.  */)
-  (frame)
-    Lisp_Object frame;
+     (frame, norecord)
+     Lisp_Object frame, norecord;
 {
-  return do_switch_frame (frame, 1, 0);
+  return do_switch_frame (frame, 1, 0, norecord);
 }
 
 
@@ -923,7 +929,7 @@ to that frame.  */)
   /* Preserve prefix arg that the command loop just cleared.  */
   current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
   call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
-  return do_switch_frame (event, 0, 0);
+  return do_switch_frame (event, 0, 0, Qnil);
 }
 
 DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
@@ -998,8 +1004,8 @@ If omitted, FRAME defaults to the currently selected frame.  */)
 
 DEFUN ("frame-selected-window", Fframe_selected_window,
        Sframe_selected_window, 0, 1, 0,
-       doc: /* Return the selected window of frame object FRAME.
-If omitted, FRAME defaults to the currently selected frame.  */)
+       doc: /* Return the selected window of FRAME.
+FRAME defaults to the currently selected frame.  */)
      (frame)
      Lisp_Object frame;
 {
@@ -1017,13 +1023,15 @@ If omitted, FRAME defaults to the currently selected frame.  */)
 }
 
 DEFUN ("set-frame-selected-window", Fset_frame_selected_window,
-       Sset_frame_selected_window, 2, 2, 0,
-       doc: /* Set the selected window of frame object FRAME to WINDOW.
-Return WINDOW.
-If FRAME is nil, the selected frame is used.
-If FRAME is the selected frame, this makes WINDOW the selected window.  */)
-     (frame, window)
-     Lisp_Object frame, window;
+       Sset_frame_selected_window, 2, 3, 0,
+       doc: /* Set selected window of FRAME to WINDOW.
+If FRAME is nil, use the selected frame.  If FRAME is the
+selected frame, this makes WINDOW the selected window.
+Optional argument NORECORD non-nil means to neither change the
+order of recently selected windows nor the buffer list.
+Return WINDOW.  */)
+     (frame, window, norecord)
+     Lisp_Object frame, window, norecord;
 {
   if (NILP (frame))
     frame = selected_frame;
@@ -1035,7 +1043,7 @@ If FRAME is the selected frame, this makes WINDOW the selected window.  */)
     error ("In `set-frame-selected-window', WINDOW is not on FRAME");
 
   if (EQ (frame, selected_frame))
-    return Fselect_window (window, Qnil);
+    return Fselect_window (window, norecord);
 
   return XFRAME (frame)->selected_window = window;
 }
@@ -1426,7 +1434,7 @@ But FORCE inhibits this too.  */)
 	    }
 	}
 
-      do_switch_frame (frame1, 0, 1);
+      do_switch_frame (frame1, 0, 1, Qnil);
       sf = SELECTED_FRAME ();
     }
 
@@ -1739,13 +1747,13 @@ before calling this function on it, like this.
 #if defined (MSDOS) && defined (HAVE_MOUSE)
   if (FRAME_MSDOS_P (XFRAME (frame)))
     {
-      Fselect_frame (frame);
+      Fselect_frame (frame, Qnil);
       mouse_moveto (XINT (x), XINT (y));
     }
 #else
 #ifdef HAVE_GPM
     {
-      Fselect_frame (frame);
+      Fselect_frame (frame, Qnil);
       term_mouse_moveto (XINT (x), XINT (y));
     }
 #endif
@@ -1781,13 +1789,13 @@ before calling this function on it, like this.
 #if defined (MSDOS) && defined (HAVE_MOUSE)
   if (FRAME_MSDOS_P (XFRAME (frame)))
     {
-      Fselect_frame (frame);
+      Fselect_frame (frame, Qnil);
       mouse_moveto (XINT (x), XINT (y));
     }
 #else
 #ifdef HAVE_GPM
     {
-      Fselect_frame (frame);
+      Fselect_frame (frame, Qnil);
       term_mouse_moveto (XINT (x), XINT (y));
     }
 #endif
@@ -1871,7 +1879,7 @@ but if the second optional argument FORCE is non-nil, you may do so.  */)
 #if 0 /* This isn't logically necessary, and it can do GC.  */
   /* Don't let the frame remain selected.  */
   if (EQ (frame, selected_frame))
-    do_switch_frame (next_frame (frame, Qt), 0, 0)
+    do_switch_frame (next_frame (frame, Qt), 0, 0, Qnil)
 #endif
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
@@ -2000,7 +2008,7 @@ doesn't support multiple overlapping frames, this function selects FRAME.  */)
 
   if (FRAME_TERMCAP_P (f))
     /* On a text-only terminal select FRAME.  */
-    Fselect_frame (frame);
+    Fselect_frame (frame, Qnil);
   else
     /* Do like the documentation says. */
     Fmake_frame_visible (frame);
