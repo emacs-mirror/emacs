@@ -1,3 +1,8 @@
+2008-11-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* textprop.c (Fprevious_single_char_property_change): Return 0
+	when there's no change in a string.  (Bug#1301)
+
 2008-11-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (do_switch_frame): New argument NORECORD passed to
