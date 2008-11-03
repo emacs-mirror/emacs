@@ -1,3 +1,7 @@
+2008-11-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.texi (Other Repeating Search): Remove obsolete findex entries.
+
 2008-11-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* programs.texi (Program Modes): Link to Program Indent node.
