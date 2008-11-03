@@ -5954,7 +5954,8 @@ comment at the start of cc-engine.el for more info."
 	label-end
 	qt-symbol-idx
 	macro-start			; if we're in one.
-	label-type)
+	label-type
+	kwd)
     (cond
      ;; "case" or "default" (Doesn't apply to AWK).
      ((looking-at c-label-kwds-regexp)
@@ -6107,12 +6108,13 @@ comment at the start of cc-engine.el for more info."
 		((looking-at ":\\([^:]\\|\\'\\)") ; A single colon.
 		 (forward-char)
 		 (setq label-type
-		       (if (string= "signals" ; Special QT macro
-				    (buffer-substring-no-properties start label-end))
+		       (if (or (string= "signals" ; Special QT macro
+					(setq kwd (buffer-substring-no-properties start label-end)))
+			       (string= "Q_SIGNALS" kwd))
 			   'qt-1kwd-colon
 			 'goto-target)))
 		((and qt-symbol-idx
-		      (search-forward-regexp "\\=slots\\>" limit t)
+		      (search-forward-regexp "\\=\\(slots\\|Q_SLOTS\\)\\>" limit t)
 		      (progn (c-forward-syntactic-ws limit)
 			     (looking-at ":\\([^:]\\|\\'\\)"))) ; A single colon
 		 (forward-char)
