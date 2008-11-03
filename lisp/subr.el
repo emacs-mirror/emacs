@@ -2775,9 +2775,11 @@ LIMIT if non-nil speeds up the search by specifying a minimum
 starting position, to avoid checking matches that would start
 before LIMIT.
 
-If GREEDY is non-nil, extend the match backwards as far as possible,
-stopping when a single additional previous character cannot be part
-of a match for REGEXP."
+If GREEDY is non-nil, extend the match backwards as far as
+possible, stopping when a single additional previous character
+cannot be part of a match for REGEXP.  When the match is
+extended, its starting positiong is allowed to occur before
+LIMIT."
   (let ((start (point))
 	(pos
 	 (save-excursion
