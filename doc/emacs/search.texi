@@ -1282,8 +1282,6 @@ point to the end of the buffer, or on the region if it is active.
 @findex multi-occur
 @findex multi-occur-in-matching-buffers
 @findex how-many
-@findex delete-non-matching-lines
-@findex delete-matching-lines
 @findex flush-lines
 @findex keep-lines
 
