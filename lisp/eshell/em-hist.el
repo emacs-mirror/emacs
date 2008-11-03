@@ -104,7 +104,7 @@ This mirrors the optional behavior of bash."
   :type 'boolean
   :group 'eshell-hist)
 
-(defcustom eshell-save-history-on-exit 'ask
+(defcustom eshell-save-history-on-exit t
   "*Determine if history should be automatically saved.
 History is always preserved after sanely exiting an Eshell buffer.
 However, when Emacs is being shut down, this variable determines
