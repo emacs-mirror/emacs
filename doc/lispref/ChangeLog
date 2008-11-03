@@ -1,3 +1,8 @@
+2008-11-03  Seweryn Kokot  <sewkokot@gmail.com>  (tiny change)
+
+	* searching.texi (Regexp Search): Document GREEDY arg.
+	(Simple Match Data): Fix return value.
+
 2008-11-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* nonascii.texi (Text Representations): Rewrite to make consistent
