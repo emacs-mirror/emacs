@@ -1,3 +1,7 @@
+2008-11-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_wm_set_size_hint): New function.
+
 2008-11-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* textprop.c (Fprevious_single_char_property_change): Return 0
