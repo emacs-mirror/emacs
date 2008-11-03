@@ -883,7 +883,7 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
       if (NILP (position))
 	{
 	  if (NILP (limit))
-	    position = make_number (SCHARS (object));
+	    position = make_number (0);
 	  else
 	    {
 	      CHECK_NUMBER (limit);
