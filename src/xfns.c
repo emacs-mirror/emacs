@@ -3100,6 +3100,22 @@ x_default_font_parameter (f, parms)
 }
 
 
+DEFUN ("x-wm-set-size-hint", Fx_wm_set_size_hint, Sx_wm_set_size_hint,
+       0, 1, 0,
+       doc: /* Send the size hints for frame FRAME to the window manager.
+If FRAME is nil, use the selected frame.  */)
+     (frame)
+     Lisp_Object frame;
+{
+  struct frame *f;
+  if (NILP (frame))
+    frame = selected_frame;
+  f = XFRAME (frame);
+  BLOCK_INPUT;
+  x_wm_set_size_hint (f, 0, 0);
+  UNBLOCK_INPUT;
+}
+
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        doc: /* Make a new X window, which is called a "frame" in Emacs terms.
@@ -5944,6 +5960,7 @@ the tool bar buttons.  */);
   defsubr (&Sx_display_visual_class);
   defsubr (&Sx_display_backing_store);
   defsubr (&Sx_display_save_under);
+  defsubr (&Sx_wm_set_size_hint);
   defsubr (&Sx_create_frame);
   defsubr (&Sx_open_connection);
   defsubr (&Sx_close_connection);
