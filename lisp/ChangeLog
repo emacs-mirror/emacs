@@ -1,3 +1,8 @@
+2008-11-03  Vincent Belaïche  <vincent.b.1@hotmail.fr>
+
+	* calc/calc-alg.el (calcFunc-collect): Return constant polynomial
+	when appropriate.
+
 2008-11-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (save-selected-window-norecord): New macro
