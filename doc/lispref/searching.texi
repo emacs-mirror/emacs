@@ -1094,7 +1094,7 @@ comes back" twice.
 @end example
 @end defun
 
-@defun looking-back regexp &optional limit
+@defun looking-back regexp &optional limit greedy
 This function returns @code{t} if @var{regexp} matches text before
 point, ending at point, and @code{nil} otherwise.
 
@@ -1104,6 +1104,12 @@ point.  That can be quite slow if it has to search a long distance.
 You can bound the time required by specifying @var{limit}, which says
 not to search before @var{limit}.  In this case, the match that is
 found must begin at or after @var{limit}.
+
+If @var{greedy} is non-@code{nil}, this function extends the match
+backwards as far as possible, stopping when a single additional
+previous character cannot be part of a match for regexp.  When the
+match is extended, its starting positiong is allowed to occur before
+@var{limit}.
 
 @example
 @group
@@ -1408,7 +1414,7 @@ subexpression is at the 13th character (@samp{c}).
   (re-search-forward "The \\(cat \\)")
   (match-beginning 0)
   (match-beginning 1))
-    @result{} (9 9 13)
+    @result{} (17 9 13)
 @end group
 
 @group
