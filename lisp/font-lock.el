@@ -490,7 +490,8 @@ This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-keywords-case-fold-search nil
   "*Non-nil means the patterns in `font-lock-keywords' are case-insensitive.
-This is normally set via `font-lock-defaults'.")
+This is set via the function `font-lock-set-defaults', based on
+the CASE-FOLD argument of `font-lock-defaults'.")
 (make-variable-buffer-local 'font-lock-keywords-case-fold-search)
 
 (defvar font-lock-syntactically-fontified 0
