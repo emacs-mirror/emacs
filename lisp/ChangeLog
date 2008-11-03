@@ -1,5 +1,8 @@
 2008-11-03  Chong Yidong  <cyd@stupidchicken.com>
 
+	* term/x-win.el (x-initialize-window-system): Call
+	x-wm-set-size-hint after initialization.
+
 	* eshell/em-hist.el (eshell-save-history-on-exit): Change default
 	to t.
 
