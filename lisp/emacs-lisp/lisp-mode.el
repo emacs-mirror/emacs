@@ -468,8 +468,6 @@ if that value is non-nil."
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
-  (make-local-variable 'font-lock-keywords-case-fold-search)
-  (setq font-lock-keywords-case-fold-search t)
   (setq imenu-case-fold-search t)
   (set-syntax-table lisp-mode-syntax-table)
   (run-mode-hooks 'lisp-mode-hook))
