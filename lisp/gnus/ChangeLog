@@ -1,3 +1,14 @@
+2008-10-31  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* ietf-drums.el (ietf-drums-remove-comments): Localize second
+	condition-case to only the forward-sexp call.
+
+2008-10-31  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* ietf-drums.el (ietf-drums-remove-comments): Fix bug with single
+	quotes contained.  Make it more robust regardless by an extra
+	condition-case wrapper.
+
 2008-10-03  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnml.el (nnml-request-expire-articles): Check if the function set to
