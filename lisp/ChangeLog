@@ -1,3 +1,7 @@
+2008-11-03  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-forward-label): Fix for QT macros.
+
 2008-11-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/x-win.el (x-initialize-window-system): Call
