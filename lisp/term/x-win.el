@@ -1540,6 +1540,12 @@ The value nil is the same as this list:
   ;; Don't let Emacs suspend under X.
   (add-hook 'suspend-hook 'x-win-suspend-error)
 
+  ;; During initialization, we defer sending size hints to the window
+  ;; manager, because that can induce a race condition:
+  ;; http://lists.gnu.org/archive/html/emacs-devel/2008-10/msg00033.html
+  ;; Send the size hints once initialization is done.
+  (add-hook 'after-init-hook 'x-wm-set-size-hint)
+
   ;; Turn off window-splitting optimization; X is usually fast enough
   ;; that this is only annoying.
   (setq split-window-keep-point t)
