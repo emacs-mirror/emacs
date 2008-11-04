@@ -1032,7 +1032,7 @@ for highlighting the match that is found."
   ;; This function does the job for all the View-search- commands.
   ;; Search for the TIMESt match for REGEXP. If TIMES is negative
   ;; search backwards. If REGEXP is nil use `view-last-regexp'.
-  ;; Charcters "!" and "@" have a special meaning at the beginning of
+  ;; Characters "!" and "@" have a special meaning at the beginning of
   ;; REGEXP and are removed from REGEXP before the search "!" means
   ;; search for lines with no match for REGEXP.  "@" means search in
   ;; the whole buffer, don't start searching from the present point.
