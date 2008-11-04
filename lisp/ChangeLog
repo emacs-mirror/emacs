@@ -1,3 +1,8 @@
+2008-11-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (make-frame-on-display): Ignore DISPLAY argument on
+	Windows.
+
 2008-11-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dframe.el (dframe-mouse-position-function)
