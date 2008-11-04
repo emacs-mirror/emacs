@@ -26,6 +26,10 @@
 	fully taken over by save-selected-window.
 	(walk-windows, set-window-text-height, fit-window-to-buffer):
 	Use save-selected-window instead of save-selected-window-norecord.
+	* font-lock.el (lisp-font-lock-keywords-2): Remove entry for
+	save-selected-window-norecord.
+	* emacs-lisp/lisp-mode.el (save-selected-window): Remove
+	indent-function for save-selected-window-norecord.
 
 2008-11-03  Alan Mackenzie  <acm@muc.de>
 
