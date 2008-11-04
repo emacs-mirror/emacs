@@ -379,7 +379,7 @@ nil      When nil, the command tries to be smart and figure out the
          separator in the following way:
          - when each line contains a TAB, assume TAB-separated material
          - when each line contains a comme, assume CSV material
-         - else, assume one or more SPACE charcters as separator."
+         - else, assume one or more SPACE characters as separator."
   (interactive "rP")
   (let* ((beg (min beg0 end0))
 	 (end (max beg0 end0))
@@ -3490,7 +3490,7 @@ overwritten, and the table is not marked as requiring realignment."
 	(self-insert-command N))
     (setq org-table-may-need-update t)
     (let (orgtbl-mode a)
-      (call-interactively 
+      (call-interactively
        (key-binding
 	(or (and (listp function-key-map)
 		 (setq a (assoc last-input-event function-key-map))
@@ -3569,7 +3569,7 @@ The table is taken from the parameter TXT, or from the buffer at point."
   (unless txt
     (unless (org-at-table-p)
       (error "No table at point")))
-  (let* ((txt (or txt 
+  (let* ((txt (or txt
 		  (buffer-substring-no-properties (org-table-begin)
 						  (org-table-end))))
 	 (lines (org-split-string txt "[ \t]*\n[ \t]*")))
