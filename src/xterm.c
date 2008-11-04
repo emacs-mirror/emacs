@@ -8319,9 +8319,11 @@ xim_close_dpy (dpyinfo)
 	XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
 					  NULL, EMACS_CLASS,
 					  xim_instantiate_callback, NULL);
-#endif /* not HAVE_X11R6_XIM */
+#else /* not HAVE_X11R6_XIM */
+      /* If we have X11R6 xim, this causes a double-free.  */
       if (dpyinfo->display)
 	XCloseIM (dpyinfo->xim);
+#endif /* HAVE_X11R6_XIM */
       dpyinfo->xim = NULL;
       XFree (dpyinfo->xim_styles);
     }
