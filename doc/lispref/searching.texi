@@ -1108,7 +1108,7 @@ found must begin at or after @var{limit}.
 If @var{greedy} is non-@code{nil}, this function extends the match
 backwards as far as possible, stopping when a single additional
 previous character cannot be part of a match for regexp.  When the
-match is extended, its starting positiong is allowed to occur before
+match is extended, its starting position is allowed to occur before
 @var{limit}.
 
 @example
