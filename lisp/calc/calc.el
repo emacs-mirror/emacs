@@ -1431,7 +1431,7 @@ commands given here will actually operate on the *Calculator* stack."
             (setq calc-window-height (- (window-height win) 2)))
         (progn
           (delete-windows-on buf)
-          (delete-windows-on kbuf))
+          (and kbuf (delete-windows-on kbuf)))
         (bury-buffer buf)
         (bury-buffer calc-trail-buffer)
         (and kbuf (bury-buffer kbuf))))))
