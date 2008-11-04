@@ -1985,12 +1985,14 @@ Type \\[describe-distribution] for information on "))
   (insert "\tBuying printed manuals from the FSF\n"))
 
 (defun startup-echo-area-message ()
-  (if (eq (key-binding "\C-h\C-a") 'about-emacs)
-      "For information about GNU Emacs and the GNU system, type C-h C-a."
-    (substitute-command-keys
-     "For information about GNU Emacs and the GNU system, type \
-\\[about-emacs].")))
-
+  (cond ((daemonp)
+	 "Starting Emacs daemon.")
+	((eq (key-binding "\C-h\C-a") 'about-emacs)
+	 "For information about GNU Emacs and the GNU system, type C-h C-a.")
+	(t
+	 (substitute-command-keys
+	  "For information about GNU Emacs and the GNU system, type \
+\\[about-emacs]."))))
 
 (defun display-startup-echo-area-message ()
   (let ((resize-mini-windows t))
