@@ -993,7 +993,7 @@ state."
 	       (insert-file-contents "CVS/Root")
 	       (goto-char (point-min))
 	       (and (looking-at ":ext:") (delete-char 5))
-	       (buffer-substring (point) (1- (point-max))))
+	       (concat (buffer-substring (point) (1- (point-max))) "\n"))
 	   (file-error nil)))
 	(module
 	 (condition-case nil
@@ -1004,14 +1004,27 @@ state."
 	       (concat (buffer-substring (point-min) (point)) "\n"))
 	   (file-error nil))))
     (concat
-     (cond (module
-	    (concat (propertize "Module     : " 'face 'font-lock-type-face)
-                    (propertize module 'face 'font-lock-variable-name-face)))
-	   (t ""))
      (cond (repo
 	    (concat (propertize "Repository : " 'face 'font-lock-type-face)
                     (propertize repo 'face 'font-lock-variable-name-face)))
 	   (t ""))
+     (cond (module
+	    (concat (propertize "Module     : " 'face 'font-lock-type-face)
+                    (propertize module 'face 'font-lock-variable-name-face)))
+	   (t ""))
+     (if (file-readable-p "CVS/Tag")
+	 (let ((tag (vc-cvs-file-to-string "CVS/Tag")))
+	   (cond
+	    ((string-match "\\`T" tag)
+	     (concat (propertize "Tag        : " 'face 'font-lock-type-face)
+		     (propertize (substring tag 1)
+				 'face 'font-lock-variable-name-face)))
+	    ((string-match "\\`D" tag)
+	     (concat (propertize "Date       : " 'face 'font-lock-type-face)
+		     (propertize (substring tag 1)
+				 'face 'font-lock-variable-name-face)))
+	    (t ""))))
+
      ;; In CVS, branch is a per-file property, not a per-directory property.
      ;; We can't really do this here without making dangerous assumptions.
      ;;(propertize "Branch:     " 'face 'font-lock-type-face)
