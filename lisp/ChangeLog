@@ -1,3 +1,9 @@
+2008-11-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dframe.el (dframe-mouse-position-function)
+	(dframe-reposition-frame-emacs, dframe-pass-event-to-popup-mode-menu)
+	(dframe-mouse-set-point): Fix typos in docstrings.
+
 2008-11-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-dir.el (vc-dir-headers): Undo previous change.
@@ -29,8 +35,8 @@
 
 	* subr.el (looking-back): Doc fix.
 
-	* term/x-win.el (x-initialize-window-system): Call
-	x-wm-set-size-hint after initialization.
+	* term/x-win.el (x-initialize-window-system):
+	Call x-wm-set-size-hint after initialization.
 
 	* eshell/em-hist.el (eshell-save-history-on-exit): Change default
 	to t.
@@ -47,20 +53,20 @@
 
 2008-11-02  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (save-selected-window-norecord): New macro
+	* window.el (save-selected-window-norecord): New macro.
 	(walk-windows): Use save-selected-window-norecord and call
 	select-window with NORECORD set.  (Bug#1237)
-	(set-window-text-height, fit-window-to-buffer): Use
-	save-selected-window-norecord and call select-window with
+	(set-window-text-height, fit-window-to-buffer):
+	Use save-selected-window-norecord and call select-window with
 	NORECORD set.
 	* subr.el (with-selected-window): Call set-frame-selected-window
 	with new argument NORECORD set.  Update doc-string.
 	(with-selected-frame): Call select-frame with new argument
 	NORECORD set.  Update doc-string.
-	* emacs-lisp/lisp-mode.el (save-selected-window-norecord): Put
-	indent-function for save-selected-window-norecord.
-	* font-lock.el (lisp-font-lock-keywords-2): Add
-	save-selected-window-norecord.
+	* emacs-lisp/lisp-mode.el (save-selected-window-norecord):
+	Put indent-function for save-selected-window-norecord.
+	* font-lock.el (lisp-font-lock-keywords-2):
+	Add save-selected-window-norecord.
 
 2008-11-01  Juanma Barranquero  <lekktu@gmail.com>
 
