@@ -2778,7 +2778,7 @@ before LIMIT.
 If GREEDY is non-nil, extend the match backwards as far as
 possible, stopping when a single additional previous character
 cannot be part of a match for REGEXP.  When the match is
-extended, its starting positiong is allowed to occur before
+extended, its starting position is allowed to occur before
 LIMIT."
   (let ((start (point))
 	(pos
