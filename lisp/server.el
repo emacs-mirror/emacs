@@ -808,13 +808,13 @@ The following commands are accepted by the client:
 		frame ; The frame that was opened for the client (if any).
 		display		     ; Open the frame on this display.
 		dontkill       ; t if the client should not be killed.
-                (commands ())
+		commands
 		dir
 		use-current-frame
-                (tty-name nil)       ;nil, `window-system', or the tty name.
-                tty-type             ;string.
-		(files nil)
-                (filepos nil)
+		tty-name       ;nil, `window-system', or the tty name.
+		tty-type             ;string.
+		files
+		filepos
 		command-line-args-left
 		arg)
 	    ;; Remove this line from STRING.
@@ -943,7 +943,9 @@ The following commands are accepted by the client:
 		    (if display (server-select-display display)))
 		   ((eq tty-name 'window-system)
 		    (server-create-window-system-frame display nowait proc))
-		   (t (server-create-tty-frame tty-name tty-type proc))))
+		   ;; When resuming on a tty, tty-name is nil.
+		   (tty-name
+		    (server-create-tty-frame tty-name tty-type proc))))
 
             (process-put
              proc 'continuation
