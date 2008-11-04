@@ -929,11 +929,14 @@ commands act on the files in those directories displayed in the
 It calls the `dir-extra-headers' backend method to display backend
 specific headers."
   (concat
-   (vc-call-backend backend 'dir-extra-headers dir)
+   ;; First layout the common headers.
    (propertize "VC backend : " 'face 'font-lock-type-face)
    (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
    (propertize "Working dir: " 'face 'font-lock-type-face)
-   (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)))
+   (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
+   ;; Then the backend specific ones.
+   (vc-call-backend backend 'dir-extra-headers dir)
+   "\n"))
 
 (defun vc-dir-refresh-files (files default-state)
   "Refresh some files in the *VC-dir* buffer."
