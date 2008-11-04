@@ -1,3 +1,8 @@
+2008-11-04  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-quit): Make sure that the keypad buffer
+	exists before deleting its windows.
+
 2008-11-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-process-filter): Don't call
