@@ -245,7 +245,7 @@ how text is formatted automatically while decoding."
 
 (defun toggle-enable-multibyte-characters (&optional arg)
   "Change whether this buffer uses multibyte characters.
-With arg, use multibyte characters if the arg is positive.
+With ARG, use multibyte characters if the ARG is positive.
 
 Note that this command does not convert the byte contents of
 the buffer; it only changes the way those bytes are interpreted.
@@ -2696,7 +2696,7 @@ char-table of the above format as the argument TABLE.
 
 TABLE may also be nil, in which case no property value is pre-assigned.
 
-Optional 3rd argment DOCSTRING is a documentation string of the property.
+Optional 3rd argument DOCSTRING is a documentation string of the property.
 
 See also the documentation of `get-char-code-property' and
 `put-char-code-property'."

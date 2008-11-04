@@ -1,3 +1,10 @@
+2008-11-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-cmds.el (toggle-enable-multibyte-characters)
+	(define-char-code-property):
+	* textmodes/reftex.el (reftex-index):
+	* textmodes/reftex-index.el (reftex-index): Fix typos in docstrings.
+
 2008-11-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (startup-echo-area-message): Display a different
@@ -798,7 +805,7 @@
 
 2008-10-10  Martin Rudalics  <rudalics@gmx.at>
 
-	* info.el (Info-extract-menu-counting): New argment no-detail to
+	* info.el (Info-extract-menu-counting): New argument no-detail to
 	skip detailed node listings.
 	(Info-forward-node): New argument not-up to inhibit going up.
 	(Info-final-node): Call Info-extract-menu-counting and
