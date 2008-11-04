@@ -607,22 +607,26 @@ is not considered (see `next-frame')."
 (defvar x-display-name)                 ; term/x-win
 
 (defun make-frame-on-display (display &optional parameters)
-  "Make a frame on X display DISPLAY.
-The optional second argument PARAMETERS specifies additional frame parameters."
+  "Make a frame on display DISPLAY.
+The optional argument PARAMETERS specifies additional frame parameters."
   (interactive "sMake frame on display: ")
-  (if (featurep 'ns)
-      (progn
-	(when (and (boundp 'ns-initialized) (not ns-initialized))
-	  (setq x-display-name display)
-	  (ns-initialize-window-system))
-	(make-frame `((window-system . ns) (display . ,display) . ,parameters)))
-    (progn
-      (unless (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
-	(error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
-      (when (and (boundp 'x-initialized) (not x-initialized))
-	(setq x-display-name display)
-	(x-initialize-window-system))
-      (make-frame `((window-system . x) (display . ,display) . ,parameters)))))
+  (cond ((featurep 'ns)
+	 (when (and (boundp 'ns-initialized) (not ns-initialized))
+	   (setq x-display-name display)
+	   (ns-initialize-window-system))
+	 (make-frame `((window-system . ns)
+		       (display . ,display) . ,parameters)))
+	((eq system-type 'windows-nt)
+	 ;; On Windows, ignore DISPLAY.
+	 (make-frame parameters))
+	(t
+	 (unless (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
+	   (error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
+	 (when (and (boundp 'x-initialized) (not x-initialized))
+	   (setq x-display-name display)
+	   (x-initialize-window-system))
+	 (make-frame `((window-system . x)
+		       (display . ,display) . ,parameters)))))
 
 (defun make-frame-on-tty (tty type &optional parameters)
   "Make a frame on terminal device TTY.
