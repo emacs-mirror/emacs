@@ -237,6 +237,9 @@ Will not do anything if `url-show-status' is nil."
     (/ (* x 100) y)))
 
 ;;;###autoload
+(defalias 'url-basepath 'url-file-directory)
+
+;;;###autoload
 (defun url-file-directory (file)
   "Return the directory part of FILE, for a URL."
   (cond
