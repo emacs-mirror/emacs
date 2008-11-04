@@ -1252,12 +1252,9 @@ to override the default splitting mechanism of display-buffer.
 *** If pop-up-frames has the value `graphic-only', display-buffer only
 makes a separate frame on graphic displays.
 
-** Ordering of recently selected windows and buffer list
-
 *** select-frame and set-frame-selected-window have new optional
-argument NORECORD.
-
-*** New macro save-selected-window-norecord
+argument NORECORD.  If non-nil, this will avoid messing with the order
+of recently selected windows and the buffer list.
 
 ** Window parameters can now be defined.
 These are analogous to frame parameters, but are associated with
