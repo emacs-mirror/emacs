@@ -1,3 +1,7 @@
+2008-11-04  Christian Faulhammer  <opfer@gentoo.org>  (tiny change)
+
+	* vc-bzr.el (vc-bzr-dir-extra-headers): New function.
+
 2008-11-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-cmds.el (toggle-enable-multibyte-characters)
@@ -6,6 +10,9 @@
 	* textmodes/reftex-index.el (reftex-index): Fix typos in docstrings.
 
 2008-11-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc-bzr.el (vc-bzr-dir-printer): Rename from
+	vc-bzr-status-printer.
 
 	* startup.el (startup-echo-area-message): Display a different
 	message in daemon mode.  Suggested by Stephen Turnbull.
