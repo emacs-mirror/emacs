@@ -3114,6 +3114,7 @@ If FRAME is nil, use the selected frame.  */)
   BLOCK_INPUT;
   x_wm_set_size_hint (f, 0, 0);
   UNBLOCK_INPUT;
+  return Qnil;
 }
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,

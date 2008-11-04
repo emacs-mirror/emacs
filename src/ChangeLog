@@ -1,3 +1,7 @@
+2008-11-04  Andreas Schwab  <schwab@suse.de>
+
+	* xfns.c (Fx_wm_set_size_hint): Add missing return value.
+
 2008-11-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (Fx_wm_set_size_hint): New function.
