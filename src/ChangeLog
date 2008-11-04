@@ -1,3 +1,7 @@
+2008-11-04  David Smith  <davidsmith@acm.org>  (tiny change)
+
+	* xterm.c (xim_close_dpy): Avoid double-free on X11R6 XIM.
+
 2008-11-04  Andreas Schwab  <schwab@suse.de>
 
 	* xfns.c (Fx_wm_set_size_hint): Add missing return value.
