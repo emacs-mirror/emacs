@@ -39,40 +39,20 @@ unless you explicitly change the size, or Emacs has no other choice.")
 (make-variable-buffer-local 'window-size-fixed)
 
 (defmacro save-selected-window (&rest body)
-  "Execute BODY, then select the window that was selected before BODY.
+  "Execute BODY, then select the previously selected window.
 The value returned is the value of the last form in BODY.
 
+This macro saves and restores the selected window, as well as the
+selected window in each frame.  If the previously selected window
+is no longer live, then whatever window is selected at the end of
+BODY remains selected.  If the previously selected window of some
+frame is no longer live at the end of BODY, that frame's selected
+window is left alone.
+
 This macro saves and restores the current buffer, since otherwise
-its normal operation could potentially make a different
-buffer current.  It does not alter the buffer list ordering.
-
-This macro saves and restores the selected window, as well as
-the selected window in each frame.  If the previously selected
-window of some frame is no longer live at the end of BODY, that
-frame's selected window is left alone.  If the selected window is
-no longer live, then whatever window is selected at the end of
-BODY remains selected."
-  `(let ((save-selected-window-window (selected-window))
-	 ;; It is necessary to save all of these, because calling
-	 ;; select-window changes frame-selected-window for whatever
-	 ;; frame that window is in.
-	 (save-selected-window-alist
-	  (mapcar (lambda (frame) (cons frame (frame-selected-window frame)))
-		  (frame-list))))
-     (save-current-buffer
-       (unwind-protect
-	   (progn ,@body)
-	 (dolist (elt save-selected-window-alist)
-	   (and (frame-live-p (car elt))
-		(window-live-p (cdr elt))
-		(set-frame-selected-window (car elt) (cdr elt))))
-	 (if (window-live-p save-selected-window-window)
-	     (select-window save-selected-window-window))))))
-
-(defmacro save-selected-window-norecord (&rest body)
-  "Execute BODY, then select, but do not record previously selected window.
-This macro is like `save-selected-window' but changes neither the
-order of recently selected windows nor the buffer list."
+its normal operation could make a different buffer current.  The
+order of recently selected windows and the buffer list ordering
+are not altered by this macro (unless they are altered in BODY)."
   `(let ((save-selected-window-window (selected-window))
 	 ;; It is necessary to save all of these, because calling
 	 ;; select-window changes frame-selected-window for whatever
@@ -192,9 +172,9 @@ windows nor the buffer list."
   (when (window-minibuffer-p (selected-window))
     (setq minibuf t))
   ;; Make sure to not mess up the order of recently selected
-  ;; windows.  Use `save-selected-window-norecord' and `select-window'
+  ;; windows.  Use `save-selected-window' and `select-window'
   ;; with second argument non-nil for this purpose.
-  (save-selected-window-norecord
+  (save-selected-window
     (when (framep all-frames)
       (select-window (frame-first-window all-frames) 'norecord))
     (let* (walk-windows-already-seen
@@ -1232,7 +1212,7 @@ where some error may be present."
       ;; the modeline.
       (let ((window-min-height (min 2 height))) ; One text line plus a modeline.
 	(if (and window (not (eq window (selected-window))))
-	    (save-selected-window-norecord
+	    (save-selected-window
 	      (select-window window 'norecord)
 	      (enlarge-window delta))
 	  (enlarge-window delta))))))
@@ -1350,7 +1330,7 @@ Always return nil."
 	    (and (eobp) (bolp) (not (bobp))))
       (set-window-point window (1- (window-point window))))
 
-    (save-selected-window-norecord
+    (save-selected-window
       (select-window window 'norecord)
 
       ;; Adjust WINDOW to the nominally correct size (which may actually
