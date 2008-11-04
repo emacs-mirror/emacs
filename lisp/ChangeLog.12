@@ -28114,7 +28114,7 @@
 	Sync with Tramp 2.0.49.
 
 	* net/tramp.el (tramp-handle-dired-call-process)
-	(tramp-handle-insert-directory):`insert-buffer' cannot be used
+	(tramp-handle-insert-directory): `insert-buffer' cannot be used
 	because the contents of the Tramp buffer is changed before
 	insertion (`expand-file' and alike).
 	(tramp-handle-insert-directory): If `localname' has an empty

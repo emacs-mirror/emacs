@@ -10425,7 +10425,7 @@
 	(tramp-methods): Remove double definition of `ssh1-old' and `ssh2-old'.
 	(tramp-point-at-eol): New defalias.
 	(tramp-parse-rhosts-group)
-	(tramp-parse-shosts-group):: Apply it.
+	(tramp-parse-shosts-group): Apply it.
 
 2002-08-25  Michael Albinus  <Michael.Albinus@alcatel.de>
 

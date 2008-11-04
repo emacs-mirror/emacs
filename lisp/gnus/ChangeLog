@@ -9172,7 +9172,7 @@
 	(gnus-summary-display-while-building): Add :version.
 
 	* gnus-start.el (gnus-subscribe-newsgroup-hooks)
-	(gnus-get-top-new-news-hook):Add :version.
+	(gnus-get-top-new-news-hook): Add :version.
 
 	* gnus-srvr.el (gnus-server-agent-face, gnus-server-opened-face)
 	(gnus-server-closed-face, gnus-server-denied-face): Add :version.
