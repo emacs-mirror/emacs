@@ -1420,12 +1420,14 @@ Return non-nil if the window was shrunk, nil otherwise."
 
 (defun quit-window (&optional kill window)
   "Bury or kill (with KILL non-nil) the buffer displayed in WINDOW.
+With a prefix argument, kill the buffer instead.
+
 KILL defaults to nil, WINDOW to the selected window.  If WINDOW
 is dedicated or a minibuffer window, delete it and, if it's the
 only window on its frame, delete its frame as well provided there
 are other frames left.  Otherwise, display some other buffer in
 the window."
-  (interactive)
+  (interactive "P")
   (let* ((window (or window (selected-window)))
 	 (buffer (window-buffer window)))
     (if (or (window-minibuffer-p window) (window-dedicated-p window))
