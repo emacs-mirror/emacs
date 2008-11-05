@@ -1,3 +1,9 @@
+2008-11-05  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode): Bugfix: Add conversion killing
+	function to kill-buffer-hook, not to kill-buffer.
+	Reported by Markus Triska <markus.triska@gmx.at>
+
 2008-11-04  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-quit): Make sure that the keypad buffer
