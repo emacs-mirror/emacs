@@ -936,10 +936,11 @@ The following commands are accepted by the client:
 			 (or (eq use-current-frame 'always)
 			     ;; We can't use the Emacs daemon's
 			     ;; terminal frame.
-			     (not (and (= (length (frame-list)) 1)
+			     (not (and (daemonp)
+				       (= (length (frame-list)) 1)
 				       (eq (selected-frame)
 					   terminal-frame)))))
-		    (setq tty-name nil)
+		    (setq tty-name nil tty-type nil)
 		    (if display (server-select-display display)))
 		   ((eq tty-name 'window-system)
 		    (server-create-window-system-frame display nowait proc))
