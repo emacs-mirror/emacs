@@ -1424,9 +1424,12 @@ commands given here will actually operate on the *Calculator* stack."
             (win (get-buffer-window (current-buffer)))
             (kbuf (get-buffer "*Calc Keypad*")))
         (delete-windows-on (calc-trail-buffer))
+        ;; The next few lines will set `calc-window-height' so that the
+        ;; next time Calc is called, the window will be the same size
+        ;; as the current window.
         (if (and win
                  (< (window-height win) (1- (frame-height)))
-                 (= (window-width win) (frame-width))  ; avoid calc-keypad
+                 (window-full-width-p win) ; avoid calc-keypad
                  (not (get-buffer-window "*Calc Keypad*")))
             (setq calc-window-height (- (window-height win) 2)))
         (progn
