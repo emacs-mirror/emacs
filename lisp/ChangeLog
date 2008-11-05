@@ -1,3 +1,8 @@
+2008-11-05  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-quit): Use `window-full-width-p' to check
+	window width.
+
 2008-11-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-process-filter): Only default to emacsclient's
