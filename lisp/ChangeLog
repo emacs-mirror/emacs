@@ -1,3 +1,8 @@
+2008-11-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (quit-window): Restore prefix argument behavior
+	removed in 2008-10-30 change.  (Bug#1308)
+
 2008-11-05  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-mode): Bugfix: Add conversion killing
