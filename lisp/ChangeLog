@@ -1,3 +1,8 @@
+2008-11-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-process-filter): Only default to emacsclient's
+	terminal in daemon mode.
+
 2008-11-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (quit-window): Restore prefix argument behavior
