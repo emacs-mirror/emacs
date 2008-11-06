@@ -68,8 +68,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FIRST_PTY_LETTER 'q'
 
 #if _MIPS_SZLONG != 64
-/* fixme: should there be 64-bit defiitions?  (The ones below aren't
-   OK.)  */
+/* fixme: should there be 64-bit definitions?  (The ones below aren't OK.)  */
 
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */
