@@ -1,5 +1,9 @@
 2008-11-06  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/esh-maint.el: Remove unused file.
+
+	* progmodes/cc-defs.el (cl-macroexpand-all): Declare.
+
 	* cus-edit.el (custom-comment-tag): Doc fix.
 	(custom-comment, custom-variable-value-create, custom-face):
 	Use face names sans -face suffix rather than aliases.
