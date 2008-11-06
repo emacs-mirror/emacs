@@ -526,14 +526,12 @@ See `org-publish-org-to' to the list of arguments."
 See `org-publish-org-to' to the list of arguments."
   (org-publish-org-to "html" plist filename pub-dir))
 
-(autoload 'eshell/cp "em-unix")		; why the eshell version?
-
 (defun org-publish-attachment (plist filename pub-dir)
   "Publish a file with no transformation of any kind.
 See `org-publish-org-to' to the list of arguments."
   (unless (file-directory-p pub-dir)
     (make-directory pub-dir t))
-  (eshell/cp filename pub-dir))
+  (copy-file filename pub-dir))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Publishing files, sets of files, and indices
