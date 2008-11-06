@@ -7,9 +7,8 @@ COPYRIGHT AND LICENSE INFORMATION FOR SCHEMA FILES
 
 The following files are part of the DocBook project:
 
-  calstbl.rnc dbcalstbl.rnc dbdyntbl.rnc dbhier.rnc dbnotn.rnc
-  dbpool.rnc dbsoextbl.rnc dbstart.rnc docbk-dyntbl.rnc
-  docbk-soextbl.rnc docbook.rnc
+  calstbl.rnc dbcalstbl.rnc dbhier.rnc dbnotn.rnc dbpool.rnc
+  dbstart.rnc docbook.rnc
 
 These files are Copyright (C) 1992-2002 HaL Computer Systems, Inc.,
 O'Reilly & Associates, Inc., ArborText, Inc., Fujitsu Software
