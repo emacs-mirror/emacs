@@ -241,7 +241,7 @@ handshake, or nil on failure."
       'process-kill-without-query)))
 
 (defun starttls-open-stream-gnutls (name buffer host port)
-  (message "Opening STARTTLS connection to `%s'..." host)
+  (message "Opening STARTTLS connection to `%s:%s'..." host port)
   (let* (done
 	 (old-max (with-current-buffer buffer (point-max)))
 	 (process-connection-type starttls-process-connection-type)
@@ -266,8 +266,8 @@ handshake, or nil on failure."
 	  (delete-region old-max done))
       (delete-process process)
       (setq process nil))
-    (message "Opening STARTTLS connection to `%s'...%s"
-	     host (if done "done" "failed"))
+    (message "Opening STARTTLS connection to `%s:%s'...%s"
+	     host port (if done "done" "failed"))
     process))
 
 (defun starttls-open-stream (name buffer host port)
@@ -287,6 +287,7 @@ If `starttls-use-gnutls' is nil, this may also be a service name, but
 GNUTLS requires a port number."
   (if starttls-use-gnutls
       (starttls-open-stream-gnutls name buffer host port)
+    (message "Opening STARTTLS connection to `%s:%s'" host (format "%s" port))
     (let* ((process-connection-type starttls-process-connection-type)
 	   (process (apply #'start-process
 			   name buffer starttls-program
@@ -294,6 +295,19 @@ GNUTLS requires a port number."
 			   starttls-extra-args)))
       (starttls-set-process-query-on-exit-flag process nil)
       process)))
+
+(defun starttls-any-program-available ()
+  (let ((program (if starttls-use-gnutls
+		     starttls-gnutls-program
+		   starttls-program)))
+    (condition-case ()
+	(progn
+	  (call-process program)
+	  program)
+      (error (progn
+	       (message "No STARTTLS program was available (tried '%s')"
+			program)
+	       nil)))))
 
 (provide 'starttls)
 

@@ -1,3 +1,21 @@
+2008-11-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* starttls.el (starttls-any-program-available): Rewritten so it doesn't
+	require itself and to remove `with-no-warnings'.
+
+2008-11-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* starttls.el (starttls-any-program-available): Get the name of the
+	available TLS layer program.
+	(starttls-open-steam-gnutls, starttls-open-stream): Put port number as
+	well as the host name in the "opening" message.
+
+	* auth-source.el (auth-source-cache, auth-source-do-cache)
+	(auth-source-user-or-password): Cache passwords and logins by default,
+	allow override with `auth-source-do-cache'.
+	(auth-source-forget-user-or-password): Allow users to remove cache
+	entries if needed.
+
 2008-10-31  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* ietf-drums.el (ietf-drums-remove-comments): Localize second

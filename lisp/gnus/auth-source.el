@@ -91,6 +91,15 @@
 		    p)))
 	  auth-source-protocols))
 
+(defvar auth-source-cache (make-hash-table :test 'equal)
+  "Cache for auth-source data")
+
+(defcustom auth-source-do-cache t
+  "Whether auth-source should cache information."
+  :group 'auth-source
+  :version "23.1" ;; No Gnus
+  :type `boolean)
+
 (defcustom auth-sources '((:source "~/.authinfo.gpg" :host t :protocol t))
   "List of authentication sources.
 
@@ -150,26 +159,42 @@ Returns fallback choices (where PROTOCOL or HOST are nil) with FALLBACK t."
       (unless fallback
 	(auth-source-pick host protocol t)))))
 
+(defun auth-source-forget-user-or-password (mode host protocol)
+  (interactive "slogin/password: \nsHost: \nsProtocol: \n") ;for testing
+  (remhash (format "%s %s:%s" mode host protocol) auth-source-cache))
+
 (defun auth-source-user-or-password (mode host protocol)
   "Find user or password (from the string MODE) matching HOST and PROTOCOL."
   (gnus-message 9
 		"auth-source-user-or-password: get %s for %s (%s)"
 		mode host protocol)
-  (let (found)
-    (dolist (choice (auth-source-pick host protocol))
-      (setq found (netrc-machine-user-or-password
-		   mode
-		   (plist-get choice :source)
-		   (list host)
-		   (list (format "%s" protocol))
-		   (auth-source-protocol-defaults protocol)))
-      (when found
-	(gnus-message 9
-		      "auth-source-user-or-password: found %s=%s for %s (%s)"
-		      mode
-		      ;; don't show the password
-		      (if (equal mode "password") "SECRET" found)
-		      host protocol)
+  (let* ((cname (format "%s %s:%s" mode host protocol))
+	 (found (gethash cname auth-source-cache)))
+    (if found
+	(progn
+	  (gnus-message 9
+			"auth-source-user-or-password: cached %s=%s for %s (%s)"
+			mode
+			;; don't show the password
+			(if (equal mode "password") "SECRET" found)
+			host protocol)
+	  found)
+      (dolist (choice (auth-source-pick host protocol))
+	(setq found (netrc-machine-user-or-password
+		     mode
+		     (plist-get choice :source)
+		     (list host)
+		     (list (format "%s" protocol))
+		     (auth-source-protocol-defaults protocol)))
+	(when found
+	  (gnus-message 9
+			"auth-source-user-or-password: found %s=%s for %s (%s)"
+			mode
+			;; don't show the password
+			(if (equal mode "password") "SECRET" found)
+			host protocol)
+	  (when auth-source-do-cache
+	    (puthash cname found auth-source-cache)))
 	(return found)))))
 
 (defun auth-source-protocol-defaults (protocol)
