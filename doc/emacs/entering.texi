@@ -25,13 +25,13 @@ you can use it to run other shell commands.
 
 @cindex startup screen
   When Emacs starts up, the initial frame displays a special buffer
-named @samp{*GNU Emacs*}.  This buffer contains @dfn{links} to common
-tasks that might be useful to beginning users.  For instance,
-activating the @samp{Emacs Tutorial} link opens the Emacs tutorial;
-this does the same thing as the command @kbd{C-h t}
-(@code{help-with-tutorial}).  To activate a link, either move point
-onto it and type @kbd{@key{RET}}, or click on it with @kbd{mouse-1}
-(the left mouse button).
+named @samp{*GNU Emacs*}.  This buffer contains some information about
+Emacs, and includes @dfn{links} to common tasks that might be useful
+to beginning users.  For instance, activating the @samp{Emacs
+Tutorial} link opens the Emacs tutorial; this does the same thing as
+the command @kbd{C-h t} (@code{help-with-tutorial}).  To activate a
+link, either move point onto it and type @kbd{@key{RET}}, or click on
+it with @kbd{mouse-1} (the left mouse button).
 
   Using a command line argument, you can tell Emacs to visit one or
 more specific files as soon as it starts up.  For example,
@@ -62,6 +62,14 @@ already running Emacs.  @xref{Emacs Server}.
   Emacs accepts other command line arguments that tell it to load
 certain Lisp files, call certain functions, and so forth.  These
 features exist mainly for advanced users.  @xref{Emacs Invocation}.
+
+@vindex inhibit-startup-screen
+  If the value of the variable @code{inhibit-startup-screen} is
+non-@code{nil}, Emacs does not display the startup screen.  In that
+case, if one or more files were specified on the command line, Emacs
+simply displays those files; otherwise, it displays a buffer named
+@samp{*scratch*}, which can be used to evaluate Emacs Lisp expressions
+interactively.  @xref{Lisp Interaction}.
 
 @node Exiting, Basic, Entering Emacs, Top
 @section Exiting Emacs
