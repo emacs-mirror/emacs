@@ -118,8 +118,9 @@ Reserved.  They are distributed under the W3C Document License:
 
 The file relaxng.rnc is derived from the RELAX NG Compact Syntax
 Committee Specification, which is Copyright (C) 2002 The Organization
-for the Advancement of Structured Information Standards (OASIS).  The
-specification itself may be viewed at
+for the Advancement of Structured Information Standards (OASIS).  This
+specification (which is also essentially identical to ISO/IEC 19757-2)
+may be viewed at
 
   http://www.oasis-open.org/committees/relax-ng/compact-20021121.html#formal-syntax
 
