@@ -6722,8 +6722,9 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         if (f)
           {
 
-            /* Generate SELECT_WINDOW_EVENTs when needed.  */
-            if (!NILP (Vmouse_autoselect_window))
+            /* Generate SELECT_WINDOW_EVENTs when needed.
+               Don't let popup menus influence things (bug#1261).  */
+            if (!NILP (Vmouse_autoselect_window) && !popup_activated ())
               {
                 Lisp_Object window;
 
