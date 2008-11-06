@@ -1,3 +1,9 @@
+2008-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* cus-edit.el (custom-comment-tag): Doc fix.
+	(custom-comment, custom-variable-value-create, custom-face):
+	Use face names sans -face suffix rather than aliases.
+
 2008-11-05  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-quit): Use `window-full-width-p' to check
