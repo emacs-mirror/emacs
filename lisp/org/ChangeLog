@@ -1,3 +1,7 @@
+2008-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* org-publish.el (eshell/cp): Autoload it rather than requiring things.
+
 2008-11-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.el (org-columns-modify-value-for-display-function):
