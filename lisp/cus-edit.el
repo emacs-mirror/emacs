@@ -2544,7 +2544,7 @@ try matching its doc string against `custom-guess-doc-alist'."
 	   (push (widget-create-child-and-convert
 		  widget 'item
 		  :format "%{%t%}: "
-		  :sample-face 'custom-variable-tag-face
+		  :sample-face 'custom-variable-tag
 		  :tag tag
 		  :parent widget)
 		 buttons)
@@ -2597,8 +2597,8 @@ try matching its doc string against `custom-guess-doc-alist'."
 		    :action 'custom-tag-action
 		    :help-echo "Change value of this option."
 		    :mouse-down-action 'custom-tag-mouse-down-action
-		    :button-face 'custom-variable-button-face
-		    :sample-face 'custom-variable-tag-face
+		    :button-face 'custom-variable-button
+		    :sample-face 'custom-variable-tag
 		    tag)
 		   buttons)
 	     (insert " ")
@@ -3226,7 +3226,7 @@ Only match frames that support the specified face attributes.")
 
 (define-widget 'custom-face 'custom
   "Customize face."
-  :sample-face 'custom-face-tag-face
+  :sample-face 'custom-face-tag
   :help-echo "Set or reset this face."
   :documentation-property #'face-doc-string
   :value-create 'custom-face-value-create
