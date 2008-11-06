@@ -1,3 +1,8 @@
+2008-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* xterm.c (handle_one_xevent): Don't let popup menus cause
+	mouse-autoselect-window related window switching.  (Bug#1261)
+
 2008-11-04  David Smith  <davidsmith@acm.org>  (tiny change)
 
 	* xterm.c (xim_close_dpy): Avoid double-free on X11R6 XIM.
