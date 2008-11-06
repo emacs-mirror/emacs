@@ -1,3 +1,7 @@
+2008-11-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c (Frandom): Rename arg N to LIMIT to match the docs; doc fix.
+
 2008-11-06  Glenn Morris  <rgm@gnu.org>
 
 	* xterm.c (handle_one_xevent): Don't let popup menus cause
