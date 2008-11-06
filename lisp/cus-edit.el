@@ -2378,7 +2378,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
     (((class grayscale) (background dark))
      (:foreground "LightGray" :weight bold :slant italic))
     (t (:weight bold)))
-  "Face used for variables or faces comment tags."
+  "Face used for the comment tag on variables or faces."
   :group 'custom-faces)
 ;; backward-compatibility alias
 (put 'custom-comment-tag-face 'face-alias 'custom-comment-tag)
@@ -2387,8 +2387,8 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   "User comment."
   :tag "Comment"
   :help-echo "Edit a comment here."
-  :sample-face 'custom-comment-tag-face
-  :value-face 'custom-comment-face
+  :sample-face 'custom-comment-tag
+  :value-face 'custom-comment
   :shown nil
   :create 'custom-comment-create)
 
