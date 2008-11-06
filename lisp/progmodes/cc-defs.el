@@ -1685,6 +1685,9 @@ itself is evaluated."
   ;; `cl-macroexpand-all' inside `c-lang-defconst'.
   (eval form))
 
+;; Only used at compile time - suppress "might not be defined at runtime".
+(declare-function cl-macroexpand-all "cl" (form &optional env))
+
 (defmacro c-lang-defconst (name &rest args)
   "Set the language specific values of the language constant NAME.
 The second argument can optionally be a docstring.  The rest of the
