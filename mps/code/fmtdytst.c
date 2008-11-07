@@ -45,9 +45,9 @@ static mps_word_t dylan_make_WV(mps_word_t version, mps_word_t vb,
 
   /* VERSION- ... VB------ reserved ES---VF- */
   return((version << (MPS_WORD_WIDTH - 8)) |
-	 (vb << 16) |
-	 (es << 3) |
-	 vf);
+         (vb << 16) |
+         (es << 3) |
+         vf);
 }
 
 static mps_res_t dylan_make_wrapper_wrapper(void)
