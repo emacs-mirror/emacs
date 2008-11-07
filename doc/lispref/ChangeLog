@@ -1,3 +1,26 @@
+2008-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Windows): Update entries.
+	(Basic Windows): Remove listing of attributes.  Reword.
+	(Splitting Windows, Deleting Windows, Window Point): Reword.
+	(Selecting Windows, Cyclic Window Ordering): Reword with special
+	emphasis on order of recently selected windows and buffer list.
+	(Buffers and Windows, Displaying Buffers, Choosing Window):
+	Reword with special emphasis on dedicated windows.
+	(Dedicated Windows): New node and section discussing dedicated
+	windows and associated functions.
+	(Window Start and End): Rename node and section title.  Reword.
+	(Textual Scrolling, Vertical Scrolling, Horizontal Scrolling):
+	Minor rewording.
+	(Size of Window): Reword, in particular text on window-width.
+	(Resizing Windows): Reword.  Add text on balancing windows.
+	(Window Configurations): Reword.  Mention window parameters.
+	(Window Parameters): New node and section on window parameters.
+	(Window Hooks): Reword.  Mention that
+	window-configuration-change-hook is run "buffer-locally".
+	* elisp.texi (Top): Update Windows entries in @detailmenu
+	section.
+
 2008-11-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* searching.texi (Regexp Search): Fix typo.
