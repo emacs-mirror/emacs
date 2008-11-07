@@ -1259,7 +1259,7 @@ of recently selected windows and the buffer list.
 ** Window parameters can now be defined.
 These are analogous to frame parameters, but are associated with
 individual windows.
-
++++
 *** The new functions window-parameters, window-parameter, and
 set-window-parameter are used to query and set window parameters.
 
@@ -1592,6 +1592,10 @@ Convenient when checking invisibility of text with no buffer position
 It now accepts a cons cell (COLS . LINES) in its first argument, which
 says to stop, where possible, at a pixel x-position equal to COLS
 times the default column width.
+
+*** redisplay-end-trigger-functions, set-window-redisplay-end-trigger,
+and window-redisplay-end-trigger are obsolete.  Use `jit-lock-register'
+instead.
 
 ** The Lisp interpreter now treats non-breaking space as whitespace.
 
