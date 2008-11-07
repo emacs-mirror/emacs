@@ -254,7 +254,7 @@ extern Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
 extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsStepMethod step,
-		       void *p, unsigned long s);
+                       void *p, unsigned long s);
 extern void PoolNoFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
 extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
@@ -749,14 +749,14 @@ extern AllocPattern AllocPatternRampCollectAll(void);
 extern Bool FormatCheck(Format format);
 extern Res FormatCreate(Format *formatReturn, Arena arena,
                         Align alignment,
-			FormatVariety variety,
+                        FormatVariety variety,
                         FormatScanMethod scan,
                         FormatSkipMethod skip,
                         FormatMoveMethod move,
                         FormatIsMovedMethod isMoved,
                         FormatCopyMethod copy,
                         FormatPadMethod pad,
-			FormatClassMethod class,
+                        FormatClassMethod class,
                         Size headerSize);
 extern void FormatDestroy(Format format);
 extern Arena FormatArena(Format format);

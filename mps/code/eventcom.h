@@ -65,11 +65,11 @@ typedef EventUnion *Event;
 #define EventArenaCreateCL  ((EventType)0xEFA64CC7) /* AReNa Create CL */
 #define EventArenaDestroy   ((EventType)0xEFA64DE5) /* AReNa DEStroy */
 #define EventArenaAlloc     ((EventType)0xEFA64A77) /* AReNa ALLoc */
-#define EventArenaFree	    ((EventType)0xEFA64F6E) /* AReNa FREe */
+#define EventArenaFree      ((EventType)0xEFA64F6E) /* AReNa FREe */
 #define EventSegAlloc       ((EventType)0xEF5E9A77) /* SEG ALLoc */
-#define EventSegFree	    ((EventType)0xEF5E9F6E) /* SEG FREe */
-#define EventSegMerge	    ((EventType)0xEF5E93E6) /* SEG MERge */
-#define EventSegSplit	    ((EventType)0xEF5E95B7) /* SEG SPLit */
+#define EventSegFree        ((EventType)0xEF5E9F6E) /* SEG FREe */
+#define EventSegMerge       ((EventType)0xEF5E93E6) /* SEG MERge */
+#define EventSegSplit       ((EventType)0xEF5E95B7) /* SEG SPLit */
 #define EventAMCGenCreate   ((EventType)0xEFA3C94C) /* AMC GeN Create */
 #define EventAMCGenDestroy  ((EventType)0xEFA3C94D) /* AMC GeN Destroy */
 #define EventAMCInit        ((EventType)0xEFA3C141) /* AMC INIt */
