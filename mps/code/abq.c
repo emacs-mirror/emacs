@@ -215,12 +215,12 @@ Res ABQDescribe(ABQ abq, mps_lib_FILE *stream)
   AVER(stream != NULL);
 
   res = WriteF(stream,
-	       "ABQ $P\n{\n", (WriteFP)abq,
-	       "  elements: $U \n", (WriteFU)abq->elements,
-	       "  in: $U \n", (WriteFU)abq->in,
-	       "  out: $U \n", (WriteFU)abq->out,
+               "ABQ $P\n{\n", (WriteFP)abq,
+               "  elements: $U \n", (WriteFU)abq->elements,
+               "  in: $U \n", (WriteFU)abq->in,
+               "  out: $U \n", (WriteFU)abq->out,
                "  queue: \n",
-	       NULL);
+               NULL);
   if(res != ResOK)
     return res;
 

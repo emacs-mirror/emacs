@@ -303,7 +303,7 @@ Res EventRecord(EventProc proc, Event event, Word etime)
   Res res;
 
   switch(event->any.code) {
-  case EventIntern: {   	/* id, label */
+  case EventIntern: {           /* id, label */
     Symbol sym = malloc(sizeof(symbolStruct));
 
     if (sym == NULL) return ResMEMORY;
@@ -315,7 +315,7 @@ Res EventRecord(EventProc proc, Event event, Word etime)
     }
     res = TableDefine(proc->internTable, sym->id, sym);
   } break;
-  case EventLabel: {		/* addr, id */
+  case EventLabel: {            /* addr, id */
     Label label = malloc(sizeof(labelStruct));
     void *entry;
 

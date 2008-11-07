@@ -23,7 +23,7 @@
 typedef unsigned long ulong;
 
 
-#define tableUNUSED	((Word)0x2AB7E040)
+#define tableUNUSED    ((Word)0x2AB7E040)
 #define tableDELETED   ((Word)0x2AB7EDE7)
 #define tableACTIVE    ((Word)0x2AB7EAC2)
 
@@ -87,11 +87,11 @@ static TableEntry TableFind(Table table, Word key, int skip_deleted)
     switch (table->array[i].status) {
     case tableACTIVE:
       if (table->array[i].key == key)
-	return &table->array[i];
+        return &table->array[i];
       break;
     case tableDELETED:
       if (!skip_deleted)
-	return &table->array[i];
+        return &table->array[i];
       break;
     case tableUNUSED:
       return &table->array[i];

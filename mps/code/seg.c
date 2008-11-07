@@ -1146,10 +1146,10 @@ static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
     if (grey != TraceSetEMPTY) {
       AVER(RankSetIsSingle(seg->rankSet));
       for(rank = 0; rank < RankLIMIT; ++rank)
-	if (RankSetIsMember(seg->rankSet, rank)) {
-	  RingInsert(ArenaGreyRing(arena, rank), &gcseg->greyRing);
-	  break;
-	}
+        if (RankSetIsMember(seg->rankSet, rank)) {
+          RingInsert(ArenaGreyRing(arena, rank), &gcseg->greyRing);
+          break;
+        }
       AVER(rank != RankLIMIT); /* there should've been a match */
     }
   } else {
