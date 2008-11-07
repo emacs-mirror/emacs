@@ -1,3 +1,9 @@
+2008-11-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Add new argument
+	to initialize font-lock keyword case sensitivity.
+	(lisp-mode): Use it.
+
 2008-11-06  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-maint.el: Remove unused file.

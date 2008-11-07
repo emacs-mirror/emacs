@@ -193,9 +193,11 @@
               font-lock-string-face))))
     font-lock-comment-face))
 
-;; The LISP-SYNTAX argument is used by code in inf-lisp.el and is
-;; (uselessly) passed from pp.el, chistory.el, gnus-kill.el and score-mode.el
-(defun lisp-mode-variables (&optional lisp-syntax)
+(defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive)
+  "Common initialization routine for lisp modes.
+The LISP-SYNTAX argument is used by code in inf-lisp.el and is
+(uselessly) passed from pp.el, chistory.el, gnus-kill.el and score-mode.el
+KEYWORDS-CASE-SENSITIVE means that for font-lock keywords will not be case sensitive."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
   (setq local-abbrev-table lisp-mode-abbrev-table)
@@ -241,9 +243,9 @@
   (setq multibyte-syntax-as-symbol t)
   (set (make-local-variable 'syntax-begin-function) 'beginning-of-defun)
   (setq font-lock-defaults
-	'((lisp-font-lock-keywords
+	`((lisp-font-lock-keywords
 	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
-	  nil nil (("+-*/.<>=!?$%_&~^:@" . "w")) nil
+	  nil ,keywords-case-insensitive (("+-*/.<>=!?$%_&~^:@" . "w")) nil
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
 	   . lisp-font-lock-syntactic-face-function))))
@@ -464,7 +466,7 @@ if that value is non-nil."
   (use-local-map lisp-mode-map)
   (setq major-mode 'lisp-mode)
   (setq mode-name "Lisp")
-  (lisp-mode-variables)
+  (lisp-mode-variables nil t)
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
