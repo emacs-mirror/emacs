@@ -60,9 +60,13 @@ static void report(mps_arena_t arena)
     cdie(mps_message_get(&message, arena, type), "message get");
 
     switch(type) {
-    /* @@@@ is using these macros in a switch supported? */
-    case mps_message_type_gc():
-      {
+      /* @@@@ is using these macros in a switch supported? */
+      case mps_message_type_gc_start(): {
+        printf("\nCollection started.  Because:\n");
+        printf("%s\n", mps_message_gc_start_why(arena, message));
+        break;
+      }
+      case mps_message_type_gc(): {
         size_t live, condemned, not_condemned;
 
         live = mps_message_gc_live_size(arena, message);
@@ -81,15 +85,12 @@ static void report(mps_arena_t arena)
           die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE),
             "set limit");
         }
+        break;
       }
-      break;
-    case mps_message_type_gc_start():
-      printf("\nCollection started.  Because:\n");
-      printf("%s\n", mps_message_gc_start_why(arena, message));
-
-      break;
-    default:
-      cdie(0, "unknown message type");
+      default: {
+        cdie(0, "unknown message type");
+        break;
+      }
     }
     mps_message_discard(arena, message);
   }
