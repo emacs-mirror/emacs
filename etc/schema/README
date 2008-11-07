@@ -57,13 +57,20 @@ published by the World Wide Web Consortium (W3C):
 
       rdfxml.rnc
 
-These files are Copyright (C) 2001-2008 World Wide Web Consortium,
-(Massachusetts Institute of Technology, European Research Consortium
-for Informatics and Mathematics, Keio University).  All Rights
-Reserved.  From section 5.10 of the W3C Intellectual Rights FAQ
-( http://www.w3.org/Consortium/Legal/IPR-FAQ-20000620 ),
-schemas and DTDs that are part of W3C specifications are licensed
-under the W3C Software License:
+These files are
+
+  Copyright (C) 2001-2008 World Wide Web Consortium, (Massachusetts
+  Institute of Technology, European Research Consortium for
+  Informatics and Mathematics, Keio University).  All Rights Reserved.
+  This work is distributed under the W3C(R) Software License in the
+  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.
+
+From section 5.10 of the W3C Intellectual Rights FAQ
+( http://www.w3.org/Consortium/Legal/IPR-FAQ-20000620 ), schemas and
+DTDs that are part of W3C specifications are licensed under the W3C
+Software License:
 
   This work (and included software, documentation such as READMEs, or
   other related items) is being provided by the copyright holders
