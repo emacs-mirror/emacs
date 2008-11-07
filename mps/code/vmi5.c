@@ -127,7 +127,7 @@ Res VMCreate(VM *vmReturn, Size size)
 
   /* .map.reserve: MAP_AUTORESRV is necessary to avoid reserving swap. */
   addr = mmap((void *)0, (size_t)size, PROT_NONE, MAP_SHARED | MAP_AUTORESRV,
-	      zero_fd, (off_t)0);
+              zero_fd, (off_t)0);
   if(addr == MAP_FAILED) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
     res = (errno == ENOMEM) ? ResRESOURCE : ResFAIL;
@@ -227,9 +227,9 @@ Res VMMap(VM vm, Addr base, Addr limit)
   /* Check it won't lose any bits. */
   AVER(size <= (Size)(size_t)-1);
   addr = mmap((void *)base, (size_t)size,
-	      PROT_READ | PROT_WRITE | PROT_EXEC,
-	      MAP_PRIVATE | MAP_FIXED,
-	      vm->zero_fd, (off_t)0);
+              PROT_READ | PROT_WRITE | PROT_EXEC,
+              MAP_PRIVATE | MAP_FIXED,
+              vm->zero_fd, (off_t)0);
   if(addr == MAP_FAILED) {
     AVER(errno == ENOMEM || errno == EAGAIN); /* .assume.mmap.err */
     return ResMEMORY;

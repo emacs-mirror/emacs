@@ -705,7 +705,7 @@ static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
                                BT bt,
                                Index searchBase, Index searchLimit,
                                unsigned long minLength,
-			       unsigned long maxLength)
+                               unsigned long maxLength)
 {
   Bool foundRes;         /* true if a reset bit is found */
   Index resLimit;        /* limit of a candidate reset range */
@@ -850,15 +850,15 @@ Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
  */
 
 Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
-			     BT bt,
-			     Index searchBase, Index searchLimit,
-			     unsigned long length)
+                             BT bt,
+                             Index searchBase, Index searchLimit,
+                             unsigned long length)
 {
   /* All parameters are checked by BTFindResRangeHigh. */
   return BTFindResRangeHigh(baseReturn, limitReturn,
-			    bt,
-			    searchBase, searchLimit,
-			    length, length);
+                            bt,
+                            searchBase, searchLimit,
+                            length, length);
 }
 
 

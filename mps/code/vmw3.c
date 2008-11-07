@@ -122,7 +122,7 @@ Res VMCreate(VM *vmReturn, Size size)
 
   /* Allocate the vm descriptor.  This is likely to be wasteful. */
   vbase = VirtualAlloc(NULL, SizeAlignUp(sizeof(VMStruct), align),
-		       MEM_COMMIT, PAGE_READWRITE);
+                       MEM_COMMIT, PAGE_READWRITE);
   if (vbase == NULL)
     return ResMEMORY;
   vm = (VM)vbase;
