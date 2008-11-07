@@ -264,8 +264,8 @@ extern mps_addr_t dylan_weak_dependent(mps_addr_t parent)
 
 static mps_res_t
 dylan_scan_contig_weak(mps_ss_t mps_ss,
-		       mps_addr_t *base, mps_addr_t *limit,
-		       mps_addr_t *objectBase, mps_addr_t *assoc)
+                       mps_addr_t *base, mps_addr_t *limit,
+                       mps_addr_t *objectBase, mps_addr_t *assoc)
 {
   mps_addr_t *p;
   mps_res_t res;
@@ -287,9 +287,9 @@ dylan_scan_contig_weak(mps_ss_t mps_ss,
     res = MPS_FIX2(mps_ss, p);
     if(res == MPS_RES_OK) {
       if(*p == 0 && r != 0) {
-	if(assoc != NULL) {
-	  assoc[p-objectBase] = 0;	/* delete corresponding entry */
-	}
+        if(assoc != NULL) {
+          assoc[p-objectBase] = 0;      /* delete corresponding entry */
+        }
       }
       goto loop;
     }
@@ -564,7 +564,7 @@ extern mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
 
   assert(dylan_wrapper_check(w));
 
-  ++p;			/* skip header */
+  ++p;                  /* skip header */
 
   fword = w[WF];
   fl = fword >> 2;
@@ -601,7 +601,7 @@ extern mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
 
 
 static mps_res_t dylan_scan_weak(mps_ss_t mps_ss,
-				 mps_addr_t base, mps_addr_t limit)
+                                 mps_addr_t base, mps_addr_t limit)
 {
   mps_res_t res;
 

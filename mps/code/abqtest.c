@@ -122,7 +122,7 @@ static void step(void)
         goto push;
       }
       if (popee == deleted) {
-      	popee++;
+        popee++;
         deleted = 0;
       }
       cdie(CBSBlockTest(a)->id == popee, "pop");

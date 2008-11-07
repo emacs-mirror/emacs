@@ -131,14 +131,14 @@ static void *test(void *arg, size_t s)
         size_t r;
 
         r = objs;
-	i = r % exactRootsCOUNT;
-	if(exactRoots[i] != objNULL) {
-	    cdie(dylan_check(exactRoots[i]), "dying root check");
-	}
-	exactRoots[i] = make();
-	if(exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
-	    dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
-			exactRoots, exactRootsCOUNT);
+        i = r % exactRootsCOUNT;
+        if(exactRoots[i] != objNULL) {
+            cdie(dylan_check(exactRoots[i]), "dying root check");
+        }
+        exactRoots[i] = make();
+        if(exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
+            dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
+                        exactRoots, exactRootsCOUNT);
 
         ++objs;
     }
@@ -164,8 +164,8 @@ int main(int argc, char **argv)
     UNUSED(argv);
 
     die(mps_arena_create(&arena, mps_arena_class_vm(),
-			 testArenaSIZE),
-	"arena_create");
+                         testArenaSIZE),
+        "arena_create");
     die(mps_thread_reg(&thread, arena), "thread_reg");
     mps_tramp(&r, test, arena, 0);
     mps_thread_dereg(thread);

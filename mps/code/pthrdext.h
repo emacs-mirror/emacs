@@ -57,7 +57,7 @@ extern void PThreadextFinish(PThreadext pthreadext);
 /*  PThreadextSuspend -- Suspend a pthreadext and return its context. */
 
 extern Res PThreadextSuspend(PThreadext pthreadext,
-			     MutatorFaultContext *contextReturn);
+                             MutatorFaultContext *contextReturn);
 
 
 /*  PThreadextResume --  Resume a suspended pthreadext */

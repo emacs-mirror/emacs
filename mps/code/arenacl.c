@@ -331,10 +331,10 @@ static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
 
   if (pref->high)
     b = BTFindShortResRangeHigh(&baseIndex, &limitIndex, chunk->allocTable,
-				chunk->allocBase, chunk->pages, pages);
+                                chunk->allocBase, chunk->pages, pages);
   else
     b = BTFindShortResRange(&baseIndex, &limitIndex, chunk->allocTable,
-			    chunk->allocBase, chunk->pages, pages);
+                            chunk->allocBase, chunk->pages, pages);
 
   if (!b)
     return ResRESOURCE;

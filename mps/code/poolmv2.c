@@ -691,24 +691,24 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
-	       "MVT $P\n{\n", (WriteFP)mvt,
-	       "  minSize: $U \n", (WriteFU)mvt->minSize,
-	       "  meanSize: $U \n", (WriteFU)mvt->meanSize,
-	       "  maxSize: $U \n", (WriteFU)mvt->maxSize,
-	       "  fragLimit: $U \n", (WriteFU)mvt->fragLimit,
-	       "  reuseSize: $U \n", (WriteFU)mvt->reuseSize,
-	       "  fillSize: $U \n", (WriteFU)mvt->fillSize,
-	       "  availLimit: $U \n", (WriteFU)mvt->availLimit,
-	       "  abqOverflow: $S \n", mvt->abqOverflow?"TRUE":"FALSE",
-	       "  splinter: $S \n", mvt->splinter?"TRUE":"FALSE",
-	       "  splinterSeg: $P \n", (WriteFP)mvt->splinterSeg,
-	       "  splinterBase: $A \n", (WriteFA)mvt->splinterBase,
-	       "  splinterLimit: $A \n", (WriteFU)mvt->splinterLimit,
-	       "  size: $U \n", (WriteFU)mvt->size,
-	       "  allocated: $U \n", (WriteFU)mvt->allocated,
-	       "  available: $U \n", (WriteFU)mvt->available,
-	       "  unavailable: $U \n", (WriteFU)mvt->unavailable,
-	       NULL);
+               "MVT $P\n{\n", (WriteFP)mvt,
+               "  minSize: $U \n", (WriteFU)mvt->minSize,
+               "  meanSize: $U \n", (WriteFU)mvt->meanSize,
+               "  maxSize: $U \n", (WriteFU)mvt->maxSize,
+               "  fragLimit: $U \n", (WriteFU)mvt->fragLimit,
+               "  reuseSize: $U \n", (WriteFU)mvt->reuseSize,
+               "  fillSize: $U \n", (WriteFU)mvt->fillSize,
+               "  availLimit: $U \n", (WriteFU)mvt->availLimit,
+               "  abqOverflow: $S \n", mvt->abqOverflow?"TRUE":"FALSE",
+               "  splinter: $S \n", mvt->splinter?"TRUE":"FALSE",
+               "  splinterSeg: $P \n", (WriteFP)mvt->splinterSeg,
+               "  splinterBase: $A \n", (WriteFA)mvt->splinterBase,
+               "  splinterLimit: $A \n", (WriteFU)mvt->splinterLimit,
+               "  size: $U \n", (WriteFU)mvt->size,
+               "  allocated: $U \n", (WriteFU)mvt->allocated,
+               "  available: $U \n", (WriteFU)mvt->available,
+               "  unavailable: $U \n", (WriteFU)mvt->unavailable,
+               NULL);
   if(res != ResOK) return res;
 
   res = CBSDescribe(MVTCBS(mvt), stream);

@@ -225,9 +225,9 @@ static void *test(void *arg, size_t s)
       if (collections == collectionsCOUNT / 2) {
         unsigned long object_count = 0;
         mps_arena_park(arena);
-	mps_arena_formatted_objects_walk(arena, test_stepper, &object_count, 0);
-	mps_arena_release(arena);
-	printf("stepped on %lu objects.\n", object_count);
+        mps_arena_formatted_objects_walk(arena, test_stepper, &object_count, 0);
+        mps_arena_release(arena);
+        printf("stepped on %lu objects.\n", object_count);
       }
       if (collections == rampSwitch) {
         int begin_ramp = !ramping
