@@ -1,3 +1,7 @@
+2008-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-defs.el (cl-macroexpand-all): Fix declaration.
+
 2008-11-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Add new argument
