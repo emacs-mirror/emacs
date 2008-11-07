@@ -1,4 +1,10 @@
-# $Id: xslt.rnc,v 1.2 2003/08/30 08:09:03 jjc Exp $
+# Copyright (C) 2001-2008 World Wide Web Consortium, (Massachusetts
+# Institute of Technology, European Research Consortium for
+# Informatics and Mathematics, Keio University).  All Rights Reserved.
+# This work is distributed under the W3C(R) Software License in the
+# hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.
 
 # This was mostly generated from the syntax summary in the XSLT
 # Recommendation (using XSLT of course).
