@@ -1,12 +1,18 @@
-#
 # RELAX NG Compact Schema for RDF/XML Syntax
+#
+# Copyright (C) 2001-2008 World Wide Web Consortium, (Massachusetts
+# Institute of Technology, European Research Consortium for
+# Informatics and Mathematics, Keio University).  All Rights Reserved.
+# This work is distributed under the W3C(R) Software License in the
+# hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.
 #
 # This schema is for information only and NON-NORMATIVE
 #
 # It is based on one originally written by James Clark in
 # http://lists.w3.org/Archives/Public/www-rdf-comments/2001JulSep/0248.html
 # and updated with later changes.
-#
 
 namespace local = ""
 namespace rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
