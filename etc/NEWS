@@ -297,6 +297,7 @@ documented.)
 
 * Incompatible Editing Changes in Emacs 23.1
 
++++
 ** In Dired, `dired-flag-garbage-files' is rebound from `&' to `%&'
 on the regexp command prefix map.
 
@@ -385,7 +386,7 @@ the default values and after the end of defaults they continue
 searching minibuffer completion items.
 ---
 *** Minibuffer input of shell commands now comes with completion.
-
++++
 *** In the `C-x d' (Dired) prompt, typing M-n gives the visited file
 name of the current buffer.
 
@@ -727,26 +728,26 @@ It is bound to `C-x 4 A'.
 trailing whitespace problems in the modified lines of a diff buffer.
 
 ** Dired
-
++++
 *** In Dired, C-x C-q now runs the command wdired-change-to-wdired-mode,
 and C-x C-q in wdired-mode exits it with asking a question about
 saving changes.
-
++++
 *** `&' runs the command `dired-do-async-shell-command' that executes
 the command asynchronously without the need to manually add ampersand
 to the end of the command.  Its output appears in the buffer `*Async Shell
 Command*'.
-
++++
 *** `M-s f C-s' and `M-s f M-C-s' run Isearch that matches only at file names.
 When a new user option `dired-isearch-filenames' is non-nil, then even
 ordinary Isearch started with `C-s' and `C-M-s' matches only at file names
 in the Dired buffer.  You can toggle file names matching on or off
 by typing `M-s f' in Isearch mode.
-
++++
 *** `M-s a C-s' and `M-s a M-C-s' run multi-file Isearch on the marked files.
 They visit the first marked file in the sequence and display the usual Isearch
 prompt for a string or a regexp where all Isearch commands are available.
-
+---
 *** `Q' in Dired provides two new keys for multi-file replacement.
 The upper case key `Y' replaces all remaining matches in all remaining files
 with no more questions.  The upper case key `N' stops doing replacements
