@@ -1,3 +1,7 @@
+2008-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_LIB64_DIR): Check for crtn.o.  (Bug#1287)
+
 2008-10-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Tell user to expect one "File not found" message
