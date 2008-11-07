@@ -1,3 +1,8 @@
+2008-11-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_window_reusing_current_matrix): Ensure that window
+	cursor position is valid after scrolling.
+
 2008-11-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fns.c (Frandom): Rename arg N to LIMIT to match the docs; doc fix.
