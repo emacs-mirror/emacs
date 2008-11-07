@@ -34,7 +34,7 @@ typedef void (*AMSSegsDestroyFunction)(AMS ams);
 /* a segment size given an object size. */
 typedef Res (*AMSSegSizePolicyFunction)(Size *sizeReturn,
                                         Pool pool, Size size,
-					RankSet rankSet);
+                                        RankSet rankSet);
 
 
 typedef struct AMSStruct {

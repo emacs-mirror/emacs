@@ -10,7 +10,7 @@
 #ifndef mpsio_h
 #define mpsio_h
 
-#include "mps.h"	/* for mps_res_t */
+#include "mps.h"  /* for mps_res_t */
 
 
 typedef struct mps_io_s *mps_io_t;
