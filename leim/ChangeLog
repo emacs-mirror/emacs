@@ -1,4 +1,4 @@
-2008-11-07  Chong Yidong  <cyd@stupidchicken.com>
+2008-11-07  Vasily Korytov  <vasily@korytov.pp.ru>  (tiny change)
 
 	* quail/cyrillic.el: Handle backslash key (bug#839).
 
