@@ -790,6 +790,12 @@ that does not identify an existing buffer, then a new buffer by that
 name is created.  The major mode for the new buffer is set according to
 the variable @code{default-major-mode}, @xref{Auto Major Mode}.
 
+When @code{enable-recursive-minibuffers} is non-@code{nil} and the
+selected window is either the minibuffer window or is dedicated to its
+buffer (@pxref{Dedicated Windows}), @code{switch-to-buffer} calls
+@code{pop-to-buffer} (see below) to display the buffer in some other
+window.
+
 Normally the specified buffer is put at the front of the buffer list
 (both the selected frame's buffer list and the frame-independent buffer
 list).  This affects the operation of @code{other-buffer}.  However, if
@@ -1278,6 +1284,12 @@ This function positions point in @var{window} at position
 If @var{window} is selected, and its buffer is current,
 this simply does @code{goto-char}.
 @end defun
+
+@defvar window-point-insertion-type
+This variable specifies the marker insertion type (@pxref{Marker
+Insertion Types}) of @code{window-point}.  The default is @code{nil},
+so @code{window-point} will stay behind text inserted there.
+@end defvar
 
 @node Window Start and End
 @section The Window Start and End Positions
