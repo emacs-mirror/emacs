@@ -1,3 +1,15 @@
+2008-11-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.texi (Dired): Mention C-x C-d too.
+	(Dired Enter): Document M-n in the Dired minibuffer.
+	(Dired Navigation): Explain dired-goto-file more clearly.  Document
+	dired-isearch-filenames.
+	(Dired Deletion): Remove unnecessary "expunged" terminology.
+	(Flagging Many Files): & is now rebound to `% &'.
+	(Shell Commands in Dired): Document dired-do-async-shell-command.
+	Clarify how multi-file arguments are passed.
+	(Misc Dired Features): Document dired-do-isearch.
+
 2008-11-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* entering.texi (Entering Emacs): Document inhibit-startup-screen.
