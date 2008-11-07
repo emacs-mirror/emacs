@@ -1,7 +1,10 @@
-This directory contains schema for a variety of specifications
-released by the DocBook project, the Organization for the Advancement
-of Structured Information Standards (OASIS) and the World Wide Web
-Consortium (W3C).  These schema are used by nXML mode.
+schemas.xml and locate.rnc are part of Emacs.  They are used by nXML
+mode for mapping schemas to documents.
+
+The remaining files in this directory are schema for a variety of
+specifications released by the DocBook project, the Organization for
+the Advancement of Structured Information Standards (OASIS) and the
+World Wide Web Consortium (W3C).  These schema are used by nXML mode.
 
 COPYRIGHT AND LICENSE INFORMATION FOR SCHEMA FILES
 
@@ -45,74 +48,64 @@ published by the World Wide Web Consortium (W3C):
       xhtml-text.rnc xhtml-tgt.rnc xhtml-xstyle.rnc
 
   2. The XSL Transformations (XSLT) Version 1.0 standard, available
-     online at http://www.w3.org/TR/xslt/
+     online at http://www.w3.org/TR/xslt
 
       xslt.rnc
 
   3. The W3C RDF/XML Syntax Specification (Revised), available online
-     at http://www.w3.org/TR/rdf-syntax-grammar/
+     at http://www.w3.org/TR/rdf-syntax-grammar
 
       rdfxml.rnc
 
 These files are Copyright (C) 2001-2008 World Wide Web Consortium,
 (Massachusetts Institute of Technology, European Research Consortium
 for Informatics and Mathematics, Keio University).  All Rights
-Reserved.  They are distributed under the W3C Document License:
+Reserved.  From section 5.10 of the W3C Intellectual Rights FAQ
+( http://www.w3.org/Consortium/Legal/IPR-FAQ-20000620 ),
+schemas and DTDs that are part of W3C specifications are licensed
+under the W3C Software License:
 
-  Public documents on the W3C site are provided by the copyright
-  holders under the following license. By using and/or copying this
-  document, or the W3C document from which this statement is linked,
-  you (the licensee) agree that you have read, understood, and will
-  comply with the following terms and conditions:
+  This work (and included software, documentation such as READMEs, or
+  other related items) is being provided by the copyright holders
+  under the following license. By obtaining, using and/or copying this
+  work, you (the licensee) agree that you have read, understood, and
+  will comply with the following terms and conditions.
 
-  Permission to copy, and distribute the contents of this document, or
-  the W3C document from which this statement is linked, in any medium
-  for any purpose and without fee or royalty is hereby granted,
-  provided that you include the following on ALL copies of the
-  document, or portions thereof, that you use:
+  Permission to copy, modify, and distribute this software and its
+  documentation, with or without modification, for any purpose and
+  without fee or royalty is hereby granted, provided that you include
+  the following on ALL copies of the software and documentation or
+  portions thereof, including modifications:
 
-   1. A link or URL to the original W3C document.
+   1. The full text of this NOTICE in a location viewable to users of
+      the redistributed or derivative work.
 
-   2. The pre-existing copyright notice of the original author, or if
-      it doesn't exist, a notice (hypertext is preferred, but a
-      textual representation is permitted) of the form: "Copyright (C)
-      [$date-of-document] World Wide Web Consortium, (Massachusetts
-      Institute of Technology, European Research Consortium for
-      Informatics and Mathematics, Keio University). All Rights
-      Reserved.
-      http://www.w3.org/Consortium/Legal/2002/copyright-documents-20021231"
+   2. Any pre-existing intellectual property disclaimers, notices, or
+      terms and conditions. If none exist, the W3C Software Short
+      Notice should be included (hypertext is preferred, text is
+      permitted) within the body of any redistributed or derivative
+      code.
 
-   3. If it exists, the STATUS of the W3C document.
+   3. Notice of any changes or modifications to the files, including
+      the date changes were made. (We recommend you provide URIs to
+      the location from which the code is derived.)
 
-  When space permits, inclusion of the full text of this NOTICE should
-  be provided. We request that authorship attribution be provided in
-  any software, documents, or other items or products that you create
-  pursuant to the implementation of the contents of this document, or
-  any portion thereof.
-
-  No right to create modifications or derivatives of W3C documents is
-  granted pursuant to this license. However, if additional
-  requirements (documented in the Copyright FAQ) are satisfied, the
-  right to create modifications or derivatives is sometimes granted by
-  the W3C to individuals complying with those requirements.
-
-  THIS DOCUMENT IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE NO
-  REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING, BUT
-  NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-  PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF
-  THE DOCUMENT ARE SUITABLE FOR ANY PURPOSE; NOR THAT THE
-  IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY THIRD PARTY
-  PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+  THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT
+  HOLDERS MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED,
+  INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY OR
+  FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF THE SOFTWARE
+  OR DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY PATENTS,
+  COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
 
   COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT,
   SPECIAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE
-  DOCUMENT OR THE PERFORMANCE OR IMPLEMENTATION OF THE CONTENTS
-  THEREOF.
+  SOFTWARE OR DOCUMENTATION.
 
   The name and trademarks of copyright holders may NOT be used in
-  advertising or publicity pertaining to this document or its contents
-  without specific, written prior permission. Title to copyright in
-  this document will at all times remain with copyright holders.
+  advertising or publicity pertaining to the software without
+  specific, written prior permission. Title to copyright in this
+  software and any associated documentation will at all times remain
+  with copyright holders.
 
 
 
