@@ -1,3 +1,7 @@
+2008-11-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.el (make-frame-on-display): Use `string-match-p'.
+
 2008-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-defs.el (cl-macroexpand-all): Fix declaration.

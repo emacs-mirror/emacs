@@ -620,7 +620,7 @@ The optional argument PARAMETERS specifies additional frame parameters."
 	 ;; On Windows, ignore DISPLAY.
 	 (make-frame parameters))
 	(t
-	 (unless (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
+	 (unless (string-match-p "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
 	   (error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
 	 (when (and (boundp 'x-initialized) (not x-initialized))
 	   (setq x-display-name display)
