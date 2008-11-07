@@ -63,7 +63,8 @@ static void report(mps_arena_t arena)
       /* @@@@ is using these macros in a switch supported? */
       case mps_message_type_gc_start(): {
         printf("\nCollection started.  Because:\n");
-        printf("%s\n", mps_message_gc_start_why(arena, message));
+        printf("  %s\n", mps_message_gc_start_why(arena, message));
+        printf("  clock: %lu\n", (unsigned long)mps_message_clock(arena, message));
         break;
       }
       case mps_message_type_gc(): {
@@ -74,9 +75,10 @@ static void report(mps_arena_t arena)
         not_condemned = mps_message_gc_not_condemned_size(arena, message);
 
         printf("\nCollection %d finished:\n", ++nCollections);
-        printf("live %lu\n", (unsigned long)live);
-        printf("condemned %lu\n", (unsigned long)condemned);
-        printf("not_condemned %lu\n", (unsigned long)not_condemned);
+        printf("  live %lu\n", (unsigned long)live);
+        printf("  condemned %lu\n", (unsigned long)condemned);
+        printf("  not_condemned %lu\n", (unsigned long)not_condemned);
+        printf("  clock: %lu\n", (unsigned long)mps_message_clock(arena, message));
 
         if(condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024) {
           /* When condemned size is larger than could happen in a gen 2

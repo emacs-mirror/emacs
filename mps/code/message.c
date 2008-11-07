@@ -50,6 +50,7 @@ Bool MessageCheck(Message message)
   CHECKL(MessageTypeCheck(message->type));
   CHECKU(MessageClass, message->class);
   CHECKL(RingCheck(&message->queueRing));
+  /* cannot check postedClock: no check for mps_clock_t */
 
   return TRUE;
 }
@@ -81,6 +82,7 @@ void MessageInit(Arena arena, Message message, MessageClass class,
   message->class = class;
   RingInit(&message->queueRing);
   message->type = type;
+  message->postedClock = 0;
   message->sig = MessageSig;
 
   AVERT(Message, message);
@@ -120,6 +122,9 @@ void MessagePost(Arena arena, Message message)
   /* <design/message/#fun.post.singleton> */
   AVER(!MessageOnQueue(message));
   if(MessageTypeEnabled(arena, message->type)) {
+    /* @@@@ for finalization messages, this may be critical path; */
+    /* so is it still ok to call mps_clock() here? */
+    message->postedClock = mps_clock();
     RingAppend(&arena->messageRing, &message->queueRing);
   } else {
     /* discard message immediately if client hasn't enabled that type */
