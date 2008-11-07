@@ -1,3 +1,7 @@
+2008-11-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* quail/cyrillic.el: Handle backslash key (bug#839).
+
 2008-10-20  Kenichi Handa  <handa@m17n.org>
 
 	* quail/indian.el (inscript-mlm-keytable): New variable.
