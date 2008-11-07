@@ -113,7 +113,7 @@ cal-xtra.texi     -- rgm
 cmdargs.texi
 commands.texi     -- cyd
 custom.texi
-dired.texi
+dired.texi        -- cyd
 dired-xtra.texi
 display.texi      -- cyd
 emacs.texi        -- cyd
