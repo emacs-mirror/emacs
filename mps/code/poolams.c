@@ -1164,8 +1164,8 @@ static Res amsIterate(Seg seg, AMSObjectFunction f, void *closure)
       AVER(AddrIsAligned(next, alignment));
     } else {
       AVER((buffer == NULL)
-	   || (p < BufferScanLimit(buffer))
-	   || (p >= BufferLimit(buffer)));  /* not in the buffer */
+           || (p < BufferScanLimit(buffer))
+           || (p >= BufferLimit(buffer)));  /* not in the buffer */
 
       i = AMS_ADDR_INDEX(seg, p);
       if (!AMS_ALLOCED(seg, i)) { /* no object here */
@@ -1191,9 +1191,9 @@ static Res amsIterate(Seg seg, AMSObjectFunction f, void *closure)
           next = AddrAdd(p, alignment);
         }
         AVER(AddrIsAligned(next, alignment));
-	res = (*f)(seg, i, p, next, closure);
-	if (res != ResOK)
-	  return res;
+        res = (*f)(seg, i, p, next, closure);
+        if (res != ResOK)
+          return res;
       }
     }
     AVER(next > p); /* make sure we make progress */

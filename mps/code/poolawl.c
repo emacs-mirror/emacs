@@ -697,7 +697,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
     /* Whiten everything except the buffer. */
     Addr base = SegBase(seg);
     Index scanLimitIndex = awlIndexOfAddr(base, awl,
-					  BufferScanLimit(buffer));
+                                          BufferScanLimit(buffer));
     Index limitIndex = awlIndexOfAddr(base, awl,
                                       BufferLimit(buffer));
 
@@ -762,10 +762,10 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
 
       AWLRangeGrey(awlseg,
                    0,
-		   awlIndexOfAddr(base, awl, BufferScanLimit(buffer)));
+                   awlIndexOfAddr(base, awl, BufferScanLimit(buffer)));
       AWLRangeGrey(awlseg,
                    awlIndexOfAddr(base, awl, BufferLimit(buffer)),
-		   awlseg->grains);
+                   awlseg->grains);
     } else {
       AWLRangeGrey(awlseg, 0, awlseg->grains);
     }

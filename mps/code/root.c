@@ -205,8 +205,8 @@ static Res rootCreate(Root *rootReturn, Arena arena,
 
 static Res rootCreateProtectable(Root *rootReturn, Arena arena,
                                  Rank rank, RootMode mode, RootVar var,
-				 Addr base, Addr limit,
-				 union RootUnion *theUnion)
+                                 Addr base, Addr limit,
+                                 union RootUnion *theUnion)
 {
   Res res;
   Root root;
@@ -223,7 +223,7 @@ static Res rootCreateProtectable(Root *rootReturn, Arena arena,
       if (!(root->protBase < root->protLimit)) {
         /* root had no inner pages */
         root->protectable = FALSE;
-	root->mode &=~ (RootModePROTECTABLE|RootModePROTECTABLE_INNER);
+        root->mode &=~ (RootModePROTECTABLE|RootModePROTECTABLE_INNER);
       }
     } else {
       root->protBase = AddrAlignDown(base, ArenaAlign(arena));
@@ -240,9 +240,9 @@ static Res rootCreateProtectable(Root *rootReturn, Arena arena,
       /* is the "okay" state.  The negation of this is: */
       if (root->protBase < trial->protLimit
           && trial->protBase < root->protLimit) {
-	NOTREACHED;
-	RootDestroy(root);
-	return ResFAIL;
+        NOTREACHED;
+        RootDestroy(root);
+        return ResFAIL;
       }
     }
   }
@@ -291,7 +291,7 @@ Res RootCreateTableMasked(Root *rootReturn, Arena arena,
   theUnion.tableMasked.mask = mask;
 
   return rootCreateProtectable(rootReturn, arena, rank, mode, RootTABLE_MASKED,
-			       (Addr)base, (Addr)limit, &theUnion);
+                               (Addr)base, (Addr)limit, &theUnion);
 }
 
 Res RootCreateReg(Root *rootReturn, Arena arena,

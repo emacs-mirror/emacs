@@ -52,14 +52,14 @@ static Addr FormatDefaultClass(Addr object)
 
 Res FormatCreate(Format *formatReturn, Arena arena,
                  Align alignment,
-		 FormatVariety variety,
+                 FormatVariety variety,
                  FormatScanMethod scan,
                  FormatSkipMethod skip,
                  FormatMoveMethod move,
                  FormatIsMovedMethod isMoved,
                  FormatCopyMethod copy,
                  FormatPadMethod pad,
-		 FormatClassMethod class,
+                 FormatClassMethod class,
                  Size headerSize)
 {
   Format format;
