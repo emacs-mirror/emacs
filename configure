@@ -5913,9 +5913,11 @@ fi
 
 ### The standard library on x86-64 and s390x GNU/Linux distributions can
 ### be located in either /usr/lib64 or /usr/lib.
+### In some rare cases, /usr/lib64 exists but does not contain the
+### relevant files (bug#1287).  Hence test for crtn.o.
 case "${canonical}" in
   x86_64-*-linux-gnu* | s390x-*-linux-gnu* )
-    if test -d /usr/lib64; then
+    if test -e /usr/lib64/crtn.o; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIB64_DIR 1
