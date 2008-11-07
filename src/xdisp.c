@@ -14393,19 +14393,22 @@ try_window_reusing_current_matrix (w)
 	if (display_line (&it))
 	  last_text_row = it.glyph_row - 1;
 
-      /* Give up If point isn't in a row displayed or reused.  */
-      if (w->cursor.vpos < 0)
-	{
-	  clear_glyph_matrix (w->desired_matrix);
-	  return 0;
-	}
-
       /* If point is in a reused row, adjust y and vpos of the cursor
 	 position.  */
       if (pt_row)
 	{
 	  w->cursor.vpos -= nrows_scrolled;
 	  w->cursor.y -= first_reusable_row->y - start_row->y;
+	}
+
+      /* Give up if point isn't in a row displayed or reused.  (This
+	 also handles the case where w->cursor.vpos < nrows_scrolled
+	 after the calls to display_line, which can happen with scroll
+	 margins.  See bug#1295.)  */
+      if (w->cursor.vpos < 0)
+	{
+	  clear_glyph_matrix (w->desired_matrix);
+	  return 0;
 	}
 
       /* Scroll the display.  */
