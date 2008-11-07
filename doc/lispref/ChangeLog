@@ -2,13 +2,17 @@
 
 	* windows.texi (Windows): Update entries.
 	(Basic Windows): Remove listing of attributes.  Reword.
-	(Splitting Windows, Deleting Windows, Window Point): Reword.
+	(Splitting Windows, Deleting Windows): Reword.
 	(Selecting Windows, Cyclic Window Ordering): Reword with special
 	emphasis on order of recently selected windows and buffer list.
-	(Buffers and Windows, Displaying Buffers, Choosing Window):
-	Reword with special emphasis on dedicated windows.
+	(Buffers and Windows, Choosing Window): Reword with special
+	emphasis on dedicated windows.
+	(Displaying Buffers): Reword.  For switch-to-buffer mention that
+	it may fall back on pop-to-buffer.  For other-window try to
+	explain how it treats the cyclic ordering of windows.
 	(Dedicated Windows): New node and section discussing dedicated
 	windows and associated functions.
+	(Window Point): Add entry for window-point-insertion-type.  Reword.
 	(Window Start and End): Rename node and section title.  Reword.
 	(Textual Scrolling, Vertical Scrolling, Horizontal Scrolling):
 	Minor rewording.
