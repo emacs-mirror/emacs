@@ -1,3 +1,7 @@
+2008-11-07  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/cc-cmds.el (c-defun-name): Fix CLISP DEFUN handling.
+
 2008-11-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frame.el (make-frame-on-display): Use `string-match-p'.

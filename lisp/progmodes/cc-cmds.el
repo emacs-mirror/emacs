@@ -522,7 +522,7 @@ inside a literal or a macro, nothing special happens."
 	;; This is the list of brace syntactic symbols that can hang.
 	;; If any new ones are added to c-offsets-alist, they should be
 	;; added here as well.
-	;; 
+	;;
 	;; The order of this list is important; if SYNTAX has several
 	;; elements, the element that "wins" is the earliest in SYMS.
 	'(arglist-cont-nonempty		; e.g. an array literal.
@@ -1685,7 +1685,7 @@ with a brace block."
   (c-save-buffer-state
       (beginning-of-defun-function end-of-defun-function
        where pos name-end)
- 
+
     (save-excursion
       ;; Move back out of any macro/comment/string we happen to be in.
       (c-beginning-of-macro)
@@ -1717,7 +1717,7 @@ with a brace block."
 
 	 ((looking-at "DEFUN\\_>")
 	  ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
-	  ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK	  
+	  ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK
 	  (down-list 1)
 	  (c-forward-syntactic-ws)
 	  (when (eq (char-after) ?\")
@@ -1727,9 +1727,11 @@ with a brace block."
 	   (point)
 	   (progn
 	     (c-forward-token-2)
+             (when (looking-at ":") ; CLISP: DEFUN(PACKAGE:LISP-SYMBOL,...)
+               (skip-chars-forward "^,"))
 	     (c-backward-syntactic-ws)
 	     (point))))
-		
+
 	 (t
 	 ;; Normal function or initializer.
 	  (when (c-syntactic-re-search-forward "[{(]" nil t)
