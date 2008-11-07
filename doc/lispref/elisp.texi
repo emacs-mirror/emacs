@@ -914,9 +914,11 @@ Windows
 * Displaying Buffers::      Higher-level functions for displaying a buffer
                               and choosing a window for it.
 * Choosing Window::	    How to choose a window for displaying a buffer.
+* Dedicated Windows::	    How to avoid displaying another buffer in
+                              a specific window.          
 * Window Point::            Each window has its own location of point.
-* Window Start::            The display-start position controls which text
-                              is on-screen in the window.
+* Window Start and End::    Buffer positions indicating which text is
+                              on-screen in a window.
 * Textual Scrolling::       Moving text up and down through the window.
 * Vertical Scrolling::      Moving the contents up and down on the window.
 * Horizontal Scrolling::    Moving the contents sideways on the window.
@@ -925,6 +927,7 @@ Windows
 * Coordinates and Windows:: Converting coordinates to windows.
 * Window Tree::             The layout and sizes of all windows in a frame.
 * Window Configurations::   Saving and restoring the state of the screen.
+* Window Parameters::       Associating additional information with windows.
 * Window Hooks::            Hooks for scrolling, window size changes,
                               redisplay going past a certain point,
                               or window configuration changes.
