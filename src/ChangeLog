@@ -1,3 +1,8 @@
+2008-11-08  Kenichi Handa  <handa@m17n.org>
+
+	* character.c (Fget_byte): New function.
+	(syms_of_character): Defsubr Fget_byte.
+
 2008-11-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (try_window_reusing_current_matrix): Ensure that window
