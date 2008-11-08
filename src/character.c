@@ -1027,6 +1027,63 @@ usage: (char-resolve-modifiers CHAR)  */)
   return make_number (char_resolve_modifier_mask (c));
 }
 
+DEFUN ("get-byte", Fget_byte, Sget_byte, 0, 2, 0,
+       doc: /* Return a byte value of a character at point.
+Optional 1st arg POSITION, if non-nil, is a position of a character to get
+a byte value.
+Optional 2nd arg STRING, if non-nil, is a string of which first
+character is a target to get a byte value.  In this case, POSITION, if
+non-nil, is an index of a target character in the string.
+
+If the current buffer (or STRING) is multibyte, and the target
+character is not ASCII nor 8-bit character, an error is signalled.  */)
+     (position, string)
+     Lisp_Object position, string;
+{
+  int c;
+  EMACS_INT pos;
+  unsigned char *p;
+
+  if (NILP (string))
+    {
+      if (NILP (position))
+	{
+	  p = PT_ADDR;
+	}	  
+      else
+	{
+	  CHECK_NUMBER_COERCE_MARKER (position);
+	  if (XINT (position) < BEGV || XINT (position) >= ZV)
+	    args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
+	  pos = XFASTINT (position);
+	  p = CHAR_POS_ADDR (pos);
+	}
+    }
+  else
+    {
+      CHECK_STRING (string);
+      if (NILP (position))
+	{
+	  p = SDATA (string);
+	}
+      else
+	{
+	  CHECK_NATNUM (position);
+	  if (XINT (position) >= SCHARS (string))
+	    args_out_of_range (string, position);
+	  pos = XFASTINT (position);
+	  p = SDATA (string) + string_char_to_byte (string, pos);
+	}
+    }
+  c = STRING_CHAR (p, 0);
+  if (CHAR_BYTE8_P (c))
+    c = CHAR_TO_BYTE8 (c);
+  else if (! ASCII_CHAR_P (c))
+    error ("Not an ASCII nor an 8-bit character: %d", c);
+  return make_number (c);
+}
+
+
 void
 init_character_once ()
 {
@@ -1054,6 +1111,7 @@ syms_of_character ()
   defsubr (&Sstring);
   defsubr (&Sunibyte_string);
   defsubr (&Schar_resolve_modifiers);
+  defsubr (&Sget_byte);
 
   DEFVAR_LISP ("translation-table-vector",  &Vtranslation_table_vector,
 	       doc: /*
