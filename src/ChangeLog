@@ -1,3 +1,8 @@
+2008-11-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.c (file_name_completion): If completion_ignore_case is
+	enabled, ignore case when checking completion-regexp-list.
+
 2008-11-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* vm-limit.c (get_lim_data): Fix last change.
