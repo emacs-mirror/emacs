@@ -1,3 +1,8 @@
+2008-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (command-line): Ignore init-file-user when checking
+	user's home directory on MS-DOS as well.
+
 2008-11-07  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/cc-cmds.el (c-defun-name): Fix CLISP DEFUN handling.
