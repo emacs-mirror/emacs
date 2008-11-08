@@ -1,3 +1,7 @@
+2008-11-08  Mark A. Hershberger  <mah@everybody.org>
+
+	* compilation.txt (php): Add regexp for php error messages.
+
 2008-10-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: New function `locate-user-emacs-file'.

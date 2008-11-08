@@ -298,6 +298,13 @@ store::odrecall('File_A', 'x2') called at store.pm line 90
 	(in cleanup) something bad at foo.pl line 3 during global destruction.
 
 
+* PHP
+
+symbol: php
+
+Parse error: parse error, unexpected $ in main.php on line 59
+Fatal error: Call to undefined function: mysql_pconnect() in db.inc on line 66
+
 * RXP
 
 symbol: rxp
