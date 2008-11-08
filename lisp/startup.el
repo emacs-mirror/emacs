@@ -977,13 +977,15 @@ opening the first frame (e.g. open a connection to an X server).")
 				   init-file-user)
 			   :error)
 	(if (file-directory-p (expand-file-name
-			       ;; We don't support ~USER on MS-Windows except
-			       ;; for the current user, and always load .emacs
-			       ;; from the current user's home directory (see
-			       ;; below).  So always check "~", even if invoked
-			       ;; with "-u USER", or if $USER or $LOGNAME are
-			       ;; set to something different.
-			       (if (eq system-type 'windows-nt)
+			       ;; We don't support ~USER on MS-Windows
+			       ;; and MS-DOS except for the current
+			       ;; user, and always load .emacs from
+			       ;; the current user's home directory
+			       ;; (see below).  So always check "~",
+			       ;; even if invoked with "-u USER", or
+			       ;; if $USER or $LOGNAME are set to
+			       ;; something different.
+			       (if (memq system-type '(windows-nt ms-dos))
 				   "~"
 				 (concat "~" init-file-user))))
 	    nil
