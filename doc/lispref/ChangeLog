@@ -1,3 +1,11 @@
+2008-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* windows.texi (Basic Windows, Splitting Windows)
+	(Deleting Windows, Selecting Windows, Cyclic Window Ordering)
+	(Buffers and Windows, Displaying Buffers, Dedicated Windows)
+	(Resizing Windows, Window Configurations, Window Parameters): Fix
+	wording and markup.
+
 2008-11-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Windows): Update entries.
