@@ -1,3 +1,7 @@
+2008-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Move MS-DOS specific instructions to msdos/INSTALL.
+
 2008-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (HAVE_LIB64_DIR): Check for crtn.o.  (Bug#1287)
