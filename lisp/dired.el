@@ -589,52 +589,75 @@ Don't use that together with FILTER."
 
 (defun dired-read-dir-and-switches (str)
   ;; For use in interactive.
-  (reverse
-   (list
-    (if current-prefix-arg
-        (read-string "Dired listing switches: "
-                     dired-listing-switches))
-    ;; If a dialog is about to be used, call read-directory-name so
-    ;; the dialog code knows we want directories.  Some dialogs can
-    ;; only select directories or files when popped up, not both.
-    (if (next-read-file-uses-dialog-p)
-        (read-directory-name (format "Dired %s(directory): " str)
-                             nil default-directory nil)
-      (let ((cie ()))
-        (dolist (ext completion-ignored-extensions)
-          (if (eq ?/ (aref ext (1- (length ext)))) (push ext cie)))
-        (setq cie (concat (regexp-opt cie "\\(?:") "\\'"))
-        (lexical-let* ((default (and buffer-file-name
-                                     (abbreviate-file-name buffer-file-name)))
-                       (cie cie)
-                       (completion-table
-                        ;; We need a mix of read-file-name and
-                        ;; read-directory-name so that completion to directories
-                        ;; is preferred, but if the user wants to enter a global
-                        ;; pattern, he can still use completion on filenames to
-                        ;; help him write the pattern.
-                        ;; Essentially, we want to use
-                        ;; (completion-table-with-predicate
-                        ;;  'read-file-name-internal 'file-directory-p nil)
-                        ;; but that doesn't work because read-file-name-internal
-                        ;; does not obey its `predicate' argument.
-                        (completion-table-in-turn
-                         (lambda (str pred action)
-                           (let ((read-file-name-predicate
-                                  (lambda (f)
-                                    (and (not (member f '("./" "../")))
-                                         ;; Hack! Faster than file-directory-p!
-                                         (eq (aref f (1- (length f))) ?/)
-                                         (not (string-match cie f))))))
-                             (complete-with-action
-                              action 'read-file-name-internal str nil)))
-                         'read-file-name-internal)))
-          (minibuffer-with-setup-hook
-              (lambda ()
-                (setq minibuffer-default default)
-                (setq minibuffer-completion-table completion-table))
-            (read-file-name (format "Dired %s(directory): " str)
-                            nil default-directory nil))))))))
+  (reverse (list
+	    (if current-prefix-arg
+		(read-string "Dired listing switches: "
+			     dired-listing-switches))
+	    ;; If a dialog is about to be used, call read-directory-name so
+	    ;; the dialog code knows we want directories.  Some dialogs can
+	    ;; only select directories or files when popped up, not both.
+	    (if (next-read-file-uses-dialog-p)
+		(read-directory-name (format "Dired %s(directory): " str)
+				     nil default-directory nil)
+	      (let ((default (and buffer-file-name
+				  (abbreviate-file-name buffer-file-name))))
+		(minibuffer-with-setup-hook
+		    (lambda () (setq minibuffer-default default))
+		  (read-file-name (format "Dired %s(directory): " str)
+				  nil default-directory nil)))))))
+
+;; We want to switch to a more sophisticated version of
+;; dired-read-dir-and-switches like the following, if there is a way
+;; to make it more intuitive.  See bug#1285.
+
+;; (defun dired-read-dir-and-switches (str)
+;;   ;; For use in interactive.
+;;   (reverse
+;;    (list
+;;     (if current-prefix-arg
+;;         (read-string "Dired listing switches: "
+;;                      dired-listing-switches))
+;;     ;; If a dialog is about to be used, call read-directory-name so
+;;     ;; the dialog code knows we want directories.  Some dialogs can
+;;     ;; only select directories or files when popped up, not both.
+;;     (if (next-read-file-uses-dialog-p)
+;;         (read-directory-name (format "Dired %s(directory): " str)
+;;                              nil default-directory nil)
+;;       (let ((cie ()))
+;;         (dolist (ext completion-ignored-extensions)
+;;           (if (eq ?/ (aref ext (1- (length ext)))) (push ext cie)))
+;;         (setq cie (concat (regexp-opt cie "\\(?:") "\\'"))
+;;         (lexical-let* ((default (and buffer-file-name
+;;                                      (abbreviate-file-name buffer-file-name)))
+;;                        (cie cie)
+;;                        (completion-table
+;;                         ;; We need a mix of read-file-name and
+;;                         ;; read-directory-name so that completion to directories
+;;                         ;; is preferred, but if the user wants to enter a global
+;;                         ;; pattern, he can still use completion on filenames to
+;;                         ;; help him write the pattern.
+;;                         ;; Essentially, we want to use
+;;                         ;; (completion-table-with-predicate
+;;                         ;;  'read-file-name-internal 'file-directory-p nil)
+;;                         ;; but that doesn't work because read-file-name-internal
+;;                         ;; does not obey its `predicate' argument.
+;;                         (completion-table-in-turn
+;;                          (lambda (str pred action)
+;;                            (let ((read-file-name-predicate
+;;                                   (lambda (f)
+;;                                     (and (not (member f '("./" "../")))
+;;                                          ;; Hack! Faster than file-directory-p!
+;;                                          (eq (aref f (1- (length f))) ?/)
+;;                                          (not (string-match cie f))))))
+;;                              (complete-with-action
+;;                               action 'read-file-name-internal str nil)))
+;;                          'read-file-name-internal)))
+;;           (minibuffer-with-setup-hook
+;;               (lambda ()
+;;                 (setq minibuffer-default default)
+;;                 (setq minibuffer-completion-table completion-table))
+;;             (read-file-name (format "Dired %s(directory): " str)
+;;                             nil default-directory nil))))))))
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload
