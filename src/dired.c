@@ -631,10 +631,21 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	XSETFASTINT (zero, 0);
 
 	/* Ignore this element if it fails to match all the regexps.  */
-	for (regexps = Vcompletion_regexp_list; CONSP (regexps);
-	     regexps = XCDR (regexps))
-	  if (fast_string_match (XCAR (regexps), name) < 0)
-	    break;
+	if (completion_ignore_case)
+	  {
+	    for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+		 regexps = XCDR (regexps))
+	      if (fast_string_match_ignore_case (XCAR (regexps), name) < 0)
+		break;
+	  }
+	else
+	  {
+	    for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+		 regexps = XCDR (regexps))
+	      if (fast_string_match (XCAR (regexps), name) < 0)
+		break;
+	  }
+
 	if (CONSP (regexps))
 	  continue;
       }
