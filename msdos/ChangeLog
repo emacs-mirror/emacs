@@ -1,3 +1,8 @@
+2008-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: New file, with build instructions moved from the
+	top-level INSTALL.
+
 2008-10-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlisp.inp (lisp): Set to absolute file name of current
