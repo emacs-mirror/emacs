@@ -51,7 +51,7 @@ buffer is displayed.  The term is also used to refer to a Lisp object that
 represents that screen area in Emacs Lisp.  It should be
 clear from the context which is meant.
 
-  Emacs groups windows into frames, see @ref{Frames}.  A frame
+  Emacs groups windows into frames; see @ref{Frames}.  A frame
 represents an area of screen available for Emacs to use.  Each frame
 always contains at least one window, but you can subdivide it
 vertically or horizontally into multiple, nonoverlapping Emacs
@@ -64,14 +64,14 @@ less visible.  (@xref{Cursor Parameters}, for customizing this.)  At
 any time, one frame is the selected frame; and the window selected
 within that frame is @dfn{the selected window}.  The selected window's
 buffer is usually the current buffer (except when @code{set-buffer} has
-been used), see @ref{Current Buffer}.
+been used); see @ref{Current Buffer}.
 
   For practical purposes, a window exists only while it is displayed in
 a frame.  Once removed from the frame, the window is effectively deleted
 and should not be used, @emph{even though there may still be references
-to it} from other Lisp objects, see @ref{Deleting Windows}.  Restoring a
+to it} from other Lisp objects; see @ref{Deleting Windows}.  Restoring a
 saved window configuration is the only way for a window no longer on the
-screen to come back to life, see @ref{Window Configurations}.
+screen to come back to life; see @ref{Window Configurations}.
 
 @cindex multiple windows
   Users create multiple windows so they can look at several buffers at
@@ -538,7 +538,7 @@ The value of the argument @var{minibuf} specifies whether the minibuffer
 is included in the window order.  Normally, when @var{minibuf} is
 @code{nil}, the minibuffer is included only if it is currently
 ``active''; this matches the behavior of @kbd{C-x o}.  (The minibuffer
-window is active while the minibuffer is in use, see @ref{Minibuffers}.)
+window is active while the minibuffer is in use; see @ref{Minibuffers}.)
 
 If @var{minibuf} is @code{t}, the cyclic ordering includes the
 minibuffer window even if it is not active.  If @var{minibuf} is neither
@@ -790,7 +790,7 @@ If @var{buffer-or-name} is @code{nil}, @code{switch-to-buffer} chooses a
 buffer using @code{other-buffer}.  If @var{buffer-or-name} is a string
 that does not identify an existing buffer, then a new buffer by that
 name is created.  The major mode for the new buffer is set according to
-the variable @code{default-major-mode}, see @ref{Auto Major Mode}.
+the variable @code{default-major-mode}; see @ref{Auto Major Mode}.
 
 When @code{enable-recursive-minibuffers} is non-@code{nil} and the
 selected window is either the minibuffer window or is dedicated to its
@@ -831,7 +831,7 @@ unless @var{norecord} is non-@code{nil}.
 This command makes @var{buffer-or-name} the current buffer and switches
 to it in some window, preferably not the window previously selected.
 The ``popped-to'' window becomes the selected window.  Its frame is
-given the X server's focus, if possible, see @ref{Input Focus}.  The return
+given the X server's focus, if possible; see @ref{Input Focus}.  The return
 value is the buffer that was switched to.
 
 If @var{buffer-or-name} is @code{nil}, that means to choose some other
@@ -2248,7 +2248,7 @@ specifies a frame, it balances all windows on that frame.  If
 @var{window-or-frame} specifies a window, it balances this window and
 its ``siblings'' only.  Think of a sibling as the other (original or
 new) window with respect to the present one, involved in the process of
-splitting, see @ref{Splitting Windows}.  Since a sibling may have been
+splitting; see @ref{Splitting Windows}.  Since a sibling may have been
 split again, a window can have more than one sibling.
 @end deffn
 
@@ -2358,12 +2358,12 @@ fringes, margins, and scroll bar settings.  It also includes the value
 of @code{minibuffer-scroll-window}.  As a special exception, the window
 configuration does not record the value of point in the selected window
 for the current buffer.  Also, the window configuration does not record
-the values of window parameters, see @ref{Window Parameters}.
+the values of window parameters; see @ref{Window Parameters}.
 
   You can bring back an entire frame layout by restoring a previously
 saved window configuration.  If you want to record the layout of all
 frames instead of just one, use a frame configuration instead of a
-window configuration, see @ref{Frame Configurations}.
+window configuration; see @ref{Frame Configurations}.
 
 @defun current-window-configuration &optional frame
 This function returns a new object representing @var{frame}'s current
