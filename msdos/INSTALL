@@ -23,7 +23,7 @@ port of Bash.  However, you should not normally need to run
 lisp/Makefile, as all the Lisp files are distributed in byte-compiled
 form as well.
 
-If you are building the DJGPP version of Emacs on an DOS-like system
+If you are building the DJGPP version of Emacs on a DOS-like system
 which supports long file names (e.g. Windows 9X or Windows XP), you
 need to make sure that long file names are handled consistently both
 when you unpack the distribution and compile it.  If you intend to
