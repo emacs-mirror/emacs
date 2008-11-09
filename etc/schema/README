@@ -1,5 +1,5 @@
-schemas.xml and locate.rnc are part of Emacs.  They are used by nXML
-mode for mapping schemas to documents.
+locate.rnc, relaxng.rnc, and schemas.xml are part of Emacs.  They are
+used by nXML mode for mapping schemas to documents.
 
 The remaining files in this directory are schema for a variety of
 specifications released by the DocBook project, the Organization for
@@ -113,37 +113,3 @@ Software License:
   specific, written prior permission. Title to copyright in this
   software and any associated documentation will at all times remain
   with copyright holders.
-
-
-
-The file relaxng.rnc is derived from the RELAX NG Compact Syntax
-Committee Specification, which is Copyright (C) 2002 The Organization
-for the Advancement of Structured Information Standards (OASIS).  This
-specification (which is also essentially identical to ISO/IEC 19757-2)
-may be viewed at
-
-  http://www.oasis-open.org/committees/relax-ng/compact-20021121.html#formal-syntax
-
-and is released under the following license:
-
-  This document and translations of it may be copied and furnished to
-  others, and derivative works that comment on or otherwise explain it
-  or assist in its implementation may be prepared, copied, published
-  and distributed, in whole or in part, without restriction of any
-  kind, provided that the above copyright notice and this paragraph
-  are included on all such copies and derivative works. However, this
-  document itself may not be modified in any way, such as by removing
-  the copyright notice or references to OASIS, except as needed for
-  the purpose of developing OASIS specifications, in which case the
-  procedures for copyrights defined in the OASIS Intellectual Property
-  Rights document must be followed, or as required to translate it
-  into languages other than English.
-
-  The limited permissions granted above are perpetual and will not be
-  revoked by OASIS or its successors or assigns.
-
-  This document and the information contained herein is provided on an
-  "AS IS" basis and OASIS DISCLAIMS ALL WARRANTIES, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF
-  THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
-  WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
