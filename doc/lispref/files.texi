@@ -2605,7 +2605,7 @@ first, before handlers for jobs such as remote file access.
 @code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
 @code{file-truename}, @code{file-writable-p},
 @code{find-backup-file-name},
-@code{find-file-noselect},@*
+@c Not sure why it was here:   @code{find-file-noselect},@*
 @code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents},@*
@@ -2652,7 +2652,7 @@ first, before handlers for jobs such as remote file access.
 @code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
 @code{file-truename}, @code{file-writable-p},
 @code{find-backup-file-name},
-@code{find-file-noselect},
+@c Not sure why it was here:   @code{find-file-noselect},
 @code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents},
