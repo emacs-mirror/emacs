@@ -1058,6 +1058,8 @@ character is not ASCII nor 8-bit character, an error is signalled.  */)
 	  pos = XFASTINT (position);
 	  p = CHAR_POS_ADDR (pos);
 	}
+      if (NILP (current_buffer->enable_multibyte_characters))
+	return make_number (*p);
     }
   else
     {
@@ -1074,6 +1076,8 @@ character is not ASCII nor 8-bit character, an error is signalled.  */)
 	  pos = XFASTINT (position);
 	  p = SDATA (string) + string_char_to_byte (string, pos);
 	}
+      if (! STRING_MULTIBYTE (string))
+	return make_number (*p);
     }
   c = STRING_CHAR (p, 0);
   if (CHAR_BYTE8_P (c))
