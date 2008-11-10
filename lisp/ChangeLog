@@ -1,7 +1,7 @@
 2008-11-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* mail/smtpmail.el (smtpmail-open-stream): Use
-	`starttls-any-program-available'.
+	`starttls-any-program-available'.  Auto-load starttls.el for it.
 
 2008-11-08  Chong Yidong  <cyd@stupidchicken.com>
 

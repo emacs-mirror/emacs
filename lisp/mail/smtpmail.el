@@ -67,6 +67,7 @@
 ;;; Code:
 
 (require 'sendmail)
+(autoload 'starttls-any-program-available "starttls")
 (autoload 'starttls-open-stream "starttls")
 (autoload 'starttls-negotiate "starttls")
 (autoload 'mail-strip-quoted-names "mail-utils")
