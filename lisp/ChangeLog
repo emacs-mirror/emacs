@@ -1,3 +1,8 @@
+2008-11-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mail/smtpmail.el (smtpmail-open-stream): Use
+	`starttls-any-program-available'.
+
 2008-11-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-read-dir-and-switches): Revert to 2007-11-22
