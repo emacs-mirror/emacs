@@ -1,3 +1,7 @@
+2008-11-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (Custom-mode): Set up tool-bar-map unconditionally.
+
 2008-11-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* mail/smtpmail.el (smtpmail-open-stream): Use
