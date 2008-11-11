@@ -981,7 +981,7 @@ map_sub_char_table_for_charset (c_function, function, table, arg, range,
 
 
 /* Support function for `map-charset-chars'.  Map C_FUNCTION or
-   FUNCTION over TABLE, calling it for each cahracter or a group of
+   FUNCTION over TABLE, calling it for each character or a group of
    succeeding characters that have non-nil value in TABLE.  TABLE is a
    "mapping table" or a "deunifier table" of a certain charset.
 

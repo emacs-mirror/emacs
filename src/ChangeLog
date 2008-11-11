@@ -3227,7 +3227,7 @@
 
 	* ftfont.c (fc_charset_table): New member lang.
 	(ftfont_resolve_generic_family): New arg pattern.
-	(ftfont_spec_pattern): Check fc_cahrset_table[]->lang.
+	(ftfont_spec_pattern): Check fc_charset_table[]->lang.
 	(ftfont_list): Call ftfont_resolve_generic_family with `pattern'.
 	(ftfont_open): Fix args to ftfont_font_format.
 	(ftfont_font_format): New arg filename.
@@ -10643,7 +10643,7 @@
 
 	* ccl.c (CCL_DECODE_CHAR, CCL_ENCODE_CHAR): New macros.
 	(ccl_driver): New arg CHARSET_LIST.  Use the above macros instead
-	of DECODE_CAHR, ENCODE_CHAR, CHAR_CHARSET.
+	of DECODE_CHAR, ENCODE_CHAR, CHAR_CHARSET.
 	(Fccl_execute, Fccl_execute_on_string): Call ccl_driver with the
 	last arg Qnil.
 
