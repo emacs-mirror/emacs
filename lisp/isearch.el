@@ -2619,23 +2619,32 @@ by other Emacs features."
 (defun isearch-lazy-highlight-search ()
   "Search ahead for the next or previous match, for lazy highlighting.
 Attempt to do the search exactly the way the pending isearch would."
-  (let ((case-fold-search isearch-lazy-highlight-case-fold-search)
-	(isearch-regexp isearch-lazy-highlight-regexp)
-	(search-spaces-regexp isearch-lazy-highlight-space-regexp))
-    (condition-case nil
-	(isearch-search-string
-		 isearch-lazy-highlight-last-string
-		 (if isearch-forward
-		     (min (or isearch-lazy-highlight-end-limit (point-max))
+  (condition-case nil
+      (let ((case-fold-search isearch-lazy-highlight-case-fold-search)
+	    (isearch-regexp isearch-lazy-highlight-regexp)
+	    (search-spaces-regexp isearch-lazy-highlight-space-regexp)
+	    (search-invisible nil)	; don't match invisible text
+	    (retry t)
+	    (success nil)
+	    (bound (if isearch-forward
+		       (min (or isearch-lazy-highlight-end-limit (point-max))
+			    (if isearch-lazy-highlight-wrapped
+				isearch-lazy-highlight-start
+			      (window-end)))
+		     (max (or isearch-lazy-highlight-start-limit (point-min))
 			  (if isearch-lazy-highlight-wrapped
-			      isearch-lazy-highlight-start
-			    (window-end)))
-		   (max (or isearch-lazy-highlight-start-limit (point-min))
-			(if isearch-lazy-highlight-wrapped
-			    isearch-lazy-highlight-end
-			  (window-start))))
-		 t)
-      (error nil))))
+			      isearch-lazy-highlight-end
+			    (window-start))))))
+	;; Use a loop like in `isearch-search'
+	(while retry
+	  (setq success (isearch-search-string
+			 isearch-lazy-highlight-last-string bound t))
+	  (if (or (not success)
+		  (funcall isearch-success-function
+			   (match-beginning 0) (match-end 0)))
+	      (setq retry nil)))
+	success)
+    (error nil)))
 
 (defun isearch-lazy-highlight-update ()
   "Update highlighting of other matches for current search."
