@@ -1347,8 +1347,13 @@ way to run word replacements from Isearch is `M-s w ... M-%'."
   (let ((case-fold-search isearch-case-fold-search)
 	;; set `search-upper-case' to nil to not call
 	;; `isearch-no-upper-case-p' in `perform-replace'
-	(search-upper-case nil))
-    (isearch-done)
+	(search-upper-case nil)
+	;; Set `isearch-recursive-edit' to nil to prevent calling
+	;; `exit-recursive-edit' in `isearch-done' that terminates
+	;; the execution of this command when it is non-nil.
+	;; We call `exit-recursive-edit' explicitly at the end below.
+	(isearch-recursive-edit nil))
+    (isearch-done nil t)
     (isearch-clean-overlays)
     (if (and isearch-other-end
 	     (< isearch-other-end (point))
@@ -1369,7 +1374,8 @@ way to run word replacements from Isearch is `M-s w ... M-%'."
       isearch-regexp)
      t isearch-regexp (or delimited isearch-word) nil nil
      (if (and transient-mark-mode mark-active) (region-beginning))
-     (if (and transient-mark-mode mark-active) (region-end)))))
+     (if (and transient-mark-mode mark-active) (region-end))))
+  (and isearch-recursive-edit (exit-recursive-edit)))
 
 (defun isearch-query-replace-regexp (&optional delimited)
   "Start `query-replace-regexp' with string to replace from last search string.
@@ -1384,7 +1390,10 @@ Interactively, REGEXP is the current search regexp or a quoted search
 string.  NLINES has the same meaning as in `occur'."
   (interactive
    (list
-    (if isearch-regexp isearch-string (regexp-quote isearch-string))
+    (cond
+     (isearch-word (concat "\\b" (regexp-quote isearch-string) "\\b"))
+     (isearch-regexp isearch-string)
+     (t (regexp-quote isearch-string)))
     (if current-prefix-arg (prefix-numeric-value current-prefix-arg))))
   (let ((case-fold-search isearch-case-fold-search)
 	;; set `search-upper-case' to nil to not call
@@ -1401,8 +1410,14 @@ It exits Isearch mode and calls `hi-lock-face-buffer' with its regexp
 argument from the last search regexp or a quoted search string,
 and reads its face argument using `hi-lock-read-face-name'."
   (interactive)
-  (isearch-done)
-  (isearch-clean-overlays)
+  (let (
+	;; Set `isearch-recursive-edit' to nil to prevent calling
+	;; `exit-recursive-edit' in `isearch-done' that terminates
+	;; the execution of this command when it is non-nil.
+	;; We call `exit-recursive-edit' explicitly at the end below.
+	(isearch-recursive-edit nil))
+    (isearch-done nil t)
+    (isearch-clean-overlays))
   (require 'hi-lock nil t)
   (let ((string (cond (isearch-regexp isearch-string)
 		      ((if (and (eq isearch-case-fold-search t)
@@ -1420,7 +1435,8 @@ and reads its face argument using `hi-lock-read-face-name'."
 			      (regexp-quote s))))
 			isearch-string ""))
 		      (t (regexp-quote isearch-string)))))
-    (hi-lock-face-buffer string (hi-lock-read-face-name))))
+    (hi-lock-face-buffer string (hi-lock-read-face-name)))
+  (and isearch-recursive-edit (exit-recursive-edit)))
 
 
 (defun isearch-delete-char ()
