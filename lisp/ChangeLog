@@ -1,3 +1,8 @@
+2008-11-11  Sam Steingold  <sds@gnu.org>
+
+	* mouse.el (mouse-buffer-menu-mode-groups): Place "Annotate" into
+	the "Version Control" group (for C-x v g).
+
 2008-11-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-process-filter): Fix typos and reflow docstring.
