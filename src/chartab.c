@@ -980,6 +980,27 @@ map_sub_char_table_for_charset (c_function, function, table, arg, range,
 }
 
 
+/* Support function for `map-charset-chars'.  Map C_FUNCTION or
+   FUNCTION over TABLE, calling it for each cahracter or a group of
+   succeeding characters that have non-nil value in TABLE.  TABLE is a
+   "mapping table" or a "deunifier table" of a certain charset.
+
+   If CHARSET is not NULL (this is the case that `map-charset-chars'
+   is called with non-nil FROM-CODE and TO-CODE), it is a charset who
+   owns TABLE, and the function is called only on a character in the
+   range FROM and TO.  FROM and TO are not character codes, but code
+   points of a character in CHARSET.
+
+   This function is called in these two cases:
+
+   (1) A charset has a mapping file name in :map property.
+
+   (2) A charset has an upper code space in :offset property and a
+   mapping file name in :unify-map property.  In this case, this
+   function is called only for characters in the Unicode code space.
+   Characters in upper code space are handled directly in
+   map_charset_chars.  */
+
 void
 map_char_table_for_charset (c_function, function, table, arg,
 			    charset, from, to)
