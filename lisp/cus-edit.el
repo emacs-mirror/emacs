@@ -4655,17 +4655,16 @@ Entry to this mode calls the value of `Custom-mode-hook'
 if that value is non-nil."
   (use-local-map custom-mode-map)
   (easy-menu-add Custom-mode-menu)
-  (when (display-graphic-p)
-    (set (make-local-variable 'tool-bar-map)
-	 (or custom-tool-bar-map
-	     ;; Set up `custom-tool-bar-map'.
-	     (let ((map (make-sparse-keymap)))
-	       (mapc
-		(lambda (arg)
-		  (tool-bar-local-item-from-menu
-		   (nth 1 arg) (nth 4 arg) map custom-mode-map))
-		custom-commands)
-	       (setq custom-tool-bar-map map)))))
+  (set (make-local-variable 'tool-bar-map)
+       (or custom-tool-bar-map
+	   ;; Set up `custom-tool-bar-map'.
+	   (let ((map (make-sparse-keymap)))
+	     (mapc
+	      (lambda (arg)
+		(tool-bar-local-item-from-menu
+		 (nth 1 arg) (nth 4 arg) map custom-mode-map))
+	      custom-commands)
+	     (setq custom-tool-bar-map map))))
   (make-local-variable 'custom-options)
   (make-local-variable 'custom-local-buffer)
   (make-local-variable 'widget-documentation-face)
