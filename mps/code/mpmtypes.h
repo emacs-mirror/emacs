@@ -40,6 +40,7 @@ typedef unsigned Shift;                 /* <design/type/#shift> */
 typedef unsigned Serial;                /* <design/type/#serial> */
 typedef Addr Ref;                       /* <design/type/#ref> */
 typedef void *Pointer;                  /* <design/type/#pointer> */
+typedef unsigned long Clock;            /* processor time */
 
 typedef Word RefSet;                    /* design.mps.refset */
 typedef Word ZoneSet;                   /* design.mps.refset */
