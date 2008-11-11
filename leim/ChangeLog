@@ -1,3 +1,7 @@
+2008-11-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* quail/hangul.el (hangul-djamo): Fix typo in docstring.
+
 2008-11-07  Vasily Korytov  <vasily@korytov.pp.ru>  (tiny change)
 
 	* quail/cyrillic.el: Handle backslash key (bug#839).
@@ -12,9 +16,9 @@
 	* quail/cyrillic.el ("cyrillic-translit"): Add g' for Ukrainian G
 	with upturn.
 
-2008-09-02  Carsten Bormann <cabo@tzi.org>
+2008-09-02  Carsten Bormann  <cabo@tzi.org>
 
-	* quail/latin-post.el ("german-postfix"): do not translate ue to
+	* quail/latin-post.el ("german-postfix"): Do not translate ue to
 	\"u after a, e or q, because that would be extremely uncommon
 	compared to aue, eue or que.  The only exception is the prefix
 	"ge", after which, according to corpus statistics, a \"u can be
@@ -22,8 +26,7 @@
 
 2008-08-10  Jihyun Cho  <jihyun.jo@gmail.com>
 
-	* quail/hangul.el (hangul3-input-method-jong): Fix array indexing
-	bug.
+	* quail/hangul.el (hangul3-input-method-jong): Fix array indexing bug.
 
 2008-07-19  Juri Linkov  <juri@jurta.org>
 
@@ -193,8 +196,7 @@
 
 2008-01-14  Aidan Kehoe  <kehoea@parhasard.net>  (tiny change)
 
-        * quail/latin-ltx.el ("TeX"): Correct the mappings for \v{k} and
-	\vk.
+	* quail/latin-ltx.el ("TeX"): Correct the mappings for \v{k} and \vk.
 
 2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
 

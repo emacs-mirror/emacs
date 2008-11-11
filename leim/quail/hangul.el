@@ -162,7 +162,7 @@ Setup `quail-overlay' to the last character."
 (defun hangul-djamo (jamo char1 char2)
   "Return the dobule Jamo index calculated from the arguments.
 JAMO is a type of Hangul Jamo; `cho', `jung', or `jong'.
-CHAR1 and CAHR2 are Hangul Jamo indices.
+CHAR1 and CHAR2 are Hangul Jamo indices.
 Return nil if CHAR1 and CHAR2 can not combined."
   (let* ((jamo (cdr (assoc jamo hangul-djamo-table)))
          (char1 (cdr (assoc char1 jamo))))
