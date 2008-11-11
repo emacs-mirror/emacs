@@ -59,7 +59,7 @@ Lisp_Object Vauto_fill_chars;
 Lisp_Object Qauto_fill_chars;
 
 /* Char-table of information about which character to unify to which
-   Unicode character.  */
+   Unicode character.  Mainly used by the macro MAYBE_UNIFY_CHAR.  */
 Lisp_Object Vchar_unify_table;
 
 /* A char-table.  An element is non-nil iff the corresponding
