@@ -122,9 +122,11 @@ void MessagePost(Arena arena, Message message)
   /* <design/message/#fun.post.singleton> */
   AVER(!MessageOnQueue(message));
   if(MessageTypeEnabled(arena, message->type)) {
-    /* @@@@ for finalization messages, this may be critical path; */
-    /* so is it still ok to call mps_clock() here? */
-    message->postedClock = mps_clock();
+    /* Setting clock involves mpslib call, so only do it for rare */
+    /* messages.  Currently: all messages except finalization. */
+    if(message->type != MessageTypeFINALIZATION) {
+      message->postedClock = mps_clock();
+    }
     RingAppend(&arena->messageRing, &message->queueRing);
   } else {
     /* discard message immediately if client hasn't enabled that type */
