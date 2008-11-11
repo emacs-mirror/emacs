@@ -180,6 +180,8 @@ static void *test(void *arg, size_t s)
       /* <design/poolmrg/#test.promise.ut.message> */
       cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
            "get");
+      cdie(0 == mps_message_clock(arena, message),
+           "message clock should be 0 (unset) for finalization messages");
       mps_message_finalization_ref(&objaddr, arena, message);
       obj = objaddr;
       objind = dylan_int_int(obj[vectorSLOT]);
