@@ -91,6 +91,18 @@ static Bool mpsi_check(void)
   CHECKL((int)MPS_RANK_EXACT == (int)RankEXACT);
   CHECKL((int)MPS_RANK_WEAK == (int)RankWEAK);
 
+  /* Check that external and internal messsage types match. */
+  /* See <code/mps.h#message.types> and */
+  /* <code/mpmtypes.h#message.types>. */
+  /* Also see .check.enum.cast. */
+  CHECKL(CHECKTYPE(mps_message_type_t, MessageType));
+  CHECKL((int)MessageTypeFINALIZATION
+         == (int)MPS_MESSAGE_TYPE_FINALIZATION);
+  CHECKL((int)MessageTypeGC
+         == (int)MPS_MESSAGE_TYPE_GC);
+  CHECKL((int)MessageTypeGCSTART
+         == (int)MPS_MESSAGE_TYPE_GC_START);
+
   /* The external idea of a word width and the internal one */
   /* had better match.  See <design/interface-c/#cons>. */
   CHECKL(sizeof(mps_word_t) == sizeof(void *));
