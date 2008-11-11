@@ -407,14 +407,6 @@ you don't specify a name, Emacs sets the frame name automatically
 If you specify the frame name explicitly when you create the frame, the
 name is also used (instead of the name of the Emacs executable) when
 looking up X resources for the frame.
-
-@item display-environment-variable
-The value of the @code{DISPLAY} environment variable for the frame. It
-is passed to child processes.
-
-@item term-environment-variable
-The value of the @code{TERM} environment variable for the frame. It
-is passed to child processes.
 @end table
 
 @node Position Parameters

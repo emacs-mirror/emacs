@@ -1,10 +1,15 @@
+2008-11-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frames.texi (Basic Parameters): Remove display-environment-variable
+	and term-environment-variable.
+
 2008-11-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* windows.texi (Basic Windows, Splitting Windows)
 	(Deleting Windows, Selecting Windows, Cyclic Window Ordering)
 	(Buffers and Windows, Displaying Buffers, Dedicated Windows)
-	(Resizing Windows, Window Configurations, Window Parameters): Fix
-	wording and markup.
+	(Resizing Windows, Window Configurations, Window Parameters):
+	Fix wording and markup.
 
 2008-11-07  Martin Rudalics  <rudalics@gmx.at>
 
@@ -267,7 +272,7 @@
 	* display.texi (Fontsets): Don't mention generic characters.
 
 	* sequences.texi (Char-Tables): `map-char-table' can now call its
-	argument FUNCTION with a cons cell as KEY. 
+	argument FUNCTION with a cons cell as KEY.
 
 2008-10-13  Eli Zaretskii  <eliz@gnu.org>
 
