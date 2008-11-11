@@ -91,7 +91,7 @@ static Bool mpsi_check(void)
   CHECKL((int)MPS_RANK_EXACT == (int)RankEXACT);
   CHECKL((int)MPS_RANK_WEAK == (int)RankWEAK);
 
-  /* Check that external and internal messsage types match. */
+  /* Check that external and internal message types match. */
   /* See <code/mps.h#message.types> and */
   /* <code/mpmtypes.h#message.types>. */
   /* Also see .check.enum.cast. */
@@ -116,6 +116,10 @@ static Bool mpsi_check(void)
   /* better match.  See <design/interface-c/#cons.size> */
   /* and <design/interface-c/#pun.size>. */
   CHECKL(CHECKTYPE(size_t, Size));
+
+  /* Clock values are passed from external to internal and back */
+  /* out to external. */
+  CHECKL(CHECKTYPE(mps_clock_t, Clock));
 
   /* Check ap_s/APStruct compatibility by hand */
   /* .check.ap: See <code/mps.h#ap> and <code/buffer.h#ap>. */
@@ -1692,7 +1696,7 @@ mps_clock_t mps_message_clock(mps_arena_t mps_arena,
 {
   Arena arena = (Arena)mps_arena;
   Message message = (Message)mps_message;
-  mps_clock_t postedClock;  /* @@@@ should be Clock, not mps_clock_t */
+  Clock postedClock;
 
   ArenaEnter(arena);
 

@@ -50,7 +50,7 @@ Bool MessageCheck(Message message)
   CHECKL(MessageTypeCheck(message->type));
   CHECKU(MessageClass, message->class);
   CHECKL(RingCheck(&message->queueRing));
-  /* cannot check postedClock: no check for mps_clock_t */
+  /* cannot check postedClock: no check for Clock */
 
   return TRUE;
 }
@@ -291,7 +291,7 @@ MessageClass MessageGetClass(Message message)
   return message->class;
 }
 
-mps_clock_t MessageGetClock(Message message)
+Clock MessageGetClock(Message message)
 {
   AVERT(Message, message);
 
