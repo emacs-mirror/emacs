@@ -681,16 +681,16 @@ Server mode runs a process that accepts commands from the
 (defun* server-process-filter (proc string)
   "Process a request from the server to edit some files.
 PROC is the server process.  STRING consists of a sequence of
-commands prefixed by a dash.  Some commands have arguments; these
-are &-quoted and need to be decoded by `server-unquote-arg'.  The
-filter parses and executes these commands.
+commands prefixed by a dash.  Some commands have arguments;
+these are &-quoted and need to be decoded by `server-unquote-arg'.
+The filter parses and executes these commands.
 
 To illustrate the protocol, here is an example command that
 emacsclient sends to create a new X frame (note that the whole
 sequence is sent on a single line):
 
-	-env HOME /home/lorentey
-	-env DISPLAY :0.0
+	-env HOME=/home/lorentey
+	-env DISPLAY=:0.0
 	... lots of other -env commands
 	-display :0.0
 	-window-system
@@ -745,8 +745,8 @@ The following commands are accepted by the server:
   controlling tty.
 
 `-ignore COMMENT'
-  Do nothing, but put the comment in the server
-  log.  Useful for debugging.
+  Do nothing, but put the comment in the server log.
+  Useful for debugging.
 
 
 The following commands are accepted by the client:
