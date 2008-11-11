@@ -2355,14 +2355,16 @@ Intended to be added to `isearch-mode-hook'."
 (defun dired-isearch-filenames ()
   "Search for a string using Isearch only in file names in the Dired buffer."
   (interactive)
-  (let ((dired-isearch-filenames t))
+  (let ((dired-isearch-filenames t)
+	(isearch-message-prefix-add "filename "))
     (isearch-forward)))
 
 ;;;###autoload
 (defun dired-isearch-filenames-regexp ()
   "Search for a regexp using Isearch only in file names in the Dired buffer."
   (interactive)
-  (let ((dired-isearch-filenames t))
+  (let ((dired-isearch-filenames t)
+	(isearch-message-prefix-add "filename "))
     (isearch-forward-regexp)))
 
 
