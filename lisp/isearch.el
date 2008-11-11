@@ -533,6 +533,9 @@ Each set is a vector of the form:
 (defvar isearch-string "")  ; The current search string.
 (defvar isearch-message "") ; text-char-description version of isearch-string
 
+(defvar isearch-message-prefix-add nil) ; Additonal text for the message prefix
+(defvar isearch-message-suffix-add nil) ; Additonal text for the message suffix
+
 (defvar isearch-success t)	; Searching is currently successful.
 (defvar isearch-error nil)	; Error message for failed search.
 (defvar isearch-other-end nil)	; Start (end) of match if forward (backward).
@@ -2163,6 +2166,7 @@ If there is no completion possible, say so and continue searching."
 		   (if isearch-word "word " "")
 		   (if isearch-regexp "regexp " "")
 		   (if multi-isearch-next-buffer-current-function "multi " "")
+		   (or isearch-message-prefix-add "")
 		   (if nonincremental "search" "I-search")
 		   (if isearch-forward "" " backward")
 		   (if current-input-method
@@ -2176,7 +2180,8 @@ If there is no completion possible, say so and continue searching."
   (concat (if c-q-hack "^Q" "")
 	  (if isearch-error
 	      (concat " [" isearch-error "]")
-	    "")))
+	    "")
+	  (or isearch-message-suffix-add "")))
 
 
 ;; Searching
