@@ -1,3 +1,36 @@
+2008-11-11  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-isearch-filenames)
+	(dired-isearch-filenames-regexp):
+	Let-bind isearch-message-prefix-add to "filename ".
+
+	* isearch.el (isearch-message-prefix-add)
+	(isearch-message-suffix-add): New variables.
+	(isearch-message-prefix): Show additional text from
+	`isearch-message-prefix-add' before "I-search".
+	(isearch-message-suffix): Show additional text from
+	`isearch-message-suffix-add' at the end.
+
+	* isearch.el (isearch-lazy-highlight-search): Use a loop like in
+	`isearch-search'.  Call isearch-success-function to skip matches
+	outside the current isearch scope.  Let-bind search-invisible to
+	nil to not match invisible text.
+
+	* isearch.el (isearch-query-replace, isearch-highlight-regexp):
+	Let-bind `isearch-recursive-edit' to nil to prevent calling
+	`exit-recursive-edit' in `isearch-done' that terminates the
+	execution of these commands when it is non-nil.  Call
+	`exit-recursive-edit' explicitly at the end.
+	(isearch-occur): For word search construct the correct regexp
+	with word boundaries to proceed with occur.
+
+	* isearch.el (isearch-search-fun): Compare the length of the
+	current search string with the length of the string from the
+	previous search state to detect the situation when the user
+	adds or removes characters in the search string.
+	Use word-search-forward-lax and word-search-backward-lax in this
+	case, and otherwise word-search-forward and word-search-backward.
+
 2008-11-11  Sam Steingold  <sds@gnu.org>
 
 	* mouse.el (mouse-buffer-menu-mode-groups): Place "Annotate" into
