@@ -1,6 +1,9 @@
 2008-11-11  Juanma Barranquero  <lekktu@gmail.com>
 
-	* quail/hangul.el (hangul-djamo): Fix typo in docstring.
+	* quail/hangul.el (hangul-im-keymap, hangul-insert-character)
+	(hangul-djamo, hangul2-input-method-moum, hangul3-input-method-cho)
+	(hangul3-input-method-jung, hangul3-input-method-jong):
+	Fix typos in docstrings.
 
 2008-11-07  Vasily Korytov  <vasily@korytov.pp.ru>  (tiny change)
 

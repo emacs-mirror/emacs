@@ -90,7 +90,7 @@
     (define-key map "\d" 'hangul-delete-backward-char)
     (define-key map [f9] 'hangul-to-hanja-conversion)
     map)
-  "Keymap for Hangul method.  It is used by all Hangul input method.")
+  "Keymap for Hangul method.  It is used by all Hangul input methods.")
 
 ;; Current input character buffer. Store separated hangul character.
 ;; The first and second are Choseong position.
@@ -136,8 +136,8 @@ Return a zero-length string if the conversion fails."
    ""))
 
 (defun hangul-insert-character (&rest queues)
-  "Insert characters generated from QUEUEs.
-Each QUEUE has the same form as `hangul-queue'.
+  "Insert characters generated from QUEUES.
+Each queue has the same form as `hangul-queue'.
 Setup `quail-overlay' to the last character."
   (if (and mark-active transient-mark-mode)
       (progn
@@ -160,10 +160,10 @@ Setup `quail-overlay' to the last character."
     (move-overlay quail-overlay (1+ (overlay-start quail-overlay)) (point))))
 
 (defun hangul-djamo (jamo char1 char2)
-  "Return the dobule Jamo index calculated from the arguments.
+  "Return the double Jamo index calculated from the arguments.
 JAMO is a type of Hangul Jamo; `cho', `jung', or `jong'.
 CHAR1 and CHAR2 are Hangul Jamo indices.
-Return nil if CHAR1 and CHAR2 can not combined."
+Return nil if CHAR1 and CHAR2 can not be combined."
   (let* ((jamo (cdr (assoc jamo hangul-djamo-table)))
          (char1 (cdr (assoc char1 jamo))))
     (if char1
@@ -237,7 +237,7 @@ and insert CHAR to new `hangul-queue'."
 (defsubst hangul2-input-method-moum (char)
   "Store Hangul Jamo indice CHAR in `hangul-queue'.
 It is a Hangul 2-Bulsik Moum.
-This function process a Hangul 2-Bulsik Moum.
+This function processes a Hangul 2-Bulsik Moum.
 The Moum can be located in a Jungseong position.
 Other parts are the same as a `hangul2-input-method-jaum'."
   (if (cond ((zerop (aref hangul-queue 2))
@@ -260,7 +260,7 @@ Other parts are the same as a `hangul2-input-method-jaum'."
 (defsubst hangul3-input-method-cho (char)
   "Store Hangul Jamo indice CHAR in `hangul-queue'.
 It is a Hangul 3-Bulsik Choseong.
-This function process a Hangul 3-Bulsik Choseong.
+This function processes a Hangul 3-Bulsik Choseong.
 The Hangul 3-Bulsik is composed of a Choseong, a Jungseong and a Jongseong.
 The Choseong can be located in a Choseong position.
 Other parts are the same as a `hangul2-input-method-jaum'."
@@ -278,7 +278,7 @@ Other parts are the same as a `hangul2-input-method-jaum'."
 (defsubst hangul3-input-method-jung (char)
   "Store Hangul Jamo indice CHAR in `hangul-queue'.
 It is a Hangul 3-Bulsik Jungseong.
-This function process a Hangul 3-Bulsik Jungseong.
+This function processes a Hangul 3-Bulsik Jungseong.
 The Jungseong can be located in a Jungseong position.
 Other parts are the same as a `hangul3-input-method-cho'."
   (if (cond ((and (zerop (aref hangul-queue 2))
@@ -294,7 +294,7 @@ Other parts are the same as a `hangul3-input-method-cho'."
 (defsubst hangul3-input-method-jong (char)
   "Store Hangul Jamo indice CHAR in `hangul-queue'.
 It is a Hangul 3-Bulsik Jongseong.
-This function process a Hangul 3-Bulsik Jongseong.
+This function processes a Hangul 3-Bulsik Jongseong.
 The Jongseong can be located in a Jongseong position.
 Other parts are the same as a `hangul3-input-method-cho'."
   (if (cond ((and (zerop (aref hangul-queue 4))
