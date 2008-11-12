@@ -1056,6 +1056,9 @@ static void tracePostMessage(Trace trace)
     message->notCondemnedSize = trace->notCondemned;
     MessagePost(arena, TraceMessageMessage(message));
   }
+  if(arena->alertCollection) {
+    (*arena->alertCollection)(MPS_ALERT_COLLECTION_STOP, trace->why);
+  }
 
   return;
 }
@@ -1858,6 +1861,9 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
    */
   if(!MessageOnQueue(message)) {
     MessagePost(arena, message);
+  }
+  if(arena->alertCollection) {
+    (*arena->alertCollection)(MPS_ALERT_COLLECTION_START, trace->why);
   }
 
   /* From the already set up white set, derive a grey set. */

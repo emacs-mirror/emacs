@@ -1799,6 +1799,20 @@ const char *mps_message_gc_start_why(mps_arena_t mps_arena,
   return s;
 }
 
+
+/* Alert */
+
+mps_res_t mps_alert_collection_set(mps_arena_t mps_arena, 
+                                   mps_alert_collection_fn_t fn)
+{
+  Arena arena = (Arena)mps_arena;
+  ArenaEnter(arena);
+  arena->alertCollection = fn;
+  ArenaLeave(arena);
+  return MPS_RES_OK;  
+}
+
+
 /* Telemetry */
 
 mps_word_t mps_telemetry_control(mps_word_t resetMask, mps_word_t flipMask)

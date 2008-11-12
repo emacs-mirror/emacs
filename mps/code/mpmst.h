@@ -688,6 +688,9 @@ typedef struct ArenaStruct {
   Bool isFinalPool;             /* indicator for finalPool */
   Pool finalPool;               /* either NULL or an MRG pool */
 
+  /* alert fields <code/trace.c> */
+  mps_alert_collection_fn_t alertCollection;  /* client alert fn or 0 */
+
   /* thread fields (<code/thread.c>) */
   RingStruct threadRing;        /* ring of attached threads */
   Serial threadSerial;          /* serial of next thread */
