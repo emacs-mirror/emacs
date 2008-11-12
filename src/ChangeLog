@@ -1,3 +1,13 @@
+2008-11-12  Michal Nazarewicz  <mina86@tlen.pl>  (tiny change)
+
+	* frame.c (x_set_alpha): Set alpha to -1 if nil given.
+
+	* frame.h: Negative alpha means "don't touch".
+
+	* w32term.c (x_set_frame_alpha): Do nothing if alpha is negative.
+
+	* xterm.c (x_set_frame_alpha): Do nothing if alpha is negative.
+
 2008-11-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* hftctl.c:
