@@ -1,3 +1,18 @@
+2008-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule.el (autoload-coding-system, with-category-table)
+	(ctext-non-standard-encodings-alist): Fix typos in docstrings.
+	(coding-system-equal, set-buffer-process-coding-system): Doc fixes.
+	(set-buffer-file-coding-system, revert-buffer-with-coding-system)
+	(set-file-name-coding-system, ctext-pre-write-conversion)
+	(auto-coding-functions, find-auto-coding, modify-coding-system-alist):
+	Reflow docstrings.
+	(charset-list, set-coding-priority): Remove redundant obsolescence info.
+	(charset-id, charset-bytes, make-coding-system): Add obsolescence info.
+	(char-valid-p): Define with `define-obsolete-function-alias'.
+
+	* textmodes/artist.el (artist-mode): Fix typos in docstring.
+
 2008-11-12  Sam Steingold  <sds@gnu.org>
 
 	* vc-cvs.el (vc-cvs-parse-root): Handle roots without colon

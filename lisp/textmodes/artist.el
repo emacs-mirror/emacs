@@ -1275,9 +1275,9 @@ Drawing with keys
 
  Move around with \\[artist-next-line], \\[artist-previous-line], \\[artist-forward-char] and \\[artist-backward-char].
 
- \\[artist-select-fill-char]	Sets the charater to use when filling
- \\[artist-select-line-char]	Sets the charater to use when drawing
- \\[artist-select-erase-char]	Sets the charater to use when erasing
+ \\[artist-select-fill-char]	Sets the character to use when filling
+ \\[artist-select-line-char]	Sets the character to use when drawing
+ \\[artist-select-erase-char]	Sets the character to use when erasing
  \\[artist-toggle-rubber-banding]	Toggles rubber-banding
  \\[artist-toggle-trim-line-endings]	Toggles trimming of line-endings
  \\[artist-toggle-borderless-shapes]	Toggles borders on drawn shapes

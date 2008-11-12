@@ -419,10 +419,12 @@ PLIST (property list) may contain any type of information a user
 (defun charset-id (charset)
   "Always return 0.  This is provided for backward compatibility."
   0)
+(make-obsolete 'charset-id "do not use it." "23.1")
 
 (defmacro charset-bytes (charset)
   "Always return 0.  This is provided for backward compatibility."
   0)
+(make-obsolete 'charset-bytes "do not use it." "23.1")
 
 (defun get-charset-property (charset propname)
   "Return the value of CHARSET's PROPNAME property.
@@ -467,17 +469,13 @@ Return -1 if charset isn't an ISO 2022 one."
   (plist-get (charset-plist charset) :long-name))
 
 (defun charset-list ()
-  "Return list of all charsets ever defined.
-
-This function is provided for backward compatibility.
-Now we have the variable `charset-list'."
+  "Return list of all charsets ever defined."
   charset-list)
 (make-obsolete 'charset-list "use variable `charset-list'." "23.1")
 
 
 ;;; CHARACTER
-(defalias 'char-valid-p 'characterp)
-(make-obsolete 'char-valid-p 'characterp "23.1")
+(define-obsolete-function-alias 'char-valid-p 'characterp "23.1")
 
 (defun generic-char-p (char)
   "Always return nil.  This is provided for backward compatibility."
@@ -894,7 +892,7 @@ like `mime-charset' as well as the current style like `:mime-charset'."
 
 (defun coding-system-equal (coding-system-1 coding-system-2)
   "Return t if and only if CODING-SYSTEM-1 and CODING-SYSTEM-2 are identical.
-Two coding systems are identical if two symbols are equal
+Two coding systems are identical if both symbols are equal
 or one is an alias of the other."
   (or (eq coding-system-1 coding-system-2)
       (and (equal (coding-system-plist coding-system-1)
@@ -1025,8 +1023,7 @@ Value is a list of transformed arguments."
 					 properties
 					 eol-type)
   "Define a new coding system CODING-SYSTEM (symbol).
-This function is provided for backward compatibility.
-Use `define-coding-system' instead."
+This function is provided for backward compatibility."
   ;; For compatiblity with XEmacs, we check the type of TYPE.  If it
   ;; is a symbol, perhaps, this function is called with XEmacs-style
   ;; arguments.  Here, try to transform that kind of arguments to
@@ -1119,6 +1116,8 @@ Use `define-coding-system' instead."
 
   (apply 'define-coding-system coding-system doc-string properties))
 
+(make-obsolete 'make-coding-system 'define-coding-system "23.1")
+
 (defun merge-coding-systems (first second)
   "Fill in any unspecified aspects of coding system FIRST from SECOND.
 Return the resulting coding system."
@@ -1137,7 +1136,7 @@ Return the resulting coding system."
 (defun autoload-coding-system (symbol form)
   "Define SYMBOL as a coding-system that is defined on demand.
 
-FROM is a form to evaluate to define the coding-system."
+FORM is a form to evaluate to define the coding-system."
   (put symbol 'coding-system-define-form form)
   (setq coding-system-alist (cons (list (symbol-name symbol))
 				  coding-system-alist))
@@ -1149,14 +1148,14 @@ FROM is a form to evaluate to define the coding-system."
 (defun set-buffer-file-coding-system (coding-system &optional force nomodify)
   "Set the file coding-system of the current buffer to CODING-SYSTEM.
 This means that when you save the buffer, it will be converted
-according to CODING-SYSTEM.  For a list of possible values of CODING-SYSTEM,
-use \\[list-coding-systems].
+according to CODING-SYSTEM.  For a list of possible values of
+CODING-SYSTEM, use \\[list-coding-systems].
 
-If CODING-SYSTEM leaves the text conversion unspecified, or if it
-leaves the end-of-line conversion unspecified, FORCE controls what to
-do.  If FORCE is nil, get the unspecified aspect (or aspects) from the
-buffer's previous `buffer-file-coding-system' value (if it is
-specified there).  Otherwise, leave it unspecified.
+If CODING-SYSTEM leaves the text conversion unspecified, or if it leaves
+the end-of-line conversion unspecified, FORCE controls what to do.
+If FORCE is nil, get the unspecified aspect (or aspects) from the buffer's
+previous `buffer-file-coding-system' value (if it is specified there).
+Otherwise, leave it unspecified.
 
 This marks the buffer modified so that the succeeding \\[save-buffer]
 surely saves the buffer with CODING-SYSTEM.  From a program, if you
@@ -1181,12 +1180,11 @@ just set the variable `buffer-file-coding-system' directly."
   "Visit the current buffer's file again using coding system CODING-SYSTEM.
 For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 
-If CODING-SYSTEM leaves the text conversion unspecified, or if it
-leaves the end-of-line conversion unspecified, FORCE controls what to
-do.  If FORCE is nil, get the unspecified aspect (or aspects) from the
-buffer's previous `buffer-file-coding-system' value (if it is
-specified there).  Otherwise, determine it from the file contents as
-usual for visiting a file."
+If CODING-SYSTEM leaves the text conversion unspecified, or if it leaves
+the end-of-line conversion unspecified, FORCE controls what to do.
+If FORCE is nil, get the unspecified aspect (or aspects) from the buffer's
+previous `buffer-file-coding-system' value (if it is specified there).
+Otherwise, determine it from the file contents as usual for visiting a file."
   (interactive "zCoding system for visited file (default nil): \nP")
   (check-coding-system coding-system)
   (if (and coding-system buffer-file-coding-system (null force))
@@ -1197,8 +1195,8 @@ usual for visiting a file."
 
 (defun set-file-name-coding-system (coding-system)
   "Set coding system for decoding and encoding file names to CODING-SYSTEM.
-It actually just set the variable `file-name-coding-system' (which
-see) to CODING-SYSTEM."
+It actually just set the variable `file-name-coding-system' (which see)
+to CODING-SYSTEM."
   (interactive "zCoding system for file names (default nil): ")
   (check-coding-system coding-system)
   (if (and coding-system
@@ -1303,7 +1301,7 @@ use either \\[customize] or \\[set-keyboard-coding-system]."
 DECODING is the coding system to be used to decode input from the process,
 ENCODING is the coding system to be used to encode output to the process.
 
-For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems]."
+For a list of possible coding systems, use \\[list-coding-systems]."
   (interactive
    "zCoding-system for output from the process: \nzCoding-system for input to the process: ")
   (let ((proc (get-buffer-process (current-buffer))))
@@ -1349,8 +1347,7 @@ This setting is effective for the next communication only."
   "Set priority of coding categories according to ARG.
 ARG is a list of coding categories ordered by priority.
 
-This function is provided for backward compatibility.
-Now we have more convenient function `set-coding-system-priority'."
+This function is provided for backward compatibility."
   (apply 'set-coding-system-priority
 	 (mapcar #'(lambda (x) (symbol-value x)) arg)))
 (make-obsolete 'set-coding-priority 'set-coding-system-priority "23.1")
@@ -1369,7 +1366,7 @@ by the coding system `compound-text-with-extensions'.
 
 Each element has the form (ENCODING-NAME CODING-SYSTEM N-OCTET CHARSET).
 
-ENCODING-NAME is an encoding name of an \"extended segments\".
+ENCODING-NAME is an encoding name of an \"extended segment\".
 
 CODING-SYSTEM is the coding-system to encode (or decode) the
 characters into (or from) the extended segment.
@@ -1378,7 +1375,7 @@ N-OCTET is the number of octets (bytes) that encodes a character
 in the segment.  It can be 0 (meaning the number of octets per
 character is variable), 1, 2, 3, or 4.
 
-CHARSET is a charater set containing characters that are encoded
+CHARSET is a character set containing characters that are encoded
 in the segment.  It can be a list of character sets.
 
 On decoding CTEXT, all encoding names listed here are recognized.
@@ -1494,8 +1491,8 @@ Each element must be one of the names listed in the variable
   "Encode characters between FROM and TO as Compound Text w/Extended Segments.
 
 If FROM is a string, or if the current buffer is not the one set up for us
-by `encode-coding-string', generate a new temp buffer, insert the
-text, and convert it in the temporary buffer.  Otherwise, convert in-place."
+by `encode-coding-string', generate a new temp buffer, insert the text,
+and convert it in the temporary buffer.  Otherwise, convert in-place."
   (save-match-data
     ;; Setup a working buffer if necessary.
     (when (stringp from)
@@ -1642,8 +1639,8 @@ or nil."
 Each function in this list should be written to operate on the
 current buffer, but should not modify it in any way.  The buffer
 will contain undecoded text of parts of the file.  Each function
-should take one argument, SIZE, which says how many
-characters (starting from point) it should look at.
+should take one argument, SIZE, which says how many characters
+\(starting from point) it should look at.
 
 If one of these functions succeeds in determining a coding
 system, it should return that coding system.  Otherwise, it
@@ -1688,12 +1685,12 @@ contents of the current buffer following point against
 succeed, it checks to see if any function in `auto-coding-functions'
 gives a match.
 
-If a coding system is specifed, the return value is a
-cons (CODING . SOURCE), where CODING is the specified coding
-system and SOURCE is a symbol `auto-coding-alist',
-`auto-coding-regexp-alist', `coding:', or `auto-coding-functions'
-indicating by what CODING is specified.  Note that the validity
-of CODING is not checked; it's the caller's responsibility to check it.
+If a coding system is specifed, the return value is a cons
+\(CODING . SOURCE), where CODING is the specified coding system and
+SOURCE is a symbol `auto-coding-alist', `auto-coding-regexp-alist',
+`coding:', or `auto-coding-functions' indicating by what CODING is
+specified.  Note that the validity of CODING is not checked;
+it's the caller's responsibility to check it.
 
 If nothing is specified, the return value is nil."
   (or (let ((coding-system (auto-coding-alist-lookup filename)))
@@ -1945,9 +1942,9 @@ TARGET-TYPE is `process', or a network service name or a port number
 to connect to if TARGET-TYPE is `network'.
 
 CODING-SYSTEM is a coding system to perform code conversion on the I/O
-operation, or a cons cell (DECODING . ENCODING) specifying the coding systems
-for decoding and encoding respectively,
-or a function symbol which, when called, returns such a cons cell."
+operation, or a cons cell (DECODING . ENCODING) specifying the coding
+systems for decoding and encoding respectively, or a function symbol
+which, when called, returns such a cons cell."
   (or (memq target-type '(file process network))
       (error "Invalid target type: %s" target-type))
   (or (stringp regexp)
@@ -2221,7 +2218,7 @@ It returns the number of characters changed."
 (put 'with-category-table 'lisp-indent-function 1)
 
 (defmacro with-category-table (table &rest body)
-  "Execute BODY like `progn' with CATEGORY-TABLE the current category table.
+  "Execute BODY like `progn' with TABLE the current category table.
 The category table of the current buffer is saved, BODY is evaluated,
 then the saved table is restored, even in case of an abnormal exit.
 Value is what BODY returns."
