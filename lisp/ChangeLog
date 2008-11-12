@@ -1,3 +1,8 @@
+2008-11-12  Sam Steingold  <sds@gnu.org>
+
+	* vc-cvs.el (vc-cvs-parse-root): Handle roots without colon
+	between hostname and path.
+
 2008-11-11  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-isearch-filenames)

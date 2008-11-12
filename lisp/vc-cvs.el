@@ -720,10 +720,16 @@ and that it passes `vc-cvs-global-switches' to it before FLAGS."
 		(buffer-substring (point)
 				  (line-end-position))))))))
 
+(defun vc-cvs-parse-uhp (path)
+  "parse user@host/path into (user@host /path)"
+  (if (string-match "\\([^/]+\\)\\(/.*\\)" path)
+      (list (match-string 1 path) (match-string 2 path))
+      (list nil path)))
+
 (defun vc-cvs-parse-root (root)
   "Split CVS ROOT specification string into a list of fields.
 A CVS root specification of the form
-  [:METHOD:][[USER@]HOSTNAME:]/path/to/repository
+  [:METHOD:][[USER@]HOSTNAME]:?/path/to/repository
 is converted to a normalized record with the following structure:
   \(METHOD USER HOSTNAME CVS-ROOT).
 The default METHOD for a CVS root of the form
@@ -745,17 +751,16 @@ For an empty string, nil is returned (invalid CVS root)."
             ;; Invalid CVS root
             nil)
            ((= len 1)
-            ;; Simple PATH => method `local'
-            (cons "local"
-                  (cons nil root-list)))
+            (let ((uhp (vc-cvs-parse-uhp (car root-list))))
+              (cons (if (car uhp) "ext" "local") uhp)))
            ((= len 2)
             ;; [USER@]HOST:PATH => method `ext'
             (and (not (equal (car root-list) ""))
                  (cons "ext" root-list)))
            ((= len 3)
-            ;; :METHOD:PATH
+            ;; :METHOD:PATH or :METHOD:USER@HOSTNAME/PATH
             (cons (cadr root-list)
-                  (cons nil (cddr root-list))))
+                  (vc-cvs-parse-uhp (caddr root-list))))
            (t
             ;; :METHOD:[USER@]HOST:PATH
             (cdr root-list)))))
