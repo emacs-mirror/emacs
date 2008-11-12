@@ -47,7 +47,27 @@ static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
 
-/* report - report statistics from any messages */
+/* alert -- synchronous alert of collection start/stop */
+
+static void alertfn(int alertcode, int whycode)
+{
+  switch(alertcode) {
+    case MPS_ALERT_COLLECTION_START: {
+      printf("\n^^^^^^ START (why: %d) ^^^^^^\n", whycode);
+      break;
+    }
+    case MPS_ALERT_COLLECTION_STOP: {
+      printf("vvvvvv STOP (why: %d)  vvvvvv\n", whycode);
+      break;
+    }
+    default: {
+      cdie(0, "unknown alertcode");
+      break;
+    }
+  }
+}
+
+/* report -- report statistics from any messages */
 
 static void report(mps_arena_t arena)
 {
@@ -313,6 +333,7 @@ int main(int argc, char **argv)
       "arena_create");
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_gc_start());
+  mps_alert_collection_set(arena, &alertfn);
   die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);
