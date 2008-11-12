@@ -193,7 +193,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
 
   CHECKL(arena->tracedSize >= 0.0);
   CHECKL(arena->tracedTime >= 0.0);
-  CHECKL(arena->lastWorldCollect >= 0);
+  /* no check for arena->lastWorldCollect (Clock) */
 
   /* can't write a check for arena->epoch */
 
@@ -277,7 +277,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->flippedTraces = TraceSetEMPTY; /* <code/trace.c> */
   arena->tracedSize = 0.0;
   arena->tracedTime = 0.0;
-  arena->lastWorldCollect = mps_clock();
+  arena->lastWorldCollect = ClockNow();
   arena->insideShield = FALSE;          /* <code/shield.c> */
   arena->shCacheI = (Size)0;
   arena->shCacheLimit = (Size)1;
@@ -636,8 +636,8 @@ void ArenaPoll(Globals globals)
 static Bool arenaShouldCollectWorld(Arena arena,
                                     double interval,
                                     double multiplier,
-                                    Word now,
-                                    Word clocks_per_sec)
+                                    Clock now,
+                                    Clock clocks_per_sec)
 {
   double scanRate;
   Size arenaSize;
@@ -680,8 +680,8 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   double size;
   Size scanned;
   Bool stepped;
-  Word start, end, now;
-  Word clocks_per_sec;
+  Clock start, end, now;
+  Clock clocks_per_sec;
   Arena arena;
 
   AVERT(Globals, globals);
@@ -689,10 +689,10 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   AVER(multiplier >= 0.0);
 
   arena = GlobalsArena(globals);
-  clocks_per_sec = mps_clocks_per_sec();
+  clocks_per_sec = ClocksPerSec();
 
-  start = mps_clock();
-  end = start + (Word)(interval * clocks_per_sec);
+  start = ClockNow();
+  end = start + (Clock)(interval * clocks_per_sec);
   AVER(end >= start);
 
   stepped = FALSE;
@@ -708,7 +708,7 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   /* loop while there is work to do and time on the clock. */
   do {
     scanned = TracePoll(globals);
-    now = mps_clock();
+    now = ClockNow();
     if (scanned > 0) {
       stepped = TRUE;
       arena->tracedSize += scanned;
@@ -968,7 +968,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
