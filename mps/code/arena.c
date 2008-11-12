@@ -135,6 +135,8 @@ Bool ArenaCheck(Arena arena)
   CHECKD(ChunkCacheEntry, &arena->chunkCache);
 
   CHECKL(LocusCheck(arena));
+  
+  /* nothing to check for alertCollection */
 
   return TRUE;
 }
@@ -176,6 +178,8 @@ Res ArenaInit(Arena arena, ArenaClass class)
   ChunkCacheEntryInit(&arena->chunkCache);
 
   LocusInit(arena);
+  
+  arena->alertCollection = 0;
 
   res = GlobalsInit(ArenaGlobals(arena));
   if (res != ResOK)
