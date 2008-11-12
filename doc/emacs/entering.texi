@@ -69,7 +69,14 @@ non-@code{nil}, Emacs does not display the startup screen.  In that
 case, if one or more files were specified on the command line, Emacs
 simply displays those files; otherwise, it displays a buffer named
 @samp{*scratch*}, which can be used to evaluate Emacs Lisp expressions
-interactively.  @xref{Lisp Interaction}.
+interactively (@pxref{Lisp Interaction}).  You can set the variable
+@code{inhibit-startup-screen} by using the Customize facility
+(@pxref{Easy Customization}), or by editing your initialization file
+(@pxref{Init File}).@footnote{Note that setting
+@code{inhibit-startup-screen} in @file{site-start.el} doesn't work,
+because the startup screen is set up before reading
+@file{site-start.el}.  @xref{Init File}, for information about
+@file{site-start.el}.}
 
 @node Exiting, Basic, Entering Emacs, Top
 @section Exiting Emacs
