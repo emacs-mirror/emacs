@@ -43,6 +43,10 @@ Bool MessageTypeCheck(MessageType type)
   return TRUE;
 }
 
+/* See .message.clocked.  Currently finalization messages are the */
+/* only ones that can be numerous. */
+#define MessageClocked(message) ((message)->type != MessageTypeFINALIZATION)
+
 Bool MessageCheck(Message message)
 {
   CHECKS(Message, message);
@@ -50,7 +54,9 @@ Bool MessageCheck(Message message)
   CHECKL(MessageTypeCheck(message->type));
   CHECKU(MessageClass, message->class);
   CHECKL(RingCheck(&message->queueRing));
-  /* cannot check postedClock: no check for Clock */
+  /* postedClock is uncheckable for clocked message types, */
+  /* but must be 0 for unclocked message types: */
+  CHECKL(MessageClocked(message) || (message->postedClock == 0));
 
   return TRUE;
 }
@@ -122,9 +128,10 @@ void MessagePost(Arena arena, Message message)
   /* <design/message/#fun.post.singleton> */
   AVER(!MessageOnQueue(message));
   if(MessageTypeEnabled(arena, message->type)) {
-    /* Setting clock involves mpslib call, so only do it for rare */
-    /* messages.  Currently: all messages except finalization. */
-    if(message->type != MessageTypeFINALIZATION) {
+    /* .message.clocked: Reading the clock with ClockNow() */
+    /* involves an mpslib call, so we avoid it for message */
+    /* types that may be numerous. */
+    if(MessageClocked(message)) {
       message->postedClock = ClockNow();
     }
     RingAppend(&arena->messageRing, &message->queueRing);
