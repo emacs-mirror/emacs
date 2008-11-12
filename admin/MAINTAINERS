@@ -158,7 +158,6 @@ src/fontset.c
 src/getloadavg.c
 src/gmalloc.c
 src/gtkutil.c
-src/hftctl.c
 src/indent.c
 src/insdel.c
 src/image.c

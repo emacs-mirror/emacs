@@ -1,3 +1,13 @@
+2008-11-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* hftctl.c:
+	* chpdef.h:
+	* acldef.h: Remove files used only for systems no longer supported.
+
+	* Makefile.in: Fix .o alphabetical ordering.
+	(hftctl.o): Remove dependency, file removed.
+	(keymap.o, print.o): Depend on charset.h.
+
 2008-11-10  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (Fget_byte): Fix and make it faster for unibyte
