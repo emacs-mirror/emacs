@@ -1,3 +1,14 @@
+2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Clocking work time): Document the :formula property of
+	clock tables.
+	(Structure editing, Refiling notes): Document refiling regions.
+	(Agenda commands): Document the double-prefix version
+	of the `l' command in the agenda.
+	(Handling links): Explain the effect of a double prefix
+	arg to `C-c C-o'.
+	(TODO basics): Add documentation for tag triggers.
+
 2008-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Function Bindings): Mention `flet' fails to deal with
