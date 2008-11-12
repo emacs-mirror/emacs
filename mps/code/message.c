@@ -125,7 +125,7 @@ void MessagePost(Arena arena, Message message)
     /* Setting clock involves mpslib call, so only do it for rare */
     /* messages.  Currently: all messages except finalization. */
     if(message->type != MessageTypeFINALIZATION) {
-      message->postedClock = mps_clock();
+      message->postedClock = ClockNow();
     }
     RingAppend(&arena->messageRing, &message->queueRing);
   } else {

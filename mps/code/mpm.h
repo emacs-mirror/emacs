@@ -119,6 +119,12 @@ extern int (AddrComp)(Addr a, Addr b, Size size);
 #define ADDR_PTR(type, addr) ((type *)(addr))
 
 
+/* Clock */
+
+#define ClockNow() ((Clock)mps_clock())
+#define ClocksPerSec() ((Clock)mps_clocks_per_sec())
+
+
 /* Result codes */
 
 extern Bool ResIsAllocFailure(Res res);
