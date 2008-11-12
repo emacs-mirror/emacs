@@ -1871,7 +1871,7 @@ struct composition_it
      temporarily if searching of composition reach a limit or a
      newline.  */
   int ch;
-  /* If this an automatic composition, how many charaters to look back
+  /* If this an automatic composition, how many characters to look back
      from the position where a character triggering the composition
      exists.  */
   int lookback;
