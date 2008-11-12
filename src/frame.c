@@ -3654,25 +3654,24 @@ x_set_alpha (f, arg, oldval)
       else
         item = arg;
 
-      if (! NILP (item))
-        {
-          if (FLOATP (item))
-            {
-              alpha = XFLOAT_DATA (item);
-              if (alpha < 0.0 || 1.0 < alpha)
-                args_out_of_range (make_float (0.0), make_float (1.0));
-            }
-          else if (INTEGERP (item))
-            {
-              ialpha = XINT (item);
-              if (ialpha < 0 || 100 < ialpha)
-                args_out_of_range (make_number (0), make_number (100));
-              else
-                alpha = ialpha / 100.0;
-            }
-          else
-            wrong_type_argument (Qnumberp, item);
-        }
+      if (NILP (item))
+	alpha = - 1.0;
+      else if (FLOATP (item))
+	{
+	  alpha = XFLOAT_DATA (item);
+	  if (alpha < 0.0 || 1.0 < alpha)
+	    args_out_of_range (make_float (0.0), make_float (1.0));
+	}
+      else if (INTEGERP (item))
+	{
+	  ialpha = XINT (item);
+	  if (ialpha < 0 || 100 < ialpha)
+	    args_out_of_range (make_number (0), make_number (100));
+	  else
+	    alpha = ialpha / 100.0;
+	}
+      else
+	wrong_type_argument (Qnumberp, item);
       newval[i] = alpha;
     }
 
