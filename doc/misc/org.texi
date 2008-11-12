@@ -3,8 +3,8 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.10c
-@set DATE October 2008
+@set VERSION 6.12a
+@set DATE November 2008
 
 @dircategory Emacs
 @direntry
@@ -944,9 +944,19 @@ Yank subtree from kill ring.  This does modify the level of the subtree to
 make sure the tree fits in nicely at the yank position.  The yank level can
 also be specified with a numeric prefix argument, or by yanking after a
 headline marker like @samp{****}.
+@kindex C-y 
+@item C-y
+Depending on the variables @code{org-yank-adjusted-subtrees} and
+@code{org-yank-folded-subtrees}, Org's internal @code{yank} command will
+paste subtrees folded and in a clever way, using the same command as @kbd{C-c
+C-x C-y}.  With the default settings, level adjustment will take place and
+yanked trees will be folded unless doing so would swallow text previously
+visible.  Any prefix argument to this command will force a normal @code{yank}
+to be executed, with the prefix passed along.  A good way to force a normal
+yank is @kbd{C-u C-y}.
 @kindex C-c C-w
 @item C-c C-w
-Refile entry to a different location.  @xref{Refiling notes}.
+Refile entry or region to a different location.  @xref{Refiling notes}.
 @kindex C-c ^
 @item C-c ^
 Sort same-level entries.  When there is an active region, all entries in the
@@ -2339,6 +2349,10 @@ Specify an entire line to be inserted in the gnuplot script.
 When plotting @code{3d} or @code{grid} types, set this to @code{t} to graph a
 flat mapping rather than a @code{3d} slope.
 
+@item timefmt
+Specify format of org-mode timestamps as they will be parsed by gnuplot.
+Defaults to '%Y-%m-%d-%H:%M:%S'.
+
 @item script
 If you want total control you can specify a script file (place the file name
 between double quotes) which will be used to plot.  Before plotting, every
@@ -2627,7 +2641,8 @@ date.  Furthermore, it will visit text and remote files in @samp{file:} links
 with Emacs and select a suitable application for local non-text files.
 Classification of files is based on file extension only.  See option
 @code{org-file-apps}.  If you want to override the default application and
-visit the file with Emacs, use a @kbd{C-u} prefix.
+visit the file with Emacs, use a @kbd{C-u} prefix.  If you want to avoid
+opening in Emacs, use a @kbd{C-u C-u} prefix.
 @c
 @kindex mouse-2
 @kindex mouse-1
@@ -3661,25 +3676,34 @@ Like before, but require the @samp{:laptop:} lines to be tagged also
 @end table
 
 @cindex TODO keyword matching, with tags search
-If you are using multi-state TODO keywords (@pxref{TODO extensions}), it
-can be useful to also match on the TODO keyword.  This can be done by
-adding a condition after a slash to a tags match.  The syntax is similar
-to the tag matches, but should be applied with consideration: For
-example, a positive selection on several TODO keywords can not
-meaningfully be combined with boolean AND.  However, @emph{negative
-selection} combined with AND can be meaningful.  To make sure that only
-lines are checked that actually have any TODO keyword, use @kbd{C-c a
-M}, or equivalently start the TODO part after the slash with @samp{!}.
-Examples:
+You may also test for TODO keywords (@pxref{TODO extensions}) and properties
+(@pxref{Properties and Columns}) at the same time as matching tags.  For a
+guide on how to match properties, see @ref{Property searches}.  To match a
+specific TODO keyword, include an expression like @samp{+TODO="NEXT"} as one
+of the terms in a tags search.
+
+There is also the possibility to end the tags part of the match (which may
+include several terms connected with @samp{|}) with a @samp{/} and then
+specify a Boolean expression just for TODO keywords.  The syntax is then
+similar to the tag matches, but should be applied with consideration: For
+example, a positive selection on several TODO keywords can not meaningfully
+be combined with boolean AND.  However, @emph{negative selection} combined
+with AND can be meaningful.  To make sure that only lines are checked that
+actually have any TODO keyword (resulting in a speed-up), use @kbd{C-c a M},
+or equivalently start the TODO part after the slash with @samp{!}.  Examples:
 
 @table @samp
-@item work/WAITING
+@item work+TODO="WAITING"
 Select @samp{:work:}-tagged TODO lines with the specific TODO
 keyword @samp{WAITING}.
+@item work+TODO="WAITING"|home+TODO="WAITING"
+Waiting tasks both at work and at home.
+@item work/WAITING
+Same as the first example.
 @item work/!-WAITING-NEXT
 Select @samp{:work:}-tagged TODO lines that are neither @samp{WAITING}
 nor @samp{NEXT}
-@item work/+WAITING|+NEXT
+@item work/!+WAITING|+NEXT
 Select @samp{:work:}-tagged TODO lines that are either @samp{WAITING} or
 @samp{NEXT}.
 @end table
@@ -3688,7 +3712,9 @@ Select @samp{:work:}-tagged TODO lines that are either @samp{WAITING} or
 Any element of the tag/todo match can be a regular expression - in this
 case it must be enclosed in curly braces.  For example,
 @samp{work+@{^boss.*@}} matches headlines that contain the tag
-@samp{:work:} and any tag @i{starting} with @samp{boss}.
+@samp{:work:} and any tag @i{starting} with @samp{boss}.  You may also use a
+regular expression in @samp{TODO=@{^W@}} which would match TODO keywords
+starting with the letter @samp{W}.
 
 @cindex level, require for tags/property match
 @cindex category, require for tags/property match
@@ -3697,6 +3723,9 @@ writing instead of any TAG an expression like @samp{LEVEL=3} or
 @samp{CATEGORY="work"}, respectively.  For example, a search
 @samp{+LEVEL=3+boss/-DONE} lists all level three headlines that have the
 tag @samp{boss} and are @emph{not} marked with the TODO keyword DONE.
+
+Accessing TODO, LEVEL, and CATEGORY during a search is fast.  Accessing any
+other properties will slow down the search.
 
 @node Properties and Columns, Dates and Times, Tags, Top
 @chapter Properties and Columns
@@ -4805,6 +4834,10 @@ new table.  The @samp{BEGIN} line can specify options:
 :step        @r{@code{week} or @code{day}, to split the table into chunks.}
              @r{To use this, @code{:block} or @code{:tstart}, @code{:tend} are needed.}
 :link        @r{Link the item headlines in the table to their origins}
+:formula     @r{Content of a @code{#+TBLFM} line to be added and evaluated.}
+             @r{As a special case, @samp{:formula %} adds column with % time.}
+             @r{If you do not specify a formula here, any existing formula}
+             @r{below the clock table will survive updates and be evaluated.}
 @end example
 So to get a clock summary of the current level 1 tree, for the current
 day, you could write
@@ -4818,6 +4851,11 @@ only to fit it onto the manual.}
 @example
 #+BEGIN: clocktable :tstart "<2006-08-10 Thu 10:00>"
                     :tend "<2006-08-10 Thu 12:00>"
+#+END: clocktable
+@end example
+A summary of the current subtree with % times would be
+@example
+#+BEGIN: clocktable :scope subtree :link t :formula %
 #+END: clocktable
 @end example
 @kindex C-c C-c
@@ -5151,16 +5189,16 @@ special command:
 @table @kbd
 @kindex C-c C-w
 @item C-c C-w
-Refile the entry at point.  This command offers possible locations for
-refiling the entry and lets you select one with completion.  The item is
-filed below the target heading as a subitem.  Depending on
-@code{org-reverse-note-order}, it will be either the first of last
-subitem.@* By default, all level 1 headlines in the current buffer are
-considered to be targets, but you can have more complex definitions
-across a number of files.  See the variable @code{org-refile-targets}
-for details.  If you would like to select a location via a file-pathlike
-completion along the outline path, see the variable
-@code{org-refile-use-outline-path}.
+Refile the entry or region at point.  This command offers possible locations
+for refiling the entry and lets you select one with completion.  The item (or
+all items in the region) is filed below the target heading as a subitem.
+Depending on @code{org-reverse-note-order}, it will be either the first of
+last subitem.@*
+By default, all level 1 headlines in the current buffer are considered to be
+targets, but you can have more complex definitions across a number of files.
+See the variable @code{org-refile-targets} for details.  If you would like to
+select a location via a file-pathlike completion along the outline path, see
+the variable @code{org-refile-use-outline-path}.
 @kindex C-u C-c C-w
 @item C-u C-c C-w
 Use the refile interface to jump to a heading.
@@ -5908,8 +5946,12 @@ previously used indirect buffer.
 @kindex l
 @item l
 Toggle Logbook mode.  In Logbook mode, entries that where marked DONE while
-logging was on (variable @code{org-log-done}) are shown in the agenda,
-as are entries that have been clocked on that day.
+logging was on (variable @code{org-log-done}) are shown in the agenda, as are
+entries that have been clocked on that day.  You can configure the entry
+types that should be included in log mode using the variable
+@code{org-agenda-log-mode-items}.  When called with a @kbd{C-u} prefix, show
+all possible logbook entries, including state changes.  When called with two
+prefix args @kbd{C-u C-u}, show only logging information, nothing else.
 @c
 @kindex v
 @item v
@@ -7661,18 +7703,23 @@ document - your style specifications may change these:
 @end example
 
 Each exported files contains a compact default style that defines these
-classes in a basic way.  You may overwrite these settings, or add to them by
-using the variables @code{org-export-html-style} (for Org-wide settings) and
-@code{org-export-html-style-extra} (for more granular settings, like
-file-local settings).  To set the latter variable individually for each
-file, you can use
+classes in a basic way@footnote{This style is defined in the constant
+@code{org-export-html-style-default}, which you should not modify.  To turn
+inclusion of these defaults off, customize
+@code{org-export-html-style-include-default}}.  You may overwrite these
+settings, or add to them by using the variables @code{org-export-html-style}
+(for Org-wide settings) and @code{org-export-html-style-extra} (for more
+granular settings, like file-local settings).  To set the latter variable
+individually for each file, you can use
 
 @example
 #+STYLE: <link rel="stylesheet" type="text/css" href="stylesheet.css" />
 @end example
 
 @noindent
-For longer style definitions, you can use several such lines.
+For longer style definitions, you can use several such lines.  You could also
+directly write a @code{<style>} @code{</style>} section in this way, without
+referring to an external file.
 
 @c FIXME: More about header and footer styles
 @c FIXME: Talk about links and targets.
@@ -8087,6 +8134,7 @@ respective variable for details.
 @item @code{:tags}                  @tab @code{org-export-with-tags}
 @item @code{:tables}                @tab @code{org-export-with-tables}
 @item @code{:table-auto-headline}   @tab @code{org-export-highlight-first-table-line}
+@item @code{:style-include-default} @tab @code{org-export-html-style-include-default}
 @item @code{:style}                 @tab @code{org-export-html-style}
 @item @code{:style-extra}           @tab @code{org-export-html-style-extra}
 @item @code{:convert-org-links}     @tab @code{org-export-html-link-org-files-as-html}
@@ -8200,7 +8248,7 @@ directory on the local machine.
          :publishing-directory "~/public_html"
          :section-numbers nil
          :table-of-contents nil
-         :style "<link rel=stylesheet
+         :style "<link rel=\"stylesheet\"
                 href=\"../other/mystyle.css\"
                 type=\"text/css\">")))
 @end lisp
@@ -8237,7 +8285,7 @@ right place on the web server, and publishing images to it.
           :headline-levels 3
           :section-numbers nil
           :table-of-contents nil
-          :style "<link rel=stylesheet
+          :style "<link rel=\"stylesheet\"
                   href=\"../other/mystyle.css\" type=\"text/css\">"
           :auto-preamble t
           :auto-postamble nil)
@@ -9509,7 +9557,7 @@ like this:
 @lisp
 (org-add-agenda-custom-command
  '("b" todo "PROJECT"
-   ((org-agenda-skip-function 'my-org-waiting-projects)
+   ((org-agenda-skip-function 'my-skip-unless-waiting)
     (org-agenda-overriding-header "Projects waiting for something: "))))
 @end lisp
 
