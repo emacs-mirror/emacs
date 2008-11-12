@@ -1,5 +1,12 @@
 2008-11-12  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cmdargs.texi (Emacs Invocation): Link to Emacs Server.  Note that
+	command-line-args is processed during startup.
+	(Action Arguments): Correctly describe how file arguments interact with
+	the startup screen.  Link to Lisp Interaction for scratch buffer.
+	(Initial Options): Link to Command Example for -batch option.
+	(Environment): Document initial-environment.
+
 	* entering.texi (Entering Emacs): Note that inhibit-startup-screen
 	can't be changed in the site-start file.
 
