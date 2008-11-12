@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.10c
+;; Version: 6.12a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -104,8 +104,8 @@ means to use the maximum value consistent with other options."
 	   org-infojs-opts-table)))
 
 (defcustom org-infojs-template
-  "<script type=\"text/javascript\" language=\"JavaScript\" src=\"%SCRIPT_PATH\"></script>
-<script type=\"text/javascript\" language=\"JavaScript\">
+  "<script type=\"text/javascript\" src=\"%SCRIPT_PATH\"></script>
+<script type=\"text/javascript\" >
 /* <![CDATA[ */
 %MANAGER_OPTIONS
 org_html_manager.setup();  // activate after the parameterd are set

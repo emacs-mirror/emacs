@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data task
-;; Version: 6.10c
+;; Version: 6.12a
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -125,7 +125,7 @@ F       Like \"f\", but force using dired in Emacs.
 d       Delete one attachment, you will be prompted for a file name.
 D       Delete all of a task's attachments.  A safer way is
         to open the directory in dired and delete from there.")))
-	  (shrink-window-if-larger-than-buffer (get-buffer-window "*Org Attach*"))
+	  (org-fit-window-to-buffer (get-buffer-window "*Org Attach*"))
 	  (message "Select command: [acmlzoOfFdD]")
 	  (setq c (read-char-exclusive))
 	  (and (get-buffer "*Org Attach*") (kill-buffer "*Org Attach*"))))
@@ -156,11 +156,7 @@ the directory and the corresponding ID will be created."
   (let ((uuid (org-id-get (point) create-if-not-exists-p)))
     (when (or uuid create-if-not-exists-p)
       (unless uuid
-	(let ((uuid-string (shell-command-to-string "uuidgen")))
-	  (setf uuid-string
-		(substring uuid-string 0 (1- (length uuid-string))))
-	  (org-entry-put (point) "ID" uuid-string)
-	  (setf uuid uuid-string)))
+	(error "ID retrieval/creation failed"))
       (let ((attach-dir (expand-file-name
 			 (format "%s/%s"
 				 (substring uuid 0 2)
@@ -333,6 +329,17 @@ If IN-EMACS is non-nil, force opening in Emacs."
 See `org-attach-open'."
   (interactive)
   (org-attach-open 'in-emacs))
+
+(defun org-attach-expand (file)
+  "Return the full path to the current entry's attachment file FILE.
+Basically, this adds the path to the attachment directory."
+  (expand-file-name file (org-attach-dir)))
+
+(defun org-attach-expand-link (file)
+  "Return a file link pointing to the current entry's attachment file FILE.
+Basically, this adds the path to the attachment directory, and a \"file:\"
+prefix."
+  (concat "file:" (org-attach-expand file)))
 
 (provide 'org-attach)
 

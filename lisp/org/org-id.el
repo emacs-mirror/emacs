@@ -4,7 +4,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.10c
+;; Version: 6.12a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -251,7 +251,7 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
     (if (equal prefix ":") (setq prefix ""))
     (cond
      ((eq org-id-method 'uuidgen)
-      (setq unique (substring (shell-command-to-string "uuidgen") 1 -1)))
+      (setq unique (org-trim (shell-command-to-string "uuidgen"))))
      ((eq org-id-method 'org)
       (let* ((etime (org-id-reverse-string (org-id-time-to-b36)))
 	     (postfix (if org-id-include-domain

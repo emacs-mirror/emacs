@@ -4,7 +4,7 @@
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 6.10c
+;; Version: 6.12a
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -75,7 +75,7 @@
 ;;                   :with-section-numbers nil
 ;; 		     :table-of-contents nil
 ;;                   :recursive t
-;; 		     :style "<link rel=stylesheet href=\"../other/mystyle.css\" type=\"text/css\">")))
+;; 		     :style "<link rel="stylesheet" href=\"../other/mystyle.css\" type=\"text/css\">")))
 
 ;;;; More complex example configuration:
 
@@ -103,7 +103,7 @@
 ;; 		       :headline-levels 3
 ;;                     :with-section-numbers nil
 ;; 		       :table-of-contents nil
-;; 		       :style "<link rel=stylesheet href=\"../other/mystyle.css\" type=\"text/css\">"
+;; 		       :style "<link rel="stylesheet" href=\"../other/mystyle.css\" type=\"text/css\">"
 ;; 		       :auto-preamble t
 ;; 		       :auto-postamble nil)
 ;;         ("images" :base-directory "~/images/"
@@ -364,6 +364,10 @@ Also set it if the optional argument REFRESH is non-nil."
     (setq org-publish-files-alist
 	  (org-publish-get-files org-publish-project-alist))))
 
+(defun org-publish-validate-link (link &optional directory)
+  "Check if LINK points to a file in the current project."
+  (assoc (expand-file-name link directory) org-publish-files-alist))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Compatibility aliases
 
@@ -427,7 +431,7 @@ MATCH.  If SKIP-FILE is non-nil, skip file matching the regexp
 SKIP-FILE.  If SKIP-DIR is non-nil, don't check directories
 matching the regexp SKIP-DIR when recursiing through BASE-DIR."
   (mapc (lambda (f)
-	  (let ((fd-p (car (file-attributes f)))
+	  (let ((fd-p (file-directory-p f))
 		(fnd (file-name-nondirectory f)))
 	    (if (and fd-p recurse
 		     (not (string-match "^\\.+$" fnd))
@@ -435,6 +439,7 @@ matching the regexp SKIP-DIR when recursiing through BASE-DIR."
 		(org-publish-get-base-files-1 f recurse match skip-file skip-dir)
 	      (unless (or fd-p ;; this is a directory
 			  (and skip-file (string-match skip-file fnd))
+			  (not (file-exists-p (file-truename f)))
 			  (not (string-match match fnd)))
 		(pushnew f org-publish-temp-files)))))
 	(directory-files base-dir t (unless recurse match))))
@@ -529,6 +534,7 @@ See `org-publish-org-to' to the list of arguments."
 (defun org-publish-attachment (plist filename pub-dir)
   "Publish a file with no transformation of any kind.
 See `org-publish-org-to' to the list of arguments."
+  ;; make sure eshell/cp code is loaded
   (unless (file-directory-p pub-dir)
     (make-directory pub-dir t))
   (copy-file filename pub-dir))
@@ -620,7 +626,7 @@ Default for INDEX-FILENAME is 'index.org'."
     (if index-buffer
 	(kill-buffer index-buffer))
     (with-temp-buffer
-      (insert (concat index-title "\n\n"))
+      (insert (concat "* " index-title "\n\n"))
       (while (setq file (pop files))
 	(let ((fn (file-name-nondirectory file))
 	      (link (file-relative-name file dir))
@@ -640,13 +646,18 @@ Default for INDEX-FILENAME is 'index.org'."
 			  (directory-file-name
 			   (file-name-directory
 			    (file-relative-name localdir dir))) "/"))
-			(subdir ""))
+			(subdir "")
+			(old-subdirs (split-string
+				      (file-relative-name oldlocal dir) "/")))
 		    (setq indent-str (make-string 2 ?\ ))
+		    (while (string= (car old-subdirs) (car subdirs))
+		      (setq indent-str (concat indent-str (make-string 2 ?\ )))
+		      (pop old-subdirs)
+		      (pop subdirs))
 		    (dolist (d subdirs)
 		      (setq subdir (concat subdir d "/"))
-		      (insert (concat indent-str " + [[file:" 
-				      subdir "][" d "/]]\n"))
-		      (setq indent-str (make-string 
+		      (insert (concat indent-str " + " d "\n"))
+		      (setq indent-str (make-string
 					(+ (length indent-str) 2) ?\ )))))))
 	    ;; This is common to 'flat and 'tree
 	    (insert (concat indent-str " + [[file:" link "]["
@@ -658,16 +669,22 @@ Default for INDEX-FILENAME is 'index.org'."
 
 (defun org-publish-find-title (file)
   "Find the title of file in project."
-  (save-excursion
-    (set-buffer (find-file-noselect file))
-    (let* ((opt-plist (org-combine-plists (org-default-export-plist)
- 					  (org-infile-export-plist))))
-      (or (plist-get opt-plist :title)
- 	  (and (not
- 		(plist-get opt-plist :skip-before-1st-heading))
- 	       (org-export-grab-title-from-buffer))
-	  (file-name-nondirectory (file-name-sans-extension file))))))
-
+  (let* ((visiting (find-buffer-visiting file))
+	 (buffer (or visiting (find-file-noselect file)))
+	 title)
+    (save-excursion
+      (set-buffer buffer)
+      (let* ((opt-plist (org-combine-plists (org-default-export-plist)
+					    (org-infile-export-plist))))
+	(setq title
+	      (or (plist-get opt-plist :title)
+		  (and (not
+			(plist-get opt-plist :skip-before-1st-heading))
+		       (org-export-grab-title-from-buffer))
+		  (file-name-nondirectory (file-name-sans-extension file))))))
+    (unless visiting
+      (kill-buffer buffer))
+    title))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Interactive publishing functions

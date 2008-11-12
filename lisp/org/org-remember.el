@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.10c
+;; Version: 6.12a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -694,7 +694,7 @@ also indented so that it starts in the same column as the headline
 See also the variable `org-reverse-note-order'."
   (when (and (equal current-prefix-arg 2)
 	     (not (marker-buffer org-clock-marker)))
-    (error "No runing clock"))
+    (error "No running clock"))
   (when (org-bound-and-true-p org-jump-to-target-location)
     (let* ((end (min (point-max) (1+ (point))))
 	   (beg (point)))
@@ -733,10 +733,12 @@ See also the variable `org-reverse-note-order'."
 	(setq visitp t))
       (when previousp
 	(setq file (car org-remember-previous-location)
+	      visiting (and file (org-find-base-buffer-visiting file))
 	      heading (cdr org-remember-previous-location)
 	      fastp t))
       (when clockp
 	(setq file (buffer-file-name (marker-buffer org-clock-marker))
+	      visiting (and file (org-find-base-buffer-visiting file))
 	      heading org-clock-heading-for-remember
 	      fastp t))
       (setq current-prefix-arg nil)

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.10c
+;; Version: 6.12a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -2172,7 +2172,7 @@ $1->    %s\n" orig formula form0 form))
 			     ev (or fmt "NONE")
 			     (if fmt (format fmt (string-to-number ev)) ev)))))
 	  (setq bw (get-buffer-window "*Substitution History*"))
-	  (shrink-window-if-larger-than-buffer bw)
+	  (org-fit-window-to-buffer bw)
 	  (unless (and (interactive-p) (not ndown))
 	    (unless (let (inhibit-redisplay)
 		      (y-or-n-p "Debugging Formula. Continue to next? "))
@@ -3490,7 +3490,7 @@ overwritten, and the table is not marked as requiring realignment."
 	(self-insert-command N))
     (setq org-table-may-need-update t)
     (let (orgtbl-mode a)
-      (call-interactively
+      (call-interactively 
        (key-binding
 	(or (and (listp function-key-map)
 		 (setq a (assoc last-input-event function-key-map))
@@ -3569,7 +3569,7 @@ The table is taken from the parameter TXT, or from the buffer at point."
   (unless txt
     (unless (org-at-table-p)
       (error "No table at point")))
-  (let* ((txt (or txt
+  (let* ((txt (or txt 
 		  (buffer-substring-no-properties (org-table-begin)
 						  (org-table-end))))
 	 (lines (org-split-string txt "[ \t]*\n[ \t]*")))
