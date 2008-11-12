@@ -11,21 +11,19 @@
 @cindex startup (command line arguments)
 @cindex invocation (command line arguments)
 
-  GNU Emacs supports command line arguments to request various actions
-when invoking Emacs.  These are for compatibility with other editors and
-for sophisticated activities.  We don't recommend using them for
-ordinary editing.
+  Emacs supports command line arguments to request various actions
+when invoking Emacs.  These are for compatibility with other editors
+and for sophisticated activities.  We don't recommend using them for
+ordinary editing (@xref{Emacs Server}, for a way to access an existing
+Emacs job from the command line).
 
   Arguments starting with @samp{-} are @dfn{options}, and so is
 @samp{+@var{linenum}}.  All other arguments specify files to visit.
 Emacs visits the specified files while it starts up.  The last file
-name on your command line becomes the current buffer; the other files
-are also visited in other buffers.  If there are two files, they are
-both displayed; otherwise the last file is displayed along with a
-buffer list that shows what other buffers there are.  As with most
-programs, the special argument @samp{--} says that all subsequent
-arguments are file names, not options, even if they start with
-@samp{-}.
+specified on the command line becomes the current buffer; the other
+files are also visited in other buffers.  As with most programs, the
+special argument @samp{--} says that all subsequent arguments are file
+names, not options, even if they start with @samp{-}.
 
   Emacs command options can specify many things, such as the size and
 position of the X window Emacs uses, its colors, and so on.  A few
@@ -52,14 +50,15 @@ and the tables below always show an equal sign.
 @vindex command-line-args
   Most options specify how to initialize Emacs, or set parameters for
 the Emacs session.  We call them @dfn{initial options}.  A few options
-specify things to do: for example, load libraries, call functions, or
-terminate Emacs.  These are called @dfn{action options}.  These and file
-names together are called @dfn{action arguments}.  Emacs processes all
-the action arguments in the order they are written.  The @file{.emacs} file
-can access the values of the action arguments as the elements of a list in
-the variable @code{command-line-args}.
-
-
+specify things to do, such as loading libraries or calling Lisp
+functions.  These are called @dfn{action options}.  These and file
+names together are called @dfn{action arguments}.  The action
+arguments are stored as a list of strings in the variable
+@code{command-line-args}.  (Actually, when Emacs starts up,
+@code{command-line-args} contains all the arguments passed from the
+command line; during initialization, the initial arguments are removed
+from this list when they are processed, leaving only the action
+arguments.)
 
 @menu
 * Action Arguments::    Arguments to visit files, load libraries,
@@ -81,7 +80,7 @@ the variable @code{command-line-args}.
 @node Action Arguments
 @appendixsec Action Arguments
 
-  Here is a table of the action arguments and options:
+  Here is a table of action arguments:
 
 @table @samp
 @item @var{file}
@@ -94,9 +93,21 @@ the variable @code{command-line-args}.
 @cindex visiting files, command-line argument
 @vindex inhibit-startup-buffer-menu
 Visit @var{file} using @code{find-file}.  @xref{Visiting}.
-If you visit several files at startup in this way, Emacs
-also displays a Buffer Menu buffer to show you what files it
-has visited.  You can inhibit that by setting @code{inhibit-startup-buffer-menu} to @code{t}.
+
+When Emacs starts up, it displays the startup buffer in one window,
+and the buffer visiting @var{file} in another window
+(@pxref{Windows}).  If you supply more than one file argument, the
+displayed file is the last one specified on the command line; the
+other files are visited but their buffers are not shown.
+
+If the startup buffer is disabled (@pxref{Entering Emacs}), then
+@var{file} is visited in a single window if one file argument was
+supplied; with two file arguments, Emacs displays the files in two
+different windows; with more than two file argument, Emacs displays
+the last file specified in one window, plus a Buffer Menu in a
+different window (@pxref{Several Buffers}).  To inhibit using the
+Buffer Menu for this, change the variable
+@code{inhibit-startup-buffer-menu} to @code{t}.
 
 @item +@var{linenum} @var{file}
 @opindex +@var{linenum}
@@ -107,7 +118,6 @@ Visit @var{file} using @code{find-file}, then go to line number
 Visit @var{file} using @code{find-file}, then go to line number
 @var{linenum} and put point at column number @var{columnnum}.
 
-@need 3000
 @item -l @var{file}
 @opindex -l
 @itemx --load=@var{file}
@@ -149,8 +159,9 @@ Evaluate Lisp expression @var{expression}.
 @item --insert=@var{file}
 @opindex --insert
 @cindex insert file contents, command-line argument
-Insert the contents of @var{file} into the current buffer.  This is like
-what @kbd{M-x insert-file} does.  @xref{Misc File Ops}.
+Insert the contents of @var{file} into the @samp{*scratch*} buffer
+(@pxref{Lisp Interaction}).  This is like what @kbd{M-x insert-file}
+does (@pxref{Misc File Ops}).
 
 @item --kill
 @opindex --kill
@@ -174,12 +185,12 @@ section describes the more general initial options; some other options
 specifically related to the X Window System appear in the following
 sections.
 
-  Some initial options affect the loading of init files.  The normal
-actions of Emacs are to first load @file{site-start.el} if it exists,
-then your own init file @file{~/.emacs} if it exists, and finally
-@file{default.el} if it exists.  @xref{Init File}.  Certain options
-prevent loading of some of these files or substitute other files for
-them.
+  Some initial options affect the loading of the initialization file.
+The normal actions of Emacs are to first load @file{site-start.el} if
+it exists, then your own initialization file @file{~/.emacs} if it
+exists, and finally @file{default.el} if it exists.  @xref{Init File}.
+Certain options prevent loading of some of these files or substitute
+other files for them.
 
 @table @samp
 @item -t @var{device}
@@ -208,27 +219,30 @@ Don't communicate directly with the window system, disregarding the
 Emacs uses the terminal from which it was launched for all its display
 and input.
 
-@need 3000
 @cindex batch mode
 @item -batch
 @opindex --batch
 @itemx --batch
 Run Emacs in @dfn{batch mode}.  Batch mode is used for running
 programs written in Emacs Lisp from shell scripts, makefiles, and so
-on.  You should also use the @samp{-l}, @samp{-f} or @samp{--eval}
-option, to invoke a Lisp program to do batch processing.
+on.  To invoke a Lisp program, use the @samp{-batch} option in
+conjunction with one or more of @samp{-l}, @samp{-f} or @samp{--eval}
+(@pxref{Action Arguments}).  @xref{Command Example}, for an example.
 
 In batch mode, Emacs does not display the text being edited, and the
 standard terminal interrupt characters such as @kbd{C-z} and @kbd{C-c}
-continue to have their normal effect.  The functions @code{prin1},
-@code{princ} and @code{print} output to @code{stdout} instead of the
-echo area, while @code{message} and error messages output to
-@code{stderr}.  Functions that would normally read from the minibuffer
-take their input from @code{stdin} instead.
+have their usual effect.  Emacs functions that normally print a
+message in the echo area will print to either the standard output
+stream (@code{stdout}) or the standard error stream (@code{stderr})
+instead.  (To be precise, functions like @code{prin1}, @code{princ}
+and @code{print} print to @code{stdout}, while @code{message} and
+@code{error} print to @code{stderr}.)  Functions that normally read
+keyboard input from the minibuffer take their input from the
+terminal's standard input stream (@code{stdin}) instead.
 
-@samp{--batch} implies @samp{-q} (do not load an init file), but
-@file{site-start.el} is loaded nonetheless.  It also causes Emacs to
-exit after processing all the command options.  In addition, it
+@samp{--batch} implies @samp{-q} (do not load an initialization file),
+but @file{site-start.el} is loaded nonetheless.  It also causes Emacs
+to exit after processing all the command options.  In addition, it
 disables auto-saving except in buffers for which it has been
 explicitly requested.
 
@@ -257,11 +271,11 @@ comment delimiter.
 @cindex bypassing init and @file{default.el} file
 @cindex init file, not loading
 @cindex @file{default.el} file, not loading
-Do not load your Emacs init file @file{~/.emacs}, or @file{default.el}
-either.  Regardless of this switch, @file{site-start.el} is still loaded.
-When invoked like this, Emacs does not allow saving options
-changed with the @kbd{M-x customize} command and its variants.
-@xref{Easy Customization}.
+Do not load your Emacs initialization file, and do not load the file
+@file{default.el} either (@pxref{Init File}).  Regardless of this
+switch, @file{site-start.el} is still loaded.  When Emacs is invoked
+like this, the Customize facility does not allow options to be saved
+(@pxref{Easy Customization}).
 
 @item --no-site-file
 @opindex --no-site-file
@@ -270,37 +284,35 @@ Do not load @file{site-start.el}.  The options @samp{-q}, @samp{-u}
 and @samp{--batch} have no effect on the loading of this file---this
 option and @samp{-Q} are the only options that block it.
 
-@item -Q
-@opindex -Q
-@itemx --quick
-@opindex --quick
-Start emacs with minimum customizations.  This is like using @samp{-q}
-and @samp{--no-site-file}, but also disables the startup screen.
-
-@item -daemon
-@opindex -daemon
-@itemx --daemon
-@opindex --daemon
-Start emacs in background as a daemon (i.e. it will disconnect from the
-terminal), do not open any frames and start the server.  Clients can
-connect and create graphical or terminal frames using
-@code{emacsclient}.
-
-@item -daemon=@var{SERVER-NAME}
-Start emacs in background as a daemon, and start the server with the
-name set to @var{SERVER-NAME}.
-
 @item --no-splash
 @opindex --no-splash
 @vindex inhibit-startup-screen
 @cindex splash screen
 @cindex startup message
-Do not display a splash screen on startup.  You can also achieve this
-effect by setting the variable @code{inhibit-startup-screen} to
-non-@code{nil} in you personal init file (but @emph{not} in
-@file{site-start.el}).  (This variable was called
-@code{inhibit-splash-screen} or @code{inhibit-startup-message} in
-previous Emacs versions.)
+Do not display a startup screen.  You can also achieve this effect by
+setting the variable @code{inhibit-startup-screen} to non-@code{nil}
+in your initialization file (@pxref{Entering Emacs}).
+
+@item -Q
+@opindex -Q
+@itemx --quick
+@opindex --quick
+Start emacs with minimum customizations.  This is like using
+@samp{-q}, @samp{--no-site-file}, and @samp{--no-splash} together.
+
+@item -daemon
+@opindex -daemon
+@itemx --daemon
+@opindex --daemon
+Start Emacs as a daemon---after Emacs starts up, it starts the Emacs
+server and disconnects from the terminal without opening any frames.
+You can then use the @command{emacsclient} command to connect to Emacs
+for editing.  @xref{Emacs Server}, for information about using Emacs
+as a daemon.
+
+@item -daemon=@var{SERVER-NAME}
+Start emacs in background as a daemon, and use @var{SERVER-NAME} as
+the server name.
 
 @item --no-desktop
 @opindex --no-desktop
@@ -311,9 +323,8 @@ Do not reload any saved desktop.  @xref{Saving Emacs Sessions}.
 @itemx --user=@var{user}
 @opindex --user
 @cindex load init file of another user
-Load @var{user}'s Emacs init file @file{~@var{user}/.emacs} instead of
-your own@footnote{
-This option has no effect on MS-Windows.}.
+Load @var{user}'s initialization file instead of your
+own@footnote{This option has no effect on MS-Windows.}.
 
 @item --debug-init
 @opindex --debug-init
@@ -422,10 +433,13 @@ software) inherit the environment from Emacs, too.
 
 @findex setenv
 @findex getenv
+@vindex initial-environment
   Inside Emacs, the command @kbd{M-x getenv} gets the value of an
 environment variable.  @kbd{M-x setenv} sets a variable in the Emacs
 environment.  (Environment variable substitutions with @samp{$} work
-in the value just as in file names; see @ref{File Names with $}.)
+in the value just as in file names; see @ref{File Names with $}.)  The
+variable @code{initial-environment} stores the initial environment
+inherited by Emacs.
 
   The way to set environment variables outside of Emacs depends on the
 operating system, and especially the shell that you are using.  For
@@ -456,11 +470,10 @@ documentation for more information.
 @node General Variables
 @appendixsubsec General Variables
 
-  Here is an alphabetical list of specific environment variables that
-have special meanings in Emacs, giving the name of each variable and
-its meaning.  Most of these variables are also used by some other
-programs.  Emacs does not require any of these environment variables
-to be set, but it uses their values if they are set.
+  Here is an alphabetical list of environment variables that have
+special meanings in Emacs.  Most of these variables are also used by
+some other programs.  Emacs does not require any of these environment
+variables to be set, but it uses their values if they are set.
 
 @table @env
 @item CDPATH
