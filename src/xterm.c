@@ -487,7 +487,9 @@ x_set_frame_alpha (f)
   else if (INTEGERP (Vframe_alpha_lower_limit))
     alpha_min = (XINT (Vframe_alpha_lower_limit)) / 100.0;
 
-  if (alpha < 0.0 || 1.0 < alpha)
+  if (alpha < 0.0)
+    return;
+  else if (alpha > 1.0)
     alpha = 1.0;
   else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
     alpha = alpha_min;
