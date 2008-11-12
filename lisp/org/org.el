@@ -6287,7 +6287,7 @@ This is the list that is used for internal purposes.")
 This is the list that is used before handing over to the browser.")
 
 (defun org-link-escape (text &optional table)
-  "Escape charaters in TEXT that are problematic for links."
+  "Escape characters in TEXT that are problematic for links."
   (setq table (or table org-link-escape-chars))
   (when text
     (let ((re (mapconcat (lambda (x) (regexp-quote
