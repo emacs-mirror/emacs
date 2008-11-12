@@ -684,8 +684,8 @@ which RSS 2.0 allows."
     (buffer-string)))
 
 ;;; Snarf functions
-
 (defun nnrss-make-hash-index (item)
+  (gnus-message 9 "nnrss: Making hash index of %s" (gnus-prin1-to-string item))
   (setq item (gnus-remove-if
 	      (lambda (field)
 		(when (listp field)

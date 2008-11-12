@@ -1,3 +1,11 @@
+2008-11-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnrss.el (nnrss-make-hash-index): Debug message of full item.
+
+2008-11-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* netrc.el (netrc-parse): If a list is passed in as FILE, return it.
+
 2008-11-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* starttls.el (starttls-any-program-available): Rewritten so it doesn't
