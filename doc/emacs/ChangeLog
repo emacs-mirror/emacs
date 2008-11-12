@@ -1,3 +1,8 @@
+2008-11-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* entering.texi (Entering Emacs): Note that inhibit-startup-screen
+	can't be changed in the site-start file.
+
 2008-11-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.texi (Dired): Mention C-x C-d too.
