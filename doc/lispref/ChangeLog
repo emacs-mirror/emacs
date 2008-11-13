@@ -1,3 +1,8 @@
+2008-11-11  Lute Kamstra  <lute@gnu.org>
+
+	* files.texi (File Name Components): Fix file-name-extension
+	documentation.
+
 2008-11-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frames.texi (Basic Parameters): Remove display-environment-variable
