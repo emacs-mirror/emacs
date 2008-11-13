@@ -1701,8 +1701,8 @@ return value, but backup version numbers are kept.
 This function returns @var{filename}'s final ``extension,'' if any,
 after applying @code{file-name-sans-versions} to remove any
 version/backup part.  The extension, in a file name, is the part that
-starts with the last @samp{.} in the last name component (minus
-any version/backup part).
+follows the last @samp{.} in the last name component (minus any
+version/backup part).
 
 This function returns @code{nil} for extensionless file names such as
 @file{foo}.  It returns @code{""} for null extensions, as in
