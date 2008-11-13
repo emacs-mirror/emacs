@@ -3384,7 +3384,7 @@ the documentation of `org-diary'."
 	  (push txt ee))))
     (nreverse ee)))
 
-(defalias 'org-get-closed 'org-get-progress)
+(defalias 'org-get-closed 'org-agenda-get-progress)
 (defun org-agenda-get-progress ()
   "Return the logged TODO entries for agenda display."
   (let* ((props (list 'mouse-face 'highlight
@@ -3398,7 +3398,7 @@ the documentation of `org-diary'."
 	 (items (if (consp org-agenda-show-log)
 		    org-agenda-show-log
 		  org-agenda-log-mode-items))
-	 (parts 
+	 (parts
 	  (delq nil
 		(list
 		 (if (memq 'closed items) (concat "\\<" org-closed-string))
