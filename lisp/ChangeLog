@@ -1,3 +1,8 @@
+2008-11-13  Henry Weller  <hweller0@gmail.com>  (tiny change)
+
+	* net/mairix.el (mairix-widget-fields-list): Fix bug regarding searching
+	in mail bodies.
+
 2008-11-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule.el (autoload-coding-system, with-category-table)
