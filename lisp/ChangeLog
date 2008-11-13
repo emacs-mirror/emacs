@@ -1,3 +1,9 @@
+2008-11-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (project-settings-file): New variable.
+	(project-find-settings-file): Use it, instead of hardcoding
+	.dir.settings.el.
+
 2008-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* nxml/nxml-enc.el: Remove some charset code not needed since Emacs 22.
