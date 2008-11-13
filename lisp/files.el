@@ -154,7 +154,7 @@ under another name, you get the existing buffer instead of a new buffer."
   :group 'find-file)
 
 (defcustom find-file-visit-truename nil
-  "*Non-nil means visit a file under its truename.
+  "Non-nil means visit a file under its truename.
 The truename of a file is found by chasing all links
 both at the file level and at the levels of the containing directories."
   :type 'boolean
@@ -757,12 +757,12 @@ special files in directories in which filenames are interpreted as hostnames.")
 
 (defun locate-dominating-file (file name)
   "Look up the directory hierarchy from FILE for a file named NAME.
-Stop at the first parent directory containing a file NAME return the directory.
-Return nil if not found."
+Stop at the first parent directory containing a file NAME,
+and return the directory.  Return nil if not found."
   ;; We used to use the above locate-dominating-files code, but the
   ;; directory-files call is very costly, so we're much better off doing
   ;; multiple calls using the code in here.
-  ;; 
+  ;;
   ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
   ;; `name' in /home or in /.
   (setq file (abbreviate-file-name file))
@@ -3203,11 +3203,12 @@ LIST.  The list is processed in order.
       (push (cons class list) project-class-alist))))
 
 (defcustom project-settings-file ".dir-settings.el"
-  "Settings file for per-project settings. Set this to nil if you dont want  to load project-specific settings."
+  "Settings file for per-project settings.
+Set this to nil if you don't want to load project-specific settings."
   :type '(choice
-       (const  :tag "Ignore" nil)
-       (file :tag "File"))
-:group 'files)
+	  (const :tag "Ignore" nil)
+	  (file :tag "File"))
+  :group 'files)
 
 (defun project-find-settings-file (file)
   "Find the settings file for FILE.

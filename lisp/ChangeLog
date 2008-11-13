@@ -1,3 +1,9 @@
+2008-11-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (project-settings-file, locate-dominating-file):
+	Fix typos in docstrings.
+	(find-file-visit-truename): Remove * from defcustom docstring.
+
 2008-11-13  T. V. Raman  <raman@users.sourceforge.net>  (tiny change)
 
 	* files.el (project-settings-file): New variable.
