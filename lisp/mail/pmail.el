@@ -854,7 +854,7 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
 	 ;; Use find-buffer-visiting, not get-file-buffer, for those users
 	 ;; who have find-file-visit-truename set to t.
 	 (existed (find-buffer-visiting file-name))
-	 run-mail-hook msg-shown)
+	 run-mail-hook mail-buf msg-shown)
     ;; Determine if an existing mail file has been changed behind the
     ;; scene...
     (if (and existed (not (verify-visited-file-modtime existed)))
@@ -882,12 +882,14 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
       (pmail-mode-2))
     (goto-char (point-max))
     (pmail-maybe-set-message-counters)
+    (setq mail-buf pmail-buffer)
     ;; Show the first unread message and process summary mode.
     (unwind-protect
 	;; Only get new mail when there is not a file name argument.
 	(unless file-name-arg
 	  (pmail-get-new-mail))
       (progn
+	(set-buffer mail-buf)
 	(pmail-show-message-maybe (pmail-first-unseen-message))
 	(if pmail-display-summary (pmail-summary))
 	(pmail-construct-io-menu)
@@ -1322,12 +1324,52 @@ Instead, these commands are available:
   (setq mode-line-modified "--")
   (use-local-map pmail-mode-map)
   (set-syntax-table text-mode-syntax-table)
-  (setq local-abbrev-table text-mode-abbrev-table))
+  (setq local-abbrev-table text-mode-abbrev-table)
+  ;; First attempt at adding hook functions to support buffer swapping...
+  (add-hook 'write-region-annotate-functions 'pmail-write-region-annotate nil t)
+  (add-hook 'kill-buffer-hook 'pmail-mode-kill-buffer-hook nil t)
+  (add-hook 'change-major-mode-hook 'pmail-change-major-mode-hook nil t))
 
 (defun pmail-generate-viewer-buffer ()
-  "Return a newly created buffer suitable for viewing messages."
-  (let ((suffix (file-name-nondirectory (or buffer-file-name (buffer-name)))))
-    (generate-new-buffer (format " *message-viewer %s*" suffix))))
+  "Return a reusable buffer suitable for viewing messages.
+Create the buffer if necessary."
+  (let* ((suffix (file-name-nondirectory (or buffer-file-name (buffer-name))))
+	 (name (format " *message-viewer %s*" suffix))
+	 (buf (get-buffer name)))
+    (unless buf
+      (generate-new-buffer name))))
+
+;; Used in write-region-annotate-functions to write Pmail files out
+;; correctly.
+(defun pmail-write-region-annotate (start end)
+  ;; When called from write-file (and auto-save), `start' is nil.
+  ;; When called from M-x write-region, we assume the user wants to save
+  ;; (part of) the inbox, not the message display data.
+  (unless (or start (not pmail-buffers-swapped-p))
+    ;;(tar-clear-modification-flags)
+    (set-buffer pmail-view-buffer)
+    (widen)
+    nil))
+
+(defun pmail-change-major-mode-hook ()
+  ;; Bring the actual Pmail messages back into the main buffer.
+  (when (pmail-buffers-swapped-p)
+    (current-buffer)
+    (buffer-swap-text pmail-view-buffer)))
+  ;; Throw away the summary.
+  ;;(when (buffer-live-p pmail-view-buffer) (kill-buffer pmail-view-buffer)))
+
+(defun pmail-buffers-swapped-p ()
+  "Return non-nil if the message collection is in `pmail-view-buffer'."
+  ;; We need to be careful to keep track of which buffer holds the
+  ;; message collection, since we swap the collection the view of the
+  ;; current message back and forth.  This model is based on Stefan
+  ;; Monnier's solution for tar-mode.
+  (and (buffer-live-p pmail-view-buffer)
+       (> (buffer-size pmail-view-buffer) (buffer-size))))
+
+(defun pmail-mode-kill-buffer-hook ()
+  (if (buffer-live-p pmail-view-buffer) (kill-buffer pmail-view-buffer)))
 
 ;; Set up the permanent locals associated with an Pmail file.
 (defun pmail-perm-variables ()
@@ -1346,6 +1388,7 @@ Instead, these commands are available:
   (make-local-variable 'pmail-summary-vector)
   (make-local-variable 'pmail-current-message)
   (make-local-variable 'pmail-total-messages)
+  (setq pmail-total-messages 0)
   (make-local-variable 'pmail-overlay-list)
   (setq pmail-overlay-list nil)
   (make-local-variable 'pmail-message-vector)
