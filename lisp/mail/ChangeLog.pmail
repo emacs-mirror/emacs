@@ -1,3 +1,7 @@
+2008-11-13  Paul Reilly  <pmr@pajato.com>
+
+	* pmail.el: Add support for save-buffer.
+
 2008-10-17  Paul Reilly  <pmr@pajato.com>
 
 	* pmail.el (pmail):
