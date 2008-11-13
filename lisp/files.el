@@ -3222,7 +3222,8 @@ Otherwise this returns nil."
     (let* ((settings (locate-dominating-file file project-settings-file))
 	   (pda nil))
       ;; `locate-dominating-file' may have abbreviated the name.
-      (if settings (setq settings (expand-file-name ".dir-settings.el" settings)))
+      (if settings
+	  (setq settings (expand-file-name project-settings-file settings)))
       (dolist (x project-directory-alist)
 	(when (and (eq t (compare-strings file nil (length (car x))
 					  (car x) nil nil))
