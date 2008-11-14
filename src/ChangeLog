@@ -1,3 +1,7 @@
+2008-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (OBJ1, WIN32OBJ): Fix whitespace.
+
 2008-11-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1260000.
