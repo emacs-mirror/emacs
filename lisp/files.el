@@ -239,7 +239,11 @@ and there is never any instant where the file is nonexistent.
 
 Note that this feature forces backups to be made by copying.
 Yet, at the same time, saving a precious file
-breaks any hard links between it and other files."
+breaks any hard links between it and other files.
+
+This feature is advisory: for example, if the directory in which the
+file is being saved is not writeable, Emacs may ignore a non-nil value
+of `file-precious-flag' and write directly into the file."
   :type 'boolean
   :group 'backup)
 

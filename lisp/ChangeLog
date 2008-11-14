@@ -1,3 +1,8 @@
+2008-11-14  Karl Fogel  <kfogel@red-bean.com>
+
+	* files.el (file-precious-flag): Document that this flag is
+	advisory.
+
 2008-11-14  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
 
 	* emacs-lisp/bytecomp.el (byte-compile-associative)
