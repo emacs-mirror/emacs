@@ -3217,14 +3217,21 @@ That command is designed for interactive use only" fn))
 (defun byte-compile-associative (form)
   (if (cdr form)
       (let ((opcode (get (car form) 'byte-opcode))
-	    (args (copy-sequence (cdr form))))
-	(byte-compile-form (car args))
-	(setq args (cdr args))
-	(or args (setq args '(0)
-		       opcode (get '+ 'byte-opcode)))
-	(dolist (arg args)
-	  (byte-compile-form arg)
-	  (byte-compile-out opcode 0)))
+	    args)
+	(if (and (< 3 (length form))
+		 (memq opcode (list (get '+ 'byte-opcode)
+				    (get '* 'byte-opcode))))
+	    ;; Don't use binary operations for > 2 operands, as that
+	    ;; may cause overflow/truncation in float operations.
+	    (byte-compile-normal-call form)
+	  (setq args (copy-sequence (cdr form)))
+	  (byte-compile-form (car args))
+	  (setq args (cdr args))
+	  (or args (setq args '(0)
+			 opcode (get '+ 'byte-opcode)))
+	  (dolist (arg args)
+	    (byte-compile-form arg)
+	    (byte-compile-out opcode 0))))
     (byte-compile-constant (eval form))))
 
 
@@ -3303,24 +3310,30 @@ That command is designed for interactive use only" fn))
 	  ((byte-compile-normal-call form)))))
 
 (defun byte-compile-minus (form)
-  (if (null (setq form (cdr form)))
-      (byte-compile-constant 0)
-    (byte-compile-form (car form))
-    (if (cdr form)
-	(while (setq form (cdr form))
-	  (byte-compile-form (car form))
-	  (byte-compile-out 'byte-diff 0))
-      (byte-compile-out 'byte-negate 0))))
+  (let ((len (length form)))
+    (cond
+     ((= 1 len) (byte-compile-constant 0))
+     ((= 2 len)
+      (byte-compile-form (cadr form))
+      (byte-compile-out 'byte-negate 0))
+     ((= 3 len) 
+      (byte-compile-form (nth 1 form))
+      (byte-compile-form (nth 2 form))
+      (byte-compile-out 'byte-diff 0))
+     ;; Don't use binary operations for > 2 operands, as that may
+     ;; cause overflow/truncation in float operations.
+     (t (byte-compile-normal-call form)))))
 
 (defun byte-compile-quo (form)
   (let ((len (length form)))
     (cond ((<= len 2)
 	   (byte-compile-subr-wrong-args form "2 or more"))
+	  ((= len 3)
+	   (byte-compile-two-args form))
 	  (t
-	   (byte-compile-form (car (setq form (cdr form))))
-	   (while (setq form (cdr form))
-	     (byte-compile-form (car form))
-	     (byte-compile-out 'byte-quo 0))))))
+	   ;; Don't use binary operations for > 2 operands, as that
+	   ;; may cause overflow/truncation in float operations.
+	   (byte-compile-normal-call form)))))
 
 (defun byte-compile-nconc (form)
   (let ((len (length form)))
