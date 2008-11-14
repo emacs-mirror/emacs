@@ -1,3 +1,8 @@
+2008-11-14  Fabrice Popineau  <fabrice.popineau@supelec.fr>  (tiny change)
+
+	* fileio.c (Finsert_file_contents): Decrement specpdl_ptr to avoid
+	double file close.
+
 2008-11-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (window_loop): In DELETE_BUFFER_WINDOWS case, reset
