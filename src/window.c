@@ -2278,6 +2278,8 @@ window_loop (type, obj, mini, frames)
 		       display there.  */
 		    Lisp_Object buffer;
 		    buffer = Fother_buffer (obj, Qnil, w->frame);
+		    /* Reset dedicated state of window.  */
+		    w->dedicated = Qnil;
 		    Fset_window_buffer (window, buffer, Qnil);
 		    if (EQ (window, selected_window))
 		      Fset_buffer (w->buffer);
