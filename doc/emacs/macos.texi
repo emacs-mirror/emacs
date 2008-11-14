@@ -8,421 +8,484 @@
 @cindex Macintosh
 
   This section briefly describes the peculiarities of using Emacs
-under Mac OS with native window system support.  For Mac OS X, Emacs
+under Mac OS X with native window system support.  For Mac OS X, Emacs
 can be built either without window system support, with X11, or with
-Carbon API.  This section only applies to the Carbon build.  For Mac
-OS Classic, Emacs can be built with or without Carbon API, and this
-section applies to either of them because they run on the native
-window system.
+the Cocoa interface.  This section only applies to the Cocoa build.
+Emacs 23 does not support Mac OS Classic.
 
-  Emacs built on Mac OS X supports most of its major features except
-display support of PostScript images.  The following features of Emacs
-are not supported on Mac OS Classic: unexec (@code{dump-emacs}),
-asynchronous subprocesses (@code{start-process}), and networking
-(@code{open-network-stream}).  As a result, packages such as Gnus,
-GUD, and Comint do not work.  Synchronous subprocesses
-(@code{call-process}) are supported on non-Carbon build, but
-specially-crafted external programs are needed.  Since external
-programs to handle commands such as @code{print-buffer} and
-@code{diff} are not available on Mac OS Classic, they are not
-supported.  Non-Carbon build on Mac OS Classic does not support some
-features such as file dialogs, drag-and-drop, and Unicode menus.
+  Emacs, when built on Mac OS X, uses the Cocoa application interface.
+For various historical and technical reasons, Emacs uses the term
+@samp{Nextstep} internally, instead of ``Cocoa'' or ``Mac OS X''; for
+instance, most of the commands and variables described in the
+following sections begin with @samp{ns-}, which is short for
+@samp{Nextstep}.  NeXTstep was an application interface released by
+NeXT Inc during the 1980s, of which Cocoa is a direct descendent.
+Apart from Cocoa, there is another NeXTstep-style system: GNUstep,
+which is free software.  As of this writing, the GNUstep support is
+not fully functional, but we hope to improve it in the future.
 
 @menu
-* Input: Mac Input.                Keyboard and mouse input on Mac.
-* Intl: Mac International.         International character sets on Mac.
-* Env: Mac Environment Variables.  Setting environment variables for Emacs.
-* Directories: Mac Directories.    Volumes and directories on Mac.
-* Font: Mac Font Specs.            Specifying fonts on Mac.
-* Functions: Mac Functions.        Mac-specific Lisp functions.
+* Mac Basics::          Basic Emacs usage in Mac OS.
+* Mac Events::          How window system events are handled.
+* Mac Preferences::     Using the Preferences Panel to customize Emacs.
+* Mac Customization::   Customizations in Mac OS
 @end menu
 
-@node Mac Input
-@section Keyboard and Mouse Input on Mac
-@cindex Meta (Mac OS)
-@cindex keyboard coding (Mac OS)
+@node Mac Basics
+@section Basic Emacs usage in Mac OS
 
-@vindex mac-control-modifier
-@vindex mac-command-modifier
-@vindex mac-option-modifier
-@vindex mac-function-modifier
-  On Mac, Emacs can use @key{control}, @key{command}, @key{option}, and
-laptop @key{function} keys as any of Emacs modifier keys except
-@key{SHIFT} (i.e., @key{ALT}, @key{CTRL}, @key{HYPER}, @key{META}, and
-@key{SUPER}).  The assignment is controlled by the variables
-@code{mac-control-modifier}, @code{mac-command-modifier},
-@code{mac-option-modifier}, and @code{mac-function-modifier}.  The value
-for each of these variables can be one of the following symbols:
-@code{alt}, @code{control}, @code{hyper}, @code{meta}, @code{super}, and
-@code{nil} (no particular assignment).  By default, the @key{control}
-key works as @key{CTRL}, and the @key{command} key as @key{META}.
+  By default, the @key{alt} and @key{option} keys are the same as
+@key{Meta} when running under Mac OS.  The Mac @key{Cmd} key is the
+same as @key{Super}, and Emacs provides a set of keybindings using
+this modifier key that mimic other Mac applications (@pxref{Mac
+Events}).  You can change these bindings in the usual way (@pxref{Key
+Bindings}), or by using the Mac preferences panel (@pxref{Mac
+Preferences}).
 
-  For the @key{option} key, if @code{mac-option-modifier} is set to
-@code{nil}, which is the default, the key works as the normal
-@key{option} key, i.e., dead-key processing will work.  This is useful
-for entering non-@acronym{ASCII} Latin characters directly from the
-Mac keyboard, for example.
+  The standard Mac font and color panels are accessible via the
+@samp{Windows} menu, or via the standard @key{Cmd-t} and @key{Cmd-C}
+keybindings.  To use the color panel, drag from it to an Emacs frame
+to change the foreground color of the face at that position (if the
+@key{shift} key is held down, it changes the background color
+instead).  To finalize the settings for either color or font, choose
+@samp{Save Options} in the @samp{Options} menu.  To discard the
+settings, create a new frame and close the altered one.
 
-  Emacs recognizes the setting in the Keyboard control panel (Mac OS
-Classic) or the International system preference pane (Mac OS X) and
-supports international and alternative keyboard layouts (e.g., Dvorak).
-Selecting one of the layouts from the keyboard layout pull-down menu
-will affect how the keys typed on the keyboard are interpreted.
+  In Mac OS, @key{S-Mouse-1} (i.e., clicking the left mouse button
+while holding down the @key{Shift} key) adjusts the region to the
+click position, just like @key{Mouse-3} (@code{mouse-save-then-kill});
+it does not pop up a menu for changing the default face, as
+@key{S-Mouse-1} normally does (@pxref{Temporary Face Changes}).  This
+change makes Emacs behave more like other Mac applications.
 
-@vindex mac-pass-command-to-system
-@vindex mac-pass-control-to-system
-  Mac OS intercepts and handles certain key combinations (e.g.,
-@key{command}-@key{SPC} for switching input languages).  These will not
-be passed to Emacs.  One can disable this interception by setting
-@code{mac-pass-command-to-system} or @code{mac-pass-control-to-system}
-to @code{nil}.
+  When you open or save files using the menus, or using the standard
+@key{Cmd-o} and @key{Cmd-S} bindings, Emacs uses graphical file
+dialogs to read file names.  However, if you use the regular Emacs key
+sequences, such as @key{C-x C-f}, Emacs uses the minibuffer to read
+file names.
 
-@vindex mac-emulate-three-button-mouse
-  Especially for one-button mice, the multiple button feature can be
-emulated by setting @code{mac-emulate-three-button-mouse} to @code{t}
-or @code{reverse}.  If set to @code{t} (@code{reverse}, respectively),
-pressing the mouse button with the @key{option} key is recognized as
-the second (third) button, and that with the @key{command} key is
-recognized as the third (second) button.
+  When Emacs is called by a name which ends in @file{-nw}, it will
+always start in terminal mode.  For example, if you need a
+terminal-only Emacs, create a symbolic link from @file{emacs} to
+@file{emacs-nw} and launch @file{emacs-nw}.
 
-@vindex mac-wheel-button-is-mouse-2
-  For multi-button mice, the wheel button and the secondary button are
-recognized as the second and the third button, respectively.  If
-@code{mac-wheel-button-is-mouse-2} is set to @code{nil}, their roles
-are exchanged.
+  On GNUstep, in an X-windows environment you need to use @key{Cmd-c}
+instead of one of the @key{C-w} or @key{M-w} commands to transfer text
+to the X primary selection; otherwise, Emacs will use the
+``clipboard'' selection.  Likewise, @key{Cmd-y} (instead of @key{C-y})
+yanks from the X primary selection instead of the kill-ring or
+clipboard.
 
-@node Mac International
-@section International Character Set Support on Mac
-@cindex Mac Roman coding system
-@cindex clipboard support (Mac OS)
+@node Mac Events
+@section Windowing System Events in Mac OS X
 
-  Mac uses non-standard encodings for the upper 128 single-byte
-characters.  They also deviate from the ISO 2022 standard by using
-character codes in the range 128-159.  The coding systems
-@code{mac-roman}, @code{mac-centraleurroman}, and @code{mac-cyrillic}
-are used to represent these Mac encodings.
+  Nextstep applications receive a number of special events which have
+no X equivalent.  These are sent as specially defined ``keys'', which
+do not correspond to any sequence of keystrokes.  Under Emacs, these
+``key'' events can be bound to functions just like ordinary
+keystrokes.  Here is a list of these events.
 
-  You can use input methods provided either by LEIM (@pxref{Input
-Methods}) or Mac OS to enter international characters.  To use the
-former, see the International Character Set Support section of the
-manual (@pxref{International}).
+@table @key
+@item ns-open-file
+@vindex ns-pop-up-frames
+This event occurs when another Nextstep application requests that
+Emacs open a file.  A typical reason for this would be a user
+double-clicking a file in the Finder application.  By default, Emacs
+responds to this event by opening a new frame and visiting the file in
+that frame (@code{ns-find-file}), As an exception, if the selected
+buffer is the @samp{*scratch*} buffer, Emacs visits the file in the
+the selected frame.
 
-  Emacs on Mac OS automatically changes the value of
-@code{keyboard-coding-system} according to the current keyboard
-layout.  So users don't need to set it manually, and even if set, it
-will be changed when the keyboard layout change is detected next time.
+You can change how Emacs responds to @key{ns-open-file} by changing
+the variable @code{ns-pop-up-frames}.  Its default value,
+@code{'fresh}, is what we have just described.  A value of @code{t}
+means to always visit the file in a new frame.  A value of @code{nil}
+means to always visit the file in an existing frame.
 
-  The Mac clipboard and the Emacs kill ring (@pxref{Killing}) are
-synchronized by default: you can yank a piece of text and paste it
-into another Mac application, or cut or copy one in another Mac
-application and yank it into a Emacs buffer.  This feature can be
-disabled by setting @code{x-select-enable-clipboard} to @code{nil}.
-One can still do copy and paste with another application from the Edit
-menu.
+@item ns-open-temp-file
+This event occurs when another application requests that Emacs open a
+temporary file.  By default, this is handled by just generating a
+@code{ns-open-file} event, the results of which are described above.
 
-  On Mac, the role of the coding system for selection that is set by
-@code{set-selection-coding-system} (@pxref{Communication Coding}) is
-two-fold.  First, it is used as a preferred coding system for the
-traditional text flavor that does not specify any particular encodings
-and is mainly used by applications on Mac OS Classic.  Second, it
-specifies the intermediate encoding for the UTF-16 text flavor that is
-mainly used by applications on Mac OS X.
+You can bind @key{ns-pop-up-frames} and @key{ns-open-temp-file} to
+other Lisp functions.  When the event is registered, the name of the
+file to open is stored in the variable @code{ns-input-file}.
 
-  When pasting UTF-16 text data from the clipboard, it is first
-converted to the encoding specified by the selection coding system
-using the converter in the Mac OS system, and then decoded into the
-Emacs internal encoding using the converter in Emacs.  If the first
-conversion failed, then the UTF-16 data is directly converted to Emacs
-internal encoding using the converter in Emacs.  Copying UTF-16 text
-to the clipboard goes through the inverse path.  The reason for this
-two-pass decoding is to avoid subtle differences in Unicode mappings
-between the Mac OS system and Emacs such as various kinds of hyphens,
-and to minimize users' customization.  For example, users that mainly
-use Latin characters would prefer Greek characters to be decoded into
-the @code{mule-unicode-0100-24ff} charset, but Japanese users would
-prefer them to be decoded into the @code{japanese-jisx0208} charset.
-Since the coding system for selection is automatically set according
-to the system locale setting, users usually don't have to set it
-manually.
+@item ns-open-file-line
+Some applications, such as ProjectBuilder and gdb, request not only a
+particular file, but also a particular line or sequence of lines in
+the file.  Emacs handles this by visiting that file and highlighting
+the requested line (@code{ns-open-file-select-line}).
 
-  The default language environment (@pxref{Language Environments}) is
-set according to the locale setting at the startup time.  On Mac OS,
-the locale setting is consulted in the following order:
+@item ns-drag-file
+This event occurs when a user drags files from another application
+into an Emacs frame.  The default behavior is to insert the contents
+of all the dragged files into the current buffer
+(@code{ns-insert-files}).  The list of dragged files is stored in the
+variable @code{ns-input-file}.
 
-@enumerate
+@item ns-drag-color
+This event occurs when a user drags a color from the color well (or
+some other source) into an Emacs frame.  The default behavior is to
+alter the foreground color of the area the color was dragged onto
+(@code{ns-set-foreground-at-mouse}).  If this event is issued with a
+@key{Shift} modifier, Emacs changes the background color instead
+(@code{ns-set-background-at-mouse}).  The name of the dragged color is
+stored in the variable @code{ns-input-color}.
+
+@item ns-change-font
+This event occurs when the user selects a font in a Nextstep font
+panel (which can be opened with @kbd{Cmd-t}).  The default behavior is
+to adjust the font of the selected frame
+(@code{ns-respond-to-changefont}).  The name and size of the selected
+font are stored in the variables @code{ns-input-font} and
+@code{ns-input-fontsize} respectively.
+
+@item ns-power-off
+This event occurs when the user logs out and Emacs is still running.
+The default behavior is to save all file-visiting buffers without
+confirmation, and exit.
+@end table
+
+  Emacs also allows users to make use of Nextstep services, via a set
+of commands whose names begin with @samp{ns-service-} and end with the
+name of the service.  Type @kbd{M-x ns-service-@key{TAB}@key{TAB}} to
+see a list of these commands.  These functions either operate on
+marked text (replacing it with the result) or take a string argument
+and return the result as a string.  You can also use the Lisp function
+@code{ns-perform-service} to pass arbitrary strings to arbitrary
+services and receive the results back.  Note that you may need to
+restart Emacs to access newly-available services.
+
+@node Mac Preferences
+@section Mac Preferences
+
+The Preferences panel can be used to set or change some of the
+settings for Emacs such as the text appearance, cursor settings, and
+key bindings.
+
+  To save any settings changed through the Preferences panel, click on
+@samp{OK}; this has the same effect as if you had explicitly chosen
+@samp{Help / Save Preferences}.
+
+  To restore Emacs to use its default settings click @samp{Reset to
+Defaults} from the Preferences Panel.
+
+  Additional preferences may be set from the command line using the
+@command{defaults} command.  @xref{Mac Customization}.
+
+Font and color settings can be set using the standard NeXTstep font
+and color panels.
+
+@itemize @bullet
 @item
-Environment variables @env{LC_ALL}, @env{LC_CTYPE} and @env{LANG} as
-in other systems.
+To set the default font used by Emacs click the Default Font... button
+to launch the Font Panel.  Click on a frame before selecting the font
+family, typeface, and size of the default font from the Font Panel.
+
+Note that the default font will not be changed if a frame hasn't been
+selected first.
 
 @item
-Preference @code{AppleLocale} that is set by default on Mac OS X 10.3
-and later.
+To set the default foreground or background color click the
+Colors... button to launch the Color Panel.  Choose the color you want
+using any of the color models (color wheel, sliders, palette, image,
+or crayons) available from the Colors toolbar.  To apply the color
+drag a swatch from the color bar at the top of the panel to text on
+an Emacs frame.  Holding down shift will change the background color
+instead of the foreground.
 
 @item
-Preference @code{AppleLanguages} that is set by default on Mac OS X
-10.1 and later.
+To use antialiased text check the Smooth Fonts option.  Lighter font
+smoothing can be achieved by checking the Use Quickdraw (lighter)
+smoothing option.
 
 @item
-Variable @code{mac-system-locale} that is derived from the system
-language and region codes.  This variable is available on all
-supported Mac OS versions including Mac OS Classic.
-@end enumerate
+To change the line height that text is displayed at drag the Expand
+Line Spacing slider.  When the slider is set to 0.0 Emacs will use the
+same line height as other Mac OS X applications.  To increase the line
+height (and decrease the number of lines that can be displayed on the
+screen) drag the slider towards 1.0.  To decrease the line height
+(increases the number of lines that can be displayed) drag the slider
+towards -1.0.
 
-  The default values of almost all variables about coding systems are
-also set according to the language environment.  So usually you don't
-have to customize these variables manually.
+After the line spacing setting has been changed Emacs must be restarted
+to take account of the change.
 
-@node Mac Environment Variables
-@section Environment Variables and Command Line Arguments.
-@cindex environment variables (Mac OS)
+@end itemize
 
-  On Mac OS X, when Emacs is run in a terminal, it inherits the values
-of environment variables from the shell from which it is invoked.
-However, when it is run from the Finder as a GUI application, it only
-inherits environment variable values defined in the file
-@file{~/.MacOSX/environment.plist} that affects all the applications
-invoked from the Finder or the @command{open} command.
+The Display Preferences can be used to change the appearance of the
+default cursor used by Emacs.
 
-  Command line arguments are specified like
+@itemize @bullet
+@item
+The Cursor Type radio buttons can be used to select the style used for the cursor:
 
-@example
-/Applications/Emacs.app/Contents/MacOS/Emacs -g 80x25 &
-@end example
+@itemize
+@item
+Box - the cursor is displayed as a box
+@item
+Underscore - the cursor is displayed as a horizontal bar
+@item
+Bar - the cursor is displayed as a vertical bar
+@item
+Hollow - the cursor is displayed as a box with an outline but no fill
+@end itemize
 
-@noindent
-if Emacs is installed at @file{/Applications/Emacs.app}.  If Emacs is
-invoked like this, then it also inherits the values of environment
-variables from the shell from which it is invoked.
+@item
+Use the Cursor Blink Rate slider to set the frequency at which the cursor blinks.
 
-  On Mac OS Classic, environment variables and command line arguments
-for Emacs can be set by modifying the @samp{STR#} resources 128 and
-129, respectively.  A common environment variable that one may want to
-set is @samp{HOME}.
+@item
+Check the Use System Highlight Color option to use the system default
+color for highlighted text.
 
-  The way to set an environment variable is by adding a string of the
-form
+@end itemize
 
-@example
-ENV_VAR=VALUE
-@end example
+The Modifier Preferences can be used to change the behaviour of the
+Alt/Opt and Command keys.  By default the Alt or Opt key is bound to
+the Emacs 'Meta' key, and the Command key is bound to 'super' which
+allows the Command key to function in a way similar to other
+NeXTstep/OS X applications.
 
-@noindent
-to resource @samp{STR#} number 128 using @code{ResEdit}. To set up the
-program to use unibyte characters exclusively, for example, add the
-string
+@itemize @bullet
+@item
+To re-bind the Alt or Opt key select a keybinding from the Alt/Opt Key
+combo box.
+@item
+To re-bind the Command key select a keybinding from the Command Key
+combo box.
+@end itemize
 
-@example
-EMACS_UNIBYTE=1
-@end example
+@node Mac Customization
+@section Mac Customization
 
-@cindex Mac Preferences
-  Although Emacs on Mac does not support X resources (@pxref{X
-Resources}) directly, one can use the Preferences system in place of X
-resources.  For example, adding the line
+Under X, resources are used to customize the behavior of Emacs to the
+needs of the user.  Nexstep defaults fulfill a similar function.  From
+the command line, the command @samp{defaults read org.gnu.Emacs} show
+these resources as of the last Emacs exited, and individual resources
+can be read or written by commands like @samp{defaults read Emacs Foo}
+and @samp{defaults write Emacs Foo barvalue}.
 
-@example
-Emacs.cursorType: bar
-@end example
+  Calling the function @code{ns-save-preferences} in lisp, or
+selecting the @samp{Option / Save Options} menu item, automatically
+writes out the defaults corresponding to the selected window.
 
-@noindent
-to @file{~/.Xresources} in X11 corresponds to the execution of
+  In addition, you can set many of the following customizations by
+setting @code{default-frame-alist} in your initialization file.
 
-@example
-defaults write org.gnu.Emacs Emacs.cursorType bar
-@end example
+  Many of the preferences relating specifically to the Nextstep
+windowing system (such as font rendering and the cursor type) can be
+set using the Preferences panel (@pxref{Mac Preferences}).  It is
+important to note that when you hit @samp{OK} on this panel,
+@emph{all} Nextstep settings are saved (including font and colors).
 
-@noindent
-on Mac OS X.  One can use boolean or numeric values as well as string
-values as follows:
+This is a listing of some of the more useful defaults (and their
+default values).  Several of these defaults accept the names of colors
+as values.  For a list of all available colors pull up the color panel
+and look at the color list called @samp{Emacs}.  Emacs also accepts
+color specifications of the form @samp{ARGBaarrggbb} where @var{aa},
+@var{rr}, @var{gg}, and @var{bb} are two hexadecimal digits describing
+the alpha, red, green, and blue content of the color respectively.
+@samp{HSBhhssbb}, @samp{CMYKccmmyykk} and @samp{GRAYgg} are the
+equivalents in @samp{HSB}, @samp{CMYK} and gray scales.  (For HSB,
+@samp{AHSBaahhssbb} is also accepted.)
 
-@example
-defaults write org.gnu.Emacs Emacs.toolBar -bool false
-defaults write org.gnu.Emacs Emacs.lineSpacing -int 3
-@end example
-
-@noindent
-Try @kbd{M-x man RET defaults RET} for the usage of the
-@command{defaults} command.  Alternatively, if you have Developer
-Tools installed on Mac OS X, you can use Property List Editor to edit
-the file @file{~/Library/Preferences/org.gnu.Emacs.plist}.
-
-
-@node Mac Directories
-@section Volumes and Directories on Mac
-@cindex file names (Mac OS)
-
-  This node applies to Mac OS Classic only.
-
-  The directory structure in Mac OS Classic is seen by Emacs as
-
-@example
-/@var{volumename}/@var{filename}
-@end example
-
-So when Emacs requests a file name, doing file name completion on
-@file{/} will display all volumes on the system.  You can use @file{..}
-to go up a directory level.
-
-  On Mac OS Classic, to access files and folders on the desktop, look
-in the folder @file{Desktop Folder} in your boot volume (this folder
-is usually invisible in the Mac @code{Finder}).
-
-  On Mac OS Classic, Emacs creates the Mac folder
-@file{:Preferences:Emacs:} in the @file{System Folder} and uses it as
-the temporary directory.  Emacs maps the directory name @file{/tmp/}
-to that.  Therefore it is best to avoid naming a volume @file{tmp}.
-If everything works correctly, the program should leave no files in it
-when it exits.  You should be able to set the environment variable
-@code{TMPDIR} to use another directory but this folder will still be
-created.
-
-
-@node Mac Font Specs
-@section Specifying Fonts on Mac
-@cindex font names (Mac OS)
-
-  It is rare that you need to specify a font name in Emacs; usually
-you specify face attributes instead.  For example, you can use 14pt
-Courier by customizing the default face attributes for all frames:
-
-@lisp
-(set-face-attribute 'default nil
-                    :family "courier" :height 140)
-@end lisp
-
-@noindent
-Alternatively, an interactive one is also available
-(@pxref{Face Customization}).
-
-But when you do need to specify a font name in Emacs on Mac, use a
-standard X font name:
-
-@smallexample
--@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}
-@dots{}-@var{pixels}-@var{height}-@var{horiz}-@var{vert}-@var{spacing}-@var{width}-@var{charset}
-@end smallexample
-
-@noindent
-@xref{Font X}.  Wildcards are supported as they are on X.
-
-  Emacs on Mac OS Classic uses QuickDraw Text routines for drawing texts
-by default.  Emacs on Mac OS X uses @acronym{ATSUI, Apple Type Services
-for Unicode Imaging} as well as QuickDraw Text, and most of the
-characters other than Chinese, Japanese, and Korean ones are drawn using
-the former by default.
-
-  @acronym{ATSUI}-compatible fonts have maker name @code{apple} and
-charset @code{iso10646-1}.  For example, 12-point Monaco can be specified
-by the name:
+@table @samp
+@item InternalBorderWidth
+Width in pixels of the internal border of the Nextstep frame.  This
+acts to separate the text area of the window from the fringes,
+scrollbars, and/or edges.
 
 @example
--apple-monaco-medium-r-normal--12-*-*-*-*-*-iso10646-1
+defaults write Emacs InternalBorderWidth 2
 @end example
 
-Note that these names must be specified using a format containing all
-14 @samp{-}s (not by
-@samp{-apple-monaco-medium-r-normal--12-*-iso10646-1}, for instance),
-because every @acronym{ATSUI}-compatible font is a scalable one.
-
-  QuickDraw Text fonts have maker name @code{apple} and various charset
-names other than @code{iso10646-1}.  Native Apple fonts in Mac Roman
-encoding has charset @code{mac-roman}.  You can specify a
-@code{mac-roman} font for @acronym{ASCII} characters like
-
-@smalllisp
-(add-to-list
- 'default-frame-alist
- '(font . "-apple-monaco-medium-r-normal--13-*-*-*-*-*-mac-roman"))
-@end smalllisp
-
-@noindent
-but that does not extend to ISO-8859-1: specifying a @code{mac-roman}
-font for Latin-1 characters introduces wrong glyphs.
-
-  Native Apple Traditional Chinese, Simplified Chinese, Japanese,
-Korean, Central European, Cyrillic, Symbol, and Dingbats fonts have
-the charsets @samp{big5-0}, @samp{gb2312.1980-0},
-@samp{jisx0208.1983-sjis} and @samp{jisx0201.1976-0},
-@samp{ksc5601.1989-0}, @samp{mac-centraleurroman},
-@samp{mac-cyrillic}, @samp{mac-symbol}, and @samp{mac-dingbats},
-respectively.
-
-  The use of @code{create-fontset-from-fontset-spec} (@pxref{Defining
-Fontsets}) for defining fontsets often results in wrong ones especially
-when using only OS-bundled QuickDraw Text fonts.  The recommended way to
-use them is to create a fontset using
-@code{create-fontset-from-mac-roman-font}:
-
-@lisp
-(create-fontset-from-mac-roman-font
- "-apple-courier-medium-r-normal--13-*-*-*-*-*-mac-roman"
- nil "foo")
-@end lisp
-
-@noindent
-and then optionally specifying Chinese, Japanese, or Korean font
-families using @code{set-fontset-font}:
-
-@lisp
-(set-fontset-font "fontset-foo"
-		  'chinese-gb2312 '("song" . "gb2312.1980-0"))
-@end lisp
-
-  Single-byte fonts converted from GNU fonts in BDF format, which are not
-in the Mac Roman encoding, have foundry, family, and character sets
-encoded in the names of their font suitcases.  E.g., the font suitcase
-@samp{ETL-Fixed-ISO8859-1} contains fonts which can be referred to by
-the name @samp{-ETL-fixed-*-iso8859-1}.
-
-@vindex mac-allow-anti-aliasing
-  Mac OS X 10.2 or later can use two types of text renderings: Quartz 2D
-(aka Core Graphics) and QuickDraw.  By default, Emacs uses the former on
-such versions.  It can be changed by setting
-@code{mac-allow-anti-aliasing} to @code{t} (Quartz 2D) or @code{nil}
-(QuickDraw).  Both @acronym{ATSUI} and QuickDraw Text drawings are
-affected by the value of this variable.
-
-  Appearance of text in small sizes will also be affected by the ``Turn
-off text smoothing for font sizes @var{n} and smaller'' setting in the
-General pane (Mac OS X 10.1 or 10.2) or in the Appearance pane (10.3 or
-later) of the System Preferences.  This threshold can alternatively be
-set just for Emacs (i.e., not as the system-wide setting) using the
-@command{defaults} command:
+@item VerticalScrollBars
+@samp{YES} or @samp{NO} to enable or disable scroll bars, @samp{left} or
+@samp{right} to explicitly set the side.
 
 @example
-defaults write org.gnu.Emacs AppleAntiAliasingThreshold @var{n}
+defaults write Emacs VerticalScrollBars YES
 @end example
 
+@item Font
+Name of the default font to be used for new frames (which can be
+overriden by various faces).  If this font is not set, Emacs will use
+the system wide fixed pitch font.  For most users the system fixed
+pitch font will be @samp{Monaco} which doesn't have any bold or italic
+versions.  (Italic will be synthesized.)
 
-@node Mac Functions
-@section Mac-Specific Lisp Functions
-@cindex Lisp functions specific to Mac OS
+@item FontSize
+Size of the font to be used for new frames.  If not set, Emacs will
+use the default size of the system wide fixed pitch font.
 
-@findex do-applescript
-  The function @code{do-applescript} takes a string argument,
-executes it as an AppleScript command, and returns the result as a
-string.
+@item Foreground
+The default foreground (text) color for new frames.
 
-@findex mac-file-name-to-posix
-@findex posix-file-name-to-mac
-  The function @code{mac-file-name-to-posix} takes a Mac file name and
-returns the GNU or Unix equivalent.  The function
-@code{posix-file-name-to-mac} performs the opposite conversion.  They
-are useful for constructing AppleScript commands to be passed to
-@code{do-applescript}.
+@example
+defaults write Emacs Foreground "Black"
+@end example
 
-@findex mac-set-file-creator
-@findex mac-get-file-creator
-@findex mac-set-file-type
-@findex mac-get-file-type
-  The functions @code{mac-set-file-creator},
-@code{mac-get-file-creator}, @code{mac-set-file-type}, and
-@code{mac-get-file-type} can be used to set and get creator and file
-codes.
+@item Background
+The default background color for new frames.
 
-@findex mac-get-preference
-  The function @code{mac-get-preference} returns the preferences value
-converted to a Lisp object for a specified key and application.
+@example
+defaults write Emacs Background "White"
+@end example
+
+@item Height
+Height in rows of the default window.
+
+@example
+defaults write Emacs Height 48
+@end example
+
+@item Width
+Width in columns of the default window.
+
+@example
+defaults write Emacs Width 80
+@end example
+
+@item CursorType
+Name of the default cursor type for Emacs.  Allowed values are
+@samp{box}, @samp{hollow}, @samp{underscore}, @samp{bar},  @samp{line} and @samp{no}.
+
+@example
+defaults write Emacs CursorType box
+@end example
+
+@item CursorBlinkRate
+Users who want their cursor to blink can set the rate (in seconds) with
+this defaults write.  Setting it to @samp{NO} disables cursor blinking.
+
+@example
+defaults write Emacs CursorBlinkRate NO
+@end example
+
+@item CursorColor
+Name of the default cursor color for Emacs.  Of a particular use for
+this setting is the @samp{Highlight} color.  When it is the cursor
+color, Emacs will draw the cursor using the standard Nextstep
+highlighting operator.
+
+@example
+defaults write Emacs CursorColor Highlight
+@end example
+
+@item Top
+Distance in pixels from the top of the screen of the upper left corner
+of the default window.
+
+@example
+defaults write Emacs Top 100
+@end example
+
+@item Left
+Distance in pixels from the left edge of the screen to the upper left
+corner of the default window.
+
+@example
+defaults write Emacs Left 100
+@end example
+
+@item HideOnAutoLaunch
+@samp{YES} or @samp{NO} to determine whether Emacs will hide itself when
+autolaunched from the dock.
+
+@example
+defaults write Emacs HideOnAutoLaunch NO
+@end example
+
+@item ExpandSpace
+This lets you expand or shrink the line height used for displaying
+text.  When this is set to 0.0, display should look like other
+Nextstep applications.  If you set it higher than 0, Emacs will spread
+the text lines apart, less than 0, compress them together.  (With
+settings below zero parts of characters may be chopped off in certain
+fonts.)  When using the Preferences panel, this is controlled by a
+slider.  You must OK the panel and then restart Emacs for this default
+to take effect.
+
+When setting this using @code{"defaults write"}, you can either set a floating
+point value, or @samp{YES}, which is equivalent 0.5, or @samp{NO}, which is
+equivalent to 0.0.
+
+@example
+defaults write Emacs ExpandSpace -0.125
+@end example
+
+@item GSFontAntiAlias
+This turns antialiasing on and off on.  Note that, on OS X, even if
+antialiasing is on, Emacs will not antialias text of a size below the system
+preference setting.
+
+@example
+defaults write Emacs GSFontAntiAlias NO
+@end example
+
+@item UseQuickdrawSmoothing
+On OS X 10.3 and higher, this will render fonts using Quickdraw antialiasing,
+which is less heavy than the Quartz antialiasing used by default.  Whether
+this is on or off, the system font size threshold for antialiasing (see above)
+is respected.
+
+@example
+defaults write Emacs UseQuickdrawSmoothing YES
+@end example
+
+@item AlternateModifier
+This allows you to set the effect of the Alt or Opt key.  The default is
+@samp{meta}, meaning to use as the Emacs 'meta' key.  You can also set this to
+@samp{command}, @samp{hyper}, @samp{alt}, or @samp{none}.  The last is useful
+for Continental users who normally use this key to enter accented and other
+special characters.
+
+@example
+defaults write Emacs AlternateModifier "none"
+@end example
+
+@item CommandModifier
+This allows you to set the effect of the Command key.  The default is
+@samp{super}, which is used in a set of keybindings such as @code{s-o} for
+``open file'' and @code{s-z} for ``undo'' that are similar to other NeXTstep
+applications.  On the other hand, some people who use the Alt/Opt key for
+accent entry like to set this to @samp{meta} so they still have easy access to
+Emacs functionality bound to meta keys.  You can also set this, like Alt/Opt,
+to @samp{hyper} or @samp{alt}, though there are no bindings to combinations
+using these keys by default.  The @samp{none} option is not available for the
+Command key.
+
+@example
+defaults write Emacs CommandModifier "meta"
+@end example
+
+@item fooFrame
+Position and size to use for the frame named @var{foo} when it is
+created.  The position and size have to be specified as a space
+separated list: @samp{top}, @samp{left}, @samp{height} and
+@samp{width}. @samp{top} and @samp{left} are expressed in pixels,
+@samp{height} is given in rows and @samp{width} is given in columns.
+Named frames can be created by e.g. @code{(make-frame '((name
+. "FOO")))}.
+
+@example
+defaults write Emacs TestFrame "100 200 30 70"
+@end example
+
+Another default previouly used by many Emacs users is this.
+
+@example
+defaults write Workspace DefaultOpenApp Emacs
+@end example
+
+It caused the NeXTstep Workspace to open files without a registered extension
+in Emacs instead of as usual Edit.  For this default to work, Emacs needed to
+be in the application search path of the Workspace (which usually includes
+@file{~/Applications} and @file{~/Applications}).  If anyone knows the current
+way to do this under OS X please contact the authors.
+
+@end table
 
 @ignore
    arch-tag: a822c2ab-4273-4997-927e-c153bb71dcf6
