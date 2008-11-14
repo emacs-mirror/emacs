@@ -1,3 +1,11 @@
+2008-11-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* macos.texi (Mac OS): Move Cocoa manual from ns-emacs.texi to here,
+	replacing previous contents.  Numerous copyedits to adapt ns-emacs to
+	the conventions of the main Emacs manual.
+
+	* emacs.texi (Top): Update node listings.
+
 2008-11-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cmdargs.texi (Emacs Invocation): Link to Emacs Server.  Note that
