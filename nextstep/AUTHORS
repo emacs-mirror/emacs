@@ -12,7 +12,7 @@ Scott Bender
 Christophe de Dinechin
     MacOS X port
 Adrian Robert
-    GNUstep port*, update Emacs 20 -> 21+
+    GNUstep port, update Emacs 20 -> 21+
 
 Joe Reiss
     popup menu, dialog boxes; icons
@@ -36,7 +36,24 @@ Carsten Bormann
 Andrew Moore
     assistance on ns-mark-nav extension
 
-(*)
-The GNUstep port was made possible through the assistance of Adam Fedor, Fred
-Kiefer, M. Uli Klusterer, Alexander Malmberg, Jonas Matton, and Riccardo
-Mottola.
+The GNUstep port was made possible through the assistance of Adam
+Fedor, Fred Kiefer, M. Uli Klusterer, Alexander Malmberg, Jonas
+Matton, and Riccardo Mottola.  Leigh Smith maintained the SourceForge
+project for a period.
+
+Suggestions from Darcy Brockbank, Timothy Bissell, Scott Byer, David
+Griffiths, Scott Hess, Eberhard Mandler, John C. Randolph, and Bradley
+Taylor all helped things along at one point or another.  Axel Seibert
+<seiberta@@informatik.tu-muenchen.de> and Paul J. Sanchez
+<paul@@whimsy.umsl.edu> offered their time and machines to make a
+binary release possible.
+
+We would also like to thank a number of people who kept up the
+constant supply of bug reports, suggested features and praise: Hardy
+Mayer, Gisli Ottarsson, Anthony Heading, David Bau, Jamie Zawinski,
+Martin Moncrieffe, Simson L. Garfinkel, Richard Stallman, Stephen
+Anderson, Ivo Welch, Magnus Nordborg, Tom Epperly, Andreas Koenig,
+Yves Arrouye, Anil Somayaji, Gregor Hoffleit; and the few hundred
+other people on the mailing list from whom we didn't hear much, but
+the presence of which assured us that maybe this project was actually
+worth doing.
