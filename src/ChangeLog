@@ -1,3 +1,9 @@
+2008-11-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (window_loop): In DELETE_BUFFER_WINDOWS case, reset
+	dedicated status of window before attempting to display another
+	buffer in it.
+
 2008-11-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* msdos.c (Fmsdos_long_file_names):
