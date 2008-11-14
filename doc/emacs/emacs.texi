@@ -981,12 +981,10 @@ X Options and Resources
 
 Emacs and Mac OS
 
-* Mac Input::           Keyboard and mouse input on Mac.
-* Mac International::   International character sets on Mac.
-* Mac Environment Variables::  Setting environment variables for Emacs.
-* Mac Directories::     Volumes and directories on Mac.
-* Mac Font Specs::      Specifying fonts on Mac.
-* Mac Functions::       Mac-specific Lisp functions.
+* Mac Basics::          Basic Emacs usage in Mac OS.
+* Mac Events::          How window system events are handled.
+* Mac Preferences::     Using the Preferences Panel to customize Emacs.
+* Mac Customization::   Customizations in Mac OS
 
 Emacs and Microsoft Windows/MS-DOS
 
