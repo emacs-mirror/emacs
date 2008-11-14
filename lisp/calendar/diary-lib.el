@@ -106,7 +106,7 @@ is pre-pended to REGEXP for file-wide specifiers.  ATTRIBUTE
 specifies which face attribute (e.g. `:foreground') to modify, or
 that this is a face (`:face') to apply.  TYPE is the type of
 attribute being applied.  Available TYPES (see `diary-attrtype-convert')
-are: `string', `symbol', `int', `tnil',`stringtnil.'"
+are: `string', `symbol', `int', `tnil', `stringtnil.'"
   :type '(repeat (list (string :tag "Regular expression")
                        (integer :tag "Sub-expression")
                        (symbol :tag "Attribute (e.g. :foreground)")

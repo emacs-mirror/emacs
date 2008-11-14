@@ -487,7 +487,7 @@ specified in a -*- line.")
 (defcustom enable-local-eval 'maybe
   "Control processing of the \"variable\" `eval' in a file's local variables.
 The value can be t, nil or something else.
-A value of t means obey `eval' variables;
+A value of t means obey `eval' variables.
 A value of nil means ignore them; anything else means query."
   :type '(choice (const :tag "Obey" t)
 		 (const :tag "Ignore" nil)
@@ -1116,8 +1116,8 @@ creates a buffer with that name.
 When called from Lisp, BUFFER can be a buffer, a string \(a buffer name),
 or nil.  If BUFFER is nil, then this function chooses a buffer
 using `other-buffer'.
-Optional second arg NORECORD non-nil means
-do not put this buffer at the front of the list of recently selected ones.
+Optional second arg NORECORD non-nil means do not put this
+buffer at the front of the list of recently selected ones.
 This function returns the buffer it switched to.
 
 This uses the function `display-buffer' as a subroutine; see its
@@ -3167,11 +3167,11 @@ for a class are defined using `define-project-bindings'."
     (error "No such project class `%s'" (symbol-name class)))
   (push (cons directory class) project-directory-alist))
 
-(defun define-project-bindings (class list)
+(defun define-project-bindings (class settings)
   "Map the project type CLASS to a list of variable settings.
 CLASS is the project class, a symbol.
-LIST is a list that declares variable settings for the class.
-An element in LIST is either of the form:
+SETTINGS is a list that declares variable settings for the class.
+An element in SETTINGS is either of the form:
     (MAJOR-MODE . ALIST)
 or
     (DIRECTORY . LIST)
@@ -3199,8 +3199,8 @@ LIST.  The list is processed in order.
   applied by recursively following these rules."
   (let ((elt (assq class project-class-alist)))
     (if elt
-	(setcdr elt list)
-      (push (cons class list) project-class-alist))))
+	(setcdr elt settings)
+      (push (cons class settings) project-class-alist))))
 
 (defcustom project-settings-file ".dir-settings.el"
   "Settings file for per-project settings.
@@ -3219,11 +3219,11 @@ If the file is in a registered project, a cons from
 Otherwise this returns nil."
   (when project-settings-file
     (setq file (expand-file-name file))
-    (let* ((settings (locate-dominating-file file project-settings-file))
-	   (pda nil))
+    (let ((settings (locate-dominating-file file project-settings-file))
+	  (pda nil))
       ;; `locate-dominating-file' may have abbreviated the name.
-      (if settings
-	  (setq settings (expand-file-name project-settings-file settings)))
+      (when settings
+	(setq settings (expand-file-name project-settings-file settings)))
       (dolist (x project-directory-alist)
 	(when (and (eq t (compare-strings file nil (length (car x))
 					  (car x) nil nil))
@@ -4331,7 +4331,7 @@ change the additional actions you can take on files."
 
 (defun not-modified (&optional arg)
   "Mark current buffer as unmodified, not needing to be saved.
-With prefix arg, mark buffer as modified, so \\[save-buffer] will save.
+With prefix ARG, mark buffer as modified, so \\[save-buffer] will save.
 
 It is not a good idea to use this function in Lisp programs, because it
 prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
@@ -4514,9 +4514,9 @@ that is more recent than the visited file.
 This command also implements an interface for special buffers
 that contain text which doesn't come from a file, but reflects
 some other data instead (e.g. Dired buffers, `buffer-list'
-buffers).  This is done via the variable
-`revert-buffer-function'.  In these cases, it should reconstruct
-the buffer contents from the appropriate data.
+buffers).  This is done via the variable `revert-buffer-function'.
+In these cases, it should reconstruct the buffer contents from the
+appropriate data.
 
 When called from Lisp, the first argument is IGNORE-AUTO; only offer
 to revert from the auto-save file when this is nil.  Note that the
@@ -4524,8 +4524,8 @@ sense of this argument is the reverse of the prefix argument, for the
 sake of backward compatibility.  IGNORE-AUTO is optional, defaulting
 to nil.
 
-Optional second argument NOCONFIRM means don't ask for confirmation at
-all.  \(The variable `revert-without-query' offers another way to
+Optional second argument NOCONFIRM means don't ask for confirmation
+at all.  \(The variable `revert-without-query' offers another way to
 revert buffers without querying for confirmation.)
 
 Optional third argument PRESERVE-MODES non-nil means don't alter
@@ -4804,7 +4804,7 @@ This command is used in the special Dired buffer created by
       (kill-buffer buffer))))
 
 (defun kill-buffer-ask (buffer)
-  "Kill buffer if confirmed."
+  "Kill BUFFER if confirmed."
   (when (yes-or-no-p
          (format "Buffer %s %s.  Kill? " (buffer-name buffer)
                  (if (buffer-modified-p buffer)
@@ -4829,7 +4829,7 @@ specifies the list of buffers to kill, asking for approval for each one."
     (setq list (cdr list))))
 
 (defun kill-matching-buffers (regexp &optional internal-too)
-  "Kill buffers whose name matches the specified regexp.
+  "Kill buffers whose name matches the specified REGEXP.
 The optional second argument indicates whether to kill internal buffers too."
   (interactive "sKill buffers matching this regular expression: \nP")
   (dolist (buffer (buffer-list))
@@ -5623,7 +5623,7 @@ be a predicate function such as `yes-or-no-p'."
 
 (defun save-buffers-kill-emacs (&optional arg)
   "Offer to save each buffer, then kill this Emacs process.
-With prefix arg, silently save all file-visiting buffers, then kill."
+With prefix ARG, silently save all file-visiting buffers, then kill."
   (interactive "P")
   (save-some-buffers arg t)
   (and (or (not (memq t (mapcar (function
@@ -5653,7 +5653,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
   "Offer to save each buffer, then kill the current connection.
 If the current frame has no client, kill Emacs itself.
 
-With prefix arg, silently save all file-visiting buffers, then kill.
+With prefix ARG, silently save all file-visiting buffers, then kill.
 
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."

@@ -259,7 +259,7 @@ are fixed-pitch."
   "The content of the echo area before help echo was displayed.")
 
 (defun msdos-show-help (help)
-  "Function installed as `show-help-function' on MSDOS frames."
+  "Function installed as `show-help-function' on MS-DOS frames."
   (when (and (not (window-minibuffer-p)) ;Don't overwrite minibuffer contents.
              ;; Don't know how to reproduce it in Elisp:
              ;; Don't overwrite a keystroke echo.

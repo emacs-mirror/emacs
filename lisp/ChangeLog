@@ -1,3 +1,24 @@
+2008-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-fns.el (w32-shell-dos-semantics):
+	* calendar/diary-lib.el (diary-face-attrs):
+	* international/mule-cmds.el (set-default-coding-systems)
+	(prefer-coding-system):
+	* net/tramp.el (tramp-set-completion-function):
+	* progmodes/vhdl-mode.el (vhdl-file-header):
+	* term/pc-win.el (msdos-show-help): Fix typos in docstrings.
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Fix typo in value.
+
+	* files.el (enable-local-eval, not-modified, kill-buffer-ask)
+	(kill-matching-buffers, save-buffers-kill-emacs)
+	(save-buffers-kill-terminal): Fix typos in docstrings.
+	(switch-to-buffer-other-window): Reflow docstring.
+	(revert-buffer): Doc fix.
+	(define-project-bindings): Rename arg LIST to SETTINGS.
+	(project-find-settings-file): Use `let', not `let*'.
+	Use `when'.
+
 2008-11-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (project-settings-file, locate-dominating-file):

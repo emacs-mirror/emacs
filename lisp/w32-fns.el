@@ -103,7 +103,7 @@ That includes all Windows systems except for 9X/Me."
 	       w32-system-shells)))
 
 (defun w32-shell-dos-semantics ()
-  "Return non-nil if the interactive shell being used expects MSDOS shell semantics."
+  "Return non-nil if the interactive shell being used expects MS-DOS shell semantics."
   (or (w32-system-shell-p (w32-shell-name))
       (and (member (downcase (file-name-nondirectory (w32-shell-name)))
 		   '("cmdproxy" "cmdproxy.exe"))

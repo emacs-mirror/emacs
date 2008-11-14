@@ -1,3 +1,9 @@
+2008-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* msdos.c (Fmsdos_long_file_names):
+	(syms_of_msdos) <dos-unsupported-char-glyph>:
+	* dosfns.c (Fint86): Fix typos in docstrings.
+
 2008-11-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (OBJ1, WIN32OBJ): Fix whitespace.

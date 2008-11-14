@@ -4280,7 +4280,7 @@ int _rename(const char *old, const char *new)
 
 DEFUN ("msdos-long-file-names", Fmsdos_long_file_names, Smsdos_long_file_names,
        0, 0, 0,
-       doc: /* Return non-nil if long file names are supported on MSDOS.  */)
+       doc: /* Return non-nil if long file names are supported on MS-DOS.  */)
      ()
 {
   return (_USE_LFN ? Qt : Qnil);
@@ -5247,7 +5247,7 @@ syms_of_msdos ()
 
   DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
 	       doc: /* *Glyph to display instead of chars not supported by current codepage.
-This variable is used only by MSDOS terminals.  */);
+This variable is used only by MS-DOS terminals.  */);
   Vdos_unsupported_char_glyph = make_number ('\177');
 
 #endif

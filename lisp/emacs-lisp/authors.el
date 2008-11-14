@@ -273,7 +273,7 @@ Changes to files in this list are not listed.")
     ("Geoff Voelker" :wrote "src/makefile.nt" "lisp/makefile.nt" "winnt.el"
      "nt.c" "nt.h" "ntheap.c" "ntheap.h" "ntinevt.c"
      "ntproc.c" "ntterm.c" "windowsnt.h")
-    ("Morten Welinder" :wrote "dosfns.c" "[many MSDOS files]" "msdos.h")
+    ("Morten Welinder" :wrote "dosfns.c" "[many MS-DOS files]" "msdos.h")
     ("Pace Willisson" :wrote "ispell.el")
     ("Garrett Wollman" :changed "sendmail.el")
     ("Dale R. Worley" :changed "mail-extr.el")

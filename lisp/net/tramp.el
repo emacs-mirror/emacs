@@ -2029,7 +2029,7 @@ FUNCTION-LIST is a list of entries of the form (FUNCTION FILE).
 The FUNCTION is intended to parse FILE according its syntax.
 It might be a predefined FUNCTION, or a user defined FUNCTION.
 Predefined FUNCTIONs are `tramp-parse-rhosts', `tramp-parse-shosts',
-`tramp-parse-sconfig',`tramp-parse-hosts', `tramp-parse-passwd',
+`tramp-parse-sconfig', `tramp-parse-hosts', `tramp-parse-passwd',
 and `tramp-parse-netrc'.
 
 Example:
