@@ -1,3 +1,7 @@
+2008-11-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1260000.
+
 2008-11-12  Michal Nazarewicz  <mina86@tlen.pl>  (tiny change)
 
 	* frame.c (x_set_alpha): Set alpha to -1 if nil given.
