@@ -3144,6 +3144,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   int read_quit = 0;
   Lisp_Object old_Vdeactivate_mark = Vdeactivate_mark;
   int we_locked_file = 0;
+  int deferred_remove_unwind_protect = 0;
 
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
@@ -3656,6 +3657,11 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       UNGCPRO;
       emacs_close (fd);
 
+      /* We should remove the unwind_protect calling
+	 close_file_unwind, but other stuff has been added the stack,
+	 so defer the removal till we reach the `handled' label.  */
+      deferred_remove_unwind_protect = 1;
+
       /* At this point, HOW_MUCH should equal TOTAL, or should be <= 0
 	 if we couldn't read the file.  */
 
@@ -4036,6 +4042,11 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 #endif
 
  handled:
+
+  if (deferred_remove_unwind_protect)
+    /* If requested above, discard the unwind protect for closing the
+       file.  */
+    specpdl_ptr--;
 
   if (!NILP (visit))
     {
