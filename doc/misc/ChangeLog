@@ -1,3 +1,8 @@
+2008-11-14  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (About This Manual): Comment out a mention of
+	marginal notes.
+
 2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Clocking work time): Document the :formula property of
