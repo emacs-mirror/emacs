@@ -320,14 +320,14 @@ of Calc.  Or, you can look in the table of contents or the Concept
 Index to find the parts of the manual that discuss the things you
 need to know.
 
-@cindex Marginal notes
+@c @cindex Marginal notes
 Every Calc keyboard command is listed in the Calc Summary, and also
 in the Key Index.  Algebraic functions, @kbd{M-x} commands, and
 variables also have their own indices.  
-@texline Each
-@infoline In the printed manual, each
-paragraph that is referenced in the Key or Function Index is marked
-in the margin with its index entry.
+@c @texline Each
+@c @infoline In the printed manual, each
+@c paragraph that is referenced in the Key or Function Index is marked
+@c in the margin with its index entry.
 
 @c [fix-ref Help Commands]
 You can access this manual on-line at any time within Calc by
@@ -14108,12 +14108,12 @@ to the function name @code{Vec}, because @code{vec} is the name of
 a built-in Calc function.  The following table shows the accents
 in Calc, @TeX{}, La@TeX{} and @dfn{eqn} (described in the next section):
 
+@ignore
 @iftex
 @begingroup
 @let@calcindexershow=@calcindexernoshow  @c Suppress marginal notes
 @let@calcindexersh=@calcindexernoshow
 @end iftex
-@ignore
 @starindex
 @end ignore
 @tindex acute
@@ -14213,9 +14213,11 @@ in Calc, @TeX{}, La@TeX{} and @dfn{eqn} (described in the next section):
 @starindex
 @end ignore
 @tindex VEC
+@ignore
 @iftex
 @endgroup
 @end iftex
+@end ignore
 @example
 Calc      TeX           LaTeX         eqn
 ----      ---           -----         ---
