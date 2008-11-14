@@ -1,3 +1,9 @@
+2008-11-14  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-associative)
+	(byte-compile-minus, byte-compile-quo): If there are more than two
+	operands, don't use binary operation code (bug#1334).
+
 2008-11-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32-fns.el (w32-shell-dos-semantics):
