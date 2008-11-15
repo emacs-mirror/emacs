@@ -95,7 +95,6 @@ lib-src: FRC
 # is not wrong, but is overkill in 99.99% of the cases.
 src: FRC
 	cd src
-	rm -f bootlisp
 	$(MAKE) top_srcdir=${top_srcdir} BOOTSTRAPEMACS="${boot}"
 	djecho -s '/-geometry/s,^.*,set environment HOME $(top_srcdir),' \
 	          '/environment *TERM/s/^.*/set environment TERM internal/' \
@@ -109,6 +108,7 @@ src: FRC
 	rm -f gdb.tmp gdb.sed
 	cd ..
 	if exist src\bootlisp redir $(MAKE) -C lisp top_srcdir=${top_srcdir}
+	rm -f src/bootlisp
 	if exist leim\Makefile redir $(MAKE) -C leim top_srcdir=${top_srcdir}
 
 info: emacs lispref lispintro
