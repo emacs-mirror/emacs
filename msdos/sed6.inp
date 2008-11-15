@@ -39,5 +39,8 @@ export texinputdir := $(srcdir)";"$(TEXINPUTS)
 	command.com /c 'if not a${permuted_index}==a cp -p ./index.perm index.texi' \
 	command.com /c 'if a${permuted_index}==a cp -p ./index.unperm index.texi'
 }
+/^maintainer-clean:/,/^$/ {
+  s/^	for file in $(INFO_TARGETS)\; do rm -f.*$/	rm -f $(INFO_TARGETS)/
+}
 
 # arch-tag: defe1001-f35a-47f7-9635-3f5d33ee5e97
