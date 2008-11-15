@@ -241,15 +241,6 @@ meaning of this argument."
      (walk-windows (lambda (w) (setq count (+ count 1)))
 		   minibuf)
      count))
-
-(defun window-safely-shrinkable-p (&optional window)
-  "Return t if WINDOW can be shrunk without shrinking other windows.
-WINDOW defaults to the selected window."
-  (with-selected-window (or window (selected-window))
-    (let ((edges (window-edges)))
-      (or (= (nth 2 edges) (nth 2 (window-edges (previous-window))))
-	  (= (nth 0 edges) (nth 0 (window-edges (next-window))))))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; `balance-windows' subroutines using `window-tree'
@@ -1361,6 +1352,14 @@ Always return nil."
 	  (enlarge-window 1)
 	  (setq desired-height (1+ desired-height)))))))
 
+(defun window-safely-shrinkable-p (&optional window)
+  "Return t if WINDOW can be shrunk without shrinking other windows.
+WINDOW defaults to the selected window."
+  (with-selected-window (or window (selected-window))
+    (let ((edges (window-edges)))
+      (or (= (nth 2 edges) (nth 2 (window-edges (previous-window))))
+	  (= (nth 0 edges) (nth 0 (window-edges (next-window))))))))
+
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink height of WINDOW if its buffer doesn't need so many lines.
 More precisely, shrink WINDOW vertically to be as small as
@@ -1419,31 +1418,34 @@ Return non-nil if the window was shrunk, nil otherwise."
 	(error nil)))))
 
 (defun quit-window (&optional kill window)
-  "Bury or kill (with KILL non-nil) the buffer displayed in WINDOW.
-With a prefix argument, kill the buffer instead.
+  "Quit WINDOW and bury its buffer.
+With a prefix argument, kill the buffer instead.  WINDOW defaults
+to the selected window.
 
-KILL defaults to nil, WINDOW to the selected window.  If WINDOW
-is dedicated or a minibuffer window, delete it and, if it's the
-only window on its frame, delete its frame as well provided there
-are other frames left.  Otherwise, display some other buffer in
-the window."
+If WINDOW is non-nil, dedicated, or a minibuffer window, delete
+it and, if it's alone on its frame, its frame too.  Otherwise, or
+if deleting WINDOW fails in any of the preceding cases, display
+another buffer in WINDOW using `switch-to-buffer'.
+
+Optional argument KILL non-nil means kill WINDOW's buffer.
+Otherwise, bury WINDOW's buffer, see `bury-buffer'."
   (interactive "P")
-  (let* ((window (or window (selected-window)))
-	 (buffer (window-buffer window)))
-    (if (or (window-minibuffer-p window) (window-dedicated-p window))
-	(if (eq window (frame-root-window (window-frame window)))
-	    ;; If this is the only window on its frame, try to delete the
-	    ;; frame (`delete-windows-on' knows how to do that).
-	    (delete-windows-on buffer (selected-frame))
-	  ;; Other windows are left, delete this window.  But don't
-	  ;; throw an error if that fails for some reason.
-	  (condition-case nil
-	      (delete-window window)
-	    (error nil)))
-      ;; The window is neither dedicated nor a minibuffer window,
-      ;; display another buffer in it.
-      (with-selected-window window
-	(switch-to-buffer (other-buffer))))
+  (let ((buffer (window-buffer window)))
+    (if (or window
+	    (window-minibuffer-p window)
+	    (window-dedicated-p window))
+	;; WINDOW is either non-nil, a minibuffer window, or dedicated;
+	;; try to delete it.
+	(let ((frame (window-frame (or window (selected-window)))))
+	  (if (eq window (frame-root-window frame))
+	      ;; WINDOW is alone on its frame.  `delete-windows-on'
+	      ;; knows how to handle that case.
+	      (delete-windows-on buffer frame)
+	    ;; There are other windows on its frame, delete WINDOW.
+	    (delete-window window)))
+      ;; Otherwise, switch to another buffer in the selected window.
+      (switch-to-buffer nil))
+
     ;; Deal with the buffer.
     (if kill
 	(kill-buffer buffer)
