@@ -1,4 +1,14 @@
 2008-11-15  Glenn Morris  <rgm@gnu.org>
+            Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/find-func.el (find-function-advised-original): New.
+	(find-function-C-source, find-function-noselect):
+	Use find-function-advised-original to handle advised funcs.  (Bug#789)
+
+2008-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/find-func.el (find-function-noselect): Add missing "is" in
+	alias message.
 
 	* uniquify.el (uniquify-maybe-rerationalize-w/o-cb):
 	Remove uniquify-after-kill-buffer-p dependency.
