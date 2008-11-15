@@ -23,8 +23,5 @@ export FNCASE=y
 /^lisp=/s|@srcdir@|$(CURDIR)|
 /^VPATH=/s|@srcdir@|.|
 /^srcdir=/s|@srcdir@|.|
-/^bootstrap-clean:/a\
-	command.com /c dtou .../*.el\
-	command.com /c update $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el
 
 # arch-tag: da7a3cff-4839-4ad7-bbe3-e2b61c84c38e
