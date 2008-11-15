@@ -1,5 +1,29 @@
 2008-11-15  Eli Zaretskii  <eliz@gnu.org>
 
+	Make bootstrap work again:
+
+	* mainmake.v2 (boot): New variable.
+	(src): Pass $(boot) to sub-Make.  Remove src/bootlisp.  If
+	src/bootlisp exists after running Make, run Make in `lisp' as
+	well.
+	(clean, mostlyclean): Remove bogus repeated clean in the top-level
+	directory.
+	(info, bootstrap-clean): New targets.
+	(bootstrap): Depend only on bootstrap-clean.  Commands modified to
+	be equivalent to top-level Makefile.in.
+	(bootfast, bootstrap-lisp-1, bootstrap-lisp, bootstrap-src)
+	(bootstrap-clean-before, bootstrap-clean-after): Targets deleted.
+	(clean, mostlyclean, distclean, maintainer-clean, extraclean):
+	Don't recurse into lwlib and oldXMenu.
+
+	* sed1v2.inp: Create bootlisp when bootstrapping b-emacs.exe.
+
+	* sedlisp.inp: Don't convert *.el files to Unix text format, and
+	don't copy ldefs-boot.el into loaddefs.el.
+
+	* sed6.inp: Edit out Unixy shell features in maintainer-clean
+	targets in doc/ Makefiles.
+
 	* INSTALL: Update the list of utilities needed by lisp/Makefile
 	and for bootstrapping.
 
