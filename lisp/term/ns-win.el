@@ -330,6 +330,7 @@ this defaults to \"printenv\"."
 (defvaralias 'mac-control-modifier 'ns-control-modifier)
 (defvaralias 'mac-option-modifier 'ns-option-modifier)
 (defvaralias 'mac-function-modifier 'ns-function-modifier)
+(declare-function ns-do-applescript "nsfns.m" (script))
 (defalias 'do-applescript 'ns-do-applescript)
 
 
@@ -348,7 +349,9 @@ this defaults to \"printenv\"."
   :group 'ns
   (if ns-extended-platform-support-mode
       (progn
-	(defun ns-show-manual () "Show Emacs.app manual" (interactive) (info "ns-emacs"))
+	(defun ns-show-manual () "Show Emacs.app section in the Emacs manual"
+          (interactive)
+          (info "(emacs)Mac OS"))
 	(setq where-is-preferred-modifier 'super)
         (setq scroll-preserve-screen-position t)
         (transient-mark-mode 1)
@@ -359,7 +362,7 @@ this defaults to \"printenv\"."
         (easy-menu-add-item global-map '(menu-bar)
                             (cons "File" menu-bar-ns-file-menu) 'edit)
 	(define-key menu-bar-help-menu [ns-manual]
-	  '(menu-item "Emacs.app Manual" ns-show-manual)))
+	  '(menu-item "Emacs.app Manual Chapter" ns-show-manual)))
     (progn
       ;; Undo everything above.
       (fmakunbound 'ns-show-manual)
@@ -1251,6 +1254,7 @@ unless the current buffer is a scratch buffer.")
 (setq scalable-fonts-allowed t)
 
 ;; Set to use font panel instead
+(declare-function ns-popup-font-panel "nsfns.m" (&optional frame))
 (defalias 'generate-fontset-menu 'ns-popup-font-panel)
 (defalias 'mouse-set-font 'ns-popup-font-panel)
 
