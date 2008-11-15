@@ -130,8 +130,7 @@ indent.texi       -- cyd
 killing.texi      -- cyd
 kmacro.texi       -- cyd
 macos.texi     -- contents need to be evaluated and see what is still
- relevant after the NS merge.  (If this is here, why is ns-emacs.texi
- relegated to doc/misc?)
+ relevant after the NS merge.
 maintaining.texi  -- cyd
 major.texi        -- cyd
 mark.texi         -- cyd
