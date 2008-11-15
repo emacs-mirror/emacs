@@ -1,3 +1,12 @@
+2008-11-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_draw_glyph_string): Stop drawing the background of
+	the next glyph string once past the overhang width.
+
+	* nsterm.m (ns_draw_glyph_string): Likewise.
+
+	* w32term.c (x_draw_glyph_string): Likewise.
+
 2008-11-14  Fabrice Popineau  <fabrice.popineau@supelec.fr>  (tiny change)
 
 	* fileio.c (Finsert_file_contents): Decrement specpdl_ptr to avoid
