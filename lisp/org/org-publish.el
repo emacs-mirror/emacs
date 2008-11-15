@@ -537,7 +537,7 @@ See `org-publish-org-to' to the list of arguments."
   ;; make sure eshell/cp code is loaded
   (unless (file-directory-p pub-dir)
     (make-directory pub-dir t))
-  (copy-file filename pub-dir))
+  (copy-file filename pub-dir t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Publishing files, sets of files, and indices
