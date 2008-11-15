@@ -67,16 +67,36 @@ top_srcdir := $(subst \,/,$(shell cd))
 # Find out which version of Emacs this is.
 version := ${shell sed -n -e '/(defconst emacs-version/s/^[^"]*\("[^"]*"\).*/\1/p' lisp/version.el}
 
-all:	maybe_bootstrap lib-src src emacs lispref lispintro
+# Do we need to bootstrap?
+boot :=
+ifeq ($(wildcard src/b-emacs.exe),)
+boot := b-emacs.exe
+endif
+
+# Subdirectories to run Make.  `lisp' is not included because the
+# compiled lisp files are part of the distribution.  (If we are
+# bootstrapping, the src target will run Make in `lisp' as well.)
+# leim is not included because it is part of the src target.
+all:	lib-src src emacs lispref lispintro
 
 lib-src: FRC
 	cd lib-src
 	$(MAKE) top_srcdir=${top_srcdir} version=${version}
 	cd ..
 
+# Pass to src/Makefile.in an additional BOOTSTRAPEMACS variable which
+# is either set to b-emacs.exe (in case bootstrap-emacs has not been
+# constructed yet) or the empty string (otherwise).
+# src/Makefile.in uses it to implement conditional dependencies, so that
+# files that need bootstrap-emacs to be built do not additionally need
+# to be kept fresher than b-emacs.exe.  Otherwise changing a single
+# file src/foo.c forces dumping a new bootstrap-emacs, then re-byte-compiling
+# all preloaded elisp files, and only then dump the actual src/emacs, which
+# is not wrong, but is overkill in 99.99% of the cases.
 src: FRC
 	cd src
-	$(MAKE) top_srcdir=${top_srcdir} BOOTSTRAPEMACS=""
+	rm -f bootlisp
+	$(MAKE) top_srcdir=${top_srcdir} BOOTSTRAPEMACS="${boot}"
 	djecho -s '/-geometry/s,^.*,set environment HOME $(top_srcdir),' \
 	          '/environment *TERM/s/^.*/set environment TERM internal/' \
 	          '/x_error_quitter/s/^.*/set environment NAME root/' >gdb.sed
@@ -88,7 +108,10 @@ src: FRC
 	update gdb.tmp gdb.ini
 	rm -f gdb.tmp gdb.sed
 	cd ..
+	if exist src\bootlisp redir $(MAKE) -C lisp top_srcdir=${top_srcdir}
 	if exist leim\Makefile redir $(MAKE) -C leim top_srcdir=${top_srcdir}
+
+info: emacs lispref lispintro
 
 emacs lispref lispintro:	FRC
 	cd doc/$@
@@ -139,9 +162,6 @@ clean mostlyclean:
 	cd src
 	$(MAKE) $(MFLAGS) $@
 	cd ..
-	cd oldxmenu
-	-$(MAKE) $(MFLAGS) $@
-	cd ..
 	cd doc
 	cd emacs
 	-$(MAKE) $(MFLAGS) $@
@@ -159,16 +179,13 @@ clean mostlyclean:
 	cd leim
 	if exist Makefile redir $(MAKE) $(MFLAGS) $@
 	cd ..
-	-$(MAKE) $(MFLAGS) $@
 
 top_distclean=rm -f Makefile */Makefile src/_gdbinit
 
 distclean maintainer-clean: FRC
 	cd src
 	$(MAKE) $(MFLAGS) $@
-	cd ..
-	cd oldxmenu
-	-$(MAKE) $(MFLAGS) $@
+	if exist bootlisp rm -f bootlisp
 	cd ..
 	cd lib-src
 	$(MAKE) $(MFLAGS) $@
@@ -199,9 +216,6 @@ extraclean:
 	cd src
 	$(MAKE) $(MFLAGS) $@
 	cd ..
-	cd oldxmenu
-	-$(MAKE) $(MFLAGS) $@
-	cd ..
 	cd lib-src
 	$(MAKE) $(MFLAGS) $@
 	cd ..
@@ -228,40 +242,36 @@ extraclean:
 	${top_distclean}
 	-rm -f *~ #*
 
-.PHONY: bootstrap bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean
-.PHONY: maybe_bootstrap bootfast
+.PHONY: bootstrap
 
-maybe_bootstrap:
-	@if not exist lisp\abbrev.elc djecho \
-	 "Some *.elc files are missing.  You should do a `make bootstrap'."
-	@if not exist lisp\abbrev.elc redir -e /dev/null -oe redir fail-this-make.exe
+bootstrap-clean: FRC
+	cd src
+	$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lib-src
+	$(MAKE) $(MFLAGS) maintainer-clean
+	cd ..
+	cd doc
+	cd emacs
+	-$(MAKE) $(MFLAGS) maintainer-clean
+	cd ../misc
+	-$(MAKE) $(MFLAGS) maintainer-clean
+	cd ../lispref
+	-$(MAKE) $(MFLAGS) maintainer-clean
+	cd ../lispintro
+	-$(MAKE) $(MFLAGS) maintainer-clean
+	cd ..
+	cd ..
+	cd leim
+	$(MAKE) $(MFLAGS) maintainer-clean
+	cd ..
+	cd lisp
+	$(MAKE) $(MFLAGS) bootstrap-clean
+	cd ..
+	${top_bootclean}
 
-bootstrap: bootstrap-clean-before bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean-after all info
-	cd lisp; $(MAKE) $(MFLAGS) bootstrap-after; cd ..
-
-bootfast: bootstrap-clean-before bootstrap-src bootstrap-lisp bootstrap-clean-after all info
-	cd lisp; $(MAKE) $(MFLAGS) bootstrap-after; cd ..
-
-bootstrap-lisp-1:
-	cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean; cd ..
-
-bootstrap-lisp:
-	cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=${top_srcdir}/src/b-emacs.exe lisp=${top_srcdir}/lisp; cd ..
-
-bootstrap-src:
-	cd src; $(MAKE) $(MFLAGS) bootstrap; cd ..
-
-### Used for `bootstrap' to avoid deleting existing dumped Emacs executables.
-bootstrap-clean-before: FRC
-	cd src;      $(MAKE) $(MFLAGS) mostlyclean; cd ..
-	cd lib-src;  $(MAKE) $(MFLAGS) clean;       cd ..
-	-cd doc/emacs; $(MAKE) $(MFLAGS) clean;     cd ..
-	-cd misc;    $(MAKE) $(MFLAGS) clean;       cd ..
-	-cd lispref; $(MAKE) $(MFLAGS) clean;       cd ..
-	-cd lispintro; $(MAKE) $(MFLAGS) clean;     cd ..; cd ..
-	cd leim;     if exist Makefile redir $(MAKE) $(MFLAGS) clean; cd ..
-
-bootstrap-clean-after:
-	cd src; $(MAKE) $(MFLAGS) mostlyclean; cd ..
+bootstrap: bootstrap-clean FRC
+	config msdos
+	$(MAKE) $(MFLAGS) info all
 
 # arch-tag: 6fee5130-4c53-46c6-93d3-d0ea852298b9
