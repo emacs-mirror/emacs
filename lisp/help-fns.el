@@ -413,41 +413,42 @@ suitable file is found, return nil."
 				  (point)))
       (terpri)(terpri)
       (when (commandp function)
-	(let ((pt2 (with-current-buffer (help-buffer) (point))))
-	  (if (and (eq function 'self-insert-command)
-		   (eq (key-binding "a") 'self-insert-command)
-		   (eq (key-binding "b") 'self-insert-command)
-		   (eq (key-binding "c") 'self-insert-command))
-	      (princ "It is bound to many ordinary text characters.\n")
-	    (let* ((remapped (command-remapping function))
-		   (keys (where-is-internal
-			  (or remapped function) overriding-local-map nil nil))
-		   non-modified-keys)
-	      ;; Which non-control non-meta keys run this command?
-	      (dolist (key keys)
-		(if (member (event-modifiers (aref key 0)) '(nil (shift)))
-		    (push key non-modified-keys)))
-	      (when remapped
-		(princ "It is remapped to `")
-		(princ (symbol-name remapped))
-		(princ "'"))
+	(let ((pt2 (with-current-buffer (help-buffer) (point)))
+	      (remapped (command-remapping function)))
+	  (unless (memq remapped '(ignore undefined))
+	    (let ((keys (where-is-internal
+			 (or remapped function) overriding-local-map nil nil))
+		  non-modified-keys)
+	      (if (and (eq function 'self-insert-command)
+		       (vectorp (car-safe keys))
+		       (consp (aref (car keys) 0)))
+		  (princ "It is bound to many ordinary text characters.\n")
+		;; Which non-control non-meta keys run this command?
+		(dolist (key keys)
+		  (if (member (event-modifiers (aref key 0)) '(nil (shift)))
+		      (push key non-modified-keys)))
+		(when remapped
+		  (princ "It is remapped to `")
+		  (princ (symbol-name remapped))
+		  (princ "'"))
 
-	      (when keys
-		(princ (if remapped ", which is bound to " "It is bound to "))
-		;; If lots of ordinary text characters run this command,
-		;; don't mention them one by one.
-		(if (< (length non-modified-keys) 10)
-		    (princ (mapconcat 'key-description keys ", "))
-		  (dolist (key non-modified-keys)
-		    (setq keys (delq key keys)))
-		  (if keys
-		      (progn
-			(princ (mapconcat 'key-description keys ", "))
-			(princ ", and many ordinary text characters"))
-		    (princ "many ordinary text characters"))))
-	      (when (or remapped keys non-modified-keys)
-		(princ ".")
-		(terpri))))
+		(when keys
+		  (princ (if remapped ", which is bound to " "It is bound to "))
+		  ;; If lots of ordinary text characters run this command,
+		  ;; don't mention them one by one.
+		  (if (< (length non-modified-keys) 10)
+		      (princ (mapconcat 'key-description keys ", "))
+		    (dolist (key non-modified-keys)
+		      (setq keys (delq key keys)))
+		    (if keys
+			(progn
+			  (princ (mapconcat 'key-description keys ", "))
+			  (princ ", and many ordinary text characters"))
+		      (princ "many ordinary text characters"))))
+		(when (or remapped keys non-modified-keys)
+		  (princ ".")
+		  (terpri)))))
+
 	  (with-current-buffer (help-buffer)
 	    (fill-region-as-paragraph pt2 (point))
 	    (unless (looking-back "\n\n")
