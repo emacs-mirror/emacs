@@ -16,12 +16,15 @@ sites where you can find the necessary utilities; search for "MS-DOS".
 The configuration step (see below) will test for these utilities and
 will refuse to continue if any of them isn't found.
 
-Recompiling Lisp files in the `lisp' subdirectory using the various
-targets in the lisp/Makefile file requires additional utilities:
-`find' (from Findutils), GNU `echo' and `test' (from Sh-utils), and a
-port of Bash.  However, you should not normally need to run
-lisp/Makefile, as all the Lisp files are distributed in byte-compiled
-form as well.
+Bootstrapping Emacs or recompiling Lisp files in the `lisp'
+subdirectory using the various targets in the lisp/Makefile file
+requires additional utilities: `find' (from Findutils), GNU `echo' and
+`test' (from Sh-utils), `ls' and `chmod' (from Fileutils), `grep'
+(from Grep), and a port of Bash.  However, you should not normally
+need to run lisp/Makefile, as all the Lisp files are distributed in
+byte-compiled form as well.  As for bootstrapping, you will only need
+that if you check-out development sources from the Emacs source
+repository.
 
 If you are building the DJGPP version of Emacs on a DOS-like system
 which supports long file names (e.g. Windows 9X or Windows XP), you
