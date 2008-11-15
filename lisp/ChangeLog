@@ -1,3 +1,8 @@
+2008-11-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (quit-window): Restore delete window with second
+	arg non-nil behavior as of before 2008-10-30 change.
+
 2008-11-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help-fns.el (describe-function-1): Do char-range check for
