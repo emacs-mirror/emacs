@@ -2241,7 +2241,8 @@ x_draw_glyph_string (s)
     {
       int width;
       struct glyph_string *next;
-      for (width = 0, next = s->next; next;
+      for (width = 0, next = s->next;
+	   next && width < s->right_overhang;
            width += next->width, next = next->next)
         if (next->first_glyph->type != IMAGE_GLYPH)
           {
