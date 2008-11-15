@@ -1,3 +1,8 @@
+2008-11-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Update the list of utilities needed by lisp/Makefile
+	and for bootstrapping.
+
 2008-11-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: New file, with build instructions moved from the
