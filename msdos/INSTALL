@@ -24,7 +24,10 @@ requires additional utilities: `find' (from Findutils), GNU `echo' and
 need to run lisp/Makefile, as all the Lisp files are distributed in
 byte-compiled form as well.  As for bootstrapping, you will only need
 that if you check-out development sources from the Emacs source
-repository.
+repository.  (Note: If you are checking out of CVS, use the -kb option
+of the `checkout' and `update' commands, to preserve the original
+Unix-style EOL format of the files.  If some Lisp files are converted
+to DOS format, the build might fail.)
 
 If you are building the DJGPP version of Emacs on a DOS-like system
 which supports long file names (e.g. Windows 9X or Windows XP), you
