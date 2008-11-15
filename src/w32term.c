@@ -2248,7 +2248,10 @@ x_draw_glyph_string (s)
           {
             x_set_glyph_string_gc (next);
             x_set_glyph_string_clipping (next);
-            x_draw_glyph_string_background (next, 1);
+	    if (next->first_glyph->type == STRETCH_GLYPH)
+	      x_draw_stretch_glyph_string (next);
+	    else
+	      x_draw_glyph_string_background (next, 1);
             next->num_clips = 0;
           }
     }
