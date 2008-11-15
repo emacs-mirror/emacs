@@ -1,3 +1,14 @@
+2008-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* uniquify.el (uniquify-maybe-rerationalize-w/o-cb):
+	Remove uniquify-after-kill-buffer-p dependency.
+	(uniquify-kill-buffer-function): New function.
+	(kill-buffer-hook): Use uniquify-kill-buffer-function.  (Bug#1315)
+
+	* term/ns-win.el (ns-do-applescript, ns-popup-font-panel): Declare.
+	(ns-show-manual, menu-bar-help-menu): Update for merge of ns-emacs into
+	main Emacs manual.
+
 2008-11-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (quit-window): Restore delete window with second
