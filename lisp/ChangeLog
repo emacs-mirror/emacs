@@ -1,3 +1,7 @@
+2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (read-passwd): Yank current kill if the user enters C-y.
+
 2008-11-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-file-name-as-directory): New defun.
