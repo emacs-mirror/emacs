@@ -1,3 +1,7 @@
+2008-16-06  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper.texi (viper-ESC-keyseq-timeout, viper-ESC-key): removed.
+	
 2008-11-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ns-emacs.texi: Moved into macos.texi in the main Emacs manual.

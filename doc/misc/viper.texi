@@ -36,7 +36,7 @@ developing GNU and promoting software freedom.''
 @titlepage
 @title Viper Is a Package for Emacs Rebels
 @subtitle a Vi emulator for Emacs
-@subtitle April 2007, Viper Version 3.13.1
+@subtitle November 2008, Viper Version 3.11.2
 
 @author Michael Kifer (Viper)
 @author Aamod Sane (VIP 4.4)
@@ -1721,15 +1721,6 @@ Normally, this is not necessary, since graphical displays have separate
 Meta keys (usually on each side of the space bar).  On a dumb terminal, Viper
 sets this variable to @code{twice}, which is almost like @code{nil}, except
 that double @key{ESC} beeps.  This, too, lets @key{ESC} to be used as a Meta.
-@item viper-ESC-keyseq-timeout 200 on tty, 0 on windowing display
-Escape key sequences separated by this much delay (in milliseconds) are
-interpreted as command, ignoring the special meaning of @key{ESC} in
-VI.  The default is suitable for most terminals.  However, if your terminal
-is extremely slow, you might want to increase this slightly.  You will know
-if your terminal is slow if the @key{ESC} key sequences emitted by the
-arrow keys are interpreted as separately typed characters (and thus the
-arrow keys won't work).  Making this value too large will slow you down, so
-exercise restraint.
 @item viper-fast-keyseq-timeout 200
 Key sequences separated by this many milliseconds are treated as Vi-style
 keyboard macros.  If the key sequence is defined as such a macro, it will be
@@ -1896,10 +1887,6 @@ changed interactively after Viper is loaded.
 In Insert state, this key acts as a temporary escape to Vi state, i.e., it
 will set Viper up so that the very next command will be executed as if it
 were typed in Vi state.
-@item viper-ESC-key "\e"
-Specifies the key used to escape from Insert/Replace states to Vi.
-Must be set in @file{.viper}.  This variable cannot be
-changed interactively after Viper is loaded.
 @item viper-buffer-search-char nil
 Key used for buffer search.  @xref{Viper Specials}, for details.
 @item viper-surrounding-word-function 'viper-surrounding-word
@@ -1946,7 +1933,6 @@ can include a line like this in your @file{.viper} file:
 @vindex @code{viper-vi-style-in-minibuffer}
 @vindex @code{viper-no-multiple-ESC}
 @vindex @code{viper-always}
-@vindex @code{viper-ESC-keyseq-timeout}
 @vindex @code{viper-fast-keyseq-timeout}
 @vindex @code{viper-ex-style-motion}
 @vindex @code{viper-ex-style-editing}
@@ -1965,7 +1951,6 @@ can include a line like this in your @file{.viper} file:
 @vindex @code{viper-replace-region-start-symbol}
 @vindex @code{viper-allow-multiline-replace-regions}
 @vindex @code{viper-toggle-key}
-@vindex @code{viper-ESC-key}
 @vindex @code{viper-buffer-search-char}
 @vindex @code{viper-surrounding-word-function}
 @vindex @code{viper-vi-state-hook}
