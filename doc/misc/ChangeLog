@@ -1,8 +1,8 @@
 2008-16-06  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper.texi (viper-ESC-keyseq-timeout, viper-ESC-key): Removed.
-	
-	* ediff.texi: version/date change.
+
+	* ediff.texi: Version/date change.
 
 2008-11-14  Chong Yidong  <cyd@stupidchicken.com>
 
