@@ -1228,6 +1228,14 @@ this, it runs the program specified by
 @code{directory-free-space-program} with arguments
 @code{directory-free-space-args}.
 
+  The command @kbd{M-x delete-directory} prompts for a directory name
+using the minibuffer, and deletes the directory if it is empty.  If
+the directory is not empty, this signals an error.  On systems that
+have a ``Trash'' or ``Recycle Bin'' feature, you can make this command
+move the specified directory to the Trash or Recycle Bin, instead of
+deleting it outright; to do so, change the variable
+@code{delete-by-moving-to-trash} to @code{t}.
+
 @node Comparing Files
 @section Comparing Files
 @cindex comparing files
@@ -1491,9 +1499,14 @@ as saving files; see @ref{Customize Save}.
 
 @findex delete-file
 @cindex deletion (of files)
+@vindex delete-by-moving-to-trash
   @kbd{M-x delete-file} deletes the specified file, like the @code{rm}
-command in the shell.  If you are deleting many files in one directory, it
-may be more convenient to use Dired (@pxref{Dired}).
+command in the shell.  On systems that have a ``Trash'' or ``Recycle
+Bin'' feature, you can make this command move the specified file to
+the Trash or Recycle Bin, instead of deleting it outright; to do so,
+change the variable @code{delete-by-moving-to-trash} to @code{t}.  If
+you are deleting many files in one directory, it may be more
+convenient to use Dired rather than @code{delete-file}.  @xref{Dired}.
 
 @findex rename-file
   @kbd{M-x rename-file} reads two file names @var{old} and @var{new} using
