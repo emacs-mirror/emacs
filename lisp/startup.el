@@ -1262,6 +1262,7 @@ If this is nil, no message will be displayed."
 	 '("GNU" (lambda (button) (describe-gnu-project))
 	   "Display info on the GNU project")))
      " operating system.\n\n"
+     :face variable-pitch
      :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
      "\tLearn basic keystroke commands"
      (lambda ()
@@ -1281,7 +1282,6 @@ If this is nil, no message will be displayed."
 	     ""
 	   (concat " (" title ")"))))
      "\n"
-     :face variable-pitch
      :link ("Emacs Guided Tour"
 	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
 	    "Browse http://www.gnu.org/software/emacs/tour/")
