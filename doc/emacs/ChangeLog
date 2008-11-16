@@ -1,5 +1,7 @@
 2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* ack.texi (Acknowledgments): Some updating of credits.
+
 	* emacs.texi (Acknowledgments): Add a couple more names.
 
 	* dired.texi (Dired Deletion): Document delete-by-moving-to-trash.
