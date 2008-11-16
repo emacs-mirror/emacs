@@ -35,6 +35,14 @@ Jay K.@: Adams wrote @file{jka-compr.el}, providing automatic
 decompression and recompression for compressed files.
 
 @item
+Michael Albinus wrote @file{dbus.el}, a package that implements the
+D-Bus message bus protocol; @file{zeroconf.el}, a mode for browsing
+Avahi services; and @file{xesam.el}, a Xesam-based search engine
+interface.  He and Kai Gro@ss{}johann wrote the Tramp package, which
+provides transparent remote file editing using rcp, ssh, ftp, and
+other network protocols.
+
+@item
 Ralf Angeli wrote @file{scroll-lock.el}, a minor mode which keeps the
 point vertically fixed by scrolling the window when moving up and down
 in the buffer.
@@ -233,6 +241,10 @@ Torbj@"orn Einarsson wrote @file{f90.el}, a mode for Fortran 90 files.
 Tsugutomo Enami co-wrote the support for international character sets.
 
 @item
+David Engster wrote @file{mairix.el}, an interface to the Mairix
+indexing tool.
+
+@item
 Hans Henrik Eriksen wrote @file{simula.el}, a mode for editing SIMULA 87
 code.
 
@@ -334,11 +346,6 @@ taking the file name from the buffer.
 
 @item
 Odd Gripenstam wrote @file{dcl-mode.el} for editing DCL command files.
-
-@item
-Kai Gro@ss{}johann and Michael Albinus wrote the Tramp package, which
-provides transparent remote file editing using rcp, ssh, ftp, and
-other network protocols.
 
 @item
 Michael Gschwind wrote @file{iso-cvt.el}, a package to convert between
@@ -699,8 +706,9 @@ facility.  He also wrote @code{ebrowse}, the C@t{++} browser;
 
 @item
 Stefan Monnier was the Emacs co-maintainer for Emacs 23.  He added
-support for Arch and Subversion to VC, and re-wrote much of the Emacs
-server to use the built-in networking primitives.  He also wrote
+support for Arch and Subversion to VC, re-wrote much of the Emacs
+server to use the built-in networking primitives, and re-wrote the
+abbrev and minibuffer completion code for Emacs 23.  He also wrote
 @code{PCL-CVS}, a directory-level front end to the CVS version control
 system; @file{reveal.el}, a minor mode for automatically revealing
 invisible text; @file{smerge-mode.el}, a minor mode for resolving
@@ -752,6 +760,10 @@ dialup communications program run comfortably in an Emacs shell buffer.
 @item
 Andrew Norman wrote @file{ange-ftp.el}, providing transparent FTP
 support.
+
+@item
+Edward O'Connor wrote @file{json.el}, a file for parsing and
+generating JSON files.
 
 @item
 Alexandre Oliva wrote @file{gnus-mlspl.el}, a group params-based mail
@@ -1112,6 +1124,10 @@ Jim Thompson wrote @file{ps-print.el}, which converts
 Emacs text to PostScript.
 
 @item
+Markus Triska wrote @file{linum.el}, a minor mode that displays line
+numbers in the left margin.
+
+@item
 Tom Tromey and Chris Lindblad wrote @file{tcl.el}, a mode for editing
 Tcl/Tk source files and running a Tcl interpreter as an Emacs
 subprocess.
@@ -1195,10 +1211,11 @@ Rodney Whitby and Reto Zimmermann wrote @file{vhdl-mode.el}, a major
 mode for editing VHDL source code.
 
 @item
-John Wiegley wrote @file{align.el}, a set of commands for aligning text
-according to regular-expression based rules; @file{timeclock.el}, a
-package for keeping track of time spent on projects;
-@file{pcomplete.el}, a programmable completion facility; and
+John Wiegley wrote @file{align.el}, a set of commands for aligning
+text according to regular-expression based rules; @file{timeclock.el},
+a package for keeping track of time spent on projects;
+@file{pcomplete.el}, a programmable completion facility;
+@file{remember.el}, a mode for jotting down things to remember; and
 @code{eshell}, a command shell implemented entirely in Emacs Lisp.
 
 @item
