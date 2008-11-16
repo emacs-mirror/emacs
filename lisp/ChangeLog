@@ -1,5 +1,8 @@
 2008-11-16  Glenn Morris  <rgm@gnu.org>
 
+	* term/ns-win.el (ns-extended-platform-support-mode):
+	Tweak menu entry from previous change.
+
 	* wid-edit.el (advertised-widget-backward): Remove autoload cookie.
 
 	* cus-edit.el (custom-buffer-create-internal): Always insert the
