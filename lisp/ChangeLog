@@ -1,3 +1,8 @@
+2008-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* cus-edit.el (custom-buffer-create-internal): Always insert the
+	in-buffer buttons, regardless of tool-bar.  (Bug#1326)
+
 2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (read-passwd): Use read-event instead of
