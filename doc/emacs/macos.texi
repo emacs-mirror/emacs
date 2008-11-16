@@ -310,7 +310,7 @@ defaults write Emacs VerticalScrollBars YES
 
 @item Font
 Name of the default font to be used for new frames (which can be
-overriden by various faces).  If this font is not set, Emacs will use
+overridden by various faces).  If this font is not set, Emacs will use
 the system wide fixed pitch font.  For most users the system fixed
 pitch font will be @samp{Monaco} which doesn't have any bold or italic
 versions.  (Italic will be synthesized.)
@@ -349,7 +349,7 @@ defaults write Emacs Width 80
 
 @item CursorType
 Name of the default cursor type for Emacs.  Allowed values are
-@samp{box}, @samp{hollow}, @samp{underscore}, @samp{bar},  @samp{line} and @samp{no}.
+@samp{box}, @samp{hollow}, @samp{underscore}, @samp{bar}, @samp{line} and @samp{no}.
 
 @example
 defaults write Emacs CursorType box
@@ -464,7 +464,7 @@ defaults write Emacs CommandModifier "meta"
 Position and size to use for the frame named @var{foo} when it is
 created.  The position and size have to be specified as a space
 separated list: @samp{top}, @samp{left}, @samp{height} and
-@samp{width}. @samp{top} and @samp{left} are expressed in pixels,
+@samp{width}.  @samp{top} and @samp{left} are expressed in pixels,
 @samp{height} is given in rows and @samp{width} is given in columns.
 Named frames can be created by e.g. @code{(make-frame '((name
 . "FOO")))}.

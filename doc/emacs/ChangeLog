@@ -1,3 +1,7 @@
+2008-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* macos.texi (Mac Customization): Fix typos.
+
 2008-11-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* macos.texi (Mac OS): Move Cocoa manual from ns-emacs.texi to here,
@@ -336,7 +340,7 @@
 	* kmacro.texi (Basic Keyboard Macro): Make F3 and F4 the preferred
 	interface for defining macros.  Simplify examples.  Note that C-g quits
 	macro definitions.
-	(Keyboard Macro Counter): Document using F3 to insert counter. Give
+	(Keyboard Macro Counter): Document using F3 to insert counter.  Give
 	usage example.
 	(Keyboard Macro Query): Organize query responses in a table.
 
