@@ -192,6 +192,14 @@ Dired cannot delete directories that are nonempty.  If the variable
 delete nonempty directories including all their contents.  That can
 be somewhat risky.
 
+@vindex delete-by-moving-to-trash
+  On some systems, there is a facility called the ``Trash'' or
+``Recycle Bin'', but Emacs does @emph{not} use it by default.  Thus,
+when you delete a file in Dired, it is gone forever.  However, you can
+tell Emacs to use the Trash for file deletion, by changing the
+variable @code{delete-by-moving-to-trash} to @code{t}.  @xref{Misc
+File Ops}, for more information about the Trash.
+
 @node Flagging Many Files
 @section Flagging Many Files at Once
 @cindex flagging many files for deletion (in Dired)
