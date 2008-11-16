@@ -1726,11 +1726,12 @@ This string is passed to `format', so percent characters need to be doubled.")
 This is used to map a mode number to a permission string.")
 
 ;; New handlers should be added here.  The following operations can be
-;; handled using the normal primitives: file-name-as-directory,
-;; file-name-sans-versions, get-file-buffer.
+;; handled using the normal primitives: file-name-sans-versions,
+;; get-file-buffer.
 (defconst tramp-file-name-handler-alist
   '((load . tramp-handle-load)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
+    (file-name-as-directory . tramp-handle-file-name-as-directory)
     (file-name-directory . tramp-handle-file-name-directory)
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     (file-truename . tramp-handle-file-truename)
@@ -2207,6 +2208,19 @@ target of the symlink differ."
       t)))
 
 ;; Localname manipulation functions that grok Tramp localnames...
+(defun tramp-handle-file-name-as-directory (file)
+  "Like `file-name-as-directory' but aware of Tramp files."
+  ;; `file-name-as-directory' would be sufficient except localname is
+  ;; the empty string.
+  (let ((v (tramp-dissect-file-name file t)))
+    ;; Run the command on the localname portion only.
+    (tramp-make-tramp-file-name
+     (tramp-file-name-method v)
+     (tramp-file-name-user v)
+     (tramp-file-name-host v)
+     (tramp-run-real-handler
+      'file-name-as-directory (list (or (tramp-file-name-localname v) ""))))))
+
 (defun tramp-handle-file-name-directory (file)
   "Like `file-name-directory' but aware of Tramp files."
   ;; Everything except the last filename thing is the directory.  We
@@ -7556,7 +7570,6 @@ Only works for Bourne-like shells."
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
 ;; dired-uncache -- this will be needed when we do insert-directory caching
-;; file-name-as-directory -- use primitive?
 ;; file-name-sans-versions -- use primitive?
 ;; get-file-buffer -- use primitive
 ;; vc-registered
