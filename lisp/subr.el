@@ -1781,7 +1781,9 @@ If optional CONFIRM is non-nil, read the password twice to make sure.
 Optional DEFAULT is a default password to use instead of empty input.
 
 This function echoes `.' for each character that the user types.
-The user ends with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
+
+The user ends with RET, LFD, or ESC.  DEL or C-h rubs out.
+C-y yanks the current kill.  C-u kills line.
 C-g quits; if `inhibit-quit' was non-nil around this function,
 then it returns nil if the user types C-g, but quit-flag remains set.
 
@@ -1818,21 +1820,32 @@ by doing (clear-string STRING)."
 		      (setq c (read-char-exclusive nil t))
 		      (and (/= c ?\r) (/= c ?\n) (/= c ?\e)))
 	  (clear-this-command-keys)
-	  (if (= c ?\C-u)
-	      (progn
-		(and (arrayp pass) (clear-string pass))
-		(setq pass ""))
-	    (if (and (/= c ?\b) (/= c ?\177))
-		(let* ((new-char (char-to-string c))
-		       (new-pass (concat pass new-char)))
-		  (and (arrayp pass) (clear-string pass))
-		  (clear-string new-char)
-		  (setq c ?\0)
-		  (setq pass new-pass))
-	      (if (> (length pass) 0)
-		  (let ((new-pass (substring pass 0 -1)))
-		    (and (arrayp pass) (clear-string pass))
-		    (setq pass new-pass))))))
+	  (cond ((= c ?\C-u) ; kill line
+		 (and (arrayp pass) (clear-string pass))
+		 (setq pass ""))
+		((= c ?\C-y) ; yank
+		 (let* ((str (condition-case nil
+				 (current-kill 0)
+			       (error nil)))
+			new-pass)
+		   (when str
+		     (setq new-pass
+			   (concat pass
+				   (substring-no-properties str)))
+		     (and (arrayp pass) (clear-string pass))
+		     (setq c ?\0)
+		     (setq pass new-pass))))
+		((and (/= c ?\b) (/= c ?\177)) ; insert char
+		 (let* ((new-char (char-to-string c))
+			(new-pass (concat pass new-char)))
+		   (and (arrayp pass) (clear-string pass))
+		   (clear-string new-char)
+		   (setq c ?\0)
+		   (setq pass new-pass)))
+		((> (length pass) 0) ; rubout
+		 (let ((new-pass (substring pass 0 -1)))
+		   (and (arrayp pass) (clear-string pass))
+		   (setq pass new-pass)))))
 	(message nil)
 	(or pass default "")))))
 
