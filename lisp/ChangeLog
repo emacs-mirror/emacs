@@ -1,3 +1,12 @@
+2008-11-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-file-name-as-directory): New defun.
+	(tramp-file-name-handler-alist): Handle `file-name-as-directory'.
+
+	* net/tramp-fish.el (tramp-fish-file-name-handler-alist)
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Handle
+	`file-name-as-directory'.
+
 2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (fancy-startup-text): Give "Emacs tutorial" line the
