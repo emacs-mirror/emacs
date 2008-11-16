@@ -223,7 +223,7 @@ interface to GnuPG (see New Modes and Packages).
 has been replaced with a submenu offering three different ways to
 handle long lines: truncation, continuation at the window edge, and
 the new word wrapping behavior (see Editing Changes, below).
-
+---
 *** Improvements to menus for major and minor modes
 More major and minor modes now have a mode specific menu, and existing
 mode menus have been improved to include more functionality.
@@ -235,7 +235,7 @@ default-directory for the current buffer is on a remote machine.
 ---
 *** The mode-line displays a mode menu when mouse-1 is clicked on a
 minor mode, in the same way as it already did for major modes.
-
+---
 *** The `mode-line-emphasis' face is used to highlight certain
 mode-line information (e.g. waiting for a VC command to finish).
 ---
@@ -244,6 +244,7 @@ mode-line information (e.g. waiting for a VC command to finish).
 *** The VC, line/colum number and minor mode indicators on the mode
 line are now interactive: mouse-1 can be used on them to pop up a menu.
 
++++
 ** File deletion can make use of the Recycle Bin or system Trash folder.
 Set `delete-by-moving-to-trash' non-nil to use this.  Deleted files
 and directories will then be sent to the Recyle Bin on Windows, and
