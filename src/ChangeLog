@@ -1,3 +1,7 @@
+2008-11-16  Ben North  <ben@redfrontdoor.org>  (tiny change)
+
+	* buffer.c (syms_of_buffer): Fix doc-string of cursor-type.
+
 2008-11-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (run_msdos_command): Don't call dos_ttcooked, dos_ttraw,
