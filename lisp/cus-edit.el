@@ -741,8 +741,7 @@ groups after non-groups, if nil do not order groups at all."
 ;;; Custom Mode Commands.
 
 ;; This variable is used by `custom-tool-bar-map', or directly by
-;; `custom-buffer-create-internal' if the toolbar is not present and
-;; `custom-buffer-verbose-help' is non-nil.
+;; `custom-buffer-create-internal' if `custom-buffer-verbose-help' is non-nil.
 
 (defvar custom-commands
   '(("Set for current session" Custom-set t
@@ -1582,37 +1581,41 @@ possibly because you started Emacs with `-q'.")
 		     :help-echo "Read the Emacs manual."
 		     "(emacs)Top")
       (widget-insert "."))
-    ;; Insert custom command buttons if the toolbar is not in use.
-
     (widget-insert "\n")
-    ;; tool-bar is not dumped in builds without x.
-    (when (not (and (bound-and-true-p tool-bar-mode) (display-graphic-p)))
-      (if custom-buffer-verbose-help
-	  (widget-insert "\n
+    ;; The custom command buttons are also in the toolbar, so for a
+    ;; time they were not inserted in the buffer if the toolbar was in use.
+    ;; But it can be a little confusing for the buffer layout to
+    ;; change according to whether or nor the toolbar is on, not to
+    ;; mention that a custom buffer can in theory be created in a
+    ;; frame with a toolbar, then later viewed in one without.
+    ;; So now the buttons are always inserted in the buffer.  (Bug#1326)
+;;;    (when (not (and (bound-and-true-p tool-bar-mode) (display-graphic-p)))
+    (if custom-buffer-verbose-help
+	(widget-insert "\n
  Operate on all settings in this buffer that are not marked HIDDEN:\n"))
-      (let ((button (lambda (tag action active help icon)
-		      (widget-insert " ")
-		      (if (eval active)
-			  (widget-create 'push-button :tag tag
-					 :help-echo help :action action))))
-	    (commands custom-commands))
-	(apply button (pop commands)) ; Set for current session
-	(apply button (pop commands)) ; Save for future sessions
-	(if custom-reset-button-menu
-	    (progn
-	      (widget-insert " ")
-	      (widget-create 'push-button
-			     :tag "Reset buffer"
-			     :help-echo "Show a menu with reset operations."
-			     :mouse-down-action 'ignore
-			     :action 'custom-reset))
-	  (widget-insert "\n")
-	  (apply button (pop commands)) ; Undo edits
-	  (apply button (pop commands)) ; Reset to saved
-	  (apply button (pop commands)) ; Erase customization
-	  (widget-insert "  ")
-	  (pop commands) ; Help (omitted)
-	  (apply button (pop commands))))) ; Exit
+    (let ((button (lambda (tag action active help icon)
+		    (widget-insert " ")
+		    (if (eval active)
+			(widget-create 'push-button :tag tag
+				       :help-echo help :action action))))
+	  (commands custom-commands))
+      (apply button (pop commands)) ; Set for current session
+      (apply button (pop commands)) ; Save for future sessions
+      (if custom-reset-button-menu
+	  (progn
+	    (widget-insert " ")
+	    (widget-create 'push-button
+			   :tag "Reset buffer"
+			   :help-echo "Show a menu with reset operations."
+			   :mouse-down-action 'ignore
+			   :action 'custom-reset))
+	(widget-insert "\n")
+	(apply button (pop commands)) ; Undo edits
+	(apply button (pop commands)) ; Reset to saved
+	(apply button (pop commands)) ; Erase customization
+	(widget-insert "  ")
+	(pop commands) ; Help (omitted)
+	(apply button (pop commands)))) ; Exit
     (widget-insert "\n\n"))
 
   ;; Now populate the custom buffer.
