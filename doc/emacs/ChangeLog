@@ -1,7 +1,9 @@
 2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dired.texi (Dired Deletion): Document delete-by-moving-to-trash.
+
 	* files.texi (Directories): Describe delete-directory in text.
-	(Misc File Ops): Document delete-by-moving-to-trash.
+	(Misc File Ops): Document use of trash.
 
 2008-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
