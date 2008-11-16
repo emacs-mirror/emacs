@@ -1,3 +1,7 @@
+2008-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ielm.el (ielm-eval-input): Fix thinko in last change.
+
 2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (read-passwd): Yank current kill if the user enters C-y.
@@ -8,8 +12,8 @@
 	(tramp-file-name-handler-alist): Handle `file-name-as-directory'.
 
 	* net/tramp-fish.el (tramp-fish-file-name-handler-alist)
-	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Handle
-	`file-name-as-directory'.
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist):
+	Handle `file-name-as-directory'.
 
 2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -2079,7 +2083,7 @@
 
 	* add-log.el (change-log-default-name): Autoload safety.
 
-2008-09-05 Wilson Snyder  <wsnyder@wsnyder.org>
+2008-09-05  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* verilog-mode.el (verilog-library-extensions): Enable .sv
 	filename extensions to call verilog-mode.

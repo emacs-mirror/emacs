@@ -389,7 +389,7 @@ simply inserts a newline."
 	    (setq ielm-result "More than one sexp in input"))))
 
       ;; If the eval changed the current buffer, mention it here
-      (when (eq ielm-wbuf ielm-working-buffer)
+      (unless (eq ielm-wbuf ielm-working-buffer)
 	(message "current buffer is now: %s" ielm-wbuf)
 	(setq ielm-working-buffer ielm-wbuf))
 
