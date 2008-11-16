@@ -1811,16 +1811,27 @@ by doing (clear-string STRING)."
 	    (c 0)
 	    (echo-keystrokes 0)
 	    (cursor-in-echo-area t)
-	    (message-log-max nil))
+	    (message-log-max nil)
+	    (stop-keys (list 'return ?\r ?\n ?\e))
+	    (rubout-keys (list 'backspace ?\b ?\177)))
 	(add-text-properties 0 (length prompt)
 			     minibuffer-prompt-properties prompt)
 	(while (progn (message "%s%s"
 			       prompt
 			       (make-string (length pass) ?.))
-		      (setq c (read-char-exclusive nil t))
-		      (and (/= c ?\r) (/= c ?\n) (/= c ?\e)))
+		      ;; We used to use read-char-exclusive, that that
+		      ;; gives funny behavior when the user presses,
+		      ;; e.g., the arrow keys.
+		      (setq c (read-event nil t))
+		      (not (memq c stop-keys)))
 	  (clear-this-command-keys)
-	  (cond ((= c ?\C-u) ; kill line
+	  (cond ((memq c rubout-keys) ; rubout
+		 (when (> (length pass) 0)
+		   (let ((new-pass (substring pass 0 -1)))
+		     (and (arrayp pass) (clear-string pass))
+		     (setq pass new-pass))))
+		((not (numberp c)))
+		((= c ?\C-u) ; kill line
 		 (and (arrayp pass) (clear-string pass))
 		 (setq pass ""))
 		((= c ?\C-y) ; yank
@@ -1835,16 +1846,12 @@ by doing (clear-string STRING)."
 		     (and (arrayp pass) (clear-string pass))
 		     (setq c ?\0)
 		     (setq pass new-pass))))
-		((and (/= c ?\b) (/= c ?\177)) ; insert char
+		((characterp c) ; insert char
 		 (let* ((new-char (char-to-string c))
 			(new-pass (concat pass new-char)))
 		   (and (arrayp pass) (clear-string pass))
 		   (clear-string new-char)
 		   (setq c ?\0)
-		   (setq pass new-pass)))
-		((> (length pass) 0) ; rubout
-		 (let ((new-pass (substring pass 0 -1)))
-		   (and (arrayp pass) (clear-string pass))
 		   (setq pass new-pass)))))
 	(message nil)
 	(or pass default "")))))
