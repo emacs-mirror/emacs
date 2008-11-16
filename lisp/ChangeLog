@@ -1,26 +1,26 @@
 2008-11-16  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* viper-init.el (viper-ESC-keyseq-timeout): Make it into a function
-	instead of a variable.
-	
-	* viper-util.el (viper-fast-keysequence-p): Changed to use
+
+	* emulation/viper-init.el (viper-ESC-keyseq-timeout): Make it into a
+	function instead of a variable.
+
+	* emulation/viper-util.el (viper-fast-keysequence-p): Changed to use
 	viper-ESC-keyseq-timeout as a function.
 	(viper-get-saved-cursor-color-in-replace-mode): Use defun instead of
 	defsubst.
-	
-	* viper-cmd.el: Let line-move-visual to nil when using next-line or
-	previous-line.
+
+	* emulation/viper-cmd.el: Let line-move-visual to nil when using
+	next-line or previous-line.
 	(viper-R-state-post-command-sentinel): Use defun instead of defsubst.
-	
-	* viper-keym.el (viper-ESC-key): Use (kbd "ESC").
-	
+
+	* emulation/viper-keym.el (viper-ESC-key): Use (kbd "ESC").
+
 	* ediff-util.el (ediff-toggle-multiframe): Check if control window is
 	live.
 	(ediff-save-buffer): Let window-min-height to 2.
-	
+
 	* ediff-wind.el (ediff-setup-windows-plain-compare): Avoid selecting
 	the minibuffer.
-	
+
 2008-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ielm.el (ielm-noisy, ielm-dynamic-return, ielm-mode-hook)
