@@ -1,3 +1,8 @@
+2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (fancy-startup-text): Give "Emacs tutorial" line the
+	usual variable-pitch face.
+
 2008-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/ange-ftp.el (ange-ftp-multi-msgs, ange-ftp-good-msgs)
