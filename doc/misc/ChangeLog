@@ -1,7 +1,7 @@
 2008-16-06  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* viper.texi (viper-ESC-keyseq-timeout, viper-ESC-key): removed.
-	
+
+	* viper.texi (viper-ESC-keyseq-timeout, viper-ESC-key): Removed.
+
 2008-11-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ns-emacs.texi: Moved into macos.texi in the main Emacs manual.
@@ -134,7 +134,7 @@
 2008-08-01  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Reading Mail)
-	(Viewing Attachments):  Describe new function
+	(Viewing Attachments): Describe new function
 	mh-show-preferred-alternative.
 	(Sending Mail, Redistributing, Sending Message): Describe new hook
 	mh-annotate-msg-hook.
@@ -144,8 +144,8 @@
 	* dbus.texi (Arguments and Signatures): Fix example.
 	(Synchronous Methods): New defun `dbus-call-method-non-blocking'.
 	(Asynchronous Methods): New node.
-	(Errors and Events): Describe extended layout of `dbus-event'.  New
-	defun `dbus-event-message-type'.
+	(Errors and Events): Describe extended layout of `dbus-event'.
+	New defun `dbus-event-message-type'.
 
 2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
