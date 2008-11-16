@@ -64,9 +64,9 @@ footnotes in email messages, and @file{gnus-audio.el} which provides
 sound effects for Gnus.
 
 @item
-Alexander L. Belikoff, Sergey Berezin, David Edmondson, Andreas
-Fuchs, Mario Lang, Gergely Nagy, Michael Olson, and Alex Schroeder
-contributed ERC, an advanced Internet Relay Chat client.
+Alexander L. Belikoff, Sergey Berezin, David Edmondson, Andreas Fuchs,
+Mario Lang, Gergely Nagy, Michael Olson, and Alex Schroeder wrote ERC,
+an advanced Internet Relay Chat client.
 
 @item
 Boaz Ben-Zvi wrote @file{profile.el}, to time Emacs Lisp functions.
@@ -194,7 +194,7 @@ Matthieu Devin wrote @file{delsel.el}, a package to make newly-typed
 text replace the current selection.
 
 @item
-Eric Ding contributed @file{goto-addr.el},
+Eric Ding wrote @file{goto-addr.el},
 
 @item
 Jan Dj@"{a}rv added support for the GTK+ toolkit and X drag-and-drop.
@@ -317,8 +317,8 @@ David Gillespie wrote the Common Lisp compatibility packages;
 @file{edmacro.el}, a package for editing keyboard macros.
 
 @item
-Bob Glickstein contributed the @file{sregex.el} feature, a facility for
-writing regexps using a Lisp-like syntax.
+Bob Glickstein wrote @file{sregex.el}, a facility for writing regexps
+using a Lisp-like syntax.
 
 @item
 Boris Goldowsky wrote @file{avoid.el}, a package to keep the mouse
@@ -553,7 +553,7 @@ up excess whitespace in a file.  The previous version of
 Vaidheeswarran.
 
 @item
-Frederic Lepied contributed @file{expand.el}, which uses the abbrev
+Frederic Lepied wrote @file{expand.el}, which uses the abbrev
 mechanism for inserting programming constructs.
 
 @item
@@ -766,9 +766,9 @@ Pieter E.@: J.@: Pareit wrote @file{mixal-mode.el}, an editing mode for
 the MIX assembly language.
 
 @item
-David Pearson contributed @file{quickurl.el}, a simple method of
-inserting a URL into the current buffer based on text at point;
-@file{5x5.el}, a game to fill all squares on the field.
+David Pearson wrote @file{quickurl.el}, a simple method of inserting a
+URL into the current buffer based on text at point; @file{5x5.el}, a
+game to fill all squares on the field.
 
 @item
 Jeff Peck wrote @file{sun.el}, key bindings for sunterm keys;
@@ -835,7 +835,7 @@ editing FORTRAN code.
 @c We're not distributing his tex-mode.el anymore; we're using Ed Reingold's.
 
 @item
-Mukesh Prasad contributed @file{vmsproc.el}, a facility for running
+Mukesh Prasad wrote @file{vmsproc.el}, a facility for running
 asynchronous subprocesses on VMS.
 
 @item
@@ -875,14 +875,14 @@ David Reitter wrote @file{mailclient.el} which can send mail via the
 system's designated mail client.
 
 @item
-Alex Rezinsky contributed @file{which-func.el}, a mode that shows the
-name of the current function in the mode line.
+Alex Rezinsky wrote @file{which-func.el}, a mode that shows the name
+of the current function in the mode line.
 
 @item
-Rob Riepel contributed @file{tpu-edt.el} and its associated files,
-providing an emulation of the VMS TPU text editor emulating the VMS EDT
-editor, and @file{vt-control.el}, providing some control functions for
-the DEC VT line of terminals.
+Rob Riepel wrote @file{tpu-edt.el} and its associated files, providing
+an emulation of the VMS TPU text editor emulating the VMS EDT editor,
+and @file{vt-control.el}, providing some control functions for the DEC
+VT line of terminals.
 
 @item
 Nick Roberts wrote @file{gdb-ui.el}, the graphical user interface to
@@ -910,17 +910,17 @@ Guillermo J.@: Rozas wrote @file{scheme.el}, a mode for editing Scheme and
 DSSSL code, and @file{fakemail.c}, an interface to the System V mailer.
 
 @item
-Ivar Rummelhoff provided @file{winner.el}, which records
-recent window configurations so you can move back to them.
+Ivar Rummelhoff wrote @file{winner.el}, which records recent window
+configurations so you can move back to them.
 
 @item
-Jason Rumney has ported the Emacs 21 display engine to MS-Windows, and
+Jason Rumney ported the Emacs 21 display engine to MS-Windows, and has
 contributed extensively to the MS-Windows port of Emacs.
 
 @item
-Wolfgang Rupprecht contributed Emacs 19's floating-point support
-(including @file{float-sup.el} and @file{floatfns.c}), and
-@file{sup-mouse.el}, support for the Supdup mouse on lisp machines.
+Wolfgang Rupprecht wrote Emacs 19's floating-point support (including
+@file{float-sup.el} and @file{floatfns.c}), and @file{sup-mouse.el},
+support for the Supdup mouse on lisp machines.
 
 @item
 Kevin Ryde wrote @file{info-xref.el}, a library for checking
@@ -942,7 +942,7 @@ William Schelter wrote @file{telnet.el}, support for @code{telnet}
 sessions within Emacs.
 
 @item
-Ralph Schleicher contributed @file{battery.el}, a package for displaying
+Ralph Schleicher wrote @file{battery.el}, a package for displaying
 laptop computer battery status, and @file{info-look.el}, a package for
 looking up Info documentation for symbols in the buffer.
 
@@ -974,7 +974,7 @@ Oliver Seidel wrote @file{todo-mode.el}, a package for maintaining
 @file{TODO} list files.
 
 @item
-Manuel Serrano contributed the Flyspell package that does spell checking
+Manuel Serrano wrote the Flyspell package, which does spell checking
 as you type.
 
 @item
@@ -986,8 +986,8 @@ Stanislav Shalunov wrote @file{uce.el}, for responding to unsolicited
 commercial email.
 
 @item
-Richard Sharman contributed @file{hilit-chg.el}, which uses colors
-to show recent editing changes.
+Richard Sharman wrote @file{hilit-chg.el}, which uses colors to show
+recent editing changes.
 
 @item
 Olin Shivers wrote @file{comint.el}, a library for modes running
@@ -1049,9 +1049,8 @@ Ake Stenhoff and Lars Lindberg wrote @file{imenu.el}, a framework for
 browsing indices made from buffer contents.
 
 @item
-Peter Stephenson contributed @file{vcursor.el}, which implements a
-``virtual cursor'' that you can move with the keyboard and use for
-copying text.
+Peter Stephenson wrote @file{vcursor.el}, which implements a ``virtual
+cursor'' that you can move with the keyboard and use for copying text.
 
 @item
 Ken Stevens wrote the initial version of @file{ispell.el} and maintains
@@ -1140,7 +1139,7 @@ with time zones.
 Neil W.@: Van Dyke wrote @file{webjump.el}, a ``hot links'' package.
 
 @item
-Didier Verna contributed @file{rect.el}, a package of functions for
+Didier Verna wrote @file{rect.el}, a package of functions for
 operations on rectangle regions of text.
 
 @item
@@ -1242,9 +1241,10 @@ package.
 Ryan Yeske wrote @file{rcirc.el} a simple Internet Relay Chat client.
 
 @item
-Ilya Zakharevich and Bob Olson contributed @file{cperl-mode.el}, a major
-mode for editing Perl code.  Ilya Zakharevich also wrote @file{tmm.el},
-a mode for accessing the Emacs menu bar on a text-mode terminal.
+Ilya Zakharevich and Bob Olson wrote @file{cperl-mode.el}, a major
+mode for editing Perl code.  Ilya Zakharevich also wrote
+@file{tmm.el}, a mode for accessing the Emacs menu bar on a text-mode
+terminal.
 
 @item
 Milan Zamazal wrote @file{czech.el}, support for editing Czech text,
@@ -1253,8 +1253,8 @@ uses illegible identifier names, and @file{tildify.el}, commands for
 adding hard spaces to text, @TeX{}, and SGML/HTML files.
 
 @item
-Victor Zandy contributed @file{zone.el}, a package for people who like
-to zone out in front of Emacs.
+Victor Zandy wrote @file{zone.el}, a package for people who like to
+zone out in front of Emacs.
 
 @item
 Eli Zaretskii made many standard Emacs features work on MS-DOS and
