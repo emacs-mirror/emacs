@@ -50,9 +50,9 @@ developing GNU and promoting software freedom.''
 @titlepage
 @title Ediff User's Manual
 @sp 4
-@subtitle Ediff version 2.81.1
+@subtitle Ediff version 2.81.2
 @sp 1
-@subtitle April 2007
+@subtitle November 2008
 @sp 5
 @author Michael Kifer
 @page
@@ -2501,6 +2501,7 @@ Andy Scott (ascott@@pcocd2.intel.com),
 Axel Seibert (axel@@tumbolia.ppp.informatik.uni-muenchen.de),
 Vin Shelton (acs@@xemacs.org),
 Scott O. Sherman (Scott.Sherman@@mci.com),
+Nikolaj Schumacher (n_schumacher@@web.de),
 Richard Stallman (rms@@gnu.org),
 Richard Stanton (stanton@@haas.berkeley.edu),
 Sam Steingold (sds@@goems.com),
