@@ -362,7 +362,7 @@ this defaults to \"printenv\"."
         (easy-menu-add-item global-map '(menu-bar)
                             (cons "File" menu-bar-ns-file-menu) 'edit)
 	(define-key menu-bar-help-menu [ns-manual]
-	  '(menu-item "Emacs.app Manual Chapter" ns-show-manual)))
+	  '(menu-item "Read the Emacs.app Manual Chapter" ns-show-manual)))
     (progn
       ;; Undo everything above.
       (fmakunbound 'ns-show-manual)
