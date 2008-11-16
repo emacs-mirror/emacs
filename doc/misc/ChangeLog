@@ -1,4 +1,4 @@
-2008-16-06  Michael Kifer  <kifer@cs.stonybrook.edu>
+2008-11-16  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper.texi (viper-ESC-keyseq-timeout, viper-ESC-key): Removed.
 
