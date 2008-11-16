@@ -583,8 +583,9 @@ Thomas Link wrote @file{filesets.el}, a package for handling sets of
 files.
 
 @item
-Károly Lőrentey wrote the ``multi-terminal'' code, which allows Emacs
-to run on graphical and text-only terminals simultaneously.
+K@'{a}roly L@"{o}rentey wrote the ``multi-terminal'' code, which
+allows Emacs to run on graphical and text-only terminals
+simultaneously.
 
 @item
 Dave Love wrote much of the code dealing with Unicode support and
