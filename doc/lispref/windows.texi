@@ -113,8 +113,8 @@ previously visible in the window that was split.
 
 @deffn Command split-window &optional window size horizontal
 This function splits a new window out of @var{window}'s screen area.  It
-returns the new window.  @var{window} defaults to the selected window.
-When you split the selected window, it remains selected.
+returns the new window.  The default for @var{window} is the selected
+window.  When you split the selected window, it remains selected.
 
 If @var{horizontal} is non-@code{nil}, then @var{window} splits into two
 side by side windows.  The original window keeps the leftmost @var{size}
@@ -329,21 +329,21 @@ using a deleted window as if it were live.
 
 @deffn Command delete-window &optional window
 This function removes @var{window} from display and returns @code{nil}.
-@var{window} defaults to the selected window.  An error is signaled if
-@var{window} is the only window on its frame.
+The default for @var{window} is the selected window.  An error is
+signaled if @var{window} is the only window on its frame.
 @end deffn
 
 @deffn Command delete-other-windows &optional window
 This function makes @var{window} the only window on its frame, by
-deleting the other windows in that frame.  @var{window} defaults to the
-selected window.  The return value is @code{nil}.
+deleting the other windows in that frame.  The default for @var{window}
+is the selected window.  The return value is @code{nil}.
 @end deffn
 
 @deffn Command delete-windows-on &optional buffer-or-name frame
 This function deletes all windows showing @var{buffer-or-name}.  If
-there are no windows showing @var{buffer-or-name}, it does nothing.
-@var{buffer-or-name} may be a buffer or the name of an existing buffer
-and defaults to the current buffer.
+there are no windows showing @var{buffer-or-name}, it does nothing.  The
+optional argument @var{buffer-or-name} may be a buffer or the name of an
+existing buffer and defaults to the current buffer.
 
 @code{delete-windows-on} operates frame by frame.  If a frame has
 several windows showing different buffers, then those showing
@@ -356,11 +356,11 @@ showing @var{buffer-or-name} is dedicated to its buffer
 (@pxref{Dedicated Windows}), and there are other frames left, that
 window's frame is deleted.
 
-The argument @var{frame} specifies which frames to operate on.  This
-function does not use it in quite the same way as the other functions
-which scan all windows; specifically, the values @code{t} and @code{nil}
-have the opposite of their meanings in other functions.  Here are the
-full details:
+The optional argument @var{frame} specifies which frames to operate on.
+This function does not use it in quite the same way as the other
+functions which scan all windows; specifically, the values @code{t} and
+@code{nil} have the opposite of their meanings in other functions.  Here
+are the full details:
 
 @itemize @bullet
 @item
@@ -453,10 +453,10 @@ The selected window can be the least recently used window if it is the
 only window.  A newly created window becomes the least recently used
 window until it is selected.  A minibuffer window is never a candidate.
 A dedicated window (@pxref{Dedicated Windows}) is never a candidate
-unless the @var{dedicated} argument is non-@code{nil}, so if all
-existing windows are dedicated, the function returns @code{nil}.
+unless the optional argument @var{dedicated} is non-@code{nil}.
 
-The argument @var{frame} specifies which windows are considered.
+The optional argument @var{frame} specifies which windows are
+considered.
 
 @itemize @bullet
 @item
@@ -477,15 +477,14 @@ This function returns the window with the largest area (height times
 width).  If there are no side-by-side windows, then this is the window
 with the most lines.  A minibuffer window is never a candidate.  A
 dedicated window (@pxref{Dedicated Windows}) is never a candidate unless
-the @var{dedicated} argument is non-@code{nil}, so if all existing
-windows are dedicated, the function returns @code{nil}.
+the optional argument @var{dedicated} is non-@code{nil}.
 
 If there are two candidate windows of the same size, this function
 prefers the one that comes first in the cyclic ordering of windows,
 starting from the selected window (@pxref{Cyclic Window Ordering}).
 
-The argument @var{frame} specifies which set of windows to consider, see
-@code{get-lru-window} above.
+The optional argument @var{frame} specifies which set of windows to
+consider, see @code{get-lru-window} above.
 @end defun
 
 @cindex window that satisfies a predicate
@@ -531,22 +530,23 @@ In general, within each set of siblings at any level in the window tree
 @cindex minibuffer window, and @code{next-window}
 This function returns the window following @var{window} in the cyclic
 ordering of windows.  This is the window @kbd{C-x o} selects if typed
-when @var{window} is selected.  @var{window} defaults to the selected
-window.
+when @var{window} is selected.  The default for @var{window} is the
+selected window.
 
-The value of the argument @var{minibuf} specifies whether the minibuffer
-is included in the window order.  Normally, when @var{minibuf} is
-@code{nil}, the minibuffer is included only if it is currently
-``active''; this matches the behavior of @kbd{C-x o}.  (The minibuffer
-window is active while the minibuffer is in use; see @ref{Minibuffers}.)
+The value of the optional argument @var{minibuf} specifies whether the
+minibuffer is included in the window order.  Normally, when
+@var{minibuf} is @code{nil}, the minibuffer is included only if it is
+currently ``active''; this matches the behavior of @kbd{C-x o}.  (The
+minibuffer window is active while the minibuffer is in use; see
+@ref{Minibuffers}.)
 
 If @var{minibuf} is @code{t}, the cyclic ordering includes the
 minibuffer window even if it is not active.  If @var{minibuf} is neither
 @code{t} nor @code{nil}, the minibuffer window is not included even if
 it is active.
 
-The argument @var{all-frames} specifies which frames to consider.  Here
-are the possible values and their meanings:
+The optional argument @var{all-frames} specifies which frames to
+consider.  Here are the possible values and their meanings:
 
 @table @asis
 @item @code{nil}
@@ -607,7 +607,7 @@ If @var{count} is zero, it does not skip any window, thus re-selecting
 the selected window.  In an interactive call, @var{count} is the numeric
 prefix argument.
 
-The argument @var{all-frames} has the same meaning as in
+The optional argument @var{all-frames} has the same meaning as in
 @code{next-window}, but the @var{minibuf} argument of @code{next-window}
 is always effectively @code{nil}.  This function returns @code{nil}.
 @end deffn
@@ -625,8 +625,8 @@ for details.
 
 @defun window-list &optional frame minibuf window
 This function returns a list of all windows on @var{frame}, starting
-with @var{window}.  @var{frame} defaults to the selected frame;
-@var{window} defaults to the selected window.
+with @var{window}.  The default for @var{frame} is the selected frame;
+the default for @var{window} is the selected window.
 
 The value of @var{minibuf} specifies if the minibuffer window shall be
 included in the result list.  If @var{minibuf} is @code{t}, the result
@@ -657,10 +657,13 @@ here when you need complete control.
 
 @defun set-window-buffer window buffer-or-name &optional keep-margins
 This function makes @var{window} display @var{buffer-or-name} as its
-contents.  It returns @code{nil}.  @var{buffer-or-name} must be a
-buffer, or the name of an existing buffer.  This is the fundamental
-primitive for changing which buffer is displayed in a window, and all
-ways of doing that call this function.
+contents.  It returns @code{nil}.  The default for @var{window} is the
+selected window.  The argument @var{buffer-or-name} must specify a
+buffer or the name of an existing buffer.
+
+@code{set-window-buffer} is the fundamental primitive for changing which
+buffer is displayed in a window, and all ways of doing that call this
+function.
 
 @example
 @group
@@ -675,12 +678,12 @@ settings based on the local variables of that buffer.
 However, if @var{keep-margins} is non-@code{nil}, display margins and
 fringe widths of @var{window} remain unchanged.  @xref{Fringes}.
 
-This function signals an error when @var{window} is @dfn{strongly}
-dedicated to its buffer (@pxref{Dedicated Windows}) and does not already
-display @var{buffer-or-name}.
+@code{set-window-buffer} signals an error when @var{window} is
+@dfn{strongly} dedicated to its buffer (@pxref{Dedicated Windows}) and
+does not already display @var{buffer-or-name}.
 
-This function runs @code{window-scroll-functions} before running
-@code{window-configuration-change-hook}.
+Note that this function runs @code{window-scroll-functions} before
+running @code{window-configuration-change-hook}.
 @end defun
 
 @defvar buffer-display-count
@@ -690,8 +693,8 @@ displayed in a window.  It is incremented each time
 @end defvar
 
 @defun window-buffer &optional window
-This function returns the buffer that @var{window} is displaying.
-@var{window} defaults to the selected window.
+This function returns the buffer that @var{window} is displaying.  The
+default for @var{window} is the selected window.
 
 @example
 @group
@@ -708,9 +711,9 @@ several such windows, then the function returns the first one in the
 cyclic ordering of windows, starting from the selected window.
 @xref{Cyclic Window Ordering}.
 
-@var{BUFFER-OR-NAME} may be a buffer or a buffer name and defaults to
-the current buffer.  The argument @var{all-frames} specifies which
-windows to consider:
+The argument @var{BUFFER-OR-NAME} may be a buffer or a buffer name and
+defaults to the current buffer.  The optional argument @var{all-frames}
+specifies which windows to consider:
 
 @itemize @bullet
 @item
@@ -734,8 +737,8 @@ compatible with the other functions.
 
 @defun get-buffer-window-list &optional buffer-or-name minibuf all-frames
 This function returns a list of all windows currently displaying
-@var{buffer-or-name}.  @var{buffer-or-name} may be a buffer or the name
-of an existing buffer and defaults to the current buffer.
+@var{buffer-or-name}.  The argument @var{buffer-or-name} may be a buffer
+or the name of an existing buffer and defaults to the current buffer.
 
 The two remaining arguments work like the same-named arguments of
 @code{next-window}; they are @emph{not} like the optional arguments of
@@ -783,7 +786,7 @@ This function makes @var{buffer-or-name} the current buffer, and also
 displays the buffer in the selected window.  This means that a human can
 see the buffer and subsequent keyboard commands will apply to it.
 Contrast this with @code{set-buffer}, which makes @var{buffer-or-name}
-the current buffer but does not display it in the selected window,
+the current buffer but does not display it in the selected window;
 see @ref{Current Buffer}.
 
 If @var{buffer-or-name} is @code{nil}, @code{switch-to-buffer} chooses a
@@ -877,8 +880,8 @@ other buffer.  In the usual applications of this function, you
 don't care which other buffer is used; you just want to make sure that
 @var{buffer-or-name} is no longer displayed.
 
-@var{buffer-or-name} may be a buffer or the name of an existing buffer
-and defaults to the current buffer.
+The argument @var{buffer-or-name} may be a buffer or the name of an
+existing buffer and defaults to the current buffer.
 
 If a window displaying @var{buffer-or-name} is dedicated
 (@pxref{Dedicated Windows}), and is not the only window on its frame,
@@ -903,8 +906,8 @@ to customize it.
 This command makes @var{buffer-or-name} appear in some window, but it
 does not select that window and does not make the buffer specified by
 @var{buffer-or-name} current.  The identity of the selected window is
-unaltered by this function.  @var{buffer-or-name} must be a buffer, or
-the name of an existing buffer.
+unaltered by this function.  The argument @var{buffer-or-name} must be a
+buffer or the name of an existing buffer.
 
 @var{not-this-window} non-@code{nil} means to display the specified
 buffer in a window other than the selected one, even if it is already
@@ -916,11 +919,11 @@ does nothing.
 @code{display-buffer} returns the window chosen to display
 @var{buffer-or-name}.
 
-If the argument @var{frame} is non-@code{nil}, it specifies which frames
-to check when deciding whether the buffer is already displayed.  If the
-buffer is already displayed in some window on one of these frames,
-@code{display-buffer} simply returns that window.  Here are the possible
-values of @var{frame}:
+If the optional argument @var{frame} is non-@code{nil}, it specifies
+which frames to check when deciding whether the buffer is already
+displayed.  If the buffer is already displayed in some window on one of
+these frames, @code{display-buffer} simply returns that window.  Here
+are the possible values of @var{frame}:
 
 @itemize @bullet
 @item
@@ -1214,8 +1217,8 @@ This function returns non-@code{nil} if @var{window} is dedicated to its
 buffer and @code{nil} otherwise.  More precisely, the return value is
 the value assigned by the last call of @code{set-window-dedicated-p} for
 @var{window} or @code{nil} if that function was never called with
-@var{window} as its argument.  @var{window} defaults to the selected
-window.
+@var{window} as its argument.  The default for @var{window} is the
+selected window.
 @end defun
 
 @defun set-window-dedicated-p window flag
@@ -1269,8 +1272,8 @@ position of point in that buffer.
 @defun window-point &optional window
 This function returns the current position of point in @var{window}.
 For a nonselected window, this is the value point would have (in that
-window's buffer) if that window were selected.  @var{window} defaults to
-the selected window.
+window's buffer) if that window were selected.  The default for
+@var{window} is the selected window.
 
 When @var{window} is the selected window and its buffer is also the
 current buffer, the value returned is the same as point in that buffer.
@@ -1344,7 +1347,7 @@ description of @code{count-lines}.  @xref{Definition of count-lines}.
 @cindex window end position
 @defun window-end &optional window update
 This function returns the position where display of its buffer ends in
-@var{window}.  @var{window} defaults to the selected window.
+@var{window}.  The default for @var{window} is the selected window.
 
 Simply changing the buffer text or moving point does not update the
 value that @code{window-end} returns.  The value is updated only when
@@ -1470,13 +1473,13 @@ Here is an example:
 @end defun
 
 @defun window-line-height &optional line window
-This function returns information about text line @var{line} in @var{window}.
-If @var{line} is one of @code{header-line} or @code{mode-line},
-@code{window-line-height} returns information about the corresponding
-line of the window.  Otherwise, @var{line} is a text line number
-starting from 0.  A negative number counts from the end of the window.
-The argument @var{line} defaults to the current line in @var{window};
-@var{window}, to the selected window.
+This function returns the height of text line @var{line} in
+@var{window}.  If @var{line} is one of @code{header-line} or
+@code{mode-line}, @code{window-line-height} returns information about
+the corresponding line of the window.  Otherwise, @var{line} is a text
+line number starting from 0.  A negative number counts from the end of
+the window.  The default for @var{line} is the current line in
+@var{window}; the default for @var{window} is the selected window.
 
 If the display is not up to date, @code{window-line-height} returns
 @code{nil}.  In that case, @code{pos-visible-in-window-p} may be used
@@ -1726,8 +1729,8 @@ could scroll just part of the way through a tall line or an image.
 
 @defun window-vscroll &optional window pixels-p
 This function returns the current vertical scroll position of
-@var{window}.  @var{window} defaults to the selected window.  If
-@var{pixels-p} is non-@code{nil}, the return value is measured in
+@var{window}.  The default for @var{window} is the selected window.
+If @var{pixels-p} is non-@code{nil}, the return value is measured in
 pixels, rather than in units of the normal line height.
 
 @example
@@ -1845,8 +1848,8 @@ of scrolling, this works just like @code{scroll-left}.
 @defun window-hscroll &optional window
 This function returns the total leftward horizontal scrolling of
 @var{window}---the number of columns by which the text in @var{window}
-is scrolled left past the left margin.  @var{window} defaults to the
-selected window.
+is scrolled left past the left margin.  The default for
+@var{window} is the selected window.
 
 The return value is never negative.  It is zero when no horizontal
 scrolling has been done in @var{window} (which is usually the case).
@@ -1925,8 +1928,8 @@ characters that separates side-by-side windows.
 This function returns the number of lines in @var{window}, including its
 mode line and header line, if any.  If @var{window} fills its entire
 frame except for the echo area, this is typically one less than the
-value of @code{frame-height} on that frame.  @var{window} defaults to
-the selected window.
+value of @code{frame-height} on that frame.  The default for
+@var{window} is the selected window.
 
 @example
 @group
@@ -1950,8 +1953,8 @@ mode line (if any) or the header line (if any).
 @end defun
 
 @defun window-width &optional window
-This function returns the number of columns in @var{window}.
-@var{window} defaults to the selected window.
+This function returns the number of columns in @var{window}.  The
+default for @var{window} is the selected window.
 
 The return value does not include the window's scroll bar or the column
 of @samp{|} characters that separates side-by-side windows.  Moreover,
@@ -1971,13 +1974,13 @@ whether a window is a wide as the containing frame.  Use the function
 
 @defun window-full-width-p &optional window
 This function returns non-@code{nil} if @var{window} is as wide as the
-frame that contains it; otherwise @code{nil}.  @var{window} defaults to
-the selected window.
+frame that contains it; otherwise @code{nil}.  The default for
+@var{window} is the selected window.
 @end defun
 
 @defun window-edges &optional window
 This function returns a list of the edge coordinates of @var{window}.
-@var{window} defaults to the selected window.
+The default for @var{window} is the selected window.
 
 The order of the list is @code{(@var{left} @var{top} @var{right}
 @var{bottom})}, all elements relative to 0, 0 at the top left corner of
@@ -2163,7 +2166,8 @@ function returns @code{nil}.
 
 @defun fit-window-to-buffer &optional window max-height min-height
 This function makes @var{window} the right height to display its
-contents exactly.  @var{window} defaults to the selected window.
+contents exactly.  The default for @var{window} is the selected
+window.
 
 The argument @var{max-height} specifies the maximum height the window
 is allowed to be; @code{nil} means use the frame height.  The argument
@@ -2175,8 +2179,8 @@ values include the mode line and/or header line.
 @deffn Command shrink-window-if-larger-than-buffer &optional window
 This command shrinks @var{window} vertically to be as small as possible
 while still showing the full contents of its buffer---but not less than
-@code{window-min-height} lines.  @var{window} defaults to the selected
-window.
+@code{window-min-height} lines.  The default for @var{window} is
+the selected window.
 
 However, this command does nothing if the window is already too small to
 display the whole text of the buffer, or if part of the contents are
@@ -2223,8 +2227,8 @@ before it is automatically deleted.  Making a window smaller than
 @code{window-min-height} automatically deletes it, and no window may be
 created shorter than this.  The value is measured in line units.  When
 the window wants a mode line and/or a header line, they are counted as
-one line each.  The default value of this variable is @code{4}.  A value
-less than @code{1} is ignored.
+one line each.  The default value is @code{4}.  A value less than
+@code{1} is ignored.
 @end defopt
 
 @defopt window-min-width
@@ -2367,7 +2371,8 @@ window configuration; see @ref{Frame Configurations}.
 
 @defun current-window-configuration &optional frame
 This function returns a new object representing @var{frame}'s current
-window configuration.  @var{frame} defaults to the selected frame.
+window configuration.  The default for @var{frame} is the selected
+frame.
 @end defun
 
 @defun set-window-configuration configuration
@@ -2475,22 +2480,22 @@ This sections describes how window parameters can be used to associate
 additional information with windows.
 
 @defun window-parameter window parameter
-This function returns @var{window}'s value for @var{parameter}.
-@var{window} defaults to the selected window.  If @var{window} has no
-setting for @var{parameter}, this function returns @code{nil}.
+This function returns @var{window}'s value for @var{parameter}.  The
+default for @var{window} is the selected window.  If @var{window}
+has no setting for @var{parameter}, this function returns @code{nil}.
 @end defun
 
 @defun window-parameters &optional window
 This function returns all parameters of @var{window} and their values.
-@var{window} defaults to the selected window.  The return value is an
-association list of elements of the form @code{(@var{parameter}
+The default for @var{window} is the selected window.  The return value
+is an association list of elements of the form @code{(@var{parameter}
 . @var{value})}.
 @end defun
 
 @defun set-window-parameter window parameter value
 This function sets @var{window}'s value of @var{parameter} to
-@var{value} and returns @var{value}.  @var{window} defaults to the
-selected window.
+@var{value} and returns @var{value}.  The default for @var{window}
+is the selected window.
 @end defun
 
 Currently, window parameters are not saved in window configurations and
