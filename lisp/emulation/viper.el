@@ -14,7 +14,7 @@
 ;; filed in the Emacs bug reporting system against this file, a copy
 ;; of the bug report be sent to the maintainer's email address.
 
-(defconst viper-version "3.14 of April 06, 2008"
+(defconst viper-version "3.14 of November 16, 2008"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
