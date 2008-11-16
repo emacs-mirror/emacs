@@ -1,5 +1,7 @@
 2008-11-16  Glenn Morris  <rgm@gnu.org>
 
+	* wid-edit.el (advertised-widget-backward): Remove autoload cookie.
+
 	* cus-edit.el (custom-buffer-create-internal): Always insert the
 	in-buffer buttons, regardless of tool-bar.  (Bug#1326)
 
