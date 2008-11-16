@@ -1,3 +1,66 @@
+2008-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/ange-ftp.el (ange-ftp-multi-msgs, ange-ftp-good-msgs)
+	(ange-ftp-try-passive-mode, ange-ftp-data-buffer-name)
+	(ange-ftp-account-hashtable, ange-ftp-ls-cache-lsargs)
+	(ange-ftp-ls-cache-file, ange-ftp-ls-cache-res, ange-ftp-get-user)
+	(ange-ftp-ftp-name-component, ange-ftp-kill-ftp-process)
+	(ange-ftp-quote-string, ange-ftp-process-handle-line)
+	(ange-ftp-start-process, ange-ftp-send-cmd, ange-ftp-add-dumb-unix-host)
+	(ange-ftp-before-parse-ls-hook, ange-ftp-after-parse-ls-hook)
+	(ange-ftp-ls, ange-ftp-add-dl-dir, ange-ftp-get-file-entry)
+	(ange-ftp-set-binary-mode, ange-ftp-set-ascii-mode, ange-ftp-get-pwd)
+	(ange-ftp-file-name-as-directory-alist, ange-ftp-reread-dir)
+	(ange-ftp-vms-filename-regexp, ange-ftp-bs2000-fix-name-regexp-reverse)
+	(ange-ftp-bs2000-fix-name-regexp): Fix typos in docstrings.
+	(ange-ftp-name-format, ange-ftp-gateway-fatal-msgs)
+	(ange-ftp-xfer-size-msgs, ange-ftp-tmp-name-template)
+	(ange-ftp-netrc-filename, ange-ftp-disable-netrc-security-check)
+	(ange-ftp-default-user, ange-ftp-default-password)
+	(ange-ftp-default-account, ange-ftp-netrc-default-password)
+	(ange-ftp-netrc-default-account, ange-ftp-dumb-unix-host-regexp)
+	(ange-ftp-binary-file-name-regexp, ange-ftp-gateway-host)
+	(ange-ftp-gateway-prompt-pattern, ange-ftp-smart-gateway-port)
+	(ange-ftp-send-hash, ange-ftp-binary-hash-mark-size)
+	(ange-ftp-ascii-hash-mark-size, ange-ftp-process-verbose)
+	(ange-ftp-ftp-program-name, ange-ftp-gateway-ftp-program-name)
+	(ange-ftp-ftp-program-args, ange-ftp-nslookup-program)
+	(ange-ftp-make-backup-files, ange-ftp-retry-time)
+	(ange-ftp-bs2000-special-prefix): Remove * from defcustom docstrings.
+	(ange-ftp-skip-msgs, ange-ftp-potential-error-msgs)
+	(ange-ftp-gateway-tmp-name-template)
+	(ange-ftp-generate-anonymous-password, ange-ftp-local-host-regexp)
+	(ange-ftp-gateway-program-interactive, ange-ftp-smart-gateway)
+	(ange-ftp-raw-login): Remove * from defcustom docstrings; fix typos.
+	(ange-ftp-fatal-msgs): Remove * from defcustom docstring; doc fix.
+	(ange-ftp-gateway-program): Remove * from docstring and reflow.
+	(ange-ftp-hash-entry-exists-p, ange-ftp-hash-table-keys)
+	(ange-ftp-raw-send-cmd, ange-ftp-get-files, ange-ftp-canonize-filename)
+	(ange-ftp-file-name-as-directory, ange-ftp-directory-file-name):
+	(ange-ftp-copy-files-async, ange-ftp-rename-remote-to-remote):
+	(ange-ftp-rename-local-to-remote): Doc fixes.
+	(ange-ftp-set-xfer-size, ange-ftp-call-cont, ange-ftp-process-filter):
+	Use `when', `unless'.
+	(ange-ftp-set-passwd): Rename arg PASSWD to PASSWORD.
+	(ange-ftp-process-handle-hash): Rename arg STR to STRING.
+	(ange-ftp-nslookup-host): Rename arg HOST to HOSTNAME.
+	(ange-ftp-smart-login): Rename arg PASS to PASSWORD.
+	(ange-ftp-normal-login): Rename arg PASS to PASSWORD.  Fix typo.
+	(ange-ftp-process-sentinel): Use `when'.  Fix typo.
+	(ange-ftp-gwp-start): Use `let', not `let*'; use `when'.  Fix typo.
+	(ange-ftp-fix-name-func-alist, ange-ftp-fix-dir-name-func-alist)
+	(ange-ftp-parse-list-func-alist, ange-ftp-add-file-entry-alist)
+	(ange-ftp-delete-file-entry-alist): Fix typos and reflow docstring.
+	(ange-ftp-dumb-unix-host, ange-ftp-binary-file)
+	(ange-ftp-directory-files, ange-ftp-file-modtime, ange-ftp-vms-host)
+	(ange-ftp-mts-host, ange-ftp-cms-host, ange-ftp-bs2000-host)
+	(ange-ftp-bs2000-posix-host): Use `string-match-p' instead of
+	`(save-match-data (string-match ...))'.
+	(ange-ftp-use-gateway-p, ange-ftp-use-smart-gateway-p)
+	(ange-ftp-file-name-directory, ange-ftp-file-name-nondirectory):
+	Use `string-match-p' instead of `(save-match-data (string-match ...))'.
+	Doc fixes.
+
 2008-11-16  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* emulation/viper-init.el (viper-ESC-keyseq-timeout): Make it into a
