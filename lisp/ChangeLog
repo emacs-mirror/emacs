@@ -1,3 +1,8 @@
+2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (read-passwd): Use read-event instead of
+	read-char-exclusive.
+
 2008-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ielm.el (ielm-eval-input): Fix thinko in last change.
