@@ -860,7 +860,9 @@ button end points."
 
 ;;; Keymap and Commands.
 
-;;;###autoload
+;; This alias exists only so that one can choose in doc-strings (e.g.
+;; Custom-mode) which key-binding of widget-keymap one wants to refer to.
+;; http://lists.gnu.org/archive/html/emacs-devel/2008-11/msg00480.html
 (defalias 'advertised-widget-backward 'widget-backward)
 
 ;;;###autoload
