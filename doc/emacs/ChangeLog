@@ -1,3 +1,8 @@
+2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (Directories): Describe delete-directory in text.
+	(Misc File Ops): Document delete-by-moving-to-trash.
+
 2008-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* macos.texi (Mac Customization): Fix typos.
