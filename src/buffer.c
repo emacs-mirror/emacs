@@ -6213,8 +6213,9 @@ Values are interpreted as follows:
   (hbar . HEIGHT) display a horizontal bar cursor with height HEIGHT
   ANYTHING ELSE	  display a hollow box cursor
 
-When the buffer is displayed in a nonselected window,
-this variable has no effect; the cursor appears as a hollow box.  */);
+When the buffer is displayed in a non-selected window, the
+cursor's appearance is instead controlled by the variable
+`cursor-in-non-selected-windows'.  */);
 
   DEFVAR_PER_BUFFER ("line-spacing",
 		     &current_buffer->extra_line_spacing, Qnil,
