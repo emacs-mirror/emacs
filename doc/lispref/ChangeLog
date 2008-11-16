@@ -1,3 +1,14 @@
+2008-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Splitting Windows, Deleting Windows)
+	(Selecting Windows, Cyclic Window Ordering)
+	(Buffers and Windows, Displaying Buffers, Choosing Window)
+	(Dedicated Windows, Window Point, Window Start and End)
+	(Textual Scrolling, Vertical Scrolling, Horizontal Scrolling)
+	(Size of Window, Resizing Windows, Window Configurations)
+	(Window Parameters): Avoid @var at beginning of sentences and
+	reword accordingly.
+
 2008-11-11  Lute Kamstra  <lute@gnu.org>
 
 	* files.texi (File Name Components): Fix file-name-extension
