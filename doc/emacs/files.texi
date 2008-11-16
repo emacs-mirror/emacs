@@ -1233,8 +1233,9 @@ using the minibuffer, and deletes the directory if it is empty.  If
 the directory is not empty, this signals an error.  On systems that
 have a ``Trash'' or ``Recycle Bin'' feature, you can make this command
 move the specified directory to the Trash or Recycle Bin, instead of
-deleting it outright; to do so, change the variable
-@code{delete-by-moving-to-trash} to @code{t}.
+deleting it outright, by changing the variable
+@code{delete-by-moving-to-trash} to @code{t}.  @xref{Misc File Ops},
+for more information about using the Trash.
 
 @node Comparing Files
 @section Comparing Files
@@ -1501,12 +1502,23 @@ as saving files; see @ref{Customize Save}.
 @cindex deletion (of files)
 @vindex delete-by-moving-to-trash
   @kbd{M-x delete-file} deletes the specified file, like the @code{rm}
-command in the shell.  On systems that have a ``Trash'' or ``Recycle
-Bin'' feature, you can make this command move the specified file to
-the Trash or Recycle Bin, instead of deleting it outright; to do so,
-change the variable @code{delete-by-moving-to-trash} to @code{t}.  If
-you are deleting many files in one directory, it may be more
-convenient to use Dired rather than @code{delete-file}.  @xref{Dired}.
+command in the shell.  If you are deleting many files in one
+directory, it may be more convenient to use Dired rather than
+@code{delete-file}.  @xref{Dired}.
+
+@cindex trash
+@cindex recycle bin
+  On some systems, there is a facility called the ``Trash'' (or
+``Recycle Bin''); ``deleting'' a file normally means moving it into
+the Trash, and you can bring the file back from the Trash if you later
+change your mind.  By default, Emacs does @emph{not} use the Trash for
+file deletion---when Emacs deletes a file, it is gone forever.  You
+can tell Emacs to use the Trash by changing the variable
+@code{delete-by-moving-to-trash} to @code{t}.  This applies to file
+deletion via @kbd{M-x delete-file}, as well as @kbd{M-x
+delete-directory} (@pxref{Directories}) and file deletion in Dired
+(@pxref{Dired Deletion}).  In addition, you can explicitly move a file
+into the Trash with the command @kbd{M-x move-file-to-trash}.
 
 @findex rename-file
   @kbd{M-x rename-file} reads two file names @var{old} and @var{new} using
