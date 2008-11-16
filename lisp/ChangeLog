@@ -1,3 +1,19 @@
+2008-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ielm.el (ielm-noisy, ielm-dynamic-return, ielm-mode-hook)
+	(ielm-dynamic-multiline-inputs): Remove * from defcustom docstrings.
+	(ielm-prompt-read-only, ielm-font-lock-keywords): Fix docstring typos.
+	(ielm-map): Define within defvar.  Add docstring.
+	(ielm-tab, ielm-eval-input, ielm-get-old-input, ielm-return)
+	(ielm-complete-filename): Use `when', `unless'.
+	(ielm-is-whitespace-or-comment): Use `string-match-p'.
+	(ielm-return, ielm-get-old-input): Use `looking-at-p'.
+	(ielm-change-working-buffer): Check that the buffer is live.
+	(inferior-emacs-lisp-mode): Define with `define-derived-mode'.
+	Simplify.  Reflow docstring.
+	(inferior-emacs-lisp-mode-hook, inferior-emacs-lisp-mode-map):
+	New aliases, to satisfy `define-derived-mode' expectations.
+
 2008-11-15  Glenn Morris  <rgm@gnu.org>
             Martin Rudalics  <rudalics@gmx.at>
 
@@ -31,8 +47,7 @@
 
 2008-11-14  Karl Fogel  <kfogel@red-bean.com>
 
-	* files.el (file-precious-flag): Document that this flag is
-	advisory.
+	* files.el (file-precious-flag): Document that this flag is advisory.
 
 2008-11-14  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
 
