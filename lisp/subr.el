@@ -1819,7 +1819,7 @@ by doing (clear-string STRING)."
 	(while (progn (message "%s%s"
 			       prompt
 			       (make-string (length pass) ?.))
-		      ;; We used to use read-char-exclusive, that that
+		      ;; We used to use read-char-exclusive, but that
 		      ;; gives funny behavior when the user presses,
 		      ;; e.g., the arrow keys.
 		      (setq c (read-event nil t))
