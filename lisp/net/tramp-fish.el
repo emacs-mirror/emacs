@@ -220,7 +220,7 @@ Used instead of analyzing error codes of commands.")
     (file-remote-p . tramp-handle-file-remote-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-fish-handle-file-name-all-completions)
-    ;; `file-name-as-directory' performed by default handler
+    (file-name-as-directory . tramp-handle-file-name-as-directory)
     (file-name-completion . tramp-handle-file-name-completion)
     (file-name-directory . tramp-handle-file-name-directory)
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
