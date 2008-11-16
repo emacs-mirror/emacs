@@ -416,6 +416,10 @@ into icons, regardless of the window manager."
 	    ;; this lets us have local versions of ediff-split-window-function
 	    split-window-function ediff-split-window-function
 	    three-way-comparison ediff-3way-comparison-job))
+    ;; if in minibuffer go somewhere else
+    (if (save-match-data
+	  (string-match "\*Minibuf-" (buffer-name (window-buffer))))
+	(select-window (next-window nil 'ignore-minibuf)))
     (delete-other-windows)
     (set-window-dedicated-p (selected-window) nil)
     (split-window-vertically)

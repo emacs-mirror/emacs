@@ -193,36 +193,8 @@ Enter as a sexp.  Examples: \"\\C-z\", [(control ?z)]."
   :type 'string
   :group 'viper)
 
-(defcustom viper-ESC-key (if (viper-window-display-p) [(escape)] "\e")
-  "Key used to ESC.
-Enter as a sexp. Examples: \"\\e\", [(escape)].
-If running in a terminal, [(escape)] is not understood, so must use \"\\e\"."
-  :type 'sexp
-  :group 'viper
-  :set (lambda (symbol value)
-	 (let ((old-value (if (boundp 'viper-ESC-key)
-			      viper-ESC-key
-			    [(escape)])))
-	   (mapc
-	    (lambda (buf)
-	      (save-excursion
-		(set-buffer buf)
-		(when (and (boundp 'viper-insert-intercept-map)
-			   (keymapp viper-insert-intercept-map))
-		  (when old-value
-		    (define-key viper-insert-intercept-map old-value nil))
-		  (define-key
-		    viper-insert-intercept-map value 'viper-intercept-ESC-key))
-		(when (and (boundp 'viper-vi-intercept-map)
-			   (keymapp viper-vi-intercept-map))
-		  (when old-value
-		    (define-key viper-vi-intercept-map old-value nil))
-		  (define-key
-		    viper-vi-intercept-map value 'viper-intercept-ESC-key))
-		))
-	    (buffer-list))
-	   (set-default symbol value)
-           )))
+(defvar viper-ESC-key (kbd "ESC")
+  "Key used to ESC.")
 
 
 ;;; Variables used by minor modes

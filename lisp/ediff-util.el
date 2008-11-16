@@ -1294,12 +1294,14 @@ which see."
 	((eq ediff-window-setup-function 'ediff-setup-windows-plain)
 	 (if (ediff-in-control-buffer-p)
 	     (ediff-kill-bottom-toolbar))
-	 (if (ediff-buffer-live-p ediff-control-buffer)
+	 (if (and (ediff-buffer-live-p ediff-control-buffer)
+		  (window-live-p ediff-control-window))
 	     (set-window-dedicated-p ediff-control-window nil))
 	 (setq ediff-multiframe t)
 	 (setq window-setup-func 'ediff-setup-windows-multiframe))
 	(t
-	 (if (ediff-buffer-live-p ediff-control-buffer)
+	 (if (and (ediff-buffer-live-p ediff-control-buffer)
+		  (window-live-p ediff-control-window))
 	     (set-window-dedicated-p ediff-control-window nil))
 	 (setq ediff-multiframe t)
 	 (setq window-setup-func 'ediff-setup-windows-multiframe))
@@ -1313,7 +1315,9 @@ which see."
 			     ediff-window-B nil)))
 	ediff-session-registry)
   (if (ediff-in-control-buffer-p)
-      (ediff-recenter 'no-rehighlight))))
+      (progn
+	(set-window-dedicated-p (selected-window) nil)
+	(ediff-recenter 'no-rehighlight)))))
 
 
 ;;;###autoload
@@ -3312,7 +3316,8 @@ Without an argument, it saves customized diff argument, if available
 		    ediff-diff-buffer)
 		   (t (error "Output from `diff' not found"))))
 	    )
-    (save-buffer)))
+    (let ((window-min-height 2))
+      (save-buffer))))
 
 
 ;; idea suggested by Hannu Koivisto <azure@iki.fi>

@@ -216,7 +216,7 @@
 	   (marker-position viper-insert-point))
       (setq viper-pre-command-point (marker-position viper-insert-point))))
 
-(defsubst viper-R-state-post-command-sentinel ()
+(defun viper-R-state-post-command-sentinel ()
   ;; Restoring cursor color is needed despite
   ;; viper-replace-state-pre-command-sentinel: When you jump to another buffer
   ;; in another frame, the pre-command hook won't change cursor color to
@@ -2762,9 +2762,10 @@ On reaching beginning of line, stop and signal error."
 (defun viper-next-line-carefully (arg)
   (condition-case nil
       ;; do not use forward-line! need to keep column
-      (if (featurep 'emacs)
-	  (with-no-warnings (next-line arg))
-	(next-line arg))
+      (let ((line-move-visual nil))
+	(if (featurep 'emacs)
+	    (with-no-warnings (next-line arg))
+	  (next-line arg)))
     (error nil)))
 
 
@@ -3064,9 +3065,10 @@ On reaching beginning of line, stop and signal error."
 	(com (viper-getCom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
     ;; do not use forward-line! need to keep column
-    (if (featurep 'emacs)
-	(with-no-warnings (next-line val))
-      (next-line val))
+    (let ((line-move-visual nil))
+      (if (featurep 'emacs)
+	  (with-no-warnings (next-line val))
+	(next-line val)))
     (if viper-ex-style-motion
 	(if (and (eolp) (not (bolp))) (backward-char 1)))
     (setq this-command 'next-line)
@@ -3113,9 +3115,10 @@ If point is on a widget or a button, simulate clicking on that widget/button."
 	(com (viper-getCom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
     ;; do not use forward-line! need to keep column
-    (if (featurep 'emacs)
-	(with-no-warnings (previous-line val))
-      (previous-line val))
+    (let ((line-move-visual nil))
+      (if (featurep 'emacs)
+	  (with-no-warnings (previous-line val))
+	(previous-line val)))
     (if viper-ex-style-motion
 	(if (and (eolp) (not (bolp))) (backward-char 1)))
     (setq this-command 'previous-line)
