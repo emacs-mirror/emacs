@@ -46,6 +46,7 @@ is in use, keystrokes do not echo.
 * Completion::		  An abbreviation facility for minibuffer input.
 * Minibuffer History::    Reusing recent minibuffer arguments.
 * Repetition::		  Re-executing commands that used the minibuffer.
+* Passwords::             Entering passwords in the echo area.
 @end menu
 
 @node Minibuffer File
@@ -588,6 +589,35 @@ list in the variable @code{command-history}.  Each element is a Lisp
 expression which describes one command and its arguments.  Lisp programs
 can re-execute a command by calling @code{eval} with the
 @code{command-history} element.
+
+@node Passwords
+@section Entering passwords
+
+Sometimes, you may need to enter a password into Emacs.  For instance,
+when you tell Emacs to visit a file on another machine via a network
+protocol such as FTP, you often need to supply a password to gain
+access to the machine (@pxref{Remote Files}).
+
+  Entering a password is, in a basic sense, similar to using a
+minibuffer.  Emacs displays a prompt in the echo area (such as
+@samp{Password: }); after you type the required password, press
+@key{RET} to submit it.  To prevent others from seeing your password,
+every character you type is displayed as a dot (@samp{.}) instead of
+its usual form.
+
+  Most of the features and commands associated with the minibuffer can
+@emph{not} be used when entering a password.  There is no history or
+completion, and you cannot change windows or perform any other action
+with Emacs until you have submitted the password.
+
+  While you are typing the password, you may press @key{DEL} to delete
+backwards, removing the last character entered.  @key{C-u} deletes
+everything you have typed so far.  @kbd{C-g} quits the password prompt
+(@pxref{Quitting}).  @kbd{C-y} inserts the current kill into the
+password (@pxref{Killing}).  You may type either @key{RET} or
+@key{ESC} to submit the password.  Any other self-inserting character
+key inserts the associated character into the password, and all other
+input is ignored.
 
 @ignore
    arch-tag: ba913cfd-b70e-400f-b663-22b2c309227f
