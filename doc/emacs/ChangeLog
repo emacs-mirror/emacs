@@ -9,6 +9,7 @@
 
 	* frames.texi (Mouse Commands): Move most of the description of Delete
 	Selection Mode to Using Region, and link to it.
+	(Clipboard): Note that paste is bound to clipboard-yank.
 
 	* building.texi (Compilation): Document first-error value of
 	compilation-scroll-output.
