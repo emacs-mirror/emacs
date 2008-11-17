@@ -1,3 +1,7 @@
+2008-11-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Tutorial): Clarify how to set up the on-line tutorial.
+
 2008-11-16  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper.texi (viper-ESC-keyseq-timeout, viper-ESC-key): Removed.
