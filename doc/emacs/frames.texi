@@ -361,9 +361,10 @@ selection discussed earlier.  You can access the clipboard through the
 @code{Copy} menu item, copies the region to the kill ring and saves it
 in the clipboard.
 
+@findex clipboard-yank
 @cindex paste
   The @code{Paste} menu item in the Edit menu yanks the contents of
-the clipboard at point.
+the clipboard at point (@code{clipboard-yank}).
 
 @vindex x-select-enable-clipboard
   You can customize the variable @code{x-select-enable-clipboard} to
