@@ -1,3 +1,8 @@
+2008-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-group-value-create): Don't insert docstring
+	twice.
+
 2008-11-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-cmds.el (ucs-completions): Mark as risky.
