@@ -1,5 +1,7 @@
 2008-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
+	* wid-edit.el (widget-image-insert): Don't add a mouse-face.
+
 	* cus-edit.el (custom-group-value-create): Don't insert docstring
 	twice.
 
