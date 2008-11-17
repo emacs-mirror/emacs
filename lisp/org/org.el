@@ -11149,7 +11149,7 @@ PREFER and SHOW-ALL are passed through to `org-closest-date'."
 (defun org-small-year-to-year (year)
   "Convert 2-digit years into 4-digit years.
 38-99 are mapped into 1938-1999.  1-37 are mapped into 2001-2007.
-The year 2000 cannot be abbreviated.  Any year lager than 99
+The year 2000 cannot be abbreviated.  Any year larger than 99
 is returned unchanged."
   (if (< year 38)
       (setq year (+ 2000 year))
