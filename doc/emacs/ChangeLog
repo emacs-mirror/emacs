@@ -3,6 +3,18 @@
 	* custom.texi (Minor Modes): Define mode commands and mode variables
 	more precisely.  Recommend using mode commands instead of setting
 	variables directly.  Put minor modes in a list, and add more modes.
+	(Easy Customization): Use "init file" instead of .emacs.
+	(Customization Groups): Update to new Custom buffer appearance.
+	(Saving Customizations): Copyedits.  Update example.
+	(Variables): Give example of variable type-sensitivity.
+	(Examining): Update example.
+	(Hooks): Copyedits.
+	(Specifying File Variables): Use C comments instead of an artificial
+	Lisp for the example.
+	(Keymaps): Move internals discussion to Prefix Keymaps.
+	(Rebinding): Remove redundant paragraph (stated in Key Binding).
+	(Init Rebinding): Document kbd macro.
+	(Init File): Link to Find Init.
 
 	* mark.texi (Using Region): Document Delete Selection Mode more
 	thoroughly.
