@@ -1266,7 +1266,7 @@ you have followed a cross-reference, you can press the letter
 
 You can press @kbd{?} at any time for a brief summary of Info commands.
 
-Press @kbd{1} now to enter the first section of the Tutorial.
+Press the number @kbd{1} now to enter the first section of the Tutorial.
 
 @menu
 * Tutorial::
@@ -1296,10 +1296,13 @@ self-explanatory.  @xref{Embedded Mode}, for a description of
 the Embedded mode interface.
 
 The easiest way to read this tutorial on-line is to have two windows on
-your Emacs screen, one with Calc and one with the Info system.  (If you
-have a printed copy of the manual you can use that instead.)  Press
-@kbd{C-x * c} to turn Calc on or to switch into the Calc window, and
-press @kbd{C-x * i} to start the Info system or to switch into its window.
+your Emacs screen, one with Calc and one with the Info system.  Press
+@kbd{C-x * t} to set this up; the on-line tutorial will be opened in the
+current window and Calc will be started in another window.  From the
+Info window, the command @kbd{C-x * c} can be used to switch to the Calc
+window and @kbd{C-x * o} can be used to switch back to the Info window.
+(If you have a printed copy of the manual you can use that instead; in
+that case you only need to press @kbd{C-x * c} to start Calc.)
 
 This tutorial is designed to be done in sequence.  But the rest of this
 manual does not assume you have gone through the tutorial.  The tutorial
