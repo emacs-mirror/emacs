@@ -1,3 +1,7 @@
+2008-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (window--frame-usable-p): Allow use for soft-dedication.
+
 2008-11-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emulation/viper-cmd.el (viper-harness-minor-mode): Fix docstring typo.
@@ -17,8 +21,8 @@
 	`isearch-filter-invisible'.  Doc fix.
 	(isearch-filter-invisible): Rename from
 	`isearch-success-function-default'.  Doc fix.
-	(isearch-search, isearch-lazy-highlight-search): Rename
-	`isearch-success-function' to `isearch-filter-predicate'.
+	(isearch-search, isearch-lazy-highlight-search):
+	Rename `isearch-success-function' to `isearch-filter-predicate'.
 
 	* dired-aux.el (dired-isearch-filter-predicate-orig): Rename from
 	`dired-isearch-orig-success-function'.
@@ -28,8 +32,8 @@
 	(dired-isearch-filter-filenames): Rename from
 	`dired-isearch-success-function'.
 
-	* info.el (Info-search, Info-mode): Rename
-	`isearch-success-function' to `isearch-filter-predicate'.
+	* info.el (Info-search, Info-mode):
+	Rename `isearch-success-function' to `isearch-filter-predicate'.
 	(Info-isearch-filter-predicate): Rename from
 	`Info-search-success-function'.
 

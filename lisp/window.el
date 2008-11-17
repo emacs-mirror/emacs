@@ -869,9 +869,10 @@ by `split-window' (or `split-window-preferred-function')."
       ;; `frame-root-window' may be an internal window which is considered
       ;; "dead" by `window-live-p'.  Hence if `window' is not live we
       ;; implicitly know that `frame' has a visible window we can use.
-      (when (or (not (window-live-p window))
-		(and (not (window-minibuffer-p window))
-		     (not (window-dedicated-p window))))
+      (unless (and (window-live-p window)
+                   (or (window-minibuffer-p window)
+                       ;; If the window is soft-dedicated, the frame is usable.
+                       (eq t (window-dedicated-p window))))
 	frame))))
 
 (defcustom even-window-heights t
