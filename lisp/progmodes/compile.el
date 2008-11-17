@@ -691,7 +691,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 (defvar compilation-old-error-list nil)
 
 (defcustom compilation-auto-jump-to-first-error nil
-  "If non-nil, automatically jump to the first error after `compile'."
+  "If non-nil, automatically jump to the first error during `compile'."
   :type 'boolean
   :group 'compilation
   :version "23.1")
