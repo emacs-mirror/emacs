@@ -277,6 +277,7 @@ The Minibuffer
 * Completion::		An abbreviation facility for minibuffer input.
 * Minibuffer History::	Reusing recent minibuffer arguments.
 * Repetition::		Re-executing commands that used the minibuffer.
+* Passwords::           Entering passwords in the echo area.
 
 Completion
 
