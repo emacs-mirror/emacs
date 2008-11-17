@@ -1323,8 +1323,8 @@ makes the search case-sensitive."
 (defvar minibuffer-temporary-goal-position nil)
 
 (defvar minibuffer-default-add-function 'minibuffer-default-add-completions
-  "Function run by `goto-history-element' before consuming `minibuffer-default'.
-This is useful to dynamically add more elements to the list `minibuffer-default'
+  "Function run by `goto-history-element' before consuming default values.
+This is useful to dynamically add more elements to the list of default values
 when `goto-history-element' reaches the end of this list.
 Before calling this function `goto-history-element' sets the variable
 `minibuffer-default-add-done' to t, so it will call this function only
