@@ -662,11 +662,7 @@ button is pressed or inactive, respectively.  These are currently ignored."
   (if (and (display-graphic-p)
 	   (setq image (widget-image-find image)))
       (progn (widget-put widget :suppress-face t)
-	     (insert-image image
-			   (propertize
-                            ;; Use a `list' so it's unique and won't get
-                            ;; accidentally merged with neighbouring images.
-			    tag 'mouse-face (list widget-button-pressed-face))))
+	     (insert-image image tag))
     (insert tag)))
 
 (defun widget-move-and-invoke (event)
