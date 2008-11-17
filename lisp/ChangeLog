@@ -1,3 +1,12 @@
+2008-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (quoted-insert, minibuffer-history-isearch-pop-state, undo)
+	(undo-only, rotate-yank-pointer, kill-whole-line, push-mark-command)
+	(exchange-point-and-mark, set-goal-column, kill-line, backward-word)
+	(kill-word, backward-kill-word, zap-to-char): Doc fixes.
+	(shell-command, repeat-complex-command): Reflow docstrings.
+	(pop-to-mark-command): Fix typos in docstring.
+
 2008-11-17  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-filter-predicate): Rename from
