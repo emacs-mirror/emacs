@@ -112,7 +112,7 @@ calendar.texi     -- rgm
 cal-xtra.texi     -- rgm
 cmdargs.texi
 commands.texi     -- cyd
-custom.texi
+custom.texi       -- cyd
 dired.texi        -- cyd
 dired-xtra.texi
 display.texi      -- cyd
