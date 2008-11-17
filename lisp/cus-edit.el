@@ -4005,7 +4005,8 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   (let ((start (point)))
 	     (insert tag " group: ")
 	     (widget-specify-sample widget start (point)))
-	   (insert (widget-docstring widget))
+	   (if (< (length (widget-docstring widget)) 50)
+	       (insert (widget-docstring widget)))
 	   ;; Create visibility indicator.
 	   (unless (eq custom-buffer-style 'links)
 	     (insert "--------")
@@ -4032,8 +4033,9 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   ;; Update buttons.
 	   (widget-put widget :buttons buttons)
 	   ;; Insert documentation.
-	   (widget-add-documentation-string-button
-	    widget :visibility-widget 'custom-visibility)
+	   (if (>= (length (widget-docstring widget)) 50)
+	       (widget-add-documentation-string-button
+		widget :visibility-widget 'custom-visibility))
 
 	   ;; Parent groups.
 	   (if nil  ;;; This should test that the buffer
