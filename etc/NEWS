@@ -505,7 +505,9 @@ requires confirmation before opening a non-existent file.
 *** `next-error-recenter' specifies how next-error should recenter the
 visited source file.  Its value can be a number (for example, 0 for
 top line, -1 for bottom line), or nil for no recentering.
-
++++
+*** When typing in a password in the echo area, C-y yanks the current
+kill into the password.
 
 * New Modes and Packages in Emacs 23.1
 
