@@ -1,3 +1,8 @@
+2008-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-defs.el (c-put-char-property-fun): Add fallback
+	definition of 'ignore, rather than nil.  (Bug#1353)
+
 2008-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el (window--frame-usable-p): Allow use for soft-dedication.
