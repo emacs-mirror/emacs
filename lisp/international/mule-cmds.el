@@ -2864,6 +2864,7 @@ on encoding."
 
 (defvar ucs-completions (lazy-completion-table ucs-completions ucs-names)
   "Lazy completion table for completing on Unicode character names.")
+(put 'ucs-completions 'risky-local-variable t)
 
 (defun read-char-by-name (prompt)
   "Read a character by its Unicode name or hex number string.

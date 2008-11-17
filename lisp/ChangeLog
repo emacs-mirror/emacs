@@ -1,3 +1,7 @@
+2008-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-cmds.el (ucs-completions): Mark as risky.
+
 2008-11-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* help-macro.el (three-step-help): Remove * from defcustom.
@@ -949,7 +953,7 @@
 
 	* subr.el (top-level): Require `cl' when compiling.
 
-2008-10-20  David Reitter <david.reitter@gmail.com>
+2008-10-20  David Reitter  <david.reitter@gmail.com>
 
 	* info.el (Info-mode): Do not remove an existing header line if
 	`Info-use-header-line' is nil.
