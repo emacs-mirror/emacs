@@ -935,7 +935,7 @@ Similar to viper-escape-to-emacs, but accepts forms rather than keystrokes."
 ;; bindings.  By letting Viper know which files these modes are in, it will
 ;; arrange to reorganize minor-mode-map-alist so that things will work right.
 (defun viper-harness-minor-mode (load-file)
-  "Familiarize Viper with a minor mode defined in LOAD_FILE.
+  "Familiarize Viper with a minor mode defined in LOAD-FILE.
 Minor modes that have their own keymaps may overshadow Viper keymaps.
 This function is designed to make Viper aware of the packages that define
 such minor modes.

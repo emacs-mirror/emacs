@@ -8991,10 +8991,10 @@ only lines with a TODO keyword are included in the output."
 (defvar todo-only) ;; dynamically scoped
 
 (defun org-tags-sparse-tree (&optional todo-only match)
-  "Create a sparse tree according to tags  string MATCH.
+  "Create a sparse tree according to tags string MATCH.
 MATCH can contain positive and negative selection of tags, like
 \"+WORK+URGENT-WITHBOSS\".
-If optional argument TODO_ONLY is non-nil, only select lines that are
+If optional argument TODO-ONLY is non-nil, only select lines that are
 also TODO lines."
   (interactive "P")
   (org-prepare-agenda-buffers (list (current-buffer)))
@@ -11129,7 +11129,7 @@ days in order to avoid rounding problems."
   "Convert a time stamp to an absolute day number.
 If there is a specifyer for a cyclic time stamp, get the closest date to
 DAYNR.
-PREFER and SHOW_ALL are passed through to `org-closest-date'."
+PREFER and SHOW-ALL are passed through to `org-closest-date'."
   (cond
    ((and daynr (string-match "\\`%%\\((.*)\\)" s))
     (if (org-diary-sexp-entry (match-string 1 s) "" date)
@@ -11150,7 +11150,7 @@ PREFER and SHOW_ALL are passed through to `org-closest-date'."
   "Convert 2-digit years into 4-digit years.
 38-99 are mapped into 1938-1999.  1-37 are mapped into 2001-2007.
 The year 2000 cannot be abbreviated.  Any year lager than 99
-is retrned unchanged."
+is returned unchanged."
   (if (< year 38)
       (setq year (+ 2000 year))
     (if (< year 100)

@@ -1,5 +1,7 @@
 2008-11-17  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emulation/viper-cmd.el (viper-harness-minor-mode): Fix docstring typo.
+
 	* simple.el (quoted-insert, minibuffer-history-isearch-pop-state, undo)
 	(undo-only, rotate-yank-pointer, kill-whole-line, push-mark-command)
 	(exchange-point-and-mark, set-goal-column, kill-line, backward-word)
