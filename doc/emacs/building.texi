@@ -92,9 +92,12 @@ the end of the buffer.
 
 @cindex compilation buffer, keeping point at end
 @vindex compilation-scroll-output
-  If you set the variable @code{compilation-scroll-output} to a
-non-@code{nil} value, then the compilation buffer always scrolls to
-follow output as it comes in.
+  If you change the variable @code{compilation-scroll-output} to a
+non-@code{nil} value, the compilation buffer will scroll automatically
+to follow the output as it comes in.  If the value is
+@code{first-error}, the scrolling stops at the first error that
+appears, leaving point at that error.  For any other non-@code{nil}
+value, the buffer continues scrolling until there is no more output.
 
 @findex recompile
   To rerun the last compilation with the same command, type @kbd{M-x
@@ -201,8 +204,8 @@ typing @key{RET} (@code{compile-goto-error}).  Alternatively, you can
 click @kbd{Mouse-2} on the error message; you need not switch to the
 @samp{*compilation*} buffer first.  If you set the variable
 @code{compilation-auto-jump-to-first-error} to a non-@code{nil} value,
-Emacs automatically jumps to the first error (if any exists) once
-compilation finishes.
+Emacs automatically jumps to the first error, if any, as soon as it
+appears in the @samp{*compilation*} buffer.
 
 @kindex M-g M-n
 @kindex M-g n
