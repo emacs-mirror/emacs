@@ -176,11 +176,12 @@ or to the end of the buffer for a backward search.")
   "Function to save a function restoring the mode-specific isearch state
 to the search status stack.")
 
-(defvar isearch-success-function 'isearch-success-function-default
-  "Function to report whether the new search match is considered successful.
-The function has two arguments: the positions of start and end of text
-matched by the search.  If this function returns nil, continue
-searching without stopping at this match.")
+(defvar isearch-filter-predicate 'isearch-filter-invisible
+  "Predicate that filters the search hits that would normally be available.
+Search hits that dissatisfy the predicate are skipped.  The function
+has two arguments: the positions of start and end of text matched by
+the search.  If this function returns nil, continue searching without
+stopping at this match.")
 
 ;; Search ring.
 
@@ -2257,7 +2258,7 @@ Can be changed via `isearch-search-fun-function' for special needs."
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
   (condition-case lossage
       (let ((inhibit-point-motion-hooks
-	     (and (eq isearch-success-function 'isearch-success-function-default)
+	     (and (eq isearch-filter-predicate 'isearch-filter-invisible)
 		  search-invisible))
 	    (inhibit-quit nil)
 	    (case-fold-search isearch-case-fold-search)
@@ -2267,12 +2268,12 @@ Can be changed via `isearch-search-fun-function' for special needs."
 	(while retry
 	  (setq isearch-success
 		(isearch-search-string isearch-string nil t))
-	  ;; Clear RETRY unless we matched some invisible text
-	  ;; and we aren't supposed to do that.
+	  ;; Clear RETRY unless the search predicate says
+	  ;; to skip this search hit.
 	  (if (or (not isearch-success)
 		  (bobp) (eobp)
 		  (= (match-beginning 0) (match-end 0))
-		  (funcall isearch-success-function
+		  (funcall isearch-filter-predicate
 			   (match-beginning 0) (match-end 0)))
 	      (setq retry nil)))
 	(setq isearch-just-started nil)
@@ -2451,10 +2452,10 @@ Can be changed via `isearch-search-fun-function' for special needs."
 		  nil)
 	      (setq isearch-hidden t)))))))
 
-(defun isearch-success-function-default (beg end)
-  "Default function to report if the new search match is successful.
-Returns t if search can match hidden text, or otherwise checks if some
-text from BEG to END is visible."
+(defun isearch-filter-invisible (beg end)
+  "Default predicate to filter out invisible text.
+It filters search hits to those that are visible (at least partially),
+unless invisible text too can be searched."
   (or (eq search-invisible t)
       (not (isearch-range-invisible beg end))))
 
@@ -2640,12 +2641,14 @@ Attempt to do the search exactly the way the pending isearch would."
 			  (if isearch-lazy-highlight-wrapped
 			      isearch-lazy-highlight-end
 			    (window-start))))))
-	;; Use a loop like in `isearch-search'
+	;; Use a loop like in `isearch-search'.
 	(while retry
 	  (setq success (isearch-search-string
 			 isearch-lazy-highlight-last-string bound t))
+	  ;; Clear RETRY unless the search predicate says
+	  ;; to skip this search hit.
 	  (if (or (not success)
-		  (funcall isearch-success-function
+		  (funcall isearch-filter-predicate
 			   (match-beginning 0) (match-end 0)))
 	      (setq retry nil)))
 	success)
