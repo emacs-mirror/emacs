@@ -1660,7 +1660,7 @@ If DIRECTION is `backward', search in the reverse direction."
 			      (point-max)))
 	  (while (and (not give-up)
 		      (or (null found)
-			  (not (funcall isearch-success-function beg-found found))))
+			  (not (funcall isearch-filter-predicate beg-found found))))
 	    (let ((search-spaces-regexp
 		   (if (or (not isearch-mode) isearch-regexp)
 		       Info-search-whitespace-regexp)))
@@ -1740,7 +1740,7 @@ If DIRECTION is `backward', search in the reverse direction."
 		(setq give-up nil found nil)
 		(while (and (not give-up)
 			    (or (null found)
-				(not (funcall isearch-success-function beg-found found))))
+				(not (funcall isearch-filter-predicate beg-found found))))
 		  (let ((search-spaces-regexp
 			 (if (or (not isearch-mode) isearch-regexp)
 			     Info-search-whitespace-regexp)))
@@ -1847,7 +1847,7 @@ If DIRECTION is `backward', search in the reverse direction."
 (defun Info-isearch-start ()
   (setq Info-isearch-initial-node nil))
 
-(defun Info-search-success-function (beg-found found)
+(defun Info-isearch-filter-predicate (beg-found found)
   "Skip invisible text, node header line and Tag Table node."
   (save-match-data
     (let ((backward (< found beg-found)))
@@ -3533,8 +3533,8 @@ Advanced commands:
        'Info-isearch-wrap)
   (set (make-local-variable 'isearch-push-state-function)
        'Info-isearch-push-state)
-  (set (make-local-variable 'isearch-success-function)
-       'Info-search-success-function)
+  (set (make-local-variable 'isearch-filter-predicate)
+       'Info-isearch-filter-predicate)
   (set (make-local-variable 'search-whitespace-regexp)
        Info-search-whitespace-regexp)
   (set (make-local-variable 'revert-buffer-function)
