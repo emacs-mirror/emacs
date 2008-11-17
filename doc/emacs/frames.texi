@@ -190,10 +190,8 @@ shift-selection (@pxref{Shift Selection}).
 @findex delete-selection-mode
   Many graphical applications also follow the convention that
 insertion while text is selected deletes the selected text.  You can
-make Emacs behave this way by typing @kbd{M-x delete-selection-mode}.
-This enables a minor mode named Delete Selection mode.  Another effect
-of this mode is that some keys, such as @key{DEL} and @kbd{C-d},
-always kill the region if one exists.
+make Emacs behave this way by enabling Delete Selection mode.
+@xref{Using Region}.
 
 @node Word and Line Mouse
 @subsection Mouse Commands for Words and Lines
