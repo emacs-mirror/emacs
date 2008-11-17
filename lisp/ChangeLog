@@ -1,5 +1,9 @@
 2008-11-17  Martin Rudalics  <rudalics@gmx.at>
 
+	* help-macro.el (three-step-help): Remove * from defcustom.
+	(make-help-screen): Don't iconify selected frame.  (Bug#1322)
+	Use when instead of if and cond within condition-case.
+
 	* window.el (quit-window): Bind window to selected window when
 	trying to delete it.
 
