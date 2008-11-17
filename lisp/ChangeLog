@@ -1,3 +1,8 @@
+2008-11-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (quit-window): Bind window to selected window when
+	trying to delete it.
+
 2008-11-17  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-defs.el (c-put-char-property-fun): Add fallback
