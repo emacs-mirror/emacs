@@ -1437,7 +1437,8 @@ Otherwise, bury WINDOW's buffer, see `bury-buffer'."
 	    (window-dedicated-p window))
 	;; WINDOW is either non-nil, a minibuffer window, or dedicated;
 	;; try to delete it.
-	(let ((frame (window-frame (or window (selected-window)))))
+	(let* ((window (or window (selected-window)))
+	       (frame (window-frame window)))
 	  (if (eq window (frame-root-window frame))
 	      ;; WINDOW is alone on its frame.  `delete-windows-on'
 	      ;; knows how to handle that case.
