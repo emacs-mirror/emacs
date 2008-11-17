@@ -543,6 +543,7 @@ details, see the EasyPG Assistant User's Manual.
 ** json.el is a library for parsing and generating JSON
 (JavaScript Object Notation), a lightweight data-interchange format.
 
++++
 ** linum.el is a new minor mode to display line numbers for the
 current buffer.
 
