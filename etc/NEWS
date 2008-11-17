@@ -693,6 +693,9 @@ running, (b) successful completion, (c) error.
 +++
 *** compilation-auto-jump-to-first-error tells `compile' to jump to
 the first error encountered during compilations.
++++
+*** compilation-scroll-output accepts a new value, `first-error', which
+says to stop auto scrolling at the first error that occurs.
 ---
 *** The `cc' alias for C++ files in `grep-file-aliases' has been
 improved. `hh' can be used to match C++ header files and `cchh' both
