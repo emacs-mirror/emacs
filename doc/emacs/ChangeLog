@@ -1,5 +1,10 @@
 2008-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
+	* building.texi (Compilation): Document first-error value of
+	compilation-scroll-output.
+	(Compilation Mode): Note that compilation-auto-jump-to-first-error
+	works as soon as an error is available.  Suggested by Juri Linkov.
+
 	* mini.texi (Passwords): New node.
 
 	* files.texi (Remote Files): Link to Passwords node.
