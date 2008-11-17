@@ -1723,11 +1723,11 @@ is documented in the following.  Remote file access through the other
 methods is handled by the Tramp package, which has its own manual.
 @xref{Top, The Tramp Manual,, tramp, The Tramp Manual}.
 
-When the Ange-FTP package is used, Emacs logs in through FTP using your
-user name or the name @var{user}.  It may ask you for a password from
-time to time; this is used for logging in on @var{host}.  The form using
-@var{port} allows you to access servers running on a non-default TCP
-port.
+When the Ange-FTP package is used, Emacs logs in through FTP using
+your user name or the name @var{user}.  It may ask you for a password
+from time to time (@pxref{Passwords}); this is used for logging in on
+@var{host}.  The form using @var{port} allows you to access servers
+running on a non-default TCP port.
 
 @cindex backups for remote files
 @vindex ange-ftp-make-backup-files
@@ -1754,7 +1754,7 @@ are handled specially.  The variable
 the value of this variable is a string, then that string is used as
 the password; if non-@code{nil} (the default), then the value of
 @code{user-mail-address} is used; if @code{nil}, then Emacs prompts
-you for a password as usual.
+you for a password as usual (@pxref{Passwords}).
 
 @cindex firewall, and accessing remote files
 @cindex gateway, and remote file access with @code{ange-ftp}
