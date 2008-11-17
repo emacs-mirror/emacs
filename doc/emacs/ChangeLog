@@ -1,3 +1,11 @@
+2008-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mini.texi (Passwords): New node.
+
+	* files.texi (Remote Files): Link to Passwords node.
+
+	* emacs.texi (Top): Update node listings.
+
 2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ack.texi (Acknowledgments): Some updating of credits.
