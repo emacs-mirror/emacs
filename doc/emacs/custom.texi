@@ -6,33 +6,24 @@
 @chapter Customization
 @cindex customization
 
-  This chapter talks about various topics relevant to adapting the
-behavior of Emacs in ways we have anticipated.
+  This chapter describes some simple methods to customize the behavior
+of Emacs.
+
+  Apart from the methods described here, see @ref{X Resources} for
+information about using X resources to customize Emacs, and see
+@ref{Keyboard Macros} for information about recording and replaying
+keyboard macros.  Making more far-reaching and open-ended changes
+involves writing Emacs Lisp code; see
 @iftex
-See @cite{The Emacs Lisp Reference Manual}
+@cite{The Emacs Lisp Reference Manual}.
 @end iftex
 @ifnottex
-@xref{Top, Emacs Lisp, Emacs Lisp, elisp, The Emacs Lisp
-Reference Manual},
+@ref{Top, Emacs Lisp, Emacs Lisp, elisp, The Emacs Lisp
+Reference Manual}.
 @end ifnottex
-for how to make more far-reaching and open-ended changes.  @xref{X
-Resources}, for information on using X resources to customize Emacs.
-
-  Customization that you do within Emacs normally affects only the
-particular Emacs session that you do it in---it does not persist
-between sessions unless you save the customization in a file such as
-your init file (@file{.emacs}) that will affect future sessions.
-(@xref{Init File}.)  When you tell the customization buffer to save
-customizations for future sessions, this actually works by editing
-@file{.emacs} for you.
-
-  Another means of customization is the keyboard macro, which is a
-sequence of keystrokes to be replayed with a single command.
-@xref{Keyboard Macros}, for full instruction how to record, manage, and
-replay sequences of keys.
 
 @menu
-* Minor Modes::		Each minor mode is one feature you can turn on
+* Minor Modes::		Each minor mode is a feature you can turn on
 			  independently of any others.
 * Easy Customization::  Convenient way to browse and change settings.
 * Variables::		Many Emacs commands examine Emacs variables
@@ -52,136 +43,148 @@ replay sequences of keys.
 @cindex mode, minor
 
   Minor modes are optional features which you can turn on or off.  For
-example, Auto Fill mode is a minor mode in which @key{SPC} breaks lines
-between words as you type.  All the minor modes are independent of each
-other and of the selected major mode.  Most minor modes say in the mode
-line when they are enabled; for example, @samp{Fill} in the mode line means
-that Auto Fill mode is enabled.
+example, Auto Fill mode is a minor mode in which @key{SPC} breaks
+lines between words as you type.  Minor modes are independent of one
+another and of the selected major mode.  Most minor modes say in the
+mode line when they are enabled; for example, @samp{Fill} in the mode
+line means that Auto Fill mode is enabled.
 
-  You should append @code{-mode} to the name of a minor mode to
-produce the name of the command that turns the mode on or off.  Thus,
-the command to enable or disable Auto Fill mode is called
-@code{auto-fill-mode}.  These commands are usually invoked with
-@kbd{M-x}, but you can bind keys to them if you wish.
+  Each minor mode is associated with a command, called the @dfn{mode
+command}, which turns it on or off.  The name of this command consists
+of the name of the minor mode, followed by @samp{-mode}; for instance,
+the mode command for Auto Fill mode is @code{auto-fill-mode}.  Calling
+the minor mode command with no prefix argument @dfn{toggles} the mode,
+turning it on if it was off, and off if it was on.  A positive
+argument always turns the mode on, and a zero or negative argument
+always turns it off.  Mode commands are usually invoked with
+@kbd{M-x}, but you can bind keys to them if you wish (@pxref{Key
+Bindings}).
 
-  With no argument, the minor mode function turns the mode on if it
-was off, and off if it was on.  This is known as @dfn{toggling}.  A
-positive argument always turns the mode on, and an explicit zero
-argument or a negative argument always turns it off.
+  Most minor modes also have a @dfn{mode variable}, with the same name
+as the mode command.  Its value is non-@code{nil} if the mode is
+enabled, and @code{nil} if it is disabled.  In some minor modes---but
+not all---the value of the variable alone determines whether the mode
+is active: the mode command works simply by setting the variable, and
+changing the value of the variable has the same effect as calling the
+mode command.  Because not all minor modes work this way, we recommend
+that you avoid changing the mode variables directly; use the mode
+commands instead.
 
-  Some minor modes are global: while enabled, they affect everything
-you do in the Emacs session, in all buffers.  Other minor modes are
-buffer-local; they apply only to the current buffer, so you can enable
-the mode in certain buffers and not others.
+  Some minor modes are buffer-local; they apply only to the current
+buffer, so you can enable the mode in certain buffers and not others.
+Other minor modes are global: while enabled, they affect everything
+you do in the Emacs session, in all buffers.  Some global minor modes
+are enabled by default.
 
-  For most minor modes, the command name is also the name of a
-variable.  The variable's value is non-@code{nil} if the mode is
-enabled and @code{nil} if it is disabled.  Some minor-mode commands
-work by just setting the variable.  For example, the command
-@code{abbrev-mode} works by setting the value of @code{abbrev-mode} as
-a variable; it is this variable that directly turns Abbrev mode on and
-off.  You can directly set the variable's value instead of calling the
-mode function.  For other minor modes, you need to either set the
-variable through the Customize interface or call the mode function to
-correctly enable or disable the mode.  To check which of these two
-possibilities applies to a given minor mode, use @kbd{C-h v} to ask
-for documentation on the variable name.
+  The following is a list of some buffer-local minor modes:
 
-  For minor mode commands that work by just setting the minor mode
-variable, that variable provides a good way for Lisp programs to turn
-minor modes on and off; it is also useful in a file's local variables
-list (@pxref{File Variables}).  But please think twice before setting
-minor modes with a local variables list, because most minor modes are
-a matter of user preference---other users editing the same file might
-not want the same minor modes you prefer.
+@itemize @bullet
+@item
+Abbrev mode automatically expands text based on pre-defined
+abbreviation definitions.  @xref{Abbrevs}.
 
-  The most useful buffer-local minor modes include Abbrev mode, Auto
-Fill mode, Auto Save mode, Font-Lock mode, Glasses mode, Outline minor
-mode, Overwrite mode, and Binary Overwrite mode.
-
-  Abbrev mode allows you to define abbreviations that automatically expand
-as you type them.  For example, @samp{amd} might expand to @samp{abbrev
-mode}.  @xref{Abbrevs}, for full information.
-
-  Auto Fill mode allows you to enter filled text without breaking lines
-explicitly.  Emacs inserts newlines as necessary to prevent lines from
+@item
+Auto Fill mode inserts newlines as you type to prevent lines from
 becoming too long.  @xref{Filling}.
 
-  Auto Save mode saves the buffer contents periodically to reduce the
+@item
+Auto Save mode saves the buffer contents periodically to reduce the
 amount of work you can lose in case of a crash.  @xref{Auto Save}.
 
-  Enriched mode enables editing and saving of formatted text.
+@item
+Enriched mode enables editing and saving of formatted text.
 @xref{Formatted Text}.
 
-  Flyspell mode automatically highlights misspelled words.
+@item
+Flyspell mode automatically highlights misspelled words.
 @xref{Spelling}.
 
-  Font-Lock mode automatically highlights certain textual units found
-in programs, such as comments, strings, and function names being
-defined.  This requires a display that can show multiple fonts or
-colors.  @xref{Faces}.
+@item
+Font-Lock mode automatically highlights certain textual units found in
+programs.  It is enabled globally by default, but you can disable it
+in individual buffers.  @xref{Faces}.
 
-@ignore
-  ISO Accents mode makes the characters @samp{`}, @samp{'}, @samp{"},
-@samp{^}, @samp{/} and @samp{~} combine with the following letter, to
-produce an accented letter in the ISO Latin-1 character set.  The
-newer and more general feature of input methods more or less
-supersedes ISO Accents mode.  @xref{Unibyte Mode}.
-@end ignore
+@findex linum-mode
+@cindex Linum mode
+@item
+Linum mode displays each line's line number in the window's left
+margin.  Its mode command is @code{linum-mode}.
 
-  Outline minor mode provides the same facilities as the major mode
-called Outline mode; but since it is a minor mode instead, you can
-combine it with any major mode.  @xref{Outline Mode}.
+@item
+Outline minor mode provides similar facilities to the major mode
+called Outline mode.  @xref{Outline Mode}.
 
 @cindex Overwrite mode
 @cindex mode, Overwrite
-  Overwrite mode causes ordinary printing characters to replace existing
-text instead of shoving it to the right.  For example, if point is in
-front of the @samp{B} in @samp{FOOBAR}, then in Overwrite mode typing a
-@kbd{G} changes it to @samp{FOOGAR}, instead of producing @samp{FOOGBAR}
-as usual.  In Overwrite mode, the command @kbd{C-q} inserts the next
-character whatever it may be, even if it is a digit---this gives you a
-way to insert a character instead of replacing an existing character.
-
 @findex overwrite-mode
 @kindex INSERT
-  The command @code{overwrite-mode} is an exception to the rule that
-commands which toggle minor modes are normally not bound to keys: it is
-bound to the @key{INSERT} function key.  This is because many other
-programs bind @key{INSERT} to similar functions.
+@item
+Overwrite mode causes ordinary printing characters to replace existing
+text instead of shoving it to the right.  For example, if point is in
+front of the @samp{B} in @samp{FOOBAR}, then in Overwrite mode typing
+a @kbd{G} changes it to @samp{FOOGAR}, instead of producing
+@samp{FOOGBAR} as usual.  In Overwrite mode, the command @kbd{C-q}
+inserts the next character whatever it may be, even if it is a
+digit---this gives you a way to insert a character instead of
+replacing an existing character.  The mode command,
+@code{overwrite-mode}, is bound to the @key{Insert} key.
 
 @findex binary-overwrite-mode
-  Binary Overwrite mode is a variant of Overwrite mode for editing
-binary files; it treats newlines and tabs like other characters, so that
-they overwrite other characters and can be overwritten by them.
-In Binary Overwrite mode, digits after @kbd{C-q} specify an
-octal character code, as usual.
+@item
+Binary Overwrite mode is a variant of Overwrite mode for editing
+binary files; it treats newlines and tabs like other characters, so
+that they overwrite other characters and can be overwritten by them.
+In Binary Overwrite mode, digits after @kbd{C-q} specify an octal
+character code, as usual.
 
-  Here are some useful minor modes that normally apply to all buffers
-at once.  Since Line Number mode and Transient Mark mode can be
-enabled or disabled just by setting the value of the minor mode
-variable, you @emph{can} set them differently for particular buffers,
-by explicitly making the corresponding variable local in those
-buffers.  @xref{Locals}.
+@item
+Visual Line mode performs ``word wrapping'', causing long lines to be
+wrapped at word boundaries.  @xref{Visual Line Mode}.
+@end itemize
 
-  Icomplete mode displays an indication of available completions when
+  Here are some useful global minor modes.  Since Line Number mode and
+Transient Mark mode can be enabled or disabled just by setting the
+value of the minor mode variable, you @emph{can} set them differently
+for particular buffers, by explicitly making the corresponding
+variable local in those buffers.  @xref{Locals}.
+
+@itemize @bullet
+@item
+Column Number mode enables display of the current column number in the
+mode line.  @xref{Mode Line}.
+
+@item
+Delete Selection mode causes text insertion to first delete the text
+in the region, if the region is active.  @xref{Using Region}.
+
+@item
+Icomplete mode displays an indication of available completions when
 you are in the minibuffer and completion is active.  @xref{Completion
 Options}.
 
-  Line Number mode enables continuous display in the mode line of the
-line number of point, and Column Number mode enables display of the
-column number.  @xref{Mode Line}.
+@item
+Line Number mode enables display of the current line number in the
+mode line.  It is enabled by default.  @xref{Mode Line}.
 
-  Scroll Bar mode gives each window a scroll bar (@pxref{Scroll Bars}).
-Menu Bar mode gives each frame a menu bar (@pxref{Menu Bars}).  Both of
-these modes are enabled by default when you use the X Window System.
+@item
+Menu Bar mode gives each frame a menu bar.  It is enabled by default.
+@xref{Menu Bars}.
 
-  In Transient Mark mode, every change in the buffer contents
-``deactivates'' the mark, so that commands that operate on the region
-will get an error.  This means you must either set the mark, or
-explicitly ``reactivate'' it, before each command that uses the region.
-The advantage of Transient Mark mode is that Emacs can display the
-region highlighted.  @xref{Mark}.
+@item
+Scroll Bar mode gives each window a scroll bar.  It is enabled by
+default, but the scroll bar is only displayed on graphical terminals.
+@xref{Scroll Bars}.
+
+@item
+Tool Bar mode gives each frame a tool bar.  It is enabled by default,
+but the tool bar is only displayed on graphical terminals.  @xref{Tool
+Bars}.
+
+@item
+Transient Mark mode highlights the region, and makes many Emacs
+commands operate on the region when the mark is active.  It is enabled
+by default.  @xref{Mark}.
+@end itemize
 
 @node Easy Customization
 @section Easy Customization Interface
