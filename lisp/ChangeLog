@@ -1,3 +1,31 @@
+2008-11-17  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-filter-predicate): Rename from
+	`isearch-success-function'.  Rename default value from
+	`isearch-success-function-default' to
+	`isearch-filter-invisible'.  Doc fix.
+	(isearch-filter-invisible): Rename from
+	`isearch-success-function-default'.  Doc fix.
+	(isearch-search, isearch-lazy-highlight-search): Rename
+	`isearch-success-function' to `isearch-filter-predicate'.
+
+	* dired-aux.el (dired-isearch-filter-predicate-orig): Rename from
+	`dired-isearch-orig-success-function'.
+	(dired-isearch-filenames-toggle, dired-isearch-filenames-setup)
+	(dired-isearch-filenames-end): Rename `isearch-success-function' to
+	`isearch-filter-predicate'.  Doc fix.
+	(dired-isearch-filter-filenames): Rename from
+	`dired-isearch-success-function'.
+
+	* info.el (Info-search, Info-mode): Rename
+	`isearch-success-function' to `isearch-filter-predicate'.
+	(Info-isearch-filter-predicate): Rename from
+	`Info-search-success-function'.
+
+	* simple.el (minibuffer-default-add-function): Fix docstring to
+	use clear text "default values" instead of obscure references to
+	the dynamic variable `minibuffer-default'.
+
 2008-11-16  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el (ns-extended-platform-support-mode):
