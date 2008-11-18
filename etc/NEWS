@@ -1595,7 +1595,7 @@ Convenient when checking invisibility of text with no buffer position
 It now accepts a cons cell (COLS . LINES) in its first argument, which
 says to stop, where possible, at a pixel x-position equal to COLS
 times the default column width.
-
++++
 *** redisplay-end-trigger-functions, set-window-redisplay-end-trigger,
 and window-redisplay-end-trigger are obsolete.  Use `jit-lock-register'
 instead.
