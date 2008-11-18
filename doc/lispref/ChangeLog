@@ -1,3 +1,7 @@
+2008-11-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Color Parameters): Document alpha parameter.
+
 2008-11-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Splitting Windows, Deleting Windows)
