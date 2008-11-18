@@ -14407,7 +14407,7 @@ To get rid of the restriction, use \\[org-agenda-remove-restriction-lock]."
      (define-key speedbar-file-key-map ">" 'org-agenda-remove-restriction-lock)
      (define-key speedbar-file-key-map "\C-c\C-x>" 'org-agenda-remove-restriction-lock)
      (add-hook 'speedbar-visiting-tag-hook
-	       (lambda () (org-show-context 'org-goto)))))
+	       (lambda () (and (org-mode-p) (org-show-context 'org-goto))))))
 
 
 ;;; Fixes and Hacks for problems with other packages
