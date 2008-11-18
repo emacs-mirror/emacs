@@ -506,8 +506,12 @@ re-start Emacs."
 
 
 (defvar ispell-dictionary-base-alist
-  '((nil                                ; default (English.aff)
-     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
+  '((nil
+     ;; The default dictionary.  It may be English.aff, or any other
+     ;; dictionary depending on locale and such things.  We should probably
+     ;; ask ispell what dictionary it's using, but until we do that, let's
+     ;; just use an approximate regexp.
+     "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-B") nil iso-8859-1)
     ("american"				; Yankee English
      "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
     ("brasileiro"			; Brazilian mode
