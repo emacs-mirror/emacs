@@ -1,3 +1,8 @@
+2008-11-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el ("speedbar"): Only show context if the file really is an
+	org-mode buffer.
+
 2008-11-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.el (org-time-string-to-absolute, org-small-year-to-year)
