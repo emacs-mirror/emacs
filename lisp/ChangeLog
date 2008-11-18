@@ -1,3 +1,13 @@
+2008-11-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-temp-file-p): Use `string-match-p'.
+	(server-socket-dir): Set to nil if local sockets are unsupported.
+	(server-start): Don't try to delete local socket if unsupported.
+	(server-kill-new-buffers): Reflow docstring.
+	(server-delete-client, server-handle-delete-frame)
+	(server-save-buffers-kill-terminal): Doc fixes.
+	(server-send-string): Fix typo in docstring.
+
 2008-11-18  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/compile.el (compilation-start-hook): New hook.
