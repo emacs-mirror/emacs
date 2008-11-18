@@ -2830,13 +2830,23 @@ arguments, the beginning and end of the region.  The default value is
 @code{font-lock-default-unfontify-region}.
 @end defvar
 
-@ignore
-@defvar font-lock-inhibit-thing-lock
-List of Font Lock mode related modes that should not be turned on.
-Currently, valid mode names are @code{fast-lock-mode},
-@code{jit-lock-mode} and @code{lazy-lock-mode}.
-@end defvar
-@end ignore
+@defun jit-lock-register function &optional contextual
+This function tells Font Lock mode to run the Lisp function
+@var{function} any time it has to fontify or refontify part of the
+current buffer.  It calls @var{function} before calling the default
+fontification functions, and gives it two arguments, @var{start} and
+@var{end}, which specify the region to be fontified or refontified.
+
+The optional argument @var{contextual}, if non-@code{nil}, forces Font
+Lock mode to always refontify a syntactically relevant part of the
+buffer, and not just the modified lines.  This argument can usually be
+omitted.
+@end defun
+
+@defun jit-lock-unregister function
+If @var{function} was previously registered as a fontification
+function using @code{jit-lock-register}, this function unregisters it.
+@end defun
 
 @node Levels of Font Lock
 @subsection Levels of Font Lock
