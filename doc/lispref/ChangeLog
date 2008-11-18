@@ -1,5 +1,11 @@
 2008-11-18  Chong Yidong  <cyd@stupidchicken.com>
 
+	* windows.texi (Window Hooks): Remove *-end-trigger-functions
+	vars, which are obsolete.  Mention jit-lock-register.
+
+	* modes.texi (Other Font Lock Variables): Document
+	jit-lock-register and jit-lock-unregister.
+
 	* frames.texi (Color Parameters): Document alpha parameter.
 
 2008-11-16  Martin Rudalics  <rudalics@gmx.at>
