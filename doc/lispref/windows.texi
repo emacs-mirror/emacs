@@ -2557,26 +2557,6 @@ over.  In most cases, @code{save-selected-window} (@pxref{Selecting
 Windows}) is what you need here.
 @end defvar
 
-@defvar redisplay-end-trigger-functions
-This abnormal hook is run whenever redisplay in a window uses text that
-extends past a specified end trigger position.  You set the end trigger
-position with @code{set-window-redisplay-end-trigger}.  The functions
-are called with two arguments: the window, and the end trigger position.
-Storing @code{nil} for the end trigger position turns off the feature,
-and the trigger value is automatically reset to @code{nil} just after
-the hook is run.
-@end defvar
-
-@defun set-window-redisplay-end-trigger window position
-This function sets @var{window}'s end trigger position at
-@var{position}.
-@end defun
-
-@defun window-redisplay-end-trigger &optional window
-This function returns @var{window}'s current end trigger position.
-If @var{window} is @code{nil} or omitted, it uses the selected window.
-@end defun
-
 @defvar window-configuration-change-hook
 A normal hook that is run every time you change the window configuration
 of an existing frame.  This includes splitting or deleting windows,
@@ -2588,6 +2568,11 @@ affected frame, with the relevant window selected and its buffer
 current.  The global part is run once for the modified frame, with that
 frame selected.
 @end defvar
+
+  In addition, you can use @code{jit-lock-register} to register a Font
+Lock fontification function, which will be called whenever part of the
+buffer needs to be refontified (usually because it has been changed).
+@xref{Other Font Lock Variables}.
 
 @ignore
    arch-tag: 3f6c36e8-df49-4986-b757-417feed88be3
