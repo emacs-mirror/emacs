@@ -1,3 +1,8 @@
+2008-11-18  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-start-hook): New hook.
+	(compilation-start): Run it on the compilation process.
+
 2008-11-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-cmds.el (update-leim-list-file): Simplify.

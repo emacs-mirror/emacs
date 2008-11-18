@@ -92,6 +92,17 @@
   :group 'compilation)
 
 ;;;###autoload
+(defcustom compilation-start-hook nil
+  "List of hook functions run by `compilation-start' on the compilation process.
+\(See `run-hook-with-args').
+If you use \"omake -P\" and do not want \\[save-buffers-kill-terminal] to ask whether you want
+the compilation to be killed, you can use this hook:
+  (add-hook 'compilation-start-hook
+    (lambda (process) (set-process-query-on-exit-flag process nil)) nil t)"
+  :type 'hook
+  :group 'compilation)
+
+;;;###autoload
 (defcustom compilation-window-height nil
   "Number of lines in a compilation window.  If nil, use Emacs default."
   :type '(choice (const :tag "Default" nil)
@@ -1277,7 +1288,8 @@ Returns the compilation buffer created."
 		    (process-send-eof proc)
 		  ;; The process may have exited already.
 		  (error nil)))
-	      (setq compilation-in-progress
+	      (run-hook-with-args 'compilation-start-hook proc)
+              (setq compilation-in-progress
 		    (cons proc compilation-in-progress)))
 	  ;; No asynchronous processes available.
 	  (message "Executing `%s'..." command)
