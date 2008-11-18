@@ -230,6 +230,8 @@ only the @code{height}, @code{width}, @code{name}, @code{title},
 parameters do something special.  If the terminal supports colors, the
 parameters @code{foreground-color}, @code{background-color},
 @code{background-mode} and @code{display-type} are also meaningful.
+If the terminal supports frame transparency, the parameter
+@code{alpha} is also meaningful.
 
   You can use frame parameters to define frame-local bindings for
 variables.  @xref{Frame-Local Variables}.
@@ -748,6 +750,27 @@ If your monitor displays colors too light, you should specify a
 @code{screen-gamma} value smaller than 2.2.  This requests correction
 that makes colors darker.  A screen gamma value of 1.5 may give good
 results for LCD color displays.
+
+@item alpha
+@cindex opacity, frame
+@cindex transparency, frame
+@vindex frame-alpha-lower-limit
+This parameter specifies the opacity of the frame, on graphical
+displays that support variable opacity.  It should be an integer
+between 0 and 100, where 0 means completely transparent and 100 means
+completely opaque.  It can also have a @code{nil} value, which tells
+Emacs not to set the frame opacity (leaving it to the window manager).
+
+To prevent the frame from disappearing completely from view, the
+variable @var{frame-alpha-lower-limit} defines a lower opacity limit.
+If the value of the frame parameter is less than the value of this
+variable, Emacs uses the latter.  By default,
+@var{frame-alpha-lower-limit} is 20.
+
+The @code{alpha} frame parameter can also be a cons cell
+@code{(@samp{active} . @samp{inactive})}, where @samp{active} is the
+opacity of the frame when it is selected, and @samp{inactive} is the
+opactity when it is not selected.
 @end table
 
 These frame parameters are semi-obsolete in that they are automatically
