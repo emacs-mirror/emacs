@@ -1102,6 +1102,13 @@ use with M-x."
     (rename-file encoded new-encoded ok-if-already-exists)
     newname))
 
+(defcustom confirm-nonexistent-file-or-buffer t
+  "If non-nil, confirmation is requested before visiting a new file or buffer.
+This affects commands like `switch-to-buffer' and `find-file'."
+  :group 'find-file
+  :version "23.1"
+  :type 'boolean)
+
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to and return as a string.
 It is intended for `switch-to-buffer' family of commands since they
@@ -1110,7 +1117,8 @@ and default values."
   (let ((rbts-completion-table (internal-complete-buffer-except)))
     (minibuffer-with-setup-hook
         (lambda () (setq minibuffer-completion-table rbts-completion-table))
-      (read-buffer prompt (other-buffer (current-buffer))))))
+      (read-buffer prompt (other-buffer (current-buffer))
+                   (if confirm-nonexistent-file-or-buffer 'confirm-only)))))
 
 (defun switch-to-buffer-other-window (buffer &optional norecord)
   "Select buffer BUFFER in another window.
@@ -1192,12 +1200,6 @@ Recursive uses of the minibuffer will not be affected."
 	     ,@body)
 	 (remove-hook 'minibuffer-setup-hook ,hook)))))
 
-(defcustom find-file-confirm-nonexistent-file nil
-  "If non-nil, `find-file' requires confirmation before visiting a new file."
-  :group 'find-file
-  :version "23.1"
-  :type 'boolean)
-
 (defun find-file-read-args (prompt mustmatch)
   (list (let ((find-file-default
 	       (and buffer-file-name
@@ -1230,7 +1232,7 @@ To visit a file without any kind of conversion and without
 automatically choosing a major mode, use \\[find-file-literally]."
   (interactive
    (find-file-read-args "Find file: "
-                        (if find-file-confirm-nonexistent-file 'confirm-only)))
+                        (if confirm-nonexistent-file-or-buffer 'confirm-only)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(mapcar 'switch-to-buffer (nreverse value))
@@ -1250,7 +1252,7 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
   (interactive
    (find-file-read-args "Find file in other window: "
-                        (if find-file-confirm-nonexistent-file 'confirm-only)))
+                        (if confirm-nonexistent-file-or-buffer 'confirm-only)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -1273,7 +1275,7 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
   (interactive
    (find-file-read-args "Find file in other frame: "
-                        (if find-file-confirm-nonexistent-file 'confirm-only)))
+                        (if confirm-nonexistent-file-or-buffer 'confirm-only)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -1298,7 +1300,7 @@ Like \\[find-file], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only: "
-                        (if find-file-confirm-nonexistent-file 'confirm-only)))
+                        (if confirm-nonexistent-file-or-buffer 'confirm-only)))
   (unless (or (and wildcards find-file-wildcards
 		   (not (string-match "\\`/:" filename))
 		   (string-match "[[*?]" filename))
@@ -1315,7 +1317,7 @@ Like \\[find-file-other-window], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other window: "
-                        (if find-file-confirm-nonexistent-file 'confirm-only)))
+                        (if confirm-nonexistent-file-or-buffer 'confirm-only)))
   (unless (or (and wildcards find-file-wildcards
 		   (not (string-match "\\`/:" filename))
 		   (string-match "[[*?]" filename))
@@ -1332,7 +1334,7 @@ Like \\[find-file-other-frame], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other frame: "
-                        (if find-file-confirm-nonexistent-file 'confirm-only)))
+                        (if confirm-nonexistent-file-or-buffer 'confirm-only)))
   (unless (or (and wildcards find-file-wildcards
 		   (not (string-match "\\`/:" filename))
 		   (string-match "[[*?]" filename))

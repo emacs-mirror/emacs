@@ -499,8 +499,9 @@ matches a regexp.
 The mode bits can be specified in symbolic notation, like with GNU
 Coreutils, in addition to an octal number.
 +++
-*** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
-requires confirmation before opening a non-existent file.
+*** Emacs requires confirmation before opening a non-existent file or buffer.
+You can recover the previous behavior by setting
+confirm-nonexistent-file-or-buffer to nil.
 
 *** `next-error-recenter' specifies how next-error should recenter the
 visited source file.  Its value can be a number (for example, 0 for

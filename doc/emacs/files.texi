@@ -240,14 +240,14 @@ moves or copies the file into the displayed directory.  For details,
 see @ref{Drag and Drop}, and @ref{Misc Dired Features}.
 
 @cindex creating files
-@vindex find-file-confirm-nonexistent-file
-  What if you want to create a new file?  Just visit it.  Emacs
-displays @samp{(New file)} in the echo area, but in other respects
-behaves as if you had visited an existing empty file.  If you make
-changes and save them, the file is created.  If you change the
-variable @code{find-file-confirm-nonexistent-file} to @code{t}, then
+@vindex confirm-nonexistent-file-or-buffer
+  What if you want to create a new file?  Just visit it.
 Emacs prompts you for confirmation before visiting a non-existent
-file.
+file, and displays @samp{(New file)} in the echo area, but in other
+respects behaves as if you had visited an existing empty file.  If you
+make changes and save them, the file is created.  If you change the
+variable @code{confirm-nonexistent-file-or-buffer} to @code{nil}, then
+Emacs will not even prompt you for confirmation.
 
 @kindex C-x C-v
 @findex find-alternate-file
