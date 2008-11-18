@@ -773,9 +773,9 @@ opacity of the frame when it is selected, and @samp{inactive} is the
 opactity when it is not selected.
 @end table
 
-These frame parameters are semi-obsolete in that they are automatically
-equivalent to particular face attributes of particular faces.
-@xref{Standard Faces,,, emacs, The Emacs Manual}.
+The following frame parameters are semi-obsolete in that they are
+automatically equivalent to particular face attributes of particular
+faces (@pxref{Standard Faces,,, emacs, The Emacs Manual}):
 
 @table @code
 @item font
