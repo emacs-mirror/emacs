@@ -872,7 +872,12 @@ by `split-window' (or `split-window-preferred-function')."
       (unless (and (window-live-p window)
                    (or (window-minibuffer-p window)
                        ;; If the window is soft-dedicated, the frame is usable.
-                       (eq t (window-dedicated-p window))))
+                       ;; Actually, even if the window is really dedicated,
+                       ;; the frame is still usable by splitting it.
+                       ;; At least Emacs-22 allowed it, and it is desirable
+                       ;; when displaying same-frame windows.
+                       nil ; (eq t (window-dedicated-p window))
+                       ))
 	frame))))
 
 (defcustom even-window-heights t

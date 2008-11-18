@@ -1,5 +1,7 @@
 2008-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.el (window--frame-usable-p): Consider dedicated windows as usable.
+
 	* files.el (confirm-nonexistent-file-or-buffer):
 	Rename from find-file-confirm-nonexistent-file.
 	(read-buffer-to-switch): Use it.
