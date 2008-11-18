@@ -1,9 +1,24 @@
+2008-11-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-cmds.el (update-leim-list-file): Simplify.
+	(prefer-coding-system, find-coding-systems-for-charsets):
+	Fix docstring typos.
+	(select-safe-coding-system, input-method-exit-on-first-char)
+	(language-info-alist, language-info-custom-alist): Reflow docstrings.
+	(toggle-input-method, read-multilingual-string): Doc fixes.
+	Reflow docstrings.
+	(locale-name-match, sort-coding-systems, find-multibyte-characters)
+	(read-char-by-name): Use `string-match-p'.
+	(get-char-code-property, put-char-code-property)
+	(char-code-property-description): Be silent while loading uni-* files.
+	(ucs-names): Use `dotimes-with-progress-reporter', because loading
+	the Unicode character names is *slow*.
+
 2008-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* wid-edit.el (widget-image-insert): Don't add a mouse-face.
 
-	* cus-edit.el (custom-group-value-create): Don't insert docstring
-	twice.
+	* cus-edit.el (custom-group-value-create): Don't insert docstring twice.
 
 2008-11-17  Juanma Barranquero  <lekktu@gmail.com>
 

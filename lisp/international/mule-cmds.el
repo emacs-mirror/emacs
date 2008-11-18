@@ -381,8 +381,8 @@ for MS-DOS terminal, because DOS terminals only support a single coding
 system, and Emacs automatically sets the default to that coding system at
 startup.
 
-A coding system that requires automatic detection of text
-+encoding (e.g. undecided, unix) can't be preferred.."
+A coding system that requires automatic detection of text+encoding
+\(e.g. undecided, unix) can't be preferred."
   (interactive "zPrefer coding system: ")
   (if (not (and coding-system (coding-system-p coding-system)))
       (error "Invalid coding system `%s'" coding-system))
@@ -448,18 +448,18 @@ non-nil, it is used to sort CODINGS instead."
 			       ;; Lower utf-16 priority so that we
 			       ;; normally prefer utf-8 to it, and put
 			       ;; x-ctext below that.
-			       (cond ((string-match "utf-16"
-						    (symbol-name mime))
+			       (cond ((string-match-p "utf-16"
+						      (symbol-name mime))
 				      2)
-				     ((string-match "^x-" (symbol-name mime))
+				     ((string-match-p "^x-" (symbol-name mime))
 				      1)
 				     (t 3))
 			     0))
 			5)
 		       (lsh (if (memq base lang-preferred) 1 0) 4)
 		       (lsh (if (memq base from-priority) 1 0) 3)
-		       (lsh (if (string-match "-with-esc\\'"
-					      (symbol-name base))
+		       (lsh (if (string-match-p "-with-esc\\'"
+						(symbol-name base))
 				0 1) 2)
 		       (if (eq (coding-system-type base) 'iso-2022)
 			   (let ((category (coding-system-category base)))
@@ -512,7 +512,7 @@ CHARSETS is a list of character sets.
 
 This only finds coding systems of type `charset', whose
 `:charset-list' property includes all of CHARSETS (plus `ascii' for
-ascii-compatible coding systems).  It was used in older versions of
+ASCII-compatible coding systems).  It was used in older versions of
 Emacs, but is unlikely to be what you really want now."
   ;; Deal with aliases.
   (setq charsets (mapcar (lambda (c)
@@ -558,7 +558,7 @@ Optional 4th arg EXCLUDES is a list of character sets to be ignored."
     (if (stringp from)
 	(if (multibyte-string-p from)
 	    (let ((idx 0))
-	      (while (setq idx (string-match "[^\000-\177]" from idx))
+	      (while (setq idx (string-match-p "[^\000-\177]" from idx))
 		(setq char (aref from idx)
 		      charset (char-charset char))
 		(unless (memq charset excludes)
@@ -802,13 +802,12 @@ The candidates of coding systems which can safely encode a text
 between FROM and TO are shown in a popup window.  Among them, the most
 proper one is suggested as the default.
 
-The list of `buffer-file-coding-system' of the current buffer,
-the `default-buffer-file-coding-system', and the
-most preferred coding system (if it corresponds to a MIME charset) is
-treated as the default coding system list.  Among them, the first one
-that safely encodes the text is normally selected silently and
-returned without any user interaction.  See also the command
-`prefer-coding-system'.
+The list of `buffer-file-coding-system' of the current buffer, the
+`default-buffer-file-coding-system', and the most preferred coding
+system (if it corresponds to a MIME charset) is treated as the
+default coding system list.  Among them, the first one that safely
+encodes the text is normally selected silently and returned without
+any user interaction.  See also the command `prefer-coding-system'.
 
 However, the user is queried if the chosen coding system is
 inconsistent with what would be selected by `find-auto-coding' from
@@ -832,8 +831,8 @@ Optional 5th arg FILE is the file name to use for this purpose.
 That is different from `buffer-file-name' when handling `write-region'
 \(for example).
 
-The variable `select-safe-coding-system-accept-default-p', if
-non-nil, overrides ACCEPT-DEFAULT-P.
+The variable `select-safe-coding-system-accept-default-p', if non-nil,
+overrides ACCEPT-DEFAULT-P.
 
 Kludgy feature: if FROM is a string, the string is the target text,
 and TO is ignored."
@@ -1061,8 +1060,8 @@ Meaningful values for KEY include
 			language environment.
   exit-function      value is a function to call to leave this
 		        language environment.
-  coding-system      value is a list of coding systems that are good
-			for saving text written in this language environment.
+  coding-system      value is a list of coding systems that are good for
+			saving text written in this language environment.
 			This list serves as suggestions to the user;
 			in effect, as a kind of documentation.
   coding-priority    value is a list of coding systems for this language
@@ -1078,21 +1077,18 @@ Meaningful values for KEY include
   features           value is a list of features requested in this
 			language environment.
   ctext-non-standard-encodings
-		     value is a list of non-standard encoding
-		     names used in extended segments of CTEXT.
-		     See the variable
-		     `ctext-non-standard-encodings' for more
-		     detail.
+		     value is a list of non-standard encoding names used
+			in extended segments of CTEXT.  See the variable
+			`ctext-non-standard-encodings' for more detail.
 
 The following keys take effect only when multibyte characters are
 globally disabled, i.e. the value of `default-enable-multibyte-characters'
 is nil.
 
-  unibyte-display    value is a coding system to encode characters
-			for the terminal.  Characters in the range
-			of 160 to 255 display not as octal escapes,
-			but as non-ASCII characters in this language
-			environment.")
+  unibyte-display    value is a coding system to encode characters for
+			the terminal.  Characters in the range of 160 to
+			255 display not as octal escapes, but as non-ASCII
+			characters in this language environment.")
 
 (defun get-language-info (lang-env key)
   "Return information listed under KEY for language environment LANG-ENV.
@@ -1269,10 +1265,8 @@ Each function is called with one arg, LEIM directory name.")
 
 (defun update-leim-list-file (&rest dirs)
   "Update LEIM list file in directories DIRS."
-  (let ((functions update-leim-list-functions))
-    (while functions
-      (apply (car functions) dirs)
-      (setq functions (cdr functions)))))
+  (dolist (function update-leim-list-functions)
+    (apply function dirs)))
 
 (defvar current-input-method nil
   "The current input method for multilingual text.
@@ -1468,18 +1462,17 @@ To deactivate it programmatically, use `inactivate-input-method'."
   "Enable or disable multilingual text input method for the current buffer.
 Only one input method can be enabled at any time in a given buffer.
 
-The normal action is to enable an input method if none was
-enabled, and disable the current one otherwise.  Which input method
-to enable can be determined in various ways--either the one most
-recently used, or the one specified by `default-input-method', or
-as a last resort by reading the name of an input method in the
-minibuffer.
+The normal action is to enable an input method if none was enabled,
+and disable the current one otherwise.  Which input method to enable
+can be determined in various ways--either the one most recently used,
+or the one specified by `default-input-method', or as a last resort
+by reading the name of an input method in the minibuffer.
 
-With a prefix argument, read an input method name with the minibuffer
+With a prefix argument ARG, read an input method name with the minibuffer
 and enable that one.  The default is the most recent input method specified
 \(not including the currently active input method, if any).
 
-When called interactively, the optional arg INTERACTIVE is non-nil,
+When called interactively, the optional argument INTERACTIVE is non-nil,
 which marks the variable `default-input-method' as set for Custom buffers."
 
   (interactive "P\np")
@@ -1552,11 +1545,10 @@ This is a subroutine for `describe-input-method'."
 (defun read-multilingual-string (prompt &optional initial-input input-method)
   "Read a multilingual string from minibuffer, prompting with string PROMPT.
 The input method selected last time is activated in minibuffer.
-If optional second arg INITIAL-INPUT is non-nil, insert it in the minibuffer
-initially.
-Optional 3rd argument INPUT-METHOD specifies the input method
-to be activated instead of the one selected last time.  It is a symbol
-or a string."
+If optional second argument INITIAL-INPUT is non-nil, insert it in the
+minibuffer initially.
+Optional 3rd argument INPUT-METHOD specifies the input method to be activated
+instead of the one selected last time.  It is a symbol or a string."
   (setq input-method
 	(or input-method
 	    current-input-method
@@ -1631,8 +1623,8 @@ just inactivated."
   "This flag controls when an input method returns.
 Usually, the input method does not return while there's a possibility
 that it may find a different translation if a user types another key.
-But, if this flag is non-nil, the input method returns as soon as
-the current key sequence gets long enough to have some valid translation.")
+But, if this flag is non-nil, the input method returns as soon as the
+current key sequence gets long enough to have some valid translation.")
 
 (defcustom input-method-use-echo-area nil
   "This flag controls how an input method shows an intermediate key sequence.
@@ -1871,8 +1863,8 @@ the environment.  Use \\[describe-language-environment] to find the environment'
 This option is intended for use at startup.  Removing items doesn't
 remove them from the language info until you next restart Emacs.
 
-Setting this variable directly does not take effect.  See
-`set-language-info-alist' for use in programs."
+Setting this variable directly does not take effect.
+See `set-language-info-alist' for use in programs."
   :group 'mule
   :version "23.1"
   :set (lambda (s v)
@@ -2394,7 +2386,7 @@ Return the value corresponding to the first regexp that matches the
 start of KEY, or nil if there is no match."
   (let (element)
     (while (and alist (not element))
-      (if (string-match (concat "\\`\\(?:" (car (car alist)) "\\)") key)
+      (if (string-match-p (concat "\\`\\(?:" (car (car alist)) "\\)") key)
 	  (setq element (car alist)))
       (setq alist (cdr alist)))
     (cdr element)))
@@ -2728,7 +2720,7 @@ See also the documentation of `get-char-code-property' and
     (if slot
 	(let (table value func)
 	  (if (stringp (cdr slot))
-	      (load (cdr slot)))
+	      (load (cdr slot) nil t))
 	  (setq table (cdr slot)
 		value (aref table char)
 		func (char-table-extra-slot table 1))
@@ -2744,7 +2736,7 @@ It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
     (if slot
 	(let (table func)
 	  (if (stringp (cdr slot))
-	      (load (cdr slot)))
+	      (load (cdr slot) nil t))
 	  (setq table (cdr slot)
 		func (char-table-extra-slot table 2))
 	  (if (functionp func)
@@ -2763,7 +2755,7 @@ If there's no description string for VALUE, return nil."
     (if slot
 	(let (table func)
 	  (if (stringp (cdr slot))
-	      (load (cdr slot)))
+	      (load (cdr slot) nil t))
 	  (setq table (cdr slot)
 		func (char-table-extra-slot table 3))
 	  (if (functionp func)
@@ -2849,7 +2841,8 @@ on encoding."
   (or ucs-names
       (setq ucs-names
 	    (let (name names)
-	      (dotimes (c #xEFFFF)
+	      (dotimes-with-progress-reporter (c #xEFFFF)
+		  "Loading Unicode character names..."
 		(unless (or
 			 (and (>= c #x3400 ) (<= c #x4dbf )) ; CJK Ideograph Extension A
 			 (and (>= c #x4e00 ) (<= c #x9fff )) ; CJK Ideograph
@@ -2877,9 +2870,9 @@ for decimal.  Returns a character as a number."
   (let* ((completion-ignore-case t)
 	 (input (completing-read prompt ucs-completions)))
     (cond
-     ((string-match "^[0-9a-fA-F]+$" input)
+     ((string-match-p "^[0-9a-fA-F]+$" input)
       (string-to-number input 16))
-     ((string-match "^#" input)
+     ((string-match-p "^#" input)
       (read input))
      (t
       (cdr (assoc-string input (ucs-names) t))))))
