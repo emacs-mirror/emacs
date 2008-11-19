@@ -1,3 +1,7 @@
+2008-11-19  Glenn Morris  <rgm@gnu.org>
+
+	* erc-compat.el (help-function-arglist): Autoload it.
+
 2008-10-03  Michael Olson  <mwolson@gnu.org>
 
 	* erc-dcc.el (english): Increase size heading by two places.
