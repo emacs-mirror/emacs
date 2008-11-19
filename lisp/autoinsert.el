@@ -227,10 +227,10 @@ If this contains a %s, that will be replaced by the matching rule."
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.2
+under the terms of the GNU Free Documentation License, Version 1.3
 or any later version published by the Free Software Foundation;
-with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
-Texts.  A copy of the license is included in the section entitled ``GNU
+with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+A copy of the license is included in the section entitled ``GNU
 Free Documentation License''.
 
 A copy of the license is also available from the Free Software
