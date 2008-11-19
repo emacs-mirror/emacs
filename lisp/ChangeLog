@@ -1,5 +1,7 @@
 2008-11-19  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/f90.el (f90-mode-map): Add some menu :help.
+
 	* autoinsert.el (auto-insert-alist): Update template to FDL 1.3+.
 
 	* emacs-lisp/cl.el (floor*, ceiling*, truncate*, round*, mod*):
