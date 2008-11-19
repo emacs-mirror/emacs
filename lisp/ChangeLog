@@ -1,4 +1,4 @@
-2008-11-19  Ulrich Mueller  <ulm@kph.uni-mainz.de> (tiny change)
+2008-11-19  Ulrich Mueller  <ulm@kph.uni-mainz.de>
 
 	* calc/calc-units.el (math-standard-units): Add eps0,
 	permittivity of vacuum.
