@@ -541,6 +541,14 @@ The elements of LIST are not copied, just the list structure itself."
   list)
 
 (defalias 'cl-member 'memq)   ; for compatibility with old CL package
+
+;; Autoloaded, but we have not loaded cl-loaddefs yet.
+(declare-function floor* "cl-extra" (x &optional y))
+(declare-function ceiling* "cl-extra" (x &optional y))
+(declare-function truncate* "cl-extra" (x &optional y))
+(declare-function round* "cl-extra" (x &optional y))
+(declare-function mod* "cl-extra" (x y))
+
 (defalias 'cl-floor 'floor*)
 (defalias 'cl-ceiling 'ceiling*)
 (defalias 'cl-truncate 'truncate*)
