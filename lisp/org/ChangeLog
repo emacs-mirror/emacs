@@ -1,3 +1,8 @@
+2008-11-19  Glenn Morris  <rgm@gnu.org>
+
+	* org.el, org-mouse.el (org-agenda-change-all-lines):
+	Fix declaration.
+
 2008-11-18  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.el ("speedbar"): Only show context if the file really is an
