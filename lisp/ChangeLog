@@ -1,3 +1,8 @@
+2008-11-19  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-jump-noselect): Move the deprecation
+	notice into the doc string, following up to revision 1.117.
+
 2008-11-19  Lute Kamstra  <lute@gnu.org>
 
 	* autoinsert.el (auto-insert-alist): Don't use match data.

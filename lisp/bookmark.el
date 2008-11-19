@@ -1004,10 +1004,12 @@ be retrieved from a VC backend, else return nil."
      ;; Last possibility: try VC
      (if (vc-backend file) file))))
 
-;; This function is present for Emacs 22 compatibility only.
 (defun bookmark-jump-noselect (bookmark)
   "Return the location pointed to by the bookmark BOOKMARK.
-The return value has the form (BUFFER . POINT)."
+The return value has the form (BUFFER . POINT).
+
+Note: this function is deprecated and is present for Emacs 22
+compatibility only.  Use `bookmark-handle-bookmark' instead."
   (save-excursion
     (bookmark-handle-bookmark bookmark)
     (cons (current-buffer) (point))))
