@@ -3208,14 +3208,6 @@ LIST.  The list is processed in order.
 	(setcdr elt settings)
       (push (cons class settings) project-class-alist))))
 
-(defcustom project-settings-file ".dir-settings.el"
-  "Settings file for per-project settings.
-Set this to nil if you don't want to load project-specific settings."
-  :type '(choice
-	  (const :tag "Ignore" nil)
-	  (file :tag "File"))
-  :group 'files)
-
 (defun project-find-settings-file (file)
   "Find the settings file for FILE.
 This searches upward in the directory tree.
@@ -3223,23 +3215,22 @@ If a settings file is found, the file name is returned.
 If the file is in a registered project, a cons from
 `project-directory-alist' is returned.
 Otherwise this returns nil."
-  (when project-settings-file
-    (setq file (expand-file-name file))
-    (let ((settings (locate-dominating-file file project-settings-file))
-	  (pda nil))
-      ;; `locate-dominating-file' may have abbreviated the name.
-      (when settings
-	(setq settings (expand-file-name project-settings-file settings)))
-      (dolist (x project-directory-alist)
-	(when (and (eq t (compare-strings file nil (length (car x))
-					  (car x) nil nil))
-		   (> (length (car x)) (length (car pda))))
-	  (setq pda x)))
-      (if (and settings pda)
-	  (if (> (length (file-name-directory settings))
-		 (length (car pda)))
-	      settings pda)
-	(or settings pda)))))
+  (setq file (expand-file-name file))
+  (let ((settings (locate-dominating-file file ".dir-settings.el"))
+	(pda nil))
+    ;; `locate-dominating-file' may have abbreviated the name.
+    (when settings
+      (setq settings (expand-file-name ".dir-settings.el" settings)))
+    (dolist (x project-directory-alist)
+      (when (and (eq t (compare-strings file nil (length (car x))
+					(car x) nil nil))
+		 (> (length (car x)) (length (car pda))))
+	(setq pda x)))
+    (if (and settings pda)
+	(if (> (length (file-name-directory settings))
+	       (length (car pda)))
+	    settings pda)
+      (or settings pda))))
 
 (defun project-define-from-project-file (settings-file)
   "Load a settings file and register a new project class and instance.

@@ -1,3 +1,9 @@
+2008-11-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* files.el (project-settings-file): Remove.
+	(project-find-settings-file): Undo previous change that added the
+	use of project-settings-file.
+
 2008-11-19  Glenn Morris  <rgm@gnu.org>
 
 	* proced.el (proced, proced-format-time): Doc fixes.
