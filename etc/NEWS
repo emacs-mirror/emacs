@@ -108,6 +108,10 @@ you need control over which C compiler is used.
 ** The refcards are now shipped as PDF files.
 
 ---
+** The manuals are now licensed under the GNU Free Documentation License v1.3,
+or any later version.
+
+---
 ** Emacs 23 comes with a new set of default icons.
 Various resolutions are available as etc/images/icons/hicolor/*/apps/emacs.png.
 The Emacs 22 icon is available as `emacs22.png' in the same location.
