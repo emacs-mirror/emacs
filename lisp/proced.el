@@ -583,7 +583,7 @@ are defined in `proced-grammar-alist'.
 If invoked with optional ARG the window displaying the process
 information will be displayed but not selected.
 
-See `proced-mode' for a descreption of features available in Proced buffers."
+See `proced-mode' for a description of features available in Proced buffers."
   (interactive "P")
   (let ((buffer (get-buffer-create "*Proced*")) new)
     (set-buffer buffer)
@@ -1074,7 +1074,7 @@ This command updates the variable `proced-sort'."
 ;;; Formating
 
 (defun proced-format-time (time)
-  "Format time intervall TIME."
+  "Format time interval TIME."
   (let* ((ftime (float-time time))
          (days (truncate ftime 86400))
          (ftime (mod ftime 86400))
@@ -1233,25 +1233,28 @@ With prefix REVERT non-nil revert listing."
 (defun proced-process-attributes ()
   "Return alist of attributes for each system process.
 This alist can be customized via `proced-custom-attributes'."
-  (mapcar (lambda (pid)
-            (let* ((attributes (system-process-attributes pid))
-                   (utime (cdr (assq 'utime attributes)))
-                   (stime (cdr (assq 'stime attributes)))
-                   (cutime (cdr (assq 'cutime attributes)))
-                   (cstime (cdr (assq 'cstime attributes)))
-                   attr)
-              (setq attributes
-                    (append (list (cons 'pid pid))
-                            (if (and utime stime)
-                                (list (cons 'time (time-add utime stime))))
-                            (if (and cutime cstime)
-                                (list (cons 'ctime (time-add cutime cstime))))
-                            attributes))
-              (dolist (fun proced-custom-attributes)
-                (if (setq attr (funcall fun attributes))
-                    (push attr attributes)))
-              (cons pid attributes)))
-          (list-system-processes)))
+  (let ((procs (list-system-processes)))
+    (if procs
+        (mapcar (lambda (pid)
+                  (let* ((attributes (system-process-attributes pid))
+                         (utime (cdr (assq 'utime attributes)))
+                         (stime (cdr (assq 'stime attributes)))
+                         (cutime (cdr (assq 'cutime attributes)))
+                         (cstime (cdr (assq 'cstime attributes)))
+                         attr)
+                    (setq attributes
+                          (append (list (cons 'pid pid))
+                                  (if (and utime stime)
+                                      (list (cons 'time (time-add utime stime))))
+                                  (if (and cutime cstime)
+                                      (list (cons 'ctime (time-add cutime cstime))))
+                                  attributes))
+                    (dolist (fun proced-custom-attributes)
+                      (if (setq attr (funcall fun attributes))
+                          (push attr attributes)))
+                    (cons pid attributes)))
+                procs)
+      (error "Proced is not available on this system"))))
 
 (defun proced-update (&optional revert quiet)
   "Update the `proced' process information.  Preserves point and marks.
