@@ -1,3 +1,9 @@
+2008-11-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calc/calc-units.el (math-units-table): Doc fix.
+	(math-standard-units): Fix typo in constant's description.
+	(math-additional-units): Fix typo in docstring.
+
 2008-11-19  Ulrich Mueller  <ulm@kph.uni-mainz.de>
 
 	* calc/calc-units.el (math-standard-units): Add eps0,

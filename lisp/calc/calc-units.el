@@ -48,16 +48,16 @@
 (defvar math-standard-units
   '( ;; Length
     ( m       nil                    "*Meter" )
-    ( in      "254*10^(-2) cm"       "Inch"  nil 
+    ( in      "254*10^(-2) cm"       "Inch"  nil
               "2.54 cm")
     ( ft      "12 in"                "Foot")
     ( yd      "3 ft"                 "Yard" )
     ( mi      "5280 ft"              "Mile" )
-    ( au      "149597870691. m"      "Astronomical Unit" nil 
+    ( au      "149597870691. m"      "Astronomical Unit" nil
               "149597870691 m (*)")
               ;; (approx) NASA JPL (http://neo.jpl.nasa.gov/glossary/au.html)
     ( lyr     "c yr"                 "Light Year" )
-    ( pc      "3.0856775854*10^16 m" "Parsec" nil 
+    ( pc      "3.0856775854*10^16 m" "Parsec" nil
               "3.0856775854 10^16 m (*)") ;; (approx) ESUWM
     ( nmi     "1852 m"               "Nautical Mile" )
     ( fath    "6 ft"                 "Fathom" )
@@ -93,12 +93,12 @@
     ( tbsp    "3 tsp"                "Tablespoon" )
     ;; ESUWM defines a US gallon as 231 in^3.
     ;; That gives the following exact value for tsp.
-    ( tsp     "492892159375*10^(-11) ml" "Teaspoon" nil 
+    ( tsp     "492892159375*10^(-11) ml" "Teaspoon" nil
               "4.92892159375 ml")
     ( vol     "tsp+tbsp+ozfl+cup+pt+qt+gal" "Gallons + ... + teaspoons" nil
               "tsp+tbsp+ozfl+cup+pt+qt+gal")
     ( galC    "galUK"                "Canadian Gallon" )
-    ( galUK   "454609*10^(-5) L"     "UK Gallon" nil 
+    ( galUK   "454609*10^(-5) L"     "UK Gallon" nil
               "4.54609 L") ;; NIST
 
     ;; Time
@@ -120,25 +120,25 @@
     ( c       "299792458 m/s"        "Speed of light" ) ;;; CODATA
 
     ;; Acceleration
-    ( ga      "980665*10^(-5) m/s^2" "*\"g\" acceleration" nil 
+    ( ga      "980665*10^(-5) m/s^2" "*\"g\" acceleration" nil
               "9.80665 m / s^2") ;; CODATA
 
     ;; Mass
     ( g       nil                    "*Gram" )
     ( lb      "16 oz"                "Pound (mass)" )
-    ( oz      "28349523125*10^(-9) g" "Ounce (mass)" nil 
+    ( oz      "28349523125*10^(-9) g" "Ounce (mass)" nil
               "28.349523125 g") ;; ESUWM
     ( ton     "2000 lb"              "Ton" )
     ( tpo     "ton+lb+oz"            "Tons + pounds + ounces (mass)" )
     ( t       "1000 kg"              "Metric ton" )
-    ( tonUK   "10160469088*10^(-7) kg" "UK ton" nil 
+    ( tonUK   "10160469088*10^(-7) kg" "UK ton" nil
               "1016.0469088 kg") ;; ESUWM
     ( lbt     "12 ozt"               "Troy pound" )
-    ( ozt     "311034768*10^(-7) g"        "Troy ounce" nil 
+    ( ozt     "311034768*10^(-7) g"        "Troy ounce" nil
               "31.10347680 g") ;; ESUWM, 1/12 exact value for lbt
-    ( ct      "(2/10) g"             "Carat" nil 
+    ( ct      "(2/10) g"             "Carat" nil
               "0.2 g") ;; ESUWM
-    ( u       "1.660538782*10^(-27) kg"    "Unified atomic mass" nil 
+    ( u       "1.660538782*10^(-27) kg"    "Unified atomic mass" nil
               "1.660538782 10^-27 kg (*)");;(approx) CODATA
 
     ;; Force
@@ -147,18 +147,18 @@
     ( gf      "ga g"                 "Gram (force)" )
     ( lbf     "ga lb"                "Pound (force)" )
     ( kip     "1000 lbf"             "Kilopound (force)" )
-    ( pdl     "138254954376*10^(-12) N" "Poundal" nil 
+    ( pdl     "138254954376*10^(-12) N" "Poundal" nil
               "0.138254954376 N") ;; ESUWM
 
     ;; Energy
     ( J       "N m"                  "*Joule" )
     ( erg     "10^(-7) J"            "Erg" )
-    ( cal     "41868*10^(-4) J"      "International Table Calorie" nil 
+    ( cal     "41868*10^(-4) J"      "International Table Calorie" nil
               "4.1868 J") ;; NIST
-    ( calth   "4184*10^(-3) J"       "Thermochemical Calorie" nil 
+    ( calth   "4184*10^(-3) J"       "Thermochemical Calorie" nil
               "4.184 J") ;; NIST
     ( Cal     "1000 cal"             "Large Calorie")
-    ( Btu     "105505585262*10^(-8) J" "International Table Btu" nil 
+    ( Btu     "105505585262*10^(-8) J" "International Table Btu" nil
               "1055.05585262 J") ;; ESUWM
     ( eV      "ech V"                "Electron volt" )
     ( ev      "eV"                   "Electron volt" )
@@ -191,9 +191,9 @@
     ( atm     "101325 Pa"            "Standard atmosphere" ) ;; CODATA
     ( Torr    "(1/760) atm"          "Torr")
     ( mHg     "1000 Torr"            "Meter of mercury" )
-    ( inHg    "254*10^(-1) mmHg"     "Inch of mercury" nil 
+    ( inHg    "254*10^(-1) mmHg"     "Inch of mercury" nil
               "25.4 mmHg")
-    ( inH2O   "2.490889*10^2 Pa"        "Inch of water" nil 
+    ( inH2O   "2.490889*10^2 Pa"        "Inch of water" nil
               "2.490889 10^2 Pa (*)") ;;(approx) NIST
     ( psi     "lbf/in^2"             "Pounds per square inch" )
 
@@ -206,7 +206,7 @@
     ( C       "A s"                   "Coulomb" )
     ( Fdy     "ech Nav"               "Faraday" )
     ( e       "ech"                   "Elementary charge" )
-    ( ech     "1.602176487*10^(-19) C"     "Elementary charge" nil 
+    ( ech     "1.602176487*10^(-19) C"     "Elementary charge" nil
               "1.602176487 10^-19 C (*)") ;;(approx) CODATA
     ( V       "W/A"                   "Volt" )
     ( ohm     "V/A"                   "Ohm" )
@@ -255,47 +255,47 @@
 
     ;; Other physical quantities
     ;; The values are from CODATA, and are approximate.
-    ( h       "6.62606896*10^(-34) J s"     "*Planck's constant" nil 
+    ( h       "6.62606896*10^(-34) J s"     "*Planck's constant" nil
               "6.62606896 10^-34 J s (*)")
     ( hbar    "h / (2 pi)"                  "Planck's constant" ) ;; Exact
     ( mu0     "4 pi 10^(-7) H/m"            "Permeability of vacuum") ;; Exact
     ( eps0    "1 / (mu0 c^2)"               "Permittivity of vacuum" )
-    ( G       "6.67428*10^(-11) m^3/(kg s^2)"    "Gravitational constant" nil 
+    ( G       "6.67428*10^(-11) m^3/(kg s^2)"    "Gravitational constant" nil
               "6.67428 10^-11 m^3/(kg s^2) (*)")
-    ( Nav     "6.02214179*10^(23) / mol"    "Avagadro's constant" nil 
+    ( Nav     "6.02214179*10^(23) / mol"    "Avogadro's constant" nil
               "6.02214179 10^23 / mol (*)")
-    ( me      "9.10938215*10^(-31) kg"      "Electron rest mass" nil 
+    ( me      "9.10938215*10^(-31) kg"      "Electron rest mass" nil
               "9.10938215 10^-31 kg (*)")
-    ( mp      "1.672621637*10^(-27) kg"     "Proton rest mass" nil 
+    ( mp      "1.672621637*10^(-27) kg"     "Proton rest mass" nil
               "1.672621637 10^-27 kg (*)")
-    ( mn      "1.674927211*10^(-27) kg"     "Neutron rest mass" nil 
+    ( mn      "1.674927211*10^(-27) kg"     "Neutron rest mass" nil
               "1.674927211 10^-27 kg (*)")
-    ( mmu     "1.88353130*10^(-28) kg"      "Muon rest mass" nil 
+    ( mmu     "1.88353130*10^(-28) kg"      "Muon rest mass" nil
               "1.88353130 10^-28 kg (*)")
-    ( Ryd     "10973731.568527 /m"          "Rydberg's constant" nil 
+    ( Ryd     "10973731.568527 /m"          "Rydberg's constant" nil
               "10973731.568527 /m (*)")
-    ( k       "1.3806504*10^(-23) J/K"      "Boltzmann's constant" nil 
+    ( k       "1.3806504*10^(-23) J/K"      "Boltzmann's constant" nil
               "1.3806504 10^-23 J/K (*)")
-    ( alpha   "7.2973525376*10^(-3)"        "Fine structure constant" nil 
+    ( alpha   "7.2973525376*10^(-3)"        "Fine structure constant" nil
               "7.2973525376 10^-3 (*)")
-    ( muB     "927.400915*10^(-26) J/T"     "Bohr magneton" nil 
+    ( muB     "927.400915*10^(-26) J/T"     "Bohr magneton" nil
               "927.400915 10^-26 J/T (*)")
-    ( muN     "5.05078324*10^(-27) J/T"     "Nuclear magneton" nil 
+    ( muN     "5.05078324*10^(-27) J/T"     "Nuclear magneton" nil
               "5.05078324 10^-27 J/T (*)")
-    ( mue     "-928.476377*10^(-26) J/T"    "Electron magnetic moment" nil 
+    ( mue     "-928.476377*10^(-26) J/T"    "Electron magnetic moment" nil
               "-928.476377 10^-26 J/T (*)")
-    ( mup     "1.410606662*10^(-26) J/T"    "Proton magnetic moment" nil 
+    ( mup     "1.410606662*10^(-26) J/T"    "Proton magnetic moment" nil
               "1.410606662 10^-26 J/T (*)")
-    ( R0      "8.314472 J/(mol K)"          "Molar gas constant" nil 
+    ( R0      "8.314472 J/(mol K)"          "Molar gas constant" nil
               "8.314472 J/(mol K) (*)")
-    ( V0      "22.710981*10^(-3) m^3/mol"   "Standard volume of ideal gas" nil 
+    ( V0      "22.710981*10^(-3) m^3/mol"   "Standard volume of ideal gas" nil
               "22.710981 10^-3 m^3/mol (*)")))
 
 
 (defvar math-additional-units nil
   "*Additional units table for user-defined units.
-Must be formatted like math-standard-units.
-If this is changed, be sure to set math-units-table to nil to ensure
+Must be formatted like `math-standard-units'.
+If this is changed, be sure to set `math-units-table' to nil to ensure
 that the combined units table will be rebuilt.")
 
 (defvar math-unit-prefixes
@@ -330,7 +330,8 @@ that the combined units table will be rebuilt.")
      ( cgs   ( ( m   '(* (var cm var-cm) 100 ) ) ) )))
 
 (defvar math-units-table nil
-  "Internal units table derived from math-defined-units.
+  "Internal units table.
+Derived from `math-standard-units' and `math-additional-units'.
 Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 
 (defvar math-units-table-buffer-valid nil)
