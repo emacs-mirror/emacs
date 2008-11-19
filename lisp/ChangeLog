@@ -1,3 +1,8 @@
+2008-11-19  Ulrich Mueller  <ulm@kph.uni-mainz.de> (tiny change)
+
+	* calc/calc-units.el (math-standard-units): Add eps0,
+	permittivity of vacuum.
+
 2008-11-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* files.el (project-settings-file): Remove.
