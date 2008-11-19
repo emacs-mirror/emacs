@@ -93,9 +93,9 @@ If this contains a %s, that will be replaced by the matching rule."
 (defcustom auto-insert-alist
   '((("\\.\\([Hh]\\|hh\\|hpp\\)\\'" . "C / C++ header")
      (upcase (concat (file-name-nondirectory
-		      (substring buffer-file-name 0 (match-beginning 0)))
+		      (file-name-sans-extension buffer-file-name))
 		     "_"
-		     (substring buffer-file-name (1+ (match-beginning 0)))))
+		     (file-name-extension buffer-file-name)))
      "#ifndef " str \n
      "#define " str "\n\n"
      _ "\n\n#endif")
