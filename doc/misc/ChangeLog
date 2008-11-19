@@ -1,3 +1,8 @@
+2008-11-19  Glenn Morris  <rgm@gnu.org>
+
+	* doclicense.texi: Change to FDL 1.3.
+	Relicense all texi files under FDL 1.3 or later.
+
 2008-11-17  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Tutorial): Clarify how to set up the on-line tutorial.
