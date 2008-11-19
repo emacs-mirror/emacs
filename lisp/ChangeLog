@@ -1,3 +1,7 @@
+2008-11-19  Lute Kamstra  <lute@gnu.org>
+
+	* autoinsert.el (auto-insert-alist): Don't use match data.
+
 2008-11-19  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-mode-map): Add some menu :help.
@@ -15,7 +19,8 @@
 	* textmodes/ispell.el (ispell-dictionary-base-alist): Adjust to the
 	case where the default dictionary is French, Spanish, younameit.
 
-	* window.el (window--frame-usable-p): Consider dedicated windows as usable.
+	* window.el (window--frame-usable-p): Consider dedicated windows
+	as usable.
 
 	* files.el (confirm-nonexistent-file-or-buffer):
 	Rename from find-file-confirm-nonexistent-file.
