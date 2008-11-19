@@ -1,3 +1,9 @@
+2008-11-19  Glenn Morris  <rgm@gnu.org>
+
+	* doclicense.texi: New file.
+	* emacs-lisp-intro.texi: Relicense under FDL 1.3 or later.
+	Include doclicense.texi rather than having license in the file itself.
+
 2008-10-16  Sean Sieger  <sean.sieger@gmail.com>  (tiny change)
 
 	* emacs-lisp-intro.texi (Recursion with list): Fix typo.
