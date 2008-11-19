@@ -81,6 +81,8 @@
 ;; Keep an obsolete alias for w32-focus-frame and w32-select-font in case
 ;; they are used by code outside Emacs.
 (define-obsolete-function-alias 'w32-focus-frame 'x-focus-frame "23.1")
+(declare-function x-select-font "w32font.c"
+                  (&optional frame exclude-proportional))
 (define-obsolete-function-alias 'w32-select-font 'x-select-font "23.1")
 
 (defvar xlfd-regexp-registry-subnum)
