@@ -1,3 +1,8 @@
+2008-11-19  Glenn Morris  <rgm@gnu.org>
+
+	* proced.el (proced, proced-format-time): Doc fixes.
+	(proced-process-attributes): Signal an error if unsupported.  (Bug#1314)
+
 2008-11-19  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-jump-noselect): Move the deprecation
