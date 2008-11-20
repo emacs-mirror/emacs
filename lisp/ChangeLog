@@ -1,3 +1,16 @@
+2008-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-dynamic-docstrings)
+	(byte-compile-output-docform): Reflow docstrings.
+	(no-byte-compile): Fix typo in docstring.
+	(byte-recompile-directory, compile-defun): Doc fixes.
+	(emacs-lisp-file-regexp, byte-compile-verbose)
+	(byte-compile-compatibility, byte-optimize, byte-compile-delete-errors)
+	(byte-compile-dynamic-docstrings, byte-optimize-log)
+	(byte-compile-error-on-warn, byte-compile-warnings)
+	(byte-compile-generate-call-tree, byte-compile-call-tree-sort):
+	Remove * from defcustom docstrings.
+
 2008-11-20  Glenn Morris  <rgm@gnu.org>
 
 	* format.el (format-alist, format-write-file): Doc fix.
