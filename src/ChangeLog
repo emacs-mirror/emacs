@@ -1,3 +1,9 @@
+2008-11-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (coordinates_in_window): Don't return
+	ON_VERTICAL_BORDER for the rightmost position of a mode/header
+	line when the window is not the rightmost one.  (Bug#1372)
+
 2008-11-16  Ben North  <ben@redfrontdoor.org>  (tiny change)
 
 	* buffer.c (syms_of_buffer): Fix doc-string of cursor-type.
