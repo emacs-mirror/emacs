@@ -1,3 +1,8 @@
+2008-11-20  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Format Conversion Round-Trip): Mention `preserve'
+	element of `format-alist'.
+
 2008-11-19  Glenn Morris  <rgm@gnu.org>
 
 	* doclicense.texi: Update to FDL 1.3.
