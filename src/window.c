@@ -774,7 +774,11 @@ coordinates_in_window (w, x, y)
 	}
       else
 	{
-	  if (eabs (*x - x1) < grabbable_width)
+	  /* Make sure we're not at the rightmost position of a
+	     mode-/header-line and there's yet another window on
+	     the right.  (Bug#1372)  */
+	  if ((WINDOW_RIGHTMOST_P (w) || *x < x1)
+	      && eabs (*x - x1) < grabbable_width)
 	    {
 	      /* Convert X and Y to window relative coordinates.
 		 Vertical border is at the right edge of window.  */
