@@ -1,3 +1,23 @@
+2008-11-20  Glenn Morris  <rgm@gnu.org>
+
+	* format.el (format-alist, format-write-file): Doc fix.
+
+	* proced.el (proced-available): New variable.
+	(proced-process-attributes): Move availability check from previous
+	change from here...
+	(proced): ... to here.
+
+	* vc-hg.el (vc-hg-diff-switches): New option.
+	(vc-hg-diff): Apply diff switches.  (Bug#1017)
+
+	* calc/calc-units.el (math-additional-units): Doc fix (active voice).
+
+	* progmodes/fortran.el (fortran-mode-map): Add some menu :help.
+
+2008-11-20  Stephen Berman  <Stephen.Berman@gmx.net>
+
+	* files.el (auto-mode-alist): Recognize more OpenOffice.org extensions.
+
 2008-11-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* calc/calc-units.el (math-units-table): Doc fix.
