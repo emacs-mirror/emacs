@@ -96,7 +96,8 @@
 	   nil
 	   iso-spanish iso-cvt-read-only t nil))
   "List of information about understood file formats.
-Elements are of the form \(NAME DOC-STR REGEXP FROM-FN TO-FN MODIFY MODE-FN).
+Elements are of the form
+\(NAME DOC-STR REGEXP FROM-FN TO-FN MODIFY MODE-FN PRESERVE).
 
 NAME    is a symbol, which is stored in `buffer-file-format'.
 
@@ -365,7 +366,11 @@ name as FILENAME, to write a file of the same old name in that directory.
 
 If optional third arg CONFIRM is non-nil, ask for confirmation before
 overwriting an existing file.  Interactively, confirmation is required
-unless you supply a prefix argument."
+unless you supply a prefix argument.
+
+The buffer-local value of `buffer-file-format' is set to FORMAT,
+and any original elements (except those with a non-nil `preserve' flag;
+see the documentation of `format-alist') are replaced."
   (interactive
    ;; Same interactive spec as write-file, plus format question.
    (let* ((file (if buffer-file-name
