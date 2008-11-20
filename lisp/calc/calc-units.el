@@ -295,7 +295,7 @@
 (defvar math-additional-units nil
   "*Additional units table for user-defined units.
 Must be formatted like `math-standard-units'.
-If this is changed, be sure to set `math-units-table' to nil to ensure
+If you change this, be sure to set `math-units-table' to nil to ensure
 that the combined units table will be rebuilt.")
 
 (defvar math-unit-prefixes
