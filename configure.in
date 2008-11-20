@@ -356,6 +356,7 @@ dnl see the `changequote' comment above.
       sparc*-*-openbsd*)       machine=sparc ;;
       vax-*-openbsd*)          machine=vax ;;
       x86_64-*-openbsd*)       machine=amdx86-64 ;;
+      hppa-*-openbsd*)         machine=hp800 ;;
     esac
   ;;
 
