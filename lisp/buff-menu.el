@@ -596,26 +596,24 @@ For more information, see the function `buffer-menu'."
   (interactive "P")
   (display-buffer (list-buffers-noselect files-only)))
 
+(defconst Buffer-menu-short-ellipsis (if (char-displayable-p ?…) "…" ":"))
+
 (defun Buffer-menu-buffer+size (name size &optional name-props size-props)
-  (if (> (+ (string-width name) (string-width size) 2) Buffer-menu-buffer+size-width)
+  (if (> (+ (string-width name) (string-width size) 2)
+         Buffer-menu-buffer+size-width)
       (setq name
-	    (if (string-match "<[0-9]+>$" name)
-		(concat (truncate-string-to-width name
-						  (- Buffer-menu-buffer+size-width
-						     (max (string-width size) 3)
-						     (string-width (match-string 0))
-						     2)
-						  0
-						  ?\s)
-			":"		; narrow ellipsis
-			(match-string 0 name))
-	      (concat (truncate-string-to-width name
-						(- Buffer-menu-buffer+size-width
-						   (max (string-width size) 3)
-						   2)
-						0
-						?\s)
-		      ":")))		; narrow ellipsis
+            (let ((tail
+                   (if (string-match "<[0-9]+>$" name)
+                       (match-string 0 name)
+                     "")))
+              (concat (truncate-string-to-width
+                       name
+                       (- Buffer-menu-buffer+size-width
+                          (max (string-width size) 3)
+                          (string-width tail)
+                          2))
+                      Buffer-menu-short-ellipsis
+                      tail)))
     ;; Don't put properties on (buffer-name).
     (setq name (copy-sequence name)))
   (add-text-properties 0 (length name) name-props name)
@@ -846,9 +844,7 @@ For more information, see the function `buffer-menu'."
 		"  "
 		(if (> (string-width (nth 4 buffer)) Buffer-menu-mode-width)
 		    (truncate-string-to-width (nth 4 buffer)
-					      Buffer-menu-mode-width
-					      0
-					      ?\s)
+					      Buffer-menu-mode-width)
 		  (nth 4 buffer)))
 	(when (nth 5 buffer)
 	  (indent-to (+ Buffer-menu-buffer-column Buffer-menu-buffer+size-width
