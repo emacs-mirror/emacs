@@ -1,3 +1,8 @@
+2008-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ehelp.el (electric-help-map, ehelp-map): Define within defvar.
+	(with-electric-help): Fix typo and reflow docstring.
+
 2008-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buff-menu.el (Buffer-menu-short-ellipsis): New constant.
