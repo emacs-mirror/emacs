@@ -145,9 +145,11 @@
 
 (defconst cal-menu-scroll-menu
   '("Scroll"
+    ["Forward 1 Week" calendar-forward-week]
     ["Forward 1 Month" calendar-scroll-left]
     ["Forward 3 Months" calendar-scroll-left-three-months]
     ["Forward 1 Year" (calendar-scroll-left 12) :keys "4 C-v"]
+    ["Backward 1 Week" calendar-backward-week]
     ["Backward 1 Month" calendar-scroll-right]
     ["Backward 3 Months" calendar-scroll-right-three-months]
     ["Backward 1 Year" (calendar-scroll-right 12) :keys "4 M-v"])

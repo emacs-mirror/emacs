@@ -1,3 +1,8 @@
+2008-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* calendar/cal-menu.el (cal-menu-scroll-menu): Add bindings for
+	week forward/backward.
+
 2008-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ehelp.el (electric-help-map, ehelp-map): Define within defvar.
