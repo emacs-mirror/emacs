@@ -1,3 +1,8 @@
+2008-11-20  Josh Elsasser  <josh@elsasser.org>  (tiny change)
+
+	* configure.in: Add hppa-*-openbsd* with machine hp800; mistakenly
+	removed while misclassified as now unsupported hp9000s300.  (Bug#1365)
+
 2008-11-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (INFO_FILES): Remove ns-emacs.
