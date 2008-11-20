@@ -597,21 +597,24 @@ For more information, see the function `buffer-menu'."
   (display-buffer (list-buffers-noselect files-only)))
 
 (defun Buffer-menu-buffer+size (name size &optional name-props size-props)
-  (if (> (+ (length name) (length size) 2) Buffer-menu-buffer+size-width)
+  (if (> (+ (string-width name) (string-width size) 2) Buffer-menu-buffer+size-width)
       (setq name
 	    (if (string-match "<[0-9]+>$" name)
-		(concat (substring name 0
-				   (- Buffer-menu-buffer+size-width
-				      (max (length size) 3)
-				      (match-end 0)
-				      (- (match-beginning 0))
-				      2))
+		(concat (truncate-string-to-width name
+						  (- Buffer-menu-buffer+size-width
+						     (max (string-width size) 3)
+						     (string-width (match-string 0))
+						     2)
+						  0
+						  ?\s)
 			":"		; narrow ellipsis
 			(match-string 0 name))
-	      (concat (substring name 0
-				 (- Buffer-menu-buffer+size-width
-				    (max (length size) 3)
-				    2))
+	      (concat (truncate-string-to-width name
+						(- Buffer-menu-buffer+size-width
+						   (max (string-width size) 3)
+						   2)
+						0
+						?\s)
 		      ":")))		; narrow ellipsis
     ;; Don't put properties on (buffer-name).
     (setq name (copy-sequence name)))
@@ -619,8 +622,8 @@ For more information, see the function `buffer-menu'."
   (add-text-properties 0 (length size) size-props size)
   (concat name
 	  (make-string (- Buffer-menu-buffer+size-width
-			  (length name)
-			  (length size))
+			  (string-width name)
+			  (string-width size))
 		       ?\s)
 	  size))
 
@@ -840,9 +843,12 @@ For more information, see the function `buffer-menu'."
 						   2))
 					    name
 					  "mouse-2: select this buffer"))))
-		  "  "
-		(if (> (length (nth 4 buffer)) Buffer-menu-mode-width)
-		    (substring (nth 4 buffer) 0 Buffer-menu-mode-width)
+		"  "
+		(if (> (string-width (nth 4 buffer)) Buffer-menu-mode-width)
+		    (truncate-string-to-width (nth 4 buffer)
+					      Buffer-menu-mode-width
+					      0
+					      ?\s)
 		  (nth 4 buffer)))
 	(when (nth 5 buffer)
 	  (indent-to (+ Buffer-menu-buffer-column Buffer-menu-buffer+size-width
