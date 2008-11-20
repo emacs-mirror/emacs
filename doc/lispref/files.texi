@@ -2877,7 +2877,7 @@ This list contains one format definition for each defined file format.
 Each format definition is a list of this form:
 
 @example
-(@var{name} @var{doc-string} @var{regexp} @var{from-fn} @var{to-fn} @var{modify} @var{mode-fn})
+(@var{name} @var{doc-string} @var{regexp} @var{from-fn} @var{to-fn} @var{modify} @var{mode-fn} @var{preserve})
 @end example
 @end defvar
 
@@ -2950,6 +2950,10 @@ A flag, @code{t} if the encoding function modifies the buffer, and
 A minor-mode function to call after visiting a file converted from this
 format.  The function is called with one argument, the integer 1;
 that tells a minor-mode function to enable the mode.
+
+@item preserve
+A flag, @code{t} if @code{format-write-file} should not remove this format
+from @code{buffer-file-format}.
 @end table
 
 The function @code{insert-file-contents} automatically recognizes file
@@ -2979,8 +2983,11 @@ in the order of appearance in the list.
 @deffn Command format-write-file file format &optional confirm
 This command writes the current buffer contents into the file
 @var{file} in format @var{format}, and makes that format the default
-for future saves of the buffer.  The argument @var{format} is a list
-of format names.  Except for the @var{format} argument, this command
+for future saves of the buffer.  That is, the buffer-local value of
+@code{buffer-file-format} is set to @var{format}, and any original
+elements (except any with a non-nil @var{preserve} flag; see above) are
+replaced.  The argument @var{format} is a list of format names.
+Except for the @var{format} argument, this command
 is similar to @code{write-file}.  In particular, @var{confirm} has the
 same meaning and interactive treatment as the corresponding argument
 to @code{write-file}.  @xref{Definition of write-file}.
