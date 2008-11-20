@@ -126,6 +126,20 @@
   :version "22.2"
   :group 'vc)
 
+(defcustom vc-hg-diff-switches
+  t                           ; Hg doesn't support common args like -u
+  "String or list of strings specifying extra switches for Hg diff under VC.
+If nil, use the value of `vc-diff-switches'.
+If you want to force an empty list of arguments, use t."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List"
+			 :value ("")
+			 string))
+  :version "23.1"
+  :group 'vc)
+
 
 ;;; Properties of the backend
 
@@ -262,6 +276,7 @@
 		       (expand-file-name default-directory))
 	   "diff"
 	   (append
+	    (vc-switches (if vc-hg-diff-switches 'hg) 'diff)
 	    (when oldvers
 	      (if newvers
 		  (list "-r" oldvers "-r" newvers)
