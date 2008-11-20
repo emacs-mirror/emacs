@@ -1,3 +1,11 @@
+2008-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-util.el (set-nested-alist): Doc fix.  Use `when'.
+	(lookup-nested-alist): Doc fix.
+	(with-coding-priority): Reflow docstring.
+	(detect-coding-with-priority): Fix typos in obsolescence declaration.
+	(char-displayable-p): Reflow docstring.  Use `when'.
+
 2008-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* calendar/cal-menu.el (cal-menu-scroll-menu): Add bindings for
@@ -14,7 +22,7 @@
 	(Buffer-menu-buffer+size): Use it, fix last change, and simplify.
 	(list-buffers-noselect): Don't need to pad.
 
-2008-11-20   Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
+2008-11-20  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
 
 	* buff-menu.el (Buffer-menu-buffer+size, list-buffers-noselect):
 	Pay attention to char widths when computing string sizes.
