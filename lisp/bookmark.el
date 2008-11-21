@@ -79,6 +79,7 @@
 ;;; Code:
 
 (require 'pp)
+(eval-when-compile (require 'cl))
 
 ;;; Misc comments:
 ;;
@@ -317,21 +318,21 @@ through a file easier.")
   (mapcar 'bookmark-name-from-full-record bookmark-alist))
 
 
-(defun bookmark-get-bookmark (bookmark)
+(defun bookmark-get-bookmark (bookmark &optional noerror)
   "Return the bookmark record corresponding to BOOKMARK.
 If BOOKMARK is already a bookmark record, just return it,
 Otherwise look for the corresponding bookmark in `bookmark-alist'."
   (cond
    ((consp bookmark) bookmark)
    ((stringp bookmark)
-    (assoc-string bookmark bookmark-alist bookmark-completion-ignore-case))))
+    (or (assoc-string bookmark bookmark-alist bookmark-completion-ignore-case)
+        (unless noerror (error "Invalid bookmark %s" bookmark))))))
 
 
 (defun bookmark-get-bookmark-record (bookmark)
   "Return the guts of the entry for BOOKMARK in `bookmark-alist'.
 That is, all information but the name."
-  (let ((alist (cdr (or (bookmark-get-bookmark bookmark)
-			(error "Invalid bookmark %s" bookmark)))))
+  (let ((alist (cdr (bookmark-get-bookmark bookmark))))
     ;; The bookmark objects can either look like (NAME ALIST) or
     ;; (NAME . ALIST), so we have to distinguish the two here.
     (if (and (null (cdr alist)) (consp (caar alist)))
@@ -487,7 +488,8 @@ old one."
         ;; XEmacs's `set-text-properties' doesn't work on
         ;; free-standing strings, apparently.
         (set-text-properties 0 (length stripped-name) nil stripped-name))
-    (if (and (bookmark-get-bookmark stripped-name) (not no-overwrite))
+    (if (and (not no-overwrite)
+             (bookmark-get-bookmark stripped-name 'noerror))
         ;; already existing bookmark under that name and
         ;; no prefix arg means just overwrite old bookmark
         ;; Use the new (NAME . ALIST) format.
@@ -1211,11 +1213,11 @@ probably because we were called from there."
 				   bookmark-current-bookmark)))
   (bookmark-maybe-historicize-string bookmark)
   (bookmark-maybe-load-default-file)
-  (let ((will-go (bookmark-get-bookmark bookmark)))
+  (let ((will-go (bookmark-get-bookmark bookmark 'noerror)))
     (setq bookmark-alist (delq will-go bookmark-alist))
     ;; Added by db, nil bookmark-current-bookmark if the last
     ;; occurrence has been deleted
-    (or (bookmark-get-bookmark bookmark-current-bookmark)
+    (or (bookmark-get-bookmark bookmark-current-bookmark 'noerror)
         (setq bookmark-current-bookmark nil)))
   ;; Don't rebuild the list
   (if batch

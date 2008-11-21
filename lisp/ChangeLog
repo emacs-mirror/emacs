@@ -1,5 +1,10 @@
 2008-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* bookmark.el (bookmark-get-bookmark): Add `noerror' arg.
+	Signal error for invalid bookmark.
+	(bookmark-get-bookmark-record): Undo last change.
+	(bookmark-store, bookmark-delete): Use new arg `noerror'.
+
 	* bookmark.el (bookmark-buffer-file-name): Also abbreviate dired-dir.
 	Suggested by Toru TSUNEYOSHI.
 
