@@ -8,16 +8,16 @@
 @chapter Frames
 @cindex frame
 
-  In Emacs editing, A @dfn{frame} is a screen object that contains one
-or more Emacs windows.  It's the kind of object that is called a
-``window'' in the terminology of graphical environments; but we can't
-call it a ``window'' here, because Emacs uses that word in a different
-way.
+  In Emacs editing, a @dfn{frame} is a screen object that contains one
+or more Emacs windows, see @ref{Windows}.  It's the kind of object that
+is called a ``window'' in the terminology of graphical environments; but
+we can't call it a ``window'' here, because Emacs uses that word in a
+different way.  In Emacs Lisp, a @dfn{frame object} is a Lisp object
+that represents a frame on the screen.
 
   A frame initially contains a single main window and/or a minibuffer
 window; you can subdivide the main window vertically or horizontally
-into smaller windows.  In Emacs Lisp, a @dfn{frame object} is a Lisp
-object that represents a frame on the screen.
+into smaller windows.  @xref{Splitting Windows}.
 
 @cindex terminal frame
   When Emacs runs on a text-only terminal, it starts with one
@@ -343,8 +343,9 @@ in many cases.
 Setting this variable does not affect existing frames.
 @end defvar
 
-See also @code{special-display-frame-alist}.  @xref{Definition of
-special-display-frame-alist}.
+Functions that display a buffer in a separate frame can override the
+default parameters by supplying their own parameters.  @xref{Definition
+of special-display-frame-alist}.
 
 If you use options that specify window appearance when you invoke Emacs,
 they take effect by adding elements to @code{default-frame-alist}.  One
@@ -1006,7 +1007,7 @@ the selected frame.
 
 A frame cannot be deleted if its minibuffer is used by other frames.
 Normally, you cannot delete a frame if all other frames are invisible,
-but if the @var{force} is non-@code{nil}, then you are allowed to do so.
+but if @var{force} is non-@code{nil}, then you are allowed to do so.
 @end deffn
 
 @defun frame-live-p frame
@@ -1074,7 +1075,7 @@ Window Ordering}.
 @node Frames and Windows
 @section Frames and Windows
 
-  Each window is part of one and only one frame; you can get the frame
+  Each window is part of one and only one frame; you can get that frame
 with @code{window-frame}.
 
 @defun window-frame window
@@ -1094,8 +1095,9 @@ If omitted or @code{nil}, @var{frame} defaults to the selected frame.
 
 At any time, exactly one window on any frame is @dfn{selected within the
 frame}.  The significance of this designation is that selecting the
-frame also selects this window.  You can get the frame's current
-selected window with @code{frame-selected-window}.
+frame also selects this window.  Conversely, selecting a window for
+Emacs with @code{select-window} also makes that window selected within
+its frame.  @xref{Selecting Windows}.
 
 @defun frame-selected-window  &optional frame
 This function returns the window on @var{frame} that is selected
@@ -1103,15 +1105,16 @@ within @var{frame}.  If omitted or @code{nil}, @var{frame} defaults to
 the selected frame.
 @end defun
 
-@defun set-frame-selected-window frame window
+@defun set-frame-selected-window frame window &optional norecord
 This sets the selected window of frame @var{frame} to @var{window}.
 If @var{frame} is @code{nil}, it operates on the selected frame.  If
 @var{frame} is the selected frame, this makes @var{window} the
 selected window.  This function returns @var{window}.
-@end defun
 
-  Conversely, selecting a window for Emacs with @code{select-window} also
-makes that window selected within its frame.  @xref{Selecting Windows}.
+Optional argument @var{norecord} non-@code{nil} means to neither change
+the order of recently selected windows nor the buffer list (@pxref{The
+Buffer List}).
+@end defun
 
   Another function that (usually) returns one of the windows in a given
 frame is @code{minibuffer-window}.  @xref{Definition of minibuffer-window}.
@@ -1158,7 +1161,7 @@ runs a command that came from a certain terminal, the selected frame is
 the one of that terminal.  Since Emacs runs only a single command at any
 given time, it needs to consider only one selected frame at a time; this
 frame is what we call @dfn{the selected frame} in this manual.  The
-display on which the selected frame is displayed is the @dfn{selected
+display on which the selected frame is shown is the @dfn{selected
 frame's display}.
 
 @defun selected-frame
@@ -1169,7 +1172,7 @@ Some window systems and window managers direct keyboard input to the
 window object that the mouse is in; others require explicit clicks or
 commands to @dfn{shift the focus} to various window objects.  Either
 way, Emacs automatically keeps track of which frame has the focus.  To
-switch to a different frame from a Lisp function, call
+explicitly switch to a different frame from a Lisp function, call
 @code{select-frame-set-input-focus}.
 
 Lisp programs can also switch frames ``temporarily'' by calling the
@@ -1180,31 +1183,37 @@ until that control is somehow reasserted.
 When using a text-only terminal, only one frame can be displayed at a
 time on the terminal, so after a call to @code{select-frame}, the next
 redisplay actually displays the newly selected frame.  This frame
-remains selected until a subsequent call to @code{select-frame} or
-@code{select-frame-set-input-focus}.  Each terminal frame has a number
-which appears in the mode line before the buffer name (@pxref{Mode
-Line Variables}).
+remains selected until a subsequent call to @code{select-frame}.  Each
+terminal frame has a number which appears in the mode line before the
+buffer name (@pxref{Mode Line Variables}).
 
 @defun select-frame-set-input-focus frame
-This function makes @var{frame} the selected frame, raises it (should
-it happen to be obscured by other frames) and tries to give it the X
-server's focus.  On a text-only terminal, the next redisplay displays
-the new frame on the entire terminal screen.  The return value of this
-function is not significant.
+This function selects @var{frame}, raises it (should it happen to be
+obscured by other frames) and tries to give it the X server's focus.  On
+a text-only terminal, the next redisplay displays the new frame on the
+entire terminal screen.  The return value of this function is not
+significant.
 @end defun
 
 @c ??? This is not yet implemented properly.
-@defun select-frame frame
+@defun select-frame frame &optional norecord
 This function selects frame @var{frame}, temporarily disregarding the
 focus of the X server if any.  The selection of @var{frame} lasts until
 the next time the user does something to select a different frame, or
 until the next time this function is called.  (If you are using a
 window system, the previously selected frame may be restored as the
 selected frame after return to the command loop, because it still may
-have the window system's input focus.)  The specified @var{frame}
-becomes the selected frame, as explained above, and the terminal that
-@var{frame} is on becomes the selected terminal.  This function
-returns @var{frame}, or @code{nil} if @var{frame} has been deleted.
+have the window system's input focus.)
+
+The specified @var{frame} becomes the selected frame, as explained
+above, and the terminal that @var{frame} is on becomes the selected
+terminal.  The window selected within @var{frame} becomes the selected
+window.  This function returns @var{frame}, or @code{nil} if @var{frame}
+has been deleted.
+
+Optional argument @var{norecord} non-@code{nil} means to neither change
+the order of recently selected windows nor the buffer list.  @xref{The
+Buffer List}.
 
 In general, you should never use @code{select-frame} in a way that could
 switch to a different terminal without switching back when you're done.
@@ -1258,9 +1267,7 @@ change it.
 This option is how you inform Emacs whether the window manager transfers
 focus when the user moves the mouse.  Non-@code{nil} says that it does.
 When this is so, the command @code{other-frame} moves the mouse to a
-position consistent with the new selected frame.  (This option has no
-effect on MS-Windows, where the mouse pointer is always automatically
-moved by the OS to the selected frame.)
+position consistent with the new selected frame.
 @end defopt
 
 @node Visibility of Frames
@@ -1337,7 +1344,8 @@ moving it to the bottom of the stack.  This motion is in the notional
 third dimension only, and does not change the position of the window
 on the screen.
 
-  You can raise and lower Emacs frame Windows with these functions:
+  With Emacs, frames constitute the windows in the metaphor sketched
+above. You can raise and lower frames using these functions:
 
 @deffn Command raise-frame &optional frame
 This function raises frame @var{frame} (default, the selected frame).
@@ -1399,7 +1407,7 @@ button.
 
 @defspec track-mouse body@dots{}
 This special form executes @var{body}, with generation of mouse motion
-events enabled.  Typically @var{body} would use @code{read-event} to
+events enabled.  Typically, @var{body} would use @code{read-event} to
 read the motion events and modify the display accordingly.  @xref{Motion
 Events}, for the format of mouse motion events.
 
