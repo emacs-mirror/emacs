@@ -2758,6 +2758,7 @@ detect_coding_iso_2022 (coding, detect_info)
   int i;
   int rejected = 0;
   int found = 0;
+  int composition_count = -1;
 
   detect_info->checked |= CATEGORY_MASK_ISO;
 
@@ -2826,10 +2827,20 @@ detect_coding_iso_2022 (coding, detect_info)
 	      rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_8BIT;
 	      break;
 	    }
+	  else if (c == '1')
+	    {
+	      /* End of composition.  */
+	      if (composition_count < 0
+		  || composition_count > MAX_COMPOSITION_COMPONENTS)
+		/* Invalid */
+		break;
+	      composition_count = -1;
+	      found |= CATEGORY_MASK_ISO;
+	    }
 	  else if (c >= '0' && c <= '4')
 	    {
 	      /* ESC <Fp> for start/end composition.  */
-	      found |= CATEGORY_MASK_ISO;
+	      composition_count = 0;
 	      break;
 	    }
 	  else
@@ -2900,6 +2911,8 @@ detect_coding_iso_2022 (coding, detect_info)
 	    continue;
 	  if (c < 0x80)
 	    {
+	      if (composition_count >= 0)
+		composition_count++;
 	      single_shifting = 0;
 	      break;
 	    }
@@ -2924,9 +2937,17 @@ detect_coding_iso_2022 (coding, detect_info)
 		    }
 
 		  if (i & 1 && src < src_end)
-		    rejected |= CATEGORY_MASK_ISO_8_2;
+		    {
+		      rejected |= CATEGORY_MASK_ISO_8_2;
+		      if (composition_count >= 0)
+			composition_count += i;
+		    }
 		  else
-		    found |= CATEGORY_MASK_ISO_8_2;
+		    {
+		      found |= CATEGORY_MASK_ISO_8_2;
+		      if (composition_count >= 0)
+			composition_count += i / 2;
+		    }
 		}
 	      break;
 	    }
@@ -3043,6 +3064,8 @@ detect_coding_iso_2022 (coding, detect_info)
 	    break;							\
 	if (p == src_end - 1)						\
 	  {								\
+	    if (coding->mode & CODING_MODE_LAST_BLOCK)			\
+	      goto invalid_code;					\
 	    /* The current composition doesn't end in the current	\
 	       source.  */						\
 	    record_conversion_result					\
@@ -3190,10 +3213,15 @@ decode_coding_iso_2022 (coding)
 	      if (composition_state == COMPOSING_RULE
 		  || composition_state == COMPOSING_COMPONENT_RULE)
 		{
-		  DECODE_COMPOSITION_RULE (c1);
-		  components[component_idx++] = c1;
-		  composition_state--;
-		  continue;
+		  if (component_idx < MAX_COMPOSITION_COMPONENTS * 2 + 1)
+		    {
+		      DECODE_COMPOSITION_RULE (c1);
+		      components[component_idx++] = c1;
+		      composition_state--;
+		      continue;
+		    }
+		  /* Too long composition.  */
+		  MAYBE_FINISH_COMPOSITION ();
 		}
 	    }
 	  if (charset_id_0 < 0
@@ -3210,10 +3238,14 @@ decode_coding_iso_2022 (coding)
 	      if (composition_state == COMPOSING_RULE
 		  || composition_state == COMPOSING_COMPONENT_RULE)
 		{
-		  DECODE_COMPOSITION_RULE (c1);
-		  components[component_idx++] = c1;
-		  composition_state--;
-		  continue;
+		  if (component_idx < MAX_COMPOSITION_COMPONENTS * 2 + 1)
+		    {
+		      DECODE_COMPOSITION_RULE (c1);
+		      components[component_idx++] = c1;
+		      composition_state--;
+		      continue;
+		    }
+		  MAYBE_FINISH_COMPOSITION ();
 		}
 	    }
 	  if (charset_id_0 < 0)
@@ -3571,11 +3603,20 @@ decode_coding_iso_2022 (coding)
 	}
       else
 	{
-	  components[component_idx++] = c;
-	  if (method == COMPOSITION_WITH_RULE
-	      || (method == COMPOSITION_WITH_RULE_ALTCHARS
-		  && composition_state == COMPOSING_COMPONENT_CHAR))
-	    composition_state++;
+	  if (component_idx < MAX_COMPOSITION_COMPONENTS * 2 + 1)
+	    {
+	      components[component_idx++] = c;
+	      if (method == COMPOSITION_WITH_RULE
+		  || (method == COMPOSITION_WITH_RULE_ALTCHARS
+		      && composition_state == COMPOSING_COMPONENT_CHAR))
+		composition_state++;
+	    }
+	  else
+	    {
+	      MAYBE_FINISH_COMPOSITION ();
+	      *charbuf++ = c;
+	      char_offset++;
+	    }
 	}
       continue;
 
