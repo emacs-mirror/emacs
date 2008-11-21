@@ -2234,10 +2234,6 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   swapfield (overlay_center, EMACS_INT);
   swapfield (undo_list, Lisp_Object);
   swapfield (mark, Lisp_Object);
-  if (MARKERP (current_buffer->mark) && XMARKER (current_buffer->mark)->buffer)
-    XMARKER (current_buffer->mark)->buffer = current_buffer;
-  if (MARKERP (other_buffer->mark) && XMARKER (other_buffer->mark)->buffer)
-    XMARKER (other_buffer->mark)->buffer = other_buffer;
   swapfield (enable_multibyte_characters, Lisp_Object);
   /* FIXME: Not sure what we should do with these *_marker fields.
      Hopefully they're just nil anyway.  */
@@ -2252,16 +2248,24 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   current_buffer->text->overlay_modiff++; other_buffer->text->overlay_modiff++;
   current_buffer->text->beg_unchanged = current_buffer->text->gpt;
   current_buffer->text->end_unchanged = current_buffer->text->gpt;
-  other_buffer->text->beg_unchanged = current_buffer->text->gpt;
-  other_buffer->text->end_unchanged = current_buffer->text->gpt;
+  other_buffer->text->beg_unchanged = other_buffer->text->gpt;
+  other_buffer->text->end_unchanged = other_buffer->text->gpt;
   {
     struct Lisp_Marker *m;
     for (m = BUF_MARKERS (current_buffer); m; m = m->next)
       if (m->buffer == other_buffer)
 	m->buffer = current_buffer;
+      else
+	/* Since there's no indirect buffer in sight, markers on
+	   BUF_MARKERS(buf) should either be for `buf' or dead.  */
+	eassert (!m->buffer);
     for (m = BUF_MARKERS (other_buffer); m; m = m->next)
       if (m->buffer == current_buffer)
 	m->buffer = other_buffer;
+      else
+	/* Since there's no indirect buffer in sight, markers on
+	   BUF_MARKERS(buf) should either be for `buf' or dead.  */
+	eassert (!m->buffer);
   }
   { /* Some of the C code expects that w->buffer == w->pointm->buffer.
        So since we just swapped the markers between the two buffers, we need

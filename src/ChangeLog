@@ -1,3 +1,8 @@
+2008-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fbuffer_swap_text): Remove redundant marker manipulation.
+	Fix copy/paste typo.  Add checks.
+
 2008-11-21  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_iso_2022): Reject invalid composition
@@ -572,8 +577,7 @@
 	(EmacsPrefsController-setPanelFromValues,-setValuesFromPanel):
 	Use core Emacs cursor types.
 
-	* xdisp.c (draw_glyphs): Don't call notice_overwritten_cursor() under
-	NS.
+	* xdisp.c (draw_glyphs): Don't call notice_overwritten_cursor under NS.
 
 2008-10-02  Martin Rudalics  <rudalics@gmx.at>
 
@@ -743,34 +747,29 @@
 	* w32term.h (w32_display_info): Remove `height', `width',
 	`height_in', and `width_in' members.
 
-	* xterm.c (x_display_pixel_height, x_display_pixel_width): New
-	functions.
+	* xterm.c (x_display_pixel_height, x_display_pixel_width):
+	New functions.
 	(x_calc_absolute_position): Use them.
 	(x_term_init): Omit removed `height' and `width' members.
 
-	* w32term.c (x_display_pixel_height, x_display_pixel_width): New
-	functions.
+	* w32term.c (x_display_pixel_height, x_display_pixel_width):
+	New functions.
 	(w32_read_socket, x_calc_absolute_position): Use them.
 	(w32_initialize_display_info, w32_term_init): Omit removed members
 	of w32_display_info.
 
-	* nsterm.m (x_display_pixel_height, x_display_pixel_width): New
-	functions.
-	(ns_initialize_display_info): Omit removed members of
-	ns_display_info.
+	* nsterm.m (x_display_pixel_height, x_display_pixel_width):
+	New functions.
+	(ns_initialize_display_info): Omit removed members of ns_display_info.
 
-	* xterm.c (x_display_pixel_height, x_display_pixel_width): New
-	functions.
+	* xterm.c (x_display_pixel_height, x_display_pixel_width):
+	New functions.
 	(x_calc_absolute_position): Use them.
 	(x_term_init): Omit removed `height' and `width' members.
 
 	* xfns.c (Fx_display_pixel_width, Fx_display_pixel_height)
-	(compute_tip_xy): Use x_display_pixel_height and
-	x_display_pixel_width.
-
-	* frame.c (x_fullscreen_adjust): Use x_display_pixel_height and
-	x_display_pixel_width.
-
+	(compute_tip_xy):
+	* frame.c (x_fullscreen_adjust):
 	* xmenu.c (menu_position_func): Use x_display_pixel_height and
 	x_display_pixel_width.
 
@@ -965,8 +964,8 @@
 
 2008-09-02  Jason Rumney  <jasonr@gnu.org>
 
-	* w32menu.c (Fx_popup_menu, Fx_popup_dialog, w32_menu_show): Ensure
-	mouse is not grabbed after menu is finished.
+	* w32menu.c (Fx_popup_menu, Fx_popup_dialog, w32_menu_show):
+	Ensure mouse is not grabbed after menu is finished.
 
 2008-09-01  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1026,8 +1025,7 @@
 	passing random values to xfree.
 
 	* dispnew.c (init_display): Set `tty's association in frame's
-	parameters alist to the name of the terminal device, if that is
-	known.
+	parameters alist to the name of the terminal device, if that is known.
 
 2008-08-29  Jason Rumney  <jasonr@gnu.org>
 
@@ -1068,8 +1066,8 @@
 	* chartab.c (optimize_sub_char_table): Perform more greedy
 	optimization.
 
-	* composite.h (enum composition_method): Delete
-	COMPOSITION_WITH_GLYPH_STRING.
+	* composite.h (enum composition_method):
+	Delete COMPOSITION_WITH_GLYPH_STRING.
 	(COMPOSITION_METHOD): Don't check COMPOSITION_WITH_GLYPH_STRING.
 	(Vcomposition_function_table): Extern it.
 	(LGSTRING_XXX, LGLYPH_XXX): Macros moved from font.h.
@@ -1082,15 +1080,14 @@
 	* composite.c: Include window.h, frame.h, dispextern.h font.h.
 	(Vcomposition_function_table)
 	(get_composition_id): Don't handle COMPOSITION_WITH_GLYPH_STRING.
-	(gstring_hash_table, gstring_work, gstring_work_headers): New
-	variables.
+	(gstring_hash_table, gstring_work, gstring_work_headers):
+	New variables.
 	(gstring_lookup_cache, composition_gstring_put_cache)
 	(composition_gstring_from_id, composition_gstring_p)
 	(composition_gstring_width, fill_gstring_header)
 	(fill_gstring_body, autocmp_chars, composition_compute_stop_pos)
 	(composition_reseat_it, composition_update_it)
-	(composition_adjust_point, Fcomposition_get_gstring): New
-	functions.
+	(composition_adjust_point, Fcomposition_get_gstring): New functions.
 	(syms_of_composite): Initialize gstring_hash_table, gstrint_work,
 	and gstring_work_headers.  DEFVAR_LISP composition-function-table.
 	Defsubr compostion_get_gstring.
@@ -1105,9 +1102,9 @@
 	Delete c, len, cmp_id, cmp_len in u.comp.
 
 	* font.h (enum lgstring_indices): Delete it.
-	(LGSTRING_XXX, LGLYPH_XXX): These macros moved to composite.h.
+	(LGSTRING_XXX, LGLYPH_XXX): Move these macros to composite.h.
 	(enum lglyph_indices): Likewise.
-	(font_range): Extern adjusted.
+	(font_range): Adjust extern.
 	(font_fill_lglyph_metrics): Extern it.
 
 	* font.c (QCf): New variable.
@@ -1116,11 +1113,10 @@
 	(font_range): Type and arguments changed.
 	(Ffont_make_gstring, Ffont_fill_gstring): Delete them.
 	(font_fill_lglyph_metrics): New function.
-	(Ffont_shape_text): Renamed to Ffont_shape_gstring and arguments
-	changed.
+	(Ffont_shape_text): Rename to Ffont_shape_gstring and change arguments.
 	(syms_of_font): DEFSYM QCf.  Delete defsubr for
-	Sfont_make_gstring, Sfont_fill_gstring, Sfont_shape_text.  Defsubr
-	Sfont_shape_gstring.
+	Sfont_make_gstring, Sfont_fill_gstring, Sfont_shape_text.
+	Defsubr Sfont_shape_gstring.
 
 	* fontset.h (font_for_char): Extern it.
 
@@ -1128,8 +1124,7 @@
 
 	* ftfont.c: Include composite.h.
 	(ftfont_resolve_generic_family): Add langset "en" to pattern.
-	(ftfont_shape_by_flt): Use LGSTRING_GLYPH_LEN, not
-	LGSTRING_LENGTH.
+	(ftfont_shape_by_flt): Use LGSTRING_GLYPH_LEN, not LGSTRING_LENGTH.
 
 	* indent.c: Include composite.h and dispextern.h.
 	(check_composition): Delete this function.
@@ -1142,17 +1137,16 @@
 	* keyboard.c (adjust_point_for_property): Check composition by
 	composition_adjust_point.
 
-	* nsterm.m (ns_draw_glyph_string): Adjusted for the change of
+	* nsterm.m (ns_draw_glyph_string): Adjust for the change of
 	struct glyph_string.
 
-	* term.c (encode_terminal_code): Adjusted for the change of struct
-	glyph.
-	(append_composite_glyph): Adjusted for the change of struct it and
+	* term.c (encode_terminal_code): Adjust for the change of struct glyph.
+	(append_composite_glyph): Adjust for the change of struct it and
 	struct glyph.
 	(produce_composite_glyph): Likewise.
 
-	* w32term.c (x_draw_composite_glyph_string_foreground): Adjusted
-	for the change of struct glyph_string.
+	* w32term.c (x_draw_composite_glyph_string_foreground):
+	Adjust for the change of struct glyph_string.
 	(x_draw_glyph_string): Likewise.
 
 	* w32uniscribe.c (struct uniscribe_font_info): Include composite.h.
@@ -1162,41 +1156,38 @@
 	(it_props): Delete the entry for Qauto_composed.
 	(init_iterator): Initialize it->cmp_it.id to -1.
 	(compute_stop_pos): Call composition_compute_stop_pos.
-	(face_before_or_after_it_pos): Adjusted for the change of struct
-	it.
+	(face_before_or_after_it_pos): Adjust for the change of struct it.
 	(handle_auto_composed_prop): Delete it.
 	(handle_composition_prop): Handle only static composition.
 	(next_overlay_string): Remove it->method == GET_FROM_COMPOSITION
 	from xassert.  Initialize it->cmp_it.stop_pos.
-	(push_it): Adjusted for the change of struct it.
+	(push_it): Adjust for the change of struct it.
 	(pop_it): Likewise.
 	(get_next_element): Delete next_element_from_composition.
 	(CHAR_COMPOSED_P): New macro.
 	(get_next_display_element): For automatic composition, get a face
 	from the font in the glyph-string.
 	(set_iterator_to_next): For GET_FROM_BUFFER and GET_FROM_STRING,
-	check composition by it->cmp_it.id.  Delete GET_FROM_COMPOSITION
-	case.
+	check composition by it->cmp_it.id.  Delete GET_FROM_COMPOSITION case.
 	(next_element_from_string): Check if the character at the current
 	position is composed by CHAR_COMPOSED_P.
 	(next_element_from_buffer): Likewise.
-	(next_element_from_composition): Adjusted for the change of struct
+	(next_element_from_composition): Adjust for the change of struct
 	it.  Update it->cmp_it.
-	(dump_glyph): Adjusted for the change of struct glyph.
-	(fill_composite_glyph_string): Adjusted for the change of struct
+	(dump_glyph): Adjust for the change of struct glyph.
+	(fill_composite_glyph_string): Adjust for the change of struct
 	it and struct glyph.  Don't handle automatic composition here.
 	(fill_gstring_glyph_string): New function.
 	(x_get_glyph_overhangs): Handle automatic composition.
-	(BUILD_COMPOSITE_GLYPH_STRING): Adjusted for the change of struct
-	glyph.
+	(BUILD_COMPOSITE_GLYPH_STRING): Adjust for the change of struct glyph.
 	(BUILD_GSTRING_GLYPH_STRING): New macro.
 	(BUILD_GLYPH_STRINGS): Call BUILD_GSTRING_GLYPH_STRING for
 	automatic composition.
-	(append_composite_glyph): Adjusted for the change of struct it and
+	(append_composite_glyph): Adjust for the change of struct it and
 	struct glyph.
-	(x_produce_glyphs): Adjusted for the change of struct it.
+	(x_produce_glyphs): Adjust for the change of struct it.
 
-	* xterm.c (x_draw_composite_glyph_string_foreground): Adjusted for
+	* xterm.c (x_draw_composite_glyph_string_foreground): Adjust for
 	the change of struct glyph_string.
 	(x_draw_glyph_string): Likewise.
 
@@ -1252,8 +1243,7 @@
 
 2008-08-27  Kenichi Handa  <handa@m17n.org>
 
-	* fileio.c (report_file_error): Fix handling of multibyte error
-	string.
+	* fileio.c (report_file_error): Fix handling of multibyte error string.
 
 2008-08-27  Andreas Seltenreich  <seltenreich@gmx.de>
 
@@ -1282,8 +1272,7 @@
 2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* indent.c (Fvertical_motion): If moving forward starting from a
-	multi-line string, move the iterator to the last line of that
-	string.
+	multi-line string, move the iterator to the last line of that string.
 
 2008-08-25  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1318,8 +1307,8 @@
 	* dispnew.c (init_display): Remove MS-DOS specific conditions for
 	calling tty-set-up-initial-frame-faces.
 
-	* xmenu.c (Fx_popup_dialog, Fx_popup_menu, xmenu_show): Allow
-	MSDOS frames along with X frames.
+	* xmenu.c (Fx_popup_dialog, Fx_popup_menu, xmenu_show):
+	Allow MSDOS frames along with X frames.
 
 	* termhooks.h (TERMINAL_ACTIVE_P): Handle output_msdos_raw in
 	addition to output_termcap.
@@ -1334,12 +1323,11 @@
 	(syms_of_process): Intern and staticpro it.
 
 	* w16select.c (Fw16_set_clipboard_data, Fw16_get_clipboard_data):
-	Adjust for changes in encoding/decoding routines.  Use
-	encode_coding_object and decode_coding_object instead of
+	Adjust for changes in encoding/decoding routines.
+	Use encode_coding_object and decode_coding_object instead of
 	encode_coding and decode_coding.
 
-	* sysdep.c (init_sys_modes): Call dos_ttraw with tty_out as
-	argument.
+	* sysdep.c (init_sys_modes): Call dos_ttraw with tty_out as argument.
 
 	* dosfns.c: Include frame.h before termhooks.h.
 	(dos_cleanup): Use CURTTY ()->termscript instead of a global
@@ -1372,8 +1360,8 @@
 	Don't use TTY_CHAR_INS_DEL_OK.  Set Vinitial_window_system.
 	Announce date and time of session start, if termscript is open.
 	Don't zero out the_only_display_info (it is done in
-	term.c:init_tty).  Open termscript only of not already open.  Log
-	"SCREEN SAVED" here, instead of IT_set_terminal_modes.  Init mouse
+	term.c:init_tty).  Open termscript only of not already open.
+	Log "SCREEN SAVED" here, instead of IT_set_terminal_modes.  Init mouse
 	here instead of dos_ttraw.  Don't initialize display if this is an
 	initial tty.  Don't set FRAME_FONT.
 	(Vwindow_system_version): Bump to 23.
@@ -1392,8 +1380,7 @@
 	(IT_clear_end_of_line, IT_insert_glyphs, IT_write_glyphs)
 	(IT_delete_glyphs, IT_ring_bell, IT_reset_terminal_modes)
 	(IT_set_terminal_modes, IT_set_terminal_window, IT_update_begin):
-	Accept additional argument: a pointer to a frame.  All callers
-	changed.
+	Accept additional argument: a pointer to a frame.  Update all callers.
 	(request_sigio, unrequest_sigio): Don't define, now defined on
 	sysdep.c.
 	(IT_write_glyphs): Rewrite to use encode_terminal_code.
@@ -1406,13 +1393,12 @@
 	dimensions.  Call init_baud_rate to set bad_rate.
 	(dissociate_if_controlling_tty) [MSDOS]: Ifdef away function body.
 	(Fsuspend_tty) [MSDOS]: Don't close input and output.
-	(Fresume_tty) [MSDOS]: Don't reopen the TTY; instead, use
-	stdin/stdout.
+	(Fresume_tty) [MSDOS]: Don't reopen the TTY; instead, use stdin/stdout.
 	(get_tty_terminal, get_named_tty, Ftty_type)
 	(Fcontrolling_tty_p): Handle output_msdos_raw in addition to
 	output_termcap.
-	(Fresume_tty, Fsuspend_tty, init_tty, delete_tty): Call
-	add_keyboard_wait_descriptor and delete_keyboard_wait_descriptor
+	(Fresume_tty, Fsuspend_tty, init_tty, delete_tty):
+	Call add_keyboard_wait_descriptor and delete_keyboard_wait_descriptor
 	only when subprocesses are supported
 
 	* frame.c (make_terminal_frame) [MSDOS]: Adjust initialization of
@@ -1424,10 +1410,10 @@
 	x_output.
 	(FRAME_FONT): Use output_data.tty.
 	(FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL): Don't define.
-	(struct x_display_info): Renamed from display_info.  All users in
-	msdos.c changed.
+	(struct x_display_info): Rename from display_info.  Update all users in
+	msdos.c.
 	(struct x_output): Remove background_pixel and foreground_pixel.
-	(the_only_display_info): Renamed from the_only_x_display.
+	(the_only_display_info): Rename from the_only_x_display.
 	(dos_ttraw): Update prototype.
 
 	* Makefile.in (MSDOS_OBJ): Add xmenu.o.
