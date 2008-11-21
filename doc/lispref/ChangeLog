@@ -1,5 +1,14 @@
 2008-11-21  Martin Rudalics  <rudalics@gmx.at>
 
+	* frames.texi (Frames): Fix typo, add cross references, reword.
+	(Initial Parameters): Reword special-display-frame-alist text.
+	(Frames and Windows): Reword.  Describe argument norecord for
+	set-frame-selected-window.
+	(Input Focus): Describe argument norecord for select-frame.
+	Remove comment on MS-Windows behavior for focus-follows-mouse.
+	(Raising and Lowering): Mention windows-frames dichotomy in
+	metaphor.
+
 	* windows.texi (Displaying Buffers, Vertical Scrolling)
 	(Horizontal Scrolling): Fix indenting and rewording issues
 	introduced with 2008-11-07 change.
