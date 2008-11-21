@@ -1,7 +1,27 @@
+2008-11-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* isearch.el (isearch-search-string): Doc fix.
+	(search-exit-option, search-slow-window-lines, search-slow-speed)
+	(search-upper-case, search-nonincremental-instead)
+	(search-whitespace-regexp, search-ring-max, regexp-search-ring-max)
+	(search-ring-update, search-highlight, isearch-lazy-highlight)
+	(lazy-highlight-cleanup, lazy-highlight-initial-delay)
+	(lazy-highlight-interval): Remove * from defcustom docstrings.
+	(isearch-resume-in-command-history, lazy-highlight-max-at-a-time):
+	Remove * from defcustom docstrings; fix typos.
+	(isearch-push-state-function, isearch-help-for-help-internal)
+	(isearch-help-for-help, isearch-describe-bindings)
+	(isearch-describe-mode, minibuffer-local-isearch-map, isearch-mode)
+	(isearch-pop-fun-state, isearch-search-fun-function)
+	(isearch-lazy-highlight-search): Fix typos in docstrings.
+	(isearch-yank-internal, isearch-fallback): Reflow docstrings.
+	(isearch-forward): Fix typo and reflow docstring.
+	(isearch-help-map): Remove unused `i' binding.  Fix typos in docstring.
+	(isearch-mode-map): Don't use `let*'.
+
 2008-11-21  Chong Yidong  <cyd@stupidchicken.com>
 
-	* files.el (confirm-nonexistent-file-or-buffer): Change default to
-	nil.
+	* files.el (confirm-nonexistent-file-or-buffer): Change default to nil.
 
 2008-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
