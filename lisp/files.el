@@ -1102,7 +1102,7 @@ use with M-x."
     (rename-file encoded new-encoded ok-if-already-exists)
     newname))
 
-(defcustom confirm-nonexistent-file-or-buffer t
+(defcustom confirm-nonexistent-file-or-buffer nil
   "If non-nil, confirmation is requested before visiting a new file or buffer.
 This affects commands like `switch-to-buffer' and `find-file'."
   :group 'find-file
