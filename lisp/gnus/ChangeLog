@@ -1,3 +1,11 @@
+2008-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-send-mail): Just set the buffer to unibyte
+	rather than use mm-with-unibyte-current-buffer which does a lot more.
+	(message-send-mail-partially): Don't bother with
+	mm-with-unibyte-current-buffer since it's already been made unibyte by
+	message-send-mail.
+
 2008-11-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* nnrss.el (nnrss-make-hash-index): Debug message of full item.

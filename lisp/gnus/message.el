@@ -4325,9 +4325,8 @@ This function could be useful in `message-setup-hook'."
 	      (end-of-line)
 	      (insert (format " (%d/%d)" n total))
 	      (widen)
-	      (mm-with-unibyte-current-buffer
-		(funcall (or message-send-mail-real-function
-			     message-send-mail-function))))
+              (funcall (or message-send-mail-real-function
+                           message-send-mail-function)))
 	    (setq n (+ n 1))
 	    (setq p (pop plist))
 	    (erase-buffer)))
@@ -4429,6 +4428,11 @@ This function could be useful in `message-setup-hook'."
 				  (message-fetch-field
 				   "content-transfer-encoding")))))))
 	    (message-insert-courtesy-copy))
+          ;; Let's make sure we encoded all the body.
+          (assert (save-excursion
+                    (goto-char (point-min))
+                    (not (re-search-forward "[^\000-\377]" nil t))))
+          (mm-disable-multibyte)
 	  (if (or (not message-send-mail-partially-limit)
 		  (< (buffer-size) message-send-mail-partially-limit)
 		  (not (message-y-or-n-p
@@ -4453,7 +4457,7 @@ The size limit is controlled by `message-send-mail-partially-limit'.
 If you always want Gnus to send messages in one piece, set
 `message-send-mail-partially-limit' to nil.
 ")))
-	      (mm-with-unibyte-current-buffer
+	      (progn
 		(message "Sending via mail...")
 		(funcall (or message-send-mail-real-function
 			     message-send-mail-function)))
