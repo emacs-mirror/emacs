@@ -750,7 +750,7 @@ the list of bookmarks.\)"
                 nil nil default))))
       (and (string-equal str "") (setq str default))
       (bookmark-store str (cdr record) parg)
-      
+
       ;; Ask for an annotation buffer for this bookmark
       (if bookmark-use-annotations
           (bookmark-edit-annotation str)
@@ -947,7 +947,7 @@ Useful for example to unhide text in `outline-mode'.")
       ;; if there is an annotation for this bookmark,
       ;; show it in a buffer.
       (bookmark-show-annotation bookmark)))
-  
+
 
 ;;;###autoload
 (defun bookmark-jump (bookmark)
@@ -1009,10 +1009,12 @@ be retrieved from a VC backend, else return nil."
 The return value has the form (BUFFER . POINT).
 
 Note: this function is deprecated and is present for Emacs 22
-compatibility only.  Use `bookmark-handle-bookmark' instead."
+compatibility only."
   (save-excursion
     (bookmark-handle-bookmark bookmark)
     (cons (current-buffer) (point))))
+
+(make-obsolete 'bookmark-jump-noselect 'bookmark-handle-bookmark "23.1")
 
 (defun bookmark-handle-bookmark (bookmark)
   "Call BOOKMARK's handler or `bookmark-default-handler' if it has none.

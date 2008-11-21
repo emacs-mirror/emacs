@@ -1,5 +1,8 @@
 2008-11-21  Juanma Barranquero  <lekktu@gmail.com>
 
+	* bookmark.el (bookmark-jump-noselect): Add obsolescence declaration
+	and remove redundant info from docstring.
+
 	* isearch.el (isearch-search-string): Doc fix.
 	(search-exit-option, search-slow-window-lines, search-slow-speed)
 	(search-upper-case, search-nonincremental-instead)
