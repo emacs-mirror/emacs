@@ -1,3 +1,8 @@
+2008-11-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (misc): New target.
+	(all, info): Depend on `misc'.
+
 2008-11-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* mainmake.v2 (src): Move removal of src/bootlisp after recursing
