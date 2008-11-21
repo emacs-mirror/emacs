@@ -1,3 +1,7 @@
+2008-11-21  Ivan Shmakov  <oneingray@gmail.com>  (tiny change)
+
+	* progmodes/tcl.el (tcl-filter): Don't forcibly move point.
+
 2008-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/quail.el (quail-indent-to): New function.
