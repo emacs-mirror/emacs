@@ -77,7 +77,7 @@ endif
 # compiled lisp files are part of the distribution.  (If we are
 # bootstrapping, the src target will run Make in `lisp' as well.)
 # leim is not included because it is part of the src target.
-all:	lib-src src emacs lispref lispintro
+all:	lib-src src emacs misc lispref lispintro
 
 lib-src: FRC
 	cd lib-src
@@ -111,9 +111,9 @@ src: FRC
 	rm -f src/bootlisp
 	if exist leim\Makefile redir $(MAKE) -C leim top_srcdir=${top_srcdir}
 
-info: emacs lispref lispintro
+info: emacs misc lispref lispintro
 
-emacs lispref lispintro:	FRC
+emacs misc lispref lispintro:	FRC
 	cd doc/$@
 	$(MAKE) top_srcdir=${top_srcdir} info
 	cd ../..
