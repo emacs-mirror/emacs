@@ -596,7 +596,11 @@ For more information, see the function `buffer-menu'."
   (interactive "P")
   (display-buffer (list-buffers-noselect files-only)))
 
-(defconst Buffer-menu-short-ellipsis (if (char-displayable-p ?…) "…" ":"))
+(defconst Buffer-menu-short-ellipsis
+  ;; This file is preloaded, so we can't use char-displayable-p here
+  ;; because we don't know yet what display we're going to connect to.
+  ":" ;; (if (char-displayable-p ?…) "…" ":")
+  )
 
 (defun Buffer-menu-buffer+size (name size &optional name-props size-props)
   (if (> (+ (string-width name) (string-width size) 2)
