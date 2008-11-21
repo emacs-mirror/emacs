@@ -1,15 +1,20 @@
+2008-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el (bookmark-buffer-file-name): Also abbreviate dired-dir.
+	Suggested by Toru TSUNEYOSHI.
+
 2008-11-21  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
 
 	* byte-opt.el (byte-compile-butlast): Move up in file.
 	(byte-optimize-plus): Don't call
-	byte-optimize-delay-constants-math (bug#1334).  Use
-	byte-optimize-predicate to optimize constants.
+	byte-optimize-delay-constants-math (bug#1334).
+	Use byte-optimize-predicate to optimize constants.
 	(byte-optimize-minus): Don't call
 	byte-optimize-delay-constants-math.  Remove zero arguments first
 	if possible.  Call byte-optimize-predicate to optimize constants.
 	(byte-optimize-multiply): Remove optimizations for arguments of 0
-	and 2, which may be inaccurate.  Optimize (* x -1) to (- x).  Call
-	byte-optimize-predicate.
+	and 2, which may be inaccurate.  Optimize (* x -1) to (- x).
+	Call byte-optimize-predicate.
 	(byte-optimize-divide): Leave runtime errors unchanged.
 	Optimize (/ x 1) to (+ x 0). Remove optimizations for arguments of
 	0 and 2.0, which may be inaccurate.  Call byte-optimize-predicate.
@@ -275,8 +280,7 @@
 
 2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
-	* subr.el (read-passwd): Use read-event instead of
-	read-char-exclusive.
+	* subr.el (read-passwd): Use read-event instead of read-char-exclusive.
 
 2008-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -368,7 +372,7 @@
 	* emulation/viper-init.el (viper-ESC-keyseq-timeout): Make it into a
 	function instead of a variable.
 
-	* emulation/viper-util.el (viper-fast-keysequence-p): Changed to use
+	* emulation/viper-util.el (viper-fast-keysequence-p): Change to use
 	viper-ESC-keyseq-timeout as a function.
 	(viper-get-saved-cursor-color-in-replace-mode): Use defun instead of
 	defsubst.
@@ -13611,8 +13615,8 @@
 
 2008-03-01  Glenn Morris  <rgm@gnu.org>
 
-	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded): Restore
-	code commented out 2007-11-10.
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded):
+	Restore code commented out 2007-11-10.
 
 	* emulation/edt.el (zmacs-region-stays): Define for compiler once only.
 

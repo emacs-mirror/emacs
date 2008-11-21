@@ -888,17 +888,17 @@ Default to file name if it's nil."
 
 (defun bookmark-buffer-file-name ()
   "Return the current buffer's file in a way useful for bookmarks."
-  (cond
-   (buffer-file-name
-    ;; Abbreviate the path, both so it's shorter and so it's more
-    ;; portable.  E.g., the user's home dir might be a different
-    ;; path on different machines, but "~/" will still reach it.
-    (abbreviate-file-name buffer-file-name))
-   ((and (boundp 'dired-directory) dired-directory)
-    (if (stringp dired-directory)
-        dired-directory
-      (car dired-directory)))
-   (t (error "Buffer not visiting a file or directory"))))
+  ;; Abbreviate the path, both so it's shorter and so it's more
+  ;; portable.  E.g., the user's home dir might be a different
+  ;; path on different machines, but "~/" will still reach it.
+  (abbreviate-file-name 
+   (cond
+    (buffer-file-name buffer-file-name)
+    ((and (boundp 'dired-directory) dired-directory)
+     (if (stringp dired-directory)
+         dired-directory
+       (car dired-directory)))
+    (t (error "Buffer not visiting a file or directory")))))
 
 
 (defun bookmark-maybe-load-default-file ()
