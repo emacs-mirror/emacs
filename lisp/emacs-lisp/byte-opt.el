@@ -747,119 +747,104 @@
 				(list (apply fun (nreverse constants)))))))))
     form))
 
-(defun byte-optimize-plus (form)
-  (setq form (byte-optimize-delay-constants-math form 1 '+))
-  (if (memq 0 form) (setq form (delq 0 (copy-sequence form))))
-  ;;(setq form (byte-optimize-associative-two-args-math form))
-  (cond ((null (cdr form))
-	 (condition-case ()
-	     (eval form)
-	   (error form)))
-;;;  It is not safe to delete the function entirely
-;;;  (actually, it would be safe if we know the sole arg
-;;;  is not a marker).
-;;;	((null (cdr (cdr form))) (nth 1 form))
-	((null (cddr form))
-	 (if (numberp (nth 1 form))
-	     (nth 1 form)
-	   form))
-	((and (null (nthcdr 3 form))
-	      (or (memq (nth 1 form) '(1 -1))
-		  (memq (nth 2 form) '(1 -1))))
-	 ;; Optimize (+ x 1) into (1+ x) and (+ x -1) into (1- x).
-	 (let ((integer
-		(if (memq (nth 1 form) '(1 -1))
-		    (nth 1 form)
-		  (nth 2 form)))
-	       (other
-		(if (memq (nth 1 form) '(1 -1))
-		    (nth 2 form)
-		  (nth 1 form))))
-	   (list (if (eq integer 1) '1+ '1-)
-		 other)))
-	(t form)))
-
-(defun byte-optimize-minus (form)
-  ;; Put constants at the end, except the last constant.
-  (setq form (byte-optimize-delay-constants-math form 2 '+))
-  ;; Now only first and last element can be a number.
-  (let ((last (car (reverse (nthcdr 3 form)))))
-    (cond ((eq 0 last)
-	   ;; (- x y ... 0)  --> (- x y ...)
-	   (setq form (copy-sequence form))
-	   (setcdr (cdr (cdr form)) (delq 0 (nthcdr 3 form))))
-	  ((equal (nthcdr 2 form) '(1))
-	   (setq form (list '1- (nth 1 form))))
-	  ((equal (nthcdr 2 form) '(-1))
-	   (setq form (list '1+ (nth 1 form))))
-	  ;; If form is (- CONST foo... CONST), merge first and last.
-	  ((and (numberp (nth 1 form))
-		(numberp last))
-	   (setq form (nconc (list '- (- (nth 1 form) last) (nth 2 form))
-			     (delq last (copy-sequence (nthcdr 3 form))))))))
-;;;  It is not safe to delete the function entirely
-;;;  (actually, it would be safe if we know the sole arg
-;;;  is not a marker).
-;;;  (if (eq (nth 2 form) 0)
-;;;      (nth 1 form)			; (- x 0)  -->  x
-    (byte-optimize-predicate
-     (if (and (null (cdr (cdr (cdr form))))
-	      (eq (nth 1 form) 0))	; (- 0 x)  -->  (- x)
-	 (cons (car form) (cdr (cdr form)))
-       form))
-;;;    )
-  )
-
-(defun byte-optimize-multiply (form)
-  (setq form (byte-optimize-delay-constants-math form 1 '*))
-  ;; If there is a constant in FORM, it is now the last element.
-  (cond ((null (cdr form)) 1)
-;;;  It is not safe to delete the function entirely
-;;;  (actually, it would be safe if we know the sole arg
-;;;  is not a marker or if it appears in other arithmetic).
-;;;	((null (cdr (cdr form))) (nth 1 form))
-	((let ((last (car (reverse form))))
-	   (cond ((eq 0 last)  (cons 'progn (cdr form)))
-		 ((eq 1 last)  (delq 1 (copy-sequence form)))
-		 ((eq -1 last) (list '- (delq -1 (copy-sequence form))))
-		 ((and (eq 2 last)
-		       (memq t (mapcar 'symbolp (cdr form))))
-		  (prog1 (setq form (delq 2 (copy-sequence form)))
-		    (while (not (symbolp (car (setq form (cdr form))))))
-		    (setcar form (list '+ (car form) (car form)))))
-		 (form))))))
-
 (defsubst byte-compile-butlast (form)
   (nreverse (cdr (reverse form))))
 
+(defun byte-optimize-plus (form)
+  ;; Don't call `byte-optimize-delay-constants-math' (bug#1334).
+  ;;(setq form (byte-optimize-delay-constants-math form 1 '+))
+  (if (memq 0 form) (setq form (delq 0 (copy-sequence form))))
+  ;; For (+ constants...), byte-optimize-predicate does the work.
+  (when (memq nil (mapcar 'numberp (cdr form)))
+    (cond
+     ;; (+ x 1) --> (1+ x) and (+ x -1) --> (1- x).
+     ((and (= (length form) 3)
+	   (or (memq (nth 1 form) '(1 -1))
+	       (memq (nth 2 form) '(1 -1))))
+      (let (integer other)
+	(if (memq (nth 1 form) '(1 -1))
+	    (setq integer (nth 1 form) other (nth 2 form))
+	  (setq integer (nth 2 form) other (nth 1 form)))
+	(setq form
+	      (list (if (eq integer 1) '1+ '1-) other))))
+     ;; Here, we could also do
+     ;;  (+ x y ... 1) --> (1+ (+ x y ...))
+     ;;  (+ x y ... -1) --> (1- (+ x y ...))
+     ;; The resulting bytecode is smaller, but is it faster? -- cyd
+     ))
+  (byte-optimize-predicate form))
+
+(defun byte-optimize-minus (form)
+  ;; Don't call `byte-optimize-delay-constants-math' (bug#1334).
+  ;;(setq form (byte-optimize-delay-constants-math form 2 '+))
+  ;; Remove zeros.
+  (when (and (nthcdr 3 form)
+	     (memq 0 (cddr form)))
+    (setq form (nconc (list (car form) (cadr form))
+		      (delq 0 (copy-sequence (cddr form)))))
+    ;; After the above, we must turn (- x) back into (- x 0)
+    (or (cddr form)
+	(setq form (nconc form (list 0)))))
+  ;; For (- constants..), byte-optimize-predicate does the work.
+  (when (memq nil (mapcar 'numberp (cdr form)))
+    (cond
+     ;; (- x 1) --> (1- x)
+     ((equal (nthcdr 2 form) '(1))
+      (setq form (list '1- (nth 1 form))))
+     ;; (- x -1) --> (1+ x)
+     ((equal (nthcdr 2 form) '(-1))
+      (setq form (list '1+ (nth 1 form))))
+     ;; (- 0 x) --> (- x)
+     ((and (eq (nth 1 form) 0)
+	   (= (length form) 3))
+      (setq form (list '- (nth 2 form))))
+     ;; Here, we could also do
+     ;;  (- x y ... 1) --> (1- (- x y ...))
+     ;;  (- x y ... -1) --> (1+ (- x y ...))
+     ;; The resulting bytecode is smaller, but is it faster? -- cyd
+     ))
+  (byte-optimize-predicate form))
+
+(defun byte-optimize-multiply (form)
+  (setq form (byte-optimize-delay-constants-math form 1 '*))
+  ;; For (* constants..), byte-optimize-predicate does the work.
+  (when (memq nil (mapcar 'numberp (cdr form)))
+    ;; After `byte-optimize-predicate', if there is a INTEGER constant
+    ;; in FORM, it is in the last element.
+    (let ((last (car (reverse (cdr form)))))
+      (cond
+       ;; Would handling (* ... 0) here cause floating point errors?
+       ;; See bug#1334.
+       ((eq 1 last) (setq form (byte-compile-butlast form)))
+       ((eq -1 last)
+	(setq form (list '- (if (nthcdr 3 form)
+				(byte-compile-butlast form)
+			      (nth 1 form))))))))
+  (byte-optimize-predicate form))
+
 (defun byte-optimize-divide (form)
   (setq form (byte-optimize-delay-constants-math form 2 '*))
+  ;; After `byte-optimize-predicate', if there is a INTEGER constant
+  ;; in FORM, it is in the last element.
   (let ((last (car (reverse (cdr (cdr form))))))
-    (if (numberp last)
-	(cond ((= (length form) 3)
-	       (if (and (numberp (nth 1 form))
-			(not (zerop last))
-			(condition-case nil
-			    (/ (nth 1 form) last)
-			  (error nil)))
-		   (setq form (list 'progn (/ (nth 1 form) last)))))
-	      ((= last 1)
-	       (setq form (byte-compile-butlast form)))
-	      ((numberp (nth 1 form))
-	       (setq form (cons (car form)
-				(cons (/ (nth 1 form) last)
-				      (byte-compile-butlast (cdr (cdr form)))))
-		     last nil))))
     (cond
-;;;	  ((null (cdr (cdr form)))
-;;;	   (nth 1 form))
-	  ((eq (nth 1 form) 0)
-	   (append '(progn) (cdr (cdr form)) '(0)))
-	  ((eq last -1)
-	   (list '- (if (nthcdr 3 form)
-			(byte-compile-butlast form)
-		      (nth 1 form))))
-	  (form))))
+     ;; Runtime error (leave it intact).
+     ((or (null last)
+	  (eq last 0)
+	  (memql 0.0 (cddr form))))
+     ;; No constants in expression
+     ((not (numberp last)))
+     ;; For (* constants..), byte-optimize-predicate does the work.
+     ((null (memq nil (mapcar 'numberp (cdr form)))))
+     ;; (/ x y.. 1) --> (/ x y..)
+     ((and (eq last 1) (nthcdr 3 form))
+      (setq form (byte-compile-butlast form)))
+     ;; (/ x -1), (/ x .. -1)  --> (- x), (- (/ x ..))
+     ((eq last -1)
+      (setq form (list '- (if (nthcdr 3 form)
+			      (byte-compile-butlast form)
+			    (nth 1 form)))))))
+  (byte-optimize-predicate form))
 
 (defun byte-optimize-logmumble (form)
   (setq form (byte-optimize-delay-constants-math form 1 (car form)))
