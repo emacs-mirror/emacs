@@ -816,9 +816,10 @@ The next two functions are similar to @code{switch-to-buffer}, except
 for the described features.
 
 @deffn Command switch-to-buffer-other-window buffer-or-name &optional norecord
-This function makes @var{buffer-or-name} the current buffer, displays it
-in a window not currently selected, and selects that window.  The
-handling of the buffer is the same as in @code{switch-to-buffer}.
+This function makes the buffer specified by @var{buffer-or-name} current
+and displays it in a window not currently selected.  It then selects
+that window.  The handling of the buffer is the same as in
+@code{switch-to-buffer}.
 
 The currently selected window is absolutely never used to do the job.
 If it is the only window, then it is split to make a distinct window for
@@ -1265,7 +1266,7 @@ point and the buffer's point always move together; they remain equal.
 @end itemize
 
 @cindex cursor
-As far as the user is concerned, point is where the cursor is, and
+   As far as the user is concerned, point is where the cursor is, and
 when the user switches to another buffer, the cursor jumps to the
 position of point in that buffer.
 
@@ -1708,21 +1709,21 @@ Replaces three keystroke sequence C-u 0 C-l."
 @cindex vertical fractional scrolling
 @cindex vertical scroll position
 
-@dfn{Vertical fractional scrolling} means shifting text in a window up
-or down by a specified multiple or fraction of a line.  Each window has
-a @dfn{vertical scroll position}, which is a number, never less than
+   @dfn{Vertical fractional scrolling} means shifting text in a window
+up or down by a specified multiple or fraction of a line.  Each window
+has a @dfn{vertical scroll position}, which is a number, never less than
 zero.  It specifies how far to raise the contents of the window.
 Raising the window contents generally makes all or part of some lines
 disappear off the top, and all or part of some other lines appear at the
 bottom.  The usual value is zero.
 
-The vertical scroll position is measured in units of the normal line
+   The vertical scroll position is measured in units of the normal line
 height, which is the height of the default font.  Thus, if the value is
 .5, that means the window contents are scrolled up half the normal line
 height.  If it is 3.3, that means the window contents are scrolled up
 somewhat over three times the normal line height.
 
-What fraction of a line the vertical scrolling covers, or how many
+   What fraction of a line the vertical scrolling covers, or how many
 lines, depends on what the lines contain.  A value of .5 could scroll a
 line whose height is very short off the screen, while a value of 3.3
 could scroll just part of the way through a tall line or an image.
@@ -1896,8 +1897,8 @@ The value returned is @var{columns}.
 @end example
 @end defun
 
-Here is how you can determine whether a given position @var{position} is
-off the screen due to horizontal scrolling:
+   Here is how you can determine whether a given position @var{position}
+is off the screen due to horizontal scrolling:
 
 @example
 @group
@@ -2082,7 +2083,7 @@ in character lines and columns.
 @cindex changing window size
 @cindex window size, changing
 
-The window size functions fall into two classes: high-level commands
+   The window size functions fall into two classes: high-level commands
 that change the size of windows and low-level functions that access
 window size.  Emacs does not permit overlapping windows or gaps between
 windows, so resizing a window always affects at least one other window.
