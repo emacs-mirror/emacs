@@ -1,5 +1,7 @@
 2008-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* isearch.el (isearch-search-string): Simplify and convert docstring.
+
 	* buff-menu.el (Buffer-menu-short-ellipsis): Partly undo last change.
 
 2008-11-20  Juanma Barranquero  <lekktu@gmail.com>
