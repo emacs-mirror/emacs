@@ -136,6 +136,14 @@ See the documentation of `quail-define-package' for the other elements.")
 (defsubst quail-name ()
   "Return the name of the current Quail package."
   (nth 0 quail-current-package))
+
+(defun quail-indent-to (col)
+  (indent-to col)
+  (let ((end (point)))
+    (save-excursion
+      (unless (zerop (skip-chars-backward "\t "))
+        (put-text-property (point) end 'display (list 'space :align-to col))))))
+
 ;;;###autoload
 (defun quail-title ()
   "Return the title of the current Quail package."
@@ -990,13 +998,12 @@ the following annotation types are supported.
 	  (if no-decode-map
 	      (setq annotations (delete no-decode-map annotations)
 		    no-decode-map (cdr no-decode-map)))
-	  ;; Convert the remaining annoations to property list PROPS.
-	  (while annotations
+	  ;; Convert the remaining annotations to property list PROPS.
+	  (dolist (annotation annotations)
 	    (setq props
-		  (cons (car (car annotations))
-			(cons (cdr (car annotations))
-			      props))
-		  annotations (cdr annotations)))
+		  (cons (car annotation)
+			(cons (cdr annotation)
+			      props))))
 	  (setq l (cdr l))))
     ;; Process the remaining arguments one by one.
     (if append
@@ -2171,7 +2178,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 (defun quail-completion-1 (key map indent)
 "List all completions of KEY in MAP with indentation INDENT."
   (let ((len (length key)))
-    (indent-to indent)
+    (quail-indent-to indent)
     (insert key ":")
     (if (and (symbolp map) (fboundp map))
 	(setq map (funcall map key len)))
@@ -2218,7 +2225,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	  (when (zerop (% i 10))
 	    (when (>= i 10)
  	      (insert "\n")
-	      (indent-to indent))
+	      (quail-indent-to indent))
 	    (insert (format "(%d/%d)" (1+ (/ i 10)) (1+ (/ len 10)))))
 	  ;; We show the last digit of FROM while converting
 	  ;; 0,1,..,9 to 1,2,..,0.
@@ -2296,7 +2303,7 @@ Optional 6th arg IGNORES is a list of translations to ignore."
 	 elt)
     (cond ((integerp translation)
 	   ;; Accept only non-ASCII chars not listed in IGNORES.
-	   (when (and (> translation 255) (not (memq translation ignores)))
+	   (when (and (> translation 127) (not (memq translation ignores)))
 	     (setcdr decode-map
 		     (cons (cons key translation) (cdr decode-map)))
 	     (setq num (1+ num))))
@@ -2306,7 +2313,7 @@ Optional 6th arg IGNORES is a list of translations to ignore."
 	     (mapc (function (lambda (x)
 			       ;; Accept only non-ASCII chars not
 			       ;; listed in IGNORES.
-			       (if (and (if (integerp x) (> x 255)
+			       (if (and (if (integerp x) (> x 127)
                                           (string-match-p "[^[:ascii:]]" x))
 					(not (member x ignores)))
 				   (setq multibyte t))))
@@ -2374,9 +2381,9 @@ should be made by `quail-build-decode-map' (which see)."
       (if (> (% (length single-list) cols) 0)
 	  (setq rows (1+ rows)))
       (insert "key")
-      (indent-to (1+ single-key-width))
+      (quail-indent-to (1+ single-key-width))
       (insert "char")
-      (indent-to (1+ col-width))
+      (quail-indent-to (1+ col-width))
       (insert "[type a key sequence to insert the corresponding character]\n")
       (setq pos (point))
       (insert-char ?\n (+ rows 2))
@@ -2387,14 +2394,16 @@ should be made by `quail-build-decode-map' (which see)."
 	(when (= (% row rows) 0)
 	  (goto-char pos)
 	  (setq col (+ col col-width))
-	  (move-to-column col t)
+          (move-to-column col)
+          (quail-indent-to col)
 	  (insert-char ?- single-key-width)
 	  (insert ? )
 	  (insert-char ?- single-trans-width)
 	  (forward-line 1))
-	(move-to-column col t)
+	(move-to-column col)
+        (quail-indent-to col)
 	(insert (car elt))
-	(indent-to (+ col single-key-width 1))
+	(quail-indent-to (+ col single-key-width 1))
 	(insert (cdr elt))
 	(forward-line 1)
 	(setq row (1+ row)))
@@ -2402,14 +2411,14 @@ should be made by `quail-build-decode-map' (which see)."
 
     (when multiple-list
       (insert "key")
-      (indent-to (1+ multiple-key-width))
+      (quail-indent-to (1+ multiple-key-width))
       (insert "character(s)  [type a key (sequence) and select one from the list]\n")
       (insert-char ?- multiple-key-width)
       (insert " ------------\n")
       (while multiple-list
 	(setq elt (car multiple-list) multiple-list (cdr multiple-list))
 	(insert (car elt))
-	(indent-to multiple-key-width)
+	(quail-indent-to multiple-key-width)
 	(if (vectorp (cdr elt))
 	    (mapc (function
 		   (lambda (x)
@@ -2417,7 +2426,7 @@ should be made by `quail-build-decode-map' (which see)."
 				    (string-width x))))
 		       (when (> (+ (current-column) 1 width) window-width)
 			 (insert "\n")
-			 (indent-to multiple-key-width))
+			 (quail-indent-to multiple-key-width))
 		       (insert " " x))))
 		  (cdr elt))
 	  (insert " " (cdr elt)))
@@ -2518,7 +2527,10 @@ physical keyboard layout as specified with that variable.
 	(let ((decode-map (list 'decode-map))
 	      elt pos num)
 	  (setq num (quail-build-decode-map (list (quail-map)) "" decode-map
-					    0 512 done-list))
+                                            ;; We used to use 512 here, but
+                                            ;; TeX has more than 1000 and
+                                            ;; it's good to see the list.
+					    0 5120 done-list))
 	  (when (> num 0)
 	    (insert "
 KEY SEQUENCE
@@ -2549,7 +2561,7 @@ KEY BINDINGS FOR CONVERSION
 	(run-hooks 'temp-buffer-show-hook)))))
 
 (defun quail-help-insert-keymap-description (keymap &optional header)
-  (let (pos1 pos2 eol)
+  (let (pos1 pos2)
     (setq pos1 (point))
     (if header
 	(insert header))
