@@ -1260,6 +1260,7 @@ to override the default splitting mechanism of display-buffer.
 *** If pop-up-frames has the value `graphic-only', display-buffer only
 makes a separate frame on graphic displays.
 
++++
 *** select-frame and set-frame-selected-window have new optional
 argument NORECORD.  If non-nil, this will avoid messing with the order
 of recently selected windows and the buffer list.
