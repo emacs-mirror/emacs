@@ -1046,7 +1046,7 @@ as a Meta key and any number of multiple escapes is allowed."
 		(let* ((first-key (elt keyseq 0))
 		       (key-mod (event-modifiers first-key)))
 		  (cond ((and (viper-ESC-event-p first-key)
-			      (not viper-translate-all-ESC-keysequences))
+			      (not (viper-translate-all-ESC-keysequences)))
 			 ;; put keys following ESC on the unread list
 			 ;; and return ESC as the key-sequence
 			 (viper-set-unread-command-events (viper-subseq keyseq 1))

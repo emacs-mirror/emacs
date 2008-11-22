@@ -525,18 +525,10 @@ will make it hard to use Vi-style timeout macros."
   :type 'integer
   :group 'viper-misc)
 
-(defcustom viper-translate-all-ESC-keysequences (not (viper-window-display-p))
-  "Allow translation of all key sequences into commands.
-Normally, Viper lets Emacs translate only those ESC key sequences that are
-defined in the low-level key-translation-map or function-key-map, such as those
-emitted by the arrow and function keys. Other sequences, e.g., \\e/, are
-treated as ESC command followed by a `/'. This is done for people who type fast
-and tend to hit other characters right after they hit ESC. Other people like
-Emacs to translate ESC sequences all the time.
-The default is to translate all sequences only when using a dumb terminal.
-This permits you to use ESC as a meta key in insert mode."
-  :type 'boolean
-  :group 'viper-misc)
+;; This function determines if ESC key sequences are to be translated into
+;; commands.
+(defun viper-translate-all-ESC-keysequences ()
+  (not (viper-window-display-p)))
 
 ;; Modes and related variables
 
