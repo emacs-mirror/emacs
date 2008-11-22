@@ -1762,22 +1762,26 @@ switch_to_buffer_1 (buffer_or_name, norecord)
 
 DEFUN ("switch-to-buffer", Fswitch_to_buffer, Sswitch_to_buffer, 1, 2,
        "(list (read-buffer-to-switch \"Switch to buffer: \"))",
-       doc: /* Make BUFFER-OR-NAME current and display it in the selected window.
-BUFFER-OR-NAME may be a buffer, a string, or nil.  If BUFFER-OR-NAME is
-nil, then this function chooses a buffer using `other-buffer'.  If
-BUFFER-OR-NAME is a string and does not identify an existing buffer,
-then this function creates a buffer with that name.
+       doc: /* Make BUFFER-OR-NAME current and display it in selected window.
+BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
+nil.  Return the buffer switched to.
 
-Optional second arg NORECORD non-nil means do not put this buffer at the
-front of the list of recently selected ones.  This function returns the
-buffer it switched to as a Lisp object.
+If BUFFER-OR-NAME is a string and does not identify an existing
+buffer, create a new buffer with that name.  Interactively, if
+`confirm-nonexistent-file-or-buffer' is non-nil, request
+confirmation before creating a new buffer.  If BUFFER-OR-NAME is
+nil, switch to buffer returned by `other-buffer'.
 
-If the selected window is the minibuffer window or dedicated to its
-buffer, use `pop-to-buffer' for displaying the buffer.
+Optional second arg NORECORD non-nil means do not put this buffer
+at the front of the list of recently selected ones.  This
+function returns the buffer it switched to as a Lisp object.
+
+If the selected window is the minibuffer window or dedicated to
+its buffer, use `pop-to-buffer' for displaying the buffer.
 
 WARNING: This is NOT the way to work on another buffer temporarily
-within a Lisp program!  Use `set-buffer' instead.  That avoids messing
-with the window-buffer correspondences.  */)
+within a Lisp program!  Use `set-buffer' instead.  That avoids
+messing with the window-buffer correspondences.  */)
      (buffer_or_name, norecord)
      Lisp_Object buffer_or_name, norecord;
 {
