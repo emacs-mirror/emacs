@@ -1,5 +1,32 @@
 2008-11-22  Juri Linkov  <juri@jurta.org>
 
+	* dired-aux.el (dired-isearch-filenames): Add new context-dependent
+	option `dwim'.  Change non-dwim option from `dired-filename' to `t'.
+	Doc fix.
+	(dired-isearch-filenames-setup): Run filename Isearch only when
+	dired-isearch-filenames is t or dired-isearch-filenames is `dwim'
+	and the text property `dired-filename' at point is non-nil.
+	In this case also set isearch-message-prefix-add to "filename ".
+	(dired-isearch-filenames-end): Set isearch-message-prefix-add to nil.
+	(dired-isearch-filenames, dired-isearch-filenames-regexp):
+	Don't let-bind isearch-message-prefix-add since this is done now
+	in dired-isearch-filenames-setup.
+
+	* isearch.el (isearch-mode): Change the order of calling
+	`isearch-update' and running the `isearch-mode-hook' to call
+	`isearch-update' with Isearch parameters set in this hook.
+
+	* progmodes/compile.el (compilation-auto-jump-to-first-error):
+	Fix docstring - change "during `compile'" to "during compilation".
+
+	* descr-text.el (describe-char-unidata-list): Move `old-name' to
+	be immediately after `name'.
+
+	* startup.el (initial-buffer-choice): Change an abstract file name
+	"file.txt" to more reasonable default file name value "~/.emacs".
+
+2008-11-22  Juri Linkov  <juri@jurta.org>
+
 	* files.el (hack-local-variables-confirm): Rename arg `project' to
 	`dir-name'.  Move `(or dir-name name)' to let-binding of `name'.
 	(hack-local-variables-filter): Rename arg `project' to `dir-name'.
