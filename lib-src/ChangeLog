@@ -1,3 +1,7 @@
+2008-11-22  Derek Peschel  <dpeschel@eskimo.com>  (tiny change)
+
+	* etags.c (add_regex): Pass correct length to re_compile_pattern.
+
 2008-11-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacsclient.c (window_system): Delete redundant variable.
