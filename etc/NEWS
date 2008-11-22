@@ -256,9 +256,9 @@ to `trash-directory' on other systems.
 
 +++
 ** Directory-local variables can now be defined.
-By default, Emacs looks in .dir-settings.el for directory-local
-variables.  For more information, see `set-directory-project' and
-`define-project-bindings'.
+By default, Emacs looks in .dir-locals.el for directory-local
+variables.  For more information, see `dir-locals-set-directory-class'
+and `dir-locals-set-class-variables'.
 
 ** Emacs can now use `auth-source' for authentication.
 `smtpmail' and `url' (Tramp and Gnus also) use `auth-source' to obtain
