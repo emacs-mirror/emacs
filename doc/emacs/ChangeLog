@@ -1,3 +1,10 @@
+2008-11-22  Lute Kamstra  <lute@gnu.org>
+
+	* buffers.texi (Select Buffer): Index goto-line.
+	* basic.texi (Moving Point): Mention the use of a numeric prefix
+	argument with goto-line and refer to Select Buffer for the use of a
+	plain prefix argument.
+
 2008-11-19  Glenn Morris  <rgm@gnu.org>
 
 	* doclicense.texi: Update to FDL 1.3.

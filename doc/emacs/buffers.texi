@@ -142,6 +142,7 @@ addition, if the value of @code{display-buffer-reuse-frames} is
 non-@code{nil}, and the buffer you want to switch to is already
 displayed in some frame, Emacs will just raise that frame.
 
+@findex goto-line
   @kbd{C-u M-g M-g}, that is @code{goto-line} with a plain prefix
 argument, reads a number @var{n} using the minibuffer, selects the
 most recently selected buffer other than the current buffer in another
