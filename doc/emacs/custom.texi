@@ -1269,10 +1269,10 @@ variable.
 This can be done one of two ways.
 
   The first approach is to put a special file, named
-@file{.dir-settings.el}, in a directory.  When opening a file, Emacs
-searches for @file{.dir-settings.el} starting in the file's directory
+@file{.dir-locals.el}, in a directory.  When opening a file, Emacs
+searches for @file{.dir-locals.el} starting in the file's directory
 and then moving up the directory hierarchy.  If
-@file{.dir-settings.el} is found, Emacs applies variable settings from
+@file{.dir-locals.el} is found, Emacs applies variable settings from
 the file to the new buffer.  If the file is remote, Emacs skips this
 search, because it would be too slow.
 
@@ -1300,20 +1300,21 @@ to @samp{BSD}.  Finally, it specifies a different @file{ChangeLog}
 file name for any file in the project that appears beneath the
 directory @file{src/imported}.
 
-  The second approach to directory-local settings is to explicitly
-define a project class using @code{define-project-bindings}, and then
+  The second approach to directory-local variables is to explicitly
+define a project class using @code{dir-locals-set-class-variables}, and then
 to tell Emacs which directory roots correspond to that class, using
-@code{set-directory-project}.  You can put calls to these functions in
+@code{dir-locals-set-directory-class}.  You can put calls to these functions in
 your @file{.emacs}; this can be useful when you can't put
-@file{.dir-settings.el} in the directory for some reason.  For
+@file{.dir-locals.el} in the directory for some reason.  For
 example, you could apply settings to an unwriteable directory this
 way:
 
 @example
-(define-project-bindings 'unwriteable-directory
+(dir-locals-set-class-variables 'unwriteable-directory
    '((nil . ((some-useful-setting . value)))))
 
-(set-directory-project "/usr/include/" 'unwriteable-directory)
+(dir-locals-set-directory-class
+   "/usr/include/" 'unwriteable-directory)
 @end example
 
   Unsafe directory-local variables are handled in the same way as
