@@ -124,10 +124,12 @@ incremental search in the Dired buffer, looking for matches only
 amongst the file names and ignoring the rest of the text in the
 buffer.  @kbd{M-s f M-C-s} (@code{dired-isearch-filenames-regexp})
 does the same, using a regular expression search.  If you change the
-variable @var{dired-isearch-filenames} to non-@code{nil}, then the
+variable @var{dired-isearch-filenames} to @code{t}, then the
 usual search commands also limit themselves to the file names; for
-instance, @kbd{C-s} behaves like @kbd{M-s f C-s}.  @xref{Search}, for
-information about incremental search.
+instance, @kbd{C-s} behaves like @kbd{M-s f C-s}.  If the value is
+@code{dwim}, then search commands match the file names only when point
+was on a file name initially.  @xref{Search}, for information about
+incremental search.
 
   Some additional navigation commands are available when the Dired
 buffer includes several directories.  @xref{Subdirectory Motion}.
