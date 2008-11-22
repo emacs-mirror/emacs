@@ -1120,40 +1120,49 @@ and default values."
       (read-buffer prompt (other-buffer (current-buffer))
                    (if confirm-nonexistent-file-or-buffer 'confirm-only)))))
 
-(defun switch-to-buffer-other-window (buffer &optional norecord)
-  "Select buffer BUFFER in another window.
-If BUFFER does not identify an existing buffer, then this function
-creates a buffer with that name.
+(defun switch-to-buffer-other-window (buffer-or-name &optional norecord)
+  "Select the buffer specified by BUFFER-OR-NAME in another window.
+BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
+nil.  Return the buffer switched to.
 
-When called from Lisp, BUFFER can be a buffer, a string \(a buffer name),
-or nil.  If BUFFER is nil, then this function chooses a buffer
-using `other-buffer'.
-Optional second arg NORECORD non-nil means do not put this
+If BUFFER-OR-NAME is a string and does not identify an existing
+buffer, create a new buffer with that name.  Interactively, if
+`confirm-nonexistent-file-or-buffer' is non-nil, request
+confirmation before creating a new buffer.  If BUFFER-OR-NAME is
+nil, switch to buffer returned by `other-buffer'.
+
+Optional second argument NORECORD non-nil means do not put this
 buffer at the front of the list of recently selected ones.
-This function returns the buffer it switched to.
 
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other window: ")))
   (let ((pop-up-windows t)
-	;; Don't let these interfere.
 	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer t norecord)))
+    (pop-to-buffer buffer-or-name t norecord)))
 
-(defun switch-to-buffer-other-frame (buffer &optional norecord)
-  "Switch to buffer BUFFER in another frame.
+(defun switch-to-buffer-other-frame (buffer-or-name &optional norecord)
+  "Switch to buffer BUFFER-OR-NAME in another frame.
+BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
+nil.  Return the buffer switched to.
+
+If BUFFER-OR-NAME is a string and does not identify an existing
+buffer, create a new buffer with that name.  Interactively, if
+`confirm-nonexistent-file-or-buffer' is non-nil, request
+confirmation before creating a new buffer.  If BUFFER-OR-NAME is
+nil, switch to buffer returned by `other-buffer'.
+
 Optional second arg NORECORD non-nil means do not put this
 buffer at the front of the list of recently selected ones.
-This function returns the buffer it switched to.
 
-This uses the function `display-buffer' as a subroutine; see
-its documentation for additional customization information."
+This uses the function `display-buffer' as a subroutine; see its
+documentation for additional customization information."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
   (let ((pop-up-frames t)
 	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer t norecord)))
+    (pop-to-buffer buffer-or-name t norecord)))
 
 (defun display-buffer-other-frame (buffer)
   "Display buffer BUFFER in another frame.
