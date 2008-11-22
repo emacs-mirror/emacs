@@ -64,11 +64,16 @@
 ;;; Customization options
 ;;;
 
-(defvar vc-arch-command
+(define-obsolete-variable-alias 'vc-arch-command 'vc-arch-program "23.1")
+
+(defcustom vc-arch-program
   (let ((candidates '("tla" "baz")))
     (while (and candidates (not (executable-find (car candidates))))
       (setq candidates (cdr candidates)))
-    (or (car candidates) "tla")))
+    (or (car candidates) "tla"))
+  "Name of the Arch executable."
+  :type 'string
+  :group 'vc)
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -463,7 +468,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 
 (defun vc-arch-command (buffer okstatus file &rest flags)
   "A wrapper around `vc-do-command' for use in vc-arch.el."
-  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-arch-command file flags))
+  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-arch-program file flags))
 
 (defun vc-arch-init-revision () nil)
 
@@ -561,7 +566,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
   "Delete half of the revisions in the revision library."
   (interactive)
   (let ((rl-dir (with-output-to-string
-                  (call-process vc-arch-command nil standard-output nil
+                  (call-process vc-arch-program nil standard-output nil
                                 "my-revision-library"))))
     (while (string-match "\\(.*\\)\n" rl-dir)
       (let ((dir (match-string 1 rl-dir)))
@@ -601,7 +606,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
     map))
 
 (defun vc-arch-extra-menu () vc-arch-extra-menu-map)
-  
+
 
 ;;; Less obvious implementations.
 
