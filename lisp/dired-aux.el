@@ -2304,9 +2304,13 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 ;; Search only in file names in the Dired buffer.
 
 (defcustom dired-isearch-filenames nil
-  "*If non-nil, Isearch in Dired matches only file names."
+  "*Non-nil to Isearch in file names only.
+If t, Isearch in Dired always matches only file names.
+If `dwim', Isearch matches file names when initial point position is on
+a file name.  Otherwise, it searches the whole buffer without restrictions."
   :type '(choice (const :tag "No restrictions" nil)
-		 (const :tag "Isearch only in file names" dired-filename))
+		 (const :tag "When point is on a file name initially, search file names" dwim)
+		 (const :tag "Always search in file names" t))
   :group 'dired
   :version "23.1")
 
@@ -2329,7 +2333,10 @@ When off, it uses the default predicate `isearch-filter-invisible'."
 (defun dired-isearch-filenames-setup ()
   "Set up isearch to search in Dired file names.
 Intended to be added to `isearch-mode-hook'."
-  (when dired-isearch-filenames
+  (when (or (eq dired-isearch-filenames t)
+	    (and (eq dired-isearch-filenames 'dwim)
+		 (get-text-property (point) 'dired-filename)))
+    (setq isearch-message-prefix-add "filename ")
     (define-key isearch-mode-map "\M-sf" 'dired-isearch-filenames-toggle)
     (setq dired-isearch-filter-predicate-orig
 	  (default-value 'isearch-filter-predicate))
@@ -2338,6 +2345,7 @@ Intended to be added to `isearch-mode-hook'."
 
 (defun dired-isearch-filenames-end ()
   "Clean up the Dired file name search after terminating isearch."
+  (setq isearch-message-prefix-add nil)
   (define-key isearch-mode-map "\M-sf" nil)
   (setq-default isearch-filter-predicate dired-isearch-filter-predicate-orig)
   (remove-hook 'isearch-mode-end-hook 'dired-isearch-filenames-end t))
@@ -2354,16 +2362,14 @@ Intended to be added to `isearch-mode-hook'."
 (defun dired-isearch-filenames ()
   "Search for a string using Isearch only in file names in the Dired buffer."
   (interactive)
-  (let ((dired-isearch-filenames t)
-	(isearch-message-prefix-add "filename "))
+  (let ((dired-isearch-filenames t))
     (isearch-forward)))
 
 ;;;###autoload
 (defun dired-isearch-filenames-regexp ()
   "Search for a regexp using Isearch only in file names in the Dired buffer."
   (interactive)
-  (let ((dired-isearch-filenames t)
-	(isearch-message-prefix-add "filename "))
+  (let ((dired-isearch-filenames t))
     (isearch-forward-regexp)))
 
 
