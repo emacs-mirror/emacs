@@ -35,8 +35,14 @@
 ;;; Customization options
 ;;;
 
+;; FIXME there is also svnadmin.
+(defcustom vc-svn-program "svn"
+  "Name of the SVN executable."
+  :type 'string
+  :group 'vc)
+
 (defcustom vc-svn-global-switches nil
-  "*Global switches to pass to any SVN command."
+  "Global switches to pass to any SVN command."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
@@ -46,7 +52,7 @@
   :group 'vc)
 
 (defcustom vc-svn-register-switches nil
-  "*Extra switches for registering a file into SVN.
+  "Extra switches for registering a file into SVN.
 A string or list of strings passed to the checkin program by
 \\[vc-register]."
   :type '(choice (const :tag "None" nil)
@@ -72,7 +78,7 @@ If you want to force an empty list of arguments, use t."
   :group 'vc)
 
 (defcustom vc-svn-header (or (cdr (assoc 'SVN vc-header-alist)) '("\$Id\$"))
-  "*Header keywords to be inserted by `vc-insert-headers'."
+  "Header keywords to be inserted by `vc-insert-headers'."
   :version "22.1"
   :type '(repeat string)
   :group 'vc)
@@ -245,7 +251,7 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 (defun vc-svn-create-repo ()
   "Create a new SVN repository."
   (vc-do-command "*vc*" 0 "svnadmin" '("create" "SVN"))
-  (vc-do-command "*vc*" 0 "svn" '(".")
+  (vc-do-command "*vc*" 0 vc-svn-program '(".")
 		 "checkout" (concat "file://" default-directory "SVN")))
 
 (defun vc-svn-register (files &optional rev comment)
@@ -408,7 +414,7 @@ This is only supported if the repository access method is either file://
 or svn+ssh://."
   (let (tempfile host remotefile directory fileurl-p)
     (with-temp-buffer
-      (vc-do-command (current-buffer) 0 "svn" nil "info")
+      (vc-do-command (current-buffer) 0 vc-svn-program nil "info")
       (goto-char (point-min))
       (unless (re-search-forward "Repository Root: \\(file://\\(/.*\\)\\)\\|\\(svn\\+ssh://\\([^/]+\\)\\(/.*\\)\\)" nil t)
 	(error "Repository information is unavailable"))
@@ -547,11 +553,6 @@ NAME is assumed to be a URL."
 ;;;
 ;;; Internal functions
 ;;;
-
-(defcustom vc-svn-program "svn"
-  "Name of the SVN executable."
-  :type 'string
-  :group 'vc)
 
 (defun vc-svn-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-svn.el.
