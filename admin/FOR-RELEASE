@@ -55,12 +55,6 @@ for buffer/string positions.  E.g. struct it, struct text_pos.
 
 ** Clean up Emacs.app references in code and documentation.
 
-** Verify if doc/emacs/macos.texi is still useful, remove it if it is not.
-
-** Document multi-tty features
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01639.html
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01602.html
-
 ** Document new font backend
 
 ** Document XEmbed support
