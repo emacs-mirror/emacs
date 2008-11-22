@@ -1,3 +1,7 @@
+2008-11-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (recompile): Depend on compile-first.
+
 2008-11-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* files.el (switch-to-buffer-other-window)
