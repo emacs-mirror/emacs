@@ -1,3 +1,10 @@
+2008-11-22  Juri Linkov  <juri@jurta.org>
+
+	* custom.texi (Directory Variables): Rename ".dir-settings.el" to
+	".dir-locals.el".  Rename `define-project-bindings' to
+	`dir-locals-set-class-variables'.  Rename `set-directory-project' to
+	`dir-locals-set-directory-class'.
+
 2008-11-22  Lute Kamstra  <lute@gnu.org>
 
 	* buffers.texi (Select Buffer): Index goto-line.
