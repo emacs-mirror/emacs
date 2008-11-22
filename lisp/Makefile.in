@@ -1363,7 +1363,7 @@ compile-after-backup: backup-compiled-files compile-always
 # ii) Compiling multiple files in the same instance of Emacs is wrong,
 # since the environment of later files is affected by definitions in
 # earlier ones.
-recompile: doit $(LOADDEFS) $(lisp)/progmodes/cc-mode.elc
+recompile: doit $(LOADDEFS) compile-first $(lisp)/progmodes/cc-mode.elc
 	$(emacs) --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
 # Update MH-E internal autoloads. These are not to be confused with
