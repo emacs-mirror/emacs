@@ -746,10 +746,13 @@ to the end of the command.  Its output appears in the buffer `*Async Shell
 Command*'.
 +++
 *** `M-s f C-s' and `M-s f M-C-s' run Isearch that matches only at file names.
-When a new user option `dired-isearch-filenames' is non-nil, then even
-ordinary Isearch started with `C-s' and `C-M-s' matches only at file names
-in the Dired buffer.  You can toggle file names matching on or off
-by typing `M-s f' in Isearch mode.
+When a new user option `dired-isearch-filenames' is t, then even ordinary
+Isearch started with `C-s' and `C-M-s' matches only at file names in the
+Dired buffer.  When `dired-isearch-filenames' is `dwim' then activation of
+file name Isearch depends on the position of point - if point is on a file
+name initially, then Isearch matches only file names, otherwise it matches
+everywhere in the Dired buffer.  You can toggle file names matching on or
+off by typing `M-s f' in Isearch mode.
 +++
 *** `M-s a C-s' and `M-s a M-C-s' run multi-file Isearch on the marked files.
 They visit the first marked file in the sequence and display the usual Isearch
