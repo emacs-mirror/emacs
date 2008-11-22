@@ -1,12 +1,19 @@
+2008-11-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* files.el (switch-to-buffer-other-window)
+	(switch-to-buffer-other-frame): Rename buffer argument to
+	buffer-or-name.  Reword and mention new option
+	confirm-nonexistent-file-or-buffer in doc-string.
+
 2008-11-22  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* viper.el: date change.
-	
+
 	* viper-cmd.el (viper-envelop-ESC-key):
 	viper-translate-all-ESC-keysequences is now a function.
-	
+
 	* viper-init (viper-translate-all-ESC-keysequences): make this variable
-	
+
 2008-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-follow-link, vc-find-file-hook):
