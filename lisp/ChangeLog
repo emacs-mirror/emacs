@@ -1,3 +1,7 @@
+2008-11-22  Lute Kamstra  <lute@gnu.org>
+
+	* simple.el (goto-line): Rename argument.
+
 2008-11-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (compile-first): New target.

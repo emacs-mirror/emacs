@@ -837,15 +837,16 @@ that uses or sets the mark."
 
 ;; Counting lines, one way or another.
 
-(defun goto-line (arg &optional buffer)
-  "Goto line ARG, counting from line 1 at beginning of buffer.
-Normally, move point in the current buffer, and leave mark at previous
-position.  With just \\[universal-argument] as argument, move point
-in the most recently displayed other buffer, and switch to it.
-When called from Lisp code, the optional argument BUFFER specifies
-a buffer to switch to.
+(defun goto-line (line &optional buffer)
+  "Goto LINE, counting from line 1 at beginning of buffer.
+Normally, move point in the current buffer, and leave mark at the
+previous position.  With just \\[universal-argument] as argument,
+move point in the most recently selected other buffer, and switch
+to it.  When called from Lisp code, the optional argument BUFFER
+specifies a buffer to switch to.
 
-If there's a number in the buffer at point, it is the default for ARG."
+If there's a number in the buffer at point, it is the default for
+LINE."
   (interactive
    (if (and current-prefix-arg (not (consp current-prefix-arg)))
        (list (prefix-numeric-value current-prefix-arg))
@@ -887,8 +888,8 @@ If there's a number in the buffer at point, it is the default for ARG."
     (widen)
     (goto-char 1)
     (if (eq selective-display t)
-	(re-search-forward "[\n\C-m]" nil 'end (1- arg))
-      (forward-line (1- arg)))))
+	(re-search-forward "[\n\C-m]" nil 'end (1- line))
+      (forward-line (1- line)))))
 
 (defun count-lines-region (start end)
   "Print number of lines and characters in the region."
