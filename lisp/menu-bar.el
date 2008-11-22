@@ -441,7 +441,7 @@
 
 (define-key menu-bar-edit-menu [mark-whole-buffer]
   '(menu-item "Select All" mark-whole-buffer
-	      :help "Mark the whole buffer for a subsequent cut/copy."))
+	      :help "Mark the whole buffer for a subsequent cut/copy"))
 (define-key menu-bar-edit-menu [clear]
   '(menu-item "Clear" delete-region
 	      :enable (and mark-active
@@ -452,7 +452,7 @@
 (defvar yank-menu (cons "Select Yank" nil))
 (fset 'yank-menu (cons 'keymap yank-menu))
 (define-key menu-bar-edit-menu [paste-from-menu]
-  '(menu-item "Paste from kill menu" yank-menu
+  '(menu-item "Paste From Kill Menu" yank-menu
 	      :enable (and (cdr yank-menu) (not buffer-read-only))
 	      :help "Choose a string from the kill ring and paste it"))
 (define-key menu-bar-edit-menu [paste]
@@ -951,7 +951,7 @@ mail status in mode line"))
 
 (define-key menu-bar-showhide-menu [showhide-tool-bar]
   (list 'menu-item "Tool-bar" 'toggle-tool-bar-mode-from-frame
-	:help "Toggle tool-bar on/off"
+	:help "Turn tool-bar on/off"
 	:visible `(display-graphic-p)
 	:button `(:toggle . (> (frame-parameter nil 'tool-bar-lines) 0))))
 
@@ -1050,7 +1050,7 @@ mail status in mode line"))
 (define-key menu-bar-options-menu [auto-fill-mode]
   '(menu-item "Auto Fill in Text Modes"
               menu-bar-text-mode-auto-fill
-	      :help "Automatically fill text while typing (Auto Fill Mode)"
+	      :help "Automatically fill text while typing (Auto Fill mode)"
               :button (:toggle . (if (listp text-mode-hook)
 				     (member 'turn-on-auto-fill text-mode-hook)
 				   (eq 'turn-on-auto-fill text-mode-hook)))))
@@ -1362,7 +1362,7 @@ mail status in mode line"))
 
 (define-key menu-bar-describe-menu [list-keybindings]
   '(menu-item "List Key Bindings" describe-bindings
-	      :help "Display all current keybindings (keyboard shortcuts)"))
+	      :help "Display all current key bindings (keyboard shortcuts)"))
 (define-key menu-bar-describe-menu [describe-current-display-table]
   '(menu-item "Describe Display Table" describe-current-display-table
 	      :help "Describe the current display table"))
@@ -1458,7 +1458,7 @@ key, a click, or a menu-item"))
   '(menu-item "Ordering Manuals" view-order-manuals
 	      :help "How to order manuals from the Free Software Foundation"))
 (define-key menu-bar-manuals-menu [lookup-subject-in-all-manuals]
-  '(menu-item "Lookup Subject in all manuals..." info-apropos
+  '(menu-item "Lookup Subject in all Manuals..." info-apropos
 	      :help "Find description of a subject in all installed manuals"))
 (define-key menu-bar-manuals-menu [other-manuals]
   '(menu-item "All Other Manuals (Info)" Info-directory
@@ -1486,7 +1486,7 @@ key, a click, or a menu-item"))
 	      :help "Show the Emacs license (GPL)"))
 (define-key menu-bar-help-menu [getting-new-versions]
   '(menu-item "Getting New Versions" describe-distribution
-	      :help "How to get latest versions of Emacs"))
+	      :help "How to get the latest version of Emacs"))
 (defun menu-bar-help-extra-packages ()
   "Display help about some additional packages available for Emacs."
   (interactive)
