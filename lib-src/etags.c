@@ -5881,7 +5881,7 @@ add_regex (regexp_pattern, lang)
   else
     re_set_syntax (RE_SYNTAX_EMACS);
 
-  err = re_compile_pattern (pat, strlen (regexp_pattern), patbuf);
+  err = re_compile_pattern (pat, strlen (pat), patbuf);
   if (multi_line)
     free (pat);
   if (err != NULL)
