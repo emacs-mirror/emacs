@@ -1,3 +1,7 @@
+2008-11-22  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper.texi (viper-translate-all-ESC-keysequences): description removed.
+	
 2008-11-19  Glenn Morris  <rgm@gnu.org>
 
 	* doclicense.texi: Change to FDL 1.3.

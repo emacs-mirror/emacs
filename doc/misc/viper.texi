@@ -1728,20 +1728,6 @@ executed.  Otherwise, it is processed as an ordinary sequence of typed keys.
 
 Setting this variable too high may slow down your typing.  Setting it too
 low may make it hard to type macros quickly enough.
-@item viper-translate-all-ESC-keysequences @code{t} on tty, @code{nil} on windowing display
-Normally, Viper lets Emacs translate only those ESC key sequences that are
-defined in the low-level @code{input-decode-map}, @code{key-translation-map}
-or @code{function-key-map}, such as those
-emitted by the arrow and function keys. Other sequences, e.g., @kbd{\\e/}, are
-treated as @kbd{ESC} command followed by a @kbd{/}. This is good for people
-who type fast and tend to hit other characters right after they hit
-ESC. Other people like Emacs to translate @kbd{ESC} sequences all the time.
-The default is to translate all sequences only when using a dumb terminal.
-This permits you to use @kbd{ESC} as a meta key in insert mode. For instance,
-hitting @kbd{ESC x} fast would have the effect of typing @kbd{M-x}.
-If your dumb terminal is not so dumb and understands the meta key, then you
-probably will be better off setting this variable to @code{nil}. Try and see which
-way suits you best.
 @item viper-ex-style-motion t
 Set this to @code{nil}, if you want @kbd{l,h} to cross
 lines, etc.  @xref{Movement and Markers}, for more info.
