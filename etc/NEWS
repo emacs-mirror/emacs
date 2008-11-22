@@ -1372,18 +1372,22 @@ Generic characters no longer exist.
 In buffers and strings, characters are represented by UTF-8 byte
 sequences in a multibyte buffer/string.
 
++++
 The concept of a charset has changed.  A single character may belong
 to multiple charsets (e.g. a-grave, U+00E0, belongs to charsets
 unicode, iso-8859-1, iso-8859-3, etc).
 
+---
 *** The functions `split-char' and `make-char' now accept up to 4
 positional codes instead of just 2.
 
++++
 *** The functions `encode-char' and `decode-char' now accept any character sets.
 
 *** The function `define-charset' now accepts a completely different
 form of arguments (old-style arguments still work).
 
++++
 *** The value of the function `char-charset' depends on the current
 priorities of charsets.
 
@@ -1403,6 +1407,7 @@ entries in that range of characters.
 
 *** New functions:
 
++++
 **** `characterp' returns t if and only if the argument is a character.
 This replaces `char-valid-p', which is now obsolete.
 
@@ -1410,10 +1415,13 @@ This replaces `char-valid-p', which is now obsolete.
 
 **** `define-charset-alias' defines an alias of a charset.
 
++++
 **** `set-charset-priority' sets priorities of charsets.
 
++++
 **** `charset-priority-list' returns a prioritized list of charsets.
 
++++
 **** `unibyte-string' makes a unibyte string from bytes.
 
 **** `define-char-code-property' defines a character code property.
@@ -1482,6 +1490,7 @@ robin rule can hold the original ASCII sequence as a char-code-property)
 *** The new function `robin-use-package' starts using a Robin package
 as an input method.
 
++++
 *** The new function `string-to-unibyte' is like `string-as-unibyte'
 but signals an error if STRING contains a non-ASCII, non-eight-bit
 character.
