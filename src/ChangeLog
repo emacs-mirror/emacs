@@ -1,3 +1,8 @@
+2008-11-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fswitch_to_buffer): Reword and mention new option
+	confirm-nonexistent-file-or-buffer in doc-string.
+
 2008-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (Fbuffer_swap_text): Remove redundant marker manipulation.
