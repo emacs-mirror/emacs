@@ -1,3 +1,34 @@
+2008-11-22  Juri Linkov  <juri@jurta.org>
+
+	* files.el (hack-local-variables-confirm): Rename arg `project' to
+	`dir-name'.  Move `(or dir-name name)' to let-binding of `name'.
+	(hack-local-variables-filter): Rename arg `project' to `dir-name'.
+	(hack-local-variables): Rename call of `hack-project-variables' to
+	`hack-dir-local-variables'.  Change error text to "Directory-local
+	variables error".
+	(dir-locals-class-alist): Rename from `project-class-alist'.
+	(dir-locals-directory-alist): Rename from `project-directory-alist'.
+	(dir-locals-get-class-variables): Rename from `project-get-alist'.
+	(dir-locals-collect-mode-variables): Rename from
+	`project-collect-bindings-from-alist'.  Rename arg `mode-alist' to
+	`mode-variables', and arg `settings' to `variables'.
+	(dir-locals-collect-variables): Rename from
+	`project-collect-binding-list'.  Rename arg `binding-list' to
+	`class-variables', and arg `settings' to `variables'.
+	(dir-locals-set-directory-class): Rename from `set-directory-project'.
+	(dir-locals-set-class-variables): Rename from `define-project-bindings'.
+	Rename arg `settings' to `variables'.
+	(dir-locals-file): New defconst.
+	(dir-locals-find-file): Rename from `project-find-settings-file'.
+	Use `dir-locals-file'.  Rename let-bound `settings' to `locals-file',
+	and `pda' to `dir-elt'.
+	(dir-locals-read-from-file): Rename from
+	`project-define-from-project-file'.  Rename arg `settings-file'
+	to `file'.  Rename let-bound `list' to `variables'.
+	(hack-dir-local-variables): Rename from `hack-project-variables'.
+	Rename let-bound `settings' to `variables-file', `root-dir'
+	to `dir-name', and `bindings' to `variables'.
+
 2008-11-22  Lute Kamstra  <lute@gnu.org>
 
 	* simple.el (goto-line): Rename argument.
