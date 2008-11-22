@@ -21,8 +21,6 @@ how they are stored in strings and buffers.
                                 codes of individual characters.
 * Character Sets::          The space of possible character codes
                                 is divided into various character sets.
-* Chars and Bytes::         More information about multibyte encodings.
-* Splitting Characters::    Converting a character to its byte sequence.
 * Scanning Charsets::       Which character sets are used in a buffer?
 * Translation of Characters::   Translation tables are used for conversion.
 * Coding Systems::          Coding systems are conversions for saving files.
@@ -47,10 +45,11 @@ follows the @dfn{Unicode Standard}.  The Unicode Standard assigns a
 unique number, called a @dfn{codepoint}, to each and every character.
 The range of codepoints defined by Unicode, or the Unicode
 @dfn{codespace}, is @code{0..10FFFF} (in hex) inclusive.  Emacs
-extends this range with codepoints in the range @code{3FFF80..3FFFFF},
-which it uses for representing raw 8-bit bytes that cannot be
-interpreted as characters.  Thus, a character codepoint in Emacs is a
-22-bit integer number.
+extends this range with codepoints in the range @code{110000..3FFFFF},
+which it uses for representing characters that are not unified with
+Unicode and raw 8-bit bytes that cannot be interpreted as characters
+(the latter occupy the range @code{3FFF80..3FFFFF}).  Thus, a
+character codepoint in Emacs is a 22-bit integer number.
 
 @cindex internal representation of characters
 @cindex characters, representation in buffers and strings
@@ -76,10 +75,10 @@ appropriate, when it reads text into a buffer or a string, or when it
 writes text to a disk file or passes it to some other process.
 
   Occasionally, Emacs needs to hold and manipulate encoded text or
-binary non-text data in its buffer or string.  For example, when Emacs
-visits a file, it first reads the file's text verbatim into a buffer,
-and only then converts it to the internal representation.  Before the
-conversion, the buffer holds encoded text.
+binary non-text data in its buffers or strings.  For example, when
+Emacs visits a file, it first reads the file's text verbatim into a
+buffer, and only then converts it to the internal representation.
+Before the conversion, the buffer holds encoded text.
 
 @cindex unibyte text
   Encoded text is not really text, as far as Emacs is concerned, but
@@ -125,9 +124,15 @@ range, the value is @code{nil}.
 @end defun
 
 @defun byte-to-position byte-position
-Return the buffer position, in character units, corresponding to
-byte-position @var{byte-position} in the current buffer.  If
-@var{byte-position} is out of range, the value is @code{nil}.
+Return the buffer position, in character units, corresponding to given
+@var{byte-position} in the current buffer.  If @var{byte-position} is
+out of range, the value is @code{nil}.  In a multibyte buffer, an
+arbitrary value of @var{byte-position} can be not at character
+boundary, but inside a multibyte sequence representing a single
+character; in this case, this function returns the buffer position of
+the character whose multibyte sequence includes @var{byte-position}.
+In other words, the value does not change for all byte positions that
+belong to the same character.
 @end defun
 
 @defun multibyte-string-p string
@@ -151,10 +156,11 @@ result a unibyte string.
 @section Converting Text Representations
 
   Emacs can convert unibyte text to multibyte; it can also convert
-multibyte text to unibyte, though this conversion loses information.  In
-general these conversions happen when inserting text into a buffer, or
-when putting text from several strings together in one string.  You can
-also explicitly convert a string's contents to either representation.
+multibyte text to unibyte, provided that the multibyte text contains
+only @acronym{ASCII} and 8-bit characters.  In general, these
+conversions happen when inserting text into a buffer, or when putting
+text from several strings together in one string.  You can also
+explicitly convert a string's contents to either representation.
 
   Emacs chooses the representation for a string based on the text that
 it is constructed from.  The general rule is to convert unibyte text to
@@ -173,89 +179,40 @@ acceptable because the buffer's representation is a choice made by the
 user that cannot be overridden automatically.
 
   Converting unibyte text to multibyte text leaves @acronym{ASCII} characters
-unchanged, and likewise character codes 128 through 159.  It converts
-the non-@acronym{ASCII} codes 160 through 255 by adding the value
-@code{nonascii-insert-offset} to each character code.  By setting this
-variable, you specify which character set the unibyte characters
-correspond to (@pxref{Character Sets}).  For example, if
-@code{nonascii-insert-offset} is 2048, which is @code{(- (make-char
-'latin-iso8859-1) 128)}, then the unibyte non-@acronym{ASCII} characters
-correspond to Latin 1.  If it is 2688, which is @code{(- (make-char
-'greek-iso8859-7) 128)}, then they correspond to Greek letters.
+unchanged, and converts bytes with codes 128 through 159 to the
+multibyte representation of raw eight-bit bytes.
 
-  Converting multibyte text to unibyte is simpler: it discards all but
-the low 8 bits of each character code.  If @code{nonascii-insert-offset}
-has a reasonable value, corresponding to the beginning of some character
-set, this conversion is the inverse of the other: converting unibyte
-text to multibyte and back to unibyte reproduces the original unibyte
-text.
+  Converting multibyte text to unibyte converts all @acronym{ASCII}
+and eight-bit characters to their single-byte form, but loses
+information for non-@acronym{ASCII} characters by discarding all but
+the low 8 bits of each character's codepoint.  Converting unibyte text
+to multibyte and back to unibyte reproduces the original unibyte text.
 
-@defvar nonascii-insert-offset
-This variable specifies the amount to add to a non-@acronym{ASCII} character
-when converting unibyte text to multibyte.  It also applies when
-@code{self-insert-command} inserts a character in the unibyte
-non-@acronym{ASCII} range, 128 through 255.  However, the functions
-@code{insert} and @code{insert-char} do not perform this conversion.
-
-The right value to use to select character set @var{cs} is @code{(-
-(make-char @var{cs}) 128)}.  If the value of
-@code{nonascii-insert-offset} is zero, then conversion actually uses the
-value for the Latin 1 character set, rather than zero.
-@end defvar
-
-@defvar nonascii-translation-table
-This variable provides a more general alternative to
-@code{nonascii-insert-offset}.  You can use it to specify independently
-how to translate each code in the range of 128 through 255 into a
-multibyte character.  The value should be a char-table, or @code{nil}.
-If this is non-@code{nil}, it overrides @code{nonascii-insert-offset}.
-@end defvar
-
-The next three functions either return the argument @var{string}, or a
+The next two functions either return the argument @var{string}, or a
 newly created string with no text properties.
-
-@defun string-make-unibyte string
-This function converts the text of @var{string} to unibyte
-representation, if it isn't already, and returns the result.  If
-@var{string} is a unibyte string, it is returned unchanged.  Multibyte
-character codes are converted to unibyte according to
-@code{nonascii-translation-table} or, if that is @code{nil}, using
-@code{nonascii-insert-offset}.  If the lookup in the translation table
-fails, this function takes just the low 8 bits of each character.
-@end defun
-
-@defun string-make-multibyte string
-This function converts the text of @var{string} to multibyte
-representation, if it isn't already, and returns the result.  If
-@var{string} is a multibyte string or consists entirely of
-@acronym{ASCII} characters, it is returned unchanged.  In particular,
-if @var{string} is unibyte and entirely @acronym{ASCII}, the returned
-string is unibyte.  (When the characters are all @acronym{ASCII},
-Emacs primitives will treat the string the same way whether it is
-unibyte or multibyte.)  If @var{string} is unibyte and contains
-non-@acronym{ASCII} characters, the function
-@code{unibyte-char-to-multibyte} is used to convert each unibyte
-character to a multibyte character.
-@end defun
 
 @defun string-to-multibyte string
 This function returns a multibyte string containing the same sequence
-of character codes as @var{string}.  Unlike
-@code{string-make-multibyte}, this function unconditionally returns a
-multibyte string.  If @var{string} is a multibyte string, it is
-returned unchanged.
+of characters as @var{string}.  If @var{string} is a multibyte string,
+it is returned unchanged.
+@end defun
+
+@defun string-to-unibyte string
+This function returns a unibyte string containing the same sequence of
+characters as @var{string}.  It signals an error if @var{string}
+contains a non-@acronym{ASCII} character.  If @var{string} is a
+unibyte string, it is returned unchanged.
 @end defun
 
 @defun multibyte-char-to-unibyte char
 This convert the multibyte character @var{char} to a unibyte
-character, based on @code{nonascii-translation-table} and
-@code{nonascii-insert-offset}.
+character.  If @var{char} is a non-@acronym{ASCII} character, the
+value is -1.
 @end defun
 
 @defun unibyte-char-to-multibyte char
 This convert the unibyte character @var{char} to a multibyte
-character, based on @code{nonascii-translation-table} and
-@code{nonascii-insert-offset}.
+character.
 @end defun
 
 @node Selecting a Representation
@@ -270,13 +227,13 @@ is non-@code{nil}, the buffer becomes multibyte.  If @var{multibyte}
 is @code{nil}, the buffer becomes unibyte.
 
 This function leaves the buffer contents unchanged when viewed as a
-sequence of bytes.  As a consequence, it can change the contents viewed
-as characters; a sequence of two bytes which is treated as one character
-in multibyte representation will count as two characters in unibyte
-representation.  Character codes 128 through 159 are an exception.  They
-are represented by one byte in a unibyte buffer, but when the buffer is
-set to multibyte, they are converted to two-byte sequences, and vice
-versa.
+sequence of bytes.  As a consequence, it can change the contents
+viewed as characters; a sequence of three bytes which is treated as
+one character in multibyte representation will count as three
+characters in unibyte representation.  Eight-bit characters
+representing raw bytes are an exception.  They are represented by one
+byte in a unibyte buffer, but when the buffer is set to multibyte,
+they are converted to two-byte sequences, and vice versa.
 
 This function sets @code{enable-multibyte-characters} to record which
 representation is in use.  It also adjusts various data in the buffer
@@ -291,26 +248,26 @@ base buffer.
 @defun string-as-unibyte string
 This function returns a string with the same bytes as @var{string} but
 treating each byte as a character.  This means that the value may have
-more characters than @var{string} has.
+more characters than @var{string} has.  Eight-bit characters
+representing raw bytes are an exception: each one of them is converted
+to a single byte.
 
 If @var{string} is already a unibyte string, then the value is
 @var{string} itself.  Otherwise it is a newly created string, with no
-text properties.  If @var{string} is multibyte, any characters it
-contains of charset @code{eight-bit-control} or @code{eight-bit-graphic}
-are converted to the corresponding single byte.
+text properties.
 @end defun
 
 @defun string-as-multibyte string
 This function returns a string with the same bytes as @var{string} but
-treating each multibyte sequence as one character.  This means that the
-value may have fewer characters than @var{string} has.
+treating each multibyte sequence as one character.  This means that
+the value may have fewer characters than @var{string} has.  If a byte
+sequence in @var{string} is invalid as a multibyte representation of a
+single character, each byte in the sequence is treated as raw 8-bit
+byte.
 
 If @var{string} is already a multibyte string, then the value is
 @var{string} itself.  Otherwise it is a newly created string, with no
-text properties.  If @var{string} is unibyte and contains any individual
-8-bit bytes (i.e.@: not part of a multibyte form), they are converted to
-the corresponding multibyte character of charset @code{eight-bit-control}
-or @code{eight-bit-graphic}.
+text properties.
 @end defun
 
 @node Character Codes
@@ -320,13 +277,13 @@ or @code{eight-bit-graphic}.
   The unibyte and multibyte text representations use different
 character codes.  The valid character codes for unibyte representation
 range from 0 to 255---the values that can fit in one byte.  The valid
-character codes for multibyte representation range from 0 to 4194303,
-but not all values in that range are valid.  The values 128 through
-255 do not usually show up in multibyte text, but they can occur if
-you do explicit encoding and decoding (@pxref{Explicit Encoding}).
-Some other character codes cannot occur at all in multibyte text.
-Only the @acronym{ASCII} codes 0 through 127 are completely legitimate
-in both representations.
+character codes for multibyte representation range from 0 to 4194303
+(#x3FFFFF).  In this code space, values 0 through 127 are for
+@acronym{ASCII} charcters, and values 129 through 4194175 (#x3FFF7F)
+are for non-@acronym{ASCII} characters.  Values 0 through 1114111
+(#10FFFF) corresponds to Unicode characters of the same codepoint,
+while values 4194176 (#x3FFF80) through 4194303 (#x3FFFFF) are for
+representing eight-bit raw bytes.
 
 @defun characterp charcode
 This returns @code{t} if @var{charcode} is a valid character, and
@@ -335,8 +292,6 @@ This returns @code{t} if @var{charcode} is a valid character, and
 @example
 (characterp 65)
      @result{} t
-(characterp 256)
-     @result{} nil
 (characterp 4194303)
      @result{} t
 (characterp 4194304)
@@ -344,27 +299,45 @@ This returns @code{t} if @var{charcode} is a valid character, and
 @end example
 @end defun
 
+@defun get-byte pos &optional string
+This function returns the byte at current buffer's character position
+@var{pos}.  If the current buffer is unibyte, this is literally the
+byte at that position.  If the buffer is multibyte, byte values of
+@acronym{ASCII} characters are the same as character codepoints,
+whereas eight-bit raw bytes are converted to their 8-bit codes.  The
+function signals an error if the character at @var{pos} is
+non-@acronym{ASCII}.
+
+The optional argument @var{string} means to get a byte value from that
+string instead of the current buffer.
+@end defun
+
 @node Character Sets
 @section Character Sets
 @cindex character sets
 
-  Emacs classifies characters into various @dfn{character sets}, each of
-which has a name which is a symbol.  Each character belongs to one and
-only one character set.
+@cindex charset
+@cindex coded character set
+An Emacs @dfn{character set}, or @dfn{charset}, is a set of characters
+in which each character is assigned a numeric code point.  (The
+Unicode standard calls this a @dfn{coded character set}.)  Each
+charset has a name which is a symbol.  A single character can belong
+to any number of different character sets, but it will generally have
+a different code point in each charset.  Examples of character sets
+include @code{ascii}, @code{iso-8859-1}, @code{greek-iso8859-7}, and
+@code{windows-1255}.  The code point assigned to a character in a
+charset is usually different from its code point used in Emacs buffers
+and strings.
 
-  In general, there is one character set for each distinct script.  For
-example, @code{latin-iso8859-1} is one character set,
-@code{greek-iso8859-7} is another, and @code{ascii} is another.  An
-Emacs character set can hold at most 9025 characters; therefore, in some
-cases, characters that would logically be grouped together are split
-into several character sets.  For example, one set of Chinese
-characters, generally known as Big 5, is divided into two Emacs
-character sets, @code{chinese-big5-1} and @code{chinese-big5-2}.
-
-  @acronym{ASCII} characters are in character set @code{ascii}.  The
-non-@acronym{ASCII} characters 128 through 159 are in character set
-@code{eight-bit-control}, and codes 160 through 255 are in character set
-@code{eight-bit-graphic}.
+@cindex @code{emacs}, a charset
+@cindex @code{unicode}, a charset
+@cindex @code{eight-bit}, a charset
+  Emacs defines several special character sets.  The character set
+@code{unicode} includes all the characters whose Emacs code points are
+in the range @code{0..10FFFF}.  The character set @code{emacs}
+includes all @acronym{ASCII} and non-@acronym{ASCII} characters.
+Finally, the @code{eight-bit} charset includes the 8-bit raw bytes;
+Emacs uses it to represent raw bytes encountered in text.
 
 @defun charsetp object
 Returns @code{t} if @var{object} is a symbol that names a character set,
@@ -375,22 +348,38 @@ Returns @code{t} if @var{object} is a symbol that names a character set,
 The value is a list of all defined character set names.
 @end defvar
 
-@defun charset-list
-This function returns the value of @code{charset-list}.  It is only
-provided for backward compatibility.
+@defun charset-priority-list &optional highestp
+This functions returns a list of all defined character sets ordered by
+their priority.  If @var{highestp} is non-@code{nil}, the function
+returns a single character set of the highest priority.
+@end defun
+
+@defun set-charset-priority &rest charsets
+This function makes @var{charsets} the highest priority character sets.
 @end defun
 
 @defun char-charset character
-This function returns the name of the character set that @var{character}
-belongs to, or the symbol @code{unknown} if @var{character} is not a
-valid character.
+This function returns the name of the character set of highest
+priority that @var{character} belongs to.  @acronym{ASCII} characters
+are an exception: for them, this function always returns @code{ascii}.
 @end defun
 
 @defun charset-plist charset
-This function returns the charset property list of the character set
-@var{charset}.  Although @var{charset} is a symbol, this is not the same
-as the property list of that symbol.  Charset properties are used for
-special purposes within Emacs.
+This function returns the property list of the character set
+@var{charset}.  Although @var{charset} is a symbol, this is not the
+same as the property list of that symbol.  Charset properties include
+important information about the charset, such as its documentation
+string, short name, etc.
+@end defun
+
+@defun put-charset-property charset propname value
+This function sets the @var{propname} property of @var{charset} to the
+given @var{value}.
+@end defun
+
+@defun get-charset-property charset propname
+This function returns the value of @var{charset}s property
+@var{propname}.
 @end defun
 
 @deffn Command list-charset-chars charset
@@ -398,87 +387,21 @@ This command displays a list of characters in the character set
 @var{charset}.
 @end deffn
 
-@node Chars and Bytes
-@section Characters and Bytes
-@cindex bytes and characters
-
-@cindex introduction sequence (of character)
-@cindex dimension (of character set)
-  In multibyte representation, each character occupies one or more
-bytes.  Each character set has an @dfn{introduction sequence}, which is
-normally one or two bytes long.  (Exception: the @code{ascii} character
-set and the @code{eight-bit-graphic} character set have a zero-length
-introduction sequence.)  The introduction sequence is the beginning of
-the byte sequence for any character in the character set.  The rest of
-the character's bytes distinguish it from the other characters in the
-same character set.  Depending on the character set, there are either
-one or two distinguishing bytes; the number of such bytes is called the
-@dfn{dimension} of the character set.
-
-@defun charset-dimension charset
-This function returns the dimension of @var{charset}; at present, the
-dimension is always 1 or 2.
+@defun decode-char charset code-point
+This function decodes a character that is assigned a @var{code-point}
+in @var{charset}, to the corresponding Emacs character, and returns
+that character.  If @var{charset} doesn't contain a character of that
+code point, the value is @code{nil}.  If @var{code-point} doesnt't fit
+in a Lisp integer (@pxref{Integer Basics, most-positive-fixnum}), it
+can be specified as a cons cell @code{(@var{high} . @var{low})}, where
+@var{low} are the lower 16 bits of the value and @var{high} are the
+high 16 bits.
 @end defun
 
-@defun charset-bytes charset
-This function returns the number of bytes used to represent a character
-in character set @var{charset}.
-@end defun
-
-  This is the simplest way to determine the byte length of a character
-set's introduction sequence:
-
-@example
-(- (charset-bytes @var{charset})
-   (charset-dimension @var{charset}))
-@end example
-
-@node Splitting Characters
-@section Splitting Characters
-@cindex character as bytes
-
-  The functions in this section convert between characters and the byte
-values used to represent them.  For most purposes, there is no need to
-be concerned with the sequence of bytes used to represent a character,
-because Emacs translates automatically when necessary.
-
-@defun split-char character
-Return a list containing the name of the character set of
-@var{character}, followed by one or two byte values (integers) which
-identify @var{character} within that character set.  The number of byte
-values is the character set's dimension.
-
-If @var{character} is invalid as a character code, @code{split-char}
-returns a list consisting of the symbol @code{unknown} and @var{character}.
-
-@example
-(split-char 2248)
-     @result{} (latin-iso8859-1 72)
-(split-char 65)
-     @result{} (ascii 65)
-(split-char 128)
-     @result{} (eight-bit-control 128)
-@end example
-@end defun
-
-@c FIXME: update split-char and make-char
-@cindex generate characters in charsets
-@defun make-char charset &optional code1 code2
-This function returns the character in character set @var{charset} whose
-position codes are @var{code1} and @var{code2}.  This is roughly the
-inverse of @code{split-char}.  Normally, you should specify either one
-or both of @var{code1} and @var{code2} according to the dimension of
-@var{charset}.  For example,
-
-@example
-(make-char 'latin-iso8859-1 72)
-     @result{} 2248
-@end example
-
-Actually, the eighth bit of both @var{code1} and @var{code2} is zeroed
-before they are used to index @var{charset}.  Thus you may use, for
-instance, an ISO 8859 character code rather than subtracting 128, as
-is necessary to index the corresponding Emacs charset.
+@defun encode-char char charset
+This function returns the code point assigned to the character
+@var{char} in @var{charset}.  If @var{charset} doesn't contain
+@var{char}, the value is @code{nil}.
 @end defun
 
 @node Scanning Charsets
@@ -490,15 +413,16 @@ coding systems (@pxref{Coding Systems}) are capable of representing all
 of the text in question.
 
 @defun charset-after &optional pos
-This function return the charset of a character in the current buffer
-at position @var{pos}.  If @var{pos} is omitted or @code{nil}, it
-defaults to the current value of point.  If @var{pos} is out of range,
-the value is @code{nil}.
+This function returns the charset of highest priority containing the
+character in the current buffer at position @var{pos}.  If @var{pos}
+is omitted or @code{nil}, it defaults to the current value of point.
+If @var{pos} is out of range, the value is @code{nil}.
 @end defun
 
 @defun find-charset-region beg end &optional translation
-This function returns a list of the character sets that appear in the
-current buffer between positions @var{beg} and @var{end}.
+This function returns a list of the character sets of highest priority
+that contain charcters in the current buffer between positions
+@var{beg} and @var{end}.
 
 The optional argument @var{translation} specifies a translation table to
 be used in scanning the text (@pxref{Translation of Characters}).  If it
@@ -508,10 +432,10 @@ characters instead of the characters actually in the buffer.
 @end defun
 
 @defun find-charset-string string &optional translation
-This function returns a list of the character sets that appear in the
-string @var{string}.  It is just like @code{find-charset-region}, except
-that it applies to the contents of @var{string} instead of part of the
-current buffer.
+This function returns a list of the character sets of highest priority
+that contain characters in @var{string}.  It is just like
+@code{find-charset-region}, except that it applies to the contents of
+@var{string} instead of part of the current buffer.
 @end defun
 
 @node Translation of Characters
@@ -519,19 +443,17 @@ current buffer.
 @cindex character translation tables
 @cindex translation tables
 
-  A @dfn{translation table} is a char-table that specifies a mapping
-of characters into characters.  These tables are used in encoding and
-decoding, and for other purposes.  Some coding systems specify their
-own particular translation tables; there are also default translation
-tables which apply to all other coding systems.
+  A @dfn{translation table} is a char-table (@pxref{Char-Tables}) that
+specifies a mapping of characters into characters.  These tables are
+used in encoding and decoding, and for other purposes.  Some coding
+systems specify their own particular translation tables; there are
+also default translation tables which apply to all other coding
+systems.
 
-  For instance, the coding-system @code{utf-8} has a translation table
-that maps characters of various charsets (e.g.,
-@code{latin-iso8859-@var{x}}) into Unicode character sets.  This way,
-it can encode Latin-2 characters into UTF-8.  Meanwhile,
-@code{unify-8859-on-decoding-mode} operates by specifying
-@code{standard-translation-table-for-decode} to translate
-Latin-@var{x} characters into corresponding Unicode characters.
+  A translation table has two extra slots.  The first is either
+@code{nil} or a translation table that performs the reverse
+translation; the second is the maximum number of characters to look up
+for translation.
 
 @defun make-translation-table &rest translations
 This function returns a translation table based on the argument
@@ -545,33 +467,65 @@ character, say @var{to-alt}, @var{from} is also translated to
 @var{to-alt}.
 @end defun
 
-  In decoding, the translation table's translations are applied to the
-characters that result from ordinary decoding.  If a coding system has
-property @code{translation-table-for-decode}, that specifies the
-translation table to use.  (This is a property of the coding system,
-as returned by @code{coding-system-get}, not a property of the symbol
-that is the coding system's name. @xref{Coding System Basics,, Basic
-Concepts of Coding Systems}.)  Otherwise, if
-@code{standard-translation-table-for-decode} is non-@code{nil},
-decoding uses that table.
+  During decoding, the translation table's translations are applied to
+the characters that result from ordinary decoding.  If a coding system
+has property @code{:decode-translation-table}, that specifies the
+translation table to use, or a list of translation tables to apply in
+sequence.  (This is a property of the coding system, as returned by
+@code{coding-system-get}, not a property of the symbol that is the
+coding system's name.  @xref{Coding System Basics,, Basic Concepts of
+Coding Systems}.)  Finally, if
+@code{standard-translation-table-for-decode} is non-@code{nil}, the
+resulting characters are translated by that table.
 
-  In encoding, the translation table's translations are applied to the
-characters in the buffer, and the result of translation is actually
-encoded.  If a coding system has property
-@code{translation-table-for-encode}, that specifies the translation
-table to use.  Otherwise the variable
-@code{standard-translation-table-for-encode} specifies the translation
-table.
+  During encoding, the translation table's translations are applied to
+the characters in the buffer, and the result of translation is
+actually encoded.  If a coding system has property
+@code{:encode-translation-table}, that specifies the translation table
+to use, or a list of translation tables to apply in sequence.  In
+addition, if the variable @code{standard-translation-table-for-encode}
+is non-@code{nil}, it specifies the translation table to use for
+translating the result.
 
 @defvar standard-translation-table-for-decode
-This is the default translation table for decoding, for
-coding systems that don't specify any other translation table.
+This is the default translation table for decoding.  If a coding
+systems specifies its own translation tables, the table that is the
+value of this variable, if non-@code{nil}, is applied after them.
 @end defvar
 
 @defvar standard-translation-table-for-encode
-This is the default translation table for encoding, for
-coding systems that don't specify any other translation table.
+This is the default translation table for encoding.  If a coding
+systems specifies its own translation tables, the table that is the
+value of this variable, if non-@code{nil}, is applied after them.
 @end defvar
+
+@defun make-translation-table-from-vector vec
+This function returns a translation table made from @var{vec} that is
+an array of 256 elements to map byte values 0 through 255 to
+characters.  Elements may be @code{nil} for untranslated bytes.  The
+returned table has a translation table for reverse mapping in the
+first extra slot.
+
+This function provides an easy way to make a private coding system
+that maps each byte to a specific character.  You can specify the
+returned table and the reverse translation table using the properties
+@code{:decode-translation-table} and @code{:encode-translation-table}
+respectively in the @var{props} argument to
+@code{define-coding-system}.
+@end defun
+
+@defun make-translation-table-from-alist alist
+This function is similar to @code{make-translation-table} but returns
+a complex translation table rather than a simple one-to-one mapping.
+Each element of @var{alist} is of the form @code{(@var{from}
+. @var{to})}, where @var{from} and @var{to} are either a character or
+a vector specifying a sequence of characters.  If @var{from} is a
+character, that character is translated to @var{to} (i.e.@: to a
+character or a character sequence).  If @var{from} is a vector of
+characters, that sequence is translated to @var{to}.  The returned
+table has a translation table for reverse mapping in the first extra
+slot.
+@end defun
 
 @node Coding Systems
 @section Coding Systems
