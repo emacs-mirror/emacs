@@ -1,3 +1,8 @@
+2008-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-follow-link, vc-find-file-hook):
+	Use buffer-file-truename to handle symlinks in any part of the filename.
+
 2008-11-22  Glenn Morris  <rgm@gnu.org>
 
 	* vc-mtn.el (vc-mtn-diff-switches): New option.

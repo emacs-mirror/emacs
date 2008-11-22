@@ -850,8 +850,7 @@ This function assumes that the file is registered."
   "If current buffer visits a symbolic link, visit the real file.
 If the real file is already visited in another buffer, make that buffer
 current, and kill the buffer that visits the link."
-  (let* ((truename (abbreviate-file-name (file-chase-links buffer-file-name)))
-         (true-buffer (find-buffer-visiting truename))
+  (let* ((true-buffer (find-buffer-visiting buffer-file-truename))
 	 (this-buffer (current-buffer)))
     (if (eq true-buffer this-buffer)
 	(progn
@@ -885,8 +884,8 @@ current, and kill the buffer that visits the link."
 	(set (make-local-variable 'backup-inhibited) t))
       ;; Let the backend setup any buffer-local things he needs.
       (vc-call-backend (vc-backend buffer-file-name) 'find-file-hook))
-     ((let ((link-type (and (file-symlink-p buffer-file-name)
-			    (vc-backend (file-chase-links buffer-file-name)))))
+     ((let ((link-type (and (not (equal buffer-file-name buffer-file-truename))
+                            (vc-backend buffer-file-truename))))
 	(cond ((not link-type) nil)	;Nothing to do.
 	      ((eq vc-follow-symlinks nil)
 	       (message
