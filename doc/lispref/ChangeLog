@@ -1,3 +1,12 @@
+2008-11-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi (Top): Remove "Chars and Bytes" and "Splitting
+	Characters" from @detailmenu.
+
+	* nonascii.texi (Character Codes, Character Sets)
+	(Scanning Charsets, Translation of Characters): Update for Emacs 23.
+	(Chars and Bytes, Splitting Characters): Sections removed.
+
 2008-11-22  Lute Kamstra  <lute@gnu.org>
 
 	* positions.texi (Text Lines): Update goto-line documentation.
