@@ -47,7 +47,7 @@ directory using `find-file'.  If t, open the `*scratch*' buffer."
   :type '(choice
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
-	  (file      :tag "File" :value "~/file.txt")
+	  (file      :tag "File" :value "~/.emacs")
 	  (const     :tag "Lisp scratch buffer" t))
   :version "23.1"
   :group 'initialization)
