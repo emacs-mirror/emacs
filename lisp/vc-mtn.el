@@ -33,12 +33,30 @@
 
 (eval-when-compile (require 'cl) (require 'vc))
 
+(defcustom vc-mtn-diff-switches t
+  "String or list of strings specifying switches for monotone diff under VC.
+If nil, use the value of `vc-diff-switches'.
+If you want to force an empty list of arguments, use t."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List"
+			 :value ("")
+			 string))
+  :version "23.1"
+  :group 'vc)
+
+(define-obsolete-variable-alias 'vc-mtn-command 'vc-mtn-program "23.1")
+(defcustom vc-mtn-program "mtn"
+  "Name of the monotone executable."
+  :type 'string
+  :group 'vc)
+
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
 (put 'Mtn 'vc-functions nil)
 
-(defvar vc-mtn-command "mtn")
-(unless (executable-find vc-mtn-command)
+(unless (executable-find vc-mtn-program)
   ;; vc-mtn.el is 100% non-functional without the `mtn' executable.
   (setq vc-handled-backends (delq 'Mtn vc-handled-backends)))
 
@@ -75,7 +93,8 @@
   (let ((process-environment
          ;; Avoid localization of messages so we can parse the output.
          (cons "LC_MESSAGES=C" process-environment)))
-    (apply 'vc-do-command (or buffer "*vc*") okstatus vc-mtn-command files flags)))
+    (apply 'vc-do-command (or buffer "*vc*") okstatus vc-mtn-program
+           files flags)))
 
 (defun vc-mtn-state (file)
   ;; If `mtn' fails or returns status>0, or if the search files, just
@@ -183,8 +202,11 @@
 ;;   )
 
 (defun vc-mtn-diff (files &optional rev1 rev2 buffer)
+  "Get a difference report using monotone between two revisions of FILES."
   (apply 'vc-mtn-command (or buffer "*vc-diff*") 1 files "diff"
-         (append (if rev1 (list "-r" rev1)) (if rev2 (list "-r" rev2)))))
+         (append
+           (vc-switches (if vc-mtn-diff-switches 'mtn) 'diff)
+           (if rev1 (list "-r" rev1)) (if rev2 (list "-r" rev2)))))
 
 (defun vc-mtn-annotate-command (file buf &optional rev)
   (apply 'vc-mtn-command buf 0 file "annotate"
