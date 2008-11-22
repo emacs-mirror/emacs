@@ -1089,8 +1089,6 @@ Non-ASCII Characters
                                 codes of individual characters.
 * Character Sets::          The space of possible character codes
                                 is divided into various character sets.
-* Chars and Bytes::         More information about multibyte encodings.
-* Splitting Characters::    Converting a character to its byte sequence.
 * Scanning Charsets::       Which character sets are used in a buffer?
 * Translation of Characters::   Translation tables are used for conversion.
 * Coding Systems::          Coding systems are conversions for saving files.
