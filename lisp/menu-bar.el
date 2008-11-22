@@ -452,7 +452,7 @@
 (defvar yank-menu (cons "Select Yank" nil))
 (fset 'yank-menu (cons 'keymap yank-menu))
 (define-key menu-bar-edit-menu [paste-from-menu]
-  '(menu-item "Paste From Kill Menu" yank-menu
+  '(menu-item "Paste from Kill Menu" yank-menu
 	      :enable (and (cdr yank-menu) (not buffer-read-only))
 	      :help "Choose a string from the kill ring and paste it"))
 (define-key menu-bar-edit-menu [paste]
