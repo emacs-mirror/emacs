@@ -801,8 +801,8 @@ It is called by the function `isearch-forward' and other related functions."
   (isearch-push-state)
 
   (setq overriding-terminal-local-map isearch-mode-map)
-  (isearch-update)
   (run-hooks 'isearch-mode-hook)
+  (isearch-update)
 
   (add-hook 'mouse-leave-buffer-hook 'isearch-done)
   (add-hook 'kbd-macro-termination-hook 'isearch-done)
