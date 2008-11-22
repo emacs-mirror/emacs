@@ -1,7 +1,7 @@
 ;;; kmacro.el --- enhanced keyboard macros
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -253,8 +253,9 @@ macro to be executed before appending to it."
 
 
 (defun kmacro-insert-counter (arg)
-  "Insert macro counter and increment with ARG or 1 if missing.
-With \\[universal-argument], insert previous `kmacro-counter' (but do not modify counter)."
+  "Insert macro counter, then increment it by ARG.
+Interactively, ARG defaults to 1.  With \\[universal-argument], insert
+previous `kmacro-counter', and do not modify counter."
   (interactive "P")
   (if kmacro-initial-counter-value
       (setq kmacro-counter kmacro-initial-counter-value
