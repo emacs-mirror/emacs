@@ -1,5 +1,10 @@
 2008-11-22  Juri Linkov  <juri@jurta.org>
 
+	* dired.texi (Dired Navigation): Change normal file name search option
+	from `non-nil' to `t'.  Add `dwim' option.
+
+2008-11-22  Juri Linkov  <juri@jurta.org>
+
 	* custom.texi (Directory Variables): Rename ".dir-settings.el" to
 	".dir-locals.el".  Rename `define-project-bindings' to
 	`dir-locals-set-class-variables'.  Rename `set-directory-project' to
