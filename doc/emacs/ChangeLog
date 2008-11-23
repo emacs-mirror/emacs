@@ -1,7 +1,13 @@
 2008-11-23  Chong Yidong  <cyd@stupidchicken.com>
 
+	* entering.texi (Exiting): Menion "minimize" terminology.
+
+	* frames.texi (Frame Commands): Mention "minimize" terminology.
+
 	* cmdargs.texi (Font X): Document Fontconfig and GTK font specification
 	formats.
+	(Icons X): Mention "minimize" terminology and use of icons in taskbar.
+	(Misc X): Don't document useless -hb option.
 
 2008-11-22  Juri Linkov  <juri@jurta.org>
 
