@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
-;; Version: 6.12a
+;; Version: 6.13
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org, wp, tex
@@ -613,7 +613,9 @@ If NUM, export sections as numerical sections."
 	 (occur (number-to-string (cdr (assoc 'occur subcontent))))
 	 (content (cdr (assoc 'content subcontent)))
 	 (subcontent (cadr (assoc 'subcontent subcontent)))
-	 (label (org-get-text-property-any 0 'target heading)))
+	 (label (org-get-text-property-any 0 'target heading))
+	 (label-list (cons label (cdr (assoc label
+					     org-export-target-aliases)))))
     (cond
      ;; Normal conversion
      ((<= level org-export-latex-sectioning-depth)
@@ -624,7 +626,9 @@ If NUM, export sections as numerical sections."
 		  end (nth (if num 1 3) sec))
 	  (setq start (if num (car sec) (cdr sec))))
 	(insert (format start heading) "\n")
-	(when label (insert (format "\\label{%s}\n" label)))
+	(when label
+	  (insert (mapconcat (lambda (l) (format "\\label{%s}" l))
+			     label-list "\n") "\n"))
 	(insert (org-export-latex-content content))
 	(cond ((stringp subcontent) (insert subcontent))
 	      ((listp subcontent) (org-export-latex-sub subcontent)))

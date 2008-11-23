@@ -4,7 +4,7 @@
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 6.12a
+;; Version: 6.13
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -626,7 +626,7 @@ Default for INDEX-FILENAME is 'index.org'."
     (if index-buffer
 	(kill-buffer index-buffer))
     (with-temp-buffer
-      (insert (concat "* " index-title "\n\n"))
+      (insert (concat "#+TITLE: " index-title "\n\n"))
       (while (setq file (pop files))
 	(let ((fn (file-name-nondirectory file))
 	      (link (file-relative-name file dir))
@@ -703,7 +703,7 @@ Default for INDEX-FILENAME is 'index.org'."
 	    (if force nil org-publish-use-timestamps-flag)))
       (org-publish-projects
        (list (or project
-		 (assoc (completing-read
+		 (assoc (org-ido-completing-read
 			 "Publish project: "
 			 org-publish-project-alist nil t)
 			org-publish-project-alist)))))))

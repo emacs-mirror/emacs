@@ -3,9 +3,10 @@
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
+;;         Tassilo Horn <tassilo at member dot fsf dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.12a
+;; Version: 6.13
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -37,7 +38,11 @@
 
 ;; Customization variables
 
-(defcustom org-usenet-links-prefer-google nil
+(when (fboundp 'defvaralias)
+  (defvaralias 'org-usenet-links-prefer-google 'org-gnus-prefer-web-links
+    "Deprecated name for `org-gnus-prefer-web-links'."))
+
+(defcustom org-gnus-prefer-web-links nil
   "Non-nil means, `org-store-link' will create web links to Google groups.
 When nil, Gnus will be used for such links.
 Using a prefix arg to the command \\[org-store-link] (`org-store-link')
@@ -57,50 +62,83 @@ negates this setting for the duration of the command."
 (add-hook 'org-store-link-functions 'org-gnus-store-link)
 
 ;; Implementation
+
+(defun org-gnus-group-link (group)
+  "Create a link to the Gnus group GROUP.
+If GROUP is a newsgroup and `org-gnus-prefer-web-links' is
+non-nil, create a link to groups.google.com or gmane.org.
+Otherwise create a link to the group inside Gnus.
+
+If `org-store-link' was called with a prefix arg the meaning of
+`org-gnus-prefer-web-links' is reversed."
+  (let ((unprefixed-group (replace-regexp-in-string "^[^:]+:" "" group)))
+    (if (and (string-match "^nntp" group) ;; Only for nntp groups
+	     (org-xor current-prefix-arg
+		      org-gnus-prefer-web-links))
+	(concat (if (string-match "gmane" unprefixed-group)
+		    "http://news.gmane.org/"
+		  "http://groups.google.com/group/")
+		unprefixed-group)
+      (concat "gnus:" group))))
+
+(defun org-gnus-article-link (group newsgroups message-id x-no-archive)
+  "Create a link to a Gnus article.
+The article is specified by its MESSAGE-ID.  Additional
+parameters are the Gnus GROUP, the NEWSGROUPS the article was
+posted to and the X-NO-ARCHIVE header value of that article.
+
+If GROUP is a newsgroup and `org-gnus-prefer-web-links' is
+non-nil, create a link to groups.google.com or gmane.org.
+Otherwise create a link to the article inside Gnus.
+
+If `org-store-link' was called with a prefix arg the meaning of
+`org-gnus-prefer-web-links' is reversed."
+  (if (and (org-xor current-prefix-arg org-gnus-prefer-web-links)
+	   newsgroups	  ;; Make web links only for nntp groups
+	   (not x-no-archive)) ;; and if X-No-Archive isn't set.
+      (format (if (string-match "gmane\\." newsgroups)
+		  "http://mid.gmane.org/%s"
+		"http://groups.google.com/groups/search?as_umsgid=%s")
+	      (org-fixup-message-id-for-http
+	       (replace-regexp-in-string "[<>]" "" message-id)))
+    (org-make-link "gnus:" group "#" message-id)))
+
 (defun org-gnus-store-link ()
   "Store a link to a Gnus folder or message."
   (cond
    ((eq major-mode 'gnus-group-mode)
-    (let ((group (cond ((fboundp 'gnus-group-group-name) ; depending on Gnus
-			(gnus-group-group-name))         ; version
-		       ((fboundp 'gnus-group-name)
-			(gnus-group-name))
-		       (t "???")))
-	  desc link)
+    (let* ((group (cond ((fboundp 'gnus-group-group-name) ; depending on Gnus
+			 (gnus-group-group-name))         ; version
+			((fboundp 'gnus-group-name)
+			 (gnus-group-name))
+			(t "???")))
+	   desc link)
       (unless group (error "Not on a group"))
       (org-store-link-props :type "gnus" :group group)
-      (setq desc (concat
-		  (if (org-xor current-prefix-arg
-			       org-usenet-links-prefer-google)
-		      "http://groups.google.com/groups?group="
-		    "gnus:")
-		  group)
+      (setq desc (org-gnus-group-link group)
 	    link (org-make-link desc))
       (org-add-link-props :link link :description desc)
       link))
 
    ((memq major-mode '(gnus-summary-mode gnus-article-mode))
-    (and (eq major-mode 'gnus-article-mode) (gnus-article-show-summary))
+    (and (eq major-mode 'gnus-summary-mode) (gnus-summary-show-article))
     (let* ((group gnus-newsgroup-name)
-	   (article (gnus-summary-article-number))
-	   (header (gnus-summary-article-header article))
-	   (from (mail-header-from header))
-	   (message-id (mail-header-id header))
-	   (date (mail-header-date header))
-	   (extra (mail-header-extra header))
-	   (to (cdr (assoc 'To extra)))
+	   (header (with-current-buffer gnus-article-buffer
+		     (gnus-summary-toggle-header 1)
+		     (goto-char (point-min))
+		     (mail-header-extract-no-properties)))
+	   (from (mail-header 'from header))
+	   (message-id (mail-header 'message-id header))
+	   (date (mail-header 'date header))
+	   (to (mail-header 'to header))
+	   (newsgroups (mail-header 'newsgroups header))
+	   (x-no-archive (mail-header 'x-no-archive header))
 	   (subject (gnus-summary-subject-string))
 	   desc link)
       (org-store-link-props :type "gnus" :from from :subject subject
 			    :message-id message-id :group group :to to)
-      (setq desc (org-email-link-description))
-      (if (org-xor current-prefix-arg org-usenet-links-prefer-google)
-	  (setq link
-		(format "http://groups.google.com/groups?as_umsgid=%s"
-			(org-fixup-message-id-for-http message-id)))
-	(setq link (org-make-link "gnus:" group "#"
-				  (or message-id
-				      (number-to-string article)))))
+      (setq desc (org-email-link-description)
+	    link (org-gnus-article-link group newsgroups message-id x-no-archive))
       (org-add-link-props :link link :description desc)
       link))))
 

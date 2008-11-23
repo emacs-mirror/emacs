@@ -6,7 +6,7 @@
 ;;         Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.12a
+;; Version: 6.13
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -71,6 +71,18 @@ the safe choice."
   :type '(choice (const :tag "dot like in \"2.\"" ?.)
 		 (const :tag "paren like in \"2)\"" ?\))
 		 (const :tab "both" t)))
+
+(defcustom org-list-two-spaces-after-bullet-regexp nil
+  "A regular expression matching bullets that should have 2 spaces after them.
+When nil, no bullet will have two spaces after them.
+When a string, it will be used as a regular expression.  When the bullet
+type of a list is changed, the new bullet type will be matched against this
+regexp.  If it matches, there will be two spaces instead of one after
+the bullet in each item of he list."
+  :group 'org-plain-list
+  :type '(choice
+	  (const :tag "never" nil)
+	  (regexp)))
 
 (defcustom org-empty-line-terminates-plain-lists nil
   "Non-nil means, an empty line ends all plain list levels.
@@ -259,7 +271,7 @@ the whole buffer."
  (save-excursion
    (let* ((buffer-invisibility-spec (org-inhibit-invisibility)) ; Emacs 21
 	  (beg (condition-case nil
-		   (progn (outline-back-to-heading) (point))
+		   (progn (org-back-to-heading) (point))
 		 (error (point-min))))
 	  (end (move-marker (make-marker)
 			    (progn (outline-next-heading) (point))))
@@ -589,7 +601,7 @@ If WHICH is a string, use that as the new bullet.  If WHICH is an integer,
    (beginning-of-line 1)
    (let ((current (match-string 0))
 	 (prevp (eq which 'previous))
-	 new)
+	 new old)
      (setq new (cond
 		((and (numberp which)
 		      (nth (1- which) '("-" "+" "*" "1." "1)"))))
@@ -597,10 +609,14 @@ If WHICH is a string, use that as the new bullet.  If WHICH is an integer,
 		((string-match "\\+" current)
 		 (if prevp "-" (if (looking-at "\\S-") "1." "*")))
 		((string-match "\\*" current) (if prevp "+" "1."))
-		((string-match "\\." current) (if prevp "*" "1)"))
+		((string-match "\\." current)
+		 (if prevp (if (looking-at "\\S-") "+" "*") "1)"))
 		((string-match ")" current) (if prevp "1." "-"))
 		(t (error "This should not happen"))))
-     (and (looking-at "\\([ \t]*\\)\\S-+") (replace-match (concat "\\1" new)))
+     (and (looking-at "\\([ \t]*\\)\\(\\S-+\\)")
+	  (setq old (match-string 2))
+	  (replace-match (concat "\\1" new)))
+     (org-shift-item-indentation (- (length new) (length old)))
      (org-fix-bullet-type)
      (org-maybe-renumber-ordered-list))))
 
@@ -629,7 +645,7 @@ with something like \"1.\" or \"2)\"."
 	      (buffer-substring (point-at-bol) (match-beginning 3))))
 	;; (term (substring (match-string 3) -1))
 	ind1 (n (1- arg))
-	fmt bobp)
+	fmt bobp old new)
     ;; find where this list begins
     (org-beginning-of-item-list)
     (setq bobp (bobp))
@@ -647,26 +663,32 @@ with something like \"1.\" or \"2)\"."
 	  (if (> ind1 ind) (throw 'next t))
 	  (if (< ind1 ind) (throw 'exit t))
 	  (if (not (org-at-item-p)) (throw 'exit nil))
+	  (setq old (match-string 2))
 	  (delete-region (match-beginning 2) (match-end 2))
 	  (goto-char (match-beginning 2))
-	  (insert (format fmt (setq n (1+ n)))))))
+	  (insert (setq new (format fmt (setq n (1+ n)))))
+	  (org-shift-item-indentation (- (length new) (length old))))))
     (goto-line line)
     (org-move-to-column col)))
 
 (defun org-fix-bullet-type ()
-  "Make sure all items in this list have the same bullet as the firsst item."
+  "Make sure all items in this list have the same bullet as the first item.
+Also, fix the indentation."
   (interactive)
   (unless (org-at-item-p) (error "This is not a list"))
   (let ((line (org-current-line))
 	(col (current-column))
 	(ind (current-indentation))
-	ind1 bullet)
+	ind1 bullet oldbullet)
     ;; find where this list begins
     (org-beginning-of-item-list)
     (beginning-of-line 1)
     ;; find out what the bullet type is
     (looking-at "[ \t]*\\(\\S-+\\)")
-    (setq bullet (match-string 1))
+    (setq bullet (concat (match-string 1) " "))
+    (if (and org-list-two-spaces-after-bullet-regexp
+	     (string-match org-list-two-spaces-after-bullet-regexp bullet))
+	(setq bullet (concat bullet " ")))
     ;; walk forward and replace these numbers
     (beginning-of-line 0)
     (catch 'exit
@@ -680,12 +702,30 @@ with something like \"1.\" or \"2)\"."
 	  (if (< ind1 ind) (throw 'exit t))
 	  (if (not (org-at-item-p)) (throw 'exit nil))
 	  (skip-chars-forward " \t")
-	  (looking-at "\\S-+")
-	  (replace-match bullet))))
+	  (looking-at "\\S-+ *")
+	  (setq oldbullet (match-string 0))
+	  (replace-match bullet)
+	  (org-shift-item-indentation (- (length bullet) (length oldbullet))))))
     (goto-line line)
     (org-move-to-column col)
     (if (string-match "[0-9]" bullet)
 	(org-renumber-ordered-list 1))))
+
+(defun org-shift-item-indentation (delta)
+  "Shift the indentation in current item by DELTA."
+  (save-excursion
+    (let ((beg (point-at-bol))
+	  (end (progn (org-end-of-item) (point)))
+	  i)
+      (goto-char end)
+      (beginning-of-line 0)
+      (while (> (point) beg)
+	(when (looking-at "[ \t]*\\S-")
+	  ;; this is not an empty line
+	  (setq i (org-get-indentation))
+	  (if (and (> i 0) (> (setq i (+ i delta)) 0))
+	      (indent-line-to i)))
+	(beginning-of-line 0)))))
 
 (defun org-beginning-of-item-list ()
   "Go to the beginning of the current item list.

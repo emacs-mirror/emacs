@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.12a
+;; Version: 6.13
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -202,6 +202,12 @@ column view defines special faces for each outline level.  See the file
   (set-face-attribute 'org-column nil
 		      :height (face-attribute 'default :height)
 		      :family (face-attribute 'default :family)))
+
+(defface org-agenda-column-dateline
+  (org-compatible-face 'org-column
+    '((t nil)))
+  "Face used in agenda column view for datelines with summaries."
+  :group 'org-faces)
 
 (defface org-warning
   (org-compatible-face 'font-lock-warning-face

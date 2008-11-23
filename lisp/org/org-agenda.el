@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.12a
+;; Version: 6.13
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -877,6 +877,20 @@ Set this to something like \"%-12s\" if you want all TODO keywords
 to occupy a fixed space in the agenda display."
   :group 'org-agenda-line-format
   :type 'string)
+
+(defcustom org-agenda-timerange-leaders '("" "(%d/%d): ")
+  "Text preceding timerange entries in the agenda view.
+This is a list with two strings.  The first applies when the range
+is entirely on one day.  The second applies if the range spans several days.
+The strings may have two \"%d\" format specifiers which will be filled
+with the sequence number of the days, and the total number of days in the
+range, respectively."
+  :group 'org-agenda-line-format
+  :type '(list
+	  (string :tag "Deadline today   ")
+	  (choice :tag "Deadline relative"
+		  (string :tag "Format string")
+		  (function))))
 
 (defcustom org-agenda-scheduled-leaders '("Scheduled: " "Sched.%2dx: ")
   "Text preceeding scheduled items in the agenda view.
@@ -2722,7 +2736,7 @@ for a keyword.  A numeric prefix directly selects the Nth keyword in
 	 rtn rtnall files file pos)
     (when (equal arg '(4))
       (setq org-select-this-todo-keyword
-	    (completing-read "Keyword (or KWD1|K2D2|...): "
+	    (org-ido-completing-read "Keyword (or KWD1|K2D2|...): "
 			     (mapcar 'list kwds) nil nil)))
     (and (equal 0 arg) (setq org-select-this-todo-keyword nil))
     (org-set-local 'org-last-arg arg)
@@ -3384,7 +3398,7 @@ the documentation of `org-diary'."
 	  (push txt ee))))
     (nreverse ee)))
 
-(defalias 'org-get-closed 'org-agenda-get-progress)
+(defalias 'org-get-closed 'org-get-progress)
 (defun org-agenda-get-progress ()
   "Return the logged TODO entries for agenda display."
   (let* ((props (list 'mouse-face 'highlight
@@ -3398,7 +3412,7 @@ the documentation of `org-diary'."
 	 (items (if (consp org-agenda-show-log)
 		    org-agenda-show-log
 		  org-agenda-log-mode-items))
-	 (parts
+	 (parts 
 	  (delq nil
 		(list
 		 (if (memq 'closed items) (concat "\\<" org-closed-string))
@@ -3677,8 +3691,10 @@ FRACTION is what fraction of the head-warning time has passed."
 			 (org-entry-is-done-p)
 			 (throw :skip t))
 		    (setq txt (org-format-agenda-item
-			       (format (if (= d1 d2) "" "(%d/%d): ")
-				       (1+ (- d0 d1)) (1+ (- d2 d1)))
+			       (format
+				(nth (if (= d1 d2) 0 1)
+				     org-agenda-timerange-leaders)
+				(1+ (- d0 d1)) (1+ (- d2 d1)))
 			       head category tags
 			       (if (= d0 d1) timestr))))
 		(setq txt org-agenda-no-heading-message))
@@ -4255,7 +4271,7 @@ to switch to narrowing."
 	(org-set-local 'org-global-tags-completion-table
 		       (org-global-tags-completion-table)))
       (let ((completion-ignore-case t))
-	(setq tag (completing-read
+	(setq tag (org-ido-completing-read
 		   "Tag: " org-global-tags-completion-table))))
     (cond
      ((equal char ?/) (org-agenda-filter-by-tag-show-all))

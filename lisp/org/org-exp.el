@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.12a
+;; Version: 6.13
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1415,6 +1415,9 @@ translations.  There is currently no way for users to extend this.")
 
 ;;; General functions for all backends
 
+(defvar org-export-target-aliases nil
+  "Alist of targets with invisible aliases.")
+
 (defun org-export-preprocess-string (string &rest parameters)
   "Cleanup STRING so that that the true exported has a more consistent source.
 This function takes STRING, which should be a buffer-string of an org-file
@@ -1430,6 +1433,8 @@ on this string to produce the exported version."
 	 (drawers org-drawers)
 	 (outline-regexp "\\*+ ")
 	 target-alist rtn)
+
+    (setq org-export-target-aliases nil)
 
     (with-current-buffer (get-buffer-create " org-mode-tmp")
       (erase-buffer)
@@ -1464,7 +1469,7 @@ on this string to produce the exported version."
       ;; Get the correct stuff before the first headline
       (when (plist-get parameters :skip-before-1st-heading)
 	(goto-char (point-min))
-	(when (re-search-forward "^\\*+[ \t]" nil t)
+	(when (re-search-forward "\\(^#.*\n\\)^\\*+[ \t]" nil t)
 	  (delete-region (point-min) (match-beginning 0))
 	  (goto-char (point-min))
 	  (insert "\n")))
@@ -1576,7 +1581,7 @@ The new targets are added to TARGET-ALIST, which is also returned."
 (defun org-export-handle-invisible-targets (target-alist)
   "Find targets in comments and move them out of comments.
 Mark them as invisible targets."
-  (let (target tmp)
+  (let (target tmp a)
     (goto-char (point-min))
     (while (re-search-forward "^#.*?\\(<<<?\\([^>\r\n]+\\)>>>?\\).*" nil t)
       ;; Check if the line before or after is a headline with a target
@@ -1587,8 +1592,13 @@ Mark them as invisible targets."
 	    (setq tmp (match-string 2))
 	    (replace-match "")
 	    (and (looking-at "\n") (delete-char 1))
-	    (push (cons (org-solidify-link-text tmp) target)
-		  target-alist))
+	    (push (cons (setq tmp (org-solidify-link-text tmp)) target)
+		  target-alist)
+	    (setq a (or (assoc target org-export-target-aliases)
+			(progn
+			  (push (list target) org-export-target-aliases)
+			  (car org-export-target-aliases))))
+	    (push tmp (cdr a)))
 	;; Make an invisible target
 	(replace-match "\\1(INVISIBLE)"))))
   target-alist)
@@ -1622,8 +1632,8 @@ let the link  point to the corresponding section."
 		   (or (get-text-property (point) 'target)
 		       (get-text-property
 			(max (point-min)
-			     (1- (previous-single-property-change
-				  (point) 'target)))
+			     (1- (or (previous-single-property-change
+				      (point) 'target) 0)))
 			'target))))))))
        (when target
 	 (set-match-data md)
@@ -1885,7 +1895,8 @@ When it is nil, all comments will be removed."
       (goto-char (1- (match-end 0)))
       (org-if-unprotected
        (let* ((xx (save-match-data
-		    (org-link-expand-abbrev (match-string 1))))
+		    (org-translate-link
+		     (org-link-expand-abbrev (match-string 1)))))
 	      (s (concat
 		  "[[" xx "]"
 		  (if (match-end 3)
@@ -2149,7 +2160,7 @@ backends, it converts the segment into an EXAMPLE segment."
     (cond
      (htmlp
       ;; We are exporting to HTML
-      (condition-case nil (require 'htmlize) (nil t))
+      (require 'htmlize nil t)
       (if (not (fboundp 'htmlize-region-for-paste))
 	  (progn
 	    ;; we do not have htmlize.el, or an old version of it
@@ -2423,6 +2434,9 @@ underlined headlines.  The default is 3."
 		   "\n") "\n")))
        (t
 	(setq line (org-fix-indentation line org-ascii-current-indentation))
+	;; Remove forced line breaks
+	(if (string-match "\\\\\\\\[ \t]*$" line)
+	    (setq line (replace-match "" t t line)))
 	(if (and org-export-with-fixed-width
 		 (string-match "^\\([ \t]*\\)\\(:\\)" line))
 	    (setq line (replace-match "\\1" nil nil line)))
@@ -3183,9 +3197,10 @@ lang=\"%s\" xml:lang=\"%s\">
 	    (cond
 	     ((match-end 2)
 	      (setq line (replace-match
-			  (concat "@<a name=\""
-				  (org-solidify-link-text (match-string 1 line))
-				  "\">\\nbsp@</a>")
+			  (format
+			   "@<a name=\"%s\" id=\"%s\">@</a>"
+			   (org-solidify-link-text (match-string 1 line))
+			   (org-solidify-link-text (match-string 1 line)))
 			  t t line)))
 	     ((and org-export-with-toc (equal (string-to-char line) ?*))
 	      ;; FIXME: NOT DEPENDENT on TOC?????????????????????
@@ -3233,7 +3248,9 @@ lang=\"%s\" xml:lang=\"%s\">
 	      (save-match-data
 		(if (string-match "^file:" desc)
 		    (setq desc (substring desc (match-end 0)))))
-	      (setq desc (concat "<img src=\"" desc "\"/>")))
+	      (setq desc (org-add-props
+			     (concat "<img src=\"" desc "\"/>")
+			     '(org-protected t))))
 	    ;; FIXME: do we need to unescape here somewhere?
 	    (cond
 	     ((equal type "internal")
@@ -3250,7 +3267,10 @@ lang=\"%s\" xml:lang=\"%s\">
 	      (if (and (or (eq t org-export-html-inline-images)
 			   (and org-export-html-inline-images (not descp)))
 		       (org-file-image-p path))
-		  (setq rpl (concat "<img src=\"" type ":" path "\"" attr "/>"))
+		  (setq rpl (concat "<img src=\"" type ":" path "\""
+				    (if (string-match "\\<alt=" attr)
+					attr (concat attr " alt=\"" path "\""))
+				    "/>"))
 		(setq link (concat type ":" path))
 		(setq rpl (concat "<a href=\"" 
 				  (org-export-html-format-href link)
@@ -3308,7 +3328,11 @@ lang=\"%s\" xml:lang=\"%s\">
 				   (or (eq t org-export-html-inline-images)
 				       (and org-export-html-inline-images
 					    (not descp))))
-			      (concat "<img src=\"" thefile "\"" attr "/>")
+			      (concat "<img src=\"" thefile "\""
+				      (if (string-match "alt=" attr)
+					  attr
+					(concat attr " alt=\""
+						thefile "\"")) "/>")
 			    (concat "<a href=\"" thefile "\"" attr ">"
 				    (org-export-html-format-desc desc)
 				    "</a>")))
@@ -3503,7 +3527,7 @@ lang=\"%s\" xml:lang=\"%s\">
 			    (and org-export-with-toc (<= level umax))
 			    head-count)
       ;; the </div> to close the last text-... div.
-      (insert "</div>\n")
+      (when (and (> umax 0) first-heading-pos) (insert "</div>\n"))
 
       (save-excursion
 	(goto-char (point-min))
@@ -3604,7 +3628,7 @@ lang=\"%s\" xml:lang=\"%s\">
 
 (defun org-export-html-format-desc (s)
   "Make sure the S is valid as a description in a link."
-  (if s
+  (if (and s (not (get-text-property 1 'org-protected s)))
       (save-match-data
 	(org-html-do-expand s))
     s))
@@ -4143,9 +4167,15 @@ stacked delimiters is N.  Escaping delimiters is not possible."
   "Insert a new level in HTML export.
 When TITLE is nil, just close all open levels."
   (org-close-par-maybe)
-  (let ((target (and title (org-get-text-property-any 0 'target title)))
-	(l org-level-max)
-	snumber)
+  (let* ((target (and title (org-get-text-property-any 0 'target title)))
+	 (extra-targets
+	  (mapconcat (lambda (x)
+		       (format "<a name=\"%s\" id=\"%s\"></a>"
+			       x x))
+		     (cdr (assoc target org-export-target-aliases))
+		     ""))
+	 (l org-level-max)
+	 snumber)
     (while (>= l level)
       (if (aref org-levels-open (1- l))
 	  (progn
@@ -4173,13 +4203,13 @@ When TITLE is nil, just close all open levels."
 		(progn
 		  (org-close-li)
 		  (if target
-		      (insert (format "<li id=\"%s\">" target) title "<br/>\n")
+		      (insert (format "<li id=\"%s\">" target) extra-targets title "<br/>\n")
 		    (insert "<li>" title "<br/>\n")))
 	      (aset org-levels-open (1- level) t)
 	      (org-close-par-maybe)
 	      (if target
 		  (insert (format "<ul>\n<li id=\"%s\">" target)
-			  title "<br/>\n")
+			  extra-targets title "<br/>\n")
 		(insert "<ul>\n<li>" title "<br/>\n"))))
 	(aset org-levels-open (1- level) t)
 	(setq snumber (org-section-number level))
@@ -4187,8 +4217,8 @@ When TITLE is nil, just close all open levels."
 	    (setq title (concat snumber " " title)))
 	(setq level (+ level org-export-html-toplevel-hlevel -1))
 	(unless (= head-count 1) (insert "\n</div>\n"))
-	(insert (format "\n<div id=\"outline-container-%s\" class=\"outline-%d\">\n<h%d id=\"sec-%s\">%s</h%d>\n<div id=\"text-%s\">\n"
-			snumber level level snumber title level snumber))
+	(insert (format "\n<div id=\"outline-container-%s\" class=\"outline-%d\">\n<h%d id=\"sec-%s\">%s%s</h%d>\n<div id=\"text-%s\">\n"
+			snumber level level snumber extra-targets title level snumber))
 	(org-open-par)))))
 
 (defun org-get-text-property-any (pos prop &optional object)
@@ -4523,15 +4553,41 @@ characters."
       (while (string-match "\\([,;]\\)" s start)
 	(setq start (+ (match-beginning 0) 2)
 	      s (replace-match "\\\\\\1" nil nil s))))
+    (setq s (org-trim s))
     (when is-body
       (while (string-match "[ \t]*\n[ \t]*" s)
 	(setq s (replace-match "\\n" t t s))))
-    (setq s (org-trim s))
     (if is-body
 	(if maxlength
 	    (if (and (numberp maxlength)
 		     (> (length s) maxlength))
 		(setq s (substring s 0 maxlength)))))
+    s))
+
+(defun org-icalendar-cleanup-string-rfc2455 (s &optional is-body maxlength)
+  "Take out stuff and quote what needs to be quoted.
+When IS-BODY is non-nil, assume that this is the body of an item, clean up
+whitespace, newlines, drawers, and timestamps, and cut it down to MAXLENGTH
+characters.
+This seems to be more like RFC 2455, but it causes problems, so it is
+not used right now."
+  (if (not s)
+      nil
+    (if is-body
+	(let ((re (concat "\\(" org-drawer-regexp "\\)[^\000]*?:END:.*\n?"))
+	      (re2 (concat "^[ \t]*" org-keyword-time-regexp ".*\n?")))
+	  (while (string-match re s) (setq s (replace-match "" t t s)))
+	  (while (string-match re2 s) (setq s (replace-match "" t t s)))
+	  (setq s (org-trim s))
+	  (while (string-match "[ \t]*\n[ \t]*" s)
+	    (setq s (replace-match "\\n" t t s)))
+	  (if maxlength
+	      (if (and (numberp maxlength)
+		       (> (length s) maxlength))
+		  (setq s (substring s 0 maxlength)))))
+      (setq s (org-trim s)))
+    (while (string-match "\"" s) (setq s (replace-match "''" t t s)))
+    (when (string-match "[;,:]" s) (setq s (concat "\"" s "\"")))
     s))
 
 (defun org-get-entry ()

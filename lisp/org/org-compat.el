@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.12a
+;; Version: 6.13
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -277,8 +277,15 @@ that can be added."
 
 (defun org-propertize (string &rest properties)
   (if (featurep 'xemacs)
-      (add-text-properties 0 (length string) properties string)
+      (progn
+	(add-text-properties 0 (length string) properties string)
+	string)
     (apply 'propertize string properties)))
+
+(defun org-substring-no-properties (string &optional from to)
+  (if (featurep 'xemacs)
+      (org-no-properties (substring string from to))
+    (substring-no-properties string from to)))
 
 (provide 'org-compat)
 

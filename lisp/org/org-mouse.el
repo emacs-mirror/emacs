@@ -4,7 +4,7 @@
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
-;; Version: 6.12a
+;; Version: 6.13
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -144,7 +144,7 @@
 (defvar org-agenda-undo-list)
 (defvar org-agenda-custom-commands)
 (declare-function org-agenda-change-all-lines "org-agenda"
-		  (newhead hdmarker &optional fixface just-this))
+		  (newhead hdmarker &optional fixface))
 (declare-function org-verify-change-for-undo "org-agenda" (l1 l2))
 
 (defvar org-mouse-plain-list-regexp "\\([ \t]*\\)\\([-+*]\\|[0-9]+[.)]\\) "
@@ -584,7 +584,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      (beginning-of-line)
      (looking-at "[ \t]*")
      (open-line 1)
-     (indent-to (- (match-end 0) (match-beginning 0)))
+     (org-indent-to-column (- (match-end 0) (match-beginning 0)))
      (insert "+ "))
 
     (:middle			; insert after

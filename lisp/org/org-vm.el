@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.12a
+;; Version: 6.13
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -111,6 +111,7 @@
     (funcall (cdr (assq 'vm org-link-frame-setup)) folder readonly)
     (sit-for 0.1)
     (when article
+      (require 'vm-search)
       (vm-select-folder-buffer)
       (widen)
       (let ((case-fold-search t))

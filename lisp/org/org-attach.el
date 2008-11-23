@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data task
-;; Version: 6.12a
+;; Version: 6.13
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -153,6 +153,9 @@ D       Delete all of a task's attachments.  A safer way is
   "Return the directory associated with the current entry.
 If the directory does not exist and CREATE-IF-NOT-EXISTS-P is non-nil,
 the directory and the corresponding ID will be created."
+  (when (and (not (buffer-file-name (buffer-base-buffer)))
+	     (not (file-name-absolute-p org-attach-directory)))
+    (error "Need absolute `org-attach-directory' to attach in buffers without filename."))
   (let ((uuid (org-id-get (point) create-if-not-exists-p)))
     (when (or uuid create-if-not-exists-p)
       (unless uuid
@@ -245,7 +248,7 @@ The attachment is created as an Emacs buffer."
   (let* ((attach-dir (org-attach-dir t))
 	 (files (org-attach-file-list attach-dir))
 	 (file (or file
-		   (completing-read
+		   (org-ido-completing-read
 		    "Delete attachment: "
 		    (mapcar (lambda (f)
 			      (list (file-name-nondirectory f)))
@@ -320,7 +323,7 @@ If IN-EMACS is non-nil, force opening in Emacs."
 	 (files (org-attach-file-list attach-dir))
 	 (file (if (= (length files) 1)
 		   (car files)
-		 (completing-read "Open attachment: "
+		 (org-ido-completing-read "Open attachment: "
 				  (mapcar 'list files) nil t))))
     (org-open-file (expand-file-name file attach-dir) in-emacs)))
 

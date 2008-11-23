@@ -4,7 +4,7 @@
 ;;
 ;; Author: Philip Jackson <emacs@shellarchive.co.uk>
 ;; Keywords: erc, irc, link, org
-;; Version: 6.12a
+;; Version: 6.13
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -27,7 +27,7 @@
 ;; Org-mode loads this module by default - if this is not what you want,
 ;; configure the variable `org-modules'.
 ;;
-;; Please customize the variable `org-default-extensions' to select
+;; Please customize the variable `org-modules' to select
 ;; extensions you would like to use, and to deselect those which you don't
 ;; want.
 ;;

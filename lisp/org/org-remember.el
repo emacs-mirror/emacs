@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.12a
+;; Version: 6.13
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -54,7 +54,7 @@
 (defcustom org-remember-store-without-prompt t
   "Non-nil means, `C-c C-c' stores remember note without further prompts.
 It then uses the file and headline specified by the template or (if the
-themplate does not specify them) by the variables `org-default-notes-file'
+template does not specify them) by the variables `org-default-notes-file'
 and `org-remember-default-headline'.  To force prompting anyway, use 
 `C-u C-c C-c' to file the note.
 
@@ -194,6 +194,26 @@ calendar           |  %:type %:date"
 		 (repeat :tag "Use only if in major mode"
 			 (symbol :tag "Major mode"))
 		 (function :tag "Perform a check against function")))))
+
+(defcustom org-remember-before-finalize-hook nil
+  "Hook that is run right before a remember process is finalized.
+The remember buffer is still current when this hook runs."
+  :group 'org-remember
+  :type 'hook)
+
+(defvar org-remember-mode-map (make-sparse-keymap)
+  "Keymap for org-remember-mode, a minor mode.
+Use this map to set additional keybindings for when Org-mode is used
+for a Remember buffer.")
+(defvar org-remember-mode-hook nil
+  "Hook for the minor `org-remember-mode'.")
+
+(define-minor-mode org-remember-mode
+  "Minor mode for special key bindings in a remember buffer."
+  nil " Rem" org-remember-mode-map
+  (run-hooks 'org-remember-mode-hook))
+(define-key org-remember-mode-map "\C-c\C-c" 'org-remember-finalize)
+(define-key org-remember-mode-map "\C-c\C-k" 'org-remember-kill)
 
 (defcustom org-remember-clock-out-on-exit 'query
   "Non-nil means, stop the clock when exiting a clocking remember buffer.
@@ -360,7 +380,7 @@ to be run from that hook to function properly."
 		    v-a))
 	     (v-n user-full-name)
 	     (v-k (if (marker-buffer org-clock-marker)
-		      (substring-no-properties org-clock-heading)))
+		      (org-substring-no-properties org-clock-heading)))
 	     (v-K (if (marker-buffer org-clock-marker)
 		      (org-make-link-string
 		       (buffer-file-name (marker-buffer org-clock-marker))
@@ -446,8 +466,7 @@ to be run from that hook to function properly."
 		 (replace-match x t t))))
 
 	;; Turn on org-mode in the remember buffer, set local variables
-	(let ((org-inhibit-startup t)) (org-mode))
-	(org-set-local 'org-finish-function 'org-remember-finalize)
+	(let ((org-inhibit-startup t)) (org-mode) (org-remember-mode 1))
 	(if (and file (string-match "\\S-" file) (not (file-directory-p file)))
 	    (org-set-local 'org-default-notes-file file))
 	(if headline
@@ -474,7 +493,7 @@ to be run from that hook to function properly."
 		    (org-global-tags-completion-table
 		     (if (equal char "G") (org-agenda-files) (and file (list file)))))
 		   (org-add-colon-after-tag-completion t)
-		   (ins (completing-read
+		   (ins (org-ido-completing-read
 			 (if prompt (concat prompt ": ") "Tags: ")
 			 'org-tags-completion-function nil nil nil
 			 'org-tags-history)))
@@ -501,17 +520,23 @@ to be run from that hook to function properly."
 						   (car clipboards))))))
 	   ((equal char "p")
 	    (let*
-		((prop (substring-no-properties prompt))
-		 (allowed (with-current-buffer
-			      (get-buffer (file-name-nondirectory file))
-			    (org-property-get-allowed-values nil prop 'table)))
+		((prop (org-substring-no-properties prompt))
+		 (pall (concat prop "_ALL"))
+		 (allowed
+		  (with-current-buffer
+		      (get-buffer (file-name-nondirectory file))
+		    (or (cdr (assoc pall org-file-properties))
+			(cdr (assoc pall org-global-properties))
+			(cdr (assoc pall org-global-properties-fixed)))))
 		 (existing (with-current-buffer
 			       (get-buffer (file-name-nondirectory file))
 			     (mapcar 'list (org-property-values prop))))
 		 (propprompt (concat "Value for " prop ": "))
 		 (val (if allowed
-			  (org-completing-read propprompt allowed nil
-					       'req-match)
+			  (org-completing-read
+			   propprompt
+			   (mapcar 'list (org-split-string allowed "[ \t]+"))
+			   nil 'req-match)
 			(org-completing-read propprompt existing nil nil
 					     "" nil ""))))
 	      (org-set-property prop val)))
@@ -524,17 +549,17 @@ to be run from that hook to function properly."
 				   (member char '("u" "U"))
 				   nil nil (list org-end-time-was-given)))
 	   (t
-	    (insert (org-completing-read
-		     (concat (if prompt prompt "Enter string")
-			     (if default (concat " [" default "]"))
-			     ": ")
-		     completions nil nil nil histvar default)))))
+	    (let (org-completion-use-ido)
+	      (insert (org-completing-read
+		       (concat (if prompt prompt "Enter string")
+			       (if default (concat " [" default "]"))
+			       ": ")
+		       completions nil nil nil histvar default))))))
 	(goto-char (point-min))
 	(if (re-search-forward "%\\?" nil t)
 	    (replace-match "")
 	  (and (re-search-forward "^[^#\n]" nil t) (backward-char 1))))
-    (let ((org-inhibit-startup t)) (org-mode))
-    (org-set-local 'org-finish-function 'org-remember-finalize))
+    (let ((org-inhibit-startup t)) (org-mode) (org-remember-mode 1)))
   (when (save-excursion
 	  (goto-char (point-min))
 	  (re-search-forward "%&" nil t))
@@ -551,8 +576,7 @@ to be run from that hook to function properly."
 This should be run in `post-command-hook' and will remove itself
 from that hook."
   (remove-hook 'post-command-hook 'org-remember-finish-immediately)
-  (when org-finish-function
-    (funcall org-finish-function)))
+  (org-remember-finalize))
 
 (defun org-remember-visit-immediately ()
   "File remember note immediately.
@@ -572,6 +596,10 @@ from that hook."
 (defvar org-clock-marker) ; Defined in org.el
 (defun org-remember-finalize ()
   "Finalize the remember process."
+  (interactive)
+  (unless org-remember-mode
+    (error "This does not seem to be a remember buffer for Org-mode"))
+  (run-hooks 'org-remember-before-finalize-hook)
   (unless (fboundp 'remember-finalize)
     (defalias 'remember-finalize 'remember-buffer))
   (when (and org-clock-marker
@@ -586,6 +614,12 @@ from that hook."
     (save-buffer)
     (setq buffer-file-name nil))
   (remember-finalize))
+
+(defun org-remember-kill ()
+  "Abort the current remember process."
+  (interactive)
+  (let ((org-note-abort t))
+    (org-remember-finalize)))
 
 ;;;###autoload
 (defun org-remember (&optional goto org-force-remember-template-char)
@@ -610,7 +644,7 @@ associated with a template in `org-remember-templates'."
     ;; `org-select-remember-template'
     (setq org-select-template-temp-major-mode major-mode)
     (setq org-select-template-original-buffer (current-buffer))
-    (if (eq org-finish-function 'org-remember-finalize)
+    (if org-remember-mode
 	(progn
 	  (when (< (length org-remember-templates) 2)
 	    (error "No other template available"))
@@ -769,6 +803,10 @@ See also the variable `org-reverse-note-order'."
 		 (not fastp))
 	(org-refile nil (or visiting (find-file-noselect file)))
 	(and visitp (run-with-idle-timer 0.01 nil 'org-remember-visit-immediately))
+	(save-excursion
+	  (bookmark-jump "org-refile-last-stored")
+	  (bookmark-set "org-remember-last-stored")
+	  (move-marker org-remember-last-stored-marker (point)))
 	(throw 'quit t))
       ;; Find the file
       (if (not visiting) (find-file-noselect file))
