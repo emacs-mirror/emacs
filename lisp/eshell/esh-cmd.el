@@ -274,7 +274,10 @@ command line.")
 (defvar eshell-current-command nil)
 (defvar eshell-command-name nil)
 (defvar eshell-command-arguments nil)
-(defvar eshell-in-pipeline-p nil)
+(defvar eshell-in-pipeline-p nil
+  "Internal Eshell variable, non-nil inside a pipeline.
+Has the value 'first, 'last for the first/last commands in the pipeline,
+otherwise t.")
 (defvar eshell-in-subcommand-p nil)
 (defvar eshell-last-arguments nil)
 (defvar eshell-last-command-name nil)
@@ -816,8 +819,9 @@ this grossness will be made to disappear by using `call/cc'..."
      (eshell-protect-handles eshell-current-handles)
      ,object))
 
-(defmacro eshell-do-pipelines (pipeline)
-  "Execute the commands in PIPELINE, connecting each to one another."
+(defmacro eshell-do-pipelines (pipeline &optional notfirst)
+  "Execute the commands in PIPELINE, connecting each to one another.
+This macro calls itself recursively, with NOTFIRST non-nil."
   (when (setq pipeline (cadr pipeline))
     `(eshell-copy-handles
       (progn
@@ -825,7 +829,7 @@ this grossness will be made to disappear by using `call/cc'..."
 	   `(let (nextproc)
 	      (progn
 		(set 'nextproc
-		     (eshell-do-pipelines (quote ,(cdr pipeline))))
+		     (eshell-do-pipelines (quote ,(cdr pipeline)) t))
 		(eshell-set-output-handle ,eshell-output-handle
 					  'append nextproc)
 		(eshell-set-output-handle ,eshell-error-handle
@@ -839,10 +843,13 @@ this grossness will be made to disappear by using `call/cc'..."
 	      (setcar head
 		      (intern-soft
 		       (concat (symbol-name (car head)) "*"))))))
-	;; Indicate to the command if it is the last in the pipeline.
-	;; Currently only used by eshell-ls-files.
-	;; Perhaps nil, rather than 'last, would be OK?
-	(let ((eshell-in-pipeline-p ,(if (cdr pipeline) t (quote 'last))))
+	;; First and last elements in a pipeline may need special treatment.
+	;; (Currently only eshell-ls-files uses 'last.)
+	;; Affects process-connection-type in eshell-gather-process-output.
+	(let ((eshell-in-pipeline-p
+	       ,(cond ((not notfirst) (quote 'first))
+		      ((cdr pipeline) t)
+		      (t (quote 'last)))))
 	  ,(car pipeline))))))
 
 (defmacro eshell-do-pipelines-synchronously (pipeline)
