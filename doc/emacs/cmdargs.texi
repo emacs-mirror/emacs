@@ -779,117 +779,182 @@ remote machine.
 @appendixsec Font Specification Options
 @cindex font name (X Window System)
 
-  By default, Emacs displays text in a twelve point Courier font (when
-using X).  You can specify a different font on your command line
-through the option @samp{-fn @var{name}} (or @samp{--font}, which is
-an alias for @samp{-fn}).
+  By default, Emacs displays text in X using a twelve point monospace
+font.  You can specify a different font using the command line option
+@samp{-fn @var{font}} (or @samp{--font}, which is an alias for
+@samp{-fn}).
 
 @table @samp
-@item -fn @var{name}
+@item -fn @var{font}
 @opindex -fn
-@itemx --font=@var{name}
+@itemx --font=@var{font}
 @opindex --font
 @cindex specify default font from the command line
-Use font @var{name} as the default font.
+Use @var{font} as the default font.
 @end table
 
-  Under X, each font has a long name which consists of fourteen words
-or numbers, separated by dashes.  Some fonts also have shorter
-nicknames.  For instance, @samp{9x15} is such a nickname.  This font
-makes each character nine pixels wide and fifteen pixels high.  You
-can use either kind of name.  Case is insignificant in both kinds.
-You can use wildcard patterns for the font name; then Emacs lets X
-choose one of the fonts that match the pattern.  The wildcard
-character @samp{*} matches any sequence of characters (including none)
-and @samp{?} matches any single character.  However, matching is
-implementation-dependent, and can be inaccurate when wildcards match
-dashes in a long name.  For reliable results, supply all 14 dashes and
-use wildcards only within a field.  Here is an example, which happens
-to specify the font whose nickname is @samp{6x13}:
+@cindex X defaults file
+@cindex X resources file
+
+  You can also specify the font using your X resources file (usually a
+file named @file{.Xdefaults} or @file{.Xresources} in your home
+directory), by adding a line like this:
 
 @smallexample
-emacs -fn \
-  "-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1" &
+emacs.font: @samp{font}
 @end smallexample
 
 @noindent
-You can also specify the font in your @file{.Xdefaults} file:
+You must restart X, or use the @command{xrdb} command, for the X
+resources file to take effect.  @xref{Resources}.
+
+@cindex fontconfig
+  There are four different ways to express a ``font name''.  The first
+is to use the @dfn{Fontconfig format}, which has the following form:
 
 @smallexample
-emacs.font: -misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
+@var{fontname}[-@var{fontsize}][:@var{property1}][:@var{property2}]...
 @end smallexample
 
-  Note that if you use a wildcard pattern on the command line, you
-need to enclose it in single or double quotes, to prevent the shell
-from accidentally expanding it into a list of file names.  On the
-other hand, you should not quote the name in the @file{.Xdefaults}
-file.
-
-The default font used by Emacs (under X) is:
+@noindent
+Within this format, any of the elements in braces may be omitted.
+Here, @var{fontname} is the ``family name'' of the font, such as
+@samp{Monospace} or @samp{DejaVu Serif}; @var{fontsize} is the ``point
+size'' of the font (one ``printer's point'' is about 1/72 of an inch);
+and the @var{property} entries specify font settings such as
+@samp{bold}, @samp{italic}, @samp{weight=bold}, @samp{slant=oblique},
+and so forth.  Here are some examples of specifying fonts using the
+Fontconfig format:
 
 @smallexample
--adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1
+Monospace
+Monospace-12
+Monospace-12:bold
+DejaVu Sans Mono:bold:italic
+Monospace-12:weight=bold:slant=italic
 @end smallexample
 
-  A long font name has the following form:
+@noindent
+When passing a font specification to Emacs on the command line, you
+may need to ``quote'' it, by enclosing it in quotation marks, if it
+contains characters that the shell treats specially (e.g. spaces).
+For example:
+
+@smallexample
+emacs -fn "DejaVu Sans Mono-12"
+@end smallexample
+
+@noindent
+When specifying a font in your X resources file, you should not quote
+it.
+
+  The second way to specify a font is to use the @dfn{GTK format}.
+This has the syntax
+
+@smallexample
+@var{fontname} [@var{properties}] [@var{fontsize}]
+@end smallexample
+
+where @var{fontname} is the family name, @var{properties} is a list of
+font properties separated by spaces, and @var{fontsize} is the point
+size.  For example:
+
+@smallexample
+Monospace 12
+Monospace Bold Italic 12
+@end smallexample
+
+@cindex XLFD
+@cindex X Logical Font Description
+  The third way to specify a font is to use an @dfn{XLFD} (@dfn{X
+Logical Font Description}), which is the traditional method for
+specifying fonts under X.  Each XLFD consists of fourteen words or
+numbers, separated by dashes, like this:
+
+@smallexample
+-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
+@end smallexample
+
+@noindent
+A wildcard character (@samp{*}) in an XLFD matches any sequence of
+characters (including none), and @samp{?} matches any single
+character.  However, matching is implementation-dependent, and can be
+inaccurate when wildcards match dashes in a long name.  For reliable
+results, supply all 14 dashes and use wildcards only within a field.
+Case is insignificant in an XLFD.  The syntax for an XLFD is as
+follows:
 
 @smallexample
 -@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}
 @dots{}-@var{pixels}-@var{height}-@var{horiz}-@var{vert}-@var{spacing}-@var{width}-@var{registry}-@var{encoding}
 @end smallexample
 
+@noindent
+The entries have the following meanings:
+
 @table @var
 @item maker
-This is the name of the font manufacturer.
+The name of the font manufacturer.
 @item family
-This is the name of the font family---for example, @samp{courier}.
+The name of the font family (e.g. @samp{courier}).
 @item weight
-This is normally @samp{bold}, @samp{medium} or @samp{light}.  Other
-words may appear here in some font names.
+The font weight---normally either @samp{bold}, @samp{medium} or
+@samp{light}.  Some font names support other values.
 @item slant
-This is @samp{r} (roman), @samp{i} (italic), @samp{o} (oblique),
-@samp{ri} (reverse italic), or @samp{ot} (other).
+The font slant---normally @samp{r} (roman), @samp{i} (italic),
+@samp{o} (oblique), @samp{ri} (reverse italic), or @samp{ot} (other).
+Some font names support other values.
 @item widthtype
-This is normally @samp{condensed}, @samp{extended}, @samp{semicondensed}
-or @samp{normal}.  Other words may appear here in some font names.
+The font width---normally @samp{condensed}, @samp{extended},
+@samp{semicondensed} or @samp{normal} (some font names support other
+values).
 @item style
-This is an optional additional style name.  Usually it is empty---most
-long font names have two hyphens in a row at this point.
+An optional additional style name.  Usually it is empty---most long
+font names have two hyphens in a row at this point.
 @item pixels
-This is the font height, in pixels.
+The font height, in pixels.
 @item height
-This is the font height on the screen, measured in tenths of a printer's
-point---approximately 1/720 of an inch.  In other words, it is the point
-size of the font, times ten.  For a given vertical resolution,
-@var{height} and @var{pixels} are proportional; therefore, it is common
-to specify just one of them and use @samp{*} for the other.
+The font height on the screen, measured in tenths of a printer's
+point.  This is the point size of the font, times ten.  For a given
+vertical resolution, @var{height} and @var{pixels} are proportional;
+therefore, it is common to specify just one of them and use @samp{*}
+for the other.
 @item horiz
-This is the horizontal resolution, in pixels per inch, of the screen for
-which the font is intended.
+The horizontal resolution, in pixels per inch, of the screen for which
+the font is intended.
 @item vert
-This is the vertical resolution, in pixels per inch, of the screen for
-which the font is intended.  Normally the resolution of the fonts on
-your system is the right value for your screen; therefore, you normally
+The vertical resolution, in pixels per inch, of the screen for which
+the font is intended.  Normally the resolution of the fonts on your
+system is the right value for your screen; therefore, you normally
 specify @samp{*} for this and @var{horiz}.
 @item spacing
 This is @samp{m} (monospace), @samp{p} (proportional) or @samp{c}
 (character cell).
 @item width
-This is the average character width, in pixels, multiplied by ten.
+The average character width, in pixels, multiplied by ten.
 @item registry
 @itemx encoding
-These together make up the X font character set that the font depicts.
-(X font character sets are not the same as Emacs charsets, but they
-are solutions for the same problem.)  You can use the
-@command{xfontsel} program to check which choices you have.  However,
-normally you should use @samp{iso8859} for @var{registry} and @samp{1}
-for @var{encoding}.
+The X font character set that the font depicts.  (X font character
+sets are not the same as Emacs character sets, but they are similar.)
+You can use the @command{xfontsel} program to check which choices you
+have.  Normally you should use @samp{iso8859} for @var{registry} and
+@samp{1} for @var{encoding}.
 @end table
+
+  Some fonts have shorter nicknames, which you can use instead of a
+normal font specification.  For instance,
+
+@smallexample
+-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
+@end smallexample
+
+@noindent
+is equivalent to @samp{6x13}.
 
 @cindex listing system fonts
   You will probably want to use a fixed-width default font---that is,
 a font in which all characters have the same width.  Any font with
-@samp{m} or @samp{c} in the @var{spacing} field of the long name is a
+@samp{m} or @samp{c} in the @var{spacing} field of the XLFD is a
 fixed-width font.  Here's how to use the @command{xlsfonts} program to
 list all the fixed-width fonts available on your system:
 
@@ -910,9 +975,8 @@ xfd -fn 6x13
 @noindent
 displays the entire font @samp{6x13}.
 
-  While running Emacs, you can set the font of the current frame
-(@pxref{Frame Parameters}) or for a specific kind of text
-(@pxref{Faces}).
+  While running Emacs, you can set the font of a specific kind of text
+(@pxref{Faces}), or of a particular frame (@pxref{Frame Parameters}).
 
 @node Colors
 @appendixsec Window Color Options
