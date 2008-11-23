@@ -1,3 +1,12 @@
+2008-11-23  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (uniscribe_encode_char): Ensure context is
+	restored before returning.
+
+	* w32font.c (check_face_name): New function.
+	(add_font_entity_to_list): Use it to filter out common substituted
+	fonts.
+
 2008-11-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.c (Fswitch_to_buffer): Reword and mention new option
