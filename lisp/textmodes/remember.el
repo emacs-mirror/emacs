@@ -207,13 +207,13 @@
   :group 'remember)
 
 (defcustom remember-filter-functions nil
-  "*Functions run to filter remember data.
+  "Functions run to filter remember data.
 All functions are run in the remember buffer."
   :type 'hook
   :group 'remember)
 
 (defcustom remember-handler-functions '(remember-append-to-file)
-  "*Functions run to process remember data.
+  "Functions run to process remember data.
 Each function is called with the current buffer narrowed to what the
 user wants remembered.
 If any function returns non-nil, the data is assumed to have been
@@ -226,8 +226,7 @@ recorded somewhere by that function. "
   :group 'remember)
 
 (defcustom remember-all-handler-functions nil
-  "If non-nil every function in `remember-handler-functions' is
-called."
+  "If non-nil every function in `remember-handler-functions' is called."
   :type 'boolean
   :group 'remember)
 
@@ -237,7 +236,7 @@ called."
   "The name of the remember data entry buffer.")
 
 (defcustom remember-save-after-remembering t
-  "*Non-nil means automatically save after remembering."
+  "Non-nil means automatically save after remembering."
   :type 'boolean
   :group 'remember)
 
@@ -260,8 +259,7 @@ called."
   :group 'remember)
 
 (defcustom remember-run-all-annotation-functions-flag nil
-  "Non-nil means use all annotations returned by
-`remember-annotation-functions'."
+  "Non-nil means use all annotations returned by `remember-annotation-functions'."
   :type 'boolean
   :group 'remember)
 
@@ -342,19 +340,19 @@ With a prefix or a visible region, use the region as INITIAL."
 ;; Remembering to UNIX mailboxes
 
 (defcustom remember-mailbox "~/Mail/remember"
-  "*The file in which to store remember data as mail."
+  "The file in which to store remember data as mail."
   :type 'file
   :group 'remember)
 
 (defcustom remember-default-priority "medium"
-  "*The default priority for remembered mail messages."
+  "The default priority for remembered mail messages."
   :type 'string
   :group 'remember)
 
 (defun remember-store-in-mailbox ()
   "Store remember data as if it were incoming mail.
 In which case `remember-mailbox' should be the name of the mailbox.
-Each piece of psuedo-mail created will have an `X-Todo-Priority'
+Each piece of pseudo-mail created will have an `X-Todo-Priority'
 field, for the purpose of appropriate splitting."
   (let ((who (read-string "Who is this item related to? "))
         (moment
@@ -391,12 +389,12 @@ Subject: %s\n\n"
 ;; Remembering to plain files
 
 (defcustom remember-data-file (convert-standard-filename "~/.notes")
-  "*The file in which to store unprocessed data."
+  "The file in which to store unprocessed data."
   :type 'file
   :group 'remember)
 
 (defcustom remember-leader-text "** "
-  "*The text used to begin each remember item."
+  "The text used to begin each remember item."
   :type 'string
   :group 'remember)
 
@@ -426,7 +424,7 @@ that was entered.
 If BEG and END are nil, the entire buffer will be remembered.
 
 If you want to remember a region, supply a universal prefix to
-`remember' instead.  For example: C-u M-x remember RET."
+`remember' instead.  For example: \\[universal-argument] \\[remember] RET."
   ;; Sacha: I have no idea where remember.el gets this context information, but
   ;; you can just use remember-annotation-functions.
   (interactive)
@@ -465,7 +463,7 @@ application."
 ;;; Diary integration
 
 (defcustom remember-diary-file nil
-  "*File for extracted diary entries.
+  "File for extracted diary entries.
 If this is nil, then `diary-file' will be used instead."
   :type 'file
   :group 'remember)
@@ -524,25 +522,18 @@ If this is nil, then `diary-file' will be used instead."
     (define-key map "\C-x\C-s" 'remember-finalize)
     (define-key map "\C-c\C-c" 'remember-finalize)
     (define-key map "\C-c\C-k" 'remember-destroy)
-
     map)
   "Keymap used in Remember mode.")
 
-(defun remember-mode ()
+(define-derived-mode remember-mode indented-text-mode "Remember"
   "Major mode for output from \\[remember].
 This buffer is used to collect data that you want to remember.
-
-Just hit `C-c C-c' when you're done entering, and it will file
+\\<remember-mode-map>
+Just hit \\[remember-finalize] when you're done entering, and it will file
 the data away for latter retrieval, and possible indexing.
 
 \\{remember-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (indented-text-mode)
-  (use-local-map remember-mode-map)
-  (setq major-mode 'remember-mode
-        mode-name "Remember")
-  (run-hooks 'remember-mode-hook))
+  (set-keymap-parent remember-mode-map nil))
 
 ;; arch-tag: 59312a05-06c7-4da1-b6f7-5ea41c9d5577
 ;;; remember.el ends here
