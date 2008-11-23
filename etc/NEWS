@@ -33,7 +33,7 @@ default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 ** New font code.
 Fonts are handled by new code capable of dealing with multiple font
 backends.  This uses the freetype and fontconfig libraries.
-
++++
 *** Emacs now accepts font names supplied in the fontconfig format
 (e.g. "monospace-12:bold") and GTK format (e.g. "Monospace Bold 12").
 
