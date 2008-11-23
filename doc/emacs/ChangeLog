@@ -1,3 +1,8 @@
+2008-11-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cmdargs.texi (Font X): Document Fontconfig and GTK font specification
+	formats.
+
 2008-11-22  Juri Linkov  <juri@jurta.org>
 
 	* dired.texi (Dired Navigation): Change normal file name search option
