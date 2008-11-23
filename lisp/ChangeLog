@@ -1,3 +1,14 @@
+2008-11-23  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-cmd.el (eshell-in-pipeline-p): Add doc-string.
+	(eshell-do-pipelines): Add optional argument to distinguish recursive
+	calls.  Use to set eshell-in-pipeline-p to 'first for the first command
+	in a pipeline.
+
+	* eshell/esh-proc.el (eshell-gather-process-output):
+	Set process-connection-type nil for all but the first element of a
+	pipeline.  (Bug#1388)
+
 2008-11-22  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-isearch-filenames): Add new context-dependent
