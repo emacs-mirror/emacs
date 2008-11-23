@@ -20,9 +20,9 @@ names---are clearly redundant, and have been removed.
 
 @item
 Emacs no longer performs font anti-aliasing.  If your fonts look ugly,
-try choosing a larger font and increasing the screen resolution.  This
-may admittedly become difficult as you go further back in time, since
-available screen resolutions will decrease.
+try choosing a larger font and increasing the screen resolution.
+Admittedly, this becomes difficult as you go further back in time,
+since available screen resolutions will decrease.
 
 @item
 Emacs has added support for some soon-to-be-non-obsolete platforms.
