@@ -1,7 +1,8 @@
 2008-11-22  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* viper.texi (viper-translate-all-ESC-keysequences): description removed.
-	
+
+	* viper.texi (viper-translate-all-ESC-keysequences):
+	Description removed.
+
 2008-11-19  Glenn Morris  <rgm@gnu.org>
 
 	* doclicense.texi: Change to FDL 1.3.
@@ -90,8 +91,8 @@
 2008-09-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Top, Setup, Fancy splitting to parent)
-	(Store custom flags and keywords, Store arbitrary data): Clean up
-	markup.
+	(Store custom flags and keywords, Store arbitrary data):
+	Clean up markup.
 
 2008-09-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -99,8 +100,8 @@
 
 2008-09-08  David Engster  <dengste@eml.cc>
 
-	* gnus.texi (nnmairix): Point out that nnml uses MH format.  Clarify
-	section about choosing back end servers.
+	* gnus.texi (nnmairix): Point out that nnml uses MH format.
+	Clarify section about choosing back end servers.
 
 2008-08-23  Glenn Morris  <rgm@gnu.org>
 
@@ -131,8 +132,8 @@
 
 2008-08-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus.texi (Sorting the Summary Buffer, Summary Sorting): Add
-	gnus-summary-sort-by-most-recent-number and
+	* gnus.texi (Sorting the Summary Buffer, Summary Sorting):
+	Add gnus-summary-sort-by-most-recent-number and
 	gnus-summary-sort-by-most-recent-date.
 	(Summary Sorting): Explain prefix argument.
 
