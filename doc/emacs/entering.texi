@@ -89,7 +89,8 @@ because the startup screen is set up before reading
 @item C-x C-c
 Kill Emacs (@code{save-buffers-kill-terminal}).
 @item C-z
-Suspend Emacs (@code{suspend-emacs}) or iconify a frame
+On a text terminal, suspend Emacs (@code{suspend-emacs}); on a
+graphical display, iconify (or ``minimize'') the selected frame
 (@code{iconify-or-deiconify-frame}).
 @end table
 
