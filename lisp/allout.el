@@ -1830,7 +1830,7 @@ single keystroke.  Regular navigation keys (eg, \\[forward-char], \\[next-line])
 this special translation, so you can use them to get out of the
 hot-spot and back to normal editing operation.
 
-In allout-mode, the normal beginning-of-line command (\\[allout-beginning-of-line]]) is
+In allout-mode, the normal beginning-of-line command (\\[allout-beginning-of-line]) is
 replaced with one that makes it easy to get to the hot-spot.  If you
 repeat it immediately it cycles (if `allout-beginning-of-line-cycles'
 is set) to the beginning of the item and then, if you hit it again

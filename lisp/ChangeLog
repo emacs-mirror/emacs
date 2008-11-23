@@ -1,3 +1,10 @@
+2008-11-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-mode): Fix typo in docstring.
+
+	* vc-annotate.el (vc-annotate-warp-revision): Reflow docstring.
+	(vc-annotate-very-old-color, vc-annotate-display): Fix docstring typos.
+
 2008-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-follow-link): Complete last change.
