@@ -23,9 +23,9 @@
 
 2008-11-22  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-hook.el: added tooltips to Emacs menus.
+	* ediff-hook.el: Add tooltips to Emacs menus.
 
-	* ediff.el: changed date of last update.
+	* ediff.el: Change date of last update.
 
 2008-11-22  Juri Linkov  <juri@jurta.org>
 
