@@ -1,3 +1,11 @@
+2008-11-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Setting up Remember): Document `org-remember-mode'.
+	(External links): Document that bbdb links can use a regular
+	expression.
+	(External links): Document that elisp links can contain interactive
+	commands.
+
 2008-11-22  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper.texi (viper-translate-all-ESC-keysequences):
