@@ -8,6 +8,13 @@
 	* eshell/esh-proc.el (eshell-gather-process-output):
 	Set process-connection-type nil for all but the first element of a
 	pipeline.  (Bug#1388)
+	
+2008-11-22  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff-hook.el: added tooltips to Emacs menus.
+	
+	* ediff.el: changed date of last update.
+	
 
 2008-11-22  Juri Linkov  <juri@jurta.org>
 
