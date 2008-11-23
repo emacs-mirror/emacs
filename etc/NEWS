@@ -437,7 +437,7 @@ supported in `partial-completion-mode'.
 +++
 *** S-down-mouse-1 now pops up a menu for changing the font and text
 size of the default face in the current buffer.  The face is changed
-via face remapping (see below).
+via face remapping (see Lisp changes, below).
 +++
 *** New commands to change the default face size in the current buffer.
 To increase it, type `C-x C-+' or `C-x C-='.  To decrease it, type
