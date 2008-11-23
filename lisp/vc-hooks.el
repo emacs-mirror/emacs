@@ -853,7 +853,7 @@ current, and kill the buffer that visits the link."
   (let* ((true-buffer (find-buffer-visiting buffer-file-truename))
 	 (this-buffer (current-buffer)))
     (if (eq true-buffer this-buffer)
-	(progn
+	(let ((truename buffer-file-truename))
 	  (kill-buffer this-buffer)
 	  ;; In principle, we could do something like set-visited-file-name.
 	  ;; However, it can't be exactly the same as set-visited-file-name.

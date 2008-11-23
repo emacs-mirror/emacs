@@ -1,3 +1,7 @@
+2008-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-follow-link): Complete last change.
+
 2008-11-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/remember.el (remember-region): Doc fix.
