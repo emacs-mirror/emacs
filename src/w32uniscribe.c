@@ -524,9 +524,9 @@ uniscribe_encode_char (font, c)
               result = ScriptGetCMap (context, &(uniscribe_font->cache),
                                       ch, len, 0, glyphs);
               if (SUCCEEDED (result))
-                return glyphs[0];
+                code = glyphs[0];
               else
-                return 0; /* notdef - enough in some cases to get the script
+                code = 0; /* notdef - enough in some cases to get the script
                              engine working, but not others... */
             }
 	}
