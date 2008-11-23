@@ -3,7 +3,7 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.12a
+@set VERSION 6.13
 @set DATE November 2008
 
 @dircategory Emacs
@@ -39,7 +39,7 @@ Copyright @copyright{} 2004, 2005, 2006, 2007, 2008 Free Software Foundation
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.3 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
 and with the Back-Cover Texts as in (a) below.  A copy of the license
@@ -953,7 +953,8 @@ C-x C-y}.  With the default settings, level adjustment will take place and
 yanked trees will be folded unless doing so would swallow text previously
 visible.  Any prefix argument to this command will force a normal @code{yank}
 to be executed, with the prefix passed along.  A good way to force a normal
-yank is @kbd{C-u C-y}.
+yank is @kbd{C-u C-y}.  If you use @code{yank-pop} after a yank, it will yank
+previous kill items plainly, without adjustment and folding.
 @kindex C-c C-w
 @item C-c C-w
 Refile entry or region to a different location.  @xref{Refiling notes}.
@@ -1315,6 +1316,10 @@ region when calling this, all lines will be converted to list items.  If the
 first line already was a list item, any item markers will be removed from the
 list.  Finally, even without an active region, a normal line will be
 converted into a list item.
+@kindex S-@key{left}
+@kindex S-@key{right}
+@item S-@key{left}/@key{right}
+Also cycle bullet styles when in the first line of an item.
 @end table
 
 @node Drawers, Orgstruct mode, Plain lists, Document Structure
@@ -2430,9 +2435,10 @@ convenient to put them into a comment line. For example
 @end example
 
 @noindent In HTML export (@pxref{HTML export}), such targets will become
-named anchors for direct access through @samp{http} links@footnote{Note
-that text before the first headline is usually not exported, so the
-first such target should be after the first headline.}.
+named anchors for direct access through @samp{http} links@footnote{Note that
+text before the first headline is usually not exported, so the first such
+target should be after the first headline, or in the line directly before the
+first headline.}.
 
 If no dedicated target exists, Org will search for the words in the
 link.  In the above example the search would be for @samp{my target}.
@@ -2522,10 +2528,11 @@ rmail:folder                              @r{RMAIL folder link}
 rmail:folder#id                           @r{RMAIL message link}
 gnus:group                                @r{Gnus group link}
 gnus:group#id                             @r{Gnus article link}
-bbdb:Richard Stallman                     @r{BBDB link}
+bbdb:R.*Stallman                          @r{BBDB link (with regexp)}
 irc:/irc.com/#emacs/bob                   @r{IRC link}
 shell:ls *.org                            @r{A shell command}
-elisp:(find-file-other-frame "Elisp.org") @r{An elisp form to evaluate}
+elisp:org-agenda                          @r{Interactive elisp command}
+elisp:(find-file-other-frame "Elisp.org") @r{Elisp form to evaluate}
 @end example
 
 A link should be enclosed in double brackets and may contain a
@@ -3791,7 +3798,7 @@ publishers and the number of disks in a box like this:
 * CD collection
   :PROPERTIES:
   :NDisks_ALL:  1 2 3 4
-  :Publisher_ALL: "Deutsche Grammophon" Phillips EMI
+  :Publisher_ALL: "Deutsche Grammophon" Philips EMI
   :END:
 @end example
 
@@ -3893,9 +3900,10 @@ quotes, a string comparison is done, and the same operators are allowed.
 If the comparison value is enclosed in double quotes @emph{and} angular
 brackets (like @samp{DEADLINE<="<2008-12-24 18:30>"}), both values are
 assumed to be date/time specifications in the standard Org way@footnote{The
-only special values that will be recognized are @samp{"<now>"} for now, and
-@samp{"<today>"} today at 0:00 hours, i.e. without a time specification.}, and
-the comparison will be done accordingly.
+only special values that will be recognized are @samp{"<now>"} for now
+(including time), and @samp{"<today>"}, @samp{<tomorrow>}, and
+@samp{<yesterday>} for these days at 0:00 hours, i.e. without a time
+specification.}, and the comparison will be done accordingly.
 @item
 If the comparison value is enclosed
 in curly braces, a regexp match is performed, with @samp{=} meaning that the
@@ -4985,6 +4993,12 @@ stored: Just call @code{org-remember} with a prefix argument.  If you
 use two prefix arguments, Org jumps to the location where the last
 remember note was stored.
 
+The remember buffer will actually use @code{org-mode} as its major mode, so
+that all editing features of Org-mode are available.  In addition to this, a
+minor mode @code{org-remember-mode} is turned on, for the single purpose that
+you can use its keymap @code{org-remember-mode-map} to overwrite some of
+Org-mode's key bindings.
+
 You can also call @code{org-remember} in a special way from the agenda,
 using the @kbd{k r} key combination.  With this access, any time stamps
 inserted by the selected remember template (see below) will default to
@@ -6060,7 +6074,8 @@ entries that @emph{do} have the tag.  A second @kbd{/} at the prompt will
 turn off the filter and unhide any hidden entries.  If the first key you
 press is either @kbd{+} or @kbd{-}, the previous filter will be narrowed by
 requiring or forbidding the selected additional tag.  Instead of pressing
-@kbd{+} or @kbd{-}, you can also use the @kbd{\} command.
+@kbd{+} or @kbd{-} after @kbd{/}, you can also immediately use the @kbd{\}
+command.
 
 In order to filter for effort estimates, you should set-up allowed
 efforts globally, for example
@@ -7478,10 +7493,10 @@ the subtrees are exported.
 @item C-c C-e
 Dispatcher for export and publishing commands.  Displays a help-window
 listing the additional key(s) needed to launch an export or publishing
-command.  The prefix arg is passed through to the exporter.  If the option
-@code{org-export-run-in-background} is set, Org will run the command in the
-background if that seems useful for the specific command (i.e. commands that
-write to a file).
+command.  The prefix arg is passed through to the exporter.  A double prefix
+@kbd{C-u C-u} causes most commands to be executed in the background, in a
+separate emacs process@footnote{To make this behavior the default, customize
+the variable @code{org-export-run-in-background}.}.
 @kindex C-c C-e v
 @item C-c C-e v
 Like @kbd{C-c C-e}, but only export the text that is currently visible
@@ -8948,6 +8963,11 @@ distribution, others are available somewhere on the web.
 @node Extensions in the contrib directory, Other extensions, Extensions, Extensions
 @section Extensions in the @file{contrib} directory
 
+A number of extension are distributed with Org when you download it from its
+homepage.  Please note that these extensions are @emph{not} distributed as
+part of Emacs, so if you use Org as delivered with Emacs, you still need to
+go to @url{http://orgmode.org} to get access to these modules.
+
 @table @asis
 @item @file{org-annotate-file.el} by @i{Philip Jackson}
       Annotate a file with org syntax, in a separate file, with links back to
@@ -8973,6 +8993,10 @@ distribution, others are available somewhere on the web.
       to include text in a document that is the result of evaluating some
       code.  Other scripting languages like @code{perl} can be supported with
       this package as well.
+@item @file{org-eval-light.el} by @i{Eric Schulte}
+      User-controlled evaluation of code in an Org buffer.
+@item @file{org-exp-blocks.el} by @i{Eric Schulte}
+      Preprocess user-defined blocks for export.
 @item @file{org-expiry.el} by @i{Bastien Guerry}
       Expiry mechanism for Org entries.
 @item @file{org-indent.el} by @i{Carsten Dominik}
@@ -8994,8 +9018,6 @@ distribution, others are available somewhere on the web.
       to publish the same file using either org-publish or Muse.
 @item @file{org-panel.el} by @i{Lennard Borgman}
       Simplified and display-aided access to some Org commands.
-@c @item @file{org-plot.el} by @i{Eric Schulte}
-@c      Plotting Org tables with Gnuplot.
 @item @file{org-registry.el} by @i{Bastien Guerry}
       A registry for Org links, to find out from where links point to a given
       file or location.
@@ -9010,7 +9032,6 @@ distribution, others are available somewhere on the web.
       Convert Org-mode tables to SQL insertions.  Documentation for this can
       be found on the Worg pages.
 @end table
-
 
 @node Other extensions,  , Extensions in the contrib directory, Extensions
 @section Other extensions
@@ -9932,6 +9953,9 @@ Linking to VM/BBDB/Gnus was first inspired by @i{Tom Shannon}'s
 @file{organizer-mode.el}.
 @item
 @i{Ilya Shlyakhter} proposed the Archive Sibling.
+@item
+@i{Stathis Sideris} wrote the @file{ditaa.jar} ASCII to PNG converter that is
+now packaged into Org's @file{contrib} directory.
 @item
 @i{Daniel Sinder} came up with the idea of internal archiving by locking
 subtrees.
