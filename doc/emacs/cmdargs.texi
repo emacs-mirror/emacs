@@ -1136,7 +1136,6 @@ Specify that the height shall be the height of the screen.
 Specify that the width shall be the width of the screen.
 @end table
 
-
 @noindent
 In the @samp{--geometry} option, @code{@r{@{}+-@r{@}}} means either a plus
  sign or a minus sign.  A plus
@@ -1160,12 +1159,12 @@ letting you place it with the mouse.  For example, @samp{164x55}
 specifies a window 164 columns wide, enough for two ordinary width
 windows side by side, and 55 lines tall.
 
-  The default width for Emacs is 80 characters and the default height is
+  The default frame width is 80 characters and the default height is
 40 lines.  You can omit either the width or the height or both.  If
 you start the geometry with an integer, Emacs interprets it as the
 width.  If you start with an @samp{x} followed by an integer, Emacs
-interprets it as the height.  Thus, @samp{81} specifies just the width;
-@samp{x45} specifies just the height.
+interprets it as the height.  Thus, @samp{81} specifies just the
+width; @samp{x45} specifies just the height.
 
   If you start with @samp{+} or @samp{-}, that introduces an offset,
 which means both sizes are omitted.  Thus, @samp{-3} specifies the
@@ -1173,9 +1172,9 @@ which means both sizes are omitted.  Thus, @samp{-3} specifies the
 @var{xoffset}.)  @samp{+3-3} specifies both the @var{xoffset} and the
 @var{yoffset}, placing the frame near the bottom left of the screen.
 
-  You can specify a default for any or all of the fields in
-@file{.Xdefaults} file, and then override selected fields with a
-@samp{--geometry} option.
+  You can specify a default for any or all of the fields in your X
+resource file (@pxref{Resources}), and then override selected fields
+with a @samp{--geometry} option.
 
   Since the mode line and the echo area occupy the last 2 lines of the
 frame, the height of the initial text window is 2 less than the height
@@ -1188,7 +1187,7 @@ the specified height.  The tool bar, if present, is also additional.
 space available for ordinary text.  Therefore, if Emacs starts up with
 a tool bar (which is the default), and handles the geometry
 specification assuming there is a tool bar, and then your
-@file{~/.emacs} file disables the tool bar, you will end up with a
+initialization file disables the tool bar, you will end up with a
 frame geometry different from what you asked for.  To get the intended
 size with no tool bar, use an X resource to specify ``no tool bar''
 (@pxref{Table of Resources}); then Emacs will already know there's no
@@ -1200,8 +1199,8 @@ anyway.  That is because Emacs rounds the sizes so they are an
 even number of character heights and widths.
 
  Some window managers have options that can make them ignore both
-program-specified and user-specified positions (sawfish is one).
-If these are set, Emacs fails to position the window correctly.
+program-specified and user-specified positions.  If these are set,
+Emacs fails to position the window correctly.
 
 @node Borders X
 @appendixsec Internal and External Borders
@@ -1269,49 +1268,48 @@ for the initial Emacs frame.
 @node Icons X
 @appendixsec Icons
 @cindex icons (X Window System)
-
-  Most window managers allow you to ``iconify'' a frame, removing
-it from sight, and leaving a small, distinctive ``icon'' window in its
-place.  Clicking on the icon window makes the frame itself appear again.
-If you have many clients running at once, you can avoid cluttering up
-the screen by iconifying most of the clients.
+@cindex minimizing a frame at startup
 
 @table @samp
+@item -iconic
+@opindex --iconic
+@itemx --iconic
+@cindex start iconified, command-line argument
+Start Emacs in an iconified (``minimized'') state.
+
 @item -nbi
 @opindex -nbi
 @itemx --no-bitmap-icon
 @opindex --no-bitmap-icon
 @cindex Emacs icon, a gnu
 Do not use a picture of a gnu as the Emacs icon.
-
-@item -iconic
-@opindex --iconic
-@itemx --iconic
-@cindex start iconified, command-line argument
-Start Emacs in iconified state.
 @end table
 
-  By default Emacs uses an icon window containing a picture of the GNU gnu.
-The @samp{-nbi} or @samp{--no-bitmap-icon} option tells Emacs to let the
-window manager choose what sort of icon to use---usually just a small
-rectangle containing the frame's title.
+  Most window managers allow you to ``iconify'' (or ``minimize'') an
+Emacs frame, hiding it from sight.  Some window managers replace
+iconified windows with tiny ``icons'', while others remove them
+entirely from sight.  The @samp{-iconic} option tells Emacs to begin
+running in an iconified state, rather than showing a frame right away.
+The text frame doesn't appear until you deiconify (or ``un-minimize'')
+it.
 
-  The @samp{-iconic} option tells Emacs to begin running as an icon,
-rather than showing a frame right away.  In this situation, the icon
-is the only indication that Emacs has started; the text frame doesn't
-appear until you deiconify it.
+  By default, Emacs uses an icon containing the Emacs logo.  On
+desktop environments such as Gnome, this icon is also displayed on the
+``taskbar''.  The @samp{-nbi} or @samp{--no-bitmap-icon} option tells
+Emacs to let the window manager choose what sort of icon to
+use---usually just a small rectangle containing the frame's title.
 
 @node Misc X
 @appendixsec Other Display Options
 
 @table @samp
-@item -hb
-@opindex -hb
-@itemx --horizontal-scroll-bars
-@opindex --horizontal-scroll-bars
-@c @cindex horizontal scroll bars, command-line argument
-Enable horizontal scroll bars.  Since horizontal scroll bars
-are not yet implemented, this actually does nothing.
+@c @item -hb
+@c @opindex -hb
+@c @itemx --horizontal-scroll-bars
+@c @opindex --horizontal-scroll-bars
+@c @c @cindex horizontal scroll bars, command-line argument
+@c Enable horizontal scroll bars.  Since horizontal scroll bars
+@c are not yet implemented, this actually does nothing.
 
 @item -vb
 @opindex -vb
