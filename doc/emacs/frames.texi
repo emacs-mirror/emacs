@@ -511,12 +511,13 @@ vertically.  @xref{Split Window}.
 @cindex creating frames
 
 @kindex C-x 5
-  The prefix key @kbd{C-x 5} is analogous to @kbd{C-x 4}, with parallel
-subcommands.  The difference is that @kbd{C-x 5} commands create a new
-frame rather than just a new window in the selected frame (@pxref{Pop
-Up Window}).  If an existing visible or iconified frame already displays
-the requested material, these commands use the existing frame, after
-raising or deiconifying as necessary.
+  The prefix key @kbd{C-x 5} is analogous to @kbd{C-x 4}, with
+parallel subcommands.  The difference is that @kbd{C-x 5} commands
+create a new frame rather than just a new window in the selected frame
+(@pxref{Pop Up Window}).  If an existing visible or iconified
+(``minimized'') frame already displays the requested material, these
+commands use the existing frame, after raising or deiconifying
+(``un-minimizing'') as necessary.
 
   The various @kbd{C-x 5} commands differ in how they find or create the
 buffer to select:
@@ -591,9 +592,8 @@ appearance of all the frames Emacs creates, including the initial one.
 @item C-z
 @kindex C-z @r{(X windows)}
 @findex iconify-or-deiconify-frame
-Iconify the selected Emacs frame (@code{iconify-or-deiconify-frame}).
-When typed on an Emacs frame's icon, deiconify instead.
-@xref{Exiting}.
+Iconify (``minimize'') the selected Emacs frame
+(@code{iconify-or-deiconify-frame}).  @xref{Exiting}.
 
 @item C-x 5 0
 @kindex C-x 5 0
