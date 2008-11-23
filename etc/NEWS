@@ -438,8 +438,14 @@ supported in `partial-completion-mode'.
 *** S-down-mouse-1 now pops up a menu for changing the font and text
 size of the default face in the current buffer.  The face is changed
 via face remapping (see below).
-
-*** FIXME face-remap
++++
+*** New commands to change the default face size in the current buffer.
+To increase it, type `C-x C-+' or `C-x C-='.  To decrease it, type
+`C-x C--'.  To restore the default (global) face size, type `C-x C-0'.
+The final key of these commands may be repeated without the leading
+`C-x', so `C-x C-= C-= C-=' increases the face height by three steps.
+Each step scales the height of the default face by the value of the
+variable `text-scale-mode-step'.
 
 ** Primary selection changes
 +++
@@ -1348,6 +1354,8 @@ symbolic notation thanks to auxiliary functions.
 +++
 *** file-local-variables-alist stores an alist of file-local
 variables defined in the current buffer.
+
+** FIXME face-remap
 
 ** Process changes
 +++
