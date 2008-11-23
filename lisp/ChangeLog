@@ -1,3 +1,8 @@
+2008-11-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* info-look.el (info-lookup): When Info buffer is visible on
+	another frame, raise that frame.
+
 2008-11-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (allout-mode): Fix typo in docstring.
