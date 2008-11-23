@@ -3,7 +3,7 @@
 @c See file emacs.texi for copying conditions.
 
 @node Antinews, Mac OS, X Resources, Top
-@appendix Emacs 21 Antinews
+@appendix Emacs 22 Antinews
 
   For those users who live backwards in time, here is information
 about downgrading to Emacs version 22.3.  We hope you will enjoy the
