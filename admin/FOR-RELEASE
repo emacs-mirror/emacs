@@ -104,7 +104,7 @@ buffers.texi      -- cyd
 building.texi     -- cyd
 calendar.texi     -- rgm
 cal-xtra.texi     -- rgm
-cmdargs.texi
+cmdargs.texi      -- cyd
 commands.texi     -- cyd
 custom.texi       -- cyd
 dired.texi        -- cyd
