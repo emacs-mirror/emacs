@@ -801,7 +801,7 @@ file named @file{.Xdefaults} or @file{.Xresources} in your home
 directory), by adding a line like this:
 
 @smallexample
-emacs.font: @samp{font}
+emacs.font: @var{font}
 @end smallexample
 
 @noindent
