@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13
+;; Version: 6.13a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -92,7 +92,7 @@
 
 ;;; Version
 
-(defconst org-version "6.13"
+(defconst org-version "6.13a"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)
@@ -1245,7 +1245,7 @@ For more examples, see the system specific constants
 
 (defgroup org-refile nil
   "Options concerning refiling entries in Org-mode."
-  :tag "Org Remember"
+  :tag "Org Refile"
   :group 'org)
 
 (defcustom org-directory "~/org"
@@ -1275,7 +1275,8 @@ outline                  The interface shows an outline of the relevant file
                          and the correct heading is found by moving through
                          the outline or by searching with incremental search.
 outline-path-completion  Headlines in the current buffer are offered via
-                         completion."
+                         completion.  This is the interface also used by
+                         the refile command."
   :group 'org-refile
   :type '(choice
 	  (const :tag "Outline" outline)
@@ -1287,6 +1288,7 @@ When nil, new notes will be filed to the end of a file or entry.
 This can also be a list with cons cells of regular expressions that
 are matched against file names, and values."
   :group 'org-remember
+  :group 'org-refile
   :type '(choice
 	  (const :tag "Reverse always" t)
 	  (const :tag "Reverse never" nil)
@@ -1314,7 +1316,7 @@ This is list of cons cells.  Each cell contains:
 
 When this variable is nil, all top-level headlines in the current buffer
 are used, equivalent to the value `((nil . (:level . 1))'."
-  :group 'org-remember
+  :group 'org-refile
   :type '(repeat
 	  (cons
 	   (choice :value org-agenda-files
@@ -1333,12 +1335,24 @@ are used, equivalent to the value `((nil . (:level . 1))'."
 So a level 3 headline will be available as level1/level2/level3.
 When the value is `file', also include the file name (without directory)
 into the path.  When `full-file-path', include the full file path."
-  :group 'org-remember
+  :group 'org-refile
   :type '(choice
 	  (const :tag "Not" nil)
 	  (const :tag "Yes" t)
 	  (const :tag "Start with file name" file)
 	  (const :tag "Start with full file path" full-file-path)))
+
+(defcustom org-outline-path-complete-in-steps t
+  "Non-nil means, complete the outline path in hierarchical steps.
+When Org-mode uses the refile interface to select an outline path
+\(see variable `org-refile-use-outline-path'), the completion of
+the path can be done is a single go, or if can be done in steps down
+the headline hierarchy.  Going in steps is probably the best if you
+do not use a special completion package like `ido' or `icicles'.
+However, when using these packages, going in one step can be very
+fast, while still showing the whole path to the entry."
+  :group 'org-refile
+  :type 'boolean)
 
 (defgroup org-todo nil
   "Options concerning TODO items in Org-mode."
@@ -2381,7 +2395,7 @@ Normal means, no org-mode-specific context."
 		  (extra txt &optional category tags dotime noprefix remove-re))
 (declare-function org-agenda-new-marker "org-agenda" (&optional pos))
 (declare-function org-agenda-change-all-lines "org-agenda"
-		  (newhead hdmarker &optional fixface))
+		  (newhead hdmarker &optional fixface just-this))
 (declare-function org-agenda-set-restriction-lock "org-agenda" (&optional type))
 (declare-function org-agenda-maybe-redo "org-agenda" ())
 (declare-function org-agenda-save-markers-for-cut-and-paste "org-agenda"
@@ -6326,7 +6340,7 @@ This is the list that is used for internal purposes.")
 This is the list that is used before handing over to the browser.")
 
 (defun org-link-escape (text &optional table)
-  "Escape charaters in TEXT that are problematic for links."
+  "Escape characters in TEXT that are problematic for links."
   (setq table (or table org-link-escape-chars))
   (when text
     (let ((re (mapconcat (lambda (x) (regexp-quote
@@ -7504,7 +7518,8 @@ operation has put the subtree."
   (unless org-refile-target-table
     (error "No refile targets"))
   (let* ((cbuf (current-buffer))
-	 (cfunc (if org-refile-use-outline-path
+	 (cfunc (if (and org-refile-use-outline-path
+			 org-outline-path-complete-in-steps)
 		    'org-olpath-completing-read
 		  'org-ido-completing-read))
 	 (extra (if org-refile-use-outline-path "/" ""))
@@ -9082,10 +9097,10 @@ only lines with a TODO keyword are included in the output."
 (defvar todo-only) ;; dynamically scoped
 
 (defun org-tags-sparse-tree (&optional todo-only match)
-  "Create a sparse tree according to tags  string MATCH.
+  "Create a sparse tree according to tags string MATCH.
 MATCH can contain positive and negative selection of tags, like
 \"+WORK+URGENT-WITHBOSS\".
-If optional argument TODO_ONLY is non-nil, only select lines that are
+If optional argument TODO-ONLY is non-nil, only select lines that are
 also TODO lines."
   (interactive "P")
   (org-prepare-agenda-buffers (list (current-buffer)))
@@ -11228,7 +11243,7 @@ days in order to avoid rounding problems."
   "Convert a time stamp to an absolute day number.
 If there is a specifyer for a cyclic time stamp, get the closest date to
 DAYNR.
-PREFER and SHOW_ALL are passed through to `org-closest-date'."
+PREFER and SHOW-ALL are passed through to `org-closest-date'."
   (cond
    ((and daynr (string-match "\\`%%\\((.*)\\)" s))
     (if (org-diary-sexp-entry (match-string 1 s) "" date)
@@ -11248,8 +11263,8 @@ PREFER and SHOW_ALL are passed through to `org-closest-date'."
 (defun org-small-year-to-year (year)
   "Convert 2-digit years into 4-digit years.
 38-99 are mapped into 1938-1999.  1-37 are mapped into 2001-2007.
-The year 2000 cannot be abbreviated.  Any year lager than 99
-is retrned unchanged."
+The year 2000 cannot be abbreviated.  Any year larger than 99
+is returned unchanged."
   (if (< year 38)
       (setq year (+ 2000 year))
     (if (< year 100)

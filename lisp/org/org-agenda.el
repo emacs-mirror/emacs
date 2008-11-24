@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13
+;; Version: 6.13a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -3398,7 +3398,7 @@ the documentation of `org-diary'."
 	  (push txt ee))))
     (nreverse ee)))
 
-(defalias 'org-get-closed 'org-get-progress)
+(defalias 'org-get-closed 'org-agenda-get-progress)
 (defun org-agenda-get-progress ()
   "Return the logged TODO entries for agenda display."
   (let* ((props (list 'mouse-face 'highlight
