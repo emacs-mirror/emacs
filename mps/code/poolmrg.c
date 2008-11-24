@@ -440,7 +440,7 @@ static void MRGMessageFinalizationRef(Ref *refReturn,
   AVERT(Arena, arena);
   AVERT(Message, message);
 
-  AVER(message->type == MessageTypeFINALIZATION);
+  AVER(MessageGetType(message) == MessageTypeFINALIZATION);
 
   link = linkOfMessage(message);
   AVER(link->state == MRGGuardianFINAL);
@@ -459,6 +459,7 @@ static void MRGMessageFinalizationRef(Ref *refReturn,
 static MessageClassStruct MRGMessageClassStruct = {
   MessageClassSig,             /* sig */
   "MRGFinal",                  /* name */
+  MessageTypeFINALIZATION,     /* Message Type */
   MRGMessageDelete,            /* Delete */
   MRGMessageFinalizationRef,   /* FinalizationRef */
   MessageNoGCLiveSize,         /* GCLiveSize */   
