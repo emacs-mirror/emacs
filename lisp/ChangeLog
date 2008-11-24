@@ -1,3 +1,8 @@
+2008-11-24  Andreas Schwab  <schwab@suse.de>
+
+	* image.el (image-type-header-regexps): Recognize more xbm format
+	variants.
+
 2008-11-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/artist.el (artist-charlist-to-string): Simplify.
