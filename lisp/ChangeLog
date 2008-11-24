@@ -1,3 +1,19 @@
+2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (confirm-nonexistent-file-or-buffer): Allow
+	`after-completion' value to request confirm only after TAB.
+	(confirm-nonexistent-file-or-buffer): New function.
+	(read-buffer-to-switch, find-file, find-file-other-window)
+	(find-file-other-frame, find-file-read-only)
+	(find-file-read-only-other-window)
+	(find-file-read-only-other-frame): Use it.
+	(switch-to-buffer-other-window, switch-to-buffer-other-frame): Doc
+	fix.
+
+	* minibuffer.el (minibuffer-complete-and-exit): Change
+	`confirm-only' value of minibuffer-completion-confirm to
+	`confirm', and handle a `confirm-after-completion' value.
+
 2008-11-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/elp.el (elp-instrument-list): Fix 2nd arg of `signal'.
