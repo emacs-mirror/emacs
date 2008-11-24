@@ -1,3 +1,11 @@
+2008-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/quail.el (quail-vunion): New function.
+	(quail-defrule-internal): Use it to prevent accumulating redundant
+	alternatives when `append' is set.
+	(quail-insert-decode-map): Simplify computation of the max-key-width.
+	Compute it right for multiple-list.
+
 2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/elp.el (elp-instrument-list): Check argument type
@@ -12,8 +20,8 @@
 2008-11-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-global-switches): Remove.
-	(vc-hg-state, vc-hg-working-revision, vc-hg-command): Undo
-	previous change.
+	(vc-hg-state, vc-hg-working-revision, vc-hg-command):
+	Undo previous change.
 
 2008-11-23  Martin Rudalics  <rudalics@gmx.at>
 

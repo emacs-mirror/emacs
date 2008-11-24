@@ -1093,6 +1093,10 @@ to the current translations for KEY instead of replacing them."
 	(setq quail-current-package package)))
   (quail-defrule-internal key translation (quail-map) append))
 
+(defun quail-vunion (v1 v2)
+  (apply 'vector
+         (nreverse (delete-dups (nconc (append v1 ()) (append v2 ()))))))
+
 ;;;###autoload
 (defun quail-defrule-internal (key trans map &optional append decode-map props)
   "Define KEY as TRANS in a Quail map MAP.
@@ -1175,17 +1179,20 @@ function `quail-define-rules' for the detail."
 		  (setcdr decode-map
 			  (cons (cons elt key) (cdr decode-map)))))))
 	(if (and (car map) append)
-	    (let ((prev (quail-get-translation (car map) key len)))
-	      (if (integerp prev)
-		  (setq prev (vector prev))
-		(setq prev (cdr prev)))
+	    (let* ((prev (quail-get-translation (car map) key len))
+                   (prevchars (if (integerp prev)
+                                  (vector prev)
+                                (cdr prev))))
 	      (if (integerp trans)
 		  (setq trans (vector trans))
 		(if (stringp trans)
 		    (setq trans (string-to-vector trans))))
+              (let ((new (quail-vunion prevchars trans)))
 	      (setq trans
-		    (cons (list 0 0 0 0 nil)
-			  (vconcat prev trans)))))
+                      (if (equal new prevchars)
+                          ;; Nothing to change, get back to orig value.
+                          prev
+                        (cons (list 0 0 0 0 nil) new))))))
 	(setcar map trans)))))
 
 (defun quail-get-translation (def key len)
@@ -1358,7 +1365,7 @@ Return the input string."
       (let* ((echo-keystrokes 0)
 	     (help-char nil)
 	     (overriding-terminal-local-map (quail-translation-keymap))
-	     (generated-events nil)
+	     (generated-events nil)     ;FIXME: What is this?
 	     (input-method-function nil)
 	     (modified-p (buffer-modified-p))
 	     last-command-event last-command this-command)
@@ -1416,7 +1423,7 @@ Return the input string."
       (let* ((echo-keystrokes 0)
 	     (help-char nil)
 	     (overriding-terminal-local-map (quail-conversion-keymap))
-	     (generated-events nil)
+	     (generated-events nil)     ;FIXME: What is this?
 	     (input-method-function nil)
 	     (modified-p (buffer-modified-p))
 	     last-command-event last-command this-command)
@@ -1637,7 +1644,7 @@ Make RELATIVE-INDEX the current translation."
 	      (maxcol (- (window-width)
 			 quail-guidance-translations-starting-column))
 	      (block (nth 3 indices))
-	      col idx width trans num-items blocks)
+	      col idx width trans num-items)
 	  (if (< cur start)
 	      ;; We must calculate from the head.
 	      (setq start 0 block 0)
@@ -2219,8 +2226,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
       (setq translations (cdr translations))
       ;; Insert every 10 elements with indices in a line.
       (let ((len (length translations))
-	    (i 0)
-	    num)
+	    (i 0))
 	(while (< i len)
 	  (when (zerop (% i 10))
 	    (when (>= i 10)
@@ -2348,90 +2354,83 @@ should be made by `quail-build-decode-map' (which see)."
 				   (not (string< x y))))))))
   (let ((window-width (window-width (get-buffer-window
                                      (current-buffer) 'visible)))
-	(single-key-width 3)
 	(single-trans-width 4)
-	(multiple-key-width 3)
 	(single-list nil)
 	(multiple-list nil)
-	elt trans width pos cols rows col row str col-width)
+	trans)
     ;; Divide the elements of decoding map into single ones (i.e. the
-    ;; one that has single translation) and multibyte ones (i.e. the
+    ;; one that has single translation) and multiple ones (i.e. the
     ;; one that has multiple translations).
-    (while decode-map
-      (setq elt (car decode-map) decode-map (cdr decode-map)
-	    trans (cdr elt))
+    (dolist (elt decode-map)
+      (setq trans (cdr elt))
       (if (and (vectorp trans) (= (length trans) 1))
 	  (setq trans (aref trans 0)))
       (if (vectorp trans)
-	  (setq multiple-list (cons elt multiple-list))
-	(setq single-list (cons (cons (car elt) trans) single-list)
-	      width (if (stringp trans) (string-width trans)
-		      (char-width trans)))
-	(if (> width single-trans-width)
-	    (setq single-trans-width width)))
-      (setq width (length (car elt)))
-      (if (> width single-key-width)
-	  (setq single-key-width width))
-      (if (> width multiple-key-width)
-	  (setq multiple-key-width width)))
+	  (push elt multiple-list)
+	(push (cons (car elt) trans) single-list)
+        (let ((width (if (stringp trans) (string-width trans)
+                       (char-width trans))))
+          (if (> width single-trans-width)
+              (setq single-trans-width width)))))
     (when single-list
-      (setq col-width (+ single-key-width 1 single-trans-width 1)
-	    cols (/ window-width col-width)
-	    rows (/ (length single-list) cols))
-      (if (> (% (length single-list) cols) 0)
-	  (setq rows (1+ rows)))
-      (insert "key")
-      (quail-indent-to (1+ single-key-width))
-      (insert "char")
-      (quail-indent-to (1+ col-width))
-      (insert "[type a key sequence to insert the corresponding character]\n")
-      (setq pos (point))
-      (insert-char ?\n (+ rows 2))
-      (goto-char pos)
-      (setq col (- col-width) row 0)
-      (while single-list
-	(setq elt (car single-list) single-list (cdr single-list))
-	(when (= (% row rows) 0)
-	  (goto-char pos)
-	  (setq col (+ col col-width))
+      ;; Since decode-map is sorted, we known the longest key is at the end.
+      (let* ((max-key-width (max 3 (length (caar (last single-list)))))
+             (col-width (+ max-key-width 1 single-trans-width 1))
+             (cols (/ window-width col-width))
+             (rows (/ (+ (length single-list) (1- cols)) cols)) ; Round up.
+             col pos row)
+        (insert "key")
+        (quail-indent-to (1+ max-key-width))
+        (insert "char")
+        (quail-indent-to (1+ col-width))
+        (insert "[type a key sequence to insert the corresponding character]\n")
+        (setq pos (point))
+        (insert-char ?\n (+ rows 2))
+        (goto-char pos)
+        (setq col (- col-width) row 0)
+        (dolist (elt single-list)
+          (when (= (% row rows) 0)
+            (goto-char pos)
+            (setq col (+ col col-width))
+            (move-to-column col)
+            (quail-indent-to col)
+            (insert-char ?- max-key-width)
+            (insert ? )
+            (insert-char ?- single-trans-width)
+            (forward-line 1))
           (move-to-column col)
           (quail-indent-to col)
-	  (insert-char ?- single-key-width)
-	  (insert ? )
-	  (insert-char ?- single-trans-width)
-	  (forward-line 1))
-	(move-to-column col)
-        (quail-indent-to col)
-	(insert (car elt))
-	(quail-indent-to (+ col single-key-width 1))
-	(insert (cdr elt))
-	(forward-line 1)
-	(setq row (1+ row)))
-      (goto-char (point-max)))
+          (insert (car elt))
+          (quail-indent-to (+ col max-key-width 1))
+          (insert (cdr elt))
+          (forward-line 1)
+          (setq row (1+ row)))
+        (goto-char (point-max))))
 
     (when multiple-list
-      (insert "key")
-      (quail-indent-to (1+ multiple-key-width))
-      (insert "character(s)  [type a key (sequence) and select one from the list]\n")
-      (insert-char ?- multiple-key-width)
-      (insert " ------------\n")
-      (while multiple-list
-	(setq elt (car multiple-list) multiple-list (cdr multiple-list))
-	(insert (car elt))
-	(quail-indent-to multiple-key-width)
-	(if (vectorp (cdr elt))
-	    (mapc (function
-		   (lambda (x)
-		     (let ((width (if (integerp x) (char-width x)
-				    (string-width x))))
-		       (when (> (+ (current-column) 1 width) window-width)
-			 (insert "\n")
-			 (quail-indent-to multiple-key-width))
-		       (insert " " x))))
-		  (cdr elt))
-	  (insert " " (cdr elt)))
-	(insert ?\n))
-      (insert ?\n))))
+      ;; Since decode-map is sorted, we known the longest key is at the end.
+      (let ((max-key-width (max 3 (length (caar (last multiple-list))))))
+        (insert "key")
+        (quail-indent-to (1+ max-key-width))
+        (insert "character(s)  [type a key (sequence) and select one from the list]\n")
+        (insert-char ?- max-key-width)
+        (insert " ------------\n")
+        (dolist (elt multiple-list)
+          (insert (car elt))
+          (quail-indent-to max-key-width)
+          (if (vectorp (cdr elt))
+              (mapc (function
+                     (lambda (x)
+                       (let ((width (if (integerp x) (char-width x)
+                                      (string-width x))))
+                         (when (> (+ (current-column) 1 width) window-width)
+                           (insert "\n")
+                           (quail-indent-to max-key-width))
+                         (insert " " x))))
+                    (cdr elt))
+            (insert " " (cdr elt)))
+          (insert ?\n))
+        (insert ?\n)))))
 
 (define-button-type 'quail-keyboard-layout-button
   :supertype 'help-xref
@@ -2524,13 +2523,12 @@ physical keyboard layout as specified with that variable.
 	  (insert "\n"))
 
 	;; Show key sequences.
-	(let ((decode-map (list 'decode-map))
-	      elt pos num)
-	  (setq num (quail-build-decode-map (list (quail-map)) "" decode-map
+	(let* ((decode-map (list 'decode-map))
+               (num (quail-build-decode-map (list (quail-map)) "" decode-map
                                             ;; We used to use 512 here, but
                                             ;; TeX has more than 1000 and
                                             ;; it's good to see the list.
-					    0 5120 done-list))
+                                            0 5120 done-list)))
 	  (when (> num 0)
 	    (insert "
 KEY SEQUENCE
@@ -2561,8 +2559,8 @@ KEY BINDINGS FOR CONVERSION
 	(run-hooks 'temp-buffer-show-hook)))))
 
 (defun quail-help-insert-keymap-description (keymap &optional header)
-  (let (pos1 pos2)
-    (setq pos1 (point))
+  (let ((pos1 (point))
+        pos2)
     (if header
 	(insert header))
     (save-excursion
@@ -2935,7 +2933,7 @@ of each directory."
   (interactive "FDirectory of LEIM: ")
   (setq dirname (expand-file-name dirname))
   (let ((leim-list (expand-file-name leim-list-file-name dirname))
-	quail-dirs list-buf pkg-list pkg-buf pos)
+	quail-dirs list-buf pkg-list pos)
     (if (not (file-writable-p leim-list))
 	(error "Can't write to file \"%s\"" leim-list))
     (message "Updating %s ..." leim-list)
