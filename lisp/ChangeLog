@@ -1,3 +1,8 @@
+2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/elp.el (elp-instrument-list): Check argument type
+	explicitly.  Doc fix.
+
 2008-11-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* calendar/appt.el (appt-disp-window): Move minibuffer check
