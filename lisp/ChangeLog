@@ -41,7 +41,7 @@
 
 	* calendar/appt.el (appt-disp-window): Move minibuffer check
 	after binding this-window and do not set-buffer to make sure we
-	won't deselect the minibuffer.
+	won't deselect the minibuffer.  (Bug#1413)
 
 2008-11-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
