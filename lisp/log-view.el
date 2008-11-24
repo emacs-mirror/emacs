@@ -474,10 +474,10 @@ log entries."
       (error "Multiple files shown in this buffer, cannot use this command here")))
   (save-excursion
     (goto-char pos)
-    (switch-to-buffer (vc-annotate (if log-view-per-file-logs
-				       (log-view-current-file)
-				     (car log-view-vc-fileset))
-				   (log-view-current-tag)))))
+    (vc-annotate (if log-view-per-file-logs
+		     (log-view-current-file)
+		   (car log-view-vc-fileset))
+		 (log-view-current-tag))))
 
 ;;
 ;; diff
