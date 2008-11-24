@@ -247,7 +247,7 @@ but provides more information.
 
 ---------- Buffer: *Help* ----------
 goal-column     Option
-*Semipermanent goal column for vertical motion, as set by @dots{}
+Semipermanent goal column for vertical motion, as set by @dots{}
 @end group
 @c Do not blithely break or fill these lines.
 @c That makes them incorrect.
@@ -274,11 +274,6 @@ When the `track-eol' feature is doing its job, the value is 9999.
 ---------- Buffer: *Help* ----------
 @end group
 @end smallexample
-
-The asterisk @samp{*} as the first character of a variable's doc string,
-as shown above for the @code{goal-column} variable, means that it is a
-user option; see the description of @code{defvar} in @ref{Defining
-Variables}.
 
 @defun Snarf-documentation filename
 @anchor{Definition of Snarf-documentation}
