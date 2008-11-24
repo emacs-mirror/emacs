@@ -152,7 +152,7 @@
 
 <h3>Support lifecycle, by distinguishing between unsent and received states</h3>
 
-<p>Choose one state -- <strong>unsent</strong> for example -- and distinguish it by defining that the <code>RingStruct queueRing</code> is set to NULL in that state.  Need to check that this would actually help the only current re-user of Messages: TraceStart.</p>
+<p>Choose one of these states -- <strong>unsent</strong> for example -- and distinguish it by defining that the <code>RingStruct queueRing</code> is set to NULL in that state.  Need to check that this would actually help the only current re-user of Messages: TraceStart.</p>
 
 <hr />
 
@@ -353,6 +353,19 @@ MessageClassStruct (a struct).  Clients of the Message module are expected to
 allocate storage for and initialise the MessageClassStruct.  It is expected 
 that such storage will be allocated and initialised statically.
 
+<a id="class.type" name="class.type">.class.type</a>: Each message class implements exactly one message type.  
+The identifier for this type is stored in the "type" field of the 
+MessageClassStruct.  Note that the converse is not true: a single 
+message type may be implemented by two (or more) different message 
+classes (for example: for two pool classes that require different 
+implementations of that message type).
+
+BEGIN OBSOLETE SECTION "class-not-type".
+[<a id="class.not-type.not" name="class.not-type.not">.class.not-type.not</a>: It used to be the case that message classes and message 
+types were completely distinct.  This was never used and was unnecessary.  It 
+was removed by making message-type an attribute of the implementing 
+message-class, ie. moving the type field out of MessageStruct and into 
+MessageClassStruct.  RHSK 2008-11-24.]
 <a id="class.not-type" name="class.not-type">.class.not-type</a>: Note that message classes and message types are distinct.  
 <a id="class.not-type.why" name="class.not-type.why">.class.not-type.why</a>: (see also mail.drj.1997-07-15.10-33(0) from which this is 
 derived)  This allows two different implementations (ie classes) of messages 
@@ -361,6 +374,7 @@ management of the messages may be different in the two implemtations (which is
 bogus).  The case of having one class implement two types is not expected to be 
 so useful.  <a id="class.not-type.why.not" name="class.not-type.why.not">.class.not-type.why.not</a>: It's all pretty feeble justification 
 anyway.
+END OBSOLETE SECTION "class-not-type"
 
 <a id="class.methods.generic" name="class.methods.generic">.class.methods.generic</a>: The generic methods are:
 
