@@ -137,6 +137,22 @@
 
 <p><em class="note" id="note-reuse-message">[Note: the Message-system does not currently support re-using message structs, because it does not distinguish between <strong>unsent</strong> and <strong>received</strong> states.  If Originators would like to safely re-use a message once the client has finished with it (TraceStart messages are the current example), the lifecycle state variable, and check code to do this safely, should be added to the Message-system.  RHSK 2006-12-11]</em></p>
 
+<h2>Future ideas</h2>
+
+<h3>Shrinking MessageStruct</h3>
+
+<p>(Because every finalised object requires a MessageStruct, so it would be nice to keep it small).</p>
+
+<p>The field <code>MessageType type</code> does not need to be in every MessageStruct.  It can be a field in <code>MessageClass class</code>.</p>
+
+<p>The field <code>MessageClass class</code> must remain.  (It's how we allow extra bits of the MPS (eg. poolmrg) to be either added into an executable by simply linking them in to the binary, or omitted without causing a link failure).</p>
+
+<p>The field <code>Clock postedClock</code> could be implemented and stored by only those message types that use it.  A bit messy though.</p>
+
+
+<h3>Support lifecycle, by distinguishing between unsent and received states</h3>
+
+<p>Choose one state -- <strong>unsent</strong> for example -- and distinguish it by defining that the <code>RingStruct queueRing</code> is set to NULL in that state.  Need to check that this would actually help the only current re-user of Messages: TraceStart.</p>
 
 <hr />
 
