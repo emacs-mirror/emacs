@@ -8,11 +8,11 @@
 @chapter Editing Pictures
 @cindex pictures
 @cindex making pictures out of text characters
-@findex edit-picture
+@findex picture-mode
 
   To edit a picture made out of text characters (for example, a picture
 of the division of a register into fields, as a comment in a program),
-use the command @kbd{M-x edit-picture} to enter Picture mode.
+use the command @kbd{M-x picture-mode} to enter Picture mode.
 
   In Picture mode, editing is based on the @dfn{quarter-plane} model of
 text, according to which the text characters lie studded on an area that
@@ -31,13 +31,13 @@ to do essentially the same thing but in a quarter-plane way.  In addition,
 Picture mode defines various keys starting with the @kbd{C-c} prefix to
 run special picture editing commands.
 
-  One of these keys, @kbd{C-c C-c}, is particularly important.  Often a
-picture is part of a larger file that is usually edited in some other
-major mode.  @kbd{M-x edit-picture} records the name of the previous
-major mode so you can use the @kbd{C-c C-c} command
-(@code{picture-mode-exit}) later to go back to that mode.  @kbd{C-c C-c}
-also deletes spaces from the ends of lines, unless given a numeric
-argument.
+  One of these keys, @kbd{C-c C-c}, is particularly important.  Often
+a picture is part of a larger file that is usually edited in some
+other major mode.  Picture mode records the name of the previous major
+mode so you can use the @kbd{C-c C-c} command
+(@code{picture-mode-exit}) later to go back to that mode.  @kbd{C-c
+C-c} also deletes spaces from the ends of lines, unless given a
+numeric argument.
 
   The special commands of Picture mode all work in other modes (provided
 the @file{picture} library is loaded), but are not bound to keys except
