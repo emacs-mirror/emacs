@@ -1723,8 +1723,12 @@ REQUIRE-MATCH can take the following values:
 - t means that the user is not allowed to exit unless
   the input is (or completes to) an element of COLLECTION or is null.
 - nil means that the user can exit with any input.
-- `confirm-only' means that the user can exit with any input, but she will
-  need to confirm her choice if the input is not an element of COLLECTION.
+- `confirm' means that the user can exit with any input, but she needs
+  to confirm her choice if the input is not an element of COLLECTION.
+- `confirm-after-completion' means that the user can exit with any
+  input, but she needs to confirm her choice if she called
+  `minibuffer-complete' right before `minibuffer-complete-and-exit'
+  and the input is not an element of COLLECTION.
 - anything else behaves like t except that typing RET does not exit if it
   does non-null completion.
 
@@ -2187,7 +2191,14 @@ CODE can be nil, t or `lambda':
   Vminibuffer_completion_predicate = Qnil;
 
   DEFVAR_LISP ("minibuffer-completion-confirm", &Vminibuffer_completion_confirm,
-	       doc: /* Non-nil means to demand confirmation of completion before exiting minibuffer.  */);
+	       doc: /* Whether to demand confirmation of completion before exiting minibuffer.
+If nil, confirmation is not required.
+If the value is `confirm', the user may exit with an input that is not
+ a valid completion alternative, but Emacs asks for confirmation.
+If the value is `confirm-after-completion', the user may exit with an
+ input that is not a valid completion alternative, but Emacs asks for
+ confirmation if the user submitted the input right after
+ `minibuffer-complete'.  */);
   Vminibuffer_completion_confirm = Qnil;
 
   DEFVAR_LISP ("minibuffer-completing-file-name",
