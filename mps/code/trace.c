@@ -121,6 +121,7 @@ static Size TraceMessageNotCondemnedSize(Message message)
 static MessageClassStruct TraceMessageClassStruct = {
   MessageClassSig,               /* sig */
   "TraceGC",                     /* name */
+  MessageTypeGC,                 /* Message Type */
   TraceMessageDelete,            /* Delete */
   MessageNoFinalizationRef,      /* FinalizationRef */
   TraceMessageLiveSize,          /* GCLiveSize */
@@ -201,6 +202,7 @@ static const char *TraceStartMessageWhy(Message message)
 static MessageClassStruct TraceStartMessageClassStruct = {
   MessageClassSig,               /* sig */
   "TraceGCStart",                /* name */
+  MessageTypeGCSTART,            /* Message Type */
   TraceStartMessageDelete,       /* Delete */
   MessageNoFinalizationRef,      /* FinalizationRef */
   MessageNoGCLiveSize,           /* GCLiveSize */

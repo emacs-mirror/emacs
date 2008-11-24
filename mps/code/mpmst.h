@@ -192,6 +192,8 @@ typedef struct MessageClassStruct {
   Sig sig;                      /* <design/sig/> */
   const char *name;             /* Human readable Class name */
 
+  MessageType type;             /* Message Type */
+
   /* generic methods */
   MessageDeleteMethod delete;   /* terminates a message */
 
@@ -200,8 +202,6 @@ typedef struct MessageClassStruct {
 
   /* methods specific to MessageTypeGC */
   MessageGCLiveSizeMethod gcLiveSize;
-  
-  /* methods specific to MessageTypeGC */
   MessageGCCondemnedSizeMethod gcCondemnedSize;
   MessageGCNotCondemnedSizeMethod gcNotCondemnedSize;
 
@@ -220,10 +220,9 @@ typedef struct MessageClassStruct {
 typedef struct MessageStruct {
   Sig sig;                      /* <design/sig/> */
   Arena arena;                  /* owning arena */
-  MessageType type;             /* Message Type */
   MessageClass class;           /* Message Class Structure */
+  Clock postedClock;            /* mps_clock() at post time, or 0 */
   RingStruct queueRing;         /* Message queue ring */
-  Clock postedClock;            /* mps_clock() at post time */
 } MessageStruct;
 
 

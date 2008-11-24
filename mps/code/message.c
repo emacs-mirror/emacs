@@ -45,14 +45,14 @@ Bool MessageTypeCheck(MessageType type)
 
 /* See .message.clocked.  Currently finalization messages are the */
 /* only ones that can be numerous. */
-#define MessageClocked(message) ((message)->type != MessageTypeFINALIZATION)
+#define MessageClocked(message) ((message)->class->type \
+                                 != MessageTypeFINALIZATION)
 
 Bool MessageCheck(Message message)
 {
   CHECKS(Message, message);
   CHECKU(Arena, message->arena);
-  CHECKL(MessageTypeCheck(message->type));
-  CHECKU(MessageClass, message->class);
+  CHECKD(MessageClass, message->class);
   CHECKL(RingCheck(&message->queueRing));
   /* postedClock is uncheckable for clocked message types, */
   /* but must be 0 for unclocked message types: */
@@ -65,6 +65,7 @@ Bool MessageClassCheck(MessageClass class)
 {
   CHECKS(MessageClass, class);
   CHECKL(class->name != NULL);
+  CHECKL(MessageTypeCheck(class->type));
   CHECKL(FUNCHECK(class->delete));
   CHECKL(FUNCHECK(class->finalizationRef));
   CHECKL(FUNCHECK(class->gcLiveSize));
@@ -87,11 +88,11 @@ void MessageInit(Arena arena, Message message, MessageClass class,
   message->arena = arena;
   message->class = class;
   RingInit(&message->queueRing);
-  message->type = type;
   message->postedClock = 0;
   message->sig = MessageSig;
 
   AVERT(Message, message);
+  AVER(MessageGetType(message) == type);
 }
 
 void MessageFinish(Message message)
@@ -127,7 +128,7 @@ void MessagePost(Arena arena, Message message)
   /* queueRing field must be a singleton, see */
   /* <design/message/#fun.post.singleton> */
   AVER(!MessageOnQueue(message));
-  if(MessageTypeEnabled(arena, message->type)) {
+  if(MessageTypeEnabled(arena, MessageGetType(message))) {
     /* .message.clocked: Reading the clock with ClockNow() */
     /* involves an mpslib call, so we avoid it for message */
     /* types that may be numerous. */
@@ -285,9 +286,13 @@ void MessageDiscard(Arena arena, Message message)
 /* Return the type of a message */
 MessageType MessageGetType(Message message)
 {
+  MessageClass class;
   AVERT(Message, message);
+  
+  class = message->class;
+  AVERT(MessageClass, class);
 
-  return message->type;
+  return class->type;
 }
 
 /* Return the class of a message */
@@ -324,8 +329,7 @@ void MessageFinalizationRef(Ref *refReturn, Arena arena,
   AVER(refReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Message, message);
-
-  AVER(message->type == MessageTypeFINALIZATION);
+  AVER(MessageGetType(message) == MessageTypeFINALIZATION);
 
   (*message->class->finalizationRef)(refReturn, arena, message);
 
@@ -335,7 +339,7 @@ void MessageFinalizationRef(Ref *refReturn, Arena arena,
 Size MessageGCLiveSize(Message message)
 {
   AVERT(Message, message);
-  AVER(message->type == MessageTypeGC);
+  AVER(MessageGetType(message) == MessageTypeGC);
 
   return (*message->class->gcLiveSize)(message);
 }
@@ -343,7 +347,7 @@ Size MessageGCLiveSize(Message message)
 Size MessageGCCondemnedSize(Message message)
 {
   AVERT(Message, message);
-  AVER(message->type == MessageTypeGC);
+  AVER(MessageGetType(message) == MessageTypeGC);
 
   return (*message->class->gcCondemnedSize)(message);
 }
@@ -351,7 +355,7 @@ Size MessageGCCondemnedSize(Message message)
 Size MessageGCNotCondemnedSize(Message message)
 {
   AVERT(Message, message);
-  AVER(message->type == MessageTypeGC);
+  AVER(MessageGetType(message) == MessageTypeGC);
 
   return (*message->class->gcNotCondemnedSize)(message);
 }
@@ -359,7 +363,7 @@ Size MessageGCNotCondemnedSize(Message message)
 const char *MessageGCStartWhy(Message message)
 {
   AVERT(Message, message);
-  AVER(message->type == MessageTypeGCSTART);
+  AVER(MessageGetType(message) == MessageTypeGCSTART);
 
   return (*message->class->gcStartWhy)(message);
 }
