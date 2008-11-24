@@ -340,9 +340,12 @@ Argument FUNSYM is the symbol of a defined function."
 
 ;;;###autoload
 (defun elp-instrument-list (&optional list)
-  "Instrument for profiling, all functions in `elp-function-list'.
-Use optional LIST if provided instead."
+  "Instrument, for profiling, all functions in `elp-function-list'.
+Use optional LIST if provided instead.
+If called interactively, read LIST using the minibuffer."
   (interactive "PList of functions to instrument: ")
+  (unless (listp list)
+    (signal 'wrong-type-argument 'listp list))
   (let ((list (or list elp-function-list)))
     (mapcar 'elp-instrument-function list)))
 
