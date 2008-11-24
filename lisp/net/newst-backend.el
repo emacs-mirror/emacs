@@ -7,7 +7,7 @@
 ;; Filename:    newst-backend.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "31. Oktober 2008, 21:07:17 (ulf)"
+;; Time-stamp:  "24. November 2008, 19:39:24 (ulf)"
 
 ;; ======================================================================
 
@@ -424,9 +424,9 @@ headline after it has been retrieved for the first time."
   :type 'string
   :group 'newsticker-miscellaneous)
 
-(defcustom newsticker-imagecache-dirname
-  "~/.newsticker-images"
-  "Name of the directory where newsticker stores cached images."
+(defcustom newsticker-dir
+  "~/.newsticker"
+  "Name of the directory where newsticker saves cached data."
   :type 'string
   :group 'newsticker-miscellaneous)
 
@@ -629,16 +629,7 @@ Run `newsticker-start-hook' if newsticker was not running already."
   (let ((running (newsticker-running-p)))
     ;; read old cache if it exists and newsticker is not running
     (unless running
-      (let ((coding-system-for-read 'utf-8))
-        (when (file-exists-p newsticker-cache-filename)
-          (with-temp-buffer
-            (insert-file-contents newsticker-cache-filename)
-            (goto-char (point-min))
-            (condition-case nil
-              (setq newsticker--cache (read (current-buffer)))
-            (error
-             (message "Error while reading newsticker cache file!")
-             (setq newsticker--cache nil)))))))
+      (newsticker--cache-read))
     ;; start retrieval timers -- one timer for each feed
     (dolist (feed (append newsticker-url-list-defaults newsticker-url-list))
       (newsticker--start-feed feed))
@@ -660,7 +651,7 @@ Delete the stopped name/timer pair from `newsticker--retrieval-timer-list'."
 Cancel the timers for display and retrieval.  Run `newsticker-stop-hook'
 if newsticker has been running."
   (interactive)
-  (newsticker--cache-update t)
+  (newsticker--cache-save)
   (when (fboundp 'newsticker-stop-ticker) ; silence compiler warnings
     (newsticker-stop-ticker))
   (when (newsticker-running-p)
@@ -743,7 +734,7 @@ See `newsticker-get-news'."
 See `newsticker-get-news'."
   (let ((coding-system-for-read 'no-conversion))
     (condition-case error-data
-        (url-retrieve url 'newsticker--get-news-by-url-callback 
+        (url-retrieve url 'newsticker--get-news-by-url-callback
                       (list feed-name))
           (error (message "Error retrieving news from %s: %s" feed-name
                           error-data))))
@@ -1035,7 +1026,8 @@ Argument BUFFER is the buffer of the retrieval process."
         (setq newsticker--latest-update-time (current-time))
         (when something-was-added
           ;; FIXME: should we care about removed items as well?
-          (newsticker--cache-update)
+          (newsticker--cache-save-feed
+           (newsticker--cache-get-feed name-symbol))
           (when (fboundp 'newsticker--buffer-set-uptodate) ;silence
                                                            ;compiler
                                                            ;warnings
@@ -1733,11 +1725,14 @@ Checks list of active processes against list of newsticker processes."
 ;; ======================================================================
 ;;; Images
 ;; ======================================================================
+(defun newsticker--images-dir ()
+  "Return directory where feed images are saved."
+  (concat newsticker-dir "/images"))
+
 (defun newsticker--image-get (feed-name url)
   "Get image of the news site FEED-NAME from URL.
 If the image has been downloaded in the last 24h do nothing."
-  (let ((image-name (concat newsticker-imagecache-dirname "/"
-                            feed-name)))
+  (let ((image-name (concat (newsticker--images-dir) feed-name)))
     (if (and (file-exists-p image-name)
              (time-less-p (current-time)
                           (time-add (nth 5 (file-attributes image-name))
@@ -1788,12 +1783,11 @@ If the image has been downloaded in the last 24h do nothing."
       (let (image-name)
         (save-excursion
           (set-buffer (process-buffer process))
-          (setq image-name (concat newsticker-imagecache-dirname "/"
-                                   feed-name))
+          (setq image-name (concat (newsticker--images-dir) feed-name))
           (set-buffer-file-coding-system 'no-conversion)
           ;; make sure the cache dir exists
-          (unless (file-directory-p newsticker-imagecache-dirname)
-            (make-directory newsticker-imagecache-dirname))
+          (unless (file-directory-p (newsticker--images-dir))
+            (make-directory (newsticker--images-dir)))
           ;; write and close buffer
           (let ((require-final-newline nil)
                 (backup-inhibited t)
@@ -1801,8 +1795,6 @@ If the image has been downloaded in the last 24h do nothing."
             (write-region nil nil image-name nil 'quiet))
           (set-buffer-modified-p nil)
           (kill-buffer (current-buffer)))))))
-
-
 
 (defun newsticker--insert-image (img string)
   "Insert IMG with STRING at point."
@@ -1936,12 +1928,12 @@ other properties are ignored."
                                                     newsticker-desc-comp-max))
                                             (string= (substring
                                                       (newsticker--desc anitem)
-                                                      0 
+                                                      0
                                                       newsticker-desc-comp-max)
                                                      desc)
                                           (string= (newsticker--desc anitem)
                                                    desc)))))))
-                       ;;(newsticker--debug-msg "Found %s guid=%s" 
+                       ;;(newsticker--debug-msg "Found %s guid=%s"
                        ;; (newsticker--title anitem)
                        ;;                     (newsticker--guid anitem))
                        (throw 'found anitem)))
@@ -1970,7 +1962,7 @@ which the item got."
     (if item
         ;; does exist already -- change age, update time and position
         (progn
-          ;;(newsticker--debug-msg "Updating item %s %s %s %s %s -> %s %s 
+          ;;(newsticker--debug-msg "Updating item %s %s %s %s %s -> %s %s
           ;;                   (guid %s -> %s)"
           ;;                   feed-name-symbol title link time age
           ;;                 updated-time updated-age
@@ -2094,9 +2086,7 @@ well."
                  (throw 'result t)))))
     (< (or (newsticker--pos item1) 0) (or (newsticker--pos item2) 0))))
 
-
-
-(defun newsticker--cache-save ()
+(defun newsticker--cache-save-version1 ()
   "Update and save newsticker cache file."
   (interactive)
   (newsticker--cache-update t))
@@ -2105,6 +2095,8 @@ well."
   "Update newsticker cache file.
 If optional argument SAVE is not nil the cache file is saved to disk."
   (save-excursion
+    (unless (file-directory-p newsticker-dir)
+      (make-directory newsticker-dir t))
     (let ((coding-system-for-write 'utf-8)
           (buf (find-file-noselect newsticker-cache-filename)))
       (when buf
@@ -2120,6 +2112,69 @@ If optional argument SAVE is not nil the cache file is saved to disk."
   "Return the cached data for the feed FEED.
 FEED is a symbol!"
   (assoc feed newsticker--cache))
+
+(defun newsticker--cache-dir ()
+  "Return directory for saving cache data."
+  (concat newsticker-dir "/feeds"))
+
+(defun newsticker--cache-save ()
+    "Save cache data for all feeds."
+    (unless (file-directory-p newsticker-dir)
+      (make-directory newsticker-dir t))
+    (mapc 'newsticker--cache-save-feed newsticker--cache)
+    nil)
+
+(defun newsticker--cache-save-feed (feed)
+  "Save cache data for FEED."
+  (let ((dir (concat (newsticker--cache-dir) "/" (symbol-name (car feed)))))
+    (unless (file-directory-p dir)
+      (make-directory dir t))
+    (let ((coding-system-for-write 'utf-8))
+      (with-temp-file (concat dir "/data")
+        (insert ";; -*- coding: utf-8 -*-\n")
+        (insert (prin1-to-string (cdr feed)))))))
+
+(defun newsticker--cache-read-version1 ()
+  "Read version1 cache data."
+  (let ((coding-system-for-read 'utf-8))
+    (when (file-exists-p newsticker-cache-filename)
+      (with-temp-buffer
+        (insert-file-contents newsticker-cache-filename)
+        (goto-char (point-min))
+        (condition-case nil
+            (setq newsticker--cache (read (current-buffer)))
+          (error
+           (message "Error while reading newsticker cache file!")
+           (setq newsticker--cache nil)))))))
+
+(defun newsticker--cache-read ()
+  "Read cache data."
+  (setq newsticker--cache nil)
+  (if (file-exists-p newsticker-cache-filename)
+      (progn
+        (when (y-or-n-p "Old newsticker cache file exists.  Read it? ")
+          (newsticker--cache-read-version1))
+        (message "Please remove/rename the old cache file (%s) now."
+                 newsticker-cache-filename))
+    (mapc (lambda (f)
+            (newsticker--cache-read-feed (car f)))
+          (append newsticker-url-list-defaults newsticker-url-list))))
+
+(defun newsticker--cache-read-feed (feed-name)
+  "Read cache data for feed named FEED-NAME."
+  (let ((file-name (concat (newsticker--cache-dir) "/" feed-name "/data"))
+        (coding-system-for-read 'utf-8))
+    (when (file-exists-p file-name)
+      (with-temp-buffer
+        (insert-file-contents file-name)
+        (goto-char (point-min))
+        (condition-case nil
+            (add-to-list 'newsticker--cache (cons (intern feed-name)
+                                                  (read (current-buffer))))
+          (error
+           (message "Error while reading newsticker cache file %s!"
+                    file-name))
+          (setq newsticker--cache nil))))))
 
 ;; ======================================================================
 ;;; Statistics
@@ -2316,3 +2371,7 @@ This function is suited for adding it to `newsticker-new-item-functions'."
 
 ;; arch-tag: 0e37b658-56e9-49ab-90f9-f2df57e1a659
 ;;; newsticker-backend.el ends here
+
+(provide 'newst-backend)
+
+;;; newst-backend.el ends here

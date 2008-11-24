@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "31. Oktober 2008, 20:44:46 (ulf)"
+;; Time-stamp:  "24. November 2008, 19:49:20 (ulf)"
 
 ;; ======================================================================
 
@@ -149,7 +149,8 @@ Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
 ;; ======================================================================
 (defvar newsticker--treeview-windows nil)
 (defvar newsticker--treeview-buffers nil)
-(defvar newsticker--treeview-current-feed nil)
+(defvar newsticker--treeview-current-feed nil
+  "Feed name of currently shown item.")
 (defvar newsticker--treeview-current-vfeed nil)
 (defvar newsticker--treeview-list-show-feed nil)
 (defvar newsticker--saved-window-config nil)
@@ -691,8 +692,9 @@ for the button."
       (newsticker-treeview-mode)
       (goto-char (point-min)))))
 
-(defun newsticker--treeview-item-show (item feed)
-  "Show news ITEM coming from FEED in treeview item buffer."
+(defun newsticker--treeview-item-show (item feed-name-symbol)
+  "Show news ITEM coming from FEED-NAME-SYMBOL in treeview item buffer."
+  (setq newsticker--treeview-current-feed (symbol-name feed-name-symbol))
   (save-excursion
     (set-buffer (newsticker--treeview-item-buffer))
     (when (fboundp 'w3m-process-stop)
@@ -706,7 +708,7 @@ for the button."
       (kill-all-local-variables)
       (remove-overlays)
 
-      (when (and item feed)
+      (when (and item feed-name-symbol)
         (let ((wwidth (1- (window-width (newsticker--treeview-item-window)))))
           (if newsticker-use-full-width
               (set (make-local-variable 'fill-column) wwidth))
@@ -726,10 +728,10 @@ for the button."
         (goto-char (point-min))
         ;; insert logo at top
         (let* ((newsticker-enable-logo-manipulations nil)
-               (img (newsticker--image-read feed nil)))
+               (img (newsticker--image-read feed-name-symbol nil)))
           (if (and (display-images-p) img)
               (newsticker--insert-image img (car item))
-            (insert (newsticker--real-feed-name feed))))
+            (insert (newsticker--real-feed-name feed-name-symbol))))
         (add-text-properties (point-min) (point)
                              (list 'face 'newsticker-feed-face
                                    'mouse-face 'highlight
@@ -989,8 +991,6 @@ If RECURSIVE is non-nil recursively update parent widgets as
 well.  Argument IGNORE is ignored.  Note that this function, if
 called recursively, makes w invalid.  You should keep w's nt-id in
 that case."
-  ;;(message "newsticker--treeview-tree-update-tag %s, %s" (widget-get w :tag)
-    ;;       (widget-type w))
   (let* ((parent (widget-get w :parent))
          (feed (or (widget-get w :nt-feed) (widget-get parent :nt-feed)))
          (vfeed (or (widget-get w :nt-vfeed) (widget-get parent :nt-vfeed)))
@@ -1207,7 +1207,6 @@ Arguments IGNORE are ignored."
   "Update all treeview buffers and windows.
 Note: does not update the layout."
   (interactive)
-  (newsticker--cache-update)
   (newsticker--group-manage-orphan-feeds)
   (newsticker--treeview-list-update t)
   (newsticker--treeview-item-update)
@@ -1223,7 +1222,6 @@ Note: does not update the layout."
 (defun newsticker-treeview-quit ()
   "Quit newsticker treeview."
   (interactive)
-  (newsticker-treeview-save)
   (setq newsticker--sentinel-callback nil)
   (bury-buffer "*Newsticker Tree*")
   (bury-buffer "*Newsticker List*")
@@ -1237,10 +1235,9 @@ Note: does not update the layout."
 (defun newsticker-treeview-save ()
   "Save newsticker data including treeview settings."
   (interactive)
-  (newsticker--cache-save)
   (save-excursion
     (let ((coding-system-for-write 'utf-8)
-          (buf (find-file-noselect newsticker-groups-filename)))
+          (buf (find-file-noselect (concat newsticker-dir "/groups"))))
       (when buf
         (set-buffer buf)
         (setq buffer-undo-list t)
@@ -1252,8 +1249,14 @@ Note: does not update the layout."
 (defun newsticker--treeview-load ()
   "Load treeview settings."
   (let* ((coding-system-for-read 'utf-8)
-         (buf (and (file-exists-p newsticker-groups-filename)
-                   (find-file-noselect newsticker-groups-filename))))
+         (filename
+          (or (and (file-exists-p newsticker-groups-filename)
+                   (y-or-n-p
+                    (format "Old newsticker groups (%s) file exists.  Read it? "
+                            newsticker-groups-filename))
+                   newsticker-groups-filename)
+              (concat newsticker-dir "/groups")))
+         (buf (find-file-noselect filename)))
     (when buf
       (set-buffer buf)
       (goto-char (point-min))
@@ -1377,7 +1380,9 @@ Move to next item unless DONT-PROCEED is non-nil."
     (setcar (nthcdr 4 item) new-age)
     ;; clean up ticker FIXME
     )
-  (newsticker--cache-update))
+  (newsticker--cache-save-feed
+   (newsticker--cache-get-feed (intern newsticker--treeview-current-feed)))
+  (newsticker--treeview-tree-do-update-tags newsticker--treeview-vfeed-tree))
 
 (defun newsticker-treeview-mark-list-items-old ()
   "Mark all listed items as old."
@@ -1908,10 +1913,9 @@ Remove obsolete feeds as well."
   "Actually handle click event.
 POS gives the position where EVENT occurred."
   (interactive)
-  (unless pos (setq pos (point)))
-  (let ((pos (or pos (point)))
-        (nt-id (get-text-property pos :nt-id))
-        (item (get-text-property pos :nt-item)))
+  (let* ((pos (or pos (point)))
+         (nt-id (get-text-property pos :nt-id))
+         (item (get-text-property pos :nt-item)))
     (cond (item
            ;; click in list buffer
            (newsticker-treeview-show-item))

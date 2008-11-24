@@ -1,3 +1,38 @@
+2008-11-24  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-treeview.el (newsticker--treeview-current-feed): Doc
+	string.
+	(newsticker--treeview-item-show): Renamed arg FEED to
+	FEED-NAME-SYMBOL.
+	(newsticker--treeview-tree-update-tag): Removed dead code.
+	(newsticker-treeview-update): Don't update cache.
+	(newsticker-treeview-quit): Don't save cache.
+	(newsticker-treeview-save): Don't save cache. Use `newsticker-dir'.
+	(newsticker-treeview-save): Use `newsticker-dir'.
+	(newsticker--treeview-load): Use `newsticker-dir'.
+	(newsticker--treeview-mark-item): Call `newsticker--cache-save-feed'.
+	Update tags.
+	(newsticker-treeview-tree-do-click): Slightly simplified.
+
+	* net/newst-backend.el (newsticker-dir): New.
+	(newsticker-start): Use `newsticker--cache-read'.
+	(newsticker-stop): Use `newsticker--cache-save'.
+	(newsticker--sentinel-work): Use `newsticker--cache-save-feed'.
+	(newsticker--images-dir): New.
+	(newsticker--image-get, newsticker--image-sentinel): Use
+	`newsticker--images-dir'.
+	(newsticker--cache-save-version1): Backuped version of
+	`newsticker--cache-save'.
+	(newsticker--cache-update): Create newsticker-dir if necessary.
+	(newsticker--cache-dir): New.
+	(newsticker--cache-save): Save feeds separately in `newsticker-dir'.
+	(newsticker--cache-save-feed): New.
+	(newsticker--cache-read-version1): New. Backuped version for reading
+	cache data..
+	(newsticker--cache-read, newsticker--cache-do-read): New.
+
+	* net/newst-reader.el (newsticker--image-read): Use `newsticker--images-dir'.
+
 2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (confirm-nonexistent-file-or-buffer): Allow
