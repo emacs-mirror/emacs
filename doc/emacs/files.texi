@@ -240,14 +240,31 @@ moves or copies the file into the displayed directory.  For details,
 see @ref{Drag and Drop}, and @ref{Misc Dired Features}.
 
 @cindex creating files
+  What if you want to create a new file?  Just visit it.  Emacs
+displays @samp{(New file)} in the echo area, but in other respects
+behaves as if you had visited an existing empty file.  If you make
+changes and save them, the file is created.
+
+@cindex minibuffer confirmation
+@cindex confirming in the minibuffer
+  When you attempt to visit a new file, Emacs might prompt you for
+confirmation first, in case you entered the wrong file name.  Emacs
+asks for confirmation only if the last key you typed in the
+minibuffer, before submitting the input with @key{RET}, was @key{TAB}
+(@code{minibuffer-complete}).  This catches a common mistake, in which
+one types @key{RET} before realizing that @key{TAB} did not complete
+far enough to yield a desired file name (@pxref{Completion}).  Emacs
+asks for confirmation by putting the message @samp{[Confirm]} in the
+minibuffer; type @key{RET} again to confirm and visit the file.
+
 @vindex confirm-nonexistent-file-or-buffer
-  What if you want to create a new file?  Just visit it.
-Emacs prompts you for confirmation before visiting a non-existent
-file, and displays @samp{(New file)} in the echo area, but in other
-respects behaves as if you had visited an existing empty file.  If you
-make changes and save them, the file is created.  If you change the
-variable @code{confirm-nonexistent-file-or-buffer} to @code{nil}, then
-Emacs will not even prompt you for confirmation.
+  The variable @code{confirm-nonexistent-file-or-buffer} controls
+whether Emacs asks for confirmation before visiting a new file.  The
+default value, @code{after-completion}, gives the behavior we have
+just described.  If the value is @code{nil}, Emacs never asks for
+confirmation; for any other non-@code{nil} value, Emacs always asks
+for confirmation.  This variable also affects the
+@code{switch-to-buffer} command (@pxref{Select Buffer}).
 
 @kindex C-x C-v
 @findex find-alternate-file
