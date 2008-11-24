@@ -1,3 +1,9 @@
+2008-11-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-global-switches): Remove.
+	(vc-hg-state, vc-hg-working-revision, vc-hg-command): Undo
+	previous change.
+
 2008-11-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* info-look.el (info-lookup): When Info buffer is visible on

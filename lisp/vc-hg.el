@@ -116,12 +116,6 @@
 
 ;;; Customization options
 
-(defcustom vc-hg-program "hg"
-  "Name of the Hg executable."
-  :type 'string
-  :version "23.1"
-  :group 'vc)
-
 (defcustom vc-hg-global-switches nil
   "*Global switches to pass to any Hg command."
   :type '(choice (const :tag "None" nil)
@@ -180,8 +174,7 @@ If you want to force an empty list of arguments, use t."
 		  (condition-case nil
 		      ;; Ignore all errors.
 		      (call-process
-		       vc-hg-program nil t nil
-                       "--cwd" (file-name-directory file)
+		       "hg" nil t nil "--cwd" (file-name-directory file)
 		       "status" "-A" (file-name-nondirectory file))
 		    ;; Some problem happened.  E.g. We can't find an `hg'
 		    ;; executable.
@@ -212,8 +205,7 @@ If you want to force an empty list of arguments, use t."
 		  (condition-case nil
 		      ;; Ignore all errors.
 		      (call-process
-		       vc-hg-program nil t nil
-                       "--cwd" (file-name-directory file)
+		       "hg" nil t nil "--cwd" (file-name-directory file)
 		       "log" "-l1" (file-name-nondirectory file))
 		    ;; Some problem happened.  E.g. We can't find an `hg'
 		    ;; executable.
@@ -605,9 +597,9 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-hg.el.
-The difference to vc-do-command is that this function always invokes
-`vc-hg-program', and that it passes `vc-hg-global-switches' to it before FLAGS."
-  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-hg-program file-or-list
+The difference to vc-do-command is that this function always invokes `hg',
+and that it passes `vc-hg-global-switches' to it before FLAGS."
+  (apply 'vc-do-command (or buffer "*vc*") okstatus "hg" file-or-list
          (if (stringp vc-hg-global-switches)
              (cons vc-hg-global-switches flags)
            (append vc-hg-global-switches
