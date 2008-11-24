@@ -1,3 +1,13 @@
+2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Text): Simplify introduction.  Discard mention of `M-x
+	edit-picture', since that is just an alias for picture-mode.
+	(Sentences): Note that repeated M-@ extends the region.
+	(Pages): Make terminology more consistent.  Link to Regexps node.
+	(Longlines): Discuss relationship with Visual Line mode.
+	(Text Mode): Remove extraneous discussion of other modes, since they
+	were already introduced in the parent node.
+
 2008-11-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* anti.texi (Antinews): Rewrite.
