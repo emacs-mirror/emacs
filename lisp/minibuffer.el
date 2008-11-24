@@ -543,12 +543,18 @@ Repeated uses step through the possible completions."
       (setq completion-all-sorted-completions (cdr all)))))
 
 (defun minibuffer-complete-and-exit ()
-  "If the minibuffer contents is a valid completion then exit.
-Otherwise try to complete it.  If completion leads to a valid completion,
-a repetition of this command will exit.
-If `minibuffer-completion-confirm' is equal to `confirm', then do not
-try to complete, but simply ask for confirmation and accept any
-input if confirmed."
+  "Exit if the minibuffer contains a valid completion.
+Otherwise, try to complete the minibuffer contents.  If
+completion leads to a valid completion, a repetition of this
+command will exit.
+
+If `minibuffer-completion-confirm' is `confirm', do not try to
+ complete; instead, ask for confirmation and accept any input if
+ confirmed.
+If `minibuffer-completion-confirm' is `confirm-after-completion',
+ do not try to complete; instead, ask for confirmation if the
+ preceding minibuffer command was `minibuffer-complete', and
+ accept the input otherwise."
   (interactive)
   (let ((beg (field-beginning))
         (end (field-end)))
@@ -578,13 +584,21 @@ input if confirmed."
             (delete-region beg end))))
       (exit-minibuffer))
 
-     ((eq minibuffer-completion-confirm 'confirm-only)
+     ((eq minibuffer-completion-confirm 'confirm)
       ;; The user is permitted to exit with an input that's rejected
-      ;; by test-completion, but at the condition to confirm her choice.
+      ;; by test-completion, after confirming her choice.
       (if (eq last-command this-command)
           (exit-minibuffer)
         (minibuffer-message "Confirm")
         nil))
+
+     ((eq minibuffer-completion-confirm 'confirm-after-completion)
+      ;; Similar to the above, but only if trying to exit immediately
+      ;; after typing TAB (this catches most minibuffer typos).
+      (if (eq last-command 'minibuffer-complete)
+	  (progn (minibuffer-message "Confirm")
+		 nil)
+	(exit-minibuffer)))
 
      (t
       ;; Call do-completion, but ignore errors.
