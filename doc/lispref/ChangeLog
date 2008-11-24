@@ -1,3 +1,10 @@
+2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.texi (Accessing Documentation): Update example.
+
+	* variables.texi (Defining Variables): Note that `*' is not
+	necessary if defcustom is used.
+
 2008-11-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* elisp.texi (Top): Remove "Chars and Bytes" and "Splitting
