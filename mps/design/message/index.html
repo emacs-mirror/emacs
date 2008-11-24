@@ -143,10 +143,6 @@
 
 <p>(Because every finalised object requires a MessageStruct, so it would be nice to keep it small).</p>
 
-<p>The field <code>MessageType type</code> does not need to be in every MessageStruct.  It can be a field in <code>MessageClass class</code>.</p>
-
-<p>The field <code>MessageClass class</code> must remain.  (It's how we allow extra bits of the MPS (eg. poolmrg) to be either added into an executable by simply linking them in to the binary, or omitted without causing a link failure).</p>
-
 <p>The field <code>Clock postedClock</code> could be implemented and stored by only those message types that use it.  A bit messy though.</p>
 
 
