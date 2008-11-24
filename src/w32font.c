@@ -1316,17 +1316,18 @@ check_face_name (font, full_name)
      to avoid non-truetype fonts, and ends up mixing the Type-1 Helvetica
      with Arial's characteristics, since that attempt to use Truetype works
      some places, but not others.  */
-  if (!stricmp (font->lfFaceName, "helvetica"))
+  if (!xstrcasecmp (font->lfFaceName, "helvetica"))
     {
       strncpy (full_iname, full_name, LF_FULLFACESIZE);
       full_iname[LF_FULLFACESIZE] = 0;
       _strlwr (full_iname);
-      return strstr ("helvetica", full_iname);
+      return strstr ("helvetica", full_iname) != NULL;
     }
-  else if (!stricmp (font->lfFaceName, "times"))
-    /* Since Times is mapped to Times New Roman, a substring
-       match is not sufficient to filter out the bogus match.  */
-    return stricmp (full_name, "times");
+
+  /* Since Times is mapped to Times New Roman, a substring
+     match is not sufficient to filter out the bogus match.  */
+  else if (!xstrcasecmp (font->lfFaceName, "times"))
+    return xstrcasecmp (full_name, "times") == 0;
 
   return 1;
 }
