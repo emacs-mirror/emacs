@@ -1,3 +1,16 @@
+2008-11-24  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-get-closed): Re-apply changes
+	accidentially overwritten by last commit to Emacs.
+
+	* org.el (org-outline-path-complete-in-steps): New option.
+	(org-refile-get-location): Honor
+	`org-outline-path-complete-in-steps'.
+	(org-agenda-change-all-lines, org-tags-sparse-tree)
+	(org-time-string-to-absolute, org-small-year-to-year)
+	(org-link-escape): Re-apply changes accidentially overwritten
+	by last commit to Emacs.
+
 2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-clock.el (org-dblock-write:clocktable): Make sure the
