@@ -36,7 +36,8 @@
 	cache data..
 	(newsticker--cache-read, newsticker--cache-do-read): New.
 
-	* net/newst-reader.el (newsticker--image-read): Use `newsticker--images-dir'.
+	* net/newst-reader.el (newsticker--image-read): Use
+	`newsticker--images-dir'.
 
 2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -49,6 +50,7 @@
 	(find-file-read-only-other-frame): Use it.
 	(switch-to-buffer-other-window, switch-to-buffer-other-frame): Doc
 	fix.
+	Thanks to Alan Mackenzie for suggesting the new behavior.
 
 	* minibuffer.el (minibuffer-complete-and-exit): Change
 	`confirm-only' value of minibuffer-completion-confirm to
