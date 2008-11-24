@@ -1,3 +1,9 @@
+2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (Fcompleting_read, Vminibuffer_completion_confirm):
+	Document confirm-after-completion value for
+	minibuffer-completion-confirm.
+
 2008-11-24  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (check_face_name): Use xstrcasecmp.  Avoid compiler
