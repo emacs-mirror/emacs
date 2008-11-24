@@ -417,7 +417,9 @@ message APPT-MSG in a separate buffer."
       (and (minibufferp) (display-multi-frame-p) (other-frame 1)))
     (if (cdr (assq 'unsplittable (frame-parameters)))
         ;; In an unsplittable frame, use something somewhere else.
-        (display-buffer appt-disp-buf)
+	(progn
+	  (set-buffer appt-disp-buf)
+	  (display-buffer appt-disp-buf))
       (unless (or (special-display-p (buffer-name appt-disp-buf))
                   (same-window-p (buffer-name appt-disp-buf)))
         ;; By default, split the bottom window and use the lower part.
