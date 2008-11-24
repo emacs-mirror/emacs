@@ -1,5 +1,11 @@
 2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
+	* files.texi (Visiting): Document new behavior of
+	confirm-nonexistent-file-or-buffer.
+
+	* buffers.texi (Select Buffer): Document
+	confirm-nonexistent-file-or-buffer.
+
 	* picture-xtra.texi (Picture Mode): Use picture-mode instead of
 	edit-picture.
 
