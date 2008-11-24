@@ -1,3 +1,8 @@
+2008-11-24  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (check_face_name): Use xstrcasecmp.  Avoid compiler
+	warning.
+
 2008-11-23  Jason Rumney  <jasonr@gnu.org>
 
 	* w32uniscribe.c (uniscribe_encode_char): Ensure context is
