@@ -378,6 +378,19 @@ buffer).
 
 ** Minibuffer and completion changes
 +++
+*** Emacs may ask for confirmation before opening a non-existent file
+or buffer.  By default, Emacs requests confirmation if you type RET
+immediately after TAB, and the resulting input is not an existing file
+or buffer; this usually happens when the minibuffer input did not
+complete far enough and you entered RET by mistake.  In that case,
+Emacs puts the message "[Confirm]" in the minibuffer; type RET again
+to create the file or buffer.
+
+The new variable confirm-nonexistent-file-or-buffer determines whether
+Emacs asks for confirmation.  The default value is `after-completion'.
+If you change it to t, Emacs always asks for confirmation; if you
+change it to nil, Emacs never asks for confirmation.
++++
 *** When M-n in the minibuffer reaches the end of the list of defaults,
 it adds the completion list to the end, so next M-n continues putting
 completion items to the minibuffer.  The same principle applies to
@@ -515,10 +528,6 @@ matches a regexp.
 *** The new command `set-file-modes' allows to set file's mode bits.
 The mode bits can be specified in symbolic notation, like with GNU
 Coreutils, in addition to an octal number.
-+++
-*** Emacs requires confirmation before opening a non-existent file or buffer.
-You can recover the previous behavior by setting
-confirm-nonexistent-file-or-buffer to nil.
 
 *** `next-error-recenter' specifies how next-error should recenter the
 visited source file.  Its value can be a number (for example, 0 for
@@ -1312,8 +1321,8 @@ is an incompatible change and is thus enabled by the new variable
 completion-all-completions-with-base-size.
 
 +++
-*** The `require-match' argument to `completing-read' accepts a new value
-`confirm-only'.
+*** The `require-match' argument to `completing-read' accepts the new
+values `confirm-only' and `confirm-after-completion'.
 
 ** Search and replacement changes
 +++
