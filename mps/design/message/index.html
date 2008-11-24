@@ -349,12 +349,12 @@ MessageClassStruct (a struct).  Clients of the Message module are expected to
 allocate storage for and initialise the MessageClassStruct.  It is expected 
 that such storage will be allocated and initialised statically.
 
-<a id="class.type" name="class.type">.class.type</a>: Each message class implements exactly one message type.  
+<a id="class.one-type" name="class.one-type">.class.one-type</a>: A message class implements exactly one message type.  
 The identifier for this type is stored in the "type" field of the 
 MessageClassStruct.  Note that the converse is not true: a single 
 message type may be implemented by two (or more) different message 
 classes (for example: for two pool classes that require different 
-implementations of that message type).
+implementations for that message type).
 
 BEGIN OBSOLETE SECTION "class-not-type".
 [<a id="class.not-type.not" name="class.not-type.not">.class.not-type.not</a>: It used to be the case that message classes and message 
