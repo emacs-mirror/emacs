@@ -107,7 +107,7 @@ enum {
  * and <design/interface-c/#check.space>.
  *
  * @@@@ This is a test, not a CHECK macro -- it does not assert.
- * It should be renamed MATCHSIG.  RHSK 2006-12-13.
+ * It should be renamed TESTSIG.  RHSK 2006-12-13.
  */
 
 #define CHECKT(type, val)       ((val) != NULL && (val)->sig == type ## Sig)
@@ -240,7 +240,7 @@ enum {
  * satisfy rule.impl.trick.]
  *
  * @@@@ These are tests, not CHECK macros -- they do not assert.
- * They should be renamed MATCHTYPE etc.  RHSK 2006-12-13.
+ * They should be renamed TESTTYPE etc.  RHSK 2006-12-13.
  */
 
 /* compile-time check */
