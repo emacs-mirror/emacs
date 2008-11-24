@@ -68,7 +68,9 @@ were found."
     (goto-char (point-max))
     (let ((inhibit-read-only t))
       (insert (format "\nDiff finished%s.  %s\n"
-		      (if (equal 0 code) " (no differences)" "")
+		      (cond ((equal 0 code) " (no differences)")
+			    ((equal 2 code) " (diff error)")
+			    (t ""))
 		      (current-time-string))))))
 
 (defvar diff-old-file nil)
