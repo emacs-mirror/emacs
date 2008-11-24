@@ -345,7 +345,7 @@ Use optional LIST if provided instead.
 If called interactively, read LIST using the minibuffer."
   (interactive "PList of functions to instrument: ")
   (unless (listp list)
-    (signal 'wrong-type-argument 'listp list))
+    (signal 'wrong-type-argument (list 'listp list)))
   (let ((list (or list elp-function-list)))
     (mapcar 'elp-instrument-function list)))
 
