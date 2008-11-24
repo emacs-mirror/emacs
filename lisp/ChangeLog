@@ -1,5 +1,8 @@
 2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
+	* log-view.el (log-view-annotate-version): Let vc-annotate manage
+	windows instead of calling switch-to-buffer.
+
 	* diff.el (diff-sentinel): Take note of diff error return value.
 
 2008-11-24  Martin Rudalics  <rudalics@gmx.at>
