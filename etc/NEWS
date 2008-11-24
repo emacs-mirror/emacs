@@ -442,10 +442,17 @@ via face remapping (see Lisp changes, below).
 *** New commands to change the default face size in the current buffer.
 To increase it, type `C-x C-+' or `C-x C-='.  To decrease it, type
 `C-x C--'.  To restore the default (global) face size, type `C-x C-0'.
-The final key of these commands may be repeated without the leading
-`C-x', so `C-x C-= C-= C-=' increases the face height by three steps.
-Each step scales the height of the default face by the value of the
-variable `text-scale-mode-step'.
+These work via Text Scale mode, a new minor mode.
+
+The final key in the above commands may be repeated without the
+leading `C-x', e.g. `C-x C-= C-= C-=' increases the face height by
+three steps.  Each step scales the height of the default face by the
+value of the variable `text-scale-mode-step'.
+
+*** The command `buffer-face-mode' prompts for a face name, and remaps
+the default face in the current buffer to that specified face.  The
+command `variable-pitch-mode' turns on Buffer Face mode for the
+`variable-pitch' face.
 
 ** Primary selection changes
 +++
@@ -1355,10 +1362,32 @@ symbolic notation thanks to auxiliary functions.
 *** file-local-variables-alist stores an alist of file-local
 variables defined in the current buffer.
 
-** FIXME face-remap
+** Face-remapping
 
-** Process changes
-+++
+*** Each face can be remapped to a different face definition using the
+variable `face-remapping-alist'.  This is an alist that maps faces to
+replacement definitions (which can be face names, lists of face names,
+or attribute/value plists.  If this variable is buffer-local, the
+remapping occurs only in that buffer.
+
+*** text-scale-mode remaps the default face to a larger or smaller
+size in the current buffer. This feature is used by the Buffer Face
+menu and the new `C-x C-+', `C-x C--', and `C-x C-0' commands (see
+Editing Changes, above).
+
+*** New functions:
+
+**** `face-remap-add-relative' adds a face remapping entry to the
+current buffer.
+
+**** ``face-remap-remove-relative' removes a face remapping entry from
+the current buffer.
+
+**** `face-remap-reset-base' restores a face to its global definition.
+
+**** `face-remap-set-base' sets the base remapping of a face.
+
+** Process changes +++
 *** The new function `start-file-process' is similar to `start-process',
 but obeys file handlers.  The file handler is chosen based on
 `default-directory'.  The functions `start-file-process-shell-command'
