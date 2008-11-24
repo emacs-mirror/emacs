@@ -7,26 +7,19 @@
 @cindex text
 @cindex manipulating text
 
-  The term @dfn{text} has two widespread meanings in our area of the
-computer field.  One is data that is a sequence of characters.  Any file
-that you edit with Emacs is text, in this sense of the word.  The other
-meaning is more restrictive: a sequence of characters in a human language
-for humans to read (possibly after processing by a text formatter), as
-opposed to a program or binary data.  This chapter is concerned with
-editing text in the narrower sense.
+  This chapter describes Emacs commands that act on @dfn{text}, by
+which we mean sequences of characters in a human language (as opposed
+to, say, a computer programming language).  These commands act in ways
+that take into account the syntactic and stylistic conventions of
+human languages: conventions involving words, sentences, paragraphs,
+and capital letters.  There are also commands for @dfn{filling}, which
+means rearranging the lines of a paragraph to be approximately equal
+in length.  These commands, while intended primarily for editing text,
+are also often useful for editing programs.
 
-  Human languages have syntactic/stylistic conventions that can be
-supported or used to advantage by editor commands: conventions involving
-words, sentences, paragraphs, and capital letters.  This chapter
-describes Emacs commands for all of these things.  There are also
-commands for @dfn{filling}, which means rearranging the lines of a
-paragraph to be approximately equal in length.  The commands for moving
-over and killing words, sentences and paragraphs, while intended
-primarily for editing text, are also often useful for editing programs.
-
-  Emacs has several major modes for editing human-language text.  If the
-file contains text pure and simple, use Text mode, which customizes
-Emacs in small ways for the syntactic conventions of text.  Outline mode
+  Emacs has several major modes for editing human-language text.  If
+the file contains ordinary text, use Text mode, which customizes Emacs
+in small ways for the syntactic conventions of text.  Outline mode
 provides special commands for operating on text with an outline
 structure.
 @iftex
@@ -34,15 +27,15 @@ structure.
 @end iftex
 
   For text which contains embedded commands for text formatters, Emacs
-has other major modes, each for a particular formatter.  Thus, for
-input to @TeX{}, you would use @TeX{}
+has other major modes, each for a particular formatter.  For instance,
+La@TeX{} mode is used for editing La@TeX{}
 @iftex
-mode (@pxref{TeX Mode,,@TeX{} Mode}).
+documents (@pxref{LaTeX,,La@TeX{} Mode}),
 @end iftex
 @ifnottex
-mode.
+documents,
 @end ifnottex
-For input to groff or nroff, use Nroff mode.
+while Nroff mode is used for editing groff or nroff files.
 
   Instead of using a text formatter, you can edit formatted text in
 WYSIWYG style (``what you see is what you get''), with Enriched mode.
@@ -53,8 +46,8 @@ Then the formatting appears on the screen in Emacs while you edit.
 
 @cindex ASCII art
   If you need to edit pictures made out of text characters (commonly
-referred to as ``ASCII art''), use @kbd{M-x edit-picture} to enter
-Picture mode, a special major mode for editing such pictures.
+referred to as ``ASCII art''), use Picture mode, a special major mode
+for editing such pictures.
 @iftex
 @xref{Picture Mode,,, emacs-xtra, Specialized Emacs Features}.
 @end iftex
@@ -120,24 +113,24 @@ cognate to @kbd{C-@@}, which is an alias for @kbd{C-@key{SPC}}.
 @findex backward-word
   The commands @kbd{M-f} (@code{forward-word}) and @kbd{M-b}
 (@code{backward-word}) move forward and backward over words.  These
-Meta characters are thus analogous to the corresponding control
-characters, @kbd{C-f} and @kbd{C-b}, which move over single characters
-in the text.  The analogy extends to numeric arguments, which serve as
-repeat counts.  @kbd{M-f} with a negative argument moves backward, and
-@kbd{M-b} with a negative argument moves forward.  Forward motion
-stops right after the last letter of the word, while backward motion
-stops right before the first letter.
+@key{Meta}-based key sequences are analogous to the key sequences
+@kbd{C-f} and @kbd{C-b}, which move over single characters.  The
+analogy extends to numeric arguments, which serve as repeat counts.
+@kbd{M-f} with a negative argument moves backward, and @kbd{M-b} with
+a negative argument moves forward.  Forward motion stops right after
+the last letter of the word, while backward motion stops right before
+the first letter.
 
 @kindex M-d
 @findex kill-word
   @kbd{M-d} (@code{kill-word}) kills the word after point.  To be
 precise, it kills everything from point to the place @kbd{M-f} would
 move to.  Thus, if point is in the middle of a word, @kbd{M-d} kills
-just the part after point.  If some punctuation comes between point and the
-next word, it is killed along with the word.  (If you wish to kill only the
-next word but not the punctuation before it, simply do @kbd{M-f} to get
-the end, and kill the word backwards with @kbd{M-@key{DEL}}.)
-@kbd{M-d} takes arguments just like @kbd{M-f}.
+just the part after point.  If some punctuation comes between point
+and the next word, it is killed along with the word.  (If you wish to
+kill only the next word but not the punctuation before it, simply do
+@kbd{M-f} to get the end, and kill the word backwards with
+@kbd{M-@key{DEL}}.)  @kbd{M-d} takes arguments just like @kbd{M-f}.
 
 @findex backward-kill-word
 @kindex M-DEL
@@ -160,12 +153,13 @@ more on transposition.
 
 @kindex M-@@
 @findex mark-word
-  To operate on the next @var{n} words with an operation which applies
-between point and mark, you can either set the mark at point and then move
-over the words, or you can use the command @kbd{M-@@} (@code{mark-word})
-which does not move point, but sets the mark where @kbd{M-f} would move
-to.  @kbd{M-@@} accepts a numeric argument that says how many words to
-scan for the place to put the mark.
+  To operate on the next @var{n} words with an operation which acts on
+the region, use the command @kbd{M-@@} (@code{mark-word}).  This
+command does not move point, but sets the mark where @kbd{M-f} would
+move to.  Once the mark is active, each additional @kbd{M-@@} advances
+the mark by one additional word.  @kbd{M-@@} also accepts a numeric
+argument that says how many words to scan for the place to put the
+mark.
 
   The word commands' understanding of word boundaries is controlled
 by the syntax table.  Any character can, for example, be declared to
@@ -207,18 +201,18 @@ punctuation that ends the sentence.  Neither one moves over the
 whitespace at the sentence boundary.
 
 @kindex M-k
-@kindex C-x DEL
 @findex kill-sentence
+  Just as @kbd{C-a} and @kbd{C-e} have a kill command, @kbd{C-k}, to
+go with them, @kbd{M-a} and @kbd{M-e} have a corresponding kill
+command: @kbd{M-k} (@code{kill-sentence}) kills from point to the end
+of the sentence.  With a positive numeric argument @var{n}, it kills
+the next @var{n} sentences; with a negative argument @minus{}@var{n},
+it kills back to the beginning of the @var{n}th preceding sentence.
+
+@kindex C-x DEL
 @findex backward-kill-sentence
-  Just as @kbd{C-a} and @kbd{C-e} have a kill command, @kbd{C-k}, to go
-with them, so @kbd{M-a} and @kbd{M-e} have a corresponding kill command
-@kbd{M-k} (@code{kill-sentence}) which kills from point to the end of
-the sentence.  With minus one as an argument it kills back to the
-beginning of the sentence.  Larger arguments serve as a repeat count.
-There is also a command, @kbd{C-x @key{DEL}}
-(@code{backward-kill-sentence}), for killing back to the beginning of a
-sentence.  This command is useful when you change your mind in the
-middle of composing text.
+  The @kbd{C-x @key{DEL}} (@code{backward-kill-sentence}) kills back
+to the beginning of a sentence.
 
   The sentence commands assume that you follow the American typist's
 convention of putting two spaces at the end of a sentence; they consider
@@ -234,7 +228,7 @@ too.  These commands do not stop for periods that indicate abbreviations.
 @vindex sentence-end-double-space
   If you want to use just one space between sentences, you can set the
 variable @code{sentence-end-double-space} to @code{nil} to make the
-sentence commands stop for single spaces.  However, this mode has a
+sentence commands stop for single spaces.  However, this has a
 drawback: there is no way to distinguish between periods that end
 sentences and those that indicate abbreviations.  For convenient and
 reliable editing, we therefore recommend you follow the two-space
@@ -243,13 +237,12 @@ affects filling (@pxref{Fill Commands}) in related ways.
 
 @vindex sentence-end
   The variable @code{sentence-end} controls how to recognize the end
-of a sentence.  If non-@code{nil}, it is a regexp that matches the
-last few characters of a sentence, together with the whitespace
-following the sentence.  If the value is @code{nil}, the default, then
-Emacs computes the regexp according to various criteria such as the
-value of @code{sentence-end-double-space}.  @xref{Regexp Example}, for
-a detailed explanation of one of the regular expressions Emacs uses
-for this purpose.
+of a sentence.  If non-@code{nil}, its value should be a regular
+expression, which is used to match the last few characters of a
+sentence, together with the whitespace following the sentence
+(@pxref{Regexps}).  If the value is @code{nil}, the default, then
+Emacs computes sentence ends according to various criteria such as the
+value of @code{sentence-end-double-space}.
 
 @vindex sentence-end-without-period
   Some languages do not use periods to indicate the end of a sentence.
@@ -297,17 +290,17 @@ all lines which don't start with the fill prefix.  @xref{Filling}.
 
 @kindex M-h
 @findex mark-paragraph
-  When you wish to operate on a paragraph, you can type @kbd{M-h}
-(@code{mark-paragraph}) to set the region around it.  Thus, for
-example, @kbd{M-h C-w} kills the paragraph around or after point.
-@kbd{M-h} puts point at the beginning and mark at the end of the
-paragraph point was in.  If point is between paragraphs (in a run of
-blank lines, or at a boundary), the paragraph following point is
-surrounded by point and mark.  If there are blank lines preceding the
-first line of the paragraph, one of these blank lines is included in
-the region.  If the region is already active, the command sets the
-mark without changing point; furthermore, each subsequent @kbd{M-h}
-further advances the mark by one paragraph.
+  When you wish to operate on a paragraph, type @kbd{M-h}
+(@code{mark-paragraph}) to set the region around it.  For example,
+@kbd{M-h C-w} kills the paragraph around or after point.  @kbd{M-h}
+puts point at the beginning and mark at the end of the paragraph point
+was in.  If point is between paragraphs (in a run of blank lines, or
+at a boundary), the paragraph following point is surrounded by point
+and mark.  If there are blank lines preceding the first line of the
+paragraph, one of these blank lines is included in the region.  If the
+region is already active, the command sets the mark without changing
+point; furthermore, each subsequent @kbd{M-h} further advances the
+mark by one paragraph.
 
 @vindex paragraph-start
 @vindex paragraph-separate
@@ -332,15 +325,15 @@ pages.
 @section Pages
 
 @cindex pages
-@cindex formfeed
-  Files are often thought of as divided into @dfn{pages} by the
-@dfn{formfeed} character (@acronym{ASCII} control-L, octal code 014).
-When you print hardcopy for a file, this character forces a page break;
-thus, each page of the file goes on a separate page on paper.  Most Emacs
-commands treat the page-separator character just like any other
-character: you can insert it with @kbd{C-q C-l}, and delete it with
-@key{DEL}.  Thus, you are free to paginate your file or not.  However,
-since pages are often meaningful divisions of the file, Emacs provides
+@cindex formfeed character
+  Within some text files, text is divided into @dfn{pages}, which are
+delimited by the @dfn{formfeed character} (@acronym{ASCII} code 12,
+sometimes denoted as @key{control-L}).  When you print hardcopy for a
+file, the formfeed character forces a page break: each page of the
+file goes on a separate page on paper.  Most Emacs commands treat the
+formfeed character just like any other character: you can insert it
+with @kbd{C-q C-l}, and delete it with @key{DEL}.  However, since
+pages are often meaningful divisions of the file, Emacs provides
 commands to move over them and operate on them.
 
 @table @kbd
@@ -377,8 +370,8 @@ elsewhere.  If you move to another page delimiter with @kbd{C-x [} and
 delimited once again.  The reason @kbd{C-x C-p} includes only the
 following page delimiter in the region is to ensure that.
 
-  A numeric argument to @kbd{C-x C-p} is used to specify which page to go
-to, relative to the current one.  Zero means the current page.  One means
+  A numeric argument to @kbd{C-x C-p} specifies which page to go to,
+relative to the current one.  Zero means the current page.  One means
 the next page, and @minus{}1 means the previous one.
 
 @kindex C-x l
@@ -398,9 +391,10 @@ beginning of a line.
 
 @vindex page-delimiter
   The variable @code{page-delimiter} controls where pages begin.  Its
-value is a regexp that matches the beginning of a line that separates
-pages.  The normal value of this variable is @code{"^\f"}, which
-matches a formfeed character at the beginning of a line.
+value is a regular expression that matches the beginning of a line
+that separates pages (@pxref{Regexps}).  The normal value of this
+variable is @code{"^\f"}, which matches a formfeed character at the
+beginning of a line.
 
 @node Filling
 @section Filling Text
@@ -768,34 +762,45 @@ completely unfilled if you edit them without Longlines mode.
 @cindex word wrap
 @cindex Long Lines minor mode
 
-  Long Lines mode is a minor mode for @dfn{word wrapping}; it lets you
-edit ``unfilled'' text files, which Emacs would normally display as a
-bunch of extremely long lines.  Many text editors, such as those built
-into many web browsers, normally do word wrapping.
+  Sometimes, you may come across ``unfilled'' text files, which Emacs
+normally displays as a bunch of extremely long lines.  Comfortably
+reading and editing such files normally requires ``word wrap'', a
+feature that breaks up each long text line into multiple screen lines
+in a readable manner---by putting the breaks at word boundaries.  Many
+text editors, such as those built into many web browsers, perform word
+wrapping by default.
+
+  There are two different minor modes in Emacs that perform word
+wrapping.  The first is Visual Line mode, which does it by altering
+the behavior of screen line continuation.  @xref{Visual Line Mode},
+for information about Visual Line mode.
 
 @findex longlines-mode
-  To enable Long Lines mode, type @kbd{M-x longlines-mode}.  If the
-text is full of long lines, this will ``wrap'' them
-immediately---i.e., break up to fit in the window.  As you edit the
-text, Long Lines mode automatically re-wraps lines by inserting or
-deleting @dfn{soft newlines} as necessary (@pxref{Hard and Soft
-Newlines}.)  These soft newlines won't show up when you save the
-buffer into a file, or when you copy the text into the kill ring,
-clipboard, or a register.
+  Instead of using Visual Line mode, you can use a minor mode called
+Long Lines mode.  Long Lines mode wraps lines by inserting or deleting
+@dfn{soft newlines} as you type (@pxref{Hard and Soft Newlines}).
+These soft newlines won't show up when you save the buffer into a
+file, or when you copy the text into the kill ring, clipboard, or a
+register.  Unlike Visual Line mode, Lone Lines mode breaks long lines
+at the fill column (@pxref{Fill Commands}), rather than the right
+window edge.  To enable Long Lines mode, type @kbd{M-x
+longlines-mode}.  If the text is full of long lines, this also
+immediately ``wraps'' them all.
 
 @findex longlines-auto-wrap
-  Word wrapping is @emph{not} the same as ordinary filling
-(@pxref{Fill Commands}).  It does not contract multiple spaces into a
-single space, recognize fill prefixes (@pxref{Fill Prefix}), or
-perform adaptive filling (@pxref{Adaptive Fill}).  The reason for this
-is that a wrapped line is still, conceptually, a single line.  Each
-soft newline is equivalent to exactly one space in that long line, and
-vice versa.  However, you can still call filling functions such as
-@kbd{M-q}, and these will work as expected, inserting soft newlines
-that won't show up on disk or when the text is copied.  You can even
-rely entirely on the normal fill commands by turning off automatic
-line wrapping, with @kbd{C-u M-x longlines-auto-wrap}.  To turn
-automatic line wrapping back on, type @kbd{M-x longlines-auto-wrap}.
+  The word wrap performed by Long Lines mode is @emph{not} the same as
+ordinary filling (@pxref{Fill Commands}).  It does not contract
+multiple spaces into a single space, recognize fill prefixes
+(@pxref{Fill Prefix}), or perform adaptive filling (@pxref{Adaptive
+Fill}).  The reason for this is that a wrapped line is still,
+conceptually, a single line.  Each soft newline is equivalent to
+exactly one space in that long line, and vice versa.  However, you can
+still call filling functions such as @kbd{M-q}, and these will work as
+expected, inserting soft newlines that won't show up on disk or when
+the text is copied.  You can even rely entirely on the normal fill
+commands by turning off automatic line wrapping, with @kbd{C-u M-x
+longlines-auto-wrap}.  To turn automatic line wrapping back on, type
+@kbd{M-x longlines-auto-wrap}.
 
 @findex longlines-show-hard-newlines
   Type @kbd{RET} to insert a hard newline, one which automatic
@@ -934,19 +939,6 @@ their own; this includes Paragraph-Indent Text mode, Nroff mode, @TeX{}
 mode, Outline mode, and Mail mode.  Hook functions on
 @code{text-mode-hook} can look at the value of @code{major-mode} to see
 which of these modes is actually being entered.  @xref{Hooks}.
-
-@ifnottex
-  Emacs provides two other modes for editing text that is to be passed
-through a text formatter to produce fancy formatted printed output.
-@xref{Nroff Mode}, for editing input to the formatter nroff.
-@xref{TeX Mode,,@TeX{} Mode}, for editing input to the formatter TeX.
-
-  Another mode is used for editing outlines.  It allows you to view the
-text at various levels of detail.  You can view either the outline
-headings alone or both headings and text; you can also hide some of the
-headings at lower levels from view to make the high level structure more
-visible.  @xref{Outline Mode}.
-@end ifnottex
 
 @node Outline Mode
 @section Outline Mode
