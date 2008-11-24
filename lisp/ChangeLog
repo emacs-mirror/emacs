@@ -1,3 +1,24 @@
+2008-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/artist.el (artist-charlist-to-string): Simplify.
+	(artist-mode-name, artist-mt, artist-vaporize-fuzziness)
+	(artist-prev-next-op-alist, artist-mode-line-show-curr-operation)
+	(artist-replace-string, artist-draw-rect, artist-draw-line)
+	(artist-undraw-line, artist-draw-sline, artist-undraw-rect)
+	(artist-rect-corners-squarify, artist-undraw-square, artist-fill-square)
+	(artist-pen, artist-pen-line, artist-text-insert-common)
+	(artist-text-overwrite, artist-spray-get-interval)
+	(artist-spray-clear-circle, artist-erase-char)
+	(artist-ellipse-generate-quadrant, artist-copy-square, artist-paste)
+	(artist-flood-fill, artist-key-draw-continously, artist-key-draw-poly)
+	(artist-key-draw-1point, artist-key-draw-2points)
+	(artist-mouse-draw-continously): Fix typos in docstrings.
+	(artist-aspect-ratio, artist-mode, artist-go-get-symbol-shift)
+	(artist-go-get-symbol-shift-sub, artist-previous-line, artist-next-line)
+	(artist-backward-char, artist-forward-char): Doc fixes.
+	(artist-vaporize-line, artist-spray-chars, artist-spray-new-char):
+	Reflow docstrings.
+
 2008-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/quail.el (quail-vunion): New function.
