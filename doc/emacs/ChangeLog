@@ -1,5 +1,8 @@
 2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
+	* picture-xtra.texi (Picture Mode): Use picture-mode instead of
+	edit-picture.
+
 	* text.texi (Text): Simplify introduction.  Discard mention of `M-x
 	edit-picture', since that is just an alias for picture-mode.
 	(Sentences): Note that repeated M-@ extends the region.
