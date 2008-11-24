@@ -92,13 +92,34 @@ history commands (@pxref{Minibuffer}).  An empty argument to @kbd{C-x
 b} specifies the buffer that was current most recently among those not
 now displayed in any window.
 
+@cindex minibuffer confirmation
+@cindex confirming in the minibuffer
   If you specify a buffer that does not exist, @kbd{C-x b} creates a
 new, empty buffer that is not visiting any file, and selects it for
-editing.  You can use such a buffer for making temporary notes.  If
-you try to save it, you are asked for the file name to use.  The new
-buffer's major mode is determined by the variable
-@code{default-major-mode}; the default value is Fundamental mode.
-@xref{Major Modes}.
+editing.  First, however, Emacs might prompt you for confirmation, in
+case you entered the wrong buffer name.  Emacs asks for confirmation
+only if the last key you typed, before submitting the minibuffer input
+with @key{RET}, was @key{TAB} (@code{minibuffer-complete}).  This
+catches a common mistake, in which one types @key{RET} before
+realizing that @key{TAB} did not complete far enough to yield the
+desired buffer name (@pxref{Completion}).  Emacs asks for confirmation
+by putting the message @samp{[Confirm]} in the minibuffer; type
+@key{RET} again to confirm and visit the buffer.
+
+@vindex confirm-nonexistent-file-or-buffer
+  The variable @code{confirm-nonexistent-file-or-buffer} controls
+whether Emacs asks for confirmation before visiting a new buffer.  The
+default value, @code{after-completion}, gives the behavior we have
+just described.  If the value is @code{nil}, Emacs never asks for
+confirmation; for any other non-@code{nil} value, Emacs always asks
+for confirmation.  This variable also affects the @code{find-file}
+command (@pxref{Visiting}).
+
+  One reason to switch to a new buffer is to use it for making
+temporary notes.  If you try to save it, you are asked for the file
+name to use.  The new buffer's major mode is determined by the
+variable @code{default-major-mode}; the default value is Fundamental
+mode.  @xref{Major Modes}.
 
 @kindex C-x @key{LEFT}
 @kindex C-x @key{RIGHT}
