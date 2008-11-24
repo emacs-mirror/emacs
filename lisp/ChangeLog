@@ -1,3 +1,8 @@
+2008-11-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* calendar/appt.el (appt-disp-window): Do a set-buffer when the
+	frame can't be split.
+
 2008-11-24  Ulf Jasper  <ulf@web.de>
 
 	* net/newst-treeview.el (newsticker--treeview-current-feed): Doc
