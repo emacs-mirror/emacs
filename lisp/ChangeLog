@@ -1,3 +1,7 @@
+2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* diff.el (diff-sentinel): Take note of diff error return value.
+
 2008-11-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* calendar/appt.el (appt-disp-window): Do a set-buffer when the
