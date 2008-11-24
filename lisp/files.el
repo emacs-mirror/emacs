@@ -1102,12 +1102,31 @@ use with M-x."
     (rename-file encoded new-encoded ok-if-already-exists)
     newname))
 
-(defcustom confirm-nonexistent-file-or-buffer nil
-  "If non-nil, confirmation is requested before visiting a new file or buffer.
+(defcustom confirm-nonexistent-file-or-buffer 'after-completion
+  "Whether confirmation is requested before visiting a new file or buffer.
+If nil, confirmation is not requested.
+If the value is `after-completion', confirmation is only
+ requested if the user called `minibuffer-complete' right before
+ `minibuffer-complete-and-exit'.
+Any other non-nil value means to request confirmation.
+
 This affects commands like `switch-to-buffer' and `find-file'."
   :group 'find-file
   :version "23.1"
-  :type 'boolean)
+  :type '(choice (other :tag "Always" t)
+		 (const :tag "After completion" after-completion)
+		 (const :tag "Never" nil)))
+
+(defun confirm-nonexistent-file-or-buffer ()
+  "Whether to request confirmation before visiting a new file or buffer.
+The variable `confirm-nonexistent-file-or-buffer' determines the
+return value, which may be passed as the REQUIRE-MATCH arg to
+`read-buffer' or `find-file-read-args'."
+  (cond ((eq confirm-nonexistent-file-or-buffer 'after-completion)
+	 'confirm-after-completion)
+	(confirm-nonexistent-file-or-buffer
+	 'confirm)
+	(t nil)))
 
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to and return as a string.
@@ -1118,18 +1137,21 @@ and default values."
     (minibuffer-with-setup-hook
         (lambda () (setq minibuffer-completion-table rbts-completion-table))
       (read-buffer prompt (other-buffer (current-buffer))
-                   (if confirm-nonexistent-file-or-buffer 'confirm-only)))))
+                   (confirm-nonexistent-file-or-buffer)))))
 
 (defun switch-to-buffer-other-window (buffer-or-name &optional norecord)
   "Select the buffer specified by BUFFER-OR-NAME in another window.
 BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
 nil.  Return the buffer switched to.
 
+If called interactively, prompt for the buffer name using the
+minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
+determines whether to request confirmation before creating a new
+buffer.
+
 If BUFFER-OR-NAME is a string and does not identify an existing
-buffer, create a new buffer with that name.  Interactively, if
-`confirm-nonexistent-file-or-buffer' is non-nil, request
-confirmation before creating a new buffer.  If BUFFER-OR-NAME is
-nil, switch to buffer returned by `other-buffer'.
+buffer, create a new buffer with that name.  If BUFFER-OR-NAME is
+nil, switch to the buffer returned by `other-buffer'.
 
 Optional second argument NORECORD non-nil means do not put this
 buffer at the front of the list of recently selected ones.
@@ -1147,11 +1169,14 @@ documentation for additional customization information."
 BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
 nil.  Return the buffer switched to.
 
+If called interactively, prompt for the buffer name using the
+minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
+determines whether to request confirmation before creating a new
+buffer.
+
 If BUFFER-OR-NAME is a string and does not identify an existing
-buffer, create a new buffer with that name.  Interactively, if
-`confirm-nonexistent-file-or-buffer' is non-nil, request
-confirmation before creating a new buffer.  If BUFFER-OR-NAME is
-nil, switch to buffer returned by `other-buffer'.
+buffer, create a new buffer with that name.  If BUFFER-OR-NAME is
+nil, switch to the buffer returned by `other-buffer'.
 
 Optional second arg NORECORD non-nil means do not put this
 buffer at the front of the list of recently selected ones.
@@ -1241,7 +1266,7 @@ To visit a file without any kind of conversion and without
 automatically choosing a major mode, use \\[find-file-literally]."
   (interactive
    (find-file-read-args "Find file: "
-                        (if confirm-nonexistent-file-or-buffer 'confirm-only)))
+                        (confirm-nonexistent-file-or-buffer)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(mapcar 'switch-to-buffer (nreverse value))
@@ -1261,7 +1286,7 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
   (interactive
    (find-file-read-args "Find file in other window: "
-                        (if confirm-nonexistent-file-or-buffer 'confirm-only)))
+                        (confirm-nonexistent-file-or-buffer)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -1284,7 +1309,7 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
   (interactive
    (find-file-read-args "Find file in other frame: "
-                        (if confirm-nonexistent-file-or-buffer 'confirm-only)))
+                        (confirm-nonexistent-file-or-buffer)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -1309,7 +1334,7 @@ Like \\[find-file], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only: "
-                        (if confirm-nonexistent-file-or-buffer 'confirm-only)))
+                        (confirm-nonexistent-file-or-buffer)))
   (unless (or (and wildcards find-file-wildcards
 		   (not (string-match "\\`/:" filename))
 		   (string-match "[[*?]" filename))
@@ -1326,7 +1351,7 @@ Like \\[find-file-other-window], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other window: "
-                        (if confirm-nonexistent-file-or-buffer 'confirm-only)))
+                        (confirm-nonexistent-file-or-buffer)))
   (unless (or (and wildcards find-file-wildcards
 		   (not (string-match "\\`/:" filename))
 		   (string-match "[[*?]" filename))
@@ -1343,7 +1368,7 @@ Like \\[find-file-other-frame], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other frame: "
-                        (if confirm-nonexistent-file-or-buffer 'confirm-only)))
+                        (confirm-nonexistent-file-or-buffer)))
   (unless (or (and wildcards find-file-wildcards
 		   (not (string-match "\\`/:" filename))
 		   (string-match "[[*?]" filename))
