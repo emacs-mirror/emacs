@@ -1,3 +1,9 @@
+2008-11-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* play/bubbles.el (bubbles-mode): Define with `define-derived-mode'.
+	(bubbles-shift-mode, bubbles--update-score): Fix typos in docstrings.
+	(bubbles--empty-char): Use "\s".
+
 2008-11-25  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-settings-file, calc-language-alist)
@@ -14939,7 +14945,6 @@
 	standard-display-table.
 	(latin1-display-identities): Adjust for the change of what is
 	returned by (get-language-info charset 'charset).
-
 	* international/mule-util.el (char-displayable-p): Fix for Latin-1
 	characters and terminal case.
 
