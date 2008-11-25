@@ -206,9 +206,9 @@ regular expression @var{separators}, like @code{split-string} does
 the substrings.  It then makes a list of the substrings and returns
 it.
 
-If @var{separators} is omitted or nil, it defaults to @code{"\\s-+"},
-which is a regular expression that matches one or more characters with
-whitespace syntax (@pxref{Syntax Class Table}).
+If @var{separators} is omitted or @code{nil}, it defaults to
+@code{"\\s-+"}, which is a regular expression that matches one or more
+characters with whitespace syntax (@pxref{Syntax Class Table}).
 
 The quoting this function supports is of 2 styles: by enclosing a
 whole string in double quotes @code{"@dots{}"}, or by quoting
@@ -1828,8 +1828,8 @@ The argument @var{regexp} is a regular expression that should match
 text at the end of the entire answer, but nothing before; that's how
 @code{tq-enqueue} determines where the answer ends.
 
-If the argument @var{delay-question} is non-nil, delay sending this
-question until the process has finished replying to any previous
+If the argument @var{delay-question} is non-@code{nil}, delay sending
+this question until the process has finished replying to any previous
 questions.  This produces more reliable results with some processes.
 
 The return value of @code{tq-enqueue} itself is not meaningful.
