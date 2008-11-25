@@ -263,14 +263,18 @@ static BOOL inNsSelect = 0;
 #define EV_UDMODIFIERS(e)                                      \
     ((([e type] == NSLeftMouseDown) ? down_modifier : 0)       \
      | (([e type] == NSRightMouseDown) ? down_modifier : 0)    \
+     | (([e type] == NSOtherMouseDown) ? down_modifier : 0)    \
      | (([e type] == NSLeftMouseDragged) ? down_modifier : 0)  \
      | (([e type] == NSRightMouseDragged) ? down_modifier : 0) \
+     | (([e type] == NSOtherMouseDragged) ? down_modifier : 0) \
      | (([e type] == NSLeftMouseUp)   ? up_modifier   : 0)     \
-     | (([e type] == NSRightMouseUp)   ? up_modifier   : 0))
+     | (([e type] == NSRightMouseUp)   ? up_modifier   : 0)    \
+     | (([e type] == NSOtherMouseUp)   ? up_modifier   : 0))
 
 #define EV_BUTTON(e)                                                         \
     ((([e type] == NSLeftMouseDown) || ([e type] == NSLeftMouseUp)) ? 0 :    \
-      (([e type] == NSRightMouseDown) || ([e type] == NSRightMouseUp)) ? 2 : 1)
+      (([e type] == NSRightMouseDown) || ([e type] == NSRightMouseUp)) ? 2 : \
+     [e buttonNumber] - 1)
 
 /* Convert the time field to a timestamp in milliseconds. */
 #ifdef NS_IMPL_GNUSTEP
@@ -4729,13 +4733,6 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 }
 
 
-- (void)mouseUp: (NSEvent *)theEvent
-{
-  NSTRACE (mouseUp);
-  [self mouseDown: theEvent];
-}
-
-
 - (void)rightMouseDown: (NSEvent *)theEvent
 {
   NSTRACE (rightMouseDown);
@@ -4743,9 +4740,30 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 }
 
 
+- (void)otherMouseDown: (NSEvent *)theEvent
+{
+  NSTRACE (otherMouseDown);
+  [self mouseDown: theEvent];
+}
+
+
+- (void)mouseUp: (NSEvent *)theEvent
+{
+  NSTRACE (mouseUp);
+  [self mouseDown: theEvent];
+}
+
+
 - (void)rightMouseUp: (NSEvent *)theEvent
 {
   NSTRACE (rightMouseUp);
+  [self mouseDown: theEvent];
+}
+
+
+- (void)otherMouseUp: (NSEvent *)theEvent
+{
+  NSTRACE (otherMouseUp);
   [self mouseDown: theEvent];
 }
 
@@ -4814,6 +4832,13 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 - (void)rightMouseDragged: (NSEvent *)e
 {
   NSTRACE (rightMouseDragged);
+  [self mouseMoved: e];
+}
+
+
+- (void)otherMouseDragged: (NSEvent *)e
+{
+  NSTRACE (otherMouseDragged);
   [self mouseMoved: e];
 }
 
