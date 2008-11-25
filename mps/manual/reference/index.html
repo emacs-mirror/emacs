@@ -159,6 +159,7 @@ also no overview or protocol-oriented sections.</strong></p>
 <li> function <code><a href="#mps_lib_memcpy">mps_lib_memcpy</a></code> </li>
 <li> function <code><a href="#mps_lib_memset">mps_lib_memset</a></code> </li>
 <li> <code><a href="#mps_lib_telemetry_control">mps_lib_telemetry_control</a></code> </li>
+<li> function <code><a href="#mps_message_clock">mps_message_clock</a></code> </li>
 <li> function <code><a href="#mps_message_discard">mps_message_discard</a></code> </li>
 <li> function <code><a href="#mps_message_finalization_ref">mps_message_finalization_ref</a></code> </li>
 <li> function <code><a href="#mps_message_gc_condemned_size">mps_message_gc_condemned_size</a></code> </li>
@@ -7335,6 +7336,98 @@ mpsliban.c</p>
 href="#mps_telemetry_control">mps_telemetry_control</a></code></p>
 
 
+<h3>function <code><a id="mps_message_clock" name="mps_message_clock">mps_message_clock</a></code></h3>
+
+
+<h4>Name</h4>
+
+<p><code><a href="#mps_message_clock">mps_message_clock</a></code></p>
+
+
+<h4>Summary</h4>
+
+<p><code><a href="#mps_message_clock">mps_message_clock</a></code>
+returns the time at which the MPS posted the message (only for certain message types).</p>
+
+
+<h4>Associated Protocols</h4>
+
+<p>Message.</p>
+
+
+<h4>Syntax</h4>
+
+<p><code>mps_clock_t mps_message_clock(mps_arena_t arena, mps_message_t message)</code></p>
+
+
+<h4>Arguments</h4>
+
+<p>
+  <code>arena</code>
+  -- the arena
+</p>
+
+<p>
+  <code>message</code>
+  -- any message retrieved with <code><a href="#mps_message_get">mps_message_get</a></code> and not yet discarded
+</p>
+
+
+<h4>Returned Values</h4>
+
+<p>For supported message types: the time at which the MPS posted the message.  For other message types: zero.</p>
+
+
+<h4>Resources</h4>
+
+<p>mps.h</p>
+
+
+<h4>Description</h4>
+
+<p>Messages are asynchronous: they are posted by the MPS, wait on a queue, and are later collected by the client.  Each message (of supported types) records the time that it was posted, and this is what <code><a href="#mps_message_clock">mps_message_clock</a></code> returns.</p>
+
+<p>The time returned is the <code><a href="#mps_clock_t">mps_clock_t</a></code> value returned by the library function <code><a href="#mps_clock">mps_clock</a></code> at the time the message was posted.</p>
+
+<p>Only the following supported message types record the time of posting:</p>
+<ul>
+  <li><code><a href="#mps_message_type_gc">mps_message_type_gc</a></code>;</li>
+  <li><code><a href="#mps_message_type_gc_start">mps_message_type_gc_start</a></code>.</li>
+</ul>
+
+<p>For other message types, the value returned is always zero.</p>
+
+
+<h4>Example</h4>
+
+<pre>
+  mps_message_t message;
+  mps_clock_t posted_at;
+  
+  if(mps_message_get(&amp;message, arena, mps_message_type_gc_start())) {
+    posted_at = mps_message_clock(arena, message);
+    printf("Collection started at %ul.\n", (unsigned long)posted_at);
+  }
+</pre>
+
+
+<h4>Error Handling</h4>
+
+<p>Can't fail.</p>
+
+
+<h4>See Also</h4>
+
+<p>
+
+<code><a href="#mps_message_type">mps_message_type</a></code></p>
+
+
+<h4>Notes</h4>
+
+<p>None.</p>
+
+
 <h3>function <code><a id="mps_message_discard" name="mps_message_discard">mps_message_discard</a></code></h3>
 
 
@@ -8083,7 +8176,7 @@ been discarded (with <code>mps_message_discard</code>). </p>
 
 <p>
 
-<code>mps_message_*</code></p>
+<code><a href="#mps_message_clock">mps_message_clock</a></code></p>
 
 
 <h3>function <code><a id="mps_message_type_disable" name="mps_message_type_disable">mps_message_type_disable</a></code></h3>
