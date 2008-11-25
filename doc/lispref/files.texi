@@ -1555,7 +1555,8 @@ This subroutine converts a symbolic specification of file mode bits in
 @var{modes} into the equivalent numeric value.  If the symbolic
 specification is based on an existing file, that file's mode bits are
 taken from the optional argument @var{base-modes}; if that argument is
-omitted or nil, it defaults to zero, i.e.@: no access rights at all.
+omitted or @code{nil}, it defaults to zero, i.e.@: no access rights at
+all.
 @end defun
 
 @defun set-file-times filename &optional time
@@ -2801,12 +2802,12 @@ making connections when they don't exist.
 @end defun
 
 @defun unhandled-file-name-directory filename
-This function returns the name of a directory that is not magic.
-It uses the directory part of @var{filename} if that is not magic.
-For a magic file name, it invokes the file name handler, which
-therefore decides what value to return.  If @var{filename} is not
-accessible from a local process, then the file name handler should
-indicate it by returning nil.
+This function returns the name of a directory that is not magic.  It
+uses the directory part of @var{filename} if that is not magic.  For a
+magic file name, it invokes the file name handler, which therefore
+decides what value to return.  If @var{filename} is not accessible
+from a local process, then the file name handler should indicate it by
+returning @code{nil}.
 
 This is useful for running a subprocess; every subprocess must have a
 non-magic directory to serve as its current directory, and this function
