@@ -25,7 +25,10 @@ MacOSX/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
 GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 */
 
+/* This should be the first include, as it may set up #defines affecting
+   interpretation of even the system includes. */
 #include "config.h"
+
 #include "lisp.h"
 #include "nsterm.h"
 #include "termhooks.h"

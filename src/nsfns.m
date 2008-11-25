@@ -25,9 +25,13 @@ MacOSX/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
 GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 */
 
+/* This should be the first include, as it may set up #defines affecting
+   interpretation of even the system includes. */
+#include "config.h"
+
 #include <signal.h>
 #include <math.h>
-#include "config.h"
+
 #include "lisp.h"
 #include "blockinput.h"
 #include "nsterm.h"
@@ -36,7 +40,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "keyboard.h"
 #include "termhooks.h"
 #include "fontset.h"
-
 #include "character.h"
 #include "font.h"
 

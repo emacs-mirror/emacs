@@ -21,7 +21,10 @@ By Adrian Robert, based on code from original nsmenu.m (Carl Edman,
 Christian Limpach, Scott Bender, Christophe de Dinechin) and code in the
 Carbon version by Yamamoto Mitsuharu. */
 
+/* This should be the first include, as it may set up #defines affecting
+   interpretation of even the system includes. */
 #include "config.h"
+
 #include "lisp.h"
 #include "window.h"
 #include "buffer.h"

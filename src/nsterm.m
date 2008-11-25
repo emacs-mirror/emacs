@@ -25,12 +25,15 @@ MacOSX/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
 GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 */
 
+/* This should be the first include, as it may set up #defines affecting
+   interpretation of even the system includes. */
+#include "config.h"
+
 #include <math.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
-#include "config.h"
 #include "lisp.h"
 #include "blockinput.h"
 #include "sysselect.h"
@@ -1280,7 +1283,6 @@ ns_index_color (NSColor *color, struct frame *f)
 				    color_table->size * sizeof (NSColor *));
         }
       idx = color_table->avail++;
-      index = [NSNumber numberWithUnsignedInt: idx];
     }
 
   color_table->colors[idx] = color;
@@ -1293,10 +1295,26 @@ ns_index_color (NSColor *color, struct frame *f)
 void
 ns_free_indexed_color (unsigned long idx, struct frame *f)
 {
-  struct ns_color_table *color_table = FRAME_NS_DISPLAY_INFO (f)->color_table;
+  struct ns_color_table *color_table;
   NSColor *color;
-  if (!idx)
+  NSNumber *index;
+
+  if (!f)
     return;
+
+  color_table = FRAME_NS_DISPLAY_INFO (f)->color_table;
+
+  if (idx <= 0 || idx >= color_table->size) {
+    message1("ns_free_indexed_color: Color index out of range.\n");
+    return;
+  }
+
+  index = [NSNumber numberWithUnsignedInt: idx];
+  if ([color_table->empty_indices containsObject: index]) {
+    message1("ns_free_indexed_color: attempt to free already freed color.\n");
+    return;
+  }
+
   color = color_table->colors[idx];
   [color release];
   color_table->colors[idx] = nil;
