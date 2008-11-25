@@ -957,11 +957,11 @@ window.  If the buffer is not already displayed, or
 @defopt pop-up-windows
 This variable specifies whether @code{display-buffer} is allowed to
 split (@pxref{Splitting Windows}) an existing window .  If it is
-non-@code{nil}, @code{display-buffer} tries to the split the largest or
-least recently used window on the selected frame.  (If the selected
-frame is a minibuffer-only frame, it tries to split a window on another
-frame instead.)  If @code{pop-up-windows} is nil or the variable
-@code{pop-up-frames} (see below) is non-@code{nil},
+non-@code{nil}, @code{display-buffer} tries to the split the largest
+or least recently used window on the selected frame.  (If the selected
+frame is a minibuffer-only frame, it tries to split a window on
+another frame instead.)  If @code{pop-up-windows} is @code{nil} or the
+variable @code{pop-up-frames} (see below) is non-@code{nil},
 @code{display-buffer} does not split any window.
 @end defopt
 
