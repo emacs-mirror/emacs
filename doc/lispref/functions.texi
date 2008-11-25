@@ -1308,8 +1308,8 @@ byte compiler can check that the calls match the declaration.
 
 @defmac declare-function function file &optional arglist fileonly
 Tell the byte compiler to assume that @var{function} is defined, with
-arguments @var{arglist}, and that the definition should come from
-the file @var{file}.  @var{fileonly} non-nil means only check that
+arguments @var{arglist}, and that the definition should come from the
+file @var{file}.  @var{fileonly} non-@code{nil} means only check that
 @var{file} exists, not that it actually defines @var{function}.
 @end defmac
 
