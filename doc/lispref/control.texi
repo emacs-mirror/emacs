@@ -803,7 +803,7 @@ error message is the @sc{car} of @var{data} (that must be a string).
 Subcategories of @code{file-error} are handled specially.
 
 The number and significance of the objects in @var{data} depends on
-@var{error-symbol}.  For example, with a @code{wrong-type-arg} error,
+@var{error-symbol}.  For example, with a @code{wrong-type-argument} error,
 there should be two objects in the list: a predicate that describes the type
 that was expected, and the object that failed to fit that type.
 
