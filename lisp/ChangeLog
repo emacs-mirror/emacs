@@ -1,3 +1,12 @@
+2008-11-25  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-proc.el (eshell-gather-process-output):
+	Revert previous change.  (re-opens Bug#1388)
+
+	* select.el (x-set-cut-buffer): Fix signal arguments.
+
+	* speedbar.el (speedbar-restricted-move): Fix signal arguments.
+
 2008-11-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* play/bubbles.el (bubbles-mode): Define with `define-derived-mode'.
@@ -143,7 +152,7 @@
 
 2008-11-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-hg.el (vc-hg-global-switches): Remove.
+	* vc-hg.el (vc-hg-program): Remove.
 	(vc-hg-state, vc-hg-working-revision, vc-hg-command):
 	Undo previous change.
 
