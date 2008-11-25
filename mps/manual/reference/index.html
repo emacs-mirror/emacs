@@ -7387,7 +7387,7 @@ returns the time at which the MPS posted the message (only for certain message t
 
 <p>Messages are asynchronous: they are posted by the MPS, wait on a queue, and are later collected by the client.  Each message (of supported types) records the time that it was posted, and this is what <code><a href="#mps_message_clock">mps_message_clock</a></code> returns.</p>
 
-<p>The time returned is the <code><a href="#mps_clock_t">mps_clock_t</a></code> value returned by the library function <code><a href="#mps_clock">mps_clock</a></code> at the time the message was posted.</p>
+<p>The time returned is the <code><a href="#mps_clock_t">mps_clock_t</a></code> value returned by the library function <code><a href="#mps_clock">mps_clock</a></code> at the time the message was posted.  You can subtract one clock value from another to get the time interval between the posting of two messages.</p>
 
 <p>Only the following supported message types record the time of posting:</p>
 <ul>
@@ -7425,7 +7425,7 @@ returns the time at which the MPS posted the message (only for certain message t
 
 <h4>Notes</h4>
 
-<p>None.</p>
+<p>The example ANSI plinth, mpsliban.c, implements <code><a href="#mps_clock">mps_clock</a></code> by calling ISO C time.h's clock().  The difference between two of these clock values may be converted to seconds by dividing by ISO C time.h's CLOCKS_PER_SEC conversion factor.</p>
 
 
 <h3>function <code><a id="mps_message_discard" name="mps_message_discard">mps_message_discard</a></code></h3>
