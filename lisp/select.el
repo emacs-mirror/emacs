@@ -3,8 +3,8 @@
 ;; Maintainer: FSF
 ;; Keywords: internal
 
-;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008 Free Software Foundation, Inc.
 ;; Based partially on earlier release by Lucid.
 
 ;; This file is part of GNU Emacs.
@@ -201,7 +201,7 @@ If PUSH is non-nil, also rotate the cut buffers:
 this means the previous value of the primary cut buffer moves to the second
 cut buffer, and the second to the third, and so on (there are 8 buffers.)
 Cut buffers are considered obsolete; you should use selections instead."
-  (or (stringp string) (signal 'wrong-type-argument (list 'string string)))
+  (or (stringp string) (signal 'wrong-type-argument (list 'stringp string)))
   (if push
       (x-rotate-cut-buffers-internal 1))
   (x-store-cut-buffer-internal 'CUT_BUFFER0 string))
