@@ -1411,13 +1411,22 @@ ns_get_color (const char *name, NSColor **col)
   /* Direct colors (hex values) */
   if (hex)
     {
-      unsigned int color = 0;
+      unsigned long color = 0;
       if (sscanf (hex, "%x", &color))
         {
-          float f1 = ((color >> 24) & 0xff) / 255.0;
-          float f2 = ((color >> 16) & 0xff) / 255.0;
-          float f3 = ((color >>  8) & 0xff) / 255.0;
-          float f4 = ((color      ) & 0xff) / 255.0;
+          float f1, f2, f3, f4;
+          /* Assume it's either 1 byte or 2 per channel... */
+          if (strlen(hex) > 8) {
+            f1 = ((color >> 48) & 0xffff) / 65535.0;
+            f2 = ((color >> 32) & 0xffff) / 65535.0;
+            f3 = ((color >> 16) & 0xffff) / 65535.0;
+            f4 = ((color      ) & 0xffff) / 65535.0;
+          } else {
+            f1 = ((color >> 24) & 0xff) / 255.0;
+            f2 = ((color >> 16) & 0xff) / 255.0;
+            f3 = ((color >>  8) & 0xff) / 255.0;
+            f4 = ((color      ) & 0xff) / 255.0;
+          }
 
           switch (color_space)
             {
