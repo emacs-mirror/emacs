@@ -192,6 +192,8 @@ typedef struct MessageClassStruct {
   Sig sig;                      /* <design/sig/> */
   const char *name;             /* Human readable Class name */
 
+  MessageType type;             /* Message Type */
+
   /* generic methods */
   MessageDeleteMethod delete;   /* terminates a message */
 
@@ -200,8 +202,6 @@ typedef struct MessageClassStruct {
 
   /* methods specific to MessageTypeGC */
   MessageGCLiveSizeMethod gcLiveSize;
-  
-  /* methods specific to MessageTypeGC */
   MessageGCCondemnedSizeMethod gcCondemnedSize;
   MessageGCNotCondemnedSizeMethod gcNotCondemnedSize;
 
@@ -220,8 +220,8 @@ typedef struct MessageClassStruct {
 typedef struct MessageStruct {
   Sig sig;                      /* <design/sig/> */
   Arena arena;                  /* owning arena */
-  MessageType type;             /* Message Type */
   MessageClass class;           /* Message Class Structure */
+  Clock postedClock;            /* mps_clock() at post time, or 0 */
   RingStruct queueRing;         /* Message queue ring */
 } MessageStruct;
 
@@ -687,6 +687,9 @@ typedef struct ArenaStruct {
   Bool isFinalPool;             /* indicator for finalPool */
   Pool finalPool;               /* either NULL or an MRG pool */
 
+  /* alert fields <code/trace.c> */
+  mps_alert_collection_fn_t alertCollection;  /* client alert fn or 0 */
+
   /* thread fields (<code/thread.c>) */
   RingStruct threadRing;        /* ring of attached threads */
   Serial threadSerial;          /* serial of next thread */
@@ -708,7 +711,7 @@ typedef struct ArenaStruct {
   /* policy fields */
   double tracedSize;
   double tracedTime;
-  Word lastWorldCollect;
+  Clock lastWorldCollect;
 
   RingStruct greyRing[RankLIMIT]; /* ring of grey segments at each rank */
   STATISTIC_DECL(Count writeBarrierHitCount); /* write barrier hits */
@@ -733,7 +736,7 @@ typedef struct AllocPatternStruct {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003, 2006, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

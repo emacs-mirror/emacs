@@ -47,11 +47,32 @@ static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
 
-/* report - report statistics from any messages */
+/* alert -- synchronous alert of collection start/stop */
+
+static void alertfn(int alertcode, int whycode)
+{
+  switch(alertcode) {
+    case MPS_ALERT_COLLECTION_START: {
+      printf("\n^^^^^^ START (why: %d) ^^^^^^\n", whycode);
+      break;
+    }
+    case MPS_ALERT_COLLECTION_STOP: {
+      printf("vvvvvv STOP (why: %d)  vvvvvv\n", whycode);
+      break;
+    }
+    default: {
+      cdie(0, "unknown alertcode");
+      break;
+    }
+  }
+}
+
+/* report -- report statistics from any messages */
 
 static void report(mps_arena_t arena)
 {
-  static int nCollections = 0;
+  static int nCollsStart = 0;
+  static int nCollsDone = 0;
   mps_message_type_t type;
     
   while(mps_message_queue_type(&type, arena)) {
@@ -60,19 +81,28 @@ static void report(mps_arena_t arena)
     cdie(mps_message_get(&message, arena, type), "message get");
 
     switch(type) {
-    /* @@@@ is using these macros in a switch supported? */
-    case mps_message_type_gc():
-      {
+      /* @@@@ is using these macros in a switch supported? */
+      case mps_message_type_gc_start(): {
+        nCollsStart += 1;
+        printf("\n{\n  Collection %d started.  Because:\n", nCollsStart);
+        printf("    %s\n", mps_message_gc_start_why(arena, message));
+        printf("    clock: %lu\n", (unsigned long)mps_message_clock(arena, message));
+        break;
+      }
+      case mps_message_type_gc(): {
         size_t live, condemned, not_condemned;
-
+        
+        nCollsDone += 1;
         live = mps_message_gc_live_size(arena, message);
         condemned = mps_message_gc_condemned_size(arena, message);
         not_condemned = mps_message_gc_not_condemned_size(arena, message);
 
-        printf("\nCollection %d finished:\n", ++nCollections);
-        printf("live %lu\n", (unsigned long)live);
-        printf("condemned %lu\n", (unsigned long)condemned);
-        printf("not_condemned %lu\n", (unsigned long)not_condemned);
+        printf("\n  Collection %d finished:\n", nCollsDone);
+        printf("    live %lu\n", (unsigned long)live);
+        printf("    condemned %lu\n", (unsigned long)condemned);
+        printf("    not_condemned %lu\n", (unsigned long)not_condemned);
+        printf("    clock: %lu\n", (unsigned long)mps_message_clock(arena, message));
+        printf("}\n");
 
         if(condemned > (gen1SIZE + gen2SIZE + (size_t)128) * 1024) {
           /* When condemned size is larger than could happen in a gen 2
@@ -81,15 +111,12 @@ static void report(mps_arena_t arena)
           die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE),
             "set limit");
         }
+        break;
       }
-      break;
-    case mps_message_type_gc_start():
-      printf("\nCollection started.  Because:\n");
-      printf("%s\n", mps_message_gc_start_why(arena, message));
-
-      break;
-    default:
-      cdie(0, "unknown message type");
+      default: {
+        cdie(0, "unknown message type");
+        break;
+      }
     }
     mps_message_discard(arena, message);
   }
@@ -185,25 +212,33 @@ static void *test(void *arg, size_t s)
   while (collections < collectionsCOUNT) {
     unsigned long c;
     size_t r;
-    size_t hitRatio;
 
     c = mps_collections(arena);
-
     if (collections != c) {
       collections = c;
-      printf("\nCollection %lu started, %lu objects.\n", c, objs);
+      report(arena);
+
+      printf("%lu objects (mps_collections says: %lu)\n", objs, c);
 
       /* test mps_arena_has_addr */
-      hitRatio = ((size_t)-1 / mps_arena_committed(arena));
-      /* That's roughly how often a random addr should hit the arena. */
-      for (i = 0; i < 4 * hitRatio ; i++) {
-        mps_addr_t p = rnd_addr();
-        if (mps_arena_has_addr(arena, p)) {
-          printf("%p is in the arena\n", p);
+      {
+        size_t hitRatio;
+        int hitsWanted = 4;  /* aim for 4 hits (on average) */
+        /* [Note: The for-loop condition used to be "i < 4 * hitRatio",
+         *  with "4" an unexplained naked constant.  I have now labelled
+         *  it "hitsWanted", as I think that is the intent.  RHSK]
+         */
+        
+        /* how many random addrs must we try, to hit the arena once? */
+        hitRatio = ((size_t)-1 / mps_arena_committed(arena));
+        for (i = 0; i < hitsWanted * hitRatio ; i++) {
+          mps_addr_t p = rnd_addr();
+          if (mps_arena_has_addr(arena, p)) {
+            printf("%p is in the arena\n", p);
+          }
         }
       }
 
-      report(arena);
       for (i = 0; i < exactRootsCOUNT; ++i)
         cdie(exactRoots[i] == objNULL
              || (dylan_check(exactRoots[i])
@@ -298,6 +333,7 @@ int main(int argc, char **argv)
       "arena_create");
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_gc_start());
+  mps_alert_collection_set(arena, &alertfn);
   die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);

@@ -119,6 +119,12 @@ extern int (AddrComp)(Addr a, Addr b, Size size);
 #define ADDR_PTR(type, addr) ((type *)(addr))
 
 
+/* Clock */
+
+#define ClockNow() ((Clock)mps_clock())
+#define ClocksPerSec() ((Clock)mps_clocks_per_sec())
+
+
 /* Result codes */
 
 extern Bool ResIsAllocFailure(Res res);
@@ -311,6 +317,7 @@ extern void MessageDiscard(Arena arena, Message message);
 /* -- Message Methods, Generic */
 extern MessageType MessageGetType(Message message);
 extern MessageClass MessageGetClass(Message message);
+extern Clock MessageGetClock(Message message);
 /* -- Message Method Dispatchers, Type-specific */
 extern void MessageFinalizationRef(Ref *refReturn,
                                    Arena arena, Message message);
