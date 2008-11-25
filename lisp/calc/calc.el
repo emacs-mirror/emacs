@@ -230,7 +230,7 @@
 ;;;###autoload
 (defcustom calc-settings-file
   (convert-standard-filename "~/.calc.el")
-  "*File in which to record permanent settings."
+  "File in which to record permanent settings."
   :group 'calc
   :type '(file))
 
@@ -246,14 +246,14 @@
     (fortran-mode . fortran)
     (f90-mode . fortran)
     (texinfo-mode . calc-normal-language))
-  "*Alist of major modes with appropriate Calc languages."
+  "Alist of major modes with appropriate Calc languages."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (symbol :tag "Calc language")))
 
 (defcustom calc-embedded-announce-formula
   "%Embed\n\\(% .*\n\\)*"
-  "*A regular expression which is sure to be followed by a calc-embedded formula."
+  "A regular expression which is sure to be followed by a calc-embedded formula."
   :group 'calc
   :type '(regexp))
 
@@ -269,26 +269,26 @@
     (sgml-mode    . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
     (xml-mode     . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
     (texinfo-mode . "@c Embed\n\\(@c .*\n\\)*"))
-  "*Alist of major modes with appropriate values for `calc-embedded-announce-formula'."
+  "Alist of major modes with appropriate values for `calc-embedded-announce-formula'."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (regexp :tag "Regexp to announce formula")))
 
 (defcustom calc-embedded-open-formula
   "\\`\\|^\n\\|\\$\\$?\\|\\\\\\[\\|^\\\\begin[^{].*\n\\|^\\\\begin{.*[^x]}.*\n\\|^@.*\n\\|^\\.EQ.*\n\\|\\\\(\\|^%\n\\|^\\.\\\\\"\n"
-  "*A regular expression for the opening delimiter of a formula used by calc-embedded."
+  "A regular expression for the opening delimiter of a formula used by calc-embedded."
   :group 'calc
   :type '(regexp))
 
 (defcustom calc-embedded-close-formula
   "\\'\\|\n$\\|\\$\\$?\\|\\\\]\\|^\\\\end[^{].*\n\\|^\\\\end{.*[^x]}.*\n\\|^@.*\n\\|^\\.EN.*\n\\|\\\\)\\|\n%\n\\|^\\.\\\\\"\n"
-  "*A regular expression for the closing delimiter of a formula used by calc-embedded."
+  "A regular expression for the closing delimiter of a formula used by calc-embedded."
   :group 'calc
   :type '(regexp))
 
 (defcustom calc-embedded-open-close-formula-alist
   nil
-  "*Alist of major modes with pairs of formula delimiters used by calc-embedded."
+  "Alist of major modes with pairs of formula delimiters used by calc-embedded."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (list (regexp :tag "Opening formula delimiter")
@@ -302,14 +302,14 @@
 
 (defcustom calc-embedded-word-regexp-alist
   nil
-  "*Alist of major modes with word regexps used by calc-embedded-word."
+  "Alist of major modes with word regexps used by calc-embedded-word."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (regexp :tag "Regexp for word")))
 
 (defcustom calc-embedded-open-plain
   "%%% "
-  "*A string which is the opening delimiter for a \"plain\" formula.
+  "A string which is the opening delimiter for a \"plain\" formula.
 If calc-show-plain mode is enabled, this is inserted at the front of
 each formula."
   :group 'calc
@@ -317,7 +317,7 @@ each formula."
 
 (defcustom calc-embedded-close-plain
   " %%%\n"
-  "*A string which is the closing delimiter for a \"plain\" formula.
+  "A string which is the closing delimiter for a \"plain\" formula.
 See calc-embedded-open-plain."
   :group 'calc
   :type '(string))
@@ -334,7 +334,7 @@ See calc-embedded-open-plain."
     (sgml-mode     "<!-- %% " " %% -->\n")
     (xml-mode     "<!-- %% " " %% -->\n")
     (texinfo-mode "@c %% "   " %%\n"))
-  "*Alist of major modes with pairs of delimiters for \"plain\" formulas."
+  "Alist of major modes with pairs of delimiters for \"plain\" formulas."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (list (string :tag "Opening \"plain\" delimiter")
@@ -342,19 +342,19 @@ See calc-embedded-open-plain."
 
 (defcustom calc-embedded-open-new-formula
   "\n\n"
-  "*A string which is inserted at front of formula by calc-embedded-new-formula."
+  "A string which is inserted at front of formula by calc-embedded-new-formula."
   :group 'calc
   :type '(string))
 
 (defcustom calc-embedded-close-new-formula
   "\n\n"
-  "*A string which is inserted at end of formula by calc-embedded-new-formula."
+  "A string which is inserted at end of formula by calc-embedded-new-formula."
   :group 'calc
   :type '(string))
 
 (defcustom calc-embedded-open-close-new-formula-alist
   nil
-  "*Alist of major modes with pairs of new formula delimiters used by calc-embedded."
+  "Alist of major modes with pairs of new formula delimiters used by calc-embedded."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (list (string :tag "Opening new formula delimiter")
@@ -362,14 +362,14 @@ See calc-embedded-open-plain."
 
 (defcustom calc-embedded-open-mode
   "% "
-  "*A string which should precede calc-embedded mode annotations.
+  "A string which should precede calc-embedded mode annotations.
 This is not required to be present for user-written mode annotations."
   :group 'calc
   :type '(string))
 
 (defcustom calc-embedded-close-mode
   "\n"
-  "*A string which should follow calc-embedded mode annotations.
+  "A string which should follow calc-embedded mode annotations.
 This is not required to be present for user-written mode annotations."
   :group 'calc
   :type '(string))
@@ -386,7 +386,7 @@ This is not required to be present for user-written mode annotations."
     (sgml-mode    "<!-- " " -->\n")
     (xml-mode     "<!-- " " -->\n")
     (texinfo-mode "@c "   "\n"))
-  "*Alist of major modes with pairs of strings to delimit annotations."
+  "Alist of major modes with pairs of strings to delimit annotations."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (list (string :tag "Opening annotation delimiter")
@@ -394,25 +394,25 @@ This is not required to be present for user-written mode annotations."
 
 (defcustom calc-gnuplot-name
   "gnuplot"
-  "*Name of GNUPLOT program, for calc-graph features."
+  "Name of GNUPLOT program, for calc-graph features."
   :group 'calc
   :type '(string))
 
 (defcustom calc-gnuplot-plot-command
   nil
-  "*Name of command for displaying GNUPLOT output; %s = file name to print."
+  "Name of command for displaying GNUPLOT output; %s = file name to print."
   :group 'calc
   :type '(choice (string) (sexp)))
 
 (defcustom calc-gnuplot-print-command
   "lp %s"
-  "*Name of command for printing GNUPLOT output; %s = file name to print."
+  "Name of command for printing GNUPLOT output; %s = file name to print."
   :group 'calc
   :type '(choice (string) (sexp)))
 
 (defcustom calc-multiplication-has-precedence
   t
-  "*If non-nil, multiplication has precedence over division
+  "If non-nil, multiplication has precedence over division
 in normal mode."
   :group 'calc
   :type 'boolean)
