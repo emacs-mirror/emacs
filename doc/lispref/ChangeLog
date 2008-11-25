@@ -1,3 +1,15 @@
+2008-11-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Processor Run Time):
+	* processes.texi (Transaction Queues):
+	* markers.texi (The Mark):
+	* windows.texi (Choosing Window, Selecting Windows):
+	* files.texi (Changing Files, Magic File Names):
+	* commands.texi (Key Sequence Input):
+	* functions.texi (Declaring Functions):
+	* strings.texi (Predicates for Strings):
+	* intro.texi (nil and t): Fix typos (pointed out by Drew Adams).
+
 2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help.texi (Accessing Documentation): Update example.
