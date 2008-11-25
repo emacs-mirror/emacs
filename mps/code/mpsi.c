@@ -91,6 +91,18 @@ static Bool mpsi_check(void)
   CHECKL((int)MPS_RANK_EXACT == (int)RankEXACT);
   CHECKL((int)MPS_RANK_WEAK == (int)RankWEAK);
 
+  /* Check that external and internal message types match. */
+  /* See <code/mps.h#message.types> and */
+  /* <code/mpmtypes.h#message.types>. */
+  /* Also see .check.enum.cast. */
+  CHECKL(CHECKTYPE(mps_message_type_t, MessageType));
+  CHECKL((int)MessageTypeFINALIZATION
+         == (int)MPS_MESSAGE_TYPE_FINALIZATION);
+  CHECKL((int)MessageTypeGC
+         == (int)MPS_MESSAGE_TYPE_GC);
+  CHECKL((int)MessageTypeGCSTART
+         == (int)MPS_MESSAGE_TYPE_GC_START);
+
   /* The external idea of a word width and the internal one */
   /* had better match.  See <design/interface-c/#cons>. */
   CHECKL(sizeof(mps_word_t) == sizeof(void *));
@@ -104,6 +116,10 @@ static Bool mpsi_check(void)
   /* better match.  See <design/interface-c/#cons.size> */
   /* and <design/interface-c/#pun.size>. */
   CHECKL(CHECKTYPE(size_t, Size));
+
+  /* Clock values are passed from external to internal and back */
+  /* out to external. */
+  CHECKL(CHECKTYPE(mps_clock_t, Clock));
 
   /* Check ap_s/APStruct compatibility by hand */
   /* .check.ap: See <code/mps.h#ap> and <code/buffer.h#ap>. */
@@ -1675,6 +1691,23 @@ mps_message_type_t mps_message_type(mps_arena_t mps_arena,
   return (mps_message_type_t)type;
 }
 
+mps_clock_t mps_message_clock(mps_arena_t mps_arena,
+                              mps_message_t mps_message)
+{
+  Arena arena = (Arena)mps_arena;
+  Message message = (Message)mps_message;
+  Clock postedClock;
+
+  ArenaEnter(arena);
+
+  postedClock = MessageGetClock(message);
+
+  ArenaLeave(arena);
+
+  return (mps_clock_t)postedClock;
+}
+
+
 /* -- mps_message_type_finalization */
 
 void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
@@ -1765,6 +1798,20 @@ const char *mps_message_gc_start_why(mps_arena_t mps_arena,
 
   return s;
 }
+
+
+/* Alert */
+
+mps_res_t mps_alert_collection_set(mps_arena_t mps_arena, 
+                                   mps_alert_collection_fn_t fn)
+{
+  Arena arena = (Arena)mps_arena;
+  ArenaEnter(arena);
+  arena->alertCollection = fn;
+  ArenaLeave(arena);
+  return MPS_RES_OK;  
+}
+
 
 /* Telemetry */
 
