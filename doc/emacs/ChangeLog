@@ -1,3 +1,7 @@
+2008-11-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* building.texi (Watch Expressions): Fix typo.
+
 2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.texi (Visiting): Document new behavior of
