@@ -1,3 +1,10 @@
+2008-11-25  Glenn Morris  <rgm@gnu.org>
+
+	* control.texi (Signaling Errors): Fix `wrong-type-argument' name.
+
+	* files.texi (Format Conversion Round-Trip):
+	Use active voice for previous change.
+
 2008-11-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* os.texi (Processor Run Time):
