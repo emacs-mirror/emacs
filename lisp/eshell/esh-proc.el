@@ -250,27 +250,11 @@ Used only on systems which do not support async subprocesses.")
     (cond
      ((fboundp 'start-process)
       (setq proc
-	    ;; Bug#1388.  Some commands (eg bc) check isatty to decide
-	    ;; whether they are being called interactively.
-	    ;; A normal shell pipeline has:
-	    ;; first: stdin tty , stdout pipe
-	    ;; rest : stdin pipe, stdout pipe
-	    ;; last : stdin pipe, stdout tty
-	    ;; We have:
-	    ;; first: stdin tty , stdout tty
-	    ;; last : stdin pipe, stdout pipe
-	    ;; In other words, the first and last elements have the
-	    ;; wrong kind of stdout.  (Perhaps this does not matter much...)
-	    ;; FIXME which is better for the first element:
-	    ;; tty/tty (as now), or pipe/pipe?
-	    (let ((process-connection-type
-		   (unless (and eshell-in-pipeline-p
-				(not (eq eshell-in-pipeline-p 'first)))
-		     process-connection-type)))
-	      (apply 'start-process
-		     (file-name-nondirectory command) nil
-		     ;; `start-process' can't deal with relative filenames
-		     (append (list (expand-file-name command)) args))))
+	    (apply 'start-process
+		   (file-name-nondirectory command) nil
+		   ;; `start-process' can't deal with relative
+		   ;; filenames
+		   (append (list (expand-file-name command)) args)))
       (eshell-record-process-object proc)
       (set-process-buffer proc (current-buffer))
       (if (eshell-interactive-output-p)
