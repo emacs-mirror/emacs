@@ -2984,10 +2984,10 @@ in the order of appearance in the list.
 @deffn Command format-write-file file format &optional confirm
 This command writes the current buffer contents into the file
 @var{file} in format @var{format}, and makes that format the default
-for future saves of the buffer.  That is, the buffer-local value of
-@code{buffer-file-format} is set to @var{format}, and any original
-elements (except any with a non-nil @var{preserve} flag; see above) are
-replaced.  The argument @var{format} is a list of format names.
+for future saves of the buffer.  That is, it sets the buffer-local value
+of @code{buffer-file-format} to @var{format}, and replaces any existing
+elements (except any with a non-nil @var{preserve} flag; see above).
+The argument @var{format} is a list of format names.
 Except for the @var{format} argument, this command
 is similar to @code{write-file}.  In particular, @var{confirm} has the
 same meaning and interactive treatment as the corresponding argument
