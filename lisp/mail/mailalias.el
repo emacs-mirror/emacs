@@ -302,6 +302,7 @@ By default, this is the file specified by `mail-personal-alias-file'."
 
 ;; Always autoloadable in case the user wants to define aliases
 ;; interactively or in .emacs.
+;; define-mail-abbrev in mailabbrev.el duplicates much of this code.
 ;;;###autoload
 (defun define-mail-alias (name definition &optional from-mailrc-file)
   "Define NAME as a mail alias that translates to DEFINITION.
@@ -327,44 +328,64 @@ if it is quoted with double-quotes."
       (setq definition (substring definition (match-end 0))))
   (if (string-match "[ \t\n,]+\\'" definition)
       (setq definition (substring definition 0 (match-beginning 0))))
-  (let ((result '())
-	;; If DEFINITION is null string, avoid looping even once.
-	(start (and (not (equal definition "")) 0))
-	(L (length definition))
-	convert-backslash
-	end tem)
+
+  (let* ((L (length definition))
+	 (start (if (> L 0) 0))
+	 end this-entry result tem)
     (while start
-      (setq convert-backslash nil)
-      ;; If we're reading from the mailrc file, then addresses are delimited
-      ;; by spaces, and addresses with embedded spaces must be surrounded by
-      ;; double-quotes.  Otherwise, addresses are separated by commas.
-      (if from-mailrc-file
-	  (if (eq ?\" (aref definition start))
-	      ;; The following test on `found' compensates for a bug
-	      ;; in match-end, which does not return nil when match
-	      ;; failed.
-	      (let ((found (string-match "[^\\]\\(\\([\\][\\]\\)*\\)\"[ \t,]*"
-					 definition start)))
-		(setq start (1+ start)
-		      end (and found (match-end 1))
-		      convert-backslash t))
-	    (setq end (string-match "[ \t,]+" definition start)))
-	(setq end (string-match "[ \t\n,]*,[ \t\n,]*" definition start)))
-      (let ((temp (substring definition start end))
-	    (pos 0))
-	(setq start (and end
-			 (/= (match-end 0) L)
-			 (match-end 0)))
-	(if convert-backslash
-	    (while (string-match "[\\]" temp pos)
-	      (setq temp (replace-match "" t t temp))
-	      (if start
-		  (setq start (1- start)))
-	      (setq pos (match-end 0))))
-	(setq result (cons temp result))))
+      (cond
+       (from-mailrc-file
+	;; If we're reading from the mailrc file, addresses are
+	;; delimited by spaces, and addresses with embedded spaces are
+	;; surrounded by non-escaped double-quotes.
+	(if (eq ?\" (aref definition start))
+	    (setq start (1+ start)
+		  end (and (string-match
+			    "[^\\]\\(\\([\\][\\]\\)*\\)\"[ \t,]*"
+			    definition start)
+			   (match-end 1)))
+	  (setq end (string-match "[ \t,]+" definition start)))
+	;; Extract the address and advance the loop past it.
+	(setq this-entry (substring definition start end)
+	      start (and end (/= (match-end 0) L) (match-end 0)))
+	;; If the full name contains a problem character, quote it.
+	(and (string-match "\\(.+?\\)[ \t]*\\(<.*>\\)" this-entry)
+	     (string-match "[^- !#$%&'*+/0-9=?A-Za-z^_`{|}~]"
+			   (match-string 1 this-entry))
+	     (setq this-entry (replace-regexp-in-string
+			       "\\(.+?\\)[ \t]*\\(<.*>\\)"
+			       "\"\\1\" \\2"
+			       this-entry))))
+       ;; When we are not reading from .mailrc, addresses are
+       ;; separated by commas.  Try to accept a rfc822-like syntax.
+       ;; (Todo: extend rfc822.el to do the work for us.)
+       ((equal (string-match
+		"[ \t,]*\\(\"\\(?:[^\"]\\|[^\\]\\(?:[\\][\\]\\)*\"\\)*\"[ \t]*\
+<[-.!#$%&'*+/0-9=?A-Za-z^_`{|}~@]+>\\)[ \t,]*"
+		definition start)
+	       start)
+	;; If an entry has a valid [ "foo bar" <foo@example.com> ]
+	;; form, use it literally .  This also allows commas in the
+	;; quoted string, e.g.  [ "foo bar, jr" <foo@example.com> ]
+	(setq this-entry (match-string 1 definition)
+	      start (and (/= (match-end 0) L) (match-end 0))))
+       (t
+	;; Otherwise, read the next address by looking for a comma.
+	(setq end (string-match "[ \t\n,]*,[ \t\n]*" definition start))
+	(setq this-entry (substring definition start end))
+	;; Advance the loop past this address.
+	(setq start (and end (/= (match-end 0) L) (match-end 0)))
+	;; If the full name contains a problem character, quote it.
+	(and (string-match "\\(.+?\\)[ \t]*\\(<.*>\\)" this-entry)
+	     (string-match "[^- !#$%&'*+/0-9=?A-Za-z^_`{|}~]"
+			   (match-string 1 this-entry))
+	     (setq this-entry (replace-regexp-in-string
+			       "\\(.+?\\)[ \t]*\\(<.*>\\)" "\"\\1\" \\2"
+			       this-entry)))))
+      (push this-entry result))
+
     (setq definition (mapconcat (function identity)
-				(nreverse result)
-				", "))
+				(nreverse result) ", "))
     (setq tem (assoc name mail-aliases))
     (if tem
 	(rplacd tem definition)
