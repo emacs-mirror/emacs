@@ -1318,7 +1318,7 @@ and the existence of packages."
   "Move to the next ARGth line in a speedbar buffer at the same depth.
 This means that movement is restricted to a subnode, and that siblings
 of intermediate nodes are skipped."
-  (if (not (numberp arg)) (signal 'wrong-type-argument (list arg 'numberp)))
+  (if (not (numberp arg)) (signal 'wrong-type-argument (list 'numberp arg)))
   ;; First find the extent for which we are allowed to move.
   (let ((depth (save-excursion (beginning-of-line)
 			       (if (looking-at "[0-9]+:")
