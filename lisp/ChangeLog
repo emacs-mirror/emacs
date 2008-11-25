@@ -1,3 +1,12 @@
+2008-11-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/mailabbrev.el (define-mail-abbrev): When reading from
+	mailrc, recognize string quoting.  When reading from Lisp, accept
+	rfc822-like addresses.
+
+	* mail/mailalias.el (define-mail-alias): Sync code with
+	define-mail-abbrev.
+
 2008-11-25  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-proc.el (eshell-gather-process-output):
