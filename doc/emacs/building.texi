@@ -1171,8 +1171,8 @@ edit its value.
   If the variable @code{gdb-delete-out-of-scope} is non-@code{nil}
 (the default value), Emacs automatically deletes watch expressions
 which go out of scope.  Sometimes, when re-entering the same function,
-it may be useful to set this value to nil so that you don't need to
-recreate the watch expression.
+it may be useful to set this value to @code{nil} so that you don't
+need to recreate the watch expression.
 
 @vindex gdb-use-colon-colon-notation
   If the variable @code{gdb-use-colon-colon-notation} is
