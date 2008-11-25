@@ -201,8 +201,8 @@ values results in a @code{setting-constant} error.  @xref{Constant
 Variables}.
 
 @defun booleanp object
-Return non-nil if @var{object} is one of the two canonical boolean
-values: @code{t} or @code{nil}.
+Return non-@code{nil} if @var{object} is one of the two canonical
+boolean values: @code{t} or @code{nil}.
 @end defun
 
 @node Evaluation Notation
