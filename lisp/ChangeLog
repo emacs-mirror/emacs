@@ -14945,6 +14945,7 @@
 	standard-display-table.
 	(latin1-display-identities): Adjust for the change of what is
 	returned by (get-language-info charset 'charset).
+
 	* international/mule-util.el (char-displayable-p): Fix for Latin-1
 	characters and terminal case.
 
