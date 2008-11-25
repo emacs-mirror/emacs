@@ -1,3 +1,20 @@
+2008-11-25  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-settings-file, calc-language-alist)
+	(calc-embedded-announce-formula)
+	(calc-embedded-announce-formula-alist)
+	(calc-embedded-open-formula, calc-embedded-close-formula)
+	(calc-embedded-open-close-formula-alist)
+	(calc-embedded-word-regexp-alist, calc-embedded-open-plain)
+	(calc-embedded-close-plain, calc-embedded-open-close-plain-alist)
+	(calc-embedded-open-new-formula, calc-embedded-close-new-formula)
+	(calc-embedded-open-close-new-formula-alist)
+	(calc-embedded-open-mode, calc-embedded-close-mode)
+	(calc-embedded-open-close-mode-alist, calc-gnuplot-name)
+	(calc-gnuplot-plot-command, calc-gnuplot-print-command)
+	(calc-multiplication-has-precedence): Remove unnecessary asterisks
+	from docstrings.
+
 2008-11-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* calculator.el (calculator-op-or-exp): Reflow docstring.
