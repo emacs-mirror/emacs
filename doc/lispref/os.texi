@@ -1394,7 +1394,8 @@ This function returns a string representing the Emacs
 running.  The string is formatted by @code{format-seconds} according
 to the optional argument @var{format}.  For the available format
 descriptors, see @ref{Time Parsing, format-seconds}.  If @var{format}
-is nil or omitted, it defaults to @code{"%Y, %D, %H, %M, %z%S"}.
+is @code{nil} or omitted, it defaults to @code{"%Y, %D, %H, %M,
+%z%S"}.
 @end defun
 
 @defun get-internal-run-time
