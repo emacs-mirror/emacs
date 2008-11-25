@@ -996,8 +996,8 @@ If radix output mode is active, decrease the grouping size."
               (calculator-standard-displayer 'right (cadr disp))))))))
 
 (defun calculator-remove-zeros (numstr)
-  "Get a number string NUMSTR and remove unnecessary zeroes.
-the behavior of this function is controlled by
+  "Get a number string NUMSTR and remove unnecessary zeros.
+The behavior of this function is controlled by
 `calculator-remove-zeros'."
   (cond ((and (eq calculator-remove-zeros t)
               (string-match "\\.0+\\([eE][+-]?[0-9]*\\)?$" numstr))
@@ -1457,8 +1457,7 @@ Optional string argument KEYS will force using it as the keys entered."
 (defun calculator-op-or-exp ()
   "Either enter an operator or a digit.
 Used with +/- for entering them as digits in numbers like 1e-3 (there is
-no need for negative numbers since these are handled by unary
-operators)."
+no need for negative numbers since these are handled by unary operators)."
   (interactive)
   (if (and (not calculator-display-fragile)
            calculator-curnum
@@ -1755,7 +1754,7 @@ Used by `calculator-paste' and `get-register'."
   (calculator-quit))
 
 (defun calculator-repR (x)
-  "Repeats the last binary operation with its second argument and X.
+  "Repeat the last binary operation with its second argument and X.
 To use this, apply a binary operator (evaluate it), then call this."
   (if calculator-last-opXY
     ;; avoid rebinding calculator-last-opXY
@@ -1765,7 +1764,7 @@ To use this, apply a binary operator (evaluate it), then call this."
     x))
 
 (defun calculator-repL (x)
-  "Repeats the last binary operation with its first argument and X.
+  "Repeat the last binary operation with its first argument and X.
 To use this, apply a binary operator (evaluate it), then call this."
   (if calculator-last-opXY
     ;; avoid rebinding calculator-last-opXY
@@ -1807,7 +1806,7 @@ To use this, apply a binary operator (evaluate it), then call this."
        ;; If y is odd
        -1.0e+INF)
       (t
-       ;; 
+       ;;
        1.0e+INF)))
     (error 0.0e+NaN)))
 

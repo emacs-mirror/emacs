@@ -1,3 +1,9 @@
+2008-11-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calculator.el (calculator-op-or-exp): Reflow docstring.
+	(calculator-remove-zeros, calculator-repR, calculator-repL):
+	Fix typos in docstrings.
+
 2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* log-view.el (log-view-annotate-version): Let vc-annotate manage
