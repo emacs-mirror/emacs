@@ -3,6 +3,25 @@
 	* xfaces.c (Fx_font_family_list): Replace lisp/term/pc-win.el
 	redefinition with ifdef.  (Bug#1383)
 
+2008-11-24  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_get_color): Handle long hex strings (fixes bug #1044).
+
+2008-11-24  Wolfgang Lux <wolfgang.lux@gmail.com> (tiny change)
+
+	* nsterm.m (-otherMouseDown:, -otherMouseUp:, -otherMouseDragged):
+	New EmacsView methods.
+	(EV_UDMODIFIERS, EV_BUTTON): Add OtherMouse constants.
+	Fixes bug #1048,1357,1414.
+
+2008-11-24  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	Fix bug #1362.
+	* image.c (x_clear_image_1): Do not free background under HAVE_NS, it
+	is not an indexed color.
+	* nsterm.m (free_indexed_color): Add argument checking.
+	* nsfns.m: Move config.h to before system includes (advised by Dan N.).
+
 2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.c (Fcompleting_read, Vminibuffer_completion_confirm):
