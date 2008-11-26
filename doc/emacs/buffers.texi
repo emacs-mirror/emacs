@@ -108,18 +108,18 @@ by putting the message @samp{[Confirm]} in the minibuffer; type
 
 @vindex confirm-nonexistent-file-or-buffer
   The variable @code{confirm-nonexistent-file-or-buffer} controls
-whether Emacs asks for confirmation before visiting a new buffer.  The
-default value, @code{after-completion}, gives the behavior we have
-just described.  If the value is @code{nil}, Emacs never asks for
-confirmation; for any other non-@code{nil} value, Emacs always asks
-for confirmation.  This variable also affects the @code{find-file}
-command (@pxref{Visiting}).
+whether Emacs asks for confirmation before visiting a buffer that did
+not previously exist.  The default value, @code{after-completion},
+gives the behavior we have just described.  If the value is
+@code{nil}, Emacs never asks for confirmation; for any other
+non-@code{nil} value, Emacs always asks for confirmation.  This
+variable also affects the @code{find-file} command (@pxref{Visiting}).
 
-  One reason to switch to a new buffer is to use it for making
-temporary notes.  If you try to save it, you are asked for the file
-name to use.  The new buffer's major mode is determined by the
-variable @code{default-major-mode}; the default value is Fundamental
-mode.  @xref{Major Modes}.
+  One reason to create a new buffer is to use it for making temporary
+notes.  If you try to save it, Emacs asks for the file name to use.
+The variable @code{default-major-mode} determines the new buffer's
+major mode; the default value is Fundamental mode.  @xref{Major
+Modes}.
 
 @kindex C-x @key{LEFT}
 @kindex C-x @key{RIGHT}
