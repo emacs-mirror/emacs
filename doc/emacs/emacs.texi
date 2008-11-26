@@ -984,7 +984,6 @@ Emacs and Mac OS
 
 * Mac Basics::          Basic Emacs usage in Mac OS.
 * Mac Events::          How window system events are handled.
-* Mac Preferences::     Using the Preferences Panel to customize Emacs.
 * Mac Customization::   Customizations in Mac OS
 
 Emacs and Microsoft Windows/MS-DOS

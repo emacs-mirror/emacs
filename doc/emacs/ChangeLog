@@ -1,3 +1,13 @@
+2008-11-26  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* macos.texi: Add Prev/Next/Top pointers to all nodes.
+	(Mac Basics): Merge in Grabbing Environment Variables from earlier
+	version.
+	(Mac Customization): Rewrite Preferences Panel section and merge in to
+	this node, add Open files by dragging to an Emacs window.
+
+	* emacs.texi: Remove TOC reference to Mac Preferences Panel section.
+
 2008-11-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* windows.texi (Split Window): Document integer values of

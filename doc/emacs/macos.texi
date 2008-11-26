@@ -26,12 +26,11 @@ not fully functional, but we hope to improve it in the future.
 
 @menu
 * Mac Basics::          Basic Emacs usage in Mac OS.
-* Mac Events::          How window system events are handled.
-* Mac Preferences::     Using the Preferences Panel to customize Emacs.
 * Mac Customization::   Customizations in Mac OS
+* Mac Events::          How window system events are handled.
 @end menu
 
-@node Mac Basics
+@node Mac Basics, Mac Customization, , Mac OS
 @section Basic Emacs usage in Mac OS
 
   By default, the @key{alt} and @key{option} keys are the same as
@@ -40,7 +39,7 @@ same as @key{Super}, and Emacs provides a set of keybindings using
 this modifier key that mimic other Mac applications (@pxref{Mac
 Events}).  You can change these bindings in the usual way (@pxref{Key
 Bindings}), or by using the Mac preferences panel (@pxref{Mac
-Preferences}).
+Customization}).
 
   The standard Mac font and color panels are accessible via the
 @samp{Windows} menu, or via the standard @key{Cmd-t} and @key{Cmd-C}
@@ -64,11 +63,6 @@ dialogs to read file names.  However, if you use the regular Emacs key
 sequences, such as @key{C-x C-f}, Emacs uses the minibuffer to read
 file names.
 
-  When Emacs is called by a name which ends in @file{-nw}, it will
-always start in terminal mode.  For example, if you need a
-terminal-only Emacs, create a symbolic link from @file{emacs} to
-@file{emacs-nw} and launch @file{emacs-nw}.
-
   On GNUstep, in an X-windows environment you need to use @key{Cmd-c}
 instead of one of the @key{C-w} or @key{M-w} commands to transfer text
 to the X primary selection; otherwise, Emacs will use the
@@ -76,192 +70,149 @@ to the X primary selection; otherwise, Emacs will use the
 yanks from the X primary selection instead of the kill-ring or
 clipboard.
 
-@node Mac Events
-@section Windowing System Events in Mac OS X
 
-  Nextstep applications receive a number of special events which have
-no X equivalent.  These are sent as specially defined ``keys'', which
-do not correspond to any sequence of keystrokes.  Under Emacs, these
-``key'' events can be bound to functions just like ordinary
-keystrokes.  Here is a list of these events.
+@subsection Grabbing environment variables
 
-@table @key
-@item ns-open-file
-@vindex ns-pop-up-frames
-This event occurs when another Nextstep application requests that
-Emacs open a file.  A typical reason for this would be a user
-double-clicking a file in the Finder application.  By default, Emacs
-responds to this event by opening a new frame and visiting the file in
-that frame (@code{ns-find-file}), As an exception, if the selected
-buffer is the @samp{*scratch*} buffer, Emacs visits the file in the
-the selected frame.
+Many programs which may run under Emacs like latex or man depend on the
+settings of environment variables.  If Emacs is launched from the shell, it
+will automatically inherit these environment variables and its subprocesses
+will inherit them from it.  But if Emacs.app is launched from the Finder it
+is not a descendant of any shell, so its environment variables haven't been
+set which often causes the subprocesses it launches to behave differently than
+they would when launched from the shell.
 
-You can change how Emacs responds to @key{ns-open-file} by changing
-the variable @code{ns-pop-up-frames}.  Its default value,
-@code{'fresh}, is what we have just described.  A value of @code{t}
-means to always visit the file in a new frame.  A value of @code{nil}
-means to always visit the file in an existing frame.
+To solve this problem for Emacs.app, there are two solutions.  First is to
+run, from the command line:
 
-@item ns-open-temp-file
-This event occurs when another application requests that Emacs open a
-temporary file.  By default, this is handled by just generating a
-@code{ns-open-file} event, the results of which are described above.
+@example
+.../Emacs.app/Contents/MacOS/bin/mac-fix-env
+@end example
 
-You can bind @key{ns-pop-up-frames} and @key{ns-open-temp-file} to
-other Lisp functions.  When the event is registered, the name of the
-file to open is stored in the variable @code{ns-input-file}.
+This will pick up your environment settings and save them into a special file
+@file{~/.MacOSX/environment.plist}, which the desktop environment will use to
+set the environment for all launched applications.  The drawback of this
+method is it needs to be run again whenever something changes.
 
-@item ns-open-file-line
-Some applications, such as ProjectBuilder and gdb, request not only a
-particular file, but also a particular line or sequence of lines in
-the file.  Emacs handles this by visiting that file and highlighting
-the requested line (@code{ns-open-file-select-line}).
+The other approach is to use the @code{ns-grabenv} command inside Emacs.  This
+function will run a subshell and copy its environment variables into Emacs.
 
-@item ns-drag-file
-This event occurs when a user drags files from another application
-into an Emacs frame.  The default behavior is to insert the contents
-of all the dragged files into the current buffer
-(@code{ns-insert-files}).  The list of dragged files is stored in the
-variable @code{ns-input-file}.
+Adding this line to your @file{~/.emacs} will grab the csh environment
+whenever emacs runs under a window system.
 
-@item ns-drag-color
-This event occurs when a user drags a color from the color well (or
-some other source) into an Emacs frame.  The default behavior is to
-alter the foreground color of the area the color was dragged onto
-(@code{ns-set-foreground-at-mouse}).  If this event is issued with a
-@key{Shift} modifier, Emacs changes the background color instead
-(@code{ns-set-background-at-mouse}).  The name of the dragged color is
-stored in the variable @code{ns-input-color}.
+@lisp
+(if window-system (ns-grabenv))
+@end lisp
 
-@item ns-change-font
-This event occurs when the user selects a font in a Nextstep font
-panel (which can be opened with @kbd{Cmd-t}).  The default behavior is
-to adjust the font of the selected frame
-(@code{ns-respond-to-changefont}).  The name and size of the selected
-font are stored in the variables @code{ns-input-font} and
-@code{ns-input-fontsize} respectively.
+If you have a different shell you will have to give @code{ns-grabenv} some
+arguments.  For zsh you would do this.
 
-@item ns-power-off
-This event occurs when the user logs out and Emacs is still running.
-The default behavior is to save all file-visiting buffers without
-confirmation, and exit.
-@end table
+@lisp
+(if window-system (ns-grabenv "/usr/bin/zsh"
+                           "source /etc/zshenv"
+                           "source ~/.zshenv"))
+@end lisp
 
-  Emacs also allows users to make use of Nextstep services, via a set
-of commands whose names begin with @samp{ns-service-} and end with the
-name of the service.  Type @kbd{M-x ns-service-@key{TAB}@key{TAB}} to
-see a list of these commands.  These functions either operate on
-marked text (replacing it with the result) or take a string argument
-and return the result as a string.  You can also use the Lisp function
-@code{ns-perform-service} to pass arbitrary strings to arbitrary
-services and receive the results back.  Note that you may need to
-restart Emacs to access newly-available services.
+The reason that @code{ns-grabenv} is not done by default is that it adds up
+to a second or two to the Emacs startup time.
 
-@node Mac Preferences
-@section Mac Preferences
 
-The Preferences panel can be used to set or change some of the
-settings for Emacs such as the text appearance, cursor settings, and
-key bindings.
+@node Mac Customization, Mac Events, Mac Basics, Mac OS
+@section Mac Customization
 
-  To save any settings changed through the Preferences panel, click on
-@samp{OK}; this has the same effect as if you had explicitly chosen
-@samp{Help / Save Preferences}.
+Emacs.app can be customized in several ways in addition to the standard
+customization buffers and the Options menu.
 
-  To restore Emacs to use its default settings click @samp{Reset to
-Defaults} from the Preferences Panel.
 
-  Additional preferences may be set from the command line using the
-@command{defaults} command.  @xref{Mac Customization}.
+@subsection Preferences Panel
 
-Font and color settings can be set using the standard NeXTstep font
-and color panels.
+The Preferences panel, much like the Options menu, is designed to allow quick
+and convenient setting of commonly used options.
+
+The Preferences panel is available for setting commonly used GUI-related
+options for Emacs.app.  Access it under the Emacs menu (Mac) or Info menu
+(GNUstep), or using @kbd{Cmd-,}.
+
+Settings made here are saved when @samp{OK} is hit, or @samp{Save Options} is
+selected from the Options menu.  These settings are stored into the NeXTstep
+``defaults'' system under keys described below.
 
 @itemize @bullet
 @item
-To set the default font used by Emacs click the Default Font... button
-to launch the Font Panel.  Click on a frame before selecting the font
-family, typeface, and size of the default font from the Font Panel.
-
-Note that the default font will not be changed if a frame hasn't been
-selected first.
-
-@item
-To set the default foreground or background color click the
-Colors... button to launch the Color Panel.  Choose the color you want
-using any of the color models (color wheel, sliders, palette, image,
-or crayons) available from the Colors toolbar.  To apply the color
-drag a swatch from the color bar at the top of the panel to text on
-an Emacs frame.  Holding down shift will change the background color
-instead of the foreground.
+To set the default font used by Emacs click the @samp{Default Font...} button
+to being up the Font Panel, then click on a frame.  The font of this frame
+will then be changed when you make a selection in the Font Panel, and this
+will be used as the default for future frames.  If you do not select a frame
+first, the Font Panel will not work.
 
 @item
-To use antialiased text check the Smooth Fonts option.  Lighter font
-smoothing can be achieved by checking the Use Quickdraw (lighter)
-smoothing option.
+The Color panel, brought up by the @samp{Colors...} button, allows setting of
+foreground or background of any face.  Drag from the color bar to over the
+emacs face you want to change.  This will change the foreground of that face,
+or holding shift when dragging will change the background.
 
 @item
-To change the line height that text is displayed at drag the Expand
-Line Spacing slider.  When the slider is set to 0.0 Emacs will use the
-same line height as other Mac OS X applications.  To increase the line
-height (and decrease the number of lines that can be displayed on the
-screen) drag the slider towards 1.0.  To decrease the line height
-(increases the number of lines that can be displayed) drag the slider
-towards -1.0.
+@samp{Smooth Fonts} and @samp{Use Quickdraw} control text antialiasing.
+Quickdraw is an older Mac technology still supported under OS X.
 
-After the line spacing setting has been changed Emacs must be restarted
-to take account of the change.
-
-@end itemize
-
-The Display Preferences can be used to change the appearance of the
-default cursor used by Emacs.
-
-@itemize @bullet
 @item
-The Cursor Type radio buttons can be used to select the style used for the cursor:
+The @samp{Expand Line Spacing} slider controls vertical spacing of text.  The
+0.0 setting corresponds to the same height as other applications.  Settings
+less than 0 compress the spacing, and greater than 0 expand it.  Emacs must be
+restarted for the new setting to take effect.
+
+@item
+The @samp{Cursor Type} radio buttons select the cursor shape:
+cursor:
 
 @itemize
 @item
-Box - the cursor is displayed as a box
+Filled Box - the cursor is displayed as a box (default)
 @item
-Underscore - the cursor is displayed as a horizontal bar
+Vertical Bar - the cursor is displayed as a vertical line
 @item
-Bar - the cursor is displayed as a vertical bar
+Underscore - the cursor is displayed as a horizontal line
 @item
 Hollow - the cursor is displayed as a box with an outline but no fill
 @end itemize
 
 @item
-Use the Cursor Blink Rate slider to set the frequency at which the cursor blinks.
+The @samp{Cursor Blink Rate} slider to sets the frequency at which the cursor
+blinks (CURRENTLY INOPERATIVE -- use @samp{customize group cursor} instead.)
 
 @item
-Check the Use System Highlight Color option to use the system default
-color for highlighted text.
+The @samp{Use System Highlight Color} option controls whether selected text is
+highlighted with the system default or the local emacs setting.
 
 @end itemize
 
-The Modifier Preferences can be used to change the behaviour of the
-Alt/Opt and Command keys.  By default the Alt or Opt key is bound to
-the Emacs 'Meta' key, and the Command key is bound to 'super' which
-allows the Command key to function in a way similar to other
-NeXTstep/OS X applications.
+The behavior of Modifier keys inside emacs can be controlled by the drop-down
+menus in the @samp{Modifiers} section.  By default the Alt or Opt key is bound
+to the Emacs 'Meta' key, and the Command key is bound to 'super' which allows
+the Command key to function in a way similar to other NeXTstep/OS X
+applications.
 
-@itemize @bullet
-@item
-To re-bind the Alt or Opt key select a keybinding from the Alt/Opt Key
-combo box.
-@item
-To re-bind the Command key select a keybinding from the Command Key
-combo box.
-@end itemize
 
-@node Mac Customization
-@section Mac Customization
+@subsection Font and Color Panels
+
+The Font Panel may be accessed from the Windows menu or by @kbd{Cmd-t}.  It
+will set the default font in the frame most recently used or clicked on.  To
+make the setting permanent, use @samp{Save Options} in the Options menu, or
+run @code{ns-save-preferences}.
+
+You can bring up a color panel (with @key{Cmd-C} or from the Windows menu) and
+drag the color you want over the emacs face you want to change.  Normal
+dragging will alter the foreground color.  Shift dragging will alter the
+background color.  To make the changes permanent select the "Save Options"
+item in the "Options" menu, or run @code{ns-save-preferences}.  Useful in this
+context is the listing of all faces obtained by @key{M-x}
+@code{list-faces-display}.
+
+
+@subsection Defaults
 
 Under X, resources are used to customize the behavior of Emacs to the
-needs of the user.  Nexstep defaults fulfill a similar function.  From
-the command line, the command @samp{defaults read org.gnu.Emacs} show
+needs of the user.  Nextstep defaults fulfill a similar function.  From
+the command line, the command @samp{defaults read org.gnu.Emacs} shows
 these resources as of the last Emacs exited, and individual resources
 can be read or written by commands like @samp{defaults read Emacs Foo}
 and @samp{defaults write Emacs Foo barvalue}.
@@ -273,11 +224,11 @@ writes out the defaults corresponding to the selected window.
   In addition, you can set many of the following customizations by
 setting @code{default-frame-alist} in your initialization file.
 
-  Many of the preferences relating specifically to the Nextstep
-windowing system (such as font rendering and the cursor type) can be
-set using the Preferences panel (@pxref{Mac Preferences}).  It is
-important to note that when you hit @samp{OK} on this panel,
-@emph{all} Nextstep settings are saved (including font and colors).
+  Many of the preferences relating specifically to the Nextstep windowing
+system (such as font rendering and the cursor type) can be set using the
+Preferences panel.  It is important to note that when you hit @samp{OK} on
+this panel, @emph{all} Nextstep settings are saved (including font and
+colors).
 
 This is a listing of some of the more useful defaults (and their
 default values).  Several of these defaults accept the names of colors
@@ -355,14 +306,6 @@ Name of the default cursor type for Emacs.  Allowed values are
 defaults write Emacs CursorType box
 @end example
 
-@item CursorBlinkRate
-Users who want their cursor to blink can set the rate (in seconds) with
-this defaults write.  Setting it to @samp{NO} disables cursor blinking.
-
-@example
-defaults write Emacs CursorBlinkRate NO
-@end example
-
 @item CursorColor
 Name of the default cursor color for Emacs.  Of a particular use for
 this setting is the @samp{Highlight} color.  When it is the cursor
@@ -370,7 +313,7 @@ color, Emacs will draw the cursor using the standard Nextstep
 highlighting operator.
 
 @example
-defaults write Emacs CursorColor Highlight
+defaults write Emacs CursorColor blue
 @end example
 
 @item Top
@@ -486,6 +429,99 @@ be in the application search path of the Workspace (which usually includes
 way to do this under OS X please contact the authors.
 
 @end table
+
+@subsection Open files by dragging to an Emacs window
+
+The default behaviour when a user drags files from another application
+into an Emacs frame is to insert the contents of all the dragged files
+into the current buffer.  To remap the @code{ns-drag-file} event to
+open the dragged files in the current frame use the following line:
+
+@lisp
+(define-key global-map [ns-drag-file] 'ns-find-file)
+@end lisp
+
+
+@node Mac Events, , Mac Customization, Mac OS
+@section Windowing System Events in Mac OS X
+
+  Nextstep applications receive a number of special events which have
+no X equivalent.  These are sent as specially defined ``keys'', which
+do not correspond to any sequence of keystrokes.  Under Emacs, these
+``key'' events can be bound to functions just like ordinary
+keystrokes.  Here is a list of these events.
+
+@table @key
+@item ns-open-file
+@vindex ns-pop-up-frames
+This event occurs when another Nextstep application requests that
+Emacs open a file.  A typical reason for this would be a user
+double-clicking a file in the Finder application.  By default, Emacs
+responds to this event by opening a new frame and visiting the file in
+that frame (@code{ns-find-file}), As an exception, if the selected
+buffer is the @samp{*scratch*} buffer, Emacs visits the file in the
+the selected frame.
+
+You can change how Emacs responds to @key{ns-open-file} by changing
+the variable @code{ns-pop-up-frames}.  Its default value,
+@code{'fresh}, is what we have just described.  A value of @code{t}
+means to always visit the file in a new frame.  A value of @code{nil}
+means to always visit the file in an existing frame.
+
+@item ns-open-temp-file
+This event occurs when another application requests that Emacs open a
+temporary file.  By default, this is handled by just generating a
+@code{ns-open-file} event, the results of which are described above.
+
+You can bind @key{ns-pop-up-frames} and @key{ns-open-temp-file} to
+other Lisp functions.  When the event is registered, the name of the
+file to open is stored in the variable @code{ns-input-file}.
+
+@item ns-open-file-line
+Some applications, such as ProjectBuilder and gdb, request not only a
+particular file, but also a particular line or sequence of lines in
+the file.  Emacs handles this by visiting that file and highlighting
+the requested line (@code{ns-open-file-select-line}).
+
+@item ns-drag-file
+This event occurs when a user drags files from another application
+into an Emacs frame.  The default behavior is to insert the contents
+of all the dragged files into the current buffer
+(@code{ns-insert-files}).  The list of dragged files is stored in the
+variable @code{ns-input-file}.
+
+@item ns-drag-color
+This event occurs when a user drags a color from the color well (or
+some other source) into an Emacs frame.  The default behavior is to
+alter the foreground color of the area the color was dragged onto
+(@code{ns-set-foreground-at-mouse}).  If this event is issued with a
+@key{Shift} modifier, Emacs changes the background color instead
+(@code{ns-set-background-at-mouse}).  The name of the dragged color is
+stored in the variable @code{ns-input-color}.
+
+@item ns-change-font
+This event occurs when the user selects a font in a Nextstep font
+panel (which can be opened with @kbd{Cmd-t}).  The default behavior is
+to adjust the font of the selected frame
+(@code{ns-respond-to-changefont}).  The name and size of the selected
+font are stored in the variables @code{ns-input-font} and
+@code{ns-input-fontsize} respectively.
+
+@item ns-power-off
+This event occurs when the user logs out and Emacs is still running.
+The default behavior is to save all file-visiting buffers without
+confirmation, and exit.
+@end table
+
+  Emacs also allows users to make use of Nextstep services, via a set
+of commands whose names begin with @samp{ns-service-} and end with the
+name of the service.  Type @kbd{M-x ns-service-@key{TAB}@key{TAB}} to
+see a list of these commands.  These functions either operate on
+marked text (replacing it with the result) or take a string argument
+and return the result as a string.  You can also use the Lisp function
+@code{ns-perform-service} to pass arbitrary strings to arbitrary
+services and receive the results back.  Note that you may need to
+restart Emacs to access newly-available services.
 
 @ignore
    arch-tag: a822c2ab-4273-4997-927e-c153bb71dcf6
