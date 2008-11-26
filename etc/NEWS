@@ -488,7 +488,7 @@ editing commands to work on screen lines rather than text lines.  See
 New Modes and Packages, below.
 
 ** Window management changes
-
++++
 *** truncate-partial-width-windows now accepts integer values, which
 specify a minimum window width for partial-width windows, below which
 lines are truncated.  The default has been changed to 50.
