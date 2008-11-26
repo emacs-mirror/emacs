@@ -53,7 +53,7 @@ Should take the same arguments and behave similarly to `forward-sexp'.")
 With ARG, do it that many times.  Negative arg -N means
 move backward across N balanced expressions.
 This command assumes point is not in a string or comment."
-  (Interactive "p")
+  (interactive "p")
   (or arg (setq arg 1))
   (if forward-sexp-function
       (funcall forward-sexp-function arg)
