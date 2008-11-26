@@ -687,7 +687,7 @@ init file.)
    ;; @r{File name (within directory) starts with a dot.}
    '(("/\\.[^/]*\\'" . fundamental-mode)
      ;; @r{File name has no dot.}
-     ("[^\\./]*\\'" . fundamental-mode)
+     ("/[^\\./]*\\'" . fundamental-mode)
      ;; @r{File name ends in @samp{.C}.}
      ("\\.C\\'" . c++-mode))
    auto-mode-alist))
