@@ -1598,8 +1598,7 @@
 (defun calcFunc-collect (expr base)
   (let ((p (math-is-polynomial expr base 50 t)))
     (if (cdr p)
-	(math-normalize   ; fix selection bug
-	 (math-build-polynomial-expr p base))
+        (math-build-polynomial-expr (mapcar 'math-normalize p) base)
       (car p))))
 
 ;;; If expr is of the form "a + bx + cx^2 + ...", return the list (a b c ...),
