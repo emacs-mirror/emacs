@@ -109,6 +109,19 @@
   (require 'vc-dir)
   (require 'grep))
 
+(defcustom vc-git-diff-switches t
+  "String or list of strings specifying extra switches for Git diff under VC.
+If nil, use the value of `vc-diff-switches'.
+If you want to force an empty list of arguments, use t."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List"
+			 :value ("")
+			 string))
+  :version "23.1"
+  :group 'vc)
+
 (defvar git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
 
@@ -501,12 +514,12 @@ or BRANCH^ (where \"^\" can be repeated)."
   (beginning-of-line))
 
 (defun vc-git-diff (files &optional rev1 rev2 buffer)
-  (let ((buf (or buffer "*vc-diff*")))
-    (if (and rev1 rev2)
-        (vc-git-command buf 1 files "diff-tree" "--exit-code" "-p"
-                        rev1 rev2 "--")
-      (vc-git-command buf 1 files "diff-index" "--exit-code" "-p"
-                      (or rev1 "HEAD") "--"))))
+  "Get a difference report using Git between two revisions of FILES."
+  (apply #'vc-git-command (or buffer "*vc-diff*") 1 files
+	 (if (and rev1 rev2) "diff-tree" "diff-index")
+	 "--exit-code"
+	 (append (vc-switches (if vc-git-diff-switches 'git) 'diff)
+		 (list "-p" (or rev1 "HEAD") rev2 "--"))))
 
 (defun vc-git-revision-table (files)
   ;; What about `files'?!?  --Stef
