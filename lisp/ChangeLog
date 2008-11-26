@@ -1,3 +1,11 @@
+2008-11-25  Alan Mackenzie  <acm@muc.de>
+
+	* emacs-lisp/lisp.el (forward-sexp, backward-sexp, mark-sexp)
+	(forward-list, backward-list, down-list, backward-up-list)
+	(up-list, kill-sexp, backward-kill-sexp, kill-backward-up-list)
+	(insert-pair, insert-parentheses):  State that the command assumes
+	that point is not in a string or comment.
+
 2008-11-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-string-to-byte-array)
