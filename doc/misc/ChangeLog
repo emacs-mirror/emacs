@@ -1,3 +1,12 @@
+2008-11-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Type Conversion): New defuns `dbus-string-to-byte-array',
+	`dbus-escape-as-identifier', `dbus-byte-array-to-string' and
+	`dbus-unescape-from-identifier'.
+	(Receiving Method Calls): New constants `dbus-service-emacs' and
+	`dbus-path-emacs'.
+	(Signals): Use the constants in the example.
+
 2008-11-24  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: re-apply change to FDL 1.3.
