@@ -1,3 +1,9 @@
+2008-11-25  Alan Mackenzie  <acm@muc.de>
+
+	* programs.texi (Moving by Parens): Clarify that parens inside strings
+	and comments are ignored, and that the commands assume the starting
+	point isn't in a string or comment.
+
 2008-11-26  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* macos.texi: Add Prev/Next/Top pointers to all nodes.
