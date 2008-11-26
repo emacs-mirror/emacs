@@ -313,6 +313,7 @@ the minibuffer that toggles word search (i.e. using key sequences
 `M-s w' to start word search, or type `M-s w' in Isearch mode to
 toggle word search.
 
+---
 ** In Text mode, `center-line' and `center-paragraph' are rebound
 from `M-s' and `M-S' to global keys `M-o M-s' and `M-o M-S' on the
 global prefix map `M-o' intended for such formatting commands.
@@ -582,6 +583,7 @@ Maildir/MH setups.
 
 ** minibuffer-depth-indicate-mode shows the minibuffer depth in the prompt.
 
++++
 ** nXML Mode
 This is a new mode for editing XML documents.  It allows a schema to
 be associated with the XML document being edited, using Relax NG as
@@ -659,6 +661,7 @@ specifies what to do when a buffer is visited, killed, or written.
 Note, however, that the free version of the unrar command only handles
 versions 1 and 2 of the Rar format.
 
+---
 ** BibTeX mode
 
 *** New command `bibtex-initialize' (re)initializes BibTeX buffers.
@@ -886,7 +889,7 @@ remote files, if there is no established connection to the
 corresponding remote host.
 
 ** TeX modes
-
+---
 *** New option latex-indent-within-escaped-parens
 permits to customize indentation of LaTeX environments delimited
 by escaped parens.
