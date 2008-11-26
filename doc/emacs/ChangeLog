@@ -1,3 +1,11 @@
+2008-11-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Text): Simplify description of markup languages.
+	(TeX Mode): Simplify introduction.  Mention BibTeX mode.
+	(TeX Editing): Note that `""' inserts one `"' character.
+	(HTML Mode): Note in the introduction that XML mode is an alias for
+	SGML mode.  Mention nXML mode.
+
 2008-11-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* building.texi (Watch Expressions): Fix typo.
