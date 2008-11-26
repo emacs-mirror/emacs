@@ -1,3 +1,8 @@
+2008-11-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_open_internal): Don't include external
+	leading in font height.
+
 2008-11-26  Glenn Morris  <rgm@gnu.org>
 
 	* xfaces.c (Fx_font_family_list): Replace lisp/term/pc-win.el

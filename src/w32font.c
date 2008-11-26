@@ -843,8 +843,12 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   }
 
   font->max_width = w32_font->metrics.tmMaxCharWidth;
+  /* Parts of Emacs display assume that height = ascent + descent... 
+     so height is defined later, after ascent and descent.
   font->height = w32_font->metrics.tmHeight
     + w32_font->metrics.tmExternalLeading;
+  */
+
   font->space_width = font->average_width = w32_font->metrics.tmAveCharWidth;
 
   font->vertical_centering = 0;
@@ -876,6 +880,7 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   font->min_width = font->space_width;
   font->ascent = w32_font->metrics.tmAscent;
   font->descent = w32_font->metrics.tmDescent;
+  font->height = font->ascent + font->descent;
 
   if (metrics)
     {
