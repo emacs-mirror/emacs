@@ -1259,6 +1259,9 @@ call is is received.  It must accept as arguments the input arguments
 of @var{method}.  @var{handler} must return a list, which elements are
 used as arguments for the reply message of @var{method}.  This list
 can be composed like the input parameters in @ref{Type Conversion}.
+If only one Lisp object is returned, and this object is not a consp,
+then @var{handler} can return this object directly, instead of of list
+of this object.
 
 The default D-Bus timeout when waiting for a message reply is 25
 seconds.  This value could be even smaller, depending on the calling
