@@ -4,7 +4,7 @@
 	`dbus-escape-as-identifier', `dbus-byte-array-to-string' and
 	`dbus-unescape-from-identifier'.
 	(Receiving Method Calls): New constants `dbus-service-emacs' and
-	`dbus-path-emacs'.
+	`dbus-path-emacs'.  Precise return values of `dbus-register-method'.
 	(Signals): Use the constants in the example.
 
 2008-11-24  Carsten Dominik  <dominik@science.uva.nl>
