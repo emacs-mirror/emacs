@@ -1,3 +1,8 @@
+2008-11-26  Vincent Belaïche  <vincent.b.1@hotmail.fr>
+
+	* calc/calc-alg.el (calcFunc-collect): Normalize the coefficients
+	of the polynomial rather than the whole polynomial.
+
 2008-11-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/mailabbrev.el (define-mail-abbrev): When reading from
