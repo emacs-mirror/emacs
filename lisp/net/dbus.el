@@ -362,7 +362,8 @@ If the HANDLER returns an `dbus-error', it is propagated as return message."
 	(when (= dbus-message-type-method-call (nth 2 event))
 	  (dbus-ignore-errors
 	    (apply 'dbus-method-return-internal
-	     (nth 1 event) (nth 3 event) (nth 4 event) result))))
+	     (nth 1 event) (nth 3 event) (nth 4 event)
+	     (if (consp result) result (list result))))))
     ;; Error handling.
     (dbus-error
      ;; Return an error message when it is a message call.
