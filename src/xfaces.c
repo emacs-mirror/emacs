@@ -1839,7 +1839,11 @@ are fixed-pitch.  */)
      (frame)
      Lisp_Object frame;
 {
+#ifdef MSDOS
+  return Fcons (Fcons (build_string ("default"), Qt), Qnil);
+#else
   return Ffont_family_list (frame);
+#endif
 }
 
 
