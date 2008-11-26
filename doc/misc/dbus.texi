@@ -945,6 +945,37 @@ elements of this array.  Example:
 @result{} 3
 @end lisp
 
+@defun dbus-string-to-byte-array string
+Sometimes, D-Bus methods require as input parameter an array of bytes,
+instead of a string.  If it is guaranteed, that @var{string} is an
+UTF8 string, this function performs the conversion.  Example:
+
+@lisp
+(dbus-string-to-byte-array "/etc/hosts")
+
+@result{} (:array :byte 47 :byte 101 :byte 116 :byte 99 :byte 47
+           :byte 104 :byte 111 :byte 115 :byte 116 :byte 115)
+@end lisp
+@end defun
+
+@defun dbus-escape-as-identifier string
+Escape an arbitrary @var{string} so it follows the rules for a C
+identifier.  The escaped string can be used as object path component,
+interface element component, bus name component or member name in
+D-Bus.
+
+The escaping consists of replacing all non-alphanumerics, and the
+first character if it's a digit, with an underscore and two
+lower-case hex digits.  As a special case, "" is escaped to
+"_".  Example:
+
+@lisp
+(dbus-escape-as-identifier "0123abc_xyz\x01\xff")
+
+@result{} "_30123abc_5fxyz_01_ff"
+@end lisp
+@end defun
+
 
 @section Output parameters.
 
@@ -990,6 +1021,30 @@ The signal @code{PropertyModified}, discussed as example in
 @lisp
 (@var{NUMBER} ((@var{STRING} @var{BOOL} @var{BOOL}) (@var{STRING} @var{BOOL} @var{BOOL}) @dots{}))
 @end lisp
+
+@defun dbus-byte-array-to-string byte-array
+If a D-Bus method or signal returns an array of bytes, which are known
+to represent an UTF8 string, this function converts @var{byte-array}
+to the corresponding string.  Example:
+
+@lisp
+(dbus-byte-array-to-string '(47 101 116 99 47 104 111 115 116 115))
+
+@result{} "/etc/hosts"
+@end lisp
+@end defun
+
+@defun dbus-unescape-from-identifier string
+Retrieve the original string from the encoded @var{string}.
+@var{string} must have been coded with
+@code{dbus-escape-as-identifier}.  Example:
+
+@lisp
+(dbus-unescape-from-identifier "_30123abc_5fxyz_01_ff")
+
+@result{} "0123abc_xyzÿ"
+@end lisp
+@end defun
 
 
 @node Synchronous Methods
@@ -1173,6 +1228,16 @@ interface name shall be @code{org.gnu.Emacs.@strong{Application}}.
 @samp{@strong{Application}} is the name of the application which
 provides the interface.
 
+@deffn Constant dbus-service-emacs
+The well known service name of Emacs.
+@end deffn
+
+@deffn Constant dbus-path-emacs
+The object path head "/org/gnu/Emacs" used by Emacs.  All object
+paths, used by offered methods or signals, shall start with this
+string.
+@end deffn
+
 @defun dbus-register-method bus service path interface method handler
 With this function, an application registers @var{method} on the D-Bus
 @var{bus}.
@@ -1296,8 +1361,9 @@ Conversion}.  Example:
 
 @lisp
 (dbus-send-signal
-  :session "org.gnu.Emacs" "/org/gnu/Emacs"
-  "org.gnu.Emacs.FileManager" "FileModified" "/home/albinus/.emacs")
+  :session dbus-service-emacs dbus-path-emacs
+  (concat dbus-service-emacs ".FileManager") "FileModified"
+  "/home/albinus/.emacs")
 @end lisp
 @end defun
 
