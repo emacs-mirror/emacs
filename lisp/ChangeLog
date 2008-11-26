@@ -1,3 +1,8 @@
+2008-11-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-handle-event): The result of a message call
+	can also be an object, which is not a consp.
+
 2008-11-25  Alan Mackenzie  <acm@muc.de>
 
 	* emacs-lisp/lisp.el (forward-sexp, backward-sexp, mark-sexp)
