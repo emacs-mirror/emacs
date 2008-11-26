@@ -1,3 +1,19 @@
+2008-11-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-string-to-byte-array)
+	(dbus-byte-array-to-string, dbus-escape-as-identifier)
+	(dbus-unescape-from-identifier): New defuns.
+	(dbus-handle-event): The result of a message call is a list of
+	arguments, which must be expanded when passing to
+	`dbus-method-return-internal'.
+
+	* net/tramp.el (tramp-handle-write-region): Improve the check for
+	calling direct copy.
+	(tramp-find-inline-encoding): Don't raise an error but a warning,
+	when no inline encoding is found.
+	(tramp-get-remote-coding): Check for a symbol.  The negative check
+	for a string fails, when there is an empty string.
+
 2008-11-26  Glenn Morris  <rgm@gnu.org>
 
 	* vc-git.el (vc-git-diff-switches): New option.
