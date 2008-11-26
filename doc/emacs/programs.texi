@@ -765,13 +765,20 @@ single expression in C mode, because of the parentheses.
 @cindex matching parenthesis and braces, moving to
 @cindex braces, moving across
 @cindex list commands
+
   The Emacs commands for handling parenthetical groupings see nothing
 except parentheses (or whatever characters must balance in the
-language you are working with), and the escape characters that might
-be used to quote those.  They are mainly intended for editing
+language you are working with).  They ignore strings and comments
+(including any parentheses within them) and ignore parentheses quoted
+by an escape character.  They are mainly intended for editing
 programs, but can be useful for editing any text that has parentheses.
 They are sometimes called ``list'' commands because in Lisp these
 groupings are lists.
+
+These commands assume that the starting point is not inside a string
+or a comment.  Sometimes you can invoke them usefully from one of
+these places (for example, when you have a parenthesised clause in a
+comment) but this is unreliable.
 
 @table @kbd
 @item C-M-n
@@ -789,9 +796,8 @@ Move down in parenthesis structure (@code{down-list}).
 @findex forward-list
 @findex backward-list
   The ``list'' commands @kbd{C-M-n} (@code{forward-list}) and
-@kbd{C-M-p} (@code{backward-list}) move over one (or @var{n})
-parenthetical groupings, skipping blithely over any amount of text
-that doesn't include meaningful parentheses (symbols, strings, etc.).
+@kbd{C-M-p} (@code{backward-list}) move forward or backward over one
+(or @var{n}) parenthetical groupings.
 
 @kindex C-M-u
 @findex backward-up-list
