@@ -10,6 +10,8 @@
 
 2008-11-26  Chong Yidong  <cyd@stupidchicken.com>
 
+	* files.texi (Misc File Ops): Document set-file-modes.
+
 	* windows.texi (Split Window): Document integer values of
 	truncate-partial-width-windows.
 
