@@ -235,13 +235,6 @@ support other types of selections."
 (defun x-frob-font-weight (font which)
   font)
 (make-obsolete 'x-frob-font-weight 'make-face-... "21.1")
-(defun x-font-family-list ()
-  "Return a list of available font families on FRAME.\n\
-If FRAME is omitted or nil, use the selected frame.\n\
-Value is a list of conses (FAMILY . FIXED-P) where FAMILY\n\
-is a font family, and FIXED-P is non-nil if fonts of that family\n\
-are fixed-pitch."
-  '(("default" . t)))
 
 ;; From src/fontset.c:
 (fset 'query-fontset 'ignore)
