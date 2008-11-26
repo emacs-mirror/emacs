@@ -40,10 +40,6 @@
 ;; and higher.  For XEmacs 21, you need the package `fsf-compat' for
 ;; the `with-timeout' macro.)
 ;;
-;; This version might not work with pre-Emacs 21 VC unless VC is
-;; loaded before tramp.el.  Could you please test this and tell me about
-;; the result?  Thanks.
-;;
 ;; Also see the todo list at the bottom of this file.
 ;;
 ;; The current version of Tramp can be retrieved from the following URL:
@@ -4297,13 +4293,13 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	   ;; `rename-file' handles direct copy and out-of-band methods.
 	   ((or (tramp-local-host-p v)
 		(and (tramp-method-out-of-band-p v)
-		     (integerp start)
-		     (> (- end start) tramp-copy-size-limit)))
+		     (> (- (or end (point-max)) (or start (point-min)))
+			tramp-copy-size-limit)))
 	    (rename-file tmpfile filename t))
 
-	   ;; Use inline file transfer
+	   ;; Use inline file transfer.
 	   (rem-dec
-	    ;; Encode tmpfile
+	    ;; Encode tmpfile.
 	    (tramp-message v 5 "Encoding region...")
 	    (unwind-protect
 		(with-temp-buffer
@@ -6108,11 +6104,9 @@ Goes through the list `tramp-local-coding-commands' and
 		  (setq rem-dec (nth 2 ritem))
 		  (setq found t)))))))
 
-      ;; Did we find something?  If not, issue an error.
+      ;; Did we find something?
       (unless found
-	(kill-process (tramp-get-connection-process vec))
-	(tramp-error
-	 vec 'file-error "Couldn't find an inline transfer encoding"))
+	(tramp-message vec 2 "Couldn't find an inline transfer encoding"))
 
       ;; Set connection properties.
       (tramp-message vec 5 "Using local encoding `%s'" loc-enc)
@@ -7152,7 +7146,7 @@ necessary only.  This function will be used in file name completion."
   (let ((ret (tramp-get-local-coding vec prop)))
     ;; The connection property might have been cached.  So we must send
     ;; the script - maybe.
-    (when (not (stringp ret))
+    (when (and ret (symbolp ret))
       (let ((name (symbol-name ret)))
 	(while (string-match (regexp-quote "-") name)
 	  (setq name (replace-match "_" nil t name)))
@@ -7566,6 +7560,8 @@ Only works for Bourne-like shells."
 ;;   SSH instance, would correctly be propagated to the remote process
 ;;   automatically; possibly SSH would have to be started with
 ;;   "-t". (Markus Triska)
+;; * Support IPv6 hostnames.  Use "/[some:ip:v6:address:for:tramp]:/",
+;;   which is the syntax used on web browsers. (Óscar Fuentes)
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
