@@ -1580,6 +1580,18 @@ a relative name as the target of the link.
   Not all systems support symbolic links; on systems that don't
 support them, this command is not defined.
 
+@findex set-file-modes
+@cindex file modes
+@cindex file permissions
+  @kbd{M-x set-file-modes} reads a file name followed by a @dfn{file
+mode}, and applies that file mode to the specified file.  File modes,
+also called @dfn{file permissions}, determine whether a file can be
+read, written to, or executed, and by whom.  This command reads file
+modes using the same symbolic or octal format accepted by the
+@command{chmod} command; for instance, @samp{u+x} means to add
+execution permission for the user who owns the file.  It has no effect
+on operating systems that do not support file modes.
+
 @node Compressed Files
 @section Accessing Compressed Files
 @cindex compression
