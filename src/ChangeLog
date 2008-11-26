@@ -1,3 +1,8 @@
+2008-11-26  Glenn Morris  <rgm@gnu.org>
+
+	* xfaces.c (Fx_font_family_list): Replace lisp/term/pc-win.el
+	redefinition with ifdef.  (Bug#1383)
+
 2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.c (Fcompleting_read, Vminibuffer_completion_confirm):
