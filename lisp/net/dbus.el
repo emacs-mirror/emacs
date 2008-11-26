@@ -242,6 +242,55 @@ usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
    "NameOwnerChanged" 'dbus-name-owner-changed-handler))
 
 
+;;; D-Bus type conversion.
+
+(defun dbus-string-to-byte-array (string)
+  "Transforms STRING to list (:array :byte c1 :byte c2 ...).
+STRING shall be UTF8 coded."
+  (let (result)
+    (dolist (elt (string-to-list string) (append '(:array) result))
+      (setq result (append result (list :byte elt))))))
+
+(defun dbus-byte-array-to-string (byte-array)
+  "Transforms BYTE-ARRAY into UTF8 coded string.
+BYTE-ARRAY must be a list of structure (c1 c2 ...)."
+  (apply 'string byte-array))
+
+(defun dbus-escape-as-identifier (string)
+  "Escape an arbitrary STRING so it follows the rules for a C identifier.
+The escaped string can be used as object path component, interface element
+component, bus name component or member name in D-Bus.
+
+The escaping consists of replacing all non-alphanumerics, and the
+first character if it's a digit, with an underscore and two
+lower-case hex digits:
+
+   \"0123abc_xyz\\x01\\xff\" -> \"_30123abc_5fxyz_01_ff\"
+
+i.e. similar to URI encoding, but with \"_\" taking the role of \"%\",
+and a smaller allowed set. As a special case, \"\" is escaped to
+\"_\".
+
+Returns the escaped string.  Algorithm taken from
+telepathy-glib's `tp-escape-as-identifier'."
+  (if (zerop (length string))
+      "_"
+    (replace-regexp-in-string
+     "^[0-9]\\|[^A-Za-z0-9]"
+     (lambda (x) (format "_%2x" (aref x 0)))
+     string)))
+
+(defun dbus-unescape-from-identifier (string)
+  "Retrieve the original string from the encoded STRING.
+STRING must have been coded with `dbus-escape-as-identifier'"
+  (if (string-equal string "_")
+      ""
+    (replace-regexp-in-string
+     "_.."
+     (lambda (x) (format "%c" (string-to-number (substring x 1) 16)))
+     string)))
+
+
 ;;; D-Bus events.
 
 (defun dbus-check-event (event)
@@ -312,7 +361,7 @@ If the HANDLER returns an `dbus-error', it is propagated as return message."
 	;; Return a message when it is a message call.
 	(when (= dbus-message-type-method-call (nth 2 event))
 	  (dbus-ignore-errors
-	    (dbus-method-return-internal
+	    (apply 'dbus-method-return-internal
 	     (nth 1 event) (nth 3 event) (nth 4 event) result))))
     ;; Error handling.
     (dbus-error
