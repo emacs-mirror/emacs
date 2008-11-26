@@ -504,7 +504,7 @@ is on a different frame.
 *** C-l is bound to the new command recenter-top-bottom, rather than recenter.
 This moves the current line to window center, top and bottom on
 successive invokations.
-
++++
 *** scroll-preserve-screen-position also preserves the column position.
 +++
 *** If `yank-pop-change-selection' is t, rotating the kill ring also
