@@ -26,23 +26,11 @@ structure.
 @xref{Outline Mode}.
 @end iftex
 
-  For text which contains embedded commands for text formatters, Emacs
-has other major modes, each for a particular formatter.  For instance,
-La@TeX{} mode is used for editing La@TeX{}
-@iftex
-documents (@pxref{LaTeX,,La@TeX{} Mode}),
-@end iftex
-@ifnottex
-documents,
-@end ifnottex
-while Nroff mode is used for editing groff or nroff files.
-
-  Instead of using a text formatter, you can edit formatted text in
-WYSIWYG style (``what you see is what you get''), with Enriched mode.
-Then the formatting appears on the screen in Emacs while you edit.
-@iftex
-@xref{Formatted Text}.
-@end iftex
+  Emacs has other major modes for text which contains ``embedded''
+commands, such as @TeX{} and La@TeX{} (@pxref{TeX Mode}); HTML, SGML,
+and XML (@pxref{HTML Mode}); and Groff and Nroff (@pxref{Nroff Mode}).
+In addition, you can edit formatted text in WYSIWYG style (``what you
+see is what you get''), using Enriched mode (@pxref{Formatted Text}).
 
 @cindex ASCII art
   If you need to edit pictures made out of text characters (commonly
@@ -1365,36 +1353,38 @@ automatically by putting this in your @file{.emacs} file:
 @findex latex-mode
 @findex slitex-mode
 @findex doctex-mode
+@findex bibtex-mode
 
-  @TeX{} is a powerful text formatter written by Donald Knuth; it is
-also free software, like GNU Emacs.  La@TeX{} is a simplified input
-format for @TeX{}, implemented by @TeX{} macros; it comes with @TeX{}.
-Sli@TeX{} is a special form of La@TeX{}.@footnote{Sli@TeX{} is
-obsoleted by the @samp{slides} document class and other alternative
-packages in recent La@TeX{} versions.}  Doc@TeX{} (@file{.dtx}) is a
-special file format in which the La@TeX{} sources are written,
-combining sources with documentation.
-
-  Emacs has a special @TeX{} mode for editing @TeX{} input files.
-It provides facilities for checking the balance of delimiters and for
-invoking @TeX{} on all or part of the file.
+  Emacs provides special major modes for editing files written in
+@TeX{} and its related formats.  @TeX{} is a powerful text formatter
+written by Donald Knuth; like GNU Emacs, it is free software.
+La@TeX{} is a simplified input format for @TeX{}, implemented using
+@TeX{} macros.  Doc@TeX{} is a special file format in which the
+La@TeX{} sources are written, combining sources with documentation.
+Sli@TeX{} is an obsolete special form of La@TeX{}.@footnote{It has
+been replaced by the @samp{slides} document class, which comes with
+La@TeX{}.}
 
 @vindex tex-default-mode
   @TeX{} mode has four variants: Plain @TeX{} mode, La@TeX{} mode,
-Sli@TeX{} mode, and Doc@TeX{} mode (these distinct major modes differ
-only slightly).  They are designed for editing the four different
-formats.  The command @kbd{M-x tex-mode} looks at the contents of the
-buffer to determine whether the contents appear to be either La@TeX{}
-input, Sli@TeX{}, or Doc@TeX{} input; if so, it selects the
-appropriate mode.  If the file contents do not appear to be La@TeX{},
-Sli@TeX{} or Doc@TeX{}, it selects Plain @TeX{} mode.  If the contents
-are insufficient to determine this, the variable
-@code{tex-default-mode} controls which mode is used.
+Doc@TeX{} mode, and Sli@TeX{} mode.  These distinct major modes differ
+only slightly, and are designed for editing the four different
+formats.  Emacs selects the appropriate mode by looking at the
+contents of the buffer.  (This is done by the @code{tex-mode} command,
+which is normally called automatically when you visit a @TeX{}-like
+file.  @xref{Choosing Modes}.)  If the contents are insufficient to
+determine this, Emacs chooses the mode specified by the variable
+@code{tex-default-mode}; its default value is @code{latex-mode}.  If
+Emacs does not guess right, you can select the correct variant of
+@TeX{} mode using the command @kbd{M-x plain-tex-mode}, @kbd{M-x
+latex-mode}, @kbd{M-x slitex-mode}, or @kbd{doctex-mode}.
 
-  When @kbd{M-x tex-mode} does not guess right, you can use the commands
-@kbd{M-x plain-tex-mode}, @kbd{M-x latex-mode}, @kbd{M-x slitex-mode},
-and @kbd{doctex-mode} to select explicitly the particular variants of
-@TeX{} mode.
+  Emacs also provides Bib@TeX{} mode, a major mode for editing
+Bib@TeX{} files.  Bib@TeX{} is a tool for storing and formatting
+bibliographic references, which is commonly used together with
+La@TeX{}.  In addition, the Ref@TeX{} package provides a minor mode
+which can be used in conjunction with La@TeX{} mode to manage
+bibliographic references.  @inforef{Top,, reftex}.
 
 @menu
 * Editing: TeX Editing.   Special commands for editing in TeX mode.
@@ -1405,9 +1395,6 @@ and @kbd{doctex-mode} to select explicitly the particular variants of
 
 @node TeX Editing
 @subsection @TeX{} Editing Commands
-
-  Here are the special commands provided in @TeX{} mode for editing the
-text of the file.
 
 @table @kbd
 @item "
@@ -1427,20 +1414,22 @@ Move forward past the next unmatched close brace (@code{up-list}).
 
 @findex tex-insert-quote
 @kindex " @r{(@TeX{} mode)}
-  In @TeX{}, the character @samp{"} is not normally used; we use
-@samp{``} to start a quotation and @samp{''} to end one.  To make
-editing easier under this formatting convention, @TeX{} mode overrides
-the normal meaning of the key @kbd{"} with a command that inserts a pair
-of single-quotes or backquotes (@code{tex-insert-quote}).  To be
-precise, this command inserts @samp{``} after whitespace or an open
-brace, @samp{"} after a backslash, and @samp{''} after any other
-character.
+  In @TeX{}, the character @samp{"} is not normally used; instead,
+quotations begin with @samp{``} and end with @samp{''}.  For
+convenience, @TeX{} mode overrides the normal meaning of the key
+@kbd{"} with a command that inserts a pair of single-quotes or
+backquotes (@code{tex-insert-quote}).  To be precise, it inserts
+@samp{``} after whitespace or an open brace, @samp{"} after a
+backslash, and @samp{''} after any other character.
 
-  If you need the character @samp{"} itself in unusual contexts, use
-@kbd{C-q} to insert it.  Also, @kbd{"} with a numeric argument always
-inserts that number of @samp{"} characters.  You can turn off the
-feature of @kbd{"} expansion by eliminating that binding in the local
-map (@pxref{Key Bindings}).
+  As a special exception, if you type @kbd{"} when the text before
+point is either @samp{``} or @samp{''}, Emacs replaces that preceding
+text with a single @samp{"} character.  You can therefore type
+@kbd{""} to insert @samp{"}, should you ever need to do so.  (You can
+also use @kbd{C-q "} to insert this character.)
+
+  To disable the @kbd{"} expansion feature, eliminate that binding in
+the local map (@pxref{Key Bindings}).
 
   In @TeX{} mode, @samp{$} has a special syntax code which attempts to
 understand the way @TeX{} math mode delimiters match.  When you insert a
@@ -1477,15 +1466,15 @@ that buffer to go to a particular mismatch.
   Note that Emacs commands count square brackets and parentheses in
 @TeX{} mode, not just braces.  This is not strictly correct for the
 purpose of checking @TeX{} syntax.  However, parentheses and square
-brackets are likely to be used in text as matching delimiters and it is
-useful for the various motion commands and automatic match display to
-work with them.
+brackets are likely to be used in text as matching delimiters, and it
+is useful for the various motion commands and automatic match display
+to work with them.
 
 @node LaTeX Editing
 @subsection La@TeX{} Editing Commands
 
-  La@TeX{} mode, and its variant, Sli@TeX{} mode, provide a few extra
-features not applicable to plain @TeX{}.
+  La@TeX{} mode (and its obsolete variant, Sli@TeX{} mode) provide a
+few extra features not applicable to plain @TeX{}:
 
 @table @kbd
 @item C-c C-o
@@ -1755,11 +1744,28 @@ Ref@TeX{}.  @inforef{Top,, reftex}.
 
 @node HTML Mode
 @section SGML, XML, and HTML Modes
+@cindex SGML mode
+@cindex HTML mode
+@cindex XML mode
+@cindex mode, SGML
+@cindex mode, HTML
+@cindex mode, XML
+@findex sgml-mode
+@findex html-mode
+@findex xml-mode
 
-  The major modes for SGML and HTML include indentation support and
-commands to operate on tags.  This section describes the special
-commands of these modes.  (HTML mode is a slightly customized variant
-of SGML mode.)
+  The major modes for SGML, XML, and HTML provide indentation support
+and commands for operating on tags.  XML mode is actually identical to
+SGML mode (to be precise, @code{xml-mode} is an alias for
+@code{sgml-mode}), because XML is a strict subset of SGML.  HTML mode
+is a slightly customized variant of SGML mode.
+
+@vindex sgml-xml-mode
+  In XML, every opening tag must have an explicit closing tag.  When
+the variable @code{sgml-xml-mode} is non-@code{nil}, the tag insertion
+commands described below always insert explicit closing tags as well.
+When you visit a file, Emacs determines whether it is XML by examining
+the file contents, and sets @code{sgml-xml-mode} accordingly.
 
 @table @kbd
 @item C-c C-n
@@ -1845,14 +1851,17 @@ Toggle the visibility of existing tags in the buffer.  This can be
 used as a cheap preview.
 @end table
 
-@vindex sgml-xml-mode
-  SGML mode and HTML mode support XML also.  In XML, every opening tag
-must have an explicit closing tag.  When @code{sgml-xml-mode} is
-non-@code{nil}, SGML mode and HTML mode always insert explicit
-closing tags.  When you visit a file, these modes determine from the
-file contents whether it is XML or not, and set @code{sgml-xml-mode}
-accordingly, so that they do the right thing for the file in either
-case.
+@cindex nXML mode
+@cindex mode, nXML
+@findex nxml-mode
+@cindex XML schema
+  Emacs also provides a more advanced mode mode for editing XML
+documents, called nXML mode (@code{nxml-mode}).  nXML mode is aware of
+many existing XML schema, and uses them to provide completion of XML
+elements via @kbd{C-@key{RET}} or @kbd{M-@key{TAB}}, as well as
+``on-the-fly'' validation of XML, with errors highlighted via Font
+Lock (@pxref{Font Lock}).  It is described in its own manual.
+@xref{Top, nXML Mode,,nxml-mode, nXML Mode}.
 
 @node Nroff Mode
 @section Nroff Mode
