@@ -51,8 +51,9 @@ Should take the same arguments and behave similarly to `forward-sexp'.")
 (defun forward-sexp (&optional arg)
   "Move forward across one balanced expression (sexp).
 With ARG, do it that many times.  Negative arg -N means
-move backward across N balanced expressions."
-  (interactive "p")
+move backward across N balanced expressions.
+This command assumes point is not in a string or comment."
+  (Interactive "p")
   (or arg (setq arg 1))
   (if forward-sexp-function
       (funcall forward-sexp-function arg)
@@ -62,7 +63,8 @@ move backward across N balanced expressions."
 (defun backward-sexp (&optional arg)
   "Move backward across one balanced expression (sexp).
 With ARG, do it that many times.  Negative arg -N means
-move forward across N balanced expressions."
+move forward across N balanced expressions.
+This command assumes point is not in a string or comment."
   (interactive "p")
   (or arg (setq arg 1))
   (forward-sexp (- arg)))
@@ -73,7 +75,8 @@ The place mark goes is the same place \\[forward-sexp] would
 move to with the same argument.
 Interactively, if this command is repeated
 or (in Transient Mark mode) if the mark is active,
-it marks the next ARG sexps after the ones already marked."
+it marks the next ARG sexps after the ones already marked.
+This command assumes point is not in a string or comment."
   (interactive "P\np")
   (cond ((and allow-extend
 	      (or (and (eq last-command this-command) (mark t))
@@ -95,7 +98,8 @@ it marks the next ARG sexps after the ones already marked."
 (defun forward-list (&optional arg)
   "Move forward across one balanced group of parentheses.
 With ARG, do it that many times.
-Negative arg -N means move backward across N groups of parentheses."
+Negative arg -N means move backward across N groups of parentheses.
+This command assumes point is not in a string or comment."
   (interactive "p")
   (or arg (setq arg 1))
   (goto-char (or (scan-lists (point) arg 0) (buffer-end arg))))
@@ -103,7 +107,8 @@ Negative arg -N means move backward across N groups of parentheses."
 (defun backward-list (&optional arg)
   "Move backward across one balanced group of parentheses.
 With ARG, do it that many times.
-Negative arg -N means move forward across N groups of parentheses."
+Negative arg -N means move forward across N groups of parentheses.
+This command assumes point is not in a string or comment."
   (interactive "p")
   (or arg (setq arg 1))
   (forward-list (- arg)))
@@ -111,7 +116,8 @@ Negative arg -N means move forward across N groups of parentheses."
 (defun down-list (&optional arg)
   "Move forward down one level of parentheses.
 With ARG, do this that many times.
-A negative argument means move backward but still go down a level."
+A negative argument means move backward but still go down a level.
+This command assumes point is not in a string or comment."
   (interactive "p")
   (or arg (setq arg 1))
   (let ((inc (if (> arg 0) 1 -1)))
@@ -122,14 +128,16 @@ A negative argument means move backward but still go down a level."
 (defun backward-up-list (&optional arg)
   "Move backward out of one level of parentheses.
 With ARG, do this that many times.
-A negative argument means move forward but still to a less deep spot."
+A negative argument means move forward but still to a less deep spot.
+This command assumes point is not in a string or comment."
   (interactive "p")
   (up-list (- (or arg 1))))
 
 (defun up-list (&optional arg)
   "Move forward out of one level of parentheses.
 With ARG, do this that many times.
-A negative argument means move backward but still to a less deep spot."
+A negative argument means move backward but still to a less deep spot.
+This command assumes point is not in a string or comment."
   (interactive "p")
   (or arg (setq arg 1))
   (let ((inc (if (> arg 0) 1 -1)))
@@ -140,7 +148,8 @@ A negative argument means move backward but still to a less deep spot."
 (defun kill-sexp (&optional arg)
   "Kill the sexp (balanced expression) following point.
 With ARG, kill that many sexps after point.
-Negative arg -N means kill N sexps before point."
+Negative arg -N means kill N sexps before point.
+This command assumes point is not in a string or comment."
   (interactive "p")
   (let ((opoint (point)))
     (forward-sexp (or arg 1))
@@ -149,7 +158,8 @@ Negative arg -N means kill N sexps before point."
 (defun backward-kill-sexp (&optional arg)
   "Kill the sexp (balanced expression) preceding point.
 With ARG, kill that many sexps before point.
-Negative arg -N means kill N sexps after point."
+Negative arg -N means kill N sexps after point.
+This command assumes point is not in a string or comment."
   (interactive "p")
   (kill-sexp (- (or arg 1))))
 
@@ -157,7 +167,8 @@ Negative arg -N means kill N sexps after point."
 (defun kill-backward-up-list (&optional arg)
   "Kill the form containing the current sexp, leaving the sexp itself.
 A prefix argument ARG causes the relevant number of surrounding
-forms to be removed."
+forms to be removed.
+This command assumes point is not in a string or comment."
   (interactive "*p")
   (let ((current-sexp (thing-at-point 'sexp)))
     (if current-sexp
@@ -458,7 +469,9 @@ If arguments OPEN and CLOSE are nil, the character pair is found
 from the variable `insert-pair-alist' according to the last input
 character with or without modifiers.  If no character pair is
 found in the variable `insert-pair-alist', then the last input
-character is inserted ARG times."
+character is inserted ARG times.
+
+This command assumes point is not in a string or comment."
   (interactive "P")
   (if (not (and open close))
       (let ((pair (or (assq last-command-char insert-pair-alist)
@@ -499,7 +512,9 @@ A negative ARG encloses the preceding ARG sexps instead.
 No argument is equivalent to zero: just insert `()' and leave point between.
 If `parens-require-spaces' is non-nil, this command also inserts a space
 before and after, depending on the surrounding characters.
-If region is active, insert enclosing characters at region boundaries."
+If region is active, insert enclosing characters at region boundaries.
+
+This command assumes point is not in a string or comment."
   (interactive "P")
   (insert-pair arg ?\( ?\)))
 
