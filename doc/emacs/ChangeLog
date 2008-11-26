@@ -1,3 +1,9 @@
+2008-11-26  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Visiting): Rewrite paragraph for clarity.
+
+	* buffers.texi (Select Buffer): Rewrite paragraphs using active voice.
+
 2008-11-25  Alan Mackenzie  <acm@muc.de>
 
 	* programs.texi (Moving by Parens): Clarify that parens inside strings
