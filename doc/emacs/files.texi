@@ -247,15 +247,13 @@ changes and save them, the file is created.
 
 @cindex minibuffer confirmation
 @cindex confirming in the minibuffer
-  When you attempt to visit a new file, Emacs might prompt you for
-confirmation first, in case you entered the wrong file name.  Emacs
-asks for confirmation only if the last key you typed in the
-minibuffer, before submitting the input with @key{RET}, was @key{TAB}
-(@code{minibuffer-complete}).  This catches a common mistake, in which
-one types @key{RET} before realizing that @key{TAB} did not complete
-far enough to yield a desired file name (@pxref{Completion}).  Emacs
-asks for confirmation by putting the message @samp{[Confirm]} in the
-minibuffer; type @key{RET} again to confirm and visit the file.
+  When @key{TAB} completion results in a nonexistent file name and you
+type @key{RET} immediately to visit it, Emacs asks for confirmation
+because it is quite possible that you expected completion to go
+further and give you an existing file's name.  Type @key{RET} to
+confirm and visit the nonexistent file.  The string @samp{[Confirm]}
+appears for a short time after the file name to indicate the need to
+confirm in this way.
 
 @vindex confirm-nonexistent-file-or-buffer
   The variable @code{confirm-nonexistent-file-or-buffer} controls
