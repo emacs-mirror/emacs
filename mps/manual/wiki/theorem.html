@@ -53,16 +53,22 @@
 <p> A format isFwd() method is only called on objects allocated by the client, or copies of them created by the MPS.  So in particular: never on pad objects, and never on random junk.  DRJ 2007-03-01. </p>
 
 
+<h3> starting a collection (trace) causes no allocation </h3>
+
+<p> "it's always possible to start a trace (provided there's a free TraceId) even if there's no available memory", says trace.c#32.  RHSK 2008-11-26. </p>
+
+
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
   2007-03-01  RHSK  Created.
+  2008-11-26  RHSK  trace start never allocates.
 </pre>
 
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 2007 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 2007, 2008 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
