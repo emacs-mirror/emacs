@@ -3503,9 +3503,9 @@ If nil, region-aware commands treat empty regions as inactive.
 If non-nil, region-aware commands treat the region as active as
 long as the mark is active, even if the region is empty.
 
-\"Region-aware\" commands are those that act on the region if it
-is active and Transient Mark mode is enabled, and on the text
-near point otherwise."
+Region-aware commands are those that act on the region if it is
+active and Transient Mark mode is enabled, and on the text near
+point otherwise."
   :type 'boolean
   :version "23.1"
   :group 'editing-basics)
@@ -3526,10 +3526,10 @@ of `use-empty-active-region'; in that case, use `region-active-p'."
 (defun region-active-p ()
   "Return t if Transient Mark mode is enabled and the mark is active.
 
-Commands that act on the region if it is active and Transient
-Mark mode is enabled, and on the text near point otherwise,
-should use `use-region-p' instead.  That function checks the
-value of `use-empty-active-region' as well."
+Most commands that act on the region if it is active and
+Transient Mark mode is enabled, and on the text near point
+otherwise, should use `use-region-p' instead.  That function
+checks the value of `use-empty-active-region' as well."
   (and transient-mark-mode mark-active))
 
 (defvar mark-ring nil
