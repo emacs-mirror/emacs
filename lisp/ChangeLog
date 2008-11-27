@@ -1,3 +1,13 @@
+2008-11-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tool-bar.el (tool-bar-find-image-cache): Var deleted.
+	(tool-bar-find-image): Function deleted.
+	(tool-bar-local-item, tool-bar-local-item-from-menu): Use
+	find-image instead of tool-bar-find-image.
+	(tool-bar-keymap-cache): New hash table.
+	(tool-bar-make-keymap): Use it.
+	(tool-bar-make-keymap-1): Move body of tool-bar-make-keymap here.
+
 2008-11-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-handle-event): The result of a message call
