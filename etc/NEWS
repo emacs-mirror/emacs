@@ -1244,9 +1244,10 @@ interactive forms to subroutines.
 an active region that they should operate on.
 
 *** `region-active-p' returns non-nil when Transient Mark mode is
-enabled and there is an active region.  This is NOT the best function
-to use to test whether a command should operate on the region instead
-of the usual behavior -- for that, use `use-region-p'.
+enabled and the mark is active.  Most commands that act specially on
+the active region in Transient Mark mode should use `use-region-p'
+instead of `region-active-p', because `use-region-p' obeys the new
+user option `use-empty-active-region' (see Editing Changes, above).
 
 +++
 *** If a command sets `transient-mark-mode' to (only . OLDVAL), that
