@@ -447,7 +447,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
   /* For non-truetype fonts, GetGlyphOutlineW is not supported, so
      fallback on other methods that will at least give some of the metric
      information.  */
-  
+
   /* Make array big enough to hold surrogates.  */
   wcode = alloca (nglyphs * sizeof (WORD) * 2);
   for (i = 0; i < nglyphs; i++)
@@ -812,7 +812,7 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
 
   if (!metrics)
     GetTextMetricsW (dc, &w32_font->metrics);
-  
+
   w32_font->cached_metrics = NULL;
   w32_font->n_cache_blocks = 0;
 
@@ -843,7 +843,7 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   }
 
   font->max_width = w32_font->metrics.tmMaxCharWidth;
-  /* Parts of Emacs display assume that height = ascent + descent... 
+  /* Parts of Emacs display assume that height = ascent + descent...
      so height is defined later, after ascent and descent.
   font->height = w32_font->metrics.tmHeight
     + w32_font->metrics.tmExternalLeading;
@@ -1382,7 +1382,8 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
       /* Check for well known substitutions that mess things up in the
 	 presence of Type-1 fonts of the same name.  */
       && (match_data->pattern.lfFaceName[0]
-	  && check_face_name (logical_font, logical_font->elfFullName)))
+	  && check_face_name (&logical_font->elfLogFont,
+			      logical_font->elfFullName)))
     {
       Lisp_Object entity
         = w32_enumfont_pattern_entity (match_data->frame, logical_font,
