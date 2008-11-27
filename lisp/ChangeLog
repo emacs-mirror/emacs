@@ -1,3 +1,11 @@
+2008-11-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Set category 'C' to characters
+	#x20000..#x2AFFF, #x2F800..#x2FFFF.
+
+	* loadup.el: Set inhibit-load-charset-map to t while preloading
+	files.
+
 2008-11-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tool-bar.el (tool-bar-find-image-cache): Var deleted.
