@@ -1,3 +1,7 @@
+2008-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (Fx_font_family_list, syms_of_xfaces): Fix last change.
+
 2008-11-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32font.c (add_font_entity_to_list): Pass the right LOGFONT
