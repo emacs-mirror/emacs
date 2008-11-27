@@ -138,6 +138,8 @@ Combining diacritic or mark")
 (modify-category-entry '(#xF900 . #xFAFF) ?|)
 (modify-category-entry '(#x20000 . #x2AFFF) ?|)
 (modify-category-entry '(#x2F800 . #x2FFFF) ?|)
+(modify-category-entry '(#x20000 . #x2AFFF) ?C)
+(modify-category-entry '(#x2F800 . #x2FFFF) ?C)
 
 
 ;; Chinese character set (GB2312)
