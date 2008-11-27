@@ -46,6 +46,12 @@
 
 (message "Using load-path %s" load-path)
 
+(if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
+	(member (nth 4 command-line-args) '("dump" "bootstrap")))
+    ;; To reduce the size of dumped Emacs, we avoid making huge
+    ;; char-tables.
+    (setq inhibit-load-charset-map t))
+
 ;; We don't want to have any undo records in the dumped Emacs.
 (set-buffer "*scratch*")
 (setq buffer-undo-list t)
@@ -325,6 +331,7 @@
 	(equal (nth 4 command-line-args) "bootstrap"))
     (setcdr load-path nil))
 
+(setq inhibit-load-charset-map nil)
 (clear-charset-maps)
 (garbage-collect)
 
