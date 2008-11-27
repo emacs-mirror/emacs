@@ -1,3 +1,66 @@
+2008-11-27  Kenichi Handa  <handa@m17n.org>
+
+	* category.h (SET_CATEGORY_SET): Call set_category_set.
+	(set_category_set): Extern it.
+
+	* category.c (hash_get_category_set): New function.
+	(Fmodify_category_entry): Adjusted for the change of
+	char_table_ref_and_range.  Call hash_get_category_set to get a
+	category set to store in the table.
+
+	* character.h (MAYBE_UNIFY_CHAR): Call maybe_unify_char instead of
+	Funify_charset.
+
+	* charset.h (enum charset_method): Delete
+	CHARSET_METHOD_MAP_DEFERRED.
+	(DECODE_CHAR): Check if the decoder vector is ready.
+	(ENCODE_CHAR): Check if the encoder char-table is ready.
+	(maybe_unify_char): Extern it.
+
+	* charset.c (Vchar_unified_charset_table): Delete it.
+	(inhibit_load_charset_map): New variable.
+	(temp_charset_work): New variable.
+	(SET_TEMP_CHARSET_WORK_ENCODER, GET_TEMP_CHARSET_WORK_ENCODER)
+	(SET_TEMP_CHARSET_WORK_DECODER, GET_TEMP_CHARSET_WORK_DECODER):
+	New macros.
+	(load_charset_map): Meaning of control_flag changed.  If
+	inhibit_load_charset_map is nonzero, setup a table in
+	temp_charset_work.
+	(load_charset): New argument control_flag.
+	(map_charset_for_dump): New function.
+	(map_charset_chars): If inhibit_load_charset_map is nonzero, use
+	map_charset_for_dump.
+	(Fdefine_charset_internal): If the charset method is MAP, load
+	mapping tables by calling load_charset.
+	(Funify_charset): Don't load a mapping table but directly set
+	Vchar_unify_table.
+	(maybe_unify_char): New function.
+	(decode_char): Don't handle the deleted method MAP_DEFERRED.
+	Handle the case of inhibit_load_charset_map being nonzero.
+	(encode_char): Don't handle the deleted method MAP_DEFERRED.
+	Handle the case of inhibit_load_charset_map being nonzero.
+	(Fclear_charset_maps): Just free temp_charset_work.
+	(syms_of_charset): Make `inhibit-load-charset-map' a Lisp
+	variable.
+
+	* chartab.c (sub_char_table_ref_and_range): Adjusted for the
+	change of char_table_ref_and_range.
+	(char_table_ref_and_range): Change the meaning of argument FROM
+	and TO.  Now the caller must provide initial values for *FROM
+	and *TO.
+
+	* fontset.c (fontset_add): Adjusted for the change of
+	char_table_ref_and_range.
+	(fontset_get_font_group): Likewise.
+	(Ffontset_info): Likewise.
+
+	* keymap.c (describe_vector): Adjusted for the change of
+	char_table_ref_and_range.  For char-table, put boundary between
+	non-ASCII and 8-bit characters.
+
+	* print.c (print_object): For bool-vector, delete unnecessary
+	check of ASCII_BYTE_P.
+
 2008-11-26  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_open_internal): Don't include external
