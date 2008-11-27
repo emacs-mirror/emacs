@@ -1,3 +1,8 @@
+2008-11-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer): Fix handling of not-this-window
+	argument.  (Bug#1415)
+
 2008-11-27  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Set category 'C' to characters
