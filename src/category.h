@@ -70,7 +70,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Make CATEGORY_SET includes (if VAL is t) or excludes (if VAL is
    nil) CATEGORY.  */
 #define SET_CATEGORY_SET(category_set, category, val) \
-  (Faset (category_set, category, val))
+  (set_category_set (category_set, category, val))
 
 #define CHECK_CATEGORY_SET(x) \
   CHECK_TYPE (CATEGORY_SET_P (x), Qcategorysetp, x)
@@ -114,6 +114,7 @@ extern Lisp_Object _temp_category_set;
    && word_boundary_p (c1, c2))
 
 extern int word_boundary_p P_ ((int, int));
+extern void set_category_set P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
 /* arch-tag: 309dfe83-c3e2-4d22-8e81-faae5aece0ff
    (do not change this comment) */
