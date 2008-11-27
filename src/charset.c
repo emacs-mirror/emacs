@@ -120,7 +120,8 @@ int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
 Lisp_Object Vcharset_map_path;
 
-Lisp_Object Vchar_unified_charset_table;
+/* If nonzero, don't load charset maps.  */
+int inhibit_load_charset_map;
 
 Lisp_Object Vcurrent_iso639_language;
 
@@ -166,7 +167,63 @@ map_char_table_for_charset P_ ((void (*c_function) (Lisp_Object, Lisp_Object),
        | (((charset)->code_space[12] + ((idx) / (charset)->code_space[11]))  \
 	  << 24))))
 
+/* Structure to hold mapping tables for a charset.  Used by temacs
+   invoked for dumping.  */
 
+static struct
+{
+  /* The current charset for which the following tables are setup.  */
+  struct charset *current;
+
+  /* 1 iff the following table is used for encoder.  */
+  short for_encoder;
+
+  /* When the following table is used for encoding, mininum and
+     maxinum character of the current charset.  */
+  int min_char, max_char;
+
+  /* A Unicode character correspoinding to the code indice 0 (i.e. the
+     minimum code-point) of the current charset, or -1 if the code
+     indice 0 is not a Unicode character.  This is checked when
+     table.encoder[CHAR] is zero.  */
+  int zero_index_char;
+
+  union {
+    /* Table mapping code-indices (not code-points) of the current
+       charset to Unicode characters.  If decoder[CHAR] is -1, CHAR
+       doesn't belong to the current charset.  */
+    int decoder[0x10000];
+    /* Table mapping Unicode characters to code-indices of the current
+       charset.  The first 0x10000 elements are for BMP (0..0xFFFF),
+       and the last 0x10000 are for SMP (0x10000..0x1FFFF) or SIP
+       (0x20000..0x2FFFF).  Note that there is no charset map that
+       uses both SMP and SIP.  */
+    unsigned short encoder[0x20000];
+  } table;
+} *temp_charset_work;
+
+#define SET_TEMP_CHARSET_WORK_ENCODER(C, CODE)			\
+  do {								\
+    if ((CODE) == 0)						\
+      temp_charset_work->zero_index_char = (C);			\
+    else if ((C) < 0x20000)					\
+      temp_charset_work->table.encoder[(C)] = (CODE);		\
+    else							\
+      temp_charset_work->table.encoder[(C) - 0x10000] = (CODE);	\
+  } while (0)
+
+#define GET_TEMP_CHARSET_WORK_ENCODER(C)				  \
+  ((C) == temp_charset_work->zero_index_char ? 0			  \
+   : (C) < 0x20000 ? (temp_charset_work->table.encoder[(C)]		  \
+		      ? (int) temp_charset_work->table.encoder[(C)] : -1) \
+   : temp_charset_work->table.encoder[(C) - 0x10000]			  \
+   ? temp_charset_work->table.encoder[(C) - 0x10000] : -1)
+
+#define SET_TEMP_CHARSET_WORK_DECODER(C, CODE)	\
+  (temp_charset_work->table.decoder[(CODE)] = (C))
+
+#define GET_TEMP_CHARSET_WORK_DECODER(CODE)	\
+  (temp_charset_work->table.decoder[(CODE)])
 
 
 /* Set to 1 to warn that a charset map is loaded and thus a buffer
@@ -182,16 +239,30 @@ struct charset_map_entries
   struct charset_map_entries *next;
 };
 
-/* Load the mapping information for CHARSET from ENTRIES.
+/* Load the mapping information of CHARSET from ENTRIES for
+   initializing (CONTROL_FLAG == 0), decoding (CONTROL_FLAG == 1), and
+   encoding (CONTROL_FLAG == 2).
 
-   If CONTROL_FLAG is 0, setup CHARSET->min_char and CHARSET->max_char.
+   If CONTROL_FLAG is 0, setup CHARSET->min_char, CHARSET->max_char,
+   and CHARSET->fast_map.
 
-   If CONTROL_FLAG is 1, setup CHARSET->min_char, CHARSET->max_char,
-   CHARSET->decoder, and CHARSET->encoder.
+   If CONTROL_FLAG is 1, setup the following tables according to
+   CHARSET->method and inhibit_load_charset_map.
 
-   If CONTROL_FLAG is 2, setup CHARSET->deunifier and
-   Vchar_unify_table.  If Vchar_unified_charset_table is non-nil,
-   setup it too.  */
+   CHARSET->method       | inhibit_lcm == 0   | inhibit_lcm == 1
+   ----------------------+--------------------+---------------------------
+   CHARSET_METHOD_MAP    | CHARSET->decoder   | temp_charset_work->decoder
+   ----------------------+--------------------+---------------------------
+   CHARSET_METHOD_OFFSET | Vchar_unify_table  | temp_charset_work->decoder
+
+   If CONTROL_FLAG is 2, setup the following tables.
+
+   CHARSET->method       | inhibit_lcm == 0   | inhibit_lcm == 1
+   ----------------------+--------------------+---------------------------
+   CHARSET_METHOD_MAP    | CHARSET->encoder   | temp_charset_work->encoder
+   ----------------------+--------------------+--------------------------
+   CHARSET_METHOD_OFFSET | CHARSET->deunifier | temp_charset_work->encoder
+*/
 
 static void
 load_charset_map (charset, entries, n_entries, control_flag)
@@ -210,16 +281,55 @@ load_charset_map (charset, entries, n_entries, control_flag)
   if (n_entries <= 0)
     return;
 
-  if (control_flag > 0)
+  if (control_flag)
     {
-      int n = CODE_POINT_TO_INDEX (charset, max_code) + 1;
+      if (! inhibit_load_charset_map)
+	{
+	  if (control_flag == 1)
+	    {
+	      if (charset->method == CHARSET_METHOD_MAP)
+		{
+		  int n = CODE_POINT_TO_INDEX (charset, max_code) + 1;
 
-      table = Fmake_char_table (Qnil, Qnil);
-      if (control_flag == 1)
-	vec = Fmake_vector (make_number (n), make_number (-1));
-      else if (! CHAR_TABLE_P (Vchar_unify_table))
-	Vchar_unify_table = Fmake_char_table (Qnil, Qnil);
-
+		  vec = CHARSET_DECODER (charset)
+		    = Fmake_vector (make_number (n), make_number (-1));
+		}
+	      else
+		{
+		  char_table_set_range (Vchar_unify_table,
+					charset->min_char, charset->max_char,
+					Qnil);
+		}
+	    }
+	  else
+	    {
+	      table = Fmake_char_table (Qnil, Qnil);
+	      if (charset->method == CHARSET_METHOD_MAP)
+		CHARSET_ENCODER (charset) = table;
+	      else
+		CHARSET_DEUNIFIER (charset) = table;
+	    }
+	}
+      else
+	{
+	  if (! temp_charset_work)
+	    temp_charset_work = malloc (sizeof (*temp_charset_work));
+	  if (control_flag == 1)
+	    {
+	      memset (temp_charset_work->table.decoder, -1,
+		      sizeof (int) * 0x10000);
+	      temp_charset_work->for_encoder = 0;
+	    }
+	  else
+	    {
+	      memset (temp_charset_work->table.encoder, 0,
+		      sizeof (unsigned short) * 0x20000);
+	      temp_charset_work->zero_index_char = -1;
+	    }
+	  temp_charset_work->current = charset;
+	  temp_charset_work->for_encoder = (control_flag == 2);
+	  control_flag += 2;
+	}
       charset_map_loaded = 1;
     }
 
@@ -251,14 +361,48 @@ load_charset_map (charset, entries, n_entries, control_flag)
       if (from_index < 0 || to_index < 0)
 	continue;
 
-      if (control_flag < 2)
-	{
-	  int c;
+      if (to_c > max_char)
+	max_char = to_c;
+      else if (from_c < min_char)
+	min_char = from_c;
 
-	  if (to_c > max_char)
-	    max_char = to_c;
-	  else if (from_c < min_char)
-	    min_char = from_c;
+      if (control_flag == 1)
+	{
+	  if (charset->method == CHARSET_METHOD_MAP)
+	    for (; from_index <= to_index; from_index++, from_c++)
+	      ASET (vec, from_index, make_number (from_c));
+	  else
+	    for (; from_index <= to_index; from_index++, from_c++)
+	      CHAR_TABLE_SET (Vchar_unify_table,
+			      CHARSET_CODE_OFFSET (charset) + from_index,
+			      make_number (from_c));
+	}
+      else if (control_flag == 2)
+	{
+	  if (charset->method == CHARSET_METHOD_MAP
+	      && CHARSET_COMPACT_CODES_P (charset))
+	    for (; from_index <= to_index; from_index++, from_c++)
+	      {
+		unsigned code = INDEX_TO_CODE_POINT (charset, from_index);
+
+		if (NILP (CHAR_TABLE_REF (table, from_c)))
+		  CHAR_TABLE_SET (table, from_c, make_number (code));
+	      }
+	  else
+	    for (; from_index <= to_index; from_index++, from_c++)
+	      {
+		if (NILP (CHAR_TABLE_REF (table, from_c)))
+		  CHAR_TABLE_SET (table, from_c, make_number (from_index));
+	      }
+	}
+      else if (control_flag == 3)
+	for (; from_index <= to_index; from_index++, from_c++)
+	  SET_TEMP_CHARSET_WORK_DECODER (from_c, from_index);
+      else if (control_flag == 4)
+	for (; from_index <= to_index; from_index++, from_c++)
+	  SET_TEMP_CHARSET_WORK_ENCODER (from_c, from_index);
+      else			/* control_flag == 0 */
+	{
 	  if (ascii_compatible_p)
 	    {
 	      if (! ASCII_BYTE_P (from_c))
@@ -272,70 +416,22 @@ load_charset_map (charset, entries, n_entries, control_flag)
 		}
 	    }
 
-	  for (c = from_c; c <= to_c; c++)
-	    CHARSET_FAST_MAP_SET (c, fast_map);
-
-	  if (control_flag == 1)
-	    {
-	      unsigned code = from;
-
-	      if (CHARSET_COMPACT_CODES_P (charset))
-		while (1)
-		  {
-		    ASET (vec, from_index, make_number (from_c));
-		    if (NILP (CHAR_TABLE_REF (table, from_c)))
-		      CHAR_TABLE_SET (table, from_c, make_number (code));
-		    if (from_index == to_index)
-		      break;
-		    from_index++, from_c++;
-		    code = INDEX_TO_CODE_POINT (charset, from_index);
-		  }
-	      else
-		for (; from_index <= to_index; from_index++, from_c++)
-		  {
-		    ASET (vec, from_index, make_number (from_c));
-		    if (NILP (CHAR_TABLE_REF (table, from_c)))
-		      CHAR_TABLE_SET (table, from_c, make_number (from_index));
-		  }
-	    }
-	}
-      else
-	{
-	  unsigned code = from;
-
-	  while (1)
-	    {
-	      int c1 = DECODE_CHAR (charset, code);
-
-	      if (c1 >= 0)
-		{
-		  CHAR_TABLE_SET (table, from_c, make_number (c1));
-		  CHAR_TABLE_SET (Vchar_unify_table, c1, make_number (from_c));
-		  if (CHAR_TABLE_P (Vchar_unified_charset_table))
-		    CHAR_TABLE_SET (Vchar_unified_charset_table, c1,
-				    CHARSET_NAME (charset));
-		}
-	      if (from_index == to_index)
-		break;
-	      from_index++, from_c++;
-	      code = INDEX_TO_CODE_POINT (charset, from_index);
-	    }
+	  for (; from_c <= to_c; from_c++)
+	    CHARSET_FAST_MAP_SET (from_c, fast_map);
 	}
     }
 
-  if (control_flag < 2)
+  if (control_flag == 0)
     {
       CHARSET_MIN_CHAR (charset) = (ascii_compatible_p
 				    ? nonascii_min_char : min_char);
       CHARSET_MAX_CHAR (charset) = max_char;
-      if (control_flag == 1)
-	{
-	  CHARSET_DECODER (charset) = vec;
-	  CHARSET_ENCODER (charset) = table;
-	}
     }
-  else
-    CHARSET_DEUNIFIER (charset) = table;
+  else if (control_flag == 4)
+    {
+      temp_charset_work->min_char = min_char;
+      temp_charset_work->max_char = max_char;
+    }
 }
 
 
@@ -531,21 +627,31 @@ load_charset_map_from_vector (charset, vec, control_flag)
   load_charset_map (charset, head, n_entries, control_flag);
 }
 
-static void
-load_charset (charset)
-     struct charset *charset;
-{
-  if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP_DEFERRED)
-    {
-      Lisp_Object map;
 
-      map = CHARSET_MAP (charset);
-      if (STRINGP (map))
-	load_charset_map_from_file (charset, map, 1);
-      else
-	load_charset_map_from_vector (charset, map, 1);
-      CHARSET_METHOD (charset) = CHARSET_METHOD_MAP;
-    }
+/* Load a mapping table for CHARSET.  CONTROL-FLAG tells what kind of
+   map it is (see the comment of load_charset_map for the detail).  */
+
+static void
+load_charset (charset, control_flag)
+     struct charset *charset;
+     int control_flag;
+{
+  Lisp_Object map;
+
+  if (inhibit_load_charset_map
+      && temp_charset_work
+      && charset == temp_charset_work->current
+      && (control_flag == 2 == temp_charset_work->for_encoder))
+    return;
+
+  if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP)
+    map = CHARSET_MAP (charset);
+  else if (CHARSET_UNIFIED_P (charset))
+    map = CHARSET_UNIFY_MAP (charset);
+  if (STRINGP (map))
+    load_charset_map_from_file (charset, map, control_flag);
+  else
+    load_charset_map_from_vector (charset, map, control_flag);
 }
 
 
@@ -558,6 +664,68 @@ DEFUN ("charsetp", Fcharsetp, Scharsetp, 1, 1, 0,
 }
 
 
+void map_charset_for_dump P_ ((void (*c_function) (Lisp_Object, Lisp_Object),
+			       Lisp_Object function, Lisp_Object arg,
+			       unsigned from, unsigned to));
+
+void
+map_charset_for_dump (c_function, function, arg, from, to)
+     void (*c_function) (Lisp_Object, Lisp_Object);
+     Lisp_Object function, arg;
+     unsigned from, to;
+{
+  int from_idx = CODE_POINT_TO_INDEX (temp_charset_work->current, from);
+  int to_idx = CODE_POINT_TO_INDEX (temp_charset_work->current, to);
+  Lisp_Object range;
+  int c, stop;
+  struct gcpro gcpro1;
+
+  range = Fcons (Qnil, Qnil);
+  GCPRO1 (range);
+
+  c = temp_charset_work->min_char;
+  stop = (temp_charset_work->max_char < 0x20000
+	  ? temp_charset_work->max_char : 0xFFFF);
+	  
+  while (1)
+    {
+      int index = GET_TEMP_CHARSET_WORK_ENCODER (c);
+
+      if (index >= from_idx && index <= to_idx)
+	{
+	  if (NILP (XCAR (range)))
+	    XSETCAR (range, make_number (c));
+	}
+      else if (! NILP (XCAR (range)))
+	{
+	  XSETCDR (range, make_number (c - 1));
+	  if (c_function)
+	    (*c_function) (arg, range);
+	  else
+	    call2 (function, range, arg);
+	  XSETCAR (range, Qnil);
+	}
+      if (c == stop)
+	{
+	  if (c == temp_charset_work->max_char)
+	    {
+	      if (! NILP (XCAR (range)))
+		{
+		  XSETCDR (range, make_number (c));
+		  if (c_function)
+		    (*c_function) (arg, range);
+		  else
+		    call2 (function, range, arg);
+		}
+	      break;
+	    }
+	  c = 0x1FFFF;
+	  stop = temp_charset_work->max_char;
+	}
+      c++;
+    }
+}
+
 void
 map_charset_chars (c_function, function, arg,
 		   charset, from, to)
@@ -569,19 +737,8 @@ map_charset_chars (c_function, function, arg,
   Lisp_Object range;
   int partial;
 
-  if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP_DEFERRED)
-    load_charset (charset);
-
   partial = (from > CHARSET_MIN_CODE (charset)
 	     || to < CHARSET_MAX_CODE (charset));
-
-  if (CHARSET_UNIFIED_P (charset)
-      && CHAR_TABLE_P (CHARSET_DEUNIFIER (charset)))
-    {
-      map_char_table_for_charset (c_function, function,
-				  CHARSET_DEUNIFIER (charset), arg,
-				  partial ? charset : NULL, from, to);
-    }
 
   if (CHARSET_METHOD (charset) == CHARSET_METHOD_OFFSET)
     {
@@ -589,6 +746,18 @@ map_charset_chars (c_function, function, arg,
       int to_idx = CODE_POINT_TO_INDEX (charset, to);
       int from_c = from_idx + CHARSET_CODE_OFFSET (charset);
       int to_c = to_idx + CHARSET_CODE_OFFSET (charset);
+
+      if (CHARSET_UNIFIED_P (charset))
+	{
+	  if (! CHAR_TABLE_P (CHARSET_DEUNIFIER (charset)))
+	    load_charset (charset, 2);
+	  if (CHAR_TABLE_P (CHARSET_DEUNIFIER (charset)))
+	    map_char_table_for_charset (c_function, function,
+					CHARSET_DEUNIFIER (charset), arg,
+					partial ? charset : NULL, from, to);
+	  else
+	    map_charset_for_dump (c_function, function, arg, from, to);
+	}
 
       range = Fcons (make_number (from_c), make_number (to_c));
       if (NILP (function))
@@ -599,10 +768,13 @@ map_charset_chars (c_function, function, arg,
   else if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP)
     {
       if (! CHAR_TABLE_P (CHARSET_ENCODER (charset)))
-	return;
-      map_char_table_for_charset (c_function, function,
-				  CHARSET_ENCODER (charset), arg,
-				  partial ? charset : NULL, from, to);
+	load_charset (charset, 2);
+      if (CHAR_TABLE_P (CHARSET_ENCODER (charset)))
+	map_char_table_for_charset (c_function, function,
+				    CHARSET_ENCODER (charset), arg,
+				    partial ? charset : NULL, from, to);
+      else
+	map_charset_for_dump (c_function, function, arg, from, to);
     }
   else if (CHARSET_METHOD (charset) == CHARSET_METHOD_SUBSET)
     {
@@ -821,7 +993,7 @@ usage: (define-charset-internal ...)  */)
       charset.max_code = code;
     }
 
-  charset.compact_codes_p = charset.max_code < 0x1000000;
+  charset.compact_codes_p = charset.max_code < 0x10000;
 
   val = args[charset_arg_invalid_code];
   if (NILP (val))
@@ -910,11 +1082,7 @@ usage: (define-charset-internal ...)  */)
     {
       val = args[charset_arg_map];
       ASET (attrs, charset_map, val);
-      if (STRINGP (val))
-	load_charset_map_from_file (&charset, val, 0);
-      else
-	load_charset_map_from_vector (&charset, val, 0);
-      charset.method = CHARSET_METHOD_MAP_DEFERRED;
+      charset.method = CHARSET_METHOD_MAP;
     }
   else if (! NILP (args[charset_arg_subset]))
     {
@@ -1029,6 +1197,9 @@ usage: (define-charset-internal ...)  */)
   ASET (attrs, charset_id, make_number (id));
   charset.id = id;
   charset_table[id] = charset;
+
+  if (charset.method == CHARSET_METHOD_MAP)
+    load_charset (&charset, 0);
 
   if (charset.iso_final >= 0)
     {
@@ -1219,8 +1390,6 @@ Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET.  */)
 
   CHECK_CHARSET_GET_ID (charset, id);
   cs = CHARSET_FROM_ID (id);
-  if (CHARSET_METHOD (cs) == CHARSET_METHOD_MAP_DEFERRED)
-    load_charset (cs);
   if (NILP (deunify)
       ? CHARSET_UNIFIED_P (cs) && ! NILP (CHARSET_DEUNIFIER (cs))
       : ! CHARSET_UNIFIED_P (cs))
@@ -1229,18 +1398,21 @@ Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET.  */)
   CHARSET_UNIFIED_P (cs) = 0;
   if (NILP (deunify))
     {
-      if (CHARSET_METHOD (cs) != CHARSET_METHOD_OFFSET)
+      if (CHARSET_METHOD (cs) != CHARSET_METHOD_OFFSET
+	  || CHARSET_CODE_OFFSET (cs) < 0x110000)
 	error ("Can't unify charset: %s", SDATA (SYMBOL_NAME (charset)));
       if (NILP (unify_map))
 	unify_map = CHARSET_UNIFY_MAP (cs);
-      if (STRINGP (unify_map))
-	load_charset_map_from_file (cs, unify_map, 2);
-      else if (VECTORP (unify_map))
-	load_charset_map_from_vector (cs, unify_map, 2);
-      else if (NILP (unify_map))
-	error ("No unify-map for charset");
       else
-	error ("Bad unify-map arg");
+	{
+	  if (! STRINGP (unify_map) && ! VECTORP (unify_map))
+	    signal_error ("Bad unify-map", unify_map);
+	  CHARSET_UNIFY_MAP (cs) = unify_map;
+	}
+      if (NILP (Vchar_unify_table))
+	Vchar_unify_table = Fmake_char_table (Qnil, Qnil);
+      char_table_set_range (Vchar_unify_table,
+			    cs->min_char, cs->max_char, charset);
       CHARSET_UNIFIED_P (cs) = 1;
     }
   else if (CHAR_TABLE_P (Vchar_unify_table))
@@ -1485,6 +1657,41 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
 
 
 
+/* Return a unified character code for C (>= 0x110000).  VAL is a
+   value of Vchar_unify_table for C; i.e. it is nil, an integer, or a
+   charset symbol.  */
+int
+maybe_unify_char (c, val)
+     int c;
+     Lisp_Object val;
+{
+  struct charset *charset;
+
+  if (INTEGERP (val))
+    return XINT (val);
+  if (NILP (val))
+    return c;
+
+  CHECK_CHARSET_GET_CHARSET (val, charset);
+  load_charset (charset, 1);
+  if (! inhibit_load_charset_map)
+    {
+      val = CHAR_TABLE_REF (Vchar_unify_table, c);
+      if (! NILP (val))
+	c = XINT (val);
+    }
+  else
+    {
+      int code_index = c - CHARSET_CODE_OFFSET (charset);
+      int unified = GET_TEMP_CHARSET_WORK_DECODER (code_index);
+
+      if (unified > 0)
+	c = unified;
+    }
+  return c;
+}
+
+
 /* Return a character correponding to the code-point CODE of
    CHARSET.  */
 
@@ -1498,12 +1705,6 @@ decode_char (charset, code)
 
   if (code < CHARSET_MIN_CODE (charset) || code > CHARSET_MAX_CODE (charset))
     return -1;
-
-  if (method == CHARSET_METHOD_MAP_DEFERRED)
-    {
-      load_charset (charset);
-      method = CHARSET_METHOD (charset);
-    }
 
   if (method == CHARSET_METHOD_SUBSET)
     {
@@ -1547,19 +1748,22 @@ decode_char (charset, code)
 
 	  decoder = CHARSET_DECODER (charset);
 	  if (! VECTORP (decoder))
-	    return -1;
-	  c = XINT (AREF (decoder, char_index));
+	    {
+	      load_charset (charset, 1);
+	      decoder = CHARSET_DECODER (charset);
+	    }
+	  if (VECTORP (decoder))
+	    c = XINT (AREF (decoder, char_index));
+	  else
+	    c = GET_TEMP_CHARSET_WORK_DECODER (char_index);
 	}
-      else
+      else			/* method == CHARSET_METHOD_OFFSET */
 	{
 	  c = char_index + CHARSET_CODE_OFFSET (charset);
+	  if (CHARSET_UNIFIED_P (charset)
+	      && c > MAX_UNICODE_CHAR)
+	    MAYBE_UNIFY_CHAR (c);
 	}
-    }
-
-  if (CHARSET_UNIFIED_P (charset)
-      && c >= 0)
-    {
-      MAYBE_UNIFY_CHAR (c);
     }
 
   return c;
@@ -1583,16 +1787,27 @@ encode_char (charset, c)
   if (CHARSET_UNIFIED_P (charset))
     {
       Lisp_Object deunifier, deunified;
+      int code_index = -1;
 
       deunifier = CHARSET_DEUNIFIER (charset);
       if (! CHAR_TABLE_P (deunifier))
 	{
-	  Funify_charset (CHARSET_NAME (charset), Qnil, Qnil);
+	  load_charset (charset, 2);
 	  deunifier = CHARSET_DEUNIFIER (charset);
 	}
-      deunified = CHAR_TABLE_REF (deunifier, c);
-      if (! NILP (deunified))
-	c = XINT (deunified);
+      if (CHAR_TABLE_P (deunifier))
+	{
+	  Lisp_Object deunified = CHAR_TABLE_REF (deunifier, c);
+
+	  if (INTEGERP (deunified))
+	    code_index = XINT (deunified);
+	}
+      else
+	{
+	  code_index = GET_TEMP_CHARSET_WORK_ENCODER (c);
+	}
+      if (code_index >= 0)
+	c = CHARSET_CODE_OFFSET (charset) + code_index;
     }
 
   if (method == CHARSET_METHOD_SUBSET)
@@ -1633,12 +1848,6 @@ encode_char (charset, c)
       || c < CHARSET_MIN_CHAR (charset) || c > CHARSET_MAX_CHAR (charset))
     return CHARSET_INVALID_CODE (charset);
 
-  if (method == CHARSET_METHOD_MAP_DEFERRED)
-    {
-      load_charset (charset);
-      method = CHARSET_METHOD (charset);
-    }
-
   if (method == CHARSET_METHOD_MAP)
     {
       Lisp_Object encoder;
@@ -1646,18 +1855,27 @@ encode_char (charset, c)
 
       encoder = CHARSET_ENCODER (charset);
       if (! CHAR_TABLE_P (CHARSET_ENCODER (charset)))
-	return CHARSET_INVALID_CODE (charset);
-      val = CHAR_TABLE_REF (encoder, c);
-      if (NILP (val))
-	return CHARSET_INVALID_CODE (charset);
-      code = XINT (val);
-      if (! CHARSET_COMPACT_CODES_P (charset))
-	code = INDEX_TO_CODE_POINT (charset, code);
+	load_charset (charset);
+      if (CHAR_TABLE_P (CHARSET_ENCODER (charset)))
+	{
+	  val = CHAR_TABLE_REF (encoder, c);
+	  if (NILP (val))
+	    return CHARSET_INVALID_CODE (charset);
+	  code = XINT (val);
+	  if (! CHARSET_COMPACT_CODES_P (charset))
+	    code = INDEX_TO_CODE_POINT (charset, code);
+	}
+      else
+	{
+	  code = GET_TEMP_CHARSET_WORK_ENCODER (c);
+	  code = INDEX_TO_CODE_POINT (charset, code);	  
+	}
     }
   else				/* method == CHARSET_METHOD_OFFSET */
     {
-      code = c - CHARSET_CODE_OFFSET (charset);
-      code = INDEX_TO_CODE_POINT (charset, code);
+      int code_index = c - CHARSET_CODE_OFFSET (charset);
+
+      code = INDEX_TO_CODE_POINT (charset, code_index);
     }
 
   return code;
@@ -1932,35 +2150,23 @@ DIMENSION, CHARS, and FINAL-CHAR.  */)
 DEFUN ("clear-charset-maps", Fclear_charset_maps, Sclear_charset_maps,
        0, 0, 0,
        doc: /*
-Clear encoder and decoder of charsets that are loaded from mapfiles.  */)
+Internal use only.
+Clear temporary charset mapping tables.
+It should be called only from temacs invoked for dumping.  */)
      ()
 {
   int i;
   struct charset *charset;
   Lisp_Object attrs;
 
-  for (i = 0; i < charset_table_used; i++)
+  if (temp_charset_work)
     {
-      charset = CHARSET_FROM_ID (i);
-      attrs = CHARSET_ATTRIBUTES (charset);
-
-      if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP)
-	{
-	  CHARSET_ATTR_DECODER (attrs) = Qnil;
-	  CHARSET_ATTR_ENCODER (attrs) = Qnil;
-	  CHARSET_METHOD (charset) = CHARSET_METHOD_MAP_DEFERRED;
-	}
-
-      if (CHARSET_UNIFIED_P (charset))
-	CHARSET_ATTR_DEUNIFIER (attrs) = Qnil;
+      free (temp_charset_work);
+      temp_charset_work = NULL;
     }
 
-  if (CHAR_TABLE_P (Vchar_unified_charset_table))
-    {
-      Foptimize_char_table (Vchar_unified_charset_table, Qnil);
-      Vchar_unify_table = Vchar_unified_charset_table;
-      Vchar_unified_charset_table = Qnil;
-    }
+  if (CHAR_TABLE_P (Vchar_unify_table))
+    Foptimize_char_table (Vchar_unify_table, Qnil);
 
   return Qnil;
 }
@@ -2124,9 +2330,6 @@ syms_of_charset ()
 		   xmalloc (sizeof (struct charset) * charset_table_size));
   charset_table_used = 0;
 
-  staticpro (&Vchar_unified_charset_table);
-  Vchar_unified_charset_table = Fmake_char_table (Qnil, make_number (-1));
-
   defsubr (&Scharsetp);
   defsubr (&Smap_charset_chars);
   defsubr (&Sdefine_charset_internal);
@@ -2153,6 +2356,10 @@ syms_of_charset ()
   DEFVAR_LISP ("charset-map-path", &Vcharset_map_path,
 	       doc: /* *List of directories to search for charset map files.  */);
   Vcharset_map_path = Qnil;
+
+  DEFVAR_BOOL ("inhibit-load-charset-map", &inhibit_load_charset_map,
+	       doc: /* Inhibit loading of charset maps.  Used when dumping Emacs.  */);
+  inhibit_load_charset_map = 0;
 
   DEFVAR_LISP ("charset-list", &Vcharset_list,
 	       doc: /* List of all charsets ever defined.  */);
