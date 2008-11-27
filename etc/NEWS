@@ -251,7 +251,7 @@ line are now interactive: mouse-1 can be used on them to pop up a menu.
 +++
 ** File deletion can make use of the Recycle Bin or system Trash folder.
 Set `delete-by-moving-to-trash' non-nil to use this.  Deleted files
-and directories will then be sent to the Recyle Bin on Windows, and
+and directories will then be sent to the Recycle Bin on Windows, and
 to `trash-directory' on other systems.
 
 +++

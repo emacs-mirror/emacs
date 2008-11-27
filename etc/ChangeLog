@@ -1,3 +1,7 @@
+2008-11-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Fix typo.  (Bug#1439)
+
 2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
 
 	* refcards/orgcard.tex: Document the extra yanking key.
