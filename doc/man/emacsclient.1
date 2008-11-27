@@ -48,13 +48,19 @@ If you set the variable `server-window' to a window or a frame, `C-x
 The programs follow the usual GNU command line syntax, with long
 options starting with two dashes (`-').
 .TP
-.B \-n, \-\-no-wait
-returns
-immediately without waiting for you to "finish" the buffer in Emacs.
+.B \-nw, \-t, \-\-tty
+open a new Emacs frame on the current terminal
+.TP
+.B -c, \-\-create-frame
+create a new frame instead of trying to use the current Emacs frame
 .TP
 .B \-e, \-\-eval
 do not visit files but instead evaluate the arguments as Emacs
 Lisp expressions.
+.TP
+.B \-n, \-\-no-wait
+returns
+immediately without waiting for you to "finish" the buffer in Emacs.
 .TP
 .B \-s, \-\-socket-name=FILENAME
 use socket named FILENAME for communication.
@@ -73,7 +79,7 @@ tell the server to display the files on the given display.
 .B \-V, \-\-version
 print version information and exit
 .TP
-.B \-h, \-\-help
+.B \-H, \-\-help
 print this usage information message and exit
 .SH "SEE ALSO"
 The program is documented fully in
