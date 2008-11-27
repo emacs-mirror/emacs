@@ -229,66 +229,60 @@ sub_char_table_ref_and_range (table, c, from, to, defalt)
   int depth = XINT (tbl->depth);
   int min_char = XINT (tbl->min_char);
   int max_char = min_char + chartab_chars[depth - 1] - 1;
-  int index = CHARTAB_IDX (c, depth, min_char);
+  int index = CHARTAB_IDX (c, depth, min_char), idx;
   Lisp_Object val;
 
   val = tbl->contents[index];
-  *from = min_char + index * chartab_chars[depth];
-  *to = *from + chartab_chars[depth] - 1;
   if (SUB_CHAR_TABLE_P (val))
     val = sub_char_table_ref_and_range (val, c, from, to, defalt);
   else if (NILP (val))
     val = defalt;
 
-  while (*from > min_char
-	 && *from == min_char + index * chartab_chars[depth])
+  idx = index;
+  while (idx > 0 && *from < min_char + idx * chartab_chars[depth])
     {
       Lisp_Object this_val;
-      int this_from = *from - chartab_chars[depth];
-      int this_to = *from - 1;
 
-      index--;
-      this_val = tbl->contents[index];
+      c = min_char + idx * chartab_chars[depth] - 1;
+      idx--;
+      this_val = tbl->contents[idx];
       if (SUB_CHAR_TABLE_P (this_val))
-	this_val = sub_char_table_ref_and_range (this_val, this_to,
-						 &this_from, &this_to,
-						 defalt);
+	this_val = sub_char_table_ref_and_range (this_val, c, from, to, defalt);
       else if (NILP (this_val))
 	this_val = defalt;
 
       if (! EQ (this_val, val))
-	break;
-      *from = this_from;
+	{
+	  *from = c + 1;
+	  break;
+	}
     }
-  index = CHARTAB_IDX (c, depth, min_char);
-  while (*to < max_char
-	 && *to == min_char + (index + 1) * chartab_chars[depth] - 1)
+  while ((c = min_char + (index + 1) * chartab_chars[depth]) < max_char
+	 && *to >= c)
     {
       Lisp_Object this_val;
-      int this_from = *to + 1;
-      int this_to = this_from + chartab_chars[depth] - 1;
 
       index++;
       this_val = tbl->contents[index];
       if (SUB_CHAR_TABLE_P (this_val))
-	this_val = sub_char_table_ref_and_range (this_val, this_from,
-						 &this_from, &this_to,
-						 defalt);
+	this_val = sub_char_table_ref_and_range (this_val, c, from, to, defalt);
       else if (NILP (this_val))
 	this_val = defalt;
       if (! EQ (this_val, val))
-	break;
-      *to = this_to;
+	{
+	  *to = c - 1;
+	  break;
+	}
     }
 
   return val;
 }
 
 
-/* Return the value for C in char-table TABLE.  Set *FROM and *TO to
-   the range of characters (containing C) that have the same value as
-   C.  It is not assured that the value of (*FROM - 1) and (*TO + 1)
-   is different from that of C.  */
+/* Return the value for C in char-table TABLE.  Shrink the range *FROM
+   and *TO to cover characters (containing C) that have the same value
+   as C.  It is not assured that the values of (*FROM - 1) and (*TO +
+   1) are different from that of C.  */
 
 Lisp_Object
 char_table_ref_and_range (table, c, from, to)
@@ -297,53 +291,56 @@ char_table_ref_and_range (table, c, from, to)
      int *from, *to;
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
-  int index = CHARTAB_IDX (c, 0, 0);
+  int index = CHARTAB_IDX (c, 0, 0), idx;
   Lisp_Object val;
 
   val = tbl->contents[index];
-  *from = index * chartab_chars[0];
-  *to = *from + chartab_chars[0] - 1;
+  if (*from < 0)
+    *from = 0;
+  if (*to < 0)
+    *to = MAX_CHAR;
   if (SUB_CHAR_TABLE_P (val))
     val = sub_char_table_ref_and_range (val, c, from, to, tbl->defalt);
   else if (NILP (val))
     val = tbl->defalt;
 
-  while (*from > 0 && *from == index * chartab_chars[0])
+  idx = index;
+  while (*from < idx * chartab_chars[0])
     {
       Lisp_Object this_val;
-      int this_from = *from - chartab_chars[0];
-      int this_to = *from - 1;
 
-      index--;
-      this_val = tbl->contents[index];
+      c = idx * chartab_chars[0] - 1;
+      idx--;
+      this_val = tbl->contents[idx];
       if (SUB_CHAR_TABLE_P (this_val))
-	this_val = sub_char_table_ref_and_range (this_val, this_to,
-						 &this_from, &this_to,
+	this_val = sub_char_table_ref_and_range (this_val, c, from, to,
 						 tbl->defalt);
       else if (NILP (this_val))
 	this_val = tbl->defalt;
 
       if (! EQ (this_val, val))
-	break;
-      *from = this_from;
+	{
+	  *from = c + 1;
+	  break;
+	}
     }
-  while (*to < MAX_CHAR && *to == (index + 1) * chartab_chars[0] - 1)
+  while (*to >= (index + 1) * chartab_chars[0])
     {
       Lisp_Object this_val;
-      int this_from = *to + 1;
-      int this_to = this_from + chartab_chars[0] - 1;
 
       index++;
+      c = index * chartab_chars[0];
       this_val = tbl->contents[index];
       if (SUB_CHAR_TABLE_P (this_val))
-	this_val = sub_char_table_ref_and_range (this_val, this_from,
-						 &this_from, &this_to,
+	this_val = sub_char_table_ref_and_range (this_val, c, from, to,
 						 tbl->defalt);
       else if (NILP (this_val))
 	this_val = tbl->defalt;
       if (! EQ (this_val, val))
-	break;
-      *to = this_to;
+	{
+	  *to = c - 1;
+	  break;
+	}
     }
 
   return val;
