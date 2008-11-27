@@ -92,10 +92,18 @@ Define this locally to override the global tool bar.")
 
 (declare-function image-mask-p "image.c" (spec &optional frame))
 
+(defconst tool-bar-keymap-cache (make-hash-table :weakness t :test 'equal))
+
 (defun tool-bar-make-keymap (&optional ignore)
   "Generate an actual keymap from `tool-bar-map'.
 Its main job is to figure out which images to use based on the display's
 color capability and based on the available image libraries."
+  (let ((key (cons (frame-terminal) tool-bar-map)))
+    (or (gethash key tool-bar-keymap-cache)
+	(puthash key (tool-bar-make-keymap-1) tool-bar-keymap-cache))))
+
+(defun tool-bar-make-keymap-1 ()
+  "Generate an actual keymap from `tool-bar-map', without caching."
   (mapcar (lambda (bind)
             (let (image-exp plist)
               (when (and (eq (car-safe (cdr-safe bind)) 'menu-item)
@@ -118,13 +126,6 @@ color capability and based on the available image libraries."
 		    (plist-put plist :image image))))
 	      bind))
 	  tool-bar-map))
-
-(defconst tool-bar-find-image-cache (make-hash-table :weakness t :test 'equal))
-
-(defun tool-bar-find-image (specs)
-  "Like `find-image' but with caching."
-  (or (gethash specs tool-bar-find-image-cache)
-      (puthash specs (find-image specs) tool-bar-find-image-cache)))
 
 ;;;###autoload
 (defun tool-bar-add-item (icon def key &rest props)
@@ -166,7 +167,7 @@ ICON.xbm, using `find-image'."
                                  (concat icon ".pbm")) colors))
 	 (xbm-spec (append (list :type 'xbm :file
                                  (concat icon ".xbm")) colors))
-	 (image-exp `(tool-bar-find-image
+	 (image-exp `(find-image
 		      (cond ((not (display-color-p))
 			     ',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))
 			    ((< (display-color-cells) 256)
@@ -218,7 +219,7 @@ holds a keymap."
                                  (concat icon ".pbm")) colors))
 	 (xbm-spec (append (list :type 'xbm :file
                                  (concat icon ".xbm")) colors))
-	 (image-exp `(tool-bar-find-image
+	 (image-exp `(find-image
 		      (cond ((not (display-color-p))
 			     ',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))
 			    ((< (display-color-cells) 256)
