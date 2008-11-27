@@ -66,9 +66,9 @@ enum charset_attr_index
     /* Property list of the charset.  */
     charset_plist,
 
-    /* If the method of the charset is `MAP_DEFERRED', the value is a
-       mapping vector or a file name that contains mapping vector.
-       Otherwise, nil.  */
+    /* If the method of the charset is `MAP', the value is a mapping
+       vector or a file name that contains mapping vector.  Otherwise,
+       nil.  */
     charset_map,
 
     /* If the method of the charset is `MAP', the value is a vector
@@ -133,11 +133,6 @@ enum charset_method
        char-table is used for code point <-> character code
        conversion.  */
     CHARSET_METHOD_MAP,
-
-    /* Same as above but decoder and encoder are loaded from a file on
-       demand.  Once loaded, the method is changed to
-       CHARSET_METHOD_MAP.  */
-    CHARSET_METHOD_MAP_DEFERRED,
 
     /* A charset of this method is a subset of another charset.  */
     CHARSET_METHOD_SUBSET,
@@ -410,9 +405,10 @@ extern Lisp_Object Vchar_charset_set;
       ? (code) - (charset)->min_code + (charset)->code_offset		\
       : decode_char ((charset), (code)))				\
    : (charset)->method == CHARSET_METHOD_MAP				\
-   ? ((charset)->code_linear_p						\
+   ? (((charset)->code_linear_p						\
+       && VECTORP (CHARSET_DECODER (charset)))				\
       ? XINT (AREF (CHARSET_DECODER (charset),				\
-			(code) - (charset)->min_code))			\
+		    (code) - (charset)->min_code))			\
       : decode_char ((charset), (code)))				\
    : decode_char ((charset), (code)))
 
@@ -445,7 +441,8 @@ extern Lisp_Object charset_work;
       ? (c) - (charset)->code_offset + (charset)->min_code		 \
       : encode_char ((charset), (c)))					 \
    : (charset)->method == CHARSET_METHOD_MAP				 \
-   ? ((charset)->compact_codes_p					 \
+   ? (((charset)->compact_codes_p					 \
+       && CHAR_TABLE_P (CHARSET_ENCODER (charset)))			 \
       ? (charset_work = CHAR_TABLE_REF (CHARSET_ENCODER (charset), (c)), \
 	 (NILP (charset_work)						 \
 	  ? (charset)->invalid_code					 \
@@ -538,6 +535,7 @@ extern int charset_unibyte;
 extern struct charset *char_charset P_ ((int, Lisp_Object, unsigned *));
 extern Lisp_Object charset_attributes P_ ((int));
 
+extern int maybe_unify_char P_ ((int, Lisp_Object));
 extern int decode_char P_ ((struct charset *, unsigned));
 extern unsigned encode_char P_ ((struct charset *, int));
 extern int string_xstring_p P_ ((Lisp_Object));
