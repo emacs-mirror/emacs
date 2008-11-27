@@ -1828,25 +1828,6 @@ the face font sort order.  */)
   return result;
 }
 
-
-DEFUN ("x-font-family-list", Fx_font_family_list, Sx_font_family_list,
-       0, 1, 0,
-       doc: /* Return a list of available font families on FRAME.
-If FRAME is omitted or nil, use the selected frame.
-Value is a list of conses (FAMILY . FIXED-P) where FAMILY
-is a font family, and FIXED-P is non-nil if fonts of that family
-are fixed-pitch.  */)
-     (frame)
-     Lisp_Object frame;
-{
-#ifdef MSDOS
-  return Fcons (Fcons (build_string ("default"), Qt), Qnil);
-#else
-  return Ffont_family_list (frame);
-#endif
-}
-
-
 DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 5, 0,
        doc: /* Return a list of the names of available fonts matching PATTERN.
 If optional arguments FACE and FRAME are specified, return only fonts
@@ -1945,6 +1926,26 @@ the WIDTH times as wide as FACE on FRAME.  */)
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
+#if defined(HAVE_WINDOW_SYSTEM) || defined(__MSDOS__)
+
+DEFUN ("x-font-family-list", Fx_font_family_list, Sx_font_family_list,
+       0, 1, 0,
+       doc: /* Return a list of available font families on FRAME.
+If FRAME is omitted or nil, use the selected frame.
+Value is a list of conses (FAMILY . FIXED-P) where FAMILY
+is a font family, and FIXED-P is non-nil if fonts of that family
+are fixed-pitch.  */)
+     (frame)
+     Lisp_Object frame;
+{
+#ifdef __MSDOS__
+  return Fcons (Fcons (build_string ("default"), Qt), Qnil);
+#else
+  return Ffont_family_list (frame);
+#endif
+}
+
+#endif	/* HAVE_WINDOW_SYSTEM || __MSDOS__ */
 
 
 /***********************************************************************
@@ -7023,8 +7024,10 @@ a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
   defsubr (&Sx_list_fonts);
   defsubr (&Sinternal_face_x_get_resource);
   defsubr (&Sx_family_fonts);
+#endif
+#if defined(HAVE_WINDOW_SYSTEM) || defined(__MSDOS__)
   defsubr (&Sx_font_family_list);
-#endif /* HAVE_WINDOW_SYSTEM */
+#endif /* HAVE_WINDOW_SYSTEM || __MSDOS__ */
 }
 
 /* arch-tag: 8a0f7598-5517-408d-9ab3-1da6fcd4c749
