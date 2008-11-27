@@ -3695,7 +3695,7 @@ describe_vector (vector, prefix, args, elt_describer,
   int first = 1;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   /* Range of elements to be handled.  */
-  int from, to;
+  int from, to, stop;
   Lisp_Object character;
   int starting_i;
 
@@ -3725,9 +3725,12 @@ describe_vector (vector, prefix, args, elt_describer,
     suppress = intern ("suppress-keymap");
 
   from = 0;
-  to = CHAR_TABLE_P (vector) ? MAX_CHAR + 1 : XVECTOR (vector)->size;
+  if (CHAR_TABLE_P (vector))
+    stop = MAX_5_BYTE_CHAR + 1, to = MAX_CHAR + 1;
+  else
+    stop = to = XVECTOR (vector)->size;
 
-  for (i = from; i < to; i++)
+  for (i = from; ; i++)
     {
       int this_shadowed = 0;
       int range_beg, range_end;
@@ -3735,10 +3738,21 @@ describe_vector (vector, prefix, args, elt_describer,
 
       QUIT;
 
+      if (i == stop)
+	{
+	  if (i == to)
+	    break;
+	  stop = to;
+	}
+
       starting_i = i;
 
       if (CHAR_TABLE_P (vector))
-	val = char_table_ref_and_range (vector, i, &range_beg, &i);
+	{
+	  range_beg = i;
+	  i = stop - 1;
+	  val = char_table_ref_and_range (vector, range_beg, &range_beg, &i);
+	}
       else
 	val = AREF (vector, i);
       definition = get_keyelt (val, 0);
@@ -3799,19 +3813,22 @@ describe_vector (vector, prefix, args, elt_describer,
       insert1 (Fkey_description (kludge, prefix));
 
       /* Find all consecutive characters or rows that have the same
-         definition.  But, for elements of a top level char table, if
-         they are for charsets, we had better describe one by one even
-         if they have the same definition.  */
+         definition.  But, VECTOR is a char-table, we had better put a
+         boundary between normal characters (-#x3FFF7F) and 8-bit
+         characters (#x3FFF80-).  */
       if (CHAR_TABLE_P (vector))
-	while (i + 1 < to
-	       && (val = char_table_ref_and_range (vector, i + 1,
+	{
+	  while (i + 1 < stop
+		 && (range_beg = i + 1, range_end = stop - 1,
+		   val = char_table_ref_and_range (vector, range_beg,
 						   &range_beg, &range_end),
 		   tem2 = get_keyelt (val, 0),
 		   !NILP (tem2))
-	       && !NILP (Fequal (tem2, definition)))
-	  i = range_end;
+		 && !NILP (Fequal (tem2, definition)))
+	    i = range_end;
+	}
       else
-	while (i + 1 < to
+	while (i + 1 < stop
 	       && (tem2 = get_keyelt (AREF (vector, i + 1), 0),
 		   !NILP (tem2))
 	       && !NILP (Fequal (tem2, definition)))
