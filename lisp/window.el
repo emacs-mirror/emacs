@@ -1038,14 +1038,31 @@ consider all visible or iconified frames."
 		     (window--try-to-split-window
 		      (get-lru-window frame-to-use t))))
 	   (window--display-buffer-2 buffer window-to-use)))
-     ((setq window-to-use
-	    ;; Reuse an existing window.
-	    (or (get-lru-window frame-to-use)
-		(get-buffer-window buffer 'visible)
-		(get-largest-window 'visible nil)
-		(get-buffer-window buffer 0)
-		(get-largest-window 0 nil)
-		(frame-selected-window (funcall pop-up-frame-function))))
+     ((let ((window-to-undedicate
+	     ;; When NOT-THIS-WINDOW is non-nil, temporarily dedicate
+	     ;; the selected window to its buffer, to avoid that some of
+	     ;; the `get-' routines below choose it.  (Bug#1415)
+	     (and not-this-window (not (window-dedicated-p))
+		  (set-window-dedicated-p (selected-window) t)
+		  (selected-window))))
+	(unwind-protect
+	    (setq window-to-use
+		  ;; Reuse an existing window.
+		  (or (get-lru-window frame-to-use)
+		      (let ((window (get-buffer-window buffer 'visible)))
+			(unless (and not-this-window
+				     (eq window (selected-window)))
+			  window))
+		      (get-largest-window 'visible)
+		      (let ((window (get-buffer-window buffer 0)))
+			(unless (and not-this-window
+				     (eq window (selected-window)))
+			  window))
+		      (get-largest-window 0)
+		      (frame-selected-window (funcall pop-up-frame-function))))
+	  (when (window-live-p window-to-undedicate)
+	    ;; Restore dedicated status of selected window.
+	    (set-window-dedicated-p window-to-undedicate nil))))
       (window--even-window-heights window-to-use)
       (window--display-buffer-2 buffer window-to-use)))))
 
