@@ -58,6 +58,32 @@ Lisp_Object _temp_category_set;
 
 /* Category set staff.  */
 
+static Lisp_Object hash_get_category_set P_ ((Lisp_Object, Lisp_Object));
+
+static Lisp_Object
+hash_get_category_set (table, category_set)
+     Lisp_Object table, category_set;
+{
+  Lisp_Object val;
+  struct Lisp_Hash_Table *h;
+  int i;
+  unsigned hash;
+
+  if (NILP (XCHAR_TABLE (table)->extras[1]))
+    XCHAR_TABLE (table)->extras[1]
+      = make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+			 make_float (DEFAULT_REHASH_SIZE),
+			 make_float (DEFAULT_REHASH_THRESHOLD),
+			 Qnil, Qnil, Qnil);
+  h = XHASH_TABLE (XCHAR_TABLE (table)->extras[1]);
+  i = hash_lookup (h, category_set, &hash);
+  if (i >= 0)
+    return HASH_KEY (h, i);
+  hash_put (h, category_set, Qnil, hash);
+  return category_set;
+}
+
+
 DEFUN ("make-category-set", Fmake_category_set, Smake_category_set, 1, 1, 0,
        doc: /* Return a newly created category-set which contains CATEGORIES.
 CATEGORIES is a string of category mnemonics.
@@ -370,15 +396,14 @@ then delete CATEGORY from the category set instead of adding it.  */)
 
   while (start <= end)
     {
+      from = start, to = end;
       category_set = char_table_ref_and_range (table, start, &from, &to);
       if (CATEGORY_MEMBER (XFASTINT (category), category_set) != NILP (reset))
 	{
 	  category_set = Fcopy_sequence (category_set);
 	  SET_CATEGORY_SET (category_set, category, set_value);
-	  if (to > end)
-	    char_table_set_range (table, start, end, category_set);
-	  else
-	    char_table_set_range (table, start, to, category_set);
+	  category_set = hash_get_category_set (table, category_set);
+	  char_table_set_range (table, start, to, category_set);
 	}
       start = to + 1;
     }
