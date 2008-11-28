@@ -367,7 +367,9 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
   (and (stringp doc)
        (substitute-command-keys
         (save-match-data
-          (let ((start (if (string-match "^\\*" doc) (match-end 0) 0)))
+	  ;; Don't use "^" in the regexp below since it may match
+	  ;; anywhere in the doc-string.
+	  (let ((start (if (string-match "\\`\\*" doc) (match-end 0) 0)))
             (cond ((string-match "\n" doc)
                    (substring doc start (match-beginning 0)))
                   ((zerop start) doc)
