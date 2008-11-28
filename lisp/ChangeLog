@@ -1,3 +1,10 @@
+2008-11-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* complete.el (PC-do-complete-and-exit): Synch to 2008-11-24
+	change to minibuffer.el; recognize `confirm' and
+	`confirm-after-completion' values for
+	minibuffer-completion-confirm.
+
 2008-11-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/eldoc.el (eldoc-docstring-first-line): Don't match
