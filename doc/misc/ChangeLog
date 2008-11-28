@@ -1,3 +1,7 @@
+2008-11-28  Richard M Stallman  <rms@gnu.org>
+
+	* dbus.texi (Receiving Method Calls): Clean up previous change.
+
 2008-11-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Type Conversion): New defuns `dbus-string-to-byte-array',
