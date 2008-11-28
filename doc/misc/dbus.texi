@@ -1254,14 +1254,16 @@ registered.
 @var{interface} is the interface offered by @var{service}.  It must
 provide @var{method}.
 
-@var{handler} is a Lisp function to be called when when a @var{method}
-call is is received.  It must accept as arguments the input arguments
-of @var{method}.  @var{handler} must return a list, which elements are
-used as arguments for the reply message of @var{method}.  This list
-can be composed like the input parameters in @ref{Type Conversion}.
-If only one Lisp object is returned, and this object is not a consp,
-then @var{handler} can return this object directly, instead of of list
-of this object.
+@var{handler} is a Lisp function to be called when a @var{method} call
+is received.  It must accept as arguments the input arguments of
+@var{method}.  @var{handler} should return a list, whose elements are
+to be used as arguments for the reply message of @var{method}.  This
+list can be composed like the input parameters in @ref{Type
+Conversion}.
+
+If @var{handler} wants to return just one Lisp object and it is not a
+cons cell, @var{handler} can return this object directly, instead of
+returning a list containing the object.
 
 The default D-Bus timeout when waiting for a message reply is 25
 seconds.  This value could be even smaller, depending on the calling
