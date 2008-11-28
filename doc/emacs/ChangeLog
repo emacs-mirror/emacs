@@ -1,3 +1,9 @@
+2008-11-28  Richard M Stallman  <rms@gnu.org>
+
+	* misc.texi (Dissociated Press): Minor cleanups.
+
+	* dired.texi (Image-Dired): Avoid passive.
+
 2008-11-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* anti.texi (Antinews): Add stuff about Unicode vs emacs-mule
