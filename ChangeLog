@@ -1,3 +1,7 @@
+2008-11-28  Ulrich Mueller  <ulm@gentoo.org>
+
+	* configure.in: Fix last change.
+
 2008-11-28  Richard M Stallman  <rms@gnu.org>
 
 	* configure.in (mips64-*-linux-gnu*, mips64el-*-linux-gnu*):
