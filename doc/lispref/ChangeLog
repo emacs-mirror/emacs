@@ -1,3 +1,7 @@
+2008-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Format Conversion Round-Trip): Improve previous change.
+
 2008-11-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* modes.texi (Auto Major Mode): Fix example.
