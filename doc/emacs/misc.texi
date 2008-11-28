@@ -2677,7 +2677,7 @@ buffer to another.  In order to produce plausible output rather than
 gibberish, it insists on a certain amount of overlap between the end of
 one run of consecutive words or characters and the start of the next.
 That is, if it has just output `president' and then decides to jump
-to a different point in the file, it might spot the `ent' in `pentagon'
+to a different point in the buffer, it might spot the `ent' in `pentagon'
 and continue from there, producing `presidentagon'.@footnote{This
 dissociword actually appeared during the Vietnam War, when it was very
 appropriate.  Bush has made it appropriate again.}  Long sample texts
@@ -2699,9 +2699,9 @@ buffer @samp{*Dissociation*}.  The buffer you start with is not changed.
 chain based on a frequency table constructed from the sample text.  It
 is, however, an independent, ignoriginal invention.  Dissociated Press
 techniquitously copies several consecutive characters from the sample
-between random choices, whereas a Markov chain would choose randomly
-for each word or character.  This makes for more plausible sounding
-results, and runs faster.
+text between random jumps, unlike a Markov chain which would jump
+randomly after each word or character.  This makes for more plausible
+sounding results, and runs faster.
 
 @cindex outragedy
 @cindex buggestion
