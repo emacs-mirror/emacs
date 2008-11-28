@@ -1040,7 +1040,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
   0, /* x_set_wait_for_wm, will ignore */
   0,  /* x_set_fullscreen will ignore */
   x_set_font_backend, /* generic OK */
-  0
+  x_set_alpha
 };
 
 

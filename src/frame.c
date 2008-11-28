@@ -3678,7 +3678,7 @@ x_set_alpha (f, arg, oldval)
   for (i = 0; i < 2; i++)
     f->alpha[i] = newval[i];
 
-#if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI) || defined (NS_IMPL_COCOA)
   BLOCK_INPUT;
   x_set_frame_alpha (f);
   UNBLOCK_INPUT;

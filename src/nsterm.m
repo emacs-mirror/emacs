@@ -964,9 +964,15 @@ ns_frame_rehighlight (struct frame *frame)
          dpyinfo->x_highlight_frame != old_highlight)
     {
       if (old_highlight)
+	{
           x_update_cursor (old_highlight, 1);
+	  x_set_frame_alpha (old_highlight);
+	}
       if (dpyinfo->x_highlight_frame)
+	{
           x_update_cursor (dpyinfo->x_highlight_frame, 1);
+          x_set_frame_alpha (dpyinfo->x_highlight_frame);
+	}
     }
 }
 
@@ -1633,6 +1639,39 @@ ns_get_rgb_color (struct frame *f, float r, float g, float b, float a)
     [NSColor colorWithCalibratedRed: r green: g blue: b alpha: a], f);
 }
 
+
+void
+x_set_frame_alpha (struct frame *f)
+/* --------------------------------------------------------------------------
+     change the entire-frame transparency
+   -------------------------------------------------------------------------- */
+{
+  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+  EmacsView *view = FRAME_NS_VIEW (f);
+  double alpha = 1.0;
+  double alpha_min = 1.0;
+
+  if (dpyinfo->x_highlight_frame == f)
+    alpha = f->alpha[0];
+  else
+    alpha = f->alpha[1];
+
+  if (FLOATP (Vframe_alpha_lower_limit))
+    alpha_min = XFLOAT_DATA (Vframe_alpha_lower_limit);
+  else if (INTEGERP (Vframe_alpha_lower_limit))
+    alpha_min = (XINT (Vframe_alpha_lower_limit)) / 100.0;
+
+  if (alpha < 0.0)
+    return;
+  else if (1.0 < alpha)
+    alpha = 1.0;
+  else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
+    alpha = alpha_min;
+  
+#ifdef NS_IMPL_COCOA
+  [[view window] setAlphaValue: alpha];
+#endif
+}
 
 
 /* ==========================================================================
@@ -5009,7 +5048,10 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
   /* FIXME: for some reason needed on second and subsequent clicks away
             from sole-frame Emacs to get hollow box to show */
   if (!windowClosing && [[self window] isVisible] == YES)
-    x_update_cursor (emacsframe, 1);
+    {
+      x_update_cursor (emacsframe, 1);
+      x_set_frame_alpha (emacsframe);
+    }
 
   if (emacs_event)
     {
