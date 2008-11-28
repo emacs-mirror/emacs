@@ -2985,8 +2985,9 @@ in the order of appearance in the list.
 This command writes the current buffer contents into the file
 @var{file} in format @var{format}, and makes that format the default
 for future saves of the buffer.  That is, it sets the buffer-local value
-of @code{buffer-file-format} to @var{format}, and replaces any existing
-elements (except any with a non-nil @var{preserve} flag; see above).
+of @code{buffer-file-format} to @var{format}.  It then appends any
+elements of the previous value with a non-nil @var{preserve} flag (see
+above), if they are not already present in the new value.
 The argument @var{format} is a list of format names.
 Except for the @var{format} argument, this command
 is similar to @code{write-file}.  In particular, @var{confirm} has the
