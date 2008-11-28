@@ -330,13 +330,22 @@ See `PC-complete' for details."
    ((= (point-max) (minibuffer-prompt-end))
     ;; Duplicate the "bug" that Info-menu relies on...
     (exit-minibuffer))
-   ((eq minibuffer-completion-confirm 'confirm-only)
+   ((eq minibuffer-completion-confirm 'confirm)
     (if (or (eq last-command this-command)
             (test-completion (field-string)
                              minibuffer-completion-table
                              minibuffer-completion-predicate))
         (exit-minibuffer)
       (PC-temp-minibuffer-message " [Confirm]")))
+   ((eq minibuffer-completion-confirm 'confirm-after-completion)
+    ;; Similar to the above, but only if trying to exit immediately
+    ;; after typing TAB (this catches most minibuffer typos).
+    (if (and (memq last-command '(PC-complete minibuffer-complete))
+	     (not (test-completion (field-string)
+				   minibuffer-completion-table
+				   minibuffer-completion-predicate)))
+	(PC-temp-minibuffer-message " [Confirm]")
+      (exit-minibuffer)))
    (t
     (let ((flag (PC-do-completion 'exit)))
       (and flag
