@@ -1,3 +1,8 @@
+2008-11-28  Richard M Stallman  <rms@gnu.org>
+
+	* configure.in (mips64-*-linux-gnu*, mips64el-*-linux-gnu*):
+	New configurations.
+
 2008-11-20  Josh Elsasser  <josh@elsasser.org>  (tiny change)
 
 	* configure.in: Add hppa-*-openbsd* with machine hp800; mistakenly
