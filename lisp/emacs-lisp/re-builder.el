@@ -349,7 +349,8 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (goto-char (+ 2 (point-min)))
   (cond ((reb-lisp-syntax-p)
          (reb-lisp-mode))
-        (t (reb-mode))))
+        (t (reb-mode)))
+  (reb-do-update))
 
 (defun reb-mode-buffer-p ()
   "Return non-nil if the current buffer is a RE Builder buffer."
@@ -370,9 +371,11 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
     (when reb-target-buffer
       (reb-delete-overlays))
     (setq reb-target-buffer (current-buffer)
-          reb-target-window (selected-window)
-          reb-window-config (current-window-configuration))
-    (select-window (split-window (selected-window) (- (window-height) 4)))
+          reb-target-window (selected-window))
+    (select-window (or (get-buffer-window reb-buffer)
+		       (progn
+			 (setq reb-window-config (current-window-configuration))
+			 (split-window (selected-window) (- (window-height) 4)))))
     (switch-to-buffer (get-buffer-create reb-buffer))
     (reb-initialize-buffer)))
 
@@ -524,7 +527,6 @@ optional fourth argument FORCE is non-nil."
 	 (condition-case nil
 	     (progn
 	       (when (or (reb-update-regexp) force)
-		 (reb-assert-buffer-in-window)
 		 (reb-do-update))
 	       "")
 	   (error " *invalid*"))))

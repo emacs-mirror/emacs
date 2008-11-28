@@ -1,3 +1,10 @@
+2008-11-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/re-builder.el (reb-auto-update): Remove redundant code.
+	(re-builder): Reuse window displaying the *RE-Builder* buffer, if any.
+	(reb-initialize-buffer): Update matches, in case we're reentering
+	RE Builder mode.
+
 2008-11-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* complete.el (PC-do-complete-and-exit): Synch to 2008-11-24
