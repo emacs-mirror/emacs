@@ -539,7 +539,8 @@ dnl see the `changequote' comment above.
   ;;
 
   ## Mips Linux-based GNU system
-  mips-*-linux-gnu* | mipsel-*-linux-gnu* )
+  mips-*-linux-gnu* | mipsel-*-linux-gnu* |
+  mips64-*-linux-gnu* | mips64el-*-linux-gnu* )
     machine=mips opsys=gnu-linux
   ;;
 
