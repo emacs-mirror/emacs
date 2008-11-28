@@ -19,6 +19,34 @@ ways of specifying fonts---so-called ``Fontconfig'' and ``GTK'' font
 names---are clearly redundant, and have been removed.
 
 @item
+We have switched to a character representation specially designed for
+Emacs.  Rather than forcing all the widely used scripts artificially
+into alignment, like Unicode does, Emacs treats them all equally,
+giving each one a place in the space of character codes.  Thus,
+scripts do not need to fight over characters used in each one of them,
+as each has its own variant, and they all are different as far as
+Emacs is concerned.  For example, there's a Latin-1 c-cedilla
+character, and there's a Latin-2 c-cedilla; searching a buffer for the
+Latin-1 variant will only find that variant, but not the others.  This
+design allows us to get rid of a confusing situation in Emacs 23,
+whereby a character can simultaneously belong to any number of
+charsets.
+
+@item
+Emacs now uses an internal encoding, known as @samp{emacs-mule}, which
+is peculiar to Emacs and does not map easily into any of the existing
+character encodings, including Unicode.  This was imperative to
+support several different variants of the same character, each one
+belonging to its own script: @samp{emacs-mule} marks each character
+with its script, to better discern them from one another.
+
+@item
+For simplicity, the functions @code{encode-coding-region} and
+@code{decode-coding-region} no longer accept an argument saying where
+to store the result of their conversions.  The result always replaces
+the original, so there's no need to look for it elsewhere.
+
+@item
 Emacs no longer performs font anti-aliasing.  If your fonts look ugly,
 try choosing a larger font and increasing the screen resolution.
 Admittedly, this becomes difficult as you go further back in time,
@@ -34,10 +62,13 @@ and many more.
 Emacs can no longer display frames on X windows and text terminals
 (ttys) simultaneously.  If you start Emacs as an X application, the
 Emacs job can only create X frames; if you start Emacs on a tty, the
-Emacs job can only use that tty.
+Emacs job can only use that tty.  No more confusion about which type
+of frame will @command{emacsclient} use in any given Emacs session!
 
 @item
-Emacs can no longer be started as a daemon.
+Emacs can no longer be started as a daemon.  We decided that having an
+Emacs sitting silently in the background with no visual manifestation
+anywhere in sight is too confusing.
 
 @item
 Transient Mark mode is now disabled by default.  Furthermore, some
@@ -83,10 +114,6 @@ Individual buffers can no longer display faces specially.  The text
 scaling commands @kbd{C-x C-+}, @kbd{C-x C--}, and @kbd{C-x C-0} have
 been removed, and so has the buffer face menu bound to
 @kbd{S-down-mouse-1}.
-
-@item
-Emacs now uses an internal encoding, known as @samp{emacs-mule}, which
-is not a superset of Unicode.
 
 @item
 VC no longer supports fileset-based operations on distributed version
