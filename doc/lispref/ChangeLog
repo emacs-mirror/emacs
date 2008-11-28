@@ -1,3 +1,9 @@
+2008-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Text Representations, Converting Representations)
+	(Character Sets, Scanning Charsets, Translation of Characters):
+	Make text more accurate.
+
 2008-11-28  Glenn Morris  <rgm@gnu.org>
 
 	* files.texi (Format Conversion Round-Trip): Improve previous change.
