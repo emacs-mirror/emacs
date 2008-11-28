@@ -1,3 +1,7 @@
+2008-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* format.el (format-write-file): Improve previous doc fix.
+
 2008-11-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (use-empty-active-region, use-region-p)
