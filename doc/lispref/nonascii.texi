@@ -44,7 +44,7 @@ text in most any known written language.
 follows the @dfn{Unicode Standard}.  The Unicode Standard assigns a
 unique number, called a @dfn{codepoint}, to each and every character.
 The range of codepoints defined by Unicode, or the Unicode
-@dfn{codespace}, is @code{0..10FFFF} (in hex) inclusive.  Emacs
+@dfn{codespace}, is @code{0..10FFFF} (in hex), inclusive.  Emacs
 extends this range with codepoints in the range @code{110000..3FFFFF},
 which it uses for representing characters that are not unified with
 Unicode and raw 8-bit bytes that cannot be interpreted as characters
@@ -62,7 +62,8 @@ bytes, depending on the magnitude of its codepoint@footnote{
 This internal representation is based on one of the encodings defined
 by the Unicode Standard, called @dfn{UTF-8}, for representing any
 Unicode codepoint, but Emacs extends UTF-8 to represent the additional
-codepoints it uses for raw 8-bit bytes.}.
+codepoints it uses for raw 8-bit bytes and characters not unified with
+Unicode.}.
 For example, any @acronym{ASCII} character takes up only 1 byte, a
 Latin-1 character takes up 2 bytes, etc.  We call this representation
 of text @dfn{multibyte}, because it uses several bytes for each
@@ -157,7 +158,7 @@ result a unibyte string.
 
   Emacs can convert unibyte text to multibyte; it can also convert
 multibyte text to unibyte, provided that the multibyte text contains
-only @acronym{ASCII} and 8-bit characters.  In general, these
+only @acronym{ASCII} and 8-bit raw bytes.  In general, these
 conversions happen when inserting text into a buffer, or when putting
 text from several strings together in one string.  You can also
 explicitly convert a string's contents to either representation.
@@ -194,25 +195,32 @@ newly created string with no text properties.
 @defun string-to-multibyte string
 This function returns a multibyte string containing the same sequence
 of characters as @var{string}.  If @var{string} is a multibyte string,
-it is returned unchanged.
+it is returned unchanged.  The function assumes that @var{string}
+includes only @acronym{ASCII} characters and raw 8-bit bytes; the
+latter are converted to their multibyte representation corresponding
+to the codepoints in the @code{3FFF80..3FFFFF} area (@pxref{Text
+Representations, codepoints}).
 @end defun
 
 @defun string-to-unibyte string
 This function returns a unibyte string containing the same sequence of
 characters as @var{string}.  It signals an error if @var{string}
 contains a non-@acronym{ASCII} character.  If @var{string} is a
-unibyte string, it is returned unchanged.
+unibyte string, it is returned unchanged.  Use this function for
+@var{string} arguments that contain only @acronym{ASCII} and eight-bit
+characters.
 @end defun
 
 @defun multibyte-char-to-unibyte char
 This convert the multibyte character @var{char} to a unibyte
-character.  If @var{char} is a non-@acronym{ASCII} character, the
-value is -1.
+character.  If @var{char} is a character that is neither
+@acronym{ASCII} nor eight-bit, the value is -1.
 @end defun
 
 @defun unibyte-char-to-multibyte char
 This convert the unibyte character @var{char} to a multibyte
-character.
+character, assuming @var{char} is either @acronym{ASCII} or raw 8-bit
+byte.
 @end defun
 
 @node Selecting a Representation
@@ -320,7 +328,7 @@ string instead of the current buffer.
 @cindex coded character set
 An Emacs @dfn{character set}, or @dfn{charset}, is a set of characters
 in which each character is assigned a numeric code point.  (The
-Unicode standard calls this a @dfn{coded character set}.)  Each
+Unicode standard calls this a @dfn{coded character set}.)  Each Emacs
 charset has a name which is a symbol.  A single character can belong
 to any number of different character sets, but it will generally have
 a different code point in each charset.  Examples of character sets
@@ -387,30 +395,42 @@ This command displays a list of characters in the character set
 @var{charset}.
 @end deffn
 
+  Emacs can convert between its internal representation of a character
+and the character's codepoint in a specific charset.  The following
+two functions support these conversions.
+
+@c FIXME: decode-char and encode-char accept and ignore an additional
+@c argument @var{restriction}.  When that argument actually makes a
+@c difference, it should be documented here.
 @defun decode-char charset code-point
 This function decodes a character that is assigned a @var{code-point}
 in @var{charset}, to the corresponding Emacs character, and returns
-that character.  If @var{charset} doesn't contain a character of that
-code point, the value is @code{nil}.  If @var{code-point} doesnt't fit
-in a Lisp integer (@pxref{Integer Basics, most-positive-fixnum}), it
-can be specified as a cons cell @code{(@var{high} . @var{low})}, where
+it.  If @var{charset} doesn't contain a character of that code point,
+the value is @code{nil}.  If @var{code-point} doesn't fit in a Lisp
+integer (@pxref{Integer Basics, most-positive-fixnum}), it can be
+specified as a cons cell @code{(@var{high} . @var{low})}, where
 @var{low} are the lower 16 bits of the value and @var{high} are the
 high 16 bits.
 @end defun
 
 @defun encode-char char charset
 This function returns the code point assigned to the character
-@var{char} in @var{charset}.  If @var{charset} doesn't contain
-@var{char}, the value is @code{nil}.
+@var{char} in @var{charset}.  If the result does not fit in a Lisp
+integer, it is returned as a cons cell @code{(@var{high} . @var{low})}
+that fits the second argument of @code{decode-char} above.  If
+@var{charset} doesn't have a codepoint for @var{char}, the value is
+@code{nil}.
 @end defun
 
 @node Scanning Charsets
 @section Scanning for Character Sets
 
-  Sometimes it is useful to find out which character sets appear in a
-part of a buffer or a string.  One use for this is in determining which
-coding systems (@pxref{Coding Systems}) are capable of representing all
-of the text in question.
+  Sometimes it is useful to find out, for characters that appear in a
+certain part of a buffer or a string, to which character sets they
+belong.  One use for this is in determining which coding systems
+(@pxref{Coding Systems}) are capable of representing all of the text
+in question; another is to determine the font(s) for displaying that
+text.
 
 @defun charset-after &optional pos
 This function returns the charset of highest priority containing the
@@ -421,7 +441,7 @@ If @var{pos} is out of range, the value is @code{nil}.
 
 @defun find-charset-region beg end &optional translation
 This function returns a list of the character sets of highest priority
-that contain charcters in the current buffer between positions
+that contain characters in the current buffer between positions
 @var{beg} and @var{end}.
 
 The optional argument @var{translation} specifies a translation table to
@@ -453,7 +473,8 @@ systems.
   A translation table has two extra slots.  The first is either
 @code{nil} or a translation table that performs the reverse
 translation; the second is the maximum number of characters to look up
-for translation.
+for translating sequences of characters (see the description of
+@code{make-translation-table-from-alist} below).
 
 @defun make-translation-table &rest translations
 This function returns a translation table based on the argument
@@ -504,7 +525,7 @@ This function returns a translation table made from @var{vec} that is
 an array of 256 elements to map byte values 0 through 255 to
 characters.  Elements may be @code{nil} for untranslated bytes.  The
 returned table has a translation table for reverse mapping in the
-first extra slot.
+first extra slot, and the value @code{1} in the second extra slot.
 
 This function provides an easy way to make a private coding system
 that maps each byte to a specific character.  You can specify the
@@ -524,7 +545,8 @@ character, that character is translated to @var{to} (i.e.@: to a
 character or a character sequence).  If @var{from} is a vector of
 characters, that sequence is translated to @var{to}.  The returned
 table has a translation table for reverse mapping in the first extra
-slot.
+slot, and the maximum length of all the @var{from} character sequences
+in the second extra slot.
 @end defun
 
 @node Coding Systems
