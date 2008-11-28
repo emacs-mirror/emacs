@@ -1,3 +1,8 @@
+2008-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* anti.texi (Antinews): Add stuff about Unicode vs emacs-mule
+	representation.
+
 2008-11-26  Richard M. Stallman  <rms@gnu.org>
 
 	* files.texi (Visiting): Rewrite paragraph for clarity.
