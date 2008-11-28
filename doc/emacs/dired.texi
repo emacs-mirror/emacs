@@ -1271,8 +1271,8 @@ file configured by @code{image-dired-db-file}.
 
   To tag image files, mark them in the dired buffer (you can also mark
 files in Dired from the thumbnail buffer by typing @kbd{m}) and type
-@kbd{C-t t} (@code{image-dired-tag-files}).  You will be prompted for
-a tag.  To mark files having a certain tag, type @kbd{C-t f}
+@kbd{C-t t} (@code{image-dired-tag-files}).  This reads the tag name
+in the minibuffer.  To mark files having a certain tag, type @kbd{C-t f}
 (@code{image-dired-mark-tagged-files}).  After marking image files
 with a certain tag, you can use @kbd{C-t d} to view them.
 
