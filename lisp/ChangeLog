@@ -28,7 +28,8 @@
 2008-11-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/x-win.el (x-gtk-stock-cache): New hash table.
-	(x-gtk-map-stock): Perform caching to prevent excess consing during
+	(x-gtk-map-stock): Perform caching to prevent excess consing
+	during redisplay.
 
 2008-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
