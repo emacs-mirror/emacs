@@ -298,12 +298,36 @@ This returns @code{t} if @var{charcode} is a valid character, and
 @code{nil} otherwise.
 
 @example
+@group
 (characterp 65)
      @result{} t
+@end group
+@group
 (characterp 4194303)
      @result{} t
+@end group
+@group
 (characterp 4194304)
      @result{} nil
+@end group
+@end example
+@end defun
+
+@cindex maximum value of character codepoint
+@cindex codepoint, largest value
+@defun max-char
+This function returns the largest value that a valid character
+codepoint can have.
+
+@example
+@group
+(characterp (max-char))
+     @result{} t
+@end group
+@group
+(characterp (1+ (max-char)))
+     @result{} nil
+@end group
 @end example
 @end defun
 
@@ -579,48 +603,51 @@ documented here.
 @subsection Basic Concepts of Coding Systems
 
 @cindex character code conversion
-  @dfn{Character code conversion} involves conversion between the encoding
-used inside Emacs and some other encoding.  Emacs supports many
-different encodings, in that it can convert to and from them.  For
-example, it can convert text to or from encodings such as Latin 1, Latin
-2, Latin 3, Latin 4, Latin 5, and several variants of ISO 2022.  In some
-cases, Emacs supports several alternative encodings for the same
-characters; for example, there are three coding systems for the Cyrillic
-(Russian) alphabet: ISO, Alternativnyj, and KOI8.
+  @dfn{Character code conversion} involves conversion between the
+internal representation of characters used inside Emacs and some other
+encoding.  Emacs supports many different encodings, in that it can
+convert to and from them.  For example, it can convert text to or from
+encodings such as Latin 1, Latin 2, Latin 3, Latin 4, Latin 5, and
+several variants of ISO 2022.  In some cases, Emacs supports several
+alternative encodings for the same characters; for example, there are
+three coding systems for the Cyrillic (Russian) alphabet: ISO,
+Alternativnyj, and KOI8.
 
+@c I think this paragraph is no longer correct.
+@ignore
   Most coding systems specify a particular character code for
 conversion, but some of them leave the choice unspecified---to be chosen
 heuristically for each file, based on the data.
+@end ignore
 
   In general, a coding system doesn't guarantee roundtrip identity:
 decoding a byte sequence using coding system, then encoding the
 resulting text in the same coding system, can produce a different byte
-sequence.  However, the following coding systems do guarantee that the
-byte sequence will be the same as what you originally decoded:
+sequence.  But some coding systems do guarantee that the byte sequence
+will be the same as what you originally decoded.  Here are a few
+examples:
 
 @quotation
-chinese-big5 chinese-iso-8bit cyrillic-iso-8bit emacs-mule
-greek-iso-8bit hebrew-iso-8bit iso-latin-1 iso-latin-2 iso-latin-3
-iso-latin-4 iso-latin-5 iso-latin-8 iso-latin-9 iso-safe
-japanese-iso-8bit japanese-shift-jis korean-iso-8bit raw-text
+iso-8859-1, utf-8, big5, shift_jis, euc-jp
 @end quotation
 
   Encoding buffer text and then decoding the result can also fail to
-reproduce the original text.  For instance, if you encode Latin-2
-characters with @code{utf-8} and decode the result using the same
-coding system, you'll get Unicode characters (of charset
-@code{mule-unicode-0100-24ff}).  If you encode Unicode characters with
-@code{iso-latin-2} and decode the result with the same coding system,
-you'll get Latin-2 characters.
+reproduce the original text.  For instance, if you encode a character
+with a coding system which does not support that character, the result
+is unpredictable, and thus decoding it using the same coding system
+may produce a different text.  Currently, Emacs can't report errors
+that result from encoding unsupported characters.
 
 @cindex EOL conversion
 @cindex end-of-line conversion
 @cindex line end conversion
-  @dfn{End of line conversion} handles three different conventions used
-on various systems for representing end of line in files.  The Unix
-convention is to use the linefeed character (also called newline).  The
-DOS convention is to use a carriage-return and a linefeed at the end of
-a line.  The Mac convention is to use just carriage-return.
+  @dfn{End of line conversion} handles three different conventions
+used on various systems for representing end of line in files.  The
+Unix convention, used on GNU and Unix systems, is to use the linefeed
+character (also called newline).  The DOS convention, used on
+MS-Windows and MS-DOS systems, is to use a carriage-return and a
+linefeed at the end of a line.  The Mac convention is to use just
+carriage-return.
 
 @cindex base coding system
 @cindex variant coding system
@@ -639,7 +666,8 @@ data, and has the usual three variants which specify the end-of-line
 conversion.  @code{no-conversion} is equivalent to @code{raw-text-unix}:
 it specifies no conversion of either character codes or end-of-line.
 
-  The coding system @code{emacs-mule} specifies that the data is
+@vindex emacs-internal@r{ coding system}
+  The coding system @code{emacs-internal} specifies that the data is
 represented in the internal Emacs encoding.  This is like
 @code{raw-text} in that no code conversion happens, but different in
 that the result is multibyte data.
@@ -647,20 +675,20 @@ that the result is multibyte data.
 @defun coding-system-get coding-system property
 This function returns the specified property of the coding system
 @var{coding-system}.  Most coding system properties exist for internal
-purposes, but one that you might find useful is @code{mime-charset}.
+purposes, but one that you might find useful is @code{:mime-charset}.
 That property's value is the name used in MIME for the character coding
 which this coding system can read and write.  Examples:
 
 @example
-(coding-system-get 'iso-latin-1 'mime-charset)
+(coding-system-get 'iso-latin-1 :mime-charset)
      @result{} iso-8859-1
-(coding-system-get 'iso-2022-cn 'mime-charset)
+(coding-system-get 'iso-2022-cn :mime-charset)
      @result{} iso-2022-cn
-(coding-system-get 'cyrillic-koi8 'mime-charset)
+(coding-system-get 'cyrillic-koi8 :mime-charset)
      @result{} koi8-r
 @end example
 
-The value of the @code{mime-charset} property is also defined
+The value of the @code{:mime-charset} property is also defined
 as an alias for the coding system.
 @end defun
 
@@ -763,9 +791,11 @@ name or @code{nil}.
 @end defun
 
 @defun check-coding-system coding-system
-This function checks the validity of @var{coding-system}.
-If that is valid, it returns @var{coding-system}.
-Otherwise it signals an error with condition @code{coding-system-error}.
+This function checks the validity of @var{coding-system}.  If that is
+valid, it returns @var{coding-system}.  If @var{coding-system} is
+@code{nil}, the function return @code{nil}.  For any other values, it
+signals an error whose @code{error-symbol} is @code{coding-system-error}
+(@pxref{Signaling Errors, signal}).
 @end defun
 
 @defun coding-system-eol-type coding-system
@@ -837,8 +867,9 @@ encode all the character sets in the list @var{charsets}.
 
 @defun detect-coding-region start end &optional highest
 This function chooses a plausible coding system for decoding the text
-from @var{start} to @var{end}.  This text should be a byte sequence
-(@pxref{Explicit Encoding}).
+from @var{start} to @var{end}.  This text should be a byte sequence,
+i.e.@: unibyte text or multibyte text with only @acronym{ASCII} and
+eight-bit characters (@pxref{Explicit Encoding}).
 
 Normally this function returns a list of coding systems that could
 handle decoding the text that was scanned.  They are listed in order of
@@ -1160,10 +1191,12 @@ in this section.
 
   The result of encoding, and the input to decoding, are not ordinary
 text.  They logically consist of a series of byte values; that is, a
-series of characters whose codes are in the range 0 through 255.  In a
-multibyte buffer or string, character codes 128 through 159 are
-represented by multibyte sequences, but this is invisible to Lisp
-programs.
+series of @acronym{ASCII} and eight-bit characters.  In unibyte
+buffers and strings, these characters have codes in the range 0
+through 255.  In a multibyte buffer or string, eight-bit characters
+have character codes higher than 255 (@pxref{Text Representations}),
+but Emacs transparently converts them to their single-byte values when
+you encode or decode such text.
 
   The usual way to read a file into a buffer as a sequence of bytes, so
 you can decode the contents explicitly, is with
@@ -1181,19 +1214,28 @@ encoding by binding @code{coding-system-for-write} to
   Here are the functions to perform explicit encoding or decoding.  The
 encoding functions produce sequences of bytes; the decoding functions
 are meant to operate on sequences of bytes.  All of these functions
-discard text properties.
+discard text properties.  They also set @code{last-coding-system-used}
+to the precise coding system they used.
 
-@deffn Command encode-coding-region start end coding-system
+@deffn Command encode-coding-region start end coding-system &optional destination
 This command encodes the text from @var{start} to @var{end} according
-to coding system @var{coding-system}.  The encoded text replaces the
-original text in the buffer.  The result of encoding is logically a
-sequence of bytes, but the buffer remains multibyte if it was multibyte
-before.
+to coding system @var{coding-system}.  Normally, the encoded text
+replaces the original text in the buffer, but the optional argument
+@var{destination} can change that.  If @var{destination} is a buffer,
+the encoded text is inserted in that buffer after point (point does
+not move); if it is @code{t}, the command returns the encoded text as
+a unibyte string without inserting it.
 
-This command returns the length of the encoded text.
+If encoded text is inserted in some buffer, this command returns the
+length of the encoded text.
+
+The result of encoding is logically a sequence of bytes, but the
+buffer remains multibyte if it was multibyte before, and any 8-bit
+bytes are converted to their multibyte representation (@pxref{Text
+Representations}).
 @end deffn
 
-@defun encode-coding-string string coding-system &optional nocopy
+@defun encode-coding-string string coding-system &optional nocopy buffer
 This function encodes the text in @var{string} according to coding
 system @var{coding-system}.  It returns a new string containing the
 encoded text, except when @var{nocopy} is non-@code{nil}, in which
@@ -1201,24 +1243,36 @@ case the function may return @var{string} itself if the encoding
 operation is trivial.  The result of encoding is a unibyte string.
 @end defun
 
-@deffn Command decode-coding-region start end coding-system
+@deffn Command decode-coding-region start end coding-system destination
 This command decodes the text from @var{start} to @var{end} according
-to coding system @var{coding-system}.  The decoded text replaces the
-original text in the buffer.  To make explicit decoding useful, the text
-before decoding ought to be a sequence of byte values, but both
-multibyte and unibyte buffers are acceptable.
+to coding system @var{coding-system}.  To make explicit decoding
+useful, the text before decoding ought to be a sequence of byte
+values, but both multibyte and unibyte buffers are acceptable (in the
+multibyte case, the raw byte values should be represented as eight-bit
+characters).  Normally, the decoded text replaces the original text in
+the buffer, but the optional argument @var{destination} can change
+that.  If @var{destination} is a buffer, the decoded text is inserted
+in that buffer after point (point does not move); if it is @code{t},
+the command returns the decoded text as a multibyte string without
+inserting it.
 
-This command returns the length of the decoded text.
+If decoded text is inserted in some buffer, this command returns the
+length of the decoded text.
 @end deffn
 
-@defun decode-coding-string string coding-system &optional nocopy
-This function decodes the text in @var{string} according to coding
-system @var{coding-system}.  It returns a new string containing the
-decoded text, except when @var{nocopy} is non-@code{nil}, in which
-case the function may return @var{string} itself if the decoding
-operation is trivial.  To make explicit decoding useful, the contents
-of @var{string} ought to be a sequence of byte values, but a multibyte
-string is acceptable.
+@defun decode-coding-string string coding-system &optional nocopy buffer
+This function decodes the text in @var{string} according to
+@var{coding-system}.  It returns a new string containing the decoded
+text, except when @var{nocopy} is non-@code{nil}, in which case the
+function may return @var{string} itself if the decoding operation is
+trivial.  To make explicit decoding useful, the contents of
+@var{string} ought to be a unibyte string with a sequence of byte
+values, but a multibyte string is also acceptable (assuming it
+contains 8-bit bytes in their multibyte form).
+
+If optional argument @var{buffer} specifies a buffer, the decoded text
+is inserted in that buffer after point (point does not move).  In this
+case, the return value is the length of the decoded text.
 @end defun
 
 @defun decode-coding-inserted-region from to filename &optional visit beg end replace
@@ -1236,10 +1290,10 @@ decoding, you can call this function.
 @subsection Terminal I/O Encoding
 
   Emacs can decode keyboard input using a coding system, and encode
-terminal output.  This is useful for terminals that transmit or display
-text using a particular encoding such as Latin-1.  Emacs does not set
-@code{last-coding-system-used} for encoding or decoding for the
-terminal.
+terminal output.  This is useful for terminals that transmit or
+display text using a particular encoding such as Latin-1.  Emacs does
+not set @code{last-coding-system-used} for encoding or decoding of
+terminal I/O.
 
 @defun keyboard-coding-system
 This function returns the coding system that is in use for decoding
