@@ -1,5 +1,8 @@
 2008-11-29  Kenichi Handa  <handa@m17n.org>
 
+	* charset.h (CHAR_CHARSET_P): Check if the encoder is loaded or
+	not before accessing it.
+
 	* charset.c (Fdefine_charset_internal): After calculating
 	min_char, max_char, and fastmap, copy the charset structure again.
 	(encode_char): Fix the previous change.
