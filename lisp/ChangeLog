@@ -1,3 +1,11 @@
+2008-11-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* complete.el (PC-do-complete-and-exit): Use
+	minibuffer-confirm-exit-commands.
+
+	* minibuffer.el (minibuffer-confirm-exit-commands): Add
+	PC-complete and PC-complete-word to the list.
+
 2008-11-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (break-hardlink-on-save): Fix typo in docstring.
