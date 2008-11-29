@@ -340,7 +340,7 @@ See `PC-complete' for details."
    ((eq minibuffer-completion-confirm 'confirm-after-completion)
     ;; Similar to the above, but only if trying to exit immediately
     ;; after typing TAB (this catches most minibuffer typos).
-    (if (and (memq last-command '(PC-complete minibuffer-complete))
+    (if (and (memq last-command minibuffer-confirm-exit-commands)
 	     (not (test-completion (field-string)
 				   minibuffer-completion-table
 				   minibuffer-completion-predicate)))
