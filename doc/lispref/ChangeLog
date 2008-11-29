@@ -1,5 +1,16 @@
 2008-11-29  Eli Zaretskii  <eliz@gnu.org>
 
+	* nonascii.texi (Character Properties): New Section.
+	(Specifying Coding Systems): Document
+	`coding-system-priority-list', `set-coding-system-priority', and
+	`with-coding-priority'.
+	(Lisp and Coding Systems): Document `check-coding-systems-region'
+	and `coding-system-charset-list'.
+	(Coding System Basics): Document `coding-system-aliases'.
+
+	* elisp.texi (Top): Add a @detailmenu entry for "Character
+	Properties".
+
 	* objects.texi (Character Type): Correct the range of Emacs
 	characters.  Add an @xref to "Character Codes".
 
