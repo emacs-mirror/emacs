@@ -141,7 +141,7 @@ and Sending Mail and Registers and Minibuffer.
 * Intro::	        An introduction to Emacs concepts.
 * Glossary::	        Terms used in this manual.
 * Antinews::	        Information about Emacs version 21.
-* Mac OS::              Using Emacs in the Mac.
+* Mac OS / GNUstep::    Using Emacs under Mac OS and GNUstep.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::	        What's GNU?  Gnu's Not Unix!
 * Acknowledgments::     Major contributors to GNU Emacs.
@@ -980,11 +980,12 @@ X Options and Resources
 * LessTif Resources::   X resources for LessTif and Motif menus.
 * GTK resources::       Resources for GTK widgets.
 
-Emacs and Mac OS
+Emacs and Mac OS / GNUstep
 
-* Mac Basics::          Basic Emacs usage in Mac OS.
-* Mac Events::          How window system events are handled.
-* Mac Customization::   Customizations in Mac OS
+* Mac / GNUstep Basics::          Basic Emacs usage in Mac OS.
+* Mac / GNUstep Events::          How window system events are handled.
+* Mac / GNUstep Customization::   Customizations in Mac OS
+* GNUstep Support::             Details on status of GNUstep support
 
 Emacs and Microsoft Windows/MS-DOS
 

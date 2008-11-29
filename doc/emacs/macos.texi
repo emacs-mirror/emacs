@@ -2,46 +2,50 @@
 @c Copyright (C) 2000, 2001, 2002, 2003, 2004,
 @c   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Mac OS, Microsoft Windows, Antinews, Top
-@appendix Emacs and Mac OS
-@cindex Mac OS
+@node Mac OS / GNUstep, Microsoft Windows, Antinews, Top
+@appendix Emacs and Mac OS / GNUstep
+@cindex Mac OS X
 @cindex Macintosh
+@cindex GNUstep
 
-  This section briefly describes the peculiarities of using Emacs
-under Mac OS X with native window system support.  For Mac OS X, Emacs
-can be built either without window system support, with X11, or with
-the Cocoa interface.  This section only applies to the Cocoa build.
-Emacs 23 does not support Mac OS Classic.
+  This section briefly describes the peculiarities of using Emacs built with
+the GNUstep libraries on GNU/Linux or other operating systems, or on Mac OS X
+with native window system support.  For Mac OS X, Emacs can be built either
+without window system support, with X11, or with the Cocoa interface.  This
+section only applies to the Cocoa build.  Emacs 23 does not support Mac OS
+Classic.
 
-  Emacs, when built on Mac OS X, uses the Cocoa application interface.
-For various historical and technical reasons, Emacs uses the term
-@samp{Nextstep} internally, instead of ``Cocoa'' or ``Mac OS X''; for
-instance, most of the commands and variables described in the
-following sections begin with @samp{ns-}, which is short for
-@samp{Nextstep}.  NeXTstep was an application interface released by
-NeXT Inc during the 1980s, of which Cocoa is a direct descendent.
-Apart from Cocoa, there is another NeXTstep-style system: GNUstep,
-which is free software.  As of this writing, the GNUstep support is
-not fully functional, but we hope to improve it in the future.
+  Emacs, when built on Mac OS X, uses the Cocoa application interface.  For
+various historical and technical reasons, Emacs uses the term @samp{Nextstep}
+internally, instead of ``Cocoa'' or ``Mac OS X''; for instance, most of the
+commands and variables described in the following sections begin with
+@samp{ns-}, which is short for @samp{Nextstep}.  NeXTstep was an application
+interface released by NeXT Inc during the 1980s, of which Cocoa is a direct
+descendent.  Apart from Cocoa, there is another NeXTstep-style system:
+GNUstep, which is free software.  As of this writing, the GNUstep support is
+alpha status (see @pxref{GNUstep Support}), but we hope to improve it in the
+future.
 
 @menu
-* Mac Basics::          Basic Emacs usage in Mac OS.
-* Mac Customization::   Customizations in Mac OS
-* Mac Events::          How window system events are handled.
+* Mac / GNUstep Basics::        Basic Emacs usage under GNUstep or Mac OS.
+* Mac / GNUstep Customization:: Customizations under GNUstep or Mac OS.
+* Mac / GNUstep Events::        How window system events are handled.
+* GNUstep Support::             Details on status of GNUstep support
+* 
 @end menu
 
-@node Mac Basics, Mac Customization, , Mac OS
-@section Basic Emacs usage in Mac OS
+@node Mac / GNUstep Basics, Mac / GNUstep Customization, , Mac OS / GNUstep
+@section Basic Emacs usage under Mac OS and GNUstep
 
   By default, the @key{alt} and @key{option} keys are the same as
 @key{Meta} when running under Mac OS.  The Mac @key{Cmd} key is the
 same as @key{Super}, and Emacs provides a set of keybindings using
-this modifier key that mimic other Mac applications (@pxref{Mac
-Events}).  You can change these bindings in the usual way (@pxref{Key
-Bindings}), or by using the Mac preferences panel (@pxref{Mac
+this modifier key that mimic other Mac / GNUstep applications (@pxref{Mac /
+GNUstep Events}).  You can change these bindings in the usual way (@pxref{Key
+Bindings}), or by using the Preferences panel (@pxref{Mac / GNUstep
 Customization}).
 
-  The standard Mac font and color panels are accessible via the
+  The standard Mac / GNUstep font and color panels are accessible via the
 @samp{Windows} menu, or via the standard @key{Cmd-t} and @key{Cmd-C}
 keybindings.  To use the color panel, drag from it to an Emacs frame
 to change the foreground color of the face at that position (if the
@@ -50,12 +54,12 @@ instead).  To finalize the settings for either color or font, choose
 @samp{Save Options} in the @samp{Options} menu.  To discard the
 settings, create a new frame and close the altered one.
 
-  In Mac OS, @key{S-Mouse-1} (i.e., clicking the left mouse button
+  @key{S-Mouse-1} (i.e., clicking the left mouse button
 while holding down the @key{Shift} key) adjusts the region to the
 click position, just like @key{Mouse-3} (@code{mouse-save-then-kill});
 it does not pop up a menu for changing the default face, as
 @key{S-Mouse-1} normally does (@pxref{Temporary Face Changes}).  This
-change makes Emacs behave more like other Mac applications.
+change makes Emacs behave more like other Mac / GNUstep applications.
 
   When you open or save files using the menus, or using the standard
 @key{Cmd-o} and @key{Cmd-S} bindings, Emacs uses graphical file
@@ -76,12 +80,12 @@ clipboard.
 Many programs which may run under Emacs like latex or man depend on the
 settings of environment variables.  If Emacs is launched from the shell, it
 will automatically inherit these environment variables and its subprocesses
-will inherit them from it.  But if Emacs.app is launched from the Finder it
+will inherit them from it.  But if Emacs is launched from the Finder it
 is not a descendant of any shell, so its environment variables haven't been
 set which often causes the subprocesses it launches to behave differently than
 they would when launched from the shell.
 
-To solve this problem for Emacs.app, there are two solutions.  First is to
+To solve this problem for Emacs, there are two solutions.  First is to
 run, from the command line:
 
 @example
@@ -116,10 +120,10 @@ The reason that @code{ns-grabenv} is not done by default is that it adds up
 to a second or two to the Emacs startup time.
 
 
-@node Mac Customization, Mac Events, Mac Basics, Mac OS
-@section Mac Customization
+@node Mac / GNUstep Customization, Mac / GNUstep Events, Mac / GNUstep Basics, Mac OS / GNUstep
+@section Mac / GNUstep Customization
 
-Emacs.app can be customized in several ways in addition to the standard
+Emacs can be customized in several ways in addition to the standard
 customization buffers and the Options menu.
 
 
@@ -129,7 +133,7 @@ The Preferences panel, much like the Options menu, is designed to allow quick
 and convenient setting of commonly used options.
 
 The Preferences panel is available for setting commonly used GUI-related
-options for Emacs.app.  Access it under the Emacs menu (Mac) or Info menu
+options for Emacs.  Access it under the Emacs menu (Mac) or Info menu
 (GNUstep), or using @kbd{Cmd-,}.
 
 Settings made here are saved when @samp{OK} is hit, or @samp{Save Options} is
@@ -442,8 +446,8 @@ open the dragged files in the current frame use the following line:
 @end lisp
 
 
-@node Mac Events, , Mac Customization, Mac OS
-@section Windowing System Events in Mac OS X
+@node Mac / GNUstep Events, GNUstep Support, Mac / GNUstep Customization, Mac OS / GNUstep
+@section Windowing System Events under Mac OS / GNUstep
 
   Nextstep applications receive a number of special events which have
 no X equivalent.  These are sent as specially defined ``keys'', which
@@ -522,6 +526,20 @@ and return the result as a string.  You can also use the Lisp function
 @code{ns-perform-service} to pass arbitrary strings to arbitrary
 services and receive the results back.  Note that you may need to
 restart Emacs to access newly-available services.
+
+
+@node GNUstep Support, , Mac / GNUstep Events, Mac OS / GNUstep
+@section GNUstep Support
+
+Emacs can be built and run under GNUstep however building is difficult and
+there are some limitations to functionality.  In particular, it may be
+necessary to run @samp{make bootstrap} with a plain X configuration, then
+@samp{make clean} and @samp{./configure --with-ns} followed by @samp{make
+install}.
+
+Currently CANNOT_DUMP is automatically enabled in GNUstep configurations,
+because the unex file(s) for GNUstep, mainly @samp{unexelf.c}, have not been
+updated yet with the ``zone'' code in and related to @samp{unexmacosx.c}.
 
 @ignore
    arch-tag: a822c2ab-4273-4997-927e-c153bb71dcf6
