@@ -1,3 +1,9 @@
+2008-11-29  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (Fdefine_charset_internal): After calculating
+	min_char, max_char, and fastmap, copy the charset structure again.
+	(encode_char): Fix the previous change.
+
 2008-11-28  Seiji Zenitani  <zenitani@mac.com>
 
 	* frame.c (x_set_alpha) [NS_IMPL_COCOA]: Call x_set_frame_alpha.
