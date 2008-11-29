@@ -1,3 +1,15 @@
+2008-11-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* objects.texi (Character Type): Correct the range of Emacs
+	characters.  Add an @xref to "Character Codes".
+
+	* strings.texi (String Basics): Add an @xref to "Character Codes".
+
+	* numbers.texi (Integer Basics): Add an @xref to `max-char'.
+
+	* nonascii.texi (Explicit Encoding): Update for Emacs 23.
+	(Character Codes): Document `max-char'.
+
 2008-11-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* nonascii.texi (Text Representations, Converting Representations)
