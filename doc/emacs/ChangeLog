@@ -1,7 +1,11 @@
 2008-11-29  Martin Rudalics  <rudalics@gmx.at>
 
+	* display.texi (Line Truncation): Add reference to Continuation
+	Lines.
+
 	* windows.texi (Pop Up Window): Mention split-height-threshold
 	and split-width-threshold.
+	(Split Window): Add reference to Continuation Lines.
 
 2008-11-28  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
