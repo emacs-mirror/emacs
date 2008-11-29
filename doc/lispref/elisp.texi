@@ -1087,6 +1087,8 @@ Non-ASCII Characters
 * Selecting a Representation::  Treating a byte sequence as unibyte or multi.
 * Character Codes::         How unibyte and multibyte relate to
                                 codes of individual characters.
+* Character Properties::    Character attributes that define their
+                                behavior and handling.
 * Character Sets::          The space of possible character codes
                                 is divided into various character sets.
 * Scanning Charsets::       Which character sets are used in a buffer?
