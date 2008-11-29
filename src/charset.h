@@ -503,7 +503,8 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 	  && ((charset)->method == CHARSET_METHOD_OFFSET		 \
 	      ? (c) >= (charset)->min_char && (c) <= (charset)->max_char \
 	      : ((charset)->method == CHARSET_METHOD_MAP		 \
-		 && (charset)->compact_codes_p)				 \
+		 && (charset)->compact_codes_p				 \
+		 && CHAR_TABLE_P (CHARSET_ENCODER (charset)))		 \
 	      ? ! NILP (CHAR_TABLE_REF (CHARSET_ENCODER (charset), (c))) \
 	      : encode_char ((charset), (c)) != (charset)->invalid_code))))
 
