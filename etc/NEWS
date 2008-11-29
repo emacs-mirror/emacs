@@ -1437,6 +1437,7 @@ positional codes instead of just 2.
 +++
 *** The functions `encode-char' and `decode-char' now accept any character sets.
 
+---
 *** The function `define-charset' now accepts a completely different
 form of arguments (old-style arguments still work).
 
@@ -1444,6 +1445,7 @@ form of arguments (old-style arguments still work).
 *** The value of the function `char-charset' depends on the current
 priorities of charsets.
 
++++
 *** The function get-char-code-property now accepts many Unicode base
 character properties.  They are `name', `general-category',
 `canonical-combining-class', `bidi-class', `decomposition',
@@ -1464,8 +1466,10 @@ entries in that range of characters.
 **** `characterp' returns t if and only if the argument is a character.
 This replaces `char-valid-p', which is now obsolete.
 
++++
 **** `max-char' returns the maximum character code (currently #x3FFFFF).
 
+---
 **** `define-charset-alias' defines an alias of a charset.
 
 +++
@@ -1477,8 +1481,10 @@ This replaces `char-valid-p', which is now obsolete.
 +++
 **** `unibyte-string' makes a unibyte string from bytes.
 
+---
 **** `define-char-code-property' defines a character code property.
 
++++
 **** `char-code-property-description' returns the description string of
 a character code property.
 
@@ -1487,46 +1493,60 @@ a character code property.
 **** `find-word-boundary-function-table' is a char-table of functions to
 search for a word boundary.
 
++++
 **** `char-script-table' is a char-table of script names.
 
++++
 **** `char-width-table' is a char-table of character widths.
 
+---
 **** `print-charset-text-property' controls how to handle `charset' text
 property on printing a string.
 
++++
 **** `printable-chars' is a char-table of printable characters.
 
 ** Code conversion changes
 
+---
 *** The new function `define-coding-system' should be used to define a
 coding system instead of `make-coding-system' (which is now obsolete).
 
++++
 *** The functions `encode-coding-region' and `decode-coding-region'
 have an optional 4th argument to specify where the result of
 conversion should go.
 
++++
 *** The functions `encode-coding-string' and `decode-coding-string'
 have an optional 4th argument specifying a buffer to store the result
 of conversion.
 
+---
 *** The functions `set-coding-priority' and `make-coding-system' are obsolete.
 
 *** New functions:
 
++++
 **** `with-coding-priority' executes Lisp code using the specified
 coding system priority order.
 
++++
 **** `check-coding-systems-region' checks if the text in the region is
 encodable by the specified coding systems.
 
++++
 **** `coding-system-aliases' returns a list of aliases of a coding system.
 
++++
 **** `coding-system-charset-list' returns a list of charsets supported
 by a coding system.
 
++++
 **** `coding-system-priority-list' returns a list of coding systems
 ordered by their priorities.
 
++++
 **** `set-coding-system-priority' sets priorities of coding systems.
 
 ** There is a new input method, Robin, different from Quail.
