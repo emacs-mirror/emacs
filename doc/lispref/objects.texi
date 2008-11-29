@@ -231,13 +231,12 @@ example, the character @kbd{A} is represented as the @w{integer 65}.
 more common to work with @emph{strings}, which are sequences composed
 of characters.  @xref{String Type}.
 
-  Characters in strings, buffers, and files are currently limited to
-the range of 0 to 524287---nineteen bits.  But not all values in that
-range are valid character codes.  Codes 0 through 127 are
-@acronym{ASCII} codes; the rest are non-@acronym{ASCII}
-(@pxref{Non-ASCII Characters}).  Characters that represent keyboard
-input have a much wider range, to encode modifier keys such as
-Control, Meta and Shift.
+  Characters in strings and buffers are currently limited to the range
+of 0 to 4194303---twenty two bits (@pxref{Character Codes}).  Codes 0
+through 127 are @acronym{ASCII} codes; the rest are
+non-@acronym{ASCII} (@pxref{Non-ASCII Characters}).  Characters that
+represent keyboard input have a much wider range, to encode modifier
+keys such as Control, Meta and Shift.
 
   There are special functions for producing a human-readable textual
 description of a character for the sake of messages.  @xref{Describing
@@ -362,7 +361,7 @@ an error.
 
   This peculiar and inconvenient syntax was adopted for compatibility
 with other programming languages.  Unlike some other languages, Emacs
-Lisp supports this syntax in only character literals and strings.
+Lisp supports this syntax only in character literals and strings.
 
 @cindex @samp{\} in character constant
 @cindex backslash in character constant
