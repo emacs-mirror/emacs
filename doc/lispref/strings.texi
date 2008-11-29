@@ -39,7 +39,8 @@ keyboard character events.
 
   Characters are represented in Emacs Lisp as integers;
 whether an integer is a character or not is determined only by how it is
-used.  Thus, strings really contain integers.
+used.  Thus, strings really contain integers.  @xref{Character Codes},
+for details about character representation in Emacs.
 
   The length of a string (like any array) is fixed, and cannot be
 altered once the string exists.  Strings in Lisp are @emph{not}
@@ -54,11 +55,8 @@ and @code{aset} (@pxref{Array Functions}).
 
   There are two text representations for non-@acronym{ASCII} characters in
 Emacs strings (and in buffers): unibyte and multibyte (@pxref{Text
-Representations}).  An @acronym{ASCII} character always occupies one byte in a
-string; in fact, when a string is all @acronym{ASCII}, there is no real
-difference between the unibyte and multibyte representations.
-For most Lisp programming, you don't need to be concerned with these two
-representations.
+Representations}).  For most Lisp programming, you don't need to be
+concerned with these two representations.
 
   Sometimes key sequences are represented as strings.  When a string is
 a key sequence, string elements in the range 128 to 255 represent meta
