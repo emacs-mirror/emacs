@@ -224,6 +224,14 @@ window.  This runs @code{find-file-read-only-other-window}.
 @xref{Visiting}.
 @end table
 
+@vindex split-height-threshold
+@vindex split-width-threshold
+  By default, these commands split the window vertically when there is
+only one.  You can customize the variables @code{split-height-threshold}
+and @code{split-width-threshold} to split the window horizontally
+instead.
+
+
 @node Force Same Window
 @section Forcing Display in the Same Window
 
