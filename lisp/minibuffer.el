@@ -625,7 +625,8 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
               (after (substring string point))
 	      ;; Disable partial-completion for this.
 	      (completion-styles
-	       (remove 'partial-completion completion-styles))
+	       (or (remove 'partial-completion completion-styles)
+		   completion-styles))
 	      tem)
 	  (while (and exts (not (consp tem)))
             (setq tem (completion-try-completion

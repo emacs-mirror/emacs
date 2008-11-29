@@ -1,3 +1,8 @@
+2008-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--try-word-completion): Don't ignore
+	partial-completion if it's the only style.
+
 2008-11-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/re-builder.el (reb-auto-update): Remove redundant code.
