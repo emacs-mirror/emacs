@@ -19,6 +19,8 @@ how they are stored in strings and buffers.
 * Selecting a Representation::  Treating a byte sequence as unibyte or multi.
 * Character Codes::         How unibyte and multibyte relate to
                                 codes of individual characters.
+* Character Properties::    Character attributes that define their
+                                behavior and handling.
 * Character Sets::          The space of possible character codes
                                 is divided into various character sets.
 * Scanning Charsets::       Which character sets are used in a buffer?
@@ -343,6 +345,184 @@ non-@acronym{ASCII}.
 The optional argument @var{string} means to get a byte value from that
 string instead of the current buffer.
 @end defun
+
+@node Character Properties
+@section Character Properties
+@cindex character properties
+A @dfn{character property} is a named attribute of a character that
+specifies how the character behaves and how it should be handled
+during text processing and display.  Thus, character properties are an
+important part of specifying the character's semantics.
+
+  Emacs generally follows the Unicode Standard in its implementation
+of character properties.  In particular, Emacs supports the
+@uref{http://www.unicode.org/reports/tr23/, Unicode Character Property
+Model}, and the Emacs character property database is derived from the
+Unicode Character Database (@acronym{UCD}).  See the
+@uref{http://www.unicode.org/versions/Unicode5.0.0/ch04.pdf, Character
+Properties chapter of the Unicode Standard}, for more details about
+Unicode character properties and their meaning.
+
+  The facilities documented in this section are useful for setting and
+retrieving properties of characters.
+
+  In Emacs, each property has a name, which is a symbol, and a set of
+possible values, whose types depend on the property.  Here's the full
+list of character properties that Emacs knows about:
+
+@table @code
+@item name
+The character's canonical unique name.  The value of the property is a
+string consisting of upper-case Latin letters A to Z, digits, spaces,
+and hyphen @samp{-} characters.
+
+@item general-category
+This property assigns the character to one of the major classes, such
+as letters, punctuation, and symbols, and its important subclasses.
+The value is a symbol whose name is a 2-letter abbreviation.  The
+first letter specifies the character's major class and the second
+letter designates a subclass of that major class.
+
+@item canonical-combining-class
+This property classifies combining characters into several classes,
+depending on the details of their behavior in sequences of combining
+characters.  The property's value is an integer number.
+
+@item bidi-class
+This property specifies character attributes required for correct
+display of @dfn{bidirectional text} used by right-to-left scripts,
+such as Arabic and Hebrew.  The value is a symbol whose name is the
+Unicode @dfn{directional type} of the character.
+
+@item decomposition
+This property defines a mapping from a character to a sequence of one
+or more characters that is a canonical or compatibility equivalent to
+it.  The value is a list, whose first element may be a symbol
+representing a compatibility formatting tag, such as @code{<small>};
+the other elements are characters that give the compatibility
+decomposition sequence.
+
+@item decimal-digit-value
+This property specifies a numeric value of characters that represent
+decimal digits.  The value is an integer number.
+
+@item digit
+This property specifies a numeric value of characters that represent
+digits, but not necessarily decimal.  Examples include compatibility
+subscript and superscript digits.  The value is an integer number.
+
+@item numeric-value
+This property specifies whether the character represents a number.
+Examples of characters that do include fractions, subscripts,
+superscripts, Roman numerals, currency numerators, and encircled
+numbers.  The value is a symbol whose name gives the numeric value;
+for example, the value of this property for the character
+@code{U+2155} (@sc{vulgar fraction one fifth}) is the symbol
+@samp{1/5}.
+
+@item mirrored
+This is a property of characters such as parentheses, which need to be
+mirrored horizontally in right to left scripts.  The value is a
+symbol, either @samp{Y} or @samp{N}.
+
+@item old-name
+This property's value specifies the name, if any, of the character in
+the old version 1.0 of the Unicode Standard.  The value is a string.
+
+@item iso-10646-comment
+This character's comment field from the ISO 10646 standard.  The value
+is a string, or @code{nil} if there's no comment.
+
+@item uppercase
+If this character has an upper-case equivalent that is a single
+character, then the value of this property is that upper-case
+equivalent.  Otherwise, the value is @code{nil}.
+
+@item lowercase
+If this character has an lower-case equivalent that is a single
+character, then the value of this property is that lower-case
+equivalent.  Otherwise, the value is @code{nil}.
+
+@item titlecase
+@dfn{Title case} is a special form of a character used when the first
+character of a word needs to be capitalized.  If a character has a
+title-case equivalent that is a single character, then the value of
+this property is that title-case equivalent.  Otherwise, the value is
+@code{nil}.
+@end table
+
+@defun get-char-code-property char propname
+This function returns the value of @var{char}'s @var{propname} property.
+
+@example
+@group
+(get-char-code-property ?  'general-category)
+     @result{} Zs
+@end group
+@group
+(get-char-code-property ?1  'general-category)
+     @result{} Nd
+@end group
+@group
+(get-char-code-property ?\u2084 'digit-value) ; subscript 4
+     @result{} 4
+@end group
+@group
+(get-char-code-property ?\u2155 'numeric-value) ; one fifth
+     @result{} 1/5
+@end group
+@group
+(get-char-code-property ?\u2163 'numeric-value) ; Roman IV
+     @result{} \4
+@end group
+@end example
+@end defun
+
+@defun char-code-property-description prop value
+This function returns the description string of property @var{prop}'s
+@var{value}, or @code{nil} if @var{value} has no description.
+
+@example
+@group
+(char-code-property-description 'general-category 'Zs)
+     @result{} "Separator, Space"
+@end group
+@group
+(char-code-property-description 'general-category 'Nd)
+     @result{} "Number, Decimal Digit"
+@end group
+@group
+(char-code-property-description 'numeric-value '1/5)
+     @result{} nil
+@end group
+@end example
+@end defun
+
+@defun put-char-code-property char propname value
+This function stores @var{value} as the value of the property
+@var{propname} for the character @var{char}.
+@end defun
+
+@defvar char-script-table
+The value of this variable is a char-table (@pxref{Char-Tables}) that
+specifies, for each character, a symbol whose name is the script to
+which the character belongs, according to the Unicode Standard
+classification of the Unicode code space into script-specific blocks.
+This char-table has a single extra slot whose value is the list of all
+script symbols.
+@end defvar
+
+@defvar char-width-table
+The value of this variable is a char-table that specifies the width of
+each character in columns that it will occupy on the screen.
+@end defvar
+
+@defvar printable-chars
+The value of this variable is a char-table that specifies, for each
+character, whether it is printable or not.  That is, if evaluating
+@code{(aref printable-chars char)} results in @code{t}, the character
+is printable, and if it results in @code{nil}, it is not.
+@end defvar
 
 @node Character Sets
 @section Character Sets
@@ -692,6 +872,10 @@ The value of the @code{:mime-charset} property is also defined
 as an alias for the coding system.
 @end defun
 
+@defun coding-system-aliases coding-system
+This function returns the list of aliases of @var{coding-system}.
+@end defun
+
 @node Encoding and I/O
 @subsection Encoding and I/O
 
@@ -865,6 +1049,22 @@ This function returns a list of coding systems that could be used to
 encode all the character sets in the list @var{charsets}.
 @end defun
 
+@defun check-coding-systems-region start end coding-system-list
+This function checks whether coding systems in the list
+@code{coding-system-list} can encode all the characters in the region
+between @var{start} and @var{end}.  If all of the coding systems in
+the list can encode the specified text, the function returns
+@code{nil}.  If some coding systems cannot encode some of the
+characters, the value is an alist, each element of which has the form
+@code{(@var{coding-system1} @var{pos1} @var{pos2} @dots{})}, meaning
+that @var{coding-system1} cannot encode characters at buffer positions
+@var{pos1}, @var{pos2}, @enddots{}.
+
+@var{start} may be a string, in which case @var{end} is ignored and
+the returned value references string indices instead of buffer
+positions.
+@end defun
+
 @defun detect-coding-region start end &optional highest
 This function chooses a plausible coding system for decoding the text
 from @var{start} to @var{end}.  This text should be a byte sequence,
@@ -886,6 +1086,26 @@ end-of-line conversion, if that can be deduced from the text.
 @defun detect-coding-string string &optional highest
 This function is like @code{detect-coding-region} except that it
 operates on the contents of @var{string} instead of bytes in the buffer.
+@end defun
+
+@defun coding-system-charset-list coding-system
+This function returns the list of character sets (@pxref{Character
+Sets}) supported by @var{coding-system}.  Some coding systems that
+support too many character sets to list them all yield special values:
+@itemize @bullet
+@item
+If @var{coding-system} supports all the ISO-2022 charsets, the value
+is @code{iso-2022}.
+@item
+If @var{coding-system} supports all Emacs characters, the value is
+@code{(emacs)}.
+@item
+If @var{coding-system} supports all emacs-mule characters, the value
+is @code{emacs-mule}.
+@item
+If @var{coding-system} supports all Unicode characters, the value is
+@code{(unicode)}.
+@end itemize
 @end defun
 
   @xref{Coding systems for a subprocess,, Process Information}, in
@@ -1178,6 +1398,33 @@ no matter which coding system is specified.  This applies to all the
 Emacs I/O and subprocess primitives, and to the explicit encoding and
 decoding functions (@pxref{Explicit Encoding}).
 @end defvar
+
+@cindex priority order of coding systems
+@cindex coding systems, priority
+  Sometimes, you need to prefer several coding systems for some
+operation, rather than fix a single one.  Emacs lets you specify a
+priority order for using coding systems.  This ordering affects the
+sorting of lists of coding sysems returned by functions such as
+@code{find-coding-systems-region} (@pxref{Lisp and Coding Systems}).
+
+@defun coding-system-priority-list &optional highestp
+This function returns the list of coding systems in the order of their
+current priorities.  Optional argument @var{highestp}, if
+non-@code{nil}, means return only the highest priority coding system.
+@end defun
+
+@defun set-coding-system-priority &rest coding-systems
+This function puts @var{coding-systems} at the beginning of the
+priority list for coding systems, thus making their priority higher
+than all the rest.
+@end defun
+
+@defmac with-coding-priority coding-systems &rest body@dots{}
+This macro execute @var{body}, like @code{progn} does
+(@pxref{Sequencing, progn}), with @var{coding-systems} at the front of
+the priority list for coding systems.  @var{coding-systems} should be
+a list of coding systems to prefer during execution of @var{body}.
+@end defmac
 
 @node Explicit Encoding
 @subsection Explicit Encoding and Decoding
