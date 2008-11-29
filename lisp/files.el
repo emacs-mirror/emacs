@@ -251,7 +251,7 @@ See also: `break-hardlink-on-save'."
 
 (defcustom break-hardlink-on-save nil
   "Non-nil means when saving a file that exists under several names
-(i.e., has multiple hardlinks), break the hardlink associated with
+\(i.e., has multiple hardlinks), break the hardlink associated with
 `buffer-file-name' and write to a new file, so that the other
 instances of the file are not affected by the save.
 
@@ -264,7 +264,8 @@ hardlink-nonbreaking way.
 
 See also `backup-by-copying' and `backup-by-copying-when-linked'."
   :type 'boolean
-  :group 'files)
+  :group 'files
+  :version "23.1")
 
 (defcustom version-control nil
   "Control use of version numbers for backup files.

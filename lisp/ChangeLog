@@ -1,5 +1,8 @@
 2008-11-29  Juanma Barranquero  <lekktu@gmail.com>
 
+	* files.el (break-hardlink-on-save): Fix typo in docstring.
+	Add :version tag.
+
 	* emacs-lisp/re-builder.el (reb-mode-map): Fix typo in menu tooltip.
 	(reb-mode): Define with `define-derived-mode'.
 
