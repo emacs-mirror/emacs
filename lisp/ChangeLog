@@ -1,3 +1,8 @@
+2008-11-29  Miles Bader  <miles@gnu.org>
+
+	* minibuffer.el (minibuffer-confirm-exit-commands): New variable.
+	(minibuffer-complete-and-exit): Use it.
+
 2008-11-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/x-win.el (x-gtk-stock-cache): New hash table.

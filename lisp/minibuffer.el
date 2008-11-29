@@ -542,6 +542,11 @@ Repeated uses step through the possible completions."
       ;; through the previous possible completions.
       (setq completion-all-sorted-completions (cdr all)))))
 
+(defvar minibuffer-confirm-exit-commands
+  '(minibuffer-complete minibuffer-complete-word)
+  "A list of commands which cause an immediately following
+`minibuffer-complete-and-exit' to ask for extra confirmation.")
+
 (defun minibuffer-complete-and-exit ()
   "Exit if the minibuffer contains a valid completion.
 Otherwise, try to complete the minibuffer contents.  If
@@ -595,7 +600,7 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
      ((eq minibuffer-completion-confirm 'confirm-after-completion)
       ;; Similar to the above, but only if trying to exit immediately
       ;; after typing TAB (this catches most minibuffer typos).
-      (if (eq last-command 'minibuffer-complete)
+      (if (memq last-command minibuffer-confirm-exit-commands)
 	  (progn (minibuffer-message "Confirm")
 		 nil)
 	(exit-minibuffer)))
