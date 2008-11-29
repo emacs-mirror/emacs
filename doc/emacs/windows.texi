@@ -108,18 +108,18 @@ your click.
 
 @vindex truncate-partial-width-windows
   When a window occupies less than the full width of the frame, it may
-become too narrow for most of the text lines in its buffer.  If most
-of its lines are continued, the buffer may become difficult to read.
-Therefore, Emacs automatically truncates lines if the window width
-becomes narrower than 50 columns.  This truncation occurs regardless
-of the value of the variable @code{truncate-lines} (@pxref{Line
-Truncation}); it is instead controlled by the variable
-@code{truncate-partial-width-windows}.  If the value of
-@code{truncate-partial-width-windows} is a positive integer (the
-default is 50), that specifies the minimum width for a partial-width
-window before automatic line truncation occurs; if the value is
-@code{nil}, automatic line truncation is disabled; and for any other
-non-@code{nil} value, Emacs truncates lines in every partial-width
+become too narrow for most of the text lines in its buffer.  If most of
+its lines are continued (@pxref{Continuation Lines}), the buffer may
+become difficult to read.  Therefore, Emacs automatically truncates
+lines if the window width becomes narrower than 50 columns.  This
+truncation occurs regardless of the value of the variable
+@code{truncate-lines} (@pxref{Line Truncation}); it is instead
+controlled by the variable @code{truncate-partial-width-windows}.  If
+the value of @code{truncate-partial-width-windows} is a positive integer
+(the default is 50), that specifies the minimum width for a
+partial-width window before automatic line truncation occurs; if the
+value is @code{nil}, automatic line truncation is disabled; and for any
+other non-@code{nil} value, Emacs truncates lines in every partial-width
 window regardless of its width.
 
   Horizontal scrolling is often used in side-by-side windows.
