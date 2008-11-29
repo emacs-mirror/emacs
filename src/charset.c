@@ -1199,7 +1199,10 @@ usage: (define-charset-internal ...)  */)
   charset_table[id] = charset;
 
   if (charset.method == CHARSET_METHOD_MAP)
-    load_charset (&charset, 0);
+    {
+      load_charset (&charset, 0);
+      charset_table[id] = charset;
+    }
 
   if (charset.iso_final >= 0)
     {
@@ -1855,8 +1858,11 @@ encode_char (charset, c)
 
       encoder = CHARSET_ENCODER (charset);
       if (! CHAR_TABLE_P (CHARSET_ENCODER (charset)))
-	load_charset (charset);
-      if (CHAR_TABLE_P (CHARSET_ENCODER (charset)))
+	{
+	  load_charset (charset, 2);
+	  encoder = CHARSET_ENCODER (charset);
+	}
+      if (CHAR_TABLE_P (encoder))
 	{
 	  val = CHAR_TABLE_REF (encoder, c);
 	  if (NILP (val))
