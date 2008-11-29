@@ -1,3 +1,8 @@
+2008-11-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/x-win.el (x-gtk-stock-cache): New hash table.
+	(x-gtk-map-stock): Perform caching to prevent excess consing during
+
 2008-11-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--try-word-completion): Don't ignore
