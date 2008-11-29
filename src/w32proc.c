@@ -63,6 +63,7 @@ extern BOOL WINAPI IsValidLocale(LCID, DWORD);
 #include "syssignal.h"
 #include "w32term.h"
 #include "dispextern.h"		/* for xstrcasecmp */
+#include "coding.h"
 
 #define RVA_TO_PTR(var,section,filedata) \
   ((void *)((section)->PointerToRawData					\
@@ -1781,7 +1782,7 @@ All path elements in FILENAME are converted to their short names.  */)
   filename = Fexpand_file_name (filename, Qnil);
 
   /* luckily, this returns the short version of each element in the path.  */
-  if (GetShortPathName (SDATA (filename), shortname, MAX_PATH) == 0)
+  if (GetShortPathName (SDATA (ENCODE_FILE (filename)), shortname, MAX_PATH) == 0)
     return Qnil;
 
   CORRECT_DIR_SEPS (shortname);
@@ -1810,7 +1811,7 @@ All path elements in FILENAME are converted to their long names.  */)
   /* first expand it.  */
   filename = Fexpand_file_name (filename, Qnil);
 
-  if (!w32_get_long_filename (SDATA (filename), longname, MAX_PATH))
+  if (!w32_get_long_filename (SDATA (ENCODE_FILE (filename)), longname, MAX_PATH))
     return Qnil;
 
   CORRECT_DIR_SEPS (longname);
@@ -1821,7 +1822,7 @@ All path elements in FILENAME are converted to their long names.  */)
   if (drive_only && longname[1] == ':' && longname[2] == '/' && !longname[3])
     longname[2] = '\0';
 
-  return build_string (longname);
+  return DECODE_FILE (build_string (longname));
 }
 
 DEFUN ("w32-set-process-priority", Fw32_set_process_priority,
