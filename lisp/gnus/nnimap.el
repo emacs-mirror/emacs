@@ -901,12 +901,35 @@ function is generally only called when Gnus is shutting down."
   (when (nnimap-possibly-change-server server)
     (nnoo-status-message 'nnimap server)))
 
+(defvar nnimap-demule-use-string-to-multibyte (fboundp 'string-to-multibyte)
+  "Temporary internal debug variable.
+If you have problems (UTF-8 not decoded correctly on IMAP) with
+the default value, please report it as a bug!")
+;; FIXME: Clarify if we need to make this variable conditional on the Emacs
+;; version (Emacs 22 vs. Emacs 23;Emacs 21 doesn't have `string-to-multibyte'
+;; anyhow).  --rsteib
+;;
+;; http://thread.gmane.org/gmane.emacs.gnus.general/67112
+;; (bug#464, reported by James Cloos)
+;; http://thread.gmane.org/gmane.emacs.bugs/21524
+;; (bug#1174, reported by Frank Schmitt)
+
 (defun nnimap-demule (string)
   ;; BEWARE: we used to use string-as-multibyte here which is braindead
   ;; because it will turn accidental emacs-mule-valid byte sequences
   ;; into multibyte chars.  --Stef
   ;; Reverted, braindead got 7.5 out of 10 on imdb, so it can't be
   ;; that bad. --Simon
+  (gnus-message 9 "nnimap-demule-use-string-to-multibyte: %s"
+		nnimap-demule-use-string-to-multibyte)
+  (if nnimap-demule-use-string-to-multibyte
+      ;; Stefan
+      (funcall (if (and (fboundp 'string-to-multibyte)
+			(subrp (symbol-function 'string-to-multibyte)))
+		   'string-to-multibyte
+		 'identity)
+	       (or string "")))
+  ;; Simon
   (funcall (if (and (fboundp 'string-as-multibyte)
 		    (subrp (symbol-function 'string-as-multibyte)))
 	       'string-as-multibyte

@@ -1,3 +1,9 @@
+2008-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnimap.el (nnimap-demule-use-string-to-multibyte): New temporary
+	variable for debugging bug#464 and bug#1174.
+	(nnimap-demule): Use it.
+
 2008-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el (message-send-mail): Just set the buffer to unibyte
