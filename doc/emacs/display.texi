@@ -1154,13 +1154,14 @@ global-hl-line-mode} enables or disables the same mode globally.
 
 @cindex truncation
 @cindex line truncation, and fringes
-  As an alternative to continuation, Emacs can display long lines by
-@dfn{truncation}.  This means that all the characters that do not fit
-in the width of the screen or window do not appear at all.  On
-graphical displays, a small straight arrow in the fringe indicates
-truncation at either end of the line.  On text-only terminals, @samp{$}
-appears in the first column when there is text truncated to the left,
-and in the last column when there is text truncated to the right.
+  As an alternative to continuation (@pxref{Continuation Lines}), Emacs
+can display long lines by @dfn{truncation}.  This means that all the
+characters that do not fit in the width of the screen or window do not
+appear at all.  On graphical displays, a small straight arrow in the
+fringe indicates truncation at either end of the line.  On text-only
+terminals, @samp{$} appears in the first column when there is text
+truncated to the left, and in the last column when there is text
+truncated to the right.
 
 @vindex truncate-lines
 @findex toggle-truncate-lines
