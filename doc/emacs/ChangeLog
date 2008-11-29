@@ -1,3 +1,8 @@
+2008-11-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Pop Up Window): Mention split-height-threshold
+	and split-width-threshold.
+
 2008-11-28  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* macos.texi: Change references to "Mac" to "Mac / GNUstep".
