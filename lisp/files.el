@@ -243,9 +243,28 @@ breaks any hard links between it and other files.
 
 This feature is advisory: for example, if the directory in which the
 file is being saved is not writeable, Emacs may ignore a non-nil value
-of `file-precious-flag' and write directly into the file."
+of `file-precious-flag' and write directly into the file.
+
+See also: `break-hardlink-on-save'."
   :type 'boolean
   :group 'backup)
+
+(defcustom break-hardlink-on-save nil
+  "Non-nil means when saving a file that exists under several names
+(i.e., has multiple hardlinks), break the hardlink associated with
+`buffer-file-name' and write to a new file, so that the other
+instances of the file are not affected by the save.
+
+If `buffer-file-name' refers to a symlink, do not break the symlink.
+
+Unlike `file-precious-flag', `break-hardlink-on-save' is not advisory.
+For example, if the directory in which a file is being saved is not
+itself writeable, then error instead of saving in some
+hardlink-nonbreaking way.
+
+See also `backup-by-copying' and `backup-by-copying-when-linked'."
+  :type 'boolean
+  :group 'files)
 
 (defcustom version-control nil
   "Control use of version numbers for backup files.
@@ -4164,10 +4183,16 @@ Before and after saving the buffer, this function runs
 		(error "Attempt to save to a file which you aren't allowed to write"))))))
     (or buffer-backed-up
 	(setq setmodes (backup-buffer)))
-    (let ((dir (file-name-directory buffer-file-name)))
-      (if (and file-precious-flag
-	       (file-writable-p dir))
-	  ;; If file is precious, write temp name, then rename it.
+    (let* ((dir (file-name-directory buffer-file-name))
+           (dir-writable (file-writable-p dir)))
+      (if (or (and file-precious-flag dir-writable)
+              (and break-hardlink-on-save
+                   (> (file-nlinks buffer-file-name) 1)
+                   (or dir-writable
+                       (error (concat (format
+                                       "Directory %s write-protected; " dir)
+                                      "cannot break hardlink when saving")))))
+	  ;; Write temp name, then rename it.
 	  ;; This requires write access to the containing dir,
 	  ;; which is why we don't try it if we don't have that access.
 	  (let ((realname buffer-file-name)

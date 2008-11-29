@@ -1,3 +1,9 @@
+2008-11-27  Karl Fogel  <kfogel@red-bean.com>
+
+	* files.el (break-hardlink-on-save): New variable.
+	(basic-save-buffer-2): Honor new variable break-hardlink-on-save.
+	(file-precious-flag): Mention it in doc string.
+
 2008-11-29  Miles Bader  <miles@gnu.org>
 
 	* minibuffer.el (minibuffer-confirm-exit-commands): New variable.
