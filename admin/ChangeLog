@@ -1,3 +1,7 @@
+2008-11-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* notes/documentation: Add notes about Antinews.
+
 2008-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-version): Add doc/misc/ns-emacs.texi.
