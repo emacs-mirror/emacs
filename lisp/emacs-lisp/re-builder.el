@@ -248,7 +248,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
     (define-key menu-map [rt]
       '(menu-item "Case sensitive" reb-toggle-case
 		  :button (:toggle . case-fold-search)
-		  :help "Toggle case sensitivity of searches for RE Builder target buffer."))
+		  :help "Toggle case sensitivity of searches for RE Builder target buffer"))
     (define-key menu-map [rb]
       '(menu-item "Change target buffer..." reb-change-target-buffer
 		  :help "Change the target buffer and display it in the target window"))
@@ -273,17 +273,10 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
     map)
   "Keymap used by the RE Builder.")
 
-(defun reb-mode ()
-  "Major mode for interactively building Regular Expressions.
-\\{reb-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'reb-mode
-        mode-name "RE Builder")
+(define-derived-mode reb-mode nil "RE Builder"
+  "Major mode for interactively building Regular Expressions."
   (set (make-local-variable 'blink-matching-paren) nil)
-  (use-local-map reb-mode-map)
-  (reb-mode-common)
-  (run-mode-hooks 'reb-mode-hook))
+  (reb-mode-common))
 
 (define-derived-mode reb-lisp-mode
   emacs-lisp-mode "RE Builder Lisp"

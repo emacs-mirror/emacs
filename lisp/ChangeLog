@@ -1,3 +1,8 @@
+2008-11-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Fix typo in menu tooltip.
+	(reb-mode): Define with `define-derived-mode'.
+
 2008-11-29  Karl Fogel  <kfogel@red-bean.com>
 
 	* files.el (break-hardlink-on-save): New variable.
