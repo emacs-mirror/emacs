@@ -518,7 +518,7 @@ or BRANCH^ (where \"^\" can be repeated)."
   (apply #'vc-git-command (or buffer "*vc-diff*") 1 files
 	 (if (and rev1 rev2) "diff-tree" "diff-index")
 	 "--exit-code"
-	 (append (vc-switches (if vc-git-diff-switches 'git) 'diff)
+	 (append (vc-switches 'git 'diff)
 		 (list "-p" (or rev1 "HEAD") rev2 "--"))))
 
 (defun vc-git-revision-table (files)
