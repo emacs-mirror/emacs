@@ -1,3 +1,8 @@
+2008-11-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (timer_check): After a timer runs, ensure that the
+	selected window's buffer is current.
+
 2008-11-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/abbrev.$(O)): Remove.
