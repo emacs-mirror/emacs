@@ -1,3 +1,8 @@
+2008-11-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* programs.texi (Other C Commands): Document hide-ifdef-shadow.
+	(Comment Commands): Discuss region-active behavior of M-; first.
+
 2008-11-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* display.texi (Line Truncation): Add reference to Continuation
