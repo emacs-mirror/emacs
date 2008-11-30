@@ -369,10 +369,11 @@ non-nil means return old filename."
   (interactive)
   (wdired-change-to-dired-mode)
   (let ((changes nil)
-	(files-deleted nil)
-        (file-renames ())
 	(errors 0)
-	file-ori file-new tmp-value)
+	files-deleted
+	files-renamed
+	some-file-names-unchanged
+	file-old file-new tmp-value)
     (save-excursion
       (when (and wdired-allow-to-redirect-links
 		 (fboundp 'make-symbolic-link))
@@ -386,20 +387,32 @@ non-nil means return old filename."
 	(setq changes (or changes (car tmp-value))))
       (goto-char (point-max))
       (while (not (bobp))
-	(setq file-ori (wdired-get-filename nil t))
-	(when file-ori
+	(setq file-old (wdired-get-filename nil t))
+	(when file-old
 	  (setq file-new (wdired-get-filename))
-          (unless (equal file-new file-ori)
+          (if (equal file-new file-old)
+	      (setq some-file-names-unchanged t)
             (setq changes t)
             (if (not file-new)		;empty filename!
-                (push file-ori files-deleted)
-              (push (cons file-ori (substitute-in-file-name file-new))
-                    file-renames))))
+                (push file-old files-deleted)
+              (push (cons file-old (substitute-in-file-name file-new))
+                    files-renamed))))
 	(forward-line -1)))
-    (when file-renames
-      (setq errors (+ errors (wdired-do-renames file-renames))))
+    (when files-renamed
+      (setq errors (+ errors (wdired-do-renames files-renamed))))
     (if changes
-        (revert-buffer) ;The "revert" is necessary to re-sort the buffer
+	(progn
+	  ;; If we are displaying a single file (rather than the
+	  ;; contents of a directory), change dired-directory if that
+	  ;; file was renamed.  (This ought to be generalized to
+	  ;; handle the multiple files case, but that's less trivial).
+	  (when (and (stringp dired-directory)
+		     (not (file-directory-p dired-directory))
+		     (null some-file-names-unchanged)
+		     (= (length files-renamed) 1))
+	    (setq dired-directory (cdr (car files-renamed))))
+	  ;; Re-sort the buffer.
+	  (revert-buffer))
       (let ((inhibit-read-only t))
 	(remove-text-properties (point-min) (point-max)
 				'(old-name nil end-name nil old-link nil
