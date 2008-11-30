@@ -1,5 +1,10 @@
 2008-11-30  Chong Yidong  <cyd@stupidchicken.com>
 
+	* misc.texi (Document View): Explain dependence on gs at the top.
+	Copyedits.
+
+	* emacs.texi (Top): Add DocView nodes to detailed node listing.
+
 	* programs.texi (Other C Commands): Document hide-ifdef-shadow.
 	(Comment Commands): Discuss region-active behavior of M-; first.
 
