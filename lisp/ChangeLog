@@ -1,5 +1,8 @@
 2008-11-30  Glenn Morris  <rgm@gnu.org>
 
+	* vc-svn.el (vc-svn-diff-switches): Doc fix.
+	(vc-svn-diff): Fix the case where vc-svn-diff-switches is nil.
+
 	* vc-git.el (vc-git-diff):
 	* vc-hg.el (vc-hg-diff):
 	* vc-mtn.el (vc-mtn-diff): No need to duplicate vc-switches logic.

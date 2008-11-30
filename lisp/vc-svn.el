@@ -66,8 +66,10 @@ A string or list of strings passed to the checkin program by
 (defcustom vc-svn-diff-switches
   t			   ;`svn' doesn't support common args like -c or -b.
   "String or list of strings specifying extra switches for svn diff under VC.
-If nil, use the value of `vc-diff-switches'.
-If you want to force an empty list of arguments, use t."
+If nil, use the value of `vc-diff-switches' (or `diff-switches'),
+together with \"-x --diff-cmd=diff\" (since svn diff does not
+support the default \"-c\" value of `diff-switches').  If you
+want to force an empty list of arguments, use t."
   :type '(choice (const :tag "Unspecified" nil)
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
@@ -496,7 +498,8 @@ or svn+ssh://."
   (let* ((switches
 	    (if vc-svn-diff-switches
 		(vc-switches 'SVN 'diff)
-	      (list "-x" (mapconcat 'identity (vc-switches nil 'diff) " "))))
+	      (list "--diff-cmd=diff" "-x"
+		    (mapconcat 'identity (vc-switches nil 'diff) " "))))
 	   (async (and (not vc-disable-async-diff)
                        (vc-stay-local-p files)
 		       (or oldvers newvers)))) ; Svn diffs those locally.
