@@ -703,7 +703,7 @@ w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app, int
                 {
                   char * dllname = RVA_TO_PTR (imports->Name, section,
                                                executable);
-                  
+
                   /* The exact name of the cygwin dll has changed with
                      various releases, but hopefully this will be reasonably
                      future proof.  */
@@ -1946,7 +1946,7 @@ DEFUN ("w32-get-locale-info", Fw32_get_locale_info,
        Sw32_get_locale_info, 1, 2, 0,
        doc: /* Return information about the Windows locale LCID.
 By default, return a three letter locale code which encodes the default
-language as the first two characters, and the country or regionial variant
+language as the first two characters, and the country or regional variant
 as the third letter.  For example, ENU refers to `English (United States)',
 while ENC means `English (Canadian)'.
 
