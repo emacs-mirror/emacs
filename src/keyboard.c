@@ -4584,12 +4584,8 @@ timer_check (do_it_now)
 	    {
 	      int count = SPECPDL_INDEX ();
 	      Lisp_Object old_deactivate_mark = Vdeactivate_mark;
+	      struct buffer *b;
 
-#if 0 /* This shouldn't be necessary anymore.  --lorentey  */
-	      /* On unbind_to, resume allowing input from any kboard, if that
-                 was true before.  */
-              record_single_kboard_state ();
-#endif
 	      /* Mark the timer as triggered to prevent problems if the lisp
 		 code fails to reschedule it right.  */
 	      vector[0] = Qt;
@@ -4601,6 +4597,13 @@ timer_check (do_it_now)
 	      timers_run++;
 	      unbind_to (count, Qnil);
 
+	      /* We must ensure that the current buffer is the same as
+		 the selected window's buffer, because the timers may
+		 have made another buffer current (bug#1458).  */
+	      b = XBUFFER (XWINDOW (selected_window)->buffer);
+	      if (b != current_buffer)
+		set_buffer_internal (b);
+	      
 	      /* Since we have handled the event,
 		 we don't need to tell the caller to wake up and do it.  */
 	    }
