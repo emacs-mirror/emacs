@@ -1,3 +1,10 @@
+2008-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-proc.el (eshell-needs-pipe): New variable.
+	(eshell-needs-pipe-p): New function.
+	(eshell-gather-process-output): Set process-connection-type according to
+	eshell-needs-pipe-p.  (Bug#1388)
+
 2008-11-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* calendar/diary-lib.el (diary-cyclic): Doc fix.
