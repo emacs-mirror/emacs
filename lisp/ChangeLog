@@ -1,3 +1,16 @@
+2008-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calendar/diary-lib.el (diary-cyclic): Doc fix.
+	(diary-remind-message, diary-number-of-entries)
+	(diary-include-other-diary-files, diary-mark-included-diary-files)
+	(diary-view-entries, diary-date, diary-block, diary-insert-entry-1)
+	(diary-font-lock-keywords-1): Reflow docstrings.
+	(diary-add-to-list, calendar-mark-1, diary-entry-time, diary-make-date)
+	(diary-anniversary, diary-date-display-form): Fix typos in docstrings.
+
+	* emacs-lisp/timer.el (timer-duration-words): Fix typo in docstring.
+	(timer-duration): Use `string-match-p'.
+
 2008-11-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* complete.el (PC-do-complete-and-exit): Use

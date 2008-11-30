@@ -286,8 +286,8 @@ with no recognizable time after those with times."
   "Pseudo-pattern giving form of reminder messages in the fancy diary display.
 
 Used by the function `diary-remind', a pseudo-pattern is a list of
-expressions that can involve the keywords `days' (a number), `date' (a list of
-month, day, year), and `diary-entry' (a string)."
+expressions that can involve the keywords `days' (a number), `date'
+\(a list of month, day, year), and `diary-entry' (a string)."
   :type 'sexp
   :group 'diary)
 
@@ -430,21 +430,20 @@ just visiting the `diary-file'), and SYMBOL's value is to be changed."
 
 (defcustom diary-number-of-entries 1
   "Specifies how many days of diary entries are to be displayed initially.
-This variable affects the diary display when the command \\[diary] is used,
-or if the value of the variable `calendar-view-diary-initially-flag' is non-nil.
-For example, if the default value 1 is used, then only the current day's diary
-entries will be displayed.  If the value 2 is used, then both the current
-day's and the next day's entries will be displayed.
+This variable affects the diary display when the command \\[diary] is
+used, or if the value of the variable `calendar-view-diary-initially-flag'
+is non-nil.  For example, if the default value 1 is used, then only the
+current day's diary entries will be displayed.  If the value 2 is used,
+then both the current day's and the next day's entries will be displayed.
 
-The value can also be a vector such as [0 2 2 2 2 4 1]; this value
-says to display no diary entries on Sunday, the entries for
-the current date and the day after on Monday through Thursday,
-Friday through Monday's entries on Friday, and only Saturday's
-entries on Saturday.
+The value can also be a vector such as [0 2 2 2 2 4 1]; this value says
+to display no diary entries on Sunday, the entries for the current date
+and the day after on Monday through Thursday, Friday through Monday's
+entries on Friday, and only Saturday's entries on Saturday.
 
 This variable does not affect the diary display with the `d' command
-from the calendar; in that case, the prefix argument controls the
-number of days of diary entries displayed."
+from the calendar; in that case, the prefix argument controls the number
+of days of diary entries displayed."
   :type '(choice (integer :tag "Entries")
                  (vector :value [0 0 0 0 0 0 0]
                          (integer :tag "Sunday")
@@ -485,8 +484,8 @@ does nothing.  This function is suitable for execution in a `.emacs' file."
 ;;;###cal-autoload
 (defun diary-view-entries (&optional arg)
   "Prepare and display a buffer with diary entries.
-Searches the file named in `diary-file' for entries that
-match ARG days starting with the date indicated by the cursor position
+Searches the file named in `diary-file' for entries that match
+ARG days starting with the date indicated by the cursor position
 in the displayed three-month calendar."
   (interactive "p")
   (diary-check-diary-file)
@@ -587,13 +586,13 @@ The function takes a string argument and must return a string.")
 (defun diary-add-to-list (date string specifier &optional marker
                                globcolor literal)
   "Add an entry to `diary-entries-list'.
-Do nothing if DATE or STRING is nil.  DATE is the (MONTH DAY
+Do nothing if DATE or STRING are nil.  DATE is the (MONTH DAY
 YEAR) for which the entry applies; STRING is the text of the
 entry as it will appear in the diary (i.e. with any format
 strings such as \"%d\" expanded); SPECIFIER is the date part of
 the entry as it appears in the diary-file; LITERAL is the entry
-as it appears in the diary-file (i.e. before expansion).  If
-LITERAL is nil, it is taken to be the same as STRING.
+as it appears in the diary-file (i.e. before expansion).
+If LITERAL is nil, it is taken to be the same as STRING.
 
 The entry is added to the list as (DATE STRING SPECIFIER LOCATOR
 GLOBCOLOR), where LOCATOR has the form (MARKER FILENAME LITERAL),
@@ -822,8 +821,8 @@ it enables you to use shared diary files together with your own.
 The files included are specified in the `diary-file' by lines of this form:
         #include \"filename\"
 This is recursive; that is, #include directives in diary files thus included
-are obeyed.  You can change the `#include' to some other string by
-changing the variable `diary-include-string'."
+are obeyed.  You can change the `#include' to some other string by changing
+the variable `diary-include-string'."
   (goto-char (point-min))
   (while (re-search-forward
           (format "^%s \"\\([^\"]*\\)\"" (regexp-quote diary-include-string))
@@ -1384,8 +1383,8 @@ you to use shared diary files together with your own.  The files included are
 specified in the `diary-file' by lines of this form:
         #include \"filename\"
 This is recursive; that is, #include directives in diary files thus included
-are obeyed.  You can change the `#include' to some other string by
-changing the variable `diary-include-string'."
+are obeyed.  You can change the `#include' to some other string by changing
+the variable `diary-include-string'."
   (goto-char (point-min))
   (while (re-search-forward
           (format "^%s \"\\([^\"]*\\)\"" (regexp-quote diary-include-string))
@@ -1501,7 +1500,7 @@ Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
 (defun calendar-mark-1 (month day year fromabs toabs &optional color)
   "Mark dates in the calendar conforming to MONTH DAY YEAR of some system.
 The function FROMABS converts absolute dates to the appropriate date system.
-The function TOABDS carries out the inverse operation.  Optional argument
+The function TOABS carries out the inverse operation.  Optional argument
 COLOR is passed to `calendar-mark-visible-date' as MARK."
   (save-excursion
     (set-buffer calendar-buffer)
@@ -1536,7 +1535,7 @@ For example, returns 1325 for 1:25pm.
 
 Returns `diary-unknown-time' (default value -9999) if no time is recognized.
 The recognized forms are XXXX, X:XX, or XX:XX (military time), and XXam,
-XXAM, XXpm, XXPM, XX:XXam, XX:XXAM XX:XXpm, or XX:XXPM.  A period (.) can
+XXAM, XXpm, XXPM, XX:XXam, XX:XXAM, XX:XXpm, or XX:XXPM.  A period (.) can
 be used instead of a colon (:) to separate the hour and minute parts."
   (let (case-fold-search)
     (cond ((string-match                ; military time
@@ -1739,7 +1738,7 @@ best if they are non-marking."
   "Convert A B C into the internal calendar date form.
 The expected order of the inputs depends on `calendar-date-style',
 e.g. in the European case, A = day, B = month, C = year.  Returns
-a list\(MONTH DAY YEAR), i.e. the American style, which is the
+a list (MONTH DAY YEAR), i.e. the American style, which is the
 form used internally by the calendar and diary."
   (cond ((eq calendar-date-style 'iso)  ; YMD
          (list b c a))
@@ -1756,13 +1755,13 @@ form used internally by the calendar and diary."
 ;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-date (month day year &optional mark)
   "Specific date(s) diary entry.
-Entry applies if date is MONTH, DAY, YEAR.  Each parameter can be
-a list of integers, `t' (meaning all values), or an integer.  The
-order of the input parameters changes according to `calendar-date-style'
+Entry applies if date is MONTH, DAY, YEAR.  Each parameter can be a
+list of integers, `t' (meaning all values), or an integer.  The order
+of the input parameters changes according to `calendar-date-style'
 \(e.g. to DAY MONTH YEAR in the European style).
 
-An optional parameter MARK specifies a face or single-character string to
-use when highlighting the day in the calendar."
+An optional parameter MARK specifies a face or single-character string
+to use when highlighting the day in the calendar."
   (let* ((ddate (diary-make-date month day year))
          (dd (calendar-extract-day ddate))
          (mm (calendar-extract-month ddate))
@@ -1785,12 +1784,12 @@ use when highlighting the day in the calendar."
 ;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-block (m1 d1 y1 m2 d2 y2 &optional mark)
   "Block diary entry.
-Entry applies if date is between, or on one of, two dates.  The
-order of the input parameters changes according to
-`calendar-date-style' (e.g. to D1, M1, Y1, D2, M2, Y2 in the European style).
+Entry applies if date is between, or on one of, two dates.  The order
+of the input parameters changes according to `calendar-date-style'
+\(e.g. to D1, M1, Y1, D2, M2, Y2 in the European style).
 
-An optional parameter MARK specifies a face or single-character string to
-use when highlighting the day in the calendar."
+An optional parameter MARK specifies a face or single-character string
+to use when highlighting the day in the calendar."
   (let ((date1 (calendar-absolute-from-gregorian
                 (diary-make-date m1 d1 y1)))
         (date2 (calendar-absolute-from-gregorian
@@ -1879,11 +1878,11 @@ Entry applies if date is the anniversary of MONTH, DAY, YEAR.
 The order of the input parameters changes according to
 `calendar-date-style' (e.g. to DAY MONTH YEAR in the European style).
 
-The diary entry can contain `%d' or `%d%s'; the %d will be
-replaced by the number of years since the MONTH, DAY, YEAR, and the
-%s will be replaced by the ordinal ending of that number (that
-is, `st', `nd', `rd' or `th', as appropriate.  The anniversary of
-February 29 is considered to be March 1 in non-leap years.
+The diary entry can contain `%d' or `%d%s'; the %d will be replaced
+by the number of years since the MONTH, DAY, YEAR, and the %s will
+be replaced by the ordinal ending of that number (that is, `st',
+`nd', `rd' or `th', as appropriate).  The anniversary of February 29
+is considered to be March 1 in non-leap years.
 
 An optional parameter MARK specifies a face or single-character
 string to use when highlighting the day in the calendar."
@@ -1904,10 +1903,10 @@ string to use when highlighting the day in the calendar."
   "Cycle diary entry--entry applies every N days starting at MONTH, DAY, YEAR.
 The order of the input parameters changes according to
 `calendar-date-style' (e.g. to N DAY MONTH YEAR in the European
-style).  ENTRY can contain `%d' or `%d%s'; the %d will be
+style).  The entry can contain `%d' or `%d%s'; the %d will be
 replaced by the number of repetitions since the MONTH DAY YEAR,
 and %s by the ordinal ending of that number (that is, `st', `nd',
-`rd' or `th', as appropriate.
+`rd' or `th', as appropriate).
 
 An optional parameter MARK specifies a face or single-character
 string to use when highlighting the day in the calendar."
@@ -2022,7 +2021,7 @@ Prefix argument ARG makes the entry nonmarking."
   'diary-insert-weekly-entry "23.1")
 
 (defun diary-date-display-form (&optional type)
-  "Return value for `calendar-date-display-form' using `calendar-date-style.'
+  "Return value for `calendar-date-display-form' using `calendar-date-style'.
 Optional symbol TYPE is either `monthly' or `yearly'."
   (cond ((eq type 'monthly) (cond ((eq calendar-date-style 'iso)
                                    '((format "*-*-%.2d"
@@ -2048,11 +2047,11 @@ Optional symbol TYPE is either `monthly' or `yearly'."
 
 (defun diary-insert-entry-1 (&optional type nomark months symbol absfunc)
   "Subroutine to insert a diary entry related to the date at point.
-TYPE is the type of entry (`monthly' or `yearly').  NOMARK
-non-nil means make the entry non-marking.  Array MONTHS is used
-in place of `calendar-month-name-array'.  String SYMBOL marks the
-type of diary entry.  Function ABSFUNC converts absolute dates to
-dates of the appropriate type."
+TYPE is the type of entry (`monthly' or `yearly').  NOMARK non-nil
+means make the entry non-marking.  Array MONTHS is used in place
+of `calendar-month-name-array'.  String SYMBOL marks the type of
+diary entry.  Function ABSFUNC converts absolute dates to dates of
+the appropriate type."
   (let ((calendar-date-display-form (if type
                                         (diary-date-display-form type)
                                       calendar-date-display-form))
@@ -2218,8 +2217,8 @@ names."
 (defmacro diary-font-lock-keywords-1 (markfunc listfunc feature months symbol)
   "Subroutine of the function `diary-font-lock-keywords'.
 If MARKFUNC is a member of `diary-nongregorian-marking-hook', or
-LISTFUNC of `diary-nongregorian-listing-hook', then require FEATURE
-and return a font-lock pattern matching array of MONTHS and marking SYMBOL."
+LISTFUNC of `diary-nongregorian-listing-hook', then require FEATURE and
+return a font-lock pattern matching array of MONTHS and marking SYMBOL."
   `(when (or (memq ',markfunc diary-nongregorian-marking-hook)
              (memq ',listfunc diary-nongregorian-listing-hook))
      (require ',feature)
