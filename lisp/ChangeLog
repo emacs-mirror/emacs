@@ -1,5 +1,9 @@
 2008-11-30  Glenn Morris  <rgm@gnu.org>
 
+	* vc-git.el (vc-git-diff):
+	* vc-hg.el (vc-hg-diff):
+	* vc-mtn.el (vc-mtn-diff): No need to duplicate vc-switches logic.
+
 	* eshell/esh-proc.el (eshell-needs-pipe): New variable.
 	(eshell-needs-pipe-p): New function.
 	(eshell-gather-process-output): Set process-connection-type according to

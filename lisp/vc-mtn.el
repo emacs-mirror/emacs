@@ -205,7 +205,7 @@ If you want to force an empty list of arguments, use t."
   "Get a difference report using monotone between two revisions of FILES."
   (apply 'vc-mtn-command (or buffer "*vc-diff*") 1 files "diff"
          (append
-           (vc-switches (if vc-mtn-diff-switches 'mtn) 'diff)
+           (vc-switches 'mtn 'diff)
            (if rev1 (list "-r" rev1)) (if rev2 (list "-r" rev2)))))
 
 (defun vc-mtn-annotate-command (file buf &optional rev)
