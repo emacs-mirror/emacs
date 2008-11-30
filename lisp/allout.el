@@ -136,7 +136,7 @@ unless optional third, non-nil element is present.")
                                         ; Exposure commands:
         ("\C-i" allout-show-children)
         ("\C-s" allout-show-current-subtree)
-        ("\C-h" allout-hide-current-subtree)
+	;; ("\C-h" allout-hide-current-subtree)
         ("\C-t" allout-toggle-current-subtree-exposure)
         ("h" allout-hide-current-subtree)
         ("\C-o" allout-show-current-entry)
