@@ -281,18 +281,6 @@ CONFIG_H   = $(EMACS_ROOT)/src/s/ms-w32.h \
 	     $(EMACS_ROOT)/src/m/intel386.h \
 	     $(EMACS_ROOT)/src/config.h
 
-$(BLD)/abbrev.$(O) : \
-	$(SRC)/abbrev.c \
-	$(CONFIG_H) \
-	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/commands.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/syntax.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
-
 $(BLD)/alloc.$(O) : \
 	$(SRC)/alloc.c \
 	$(CONFIG_H) \

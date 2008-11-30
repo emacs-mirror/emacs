@@ -1,5 +1,8 @@
 2008-11-30  Juanma Barranquero  <lekktu@gmail.com>
 
+	* makefile.w32-in ($(BLD)/abbrev.$(O)): Remove.
+	It was accidentally restored by the Unicode merge.
+
 	* w32proc.c (Fw32_get_locale_info): Fix typo in docstring.
 
 2008-11-29  Juanma Barranquero  <lekktu@gmail.com>
