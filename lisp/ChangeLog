@@ -1,5 +1,8 @@
 2008-11-30  Chong Yidong  <cyd@stupidchicken.com>
 
+	* allout.el (allout-keybindings-list): Remove C-h binding to allow
+	users to ask for help.
+
 	* wdired.el (wdired-finish-edit): If displaying a single file,
 	change dired-directory if that file was renamed.
 
