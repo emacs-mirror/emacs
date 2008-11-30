@@ -910,17 +910,27 @@ I Mean''; it indicates that this command can be used for many
 different jobs relating to comments, depending on the situation where
 you use it.
 
-  If there is no comment already on the line, @kbd{M-;} inserts a new
-comment, aligned at a specific column called the @dfn{comment column}.
-The new comment begins with the string Emacs thinks comments should
-start with (the value of @code{comment-start}; see below).  Point is
-after that string, so you can insert the text of the comment right
-away.  If the major mode has specified a string to terminate comments,
-@kbd{M-;} inserts that after point, to keep the syntax valid.
+  When a region is active, @kbd{M-;} either adds or removes comment
+delimiters on each line of the region.  @xref{Mark}.  If every line in
+the region is a comment, it removes comment delimiters from each;
+otherwise, it adds comment delimiters to each.  You can also use the
+commands @code{comment-region} and @code{uncomment-region} to
+explicitly comment or uncomment the text in the region
+(@pxref{Multi-Line Comments}).  If you supply a prefix argument to
+@kbd{M-;} when a region is active, that specifies how many comment
+delimiters to add or how many to delete.
 
-  If the text of the line extends past the comment column, this
-command aligns the comment start string to a suitable boundary
-(usually, at least one space is inserted).
+  If the region is not active, @kbd{M-;} inserts a new comment if
+there is no comment already on the line.  The new comment is normally
+aligned at a specific column called the @dfn{comment column}; if the
+text of the line extends past the comment column, @kbd{M-;} aligns the
+comment start string to a suitable boundary (usually, at least one
+space is inserted).  The comment begins with the string Emacs thinks
+comments should start with (the value of @code{comment-start}; see
+below).  Emacs places point after that string, so you can insert the
+text of the comment right away.  If the major mode has specified a
+string to terminate comments, @kbd{M-;} inserts that string after
+point, to keep the syntax valid.
 
   You can also use @kbd{M-;} to align an existing comment.  If a line
 already contains the comment-start string, @kbd{M-;} realigns it to
@@ -941,15 +951,6 @@ realign it.
 programmed so that when it receives a prefix argument it calls
 @code{comment-kill}.  However, @code{comment-kill} is a valid command
 in its own right, and you can bind it directly to a key if you wish.
-
-  When a region is active, @kbd{M-;} either adds or removes comment
-delimiters on each line of the region.  @xref{Mark}.  If every line in
-the region is a comment, it removes comment delimiters from each;
-otherwise, it adds comment delimiters to each.  You can also use the
-commands @code{comment-region} and @code{uncomment-region} to do these
-jobs (@pxref{Multi-Line Comments}).  A prefix argument used in these
-circumstances specifies how many comment delimiters to add or how many
-to delete.
 
   Some major modes have special rules for aligning certain kinds of
 comments in certain contexts.  For example, in Lisp code, comments which
@@ -1330,8 +1331,8 @@ it can determine from the partial name.
 
   If your window manager defines @kbd{M-@key{TAB}} to switch windows,
 you can type @kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i} instead.
-However, most window managers let you customize these shortcuts, and
-we recommend that you change any that get in the way of use of Emacs.
+However, most window managers let you customize these shortcuts, so
+you can change any that interfere with the way you use Emacs.
 
   If the partial name in the buffer has multiple possible completions
 that differ in the very next character, so that it is impossible to
@@ -1722,9 +1723,13 @@ it work.
 @item M-x hide-ifdef-mode
 @findex hide-ifdef-mode
 @cindex Hide-ifdef mode
+@vindex hide-ifdef-shadow
 Hide-ifdef minor mode hides selected code within @samp{#if} and
-@samp{#ifdef} preprocessor blocks.  See the documentation string of
-@code{hide-ifdef-mode} for more information.
+@samp{#ifdef} preprocessor blocks.  If you change the variable
+@code{hide-ifdef-shadow} to @code{t}, Hide-ifdef minor mode
+``shadows'' preprocessor blocks by displaying them with a less
+prominent face, instead of hiding them entirely.  See the
+documentation string of @code{hide-ifdef-mode} for more information.
 
 @item M-x ff-find-related-file
 @cindex related files
