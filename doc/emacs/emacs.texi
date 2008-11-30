@@ -844,6 +844,13 @@ The Diary
 * Adding to Diary::	   Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 
+Document View
+
+* Navigation::	Navigation inside DocView buffers.
+* Searching::	Searching inside documents.
+* Slicing::	Specifing which part of pages should be displayed.
+* Conversion::	Influencing and triggering converison.
+
 Gnus
 
 * Buffers of Gnus::	The group, summary, and article buffers.
