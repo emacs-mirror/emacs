@@ -1,5 +1,8 @@
 2008-11-30  Chong Yidong  <cyd@stupidchicken.com>
 
+	* emacs-lisp/byte-run.el (macro-declaration-function): Disallow
+	declare specs with lengths of 3 or more.
+
 	* dirtrack.el (dirtrack): Fix error message.
 
 2008-11-30  Glenn Morris  <rgm@gnu.org>
