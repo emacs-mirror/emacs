@@ -478,6 +478,7 @@ bind `mouse-yank-primary' to Mouse-2.
 *** You can disable kill ring commands from accessing the primary
 selection by setting `x-select-enable-primary' to nil.
 
+---
 ** Continuation lines can now be wrapped at word boundaries
 (word-wrapping).  This is controlled by the new per-buffer variable
 `word-wrap'.  Word wrapping does not take place if continuation lines
@@ -495,7 +496,7 @@ lines are truncated.  The default has been changed to 50.
 
 *** The new command balance-windows-area balances windows both
 vertically and horizontally.
-
+---
 *** pop-to-buffer now always sets input focus when the popped-to window
 is on a different frame.
 
@@ -554,6 +555,7 @@ It uses `auto-composition-function' (default `auto-compose-chars').
 D-Bus is an inter-process communication mechanism for applications
 residing on the same host.  See the manual for details.
 
++++
 ** DocView mode allows viewing of PDF, PostScript and DVI documents.
 One can also search for a regular expression in the document.  For
 details, see the commentary in doc-view.el.
