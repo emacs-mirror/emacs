@@ -276,7 +276,7 @@ If you want to force an empty list of arguments, use t."
 		       (expand-file-name default-directory))
 	   "diff"
 	   (append
-	    (vc-switches (if vc-hg-diff-switches 'hg) 'diff)
+	    (vc-switches 'hg 'diff)
 	    (when oldvers
 	      (if newvers
 		  (list "-r" oldvers "-r" newvers)
