@@ -45,14 +45,19 @@ The return value of this function is not used."
     ;; Ignore the first element of `decl' (it's always `declare').
     (while (setq decl (cdr decl))
       (setq d (car decl))
-      (cond ((and (consp d) (eq (car d) 'indent))
-	     (put macro 'lisp-indent-function (car (cdr d))))
-	    ((and (consp d) (eq (car d) 'debug))
-	     (put macro 'edebug-form-spec (car (cdr d))))
-	    ((and (consp d) (eq (car d) 'doc-string))
-	     (put macro 'doc-string-elt (car (cdr d))))
-	    (t
-	     (message "Unknown declaration %s" d))))))
+      (if (and (consp d)
+	       (listp (cdr d))
+	       (null (cdr (cdr d))))
+	  (cond ((eq (car d) 'indent)
+		 (put macro 'lisp-indent-function (car (cdr d))))
+		((eq (car d) 'debug)
+		 (put macro 'edebug-form-spec (car (cdr d))))
+		((eq (car d) 'doc-string)
+		 (put macro 'doc-string-elt (car (cdr d))))
+		(t
+		 (message "Unknown declaration %s" d)))
+	(message "Invalid declaration %s" d)))))
+
 
 (setq macro-declaration-function 'macro-declaration-function)
 
