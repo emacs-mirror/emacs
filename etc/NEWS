@@ -554,7 +554,7 @@ It uses `auto-composition-function' (default `auto-compose-chars').
 D-Bus is an inter-process communication mechanism for applications
 residing on the same host.  See the manual for details.
 
-** Doc View mode allows viewing of PDF, PostScript and DVI documents.
+** DocView mode allows viewing of PDF, PostScript and DVI documents.
 One can also search for a regular expression in the document.  For
 details, see the commentary in doc-view.el.
 
@@ -985,7 +985,7 @@ to update it to the new VC.
 *** comint-mode uses `start-file-process' now (see Lisp Changes).
 If `default-directory' is a remote file name, subprocesses are started
 on the corresponding remote system.
-
+---
 *** Eldoc highlights the function argument under point
 with the face `eldoc-highlight-function-argument'.
 +++
@@ -1003,7 +1003,7 @@ goto-address-prog-mode, which buttonize URLS and email addresses.
 
 *** The new variable `ffap-rfc-directories' specifies a list of local
 directories in which `ffap-rfc' will first search for RFCs.
-
++++
 *** hide-ifdef-mode allows shadowing ifdef-blocks instead of hiding them.
 See option `hide-ifdef-shadow' and function `hide-ifdef-toggle-shadowing'.
 
@@ -1036,7 +1036,7 @@ tex-suscript-height-minimum.
 
 *** view-remove-frame-by-deleting is now by default t
 since users found iconification of view-mode frames distracting.
-
+---
 *** WoMan tries to add locale-specific manual page directories to the
 search path.  This can be disabled by setting `woman-locale' to nil.
 
@@ -1400,7 +1400,8 @@ the current buffer.
 
 **** `face-remap-set-base' sets the base remapping of a face.
 
-** Process changes +++
+** Process changes
++++
 *** The new function `start-file-process' is similar to `start-process',
 but obeys file handlers.  The file handler is chosen based on
 `default-directory'.  The functions `start-file-process-shell-command'
