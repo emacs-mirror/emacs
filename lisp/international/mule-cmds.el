@@ -2365,7 +2365,7 @@ This language name is used if the locale is not listed in
      ("big5[-_]?hkscs" . big5-hkscs)
      ("big5" . big5)
      ("euc-?tw" . euc-tw)
-     ("euc-?cn" .euc-cn)
+     ("euc-?cn" . euc-cn)
      ("gb2312" . gb2312)
      ("gbk" . gbk)
      ("gb18030" . gb18030)
