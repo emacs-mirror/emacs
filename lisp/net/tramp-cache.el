@@ -89,6 +89,9 @@
   :group 'tramp
   :type 'file)
 
+(defvar tramp-cache-data-changed nil
+  "Whether persistent cache data have been changed.")
+
 (defun tramp-get-file-property (vec file property default)
   "Get the PROPERTY of FILE from the cache context of VEC.
 Returns DEFAULT if not set."
@@ -195,6 +198,7 @@ PROPERTY is set persistent when KEY is a vector."
 		  (puthash key (make-hash-table :test 'equal)
 			    tramp-cache-data))))
     (puthash property value hash)
+    (setq tramp-cache-data-changed t)
     ;; This function is called also during initialization of
     ;; tramp-cache.el.  `tramp-message´ is not defined yet at this
     ;; time, so we ignore the corresponding error.
@@ -211,6 +215,7 @@ KEY identifies the connection, it is either a process or a vector."
   (when (vectorp key)
     (setq key (copy-sequence key))
     (aset key 3 nil))
+  (setq tramp-cache-data-changed t)
   (remhash key tramp-cache-data))
 
 (defun tramp-cache-print (table)
@@ -246,39 +251,40 @@ KEY identifies the connection, it is either a process or a vector."
 (defun tramp-dump-connection-properties ()
   "Write persistent connection properties into file `tramp-persistency-file-name'."
   ;; We shouldn't fail, otherwise (X)Emacs might not be able to be closed.
-  (condition-case nil
-      (when (and (hash-table-p tramp-cache-data)
-		 (not (zerop (hash-table-count tramp-cache-data)))
-		 (stringp tramp-persistency-file-name))
-	(let ((cache (copy-hash-table tramp-cache-data)))
-	  ;; Remove temporary data.
-	  (maphash
-	   '(lambda (key value)
-	      (if (and (vectorp key) (not (tramp-file-name-localname key)))
-		  (progn
-		    (remhash "process-name" value)
-		    (remhash "process-buffer" value))
-		(remhash key cache)))
-	   cache)
-	  ;; Dump it.
-	  (with-temp-buffer
-	    (insert
-	     ";; -*- emacs-lisp -*-"
-	     ;; `time-stamp-string' might not exist in all (X)Emacs flavors.
-	     (condition-case nil
-		 (progn
-		   (format
-		    " <%s %s>\n"
-		    (time-stamp-string "%02y/%02m/%02d %02H:%02M:%02S")
-		    tramp-persistency-file-name))
-	       (error "\n"))
-	     ";; Tramp connection history.  Don't change this file.\n"
-	     ";; You can delete it, forcing Tramp to reapply the checks.\n\n"
-	     (with-output-to-string
-	       (pp (read (format "(%s)" (tramp-cache-print cache))))))
-	    (write-region
-	     (point-min) (point-max) tramp-persistency-file-name))))
-    (error nil)))
+  (when tramp-cache-data-changed
+    (condition-case nil
+	(when (and (hash-table-p tramp-cache-data)
+		   (not (zerop (hash-table-count tramp-cache-data)))
+		   (stringp tramp-persistency-file-name))
+	  (let ((cache (copy-hash-table tramp-cache-data)))
+	    ;; Remove temporary data.
+	    (maphash
+	     '(lambda (key value)
+		(if (and (vectorp key) (not (tramp-file-name-localname key)))
+		    (progn
+		      (remhash "process-name" value)
+		      (remhash "process-buffer" value))
+		  (remhash key cache)))
+	     cache)
+	    ;; Dump it.
+	    (with-temp-buffer
+	      (insert
+	       ";; -*- emacs-lisp -*-"
+	       ;; `time-stamp-string' might not exist in all (X)Emacs flavors.
+	       (condition-case nil
+		   (progn
+		     (format
+		      " <%s %s>\n"
+		      (time-stamp-string "%02y/%02m/%02d %02H:%02M:%02S")
+		      tramp-persistency-file-name))
+		 (error "\n"))
+	       ";; Tramp connection history.  Don't change this file.\n"
+	       ";; You can delete it, forcing Tramp to reapply the checks.\n\n"
+	       (with-output-to-string
+		 (pp (read (format "(%s)" (tramp-cache-print cache))))))
+	      (write-region
+	       (point-min) (point-max) tramp-persistency-file-name))))
+      (error nil))))
 
 (add-hook 'kill-emacs-hook 'tramp-dump-connection-properties)
 (add-hook 'tramp-cache-unload-hook
@@ -313,7 +319,8 @@ for all methods.  Resulting data are derived from connection history."
 	  (while (setq element (pop list))
 	    (setq key (pop element))
 	    (while (setq item (pop element))
-	      (tramp-set-connection-property key (pop item) (car item))))))
+	      (tramp-set-connection-property key (pop item) (car item)))))
+	(setq tramp-cache-data-changed nil))
     (file-error
      ;; Most likely because the file doesn't exist yet.  No message.
      (clrhash tramp-cache-data))
