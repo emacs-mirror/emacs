@@ -5886,9 +5886,12 @@ realize_x_face (cache, attrs)
 	 realizing the default face, thus the default face should have
 	 already been realized.  */
       if (fontset == -1)
-	fontset = default_face->fontset;
-      if (fontset == -1)
-	abort ();
+	{
+	  if (default_face)
+	    fontset = default_face->fontset;
+	  if (fontset == -1)
+	    abort ();
+	}
       if (! FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
 	attrs[LFACE_FONT_INDEX]
 	  = font_load_for_lface (f, attrs, attrs[LFACE_FONT_INDEX]);
