@@ -1,3 +1,7 @@
+2008-12-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs.texi (Top): Fix typo.
+
 2008-11-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* misc.texi (Document View): Explain dependence on gs at the top.
