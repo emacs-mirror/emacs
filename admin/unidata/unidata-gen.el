@@ -181,7 +181,7 @@ Property value is an integer.")
     (numeric-value
      8 unidata-gen-table-numeric "uni-numeric.el"
      "Unicode numeric value (numeric).
-Property value is a symbol.")
+Property value is an integer or a floating point.")
     (mirrored
      9 unidata-gen-table-symbol "uni-mirrored.el"
      "Unicode bidi mirrored flag.
