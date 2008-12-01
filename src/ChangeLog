@@ -1,5 +1,7 @@
 2008-12-01  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xfaces.c (realize_x_face): Make abort condition clearer.
+
 	* gtkutil.c (update_frame_tool_bar): Initialize variable.
 
 2008-11-30  Chong Yidong  <cyd@stupidchicken.com>
