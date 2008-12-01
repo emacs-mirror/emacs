@@ -3451,7 +3451,7 @@ register_font_driver (driver, f)
     if (EQ (list->driver->type, driver->type))
       error ("Duplicated font driver: %s", SDATA (SYMBOL_NAME (driver->type)));
 
-  list = malloc (sizeof (struct font_driver_list));
+  list = xmalloc (sizeof (struct font_driver_list));
   list->on = 0;
   list->driver = driver;
   list->next = NULL;
@@ -3577,9 +3577,7 @@ font_put_frame_data (f, driver, data)
 
   if (! list)
     {
-      list = malloc (sizeof (struct font_data_list));
-      if (! list)
-	return -1;
+      list = xmalloc (sizeof (struct font_data_list));
       list->driver = driver;
       list->next = f->font_data_list;
       f->font_data_list = list;

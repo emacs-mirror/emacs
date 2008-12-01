@@ -1,3 +1,8 @@
+2008-12-01  Andreas Schwab  <schwab@suse.de>
+
+	* font.c (register_font_driver): Use xmalloc.
+	(font_put_frame_data): Likewise.
+
 2008-12-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (realize_x_face): Make abort condition clearer.
