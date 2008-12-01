@@ -1,3 +1,7 @@
+2008-12-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* make-docfile.c (scan_lisp_file): Use xmalloc instead of malloc.
+
 2008-11-22  Derek Peschel  <dpeschel@eskimo.com>  (tiny change)
 
 	* etags.c (add_regex): Pass correct length to re_compile_pattern.
