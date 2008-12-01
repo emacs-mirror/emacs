@@ -286,13 +286,13 @@ but Calc has the advantages of convenience, portability, and freedom.
 
 @noindent
 This document serves as a complete description of the GNU Emacs
-Calculator.  It works both as an introduction for novices, and as
+Calculator.  It works both as an introduction for novices and as
 a reference for experienced users.  While it helps to have some
 experience with GNU Emacs in order to get the most out of Calc,
 this manual ought to be readable even if you don't know or use Emacs
 regularly.
 
-The manual is divided into three major parts:@: the ``Getting
+This manual is divided into three major parts:@: the ``Getting
 Started'' chapter you are reading now, the Calc tutorial (chapter 2),
 and the Calc reference manual (the remaining chapters and appendices).
 @c [when-split]
@@ -330,14 +330,15 @@ variables also have their own indices.
 @c in the margin with its index entry.
 
 @c [fix-ref Help Commands]
-You can access this manual on-line at any time within Calc by
-pressing the @kbd{h i} key sequence.  Outside of the Calc window,
-you can press @kbd{C-x * i} to read the manual on-line.  Also, you
-can jump directly to the Tutorial by pressing @kbd{h t} or @kbd{C-x * t},
-or to the Summary by pressing @kbd{h s} or @kbd{C-x * s}.  Within Calc,
-you can also go to the part of the manual describing any Calc key,
-function, or variable using @w{@kbd{h k}}, @kbd{h f}, or @kbd{h v},
-respectively.  @xref{Help Commands}.
+You can access this manual on-line at any time within Calc by pressing
+the @kbd{h i} key sequence.  Outside of the Calc window, you can press
+@kbd{C-x * i} to read the manual on-line.  From within Calc the command
+@kbd{h t} will jump directly to the Tutorial; from outside of Calc the
+command @kbd{C-x * t} will jump to the Tutorial and start Calc if
+necessary.  Pressing @kbd{h s} or @kbd{C-x * s} will take you directly
+to the Calc Summary.  Within Calc, you can also go to the part of the
+manual describing any Calc key, function, or variable using 
+@w{@kbd{h k}}, @kbd{h f}, or @kbd{h v}, respectively.  @xref{Help Commands}.
 
 @ifnottex
 The Calc manual can be printed, but because the manual is so large, you
@@ -548,7 +549,7 @@ many weeks have passed since then.
 or equations involving variables.  Type @kbd{@w{' [x + y} = a, x y = 1] @key{RET}}
 to enter a pair of equations involving three variables.
 (Note the leading apostrophe in this example; also, note that the space
-between @samp{x y} is required.)  Type @w{@kbd{a S x,y @key{RET}}} to solve
+in @samp{x y} is required.)  Type @w{@kbd{a S x,y @key{RET}}} to solve
 these equations for the variables @expr{x} and @expr{y}.
 
 @noindent
@@ -560,7 +561,7 @@ system.  Type @kbd{d N} to return to normal notation.
 
 @noindent
 Type @kbd{7.5}, then @kbd{s l a @key{RET}} to let @expr{a = 7.5} in these formulas.
-(That's a letter @kbd{l}, not a numeral @kbd{1}.)
+(That's the letter @kbd{l}, not the numeral @kbd{1}.)
 
 @ifnotinfo
 @strong{Help functions.}  You can read about any command in the on-line
@@ -717,9 +718,11 @@ normal partial-screen mode.
 
 Finally, @kbd{C-x * o} (@code{calc-other-window}) is like @kbd{C-x * c}
 except that the Calc window is not selected.  The buffer you were
-editing before remains selected instead.  @kbd{C-x * o} is a handy
-way to switch out of Calc momentarily to edit your file; type
-@kbd{C-x * c} to switch back into Calc when you are done.
+editing before remains selected instead.  If you are in a Calc window,
+then @kbd{C-x * o} will switch you out of it, being careful not to
+switch you to the Calc Trail window.  So @kbd{C-x * o} is a handy
+way to switch out of Calc momentarily to edit your file; you can then
+type @kbd{C-x * c} to switch back into Calc when you are done.
 
 @node Quick Mode Overview, Keypad Mode Overview, The Standard Interface, Using Calc
 @subsection Quick Mode (Overview)
@@ -871,7 +874,8 @@ is
 and you wish to have Calc compute and format the derivative for
 you and store this derivative in the buffer automatically.  To
 do this with Embedded mode, first copy the formula down to where
-you want the result to be:
+you want the result to be, leaving a blank line before and after the
+formula:
 
 @smallexample
 @group
@@ -886,15 +890,16 @@ is
 @end smallexample
 
 Now, move the cursor onto this new formula and press @kbd{C-x * e}.
-Calc will read the formula (using the surrounding blank lines to
-tell how much text to read), then push this formula (invisibly)
-onto the Calc stack.  The cursor will stay on the formula in the
-editing buffer, but the buffer's mode line will change to look
-like the Calc mode line (with mode indicators like @samp{12 Deg}
-and so on).  Even though you are still in your editing buffer,
-the keyboard now acts like the Calc keyboard, and any new result
-you get is copied from the stack back into the buffer.  To take
-the derivative, you would type @kbd{a d x @key{RET}}.
+Calc will read the formula (using the surrounding blank lines to tell
+how much text to read), then push this formula (invisibly) onto the Calc
+stack.  The cursor will stay on the formula in the editing buffer, but
+the line with the formula will now appear as it would on the Calc stack
+(in this case, it will be left-aligned) and the buffer's mode line will
+change to look like the Calc mode line (with mode indicators like
+@samp{12 Deg} and so on).  Even though you are still in your editing
+buffer, the keyboard now acts like the Calc keyboard, and any new result
+you get is copied from the stack back into the buffer.  To take the
+derivative, you would type @kbd{a d x @key{RET}}.
 
 @smallexample
 @group
@@ -907,6 +912,9 @@ is
 1 / ln(x) x
 @end group
 @end smallexample
+
+(Note that by default division had lower precedence than multiplication
+in Calc, so that @samp{1 / ln(x) x} is equivalent to @samp{1 / (ln(x) x)}.)
 
 To make this look nicer, you might want to press @kbd{d =} to center
 the formula, and even @kbd{d B} to use Big display mode.
