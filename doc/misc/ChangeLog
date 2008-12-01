@@ -1,3 +1,9 @@
+2008-12-01  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (About This Manual): Clarify behavior of `C-x * t'.
+	(Using Calc): Clarify use of `C-x * o'.
+	(Embedded Mode (Overview)): Clarify use of `C-x * e'.
+
 2008-11-28  Richard M Stallman  <rms@gnu.org>
 
 	* dbus.texi (Receiving Method Calls): Clean up previous change.
