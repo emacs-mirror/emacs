@@ -279,15 +279,19 @@ EMACS_ROOT = ..
 SRC	   = .
 CONFIG_H   = $(EMACS_ROOT)/src/s/ms-w32.h \
 	     $(EMACS_ROOT)/src/m/intel386.h \
-	     $(EMACS_ROOT)/src/config.h
+	     $(EMACS_ROOT)/src/config.h \
+	     $(EMACS_ROOT)/nt/inc/sys/stat.h
 
 $(BLD)/alloc.$(O) : \
 	$(SRC)/alloc.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
+	$(SRC)/coding.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
@@ -296,12 +300,17 @@ $(BLD)/alloc.$(O) : \
 	$(SRC)/process.h \
 	$(SRC)/puresize.h \
 	$(SRC)/syssignal.h \
+	$(SRC)/systime.h \
+	$(SRC)/termhooks.h \
+	$(SRC)/w32.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
 $(BLD)/atimer.$(O) : \
 	$(SRC)/atimer.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/syssignal.h \
@@ -310,10 +319,14 @@ $(BLD)/atimer.$(O) : \
 $(BLD)/buffer.$(O) : \
 	$(SRC)/buffer.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/param.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/charset.h \
+	$(SRC)/character.h \
+	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
@@ -323,6 +336,7 @@ $(BLD)/buffer.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/region-cache.h \
+	$(SRC)/systime.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -330,48 +344,56 @@ $(BLD)/bytecode.$(O) : \
 	$(SRC)/bytecode.c \
 	$(CONFIG_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/charset.h \
+	$(SRC)/character.h \
+	$(SRC)/dispextern.h \
 	$(SRC)/syntax.h \
+	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
 $(BLD)/callint.$(O) : \
 	$(SRC)/callint.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/buffer.h \
+	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
+	$(SRC)/systime.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
 $(BLD)/callproc.$(O) : \
 	$(SRC)/callproc.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/param.h \
-	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/atimer.h \
+	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
+	$(SRC)/dispextern.h \
 	$(SRC)/epaths.h \
+	$(SRC)/frame.h \
 	$(SRC)/process.h \
 	$(SRC)/syssignal.h \
+	$(SRC)/systime.h \
 	$(SRC)/systty.h \
-	$(SRC)/frame.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32.h
+	$(SRC)/w32.h \
+	$(SRC)/w32gui.h
 
 $(BLD)/casefiddle.$(O) : \
 	$(SRC)/casefiddle.c \
 	$(CONFIG_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/keymap.h \
@@ -381,7 +403,7 @@ $(BLD)/casetab.$(O) : \
 	$(SRC)/casetab.c \
 	$(CONFIG_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/charset.h
+	$(SRC)/character.h
 
 $(BLD)/category.$(O) : \
 	$(SRC)/category.c \
@@ -406,44 +428,49 @@ $(BLD)/character.$(O) : \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
-	$(SRC)/coding.h \
 	$(SRC)/composite.h \
 	$(SRC)/disptab.h
 
 $(BLD)/charset.$(O) : \
 	$(SRC)/charset.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
-	$(SRC)/composite.h \
 	$(SRC)/disptab.h
 
 $(BLD)/chartab.$(O) : \
 	$(SRC)/chartab.c \
 	$(CONFIG_H) \
-	$(SRC)/charset.h \
-	$(SRC)/character.h
+	$(SRC)/ccl.h \
+	$(SRC)/character.h \
+	$(SRC)/charset.h
 
 $(BLD)/cm.$(O) : \
 	$(SRC)/cm.c \
 	$(CONFIG_H) \
 	$(SRC)/cm.h \
-	$(SRC)/termhooks.h
+	$(SRC)/dispextern.h \
+	$(SRC)/frame.h \
+	$(SRC)/termchar.h \
+	$(SRC)/termhooks.h \
+	$(SRC)/w32gui.h
 
 $(BLD)/cmds.$(O) : \
 	$(SRC)/cmds.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
+	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
+	$(SRC)/systime.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -457,7 +484,6 @@ $(BLD)/coding.$(O) : \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
-	$(SRC)/intervals.h \
 	$(SRC)/frame.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32gui.h \
@@ -467,30 +493,43 @@ $(BLD)/composite.$(O) : \
 	$(SRC)/composite.c \
 	$(CONFIG_H) \
 	$(SRC)/buffer.h \
+	$(SRC)/ccl.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
+	$(SRC)/font.h \
+	$(SRC)/frame.h \
 	$(SRC)/intervals.h \
-	$(SRC)/w32gui.h
+	$(SRC)/w32gui.h \
+	$(SRC)/window.h
 
 $(BLD)/data.$(O) : \
 	$(SRC)/data.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
+	$(SRC)/coding.h \
+	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/puresize.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/termhooks.h
+	$(SRC)/systime.h \
+	$(SRC)/termhooks.h \
+	$(SRC)/w32gui.h
 
 $(BLD)/dired.$(O) : \
 	$(SRC)/dired.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/grp.h \
+	$(EMACS_ROOT)/nt/inc/pwd.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/dir.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/atimer.h \
+	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
@@ -502,14 +541,14 @@ $(BLD)/dired.$(O) : \
 $(BLD)/dispnew.$(O) : \
 	$(SRC)/dispnew.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/cm.h \
+	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
@@ -531,27 +570,32 @@ $(BLD)/dispnew.$(O) : \
 $(BLD)/doc.$(O) : \
 	$(SRC)/doc.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
+	$(SRC)/coding.h \
 	$(SRC)/keyboard.h \
-	$(SRC)/keymap.h
+	$(SRC)/keymap.h \
+	$(SRC)/systime.h
 
 $(BLD)/doprnt.$(O) : \
 	$(SRC)/doprnt.c \
 	$(CONFIG_H) \
-	$(SRC)/character.h \
-	$(SRC)/charset.c
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(SRC)/character.h
 
 $(BLD)/editfns.$(O) : \
 	$(SRC)/editfns.c \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/atimer.h \
+	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
@@ -564,14 +608,17 @@ $(BLD)/editfns.$(O) : \
 $(BLD)/emacs.$(O) : \
 	$(SRC)/emacs.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
+	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
+	$(SRC)/frame.h \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
@@ -580,6 +627,7 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/systime.h \
 	$(SRC)/systty.h \
 	$(SRC)/termhooks.h \
+	$(SRC)/w32.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/window.h
@@ -587,8 +635,10 @@ $(BLD)/emacs.$(O) : \
 $(BLD)/eval.$(O) : \
 	$(SRC)/eval.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
+	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/keyboard.h \
@@ -599,16 +649,17 @@ $(BLD)/fileio.$(O) : \
 	$(SRC)/fileio.c \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
-	$(EMACS_ROOT)/nt/inc/sys/param.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/atimer.h \
+	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
+	$(SRC)/frame.h \
 	$(SRC)/intervals.h \
 	$(SRC)/systime.h \
 	$(SRC)/w32gui.h \
@@ -618,12 +669,11 @@ $(BLD)/filelock.$(O) : \
 	$(SRC)/filelock.c \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/src/epaths.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/systime.h
 
@@ -645,12 +695,12 @@ $(BLD)/fns.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/langinfo.h \
 	$(EMACS_ROOT)/nt/inc/nl_types.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
@@ -661,47 +711,62 @@ $(BLD)/fns.$(O) : \
 	$(SRC)/keymap.h \
 	$(SRC)/md5.h \
 	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
 $(BLD)/font.$(O) : \
 	$(SRC)/font.c \
 	$(CONFIG_H) \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/window.h \
-	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/font.h
-
-$(BLD)/fontset.$(O) : \
-	$(SRC)/fontset.c \
-	$(CONFIG_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
+	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/font.h \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
+	$(SRC)/w32gui.h \
+	$(SRC)/w32term.h \
+	$(SRC)/window.h
+
+$(BLD)/fontset.$(O) : \
+	$(SRC)/fontset.c \
+	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/atimer.h \
+	$(SRC)/blockinput.h \
+	$(SRC)/buffer.h \
+	$(SRC)/ccl.h \
+	$(SRC)/character.h \
+	$(SRC)/charset.h \
+	$(SRC)/coding.h \
+	$(SRC)/composite.h \
+	$(SRC)/dispextern.h \
+	$(SRC)/font.h \
+	$(SRC)/fontset.h \
+	$(SRC)/frame.h \
+	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
+	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32gui.h \
+	$(SRC)/w32term.h \
 	$(SRC)/window.h
 
 $(BLD)/frame.$(O) : \
 	$(SRC)/frame.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
+	$(SRC)/ccl.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
+	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/dispextern.h \
+	$(SRC)/font.h \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
@@ -715,43 +780,51 @@ $(BLD)/frame.$(O) : \
 $(BLD)/fringe.$(O) : \
 	$(SRC)/fringe.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
 	$(SRC)/systime.h \
+	$(SRC)/termhooks.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
 $(BLD)/gmalloc.$(O) : \
 	$(SRC)/gmalloc.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/param.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(SRC)/getpagesize.h
 
-$(BLD)/image.$(O): \
+$(BLD)/image.$(O) : \
 	$(SRC)/image.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
+	$(SRC)/ccl.h \
+	$(SRC)/character.h \
+	$(SRC)/coding.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/epaths.h \
+	$(SRC)/font.h \
 	$(SRC)/frame.h \
 	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32gui.h \
-	$(SRC)/w32heap.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
 
 $(BLD)/indent.$(O) : \
 	$(SRC)/indent.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
+	$(SRC)/coding.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/disptab.h \
@@ -760,6 +833,7 @@ $(BLD)/indent.$(O) : \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/region-cache.h \
+	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termopts.h \
 	$(SRC)/w32gui.h \
@@ -768,11 +842,11 @@ $(BLD)/indent.$(O) : \
 $(BLD)/insdel.$(O) : \
 	$(SRC)/insdel.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/intervals.h \
@@ -784,25 +858,29 @@ $(BLD)/insdel.$(O) : \
 $(BLD)/intervals.$(O) : \
 	$(SRC)/intervals.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/buffer.h \
+	$(SRC)/coding.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/puresize.h \
+	$(SRC)/systime.h \
 	$(SRC)/w32gui.h
 
 $(BLD)/keyboard.$(O) : \
 	$(SRC)/keyboard.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
+	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
@@ -816,7 +894,6 @@ $(BLD)/keyboard.$(O) : \
 	$(SRC)/syntax.h \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \
-	$(SRC)/systty.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
@@ -827,21 +904,25 @@ $(BLD)/keyboard.$(O) : \
 $(BLD)/keymap.$(O) : \
 	$(SRC)/keymap.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
+	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
+	$(SRC)/frame.h \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/puresize.h \
 	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h
+	$(SRC)/w32gui.h \
+	$(SRC)/window.h
 
 $(BLD)/lastfile.$(O) : \
 	$(SRC)/lastfile.c \
@@ -850,30 +931,37 @@ $(BLD)/lastfile.$(O) : \
 $(BLD)/lread.$(O) : \
 	$(SRC)/lread.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/src/epaths.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
+	$(SRC)/epaths.h \
+	$(SRC)/frame.h \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
+	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32gui.h
 
 $(BLD)/macros.$(O) : \
 	$(SRC)/macros.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/buffer.h \
+	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/macros.h \
+	$(SRC)/systime.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -881,31 +969,37 @@ $(BLD)/marker.$(O) : \
 	$(SRC)/marker.c \
 	$(CONFIG_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h
+	$(SRC)/character.h
 
 $(BLD)/md5.$(O) : \
 	$(SRC)/md5.c \
+	$(CONFIG_H) \
 	$(SRC)/md5.h
 
 $(BLD)/menu.$(O) : \
-        $(SRC)/menu.c \
-        $(CONFIG_H) \
-        $(SRC)/keyboard.h \
-        $(SRC)/keymap.h \
-        $(SRC)/frame.h \
-        $(SRC)/termhooks.h \
-        $(SRC)/blockinput.h \
-        $(SRC)/dispextern.h \
-        $(SRC)/w32gui.h \
-        $(SRC)/w32term.h
+	$(SRC)/menu.c \
+	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/atimer.h \
+	$(SRC)/blockinput.h \
+	$(SRC)/coding.h \
+	$(SRC)/dispextern.h \
+	$(SRC)/frame.h \
+	$(SRC)/keyboard.h \
+	$(SRC)/keymap.h \
+	$(SRC)/menu.h \
+	$(SRC)/systime.h \
+	$(SRC)/termhooks.h \
+	$(SRC)/w32gui.h \
+	$(SRC)/w32term.h
 
 $(BLD)/minibuf.$(O) : \
 	$(SRC)/minibuf.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
+	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
@@ -914,6 +1008,7 @@ $(BLD)/minibuf.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
+	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
@@ -921,10 +1016,19 @@ $(BLD)/minibuf.$(O) : \
 $(BLD)/w32.$(O) : \
 	$(SRC)/w32.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/grp.h \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/socket.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/coding.h \
+	$(SRC)/dispextern.h \
 	$(SRC)/ndir.h \
+	$(SRC)/process.h \
 	$(SRC)/systime.h \
 	$(SRC)/w32.h \
+	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h
 
 $(BLD)/w32heap.$(O) : \
@@ -935,8 +1039,11 @@ $(BLD)/w32heap.$(O) : \
 $(BLD)/w32inevt.$(O) : \
 	$(SRC)/w32inevt.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
+	$(SRC)/coding.h \
+	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/systime.h \
@@ -950,7 +1057,12 @@ $(BLD)/w32proc.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/langinfo.h \
 	$(EMACS_ROOT)/nt/inc/nl_types.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/character.h \
+	$(SRC)/coding.h \
+	$(SRC)/dispextern.h \
 	$(SRC)/process.h \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \
@@ -963,44 +1075,57 @@ $(BLD)/w32proc.$(O) : \
 $(BLD)/w32console.$(O) : \
 	$(SRC)/w32console.c \
 	$(CONFIG_H) \
-	$(SRC)/ccl.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/disptab.h \
 	$(SRC)/frame.h \
+	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32gui.h \
-	$(SRC)/w32inevt.h
+	$(SRC)/w32inetv.h
 
 $(BLD)/print.$(O) : \
 	$(SRC)/print.c \
 	$(CONFIG_H) \
-	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/process.h \
-	$(SRC)/termchar.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
-
-$(BLD)/process.$(O) : \
-	$(SRC)/process.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
+	$(SRC)/coding.h \
+	$(SRC)/composite.h \
+	$(SRC)/dispextern.h \
+	$(SRC)/font.h \
+	$(SRC)/frame.h \
+	$(SRC)/intervals.h \
+	$(SRC)/keyboard.h \
+	$(SRC)/process.h \
+	$(SRC)/systime.h \
+	$(SRC)/termchar.h \
+	$(SRC)/termhooks.h \
+	$(SRC)/w32gui.h \
+	$(SRC)/window.h
+
+$(BLD)/process.$(O) : \
+	$(SRC)/process.c \
+	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/grp.h \
+	$(EMACS_ROOT)/nt/inc/netdb.h \
+	$(EMACS_ROOT)/nt/inc/pwd.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/arpa/inet.h \
+	$(EMACS_ROOT)/nt/inc/netinet/in.h \
+	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/socket.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/atimer.h \
+	$(SRC)/blockinput.h \
+	$(SRC)/buffer.h \
+	$(SRC)/character.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
@@ -1015,14 +1140,19 @@ $(BLD)/process.$(O) : \
 	$(SRC)/syswait.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
+	$(SRC)/w32.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
 $(BLD)/ralloc.$(O) : \
 	$(SRC)/ralloc.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/param.h \
-	$(SRC)/getpagesize.h
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/atimer.h \
+	$(SRC)/blockinput.h \
+	$(SRC)/getpagesize.h \
+	$(SRC)/systime.h
 
 $(BLD)/regex.$(O) : \
 	$(SRC)/regex.c \
@@ -1030,7 +1160,6 @@ $(BLD)/regex.$(O) : \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/regex.h \
 	$(SRC)/syntax.h
 
@@ -1043,9 +1172,12 @@ $(BLD)/region-cache.$(O) : \
 $(BLD)/scroll.$(O) : \
 	$(SRC)/scroll.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/coding.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
+	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32gui.h \
@@ -1054,6 +1186,7 @@ $(BLD)/scroll.$(O) : \
 $(BLD)/search.$(O) : \
 	$(SRC)/search.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -1073,13 +1206,18 @@ $(BLD)/search.$(O) : \
 $(BLD)/sound.$(O) : \
 	$(SRC)/sound.c \
 	$(CONFIG_H) \
-	$(SRC)/dispextern.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
-	$(SRC)/syssignal.h
+	$(SRC)/dispextern.h \
+	$(SRC)/syssignal.h \
+	$(SRC)/systime.h \
+	$(SRC)/w32gui.h
 
 $(BLD)/strftime.$(O) : \
 	$(SRC)/strftime.c \
-	$(CONFIG_H)
+	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h
 
 $(BLD)/syntax.$(O) : \
 	$(SRC)/syntax.c \
@@ -1087,31 +1225,32 @@ $(BLD)/syntax.$(O) : \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
 	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/intervals.h \
 	$(SRC)/keymap.h \
+	$(SRC)/regex.h \
 	$(SRC)/syntax.h \
 	$(SRC)/w32gui.h
 
 $(BLD)/sysdep.$(O) : \
 	$(SRC)/sysdep.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/param.h \
+	$(EMACS_ROOT)/nt/inc/netdb.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/socket.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/cm.h \
+	$(SRC)/coding.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
-	$(SRC)/ndir.h \
 	$(SRC)/process.h \
-	$(SRC)/sysselect.h \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \
 	$(SRC)/systty.h \
@@ -1119,22 +1258,33 @@ $(BLD)/sysdep.$(O) : \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
+	$(SRC)/w32.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
 $(BLD)/term.$(O) : \
 	$(SRC)/term.c \
 	$(CONFIG_H) \
-	$(SRC)/ccl.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(SRC)/atimer.h \
+	$(SRC)/blockinput.h \
+	$(SRC)/buffer.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/cm.h \
 	$(SRC)/coding.h \
+	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/disptab.h \
 	$(SRC)/frame.h \
+	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
+	$(SRC)/syssignal.h \
+	$(SRC)/systime.h \
+	$(SRC)/systty.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
@@ -1144,17 +1294,22 @@ $(BLD)/term.$(O) : \
 $(BLD)/termcap.$(O) : \
 	$(SRC)/termcap.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h
 
 $(BLD)/terminal.$(O) : \
 	$(SRC)/terminal.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
+	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
+	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h
+	$(SRC)/termhooks.h \
+	$(SRC)/w32gui.h
 
 $(BLD)/textprop.$(O) : \
 	$(SRC)/textprop.c \
@@ -1174,7 +1329,10 @@ $(BLD)/undo.$(O) : \
 	$(SRC)/undo.c \
 	$(CONFIG_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/commands.h
+	$(SRC)/commands.h \
+	$(SRC)/dispextern.h \
+	$(SRC)/w32gui.h \
+	$(SRC)/window.h
 
 $(BLD)/unexw32.$(O) : \
 	$(SRC)/unexw32.c \
@@ -1189,9 +1347,11 @@ $(BLD)/vm-limit.$(O) : \
 $(BLD)/window.$(O) : \
 	$(SRC)/window.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
+	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
@@ -1203,6 +1363,7 @@ $(BLD)/window.$(O) : \
 	$(SRC)/keymap.h \
 	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
+	$(SRC)/termhooks.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
@@ -1210,6 +1371,8 @@ $(BLD)/window.$(O) : \
 $(BLD)/xdisp.$(O) : \
 	$(SRC)/xdisp.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -1238,14 +1401,17 @@ $(BLD)/xdisp.$(O) : \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
 
-$(BLD)/xfaces.$(O): \
+$(BLD)/xfaces.$(O) : \
 	$(SRC)/xfaces.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
+	$(SRC)/ccl.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
+	$(SRC)/coding.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/font.h \
@@ -1260,9 +1426,10 @@ $(BLD)/xfaces.$(O): \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
 
-$(BLD)/w32fns.$(O): \
+$(BLD)/w32fns.$(O) : \
 	$(SRC)/w32fns.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -1280,14 +1447,16 @@ $(BLD)/w32fns.$(O): \
 	$(SRC)/keyboard.h \
 	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
+	$(SRC)/w32font.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
 
-$(BLD)/w32menu.$(O): \
+$(BLD)/w32menu.$(O) : \
 	$(SRC)/w32menu.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -1304,9 +1473,11 @@ $(BLD)/w32menu.$(O): \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
 
-$(BLD)/w32term.$(O): \
+$(BLD)/w32term.$(O) : \
 	$(SRC)/w32term.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -1323,51 +1494,53 @@ $(BLD)/w32term.$(O): \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
+	$(SRC)/process.h \
 	$(SRC)/systime.h \
 	$(SRC)/systty.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
+	$(SRC)/w32font.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
 
-$(BLD)/w32select.$(O): \
+$(BLD)/w32select.$(O) : \
 	$(SRC)/w32select.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
-	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/systime.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/w32term.h
 
-$(BLD)/w32reg.$(O): \
+$(BLD)/w32reg.$(O) : \
 	$(SRC)/w32reg.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/systime.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h
 
-$(BLD)/w32xfns.$(O): \
+$(BLD)/w32xfns.$(O) : \
 	$(SRC)/w32xfns.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
+	$(SRC)/coding.h \
+	$(SRC)/dispextern.h \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
@@ -1375,9 +1548,10 @@ $(BLD)/w32xfns.$(O): \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h
 
-$(BLD)/w32font.$(O): \
+$(BLD)/w32font.$(O) : \
 	$(SRC)/w32font.c \
 	$(CONFIG_H) \
+	$(SRC)/ccl.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/dispextern.h \
@@ -1388,9 +1562,10 @@ $(BLD)/w32font.$(O): \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h
 
-$(BLD)/w32uniscribe.$(O): \
+$(BLD)/w32uniscribe.$(O) : \
 	$(SRC)/w32uniscribe.c \
 	$(CONFIG_H) \
+	$(SRC)/ccl.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/composite.h \

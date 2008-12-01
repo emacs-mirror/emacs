@@ -1,3 +1,8 @@
+2008-12-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+	(CONFIG_H): Add $(EMACS_ROOT)/nt/inc/sys/time.h.
+
 2008-12-01  Andreas Schwab  <schwab@suse.de>
 
 	* font.c (register_font_driver): Use xmalloc.
