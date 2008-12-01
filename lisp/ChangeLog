@@ -1,3 +1,9 @@
+2008-12-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cache.el (tramp-cache-data-changed): New defvar.
+	(tramp-set-connection-property, tramp-flush-connection-property)
+	(tramp-dump-connection-properties): Use it.
+
 2008-11-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* wdired.el (wdired-finish-edit): If displaying a single file,
