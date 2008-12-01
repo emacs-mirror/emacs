@@ -849,7 +849,7 @@ Document View
 * Navigation::	Navigation inside DocView buffers.
 * Searching::	Searching inside documents.
 * Slicing::	Specifing which part of pages should be displayed.
-* Conversion::	Influencing and triggering converison.
+* Conversion::	Influencing and triggering conversion.
 
 Gnus
 
