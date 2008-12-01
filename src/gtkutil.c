@@ -3862,7 +3862,7 @@ update_frame_tool_bar (f)
       int icon_size = 0;
       struct image *img = NULL;
       Lisp_Object image;
-      Lisp_Object stock;
+      Lisp_Object stock = Qnil;
       GtkStockItem stock_item;
       char *stock_name = NULL;
       char *icon_name = NULL;
