@@ -382,9 +382,6 @@ Subexpression 2 must end right before the \\n or \\r.")
 (defvar dired-font-lock-keywords
   (list
    ;;
-   ;; Directory headers.
-   (list dired-subdir-regexp '(1 dired-header-face))
-   ;;
    ;; Dired marks.
    (list dired-re-mark '(0 dired-mark-face))
    ;;
@@ -451,6 +448,14 @@ Subexpression 2 must end right before the \\n or \\r.")
 		    (unless (get-text-property (1- (point)) 'mouse-face)
 		      (dired-move-to-filename)))
 	     nil (0 dired-ignored-face))))
+   ;;
+   ;; Explicitly put the default face on file names ending in a colon to
+   ;; avoid fontifying them as directory header.
+   (list (concat dired-re-maybe-mark dired-re-inode-size dired-re-perms ".*:$")
+	 '(".+" (dired-move-to-filename) nil (0 default)))
+   ;;
+   ;; Directory headers.
+   (list dired-subdir-regexp '(1 dired-header-face))
 )
   "Additional expressions to highlight in Dired mode.")
 
