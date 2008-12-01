@@ -179,7 +179,7 @@ Property value is an integer.")
      "Unicode numeric value (digit).
 Property value is an integer.")
     (numeric-value
-     8 unidata-gen-table-symbol "uni-numeric.el"
+     8 unidata-gen-table-numeric "uni-numeric.el"
      "Unicode numeric value (numeric).
 Property value is a symbol.")
     (mirrored
@@ -393,6 +393,34 @@ Property value is a character."
 		 (setq first-char (1+ first-char))))
 	     this-val)))))
 
+;; Return a numeric-type (integer or float) character property value
+;; of CHAR.  VAL is the current value of (aref TABLE CHAR).
+
+(defun unidata-get-numeric (char val table)
+  (cond
+   ((numberp val)
+    val)
+   ((stringp val)
+    (let ((val-table (char-table-extra-slot table 4))
+	  (first-char (lsh (lsh char -7) 7))
+	  (str val)
+	  (len (length val))
+	  (idx 0)
+	  this-val count)
+      (while (< idx len)
+	(setq val (aref str idx) idx (1+ idx)
+	      count (if (< idx len) (aref str idx) 1))
+	(setq val (and (> val 0) (aref val-table (1- val)))
+	      count (if (< count 128)
+			1
+		      (prog1 (- count 128) (setq idx (1+ idx)))))
+	(dotimes (i count)
+	  (aset table first-char val)
+	  (if (= first-char char)
+	      (setq this-val val))
+	  (setq first-char (1+ first-char))))
+      this-val))))
+
 ;; Store VAL (symbol) as a character property value of CHAR in TABLE.
 
 (defun unidata-put-symbol (char val table)
@@ -416,6 +444,19 @@ Property value is a character."
 	  (funcall (char-table-extra-slot table 1) char current-val table))
       (aset table char val))))
 
+;; Store VAL (integer or float) as a character property value of CHAR
+;; in TABLE.
+
+(defun unidata-put-numeric (char val table)
+  (or (numberp val)
+      (not val)
+      (error "Not a number nor nil: %S" val))
+  (let ((current-val (aref table char)))
+    (unless (equal current-val val)
+      (if (stringp current-val)
+	  (funcall (char-table-extra-slot table 1) char current-val table))
+      (aset table char val))))
+
 ;; Encode the character property value VAL into an integer value by
 ;; VAL-LIST.  By side effect, VAL-LIST is modified.
 ;; VAL-LIST has this form:
@@ -425,7 +466,7 @@ Property value is a character."
 ;;   (t (VAL . (1+ VAL-CODE1)) (VAL1 . VAL-CODE1) (VAL2 . VAL-CODE2) ...)
 
 (defun unidata-encode-val (val-list val)
-  (let ((slot (assq val val-list))
+  (let ((slot (assoc val val-list))
 	val-code)
     (if slot
 	(cdr slot)
@@ -517,6 +558,22 @@ Property value is a character."
     (byte-compile 'unidata-put-integer)
     (set-char-table-extra-slot table 1 (symbol-function 'unidata-get-integer))
     (set-char-table-extra-slot table 2 (symbol-function 'unidata-put-integer))
+    table))
+
+(defun unidata-gen-table-numeric (prop)
+  (let ((table (unidata-gen-table prop
+				  #'(lambda (x)
+				      (if (string-match "/" x)
+					  (/ (float (string-to-number x))
+					     (string-to-number
+					      (substring x (match-end 0))))
+					(if (> (length x) 0)
+					    (string-to-number x))))
+				  t)))
+    (byte-compile 'unidata-get-numeric)
+    (byte-compile 'unidata-put-numeric)
+    (set-char-table-extra-slot table 1 (symbol-function 'unidata-get-numeric))
+    (set-char-table-extra-slot table 2 (symbol-function 'unidata-put-numeric))
     table))
 
 
