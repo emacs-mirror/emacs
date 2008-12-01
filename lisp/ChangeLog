@@ -1,3 +1,9 @@
+2008-12-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/uni-numeric.el: Re-generated.
+
+	* international/charprop.el: Re-generated.
+
 2008-12-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-cmds.el (locale-preferred-coding-systems):
