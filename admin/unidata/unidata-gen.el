@@ -166,9 +166,8 @@ Property value is one of the following symbols:
      "Unicode decomposition mapping.
 Property value is a list of characters.  The first element may be
 one of these symbols representing compatibility formatting tag:
-  <font>, <noBreak>, <initial>, <medial>, <final>, <isolated>, <circle>,
-  <super>, <sub>, <vertical>, <wide>, <narrow>, <small>, <square>, <fraction>,
-  <compat>"
+  font, noBreak, initial, medial, final, isolated, circle, super,
+  sub, vertical, wide, narrow, small, square, fraction, compat"
      unidata-describe-decomposition)
     (decimal-digit-value
      6 unidata-gen-table-integer "uni-decimal.el"
@@ -1027,11 +1026,11 @@ Property value is a character."
 	  (setq c (aref str i))
 	  (if (= c 32)
 	      (setq l (if (= (aref str idx) ?<)
-			  (cons (intern (substring str idx i)) l)
+			  (cons (intern (substring str (1+ idx) (1- i))) l)
 			(cons (string-to-number (substring str idx i) 16) l))
 		    idx (1+ i))))
 	(if (= (aref str idx) ?<)
-	    (setq l (cons (intern (substring str idx len)) l))
+	    (setq l (cons (intern (substring str (1+ idx) (1- len))) l))
 	  (setq l (cons (string-to-number (substring str idx len) 16) l)))
 	(nreverse l)))))
 
