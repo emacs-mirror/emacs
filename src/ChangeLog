@@ -1,3 +1,8 @@
+2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (make_lispy_position): Only use PT if the selected
+	window is current.
+
 2008-12-02  Andreas Schwab  <schwab@suse.de>
 
 	* font.c (font_unparse_fcname): Fix use of uninitialized variable.
