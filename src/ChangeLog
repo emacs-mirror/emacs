@@ -1,3 +1,7 @@
+2008-12-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/w32console.$(O)): Fix silly, silly typo.
+
 2008-12-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in: Update dependencies.

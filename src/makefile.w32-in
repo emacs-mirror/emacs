@@ -1083,7 +1083,7 @@ $(BLD)/w32console.$(O) : \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32gui.h \
-	$(SRC)/w32inetv.h
+	$(SRC)/w32inevt.h
 
 $(BLD)/print.$(O) : \
 	$(SRC)/print.c \
