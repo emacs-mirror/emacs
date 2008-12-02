@@ -1598,7 +1598,6 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
   Lisp_Object family, foundry;
   Lisp_Object tail, val;
   int point_size;
-  int dpi;
   int i, len = 1;
   char *p;
   Lisp_Object styles[3];
@@ -1653,7 +1652,7 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
     }
 
   if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
-    len += sprintf (work, ":dpi=%d", dpi);
+    len += sprintf (work, ":dpi=%d", XINT (AREF (font, FONT_DPI_INDEX)));
   if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
     len += strlen (":spacing=100");
   if (INTEGERP (AREF (font, FONT_AVGWIDTH_INDEX)))

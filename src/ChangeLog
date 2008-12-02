@@ -1,5 +1,7 @@
 2008-12-02  Andreas Schwab  <schwab@suse.de>
 
+	* font.c (font_unparse_fcname): Fix use of uninitialized variable.
+
 	* doprnt.c (doprnt1): Fix size of charbuf.
 
 2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
