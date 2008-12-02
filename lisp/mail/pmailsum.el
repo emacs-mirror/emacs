@@ -362,7 +362,10 @@ the message being processed."
 	char)
     ;; Strip off the read/unread and the deleted attribute which are
     ;; handled separately.
-    (setq status (concat (substring status 0 1) (substring status 2 6)))
+    (setq status
+	  (if status
+	      (concat (substring status 0 1) (substring status 2 6))
+	    ""))
     (while (< index (length status))
       (unless (string= "-" (setq char (substring status index (1+ index))))
 	(setq result (concat result char)))
