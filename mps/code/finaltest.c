@@ -148,6 +148,7 @@ static void *test(void *arg, size_t s)
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create\n");
 
   mps_message_type_enable(arena, mps_message_type_finalization());
+  mps_message_type_enable(arena, mps_message_type_gc_start());
 
   mps_arena_park(arena);
 
@@ -175,12 +176,10 @@ static void *test(void *arg, size_t s)
           fflush(stdout);
           die(mps_arena_collect(arena), "collect");
           printf(" Done.\n");
-          while (mps_message_poll(arena)) {
+          while (mps_message_get(&message, arena,
+                                 mps_message_type_finalization())) {
                   mps_word_t obj;
                   mps_addr_t objaddr;
-                  cdie(mps_message_get(&message, arena,
-                                       mps_message_type_finalization()),
-                       "get");
                   mps_message_finalization_ref(&objaddr, arena, message);
                   obj = (mps_word_t)objaddr;
                   mps_message_discard(arena, message);
@@ -215,12 +214,10 @@ static void *test(void *arg, size_t s)
           fflush(stdout);
           die(mps_arena_collect(arena), "collect");
           printf(" Done.\n");
-          while (mps_message_poll(arena)) {
+          while (mps_message_get(&message, arena,
+                                 mps_message_type_finalization())) {
                   mps_word_t obj;
                   mps_addr_t objaddr;
-                  cdie(mps_message_get(&message, arena,
-                                       mps_message_type_finalization()),
-                       "get");
                   mps_message_finalization_ref(&objaddr, arena, message);
                   obj = (mps_word_t)objaddr;
                   mps_message_discard(arena, message);
