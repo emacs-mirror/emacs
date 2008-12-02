@@ -1,3 +1,7 @@
+2008-12-02  Kenichi Handa  <handa@m17n.org>
+
+	* international/uni-decomposition.el: Re-generated.
+
 2008-12-01  Andreas Schwab  <schwab@suse.de>
 
 	* dired.el (dired-font-lock-keywords): Avoid fontifying file names
