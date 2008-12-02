@@ -1,7 +1,7 @@
 2008-11-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacsclient.1: Mention -nw and -c. Fix the character for --help.
-	Swap the order of -e and -n to follow the order displayed by --help. 
+	Swap the order of -e and -n to follow the order displayed by --help.
 
 2008-03-13  Glenn Morris  <rgm@gnu.org>
 

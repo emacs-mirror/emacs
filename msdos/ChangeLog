@@ -53,7 +53,7 @@
 
 	* sed3v2.inp: Edit out @LIB_SRC_EXTRA_INSTALLABLES@.
 
-	* sed1v2.inp (version):  Define to empty.
+	* sed1v2.inp (version): Define to empty.
 	(ALL_CFLAGS, LIBES): Edit out @FOO@ stuff.
 	(EXEEXT): Define to .exe.
 	Edit "ln -f" into "cp -pf".

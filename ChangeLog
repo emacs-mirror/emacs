@@ -56,9 +56,9 @@
 	Exit with an error if `--with-ns' was specified but <AppKit/AppKit.h>
 	is not found.  (Bug#1230)
 
-2008-10-23  Ali Bahrami <ali_gnu@emvision.com>  (tiny change)
+2008-10-23  Ali Bahrami  <ali_gnu@emvision.com>  (tiny change)
 
-	* configure (*-sunos5*, *-solaris* ): Use the new file sol2-10.h.
+	* configure (*-sunos5*, *-solaris*): Use the new file sol2-10.h.
 	Use sol2-6.h for Solaris 7-9.
 
 2008-10-18  Ulrich Mueller  <ulm@gentoo.org>

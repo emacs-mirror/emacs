@@ -761,7 +761,7 @@
 	gnus-group-read-ephemeral-gmane-group.
 	(gnus-read-ephemeral-gmane-group-url): Rename from
 	gnus-group-read-ephemeral-gmane-group-url.
-	(gnus-bug-group-download-format-alist):  New variable.
+	(gnus-bug-group-download-format-alist): New variable.
 	(gnus-read-ephemeral-bug-group, gnus-read-ephemeral-debian-bug-group)
 	(gnus-read-ephemeral-emacs-bug-group): New commands.
 
@@ -1881,7 +1881,7 @@
 	(latin-unity-ucs-list):
 	* mm-bodies.el (mm-uu-yenc-decode-function, mm-uu-decode-function)
 	(mm-uu-binhex-decode-function):
-	* message.el (gnus-message-group-art, gnus-list-identifiers, )
+	* message.el (gnus-message-group-art, gnus-list-identifiers)
 	(rmail-enable-mime-composing, gnus-local-organization)
 	(gnus-post-method, gnus-select-method, gnus-active-hashtb)
 	(gnus-read-active-file, facemenu-add-face-function)
@@ -9370,7 +9370,7 @@
 
 	* spam.el (spam-backend-article-list-property)
 	(spam-backend-get-article-todo-list)
-	(spam-backend-put-article-todo-list, )
+	(spam-backend-put-article-todo-list)
 	(spam-summary-prepare-exit, spam-resolve-registrations-routine):
 	Resolve registrations separately.
 	(spam-register-routine): Format comments.

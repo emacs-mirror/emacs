@@ -1475,7 +1475,7 @@
 	* vm-limit.c (get_lim_data) [MSDOS]: Use alternative methods of
 	estimating available memory.
 
-2008-08-23  David Reitter <david.reitter@gmail.com>
+2008-08-23  David Reitter  <david.reitter@gmail.com>
 
 	* nsterm.m (ns_draw_window_cursor): Don't call
 	NSDisableScreenUpdates and NSEnableScreenUpdates on
@@ -13232,7 +13232,7 @@
 	(Qdbus_event): New Lisp symbol.
 	(kbd_buffer_get_event, make_lispy_event): Handle DBUS_EVENT.
 	(gobble_input): Call xd_read_queued_messages, reading D-Bus messages.
-	(keys_of_keyboard ): Define dbus-event.
+	(keys_of_keyboard): Define dbus-event.
 
 	* termhooks.h (event_kind): Add DBUS_EVENT when HAVE_DBUS is defined.
 
@@ -14957,7 +14957,7 @@
 	(mouse_position_for_popup, Fx_popup_menu)
 	(Fx_popup_dialog, x_activate_menubar, update_frame_menubar)
 	(set_frame_menubar, free_frame_menubar)
-	(create_and_show_popup_menu, xmenu_show, )
+	(create_and_show_popup_menu, xmenu_show)
 	(create_and_show_dialog, xdialog_show, xmenu_show): Abort if not
 	an X frame.
 

@@ -7,9 +7,8 @@
 
 2008-12-01  Kenichi Handa  <handa@m17n.org>
 
-	* unidata/unidata-gen.el (unidata-prop-alist): Set `numric-value'
-	property generator to unidata-gen-table-numeric.  Docstring
-	adjusted.
+	* unidata/unidata-gen.el (unidata-prop-alist): Set `numeric-value'
+	property generator to unidata-gen-table-numeric.  Docstring adjusted.
 	(unidata-get-numeric, unidata-put-numeric)
 	(unidata-gen-table-numeric): New functions.
 	(unidata-encode-val): Use assoc to get a slot in VAL-LIST.
