@@ -1,3 +1,8 @@
+2008-12-02  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Format Conversion Round-Trip): Rewrite format-write-file
+	section yet again.
+
 2008-11-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* nonascii.texi (Character Properties): New Section.
