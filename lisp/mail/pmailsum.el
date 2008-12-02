@@ -77,7 +77,9 @@
 (defun pmail-summary ()
   "Display a summary of all messages, one line per message."
   (interactive)
-  (pmail-new-summary "All" '(pmail-summary) nil))
+  (pmail-new-summary "All" '(pmail-summary) nil)
+  (unless (get-buffer-window pmail-buffer)
+    (pmail-summary-beginning-of-message)))
 
 ;;;###autoload
 (defun pmail-summary-by-labels (labels)
@@ -193,32 +195,35 @@ For each message, FUNC is applied to the message number and ARGS...
 and if the result is non-nil, that message is included.
 nil for FUNCTION means all messages."
   (message "Computing summary lines...")
+  (unless pmail-buffer
+    (error "No PMAIL buffer found"))
   (let (mesg was-in-summary)
+    (if (eq major-mode 'pmail-summary-mode)
+	(setq was-in-summary t))
     (with-current-buffer pmail-buffer
-      (if (eq major-mode 'pmail-summary-mode)
-	  (setq was-in-summary t))
       (setq mesg pmail-current-message
 	    pmail-summary-buffer (pmail-new-summary-1 desc redo func args)))
     ;; Now display the summary buffer and go to the right place in it.
-    (or was-in-summary
-	(progn
-	  (if (and (one-window-p)
-		   pop-up-windows (not pop-up-frames))
-	      ;; If there is just one window, put the summary on the top.
-	      (progn
-		(split-window (selected-window) pmail-summary-window-size)
-		(select-window (next-window (frame-first-window)))
-		(pop-to-buffer pmail-summary-buffer)
-		;; If pop-to-buffer did not use that window, delete that
-		;; window.  (This can happen if it uses another frame.)
-		(if (not (eq pmail-summary-buffer (window-buffer (frame-first-window))))
-		    (delete-other-windows)))
-	    (pop-to-buffer pmail-summary-buffer))
-	  (set-buffer pmail-buffer)
-	  ;; This is how pmail makes the summary buffer reappear.
-	  ;; We do this here to make the window the proper size.
-	  (pmail-select-summary nil)
-	  (set-buffer pmail-summary-buffer)))
+    (unless was-in-summary
+      (if (and (one-window-p)
+	       pop-up-windows
+	       (not pop-up-frames))
+	  ;; If there is just one window, put the summary on the top.
+	  (progn
+	    (split-window (selected-window) pmail-summary-window-size)
+	    (select-window (next-window (frame-first-window)))
+	    (pop-to-buffer pmail-summary-buffer)
+	    ;; If pop-to-buffer did not use that window, delete that
+	    ;; window.  (This can happen if it uses another frame.)
+	    (if (not (eq pmail-summary-buffer
+			 (window-buffer (frame-first-window))))
+		(delete-other-windows)))
+	(pop-to-buffer pmail-summary-buffer))
+      (set-buffer pmail-buffer)
+      ;; This is how pmail makes the summary buffer reappear.
+      ;; We do this here to make the window the proper size.
+      (pmail-select-summary nil)
+      (set-buffer pmail-summary-buffer))
     (pmail-summary-goto-msg mesg t t)
     (pmail-summary-construct-io-menu)
     (message "Computing summary lines...done")))
