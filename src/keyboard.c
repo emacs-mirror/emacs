@@ -4584,7 +4584,6 @@ timer_check (do_it_now)
 	    {
 	      int count = SPECPDL_INDEX ();
 	      Lisp_Object old_deactivate_mark = Vdeactivate_mark;
-	      struct buffer *b;
 
 	      /* Mark the timer as triggered to prevent problems if the lisp
 		 code fails to reschedule it right.  */
@@ -4597,13 +4596,6 @@ timer_check (do_it_now)
 	      timers_run++;
 	      unbind_to (count, Qnil);
 
-	      /* We must ensure that the current buffer is the same as
-		 the selected window's buffer, because the timers may
-		 have made another buffer current (bug#1458).  */
-	      b = XBUFFER (XWINDOW (selected_window)->buffer);
-	      if (b != current_buffer)
-		set_buffer_internal (b);
-	      
 	      /* Since we have handled the event,
 		 we don't need to tell the caller to wake up and do it.  */
 	    }
