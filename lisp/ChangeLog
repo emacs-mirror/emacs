@@ -1,3 +1,8 @@
+2008-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (PC-do-completion): Fix leftover bug from Emacs-21 when
+	the prompt was added to the minibuffer.
+
 2008-12-02  Glenn Morris  <rgm@gnu.org>
 
 	* format.el (format-write-file): Rewrite doc yet again.

@@ -799,7 +799,8 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 		(if improved
 
 		    ;; We changed it... would it be complete without the space?
-		    (if (test-completion (buffer-substring 1 (1- end))
+		    (if (test-completion (buffer-substring
+                                          (field-beginning) (1- end))
                                          table pred)
 			(delete-region (1- end) end)))
 
