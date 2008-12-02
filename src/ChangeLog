@@ -1,3 +1,7 @@
+2008-12-02  Andreas Schwab  <schwab@suse.de>
+
+	* doprnt.c (doprnt1): Fix size of charbuf.
+
 2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (timer_check): Revert last change.
