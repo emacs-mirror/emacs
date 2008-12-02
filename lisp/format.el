@@ -359,20 +359,20 @@ one of the formats defined in `format-alist', or a list of such symbols."
 	  (setq format (cdr format)))))))
 
 (defun format-write-file (filename format &optional confirm)
-  "Write current buffer into file FILENAME using some FORMAT.
-Make buffer visit that file and set the format as the default for future
-saves (see below).  If the buffer is already visiting a file, you can
-specify a directory name as FILENAME, to write a file of the same old name
+  "Write current buffer into FILENAME, using a format based on FORMAT.
+Constructs the actual format starting from FORMAT, then appending
+any elements from the value of `buffer-file-format' with a non-nil
+`preserve' flag (see the documentation of `format-alist'), if they
+are not already present in FORMAT.  It then updates `buffer-file-format'
+with this format, making it the default for future saves.
+
+If the buffer is already visiting a file, you can specify a
+directory name as FILENAME, to write a file of the same old name
 in that directory.
 
-If optional third arg CONFIRM is non-nil, ask for confirmation before
-overwriting an existing file.  Interactively, confirmation is required
-unless you supply a prefix argument.
-
-This function sets the buffer-local value of `buffer-file-format'
-to FORMAT, then appends any elements from the previous value with
-a non-nil `preserve' flag (see the documentation of `format-alist'),
-if they are not already present in the new value."
+If optional third arg CONFIRM is non-nil, asks for confirmation before
+overwriting an existing file.  Interactively, requires confirmation
+unless you supply a prefix argument."
   (interactive
    ;; Same interactive spec as write-file, plus format question.
    (let* ((file (if buffer-file-name
