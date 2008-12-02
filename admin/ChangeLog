@@ -1,3 +1,19 @@
+2008-12-02  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-prop-alist): Docstring for
+	`decomposition' property adjusted.
+	(unidata-split-decomposition): Don't include surrounding "<" and
+	">" in a symbol name.
+
+2008-12-01  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-prop-alist): Set `numric-value'
+	property generator to unidata-gen-table-numeric.  Docstring
+	adjusted.
+	(unidata-get-numeric, unidata-put-numeric)
+	(unidata-gen-table-numeric): New functions.
+	(unidata-encode-val): Use assoc to get a slot in VAL-LIST.
+
 2008-11-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* notes/documentation: Add notes about Antinews.
