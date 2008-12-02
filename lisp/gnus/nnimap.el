@@ -608,12 +608,11 @@ If EXAMINE is non-nil the group is selected read-only."
       (with-current-buffer nnimap-server-buffer
 	(setq uid imap-current-message
 	      mbx imap-current-mailbox
-	      headers (nnimap-demule
-		       (if (imap-capability 'IMAP4rev1)
-			   ;; xxx don't just use car? alist doesn't contain
-			   ;; anything else now, but it might...
-			   (nth 2 (car (imap-message-get uid 'BODYDETAIL)))
-			 (imap-message-get uid 'RFC822.HEADER)))
+	      headers (if (imap-capability 'IMAP4rev1)
+                          ;; xxx don't just use car? alist doesn't contain
+                          ;; anything else now, but it might...
+                          (nth 2 (car (imap-message-get uid 'BODYDETAIL)))
+                        (imap-message-get uid 'RFC822.HEADER))
 	      lines (imap-body-lines (imap-message-body imap-current-message))
 	      chars (imap-message-get imap-current-message 'RFC822.SIZE)))
       (nnheader-insert-nov
@@ -901,40 +900,17 @@ function is generally only called when Gnus is shutting down."
   (when (nnimap-possibly-change-server server)
     (nnoo-status-message 'nnimap server)))
 
-(defvar nnimap-demule-use-string-to-multibyte (fboundp 'string-to-multibyte)
-  "Temporary internal debug variable.
-If you have problems (UTF-8 not decoded correctly on IMAP) with
-the default value, please report it as a bug!")
-;; FIXME: Clarify if we need to make this variable conditional on the Emacs
-;; version (Emacs 22 vs. Emacs 23;Emacs 21 doesn't have `string-to-multibyte'
-;; anyhow).  --rsteib
-;;
-;; http://thread.gmane.org/gmane.emacs.gnus.general/67112
-;; (bug#464, reported by James Cloos)
-;; http://thread.gmane.org/gmane.emacs.bugs/21524
-;; (bug#1174, reported by Frank Schmitt)
-
-(defun nnimap-demule (string)
-  ;; BEWARE: we used to use string-as-multibyte here which is braindead
-  ;; because it will turn accidental emacs-mule-valid byte sequences
-  ;; into multibyte chars.  --Stef
-  ;; Reverted, braindead got 7.5 out of 10 on imdb, so it can't be
-  ;; that bad. --Simon
-  (gnus-message 9 "nnimap-demule-use-string-to-multibyte: %s"
-		nnimap-demule-use-string-to-multibyte)
-  (if nnimap-demule-use-string-to-multibyte
-      ;; Stefan
-      (funcall (if (and (fboundp 'string-to-multibyte)
-			(subrp (symbol-function 'string-to-multibyte)))
-		   'string-to-multibyte
-		 'identity)
-	       (or string "")))
-  ;; Simon
-  (funcall (if (and (fboundp 'string-as-multibyte)
-		    (subrp (symbol-function 'string-as-multibyte)))
-	       'string-as-multibyte
-	     'identity)
-	   (or string "")))
+;; We used to use a string-as-multibyte here, but it is really incorrect.
+;; This function is used when we're about to insert a unibyte string
+;; into a potentially multibyte buffer.  The string is either an article
+;; header or body (or both?), undecoded.  When Emacs is asked to convert
+;; a unibyte string to multibyte, it may either use the equivalent of
+;; nothing (e.g. non-Mule XEmacs), string-make-unibyte (i.e. decode using
+;; locale), string-as-multibyte (decode using emacs-internal coding system)
+;; or string-to-multibyte (keep the data undecoded as a sequence of bytes).
+;; Only the last one preserves the data such that we can reliably later on
+;; decode the text using the mime info.
+(defalias 'nnimap-demule 'mm-string-to-multibyte)
 
 (defun nnimap-make-callback (article gnus-callback buffer)
   "Return a callback function."

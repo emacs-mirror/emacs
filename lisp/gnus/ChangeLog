@@ -1,3 +1,10 @@
+2008-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnimap.el (nnimap-retrieve-headers-progress): Don't use nnimap-demule
+	since the result is inserted in a unibyte buffer anyway.
+	(nnimap-demule-use-string-to-multibyte): Remove.
+	(nnimap-demule): Alias it to mm-string-to-multibyte.
+
 2008-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* nnimap.el (nnimap-demule-use-string-to-multibyte): New temporary
