@@ -3552,7 +3552,7 @@ See also user-option `pmail-confirm-expunge'."
       (if (not win)
 	  (narrow-to-region (- (buffer-size) omin) (- (buffer-size) omax)))
       (if (not dont-show)
-	  (pmail-show-message-maybe (< pmail-current-message pmail-total-messages)))
+	  (pmail-show-message-maybe (min pmail-current-message pmail-total-messages)))
       (pmail-swap-buffers-maybe)
       (if pmail-enable-mime
 	  (goto-char (+ (point-min) opoint))
