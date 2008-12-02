@@ -1,3 +1,22 @@
+2008-12-02  Glenn Morris  <rgm@gnu.org>
+
+	* format.el (format-write-file): Rewrite doc yet again.
+
+	* progmodes/cc-vars.el (c-tab-always-indent, c-insert-tab-function):
+	Doc fix.  (Bug#1368)
+
+	* textmodes/texinfo.el (texinfo-insert-quote): Tweak previous change.
+
+2008-12-02  Aaron S. Hawley  <aaronh@garden.org>
+
+	* textmodes/texinfo.el (texinfo-insert-quote): Handle corner
+	case where point is at the beginning of the buffer.  (Bug#1239)
+
+2008-12-02  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* nxml/nxml-mode.el (nxml-indent-line): Don't re-indent lines that
+	already have the correct indentation.  (Bug#859)
+
 2008-12-02  Kenichi Handa  <handa@m17n.org>
 
 	* international/uni-decomposition.el: Re-generated.

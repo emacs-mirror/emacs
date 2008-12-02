@@ -682,9 +682,8 @@ With prefix argument or inside @code or @example, inserts a plain \"."
     (if (or arg
 	    (= (preceding-char) ?\\)
 	    (save-excursion
-              (if (> (point) (length texinfo-open-quote))
-                  (backward-char (length texinfo-open-quote))
-                (goto-char (point-min)))
+              ;; Might be near the start of a (narrowed) buffer.
+              (ignore-errors (backward-char (length texinfo-open-quote)))
 	      (when (or (looking-at texinfo-open-quote)
 			(looking-at texinfo-close-quote))
 		(delete-char (length texinfo-open-quote))
