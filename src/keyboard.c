@@ -5304,7 +5304,8 @@ make_lispy_position (f, x, y, time)
 				     &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
 	    string_info = Fcons (string, make_number (charpos));
-	  if (w == XWINDOW (selected_window))
+	  if (w == XWINDOW (selected_window)
+	      && current_buffer == XBUFFER (w->buffer))
 	    textpos = PT;
 	  else
 	    textpos = XMARKER (w->pointm)->charpos;
