@@ -1,3 +1,11 @@
+2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail-only-expunge): Pass correct arg to
+	pmail-show-message-maybe.
+
+	* pmailsum.el (pmail-get-summary-labels): If no attribute
+	headers are found, use the empty string.
+
 2008-11-13  Paul Reilly  <pmr@pajato.com>
 
 	* pmail.el: Add support for save-buffer.
