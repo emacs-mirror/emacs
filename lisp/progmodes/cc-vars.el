@@ -284,18 +284,13 @@ nil."
   "*Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.  If nil, hitting
 TAB indents the current line if point is at the left margin or in the
-line's indentation, otherwise it inserts a `real' tab character \(see
-note\).  If some other value (not nil or t), then tab is inserted only
-within literals \(comments and strings), but the line is always
-reindented.
+line's indentation, otherwise it calls `c-insert-tab-function' to
+insert a `real' tab character.  If some other value (neither nil nor t),
+then inserts a tab only within literals (comments and strings), but
+always reindents the line.
 
-Note: The value of `indent-tabs-mode' will determine whether a real
-tab character will be inserted, or the equivalent number of spaces.
-When inserting a tab, actually the function stored in the variable
-`c-insert-tab-function' is called.
-
-Note: indentation of lines containing only comments is also controlled
-by the `c-comment-only-line-offset' variable."
+Note: the variable `c-comment-only-line-offset' also controls the
+indentation of lines containing only comments."
   :type '(radio
 	  (const :tag "TAB key always indents, never inserts TAB" t)
 	  (const :tag "TAB key indents in left margin, otherwise inserts TAB" nil)
@@ -305,7 +300,9 @@ by the `c-comment-only-line-offset' variable."
 (defcustom c-insert-tab-function 'insert-tab
   "*Function used when inserting a tab for \\[c-indent-command].
 Only used when `c-tab-always-indent' indicates a `real' tab character
-should be inserted.  Value must be a function taking no arguments."
+should be inserted.  Value must be a function taking no arguments.
+The default, `insert-tab', inserts either a tab or the equivalent
+number of spaces depending on the value of `indent-tabs-mode'."
   :type 'function
   :group 'c)
 
