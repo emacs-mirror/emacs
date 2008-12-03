@@ -5635,14 +5635,13 @@ subscribed address (and not the additional To and Cc header contents)."
       (dolist (rhs
 	       (mm-delete-duplicates
 		(mapcar (lambda (rhs) (or (cadr (split-string rhs "@")) ""))
-			(mapcar (lambda (domain)
-				  (if domain
-				      (downcase domain)
-				    ""))
+			(mapcar 'downcase
 				(mapcar
 				 'cadr
 				 (mail-extract-address-components field t))))))
-	(setq ace (if (string-match "\\`[[:ascii:]]+\\'" rhs)
+	;; Note that `rhs' will be "" if the address does not have
+	;; the domain part, i.e., if it is a local user's address.
+	(setq ace (if (string-match "\\`[[:ascii:]]*\\'" rhs)
 		      rhs
 		    (downcase (idna-to-ascii rhs))))
 	(when (and (not (equal rhs ace))
@@ -5664,6 +5663,12 @@ See `message-idna-encode'."
   (when message-use-idna
     (save-excursion
       (save-restriction
+	;; `message-narrow-to-head' that recognizes only the first empty
+	;; line as the message header separator used to be used here.
+	;; However, since there is the "--text follows this line--" line
+	;; normally, it failed in narrowing to the headers and potentially
+	;; caused the IDNA encoding on lines that look like headers in
+	;; the message body.
 	(message-narrow-to-headers-or-head)
 	(message-idna-to-ascii-rhs-1 "From")
 	(message-idna-to-ascii-rhs-1 "To")
