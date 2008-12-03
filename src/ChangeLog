@@ -1,3 +1,8 @@
+2008-12-03  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_utf_16): Initialize consumed_chars_base
+	to 0.
+
 2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (make_lispy_position): Only use PT if the selected
