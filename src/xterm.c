@@ -2765,6 +2765,8 @@ x_draw_glyph_string (s)
 		    position = s->font->underline_position;
 		  else if (s->font)
 		    position = (s->font->descent + 1) / 2;
+		  else
+		    position = underline_minimum_offset;
 		}
 	      position = max (position, underline_minimum_offset);
 	    }
