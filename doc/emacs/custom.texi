@@ -1306,15 +1306,15 @@ to tell Emacs which directory roots correspond to that class, using
 @code{dir-locals-set-directory-class}.  You can put calls to these functions in
 your @file{.emacs}; this can be useful when you can't put
 @file{.dir-locals.el} in the directory for some reason.  For
-example, you could apply settings to an unwriteable directory this
+example, you could apply settings to an unwritable directory this
 way:
 
 @example
-(dir-locals-set-class-variables 'unwriteable-directory
+(dir-locals-set-class-variables 'unwritable-directory
    '((nil . ((some-useful-setting . value)))))
 
 (dir-locals-set-directory-class
-   "/usr/include/" 'unwriteable-directory)
+   "/usr/include/" 'unwritable-directory)
 @end example
 
   Unsafe directory-local variables are handled in the same way as
