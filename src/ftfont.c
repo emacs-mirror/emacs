@@ -970,7 +970,7 @@ static Lisp_Object
 ftfont_list_family (frame)
      Lisp_Object frame;
 {
-  Lisp_Object list;
+  Lisp_Object list = Qnil;
   FcPattern *pattern = NULL;
   FcFontSet *fontset = NULL;
   FcObjectSet *objset = NULL;
@@ -992,7 +992,6 @@ ftfont_list_family (frame)
   if (! fontset)
     goto finish;
 
-  list = Qnil;
   for (i = 0; i < fontset->nfont; i++)
     {
       FcPattern *pat = fontset->fonts[i];
