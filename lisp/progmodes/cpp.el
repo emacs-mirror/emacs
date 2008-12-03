@@ -101,8 +101,8 @@ Each entry is a list with the following elements:
 		       (cpp-face :tag "True")
 		       (cpp-face :tag "False")
 		       (choice (const :tag "True branch writable" t)
-			       (const :tag "False branch writeable" nil)
-			       (const :tag "Both branches writeable" both))))
+			       (const :tag "False branch writable" nil)
+			       (const :tag "Both branches writable" both))))
   :group 'cpp)
 
 (defvar cpp-overlay-list nil)
