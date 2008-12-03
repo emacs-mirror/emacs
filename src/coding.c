@@ -5160,7 +5160,7 @@ decode_coding_charset (coding)
       code = c;
 
       val = AREF (valids, c);
-      if (NILP (val))
+      if (! INTEGERP (val) && ! CONSP (val))
 	goto invalid_code;
       if (INTEGERP (val))
 	{
