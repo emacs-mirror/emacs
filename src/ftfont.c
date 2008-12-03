@@ -247,8 +247,8 @@ ftfont_resolve_generic_family (family, pattern)
   else
     family = Qnil;
   XSETCDR (slot, family);
- err:
   if (match) FcPatternDestroy (match);
+ err:
   if (pattern) FcPatternDestroy (pattern);
   return family;
 }
