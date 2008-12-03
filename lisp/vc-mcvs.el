@@ -1,9 +1,10 @@
 ;;; vc-mcvs.el --- VC backend for the Meta-CVS version-control system
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
-;; Maintainer:  None
+;; Maintainer:  FSF
 
 ;; This file is part of GNU Emacs.
 
@@ -64,9 +65,7 @@
   "Global switches to pass to any Meta-CVS command."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "22.1"
   :group 'vc)
 
@@ -83,12 +82,12 @@ A string or list of strings passed to the checkin program by
   :group 'vc)
 
 (defcustom vc-mcvs-diff-switches nil
-  "A string or list of strings specifying extra switches for cvs diff under VC."
-    :type '(choice (const :tag "None" nil)
+  "String or list of strings specifying switches for Meta-CVS diff under VC.
+If nil, use the value of `vc-diff-switches'.  If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "22.1"
   :group 'vc)
 
@@ -184,6 +183,7 @@ This is only meaningful if you don't use the implicit checkout model
 ;;; State-changing functions
 ;;;
 
+;; FIXME the doc is wrong re switches.
 (defun vc-mcvs-register (files &optional rev comment)
   "Register FILES into the Meta-CVS version-control system.
 COMMENT can be used to provide an initial description of FILE.
