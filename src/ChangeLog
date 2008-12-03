@@ -1,3 +1,9 @@
+2008-12-03  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (face_for_char): Handle invalid charset property
+	correctly.
+	(font_for_char): Likewise.
+
 2008-12-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (Fopen_font): Compute pixel size correctly.
