@@ -1,7 +1,7 @@
 2008-12-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_draw_glyph_string): Fall back on
-	underline_minimum_offset for undlerline position.
+	underline_minimum_offset for underline position.
 
 2008-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
