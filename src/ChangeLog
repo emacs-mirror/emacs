@@ -1,3 +1,8 @@
+2008-12-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_draw_glyph_string): Fall back on
+	underline_minimum_offset for undlerline position.
+
 2008-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* keyboard.c (read_char_help_form_unwind): Specify the type for ARG.
