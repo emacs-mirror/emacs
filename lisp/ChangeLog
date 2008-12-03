@@ -1,5 +1,8 @@
 2008-12-03  Juanma Barranquero  <lekktu@gmail.com>
 
+	* w32-fns.el (w32-list-locales): Use `with-output-to-temp-buffer',
+	like most list-* commands.
+
 	* international/mule-diag.el (unicodedata-file, unicode-data): Remove.
 	They already exist in descr-text.el as `describe-char-unicodedata-file'
 	and `describe-char-unicode-data'.
