@@ -1,8 +1,10 @@
 2008-12-03  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* message.el (message-idna-to-ascii-rhs): Use
-	message-narrow-to-headers-or-head rather than message-narrow-to-head
-	since there will be the message header separator.
+	* message.el (message-idna-to-ascii-rhs-1): Protect against local
+	users' addresses that don't have domain parts.
+	(message-idna-to-ascii-rhs): Use message-narrow-to-headers-or-head
+	rather than message-narrow-to-head since there will be the message
+	header separator.
 
 2008-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 

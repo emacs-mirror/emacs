@@ -5635,7 +5635,10 @@ subscribed address (and not the additional To and Cc header contents)."
       (dolist (rhs
 	       (mm-delete-duplicates
 		(mapcar (lambda (rhs) (or (cadr (split-string rhs "@")) ""))
-			(mapcar 'downcase
+			(mapcar (lambda (domain)
+				  (if domain
+				      (downcase domain)
+				    ""))
 				(mapcar
 				 'cadr
 				 (mail-extract-address-components field t))))))
