@@ -3622,11 +3622,13 @@ font_at (c, pos, face, w, string)
   int multibyte;
   Lisp_Object font_object;
 
+  multibyte = (NILP (string)
+	       ? ! NILP (current_buffer->enable_multibyte_characters)
+	       : STRING_MULTIBYTE (string));
   if (c < 0)
     {
       if (NILP (string))
 	{
-	  multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 	  if (multibyte)
 	    {
 	      EMACS_INT pos_byte = CHAR_TO_BYTE (pos);
