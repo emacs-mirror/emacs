@@ -1,3 +1,8 @@
+2008-12-03  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa--show-key): Use past tense of "expire" if the key
+	has already been expired.  Thanks to Peter BARABAS.
+
 2008-12-03  Lute Kamstra  <lute@gnu.org>
 
 	* align.el:
