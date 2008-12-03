@@ -707,14 +707,15 @@ current directory and its subdirectories.
 @vindex vc-diff-switches
 @vindex vc-rcs-diff-switches
   @kbd{C-x v =} works by running a variant of the @code{diff} utility
-designed to work with the version control system in use.  When you
-invoke @code{diff} this way, in addition to the options specified by
-@code{diff-switches} (@pxref{Comparing Files}), it receives those
-specified by @code{vc-diff-switches}, plus those specified for the
-specific back end by @code{vc-@var{backend}-diff-switches}.  For
-instance, when the version control back end is CVS, @code{diff} uses
-the options in @code{vc-cvs-diff-switches}.  The
-@samp{vc@dots{}diff-switches} variables are @code{nil} by default.
+designed to work with the version control system in use.  The options
+to pass to the @code{diff} command are taken from the first non-@code{nil}
+value of @code{vc-@var{backend}-diff-switches}, @code{vc-diff-switches},
+and @code{diff-switches} (@pxref{Comparing Files}), in that order.
+Since @code{nil} means to check the next variable in the sequence,
+either of the first two may use the value @code{t} to mean no switches at all.
+The @samp{vc@dots{}diff-switches} variables are all either @code{nil}
+or @code{t} (for those version control systems that do not accept common
+@code{diff} options) by default.
 
   The buffer produced by @kbd{C-x v =} supports the commands of
 Compilation mode (@pxref{Compilation Mode}), such as @kbd{C-x `} and
