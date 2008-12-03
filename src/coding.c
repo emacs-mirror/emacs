@@ -2449,8 +2449,10 @@ encode_coding_emacs_mule (coding)
 	  if (preferred_charset_id >= 0)
 	    {
 	      charset = CHARSET_FROM_ID (preferred_charset_id);
-	      if (! CHAR_CHARSET_P (c, charset))
-		charset = char_charset (c, charset_list, NULL);
+	      if (CHAR_CHARSET_P (c, charset))
+		code = ENCODE_CHAR (charset, c);
+	      else
+		charset = char_charset (c, charset_list, &code);
 	    }
 	  else
 	    charset = char_charset (c, charset_list, &code);
