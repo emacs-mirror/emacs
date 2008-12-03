@@ -2392,8 +2392,15 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
 
   x_get_window_property (display, window, buffer_atom, &data, &bytes,
 			 &type, &format, &size, 0);
-  if (!data || !format)
+
+  if (!data)
     return Qnil;
+
+  if (!format)
+    {
+      xfree (data);
+      return Qnil;
+    }
 
   if (format != 8 || type != XA_STRING)
     signal_error ("Cut buffer doesn't contain 8-bit data",
