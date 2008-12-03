@@ -406,7 +406,7 @@ properties to be changed, even in a read-only buffer.
 
 This macro should be placed around all calculations which set
 \"insignificant\" text properties in a buffer, even when the buffer is
-known to be writeable.  That way, these text properties remain set
+known to be writable.  That way, these text properties remain set
 even if the user undoes the command which set them.
 
 This macro should ALWAYS be placed around \"temporary\" internal buffer
