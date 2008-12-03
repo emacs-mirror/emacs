@@ -1326,7 +1326,7 @@ decode_coding_utf_8 (coding)
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
   int *charbuf_end = coding->charbuf + coding->charbuf_size;
-  int consumed_chars = 0, consumed_chars_base;
+  int consumed_chars = 0, consumed_chars_base = 0;
   int multibytep = coding->src_multibyte;
   enum utf_bom_type bom = CODING_UTF_8_BOM (coding);
   Lisp_Object attr, charset_list;
