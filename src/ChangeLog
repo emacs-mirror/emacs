@@ -1,6 +1,7 @@
 2008-12-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ftfont.c (ftfont_match): Initialize entity variable.
+	(ftfont_resolve_generic_family): Avoid using uninitialized var.
 
 	* xselect.c (Fx_get_cut_buffer_internal): Fix memory leak.
 
