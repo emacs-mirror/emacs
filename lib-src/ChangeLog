@@ -1,6 +1,6 @@
 2008-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* emacsclient.c: Include <darpa/inet.h>.
+	* emacsclient.c: Include <arpa/inet.h>.
 
 2008-12-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
