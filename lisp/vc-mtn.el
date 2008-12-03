@@ -35,14 +35,11 @@
 
 (defcustom vc-mtn-diff-switches t
   "String or list of strings specifying switches for monotone diff under VC.
-If nil, use the value of `vc-diff-switches'.
-If you want to force an empty list of arguments, use t."
+If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :type '(choice (const :tag "Unspecified" nil)
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "23.1"
   :group 'vc)
 
