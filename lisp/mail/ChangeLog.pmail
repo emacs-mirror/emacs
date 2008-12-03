@@ -8,6 +8,7 @@
 	(pmail-summary): Call pmail-summary-beginning-of-message
 	(pmail-new-summary): Check for pmail-summary-mode in the current
 	buffer, not in the pmail buffer.
+	(pmail-summary-goto-msg): Use pmail-show-message-maybe.
 
 2008-11-13  Paul Reilly  <pmr@pajato.com>
 
