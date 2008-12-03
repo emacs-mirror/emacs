@@ -411,7 +411,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-svn-modify-change-comment (files rev comment)
   "Modify the change comments for a specified REV.
 You must have ssh access to the repository host, and the directory Emacs
-uses locally for temp files must also be writeable by you on that host.
+uses locally for temp files must also be writable by you on that host.
 This is only supported if the repository access method is either file://
 or svn+ssh://."
   (let (tempfile host remotefile directory fileurl-p)
