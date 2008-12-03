@@ -1,5 +1,8 @@
 2008-12-03  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (decode_coding_charset): Check type of an element of
+	vector VALIDS.
+
 	* fontset.c (face_for_char): Handle invalid charset property
 	correctly.
 	(font_for_char): Likewise.
