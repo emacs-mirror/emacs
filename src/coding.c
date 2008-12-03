@@ -6330,7 +6330,7 @@ produce_chars (coding, translation_table, last_block)
 	  if (coding->src_multibyte)
 	    {
 	      int multibytep = 1;
-	      EMACS_INT consumed_chars;
+	      EMACS_INT consumed_chars = 0;
 
 	      while (1)
 		{
@@ -7690,7 +7690,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 {
   const unsigned char *src_end = src + src_bytes;
   Lisp_Object attrs, eol_type;
-  Lisp_Object val;
+  Lisp_Object val = Qnil;
   struct coding_system coding;
   int id;
   struct coding_detection_info detect_info;
@@ -7855,7 +7855,6 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 	{
 	  int mask = detect_info.rejected | detect_info.found;
 	  int found = 0;
-	  val = Qnil;
 
 	  for (i = coding_category_raw_text - 1; i >= 0; i--)
 	    {
@@ -7918,7 +7917,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 
   /* Then, detect eol-format if necessary.  */
   {
-    int normal_eol = -1, utf_16_be_eol = -1, utf_16_le_eol;
+    int normal_eol = -1, utf_16_be_eol = -1, utf_16_le_eol = -1;
     Lisp_Object tail;
 
     if (VECTORP (eol_type))
@@ -7984,7 +7983,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
       }
   }
 
-  return (highest ? XCAR (val) : val);
+  return (highest ? (CONSP (val) ? XCAR (val) : Qnil) : val);
 }
 
 
