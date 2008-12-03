@@ -420,7 +420,7 @@ If the file is not registered, or the master name is not known, return nil."
 If FILES are not registered, this function always returns nil.
 For registered files, the possible values are:
 
-  'implicit   FILES are always writeable, and checked out `implicitly'
+  'implicit   FILES are always writable, and checked out `implicitly'
               when the user saves the first changes to the file.
 
   'locking    FILES are read-only if up-to-date; user must type
