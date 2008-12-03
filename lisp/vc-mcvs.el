@@ -4,7 +4,7 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
-;; Maintainer:  FSF
+;; Maintainer:  None
 
 ;; This file is part of GNU Emacs.
 
