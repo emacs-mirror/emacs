@@ -1,7 +1,7 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control
 
-;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
@@ -82,12 +82,12 @@ A string or list of strings passed to the checkin program by
   :group 'vc)
 
 (defcustom vc-cvs-diff-switches nil
-  "A string or list of strings specifying extra switches for cvs diff under VC."
-    :type '(choice (const :tag "None" nil)
-		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+  "String or list of strings specifying switches for CVS diff under VC.
+If nil, use the value of `vc-diff-switches'.  If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+                 (const :tag "None" t)
+                 (string :tag "Argument String")
+                 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
   :group 'vc)
 
@@ -123,9 +123,12 @@ by these regular expressions."
   :type '(choice (const :tag "Always stay local" t)
 		 (const :tag "Only for file operations" only-file)
 		 (const :tag "Don't stay local" nil)
-                 (list :format "\nExamine hostname and %v" :tag "Examine hostname ..."
-                       (set :format "%v" :inline t (const :format "%t" :tag "don't" except))
-                       (regexp :format " stay local,\n%t: %v" :tag "if it matches")
+                 (list :format "\nExamine hostname and %v"
+                       :tag "Examine hostname ..."
+                       (set :format "%v" :inline t
+                            (const :format "%t" :tag "don't" except))
+                       (regexp :format " stay local,\n%t: %v"
+                               :tag "if it matches")
                        (repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
   :version "23.1"
   :group 'vc)
@@ -270,6 +273,7 @@ committed and support display of sticky tags."
 ;;; State-changing functions
 ;;;
 
+;; FIXME doc is wrong re switches.
 (defun vc-cvs-register (files &optional rev comment)
   "Register FILES into the CVS version-control system.
 COMMENT can be used to provide an initial description of FILES.
@@ -522,13 +526,12 @@ Will fail unless you have administrative privileges on the repo."
 	      (coding-system-for-read (vc-coding-system-for-diff file)))
 	  (if (and file-oldvers file-newvers)
 	      (progn
+		;; This used to append diff-switches and vc-diff-switches,
+		;; which was consistent with the vc-diff-switches doc at that
+		;; time, but not with the actual behavior of any other VC diff.
 		(apply 'vc-do-command (or buffer "*vc-diff*") 1 "diff" nil
-		       (append (if (listp diff-switches)
-				   diff-switches
-				 (list diff-switches))
-			       (if (listp vc-diff-switches)
-				   vc-diff-switches
-				 (list vc-diff-switches))
+		       ;; Not a CVS diff, does not use vc-cvs-diff-switches.
+		       (append (vc-switches nil 'diff)
 			       (list (file-relative-name file-oldvers)
 				     (file-relative-name file-newvers))))
 		(setq status 0))
