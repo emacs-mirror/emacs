@@ -256,6 +256,7 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-do-command "*vc*" 0 vc-svn-program '(".")
 		 "checkout" (concat "file://" default-directory "SVN")))
 
+;; FIXME doc is wrong re switches.
 (defun vc-svn-register (files &optional rev comment)
   "Register FILES into the SVN version-control system.
 The COMMENT argument is ignored  This does an add but not a commit.
