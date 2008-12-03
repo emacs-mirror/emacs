@@ -1144,7 +1144,7 @@ If SKIP-PMAIL, don't do anything to the Pmail buffer."
       (let ((selwin (selected-window)))
 	(unwind-protect
 	    (progn (pop-to-buffer buf)
-		   (pmail-show-message n))
+		   (pmail-show-message-maybe n))
 	  (select-window selwin)
 	  ;; The actions above can alter the current buffer.  Preserve it.
 	  (set-buffer obuf))))))
