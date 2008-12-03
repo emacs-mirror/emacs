@@ -949,6 +949,14 @@ a single changeset.
 status.  It allows to apply various VC operations to a file, a
 directory or a set of files/directories.
 +++
+*** VC switches are no longer appended, rather the first non-nil value is used.
+(This was for the most part true in Emacs 22, but was not advertised).
+This is because there is an increasing variety of VC systems, and they
+do not all accept the same "common" options.  For example, a CVS diff
+command used to append the values of `vc-cvs-diff-switches',
+`vc-diff-switches', and `diff-switches'.  Now the first non-nil value
+from that sequence is used.  The special value `t' means "no switches".
++++
 *** Clicking on the VC mode-line entry now pops the VC menu.
 +++
 *** The VC mode-line entry now has a tooltip that explains the VC file status.
