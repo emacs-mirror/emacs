@@ -70,14 +70,16 @@
   :type 'string)
 
 (defcustom vc-bzr-diff-switches nil
-  "String/list of strings specifying extra switches for bzr diff under VC."
-  :type '(choice (const :tag "None" nil)
+  "String or list of strings specifying switches for bzr diff under VC.
+If nil, use the value of `vc-diff-switches'.  If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+                 (const :tag "None" t)
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
   :group 'vc-bzr)
 
 (defcustom vc-bzr-log-switches nil
-  "String/list of strings specifying extra switches for `bzr log' under VC."
+  "String or list of strings specifying switches for bzr log under VC."
   :type '(choice (const :tag "None" nil)
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
