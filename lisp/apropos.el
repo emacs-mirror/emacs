@@ -1082,8 +1082,8 @@ If non-nil TEXT is a string that will be printed as a heading."
 	 'face 'default 'apropos-symbol (car apropos-item))
       (insert-text-button
        (if apropos-compact-layout
-           (button-type-get type 'apropos-label)
-         (format "<%s>" (button-type-get type 'apropos-short-label)))
+           (format "<%s>" (button-type-get type 'apropos-short-label))
+         (button-type-get type 'apropos-label))
        'type type
        ;; Can't use the default button face, since user may have changed the
        ;; variable!  Just say `no' to variables containing faces!
