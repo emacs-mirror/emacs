@@ -1,5 +1,7 @@
 2008-12-03  Kenichi Handa  <handa@m17n.org>
 
+	* font.c (font_at): Set `multibyte' at first.
+
 	* coding.c (decode_coding_charset): Check type of an element of
 	vector VALIDS.
 
