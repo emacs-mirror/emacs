@@ -2,6 +2,7 @@
 
 	* coding.c (decode_coding_utf_16): Initialize consumed_chars_base
 	to 0.
+	(decode_coding_utf_8): Likewise.
 
 2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
 
