@@ -3084,10 +3084,13 @@ font_update_lface (f, attrs)
 	    dpi = XINT (val);
 	  point = PIXEL_TO_POINT (XINT (AREF (spec, FONT_SIZE_INDEX)) * 10,
 				  dpi);
+	  attrs[LFACE_HEIGHT_INDEX] = make_number (point);
 	}
       else if (FLOATP (AREF (spec, FONT_SIZE_INDEX)))
-	point = XFLOAT_DATA (AREF (spec, FONT_SIZE_INDEX)) * 10;
-      attrs[LFACE_HEIGHT_INDEX] = make_number (point);
+	{
+	  point = XFLOAT_DATA (AREF (spec, FONT_SIZE_INDEX)) * 10;
+	  attrs[LFACE_HEIGHT_INDEX] = make_number (point);
+	}
     }
 }
 
