@@ -55,7 +55,7 @@ Each element of the stack is a list (FILENAME NODENAME BUFFERPOS).")
 Each element of the list is a list (FILENAME NODENAME).")
 
 (defcustom Info-enable-edit nil
-  "*Non-nil means the \\<Info-mode-map>\\[Info-edit] command in Info can edit the current node.
+  "Non-nil means the \\<Info-mode-map>\\[Info-edit] command in Info can edit the current node.
 This is convenient if you want to write Info files by hand.
 However, we recommend that you not do this.
 It is better to write a Texinfo file and generate the Info file from that,
@@ -139,19 +139,19 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defcustom Info-fontify-visited-nodes t
-  "*Non-nil to fontify references to visited nodes in `info-xref-visited' face."
+  "Non-nil to fontify references to visited nodes in `info-xref-visited' face."
   :version "22.1"
   :type 'boolean
   :group 'info)
 
 (defcustom Info-fontify-maximum-menu-size 100000
-  "*Maximum size of menu to fontify if `font-lock-mode' is non-nil.
+  "Maximum size of menu to fontify if `font-lock-mode' is non-nil.
 Set to nil to disable node fontification."
   :type 'integer
   :group 'info)
 
 (defcustom Info-use-header-line t
-  "*Non-nil means to put the beginning-of-node links in an Emacs header-line.
+  "Non-nil means to put the beginning-of-node links in an Emacs header-line.
 A header-line does not scroll with the rest of the buffer."
   :type 'boolean
   :group 'info)
@@ -203,7 +203,7 @@ These directories are searched after those in `Info-directory-list'."
   :group 'info)
 
 (defcustom Info-scroll-prefer-subnodes nil
-  "*If non-nil, \\<Info-mode-map>\\[Info-scroll-up] in a menu visits subnodes.
+  "If non-nil, \\<Info-mode-map>\\[Info-scroll-up] in a menu visits subnodes.
 
 If this is non-nil, and you scroll far enough in a node that its menu
 appears on the screen, the next \\<Info-mode-map>\\[Info-scroll-up]
@@ -218,7 +218,7 @@ when you hit the end of the current node."
   :group 'info)
 
 (defcustom Info-hide-note-references t
-  "*If non-nil, hide the tag and section reference in *note and * menu items.
+  "If non-nil, hide the tag and section reference in *note and * menu items.
 If value is non-nil but not `hide', also replaces the \"*note\" with \"see\".
 If value is non-nil but not t or `hide', the reference section is still shown.
 `nil' completely disables this feature.  If this is non-nil, you might
@@ -231,7 +231,7 @@ want to set `Info-refill-paragraphs'."
   :group 'info)
 
 (defcustom Info-refill-paragraphs nil
-  "*If non-nil, attempt to refill paragraphs with hidden references.
+  "If non-nil, attempt to refill paragraphs with hidden references.
 This refilling may accidentally remove explicit line breaks in the Info
 file, so be prepared for a few surprises if you enable this feature.
 This only has an effect if `Info-hide-note-references' is non-nil."
@@ -245,7 +245,7 @@ This only has an effect if `Info-hide-note-references' is non-nil."
   :type 'integer)
 
 (defcustom Info-search-whitespace-regexp "\\s-+"
-  "*If non-nil, regular expression to match a sequence of whitespace chars.
+  "If non-nil, regular expression to match a sequence of whitespace chars.
 This applies to Info search for regular expressions.
 You might want to use something like \"[ \\t\\r\\n]+\" instead.
 In the Customization buffer, that is `[' followed by a space,
@@ -254,7 +254,7 @@ a tab, a carriage return (control-M), a newline, and `]+'."
   :group 'info)
 
 (defcustom Info-isearch-search t
-  "*If non-nil, isearch in Info searches through multiple nodes.
+  "If non-nil, isearch in Info searches through multiple nodes.
 Before leaving the initial Info node, where isearch was started,
 it fails once with the error message [initial node], and with
 subsequent C-s/C-r continues through other nodes without failing

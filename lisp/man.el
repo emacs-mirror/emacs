@@ -108,7 +108,7 @@
 
 (defvar Man-notify)
 (defcustom Man-filter-list nil
-  "*Manpage cleaning filter command phrases.
+  "Manpage cleaning filter command phrases.
 This variable contains a list of the following form:
 
 '((command-string phrase-string*)*)
@@ -425,9 +425,9 @@ Otherwise, the value is whatever the function
   'func nil
   'action #'Man-xref-button-action)
 
-(defun Man-xref-button-action (button) 
+(defun Man-xref-button-action (button)
   (let ((target (button-get button 'Man-target-string)))
-    (funcall 
+    (funcall
      (button-get button 'func)
      (cond ((null target)
 	    (button-label button))
@@ -435,7 +435,7 @@ Otherwise, the value is whatever the function
 	    (funcall target (button-start button)))
 	   (t target)))))
 
-(define-button-type 'Man-xref-man-page 
+(define-button-type 'Man-xref-man-page
   :supertype 'Man-abstract-xref-man-page
   'func 'man-follow)
 
@@ -1011,7 +1011,7 @@ default type, `Man-xref-man-page' is used for the buttons."
 	(Man-highlight-references0 nil Man-apropos-regexp 1
 				   'Man-default-man-entry
 				   (or xref-man-type 'Man-xref-man-page)))
-    (Man-highlight-references0 Man-see-also-regexp Man-reference-regexp 1 
+    (Man-highlight-references0 Man-see-also-regexp Man-reference-regexp 1
 			       'Man-default-man-entry
 			       (or xref-man-type 'Man-xref-man-page))
     (Man-highlight-references0 Man-synopsis-regexp Man-header-regexp 0 2
@@ -1038,7 +1038,7 @@ default type, `Man-xref-man-page' is used for the buttons."
 	 (match-end button-pos)
 	 'type type
 	 'Man-target-string (cond
-			     ((numberp target) 
+			     ((numberp target)
 			      (match-string target))
 			     ((functionp target)
 			      target)

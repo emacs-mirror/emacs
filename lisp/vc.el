@@ -711,7 +711,7 @@ specific to any particular backend."
   :version "21.1")
 
 (defcustom vc-diff-knows-L nil
-  "*Indicates whether diff understands the -L option.
+  "Indicates whether diff understands the -L option.
 The value is either `yes', `no', or nil.  If it is nil, VC tries
 to use -L and sets this variable to remember whether it worked."
   :type '(choice (const :tag "Work out" nil) (const yes) (const no))
@@ -754,7 +754,7 @@ See `run-hooks'."
 (defcustom vc-static-header-alist
   '(("\\.c\\'" .
      "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n#endif /* lint */\n"))
-  "*Associate static header string templates with file types.
+  "Associate static header string templates with file types.
 A \%s in the template is replaced with the first string associated with
 the file's version control type in `vc-header-alist'."
   :type '(repeat (cons :format "%v"
@@ -764,7 +764,7 @@ the file's version control type in `vc-header-alist'."
 
 (defcustom vc-comment-alist
   '((nroff-mode ".\\\"" ""))
-  "*Special comment delimiters for generating VC headers.
+  "Special comment delimiters for generating VC headers.
 Add an entry in this list if you need to override the normal `comment-start'
 and `comment-end' variables.  This will only be necessary if the mode language
 is sensitive to blank lines."
@@ -775,7 +775,7 @@ is sensitive to blank lines."
   :group 'vc)
 
 (defcustom vc-checkout-carefully (= (user-uid) 0)
-  "*Non-nil means be extra-careful in checkout.
+  "Non-nil means be extra-careful in checkout.
 Verify that the file really is not locked
 and that its contents match what the master file says."
   :type 'boolean
@@ -1402,12 +1402,12 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
 BACKEND is a symbol such as `CVS', which will be downcased.
 OP is a symbol such as `diff'.
 
-In decreasing order of preference, returns the value of:
+In decreasing order of preference, return the value of:
 vc-BACKEND-OP-switches (e.g. `vc-cvs-diff-switches');
 vc-OP-switches (e.g. `vc-diff-switches'); or, in the case of
 diff only, `diff-switches'.
 
-If the chosen value is not a string or a list, returns nil.
+If the chosen value is not a string or a list, return nil.
 This is so that you may set, e.g. `vc-svn-diff-switches' to t in order
 to override the value of `vc-diff-switches' and `diff-switches'."
   (let ((switches

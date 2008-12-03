@@ -57,31 +57,31 @@
   :group 'convenience)
 
 (defcustom calculator-electric-mode nil
-  "*Run `calculator' electrically, in the echo area.
+  "Run `calculator' electrically, in the echo area.
 Electric mode saves some place but changes the way you interact with the
 calculator."
   :type  'boolean
   :group 'calculator)
 
 (defcustom calculator-use-menu t
-  "*Make `calculator' create a menu.
+  "Make `calculator' create a menu.
 Note that this requires easymenu.  Must be set before loading."
   :type  'boolean
   :group 'calculator)
 
 (defcustom calculator-bind-escape nil
-  "*If non-nil, set escape to exit the calculator."
+  "If non-nil, set escape to exit the calculator."
   :type  'boolean
   :group 'calculator)
 
 (defcustom calculator-unary-style 'postfix
-  "*Value is either 'prefix or 'postfix.
+  "Value is either 'prefix or 'postfix.
 This determines the default behavior of unary operators."
   :type    '(choice (const prefix) (const postfix))
   :group   'calculator)
 
 (defcustom calculator-prompt "Calc=%s> "
-  "*The prompt used by the Emacs calculator.
+  "The prompt used by the Emacs calculator.
 It should contain a \"%s\" somewhere that will indicate the i/o radixes;
 this will be a two-character string as described in the documentation
 for `calculator-mode'."
@@ -89,7 +89,7 @@ for `calculator-mode'."
   :group 'calculator)
 
 (defcustom calculator-number-digits 3
-  "*The calculator's number of digits used for standard display.
+  "The calculator's number of digits used for standard display.
 Used by the `calculator-standard-display' function - it will use the
 format string \"%.NC\" where this number is N and C is a character given
 at runtime."
@@ -97,7 +97,7 @@ at runtime."
   :group 'calculator)
 
 (defcustom calculator-radix-grouping-mode t
-  "*Use digit grouping in radix output mode.
+  "Use digit grouping in radix output mode.
 If this is set, chunks of `calculator-radix-grouping-digits' characters
 will be separated by `calculator-radix-grouping-separator' when in radix
 output mode is active (determined by `calculator-output-radix')."
@@ -105,19 +105,19 @@ output mode is active (determined by `calculator-output-radix')."
   :group 'calculator)
 
 (defcustom calculator-radix-grouping-digits 4
-  "*The number of digits used for grouping display in radix modes.
+  "The number of digits used for grouping display in radix modes.
 See `calculator-radix-grouping-mode'."
   :type  'integer
   :group 'calculator)
 
 (defcustom calculator-radix-grouping-separator "'"
-  "*The separator used in radix grouping display.
+  "The separator used in radix grouping display.
 See `calculator-radix-grouping-mode'."
   :type  'string
   :group 'calculator)
 
 (defcustom calculator-remove-zeros t
-  "*Non-nil value means delete all redundant zero decimal digits.
+  "Non-nil value means delete all redundant zero decimal digits.
 If this value is not t, and not nil, redundant zeros are removed except
 for one and if it is nil, nothing is removed.
 Used by the `calculator-remove-zeros' function."
@@ -125,7 +125,7 @@ Used by the `calculator-remove-zeros' function."
   :group 'calculator)
 
 (defcustom calculator-displayer '(std ?n)
-  "*A displayer specification for numerical values.
+  "A displayer specification for numerical values.
 This is the displayer used to show all numbers in an expression.  Result
 values will be displayed according to the first element of
 `calculator-displayers'.
@@ -150,7 +150,7 @@ will be used with this character for a format string."
     ((std ?f) "Standard display, decimal point")
     ((std ?e) "Standard display, scientific")
     ("%S"     "Emacs printer"))
-  "*A list of displayers.
+  "A list of displayers.
 Each element is a list of a displayer and a description string.  The
 first element is the one which is currently used, this is for the display
 of result values not values in expressions.  A displayer specification
@@ -161,14 +161,14 @@ is the same as the values that can be stored in `calculator-displayer'.
   :group 'calculator)
 
 (defcustom calculator-paste-decimals t
-  "*If non-nil, convert pasted integers so they have a decimal point.
+  "If non-nil, convert pasted integers so they have a decimal point.
 This makes it possible to paste big integers since they will be read as
 floats, otherwise the Emacs reader will fail on them."
   :type  'boolean
   :group 'calculator)
 
 (defcustom calculator-copy-displayer nil
-  "*If non-nil, this is any value that can be used for
+  "If non-nil, this is any value that can be used for
 `calculator-displayer', to format a string before copying it with
 `calculator-copy'.  If nil, then `calculator-displayer's normal value is
 used."
@@ -176,13 +176,13 @@ used."
   :group 'calculator)
 
 (defcustom calculator-2s-complement nil
-  "*If non-nil, show negative numbers in 2s complement in radix modes.
+  "If non-nil, show negative numbers in 2s complement in radix modes.
 Otherwise show as a negative number."
   :type  'boolean
   :group 'calculator)
 
 (defcustom calculator-mode-hook nil
-  "*List of hook functions for `calculator-mode' to run.
+  "List of hook functions for `calculator-mode' to run.
 Note: if `calculator-electric-mode' is on, then this hook will get
 activated in the minibuffer - in that case it should not do much more
 than local key settings and other effects that will change things
@@ -191,7 +191,7 @@ outside the scope of calculator related code."
   :group 'calculator)
 
 (defcustom calculator-user-registers nil
-  "*An association list of user-defined register bindings.
+  "An association list of user-defined register bindings.
 Each element in this list is a list of a character and a number that
 will be stored in that character's register.
 
@@ -207,7 +207,7 @@ before you load calculator."
   :group 'calculator)
 
 (defcustom calculator-user-operators nil
-  "*A list of additional operators.
+  "A list of additional operators.
 This is a list in the same format as specified in the documentation for
 `calculator-operators', that you can use to bind additional calculator
 operators.  It is probably not a good idea to modify this value with

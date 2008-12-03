@@ -44,7 +44,7 @@
 (defvar show-paren-overlay-1 nil)
 
 (defcustom show-paren-style 'parenthesis
-  "*Style used when showing a matching paren.
+  "Style used when showing a matching paren.
 Valid styles are `parenthesis' (meaning show the matching paren),
 `expression' (meaning show the entire expression enclosed by the paren) and
 `mixed' (meaning show the matching paren if it is visible, and the expression
@@ -54,18 +54,18 @@ otherwise)."
 
 (defcustom show-paren-delay
   (if (featurep 'lisp-float-type) (/ (float 1) (float 8)) 1)
-  "*Time in seconds to delay before showing a matching paren."
+  "Time in seconds to delay before showing a matching paren."
   :type '(number :tag "seconds")
   :group 'paren-showing)
 
 (defcustom show-paren-priority 1000
-  "*Priority of paren highlighting overlays."
+  "Priority of paren highlighting overlays."
   :type 'integer
   :group 'paren-showing
   :version "21.1")
 
 (defcustom show-paren-ring-bell-on-mismatch nil
-  "*If non-nil, beep if mismatched paren is detected."
+  "If non-nil, beep if mismatched paren is detected."
   :type 'boolean
   :group 'paren-showing
   :version "20.3")

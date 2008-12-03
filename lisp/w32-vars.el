@@ -33,26 +33,26 @@
 
 ;; Redefine the font selection to use the standard W32 dialog
 (defcustom w32-use-w32-font-dialog t
-  "*Use the standard font dialog.
+  "Use the standard font dialog.
 If nil, pop up a menu of a fixed set of fonts including fontsets, like
 X does.  See `w32-fixed-font-alist' for the font menu definition."
   :type 'boolean
   :group 'w32)
 
 (defcustom w32-list-proportional-fonts nil
-  "*Include proportional fonts in the default font dialog."
+  "Include proportional fonts in the default font dialog."
   :type 'boolean
   :group 'w32)
 
 (defcustom w32-allow-system-shell nil
-  "*Disable startup warning when using \"system\" shells."
+  "Disable startup warning when using \"system\" shells."
   :type 'boolean
   :group 'w32)
 
 (defcustom w32-system-shells '("cmd" "cmd.exe" "command" "command.com"
 			       "4nt" "4nt.exe" "4dos" "4dos.exe"
 			       "tcc" "tcc.exe" "ndos" "ndos.exe")
-  "*List of strings recognized as Windows NT/9X system shells."
+  "List of strings recognized as Windows NT/9X system shells."
   :type '(repeat string)
   :group 'w32)
 
@@ -130,7 +130,7 @@ X does.  See `w32-fixed-font-alist' for the font menu definition."
      ("11 bold italic" "-*-Courier New-bold-i-*-*-15-*-*-*-c-*-iso8859-1")
      ("12 bold italic" "-*-Courier New-bold-i-*-*-16-*-*-*-c-*-iso8859-1")
      ))
-    "*Fonts suitable for use in Emacs.
+    "Fonts suitable for use in Emacs.
 Initially this is a list of some fixed width fonts that most people
 will have like Terminal and Courier.  These fonts are used in the font
 menu if the variable `w32-use-w32-font-dialog' is nil."
@@ -148,7 +148,7 @@ menu if the variable `w32-use-w32-font-dialog' is nil."
     :group 'w32)
 
 (defcustom x-select-enable-clipboard t
-  "*Non-nil means cutting and pasting uses the clipboard.
+  "Non-nil means cutting and pasting uses the clipboard.
 This is in addition to the primary selection."
   :type 'boolean
   :group 'killing)

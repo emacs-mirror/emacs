@@ -117,7 +117,7 @@
 ;;; Customization options
 
 (defcustom vc-hg-global-switches nil
-  "*Global switches to pass to any Hg command."
+  "Global switches to pass to any Hg command."
   :type '(choice (const :tag "None" nil)
          (string :tag "Argument String")
          (repeat :tag "Argument List"

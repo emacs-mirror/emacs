@@ -1590,7 +1590,7 @@ using `abort-recursive-edit'."
     (> count 1)))
 
 (defcustom yank-menu-length 20
-  "*Maximum length to display in the yank-menu."
+  "Maximum length to display in the yank-menu."
   :type 'integer
   :group 'menu)
 
@@ -1632,7 +1632,7 @@ The menu shows all the killed text sequences stored in `kill-ring'."
 ;;; Buffers Menu
 
 (defcustom buffers-menu-max-size 10
-  "*Maximum number of entries which may appear on the Buffers menu.
+  "Maximum number of entries which may appear on the Buffers menu.
 If this is 10, then only the ten most-recently-selected buffers are shown.
 If this is nil, then all buffers are shown.
 A large number or nil slows down menu responsiveness."
@@ -1641,7 +1641,7 @@ A large number or nil slows down menu responsiveness."
   :group 'menu)
 
 (defcustom buffers-menu-buffer-name-length 30
-  "*Maximum length of the buffer name on the Buffers menu.
+  "Maximum length of the buffer name on the Buffers menu.
 If this is a number, then buffer names are truncated to this length.
 If this is nil, then buffer names are shown in full.
 A large number or nil makes the menu too wide."

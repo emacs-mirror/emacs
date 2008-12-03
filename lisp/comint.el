@@ -206,7 +206,7 @@ For shells, a good value is (?\\| ?& ?< ?> ?\\( ?\\) ?;).
 This is a good thing to set in mode hooks.")
 
 (defcustom comint-input-autoexpand nil
-  "*If non-nil, expand input command history references on completion.
+  "If non-nil, expand input command history references on completion.
 This mirrors the optional behavior of tcsh (its autoexpand and histlist).
 
 If the value is `input', then the expansion is seen on input.
@@ -233,7 +233,7 @@ This variable is buffer-local."
   :group 'comint)
 
 (defcustom comint-input-ignoredups nil
-  "*If non-nil, don't add input matching the last on the input ring.
+  "If non-nil, don't add input matching the last on the input ring.
 This mirrors the optional behavior of bash.
 
 This variable is buffer-local."
@@ -241,7 +241,7 @@ This variable is buffer-local."
   :group 'comint)
 
 (defcustom comint-input-ring-file-name nil
-  "*If non-nil, name of the file to read/write input history.
+  "If non-nil, name of the file to read/write input history.
 See also `comint-read-input-ring' and `comint-write-input-ring'.
 
 This variable is buffer-local, and is a good thing to set in mode hooks."
@@ -250,7 +250,7 @@ This variable is buffer-local, and is a good thing to set in mode hooks."
   :group 'comint)
 
 (defcustom comint-scroll-to-bottom-on-input nil
-  "*Controls whether input to interpreter causes window to scroll.
+  "Controls whether input to interpreter causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
 If `this', scroll only the selected window.
 
@@ -264,7 +264,7 @@ See `comint-preinput-scroll-to-bottom'.  This variable is buffer-local."
   :group 'comint)
 
 (defcustom comint-move-point-for-output nil
-  "*Controls whether interpreter output moves point to the end of the output.
+  "Controls whether interpreter output moves point to the end of the output.
 If nil, then output never moves point to the output.
  (If the output occurs at point, it is inserted before point.)
 If t or `all', move point in all windows showing the buffer.
@@ -286,7 +286,7 @@ This variable is buffer-local in all Comint buffers."
 (defvaralias 'comint-scroll-to-bottom-on-output 'comint-move-point-for-output)
 
 (defcustom comint-scroll-show-maximum-output t
-  "*Controls how to scroll due to interpreter output.
+  "Controls how to scroll due to interpreter output.
 This variable applies when point is at the end of the buffer
 \(either because it was originally there, or because
 `comint-move-point-for-output' said to move it there)
@@ -303,7 +303,7 @@ This variable is buffer-local in all Comint buffers."
   :group 'comint)
 
 (defcustom comint-buffer-maximum-size 1024
-  "*The maximum size in lines for Comint buffers.
+  "The maximum size in lines for Comint buffers.
 Comint buffers are truncated from the top to be no greater than this number, if
 the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
   :type 'integer
@@ -319,7 +319,7 @@ the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
   "Regexp for history entries that should be ignored when Comint initializes.")
 
 (defcustom comint-process-echoes nil
-  "*If non-nil, assume that the subprocess echoes any input.
+  "If non-nil, assume that the subprocess echoes any input.
 If so, delete one copy of the input so that only one copy eventually
 appears in the buffer.
 
@@ -341,7 +341,7 @@ Kerberos \\|CVS \\|UNIX \\| SMB \\|LDAP \\|\\[sudo] \\|^\\)\
 \[Pp]assword\\( (again)\\)?\\|\
 pass phrase\\|\\(Enter \\|Repeat \\|Bad \\)?[Pp]assphrase\\)\
 \\(?:, try again\\)?\\(?: for [^:]+\\)?:\\s *\\'"
-  "*Regexp matching prompts for passwords in the inferior process.
+  "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :type 'regexp
   :group 'comint)
@@ -400,7 +400,7 @@ massage the input string, put a different function here.
 This is called from the user command `comint-send-input'.")
 
 (defcustom comint-eol-on-send t
-  "*Non-nil means go to the end of the line before sending input.
+  "Non-nil means go to the end of the line before sending input.
 See `comint-send-input'."
   :type 'boolean
   :group 'comint)
@@ -409,7 +409,7 @@ See `comint-send-input'."
 ;; entirely, searching for uses of this variable will help to identify
 ;; places that need attention.
 (defcustom comint-use-prompt-regexp nil
-  "*If non-nil, use `comint-prompt-regexp' to recognize prompts.
+  "If non-nil, use `comint-prompt-regexp' to recognize prompts.
 If nil, then program output and user-input are given different `field'
 properties, which Emacs commands can use to distinguish them (in
 particular, common movement commands such as `beginning-of-line'
@@ -2627,13 +2627,13 @@ its response can be seen."
 ;; want them present in specific modes.
 
 (defcustom comint-completion-autolist nil
-  "*If non-nil, automatically list possibilities on partial completion.
+  "If non-nil, automatically list possibilities on partial completion.
 This mirrors the optional behavior of tcsh."
   :type 'boolean
   :group 'comint-completion)
 
 (defcustom comint-completion-addsuffix t
-  "*If non-nil, add a `/' to completed directories, ` ' to file names.
+  "If non-nil, add a `/' to completed directories, ` ' to file names.
 If a cons pair, it should be of the form (DIRSUFFIX . FILESUFFIX) where
 DIRSUFFIX and FILESUFFIX are strings added on unambiguous or exact completion.
 This mirrors the optional behavior of tcsh."
@@ -2645,7 +2645,7 @@ This mirrors the optional behavior of tcsh."
   :group 'comint-completion)
 
 (defcustom comint-completion-recexact nil
-  "*If non-nil, use shortest completion if characters cannot be added.
+  "If non-nil, use shortest completion if characters cannot be added.
 This mirrors the optional behavior of tcsh.
 
 A non-nil value is useful if `comint-completion-autolist' is non-nil too."
@@ -2653,7 +2653,7 @@ A non-nil value is useful if `comint-completion-autolist' is non-nil too."
   :group 'comint-completion)
 
 (defcustom comint-completion-fignore nil
-  "*List of suffixes to be disregarded during file completion.
+  "List of suffixes to be disregarded during file completion.
 This mirrors the optional behavior of bash and tcsh.
 
 Note that this applies to `comint-dynamic-complete-filename' only."
@@ -3134,7 +3134,7 @@ the process mark is at the beginning of the accumulated input."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom comint-redirect-verbose nil
-  "*If non-nil, print messages each time the redirection filter is invoked.
+  "If non-nil, print messages each time the redirection filter is invoked.
 Also print a message when redirection is completed."
   :group 'comint
   :type 'boolean)

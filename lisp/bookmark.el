@@ -126,7 +126,7 @@ To specify the file in which to save them, modify the variable
 
 
 (defconst bookmark-old-default-file "~/.emacs-bkmrks"
-  "*The `.emacs.bmk' file used to be called this name.")
+  "The `.emacs.bmk' file used to be called this name.")
 
 
 ;; defvarred to avoid a compilation warning:
@@ -893,7 +893,7 @@ Default to file name if it's nil."
   ;; Abbreviate the path, both so it's shorter and so it's more
   ;; portable.  E.g., the user's home dir might be a different
   ;; path on different machines, but "~/" will still reach it.
-  (abbreviate-file-name 
+  (abbreviate-file-name
    (cond
     (buffer-file-name buffer-file-name)
     ((and (boundp 'dired-directory) dired-directory)

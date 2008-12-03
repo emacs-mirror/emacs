@@ -104,18 +104,18 @@
   :group 'convenience)
 
 (defcustom dabbrev-backward-only nil
-  "*If non-nil, `dabbrev-expand' only looks backwards."
+  "If non-nil, `dabbrev-expand' only looks backwards."
   :type 'boolean
   :group 'dabbrev)
 
 (defcustom dabbrev-limit nil
-  "*Limits region searched by `dabbrev-expand' to this many chars away."
+  "Limits region searched by `dabbrev-expand' to this many chars away."
   :type '(choice (const :tag "off" nil)
 		 integer)
   :group 'dabbrev)
 
 (defcustom dabbrev-abbrev-skip-leading-regexp nil
-  "*Regexp for skipping leading characters of an abbreviation.
+  "Regexp for skipping leading characters of an abbreviation.
 
 Example: Set this to \"\\\\$\" for programming languages
 in which variable names may appear with or without a leading `$'.
@@ -127,13 +127,13 @@ Set this to nil if no characters should be skipped."
   :group 'dabbrev)
 
 (defcustom dabbrev-eliminate-newlines t
-  "*Non-nil means dabbrev should not insert newlines.
+  "Non-nil means dabbrev should not insert newlines.
 Instead it converts them to spaces."
   :type 'boolean
   :group 'dabbrev)
 
 (defcustom dabbrev-case-fold-search 'case-fold-search
-  "*Control whether dabbrev searches should ignore case.
+  "Control whether dabbrev searches should ignore case.
 A value of nil means case is significant.
 A value of `case-fold-search' means case is significant
  if `case-fold-search' is nil.
@@ -144,7 +144,7 @@ Any other non-nil version means case is not significant."
   :group 'dabbrev)
 
 (defcustom dabbrev-upcase-means-case-search nil
-  "*The significance of an uppercase character in an abbreviation.
+  "The significance of an uppercase character in an abbreviation.
 A nil value means case fold search when searching for possible expansions;
 non-nil means case sensitive search.
 
@@ -154,7 +154,7 @@ This variable has an effect only when the value of
   :group 'dabbrev)
 
 (defcustom dabbrev-case-distinction 'case-replace
-  "*Whether dabbrev treats expansions as the same if they differ in case.
+  "Whether dabbrev treats expansions as the same if they differ in case.
 
 A value of nil means treat them as different.
 A value of `case-replace' means distinguish them if `case-replace' is nil.
@@ -169,7 +169,7 @@ This variable has an effect only when the value of
   :version "22.1")
 
 (defcustom dabbrev-case-replace 'case-replace
-  "*Whether dabbrev applies the abbreviations's case pattern to the expansion.
+  "Whether dabbrev applies the abbreviations's case pattern to the expansion.
 
 A value of nil means preserve the expansion's case pattern.
 A value of `case-replace' means preserve it if `case-replace' is nil.
@@ -184,7 +184,7 @@ This variable has an effect only when the value of
   :group 'dabbrev)
 
 (defcustom dabbrev-abbrev-char-regexp nil
-  "*Regexp to recognize a character in an abbreviation or expansion.
+  "Regexp to recognize a character in an abbreviation or expansion.
 This regexp will be surrounded with \\\\( ... \\\\) when actually used.
 
 Set this variable to \"\\\\sw\" if you want ordinary words or
@@ -209,7 +209,7 @@ The recommended value is \"\\\\sw\\\\|\\\\s_\"."
   :group 'dabbrev)
 
 (defcustom dabbrev-check-all-buffers t
-  "*Non-nil means dabbrev package should search *all* buffers.
+  "Non-nil means dabbrev package should search *all* buffers.
 
 Dabbrev always searches the current buffer first.  Then, if
 `dabbrev-check-other-buffers' says so, it searches the buffers
@@ -222,21 +222,21 @@ or matched by `dabbrev-ignored-regexps'."
   :group 'dabbrev)
 
 (defcustom dabbrev-ignored-buffer-names '("*Messages*" "*Buffer List*")
-  "*List of buffer names that dabbrev should not check.
+  "List of buffer names that dabbrev should not check.
 See also `dabbrev-ignored-buffer-regexps'."
   :type '(repeat (string :tag "Buffer name"))
   :group 'dabbrev
   :version "20.3")
 
 (defcustom dabbrev-ignored-buffer-regexps nil
-  "*List of regexps matching names of buffers that dabbrev should not check.
+  "List of regexps matching names of buffers that dabbrev should not check.
 See also `dabbrev-ignored-buffer-names'."
   :type '(repeat regexp)
   :group 'dabbrev
   :version "21.1")
 
 (defcustom dabbrev-check-other-buffers t
-  "*Should \\[dabbrev-expand] look in other buffers?\
+  "Should \\[dabbrev-expand] look in other buffers?\
 
 nil: Don't look in other buffers.
 t: Also look for expansions in the buffers pointed out by
@@ -263,7 +263,7 @@ for an example.
 A mode setting this variable should make it buffer local.")
 
 (defcustom dabbrev-friend-buffer-function 'dabbrev--same-major-mode-p
-  "*A function to decide whether dabbrev should search OTHER-BUFFER.
+  "A function to decide whether dabbrev should search OTHER-BUFFER.
 The function should take one argument, OTHER-BUFFER, and return
 non-nil if that buffer should be searched.  Have a look at
 `dabbrev--same-major-mode-p' for an example.

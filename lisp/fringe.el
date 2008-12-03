@@ -135,7 +135,7 @@ See `fringe-mode' for possible values and their effect."
       (custom-initialize-reset symbol value))))
 
 (defcustom fringe-mode nil
-  "*Specify appearance of fringes on all frames.
+  "Specify appearance of fringes on all frames.
 This variable can be nil (the default) meaning the fringes should have
 the default width (8 pixels), it can be an integer value specifying
 the width of both left and right fringe (where 0 means no fringe), or

@@ -52,7 +52,7 @@ rather than the beginning of the buffer.
 This alist is saved between Emacs sessions.")
 
 (defcustom save-place nil
-  "*Non-nil means automatically save place in each file.
+  "Non-nil means automatically save place in each file.
 This means when you visit a file, point goes to the last place
 where it was when you previously visited the same file.
 This variable is automatically buffer-local.
@@ -71,12 +71,12 @@ or else use the Custom facility to set this option."
 (make-variable-buffer-local 'save-place)
 
 (defcustom save-place-file (convert-standard-filename "~/.emacs-places")
-  "*Name of the file that records `save-place-alist' value."
+  "Name of the file that records `save-place-alist' value."
   :type 'file
   :group 'save-place)
 
 (defcustom save-place-version-control nil
-  "*Controls whether to make numbered backups of master save-place file.
+  "Controls whether to make numbered backups of master save-place file.
 It can have four values: t, nil, `never', and `nospecial'.  The first
 three have the same meaning that they do for the variable
 `version-control', and the final value `nospecial' means just use the

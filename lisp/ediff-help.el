@@ -81,7 +81,7 @@ p,DEL -previous diff |     | -vert/horiz split   |a/b -copy A/B's region to B/A
 n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
     j -jump to diff  |     @ -auto-refinement    |  * -refine current region
    gx -goto X's point|    ## -ignore whitespace  |  ! -update diff regions
-  C-l -recenter      |    #c -ignore case        |  % -narrow/widen buffs 
+  C-l -recenter      |    #c -ignore case        |  % -narrow/widen buffs
   v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X
   </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output
     ~ -swap variants |     m -wide display       |
@@ -139,7 +139,7 @@ produce the brief help message.  This function must return a string.")
 See `ediff-brief-help-message-function' for more.")
 
 (defcustom ediff-use-long-help-message nil
-  "*If t, Ediff displays a long help message.  Short help message otherwise."
+  "If t, Ediff displays a long help message.  Short help message otherwise."
   :type 'boolean
   :group 'ediff-window)
 

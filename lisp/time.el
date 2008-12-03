@@ -37,7 +37,7 @@
 
 
 (defcustom display-time-mail-file nil
-  "*File name of mail inbox file, for indicating existence of new mail.
+  "File name of mail inbox file, for indicating existence of new mail.
 Non-nil and not a string means don't check for mail; nil means use
 default, which is system-dependent, and is the same as used by Rmail."
   :type '(choice (const :tag "None" none)
@@ -46,7 +46,7 @@ default, which is system-dependent, and is the same as used by Rmail."
   :group 'display-time)
 
 (defcustom display-time-mail-directory nil
-  "*Name of mail inbox directory, for indicating existence of new mail.
+  "Name of mail inbox directory, for indicating existence of new mail.
 Any nonempty regular file in the directory is regarded as newly arrived mail.
 If nil, do not check a directory for arriving mail."
   :type '(choice (const :tag "None" nil)
@@ -54,7 +54,7 @@ If nil, do not check a directory for arriving mail."
   :group 'display-time)
 
 (defcustom display-time-mail-function nil
-  "*Function to call, for indicating existence of new mail.
+  "Function to call, for indicating existence of new mail.
 If nil, that means use the default method: check that the file
 specified by `display-time-mail-file' is nonempty or that the
 directory `display-time-mail-directory' contains nonempty files."
@@ -63,7 +63,7 @@ directory `display-time-mail-directory' contains nonempty files."
   :group 'display-time)
 
 (defcustom display-time-default-load-average 0
-  "*Which load average value will be shown in the mode line.
+  "Which load average value will be shown in the mode line.
 Almost every system can provide values of load for past 1 minute, past 5 or
 past 15 minutes.  The default is to display 1 minute load average."
   :type '(choice (const :tag "1 minute load" 0)
@@ -76,7 +76,7 @@ past 15 minutes.  The default is to display 1 minute load average."
   "Load average currently being shown in mode line.")
 
 (defcustom display-time-load-average-threshold 0.1
-  "*Load-average values below this value won't be shown in the mode line."
+  "Load-average values below this value won't be shown in the mode line."
   :type 'number
   :group 'display-time)
 
@@ -89,12 +89,12 @@ past 15 minutes.  The default is to display 1 minute load average."
 (defvar display-time-timer nil)
 
 (defcustom display-time-interval 60
-  "*Seconds between updates of time in the mode line."
+  "Seconds between updates of time in the mode line."
   :type 'integer
   :group 'display-time)
 
 (defcustom display-time-24hr-format nil
-  "*Non-nil indicates time should be displayed as hh:mm, 0 <= hh <= 23.
+  "Non-nil indicates time should be displayed as hh:mm, 0 <= hh <= 23.
 A value of nil means 1 <= hh <= 12, and an AM/PM suffix is used."
   :type 'boolean
   :group 'display-time)
@@ -102,7 +102,7 @@ A value of nil means 1 <= hh <= 12, and an AM/PM suffix is used."
 (defvar display-time-string nil)
 
 (defcustom display-time-hook nil
-  "*List of functions to be called when the time is updated on the mode line."
+  "List of functions to be called when the time is updated on the mode line."
   :type 'hook
   :group 'display-time)
 
@@ -251,7 +251,7 @@ This can use the Unicode letter character if you can display it."
 		 string))
 
 (defcustom display-time-format nil
-  "*String specifying format for displaying the time in the mode line.
+  "String specifying format for displaying the time in the mode line.
 See the function `format-time-string' for an explanation of
 how to write this string.  If this is nil, the defaults
 depend on `display-time-day-and-date' and `display-time-24hr-format'."
@@ -294,7 +294,7 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
 	  'local-map (make-mode-line-mouse-map 'mouse-2
 					       read-mail-command)))
       ""))
-  "*List of expressions governing display of the time in the mode line.
+  "List of expressions governing display of the time in the mode line.
 For most purposes, you can control the time format using `display-time-format'
 which is a more standard interface.
 

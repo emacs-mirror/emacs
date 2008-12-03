@@ -50,7 +50,7 @@
 
 ;;;###autoload
 (defcustom dired-listing-switches "-al"
-  "*Switches passed to `ls' for Dired.  MUST contain the `l' option.
+  "Switches passed to `ls' for Dired.  MUST contain the `l' option.
 May contain all other options that don't contradict `-l';
 may contain even `F', `b', `i' and `s'.  See also the variable
 `dired-ls-F-marks-symlinks' concerning the `F' switch.
@@ -88,7 +88,7 @@ If nil, `dired-listing-switches' is used.")
 
 ;;;###autoload
 (defcustom dired-ls-F-marks-symlinks nil
-  "*Informs Dired about how `ls -lF' marks symbolic links.
+  "Informs Dired about how `ls -lF' marks symbolic links.
 Set this to t if `ls' (or whatever program is specified by
 `insert-directory-program') with `-lF' marks the symbolic link
 itself with a trailing @ (usually the case under Ultrix).
@@ -105,7 +105,7 @@ always set this variable to t."
 
 ;;;###autoload
 (defcustom dired-trivial-filenames "^\\.\\.?$\\|^#"
-  "*Regexp of files to skip when finding first file of a directory.
+  "Regexp of files to skip when finding first file of a directory.
 A value of nil means move to the subdir line.
 A value of t means move to first file."
   :type '(choice (const :tag "Move to subdir" nil)
@@ -116,7 +116,7 @@ A value of t means move to first file."
 ;;;###autoload
 (defcustom dired-keep-marker-rename t
   ;; Use t as default so that moved files "take their markers with them".
-  "*Controls marking of renamed files.
+  "Controls marking of renamed files.
 If t, files keep their previous marks when they are renamed.
 If a character, renamed files (whether previously marked or not)
 are afterward marked with that character."
@@ -126,7 +126,7 @@ are afterward marked with that character."
 
 ;;;###autoload
 (defcustom dired-keep-marker-copy ?C
-  "*Controls marking of copied files.
+  "Controls marking of copied files.
 If t, copied files are marked if and as the corresponding original files were.
 If a character, copied files are unconditionally marked with that character."
   :type '(choice (const :tag "Keep" t)
@@ -135,7 +135,7 @@ If a character, copied files are unconditionally marked with that character."
 
 ;;;###autoload
 (defcustom dired-keep-marker-hardlink ?H
-  "*Controls marking of newly made hard links.
+  "Controls marking of newly made hard links.
 If t, they are marked if and as the files linked to were marked.
 If a character, new links are unconditionally marked with that character."
   :type '(choice (const :tag "Keep" t)
@@ -144,7 +144,7 @@ If a character, new links are unconditionally marked with that character."
 
 ;;;###autoload
 (defcustom dired-keep-marker-symlink ?Y
-  "*Controls marking of newly made symbolic links.
+  "Controls marking of newly made symbolic links.
 If t, they are marked if and as the files linked to were marked.
 If a character, new links are unconditionally marked with that character."
   :type '(choice (const :tag "Keep" t)
@@ -153,7 +153,7 @@ If a character, new links are unconditionally marked with that character."
 
 ;;;###autoload
 (defcustom dired-dwim-target nil
-  "*If non-nil, Dired tries to guess a default target directory.
+  "If non-nil, Dired tries to guess a default target directory.
 This means: if there is a dired buffer displayed in the next window,
 use its current subdir, instead of the current subdir of this dired buffer.
 
@@ -163,7 +163,7 @@ The target is used in the prompt for file copy, rename etc."
 
 ;;;###autoload
 (defcustom dired-copy-preserve-time t
-  "*If non-nil, Dired preserves the last-modified time in a file copy.
+  "If non-nil, Dired preserves the last-modified time in a file copy.
 \(This works on only some systems.)"
   :type 'boolean
   :group 'dired)
@@ -2497,7 +2497,7 @@ Optional argument means return a file name relative to `default-directory'."
 ;; Deleting files
 
 (defcustom dired-recursive-deletes 'top
-  "*Decide whether recursive deletes are allowed.
+  "Decide whether recursive deletes are allowed.
 A value of nil means no recursive deletes.
 `always' means delete recursively without asking.  This is DANGEROUS!
 `top' means ask for each directory at top level, but delete its subdirectories
@@ -3325,7 +3325,7 @@ To be called first in body of `dired-sort-other', etc."
 ;;;;  Drag and drop support
 
 (defcustom dired-recursive-copies 'top
-  "*Decide whether recursive copies are allowed.
+  "Decide whether recursive copies are allowed.
 A value of nil means no recursive copies.
 `always' means copy recursively without asking.
 `top' means ask for each directory at top level.

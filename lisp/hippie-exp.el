@@ -220,31 +220,31 @@ or insert functions in this list."
 
 ;;;###autoload
 (defcustom hippie-expand-verbose t
-  "*Non-nil makes `hippie-expand' output which function it is trying."
+  "Non-nil makes `hippie-expand' output which function it is trying."
   :type 'boolean
   :group 'hippie-expand)
 
 ;;;###autoload
 (defcustom hippie-expand-dabbrev-skip-space nil
-  "*Non-nil means tolerate trailing spaces in the abbreviation to expand."
+  "Non-nil means tolerate trailing spaces in the abbreviation to expand."
   :group 'hippie-expand
   :type 'boolean)
 
 ;;;###autoload
 (defcustom hippie-expand-dabbrev-as-symbol t
-  "*Non-nil means expand as symbols, i.e. syntax `_' is considered a letter."
+  "Non-nil means expand as symbols, i.e. syntax `_' is considered a letter."
   :group 'hippie-expand
   :type 'boolean)
 
 ;;;###autoload
 (defcustom hippie-expand-no-restriction t
-  "*Non-nil means that narrowed buffers are widened during search."
+  "Non-nil means that narrowed buffers are widened during search."
   :group 'hippie-expand
   :type 'boolean)
 
 ;;;###autoload
 (defcustom hippie-expand-max-buffers ()
-  "*The maximum number of buffers (apart from the current) searched.
+  "The maximum number of buffers (apart from the current) searched.
 If nil, all buffers are searched."
   :type '(choice (const :tag "All" nil)
 		 integer)
@@ -252,7 +252,7 @@ If nil, all buffers are searched."
 
 ;;;###autoload
 (defcustom hippie-expand-ignore-buffers '("^ \\*.*\\*$" dired-mode)
-  "*A list specifying which buffers not to search (if not current).
+  "A list specifying which buffers not to search (if not current).
 Can contain both regexps matching buffer names (as strings) and major modes
 \(as atoms)"
   :type '(repeat (choice regexp (symbol :tag "Major Mode")))
@@ -260,7 +260,7 @@ Can contain both regexps matching buffer names (as strings) and major modes
 
 ;;;###autoload
 (defcustom hippie-expand-only-buffers ()
-  "*A list specifying the only buffers to search (in addition to current).
+  "A list specifying the only buffers to search (in addition to current).
 Can contain both regexps matching buffer names (as strings) and major modes
 \(as atoms).  If non-nil, this variable overrides the variable
 `hippie-expand-ignore-buffers'."

@@ -104,7 +104,7 @@ internally to enable `help-at-pt-display-when-idle'.  Do not set it
 yourself.")
 
 (defcustom help-at-pt-timer-delay 1
-  "*Delay before displaying local help.
+  "Delay before displaying local help.
 This is used if `help-at-pt-display-when-idle' is enabled.
 The value may be an integer or floating point number.
 
@@ -146,7 +146,7 @@ This is done by setting a timer, if none is currently active."
 
 ;;;###autoload
 (defcustom help-at-pt-display-when-idle 'never
-  "*Automatically show local help on point-over.
+  "Automatically show local help on point-over.
 If the value is t, the string obtained from any `kbd-help' or
 `help-echo' property at point is automatically printed in the
 echo area, if nothing else is already displayed there, or after a

@@ -38,7 +38,7 @@
   (require 'vc))
 
 (defcustom vc-rcs-release nil
-  "*The release number of your RCS installation, as a string.
+  "The release number of your RCS installation, as a string.
 If nil, VC itself computes this value when it is first needed."
   :type '(choice (const :tag "Auto" nil)
 		 (string :tag "Specified")
@@ -46,7 +46,7 @@ If nil, VC itself computes this value when it is first needed."
   :group 'vc)
 
 (defcustom vc-rcs-register-switches nil
-  "*Extra switches for registering a file in RCS.
+  "Extra switches for registering a file in RCS.
 A string or list of strings.  These are passed to the checkin program
 by \\[vc-rcs-register]."
   :type '(choice (const :tag "None" nil)
@@ -58,7 +58,7 @@ by \\[vc-rcs-register]."
   :group 'vc)
 
 (defcustom vc-rcs-diff-switches nil
-  "*A string or list of strings specifying extra switches for rcsdiff under VC."
+  "A string or list of strings specifying extra switches for rcsdiff under VC."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
@@ -68,13 +68,13 @@ by \\[vc-rcs-register]."
   :group 'vc)
 
 (defcustom vc-rcs-header (or (cdr (assoc 'RCS vc-header-alist)) '("\$Id\$"))
-  "*Header keywords to be inserted by `vc-insert-headers'."
+  "Header keywords to be inserted by `vc-insert-headers'."
   :type '(repeat string)
   :version "21.1"
   :group 'vc)
 
 (defcustom vc-rcsdiff-knows-brief nil
-  "*Indicates whether rcsdiff understands the --brief option.
+  "Indicates whether rcsdiff understands the --brief option.
 The value is either `yes', `no', or nil.  If it is nil, VC tries
 to use --brief and sets this variable to remember whether it worked."
   :type '(choice (const :tag "Work out" nil) (const yes) (const no))
@@ -83,7 +83,7 @@ to use --brief and sets this variable to remember whether it worked."
 ;;;###autoload
 (defcustom vc-rcs-master-templates
   '("%sRCS/%s,v" "%s%s,v" "%sRCS/%s")
-  "*Where to look for RCS master files.
+  "Where to look for RCS master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard RCS file names"
 			'("%sRCS/%s,v" "%s%s,v" "%sRCS/%s"))

@@ -37,12 +37,12 @@
 (put 'track-mouse 'lisp-indent-function 0)
 
 (defcustom mouse-yank-at-point nil
-  "*If non-nil, mouse yank commands yank at point instead of at click."
+  "If non-nil, mouse yank commands yank at point instead of at click."
   :type 'boolean
   :group 'mouse)
 
 (defcustom mouse-drag-copy-region t
-  "*If non-nil, mouse drag copies region to kill-ring."
+  "If non-nil, mouse drag copies region to kill-ring."
   :type 'boolean
   :version "22.1"
   :group 'mouse)
@@ -81,7 +81,7 @@ packages.  See `mouse-on-link-p' for details."
   :group 'mouse)
 
 (defcustom mouse-1-click-in-non-selected-windows t
-  "*If non-nil, a Mouse-1 click also follows links in non-selected windows.
+  "If non-nil, a Mouse-1 click also follows links in non-selected windows.
 
 If nil, a Mouse-1 click on a link in a non-selected window performs
 the normal mouse-1 binding, typically selects the window and sets
@@ -699,7 +699,7 @@ This should be bound to a mouse drag event."
   (setq mouse-last-region-tick (buffer-modified-tick)))
 
 (defcustom mouse-scroll-delay 0.25
-  "*The pause between scroll steps caused by mouse drags, in seconds.
+  "The pause between scroll steps caused by mouse drags, in seconds.
 If you drag the mouse beyond the edge of a window, Emacs scrolls the
 window to bring the text beyond that edge into view, with a delay of
 this many seconds between scroll steps.  Scrolling stops when you move
@@ -710,7 +710,7 @@ Setting this to zero causes Emacs to scroll as fast as it can."
   :group 'mouse)
 
 (defcustom mouse-scroll-min-lines 1
-  "*The minimum number of lines scrolled by dragging mouse out of window.
+  "The minimum number of lines scrolled by dragging mouse out of window.
 Moving the mouse out the top or bottom edge of the window begins
 scrolling repeatedly.  The number of lines scrolled per repetition
 is normally equal to the number of lines beyond the window edge that
@@ -1799,14 +1799,14 @@ again.  If you do this twice in the same position, it kills the selection."
 			    (overlay-end mouse-secondary-overlay)))))))
 
 (defcustom mouse-buffer-menu-maxlen 20
-  "*Number of buffers in one pane (submenu) of the buffer menu.
+  "Number of buffers in one pane (submenu) of the buffer menu.
 If we have lots of buffers, divide them into groups of
 `mouse-buffer-menu-maxlen' and make a pane (or submenu) for each one."
   :type 'integer
   :group 'mouse)
 
 (defcustom mouse-buffer-menu-mode-mult 4
-  "*Group the buffers by the major mode groups on \\[mouse-buffer-menu]?
+  "Group the buffers by the major mode groups on \\[mouse-buffer-menu]?
 This number which determines (in a hairy way) whether \\[mouse-buffer-menu]
 will split the buffer menu by the major modes (see
 `mouse-buffer-menu-mode-groups') or just by menu length.

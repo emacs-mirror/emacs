@@ -41,12 +41,12 @@
 (require 'ediff-init)
 
 (defcustom ediff-patch-program  "patch"
-  "*Name of the program that applies patches.
+  "Name of the program that applies patches.
 It is recommended to use GNU-compatible versions."
   :type 'string
   :group 'ediff-ptch)
 (defcustom ediff-patch-options "-f"
-  "*Options to pass to ediff-patch-program.
+  "Options to pass to ediff-patch-program.
 
 Note: the `-b' option should be specified in `ediff-backup-specs'.
 
@@ -93,7 +93,7 @@ See also `ediff-backup-specs'."
 	  (t
 	   ;; traditional `patch'
 	   (format "-b %s" ediff-backup-extension))))
-  "*Backup directives to pass to the patch program.
+  "Backup directives to pass to the patch program.
 Ediff requires that the old version of the file \(before applying the patch\)
 be saved in a file named `the-patch-file.extension'.  Usually `extension' is
 `.orig', but this can be changed by the user and may depend on the system.
@@ -117,7 +117,7 @@ patch.  So, don't change these variables, unless the default doesn't work."
 
 
 (defcustom ediff-patch-default-directory nil
-  "*Default directory to look for patches."
+  "Default directory to look for patches."
   :type '(choice (const nil) string)
   :group 'ediff-ptch)
 
@@ -129,7 +129,7 @@ patch.  So, don't change these variables, unless the default doesn't work."
 	  "\\|" 	; GNU unified format diff 2-liner
 	  "^--- +\\([^ \t]+\\)[\t ]+.*\n\\+\\+\\+ +\\([^ \t]+\\)"
 	  "\\)")
-  "*Regexp matching filename 2-liners at the start of each context diff.
+  "Regexp matching filename 2-liners at the start of each context diff.
 You probably don't want to change that, unless you are using an obscure patch
 program."
   :type 'regexp

@@ -52,7 +52,7 @@
   :group 'editing)
 
 (defcustom view-highlight-face 'highlight
-   "*The face used for highlighting the match found by View mode search."
+   "The face used for highlighting the match found by View mode search."
    :type 'face
    :group 'view)
 
@@ -61,14 +61,14 @@
 ;; doesn't say if leaving view mode should restore windows or not.  The latter
 ;; is now controlled by the presence of a value in `view-return-to-alist'.
 (defcustom view-scroll-auto-exit nil
-  "*Non-nil means scrolling past the end of buffer exits View mode.
+  "Non-nil means scrolling past the end of buffer exits View mode.
 A value of nil means attempting to scroll past the end of the buffer,
 only rings the bell and gives a message on how to leave."
   :type 'boolean
   :group 'view)
 
 (defcustom view-try-extend-at-buffer-end nil
- "*Non-nil means try to load more of file when reaching end of buffer.
+ "Non-nil means try to load more of file when reaching end of buffer.
 This variable is mainly intended to be temporarily set to non-nil by
 the F command in view-mode, but you can set it to t if you want the action
 for all scroll commands in view mode."
@@ -77,7 +77,7 @@ for all scroll commands in view mode."
 
 ;;;###autoload
 (defcustom view-remove-frame-by-deleting t
-  "*Determine how View mode removes a frame no longer needed.
+  "Determine how View mode removes a frame no longer needed.
 If nil, make an icon of the frame.  If non-nil, delete the frame."
   :type 'boolean
   :group 'view
@@ -86,7 +86,7 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
   :version "23.1")
 
 (defcustom view-exits-all-viewing-windows nil
-  "*Non-nil means restore all windows used to view buffer.
+  "Non-nil means restore all windows used to view buffer.
 Commands that restore windows when finished viewing a buffer, apply to all
 windows that display the buffer and have restore information in
 `view-return-to-alist'.
@@ -96,7 +96,7 @@ considered for restoring."
   :group 'view)
 
 (defcustom view-inhibit-help-message nil
-  "*Non-nil inhibits the help message shown upon entering View mode."
+  "Non-nil inhibits the help message shown upon entering View mode."
   :type 'boolean
   :group 'view
   :version "22.1")

@@ -63,7 +63,7 @@
   :group 'extensions)
 
 (defcustom sha1-maximum-internal-length 500
-  "*Maximum length of message to use Lisp version of SHA1 function.
+  "Maximum length of message to use Lisp version of SHA1 function.
 If message is longer than this, `sha1-program' is used instead.
 
 If this variable is set to 0, use external program only.
@@ -72,7 +72,7 @@ If this variable is set to nil, use internal function only."
   :group 'sha1)
 
 (defcustom sha1-program '("sha1sum")
-  "*Name of program to compute SHA1.
+  "Name of program to compute SHA1.
 It must be a string \(program name\) or list of strings \(name and its args\)."
   :type '(repeat string)
   :group 'sha1)
@@ -80,7 +80,7 @@ It must be a string \(program name\) or list of strings \(name and its args\)."
 (defcustom sha1-use-external (condition-case ()
 				 (executable-find (car sha1-program))
 			       (error))
-  "*Use external SHA1 program.
+  "Use external SHA1 program.
 If this variable is set to nil, use internal function only."
   :type 'boolean
   :group 'sha1)

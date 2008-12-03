@@ -94,14 +94,14 @@ use either \\[customize] or the function `mouse-avoidance-mode'."
 
 
 (defcustom mouse-avoidance-nudge-dist 15
-  "*Average distance that mouse will be moved when approached by cursor.
+  "Average distance that mouse will be moved when approached by cursor.
 Only applies in Mouse-Avoidance mode `jump' and its derivatives.
 For best results make this larger than `mouse-avoidance-threshold'."
   :type 'integer
   :group 'avoid)
 
 (defcustom mouse-avoidance-nudge-var 10
-  "*Variability of `mouse-avoidance-nudge-dist' (which see)."
+  "Variability of `mouse-avoidance-nudge-dist' (which see)."
   :type 'integer
   :group 'avoid)
 
@@ -111,7 +111,7 @@ For best results make this larger than `mouse-avoidance-threshold'."
   :group 'avoid)
 
 (defcustom mouse-avoidance-threshold 5
-  "*Mouse-pointer's flight distance.
+  "Mouse-pointer's flight distance.
 If the cursor gets closer than this, the mouse pointer will move away.
 Only applies in mouse-avoidance-modes `animate' and `jump'."
   :type 'integer

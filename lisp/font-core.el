@@ -262,7 +262,7 @@ this function onto `change-major-mode-hook'."
 ;; would also be contrary to the Principle of Least Surprise.  sm.
 
 (defcustom font-lock-global-modes t
-  "*Modes for which Font Lock mode is automagically turned on.
+  "Modes for which Font Lock mode is automagically turned on.
 Global Font Lock mode is controlled by the command `global-font-lock-mode'.
 If nil, means no modes have Font Lock mode automatically turned on.
 If t, all modes that support Font Lock mode have it automatically turned on.

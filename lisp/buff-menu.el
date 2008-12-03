@@ -68,7 +68,7 @@
   :group 'convenience)
 
 (defcustom Buffer-menu-use-header-line t
-  "*Non-nil means to use an immovable header-line."
+  "Non-nil means to use an immovable header-line."
   :type 'boolean
   :group 'Buffer-menu)
 
@@ -79,12 +79,12 @@
 (put 'Buffer-menu-buffer 'face-alias 'buffer-menu-buffer)
 
 (defcustom Buffer-menu-buffer+size-width 26
-  "*How wide to jointly make the buffer name and size columns."
+  "How wide to jointly make the buffer name and size columns."
   :type 'number
   :group 'Buffer-menu)
 
 (defcustom Buffer-menu-mode-width 16
-  "*How wide to make the mode name column."
+  "How wide to make the mode name column."
   :type 'number
   :group 'Buffer-menu)
 
@@ -838,7 +838,7 @@ For more information, see the function `buffer-menu'."
 				       buffer ,(car buffer)
 				       font-lock-face buffer-menu-buffer
 				       mouse-face highlight
-				       help-echo 
+				       help-echo
 				       ,(if (>= (length name)
 						(- Buffer-menu-buffer+size-width
 						   (max (length size) 3)

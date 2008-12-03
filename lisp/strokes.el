@@ -214,18 +214,18 @@ static char * stroke_xpm[] = {
   :group 'mouse)
 
 (defcustom strokes-modeline-string " Strokes"
-  "*Modeline identification when Strokes mode is on \(default is \" Strokes\"\)."
+  "Modeline identification when Strokes mode is on \(default is \" Strokes\"\)."
   :type 'string
   :group 'strokes)
 
 (defcustom strokes-character ?@
-  "*Character used when drawing strokes in the strokes buffer.
+  "Character used when drawing strokes in the strokes buffer.
 \(The default is `@', which works well.\)"
   :type 'character
   :group 'strokes)
 
 (defcustom strokes-minimum-match-score 1000
-  "*Minimum score for a stroke to be considered a possible match.
+  "Minimum score for a stroke to be considered a possible match.
 Setting this variable to 0 would require a perfectly precise match.
 The default value is 1000, but it's mostly dependent on how precisely
 you manage to replicate your user-defined strokes.  It also depends on
@@ -242,7 +242,7 @@ ones, then strokes should NOT pick the one that came closest."
   :group 'strokes)
 
 (defcustom strokes-grid-resolution 9
-  "*Integer defining dimensions of the stroke grid.
+  "Integer defining dimensions of the stroke grid.
 The grid is a square grid, where `strokes-grid-resolution' defaults to
 `9', making a 9x9 grid whose coordinates go from (0 . 0) on the top
 left to ((strokes-grid-resolution - 1) . (strokes-grid-resolution - 1))
@@ -259,7 +259,7 @@ WARNING: Changing the value of this variable will gravely affect the
   :group 'strokes)
 
 (defcustom strokes-file (convert-standard-filename "~/.strokes")
-  "*File containing saved strokes for Strokes mode (default is ~/.strokes)."
+  "File containing saved strokes for Strokes mode (default is ~/.strokes)."
   :type 'file
   :group 'strokes)
 
@@ -267,7 +267,7 @@ WARNING: Changing the value of this variable will gravely affect the
   "The name of the buffer that the strokes take place in.")
 
 (defcustom strokes-use-strokes-buffer t
-  "*If non-nil, the strokes buffer is used and strokes are displayed.
+  "If non-nil, the strokes buffer is used and strokes are displayed.
 If nil, strokes will be read the same, however the user will not be
 able to see the strokes.  This be helpful for people who don't like
 the delay in switching to the strokes buffer."

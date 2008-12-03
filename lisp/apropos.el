@@ -112,7 +112,7 @@ If value is `verbose', the computed score is shown for each match."
 		 (const :tag "show scores" verbose)))
 
 (defcustom apropos-documentation-sort-by-scores t
-  "*Non-nil means sort matches by scores; best match is shown first.
+  "Non-nil means sort matches by scores; best match is shown first.
 This applies to `apropos-documentation' only.
 If value is `verbose', the computed score is shown for each match."
   :group 'apropos

@@ -122,29 +122,29 @@
   :group 'dired-x)
 
 (defcustom dired-bind-vm nil
-  "*Non-nil means \"V\" runs `dired-vm', otherwise \"V\" runs `dired-rmail'.
+  "Non-nil means \"V\" runs `dired-vm', otherwise \"V\" runs `dired-rmail'.
 Also, RMAIL files contain -*- rmail -*- at the top so \"f\",
 `dired-advertised-find-file', will run rmail."
   :type 'boolean
   :group 'dired-keys)
 
 (defcustom dired-bind-jump t
-  "*Non-nil means bind `dired-jump' to C-x C-j, otherwise do not."
+  "Non-nil means bind `dired-jump' to C-x C-j, otherwise do not."
   :type 'boolean
   :group 'dired-keys)
 
 (defcustom dired-bind-man t
-  "*Non-nil means bind `dired-man' to \"N\" in dired-mode, otherwise do not."
+  "Non-nil means bind `dired-man' to \"N\" in dired-mode, otherwise do not."
   :type 'boolean
   :group 'dired-keys)
 
 (defcustom dired-bind-info t
-  "*Non-nil means bind `dired-info' to \"I\" in dired-mode, otherwise do not."
+  "Non-nil means bind `dired-info' to \"I\" in dired-mode, otherwise do not."
   :type 'boolean
   :group 'dired-keys)
 
 (defcustom dired-vm-read-only-folders nil
-  "*If non-nil, \\[dired-vm] will visit all folders read-only.
+  "If non-nil, \\[dired-vm] will visit all folders read-only.
 If neither nil nor t, e.g. the symbol `if-file-read-only', only
 files not writable by you are visited read-only.
 
@@ -171,7 +171,7 @@ plus those ending with extensions in `dired-omit-extensions'."
 (define-obsolete-variable-alias 'dired-omit-files-p 'dired-omit-mode "22.1")
 
 (defcustom dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$"
-  "*Filenames matching this regexp will not be displayed.
+  "Filenames matching this regexp will not be displayed.
 This only has effect when `dired-omit-mode' is t.  See interactive function
 `dired-omit-mode' \(\\[dired-omit-mode]\) and variable
 `dired-omit-extensions'.  The default is to omit  `.', `..', auto-save
@@ -180,7 +180,7 @@ files and lock files."
   :group 'dired-x)
 
 (defcustom dired-find-subdir nil           ; t is pretty near to DWIM...
-  "*If non-nil, Dired always finds a directory in a buffer of its own.
+  "If non-nil, Dired always finds a directory in a buffer of its own.
 If nil, Dired finds the directory as a subdirectory in some other buffer
 if it is present as one.
 
@@ -194,13 +194,13 @@ toggle between those two."
   :group 'dired-x)
 
 (defcustom dired-omit-size-limit 30000
-  "*Maximum size for the \"omitting\" feature.
+  "Maximum size for the \"omitting\" feature.
 If nil, there is no maximum size."
   :type '(choice (const :tag "no maximum" nil) integer)
   :group 'dired-x)
 
 (defcustom dired-enable-local-variables t
-  "*Control use of local-variables lists in Dired.
+  "Control use of local-variables lists in Dired.
 The value can be t, nil or something else.
 A value of t means local-variables lists are obeyed;
 nil means they are ignored; anything else means query.
@@ -213,7 +213,7 @@ a directory.  See also `dired-local-variables-file'."
 (defcustom dired-guess-shell-gnutar (when (or (eq system-type 'gnu)
 					      (eq system-type 'gnu/linux))
 				      "tar")
-  "*If non-nil, name of GNU tar executable.
+  "If non-nil, name of GNU tar executable.
 \(E.g., \"tar\" or \"gtar\").  The `z' switch will be used with it for
 compressed or gzip'ed tar files.  If you don't have GNU tar, set this
 to nil: a pipe using `zcat' or `gunzip -c' will be used."
@@ -222,18 +222,18 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
   :group 'dired-x)
 
 (defcustom dired-guess-shell-gzip-quiet t
-  "*Non-nil says pass -q to gzip overriding verbose GZIP environment."
+  "Non-nil says pass -q to gzip overriding verbose GZIP environment."
   :type 'boolean
   :group 'dired-x)
 
 (defcustom dired-guess-shell-znew-switches nil
-  "*If non-nil, then string of switches passed to `znew', example: \"-K\"."
+  "If non-nil, then string of switches passed to `znew', example: \"-K\"."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Switches"))
   :group 'dired-x)
 
 (defcustom dired-clean-up-buffers-too t
-  "*Non-nil means offer to kill buffers visiting files and dirs deleted in Dired."
+  "Non-nil means offer to kill buffers visiting files and dirs deleted in Dired."
   :type 'boolean
   :group 'dired-x)
 

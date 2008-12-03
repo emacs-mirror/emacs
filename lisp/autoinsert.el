@@ -58,7 +58,7 @@
 
 
 (defcustom auto-insert 'not-modified
-  "*Controls automatic insertion into newly found empty files.
+  "Controls automatic insertion into newly found empty files.
 Possible values:
 	nil	do nothing
 	t	insert if possible
@@ -76,7 +76,7 @@ With \\[auto-insert], this is always treated as if it were t."
   :group 'auto-insert)
 
 (defcustom auto-insert-query 'function
-  "*Non-nil means ask user before auto-inserting.
+  "Non-nil means ask user before auto-inserting.
 When this is `function', only ask when called non-interactively."
   :type '(choice (const :tag "Don't ask" nil)
                  (const :tag "Ask if called non-interactively" function)
@@ -84,7 +84,7 @@ When this is `function', only ask when called non-interactively."
   :group 'auto-insert)
 
 (defcustom auto-insert-prompt "Perform %s auto-insertion? "
-  "*Prompt to use when querying whether to auto-insert.
+  "Prompt to use when querying whether to auto-insert.
 If this contains a %s, that will be replaced by the matching rule."
   :type 'string
   :group 'auto-insert)
@@ -308,7 +308,7 @@ described above, e.g. [\"header.insert\" date-and-author-update]."
 
 ;; Establish a default value for auto-insert-directory
 (defcustom auto-insert-directory "~/insert/"
-  "*Directory from which auto-inserted files are taken.
+  "Directory from which auto-inserted files are taken.
 The value must be an absolute directory name;
 thus, on a GNU or Unix system, it must end in a slash."
   :type 'directory

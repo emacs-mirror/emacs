@@ -67,7 +67,7 @@ editing and the result is evaluated."
   '(command-history-mode
     list-command-history
     electric-command-history)
-  "*A list of symbols to be ignored by `default-command-history-filter'.
+  "A list of symbols to be ignored by `default-command-history-filter'.
 If that function is given a list whose car is an element of this list,
 then it will return non-nil (indicating the list should be discarded from
 the history).
@@ -90,7 +90,7 @@ from the command history."
       (memq (car frob) default-command-history-filter-garbage)))
 
 (defcustom list-command-history-max 32
-  "*If non-nil, maximum length of the listing produced by `list-command-history'."
+  "If non-nil, maximum length of the listing produced by `list-command-history'."
   :type '(choice integer (const nil))
   :group 'chistory)
 

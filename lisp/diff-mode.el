@@ -39,7 +39,7 @@
 
 ;; - Improve `diff-add-change-log-entries-other-window',
 ;;   it is very simplistic now.
-;;  
+;;
 ;; - Add a `delete-after-apply' so C-c C-a automatically deletes hunks.
 ;;   Also allow C-c C-a to delete already-applied hunks.
 ;;
@@ -77,7 +77,7 @@ Else, it jumps to the new file."
   :group 'diff-mode)
 
 (defcustom diff-update-on-the-fly t
-  "*Non-nil means hunk headers are kept up-to-date on-the-fly.
+  "Non-nil means hunk headers are kept up-to-date on-the-fly.
 When editing a diff file, the line numbers in the hunk headers
 need to be kept consistent with the actual diff.  This can
 either be done on the fly (but this sometimes interacts poorly with the
@@ -87,7 +87,7 @@ when editing big diffs)."
   :group 'diff-mode)
 
 (defcustom diff-advance-after-apply-hunk t
-  "*Non-nil means `diff-apply-hunk' will move to the next hunk after applying."
+  "Non-nil means `diff-apply-hunk' will move to the next hunk after applying."
   :type 'boolean
   :group 'diff-mode)
 
@@ -517,7 +517,7 @@ but in the file header instead, in which case move forward to the first hunk."
           res
         (goto-char start)
         (error "Can't find the beginning of the file")))))
-        
+
 
 (defun diff-end-of-file ()
   (re-search-forward "^[-+#!<>0-9@* \\]" nil t)
@@ -571,7 +571,7 @@ If the prefix ARG is given, restrict the view to the current file instead."
 
 ;; "index ", "old mode", "new mode", "new file mode" and
 ;; "deleted file mode" are output by git-diff.
-(defconst diff-file-junk-re 
+(defconst diff-file-junk-re
   "diff \\|index \\|\\(?:deleted file\\|new\\(?: file\\)?\\|old\\) mode")
 
 (defun diff-beginning-of-file-and-junk ()
@@ -620,7 +620,7 @@ data such as \"Index: ...\" and such."
       ;; a file diff but elsewhere.
       (goto-char orig)
       (signal (car err) (cdr err)))))
-          
+
 (defun diff-file-kill ()
   "Kill current file's hunks."
   (interactive)
@@ -1635,7 +1635,7 @@ With a prefix argument, REVERSE the hunk."
       ;; for diff-goto-source, and is thus confusing.  Also when you don't
       ;; know about it it's pretty surprising.
       ;; TODO: make it possible to ask explicitly for this behavior.
-      ;; 
+      ;;
       ;; This is duplicated in diff-test-hunk.
       (diff-find-source-location nil reverse)
     (cond

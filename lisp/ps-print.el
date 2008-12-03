@@ -1095,7 +1095,7 @@ Please send all bug fixes and enhancements to
 ;; foreground colors to be used when text foreground and background colors are
 ;; equals.  It'll be used the first foreground color in `ps-fg-list' which is
 ;; different from the background color.  If `ps-fg-list' is nil, the default
-;; foreground color is used. 
+;; foreground color is used.
 ;;
 ;;
 ;; How Ps-Print Maps Faces
@@ -1591,7 +1591,7 @@ Please send all bug fixes and enhancements to
 
 
 (defcustom ps-error-handler-message 'paper
-  "*Specify where the error handler message should be sent.
+  "Specify where the error handler message should be sent.
 
 Valid values are:
 
@@ -1617,7 +1617,7 @@ Any other value is treated as `paper'."
   :group 'ps-print-miscellany)
 
 (defcustom ps-user-defined-prologue nil
-  "*User defined PostScript prologue code inserted before all prologue code.
+  "User defined PostScript prologue code inserted before all prologue code.
 
 `ps-user-defined-prologue' may be a string or a symbol function which returns a
 string.  Note that this string is inserted after `ps-adobe-tag' and PostScript
@@ -1649,7 +1649,7 @@ As an example for `ps-user-defined-prologue' setting:
   :group 'ps-print-miscellany)
 
 (defcustom ps-print-prologue-header nil
-  "*PostScript prologue header comments besides that ps-print generates.
+  "PostScript prologue header comments besides that ps-print generates.
 
 `ps-print-prologue-header' may be a string or a symbol function which returns a
 string.  Note that this string is inserted on PostScript prologue header
@@ -1680,7 +1680,7 @@ For more information about PostScript document comments, see:
 
 (defcustom ps-printer-name (and (boundp 'printer-name)
 				(symbol-value 'printer-name))
-  "*The name of a local printer for printing PostScript files.
+  "The name of a local printer for printing PostScript files.
 
 On Unix-like systems, a string value should be a name understood by lpr's -P
 option; a value of nil means use the value of `printer-name' instead.
@@ -1717,7 +1717,7 @@ See also `ps-printer-name-option' for documentation."
 	 "-d")
 	(t
 	 "-P" ))
-  "*Option for `ps-printer-name' variable (see it).
+  "Option for `ps-printer-name' variable (see it).
 
 On Unix-like systems, if `lpr' is in use, this should be the string
 \"-P\"; if `lp' is in use, this should be the string \"-d\".
@@ -1742,7 +1742,7 @@ This variable is used only when `ps-printer-name' is a non-empty string."
   :group 'ps-print-printer)
 
 (defcustom ps-lpr-command lpr-command
-  "*Name of program for printing a PostScript file.
+  "Name of program for printing a PostScript file.
 
 On MS-DOS and MS-Windows systems, if the value is an empty string then Emacs
 will write directly to the printer port named by `ps-printer-name'.  The
@@ -1755,7 +1755,7 @@ an explicit filename is given as the last argument."
   :group 'ps-print-printer)
 
 (defcustom ps-lpr-switches lpr-switches
-  "*List of extra switches to pass to `ps-lpr-command'.
+  "List of extra switches to pass to `ps-lpr-command'.
 
 The list element can be:
 
@@ -1785,7 +1785,7 @@ See `ps-lpr-command'."
   :group 'ps-print-printer)
 
 (defcustom ps-print-region-function nil
-  "*Specify a function to print the region on a PostScript printer.
+  "Specify a function to print the region on a PostScript printer.
 See definition of `call-process-region' for calling conventions.  The fourth
 and the sixth arguments are both nil."
   :type '(choice (const nil) function)
@@ -1793,7 +1793,7 @@ and the sixth arguments are both nil."
   :group 'ps-print-printer)
 
 (defcustom ps-manual-feed nil
-  "*Non-nil means the printer will manually feed paper.
+  "Non-nil means the printer will manually feed paper.
 
 If it's nil, automatic feeding takes place."
   :type 'boolean
@@ -1801,7 +1801,7 @@ If it's nil, automatic feeding takes place."
   :group 'ps-print-printer)
 
 (defcustom ps-end-with-control-d (and ps-windows-system t)
-  "*Non-nil means insert C-d at end of PostScript file generated."
+  "Non-nil means insert C-d at end of PostScript file generated."
   :version "21.1"
   :type 'boolean
   :version "20"
@@ -1866,7 +1866,7 @@ If it's nil, automatic feeding takes place."
 	'(vhsface            205.0     127.0 "VHSFace")
 	'(vhsspine           400.0      50.0 "VHSSpine")
 	'(zipdisk            156.0     136.0 "ZipDisk"))
-  "*List associating a symbolic paper type to its width, height and doc media.
+  "List associating a symbolic paper type to its width, height and doc media.
 See `ps-paper-type'."
   :type '(repeat (list :tag "Paper Type"
 		       (symbol :tag "Symbol Name")
@@ -1878,7 +1878,7 @@ See `ps-paper-type'."
 
 ;;;###autoload
 (defcustom ps-paper-type 'letter
-  "*Specify the size of paper to format for.
+  "Specify the size of paper to format for.
 Should be one of the paper types defined in `ps-page-dimensions-database', for
 example `letter', `legal' or `a4'."
   :type '(symbol :validate (lambda (wid)
@@ -1891,7 +1891,7 @@ example `letter', `legal' or `a4'."
   :group 'ps-print-page)
 
 (defcustom ps-warn-paper-type t
-  "*Non-nil means give an error if paper size is not equal to `ps-paper-type'.
+  "Non-nil means give an error if paper size is not equal to `ps-paper-type'.
 
 It's used when `ps-spool-config' is set to `setpagedevice'."
   :type 'boolean
@@ -1899,19 +1899,19 @@ It's used when `ps-spool-config' is set to `setpagedevice'."
   :group 'ps-print-page)
 
 (defcustom ps-landscape-mode nil
-  "*Non-nil means print in landscape mode."
+  "Non-nil means print in landscape mode."
   :type 'boolean
   :version "20"
   :group 'ps-print-page)
 
 (defcustom ps-print-upside-down nil
-  "*Non-nil means print upside-down (that is, rotated by 180 degrees)."
+  "Non-nil means print upside-down (that is, rotated by 180 degrees)."
   :type 'boolean
   :version "21.1"
   :group 'ps-print-page)
 
 (defcustom ps-selected-pages nil
-  "*Specify which pages to print.
+  "Specify which pages to print.
 
 If nil, print all pages.
 
@@ -1938,7 +1938,7 @@ See also `ps-even-or-odd-pages'."
   :group 'ps-print-page)
 
 (defcustom ps-even-or-odd-pages nil
-  "*Specify if it prints even/odd pages.
+  "Specify if it prints even/odd pages.
 
 Valid values are:
 
@@ -1997,7 +1997,7 @@ sheet parity."
   :group 'ps-print-page)
 
 (defcustom ps-print-control-characters 'control-8-bit
-  "*Specify the printable form for control and 8-bit characters.
+  "Specify the printable form for control and 8-bit characters.
 That is, instead of sending, for example, a ^D (\\004) to printer,
 it is sent the string \"^D\".
 
@@ -2029,7 +2029,7 @@ Any other value is treated as nil."
   :group 'ps-print-miscellany)
 
 (defcustom ps-n-up-printing 1
-  "*Specify the number of pages per sheet paper."
+  "Specify the number of pages per sheet paper."
   :type '(integer
 	  :tag "N Up Printing"
 	  :validate
@@ -2045,19 +2045,19 @@ Any other value is treated as nil."
   :group 'ps-print-n-up)
 
 (defcustom ps-n-up-margin (/ (* 72  1.0) 2.54) ; 1 cm
-  "*Specify the margin in points between the sheet border and n-up printing."
+  "Specify the margin in points between the sheet border and n-up printing."
   :type 'number
   :version "20"
   :group 'ps-print-n-up)
 
 (defcustom ps-n-up-border-p t
-  "*Non-nil means a border is drawn around each page."
+  "Non-nil means a border is drawn around each page."
   :type 'boolean
   :version "20"
   :group 'ps-print-n-up)
 
 (defcustom ps-n-up-filling 'left-top
-  "*Specify how page matrix is filled on each sheet of paper.
+  "Specify how page matrix is filled on each sheet of paper.
 
 Following are the valid values for `ps-n-up-filling' with a filling example
 using a 3x4 page matrix:
@@ -2089,27 +2089,27 @@ Any other value is treated as `left-top'."
   :group 'ps-print-n-up)
 
 (defcustom ps-number-of-columns (if ps-landscape-mode 2 1)
-  "*Specify the number of columns."
+  "Specify the number of columns."
   :type 'number
   :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-zebra-stripes nil
-  "*Non-nil means print zebra stripes.
+  "Non-nil means print zebra stripes.
 See also documentation for `ps-zebra-stripe-height' and `ps-zebra-color'."
   :type 'boolean
   :version "20"
   :group 'ps-print-zebra)
 
 (defcustom ps-zebra-stripe-height 3
-  "*Number of zebra stripe lines.
+  "Number of zebra stripe lines.
 See also documentation for `ps-zebra-stripes' and `ps-zebra-color'."
   :type 'number
   :version "20"
   :group 'ps-print-zebra)
 
 (defcustom ps-zebra-color 0.95
-  "*Zebra stripe gray scale or RGB color.
+  "Zebra stripe gray scale or RGB color.
 See also documentation for `ps-zebra-stripes' and `ps-zebra-stripe-height'."
   :type '(choice :menu-tag "Zebra Gray/Color"
 		 :tag "Zebra Gray/Color"
@@ -2123,7 +2123,7 @@ See also documentation for `ps-zebra-stripes' and `ps-zebra-stripe-height'."
   :group 'ps-print-zebra)
 
 (defcustom ps-zebra-stripe-follow nil
-  "*Specify how zebra stripes continue on next page.
+  "Specify how zebra stripes continue on next page.
 
 Visually, valid values are (the character `+' at right of each column indicates
 that a line is printed):
@@ -2167,13 +2167,13 @@ Any other value is treated as nil."
   :group 'ps-print-zebra)
 
 (defcustom ps-line-number nil
-  "*Non-nil means print line number."
+  "Non-nil means print line number."
   :type 'boolean
   :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-line-number-step 1
-  "*Specify the interval that line number is printed.
+  "Specify the interval that line number is printed.
 
 For example, `ps-line-number-step' is set to 2, the printing will look like:
 
@@ -2203,7 +2203,7 @@ Any other value is treated as `zebra'."
   :group 'ps-print-miscellany)
 
 (defcustom ps-line-number-start 1
-  "*Specify the starting point in the interval given by `ps-line-number-step'.
+  "Specify the starting point in the interval given by `ps-line-number-step'.
 
 For example, if `ps-line-number-step' is set to 3 and `ps-line-number-start' is
 set to 3, the printing will look like:
@@ -2233,7 +2233,7 @@ The values for `ps-line-number-start':
   :group 'ps-print-miscellany)
 
 (defcustom ps-print-background-image nil
-  "*EPS image list to be printed on background.
+  "EPS image list to be printed on background.
 
 The elements are:
 
@@ -2280,7 +2280,7 @@ For example, if you wish to print an EPS image on all pages do:
   :group 'ps-print-background)
 
 (defcustom ps-print-background-text nil
-  "*Text list to be printed on background.
+  "Text list to be printed on background.
 
 The elements are:
 
@@ -2340,19 +2340,19 @@ For example, if you wish to print text \"Preliminary\" on all pages do:
 ;;  ------------------------------------------
 
 (defcustom ps-left-margin   (/ (* 72  2.0) 2.54) ;   2 cm
-  "*Left margin in points (1/72 inch)."
+  "Left margin in points (1/72 inch)."
   :type 'number
   :version "20"
   :group 'ps-print-horizontal)
 
 (defcustom ps-right-margin  (/ (* 72  2.0) 2.54) ;   2 cm
-  "*Right margin in points (1/72 inch)."
+  "Right margin in points (1/72 inch)."
   :type 'number
   :version "20"
   :group 'ps-print-horizontal)
 
 (defcustom ps-inter-column  (/ (* 72  2.0) 2.54) ;   2 cm
-  "*Horizontal space between columns in points (1/72 inch)."
+  "Horizontal space between columns in points (1/72 inch)."
   :type 'number
   :version "20"
   :group 'ps-print-horizontal)
@@ -2372,25 +2372,25 @@ For example, if you wish to print text \"Preliminary\" on all pages do:
 ;; |--------|
 
 (defcustom ps-bottom-margin (/ (* 72  1.5) 2.54) ; 1.5 cm
-  "*Bottom margin in points (1/72 inch)."
+  "Bottom margin in points (1/72 inch)."
   :type 'number
   :version "20"
   :group 'ps-print-vertical)
 
 (defcustom ps-top-margin    (/ (* 72  1.5) 2.54) ; 1.5 cm
-  "*Top margin in points (1/72 inch)."
+  "Top margin in points (1/72 inch)."
   :type 'number
   :version "20"
   :group 'ps-print-vertical)
 
 (defcustom ps-header-offset (/ (* 72  1.0) 2.54) ; 1.0 cm
-  "*Vertical space in points (1/72 inch) between the main text and the header."
+  "Vertical space in points (1/72 inch) between the main text and the header."
   :type 'number
   :version "20"
   :group 'ps-print-vertical)
 
 (defcustom ps-header-line-pad 0.15
-  "*Portion of a header title line height to insert.
+  "Portion of a header title line height to insert.
 The insertion is done between the header frame and the text it contains,
 both in the vertical and horizontal directions."
   :type 'number
@@ -2398,13 +2398,13 @@ both in the vertical and horizontal directions."
   :group 'ps-print-vertical)
 
 (defcustom ps-footer-offset (/ (* 72  1.0) 2.54) ; 1.0 cm
-  "*Vertical space in points (1/72 inch) between the main text and the footer."
+  "Vertical space in points (1/72 inch) between the main text and the footer."
   :type 'number
   :version "20"
   :group 'ps-print-vertical)
 
 (defcustom ps-footer-line-pad 0.15
-  "*Portion of a footer title line height to insert.
+  "Portion of a footer title line height to insert.
 The insertion is done between the footer frame and the text it contains,
 both in the vertical and horizontal directions."
   :type 'number
@@ -2414,7 +2414,7 @@ both in the vertical and horizontal directions."
 ;;; Header/Footer setup
 
 (defcustom ps-print-header t
-  "*Non-nil means print a header at the top of each page.
+  "Non-nil means print a header at the top of each page.
 By default, the header displays the buffer name, page number, and, if the
 buffer is visiting a file, the file's directory.  Headers are customizable by
 changing variables `ps-left-header' and `ps-right-header'."
@@ -2423,7 +2423,7 @@ changing variables `ps-left-header' and `ps-right-header'."
   :group 'ps-print-headers)
 
 (defcustom ps-print-header-frame t
-  "*Non-nil means draw a gaudy frame around the header."
+  "Non-nil means draw a gaudy frame around the header."
   :type 'boolean
   :version "20"
   :group 'ps-print-headers)
@@ -2434,7 +2434,7 @@ changing variables `ps-left-header' and `ps-right-header'."
     (border-width . 0.4)
     (border-color . 0.0)
     (shadow-color . 0.0))
-  "*Specify header frame properties alist.
+  "Specify header frame properties alist.
 
 Valid frame properties are:
 
@@ -2509,13 +2509,13 @@ Don't change this alist directly, instead use customization, or `ps-value',
   :group 'ps-print-headers)
 
 (defcustom ps-header-lines 2
-  "*Number of lines to display in page header, when generating PostScript."
+  "Number of lines to display in page header, when generating PostScript."
   :type 'integer
   :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-print-footer nil
-  "*Non-nil means print a footer at the bottom of each page.
+  "Non-nil means print a footer at the bottom of each page.
 By default, the footer displays page number.
 Footers are customizable by changing variables `ps-left-footer' and
 `ps-right-footer'."
@@ -2524,7 +2524,7 @@ Footers are customizable by changing variables `ps-left-footer' and
   :group 'ps-print-headers)
 
 (defcustom ps-print-footer-frame t
-  "*Non-nil means draw a gaudy frame around the footer."
+  "Non-nil means draw a gaudy frame around the footer."
   :type 'boolean
   :version "21.1"
   :group 'ps-print-headers)
@@ -2535,7 +2535,7 @@ Footers are customizable by changing variables `ps-left-footer' and
     (border-width . 0.4)
     (border-color . 0.0)
     (shadow-color . 0.0))
-  "*Specify footer frame properties alist.
+  "Specify footer frame properties alist.
 
 Don't change this alist directly, instead use customization, or `ps-value',
 `ps-get', `ps-put' and `ps-del' functions (see them for documentation).
@@ -2591,13 +2591,13 @@ See also `ps-header-frame-alist' for documentation."
   :group 'ps-print-headers)
 
 (defcustom ps-footer-lines 2
-  "*Number of lines to display in page footer, when generating PostScript."
+  "Number of lines to display in page footer, when generating PostScript."
   :type 'integer
   :version "21.1"
   :group 'ps-print-headers)
 
 (defcustom ps-print-only-one-header nil
-  "*Non-nil means print only one header/footer at the top/bottom of each page.
+  "Non-nil means print only one header/footer at the top/bottom of each page.
 This is useful when printing more than one column, so it is possible to have
 only one header/footer over all columns or one header/footer per column.
 See also `ps-print-header' and `ps-print-footer'."
@@ -2606,7 +2606,7 @@ See also `ps-print-header' and `ps-print-footer'."
   :group 'ps-print-headers)
 
 (defcustom ps-switch-header 'duplex
-  "*Specify if headers/footers are switched or not.
+  "Specify if headers/footers are switched or not.
 
 Valid values are:
 
@@ -2629,7 +2629,7 @@ See also `ps-print-header' and `ps-print-footer'."
   :group 'ps-print-headers)
 
 (defcustom ps-show-n-of-n t
-  "*Non-nil means show page numbers as N/M, meaning page N of M.
+  "Non-nil means show page numbers as N/M, meaning page N of M.
 NOTE: page numbers are displayed as part of headers,
       see variable `ps-print-header'."
   :type 'boolean
@@ -2640,7 +2640,7 @@ NOTE: page numbers are displayed as part of headers,
   (if ps-windows-system
       nil
     'lpr-switches)
-  "*Specify who is responsible for setting duplex and page size.
+  "Specify who is responsible for setting duplex and page size.
 
 Valid values are:
 
@@ -2674,7 +2674,7 @@ WARNING: The setpagedevice PostScript operator affects ghostview utility when
 
 (defcustom ps-spool-duplex nil		; Not many people have duplex printers,
 					; so default to nil.
-  "*Non-nil generates PostScript for a two-sided printer.
+  "Non-nil generates PostScript for a two-sided printer.
 For a duplex printer, the `ps-spool-*' and `ps-print-*' commands will insert
 blank pages as needed between print jobs so that the next buffer printed will
 start on the right page.  Also, if headers are turned on, the headers will be
@@ -2687,7 +2687,7 @@ See also `ps-spool-tumble'."
   :group 'ps-print-headers)
 
 (defcustom ps-spool-tumble nil
-  "*Specify how the page images on opposite sides of a sheet are oriented.
+  "Specify how the page images on opposite sides of a sheet are oriented.
 If `ps-spool-tumble' is nil, produces output suitable for binding on the left
 or right.  If `ps-spool-tumble' is non-nil, produces output suitable for
 binding at the top or bottom.
@@ -2811,7 +2811,7 @@ It has effect only when `ps-spool-duplex' is non-nil."
      (space-width . 2.2)
      (avg-char-width . 4.10811))
     )
-  "*Font info database.
+  "Font info database.
 Each element comprises: font family (the key), name, bold, italic, bold-italic,
 reference size, line height, space width, average character width.
 To get the info for another specific font (say Helvetica), do the following:
@@ -2857,13 +2857,13 @@ uses the fonts resident in your printer."
   :group 'ps-print-font)
 
 (defcustom ps-font-family 'Courier
-  "*Font family name for ordinary text, when generating PostScript."
+  "Font family name for ordinary text, when generating PostScript."
   :type 'symbol
   :version "20"
   :group 'ps-print-font)
 
 (defcustom ps-font-size   '(7 . 8.5)
-  "*Font size, in points, for ordinary text, when generating PostScript.
+  "Font size, in points, for ordinary text, when generating PostScript.
 Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :type '(choice :menu-tag "Ordinary Text Font Size"
 		 :tag "Ordinary Text Font Size"
@@ -2875,13 +2875,13 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :group 'ps-print-font)
 
 (defcustom ps-header-font-family      'Helvetica
-  "*Font family name for text in the header, when generating PostScript."
+  "Font family name for text in the header, when generating PostScript."
   :type 'symbol
   :version "20"
   :group 'ps-print-font)
 
 (defcustom ps-header-font-size       '(10 . 12)
-  "*Font size, in points, for text in the header, when generating PostScript.
+  "Font size, in points, for text in the header, when generating PostScript.
 Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :type '(choice :menu-tag "Header Font Size"
 		 :tag "Header Font Size"
@@ -2893,7 +2893,7 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :group 'ps-print-font)
 
 (defcustom ps-header-title-font-size '(12 . 14)
-  "*Font size, in points, for the top line of text in header, in PostScript.
+  "Font size, in points, for the top line of text in header, in PostScript.
 Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :type '(choice :menu-tag "Header Title Font Size"
 		 :tag "Header Title Font Size"
@@ -2905,13 +2905,13 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :group 'ps-print-font)
 
 (defcustom ps-footer-font-family      'Helvetica
-  "*Font family name for text in the footer, when generating PostScript."
+  "Font family name for text in the footer, when generating PostScript."
   :type 'symbol
   :version "21.1"
   :group 'ps-print-font)
 
 (defcustom ps-footer-font-size       '(10 . 12)
-  "*Font size, in points, for text in the footer, when generating PostScript.
+  "Font size, in points, for text in the footer, when generating PostScript.
 Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :type '(choice :menu-tag "Footer Font Size"
 		 :tag "Footer Font Size"
@@ -2923,7 +2923,7 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :group 'ps-print-font)
 
 (defcustom ps-line-number-color      "black"
-  "*Specify color for line-number, when generating PostScript."
+  "Specify color for line-number, when generating PostScript."
   :type '(choice :menu-tag "Line Number Color"
 		 :tag "Line Number Color"
 		 (number :tag "Gray Scale" :value 0)
@@ -2937,14 +2937,14 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :group 'ps-print-miscellany)
 
 (defcustom ps-line-number-font      "Times-Italic"
-  "*Font for line-number, when generating PostScript."
+  "Font for line-number, when generating PostScript."
   :type 'string
   :version "20"
   :group 'ps-print-font
   :group 'ps-print-miscellany)
 
 (defcustom ps-line-number-font-size 6
-  "*Font size, in points, for line number, when generating PostScript.
+  "Font size, in points, for line number, when generating PostScript.
 Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :type '(choice :menu-tag "Line Number Font Size"
 		 :tag "Line Number Font Size"
@@ -2966,7 +2966,7 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   (or (fboundp 'x-color-values)		; Emacs
       (fboundp 'color-instance-rgb-components))
 					; XEmacs
-  "*Specify how buffer's text color is printed.
+  "Specify how buffer's text color is printed.
 
 Valid values are:
 
@@ -2987,7 +2987,7 @@ Any other value is treated as t."
   :group 'ps-print-color)
 
 (defcustom ps-default-fg nil
-  "*RGB values of the default foreground color.
+  "RGB values of the default foreground color.
 
 The `ps-default-fg' variable contains the default foreground color used by
 ps-print, that is, if there is a face in a text that doesn't have a foreground
@@ -3031,7 +3031,7 @@ nor black-white."
   :group 'ps-print-color)
 
 (defcustom ps-default-bg nil
-  "*RGB values of the default background color.
+  "RGB values of the default background color.
 
 The `ps-default-bg' variable contains the default background color used by
 ps-print, that is, if there is a face in a text that doesn't have a background
@@ -3077,7 +3077,7 @@ See also `ps-use-face-background'."
   :group 'ps-print-color)
 
 (defcustom ps-fg-list nil
-  "*Specify foreground color list.
+  "Specify foreground color list.
 
 This list is used to chose a text foreground color which is different than the
 background color.  It'll be used the first foreground color in `ps-fg-list'
@@ -3119,7 +3119,7 @@ when `ps-print-color-p' (which see) is neither nil nor black-white."
   :group 'ps-print-color)
 
 (defcustom ps-fg-validate-p t
-  "*Non-nil means validate if foreground color is different than background.
+  "Non-nil means validate if foreground color is different than background.
 
 If text foreground and background colors are equals, no text will appear.
 
@@ -3129,7 +3129,7 @@ See also `ps-fg-list'."
   :group 'ps-print-color)
 
 (defcustom ps-auto-font-detect t
-  "*Non-nil means automatically detect bold/italic/underline face attributes.
+  "Non-nil means automatically detect bold/italic/underline face attributes.
 If nil, we rely solely on the lists `ps-bold-faces', `ps-italic-faces', and
 `ps-underlined-faces'."
   :type 'boolean
@@ -3146,7 +3146,7 @@ If nil, we rely solely on the lists `ps-bold-faces', `ps-italic-faces', and
     (font-lock-type-face          "black"  nil      italic)
     (font-lock-variable-name-face "black"  nil bold italic)
     (font-lock-warning-face       "black"  nil bold italic))
-  "*Specify list of face attributes to print colors on black/white printers.
+  "Specify list of face attributes to print colors on black/white printers.
 
 The list elements are the same as defined on `ps-extend-face' (which see).
 
@@ -3183,7 +3183,7 @@ This variable is used only when `ps-print-color-p' is set to `black-white'."
       font-lock-variable-name-face
       font-lock-keyword-face
       font-lock-warning-face))
-  "*A list of the \(non-bold\) faces that should be printed in bold font.
+  "A list of the \(non-bold\) faces that should be printed in bold font.
 This applies to generating PostScript."
   :type '(repeat face)
   :version "20"
@@ -3196,7 +3196,7 @@ This applies to generating PostScript."
       font-lock-string-face
       font-lock-comment-face
       font-lock-warning-face))
-  "*A list of the \(non-italic\) faces that should be printed in italic font.
+  "A list of the \(non-italic\) faces that should be printed in italic font.
 This applies to generating PostScript."
   :type '(repeat face)
   :version "20"
@@ -3207,14 +3207,14 @@ This applies to generating PostScript."
     '(font-lock-function-name-face
       font-lock-constant-face
       font-lock-warning-face))
-  "*A list of the \(non-underlined\) faces that should be printed underlined.
+  "A list of the \(non-underlined\) faces that should be printed underlined.
 This applies to generating PostScript."
   :type '(repeat face)
   :version "20"
   :group 'ps-print-face)
 
 (defcustom ps-use-face-background nil
-  "*Specify if face background should be used.
+  "Specify if face background should be used.
 
 Valid values are:
 
@@ -3235,7 +3235,7 @@ Any other value will be treated as t."
 
 (defcustom ps-left-header
   (list 'ps-get-buffer-name 'ps-header-dirpart)
-  "*The items to display (each on a line) on the left part of the page header.
+  "The items to display (each on a line) on the left part of the page header.
 This applies to generating PostScript.
 
 The value should be a list of strings and symbols, each representing an entry
@@ -3260,7 +3260,7 @@ If symbols are unbounded, they are silently ignored."
 (defcustom ps-right-header
   (list "/pagenumberstring load"
 	'ps-time-stamp-locale-default 'ps-time-stamp-hh:mm:ss)
-  "*The items to display (each on a line) on the right part of the page header.
+  "The items to display (each on a line) on the right part of the page header.
 This applies to generating PostScript.
 
 See the variable `ps-left-header' for a description of the format of this
@@ -3290,7 +3290,7 @@ You can also create your own time stamp function by using `format-time-string'
 
 (defcustom ps-left-footer
   (list 'ps-get-buffer-name 'ps-header-dirpart)
-  "*The items to display (each on a line) on the left part of the page footer.
+  "The items to display (each on a line) on the left part of the page footer.
 This applies to generating PostScript.
 
 The value should be a list of strings and symbols, each representing an entry
@@ -3315,7 +3315,7 @@ If symbols are unbounded, they are silently ignored."
 (defcustom ps-right-footer
   (list "/pagenumberstring load"
 	'ps-time-stamp-locale-default 'ps-time-stamp-hh:mm:ss)
-  "*The items to display (each on a line) on the right part of the page footer.
+  "The items to display (each on a line) on the right part of the page footer.
 This applies to generating PostScript.
 
 See the variable `ps-left-footer' for a description of the format of this
@@ -3344,13 +3344,13 @@ You can also create your own time stamp function by using `format-time-string'
   :group 'ps-print-headers)
 
 (defcustom ps-razzle-dazzle t
-  "*Non-nil means report progress while formatting buffer."
+  "Non-nil means report progress while formatting buffer."
   :type 'boolean
   :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-adobe-tag "%!PS-Adobe-3.0\n"
-  "*Contains the header line identifying the output as PostScript.
+  "Contains the header line identifying the output as PostScript.
 By default, `ps-adobe-tag' contains the standard identifier.  Some printers
 require slightly different versions of this line."
   :type 'string
@@ -3358,7 +3358,7 @@ require slightly different versions of this line."
   :group 'ps-print-miscellany)
 
 (defcustom ps-build-face-reference t
-  "*Non-nil means build the reference face lists.
+  "Non-nil means build the reference face lists.
 
 ps-print sets this value to nil after it builds its internal reference lists of
 bold and italic faces.  By setting its value back to t, you can force ps-print
@@ -3373,7 +3373,7 @@ setting, though."
   :group 'ps-print-face)
 
 (defcustom ps-always-build-face-reference nil
-  "*Non-nil means always rebuild the reference face lists.
+  "Non-nil means always rebuild the reference face lists.
 
 If this variable is non-nil, ps-print will rebuild its internal reference lists
 of bold and italic faces *every* time one of the ...-with-faces commands is
@@ -3383,7 +3383,7 @@ called.  Most users shouldn't need to set this variable."
   :group 'ps-print-face)
 
 (defcustom ps-banner-page-when-duplexing nil
-  "*Non-nil means the very first page is skipped.
+  "Non-nil means the very first page is skipped.
 It's like the very first character of buffer (or region) is ^L (\\014)."
   :type 'boolean
   :version "20"
@@ -3399,14 +3399,14 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
 		 nil))
 	data-directory)			; Emacs
       (error "`ps-postscript-code-directory' isn't set properly"))
-  "*Directory where it's located the PostScript prologue file used by ps-print.
+  "Directory where it's located the PostScript prologue file used by ps-print.
 By default, this directory is the same as in the variable `data-directory'."
   :type 'directory
   :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-line-spacing 0
-  "*Specify line spacing, in points, for ordinary text.
+  "Specify line spacing, in points, for ordinary text.
 
 Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE).
 
@@ -3424,7 +3424,7 @@ To get all lines with some spacing set both `ps-line-spacing' and
   :group 'ps-print-miscellany)
 
 (defcustom ps-paragraph-spacing 0
-  "*Specify paragraph spacing, in points, for ordinary text.
+  "Specify paragraph spacing, in points, for ordinary text.
 
 Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE).
 
@@ -3442,7 +3442,7 @@ To get all lines with some spacing set both `ps-line-spacing' and
   :group 'ps-print-miscellany)
 
 (defcustom ps-paragraph-regexp "[ \t]*$"
-  "*Specify paragraph delimiter.
+  "Specify paragraph delimiter.
 
 It should be a regexp or nil.
 
@@ -3454,7 +3454,7 @@ See also `ps-paragraph-spacing'."
   :group 'ps-print-miscellany)
 
 (defcustom ps-begin-cut-regexp nil
-  "*Specify regexp which is start of a region to cut out when printing.
+  "Specify regexp which is start of a region to cut out when printing.
 
 As an example, variables `ps-begin-cut-regexp' and `ps-end-cut-regexp' may be
 set to \"^Local Variables:\" and \"^End:\", respectively, in order to leave out
@@ -3472,7 +3472,7 @@ cutting occurs."
   :group 'ps-print-miscellany)
 
 (defcustom ps-end-cut-regexp nil
-  "*Specify regexp which is end of the region to cut out when printing.
+  "Specify regexp which is end of the region to cut out when printing.
 
 See `ps-begin-cut-regexp' for more information."
   :type '(choice (const :tag "No Delimiter" nil)
@@ -6652,11 +6652,11 @@ If FACE is not a valid face name, use default face."
 ;; But autoload them here to make the separation invisible.
 
 ;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
-;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "a17af1e83e9b0292c042c259cdccdde3")
+;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "8611812e601bd374ad6c457dcedc9675")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\
-*Specifies the multi-byte buffer handling.
+Specifies the multi-byte buffer handling.
 
 Valid values are:
 

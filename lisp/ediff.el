@@ -133,7 +133,7 @@
 
 
 (defcustom ediff-use-last-dir nil
-  "*If t, Ediff will use previous directory as default when reading file name."
+  "If t, Ediff will use previous directory as default when reading file name."
   :type 'boolean
   :group 'ediff)
 

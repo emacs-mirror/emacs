@@ -39,21 +39,21 @@
 (require 'ediff-init)
 
 (defcustom ediff-quit-merge-hook 'ediff-maybe-save-and-delete-merge
-  "*Hooks to run before quitting a merge job.
+  "Hooks to run before quitting a merge job.
 The most common use is to save and delete the merge buffer."
   :type 'hook
   :group 'ediff-merge)
 
 
 (defcustom ediff-default-variant 'combined
-  "*The variant to be used as a default for buffer C in merging.
+  "The variant to be used as a default for buffer C in merging.
 Valid values are the symbols `default-A', `default-B', and `combined'."
   :type '(radio (const default-A) (const default-B) (const combined))
   :group 'ediff-merge)
 
 (defcustom ediff-combination-pattern
   '("<<<<<<< variant A" A ">>>>>>> variant B" B  "####### Ancestor" Ancestor "======= end")
-  "*Pattern to be used for combining difference regions in buffers A and B.
+  "Pattern to be used for combining difference regions in buffers A and B.
 The value must be a list of the form
 \(STRING1 bufspec1  STRING2 bufspec2 STRING3 bufspec3 STRING4)
 where bufspec is the symbol A, B, or Ancestor. For instance, if the value is
@@ -73,7 +73,7 @@ STRING4
   :group 'ediff-merge)
 
 (defcustom ediff-show-clashes-only nil
-  "*If t, show only those diff regions where both buffers disagree with the ancestor.
+  "If t, show only those diff regions where both buffers disagree with the ancestor.
 This means that regions that have status prefer-A or prefer-B will be
 skipped over.  A value of nil means show all regions."
   :type 'boolean
@@ -82,7 +82,7 @@ skipped over.  A value of nil means show all regions."
 (make-variable-buffer-local 'ediff-show-clashes-only)
 
 (defcustom ediff-skip-merge-regions-that-differ-from-default nil
-  "*If t, show only the regions that have not been changed by the user.
+  "If t, show only the regions that have not been changed by the user.
 A region is considered to have been changed if it is different from the current
 default (`default-A', `default-B', `combined') and it hasn't been marked as
 `prefer-A' or `prefer-B'.

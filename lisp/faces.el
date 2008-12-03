@@ -49,7 +49,7 @@ of `history-length', which see.")
 
 (defcustom face-font-selection-order
   '(:width :height :weight :slant)
-  "*A list specifying how face font selection chooses fonts.
+  "A list specifying how face font selection chooses fonts.
 Each of the four symbols `:width', `:height', `:weight', and `:slant'
 must appear once in the list, and the list must not contain any other
 elements.  Font selection first tries to find a best matching font
@@ -73,7 +73,7 @@ a font height that isn't optimal."
     ("courier" "CMU Typewriter Text" "fixed")
     ("Sans Serif" "helv" "helvetica" "arial" "fixed")
     ("helv" "helvetica" "arial" "fixed"))
-  "*Alist of alternative font family names.
+  "Alist of alternative font family names.
 Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of family FAMILY can't be loaded, try ALTERNATIVE1, then
 ALTERNATIVE2 etc."
@@ -97,7 +97,7 @@ ALTERNATIVE2 etc."
       ("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
       ("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
       ("muletibetan-2" "muletibetan-0")))
-  "*Alist of alternative font registry names.
+  "Alist of alternative font registry names.
 Each element has the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of registry REGISTRY can be loaded, font selection
 tries to find a best matching font among all fonts of registry
@@ -303,7 +303,7 @@ If FRAME is omitted or nil, use the selected frame."
     (:italic (".attributeItalic" . "Face.AttributeItalic"))
     (:font (".attributeFont" . "Face.AttributeFont"))
     (:inherit (".attributeInherit" . "Face.AttributeInherit")))
-  "*List of X resources and classes for face attributes.
+  "List of X resources and classes for face attributes.
 Each element has the form (ATTRIBUTE ENTRY1 ENTRY2...) where ATTRIBUTE is
 the name of a face attribute, and each ENTRY is a cons of the form
 \(RESOURCE . CLASS) with RESOURCE being the resource and CLASS being the
@@ -1812,7 +1812,7 @@ Return nil if it has no specified face."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom frame-background-mode nil
-  "*The brightness of the background.
+  "The brightness of the background.
 Set this to the symbol `dark' if your background color is dark,
 `light' if your background is light, or nil (automatic by default)
 if you want Emacs to examine the brightness for you.  Don't set this
@@ -2016,7 +2016,7 @@ frame parameters in PARAMETERS and `default-frame-alist'."
 	  ;; X resouces for the default face are applied during
 	  ;; x-create-frame.
 	  (and (not (eq face 'default))
-	       (memq (window-system frame) '(x w32 ns)) 	 
+	       (memq (window-system frame) '(x w32 ns))
 	       (make-face-x-resource-internal face frame))
 	  ;; Apply attributes specified by face-new-frame-defaults
 	  (internal-merge-in-global-face face frame))

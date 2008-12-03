@@ -61,7 +61,7 @@
 ;;;
 
 (defcustom vc-mcvs-global-switches nil
-  "*Global switches to pass to any Meta-CVS command."
+  "Global switches to pass to any Meta-CVS command."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
@@ -71,7 +71,7 @@
   :group 'vc)
 
 (defcustom vc-mcvs-register-switches nil
-  "*Extra switches for registering a file into Meta-CVS.
+  "Extra switches for registering a file into Meta-CVS.
 A string or list of strings passed to the checkin program by
 \\[vc-register]."
   :type '(choice (const :tag "None" nil)
@@ -83,7 +83,7 @@ A string or list of strings passed to the checkin program by
   :group 'vc)
 
 (defcustom vc-mcvs-diff-switches nil
-  "*A string or list of strings specifying extra switches for cvs diff under VC."
+  "A string or list of strings specifying extra switches for cvs diff under VC."
     :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
@@ -94,13 +94,13 @@ A string or list of strings passed to the checkin program by
 
 (defcustom vc-mcvs-header (or (cdr (assoc 'MCVS vc-header-alist))
 			      vc-cvs-header)
-  "*Header keywords to be inserted by `vc-insert-headers'."
+  "Header keywords to be inserted by `vc-insert-headers'."
   :version "22.1"
   :type '(repeat string)
   :group 'vc)
 
 (defcustom vc-mcvs-use-edit vc-cvs-use-edit
-  "*Non-nil means to use `cvs edit' to \"check out\" a file.
+  "Non-nil means to use `cvs edit' to \"check out\" a file.
 This is only meaningful if you don't use the implicit checkout model
 \(i.e. if you have $CVSREAD set)."
   :type 'boolean
@@ -410,7 +410,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
       (message "Merging changes into %s...done" file))))
 
 (defun vc-mcvs-modify-change-comment (files rev comment)
-  "Modify the change comments for FILES on a specified REV. 
+  "Modify the change comments for FILES on a specified REV.
 Will fail unless you have administrative privileges on the repo."
   (vc-mcvs-command nil 0 files "rcs" (concat "-m" comment ":" rev)))
 

@@ -109,7 +109,7 @@
 
 ;;;_  = allout-command-prefix
 (defcustom allout-command-prefix "\C-c "
-  "*Key sequence to be used as prefix for outline mode command key bindings.
+  "Key sequence to be used as prefix for outline mode command key bindings.
 
 Default is '\C-c<space>'; just '\C-c' is more short-and-sweet, if you're
 willing to let allout use a bunch of \C-c keybindings."
@@ -168,7 +168,7 @@ unless optional third, non-nil element is present.")
 
 ;;;_  = allout-auto-activation
 (defcustom allout-auto-activation nil
-  "*Regulates auto-activation modality of allout outlines -- see `allout-init'.
+  "Regulates auto-activation modality of allout outlines -- see `allout-init'.
 
 Setq-default by `allout-init' to regulate whether or not allout
 outline mode is automatically activated when the buffer-specific
@@ -197,7 +197,7 @@ this variable."
   :group 'allout)
 ;;;_  = allout-default-layout
 (defcustom allout-default-layout '(-2 : 0)
-  "*Default allout outline layout specification.
+  "Default allout outline layout specification.
 
 This setting specifies the outline exposure to use when
 `allout-layout' has the local value `t'.  This docstring describes the
@@ -263,7 +263,7 @@ is modulo the setting of `allout-use-mode-specific-leader', which see."
 
 ;;;_  = allout-inhibit-auto-fill
 (defcustom allout-inhibit-auto-fill nil
-  "*If non-nil, auto-fill will be inhibited in the allout buffers.
+  "If non-nil, auto-fill will be inhibited in the allout buffers.
 
 You can customize this setting to set it for all allout buffers, or set it
 in individual buffers if you want to inhibit auto-fill only in particular
@@ -279,7 +279,7 @@ else allout's special hanging-indent maintaining auto-fill function,
 (make-variable-buffer-local 'allout-inhibit-auto-fill)
 ;;;_  = allout-use-hanging-indents
 (defcustom allout-use-hanging-indents t
-  "*If non-nil, topic body text auto-indent defaults to indent of the header.
+  "If non-nil, topic body text auto-indent defaults to indent of the header.
 Ie, it is indented to be just past the header prefix.  This is
 relevant mostly for use with `indented-text-mode', or other situations
 where auto-fill occurs."
@@ -292,7 +292,7 @@ where auto-fill occurs."
 ;;;_  = allout-reindent-bodies
 (defcustom allout-reindent-bodies (if allout-use-hanging-indents
 				    'text)
-  "*Non-nil enables auto-adjust of topic body hanging indent with depth shifts.
+  "Non-nil enables auto-adjust of topic body hanging indent with depth shifts.
 
 When active, topic body lines that are indented even with or beyond
 their topic header are reindented to correspond with depth shifts of
@@ -311,7 +311,7 @@ those that do not have the variable `comment-start' set.  A value of
 
 ;;;_  = allout-show-bodies
 (defcustom allout-show-bodies nil
-  "*If non-nil, show entire body when exposing a topic, rather than
+  "If non-nil, show entire body when exposing a topic, rather than
 just the header."
   :type 'boolean
   :group 'allout)
@@ -322,7 +322,7 @@ just the header."
 
 ;;;_  = allout-beginning-of-line-cycles
 (defcustom allout-beginning-of-line-cycles t
-  "*If non-nil, \\[allout-beginning-of-line] will cycle through smart-placement options.
+  "If non-nil, \\[allout-beginning-of-line] will cycle through smart-placement options.
 
 Cycling only happens on when the command is repeated, not when it
 follows a different command.
@@ -353,7 +353,7 @@ repeated calls."
   :type 'boolean :group 'allout)
 ;;;_  = allout-end-of-line-cycles
 (defcustom allout-end-of-line-cycles t
-  "*If non-nil, \\[allout-end-of-line] will cycle through smart-placement options.
+  "If non-nil, \\[allout-end-of-line] will cycle through smart-placement options.
 
 Cycling only happens on when the command is repeated, not when it
 follows a different command.
@@ -381,7 +381,7 @@ calls."
 (defcustom allout-header-prefix "."
 ;; this string is treated as literal match.  it will be `regexp-quote'd, so
 ;; one cannot use regular expressions to match varying header prefixes.
-  "*Leading string which helps distinguish topic headers.
+  "Leading string which helps distinguish topic headers.
 
 Outline topic header lines are identified by a leading topic
 header prefix, which mostly have the value of this var at their front.
@@ -411,7 +411,7 @@ bullets."
 (put 'allout-primary-bullet 'safe-local-variable 'stringp)
 ;;;_  = allout-plain-bullets-string
 (defcustom allout-plain-bullets-string ".,"
-  "*The bullets normally used in outline topic prefixes.
+  "The bullets normally used in outline topic prefixes.
 
 See `allout-distinctive-bullets-string' for the other kind of
 bullets.
@@ -427,7 +427,7 @@ of this var to take effect."
 (put 'allout-plain-bullets-string 'safe-local-variable 'stringp)
 ;;;_  = allout-distinctive-bullets-string
 (defcustom allout-distinctive-bullets-string "*+-=>()[{}&!?#%\"X@$~_\\:;^"
-  "*Persistent outline header bullets used to distinguish special topics.
+  "Persistent outline header bullets used to distinguish special topics.
 
 These bullets are distinguish topics with particular character.
 They are not used by default in the topic creation routines, but
@@ -476,7 +476,7 @@ strings."
 
 ;;;_  = allout-use-mode-specific-leader
 (defcustom allout-use-mode-specific-leader t
-  "*When non-nil, use mode-specific topic-header prefixes.
+  "When non-nil, use mode-specific topic-header prefixes.
 
 Allout outline mode will use the mode-specific `allout-mode-leaders' or
 comment-start string, if any, to lead the topic prefix string, so topic
@@ -527,7 +527,7 @@ from regular comments that start at the beginning-of-line.")
 
 ;;;_  = allout-old-style-prefixes
 (defcustom allout-old-style-prefixes nil
-  "*When non-nil, use only old-and-crusty `outline-mode' `*' topic prefixes.
+  "When non-nil, use only old-and-crusty `outline-mode' `*' topic prefixes.
 
 Non-nil restricts the topic creation and modification
 functions to asterix-padded prefixes, so they look exactly
@@ -543,7 +543,7 @@ are always respected by the topic maneuvering functions."
      (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
 ;;;_  = allout-stylish-prefixes -- alternating bullets
 (defcustom allout-stylish-prefixes t
-  "*Do fancy stuff with topic prefix bullets according to level, etc.
+  "Do fancy stuff with topic prefix bullets according to level, etc.
 
 Non-nil enables topic creation, modification, and repositioning
 functions to vary the topic bullet char (the char that marks the topic
@@ -593,7 +593,7 @@ is non-nil."
 
 ;;;_  = allout-numbered-bullet
 (defcustom allout-numbered-bullet "#"
-  "*String designating bullet of topics that have auto-numbering; nil for none.
+  "String designating bullet of topics that have auto-numbering; nil for none.
 
 Topics having this bullet have automatic maintenance of a sibling
 sequence-number tacked on, just after the bullet.  Conventionally set
@@ -609,7 +609,7 @@ disables numbering maintenance."
        '(lambda (x) (or (stringp x) (null x)))))
 ;;;_  = allout-file-xref-bullet
 (defcustom allout-file-xref-bullet "@"
-  "*Bullet signifying file cross-references, for `allout-resolve-xref'.
+  "Bullet signifying file cross-references, for `allout-resolve-xref'.
 
 Set this var to the bullet you want to use for file cross-references."
   :type '(choice (const nil) string)
@@ -621,7 +621,7 @@ Set this var to the bullet you want to use for file cross-references."
        '(lambda (x) (or (stringp x) (null x)))))
 ;;;_  = allout-presentation-padding
 (defcustom allout-presentation-padding 2
-  "*Presentation-format white-space padding factor, for greater indent."
+  "Presentation-format white-space padding factor, for greater indent."
   :type 'integer
   :group 'allout)
 
@@ -631,7 +631,7 @@ Set this var to the bullet you want to use for file cross-references."
 
 ;;;_  = allout-abbreviate-flattened-numbering
 (defcustom allout-abbreviate-flattened-numbering nil
-  "*If non-nil, `allout-flatten-exposed-to-buffer' abbreviates topic
+  "If non-nil, `allout-flatten-exposed-to-buffer' abbreviates topic
 numbers to minimal amount with some context.  Otherwise, entire
 numbers are always used."
   :type 'boolean
@@ -640,43 +640,43 @@ numbers are always used."
 ;;;_ + LaTeX formatting
 ;;;_  - allout-number-pages
 (defcustom allout-number-pages nil
-  "*Non-nil turns on page numbering for LaTeX formatting of an outline."
+  "Non-nil turns on page numbering for LaTeX formatting of an outline."
   :type 'boolean
   :group 'allout)
 ;;;_  - allout-label-style
 (defcustom allout-label-style "\\large\\bf"
-  "*Font and size of labels for LaTeX formatting of an outline."
+  "Font and size of labels for LaTeX formatting of an outline."
   :type 'string
   :group 'allout)
 ;;;_  - allout-head-line-style
 (defcustom allout-head-line-style "\\large\\sl "
-  "*Font and size of entries for LaTeX formatting of an outline."
+  "Font and size of entries for LaTeX formatting of an outline."
   :type 'string
   :group 'allout)
 ;;;_  - allout-body-line-style
 (defcustom allout-body-line-style " "
-  "*Font and size of entries for LaTeX formatting of an outline."
+  "Font and size of entries for LaTeX formatting of an outline."
   :type 'string
   :group 'allout)
 ;;;_  - allout-title-style
 (defcustom allout-title-style "\\Large\\bf"
-  "*Font and size of titles for LaTeX formatting of an outline."
+  "Font and size of titles for LaTeX formatting of an outline."
   :type 'string
   :group 'allout)
 ;;;_  - allout-title
 (defcustom allout-title '(or buffer-file-name (buffer-name))
-  "*Expression to be evaluated to determine the title for LaTeX
+  "Expression to be evaluated to determine the title for LaTeX
 formatted copy."
   :type 'sexp
   :group 'allout)
 ;;;_  - allout-line-skip
 (defcustom allout-line-skip ".05cm"
-  "*Space between lines for LaTeX formatting of an outline."
+  "Space between lines for LaTeX formatting of an outline."
   :type 'string
   :group 'allout)
 ;;;_  - allout-indent
 (defcustom allout-indent ".3cm"
-  "*LaTeX formatted depth-indent spacing."
+  "LaTeX formatted depth-indent spacing."
   :type 'string
   :group 'allout)
 
@@ -687,13 +687,13 @@ formatted copy."
   :group 'allout)
 ;;;_  = allout-topic-encryption-bullet
 (defcustom allout-topic-encryption-bullet "~"
-  "*Bullet signifying encryption of the entry's body."
+  "Bullet signifying encryption of the entry's body."
   :type '(choice (const nil) string)
   :version "22.1"
   :group 'allout-encryption)
 ;;;_  = allout-passphrase-verifier-handling
 (defcustom allout-passphrase-verifier-handling t
-  "*Enable use of symmetric encryption passphrase verifier if non-nil.
+  "Enable use of symmetric encryption passphrase verifier if non-nil.
 
 See the docstring for the `allout-enable-file-variable-adjustment'
 variable for details about allout ajustment of file variables."
@@ -703,7 +703,7 @@ variable for details about allout ajustment of file variables."
 (make-variable-buffer-local 'allout-passphrase-verifier-handling)
 ;;;_  = allout-passphrase-hint-handling
 (defcustom allout-passphrase-hint-handling 'always
-  "*Dictate outline encryption passphrase reminder handling:
+  "Dictate outline encryption passphrase reminder handling:
 
  always -- always show reminder when prompting
  needed -- show reminder on passphrase entry failure
@@ -719,7 +719,7 @@ variable for details about allout ajustment of file variables."
 (make-variable-buffer-local 'allout-passphrase-hint-handling)
 ;;;_  = allout-encrypt-unencrypted-on-saves
 (defcustom allout-encrypt-unencrypted-on-saves t
-  "*When saving, should topics pending encryption be encrypted?
+  "When saving, should topics pending encryption be encrypted?
 
 The idea is to prevent file-system exposure of any un-encrypted stuff, and
 mostly covers both deliberate file writes and auto-saves.
@@ -758,7 +758,7 @@ disable auto-saves for that file."
   :group 'allout)
 ;;;_  = allout-run-unit-tests-on-load
 (defcustom allout-run-unit-tests-on-load nil
-  "*When non-nil, unit tests will be run at end of loading the allout module.
+  "When non-nil, unit tests will be run at end of loading the allout module.
 
 Generally, allout code developers are the only ones who'll want to set this.
 
@@ -774,7 +774,7 @@ See `allout-run-unit-tests' to see what's run."
 
 ;;;_  = allout-enable-file-variable-adjustment
 (defcustom allout-enable-file-variable-adjustment t
-  "*If non-nil, some allout outline actions edit Emacs local file var text.
+  "If non-nil, some allout outline actions edit Emacs local file var text.
 
 This can range from changes to existing entries, addition of new ones,
 and creation of a new local variables section when necessary.
@@ -929,14 +929,14 @@ useful at greater depths, more modest doublecheck limits are more
 suitably economical.")
 ;;;_   X allout-reset-header-lead (header-lead)
 (defun allout-reset-header-lead (header-lead)
-  "*Reset the leading string used to identify topic headers."
+  "Reset the leading string used to identify topic headers."
   (interactive "sNew lead string: ")
   (setq allout-header-prefix header-lead)
   (setq allout-header-subtraction (1- (length allout-header-prefix)))
   (set-allout-regexp))
 ;;;_   X allout-lead-with-comment-string (header-lead)
 (defun allout-lead-with-comment-string (&optional header-lead)
-  "*Set the topic-header leading string to specified string.
+  "Set the topic-header leading string to specified string.
 
 Useful when for encapsulating outline structure in programming
 language comments.  Returns the leading string."

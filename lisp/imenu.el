@@ -76,7 +76,7 @@
   :link '(custom-manual "(elisp)Imenu"))
 
 (defcustom imenu-use-markers t
-  "*Non-nil means use markers instead of integers for Imenu buffer positions.
+  "Non-nil means use markers instead of integers for Imenu buffer positions.
 
 Setting this to nil makes Imenu work a little faster but editing the
 buffer will make the generated index positions wrong.
@@ -87,18 +87,18 @@ This might not yet be honored by all index-building functions."
 
 
 (defcustom imenu-max-item-length 60
-  "*If a number, truncate Imenu entries to that length."
+  "If a number, truncate Imenu entries to that length."
   :type '(choice integer
 		 (const :tag "Unlimited"))
   :group 'imenu)
 
 (defcustom imenu-auto-rescan nil
-  "*Non-nil means Imenu should always rescan the buffers."
+  "Non-nil means Imenu should always rescan the buffers."
   :type 'boolean
   :group 'imenu)
 
 (defcustom imenu-auto-rescan-maxout 60000
-  "*Imenu auto-rescan is disabled in buffers larger than this size (in bytes).
+  "Imenu auto-rescan is disabled in buffers larger than this size (in bytes).
 This variable is buffer-local."
   :type 'integer
   :group 'imenu)
@@ -128,7 +128,7 @@ If `on-mouse' use a popup menu when `imenu' was invoked with the mouse."
   :version "22.1")
 
 (defcustom imenu-after-jump-hook nil
-  "*Hooks called after jumping to a place in the buffer.
+  "Hooks called after jumping to a place in the buffer.
 
 Useful things to use here include `reposition-window', `recenter', and
 \(lambda () (recenter 0)) to show at top of screen."
@@ -137,7 +137,7 @@ Useful things to use here include `reposition-window', `recenter', and
 
 ;;;###autoload
 (defcustom imenu-sort-function nil
-  "*The function to use for sorting the index mouse-menu.
+  "The function to use for sorting the index mouse-menu.
 
 Affects only the mouse index menu.
 
@@ -156,7 +156,7 @@ element should come before the second.  The arguments are cons cells;
   :group 'imenu)
 
 (defcustom imenu-max-items 25
-  "*Maximum number of elements in a mouse menu for Imenu."
+  "Maximum number of elements in a mouse menu for Imenu."
   :type 'integer
   :group 'imenu)
 
@@ -173,14 +173,14 @@ element should come before the second.  The arguments are cons cells;
 ;;   :group 'imenu)
 
 (defcustom imenu-space-replacement "."
-  "*The replacement string for spaces in index names.
+  "The replacement string for spaces in index names.
 Used when presenting the index in a completion buffer to make the
 names work as tokens."
   :type '(choice string (const nil))
   :group 'imenu)
 
 (defcustom imenu-level-separator ":"
-  "*The separator between index names of different levels.
+  "The separator between index names of different levels.
 Used for making mouse-menu titles and for flattening nested indexes
 with name concatenation."
   :type 'string
@@ -665,7 +665,7 @@ and speed-up matching.")
 (make-variable-buffer-local 'imenu-syntax-alist)
 
 (defun imenu-default-create-index-function ()
-  "*Default function to create an index alist of the current buffer.
+  "Default function to create an index alist of the current buffer.
 
 The most general method is to move point to end of buffer, then repeatedly call
 `imenu-prev-index-position-function' and `imenu-extract-index-name-function'.

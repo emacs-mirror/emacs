@@ -478,7 +478,7 @@
 (defvar term-pager-old-filter) ;; Saved process-filter while paging.
 
 (defcustom explicit-shell-file-name nil
-  "*If non-nil, is file name to use for explicitly requested inferior shell."
+  "If non-nil, is file name to use for explicitly requested inferior shell."
   :type '(choice (const nil) file)
   :group 'term)
 
@@ -508,7 +508,7 @@ For shells, a good value is (?\\| ?& ?< ?> ?\\( ?\\) ?\\;).
 This is a good thing to set in mode hooks.")
 
 (defcustom term-input-autoexpand nil
-  "*If non-nil, expand input command history references on completion.
+  "If non-nil, expand input command history references on completion.
 This mirrors the optional behavior of tcsh (its autoexpand and histlit).
 
 If the value is `input', then the expansion is seen on input.
@@ -521,7 +521,7 @@ This variable is buffer-local."
   :group 'term)
 
 (defcustom term-input-ignoredups nil
-  "*If non-nil, don't add input matching the last on the input ring.
+  "If non-nil, don't add input matching the last on the input ring.
 This mirrors the optional behavior of bash.
 
 This variable is buffer-local."
@@ -529,7 +529,7 @@ This variable is buffer-local."
   :group 'term)
 
 (defcustom term-input-ring-file-name nil
-  "*If non-nil, name of the file to read/write input history.
+  "If non-nil, name of the file to read/write input history.
 See also `term-read-input-ring' and `term-write-input-ring'.
 
 This variable is buffer-local, and is a good thing to set in mode hooks."
@@ -537,7 +537,7 @@ This variable is buffer-local, and is a good thing to set in mode hooks."
   :group 'term)
 
 (defcustom term-scroll-to-bottom-on-output nil
-  "*Controls whether interpreter output causes window to scroll.
+  "Controls whether interpreter output causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
 If `this', scroll only the selected window.
 If `others', scroll only those that are not the selected window.
@@ -550,7 +550,7 @@ This variable is buffer-local."
   :group 'term)
 
 (defcustom term-scroll-show-maximum-output nil
-  "*Controls how interpreter output causes window to scroll.
+  "Controls how interpreter output causes window to scroll.
 If non-nil, then show the maximum output when the window is scrolled.
 
 See variable `term-scroll-to-bottom-on-output'.
@@ -599,7 +599,7 @@ the user command `term-send-input'.  `term-simple-send' just sends
 the string plus a newline.")
 
 (defcustom term-eol-on-send t
-  "*Non-nil means go to the end of the line before sending input.
+  "Non-nil means go to the end of the line before sending input.
 See `term-send-input'."
   :type 'boolean
   :group 'term)
@@ -619,7 +619,7 @@ executed once when the buffer is created."
   :type 'hook
   :group 'term)
 
-(defvar term-mode-map 
+(defvar term-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\ep" 'term-previous-input)
     (define-key map "\en" 'term-next-input)

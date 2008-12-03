@@ -82,14 +82,14 @@
   :group 'iswitchb)
 
 (defcustom isearchb-idle-timeout nil
-  "*Number of idle seconds before isearchb turns itself off.
+  "Number of idle seconds before isearchb turns itself off.
 If nil, don't use a timeout."
   :type '(choice (integer :tag "Seconds")
 		 (const :tag "Disable" nil))
   :group 'isearchb)
 
 (defcustom isearchb-show-completions t
-  "*If non-nil, show possible completions in the minibuffer."
+  "If non-nil, show possible completions in the minibuffer."
   :type 'boolean
   :group 'isearchb)
 

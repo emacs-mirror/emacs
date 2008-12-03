@@ -1166,7 +1166,7 @@ See Info node `(emacs)Subdir switches' for more details."
 ;;; Copy, move/rename, making hard and symbolic links
 
 (defcustom dired-backup-overwrite nil
-  "*Non-nil if Dired should ask about making backups before overwriting files.
+  "Non-nil if Dired should ask about making backups before overwriting files.
 Special value `always' suppresses confirmation."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "suppress" always)
@@ -2304,7 +2304,7 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 ;; Search only in file names in the Dired buffer.
 
 (defcustom dired-isearch-filenames nil
-  "*Non-nil to Isearch in file names only.
+  "Non-nil to Isearch in file names only.
 If t, Isearch in Dired always matches only file names.
 If `dwim', Isearch matches file names when initial point position is on
 a file name.  Otherwise, it searches the whole buffer without restrictions."

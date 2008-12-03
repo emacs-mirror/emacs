@@ -60,7 +60,7 @@
 	 'battery-pmset)
 	((eq system-type 'windows-nt)
 	 'w32-battery-status))
-  "*Function for getting battery status information.
+  "Function for getting battery status information.
 The function has to return an alist of conversion definitions.
 Its cons cells are of the form
 
@@ -80,7 +80,7 @@ introduced by a `%' character in a control string."
 	 "%L power, battery %B (%p%% load, remaining time %t)")
 	(battery-status-function
 	 "Power %L, battery %B (%p%% load, remaining time %t)"))
-  "*Control string formatting the string to display in the echo area.
+  "Control string formatting the string to display in the echo area.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
 string are substituted as defined by the current value of the variable
@@ -108,7 +108,7 @@ string are substituted as defined by the current value of the variable
 	 "[%b%p%%,%d°C]")
 	(battery-status-function
 	 "[%b%p%%]"))
-  "*Control string formatting the string to display in the mode line.
+  "Control string formatting the string to display in the mode line.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
 string are substituted as defined by the current value of the variable
@@ -128,18 +128,18 @@ string are substituted as defined by the current value of the variable
   :group 'battery)
 
 (defcustom battery-update-interval 60
-  "*Seconds after which the battery status will be updated."
+  "Seconds after which the battery status will be updated."
   :type 'integer
   :group 'battery)
 
 (defcustom battery-load-low 25
-  "*Upper bound of low battery load percentage.
+  "Upper bound of low battery load percentage.
 A battery load percentage below this number is considered low."
   :type 'integer
   :group 'battery)
 
 (defcustom battery-load-critical 10
-  "*Upper bound of critical battery load percentage.
+  "Upper bound of critical battery load percentage.
 A battery load percentage below this number is considered critical."
   :type 'integer
   :group 'battery)

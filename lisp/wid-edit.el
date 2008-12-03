@@ -198,7 +198,7 @@ For a larger number of items, the minibuffer is used."
   :type 'integer)
 
 (defcustom widget-menu-minibuffer-flag nil
-  "*Control how to ask for a choice from the keyboard.
+  "Control how to ask for a choice from the keyboard.
 Non-nil means use the minibuffer;
 nil means read a single character."
   :group 'widgets
@@ -3045,7 +3045,7 @@ widget.  If that isn't a list, it's evalled and expected to yield a list."
 	   (message "Only match"))
 	  ((null completion)
 	   (error "No match"))
-	  ((not (eq t (compare-strings prefix nil nil completion nil nil 
+	  ((not (eq t (compare-strings prefix nil nil completion nil nil
 				       completion-ignore-case)))
 	   (when completion-ignore-case
 	     ;; Replace field with completion in case its case is different.

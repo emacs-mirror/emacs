@@ -257,7 +257,7 @@
   :link '(emacs-library-link :tag "Lisp File" "iswitchb.el"))
 
 (defcustom iswitchb-case case-fold-search
-  "*Non-nil if searching of buffer names should ignore case.
+  "Non-nil if searching of buffer names should ignore case.
 If this is non-nil but the user input has any upper case letters, matching
 is temporarily case sensitive."
   :type 'boolean
@@ -265,7 +265,7 @@ is temporarily case sensitive."
 
 (defcustom iswitchb-buffer-ignore
   '("^ ")
-  "*List of regexps or functions matching buffer names to ignore.
+  "List of regexps or functions matching buffer names to ignore.
 For example, traditional behavior is not to list buffers whose names begin
 with a space, for which the regexp is `^ '.  See the source file for
 example functions that filter buffer names."
@@ -274,7 +274,7 @@ example functions that filter buffer names."
 (put 'iswitchb-buffer-ignore 'risky-local-variable t)
 
 (defcustom iswitchb-max-to-show nil
-  "*If non-nil, limit the number of names shown in the minibuffer.
+  "If non-nil, limit the number of names shown in the minibuffer.
 If this value is N, and N is greater than the number of matching
 buffers, the first N/2 and the last N/2 matching buffers are
 shown.  This can greatly speed up iswitchb if you have a
@@ -283,7 +283,7 @@ multitude of buffers open."
   :group 'iswitchb)
 
 (defcustom iswitchb-use-virtual-buffers nil
-  "*If non-nil, refer to past buffers when none match.
+  "If non-nil, refer to past buffers when none match.
 This feature relies upon the `recentf' package, which will be
 enabled if this variable is configured to a non-nil value."
   :type 'boolean
@@ -297,7 +297,7 @@ enabled if this variable is configured to a non-nil value."
 (defvar iswitchb-virtual-buffers nil)
 
 (defcustom iswitchb-cannot-complete-hook 'iswitchb-completion-help
-  "*Hook run when `iswitchb-complete' can't complete any more.
+  "Hook run when `iswitchb-complete' can't complete any more.
 The most useful values are `iswitchb-completion-help', which pops up a
 window with completion alternatives, or `iswitchb-next-match' or
 `iswitchb-prev-match', which cycle the buffer list."
@@ -314,7 +314,7 @@ window with completion alternatives, or `iswitchb-next-match' or
 ;;(setq iswitchb-buffer-ignore '("^ " "\\.c\\'" "\\.h\\'"))
 
 (defcustom iswitchb-default-method  'always-frame
-    "*How to switch to new buffer when using `iswitchb-buffer'.
+    "How to switch to new buffer when using `iswitchb-buffer'.
 Possible values:
 `samewindow'	Show new buffer in same window
 `otherwindow'	Show new buffer in another window (same frame)
@@ -334,19 +334,19 @@ Possible values:
     :group 'iswitchb)
 
 (defcustom iswitchb-regexp nil
-  "*Non-nil means that `iswitchb' will do regexp matching.
+  "Non-nil means that `iswitchb' will do regexp matching.
 Value can be toggled within `iswitchb' using `iswitchb-toggle-regexp'."
   :type 'boolean
   :group 'iswitchb)
 
 (defcustom iswitchb-newbuffer t
-  "*Non-nil means create new buffer if no buffer matches substring.
+  "Non-nil means create new buffer if no buffer matches substring.
 See also `iswitchb-prompt-newbuffer'."
   :type 'boolean
   :group 'iswitchb)
 
 (defcustom iswitchb-prompt-newbuffer t
-  "*Non-nil means prompt user to confirm before creating new buffer.
+  "Non-nil means prompt user to confirm before creating new buffer.
 See also `iswitchb-newbuffer'."
   :type 'boolean
   :group 'iswitchb)
@@ -354,12 +354,12 @@ See also `iswitchb-newbuffer'."
 (define-obsolete-variable-alias 'iswitchb-use-fonts 'iswitchb-use-faces "22.1")
 
 (defcustom iswitchb-use-faces t
-  "*Non-nil means use font-lock faces for showing first match."
+  "Non-nil means use font-lock faces for showing first match."
   :type 'boolean
   :group 'iswitchb)
 
 (defcustom iswitchb-use-frame-buffer-list nil
-  "*Non-nil means use the currently selected frame's buffer list."
+  "Non-nil means use the currently selected frame's buffer list."
   :type 'boolean
   :group 'iswitchb)
 

@@ -57,7 +57,7 @@ A string or list of strings passed to the checkin program by
   :group 'vc)
 
 (defcustom vc-sccs-diff-switches nil
-  "*A string or list of strings specifying extra switches for `vcdiff',
+  "A string or list of strings specifying extra switches for `vcdiff',
 the diff utility used for SCCS under VC."
     :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
@@ -68,14 +68,14 @@ the diff utility used for SCCS under VC."
   :group 'vc)
 
 (defcustom vc-sccs-header (or (cdr (assoc 'SCCS vc-header-alist)) '("%W%"))
-  "*Header keywords to be inserted by `vc-insert-headers'."
+  "Header keywords to be inserted by `vc-insert-headers'."
   :type '(repeat string)
   :group 'vc)
 
 ;;;###autoload
 (defcustom vc-sccs-master-templates
   '("%sSCCS/s.%s" "%ss.%s" vc-sccs-search-project-dir)
-  "*Where to look for SCCS master files.
+  "Where to look for SCCS master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard SCCS file names"
 			("%sSCCS/s.%s" "%ss.%s" vc-sccs-search-project-dir))

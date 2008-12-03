@@ -46,7 +46,7 @@
 ;;;###autoload
 (defcustom printer-name
   (and (memq system-type '(emx ms-dos)) "PRN")
-  "*The name of a local printer to which data is sent for printing.
+  "The name of a local printer to which data is sent for printing.
 \(Note that PostScript files are sent to `ps-printer-name', which see.\)
 
 On Unix-like systems, a string value should be a name understood by
@@ -68,7 +68,7 @@ file.  If you want to discard the printed output, set this to \"NUL\"."
 
 ;;;###autoload
 (defcustom lpr-switches nil
-  "*List of strings to pass as extra options for the printer program.
+  "List of strings to pass as extra options for the printer program.
 It is recommended to set `printer-name' instead of including an explicit
 switch on this list.
 See `lpr-command'."
@@ -76,7 +76,7 @@ See `lpr-command'."
   :group 'lpr)
 
 (defcustom lpr-add-switches (memq system-type '(berkeley-unix gnu/linux))
-  "*Non-nil means construct `-T' and `-J' options for the printer program.
+  "Non-nil means construct `-T' and `-J' options for the printer program.
 These are made assuming that the program is `lpr';
 if you are using some other incompatible printer program,
 this variable should be nil."
@@ -87,7 +87,7 @@ this variable should be nil."
   (if lpr-lp-system
       "-d "
     "-P")
-  "*Printer switch, that is, something like \"-P\", \"-d \", \"/D:\", etc.
+  "Printer switch, that is, something like \"-P\", \"-d \", \"/D:\", etc.
 This switch is used in conjunction with `printer-name'."
   :type '(choice :menu-tag "Printer Name Switch"
 		 :tag "Printer Name Switch"
@@ -104,7 +104,7 @@ This switch is used in conjunction with `printer-name'."
     "lp")
    (t
     "lpr"))
-  "*Name of program for printing a file.
+  "Name of program for printing a file.
 
 On MS-DOS and MS-Windows systems, if the value is an empty string then
 Emacs will write directly to the printer port named by `printer-name'.
@@ -119,7 +119,7 @@ argument."
 ;; Default is nil, because that enables us to use pr -f
 ;; which is more reliable than pr with no args, which is what lpr -p does.
 (defcustom lpr-headers-switches nil
-  "*List of strings of options to request page headings in the printer program.
+  "List of strings of options to request page headings in the printer program.
 If nil, we run `lpr-page-header-program' to make page headings
 and print the result."
   :type '(repeat (string :tag "Argument"))
@@ -132,14 +132,14 @@ See definition of `print-region-1' for calling conventions."
   :group 'lpr)
 
 (defcustom lpr-page-header-program "pr"
-  "*Name of program for adding page headers to a file."
+  "Name of program for adding page headers to a file."
   :type 'string
   :group 'lpr)
 
 ;; Berkeley systems support -F, and GNU pr supports both -f and -F,
 ;; So it looks like -F is a better default.
 (defcustom lpr-page-header-switches '("-h" "%s" "-F")
-  "*List of strings to use as options for the page-header-generating program.
+  "List of strings to use as options for the page-header-generating program.
 If `%s' appears in any of the strings, it is substituted by the page title.
 Note that for correct quoting, `%s' should normally be a separate element.
 The variable `lpr-page-header-program' specifies the program to use."

@@ -244,14 +244,14 @@ replaced this way.  Replaceable functions must provide that
 functionality individually.")
 
 (defcustom speedbar-mode-specific-contents-flag t
-  "*Non-nil means speedbar will show special mode contents.
+  "Non-nil means speedbar will show special mode contents.
 This permits some modes to create customized contents for the speedbar
 frame."
   :group 'speedbar
   :type 'boolean)
 
 (defcustom speedbar-query-confirmation-method 'all
-  "*Query control for file operations.
+  "Query control for file operations.
 The 'always flag means to always query before file operations.
 The 'none-but-delete flag means to not query before any file
 operations, except before a file deletion."
@@ -277,24 +277,24 @@ This keymap is local to each buffer that wants to define special keybindings
 effective when its display is shown.")
 
 (defcustom speedbar-before-visiting-file-hook '(push-mark)
-  "*Hooks run before speedbar visits a file in the selected frame.
+  "Hooks run before speedbar visits a file in the selected frame.
 The default buffer is the buffer in the selected window in the attached frame."
   :group 'speedbar
   :type 'hook)
 
 (defcustom speedbar-visiting-file-hook nil
-  "*Hooks run when speedbar visits a file in the selected frame."
+  "Hooks run when speedbar visits a file in the selected frame."
   :group 'speedbar
   :type 'hook)
 
 (defcustom speedbar-before-visiting-tag-hook '(push-mark)
-  "*Hooks run before speedbar visits a tag in the selected frame.
+  "Hooks run before speedbar visits a tag in the selected frame.
 The default buffer is the buffer in the selected window in the attached frame."
   :group 'speedbar
   :type 'hook)
 
 (defcustom speedbar-visiting-tag-hook '(speedbar-highlight-one-tag-line)
-  "*Hooks run when speedbar visits a tag in the selected frame."
+  "Hooks run when speedbar visits a tag in the selected frame."
   :group 'speedbar
   :type 'hook
   :options '(speedbar-highlight-one-tag-line
@@ -303,17 +303,17 @@ The default buffer is the buffer in the selected window in the attached frame."
 	     ))
 
 (defcustom speedbar-load-hook nil
-  "*Hooks run when speedbar is loaded."
+  "Hooks run when speedbar is loaded."
   :group 'speedbar
   :type 'hook)
 
 (defcustom speedbar-reconfigure-keymaps-hook nil
-  "*Hooks run when the keymaps are regenerated."
+  "Hooks run when the keymaps are regenerated."
   :group 'speedbar
   :type 'hook)
 
 (defcustom speedbar-show-unknown-files nil
-  "*Non-nil show files we can't expand with a ? in the expand button.
+  "Non-nil show files we can't expand with a ? in the expand button.
 A nil value means don't show the file in the list."
   :group 'speedbar
   :type 'boolean)
@@ -342,7 +342,7 @@ A nil value means don't show the file in the list."
 				       (unsplittable . t)
 				       (left-fringe . 0)
 				       )
-  "*Parameters to use when creating the speedbar frame in Emacs.
+  "Parameters to use when creating the speedbar frame in Emacs.
 Any parameter supported by a frame may be added.  The parameter `height'
 will be initialized to the height of the frame speedbar is
 attached to and added to this list before the new frame is initialized."
@@ -359,7 +359,7 @@ attached to and added to this list before the new frame is initialized."
 	       menubar-visible-p nil
 	       default-gutter-visible-p nil
 	       )
-  "*Parameters to use when creating the speedbar frame in XEmacs.
+  "Parameters to use when creating the speedbar frame in XEmacs.
 Parameters not listed here which will be added automatically are
 `height' which will be initialized to the height of the frame speedbar
 is attached to."
@@ -369,7 +369,7 @@ is attached to."
 			(sexp :tag "Value"))))
 
 (defcustom speedbar-use-imenu-flag (fboundp 'imenu)
-  "*Non-nil means use imenu for file parsing, nil to use etags.
+  "Non-nil means use imenu for file parsing, nil to use etags.
 XEmacs prior to 20.4 doesn't support imenu, therefore the default is to
 use etags instead.  Etags support is not as robust as imenu support."
   :tag "Use Imenu for tags"
@@ -396,12 +396,12 @@ display is used instead."
   :type 'boolean)
 
 (defcustom speedbar-track-mouse-flag (not speedbar-use-tool-tips-flag)
-  "*Non-nil means to display info about the line under the mouse."
+  "Non-nil means to display info about the line under the mouse."
   :group 'speedbar
   :type 'boolean)
 
 (defcustom speedbar-default-position 'left-right
-  "*Default position of the speedbar frame.
+  "Default position of the speedbar frame.
 Possible values are 'left, 'right or 'left-right.
 If value is 'left-right, the most suitable location is
 determined automatically."
@@ -411,7 +411,7 @@ determined automatically."
 		(const :tag "Right" right)))
 
 (defcustom speedbar-sort-tags nil
-  "*If non-nil, sort tags in the speedbar display.  *Obsolete*.
+  "If non-nil, sort tags in the speedbar display.  *Obsolete*.
 Use `semantic-tag-hierarchy-method' instead."
   :group 'speedbar
   :type 'boolean)
@@ -419,7 +419,7 @@ Use `semantic-tag-hierarchy-method' instead."
 (defcustom speedbar-tag-hierarchy-method
   '(speedbar-prefix-group-tag-hierarchy
     speedbar-trim-words-tag-hierarchy)
-  "*List of hooks which speedbar will use to organize tags into groups.
+  "List of hooks which speedbar will use to organize tags into groups.
 Groups are defined as expandable meta-tags.  Imenu supports
 such things in some languages, such as separating variables from
 functions.  Each hook takes one argument LST, and may destructively
@@ -439,7 +439,7 @@ or
   )
 
 (defcustom speedbar-tag-group-name-minimum-length 4
-  "*The minimum length of a prefix group name before expanding.
+  "The minimum length of a prefix group name before expanding.
 Thus, if the `speedbar-tag-hierarchy-method' includes `prefix-group'
 and one such groups common characters is less than this number of
 characters, then the group name will be changed to the form of:
@@ -451,14 +451,14 @@ This way we won't get silly looking listings."
   :type 'integer)
 
 (defcustom speedbar-tag-split-minimum-length 20
-  "*Minimum length before we stop trying to create sub-lists in tags.
+  "Minimum length before we stop trying to create sub-lists in tags.
 This is used by all tag-hierarchy methods that break large lists into
 sub-lists."
   :group 'speedbar
   :type 'integer)
 
 (defcustom speedbar-tag-regroup-maximum-length 10
-  "*Maximum length of submenus that are regrouped.
+  "Maximum length of submenus that are regrouped.
 If the regrouping option is used, then if two or more short subgroups
 are next to each other, then they are combined until this number of
 items is reached."
@@ -466,7 +466,7 @@ items is reached."
   :type 'integer)
 
 (defcustom speedbar-directory-button-trim-method 'span
-  "*Indicates how the directory button will be displayed.
+  "Indicates how the directory button will be displayed.
 Possible values are:
  'span - span large directories over multiple lines.
  'trim - trim large directories to only show the last few.
@@ -479,7 +479,7 @@ Possible values are:
 		(const :tag "No trimming." nil)))
 
 (defcustom speedbar-smart-directory-expand-flag t
-  "*Non-nil means speedbar should use smart expansion.
+  "Non-nil means speedbar should use smart expansion.
 Smart expansion only affects when speedbar wants to display a
 directory for a file in the attached frame.  When smart expansion is
 enabled, new directories which are children of a displayed directory
@@ -489,42 +489,42 @@ hierarchy would be replaced with the new directory."
   :type 'boolean)
 
 (defcustom speedbar-indentation-width 1
-  "*When sub-nodes are expanded, the number of spaces used for indentation."
+  "When sub-nodes are expanded, the number of spaces used for indentation."
   :group 'speedbar
   :type 'integer)
 
 (defcustom speedbar-hide-button-brackets-flag nil
-  "*Non-nil means speedbar will hide the brackets around the + or -."
+  "Non-nil means speedbar will hide the brackets around the + or -."
   :group 'speedbar
   :type 'boolean)
 
 (defcustom speedbar-before-popup-hook nil
-  "*Hooks called before popping up the speedbar frame."
+  "Hooks called before popping up the speedbar frame."
   :group 'speedbar
   :type 'hook)
 
 (defcustom speedbar-after-create-hook '(speedbar-frame-reposition-smartly)
-  "*Hooks called after popping up the speedbar frame."
+  "Hooks called after popping up the speedbar frame."
   :group 'speedbar
   :type 'hook)
 
 (defcustom speedbar-before-delete-hook nil
-  "*Hooks called before deleting the speedbar frame."
+  "Hooks called before deleting the speedbar frame."
   :group 'speedbar
   :type 'hook)
 
 (defcustom speedbar-mode-hook nil
-  "*Hooks called after creating a speedbar buffer."
+  "Hooks called after creating a speedbar buffer."
   :group 'speedbar
   :type 'hook)
 
 (defcustom speedbar-timer-hook nil
-  "*Hooks called after running the speedbar timer function."
+  "Hooks called after running the speedbar timer function."
   :group 'speedbar
   :type 'hook)
 
 (defcustom speedbar-verbosity-level 1
-  "*Verbosity level of the speedbar.
+  "Verbosity level of the speedbar.
 0 means say nothing.
 1 means medium level verbosity.
 2 and higher are higher levels of verbosity."
@@ -535,7 +535,7 @@ hierarchy would be replaced with the new directory."
   "String separating file text from indicator characters.")
 
 (defcustom speedbar-vc-do-check t
-  "*Non-nil check all files in speedbar to see if they have been checked out.
+  "Non-nil check all files in speedbar to see if they have been checked out.
 Any file checked out is marked with `speedbar-vc-indicator'."
   :group 'speedbar-vc
   :type 'boolean)
@@ -546,14 +546,14 @@ Other version control systems can be added by examining the function
 `speedbar-vc-directory-enable-hook' and `speedbar-vc-in-control-hook'.")
 
 (defcustom speedbar-vc-directory-enable-hook nil
-  "*Return non-nil if the current directory should be checked for Version Control.
+  "Return non-nil if the current directory should be checked for Version Control.
 Functions in this hook must accept one parameter which is the directory
 being checked."
   :group 'speedbar-vc
   :type 'hook)
 
 (defcustom speedbar-vc-in-control-hook nil
-  "*Return non-nil if the specified file is under Version Control.
+  "Return non-nil if the specified file is under Version Control.
 Functions in this hook must accept two parameters.  The DIRECTORY of the
 current file, and the FILENAME of the file being checked."
   :group 'speedbar-vc
@@ -563,7 +563,7 @@ current file, and the FILENAME of the file being checked."
   "Local variable maintaining the current version control check position.")
 
 (defcustom speedbar-obj-do-check t
-  "*Non-nil check all files in speedbar to see if they have an object file.
+  "Non-nil check all files in speedbar to see if they have an object file.
 Any file checked out is marked with `speedbar-obj-indicator', and the
 marking is based on `speedbar-obj-alist'"
   :group 'speedbar-vc
@@ -609,7 +609,7 @@ The expression `speedbar-obj-alist' defines who gets tagged.")
 Permits stripping of indicator characters from a line.")
 
 (defcustom speedbar-scanner-reset-hook nil
-  "*Hook called whenever generic scanners are reset.
+  "Hook called whenever generic scanners are reset.
 Set this to implement your own scanning / rescan safe functions with
 state data."
   :group 'speedbar
@@ -649,7 +649,7 @@ variable `speedbar-ignored-directory-expressions' to modify this variable.")
 
 (defcustom speedbar-ignored-directory-expressions
   '("[/\\]logs?[/\\]\\'")
-  "*List of regular expressions matching directories speedbar will ignore.
+  "List of regular expressions matching directories speedbar will ignore.
 They should included directories which are notoriously very large
 and take a long time to load in.  Use the function
 `speedbar-add-ignored-directory-regexp' to add new items to this list after
@@ -663,7 +663,7 @@ before speedbar has been loaded."
 	       (speedbar-extension-list-to-regex val))))
 
 (defcustom speedbar-directory-unshown-regexp "^\\(\\..*\\)\\'"
-  "*Regular expression matching directories not to show in speedbar.
+  "Regular expression matching directories not to show in speedbar.
 They should include commonly existing directories which are not
 useful.  It is no longer necessary to include version-control
 directories here; see `vc-directory-exclusion-list'."
@@ -697,7 +697,7 @@ function `speedbar-extension-list-to-regex'.")
 		;; is available.  Also, html files are nice to be able to see.
 		".s?html"
 		".ma?k" "[Mm]akefile\\(\\.in\\)?")))
-  "*List of regular expressions which will match files supported by tagging.
+  "List of regular expressions which will match files supported by tagging.
 Do not prefix the `.' char with a double \\ to quote it, as the period
 will be stripped by a simplified optimizer when compiled into a
 singular expression.  This variable will be turned into
@@ -3501,7 +3501,7 @@ TOKEN will be the list, and INDENT is the current indentation level."
 ;;; Loading files into the attached frame.
 ;;
 (defcustom speedbar-select-frame-method 'attached
-  "*Specify how to select a frame for displaying a file.
+  "Specify how to select a frame for displaying a file.
 A value of 'attached means to use the attached frame (the frame
 that speedbar was started from.)  A number such as 1 or -1 means to
 pass that number to `other-frame' while selecting a frame from speedbar."

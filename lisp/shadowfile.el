@@ -88,14 +88,14 @@
   :group 'files)
 
 (defcustom shadow-noquery nil
-  "*If t, always copy shadow files without asking.
+  "If t, always copy shadow files without asking.
 If nil \(the default), always ask.  If not nil and not t, ask only if there
 is no buffer currently visiting the file."
   :type '(choice (const t) (const nil) (other :tag "Ask if no buffer" maybe))
   :group 'shadow)
 
 (defcustom shadow-inhibit-message nil
-  "*If non-nil, do not display a message when a file needs copying."
+  "If non-nil, do not display a message when a file needs copying."
   :type 'boolean
   :group 'shadow)
 

@@ -38,7 +38,7 @@
 ;;;###autoload
 (defcustom image-file-name-extensions
   '("png" "jpeg" "jpg" "gif" "tiff" "tif" "xbm" "xpm" "pbm" "pgm" "ppm" "pnm" "svg")
-  "*A list of image-file filename extensions.
+  "A list of image-file filename extensions.
 Filenames having one of these extensions are considered image files,
 in addition to those matching `image-file-name-regexps'.
 
@@ -57,7 +57,7 @@ the variable is set using \\[customize]."
 
 ;;;###autoload
 (defcustom image-file-name-regexps nil
-  "*List of regexps matching image-file filenames.
+  "List of regexps matching image-file filenames.
 Filenames matching one of these regexps are considered image files,
 in addition to those with an extension in `image-file-name-extensions'.
 

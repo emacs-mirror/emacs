@@ -37,7 +37,7 @@
 
 ;;; Code:
 (defcustom speedbar-use-images ezimage-use-images
-  "*Non-nil if speedbar should display icons."
+  "Non-nil if speedbar should display icons."
   :group 'speedbar
   :version "21.1"
   :type 'boolean)

@@ -60,7 +60,7 @@
 ;;;
 
 (defcustom vc-cvs-global-switches nil
-  "*Global switches to pass to any CVS command."
+  "Global switches to pass to any CVS command."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
@@ -70,7 +70,7 @@
   :group 'vc)
 
 (defcustom vc-cvs-register-switches nil
-  "*Extra switches for registering a file into CVS.
+  "Extra switches for registering a file into CVS.
 A string or list of strings passed to the checkin program by
 \\[vc-register]."
   :type '(choice (const :tag "None" nil)
@@ -82,7 +82,7 @@ A string or list of strings passed to the checkin program by
   :group 'vc)
 
 (defcustom vc-cvs-diff-switches nil
-  "*A string or list of strings specifying extra switches for cvs diff under VC."
+  "A string or list of strings specifying extra switches for cvs diff under VC."
     :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
@@ -92,13 +92,13 @@ A string or list of strings passed to the checkin program by
   :group 'vc)
 
 (defcustom vc-cvs-header (or (cdr (assoc 'CVS vc-header-alist)) '("\$Id\$"))
-  "*Header keywords to be inserted by `vc-insert-headers'."
+  "Header keywords to be inserted by `vc-insert-headers'."
   :version "21.1"
   :type '(repeat string)
   :group 'vc)
 
 (defcustom vc-cvs-use-edit t
-  "*Non-nil means to use `cvs edit' to \"check out\" a file.
+  "Non-nil means to use `cvs edit' to \"check out\" a file.
 This is only meaningful if you don't use the implicit checkout model
 \(i.e. if you have $CVSREAD set)."
   :type 'boolean
@@ -106,7 +106,7 @@ This is only meaningful if you don't use the implicit checkout model
   :group 'vc)
 
 (defcustom vc-cvs-stay-local 'only-file
-  "*Non-nil means use local operations when possible for remote repositories.
+  "Non-nil means use local operations when possible for remote repositories.
 This avoids slow queries over the network and instead uses heuristics
 and past information to determine the current status of a file.
 
@@ -131,7 +131,7 @@ by these regular expressions."
   :group 'vc)
 
 (defcustom vc-cvs-sticky-date-format-string "%c"
-  "*Format string for mode-line display of sticky date.
+  "Format string for mode-line display of sticky date.
 Format is according to `format-time-string'.  Only used if
 `vc-cvs-sticky-tag-display' is t."
   :type '(string)
@@ -139,7 +139,7 @@ Format is according to `format-time-string'.  Only used if
   :group 'vc)
 
 (defcustom vc-cvs-sticky-tag-display t
-  "*Specify the mode-line display of sticky tags.
+  "Specify the mode-line display of sticky tags.
 Value t means default display, nil means no display at all.  If the
 value is a function or macro, it is called with the sticky tag and
 its' type as parameters, in that order.  TYPE can have three different
