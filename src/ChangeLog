@@ -1,5 +1,7 @@
 2008-12-03  Chong Yidong  <cyd@stupidchicken.com>
 
+	* font.c (Fopen_font): Compute pixel size correctly.
+
 	* ftfont.c (ftfont_match): Initialize entity variable.
 	(ftfont_resolve_generic_family): Avoid using uninitialized var.
 	(ftfont_list_family): Initialize list var earlier.
