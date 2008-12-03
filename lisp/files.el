@@ -242,7 +242,7 @@ Yet, at the same time, saving a precious file
 breaks any hard links between it and other files.
 
 This feature is advisory: for example, if the directory in which the
-file is being saved is not writeable, Emacs may ignore a non-nil value
+file is being saved is not writable, Emacs may ignore a non-nil value
 of `file-precious-flag' and write directly into the file.
 
 See also: `break-hardlink-on-save'."
@@ -259,7 +259,7 @@ If `buffer-file-name' refers to a symlink, do not break the symlink.
 
 Unlike `file-precious-flag', `break-hardlink-on-save' is not advisory.
 For example, if the directory in which a file is being saved is not
-itself writeable, then error instead of saving in some
+itself writable, then error instead of saving in some
 hardlink-nonbreaking way.
 
 See also `backup-by-copying' and `backup-by-copying-when-linked'."
