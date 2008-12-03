@@ -920,7 +920,7 @@ static Lisp_Object
 ftfont_match (frame, spec)
      Lisp_Object frame, spec;
 {
-  Lisp_Object entity;
+  Lisp_Object entity = Qnil;
   FcPattern *pattern, *match = NULL;
   FcResult result;
   char otlayout[15];		/* For "otlayout:XXXX" */
