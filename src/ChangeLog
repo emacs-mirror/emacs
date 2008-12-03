@@ -1,6 +1,8 @@
 2008-12-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (Fopen_font): Compute pixel size correctly.
+	(font_update_lface): Handle fonts with corrupted size specs,
+	i.e. non-int and non-float.
 
 	* ftfont.c (ftfont_match): Initialize entity variable.
 	(ftfont_resolve_generic_family): Avoid using uninitialized var.
