@@ -1,6 +1,6 @@
 2008-12-03  Juanma Barranquero  <lekktu@gmail.com>
 
-	* w32.c (init_environment): Don't free handle to library shell32.dll.
+	* w32.c (init_environment): Don't unload library shell32.dll.
 
 2008-12-03  Kenichi Handa  <handa@m17n.org>
 
