@@ -165,13 +165,11 @@ src/lastfile.c
 src/lread.c
 src/m/
 src/macros.c
-src/makefile.nt
 src/makefile.w32-in
 src/marker.c
 src/md5.c
 src/minibuf.c
 src/mktime.c
-src/mocklisp.c
 src/pre-crt0.c
 src/prefix-args.c
 src/print.c
@@ -194,13 +192,9 @@ src/unexalpha.c
 src/unexec.c
 src/unexelf.c
 src/unexhp9k800.c
-src/unexmips.c
-src/unexnext.c
-src/unexsunos4.c
 src/unexw32.c
 src/vm-limit.c
 src/w32.c
-src/w32bdf.c
 src/w32console.c
 src/w32fns.c
 src/w32heap.c
