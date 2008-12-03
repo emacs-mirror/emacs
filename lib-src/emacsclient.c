@@ -47,6 +47,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #  include <netinet/in.h>
 # endif
 
+# include <darpa/inet.h>
+
 # define INVALID_SOCKET -1
 # define HSOCKET int
 # define CLOSE_SOCKET close
