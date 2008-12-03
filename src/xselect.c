@@ -2369,7 +2369,7 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
 {
   Window window;
   Atom buffer_atom;
-  unsigned char *data;
+  unsigned char *data = NULL;
   int bytes;
   Atom type;
   int format;
@@ -2393,12 +2393,10 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
   x_get_window_property (display, window, buffer_atom, &data, &bytes,
 			 &type, &format, &size, 0);
 
-  if (!data)
-    return Qnil;
-
-  if (!format)
+  if (!data || !format)
     {
-      xfree (data);
+      if (data)
+	xfree (data);
       return Qnil;
     }
 
