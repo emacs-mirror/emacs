@@ -1,3 +1,9 @@
+2008-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* keyboard.c (read_char_help_form_unwind): Specify the type for ARG.
+
+	* character.c (c_string_width): Specify the type for LEN.
+
 2008-12-03  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_utf_16): Initialize consumed_chars_base

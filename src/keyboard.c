@@ -2429,7 +2429,7 @@ static void record_char ();
 
 static Lisp_Object help_form_saved_window_configs;
 static Lisp_Object
-read_char_help_form_unwind (arg)
+read_char_help_form_unwind (Lisp_Object arg)
 {
   Lisp_Object window_config = XCAR (help_form_saved_window_configs);
   help_form_saved_window_configs = XCDR (help_form_saved_window_configs);

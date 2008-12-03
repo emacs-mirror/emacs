@@ -411,9 +411,7 @@ usage: (char-width CHAR)  */)
    respectively.  */
 
 int
-c_string_width (str, len, precision, nchars, nbytes)
-     const unsigned char *str;
-     int precision, *nchars, *nbytes;
+c_string_width (const unsigned char *str, int len, int precision, int *nchars, int *nbytes)
 {
   int i = 0, i_byte = 0;
   int width = 0;
