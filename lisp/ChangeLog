@@ -1,3 +1,25 @@
+2008-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* vc.el (vc-diff-switches): Doc fix.
+	* vc-bzr.el (vc-bzr-diff-switches): Doc fix.  Add t as option.
+	(vc-bzr-log-switches): Doc fix.
+	* vc-cvs.el (vc-cvs-diff-switches): Doc fix.  Add t as option.
+	* vc-git.el (vc-git-diff-switches): Doc fix.
+	* vc-hg.el (vc-hg-diff-switches): Doc fix.
+	* vc-mcvs.el (vc-mcvs-diff-switches): Doc fix.
+	* vc-mtn.el (vc-mtn-diff-switches): Doc fix.
+	* vc-rcs.el (vc-rcs-diff-switches): Doc fix.  Add t as option.
+	* vc-sccs.el (vc-sccs-diff-switches): Doc fix.  Add t as option.
+
+	* vc-arch.el (vc-arch-diff-switches): New option, for consistency with
+	other backends.
+	(vc-arch-diff): Apply switches.
+
+	* vc-cvs.el (vc-cvs-diff): Use vc-diff-switches or diff-switches rather
+	than appending.
+
+	* vc-sccs.el (vc-sccs-register-switches): Remove leading * from doc.
+
 2008-12-03  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.el (epa--show-key): Use past tense of "expire" if the key

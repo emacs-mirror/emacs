@@ -697,16 +697,17 @@ These are passed to the checkin program by \\[vc-register]."
 
 (defcustom vc-diff-switches nil
   "A string or list of strings specifying switches for diff under VC.
-When running diff under a given BACKEND, VC concatenates the values of
-`diff-switches', `vc-diff-switches', and `vc-BACKEND-diff-switches' to
-get the switches for that command.  Thus, `vc-diff-switches' should
-contain switches that are specific to version control, but not
-specific to any particular backend."
-  :type '(choice (const :tag "None" nil)
+When running diff under a given BACKEND, VC uses the first
+non-nil value of `vc-BACKEND-diff-switches', `vc-diff-switches',
+and `diff-switches', in that order.  Since nil means to check the
+next variable in the sequence, either of the first two may use
+the value t to mean no switches at all.  `vc-diff-switches'
+should contain switches that are specific to version control, but
+not specific to any particular backend."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :group 'vc
   :version "21.1")
 
