@@ -1,6 +1,7 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -63,6 +64,19 @@
 ;;;
 ;;; Customization options
 ;;;
+
+;; It seems Arch diff does not accept many options, so this is not
+;; very useful.  It exists mainly so that the VC backends are all
+;; consistent with regards to their treatment of diff switches.
+(defcustom vc-arch-diff-switches t
+  "String or list of strings specifying switches for Arch diff under VC.
+If nil, use the value of `vc-diff-switches'.  If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List" :value ("") string))
+  :version "23.1"
+  :group 'vc)
 
 (define-obsolete-variable-alias 'vc-arch-command 'vc-arch-program "23.1")
 
@@ -450,8 +464,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
                (or buffer "*vc-diff*")
                (if async 'async 1)
                nil "file-diffs"
-               ;; Arch does not support the typical flags.
-               ;; (vc-switches 'Arch 'diff)
+               (vc-switches 'Arch 'diff)
                (file-relative-name file)
                (if (equal oldvers (vc-working-revision file))
                    nil
