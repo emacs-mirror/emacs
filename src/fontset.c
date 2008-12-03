@@ -894,9 +894,7 @@ face_for_char (f, face, c, pos, object)
   else
     {
       charset = Fget_char_property (make_number (pos), Qcharset, object);
-      if (NILP (charset))
-	id = -1;
-      else if (CHARSETP (charset))
+      if (CHARSETP (charset))
 	{
 	  Lisp_Object val;
 
@@ -905,6 +903,8 @@ face_for_char (f, face, c, pos, object)
 	    charset = XCDR (val);
 	  id = XINT (CHARSET_SYMBOL_ID (charset));
 	}
+      else
+	id = -1;
     }
 
   font_deferred_log ("font for", Fcons (make_number (c), charset), Qnil);
@@ -966,9 +966,7 @@ font_for_char (face, c, pos, object)
   else
     {
       charset = Fget_char_property (make_number (pos), Qcharset, object);
-      if (NILP (charset))
-	id = -1;
-      else if (CHARSETP (charset))
+      if (CHARSETP (charset))
 	{
 	  Lisp_Object val;
 
@@ -977,6 +975,8 @@ font_for_char (face, c, pos, object)
 	    charset = XCDR (val);
 	  id = XINT (CHARSET_SYMBOL_ID (charset));
 	}
+      else
+	id = -1;
     }
 
   font_deferred_log ("font for", Fcons (make_number (c), charset), Qnil);
