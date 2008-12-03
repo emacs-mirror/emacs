@@ -5661,7 +5661,7 @@ See `message-idna-encode'."
   (when message-use-idna
     (save-excursion
       (save-restriction
-	(message-narrow-to-head)
+	(message-narrow-to-headers-or-head)
 	(message-idna-to-ascii-rhs-1 "From")
 	(message-idna-to-ascii-rhs-1 "To")
 	(message-idna-to-ascii-rhs-1 "Reply-To")
