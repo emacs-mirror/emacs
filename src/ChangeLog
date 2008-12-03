@@ -3,6 +3,9 @@
 	* coding.c (decode_coding_utf_16): Initialize consumed_chars_base
 	to 0.
 	(decode_coding_utf_8): Likewise.
+	(detect_coding_system): Initialize utf_16_le_eol to -1, val to
+	Qnil.
+	(produce_chars): Initialize consumed_chars to 0.
 
 2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
 
