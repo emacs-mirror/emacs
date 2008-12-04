@@ -1,4 +1,4 @@
-;;; pmailout.el --- "PMAIL" mail reader for Emacs: output message to a file.
+;;; pmailout.el --- "PMAIL" mail reader for Emacs: output message to a file
 
 ;; Copyright (C) 1985, 1987, 1993, 1994, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
@@ -25,11 +25,8 @@
 
 ;;; Code:
 
+(require 'pmail)
 (provide 'pmailout)
-
-(eval-when-compile
-  (require 'pmail)
-  (require 'pmaildesc))
 
 ;;;###autoload
 (defcustom pmail-output-file-alist nil
@@ -45,40 +42,70 @@ a file name as a string."
 			       sexp)))
   :group 'pmail-output)
 
-;;;###autoload
-(defcustom pmail-fields-not-to-output nil
-  "*Regexp describing fields to exclude when outputting a message to a file."
-  :type '(choice (const :tag "None" nil)
-		 regexp)
-  :group 'pmail-output)
+(defun pmail-output-read-pmail-file-name ()
+  "Read the file name to use for `pmail-output-to-pmail-file'.
+Set `pmail-default-pmail-file' to this name as well as returning it."
+  (let ((default-file
+	  (let (answer tail)
+	    (setq tail pmail-output-file-alist)
+	    ;; Suggest a file based on a pattern match.
+	    (while (and tail (not answer))
+	      (save-excursion
+		(set-buffer pmail-buffer)
+		(goto-char (point-min))
+		(if (re-search-forward (car (car tail)) nil t)
+		    (setq answer (eval (cdr (car tail)))))
+		(setq tail (cdr tail))))
+	    ;; If no suggestions, use same file as last time.
+	    (expand-file-name (or answer pmail-default-pmail-file)))))
+    (let ((read-file
+	   (expand-file-name
+	    (read-file-name
+	     (concat "Output message to Pmail file (default "
+		     (file-name-nondirectory default-file)
+		     "): ")
+	     (file-name-directory default-file)
+	     (abbreviate-file-name default-file))
+	    (file-name-directory default-file))))
+      ;; If the user enters just a directory,
+      ;; use the name within that directory chosen by the default.
+      (setq pmail-default-pmail-file
+	    (if (file-directory-p read-file)
+		(expand-file-name (file-name-nondirectory default-file)
+				  read-file)
+	      read-file)))))
 
 (defun pmail-output-read-file-name ()
   "Read the file name to use for `pmail-output'.
 Set `pmail-default-file' to this name as well as returning it."
-  (let* ((default-file
-	   (with-current-buffer pmail-buffer
-	     (expand-file-name
-	      (or (catch 'answer
-		    (dolist (i pmail-output-file-alist)
-		      (goto-char (point-min))
-		      (when (re-search-forward (car i) nil t)
-			(throw 'answer (eval (cdr i))))))
-		  pmail-default-file))))
-	 (read-file
-	  (expand-file-name
-	   (read-file-name
-	    (concat "Output message to Pmail (mbox) file: (default "
-		    (file-name-nondirectory default-file) "): ")
-	    (file-name-directory default-file)
-	    (abbreviate-file-name default-file))
-	   (file-name-directory default-file))))
-    (setq pmail-default-file
-	  (if (file-directory-p read-file)
+  (let ((default-file
+	  (let (answer tail)
+	    (setq tail pmail-output-file-alist)
+	    ;; Suggest a file based on a pattern match.
+	    (while (and tail (not answer))
+	      (save-excursion
+		(goto-char (point-min))
+		(if (re-search-forward (car (car tail)) nil t)
+		    (setq answer (eval (cdr (car tail)))))
+		(setq tail (cdr tail))))
+	    ;; If no suggestion, use same file as last time.
+	    (or answer pmail-default-file))))
+    (let ((read-file
+	   (expand-file-name
+	    (read-file-name
+	     (concat "Output message to Unix mail file (default "
+		     (file-name-nondirectory default-file)
+		     "): ")
+	     (file-name-directory default-file)
+	     (abbreviate-file-name default-file))
+	    (file-name-directory default-file))))
+      (setq pmail-default-file
+	    (if (file-directory-p read-file)
+		(expand-file-name (file-name-nondirectory default-file)
+				  read-file)
 	      (expand-file-name
-	       (file-name-nondirectory default-file) read-file)
-	    (expand-file-name
-	     (or read-file (file-name-nondirectory default-file))
-	     (file-name-directory default-file))))))
+	       (or read-file (file-name-nondirectory default-file))
+	       (file-name-directory default-file)))))))
 
 (declare-function pmail-update-summary "pmailsum" (&rest ignore))
 
@@ -86,7 +113,7 @@ Set `pmail-default-file' to this name as well as returning it."
 ;;; look at them before you change the calling method.
 ;;;###autoload
 (defun pmail-output-to-pmail-file (file-name &optional count stay)
-  "Append the current message to an Pmail (mbox) file named FILE-NAME.
+  "Append the current message to an Pmail file named FILE-NAME.
 If the file does not exist, ask if it should be created.
 If file is being visited, the message is appended to the Emacs
 buffer visiting that file.
@@ -101,35 +128,137 @@ starting with the current one.  Deleted messages are skipped and don't count.
 
 If the optional argument STAY is non-nil, then leave the last filed
 message up instead of moving forward to the next non-deleted message."
-  (interactive (list (pmail-output-read-file-name)
-		     (prefix-numeric-value current-prefix-arg)))
-  ;; Use the 'pmail-output function to perform the output.
-  (pmail-output file-name count nil nil)
-  ;; Deal with the next message
-  (if pmail-delete-after-output
-      (unless (if (and (= count 0) stay)
+  (interactive
+   (list (pmail-output-read-pmail-file-name)
+	 (prefix-numeric-value current-prefix-arg)))
+  (or count (setq count 1))
+  (setq file-name
+	(expand-file-name file-name
+			  (file-name-directory pmail-default-pmail-file)))
+  (if (and (file-readable-p file-name) (not (mail-file-babyl-p file-name)))
+      (pmail-output file-name count)
+    (pmail-maybe-set-message-counters)
+    (setq file-name (abbreviate-file-name file-name))
+    (or (find-buffer-visiting file-name)
+	(file-exists-p file-name)
+	(if (yes-or-no-p
+	     (concat "\"" file-name "\" does not exist, create it? "))
+	    (let ((file-buffer (create-file-buffer file-name)))
+	      (save-excursion
+		(set-buffer file-buffer)
+		(pmail-insert-pmail-file-header)
+		(let ((require-final-newline nil)
+		      (coding-system-for-write
+		       (or pmail-file-coding-system
+			   'emacs-mule-unix)))
+		  (write-region (point-min) (point-max) file-name t 1)))
+	      (kill-buffer file-buffer))
+	  (error "Output file does not exist")))
+    (while (> count 0)
+      (let (redelete)
+	(unwind-protect
+	    (progn
+	      (set-buffer pmail-buffer)
+	      ;; Temporarily turn off Deleted attribute.
+	      ;; Do this outside the save-restriction, since it would
+	      ;; shift the place in the buffer where the visible text starts.
+	      (if (pmail-message-deleted-p pmail-current-message)
+		  (progn (setq redelete t)
+			 (pmail-set-attribute "deleted" nil)))
+	      (save-restriction
+		(widen)
+		;; Decide whether to append to a file or to an Emacs buffer.
+		(save-excursion
+		  (let ((buf (find-buffer-visiting file-name))
+			(cur (current-buffer))
+			(beg (1+ (pmail-msgbeg pmail-current-message)))
+			(end (1+ (pmail-msgend pmail-current-message)))
+			(coding-system-for-write
+			 (or pmail-file-coding-system
+			     'emacs-mule-unix)))
+		    (if (not buf)
+			;; Output to a file.
+			(if pmail-fields-not-to-output
+			    ;; Delete some fields while we output.
+			    (let ((obuf (current-buffer)))
+			      (set-buffer (get-buffer-create " pmail-out-temp"))
+			      (insert-buffer-substring obuf beg end)
+			      (pmail-delete-unwanted-fields)
+			      (append-to-file (point-min) (point-max) file-name)
+			      (set-buffer obuf)
+			      (kill-buffer (get-buffer " pmail-out-temp")))
+			  (append-to-file beg end file-name))
+		      (if (eq buf (current-buffer))
+			  (error "Can't output message to same file it's already in"))
+		      ;; File has been visited, in buffer BUF.
+		      (set-buffer buf)
+		      (let ((buffer-read-only nil)
+			    (msg (and (boundp 'pmail-current-message)
+				      pmail-current-message)))
+			;; If MSG is non-nil, buffer is in PMAIL mode.
+			(if msg
+			    (progn
+			      ;; Turn on auto save mode, if it's off in this
+			      ;; buffer but enabled by default.
+			      (and (not buffer-auto-save-file-name)
+				   auto-save-default
+				   (auto-save-mode t))
+			      (pmail-maybe-set-message-counters)
+			      (widen)
+			      (narrow-to-region (point-max) (point-max))
+			      (insert-buffer-substring cur beg end)
+			      (goto-char (point-min))
+			      (widen)
+			      (search-backward "\n\^_")
+			      (narrow-to-region (point) (point-max))
+			      (pmail-delete-unwanted-fields)
+			      (pmail-count-new-messages t)
+			      (if (pmail-summary-exists)
+				  (pmail-select-summary
+				    (pmail-update-summary)))
+			      (pmail-show-message msg))
+			  ;; Output file not in pmail mode => just insert at the end.
+			  (narrow-to-region (point-min) (1+ (buffer-size)))
+			  (goto-char (point-max))
+			  (insert-buffer-substring cur beg end)
+			  (pmail-delete-unwanted-fields)))))))
+	      (pmail-set-attribute "filed" t))
+	  (if redelete (pmail-set-attribute "deleted" t))))
+      (setq count (1- count))
+      (if pmail-delete-after-output
+	  (unless
+	      (if (and (= count 0) stay)
 		  (pmail-delete-message)
 		(pmail-delete-forward))
-        (setq count 0))
-    (when (> count 0)
-      (unless (when (not stay)
-		(pmail-next-undeleted-message 1))
-	(setq count 0)))))
+	    (setq count 0))
+	(if (> count 0)
+	    (unless
+		(if (not stay) (pmail-next-undeleted-message 1))
+	      (setq count 0)))))))
 
-(defun pmail-delete-unwanted-fields ()
-  "Delete from the buffer header fields we don't want output."
-  (when pmail-fields-not-to-output
-    (save-excursion
-      (let ((limit (pmail-header-get-limit))
-	    (inhibit-point-motion-hooks t)
-	    start)
+;;;###autoload
+(defcustom pmail-fields-not-to-output nil
+  "*Regexp describing fields to exclude when outputting a message to a file."
+  :type '(choice (const :tag "None" nil)
+		 regexp)
+  :group 'pmail-output)
+
+;; Delete from the buffer header fields we don't want output.
+;; NOT-PMAIL if t means this buffer does not have the full header
+;; and *** EOOH *** that a message in an Pmail file has.
+(defun pmail-delete-unwanted-fields (&optional not-pmail)
+  (if pmail-fields-not-to-output
+      (save-excursion
 	(goto-char (point-min))
-	(while (re-search-forward pmail-fields-not-to-output limit t)
-	  (forward-line 0)
-	  (setq start (point))
-	  (while (progn (forward-line 1) (looking-at "[ \t]+"))
-	    (goto-char (line-end-position)))
-	  (delete-region start (point)))))))
+	;; Find the end of the header.
+	(if (and (or not-pmail (search-forward "\n*** EOOH ***\n" nil t))
+		 (search-forward "\n\n" nil t))
+	    (let ((end (point-marker)))
+	      (goto-char (point-min))
+	      (while (re-search-forward pmail-fields-not-to-output end t)
+		(beginning-of-line)
+		(delete-region (point)
+			       (progn (forward-line 1) (point)))))))))
 
 ;;; There are functions elsewhere in Emacs that use this function;
 ;;; look at them before you change the calling method.
@@ -160,71 +289,111 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 			  (and pmail-default-file
 			       (file-name-directory pmail-default-file))))
   (if (and (file-readable-p file-name) (mail-file-babyl-p file-name))
-      (error "BABYL output not supported.")
-    (with-current-buffer pmail-buffer
-      (let ((orig-count count)
-	    (pmailbuf (current-buffer))
-	    (destbuf (find-buffer-visiting file-name))
-	    (case-fold-search t))
-	(while (> count 0)
-	  (with-temp-buffer
-	    (insert-buffer-substring pmailbuf)
-	    ;; ensure we can write without barfing on exotic characters
-	    (setq buffer-file-coding-system
-		  (or pmail-file-coding-system 'raw-text))
-	    ;; prune junk headers
-	    (pmail-delete-unwanted-fields)
-	    (if (not destbuf)
-		;; The destination file is not being visited, just write
-		;; out the processed message.
-		(write-region (point-min) (point-max) file-name
-			      t (when noattribute 'nomsg))
-	      ;; The destination file is being visited.  Update it.
-	      (let ((msg-string (buffer-string)))
-		(with-current-buffer destbuf
-		  ;; Determine if the destination file is an Pmail file.
-		  (let ((buffer-read-only nil)
-			(dest-current-message
-			 (and (boundp 'pmail-current-message)
-			      pmail-current-message)))
-		    (if dest-current-message
-			;; The buffer is an Pmail buffer.  Append the
-			;; message.
-			(progn
-			  (widen)
-			  (narrow-to-region (point-max) (point-max))
-			  (insert msg-string)
-			  (insert "\n")
-			  (pmail-process-new-messages)
-			  (pmail-show-message dest-current-message))
-		      ;; The destination file is not an Pmail file, just
-		      ;; insert at the end.
-		      (goto-char (point-max))
-		      (insert msg-string)))))))
-	  (unless noattribute
-	    (when (equal major-mode 'pmail-mode)
-	      (pmail-set-attribute "filed" t)
-	      (pmail-header-hide-headers)))
-	  (setq count (1- count))
-	  (unless from-gnus
+      (pmail-output-to-pmail-file file-name count)
+    (set-buffer pmail-buffer)
+    (let ((orig-count count)
+	  (pmailbuf (current-buffer))
+	  (case-fold-search t)
+	  (tembuf (get-buffer-create " pmail-output"))
+	  (original-headers-p
+	   (and (not from-gnus)
+		(save-excursion
+		  (save-restriction
+		    (narrow-to-region (pmail-msgbeg pmail-current-message) (point-max))
+		    (goto-char (point-min))
+		    (forward-line 1)
+		    (= (following-char) ?0)))))
+	  header-beginning
+	  mail-from mime-version content-type)
+      (while (> count 0)
+	;; Preserve the Mail-From and MIME-Version fields
+	;; even if they have been pruned.
+	(or from-gnus
+	    (save-excursion
+	      (save-restriction
+		(widen)
+		(goto-char (pmail-msgbeg pmail-current-message))
+		(setq header-beginning (point))
+		(search-forward "\n*** EOOH ***\n")
+		(narrow-to-region header-beginning (point))
+		(setq mail-from (mail-fetch-field "Mail-From"))
+		(unless pmail-enable-mime
+		  (setq mime-version (mail-fetch-field "MIME-Version")
+			content-type (mail-fetch-field "Content-type"))))))
+	(save-excursion
+	  (set-buffer tembuf)
+	  (erase-buffer)
+	  (insert-buffer-substring pmailbuf)
+	  (when pmail-enable-mime
+	    (if original-headers-p
+		(delete-region (goto-char (point-min))
+			       (if (search-forward "\n*** EOOH ***\n")
+				   (match-end 0)))
+	      (goto-char (point-min))
+	      (forward-line 2)
+	      (delete-region (point-min)(point))
+	      (search-forward "\n*** EOOH ***\n")
+	      (delete-region (match-beginning 0)
+			     (if (search-forward "\n\n")
+				 (1- (match-end 0)))))
+	    (setq buffer-file-coding-system (or pmail-file-coding-system
+						'raw-text)))
+	  (pmail-delete-unwanted-fields t)
+	  (or (bolp) (insert "\n"))
+	  (goto-char (point-min))
+	  (if mail-from
+	      (insert mail-from "\n")
+	    (insert "From "
+		    (mail-strip-quoted-names (or (mail-fetch-field "from")
+						 (mail-fetch-field "really-from")
+						 (mail-fetch-field "sender")
+						 "unknown"))
+		    " " (current-time-string) "\n"))
+	  (when mime-version
+	    (insert "MIME-Version: " mime-version)
+	    ;; Some malformed MIME messages set content-type to nil.
+	    (when content-type
+	      (insert "\nContent-type: " content-type "\n")))
+	  ;; ``Quote'' "\nFrom " as "\n>From "
+	  ;;  (note that this isn't really quoting, as there is no requirement
+	  ;;   that "\n[>]+From " be quoted in the same transparent way.)
+	  (let ((case-fold-search nil))
+	    (while (search-forward "\nFrom " nil t)
+	      (forward-char -5)
+	      (insert ?>)))
+	  (write-region (point-min) (point-max) file-name t
+			(if noattribute 'nomsg)))
+	(or noattribute
+	    (if (equal major-mode 'pmail-mode)
+		(pmail-set-attribute "filed" t)))
+	(setq count (1- count))
+	(or from-gnus
 	    (let ((next-message-p
 		   (if pmail-delete-after-output
 		       (pmail-delete-forward)
-		     (when (> count 0)
-		       (pmail-next-undeleted-message 1))))
+		     (if (> count 0)
+			 (pmail-next-undeleted-message 1))))
 		  (num-appended (- orig-count count)))
-	      (when (and (> count 0) (not next-message-p))
-		(error (format "Only %d message%s appended" num-appended
-			       (if (= num-appended 1) "" "s")))
-		(setq count 0)))))))))
+	      (if (and next-message-p original-headers-p)
+		  (pmail-toggle-header))
+	      (if (and (> count 0) (not next-message-p))
+		  (progn
+		    (error "%s"
+		     (save-excursion
+		       (set-buffer pmailbuf)
+		       (format "Only %d message%s appended" num-appended
+			       (if (= num-appended 1) "" "s"))))
+		    (setq count 0))))))
+      (kill-buffer tembuf))))
 
 ;;;###autoload
 (defun pmail-output-body-to-file (file-name)
   "Write this message body to the file FILE-NAME.
 FILE-NAME defaults, interactively, from the Subject field of the message."
   (interactive
-   (let ((default-file (or (mail-fetch-field "Subject")
-			   pmail-default-body-file)))
+   (let ((default-file
+	   (or (mail-fetch-field "Subject")
+	       pmail-default-body-file)))
      (list (setq pmail-default-body-file
 		 (read-file-name
 		  "Output message body to file: "
@@ -232,21 +401,20 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
 		  default-file
 		  nil default-file)))))
   (setq file-name
-	(expand-file-name
-	 file-name
-	 (and pmail-default-body-file
-	      (file-name-directory pmail-default-body-file))))
+	(expand-file-name file-name
+			  (and pmail-default-body-file
+			       (file-name-directory pmail-default-body-file))))
   (save-excursion
     (goto-char (point-min))
     (search-forward "\n\n")
     (and (file-exists-p file-name)
-	 (not (y-or-n-p (message "File %s exists; overwrite? " file-name)))
+	 (not (y-or-n-p (format "File %s exists; overwrite? " file-name)))
 	 (error "Operation aborted"))
     (write-region (point) (point-max) file-name)
-    (when (equal major-mode 'pmail-mode)
-      (pmail-desc-set-attribute pmail-current-message pmail-desc-stored-index t)))
-  (when pmail-delete-after-output
-    (pmail-delete-forward)))
+    (if (equal major-mode 'pmail-mode)
+	(pmail-set-attribute "stored" t)))
+  (if pmail-delete-after-output
+      (pmail-delete-forward)))
 
 ;; Local Variables:
 ;; change-log-default-name: "ChangeLog.pmail"
