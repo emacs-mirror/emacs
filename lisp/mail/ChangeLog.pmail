@@ -1,6 +1,29 @@
 2008-12-04  Chong Yidong  <cyd@stupidchicken.com>
 
+	* pmailsort.el: Sync with pmailsort.el.
+	(pmail-sort-messages): Insert two newlines at the end of the
+	message if they do not exist.
+
+	* pmailmm.el: Require mail-parse.
+	(pmail-mime-show): Don't use removed function
+	pmail-header-hide-headers.
+	(pmail-mime): Use pmail-msgbeg and pmail-msgend instead of removed
+	pmail-desc-* functions.
+
+	* pmailkwd.el: Sync with rmailkwd.el.
+
+	* pmailout.el: Sync with rmailout.el.
+
+	* pmailedit.el: Sync with rmailedit.el.
+	(pmail-edit-current-message): Remove deleted function
+	pmail-msg-is-pruned.
+
+	* pmaildesc.el: File deleted.
+
 	* pmail.el (pmail-get-header): Call pmail-swap-buffers-maybe.
+	(pmail-retry-failure): Remove call to non-existent function
+	pmail-clear-headers.
+	(pmail-message-labels-p): New function.
 
 2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
 
