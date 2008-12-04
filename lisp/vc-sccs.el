@@ -45,14 +45,14 @@
 ;;   :group 'vc)
 
 (defcustom vc-sccs-register-switches nil
-  "Extra switches for registering a file in SCCS.
+  "Switches for registering a file in SCCS.
 A string or list of strings passed to the checkin program by
-\\[vc-sccs-register]."
-  :type '(choice (const :tag "None" nil)
+\\[vc-register].  If nil, use the value of `vc-register-switches'.
+If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
   :group 'vc)
 
@@ -198,14 +198,12 @@ For a description of possible values, see `vc-check-master-templates'."
   ;; SCCS is totally file-oriented, so all we have to do is make the directory
   (make-directory "SCCS"))
 
-;; FIXME doc is wrong re switches.
 (defun vc-sccs-register (files &optional rev comment)
   "Register FILES into the SCCS version-control system.
 REV is the optional revision number for the file.  COMMENT can be used
 to provide an initial description of FILES.
-
-`vc-register-switches' and `vc-sccs-register-switches' are passed to
-the SCCS command (in that order).
+Passes either `vc-sccs-register-switches' or `vc-register-switches'
+to the SCCS command.
 
 Automatically retrieve a read-only version of the files with keywords
 expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
