@@ -1,3 +1,7 @@
+2008-12-04  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (toggle-read-only): Doc fix.
+
 2008-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* apropos.el (apropos-print-doc): Fix thinko that caused long labels to

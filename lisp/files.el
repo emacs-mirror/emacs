@@ -4404,9 +4404,9 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
   (set-buffer-modified-p arg))
 
 (defun toggle-read-only (&optional arg)
-  "Change whether this buffer is visiting its file read-only.
+  "Change whether this buffer is read-only.
 With prefix argument ARG, make the buffer read-only if ARG is
-positive, otherwise make it writable.  If visiting file read-only
+positive, otherwise make it writable.  If buffer is read-only
 and `view-read-only' is non-nil, enter view mode."
   (interactive "P")
   (if (and arg
