@@ -2731,11 +2731,34 @@ charset defined in `gnus-summary-show-article-charset-alist' is used."
   (when (and mm-inline-text-html-with-w3m-keymap
 	     (boundp 'w3m-minor-mode-map)
 	     w3m-minor-mode-map)
-    (add-text-properties
-     (point-min) (point-max)
-     (list 'keymap w3m-minor-mode-map
-	   ;; Put the mark meaning this part was rendered by emacs-w3m.
-	   'mm-inline-text-html-with-w3m t))))
+    (if (and (boundp 'w3m-link-map)
+	     w3m-link-map)
+	(let ((begin (point-min))
+	      (map (copy-keymap w3m-link-map))
+	      end)
+	  (set-keymap-parent map w3m-minor-mode-map)
+	  (while (setq end (next-single-property-change begin
+							'w3m-href-anchor))
+	    (add-text-properties
+	     begin end
+	     (list 'keymap (if (get-text-property begin 'w3m-href-anchor)
+			       map
+			     w3m-minor-mode-map)
+		   ;; Put the mark meaning this part was rendered by emacs-w3m.
+		   'mm-inline-text-html-with-w3m t))
+	    (setq begin end))
+	  (add-text-properties
+	   begin (point-max)
+	   (list 'keymap (if (get-text-property begin 'w3m-href-anchor)
+			     map
+			   w3m-minor-mode-map)
+		 ;; Put the mark meaning this part was rendered by emacs-w3m.
+		 'mm-inline-text-html-with-w3m t)))
+      (add-text-properties
+       (point-min) (point-max)
+       (list 'keymap w3m-minor-mode-map
+	     ;; Put the mark meaning this part was rendered by emacs-w3m.
+	     'mm-inline-text-html-with-w3m t)))))
 
 (defvar charset) ;; Bound by `article-wash-html'.
 
