@@ -1,5 +1,10 @@
 2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
 
+	* pmailsort.el (pmail-sort-messages): Don't call removed function
+	pmail-header-show-headers.
+
+2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
+
 	* pmail.el (pmail-only-expunge): Pass correct arg to
 	pmail-show-message-maybe.
 
