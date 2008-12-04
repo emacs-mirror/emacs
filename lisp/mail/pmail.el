@@ -2628,6 +2628,15 @@ match for the regexp ATTRS."
 Return non-nil if the unseen attribute is set, nil otherwise."
   (pmail-message-attr-p msgnum "......U"))
 
+;; Return t if the attributes/keywords line of msg number MSG
+;; contains a match for the regexp LABELS.
+(defun pmail-message-labels-p (msg labels)
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (pmail-msgbeg msg))
+      (forward-char 3)
+      (re-search-backward labels (prog1 (point) (end-of-line)) t))))
 
 ;;;; *** Pmail Message Selection And Support ***
 
@@ -4042,8 +4051,6 @@ specifying headers which should not be copied into the new message."
 	    (goto-char (point-min))
 	    (if bounce-indent
 		(indent-rigidly (point-min) (point-max) bounce-indent))
-	    (pmail-clear-headers pmail-retry-ignored-headers)
-	    (pmail-clear-headers "^sender:\\|^return-path:\\|^received:")
 	    (mail-sendmail-delimit-header)
 	    (save-restriction
 	      (narrow-to-region (point-min) (mail-header-end))
