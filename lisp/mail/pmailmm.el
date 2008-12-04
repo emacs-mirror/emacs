@@ -37,8 +37,8 @@
 
 ;;; Code:
 
-;; For ...
 (require 'pmail)
+(require 'mail-parse)
 
 ;;; Variables
 
@@ -333,9 +333,7 @@ modified."
 	content-transfer-encoding
 	content-disposition)
     ;; `point-min' returns the beginning and `end' points at the end
-    ;; of the headers.  We're not using `pmail-header-get-header'
-    ;; because we must be able to handle the case of no headers
-    ;; existing in a part.  In this case end is at point-min.
+    ;; of the headers.
     (goto-char (point-min))
     ;; If we're showing a part without headers, then it will start
     ;; with a newline.
@@ -372,11 +370,8 @@ modified."
     ;; Hide headers and handle the part.
     (save-restriction
       (cond ((string= (car content-type) "message/rfc822")
-	     (pmail-header-hide-headers)
 	     (narrow-to-region end (point-max)))
-	    (show-headers
-	     (pmail-header-hide-headers))
-	    (t
+	    ((not show-headers)
 	     (delete-region (point-min) end)))
       (pmail-mime-handle content-type content-disposition
 			 content-transfer-encoding))))
@@ -385,12 +380,13 @@ modified."
   "Copy buffer contents to a temporary buffer and handle MIME.
 This calls `pmail-mime-show' to do the real job."
   (interactive)
+  (pmail-swap-buffers-maybe)
   (let ((data (with-current-buffer pmail-buffer
 		(save-restriction
 		  (widen)
 		  (buffer-substring
-		   (pmail-desc-get-start pmail-current-message)
-		   (pmail-desc-get-end pmail-current-message)))))
+		   (pmail-msgbeg pmail-current-message)
+		   (pmail-msgend pmail-current-message)))))
 	(buf (get-buffer-create "*PMAIL*")))
     (set-buffer buf)
     (let ((inhibit-read-only t))
