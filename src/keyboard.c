@@ -3978,7 +3978,10 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
   register int c;
   Lisp_Object obj;
 
-  if (noninteractive)
+  if (noninteractive
+      /* In case we are running as a daemon, only do this before
+	 detaching from the terminal.  */
+      || (IS_DAEMON && daemon_pipe[1] >= 0))
     {
       c = getchar ();
       XSETINT (obj, c);
