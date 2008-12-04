@@ -1,3 +1,11 @@
+2008-12-04  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-read-command): Extracted from
+	compile.
+	(compile): Use it.
+	(recompile): Accept an optional argument to enable editing the
+	command line.
+
 2008-12-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top): Write a message, when loading Tramp.

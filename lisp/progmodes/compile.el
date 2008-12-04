@@ -1019,6 +1019,12 @@ FMTS is a list of format specs for transforming the file name.
 
      compilation-mode-font-lock-keywords)))
 
+(defun compilation-read-command (command)
+  (read-shell-command "Compile command: " command
+                      (if (equal (car compile-history) command)
+                          '(compile-history . 1)
+                        'compile-history)))
+
 
 ;;;###autoload
 (defun compile (command &optional comint)
@@ -1052,10 +1058,7 @@ to a function that generates a unique name."
    (list
     (let ((command (eval compile-command)))
       (if (or compilation-read-command current-prefix-arg)
-	  (read-shell-command "Compile command: " command
-                              (if (equal (car compile-history) command)
-                                  '(compile-history . 1)
-                                'compile-history))
+	  (compilation-read-command command)
 	command))
     (consp current-prefix-arg)))
   (unless (equal command (eval compile-command))
@@ -1065,13 +1068,17 @@ to a function that generates a unique name."
   (compilation-start command comint))
 
 ;; run compile with the default command line
-(defun recompile ()
+(defun recompile (&optional edit-command)
   "Re-compile the program including the current buffer.
 If this is run in a Compilation mode buffer, re-use the arguments from the
-original use.  Otherwise, recompile using `compile-command'."
-  (interactive)
+original use.  Otherwise, recompile using `compile-command'.
+If the optional argument `edit-command' is non-nil, the command can be edited."
+  (interactive "P")
   (save-some-buffers (not compilation-ask-about-save) nil)
   (let ((default-directory (or compilation-directory default-directory)))
+    (when edit-command
+      (setcar compilation-arguments
+              (compilation-read-command (car compilation-arguments))))
     (apply 'compilation-start (or compilation-arguments
 				  `(,(eval compile-command))))))
 
