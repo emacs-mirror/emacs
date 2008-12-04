@@ -530,17 +530,22 @@ w32font_draw (s, from, to, x, y, with_background)
      int from, to, x, y, with_background;
 {
   UINT options;
-  HRGN orig_clip;
+  HRGN orig_clip = NULL;
   struct w32font_info *w32font = (struct w32font_info *) s->font;
 
   options = w32font->glyph_idx;
 
-  /* Save clip region for later restoration.  */
-  GetClipRgn(s->hdc, orig_clip);
-
   if (s->num_clips > 0)
     {
       HRGN new_clip = CreateRectRgnIndirect (s->clip);
+
+      /* Save clip region for later restoration.  */
+      orig_clip = CreateRectRgn (0, 0, 0, 0);
+      if (!GetClipRgn(s->hdc, orig_clip))
+	{
+	  DeleteObject (orig_clip);
+	  orig_clip = NULL;
+	}
 
       if (s->num_clips > 1)
         {
@@ -585,9 +590,10 @@ w32font_draw (s, from, to, x, y, with_background)
 
   /* Restore clip region.  */
   if (s->num_clips > 0)
-    {
-      SelectClipRgn (s->hdc, orig_clip);
-    }
+    SelectClipRgn (s->hdc, orig_clip);
+
+  if (orig_clip)
+    DeleteObject (orig_clip);
 }
 
 /* w32 implementation of free_entity for font backend.
