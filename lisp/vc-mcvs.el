@@ -70,14 +70,14 @@
   :group 'vc)
 
 (defcustom vc-mcvs-register-switches nil
-  "Extra switches for registering a file into Meta-CVS.
+  "Switches for registering a file into Meta-CVS.
 A string or list of strings passed to the checkin program by
-\\[vc-register]."
-  :type '(choice (const :tag "None" nil)
+\\[vc-register].  If nil, use the value of `vc-register-switches'.
+If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "22.1"
   :group 'vc)
 
@@ -183,14 +183,12 @@ This is only meaningful if you don't use the implicit checkout model
 ;;; State-changing functions
 ;;;
 
-;; FIXME the doc is wrong re switches.
 (defun vc-mcvs-register (files &optional rev comment)
   "Register FILES into the Meta-CVS version-control system.
 COMMENT can be used to provide an initial description of FILE.
-
-`vc-register-switches' and `vc-mcvs-register-switches' are passed to
-the Meta-CVS command (in that order)."
-  ;; FIXME: multiple-file case should be made to work
+Passes either `vc-mcvs-register-switches' or `vc-register-switches'
+to the Meta-CVS command."
+  ;; FIXME: multiple-file case should be made to work.
   (if (> (length files) 1) (error "Registering filesets is not yet supported."))
   (let* ((file (car files))
 	 (filename (file-name-nondirectory file))
