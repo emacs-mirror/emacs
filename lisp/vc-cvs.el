@@ -70,14 +70,14 @@
   :group 'vc)
 
 (defcustom vc-cvs-register-switches nil
-  "Extra switches for registering a file into CVS.
+  "Switches for registering a file into CVS.
 A string or list of strings passed to the checkin program by
-\\[vc-register]."
-  :type '(choice (const :tag "None" nil)
+\\[vc-register].  If nil, use the value of `vc-register-switches'.
+If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
   :group 'vc)
 
@@ -273,13 +273,11 @@ committed and support display of sticky tags."
 ;;; State-changing functions
 ;;;
 
-;; FIXME doc is wrong re switches.
 (defun vc-cvs-register (files &optional rev comment)
   "Register FILES into the CVS version-control system.
 COMMENT can be used to provide an initial description of FILES.
-
-`vc-register-switches' and `vc-cvs-register-switches' are passed to
-the CVS command (in that order)."
+Passes either `vc-cvs-register-switches' or `vc-register-switches'
+to the CVS command."
   ;; Register the directories if needed.
   (let (dirs)
     (dolist (file files)
