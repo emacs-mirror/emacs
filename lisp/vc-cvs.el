@@ -306,9 +306,10 @@ its parents."
     (while (and (stringp dir)
                 (not (equal dir (setq dir (file-name-directory dir))))
                 dir)
-      (setq dir (if (file-directory-p
+      (setq dir (if (file-exists-p
                      (expand-file-name "CVS/Entries" dir))
-                    t (directory-file-name dir))))
+                    t
+                  (directory-file-name dir))))
     (eq dir t)))
 
 (defun vc-cvs-checkin (files rev comment)

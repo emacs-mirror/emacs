@@ -1,3 +1,8 @@
+2008-12-04  Lute Kamstra  <lute@gnu.org>
+
+	* vc-cvs.el (vc-cvs-could-register): Don't use file-directory-p to
+	check if the file "CVS/Entries" exists.
+
 2008-12-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-diag.el (list-character-sets): Doc fix.
