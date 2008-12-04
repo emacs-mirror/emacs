@@ -1,3 +1,10 @@
+2008-12-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-inline-text-html-render-with-w3m): Make it simple and
+	fast.
+
+	* gnus-art.el (gnus-article-wash-html-with-w3m): Ditto.
+
 2008-12-04  Naohiro Aota  <nao.aota@gmail.com>
 
 	* mm-view.el (mm-inline-text-html-render-with-w3m): Put special keymap

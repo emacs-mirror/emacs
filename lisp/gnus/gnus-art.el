@@ -2728,37 +2728,33 @@ charset defined in `gnus-summary-show-article-charset-alist' is used."
   (let ((w3m-safe-url-regexp mm-w3m-safe-url-regexp)
 	w3m-force-redisplay)
     (w3m-region (point-min) (point-max)))
+  ;; Put the mark meaning this part was rendered by emacs-w3m.
+  (put-text-property (point-min) (point-max) 'mm-inline-text-html-with-w3m t)
   (when (and mm-inline-text-html-with-w3m-keymap
 	     (boundp 'w3m-minor-mode-map)
 	     w3m-minor-mode-map)
     (if (and (boundp 'w3m-link-map)
 	     w3m-link-map)
-	(let ((begin (point-min))
-	      (map (copy-keymap w3m-link-map))
-	      end)
+	(let* ((start (point-min))
+	       (end (point-max))
+	       (on (get-text-property start 'w3m-href-anchor))
+	       (map (copy-keymap w3m-link-map))
+	       next)
 	  (set-keymap-parent map w3m-minor-mode-map)
-	  (while (setq end (next-single-property-change begin
-							'w3m-href-anchor))
-	    (add-text-properties
-	     begin end
-	     (list 'keymap (if (get-text-property begin 'w3m-href-anchor)
-			       map
-			     w3m-minor-mode-map)
-		   ;; Put the mark meaning this part was rendered by emacs-w3m.
-		   'mm-inline-text-html-with-w3m t))
-	    (setq begin end))
-	  (add-text-properties
-	   begin (point-max)
-	   (list 'keymap (if (get-text-property begin 'w3m-href-anchor)
-			     map
-			   w3m-minor-mode-map)
-		 ;; Put the mark meaning this part was rendered by emacs-w3m.
-		 'mm-inline-text-html-with-w3m t)))
-      (add-text-properties
-       (point-min) (point-max)
-       (list 'keymap w3m-minor-mode-map
-	     ;; Put the mark meaning this part was rendered by emacs-w3m.
-	     'mm-inline-text-html-with-w3m t)))))
+	  (while (< start end)
+	    (if on
+		(progn
+		  (setq next (or (text-property-any start end
+						    'w3m-href-anchor nil)
+				 end))
+		  (put-text-property start next 'keymap map))
+	      (setq next (or (text-property-not-all start end
+						    'w3m-href-anchor nil)
+			     end))
+	      (put-text-property start next 'keymap w3m-minor-mode-map))
+	    (setq start next
+		  on (not on))))
+      (put-text-property (point-min) (point-max) 'keymap w3m-minor-mode-map))))
 
 (defvar charset) ;; Bound by `article-wash-html'.
 
