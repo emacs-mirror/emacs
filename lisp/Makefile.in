@@ -756,7 +756,6 @@ ELCFILES = \
 	$(lisp)/mail/metamail.elc \
 	$(lisp)/mail/mspools.elc \
 	$(lisp)/mail/pmail.elc \
-	$(lisp)/mail/pmaildesc.elc \
 	$(lisp)/mail/pmailedit.elc \
 	$(lisp)/mail/pmailhdr.elc \
 	$(lisp)/mail/pmailkwd.elc \
