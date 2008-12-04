@@ -29,6 +29,8 @@
   (require 'pmail)
   (require 'pmailsum))
 
+(require 'pmailhdr)
+
 (defcustom pmail-edit-mode-hook nil
   "List of functions to call when editing an PMAIL message."
   :type 'hook
