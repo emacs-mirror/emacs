@@ -29,8 +29,9 @@
 (eval-when-compile
   (require 'mail-utils)
   (require 'sort)
-  (require 'pmail)
-  (require 'pmailhdr))
+  (require 'pmail))
+
+(require 'pmailhdr)
 
 (autoload 'timezone-make-date-sortable "timezone")
 
