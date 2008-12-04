@@ -35,40 +35,17 @@
 
 /* usually (ArenaAlign / sizeof(Ref)) = 1024 */
 /* so choose 3000 to force 3 segments of guardians */
-#define rootCOUNT 3000
-
-#define churnFACTOR 10
-#define finalizationRATE 6
-#define gcINTERVAL ((size_t)150 * 1024)
-
-/* dylan vector:  wrapper  |  vector-len  |  slot-0  |  ... */
-#define vectorSIZE(nslots) ((2 + (nslots)) * sizeof(mps_word_t))
-#define vectorSLOT(i) (2 + (i))
-
-#define genCOUNT 2
+#define myrootCOUNT 3000
 
 /* testChain -- generation parameters for the test */
+#define genCOUNT 2
 static mps_gen_param_s testChain[genCOUNT] = {
   { 150, 0.85 }, { 170, 0.45 } };
 
 
-/* tags an integer according to dylan format */
-static mps_word_t dylan_int(mps_word_t x)
-{
-  return (x << 2)|1;
-}
-
-
-/* converts a dylan format int to an int (untags) */
-static mps_word_t dylan_int_int(mps_word_t x)
-{
-  return x >> 2;
-}
-
-
 /* note: static, so auto-initialised to NULL */
-static void *root[rootCOUNT];
-static int state[rootCOUNT];
+static void *myroot[myrootCOUNT];
+static int state[myrootCOUNT];
 
 
 enum {
@@ -98,9 +75,9 @@ static void report(mps_arena_t arena, int expect)
     found += 1;
     mps_message_finalization_ref(&objaddr, arena, message);
     obj = objaddr;
-    objind = dylan_int_int(obj[vectorSLOT(0)]);
+    objind = DYLAN_INT_INT(DYLAN_VECTOR_SLOT(obj, 0));
     printf("Finalizing: object %lu at %p\n", objind, objaddr);
-    cdie(root[objind] == NULL, "finalized live");
+    cdie(myroot[objind] == NULL, "finalized live");
     cdie(state[objind] == finalizableSTATE, "not finalizable");
     state[objind] = finalizedSTATE;
     mps_message_discard(arena, message);
@@ -109,59 +86,70 @@ static void report(mps_arena_t arena, int expect)
   if(found < expect) {
     printf("...expected %d finalizations, but got fewer: only %d!\n", 
            expect, found);
+    cdie(FALSE, "wrong number of finalizations");
   } else if(found > expect) {
     printf("...expected %d finalizations, but got more: %d!\n", 
            expect, found);
+    cdie(FALSE, "wrong number of finalizations");
   }
 }
 
 
+typedef struct trampDataStruct {
+  mps_arena_t arena;
+  mps_thr_t thr;
+} trampDataStruct;
+
+
 static void *test(void *arg, size_t s)
 {
+  trampDataStruct trampData;
   mps_arena_t arena;
+  mps_thr_t thr;
   mps_fmt_t fmt;
   mps_chain_t chain;
   mps_pool_t amc;
-  mps_root_t mps_root[2];
+  mps_root_t root_table;
   mps_ap_t ap;
-  mps_res_t e;
+  mps_root_t root_stackreg;
   int i;
-  mps_addr_t nullref = NULL;
-  void *p = NULL;
-  int N = rootCOUNT - 1;
+  int N = myrootCOUNT - 1;
+  void *stack_starts_here;  /* stack scanning starts here */
 
-  arena = (mps_arena_t)arg;
+  trampData = *(trampDataStruct*)arg;
+  arena = trampData.arena;
+  thr = trampData.thr;
   (void)s;
 
-  die(mps_fmt_create_A(&fmt, arena, dylan_fmt_A()), "fmt_create\n");
+  die(mps_fmt_create_A(&fmt, arena, dylan_fmt_A()), "fmt_create");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
   die(mps_pool_create(&amc, arena, mps_class_amc(), fmt, chain),
-      "pool_create amc\n");
-  die(mps_root_create_table(&mps_root[0], arena, MPS_RANK_EXACT, (mps_rm_t)0,
-                            root, (size_t)rootCOUNT),
-      "root_create\n");
-  die(mps_root_create_table(&mps_root[1], arena, MPS_RANK_EXACT, (mps_rm_t)0,
-                            &p, (size_t)1),
-      "root_create\n");
-  die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create\n");
+      "pool_create amc");
+  die(mps_root_create_table(&root_table, arena, MPS_RANK_EXACT, (mps_rm_t)0,
+                            myroot, (size_t)myrootCOUNT),
+      "root_create");
+  die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create");
+  
+  /* root_stackreg: stack & registers are ambiguous roots = mutator's workspace */
+  die(mps_root_create_reg(&root_stackreg, arena,
+                          mps_rank_ambig(), (mps_rm_t)0, thr,
+                          mps_stack_scan_ambig, &stack_starts_here, 0),
+      "root_stackreg");
 
-  /* Make registered-for-finalization objects. */
+  /* Make myrootCOUNT registered-for-finalization objects. */
   /* <design/poolmrg/#test.promise.ut.alloc> */
-  for(i = 0; i < rootCOUNT; ++i) {
-    do {
-      MPS_RESERVE_BLOCK(e, p, ap, vectorSIZE(2));
-      die(e, "MPS_RES_OK");
-      die(dylan_init(p, vectorSIZE(2), &nullref, 1), "dylan_init");
-    } while (!mps_commit(ap, p, vectorSIZE(2)));
-
-    /* set vector's slots */
-    ((mps_word_t *)p)[vectorSLOT(0)] = dylan_int(i);
-    ((mps_word_t *)p)[vectorSLOT(1)] = (mps_word_t)NULL;
-
-    die(mps_finalize(arena, &p), "finalize\n");
-    root[i] = p; state[i] = rootSTATE;
+  for(i = 0; i < myrootCOUNT; ++i) {
+    mps_word_t v;
+    die(make_dylan_vector(&v, ap, 2), "make_dylan_vector");
+    DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(i);
+    DYLAN_VECTOR_SLOT(v, 1) = (mps_word_t)NULL;
+    die(mps_finalize(arena, (mps_addr_t*)&v), "finalize");
+    myroot[i] = (void*)v;
+    state[i] = rootSTATE;
   }
-  p = NULL;
+
+  /* stop stack scanning, to prevent unwanted object retention */
+  mps_root_destroy(root_stackreg);
 
   mps_message_type_enable(arena, mps_message_type_finalization());
 
@@ -169,19 +157,22 @@ static void *test(void *arg, size_t s)
   report(arena, 0);
 
   /* make 0 and N finalizable */
-  root[0] = NULL;
+  myroot[0] = NULL;
   state[0] = finalizableSTATE;
-  root[N] = NULL;
+  myroot[N] = NULL;
   state[N] = finalizableSTATE;
   mps_arena_collect(arena);
   report(arena, 2);
 
+  mps_arena_collect(arena);
+  report(arena, 0);
+
   /* make 1 and N-1 refer to each other and finalizable */
-  ((mps_word_t *)root[1])[vectorSLOT(1)] = (mps_word_t)root[N-1];
-  ((mps_word_t *)root[N-1])[vectorSLOT(1)] = (mps_word_t)root[1];
-  root[1] = NULL;
+  DYLAN_VECTOR_SLOT(myroot[1]  , 1) = (mps_word_t)myroot[N-1];
+  DYLAN_VECTOR_SLOT(myroot[N-1], 1) = (mps_word_t)myroot[1];
+  myroot[1] = NULL;
   state[1] = finalizableSTATE;
-  root[N-1] = NULL;
+  myroot[N-1] = NULL;
   state[N-1] = finalizableSTATE;
   mps_arena_collect(arena);
   report(arena, 2);
@@ -192,8 +183,7 @@ static void *test(void *arg, size_t s)
   /* @@@@ <design/poolmrg/#test.promise.ut.nofinal.check> missing */
 
   mps_ap_destroy(ap);
-  mps_root_destroy(mps_root[1]);
-  mps_root_destroy(mps_root[0]);
+  mps_root_destroy(root_table);
   mps_pool_destroy(amc);
   mps_chain_destroy(chain);
   mps_fmt_destroy(fmt);
@@ -205,20 +195,31 @@ static void *test(void *arg, size_t s)
 int main(int argc, char **argv)
 {
   mps_arena_t arena;
-  mps_thr_t thread;
-  void *r;
+  mps_thr_t thr;
+  mps_tramp_t trampFunction;
+  trampDataStruct trampData;
+  void *trampResult;
 
   randomize(argc, argv);
 
+  /* arena */
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
-      "arena_create\n");
-  die(mps_thread_reg(&thread, arena), "thread_reg\n");
-  mps_tramp(&r, test, arena, 0);
-  mps_thread_dereg(thread);
+      "arena_create");
+  
+  /* thr: used to stop/restart multiple threads */
+  die(mps_thread_reg(&thr, arena), "thread");
+  
+  /* tramp: used for protection (barrier hits) */
+  trampFunction = test;
+  trampData.arena = arena;
+  trampData.thr = thr;
+  mps_tramp(&trampResult, trampFunction, &trampData, sizeof trampData);
+
+  mps_thread_dereg(thr);
   mps_arena_destroy(arena);
 
   fflush(stdout); /* synchronize */
-  fprintf(stderr, "\nConclusion:  See results above.\n");
+  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
 
