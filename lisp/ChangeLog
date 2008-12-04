@@ -1,3 +1,8 @@
+2008-12-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ibuffer.el (ibuffer-sort-bufferlist): Require ibuf-ext
+	if the sorting functions are not loaded.  (Bug#1432)
+
 2008-12-04  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/compile.el (compilation-read-command): Extracted from
@@ -11817,7 +11822,6 @@
 	systems without 12 months per year.
 
 	(calendar-date-is-visible-p): Doc fix.  Simplify.
-
 	* calendar/holidays.el (holiday-filter-visible-calendar): Return result
 	from dolist.
 

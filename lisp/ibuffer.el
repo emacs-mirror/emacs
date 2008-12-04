@@ -2191,6 +2191,9 @@ If optional arg SILENT is non-nil, do not display progress messages."
              ibuffer-header-line-format)))
 
 (defun ibuffer-sort-bufferlist (bmarklist)
+  (unless ibuffer-sorting-functions-alist
+    ;; make sure the sorting functions are loaded
+    (require 'ibuf-ext))
   (let* ((sortdat (assq ibuffer-sorting-mode
 			ibuffer-sorting-functions-alist))
 	 (func (caddr sortdat)))
