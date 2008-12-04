@@ -52,14 +52,14 @@
   :group 'vc)
 
 (defcustom vc-svn-register-switches nil
-  "Extra switches for registering a file into SVN.
+  "Switches for registering a file into SVN.
 A string or list of strings passed to the checkin program by
-\\[vc-register]."
-  :type '(choice (const :tag "None" nil)
+\\[vc-register].  If nil, use the value of `vc-register-switches'.
+If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "22.1"
   :group 'vc)
 
@@ -256,13 +256,11 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-do-command "*vc*" 0 vc-svn-program '(".")
 		 "checkout" (concat "file://" default-directory "SVN")))
 
-;; FIXME doc is wrong re switches.
 (defun vc-svn-register (files &optional rev comment)
   "Register FILES into the SVN version-control system.
 The COMMENT argument is ignored  This does an add but not a commit.
-
-`vc-register-switches' and `vc-svn-register-switches' are passed to
-the SVN command (in that order)."
+Passes either `vc-svn-register-switches' or `vc-register-switches'
+to the SVN command."
   (apply 'vc-svn-command nil 0 files "add" (vc-switches 'SVN 'register)))
 
 (defun vc-svn-responsible-p (file)

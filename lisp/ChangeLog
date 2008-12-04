@@ -1,5 +1,16 @@
 2008-12-04  Glenn Morris  <rgm@gnu.org>
 
+	* vc-cvs.el (vc-cvs-register-switches): Doc fix.  Add t as option.
+	(vc-cvs-register): Doc fix.
+	* vc-mcvs.el (vc-mcvs-register-switches): Doc fix.  Add t as option.
+	(vc-mcvs-register): Doc fix.
+	* vc-rcs.el (vc-rcs-register-switches): Doc fix.  Add t as option.
+	(vc-rcs-register): Doc fix.
+	* vc-sccs.el (vc-sccs-register-switches): Doc fix.  Add t as option.
+	(vc-sccs-register): Doc fix.
+	* vc-svn.el (vc-svn-register-switches): Doc fix.  Add t as option.
+	(vc-svn-register): Doc fix.
+
 	* files.el (toggle-read-only): Doc fix.
 
 2008-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
