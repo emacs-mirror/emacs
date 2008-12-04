@@ -38,13 +38,14 @@
 
 (defvar pmail-old-text)
 
-(defvar pmail-edit-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map text-mode-map)
-    (define-key map "\C-c\C-c" 'pmail-cease-edit)
-    (define-key map "\C-c\C-]" 'pmail-abort-edit)
-    map)
-  "Keymap for `pmail-edit-mode'.")
+(defvar pmail-edit-map nil)
+(if pmail-edit-map
+    nil
+  ;; Make a keymap that inherits text-mode-map.
+  (setq pmail-edit-map (make-sparse-keymap))
+  (set-keymap-parent pmail-edit-map text-mode-map)
+  (define-key pmail-edit-map "\C-c\C-c" 'pmail-cease-edit)
+  (define-key pmail-edit-map "\C-c\C-]" 'pmail-abort-edit))
 
 ;; Pmail Edit mode is suitable only for specially formatted data.
 (put 'pmail-edit-mode 'mode-class 'special)
@@ -87,7 +88,7 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
   (if (= pmail-total-messages 0)
       (error "No messages in this file"))
   (make-local-variable 'pmail-old-pruned)
-  (setq pmail-old-pruned (pmail-msg-is-pruned))
+  (setq pmail-old-pruned (eq pmail-header-style 'normal))
   (make-local-variable 'pmail-edit-saved-coding-system)
   (setq pmail-edit-saved-coding-system save-buffer-coding-system)
   (pmail-header-show-headers)
@@ -109,18 +110,18 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
 (defun pmail-cease-edit ()
   "Finish editing message; switch back to Pmail proper."
   (interactive)
-  (when (pmail-summary-exists)
-    (with-current-buffer pmail-summary-buffer
-      (pmail-summary-enable)))
+  (if (pmail-summary-exists)
+      (save-excursion
+	(set-buffer pmail-summary-buffer)
+	(pmail-summary-enable)))
   ;; Make sure buffer ends with a newline.
   (save-excursion
     (goto-char (point-max))
-    (when (/= (preceding-char) ?\n)
-      (insert "\n"))
-    ;; Adjust the marker that points to the end of this message, unless
-    ;; we're at the last message.
-    (when (< pmail-current-message (length pmail-desc-vector))
-	(pmail-desc-set-start (1+ pmail-current-message) (point))))
+    (if (/= (preceding-char) ?\n)
+	(insert "\n"))
+    ;; Adjust the marker that points to the end of this message.
+    (set-marker (aref pmail-message-vector (1+ pmail-current-message))
+		(point)))
   (let ((old pmail-old-text))
     (force-mode-line-update)
     (kill-all-local-variables)
@@ -131,16 +132,26 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
     ;; As the local value of save-buffer-coding-system is changed by
     ;; pmail-variables, we restore the original value.
     (setq save-buffer-coding-system pmail-edit-saved-coding-system)
-    (unless (and (= (length old) (- (point-max) (point-min)))
-		 (string= old (buffer-substring (point-min) (point-max))))
+    (if (and (= (length old) (- (point-max) (point-min)))
+	     (string= old (buffer-substring (point-min) (point-max))))
+	()
       (setq old nil)
-      (pmail-set-attribute "edited" t))
+      (pmail-set-attribute "edited" t)
+      (if (boundp 'pmail-summary-vector)
+	  (progn
+	    (aset pmail-summary-vector (1- pmail-current-message) nil)
+	    (save-excursion
+	      (pmail-widen-to-current-msgbeg
+		(function (lambda ()
+			    (forward-line 2)
+			    (if (looking-at "Summary-line: ")
+				(let ((buffer-read-only nil))
+				  (delete-region (point)
+						 (progn (forward-line 1)
+							(point))))))))))))
     (save-excursion
       (pmail-show-message)
-      ;; `pmail-show-message' always hides the headers, so we show them
-      ;; here if they were visible before starting the edit.
-      (when pmail-old-pruned
-	(pmail-header-show-headers))))
+      (pmail-toggle-header (if pmail-old-pruned 1 0))))
   (run-hooks 'pmail-mode-hook)
   (setq buffer-read-only t))
 
@@ -149,7 +160,8 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
   (interactive)
   (delete-region (point-min) (point-max))
   (insert pmail-old-text)
-  (pmail-cease-edit))
+  (pmail-cease-edit)
+  (pmail-highlight-headers))
 
 (provide 'pmailedit)
 
