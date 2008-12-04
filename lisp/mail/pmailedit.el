@@ -27,7 +27,6 @@
 
 (eval-when-compile
   (require 'pmail)
-  (require 'pmaildesc)
   (require 'pmailsum))
 
 (defcustom pmail-edit-mode-hook nil
