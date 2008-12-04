@@ -3,6 +3,7 @@
 	* pmailsort.el: Sync with pmailsort.el.
 	(pmail-sort-messages): Insert two newlines at the end of the
 	message if they do not exist.
+	(pmailhdr): Require pmailhdr.
 
 	* pmailmm.el: Require mail-parse.
 	(pmail-mime-show): Don't use removed function
