@@ -251,40 +251,40 @@ KEY identifies the connection, it is either a process or a vector."
 (defun tramp-dump-connection-properties ()
   "Write persistent connection properties into file `tramp-persistency-file-name'."
   ;; We shouldn't fail, otherwise (X)Emacs might not be able to be closed.
-  (when tramp-cache-data-changed
-    (condition-case nil
-	(when (and (hash-table-p tramp-cache-data)
-		   (not (zerop (hash-table-count tramp-cache-data)))
-		   (stringp tramp-persistency-file-name))
-	  (let ((cache (copy-hash-table tramp-cache-data)))
-	    ;; Remove temporary data.
-	    (maphash
-	     '(lambda (key value)
-		(if (and (vectorp key) (not (tramp-file-name-localname key)))
-		    (progn
-		      (remhash "process-name" value)
-		      (remhash "process-buffer" value))
-		  (remhash key cache)))
-	     cache)
-	    ;; Dump it.
-	    (with-temp-buffer
-	      (insert
-	       ";; -*- emacs-lisp -*-"
-	       ;; `time-stamp-string' might not exist in all (X)Emacs flavors.
-	       (condition-case nil
-		   (progn
-		     (format
-		      " <%s %s>\n"
-		      (time-stamp-string "%02y/%02m/%02d %02H:%02M:%02S")
-		      tramp-persistency-file-name))
-		 (error "\n"))
-	       ";; Tramp connection history.  Don't change this file.\n"
-	       ";; You can delete it, forcing Tramp to reapply the checks.\n\n"
-	       (with-output-to-string
-		 (pp (read (format "(%s)" (tramp-cache-print cache))))))
-	      (write-region
-	       (point-min) (point-max) tramp-persistency-file-name))))
-      (error nil))))
+  (condition-case nil
+      (when (and (hash-table-p tramp-cache-data)
+		 (not (zerop (hash-table-count tramp-cache-data)))
+		 tramp-cache-data-changed
+		 (stringp tramp-persistency-file-name))
+	(let ((cache (copy-hash-table tramp-cache-data)))
+	  ;; Remove temporary data.
+	  (maphash
+	   '(lambda (key value)
+	      (if (and (vectorp key) (not (tramp-file-name-localname key)))
+		  (progn
+		    (remhash "process-name" value)
+		    (remhash "process-buffer" value))
+		(remhash key cache)))
+	   cache)
+	  ;; Dump it.
+	  (with-temp-buffer
+	    (insert
+	     ";; -*- emacs-lisp -*-"
+	     ;; `time-stamp-string' might not exist in all (X)Emacs flavors.
+	     (condition-case nil
+		 (progn
+		   (format
+		    " <%s %s>\n"
+		    (time-stamp-string "%02y/%02m/%02d %02H:%02M:%02S")
+		    tramp-persistency-file-name))
+	       (error "\n"))
+	     ";; Tramp connection history.  Don't change this file.\n"
+	     ";; You can delete it, forcing Tramp to reapply the checks.\n\n"
+	     (with-output-to-string
+	       (pp (read (format "(%s)" (tramp-cache-print cache))))))
+	    (write-region
+	     (point-min) (point-max) tramp-persistency-file-name))))
+    (error nil)))
 
 (add-hook 'kill-emacs-hook 'tramp-dump-connection-properties)
 (add-hook 'tramp-cache-unload-hook
