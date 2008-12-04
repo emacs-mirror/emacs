@@ -1,3 +1,8 @@
+2008-12-04  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_draw): Initialize orig_clip before getting
+	it, and delete it when finished.
+
 2008-12-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* keyboard.c (kbd_buffer_get_event): Follow the non-interactive
