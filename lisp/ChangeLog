@@ -1,3 +1,10 @@
+2008-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): Write a message, when loading Tramp.
+
+	* net/tramp-cache.el (tramp-dump-connection-properties): Polish
+	the check, whether to dump the data.
+
 2008-12-04  Lute Kamstra  <lute@gnu.org>
 
 	* vc-cvs.el (vc-cvs-could-register): Don't use file-directory-p to
