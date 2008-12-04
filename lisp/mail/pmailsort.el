@@ -167,7 +167,6 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	  (predicate nil)			;< or string-lessp
 	  (sort-lists nil))
       (message "Finding sort keys...")
-      (pmail-header-show-headers)
       (widen)
       (let ((msgnum 1))
 	(while (>= pmail-total-messages msgnum)
