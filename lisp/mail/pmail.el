@@ -2498,6 +2498,7 @@ otherwise, show it in full."
   "Return the value of message header NAME, nil if no such header
 exists.  MSG, if set identifies the message number to use.  The
 current mail message will be used otherwise."
+  (pmail-swap-buffers-maybe)
   (save-excursion
     (save-restriction
       (with-current-buffer pmail-buffer
