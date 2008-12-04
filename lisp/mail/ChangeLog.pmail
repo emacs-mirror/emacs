@@ -1,3 +1,7 @@
+2008-12-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail-get-header): Call pmail-swap-buffers-maybe.
+
 2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmailsort.el (pmail-sort-messages): Don't call removed function
