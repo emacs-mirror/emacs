@@ -63,7 +63,7 @@ column contains the number of characters in a block of this character
 set.  The FINAL-CHAR column contains an ISO-2022 <final-char> to use
 for designating this character set in ISO-2022-based coding systems.
 
-With prefix arg, the output format gets more cryptic,
+With prefix ARG, the output format gets more cryptic,
 but still shows the full information."
   (interactive "P")
   (help-setup-xref (list #'list-character-sets arg) (interactive-p))
@@ -175,25 +175,22 @@ SORT-KEY should be `name' or `iso-spec' (default `name')."
 ## The following attributes are listed in this order
 ## separated by a colon `:' in one line.
 ##	CHARSET-SYMBOL-NAME,
-##	DIMENSION (1 or 2)
-##	CHARS (94 or 96)
+##	DIMENSION (1-4)
+##	CHARS (number of characters in first dimension of charset)
 ##	ISO-FINAL-CHAR (character code of ISO-2022's final character)
 ##		-1 means that no final character is assigned.
 ##	DESCRIPTION (describing string of the charset)
 ")
-  (let ((l charset-list)
-	charset)
-    (while l
-      (setq charset (car l) l (cdr l))
-      (princ (format "%s:%d:%d:%d:%s\n"
-		     charset
-		     (charset-dimension charset)
-		     (charset-chars charset)
-;;;		     (char-width (make-char charset))
-;;; 		     (charset-direction charset)
-		     (charset-iso-final-char charset)
-;;;		     (charset-iso-graphic-plane charset)
-		     (charset-description charset))))))
+  (dolist (charset charset-list)
+    (princ (format "%s:%d:%d:%d:%s\n"
+		   charset
+		   (charset-dimension charset)
+		   (charset-chars charset)
+;;;		   (char-width (make-char charset))
+;;; 		   (charset-direction charset)
+		   (charset-iso-final-char charset)
+;;;		   (charset-iso-graphic-plane charset)
+		   (charset-description charset)))))
 
 (defvar non-iso-charset-alist nil
   "Obsolete.")
@@ -690,11 +687,9 @@ Priority order for recognizing coding systems when reading files:\n")
     (if (not (eq (car aliases) coding-system))
 	(princ (format "%s (alias of %s)\n" coding-system (car aliases)))
       (princ coding-system)
-      (setq aliases (cdr aliases))
-      (while aliases
+      (dolist (alias (cdr aliases))
 	(princ ",")
-	(princ (car aliases))
-	(setq aliases (cdr aliases)))
+	(princ alias))
       (princ (format ":%s:%c:%d:"
 		     type
 		     (coding-system-mnemonic coding-system)
@@ -997,19 +992,17 @@ see the function `describe-fontset' for the format of the list."
 
 (defun list-input-methods-1 ()
   (if (not input-method-alist)
-      (progn
-	(princ "
+      (princ "
 No input method is available, perhaps because you have not
-installed LEIM (Libraries of Emacs Input Methods)."))
+installed LEIM (Libraries of Emacs Input Methods).")
     (princ "LANGUAGE\n  NAME (`TITLE' in mode line)\n")
     (princ "    SHORT-DESCRIPTION\n------------------------------\n")
     (setq input-method-alist
 	  (sort input-method-alist
 		(lambda (x y) (string< (nth 1 x) (nth 1 y)))))
-    (let ((l input-method-alist)
-	  language elt)
-      (while l
-	(setq elt (car l) l (cdr l))
+
+    (let (language)
+      (dolist (elt input-method-alist)
 	(when (not (equal language (nth 1 elt)))
 	  (setq language (nth 1 elt))
 	  (princ language)
@@ -1020,9 +1013,7 @@ installed LEIM (Libraries of Emacs Input Methods)."))
 			 (if (and (consp title) (stringp (car title)))
 			     (car title)
 			   title))
-		       (let ((description (nth 4 elt)))
-			 (string-match ".*" description)
-			 (match-string 0 description))))))))
+		       (nth 4 elt)))))))
 
 ;;; DIAGNOSIS
 
@@ -1072,7 +1063,7 @@ system which uses fontsets)."
 	(insert "Terminal: " (getenv "TERM")))
       (insert "\n\n")
 
-      (if (eq window-system 'x)
+      (if window-system
 	  (let ((font (cdr (assq 'font (frame-parameters)))))
 	    (insert "The selected frame is using the "
 		    (if (query-fontset font) "fontset" "font")
@@ -1101,10 +1092,8 @@ system which uses fontsets)."
 	(insert-section 6 "Fontsets")
 	(insert "Fontset-Name\t\t\t\t\t\t  WDxHT Style\n")
 	(insert "------------\t\t\t\t\t\t  ----- -----\n")
-	(let ((fontsets (fontset-list)))
-	  (while fontsets
-	    (print-fontset (car fontsets) t)
-	    (setq fontsets (cdr fontsets)))))
+	(dolist (fontset (fontset-list))
+	  (print-fontset fontset t)))
       (print-help-return-message))))
 
 ;;;###autoload
