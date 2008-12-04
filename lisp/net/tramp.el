@@ -59,6 +59,13 @@
 
 ;;; Code:
 
+;; Since Emacs 23.1, loading messages have been disabled during
+;; autoload.  However, loading Tramp takes a while, and it could
+;; happen while typing a filename in the minibuffer.  Therefore, Tramp
+;; shall inform about.
+(when (and load-in-progress (null (current-message)))
+  (message "Loading tramp..."))
+
 ;; The Tramp version number and bug report address, as prepared by configure.
 (require 'trampver)
 (add-hook 'tramp-unload-hook
@@ -7463,6 +7470,9 @@ Only works for Bourne-like shells."
       (unload-feature 'tramp 'force)
     (error nil)))
 
+(when (and load-in-progress (string-match "Loading tramp..." (current-message)))
+  (message "Loading tramp...done"))
+
 (provide 'tramp)
 
 ;;; TODO:
@@ -7562,6 +7572,9 @@ Only works for Bourne-like shells."
 ;;   "-t". (Markus Triska)
 ;; * Support IPv6 hostnames.  Use "/[some:ip:v6:address:for:tramp]:/",
 ;;   which is the syntax used on web browsers. (Óscar Fuentes)
+;; * Add gvfs support.
+;; * Set `tramp-copy-size-limit' to 0, when there is no remote
+;;   encoding routine.
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
