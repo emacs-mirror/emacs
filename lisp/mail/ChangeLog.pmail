@@ -1,3 +1,8 @@
+2008-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail-convert-babyl-to-mbox): Reinitialize pmail-mode
+	variables after conversion.
+
 2008-12-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmailsort.el: Sync with pmailsort.el.
