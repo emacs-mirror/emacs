@@ -1,6 +1,6 @@
 2008-12-05  Chong Yidong  <cyd@stupidchicken.com>
 
-	* eval.c (syms_of_eval): Doc fix.
+	* eval.c (Vdebug_on_error): Doc fix.
 
 2008-12-05  Kenichi Handa  <handa@m17n.org>
 
