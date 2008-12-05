@@ -7246,9 +7246,9 @@ procfs_system_process_attributes (pid)
   char procbuf[1025], *p, *q;
   int fd;
   ssize_t nread;
-  const char *cmd;
+  const char *cmd = NULL;
   char *cmdline = NULL;
-  size_t cmdsize, cmdline_size;
+  size_t cmdsize = 0, cmdline_size;
   unsigned char c;
   int proc_id, ppid, uid, gid, pgrp, sess, tty, tpgid, thcount;
   unsigned long long utime, stime, cutime, cstime, start;
@@ -7300,7 +7300,6 @@ procfs_system_process_attributes (pid)
       procbuf[nread] = '\0';
       p = procbuf;
 
-      cmd = NULL;
       p = strchr (p, '(');
       if (p != NULL)
 	{
@@ -7312,6 +7311,8 @@ procfs_system_process_attributes (pid)
 	      cmdsize = q - cmd;
 	    }
 	}
+      else
+	q = NULL;
       if (cmd == NULL)
 	{
 	  cmd = "???";
@@ -7452,6 +7453,10 @@ procfs_system_process_attributes (pid)
 	}
       else
 	{
+	  if (!cmd)
+	    cmd = "???";
+	  if (!cmdsize)
+	    cmdsize = strlen (cmd);
 	  cmdline_size = cmdsize + 2;
 	  cmdline = xmalloc (cmdline_size + 1);
 	  strcpy (cmdline, "[");
