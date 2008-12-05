@@ -1,3 +1,8 @@
+2008-12-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (procfs_system_process_attributes): Don't use cmd,
+	cmdsize, and q without initializing them first.
+
 2008-12-04  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_draw): Initialize orig_clip before getting
