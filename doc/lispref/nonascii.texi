@@ -360,95 +360,97 @@ of character properties.  In particular, Emacs supports the
 Model}, and the Emacs character property database is derived from the
 Unicode Character Database (@acronym{UCD}).  See the
 @uref{http://www.unicode.org/versions/Unicode5.0.0/ch04.pdf, Character
-Properties chapter of the Unicode Standard}, for more details about
-Unicode character properties and their meaning.
+Properties chapter of the Unicode Standard}, for detailed description
+of Unicode character properties and their meaning.  This section
+assumes you are already familiar with that chapter of the Unicode
+Standard, and want to apply that knowledge to Emacs Lisp programs.
 
   The facilities documented in this section are useful for setting and
 retrieving properties of characters.
 
   In Emacs, each property has a name, which is a symbol, and a set of
-possible values, whose types depend on the property.  Here's the full
-list of character properties that Emacs knows about:
+possible values, whose types depend on the property; if a character
+does not have a certain property, the value is @code{nil}.  Here's the
+full list of value types for all the character properties that Emacs
+knows about:
 
 @table @code
 @item name
-The character's canonical unique name.  The value of the property is a
-string consisting of upper-case Latin letters A to Z, digits, spaces,
-and hyphen @samp{-} characters.
+This property corresponds to the Unicode @code{Name} property.  The
+value is a string consisting of upper-case Latin letters A to Z,
+digits, spaces, and hyphen @samp{-} characters.
 
 @item general-category
-This property assigns the character to one of the major classes, such
-as letters, punctuation, and symbols, and its important subclasses.
-The value is a symbol whose name is a 2-letter abbreviation.  The
-first letter specifies the character's major class and the second
-letter designates a subclass of that major class.
+This property corresponds to the Unicode @code{General_Category}
+property.  The value is a symbol whose name is a 2-letter abbreviation
+of the character's classification.
 
 @item canonical-combining-class
-This property classifies combining characters into several classes,
-depending on the details of their behavior in sequences of combining
-characters.  The property's value is an integer number.
+Corresponds to the Unicode @code{Canonical_Combining_Class} property.
+The value is an integer number.
 
 @item bidi-class
-This property specifies character attributes required for correct
-display of @dfn{bidirectional text} used by right-to-left scripts,
-such as Arabic and Hebrew.  The value is a symbol whose name is the
-Unicode @dfn{directional type} of the character.
+Corresponds to the Unicode @code{Bidi_Class} property.  The value is a
+symbol whose name is the Unicode @dfn{directional type} of the
+character.
 
 @item decomposition
-This property defines a mapping from a character to a sequence of one
-or more characters that is a canonical or compatibility equivalent to
-it.  The value is a list, whose first element may be a symbol
-representing a compatibility formatting tag, such as @code{<small>};
-the other elements are characters that give the compatibility
-decomposition sequence.
+Corresponds to the Unicode @code{Decomposition_Type} and
+@code{Decomposition_Value} properties.  The value is a list, whose
+first element may be a symbol representing a compatibility formatting
+tag, such as @code{small}@footnote{
+Note that Emacs strips the @samp{<..>} brackets from the corresponding
+Unicode tags; e.g., Unicode specifies @samp{<small>} where Emacs uses
+@samp{small}.
+}; the other elements are characters that give the compatibility
+decomposition sequence of this character.
 
 @item decimal-digit-value
-This property specifies a numeric value of characters that represent
-decimal digits.  The value is an integer number.
+Corresponds to the Unicode @code{Numeric_Value} property for
+characters whose @code{Numeric_Type} is @samp{Digit}.  The value is an
+integer number.
 
 @item digit
-This property specifies a numeric value of characters that represent
-digits, but not necessarily decimal.  Examples include compatibility
-subscript and superscript digits.  The value is an integer number.
+Corresponds to the Unicode @code{Numeric_Value} property for
+characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
+an integer number.  Examples of such characters include compatibility
+subscript and superscript digits, for which the value is the
+corresponding number.
 
 @item numeric-value
-This property specifies whether the character represents a number.
-Examples of characters that do include fractions, subscripts,
+Corresponds to the Unicode @code{Numeric_Value} property for
+characters whose @code{Numeric_Type} is @samp{Numeric}.  The value of
+this property is an integer of a floating-point number.  Examples of
+characters that have this property include fractions, subscripts,
 superscripts, Roman numerals, currency numerators, and encircled
-numbers.  The value is a symbol whose name gives the numeric value;
-for example, the value of this property for the character
-@code{U+2155} (@sc{vulgar fraction one fifth}) is the symbol
-@samp{1/5}.
+numbers.  For example, the value of this property for the character
+@code{U+2155} (@sc{vulgar fraction one fifth}) is @code{0.2}.
 
 @item mirrored
-This is a property of characters such as parentheses, which need to be
-mirrored horizontally in right to left scripts.  The value is a
-symbol, either @samp{Y} or @samp{N}.
+Corresponds to the Unicode @code{Bidi_Mirrored} property.  The value
+of this property is a symbol, either @samp{Y} or @samp{N}.
 
 @item old-name
-This property's value specifies the name, if any, of the character in
-the old version 1.0 of the Unicode Standard.  The value is a string.
+Corresponds to the Unicode @code{Unicode_1_Name} property.  The value
+is a string.
 
 @item iso-10646-comment
-This character's comment field from the ISO 10646 standard.  The value
-is a string, or @code{nil} if there's no comment.
+Corresponds to the Unicode @code{ISO_Comment} property.  The value is
+a string.
 
 @item uppercase
-If this character has an upper-case equivalent that is a single
-character, then the value of this property is that upper-case
-equivalent.  Otherwise, the value is @code{nil}.
+Corresponds to the Unicode @code{Simple_Uppercase_Mapping} property.
+The value of this property is a single character.
 
 @item lowercase
-If this character has an lower-case equivalent that is a single
-character, then the value of this property is that lower-case
-equivalent.  Otherwise, the value is @code{nil}.
+Corresponds to the Unicode @code{Simple_Lowercase_Mapping} property.
+The value of this property is a single character.
 
 @item titlecase
+Corresponds to the Unicode @code{Simple_Titlecase_Mapping} property.
 @dfn{Title case} is a special form of a character used when the first
-character of a word needs to be capitalized.  If a character has a
-title-case equivalent that is a single character, then the value of
-this property is that title-case equivalent.  Otherwise, the value is
-@code{nil}.
+character of a word needs to be capitalized.  The value of this
+property is a single character.
 @end table
 
 @defun get-char-code-property char propname
@@ -793,12 +795,10 @@ alternative encodings for the same characters; for example, there are
 three coding systems for the Cyrillic (Russian) alphabet: ISO,
 Alternativnyj, and KOI8.
 
-@c I think this paragraph is no longer correct.
-@ignore
-  Most coding systems specify a particular character code for
-conversion, but some of them leave the choice unspecified---to be chosen
-heuristically for each file, based on the data.
-@end ignore
+  Every coding system specifies a particular set of character code
+conversions, but the coding system @code{undecided} is special: it
+leaves the choice unspecified, to be chosen heuristically for each
+file, based on the file's data.
 
   In general, a coding system doesn't guarantee roundtrip identity:
 decoding a byte sequence using coding system, then encoding the
