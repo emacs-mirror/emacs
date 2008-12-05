@@ -1866,7 +1866,8 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
   flt_font_ft.font = font;
   flt_font_ft.ft_face = ft_face;
   flt_font_ft.otf = otf;
-  if (ASCII_CHAR_P (gstring.glyphs[0].c))
+  if (len > 1
+      && gstring.glyphs[1].c >= 0x300 && gstring.glyphs[1].c <= 0x36F)
     /* A little bit ad hoc.  Perhaps, shaper must get script and
        language information, and select a proper flt for them
        here.  */
