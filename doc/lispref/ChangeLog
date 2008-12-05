@@ -1,5 +1,8 @@
 2008-12-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* strings.texi (String Basics): Only unibyte strings that
+	represent key sequences hold 8-bit raw bytes.
+
 	* nonascii.texi (Coding System Basics): Rewrite @ignore'd
 	paragraph to speak about `undecided'.
 	(Character Properties): Don't explain the meaning of each
