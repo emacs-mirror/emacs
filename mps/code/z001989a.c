@@ -1,12 +1,50 @@
-/* fin1658a.c: Test for suspected defect described in job001658
+/* z001989a.c: Test for defect described in job001989
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2008 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
- * DESIGN
+ * OBJECTIVE
  *
- * See <design/poolmrg/#test>.
+ * Show that MPS messages are correct regardless of when the client 
+ * gets them.  (Note: "get" means "mps_message_get", throughout).
+ *
+ * DESIGN OVERVIEW
+ *
+ * Client (this test) does various actions that are known to provoke 
+ * MPS messages.  Client (this test) gets these messages at variable 
+ * times.
+ *
+ * Verification is:
+ *   - client gets all the expected messages, and no others, at the 
+ *     expected time;
+ *   - no asserts or failures.
+ *
+ * Additionally: client checks the message order.  MPS specification 
+ * does not currently guarantee that messages are queued in order of 
+ * posting, but in fact they should be, and it is a useful check.
+ * (But finalization messages from a single collection may be posted 
+ * in any order).
+ *
+ * The actions, messages to check for, and get times, are scripted 
+ * using a simple text code:
+ *   C - action: request garbage-collection;
+ *   F - action: make a (registered)finalized object unreachable;
+ *   b - message produced: collection begin (mps_message_type_gc_start);
+ *   e - message produced: collection end (mps_message_type_gc);
+ *   f - message produced: finalization (mps_message_type_finalization);
+ *   . - get messages.
+ *
+ * Example:
+ *  script "Cbe.FFCbffe.Cbe"
+ *  means:
+ *    Requests a collection and checks for _gc_start and _gc messages
+ *    (in that order, and no other messages).  Then drops refs to two 
+ *    objects, requests another collection, and checks for _gc_start, 
+ *    the two finalization messages (in either order), and _gc.  Then 
+ *    Requests a third collection and ends the test WITHOUT GETTING 
+ *    the last two messages (note: no "."), to test that 
+ *    mps_arena_destroy copes with ungot messages.
  *
  * DEPENDENCIES
  *
@@ -15,7 +53,12 @@
  *
  * NOTES
  *
- * This code was created by first copying <code/finalcv.c>.
+ * This code was created by first copying <code/fin1658a.c>.
+ * Future: actions could be expanded to include:
+ *   - mps_arena_start_collect;
+ *   - mps_arena_step;
+ *   - automatic (not client-requested) collections.
+ * etc.
  */
 
 #include "testlib.h"
@@ -95,13 +138,103 @@ static void report(mps_arena_t arena, int expect)
 }
 
 
+/* testscript -- runs a test script
+ *
+ */
+static void testscript(mps_arena_t arena, const char *script)
+{
+  int N = myrootCOUNT - 1;
+  const char *scriptAll = script;
+  char am[10];  /* Array of Messages (expected but not yet got) */
+  char *pmNext = am;  /* Pointer to where Next Message will be stored */
+  
+  printf("Script: \"%s\"\n", script);
+
+  while(*script != '\0') {
+    switch(*script) {
+      case '.': {
+        *pmNext = '\0';
+        printf("  Getting messages (expecting \"%s\")...\n", am);
+        report(arena, pmNext - am);
+        printf("  ...done.\n");
+        pmNext = am;
+        break;
+      }
+      case 'C': {
+        printf("  Collect\n");
+        mps_arena_collect(arena);
+        break;
+      }
+      case 'F': {
+        /* make 0 and N finalizable */
+        myroot[0] = NULL;
+        state[0] = finalizableSTATE;
+        myroot[N] = NULL;
+        state[N] = finalizableSTATE;
+        mps_arena_collect(arena);
+        report(arena, 2);
+
+        mps_arena_collect(arena);
+        report(arena, 0);
+
+        /* make 1 and N-1 refer to each other and finalizable */
+        DYLAN_VECTOR_SLOT(myroot[1]  , 1) = (mps_word_t)myroot[N-1];
+        DYLAN_VECTOR_SLOT(myroot[N-1], 1) = (mps_word_t)myroot[1];
+        myroot[1] = NULL;
+        state[1] = finalizableSTATE;
+        myroot[N-1] = NULL;
+        state[N-1] = finalizableSTATE;
+        mps_arena_collect(arena);
+        report(arena, 2);
+
+        break;
+      }
+      case 'b': {
+        *pmNext++ = *script;
+        break;
+      }
+      case 'e': {
+        *pmNext++ = *script;
+        break;
+      }
+      default: {
+        printf("unknown script command %c (script %s).\n",
+               *script, scriptAll);
+        cdie(FALSE, "unknown script command");
+        return;
+      }
+    }
+    Insist(pmNext - am < NELEMS(am));
+    script++;
+  }
+}
+
+
+/* test -- runs various test scripts
+ *
+ */
+static void test(mps_arena_t arena)
+{
+  testscript(arena, ".");
+  testscript(arena, "C.");
+  testscript(arena, "CCC");
+  testscript(arena, "");
+  testscript(arena, ".");
+}
+
+
+/* main2 -- create pools and objects, then call test
+ *
+ * Is called via mps_tramp, so matches mps_tramp_t function prototype,
+ * and use trampDataStruct to pass parameters.
+ */
+
 typedef struct trampDataStruct {
   mps_arena_t arena;
   mps_thr_t thr;
 } trampDataStruct;
 
-
-static void *test(void *arg, size_t s)
+static void *main2(void *arg, size_t s)
 {
   trampDataStruct trampData;
   mps_arena_t arena;
@@ -113,7 +246,6 @@ static void *test(void *arg, size_t s)
   mps_ap_t ap;
   mps_root_t root_stackreg;
   int i;
-  int N = myrootCOUNT - 1;
   void *stack_starts_here;  /* stack scanning starts here */
 
   trampData = *(trampDataStruct*)arg;
@@ -151,36 +283,13 @@ static void *test(void *arg, size_t s)
   /* stop stack scanning, to prevent unwanted object retention */
   mps_root_destroy(root_stackreg);
 
+#if 0
+  mps_message_type_enable(arena, mps_message_type_gc_start());
+  mps_message_type_enable(arena, mps_message_type_gc());
+#endif
   mps_message_type_enable(arena, mps_message_type_finalization());
 
-  mps_arena_collect(arena);
-  report(arena, 0);
-
-  /* make 0 and N finalizable */
-  myroot[0] = NULL;
-  state[0] = finalizableSTATE;
-  myroot[N] = NULL;
-  state[N] = finalizableSTATE;
-  mps_arena_collect(arena);
-  report(arena, 2);
-
-  mps_arena_collect(arena);
-  report(arena, 0);
-
-  /* make 1 and N-1 refer to each other and finalizable */
-  DYLAN_VECTOR_SLOT(myroot[1]  , 1) = (mps_word_t)myroot[N-1];
-  DYLAN_VECTOR_SLOT(myroot[N-1], 1) = (mps_word_t)myroot[1];
-  myroot[1] = NULL;
-  state[1] = finalizableSTATE;
-  myroot[N-1] = NULL;
-  state[N-1] = finalizableSTATE;
-  mps_arena_collect(arena);
-  report(arena, 2);
-
-  mps_arena_collect(arena);
-  report(arena, 0);
-
-  /* @@@@ <design/poolmrg/#test.promise.ut.nofinal.check> missing */
+  test(arena);
 
   mps_ap_destroy(ap);
   mps_root_destroy(root_table);
@@ -192,6 +301,10 @@ static void *test(void *arg, size_t s)
 }
 
 
+/* main -- arena, thr, and tramp
+ *
+ * Then call main2.
+ */
 int main(int argc, char **argv)
 {
   mps_arena_t arena;
@@ -210,7 +323,7 @@ int main(int argc, char **argv)
   die(mps_thread_reg(&thr, arena), "thread");
   
   /* tramp: used for protection (barrier hits) */
-  trampFunction = test;
+  trampFunction = main2;
   trampData.arena = arena;
   trampData.thr = thr;
   mps_tramp(&trampResult, trampFunction, &trampData, sizeof trampData);

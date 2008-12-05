@@ -19,7 +19,7 @@ all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe
      finalcv.exe fin1658a.exe finaltest.exe \
      arenacv.exe bttest.exe teletest.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
-     locbwcss.exe locusss.exe \
+     locbwcss.exe locusss.exe z001989a.exe \
      eventcnv.exe \
      mps.lib mpsplan.lib
 
@@ -38,7 +38,7 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awlu
      expt825.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      walkt0.exe locbwcss.exe locusss.exe \
-     exposet0.exe \
+     exposet0.exe z001989a.exe \
      replay.exe replaysw.exe eventcnv.exe \
      mmdw.lib mmsw.lib mps.lib mpsplan.lib mpsplcb.lib \
      mpsdy.dll:
@@ -211,6 +211,10 @@ $(PFM)\$(VARIETY)\btcv.exe: $(PFM)\$(VARIETY)\btcv.obj \
 
 $(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\z001989a.exe: $(PFM)\$(VARIETY)\z001989a.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
+	$(MRGOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\eventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
 	$(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\table.obj
