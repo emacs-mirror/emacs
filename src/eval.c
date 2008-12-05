@@ -3666,7 +3666,8 @@ If the value is a list, an error only means to enter the debugger
 if one of its condition symbols appears in the list.
 When you evaluate an expression interactively, this variable
 is temporarily non-nil if `eval-expression-debug-on-error' is non-nil.
-See also variable `debug-on-quit'.  */);
+The command `toggle-debug-on-error' toggles this.
+See also the variable `debug-on-quit'.  */);
   Vdebug_on_error = Qnil;
 
   DEFVAR_LISP ("debug-ignored-errors", &Vdebug_ignored_errors,
