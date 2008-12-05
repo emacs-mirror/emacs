@@ -58,10 +58,10 @@ Emacs strings (and in buffers): unibyte and multibyte (@pxref{Text
 Representations}).  For most Lisp programming, you don't need to be
 concerned with these two representations.
 
-  Sometimes key sequences are represented as strings.  When a string is
-a key sequence, string elements in the range 128 to 255 represent meta
-characters (which are large integers) rather than character
-codes in the range 128 to 255.
+  Sometimes key sequences are represented as unibyte strings.  When a
+unibyte string is a key sequence, string elements in the range 128 to
+255 represent meta characters (which are large integers) rather than
+character codes in the range 128 to 255.
 
   Strings cannot hold characters that have the hyper, super or alt
 modifiers; they can hold @acronym{ASCII} control characters, but no other
