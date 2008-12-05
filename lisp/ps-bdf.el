@@ -40,12 +40,15 @@
   (require 'ps-mule))
 
 ;;;###autoload
-(defvar bdf-directory-list
+(defcustom bdf-directory-list
   (if (memq system-type '(ms-dos windows-nt))
       (list (expand-file-name "fonts/bdf" installation-directory))
     '("/usr/local/share/emacs/fonts/bdf"))
-  "*List of directories to search for `BDF' font files.
-The default value is '(\"/usr/local/share/emacs/fonts/bdf\").")
+  "List of directories to search for `BDF' font files.
+The default value is '(\"/usr/local/share/emacs/fonts/bdf\")."
+  :type '(repeat :tag "BDF font directory list"
+		 (directory :tag "BDF font directory"))
+  :group 'ps-print-miscellany)
 
 ;; MS-DOS and MS-Windows users like to move the binary around after
 ;; it's built, but the value above is computed at load-up time.

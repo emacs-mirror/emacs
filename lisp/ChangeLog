@@ -2,6 +2,11 @@
 
 	* dired.el (dired-font-lock-keywords): Fix last change.
 
+2008-12-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-bdf.el (bdf-directory-list): Transform (defvar ... "*..")
+	into (defcustom ... "..." :type ... :group...).
+
 2008-12-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-diag.el (mule-diag): Display the window
