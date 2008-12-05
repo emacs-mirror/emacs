@@ -21,21 +21,19 @@ names---are clearly redundant, and have been removed.
 @item
 We have switched to a character representation specially designed for
 Emacs.  Rather than forcing all the widely used scripts artificially
-into alignment, like Unicode does, Emacs treats them all equally,
-giving each one a place in the space of character codes.  Thus,
-scripts do not need to fight over characters used in each one of them,
-as each has its own variant, and they all are different as far as
-Emacs is concerned.  For example, there's a Latin-1 c-cedilla
-character, and there's a Latin-2 c-cedilla; searching a buffer for the
-Latin-1 variant will only find that variant, but not the others.  This
-design allows us to get rid of a confusing situation in Emacs 23,
-whereby a character can simultaneously belong to any number of
-charsets.
+into alignment, as Unicode does, Emacs treats them all equally, giving
+each one a place in the space of character codes.  Thus, scripts do
+not need to fight over characters used in each one of them, as each
+has its own variant, and they all are different as far as Emacs is
+concerned.  For example, there's a Latin-1 c-cedilla character, and
+there's a Latin-2 c-cedilla; searching a buffer for the Latin-1
+variant will only find that variant, but not the others.  This design
+allows us to eliminate the confusing practice in Emacs 23 whereby one
+character can simultaneously belong to any number of charsets.
 
 @item
-Emacs now uses an internal encoding, known as @samp{emacs-mule}, which
-is peculiar to Emacs and does not map easily into any of the existing
-character encodings, including Unicode.  This was imperative to
+Emacs now uses its own special internal encoding for non-@acronym{ASCII}
+characters, known as @samp{emacs-mule}.  This was imperative to
 support several different variants of the same character, each one
 belonging to its own script: @samp{emacs-mule} marks each character
 with its script, to better discern them from one another.
@@ -63,7 +61,7 @@ Emacs can no longer display frames on X windows and text terminals
 (ttys) simultaneously.  If you start Emacs as an X application, the
 Emacs job can only create X frames; if you start Emacs on a tty, the
 Emacs job can only use that tty.  No more confusion about which type
-of frame will @command{emacsclient} use in any given Emacs session!
+of frame @command{emacsclient} will use in any given Emacs session!
 
 @item
 Emacs can no longer be started as a daemon.  We decided that having an
