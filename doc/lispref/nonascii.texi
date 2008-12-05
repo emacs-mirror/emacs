@@ -628,6 +628,23 @@ that fits the second argument of @code{decode-char} above.  If
 @code{nil}.
 @end defun
 
+  The following function comes in handy for applying a certain
+function to all or part of the characters in a charset:
+
+@defun map-charset-chars function charset &optional arg from to
+Call @var{function} for characters in @var{charset}.  @var{function}
+is called with two arguments.  The first one is a cons cell
+@code{(@var{from} .  @var{to})}, where @var{from} and @var{to}
+indicate a range of characters contained in charset.  The second
+argument is the optional argument @var{arg}.
+
+By default, the range of codepoints passed to @var{function} includes
+all the characters in @var{charset}, but optional arguments @var{from}
+and @var{to} limit that to the range of characters between these two
+codepoints.  If either of them is @code{nil}, it defaults to the first
+or last codepoint of @var{charset}, respectively.
+@end defun
+
 @node Scanning Charsets
 @section Scanning for Character Sets
 
