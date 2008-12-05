@@ -9,6 +9,7 @@
  * Show that MPS messages are correct regardless of when the client 
  * gets them.  (Note: "get" means "mps_message_get", throughout).
  *
+ *
  * DESIGN OVERVIEW
  *
  * Client (this test) does various actions that are known to provoke 
@@ -45,6 +46,19 @@
  *    Requests a third collection and ends the test WITHOUT GETTING 
  *    the last two messages (note: no "."), to test that 
  *    mps_arena_destroy copes with ungot messages.
+ *
+ * Each script runs in a newly created arena.
+ *
+ *
+ * CODE OVERVIEW
+ *
+ * main() has the list of testscripts.  
+ *
+ * testscriptA() and testscriptB() set up a new arena and objects for 
+ * this test script.
+ *
+ * testscriptC() actually runs the script.
+ *
  *
  * DEPENDENCIES
  *
@@ -99,8 +113,12 @@ enum {
 };
 
 
-/* report -- collect messages, report, and check objects were */
-/* legally finalized. */
+/* report -- get and check messages
+ *
+ * Get messages, report what was got, check they are the expected 
+ * messages, and (for finalization messages) check that these objects 
+ * should have been finalized (because we made them unreachable).
+ */
 static void report(mps_arena_t arena, int expect)
 {
   int found = 0;
@@ -138,17 +156,15 @@ static void report(mps_arena_t arena, int expect)
 }
 
 
-/* testscript -- runs a test script
+/* testscriptC -- actually runs a test script
  *
  */
-static void testscript(mps_arena_t arena, const char *script)
+static void testscriptC(mps_arena_t arena, const char *script)
 {
   int N = myrootCOUNT - 1;
   const char *scriptAll = script;
   char am[10];  /* Array of Messages (expected but not yet got) */
   char *pmNext = am;  /* Pointer to where Next Message will be stored */
-  
-  printf("Script: \"%s\"\n", script);
 
   while(*script != '\0') {
     switch(*script) {
@@ -166,14 +182,17 @@ static void testscript(mps_arena_t arena, const char *script)
         break;
       }
       case 'F': {
+        printf("  Finalising two objects\n");
         /* make 0 and N finalizable */
         myroot[0] = NULL;
         state[0] = finalizableSTATE;
         myroot[N] = NULL;
         state[N] = finalizableSTATE;
-        mps_arena_collect(arena);
-        report(arena, 2);
-
+        break;
+      }
+      case '!': {
+        /* This case-section is left-over guff from fin1658a.c */
+        
         mps_arena_collect(arena);
         report(arena, 0);
 
@@ -197,6 +216,10 @@ static void testscript(mps_arena_t arena, const char *script)
         *pmNext++ = *script;
         break;
       }
+      case 'f': {
+        *pmNext++ = *script;
+        break;
+      }
       default: {
         printf("unknown script command %c (script %s).\n",
                *script, scriptAll);
@@ -210,20 +233,7 @@ static void testscript(mps_arena_t arena, const char *script)
 }
 
 
-/* test -- runs various test scripts
- *
- */
-static void test(mps_arena_t arena)
-{
-  testscript(arena, ".");
-  testscript(arena, "C.");
-  testscript(arena, "CCC");
-  testscript(arena, "");
-  testscript(arena, ".");
-}
-
-
-/* main2 -- create pools and objects, then call test
+/* testscriptB -- create pools and objects; call testscriptC
  *
  * Is called via mps_tramp, so matches mps_tramp_t function prototype,
  * and use trampDataStruct to pass parameters.
@@ -232,13 +242,15 @@ static void test(mps_arena_t arena)
 typedef struct trampDataStruct {
   mps_arena_t arena;
   mps_thr_t thr;
+  const char *script;
 } trampDataStruct;
 
-static void *main2(void *arg, size_t s)
+static void *testscriptB(void *arg, size_t s)
 {
   trampDataStruct trampData;
   mps_arena_t arena;
   mps_thr_t thr;
+  const char *script;
   mps_fmt_t fmt;
   mps_chain_t chain;
   mps_pool_t amc;
@@ -246,12 +258,14 @@ static void *main2(void *arg, size_t s)
   mps_ap_t ap;
   mps_root_t root_stackreg;
   int i;
+  int N = myrootCOUNT - 1;
   void *stack_starts_here;  /* stack scanning starts here */
 
+  Insist(s == sizeof(trampDataStruct));
   trampData = *(trampDataStruct*)arg;
   arena = trampData.arena;
   thr = trampData.thr;
-  (void)s;
+  script = trampData.script;
 
   die(mps_fmt_create_A(&fmt, arena, dylan_fmt_A()), "fmt_create");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
@@ -269,7 +283,7 @@ static void *main2(void *arg, size_t s)
       "root_stackreg");
 
   /* Make myrootCOUNT registered-for-finalization objects. */
-  /* <design/poolmrg/#test.promise.ut.alloc> */
+  /* Each is a dylan vector with 2 slots, inited to: (index, NULL) */
   for(i = 0; i < myrootCOUNT; ++i) {
     mps_word_t v;
     die(make_dylan_vector(&v, ap, 2), "make_dylan_vector");
@@ -279,6 +293,16 @@ static void *main2(void *arg, size_t s)
     myroot[i] = (void*)v;
     state[i] = rootSTATE;
   }
+  
+  /* leave 0 and N containing NULL refs */
+  
+  /* make 1 and N-1 refer to each other */
+  DYLAN_VECTOR_SLOT(myroot[1]  , 1) = (mps_word_t)myroot[N-1];
+  DYLAN_VECTOR_SLOT(myroot[N-1], 1) = (mps_word_t)myroot[1];
+
+  /* make 2 and 3 refer to each other */
+  DYLAN_VECTOR_SLOT(myroot[2], 1) = (mps_word_t)myroot[3];
+  DYLAN_VECTOR_SLOT(myroot[3], 1) = (mps_word_t)myroot[2];
 
   /* stop stack scanning, to prevent unwanted object retention */
   mps_root_destroy(root_stackreg);
@@ -289,7 +313,7 @@ static void *main2(void *arg, size_t s)
 #endif
   mps_message_type_enable(arena, mps_message_type_finalization());
 
-  test(arena);
+  testscriptC(arena, script);
 
   mps_ap_destroy(ap);
   mps_root_destroy(root_table);
@@ -301,11 +325,9 @@ static void *main2(void *arg, size_t s)
 }
 
 
-/* main -- arena, thr, and tramp
- *
- * Then call main2.
+/* testscriptA -- create arena, thr, and tramp; call testscriptB
  */
-int main(int argc, char **argv)
+static void testscriptA(const char *script)
 {
   mps_arena_t arena;
   mps_thr_t thr;
@@ -313,23 +335,50 @@ int main(int argc, char **argv)
   trampDataStruct trampData;
   void *trampResult;
 
-  randomize(argc, argv);
+  printf("Script: \"%s\".  Create arena etc.\n", script);
 
   /* arena */
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create");
-  
+
   /* thr: used to stop/restart multiple threads */
   die(mps_thread_reg(&thr, arena), "thread");
-  
+
   /* tramp: used for protection (barrier hits) */
-  trampFunction = main2;
+  /* call testscriptB! */
+  trampFunction = testscriptB;
   trampData.arena = arena;
   trampData.thr = thr;
+  trampData.script = script;
   mps_tramp(&trampResult, trampFunction, &trampData, sizeof trampData);
 
   mps_thread_dereg(thr);
   mps_arena_destroy(arena);
+
+  printf("  Destroy arena etc.\n\n");
+
+}
+
+
+/* main -- runs various test scripts
+ *
+ */
+int main(int argc, char **argv)
+{
+
+  randomize(argc, argv);
+
+  /* really basic scripts */
+  testscriptA(".C.CCC.");
+
+  /* simple finalization */
+  testscriptA("FCff.");
+
+  /* simple finalization */
+  testscriptA("FCff.");
+
+  /* failure? */
+  testscriptA("FC.");
 
   fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
