@@ -122,36 +122,56 @@ enum {
 static void report(mps_arena_t arena, int expect)
 {
   int found = 0;
+  mps_message_type_t type;
 
   /* Test any finalized objects */
-  while (mps_message_poll(arena)) {
+  while (mps_message_queue_type(&type, arena)) {
     mps_message_t message;
     mps_word_t *obj;
     mps_word_t objind;
     mps_addr_t objaddr;
 
-    cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
+    cdie(mps_message_get(&message, arena, type),
          "get");
-
     found += 1;
-    mps_message_finalization_ref(&objaddr, arena, message);
-    obj = objaddr;
-    objind = DYLAN_INT_INT(DYLAN_VECTOR_SLOT(obj, 0));
-    printf("    Finalization for object %lu at %p\n", objind, objaddr);
-    cdie(myroot[objind] == NULL, "finalized live");
-    cdie(state[objind] == finalizableSTATE, "not finalizable");
-    state[objind] = finalizedSTATE;
-    mps_message_discard(arena, message);
+    
+    switch(type) {
+      case mps_message_type_gc_start(): {
+        printf("    Begin Collection\n");
+        mps_message_discard(arena, message);
+        break;
+      }
+      case mps_message_type_gc(): {
+        printf("    End Collection\n");
+        mps_message_discard(arena, message);
+        break;
+      }
+      case mps_message_type_finalization(): {
+        mps_message_finalization_ref(&objaddr, arena, message);
+        obj = objaddr;
+        objind = DYLAN_INT_INT(DYLAN_VECTOR_SLOT(obj, 0));
+        printf("    Finalization for object %lu at %p\n", objind, objaddr);
+        cdie(myroot[objind] == NULL, "finalized live");
+        cdie(state[objind] == finalizableSTATE, "not finalizable");
+        state[objind] = finalizedSTATE;
+        mps_message_discard(arena, message);
+        break;
+      }
+      default: {
+        cdie(0, "message type");
+        break;
+      }
+    }
   }
   
   if(found < expect) {
-    printf("...expected %d finalizations, but got fewer: only %d!\n", 
+    printf("...expected %d messages, but got fewer: only %d!\n", 
            expect, found);
-    cdie(FALSE, "wrong number of finalizations");
+    cdie(FALSE, "wrong number of messages");
   } else if(found > expect) {
-    printf("...expected %d finalizations, but got more: %d!\n", 
+    printf("...expected %d messages, but got more: %d!\n", 
            expect, found);
-    cdie(FALSE, "wrong number of finalizations");
+    cdie(FALSE, "wrong number of messages");
   }
 }
 
@@ -314,10 +334,8 @@ static void *testscriptB(void *arg, size_t s)
   /* stop stack scanning, to prevent unwanted object retention */
   mps_root_destroy(root_stackreg);
 
-#if 0
   mps_message_type_enable(arena, mps_message_type_gc_start());
   mps_message_type_enable(arena, mps_message_type_gc());
-#endif
   mps_message_type_enable(arena, mps_message_type_finalization());
 
   testscriptC(arena, script);
@@ -376,13 +394,14 @@ int main(int argc, char **argv)
   randomize(argc, argv);
 
   /* really basic scripts */
-  testscriptA(".C.CCC.");
-  testscriptA(".C.CCC");
+  testscriptA("Cbe.");
+  testscriptA(".Cbe.CbeCbeCbe.");
+  testscriptA(".Cbe.CbeCbeCbe");
 
   /* simple finalization */
-  testscriptA("FFCff.");
-  testscriptA("FFCff.FFCff.");
-  testscriptA("FFCff.FC.F.Cff.FFCf.FF.Cfff.");
+  testscriptA("FFCbffe.");
+  testscriptA("FFCbffe.FFCbffe.");
+  testscriptA("FFCbffe.FCbe.F.Cbffe.FFCbfe.FF.Cbfffe.");
 
   /* test failure: */
   /*testscriptA("FC.");*/
