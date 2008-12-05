@@ -1,3 +1,7 @@
+2008-12-05  Richard M Stallman  <rms@gnu.org>
+
+	* anti.texi (Antinews): Minor fixes.
+
 2008-12-03  Glenn Morris  <rgm@gnu.org>
 
 	* maintaining.texi (Old Revisions): Fix diff-switches description.
