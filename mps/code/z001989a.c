@@ -137,7 +137,7 @@ static void report(mps_arena_t arena, int expect)
     mps_message_finalization_ref(&objaddr, arena, message);
     obj = objaddr;
     objind = DYLAN_INT_INT(DYLAN_VECTOR_SLOT(obj, 0));
-    printf("Finalizing: object %lu at %p\n", objind, objaddr);
+    printf("    Finalization for object %lu at %p\n", objind, objaddr);
     cdie(myroot[objind] == NULL, "finalized live");
     cdie(state[objind] == finalizableSTATE, "not finalizable");
     state[objind] = finalizedSTATE;
@@ -161,7 +161,10 @@ static void report(mps_arena_t arena, int expect)
  */
 static void testscriptC(mps_arena_t arena, const char *script)
 {
-  int N = myrootCOUNT - 1;
+  unsigned isLoNext = 1;
+  unsigned loNext = 0;
+  unsigned hiNext = myrootCOUNT - 1;
+  unsigned i;
   const char *scriptAll = script;
   char am[10];  /* Array of Messages (expected but not yet got) */
   char *pmNext = am;  /* Pointer to where Next Message will be stored */
@@ -182,16 +185,20 @@ static void testscriptC(mps_arena_t arena, const char *script)
         break;
       }
       case 'F': {
-        printf("  Finalising two objects\n");
-        /* make 0 and N finalizable */
-        myroot[0] = NULL;
-        state[0] = finalizableSTATE;
-        myroot[N] = NULL;
-        state[N] = finalizableSTATE;
+        Insist(loNext <= hiNext);
+        i = isLoNext ? loNext++ : hiNext--;
+        isLoNext = 1 - isLoNext;
+        
+        printf("  drop ref to make object %u Finalizable\n", i);
+        /* make i finalizable */
+        myroot[i] = NULL;
+        state[i] = finalizableSTATE;
         break;
       }
       case '!': {
         /* This case-section is left-over guff from fin1658a.c */
+        
+        int N = myrootCOUNT - 1;
         
         mps_arena_collect(arena);
         report(arena, 0);
@@ -335,7 +342,7 @@ static void testscriptA(const char *script)
   trampDataStruct trampData;
   void *trampResult;
 
-  printf("Script: \"%s\".  Create arena etc.\n", script);
+  printf("Script: \"%s\"\n  Create arena etc.\n", script);
 
   /* arena */
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
@@ -370,15 +377,15 @@ int main(int argc, char **argv)
 
   /* really basic scripts */
   testscriptA(".C.CCC.");
+  testscriptA(".C.CCC");
 
   /* simple finalization */
-  testscriptA("FCff.");
+  testscriptA("FFCff.");
+  testscriptA("FFCff.FFCff.");
+  testscriptA("FFCff.FC.F.Cff.FFCf.FF.Cfff.");
 
-  /* simple finalization */
-  testscriptA("FCff.");
-
-  /* failure? */
-  testscriptA("FC.");
+  /* test failure: */
+  /*testscriptA("FC.");*/
 
   fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
