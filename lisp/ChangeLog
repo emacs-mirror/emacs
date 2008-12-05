@@ -1,3 +1,8 @@
+2008-12-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-diag.el (mule-diag): Display the window
+	system version in a less laconic way.
+
 2008-12-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ibuffer.el (ibuffer-sort-bufferlist): Require ibuf-ext
