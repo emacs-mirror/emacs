@@ -11820,8 +11820,8 @@
 
 	* calendar/calendar.el (increment-calendar-month): Optionally handle
 	systems without 12 months per year.
-
 	(calendar-date-is-visible-p): Doc fix.  Simplify.
+
 	* calendar/holidays.el (holiday-filter-visible-calendar): Return result
 	from dolist.
 
