@@ -7434,6 +7434,14 @@ procfs_system_process_attributes (pid)
 	  cmdline[0] = '\0';
 	  if ((nread = read (fd, cmdline, cmdline_size)) >= 0)
 	    cmdline[nread++] = '\0';
+	  else
+	    {
+	      /* Assigning zero to `nread' makes us skip the following
+		 two loops, assign zero to cmdline_size, and enter the
+		 following `if' clause that handles unknown command
+		 lines.  */
+	      nread = 0;
+	    }
 	  /* We don't want trailing null characters.  */
 	  for (p = cmdline + nread - 1; p > cmdline && !*p; p--)
 	    nread--;
@@ -7451,7 +7459,7 @@ procfs_system_process_attributes (pid)
 	    }
 	  cmdline_size = nread;
 	}
-      else
+      if (!cmdline_size)
 	{
 	  if (!cmd)
 	    cmd = "???";
