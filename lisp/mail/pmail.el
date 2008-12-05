@@ -945,17 +945,23 @@ MSGNUM, if present, indicates the malformed message."
     (error "Invalid mbox format mail file.")))
 
 (defun pmail-convert-babyl-to-mbox ()
-  "Convert the mail file from Babyl version 5 to mbox."
+  "Convert the mail file from Babyl version 5 to mbox.
+This function also reinitializes local variables used by Pmail."
   (let ((old-file (make-temp-file "pmail"))
 	(new-file (make-temp-file "pmail")))
     (unwind-protect
 	(progn
+	  (kill-all-local-variables)
 	  (write-region (point-min) (point-max) old-file)
 	  (unrmail old-file new-file)
+	  (unrmail old-file "/home/cyd/pmail-test")
 	  (message "Replacing BABYL format with mbox format...")
 	  (let ((inhibit-read-only t))
 	    (erase-buffer)
 	    (insert-file-contents-literally new-file)
+	    (pmail-mode-1)
+	    (pmail-perm-variables)
+	    (pmail-variables)
 	    (goto-char (point-max))
 	    (pmail-set-message-counters))
 	  (message "Replacing BABYL format with mbox format...done"))
