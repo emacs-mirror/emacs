@@ -452,7 +452,7 @@ Subexpression 2 must end right before the \\n or \\r.")
    ;; Explicitly put the default face on file names ending in a colon to
    ;; avoid fontifying them as directory header.
    (list (concat dired-re-maybe-mark dired-re-inode-size dired-re-perms ".*:$")
-	 '(".+" (dired-move-to-filename) nil (0 default)))
+	 '(".+" (dired-move-to-filename) nil (0 'default)))
    ;;
    ;; Directory headers.
    (list dired-subdir-regexp '(1 dired-header-face))
