@@ -4,6 +4,7 @@
 	paragraph to speak about `undecided'.
 	(Character Properties): Don't explain the meaning of each
 	property; instead, identify their Unicode Standard names.
+	(Character Sets): Document `map-charset-chars'.
 
 2008-12-02  Glenn Morris  <rgm@gnu.org>
 
