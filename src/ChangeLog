@@ -1,3 +1,8 @@
+2008-12-05  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_shape_by_flt): Use "combining" flt if the
+	second character is a combining character.
+
 2008-12-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* process.c (procfs_system_process_attributes): Don't use cmd,
@@ -23,6 +28,7 @@
 
 	* coding.c (decode_coding_charset): Check type of an element of
 	vector VALIDS.
+	(encode_coding_emacs_mule): Be sure to set `code'.
 
 	* fontset.c (face_for_char): Handle invalid charset property
 	correctly.
