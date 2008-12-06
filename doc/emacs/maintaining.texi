@@ -1,6 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining, Abbrevs, Building, Top
 @chapter Maintaining Large Programs
@@ -713,9 +714,11 @@ value of @code{vc-@var{backend}-diff-switches}, @code{vc-diff-switches},
 and @code{diff-switches} (@pxref{Comparing Files}), in that order.
 Since @code{nil} means to check the next variable in the sequence,
 either of the first two may use the value @code{t} to mean no switches at all.
-The @samp{vc@dots{}diff-switches} variables are all either @code{nil}
-or @code{t} (for those version control systems that do not accept common
-@code{diff} options) by default.
+Most of the @samp{vc@dots{}diff-switches} variables default to
+@code{nil}, but some default to @code{t}.  These are for those version
+control systems (e.g. SVN) whose @code{diff} implementations do not
+accept common options (e.g. @samp{-c}) likely to be in
+@code{diff-switches}.
 
   The buffer produced by @kbd{C-x v =} supports the commands of
 Compilation mode (@pxref{Compilation Mode}), such as @kbd{C-x `} and
