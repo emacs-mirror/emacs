@@ -119,9 +119,10 @@ enum {
  * messages, and (for finalization messages) check that these objects 
  * should have been finalized (because we made them unreachable).
  */
-static void report(mps_arena_t arena, int expect)
+static void report(mps_arena_t arena, const char *pm)
 {
   int found = 0;
+  char mFound = '\0';
   mps_message_type_t type;
 
   /* Test any finalized objects */
@@ -139,11 +140,13 @@ static void report(mps_arena_t arena, int expect)
       case mps_message_type_gc_start(): {
         printf("    Begin Collection\n");
         mps_message_discard(arena, message);
+        mFound = 'b';
         break;
       }
       case mps_message_type_gc(): {
         printf("    End Collection\n");
         mps_message_discard(arena, message);
+        mFound = 'e';
         break;
       }
       case mps_message_type_finalization(): {
@@ -155,6 +158,7 @@ static void report(mps_arena_t arena, int expect)
         cdie(state[objind] == finalizableSTATE, "not finalizable");
         state[objind] = finalizedSTATE;
         mps_message_discard(arena, message);
+        mFound = 'f';
         break;
       }
       default: {
@@ -162,17 +166,14 @@ static void report(mps_arena_t arena, int expect)
         break;
       }
     }
+    
+    cdie('\0' != *pm, "Found message, but did not expect any");
+    cdie(mFound == *pm, "Found message type != Expected message type");
+    pm++;
   }
   
-  if(found < expect) {
-    printf("...expected %d messages, but got fewer: only %d!\n", 
-           expect, found);
-    cdie(FALSE, "wrong number of messages");
-  } else if(found > expect) {
-    printf("...expected %d messages, but got more: %d!\n", 
-           expect, found);
-    cdie(FALSE, "wrong number of messages");
-  }
+  mFound = '\0';
+  cdie(mFound == *pm, "No message found, but expected one");
 }
 
 
@@ -194,7 +195,7 @@ static void testscriptC(mps_arena_t arena, const char *script)
       case '.': {
         *pmNext = '\0';
         printf("  Getting messages (expecting \"%s\")...\n", am);
-        report(arena, pmNext - am);
+        report(arena, am);
         printf("  ...done.\n");
         pmNext = am;
         break;
@@ -213,26 +214,6 @@ static void testscriptC(mps_arena_t arena, const char *script)
         /* make i finalizable */
         myroot[i] = NULL;
         state[i] = finalizableSTATE;
-        break;
-      }
-      case '!': {
-        /* This case-section is left-over guff from fin1658a.c */
-        
-        int N = myrootCOUNT - 1;
-        
-        mps_arena_collect(arena);
-        report(arena, 0);
-
-        /* make 1 and N-1 refer to each other and finalizable */
-        DYLAN_VECTOR_SLOT(myroot[1]  , 1) = (mps_word_t)myroot[N-1];
-        DYLAN_VECTOR_SLOT(myroot[N-1], 1) = (mps_word_t)myroot[1];
-        myroot[1] = NULL;
-        state[1] = finalizableSTATE;
-        myroot[N-1] = NULL;
-        state[N-1] = finalizableSTATE;
-        mps_arena_collect(arena);
-        report(arena, 2);
-
         break;
       }
       case 'b': {
@@ -395,8 +376,10 @@ int main(int argc, char **argv)
 
   /* really basic scripts */
   testscriptA("Cbe.");
+#if 0
   testscriptA(".Cbe.CbeCbeCbe.");
   testscriptA(".Cbe.CbeCbeCbe");
+#endif
 
   /* simple finalization */
   testscriptA("FFCbffe.");
