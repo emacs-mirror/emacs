@@ -1,3 +1,8 @@
+2008-12-04  David Engster  <dengste@eml.cc>
+
+	* gnus.texi (nnmairix): Mention mairix.el.  Point out the importance
+	  of nnml-get-new-mail.  Change URL for mairix patch.
+
 2008-12-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (About This Manual): Clarify behavior of `C-x * t'.

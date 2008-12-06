@@ -33,6 +33,11 @@
 	variable for debugging bug#464 and bug#1174.
 	(nnimap-demule): Use it.
 
+2008-11-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-score.el (gnus-score-find-trace): Handle default score in total
+	score calculation correctly.
+
 2008-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el (message-send-mail): Just set the buffer to unibyte
@@ -1538,7 +1543,7 @@
 	* gnus-uu.el (gnus-uu-yenc-article): Use insert-buffer-substring.
 
 	* gnus-art.el, gnus-spec.el, gnus-sum.el, gnus-util.el:
-	* message.el, mm-view.el, sieve-manage, smime.el:
+	* message.el, mm-view.el, sieve-manage.el, smime.el:
 	Add declare-function compatibility definition.
 
 	* gnus-art.el (w3-region, w3m-region, Info-menu):

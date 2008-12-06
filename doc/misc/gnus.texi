@@ -4450,7 +4450,9 @@ one of these back ends for using @code{nnmairix}.  Other back ends, like
 If you absolutely must use mbox and still want to use @code{nnmairix},
 you can set up a local @acronym{IMAP} server, which you then access via
 @code{nnimap}.  This is a rather massive setup for accessing some mbox
-files, so just change to MH or Maildir already...
+files, so just change to MH or Maildir already...  However, if you're
+really, really passionate about using mbox, you might want to look into
+the package @file{mairix.el}, which comes with Emacs 23.
 
 @node What nnmairix does
 @subsubsection What nnmairix does
@@ -4472,7 +4474,7 @@ automatically update themselves by calling mairix.
 
 You might ask why you need @code{nnmairix} at all, since mairix already
 creates the group, populates it with links to the mails so that you can
-then access it with Gnus, right? Well, this @emph{might} work, but often
+then access it with Gnus, right?  Well, this @emph{might} work, but often
 does not---at least not without problems.  Most probably you will get
 strange article counts, and sometimes you might see mails which Gnus
 claims have already been canceled and are inaccessible.  This is due to
@@ -4482,21 +4484,22 @@ use mairix with an @acronym{IMAP} server (I had Dovecot complaining
 about corrupt index files when mairix changed the contents of the search
 group).  Using @code{nnmairix} should circumvent these problems.
 
-@code{nnmairix} is not really a mail back end---it's actually more like a
-wrapper, sitting between a ``real'' mail back end where mairix stores the
-searches and the Gnus front end.  You can choose between three different
-mail back ends for the mairix folders: @code{nnml}, @code{nnmaildir} or
-@code{nnimap}.  @code{nnmairix} will call the mairix binary so that the
-search results are stored in folders named
+@code{nnmairix} is not really a mail back end---it's actually more like
+a wrapper, sitting between a ``real'' mail back end where mairix stores
+the searches and the Gnus front end.  You can choose between three
+different mail back ends for the mairix folders: @code{nnml},
+@code{nnmaildir} or @code{nnimap}.  @code{nnmairix} will call the mairix
+binary so that the search results are stored in folders named
 @code{zz_mairix-<NAME>-<NUMBER>} on this mail back end, but it will
-present these folders in the Gnus front end only with @code{<NAME>}.  You
-can use an existing mail back end where you already store your mail, but
-if you're uncomfortable with @code{nnmairix} creating new mail groups
-alongside your other mail, you can also create e.g. a new
-@code{nnmaildir} server exclusively for mairix.  However, a special case
-exists if you want to use mairix remotely on an IMAP server with
-@code{nnimap}---here the mairix folders and your other mail must be on
-the same @code{nnimap} back end.
+present these folders in the Gnus front end only with @code{<NAME>}.
+You can use an existing mail back end where you already store your mail,
+but if you're uncomfortable with @code{nnmairix} creating new mail
+groups alongside your other mail, you can also create e.g. a new
+@code{nnmaildir} or @code{nnml} server exclusively for mairix, but then
+make sure those servers do not accidentally receive your new mail
+(@pxref{nnmairix caveats}).  A special case exists if you want to use
+mairix remotely on an IMAP server with @code{nnimap}---here the mairix
+folders and your other mail must be on the same @code{nnimap} back end.
 
 @node Setting up mairix
 @subsubsection Setting up mairix
@@ -4600,9 +4603,12 @@ Just hit @kbd{TAB} to see the available servers.  Currently, servers
 which are accessed through @code{nnmaildir}, @code{nnimap} and
 @code{nnml} are supported.  As explained above, for locally stored
 mails, this can be an existing server where you store your mails.
-However, you can also create e.g. a new @code{nnmaildir} server
-exclusively for @code{nnmairix} in your secondary select methods
-(@pxref{Finding the News}).  If you want to use mairix remotely on an
+However, you can also create e.g. a new @code{nnmaildir} or @code{nnml}
+server exclusively for @code{nnmairix} in your secondary select methods
+(@pxref{Finding the News}).  If you use a secondary @code{nnml} server
+just for mairix, make sure that you explicitly set the server variable
+@code{nnml-get-new-mail} to @code{nil}, or you might loose mail
+(@pxref{nnmairix caveats}).  If you want to use mairix remotely on an
 @acronym{IMAP} server, you have to choose the corresponding
 @code{nnimap} server here.
 
@@ -4794,7 +4800,7 @@ First of: you really need a patched mairix binary for using the marks
 propagation feature efficiently. Otherwise, you would have to update
 the mairix database all the time. You can get the patch at
 
-@uref{http://m61s02.vlinux.de/mairix-maildir-patch.tar}
+@uref{http://www.randomsample.de/mairix-maildir-patch.tar}
 
 You need the mairix v0.21 source code for this patch; everything else
 is explained in the accompanied readme file. If you don't want to use
@@ -4974,8 +4980,20 @@ for turning it off for all groups beginning with @samp{zz_}:
 
 @itemize
 @item
-If you use the Gnus agent (@pxref{Gnus Unplugged}): don't agentize
-@code{nnmairix} groups (though I have no idea what happens if you do).
+You can create a secondary @code{nnml} server just for nnmairix, but then
+you have to explicitly set the corresponding server variable
+@code{nnml-get-new-mail} to @code{nil}.  Otherwise, new mail might get
+put into this secondary server (and would never show up again).  Here's
+an example server definition:
+
+@lisp
+(nnml "mairix" (nnml-directory "mairix") (nnml-get-new-mail nil))
+@end lisp
+
+(The @code{nnmaildir} back end also has a server variabe
+@code{get-new-mail}, but its default value is @code{nil}, so you don't
+have to explicitly set it if you use a @code{nnmaildir} server just for
+mairix.)
 
 @item
 If you use the Gnus registry: don't use the registry with
@@ -4988,6 +5006,10 @@ you check the group for new mail (yes, it has happened to me...).
 @item
 Therefore: @emph{Never ever} put ``real'' mails into @code{nnmairix}
 groups (you shouldn't be able to, anyway).
+
+@item
+If you use the Gnus agent (@pxref{Gnus Unplugged}): don't agentize
+@code{nnmairix} groups (though I have no idea what happens if you do).
 
 @item
 mairix does only support us-ascii characters.
