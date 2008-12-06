@@ -146,8 +146,8 @@ for details about XEmbed.
 *** Emacs can now set the frame opacity.
 The opacity of a frame can be controlled by setting the `alpha' frame
 parameter.  This only takes effect on a compositing window manager for
-the X Window System, such as Compiz, Beryl and Compiz Fusion, or on
-Windows 2000 and later versions of Windows.
+the X Window System, such as Compiz, Beryl and Compiz Fusion, on Mac
+OS X, or on Windows 2000 and later versions of Windows.
 
 The alpha parameter should be an integer between 0 (transparent) and
 100 (opaque), or a float number between 0.0 and 1.0.  It can also be a
