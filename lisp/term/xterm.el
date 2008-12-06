@@ -473,6 +473,9 @@
     (let ((coding-system-for-read 'binary)
 	  (chr nil)
 	  (str nil))
+      ;; Pending input can be mistakenly returned by the calls to
+      ;; read-event below.  Discard it.
+      (discard-input)
       ;; Try to find out the type of terminal by sending a "Secondary
       ;; Device Attributes (DA)" query.
       (send-string-to-terminal "\e[>0c")
