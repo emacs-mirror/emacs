@@ -1,3 +1,148 @@
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-id.el (org-id-locations-file): Wrap file name with
+	`convert-standard-filename'.
+	(org-id-files): New variable.
+	(org-id-use-hash): New option.
+	(org-id-update-id-locations): Also search in all files current
+	listed in `org-id-files'.  Convert the resulting alist to a hash
+	if the user customation says so.
+	(org-id-locations-save): Handle he case if `org-id-locations' is a
+	hash.
+	(org-id-locations-load): Convert the alist to a hash.
+	(org-id-add-location): Handle the hast case.
+	(kill-emacs-hook): Make sure id locations are saved when Emacs is
+	exited.
+	(org-id-hash-to-alist, org-id-alist-to-hash)
+	(org-id-paste-tracker): New functions.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-goto-calendar): Remove duplicate let
+	bindings of calendar variables.
+
+	* org-table.el (org-table-find-row-type): Renamed from
+	`org-find-row-type'.
+	(org-table-rewrite-old-row-references): Renamed from
+	`org-rewrite-old-row-references'.
+	(org-table-shift-refpart): Renamed from `org-shift-refpart'.
+	(org-table-cleanup-narrow-column-properties): Renamed from
+	`org-cleanup-narrow-column-properties'.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el (org-find-row-type): New arguments DESC and CLINE,
+	for better error messages.
+	(org-table-get-descriptor-line): Supply the new arguments to
+	`org-find-row-type'.
+	(org-table-error-on-row-ref-crossing-hline): New option.
+
+	* org.el (org-target-link-regexp): Make buffer-local.
+	(org-move-subtree-down): Fix bug with trees at beginning of
+	buffer.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-faces.el (org-set-tag-faces): New function.
+	(org-tags-special-faces-re): New variable.
+
+	* org.el (org-font-lock-add-tag-faces, org-get-tag-face): New functions.
+
+	* org-faces.el (org-tag-faces): New option.
+	(org-tag): Mention `org-tag-faces' in the docstring.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-html-style-default): Implement new
+	quoting.
+
+	* org-jsinfo.el (org-infojs-template): Implement new quoting.
+
+	* org-w3m.el (w3m-minor-mode-hook): Also add the special copy
+	command to the `w3m-minor-mode-map'.
+
+	* org-archive.el (org-archive-to-archive-sibling): Protect
+	`this-command' to avoid appending kills during archiving.
+
+	* org-exp.el (org-export-with-priority): New variable.
+	(org-export-add-options-to-plist): Use `org-export-plist-vars'
+	instead of internal list of strings and properties.
+	(org-print-icalendar-entries): Retrieve the location property with
+	inheritance.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-with-todo-keywords): New option.
+	(org-export-plist-vars): Include also the keys for the #+OPTIONS
+	line.
+	(org-default-export-plist, org-export-add-options-to-plist)
+	(org-export-as-ascii, org-export-as-html): Use the new structure
+	of `org-export-plist-vars'.
+
+	* org.el (org-map-entries): Return all values.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-matcher-time): Recognize more special values.
+
+	* org-gnus.el (fboundp): Fix defvaralias for XEmacs.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-tags-exclude-from-inheritance): New option.
+	(org-tag-inherit-p, org-remove-uniherited-tags): Respect
+	`org-tags-exclude-from-inheritance'.
+
+	* org-agenda.el (org-agenda-show-inherited-tags): New option.
+	(org-format-agenda-item): Add inherited tags to the agenda line
+	string, and make sure that properties are kept when downcasing the
+	tags list.
+	(org-agenda-add-inherited-tags): New function.
+	(org-downcase-keep-props): New function.
+
+	* org.el (org-scan-tags): Mark inherited tags with a text
+	property.
+	(org-get-tags-at): Mark inherited tags with a text property.
+	(org-add-prop-inherited): New function.
+
+	* org-agenda.el (org-agenda-add-inherited-tags): New function.
+	(org-agenda-show-inherited-tags): New option.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-modules): Add org-w3m to the default modules.
+
+	* org-table.el (orgtbl-self-insert-command): Make S-SPC work in
+	orgtbl-mode.
+	(orgtabl-create-or-convert-from-region): New command.
+
+	* org-exp.el (org-export-as-ascii): Remove the handling of
+	targets.
+	(org-export-ascii-preprocess): Handle targets already in this
+	function.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-timer.el (org-timer-start-time): Define this variable.
+	(org-timer-item): Make argument optional.
+
+	* org-list.el (org-insert-item): Automatically insert a timer item
+	if the current list is a timer list.
+
+	* org-timer.el: New file.
+
+	* org-publish.el (org-publish-org-index): Only exclude the index
+	file in the main directory from being added to the site-map.
+	(org-publish-get-project-from-filename): If the current project is
+	a component, start publishing from the parent project.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el (orgtbl-ret): Fix RET at beginning-of-buffer.
+
+	* org-publish.el (org-publish-org-index): Improve removal of
+	temporary buffers.
+
 2008-11-24  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-agenda.el (org-get-closed): Re-apply changes
