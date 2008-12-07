@@ -7032,6 +7032,10 @@ make_conversion_work_buffer (multibyte)
     }
   current = current_buffer;
   set_buffer_internal (XBUFFER (workbuf));
+  /* We can't allow modification hooks to run in the work buffer.  For
+     instance, directory_files_internal assumes that file decoding
+     doesn't compile new regexps.  */
+  Fset (Fmake_local_variable (Qinhibit_modification_hooks), Qt);
   Ferase_buffer ();
   current_buffer->undo_list = Qt;
   current_buffer->enable_multibyte_characters = multibyte ? Qt : Qnil;
