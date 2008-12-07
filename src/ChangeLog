@@ -1,3 +1,8 @@
+2008-12-07  Seiji Zenitani  <zenitani@mac.com>
+
+	* nsfns.m (ns_set_background_color): Remove code duplication.
+	It was a substite for face-transparency on OS X 10.3.
+
 2008-12-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* coding.c (make_conversion_work_buffer): Disable buffer

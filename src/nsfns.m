@@ -389,14 +389,6 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       [[view window] setBackgroundColor: col];
       alpha = [col alphaComponent];
 
-#ifdef NS_IMPL_COCOA
-      /* the alpha code below only works on 10.4, so we need to do something
-         else (albeit less good) otherwise.
-         Check NSApplication.h for useful NSAppKitVersionNumber values. */
-      if (NSAppKitVersionNumber < 744.0)
-          [[view window] setAlphaValue: alpha];
-#endif
-
       if (alpha != 1.0)
           [[view window] setOpaque: NO];
       else
