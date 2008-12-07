@@ -1465,9 +1465,6 @@ on this string to produce the exported version."
 
       ;; Handle source code snippets
       (org-export-replace-src-segments)
-      
-      ;; Find all headings and compute the targets for them
-      (setq target-alist (org-export-define-heading-targets target-alist))
 
       ;; Get rid of drawers
       (org-export-remove-or-extract-drawers drawers
@@ -1489,6 +1486,9 @@ on this string to produce the exported version."
 
       ;; Remove todo-keywords before exporting, if the user has requested so
       (org-export-remove-headline-metadata parameters)
+
+      ;; Find all headings and compute the targets for them
+      (setq target-alist (org-export-define-heading-targets target-alist))
 
       ;; Find targets in comments and move them out of comments,
       ;; but mark them as targets that should be invisible
@@ -1512,6 +1512,7 @@ on this string to produce the exported version."
 
       ;; Remove comment environment and comment subtrees
       (org-export-remove-comment-blocks-and-subtrees)
+
 
       ;; Find matches for radio targets and turn them into internal links
       (org-export-mark-radio-links)
@@ -1570,22 +1571,18 @@ on this string to produce the exported version."
 The new targets are added to TARGET-ALIST, which is also returned."
   (goto-char (point-min))
   (org-init-section-numbers)
-  (let ((re (concat "^" org-outline-regexp
-		    "\\| [ \t]*:ID:[ \t]*\\([^ \t\r\n]+\\)"))
+  (let ((re (concat "^" org-outline-regexp))
 	level target)
     (while (re-search-forward re nil t)
-      (if (match-end 1)
-	  (push (cons (org-match-string-no-properties 1)
-		      target) target-alist)
-	(setq level (org-reduced-level
-		     (save-excursion (goto-char (point-at-bol))
-				     (org-outline-level))))
-	(setq target (org-solidify-link-text
-		      (format "sec-%s" (org-section-number level))))
-	(push (cons target target) target-alist)
-	(add-text-properties
-	 (point-at-bol) (point-at-eol)
-	 (list 'target target)))))
+      (setq level (org-reduced-level
+		   (save-excursion (goto-char (point-at-bol))
+				   (org-outline-level))))
+      (setq target (org-solidify-link-text
+		    (format "sec-%s" (org-section-number level))))
+      (push (cons target target) target-alist)
+      (add-text-properties
+       (point-at-bol) (point-at-eol)
+       (list 'target target))))
   target-alist)
 
 (defun org-export-handle-invisible-targets (target-alist)
@@ -1614,11 +1611,9 @@ Mark them as invisible targets."
   target-alist)
 
 (defun org-export-target-internal-links (target-alist)
-  "Find all internal links and assign targets to them.
+  "Find all internal links and assign target to them.
 If a link has a fuzzy match (i.e. not a *dedicated* target match),
-let the link  point to the corresponding section.
-This function also handles the id links, if they have a match in
-the current file."
+let the link  point to the corresponding section."
   (goto-char (point-min))
   (while (re-search-forward org-bracket-link-regexp nil t)
     (org-if-unprotected
@@ -1630,8 +1625,6 @@ the current file."
 	    (target
 	     (cond
 	      ((cdr (assoc slink target-alist)))
-	      ((and (string-match "^id:" link)
-		    (cdr (assoc (substring link 3) target-alist))))
 	      ((string-match org-link-types-re link) nil)
 	      ((or (file-name-absolute-p link)
 		   (string-match "^\\." link))

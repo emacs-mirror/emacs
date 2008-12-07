@@ -118,8 +118,7 @@ be visited."
 	  (const :tag "Clock and history" t)
 	  (const :tag "No persistence" nil)))
 
-(defcustom org-clock-persist-file (convert-standard-filename
-				   "~/.emacs.d/org-clock-save.el")
+(defcustom org-clock-persist-file "~/.emacs.d/org-clock-save.el"
   "File to save clock data to"
   :group 'org-clock
   :type 'string)
