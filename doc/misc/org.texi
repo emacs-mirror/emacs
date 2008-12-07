@@ -3,8 +3,8 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.13a
-@set DATE November 2008
+@set VERSION 6.14
+@set DATE December 2008
 
 @dircategory Emacs
 @direntry
@@ -219,6 +219,7 @@ Dates and Times
 * Deadlines and scheduling::    Planning your work
 * Clocking work time::          Tracking how long you spend on a task
 * Effort estimates::            Planning work effort in advance
+* Relative timer::              Notes with a running timer
 
 Creating timestamps
 
@@ -945,7 +946,7 @@ Yank subtree from kill ring.  This does modify the level of the subtree to
 make sure the tree fits in nicely at the yank position.  The yank level can
 also be specified with a numeric prefix argument, or by yanking after a
 headline marker like @samp{****}.
-@kindex C-y 
+@kindex C-y
 @item C-y
 Depending on the variables @code{org-yank-adjusted-subtrees} and
 @code{org-yank-folded-subtrees}, Org's internal @code{yank} command will
@@ -3132,10 +3133,12 @@ special faces for some of them.  This can be done using the variable
 @code{org-todo-keyword-faces}.  For example:
 
 @lisp
+@group
 (setq org-todo-keyword-faces
       '(("TODO"      . org-warning)
         ("DEFERRED"  . shadow)
         ("CANCELED"  . (:foreground "blue" :weight bold))))
+@end group
 @end lisp
 
 While using a list with face properties as shown for CANCELED
@@ -3439,10 +3442,13 @@ information is to assign @i{tags} to headlines.  Org mode has extensive
 support for tags.
 
 Every headline can contain a list of tags; they occur at the end of the
-headline.  Tags are normal words containing letters, numbers, @samp{_},
-and @samp{@@}.  Tags must be preceded and followed by a single colon,
-e.g., @samp{:work:}.  Several tags can be specified, as in
-@samp{:work:urgent:}.
+headline.  Tags are normal words containing letters, numbers, @samp{_}, and
+@samp{@@}.  Tags must be preceded and followed by a single colon, e.g.,
+@samp{:work:}.  Several tags can be specified, as in @samp{:work:urgent:}.
+Tags will by default get a bold face with the same color as the headline.
+You may specify special faces for specific tags using the variable
+@code{org-tag-faces}, much in the same way as you can do for TODO keywords
+(@pxref{Faces for TODO keywords}).
 
 @menu
 * Tag inheritance::             Tags use the tree structure of the outline
@@ -3479,14 +3485,16 @@ level zero that surounds the entire file.
 
 @noindent
 To limit tag inheritance to specific tags, or to turn it off entirely, use
-the variable @code{org-use-tag-inheritance}.
+the variables @code{org-use-tag-inheritance} and
+@code{org-tags-exclude-from-inheritance}.
 
 When a headline matches during a tags search while tag inheritance is turned
-on, all the sublevels in the same tree will match as well@footnote{This is
-only true if the the search does not involve more complex tests including
-properties (@pxref{Property searches}).}.  The list of matches may then
-become very long.  If you only want to see the first tags match in a subtree,
-configure the variable @code{org-tags-match-list-sublevels}.
+on, all the sublevels in the same tree will (for a simple match form) match
+as well@footnote{This is only true if the the search does not involve more
+complex tests including properties (@pxref{Property searches}).}.  The list
+of matches may then become very long.  If you only want to see the first tags
+match in a subtree, configure the variable
+@code{org-tags-match-list-sublevels} (not recommended).
 
 @node Setting tags, Tag searches, Tag inheritance, Tags
 @section Setting tags
@@ -3896,20 +3904,22 @@ and the allowed operators are @samp{<}, @samp{=}, @samp{>}, @samp{<=},
 @samp{>=}, and @samp{<>}.
 @item
 If the comparison value is enclosed in double
-quotes, a string comparison is done, and the same operators are allowed.  
+quotes, a string comparison is done, and the same operators are allowed.
 @item
 If the comparison value is enclosed in double quotes @emph{and} angular
 brackets (like @samp{DEADLINE<="<2008-12-24 18:30>"}), both values are
-assumed to be date/time specifications in the standard Org way@footnote{The
-only special values that will be recognized are @samp{"<now>"} for now
-(including time), and @samp{"<today>"}, @samp{<tomorrow>}, and
-@samp{<yesterday>} for these days at 0:00 hours, i.e. without a time
-specification.}, and the comparison will be done accordingly.
+assumed to be date/time specifications in the standard Org way, and the
+comparison will be done accordingly.  Special values that will be recognized
+are @code{"<now>"} for now (including time), and @code{"<today>"}, and
+@code{"<tomorrow>"} for these days at 0:00 hours, i.e. without a time
+specification.  Also strings like @code{"<+5d>"} or @code{"<-2m>"} with units
+@code{d}, @code{w}, @code{m}, and @code{y} for day, week, month, and year,
+respectively, can be used.
 @item
 If the comparison value is enclosed
 in curly braces, a regexp match is performed, with @samp{=} meaning that the
 regexp matches the property value, and @samp{<>} meaning that it does not
-match.  
+match.
 @end itemize
 
 So the search string in the example finds entries tagged @samp{:work:} but
@@ -4262,6 +4272,7 @@ is used in a much wider sense.
 * Deadlines and scheduling::    Planning your work
 * Clocking work time::          Tracking how long you spend on a task
 * Effort estimates::            Planning work effort in advance
+* Relative timer::              Notes with a running timer
 @end menu
 
 
@@ -4890,9 +4901,9 @@ The @kbd{l} key may be used in the timeline (@pxref{Timeline}) and in
 the agenda (@pxref{Weekly/daily agenda}) to show which tasks have been
 worked on or closed during a day.
 
-@node Effort estimates,  , Clocking work time, Dates and Times
+@node Effort estimates, Relative timer, Clocking work time, Dates and Times
 @section Effort estimates
-@cindex Effort estimates
+@cindex effort estimates
 
 If you want to plan your work in a very detailed way, or if you need to
 produce offers with quotations of the estimated work effort, you may want to
@@ -4935,6 +4946,40 @@ Effort estimates can be used in secondary agenda filtering that is triggered
 with the @kbd{/} key in the agenda (@pxref{Agenda commands}).  If you have
 these estimates defined consistently, two or three key presses will narrow
 down the list to stuff that fits into an available time slot.
+
+@node Relative timer,  , Effort estimates, Dates and Times
+@section Taking notes with a relative timer
+@cindex relative timer
+
+When taking notes during, for example, a meeting or a video viewing, it can
+be useful to have access to times relative to a starting time.  Org provides
+such a relative timer and make it easy to create timed notes.
+
+@table @kbd
+@kindex C-c C-x .
+@item C-c C-x .
+Insert a relative time into the buffer.  The first time you use this, the
+timer will be started.  When called with a prefix argument, the timer is
+restarted.
+@kindex C-c C-x -
+@item C-c C-x -
+Insert a description list item with the current relative time.  With a prefix
+argument, first reset the timer to 0.
+@kindex M-@key{RET}
+@item M-@key{RET}
+One the timer list is started, you can also use @kbd{M-@key{RET}} to insert
+new timer items.
+@kindex C-c C-x 0
+@item C-c C-x 0
+Reset the timer without inserting anything into the buffer.  By default, the
+timer is reset to 0.  When called with a @kbd{C-u} prefix, reset the timer to
+specific starting offset.  The user is prompted for the offset, with a
+default taken from a timer string at point, if any, So this can be used to
+restart taking notes after a break in the process.  When called with a double
+prefix argument @kbd{C-c C-u}, change all timer strings in the active region
+by a certain amount.  This can be used to fix timer strings if the timer was
+not started at exactly the right moment.
+@end table
 
 @node Capture, Agenda Views, Dates and Times, Top
 @chapter Capture
@@ -5252,15 +5297,15 @@ keys, a list of commands is displayed and you need to press an additional key
 to select a command:
 
 @table @kbd
-@kindex C-c C-a a 
-@item a 
+@kindex C-c C-a a
+@item a
 Select a file and move it into the task's attachment directory.  The file
 will be copied, moved, or linked, depending on @code{org-attach-method}.
 Note that hard links are not supported on all systems.
 
 @kindex C-c C-a c
-@kindex C-c C-a m 
-@kindex C-c C-a l 
+@kindex C-c C-a m
+@kindex C-c C-a l
 @item c/m/l
 Attach a file using the copy/move/link method.
 Note that hard links are not supported on all systems.
@@ -6156,8 +6201,9 @@ different file.
 @c
 @kindex T
 @item T
-Show all tags associated with the current item.  Because of
-inheritance, this may be more than the tags listed in the line itself.
+Show all tags associated with the current item.  This is useful if you have
+turned off @code{org-agenda-show-inherited-tags}, but still want to see all
+tags of a headline occasionally.
 @c
 @kindex :
 @item :
@@ -7166,7 +7212,7 @@ can use this construct, which can also be used to format poetry.
  Great clouds overhead
  Tiny black birds rise and fall
  Snow covers Emacs
- 
+
      -- AlexSchroeder
 #+END_VERSE
 @end example
@@ -7461,6 +7507,10 @@ toc:       @r{turn on/off table of contents, or set level limit (integer)}
            @r{the simple @code{a_b} will be left as it is.}
 -:         @r{turn on/off conversion of special strings.}
 f:         @r{turn on/off footnotes like this[1].}
+todo:      @r{turn on/off inclusion of TODO keywords into exported text}
+pri:       @r{turn on/off priority cookies}
+tags:      @r{turn on/off inclusion of tags, may also be @code{not-in-toc}}
+<:         @r{turn on/off inclusion of any time/date stamps like DEADLINES}
 *:         @r{turn on/off emphasized text (bold, italic, underlined)}
 TeX:       @r{turn on/off simple @TeX{} macros in plain text}
 LaTeX:     @r{turn on/off La@TeX{} fragments}
@@ -7943,7 +7993,7 @@ entry@footnote{See the variables @code{org-icalendar-use-deadline} and
 @code{org-icalendar-use-scheduled}.}.  As categories, it will use the tags
 locally defined in the heading, and the file/tree category@footnote{To add
 inherited tags or the TODO state, configure the variable
-@code{org-icalendar-categories}.}. 
+@code{org-icalendar-categories}.}.
 
 The iCalendar standard requires each entry to have a globally unique
 identifier (UID).  Org creates these identifiers during export.  If you set
@@ -7972,9 +8022,11 @@ Create a single large iCalendar file from all files in
 @code{org-combined-agenda-icalendar-file}.
 @end table
 
-The export will honor SUMMARY, DESCRIPTION and LOCATION properties if
-the selected entries have them.  If not, the summary will be derived
-from the headline, and the description from the body (limited to
+The export will honor SUMMARY, DESCRIPTION and LOCATION@footnote{The LOCATION
+property can be inherited from higher in the hierarchy if you configure
+@code{org-use-property-inheritance} accordingly.} properties if the selected
+entries have them.  If not, the summary will be derived from the headline,
+and the description from the body (limited to
 @code{org-icalendar-include-body} characters).
 
 How this calendar is best read and updated, that depends on the application
@@ -8049,7 +8101,8 @@ a project takes the second form listed above, the individual members
 of the ``components'' property are taken to be components of the
 project, which group together files requiring different publishing
 options. When you publish such a ``meta-project'' all the components
-will also publish.
+will also publish.  The @code{:components} are published in the sequence
+provided.
 
 @node Sources and destinations, Selecting files, Project alist, Configuration
 @subsection Sources and destinations for files
@@ -8133,22 +8186,32 @@ variables in Org.  The table below lists these properties along
 with the variable they belong to.  See the documentation string for the
 respective variable for details.
 
-@multitable @columnfractions 0.3 0.7
+@multitable @columnfractions 0.32 0.68
+@item @code{:link-up}               @tab @code{org-export-html-link-up}
+@item @code{:link-home}             @tab @code{org-export-html-link-home}
 @item @code{:language}              @tab @code{org-export-default-language}
+@item @code{:customtime}            @tab @code{org-display-custom-times}
 @item @code{:headline-levels}       @tab @code{org-export-headline-levels}
 @item @code{:section-numbers}       @tab @code{org-export-with-section-numbers}
+@item @code{:section-number-format} @tab @code{org-export-section-number-format}
 @item @code{:table-of-contents}     @tab @code{org-export-with-toc}
+@item @code{:preserve-breaks}       @tab @code{org-export-preserve-breaks}
 @item @code{:archived-trees}        @tab @code{org-export-with-archived-trees}
 @item @code{:emphasize}             @tab @code{org-export-with-emphasize}
 @item @code{:sub-superscript}       @tab @code{org-export-with-sub-superscripts}
 @item @code{:special-strings}       @tab @code{org-export-with-special-strings}
+@item @code{:footnotes}             @tab @code{org-export-with-footnotes}
+@item @code{:drawers}               @tab @code{org-export-with-drawers}
+@item @code{:tags}                  @tab @code{org-export-with-tags}
+@item @code{:todo-keywords}         @tab @code{org-export-with-todo-keywords}
+@item @code{:priority}              @tab @code{org-export-with-priority}
 @item @code{:TeX-macros}            @tab @code{org-export-with-TeX-macros}
 @item @code{:LaTeX-fragments}       @tab @code{org-export-with-LaTeX-fragments}
+@item @code{:skip-before-1st-heading} @tab @code{org-export-skip-text-before-1st-heading}
 @item @code{:fixed-width}           @tab @code{org-export-with-fixed-width}
 @item @code{:timestamps}            @tab @code{org-export-with-timestamps}
 @item @code{:author-info}           @tab @code{org-export-author-info}
 @item @code{:creator-info}          @tab @code{org-export-creator-info}
-@item @code{:tags}                  @tab @code{org-export-with-tags}
 @item @code{:tables}                @tab @code{org-export-with-tables}
 @item @code{:table-auto-headline}   @tab @code{org-export-highlight-first-table-line}
 @item @code{:style-include-default} @tab @code{org-export-html-style-include-default}
@@ -8156,6 +8219,8 @@ respective variable for details.
 @item @code{:style-extra}           @tab @code{org-export-html-style-extra}
 @item @code{:convert-org-links}     @tab @code{org-export-html-link-org-files-as-html}
 @item @code{:inline-images}         @tab @code{org-export-html-inline-images}
+@item @code{:html-extension}        @tab @code{org-export-html-extension}
+@item @code{:html-table-tag}        @tab @code{org-export-html-table-tag}
 @item @code{:expand-quoted-html}    @tab @code{org-export-html-expand}
 @item @code{:timestamp}             @tab @code{org-export-html-with-timestamp}
 @item @code{:publishing-directory}  @tab @code{org-export-publishing-directory}
@@ -8639,7 +8704,7 @@ is not indented.  This is not really a problem when you are writing a book
 where the outline headings are really section headlines.  However, in a more
 list-oriented outline, it is clear that an indented structure is a lot
 cleaner, as can be seen by comparing the two columns in the following
-example: 
+example:
 
 @example
 @group
@@ -8658,7 +8723,7 @@ It is non-trivial to make such a look work in Emacs, but Org contains three
 separate features that, combined, achieve just that.
 
 @enumerate
-@item 
+@item
 @emph{Indentation of text below headlines}@*
 You may indent text below each headline to make the left boundary line up
 with the headline, like
@@ -8974,7 +9039,7 @@ go to @url{http://orgmode.org} to get access to these modules.
 @item @file{org-annotate-file.el} by @i{Philip Jackson}
       Annotate a file with org syntax, in a separate file, with links back to
       the annotated file.
-@item @file{org-annotation-helper.el} by @i{Bastien Guerry and Daniel E. German} 
+@item @file{org-annotation-helper.el} by @i{Bastien Guerry and Daniel E. German}
       Call @i{remember} directly from Firefox/Opera, or from Adobe Reader.
       When activating a special link or bookmark, Emacs receives a trigger to
       create a note with a link back to the website.  Requires some setup, a
@@ -9702,7 +9767,7 @@ Org has sophisticated mapping capabilities to find all entries satisfying
 certain criteria.  Internally, this functionality is used to produce agenda
 views, but there is also an API that can be used to execute arbitrary
 functions for each or selected entries.  The main entry point for this API
-is: 
+is:
 
 @defun org-map-entries func &optional match scope &rest skip
 Call FUNC at each headline selected by MATCH in SCOPE.
@@ -9750,7 +9815,7 @@ The function given to that mapping routine can really do anything you like.
 It can uce the property API (@pxref{Using the property API}) to gather more
 information about the entry, or in order to change metadate in the entry.
 Here are a couple of functions that might be handy:
- 
+
 @defun org-todo &optional arg
 Change the TODO state of the entry, see the docstring of the functions for
 the many possible values for the argument ARG.
@@ -9788,7 +9853,7 @@ The following example counts the number of entries with TODO keyword
 @code{WAITING}, in all agenda files.
 
 @lisp
-(length (org-map-entries t "/+WAITING" nil 'agenda))
+(length (org-map-entries t "/+WAITING" 'agenda))
 @end lisp
 
 @node History and Acknowledgments, Main Index, Hacking, Top
@@ -9969,6 +10034,9 @@ tweaks and features.
 @item
 @i{Adam Spiers} asked for global linking commands, inspired the link
 extension system, added support for mairix, and proposed the mapping API.
+@item
+@i{Andy Stewart} contributed code to @file{org-w3m.el}, to copy HTML content
+with links transformation to Org syntax.
 @item
 @i{David O'Toole} wrote @file{org-publish.el} and drafted the manual
 chapter about publishing.
