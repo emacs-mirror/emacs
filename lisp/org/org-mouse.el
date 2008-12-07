@@ -4,7 +4,7 @@
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -177,7 +177,7 @@ Changing this variable requires a restart of Emacs to get activated."
 	      (const :tag "S-mouse-2 and drag-mouse-3 yank link" yank-link)
 	      (const :tag "Activate headline stars" activate-stars)
 	      (const :tag "Activate item bullets" activate-bullets)
-	      (const :tag "Activate checkboxes" activate-checkboxes)))	      
+	      (const :tag "Activate checkboxes" activate-checkboxes)))
 
 (defun org-mouse-re-search-line (regexp)
   "Search the current line for a given regular expression."

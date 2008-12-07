@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -118,7 +118,8 @@ be visited."
 	  (const :tag "Clock and history" t)
 	  (const :tag "No persistence" nil)))
 
-(defcustom org-clock-persist-file "~/.emacs.d/org-clock-save.el"
+(defcustom org-clock-persist-file (convert-standard-filename
+				   "~/.emacs.d/org-clock-save.el")
   "File to save clock data to"
   :group 'org-clock
   :type 'string)
@@ -187,7 +188,7 @@ of a different task.")
   "Select a task that recently was associated with clocking."
   (interactive)
   (let (sel-list rpl file task (i 0) s)
-    (save-window-excursion 
+    (save-window-excursion
       (org-switch-to-buffer-other-window
        (get-buffer-create "*Clock Task Select*"))
       (erase-buffer)
@@ -285,13 +286,13 @@ the clocking selection, associated with the letter `d'."
 		     (marker-position org-clock-marker)
 		     (marker-buffer org-clock-marker))
 	(org-clock-out t))
-      
+
       (when (equal select '(16))
 	;; Mark as default clocking task
 	(save-excursion
 	  (org-back-to-heading t)
 	  (move-marker org-clock-default-task (point))))
-      
+
       (setq target-pos (point))  ;; we want to clock in at this location
       (save-excursion
 	(when (and selected-task (marker-buffer selected-task))
@@ -991,8 +992,8 @@ the currently selected interval size."
 	      (cond
 	       ((eq formula '%)
 		(setq pcol (+ (if scope-is-list 1 0) maxlevel 3))
-		(insert 
-		 (format 
+		(insert
+		 (format
 		  "\n#+TBLFM: $%d='(org-clock-time%% @%d$%d $%d..$%d);%%.1f"
 		  pcol
 		  2
@@ -1160,7 +1161,7 @@ a stored clock"
 	(when (and resume-clock org-clock-persist
 		   (file-exists-p (car resume-clock))
 		   (or (not org-clock-persist-query-resume)
-		       (y-or-n-p 
+		       (y-or-n-p
 			(concat
 			 "Resume clock ("
 			 (with-current-buffer (find-file (car resume-clock))

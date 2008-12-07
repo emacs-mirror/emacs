@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -92,7 +92,7 @@
 
 ;;; Version
 
-(defconst org-version "6.13a"
+(defconst org-version "6.14"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)
@@ -143,7 +143,7 @@ With prefix arg HERE, insert it at point."
   (let ((a (member 'org-infojs org-modules)))
     (and a (setcar a 'org-jsinfo))))
 
-(defcustom org-modules '(org-bbdb org-bibtex org-gnus org-info org-jsinfo org-irc org-mew org-mhe org-rmail org-vm org-wl)
+(defcustom org-modules '(org-bbdb org-bibtex org-gnus org-info org-jsinfo org-irc org-mew org-mhe org-rmail org-vm org-w3m org-wl)
   "Modules that should always be loaded together with org.el.
 If a description starts with <C>, the file is not part of Emacs
 and loading it will require that you have downloaded and properly installed
@@ -172,6 +172,7 @@ to add the symbol `xyz', and the package must have a call to
 	(const :tag "   rmail:             Links to RMAIL folders/messages" org-rmail)
 	(const :tag "   vm:                Links to VM folders/messages" org-vm)
 	(const :tag "   wl:                Links to Wanderlust folders/messages" org-wl)
+	(const :tag "   w3m:               Special cut/past from w3m to Org." org-w3m)
 	(const :tag "   mouse:             Additional mouse support" org-mouse)
 
 	(const :tag "C  annotate-file:     Annotate a file with org syntax" org-annotate-file)
@@ -954,6 +955,40 @@ Examples: \"%f on: %.30s\", \"Email from %f\", \"Email %c\""
 It should match if the message is from the user him/herself."
   :group 'org-link-store
   :type 'regexp)
+
+(defcustom org-link-to-org-use-id 'create-if-interactive
+  "Non-nil means, storing a link to an Org file will use entry ID's.
+
+Note that before this variable is even considered, org-id must be loaded,
+to please customize `org-modules' and turn it on.
+
+The variable can have the following values:
+
+t     Create an ID if needed to make a link to the current entry.
+
+create-if-interactive
+      If `org-store-link' is called directly (interactively, as a user
+      command), do create an ID to support the link.  But when doing the
+      job for remember, only use the ID if it already exists.  The
+      purpose of this setting is to avoid proliferation of unwanted
+      ID's, just because you happen to be in an Org file when you
+      call `org-remember' that automatically and preemptively
+      creates a link.  If you do want to get an ID link in a remember
+      template to an entry not having an ID, create it first by
+      explicitly creating a link to it, using `C-c C-l' first.
+
+use-existing
+      Use existing ID, do not create one.
+
+nil   Never use an ID to make a link, instead link using a text search for
+      the headline text."
+  :group 'org-link-store
+  :type '(choice
+	  (const :tag "Create ID to make link" t)
+	  (const :tag "Create if string link interactively"
+		 'create-if-interactive)
+	  (const :tag "Only use existing" 'use-existing)
+	  (const :tag "Do not use ID to create link" nil)))
 
 (defcustom org-context-in-file-links t
   "Non-nil means, file links from `org-store-link' contain context.
@@ -1881,13 +1916,16 @@ the tags are again aligned to `org-tags-column'."
 (defcustom org-use-tag-inheritance t
   "Non-nil means, tags in levels apply also for sublevels.
 When nil, only the tags directly given in a specific line apply there.
-If this option is t, a match early-on in a tree can lead to a large
-number of matches in the subtree.  If you only want to see the first
-match in a tree during a search, check out the variable
-`org-tags-match-list-sublevels'.
-
 This may also be a list of tags that should be inherited, or a regexp that
-matches tags that should be inherited."
+matches tags that should be inherited.  Additional control is possible
+with the variable  `org-tags-exclude-from-inheritance' which gives an
+explicit list of tags to be excluded from inheritance., even if the value of
+`org-use-tag-inheritance' would select it for inheritance.
+
+If this option is t, a match early-on in a tree can lead to a large
+number of matches in the subtree when constructing the agenda or creating
+a sparse tree.  If you only want to see the first match in a tree during
+a search, check out the variable `org-tags-match-list-sublevels'."
   :group 'org-tags
   :type '(choice
 	  (const :tag "Not" nil)
@@ -1895,9 +1933,18 @@ matches tags that should be inherited."
 	  (repeat :tag "Specific tags" (string :tag "Tag"))
 	  (regexp :tag "Tags matched by regexp")))
 
+(defcustom org-tags-exclude-from-inheritance nil
+  "List of tags that should never be inherited.
+This is a way to exclude a few tags from inheritance.  For way to do
+the opposite, to actively allow inheritance for selected tags,
+see the variable `org-use-tag-inheritance'."
+  :group 'org-tags
+  :type '(repeat (string :tag "Tag")))
+
 (defun org-tag-inherit-p (tag)
   "Check if TAG is one that should be inherited."
   (cond
+   ((member tag org-tags-exclude-from-inheritance) nil)
    ((eq org-use-tag-inheritance t) t)
    ((not org-use-tag-inheritance) nil)
    ((stringp org-use-tag-inheritance)
@@ -1917,7 +1964,11 @@ inheritance off, you very likely want to turn this option on.
 
 As a special case, if the tag search is restricted to TODO items, the
 value of this variable is ignored and sublevels are always checked, to
-make sure all corresponding TODO items find their way into the list."
+make sure all corresponding TODO items find their way into the list.
+
+This variable is semi-obsolete and probably should always be true.  It
+is better to limit inheritance to certain tags using the variables
+`org-use-tag-inheritanc'e and `org-tags-exclude-from-inheritance'."
   :group 'org-tags
   :type 'boolean)
 
@@ -2353,9 +2404,9 @@ Use customize to modify this, or restart Emacs after changing it."
   :group 'org)
 
 (defcustom org-completion-use-ido nil
-  "Non-ni means, use ido completion wherever possible."
+  "Non-nil means, use ido completion wherever possible."
   :group 'org-completion
-  :type 'boolean)  
+  :type 'boolean)
 
 (defcustom org-completion-fallback-command 'hippie-expand
   "The expansion command called by \\[org-complete] in normal context.
@@ -2640,6 +2691,17 @@ If yes, offer to stop it and to save the buffer with the changes."
   (when (org-match-line "#\\+BEGIN: clocktable\\>")
     (org-clocktable-shift dir n)))
 
+;; Autoload org-timer.el
+
+;(declare-function org-timer "org-timer")
+
+(eval-and-compile
+  (org-autoload
+   "org-timer"
+   '(org-timer-start org-timer org-timer-item
+		     org-timer-change-times-in-region)))
+
+
 ;; Autoload archiving code
 ;; The stuff that is needed for cycling and tags has to be defined here.
 
@@ -2778,11 +2840,12 @@ collapsed state."
 
 ;; Autoload ID code
 
+(declare-function org-id-store-link "org-id")
 (org-autoload "org-id"
  '(org-id-get-create org-id-new org-id-copy org-id-get
    org-id-get-with-outline-path-completion
    org-id-get-with-outline-drilling
-   org-id-goto org-id-find))
+   org-id-goto org-id-find org-id-store-link))
 
 ;;; Variables for pre-computed regular expressions, all buffer local
 
@@ -3693,6 +3756,7 @@ will be prompted for."
 
 (defvar org-target-link-regexp nil
   "Regular expression matching radio targets in plain text.")
+(make-variable-buffer-local 'org-target-link-regexp)
 (defvar org-target-regexp "<<\\([^<>\n\r]+\\)>>"
   "Regular expression matching a link target.")
 (defvar org-radio-target-regexp "<<<\\([^<>\n\r]+\\)>>>"
@@ -3915,6 +3979,8 @@ between words."
 	     nil)
 	   ;; Priorities
 	   (list (concat "\\[#[A-Z0-9]\\]") '(0 'org-special-keyword t))
+	   ;; Tags
+	   '(org-font-lock-add-tag-faces)
 	   ;; Special keywords
 	   (list (concat "\\<" org-deadline-string) '(0 'org-special-keyword t))
 	   (list (concat "\\<" org-scheduled-string) '(0 'org-special-keyword t))
@@ -3973,6 +4039,22 @@ If KWD is a number, get the corresponding match group."
   (or (cdr (assoc kwd org-todo-keyword-faces))
       (and (member kwd org-done-keywords) 'org-done)
       'org-todo))
+
+(defun org-font-lock-add-tag-faces (limit)
+  "Add the special tag faces."
+  (when (and org-tag-faces org-tags-special-faces-re)
+    (while (re-search-forward org-tags-special-faces-re limit t)
+      (add-text-properties (match-beginning 1) (match-end 1)
+			   (list 'face (org-get-tag-face 1)
+				 'font-lock-fontified t))
+      (backward-char 1))))
+
+(defun org-get-tag-face (kwd)
+  "Get the right face for a TODO keyword KWD.
+If KWD is a number, get the corresponding match group."
+  (if (numberp kwd) (setq kwd (match-string kwd)))
+  (or (cdr (assoc kwd org-tag-faces))
+      'org-tag))
 
 (defun org-unfontify-region (beg end &optional maybe_loudly)
   "Remove fontification and activation overlays from links."
@@ -5060,8 +5142,8 @@ is signaled in this case."
     (setq txt (buffer-substring beg end))
     (org-save-markers-in-region beg end)
     (delete-region beg end)
-    (outline-flag-region (1- beg) beg nil)
-    (outline-flag-region (1- (point)) (point) nil)
+    (or (= beg (point-min)) (outline-flag-region (1- beg) beg nil))
+    (or (bobp) (outline-flag-region (1- (point)) (point) nil))
     (let ((bbb (point)))
       (insert-before-markers txt)
       (org-reinstall-markers-in-region bbb)
@@ -5221,6 +5303,7 @@ the inserted text when done."
     (beginning-of-line 1)
     (unless for-yank (org-back-over-empty-lines))
     (setq beg (point))
+    (and (fboundp 'org-id-paste-tracker) (org-id-paste-tracker txt))
     (insert-before-markers txt)
     (unless (string-match "\n\\'" txt) (insert "\n"))
     (setq newend (point))
@@ -6094,7 +6177,6 @@ type.  For a simple example of an export function, see `org-bbdb.el'."
       (setcdr (assoc type org-link-protocols) (list follow export))
     (push (list type follow export) org-link-protocols)))
 
-
 ;;;###autoload
 (defun org-store-link (arg)
   "\\<org-mode-map>Store an org-link to the current location.
@@ -6155,14 +6237,34 @@ For file links, arg negates `org-context-in-file-links'."
 	    link (org-make-link cpltxt)))
 
      ((and buffer-file-name (org-mode-p))
-      ;; Just link to current headline
-      (setq cpltxt (concat "file:"
-			   (abbreviate-file-name buffer-file-name)))
-      ;; Add a context search string
-      (when (org-xor org-context-in-file-links arg)
-	;; Check if we are on a target
-	(if (org-in-regexp "<<\\(.*?\\)>>")
-	    (setq cpltxt (concat cpltxt "::" (match-string 1)))
+      (cond
+       ((org-in-regexp "<<\\(.*?\\)>>")
+	(setq cpltxt
+	      (concat "file:"
+		      (abbreviate-file-name buffer-file-name)
+		      "::" (match-string 1))
+	      link (org-make-link cpltxt)))
+       ((and (featurep 'org-id)
+	     (or (eq org-link-to-org-use-id t)
+		 (and (eq org-link-to-org-use-id 'create-if-interactive)
+		      (interactive-p))
+		 (and org-link-to-org-use-id
+		      (condition-case nil
+			  (org-entry-get nil "ID")
+			(error nil)))))
+	;; We can make a link using the ID.
+	(setq link (condition-case nil
+		       (org-id-store-link)
+		     (error
+		      ;; probably before first headling, link to file only
+		      (concat "file:"
+			      (abbreviate-file-name buffer-file-name))))))
+       (t
+	;; Just link to current headline
+	(setq cpltxt (concat "file:"
+			     (abbreviate-file-name buffer-file-name)))
+	;; Add a context search string
+	(when (org-xor org-context-in-file-links arg)
 	  (setq txt (cond
 		     ((org-on-heading-p) nil)
 		     ((org-region-active-p)
@@ -6174,10 +6276,10 @@ For file links, arg negates `org-context-in-file-links'."
 			  (condition-case nil
 			      (org-make-org-heading-search-string txt)
 			    (error "")))
-		  desc "NONE"))))
-      (if (string-match "::\\'" cpltxt)
-	  (setq cpltxt (substring cpltxt 0 -2)))
-      (setq link (org-make-link cpltxt)))
+		  desc "NONE")))
+	(if (string-match "::\\'" cpltxt)
+	    (setq cpltxt (substring cpltxt 0 -2)))
+	(setq link (org-make-link cpltxt)))))
 
      ((buffer-file-name (buffer-base-buffer))
       ;; Just link to this file here.
@@ -6889,7 +6991,7 @@ application the system uses for this file type."
 			   (format "Execute \"%s\" as elisp? "
 				   (org-add-props cmd nil
 				     'face 'org-warning))))
-	      (message "%s => %s" cmd 
+	      (message "%s => %s" cmd
 		       (if (equal (string-to-char cmd) ?\()
 			   (eval (read cmd))
 			 (call-interactively (read cmd))))
@@ -9026,8 +9128,14 @@ only lines with a TODO keyword are included in the output."
 	  ;; compile tags for current headline
 	  (setq tags-list
 		(if org-use-tag-inheritance
-		    (apply 'append (mapcar 'cdr tags-alist))
+		    (apply 'append (mapcar 'cdr (reverse tags-alist)))
 		  tags))
+	  (when org-use-tag-inheritance
+	    (setcdr (car tags-alist)
+		    (mapcar (lambda (x)
+			      (setq x (copy-sequence x))
+			      (org-add-prop-inherited x))
+			    (cdar tags-alist))))
 	  (when (and tags org-use-tag-inheritance
 		     (not (eq t org-use-tag-inheritance)))
 	    ;; selective inheritance, remove uninherited ones
@@ -9083,15 +9191,22 @@ only lines with a TODO keyword are included in the output."
 (defun org-remove-uniherited-tags (tags)
   "Remove all tags that are not inherited from the list TAGS."
   (cond
-   ((eq org-use-tag-inheritance t) tags)
+   ((eq org-use-tag-inheritance t)
+    (if org-tags-exclude-from-inheritance
+	(org-delete-all org-tags-exclude-from-inheritance tags)
+      tags))
    ((not org-use-tag-inheritance) nil)
    ((stringp org-use-tag-inheritance)
     (delq nil (mapcar
-	       (lambda (x) (if (string-match org-use-tag-inheritance x) x nil))
+	       (lambda (x)
+		 (if (and (string-match org-use-tag-inheritance x)
+			  (not (member x org-tags-exclude-from-inheritance)))
+		     x nil))
 	       tags)))
    ((listp org-use-tag-inheritance)
     (delq nil (mapcar
-	       (lambda (x) (if (member x org-use-tag-inheritance) x nil))
+	       (lambda (x)
+		 (if (member x org-use-tag-inheritance) x nil))
 	       tags)))))
 
 (defvar todo-only) ;; dynamically scoped
@@ -9301,12 +9416,20 @@ epoch to the beginning of today (00:00)."
 		     (append '(0 0 0) (nthcdr 3 (decode-time))))))
 
 (defun org-matcher-time (s)
-  (cond
-   ((string= s "<now>") (float-time))
-   ((string= s "<today>") (org-time-today))
-   ((string= s "<tomorrow>") (+ 86400.0 (org-time-today)))
-   ((string= s "<yesterday>") (- (org-time-today) 86400.0))
-   (t (org-2ft s))))
+  "Interprete a time comparison value."
+  (save-match-data
+    (cond
+     ((string= s "<now>") (float-time))
+     ((string= s "<today>") (org-time-today))
+     ((string= s "<tomorrow>")   (+ 86400.0 (org-time-today)))
+     ((string= s "<yesterday>")  (- (org-time-today) 86400.0))
+     ((string-match "^<\\([-+][0-9]+\\)\\([dwmy]\\)>$" s)
+      (+ (org-time-today)
+	 (* (string-to-number (match-string 1 s))
+	    (cdr (assoc (match-string 2 s)
+			'(("d" . 86400.0)   ("w" . 604800.0)
+			  ("m" . 2678400.0) ("y" . 31557600.0)))))))
+     (t (org-2ft s)))))
 
 (defun org-match-any-p (re list)
   "Does re match any element of list?"
@@ -9348,6 +9471,8 @@ ignore inherited ones."
 		    (when (looking-at (org-re "[^\r\n]+?:\\([[:alnum:]_@:]+\\):[ \t]*$"))
 		      (setq ltags (org-split-string
 				   (org-match-string-no-properties 1) ":"))
+		      (when parent
+			(setq ltags (mapcar 'org-add-prop-inherited ltags)))
 		      (setq tags (append
 				  (if parent
 				      (org-remove-uniherited-tags ltags)
@@ -9359,6 +9484,10 @@ ignore inherited ones."
 		    (setq parent t)))
 	      (error nil)))))
       (append (org-remove-uniherited-tags org-file-tags) tags))))
+
+(defun org-add-prop-inherited (s)
+  (add-text-properties 0 (length s) '(inherited t) s)
+  s)
 
 (defun org-toggle-tag (tag &optional onoff)
   "Toggle the tag TAG for the current line.
@@ -9842,7 +9971,7 @@ the scanner.  The following items can be given here:
 	 (org-agenda-skip-function
 	  (car (org-delete-all '(comment archive) skip)))
 	 (org-tags-match-list-sublevels t)
-	 matcher pos file
+	 matcher pos file res
 	 org-todo-keywords-for-agenda
 	 org-done-keywords-for-agenda
 	 org-todo-keyword-alist-for-agenda
@@ -9851,7 +9980,7 @@ the scanner.  The following items can be given here:
     (cond
      ((eq match t)   (setq matcher t))
      ((eq match nil) (setq matcher t))
-     (t (setq matcher (if match (org-make-tags-matcher match) t))))
+     (t (setq matcher (if match (cdr (org-make-tags-matcher match)) t))))
 
     (when (eq scope 'tree)
       (org-back-to-heading t)
@@ -9884,7 +10013,8 @@ the scanner.  The following items can be given here:
 	    (save-restriction
 	      (widen)
 	      (goto-char (point-min))
-	      (org-scan-tags func matcher))))))))
+	      (setq res (append res (org-scan-tags func matcher)))))))
+      res)))
 
 ;;;; Properties
 
@@ -10484,6 +10614,7 @@ completion."
 IDENT can be a string, a symbol or a number, this function will search for
 the string representation of it.
 Return the position where this entry starts, or nil if there is no such entry."
+  (interactive "sID: ")
   (let ((id (cond
 	     ((stringp ident) ident)
 	     ((symbol-name ident) (symbol-name ident))
@@ -12418,6 +12549,10 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
 (org-defkey org-mode-map "\C-c\C-xp"    'org-set-property)
 (org-defkey org-mode-map "\C-c\C-xi"    'org-insert-columns-dblock)
 
+(org-defkey org-mode-map "\C-c\C-x."    'org-timer)
+(org-defkey org-mode-map "\C-c\C-x-"    'org-timer-item)
+(org-defkey org-mode-map "\C-c\C-x0"    'org-timer-start)
+
 (define-key org-mode-map "\C-c\C-x\C-c" 'org-columns)
 
 (when (featurep 'xemacs)
@@ -13191,7 +13326,11 @@ See the individual commands for more information."
       :style radio :selected org-display-custom-times]
      "--"
      ["Goto Calendar" org-goto-calendar t]
-     ["Date from Calendar" org-date-from-calendar t])
+     ["Date from Calendar" org-date-from-calendar t]
+     "--"
+     ["Start/restart timer" org-timer-start t]
+     ["Insert timer string" org-timer t]
+     ["Insert timer item" org-timer-item t])
     ("Logging work"
      ["Clock in" org-clock-in t]
      ["Clock out" org-clock-out t]

@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte <schulte dot eric at gmail dot com>
 ;; Keywords: tables, plotting
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -119,7 +119,7 @@ will be added.  Returns the resulting property list."
   "Export TABLE to DATA-FILE in a format readable by gnuplot.
 Pass PARAMS through to `orgtbl-to-generic' when exporting TABLE."
   (with-temp-file
-      data-file 
+      data-file
     (make-local-variable 'org-plot-timestamp-fmt)
     (setq org-plot-timestamp-fmt (or
                                   (plist-get params :timefmt)

@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data task
-;; Version: 6.13a
+;; Version: 6.14
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -181,7 +181,7 @@ This checks for the existence of a \".git\" directory in that directory."
 		 " git add .; "
 		 " git ls-files --deleted -z | xargs -0 git rm; "
 		 " git commit -m 'Synchronized attachments')")))))
-  
+
 (defun org-attach-tag (&optional off)
   "Turn the autotag on or (if OFF is set) off."
   (when org-attach-auto-tag
@@ -266,7 +266,7 @@ A safer way is to open the directory in dired and delete from there."
   (when org-attach-file-list-property
     (org-entry-delete (point) org-attach-file-list-property))
   (let ((attach-dir (org-attach-dir)))
-    (when 
+    (when
 	(and attach-dir
 	     (or force
 		 (y-or-n-p "Are you sure you want to remove all attachments of this entry? ")))

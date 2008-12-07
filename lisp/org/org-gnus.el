@@ -6,7 +6,7 @@
 ;;         Tassilo Horn <tassilo at member dot fsf dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -39,8 +39,7 @@
 ;; Customization variables
 
 (when (fboundp 'defvaralias)
-  (defvaralias 'org-usenet-links-prefer-google 'org-gnus-prefer-web-links
-    "Deprecated name for `org-gnus-prefer-web-links'."))
+  (defvaralias 'org-usenet-links-prefer-google 'org-gnus-prefer-web-links))
 
 (defcustom org-gnus-prefer-web-links nil
   "Non-nil means, `org-store-link' will create web links to Google groups.
@@ -140,6 +139,7 @@ If `org-store-link' was called with a prefix arg the meaning of
       (setq desc (org-email-link-description)
 	    link (org-gnus-article-link group newsgroups message-id x-no-archive))
       (org-add-link-props :link link :description desc)
+      (gnus-summary-toggle-header -1)
       link))))
 
 (defun org-gnus-open (path)

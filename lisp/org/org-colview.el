@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -220,7 +220,7 @@ This is the compiled version of the format.")
 
 (defun org-columns-add-ellipses (string width)
   "Truncate STRING with WIDTH characters, with ellipses."
-  (cond 
+  (cond
    ((<= (length string) width) string)
    ((<= width (length org-columns-ellipses))
     (substring org-columns-ellipses 0 width))

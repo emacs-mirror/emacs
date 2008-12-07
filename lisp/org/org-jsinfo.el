@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -106,10 +106,10 @@ means to use the maximum value consistent with other options."
 (defcustom org-infojs-template
   "<script type=\"text/javascript\" src=\"%SCRIPT_PATH\"></script>
 <script type=\"text/javascript\" >
-/* <![CDATA[ */
+<!--/*--><![CDATA[/*><!--*/
 %MANAGER_OPTIONS
 org_html_manager.setup();  // activate after the parameterd are set
-/* ]]> */
+/*]]>*/-->
 </script>"
   "The template for the export style additions when org-info.js is used.
 Option settings will replace the %MANAGER-OPTIONS cookie."

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -345,7 +345,7 @@ sibling does not exist, it will be created at the end of the subtree."
       (org-end-of-subtree t t)
       (save-excursion
 	(goto-char pos)
-	(org-cut-subtree))
+	(let ((this-command this-command)) (org-cut-subtree)))
       (org-paste-subtree (org-get-valid-level level 1))
       (org-set-property
        "ARCHIVE_TIME"

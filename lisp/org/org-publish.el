@@ -4,7 +4,7 @@
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 6.13a
+;; Version: 6.14
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -263,7 +263,7 @@ index of files or summary page for a given project.
                          generates a plain list of links to all files
                          in the project.
   :index-style           Can be `list' (index is just an itemized list
-                         of the titles of the files involved) or 
+                         of the titles of the files involved) or
                          `tree' (the directory structure of the source
                          files is reflected in the index).  Defaults to
                          `tree'."
@@ -276,7 +276,7 @@ When nil, do no timestamp checking and always publish all files."
   :group 'org-publish
   :type 'boolean)
 
-(defcustom org-publish-timestamp-directory (convert-standard-filename 
+(defcustom org-publish-timestamp-directory (convert-standard-filename
 					    "~/.org-timestamps/")
   "Name of directory in which to store publishing timestamps."
   :group 'org-publish
@@ -422,7 +422,7 @@ This splices all the components into the list."
 		      rest))
 	(push p rtn)))
     (nreverse (org-publish-delete-dups (delq nil rtn)))))
-	
+
 (defun org-publish-get-base-files-1 (base-dir &optional recurse match skip-file skip-dir)
   "Set `org-publish-temp-files' with files from BASE-DIR directory.
 If RECURSE is non-nil, check BASE-DIR recursively.  If MATCH is
@@ -461,7 +461,7 @@ matching filenames."
 				  ;; for skip-file and skip-dir?
 				  exclude-regexp exclude-regexp)
     (mapc (lambda (f)
-	    (pushnew 
+	    (pushnew
 	     (expand-file-name (concat base-dir f))
 	     org-publish-temp-files))
 	  include-list)
@@ -470,7 +470,10 @@ matching filenames."
 (defun org-publish-get-project-from-filename (filename)
   "Return the project FILENAME belongs."
   (let* ((project-name (cdr (assoc (expand-file-name filename)
-				   org-publish-files-alist))))
+                                   org-publish-files-alist))))
+    (dolist (prj org-publish-project-alist)
+      (if (member project-name (plist-get (cdr prj) :components))
+          (setq project-name (car prj))))
     (assoc project-name org-publish-project-alist)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -619,20 +622,20 @@ Default for INDEX-FILENAME is 'index.org'."
 			  (concat "Index for project " (car project))))
 	 (index-style (or (plist-get project-plist :index-style)
 			  'tree))
-	 (index-buffer (find-buffer-visiting index-filename))
+	 (visiting (find-buffer-visiting index-filename))
 	 (ifn (file-name-nondirectory index-filename))
-	 file)
-    ;; if buffer is already open, kill it to prevent error message
-    (if index-buffer
-	(kill-buffer index-buffer))
-    (with-temp-buffer
+	 file index-buffer)
+    (with-current-buffer (setq index-buffer
+			       (or visiting (find-file index-filename)))
+      (erase-buffer)
       (insert (concat "#+TITLE: " index-title "\n\n"))
       (while (setq file (pop files))
 	(let ((fn (file-name-nondirectory file))
 	      (link (file-relative-name file dir))
 	      (oldlocal localdir))
 	  ;; index shouldn't index itself
-	  (unless (string= fn ifn)
+	  (unless (equal (file-truename index-filename)
+			 (file-truename file))
 	    (if (eq index-style 'list)
 		(message "Generating list-style index for %s" index-title)
 	      (message "Generating tree-style index for %s" index-title)
@@ -662,10 +665,9 @@ Default for INDEX-FILENAME is 'index.org'."
 	    ;; This is common to 'flat and 'tree
 	    (insert (concat indent-str " + [[file:" link "]["
 			    (org-publish-find-title file)
-			    "]]\n"))
-	    )))
-      (write-file index-filename)
-      (kill-buffer (current-buffer)))))
+			    "]]\n")))))
+      (save-buffer))
+    (or visiting (kill-buffer index-buffer))))
 
 (defun org-publish-find-title (file)
   "Find the title of file in project."

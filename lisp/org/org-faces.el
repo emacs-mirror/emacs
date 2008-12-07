@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -163,7 +163,7 @@ This is actually only part of the face definition for the text in column view.
 The following faces apply, with this priority.
 
 1. The color of the reference face.  This is normally the level fact that
-   is used in the outline.  In agenda-mode, it will be the face of the 
+   is used in the outline.  In agenda-mode, it will be the face of the
    first character in the line.  The color is explicitly retained to
    make sure that the column line still looks a bit like the structure
    line it is masking.
@@ -269,7 +269,9 @@ column view defines special faces for each outline level.  See the file
 
 (defface org-tag
   '((t (:bold t)))
-  "Face for tags."
+  "Default face for tags.
+Note that the variable `org-tag-faces' can be used to overrule this face for
+specific tags."
   :group 'org-faces)
 
 (defface org-todo ; font-lock-warning-face
@@ -312,6 +314,31 @@ list of attributes, like (:foreground \"blue\" :weight bold :underline t)."
 	  (cons
 	   (string :tag "keyword")
 	   (sexp :tag "face"))))
+
+(defvar org-tags-special-faces-re nil)
+(defun org-set-tag-faces (var value)
+  (set var value)
+  (if (not value)
+      (setq org-tags-special-faces-re nil)
+    (setq org-tags-special-faces-re
+	  (concat ":\\(" (mapconcat 'car value "\\|") "\\):"))))
+
+(defcustom org-tag-faces nil
+  "Faces for specific tags.
+This is a list of cons cells, with tags in the car and faces in the cdr.
+The face can be a symbol, or a property list of attributes,
+like (:foreground \"blue\" :weight bold :underline t).
+If you set this variable through customize, it will immediately be effective
+in new buffers and in modified lines.
+If you set it with Lisp, a restart of Emacs is required to activate the
+changes."
+  :group 'org-faces
+  :group 'org-tags
+  :set 'org-set-tag-faces
+  :type '(repeat
+	  (cons
+	   (string :tag "Tag")
+	   (sexp :tag "Face"))))
 
 (defface org-table ;; originally copied from font-lock-function-name-face
   (org-compatible-face nil

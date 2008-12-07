@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -242,6 +242,14 @@ Constants can also be defined on a per-file basis using a line like
   "Non-nil means, lines marked with |#| or |*| will be recomputed automatically.
 Automatically means, when TAB or RET or C-c C-c are pressed in the line."
   :group 'org-table-calculation
+  :type 'boolean)
+
+(defcustom org-table-error-on-row-ref-crossing-hline t
+  "Non-nil means, a relative row reference that tries to cross a hline errors.
+When nil, the reference will silently be to the field just next to the hline.
+Coming from below, it will be the field below the hline, coming from
+above, it will be the field above the hline."
+  :group 'org-table
   :type 'boolean)
 
 (defgroup org-table-import-export nil
@@ -2114,7 +2122,7 @@ not overwrite the stored one."
 	      lispp (and (> (length form) 2)(equal (substring form 0 2) "'(")))
 	(if (and lispp literal) (setq lispp 'literal))
 	;; Check for old vertical references
-	(setq form (org-rewrite-old-row-references form))
+	(setq form (org-table-rewrite-old-row-references form))
 	;; Insert complex ranges
 	(while (and (string-match org-table-range-regexp form)
 		    (> (length (match-string 0 form)) 1))
@@ -2288,26 +2296,32 @@ and TABLE is a vector with line types."
       (if (and (not hn) on (not odir))
 	  (error "should never happen");;(aref org-table-dlines on)
 	(if (and hn (> hn 0))
-	    (setq i (org-find-row-type table i 'hline (equal hdir "-") nil hn)))
+	    (setq i (org-table-find-row-type table i 'hline (equal hdir "-")
+					     nil hn cline desc)))
 	(if on
-	    (setq i (org-find-row-type table i 'dline (equal odir "-") rel on)))
+	    (setq i (org-table-find-row-type table i 'dline (equal odir "-")
+					     rel on cline desc)))
 	(+ bline i)))))
 
-(defun org-find-row-type (table i type backwards relative n)
+(defun org-table-find-row-type (table i type backwards relative n cline desc)
+  "FIXME: Needs more documentation."
   (let ((l (length table)))
     (while (> n 0)
       (while (and (setq i (+ i (if backwards -1 1)))
 		  (>= i 0) (< i l)
 		  (not (eq (aref table i) type))
 		  (if (and relative (eq (aref table i) 'hline))
-		      (progn (setq i (- i (if backwards -1 1)) n 1) nil)
+		      (if org-table-error-on-row-ref-crossing-hline
+			  (error "Row descriptor %s used in line %d crosses hline" desc cline)
+			(progn (setq i (- i (if backwards -1 1)) n 1) nil))
 		    t)))
       (setq n (1- n)))
     (if (or (< i 0) (>= i l))
-	(error "Row descriptor leads outside table")
+	(error "Row descriptor %s used in line %d leads outside table"
+	       desc cline)
       i)))
 
-(defun org-rewrite-old-row-references (s)
+(defun org-table-rewrite-old-row-references (s)
   (if (string-match "&[-+0-9I]" s)
       (error "Formula contains old &row reference, please rewrite using @-syntax")
     s))
@@ -2746,10 +2760,10 @@ For example:  28 -> AB."
   (or (match-end n) (error "Cannot shift reference in this direction"))
   (goto-char (match-beginning n))
   (and (looking-at (regexp-quote (match-string n)))
-       (replace-match (org-shift-refpart (match-string 0) decr hline)
+       (replace-match (org-table-shift-refpart (match-string 0) decr hline)
 		      t t)))
 
-(defun org-shift-refpart (ref &optional decr hline)
+(defun org-table-shift-refpart (ref &optional decr hline)
   "Shift a refrence part REF.
 If DECR is set, decrease the references row/column, else increase.
 If HLINE is set, this may be a hline reference, it certainly is not
@@ -3238,7 +3252,7 @@ table editor in arbitrary modes.")
 	  (easy-menu-add orgtbl-mode-menu)
 	  (run-hooks 'orgtbl-mode-hook))
       (setq auto-fill-inhibit-regexp org-old-auto-fill-inhibit-regexp)
-      (org-cleanup-narrow-column-properties)
+      (org-table-cleanup-narrow-column-properties)
       (org-remove-from-invisibility-spec '(org-cwidth))
       (remove-hook 'before-change-functions 'org-before-change-function t)
       (when (fboundp 'font-lock-remove-keywords)
@@ -3247,7 +3261,7 @@ table editor in arbitrary modes.")
       (easy-menu-remove orgtbl-mode-menu)
       (force-mode-line-update 'all))))
 
-(defun org-cleanup-narrow-column-properties ()
+(defun org-table-cleanup-narrow-column-properties ()
   "Remove all properties related to narrow-column invisibility."
   (let ((s 1))
     (while (setq s (text-property-any s (point-max)
@@ -3323,7 +3337,6 @@ to execute outside of tables."
 	  '("\C-c'"              org-table-edit-formulas)
 	  '("\C-c`"              org-table-edit-field)
 	  '("\C-c*"              org-table-recalculate)
-	  '("\C-c|"              org-table-create-or-convert-from-region)
 	  '("\C-c^"              org-table-sort-lines)
 	  '([(control ?#)]       org-table-rotate-recalc-marks)))
 	elt key fun cmd)
@@ -3357,6 +3370,8 @@ to execute outside of tables."
 			   [(meta return)] "\M-\C-m"))
 
     (org-defkey orgtbl-mode-map "\C-c\C-c" 'orgtbl-ctrl-c-ctrl-c)
+    (org-defkey orgtbl-mode-map "\C-c|" 'orgtbl-create-or-convert-from-region)
+
     (when orgtbl-optimized
       ;; If the user wants maximum table support, we need to hijack
       ;; some standard editing functions
@@ -3367,6 +3382,9 @@ to execute outside of tables."
       (org-defkey orgtbl-mode-map "|" 'org-force-self-insert))
     (easy-menu-define orgtbl-mode-menu orgtbl-mode-map "OrgTbl menu"
       '("OrgTbl"
+	["Create or convert" org-table-create-or-convert-from-region
+	 :active (not (org-at-table-p)) :keys "C-c |" ]
+	"--"
 	["Align" org-ctrl-c-ctrl-c :active (org-at-table-p) :keys "C-c C-c"]
 	["Next Field" org-cycle :active (org-at-table-p) :keys "TAB"]
 	["Previous Field" org-shifttab :active (org-at-table-p) :keys "S-TAB"]
@@ -3451,6 +3469,16 @@ With prefix arg, also recompute table."
      (t (let (orgtbl-mode)
 	  (call-interactively (key-binding "\C-c\C-c")))))))
 
+(defun orgtbl-create-or-convert-from-region (arg)
+  "Create table or convert region to table, if no conflicting binding.
+This installs the table binding `C-c |', but only if there is no
+conflicting binding to this key outside orgtbl-mode."
+  (interactive "P")
+  (let* (orgtbl-mode (cmd (key-binding "\C-c|")))
+    (if cmd
+	(call-interactively cmd)
+      (call-interactively 'org-table-create-or-convert-from-region))))
+
 (defun orgtbl-tab (arg)
   "Justification and field motion for `orgtbl-mode'."
   (interactive "P")
@@ -3461,8 +3489,10 @@ With prefix arg, also recompute table."
 (defun orgtbl-ret ()
   "Justification and field motion for `orgtbl-mode'."
   (interactive)
-  (org-table-justify-field-maybe)
-  (org-table-next-row))
+  (if (bobp)
+      (newline)
+    (org-table-justify-field-maybe)
+    (org-table-next-row)))
 
 (defun orgtbl-self-insert-command (N)
   "Like `self-insert-command', use overwrite-mode for whitespace in tables.
@@ -3490,12 +3520,13 @@ overwritten, and the table is not marked as requiring realignment."
 	(self-insert-command N))
     (setq org-table-may-need-update t)
     (let (orgtbl-mode a)
-      (call-interactively 
-       (key-binding
-	(or (and (listp function-key-map)
-		 (setq a (assoc last-input-event function-key-map))
-		 (cdr a))
-	    (vector last-input-event)))))))
+      (call-interactively
+       (or (key-binding
+	    (or (and (listp function-key-map)
+		     (setq a (assoc last-input-event function-key-map))
+		     (cdr a))
+		(vector last-input-event)))
+	   'self-insert-command)))))
 
 (defvar orgtbl-exp-regexp "^\\([-+]?[0-9][0-9.]*\\)[eE]\\([-+]?[0-9]+\\)$"
   "Regular expression matching exponentials as produced by calc.")
@@ -3569,7 +3600,7 @@ The table is taken from the parameter TXT, or from the buffer at point."
   (unless txt
     (unless (org-at-table-p)
       (error "No table at point")))
-  (let* ((txt (or txt 
+  (let* ((txt (or txt
 		  (buffer-substring-no-properties (org-table-begin)
 						  (org-table-end))))
 	 (lines (org-split-string txt "[ \t]*\n[ \t]*")))

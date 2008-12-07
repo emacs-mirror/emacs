@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -945,6 +945,10 @@ When non-nil, this must be the number of minutes, e.g. 60 for one hour."
 	  (integer :tag "Minutes")
 	  (const :tag "No default duration")))
 
+(defcustom org-agenda-show-inherited-tags t
+  "Non-nil means, show inherited tags in each agenda line."
+  :group 'org-agenda-line-format
+  :type 'boolean)
 
 (defcustom org-agenda-remove-tags nil
   "Non-nil means, remove the tags from the headline copy in the agenda.
@@ -1298,7 +1302,7 @@ The following commands are available:
      ["Show Logbook entries" org-agenda-log-mode
       :style toggle :selected org-agenda-show-log
       :active (org-agenda-check-type nil 'agenda 'timeline)]
-     ["Include archived trees" org-agenda-archives-mode 
+     ["Include archived trees" org-agenda-archives-mode
       :style toggle :selected org-agenda-archives-mode :active t]
      ["Include archive files" (org-agenda-archives-mode t)
       :style toggle :selected (eq org-agenda-archives-mode t) :active t
@@ -1907,7 +1911,7 @@ higher priority settings."
 	     (cond
 	      ((string-match "\\.html?\\'" file)
 	       (set-buffer (htmlize-buffer (current-buffer)))
-	       
+
 	       (when (and org-agenda-export-html-style
 			  (string-match "<style>" org-agenda-export-html-style))
 		 ;; replace <style> section with org-agenda-export-html-style
@@ -2978,7 +2982,7 @@ MATCH is being ignored."
   "Get the (Emacs Calendar) diary entries for DATE."
   (require 'diary-lib)
   (let* ((diary-fancy-buffer "*temporary-fancy-diary-buffer*")
-         (fancy-diary-buffer diary-fancy-buffer)
+	 (fancy-diary-buffer diary-fancy-buffer)
 	 (diary-display-hook '(fancy-diary-display))
 	 (diary-display-function 'fancy-diary-display)
 	 (pop-up-frames nil)
@@ -3412,7 +3416,7 @@ the documentation of `org-diary'."
 	 (items (if (consp org-agenda-show-log)
 		    org-agenda-show-log
 		  org-agenda-log-mode-items))
-	 (parts 
+	 (parts
 	  (delq nil
 		(list
 		 (if (memq 'closed items) (concat "\\<" org-closed-string))
@@ -3737,6 +3741,9 @@ Any match of REMOVE-RE will be removed from TXT."
   (save-match-data
     ;; Diary entries sometimes have extra whitespace at the beginning
     (if (string-match "^ +" txt) (setq txt (replace-match "" nil nil txt)))
+    (when org-agenda-show-inherited-tags
+      ;; Fix the tags part in txt
+      (setq txt (org-agenda-add-inherited-tags txt tags)))
     (let* ((category (or category
 			 org-category
 			 (if buffer-file-name
@@ -3836,7 +3843,8 @@ Any match of REMOVE-RE will be removed from TXT."
 
       ;; And finally add the text properties
       (org-add-props rtn nil
-	'org-category (downcase category) 'tags (mapcar 'downcase tags)
+	'org-category (downcase category)
+	'tags (mapcar 'org-downcase-keep-props tags)
 	'org-highest-priority org-highest-priority
 	'org-lowest-priority org-lowest-priority
 	'prefix-length (- (length rtn) (length txt))
@@ -3848,6 +3856,34 @@ Any match of REMOVE-RE will be removed from TXT."
 	'time time
 	'extra extra
 	'dotime dotime))))
+
+(defun org-agenda-add-inherited-tags (txt tags)
+  "Remove tags string from TXT, and add complete list of tags.
+The new list includes inherited tags.  If any inherited tags are present,
+a double colon separates inherited tags from local tags."
+  (if (string-match (org-re "\\([ \t]+\\)\\(:[[:alnum:]_@:]+:\\)[ \t]*$") txt)
+      (setq txt (substring txt 0 (match-beginning 0))))
+  (when tags
+    (let ((have-i (get-text-property 0 'inherited (car tags)))
+	  i)
+      (setq txt (concat txt " :"
+			(mapconcat
+			 (lambda (x)
+			   (setq i (get-text-property 0 'inherited x))
+			   (if (and have-i (not i))
+			       (progn
+				 (setq have-i nil)
+				 (concat ":" x))
+			     x))
+			 tags ":")
+			(if have-i "::" ":")))))
+  txt)
+
+(defun org-downcase-keep-props (s)
+  (let ((props (text-properties-at 0 s)))
+    (setq s (downcase s))
+    (add-text-properties 0 (length s) props s)
+    s))
 
 (defvar org-agenda-sorting-strategy) ;; because the def is in a let form
 (defvar org-agenda-sorting-strategy-selected nil)
@@ -4024,7 +4060,7 @@ HH:MM."
 	 (tb (or (get-text-property 1 'todo-state b) ""))
 	 (la (- (length (member ta org-todo-keywords-for-agenda))))
 	 (lb (- (length (member tb org-todo-keywords-for-agenda))))
-	 (donepa (member ta org-done-keywords-for-agenda)) 
+	 (donepa (member ta org-done-keywords-for-agenda))
 	 (donepb (member tb org-done-keywords-for-agenda)))
     (cond ((and donepa (not donepb)) -1)
 	  ((and (not donepa) donepb) +1)
@@ -4228,7 +4264,7 @@ used to narrow the search - the interactive user can also press `-' or `+'
 to switch to narrowing."
   (interactive "P")
   (let* ((alist org-tag-alist-for-agenda)
-	(tag-chars (mapconcat 
+	(tag-chars (mapconcat
 		    (lambda (x) (if (cdr x) (char-to-string (cdr x)) ""))
 		    alist ""))
 	(efforts (org-split-string
@@ -4241,7 +4277,7 @@ to switch to narrowing."
 	(current org-agenda-filter)
 	char a n tag tags)
     (unless char
-      (message 
+      (message
        "%s by tag [%s ], [TAB], [/]:off, [+-]:narrow, [>=<]:effort: "
        (if narrow "Narrow" "Filter") tag-chars)
       (setq char (read-char)))
@@ -4249,7 +4285,7 @@ to switch to narrowing."
       ;; Narrowing down
       (cond ((equal char ?-) (setq strip t narrow t))
 	    ((equal char ?+) (setq strip nil narrow t)))
-      (message 
+      (message
        "Narrow by tag [%s ], [TAB], [/]:off, [>=<]:effort: " tag-chars)
       (setq char (read-char)))
     (when (member char '(?< ?> ?=))
@@ -5101,7 +5137,9 @@ the new TODO state."
 	(goto-char (match-beginning 1))
 	(insert (org-add-props
 		    (make-string (max 1 (- c (current-column))) ?\ )
-		    (text-properties-at (point))))))))
+		    (text-properties-at (point)))))
+      (goto-char (point-min))
+      (org-font-lock-add-tag-faces (point-max)))))
 
 (defun org-agenda-priority-up ()
   "Increase the priority of line at point, also in Org-mode file."
@@ -5369,7 +5407,7 @@ The cursor may be at a date in the calendar, or in the Org agenda."
 	      (widen)
 	      (goto-char org-agenda-action-marker)
 	      (eval form))))))))
-  
+
 (defun org-agenda-clock-in (&optional arg)
   "Start the clock on the currently selected item."
   (interactive "P")
@@ -5512,8 +5550,6 @@ argument, latitude and longitude will be prompted for."
 	 (calendar-view-holidays-initially-flag nil)
 	 (calendar-view-diary-initially-flag nil)
 	 (view-calendar-holidays-initially nil)
-	 (calendar-view-diary-initially-flag nil)
-	 (calendar-view-holidays-initially-flag nil)
 	 (view-diary-entries-initially nil))
     (calendar)
     (calendar-goto-date date)))

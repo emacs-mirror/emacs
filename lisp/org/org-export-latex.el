@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
-;; Version: 6.13a
+;; Version: 6.14
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org, wp, tex
@@ -144,7 +144,7 @@ providing opening and closing strings for an environment that should
 represent the document section.  The opening clause should have a %s
 to represent the section title."
   :group 'org-export-latex
-  :type '(repeat 
+  :type '(repeat
 	  (list (string :tag "LaTeX class")
 		(string :tag "LaTeX header")
 		(repeat :tag "Levels" :inline t
@@ -423,6 +423,9 @@ when PUB-DIR is set, use this as the publishing directory."
 	   region :emph-multiline t
 		  :for-LaTeX t
 		  :comments nil
+		  :tags (plist-get opt-plist :tags)
+		  :priority (plist-get opt-plist :priority)
+		  :todo-keywords (plist-get opt-plist :todo-keywords)
 		  :add-text (if (eq to-buffer 'string) nil text)
 		  :skip-before-1st-heading skip
 		  :select-tags (plist-get opt-plist :select-tags)
@@ -1175,7 +1178,7 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
   (goto-char (point-min))
   (while (re-search-forward "^[ \t]*\\begin{\\([a-zA-Z]+\\)}" nil t)
     (let* ((start (progn (beginning-of-line) (point)))
-	   (end (or (and (re-search-forward 
+	   (end (or (and (re-search-forward
 			  (concat "^[ \t]*\\end{" (match-string 1) "}" nil t)
 			  (point-at-eol)))
 		    (point-max))))

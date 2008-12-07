@@ -6,7 +6,7 @@
 ;;         Thomas Baumann <thomas dot baumann at ch dot tum dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -259,8 +259,8 @@ The anniversaries are assumed to be stored `org-bbdb-anniversary-field'."
           (multiple-value-bind (m d y)
               (funcall org-bbdb-extract-date-fun (car split))
             (setq tmp (gethash (list m d) org-bbdb-anniv-hash))
-            (puthash (list m d) (cons (list y 
-                                            (bbdb-record-name rec) 
+            (puthash (list m d) (cons (list y
+                                            (bbdb-record-name rec)
                                             (cadr split))
                                       tmp)
                      org-bbdb-anniv-hash))))))
@@ -292,7 +292,7 @@ This is used by Org to re-create the anniversary hash table."
          (annivs (gethash (list m d) org-bbdb-anniv-hash))
          (text ())
          split class form rec recs)
-    
+
     ;; we don't want to miss people born on Feb. 29th
     (when (and (= m 3) (= d 1)
                (not (null (gethash (list 2 29) org-bbdb-anniv-hash)))
@@ -303,7 +303,7 @@ This is used by Org to re-create the anniversary hash table."
 
     (when annivs
       (while (setq rec (pop annivs))
-        (when rec 
+        (when rec
           (let* ((class (or (nth 2 rec)
                             org-bbdb-default-anniversary-format))
                  (form (or (cdr (assoc class

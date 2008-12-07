@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -204,6 +204,18 @@ or \"toc:3\"."
   :group 'org-export-general
   :type 'boolean)
 
+(defcustom org-export-with-todo-keywords t
+  "Non-nil means, include TODO keywords in export.
+When nil, remove all these keywords from the export."
+  :group 'org-export-general
+  :type 'boolean)
+
+(defcustom org-export-with-priority nil
+  "Non-nil means, include priority cookies in export.
+When nil, remove priority cookies for export."
+  :group 'org-export-general
+  :type 'boolean)
+
 (defcustom org-export-preserve-breaks nil
   "Non-nil means, preserve all line breaks when exporting.
 Normally, in HTML output paragraphs will be reformatted.  In ASCII
@@ -314,7 +326,7 @@ This option can also be set with the +OPTIONS line, e.g. \"f:nil\"."
 <h2 class=\"footnotes\">%s: </h2>
 <div id=\"footnotes-text\">
 %s
-</div> 
+</div>
 </div>"
   "Format for the footnotes section.
 Should contain a two instances of %s.  The first will be replaced with the
@@ -512,7 +524,7 @@ Org-mode file."
 
 (defconst org-export-html-style-default
 "<style type=\"text/css\">
- <![CDATA[
+ <!--/*--><![CDATA[/*><!--*/
   html { font-family: Times, serif; font-size: 12pt; }
   .title  { text-align: center; }
   .todo   { color: red; }
@@ -539,7 +551,7 @@ Org-mode file."
                                white-space:nowrap; }
   .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
                                  font-weight:bold; }
- ]]>
+  /*]]>*/-->
 </style>"
   "The default style specification for exported HTML files.
 Please use the variables `org-export-html-style' and
@@ -821,57 +833,67 @@ or if they are only using it locally."
 (defvar org-current-export-dir nil) ; dynamically scoped parameter
 
 (defconst org-export-plist-vars
-  '((:link-up              . org-export-html-link-up)
-    (:link-home            . org-export-html-link-home)
-    (:language             . org-export-default-language)
-    (:customtime           . org-display-custom-times)
-    (:headline-levels      . org-export-headline-levels)
-    (:section-numbers      . org-export-with-section-numbers)
-    (:section-number-format . org-export-section-number-format)
-    (:table-of-contents    . org-export-with-toc)
-    (:preserve-breaks      . org-export-preserve-breaks)
-    (:archived-trees       . org-export-with-archived-trees)
-    (:emphasize            . org-export-with-emphasize)
-    (:sub-superscript      . org-export-with-sub-superscripts)
-    (:special-strings      . org-export-with-special-strings)
-    (:footnotes            . org-export-with-footnotes)
-    (:drawers              . org-export-with-drawers)
-    (:tags                 . org-export-with-tags)
-    (:TeX-macros           . org-export-with-TeX-macros)
-    (:LaTeX-fragments      . org-export-with-LaTeX-fragments)
-    (:skip-before-1st-heading . org-export-skip-text-before-1st-heading)
-    (:fixed-width          . org-export-with-fixed-width)
-    (:timestamps           . org-export-with-timestamps)
-    (:author-info          . org-export-author-info)
-    (:creator-info         . org-export-creator-info)
-    (:time-stamp-file      . org-export-time-stamp-file)
-    (:tables               . org-export-with-tables)
-    (:table-auto-headline  . org-export-highlight-first-table-line)
-    (:style-include-default . org-export-html-style-include-default)
-    (:style                . org-export-html-style)
-    (:style-extra          . org-export-html-style-extra)
-    (:agenda-style         . org-agenda-export-html-style)
-    (:convert-org-links    . org-export-html-link-org-files-as-html)
-    (:inline-images        . org-export-html-inline-images)
-    (:html-extension       . org-export-html-extension)
-    (:html-table-tag       . org-export-html-table-tag)
-    (:expand-quoted-html   . org-export-html-expand)
-    (:timestamp            . org-export-html-with-timestamp)
-    (:publishing-directory . org-export-publishing-directory)
-    (:preamble             . org-export-html-preamble)
-    (:postamble            . org-export-html-postamble)
-    (:auto-preamble        . org-export-html-auto-preamble)
-    (:auto-postamble       . org-export-html-auto-postamble)
-    (:author               . user-full-name)
-    (:email                . user-mail-address)
-    (:select-tags          . org-export-select-tags)
-    (:exclude-tags         . org-export-exclude-tags)))
+  '((:link-up                 nil         org-export-html-link-up)
+    (:link-home               nil         org-export-html-link-home)
+    (:language                nil         org-export-default-language)
+    (:customtime              nil         org-display-custom-times)
+    (:headline-levels         "H"         org-export-headline-levels)
+    (:section-numbers         "num"       org-export-with-section-numbers)
+    (:section-number-format   nil         org-export-section-number-format)
+    (:table-of-contents       "toc"       org-export-with-toc)
+    (:preserve-breaks         "\\n"       org-export-preserve-breaks)
+    (:archived-trees          nil         org-export-with-archived-trees)
+    (:emphasize               "*"         org-export-with-emphasize)
+    (:sub-superscript         "^"         org-export-with-sub-superscripts)
+    (:special-strings         "-"         org-export-with-special-strings)
+    (:footnotes               "f"         org-export-with-footnotes)
+    (:drawers                 "d"         org-export-with-drawers)
+    (:tags                    "tags"      org-export-with-tags)
+    (:todo-keywords           "todo"      org-export-with-todo-keywords)
+    (:priority                "pri"       org-export-with-priority)
+    (:TeX-macros              "TeX"       org-export-with-TeX-macros)
+    (:LaTeX-fragments         "LaTeX"     org-export-with-LaTeX-fragments)
+    (:skip-before-1st-heading "skip"      org-export-skip-text-before-1st-heading)
+    (:fixed-width             ":"         org-export-with-fixed-width)
+    (:timestamps              "<"         org-export-with-timestamps)
+    (:author-info             "author"    org-export-author-info)
+    (:creator-info            "creator"   org-export-creator-info)
+    (:time-stamp-file         "timestamp" org-export-time-stamp-file)
+    (:tables                  "|"         org-export-with-tables)
+    (:table-auto-headline     nil         org-export-highlight-first-table-line)
+    (:style-include-default   nil         org-export-html-style-include-default)
+    (:style                   nil         org-export-html-style)
+    (:style-extra             nil         org-export-html-style-extra)
+    (:agenda-style            nil         org-agenda-export-html-style)
+    (:convert-org-links       nil         org-export-html-link-org-files-as-html)
+    (:inline-images           nil         org-export-html-inline-images)
+    (:html-extension          nil         org-export-html-extension)
+    (:html-table-tag          nil         org-export-html-table-tag)
+    (:expand-quoted-html      "@"         org-export-html-expand)
+    (:timestamp               nil         org-export-html-with-timestamp)
+    (:publishing-directory    nil         org-export-publishing-directory)
+    (:preamble                nil         org-export-html-preamble)
+    (:postamble               nil         org-export-html-postamble)
+    (:auto-preamble           nil         org-export-html-auto-preamble)
+    (:auto-postamble          nil         org-export-html-auto-postamble)
+    (:author                  nil         user-full-name)
+    (:email                   nil         user-mail-address)
+    (:select-tags             nil         org-export-select-tags)
+    (:exclude-tags            nil         org-export-exclude-tags))
+  "List of properties that represent export/publishing variables.
+Each element is a list of 3 items:
+1. The property that is used internally, and also for org-publish-project-alist
+2. The string that can be used in the OPTION lines to set this option,
+   or nil if this option cannot be changed in this way
+3. The customization variable that sets the default for this option."
+
+)
 
 (defun org-default-export-plist ()
   "Return the property list with default settings for the export variables."
   (let ((l org-export-plist-vars) rtn e)
     (while (setq e (pop l))
-      (setq rtn (cons (car e) (cons (symbol-value (cdr e)) rtn))))
+      (setq rtn (cons (car e) (cons (symbol-value (nth 2 e)) rtn))))
     rtn))
 
 (defvar org-export-inbuffer-options-extra nil
@@ -964,35 +986,17 @@ modified) list.")
   "Parse an OPTONS line and set values in the property list P."
   (let (o)
     (when options
-      (let ((op '(("H"     . :headline-levels)
-		  ("num"   . :section-numbers)
-		  ("toc"   . :table-of-contents)
-		  ("\\n"   . :preserve-breaks)
-		  ("@"     . :expand-quoted-html)
-		  (":"     . :fixed-width)
-		  ("|"     . :tables)
-		  ("^"     . :sub-superscript)
-		  ("-"     . :special-strings)
-		  ("f"     . :footnotes)
-		  ("d"     . :drawers)
-		  ("tags"  . :tags)
-		  ("*"     . :emphasize)
-		  ("TeX"   . :TeX-macros)
-		  ("LaTeX" . :LaTeX-fragments)
-		  ("skip"  . :skip-before-1st-heading)
-		  ("author" . :author-info)
-		  ("creator" . :creator-info)
-		  ("timestamp" . :time-stamp-file)))
-	    o)
+      (let ((op org-export-plist-vars) a)
 	(while (setq o (pop op))
-	  (if (string-match (concat (regexp-quote (car o))
-				    ":\\([^ \t\n\r;,.]*\\)")
-			    options)
-	      (setq p (plist-put p (cdr o)
+	  (if (and (nth 1 o)
+		   (string-match (concat (regexp-quote (nth 1 o))
+					 ":\\([^ \t\n\r;,.]*\\)")
+				 options))
+	      (setq p (plist-put p (car o)
 				 (car (read-from-string
 				       (match-string 1 options))))))))))
   p)
-  
+
 (defun org-export-add-subtree-options (p pos)
   "Add options in subtree at position POS to property list P."
   (save-excursion
@@ -1447,14 +1451,14 @@ on this string to produce the exported version."
       ;; The caller markes some stuff fo killing, stuff that has been
       ;; used to create the page title, for example.
       (org-export-kill-licensed-text)
-      
+
       (let ((org-inhibit-startup t)) (org-mode))
       (setq case-fold-search t)
       (untabify (point-min) (point-max))
-      
+
       ;; Handle include files
       (org-export-handle-include-files)
-      
+
       ;; Get rid of excluded trees
       (org-export-handle-export-tags (plist-get parameters :select-tags)
 				     (plist-get parameters :exclude-tags))
@@ -1462,10 +1466,13 @@ on this string to produce the exported version."
       ;; Handle source code snippets
       (org-export-replace-src-segments)
       
+      ;; Find all headings and compute the targets for them
+      (setq target-alist (org-export-define-heading-targets target-alist))
+
       ;; Get rid of drawers
       (org-export-remove-or-extract-drawers drawers
 					    (plist-get parameters :drawers))
-      
+
       ;; Get the correct stuff before the first headline
       (when (plist-get parameters :skip-before-1st-heading)
 	(goto-char (point-min))
@@ -1476,12 +1483,12 @@ on this string to produce the exported version."
       (when (plist-get parameters :add-text)
 	(goto-char (point-min))
 	(insert (plist-get parameters :add-text) "\n"))
-      
+
       ;; Get rid of archived trees
       (org-export-remove-archived-trees archived-trees)
-      
-      ;; Find all headings and compute the targets for them
-      (setq target-alist (org-export-define-heading-targets target-alist))
+
+      ;; Remove todo-keywords before exporting, if the user has requested so
+      (org-export-remove-headline-metadata parameters)
 
       ;; Find targets in comments and move them out of comments,
       ;; but mark them as targets that should be invisible
@@ -1505,7 +1512,6 @@ on this string to produce the exported version."
 
       ;; Remove comment environment and comment subtrees
       (org-export-remove-comment-blocks-and-subtrees)
-
 
       ;; Find matches for radio targets and turn them into internal links
       (org-export-mark-radio-links)
@@ -1564,18 +1570,22 @@ on this string to produce the exported version."
 The new targets are added to TARGET-ALIST, which is also returned."
   (goto-char (point-min))
   (org-init-section-numbers)
-  (let ((re (concat "^" org-outline-regexp))
+  (let ((re (concat "^" org-outline-regexp
+		    "\\| [ \t]*:ID:[ \t]*\\([^ \t\r\n]+\\)"))
 	level target)
     (while (re-search-forward re nil t)
-      (setq level (org-reduced-level
-		   (save-excursion (goto-char (point-at-bol))
-				   (org-outline-level))))
-      (setq target (org-solidify-link-text
-		    (format "sec-%s" (org-section-number level))))
-      (push (cons target target) target-alist)
-      (add-text-properties
-       (point-at-bol) (point-at-eol)
-       (list 'target target))))
+      (if (match-end 1)
+	  (push (cons (org-match-string-no-properties 1)
+		      target) target-alist)
+	(setq level (org-reduced-level
+		     (save-excursion (goto-char (point-at-bol))
+				     (org-outline-level))))
+	(setq target (org-solidify-link-text
+		      (format "sec-%s" (org-section-number level))))
+	(push (cons target target) target-alist)
+	(add-text-properties
+	 (point-at-bol) (point-at-eol)
+	 (list 'target target)))))
   target-alist)
 
 (defun org-export-handle-invisible-targets (target-alist)
@@ -1604,9 +1614,11 @@ Mark them as invisible targets."
   target-alist)
 
 (defun org-export-target-internal-links (target-alist)
-  "Find all internal links and assign target to them.
+  "Find all internal links and assign targets to them.
 If a link has a fuzzy match (i.e. not a *dedicated* target match),
-let the link  point to the corresponding section."
+let the link  point to the corresponding section.
+This function also handles the id links, if they have a match in
+the current file."
   (goto-char (point-min))
   (while (re-search-forward org-bracket-link-regexp nil t)
     (org-if-unprotected
@@ -1618,6 +1630,8 @@ let the link  point to the corresponding section."
 	    (target
 	     (cond
 	      ((cdr (assoc slink target-alist)))
+	      ((and (string-match "^id:" link)
+		    (cdr (assoc (substring link 3) target-alist))))
 	      ((string-match org-link-types-re link) nil)
 	      ((or (file-name-absolute-p link)
 		   (string-match "^\\." link))
@@ -1734,6 +1748,24 @@ from the buffer."
 		      (1+ (point-at-eol)) (point))
 		b (org-end-of-subtree t))
 	  (if (> b a) (delete-region a b)))))))
+
+(defun org-export-remove-headline-metadata (opts)
+  "Remove meta data from the headline, according to user options."
+  (let ((re org-complex-heading-regexp)
+	(todo (plist-get opts :todo-keywords))
+	(tags (plist-get opts :tags))
+	(pri  (plist-get opts :priority))
+	rpl)
+    (when (or (not todo) (not tags) (not pri))
+      ;; OK, something needs to be removed
+      (setq rpl (concat "\\1"
+			(if todo " \\2" "")
+			(if pri  " \\3" "")
+			" \\4"
+			(if tags " \\5" "")))
+      (goto-char (point-min))
+      (while (re-search-forward re nil t)
+	(replace-match rpl t nil)))))
 
 (defun org-export-protect-quoted-subtrees ()
   "Mark quoted subtrees with the protection property."
@@ -1905,7 +1937,7 @@ When it is nil, all comments will be removed."
 		  "]")))
 	 (put-text-property 0 (length s) 'face 'org-link s)
 	 (replace-match s t t))))))
-  
+
 (defun org-export-concatenate-multiline-links ()
   "Find multi-line links and put it all into a single line.
 This is to make sure that the line-processing export backends
@@ -2071,7 +2103,7 @@ TYPE must be a string, any of:
       res)))
 
 (org-number-to-roman 1961)
-   
+
 
 ;;; Include files
 
@@ -2227,7 +2259,7 @@ underlined headlines.  The default is 3."
 	      (goto-char rbeg)
 	      (and (org-at-heading-p)
 		   (>= (org-end-of-subtree t t) rend)))))
-	 (opt-plist (if subtree-p 
+	 (opt-plist (if subtree-p
 			(org-export-add-subtree-options opt-plist rbeg)
 		      opt-plist))
 	 (custom-times org-display-custom-times)
@@ -2278,6 +2310,9 @@ underlined headlines.  The default is 3."
 		  :skip-before-1st-heading
 		  (plist-get opt-plist :skip-before-1st-heading)
 		  :drawers (plist-get opt-plist :drawers)
+		  :tags (plist-get opt-plist :tags)
+		  :priority (plist-get opt-plist :priority)
+		  :todo-keywords (plist-get opt-plist :todo-keywords)
 		  :verbatim-multiline t
 		  :select-tags (plist-get opt-plist :select-tags)
 		  :exclude-tags (plist-get opt-plist :exclude-tags)
@@ -2307,7 +2342,7 @@ underlined headlines.  The default is 3."
     ;; create local variables for all options, to make sure all called
     ;; functions get the correct information
     (mapc (lambda (x)
-	    (set (make-local-variable (cdr x))
+	    (set (make-local-variable (nth 2 x))
 		 (plist-get opt-plist (car x))))
 	  org-export-plist-vars)
     (org-set-local 'org-odd-levels-only odd)
@@ -2397,10 +2432,7 @@ underlined headlines.  The default is 3."
     (while (setq line (pop lines))
       ;; Remove the quoted HTML tags.
       (setq line (org-html-expand-for-ascii line))
-      ;; Remove targets
-      (while (string-match "<<<?[^<>]*>>>?[ \t]*\n?" line)
-	(setq line (replace-match "" t t line)))
-      ;; Replace internal links
+      ;; Replace links with the description when possible
       (while (string-match org-bracket-link-regexp line)
 	(setq line (replace-match
 		    (if (match-end 3) "[\\3]" "[\\1]")
@@ -2483,13 +2515,18 @@ underlined headlines.  The default is 3."
 
 (defun org-export-ascii-preprocess ()
   "Do extra work for ASCII export"
+  ;; Put quotes around verbatim text
   (goto-char (point-min))
   (while (re-search-forward org-verbatim-re nil t)
     (goto-char (match-end 2))
     (backward-delete-char 1) (insert "'")
     (goto-char (match-beginning 2))
     (delete-char 1) (insert "`")
-    (goto-char (match-end 2))))
+    (goto-char (match-end 2)))
+  (goto-char (point-min))
+  ;; Remove target markers
+  (while (re-search-forward  "<<<?\\([^<>]*\\)>>>?\\([ \t]*\\)" nil t)
+    (replace-match "\\1\\2")))
 
 (defun org-search-todo-below (line lines level)
   "Search the subtree below LINE for any TODO entries."
@@ -2643,7 +2680,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
 #+EMAIL:     %s
 #+DATE:      %s
 #+LANGUAGE:  %s
-#+OPTIONS:   H:%d num:%s toc:%s \\n:%s @:%s ::%s |:%s ^:%s -:%s f:%s *:%s TeX:%s LaTeX:%s skip:%s d:%s tags:%s
+#+OPTIONS:   H:%d num:%s toc:%s \\n:%s @:%s ::%s |:%s ^:%s -:%s f:%s *:%s TeX:%s LaTeX:%s skip:%s d:%s todo:%s pri:%s tags:%s
 %s
 #+EXPORT_SELECT_TAGS: %s
 #+EXPORT_EXCLUDE_TAGS: %s
@@ -2678,6 +2715,8 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
    org-export-with-LaTeX-fragments
    org-export-skip-text-before-1st-heading
    org-export-with-drawers
+   org-export-with-todo-keywords
+   org-export-with-priority
    org-export-with-tags
    (if (featurep 'org-jsinfo) (org-infojs-options-inbuffer-template) "")
    (mapconcat 'identity org-export-select-tags " ")
@@ -2871,7 +2910,7 @@ PUB-DIR is set, use this as the publishing directory."
 		(goto-char rbeg)
 		(and (org-at-heading-p)
 		     (>= (org-end-of-subtree t t) rend))))))
-	 (opt-plist (if subtree-p 
+	 (opt-plist (if subtree-p
 			(org-export-add-subtree-options opt-plist rbeg)
 		      opt-plist))
 	 ;; The following two are dynamically scoped into other
@@ -2951,6 +2990,9 @@ PUB-DIR is set, use this as the publishing directory."
 	    :skip-before-1st-heading
 	    (plist-get opt-plist :skip-before-1st-heading)
 	    :drawers (plist-get opt-plist :drawers)
+	    :todo-keywords (plist-get opt-plist :todo-keywords)
+	    :tags (plist-get opt-plist :tags)
+	    :priority (plist-get opt-plist :priority)
 	    :archived-trees
 	    (plist-get opt-plist :archived-trees)
 	    :select-tags (plist-get opt-plist :select-tags)
@@ -3002,7 +3044,7 @@ PUB-DIR is set, use this as the publishing directory."
       ;; create local variables for all options, to make sure all called
       ;; functions get the correct information
       (mapc (lambda (x)
-	      (set (make-local-variable (cdr x))
+	      (set (make-local-variable (nth 2 x))
 		   (plist-get opt-plist (car x))))
 	    org-export-plist-vars)
       (setq umax (if arg (prefix-numeric-value arg)
@@ -3259,7 +3301,7 @@ lang=\"%s\" xml:lang=\"%s\">
 		     "<a href=\"#"
 		     (org-solidify-link-text
 		      (save-match-data (org-link-unescape path)) nil)
-		     "\"" attr ">" 
+		     "\"" attr ">"
 		     (org-export-html-format-desc desc)
 		     "</a>")))
 	     ((member type '("http" "https"))
@@ -3272,7 +3314,7 @@ lang=\"%s\" xml:lang=\"%s\">
 					attr (concat attr " alt=\"" path "\""))
 				    "/>"))
 		(setq link (concat type ":" path))
-		(setq rpl (concat "<a href=\"" 
+		(setq rpl (concat "<a href=\""
 				  (org-export-html-format-href link)
 				  "\"" attr ">"
 				  (org-export-html-format-desc desc)
@@ -3282,7 +3324,7 @@ lang=\"%s\" xml:lang=\"%s\">
 	      (setq link (concat type ":" path))
 	      (setq rpl (concat "<a href=\""
 				(org-export-html-format-href link)
-				"\"" attr ">" 
+				"\"" attr ">"
 				(org-export-html-format-desc desc)
 				"</a>")))
 
@@ -3460,7 +3502,7 @@ lang=\"%s\" xml:lang=\"%s\">
 		(insert (cond
 			 ((equal item-type "u") "<ul>\n<li>\n")
 			 ((equal item-type "o") "<ol>\n<li>\n")
-			 ((equal item-type "d") 
+			 ((equal item-type "d")
 			  (format "<dl>\n<dt>%s</dt><dd>\n" item-tag))))
 		(push item-type local-list-type)
 		(push ind local-list-indent)
@@ -4356,7 +4398,7 @@ When COMBINE is non nil, add the category to each line."
 			  (and org-icalendar-include-body (org-get-entry)))
 		      t org-icalendar-include-body)
 		location (org-icalendar-cleanup-string
-			  (org-entry-get nil "LOCATION"))
+			  (org-entry-get nil "LOCATION" 'selective))
 		uid (if org-icalendar-store-UID
 			(org-id-get-create)
 		      (or (org-id-get) (org-id-new)))
@@ -4450,7 +4492,7 @@ END:VEVENT\n"
 	      (insert sexp "\n"))))
 	(princ (org-diary-to-ical-string sexp-buffer))
 	(kill-buffer sexp-buffer))
-      
+
       (when org-icalendar-include-todo
 	(setq prefix "TODO-")
 	(goto-char (point-min))
@@ -4478,7 +4520,7 @@ END:VEVENT\n"
 			      (and org-icalendar-include-body (org-get-entry)))
 			  t org-icalendar-include-body)
 		    location (org-icalendar-cleanup-string
-			      (org-entry-get nil "LOCATION"))
+			      (org-entry-get nil "LOCATION" 'selective))
 		    due (and (member 'todo-due org-icalendar-use-deadline)
 			     (org-entry-get nil "DEADLINE"))
 		    start (and (member 'todo-start org-icalendar-use-scheduled)
@@ -4501,7 +4543,7 @@ END:VEVENT\n"
 		(setq pri org-default-priority))
 	      (setq pri (floor (- 9 (* 8. (/ (float (- org-lowest-priority pri))
 					     (- org-lowest-priority org-highest-priority))))))
-	      
+
 	      (princ (format "BEGIN:VTODO
 UID: %s
 %s

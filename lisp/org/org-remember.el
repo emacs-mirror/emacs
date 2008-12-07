@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.13a
+;; Version: 6.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -55,7 +55,7 @@
   "Non-nil means, `C-c C-c' stores remember note without further prompts.
 It then uses the file and headline specified by the template or (if the
 template does not specify them) by the variables `org-default-notes-file'
-and `org-remember-default-headline'.  To force prompting anyway, use 
+and `org-remember-default-headline'.  To force prompting anyway, use
 `C-u C-c C-c' to file the note.
 
 When this variable is nil, `C-c C-c' gives you the prompts, and
@@ -349,7 +349,7 @@ to be run from that hook to function properly."
 		ct))
 	     (tpl (car entry))
 	     (plist-p (if org-store-link-plist t nil))
-	     (file (if (and (nth 1 entry) 
+	     (file (if (and (nth 1 entry)
 			    (or (and (stringp (nth 1 entry))
 				     (string-match "\\S-" (nth 1 entry)))
 				(functionp (nth 1 entry))))
@@ -589,7 +589,7 @@ from that hook."
 		 (point)))
   (message "%s"
 	   (format
-	    (substitute-command-keys 
+	    (substitute-command-keys
 	     "Restore window configuration with \\[jump-to-register] %c")
 	    remember-register)))
 
