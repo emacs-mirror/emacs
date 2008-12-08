@@ -343,19 +343,19 @@ Matches the visited file name against the elements of `auto-insert-alist'."
 
 	 ;; Now, if we found something, do it
 	 (and action
-	      (if (stringp action)
-		  (file-readable-p (concat auto-insert-directory action))
-		t)
-	      (if auto-insert-query
-		  (or (if (eq auto-insert-query 'function)
-			  (eq this-command 'auto-insert))
-		      (y-or-n-p (format auto-insert-prompt desc)))
-		t)
+	      (or (not (stringp action))
+                  (file-readable-p (expand-file-name
+                                    action auto-insert-directory)))
+	      (or (not auto-insert-query)
+                  (if (eq auto-insert-query 'function)
+                      (eq this-command 'auto-insert))
+                  (y-or-n-p (format auto-insert-prompt desc)))
 	      (mapc
 	       (lambda (action)
 		 (if (stringp action)
 		     (if (file-readable-p
-			  (setq action (concat auto-insert-directory action)))
+			  (setq action (expand-file-name
+                                        action auto-insert-directory)))
 			 (insert-file-contents action))
 		   (save-window-excursion
 		     ;; make buffer visible before skeleton or function
@@ -393,8 +393,7 @@ or if CONDITION had no actions, after all other CONDITIONs."
 		    (vector action (cdr elt)))))
       (if after
 	  (nconc auto-insert-alist (list (cons condition action)))
-	(setq auto-insert-alist (cons (cons condition action)
-				      auto-insert-alist))))))
+        (push (cons condition action) auto-insert-alist)))))
 
 ;;;###autoload
 (define-minor-mode auto-insert-mode

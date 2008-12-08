@@ -1,3 +1,8 @@
+2008-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* autoinsert.el (auto-insert): Use expand-file-name instead of concat.
+	Suggested by Eric Hanchrow <eric.hanchrow@gmail.com>.
+
 2008-12-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/xterm.el (terminal-init-xterm): Discard pending input
@@ -24,7 +29,7 @@
 
 2008-12-04  Sam Steingold  <sds@gnu.org>
 
-	* progmodes/compile.el (compilation-read-command): Extracted from
+	* progmodes/compile.el (compilation-read-command): Extract from
 	compile.
 	(compile): Use it.
 	(recompile): Accept an optional argument to enable editing the
@@ -34,8 +39,8 @@
 
 	* net/tramp.el (top): Write a message, when loading Tramp.
 
-	* net/tramp-cache.el (tramp-dump-connection-properties): Polish
-	the check, whether to dump the data.
+	* net/tramp-cache.el (tramp-dump-connection-properties):
+	Polish the check, whether to dump the data.
 
 2008-12-04  Lute Kamstra  <lute@gnu.org>
 
@@ -269,8 +274,8 @@
 	* wdired.el (wdired-finish-edit): If displaying a single file,
 	change dired-directory if that file was renamed.
 
-	* emacs-lisp/byte-run.el (macro-declaration-function): Disallow
-	declare specs with lengths of 3 or more.
+	* emacs-lisp/byte-run.el (macro-declaration-function):
+	Disallow declare specs with lengths of 3 or more.
 
 	* dirtrack.el (dirtrack): Fix error message.
 
@@ -303,11 +308,11 @@
 
 2008-11-29  Chong Yidong  <cyd@stupidchicken.com>
 
-	* complete.el (PC-do-complete-and-exit): Use
-	minibuffer-confirm-exit-commands.
+	* complete.el (PC-do-complete-and-exit):
+	Use minibuffer-confirm-exit-commands.
 
-	* minibuffer.el (minibuffer-confirm-exit-commands): Add
-	PC-complete and PC-complete-word to the list.
+	* minibuffer.el (minibuffer-confirm-exit-commands):
+	Add PC-complete and PC-complete-word to the list.
 
 2008-11-29  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -376,15 +381,14 @@
 	* international/characters.el: Set category 'C' to characters
 	#x20000..#x2AFFF, #x2F800..#x2FFFF.
 
-	* loadup.el: Set inhibit-load-charset-map to t while preloading
-	files.
+	* loadup.el: Set inhibit-load-charset-map to t while preloading files.
 
 2008-11-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tool-bar.el (tool-bar-find-image-cache): Var deleted.
 	(tool-bar-find-image): Function deleted.
-	(tool-bar-local-item, tool-bar-local-item-from-menu): Use
-	find-image instead of tool-bar-find-image.
+	(tool-bar-local-item, tool-bar-local-item-from-menu):
+	Use find-image instead of tool-bar-find-image.
 	(tool-bar-keymap-cache): New hash table.
 	(tool-bar-make-keymap): Use it.
 	(tool-bar-make-keymap-1): Move body of tool-bar-make-keymap here.
@@ -493,11 +497,9 @@
 
 2008-11-24  Ulf Jasper  <ulf@web.de>
 
-	* net/newst-treeview.el (newsticker--treeview-current-feed): Doc
-	string.
-	(newsticker--treeview-item-show): Renamed arg FEED to
-	FEED-NAME-SYMBOL.
-	(newsticker--treeview-tree-update-tag): Removed dead code.
+	* net/newst-treeview.el (newsticker--treeview-current-feed): Docstring.
+	(newsticker--treeview-item-show): Rename arg FEED to FEED-NAME-SYMBOL.
+	(newsticker--treeview-tree-update-tag): Remove dead code.
 	(newsticker-treeview-update): Don't update cache.
 	(newsticker-treeview-quit): Don't save cache.
 	(newsticker-treeview-save): Don't save cache. Use `newsticker-dir'.
@@ -512,9 +514,9 @@
 	(newsticker-stop): Use `newsticker--cache-save'.
 	(newsticker--sentinel-work): Use `newsticker--cache-save-feed'.
 	(newsticker--images-dir): New.
-	(newsticker--image-get, newsticker--image-sentinel): Use
-	`newsticker--images-dir'.
-	(newsticker--cache-save-version1): Backuped version of
+	(newsticker--image-get, newsticker--image-sentinel):
+	Use `newsticker--images-dir'.
+	(newsticker--cache-save-version1): Backup version of
 	`newsticker--cache-save'.
 	(newsticker--cache-update): Create newsticker-dir if necessary.
 	(newsticker--cache-dir): New.
@@ -524,24 +526,23 @@
 	cache data..
 	(newsticker--cache-read, newsticker--cache-do-read): New.
 
-	* net/newst-reader.el (newsticker--image-read): Use
-	`newsticker--images-dir'.
+	* net/newst-reader.el (newsticker--image-read):
+	Use `newsticker--images-dir'.
 
 2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
-	* files.el (confirm-nonexistent-file-or-buffer): Allow
-	`after-completion' value to request confirm only after TAB.
+	* files.el (confirm-nonexistent-file-or-buffer):
+	Allow `after-completion' value to request confirm only after TAB.
 	(confirm-nonexistent-file-or-buffer): New function.
 	(read-buffer-to-switch, find-file, find-file-other-window)
 	(find-file-other-frame, find-file-read-only)
 	(find-file-read-only-other-window)
 	(find-file-read-only-other-frame): Use it.
-	(switch-to-buffer-other-window, switch-to-buffer-other-frame): Doc
-	fix.
+	(switch-to-buffer-other-window, switch-to-buffer-other-frame): Doc fix.
 	Thanks to Alan Mackenzie for suggesting the new behavior.
 
-	* minibuffer.el (minibuffer-complete-and-exit): Change
-	`confirm-only' value of minibuffer-completion-confirm to
+	* minibuffer.el (minibuffer-complete-and-exit):
+	Change `confirm-only' value of minibuffer-completion-confirm to
 	`confirm', and handle a `confirm-after-completion' value.
 
 2008-11-24  Juanma Barranquero  <lekktu@gmail.com>

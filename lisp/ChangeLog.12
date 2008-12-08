@@ -2109,13 +2109,13 @@
 
 2007-02-02  Ulf Jasper  <ulf.jasper@web.de>
 
-	* net/newsticker.el (newsticker-version): Changed to "1.10".
+	* net/newsticker.el (newsticker-version): Change to "1.10".
 	(newsticker--set-customvar): Doc string.
 	(newsticker-new-item-face): Doc string.
 	(newsticker-mode): Initialize `invisibility-spec' with t.
-	(newsticker-mode-map): Added
-	`newsticker-mark-all-items-at-point-as-read'.
-	(newsticker-menu): Added narrow-to-item and narrow-to-feed.
+	(newsticker-mode-map):
+	Add `newsticker-mark-all-items-at-point-as-read'.
+	(newsticker-menu): Add narrow-to-item and narrow-to-feed.
 	(newsticker-w3m-show-inline-images): Do not call
 	`w3m-remove-image'.
 	(newsticker--buffer-after-w3m-insert-image): New advice for
@@ -2130,8 +2130,7 @@
 	`newsticker-mark-item-at-point-as-read'.
 	(newsticker-hide-entry): Use (t) instead of t for invisibility.
 	(newsticker--sentinel): Yet another xml-parser workaround.
-	(newsticker--decode-iso8601-date): Bugfix for datestrings without
-	days.
+	(newsticker--decode-iso8601-date): Bugfix for datestrings without days.
 	(newsticker--buffer-do-insert-text): Fix.
 	(newsticker--buffer-insert-enclosure): Fix.  Length might be missing.
 	(newsticker--buffer-make-item-completely-visible):
@@ -2361,13 +2360,13 @@
 
 2007-01-27  Ben North  <ben@redfrontdoor.org>
 
-	* outline.el (outline-promote, outline-demote): Doc fix.  Rename
-	the arg CHILDREN -> WHICH.
+	* outline.el (outline-promote, outline-demote): Doc fix.
+	Rename the arg CHILDREN -> WHICH.
 
 2007-01-27  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Set
-	default-directory to a sane value when calling start-process.
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band):
+	Set default-directory to a sane value when calling start-process.
 
 2007-01-27  Eli Zaretskii  <eliz@gnu.org>
 
@@ -2532,13 +2531,12 @@
 2007-01-20  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* progmodes/cperl-mode.el (cperl-electric-keywords): Document in
-	the doc string how to use personal abbrevs without electric
-	keywords.
+	the doc string how to use personal abbrevs without electric keywords.
 
 2007-01-20  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
 
 	* emacs-lisp/lisp-mode.el (last-sexp-toggle-display):
-	Fixed cursor position when toggle abbreviated display.
+	Fix cursor position when toggle abbreviated display.
 
 2007-01-20  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -2567,8 +2565,7 @@
 
 2007-01-18  Bruno Haible  <bruno@clisp.org>  (tiny change)
 
-	* info.el (Info-default-dirs): Change default info dir to
-	share/info.
+	* info.el (Info-default-dirs): Change default info dir to share/info.
 
 	* paths.el (Info-default-directory-list): Ditto.
 
