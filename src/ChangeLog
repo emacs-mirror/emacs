@@ -1,3 +1,19 @@
+2008-12-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* termchar.h (struct tty): New members termcap_term_buffer and
+	termcap_strings_buffer.
+
+	* term.c (encode_terminal_code): Free any previous memory blocks
+	before calling xmalloc for encode_terminal_src or
+	encode_terminal_dst.
+	(maybe_fatal): Buffer argument deleted.  Don't free buffer here.
+	All callers changed.
+	(init_tty): Store termcap data and string buffers in new struct
+	tty members termcap_term_buffer and termcap_strings_buffer.
+	(delete_tty): Free them.
+	(syms_of_term): Initialize encode_terminal_src and
+	encode_terminal_dst.
+
 2008-12-07  Seiji Zenitani  <zenitani@mac.com>
 
 	* nsfns.m (ns_set_background_color): Remove code duplication.
