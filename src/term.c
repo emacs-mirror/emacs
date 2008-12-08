@@ -581,10 +581,10 @@ encode_terminal_code (src, src_len, coding)
   required = MAX_MULTIBYTE_LENGTH * src_len;
   if (encode_terminal_src_size < required)
     {
-      if (encode_terminal_src_size == 0)
-	encode_terminal_src = xmalloc (required);
-      else
+      if (encode_terminal_src)
 	encode_terminal_src = xrealloc (encode_terminal_src, required);
+      else
+	encode_terminal_src = xmalloc (required);
       encode_terminal_src_size = required;
     }
 
@@ -740,7 +740,11 @@ encode_terminal_code (src, src_len, coding)
   if (encode_terminal_dst_size == 0)
     {
       encode_terminal_dst_size = encode_terminal_src_size;
-      encode_terminal_dst = xmalloc (encode_terminal_dst_size);
+      if (encode_terminal_dst)
+	encode_terminal_dst = xrealloc (encode_terminal_dst,
+					encode_terminal_dst_size);
+      else
+	encode_terminal_dst = xmalloc (encode_terminal_dst_size);
     }
   coding->destination = encode_terminal_dst;
   coding->dst_bytes = encode_terminal_dst_size;
@@ -3326,7 +3330,6 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 {
   char *area = NULL;
   char **address = &area;
-  char *buffer = NULL;
   int buffer_size = 4096;
   register char *p = NULL;
   int status;
@@ -3335,7 +3338,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   int ctty = 0;                 /* 1 if asked to open controlling tty. */
 
   if (!terminal_type)
-    maybe_fatal (must_succeed, 0, 0,
+    maybe_fatal (must_succeed, 0,
                  "Unknown terminal type",
                  "Unknown terminal type");
 
@@ -3356,7 +3359,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   terminal = create_terminal ();
 #ifdef MSDOS
   if (been_here > 0)
-    maybe_fatal (1, 0, 0, "Attempt to create another terminal %s", "",
+    maybe_fatal (1, 0, "Attempt to create another terminal %s", "",
 		 name, "");
   been_here = 1;
   tty = &the_only_display_info;
@@ -3397,14 +3400,14 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 #endif /* O_IGNORE_CTTY */
 
     if (fd < 0)
-      maybe_fatal (must_succeed, buffer, terminal,
+      maybe_fatal (must_succeed, terminal,
                    "Could not open file: %s",
                    "Could not open file: %s",
                    name);
     if (!isatty (fd))
       {
         close (fd);
-        maybe_fatal (must_succeed, buffer, terminal,
+        maybe_fatal (must_succeed, terminal,
                      "Not a tty device: %s",
                      "Not a tty device: %s",
                      name);
@@ -3504,22 +3507,22 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
   Wcm_clear (tty);
 
-  buffer = (char *) xmalloc (buffer_size);
+  tty->termcap_term_buffer = (char *) xmalloc (buffer_size);
 
   /* On some systems, tgetent tries to access the controlling
      terminal. */
   sigblock (sigmask (SIGTTOU));
-  status = tgetent (buffer, terminal_type);
+  status = tgetent (tty->termcap_term_buffer, terminal_type);
   sigunblock (sigmask (SIGTTOU));
 
   if (status < 0)
     {
 #ifdef TERMINFO
-      maybe_fatal (must_succeed, buffer, terminal,
+      maybe_fatal (must_succeed, terminal,
                    "Cannot open terminfo database file",
                    "Cannot open terminfo database file");
 #else
-      maybe_fatal (must_succeed, buffer, terminal,
+      maybe_fatal (must_succeed, terminal,
                    "Cannot open termcap database file",
                    "Cannot open termcap database file");
 #endif
@@ -3527,7 +3530,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   if (status == 0)
     {
 #ifdef TERMINFO
-      maybe_fatal (must_succeed, buffer, terminal,
+      maybe_fatal (must_succeed, terminal,
                    "Terminal type %s is not defined",
                    "Terminal type %s is not defined.\n\
 If that is not the actual type of terminal you have,\n\
@@ -3536,7 +3539,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
                    terminal_type);
 #else
-      maybe_fatal (must_succeed, buffer, terminal,
+      maybe_fatal (must_succeed, terminal,
                    "Terminal type %s is not defined",
                    "Terminal type %s is not defined.\n\
 If that is not the actual type of terminal you have,\n\
@@ -3548,12 +3551,11 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     }
 
 #ifndef TERMINFO
-  if (strlen (buffer) >= buffer_size)
+  if (strlen (tty->termcap_term_buffer) >= buffer_size)
     abort ();
-  buffer_size = strlen (buffer);
+  buffer_size = strlen (tty->termcap_term_buffer);
 #endif
-  area = (char *) xmalloc (buffer_size);
-
+  tty->termcap_strings_buffer = area = (char *) xmalloc (buffer_size);
   tty->TS_ins_line = tgetstr ("al", address);
   tty->TS_ins_multi_lines = tgetstr ("AL", address);
   tty->TS_bell = tgetstr ("bl", address);
@@ -3690,7 +3692,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     FrameRows (tty) = tgetnum ("li");
 
   if (FrameRows (tty) < 3 || FrameCols (tty) < 3)
-    maybe_fatal (must_succeed, NULL, terminal,
+    maybe_fatal (must_succeed, terminal,
                  "Screen size %dx%d is too small"
                  "Screen size %dx%d is too small",
                  FrameCols (tty), FrameRows (tty));
@@ -3814,7 +3816,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   if (Wcm_init (tty) == -1)	/* can't do cursor motion */
     {
-      maybe_fatal (must_succeed, NULL, terminal,
+      maybe_fatal (must_succeed, terminal,
                    "Terminal type \"%s\" is not powerful enough to run Emacs",
 # ifdef TERMINFO
                    "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
@@ -3835,7 +3837,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     }
 
   if (FrameRows (tty) <= 0 || FrameCols (tty) <= 0)
-    maybe_fatal (must_succeed, NULL, terminal,
+    maybe_fatal (must_succeed, terminal,
                  "Could not determine the frame size",
                  "Could not determine the frame size");
 
@@ -3868,9 +3870,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   init_baud_rate (fileno (tty->input));
 
-  /* Don't do this.  I think termcap may still need the buffer. */
-  /* xfree (buffer); */
-
 #endif /* not DOS_NT */
 
   /* Init system terminal modes (RAW or CBREAK, etc.).  */
@@ -3880,18 +3879,15 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 }
 
 /* Auxiliary error-handling function for init_tty.
-   Free BUFFER and delete TERMINAL, then call error or fatal
-   with str1 or str2, respectively, according to MUST_SUCCEED.  */
+   Delete TERMINAL, then call error or fatal with str1 or str2,
+   respectively, according to MUST_SUCCEED.  */
 
 static void
-maybe_fatal (must_succeed, buffer, terminal, str1, str2, arg1, arg2)
+maybe_fatal (must_succeed, terminal, str1, str2, arg1, arg2)
      int must_succeed;
-     char *buffer;
      struct terminal *terminal;
      char *str1, *str2, *arg1, *arg2;
 {
-  xfree (buffer);
-
   if (terminal)
     delete_tty (terminal);
 
@@ -3989,6 +3985,10 @@ delete_tty (struct terminal *terminal)
 
   xfree (tty->old_tty);
   xfree (tty->Wcm);
+  if (tty->termcap_strings_buffer)
+    xfree (tty->termcap_strings_buffer);
+  if (tty->termcap_term_buffer)
+    xfree (tty->termcap_term_buffer);
 
   bzero (tty, sizeof (struct tty_display_info));
   xfree (tty);
@@ -4061,6 +4061,9 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   default_set_foreground = NULL;
   default_set_background = NULL;
 #endif /* !DOS_NT */
+
+  encode_terminal_src = NULL;
+  encode_terminal_dst = NULL;
 }
 
 
