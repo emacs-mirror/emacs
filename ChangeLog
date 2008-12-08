@@ -1,3 +1,7 @@
+2008-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* info/dir: Fix last change.
+
 2008-12-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* info/dir: Untabify.
