@@ -1,3 +1,7 @@
+2008-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c (main): Close daemon_pipe on exec.
+
 2008-12-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* termchar.h (struct tty): New members termcap_term_buffer and
