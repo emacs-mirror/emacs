@@ -4,7 +4,7 @@
 #   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 #   Free Software Foundation, Inc.
 
-timestamp='2008-01-08'
+timestamp='2008-11-15'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -331,7 +331,20 @@ case "${UNAME_MACHINE}:${UNAME_SYSTEM}:${UNAME_RELEASE}:${UNAME_VERSION}" in
 	echo sparc-sun-solaris2`echo ${UNAME_RELEASE}|sed -e 's/[^.]*//'`
 	exit ;;
     i86pc:SunOS:5.*:* | i86xen:SunOS:5.*:*)
-	echo i386-pc-solaris2`echo ${UNAME_RELEASE}|sed -e 's/[^.]*//'`
+	eval $set_cc_for_build
+	SUN_ARCH="i386"
+	# If there is a compiler, see if it is configured for 64-bit objects.
+	# Note that the Sun cc does not turn __LP64__ into 1 like gcc does.
+	# This test works for both compilers.
+	if [ "$CC_FOR_BUILD" != 'no_compiler_found' ]; then
+	    if echo '\n#ifdef __amd64\nIS_64BIT_ARCH\n#endif' | \
+		(CCOPTS= $CC_FOR_BUILD -E - 2>/dev/null) | \
+		grep IS_64BIT_ARCH >/dev/null
+	    then
+		SUN_ARCH="x86_64"
+	    fi
+	fi
+	echo ${SUN_ARCH}-pc-solaris2`echo ${UNAME_RELEASE}|sed -e 's/[^.]*//'`
 	exit ;;
     sun4*:SunOS:6*:*)
 	# According to config.sub, this is the proper way to canonicalize
@@ -796,7 +809,7 @@ EOF
 	    x86)
 		echo i586-pc-interix${UNAME_RELEASE}
 		exit ;;
-	    EM64T | authenticamd)
+	    EM64T | authenticamd | genuineintel)
 		echo x86_64-unknown-interix${UNAME_RELEASE}
 		exit ;;
 	    IA64)
@@ -935,6 +948,9 @@ EOF
 	if test "$?" = 0 ; then LIBC="libc1" ; else LIBC="" ; fi
 	echo ${UNAME_MACHINE}-unknown-linux-gnu${LIBC}
 	exit ;;
+    padre:Linux:*:*)
+	echo sparc-unknown-linux-gnu
+	exit ;;
     parisc:Linux:*:* | hppa:Linux:*:*)
 	# Look for CPU level
 	case `grep '^cpu[^a-z]*:' /proc/cpuinfo 2>/dev/null | cut -d' ' -f2` in
@@ -984,9 +1000,6 @@ EOF
 		;;
 	  a.out-i386-linux)
 		echo "${UNAME_MACHINE}-pc-linux-gnuaout"
-		exit ;;
-	  coff-i386)
-		echo "${UNAME_MACHINE}-pc-linux-gnucoff"
 		exit ;;
 	  "")
 		# Either a pre-BFD a.out linker (linux-gnuoldld) or
@@ -1215,6 +1228,9 @@ EOF
 	exit ;;
     BePC:BeOS:*:*)	# BeOS running on Intel PC compatible.
 	echo i586-pc-beos
+	exit ;;
+    BePC:Haiku:*:*)	# Haiku running on Intel PC compatible.
+	echo i586-pc-haiku
 	exit ;;
     SX-4:SUPER-UX:*:*)
 	echo sx4-nec-superux${UNAME_RELEASE}
@@ -1484,9 +1500,9 @@ This script, last modified $timestamp, has failed to recognize
 the operating system you are using. It is advised that you
 download the most up to date version of the config scripts from
 
-  http://savannah.gnu.org/cgi-bin/viewcvs/*checkout*/config/config/config.guess
+  http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD
 and
-  http://savannah.gnu.org/cgi-bin/viewcvs/*checkout*/config/config/config.sub
+  http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD
 
 If the version you run ($0) is already up to date, please
 send the following data and any information you think might be
