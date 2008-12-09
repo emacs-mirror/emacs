@@ -944,7 +944,9 @@ ELCFILES = \
 	$(lisp)/org/org-remember.elc \
 	$(lisp)/org/org-rmail.elc \
 	$(lisp)/org/org-table.elc \
+	$(lisp)/org/org-timer.elc \
 	$(lisp)/org/org-vm.elc \
+	$(lisp)/org/org-w3m.elc \
 	$(lisp)/org/org-wl.elc \
 	$(lisp)/org/org.elc \
 	$(lisp)/outline.elc \

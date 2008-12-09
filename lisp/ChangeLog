@@ -1,3 +1,7 @@
+2008-12-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Update.
+
 2008-12-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* autoinsert.el (auto-insert): Use expand-file-name instead of concat.
