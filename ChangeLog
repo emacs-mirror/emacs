@@ -1,3 +1,7 @@
+2008-12-09  Ali Bahrami  <ali_gnu@emvision.com>  (tiny change)
+
+	* configure.in: Add Solaris on x86_64.
+
 2008-12-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.guess, config.sub: Updated from master source.

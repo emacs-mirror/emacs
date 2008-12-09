@@ -450,8 +450,9 @@ dnl see the `changequote' comment above.
   ;;
 
   *-sun-solaris* \
-    | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* | powerpc*-*-solaris2* \
-    | rs6000-*-solaris2*)
+    | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* \
+    | x86_64-*-solaris2*    | x86_64-*-sunos5*    \
+    | powerpc*-*-solaris2*  | rs6000-*-solaris2*)
     case "${canonical}" in
       i[3456]86-*-* )     machine=intel386 ;;
       amd64-*-*|x86_64-*-*)	machine=amdx86-64 ;;
