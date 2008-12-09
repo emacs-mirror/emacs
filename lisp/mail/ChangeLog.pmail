@@ -1,3 +1,11 @@
+2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail-only-expunge): Swap buffers at the beginning.
+
+	* pmailsum.el (pmail-summary-header): Deleted.
+	(pmail-get-create-summary-line): Don't insert a summary line into
+	the file.
+
 2008-12-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmail.el (pmail-convert-babyl-to-mbox): Reinitialize pmail-mode
