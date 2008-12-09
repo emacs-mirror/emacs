@@ -46,9 +46,6 @@
   :type 'boolean
   :group 'pmail-summary)
 
-(defconst pmail-summary-header "X-BABYL-V6-SUMMARY"
-  "The header that stores the Pmail summary line.")
-
 (defvar pmail-summary-font-lock-keywords
   '(("^.....D.*" . font-lock-string-face)			; Deleted.
     ("^.....-.*" . font-lock-type-face)				; Unread.
@@ -341,20 +338,15 @@ otherwise create it and store it in the message header.
 
 The current buffer contains the unrestricted message collection."
   (let ((beg (pmail-msgbeg msgnum))
-	(end (pmail-msgend msgnum))
-	result)
+	(end (pmail-msgend msgnum)))
     (goto-char beg)
     (if (search-forward "\n\n" end t)
 	(save-restriction
 	  (narrow-to-region beg (point))
 	  ;; Generate a status line from the message and put it in the
 	  ;; message.
-	  (setq result (mail-fetch-field pmail-summary-header))
-	  (unless result
-	    (setq result (pmail-create-summary msgnum))
-	    (pmail-add-header pmail-summary-header result)))
-      (pmail-error-bad-format msgnum))
-    result))
+	  (pmail-create-summary msgnum))
+      (pmail-error-bad-format msgnum))))
 
 (defun pmail-get-summary-labels ()
   "Return a coded string wrapped in curly braces denoting the status labels.
