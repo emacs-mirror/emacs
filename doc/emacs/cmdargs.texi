@@ -793,9 +793,17 @@ font.  You can specify a different font using the command line option
 Use @var{font} as the default font.
 @end table
 
+When passing a font specification to Emacs on the command line, you
+may need to ``quote'' it, by enclosing it in quotation marks, if it
+contains characters that the shell treats specially (e.g. spaces).
+Here is an example:
+
+@smallexample
+emacs -fn "DejaVu Sans Mono-12"
+@end smallexample
+
 @cindex X defaults file
 @cindex X resources file
-
   You can also specify the font using your X resources file (usually a
 file named @file{.Xdefaults} or @file{.Xresources} in your home
 directory), by adding a line like this:
@@ -806,7 +814,8 @@ emacs.font: @var{font}
 
 @noindent
 You must restart X, or use the @command{xrdb} command, for the X
-resources file to take effect.  @xref{Resources}.
+resources file to take effect.  @xref{Resources}.  When specifying a
+font in your X resources file, you should not quote it.
 
 @cindex fontconfig
   There are four different ways to express a ``font name''.  The first
@@ -833,20 +842,6 @@ Monospace-12:bold
 DejaVu Sans Mono:bold:italic
 Monospace-12:weight=bold:slant=italic
 @end smallexample
-
-@noindent
-When passing a font specification to Emacs on the command line, you
-may need to ``quote'' it, by enclosing it in quotation marks, if it
-contains characters that the shell treats specially (e.g. spaces).
-For example:
-
-@smallexample
-emacs -fn "DejaVu Sans Mono-12"
-@end smallexample
-
-@noindent
-When specifying a font in your X resources file, you should not quote
-it.
 
   The second way to specify a font is to use the @dfn{GTK format}.
 This has the syntax
