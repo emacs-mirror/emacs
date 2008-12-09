@@ -818,11 +818,19 @@ resources file to take effect.  @xref{Resources}.  When specifying a
 font in your X resources file, you should not quote it.
 
 @cindex fontconfig
+  Emacs recognizes two types of fonts: @dfn{client-side} fonts, which
+are provided by the Xft and Fontconfig libraries, and
+@dfn{server-side} fonts, which are provided by the X server itself.
+Most client-side fonts support advanced font features such as
+antialiasing and subpixel hinting, while server-side fonts do not.
+
   There are four different ways to express a ``font name''.  The first
-is to use the @dfn{Fontconfig format}, which has the following form:
+format consists of @dfn{Fontconfig patterns}.  Fontconfig patterns
+match only client-side fonts provided by Xft and Fontconfig, and have
+the following form:
 
 @smallexample
-@var{fontname}[-@var{fontsize}][:@var{property1}][:@var{property2}]...
+@var{fontname}[-@var{fontsize}][:@var{name1}=@var{values1}][:@var{name2}=@var{values2}]...
 @end smallexample
 
 @noindent
@@ -830,10 +838,38 @@ Within this format, any of the elements in braces may be omitted.
 Here, @var{fontname} is the ``family name'' of the font, such as
 @samp{Monospace} or @samp{DejaVu Serif}; @var{fontsize} is the ``point
 size'' of the font (one ``printer's point'' is about 1/72 of an inch);
-and the @var{property} entries specify font settings such as
-@samp{bold}, @samp{italic}, @samp{weight=bold}, @samp{slant=oblique},
-and so forth.  Here are some examples of specifying fonts using the
-Fontconfig format:
+and the @samp{@var{name}=@var{values}} entries specify settings such
+as the slant and weight of the font.  Each @var{values} may be a
+single value, or a list of values separated by commas.  In addition,
+some property values are valid with only one kind of property name, in
+which case the @samp{@var{name}=} part may be omitted.
+
+Here is a list of common font properties:
+
+@table @samp
+@item slant
+One of @samp{italic}, @samp{oblique} or @samp{roman}.
+
+@item weight
+One of @samp{light}, @samp{medium}, @samp{demibold}, @samp{bold} or
+@samp{black}.
+
+@item style
+Some fonts define special styles which are a combination of slant and
+weight.  For instance, the font @samp{Dejavu Sans} defines the style
+@samp{book}.  This property, if specified, overrides the slant and
+weight properties.
+
+@item width
+One of @samp{condensed}, @samp{normal}, or @samp{expanded}.
+
+@item spacing
+One of @samp{monospace}, @samp{proportional}, @samp{dual-width}, or
+@samp{charcell}.
+@end table
+
+@noindent
+Here are some examples of Fontconfig patterns:
 
 @smallexample
 Monospace
@@ -843,16 +879,40 @@ DejaVu Sans Mono:bold:italic
 Monospace-12:weight=bold:slant=italic
 @end smallexample
 
-  The second way to specify a font is to use the @dfn{GTK format}.
-This has the syntax
+See the Fontconfig manual for a more detailed description of
+Fontconfig patterns.  This manual is located in the file
+@file{fontconfig-user.html}, which is distributed with Fontconfig.  It
+is also available online at
+@url{http://fontconfig.org/fontconfig-user.html}.  In particular, the
+manual describes additional font properties that influence how the
+font is hinted, antialiased, or scaled.
+
+  The second way to specify a font is to use a @dfn{GTK font
+description}.  Like Fontconfig patterns, GTK font descriptions match
+only client-side fonts provided by Xft and Fontconfig.  They have the
+syntax
 
 @smallexample
 @var{fontname} [@var{properties}] [@var{fontsize}]
 @end smallexample
 
+@noindent
 where @var{fontname} is the family name, @var{properties} is a list of
-font properties separated by spaces, and @var{fontsize} is the point
-size.  For example:
+property values separated by spaces, and @var{fontsize} is the point
+size.  The properties that you may specify are as follows:
+
+@table @samp
+@item style
+One of @samp{roman}, @samp{italic} or @samp{oblique}.  If omitted, the
+@samp{roman} style is used.
+@item weight
+One of @samp{medium}, @samp{ultra-light}, @samp{light},
+@samp{semi-bold}, or @samp{bold}.  If omitted, @samp{medium} weight is
+used.
+@end table
+
+@noindent
+Here are some examples of GTK font descriptions:
 
 @smallexample
 Monospace 12
@@ -944,14 +1004,24 @@ normal font specification.  For instance,
 @end smallexample
 
 @noindent
-is equivalent to @samp{6x13}.
+is equivalent to @samp{6x13}.  This is the fourth and final method of
+specifying a font.
 
 @cindex listing system fonts
   You will probably want to use a fixed-width default font---that is,
-a font in which all characters have the same width.  Any font with
-@samp{m} or @samp{c} in the @var{spacing} field of the XLFD is a
-fixed-width font.  Here's how to use the @command{xlsfonts} program to
-list all the fixed-width fonts available on your system:
+a font in which all characters have the same width.  Here's how to use
+the @command{fc-list} command to list all fixed-width Xft and
+Fontconfig fonts available on your system:
+
+@example
+fc-list :spacing=mono
+fc-list :spacing=charcell
+@end example
+
+  For server-side X fonts, any font with @samp{m} or @samp{c} in the
+@var{spacing} field of the XLFD is a fixed-width font.  Here's how to
+use the @command{xlsfonts} program to list all the fixed-width fonts
+available on your system:
 
 @example
 xlsfonts -fn '*x*' | egrep "^[0-9]+x[0-9]+"
