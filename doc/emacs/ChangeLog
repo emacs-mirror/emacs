@@ -1,3 +1,7 @@
+2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cmdargs.texi (Font X): Move discussion of quoting to top.
+
 2008-12-06  Glenn Morris  <rgm@gnu.org>
 
 	* maintaining.texi (Old Revisions): Improve previous change.
