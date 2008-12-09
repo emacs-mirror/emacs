@@ -4351,7 +4351,10 @@ change the additional actions you can take on files."
       (setq files-done
 	    (map-y-or-n-p
              (lambda (buffer)
-               (and (buffer-modified-p buffer)
+	       ;; Note that killing some buffers may kill others via
+	       ;; hooks (e.g. Rmail and its viewing buffer).
+	       (and (buffer-live-p buffer)
+		    (buffer-modified-p buffer)
                     (not (buffer-base-buffer buffer))
                     (or
                      (buffer-file-name buffer)
