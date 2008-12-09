@@ -102,7 +102,7 @@ void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage)
  * why a trace started.
  */
  
-static const char *traceStartWhyToString(int why)
+const char *traceStartWhyToString(int why)
 {
   const char *r;
 
