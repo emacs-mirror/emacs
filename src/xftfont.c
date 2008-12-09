@@ -586,7 +586,7 @@ syms_of_xftfont ()
 {
   DEFSYM (Qxft, "xft");
   DEFSYM (QChinting, ":hinting");
-  DEFSYM (QCautohint, ":autohing");
+  DEFSYM (QCautohint, ":autohint");
   DEFSYM (QChintstyle, ":hintstyle");
   DEFSYM (QCrgba, ":rgba");
   DEFSYM (QCembolden, ":embolden");
