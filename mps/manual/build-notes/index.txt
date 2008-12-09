@@ -90,9 +90,9 @@ sos8gc  Not maintained
 sos8gp  Not maintained
 sos9sc  Not maintained
 sus8gc  Not maintained
-w3almv  Not maintained
+w3almv  Not maintained (no makefile in trunk)
 w3i3mv  Maintained
-w3ppmv  Not Maintained
+w3ppmv  Not Maintained (no makefile in trunk)
 xci3gc  Maintained
 xcppgc  Maintained (in sunset)
 
@@ -188,6 +188,7 @@ B. DOCUMENT HISTORY
 2007-07-18  DRJ   Added platform support section.
 2007-12-21  RHSK  Note re PPC Mac compiler flags.
 2008-10-23  RHSK  Note re w3i3m9 (Windows Visual C++ 9.0) platform
+2008-12-09  RHSK  Remove w3almv and w3ppmv makefiles.
 
 
 C. COPYRIGHT AND LICENSE
