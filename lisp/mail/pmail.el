@@ -1495,7 +1495,7 @@ Create the buffer if necessary."
 (defun pmail-expunge-and-save ()
   "Expunge and save PMAIL file."
   (interactive)
-  (pmail-expunge)
+  (pmail-expunge t)
   (set-buffer pmail-buffer)
   (save-buffer)
   (if (pmail-summary-exists)
@@ -2889,7 +2889,7 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
 (defun pmail-swap-buffers-maybe ()
   "Determine if the Pmail buffer is showing a message.
 If so restore the actual mbox message collection."
-  (unless (not pmail-buffers-swapped-p)
+  (when pmail-buffers-swapped-p
     (with-current-buffer pmail-buffer
       (buffer-swap-text pmail-view-buffer)
       (setq pmail-buffers-swapped-p nil))))
@@ -3572,11 +3572,11 @@ See also user-option `pmail-confirm-expunge'."
 	  (goto-char (+ (point-min) opoint))
 	(goto-char (+ (point) opoint))))))
 
-(defun pmail-expunge ()
+(defun pmail-expunge (&optional dont-show)
   "Erase deleted messages from Pmail file and summary buffer."
   (interactive)
   (when (pmail-expunge-confirmed)
-    (pmail-only-expunge)
+    (pmail-only-expunge dont-show)
     (if (pmail-summary-exists)
 	(pmail-select-summary (pmail-update-summary)))))
 
