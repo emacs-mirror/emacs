@@ -3491,6 +3491,7 @@ See also user-option `pmail-confirm-expunge'."
 (defun pmail-only-expunge (&optional dont-show)
   "Actually erase all deleted messages in the file."
   (interactive)
+  (pmail-swap-buffers-maybe)
   (set-buffer pmail-buffer)
   (message "Expunging deleted messages...")
   ;; Discard all undo records for this buffer.
@@ -3517,12 +3518,11 @@ See also user-option `pmail-confirm-expunge'."
 	  (goto-char (point-min))
 	  (let ((counter 0)
 		(number 1)
+		new-summary
+		(new-msgref (list (list 0)))
+		(buffer-read-only nil)
 		(total pmail-total-messages)
 		(new-message-number pmail-current-message)
-		(new-summary nil)
-		(new-msgref (list (list 0)))
-		(pmailbuf (current-buffer))
-		(buffer-read-only nil)
 		(messages pmail-message-vector)
 		(deleted pmail-deleted-vector)
 		(summary pmail-summary-vector))
@@ -3535,9 +3535,8 @@ See also user-option `pmail-confirm-expunge'."
 	    (while (<= number total)
 	      (if (= (aref deleted number) ?D)
 		  (progn
-		    (delete-region
-		      (marker-position (aref messages number))
-		      (marker-position (aref messages (1+ number))))
+		    (delete-region (aref messages number)
+				   (aref messages (1+ number)))
 		    (move-marker (aref messages number) nil)
 		    (if (> new-message-number counter)
 			(setq new-message-number (1- new-message-number))))
@@ -3569,7 +3568,6 @@ See also user-option `pmail-confirm-expunge'."
 	  (narrow-to-region (- (buffer-size) omin) (- (buffer-size) omax)))
       (if (not dont-show)
 	  (pmail-show-message-maybe (min pmail-current-message pmail-total-messages)))
-      (pmail-swap-buffers-maybe)
       (if pmail-enable-mime
 	  (goto-char (+ (point-min) opoint))
 	(goto-char (+ (point) opoint))))))
