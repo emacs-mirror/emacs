@@ -1,3 +1,8 @@
+2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.c (Fbuffer_swap_text): Signal error if swapping a dead
+	buffer.
+
 2008-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs.c (main): Close daemon_pipe on exec.
