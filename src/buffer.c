@@ -2192,6 +2192,9 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   CHECK_BUFFER (buffer);
   other_buffer = XBUFFER (buffer);
 
+  if (NILP (other_buffer->name))
+    error ("Cannot swap a dead buffer's text");    
+
   /* Actually, it probably works just fine.
    * if (other_buffer == current_buffer)
    *   error ("Cannot swap a buffer's text with itself"); */
