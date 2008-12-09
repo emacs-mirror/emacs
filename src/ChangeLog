@@ -1,5 +1,7 @@
 2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xftfont.c (syms_of_xftfont): Fix typo.
+
 	* buffer.c (Fbuffer_swap_text): Signal error if swapping a dead
 	buffer.
 
