@@ -389,6 +389,7 @@ extern Res traceStartCollectAll(Trace *traceReturn, Arena arena, int why);
 extern Bool TraceStartMessageCheck(TraceStartMessage message);
 extern void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage);
 extern void traceStartWhyToTextBuffer(char *s, size_t len, int why);
+extern const char *traceStartWhyToString(int why);
 #define TraceStartMessageMessage(traceStartMessage) \
   (&((traceStartMessage)->messageStruct))
 
