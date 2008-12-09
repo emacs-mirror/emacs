@@ -1,3 +1,10 @@
+2008-12-09  Frank Schmitt  <ich@frank-schmitt.net>
+
+	* cmdargs.texi (Font X): Distinguish between client-side and
+	server-side fonts.  List valid Fontconfig properties.  Add reference to
+	Fontconfig manual.  List valid GTK font properties.  Explain use of
+	fc-list.
+
 2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cmdargs.texi (Font X): Move discussion of quoting to top.
