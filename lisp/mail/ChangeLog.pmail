@@ -1,6 +1,8 @@
 2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmail.el (pmail-only-expunge): Swap buffers at the beginning.
+	(pmail-expunge): Pass new optional arg to pmail-only-expunge.
+	(pmail-expunge-and-save): Don't reset view buffer.
 
 	* pmailsum.el (pmail-summary-header): Deleted.
 	(pmail-get-create-summary-line): Don't insert a summary line into
