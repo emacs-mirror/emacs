@@ -2,6 +2,11 @@
 
 	* message.texi (Insertion Variables): Don't advertise sc-cite-original.
 
+2008-12-04  David Engster  <dengste@eml.cc>
+
+	* gnus.texi (nnmairix): Mention mairix.el.  Point out the importance
+	  of nnml-get-new-mail.  Change URL for mairix patch.
+
 2008-12-02  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.texi (Using the mapping API): Fix bug in mapping example.
@@ -11,11 +16,6 @@
 	(Tag inheritance): Refine the description of tag inheritance.
 	(Project alist): Add info about the publishing sequence of components.
 	(Effort estimates): Document the new relativer timer.
-
-2008-12-04  David Engster  <dengste@eml.cc>
-
-	* gnus.texi (nnmairix): Mention mairix.el.  Point out the importance
-	  of nnml-get-new-mail.  Change URL for mairix patch.
 
 2008-12-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
