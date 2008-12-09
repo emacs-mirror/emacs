@@ -1,3 +1,8 @@
+2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (save-some-buffers): At each map-y-or-n-p iteration,
+	check whether the buffer is still alive.
+
 2008-12-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/rx.el (rx-submatch): Pass : to rx-form.
