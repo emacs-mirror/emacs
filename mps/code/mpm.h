@@ -379,6 +379,23 @@ extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 extern Res TraceFix(ScanState ss, Ref *refIO);
 extern Res TraceFixEmergency(ScanState ss, Ref *refIO);
 
+/* support for traceanc.c */
+extern void traceQuantum(Trace trace);
+extern Res traceStartCollectAll(Trace *traceReturn, Arena arena, int why);
+
+/* traceanc.c -- Trace Ancillary */
+
+/* trace begin */
+extern Bool TraceStartMessageCheck(TraceStartMessage message);
+extern void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage);
+extern void traceStartWhyToTextBuffer(char *s, size_t len, int why);
+#define TraceStartMessageMessage(traceStartMessage) \
+  (&((traceStartMessage)->messageStruct))
+
+/* trace end */
+extern Bool TraceMessageCheck(TraceMessage message);  /* trace end */
+extern void tracePostMessage(Trace trace);
+
 
 /* Collection control parameters */
 
