@@ -1952,15 +1952,12 @@ Number of spaces to indent yanked messages.
 @item message-cite-function
 @vindex message-cite-function
 @findex message-cite-original
-@findex sc-cite-original
 @findex message-cite-original-without-signature
-@cindex Supercite
 Function for citing an original message.  The default is
 @code{message-cite-original}, which simply inserts the original message
 and prepends @samp{> } to each line.
 @code{message-cite-original-without-signature} does the same, but elides
-the signature.  You can also set it to @code{sc-cite-original} to use
-Supercite.
+the signature.
 
 @item message-indent-citation-function
 @vindex message-indent-citation-function

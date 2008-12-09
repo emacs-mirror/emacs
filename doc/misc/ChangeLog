@@ -1,3 +1,7 @@
+2008-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi (Insertion Variables): Don't advertise sc-cite-original.
+
 2008-12-02  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.texi (Using the mapping API): Fix bug in mapping example.
