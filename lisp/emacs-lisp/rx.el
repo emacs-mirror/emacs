@@ -666,7 +666,13 @@ FORM is either `(repeat N FORM1)' or `(repeat N M FORM1)'."
 
 (defun rx-submatch (form)
   "Parse and produce code from FORM, which is `(submatch ...)'."
-  (concat "\\(" (mapconcat #'rx-form (cdr form) nil) "\\)"))
+  (concat "\\("
+          (if (= 2 (length form))
+              ;; Only one sub-form.
+              (rx-form (cadr form))
+            ;; Several sub-forms implicitly concatenated.
+            (mapconcat (lambda (re) (rx-form re ':)) (cdr form) nil))
+          "\\)"))
 
 
 (defun rx-backref (form)

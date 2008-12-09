@@ -1,3 +1,7 @@
+2008-12-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/rx.el (rx-submatch): Pass : to rx-form.
+
 2008-12-09  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ELCFILES): Update.
