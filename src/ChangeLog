@@ -2,8 +2,7 @@
 
 	* xftfont.c (syms_of_xftfont): Fix typo.
 
-	* buffer.c (Fbuffer_swap_text): Signal error if swapping a dead
-	buffer.
+	* buffer.c (Fbuffer_swap_text): Signal error if swapping a dead buffer.
 
 2008-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -15,20 +14,18 @@
 	termcap_strings_buffer.
 
 	* term.c (encode_terminal_code): Free any previous memory blocks
-	before calling xmalloc for encode_terminal_src or
-	encode_terminal_dst.
+	before calling xmalloc for encode_terminal_src or encode_terminal_dst.
 	(maybe_fatal): Buffer argument deleted.  Don't free buffer here.
 	All callers changed.
 	(init_tty): Store termcap data and string buffers in new struct
 	tty members termcap_term_buffer and termcap_strings_buffer.
 	(delete_tty): Free them.
-	(syms_of_term): Initialize encode_terminal_src and
-	encode_terminal_dst.
+	(syms_of_term): Initialize encode_terminal_src and encode_terminal_dst.
 
 2008-12-07  Seiji Zenitani  <zenitani@mac.com>
 
 	* nsfns.m (ns_set_background_color): Remove code duplication.
-	It was a substite for face-transparency on OS X 10.3.
+	It was a substitute for face-transparency on OS X 10.3.
 
 2008-12-06  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -76,8 +73,7 @@
 	vector VALIDS.
 	(encode_coding_emacs_mule): Be sure to set `code'.
 
-	* fontset.c (face_for_char): Handle invalid charset property
-	correctly.
+	* fontset.c (face_for_char): Handle invalid charset property correctly.
 	(font_for_char): Likewise.
 
 2008-12-03  Chong Yidong  <cyd@stupidchicken.com>
@@ -103,11 +99,9 @@
 
 2008-12-03  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (decode_coding_utf_16): Initialize consumed_chars_base
-	to 0.
+	* coding.c (decode_coding_utf_16): Initialize consumed_chars_base to 0.
 	(decode_coding_utf_8): Likewise.
-	(detect_coding_system): Initialize utf_16_le_eol to -1, val to
-	Qnil.
+	(detect_coding_system): Initialize utf_16_le_eol to -1, val to Qnil.
 	(produce_chars): Initialize consumed_chars to 0.
 
 2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
@@ -267,7 +261,7 @@
 
 	* nsterm.m (ns_get_color): Handle long hex strings (fixes bug #1044).
 
-2008-11-24  Wolfgang Lux <wolfgang.lux@gmail.com> (tiny change)
+2008-11-24  Wolfgang Lux  <wolfgang.lux@gmail.com>  (tiny change)
 
 	* nsterm.m (-otherMouseDown:, -otherMouseUp:, -otherMouseDragged):
 	New EmacsView methods.
