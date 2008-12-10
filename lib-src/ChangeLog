@@ -1,3 +1,11 @@
+2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c [!WINDOWSNT] (EMACS_DAEMON): New define.
+	Changes when EMACS_DAEMON is not defined:
+	(print_help_and_exit): Don't add daemon information to help.
+	(start_daemon_and_retry_set_socket): Make a no-op.
+	(main): Don't set `start_daemon_if_needed' (which is initialized to 0).
+
 2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacsclient.c (print_help_and_exit): Describe what an empty
