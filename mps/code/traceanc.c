@@ -10,7 +10,7 @@
  *
  * CONTENTS
  *
- * 1. TraceStartMessage.  Posted when a trace begins.
+ * 1. TraceStartMessage.  Posted when a trace starts.
  *
  * 2. TraceMessage.  Posted when a trace ends.
  *
@@ -21,25 +21,47 @@
 
 #include "mpm.h"
 
+
+
+/* --------  PART 1:  TraceStartMessage  -------- */
+
+
+/* TraceStartMessage -- posted when a trace starts
+ *
+ * Internal names:
+ *   trace start
+ *   TraceStartMessage, tsMessage (struct *)
+ *   MessageTypeGCSTART (enum)
+ *
+ * External names:
+ *   mps_message_type_gc_start (enum macro)
+ *   MPS_MESSAGE_TYPE_GC_START (enum)
+ *
+ * (Note: this should properly be called "trace begin", but it's much 
+ * too late to change it now!)
+ *
+ * See <design/message-gc/>.
+ */
+
 #define MessageTraceStartMessage(message) \
   (PARENT(TraceStartMessageStruct, messageStruct, message))
 
-Bool TraceStartMessageCheck(TraceStartMessage message)
+Bool TraceStartMessageCheck(TraceStartMessage tsMessage)
 {
   size_t i;
 
-  CHECKS(TraceStartMessage, message);
-  CHECKD(Message, TraceStartMessageMessage(message));
-  CHECKL(MessageGetType(TraceStartMessageMessage(message)) ==
+  CHECKS(TraceStartMessage, tsMessage);
+  CHECKD(Message, TraceStartMessageMessage(tsMessage));
+  CHECKL(MessageGetType(TraceStartMessageMessage(tsMessage)) ==
          MessageTypeGCSTART);
 
   /* Check that why is NUL terminated. */
-  for(i=0; i<NELEMS(message->why); ++i) {
-    if(message->why[i] == 0) {
+  for(i=0; i<NELEMS(tsMessage->why); ++i) {
+    if(tsMessage->why[i] == 0) {
        break;
     }
   }
-  CHECKL(i<NELEMS(message->why));
+  CHECKL(i<NELEMS(tsMessage->why));
 
   return TRUE;
 }
@@ -134,6 +156,9 @@ const char *traceStartWhyToString(int why)
     break;
   }
 
+  /* Should fit in buffer without truncation; see .whybuf.len */
+  AVER(StringLength(r) < TRACE_START_MESSAGE_WHYBUF_LEN);
+
   return r;
 }
 
@@ -144,8 +169,8 @@ const char *traceStartWhyToString(int why)
  * started, and copies that into the text buffer the caller provides.
  * s specifies the beginning of the buffer to write the string
  * into, len specifies the length of the buffer.
- * The string written into will be NUL terminated (truncated if
- * necessary).
+ * The string written into will be NUL terminated, and truncated if
+ * necessary.
  */
 
 void traceStartWhyToTextBuffer(char *s, size_t len, int why)
@@ -172,7 +197,28 @@ void traceStartWhyToTextBuffer(char *s, size_t len, int why)
 
 
 
-/* TraceMessage -- type of GC end messages */
+/* --------  PART 2:  TraceMessage (trace end)  -------- */
+
+
+/* TraceMessage -- posted when a trace ends
+ *
+ * Internal names:
+ *   trace end
+ *   TraceMessage, tMessage (struct *)
+ *   MessageTypeGC (enum)
+ *
+ * External names:
+ *   mps_message_type_gc (enum macro)
+ *   MPS_MESSAGE_TYPE_GC (enum)
+ *
+ * (Note: this should properly be called "trace end", but it's much 
+ * too late to change it now!)
+ *
+ * See <design/message-gc/>.
+ */
+
+
+/* TraceMessage -- type of trace end messages */
 
 #define TraceMessageSig ((Sig)0x51926359)
 
@@ -188,11 +234,11 @@ typedef struct TraceMessageStruct  {
 #define MessageTraceMessage(message) \
   (PARENT(TraceMessageStruct, messageStruct, message))
 
-Bool TraceMessageCheck(TraceMessage message)
+Bool TraceMessageCheck(TraceMessage tMessage)
 {
-  CHECKS(TraceMessage, message);
-  CHECKD(Message, TraceMessageMessage(message));
-  CHECKL(MessageGetType(TraceMessageMessage(message)) ==
+  CHECKS(TraceMessage, tMessage);
+  CHECKD(Message, TraceMessageMessage(tMessage));
+  CHECKL(MessageGetType(TraceMessageMessage(tMessage)) ==
          MessageTypeGC);
   /* We can't check anything about the statistics.  In particular, */
   /* liveSize may exceed condemnedSize because they are only estimates. */
@@ -277,13 +323,14 @@ static void TraceMessageInit(Arena arena, TraceMessage tMessage)
  *
  * .message.data: The trace end message contains the live size
  * (forwardedSize + preservedInPlaceSize), the condemned size
- * (condemned), and the not-condemned size (notCondemned).  */
+ * (condemned), and the not-condemned size (notCondemned).
+ */
 
 void tracePostMessage(Trace trace)
 {
   Arena arena;
   void *p;
-  TraceMessage message;
+  TraceMessage tMessage;
   Res res;
 
   AVERT(Trace, trace);
@@ -292,12 +339,12 @@ void tracePostMessage(Trace trace)
   arena = trace->arena;
   res = ControlAlloc(&p, arena, sizeof(TraceMessageStruct), FALSE);
   if(res == ResOK) {
-    message = (TraceMessage)p;
-    TraceMessageInit(arena, message);
-    message->liveSize = trace->forwardedSize + trace->preservedInPlaceSize;
-    message->condemnedSize = trace->condemned;
-    message->notCondemnedSize = trace->notCondemned;
-    MessagePost(arena, TraceMessageMessage(message));
+    tMessage = (TraceMessage)p;
+    TraceMessageInit(arena, tMessage);
+    tMessage->liveSize = trace->forwardedSize + trace->preservedInPlaceSize;
+    tMessage->condemnedSize = trace->condemned;
+    tMessage->notCondemnedSize = trace->notCondemned;
+    MessagePost(arena, TraceMessageMessage(tMessage));
   }
   if(arena->alertCollection) {
     (*arena->alertCollection)(MPS_ALERT_COLLECTION_STOP, trace->why);
@@ -307,10 +354,19 @@ void tracePostMessage(Trace trace)
 }
 
 
-/* ArenaRelease / Clamp / Park */
 
-/* Forward Declarations -- avoid compiler warning. */
-void arenaForgetProtection(Globals globals);
+/* --------  PART 3:  ArenaRelease, ArenaClamp, ArenaPark  -------- */
+
+
+/* ArenaRelease, ArenaClamp, ArenaPark -- allow/prevent collection work.
+ *
+ * These functions allow or prevent collection work.
+ */
+
+
+/* Forward Declarations */
+static void arenaForgetProtection(Globals globals);
+
 
 /* ArenaClamp -- clamp the arena (no optional collection increments) */
 
@@ -398,6 +454,9 @@ Res ArenaCollect(Globals globals, int why)
 
 
 
+/* --------  PART 4:  ExposeRemember and RestoreProtection  -------- */
+
+
 /* Low level stuff for Expose / Remember / Restore */
 
 struct RememberedSummaryBlockStruct {
@@ -408,13 +467,9 @@ struct RememberedSummaryBlockStruct {
   } the[RememberedSummaryBLOCK];
 };
 
-/* Forward Declarations -- avoid compiler warning. */
-Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary);
-void rememberedSummaryBlockInit(struct RememberedSummaryBlockStruct *block);
-
 typedef struct RememberedSummaryBlockStruct *RememberedSummaryBlock;
 
-void rememberedSummaryBlockInit(struct RememberedSummaryBlockStruct *block)
+static void rememberedSummaryBlockInit(struct RememberedSummaryBlockStruct *block)
 {
   size_t i;
 
@@ -426,7 +481,7 @@ void rememberedSummaryBlockInit(struct RememberedSummaryBlockStruct *block)
   return;
 }
 
-Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary)
+static Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary)
 {
   Arena arena;
   RememberedSummaryBlock block;
@@ -466,7 +521,7 @@ Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary)
 }
 
 /* ArenaExposeRemember -- park arena and then lift all protection
-   barriers.  Parameter 'rememember' specifies whether to remember the
+   barriers.  Parameter 'remember' specifies whether to remember the
    protection state or not (for later restoration with
    ArenaRestoreProtection).
    */
@@ -543,7 +598,7 @@ void ArenaRestoreProtection(Globals globals)
   return;
 }
 
-void arenaForgetProtection(Globals globals)
+static void arenaForgetProtection(Globals globals)
 {
   Ring node, next;
   Arena arena;
