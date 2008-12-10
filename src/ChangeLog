@@ -1,3 +1,9 @@
+2008-12-10  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (fc_charset_table): Add "unicode-sip".
+	(ftfont_spec_pattern): Lookup fc_charset_table for the regisry
+	Qunicode_sip.
+
 2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* coding.c (QCdefault_char): Rename from QCdefalut_char.
