@@ -1,3 +1,7 @@
+2008-12-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* programs.texi (Program Modes): Mention Ruby mode.
+
 2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* misc.texi (emacsclient Options): Describe what an empty string
