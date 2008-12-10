@@ -79,15 +79,13 @@ static Lisp_Object Qcherokee, Qcanadian_aboriginal, Qogham, Qrunic;
 static Lisp_Object Qkhmer, Qmongolian, Qsymbol, Qbraille, Qhan;
 static Lisp_Object Qideographic_description, Qcjk_misc, Qkana, Qbopomofo;
 static Lisp_Object Qkanbun, Qyi, Qbyzantine_musical_symbol;
-static Lisp_Object Qmusical_symbol, Qmathematical;
+static Lisp_Object Qmusical_symbol, Qmathematical, Qcham, Qphonetic;
 /* Not defined in characters.el, but referenced in fontset.el.  */
 static Lisp_Object Qbalinese, Qbuginese, Qbuhid, Qcuneiform, Qcypriot;
 static Lisp_Object Qdeseret, Qglagolitic, Qgothic, Qhanunoo, Qkharoshthi;
 static Lisp_Object Qlimbu, Qlinear_b, Qold_italic, Qold_persian, Qosmanya;
 static Lisp_Object Qphags_pa, Qphoenician, Qshavian, Qsyloti_nagri;
 static Lisp_Object Qtagalog, Qtagbanwa, Qtai_le, Qtifinagh, Qugaritic;
-/* Only defined here, but useful for distinguishing IPA capable fonts.  */
-static Lisp_Object Qphonetic;
 
 /* W32 charsets: for use in Vw32_charset_info_alist.  */
 static Lisp_Object Qw32_charset_ansi, Qw32_charset_default;
@@ -2074,6 +2072,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (9, Qcyrillic);
   SUBRANGE (10, Qarmenian);
   SUBRANGE (11, Qhebrew);
+  /* 12: Vai.  */
   SUBRANGE (13, Qarabic);
   SUBRANGE (14, Qnko);
   SUBRANGE (15, Qdevanagari);
@@ -2153,13 +2152,18 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (108, Qkharoshthi);
   /* 109: Tai Xuan Jing.  */
   SUBRANGE (110, Qcuneiform);
-  /* 111: Counting Rods.  */
+  /* 111: Counting Rods, 112: Sundanese, 113: Lepcha, 114: Ol Chiki.  */
+  /* 115: Saurashtra, 116: Kayah Li, 117: Rejang.  */
+  SUBRANGE (118, Qcham);
+  /* 119: Ancient symbols, 120: Phaistos Disc.  */
+  /* 121: Carian, Lycian, Lydian, 122: Dominos, Mah Jong tiles.  */
+  /* 123-127: Reserved.  */
 
   /* There isn't really a main symbol range, so include symbol if any
      relevant range is set.  */
   MASK_ANY (0x8000000, 0x0000FFFF, 0, 0, Qsymbol);
 
-  /* Missing: Tai Viet (U+AA80) and Cham (U+AA00) .  */
+  /* Missing: Tai Viet (U+AA80-U+AADF).  */
 #undef SUBRANGE
 #undef MASK_ANY
 
@@ -2499,6 +2503,7 @@ syms_of_w32font ()
   DEFSYM (Qbyzantine_musical_symbol, "byzantine-musical-symbol");
   DEFSYM (Qmusical_symbol, "musical-symbol");
   DEFSYM (Qmathematical, "mathematical");
+  DEFSYM (Qcham, "cham");
   DEFSYM (Qphonetic, "phonetic");
   DEFSYM (Qbalinese, "balinese");
   DEFSYM (Qbuginese, "buginese");
