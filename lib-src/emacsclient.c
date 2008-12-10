@@ -586,7 +586,7 @@ decode_options (argc, argv)
     current_frame = 1;
 
 #ifdef WINDOWSNT
-  if (alternate_editor && alternate_editor == '\0')
+  if (alternate_editor && alternate_editor[0] == '\0')
     {
       message (TRUE, "--alternate-editor argument or ALTERNATE_EDITOR variable cannot be\n\
 an empty string");
