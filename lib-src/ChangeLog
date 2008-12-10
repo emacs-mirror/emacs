@@ -1,3 +1,8 @@
+2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (main): Fix mindless breakage where emacsclient
+	does not work *at all* on Windows, even if it *can* connect.
+
 2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacsclient.c (EMACS_DAEMON): Remove definition.
