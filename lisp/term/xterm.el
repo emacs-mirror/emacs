@@ -642,7 +642,7 @@ versions of xterm."
 
 (defun xterm-remove-modify-other-keys (&optional terminal)
   "Turn off the modifyOtherKeys feature of xterm for good."
-  (setq terminal (and terminal (frame-terminal (selected-frame))))
+  (setq terminal (or terminal (frame-terminal (selected-frame))))
   (when (and (terminal-live-p terminal)
 	     (memq terminal xterm-modify-other-keys-terminal-list))
     (setq xterm-modify-other-keys-terminal-list
