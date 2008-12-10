@@ -1072,6 +1072,7 @@ ELCFILES = \
 	$(lisp)/progmodes/prolog.elc \
 	$(lisp)/progmodes/ps-mode.elc \
 	$(lisp)/progmodes/python.elc \
+	$(lisp)/progmodes/ruby-mode.elc \
 	$(lisp)/progmodes/scheme.elc \
 	$(lisp)/progmodes/sh-script.elc \
 	$(lisp)/progmodes/simula.elc \
