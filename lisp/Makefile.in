@@ -915,6 +915,7 @@ ELCFILES = \
 	$(lisp)/obsolete/sc.elc \
 	$(lisp)/obsolete/scribe.elc \
 	$(lisp)/obsolete/swedish.elc \
+	$(lisp)/obsolete/vc-mcvs.elc \
 	$(lisp)/obsolete/x-menu.elc \
 	$(lisp)/org/org-agenda.elc \
 	$(lisp)/org/org-archive.elc \
@@ -1237,7 +1238,6 @@ ELCFILES = \
 	$(lisp)/vc-git.elc \
 	$(lisp)/vc-hg.elc \
 	$(lisp)/vc-hooks.elc \
-	$(lisp)/vc-mcvs.elc \
 	$(lisp)/vc-mtn.elc \
 	$(lisp)/vc-rcs.elc \
 	$(lisp)/vc-sccs.elc \

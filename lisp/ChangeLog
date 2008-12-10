@@ -1,3 +1,8 @@
+2008-12-10  Glenn Morris  <rgm@gnu.org>
+
+	* vc-mcvs.el: Move to obsolete/, with warning comment.
+	* Makefile.in (ELCFILES): Update.
+
 2008-12-10  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-hook.el (epa-file-find-file-hook): Don't mark the current
