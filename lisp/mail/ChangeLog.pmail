@@ -1,3 +1,11 @@
+2008-12-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmailout.el (pmail-output-to-pmail-file): Don't call
+	pmail-insert-pmail-file-header.
+
+	* pmail.el (pmail-insert-pmail-file-header): Function deleted.
+	(pmail-decode-babyl-format): Function deleted.
+
 2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmail.el (pmail-only-expunge): Swap buffers at the beginning.
