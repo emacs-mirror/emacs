@@ -240,7 +240,7 @@ please report it with \\[report-emacs-bug].")
 
 (declare-function mail-position-on-field "sendmail" (field &optional soft))
 (declare-function mail-text-start "sendmail" ())
-(declare-function pmail-dont-reply-to "mail-utils" (destinations))
+(declare-function rmail-dont-reply-to "mail-utils" (destinations))
 (declare-function pmail-update-summary "pmailsum" (&rest ignore))
 
 (defun pmail-probe (prog)
@@ -1331,7 +1331,6 @@ Create the buffer if necessary."
   (make-local-variable 'pmail-message-vector)
   (make-local-variable 'pmail-msgref-vector)
   (make-local-variable 'pmail-inbox-list)
-  (setq pmail-inbox-list (pmail-parse-file-inboxes))
   ;; Provide default set of inboxes for primary mail file ~/PMAIL.
   (and (null pmail-inbox-list)
        (or (equal buffer-file-name (expand-file-name pmail-file-name))
@@ -1406,23 +1405,6 @@ Create the buffer if necessary."
       (pmail-show-message-maybe pmail-total-messages)
       (run-hooks 'pmail-mode-hook))))
 
-;; Return a list of files from this buffer's Mail: option.
-;; Does not assume that messages have been parsed.
-;; Just returns nil if buffer does not look like Babyl format.
-(defun pmail-parse-file-inboxes ()
-  (save-excursion
-    (save-restriction
-      (widen)
-      (goto-char 1)
-      (cond ((looking-at "BABYL OPTIONS:")
-	     (search-forward "\n\^_" nil 'move)
-	     (narrow-to-region 1 (point))
-	     (goto-char 1)
-	     (when (search-forward "\nMail:" nil t)
-	       (narrow-to-region (point) (progn (end-of-line) (point)))
-	       (goto-char (point-min))
-	       (mail-parse-comma-list)))))))
-
 (defun pmail-expunge-and-save ()
   "Expunge and save PMAIL file."
   (interactive)
@@ -1492,7 +1474,6 @@ original copy."
   (interactive "FRun pmail on PMAIL file: ")
   (pmail filename))
 
-
 ;; This used to scan subdirectories recursively, but someone pointed out
 ;; that if the user wants that, person can put all the files in one dir.
 ;; And the recursive scan was slow.  So I took it out.
@@ -1510,30 +1491,28 @@ original copy."
 (defun pmail-list-to-menu (menu-name l action &optional full-name)
   (let ((menu (make-sparse-keymap menu-name)))
     (mapc
-     (function (lambda (item)
-		 (let (command)
-		   (if (consp item)
-		       (progn
-			 (setq command
-			       (pmail-list-to-menu (car item) (cdr item)
-						   action
-						   (if full-name
-						       (concat full-name "/"
-							       (car item))
-						     (car item))))
-			 (setq name (car item)))
-		     (progn
-		       (setq name item)
-		       (setq command
-			     (list 'lambda () '(interactive)
-				   (list action
-					 (expand-file-name
-					  (if full-name
-					      (concat full-name "/" item)
-					    item)
-					  pmail-secondary-file-directory))))))
-		   (define-key menu (vector (intern name))
-		     (cons name command)))))
+     (lambda (item)
+       (let (command)
+	 (if (consp item)
+	     (setq command
+		   (pmail-list-to-menu
+		    (car item) (cdr item) action
+		    (if full-name
+			(concat full-name "/"
+				(car item))
+		      (car item)))
+		   name (car item))
+	   (setq name item)
+	   (setq command
+		 (list 'lambda () '(interactive)
+		       (list action
+			     (expand-file-name
+			      (if full-name
+				  (concat full-name "/" item)
+				item)
+			      pmail-secondary-file-directory)))))
+	 (define-key menu (vector (intern name))
+	   (cons name command))))
      (reverse l))
     menu))
 
@@ -1563,7 +1542,7 @@ original copy."
 
 ;;;; *** Pmail input ***
 
-(declare-function pmail-spam-filter "pmail-spam-filter" (msg))
+(declare-function rmail-spam-filter "rmail-spam-filter" (msg))
 (declare-function pmail-summary-goto-msg "pmailsum" (&optional n nowarn skip-pmail))
 (declare-function pmail-summary-mark-undeleted "pmailsum" (n))
 (declare-function pmail-summary-mark-deleted "pmailsum" (&optional n undel))
@@ -1606,28 +1585,19 @@ It returns t if it got any new messages."
   ;; Get rid of all undo records for this buffer.
   (or (eq buffer-undo-list t)
       (setq buffer-undo-list nil))
-  (pmail-get-new-mail-1 file-name))
-
-(defun pmail-get-new-mail-1 (file-name)
-  "Continuation of 'pmail-get-new-mail.  Sort of a procedural
-abstraction kind of thing to manage the code size.  Return t if
-new messages are found, nil otherwise."
-  (let ((all-files (if file-name (list file-name)
-		     pmail-inbox-list))
+  (let ((all-files (if file-name (list file-name) pmail-inbox-list))
 	(pmail-enable-multibyte (default-value 'enable-multibyte-characters))
 	found)
     (unwind-protect
 	(when all-files
 	  (let ((opoint (point))
-		(delete-files ())
 		;; If buffer has not changed yet, and has not been
 		;; saved yet, don't replace the old backup file now.
 		(make-backup-files (and make-backup-files (buffer-modified-p)))
 		(buffer-read-only nil)
-		;; Don't make undo records for what we do in getting
-		;; mail.
+		;; Don't make undo records while getting mail.
 		(buffer-undo-list t)
-		success files file-last-names)
+		delete-files success files file-last-names)
 	    ;; Pull files off all-files onto files as long as there is
 	    ;; no name conflict.  A conflict happens when two inbox
 	    ;; file names have the same last component.
@@ -1643,17 +1613,18 @@ new messages are found, nil otherwise."
 	    (goto-char (point-max))
 	    (skip-chars-backward " \t\n") ; just in case of brain damage
 	    (delete-region (point) (point-max)) ; caused by require-final-newline
-	    (setq found (pmail-get-new-mail-2 file-name files delete-files))))
+	    (setq found (pmail-get-new-mail-1 file-name files delete-files))))
       found)
     ;; Don't leave the buffer screwed up if we get a disk-full error.
     (or found (pmail-show-message-maybe))))
 
-(defun pmail-get-new-mail-2 (file-name files delete-files)
+(defun pmail-get-new-mail-1 (file-name files delete-files)
   "Return t if new messages are detected without error, nil otherwise."
   (save-excursion
     (save-restriction
       (let ((new-messages 0)
-	    (spam-filter-p (and (featurep 'pmail-spam-filter) pmail-use-spam-filter))
+	    (spam-filter-p (and (featurep 'rmail-spam-filter)
+				pmail-use-spam-filter))
 	    blurb result success suffix)
 	(narrow-to-region (point) (point))
 	;; Read in the contents of the inbox files, renaming them as
@@ -1735,7 +1706,7 @@ new messages are found, nil otherwise."
     (setq pmail-deleted-vector (make-string (1+ pmail-total-messages) ?\ ))
     (while (<= rsf-scanned-message-number pmail-total-messages)
       (progn
-	(if (not (pmail-spam-filter rsf-scanned-message-number))
+	(if (not (rmail-spam-filter rsf-scanned-message-number))
 	    (progn (setq rsf-number-of-spam (1+ rsf-number-of-spam))))
 	(setq rsf-scanned-message-number (1+ rsf-scanned-message-number))))
     (if (> rsf-number-of-spam 0)
@@ -1974,11 +1945,12 @@ message (including the blank line separator)."
   (insert name ": " value "\n"))
   
 (defun pmail-add-mbox-headers ()
-  "Validate the RFC2822 format for the new messages.  Point, at
-entry should be looking at the first new message.  An error will
-be thrown if the new messages are not RCC2822 compliant.  Lastly,
-unless one already exists, add an Rmail attribute header to the
-new messages in the region.  Return the number of new messages."
+  "Validate the RFC2822 format for the new messages.
+Point should be at the first new message.
+An error is signalled if the new messages are not RFC2822
+compliant.
+Unless an Rmail attribute header already exists, add it to the
+new messages.  Return the number of new messages."
   (save-excursion
     (let ((count 0)
 	  (start (point))
@@ -2004,356 +1976,6 @@ new messages in the region.  Return the number of new messages."
 	      (forward-char -5))
 	  (setq start (point))))
       count)))
-
-;; the  pmail-break-forwarded-messages  feature is not implemented
-(defun pmail-convert-to-babyl-format ()
-  (let ((count 0) start
-	(case-fold-search nil)
-	(buffer-undo-list t)
-	(invalid-input-resync
-	 (function (lambda ()
-		     (message "Invalid Babyl format in inbox!")
-		     (sit-for 3)
-		     ;; Try to get back in sync with a real message.
-		     (if (re-search-forward
-			  (concat pmail-mmdf-delim1 "\\|^From") nil t)
-			 (beginning-of-line)
-		       (goto-char (point-max)))))))
-    (goto-char (point-min))
-    (save-restriction
-      (while (not (eobp))
-	(setq start (point))
-	(cond ((looking-at "BABYL OPTIONS:")	;Babyl header
-	       (if (search-forward "\n\^_" nil t)
-		   ;; If we find the proper terminator, delete through there.
-		   (delete-region (point-min) (point))
-		 (funcall invalid-input-resync)
-		 (delete-region (point-min) (point))))
-	      ;; Babyl format message
-	      ((looking-at "\^L")
-	       (or (search-forward "\n\^_" nil t)
-		   (funcall invalid-input-resync))
-	       (setq count (1+ count))
-	       ;; Make sure there is no extra white space after the ^_
-	       ;; at the end of the message.
-	       ;; Narrowing will make sure that whatever follows the junk
-	       ;; will be treated properly.
-	       (delete-region (point)
-			      (save-excursion
-				(skip-chars-forward " \t\n")
-				(point)))
-	       ;; The following let* form was wrapped in a `save-excursion'
-	       ;; which in one case caused infinite looping, see:
-	       ;; http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00968.html
-	       ;; Removing that form leaves `point' at the end of the
-	       ;; region decoded by `pmail-decode-region' which should
-	       ;; be correct.
-	       (let* ((header-end
-		       (progn
-			 (save-excursion
-			   (goto-char start)
-			   (forward-line 1)
-			   (if (looking-at "0")
-			       (forward-line 1)
-			     (forward-line 2))
-			   (save-restriction
-			     (narrow-to-region (point) (point-max))
-			     (rfc822-goto-eoh)
-			     (point)))))
-		      (case-fold-search t)
-		      (quoted-printable-header-field-end
-		       (save-excursion
-			 (goto-char start)
-			 (re-search-forward
-			  "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
-			  header-end t)))
-		      (base64-header-field-end
-		       (save-excursion
-			 (goto-char start)
-			 ;; Don't try to decode non-text data.
-			 (and (re-search-forward
-			       "^content-type:\\(\n?[\t ]\\)\\(text\\|message\\)/"
-			       header-end t)
-			      (goto-char start)
-			      (re-search-forward
-			       "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
-			       header-end t)))))
-		 (if quoted-printable-header-field-end
-		     (save-excursion
-		       (unless
-			   (mail-unquote-printable-region header-end (point) nil t t)
-			 (message "Malformed MIME quoted-printable message"))
-		       ;; Change "quoted-printable" to "8bit",
-		       ;; to reflect the decoding we just did.
-		       (goto-char quoted-printable-header-field-end)
-		       (delete-region (point) (search-backward ":"))
-		       (insert ": 8bit")))
-		 (if base64-header-field-end
-		     (save-excursion
-		       (when
-			   (condition-case nil
-			       (progn
-				 (base64-decode-region (1+ header-end)
-						       (- (point) 2))
-				 t)
-			     (error nil))
-			 ;; Change "base64" to "8bit", to reflect the
-			 ;; decoding we just did.
-			 (goto-char base64-header-field-end)
-			 (delete-region (point) (search-backward ":"))
-			 (insert ": 8bit"))))
-		 (setq last-coding-system-used nil)
-		 (or pmail-enable-mime
-		     (not pmail-enable-multibyte)
-		     (let ((mime-charset
-			    (if (and pmail-decode-mime-charset
-				     (save-excursion
-				       (goto-char start)
-				       (search-forward "\n\n" nil t)
-				       (let ((case-fold-search t))
-					 (re-search-backward
-					  pmail-mime-charset-pattern
-					  start t))))
-				(intern (downcase (match-string 1))))))
-		       (pmail-decode-region start (point) mime-charset))))
-	       ;; Add an X-Coding-System: header if we don't have one.
-	       (save-excursion
-		 (goto-char start)
-		 (forward-line 1)
-		 (if (looking-at "0")
-		     (forward-line 1)
-		   (forward-line 2))
-		 (or (save-restriction
-		       (narrow-to-region (point) (point-max))
-		       (rfc822-goto-eoh)
-		       (goto-char (point-min))
-		       (re-search-forward "^X-Coding-System:" nil t))
-		     (insert "X-Coding-System: "
-			     (symbol-name last-coding-system-used)
-			     "\n")))
-	       (narrow-to-region (point) (point-max))
-	       (and (= 0 (% count 10))
-		    (message "Converting to Babyl format...%d" count)))
-	      ;;*** MMDF format
-	      ((let ((case-fold-search t))
-		 (looking-at pmail-mmdf-delim1))
-	       (let ((case-fold-search t))
-		 (replace-match "\^L\n0, unseen,,\n*** EOOH ***\n")
-		 (re-search-forward pmail-mmdf-delim2 nil t)
-		 (replace-match "\^_"))
-	       (save-excursion
-		 (save-restriction
-		   (narrow-to-region start (1- (point)))
-		   (goto-char (point-min))
-		   (while (search-forward "\n\^_" nil t) ; single char "\^_"
-		     (replace-match "\n^_"))))	; 2 chars: "^" and "_"
-	       (setq last-coding-system-used nil)
-	       (or pmail-enable-mime
-		   (not pmail-enable-multibyte)
-		   (decode-coding-region start (point) 'undecided))
-	       (save-excursion
-		 (goto-char start)
-		 (forward-line 3)
-		 (insert "X-Coding-System: "
-			 (symbol-name last-coding-system-used)
-			 "\n"))
-	       (narrow-to-region (point) (point-max))
-	       (setq count (1+ count))
-	       (and (= 0 (% count 10))
-		    (message "Converting to Babyl format...%d" count)))
-	      ;;*** Mail format
-	      ((looking-at "^From ")
-	       (insert "\^L\n0, unseen,,\n*** EOOH ***\n")
-	       (pmail-nuke-pinhead-header)
-	       ;; If this message has a Content-Length field,
-	       ;; skip to the end of the contents.
-	       (let* ((header-end (save-excursion
-				    (and (re-search-forward "\n\n" nil t)
-					 (1- (point)))))
-		      (case-fold-search t)
-		      (quoted-printable-header-field-end
-		       (save-excursion
-			 (re-search-forward
-			  "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
-			  header-end t)))
-		      (base64-header-field-end
-		       (and
-			;; Don't decode non-text data.
-			(save-excursion
-			  (re-search-forward
-			   "^content-type:\\(\n?[\t ]\\)\\(text\\|message\\)/"
-			   header-end t))
-			(save-excursion
-			  (re-search-forward
-			   "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
-			   header-end t))))
-		      (size
-		       ;; Get the numeric value from the Content-Length field.
-		       (save-excursion
-			 ;; Back up to end of prev line,
-			 ;; in case the Content-Length field comes first.
-			 (forward-char -1)
-			 (and (search-forward "\ncontent-length: "
-					      header-end t)
-			      (let ((beg (point))
-				    (eol (progn (end-of-line) (point))))
-				(string-to-number (buffer-substring beg eol)))))))
-		 (and size
-		      (if (and (natnump size)
-			       (<= (+ header-end size) (point-max))
-			       ;; Make sure this would put us at a position
-			       ;; that we could continue from.
-			       (save-excursion
-				 (goto-char (+ header-end size))
-				 (skip-chars-forward "\n")
-				 (or (eobp)
-				     (and (looking-at "BABYL OPTIONS:")
-					  (search-forward "\n\^_" nil t))
-				     (and (looking-at "\^L")
-					  (search-forward "\n\^_" nil t))
-				     (let ((case-fold-search t))
-				       (looking-at pmail-mmdf-delim1))
-				     (looking-at "From "))))
-			  (goto-char (+ header-end size))
-			(message "Ignoring invalid Content-Length field")
-			(sit-for 1 0 t)))
-		 (if (let ((case-fold-search nil))
-		       (re-search-forward
-			(concat "^[\^_]?\\("
-				pmail-unix-mail-delimiter
-				"\\|"
-				pmail-mmdf-delim1 "\\|"
-				"^BABYL OPTIONS:\\|"
-				"\^L\n[01],\\)") nil t))
-		     (goto-char (match-beginning 1))
-		   (goto-char (point-max)))
-		 (setq count (1+ count))
-		 (if quoted-printable-header-field-end
-		     (save-excursion
-		       (unless
-			   (mail-unquote-printable-region header-end (point) nil t t)
-			 (message "Malformed MIME quoted-printable message"))
-		       ;; Change "quoted-printable" to "8bit",
-		       ;; to reflect the decoding we just did.
-		       (goto-char quoted-printable-header-field-end)
-		       (delete-region (point) (search-backward ":"))
-		       (insert ": 8bit")))
-		 (if base64-header-field-end
-		     (save-excursion
-		       (when
-			   (condition-case nil
-			       (progn
-				 (base64-decode-region
-				  (1+ header-end)
-				  (save-excursion
-				    ;; Prevent base64-decode-region
-				    ;; from removing newline characters.
-				    (skip-chars-backward "\n\t ")
-				    (point)))
-				 t)
-			     (error nil))
-			 ;; Change "base64" to "8bit", to reflect the
-			 ;; decoding we just did.
-			 (goto-char base64-header-field-end)
-			 (delete-region (point) (search-backward ":"))
-			 (insert ": 8bit")))))
-
-	       (save-excursion
-		 (save-restriction
-		   (narrow-to-region start (point))
-		   (goto-char (point-min))
-		   (while (search-forward "\n\^_" nil t) ; single char
-		     (replace-match "\n^_"))))	; 2 chars: "^" and "_"
-	       ;; This is for malformed messages that don't end in newline.
-	       ;; There shouldn't be any, but some users say occasionally
-	       ;; there are some.
- 	       (or (bolp) (newline))
-	       (insert ?\^_)
-	       (setq last-coding-system-used nil)
-	       (or pmail-enable-mime
-		   (not pmail-enable-multibyte)
-		   (let ((mime-charset
-			  (if (and pmail-decode-mime-charset
-				   (save-excursion
-				     (goto-char start)
-				     (search-forward "\n\n" nil t)
-				     (let ((case-fold-search t))
-				       (re-search-backward
-					pmail-mime-charset-pattern
-					start t))))
-			      (intern (downcase (match-string 1))))))
-		     (pmail-decode-region start (point) mime-charset)))
-	       (save-excursion
-		 (goto-char start)
-		 (forward-line 3)
-		 (insert "X-Coding-System: "
-			 (symbol-name last-coding-system-used)
-			 "\n"))
-	       (narrow-to-region (point) (point-max))
-	       (and (= 0 (% count 10))
-		    (message "Converting to Babyl format...%d" count)))
-	      ;;
-	      ;; This kludge is because some versions of sendmail.el
-	      ;; insert an extra newline at the beginning that shouldn't
-	      ;; be there.  sendmail.el has been fixed, but old versions
-	      ;; may still be in use.  -- rms, 7 May 1993.
-	      ((eolp) (delete-char 1))
-	      (t (error "Cannot convert to babyl format")))))
-    (setq buffer-undo-list nil)
-    count))
-
-;; Delete the "From ..." line, creating various other headers with
-;; information from it if they don't already exist.  Now puts the
-;; original line into a mail-from: header line for debugging and for
-;; use by the pmail-output function.
-(defun pmail-nuke-pinhead-header ()
-  (save-excursion
-    (save-restriction
-      (let ((start (point))
-  	    (end (progn
-		   (condition-case ()
-		       (search-forward "\n\n")
-		     (error
-		      (goto-char (point-max))
-		      (insert "\n\n")))
-		   (point)))
-	    has-from has-date)
-	(narrow-to-region start end)
-	(let ((case-fold-search t))
-	  (goto-char start)
-	  (setq has-from (search-forward "\nFrom:" nil t))
-	  (goto-char start)
-	  (setq has-date (and (search-forward "\nDate:" nil t) (point)))
-	  (goto-char start))
-	(let ((case-fold-search nil))
-	  (if (re-search-forward (concat "^" pmail-unix-mail-delimiter) nil t)
-	      (replace-match
-		(concat
-		  "Mail-from: \\&"
-		  ;; Keep and reformat the date if we don't
-		  ;;  have a Date: field.
-		  (if has-date
-		      ""
-		    (concat
-		     "Date: \\2, \\4 \\3 \\9 \\5 "
-
-		     ;; The timezone could be matched by group 7 or group 10.
-		     ;; If neither of them matched, assume EST, since only
-		     ;; Easterners would be so sloppy.
-		     ;; It's a shame the substitution can't use "\\10".
-		     (cond
-		      ((/= (match-beginning 7) (match-end 7)) "\\7")
-		      ((/= (match-beginning 10) (match-end 10))
-		       (buffer-substring (match-beginning 10)
-					 (match-end 10)))
-		      (t "EST"))
-		     "\n"))
-		  ;; Keep and reformat the sender if we don't
-		  ;; have a From: field.
-		  (if has-from
-		      ""
-		    "From: \\1\n"))
-		t)))))))
 
 ;;;; *** Pmail Message Formatting and Header Manipulation ***
 
@@ -3560,25 +3182,18 @@ use \\[mail-yank-original] to yank the original message into it."
 	     (msgnum pmail-current-message))
     (save-excursion
       (save-restriction
-	(if pmail-enable-mime
+	(widen)
+	(if pmail-buffers-swapped-p
 	    (narrow-to-region
 	     (goto-char (point-min))
-	     (if (search-forward "\n\n" nil 'move)
-		 (1+ (match-beginning 0))
-	       (point)))
-	  (widen)
+	     (search-forward "\n\n" nil 'move))
 	  (goto-char (pmail-msgbeg pmail-current-message))
 	  (forward-line 1)
-	  (if (= (following-char) ?0)
-	      (narrow-to-region
-	       (progn (forward-line 2)
-		      (point))
-	       (progn (search-forward "\n\n" (pmail-msgend pmail-current-message)
-				      'move)
-		      (point)))
-	    (narrow-to-region (point)
-			      (progn (search-forward "\n*** EOOH ***\n")
-				     (beginning-of-line) (point)))))
+	  (narrow-to-region
+	   (point)
+	   (search-forward "\n\n"
+			   (pmail-msgend pmail-current-message)
+			   'move)))
 	(setq from (mail-fetch-field "from")
 	      reply-to (or (mail-fetch-field "mail-reply-to" nil t)
 			   (mail-fetch-field "reply-to" nil t)
@@ -3597,12 +3212,11 @@ use \\[mail-yank-original] to yank the original message into it."
 	      )
 	(unless just-sender
 	  (if (mail-fetch-field "mail-followup-to" nil t)
-	      ;; If this header field is present, use it instead of the To and CC fields.
+	      ;; If this header field is present, use it instead of
+	      ;; the To and CC fields.
 	      (setq to (mail-fetch-field "mail-followup-to" nil t))
 	    (setq cc (or (mail-fetch-field "cc" nil t) "")
-		  to (or (mail-fetch-field "to" nil t) ""))))
-
-	))
+		  to (or (mail-fetch-field "to" nil t) ""))))))
 
     ;; Merge the resent-to and resent-cc into the to and cc.
     (if (and resent-to (not (equal resent-to "")))
@@ -3631,7 +3245,7 @@ use \\[mail-yank-original] to yank the original message into it."
      ;; Remove unwanted names from reply-to, since Mail-Followup-To
      ;; header causes all the names in it to wind up in reply-to, not
      ;; in cc.  But if what's left is an empty list, use the original.
-     (let* ((reply-to-list (pmail-dont-reply-to reply-to)))
+     (let* ((reply-to-list (rmail-dont-reply-to reply-to)))
        (if (string= reply-to-list "") reply-to reply-to-list))
      subject
      (pmail-make-in-reply-to-field from date message-id)
@@ -3639,7 +3253,7 @@ use \\[mail-yank-original] to yank the original message into it."
 	 nil
        ;; mail-strip-quoted-names is NOT necessary for pmail-dont-reply-to
        ;; to do its job.
-       (let* ((cc-list (pmail-dont-reply-to
+       (let* ((cc-list (rmail-dont-reply-to
 			(mail-strip-quoted-names
 			 (if (null cc) to (concat to ", " cc))))))
 	 (if (string= cc-list "") nil cc-list)))
