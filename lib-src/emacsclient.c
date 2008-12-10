@@ -616,6 +616,8 @@ The following OPTIONS are accepted:\n\
 			Set filename of the TCP authentication file\n\
 -a, --alternate-editor=EDITOR\n\
 			Editor to fallback to if the server is not running\n\
+                        If EDITOR is the empty string, start Emacs in daemon\n\
+                        mode and try connecting again
 \n\
 Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (EXIT_SUCCESS);
@@ -1294,7 +1296,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 #endif /* ! NO_SOCKETS_IN_FILE_SYSTEM */
 
 HSOCKET
-set_socket ()
+set_socket (int no_exit_if_error)
 {
   HSOCKET s;
 
@@ -1305,7 +1307,7 @@ set_socket ()
   if (socket_name)
     {
       s = set_local_socket ();
-      if ((s != INVALID_SOCKET) || alternate_editor)
+      if ((s != INVALID_SOCKET) || no_exit_if_error)
 	return s;
       message (TRUE, "%s: error accessing socket \"%s\"\n",
 	       progname, socket_name);
@@ -1320,7 +1322,7 @@ set_socket ()
   if (server_file)
     {
       s = set_tcp_socket ();
-      if ((s != INVALID_SOCKET) || alternate_editor)
+      if ((s != INVALID_SOCKET) || no_exit_if_error)
 	return s;
 
       message (TRUE, "%s: error accessing server file \"%s\"\n",
@@ -1338,7 +1340,7 @@ set_socket ()
   /* Implicit server file.  */
   server_file = "server";
   s = set_tcp_socket ();
-  if ((s != INVALID_SOCKET) || alternate_editor)
+  if ((s != INVALID_SOCKET) || no_exit_if_error)
     return s;
 
   /* No implicit or explicit socket, and no alternate editor.  */
@@ -1408,6 +1410,52 @@ w32_give_focus ()
 }
 #endif
 
+
+/* Start the emacs daemon and try to connect to it.  */
+
+void
+start_daemon_and_retry_set_socket (void)
+{
+  pid_t dpid;
+  int status;
+  pid_t p;
+
+  dpid = fork ();
+
+  if (dpid > 0)
+    {
+      p = waitpid (dpid, &status, WUNTRACED | WCONTINUED);
+
+      /* Try connecting again, the daemon should have started by
+	 now.  */
+      message (TRUE, "daemon should have started, trying to connect again\n", dpid);
+      if ((emacs_socket = set_socket (1)) == INVALID_SOCKET)
+	message (TRUE, "Cannot connect even after starting the daemon\n");
+    }
+  else if (dpid < 0)
+    {
+      fprintf (stderr, "Cannot fork!\n");
+      exit (1);
+    }
+  else
+    {
+      char *d_argv[] = {"emacs", "--daemon", 0 };
+      if (socket_name != NULL)
+	{
+	  /* Pass  --daemon=socket_name as argument.  */
+	  char *deq = "--daemon=";
+	  char *daemon_arg = alloca (strlen (deq)
+				     + strlen (socket_name) + 1);
+	  strcpy (daemon_arg, deq);
+	  strcat (daemon_arg, socket_name);
+	  d_argv[1] = daemon_arg;
+	}
+      execvp ("emacs", d_argv);
+      message (TRUE, "%s: error starting emacs daemon\n", progname);
+    }
+}
+
+
 int
 main (argc, argv)
      int argc;
@@ -1416,6 +1464,7 @@ main (argc, argv)
   int i, rl, needlf = 0;
   char *cwd, *str;
   char string[BUFSIZ+1];
+  int null_socket_name, null_server_file, start_daemon_if_needed;
 
   main_argv = argv;
   progname = argv[0];
@@ -1431,9 +1480,34 @@ main (argc, argv)
       exit (EXIT_FAILURE);
     }
 
-  if ((emacs_socket = set_socket ()) == INVALID_SOCKET)
-    fail ();
+  /* If alternate_editor is the empty string, start the emacs daemon
+     in case of failure to connect.  */
+  start_daemon_if_needed = (alternate_editor
+			    && (alternate_editor[0] == '\0'));
+  if (start_daemon_if_needed)
+    {
+      /* set_socket changes the values for socket_name and
+	 server_file, we need to reset them, if they were NULL before
+	 for the second call to set_socket.  */
+      null_socket_name = (socket_name == NULL);
+      null_server_file = (server_file == NULL);
+    }
 
+  if ((emacs_socket = set_socket (alternate_editor
+				  || start_daemon_if_needed)) == INVALID_SOCKET)
+    if (start_daemon_if_needed)
+      {
+	/* Reset socket_name and server_file if they were NULL
+	   before the set_socket call.  */
+	if (null_socket_name)
+	  socket_name = NULL;
+	if (null_server_file)
+	  server_file = NULL;
+
+	start_daemon_and_retry_set_socket ();
+      }
+    else
+      fail ();
 
   cwd = get_current_dir_name ();
   if (cwd == 0)

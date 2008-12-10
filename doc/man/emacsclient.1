@@ -72,6 +72,8 @@ This can also be specified via the `EMACS_SERVER_FILE' environment variable.
 .B \-a, \-\-alternate-editor=EDITOR
 if the Emacs server is not running, run the specified editor instead.
 This can also be specified via the `ALTERNATE_EDITOR' environment variable.
+If the value of EDITOR is the empty string, then Emacs is started in
+daemon mode and emacsclient will try to connect to it.
 .TP
 .B \-d, \-\-display=DISPLAY
 tell the server to display the files on the given display.

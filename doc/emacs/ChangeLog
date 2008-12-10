@@ -1,3 +1,8 @@
+2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* misc.texi (emacsclient Options): Describe what an empty string
+	argument does for --alternate-editor.
+
 2008-12-09  Frank Schmitt  <ich@frank-schmitt.net>
 
 	* cmdargs.texi (Font X): Distinguish between client-side and

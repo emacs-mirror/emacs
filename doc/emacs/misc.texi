@@ -1574,10 +1574,11 @@ listed below:
 @item -a @var{command}
 @itemx --alternate-editor=@var{command}
 Specify a command to run if @code{emacsclient} fails to contact Emacs.
-This is useful when running @code{emacsclient} in a script.  For
-example, the following setting for the @env{EDITOR} environment
-variable will always give you an editor, even if no Emacs server is
-running:
+This is useful when running @code{emacsclient} in a script.  If
+@var{command} is the empty string, then start Emacs in daemon mode and
+try connecting again.  For example, the following setting for the
+@env{EDITOR} environment variable will always give you an editor, even
+if no Emacs server is running:
 
 @example
 EDITOR="emacsclient --alternate-editor emacs +%d %s"

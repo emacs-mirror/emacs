@@ -1,3 +1,8 @@
+2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.1: Describe what an empty string argument does for
+	--alternate-editor.
+
 2008-11-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacsclient.1: Mention -nw and -c. Fix the character for --help.
