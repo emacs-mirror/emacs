@@ -113,11 +113,11 @@ Set `pmail-default-file' to this name as well as returning it."
 ;;; look at them before you change the calling method.
 ;;;###autoload
 (defun pmail-output-to-pmail-file (file-name &optional count stay)
-  "Append the current message to an Pmail file named FILE-NAME.
+  "Append the current message to a Babyl file named FILE-NAME.
 If the file does not exist, ask if it should be created.
 If file is being visited, the message is appended to the Emacs
 buffer visiting that file.
-If the file exists and is not an Pmail file, the message is
+If the file exists and is not a Babyl file, the message is
 appended in inbox format, the same way `pmail-output' does it.
 
 The default file name comes from `pmail-default-pmail-file',
@@ -146,7 +146,13 @@ message up instead of moving forward to the next non-deleted message."
 	    (let ((file-buffer (create-file-buffer file-name)))
 	      (save-excursion
 		(set-buffer file-buffer)
-		(pmail-insert-pmail-file-header)
+		(let ((buffer-read-only nil))
+		  (insert "BABYL OPTIONS: -*- pmail -*-
+Version: 5
+Labels:
+Note:   This is the header of an pmail file.
+Note:   If you are seeing it in pmail,
+Note:    it means the file has no messages in it.\n\^_"))
 		(let ((require-final-newline nil)
 		      (coding-system-for-write
 		       (or pmail-file-coding-system
