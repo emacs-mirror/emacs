@@ -954,7 +954,6 @@ This function also reinitializes local variables used by Pmail."
 	  (kill-all-local-variables)
 	  (write-region (point-min) (point-max) old-file)
 	  (unrmail old-file new-file)
-	  (unrmail old-file "/home/cyd/pmail-test")
 	  (message "Replacing BABYL format with mbox format...")
 	  (let ((inhibit-read-only t))
 	    (erase-buffer)
