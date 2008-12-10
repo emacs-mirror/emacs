@@ -1,5 +1,7 @@
 2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* ebrowse.1: New file, mostly just the results of --help in man format.
+
 	* emacsclient.1: Describe what an empty string argument does for
 	--alternate-editor.
 

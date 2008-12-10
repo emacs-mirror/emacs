@@ -1,3 +1,7 @@
+2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (install-arch-indep): Install ebrowse.1.
+
 2008-12-09  Ali Bahrami  <ali_gnu@emvision.com>  (tiny change)
 
 	* configure.in: Add Solaris on x86_64.
