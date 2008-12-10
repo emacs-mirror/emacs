@@ -1,3 +1,7 @@
+2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/tramp.el (top): Don't fail if there is no current message.
+
 2008-12-10  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (setup-default-fontset): Add an entry

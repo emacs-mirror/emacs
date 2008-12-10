@@ -7470,7 +7470,8 @@ Only works for Bourne-like shells."
       (unload-feature 'tramp 'force)
     (error nil)))
 
-(when (and load-in-progress (string-match "Loading tramp..." (current-message)))
+(when (and load-in-progress (string-match "Loading tramp..."
+					  (or (current-message) "")))
   (message "Loading tramp...done"))
 
 (provide 'tramp)
