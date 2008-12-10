@@ -1407,7 +1407,8 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
               && logical_font->elfLogFont.lfCharSet != DEFAULT_CHARSET
               && logical_font->elfLogFont.lfCharSet != ANSI_CHARSET)
             return 1;
-	  /* unicode-sip fonts must contain characters beyond the BMP.  */
+	  /* unicode-sip fonts must contain characters beyond the BMP,
+	     so look for bit 57 (surrogates) in the Unicode subranges.  */
 	  else if (EQ (spec_charset, Qunicode_sip)
 		   && !(physical_font->ntmFontSig.fsUsb[1] & 0x02000000))
 	    return 1;
