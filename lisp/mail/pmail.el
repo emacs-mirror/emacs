@@ -896,25 +896,6 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
 	(if run-mail-hook
 	    (run-hooks 'pmail-mode-hook))))))
 
-;; Given the value of MAILPATH, return a list of inbox file names.
-;; This is turned off because it is not clear that the user wants
-;; all these inboxes to feed into the primary pmail file.
-; (defun pmail-convert-mailpath (string)
-;   (let (idx list)
-;     (while (setq idx (string-match "[%:]" string))
-;       (let ((this (substring string 0 idx)))
-; 	(setq string (substring string (1+ idx)))
-; 	(setq list (cons (if (string-match "%" this)
-; 			     (substring this 0 (string-match "%" this))
-; 			   this)
-; 			 list))))
-;     list))
-
-; I have checked that adding "-*- pmail -*-" to the BABYL OPTIONS line
-; will not cause emacs 18.55 problems.
-
-;; This calls pmail-decode-babyl-format if the file is already Babyl.
-
 (defun pmail-convert-file-maybe ()
   "Determine if the file needs to be converted to mbox format."
   (widen)
@@ -937,8 +918,7 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
 	(t (pmail-error-bad-format))))
 
 (defun pmail-error-bad-format (&optional msgnum)
-  "Report that the buffer contains a message that is not RFC2822
-compliant.
+  "Report that the buffer is not in the mbox file format.
 MSGNUM, if present, indicates the malformed message."
   (if msgnum
       (error "Message %s is not a valid RFC2822 message." msgnum)
@@ -967,20 +947,9 @@ This function also reinitializes local variables used by Pmail."
       (delete-file old-file)
       (delete-file new-file))))
 
-(defun pmail-insert-pmail-file-header ()
-  (let ((buffer-read-only nil))
-    ;; -*-pmail-*- is here so that visiting the file normally
-    ;; recognizes it as an Pmail file.
-    (insert "BABYL OPTIONS: -*- pmail -*-
-Version: 5
-Labels:
-Note:   This is the header of an pmail file.
-Note:   If you are seeing it in pmail,
-Note:    it means the file has no messages in it.\n\^_")))
-
 (defun pmail-get-coding-system ()
-  "Return a suitable coding system to use for the mail message in
-the region."
+  "Return a suitable coding system to use for the current mail message.
+The buffer is expected to be narrowed to just the header of the message."
   (let ((content-type-header (mail-fetch-field "content-type"))
 	separator)
     (save-excursion
@@ -989,43 +958,6 @@ the region."
 	     (string-match pmail-mime-charset-pattern content-type-header))
 	(substring content-type-header (match-beginning 1) (match-end 1))
       'undecided)))
-
-;; Decode Babyl formatted part at the head of current buffer by
-;; pmail-file-coding-system, or if it is nil, do auto conversion.
-
-(defun pmail-decode-babyl-format ()
-  (let ((modifiedp (buffer-modified-p))
-	(buffer-read-only nil)
-	(coding-system pmail-file-coding-system)
-	from to)
-    (goto-char (point-min))
-    (search-forward "\n\^_" nil t)	; Skip BABYL header.
-    (setq from (point))
-    (goto-char (point-max))
-    (search-backward "\n\^_" from 'mv)
-    (setq to (point))
-    (unless (and coding-system
-		 (coding-system-p coding-system))
-      (setq coding-system
-	    ;; If pmail-file-coding-system is nil, Emacs 21 writes
-	    ;; PMAIL files in emacs-mule, Emacs 22 in utf-8, but
-	    ;; earlier versions did that with the current buffer's
-	    ;; encoding.  So we want to favor detection of emacs-mule
-	    ;; (whose normal priority is quite low) and utf-8, but
-	    ;; still allow detection of other encodings if they won't
-	    ;; fit.  The call to with-coding-priority below achieves
-	    ;; that.
-	    (with-coding-priority '(emacs-mule utf-8)
-	      (detect-coding-region from to 'highest))))
-    (unless (eq (coding-system-type coding-system) 'undecided)
-      (set-buffer-modified-p t)		; avoid locking when decoding
-      (let ((buffer-undo-list t))
-	(decode-coding-region from to coding-system))
-      (setq coding-system last-coding-system-used))
-    (set-buffer-modified-p modifiedp)
-    (setq buffer-file-coding-system nil)
-    (setq save-buffer-coding-system
-	  (or coding-system 'undecided))))
 
 (defvar pmail-mode-map nil)
 (if pmail-mode-map
