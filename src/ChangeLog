@@ -1,7 +1,7 @@
 2008-12-10  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (fc_charset_table): Add "unicode-sip".
-	(ftfont_spec_pattern): Lookup fc_charset_table for the regisry
+	(ftfont_spec_pattern): Lookup fc_charset_table for the registry
 	Qunicode_sip.
 
 2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
@@ -209,8 +209,7 @@
 	* character.h (MAYBE_UNIFY_CHAR): Call maybe_unify_char instead of
 	Funify_charset.
 
-	* charset.h (enum charset_method): Delete
-	CHARSET_METHOD_MAP_DEFERRED.
+	* charset.h (enum charset_method): Delete CHARSET_METHOD_MAP_DEFERRED.
 	(DECODE_CHAR): Check if the decoder vector is ready.
 	(ENCODE_CHAR): Check if the encoder char-table is ready.
 	(maybe_unify_char): Extern it.
@@ -405,8 +404,7 @@
 
 2008-11-10  Kenichi Handa  <handa@m17n.org>
 
-	* character.c (Fget_byte): Fix and make it faster for unibyte
-	target.
+	* character.c (Fget_byte): Fix and make it faster for unibyte target.
 
 2008-11-08  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -709,7 +707,7 @@
 2008-10-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacs.c (main): Unconditionally set PER_LINUX32 and exec
-	temacs when dumping if HAVE_PERSONALITY_LINUX32 is defined
+	temacs when dumping if HAVE_PERSONALITY_LINUX32 is defined.
 
 2008-10-21  Kenichi Handa  <handa@m17n.org>
 
@@ -1353,7 +1351,7 @@
 	* font.c (font_fill_lglyph_metrics): Use EMACS_INT in
 	LGLYPH_SET_CODE to avoid compiler warnings.
 
-	* makefile.w32-in ($(BLD)/w32uniscribe.$(O)): Depend on composite.h
+	* makefile.w32-in ($(BLD)/w32uniscribe.$(O)): Depend on composite.h.
 
 	* composite.h (LGLYPH_SET_CODE): Cast `val' to EMACS_INT.
 
@@ -1714,7 +1712,7 @@
 	output_termcap.
 	(Fresume_tty, Fsuspend_tty, init_tty, delete_tty):
 	Call add_keyboard_wait_descriptor and delete_keyboard_wait_descriptor
-	only when subprocesses are supported
+	only when subprocesses are supported.
 
 	* frame.c (make_terminal_frame) [MSDOS]: Adjust initialization of
 	f->output_data.x.
@@ -2405,7 +2403,7 @@
 	* dispextern.h:
 	* config.in:
 	* atimer.c:
-	* Makefile.in: Remove code for Carbon
+	* Makefile.in: Remove code for Carbon.
 
 2008-07-26 YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -3566,7 +3564,7 @@
 2008-07-02  Jason Rumney  <jasonr@gnu.org>
 
 	* xfns.c (syms_of_xfns): Only define x-select-font when both
-	HAVE_FREETYPE and USE_GTK
+	HAVE_FREETYPE and USE_GTK.
 
 	* xdisp.c (next_element_from_display_vector): Move assignment out
 	of if statement.
