@@ -5,6 +5,7 @@
 	WINDOWSNT.
 	(print_help_and_exit): Replace EMACS_DAEMON with WINDOWSNT.
 	(start_daemon_and_retry_set_socket): Likewise.
+	(main): Fail in case of not being able to connect.
 
 2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
 

@@ -1519,6 +1519,8 @@ main (argc, argv)
       }
     else
       fail ();
+  else
+    fail ();
 
   cwd = get_current_dir_name ();
   if (cwd == 0)
