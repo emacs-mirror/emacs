@@ -128,6 +128,7 @@ static struct
     { "windows-1251", { 0x0401, 0x0490 }, "ru"},
     { "koi8-r", { 0x0401, 0x2219 }, "ru"},
     { "mulelao-1", { 0x0E81 }, "lo"},
+    { "unicode-sip", { 0x20000 }},
     { NULL }
   };
 
@@ -607,8 +608,7 @@ ftfont_spec_pattern (spec, otlayout, otspec)
   if (NILP (registry)
       || EQ (registry, Qascii_0)
       || EQ (registry, Qiso10646_1)
-      || EQ (registry, Qunicode_bmp)
-      || EQ (registry, Qunicode_sip))
+      || EQ (registry, Qunicode_bmp))
     fc_charset_idx = -1;
   else
     {
