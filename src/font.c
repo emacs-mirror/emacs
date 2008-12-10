@@ -48,7 +48,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_NS */
 
 Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
- 
+
 #ifdef HAVE_NS
 extern Lisp_Object Qfontsize;
 #endif
@@ -400,7 +400,7 @@ font_style_symbolic (font, prop, for_face)
   font_assert (((i >> 4) & 0xF) < ASIZE (table));
   elt = AREF (table, ((i >> 4) & 0xF));
   font_assert ((i & 0xF) + 1 < ASIZE (elt));
-  return (for_face ? AREF (elt, 1) : AREF (elt, (i & 0xF) + 1));  
+  return (for_face ? AREF (elt, 1) : AREF (elt, (i & 0xF) + 1));
 }
 
 extern Lisp_Object Vface_alternative_font_family_alist;
@@ -3835,12 +3835,12 @@ specifying the font size.  It specifies the font size in pixels
 `:name'
 
 VALUE must be a string of XLFD-style or fontconfig-style font name.
-usage: (font-spec ARGS ...)
 
 `:script'
 
 VALUE must be a symbol representing a script that the font must
-support.  */)
+support.
+usage: (font-spec ARGS...)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -4276,7 +4276,7 @@ created glyph-string.  Otherwise, the value is nil.  */)
   struct font *font;
   Lisp_Object font_object, n, glyph;
   int i, j, from, to;
-  
+
   if (! composition_gstring_p (gstring))
     signal_error ("Invalid glyph-string: ", gstring);
   if (! NILP (LGSTRING_ID (gstring)))
@@ -4299,7 +4299,7 @@ created glyph-string.  Otherwise, the value is nil.  */)
     }
   if (i == 3 || XINT (n) == 0)
     return Qnil;
-  
+
   glyph = LGSTRING_GLYPH (gstring, 0);
   from = LGLYPH_FROM (glyph);
   to = LGLYPH_TO (glyph);
@@ -4909,7 +4909,7 @@ font_deferred_log (action, arg, result)
   ASET (Vfont_log_deferred, 0, build_string (action));
   ASET (Vfont_log_deferred, 1, arg);
   ASET (Vfont_log_deferred, 2, result);
-}     
+}
 
 extern void syms_of_ftfont P_ (());
 extern void syms_of_xfont P_ (());
