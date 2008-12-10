@@ -279,10 +279,6 @@
 #define TraceLIMIT ((size_t)1)
 /* I count 4 function calls to scan, 10 to copy. */
 #define TraceCopyScanRATIO (1.5)
-/* Length (in chars) of a char buffer used to store the reason why a
-   collection started in the TraceStartMessageStruct (used by
-   mps_message_type_gc_start). */
-#define TRACE_START_MESSAGE_WHY_LEN 128
 
 /* Chosen so that the RememberedSummaryBlockStruct packs nicely into
    pages */

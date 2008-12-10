@@ -447,17 +447,24 @@ typedef struct LDStruct {
   RefSet rs;            /* RefSet of Add'ed references */
 } LDStruct;
 
-/* TraceStartMessage
+
+/* TraceStartMessage -- posted when a trace starts
  *
- * See <design/message-gc/>.
- *
- * Embedded in TraceStruct. */
+ * See traceanc.c
+ */
 
 #define TraceStartMessageSig ((Sig)0x51926535) /* SIG TRaceStartMeSsage */
 
+/* .whybuf.len: Length (in chars) of a char buffer used to store the 
+ * reason why a collection started in the TraceStartMessageStruct 
+ * (used by mps_message_type_gc_start).  If the reason is too long to 
+ * fit, it must be truncated.
+ */
+#define TRACE_START_MESSAGE_WHYBUF_LEN 128
+
 typedef struct TraceStartMessageStruct {
   Sig sig;
-  char why[TRACE_START_MESSAGE_WHY_LEN];
+  char why[TRACE_START_MESSAGE_WHYBUF_LEN];  /* .whybuf.len */
   MessageStruct messageStruct;
 } TraceStartMessageStruct;
 

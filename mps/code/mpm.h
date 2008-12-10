@@ -385,7 +385,7 @@ extern Res traceStartCollectAll(Trace *traceReturn, Arena arena, int why);
 
 /* traceanc.c -- Trace Ancillary */
 
-/* trace begin */
+/* trace start */
 extern Bool TraceStartMessageCheck(TraceStartMessage message);
 extern void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage);
 extern void traceStartWhyToTextBuffer(char *s, size_t len, int why);
