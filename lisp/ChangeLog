@@ -1,3 +1,8 @@
+2008-12-10  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (setup-default-fontset): Add an entry
+	for characters in the Unicode SIP area.
+
 2008-12-10  Glenn Morris  <rgm@gnu.org>
 
 	* vc-mcvs.el: Move to obsolete/, with warning comment.
