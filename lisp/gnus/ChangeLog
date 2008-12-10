@@ -1,3 +1,12 @@
+2008-12-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-charset-to-coding-system): Add new argument
+	`allow-override' which says whether to use `mm-charset-override-alist'.
+	(rfc2047-decode-encoded-words): Use it.
+
+	* mm-util.el (mm-charset-override-alist): Fix custom type;
+	add `(gb2312 . gbk)' to choices.
+
 2008-12-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-view.el (mm-inline-text-html-render-with-w3m): Make it simple and

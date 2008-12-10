@@ -902,9 +902,13 @@ them.")
 	    (error
 	     (goto-char beg))))))))
 
-(defun rfc2047-charset-to-coding-system (charset)
+(defun rfc2047-charset-to-coding-system (charset &optional allow-override)
   "Return coding-system corresponding to MIME CHARSET.
-If your Emacs implementation can't decode CHARSET, return nil."
+If your Emacs implementation can't decode CHARSET, return nil.
+
+If allow-override is given, use `mm-charset-override-alist' to
+map undesired charset names to their replacement.  This should
+only be used for decoding, not for encoding."
   (when (stringp charset)
     (setq charset (intern (downcase charset))))
   (when (or (not charset)
@@ -912,7 +916,7 @@ If your Emacs implementation can't decode CHARSET, return nil."
 	    (memq 'gnus-all mail-parse-ignored-charsets)
 	    (memq charset mail-parse-ignored-charsets))
     (setq charset mail-parse-charset))
-  (let ((cs (mm-charset-to-coding-system charset)))
+  (let ((cs (mm-charset-to-coding-system charset nil allow-override)))
     (cond ((eq cs 'ascii)
 	   (setq cs (or (mm-charset-to-coding-system mail-parse-charset)
 			'raw-text)))
@@ -933,7 +937,7 @@ ENCODED-WORD)."
     (while words
       (setq word (pop words))
       (if (and (setq cs (rfc2047-charset-to-coding-system
-			 (setq charset (car word))))
+			 (setq charset (car word)) t))
 	       (condition-case code
 		   (cond ((char-equal ?B (nth 1 word))
 			  (setq text (base64-decode-string

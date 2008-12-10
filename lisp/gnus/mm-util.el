@@ -397,15 +397,42 @@ Unless LIST is given, `mm-codepage-ibm-list' is used."
 You may add pairs like (iso-8859-1 . windows-1252) here,
 i.e. treat iso-8859-1 as windows-1252.  windows-1252 is a
 superset of iso-8859-1."
-  :type '(list (set :inline t
-		    (const (iso-8859-1 . windows-1252))
-		    (const (iso-8859-8 . windows-1255))
-		    (const (iso-8859-9 . windows-1254))
-		    (const (undecided  . windows-1252)))
-	       (repeat :inline t
-		       :tag "Other options"
-		       (cons (symbol :tag "From charset")
-			     (symbol :tag "To charset"))))
+  :type
+  '(list
+    :convert-widget
+    (lambda (widget)
+      (let ((defaults
+	      (delq nil
+		    (mapcar (lambda (pair)
+			      (if (mm-charset-to-coding-system (cdr pair))
+				  pair))
+			    '((gb2312 . gbk)
+			      (iso-8859-1 . windows-1252)
+			      (iso-8859-8 . windows-1255)
+			      (iso-8859-9 . windows-1254)
+			      (undecided  . windows-1252)))))
+	    (val (copy-sequence (default-value 'mm-charset-override-alist)))
+	    pair rest)
+	(while val
+	  (push (if (and (prog1
+			     (setq pair (assq (caar val) defaults))
+			   (setq defaults (delq pair defaults)))
+			 (equal (car val) pair))
+		    `(const ,pair)
+		  `(cons :format "%v"
+			 (const :format "(%v" ,(caar val))
+			 (symbol :size 3 :format " . %v)\n" ,(cdar val))))
+		rest)
+	  (setq val (cdr val)))
+	(while defaults
+	  (push `(const ,(pop defaults)) rest))
+	(widget-convert
+	 'list
+	 `(set :inline t :format "%v" ,@(nreverse rest))
+	 `(repeat :inline t :tag "Other options"
+		  (cons :format "%v"
+			(symbol :size 3 :format "(%v")
+			(symbol :size 3 :format " . %v)\n")))))))
   :version "22.1" ;; Gnus 5.10.9
   :group 'mime)
 
