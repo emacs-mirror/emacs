@@ -1,3 +1,11 @@
+2008-12-10  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-hook.el (epa-file-find-file-hook): Don't mark the current
+	buffer unmodified.  (Bug#1509)
+	* epa-file.el (epa-file-insert-file-contents): Set buffer's
+	modification time if visiting a file and the content is
+	successfully decrypted.
+
 2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (save-some-buffers): At each map-y-or-n-p iteration,

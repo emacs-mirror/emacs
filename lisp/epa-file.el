@@ -110,8 +110,6 @@
 	 (local-file (or local-copy file))
 	 (context (epg-make-context))
 	 string length entry)
-    (if visit
-	(setq buffer-file-name file))
     (epg-context-set-passphrase-callback
      context
      (cons #'epa-file-passphrase-callback-function
@@ -140,7 +138,10 @@
 	      (epa-file-decode-and-insert string file visit beg end replace)
 	      (setq length (- (point-max) (point-min))))
 	    (if replace
-		(delete-region (point) (point-max)))))
+		(delete-region (point) (point-max)))
+	    (when visit
+	      (setq buffer-file-name file)
+	      (set-visited-file-modtime))))
       (if (and local-copy
 	       (file-exists-p local-copy))
 	  (delete-file local-copy)))
