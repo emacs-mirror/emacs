@@ -1,3 +1,9 @@
+2008-12-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (Qcham): New symbol.
+	(font_supported_scripts): Add cham, and comments for other new
+	scripts in bitfield from OpenType spec.
+
 2008-12-10  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (fc_charset_table): Add "unicode-sip".
