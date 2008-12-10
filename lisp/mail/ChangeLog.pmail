@@ -5,6 +5,16 @@
 
 	* pmail.el (pmail-insert-pmail-file-header): Function deleted.
 	(pmail-decode-babyl-format): Function deleted.
+	(pmail-perm-variables): Don't call pmail-parse-file-inboxes.
+	(pmail-parse-file-inboxes): Function deleted.
+	(pmail-get-new-mail-1): Function merged into pmail-get-new-mail.
+	(pmail-get-new-mail-2): Renamed to pmail-get-new-mail-1.
+	(pmail-get-new-mail-filter-spam): Call rmail-spam-filter, not
+	pmail-spam-filter.
+	(pmail-convert-to-babyl-format): Function deleted.
+	(pmail-nuke-pinhead-header): Function deleted.
+	(pmail-reply): Parsing headers in mbox format.  Call
+	rmail-dont-reply-to instead of pmail-dont-reply-to.
 
 2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
 
