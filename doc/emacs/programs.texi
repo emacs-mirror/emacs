@@ -78,6 +78,7 @@ and you can select it by typing @kbd{M-x @var{l}-mode @key{RET}}.
 @cindex Modula2 mode
 @cindex Prolog mode
 @cindex Python mode
+@cindex Ruby mode
 @cindex Simula mode
 @cindex VHDL mode
 @cindex M4 mode
@@ -91,11 +92,11 @@ and you can select it by typing @kbd{M-x @var{l}-mode @key{RET}}.
 Ada, ASM, AWK, C, C++, Delphi (Object Pascal), Fortran, Icon, IDL
 (CORBA), IDLWAVE, Java, Metafont (@TeX{}'s companion for font
 creation), Modula2, Objective-C, Octave, Pascal, Perl, Pike,
-PostScript, Prolog, Python, Simula, Tcl, and VHDL.  An alternative
-mode for Perl is called CPerl mode.  Modes are available for the
-scripting languages of the common GNU and Unix shells, VMS DCL, and
-MS-DOS/MS-Windows @samp{BAT} files.  There are also major modes for
-editing makefiles, DNS master files, and various sorts of
+PostScript, Prolog, Python, Ruby, Simula, Tcl, and VHDL.  An
+alternative mode for Perl is called CPerl mode.  Modes are available
+for the scripting languages of the common GNU and Unix shells, VMS
+DCL, and MS-DOS/MS-Windows @samp{BAT} files.  There are also major
+modes for editing makefiles, DNS master files, and various sorts of
 configuration files.
 
 @kindex DEL @r{(programming modes)}
