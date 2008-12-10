@@ -1,3 +1,7 @@
+2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c (main): Fix previous change.
+
 2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (main): Fix mindless breakage where emacsclient

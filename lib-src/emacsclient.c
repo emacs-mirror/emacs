@@ -1519,10 +1519,6 @@ main (argc, argv)
       }
     else
       fail ();
-#ifndef WINDOWSNT
-  else
-    fail ();
-#endif
 
   cwd = get_current_dir_name ();
   if (cwd == 0)
