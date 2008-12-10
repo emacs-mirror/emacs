@@ -1403,11 +1403,14 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
              ANSI and DEFAULT charsets, as most unicode fonts will
              contain one of those plus others.  */
           if ((EQ (spec_charset, Qiso10646_1)
-               || EQ (spec_charset, Qunicode_bmp)
-               || EQ (spec_charset, Qunicode_sip))
+               || EQ (spec_charset, Qunicode_bmp))
               && logical_font->elfLogFont.lfCharSet != DEFAULT_CHARSET
               && logical_font->elfLogFont.lfCharSet != ANSI_CHARSET)
             return 1;
+	  /* unicode-sip fonts must contain characters beyond the BMP.  */
+	  else if (EQ (spec_charset, Qunicode_sip)
+		   && !(physical_font->ntmFontSig.fsUsb[1] & 0x02000000))
+	    return 1;
           /* If registry was specified, but did not map to a windows
              charset, only report fonts that have unknown charsets.
              This will still report fonts that don't match, but at
