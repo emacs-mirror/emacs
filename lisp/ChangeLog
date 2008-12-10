@@ -1,5 +1,9 @@
 2008-12-10  Chong Yidong  <cyd@stupidchicken.com>
 
+	* Makefile.in (ELCFILES): Add ruby-mode.elc.
+
+	* progmodes/ruby-mode.el: New file.
+
 	* term/xterm.el (xterm-remove-modify-other-keys): Fix error in
 	terminal variable assignment.
 
