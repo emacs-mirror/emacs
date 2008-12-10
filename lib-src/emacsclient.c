@@ -54,8 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define CLOSE_SOCKET close
 # define INITIALIZE()
 
-# define EMACS_DAEMON
-
 #endif /* !WINDOWSNT */
 
 #undef signal
@@ -586,6 +584,15 @@ decode_options (argc, argv)
      arguments or expressions given.  */
   if (nowait && tty && argc - optind > 0)
     current_frame = 1;
+
+#ifdef WINDOWSNT
+  if (alternate_editor && alternate_editor == '\0')
+    {
+      message (TRUE, "--alternate-editor argument or ALTERNATE_EDITOR variable cannot be\n\
+an empty string");
+      exit (EXIT_FAILURE);
+    }
+#endif /* WINDOWSNT */
 }
 
 
@@ -618,10 +625,10 @@ The following OPTIONS are accepted:\n\
 			Set filename of the TCP authentication file\n\
 -a, --alternate-editor=EDITOR\n\
 			Editor to fallback to if the server is not running\n"
-#ifdef EMACS_DAEMON
+#ifdef WINDOWSNT
 "			If EDITOR is the empty string, start Emacs in daemon\n\
 			mode and try connecting again\n"
-#endif
+#endif /* WINDOWSNT */
 "\n\
 Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (EXIT_SUCCESS);
@@ -1419,7 +1426,7 @@ w32_give_focus ()
 void
 start_daemon_and_retry_set_socket (void)
 {
-#ifdef EMACS_DAEMON
+#ifndef WINDOWSNT
   pid_t dpid;
   int status;
   pid_t p;
@@ -1457,7 +1464,7 @@ start_daemon_and_retry_set_socket (void)
       execvp ("emacs", d_argv);
       message (TRUE, "%s: error starting emacs daemon\n", progname);
     }
-#endif /* EMACS_DAEMON */
+#endif /* WINDOWSNT */
 }
 
 int
@@ -1468,7 +1475,7 @@ main (argc, argv)
   int i, rl, needlf = 0;
   char *cwd, *str;
   char string[BUFSIZ+1];
-  int null_socket_name, null_server_file, start_daemon_if_needed = 0;
+  int null_socket_name, null_server_file, start_daemon_if_needed;
 
   main_argv = argv;
   progname = argv[0];
@@ -1484,12 +1491,10 @@ main (argc, argv)
       exit (EXIT_FAILURE);
     }
 
-#ifdef EMACS_DAEMON
   /* If alternate_editor is the empty string, start the emacs daemon
      in case of failure to connect.  */
   start_daemon_if_needed = (alternate_editor
 			    && (alternate_editor[0] == '\0'));
-#endif /* EMACS_DAEMON */
   if (start_daemon_if_needed)
     {
       /* set_socket changes the values for socket_name and

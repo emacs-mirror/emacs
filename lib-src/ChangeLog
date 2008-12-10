@@ -1,3 +1,11 @@
+2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c (EMACS_DAEMON): Remove definition.
+	(decode_options): Do not allow an empty alternate_editor on
+	WINDOWSNT.
+	(print_help_and_exit): Replace EMACS_DAEMON with WINDOWSNT.
+	(start_daemon_and_retry_set_socket): Likewise.
+
 2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c [!WINDOWSNT] (EMACS_DAEMON): New define.
