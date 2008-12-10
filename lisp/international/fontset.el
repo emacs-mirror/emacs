@@ -498,6 +498,8 @@
 		    '("gnu-unifont" . "iso10646-1") nil 'prepend)
   (set-fontset-font "fontset-default" nil
 		    '("mutt-clearlyu" . "iso10646-1") nil 'prepend)
+  (set-fontset-font "fontset-default" '(#x20000 . #x2FFFF)
+		    '(nil . "unicode-sip"))
 
   (set-fontset-font "fontset-default" '(#xE000 . #xF8FF) nil))
 
