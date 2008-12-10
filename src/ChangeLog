@@ -11181,6 +11181,7 @@
 
 	* charset.c (Fdefine_charset_internal): Setup charset.fast_map
 	correctly.
+
 2008-02-01  Dave Love  <fx@gnu.org>
 
 	* fns.c (Flanginfo): Call synchronize_system_time_locale.
