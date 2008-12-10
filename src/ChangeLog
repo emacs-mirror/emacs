@@ -1,3 +1,9 @@
+2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (QCdefault_char): Rename from QCdefalut_char.
+	(Fcoding_system_put): Use QCdefault_char.
+	(syms_of_coding): Set QCdefault_char, not QCdefalut_char.
+
 2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xftfont.c (syms_of_xftfont): Fix typo.

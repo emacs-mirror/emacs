@@ -314,7 +314,7 @@ Lisp_Object Qcharset, Qiso_2022, Qutf_8, Qutf_16, Qshift_jis, Qbig5;
 Lisp_Object Qbig, Qlittle;
 Lisp_Object Qcoding_system_history;
 Lisp_Object Qvalid_codes;
-Lisp_Object QCcategory, QCmnemonic, QCdefalut_char;
+Lisp_Object QCcategory, QCmnemonic, QCdefault_char;
 Lisp_Object QCdecode_translation_table, QCencode_translation_table;
 Lisp_Object QCpost_read_conversion, QCpre_write_conversion;
 Lisp_Object QCascii_compatible_p;
@@ -9621,7 +9621,7 @@ DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
 	CHECK_CHARACTER (val);
       CODING_ATTR_MNEMONIC (attrs) = val;
     }
-  else if (EQ (prop, QCdefalut_char))
+  else if (EQ (prop, QCdefault_char))
     {
       if (NILP (val))
 	val = make_number (' ');
@@ -9927,7 +9927,7 @@ syms_of_coding ()
 
   DEFSYM (QCcategory, ":category");
   DEFSYM (QCmnemonic, ":mnemonic");
-  DEFSYM (QCdefalut_char, ":default-char");
+  DEFSYM (QCdefault_char, ":default-char");
   DEFSYM (QCdecode_translation_table, ":decode-translation-table");
   DEFSYM (QCencode_translation_table, ":encode-translation-table");
   DEFSYM (QCpost_read_conversion, ":post-read-conversion");
