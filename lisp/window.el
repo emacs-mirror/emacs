@@ -1294,86 +1294,100 @@ in some window."
 
 (defun fit-window-to-buffer (&optional window max-height min-height)
   "Adjust height of WINDOW to display its buffer's contents exactly.
-WINDOW defaults to the selected window.
+WINDOW defaults to the selected window.  Return nil.
 Optional argument MAX-HEIGHT specifies the maximum height of the
-window and defaults to the height of WINDOW's frame.
+window and defaults to the maximum permissible height of a window
+on WINDOW's frame.
 Optional argument MIN-HEIGHT specifies the minimum height of the
 window and defaults to `window-min-height'.
 Both, MAX-HEIGHT and MIN-HEIGHT are specified in lines and
 include the mode line and header line, if any.
-Always return nil."
+
+Caution: This function can delete WINDOW and/or other windows
+when their height shrinks to less than MIN-HEIGHT."
   (interactive)
-
-  (when (null window)
-    (setq window (selected-window)))
-  (when (null max-height)
-    (setq max-height (frame-height (window-frame window))))
-
-  (let* ((buf
-	  ;; Buffer that is displayed in WINDOW
-	  (window-buffer window))
-	 (window-height
-	  ;; The current height of WINDOW
-	  (window-height window))
-	 (desired-height
-	  ;; The height necessary to show the buffer displayed by WINDOW
-	  ;; (`count-screen-lines' always works on the current buffer).
-	  (with-current-buffer buf
-	    (+ (count-screen-lines)
-	       ;; If the buffer is empty, (count-screen-lines) is
-	       ;; zero.  But, even in that case, we need one text line
-	       ;; for cursor.
-	       (if (= (point-min) (point-max))
-		   1 0)
-	       ;; For non-minibuffers, count the mode-line, if any
-	       (if (and (not (window-minibuffer-p window))
-			mode-line-format)
-		   1 0)
-	       ;; Count the header-line, if any
-	       (if header-line-format 1 0))))
-	 (delta
-	  ;; Calculate how much the window height has to change to show
-	  ;; desired-height lines, constrained by MIN-HEIGHT and MAX-HEIGHT.
-	  (- (max (min desired-height max-height)
-		  (or min-height window-min-height))
-	     window-height)))
-
-    ;; Don't try to redisplay with the cursor at the end
-    ;; on its own line--that would force a scroll and spoil things.
-    (when (with-current-buffer buf
-	    (and (eobp) (bolp) (not (bobp))))
-      (set-window-point window (1- (window-point window))))
-
-    (save-selected-window
-      (select-window window 'norecord)
-
-      ;; Adjust WINDOW to the nominally correct size (which may actually
-      ;; be slightly off because of variable height text, etc).
-      (unless (zerop delta)
-	(enlarge-window delta))
-
-      ;; Check if the last line is surely fully visible.  If not,
-      ;; enlarge the window.
-      (let ((end (with-current-buffer buf
-		   (save-excursion
-		     (goto-char (point-max))
-		     (when (and (bolp) (not (bobp)))
-		       ;; Don't include final newline
-		       (backward-char 1))
-		     (when truncate-lines
-		       ;; If line-wrapping is turned off, test the
-		       ;; beginning of the last line for visibility
-		       ;; instead of the end, as the end of the line
-		       ;; could be invisible by virtue of extending past
-		       ;; the edge of the window.
-		       (forward-line 0))
-		     (point)))))
-	(set-window-vscroll window 0)
-	(while (and (< desired-height max-height)
-		    (= desired-height (window-height window))
-		    (not (pos-visible-in-window-p end window)))
-	  (enlarge-window 1)
-	  (setq desired-height (1+ desired-height)))))))
+  ;; Do all the work in WINDOW and its buffer and restore the selected
+  ;; window and the current buffer when we're done.
+  (let ((old-buffer (current-buffer)))
+    (with-selected-window (or window (setq window (selected-window)))
+      (set-buffer (window-buffer))
+      ;; Use `condition-case' to handle any fixed-size windows and other
+      ;; pitfalls nearby.
+      (condition-case nil
+	  (let* (;; MIN-HEIGHT must not be less than 1 and defaults to
+		 ;; `window-min-height'.
+		 (min-height (max (or min-height window-min-height) 1))
+		 (max-window-height
+		  ;; Maximum height of any window on this frame.
+		  (min (window-height (frame-root-window)) (frame-height)))
+		 ;; MAX-HEIGHT must not be larger than max-window-height and
+		 ;; defaults to max-window-height.
+		 (max-height
+		  (min (or max-height max-window-height) max-window-height))
+		 (desired-height
+		  ;; The height necessary to show all of WINDOW's buffer,
+		  ;; constrained by MIN-HEIGHT and MAX-HEIGHT.
+		  (max
+		   (min
+		    ;; For an empty buffer `count-screen-lines' returns zero.
+		    ;; Even in that case we need one line for the cursor.
+		    (+ (max (count-screen-lines) 1)
+		       ;; For non-minibuffers count the mode line, if any.
+		       (if (and (not (window-minibuffer-p)) mode-line-format)
+			   1 0)
+		       ;; Count the header line, if any.
+		       (if header-line-format 1 0))
+		    max-height)
+		   min-height))
+		 (delta
+		  ;; How much the window height has to change.
+		  (if (= (window-height) (window-height (frame-root-window)))
+		      ;; Don't try to resize a full-height window.
+		      0
+		    (- desired-height (window-height))))
+		 ;; Do something reasonable so `enlarge-window' can make
+		 ;; windows as small as MIN-HEIGHT.
+		 (window-min-height (min min-height window-min-height)))
+	    ;; Don't try to redisplay with the cursor at the end on its
+	    ;; own line--that would force a scroll and spoil things.
+	    (when (and (eobp) (bolp) (not (bobp)))
+	      (set-window-point window (1- (window-point))))
+	    ;; Adjust WINDOW's height to the nominally correct one
+	    ;; (which may actually be slightly off because of variable
+	    ;; height text, etc).
+	    (unless (zerop delta)
+	      (enlarge-window delta))
+	    ;; `enlarge-window' might have deleted WINDOW, so make sure
+	    ;; WINDOW's still alive for the remainder of this.
+	    ;; Note: Deleting WINDOW is clearly counter-intuitive in
+	    ;; this context, but we can't do much about it given the
+	    ;; current semantics of `enlarge-window'.
+	    (when (window-live-p window)
+	      ;; Check if the last line is surely fully visible.  If
+	      ;; not, enlarge the window.
+	      (let ((end (save-excursion
+			   (goto-char (point-max))
+			   (when (and (bolp) (not (bobp)))
+			     ;; Don't include final newline.
+			     (backward-char 1))
+			   (when truncate-lines
+			     ;; If line-wrapping is turned off, test the
+			     ;; beginning of the last line for
+			     ;; visibility instead of the end, as the
+			     ;; end of the line could be invisible by
+			     ;; virtue of extending past the edge of the
+			     ;; window.
+			     (forward-line 0))
+			   (point))))
+		(set-window-vscroll window 0)
+		(while (and (< desired-height max-height)
+			    (= desired-height (window-height))
+			    (not (pos-visible-in-window-p end)))
+		  (enlarge-window 1)
+		  (setq desired-height (1+ desired-height))))))
+	(error nil)))
+    (when (buffer-live-p old-buffer)
+      (set-buffer old-buffer))))
 
 (defun window-safely-shrinkable-p (&optional window)
   "Return t if WINDOW can be shrunk without shrinking other windows.
