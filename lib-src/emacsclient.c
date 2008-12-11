@@ -54,6 +54,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define CLOSE_SOCKET close
 # define INITIALIZE()
 
+# ifndef WCONTINUED
+#  define WCONTINUED 8
+# endif
+
 #endif /* !WINDOWSNT */
 
 #undef signal
