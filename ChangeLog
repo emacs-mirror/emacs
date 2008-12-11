@@ -1,3 +1,7 @@
+2008-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.guess, config.sub: Updated from master source.
+
 2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (install-arch-indep): Install ebrowse.1.
