@@ -1166,7 +1166,7 @@ See `add-log-current-defun-function'."
      ,(+ 1 (regexp-opt-depth ruby-here-doc-beg-re))
      (ruby-here-doc-beg-syntax))
     (,ruby-here-doc-end-re 3 (ruby-here-doc-end-syntax)))
-  "Syntactic keywords for Ruby mode. See `font-lock-syntactic-keywords'.")
+  "Syntactic keywords for Ruby mode.  See `font-lock-syntactic-keywords'.")
 
 (defun ruby-comment-beg-syntax ()
   "Return the syntax cell for a the first character of a =begin.
