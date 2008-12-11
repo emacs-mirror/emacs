@@ -221,15 +221,11 @@ You should set this to t when using a non-system shell.\n\n"))))
     (setq w32-valid-locales (sort (w32-get-valid-locale-ids) #'<)))
   (with-output-to-temp-buffer "*Supported Locales*"
     (princ "LCID\tAbbrev\tFull name\n\n")
-    (princ (decode-coding-string (mapconcat
-				  (lambda (x)
-				    (format "%d\t%s\t%s"
-					    x
-					    (w32-get-locale-info x)
-					    (w32-get-locale-info x t)))
-				  w32-valid-locales "\n")
-				 locale-coding-system))
-    (princ "\n")))
+    (dolist (locale w32-valid-locales)
+      (princ (format "%d\t%s\t%s\n"
+		     locale
+		     (w32-get-locale-info locale)
+		     (w32-get-locale-info locale t))))))
 
 ;;; Setup Info-default-directory-list to include the info directory
 ;;; near where Emacs executable was installed.  We used to set INFOPATH,

@@ -1,3 +1,8 @@
+2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-fns.el (w32-list-locales): Revert part of 2008-10-17 change;
+	decoding of long locale info is now done in `w32-get-locale-info'.
+
 2008-12-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/ruby-mode.el: Fix auto-mode-alist entry.

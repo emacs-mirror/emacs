@@ -1983,7 +1983,7 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
 				LOCALE_SLANGUAGE | LOCALE_USE_CP_ACP,
 				full_name, sizeof (full_name));
       if (got_full)
-	return build_string (full_name);
+	return DECODE_SYSTEM (build_string (full_name));
     }
   else if (NUMBERP (longform))
     {
