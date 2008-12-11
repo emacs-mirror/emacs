@@ -1,3 +1,7 @@
+2008-12-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/ruby-mode.el: Fix auto-mode-alist entry.
+
 2008-12-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in (ELCFILES): Add ruby-mode.elc.
