@@ -376,10 +376,8 @@ int main(int argc, char **argv)
 
   /* really basic scripts */
   testscriptA("Cbe.");
-#if 0
   testscriptA(".Cbe.CbeCbeCbe.");
   testscriptA(".Cbe.CbeCbeCbe");
-#endif
 
   /* simple finalization */
   testscriptA("FFCbffe.");
