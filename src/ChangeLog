@@ -1,5 +1,8 @@
 2008-12-11  Jason Rumney  <jasonr@gnu.org>
 
+	* w32font.c (fill_in_logfont): Don't assume symbol script means
+	SYMBOL_CHARSET.
+
 	* w32uniscribe.c (uniscribe_encode_char): Increase glyph buffer
 	size for surrogates.
 
