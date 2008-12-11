@@ -2681,7 +2681,9 @@ name, or the marker and a count of marked files."
   (pop-to-buffer (get-buffer-create buf))
   ;; If dired-shrink-to-fit is t, make its window fit its contents.
   (when dired-shrink-to-fit
-    (fit-window-to-buffer (get-buffer-window buf))))
+    ;; Try to not delete window when we want to display less than
+    ;; `window-min-height' lines.
+    (fit-window-to-buffer (get-buffer-window buf) nil 1)))
 
 (defcustom dired-no-confirm nil
   "A list of symbols for commands Dired should not confirm.
