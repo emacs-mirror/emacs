@@ -6,10 +6,13 @@
 
 	* Makefile.in (ELCFILES): Add ruby-mode.elc.
 
-	* progmodes/ruby-mode.el: New file.
-
 	* term/xterm.el (xterm-remove-modify-other-keys): Fix error in
 	terminal variable assignment.
+
+2008-12-10  Yukihiro Matsumoto  <matz@ruby-lang.org>
+	    Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el: New file.
 
 2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
 
