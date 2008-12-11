@@ -1956,8 +1956,6 @@ fill_in_logfont (f, logfont, font_spec)
                 logfont->lfCharSet = ARABIC_CHARSET;
               else if (EQ (val, Qthai))
                 logfont->lfCharSet = THAI_CHARSET;
-              else if (EQ (val, Qsymbol))
-                logfont->lfCharSet = SYMBOL_CHARSET;
             }
           else if (EQ (key, QCantialias) && SYMBOLP (val))
             {
