@@ -490,13 +490,16 @@ uniscribe_encode_char (font, c)
       if (SUCCEEDED (ScriptItemize (ch, len, 2, NULL, NULL, items, &nitems)))
 	{
 	  HRESULT result;
-          /* Some Indic characters result in more than 1 glyph.  */
-          WORD glyphs[1], clusters[1];
-          SCRIPT_VISATTR attrs[1];
+          /* Surrogates seem to need 2 here, even though only one glyph is
+	     returned.  Indic characters can also produce 2 or more glyphs for
+	     a single code point, but they need to use uniscribe_shape
+	     above for correct display.  */
+          WORD glyphs[2], clusters[2];
+          SCRIPT_VISATTR attrs[2];
           int nglyphs;
 
           result = ScriptShape (context, &(uniscribe_font->cache),
-                                ch, len, 1, &(items[0].a),
+                                ch, len, 2, &(items[0].a),
                                 glyphs, clusters, attrs, &nglyphs);
 
           if (result == E_PENDING)
