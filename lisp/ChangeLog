@@ -1,4 +1,20 @@
-2008-12-11  Stephen Berman <Stephen.Berman@rub.de>
+2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ruby-mode.el (ruby-mode-abbrev-table, ruby-mode-map)
+	(ruby-mode-syntax-table, ruby-indent-tabs-mode, ruby-indent-level)
+	(ruby-mode-variables, ruby-indent-line, ruby-indent-size)
+	(ruby-calculate-indent, ruby-electric-brace, ruby-beginning-of-defun)
+	(ruby-here-doc-beg-syntax, ruby-here-doc-end-syntax)
+	(ruby-font-lock-syntax-table, ruby-font-lock-keywords)
+	(ruby-end-of-defun, ruby-move-to-block, ruby-forward-sexp)
+	(ruby-backward-sexp, ruby-add-log-current-method)
+	(ruby-font-lock-syntactic-keywords, ruby-comment-beg-syntax)
+	(ruby-in-here-doc-p, ruby-mode): Fix typos in docstrings.
+	(ruby-deep-indent-paren): Doc fix.
+	(ruby-insert-encoding-magic-comment): Remove * from docstring.
+	(ruby-here-doc-find-end): Reflow docstring.
+
+2008-12-11  Stephen Berman  <Stephen.Berman@rub.de>
 
 	* dired.el (dired-pop-to-buffer): Use fit-window-to-buffer when
 	dired-shrink-to-fit is non-nil.  (Bug#1488)
