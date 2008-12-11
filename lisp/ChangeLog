@@ -1,3 +1,12 @@
+2008-12-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (fit-window-to-buffer): Use with-selected-window and
+	condition-case.  Do not delete more windows than necessary in
+	the shrinking (delta < 0) case.  Do not raise an error when the
+	containing frame is too small to show all of buffer.  (Bug#1488)
+	* dired.el (dired-pop-to-buffer): Call fit-window-to-buffer with
+	min-height arg 1 to make sure that small buffers are shown.
+
 2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/ruby-mode.el (ruby-mode-abbrev-table, ruby-mode-map)
