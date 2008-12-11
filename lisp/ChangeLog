@@ -1,3 +1,8 @@
+2008-12-11  Stephen Berman <Stephen.Berman@rub.de>
+
+	* dired.el (dired-pop-to-buffer): Use fit-window-to-buffer when
+	dired-shrink-to-fit is non-nil.  (Bug#1488)
+
 2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32-fns.el (w32-list-locales): Revert part of 2008-10-17 change;
