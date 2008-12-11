@@ -1,3 +1,9 @@
+2008-12-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term.c (tty_free_frame_resources): Renamed from
+	delete_tty_output; all callers changed.  Call free_frame_faces to
+	free the face cache.
+
 2008-12-11  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (fill_in_logfont): Don't assume symbol script means
