@@ -1,5 +1,11 @@
 2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
+	* process.c (Fsystem_process_attributes, syms_of_process):
+	Fix typo in name of Ssystem_process_attributes.
+	Reported by Ulrich Mueller <ulm@kph.uni-mainz.de>.
+
+2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
 	* syntax.c (Fmodify_syntax_entry): Doc fix.
 
 2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
