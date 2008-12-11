@@ -1,3 +1,7 @@
+2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* syntax.c (Fmodify_syntax_entry): Doc fix.
+
 2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* font.c (Ffont_spec): Move usage to end of docstring.
