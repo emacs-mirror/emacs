@@ -3183,13 +3183,16 @@ create_tty_output (struct frame *f)
   f->output_data.tty = t;
 }
 
-/* Delete the tty-dependent part of frame F. */
+/* Delete frame F's face cache, and its tty-dependent part. */
 
 static void
-delete_tty_output (struct frame *f)
+tty_free_frame_resources (struct frame *f)
 {
   if (! FRAME_TERMCAP_P (f))
     abort ();
+
+  if (FRAME_FACE_CACHE (f))
+    free_frame_faces (f);
 
   xfree (f->output_data.tty);
 }
@@ -3229,7 +3232,7 @@ clear_tty_hooks (struct terminal *terminal)
 
   /* Leave these two set, or suspended frames are not deleted
      correctly.  */
-  terminal->delete_frame_hook = &delete_tty_output;
+  terminal->delete_frame_hook = &tty_free_frame_resources;
   terminal->delete_terminal_hook = &delete_tty;
 }
 
@@ -3273,7 +3276,7 @@ set_tty_hooks (struct terminal *terminal)
   terminal->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
   terminal->frame_up_to_date_hook = 0; /* Not needed. */
 
-  terminal->delete_frame_hook = &delete_tty_output;
+  terminal->delete_frame_hook = &tty_free_frame_resources;
   terminal->delete_terminal_hook = &delete_tty;
 }
 
@@ -3452,7 +3455,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   tty->output = stdout;
   tty->input = stdin;
   /* The following two are inaccessible from w32console.c.  */
-  terminal->delete_frame_hook = &delete_tty_output;
+  terminal->delete_frame_hook = &tty_free_frame_resources;
   terminal->delete_terminal_hook = &delete_tty;
 
   tty->name = xstrdup (name);
