@@ -1,3 +1,8 @@
+2008-12-11  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (uniscribe_encode_char): Increase glyph buffer
+	size for surrogates.
+
 2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32proc.c (Fw32_get_locale_info): Decode long form of locale name.
