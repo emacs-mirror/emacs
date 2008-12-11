@@ -1416,7 +1416,7 @@ The variable ruby-indent-level controls the amount of indentation.
 ;;; Invoke ruby-mode when appropriate
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.rb$" . ruby-mode))
+(add-to-list 'auto-mode-alist '("\\.rb\\'" . ruby-mode))
 
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
