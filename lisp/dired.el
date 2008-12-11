@@ -2678,44 +2678,10 @@ name, or the marker and a count of marked files."
 
 (defun dired-pop-to-buffer (buf)
   ;; Pop up buffer BUF.
+  (pop-to-buffer (get-buffer-create buf))
   ;; If dired-shrink-to-fit is t, make its window fit its contents.
-  (if (not dired-shrink-to-fit)
-      (pop-to-buffer (get-buffer-create buf))
-    ;; let window shrink to fit:
-    (let ((window (selected-window))
-	  target-lines w2)
-      (cond ;; if split-height-threshold is enabled, use the largest window
-            ((and (> (window-height (setq w2 (get-largest-window)))
-		     split-height-threshold)
-		  (window-full-width-p w2))
-	     (setq window w2))
-	    ;; if the least-recently-used window is big enough, use it
-	    ((and (> (window-height (setq w2 (get-lru-window)))
-		     (* 2 window-min-height))
-		  (window-full-width-p w2))
-	     (setq window w2)))
-      (save-excursion
-	(set-buffer buf)
-	(goto-char (point-max))
-	(skip-chars-backward "\n\r\t ")
-	(setq target-lines (count-lines (point-min) (point)))
-	;; Don't forget to count the last line.
-	(if (not (bolp))
-	    (setq target-lines (1+ target-lines))))
-      (if (<= (window-height window) (* 2 window-min-height))
-	  ;; At this point, every window on the frame is too small to split.
-	  (setq w2 (display-buffer buf))
-	(setq w2 (split-window window
-		  (max window-min-height
-		       (- (window-height window)
-			  (1+ (max window-min-height target-lines)))))))
-      (set-window-buffer w2 buf)
-      (if (< (1- (window-height w2)) target-lines)
-	  (progn
-	    (select-window w2)
-	    (enlarge-window (- target-lines (1- (window-height w2))))))
-      (set-window-start w2 1)
-      )))
+  (when dired-shrink-to-fit
+    (fit-window-to-buffer (get-buffer-window buf))))
 
 (defcustom dired-no-confirm nil
   "A list of symbols for commands Dired should not confirm.
