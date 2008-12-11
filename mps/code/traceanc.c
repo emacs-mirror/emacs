@@ -10,20 +10,22 @@
  *
  * CONTENTS
  *
- * 1. TraceStartMessage.  Posted when a trace starts.
+ *   - TraceStartMessage.  Posted when a trace starts.
  *
- * 2. TraceMessage.  Posted when a trace ends.
+ *   - TraceMessage.  Posted when a trace ends.
  *
- * 3. ArenaRelease, ArenaClamp, ArenaPark.
+ *   - TraceIdMessages.  Pre-allocated messages for traceid.
  *
- * 4. ArenaExposeRemember and ArenaRestoreProtection.
+ *   - ArenaRelease, ArenaClamp, ArenaPark.
+ *
+ *   - ArenaExposeRemember and ArenaRestoreProtection.
  */
 
 #include "mpm.h"
 
 
 
-/* --------  PART 1:  TraceStartMessage  -------- */
+/* --------  TraceStartMessage  -------- */
 
 
 /* TraceStartMessage -- posted when a trace starts
@@ -43,8 +45,27 @@
  * See <design/message-gc/>.
  */
 
+#define TraceStartMessageSig ((Sig)0x51926535) /* SIG TRaceStartMeSsage */
+
+/* .whybuf.len: Length (in chars) of a char buffer used to store the 
+ * reason why a collection started in the TraceStartMessageStruct 
+ * (used by mps_message_type_gc_start).  If the reason is too long to 
+ * fit, it must be truncated.
+ */
+#define TRACE_START_MESSAGE_WHYBUF_LEN 128
+
+typedef struct TraceStartMessageStruct {
+  Sig sig;
+  char why[TRACE_START_MESSAGE_WHYBUF_LEN];  /* .whybuf.len */
+  MessageStruct messageStruct;
+} TraceStartMessageStruct;
+
+#define TraceStartMessageMessage(traceStartMessage) \
+  (&((traceStartMessage)->messageStruct))
 #define MessageTraceStartMessage(message) \
   (PARENT(TraceStartMessageStruct, messageStruct, message))
+
+static void traceStartMessageInit(Arena arena, TraceStartMessage tsMessage);
 
 Bool TraceStartMessageCheck(TraceStartMessage tsMessage)
 {
@@ -74,7 +95,7 @@ static void TraceStartMessageDelete(Message message)
   tsMessage = MessageTraceStartMessage(message);
   AVERT(TraceStartMessage, tsMessage);
 
-  TraceStartMessageInit(MessageArena(message), tsMessage);
+  traceStartMessageInit(MessageArena(message), tsMessage);
 
   return;
 }
@@ -103,7 +124,7 @@ static MessageClassStruct TraceStartMessageClassStruct = {
   MessageClassSig                /* <design/message/#class.sig.double> */
 };
 
-void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage)
+static void traceStartMessageInit(Arena arena, TraceStartMessage tsMessage)
 {
   AVERT(Arena, arena);
 
@@ -117,14 +138,13 @@ void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage)
   return;
 }
 
-
-/* traceStartWhyToString -- why-code to text
+/* TraceStartWhyToString -- why-code to text
  *
  * Converts a TraceStartWhy* code into a constant string describing 
  * why a trace started.
  */
  
-const char *traceStartWhyToString(int why)
+const char *TraceStartWhyToString(int why)
 {
   const char *r;
 
@@ -173,7 +193,7 @@ const char *traceStartWhyToString(int why)
  * necessary.
  */
 
-void traceStartWhyToTextBuffer(char *s, size_t len, int why)
+static void traceStartWhyToTextBuffer(char *s, size_t len, int why)
 {
   const char *r;
   size_t i;
@@ -183,7 +203,7 @@ void traceStartWhyToTextBuffer(char *s, size_t len, int why)
   AVER(TraceStartWhyBASE <= why);
   AVER(why < TraceStartWhyLIMIT);
 
-  r = traceStartWhyToString(why);
+  r = TraceStartWhyToString(why);
 
   for(i=0; i<len; ++i) {
     s[i] = r[i];
@@ -195,9 +215,49 @@ void traceStartWhyToTextBuffer(char *s, size_t len, int why)
   return;
 }
 
+/* TracePostStartMessage -- complete and post trace start message
+ *
+ */
+
+void TracePostStartMessage(Trace trace)
+{
+  Arena arena;
+  TraceId ti;
+  TraceStartMessage tsMessage;
+
+  AVERT(Trace, trace);
+  AVER(trace->state == TraceUNFLIPPED);
+
+  arena = trace->arena;
+  AVERT(Arena, arena);
+
+  ti = trace->ti;
+  AVERT(TraceId, ti);
+
+  tsMessage = arena->tsMessage[ti];
+  if(tsMessage) {
+    AVERT(TraceStartMessage, tsMessage);
+
+    traceStartWhyToTextBuffer(tsMessage->why,
+                              sizeof tsMessage->why, trace->why);
+
+    MessagePost(arena, TraceStartMessageMessage(tsMessage));
+    arena->tsMessage[ti] = NULL;
+  } else {
+    arena->droppedMessages += 1;
+  }
+
+  /* We have consumed the pre-allocated message */
+  AVER(!arena->tsMessage[ti]);
+
+  if(arena->alertCollection) {
+    (*arena->alertCollection)(MPS_ALERT_COLLECTION_START, trace->why);
+  }
+}
 
 
-/* --------  PART 2:  TraceMessage (trace end)  -------- */
+
+/* --------  TraceMessage (trace end)  -------- */
 
 
 /* TraceMessage -- posted when a trace ends
@@ -233,6 +293,8 @@ typedef struct TraceMessageStruct  {
 #define TraceMessageMessage(traceMessage) (&((traceMessage)->messageStruct))
 #define MessageTraceMessage(message) \
   (PARENT(TraceMessageStruct, messageStruct, message))
+
+static void traceMessageInit(Arena arena, TraceMessage tMessage);
 
 Bool TraceMessageCheck(TraceMessage tMessage)
 {
@@ -305,7 +367,7 @@ static MessageClassStruct TraceMessageClassStruct = {
   MessageClassSig                /* <design/message/#class.sig.double> */
 };
 
-static void TraceMessageInit(Arena arena, TraceMessage tMessage)
+static void traceMessageInit(Arena arena, TraceMessage tMessage)
 {
   AVERT(Arena, arena);
 
@@ -319,33 +381,45 @@ static void TraceMessageInit(Arena arena, TraceMessage tMessage)
   AVERT(TraceMessage, tMessage);
 }
 
-/* tracePostMessage -- post trace end message
+/* TracePostMessage -- complete and post trace end message
  *
  * .message.data: The trace end message contains the live size
  * (forwardedSize + preservedInPlaceSize), the condemned size
  * (condemned), and the not-condemned size (notCondemned).
  */
 
-void tracePostMessage(Trace trace)
+void TracePostMessage(Trace trace)
 {
   Arena arena;
-  void *p;
+  TraceId ti;
   TraceMessage tMessage;
-  Res res;
 
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
-
+  
   arena = trace->arena;
-  res = ControlAlloc(&p, arena, sizeof(TraceMessageStruct), FALSE);
-  if(res == ResOK) {
-    tMessage = (TraceMessage)p;
-    TraceMessageInit(arena, tMessage);
+  AVERT(Arena, arena);
+
+  ti = trace->ti;
+  AVERT(TraceId, ti);
+
+  tMessage = arena->tMessage[ti];
+  if(tMessage) {
+    AVERT(TraceMessage, tMessage);
+
     tMessage->liveSize = trace->forwardedSize + trace->preservedInPlaceSize;
     tMessage->condemnedSize = trace->condemned;
     tMessage->notCondemnedSize = trace->notCondemned;
+
     MessagePost(arena, TraceMessageMessage(tMessage));
+    arena->tMessage[ti] = NULL;
+  } else {
+    arena->droppedMessages += 1;
   }
+  
+  /* We have consumed the pre-allocated message */
+  AVER(!arena->tMessage[ti]);
+
   if(arena->alertCollection) {
     (*arena->alertCollection)(MPS_ALERT_COLLECTION_STOP, trace->why);
   }
@@ -355,7 +429,114 @@ void tracePostMessage(Trace trace)
 
 
 
-/* --------  PART 3:  ArenaRelease, ArenaClamp, ArenaPark  -------- */
+/* --------  TraceIdMessages  -------- */
+
+
+/* TraceIdMessagesCheck - pre-allocated messages for this traceid.
+ *
+ * Messages are absent when already sent, or when (exceptionally) 
+ * ControlAlloc failed at the end of the previous trace.  If present, 
+ * they must be valid.
+ *
+ * Messages are pre-allocated all-or-nothing.  So if we've got a 
+ * start but no end, that's wrong.
+ *
+ * Note: this function does not take a pointer to a struct, so it is 
+ * not a 'proper' _Check function.  It can be used in CHECKL, but 
+ * not CHECKD etc.
+ */
+
+Bool TraceIdMessagesCheck(Arena arena, TraceId ti)
+{
+  CHECKL(!arena->tsMessage[ti]
+         || TraceStartMessageCheck(arena->tsMessage[ti]));
+  CHECKL(!arena->tMessage[ti]
+         || TraceMessageCheck(arena->tMessage[ti]));
+  CHECKL(! (arena->tsMessage[ti] && !arena->tMessage[ti]) );
+
+  return TRUE;
+}
+
+/* TraceIdMessagesCreate -- pre-allocate all messages for this traceid
+ *
+ * See <design/message-gc/#lifecycle>.
+ */
+
+Res TraceIdMessagesCreate(Arena arena, TraceId ti)
+{
+  void *p;
+  TraceStartMessage tsMessage;
+  TraceMessage tMessage;
+  Res res;
+  
+  /* Ensure we don't leak memory */
+  AVER(!arena->tsMessage[ti]);
+  AVER(!arena->tMessage[ti]);
+  
+  res = ControlAlloc(&p, arena, sizeof(TraceStartMessageStruct), FALSE);
+  if(res != ResOK)
+    goto failTraceStartMessage;
+  tsMessage = p;
+
+  res = ControlAlloc(&p, arena, sizeof(TraceMessageStruct), FALSE);
+  if(res != ResOK)
+    goto failTraceMessage;
+  tMessage = p;
+
+  traceStartMessageInit(arena, tsMessage);
+  AVERT(TraceStartMessage, tsMessage);
+  arena->tsMessage[ti] = tsMessage;
+
+  traceMessageInit(arena, tMessage);
+  AVERT(TraceMessage, tMessage);
+  arena->tMessage[ti] = tMessage;
+  
+  AVER(TraceIdMessagesCheck(arena, ti));
+  
+  return ResOK;
+
+failTraceMessage:
+  ControlFree(arena, tsMessage, sizeof(TraceStartMessageStruct));
+failTraceStartMessage:
+  return res;
+}
+
+/* TraceIdMessagesDestroy -- destroy any pre-allocated messages
+ *
+ * Only used during ArenaDestroy.
+ *
+ * See <design/message-gc/#lifecycle>.
+ */
+
+void TraceIdMessagesDestroy(Arena arena, TraceId ti)
+{
+  TraceStartMessage tsMessage;
+  TraceMessage tMessage;
+  
+  AVER(TraceIdMessagesCheck(arena, ti));
+
+  tsMessage = arena->tsMessage[ti];
+  if(tsMessage) {
+    arena->tsMessage[ti] = NULL;
+    tsMessage->sig = SigInvalid;
+    ControlFree(arena, tsMessage, sizeof(TraceStartMessageStruct));
+  }
+
+  tMessage = arena->tMessage[ti];
+  if(tMessage) {
+    arena->tMessage[ti] = NULL;
+    tMessage->sig = SigInvalid;
+    ControlFree(arena, tMessage, sizeof(TraceMessageStruct));
+  }
+
+  AVER(!arena->tsMessage[ti]);
+  AVER(!arena->tMessage[ti]);
+  AVER(TraceIdMessagesCheck(arena, ti));
+}
+
+
+
+/* --------  ArenaRelease, ArenaClamp, ArenaPark  -------- */
 
 
 /* ArenaRelease, ArenaClamp, ArenaPark -- allow/prevent collection work.
@@ -405,7 +586,7 @@ void ArenaPark(Globals globals)
   while(arena->busyTraces != TraceSetEMPTY) {
     /* Poll active traces to make progress. */
     TRACE_SET_ITER(ti, trace, arena->busyTraces, arena)
-      traceQuantum(trace);
+      TraceQuantum(trace);
       if(trace->state == TraceFINISHED) {
         TraceDestroy(trace);
       }
@@ -426,7 +607,7 @@ Res ArenaStartCollect(Globals globals, int why)
   arena = GlobalsArena(globals);
 
   ArenaPark(globals);
-  res = traceStartCollectAll(&trace, arena, why);
+  res = TraceStartCollectAll(&trace, arena, why);
   if(res != ResOK)
     goto failStart;
   ArenaRelease(globals);
@@ -454,7 +635,7 @@ Res ArenaCollect(Globals globals, int why)
 
 
 
-/* --------  PART 4:  ExposeRemember and RestoreProtection  -------- */
+/* --------  ExposeRemember and RestoreProtection  -------- */
 
 
 /* Low level stuff for Expose / Remember / Restore */

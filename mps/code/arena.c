@@ -357,6 +357,12 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
                NULL);
   if (res != ResOK) return res;
 
+  res = WriteF(stream,
+               "  droppedMessages $U$S\n", (WriteFU)arena->droppedMessages,
+               (arena->droppedMessages == 0 ? "" : "  -- MESSAGES DROPPED!"),
+               NULL);
+  if (res != ResOK) return res;
+
   res = (*arena->class->describe)(arena, stream);
   if (res != ResOK) return res;
 

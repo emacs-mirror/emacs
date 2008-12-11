@@ -167,6 +167,7 @@ Bool TraceCheck(Trace trace)
 
     default:
       NOTREACHED;
+      break;
   }
   /* Valid values for band depend on state. */
   if(trace->state == TraceFLIPPED) {
@@ -176,8 +177,12 @@ Bool TraceCheck(Trace trace)
   if(trace->chain != NULL) {
     CHECKU(Chain, trace->chain);
   }
+
   /* @@@@ checks for counts missing */
-  CHECKD(TraceStartMessage, &trace->startMessage);
+
+  /* check pre-allocated messages for this traceid */
+  CHECKL(TraceIdMessagesCheck(trace->arena, trace->ti));
+
   return TRUE;
 }
 
@@ -648,9 +653,6 @@ found:
 
   trace->arena = arena;
   trace->why = why;
-  TraceStartMessageInit(arena, &trace->startMessage);
-  traceStartWhyToTextBuffer(trace->startMessage.why,
-                            sizeof trace->startMessage.why, why);
   trace->white = ZoneSetEMPTY;
   trace->mayMove = ZoneSetEMPTY;
   trace->ti = ti;
@@ -800,8 +802,9 @@ static void traceReclaim(Trace trace)
   }
 
   trace->state = TraceFINISHED;
-  tracePostMessage(trace);
-  return;
+  TracePostMessage(trace);  /* trace end */
+  /* Immediately pre-allocate messages for next time; failure is okay */
+  (void)TraceIdMessagesCreate(arena, trace->ti);
 }
 
 
@@ -1531,7 +1534,6 @@ static void TraceStartGenDesc_diag(GenDesc desc, int i)
 void TraceStart(Trace trace, double mortality, double finishingTime)
 {
   Arena arena;
-  Message message;
   Res res;
   Seg seg;
   Size size;
@@ -1543,23 +1545,6 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
   AVER(finishingTime >= 0.0);
 
   arena = trace->arena;
-
-  message = TraceStartMessageMessage(&trace->startMessage);
-  /* Attempt to re-use message.
-   * @@@@ This is not done safely, because we fail to record 
-   * whether the client has discarded the message yet.  See 
-   * design/message/#lifecycle.  We might over-write message 
-   * fields the client is still looking at.
-   * @@@@ Half-way measure: check message is not on queue.  
-   * If it _is_ then client has not read the last Post yet, so 
-   * we just silently drop the message for this TraceStart.
-   */
-  if(!MessageOnQueue(message)) {
-    MessagePost(arena, message);
-  }
-  if(arena->alertCollection) {
-    (*arena->alertCollection)(MPS_ALERT_COLLECTION_START, trace->why);
-  }
 
   /* From the already set up white set, derive a grey set. */
 
@@ -1607,7 +1592,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
 
   DIAG_FIRSTF(( "TraceStart",
     "because code $U: $S\n",
-    trace->why, traceStartWhyToString(trace->why),
+    trace->why, TraceStartWhyToString(trace->why),
     NULL ));
 
   DIAG( ArenaDescribe(arena, DIAG_STREAM); );
@@ -1672,7 +1657,9 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
                                trace->condemned, trace->notCondemned,
                                trace->foundation, trace->rate,
                                mortality, finishingTime));
+
   trace->state = TraceUNFLIPPED;
+  TracePostStartMessage(trace);
 
   /* All traces must flip at beginning at the moment. */
   traceFlip(trace);
@@ -1688,9 +1675,9 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
 #define traceWorkClock(trace) ((trace)->segScanSize + (trace)->rootScanSize)
 
 
-/* traceQuantum -- progresses a trace by one quantum */
+/* TraceQuantum -- progresses a trace by one quantum */
 
-void traceQuantum(Trace trace)
+void TraceQuantum(Trace trace)
 {
   Size pollEnd;
 
@@ -1725,13 +1712,13 @@ void traceQuantum(Trace trace)
           && (trace->emergency || traceWorkClock(trace) < pollEnd));
 }
 
-/* traceStartCollectAll: start a trace which condemns everything in
+/* TraceStartCollectAll: start a trace which condemns everything in
  * the arena.
  *
  * "why" is a TraceStartWhy* enum member that specifies why the
  * collection is starting. */
 
-Res traceStartCollectAll(Trace *traceReturn, Arena arena, int why)
+Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why)
 {
   Trace trace;
   Res res;
@@ -1794,7 +1781,7 @@ Size TracePoll(Globals globals)
     dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
 
     if(dynamicDeferral < 0.0) { /* start full GC */
-      res = traceStartCollectAll(&trace, arena, TraceStartWhyDYNAMICCRITERION);
+      res = TraceStartCollectAll(&trace, arena, TraceStartWhyDYNAMICCRITERION);
       if(res != ResOK)
         goto failStart;
       scannedSize = traceWorkClock(trace);
@@ -1838,7 +1825,7 @@ Size TracePoll(Globals globals)
     trace = ArenaTrace(arena, (TraceId)0);
     AVER(arena->busyTraces == TraceSetSingle(trace));
     oldScanned = traceWorkClock(trace);
-    traceQuantum(trace);
+    TraceQuantum(trace);
     scannedSize = traceWorkClock(trace) - oldScanned;
     if(trace->state == TraceFINISHED) {
       TraceDestroy(trace);
