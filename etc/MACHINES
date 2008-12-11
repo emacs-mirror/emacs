@@ -581,7 +581,6 @@ Support for the following obsolete platforms was removed in Emacs 23.1
   PFU A-series (m/pfa50.h)
   Plexus running System V.2 (m/plexus.h)
   pyramid. (m/pyramid.h)
-  sh3el (m/sh3el.h)
   Bull SPS-7 (m/sps7.h)
   Hitachi SR2001/SR2201 (m/sr2k.h)
   Stride (m/stride.h)
