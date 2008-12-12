@@ -1,3 +1,8 @@
+2008-12-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (fit-window-to-buffer): Return non-nil when height
+	was orderly adjusted, nil otherwise.
+
 2008-12-12  Juanma Barranquero  <lekktu@gmail.com>
 	    Stefan Monnier  <monnier@iro.umontreal.ca>
 
