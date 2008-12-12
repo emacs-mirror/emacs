@@ -1,3 +1,15 @@
+2008-12-12  Juanma Barranquero  <lekktu@gmail.com>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-sentinel): Uncomment code to delete connection file.
+	(server-start): Save the connection file in the server property list.
+	Delete it only when we are reasonably convinced that it is not owned by
+	a running server.
+	(server-force-delete): New command to force-delete the connection file,
+	and stop the server if it is running.
+	(server-running-p): Return t also for local TCP servers when we find a
+	process with a matching PID, and :other for undecided cases.
+
 2008-12-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (fit-window-to-buffer): Use with-selected-window and

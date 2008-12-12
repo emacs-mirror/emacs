@@ -325,11 +325,12 @@ If CLIENT is non-nil, add a description of it to the logged message."
 	     (process-query-on-exit-flag proc))
     (set-process-query-on-exit-flag proc nil))
   ;; Delete the associated connection file, if applicable.
-  ;; This is actually problematic: the file may have been overwritten by
-  ;; another Emacs server in the mean time, so it's not ours any more.
-  ;; (and (process-contact proc :server)
-  ;;      (eq (process-status proc) 'closed)
-  ;;      (ignore-errors (delete-file (process-get proc :server-file))))
+  ;; Although there's no 100% guarantee that the file is owned by the
+  ;; running Emacs instance, server-start uses server-running-p to check
+  ;; for possible servers before doing anything, so it *should* be ours.
+  (and (process-contact proc :server)
+       (eq (process-status proc) 'closed)
+       (ignore-errors (delete-file (process-get proc :server-file))))
   (server-log (format "Status changed to %s: %s" (process-status proc) msg) proc)
   (server-delete-client proc))
 
@@ -458,34 +459,37 @@ job.  To use the server, set up the program `emacsclient' in the
 Emacs distribution as your standard \"editor\".
 
 Optional argument LEAVE-DEAD (interactively, a prefix arg) means just
-kill any existing server communications subprocess."
+kill any existing server communications subprocess.
+
+If a server is already running, the server is not started.
+To force-start a server, do \\[server-force-delete] and then
+\\[server-start]."
   (interactive "P")
   (when (or
 	 (not server-clients)
 	 (yes-or-no-p
 	  "The current server still has clients; delete them? "))
-    (when server-process
-      ;; kill it dead!
-      (ignore-errors (delete-process server-process)))
-    ;; Delete the socket files made by previous server invocations.
-    (when server-socket-dir
-      (condition-case ()
-	  (delete-file (expand-file-name server-name server-socket-dir))
-	(error nil)))
-    ;; If this Emacs already had a server, clear out associated status.
-    (while server-clients
-      (server-delete-client (car server-clients)))
-    ;; Now any previous server is properly stopped.
-    (if leave-dead
-	(progn
-	  (server-log (message "Server stopped"))
-	  (setq server-process nil))
-      (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
-	     (server-file (expand-file-name server-name server-dir)))
+    (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
+	   (server-file (expand-file-name server-name server-dir)))
+      (when server-process
+	;; kill it dead!
+	(ignore-errors (delete-process server-process)))
+      ;; Delete the socket files made by previous server invocations.
+      (if (not (eq t (server-running-p server-name)))
+	  ;; Remove any leftover socket or authentication file
+	  (ignore-errors (delete-file server-file))
+	(setq server-mode nil) ;; already set by the minor mode code
+	(error "Server %S is already running" server-name))
+      ;; If this Emacs already had a server, clear out associated status.
+      (while server-clients
+	(server-delete-client (car server-clients)))
+      ;; Now any previous server is properly stopped.
+      (if leave-dead
+	  (progn
+	    (server-log (message "Server stopped"))
+	    (setq server-process nil))
 	;; Make sure there is a safe directory in which to place the socket.
 	(server-ensure-safe-dir server-dir)
-	;; Remove any leftover socket or authentication file.
-	(ignore-errors (delete-file server-file))
 	(when server-process
 	  (server-log (message "Restarting server")))
 	(letf (((default-file-modes) ?\700))
@@ -516,6 +520,7 @@ kill any existing server communications subprocess."
 			       :service server-file
 			       :plist '(:authenticated t)))))
 	  (unless server-process (error "Could not start server process"))
+	  (process-put server-process :server-file server-file)
 	  (when server-use-tcp
 	    (let ((auth-key
 		   (loop
@@ -533,14 +538,48 @@ kill any existing server communications subprocess."
 			" " (int-to-string (emacs-pid))
 			"\n" auth-key)))))))))
 
+;;;###autoload
+(defun server-force-delete (&optional name)
+  "Unconditionally delete connection file for server NAME.
+If server is running, it is first stopped.
+NAME defaults to `server-name'.  With argument, ask for NAME."
+  (interactive
+   (list (if current-prefix-arg
+	     (read-string "Server name: " nil nil server-name))))
+  (when server-mode (with-temp-message nil (server-mode -1)))
+  (let ((file (expand-file-name (or name server-name)
+				(if server-use-tcp
+				    server-auth-dir
+				  server-socket-dir))))
+    (condition-case nil
+	(progn
+	  (delete-file file)
+	  (message "Connection file %S deleted" file))
+      (file-error
+       (message "No connection file %S" file)))))
+
 (defun server-running-p (&optional name)
-  "Test whether server NAME is running."
+  "Test whether server NAME is running.
+
+Return values:
+  nil              the server is definitely not running.
+  t                the server seems to be running.
+  something else   we cannot determine whether it's running without using
+                   commands which may have to wait for a long time."
   (interactive
    (list (if current-prefix-arg
 	     (read-string "Server name: " nil nil server-name))))
   (unless name (setq name server-name))
   (condition-case nil
-      (progn
+      (if server-use-tcp
+	  (with-temp-buffer
+	    (insert-file-contents-literally (expand-file-name name server-auth-dir))
+	    (or (and (looking-at "127\.0\.0\.1:[0-9]+ \\([0-9]+\\)")
+		     (assq 'comm
+			   (system-process-attributes
+			    (string-to-number (match-string 1))))
+		     t)
+		:other))
 	(delete-process
 	 (make-network-process
 	  :name "server-client-test" :family 'local :server nil :noquery t
