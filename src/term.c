@@ -3402,6 +3402,9 @@ init_tty (char *name, char *terminal_type, int must_succeed)
       fd = emacs_open (name, O_RDWR | O_NOCTTY, 0);
 #endif /* O_IGNORE_CTTY */
 
+    tty->name = xstrdup (name);
+    terminal->name = xstrdup (name);
+
     if (fd < 0)
       maybe_fatal (must_succeed, terminal,
                    "Could not open file: %s",
@@ -3422,8 +3425,6 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 #endif
 
     file = fdopen (fd, "w+");
-    tty->name = xstrdup (name);
-    terminal->name = xstrdup (name);
     tty->input = file;
     tty->output = file;
   }

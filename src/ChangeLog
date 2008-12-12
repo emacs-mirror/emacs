@@ -1,3 +1,8 @@
+2008-12-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (init_tty): Move setting the terminal name before the
+	potential user: maybe_fatal.
+
 2008-12-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term.c (tty_free_frame_resources): Renamed from
