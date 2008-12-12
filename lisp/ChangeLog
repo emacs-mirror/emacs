@@ -827,7 +827,7 @@
 	* emulation/viper-cmd.el (viper-envelop-ESC-key):
 	viper-translate-all-ESC-keysequences is now a function.
 
-	* emulation/viper-init (viper-translate-all-ESC-keysequences):
+	* emulation/viper-init.el (viper-translate-all-ESC-keysequences):
 	Make this variable.
 
 2008-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
