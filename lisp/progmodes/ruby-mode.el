@@ -1429,4 +1429,5 @@ The variable `ruby-indent-level' controls the amount of indentation.
 
 (provide 'ruby-mode)
 
+;; arch-tag: e6ecc893-8005-420c-b7f9-34ab99a1fff9
 ;;; ruby-mode.el ends here
