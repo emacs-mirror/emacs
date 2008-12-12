@@ -1,3 +1,15 @@
+2008-12-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmailout.el (pmail-output): Rewrite to handle mbox format.
+	(pmail-output-to-babyl-file): Renamed from
+	pmail-output-to-pmail-file.
+
+	* pmail.el: All callers to pmail-output-to-pmail-file changed to
+	pmail-output-to-babyl-file.
+
+	* pmail.el: All callers to pmail-output-to-pmail-file changed to
+	pmail-output-to-babyl-file.
+
 2008-12-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmailout.el (pmail-output-to-pmail-file): Don't call
