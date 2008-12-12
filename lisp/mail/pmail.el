@@ -600,7 +600,7 @@ by substituting the new message number into the existing list.")
   :type 'file
   :group 'pmail-files)
 (defcustom pmail-default-pmail-file "~/XMAIL"
-  "*Default file name for \\[pmail-output-to-pmail-file]."
+  "*Default file name for \\[pmail-output-to-babyl-file]."
   :type 'file
   :group 'pmail-files)
 (defcustom pmail-default-body-file "~/mailout"
@@ -987,7 +987,7 @@ The buffer is expected to be narrowed to just the header of the message."
   (define-key pmail-mode-map "n"      'pmail-next-undeleted-message)
   (define-key pmail-mode-map "\en"    'pmail-next-message)
   (define-key pmail-mode-map "\e\C-n" 'pmail-next-labeled-message)
-  (define-key pmail-mode-map "o"      'pmail-output-to-pmail-file)
+  (define-key pmail-mode-map "o"      'pmail-output-to-babyl-file)
   (define-key pmail-mode-map "\C-o"   'pmail-output)
   (define-key pmail-mode-map "p"      'pmail-previous-undeleted-message)
   (define-key pmail-mode-map "\ep"    'pmail-previous-message)
@@ -1038,7 +1038,7 @@ The buffer is expected to be narrowed to just the header of the message."
   '("Output (inbox)..." . pmail-output))
 
 (define-key pmail-mode-map [menu-bar classify output]
-  '("Output (Pmail)..." . pmail-output-to-pmail-file))
+  '("Output (Pmail)..." . pmail-output-to-babyl-file))
 
 (define-key pmail-mode-map [menu-bar classify kill-label]
   '("Kill Label..." . pmail-kill-label))
@@ -1206,7 +1206,7 @@ Instead, these commands are available:
 \\[pmail-reply]	Reply to this message.  Like \\[pmail-mail] but initializes some fields.
 \\[pmail-retry-failure]	Send this message again.  Used on a mailer failure message.
 \\[pmail-forward]	Forward this message to another user.
-\\[pmail-output-to-pmail-file]       Output this message to an Pmail file (append it).
+\\[pmail-output-to-babyl-file]       Output this message to an Pmail file (append it).
 \\[pmail-output]	Output this message to a Unix-format mail file (append it).
 \\[pmail-output-body-to-file]	Save message body to a file.  Default filename comes from Subject line.
 \\[pmail-input]	Input Pmail file.  Run Pmail on that file.
@@ -1256,7 +1256,7 @@ Instead, these commands are available:
   ;; because they contain no info except attribute changes
   ;; and deletion of messages.
   ;; The one exception is when messages are copied into an Pmail mode buffer.
-  ;; pmail-output-to-pmail-file enables auto save when you do that.
+  ;; pmail-output-to-babyl-file enables auto save when you do that.
   (setq buffer-auto-save-file-name nil)
   (setq mode-line-modified "--")
   (use-local-map pmail-mode-map)
@@ -1532,7 +1532,7 @@ original copy."
 	    (cons "Output Pmail File"
 		  (pmail-list-to-menu "Output Pmail File"
 				      files
-				      'pmail-output-to-pmail-file))))
+				      'pmail-output-to-babyl-file))))
 
       (define-key pmail-mode-map [menu-bar classify input-menu]
 	'("Input Pmail File" . pmail-disable-menu))
@@ -2645,7 +2645,7 @@ Called when a new message is displayed."
 		(pmail-delete-forward)
 	      (if (string= "/dev/null" folder)
 		  (pmail-delete-message)
-		(pmail-output-to-pmail-file folder 1 t)
+		(pmail-output-to-babyl-file folder 1 t)
 		(setq d nil))))
 	(setq d (cdr d))))))
 
@@ -3799,7 +3799,7 @@ TOKEN and INDENT are not used."
 TEXT and INDENT are not used."
   (speedbar-with-attached-buffer
    (message "Moving message to %s" token)
-   (pmail-output-to-pmail-file token)))
+   (pmail-output-to-babyl-file token)))
 
 ; Functions for setting, getting and encoding the POP password.
 ; The password is encoded to prevent it from being easily accessible
