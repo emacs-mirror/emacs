@@ -1294,7 +1294,7 @@ in some window."
 
 (defun fit-window-to-buffer (&optional window max-height min-height)
   "Adjust height of WINDOW to display its buffer's contents exactly.
-WINDOW defaults to the selected window.  Return nil.
+WINDOW defaults to the selected window.
 Optional argument MAX-HEIGHT specifies the maximum height of the
 window and defaults to the maximum permissible height of a window
 on WINDOW's frame.
@@ -1303,12 +1303,15 @@ window and defaults to `window-min-height'.
 Both, MAX-HEIGHT and MIN-HEIGHT are specified in lines and
 include the mode line and header line, if any.
 
+Return non-nil if height was orderly adjusted, nil otherwise.
+
 Caution: This function can delete WINDOW and/or other windows
 when their height shrinks to less than MIN-HEIGHT."
   (interactive)
   ;; Do all the work in WINDOW and its buffer and restore the selected
   ;; window and the current buffer when we're done.
-  (let ((old-buffer (current-buffer)))
+  (let ((old-buffer (current-buffer))
+	value)
     (with-selected-window (or window (setq window (selected-window)))
       (set-buffer (window-buffer))
       ;; Use `condition-case' to handle any fixed-size windows and other
@@ -1384,10 +1387,13 @@ when their height shrinks to less than MIN-HEIGHT."
 			    (= desired-height (window-height))
 			    (not (pos-visible-in-window-p end)))
 		  (enlarge-window 1)
-		  (setq desired-height (1+ desired-height))))))
+		  (setq desired-height (1+ desired-height))))
+	      ;; Return non-nil only if nothing "bad" happened.
+	      (setq value t)))
 	(error nil)))
     (when (buffer-live-p old-buffer)
-      (set-buffer old-buffer))))
+      (set-buffer old-buffer))
+    value))
 
 (defun window-safely-shrinkable-p (&optional window)
   "Return t if WINDOW can be shrunk without shrinking other windows.
