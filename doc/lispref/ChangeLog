@@ -1,3 +1,8 @@
+2008-12-12  Glenn Morris  <rgm@gnu.org>
+
+	* debugging.texi (Error Debugging): Refer forwards to
+	eval-expression-debug-on-error.
+
 2008-12-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* strings.texi (String Basics): Only unibyte strings that
