@@ -4908,7 +4908,7 @@ x_display_info_for_name (name)
     error ("Cannot connect to server %s", SDATA (name));
 
   w32_in_use = 1;
-  XSETFASTINT (Vwindow_system_version, 3);
+  XSETFASTINT (Vwindow_system_version, w32_major_version);
 
   return dpyinfo;
 }
@@ -4999,7 +4999,7 @@ terminate Emacs if we can't open the connection.  */)
 
   w32_in_use = 1;
 
-  XSETFASTINT (Vwindow_system_version, 3);
+  XSETFASTINT (Vwindow_system_version, w32_major_version);
   return Qnil;
 }
 
