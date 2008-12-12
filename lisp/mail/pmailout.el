@@ -43,7 +43,7 @@ a file name as a string."
   :group 'pmail-output)
 
 (defun pmail-output-read-pmail-file-name ()
-  "Read the file name to use for `pmail-output-to-pmail-file'.
+  "Read the file name to use for `pmail-output-to-babyl-file'.
 Set `pmail-default-pmail-file' to this name as well as returning it."
   (let ((default-file
 	  (let (answer tail)
@@ -112,7 +112,7 @@ Set `pmail-default-file' to this name as well as returning it."
 ;;; There are functions elsewhere in Emacs that use this function;
 ;;; look at them before you change the calling method.
 ;;;###autoload
-(defun pmail-output-to-pmail-file (file-name &optional count stay)
+(defun pmail-output-to-babyl-file (file-name &optional count stay)
   "Append the current message to a Babyl file named FILE-NAME.
 If the file does not exist, ask if it should be created.
 If file is being visited, the message is appended to the Emacs
@@ -170,7 +170,7 @@ Note:    it means the file has no messages in it.\n\^_"))
 	      ;; shift the place in the buffer where the visible text starts.
 	      (if (pmail-message-deleted-p pmail-current-message)
 		  (progn (setq redelete t)
-			 (pmail-set-attribute "deleted" nil)))
+			 (pmail-set-attribute pmail-deleted-attr-index nil)))
 	      (save-restriction
 		(widen)
 		;; Decide whether to append to a file or to an Emacs buffer.
@@ -228,8 +228,8 @@ Note:    it means the file has no messages in it.\n\^_"))
 			  (goto-char (point-max))
 			  (insert-buffer-substring cur beg end)
 			  (pmail-delete-unwanted-fields)))))))
-	      (pmail-set-attribute "filed" t))
-	  (if redelete (pmail-set-attribute "deleted" t))))
+	      (pmail-set-attribute pmail-filed-attr-index t))
+	  (if redelete (pmail-set-attribute pmail-deleted-attr-index t))))
       (setq count (1- count))
       (if pmail-delete-after-output
 	  (unless
@@ -241,6 +241,8 @@ Note:    it means the file has no messages in it.\n\^_"))
 	    (unless
 		(if (not stay) (pmail-next-undeleted-message 1))
 	      (setq count 0)))))))
+
+(defalias 'pmail-output-to-pmail-file 'pmail-output-to-babyl-file)
 
 ;;;###autoload
 (defcustom pmail-fields-not-to-output nil
@@ -295,20 +297,12 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 			  (and pmail-default-file
 			       (file-name-directory pmail-default-file))))
   (if (and (file-readable-p file-name) (mail-file-babyl-p file-name))
-      (pmail-output-to-pmail-file file-name count)
+      (pmail-output-to-babyl-file file-name count)
     (set-buffer pmail-buffer)
     (let ((orig-count count)
-	  (pmailbuf (current-buffer))
+	  (pmailbuf pmail-buffer)
 	  (case-fold-search t)
 	  (tembuf (get-buffer-create " pmail-output"))
-	  (original-headers-p
-	   (and (not from-gnus)
-		(save-excursion
-		  (save-restriction
-		    (narrow-to-region (pmail-msgbeg pmail-current-message) (point-max))
-		    (goto-char (point-min))
-		    (forward-line 1)
-		    (= (following-char) ?0)))))
 	  header-beginning
 	  mail-from mime-version content-type)
       (while (> count 0)
@@ -317,10 +311,11 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	(or from-gnus
 	    (save-excursion
 	      (save-restriction
-		(widen)
-		(goto-char (pmail-msgbeg pmail-current-message))
+		(goto-char (if pmail-buffers-swapped-p
+			       (point-min)
+			     (pmail-msgbeg pmail-current-message)))
 		(setq header-beginning (point))
-		(search-forward "\n*** EOOH ***\n")
+		(search-forward "\n\n" nil 'move)
 		(narrow-to-region header-beginning (point))
 		(setq mail-from (mail-fetch-field "Mail-From"))
 		(unless pmail-enable-mime
@@ -330,18 +325,19 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	  (set-buffer tembuf)
 	  (erase-buffer)
 	  (insert-buffer-substring pmailbuf)
+	  (save-excursion
+	    (goto-char (min (point-min) (- (point-max) 2)))
+	    (unless (looking-at "\n\n")
+	      (goto-char (point-max))
+	      (insert "\n\n")))
 	  (when pmail-enable-mime
-	    (if original-headers-p
-		(delete-region (goto-char (point-min))
-			       (if (search-forward "\n*** EOOH ***\n")
-				   (match-end 0)))
-	      (goto-char (point-min))
-	      (forward-line 2)
-	      (delete-region (point-min)(point))
-	      (search-forward "\n*** EOOH ***\n")
-	      (delete-region (match-beginning 0)
-			     (if (search-forward "\n\n")
-				 (1- (match-end 0)))))
+	    (goto-char (point-min))
+	    (forward-line 2)
+	    (delete-region (point-min) (point))
+	    (search-forward "\n\n")
+	    (delete-region (match-beginning 0)
+			   (if (search-forward "\n\n")
+			       (1- (match-end 0))))
 	    (setq buffer-file-coding-system (or pmail-file-coding-system
 						'raw-text)))
 	  (pmail-delete-unwanted-fields t)
@@ -350,10 +346,18 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	  (if mail-from
 	      (insert mail-from "\n")
 	    (insert "From "
-		    (mail-strip-quoted-names (or (mail-fetch-field "from")
-						 (mail-fetch-field "really-from")
-						 (mail-fetch-field "sender")
-						 "unknown"))
+		    (mail-strip-quoted-names
+		     (save-excursion
+		       (save-restriction
+			 (goto-char (point-min))
+			 (narrow-to-region
+			  (point)
+			  (or (search-forward "\n\n" nil)
+			      (point-max)))
+			 (or (mail-fetch-field "from")
+			     (mail-fetch-field "really-from")
+			     (mail-fetch-field "sender")
+			     "unknown"))))
 		    " " (current-time-string) "\n"))
 	  (when mime-version
 	    (insert "MIME-Version: " mime-version)
@@ -371,7 +375,7 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 			(if noattribute 'nomsg)))
 	(or noattribute
 	    (if (equal major-mode 'pmail-mode)
-		(pmail-set-attribute "filed" t)))
+		(pmail-set-attribute pmail-filed-attr-index t)))
 	(setq count (1- count))
 	(or from-gnus
 	    (let ((next-message-p
@@ -380,8 +384,6 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 		     (if (> count 0)
 			 (pmail-next-undeleted-message 1))))
 		  (num-appended (- orig-count count)))
-	      (if (and next-message-p original-headers-p)
-		  (pmail-toggle-header))
 	      (if (and (> count 0) (not next-message-p))
 		  (progn
 		    (error "%s"
@@ -418,7 +420,7 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
 	 (error "Operation aborted"))
     (write-region (point) (point-max) file-name)
     (if (equal major-mode 'pmail-mode)
-	(pmail-set-attribute "stored" t)))
+	(pmail-set-attribute pmail-stored-attr-index t)))
   (if pmail-delete-after-output
       (pmail-delete-forward)))
 
