@@ -822,12 +822,13 @@
 
 2008-11-22  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper.el: Date change.
+	* emulation/viper.el: Date change.
 
-	* viper-cmd.el (viper-envelop-ESC-key):
+	* emulation/viper-cmd.el (viper-envelop-ESC-key):
 	viper-translate-all-ESC-keysequences is now a function.
 
-	* viper-init (viper-translate-all-ESC-keysequences): Make this variable.
+	* emulation/viper-init (viper-translate-all-ESC-keysequences):
+	Make this variable.
 
 2008-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
