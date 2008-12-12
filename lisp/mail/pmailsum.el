@@ -912,7 +912,7 @@ Search, the `unseen' attribute is restored.")
   (define-key pmail-summary-mode-map "n"      'pmail-summary-next-msg)
   (define-key pmail-summary-mode-map "\en"    'pmail-summary-next-all)
   (define-key pmail-summary-mode-map "\e\C-n" 'pmail-summary-next-labeled-message)
-  (define-key pmail-summary-mode-map "o"      'pmail-summary-output-to-pmail-file)
+  (define-key pmail-summary-mode-map "o"      'pmail-summary-output-to-babyl-file)
   (define-key pmail-summary-mode-map "\C-o"   'pmail-summary-output)
   (define-key pmail-summary-mode-map "p"      'pmail-summary-previous-msg)
   (define-key pmail-summary-mode-map "\ep"    'pmail-summary-previous-all)
@@ -979,7 +979,7 @@ Search, the `unseen' attribute is restored.")
   '("Output (inbox)..." . pmail-summary-output))
 
 (define-key pmail-summary-mode-map [menu-bar classify output]
-  '("Output (Pmail)..." . pmail-summary-output-to-pmail-file))
+  '("Output (Pmail)..." . pmail-summary-output-to-babyl-file))
 
 (define-key pmail-summary-mode-map [menu-bar classify kill-label]
   '("Kill Label..." . pmail-summary-kill-label))
@@ -1561,7 +1561,7 @@ see the documentation of `pmail-resend'."
 
 ;; Summary output commands.
 
-(defun pmail-summary-output-to-pmail-file (&optional file-name n)
+(defun pmail-summary-output-to-babyl-file (&optional file-name n)
   "Append the current message to an Pmail file named FILE-NAME.
 If the file does not exist, ask if it should be created.
 If file is being visited, the message is appended to the Emacs
@@ -1584,11 +1584,14 @@ starting with the current one.  Deleted messages are skipped and don't count."
       (setq i (1+ i))
       (with-current-buffer pmail-buffer
 	(let ((pmail-delete-after-output nil))
-	  (pmail-output-to-pmail-file file-name 1)))
+	  (pmail-output-to-babyl-file file-name 1)))
       (if pmail-delete-after-output
 	  (pmail-summary-delete-forward nil)
 	(if (< i n)
 	    (pmail-summary-next-msg 1))))))
+
+(defalias 'pmail-summary-output-to-pmail-file
+  'pmail-summary-output-to-babyl-file)
 
 (defun pmail-summary-output (&optional file-name n)
   "Append this message to Unix mail file named FILE-NAME.
@@ -1618,7 +1621,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 
 (defun pmail-summary-output-menu ()
   "Output current message to another Pmail file, chosen with a menu.
-Also set the default for subsequent \\[pmail-output-to-pmail-file] commands.
+Also set the default for subsequent \\[pmail-output-to-babyl-file] commands.
 The variables `pmail-secondary-file-directory' and
 `pmail-secondary-file-regexp' control which files are offered in the menu."
   (interactive)
@@ -1642,7 +1645,7 @@ The variables `pmail-secondary-file-directory' and
 	    (cons "Output Pmail File"
 		  (pmail-list-to-menu "Output Pmail File"
 				      files
-				      'pmail-summary-output-to-pmail-file))))
+				      'pmail-summary-output-to-babyl-file))))
       (define-key pmail-summary-mode-map [menu-bar classify input-menu]
 	'("Input Pmail File" . pmail-disable-menu))
       (define-key pmail-summary-mode-map [menu-bar classify output-menu]
