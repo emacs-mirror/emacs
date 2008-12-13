@@ -1,3 +1,9 @@
+2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_delete_display): Move xim_close_dpy call to
+	x_delete_terminal.
+	(x_delete_terminal): Call xim_close_dpy.
+
 2008-12-13  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (intern_font_name): New function.
