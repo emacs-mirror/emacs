@@ -1,9 +1,11 @@
+.\" See section COPYING for copyright and redistribution information.
 .TH EBROWSE 1
 .SH NAME
 ebrowse \- create a class hierarchy database
 .SH SYNOPSIS
-.B emacsclient
-.I "[options] files ..."
+.B ebrowse
+.RI [ options ]
+.RI [ FILES .\|.\|.]
 .SH "DESCRIPTION"
 This manual page documents briefly the
 .BR ebrowse
@@ -16,40 +18,44 @@ is used to create the database used by the class browser in Emacs.
 The programs follow the usual GNU command line syntax, with long
 options starting with two dashes (`-').
 .TP
-.B \-a, \-\-append                  
+.B \-a, \-\-append
 append output to existing file
 .TP
-.B \-f, \-\-files=FILES             
-read input file names from FILE
+.B \-f, \-\-files=FILES
+read input file names from
+.I FILE
 .TP
-.B \-I, \-\-search-path=LIST        
+.B \-I, \-\-search-path=LIST
 set search path for input files
 .TP
-.B \-m, \-\-min-regexp-length=N     
-set minimum regexp length to N
+.B \-m, \-\-min-regexp-length=N
+set minimum regexp length to
+.I N
 .TP
-.B \-M, \-\-max-regexp-length=N     
-set maximum regexp length to N
+.B \-M, \-\-max-regexp-length=N
+set maximum regexp length to
+.I N
 .TP
-.B \-n, \-\-no-nested-classes       
+.B \-n, \-\-no-nested-classes
 exclude nested classes
 .TP
-.B \-o, \-\-output-file=FILE        
-set output file name to FILE
+.B \-o, \-\-output-file=FILE
+set output file name to
+.I FILE
 .TP
-.B \-p, \-\-position-info           
+.B \-p, \-\-position-info
 print info about position in file
 .TP
-.B \-s, \-\-no-structs-or-unions    
+.B \-s, \-\-no-structs-or-unions
 don't record structs or unions
 .TP
-.B \-v, \-\-verbose                 
+.B \-v, \-\-verbose
 be verbose
 .TP
-.B \-V, \-\-very-verbose            
+.B \-V, \-\-very-verbose
 be very verbose
 .TP
-.B \-x, \-\-no-regexps              
+.B \-x, \-\-no-regexps
 don't record regular expressions
 .TP
 .B \-\-help
@@ -61,12 +67,28 @@ display version info
 The program is documented fully in
 .IR "Ebrowse"
 available via the Info system.
-.SH AUTHORS
+.SH AUTHOR
 .I Ebrowse
-was written by Gerd Möllmann.
+was written by Gerd Moellmann.
 .
 .SH COPYING
-Copyright 2008 Free Software Foundation, Inc.
+Copyright
+.if t \(co
+.if n (C)
+2008 Free Software Foundation, Inc.
+.PP
+Permission is granted to make and distribute verbatim copies of this
+document provided the copyright notice and this permission notice are
+preserved on all copies.
+.PP
+Permission is granted to copy and distribute modified versions of
+this document under the conditions for verbatim copying, provided that
+the entire resulting derived work is distributed under the terms of
+a permission notice identical to this one.
+.PP
+Permission is granted to copy and distribute translations of this
+document into another language, under the above conditions for
+modified versions, except that this permission notice may be stated
+in a translation approved by the Free Software Foundation.
 .
-
 .\" arch-tag: b771158b-90cb-43a5-b9af-dbc506311817
