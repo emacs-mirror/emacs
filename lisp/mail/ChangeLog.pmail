@@ -1,3 +1,10 @@
+2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmailout.el (pmail-output-to-babyl-file): Rewrite, assuming mbox
+	internal format.
+	(pmail-convert-to-babyl-format, pmail-nuke-pinhead-header): New
+	functions, moved from pmail.el.
+
 2008-12-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmailout.el (pmail-output): Rewrite to handle mbox format.
