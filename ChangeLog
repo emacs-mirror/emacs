@@ -1,6 +1,10 @@
 2008-12-13  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-indep): Add new man-pages.
+	(manext): Remove variable.
+	(MAN_PAGES): New variable.
+	(install-arch-indep, uninstall): Use MAN_PAGES for list of files to add
+	and remove.
 
 2008-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
