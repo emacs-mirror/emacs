@@ -571,7 +571,7 @@ install-arch-indep: mkdir info install-etc
 	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} $(DESTDIR)${datadir}/emacs/site-lisp ${COPYDESTS} $(DESTDIR)${infodir}
 	thisdir=`/bin/pwd`; \
 	cd ${mansrcdir}; \
-	for page in ebrowse emacs emacsclient etags ctags ; do \
+	for page in b2m ctags ebrowse emacs emacsclient etags grep-changelog rcs-checkin; do \
 	  (cd $${thisdir}; \
 	   ${INSTALL_DATA} ${mansrcdir}/$${page}.1 $(DESTDIR)${man1dir}/$${page}${manext}; \
 	   chmod a+r $(DESTDIR)${man1dir}/$${page}${manext}); \
