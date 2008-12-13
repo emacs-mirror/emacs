@@ -1480,6 +1480,7 @@ But FORCE inhibits this too.  */)
   Vframe_list = Fdelq (frame, Vframe_list);
   FRAME_SET_VISIBLE (f, 0);
 
+  free_font_driver_list (f);
   xfree (f->namebuf);
   xfree (f->decode_mode_spec_buffer);
   xfree (FRAME_INSERT_COST (f));
