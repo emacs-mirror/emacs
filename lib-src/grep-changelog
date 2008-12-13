@@ -39,7 +39,7 @@ my $result;
 
 if (@ARGV == 0) {
 
-    # No arguments cannot posibly mean "show everything"!!
+    # No arguments cannot possibly mean "show everything"!!
     $result = 0;
 
 } else {
