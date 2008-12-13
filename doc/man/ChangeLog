@@ -1,3 +1,22 @@
+2008-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* b2m.1: New file.  Basic man-page.
+
+	* grep-changelog.1: New file.  Basic man-page, largely constructed from
+	program --help output.
+
+	* rcs-checkin.1: New file.  Basic man-page, largely from script
+	commentary.
+
+	* ebrowse.1: Fix "emacsclient" typo.  Replace problematic character.
+	Add some formatting.  Add permissions notice.
+
+	* emacs.1: Remove initial copyright comment, just refer to COPYING
+	section, merge years.
+
+	* etags.1: Don't duplicate copyright info in initial comment,
+	just refer to COPYING section.
+
 2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ebrowse.1: New file, mostly just the results of --help in man format.
