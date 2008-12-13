@@ -2165,6 +2165,38 @@ static int font_compare P_ ((const void *, const void *));
 static Lisp_Object font_sort_entites P_ ((Lisp_Object, Lisp_Object,
 					  Lisp_Object, int));
 
+/* Return a rescaling ratio of FONT_ENTITY.  */
+extern Lisp_Object Vface_font_rescale_alist;
+
+static double
+font_rescale_ratio (font_entity)
+     Lisp_Object font_entity;
+{
+  Lisp_Object tail, elt;
+  Lisp_Object name = Qnil;
+
+  for (tail = Vface_font_rescale_alist; CONSP (tail); tail = XCDR (tail))
+    {
+      elt = XCAR (tail);
+      if (FLOATP (XCDR (elt)))
+	{
+	  if (STRINGP (XCAR (elt)))
+	    {
+	      if (NILP (name))
+		name = Ffont_xlfd_name (font_entity, Qnil);
+	      if (fast_string_match_ignore_case (XCAR (elt), name) >= 0)
+		return XFLOAT_DATA (XCDR (elt));
+	    }
+	  else if (FONT_SPEC_P (XCAR (elt)))
+	    {
+	      if (font_match_p (XCAR (elt), font_entity))
+		return XFLOAT_DATA (XCDR (elt));
+	    }
+	}
+    }
+  return 1.0;
+}
+
 /* We sort fonts by scoring each of them against a specified
    font-spec.  The score value is 32 bit (`unsigned'), and the smaller
    the value is, the closer the font is to the font-spec.
@@ -2205,12 +2237,17 @@ font_score (entity, spec_prop)
 
   /* Score the size.  Maximum difference is 127.  */
   i = FONT_SIZE_INDEX;
-  if (! NILP (spec_prop[i]) && XINT (AREF (entity, i)) > 0)
+  if (! NILP (spec_prop[FONT_SIZE_INDEX])
+      && XINT (AREF (entity, FONT_SIZE_INDEX)) > 0)
     {
       /* We use the higher 6-bit for the actual size difference.  The
 	 lowest bit is set if the DPI is different.  */
-      int diff = XINT (spec_prop[i]) - XINT (AREF (entity, i));
+      int diff;
+      int pixel_size = XINT (spec_prop[FONT_SIZE_INDEX]);
 
+      if (CONSP (Vface_font_rescale_alist))
+	pixel_size *= font_rescale_ratio (entity);
+      diff = pixel_size - XINT (AREF (entity, FONT_SIZE_INDEX));
       if (diff < 0)
 	diff = - diff;
       diff <<= 1;
@@ -2845,6 +2882,8 @@ font_open_entity (f, entity, pixel_size)
   size = AREF (entity, FONT_SIZE_INDEX);
   if (XINT (size) != 0)
     pixel_size = XINT (size);
+  else if (CONSP (Vface_font_rescale_alist))
+    pixel_size *= font_rescale_ratio (entity);
 
   for (objlist = AREF (entity, FONT_OBJLIST_INDEX); CONSP (objlist);
        objlist = XCDR (objlist))
