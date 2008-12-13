@@ -1,3 +1,12 @@
+2008-12-13  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_rescale_ratio): Moved from xfaces.c.  Argument
+	type changed.  Handle a font-spec too.
+	(font_score): Check Vface_font_rescale_alist.
+	(font_open_entity): Likewise.
+
+	* xfaces.c (font_rescale_ratio): Moved to font.c.
+
 2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (Fx_wm_set_size_hint): Check if the frame is an X frame.
