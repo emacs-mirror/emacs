@@ -1,5 +1,7 @@
 2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
 
+	* frame.c (Fdelete_frame): Call free_font_driver_list.
+
 	* font.c (free_font_driver_list): Implement missing function.
 
 	* w32term.c (w32_term_init): Don't initialize the image cache
