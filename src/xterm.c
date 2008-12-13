@@ -8184,6 +8184,8 @@ xim_open_dpy (dpyinfo, resource_name)
 #ifdef HAVE_XIM
   if (use_xim)
     {
+      if (dpyinfo->xim)
+	XCloseIM (dpyinfo->xim);
       xim = XOpenIM (dpyinfo->display, dpyinfo->xrdb, resource_name,
 		     EMACS_CLASS);
       dpyinfo->xim = xim;
@@ -8212,12 +8214,6 @@ xim_open_dpy (dpyinfo, resource_name)
 
 
 #ifdef HAVE_X11R6_XIM
-
-struct xim_inst_t
-{
-  struct x_display_info *dpyinfo;
-  char *resource_name;
-};
 
 /* XIM instantiate callback function, which is called whenever an XIM
    server is available.  DISPLAY is the display of the XIM.
@@ -8282,6 +8278,7 @@ xim_initialize (dpyinfo, resource_name)
      struct x_display_info *dpyinfo;
      char *resource_name;
 {
+  dpyinfo->xim = NULL;
 #ifdef HAVE_XIM
   if (use_xim)
     {
@@ -8289,8 +8286,8 @@ xim_initialize (dpyinfo, resource_name)
       struct xim_inst_t *xim_inst;
       int len;
 
-      dpyinfo->xim = NULL;
       xim_inst = (struct xim_inst_t *) xmalloc (sizeof (struct xim_inst_t));
+      dpyinfo->xim_callback_data = xim_inst;
       xim_inst->dpyinfo = dpyinfo;
       len = strlen (resource_name);
       xim_inst->resource_name = (char *) xmalloc (len + 1);
@@ -8303,14 +8300,10 @@ xim_initialize (dpyinfo, resource_name)
 					 least, hence the configure test.  */
 				      (XRegisterIMInstantiateCallback_arg6) xim_inst);
 #else /* not HAVE_X11R6_XIM */
-      dpyinfo->xim = NULL;
       xim_open_dpy (dpyinfo, resource_name);
 #endif /* not HAVE_X11R6_XIM */
-
     }
-  else
 #endif /* HAVE_XIM */
-    dpyinfo->xim = NULL;
 }
 
 
@@ -8328,11 +8321,11 @@ xim_close_dpy (dpyinfo)
 	XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
 					  NULL, EMACS_CLASS,
 					  xim_instantiate_callback, NULL);
-#else /* not HAVE_X11R6_XIM */
-      /* If we have X11R6 xim, this causes a double-free.  */
+      xfree (dpyinfo->xim_callback_data->resource_name);
+      xfree (dpyinfo->xim_callback_data);
+#endif /* HAVE_X11R6_XIM */
       if (dpyinfo->display)
 	XCloseIM (dpyinfo->xim);
-#endif /* HAVE_X11R6_XIM */
       dpyinfo->xim = NULL;
       XFree (dpyinfo->xim_styles);
     }
@@ -10242,7 +10235,6 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->x_focus_frame = 0;
   dpyinfo->x_focus_event_frame = 0;
   dpyinfo->x_highlight_frame = 0;
-  dpyinfo->terminal->image_cache = make_image_cache ();
   dpyinfo->wm_type = X_WMTYPE_UNKNOWN;
 
   /* See if we can construct pixel values from RGB values.  */
@@ -10368,17 +10360,6 @@ x_term_init (display_name, xrm_option, resource_name)
 
   connection = ConnectionNumber (dpyinfo->display);
   dpyinfo->connection = connection;
-
-  {
-    char null_bits[1];
-
-    null_bits[0] = 0x00;
-
-    dpyinfo->null_pixel
-      = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
-				     null_bits, 1, 1, (long) 0, (long) 0,
-				     1);
-  }
 
   {
     extern int gray_bitmap_width, gray_bitmap_height;
@@ -10549,6 +10530,7 @@ x_delete_display (dpyinfo)
 #endif
 
   xfree (dpyinfo->x_id_name);
+  xfree (dpyinfo->x_dnd_atoms);
   xfree (dpyinfo->color_cells);
   xfree (dpyinfo);
 }
