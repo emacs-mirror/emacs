@@ -88,6 +88,15 @@ typedef GtkWidget *xt_or_gtk_widget;
    | EnterWindowMask		\
    | VisibilityChangeMask)
 
+#ifdef HAVE_X11R6_XIM
+/* Data structure passed to xim_instantiate_callback.  */
+struct xim_inst_t
+{
+  struct x_display_info *dpyinfo;
+  char *resource_name;
+};
+#endif /* HAVE_X11R6_XIM */
+
 /* Structure recording X pixmap and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
@@ -305,10 +314,6 @@ struct x_display_info
      minibuffer.  */
   struct frame *x_highlight_frame;
 
-  /* The null pixel used for filling a character background with
-     background color of a gc.  */
-  Pixmap null_pixel;
-
   /* The gray pixmap.  */
   Pixmap gray;
 
@@ -316,6 +321,7 @@ struct x_display_info
   /* XIM (X Input method).  */
   XIM xim;
   XIMStyles *xim_styles;
+  struct xim_inst_t *xim_callback_data;
 #endif
 
   /* If non-null, a cache of the colors in the color map.  Don't
