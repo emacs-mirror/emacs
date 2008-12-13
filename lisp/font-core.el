@@ -32,10 +32,15 @@ Defaults should be of the form:
 
  (KEYWORDS [KEYWORDS-ONLY [CASE-FOLD [SYNTAX-ALIST [SYNTAX-BEGIN ...]]]])
 
-KEYWORDS may be a symbol (a variable or function whose value is the keywords to
-use for fontification) or a list of symbols.  If KEYWORDS-ONLY is non-nil,
-syntactic fontification (strings and comments) is not performed.
+KEYWORDS may be a symbol (a variable or function whose value is the keywords
+to use for fontification) or a list of symbols (specifying different levels
+of fontification).
+
+If KEYWORDS-ONLY is non-nil, syntactic fontification (strings and
+comments) is not performed.
+
 If CASE-FOLD is non-nil, the case of the keywords is ignored when fontifying.
+
 If SYNTAX-ALIST is non-nil, it should be a list of cons pairs of the form
 \(CHAR-OR-STRING . STRING) used to set the local Font Lock syntax table, for
 keyword and syntactic fontification (see `modify-syntax-entry').
@@ -47,6 +52,8 @@ be outside a syntactic block), or `beginning-of-defun' for programming modes or
 `backward-paragraph' for textual modes (i.e., the mode-dependent function is
 known to move outside a syntactic block).  If nil, the beginning of the buffer
 is used as a position outside of a syntactic block, in the worst case.
+
+\(See also Info node `(elisp)Font Lock Basics'.)
 
 These item elements are used by Font Lock mode to set the variables
 `font-lock-keywords', `font-lock-keywords-only',
