@@ -3506,6 +3506,20 @@ register_font_driver (driver, f)
     num_font_drivers++;
 }
 
+void
+free_font_driver_list (f)
+     FRAME_PTR f;
+{
+  struct font_driver_list *list, *next;
+
+  for (list = f->font_driver_list; list; list = next)
+    {
+      next = list->next;
+      xfree (list);
+    }
+  f->font_driver_list = NULL;
+}
+
 
 /* Make the frame F use font backends listed in NEW_DRIVERS (list of
    symbols, e.g. xft, x).  If NEW_DRIVERS is t, make F use all
