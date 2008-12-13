@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "character.h"
 #include "charset.h"
+#include "coding.h"
 #include "fontset.h"
 #include "font.h"
 #include "w32font.h"
@@ -158,6 +159,26 @@ memq_no_quit (elt, list)
   while (CONSP (list) && ! EQ (XCAR (list), elt))
     list = XCDR (list);
   return (CONSP (list));
+}
+
+Lisp_Object
+intern_font_name (string)
+     char * string;
+{
+  Lisp_Object obarray, tem, str;
+  int len;
+
+  str = DECODE_SYSTEM (build_string (string));
+  len = SCHARS (str);
+
+  /* The following code is copied from the function intern (in lread.c).  */
+  obarray = Vobarray;
+  if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
+    obarray = check_obarray (obarray);
+  tem = oblookup (obarray, SDATA (str), len, len);
+  if (SYMBOLP (tem))
+    return tem;
+  return Fintern (str, obarray);
 }
 
 /* w32 implementation of get_cache for font backend.
@@ -840,10 +861,10 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
       }
     if (name)
       font->props[FONT_FULLNAME_INDEX]
-        = make_unibyte_string (name, strlen (name));
+        = DECODE_SYSTEM (build_string (name));
     else
-      font->props[FONT_FULLNAME_INDEX] =
-        make_unibyte_string (logfont.lfFaceName, len);
+      font->props[FONT_FULLNAME_INDEX]
+	= DECODE_SYSTEM (build_string (logfont.lfFaceName));
   }
 
   font->max_width = w32_font->metrics.tmMaxCharWidth;
@@ -922,8 +943,7 @@ add_font_name_to_list (logical_font, physical_font, font_type, list_object)
   if (logical_font->elfLogFont.lfFaceName[0] == '@')
     return 1;
 
-  family = font_intern_prop (logical_font->elfLogFont.lfFaceName,
-			     strlen (logical_font->elfLogFont.lfFaceName), 1);
+  family = intern_font_name (logical_font->elfLogFont.lfFaceName);
   if (! memq_no_quit (family, *list))
     *list = Fcons (family, *list);
 
@@ -996,7 +1016,7 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
                       lispy_antialias_type (requested_font->lfQuality));
     }
   ASET (entity, FONT_FAMILY_INDEX,
-        font_intern_prop (lf->lfFaceName, strlen (lf->lfFaceName), 1));
+	intern_font_name (lf->lfFaceName));
 
   FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX,
 		  make_number (w32_decode_weight (lf->lfWeight)));
@@ -1891,7 +1911,8 @@ fill_in_logfont (f, logfont, font_spec)
         /* Font families are interned, but allow for strings also in case of
            user input.  */
       else if (SYMBOLP (tmp))
-        strncpy (logfont->lfFaceName, SDATA (SYMBOL_NAME (tmp)), LF_FACESIZE);
+        strncpy (logfont->lfFaceName,
+		 SDATA (ENCODE_SYSTEM (SYMBOL_NAME (tmp))), LF_FACESIZE);
     }
 
   tmp = AREF (font_spec, FONT_ADSTYLE_INDEX);
@@ -1977,15 +1998,17 @@ list_all_matching_fonts (match_data)
 
   while (!NILP (families))
     {
-      /* TODO: Use the Unicode versions of the W32 APIs, so we can
-         handle non-ASCII font names.  */
+      /* Only fonts from the current locale are given localized names
+	 on Windows, so we can keep backwards compatibility with
+	 Windows 9x/ME by using non-Unicode font enumeration without
+	 sacrificing internationalization here.  */
       char *name;
       Lisp_Object family = CAR (families);
       families = CDR (families);
       if (NILP (family))
         continue;
       else if (SYMBOLP (family))
-        name = SDATA (SYMBOL_NAME (family));
+        name = SDATA (ENCODE_SYSTEM (SYMBOL_NAME (family)));
       else
 	continue;
 
@@ -2391,7 +2414,7 @@ in the font selection dialog. */)
       || logfont_to_fcname (&lf, cf.iPointSize, buf, 100) < 0)
     return Qnil;
 
-  return build_string (buf);
+  return DECODE_SYSTEM (build_string (buf));
 }
 
 struct font_driver w32font_driver =

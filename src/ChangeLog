@@ -1,3 +1,15 @@
+2008-12-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (intern_font_name): New function.
+	(add_font_name_to_list, w32_enumfont_pattern_entity): Use it.
+	(w32font_open_internal, Fx_select_font): Decode font name.
+	(fill_in_logfont, list_all_matching_fonts): Encode font name.
+
+	* w32font.h (intern_font_name): Declare new function.
+
+	* w32uniscribe.c (add_opentype_font_name_to_list):
+	Use intern_font_name.
+
 2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (Fdelete_frame): Call free_font_driver_list.
@@ -31,6 +43,11 @@
 2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (Fx_wm_set_size_hint): Check if the frame is an X frame.
+
+2008-12-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (x_display_info_for_name, Fx_open_connection): Set
+	Vwindow_system_version to the real w32 major version.
 
 2008-12-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
