@@ -3112,7 +3112,8 @@ If FRAME is nil, use the selected frame.  */)
     frame = selected_frame;
   f = XFRAME (frame);
   BLOCK_INPUT;
-  x_wm_set_size_hint (f, 0, 0);
+  if (FRAME_X_P (f))
+    x_wm_set_size_hint (f, 0, 0);
   UNBLOCK_INPUT;
   return Qnil;
 }
