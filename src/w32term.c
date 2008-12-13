@@ -6204,7 +6204,6 @@ w32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->resx = GetDeviceCaps (hdc, LOGPIXELSX);
   dpyinfo->resy = GetDeviceCaps (hdc, LOGPIXELSY);
   dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
-  dpyinfo->terminal->image_cache = make_image_cache ();
   ReleaseDC (GetDesktopWindow (), hdc);
 
   /* initialise palette with white and black */
