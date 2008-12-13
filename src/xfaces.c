@@ -1688,24 +1688,6 @@ static int font_sort_order[4];
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Return a rescaling ratio of a font of NAME.  */
-
-static double
-font_rescale_ratio (name)
-     char *name;
-{
-  Lisp_Object tail, elt;
-
-  for (tail = Vface_font_rescale_alist; CONSP (tail); tail = XCDR (tail))
-    {
-      elt = XCAR (tail);
-      if (STRINGP (XCAR (elt)) && FLOATP (XCDR (elt))
-	  && fast_c_string_match_ignore_case (XCAR (elt), name) >= 0)
-	return XFLOAT_DATA (XCDR (elt));
-    }
-  return 1.0;
-}
-
 static enum font_property_index font_props_for_sorting[FONT_SIZE_INDEX];
 
 static int
@@ -7015,8 +6997,8 @@ face definitions.  For instance, the mode my-mode could define a face
 
   DEFVAR_LISP ("face-font-rescale-alist", &Vface_font_rescale_alist,
 	       doc: /* Alist of fonts vs the rescaling factors.
-Each element is a cons (FONT-NAME-PATTERN . RESCALE-RATIO), where
-FONT-NAME-PATTERN is a regular expression matching a font name, and
+Each element is a cons (FONT-PATTERN . RESCALE-RATIO), where
+FONT-PATTERN is a font-spec or a regular expression matching a font name, and
 RESCALE-RATIO is a floating point number to specify how much larger
 \(or smaller) font we should use.  For instance, if a face requests
 a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
