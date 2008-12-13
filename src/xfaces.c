@@ -849,8 +849,10 @@ init_frame_faces (f)
   /* Make the image cache.  */
   if (FRAME_WINDOW_P (f))
     {
+      /* We initialize the image cache when creating the first frame
+	 on a terminal, and not during terminal creation.  This way,
+	 `x-open-connection' on a tty won't create an image cache.  */
       if (FRAME_IMAGE_CACHE (f) == NULL)
-	/* Is that ever possible??  --Stef  */
 	FRAME_IMAGE_CACHE (f) = make_image_cache ();
       ++FRAME_IMAGE_CACHE (f)->refcount;
     }
