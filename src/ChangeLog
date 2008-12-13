@@ -1,3 +1,20 @@
+2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* w32term.c (w32_term_init): Don't initialize the image cache
+	here; it will be done in init_frame_faces.
+
+	* xterm.h (struct xim_inst_t): Definition moved from xterm.c.
+	(struct x_display_info): Remove unused member null_pixel.  New
+	member xim_callback_data.
+
+	* xterm.c (struct xim_inst_t): Definition moved to xterm.h.
+	(xim_initialize): Save pointer to callback function data.
+	(xim_close_dpy): Free callback function data.  Call XCloseIM,
+	reverting 2008-11-04 change by David Smith.
+	(x_term_init): Don't initialize the image cache here; it will be
+	done in init_frame_faces.  Remove ancient "null_pixel" cruft.
+	(x_delete_display): Free x_dnd_atoms member.
+
 2008-12-13  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_rescale_ratio): Moved from xfaces.c.  Argument
