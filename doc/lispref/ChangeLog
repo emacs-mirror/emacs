@@ -1,3 +1,8 @@
+2008-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Font Lock Basics): Fix level description.  (Bug#1534)
+	(Levels of Font Lock): Refer to font-lock-maximum-decoration.
+
 2008-12-12  Glenn Morris  <rgm@gnu.org>
 
 	* debugging.texi (Error Debugging): Refer forwards to

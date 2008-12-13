@@ -2429,8 +2429,11 @@ The first element, @var{keywords}, indirectly specifies the value of
 It can be a symbol, a variable or a function whose value is the list
 to use for @code{font-lock-keywords}.  It can also be a list of
 several such symbols, one for each possible level of fontification.
-The first symbol specifies how to do level 1 fontification, the second
-symbol how to do level 2, and so on.  @xref{Levels of Font Lock}.
+The first symbol specifies the @samp{mode default} level of
+fontification, the next symbol level 1 fontification, the next level 2,
+and so on.  The @samp{mode default} level is normally the same as level
+1.  It is used when @code{font-lock-maximum-decoration} has a @code{nil}
+value.  @xref{Levels of Font Lock}.
 
 The second element, @var{keywords-only}, specifies the value of the
 variable @code{font-lock-keywords-only}.  If this is omitted or
@@ -2854,9 +2857,10 @@ function using @code{jit-lock-register}, this function unregisters it.
   Many major modes offer three different levels of fontification.  You
 can define multiple levels by using a list of symbols for @var{keywords}
 in @code{font-lock-defaults}.  Each symbol specifies one level of
-fontification; it is up to the user to choose one of these levels.  The
-chosen level's symbol value is used to initialize
-@code{font-lock-keywords}.
+fontification; it is up to the user to choose one of these levels,
+normally by setting @code{font-lock-maximum-decoration} (@pxref{Font
+Lock,,, emacs, the GNU Emacs Manual}).  The chosen level's symbol
+value is used to initialize @code{font-lock-keywords}.
 
   Here are the conventions for how to define the levels of
 fontification:
