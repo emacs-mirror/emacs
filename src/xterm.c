@@ -10524,10 +10524,6 @@ x_delete_display (dpyinfo)
   XrmDestroyDatabase (dpyinfo->xrdb);
 #endif
 #endif
-#ifdef HAVE_X_I18N
-  if (dpyinfo->xim)
-    xim_close_dpy (dpyinfo);
-#endif
 
   xfree (dpyinfo->x_id_name);
   xfree (dpyinfo->x_dnd_atoms);
@@ -10635,6 +10631,13 @@ x_delete_terminal (struct terminal *terminal)
     return;
 
   BLOCK_INPUT;
+#ifdef HAVE_X_I18N
+  /* We must close our connection to the XIM server before closing the
+     X display.  */
+  if (dpyinfo->xim)
+    xim_close_dpy (dpyinfo);
+#endif
+
   /* If called from x_connection_closed, the display may already be closed
      and dpyinfo->display was set to 0 to indicate that.  */
   if (dpyinfo->display)
