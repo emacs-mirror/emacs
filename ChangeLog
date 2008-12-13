@@ -5,6 +5,7 @@
 	(MAN_PAGES): New variable.
 	(install-arch-indep, uninstall): Use MAN_PAGES for list of files to add
 	and remove.
+	(uninstall): Remove desktop file and icons, game scores if empty.
 
 2008-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
