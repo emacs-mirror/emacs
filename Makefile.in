@@ -662,7 +662,7 @@ uninstall:
 	  done;)
 	(cd $(DESTDIR)${man1dir}  && rm -f $(MAN_PAGES))
 	(cd $(DESTDIR)${bindir}  && rm -f $(EMACSFULL) $(EMACS))
-	(cd $(DESTDIR)${icondir} && rm -f hicolor/*x*/apps/emacs* hicolor/scalable/*/emacs*)
+	(cd $(DESTDIR)${icondir} && rm -f hicolor/*x*/apps/emacs.png hicolor/*x*/apps/emacs22.png hicolor/scalable/apps/emacs.svg hicolor/scalable/mimetypes/emacs-document.svg )
 	-rm -f $(DESTDIR)${desktopdir}/emacs.desktop
 	for file in snake-scores tetris-scores; do \
 	  file=$(DESTDIR)${gamedir}/$${file}; \
