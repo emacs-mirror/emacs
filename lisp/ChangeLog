@@ -1,5 +1,7 @@
 2008-12-13  Glenn Morris  <rgm@gnu.org>
 
+	* subr.el (declare-function): Doc fix.
+
 	* font-core.el (font-lock-defaults): Doc fix: mention levels;
 	refer to elisp manual.
 
