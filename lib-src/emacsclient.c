@@ -41,7 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #else /* !WINDOWSNT */
 
-# include <sys/types.h>
+# include "syswait.h"
 
 # ifdef HAVE_INET_SOCKETS
 #  include <netinet/in.h>
