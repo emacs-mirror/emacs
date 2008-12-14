@@ -1,5 +1,13 @@
 2008-12-14  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
+	* proced.el (proced-sort-interactive, proced-sort-pcpu)
+	(proced-sort-pmem, proced-sort-start, proced-sort-time)
+	(proced-sort-user, proced-sort-header): Prefix arg determines
+	sorting order. Suggested by Dan Nicolaescu.
+	(proced-revert): Doc fix.
+
+2008-12-14  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
 	* proced.el (proced-grammar-alist): Allow refiner elements that
 	are cons pairs (function . help-echo) or nil.
 	(proced-refine): Use them.
