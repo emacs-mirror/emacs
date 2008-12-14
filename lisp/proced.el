@@ -345,6 +345,9 @@ Can be changed interactively via `proced-toggle-auto-update'."
 
 ;; Internal variables
 
+(defvar proced-available (not (null (list-system-processes)))
+  "Non-nil means Proced is known to work on this system.")
+
 (defvar proced-process-alist nil
   "Alist of processes displayed by Proced.
 The car of each element is the PID, and the cdr is a list of
@@ -592,10 +595,7 @@ Type \\[proced-sort-interactive] or click on a header in the header line
 to change the sort scheme.  The current sort scheme is indicated in the
 mode line, using \"+\" or \"-\" for ascending or descending sort order.
 
-An existing Proced listing can be refined by typing \\[proced-refine]
-with point on the attribute of a process.  If point is on the attribute ATTR,
-this compares the value of ATTR of every process with the value of ATTR
-of the process at the position of point.  See `proced-refine' for details.
+An existing Proced listing can be refined by typing \\[proced-refine].
 Refining an existing listing does not update the variable `proced-filter'.
 
 The attribute-specific rules for formatting, filtering, sorting, and refining
@@ -618,9 +618,6 @@ are defined in `proced-grammar-alist'.
 
 ;; Proced mode is suitable only for specially formatted data.
 (put 'proced-mode 'mode-class 'special)
-
-(defvar proced-available (not (null (list-system-processes)))
-  "Non-nil means Proced is known to work on this system.")
 
 ;;;###autoload
 (defun proced (&optional arg)
@@ -935,9 +932,9 @@ Optional EVENT is the location of the Proced field.
 Refinement is controlled by the REFINER defined for each attribute ATTR
 in `proced-grammar-alist'.
 
-If REFINER is a list of flags and point is on the attribute ATTR, this command
-compares the value of ATTR of every process with the value of ATTR
-of the process at the position of point.
+If REFINER is a list of flags and point is on a process's value of ATTR,
+this command compares the value of ATTR of every process with the value
+of ATTR of the process at the position of point.
 
 The predicate for the comparison of two ATTR values is defined
 in `proced-grammar-alist'.  For each return value of the predicate
@@ -1073,12 +1070,16 @@ Return the sorted process list."
         (sort process-alist 'proced-sort-p))
     process-alist))
 
-(defun proced-sort-interactive (scheme &optional revert)
+(defun proced-sort-interactive (scheme &optional arg)
   "Sort Proced buffer using SCHEME.
 When called interactively, an empty string means nil, i.e., no sorting.
-With prefix REVERT non-nil revert listing.
 
-Repeated calls using the same value of SCHEME toggle the sort order.
+Prefix ARG controls sort order:
+- If prefix ARG is positive (negative), sort in ascending (descending) order.
+- If ARG is nil or 'no-arg and SCHEME is equal to the previous sorting scheme,
+  reverse the sorting order.
+- If ARG is nil or 'no-arg and SCHEME differs from the previous sorting scheme,
+  adopt the sorting order defined for SCHEME in `proced-grammar-alist'.
 
 Set variable `proced-sort' to SCHEME.  The current sort scheme is displayed
 in the mode line, using \"+\" or \"-\" for ascending or descending order."
@@ -1086,60 +1087,68 @@ in the mode line, using \"+\" or \"-\" for ascending or descending order."
    (let ((scheme (completing-read "Sort attribute: "
                                   proced-grammar-alist nil t)))
      (list (if (string= "" scheme) nil (intern scheme))
-           current-prefix-arg)))
+           ;; like 'toggle in `define-derived-mode'
+           (or current-prefix-arg 'no-arg))))
+
   (setq proced-descend
-        ;; If `proced-sort-interactive' is called repeatedly for the same sort key,
-        ;; the sort order is reversed.
-        (if (equal proced-sort scheme)
-            (not proced-descend)
-          (nth 5 (assq (if (consp scheme) (car scheme) scheme)
-                       proced-grammar-alist)))
+        ;; If `proced-sort-interactive' is called repeatedly for the same
+        ;; sort key, the sort order is reversed.
+        (cond ((and (eq arg 'no-arg) (equal proced-sort scheme))
+               (not proced-descend))
+              ((eq arg 'no-arg)
+               (nth 5 (assq (if (consp scheme) (car scheme) scheme)
+                            proced-grammar-alist)))
+              (arg (< (prefix-numeric-value arg) 0))
+              ((equal proced-sort scheme)
+               (not proced-descend))
+              (t (nth 5 (assq (if (consp scheme) (car scheme) scheme)
+                                   proced-grammar-alist))))
         proced-sort scheme)
-  (proced-update revert))
+  (proced-update))
 
-(defun proced-sort-pcpu (&optional revert)
+(defun proced-sort-pcpu (&optional arg)
   "Sort Proced buffer by percentage CPU time (%CPU).
-Repeated calls toggle the sort order."
-  (interactive "P")
-  (proced-sort-interactive 'pcpu revert))
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list (or current-prefix-arg 'no-arg)))
+  (proced-sort-interactive 'pcpu arg))
 
-(defun proced-sort-pmem (&optional revert)
+(defun proced-sort-pmem (&optional arg)
   "Sort Proced buffer by percentage memory usage (%MEM).
-Repeated calls toggle the sort order."
-  (interactive "P")
-  (proced-sort-interactive 'pmem revert))
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list (or current-prefix-arg 'no-arg)))
+  (proced-sort-interactive 'pmem arg))
 
-(defun proced-sort-pid (&optional revert)
+(defun proced-sort-pid (&optional arg)
   "Sort Proced buffer by PID.
-Repeated calls toggle the sort order."
-  (interactive "P")
-  (proced-sort-interactive 'pid revert))
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list (or current-prefix-arg 'no-arg)))
+  (proced-sort-interactive 'pid arg))
 
-(defun proced-sort-start (&optional revert)
+(defun proced-sort-start (&optional arg)
   "Sort Proced buffer by time the command started (START).
-Repeated calls toggle the sort order."
-  (interactive "P")
-  (proced-sort-interactive 'start revert))
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list (or current-prefix-arg 'no-arg)))
+  (proced-sort-interactive 'start arg))
 
-(defun proced-sort-time (&optional revert)
+(defun proced-sort-time (&optional arg)
   "Sort Proced buffer by CPU time (TIME).
-Repeated calls toggle the sort order."
-  (interactive "P")
-  (proced-sort-interactive 'time revert))
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list (or current-prefix-arg 'no-arg)))
+  (proced-sort-interactive 'time arg))
 
-(defun proced-sort-user (&optional revert)
+(defun proced-sort-user (&optional arg)
   "Sort Proced buffer by USER.
-Repeated calls toggle the sort order."
-  (interactive "P")
-  (proced-sort-interactive 'user revert))
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list (or current-prefix-arg 'no-arg)))
+  (proced-sort-interactive 'user arg))
 
-(defun proced-sort-header (event &optional revert)
+(defun proced-sort-header (event &optional arg)
   "Sort Proced listing based on an attribute.
 EVENT is a mouse event with starting position in the header line.
 It is converted in the corresponding attribute key.
 This command updates the variable `proced-sort'.
-Repeated calls for the same header toggle the sort order."
-  (interactive "e\nP")
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list last-input-event (or last-prefix-arg 'no-arg)))
   (let ((start (event-start event))
         col key)
     (save-selected-window
@@ -1149,7 +1158,7 @@ Repeated calls for the same header toggle the sort order."
       (when (and (<= 0 col) (< col (length proced-header-line)))
         (setq key (get-text-property col 'proced-key proced-header-line))
         (if key
-            (proced-sort-interactive key revert)
+            (proced-sort-interactive key arg)
           (message "No sorter defined here."))))))
 
 ;;; Formating
@@ -1491,7 +1500,8 @@ Suppress status information if QUIET is nil."
                    "Updating process display...done.")))))
 
 (defun proced-revert (&rest args)
-  "Analog of `revert-buffer'."
+  "Reevaluate the process listing based on the currently running processes.
+Preserves point and marks."
   (proced-update t))
 
 ;; I do not want to reinvent the wheel.  Should we rename `dired-pop-to-buffer'
