@@ -1,3 +1,27 @@
+2008-12-14  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-grammar-alist): Allow refiner elements that
+	are cons pairs (function . help-echo) or nil.
+	(proced-refine): Use them.
+	(proced-format-alist): Allow alternatives.
+	(proced-descend): New variable.
+	(proced-sort): New arg descend.
+	(proced-sort-interactive): Repeated calls toggle sort order.
+	(proced-format): Accomodate changes of proced-format-alist.
+	Undefined attributes are displayed as "?".
+	(proced-process-attributes): New optional arg pid-list.
+	Ignore processes with empty attribute list.
+
+2008-12-14  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-auto-update-interval): Renamed from
+	proced-timer-interval.
+	(proced-auto-update-flag): Renamed from proced-timer-flag.
+	(proced-auto-update-timer): Renamed from proced-timer.
+	(proced-toggle-auto-update): Renamed from
+	proced-toggle-timer-flag.
+	(proced-available): Initialize appropriately.
+
 2008-12-13  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (declare-function): Doc fix.
