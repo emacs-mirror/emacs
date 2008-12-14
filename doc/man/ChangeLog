@@ -1,3 +1,7 @@
+2008-12-14  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.1: Fix MAILINGLISTS (default) location.
+
 2008-12-13  Glenn Morris  <rgm@gnu.org>
 
 	* b2m.1: New file.  Basic man-page.
