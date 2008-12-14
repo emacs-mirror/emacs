@@ -1,3 +1,7 @@
+2008-12-14  vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* misc.texi (PostScript Variables): Fix doc.
+
 2008-12-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* programs.texi (Program Modes): Mention Ruby mode.
