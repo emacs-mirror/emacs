@@ -1,3 +1,7 @@
+2008-12-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ebrowse.1: Fix typos.  Add more to the "SEE ALSO" section.
+
 2008-12-14  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.1: Fix MAILINGLISTS (default) location.
