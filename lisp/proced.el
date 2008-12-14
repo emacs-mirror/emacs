@@ -33,6 +33,19 @@
 ;;
 ;; Wishlist
 ;; - tree view like pstree(1)
+;;
+;; Thoughts and Ideas
+;; - Currently, `system-process-attributes' returns the list of
+;;   command-line arguments of a process as one concatenated string.
+;;   This format is compatible with `shell-command'.  Also, under
+;;   MS-Windows, the command-line arguments are actually stored as a
+;;   single string, so that it is impossible to reverse-engineer it back
+;;   into separate arguments.  Alternatively, `system-process-attributes'
+;;   could (try to) return a list of strings that correspond to individual
+;;   command-line arguments.  Then one could feed such a list of
+;;   command-line arguments into `call-process' or `start-process'.
+;;   Are there real-world applications when such a feature would be useful?
+;;   What about something like `proced-restart-pid'?
 
 ;;; Code:
 
@@ -291,17 +304,17 @@ of `proced-grammar-alist'."
   :type '(choice (const :tag "none" nil)
                  (symbol :tag "key")))
 
-(defcustom proced-timer-interval 5
+(defcustom proced-auto-update-interval 5
   "Time interval in seconds for auto updating Proced buffers."
   :group 'proced
   :type 'integer)
 
-(defcustom proced-timer-flag nil
+(defcustom proced-auto-update-flag nil
   "Non-nil for auto update of a Proced buffer.
-Can be changed interactively via `proced-toggle-timer-flag'."
+Can be changed interactively via `proced-toggle-auto-update'."
   :group 'proced
   :type 'boolean)
-(make-variable-buffer-local 'proced-timer-flag)
+(make-variable-buffer-local 'proced-auto-update-flag)
 
 ;; Internal variables
 
@@ -350,8 +363,8 @@ Important: the match ends just after the marker.")
 (defvar proced-process-tree nil
   "Process tree of listing (internal variable).")
 
-(defvar proced-timer nil
-  "Stores if Proced timer is already installed.")
+(defvar proced-auto-update-timer nil
+  "Stores if Proced auto update timer is already installed.")
 
 (defvar proced-log-buffer "*Proced log*"
   "Name of Proced Log buffer.")
@@ -481,9 +494,9 @@ Important: the match ends just after the marker.")
     "--"
     ["Revert" revert-buffer
      :help "Revert Process Listing"]
-    ["Auto Update" proced-toggle-timer-flag
+    ["Auto Update" proced-toggle-auto-update
      :style radio
-     :selected (eval proced-timer-flag)
+     :selected (eval proced-auto-update-flag)
      :help "Auto Update of Proced Buffer"]
     ["Send signal" proced-send-signal
      :help "Send Signal to Marked Processes"]))
@@ -570,15 +583,16 @@ are defined in `proced-grammar-alist'.
   (set (make-local-variable 'revert-buffer-function) 'proced-revert)
   (set (make-local-variable 'font-lock-defaults)
        '(proced-font-lock-keywords t nil nil beginning-of-line))
-  (if (and (not proced-timer) proced-timer-interval)
-      (setq proced-timer
-            (run-at-time t proced-timer-interval 'proced-timer))))
-
-(defvar proced-available nil
-  "Non-nil means Proced is known to work on this system.")
+  (if (and (not proced-auto-update-timer) proced-auto-update-interval)
+      (setq proced-auto-update-timer
+            (run-at-time t proced-auto-update-interval
+                         'proced-auto-update-timer))))
 
 ;; Proced mode is suitable only for specially formatted data.
 (put 'proced-mode 'mode-class 'special)
+
+(defvar proced-available (not (null (list-system-processes)))
+  "Non-nil means Proced is known to work on this system.")
 
 ;;;###autoload
 (defun proced (&optional arg)
@@ -588,9 +602,8 @@ information will be displayed but not selected.
 
 See `proced-mode' for a description of features available in Proced buffers."
   (interactive "P")
-  (or proced-available
-      (setq proced-available (not (null (list-system-processes))))
-      (error "Proced is not available on this system"))
+  (unless proced-available
+    (error "Proced is not available on this system"))
   (let ((buffer (get-buffer-create "*Proced*")) new)
     (set-buffer buffer)
     (setq new (zerop (buffer-size)))
@@ -604,25 +617,26 @@ See `proced-mode' for a description of features available in Proced buffers."
        (substitute-command-keys
         "Type \\<proced-mode-map>\\[quit-window] to quit, \\[proced-help] for help")))))
 
-(defun proced-timer ()
+(defun proced-auto-update-timer ()
   "Auto-update Proced buffers using `run-at-time'."
   (dolist (buf (buffer-list))
     (with-current-buffer buf
       (if (and (eq major-mode 'proced-mode)
-               proced-timer-flag)
+               proced-auto-update-flag)
           (proced-update t t)))))
 
-(defun proced-toggle-timer-flag (arg)
+(defun proced-toggle-auto-update (arg)
   "Change whether this Proced buffer is updated automatically.
 With prefix ARG, update this buffer automatically if ARG is positive,
-otherwise do not update.  Sets the variable `proced-timer-flag'.
-The time interval for updates is specified via `proced-timer-interval'."
+otherwise do not update.  Sets the variable `proced-auto-update-flag'.
+The time interval for updates is specified via `proced-auto-update-interval'."
   (interactive (list (or current-prefix-arg 'toggle)))
-  (setq proced-timer-flag
-        (cond ((eq arg 'toggle) (not proced-timer-flag))
+  (setq proced-auto-update-flag
+        (cond ((eq arg 'toggle) (not proced-auto-update-flag))
               (arg (> (prefix-numeric-value arg) 0))
-              (t (not proced-timer-flag))))
-  (message "`proced-timer-flag' set to %s" proced-timer-flag))
+              (t (not proced-auto-update-flag))))
+  (message "Proced auto update %s"
+           (if proced-auto-update-flag "enabled" "disabled")))
 
 (defun proced-mark (&optional count)
   "Mark the current (or next COUNT) processes."
