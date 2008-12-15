@@ -1,3 +1,8 @@
+2008-12-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail): Call pmail-swap-buffers-maybe.
+	(pmail-search): Call pmail-swap-buffers-maybe.
+
 2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmailout.el (pmail-output-to-babyl-file): Rewrite, assuming mbox
