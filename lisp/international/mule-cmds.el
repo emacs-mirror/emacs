@@ -855,14 +855,15 @@ and TO is ignored."
 	      (if (coding-system-p (car auto-cs))
 		  (setq auto-cs (car auto-cs))
 		(display-warning
-		 :warning
+		 'mule
 		 (format "\
 Invalid coding system `%s' is specified
 for the current buffer/file by the %s.
 It is highly recommended to fix it before writing to a file."
 			 (car auto-cs)
 			 (if (eq (cdr auto-cs) :coding) ":coding tag"
-			   (format "variable `%s'" (cdr auto-cs)))))
+			   (format "variable `%s'" (cdr auto-cs))))
+		 :warning)
 		(or (yes-or-no-p "Really proceed with writing? ")
 		    (error "Save aborted"))
 		(setq auto-cs nil))))))

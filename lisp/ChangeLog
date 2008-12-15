@@ -2,6 +2,10 @@
 
 	* international/mule.el (find-auto-coding): Fix typo in docstring.
 
+	* international/mule-cmds.el (select-safe-coding-system):
+	* mail/rmail.el (rmail-require-mime-maybe):
+	Fix arguments of `display-warning'.
+
 	* simple.el (bad-package-check): Fix arguments of `display-warning',
 	using the package name as TYPE.  Use `string-match-p'.
 

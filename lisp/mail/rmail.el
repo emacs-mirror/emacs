@@ -768,13 +768,14 @@ isn't provided."
 	(require rmail-mime-feature)
       (error
        (display-warning
-	:warning
+	'rmail
 	(format "Although MIME support is requested
 by setting `rmail-enable-mime' to non-nil, the required feature
 `%s' (the value of `rmail-mime-feature')
 is not available in the current session.
-So, the MIME support is turned off for the moment." 
-		rmail-mime-feature))
+So, the MIME support is turned off for the moment."
+		rmail-mime-feature)
+	:warning)
        (setq rmail-enable-mime nil)))))
 
 
