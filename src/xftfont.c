@@ -279,7 +279,10 @@ xftfont_open (f, entity, pixel_size)
   UNBLOCK_INPUT;
 
   if (! xftfont)
-    return Qnil;
+    {
+      XftPatternDestroy (match);
+      return Qnil;
+    }
   /* We should not destroy PAT here because it is kept in XFTFONT and
      destroyed automatically when XFTFONT is closed.  */
   font_object = font_make_object (VECSIZE (struct xftfont_info), entity, size);
