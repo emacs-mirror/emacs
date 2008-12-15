@@ -1,3 +1,11 @@
+2008-12-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xftfont.c (xftfont_open): Free Xft font pattern if
+	XftFontOpenPattern fails.
+
+	* xterm.c (x_free_frame_resources): Remove extraneous call to
+	free_frame_faces.
+
 2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_delete_display): Move xim_close_dpy call to
