@@ -1,3 +1,8 @@
+2008-12-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* pmail.el (pmail-require-mime-maybe):
+	Fix arguments of `display-warning'.
+
 2008-12-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmail.el (pmail): Call pmail-swap-buffers-maybe.

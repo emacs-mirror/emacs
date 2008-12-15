@@ -824,13 +824,14 @@ isn't provided."
 	(require pmail-mime-feature)
       (error
        (display-warning
-	:warning
+	'pmail
 	(format "Although MIME support is requested
 by setting `pmail-enable-mime' to non-nil, the required feature
 `%s' (the value of `pmail-mime-feature')
 is not available in the current session.
-So, the MIME support is turned off for the moment." 
-		pmail-mime-feature))
+So, the MIME support is turned off for the moment."
+		pmail-mime-feature)
+	:warning)
        (setq pmail-enable-mime nil)))))
 
 
@@ -1683,7 +1684,7 @@ It returns t if it got any new messages."
 	(when spam-filter-p
 	  (if rsf-beep (beep t))
 	  (sleep-for rsf-sleep-after-message))
-    
+
 	;; Establish the return value and move to the first new
 	;; message unless we have other unseen messages before it.
 	(setq result (> new-messages 0))
@@ -1751,7 +1752,7 @@ is non-nil if the user has supplied the password interactively.
 	  ;; The password is embedded.  Strip it out since movemail
 	  ;; does not really like it, in spite of the movemail spec.
 	  (setq file (concat proto "://" user "@" host)))
- 
+
 	(if (pmail-movemail-variant-p 'emacs)
 	    (if (string-equal proto "pop")
 		(list (concat "po:" user ":" host)
@@ -1943,7 +1944,7 @@ message (including the blank line separator)."
   (goto-char (point-max))
   (forward-char -1)
   (insert name ": " value "\n"))
-  
+
 (defun pmail-add-mbox-headers ()
   "Validate the RFC2822 format for the new messages.
 Point should be at the first new message.
@@ -2072,7 +2073,7 @@ current mail message will be used otherwise."
 		(narrow-to-region beg end)
 		(mail-fetch-field name))
 	    (pmail-error-bad-format msg)))))))
-  
+
 (defun pmail-get-attr-names (&optional msg)
   "Return the message attributes in a comma separated string.
 MSG, if set identifies the message number to use.  The current
