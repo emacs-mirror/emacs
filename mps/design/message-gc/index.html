@@ -36,118 +36,139 @@
 
 </div>
 
+<p>Design of MPS GC messages:</p>
+<ul>
+  <li><code>mps_message_type_gc_start()</code>;</li>
+  <li><code>mps_message_type_gc()</code>.</li>
+</ul>
+<p>MPS source code and this document call these "<b>trace start</b>" and "<b>trace end</b>" messages.</p>
+
+<p>Readership: any MPS developer.  Not confidential.</p>
+
+
 <h2><a id="section-1" name="section-1">1. Introduction</a></h2>
 
-<p> This document describes the design of a set of
-<a href="../message/">MPS message</a> classes.  The messages from these
-classes are emitted according to various important phases in a GC cycle;
-collectively they are called GC Messages. </p>
+<p>Implementation is mostly in the source file "<code><b>traceanc.c</b></code>".</p>
 
-<p> The current classes are: </p>
+<p>The "<b>_gc_start</b>" message is implemented internally by the "<b>trace start</b>" message.  The principal names are:</p>
 
-<dl>
+<blockquote><pre>
+Internal names:
+  <b>trace start</b>
+  TraceStartMessage, tsMessage (struct *)
+  arena->tsMessage[ti]
+  MessageTypeGCSTART (enum)
 
-  <dt> mps_message_type_gc_start() </dt>
+External names:
+  <b>mps_message_type_gc_start</b> (enum macro)
+  MPS_MESSAGE_TYPE_GC_START (enum)
 
-  <dd> <p> (new in gcgenmsg branch) These messages are generated once per GC at the start of a
-  GC. </p> </dd>
+</pre></blockquote>
 
-  <dt> mps_message_type_gc() </dt>
 
-  <dd> <p> These messages are generated once per GC at the end of a GC. </p> </dd>
+<p>The "<b>_gc</b>" message is implemented internally by the "<b>trace end</b>" message.  The principal names are:</p>
+  
+<blockquote><pre>
+Internal names:
+  <b>trace end</b>
+  TraceMessage, tMessage (struct *)
+  arena->tMessage[ti]
+  MessageTypeGC (enum)
 
-</dl>
+External names:
+  <b>mps_message_type_gc</b> (enum macro)
+  MPS_MESSAGE_TYPE_GC (enum)
+</pre></blockquote>
 
-<p> The intended readership is project staff. </p>
+<em class="note"><p>Note: the names of these messages are unconventional (or 'wrong'); they should properly be called "gc (or trace) <b>begin</b>" and "gc (or trace) <b>end</b>".  But it's much too late to change them now.  RHSK 2008-12-15</p></em>
 
-<p> This document is not confidential. </p>
+<p>Collectively, the trace-start and trace-end messages are called the "<b>trace id messages</b>", and they are managed by the following functions:</p>
+  
+<blockquote><pre>
+Internal names:
+  TraceIdMessagesCheck
+  TraceIdMessagesCreate
+  TraceIdMessagesDestroy
+</pre></blockquote>
 
-<h2><a id="section-2" name="section-2">2. Background, MPS messages and
-collections</a></h2>
-
-<p> This needs filling in.  Taken as read and understood for now. </p>
-
-<p> Note that some of the implementation (of mps_message_type_gc)
-pre-dates this design; it may not be documented accurately (or at all)
-here. </p>
-
-<h2><a id="section-3" name="section-3">3. Requirements</a></h2>
-
-<p> The primary requirement is: </p>
-
+<p>The currently supported message-field accessor methods are:</p>
 <ul>
+	<li>mps_message_gc_start_why</li>
+	<li>mps_message_gc_live_size</li>
+	<li>mps_message_gc_condemned_size</li>
+	<li>mps_message_gc_not_condemned_size</li>
+</ul>
+<p>These are documented in the <a href="../../manual/reference/">Reference Manual</a>.</p>
 
-  <li><p> MPS staff must be able to tell what collections are happening
-    in order to be able to introspect about the overall MPS process.
-    </p>
 
-    <p> This
-    is so that bugs can be diagnosed and general MPS behaviour can be
-    reasoned about.  A typical problem is that a customer reports "Why
-    when this collection happens doesn't this 20 MB of garbage get
-    collected?".  At a minimum we need to know what was condemned in any
-    particular collection; it useful to know what is going to happen to
-    survivors. </p>
+<h2><a id="section-2" name="section-2">2. Purpose</a></h2>
 
-  </li>
-
+<p>The purpose of these messages is to allow the client program to be aware of GC activity, in order to:</p>
+<ul>
+	<li>adjust its own behaviour;</li>
+	<li>show or report GC activity in some appropriate 'custom' way, such as an in-client display (perhaps to help client-developers), in a log file, etc.</li>
 </ul>
 
-<p> We meet part of that requirement by implementing 
-  a message that is generated per
-collection (mps_message_type_gc_start). </p>
-
-<p> We have the following requirements on per GC messages: </p>
-
-<ul>
-
-  <li> <p> Must be able to tell why we are starting a collection. See
-  job000666 for why we start collections. </p> </li>
-
-</ul>
+<p>While there is some overlap with the <a href="../diag/">Diagnostic Feedback</a> system, the main contrasts are that these GC messages are present in all MPS varieties, are stable from release to release, and are designed to be parsed by the client program.</p>
 
 
-<h2><a id="section-4" name="section-4">4. Implementation</a></h2>
+<h2><a id="section-3" name="section-3">3. Lifecycle</a></h2>
 
-<h3><a id="section-4.2" name="section-4.2">4.2 A new per collection
-message class (mps_message_type_gc_start)</a></h3>
+<p><b>Overview</b>: for each trace id, pre-allocate a pair of start/end messages (with ControlAlloc).  Then, when a trace runs using that trace id, fill-in and post these messages.  When the trace completes, and has posted both messages, it immediately pre-allocates a new pair of messages, which wait in readiness for the next trace using that trace id.</p>
 
-<p>Messages in this class support:</p>
 
-<ul>
+<h3><a id="section-3.1" name="section-3.1">3.1 Requirements</a></h3>
 
-  <li> <p> Being able to tell why a collection is starting. </p> </li>
+<p><a id=".no-start-alloc"><b>.no-start-alloc:</b></a> Should avoid attempting to allocate memory at trace start time.</p>
 
-</ul>
+<p><a id=".no-start-alloc.why">.no-start-alloc.why:</a> There may be no free memory at trace start time.  Client would still like to hear about collections in those circumstances.</p>
 
-<h4><a id="section-4.2.1" name="section-4.2.1">4.2.1 Message
-instances.</a></h4>
+<p><a id=".queue"><b>.queue:</b></a> Must support a client that enables, but does not promptly get, GC messages.  Ungot messages must remain queued, and the client must be able to get them later without loss.  It is not acceptable to stop issuing GC messages for subsequent collections merely because messages from previous collections have not yet been got.</p>
 
-<p> As well as TraceMessageStruct (for mps_message_type_gc) there will
-be a TraceStartMessageStruct.  Could this be rolled into
-TraceMessageStruct? Not really (maybe with a redesign) as
-TraceMessageStruct is dynamically allocated as the message is posted to
-the arena queue (at the end of the trace).</p>
+<p><a id=".queue.why">.queue.why:</a> This is because there is simply no reasonable way for a client to guarantee that it always promptly collects GC messages.</p>
 
-<h2><a id="section-5" name="section-5">5. Interface</a></h2>
+<p><a id=".match"><b>.match:</b></a> Start and end messages should always match up: never post one of the messages but fail to post the matching one.</p>
 
-<dl>
+<p><a id=".match.why">.match.why:</a> This makes client code much simpler -- it does not have to handle mismatching messages.</p>
 
-  <dt> <code> int mps_message_type_gc_start() </code> </dt>
+<p><a id=".errors-not-direct"><b>.errors-not-direct:</b></a> Errors (such as a ControlAlloc failure) cannot be reported directly to the client, because collections often happen automatically, without an explicit client call to the MPS interface.</p>
 
-  <dd> <p> Public interface.  Returns the MPS message type. </p></dd>
+<p><a id=".simultaneous"><b>.simultaneous:</b></a> Up to TraceLIMIT traces may be running, and emitting start/end messages, simultaneously.</p>
 
-  <dt> <code> const char *mps_message_gc_start_why(mps_arena_t,
-  mps_message_t) </code> </dt>
+<p><a id=".early"><b>.early:</b></a> Nice to tell client as much as possible about the collection in the start message, if we can.</p>
 
-  <dd> <p> Public interface.  Returns a pointer to a string that is a
-  textual explanation of why this collection is starting. </p>
 
-  <p> The contents of the string must not be modified by the client.  The
-  string and the pointer are only valid as long as the message has not
-  been discarded (with <code>mps_message_discard</code>). </p> </dd>
+<h3><a id="section-3.2" name="section-3.2">3.2 Implementation</a></h3>
 
-</dl>
+<p>For each trace-id (<a href=".simultaneous">.simultaneous</a>)
+ a pair (<a href=".match">.match</a>)
+ of start/end messages is 
+dynamically allocated (<a href=".queue">.queue</a>)
+in advance (<a href=".no-start-alloc">.no-start-alloc</a>).
+Messages are allocated using ControlAlloc.</p>
+
+<p><em class="note">(Previous implementations of the trace start message used static allocation.  This does not meet .queue, and also led to nasty bugs -- see job001570 and job001989.  RHSK 2008-12-15.)</em></p>
+
+<p>	Pointers to these messages are stored in arrays (<code>tsMessage[ti]</code> and <code>tMessage[ti]</code>) in the ArenaStruct.</p>
+
+<p><em class="note">(We <b>cannot</b> keep the pre-allocated messages in the TraceStructs: although TraceStructs are statically allocated, they are re-initialised by TraceCreate <b>each time</b> they are used.  RHSK 2008-12-15.)</em></p>
+
+<p>At ArenaCreate time we TRACE_SET_ITER to initialise the pointers to NULL, and then (when the control pool is ready) TRACE_SET_ITER calling TraceIdMessagesCreate.  This performs the <b>initial pre-allocation</b> of the trace start/end messages for each trace id.  Allocation failure here makes ArenaCreate fail with an error code -- the arena is too small.</p>
+
+<p>When the first trace runs, it fills-in and posts a message, and nulls-out the pointer to it from the ArenaStruct.  The message is only reachable from the arena message queue (but the control pool also knows about it).</p>
+
+<p>If the client has not enabled that message type, the message is discarded immediately, calling ControlFree and reclaiming the memory.</p>
+
+<p>If the client has enabled but never gets the message, it remains on the message queue until ArenaDestroy.  (At ArenaDestroy any ungot messages are destroyed, freeing the memory).  Theoretically these messages could accumulate forever until they exhaust memory.  (This is 'intentional'; the client should not enable a message type and then never get it!)</p>
+
+<p>Otherwise, when the client gets a message, it is dropped from the arena message queue: only the client (and the control pool) hold references to it.  The client must call mps_message_discard once it has finished using the message.  This calls ControlFree and reclaims the memory.  (If the client simply drops its reference, the memory will not be reclaimed until ArenaDestroy; this is intentional -- the control pool is not garbage-collected).  At ArenaDestroy the control pool is destroyed, which frees any still un-discarded messages.</p>
+
+<p>When the trace completes, it calls TraceIdMessagesCreate for its trace id.  This performs the <b>ongoing pre-allocation</b> of the trace start/end messages for this trace id.</p>
+
+<p>Hopefully, after a trace has completed, some memory will have been reclaimed and the ControlAllocs will succeed.  But they may not, and allocation failure here is permitted: if it happens, <b>both</b> the start and the end messages are freed (if present) (<a href=".match">.match</a>).  There is no direct way to report this failure to the client (<a href=".errors-not-direct">.errors-not-direct</a>), so we just increment the "droppedMessages" counter in the ArenaStruct.  Currently this is not reported to the client (except via ArenaDescribe in diagnostic varieties).</p>
+
+<p>At ArenaDestroy, we TRACE_SET_ITER calling TraceIdMessagesDestroy which calls ControlFree on the remaining pre-allocated messages.  In other words this performs the <b>final clearup</b>of pre-allocated messages.</p>
+
 
 <h2><a id="section-6" name="section-6">6. Testing</a></h2>
 
