@@ -1,5 +1,11 @@
 2008-12-15  Juanma Barranquero  <lekktu@gmail.com>
 
+	* face-remap.el (text-scale-mode-step, buffer-face-mode-face):
+	* icomplete.el (icomplete-prospects-height):
+	* textmodes/bibtex.el (bibtex-cite-matcher-alist): Add :version tags.
+
+2008-12-15  Juanma Barranquero  <lekktu@gmail.com>
+
 	* international/mule.el (find-auto-coding): Fix typo in docstring.
 
 	* international/mule-cmds.el (select-safe-coding-system):
