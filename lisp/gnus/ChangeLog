@@ -1,3 +1,13 @@
+2008-12-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-charset-eval-alist):
+	Define it before mm-charset-to-coding-system.
+	(mm-charset-to-coding-system): Add optional argument `silent';
+	define it before mm-charset-override-alist.
+	(mm-charset-override-alist): Add `(gb2312 . gbk)' to the
+	default value if it can be used in Emacs currently running;
+	silence mm-charset-to-coding-system.
+
 2008-12-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2047.el (rfc2047-charset-to-coding-system): Add new argument

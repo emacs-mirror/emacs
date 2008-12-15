@@ -388,8 +388,125 @@ Unless LIST is given, `mm-codepage-ibm-list' is used."
 (mm-setup-codepage-iso-8859)
 (mm-setup-codepage-ibm)
 
+;; Note: this has to be defined before `mm-charset-to-coding-system'.
+(defcustom mm-charset-eval-alist
+  (if (featurep 'xemacs)
+      nil ;; I don't know what would be useful for XEmacs.
+    '(;; Emacs 21 offers 1250 1251 1253 1257.  Emacs 22 provides autoloads for
+      ;; 1250-1258 (i.e. `mm-codepage-setup' does nothing).
+      (windows-1250 . (mm-codepage-setup 1250 t))
+      (windows-1251 . (mm-codepage-setup 1251 t))
+      (windows-1253 . (mm-codepage-setup 1253 t))
+      (windows-1257 . (mm-codepage-setup 1257 t))))
+  "An alist of (CHARSET . FORM) pairs.
+If an article is encoded in an unknown CHARSET, FORM is
+evaluated.  This allows to load additional libraries providing
+charsets on demand.  If supported by your Emacs version, you
+could use `autoload-coding-system' here."
+  :version "22.1" ;; Gnus 5.10.9
+  :type '(list (set :inline t
+		    (const (windows-1250 . (mm-codepage-setup 1250 t)))
+		    (const (windows-1251 . (mm-codepage-setup 1251 t)))
+		    (const (windows-1253 . (mm-codepage-setup 1253 t)))
+		    (const (windows-1257 . (mm-codepage-setup 1257 t)))
+		    (const (cp850 . (mm-codepage-setup 850 nil))))
+	       (repeat :inline t
+		       :tag "Other options"
+		       (cons (symbol :tag "charset")
+			     (symbol :tag "form"))))
+  :group 'mime)
+(put 'mm-charset-eval-alist 'risky-local-variable t)
+
+;; Note: this function has to be defined before `mm-charset-override-alist'
+;; since it will use this function in order to determine its default value
+;; when loading mm-util.elc.
+(defun mm-charset-to-coding-system (charset &optional lbt
+					    allow-override silent)
+  "Return coding-system corresponding to CHARSET.
+CHARSET is a symbol naming a MIME charset.
+If optional argument LBT (`unix', `dos' or `mac') is specified, it is
+used as the line break code type of the coding system.
+
+If ALLOW-OVERRIDE is given, use `mm-charset-override-alist' to
+map undesired charset names to their replacement.  This should
+only be used for decoding, not for encoding.
+
+A non-nil value of SILENT means don't issue a warning even if CHARSET
+is not available."
+  ;; OVERRIDE is used (only) in `mm-decode-body' and `mm-decode-string'.
+  (when (stringp charset)
+    (setq charset (intern (downcase charset))))
+  (when lbt
+    (setq charset (intern (format "%s-%s" charset lbt))))
+  (cond
+   ((null charset)
+    charset)
+   ;; Running in a non-MULE environment.
+   ((or (null (mm-get-coding-system-list))
+	(not (fboundp 'coding-system-get)))
+    charset)
+   ;; Check override list quite early.  Should only used for decoding, not for
+   ;; encoding!
+   ((and allow-override
+	 (let ((cs (cdr (assq charset mm-charset-override-alist))))
+	   (and cs (mm-coding-system-p cs) cs))))
+   ;; ascii
+   ((eq charset 'us-ascii)
+    'ascii)
+   ;; Check to see whether we can handle this charset.  (This depends
+   ;; on there being some coding system matching each `mime-charset'
+   ;; property defined, as there should be.)
+   ((and (mm-coding-system-p charset)
+;;; Doing this would potentially weed out incorrect charsets.
+;;; 	 charset
+;;; 	 (eq charset (coding-system-get charset 'mime-charset))
+	 )
+    charset)
+   ;; Eval expressions from `mm-charset-eval-alist'
+   ((let* ((el (assq charset mm-charset-eval-alist))
+	   (cs (car el))
+	   (form (cdr el)))
+      (and cs
+	   form
+	   (prog2
+	       ;; Avoid errors...
+	       (condition-case nil (eval form) (error nil))
+	       ;; (message "Failed to eval `%s'" form))
+	       (mm-coding-system-p cs)
+	     (message "Added charset `%s' via `mm-charset-eval-alist'" cs))
+	   cs)))
+   ;; Translate invalid charsets.
+   ((let ((cs (cdr (assq charset mm-charset-synonym-alist))))
+      (and cs
+	   (mm-coding-system-p cs)
+	   ;; (message
+	   ;;  "Using synonym `%s' from `mm-charset-synonym-alist' for `%s'"
+	   ;;  cs charset)
+	   cs)))
+   ;; Last resort: search the coding system list for entries which
+   ;; have the right mime-charset in case the canonical name isn't
+   ;; defined (though it should be).
+   ((let (cs)
+      ;; mm-get-coding-system-list returns a list of cs without lbt.
+      ;; Do we need -lbt?
+      (dolist (c (mm-get-coding-system-list))
+	(if (and (null cs)
+		 (eq charset (or (coding-system-get c :mime-charset)
+				 (coding-system-get c 'mime-charset))))
+	    (setq cs c)))
+      (unless (or silent cs)
+	;; Warn the user about unknown charset:
+	(if (fboundp 'gnus-message)
+	    (gnus-message 7 "Unknown charset: %s" charset)
+	  (message "Unknown charset: %s" charset)))
+      cs))))
+
+;; Note: `mm-charset-to-coding-system' has to be defined before this.
 (defcustom mm-charset-override-alist
-  '((iso-8859-1 . windows-1252)
+  ;; Note: pairs that cannot be used in the Emacs version currently running
+  ;; will be removed.
+  '((gb2312 . gbk)
+    (iso-8859-1 . windows-1252)
     (iso-8859-8 . windows-1255)
     (iso-8859-9 . windows-1254))
   "A mapping from undesired charset names to their replacement.
@@ -404,7 +521,8 @@ superset of iso-8859-1."
       (let ((defaults
 	      (delq nil
 		    (mapcar (lambda (pair)
-			      (if (mm-charset-to-coding-system (cdr pair))
+			      (if (mm-charset-to-coding-system (cdr pair)
+							       nil nil t)
 				  pair))
 			    '((gb2312 . gbk)
 			      (iso-8859-1 . windows-1252)
@@ -433,36 +551,19 @@ superset of iso-8859-1."
 		  (cons :format "%v"
 			(symbol :size 3 :format "(%v")
 			(symbol :size 3 :format " . %v)\n")))))))
+  ;; Remove pairs that cannot be used in the Emacs version currently
+  ;; running.  Note that this section will be evaluated when loading
+  ;; mm-util.elc.
+  :set (lambda (symbol value)
+	 (custom-set-default
+	  symbol (delq nil
+		       (mapcar (lambda (pair)
+				 (if (mm-charset-to-coding-system (cdr pair)
+								  nil nil t)
+				     pair))
+			       value))))
   :version "22.1" ;; Gnus 5.10.9
   :group 'mime)
-
-(defcustom mm-charset-eval-alist
-  (if (featurep 'xemacs)
-      nil ;; I don't know what would be useful for XEmacs.
-    '(;; Emacs 21 offers 1250 1251 1253 1257.  Emacs 22 provides autoloads for
-      ;; 1250-1258 (i.e. `mm-codepage-setup' does nothing).
-      (windows-1250 . (mm-codepage-setup 1250 t))
-      (windows-1251 . (mm-codepage-setup 1251 t))
-      (windows-1253 . (mm-codepage-setup 1253 t))
-      (windows-1257 . (mm-codepage-setup 1257 t))))
-  "An alist of (CHARSET . FORM) pairs.
-If an article is encoded in an unknown CHARSET, FORM is
-evaluated.  This allows to load additional libraries providing
-charsets on demand.  If supported by your Emacs version, you
-could use `autoload-coding-system' here."
-  :version "22.1" ;; Gnus 5.10.9
-  :type '(list (set :inline t
-		    (const (windows-1250 . (mm-codepage-setup 1250 t)))
-		    (const (windows-1251 . (mm-codepage-setup 1251 t)))
-		    (const (windows-1253 . (mm-codepage-setup 1253 t)))
-		    (const (windows-1257 . (mm-codepage-setup 1257 t)))
-		    (const (cp850 . (mm-codepage-setup 850 nil))))
-	       (repeat :inline t
-		       :tag "Other options"
-		       (cons (symbol :tag "charset")
-			     (symbol :tag "form"))))
-  :group 'mime)
-(put 'mm-charset-eval-alist 'risky-local-variable t)
 
 (defvar mm-binary-coding-system
   (cond
@@ -689,84 +790,6 @@ mail with multiple parts is preferred to sending a Unicode one.")
 		alist nil))
 	(pop alist))
       out)))
-
-(defun mm-charset-to-coding-system (charset &optional lbt
-					    allow-override)
-  "Return coding-system corresponding to CHARSET.
-CHARSET is a symbol naming a MIME charset.
-If optional argument LBT (`unix', `dos' or `mac') is specified, it is
-used as the line break code type of the coding system.
-
-If ALLOW-OVERRIDE is given, use `mm-charset-override-alist' to
-map undesired charset names to their replacement.  This should
-only be used for decoding, not for encoding."
-  ;; OVERRIDE is used (only) in `mm-decode-body' and `mm-decode-string'.
-  (when (stringp charset)
-    (setq charset (intern (downcase charset))))
-  (when lbt
-    (setq charset (intern (format "%s-%s" charset lbt))))
-  (cond
-   ((null charset)
-    charset)
-   ;; Running in a non-MULE environment.
-   ((or (null (mm-get-coding-system-list))
-	(not (fboundp 'coding-system-get)))
-    charset)
-   ;; Check override list quite early.  Should only used for decoding, not for
-   ;; encoding!
-   ((and allow-override
-	 (let ((cs (cdr (assq charset mm-charset-override-alist))))
-	   (and cs (mm-coding-system-p cs) cs))))
-   ;; ascii
-   ((eq charset 'us-ascii)
-    'ascii)
-   ;; Check to see whether we can handle this charset.  (This depends
-   ;; on there being some coding system matching each `mime-charset'
-   ;; property defined, as there should be.)
-   ((and (mm-coding-system-p charset)
-;;; Doing this would potentially weed out incorrect charsets.
-;;; 	 charset
-;;; 	 (eq charset (coding-system-get charset 'mime-charset))
-	 )
-    charset)
-   ;; Eval expressions from `mm-charset-eval-alist'
-   ((let* ((el (assq charset mm-charset-eval-alist))
-	   (cs (car el))
-	   (form (cdr el)))
-      (and cs
-	   form
-	   (prog2
-	       ;; Avoid errors...
-	       (condition-case nil (eval form) (error nil))
-	       ;; (message "Failed to eval `%s'" form))
-	       (mm-coding-system-p cs)
-	     (message "Added charset `%s' via `mm-charset-eval-alist'" cs))
-	   cs)))
-   ;; Translate invalid charsets.
-   ((let ((cs (cdr (assq charset mm-charset-synonym-alist))))
-      (and cs
-	   (mm-coding-system-p cs)
-	   ;; (message
-	   ;;  "Using synonym `%s' from `mm-charset-synonym-alist' for `%s'"
-	   ;;  cs charset)
-	   cs)))
-   ;; Last resort: search the coding system list for entries which
-   ;; have the right mime-charset in case the canonical name isn't
-   ;; defined (though it should be).
-   ((let (cs)
-      ;; mm-get-coding-system-list returns a list of cs without lbt.
-      ;; Do we need -lbt?
-      (dolist (c (mm-get-coding-system-list))
-	(if (and (null cs)
-		 (eq charset (or (coding-system-get c :mime-charset)
-				 (coding-system-get c 'mime-charset))))
-	    (setq cs c)))
-      (unless cs
-	;; Warn the user about unknown charset:
-	(if (fboundp 'gnus-message)
-	    (gnus-message 7 "Unknown charset: %s" charset)
-	  (message "Unknown charset: %s" charset)))
-      cs))))
 
 (eval-and-compile
   (defvar mm-emacs-mule (and (not (featurep 'xemacs))
