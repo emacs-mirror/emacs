@@ -871,7 +871,7 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
 	 (find-file-noselect file-name))))
     ;; Insure that the collection and view buffers are in sync and
     ;; insure that a message is not being edited.
-    (setq pmail-buffers-swapped-p nil)
+    (pmail-swap-buffers-maybe)
     (if (eq major-mode 'pmail-edit-mode)
 	(error "Exit Pmail Edit mode before getting new mail"))
     ;; Insure that the Rmail file is in mbox format, the buffer is in
@@ -2795,28 +2795,27 @@ Interactively, empty argument means use same regexp used last time."
 	   (if (< n 0) "Reverse " "")
 	   regexp)
   (set-buffer pmail-buffer)
-  (pmail-maybe-set-message-counters)
-  (let ((omin (point-min))
-	(omax (point-max))
-	(opoint (point))
-	win
+  (let ((orig-message pmail-current-message)
+	(msg pmail-current-message)
 	(reversep (< n 0))
-	(msg pmail-current-message))
+	(opoint (if pmail-buffers-swapped-p (point)))
+	found)
+    (pmail-swap-buffers-maybe)
+    (pmail-maybe-set-message-counters)
+    (widen)
     (unwind-protect
-	(progn
-	  (widen)
-	  (while (/= n 0)
-	    ;; Check messages one by one, advancing message number up or down
-	    ;; but searching forward through each message.
-	    (if reversep
-		(while (and (null win) (> msg 1))
-		  (setq msg (1- msg)
-			win (pmail-search-message msg regexp)))
-	      (while (and (null win) (< msg pmail-total-messages))
-		(setq msg (1+ msg)
-		      win (pmail-search-message msg regexp))))
-	    (setq n (+ n (if reversep 1 -1)))))
-      (if win
+	(while (/= n 0)
+	  ;; Check messages one by one, advancing message number up or
+	  ;; down but searching forward through each message.
+	  (if reversep
+	      (while (and (null found) (> msg 1))
+		(setq msg (1- msg)
+		      found (pmail-search-message msg regexp)))
+	    (while (and (null found) (< msg pmail-total-messages))
+	      (setq msg (1+ msg)
+		    found (pmail-search-message msg regexp))))
+	  (setq n (+ n (if reversep 1 -1))))
+      (if found
 	  (progn
 	    (pmail-show-message-maybe msg)
 	    ;; Search forward (if this is a normal search) or backward
@@ -2834,8 +2833,8 @@ Interactively, empty argument means use same regexp used last time."
 	    (message "%sPmail search for %s...done"
 		     (if reversep "Reverse " "")
 		     regexp))
-	(goto-char opoint)
-	(narrow-to-region omin omax)
+	(pmail-show-message-maybe orig-message)
+	(if opoint (goto-char opoint))
 	(ding)
 	(message "Search failed: %s" regexp)))))
 
