@@ -2,6 +2,7 @@
 
 	* pmail.el (pmail): Call pmail-swap-buffers-maybe.
 	(pmail-search): Call pmail-swap-buffers-maybe.
+	(pmail-expunge): Save point if no expunging was done.
 
 2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
 
