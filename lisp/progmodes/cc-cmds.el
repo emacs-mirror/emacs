@@ -1732,6 +1732,11 @@ with a brace block."
 	     (c-backward-syntactic-ws)
 	     (point))))
 
+         ((looking-at "DEF[a-zA-Z0-9_]* *( *\\([^, ]*\\) *,")
+          ;; DEFCHECKER(sysconf_arg,prefix=_SC,default=, ...) ==> sysconf_arg
+          ;; DEFFLAGSET(syslog_opt_flags,LOG_PID ...) ==> syslog_opt_flags
+          (match-string-no-properties 1))
+
 	 (t
 	 ;; Normal function or initializer.
 	  (when (c-syntactic-re-search-forward "[{(]" nil t)

@@ -1,3 +1,8 @@
+2008-12-15  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/cc-cmds.el (c-defun-name): Handle DEFFOO(name,...),
+	mostly for CLISP modules, but could also be useful elsewhere.
+
 2008-12-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* face-remap.el (text-scale-mode-step, buffer-face-mode-face):
