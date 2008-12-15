@@ -9528,9 +9528,6 @@ x_free_frame_resources (f)
       if (f->output_data.x->black_relief.allocated_p)
 	unload_color (f, f->output_data.x->black_relief.pixel);
 
-      if (FRAME_FACE_CACHE (f))
-	free_frame_faces (f);
-
       x_free_gcs (f);
       XFlush (FRAME_X_DISPLAY (f));
     }
