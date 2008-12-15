@@ -1688,7 +1688,7 @@ gives a match.
 If a coding system is specifed, the return value is a cons
 \(CODING . SOURCE), where CODING is the specified coding system and
 SOURCE is a symbol `auto-coding-alist', `auto-coding-regexp-alist',
-`coding:', or `auto-coding-functions' indicating by what CODING is
+`:coding', or `auto-coding-functions' indicating by what CODING is
 specified.  Note that the validity of CODING is not checked;
 it's the caller's responsibility to check it.
 
