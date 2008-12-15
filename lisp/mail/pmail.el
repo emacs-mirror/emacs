@@ -3128,9 +3128,16 @@ See also user-option `pmail-confirm-expunge'."
   "Erase deleted messages from Pmail file and summary buffer."
   (interactive)
   (when (pmail-expunge-confirmed)
-    (pmail-only-expunge dont-show)
-    (if (pmail-summary-exists)
-	(pmail-select-summary (pmail-update-summary)))))
+    (let ((old-total pmail-total-messages)
+	  (opoint (with-current-buffer pmail-buffer
+		    (when pmail-buffers-swapped-p
+		      (point)))))
+      (pmail-only-expunge dont-show)
+      (if (pmail-summary-exists)
+	  (pmail-select-summary (pmail-update-summary))
+	(pmail-show-message pmail-current-message)
+	(if (and (eq old-total pmail-total-messages) opoint)
+	    (goto-char opoint))))))
 
 ;;;; *** Pmail Mailing Commands ***
 
