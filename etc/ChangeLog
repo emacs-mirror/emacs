@@ -1,3 +1,7 @@
+2008-12-16  Carsten Dominik  <dominik@science.uva.nl>
+
+	* refcards/orgcard.tex: Version number change.
+
 2008-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* MACHINES: SH3 is still supported.
