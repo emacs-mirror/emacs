@@ -90,14 +90,14 @@ Bool TraceStartMessageCheck(TraceStartMessage tsMessage)
 static void TraceStartMessageDelete(Message message)
 {
   TraceStartMessage tsMessage;
+  Arena arena;
 
   AVERT(Message, message);
   tsMessage = MessageTraceStartMessage(message);
   AVERT(TraceStartMessage, tsMessage);
 
-  traceStartMessageInit(MessageArena(message), tsMessage);
-
-  return;
+  arena = MessageArena(message);
+  ControlFree(arena, (void *)tsMessage, sizeof(TraceStartMessageStruct));
 }
 
 static const char *TraceStartMessageWhy(Message message)
@@ -134,8 +134,6 @@ static void traceStartMessageInit(Arena arena, TraceStartMessage tsMessage)
 
   tsMessage->sig = TraceStartMessageSig;
   AVERT(TraceStartMessage, tsMessage);
-
-  return;
 }
 
 /* TraceStartWhyToString -- why-code to text
@@ -211,8 +209,6 @@ static void traceStartWhyToTextBuffer(char *s, size_t len, int why)
       break;
   }
   s[len-1] = '\0';
-
-  return;
 }
 
 /* TracePostStartMessage -- complete and post trace start message
@@ -423,8 +419,6 @@ void TracePostMessage(Trace trace)
   if(arena->alertCollection) {
     (*arena->alertCollection)(MPS_ALERT_COLLECTION_STOP, trace->why);
   }
-
-  return;
 }
 
 
@@ -659,7 +653,6 @@ static void rememberedSummaryBlockInit(struct RememberedSummaryBlockStruct *bloc
     block->the[i].base = (Addr)0;
     block->the[i].summary = RefSetUNIV;
   }
-  return;
 }
 
 static Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary)
@@ -740,7 +733,6 @@ void ArenaExposeRemember(Globals globals, int remember)
       }
     } while(SegNext(&seg, arena, base));
   }
-  return;
 }
 
 void ArenaRestoreProtection(Globals globals)
@@ -776,7 +768,6 @@ void ArenaRestoreProtection(Globals globals)
   }
 
   arenaForgetProtection(globals);
-  return;
 }
 
 static void arenaForgetProtection(Globals globals)
@@ -795,7 +786,6 @@ static void arenaForgetProtection(Globals globals)
     RingRemove(node);
     ControlFree(arena, block, sizeof *block);
   }
-  return;
 }
 
 /* C. COPYRIGHT AND LICENSE
