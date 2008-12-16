@@ -1,3 +1,7 @@
+2008-12-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* process.c: Include <limits.h>.
+
 2008-12-16   Chetan Pandya  <pandyacus@sbcglobal.net>  (tiny change)
 
 	* font.c (font_update_drivers): Fix mistake in reconstructing the

@@ -104,6 +104,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <resolv.h>
 #endif
 
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif /* HAVE_LIMITS_H */
+
 #include "lisp.h"
 #include "systime.h"
 #include "systty.h"
