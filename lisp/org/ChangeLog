@@ -1,3 +1,121 @@
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-refile): Avoid refiling to within the region to be
+	refiled.
+
+	* org-export-latex.el (org-export-latex-special-chars): Replace
+	special characters also in tables.
+
+	* org-agenda.el (org-agenda-change-all-lines): New argument
+	FORCE-TAGS.
+	(org-agenda-set-tags): Cet the new tags and pas them to
+	`org-format-agenda-item'.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-export-latex.el (org-export-latex-classes): Add longable as
+	a default package to all classes.
+	(org-export-latex-tables): Handle the longtable attribute and the
+	align attribute.
+
+	* org-table.el (orgtbl-to-generic): Handle tables that start with
+	a hline.
+
+	* org-export-latex.el (org-export-latex-emphasis-alist): Switch to
+	\verb for colde-like snippets.
+	(org-export-as-latex): Fix issues with region export.
+
+	* org.el (org-up-heading-safe): Speed up function by using a
+	direct regexp search.
+	(org-olpa): New variable.
+	(org-get-outline-path): Speed-up path constructions in cases where
+	this is possible because the entire hierarchy is scanned anyway.
+	(org-refile-get-location): Don't compare the truenames of files,
+	this is too slow.
+	(org-goto-max-level): New option.
+	(org-goto): Use `org-goto-max-level'.
+
+2008-12-16  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* org-gnus.el (org-gnus-article-link, org-gnus-article-link):
+	Strip angle brackets from message-ids in the former and don't do
+	it in the latter.
+	(org-gnus-follow-link): Open summary reliable, even if the last
+	messages were deleted, and handle empty groups, too.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-export-latex.el (org-export-latex-emphasis-alist): Use \verb
+	instead of \texttt for the =...= and ~===~ emphasis environments.
+	(org-export-as-latex): Remove any old :org-license-to-kill text
+	properties.
+	(org-export-as-latex): Pass RBEG to `org-export-latex-first-lines'.
+	(org-export-latex-make-header): Add some hard space after the
+	table of contents.
+	(org-export-latex-first-lines): Accept RBEG argument.  Mark
+	exported text so that it will be excuded in further steps.
+
+	* org-table.el (org-table-get-specials): Make @0 reference the
+	last line in a table.
+	(org-table-recalculate): Improve docstring.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-log-done): Fix docstring.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-html-format-image): Fix bugs.
+
+	* org-export-latex.el (org-export-latex-tables)
+	(org-export-latex-links): Implement attribute, label, and caption
+	handling.
+
+	* org-exp.el (org-export-html-style-default): Add style
+	definitions for the figure div.
+	(org-export-preprocess-string, org-export-as-html): Implement
+	attribute, label, and caption handling.
+	(org-export-attach-captions-and-attributes): New function.
+	(org-export-html-format-image): New function.
+	(org-format-org-table-html): Implement attribute, label, and
+	caption handling.
+
+	* org.el (org-find-text-property-in-string): New function.
+	(org-extract-attributes): Use the property org-attr instead of
+	org-attrobutes, because this property is now set with the #+ATTR
+	lines.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-compat.el (org-substring-no-properties): Fix for XEmacs, for
+	the case that FROM is nil.
+
+	* org.el (org-before-first-heading-p): New function.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-as-html): Do not add a space before
+	enforces line breaks.
+	(org-export-as-html): Close paragraph before blockquote and verse
+	tags.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-id.el (org-id-locations-file): Wrap file name with
+	`convert-standard-filename'.
+	(org-id-files): New variable.
+	(org-id-use-hash): New option.
+	(org-id-update-id-locations): Also search in all files current
+	listed in `org-id-files'.  Convert the resulting alist to a hash
+	if the user customation says so.
+	(org-id-locations-save): Handle he case if `org-id-locations' is a
+	hash.
+	(org-id-locations-load): Convert the alist to a hash.
+	(org-id-add-location): Handle the hast case.
+	(kill-emacs-hook): Make sure id locations are saved when Emacs is
+	exited.
+	(org-id-hash-to-alist, org-id-alist-to-hash)
+	(org-id-paste-tracker): New functions.
 
 2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
 
