@@ -804,7 +804,7 @@ static void traceReclaim(Trace trace)
   trace->state = TraceFINISHED;
   TracePostMessage(trace);  /* trace end */
   /* Immediately pre-allocate messages for next time; failure is okay */
-  (void)TraceIdMessagesCreate(arena, trace->ti);
+  /*(void)TraceIdMessagesCreate(arena, trace->ti);*/
 }
 
 
