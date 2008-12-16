@@ -2877,13 +2877,14 @@ font_open_entity (f, entity, pixel_size)
   Lisp_Object objlist, size, val, font_object;
   struct font *font;
   int min_width, height;
+  int scaled_pixel_size;
 
   font_assert (FONT_ENTITY_P (entity));
   size = AREF (entity, FONT_SIZE_INDEX);
   if (XINT (size) != 0)
-    pixel_size = XINT (size);
+    scaled_pixel_size = pixel_size = XINT (size);
   else if (CONSP (Vface_font_rescale_alist))
-    pixel_size *= font_rescale_ratio (entity);
+    scaled_pixel_size = pixel_size * font_rescale_ratio (entity);
 
   for (objlist = AREF (entity, FONT_OBJLIST_INDEX); CONSP (objlist);
        objlist = XCDR (objlist))
@@ -2898,7 +2899,8 @@ font_open_entity (f, entity, pixel_size)
   if (! driver_list)
     return Qnil;
 
-  font_object = driver_list->driver->open (f, entity, pixel_size);
+  font_object = driver_list->driver->open (f, entity, scaled_pixel_size);
+  ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
   font_add_log ("open", entity, font_object);
   if (NILP (font_object))
     return Qnil;
