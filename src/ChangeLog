@@ -1,3 +1,12 @@
+2008-12-16   Chetan Pandya  <pandyacus@sbcglobal.net>  (tiny change)
+
+	* font.c (font_update_drivers): Fix mistake in reconstructing the
+	driver list.
+
+2008-12-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_clear_cache): Fix format of font cache data.
+
 2008-12-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xftfont.c (xftfont_open): Free Xft font pattern if
