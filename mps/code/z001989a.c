@@ -30,20 +30,24 @@
  * The actions, messages to check for, and get times, are scripted 
  * using a simple text code:
  *   C - action: request garbage-collection;
- *   F - action: make a (registered)finalized object unreachable;
+ *   F - action: make a (registered)finalized object unreachable
+ *        (note: this drops the myroot ref, but some objects are 
+ *         deliberately kept alive by additional references; see 
+ *         .keep-alive)
  *   b - message produced: collection begin (mps_message_type_gc_start);
  *   e - message produced: collection end (mps_message_type_gc);
  *   f - message produced: finalization (mps_message_type_finalization);
  *   . - get messages.
+ *   ! - get messages without discarding (see .discard).
  *
  * Example:
  *  script "Cbe.FFCbffe.Cbe"
  *  means:
- *    Requests a collection and checks for _gc_start and _gc messages
- *    (in that order, and no other messages).  Then drops refs to two 
- *    objects, requests another collection, and checks for _gc_start, 
+ *    Request a collection and check for _gc_start and _gc messages
+ *    (in that order, and no other messages).  Then drop refs to two 
+ *    objects, request another collection, and check for _gc_start, 
  *    the two finalization messages (in either order), and _gc.  Then 
- *    Requests a third collection and ends the test WITHOUT GETTING 
+ *    request a third collection and end the test WITHOUT GETTING 
  *    the last two messages (note: no "."), to test that 
  *    mps_arena_destroy copes with ungot messages.
  *
@@ -118,8 +122,17 @@ enum {
  * Get messages, report what was got, check they are the expected 
  * messages, and (for finalization messages) check that these objects 
  * should have been finalized (because we made them unreachable).
+ *
+ * .discard: The client should always call mps_message_discard when 
+ * it has finished with the message.  But calling with the "discard" 
+ * parameter set to false lets us check how the MPS handles naughty 
+ * clients.  The undiscarded messages should be cleared up by 
+ * ArenaDestroy.  In a diagnostic variety (eg .variety.di) the 
+ * ArenaDestroy diag shows the contents of the control pool, and you 
+ * can clearly see the undiscarded messages (just before the control 
+ * pool is destroyed).
  */
-static void report(mps_arena_t arena, const char *pm)
+static void report(mps_arena_t arena, const char *pm, Bool discard)
 {
   int found = 0;
   char mFound = '\0';
@@ -139,13 +152,11 @@ static void report(mps_arena_t arena, const char *pm)
     switch(type) {
       case mps_message_type_gc_start(): {
         printf("    Begin Collection\n");
-        mps_message_discard(arena, message);
         mFound = 'b';
         break;
       }
       case mps_message_type_gc(): {
         printf("    End Collection\n");
-        mps_message_discard(arena, message);
         mFound = 'e';
         break;
       }
@@ -157,7 +168,6 @@ static void report(mps_arena_t arena, const char *pm)
         cdie(myroot[objind] == NULL, "finalized live");
         cdie(state[objind] == finalizableSTATE, "not finalizable");
         state[objind] = finalizedSTATE;
-        mps_message_discard(arena, message);
         mFound = 'f';
         break;
       }
@@ -167,6 +177,10 @@ static void report(mps_arena_t arena, const char *pm)
       }
     }
     
+    if(discard) {
+      mps_message_discard(arena, message);  /* .discard */
+    }
+
     cdie('\0' != *pm, "Found message, but did not expect any");
     cdie(mFound == *pm, "Found message type != Expected message type");
     pm++;
@@ -187,7 +201,7 @@ static void testscriptC(mps_arena_t arena, const char *script)
   unsigned hiNext = myrootCOUNT - 1;
   unsigned i;
   const char *scriptAll = script;
-  char am[10];  /* Array of Messages (expected but not yet got) */
+  char am[100];  /* Array of Messages (expected but not yet got) */
   char *pmNext = am;  /* Pointer to where Next Message will be stored */
 
   while(*script != '\0') {
@@ -195,8 +209,19 @@ static void testscriptC(mps_arena_t arena, const char *script)
       case '.': {
         *pmNext = '\0';
         printf("  Getting messages (expecting \"%s\")...\n", am);
-        report(arena, am);
+        report(arena, am, TRUE);
         printf("  ...done.\n");
+        pmNext = am;
+        break;
+      }
+      case '!': {
+        *pmNext = '\0';
+        printf("  Getting messages (expecting \"%s\")...\n", am);
+        /* FALSE: see .discard */
+        report(arena, am, FALSE);
+        printf("  ...done.\n");
+        printf("  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, "
+               "TO SEE HOW MPS COPES.\n");  /* .discard */
         pmNext = am;
         break;
       }
@@ -210,8 +235,10 @@ static void testscriptC(mps_arena_t arena, const char *script)
         i = isLoNext ? loNext++ : hiNext--;
         isLoNext = 1 - isLoNext;
         
-        printf("  drop ref to make object %u Finalizable\n", i);
-        /* make i finalizable */
+        printf("  Drop myroot ref to object %u -- "
+               "this might make it Finalizable\n", i);
+        /* drop myroot ref, to perhaps make i finalizable */
+        /* (but see .keep-alive) */
         myroot[i] = NULL;
         state[i] = finalizableSTATE;
         break;
@@ -302,17 +329,30 @@ static void *testscriptB(void *arg, size_t s)
     state[i] = rootSTATE;
   }
   
-  /* leave 0 and N containing NULL refs */
+  /* .keep-alive: Create some additional inter-object references.
+   *
+   * 1 and N-1 don't die until myroot refs to both have been nulled.
+   *
+   * 2 and 3 don't die until myroot refs to both have been nulled.
+   *
+   * We do this to check that reachability via non-root refs prevents 
+   * finalization.
+   */
+
+  /* Leave 0 and N containing NULL refs */
   
-  /* make 1 and N-1 refer to each other */
+  /* Make 1 and N-1 refer to each other */
   DYLAN_VECTOR_SLOT(myroot[1]  , 1) = (mps_word_t)myroot[N-1];
   DYLAN_VECTOR_SLOT(myroot[N-1], 1) = (mps_word_t)myroot[1];
 
-  /* make 2 and 3 refer to each other */
+  /* Make 2 and 3 refer to each other */
   DYLAN_VECTOR_SLOT(myroot[2], 1) = (mps_word_t)myroot[3];
   DYLAN_VECTOR_SLOT(myroot[3], 1) = (mps_word_t)myroot[2];
 
-  /* stop stack scanning, to prevent unwanted object retention */
+  /* Stop stack scanning, otherwise stack or register dross from */
+  /* these setup functions can cause unwanted object retention, */
+  /* which would mean we don't get the finalization messages we */
+  /* expect. */
   mps_root_destroy(root_stackreg);
 
   mps_message_type_enable(arena, mps_message_type_gc_start());
@@ -374,18 +414,38 @@ int main(int argc, char **argv)
 
   randomize(argc, argv);
 
-  /* really basic scripts */
-  testscriptA("Cbe.");
-  testscriptA(".Cbe.CbeCbeCbe.");
-  testscriptA(".Cbe.CbeCbeCbe");
+  /* Scripts that should fail (uncomment to show failure is detected) */
+  /*testscriptA("C.");*/
+  /*testscriptA("b.");*/
 
-  /* simple finalization */
+  /* The most basic scripts */
+  testscriptA(".");
+  testscriptA("Cbe.");
+  testscriptA("Cbe.Cbe.");
+
+  /* Get messages, but not promptly */
+  testscriptA(".Cbe.CbeCbeCbe.");
+
+  /* Ungot messages at ArenaDestroy */
+  testscriptA("Cbe");
+  testscriptA("Cbe.CbeCbeCbe");
+
+  /* Fail to call mps_message_discard */
+  testscriptA("Cbe!");
+  testscriptA("Cbe!CbeCbeCbe!");
+
+  /* Simple finalization
+   *
+   * These tests rely on the particular order in which the "F" command 
+   * nulls-out references.  Not every "F" makes an object finalizable.
+   * See .keep-alive.
+   */
   testscriptA("FFCbffe.");
   testscriptA("FFCbffe.FFCbffe.");
   testscriptA("FFCbffe.FCbe.F.Cbffe.FFCbfe.FF.Cbfffe.");
-
-  /* test failure: */
-  /*testscriptA("FC.");*/
+  
+  /* Various other scripts */
+  testscriptA("Cbe.FFCbffe.Cbe");
 
   fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
