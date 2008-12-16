@@ -417,6 +417,8 @@ could use `autoload-coding-system' here."
   :group 'mime)
 (put 'mm-charset-eval-alist 'risky-local-variable t)
 
+(defvar mm-charset-override-alist)
+
 ;; Note: this function has to be defined before `mm-charset-override-alist'
 ;; since it will use this function in order to determine its default value
 ;; when loading mm-util.elc.
