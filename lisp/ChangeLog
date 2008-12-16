@@ -1,3 +1,12 @@
+2008-12-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-start): If unable to start the server,
+	display a warning instead of raising an error.
+
+	* startup.el (server-process): Add defvar.
+	(command-line): If the daemon is unable to start the server,
+	display a message and exit Emacs.
+
 2008-12-15  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/cc-cmds.el (c-defun-name): Handle DEFFOO(name,...),

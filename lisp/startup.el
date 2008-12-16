@@ -694,6 +694,7 @@ opening the first frame (e.g. open a connection to an X server).")
 (declare-function tool-bar-setup "tool-bar")
 
 (defvar server-name)
+(defvar server-process)
 
 (defun command-line ()
   (setq before-init-time (current-time)
@@ -1220,7 +1221,10 @@ the `--debug-init' option to view a complete error backtrace."
     (when dn
       (when (stringp dn) (setq server-name dn))
       (server-start)
-      (daemon-initialized)))
+      (if server-process
+	  (daemon-initialized)
+	(message "Unable to start daemon: Emacs server named %S already running" server-name)
+	(kill-emacs 1))))
 
   ;; Run emacs-session-restore (session management) if started by
   ;; the session manager and we have a session manager connection.
