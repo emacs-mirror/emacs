@@ -1,3 +1,9 @@
+2008-12-16  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Tables in LaTeX export): New section.
+	(Images in LaTeX export): New section.
+	(Inlined images, Images in HTML export): Sections renamed.
+
 2008-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.texi (Insertion Variables): Don't advertise sc-cite-original.
