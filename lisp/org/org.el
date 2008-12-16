@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.14
+;; Version: 6.15a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -92,7 +92,7 @@
 
 ;;; Version
 
-(defconst org-version "6.14"
+(defconst org-version "6.15a"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)
@@ -162,7 +162,7 @@ to add the symbol `xyz', and the package must have a call to
 	(const :tag "   bbdb:              Links to BBDB entries" org-bbdb)
 	(const :tag "   bibtex:            Links to BibTeX entries" org-bibtex)
 	(const :tag "   gnus:              Links to GNUS folders/messages" org-gnus)
-	(const :tag "   id:                Global id's for identifying entries" org-id)
+	(const :tag "   id:                Global IDs for identifying entries" org-id)
 	(const :tag "   info:              Links to Info nodes" org-info)
 	(const :tag "   jsinfo:            Set up Sebastian Rose's JavaScript org-info.js" org-jsinfo)
 	(const :tag "   irc:               Links to IRC/ERC chat sessions" org-irc)
@@ -178,13 +178,13 @@ to add the symbol `xyz', and the package must have a call to
 	(const :tag "C  annotate-file:     Annotate a file with org syntax" org-annotate-file)
 	(const :tag "C  annotation-helper: Call Remeber directly from Browser" org-annotation-helper)
 	(const :tag "C  bookmark:          Org links to bookmarks" org-bookmark)
+	(const :tag "C  browser-url:       Store link, directly from Browser" org-browser-url)
 	(const :tag "C  depend:            TODO dependencies for Org-mode" org-depend)
 	(const :tag "C  elisp-symbol:      Org links to emacs-lisp symbols" org-elisp-symbol)
 	(const :tag "C  eval:              Include command output as text" org-eval)
 	(const :tag "C  eval-light:        Evaluate inbuffer-code on demand" org-eval-light)
 	(const :tag "C  expiry:            Expiry mechanism for Org entries" org-expiry)
 	(const :tag "C  exp-blocks:        Pre-process blocks for export" org-exp-blocks)
-	(const :tag "C  id:                Global id's for identifying entries" org-id)
 	(const :tag "C  interactive-query: Interactive modification of tags query" org-interactive-query)
 	(const :tag "C  mairix:            Hook mairix search into Org for different MUAs" org-mairix)
 	(const :tag "C  man:               Support for links to manpages in Org-mode" org-man)
@@ -956,6 +956,40 @@ It should match if the message is from the user him/herself."
   :group 'org-link-store
   :type 'regexp)
 
+(defcustom org-link-to-org-use-id 'create-if-interactive
+  "Non-nil means, storing a link to an Org file will use entry IDs.
+
+Note that before this variable is even considered, org-id must be loaded,
+to please customize `org-modules' and turn it on.
+
+The variable can have the following values:
+
+t     Create an ID if needed to make a link to the current entry.
+
+create-if-interactive
+      If `org-store-link' is called directly (interactively, as a user
+      command), do create an ID to support the link.  But when doing the
+      job for remember, only use the ID if it already exists.  The
+      purpose of this setting is to avoid proliferation of unwanted
+      IDs, just because you happen to be in an Org file when you
+      call `org-remember' that automatically and preemptively
+      creates a link.  If you do want to get an ID link in a remember
+      template to an entry not having an ID, create it first by
+      explicitly creating a link to it, using `C-c C-l' first.
+
+use-existing
+      Use existing ID, do not create one.
+
+nil   Never use an ID to make a link, instead link using a text search for
+      the headline text."
+  :group 'org-link-store
+  :type '(choice
+	  (const :tag "Create ID to make link" t)
+	  (const :tag "Create if string link interactively"
+		 'create-if-interactive)
+	  (const :tag "Only use existing" 'use-existing)
+	  (const :tag "Do not use ID to create link" nil)))
+
 (defcustom org-context-in-file-links t
   "Non-nil means, file links from `org-store-link' contain context.
 A search string will be added to the file name with :: as separator and
@@ -1283,6 +1317,11 @@ outline-path-completion  Headlines in the current buffer are offered via
 	  (const :tag "Outline" outline)
 	  (const :tag "Outline-path-completion" outline-path-completion)))
 
+(defcustom org-goto-max-level 5
+  "Maximum level to be considered when running org-goto with refile interface."
+  :group 'org-refile
+  :type 'number)
+
 (defcustom org-reverse-note-order nil
   "Non-nil means, store new notes at the beginning of a file or entry.
 When nil, new notes will be filed to the end of a file or entry.
@@ -1515,14 +1554,22 @@ or `done', meaning any not-done or done state, respectively."
 		       (choice (const :tag "Add" t) (const :tag "Remove" nil)))))))
 
 (defcustom org-log-done nil
-  "Non-nil means, record a CLOSED timestamp when moving an entry to DONE.
-When equal to the list (done), also prompt for a closing note.
-This can also be configured on a per-file basis by adding one of
-the following lines anywhere in the buffer:
+  "Information to record when a task moves to the DONE state.
 
+Possible values are:
+
+nil     Don't add anything, just change the keyword
+time    Add a time stamp to the task
+note    Prompt a closing note and add it with template `org-log-note-headings'
+
+This option can also be set with on a per-file-basis with
+
+   #+STARTUP: nologdone
    #+STARTUP: logdone
    #+STARTUP: lognotedone
-   #+STARTUP: nologdone"
+
+You can have local logging settings for a subtree by setting the LOGGING
+property to one or more of these keywords."
   :group 'org-todo
   :group 'org-progress
   :type '(choice
@@ -2806,11 +2853,12 @@ collapsed state."
 
 ;; Autoload ID code
 
+(declare-function org-id-store-link "org-id")
 (org-autoload "org-id"
  '(org-id-get-create org-id-new org-id-copy org-id-get
    org-id-get-with-outline-path-completion
    org-id-get-with-outline-drilling
-   org-id-goto org-id-find))
+   org-id-goto org-id-find org-id-store-link))
 
 ;;; Variables for pre-computed regular expressions, all buffer local
 
@@ -4504,7 +4552,7 @@ which the visibility is still unchanged.  After RET is will also jump to
 the location selected in the indirect buffer and expose the
 the headline hierarchy above."
   (interactive "P")
-  (let* ((org-refile-targets '((nil . (:maxlevel . 10))))
+  (let* ((org-refile-targets `((nil . (:maxlevel . ,org-goto-max-level))))
 	 (org-refile-use-outline-path t)
 	 (interface
 	  (if (not alternative-interface)
@@ -5268,6 +5316,7 @@ the inserted text when done."
     (beginning-of-line 1)
     (unless for-yank (org-back-over-empty-lines))
     (setq beg (point))
+    (and (fboundp 'org-id-paste-tracker) (org-id-paste-tracker txt))
     (insert-before-markers txt)
     (unless (string-match "\n\\'" txt) (insert "\n"))
     (setq newend (point))
@@ -6141,7 +6190,6 @@ type.  For a simple example of an export function, see `org-bbdb.el'."
       (setcdr (assoc type org-link-protocols) (list follow export))
     (push (list type follow export) org-link-protocols)))
 
-
 ;;;###autoload
 (defun org-store-link (arg)
   "\\<org-mode-map>Store an org-link to the current location.
@@ -6202,14 +6250,34 @@ For file links, arg negates `org-context-in-file-links'."
 	    link (org-make-link cpltxt)))
 
      ((and buffer-file-name (org-mode-p))
-      ;; Just link to current headline
-      (setq cpltxt (concat "file:"
-			   (abbreviate-file-name buffer-file-name)))
-      ;; Add a context search string
-      (when (org-xor org-context-in-file-links arg)
-	;; Check if we are on a target
-	(if (org-in-regexp "<<\\(.*?\\)>>")
-	    (setq cpltxt (concat cpltxt "::" (match-string 1)))
+      (cond
+       ((org-in-regexp "<<\\(.*?\\)>>")
+	(setq cpltxt
+	      (concat "file:"
+		      (abbreviate-file-name buffer-file-name)
+		      "::" (match-string 1))
+	      link (org-make-link cpltxt)))
+       ((and (featurep 'org-id)
+	     (or (eq org-link-to-org-use-id t)
+		 (and (eq org-link-to-org-use-id 'create-if-interactive)
+		      (interactive-p))
+		 (and org-link-to-org-use-id
+		      (condition-case nil
+			  (org-entry-get nil "ID")
+			(error nil)))))
+	;; We can make a link using the ID.
+	(setq link (condition-case nil
+		       (org-id-store-link)
+		     (error
+		      ;; probably before first headling, link to file only
+		      (concat "file:"
+			      (abbreviate-file-name buffer-file-name))))))
+       (t
+	;; Just link to current headline
+	(setq cpltxt (concat "file:"
+			     (abbreviate-file-name buffer-file-name)))
+	;; Add a context search string
+	(when (org-xor org-context-in-file-links arg)
 	  (setq txt (cond
 		     ((org-on-heading-p) nil)
 		     ((org-region-active-p)
@@ -6221,10 +6289,10 @@ For file links, arg negates `org-context-in-file-links'."
 			  (condition-case nil
 			      (org-make-org-heading-search-string txt)
 			    (error "")))
-		  desc "NONE"))))
-      (if (string-match "::\\'" cpltxt)
-	  (setq cpltxt (substring cpltxt 0 -2)))
-      (setq link (org-make-link cpltxt)))
+		  desc "NONE")))
+	(if (string-match "::\\'" cpltxt)
+	    (setq cpltxt (substring cpltxt 0 -2)))
+	(setq link (org-make-link cpltxt)))))
 
      ((buffer-file-name (buffer-base-buffer))
       ;; Just link to this file here.
@@ -6655,7 +6723,7 @@ used as the link location instead of reading one interactively."
 	  (setq key (match-string 1 a) value (match-string 2 a)
 		start (match-end 0)
 		attr (plist-put attr (intern key) value))))
-      (org-add-props s nil 'org-attributes attr))
+      (org-add-props s nil 'org-attr attr))
     s))
 
 (defun org-attributes-to-string (plist)
@@ -6663,7 +6731,8 @@ used as the link location instead of reading one interactively."
   (let ((s "") key value)
     (while plist
       (setq key (pop plist) value (pop plist))
-      (setq s (concat s " "(symbol-name key) "=\"" value "\"")))
+      (and value
+	   (setq s (concat s " " (symbol-name key) "=\"" value "\""))))
     s))
 
 ;;; Opening/following a link
@@ -7392,10 +7461,12 @@ on the system \"/user@host:\"."
 (defun org-get-refile-targets (&optional default-buffer)
   "Produce a table with refile targets."
   (let ((entries (or org-refile-targets '((nil . (:level . 1)))))
-	targets txt re files f desc descre)
+	targets txt re files f desc descre fast-path-p level)
+    (message "Getting targets...")
     (with-current-buffer (or default-buffer (current-buffer))
       (while (setq entry (pop entries))
 	(setq files (car entry) desc (cdr entry))
+	(setq fast-path-p nil)
 	(cond
 	 ((null files) (setq files (list (current-buffer))))
 	 ((eq files 'org-agenda-files)
@@ -7419,6 +7490,7 @@ on the system \"/user@host:\"."
 					    (cdr desc)))
 			       "\\}[ \t]")))
 	 ((eq (car desc) :maxlevel)
+	  (setq fast-path-p t)
 	  (setq descre (concat "^\\*\\{1," (number-to-string
 					    (if org-odd-levels-only
 						(1- (* 2 (cdr desc)))
@@ -7436,7 +7508,8 @@ on the system \"/user@host:\"."
 		(while (re-search-forward descre nil t)
 		  (goto-char (point-at-bol))
 		  (when (looking-at org-complex-heading-regexp)
-		    (setq txt (org-link-display-format (match-string 4))
+		    (setq level (org-reduced-level (- (match-end 1) (match-beginning 1)))
+			  txt (org-link-display-format (match-string 4))
 			  re (concat "^" (regexp-quote
 					  (buffer-substring (match-beginning 1)
 							    (match-end 4)))))
@@ -7452,26 +7525,37 @@ on the system \"/user@host:\"."
 						       (buffer-file-name (buffer-base-buffer))))
 					      (if (eq org-refile-use-outline-path 'full-file-path)
 						  (list (buffer-file-name (buffer-base-buffer)))))
-					    (org-get-outline-path)
+					    (org-get-outline-path fast-path-p level txt)
 					    (list txt))
 					   "/")))
 		    (push (list txt f re (point)) targets))
 		  (goto-char (point-at-eol))))))))
-      (nreverse targets))))
+    (message "Getting targets...done")
+    (nreverse targets))))
 
 (defun org-protect-slash (s)
   (while (string-match "/" s)
     (setq s (replace-match "\\" t t s)))
   s)
 
-(defun org-get-outline-path ()
+(defvar org-olpa (make-vector 20 nil))
+
+(defun org-get-outline-path (&optional fastp level heading)
   "Return the outline path to the current entry, as a list."
-  (let (rtn)
-    (save-excursion
-      (while (org-up-heading-safe)
-	(when (looking-at org-complex-heading-regexp)
-	  (push (org-match-string-no-properties 4) rtn)))
-      rtn)))
+  (if (> level 19) (error "Outline path failure, more than 19 levels."))
+  (if fastp
+      (progn
+	(loop for i from level upto 19 do
+	      (aset org-olpa i nil))
+	(prog1
+	    (delq nil (append org-olpa nil))
+	  (aset org-olpa level heading)))
+    (let (rtn)
+      (save-excursion
+	(while (org-up-heading-safe)
+	  (when (looking-at org-complex-heading-regexp)
+	    (push (org-match-string-no-properties 4) rtn)))
+	rtn))))
 
 (defvar org-refile-history nil
   "History for refiling operations.")
@@ -7514,6 +7598,15 @@ operation has put the subtree."
 	(setq file (nth 1 it)
 	      re (nth 2 it)
 	      pos (nth 3 it))
+	(if (and (equal (buffer-file-name) file)
+		 (if regionp
+		     (and (>= pos region-start)
+			  (<= pos region-end))
+		   (and (>= pos (point))
+			(< pos (save-excursion
+				 (org-end-of-subtree t t))))))
+	    (error "Cannot refile to position inside the tree or region"))
+		 
 	(setq nbuf (or (find-buffer-visiting file)
 		       (find-file-noselect file)))
 	(if goto
@@ -7571,10 +7664,9 @@ operation has put the subtree."
 		  'org-ido-completing-read))
 	 (extra (if org-refile-use-outline-path "/" ""))
 	 (filename (buffer-file-name (buffer-base-buffer cbuf)))
-	 (fname (and filename (file-truename filename)))
 	 (tbl (mapcar
 	       (lambda (x)
-		 (if (not (equal fname (file-truename (nth 1 x))))
+		 (if (not (equal filename (nth 1 x)))
 		     (cons (concat (car x) extra " ("
 				   (file-name-nondirectory (nth 1 x)) ")")
 			   (cdr x))
@@ -7740,7 +7832,8 @@ This function can be used in a hook."
     "BEGIN_EXAMPLE" "END_EXAMPLE"
     "BEGIN_QUOTE" "END_QUOTE"
     "BEGIN_VERSE" "END_VERSE"
-    "BEGIN_SRC" "END_SRC"))
+    "BEGIN_SRC" "END_SRC"
+    "CAPTION" "LABEL" "ATTR_HTML" "ATTR_LaTeX"))
 
 (defcustom org-structure-template-alist
   '(
@@ -9437,10 +9530,9 @@ ignore inherited ones."
 (defun org-toggle-tag (tag &optional onoff)
   "Toggle the tag TAG for the current line.
 If ONOFF is `on' or `off', don't toggle but set to this state."
-  (unless (org-on-heading-p t) (error "Not on headling"))
   (let (res current)
     (save-excursion
-      (beginning-of-line)
+      (org-back-to-heading t)
       (if (re-search-forward (org-re "[ \t]:\\([[:alnum:]_@:]+\\):[ \t]*$")
 			     (point-at-eol) t)
 	  (progn
@@ -10559,6 +10651,7 @@ completion."
 IDENT can be a string, a symbol or a number, this function will search for
 the string representation of it.
 Return the position where this entry starts, or nil if there is no such entry."
+  (interactive "sID: ")
   (let ((id (cond
 	     ((stringp ident) ident)
 	     ((symbol-name ident) (symbol-name ident))
@@ -13412,6 +13505,12 @@ With optional NODE, go directly to that node."
 
 ;;; Generally useful functions
 
+(defun org-find-text-property-in-string (prop s)
+  "Return the first non-nil value of property PROP in string S."
+  (or (get-text-property 0 prop s)
+      (get-text-property (or (next-single-property-change 0 prop s) 0)
+			 prop s)))
+
 (defun org-display-warning (message) ;; Copied from Emacs-Muse
   "Display the given MESSAGE as a warning."
   (if (fboundp 'display-warning)
@@ -14308,6 +14407,11 @@ plainly yank the text as it is.
     (error (error "Before first headline at position %d in buffer %s"
 		  (point) (current-buffer)))))
 
+(defun org-before-first-heading-p ()
+  "Before first heading?"
+  (save-excursion
+    (null (re-search-backward "^\\*+ " nil t))))
+
 (defalias 'org-on-heading-p 'outline-on-heading-p)
 (defalias 'org-at-heading-p 'outline-on-heading-p)
 (defun org-at-heading-or-item-p ()
@@ -14329,16 +14433,14 @@ With argument, move up ARG levels."
   "Move to the heading line of which the present line is a subheading.
 This version will not throw an error.  It will return the level of the
 headline found, or nil if no higher level is found."
-  (let ((pos (point)) start-level level
-	(re (concat "^" outline-regexp)))
-    (catch 'exit
-      (org-back-to-heading t)
-      (setq start-level (funcall outline-level))
-      (if (equal start-level 1) (throw 'exit nil))
-      (while (re-search-backward re nil t)
-	(setq level (funcall outline-level))
-	(if (< level start-level) (throw 'exit level)))
-      nil)))
+  (let (start-level re)
+    (org-back-to-heading t)
+    (setq start-level (funcall outline-level))
+    (if (equal start-level 1)
+	nil
+      (setq re (concat "^\\*\\{1," (number-to-string (1- start-level)) "\\} "))
+      (if (re-search-backward re nil t)
+	  (funcall outline-level)))))
 
 (defun org-first-sibling-p ()
   "Is this heading the first child of its parents?"

@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
-;; Version: 6.14
+;; Version: 6.15a
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org, wp, tex
@@ -91,6 +91,7 @@
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
 \\usepackage{graphicx}
+\\usepackage{longtable}
 \\usepackage{hyperref}"
      ("\\section{%s}" . "\\section*{%s}")
      ("\\subsection{%s}" . "\\subsection*{%s}")
@@ -102,6 +103,7 @@
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
 \\usepackage{graphicx}
+\\usepackage{longtable}
 \\usepackage{hyperref}"
      ("\\part{%s}" . "\\part*{%s}")
      ("\\chapter{%s}" . "\\chapter*{%s}")
@@ -113,6 +115,7 @@
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
 \\usepackage{graphicx}
+\\usepackage{longtable}
 \\usepackage{hyperref}"
      ("\\part{%s}" . "\\part*{%s}")
      ("\\chapter{%s}" . "\\chapter*{%s}")
@@ -163,8 +166,8 @@ to represent the section title."
     ("/" "\\emph{%s}" nil)
     ("_" "\\underline{%s}" nil)
     ("+" "\\texttt{%s}" nil)
-    ("=" "\\texttt{%s}" nil)
-    ("~" "\\texttt{%s}" t))
+    ("=" "\\verb|%s|" nil)
+    ("~" "\\verb|%s|" t))
   "Alist of LaTeX expressions to convert emphasis fontifiers.
 Each element of the list is a list of three elements.
 The first element is the character used as a marker for fontification.
@@ -357,6 +360,8 @@ when PUB-DIR is set, use this as the publishing directory."
       (error "Need a file name to be able to export")))
 
   (message "Exporting to LaTeX...")
+  (remove-text-properties (point-min) (point-max)
+			  '(:org-license-to-kill nil))
   (org-update-radio-target-regexp)
   (org-export-latex-set-initial-vars ext-plist arg)
   (let* ((wcf (current-window-configuration))
@@ -404,11 +409,10 @@ when PUB-DIR is set, use this as the publishing directory."
 	 (odd org-odd-levels-only)
 	 (header (org-export-latex-make-header title opt-plist))
 	 (skip (cond (subtree-p nil)
-		     (region-p t)
-		 ;; never skip first lines when exporting a subtree
+		     (region-p nil)
 		     (t (plist-get opt-plist :skip-before-1st-heading))))
 	 (text (plist-get opt-plist :text))
-	 (first-lines (if skip "" (org-export-latex-first-lines)))
+	 (first-lines (if skip "" (org-export-latex-first-lines rbeg)))
 	 (coding-system (and (boundp 'buffer-file-coding-system)
 			     buffer-file-coding-system))
 	 (coding-system-for-write (or org-export-latex-coding-system
@@ -420,17 +424,18 @@ when PUB-DIR is set, use this as the publishing directory."
 		  (if region-p (region-end) (point-max))))
 	 (string-for-export
 	  (org-export-preprocess-string
-	   region :emph-multiline t
-		  :for-LaTeX t
-		  :comments nil
-		  :tags (plist-get opt-plist :tags)
-		  :priority (plist-get opt-plist :priority)
-		  :todo-keywords (plist-get opt-plist :todo-keywords)
-		  :add-text (if (eq to-buffer 'string) nil text)
-		  :skip-before-1st-heading skip
-		  :select-tags (plist-get opt-plist :select-tags)
-		  :exclude-tags (plist-get opt-plist :exclude-tags)
-		  :LaTeX-fragments nil)))
+	   region
+	   :emph-multiline t
+	   :for-LaTeX t
+	   :comments nil
+	   :tags (plist-get opt-plist :tags)
+	   :priority (plist-get opt-plist :priority)
+	   :todo-keywords (plist-get opt-plist :todo-keywords)
+	   :add-text (if (eq to-buffer 'string) nil text)
+	   :skip-before-1st-heading skip
+	   :select-tags (plist-get opt-plist :select-tags)
+	   :exclude-tags (plist-get opt-plist :exclude-tags)
+	   :LaTeX-fragments nil)))
 
     (set-buffer buffer)
     (erase-buffer)
@@ -451,12 +456,6 @@ when PUB-DIR is set, use this as the publishing directory."
     ;; insert lines before the first headline
     (unless (or skip (eq to-buffer 'string))
       (insert first-lines))
-
-    ;; handle the case where the region does not begin with a section
-    (when region-p
-      (insert (with-temp-buffer
-		(insert string-for-export)
-		(org-export-latex-first-lines))))
 
     ;; export the content of headlines
     (org-export-latex-global
@@ -733,32 +732,33 @@ OPT-PLIST is the options plist for current buffer."
      (when (and org-export-with-toc
 		(plist-get opt-plist :section-numbers))
        (cond ((numberp toc)
-	      (format "\\setcounter{tocdepth}{%s}\n\\tableofcontents\n\n"
+	      (format "\\setcounter{tocdepth}{%s}\n\\tableofcontents\n\\vspace*{1cm}\n"
 		      (min toc (plist-get opt-plist :headline-levels))))
-	     (toc (format "\\setcounter{tocdepth}{%s}\n\\tableofcontents\n\n"
+	     (toc (format "\\setcounter{tocdepth}{%s}\n\\tableofcontents\n\\vspace*{1cm}\n"
 			  (plist-get opt-plist :headline-levels))))))))
 
-(defun org-export-latex-first-lines (&optional comments)
+(defun org-export-latex-first-lines (&optional beg)
   "Export the first lines before first headline.
-COMMENTS is either nil to replace them with the empty string or a
-formatting string like %%%%s if we want to comment them out."
+If BEG is non-nil, the is the beginning of he region."
   (save-excursion
-    (goto-char (point-min))
+    (goto-char (or beg (point-min)))
     (if (org-at-heading-p) (beginning-of-line 2))
     (let* ((pt (point))
-	   (end (if (and (re-search-forward "^\\* " nil t)
-			 (not (eq pt (match-beginning 0))))
+	   (end (if (re-search-forward "^\\*+ " nil t)
 		    (goto-char (match-beginning 0))
 		  (goto-char (point-max)))))
-      (org-export-latex-content
-       (org-export-preprocess-string
-	(buffer-substring (point-min) end)
-	:for-LaTeX t
-	:emph-multiline t
-	:add-text nil
-	:comments nil
-	:skip-before-1st-heading nil
-	:LaTeX-fragments nil)))))
+      (prog1
+	  (org-export-latex-content
+	   (org-export-preprocess-string
+	    (buffer-substring pt end)
+	    :for-LaTeX t
+	    :emph-multiline t
+	    :add-text nil
+	    :comments nil
+	    :skip-before-1st-heading nil
+	    :LaTeX-fragments nil))
+	(add-text-properties pt (max pt (1- end))
+			     '(:org-license-to-kill t))))))
 
 (defun org-export-latex-content (content &optional exclude-list)
   "Convert CONTENT string to LaTeX.
@@ -855,8 +855,8 @@ links, keywords, lists, tables, fixed-width"
   "Export quotation marks depending on language conventions."
   (let* ((lang (plist-get org-export-latex-options-plist :language))
 	 (quote-rpl (if (equal lang "fr")
-			'(("\\(\\s-\\)\"" "«~")
-			  ("\\(\\S-\\)\"" "~»")
+			'(("\\(\\s-\\)\"" "Â«~")
+			  ("\\(\\S-\\)\"" "~Â»")
 			  ("\\(\\s-\\)'" "`"))
 		      '(("\\(\\s-\\)\"" "``")
 			("\\(\\S-\\)\"" "''")
@@ -877,8 +877,9 @@ See the `org-export-latex.el' code for a complete conversion table."
 	  (goto-char (point-min))
 	  (while (re-search-forward c nil t)
 	    ;; Put the point where to check for org-protected
-	    (unless (or (get-text-property (match-beginning 2) 'org-protected)
-			(org-at-table-p))
+;	    (unless (or (get-text-property (match-beginning 2) 'org-protected);
+;			(org-at-table-p))
+	    (unless (get-text-property (match-beginning 2) 'org-protected)
 	      (cond ((member (match-string 2) '("\\$" "$"))
 		     (if (equal (match-string 2) "\\$")
 			 (replace-match (concat (match-string 1) "$"
@@ -1035,14 +1036,27 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
     (save-excursion (org-table-align))
     (let* ((beg (org-table-begin))
 	   (end (org-table-end))
-	   (raw-table (buffer-substring-no-properties beg end))
-	   fnum fields line lines olines gr colgropen line-fmt align)
+	   (raw-table (buffer-substring beg end))
+	   fnum fields line lines olines gr colgropen line-fmt align
+	   caption label attr floatp longtblp)
       (if org-export-latex-tables-verbatim
 	  (let* ((tbl (concat "\\begin{verbatim}\n" raw-table
 			      "\\end{verbatim}\n")))
 	    (apply 'delete-region (list beg end))
 	    (insert (org-export-latex-protect-string tbl)))
 	(progn
+	  (setq caption (org-find-text-property-in-string
+			 'org-caption raw-table)
+		attr (org-find-text-property-in-string
+		      'org-attributes raw-table)
+		label (org-find-text-property-in-string
+		       'org-label raw-table)
+		longtblp (and attr (stringp attr)
+			      (string-match "\\<longtable\\>" attr))
+		align (and attr (stringp attr)
+			   (string-match "\\<align=\\([^ \t\n\r,]+\\)" attr)
+			   (match-string 1 attr))
+		floatp (or caption label))
 	  (setq lines (split-string raw-table "\n" t))
 	  (apply 'delete-region (list beg end))
  	  (when org-export-table-remove-special-lines
@@ -1076,10 +1090,11 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
 		     (string-match "^\\(|\\)?\\(.+\\)|$" line-fmt))
 	    (setq line-fmt (match-string 2 line-fmt)))
 	  ;; format alignment
-	  (setq align (apply 'format
-			     (cons line-fmt
-				   (mapcar (lambda (x) (if x "r" "l"))
-					   org-table-last-alignment))))
+	  (unless align
+	    (setq align (apply 'format
+			       (cons line-fmt
+				     (mapcar (lambda (x) (if x "r" "l"))
+					     org-table-last-alignment)))))
 	  ;; prepare the table to send to orgtbl-to-latex
 	  (setq lines
 		(mapcar
@@ -1089,8 +1104,34 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
 		 lines))
     	  (when insert
 	    (insert (org-export-latex-protect-string
-                     (orgtbl-to-latex
-                      lines `(:tstart ,(concat "\\begin{tabular}{" align "}"))))
+		     (concat
+		      (if longtblp
+			  (concat "\\begin{longtable}{" align "}\n")
+			(if floatp "\\begin{table}[htb]\n"))
+		      (if (or floatp longtblp)
+			  (format
+			   "\\caption{%s%s}"
+			   (if label (concat "\\\label{" label "}") "")
+			   (or caption "")))
+		      (if longtblp "\\\\\n" "\n")
+		      (if (not longtblp) "\\begin{center}\n")
+		      (if (not longtblp) (concat "\\begin{tabular}{" align "}\n"))
+		      (orgtbl-to-latex 
+		       lines
+		       `(:tstart nil :tend nil
+				 :hlend ,(if longtblp
+					     (format "\\\\
+\\hline
+\\endhead
+\\hline\\multicolumn{%d}{r}{Continued on next page}\\
+\\endfoot
+\\endlastfoot" (length org-table-last-alignment))
+					   nil)))
+		      (if (not longtblp) (concat "\n\\end{tabular}"))
+		      (if longtblp "\n" "\n\\end{center}\n")
+		      (if longtblp
+			  "\\end{longtable}"
+			(if floatp "\\end{table}"))))
 		    "\n\n")))))))
 
 (defun org-export-latex-fontify ()
@@ -1122,10 +1163,17 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
      (goto-char (match-beginning 0))
      (let* ((re-radio org-export-latex-all-targets-re)
 	    (remove (list (match-beginning 0) (match-end 0)))
-	    (type (match-string 2))
 	    (raw-path (org-extract-attributes (match-string 3)))
 	    (full-raw-path (concat (match-string 1) raw-path))
 	    (desc (match-string 5))
+	    (type (or (match-string 2)
+		      (if (or (file-name-absolute-p raw-path)
+			      (string-match "^\\.\\.?/" raw-path))
+			  "file")))
+	    (caption (org-find-text-property-in-string 'org-caption raw-path))
+	    (attr (org-find-text-property-in-string 'org-attributes raw-path))
+	    (label (org-find-text-property-in-string 'org-label raw-path))
+	    (floatp (or label caption))
 	    imgp radiop
 	    ;; define the path of the link
 	    (path (cond
@@ -1137,7 +1185,8 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
 		    (concat type ":" raw-path))
 		   ((equal type "file")
 		    (if (and (or (org-file-image-p (expand-file-name raw-path))
-				 (string-match "\\.eps$" raw-path))
+				 (string-match "\\.\\(pdf\\|jpg\\|ps\\|eps\\)$"
+					       raw-path))
 			     (equal desc full-raw-path))
 			(setq imgp t)
 		      (progn (when (string-match "\\(.+\\)::.+" raw-path)
@@ -1150,10 +1199,17 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
        ;; process with link inserting
        (apply 'delete-region remove)
        (cond ((and imgp (plist-get org-export-latex-options-plist :inline-images))
-	      (insert (format "\\includegraphics[%s]{%s}"
-			      ;; image option should be set be a comment line
-			      org-export-latex-image-default-option
-			      (expand-file-name raw-path))))
+	      (insert
+	       (concat
+		(if floatp "\\begin{figure}[htb]\n")
+		(format "\\centerline{\\includegraphics[%s]{%s}}\n"
+			(or attr org-export-latex-image-default-option)
+			(expand-file-name raw-path))
+		(if floatp
+		    (format "\\caption{%s%s}\n"
+			    (if label (concat "\\label{" label "}"))
+			    (or caption "")))
+		(if floatp "\\end{figure}\n"))))
 	     (radiop (insert (format "\\hyperref[%s]{%s}"
 				     (org-solidify-link-text raw-path) desc)))
 	     ((not type)
@@ -1167,7 +1223,6 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
 
 (defun org-export-latex-preprocess ()
   "Clean stuff in the LaTeX export."
-
   ;; Preserve line breaks
   (goto-char (point-min))
   (while (re-search-forward "\\\\\\\\" nil t)

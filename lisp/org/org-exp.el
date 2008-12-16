@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.14
+;; Version: 6.15a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -545,7 +545,8 @@ Org-mode file."
   table { border-collapse: collapse; }
   td, th { vertical-align: top; }
   dt { font-weight: bold; }
-
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
   .org-info-js_info-navigation { border-style:none; }
   #org-info-js_console-label { font-size:10px; font-weight:bold;
                                white-space:nowrap; }
@@ -1432,6 +1433,8 @@ on this string to produce the exported version."
   (let* ((htmlp (plist-get parameters :for-html))
 	 (asciip (plist-get parameters :for-ascii))
 	 (latexp (plist-get parameters :for-LaTeX))
+	 (backend (cond (htmlp 'html) (latexp 'latex) (asciip 'ascii)))
+
 	 (archived-trees (plist-get parameters :archived-trees))
 	 (inhibit-read-only t)
 	 (drawers org-drawers)
@@ -1465,6 +1468,9 @@ on this string to produce the exported version."
 
       ;; Handle source code snippets
       (org-export-replace-src-segments)
+      
+      ;; Find all headings and compute the targets for them
+      (setq target-alist (org-export-define-heading-targets target-alist))
 
       ;; Get rid of drawers
       (org-export-remove-or-extract-drawers drawers
@@ -1487,9 +1493,6 @@ on this string to produce the exported version."
       ;; Remove todo-keywords before exporting, if the user has requested so
       (org-export-remove-headline-metadata parameters)
 
-      ;; Find all headings and compute the targets for them
-      (setq target-alist (org-export-define-heading-targets target-alist))
-
       ;; Find targets in comments and move them out of comments,
       ;; but mark them as targets that should be invisible
       (setq target-alist (org-export-handle-invisible-targets target-alist))
@@ -1498,8 +1501,7 @@ on this string to produce the exported version."
       (org-export-protect-examples (if asciip 'indent nil))
 
       ;; Protect backend specific stuff, throw away the others.
-      (org-export-select-backend-specific-text
-       (cond (htmlp 'html) (latexp 'latex) (asciip 'ascii)))
+      (org-export-select-backend-specific-text backend)
 
       ;; Protect quoted subtrees
       (org-export-protect-quoted-subtrees)
@@ -1510,9 +1512,12 @@ on this string to produce the exported version."
       ;; Blockquotes and verse
       (org-export-mark-blockquote-and-verse)
 
+      ;; Attach captions to the correct opject
+      (setq target-alist (org-export-attach-captions-and-attributes
+			  backend target-alist))
+
       ;; Remove comment environment and comment subtrees
       (org-export-remove-comment-blocks-and-subtrees)
-
 
       ;; Find matches for radio targets and turn them into internal links
       (org-export-mark-radio-links)
@@ -1571,18 +1576,22 @@ on this string to produce the exported version."
 The new targets are added to TARGET-ALIST, which is also returned."
   (goto-char (point-min))
   (org-init-section-numbers)
-  (let ((re (concat "^" org-outline-regexp))
+  (let ((re (concat "^" org-outline-regexp
+		    "\\| [ \t]*:ID:[ \t]*\\([^ \t\r\n]+\\)"))
 	level target)
     (while (re-search-forward re nil t)
-      (setq level (org-reduced-level
-		   (save-excursion (goto-char (point-at-bol))
-				   (org-outline-level))))
-      (setq target (org-solidify-link-text
-		    (format "sec-%s" (org-section-number level))))
-      (push (cons target target) target-alist)
-      (add-text-properties
-       (point-at-bol) (point-at-eol)
-       (list 'target target))))
+      (if (match-end 1)
+	  (push (cons (org-match-string-no-properties 1)
+		      target) target-alist)
+	(setq level (org-reduced-level
+		     (save-excursion (goto-char (point-at-bol))
+				     (org-outline-level))))
+	(setq target (org-solidify-link-text
+		      (format "sec-%s" (org-section-number level))))
+	(push (cons target target) target-alist)
+	(add-text-properties
+	 (point-at-bol) (point-at-eol)
+	 (list 'target target)))))
   target-alist)
 
 (defun org-export-handle-invisible-targets (target-alist)
@@ -1611,9 +1620,11 @@ Mark them as invisible targets."
   target-alist)
 
 (defun org-export-target-internal-links (target-alist)
-  "Find all internal links and assign target to them.
+  "Find all internal links and assign targets to them.
 If a link has a fuzzy match (i.e. not a *dedicated* target match),
-let the link  point to the corresponding section."
+let the link  point to the corresponding section.
+This function also handles the id links, if they have a match in
+the current file."
   (goto-char (point-min))
   (while (re-search-forward org-bracket-link-regexp nil t)
     (org-if-unprotected
@@ -1625,6 +1636,8 @@ let the link  point to the corresponding section."
 	    (target
 	     (cond
 	      ((cdr (assoc slink target-alist)))
+	      ((and (string-match "^id:" link)
+		    (cdr (assoc (substring link 3) target-alist))))
 	      ((string-match org-link-types-re link) nil)
 	      ((or (file-name-absolute-p link)
 		   (string-match "^\\." link))
@@ -1748,17 +1761,15 @@ from the buffer."
 	(todo (plist-get opts :todo-keywords))
 	(tags (plist-get opts :tags))
 	(pri  (plist-get opts :priority))
-	rpl)
+	(elts '(1 2 3 4 5))
+	rpl props)
+    (setq elts (delq nil (list 1 (if todo 2) (if pri 3) 4 (if tags 5))))
     (when (or (not todo) (not tags) (not pri))
-      ;; OK, something needs to be removed
-      (setq rpl (concat "\\1"
-			(if todo " \\2" "")
-			(if pri  " \\3" "")
-			" \\4"
-			(if tags " \\5" "")))
       (goto-char (point-min))
       (while (re-search-forward re nil t)
-	(replace-match rpl t nil)))))
+	(setq rpl (mapconcat (lambda (i) (if (match-end i) (match-string i) ""))
+			     elts " "))
+	(replace-match rpl t t)))))
 
 (defun org-export-protect-quoted-subtrees ()
   "Mark quoted subtrees with the protection property."
@@ -1837,6 +1848,41 @@ These special cookies will later be interpreted by the backend."
     (replace-match (if (equal (downcase (match-string 1)) "end")
 		       "ORG-VERSE-END" "ORG-VERSE-START")
 		   t t)))
+
+(defun org-export-attach-captions-and-attributes (backend target-alist)
+  "Move #+CAPTION, #+ATTR_BACKEND, and #+LABEL text into text properties.
+If the next thing following is a table, add the text properties to the first
+table line.  If it is a link, add it to the line containing the link."
+  (goto-char (point-min))
+  (remove-text-properties (point-min) (point-max)
+			  '(org-caption nil org-attributes nil))
+  (let ((case-fold-search t)
+	(re (concat "^#\\+caption:[ \t]+\\(.*\\)"
+		    "\\|"
+		    "^#\\+attr_" (symbol-name backend) ":[ \t]+\\(.*\\)"
+		    "\\|"
+		    "^#\\+label:[ \t]+\\(.*\\)"
+		    "\\|"
+		    "^[ \t]*|[^-]"
+		    "\\|"
+		    "^[ \t]*\\[\\[.*\\]\\][ \t]*$"))
+	cap attr label)
+    (while (re-search-forward re nil t)
+      (cond
+       ((match-end 1)
+	(setq cap (concat cap (if cap " " "") (org-trim (match-string 1)))))
+       ((match-end 2)
+	(setq attr (concat attr (if attr " " "") (org-trim (match-string 2)))))
+       ((match-end 3)
+	(setq label (org-trim (match-string 3))))
+       (t
+	(add-text-properties (point-at-bol) (point-at-eol)
+			     (list 'org-caption cap
+				   'org-attributes attr
+				   'org-label label))
+	(if label (push (cons label label) target-alist))
+	(setq cap nil attr nil label nil)))))
+  target-alist)
 
 (defun org-export-remove-comment-blocks-and-subtrees ()
   "Remove the comment environment, and also commented subtrees."
@@ -3206,12 +3252,14 @@ lang=\"%s\" xml:lang=\"%s\">
 
 	  ;; Blockquotes and verse
 	  (when (equal "ORG-BLOCKQUOTE-START" line)
+	    (org-close-par-maybe)
 	    (insert "<blockquote>\n<p>\n")
 	    (throw 'nextline nil))
 	  (when (equal "ORG-BLOCKQUOTE-END" line)
 	    (insert "</p>\n</blockquote>\n")
 	    (throw 'nextline nil))
 	  (when (equal "ORG-VERSE-START" line)
+	    (org-close-par-maybe)
 	    (insert "\n<p class=\"verse\">\n")
 	    (setq inverse t)
 	    (throw 'nextline nil))
@@ -3225,7 +3273,7 @@ lang=\"%s\" xml:lang=\"%s\">
 		  (setq line (concat (mapconcat 'identity
 						(make-list (* 2 i) "\\nbsp") "")
 				     " " (org-trim line))))
-	      (setq line (concat line " \\\\"))))
+	      (setq line (concat line "\\\\"))))
 
 	  ;; make targets to anchors
 	  (while (string-match "<<<?\\([^<>]*\\)>>>?\\((INVISIBLE)\\)?[ \t]*\n?" line)
@@ -3271,9 +3319,8 @@ lang=\"%s\" xml:lang=\"%s\">
 			       (string-match "^\\.\\.?/" path)))
 			 "file")
 			(t "internal")))
-	    (setq path (org-extract-attributes path))
-	    (setq attr (org-attributes-to-string
-			(get-text-property 0 'org-attributes path)))
+	    (setq path (org-extract-attributes (org-link-unescape path)))
+	    (setq attr (get-text-property 0 'org-attributes path))
 	    (setq desc1 (if (match-end 5) (match-string 5 line))
 		  desc2 (if (match-end 2) (concat type ":" path) path)
 		  descp (and desc1 (not (equal desc1 desc2)))
@@ -3302,10 +3349,8 @@ lang=\"%s\" xml:lang=\"%s\">
 	      (if (and (or (eq t org-export-html-inline-images)
 			   (and org-export-html-inline-images (not descp)))
 		       (org-file-image-p path))
-		  (setq rpl (concat "<img src=\"" type ":" path "\""
-				    (if (string-match "\\<alt=" attr)
-					attr (concat attr " alt=\"" path "\""))
-				    "/>"))
+		  (setq rpl (org-export-html-format-image
+			     (concat type ":" path)))
 		(setq link (concat type ":" path))
 		(setq rpl (concat "<a href=\""
 				  (org-export-html-format-href link)
@@ -3363,11 +3408,7 @@ lang=\"%s\" xml:lang=\"%s\">
 				   (or (eq t org-export-html-inline-images)
 				       (and org-export-html-inline-images
 					    (not descp))))
-			      (concat "<img src=\"" thefile "\""
-				      (if (string-match "alt=" attr)
-					  attr
-					(concat attr " alt=\""
-						thefile "\"")) "/>")
+			      (org-export-html-format-image thefile)
 			    (concat "<a href=\"" thefile "\"" attr ">"
 				    (org-export-html-format-desc desc)
 				    "</a>")))
@@ -3668,6 +3709,22 @@ lang=\"%s\" xml:lang=\"%s\">
 	(org-html-do-expand s))
     s))
 
+(defun org-export-html-format-image (src)
+  "Create image tag with source and attributes."
+  (save-match-data
+    (let* ((caption (org-find-text-property-in-string 'org-caption src))
+	   (attr (org-find-text-property-in-string 'org-attributes src))
+	   (label (org-find-text-property-in-string 'org-label src)))
+      (format "<div %sclass=\"figure\">
+<p><img src=\"%s\"%s></p>%s
+</div>"
+	      (if label (format "id=\"%s\" " label) "")
+	      src
+	      (if (string-match "\\<alt=" (or attr ""))
+		  (concat " " attr )
+		(concat " " attr " alt=\"" src "\""))
+	      (if caption (concat "\n<p>" caption "</p>") "")))))
+
 (defvar org-table-colgroup-info nil)
 (defun org-format-table-ascii (lines)
   "Format a table for ascii export."
@@ -3754,10 +3811,16 @@ lang=\"%s\" xml:lang=\"%s\">
     ;; column and the special lines
     (setq lines (org-table-clean-before-export lines)))
 
-  (let ((head (and org-export-highlight-first-table-line
+  (let ((caption (or (get-text-property 0 'org-caption (car lines))
+		     (get-text-property (or (next-single-property-change
+					     0 'org-caption (car lines))
+					    0)
+					'org-caption (car lines))))
+	(head (and org-export-highlight-first-table-line
 		   (delq nil (mapcar
 			      (lambda (x) (string-match "^[ \t]*|-" x))
 			      (cdr lines)))))
+	
 	(nlines 0) fnum i
 	tbopen line fields html gr colgropen)
     (if splice (setq head nil))
@@ -3814,6 +3877,7 @@ lang=\"%s\" xml:lang=\"%s\">
 	     fnum "")
 	    html)
       (if colgropen (setq html (cons (car html) (cons "</colgroup>" (cdr html)))))
+      (if caption (push (format "<caption>%s</caption>" caption) html))
       (push html-table-tag html))
     (concat (mapconcat 'identity html "\n") "\n")))
 

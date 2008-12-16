@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.14
+;; Version: 6.15a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -5067,13 +5067,17 @@ the same tree node, and the headline of the tree node in the Org-mode file."
 	     (org-flag-heading nil)))   ; show the next heading
       (org-add-note))))
 
-(defun org-agenda-change-all-lines (newhead hdmarker &optional fixface just-this)
+(defun org-agenda-change-all-lines (newhead hdmarker
+					    &optional fixface just-this
+					    force-tags)
   "Change all lines in the agenda buffer which match HDMARKER.
 The new content of the line will be NEWHEAD (as modified by
 `org-format-agenda-item').  HDMARKER is checked with
 `equal' against all `org-hd-marker' text properties in the file.
 If FIXFACE is non-nil, the face of each item is modified acording to
-the new TODO state."
+the new TODO state.
+If JUST-THIS is non-nil, change just the current line, not all.
+If FORCE-TAGS is non nil, the car of it ar the new tags."
   (let* ((inhibit-read-only t)
 	 (line (org-current-line))
 	 props m pl undone-face done-face finish new dotime cat tags)
@@ -5088,7 +5092,9 @@ the new TODO state."
 	  (setq props (text-properties-at (point))
 		dotime (get-text-property (point) 'dotime)
 		cat (get-text-property (point) 'org-category)
-		tags (get-text-property (point) 'tags)
+		tags (if force-tags
+			 (car force-tags)
+		       (get-text-property (point) 'tags))
 		new (org-format-agenda-item "x" newhead cat tags dotime 'noprefix)
 		pl (get-text-property (point) 'prefix-length)
 		undone-face (get-text-property (point) 'undone-face)
@@ -5191,7 +5197,7 @@ the same tree node, and the headline of the tree node in the Org-mode file."
 	   (buffer (marker-buffer hdmarker))
 	   (pos (marker-position hdmarker))
 	   (inhibit-read-only t)
-	   newhead)
+	   newhead tags)
       (org-with-remote-undo buffer
 	(with-current-buffer buffer
 	  (widen)
@@ -5203,9 +5209,10 @@ the same tree node, and the headline of the tree node in the Org-mode file."
 		 (org-flag-heading nil)))   ; show the next heading
 	  (goto-char pos)
 	  (call-interactively 'org-set-tags)
+	  (setq tags (org-get-tags-at))
 	  (end-of-line 1)
 	  (setq newhead (org-get-heading)))
-	(org-agenda-change-all-lines newhead hdmarker)
+	(org-agenda-change-all-lines newhead hdmarker nil nil (list tags))
 	(beginning-of-line 1)))))
 
 (defun org-agenda-toggle-archive-tag ()
@@ -5627,6 +5634,7 @@ belonging to the \"Work\" category."
 		 (time-to-days (current-time))))
 	 (files (org-agenda-files 'unrestricted)) entries file)
     ;; Get all entries which may contain an appt
+    (org-prepare-agenda-buffers files)
     (while (setq file (pop files))
       (setq entries
 	    (append entries

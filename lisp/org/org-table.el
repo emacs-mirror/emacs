@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.14
+;; Version: 6.15a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1897,7 +1897,8 @@ For all numbers larger than LIMIT, shift them by DELTA."
 	(beginning-of-line 2)
 	(setq l (1+ l)))
       (setq org-table-current-line-types (apply 'vector (nreverse types))
-	    org-table-dlines (apply 'vector (cons nil (nreverse dlines)))
+	    org-table-dlines (apply 'vector (cons (car dlines)
+						  (nreverse dlines)))
 	    org-table-hlines (apply 'vector (cons nil (nreverse hlines)))))))
 
 (defun org-table-maybe-eval-formula ()
@@ -2360,12 +2361,17 @@ LISPP means to return something appropriate for a Lisp list."
 
 (defun org-table-recalculate (&optional all noalign)
   "Recalculate the current table line by applying all stored formulas.
-With prefix arg ALL, do this for all lines in the table."
+With prefix arg ALL, do this for all lines in the table.
+With the prefix argument ALL is `(16)' (a double `C-c C-u' prefix), or if
+it is the symbol `iterate', recompute the table until it no longer changes.
+If NOALIGN is not nil, do not re-align the table after the computations
+are done.  This is typically used internally to save time, if it is
+known that the table will be realigned a little later anyway."
   (interactive "P")
   (or (memq this-command org-recalc-commands)
       (setq org-recalc-commands (cons this-command org-recalc-commands)))
   (unless (org-at-table-p) (error "Not at a table"))
-  (if (equal all '(16))
+  (if (or (eq all 'iterate) (equal all '(16)))
       (org-table-iterate)
     (org-table-get-specials)
     (let* ((eqlist (sort (org-table-get-stored-formulas)
@@ -3865,9 +3871,15 @@ directly by `orgtbl-send-table'.  See manual."
 
     ;; Do we have a heading section?  If so, format it and handle the
     ;; trailing hline.
-    (if (and (not splicep) (listp (car *orgtbl-table*))
-	     (memq 'hline *orgtbl-table*))
+    (if (and (not splicep)
+	     (or (consp (car *orgtbl-table*))
+		 (consp (nth 1 *orgtbl-table*)))
+	     (memq 'hline (cdr *orgtbl-table*)))
 	(progn
+	  (when (eq 'hline (car *orgtbl-table*))
+	    ;; there is a hline before the first data line
+	    (and hline (push hline *orgtbl-rtn*))
+	    (pop *orgtbl-table*))
 	  (let* ((*orgtbl-lstart* (or (plist-get params :hlstart)
 				      *orgtbl-lstart*))
 		 (*orgtbl-llstart* (or (plist-get params :hllstart)

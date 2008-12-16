@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.14
+;; Version: 6.15a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -118,7 +118,8 @@ be visited."
 	  (const :tag "Clock and history" t)
 	  (const :tag "No persistence" nil)))
 
-(defcustom org-clock-persist-file "~/.emacs.d/org-clock-save.el"
+(defcustom org-clock-persist-file (convert-standard-filename
+				   "~/.emacs.d/org-clock-save.el")
   "File to save clock data to"
   :group 'org-clock
   :type 'string)

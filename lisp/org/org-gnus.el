@@ -6,7 +6,7 @@
 ;;         Tassilo Horn <tassilo at member dot fsf dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.14
+;; Version: 6.15a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -74,11 +74,11 @@ If `org-store-link' was called with a prefix arg the meaning of
     (if (and (string-match "^nntp" group) ;; Only for nntp groups
 	     (org-xor current-prefix-arg
 		      org-gnus-prefer-web-links))
-	(concat (if (string-match "gmane" unprefixed-group)
-		    "http://news.gmane.org/"
-		  "http://groups.google.com/group/")
-		unprefixed-group)
-      (concat "gnus:" group))))
+	(org-make-link (if (string-match "gmane" unprefixed-group)
+			   "http://news.gmane.org/"
+			 "http://groups.google.com/group/")
+		       unprefixed-group)
+      (org-make-link "gnus:" group))))
 
 (defun org-gnus-article-link (group newsgroups message-id x-no-archive)
   "Create a link to a Gnus article.
@@ -98,8 +98,7 @@ If `org-store-link' was called with a prefix arg the meaning of
       (format (if (string-match "gmane\\." newsgroups)
 		  "http://mid.gmane.org/%s"
 		"http://groups.google.com/groups/search?as_umsgid=%s")
-	      (org-fixup-message-id-for-http
-	       (replace-regexp-in-string "[<>]" "" message-id)))
+	      (org-fixup-message-id-for-http message-id))
     (org-make-link "gnus:" group "#" message-id)))
 
 (defun org-gnus-store-link ()
@@ -115,7 +114,7 @@ If `org-store-link' was called with a prefix arg the meaning of
       (unless group (error "Not on a group"))
       (org-store-link-props :type "gnus" :group group)
       (setq desc (org-gnus-group-link group)
-	    link (org-make-link desc))
+	    link desc)
       (org-add-link-props :link link :description desc)
       link))
 
@@ -127,7 +126,8 @@ If `org-store-link' was called with a prefix arg the meaning of
 		     (goto-char (point-min))
 		     (mail-header-extract-no-properties)))
 	   (from (mail-header 'from header))
-	   (message-id (mail-header 'message-id header))
+	   (message-id (org-remove-angle-brackets
+			(mail-header 'message-id header)))
 	   (date (mail-header 'date header))
 	   (to (mail-header 'to header))
 	   (newsgroups (mail-header 'newsgroups header))
@@ -149,6 +149,10 @@ If `org-store-link' was called with a prefix arg the meaning of
 	(error "Error in Gnus link"))
     (setq group (match-string 1 path)
 	  article (match-string 3 path))
+    (when group
+      (setq group (org-substring-no-properties group)))
+    (when article
+      (setq article (org-substring-no-properties article)))
     (org-gnus-follow-link group article)))
 
 (defun org-gnus-follow-link (&optional group article)
@@ -156,13 +160,28 @@ If `org-store-link' was called with a prefix arg the meaning of
   (require 'gnus)
   (funcall (cdr (assq 'gnus org-link-frame-setup)))
   (if gnus-other-frame-object (select-frame gnus-other-frame-object))
+  (when group
+    (setq group (org-substring-no-properties group)))
+  (when article
+    (setq article (org-substring-no-properties article)))
   (cond ((and group article)
-	 (gnus-group-read-group 1 nil group)
-	 (gnus-summary-goto-article
-	  (if (string-match "[^0-9]" article)
-	      article
-	    (string-to-number article))
-	  nil t))
+	 (gnus-activate-group group t)
+	 (condition-case nil
+	     (let ((articles 1)
+		   group-opened)
+	       (while (and (not group-opened)
+			   ;; stop on integer overflows
+			   (> articles 0))
+		 (setq group-opened (gnus-group-read-group articles nil group)
+		       articles (if (< articles 16)
+				    (1+ articles)
+				  (* articles 2))))
+	       (if group-opened
+		   (gnus-summary-goto-article article nil t)
+		 (message "Couldn't follow gnus link.  %s"
+			  "The summary couldn't be opened.")))
+	   (quit (message "Couldn't follow gnus link.  %s"
+			  "The linked group is empty."))))
 	(group (gnus-group-jump-to-group group))))
 
 (defun org-gnus-no-new-news ()
