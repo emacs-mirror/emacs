@@ -417,13 +417,21 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
     TraceIdMessagesDestroy(arena, ti);
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
+  /* report dropped messages (currently in diagnostic varieties only) */
+  if(arena->droppedMessages > 0) {
+    DIAG_SINGLEF(( "GlobalsPrepareToDestroy_dropped",
+      "arena->droppedMessages = $U", (WriteFU)arena->droppedMessages,
+      NULL ));
+  }
+
   /* .message.queue.empty: Empty the queue of messages before */
   /* proceeding to finish the arena.  It is important that this */
   /* is done before destroying the finalization pool as otherwise */
   /* the message queue would have dangling pointers to messages */
   /* whose memory has been unmapped. */
   if(MessagePoll(arena)) {
-    DIAG_SINGLEF(( "GlobalsPrepareToDestroy", "Message queue not empty", NULL ));
+    DIAG_SINGLEF(( "GlobalsPrepareToDestroy_queue",
+      "Message queue not empty", NULL ));
   }
   MessageEmpty(arena);
 
