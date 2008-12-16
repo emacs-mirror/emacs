@@ -422,6 +422,9 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   /* is done before destroying the finalization pool as otherwise */
   /* the message queue would have dangling pointers to messages */
   /* whose memory has been unmapped. */
+  if(MessagePoll(arena)) {
+    DIAG_SINGLEF(( "GlobalsPrepareToDestroy", "Message queue not empty", NULL ));
+  }
   MessageEmpty(arena);
 
   /* throw away the BT used by messages */
