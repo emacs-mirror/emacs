@@ -2651,21 +2651,21 @@ font_clear_cache (f, cache, driver)
      struct font_driver *driver;
 {
   Lisp_Object tail, elt;
+  Lisp_Object tail2, entity;
 
   /* CACHE = (DRIVER-TYPE NUM-FRAMES FONT-CACHE-DATA ...) */
   for (tail = XCDR (XCDR (cache)); CONSP (tail); tail = XCDR (tail))
     {
       elt = XCAR (tail);
-      if (CONSP (elt) && FONT_SPEC_P (XCAR (elt)) && VECTORP (XCDR (elt)))
+      /* elt should have the form (FONT-SPEC FONT-ENTITY ...) */
+      if (CONSP (elt) && FONT_SPEC_P (XCAR (elt)))
 	{
-	  Lisp_Object vec = XCDR (elt);
-	  int i;
-
-	  for (i = 0; i < ASIZE (vec); i++)
+	  for (tail2 = XCDR (elt); CONSP (tail2); tail2 = XCDR (tail2))
 	    {
-	      Lisp_Object entity = AREF (vec, i);
+	      entity = XCAR (tail2);
 
-	      if (EQ (driver->type, AREF (entity, FONT_TYPE_INDEX)))
+	      if (FONT_ENTITY_P (entity)
+		  && EQ (driver->type, AREF (entity, FONT_TYPE_INDEX)))
 		{
 		  Lisp_Object objlist = AREF (entity, FONT_OBJLIST_INDEX);
 
@@ -3586,7 +3586,7 @@ font_update_drivers (f, new_drivers)
 	}
       for (list = f->font_driver_list; list; list = list->next)
 	if (! list->on)
-	  list_table[i] = list;
+	  list_table[i++] = list;
       list_table[i] = NULL;
 
       next = &f->font_driver_list;
