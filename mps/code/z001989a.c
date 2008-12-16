@@ -421,12 +421,31 @@ int main(int argc, char **argv)
   /* The most basic scripts */
   testscriptA(".");
   testscriptA("Cbe.");
+  testscriptA("Cbe.Cbe.");
+
+  /* Get messages, but not promptly */
+  testscriptA(".Cbe.CbeCbeCbe.");
+
+  /* Ungot messages at ArenaDestroy */
+  testscriptA("Cbe");
+  testscriptA("Cbe.CbeCbeCbe");
+
+  /* Fail to call mps_message_discard */
+  testscriptA("Cbe!");
+  testscriptA("Cbe!CbeCbeCbe!");
+
+  /* Simple finalization
+   *
+   * These tests rely on the particular order in which the "F" command 
+   * nulls-out references.  Not every "F" makes an object finalizable.
+   * See .keep-alive.
+   */
+  testscriptA("FFCbffe.");
+  testscriptA("FFCbffe.FFCbffe.");
+  testscriptA("FFCbffe.FCbe.F.Cbffe.FFCbfe.FF.Cbfffe.");
   
-  /* SPECIAL SCRIPTS to work with a traceanc.c hacked to drop GC messages */
-  testscriptA("Cbe.CC.");
-  testscriptA("CCCCCbe!");
-  testscriptA("FFCbffe.FFCff.");
-  testscriptA("CbeFFCff.C");
+  /* Various other scripts */
+  testscriptA("Cbe.FFCbffe.Cbe");
 
   fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
