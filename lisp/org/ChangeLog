@@ -1,3 +1,7 @@
+2008-12-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-org-menu): Do not quote the set-tags command.
+
 2008-12-17  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* Fix typos in comments and docstrings throughout Org-mode.
