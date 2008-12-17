@@ -405,6 +405,59 @@ static void testscriptA(const char *script)
 
 }
 
+/* TIMCA_remote -- TraceIdMessagesCreate Alloc remote control
+ *
+ * In low memory situations, ControlAlloc may be unable to allocate 
+ * memory for GC messages.  This needs to work flawlessly, but is 
+ * hard to test.
+ *
+ * To simulate it for testing purposes, add the following lines to 
+ * traceanc.c, before the definition of TraceIdMessagesCreate:
+ *    #define ControlAlloc !TIMCA_remote() ? ResFAIL : ControlAlloc
+ *    extern Bool TIMCA_remote(void);
+ * (See changelist 166959).
+ *
+ * TIMCA_remote returns a Bool, true for let "ControlAlloc succeed".
+ */
+static const char *TIMCA_str = "";
+static int TIMCA_done = 0;
+static void TIMCA_setup(const char *string)
+{
+  /* TIMCA_setup -- TraceIdMessagesCreate Alloc remote control
+   *
+   * 1..9 -- succeed this many times
+   * 0    -- fail once
+   * NUL  -- succeed from now on
+   *
+   * Eg: "1400" succeeds 5 times, fails 2 times, then succeeds forever.
+   */
+  TIMCA_str = string;
+  TIMCA_done = 0;
+}
+
+extern Bool TIMCA_remote(void);
+Bool TIMCA_remote(void)
+{
+  Bool succeed;
+  
+  if(*TIMCA_str == '\0') {
+    succeed = TRUE;
+  } else if(*TIMCA_str == '0') {
+    succeed = FALSE;
+    TIMCA_str++;
+  } else {
+    Insist(*TIMCA_str >= '1' && *TIMCA_str <= '9');
+    succeed = TRUE;
+    TIMCA_done++;
+    if(TIMCA_done == *TIMCA_str - '0') {
+      TIMCA_done = 0;
+      TIMCA_str++;
+    }
+  }
+  
+  return succeed;
+}
+
 
 /* main -- runs various test scripts
  *
@@ -446,6 +499,47 @@ int main(int argc, char **argv)
   
   /* Various other scripts */
   testscriptA("Cbe.FFCbffe.Cbe");
+
+  /* Simulate low memory situations
+   *
+   * These scripts only work with a manually edited traceanc.c --
+   * see TIMCA_remote() above.
+   *
+   * When TraceIdMessagesCreate is trying to pre-allocate GC messages, 
+   * either "0" or "10" makes it fail -- "0" fails the trace start 
+   * message alloc, whereas "10" fails the trace end message alloc. 
+   * In either case TraceIdMessagesCreate promptly gives up, and 
+   * neither start nor end message will be sent for the next trace.
+   *
+   * See <design/message-gc#lifecycle>.
+   */
+  if(1) {
+    /* ArenaCreate unable to pre-allocate: THESE SHOULD FAIL */
+    /* manually edit if(0) -> if(1) to test these */
+    if(0) {
+      TIMCA_setup("0"); testscriptA("Fail at create 1");
+    }
+    if(0) {
+      TIMCA_setup("10"); testscriptA("Fail at create 2");
+    }
+
+    /* ArenaDestroy with no pre-allocated messages */
+    TIMCA_setup("20"); testscriptA("Cbe.");
+    TIMCA_setup("210"); testscriptA("Cbe.");
+
+    /* Collect with no pre-allocated messages: drops messages, */
+    /* hence "C." instead of "Cbe.".  Also, in diagnostic varieties, */
+    /* these should produce a "droppedMessages" diagnostic at */
+    /* ArenaDestroy. */
+    TIMCA_setup("2022"); testscriptA("Cbe.C.Cbe.");
+    TIMCA_setup("21022"); testscriptA("Cbe.C.Cbe.");
+
+    /* 2 Collects and ArenaDestroy with no pre-allocated messages */
+    TIMCA_setup("2000"); testscriptA("Cbe.C.C.");
+    TIMCA_setup("201010"); testscriptA("Cbe.C.C.");
+    
+    TIMCA_setup("");  /* must reset it! */
+  }
 
   fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
