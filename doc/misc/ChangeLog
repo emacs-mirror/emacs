@@ -1,3 +1,7 @@
+2008-12-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version number pushed to 6.15d.
+
 2008-12-16  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (Tables in LaTeX export): New section.
