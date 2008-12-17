@@ -513,7 +513,7 @@ int main(int argc, char **argv)
    *
    * See <design/message-gc#lifecycle>.
    */
-  if(1) {
+  if(0) {
     /* ArenaCreate unable to pre-allocate: THESE SHOULD FAIL */
     /* manually edit if(0) -> if(1) to test these */
     if(0) {
