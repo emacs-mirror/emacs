@@ -13342,7 +13342,7 @@ See the individual commands for more information."
      ["Priority Up" org-shiftup t]
      ["Priority Down" org-shiftdown t])
     ("TAGS and Properties"
-     ["Set Tags" 'org-set-tags-command t]
+     ["Set Tags" org-set-tags-command t]
      ["Change tag in region" 'org-change-tag-in-region (org-region-active-p)]
      "--"
      ["Set property" 'org-set-property t]
