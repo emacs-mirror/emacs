@@ -456,11 +456,6 @@ Bool TraceIdMessagesCheck(Arena arena, TraceId ti)
  * See <design/message-gc/#lifecycle>.
  */
 
-/* Remote control ControlAlloc to simulate low memory, for testing. */
-/* See TIMCA_remote() in z001989a.c */
-#define ControlAlloc !TIMCA_remote() ? ResFAIL : ControlAlloc
-extern Bool TIMCA_remote(void);
-
 Res TraceIdMessagesCreate(Arena arena, TraceId ti)
 {
   void *p;
