@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -25,7 +25,7 @@
 ;;
 ;;; Commentary:
 
-;; This file contains the face definitons for Org.
+;; This file contains the column view for Org.
 
 ;;; Code:
 
@@ -228,7 +228,7 @@ This is the compiled version of the format.")
 	      org-columns-ellipses))))
 
 (defvar org-columns-full-header-line-format nil
-  "Fthe full header line format, will be shifted by horizontal scrolling." )
+  "The full header line format, will be shifted by horizontal scrolling." )
 (defvar org-previous-header-line-format nil
   "The header line format before column view was turned on.")
 (defvar org-columns-inhibit-recalculation nil
@@ -326,7 +326,7 @@ for the duration of the command.")
 
 (defvar org-agenda-columns-remove-prefix-from-item)
 (defun org-agenda-columns-cleanup-item (item pl cphr fmt)
-  "Cleanup the tiem property for agenda column view.
+  "Cleanup the time property for agenda column view.
 See also the variable `org-agenda-columns-remove-prefix-from-item'."
   (let* ((org-complex-heading-regexp cphr)
 	 (prefix (substring item 0 pl))
@@ -737,7 +737,7 @@ around it."
     (org-columns-redo)))
 
 (defun org-columns-narrow (arg)
-  "Make the column nrrower by ARG characters."
+  "Make the column narrower by ARG characters."
   (interactive "p")
   (org-columns-widen (- arg)))
 
@@ -1137,7 +1137,7 @@ PARAMS is a property list of parameters:
 
 (defun org-listtable-to-string (tbl)
   "Convert a listtable TBL to a string that contains the Org-mode table.
-The table still need to be alligned.  The resulting string has no leading
+The table still need to be aligned.  The resulting string has no leading
 and tailing newline characters."
   (mapconcat
    (lambda (x)

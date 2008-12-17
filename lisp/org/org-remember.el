@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; This file contains the system to take fast notes with Org-mode.
-;; This system is used together with John Wiegleys `remember.el'.
+;; This system is used together with John Wiegley's `remember.el'.
 
 ;;; Code:
 
@@ -67,7 +67,7 @@ When this variable is nil, `C-c C-c' gives you the prompts, and
   "The interface to be used for interactive filing of remember notes.
 This is only used when the interactive mode for selecting a filing
 location is used (see the variable `org-remember-store-without-prompt').
-Allowed vaues are:
+Allowed values are:
 outline                  The interface shows an outline of the relevant file
                          and the correct heading is found by moving through
                          the outline or by searching with incremental search.
@@ -286,7 +286,7 @@ RET at beg-of-buf -> Append to file as level 2 headline
 		(mapcar (lambda(x) (if (not (nth 5 x)) x))
 			org-remember-templates)
 	      pre-selected-templates))
-	   ;; Then unconditionnally add template for any contexts
+	   ;; Then unconditionally add template for any contexts
 	   (pre-selected-templates2
 	    (append (mapcar (lambda(x) (if (eq (nth 5 x) t) x))
 			    org-remember-templates)
@@ -326,7 +326,7 @@ RET at beg-of-buf -> Append to file as level 2 headline
       (cddr (assoc char templates)))))
 
 (defun org-get-x-clipboard (value)
-  "Get the value of the x clibboard, compatible with XEmacs, and GNU Emacs 21."
+  "Get the value of the x clipboard, compatible with XEmacs, and GNU Emacs 21."
   (if (eq window-system 'x)
       (let ((x (org-get-x-clipboard-compat value)))
 	(if x (org-no-properties x)))))
@@ -709,12 +709,12 @@ When the prefix is 0 (i.e. when remember is exited with `C-0 C-c C-c'),
 the entry is filed to the same location as the previous note.
 
 When the prefix is 2 (i.e. when remember is exited with `C-2 C-c C-c'),
-the entry is fild as a subentry of the entry where the clock is
+the entry is filed as a subentry of the entry where the clock is
 currently running.
 
 When `C-u' has been used as prefix argument, the note is stored and emacs
 moves point to the new location of the note, so that editing can be
-continued there (smilar to inserting \"%&\" into the tempate).
+continued there (similar to inserting \"%&\" into the template).
 
 Before storing the note, the function ensures that the text has an
 org-mode-style headline, i.e. a first line that starts with

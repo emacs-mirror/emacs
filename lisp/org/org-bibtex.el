@@ -5,7 +5,7 @@
 ;; Author: Bastien Guerry <bzg at altern dot org>
 ;;         Carsten Dominik <carsten dot dominik at gmail dot com>
 ;; Keywords: org, wp, remember
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -27,7 +27,7 @@
 ;; This file implements links to database entries in BibTeX files.
 ;; Instead of defining a special link prefix, it uses the normal file
 ;; links combined with a custom search mechanism to find entries
-;; by reference key.  And it constucts a nice description tag for
+;; by reference key.  And it constructs a nice description tag for
 ;; the link that contains the author name, the year and a short title.
 ;;
 ;; It also stores detailed information about the entry so that

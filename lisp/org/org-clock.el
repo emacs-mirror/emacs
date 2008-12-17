@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -280,7 +280,7 @@ the clocking selection, associated with the letter `d'."
 	    (setq selected-task (copy-marker selected-task))
 	  (error "Abort")))
       (when interrupting
-	;; We are interrupting the clocking of a differnt task.
+	;; We are interrupting the clocking of a different task.
 	;; Save a marker to this task, so that we can go back.
 	(move-marker org-clock-interrupted-task
 		     (marker-position org-clock-marker)
@@ -541,7 +541,7 @@ Puts the resulting times in minutes as a text property on each headline."
 		dt (- te ts)
 		t1 (if (> dt 0) (+ t1 (floor (/ dt 60))) t1)))
 	 ((match-end 4)
-	  ;; A naket time
+	  ;; A naked time
 	  (setq t1 (+ t1 (string-to-number (match-string 5))
 		      (* 60 (string-to-number (match-string 4))))))
 	 (t ;; A headline

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -50,7 +50,7 @@
   :group 'org-export-html)
 
 (defcustom org-export-html-use-infojs 'when-configured
-  "Should Sebasian Rose's Java Script org-info.js be linked into HTML files?
+  "Should Sebastian Rose's Java Script org-info.js be linked into HTML files?
 This option can be nil or t to never or always use the script.  It can
 also be the symbol `when-configured', meaning that the script will be
 linked into the export file if and only if there is a \"#+INFOJS_OPT:\"
@@ -108,7 +108,7 @@ means to use the maximum value consistent with other options."
 <script type=\"text/javascript\" >
 <!--/*--><![CDATA[/*><!--*/
 %MANAGER_OPTIONS
-org_html_manager.setup();  // activate after the parameterd are set
+org_html_manager.setup();  // activate after the parameters are set
 /*]]>*/-->
 </script>"
   "The template for the export style additions when org-info.js is used.

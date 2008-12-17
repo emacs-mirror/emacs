@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
-;; Version: 6.15a
+;; Version: 6.15d
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org, wp, tex
@@ -259,15 +259,15 @@ These are the .aux, .log, .out, and .toc files."
   "Call `org-export-as-latex', may be used in batch processing.
 For example:
 
-emacs 	--batch
-	--load=$HOME/lib/emacs/org.el
-	--eval \"(setq org-export-headline-levels 2)\"
-	--visit=MyFile --funcall org-export-as-latex-batch"
+emacs   --batch
+        --load=$HOME/lib/emacs/org.el
+        --eval \"(setq org-export-headline-levels 2)\"
+        --visit=MyFile --funcall org-export-as-latex-batch"
   (org-export-as-latex org-export-headline-levels 'hidden))
 
 ;;;###autoload
 (defun org-export-as-latex-to-buffer (arg)
-  "Call `org-exort-as-latex` with output to a temporary buffer.
+  "Call `org-export-as-latex` with output to a temporary buffer.
 No file is created.  The prefix ARG is passed through to `org-export-as-latex'."
   (interactive "P")
   (org-export-as-latex arg nil nil "*Org LaTeX Export*")
@@ -419,7 +419,7 @@ when PUB-DIR is set, use this as the publishing directory."
 				      coding-system))
 	 (save-buffer-coding-system (or org-export-latex-coding-system
 					coding-system))
-         (region (buffer-substring
+	 (region (buffer-substring
 		  (if region-p (region-beginning) (point-min))
 		  (if region-p (region-end) (point-max))))
 	 (string-for-export
@@ -829,10 +829,10 @@ links, keywords, lists, tables, fixed-width"
 	(replace-match
 	 (org-export-latex-protect-string
 	  (format "\\texttt{%s}"
-                  (save-match-data
-                    (replace-regexp-in-string
-                     "_" "\\\\_" (match-string 0)))))
-         t t)))))
+		  (save-match-data
+		    (replace-regexp-in-string
+		     "_" "\\\\_" (match-string 0)))))
+	 t t)))))
 
 (defun org-export-latex-fontify-headline (string)
   "Fontify special words in STRING."
@@ -922,12 +922,12 @@ See the `org-export-latex.el' code for a complete conversion table."
 					     (match-string 1)
 					     (match-string 3))) "") t t)))))))
 	'("^\\([^\n$]*?\\|^\\)\\(\\\\?\\$\\)\\([^\n$]*\\)$"
- 	  "\\([a-za-z0-9]+\\|[ \t\n]\\|\\b\\|\\\\\\)\\(_\\|\\^\\)\\([a-za-z0-9]+\\|[ \t\n]\\|[:punct:]\\|{[a-za-z0-9]+}\\|([a-za-z0-9]+)\\)"
+	  "\\([a-za-z0-9]+\\|[ \t\n]\\|\\b\\|\\\\\\)\\(_\\|\\^\\)\\([a-za-z0-9]+\\|[ \t\n]\\|[:punct:]\\|{[a-za-z0-9]+}\\|([a-za-z0-9]+)\\)"
 	  "\\(.\\|^\\)\\(\\\\\\)\\([ \t\n]\\|[a-zA-Z&#%{}\"]+\\)"
 	  "\\(.\\|^\\)\\(&\\)"
- 	  "\\(.\\|^\\)\\(#\\)"
- 	  "\\(.\\|^\\)\\(%\\)"
- 	  "\\(.\\|^\\)\\({\\)"
+	  "\\(.\\|^\\)\\(#\\)"
+	  "\\(.\\|^\\)\\(%\\)"
+	  "\\(.\\|^\\)\\({\\)"
 	  "\\(.\\|^\\)\\(}\\)"
 	  "\\(.\\|^\\)\\(~\\)"
 	  "\\(.\\|^\\)\\(\\.\\.\\.\\)"
@@ -1059,8 +1059,8 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
 		floatp (or caption label))
 	  (setq lines (split-string raw-table "\n" t))
 	  (apply 'delete-region (list beg end))
- 	  (when org-export-table-remove-special-lines
- 	    (setq lines (org-table-clean-before-export lines)))
+	  (when org-export-table-remove-special-lines
+	    (setq lines (org-table-clean-before-export lines)))
 	  ;; make a formatting string to reflect aligment
 	  (setq olines lines)
 	  (while (and (not line-fmt) (setq line (pop olines)))
@@ -1102,7 +1102,7 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
 		   (or (and (string-match "[ \t]*|-+" elem) 'hline)
 		       (split-string (org-trim elem) "|" t)))
 		 lines))
-    	  (when insert
+	  (when insert
 	    (insert (org-export-latex-protect-string
 		     (concat
 		      (if longtblp
@@ -1116,7 +1116,7 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
 		      (if longtblp "\\\\\n" "\n")
 		      (if (not longtblp) "\\begin{center}\n")
 		      (if (not longtblp) (concat "\\begin{tabular}{" align "}\n"))
-		      (orgtbl-to-latex 
+		      (orgtbl-to-latex
 		       lines
 		       `(:tstart nil :tend nil
 				 :hlend ,(if longtblp
@@ -1180,7 +1180,7 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
 		   ((member type '("http" "https" "ftp"))
 		    (concat type ":" raw-path))
 		   ((and re-radio (string-match re-radio raw-path))
- 		    (setq radiop t))
+		    (setq radiop t))
 		   ((equal type "mailto")
 		    (concat type ":" raw-path))
 		   ((equal type "file")
@@ -1267,7 +1267,7 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
   (while (re-search-forward "^----+.$" nil t)
     (replace-match (org-export-latex-protect-string "\\hrule") t t))
 
-  ;; Protect LaTeX commands like \commad[...]{...} or \command{...}
+  ;; Protect LaTeX commands like \command[...]{...} or \command{...}
   (goto-char (point-min))
   (while (re-search-forward "\\\\[a-zA-Z]+\\(?:\\[.*\\]\\)?{.*}" nil t)
     (add-text-properties (match-beginning 0) (match-end 0)

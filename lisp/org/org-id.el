@@ -4,7 +4,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -36,7 +36,7 @@
 ;; time of the ID, with microsecond accuracy.  This virtually
 ;; guarantees globally unique identifiers, even if several people are
 ;; creating IDs at the same time in files that will eventually be used
-;; together.  As an exernal method `uuidgen' is supported, if installed
+;; together.  As an external method `uuidgen' is supported, if installed
 ;; on the system.
 ;;
 ;; This file defines the following API:
@@ -79,7 +79,7 @@
   :group 'org)
 
 
-(defcustom org-id-method 
+(defcustom org-id-method
   (condition-case nil
       (if (string-match "\\`[-0-9a-fA-F]\\{36\\}\\'"
 			(org-trim (shell-command-to-string "uuidgen")))
@@ -89,7 +89,7 @@
   "The method that should be used to create new IDs.
 
 If `uuidgen' is available on the system, it will be used as the default method.
-if not. the methd `org' is used.
+if not, the method `org' is used.
 An ID will consist of the optional prefix specified in `org-id-prefix',
 and a unique part created by the method this variable specifies.
 
@@ -129,7 +129,7 @@ people to make this necessary."
   :type 'boolean)
 
 (defcustom org-id-track-globally t
-  "Non-nil means, track IDs trhough files, so that links work globally.
+  "Non-nil means, track IDs through files, so that links work globally.
 This work by maintaining a hash table for IDs and writing this table
 to disk when exiting Emacs.  Because of this, it works best if you use
 a single Emacs process, not many.
@@ -173,7 +173,7 @@ This variable is only relevant when `org-id-track-globally' is set."
 
 (defcustom org-id-search-archives t
   "Non-nil means, search also the archive files of agenda files for entries.
-This is a possibility to reduce overhead, but it measn that entries moved
+This is a possibility to reduce overhead, but it means that entries moved
 to the archives can no longer be found by ID.
 This variable is only relevant when `org-id-track-globally' is set."
   :group 'org-id
@@ -377,7 +377,7 @@ Store the relation between files and corresponding IDs.
 This will scan all agenda files, all associated archives, and all
 files currently mentioned in `org-id-locations'.
 When FILES is given, scan these files instead.
-When CHECK is given, prepare detailed iinformation about duplicate IDs."
+When CHECK is given, prepare detailed information about duplicate IDs."
   (interactive)
   (if (not org-id-track-globally)
       (error "Please turn on `org-id-track-globally' if you want to track IDs.")
@@ -470,9 +470,9 @@ When CHECK is given, prepare detailed iinformation about duplicate IDs."
     (setq org-id-locations (org-id-alist-to-hash org-id-locations))))
 
 (defun org-id-add-location (id file)
-  "Add the ID with location FILE to the database of ID loations."
+  "Add the ID with location FILE to the database of ID locations."
   ;; Only if global tracking is on, and when the buffer has a file
-  (when (and org-id-track-globally id file) 
+  (when (and org-id-track-globally id file)
     (unless org-id-locations (org-id-locations-load))
     (puthash id (abbreviate-file-name file) org-id-locations)
     (add-to-list 'org-id-files (abbreviate-file-name file))))

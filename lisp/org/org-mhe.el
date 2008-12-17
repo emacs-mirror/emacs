@@ -5,7 +5,7 @@
 ;; Author: Thomas Baumann <thomas dot baumann at ch dot tum dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -110,20 +110,20 @@ supported by MH-E."
 So if you use sequences, it will now work."
   (save-excursion
     (let* ((folder
-            (if (equal major-mode 'mh-folder-mode)
-                mh-current-folder
-              ;; Refer to the show buffer
-              mh-show-folder-buffer))
-           (end-index
-            (if (boundp 'mh-index-folder)
-                (min (length mh-index-folder) (length folder))))
-           )
+	    (if (equal major-mode 'mh-folder-mode)
+		mh-current-folder
+	      ;; Refer to the show buffer
+	      mh-show-folder-buffer))
+	   (end-index
+	    (if (boundp 'mh-index-folder)
+		(min (length mh-index-folder) (length folder))))
+	   )
       ;; a simple test on mh-index-data does not work, because
       ;; mh-index-data is always nil in a show buffer.
       (if (and (boundp 'mh-index-folder)
-               (string= mh-index-folder (substring folder 0 end-index)))
-          (if (equal major-mode 'mh-show-mode)
-              (save-window-excursion
+	       (string= mh-index-folder (substring folder 0 end-index)))
+	  (if (equal major-mode 'mh-show-mode)
+	      (save-window-excursion
 		(let (pop-up-frames)
 		  (when (buffer-live-p (get-buffer folder))
 		    (progn
@@ -131,10 +131,10 @@ So if you use sequences, it will now work."
 		      (org-mhe-get-message-folder-from-index)
 		      )
 		    )))
-            (org-mhe-get-message-folder-from-index)
-            )
-        folder
-        )
+	    (org-mhe-get-message-folder-from-index)
+	    )
+	folder
+	)
       )))
 
 (defun org-mhe-get-message-folder-from-index ()
@@ -149,7 +149,7 @@ So if you use sequences, it will now work."
 Be careful if you use sequences."
   (save-excursion
     (if (equal major-mode 'mh-folder-mode)
-        mh-current-folder
+	mh-current-folder
       ;; Refer to the show buffer
       mh-show-folder-buffer)))
 
@@ -158,7 +158,7 @@ Be careful if you use sequences."
 Be careful if you use sequences."
   (save-excursion
     (if (equal major-mode 'mh-folder-mode)
-        (mh-get-msg-num nil)
+	(mh-get-msg-num nil)
       ;; Refer to the show buffer
       (mh-show-buffer-message-number))))
 
@@ -167,18 +167,18 @@ Be careful if you use sequences."
 This will create a show buffer for the corresponding message.  If
 you have a better idea of how to do this then please let us know."
   (let* ((folder (org-mhe-get-message-folder))
-         (num (org-mhe-get-message-num))
-         (buffer (get-buffer-create (concat "show-" folder)))
-         (header-field))
+	 (num (org-mhe-get-message-num))
+	 (buffer (get-buffer-create (concat "show-" folder)))
+	 (header-field))
   (with-current-buffer buffer
     (mh-display-msg num folder)
     (if (equal major-mode 'mh-folder-mode)
-        (mh-header-display)
+	(mh-header-display)
       (mh-show-header-display))
     (set-buffer buffer)
     (setq header-field (mh-get-header-field header))
     (if (equal major-mode 'mh-folder-mode)
-        (mh-show)
+	(mh-show)
       (mh-show-show))
     header-field)))
 
@@ -197,19 +197,19 @@ folders."
       (mh-visit-folder (mh-normalize-folder-name folder))
     (mh-search-choose)
     (if (equal mh-searcher 'pick)
-        (progn
+	(progn
 	  (setq article (org-add-angle-brackets article))
-          (mh-search folder (list "--message-id" article))
-          (when (and org-mhe-search-all-folders
-                     (not (org-mhe-get-message-real-folder)))
-            (kill-this-buffer)
-            (mh-search "+" (list "--message-id" article))))
+	  (mh-search folder (list "--message-id" article))
+	  (when (and org-mhe-search-all-folders
+		     (not (org-mhe-get-message-real-folder)))
+	    (kill-this-buffer)
+	    (mh-search "+" (list "--message-id" article))))
       (if mh-search-regexp-builder
-          (mh-search "+" (funcall mh-search-regexp-builder
+	  (mh-search "+" (funcall mh-search-regexp-builder
 				  (list (cons 'message-id article))))
-        (mh-search "+" article)))
+	(mh-search "+" article)))
     (if (org-mhe-get-message-real-folder)
-        (mh-show-msg 1)
+	(mh-show-msg 1)
       (kill-this-buffer)
       (error "Message not found"))))
 

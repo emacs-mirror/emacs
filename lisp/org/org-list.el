@@ -3,10 +3,10 @@
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
-;;         Bastien Guerry <bzg AT altern DOT org>
+;;	   Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -17,7 +17,7 @@
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
@@ -57,7 +57,7 @@
 This means that during cycling, plain list items will *temporarily* be
 interpreted as outline headlines with a level given by 1000+i where i is the
 indentation of the bullet.  In all other operations, plain list items are
-not seen as headlines.  For example, you cannot assign a TODO keyword to
+not seen as headlines.	For example, you cannot assign a TODO keyword to
 such an item."
   :group 'org-plain-lists
   :type 'boolean)
@@ -76,9 +76,9 @@ the safe choice."
 (defcustom org-list-two-spaces-after-bullet-regexp nil
   "A regular expression matching bullets that should have 2 spaces after them.
 When nil, no bullet will have two spaces after them.
-When a string, it will be used as a regular expression.  When the bullet
+When a string, it will be used as a regular expression.	 When the bullet
 type of a list is changed, the new bullet type will be matched against this
-regexp.  If it matches, there will be two spaces instead of one after
+regexp.	 If it matches, there will be two spaces instead of one after
 the bullet in each item of he list."
   :group 'org-plain-list
   :type '(choice
@@ -287,9 +287,9 @@ the whole buffer."
 	  (re-box "^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[- X]\\]\\)")
 	  (re-find (concat re "\\|" re-box))
 	  beg-cookie end-cookie is-percent c-on c-off lim
-          eline curr-ind next-ind continue-from startsearch
-          (cstat 0)
-          )
+	  eline curr-ind next-ind continue-from startsearch
+	  (cstat 0)
+	  )
      (when all
        (goto-char (point-min))
        (outline-next-heading)
@@ -298,39 +298,39 @@ the whole buffer."
      ;; find each statistic cookie
      (while (re-search-backward re-find beg t)
        (setq beg-cookie (match-beginning 1)
-             end-cookie (match-end 1)
+	     end-cookie (match-end 1)
 	     cstat (+ cstat (if end-cookie 1 0))
 	     startsearch (point-at-eol)
 	     continue-from (point-at-bol)
-             is-percent (match-beginning 2)
+	     is-percent (match-beginning 2)
 	     lim (cond
 		  ((org-on-heading-p) (outline-next-heading) (point))
 		  ((org-at-item-p) (org-end-of-item) (point))
 		  (t nil))
-             c-on 0
-             c-off 0)
+	     c-on 0
+	     c-off 0)
        (when lim
-         ;; find first checkbox for this cookie and gather
-         ;; statistics from all that are at this indentation level
-         (goto-char startsearch)
-         (if (re-search-forward re-box lim t)
-             (progn
-               (org-beginning-of-item)
-               (setq curr-ind (org-get-indentation))
-               (setq next-ind curr-ind)
-               (while (and (bolp) (org-at-item-p) (= curr-ind next-ind))
-                 (save-excursion (end-of-line) (setq eline (point)))
-                 (if (re-search-forward re-box eline t)
+	 ;; find first checkbox for this cookie and gather
+	 ;; statistics from all that are at this indentation level
+	 (goto-char startsearch)
+	 (if (re-search-forward re-box lim t)
+	     (progn
+	       (org-beginning-of-item)
+	       (setq curr-ind (org-get-indentation))
+	       (setq next-ind curr-ind)
+	       (while (and (bolp) (org-at-item-p) (= curr-ind next-ind))
+		 (save-excursion (end-of-line) (setq eline (point)))
+		 (if (re-search-forward re-box eline t)
 		     (if (member (match-string 2) '("[ ]" "[-]"))
 			 (setq c-off (1+ c-off))
-                       (setq c-on (1+ c-on))
-                       )
-                   )
-                 (org-end-of-item)
-                 (setq next-ind (org-get-indentation))
-                 )))
+		       (setq c-on (1+ c-on))
+		       )
+		   )
+		 (org-end-of-item)
+		 (setq next-ind (org-get-indentation))
+		 )))
 	 (goto-char continue-from)
-         ;; update cookie
+	 ;; update cookie
 	 (when end-cookie
 	   (delete-region beg-cookie end-cookie)
 	   (goto-char beg-cookie)
@@ -338,22 +338,22 @@ the whole buffer."
 	    (if is-percent
 		(format "[%d%%]" (/ (* 100 c-on) (max 1 (+ c-on c-off))))
 	      (format "[%d/%d]" c-on (+ c-on c-off)))))
-         ;; update items checkbox if it has one
-         (when (org-at-item-p)
-           (org-beginning-of-item)
-           (when (and (> (+ c-on c-off) 0)
+	 ;; update items checkbox if it has one
+	 (when (org-at-item-p)
+	   (org-beginning-of-item)
+	   (when (and (> (+ c-on c-off) 0)
 		      (re-search-forward re-box (point-at-eol) t))
-             (setq beg-cookie (match-beginning 2)
-                   end-cookie (match-end       2))
-             (delete-region beg-cookie end-cookie)
-             (goto-char beg-cookie)
-             (cond ((= c-off 0) (insert "[X]"))
-                   ((= c-on  0) (insert "[ ]"))
-                   (t           (insert "[-]")))
-             )))
+	     (setq beg-cookie (match-beginning 2)
+		   end-cookie (match-end       2))
+	     (delete-region beg-cookie end-cookie)
+	     (goto-char beg-cookie)
+	     (cond ((= c-off 0) (insert "[X]"))
+		   ((= c-on  0) (insert "[ ]"))
+		   (t		(insert "[-]")))
+	     )))
        (goto-char continue-from))
      (when (interactive-p)
-       (message "Checkbox satistics updated %s (%d places)"
+       (message "Checkbox statistics updated %s (%d places)"
 		(if all "in entire file" "in current outline entry") cstat)))))
 
 (defun org-get-checkbox-statistics-face ()
@@ -598,10 +598,10 @@ doing the renumbering."
   "Cycle through the different itemize/enumerate bullets.
 This cycle the entire list level through the sequence:
 
-   `-'  ->  `+'  ->  `*'  ->  `1.'  ->  `1)'
+   `-'	->  `+'	 ->  `*'  ->  `1.'  ->	`1)'
 
 If WHICH is a string, use that as the new bullet.  If WHICH is an integer,
-0 meand `-', 1 means `+' etc."
+0 means `-', 1 means `+' etc."
   (interactive "P")
   (org-preserve-lc
    (org-beginning-of-item-list)
@@ -741,7 +741,7 @@ I.e. to the first item in this list."
   (interactive)
   (org-beginning-of-item)
   (let ((pos (point-at-bol))
-        (ind (org-get-indentation))
+	(ind (org-get-indentation))
 	ind1)
     ;; find where this list begins
     (catch 'exit
@@ -767,7 +767,7 @@ I.e. to the text after the last item."
   (interactive)
   (org-beginning-of-item)
   (let ((pos (point-at-bol))
-        (ind (org-get-indentation))
+	(ind (org-get-indentation))
 	ind1)
     ;; find where this list begins
     (catch 'exit
@@ -833,8 +833,8 @@ I.e. to the text after the last item."
 
 (defun org-item-indent-positions ()
   "Return indentation for plain list items.
-This returns a list with three values:  The current indentation, the
-parent indentation and the indentation a child should habe.
+This returns a list with three values:	The current indentation, the
+parent indentation and the indentation a child should have.
 Assumes cursor in item line."
   (let* ((bolpos (point-at-bol))
 	 (ind (org-get-indentation))
@@ -868,18 +868,18 @@ Assumes cursor in item line."
 Return a list containing first level items as strings and
 sublevels as a list of strings."
   (let* ((item-beginning (org-list-item-beginning))
-         (start (car item-beginning))
-         (end (org-list-end (cdr item-beginning)))
-         output itemsep ltype)
+	 (start (car item-beginning))
+	 (end (org-list-end (cdr item-beginning)))
+	 output itemsep ltype)
     (while (re-search-forward org-list-beginning-re end t)
       (goto-char (match-beginning 3))
       (save-match-data
-        (cond ((string-match "[0-9]" (match-string 2))
-               (setq itemsep "[0-9]+\\(?:\\.\\|)\\)"
-                     ltype 'ordered))
-              ((string-match "^.*::" (match-string 0))
-               (setq itemsep "[-+]" ltype 'descriptive))
-              (t (setq itemsep "[-+]" ltype 'unordered))))
+	(cond ((string-match "[0-9]" (match-string 2))
+	       (setq itemsep "[0-9]+\\(?:\\.\\|)\\)"
+		     ltype 'ordered))
+	      ((string-match "^.*::" (match-string 0))
+	       (setq itemsep "[-+]" ltype 'descriptive))
+	      (t (setq itemsep "[-+]" ltype 'unordered))))
       (let* ((indent1 (match-string 1))
 	     (nextitem (save-excursion
 			 (save-match-data
@@ -959,13 +959,13 @@ this list."
 	    (throw 'exit nil)
 	  (error "Don't know how to transform this list"))))
     (let* ((name (match-string 1))
-           (item-beginning (org-list-item-beginning))
+	   (item-beginning (org-list-item-beginning))
 	   (transform (intern (match-string 2)))
 	   (txt (buffer-substring-no-properties
-                 (car item-beginning)
+		 (car item-beginning)
 		 (org-list-end (cdr item-beginning))))
 	   (list (org-list-parse-list))
-           beg)
+	   beg)
       (unless (fboundp transform)
 	(error "No such transformation function %s" transform))
       (setq txt (funcall transform list))
@@ -991,43 +991,43 @@ this list."
 
 Valid parameters PARAMS are
 
-:ustart     String to start an unordered list
-:uend       String to end an unordered list
+:ustart	    String to start an unordered list
+:uend	    String to end an unordered list
 
-:ostart     String to start an ordered list
-:oend       String to end an ordered list
+:ostart	    String to start an ordered list
+:oend	    String to end an ordered list
 
-:dstart     String to start a descriptive list
-:dend       String to end a descriptive list
+:dstart	    String to start a descriptive list
+:dend	    String to end a descriptive list
 :dtstart    String to start a descriptive term
-:dtend      String to end a descriptive term
+:dtend	    String to end a descriptive term
 :ddstart    String to start a description
-:ddend      String to end a description
+:ddend	    String to end a description
 
-:splice     When set to t, return only list body lines, don't wrap
-            them into :[u/o]start and :[u/o]end.  Default is nil.
+:splice	    When set to t, return only list body lines, don't wrap
+	    them into :[u/o]start and :[u/o]end.  Default is nil.
 
-:istart     String to start a list item
-:iend       String to end a list item
-:isep       String to separate items
-:lsep       String to separate sublists"
+:istart	    String to start a list item
+:iend	    String to end a list item
+:isep	    String to separate items
+:lsep	    String to separate sublists"
   (interactive)
   (let* ((p params) sublist
 	 (splicep (plist-get p :splice))
 	 (ostart  (plist-get p :ostart))
-	 (oend  (plist-get p :oend))
+	 (oend	(plist-get p :oend))
 	 (ustart  (plist-get p :ustart))
-	 (uend  (plist-get p :uend))
+	 (uend	(plist-get p :uend))
 	 (dstart  (plist-get p :dstart))
-	 (dend  (plist-get p :dend))
+	 (dend	(plist-get p :dend))
 	 (dtstart  (plist-get p :dtstart))
-	 (dtend  (plist-get p :dtend))
+	 (dtend	 (plist-get p :dtend))
 	 (ddstart  (plist-get p :ddstart))
-	 (ddend  (plist-get p :ddend))
+	 (ddend	 (plist-get p :ddend))
 	 (istart  (plist-get p :istart))
-	 (iend  (plist-get p :iend))
-	 (isep  (plist-get p :isep))
-	 (lsep  (plist-get p :lsep)))
+	 (iend	(plist-get p :iend))
+	 (isep	(plist-get p :isep))
+	 (lsep	(plist-get p :lsep)))
     (let ((wrapper
 	   (cond ((eq (car list) 'ordered)
 		  (concat ostart "\n%s" oend "\n"))
@@ -1039,51 +1039,51 @@ Valid parameters PARAMS are
       (while (setq sublist (pop list))
 	(cond ((symbolp sublist) nil)
 	      ((stringp sublist)
-               (when (string-match "^\\(.*\\) ::" sublist)
-                 (setq term (org-trim (format (concat dtstart "%s" dtend)
-                                              (match-string 1 sublist))))
-                 (setq sublist (substring sublist (1+ (length term)))))
-               (setq rtn (concat rtn istart term ddstart
-                                 sublist ddend iend isep)))
-              (t (setq rtn (concat rtn   ;; previous list
-                                   lsep  ;; list separator
-                                   (org-list-to-generic sublist p)
-                                   lsep  ;; list separator
-                                   )))))
+	       (when (string-match "^\\(.*\\) ::" sublist)
+		 (setq term (org-trim (format (concat dtstart "%s" dtend)
+					      (match-string 1 sublist))))
+		 (setq sublist (substring sublist (1+ (length term)))))
+	       (setq rtn (concat rtn istart term ddstart
+				 sublist ddend iend isep)))
+	      (t (setq rtn (concat rtn	 ;; previous list
+				   lsep	 ;; list separator
+				   (org-list-to-generic sublist p)
+				   lsep	 ;; list separator
+				   )))))
       (format wrapper rtn))))
 
 (defun org-list-to-latex (list)
   "Convert LIST into a LaTeX list."
   (org-list-to-generic
    list '(:splicep nil :ostart "\\begin{enumerate}" :oend "\\end{enumerate}"
-                       :ustart "\\begin{itemize}" :uend "\\end{itemize}"
-                       :dstart "\\begin{description}" :dend "\\end{description}"
-                       :dtstart "[" :dtend "]"
-                       :ddstart "" :ddend ""
-                       :istart "\\item " :iend ""
-                       :isep "\n" :lsep "\n")))
+		       :ustart "\\begin{itemize}" :uend "\\end{itemize}"
+		       :dstart "\\begin{description}" :dend "\\end{description}"
+		       :dtstart "[" :dtend "]"
+		       :ddstart "" :ddend ""
+		       :istart "\\item " :iend ""
+		       :isep "\n" :lsep "\n")))
 
 (defun org-list-to-html (list)
   "Convert LIST into a HTML list."
   (org-list-to-generic
    list '(:splicep nil :ostart "<ol>" :oend "</ol>"
-                       :ustart "<ul>" :uend "</ul>"
-                       :dstart "<dl>" :dend "</dl>"
-                       :dtstart "<dt>" :dtend "</dt>"
-                       :ddstart "<dd>" :ddend "</dd>"
-                       :istart "<li>" :iend "</li>"
-                       :isep "\n" :lsep "\n")))
+		       :ustart "<ul>" :uend "</ul>"
+		       :dstart "<dl>" :dend "</dl>"
+		       :dtstart "<dt>" :dtend "</dt>"
+		       :ddstart "<dd>" :ddend "</dd>"
+		       :istart "<li>" :iend "</li>"
+		       :isep "\n" :lsep "\n")))
 
 (defun org-list-to-texinfo (list)
   "Convert LIST into a Texinfo list."
   (org-list-to-generic
    list '(:splicep nil :ostart "@itemize @minus" :oend "@end itemize"
-                       :ustart "@enumerate" :uend "@end enumerate"
-                       :dstart "@table" :dend "@end table"
-                       :dtstart "@item " :dtend "\n"
-                       :ddstart "" :ddend ""
-                       :istart "@item\n" :iend ""
-                       :isep "\n" :lsep "\n")))
+		       :ustart "@enumerate" :uend "@end enumerate"
+		       :dstart "@table" :dend "@end table"
+		       :dtstart "@item " :dtend "\n"
+		       :ddstart "" :ddend ""
+		       :istart "@item\n" :iend ""
+		       :isep "\n" :lsep "\n")))
 
 (provide 'org-list)
 

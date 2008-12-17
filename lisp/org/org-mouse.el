@@ -4,7 +4,7 @@
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -50,7 +50,7 @@
 ;;    (require 'org-mouse)
 ;;
 
-;; Fixme:
+;; FIXME:
 ;; + deal with folding / unfolding issues
 
 ;; TODO (This list is only theoretical, if you'd like to have some
@@ -68,7 +68,7 @@
 
 ;; History:
 ;;
-;; SInce version 5.10: Changes are listed in the general org-mode docs.
+;; Since version 5.10: Changes are listed in the general org-mode docs.
 ;;
 ;; Version 5.09
 ;; + Version number synchronization with Org-mode.
@@ -209,7 +209,7 @@ this function is called.  Otherwise, the current major mode menu is used."
 	   (or (not mark-active)
 	       (sit-for (/ double-click-time 1000.0))))
       (progn
- 	(select-window (posn-window (event-start event)))
+	(select-window (posn-window (event-start event)))
 	(when (not (org-mouse-mark-active))
 	  (goto-char (posn-point (event-start event)))
 	  (when (not (eolp)) (save-excursion (run-hooks 'post-command-hook)))
@@ -331,7 +331,7 @@ Returns a menu fragment consisting of KEYWORDS.  When a keyword
 is selected, group GROUP of the current match is replaced by the
 keyword.  The method ensures that both ends of the replacement
 are separated from the rest of the text in the buffer by
-individual spaces (unless NOSURROND is non-nil).
+individual spaces (unless NOSURROUND is non-nil).
 
 The final entry of the menu is always \"None\", which removes the
 match.
@@ -689,7 +689,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 			 (org-mouse-remove-match-and-spaces))))]
        )))
    ((and (org-mouse-looking-at "\\b\\w+" "a-zA-Z0-9_")
- 	 (member (match-string 0) (org-mouse-todo-keywords)))
+	 (member (match-string 0) (org-mouse-todo-keywords)))
     (popup-menu
      `(nil
        ,@(org-mouse-keyword-replace-menu (org-mouse-todo-keywords))
@@ -874,14 +874,14 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 ;; (defun org-mouse-at-regexp (regexp)
 ;;   (save-excursion
 ;;     (let ((point (point))
-;; 	  (bol (progn (beginning-of-line) (point)))
-;; 	  (eol (progn (end-of-line) (point))))
-;;       (goto-char point)
-;;       (re-search-backward regexp bol 1)
-;;       (and (not (eolp))
-;; 	   (progn (forward-char)
-;; 		  (re-search-forward regexp eol t))
-;; 	   (<= (match-beginning 0) point)))))
+;;	  (bol (progn (beginning-of-line) (point)))
+;;	  (eol (progn (end-of-line) (point))))
+;;	 (goto-char point)
+;;	 (re-search-backward regexp bol 1)
+;;	 (and (not (eolp))
+;;	   (progn (forward-char)
+;;		  (re-search-forward regexp eol t))
+;;	   (<= (match-beginning 0) point)))))
 
 (defun org-mouse-mark-active ()
   (and mark-active transient-mark-mode))
@@ -922,7 +922,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	`((,outline-regexp
 	   0 `(face org-link mouse-face highlight keymap ,org-mouse-map)
 	   'prepend))
- 	t))
+	t))
 
      (when (memq 'activate-bullets org-mouse-features)
        (font-lock-add-keywords
@@ -930,14 +930,14 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	`(("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +"
 	   (1 `(face org-link keymap ,org-mouse-map mouse-face highlight)
 	      'prepend)))
- 	t))
+	t))
 
      (when (memq 'activate-checkboxes org-mouse-features)
        (font-lock-add-keywords
 	nil
 	`(("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[ X]\\]\\)"
 	   (2 `(face bold keymap ,org-mouse-map mouse-face highlight) t)))
- 	t))
+	t))
 
      (defadvice org-open-at-point (around org-mouse-open-at-point activate)
        (let ((context (org-context)))

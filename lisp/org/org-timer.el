@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -125,7 +125,7 @@ that was not started at the correct moment."
 
 ;;;###autoload
 (defun org-timer-item (&optional arg)
-  "Insert a description-type item with the curren timer value."
+  "Insert a description-type item with the current timer value."
   (interactive "P")
   (let ((ind 0))
     (save-excursion
@@ -150,7 +150,7 @@ that was not started at the correct moment."
 	       (if (match-end 2) (string-to-number (match-string 2 hms)) 0)
 	       (string-to-number (match-string 3 hms)))
        t t hms)
-    (error "Canot parse HMS string \"%s\"" hms)))
+    (error "Cannot parse HMS string \"%s\"" hms)))
 
 (defun org-timer-hms-to-secs (hms)
   "Convert h:mm:ss string to an integer time.
@@ -168,7 +168,7 @@ If the string starts with a minus sign, the integer will be negative."
 
 (defun org-timer-secs-to-hms (s)
   "Convert integer S into h:mm:ss.
-If the integer is negative, the strig will start with \"-\"."
+If the integer is negative, the string will start with \"-\"."
   (let (sign m h)
     (setq sign (if (< s 0) "-" "")
 	  s (abs s)

@@ -5,7 +5,7 @@
 ;; Author: Andy Stewart <lazycat dot manatee at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -32,12 +32,12 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;;; Acknowledgments:
+;;; Acknowledgements:
 
 ;; Richard Riley <rileyrgdev at googlemail dot com>
 ;;
-;;      The idea that transfomring the HTML content with org-mode style is
-;;      proposed by Richard, i'm just code it.
+;;      The idea of transforming the HTML content with org-mode style is
+;;      proposed by Richard, I'm just coding it.
 ;;
 
 (require 'org)
@@ -82,9 +82,9 @@ so that it can be yanked into an Org-mode buffer with links working correctly."
 					   (org-make-link-string
 					    link-location link-title))))
 	  (goto-char temp-position)     ; reset point before jump next anchor
-	  (setq out-bound t)            ; for break out `while' loop
+	  (setq out-bound t)		; for break out `while' loop
 	  ))
-      ;; add the rest until en end of the region to be copied
+      ;; add the rest until end of the region to be copied
       (if (< (point) transform-end)
 	  (setq return-content
 		(concat return-content
@@ -134,7 +134,7 @@ Otherwise, return nil."
     (equal (point) (org-w3m-get-next-link-start))))
 
 (defun org-w3m-no-prev-link-p ()
-  "Return t if no prevoius link after cursor.
+  "Return t if no previous link after cursor.
 Otherwise, return nil."
   (save-excursion
     (equal (point) (org-w3m-get-prev-link-start))))

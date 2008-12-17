@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -93,7 +93,7 @@ This is done by leaving out unnecessary lines."
 
 (defcustom org-agenda-exporter-settings nil
   "Alist of variable/value pairs that should be active during agenda export.
-This is a good place to set uptions for ps-print and for htmlize."
+This is a good place to set options for ps-print and for htmlize."
   :group 'org-agenda-export
   :type '(repeat
 	  (list
@@ -199,7 +199,7 @@ you can \"misuse\" it to also add other text to the header.  However,
 		   (const :format "" quote)
 		   (list
 		    (choice
-		     :tag "Skiping range"
+		     :tag "Skipping range"
 		     (const :tag "Skip entry" org-agenda-skip-entry-if)
 		     (const :tag "Skip subtree" org-agenda-skip-subtree-if))
 		    (repeat :inline t :tag "Conditions for skipping"
@@ -254,7 +254,7 @@ files     A list of files file to write the produced agenda buffer to
           with the command `org-store-agenda-views'.
           If a file name ends in \".html\", an HTML version of the buffer
           is written out.  If it ends in \".ps\", a postscript version is
-          produced.  Otherwide, only the plain text is written to the file.
+          produced.  Otherwise, only the plain text is written to the file.
 
 You can also define a set of commands, to create a composite agenda buffer.
 In this case, an entry looks like this:
@@ -357,7 +357,7 @@ should provide a description for the prefix, like
 
 (defcustom org-agenda-query-register ?o
   "The register holding the current query string.
-The prupose of this is that if you construct a query string interactively,
+The purpose of this is that if you construct a query string interactively,
 you can then use it to define a custom command."
   :group 'org-agenda-custom-commands
   :type 'character)
@@ -410,7 +410,7 @@ files will be included.")
 
 (defcustom org-agenda-skip-comment-trees t
   "Non-nil means, skip trees that start with the COMMENT keyword.
-When nil, these trees are also scand by agenda commands."
+When nil, these trees are also scanned by agenda commands."
   :group 'org-agenda-skip
   :type 'boolean)
 
@@ -461,10 +461,10 @@ is DONE."
   :type 'boolean)
 
 (defcustom org-agenda-skip-deadline-if-done nil
-  "Non-nil means don't show deadines when the corresponding item is done.
+  "Non-nil means don't show deadlines when the corresponding item is done.
 When nil, the deadline is still shown and should give you a happy feeling.
 This is relevant for the daily/weekly agenda.  And it applied only to the
-actualy date of the deadline.  Warnings about approching and past-due
+actually date of the deadline.  Warnings about approaching and past-due
 deadlines are always turned off when the item is DONE."
   :group 'org-agenda-skip
   :type 'boolean)
@@ -636,8 +636,8 @@ the entries for specific days."
   :type 'boolean)
 
 (defcustom org-agenda-repeating-timestamp-show-all t
-  "Non-nil means, show all occurences of a repeating stamp in the agenda.
-When nil, only one occurence is shown, either today or the
+  "Non-nil means, show all occurrences of a repeating stamp in the agenda.
+When nil, only one occurrence is shown, either today or the
 nearest into the future."
   :group 'org-agenda-daily/weekly
   :type 'boolean)
@@ -1326,7 +1326,7 @@ The following commands are available:
 (defvar org-agenda-undo-has-started-in nil
   "Buffers that have already seen `undo-start' in the current undo sequence.")
 (defvar org-agenda-pending-undo-list nil
-  "In a series of undo commands, this is the list of remaning undo items.")
+  "In a series of undo commands, this is the list of remaining undo items.")
 
 
 (defun org-agenda-undo ()
@@ -1997,7 +1997,7 @@ VALUE defaults to t."
     (mapcar (lambda (x) (setcdr x (sort (copy-sequence (cdr x)) '<)) x)
 	    tbl)))
 
-(defvar org-agenda-marker-table nil) ; dyamically scoped parameter
+(defvar org-agenda-marker-table nil) ; dynamically scoped parameter
 (defun org-check-agenda-marker-table ()
   "Check of the current entry is on the marker list."
   (let ((file (buffer-file-name (or (buffer-base-buffer) (current-buffer))))
@@ -2025,7 +2025,7 @@ VALUE defaults to t."
 
 ;;; Agenda prepare and finalize
 
-(defvar org-agenda-multi nil)  ; dynammically scoped
+(defvar org-agenda-multi nil)  ; dynamically scoped
 (defvar org-agenda-buffer-name "*Org Agenda*")
 (defvar org-pre-agenda-window-conf nil)
 (defvar org-agenda-columns-active nil)
@@ -2084,10 +2084,10 @@ VALUE defaults to t."
 	(org-agenda-align-tags)
 	(unless org-agenda-with-colors
 	  (remove-text-properties (point-min) (point-max) '(face nil))))
-      (if (and (boundp 'org-overriding-columns-format)
-	       org-overriding-columns-format)
-	  (org-set-local 'org-overriding-columns-format
-			 org-overriding-columns-format))
+      (if (and (boundp 'org-agenda-overriding-columns-format)
+	       org-agenda-overriding-columns-format)
+	  (org-set-local 'org-agenda-overriding-columns-format
+			 org-agenda-overriding-columns-format))
       (if (and (boundp 'org-agenda-view-columns-initially)
 	       org-agenda-view-columns-initially)
 	  (org-agenda-columns))
@@ -2523,7 +2523,7 @@ given in `org-agenda-start-on-weekday'."
 (defvar org-search-syntax-table nil
   "Special syntax table for org-mode search.
 In this table, we have single quotes not as word constituents, to
-that when \"+Ameli\" is searchd as a work, it will also match \"Ameli's\"")
+that when \"+Ameli\" is searched as a work, it will also match \"Ameli's\"")
 
 (defun org-search-syntax-table ()
   (unless org-search-syntax-table
@@ -2812,7 +2812,7 @@ The prefix arg TODO-ONLY limits the search to TODO entries."
 			 (org-get-agenda-file-buffer file)
 		       (error "No such file %s" file)))
 	(if (not buffer)
-	    ;; If file does not exist, merror message to agenda
+	    ;; If file does not exist, error message to agenda
 	    (setq rtn (list
 		       (format "ORG-AGENDA-ERROR: No such org-file %s" file))
 		  rtnall (append rtnall rtn))
@@ -3049,7 +3049,7 @@ date.  It also removes lines that contain only whitespace."
   '(if (boundp 'diary-modify-entry-list-string-function)
        ;; We can rely on the hook, nothing to do
        nil
-     ;; Hook not avaiable, must use advice to make this work
+     ;; Hook not available, must use advice to make this work
      (defadvice add-to-diary-list (before org-mark-diary-entry activate)
        "Make the position visible."
        (if (and org-disable-agenda-to-diary  ;; called from org-agenda
@@ -5074,10 +5074,10 @@ the same tree node, and the headline of the tree node in the Org-mode file."
 The new content of the line will be NEWHEAD (as modified by
 `org-format-agenda-item').  HDMARKER is checked with
 `equal' against all `org-hd-marker' text properties in the file.
-If FIXFACE is non-nil, the face of each item is modified acording to
+If FIXFACE is non-nil, the face of each item is modified according to
 the new TODO state.
 If JUST-THIS is non-nil, change just the current line, not all.
-If FORCE-TAGS is non nil, the car of it ar the new tags."
+If FORCE-TAGS is non nil, the car of it returns the new tags."
   (let* ((inhibit-read-only t)
 	 (line (org-current-line))
 	 props m pl undone-face done-face finish new dotime cat tags)
@@ -5606,7 +5606,7 @@ This is a command that has to be installed in `calendar-mode-map'."
 (defun org-agenda-to-appt (&optional refresh filter)
   "Activate appointments found in `org-agenda-files'.
 With a \\[universal-argument] prefix, refresh the list of
-appointements.
+appointments.
 
 If FILTER is t, interactively prompt the user for a regular
 expression, and filter out entries that don't match it.

@@ -4,7 +4,7 @@
 ;;
 ;; Author: Philip Jackson <emacs@shellarchive.co.uk>
 ;; Keywords: erc, irc, link, org
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -15,7 +15,7 @@
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
@@ -51,7 +51,7 @@
 
 (require 'org)
 
-;; Declare the function fomr ERC that we use.
+;; Declare the function form ERC that we use.
 (declare-function erc-current-logfile "erc-log" (&optional buffer))
 (declare-function erc-prompt "erc" ())
 (declare-function erc-default-target "erc" ())
@@ -91,7 +91,7 @@ Parse a LINK that looks like server:port/chan/user (port, chan
 and user being optional) and return any of the port, channel or user
 attributes that are found."
   (let* ((parts (split-string link "/" t))
-         (len (length parts)))
+	 (len (length parts)))
     (when (or (< len 1) (> len 3))
       (error "Failed to parse link needed 1-3 parts, got %d" len))
     (setcar parts (split-string (car parts) ":" t))
@@ -109,14 +109,14 @@ attributes that are found."
 Strip starting and ending white space from STRING and replace any
 chars that the value AFTER with '...'"
   (let* ((after (number-to-string (or after 30)))
-         (replace-map (list (cons "^[ \t]*" "")
-                            (cons "[ \t]*$" "")
-                            (cons (concat "^\\(.\\{" after
-                                          "\\}\\).*") "\\1..."))))
+	 (replace-map (list (cons "^[ \t]*" "")
+			    (cons "[ \t]*$" "")
+			    (cons (concat "^\\(.\\{" after
+					  "\\}\\).*") "\\1..."))))
     (mapc (lambda (x)
-            (when (string-match (car x) string)
-              (setq string (replace-match (cdr x) nil nil string))))
-          replace-map)
+	    (when (string-match (car x) string)
+	      (setq string (replace-match (cdr x) nil nil string))))
+	  replace-map)
     string))
 
 ;; ERC specific functions
@@ -134,14 +134,14 @@ result is a cons of the filename and search string."
      (abbreviate-file-name buffer-file-name)
      ;; can we get a '::' part?
      (if (string= erc-line (erc-prompt))
-         (progn
-           (goto-char (point-at-bol))
-           (when (search-backward-regexp "^[^ 	]" nil t)
-             (buffer-substring-no-properties (point-at-bol)
-                                             (point-at-eol))))
-         (when (search-backward erc-line nil t)
-           (buffer-substring-no-properties (point-at-bol)
-                                           (point-at-eol)))))))
+	 (progn
+	   (goto-char (point-at-bol))
+	   (when (search-backward-regexp "^[^	]" nil t)
+	     (buffer-substring-no-properties (point-at-bol)
+					     (point-at-eol))))
+	 (when (search-backward erc-line nil t)
+	   (buffer-substring-no-properties (point-at-bol)
+					   (point-at-eol)))))))
 
 (defun org-irc-erc-store-link ()
   "Store a link to the IRC log file or the session itself.
@@ -151,47 +151,47 @@ the session itself."
   (require 'erc-log)
   (if org-irc-link-to-logs
       (let* ((erc-line (buffer-substring-no-properties
-                        (point-at-bol) (point-at-eol)))
-             (parsed-line (org-irc-erc-get-line-from-log erc-line)))
-        (if (erc-logging-enabled nil)
-            (progn
-              (org-store-link-props
-               :type "file"
-               :description (concat "'" (org-irc-elipsify-description
-                                         (cadr parsed-line) 20)
-                                    "' from an IRC conversation")
-               :link (concat "file:" (car parsed-line) "::"
-                             (cadr parsed-line)))
-              t)
-            (error "This ERC session is not being logged")))
+			(point-at-bol) (point-at-eol)))
+	     (parsed-line (org-irc-erc-get-line-from-log erc-line)))
+	(if (erc-logging-enabled nil)
+	    (progn
+	      (org-store-link-props
+	       :type "file"
+	       :description (concat "'" (org-irc-elipsify-description
+					 (cadr parsed-line) 20)
+				    "' from an IRC conversation")
+	       :link (concat "file:" (car parsed-line) "::"
+			     (cadr parsed-line)))
+	      t)
+	    (error "This ERC session is not being logged")))
       (let* ((link-text (org-irc-get-erc-link))
-             (link (org-irc-parse-link link-text)))
-        (if link-text
-            (progn
-              (org-store-link-props
-               :type "irc"
-               :link (org-make-link "irc:/" link-text)
-               :description (concat "irc session '" link-text "'")
-               :server (car (car link))
-               :port (or (string-to-number (cadr (pop link))) erc-default-port)
-               :nick (pop link))
-              t)
-            (error "Failed to create ('irc:/' style) ERC link")))))
+	     (link (org-irc-parse-link link-text)))
+	(if link-text
+	    (progn
+	      (org-store-link-props
+	       :type "irc"
+	       :link (org-make-link "irc:/" link-text)
+	       :description (concat "irc session '" link-text "'")
+	       :server (car (car link))
+	       :port (or (string-to-number (cadr (pop link))) erc-default-port)
+	       :nick (pop link))
+	      t)
+	    (error "Failed to create ('irc:/' style) ERC link")))))
 
 (defun org-irc-get-erc-link ()
   "Return an org compatible irc:/ link from an ERC buffer."
   (let* ((session-port (if (numberp erc-session-port)
-                           (number-to-string erc-session-port)
-                           erc-session-port))
-          (link (concat erc-session-server ":" session-port)))
+			   (number-to-string erc-session-port)
+			   erc-session-port))
+	  (link (concat erc-session-server ":" session-port)))
     (concat link "/"
-            (if (and (erc-default-target)
-                     (erc-channel-p (erc-default-target))
-                     (car (get-text-property (point) 'erc-data)))
-                ;; we can get a nick
-                (let ((nick (car (get-text-property (point) 'erc-data))))
-                  (concat (erc-default-target) "/" nick))
-                (erc-default-target)))))
+	    (if (and (erc-default-target)
+		     (erc-channel-p (erc-default-target))
+		     (car (get-text-property (point) 'erc-data)))
+		;; we can get a nick
+		(let ((nick (car (get-text-property (point) 'erc-data))))
+		  (concat (erc-default-target) "/" nick))
+		(erc-default-target)))))
 
 (defun org-irc-get-current-erc-port ()
   "Return the current port as a number.
@@ -210,44 +210,44 @@ default."
   (require 'erc)
   (require 'erc-log)
   (let* ((server (car (car link)))
-         (port (or (string-to-number (cadr (pop link))) erc-default-port))
-         (server-buffer)
-         (buffer-list
-          (erc-buffer-filter
-           (lambda nil
-             (let ((tmp-server-buf (erc-server-buffer)))
-               (and tmp-server-buf
-                    (with-current-buffer tmp-server-buf
-                      (and
-                       (eq (org-irc-get-current-erc-port) port)
-                       (string= erc-session-server server)
-                       (setq server-buffer tmp-server-buf)))))))))
+	 (port (or (string-to-number (cadr (pop link))) erc-default-port))
+	 (server-buffer)
+	 (buffer-list
+	  (erc-buffer-filter
+	   (lambda nil
+	     (let ((tmp-server-buf (erc-server-buffer)))
+	       (and tmp-server-buf
+		    (with-current-buffer tmp-server-buf
+		      (and
+		       (eq (org-irc-get-current-erc-port) port)
+		       (string= erc-session-server server)
+		       (setq server-buffer tmp-server-buf)))))))))
     (if buffer-list
-        (let ((chan-name (pop link)))
-          ;; if we got a channel name then switch to it or join it
-          (if chan-name
-              (let ((chan-buf (catch 'found
-                                (dolist (x buffer-list)
-                                  (if (string= (buffer-name x) chan-name)
-                                      (throw 'found x))))))
-                (if chan-buf
-                    (progn
-                      (switch-to-buffer chan-buf)
-                      ;; if we got a nick, and they're in the chan,
-                      ;; then start a chat with them
-                      (let ((nick (pop link)))
-                        (when nick
-                          (if (member nick (erc-get-server-nickname-list))
-                              (progn
-                                (goto-char (point-max))
-                                (insert (concat nick ": ")))
-                              (error "%s not found in %s" nick chan-name)))))
-                    (progn
-                      (switch-to-buffer server-buffer)
-                      (erc-cmd-JOIN chan-name))))
-              (switch-to-buffer server-buffer)))
-        ;; no server match, make new connection
-        (erc-select :server server :port port))))
+	(let ((chan-name (pop link)))
+	  ;; if we got a channel name then switch to it or join it
+	  (if chan-name
+	      (let ((chan-buf (catch 'found
+				(dolist (x buffer-list)
+				  (if (string= (buffer-name x) chan-name)
+				      (throw 'found x))))))
+		(if chan-buf
+		    (progn
+		      (switch-to-buffer chan-buf)
+		      ;; if we got a nick, and they're in the chan,
+		      ;; then start a chat with them
+		      (let ((nick (pop link)))
+			(when nick
+			  (if (member nick (erc-get-server-nickname-list))
+			      (progn
+				(goto-char (point-max))
+				(insert (concat nick ": ")))
+			      (error "%s not found in %s" nick chan-name)))))
+		    (progn
+		      (switch-to-buffer server-buffer)
+		      (erc-cmd-JOIN chan-name))))
+	      (switch-to-buffer server-buffer)))
+	;; no server match, make new connection
+	(erc-select :server server :port port))))
 
 (provide 'org-irc)
 

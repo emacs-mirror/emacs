@@ -4,7 +4,7 @@
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 6.15a
+;; Version: 6.15d
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -70,12 +70,12 @@
 ;; (setq org-publish-project-alist
 ;;       (list
 ;;        '("org" . (:base-directory "~/org/"
-;; 		     :base-extension "org"
-;; 		     :publishing-directory "~/public_html"
-;;                   :with-section-numbers nil
-;; 		     :table-of-contents nil
-;;                   :recursive t
-;; 		     :style "<link rel="stylesheet" href=\"../other/mystyle.css\" type=\"text/css\">")))
+;;		     :base-extension "org"
+;;		     :publishing-directory "~/public_html"
+;;		     :with-section-numbers nil
+;;		     :table-of-contents nil
+;;		     :recursive t
+;;		     :style "<link rel="stylesheet" href=\"../other/mystyle.css\" type=\"text/css\">")))
 
 ;;;; More complex example configuration:
 
@@ -96,24 +96,24 @@
 ;; (setq org-publish-project-alist
 ;;       (list
 ;;        '("orgfiles" :base-directory "~/org/"
-;; 		       :base-extension "org"
-;; 		       :publishing-directory "/ssh:user@host:~/html/notebook/"
-;; 		       :publishing-function org-publish-org-to-html
-;; 		       :exclude "PrivatePage.org"   ;; regexp
-;; 		       :headline-levels 3
-;;                     :with-section-numbers nil
-;; 		       :table-of-contents nil
-;; 		       :style "<link rel="stylesheet" href=\"../other/mystyle.css\" type=\"text/css\">"
-;; 		       :auto-preamble t
-;; 		       :auto-postamble nil)
-;;         ("images" :base-directory "~/images/"
-;; 	             :base-extension "jpg\\|gif\\|png"
-;; 		     :publishing-directory "/ssh:user@host:~/html/images/"
-;; 		     :publishing-function org-publish-attachment)
-;;         ("other"  :base-directory "~/other/"
-;; 	   	     :base-extension "css"
-;; 		     :publishing-directory "/ssh:user@host:~/html/other/"
-;; 		     :publishing-function org-publish-attachment)
+;;		       :base-extension "org"
+;;		       :publishing-directory "/ssh:user@host:~/html/notebook/"
+;;		       :publishing-function org-publish-org-to-html
+;;		       :exclude "PrivatePage.org"   ;; regexp
+;;		       :headline-levels 3
+;;		       :with-section-numbers nil
+;;		       :table-of-contents nil
+;;		       :style "<link rel="stylesheet" href=\"../other/mystyle.css\" type=\"text/css\">"
+;;		       :auto-preamble t
+;;		       :auto-postamble nil)
+;;	   ("images" :base-directory "~/images/"
+;;		     :base-extension "jpg\\|gif\\|png"
+;;		     :publishing-directory "/ssh:user@host:~/html/images/"
+;;		     :publishing-function org-publish-attachment)
+;;	   ("other"  :base-directory "~/other/"
+;;		     :base-extension "css"
+;;		     :publishing-directory "/ssh:user@host:~/html/other/"
+;;		     :publishing-function org-publish-attachment)
 ;;         ("website" :components ("orgfiles" "images" "other"))))
 
 ;; For more information, see the documentation for the variable
@@ -302,7 +302,7 @@ If functions in this hook modify the buffer, it will be saved."
 (defun org-publish-timestamp-filename (filename)
   "Return path to timestamp file for filename FILENAME."
   (concat (file-name-as-directory org-publish-timestamp-directory)
-         "X" (if (fboundp 'sha1) (sha1 filename) (md5 filename))))
+	  "X" (if (fboundp 'sha1) (sha1 filename) (md5 filename))))
 
 (defun org-publish-needed-p (filename)
   "Return `t' if FILENAME should be published."
@@ -339,7 +339,7 @@ If there is no timestamp, create one."
     ;; Emacs 21 doesn't have `set-file-times'
     (if (and (fboundp 'set-file-times)
 	     (not newly-created-timestamp))
-        (set-file-times timestamp-file)
+	(set-file-times timestamp-file)
       (call-process "touch" nil 0 nil timestamp-file))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -429,7 +429,7 @@ If RECURSE is non-nil, check BASE-DIR recursively.  If MATCH is
 non-nil, restrict this list to the files matching the regexp
 MATCH.  If SKIP-FILE is non-nil, skip file matching the regexp
 SKIP-FILE.  If SKIP-DIR is non-nil, don't check directories
-matching the regexp SKIP-DIR when recursiing through BASE-DIR."
+matching the regexp SKIP-DIR when recursing through BASE-DIR."
   (mapc (lambda (f)
 	  (let ((fd-p (file-directory-p f))
 		(fnd (file-name-nondirectory f)))
@@ -451,10 +451,10 @@ matching filenames."
   (let* ((project-plist (cdr project))
 	 (base-dir (file-name-as-directory
 		    (plist-get project-plist :base-directory)))
- 	 (include-list (plist-get project-plist :include))
- 	 (recurse (plist-get project-plist :recursive))
- 	 (extension (or (plist-get project-plist :base-extension) "org"))
- 	 (match (concat "^[^\\.].*\\.\\(" extension "\\)$")))
+	 (include-list (plist-get project-plist :include))
+	 (recurse (plist-get project-plist :recursive))
+	 (extension (or (plist-get project-plist :base-extension) "org"))
+	 (match (concat "^[^\\.].*\\.\\(" extension "\\)$")))
     (setq org-publish-temp-files nil)
     (org-publish-get-base-files-1 base-dir recurse match
 				  ;; FIXME distinguish exclude regexp
@@ -470,10 +470,10 @@ matching filenames."
 (defun org-publish-get-project-from-filename (filename)
   "Return the project FILENAME belongs."
   (let* ((project-name (cdr (assoc (expand-file-name filename)
-                                   org-publish-files-alist))))
+				   org-publish-files-alist))))
     (dolist (prj org-publish-project-alist)
       (if (member project-name (plist-get (cdr prj) :components))
-          (setq project-name (car prj))))
+	  (setq project-name (car prj))))
     (assoc project-name org-publish-project-alist)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15a
+;; Version: 6.15d
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -92,7 +92,7 @@
 
 ;;; Version
 
-(defconst org-version "6.15a"
+(defconst org-version "6.15d"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)
@@ -176,7 +176,7 @@ to add the symbol `xyz', and the package must have a call to
 	(const :tag "   mouse:             Additional mouse support" org-mouse)
 
 	(const :tag "C  annotate-file:     Annotate a file with org syntax" org-annotate-file)
-	(const :tag "C  annotation-helper: Call Remeber directly from Browser" org-annotation-helper)
+	(const :tag "C  annotation-helper: Call Remember directly from Browser" org-annotation-helper)
 	(const :tag "C  bookmark:          Org links to bookmarks" org-bookmark)
 	(const :tag "C  browser-url:       Store link, directly from Browser" org-browser-url)
 	(const :tag "C  depend:            TODO dependencies for Org-mode" org-depend)
@@ -318,7 +318,7 @@ Or return the original if not disputed."
 (defcustom org-ellipsis nil
   "The ellipsis to use in the Org-mode outline.
 When nil, just use the standard three dots.  When a string, use that instead,
-When a face, use the standart 3 dots, but with the specified face.
+When a face, use the standard 3 dots, but with the specified face.
 The change affects only Org-mode (which will then use its own display table).
 Changing this requires executing `M-x org-mode' in a buffer to become
 effective."
@@ -864,7 +864,7 @@ See the manual for examples."
 
 (defcustom org-descriptive-links t
   "Non-nil means, hide link part and only show description of bracket links.
-Bracket links are like [[link][descritpion]].  This variable sets the initial
+Bracket links are like [[link][description]].  This variable sets the initial
 state in new org-mode buffers.  The setting can then be toggled on a
 per-buffer basis from the Org->Hyperlinks menu."
   :group 'org-link
@@ -894,7 +894,7 @@ type.  In principle, it does not hurt to turn on most link types - there may
 be a small gain when turning off unused link types.  The types are:
 
 bracket   The recommended [[link][description]] or [[link]] links with hiding.
-angular   Links in angular brackes that may contain whitespace like
+angular   Links in angular brackets that may contain whitespace like
           <bbdb:Carsten Dominik>.
 plain     Plain links in normal text, no whitespace, like http://google.com.
 radio     Text that is matched by a radio target, see manual for details.
@@ -926,13 +926,13 @@ to use."
 
 (defcustom org-email-link-description-format "Email %c: %.30s"
   "Format of the description part of a link to an email or usenet message.
-The following %-excapes will be replaced by corresponding information:
+The following %-escapes will be replaced by corresponding information:
 
 %F   full \"From\" field
 %f   name, taken from \"From\" field, address if no name
 %T   full \"To\" field
 %t   first name in \"To\" field, address if no name
-%c   correspondent.  Unually \"from NAME\", but if you sent it yourself, it
+%c   correspondent.  Usually \"from NAME\", but if you sent it yourself, it
      will be \"to NAME\".  See also the variable `org-from-is-user-regexp'.
 %s   subject
 %m   message-id.
@@ -951,7 +951,7 @@ Examples: \"%f on: %.30s\", \"Email from %f\", \"Email %c\""
     (when (and user-full-name (not (string= user-full-name "")))
       (setq r2 (concat "\\<" (regexp-quote user-full-name) "\\>")))
     (if (and r1 r2) (concat r1 "\\|" r2) (or r1 r2)))
-  "Regexp mached against the \"From:\" header of an email or usenet message.
+  "Regexp matched against the \"From:\" header of an email or usenet message.
 It should match if the message is from the user him/herself."
   :group 'org-link-store
   :type 'regexp)
@@ -1025,7 +1025,7 @@ or emacs-wiki packages to Org syntax.
 The function must accept two parameters, a TYPE containing the link
 protocol name like \"rmail\" or \"gnus\" as a string, and the linked path,
 which is everything after the link protocol.  It should return a cons
-with possibly modifed values of type and path.
+with possibly modified values of type and path.
 Org contains a function for this, so if you set this variable to
 `org-translate-link-from-planner', you should be able follow many
 links created by planner."
@@ -1061,7 +1061,7 @@ Needs to be set before org.el is loaded."
   "Number of different positions to be recorded in the ring
 Changing this requires a restart of Emacs to work correctly."
   :group 'org-link-follow
-  :type 'interger)
+  :type 'integer)
 
 (defcustom org-link-frame-setup
   '((vm . vm-visit-folder-other-frame)
@@ -1230,10 +1230,10 @@ file identifier are
  `remote'      Matches a remote file, accessible through tramp or efs.
                Remote files most likely should be visited through Emacs
                because external applications cannot handle such paths.
-`auto-mode'    Matches files that are mached by any entry in `auto-mode-alist',
+`auto-mode'    Matches files that are matched by any entry in `auto-mode-alist',
                so all files Emacs knows how to handle.  Using this with
                command `emacs' will open most files in Emacs.  Beware that this
-               will also open html files insite Emacs, unless you add
+               will also open html files inside Emacs, unless you add
                (\"html\" . default) to the list as well.
  t             Default for files not matched by any of the other options.
  `system'      The system command to open files, like `open' on Windows
@@ -1246,7 +1246,7 @@ Possible values for the command are:
  `default'     Use the default application for this file type, which is the
                association for t in the list, most likely in the system-specific
                part.
-               This can be used to overrule an unwanted seting in the
+               This can be used to overrule an unwanted setting in the
                system-specific variable.
  `system'      Use the system command for opening files, like \"open\".
                This command is specified by the entry whose car is `system'.
@@ -1305,7 +1305,7 @@ You can set this on a per-template basis with the variable
 
 (defcustom org-goto-interface 'outline
   "The default interface to be used for `org-goto'.
-Allowed vaues are:
+Allowed values are:
 outline                  The interface shows an outline of the relevant file
                          and the correct heading is found by moving through
                          the outline or by searching with incremental search.
@@ -1442,7 +1442,7 @@ define X.  You may omit any of the fast-selection key or X or /Y,
 so WAIT(w@), WAIT(w/@) and WAIT(@/@) are all valid.
 
 For backward compatibility, this variable may also be just a list
-of keywords - in this case the interptetation (sequence or type) will be
+of keywords - in this case the interpretation (sequence or type) will be
 taken from the (otherwise obsolete) variable `org-todo-interpretation'."
   :group 'org-todo
   :group 'org-keywords
@@ -1981,7 +1981,7 @@ make sure all corresponding TODO items find their way into the list.
 
 This variable is semi-obsolete and probably should always be true.  It
 is better to limit inheritance to certain tags using the variables
-`org-use-tag-inheritanc'e and `org-tags-exclude-from-inheritance'."
+`org-use-tag-inheritance' and `org-tags-exclude-from-inheritance'."
   :group 'org-tags
   :type 'boolean)
 
@@ -2069,7 +2069,7 @@ ellipses string, only part of the ellipses string will be shown."
 For example, it can be used to cut out a certain part from a time stamp.
 The function must take 2 arguments:
 
-column-title    The tite of the column (*not* the property name)
+column-title    The title of the column (*not* the property name)
 value           The value that should be modified.
 
 The function should return the value that should be displayed,
@@ -3344,7 +3344,7 @@ This is for getting out of special buffers like remember.")
 ;;;; Define the Org-mode
 
 (if (and (not (keymapp outline-mode-map)) (featurep 'allout))
-    (error "Conflict with outdated version of allout.el.  Load org.el before allout.el, or ugrade to newer allout, for example by switching to Emacs 22."))
+    (error "Conflict with outdated version of allout.el.  Load org.el before allout.el, or upgrade to newer allout, for example by switching to Emacs 22."))
 
 
 ;; We use a before-change function to check if a table might need
@@ -4036,7 +4036,7 @@ between words."
 (defvar org-l nil)
 (defvar org-f nil)
 (defun org-get-level-face (n)
-  "Get the right face for match N in font-lock matching of healdines."
+  "Get the right face for match N in font-lock matching of headlines."
   (setq org-l (- (match-end 2) (match-beginning 1) 1))
   (if org-odd-levels-only (setq org-l (1+ (/ org-l 2))))
   (setq org-f (nth (% (1- org-l) org-n-level-faces) org-level-faces))
@@ -4351,7 +4351,7 @@ With a numeric prefix, show all headlines up to that level."
 	(org-cycle-show-empty-lines 'all)))))
 
 (defun org-overview ()
-  "Switch to overview mode, shoing only top-level headlines.
+  "Switch to overview mode, showing only top-level headlines.
 Really, this shows all headlines with level equal or greater than the level
 of the first headline in the buffer.  This is important, because if the
 first headline is not level one, then (hide-sublevels 1) gives confusing
@@ -4415,7 +4415,7 @@ This function is the default value of the hook `org-cycle-hook'."
 The region to be covered depends on STATE when called through
 `org-cycle-hook'.  Lisp program can use t for STATE to get the
 entire buffer covered.  Note that an empty line is only shown if there
-are at least `org-cycle-separator-lines' empty lines before the headeline."
+are at least `org-cycle-separator-lines' empty lines before the headline."
   (when (> org-cycle-separator-lines 0)
     (save-excursion
       (let* ((n org-cycle-separator-lines)
@@ -5714,7 +5714,7 @@ exit by killing the buffer with \\[org-edit-src-exit]."
 
 (defun org-edit-fixed-width-region ()
   "Edit the fixed-width ascii drawing at point.
-This must be a region where each line starts with ca colon followed by
+This must be a region where each line starts with a colon followed by
 a space character.
 An indirect buffer is created, and that buffer is then narrowed to the
 example at point and switched to artist-mode.  When done,
@@ -5916,7 +5916,7 @@ C-c ^	    Sort entries
 C-c -	    Cycle list bullet
 TAB         Cycle item visibility
 M-RET       Insert new heading/item
-S-M-RET     Insert new TODO heading / Chekbox item
+S-M-RET     Insert new TODO heading / Checkbox item
 C-c C-c     Set tags / toggle checkbox"
   nil " OrgStruct" nil
   (org-load-modules-maybe)
@@ -6175,7 +6175,7 @@ EXPORT should format the link path for export to one of the export formats.
 It should be a function accepting three arguments:
 
   path    the path of the link, the text after the prefix (like \"http:\")
-  desc    the description of the link, if any, nil if there was no descripton
+  desc    the description of the link, if any, nil if there was no description
   format  the export format, a symbol like `html' or `latex'.
 
 The function may use the FORMAT information to return different values
@@ -6269,7 +6269,7 @@ For file links, arg negates `org-context-in-file-links'."
 	(setq link (condition-case nil
 		       (org-id-store-link)
 		     (error
-		      ;; probably before first headling, link to file only
+		      ;; probably before first headline, link to file only
 		      (concat "file:"
 			      (abbreviate-file-name buffer-file-name))))))
        (t
@@ -7542,9 +7542,10 @@ on the system \"/user@host:\"."
 
 (defun org-get-outline-path (&optional fastp level heading)
   "Return the outline path to the current entry, as a list."
-  (if (> level 19) (error "Outline path failure, more than 19 levels."))
   (if fastp
       (progn
+	(if (> level 19)
+	    (error "Outline path failure, more than 19 levels."))
 	(loop for i from level upto 19 do
 	      (aset org-olpa i nil))
 	(prog1
@@ -7725,11 +7726,11 @@ If not found, stay at current position and return nil."
   "Matches the startline of a dynamic block, with parameters.")
 
 (defconst org-dblock-end-re "^#\\+END\\([: \t\r\n]\\|$\\)"
-  "Matches the end of a dyhamic block.")
+  "Matches the end of a dynamic block.")
 
 (defun org-create-dblock (plist)
   "Create a dynamic block section, with parameters taken from PLIST.
-PLIST must containe a :name entry which is used as name of the block."
+PLIST must contain a :name entry which is used as name of the block."
   (unless (bolp) (newline))
   (let ((name (plist-get plist :name)))
     (insert "#+BEGIN: " name)
@@ -7805,7 +7806,7 @@ the correct writing function."
 
 (defun org-beginning-of-dblock ()
   "Find the beginning of the dynamic block at point.
-Error if there is no scuh block at point."
+Error if there is no such block at point."
   (let ((pos (point))
 	beg)
     (end-of-line 1)
@@ -7862,7 +7863,7 @@ This function can be used in a hook."
 This is a list of abbreviation keys and values.  The value gets inserted
 it you type @samp{.} followed by the key and then the completion key,
 usually `M-TAB'.  %file will be replaced by a file name after prompting
-for the file uning completion.
+for the file using completion.
 There are two templates for each key, the first uses the original Org syntax,
 the second uses Emacs Muse-like syntax tags.  These Muse-like tags become
 the default when the /org-mtags.el/ module has been loaded. See also the
@@ -8054,7 +8055,7 @@ At all other locations, this simply calls the value of
 If the last change removed the TODO tag or switched to DONE, then
 this is nil.")
 
-(defvar org-setting-tags nil) ; dynamically skiped
+(defvar org-setting-tags nil) ; dynamically skipped
 
 (defun org-parse-local-options (string var)
   "Parse STRING for startup setting relevant for variable VAR."
@@ -9293,7 +9294,7 @@ also TODO lines."
 (defun org-make-tags-matcher (match)
   "Create the TAGS//TODO matcher form for the selection string MATCH."
   ;; todo-only is scoped dynamically into this function, and the function
-  ;; may change it it the matcher asksk for it.
+  ;; may change it if the matcher asks for it.
   (unless match
     ;; Get a new match request, with completion
     (let ((org-last-tags-completion-table
@@ -9454,7 +9455,7 @@ epoch to the beginning of today (00:00)."
 		     (append '(0 0 0) (nthcdr 3 (decode-time))))))
 
 (defun org-matcher-time (s)
-  "Interprete a time comparison value."
+  "Interpret a time comparison value."
   (save-match-data
     (cond
      ((string= s "<now>") (float-time))
@@ -9474,7 +9475,7 @@ epoch to the beginning of today (00:00)."
   (setq list (mapcar (lambda (x) (string-match re x)) list))
   (delq nil list))
 
-(defvar org-add-colon-after-tag-completion nil)  ;; dynamically skoped param
+(defvar org-add-colon-after-tag-completion nil)  ;; dynamically scoped param
 (defvar org-tags-overlay (org-make-overlay 1 1))
 (org-detach-overlay org-tags-overlay)
 
@@ -9730,7 +9731,7 @@ This works in the agenda, and also in an org-mode buffer."
     ))
 
 (defun org-fast-tag-insert (kwd tags face &optional end)
-  "Insert KDW, and the TAGS, the latter with face FACE.  Also inser END."
+  "Insert KDW, and the TAGS, the latter with face FACE.  Also insert END."
   (insert (format "%-12s" (concat kwd ":"))
 	  (org-add-props (mapconcat 'identity tags " ") nil 'face face)
 	  (or end "")))
@@ -10338,9 +10339,9 @@ VALUES should be a list of strings.  Spaces will be protected."
   s)
 
 (defvar org-entry-property-inherited-from (make-marker)
-  "Marker pointing to the entry from where a proerty was inherited.
+  "Marker pointing to the entry from where a property was inherited.
 Each call to `org-entry-get-with-inheritance' will set this marker to the
-location of the entry where the inheriance search matched.  If there was
+location of the entry where the inheritance search matched.  If there was
 no match, the marker will point nowhere.
 Note that also `org-entry-get' calls this function, if the INHERIT flag
 is set.")
@@ -10420,7 +10421,7 @@ is set.")
 
 (defun org-buffer-property-keys (&optional include-specials include-defaults include-columns)
   "Get all property keys in the current buffer.
-With INCLUDE-SPECIALS, also list the special properties that relect things
+With INCLUDE-SPECIALS, also list the special properties that reflect things
 like tags and TODO state.
 With INCLUDE-DEFAULTS, also include properties that has special meaning
 internally: ARCHIVE, CATEGORY, SUMMARY, DESCRIPTION, LOCATION, and LOGGING.
@@ -10514,7 +10515,7 @@ formats in the current buffer."
   "In the current entry, set PROPERTY to VALUE.
 When called interactively, this will prompt for a property name, offering
 completion on existing and default properties.  And then it will prompt
-for a value, offering competion either on allowed values (via an inherited
+for a value, offering completion either on allowed values (via an inherited
 xxx_ALL property) or on existing values in other instances of this property
 in the current file."
   (interactive
@@ -10578,7 +10579,7 @@ in the current file."
 (defun org-compute-property-at-point ()
   "Compute the property at point.
 This looks for an enclosing column format, extracts the operator and
-then applies it to the proerty in the column format's scope."
+then applies it to the property in the column format's scope."
   (interactive)
   (unless (org-at-property-p)
     (error "Not at a property"))
@@ -10921,7 +10922,7 @@ user."
 (defvar defdecode)
 (defvar with-time)
 (defun org-read-date-display ()
-  "Display the currrent date prompt interpretation in the minibuffer."
+  "Display the current date prompt interpretation in the minibuffer."
   (when org-read-date-display-live
     (when org-read-date-overlay
       (org-delete-overlay org-read-date-overlay))
@@ -10954,7 +10955,7 @@ user."
       (org-overlay-display org-read-date-overlay txt 'secondary-selection))))
 
 (defun org-read-date-analyze (ans def defdecode)
-  "Analyze the combined answer of the date prompt."
+  "Analyse the combined answer of the date prompt."
   ;; FIXME: cleanup and comment
   (let (delta deltan deltaw deltadef year month day
 	      hour minute second wday pm h2 m2 tl wday1
@@ -10970,7 +10971,7 @@ user."
             deltadef (nth 2 delta)))
 
     ;; Check if there is an iso week date in there
-    ;; If yes, sore the info and ostpone interpreting it until the rest
+    ;; If yes, sore the info and postpone interpreting it until the rest
     ;; of the parsing is done
     (when (string-match "\\<\\(?:\\([0-9]+\\)-\\)?[wW]\\([0-9]\\{1,2\\}\\)\\(?:-\\([0-6]\\)\\)?\\([ \t]\\|$\\)" ans)
       (setq iso-year (if (match-end 1) (org-small-year-to-year (string-to-number (match-string 1 ans))))
@@ -11502,7 +11503,7 @@ This uses the icalendar.el library."
   "Find the date closest to CURRENT that is consistent with START and CHANGE.
 When PREFER is `past' return a date that is either CURRENT or past.
 When PREFER is `future', return a date that is either CURRENT or future.
-When SHOW-ALL is nil, only return the current occurence of a time stamp."
+When SHOW-ALL is nil, only return the current occurrence of a time stamp."
   ;; Make the proper lists from the dates
   (catch 'exit
     (let ((a1 '(("d" . day) ("w" . week) ("m" . month) ("y" . year)))
@@ -11955,7 +11956,7 @@ the buffer and restores the previous window configuration."
     (customize-variable 'org-agenda-files)))
 
 (defun org-store-new-agenda-file-list (list)
-  "Set new value for the agenda file list and save it correcly."
+  "Set new value for the agenda file list and save it correctly."
   (if (stringp org-agenda-files)
       (let ((f org-agenda-files) b)
 	(while (setq b (find-buffer-visiting f)) (kill-buffer b))
@@ -12151,7 +12152,7 @@ in Org-mode.
       "Always return t in org-mode buffers.
 This is because we want to insert math symbols without dollars even outside
 the LaTeX math segments.  If Orgmode thinks that point is actually inside
-en embedded LaTeX fragement, let texmathp do its job.
+an embedded LaTeX fragment, let texmathp do its job.
 \\[org-cdlatex-mode-map]"
       (interactive)
       (let (p)
@@ -12693,7 +12694,7 @@ because, in this case the deletion might narrow the column."
 
 ;; Make pabbrev-mode expand after org-mode commands
 (put 'org-self-insert-command 'pabbrev-expand-after-command t)
-(put 'orgybl-self-insert-command 'pabbrev-expand-after-command t)
+(put 'orgtbl-self-insert-command 'pabbrev-expand-after-command t)
 
 ;; How to do this: Measure non-white length of current string
 ;; If equal to column width, we should realign.
@@ -13609,7 +13610,7 @@ Assumes that s is a single line, starting in column 0."
 (defun org-fix-indentation (line ind)
   "Fix indentation in LINE.
 IND is a cons cell with target and minimum indentation.
-If the current indenation in LINE is smaller than the minimum,
+If the current indentation in LINE is smaller than the minimum,
 leave it alone.  If it is larger than ind, set it to the target."
   (let* ((l (org-remove-tabs line))
 	 (i (org-get-indentation l))
@@ -13876,7 +13877,7 @@ really on, so that the block visually is on the match."
   list)
 
 (defun org-back-over-empty-lines ()
-  "Move backwards over witespace, to the beginning of the first empty line.
+  "Move backwards over whitespace, to the beginning of the first empty line.
 Returns the number of empty lines passed."
   (let ((pos (point)))
     (skip-chars-backward " \t\n\r")
@@ -14301,11 +14302,11 @@ beyond the end of the headline."
 This command will look at the current kill and check if is a single
 subtree, or a series of subtrees[1].  If it passes the test, and if the
 cursor is at the beginning of a line or after the stars of a currently
-empty headline, then the yank is handeled specially.  How exactly depends
+empty headline, then the yank is handled specially.  How exactly depends
 on the value of the following variables, both set by default.
 
 org-yank-folded-subtrees
-    When set, the subree(s) will be folded after insertion, but only
+    When set, the subtree(s) will be folded after insertion, but only
     if doing so would now swallow text after the yanked text.
 
 org-yank-adjusted-subtrees

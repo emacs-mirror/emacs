@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data task
-;; Version: 6.15a
+;; Version: 6.15d
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -53,7 +53,7 @@
 If this is a relative path, it will be interpreted relative to the directory
 where the Org file lives."
   :group 'org-attach
-  :type 'direcory)
+  :type 'directory)
 
 (defcustom org-attach-auto-tag "ATTACH"
   "Tag that will be triggered automatically when an entry has an attachment."
