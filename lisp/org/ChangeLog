@@ -1,3 +1,12 @@
+2008-12-17  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* Fix typos in comments and docstrings throughout Org-mode.
+
+	* org.el (org-get-outline-path): Fix bug if level is not given.
+
+	* org-agenda.el (org-finalize-agenda): Fix typo with variable
+	name.
+
 2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-refile): Avoid refiling to within the region to be
