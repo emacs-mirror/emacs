@@ -308,6 +308,12 @@ w32font_has_char (entity, c)
      Lisp_Object entity;
      int c;
 {
+  /* We can't be certain about which characters a font will support until
+     we open it.  Checking the scripts that the font supports turns out
+     to not be reliable.  */
+  return -1;
+
+#if 0
   Lisp_Object supported_scripts, extra, script;
   DWORD mask;
 
@@ -333,8 +339,11 @@ w32font_has_char (entity, c)
     return -1;
 
   /* Font reports what scripts it supports, and none of them are the script
-     the character is from, so it is a definite no.  */
-  return 0;
+     the character is from. But we still can't be certain, as some fonts
+     will contain some/most/all of the characters in that script without
+     claiming support for it.  */
+  return -1;
+#endif
 }
 
 /* w32 implementation of encode_char for font backend.
