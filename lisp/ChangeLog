@@ -1,3 +1,8 @@
+2008-12-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-insert-file-contents): Set
+	buffer-file-name before decrypting a file.
+
 2008-12-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-start): If unable to start the server,
