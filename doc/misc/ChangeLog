@@ -10,7 +10,7 @@
 
 2008-12-16  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Tables in LaTeX export): New section.
+	* org.texi (Tables in LaTeX export): New section.
 	(Images in LaTeX export): New section.
 	(Inlined images, Images in HTML export): Sections renamed.
 
@@ -31,7 +31,7 @@
 	(Property searches): Document new special values for time comparisons.
 	(Tag inheritance): Refine the description of tag inheritance.
 	(Project alist): Add info about the publishing sequence of components.
-	(Effort estimates): Document the new relativer timer.
+	(Effort estimates): Document the new relative timer.
 
 2008-12-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
