@@ -4,6 +4,19 @@
 
 2008-12-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* mml.el (mml-generate-mime-1): Prefer the MIME charset that Emacs
+	knows since the charset specified might be a bogus alias that
+	mm-charset-synonym-alist provides.
+
+2008-12-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-util.el (mm-charset-synonym-alist): Add bogus names "UTF8" and
+	"ISO_8859-1".
+
+	* gnus-start.el (gnus-backup-startup-file): Improve doc string.
+
+2008-12-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
 	* mm-util.el (mm-charset-eval-alist):
 	Define it before mm-charset-to-coding-system.
 	(mm-charset-to-coding-system): Add optional argument `silent';

@@ -269,10 +269,18 @@ the alias.  Else windows-NUMBER is used."
     ,@(when (and (not (mm-coding-system-p 'gbk))
 		 (mm-coding-system-p 'cp936))
 	'((gbk . cp936)))
+    ;; UTF8 is a bogus name for UTF-8
+    ,@(when (and (not (mm-coding-system-p 'utf8))
+		 (mm-coding-system-p 'utf-8))
+	'((utf8 . utf-8)))
     ;; ISO8859-1 is a bogus name for ISO-8859-1
     ,@(when (and (not (mm-coding-system-p 'iso8859-1))
 		 (mm-coding-system-p 'iso-8859-1))
 	'((iso8859-1 . iso-8859-1)))
+    ;; ISO_8859-1 is a bogus name for ISO-8859-1
+    ,@(when (and (not (mm-coding-system-p 'iso_8859-1))
+		 (mm-coding-system-p 'iso-8859-1))
+	'((iso_8859-1 . iso-8859-1)))
     )
   "A mapping from unknown or invalid charset names to the real charset names.
 

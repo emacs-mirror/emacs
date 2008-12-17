@@ -482,7 +482,12 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		 (setq charset nil
 		       coding nil))
 		(charset
-		 (setq charset (intern (downcase charset)))))
+		 ;; The value of `charset' might be a bogus alias that
+		 ;; `mm-charset-synonym-alist' provides, like `utf8',
+		 ;; so we prefer the MIME charset that Emacs knows for
+		 ;; the coding system `coding'.
+		 (setq charset (or (mm-coding-system-to-mime-charset coding)
+				   (intern (downcase charset))))))
 	  (if (and (not raw)
 		   (member (car (split-string type "/")) '("text" "message")))
 	      (progn

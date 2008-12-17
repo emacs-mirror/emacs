@@ -50,7 +50,7 @@
   :type 'file)
 
 (defcustom gnus-backup-startup-file 'never
-  "Whether to create backup files.
+  "Control use of version numbers for backups of `gnus-startup-file'.
 This variable takes the same values as the `version-control'
 variable."
   :version "22.1"
