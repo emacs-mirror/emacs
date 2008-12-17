@@ -2295,7 +2295,7 @@
 	* mm-util.el (mm-charset-synonym-alist): Alias gbk to cp936.
 	Fix comment about "iso8859-1".
 
-2007-10-08   Daiki Ueno  <ueno@unixuser.org>
+2007-10-08  Daiki Ueno  <ueno@unixuser.org>
 
 	* mm-decode.el (mm-possibly-verify-or-decrypt): Replace PARTS with the
 	ones returned from the verify-function.

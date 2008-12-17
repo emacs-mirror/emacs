@@ -2,9 +2,10 @@
 
 	* emacsclient.c: Include syswait.h instead of sys/types.h.
 
-2008-12-11  dhruva <dhruvakm@gmail.com> (tiny change)
+2008-12-11  dhruva  <dhruvakm@gmail.com>  (tiny change)
 
-	* emacsclient.c (WCONTINUED): New compatibility define for older systems.
+	* emacsclient.c (WCONTINUED): New compatibility define
+	for older systems.
 
 2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
