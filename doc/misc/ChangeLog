@@ -1,3 +1,9 @@
+2008-12-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (INFO_TARGETS, clean): Add sasl.
+	(DVI_TARGETS): Remove duplicates.  Add sasl.
+	($(infodir)/sasl, sasl.dvi): New targets.
+
 2008-12-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Version number pushed to 6.15d.

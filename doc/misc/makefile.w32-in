@@ -44,16 +44,16 @@ INFO_TARGETS = $(infodir)/ccmode \
 		$(infodir)/tramp $(infodir)/ses $(infodir)/smtpmail \
 		$(infodir)/flymake $(infodir)/newsticker $(infodir)/rcirc \
 		$(infodir)/erc $(infodir)/remember $(infodir)/nxml-mode \
-		$(infodir)/epa $(infodir)/mairix-el
+		$(infodir)/epa $(infodir)/mairix-el $(infodir)/sasl
 DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dbus.dvi dired-x.dvi \
 		ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
-		gnus.dvi message.dvi sieve.dvi pgg.dvi mh-e.dvi \
+		sieve.dvi pgg.dvi mh-e.dvi \
 		reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		pcl-cvs.dvi woman.dvi eshell.dvi org.dvi url.dvi \
 		speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
 		newsticker.dvi rcirc.dvi erc.dvi remember.dvi nxml-mode.dvi \
-		epa.dvi mairix-el.dvi
+		epa.dvi mairix-el.dvi sasl.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -184,6 +184,11 @@ $(infodir)/remember: remember.texi
 	$(MAKEINFO) remember.texi
 remember.dvi: remember.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/remember.texi
+
+$(infodir)/sasl: sasl.texi
+	$(MAKEINFO) sasl.texi
+sasl.dvi: sasl.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/sasl.texi
 
 $(infodir)/sc: sc.texi
 	$(MAKEINFO) sc.texi
@@ -327,7 +332,7 @@ clean: mostlyclean
 		 $(infodir)/sieve* $(infodir)/pgg* \
 		 $(infodir)/erc* $(infodir)/rcirc* \
 		 $(infodir)/remember* $(infodir)/nxml-mode* \
-		 $(infodir)/epa* \
+		 $(infodir)/epa* $(infodir)/sasl* \
 		 $(infodir)/mairix-el*
 
 distclean: clean
