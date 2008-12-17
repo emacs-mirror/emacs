@@ -1,3 +1,7 @@
+2008-12-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_has_char): Always return -1.
+
 2008-12-16  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_open_entity): Fix previous change.
