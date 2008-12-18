@@ -1,5 +1,8 @@
 2008-12-18  Carsten Dominik  <dominik@science.uva.nl>
 
+	* org-table.el (org-table-get-specials): Revert introduction of @0
+	as reference of the last table row, because of conflicts.
+
 	* org-agenda.el (org-agenda-change-all-lines): Remove FORCE-TAGS
 	argument, get the current tags directly.
 	(org-agenda-set-tags): Leave getting current tags to
