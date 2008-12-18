@@ -1,3 +1,8 @@
+2008-12-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* emulation/cua-base.el (cmd): Add beginning-of-visual-line and
+	end-of-visual-line to CUA's recognized commands.  (Bug#1549)
+
 2008-12-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* newcomment.el (comment-style): Default to `indent'.  (Bug#1153)
