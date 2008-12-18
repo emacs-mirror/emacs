@@ -964,7 +964,7 @@
 	* org-clock.el (org-clock-heading-for-remember): New variable.
 	(org-clock-in): Set `org-clock-heading-for-remember'.
 
-2008-10-12 James TD Smith  <ahktenzero@mohorovi.cc>
+2008-10-12  James TD Smith  <ahktenzero@mohorovi.cc>
 
 	* org-remember.el (org-remember-apply-template): Add new
 	expansions: %k, %K for currently clocked task and a link to the
@@ -1063,7 +1063,7 @@
 
 	* org-export-latex.el (org-export-latex-keywords-maybe): Bug fix.
 
-2008-10-12  James TA Smith  <ahktenzero@mohorovi.cc>
+2008-10-12  James TD Smith  <ahktenzero@mohorovi.cc>
 
 	* org-plot.el (org-plot/gnuplot): Make tables starting with a
 	hline work correctly.
