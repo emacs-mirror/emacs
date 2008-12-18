@@ -1,3 +1,13 @@
+2008-12-18  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (minibuffer-local-isearch-map): Unbind "C-w" from
+	`isearch-edit-string-set-word'.
+	(isearch-edit-string-set-word): Remove.
+	(isearch-occur): Imitate the C function `wordify' by replacing
+	non-word character with the \\W+ regexp.
+	(isearch-search-fun): Add `isearch-nonincremental' to the
+	condition of using a non-lax version of `word-search-forward'.
+
 2008-12-17  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-file.el (epa-file-insert-file-contents): Set
