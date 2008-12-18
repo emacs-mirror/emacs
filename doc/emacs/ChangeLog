@@ -1,3 +1,7 @@
+2008-12-18  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi: Various small updates and fixes.
+
 2008-12-18  Juri Linkov  <juri@jurta.org>
 
 	* search.texi (Word Search): Replace `C-s RET C-w' with `M-s w RET'

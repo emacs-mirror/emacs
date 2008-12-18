@@ -72,7 +72,7 @@ footnotes in email messages, and @file{gnus-audio.el} which provides
 sound effects for Gnus.
 
 @item
-Alexander L. Belikoff, Sergey Berezin, David Edmondson, Andreas Fuchs,
+Alexander L.@: Belikoff, Sergey Berezin, David Edmondson, Andreas Fuchs,
 Mario Lang, Gergely Nagy, Michael Olson, and Alex Schroeder wrote ERC,
 an advanced Internet Relay Chat client.
 
@@ -80,11 +80,20 @@ an advanced Internet Relay Chat client.
 Boaz Ben-Zvi wrote @file{profile.el}, to time Emacs Lisp functions.
 
 @item
-Anna M. Bigatti wrote @file{cal-html.el}, which produces HTML calendars.
+Scott Bender, Michael Brouwer, Christophe de Dinechin, Carl Edman,
+Christian Limpach and Adrian Robert developed and maintained the 
+NeXTstep port of Emacs.
+
+@item
+Anna M.@: Bigatti wrote @file{cal-html.el}, which produces HTML calendars.
 
 @item
 Ray Blaak wrote @file{delphi.el}, a mode for editing Delphi (Object
 Pascal) source code.
+
+@item
+Martin Blais, Stefan Merten, and David Goodger wrote @file{rst.el}, a
+mode for editing reStructuredText documents.
 
 @item
 Jim Blandy wrote Emacs 19's input system, brought its configuration and
@@ -154,6 +163,9 @@ and utilities for working with Texinfo files; and @file{page-ext.el},
 commands for extended page handling.
 
 @item
+Jihyun Cho wrote @file{hanja-util.el}, utilities for Korean Hanja.
+
+@item
 Andrew Choi and Yamamoto Mitsuharu wrote the Carbon support, used
 prior to Emacs 23 for Mac OS.
 
@@ -208,9 +220,12 @@ Eric Ding wrote @file{goto-addr.el},
 Jan Dj@"{a}rv added support for the GTK+ toolkit and X drag-and-drop.
 
 @item
-Carsten Dominik wrote @file{reftex.el}, a package for setting up
-labels and cross-references in La@TeX{} documents, and @file{org.el},
-a mode for maintaining notes, todo lists, and project planning.
+Carsten Dominik wrote @file{reftex.el}, a package for setting up labels
+and cross-references in La@TeX{} documents; and was the main author of
+Org-mode, a mode for maintaining notes, todo lists, and project
+planning.  Thomas Baumann, Bastien Guerry, Tassilo Horn, Philip Jackson,
+Tokuya Kameshima, Eric Schulte, Andy Stewart, David O'Toole, John
+Wiegley, and Piotr Zielinski also wrote various Org-mode components.
 
 @item
 Scott Draves wrote @file{tq.el}, help functions for maintaining
@@ -412,7 +427,8 @@ Anders Holst wrote @file{hippie-exp.el}, a versatile completion and
 expansion package.
 
 @item
-Tassilo Horn wrote DocView mode.
+Tassilo Horn wrote DocView mode, allowing viewing of PDF, PostScript and
+DVI documents.
 
 @item
 Tom Houlder wrote @file{mantemp.el}, which generates manual C@t{++}
@@ -436,9 +452,14 @@ Andrew Innes contributed extensively to the MS-Windows support.
 Seiichiro Inoue improved Emacs's XIM support.
 
 @item
+Philip Jackson wrote @file{find-cmd.el}, to build a @code{find}
+command-line.
+
+@item
 Ulf Jasper wrote @file{icalendar.el}, a package for converting Emacs
-diary entries to and from the iCalendar format, and
-@file{newsticker.el}, an RSS and Atom based Newsticker.
+diary entries to and from the iCalendar format;
+@file{newsticker.el}, an RSS and Atom based Newsticker; and
+@file{bubbles.el}, a puzzle game.
 
 @item
 Kyle Jones wrote @file{life.el}, a package to play Conway's ``life'' game,
@@ -583,6 +604,10 @@ Thomas Link wrote @file{filesets.el}, a package for handling sets of
 files.
 
 @item
+Juri Linkov wrote @file{misearch.el}, extending isearch to multi-buffer
+searches.
+
+@item
 K@'{a}roly L@"{o}rentey wrote the ``multi-terminal'' code, which
 allows Emacs to run on graphical and text-only terminals
 simultaneously.
@@ -654,6 +679,9 @@ bibliography files.
 @item
 Charlie Martin wrote @file{autoinsert.el}, which provides automatic
 mode-sensitive insertion of text into new files.
+
+@item
+Yukihiro Matsumoto and Nobuyoshi Nakada wrote Ruby-mode.
 
 @item
 Thomas May wrote @file{blackbox.el}, a version of the traditional
@@ -743,9 +771,10 @@ mode for selectively displaying blocks of text.
 
 @item
 Dan Nicolaescu added support for running Emacs as a daemon.  He also
-wrote @file{romanian.el}, support for editing Romanian text, and
+wrote @file{romanian.el}, support for editing Romanian text;
 @file{iris-ansi.el}, support for running Emacs on SGI's @code{xwsh}
-and @code{winterm} terminal emulators.
+and @code{winterm} terminal emulators; and @file{vc-dir.el}, displaying
+the status of version-controlled directories.
 
 @item
 Jurgen Nickelsen wrote @file{ws-mode.el}, providing WordStar emulation.
@@ -765,6 +794,9 @@ support.
 @item
 Edward O'Connor wrote @file{json.el}, a file for parsing and
 generating JSON files.
+
+@item
+Kentaro Ohkouchi created the Emacs icons used beginning with Emacs 23.
 
 @item
 Alexandre Oliva wrote @file{gnus-mlspl.el}, a group params-based mail
@@ -1134,11 +1166,16 @@ Tcl/Tk source files and running a Tcl interpreter as an Emacs
 subprocess.
 
 @item
+Tom Tromey wrote @file{bug-reference.el}, providing clickable links to
+bug reports.
+
+@item
 Eli Tziperman wrote @file{rmail-spam-filter.el}, a spam filter for RMAIL.
 
 @item
 Daiki Ueno wrote @file{starttls.el}, support for Transport Layer
-Security protocol, and the PGG package adding GnuPG and PGP support.
+Security protocol; and the EasyPG (and its predecessor PGG) package
+for GnuPG and PGP support.
 
 @item
 Masanobu Umeda wrote GNUS, a feature-rich reader for Usenet news.  He
@@ -1290,7 +1327,7 @@ that provides automatic expansion of mail aliases, and
 for tar files.
 
 @item
-Andrew Zhilin created the Emacs icons used beginning with Emacs 22.
+Andrew Zhilin created the Emacs 22 icons.
 
 @item
 Shenghuo Zhu wrote @file{binhex.el}, a package for reading and writing
