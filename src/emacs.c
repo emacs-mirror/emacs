@@ -1129,6 +1129,11 @@ main (int argc, char **argv)
 	      fprintf (stderr, "Error reading status from child\n");
 	      exit (1);
 	    }
+	  else if (retval == 0)
+	    {
+	      fprintf (stderr, "Error: server did not start correctly\n");
+	      exit (1);
+	    }
 
 	  close (daemon_pipe[0]);
 	  exit (0);

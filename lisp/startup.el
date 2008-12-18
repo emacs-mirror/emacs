@@ -1223,7 +1223,11 @@ the `--debug-init' option to view a complete error backtrace."
       (server-start)
       (if server-process
 	  (daemon-initialized)
-	(message "Unable to start daemon: Emacs server named %S already running" server-name)
+	(if (stringp dn)
+	    (message
+	     "Unable to start daemon: Emacs server named %S already running"
+	     server-name)
+	  (message "Unable to start the daemon.\nAnother instance of Emacs is running the server, either as daemon or interactively.\nYou can use emacsclient to connect to that Emacs process."))
 	(kill-emacs 1))))
 
   ;; Run emacs-session-restore (session management) if started by

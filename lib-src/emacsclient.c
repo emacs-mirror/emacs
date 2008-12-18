@@ -1433,23 +1433,31 @@ start_daemon_and_retry_set_socket (void)
 #ifndef WINDOWSNT
   pid_t dpid;
   int status;
-  pid_t p;
 
   dpid = fork ();
 
   if (dpid > 0)
     {
-      p = waitpid (dpid, &status, WUNTRACED | WCONTINUED);
+      pid_t w;
+      w = waitpid (dpid, &status, WUNTRACED | WCONTINUED);
 
-      /* Try connecting again, the daemon should have started by
-	 now.  */
-      message (TRUE, "daemon should have started, trying to connect again\n", dpid);
+      if ((w == -1) || !WIFEXITED (status) || WEXITSTATUS(status))
+	{
+	  message (TRUE, "Error: Could not start the Emacs daemon\n");
+	  exit (EXIT_FAILURE);
+	}
+
+      /* Try connecting, the daemon should have started by now.  */
+      message (TRUE, "Emacs daemon should have started, trying to connect again\n");
       if ((emacs_socket = set_socket (1)) == INVALID_SOCKET)
-	message (TRUE, "Cannot connect even after starting the daemon\n");
+	{
+	  message (TRUE, "Error: Cannot connect even after starting the Emacs daemon\n");
+	  exit (EXIT_FAILURE);
+	}
     }
   else if (dpid < 0)
     {
-      fprintf (stderr, "Cannot fork!\n");
+      fprintf (stderr, "Error: Cannot fork!\n");
       exit (1);
     }
   else

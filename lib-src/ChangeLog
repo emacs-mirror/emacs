@@ -1,3 +1,8 @@
+2008-12-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c (start_daemon_and_retry_set_socket): Improve error
+	checking.
+
 2008-12-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacsclient.c: Include syswait.h instead of sys/types.h.

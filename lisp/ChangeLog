@@ -1,5 +1,8 @@
 2008-12-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* startup.el (command-line): Do not mention the server name in
+	case the user has not mentioned it, print a more explicit message.
+
 	* vc-dir.el (vc-dir-at-event): Rename from vc-at-event.  Change
 	all callers.
 

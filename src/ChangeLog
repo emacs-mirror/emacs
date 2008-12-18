@@ -1,3 +1,8 @@
+2008-12-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c (main): Print and error and exit when no data is read
+	from the pipe.
+
 2008-12-17  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_has_char): Always return -1.
