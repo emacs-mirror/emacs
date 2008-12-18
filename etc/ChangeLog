@@ -506,9 +506,25 @@
 
 2007-10-28  Adam Sjøgren  <asjo@koldfront.dk>
 
-	* images/smilies/grayscale/*.xpm: New larger grayscale smileys.
+	* images/smilies/grayscale/blink.xpm:
+	* images/smilies/grayscale/braindamaged.xpm
+	* images/smilies/grayscale/cry.xpm, images/smilies/grayscale/dead.xpm:
+	* images/smilies/grayscale/evil.xpm:
+	* images/smilies/grayscale/forced.xpm:
+	* images/smilies/grayscale/frown.xpm, images/smilies/grayscale/grin.xpm:
+	* images/smilies/grayscale/indifferent.xpm:
+	* images/smilies/grayscale/reverse-smile.xpm:
+	* images/smilies/grayscale/sad.xpm, images/smilies/grayscale/smile.xpm:
+	* images/smilies/grayscale/wry.xpm: New larger grayscale smileys.
 
-	* images/smilies/medium/*.xpm: New colorful smileys.
+	* images/smilies/medium/blink.xpm:
+	* images/smilies/medium/braindamaged.xpm, images/smilies/medium/cry.xpm:
+	* images/smilies/medium/dead.xpm, images/smilies/medium/evil.xpm:
+	* images/smilies/medium/forced.xpm, images/smilies/medium/frown.xpm:
+	* images/smilies/medium/grin.xpm, images/smilies/medium/indifferent.xpm:
+	* images/smilies/medium/reverse-smile.xpm:
+	* images/smilies/medium/sad.xpm, images/smilies/medium/smile.xpm:
+	* images/smilies/medium/wry.xpm: New colorful smileys.
 
 2007-10-29  Michael Olson  <mwolson@gnu.org>
 
