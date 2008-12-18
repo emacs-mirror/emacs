@@ -7112,7 +7112,7 @@
 	* files.texi: Noted that completion-ignored-extensions is ignored
 	when making *Completions*.
 
-1990-06-08  Jay Fenlason (hack@ai.mit.edu)
+1990-06-08  Jay Fenlason  (hack@ai.mit.edu)
 
 	* Makefile  make dist now depends on elisp.dvi, since it tries
 	to include it in the dist file.
