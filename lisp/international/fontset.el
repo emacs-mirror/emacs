@@ -186,7 +186,34 @@
 	(yi #xA288)
 	(cham #xAA00)
 	(tai-viet #xAA80)
-	(hangul #xAC00)))
+	(hangul #xAC00)
+	(linear-b #x10000)
+	(aegean-number #x10100)
+	(ancient-greek-number #x10140)
+	(ancient-symbol #x10190)
+	(phaistos-disc #x101D0)
+	(lycian #x10280)
+	(carian #x102A0)
+	(olt-italic #x10300)
+	(ugaritic #x10380)
+	(old-persian #x103A0)
+	(deseret #x10400)
+	(shavian #x10450)
+	(osmanya #x10480)
+	(cypriot-syllabary #x10800)
+	(phoenician #x10900)
+	(lydian #x10920)
+	(kharoshthi #x10A00)
+	(cuneiform #x12000)
+	(cuneiform-numbers-and-punctuation #x12400)
+	(byzantine-musical-symbol #x1D000)
+	(musical-symbol #x1D100)
+	(ancient-greek-musical-notation #x1D200)
+	(tai-xuan-jing-symbol #x1D300)
+	(counting-rod-numeral #x1D360)
+	(mathematical #x1D400)
+	(mahjong-tile #x1F000)
+	(domino-tile #x1F030)))
 
 (defvar otf-script-alist)
 
@@ -299,10 +326,6 @@
 	    (nil . "VISCII1.1-1")
 	    ,(font-spec :registry "iso10646-1" :script 'latin))
 
-     (phonetic ,(font-spec :registry "iso10646-1" :script 'phonetic))
-
-     (armenian ,(font-spec :registry "iso10646-1" :script 'armenian))
-
      (thai  ,(font-spec :registry "iso10646-1" :otf '(thai nil nil (mark)))
 	    (nil . "TIS620*")
 	    (nil . "ISO8859-11"))
@@ -353,28 +376,7 @@
      (hebrew ,(font-spec :registry "iso10646-1" :script 'hebrew)
 	     (nil . "ISO8859-8"))
 
-     (syriac ,(font-spec :registry "iso10646-1" :script 'syriac))
-
-     (thaana ,(font-spec :registry "iso10646-1" :otf '(thaa nil nil)))
-
-     (myanmar ,(font-spec :registry "iso10646-1" :script 'myanmar))
-
-     (georgian ,(font-spec :registry "iso10646-1" :script 'georgian))
-
-     (cherokee ,(font-spec :registry "iso10646-1" :script 'cherokee))
-
-     (canadian-aboriginal ,(font-spec :registry "iso10646-1"
-				      :script 'canadian-aboriginal))
-
-     (ogham ,(font-spec :registry "iso10646-1" :script 'ogham))
-
-     (runic ,(font-spec :registry "iso10646-1" :script 'runic))
-
      (khmer ,(font-spec :registry "iso10646-1" :otf '(khmr nil (pres))))
-
-     (symbol ,(font-spec :registry "iso10646-1" :script 'symbol))
-
-     (yi ,(font-spec :registry "iso10646-1" :script 'yi))
 
      (kana (nil . "JISX0208*")
 	   (nil . "GB2312.1980-0")
@@ -429,10 +431,6 @@
      (hangul (nil . "KSC5601.1987-0")
 	     ,(font-spec :registry "iso10646-1" :lang 'ko))
 
-     (braille ,(font-spec :registry "iso10646-1" :script 'braille))
-
-     (mathematical ,(font-spec :registry "iso10646-1" :script 'mathematical))
-
      ;; for each charset
      (ascii (nil . "ISO8859-1"))
      (arabic-digit ("*" . "MuleArabic-0"))
@@ -486,6 +484,49 @@
 	  (nil . "jisx0213.2004-1")
 	  (nil . "jisx0212"))
      ))
+
+  ;; For simple scripts
+  (dolist (script '(phonetic
+		    armenian
+		    syriac
+		    thaana
+		    myanmar
+		    georgian
+		    cherokee
+		    canadian-aboriginal
+		    ogham
+		    runic
+		    symbol
+		    braille
+		    yi
+		    aegean-number 
+		    ancient-greek-number
+		    ancient-symbol
+		    phaistos-disc
+		    lycian
+		    carian
+		    olt-italic
+		    ugaritic
+		    old-persian
+		    deseret
+		    shavian
+		    osmanya
+		    cypriot-syllabary
+		    phoenician
+		    lydian
+		    kharoshthi
+		    cuneiform
+		    cuneiform-numbers-and-punctuation
+		    byzantine-musical-symbol
+		    musical-symbol
+		    ancient-greek-musical-notation
+		    tai-xuan-jing-symbol
+		    counting-rod-numeral
+		    mathematical
+		    mahjong-tile
+		    domino-tile))
+    (set-fontset-font "fontset-default"
+		      script (font-spec :registry "iso10646-1" :script script)))
 
   ;; Append Unicode fonts.
   ;; This may find fonts with more variants (bold, italic) but which
