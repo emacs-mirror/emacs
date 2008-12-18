@@ -609,7 +609,7 @@ the processes listed.
 Notes can be saved to a Diary file.  For details, see the Remember
 Manual.
 
-** RST mode is a major mode for editing ReSTructured-Text files.
+** RST mode is a major mode for editing reStructuredText files.
 
 +++
 ** Ruby mode is a major mode for Ruby files.
