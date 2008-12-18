@@ -1,3 +1,10 @@
+2008-12-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-agenda.el (org-agenda-change-all-lines): Remove FORCE-TAGS
+	argument, get the current tags directly.
+	(org-agenda-set-tags): Leave getting current tags to
+	`org-agenda-change-all-lines'.
+
 2008-12-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.el (org-org-menu): Do not quote the set-tags command.
