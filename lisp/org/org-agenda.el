@@ -5068,8 +5068,7 @@ the same tree node, and the headline of the tree node in the Org-mode file."
       (org-add-note))))
 
 (defun org-agenda-change-all-lines (newhead hdmarker
-					    &optional fixface just-this
-					    force-tags)
+					    &optional fixface just-this)
   "Change all lines in the agenda buffer which match HDMARKER.
 The new content of the line will be NEWHEAD (as modified by
 `org-format-agenda-item').  HDMARKER is checked with
@@ -5080,6 +5079,12 @@ If JUST-THIS is non-nil, change just the current line, not all.
 If FORCE-TAGS is non nil, the car of it returns the new tags."
   (let* ((inhibit-read-only t)
 	 (line (org-current-line))
+	 (thetags
+	  (and hdmarker (markerp hdmarker)
+	       (with-current-buffer (marker-buffer hdmarker)
+		    (save-excursion (save-restriction (widen)
+						      (goto-char hdmarker)
+						      (org-get-tags-at))))))
 	 props m pl undone-face done-face finish new dotime cat tags)
     (save-excursion
       (goto-char (point-max))
@@ -5092,9 +5097,7 @@ If FORCE-TAGS is non nil, the car of it returns the new tags."
 	  (setq props (text-properties-at (point))
 		dotime (get-text-property (point) 'dotime)
 		cat (get-text-property (point) 'org-category)
-		tags (if force-tags
-			 (car force-tags)
-		       (get-text-property (point) 'tags))
+		tags thetags
 		new (org-format-agenda-item "x" newhead cat tags dotime 'noprefix)
 		pl (get-text-property (point) 'prefix-length)
 		undone-face (get-text-property (point) 'undone-face)
@@ -5197,7 +5200,7 @@ the same tree node, and the headline of the tree node in the Org-mode file."
 	   (buffer (marker-buffer hdmarker))
 	   (pos (marker-position hdmarker))
 	   (inhibit-read-only t)
-	   newhead tags)
+	   newhead)
       (org-with-remote-undo buffer
 	(with-current-buffer buffer
 	  (widen)
@@ -5209,10 +5212,9 @@ the same tree node, and the headline of the tree node in the Org-mode file."
 		 (org-flag-heading nil)))   ; show the next heading
 	  (goto-char pos)
 	  (call-interactively 'org-set-tags)
-	  (setq tags (org-get-tags-at))
 	  (end-of-line 1)
 	  (setq newhead (org-get-heading)))
-	(org-agenda-change-all-lines newhead hdmarker nil nil (list tags))
+	(org-agenda-change-all-lines newhead hdmarker)
 	(beginning-of-line 1)))))
 
 (defun org-agenda-toggle-archive-tag ()
