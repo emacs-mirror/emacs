@@ -1,5 +1,7 @@
 2008-12-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* newcomment.el (comment-style): Default to `indent'.  (Bug#1589)
+
 	* startup.el (command-line): Do not mention the server name in
 	case the user has not mentioned it, print a more explicit message.
 
