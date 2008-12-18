@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "24. November 2008, 19:49:20 (ulf)"
+;; Time-stamp:  "18. Dezember 2008, 11:26:54 (ulf)"
 
 ;; ======================================================================
 
@@ -143,6 +143,7 @@ Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
   "Name of the newsticker groups settings file."
   :type 'string
   :group 'newsticker-treeview)
+(make-obsolete 'newsticker-groups-filename 'newsticker-dir)
 
 ;; ======================================================================
 ;;; internal variables
@@ -1230,7 +1231,8 @@ Note: does not update the layout."
   (when newsticker--frame
     (if (frame-live-p newsticker--frame)
       (delete-frame newsticker--frame))
-    (setq newsticker--frame nil)))
+    (setq newsticker--frame nil))
+  (newsticker-treeview-save))
 
 (defun newsticker-treeview-save ()
   "Save newsticker data including treeview settings."
@@ -1256,7 +1258,8 @@ Note: does not update the layout."
                             newsticker-groups-filename))
                    newsticker-groups-filename)
               (concat newsticker-dir "/groups")))
-         (buf (find-file-noselect filename)))
+         (buf (and (file-exists-p filename)
+                   (find-file-noselect filename))))
     (when buf
       (set-buffer buf)
       (goto-char (point-min))

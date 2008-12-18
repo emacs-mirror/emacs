@@ -7,7 +7,7 @@
 ;; Filename:    newst-backend.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "24. November 2008, 19:39:24 (ulf)"
+;; Time-stamp:  "28. November 2008, 19:55:34 (ulf)"
 
 ;; ======================================================================
 
@@ -423,11 +423,12 @@ headline after it has been retrieved for the first time."
   "Name of the newsticker cache file."
   :type 'string
   :group 'newsticker-miscellaneous)
+(make-obsolete 'newsticker-cache-filename 'newsticker-dir)
 
 (defcustom newsticker-dir
-  "~/.newsticker"
-  "Name of the directory where newsticker saves cached data."
-  :type 'string
+  (locate-user-emacs-file "newsticker/" ".newsticker/")
+  "Directory where newsticker saves data."
+  :type 'directory
   :group 'newsticker-miscellaneous)
 
 ;; debugging

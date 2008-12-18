@@ -1,3 +1,12 @@
+2008-12-18  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el (newsticker-groups-filename): Made obsolete.
+	(newsticker-treeview-quit): Call `newsticker-treeview-save'.
+	(newsticker--treeview-load): Check whether groups file exists.
+
+	* net/newst-backend.el (newsticker-cache-filename): Made obsolete.
+	(newsticker-dir): Use `locate-user-emacs-file'.
+
 2008-12-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* emulation/cua-base.el (cmd): Add beginning-of-visual-line and
@@ -703,7 +712,7 @@
 	* calendar/appt.el (appt-disp-window): Do a set-buffer when the
 	frame can't be split.
 
-2008-11-24  Ulf Jasper  <ulf@web.de>
+2008-11-24  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el (newsticker--treeview-current-feed): Docstring.
 	(newsticker--treeview-item-show): Rename arg FEED to FEED-NAME-SYMBOL.
@@ -2404,7 +2413,7 @@
 	* kmacro.el (kmacro-edit-lossage): Ditto.
 	* edmacro.el (edit-kbd-macro): Ditto.
 
-2008-10-11  Ulf Jasper  <ulf@web.de>
+2008-10-11  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el (newsticker--treeview-list-sort-by-column):
 	Fix variable names.
@@ -3748,7 +3757,7 @@
 	(facemenu-keymap): Bind "\es" to `center-line' and "\eS" to
 	`center-paragraph'.
 
-2008-08-25  Ulf Jasper  <ulf@web.de>
+2008-08-25  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el (newsticker-treeview-own-frame): Doc fixed.
 	(newsticker-treeview-treewindow-width): New.
@@ -5311,7 +5320,7 @@
 	* net/browse-url.el (browse-url-default-browser):
 	Fix argument list in lambda.
 
-2008-07-07  Ulf Jasper  <ulf@web.de>
+2008-07-07  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-backend.el (newsticker--get-news-by-url): Catch errors
 	from url-retrieve.
@@ -6012,7 +6021,7 @@
 	(COMPILE_FIRST): List the elc files rather than the el files.
 	(ELCFILES): Update.
 
-2008-06-21  Ulf Jasper  <ulf@web.de>
+2008-06-21  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el: Remove dead code.
 	(newsticker--window-config): Remove.
@@ -6098,7 +6107,7 @@
 	* emacs-lisp/checkdoc.el (checkdoc-start-section, checkdoc-error):
 	Bind inhibit-read-only since the buffer is always read-only.
 
-2008-06-20  Ulf Jasper  <ulf@web.de>
+2008-06-20  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el (newsticker-treeview-own-frame):
 	Change default value to nil.
@@ -6351,7 +6360,7 @@
 	* net/tramp-cmds.el (tramp-cleanup-all-connections):
 	Reset `tramp-locked'.
 
-2008-06-15  Ulf Jasper  <ulf@web.de>
+2008-06-15  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el (newsticker--treeview-list-update)
 	(newsticker--treeview-item-update)
@@ -6370,7 +6379,7 @@
 
 	* wdired.el (wdired-search-and-rename): Fix undocumented change.
 
-2008-06-15  Ulf Jasper  <ulf@web.de>
+2008-06-15  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-plainview.el (newsticker-faces, newsticker-feed-face)
 	(newsticker-extra-face, newsticker-enclosure-face): Moved to
