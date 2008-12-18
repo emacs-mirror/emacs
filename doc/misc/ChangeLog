@@ -1,3 +1,8 @@
+2008-12-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (References): Remove mentioning of @0 as reference for the
+	last line, this has been reverted in the Lisp sources.
+
 2008-12-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (INFO_TARGETS, clean): Add sasl.
