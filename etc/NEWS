@@ -311,7 +311,8 @@ the history list.
 the minibuffer that toggles word search (i.e. using key sequences
 `C-s RET C-w' or `C-s M-e C-w') is obsolete.  You can use the global key
 `M-s w' to start word search, or type `M-s w' in Isearch mode to
-toggle word search.
+toggle word search.  To start nonincremental word search you can now use
+`M-s w RET' and `M-s w C-r RET' instead of `C-s RET C-w' and `C-r RET C-w'.
 
 ---
 ** In Text mode, `center-line' and `center-paragraph' are rebound
