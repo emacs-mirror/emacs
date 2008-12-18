@@ -21101,8 +21101,11 @@
 
 	* dframe.el, ezimage.el, sb-image.el: New files.
 
-	* sb-*.xpm: Remove files.  New image files installed into
-	etc/images/ezimage.
+	* sb-dir-minus.xpm, sb-dir-plus.xpm, sb-dir.xpm, sb-mail.xpm:
+	* sb-pg-minus.xpm, sb-pg-plus.xpm, sb-pg.xpm, sb-tag-gt.xpm:
+	* sb-tag-minus.xpm, sb-tag-plus.xpm, sb-tag-type.xpm:
+	* sb-tag-v.xpm, sb-tag.xpm: Remove files.
+	New image files installed into etc/images/ezimage.
 
 2005-09-30  Kenichi Handa  <handa@m17n.org>
 
