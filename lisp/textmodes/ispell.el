@@ -668,7 +668,8 @@ Note that the CASECHARS and OTHERCHARS slots of the alist should
 contain the same character set as casechars and otherchars in the
 LANGUAGE.aff file \(e.g., english.aff\).")
 
-(defvar ispell-really-aspell nil) ; Non-nil if aspell extensions should be used
+(defvar ispell-really-aspell nil)   ; Non-nil if aspell extensions should be used
+(defvar ispell-really-hunspell nil) ; Non-nil if hunspell extensions should be used
 
 (defvar ispell-aspell-supports-utf8 nil
   "Non-nil means to try to automatically find aspell dictionaries.
@@ -759,22 +760,29 @@ Otherwise returns the library directory name, if that is defined."
 		 ispell-program-name (car ispell-required-version)
 		 (car (cdr ispell-required-version))
 		 (car (cdr (cdr ispell-required-version))))
+
 	;; check that it is the correct version.
 	(if (and (= (car (read-from-string (match-string-no-properties 2)))
 		    (car (cdr ispell-required-version)))
 		 (< (car (read-from-string (match-string-no-properties 3)))
 		    (car (cdr (cdr ispell-required-version)))))
           (setq ispell-offset 0))
-        ;; Check to see if it's really aspell.
+
+        ;; Check to see if it's really aspell or hunspell.
         (goto-char (point-min))
         (let (case-fold-search)
-          (setq ispell-really-aspell
-		(and (search-forward-regexp
-		      "(but really Aspell \\(.*?\\)\\(-[0-9]+\\)?)" nil t)
-		     (progn
-		       (setq ispell-aspell-supports-utf8
-			     (not (version< (match-string 1) "0.60")))
-		       t)))))
+	  (or
+	   (setq ispell-really-aspell
+		 (and (search-forward-regexp
+		       "(but really Aspell \\(.*?\\)\\(-[0-9]+\\)?)" nil t)
+		      (progn
+			(setq ispell-aspell-supports-utf8
+			      (not (version< (match-string 1) "0.60")))
+			t)))
+	   (setq ispell-really-hunspell
+		 (search-forward-regexp
+		  "(but really Hunspell \\(.*?\\)\\(-[0-9]+\\)?)" nil t))
+	   )))
       (kill-buffer (current-buffer)))
     result))
 
@@ -1493,7 +1501,10 @@ This allows it to improve the suggestion list based on actual mispellings."
 			   (point-min) (point-max)
 			   ispell-program-name nil
 			   output-buf nil
-			   "-a" "-m" ispell-args))
+			   "-a"
+			   ;; hunspell -m option means something different
+			   (if ispell-really-hunspell "" "-m")
+			   ispell-args))
 	      (set-buffer output-buf)
 	      (goto-char (point-min))
 	      (save-match-data
@@ -2473,6 +2484,7 @@ When asynchronous processes are not supported, `run' is always returned."
   "Start the ispell process, with support for no asynchronous processes.
 Keeps argument list for future ispell invocations for no async support."
   (let ((default-directory default-directory)
+	encoding-command
 	args)
     (unless (and (file-directory-p default-directory)
 		 (file-readable-p default-directory))
@@ -2493,12 +2505,18 @@ Keeps argument list for future ispell invocations for no async support."
 	      (append args
 		      (list "-p"
 			    (expand-file-name ispell-current-personal-dictionary)))))
-    (if (and ispell-really-aspell
-	     ispell-aspell-supports-utf8)
+
+    ;; If we are using recent aspell or hunspell, make sure we use the right encoding
+    ;; for communication. ispell or older aspell/hunspell does not support this
+    (if (or (and ispell-really-aspell
+		 ispell-aspell-supports-utf8
+		 (setq encoding-command "--encoding="))
+	    (and ispell-really-hunspell
+		 (setq encoding-command "-i ")))
 	(setq args
 	      (append args
 		      (list
-		       (concat "--encoding="
+		       (concat encoding-command
 			       (symbol-name (ispell-get-coding-system)))))))
     (setq args (append args ispell-extra-args))
 
@@ -2509,9 +2527,9 @@ Keeps argument list for future ispell invocations for no async support."
 	(let ((process-connection-type ispell-use-ptys-p))
 	  (apply 'start-process
 		 "ispell" nil ispell-program-name
-		 "-a"			; accept single input lines
-		 "-m"			; make root/affix combos not in dict
-		 args))
+		 "-a"			             ; accept single input lines
+		 (if ispell-really-hunspell "" "-m") ; make root/affix combos not in dict
+		 args))                              ; hunspell -m option means different
       (setq ispell-cmd-args args
 	    ispell-output-buffer (generate-new-buffer " *ispell-output*")
 	    ispell-session-buffer (generate-new-buffer " *ispell-session*"))
