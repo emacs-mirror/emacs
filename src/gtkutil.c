@@ -3478,6 +3478,13 @@ xg_tool_bar_proxy_callback (w, client_data)
   GtkWidget *wbutton = GTK_WIDGET (g_object_get_data (G_OBJECT (w),
                                                       XG_TOOL_BAR_PROXY_BUTTON));
   xg_tool_bar_callback (wbutton, client_data);
+  FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (wbutton),
+                                               XG_FRAME_DATA);
+  /* Put focus back to the frame after we have clicked on a detached
+     tool bar button. */
+  Lisp_Object frame;
+  XSETFRAME (frame, f);
+  Fx_focus_frame (frame);
 }
 
 /* This callback is called when a tool item should create a proxy item,
