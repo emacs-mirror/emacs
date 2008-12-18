@@ -1,4 +1,15 @@
-2008-12-14  vinicius Jose Latorre  <viniciusjl@ig.com.br>
+2008-12-18  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Word Search): Replace `C-s RET C-w' with `M-s w RET'
+	as a key binding to start a forward nonincremental word search.
+	Replace `C-r RET C-w' with `M-s w C-r RET' as a key binding to start
+	a backward nonincremental word search.  Add index for `M-s w'
+	`isearch-forward-word'.
+	(Regexp Search): Add a short summary of regexp key commands like
+	in the node "Basic Isearch".
+	(Other Repeating Search): Fix typo.
+
+2008-12-14  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* misc.texi (PostScript Variables): Fix doc.
 
