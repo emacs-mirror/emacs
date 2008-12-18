@@ -1782,8 +1782,7 @@ Org also uses another, more general operator that looks like this:
 
 @noindent
 Column references can be absolute like @samp{1}, @samp{2},...@samp{N},
-or relative to the current column like @samp{+1} or @samp{-2}.  As a special
-case, @samp{@@0} references the last data line in the table.
+or relative to the current column like @samp{+1} or @samp{-2}.
 
 The row specification only counts data lines and ignores horizontal
 separator lines (hlines).  You can use absolute row numbers
