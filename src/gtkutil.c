@@ -646,14 +646,9 @@ xg_frame_resized (f, pixelwidth, pixelheight)
       FRAME_PIXEL_WIDTH (f) = pixelwidth;
       FRAME_PIXEL_HEIGHT (f) = pixelheight;
 
-      if (rows != FRAME_LINES (f) || columns != FRAME_COLS (f)
-          || (f->new_text_lines != 0 && f->new_text_lines != rows)
-          || (f->new_text_cols != 0 && f->new_text_cols != columns))
-        {
-          change_frame_size (f, rows, columns, 0, 1, 0);
-          SET_FRAME_GARBAGED (f);
-          cancel_mouse_face (f);
-        }
+      change_frame_size (f, rows, columns, 0, 1, 0);
+      SET_FRAME_GARBAGED (f);
+      cancel_mouse_face (f);
     }
 }
 
