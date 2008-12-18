@@ -1,3 +1,8 @@
+2008-12-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_frame_resized): Remove check if rows/columns have
+	changed.
+
 2008-12-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs.c (main): Print and error and exit when no data is read
