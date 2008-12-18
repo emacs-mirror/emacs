@@ -1897,8 +1897,7 @@ For all numbers larger than LIMIT, shift them by DELTA."
 	(beginning-of-line 2)
 	(setq l (1+ l)))
       (setq org-table-current-line-types (apply 'vector (nreverse types))
-	    org-table-dlines (apply 'vector (cons (car dlines)
-						  (nreverse dlines)))
+	    org-table-dlines (apply 'vector (cons nil (nreverse dlines)))
 	    org-table-hlines (apply 'vector (cons nil (nreverse hlines)))))))
 
 (defun org-table-maybe-eval-formula ()
