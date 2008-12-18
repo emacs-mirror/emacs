@@ -239,7 +239,8 @@ This is related to the bug above.  A scenario for this is when emacs is run
 as a server, and an X frame is created.  If the X server for the frame
 crashes or exits unexpectedly and an attempt is made to create a new
 frame on another X display, then a Gtk+ error happens in the emacs
-server that results in an endless loop.
+server that results in an endless loop.  This is not fixed in any known
+Gtk+ version (2.14.4 being current).
 
 ** Emacs compiled with Gtk+ crashes on startup on Cygwin.
 
