@@ -275,11 +275,11 @@ See `run-hooks'."
     map)
   "Keymap for directory buffer.")
 
-(defmacro vc-at-event (event &rest body)
+(defmacro vc-dir-at-event (event &rest body)
   "Evaluate `body' with point located at event-start of `event'.
 If `body' uses `event', it should be a variable,
  otherwise it will be evaluated twice."
-  (let ((posn (make-symbol "vc-at-event-posn")))
+  (let ((posn (make-symbol "vc-dir-at-event-posn")))
     `(save-excursion
        (unless (equal ,event '(tool-bar))
          (let ((,posn (event-start ,event)))
@@ -290,7 +290,7 @@ If `body' uses `event', it should be a variable,
 (defun vc-dir-menu (e)
   "Popup the VC dir menu."
   (interactive "e")
-  (vc-at-event e (popup-menu vc-dir-menu-map e)))
+  (vc-dir-at-event e (popup-menu vc-dir-menu-map e)))
 
 (defvar vc-dir-tool-bar-map
   (let ((map (make-sparse-keymap)))
@@ -676,7 +676,7 @@ that share the same state."
 
 (defun vc-dir-toggle-mark (e)
   (interactive "e")
-  (vc-at-event e (vc-dir-mark-unmark 'vc-dir-toggle-mark-file)))
+  (vc-dir-at-event e (vc-dir-mark-unmark 'vc-dir-toggle-mark-file)))
 
 (defun vc-dir-delete-file ()
   "Delete the marked files, or the current file if no marks."
