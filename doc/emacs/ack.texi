@@ -1351,7 +1351,7 @@ with visual feedback.
 
 Others too numerous to mention have reported and fixed bugs, and added
 features to many parts of Emacs.  (Many are mentioned in the
-@file{ChangeLog} files which are summarized in the file @file{AUTHORS}
+@file{ChangeLog} files, summarized in the file @file{etc/AUTHORS}
 in the distribution.)  We thank them for their generosity as well.
 
 This list intended to mention every contributor of a major package or
