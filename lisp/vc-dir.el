@@ -280,11 +280,12 @@ See `run-hooks'."
 If `body' uses `event', it should be a variable,
  otherwise it will be evaluated twice."
   (let ((posn (make-symbol "vc-at-event-posn")))
-    `(let ((,posn (event-start ,event)))
-       (save-excursion
-         (set-buffer (window-buffer (posn-window ,posn)))
-         (goto-char (posn-point ,posn))
-         ,@body))))
+    `(save-excursion
+       (unless (equal ,event '(tool-bar))
+         (let ((,posn (event-start ,event)))
+           (set-buffer (window-buffer (posn-window ,posn)))
+           (goto-char (posn-point ,posn))))
+       ,@body)))
 
 (defun vc-dir-menu (e)
   "Popup the VC dir menu."
