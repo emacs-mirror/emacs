@@ -2,6 +2,8 @@
 
 	* gtkutil.c (xg_frame_resized): Remove check if rows/columns have
 	changed.
+	(xg_tool_bar_proxy_callback): Put focus on the frame after we have
+	clicked on a detached tool bar button.
 
 2008-12-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
