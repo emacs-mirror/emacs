@@ -1,3 +1,10 @@
+2008-12-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/rst.el (rst-promote-region): Reflow docstring.
+	(rst-mode-map, rst-mode-hook, rst-section-tree-rec)
+	(rst-repeat-last-character): Fix typos in docstrings.
+	(rst-mode, rst-backward-section): Doc fixes.
+
 2008-12-18  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el (newsticker-groups-filename): Made obsolete.

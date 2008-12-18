@@ -302,7 +302,7 @@
     (define-key map [(control c) (?5)] 'rst-compile-slides-preview)
 
     map)
-  "Keymap for ReStructuredText mode commands.
+  "Keymap for reStructuredText mode commands.
 This inherits from Text mode.")
 
 
@@ -344,8 +344,8 @@ This inherits from Text mode.")
 
 
 (defcustom rst-mode-hook nil
-  "Hook run when Rst Mode is turned on.
-The hook for Text Mode is run before this one."
+  "Hook run when Rst mode is turned on.
+The hook for Text mode is run before this one."
   :group 'rst
   :type '(hook))
 
@@ -367,18 +367,19 @@ The value of this variable is used when Rst mode is turned on."
 ;;;###autoload
 (define-derived-mode rst-mode text-mode "ReST"
   "Major mode for editing reStructuredText documents.
-
+\\<rst-mode-map>
 There are a number of convenient keybindings provided by
-Rst mode.  The main one is \\[rst-adjust\], it updates or rotates
+Rst mode.  The main one is \\[rst-adjust], it updates or rotates
 the section title around point or promotes/demotes the
 decorations within the region (see full details below).
 Use negative prefix arg to rotate in the other direction.
-\\{rst-mode-map}
 
-Turning on `rst-mode' calls the normal hooks `text-mode-hook' and
-`rst-mode-hook'. This mode also supports font-lock highlighting.
-You may customize `rst-mode-lazy' to toggle font-locking of
-blocks."
+Turning on `rst-mode' calls the normal hooks `text-mode-hook'
+and `rst-mode-hook'.  This mode also supports font-lock
+highlighting.  You may customize `rst-mode-lazy' to toggle
+font-locking of blocks.
+
+\\{rst-mode-map}"
   :abbrev-table rst-mode-abbrev-table
   :syntax-table rst-mode-syntax-table
   :group 'rst
@@ -1369,9 +1370,9 @@ of the right hand fingers and the binding is unused in `text-mode'."
 (defun rst-promote-region (&optional demote)
   "Promote the section titles within the region.
 
-With argument DEMOTE or a prefix argument, demote the
-section titles instead.  The algorithm used at the boundaries of
-the hierarchy is similar to that used by `rst-adjust-decoration'."
+With argument DEMOTE or a prefix argument, demote the section
+titles instead.  The algorithm used at the boundaries of the
+hierarchy is similar to that used by `rst-adjust-decoration'."
   (interactive)
 
   (let* ((demote (or current-prefix-arg demote))
@@ -1643,10 +1644,10 @@ child.  This has advantages later in processing the graph."
 (defun rst-section-tree-rec (decos lev)
   "Recursive guts of the section tree construction.
 DECOS is a cons cell whose cdr is the remaining list of
-decorations, and we change it as we consume them.  LEV is the
-current level of that node.  This function returns a pair of the
-subtree that was built.  This treats the decos list
-destructively."
+decorations, and we change it as we consume them.  LEV is
+the current level of that node.  This function returns a
+pair of the subtree that was built.  This treats the DECOS
+list destructively."
 
   (let ((ndeco (cadr decos))
         node
@@ -2138,8 +2139,7 @@ backwards in the file (default is to use 1)."
     ))
 
 (defun rst-backward-section ()
-  "Like `rst-forward-section', except move back one title.
-With a prefix argument, move backward by a page."
+  "Like `rst-forward-section', except move back one title."
   (interactive)
   (rst-forward-section -1))
 
@@ -3366,7 +3366,7 @@ This is useful for filling list item paragraphs."
 ;; For sections, better to use the specialized function above, but this can
 ;; be useful for creating separators.
 (defun rst-repeat-last-character (&optional tofill)
-  "Fills the current line up to the length of the preceding line (if not
+  "Fill the current line up to the length of the preceding line (if not
 empty), using the last character on the current line.  If the preceding line is
 empty, we use the `fill-column'.
 
