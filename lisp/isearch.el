@@ -509,7 +509,6 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-\t" 'isearch-complete-edit)
     (define-key map "\C-s"  'isearch-forward-exit-minibuffer)
     (define-key map "\C-r"  'isearch-reverse-exit-minibuffer)
-    (define-key map "\C-w"  'isearch-edit-string-set-word)
     (define-key map "\C-f"  'isearch-yank-char-in-minibuffer)
     (define-key map [right] 'isearch-yank-char-in-minibuffer)
     map)
@@ -1194,15 +1193,6 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
      (isearch-abort)  ;; outside of let to restore outside global values
      )))
 
-;; Obsolete usage of `C-s M-e C-w'.  Remove after 23.1.
-(defvar isearch-new-word)
-(defun isearch-edit-string-set-word ()
-  "Do word search after exiting `isearch-edit-string'."
-  (interactive)
-  (message "This feature is obsolete since 23.1; use `M-s w' instead.")
-  (setq isearch-word t isearch-new-word t))
-
-
 (defun isearch-nonincremental-exit-minibuffer ()
   (interactive)
   (setq isearch-nonincremental t)
@@ -1395,7 +1385,12 @@ string.  NLINES has the same meaning as in `occur'."
   (interactive
    (list
     (cond
-     (isearch-word (concat "\\b" (regexp-quote isearch-string) "\\b"))
+     (isearch-word (concat "\\b" (replace-regexp-in-string
+				  "\\W+" "\\W+"
+				  (replace-regexp-in-string
+				   "^\\W+\\|\\W+$" "" isearch-string)
+				  nil t)
+			   "\\b"))
      (isearch-regexp isearch-string)
      (t (regexp-quote isearch-string)))
     (if current-prefix-arg (prefix-numeric-value current-prefix-arg))))
@@ -2200,12 +2195,14 @@ Can be changed via `isearch-search-fun-function' for special needs."
       (funcall isearch-search-fun-function)
     (cond
      (isearch-word
-      ;; Use lax versions to not fail at the end of the word while the user
-      ;; adds and removes characters in the search string
-      (if (not (eq (length isearch-string)
-		   (length (isearch-string-state (car isearch-cmds)))))
-	  (if isearch-forward 'word-search-forward-lax 'word-search-backward-lax)
-	(if isearch-forward 'word-search-forward 'word-search-backward)))
+      ;; Use lax versions to not fail at the end of the word while
+      ;; the user adds and removes characters in the search string
+      ;; (or when using nonincremental word isearch)
+      (if (or isearch-nonincremental
+	      (eq (length isearch-string)
+		  (length (isearch-string-state (car isearch-cmds)))))
+	  (if isearch-forward 'word-search-forward 'word-search-backward)
+	(if isearch-forward 'word-search-forward-lax 'word-search-backward-lax)))
      (isearch-regexp
       (if isearch-forward 're-search-forward 're-search-backward))
      (t
