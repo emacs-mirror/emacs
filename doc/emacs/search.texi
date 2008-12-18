@@ -67,7 +67,7 @@ Incremental search backward (@code{isearch-backward}).
 @subsection Basics of Incremental Search
 
 @table @kbd
-@item C-s 
+@item C-s
 Begin incremental search (@code{isearch-forward}).
 @item C-r
 Begin reverse incremental search (@code{isearch-backward}).
@@ -434,12 +434,14 @@ newlines or spaces.
 If incremental search is active, toggle word search mode
 (@code{isearch-toggle-word}); otherwise, begin an incremental forward
 word search (@code{isearch-forward-word}).
-@item C-s @key{RET} C-w
-Begin a non-incremental forward word search.
-@item C-r @key{RET} C-w
-Begin a non-incremental backward word search.
+@item M-s w @key{RET} @var{words} @key{RET}
+Search for @var{words}, using a forward nonincremental word search.
+@item M-s w C-r @key{RET} @var{words} @key{RET}
+Search backward for @var{words}, using a nonincremental word search.
 @end table
 
+@kindex M-s w
+@findex isearch-forward-word
   To begin a forward incremental word search, type @kbd{M-s w}.  If
 incremental search is not already active, this runs the command
 @code{isearch-forward-word}.  If incremental search is already active
@@ -450,8 +452,8 @@ typing @kbd{M-s w} again.
 
 @findex word-search-forward
 @findex word-search-backward
-  To begin a nonincremental word search, type @kbd{C-s @key{RET} C-w}
-for a forward search or @kbd{C-r @key{RET} C-w} for a forward search.
+  To begin a nonincremental word search, type @kbd{M-s w @key{RET}}
+for a forward search, or @kbd{M-s w C-r @key{RET}} for a backward search.
 These run the commands @code{word-search-forward} and
 @code{word-search-backward} respectively.
 
@@ -471,6 +473,13 @@ that denotes a class of alternative strings to match.  GNU Emacs
 provides both incremental and nonincremental ways to search for a
 match for a regexp.  The syntax of regular expressions is explained in
 the following section.
+
+@table @kbd
+@item C-M-s
+Begin incremental regexp search (@code{isearch-forward-regexp}).
+@item C-M-r
+Begin reverse incremental regexp search (@code{isearch-backward-regexp}).
+@end table
 
 @kindex C-M-s
 @findex isearch-forward-regexp
@@ -1311,7 +1320,7 @@ the occurrences found, one by one.  @ref{Compilation Mode}.
 @kindex M-s o
 @item M-s o
 Run @code{occur} using the search string of the last incremental
-string search.  You can also run @kbd{M-s o} which an incremental
+string search.  You can also run @kbd{M-s o} when an incremental
 search is active; this uses the current search string.
 
 @item M-x list-matching-lines
