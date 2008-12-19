@@ -1,5 +1,9 @@
 2008-12-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* sysdep.c: Include alloca.h.
+
+2008-12-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	Reorganize implementation of Flist_system_processes and
 	Fsystem_process_attributes.  No functional changes.
 	* process.c: Don't #include pwd.h, grp.h and limits.h.

@@ -35,6 +35,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif /* HAVE_ALLOCA_H */
+
 #include "lisp.h"
 /* Including stdlib.h isn't necessarily enough to get srandom
    declared, e.g. without __USE_XOPEN_EXTENDED with glibc 2.  */
