@@ -1,3 +1,7 @@
+2008-12-19  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* fixit.texi: Mention hunspell
+
 2008-12-19  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): Small grammar fix.
