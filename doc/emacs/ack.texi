@@ -171,7 +171,7 @@ prior to Emacs 23 for Mac OS.
 
 @item
 Chong Yidong was the Emacs co-maintainer for Emacs 23.  He made many
-improvements to the Emacs display engine and wrote @file{longlines.el}
+improvements to the Emacs display engine and wrote @file{longlines.el},
 a minor mode for wrapping long lines.
 
 @item

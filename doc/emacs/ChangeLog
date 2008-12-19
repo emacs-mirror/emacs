@@ -1,3 +1,10 @@
+2008-12-19  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Small grammar fix.
+
+	* display.texi (Text Display):
+	* indent.texi (Indentation): Use @acronym with ASCII.
+
 2008-12-18  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi: Various small updates and fixes.
