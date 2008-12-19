@@ -54,7 +54,7 @@
 	* compile: Remove.
 	* README:
 	* INSTALL: New files.
-	* FOR_RELEASE: Updated.
+	* FOR-RELEASE: Updated.
 
 2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -96,16 +96,16 @@
 	* Cocoa/Emacs.xcodeproj/project.pbxproj: New file.
 	* GNUstep: New directory: support files for building .app
 	package on GNUstep systems.
-	* GNUstep/Resources: New directory.
-	* GNUstep/Resources/Emacs.desktop:
-	* GNUstep/Resources/Info-gnustep.plist:
-	* GNUstep/Resources/emacs.tiff: New files.
-	* GNUstep/Resources/preferences.gorm: New directory.
-	* GNUstep/Resources/preferences.gorm/data.classes:
-	* GNUstep/Resources/preferences.gorm/data.info:
-	* GNUstep/Resources/preferences.gorm/objects.gorm: New files.
+	* GNUstep/Emacs.base/Resources: New directory.
+	* GNUstep/Emacs.base/Resources/Emacs.desktop:
+	* GNUstep/Emacs.base/Resources/Info-gnustep.plist:
+	* GNUstep/Emacs.base/Resources/emacs.tiff: New files.
+	* GNUstep/Emacs.base/Resources/preferences.gorm: New directory.
+	* GNUstep/Emacs.base/Resources/preferences.gorm/data.classes:
+	* GNUstep/Emacs.base/Resources/preferences.gorm/data.info:
+	* GNUstep/Emacs.base/Resources/preferences.gorm/objects.gorm: New files.
 	* compile: New file: utility script for building Emacs.app.
-	* FOR_RELEASE: New file: release tasks specific to NeXTstep port.
+	* FOR-RELEASE: New file: release tasks specific to NeXTstep port.
 	* README.txt: New file: descriptive info for NeXTstep port.
 
 ;; Local Variables:
