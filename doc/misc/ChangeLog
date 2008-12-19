@@ -454,10 +454,6 @@
 	* Makefile.in (gnus-faq-clean): Don't remove gnus-faq.texi.
 	(gnus-faq.xml): Update repository host.
 
-	* xml2texi.scm (boilerplate): Update copyright years.
-	(format-q-level): Change node names to "FAQ N-M", since period in
-	"[N.M]" is invalid, see "(texinfo)Node Line Requirements".
-
 	* gnus-faq.texi: Generate from gnus-faq.xml (sourceforge.net).
 
 2008-06-15  Frank Schmitt  <ich@frank-schmitt.net>
@@ -1669,7 +1665,7 @@
 
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
-	* Move manual sources from man/ to subdirectories of doc/.
+	Move manual sources from man/ to subdirectories of doc/.
 	Split into the Emacs manual in emacs/, and other manuals in misc/.
 	Change all setfilename commands to use ../../info.
 	* Makefile.in: Move the parts of the old man/Makefile.in that do not
