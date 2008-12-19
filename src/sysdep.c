@@ -3042,7 +3042,7 @@ serial_configure (struct Lisp_Process *p,
   attr.c_cflag |= CLOCAL;
 #endif
 #if defined (CREAD)
-  attr.c_cflag | CREAD;
+  attr.c_cflag |= CREAD;
 #endif
 
   /* Configure speed.  */
