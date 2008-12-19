@@ -1,6 +1,9 @@
 2008-12-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* sysdep.c: Include alloca.h.
+	(system_process_attributes): Add implementation for Solaris.
+
+	* s/sol2-10.h (HAVE_PROCFS, _STRUCTURED_PROC): New defines.
 
 2008-12-19  Dan Nicolaescu  <dann@ics.uci.edu>
 

@@ -3289,7 +3289,7 @@ get_up_time (time_t *sec, unsigned *usec)
 #define MINOR(d) (((unsigned)(d) & 0xff) | (((unsigned)(d) & 0xfff00000) >> 12))
 
 static Lisp_Object
-procfs_ttyname (rdev)
+procfs_ttyname (int rdev)
 {
   FILE *fdev = NULL;
   char name[PATH_MAX];
@@ -3360,8 +3360,7 @@ procfs_get_total_memory (void)
 }
 
 Lisp_Object
-system_process_attributes (pid)
-     Lisp_Object pid;
+system_process_attributes (Lisp_Object pid)
 {
   char procfn[PATH_MAX], fn[PATH_MAX];
   struct stat st;
@@ -3603,6 +3602,145 @@ system_process_attributes (pid)
 						  Vlocale_coding_system, 0);
       xfree (cmdline);
       attrs = Fcons (Fcons (Qargs, decoded_cmd), attrs);
+    }
+
+  UNGCPRO;
+  return attrs;
+}
+#elif defined (SOLARIS2) && defined (HAVE_PROCFS)
+
+/* The <procfs.h> header does not like to be included if _LP64 is defined and
+   __FILE_OFFSET_BITS == 64.  This is an ugly workaround that.  */
+#if !defined (_LP64) && defined (_FILE_OFFSET_BITS) &&  (_FILE_OFFSET_BITS  ==  64)
+#define PROCFS_FILE_OFFSET_BITS_HACK 1
+#undef _FILE_OFFSET_BITS
+#else
+#define PROCFS_FILE_OFFSET_BITS_HACK 0
+#endif
+
+#include <procfs.h>
+
+#if PROCFS_FILE_OFFSET_BITS_HACK ==  1
+#define _FILE_OFFSET_BITS 64
+#endif /* PROCFS_FILE_OFFSET_BITS_HACK ==  1 */
+
+Lisp_Object
+system_process_attributes (Lisp_Object pid)
+{
+  char procfn[PATH_MAX], fn[PATH_MAX];
+  struct stat st;
+  struct passwd *pw;
+  struct group *gr;
+  char *procfn_end;
+  struct psinfo pinfo;
+  int fd;
+  ssize_t nread;
+  int proc_id, uid, gid;
+  Lisp_Object attrs = Qnil;
+  Lisp_Object decoded_cmd, tem;
+  struct gcpro gcpro1, gcpro2;
+  EMACS_INT uid_eint, gid_eint;
+
+  CHECK_NUMBER_OR_FLOAT (pid);
+  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
+  sprintf (procfn, "/proc/%u", proc_id);
+  if (stat (procfn, &st) < 0)
+    return attrs;
+
+  GCPRO2 (attrs, decoded_cmd);
+
+  /* euid egid */
+  uid = st.st_uid;
+  /* Use of EMACS_INT stops GCC whining about limited range of data type.  */
+  uid_eint = uid;
+  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid_eint)), attrs);
+  BLOCK_INPUT;
+  pw = getpwuid (uid);
+  UNBLOCK_INPUT;
+  if (pw)
+    attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
+
+  gid = st.st_gid;
+  gid_eint = gid;
+  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid_eint)), attrs);
+  BLOCK_INPUT;
+  gr = getgrgid (gid);
+  UNBLOCK_INPUT;
+  if (gr)
+    attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
+
+  strcpy (fn, procfn);
+  procfn_end = fn + strlen (fn);
+  strcpy (procfn_end, "/psinfo");
+  fd = emacs_open (fn, O_RDONLY, 0);
+  if (fd >= 0
+      && (nread = read (fd, (char*)&pinfo, sizeof(struct psinfo)) > 0))
+    {
+          attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (pinfo.pr_ppid)), attrs);
+	  attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (pinfo.pr_pgid)), attrs);
+	  attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (pinfo.pr_sid)), attrs);
+
+	  {
+	    char state_str[2];
+	    state_str[0] =  pinfo.pr_lwp.pr_sname;
+	    state_str[1] =  '\0';
+	    tem =   build_string (state_str);
+	    attrs =  Fcons (Fcons (Qstate,  tem),  attrs);
+	  }
+
+	  /* FIXME: missing Qttyname. psinfo.pr_ttydev is a dev_t,
+	     need to get a string from it. */
+
+	  /* FIXME: missing: Qtpgid */
+
+	  /* FIXME: missing:
+		Qminflt
+		Qmajflt
+		Qcminflt
+		Qcmajflt
+
+		Qstime
+		Qcstime
+		Are they available? */
+
+	  attrs = Fcons (Fcons (Qutime,
+	  			list3 (make_number (pinfo.pr_time.tv_sec >> 16),
+	  			       make_number (pinfo.pr_time.tv_sec & 0xffff),
+	  			       make_number (pinfo.pr_time.tv_nsec))),
+	  		 attrs);
+
+	  attrs = Fcons (Fcons (Qcutime,
+	  			list3 (make_number (pinfo.pr_ctime.tv_sec >> 16),
+	  			       make_number (pinfo.pr_ctime.tv_sec & 0xffff),
+	  			       make_number (pinfo.pr_ctime.tv_nsec))),
+	  		 attrs);
+
+	  attrs = Fcons (Fcons (Qpri, make_number (pinfo.pr_lwp.pr_pri)), attrs);
+	  attrs = Fcons (Fcons (Qnice, make_number (pinfo.pr_lwp.pr_nice)), attrs);
+	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (pinfo.pr_nlwp)), attrs);
+
+	  attrs = Fcons (Fcons (Qstart,
+	  			list3 (make_number (pinfo.pr_start.tv_sec >> 16),
+	  			       make_number (pinfo.pr_start.tv_sec & 0xffff),
+	  			       make_number (pinfo.pr_start.tv_nsec))),
+	  		 attrs);
+	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (pinfo.pr_size)), attrs);
+	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (pinfo.pr_rssize)), attrs);
+
+	  /* pr_pctcpu and pr_pctmem are encoded as a fixed point 16 bit number in  [0 ... 1].  */
+	  attrs = Fcons (Fcons (Qpcpu, (pinfo.pr_pctcpu * 100.0) / (double)0x8000), attrs);
+	  attrs = Fcons (Fcons (Qpmem, (pinfo.pr_pctmem * 100.0) / (double)0x8000), attrs);
+
+	  decoded_cmd
+	    =  code_convert_string_norecord (make_unibyte_string (pinfo.pr_fname,
+								  strlen (pinfo.pr_fname)),
+					     Vlocale_coding_system,  0);
+	  attrs =  Fcons (Fcons (Qcomm,  decoded_cmd),  attrs);
+	  decoded_cmd
+	    =  code_convert_string_norecord (make_unibyte_string (pinfo.pr_psargs,
+								  strlen (pinfo.pr_psargs)),
+					     Vlocale_coding_system,  0);
+	  attrs =  Fcons (Fcons (Qargs,  decoded_cmd),  attrs);
     }
 
   UNGCPRO;
