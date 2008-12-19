@@ -1289,7 +1289,9 @@ body) or \"attachment\" (separate from the body)."
     (unless (message-in-body-p) (goto-char (point-max)))
     (mml-insert-empty-tag 'part
 			  'type type
-			  'filename file
+			  ;; icicles redefines read-file-name and returns a
+			  ;; string w/ text properties :-/
+			  'filename (mm-substring-no-properties file)
 			  'disposition (or disposition "attachment")
 			  'description description)))
 

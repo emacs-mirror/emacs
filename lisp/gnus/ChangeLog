@@ -1,3 +1,16 @@
+2008-12-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-substring-no-properties): New function.
+	(mm-read-charset, mm-subst-char-in-string, mm-replace-in-string)
+	(mm-special-display-p): Enable those lambda forms to be byte compiled.
+	(mm-string-to-multibyte): Doc fix.
+
+	* mml.el (mml-attach-file): Use mm-substring-no-properties.
+
+2008-12-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml.el (mml-attach-file): Strip text properties from file name.
+
 2008-12-16  Glenn Morris  <rgm@gnu.org>
 
 	* mm-util.el (mm-charset-override-alist): Declare for compiler.
