@@ -41,7 +41,7 @@
 
 2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* CPP_DEFINES: Add DARWIN_OS.  Move USE_LISP_UNION_TYPE away from OS's.
+	* CPP-DEFINES: Add DARWIN_OS.  Move USE_LISP_UNION_TYPE away from OS's.
 
 2008-08-02  Eli Zaretskii  <eliz@gnu.org>
 
@@ -60,7 +60,7 @@
 
 2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* CPP_DEFINES: Add NS port related defines.
+	* CPP-DEFINES: Add NS port related defines.
 
 2008-06-16  Glenn Morris  <rgm@gnu.org>
 
@@ -245,7 +245,7 @@
 	files in ../etc/charsets/.
 
 	* charsets/Makefile, charsets/mapconv, charsets/compact.awk:
-	* charsets/big5.awk, charsets/gb18030-2.awk, charsets/gb18030-4.awk:
+	* charsets/big5.awk, charsets/gb180302.awk, charsets/gb180304.awk:
 	* charsets/kuten.awk: New files.
 
 2008-01-08  Glenn Morris  <rgm@gnu.org>
