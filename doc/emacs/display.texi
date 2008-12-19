@@ -1044,7 +1044,7 @@ formats by setting each of the variables @code{eol-mnemonic-unix},
 @cindex characters (in text)
 
   @acronym{ASCII} printing characters (octal codes 040 through 0176) in Emacs
-buffers are displayed with their graphics, as are non-ASCII multibyte
+buffers are displayed with their graphics, as are non-@acronym{ASCII} multibyte
 printing characters (octal codes above 0400).
 
 @vindex tab-width
