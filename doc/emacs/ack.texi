@@ -13,7 +13,7 @@ written substantial portions.  Others too numerous to mention have
 reported and fixed bugs, and added features to many parts of Emacs.
 We thank them for their generosity as well.
 
-This list intended to mention every contributor of a major package or
+This list is intended to mention every contributor of a major package or
 feature we currently distribute; if you know of someone we have omitted,
 please report that as a manual bug.  More comprehensive information is
 available in the @file{ChangeLog} files, summarized in the file
