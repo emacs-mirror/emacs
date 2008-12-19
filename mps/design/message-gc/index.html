@@ -172,11 +172,11 @@ dynamically allocated (<a href="queue">.queue</a>)
 in advance (<a href="no-start-alloc">.no-start-alloc</a>).
 Messages are allocated in the control pool using ControlAlloc.</p>
 
-<p><em class="note">(Previous implementations of the trace start message used static allocation.  This does not satisfy .queue.  See also <a href="../../issue/job001570">job001570</a>.  RHSK 2008-12-15.)</em></p>
+<p><em class="note">(Previous implementations of the trace start message used static allocation.  This does not satisfy .queue.  See also <a href="/project/mps/issue/job001570">job001570</a>.  RHSK 2008-12-15.)</em></p>
 
 <p>	Pointers to these messages are stored in <code>tsMessage[ti]</code> and <code>tMessage[ti]</code> arrays in the ArenaStruct.</p>
 
-<p><em class="note">(We <b>must not</b> keep the pre-allocated messages, or pointers to them, in the TraceStructs: the memory for TraceStructs is statically allocated, but the values in them are re-initialised by TraceCreate each time the trace id is used, so the TraceStructs are invalid (that is: to be treated as random uninitialised memory) when not being used by a trace.  See also <a href="../../issue/job001989">job001989</a>.  RHSK 2008-12-15.)</em></p>
+<p><em class="note">(We <b>must not</b> keep the pre-allocated messages, or pointers to them, in the TraceStructs: the memory for TraceStructs is statically allocated, but the values in them are re-initialised by TraceCreate each time the trace id is used, so the TraceStructs are invalid (that is: to be treated as random uninitialised memory) when not being used by a trace.  See also <a href="/project/mps/issue/job001989">job001989</a>.  RHSK 2008-12-15.)</em></p>
 
 
 <h3><a id="creating-posting" name="creating-posting">Creating and Posting</a></h3>
