@@ -1,3 +1,35 @@
+2008-12-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Reorganize implementation of Flist_system_processes and
+	Fsystem_process_attributes.  No functional changes.
+	* process.c: Don't #include pwd.h, grp.h and limits.h.
+	(Flist_system_processes): Just call list_system_processes.
+	(Fsystem_process_attributes): Just call system_process_attributes.
+	(procfs_list_system_processes, time_from_jiffies)
+	(ltime_from_jiffies, get_up_time, procfs_ttyname, MAJOR, MINOR)
+	(procfs_get_total_memory, procfs_system_process_attributes): Move ...
+
+	* sysdep.c: ... here.  Include pwd.h, grp.h and limits.h.
+	(list_system_processes): Rename from
+	procfs_list_system_processes.  Enclose in #ifdef HAVE_PROCFS.
+	Provide a do nothing implementation.
+	(system_process_attributes): Rename from
+	procfs_list_system_processes.
+	(ltime_from_jiffies, get_up_time, procfs_ttyname, MAJOR, MINOR)
+	(procfs_get_total_memory):  Enclose in #ifdef GNU_LINUX.
+
+	* w32.c (list_system_processes): Rename from
+	w32_list_system_processes.
+	(system_process_attributes): Rename from
+	w32_system_process_attributes.
+
+	* s/gnu-linux.h (LISTPROC, PROCATTR): Remove.
+
+	* process.h (w32_list_system_processes)
+	(w32_system_process_attributes): Remove.
+	(list_system_processes, system_process_attributes): New
+	prototypes.
+
 2008-12-19  Kenichi Handa  <handa@m17n.org>
 
 	* xfont.c (xfont_decode_coding_xlfd): New function.

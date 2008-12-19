@@ -40,8 +40,6 @@ FRAME_WINDOW_P	A GUI frame (like X, w32, etc.)
 ** Support for accessing other processes on the system **
 
 HAVE_PROCFS     The /proc filesystem is supported.
-LISTPROC        A function that returns a list of PIDs of system processes.
-PROCATTR        A function that returns attributes of a process.
 
 ** Compile-time options **
 

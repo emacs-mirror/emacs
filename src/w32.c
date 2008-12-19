@@ -3671,7 +3671,7 @@ BOOL WINAPI global_memory_status_ex (
 }
 
 Lisp_Object
-w32_list_system_processes ()
+list_system_processes ()
 {
   struct gcpro gcpro1;
   Lisp_Object proclist = Qnil;
@@ -3823,7 +3823,7 @@ process_times (h_proc, ctime, etime, stime, utime, pcpu)
 }
 
 Lisp_Object
-w32_system_process_attributes (pid)
+system_process_attributes (pid)
      Lisp_Object pid;
 {
   struct gcpro gcpro1, gcpro2, gcpro3;

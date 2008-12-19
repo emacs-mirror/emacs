@@ -1,3 +1,7 @@
+2008-12-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (LISTPROC, PROCATTR): Remove.
+
 2008-08-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (LISTPROC, PROCATTR): New macros.

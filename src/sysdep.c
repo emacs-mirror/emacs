@@ -25,6 +25,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#include <grp.h>
+#endif /* HAVE_PWD_H */
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif /* HAVE_LIMITS_H */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -3171,6 +3178,443 @@ serial_configure (struct Lisp_Process *p,
 
 }
 #endif /* TERMIOS  */
+
+/* System depended enumeration of and access to system processes a-la ps(1).  */
+
+#ifdef HAVE_PROCFS
+
+/* Process enumeration and access via /proc.  */
+
+Lisp_Object
+list_system_processes ()
+{
+  Lisp_Object procdir, match, proclist, next;
+  struct gcpro gcpro1, gcpro2;
+  register Lisp_Object tail;
+
+  GCPRO2 (procdir, match);
+  /* For every process on the system, there's a directory in the
+     "/proc" pseudo-directory whose name is the numeric ID of that
+     process.  */
+  procdir = build_string ("/proc");
+  match = build_string ("[0-9]+");
+  proclist = directory_files_internal (procdir, Qnil, match, Qt, 0, Qnil);
+
+  /* `proclist' gives process IDs as strings.  Destructively convert
+     each string into a number.  */
+  for (tail = proclist; CONSP (tail); tail = next)
+    {
+      next = XCDR (tail);
+      XSETCAR (tail, Fstring_to_number (XCAR (tail), Qnil));
+    }
+  UNGCPRO;
+
+  /* directory_files_internal returns the files in reverse order; undo
+     that.  */
+  proclist = Fnreverse (proclist);
+  return proclist;
+}
+
+#elif !defined (WINDOWSNT)
+
+Lisp_Object
+list_system_processes ()
+{
+  return Qnil;
+}
+#endif /* !defined (WINDOWSNT)*/
+
+#ifdef GNU_LINUX
+static void
+time_from_jiffies (unsigned long long tval, long hz,
+		   time_t *sec, unsigned *usec)
+{
+  unsigned long long ullsec;
+
+  *sec = tval / hz;
+  ullsec = *sec;
+  tval -= ullsec * hz;
+  /* Careful: if HZ > 1 million, then integer division by it yields zero.  */
+  if (hz <= 1000000)
+    *usec = tval * 1000000 / hz;
+  else
+    *usec = tval / (hz / 1000000);
+}
+
+static Lisp_Object
+ltime_from_jiffies (unsigned long long tval, long hz)
+{
+  time_t sec;
+  unsigned usec;
+
+  time_from_jiffies (tval, hz, &sec, &usec);
+
+  return list3 (make_number ((sec >> 16) & 0xffff),
+		make_number (sec & 0xffff),
+		make_number (usec));
+}
+
+static void
+get_up_time (time_t *sec, unsigned *usec)
+{
+  FILE *fup;
+
+  *sec = *usec = 0;
+
+  BLOCK_INPUT;
+  fup = fopen ("/proc/uptime", "r");
+
+  if (fup)
+    {
+      double uptime, idletime;
+
+      /* The numbers in /proc/uptime use C-locale decimal point, but
+	 we already set ourselves to the C locale (see `fixup_locale'
+	 in emacs.c).  */
+      if (2 <= fscanf (fup, "%lf %lf", &uptime, &idletime))
+	{
+	  *sec = uptime;
+	  *usec = (uptime - *sec) * 1000000;
+	}
+      fclose (fup);
+    }
+  UNBLOCK_INPUT;
+}
+
+#define MAJOR(d) (((unsigned)(d) >> 8) & 0xfff)
+#define MINOR(d) (((unsigned)(d) & 0xff) | (((unsigned)(d) & 0xfff00000) >> 12))
+
+static Lisp_Object
+procfs_ttyname (rdev)
+{
+  FILE *fdev = NULL;
+  char name[PATH_MAX];
+
+  BLOCK_INPUT;
+  fdev = fopen ("/proc/tty/drivers", "r");
+
+  if (fdev)
+    {
+      unsigned major;
+      unsigned long minor_beg, minor_end;
+      char minor[25];	/* 2 32-bit numbers + dash */
+      char *endp;
+
+      while (!feof (fdev) && !ferror (fdev))
+	{
+	  if (3 <= fscanf (fdev, "%*s %s %u %s %*s\n", name, &major, minor)
+	      && major == MAJOR (rdev))
+	    {
+	      minor_beg = strtoul (minor, &endp, 0);
+	      if (*endp == '\0')
+		minor_end = minor_beg;
+	      else if (*endp == '-')
+		minor_end = strtoul (endp + 1, &endp, 0);
+	      else
+		continue;
+
+	      if (MINOR (rdev) >= minor_beg && MINOR (rdev) <= minor_end)
+		{
+		  sprintf (name + strlen (name), "%lu", MINOR (rdev));
+		  break;
+		}
+	    }
+	}
+      fclose (fdev);
+    }
+  UNBLOCK_INPUT;
+  return build_string (name);
+}
+
+static unsigned long
+procfs_get_total_memory (void)
+{
+  FILE *fmem = NULL;
+  unsigned long retval = 2 * 1024 * 1024; /* default: 2GB */
+
+  BLOCK_INPUT;
+  fmem = fopen ("/proc/meminfo", "r");
+
+  if (fmem)
+    {
+      unsigned long entry_value;
+      char entry_name[20];	/* the longest I saw is 13+1 */
+
+      while (!feof (fmem) && !ferror (fmem))
+	{
+	  if (2 <= fscanf (fmem, "%s %lu kB\n", entry_name, &entry_value)
+	      && strcmp (entry_name, "MemTotal:") == 0)
+	    {
+	      retval = entry_value;
+	      break;
+	    }
+	}
+      fclose (fmem);
+    }
+  UNBLOCK_INPUT;
+  return retval;
+}
+
+Lisp_Object
+system_process_attributes (pid)
+     Lisp_Object pid;
+{
+  char procfn[PATH_MAX], fn[PATH_MAX];
+  struct stat st;
+  struct passwd *pw;
+  struct group *gr;
+  long clocks_per_sec;
+  char *procfn_end;
+  char procbuf[1025], *p, *q;
+  int fd;
+  ssize_t nread;
+  const char *cmd = NULL;
+  char *cmdline = NULL;
+  size_t cmdsize = 0, cmdline_size;
+  unsigned char c;
+  int proc_id, ppid, uid, gid, pgrp, sess, tty, tpgid, thcount;
+  unsigned long long utime, stime, cutime, cstime, start;
+  long priority, nice, rss;
+  unsigned long minflt, majflt, cminflt, cmajflt, vsize;
+  time_t sec;
+  unsigned usec;
+  EMACS_TIME tnow, tstart, tboot, telapsed,ttotal;
+  double pcpu, pmem;
+  Lisp_Object attrs = Qnil;
+  Lisp_Object cmd_str, decoded_cmd, tem;
+  struct gcpro gcpro1, gcpro2;
+  EMACS_INT uid_eint, gid_eint;
+
+  CHECK_NUMBER_OR_FLOAT (pid);
+  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
+  sprintf (procfn, "/proc/%lu", proc_id);
+  if (stat (procfn, &st) < 0)
+    return attrs;
+
+  GCPRO2 (attrs, decoded_cmd);
+
+  /* euid egid */
+  uid = st.st_uid;
+  /* Use of EMACS_INT stops GCC whining about limited range of data type.  */
+  uid_eint = uid;
+  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid_eint)), attrs);
+  BLOCK_INPUT;
+  pw = getpwuid (uid);
+  UNBLOCK_INPUT;
+  if (pw)
+    attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
+
+  gid = st.st_gid;
+  gid_eint = gid;
+  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid_eint)), attrs);
+  BLOCK_INPUT;
+  gr = getgrgid (gid);
+  UNBLOCK_INPUT;
+  if (gr)
+    attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
+
+  strcpy (fn, procfn);
+  procfn_end = fn + strlen (fn);
+  strcpy (procfn_end, "/stat");
+  fd = emacs_open (fn, O_RDONLY, 0);
+  if (fd >= 0 && (nread = emacs_read (fd, procbuf, sizeof(procbuf) - 1)) > 0)
+    {
+      procbuf[nread] = '\0';
+      p = procbuf;
+
+      p = strchr (p, '(');
+      if (p != NULL)
+	{
+	  q = strrchr (p + 1, ')');
+	  /* comm */
+	  if (q != NULL)
+	    {
+	      cmd = p + 1;
+	      cmdsize = q - cmd;
+	    }
+	}
+      else
+	q = NULL;
+      if (cmd == NULL)
+	{
+	  cmd = "???";
+	  cmdsize = 3;
+	}
+      /* Command name is encoded in locale-coding-system; decode it.  */
+      cmd_str = make_unibyte_string (cmd, cmdsize);
+      decoded_cmd = code_convert_string_norecord (cmd_str,
+						  Vlocale_coding_system, 0);
+      attrs = Fcons (Fcons (Qcomm, decoded_cmd), attrs);
+
+      if (q)
+	{
+	  EMACS_INT ppid_eint, pgrp_eint, sess_eint, tpgid_eint, thcount_eint;
+	  p = q + 2;
+	  /* state ppid pgrp sess tty tpgid . minflt cminflt majflt cmajflt utime stime cutime cstime priority nice thcount . start vsize rss */
+	  sscanf (p, "%c %d %d %d %d %d %*u %lu %lu %lu %lu %Lu %Lu %Lu %Lu %ld %ld %d %*d %Lu %lu %ld",
+		  &c, &ppid, &pgrp, &sess, &tty, &tpgid,
+		  &minflt, &cminflt, &majflt, &cmajflt,
+		  &utime, &stime, &cutime, &cstime,
+		  &priority, &nice, &thcount, &start, &vsize, &rss);
+	  {
+	    char state_str[2];
+
+	    state_str[0] = c;
+	    state_str[1] = '\0';
+	    tem =  build_string (state_str);
+	    attrs = Fcons (Fcons (Qstate, tem), attrs);
+	  }
+	  /* Stops GCC whining about limited range of data type.  */
+	  ppid_eint = ppid;
+	  pgrp_eint = pgrp;
+	  sess_eint = sess;
+	  tpgid_eint = tpgid;
+	  thcount_eint = thcount;
+	  attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (ppid_eint)), attrs);
+	  attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (pgrp_eint)), attrs);
+	  attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (sess_eint)), attrs);
+	  attrs = Fcons (Fcons (Qttname, procfs_ttyname (tty)), attrs);
+	  attrs = Fcons (Fcons (Qtpgid, make_fixnum_or_float (tpgid_eint)), attrs);
+	  attrs = Fcons (Fcons (Qminflt, make_fixnum_or_float (minflt)), attrs);
+	  attrs = Fcons (Fcons (Qmajflt, make_fixnum_or_float (majflt)), attrs);
+	  attrs = Fcons (Fcons (Qcminflt, make_fixnum_or_float (cminflt)), attrs);
+	  attrs = Fcons (Fcons (Qcmajflt, make_fixnum_or_float (cmajflt)), attrs);
+	  clocks_per_sec = sysconf (_SC_CLK_TCK);
+	  if (clocks_per_sec < 0)
+	    clocks_per_sec = 100;
+	  attrs = Fcons (Fcons (Qutime,
+				ltime_from_jiffies (utime, clocks_per_sec)),
+			 attrs);
+	  attrs = Fcons (Fcons (Qstime,
+				ltime_from_jiffies (stime, clocks_per_sec)),
+			 attrs);
+	  attrs = Fcons (Fcons (Qcutime,
+				ltime_from_jiffies (cutime, clocks_per_sec)),
+			 attrs);
+	  attrs = Fcons (Fcons (Qcstime,
+				ltime_from_jiffies (cstime, clocks_per_sec)),
+			 attrs);
+	  attrs = Fcons (Fcons (Qpri, make_number (priority)), attrs);
+	  attrs = Fcons (Fcons (Qnice, make_number (nice)), attrs);
+	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount_eint)), attrs);
+	  EMACS_GET_TIME (tnow);
+	  get_up_time (&sec, &usec);
+	  EMACS_SET_SECS (telapsed, sec);
+	  EMACS_SET_USECS (telapsed, usec);
+	  EMACS_SUB_TIME (tboot, tnow, telapsed);
+	  time_from_jiffies (start, clocks_per_sec, &sec, &usec);
+	  EMACS_SET_SECS (tstart, sec);
+	  EMACS_SET_USECS (tstart, usec);
+	  EMACS_ADD_TIME (tstart, tboot, tstart);
+	  attrs = Fcons (Fcons (Qstart,
+				list3 (make_number
+				       ((EMACS_SECS (tstart) >> 16) & 0xffff),
+				       make_number
+				       (EMACS_SECS (tstart) & 0xffff),
+				       make_number
+				       (EMACS_USECS (tstart)))),
+			 attrs);
+	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (vsize/1024)), attrs);
+	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (4*rss)), attrs);
+	  EMACS_SUB_TIME (telapsed, tnow, tstart);
+	  attrs = Fcons (Fcons (Qetime,
+				list3 (make_number
+				       ((EMACS_SECS (telapsed) >> 16) & 0xffff),
+				       make_number
+				       (EMACS_SECS (telapsed) & 0xffff),
+				       make_number
+				       (EMACS_USECS (telapsed)))),
+			 attrs);
+	  time_from_jiffies (utime + stime, clocks_per_sec, &sec, &usec);
+	  pcpu = (sec + usec / 1000000.0) / (EMACS_SECS (telapsed) + EMACS_USECS (telapsed) / 1000000.0);
+	  if (pcpu > 1.0)
+	    pcpu = 1.0;
+	  attrs = Fcons (Fcons (Qpcpu, make_float (100 * pcpu)), attrs);
+	  pmem = 4.0 * 100 * rss / procfs_get_total_memory ();
+	  if (pmem > 100)
+	    pmem = 100;
+	  attrs = Fcons (Fcons (Qpmem, make_float (pmem)), attrs);
+	}
+    }
+  if (fd >= 0)
+    emacs_close (fd);
+
+  /* args */
+  strcpy (procfn_end, "/cmdline");
+  fd = emacs_open (fn, O_RDONLY, 0);
+  if (fd >= 0)
+    {
+      for (cmdline_size = 0; emacs_read (fd, &c, 1) == 1; cmdline_size++)
+	{
+	  if (isspace (c) || c == '\\')
+	    cmdline_size++;	/* for later quoting, see below */
+	}
+      if (cmdline_size)
+	{
+	  cmdline = xmalloc (cmdline_size + 1);
+	  lseek (fd, 0L, SEEK_SET);
+	  cmdline[0] = '\0';
+	  if ((nread = read (fd, cmdline, cmdline_size)) >= 0)
+	    cmdline[nread++] = '\0';
+	  else
+	    {
+	      /* Assigning zero to `nread' makes us skip the following
+		 two loops, assign zero to cmdline_size, and enter the
+		 following `if' clause that handles unknown command
+		 lines.  */
+	      nread = 0;
+	    }
+	  /* We don't want trailing null characters.  */
+	  for (p = cmdline + nread - 1; p > cmdline && !*p; p--)
+	    nread--;
+	  for (p = cmdline; p < cmdline + nread; p++)
+	    {
+	      /* Escape-quote whitespace and backslashes.  */
+	      if (isspace (*p) || *p == '\\')
+		{
+		  memmove (p + 1, p, nread - (p - cmdline));
+		  nread++;
+		  *p++ = '\\';
+		}
+	      else if (*p == '\0')
+		*p = ' ';
+	    }
+	  cmdline_size = nread;
+	}
+      if (!cmdline_size)
+	{
+	  if (!cmd)
+	    cmd = "???";
+	  if (!cmdsize)
+	    cmdsize = strlen (cmd);
+	  cmdline_size = cmdsize + 2;
+	  cmdline = xmalloc (cmdline_size + 1);
+	  strcpy (cmdline, "[");
+	  strcat (strncat (cmdline, cmd, cmdsize), "]");
+	}
+      emacs_close (fd);
+      /* Command line is encoded in locale-coding-system; decode it.  */
+      cmd_str = make_unibyte_string (cmdline, cmdline_size);
+      decoded_cmd = code_convert_string_norecord (cmd_str,
+						  Vlocale_coding_system, 0);
+      xfree (cmdline);
+      attrs = Fcons (Fcons (Qargs, decoded_cmd), attrs);
+    }
+
+  UNGCPRO;
+  return attrs;
+}
+
+#elif !defined (WINDOWSNT)
+
+Lisp_Object
+system_process_attributes (Lisp_Object pid)
+{
+  return Qnil
+}
+
+#endif	/* !defined (WINDOWSNT) */
+
 
 /* arch-tag: edb43589-4e09-4544-b325-978b5b121dcf
    (do not change this comment) */
