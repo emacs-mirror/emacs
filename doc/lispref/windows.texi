@@ -2167,14 +2167,18 @@ function returns @code{nil}.
 
 @defun fit-window-to-buffer &optional window max-height min-height
 This function makes @var{window} the right height to display its
-contents exactly.  The default for @var{window} is the selected
-window.
+contents exactly.  The default for @var{window} is the selected window.
 
-The argument @var{max-height} specifies the maximum height the window
-is allowed to be; @code{nil} means use the frame height.  The argument
-@var{min-height} specifies the minimum height for the window;
-@code{nil} means use @code{window-min-height}.  All these height
-values include the mode line and/or header line.
+The optional argument @var{max-height} specifies the maximum height the
+window is allowed to be; @code{nil} means use the maximum permissible
+height of a window on @var{window}'s frame.  The optional argument
+@var{min-height} specifies the minimum height for the window; @code{nil}
+means use @code{window-min-height}.  All these height values include the
+mode line and/or header line.
+
+This function can delete windows when their height shrinks below
+@var{min-height}.  It returns non-@code{nil} if it orderly resized
+@var{window}, and @code{nil} otherwise.
 @end defun
 
 @deffn Command shrink-window-if-larger-than-buffer &optional window
