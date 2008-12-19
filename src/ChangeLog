@@ -1861,7 +1861,7 @@
 	(Fmake_terminal_frame) [MSDOS]: Don't allow creation of new
 	terminal devices.
 
-	* msdos.h Remove definition of struct x_display_info and struct
+	* msdos.h: Remove definition of struct x_display_info and struct
 	x_output.
 	(FRAME_FONT): Use output_data.tty.
 	(FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL): Don't define.
@@ -2495,7 +2495,7 @@
 	Set Vx_resource_name to a fallback.  Replace read of 'buffered'
 	parameter with read of 'alpha' one.
 	(Qns_frame_parameter): Remove.
-	* nsselection.m (selection-coding-system)
+	* nsselect.m (selection-coding-system)
 	(next-selection-coding-system, Vselection_coding_system)
 	(Vnext_selection_coding_system): Drop.
 
