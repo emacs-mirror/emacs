@@ -148,9 +148,9 @@ Symbol KEY is the car of a process attribute.
 
 String NAME appears in the header line.
 
-FORMAT specifies the format for displaying the attribute values.
-It can be a string passed to `format'.  It can be a function called
-with one argument, the value of the attribute.  Nil means take as is.
+FORMAT specifies the format for displaying the attribute values.  It can
+be a string passed to `format'.  It can be a function called with one
+argument, the value of the attribute.  The value nil means take as is.
 
 If JUSTIFY is an integer, its modulus gives the width of the attribute
 values formatted with FORMAT.  If JUSTIFY is positive, NAME appears
@@ -359,7 +359,7 @@ cons pairs, see `proced-process-attributes'.")
 It is a list of lists (KEY PREDICATE REVERSE).")
 
 (defvar proced-marker-char ?*		; the answer is 42
-  "In proced, the current mark character.")
+  "In Proced, the current mark character.")
 
 ;; Faces and font-lock code taken from dired,
 ;; but face variables are deprecated for new code.
@@ -370,7 +370,7 @@ It is a list of lists (KEY PREDICATE REVERSE).")
 
 (defface proced-mark
   '((t (:inherit font-lock-constant-face)))
-  "Face used for proced marks."
+  "Face used for Proced marks."
   :group 'proced-faces)
 
 (defface proced-marked
@@ -402,7 +402,7 @@ Important: the match ends just after the marker.")
 
 (defconst proced-help-string
   "(n)ext, (p)revious, (m)ark, (u)nmark, (k)ill, (q)uit (type ? for more help)"
-  "Help string for proced.")
+  "Help string for Proced.")
 
 (defconst proced-header-help-echo
   "mouse-1, mouse-2: sort by attribute %s%s (%s)"
@@ -470,7 +470,7 @@ Important: the match ends just after the marker.")
     (define-key km [remap undo] 'proced-undo)
     (define-key km [remap advertised-undo] 'proced-undo)
     km)
-  "Keymap for proced commands.")
+  "Keymap for Proced commands.")
 
 (easy-menu-define
   proced-menu proced-mode-map "Proced Menu"
@@ -913,7 +913,7 @@ This list includes PPID unless OMIT-PPID is non-nil."
 
 (defun proced-filter-parents (process-alist pid &optional omit-pid)
   "For PROCESS-ALIST return list of parent processes of PID.
-This list includes CPID unless OMIT-CPID is non-nil."
+This list includes PID unless OMIT-PID is non-nil."
   (let ((parent-list (unless omit-pid (list (assq pid process-alist)))))
     (while (setq pid (cdr (assq 'ppid (cdr (assq pid process-alist)))))
       (push (assq pid process-alist) parent-list))
@@ -1145,7 +1145,7 @@ Prefix ARG controls sort order, see `proced-sort-interactive'."
 (defun proced-sort-header (event &optional arg)
   "Sort Proced listing based on an attribute.
 EVENT is a mouse event with starting position in the header line.
-It is converted in the corresponding attribute key.
+It is converted to the corresponding attribute key.
 This command updates the variable `proced-sort'.
 Prefix ARG controls sort order, see `proced-sort-interactive'."
   (interactive (list last-input-event (or last-prefix-arg 'no-arg)))
@@ -1380,7 +1380,7 @@ the process is ignored."
           (push (cons pid attributes) process-alist))))))
 
 (defun proced-update (&optional revert quiet)
-  "Update the `proced' process information.  Preserves point and marks.
+  "Update the Proced process information.  Preserves point and marks.
 With prefix REVERT non-nil, revert listing.
 Suppress status information if QUIET is nil."
   ;; This is the main function that generates and updates the process listing.
@@ -1670,7 +1670,7 @@ STRING is an overall summary of the failures."
   (proced-log t signal))
 
 (defun proced-help ()
-  "Provide help for the `proced' user."
+  "Provide help for the Proced user."
   (interactive)
   (proced-why)
   (if (eq last-command 'proced-help)
@@ -1678,8 +1678,8 @@ STRING is an overall summary of the failures."
     (message proced-help-string)))
 
 (defun proced-undo ()
-  "Undo in a proced buffer.
-This doesn't recover killed processes, it just undoes changes in the proced
+  "Undo in a Proced buffer.
+This doesn't recover killed processes, it just undoes changes in the Proced
 buffer.  You can use it to recover marks."
   (interactive)
   (let (buffer-read-only)

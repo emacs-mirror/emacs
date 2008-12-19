@@ -1,3 +1,10 @@
+2008-12-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* proced.el (proced-grammar-alist): Doc fix.
+	(proced-marker-char, proced-mark, proced-help-string, proced-mode-map)
+	(proced-filter-parents, proced-sort-header, proced-update, proced-help)
+	(proced-undo): Fix typos in docstrings.
+
 2008-12-19  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases): Add some more aliases.
