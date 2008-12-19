@@ -1,3 +1,10 @@
+2008-12-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Document the problems on Windows Vista and the
+	--with-system-malloc option to config.bat.
+
+	* sedalloc.inp: New file.
+
 2008-11-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* mainmake.v2 (misc): New target.
