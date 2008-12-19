@@ -1,3 +1,12 @@
+2008-12-19  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-isearch-search): Implement lax version of
+	incremental word search in Info.
+	(Info-isearch-start): Set Info-isearch-initial-node to the
+	current node when search is nonincremental to not stop at the
+	initial node in this case.
+	(Info-mode-map): Unbind "\M-s" from `Info-search'.
+
 2008-12-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/rst.el (rst-promote-region): Reflow docstring.
