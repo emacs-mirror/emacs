@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1996, 1997, 2000, 2001,
 ;;   2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
-;; Author: Jamie Zawinski <jwz@lucid.com>, now <jwz@jwz.org>
+;; Author: Jamie Zawinski <jwz@lucid.com; now jwz@jwz.org>
 ;; Maintainer: FSF
 ;; Created: 19 Oct 90
 ;; Keywords: mail
