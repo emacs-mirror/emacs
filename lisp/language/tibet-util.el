@@ -7,7 +7,9 @@
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
+;; Author: Toru TOMABECHI <Toru.Tomabechi@orient.unil.ch>
 ;; Keywords: multilingual, Tibetan
+;; Created: Feb. 17. 1997
 
 ;; This file is part of GNU Emacs.
 
@@ -23,10 +25,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;; Author: Toru TOMABECHI, <Toru.Tomabechi@orient.unil.ch>
-
-;; Created: Feb. 17. 1997
 
 ;;; History:
 ;; 1997.03.13 Modification in treatment of text properties;
