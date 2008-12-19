@@ -388,12 +388,17 @@
 
 2008-01-08  Glenn Morris  <rgm@gnu.org>
 
-	* calccard.tex, cs-dired-ref.tex, cs-refcard.tex, cs-survival.tex:
-	* de-refcard.tex, dired-ref.tex, fr-drdref.tex, fr-refcard.tex:
-	* fr-survival.tex, gnus-refcard.tex, orgcard.tex, pl-refcard.tex:
-	* pt-br-refcard.tex, refcard.tex, ru-refcard.tex, sk-dired-ref.tex:
-	* sk-refcard.tex, sk-survival.tex, survival.tex, vipcard.tex:
-	* viperCard.tex: Update printed copyright year to 2008.
+	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
+	* refcards/cs-refcard.tex, refcards/cs-survival.tex:
+	* refcards/de-refcard.tex, refcards/dired-ref.tex:
+	* refcards/fr-drdref.tex, refcards/fr-refcard.tex:
+	* refcards/fr-survival.tex, refcards/gnus-refcard.tex:
+	* refcards/orgcard.tex, refcards/pl-refcard.tex:
+	* refcards/pt-br-refcard.tex, refcards/refcard.tex:
+	* refcards/ru-refcard.tex, refcards/sk-dired-ref.tex:
+	* refcards/sk-refcard.tex, refcards/sk-survival.tex:
+	* refcards/survival.tex, refcards/vipcard.tex:
+	* refcards/viperCard.tex: Update printed copyright year to 2008.
 
 2008-01-08  Kevin Ryde  <user42@zip.com.au>
 
@@ -626,44 +631,54 @@
 
 	* NEWS: Say that PDF files are now the default for refcards.
 
-	* fr-drdref.tex, fr-drdref.pdf: Move these to...
-	* fr-dired-ref.tex, fr-dired-ref.pdf: ... those names.
+	* refcards/fr-drdref.tex, refcards/fr-drdref.pdf: Move these to...
+	* refcards/fr-dired-ref.tex, refcards/fr-dired-ref.pdf: ... those names.
 
 	* refcards/pdflayout.sty: New.  Handle PDF layouts through
 	\pdfpagewidth and \pdfpageheight.
 
-	* calccard.pdf, cs-dired-ref.pdf, cs-refcard.pdf, de-refcard.pdf:
-	* dired-ref.pdf, fr-drdref.pdf, fr-refcard.pdf, gnus-booklet.pdf:
-	* gnus-logo.pdf, gnus-refcard.pdf, orgcard.pdf, pl-refcard.pdf:
-	* pt-br-refcard.pdf, refcard.pdf, ru-refcard.pdf, sk-dired-ref.pdf:
-	* sk-refcard.pdf: Add PDF versions of the refcards.
+	* refcards/calccard.pdf, refcards/cs-dired-ref.pdf:
+	* refcards/cs-refcard.pdf, refcards/de-refcard.pdf:
+	* refcards/dired-ref.pdf, refcards/fr-drdref.pdf:
+	* refcards/fr-refcard.pdf, refcards/gnus-booklet.pdf:
+	* refcards/gnus-logo.pdf, refcards/gnus-refcard.pdf:
+	* refcards/orgcard.pdf, refcards/pl-refcard.pdf:
+	* refcards/pt-br-refcard.pdf, refcards/refcard.pdf:
+	* refcards/ru-refcard.pdf, refcards/sk-dired-ref.pdf:
+	* refcards/sk-refcard.pdf: Add PDF versions of the refcards.
 
-	* calccard.ps, cs-dired-ref.ps, cs-refcard.ps, de-refcard.ps:
-	* dired-ref.ps, fr-drdref.ps, fr-refcard.ps, gnus-booklet.ps:
-	* gnus-logo.ps, gnus-refcard.ps, orgcard.ps, pl-refcard.ps:
-	* pt-br-refcard.ps, refcard.ps, ru-refcard.ps, sk-dired-ref.ps:
-	* sk-refcard.ps: Remove the PS versions of the refcards.
+	* refcards/calccard.ps, refcards/cs-dired-ref.ps:
+	* refcards/cs-refcard.ps, refcards/de-refcard.ps, refcards/dired-ref.ps:
+	* refcards/fr-drdref.ps, refcards/fr-refcard.ps:
+	* refcards/gnus-booklet.ps, refcards/gnus-logo.ps:
+	* refcards/gnus-refcard.ps, refcards/orgcard.ps, refcards/pl-refcard.ps:
+	* refcards/pt-br-refcard.ps, refcards/refcard.ps:
+	* refcards/ru-refcard.ps, refcards/sk-dired-ref.ps:
+	* refcards/sk-refcard.ps: Remove the PS versions of the refcards.
 
-	* calccard.tex, fr-survival.tex, orgcard.tex, pl-refcard.tex:
-	* pt-br-refcard.tex, refcard.tex, survival.tex, vipcard.tex:
-	* viperCard.tex: Specify PDF layout, use a PDF `compile-command' local
-	variable.
-
-	* cs-dired-ref.tex, cs-refcard.tex, cs-survival.tex, dired-ref.tex:
-	* fr-drdref.tex, sk-dired-ref.tex, sk-refcard.tex, sk-survival.tex:
-	Specify PDF layout.
-
-	* fr-refcard.tex: Update copyright notice.  Update the examples.  Fix a
-	typo.  Remove the `letterpaper' counter, specify PDF layout, use a PDF
-	`compile-command' local variable.
-
-	* de-refcard.tex: Remove the `letterpaper' counter, specify PDF layout,
+	* refcards/calccard.tex, refcards/fr-survival.tex, refcards/orgcard.tex:
+	* refcards/pl-refcard.tex, refcards/pt-br-refcard.tex:
+	* refcards/refcard.tex, refcards/survival.tex, refcards/vipcard.tex:
+	* refcards/viperCard.tex: Specify PDF layout,
 	use a PDF `compile-command' local variable.
 
-	* ru-refcard.tex: Use a PDF `compile-command' local variable.
+	* refcards/cs-dired-ref.tex, refcards/cs-refcard.tex:
+	* refcards/cs-survival.tex, refcards/dired-ref.tex:
+	* refcards/fr-drdref.tex, refcards/sk-dired-ref.tex:
+	* refcards/sk-refcard.tex, refcards/sk-survival.tex:
+	Specify PDF layout.
 
-	* Makefile: Add rules for creating the refcards in PDF, make them the
-	default.  Change `fr-drdref' to `fr-dired-ref'.
+	* refcards/fr-refcard.tex: Update copyright notice.
+	Update the examples.  Fix a typo.  Remove the `letterpaper' counter,
+	specify PDF layout, use a PDF `compile-command' local variable.
+
+	* refcards/de-refcard.tex: Remove the `letterpaper' counter,
+	specify PDF layout, use a PDF `compile-command' local variable.
+
+	* refcards/ru-refcard.tex: Use a PDF `compile-command' local variable.
+
+	* refcards/Makefile: Add rules for creating the refcards in PDF,
+	make them the default.  Change `fr-drdref' to `fr-dired-ref'.
 
 2007-08-23  Glenn Morris  <rgm@gnu.org>
 
@@ -680,7 +695,7 @@
 
 2007-08-22  Karl Berry  <karl@gnu.org>
 
-	* refcard.tex: Updates for printing.
+	* refcards/refcard.tex: Updates for printing.
 	(\versionyear): Update to 2007.
 	(\copyrightnotice): Modified or unmodified ok.
 	(Simple Customization): Don't use goto-line, since now it's bound.
@@ -690,10 +705,6 @@
 
 	* NEWS: `shell' prompts for the default directory if called with a
 	prefix and `default-directory' is a remote file name.
-
-2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
-
-	* orgcard.tex: Version number upgrade.
 
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 
@@ -711,6 +722,10 @@
 	* splash.pbm, splash.xpm, splash8.xpm: Move from etc/ to etc/images/.
 	* README: Move license information for the above files from here...
 	* images/README: ...to here.
+
+2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version number upgrade.
 
 2007-08-14  Glenn Morris  <rgm@gnu.org>
 
@@ -4211,7 +4226,7 @@
 
 	* emacstool.c: setenv IN_EMACSTOOL=t, TERM=sun, TERMCAP=.
 
-	* emacsstool.1: Update to document environment variables.
+	* emacstool.1: Update to document environment variables.
 
 1989-02-21  Mosur Mohan  (email@notavailable)
 
