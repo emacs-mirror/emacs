@@ -1815,7 +1815,12 @@ If DIRECTION is `backward', search in the reverse direction."
 					(replace-regexp-in-string
 					 "^\\W+\\|\\W+$" "" string)
 					nil t)
-				 "\\b")
+				 ;; Lax version of word search
+				 (if (or isearch-nonincremental
+					 (eq (length string)
+					     (length (isearch-string-state
+						      (car isearch-cmds)))))
+				     "\\b"))
 			 bound noerror count
 			 (unless isearch-forward 'backward))
 	  (Info-search (if isearch-regexp string (regexp-quote string))
@@ -1845,7 +1850,10 @@ If DIRECTION is `backward', search in the reverse direction."
       (progn (Info-find-node file node) (sit-for 0))))
 
 (defun Info-isearch-start ()
-  (setq Info-isearch-initial-node nil))
+  (setq Info-isearch-initial-node
+	;; Don't stop at initial node for nonincremental search.
+	;; Otherwise this variable is set after first search failure.
+	(and isearch-nonincremental Info-current-node)))
 
 (defun Info-isearch-filter-predicate (beg-found found)
   "Skip invisible text, node header line and Tag Table node."
@@ -3241,8 +3249,6 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "r" 'Info-history-forward)
     (define-key map "s" 'Info-search)
     (define-key map "S" 'Info-search-case-sensitively)
-    ;; For consistency with Rmail.
-    (define-key map "\M-s" 'Info-search)
     (define-key map "\M-n" 'clone-buffer)
     (define-key map "t" 'Info-top-node)
     (define-key map "T" 'Info-toc)
