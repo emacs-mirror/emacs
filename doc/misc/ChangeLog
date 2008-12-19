@@ -1,3 +1,7 @@
+2008-12-19  Juri Linkov  <juri@jurta.org>
+
+	* info.texi (Search Text): Remove mention of removed key binding M-s.
+
 2008-12-18  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (References): Remove mentioning of @0 as reference for the
