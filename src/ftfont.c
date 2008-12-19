@@ -1067,10 +1067,10 @@ ftfont_open (f, entity, pixel_size)
   ASET (font_object, FONT_TYPE_INDEX, Qfreetype);
   len = font_unparse_xlfd (entity, size, name, 256);
   if (len > 0)
-    ASET (font_object, FONT_NAME_INDEX, make_unibyte_string (name, len));
+    ASET (font_object, FONT_NAME_INDEX, make_string (name, len));
   len = font_unparse_fcname (entity, size, name, 256);
   if (len > 0)
-    ASET (font_object, FONT_FULLNAME_INDEX, make_unibyte_string (name, len));
+    ASET (font_object, FONT_FULLNAME_INDEX, make_string (name, len));
   else
     ASET (font_object, FONT_FULLNAME_INDEX,
 	  AREF (font_object, FONT_NAME_INDEX));
