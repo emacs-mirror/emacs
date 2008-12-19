@@ -9,6 +9,15 @@
 	(authors-canonical-author-name): Doc fix.  Respect authors-fixed-case.
 	(authors): Ensure error buffer is writable.
 
+2008-12-18  Agustin Martin <agustin.martin@hispalinux.es>
+
+	(ispell-really-hunspell): new variable to signal hunspell
+	(ispell-check-version):
+	Check if hunspell and set ispell-really-hunspell if needed
+	(ispell-send-string), (ispell-start-process),
+	(flyspell-large-region):
+	Pass right options for hunspell if needed
+
 2008-12-18  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (script-representative-chars): Add more
