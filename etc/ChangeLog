@@ -2907,7 +2907,7 @@
 
 	* TUTORIAL.cn, TUTORIAL.zh: New files.
 
-	* TUTORIAL.translator: List TUTORIAL.cn and TUTORIAL.zh.
+	* TUTORIAL.translators: List TUTORIAL.cn and TUTORIAL.zh.
 
 2003-02-24  Kenichi Handa  <handa@m17n.org>
 
