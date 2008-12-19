@@ -3493,7 +3493,7 @@ PATH.
 
 ** MS-DOS
 
-*** When compiling with DJGPP on MS-Windows NT, "config msdos" fails.
+*** When compiling with DJGPP on MS-Windows NT or later, "config msdos" fails.
 
 If the error message is "VDM has been already loaded", this is because
 Windows has a program called `redir.exe' that is incompatible with a
@@ -3501,13 +3501,19 @@ program by the same name supplied with DJGPP, which is used by
 config.bat.  To resolve this, move the DJGPP's `bin' subdirectory to
 the front of your PATH environment variable.
 
+*** When Emacs compiled with DJGPP runs on Vista, it runs out of memory.
+
+If Emacs running on Vista displays "!MEM FULL!" in the mode line, you
+are hitting the memory allocation bugs in the Vista DPMI server.  See
+msdos/INSTALL for how to work around these bugs (search for "Vista").
+
 *** When compiling with DJGPP on MS-Windows 95, Make fails for some targets
 like make-docfile.
 
 This can happen if long file name support (the setting of environment
 variable LFN) when Emacs distribution was unpacked and during
-compilation are not the same.  See the MSDOG section of INSTALL for
-the explanation of how to avoid this problem.
+compilation are not the same.  See msdos/INSTALL for the explanation
+of how to avoid this problem.
 
 *** Emacs compiled with DJGPP complains at startup:
 
@@ -3580,8 +3586,8 @@ support, thus causing long filenames to be truncated to the first 6
 characters and a numeric tail that Windows 95 normally attaches to it.
 You should unzip the files again with a utility that supports long
 filenames (such as djtar from DJGPP or InfoZip's UnZip program
-compiled with DJGPP v2).  The MSDOG section of the file INSTALL
-explains this issue in more detail.
+compiled with DJGPP v2).  The file msdos/INSTALL explains this issue
+in more detail.
 
 Another possible reason for such failures is that Emacs compiled for
 MSDOS is used on Windows NT, where long file names are not supported
