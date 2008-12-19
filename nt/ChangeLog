@@ -1418,7 +1418,7 @@
 
 1997-06-19  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* makefil.def, emacs.bat: Use windows95 and windowsnt instead
+	* makefile.def, emacs.bat: Use windows95 and windowsnt instead
 	of win95 and winnt, respectively.
 
 1997-01-04  Geoff Voelker  <voelker@cs.washington.edu>
