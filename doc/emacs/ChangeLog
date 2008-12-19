@@ -1,6 +1,7 @@
 2008-12-19  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): Small grammar fix.
+	Consolidate explanatory text at start.
 
 	* display.texi (Text Display):
 	* indent.texi (Indentation): Use @acronym with ASCII.

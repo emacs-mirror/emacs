@@ -9,7 +9,15 @@
 Many people have contributed code included in the Free Software
 Foundation's distribution of GNU Emacs.  To show our appreciation for
 their public spirit, we list here in alphabetical order those who have
-written substantial portions.
+written substantial portions.  Others too numerous to mention have
+reported and fixed bugs, and added features to many parts of Emacs.
+We thank them for their generosity as well.
+
+This list intended to mention every contributor of a major package or
+feature we currently distribute; if you know of someone we have omitted,
+please report that as a manual bug.  More comprehensive information is
+available in the @file{ChangeLog} files, summarized in the file
+@file{etc/AUTHORS} in the distribution.
 
 @c We should list here anyone who has contributed a new package,
 @c and anyone who has made major enhancements in Emacs
@@ -1348,15 +1356,6 @@ Detlev Zundel wrote @file{re-builder.el}, a package for building regexps
 with visual feedback.
 
 @end itemize
-
-Others too numerous to mention have reported and fixed bugs, and added
-features to many parts of Emacs.  (Many are mentioned in the
-@file{ChangeLog} files, summarized in the file @file{etc/AUTHORS}
-in the distribution.)  We thank them for their generosity as well.
-
-This list intended to mention every contributor of a major package or
-feature we currently distribute; if you know of someone we have omitted,
-please report that as a manual bug.
 
 @ignore
    arch-tag: bb1d0fa4-0240-4992-b5d4-8602d1e3d4ba
