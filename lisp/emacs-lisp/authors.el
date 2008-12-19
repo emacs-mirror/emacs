@@ -144,19 +144,42 @@ Each entry is of the form (REALNAME REGEXP...).  If an author's name
 matches one of the REGEXPs, use REALNAME instead.
 If REALNAME is nil, ignore that author.")
 
+(defconst authors-fixed-case
+  '("Bryan O'Sullivan"
+    "Christian von Roques"
+    "Craig McDaniel"
+    "David J. MacKenzie"
+    "David McCabe"
+    "David O'Toole"
+    "Dominique de Waleffe"
+    "Edward O'Connor"
+    "Exal de Jesus Garcia Carrillo"
+    "Greg McGary"
+    "Hans de Graaff"
+    "James TD Smith"
+    "Michael McNamara"
+    "Mike McEwan"
+    "Peter von der Ahe"
+    "Peter O'Gorman"
+    "Roland McGrath"
+    "Sean O'Rourke")
+  "List of authors whose names cannot be simply capitalized.")
 
 (defvar authors-public-domain-files
-  '("auto-show\\.el"
-    "form-d2\\.el"
-    "emerge\\.el"
-    "unused\\.el"
+  '("emerge\\.el"
     "vi\\.el"
     "feedmail\\.el"
     "mailpost\\.el"
     "hanoi\\.el"
     "meese\\.el"
     "studly\\.el"
-    "modula2\\.el")
+    "modula2\\.el"
+    "nnmaildir\\.el"
+    "nnil\\.el"
+    "b2m\\.c"
+    "unexhp9k800\\.c"
+    "emacsclient\\.1"
+    "check-doc-strings")
   "List of regexps matching files for which the FSF doesn't need papers.")
 
 
@@ -172,7 +195,56 @@ listed.")
   '("external-lisp"
     "lock" "share-lib" "local-lisp"
     "noleim-Makefile.in"
-    "NEWS" "PROBLEMS" "FAQ" "AUTHORS" "FOR-RELEASE" "TODO")
+    "NEWS" "ORDERS" "PROBLEMS" "FAQ" "AUTHORS" "FOR-RELEASE" "TODO" "todo"
+    "MACHINES" "SERVICE"
+    "README.unicode" "README.multi-tty" "TUTORIAL.translators"
+    "NEWS.unicode" "COPYING.DJ" "Makefile.old" "Makefile.am"
+    "NEWS.1" "OOOOONEWS...OONEWS" "OOOONEWS" "etc/NEWS"
+    "NEWS.1-17" "NEWS.18" "NEWS.19" "NEWS.20" "NEWS.21" "NEWS.22"
+    "install-sh" "missing" "mkinstalldirs"
+    "termcap.dat" "termcap.src" "termcap.ucb" "termcap"
+    "ChangeLog.nextstep" "Emacs.clr" "spec.txt"
+    "gfdl.1"
+    "texi/Makefile.in"
+    "Imakefile" "icons/sink.ico" "aixcc.lex"
+    "nxml/char-name/unicode"
+    ;; Never had any meaningful changes logged, now deleted:
+    "split-man" "Xkeymap.txt" "ms-7bkermit" "ulimit.hack"
+    "gnu-hp300" "refcard.bit" "ledit.l" "forms.README"
+    "CXTERM-DIC/PY.tit" "CXTERM-DIC/ZIRANMA.tit"
+    "CXTERM-DIC/CTLau.tit" "CXTERM-DIC/CTLauB.tit"
+    "NICKLES.WORTH" "INTERVAL.IDEAS" "RCP"
+    "3B-MAXMEM" "AIX.DUMP" "SUN-SUPPORT" "XENIX"
+    "CODINGS" "CHARSETS"
+    "calc/INSTALL" "calc/Makefile"
+    "vms-pp.trans" "_emacs" "batcomp.com"
+    ;; MH-E stuff not in Emacs:
+    "import-emacs" "release-utils"
+    ;; Erc stuff not in Emacs:
+    "ChangeLog.2001" "ChangeLog.2002" "ChangeLog.2003" "ChangeLog.2004"
+    "ChangeLog.2005"
+    "README.extras" "dir-template" "mkChangeLog" "MkChangeLog" "erc-auto.in"
+    "CREDITS" "HACKING"
+    "debian/changelog"
+    "debian/control"
+    "debian/copyright"
+    "debian/maint/conffiles"
+    "debian/maint/conffiles.in"
+    "debian/maint/postinst"
+    "debian/maint/postinst.in"
+    "debian/maint/prerm"
+    "debian/maint/prerm.in"
+    "debian/README.Debian"
+    "debian/README.erc-speak"
+    "debian/rules"
+    "debian/scripts/install"
+    "debian/scripts/install.in"
+    "debian/scripts/remove"
+    "debian/scripts/remove.in"
+    "debian/scripts/startup"
+    "debian/scripts/startup.erc"
+    "debian/scripts/startup.erc-speak"
+    )
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
 
@@ -283,9 +355,32 @@ Changes to files in this list are not listed.")
 
 (defconst authors-valid-file-names
   '("aclocal.m4"
+    "build-ins.in"
+    "Makefile.noleim"
     "makedist.bat"
-    "make-delta")
-  "File names which are valid, but no longer exists (or cannot be
+    "makefile.def"
+    "makefile.nt"
+    "debug.bat.in" "emacs.bat.in"
+    ".gdbinit-union"
+    "alloca.s"
+    "make-delta"
+    "config.w95"
+    "emacstool.1"
+    "align.umax"
+    "cxux-crt0.s"
+    "gould-sigvec.s"
+    "getdate.y"
+    "ymakefile"
+    "permute-index" "index.perm"
+    "emacs21.ico"
+    "LPF" "LEDIT" "OTHER.EMACSES"
+    "emacs16_mac.png" "emacs24_mac.png"
+    "emacs256_mac.png" "emacs32_mac.png"
+    "emacs48_mac.png" "emacs512_mac.png"
+    ;; Deleted vms stuff:
+    "temacs.opt" "descrip.mms" "compile.com" "link.com"
+    )
+  "File names which are valid, but no longer exist (or cannot be
 found) in the repository.")
 
 (defconst authors-renamed-files-alist
@@ -297,12 +392,56 @@ found) in the repository.")
     ("unexnt.c" . "unexw32.c")
     ("s/windowsnt.h" . "s/ms-w32.h")
     ("config.emacs" . "configure")
+    ("config.h.dist" . "config.h.in")
+    ("config.h-dist" . "config.h.in")
+    ("paths.h-dist" . "paths.h.in")
+    ("patch1" . "sed1.inp")
     ("GETTING.GNU.SOFTWARE" . "FTP")
+    ("etc/MACHINES" . "MACHINES")
+    ("ONEWS" . "NEWS.19")
+    ("ONEWS.1" . "NEWS.1-17")
+    ("ONEWS.2" . "NEWS.1-17")
+    ("ONEWS.3" . "NEWS.18")
+    ("ONEWS.4" . "NEWS.18")
+    ("ORDERS.USA" . "ORDERS")
+    ("EUROPE" . "ORDERS")
+    ("DIFF" . "OTHER.EMACSES")
+    ("CCADIFF" . "OTHER.EMACSES")
+    ("GOSDIFF" . "OTHER.EMACSES")
+    ("Makefile.in.in" . "Makefile.in")
     ("leim-Makefile" . "leim/Makefile")
     ("leim-Makefile.in" . "leim/Makefile.in")
     ("emacs-lisp/testcover-ses.el" . "tcover-ses.el")
     ("emacs-lisp/testcover-unsafep.el" . "tcover-unsafep.el")
     ("INSTALL-CVS" . "INSTALL.CVS")
+    ("refcards/fr-drdref.pdf" . "refcards/fr-dired-ref.pdf")
+    ("gnus-logo.eps" . "refcards/gnus-logo.eps")
+    ("build-install" . "build-ins.in")
+    ("build-install.in" . "build-ins.in")
+    ("unidata/Makefile" . "unidata/Makefile.in")
+    ;; Not renamed, but we only have the latter in the Emacs repo.
+    ("trampver.texi.in" . "trampver.texi")
+    ("e/eterm" . "e/eterm-color")
+    ("e/eterm.ti" . "e/eterm-color.ti")
+    ("README.txt" . "README")
+    ("emacs.names" . "JOKES")
+    ("ED.WORSHIP" . "JOKES")
+    ("GNU.JOKES" . "JOKES")
+    ("CHARACTERS" . "TODO")
+    ("schema/xhtml-basic-form.rnc" . "schema/xhtml-bform.rnc" )
+    ("schema/xhtml-basic-table.rnc" . "schema/xhtml-btable.rnc")
+    ("schema/xhtml-list.rnc" . "schema/xhtml-lst.rnc")
+    ("schema/xhtml-target.rnc" . "schema/xhtml-tgt.rnc")
+    ("schema/xhtml-style.rnc" . "schema/xhtml-xstyle.rnc")
+    ("schema/docbook-dyntbl.rnc" . "schema/docbk-dyntbl.rnc")
+    ("schema/docbook-soextbl.rnc" . "schema/docbk-soextbl.rn" )
+    ("texi/url.txi" . "url.texi")
+    ;; Moved to different directories.
+    ("ctags.1" . "ctags.1")
+    ("etags.1" . "etags.1")
+    ("emacs.1" . "emacs.1")
+    ("emacsclient.1" . "emacsclient.1")
+    ("icons/emacs21.ico" . "emacs21.ico")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
@@ -325,6 +464,13 @@ Elements are (OLDNAME . NEWNAME).")
     ("\\.[xp]bm$" . t)
     ("^paths\\." . t)
     ("^install\\." . t)
+    ("^\\(TUTORIAL[^/]*\\)" . "tutorials/\\1")
+    ("^\\(tree-widget/\\(?:default\\|folder\\)/[-a-z]+\\.png\\)$" .
+     "images/\\1")
+    ("^\\(images/icons/\\)mac\\(emacs\\)_\\([0-9]+\\)\\(\\.png\\)" .
+     "\\1\\2\\3_mac\\4")
+    ("\\(images/icons/\\)emacs_\\([0-9][0-9]\\)\\.png" .
+     "\\1hicolor/\\2x\\2/apps/emacs.png")
     )
   "List regexps and rewriting rules for renamed files.
 Elements are (REGEXP . REPLACE).  If REPLACE is a string, the file
@@ -342,6 +488,12 @@ the file name."
   (let ((entry (assoc file authors-checked-files-alist))
 	relname
 	valid)
+    ;; FIXME this is bogus.  FILE should be re-checked in every
+    ;; different directory associated with LOG-FILE.
+    ;; Eg if src/ChangeLog refers to configure.in, and you happen to
+    ;; scan src/ before top-level/, the configure.in entries in
+    ;; top-level/ get ignored, because this mistakenly thinks
+    ;; top-level/configure.in does not exist.
     (if entry
 	(cdr entry)
       (setq relname (file-name-nondirectory file))
@@ -365,6 +517,7 @@ the file name."
       (setq authors-checked-files-alist
 	    (cons (cons file valid) authors-checked-files-alist))
       (unless (or valid
+		  (member file authors-ignored-files)
 		  (string-match "[*]" file)
 		  (string-match "^[0-9.]+$" file))
 	(setq authors-invalid-file-names
@@ -418,8 +571,9 @@ author and what he did in hash table TABLE.  See the description of
 
 (defun authors-canonical-author-name (author)
   "Return a canonicalized form of AUTHOR, an author name.
-If AUTHOR has an alias, use that.  Remove email addresses.  Capitalize
-words in the author's name."
+If AUTHOR has an entry in `authors-aliases', use that.  Remove
+email addresses.  Capitalize words in the author's name, unless
+it is found in `authors-fixed-case'."
   (let* ((aliases authors-aliases)
 	 regexps realname)
     (while aliases
@@ -439,7 +593,8 @@ words in the author's name."
     (setq author (replace-regexp-in-string "[ \t]+" " " author))
     (unless (string-match "[-, \t]" author)
       (setq author ""))
-    (capitalize author)))
+    (or (car (member author authors-fixed-case))
+	(capitalize author))))
 
 (defun authors-scan-change-log (log-file table)
   "Scan change log LOG-FILE for author information.
@@ -515,6 +670,7 @@ TABLE is a hash table to add author information to."
 	  ;; Some entries contain a year range in front of the
 	  ;; author's name.
 	  (skip-chars-forward "-0-9 \t")
+	  ;; FIXME handle multiline authors, comma-separated.
 	  (let ((author (buffer-substring-no-properties
 			 (point) (line-end-position))))
 	    (setq author (authors-canonical-author-name author))
@@ -643,6 +799,7 @@ list of their contributions.\n")
     (unless noninteractive
       (when authors-invalid-file-names
 	(with-current-buffer (get-buffer-create "*Authors Errors*")
+	  (setq buffer-read-only nil)
 	  (erase-buffer)
 	  (set-buffer-file-coding-system authors-coding-system)
 	  (insert "Unrecognized file entries found:\n\n")
