@@ -99,6 +99,25 @@ incompatible with a program by the same name supplied with DJGPP,
 which is used by config.bat.  To resolve this, move the DJGPP's `bin'
 subdirectory to the front of your PATH environment variable.
 
+Windows Vista has several bugs in its DPMI server related to memory
+allocation: it fails DPMI resize memory block function, and it
+arbitrarily limits the default amount of DPMI memory to 32MB.  To work
+around these bugs, first configure Emacs to use the `malloc' function
+from the DJGPP library.  To this end, run CONFIG.BAT with the
+"--with-system-malloc" option:
+
+    config --with-system-malloc msdos
+    make install
+
+In addition, you'll need to install Service Pack 1 (SP1) or later to
+Windows Vista and enlarge its DPMI memory limit by setting the value
+of this Registry key:
+
+  HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Wow\DpmiLimit
+
+Create this key if it does not exist.  The value is a DWORD; setting
+it to 536870912 should let Emacs use up to 512MB of memory.
+
 To install the international fonts, chdir to the intlfonts-X.Y
 directory created when you unpacked the intlfonts distribution (X.Y is
 the version number of the fonts' distribution), and type the following
