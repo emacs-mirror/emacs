@@ -46,7 +46,7 @@
 
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
-	* Move from lispintro/ to doc/lispintro/.
+	Move from lispintro/ to doc/lispintro/.
 	* Makefile.in (infodir): Go up one more level.
 	(usermanualdir): Change from ../man to ../emacs.
 	* makefile.w32-in (infodir, ENVADD): Go up one more level.
