@@ -3743,6 +3743,9 @@ system_process_attributes (Lisp_Object pid)
 	  attrs =  Fcons (Fcons (Qargs,  decoded_cmd),  attrs);
     }
 
+  if (fd >= 0)
+    emacs_close (fd);
+
   UNGCPRO;
   return attrs;
 }
