@@ -3752,7 +3752,7 @@ system_process_attributes (Lisp_Object pid)
 Lisp_Object
 system_process_attributes (Lisp_Object pid)
 {
-  return Qnil
+  return Qnil;
 }
 
 #endif	/* !defined (WINDOWSNT) */
