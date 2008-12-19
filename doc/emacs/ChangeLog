@@ -1363,7 +1363,7 @@
 
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
-	* Move manual sources from man/ to subdirectories of doc/.
+	Move manual sources from man/ to subdirectories of doc/.
 	Split into the Emacs manual in emacs/, and other manuals in misc/.
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Reduce to just the Emacs
 	manual.
