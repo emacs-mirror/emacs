@@ -698,7 +698,7 @@
 	(erc-with-all-buffers-of-server, with-erc-channel-buffer): Add
 	edebug-form-spec.
 
-	* erc-compat (erc-define-minor-mode): Ditto.
+	* erc-compat.el (erc-define-minor-mode): Ditto.
 
 2005-03-29  Jorgen Schaefer  <forcer@forcix.cx>
 
