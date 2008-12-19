@@ -1,3 +1,11 @@
+2008-12-18  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (script-representative-chars): Add more
+	scripts.
+	(setup-default-fontset): Add more scripts.
+
+	* international/characters.el: Add more scripts.
+
 2008-12-19  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-isearch-search): Implement lax version of
