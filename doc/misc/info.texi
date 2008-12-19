@@ -1000,12 +1000,6 @@ reached, if the header is not visible (this can happen, because @kbd{s}
 puts your cursor at the occurrence of the string, not at the beginning
 of the node).
 
-@kindex M-s @r{(Info mode)}
-  In Emacs, @kbd{Meta-s} is equivalent to @kbd{s}.  That is for
-compatibility with other GNU packages that use @kbd{M-s} for a similar
-kind of search command.  Both @kbd{s} and @kbd{M-s} run in Emacs the
-command @code{Info-search}.
-
 @kindex C-s @r{(Info mode)}
 @kindex C-r @r{(Info mode)}
 @findex isearch
