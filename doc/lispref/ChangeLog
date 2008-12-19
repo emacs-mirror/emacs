@@ -886,7 +886,7 @@
 
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
-	* Move from lispref/ to doc/lispref/.  Change all setfilename
+	Move from lispref/ to doc/lispref/.  Change all setfilename
 	commands to use ../../info.
 	* Makefile.in (infodir): Go up one more level.
 	(usermanualdir): Change from ../man to ../emacs.
@@ -5676,7 +5676,7 @@
 
 	* display.texi, frames.texi, internals.texi, modes.texi: Minor fixes.
 	* nonascii.texi, objects.texi, os.texi: Minor fixes.
-	* searching.texi, text.texi, tips.texi, windows.text: Minor fixes.
+	* searching.texi, text.texi, tips.texi, windows.texi: Minor fixes.
 
 	* positions.texi (Text Lines): Don't add -1 in current-line.
 
