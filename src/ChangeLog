@@ -1,3 +1,19 @@
+2008-12-19  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_decode_coding_xlfd): New function.
+	(xfont_encode_coding_xlfd): New function.
+	(xfont_list_pattern): Decode XLFD by iso-8859-1.
+	(xfont_list): Decode and encode XLFD by iso-8859-1.
+	(xfont_match): Likewise.
+	(xfont_list_family): Likewise.
+	(xfont_open): Likewise.
+
+	* ftfont.c (ftfont_open): Genarate a multibyte string if given
+	names are utf-8.
+
+	* xftfont.c (xftfont_open): Genarate a multibyte string if given
+	names are utf-8.
+
 2008-12-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_frame_resized): Remove check if rows/columns have
