@@ -1,4 +1,4 @@
-/* z001989a.c: Test for defect described in job001989
+/* zmess.c: Message test
  *
  * $Id$
  * Copyright (c) 2008 Ravenbrook Limited.  See end of file for license.
