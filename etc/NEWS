@@ -318,6 +318,14 @@ the minibuffer that toggles word search (i.e. using key sequences
 toggle word search.  To start nonincremental word search you can now use
 `M-s w RET' and `M-s w C-r RET' instead of `C-s RET C-w' and `C-r RET C-w'.
 
++++
+** In Info, `Info-search' is unbound from `M-s' to allow using `M-s w'
+for word search as well as other search commands from the global prefix
+key `M-s'.  `Info-search' is still bound to `s', and also incremental
+search commands `C-s', `C-M-s', `C-r', `C-M-r' are available for searching
+through multiple Info nodes, together with their nonincremental versions
+`C-s RET', `C-r RET', `C-M-s RET', `C-M-r RET', `M-s w RET'.
+
 ---
 ** In Text mode, `center-line' and `center-paragraph' are rebound
 from `M-s' and `M-S' to global keys `M-o M-s' and `M-o M-S' on the
