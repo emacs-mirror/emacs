@@ -1450,7 +1450,7 @@
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
-	* w32-charset-info-alist: Define iso10646-1 always.
+	* w32-fns.el (w32-charset-info-alist): Define iso10646-1 always.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -4274,7 +4274,7 @@
 	stops with an error and Emacs does not compile with those things in.
 	Besides, declare-function is not defined in XEmacs.
 
-	* ediff-util (eqiff-quit): Autoraise minibuffer.
+	* ediff-util.el (eqiff-quit): Autoraise minibuffer.
 
 	* ediff-diff.el (ediff-convert-fine-diffs-to-overlays): Make it a defun.
 
