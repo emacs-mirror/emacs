@@ -791,7 +791,7 @@
 	When XmIsCascadeButton, don't call XmCreateCascadeButtonGadget,
 	just modify the existing one.
 
-1996-08-09  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-08-09  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* lwlib.c (merge_widget_value): Undo previous change.
 
@@ -804,11 +804,11 @@
 
 	* Version 19.32 released.
 
-1996-07-31  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-07-31  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* lwlib-Xm.c (make_menubar): Turn off menu accelerator.
 
-1996-07-24  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-07-24  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* lwlib.c (merge_widget_value) [USE_MOTIF]: Pass along the change
 	flag from merged_contents.
@@ -821,7 +821,7 @@
 
 	* lwlib-Xm.h, lwlib-Xm.c, lwlib.h, lwlib.c: Undo previous change.
 
-1996-07-03  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-07-03  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* lwlib-Xm.h: Declare lw_motif_menu_related_event_p.
 
@@ -833,7 +833,7 @@
 	* lwlib.c (lw_toolkit_related_event_p): A predicate to identify
 	toolkit-specific events.
 
-1996-06-07  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-06-07  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* lwlib-Xm.c (make_menu_in_widget): Set mapping delay
 	for cascade buttons to zero.
@@ -1080,7 +1080,7 @@
 
 	* xlwmenu.c: Add #include <X11/ObjectP.h> for X11R4.
 
-1994-09-18  Fred Pierresteguy  <F.Pierresteguy@frcl.bull.fr>
+1994-09-18  Frederic Pierresteguy  <F.Pierresteguy@frcl.bull.fr>
 
 	* lwlib-Xm.c (make_dialog): When there is more than two pushbuttons,
 	set XmPACK_TIGHT and XmHORIZONTAL to the rowcolumn.  Also add a

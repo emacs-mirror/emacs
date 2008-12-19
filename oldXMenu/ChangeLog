@@ -207,16 +207,16 @@
 
 	* Version 19.20 released.
 
-1993-10-25  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+1993-10-25  Brian J. Fox  (bfox@albert.gnu.ai.mit.edu)
 
 	* Makefile.in (ALL_CFLAGS): Add C_SWITCH_X_SYSTEM.
 
-1993-09-27  Brian Fox  (bfox@valhalla)
+1993-09-27  Brian J. Fox  (bfox@valhalla)
 
 	* Makefile.in (CPP, LN_S, C_SWITCH_X_SITE, CC, CFLAGS): Allow
 	`configure' to supply the values for these variables.
 
-1993-09-26  Brian Fox  (bfox@ai.mit.edu)
+1993-09-26  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* Makefile.in (VPATH, srcdir): Now that `configure' creates the
 	Makefiles, do not append the current directory to the value of

@@ -5385,7 +5385,7 @@
 
 	* Makefile (realclean): Don't delete the Info files.
 
-1993-10-25  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+1993-10-25  Brian J. Fox  (bfox@albert.gnu.ai.mit.edu)
 
 	* forms.texi: Fix forms.texi so that it will format correctly.
 	Add missing `@end iftex', fix bad reference.
@@ -5393,7 +5393,7 @@
 	* info.texi, info-stn.texi: New files implement texinfo version of
 	`info' file.
 
-1993-10-20  Brian Fox  (bfox@ai.mit.edu)
+1993-10-20  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* Makefile: Fix targets for texindex, new info.texi files.
 	* info-stnd.texi: New file implements info for standalone info

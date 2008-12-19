@@ -4258,7 +4258,7 @@
 
 	* s/convexos.h: New file.
 
-1993-11-10  Brian Fox  (bfox@mole.gnu.ai.mit.edu)
+1993-11-10  Brian J. Fox  (bfox@mole.gnu.ai.mit.edu)
 
 	* Makefile.in.in (intervals.o): Depend on puresize.h.
 
@@ -4331,7 +4331,7 @@
 
 	* s/sunos4-1-3.h (HAVE_TERMIOS): Defined.
 
-1993-10-25  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+1993-10-25  Brian J. Fox  (bfox@albert.gnu.ai.mit.edu)
 
 	* process.c (Fopen_network_stream): Cast arg to inet_addr to (char *).
 
@@ -4349,7 +4349,7 @@
 	Pass it to functions found in function-key-map and key-translation-map.
 	(Fread_key_sequence, command_loop_1): Calls changed.
 
-1993-10-22  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+1993-10-22  Brian J. Fox  (bfox@albert.gnu.ai.mit.edu)
 
 	* config.h.in: Add #undef HAVE_UNISTD_H so configure can edit it
 	correctly.
@@ -4394,7 +4394,7 @@
 	* s/sco4.h (SYSTEM_TYPE): Put into #if 0.
 	(BSTRING): Define only if HAVE_BCOPY.
 
-1993-10-08  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+1993-10-08  Brian J. Fox  (bfox@albert.gnu.ai.mit.edu)
 
 	* search.c (skip_chars): Re-instate the check against the end of
 	the buffer, ignoring cryptic comment.
@@ -4442,7 +4442,7 @@
 
 	* s/linux.h (POSIX_SIGNALS): Comment fix.
 
-1993-09-30  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+1993-09-30  Brian J. Fox  (bfox@albert.gnu.ai.mit.edu)
 
 	* Makefile.in.in (ALL_CFLAGS): Make sure that `.' is searched
 	before `${srcdir}' when looking for include files.
@@ -4451,7 +4451,7 @@
 
 	* termhooks.h (enum event_kind): Doc fix.
 
-1993-09-27  Brian Fox  (bfox@ai.mit.edu)
+1993-09-27  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* ymakefile: Merged into Makefile.in.in.
 
@@ -4459,7 +4459,7 @@
 	from Makefile.in.in, and creates Makefile from Makefile.in.
 	ymakefile no longer exists, and xmakefile is never created.
 
-1993-09-24  Brian Fox  (bfox@ai.mit.edu)
+1993-09-24  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* textprop.c (validate_plist): Add declaration for `list'
 	argument.
@@ -4566,7 +4566,7 @@
 
 	* textprop.c (F{next,previous}_single_property_change): Doc fix.
 
-1993-09-15  Brian Fox  (bfox@ai.mit.edu)
+1993-09-15  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* data.c: Add declaration for atof if not predefined.
 
@@ -4577,7 +4577,7 @@
 	all of the data is written, or until we receive an error which is
 	not an interrupted write.
 
-1993-09-14  Brian Fox  (bfox@ai.mit.edu)
+1993-09-14  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* keyboard.c (Qextended_command_history): New variable prevents
 	sharing of M-x command history with other commands that read
@@ -4598,18 +4598,18 @@
 	changes from Emacs 18 for completion_ignore_case.
 	(completion_ignore_case): Declare.
 
-1993-09-01  Brian Fox  (bfox@ai.mit.edu)
+1993-09-01  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* window.c (Fdelete_windows_on): Fix DEFUN to allow optional
 	second argument to appear.
 
-1993-08-30  Brian Fox  (bfox@ai.mit.edu)
+1993-08-30  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* ymakefile (alloc.o): Remove explicit compilation rule, since it
 	is identical to the default rule, and `$<' doesn't work in
 	explicit rules in all "make"s.
 
-1993-08-27  Brian Fox  (bfox@ai.mit.edu)
+1993-08-27  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* gmalloc.c (safe_bcopy): Compile if MEMMOVE_MISSING is defined,
 	but only if we aren't compiling for emacs.
@@ -4623,7 +4623,7 @@
 	(LIB_STANDARD): Do not include -lcposix.
 	(C_SWITCH_SYSTEM) [__GNUC__]: Do not use -traditional.
 
-1993-08-17  Brian Fox  (bfox@ai.mit.edu)
+1993-08-17  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* alloca.c: Invert sense of conditional for entire file (GNUC >=
 	2).  Added `#else'.

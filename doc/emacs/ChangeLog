@@ -2276,7 +2276,7 @@
 
 	* custom.texi (Safe File Variables): Texinfo usage fix.
 
-2006-07-03  Ted Zlatanov  <tzz@lifelogs.com>
+2006-07-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* help.texi, m-x.texi: Lots of cleanups.
 
@@ -2358,7 +2358,7 @@
 	(Commands of GUD): Add gud-print.  Remove gud-run.
 	Restate availability more generally.
 
-2006-06-03  Ted Zlatanov  <tzz@lifelogs.com>
+2006-06-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* mini.texi: Lots of cleanups.
 
@@ -2379,7 +2379,7 @@
 
 	* screen.texi (Menu Bar): F10 for Gtk+/Lesstif/Lucid menus.
 
-2006-05-28  Ted Zlatanov  <tzz@lifelogs.com>
+2006-05-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* basic.texi: Many simplifications and improvements in wording.
 
@@ -6097,12 +6097,12 @@
 
 	* Makefile (realclean): Don't delete the Info files.
 
-1993-10-25  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+1993-10-25  Brian J. Fox  (bfox@albert.gnu.ai.mit.edu)
 
 	* frames.texi (Creating Frames): Mention `C-x 5' instead of `C-x
 	4' where appropriate.
 
-1993-10-20  Brian Fox  (bfox@ai.mit.edu)
+1993-10-20  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* Makefile: Fix targets for texindex.
 

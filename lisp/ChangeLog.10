@@ -3492,7 +3492,7 @@
 	(Info-display-images-node): New functions for displaying images.
 	(Info-select-node): Call Info-display-images-node.
 
-2003-04-25  David Ponce <david.ponce@wanadoo.fr>
+2003-04-25  David Ponce  <david.ponce@wanadoo.fr>
 
 	* files.el (file-relative-name): Recognize "c:/foo" as absolute
 	file name.
@@ -18736,7 +18736,7 @@
 	(ctext-post-read-conversion, ctext-pre-write-conversion):
 	New functions.
 
-2002-02-21  Jonathan Kamens  <jik@kamens.brookline.ma.us>
+2002-02-21  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
 
 	* vc.el (vc-default-init-version): Update documentation to
 	indicate that the backend can override the default init version.
@@ -22919,7 +22919,7 @@
 	* startup.el: Document command line option --no-window-system
 	instead of --no-windows.
 
-2001-10-30  David Ponce <david.ponce@wanadoo.fr>
+2001-10-30  David Ponce  <david.ponce@wanadoo.fr>
 
 	* font-lock.el (java-font-lock-syntactic-face-function): New fun.
 	(font-lock-defaults-alist): Use it.

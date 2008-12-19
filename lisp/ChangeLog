@@ -48,7 +48,7 @@
 
 2008-12-18  Sam Steingold  <sds@gnu.org>
 
-	* vc-dir.el (vc-at-event): Handle (tool-bar) events. Fix bug#1585.
+	* vc-dir.el (vc-at-event): Handle (tool-bar) events.  Fix bug#1585.
 
 2008-12-18  Juri Linkov  <juri@jurta.org>
 
@@ -8878,7 +8878,7 @@
 
 	* find-cmd.el (top-level): Does not need cl when compiling.
 
-2008-04-29  Phil Jackson  <phil@shellarchive.co.uk>
+2008-04-29  Philip Jackson  <phil@shellarchive.co.uk>
 
 	* find-cmd.el: New file.
 
@@ -12634,7 +12634,7 @@
 	(vc-git--state-code): ... to this new function.
 	(vc-git-state): Use it.
 
-2008-03-24  Trent Buck  <trentbuck@gmail.com>  (tiny change)
+2008-03-24  Trent W. Buck  <trentbuck@gmail.com>  (tiny change)
 
 	* textmodes/remember.el (remember-mail-date)
 	(remember-store-in-mailbox): Write date and From line in such a

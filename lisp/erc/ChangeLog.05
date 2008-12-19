@@ -1050,7 +1050,7 @@
 	XEmacs). The new function `erc-modified-channels-object' is used
 	to generate updated values for the same-named variable.
 
-2005-01-08  Diane Murray <disumu@x3y2z1.net>
+2005-01-08  Diane Murray  <disumu@x3y2z1.net>
 
 	* ChangeLog.2002: Changed instances of my sourceforge username and
 	email address to real name and email.
@@ -1124,7 +1124,7 @@
 	* NEWS: Use 3rd level heading instead of bullets for lists that
 	contain descriptions.
 
-2005-01-07  Diane Murray <disumu@x3y2z1.net>
+2005-01-07  Diane Murray  <disumu@x3y2z1.net>
 
 	* erc-list.el: Require 'sort.
 	(erc-chanlist): Disable undo in the channel list buffer.
@@ -1180,7 +1180,7 @@
 	policy toward ChangeLog entries, which is that they should be
 	manually updated whenever a change is committed.
 
-2005-01-04  Diane Murray <disumu@x3y2z1.net>
+2005-01-04  Diane Murray  <disumu@x3y2z1.net>
 
 	* erc.el (erc-connection-established, erc-login): Update the
 	mode-line.
@@ -1189,11 +1189,11 @@
 	`mode-line-process' to ":connecting" while the connection is being
 	established.
 
-2005-01-04  Lawrence Mitchell <wence@gmx.li>
+2005-01-04  Lawrence Mitchell  <wence@gmx.li>
 
 	* AUTHORS: Update list of authors.
 
-2005-01-02  Diane Murray <disumu@x3y2z1.net>
+2005-01-02  Diane Murray  <disumu@x3y2z1.net>
 
 	* erc-goodies.el (erc-control-characters): New customization
 	group.

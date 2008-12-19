@@ -18,8 +18,7 @@
 
 	* org.el (org-get-outline-path): Fix bug if level is not given.
 
-	* org-agenda.el (org-finalize-agenda): Fix typo with variable
-	name.
+	* org-agenda.el (org-finalize-agenda): Fix typo with variable name.
 
 2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -31,7 +30,7 @@
 
 	* org-agenda.el (org-agenda-change-all-lines): New argument
 	FORCE-TAGS.
-	(org-agenda-set-tags): Cet the new tags and pas them to
+	(org-agenda-set-tags): Get the new tags and pass them to
 	`org-format-agenda-item'.
 
 2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -1869,7 +1868,7 @@
 	(org-structure-template-alist): New, experimental option.
 	(org-complete): Call `org-complete-expand-structure-template'.
 
-2008-06-17 Bastien Guerry  <bzg@altern.org>
+2008-06-17  Bastien Guerry  <bzg@altern.org>
 
 	* org-export-latex.el (org-export-latex-preprocess): Added
 	support for blockquotes.
@@ -1887,7 +1886,7 @@
 	* org-exp.el (org-export-as-html, org-close-li): Implement
 	description lists.
 
-2008-06-17 Jason Riedy  <jason@acm.org>
+2008-06-17  Jason Riedy  <jason@acm.org>
 
 	* org-table.el (*orgtbl-default-fmt*): New variable.
 	(orgtbl-format-line): Use the value of *orgtbl-default-fmt*

@@ -1619,7 +1619,7 @@
 	group names with backslashes.  Reported by Tassilo Horn
 	<tassilo@member.fsf.org>.
 
-2007-12-06  D. Goel  <deego3@gmail.com>
+2007-12-06  Deepak Goel  <deego3@gmail.com>
 
 	* gnus-art.el (article-make-date-line):
 	* gnus-start.el (gnus-load):
@@ -2564,7 +2564,7 @@
 	* gnus-sum.el (gnus-select-newsgroup): Decode group name in error msg.
 	(gnus-read-move-group-name): Decode group name for completion.
 
-2007-07-31  Ted Zlatanov  <tzz@lifelogs.com>
+2007-07-31  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-srvr.el (gnus-server-close-all-servers): Close servers not only
 	in gnus-inserted-opened-servers but also in gnus-server-alist (Katsumi
@@ -8152,7 +8152,7 @@
 
 	* gnus-art.el (gnus-article-read-summary-keys): Fix misplaced parens.
 
-2005-04-06  D Goel  <deego@gnufans.org>
+2005-04-06  Deepak Goel  <deego@gnufans.org>
 
 	* spam-stat.el (spam-stat-score-buffer): Add a call to a
 	user-function allow user modifications of the scores.

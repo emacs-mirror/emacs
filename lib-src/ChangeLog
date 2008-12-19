@@ -7,7 +7,7 @@
 
 	* emacsclient.c: Include syswait.h instead of sys/types.h.
 
-2008-12-11  dhruva  <dhruvakm@gmail.com>  (tiny change)
+2008-12-11  Dhruva Krishnamurthy  <dhruvakm@gmail.com>  (tiny change)
 
 	* emacsclient.c (WCONTINUED): New compatibility define
 	for older systems.
@@ -1467,7 +1467,7 @@
 	* makefile.w32-in ($(DOC)): Use -o and -a options to make-docfile,
 	because GNU make doesn't append when using >> redirection.
 
-2002-12-12  Jonathan Kamens  <jik@kamens.brookline.ma.us>
+2002-12-12  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
 
 	* b2m.pl: Make sure every message ends with a blank line, because
 	some mbox parsers require a blank line before "From " lines.
@@ -1643,7 +1643,7 @@
 
 	* Makefile.in (localstatedir): New variable.
 
-2002-07-29  Jonathan Kamens  <jik@kamens.brookline.ma.us>
+2002-07-29  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
 
 	* b2m.pl: Fix regexp for finding return address fields.
 
@@ -1651,7 +1651,7 @@
 
 	* make-docfile.c (scan_c_file): Warn about missing `usage' info.
 
-2002-07-05  Jonathan Kamens  <jik@kamens.brookline.ma.us>
+2002-07-05  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
 
 	* b2m.pl: Obey the rmail file and use the unpruned header properly.
 
@@ -2798,7 +2798,7 @@
 	* emacsclient.c: Add option -a EDITOR and environment variable
 	ALTERNATE_EDITOR.  Exec this editor if we fail to contact Emacs.
 
-1999-12-10  Jonathan Kamens  <jik@kamens.brookline.ma.us>
+1999-12-10  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
 
 	* movemail.c (popmail): Allow mailbox specifications of the
 	form `po:username:hostname'.
@@ -5414,7 +5414,7 @@
 	(S_ISREG): #define it using S_IFREG if not defined.
 	(process_file): Regular files have nothing to do with symlinks.
 
-1993-09-28  Brian Fox  (bfox@ai.mit.edu)
+1993-09-28  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* Makefile.in (${archlibdir}): Install ${SCRIPTS} from ${srcdir}, not
 	from current directory.  Only chmod and chgrp files that we
@@ -5423,12 +5423,12 @@
 	(INSTALLFLAGS): Deleted definition, since it is an unused variable
 	now.
 
-1993-09-27  Brian Fox  (bfox@ai.mit.edu)
+1993-09-27  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* Makefile.in (INSTALL, INSTALL_PROGRAM, INSTALL_DATA): Let
 	configure figure out the correct values for these variables.
 
-1993-09-14  Brian Fox  (bfox@ai.mit.edu)
+1993-09-14  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* Makefile.in (archlibdir): Only install executables internally
 	used by emacs; don't install bindir binaries here.

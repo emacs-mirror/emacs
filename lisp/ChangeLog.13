@@ -5628,7 +5628,7 @@
 	* calc/calc-mode.el (calc-set-simplify-mode):
 	* calc/calc-ext.el (calc-fancy-prefix): Fix buggy call to `message'.
 
-2007-12-07  D. Goel  <deego3@gmail.com>
+2007-12-07  Deepak Goel  <deego3@gmail.com>
 
 	* progmodes/idlw-shell.el (idlwave-shell-display-line)
 	* progmodes/ada-xref.el (ada-find-file, ada-get-all-references)
@@ -5657,7 +5657,7 @@
 	(dbus-list-queued-owners, dbus-get-name-owner, dbus-introspect):
 	Reorder `dbus-call-method' arguments.
 
-2007-12-06  D. Goel  <deego3@gmail.com>
+2007-12-06  Deepak Goel  <deego3@gmail.com>
 
 	* allout.el (allout-write-file-hook-handler):
 	* textmodes/reftex.el (reftex-TeX-master-file):
@@ -5768,7 +5768,7 @@
 	(imap-parse-status): Upcase status-att for broken servers that sends
 	them lower-case (e.g., MS Exchange 2007).
 
-2007-12-05  D. Goel  <deego3@gmail.com>
+2007-12-05  Deepak Goel  <deego3@gmail.com>
 
 	* simple.el (undo):
 	* image-dired.el (image-dired-display-thumb-properties):
@@ -9474,7 +9474,7 @@
 	(doc-view-ghostscript-options, doc-view-ps->pdf): Add "-dSAFER" to
 	avoid security problems when rendering files from untrusted sources.
 
-2007-10-17  Aaron Hawley  <aaronh@garden.org>
+2007-10-17  Aaron S. Hawley  <aaronh@garden.org>
 
 	* tutorial.el (tutorial--save-tutorial): Display message when tutorial
 	position is not saved.
@@ -10397,7 +10397,7 @@
 	There are no changes to existing logic in this patch.
 	(vc-revert-buffer1): Rename to vc-revert-buffer-internal.
 
-2007-10-06  Aaron Hawley  <aaronh@garden.org>
+2007-10-06  Aaron S. Hawley  <aaronh@garden.org>
 
 	* autoinsert.el (auto-insert-alist): Add a Texinfo entry.
 
@@ -11368,7 +11368,7 @@
 
 	* cus-start.el (all): Revert 2007-09-08 change.
 
-2007-09-12  Aaron Hawley  <aaronh@garden.org>
+2007-09-12  Aaron S. Hawley  <aaronh@garden.org>
 
 	* jka-cmpr-hook.el (jka-compr-compression-info-list): Use gzip to
 	extract .Z files, since it is more common than uncompress.
@@ -14442,7 +14442,7 @@
 	* tutorial.el (tutorial--find-changed-keys):
 	Handle C-x specially like ESC.
 
-2007-07-15  Aaron Hawley  <aaronh@garden.org>
+2007-07-15  Aaron S. Hawley  <aaronh@garden.org>
 
 	* tar-mode.el (tar-get-descriptor): No error for zero-length file.
 
@@ -16318,7 +16318,7 @@
 	* mail/mail-extr.el (mail-extract-address-components):
 	Recognize non-ASCII characters except for NBSP as words.
 
-2007-05-21  Trent Buck  <trentbuck@gmail.com>  (tiny change)
+2007-05-21  Trent W. Buck  <trentbuck@gmail.com>  (tiny change)
 
 	* net/rcirc.el (rcirc-fill-column): Allow `window-width'.
 	(rcirc-print): Handle `window-width'.

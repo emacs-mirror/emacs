@@ -8,7 +8,7 @@
 	(NO_SOCKETS_IN_FILE_SYSTEM): Definition deleted.
 	(sigblock): New definition.
 
-1996-08-10  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-08-10  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* m/sequent-ptx.h (LOAD_AVE_TYPE, FSCALE, LOAD_AVE_CVT):
 	Undef them before defining.
@@ -126,7 +126,7 @@
 	(printchar, strout): Output into print_buffer.
 	(print_string): If printcharfun is nil, use strout.
 
-1996-07-26  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-07-26  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* xmenu.c (pending_menu_activation): New variable.
 	(x_activate_menubar): Don't call set_frame_menubar for
@@ -136,7 +136,7 @@
 	* xterm.c (last_mouse_press_frame): New variable.
 	(XTread_socket): Store a saved_button_event for ButtonRelease.
 
-1996-07-25  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-07-25  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* xmenu.c (set_frame_menubar): Use -1 for call_data
 	in the deep_p = 0 case.
@@ -145,7 +145,7 @@
 
 	* ntinevt.c (win32_read_socket): Never block reading from input queue.
 
-1996-07-24  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-07-24  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* editfns.c (Fencode_time): Assign to tm.tm_gmtoff for NEXTSTEP,
 	since timezone environment variable is ignored.
@@ -300,7 +300,7 @@
 
 	* s/usg5-4-3.h: New file.
 
-1996-07-11  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-07-11  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* xterm.c (XTread_socket): Add #ifdef for previous change.
 
@@ -391,7 +391,7 @@
 
 	* indent.c (Fvertical_motion): Doc fix.
 
-1996-07-03  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-07-03  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* xterm.c (XTread_socket): Use lw_tookit_related_event_p to
 	avoid sending toolkit-specific events to Emacs.
@@ -725,7 +725,7 @@
 	* process.c (Fopen_network_stream) [WINDOWSNT]: Ensure Windows
 	socket library is loaded if available.
 
-1996-06-07  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-06-07  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* xterm.c (XTread_socket): Use XtAppNextEvent when using
 	toolkit configurations.
@@ -833,7 +833,7 @@
 
 	* m/sparc.h [__linux__] (A_TEXT_OFFSET, A_TEXT_SEEK): Don't define.
 
-1996-05-24  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-05-24  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* xterm.c [SOLARIS2]: Include string.h.
 

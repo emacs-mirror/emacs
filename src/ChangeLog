@@ -2547,7 +2547,7 @@
 	* atimer.c:
 	* Makefile.in: Remove code for Carbon.
 
-2008-07-26 YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-07-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (XDrawLine) [USE_MAC_IMAGE_IO]: Remove spurious return.
 
@@ -7048,7 +7048,7 @@
 
 	* w32font.c (w32font_full_name): Use floor to round.
 
-2008-03-10  dhruva  <dhruvakm@gmail.com>  (tiny change)
+2008-03-10  Dhruva Krishnamurthy  <dhruvakm@gmail.com>  (tiny change)
 
 	* sound.c (alsa_configure): Declare vol at beginning of block.
 

@@ -4006,7 +4006,7 @@
 
 	* Version 19.33 released.
 
-1996-08-10  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-08-10  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* configure.in (i[3456]86-sequent-ptx4*, i[3456]86-sequent-sysv4*):
 	Fix previous change.
@@ -5750,7 +5750,7 @@
 	before moving it.
 	* Makefile.in (VPATH): Define to @srcdir@.
 
-1993-09-28  Brian Fox  (bfox@cubit)
+1993-09-28  Brian J. Fox  (bfox@cubit)
 
 	* configure.in: Don't copy ${srcdir}/src/Makefile.in; that file
 	doesn't exist.  Just copy src/Makefile.in instead.  Touch
@@ -5759,7 +5759,7 @@
 	* INSTALL: Update documentation to match new configuration
 	mechanism.
 
-1993-09-27  Brian Fox  (bfox@ai.mit.edu)
+1993-09-27  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* configure.in: Allow any of the path or directory Makefile
 	variables to be set with flags to configure.  Create all Makefiles
@@ -5770,14 +5770,14 @@
 	  If these files are out of date, simply have config.status
 	  rebuild them; don't rebuild them explicitly.
 
-1993-09-25  Brian Fox  (bfox@ai.mit.edu)
+1993-09-25  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* build-install.in: Change src/xemacs to src/emacs.  We no longer
 	create src/xemacs, so the file wouldn't be found.
 
 	* make-dist: Remove `src/ymakefile', add `src/Makefile.in.in'.
 
-1993-09-24  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+1993-09-24  Brian J. Fox  (bfox@albert.gnu.ai.mit.edu)
 
 	* configure.in: Avoid forcing the search of /usr/include before
 	fixed include files by resetting C_SWITCH_X_SITE if it is
@@ -5794,19 +5794,19 @@
 	Use AC_QUOTE_SQUOTE twice to properly quote vpath_sed value.
 	Remove ${extra_output} from AC_OUTPUT call.
 
-1993-09-17  Brian Fox  (bfox@inferno)
+1993-09-17  Brian J. Fox  (bfox@inferno)
 
 	* make-dist: Quote backquotes found in strings to be echoed.
 
 	* configure.in: Use "sh -c pwd" when we want to avoid having the
 	shell fix up the value of $PWD.
 
-1993-09-13  Brian Fox  (bfox@inferno)
+1993-09-13  Brian J. Fox  (bfox@inferno)
 
 	* Makefile.in (do-install): Don't abort if ln or chmod at the end
 	of the installation fail.  Suggested by Karl Berry.
 
-1993-08-30  Brian Fox  (bfox@inferno)
+1993-08-30  Brian J. Fox  (bfox@inferno)
 
 	* Makefile.in (*clean): Use "$(MAKE) $(MAKEFLAGS)" wherever "make"
 	was used.  Set MAKEFLAGS from MFLAGS.
