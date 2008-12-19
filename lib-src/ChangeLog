@@ -6586,7 +6586,7 @@
 
 	* emacstool.c: setenv IN_EMACSTOOL=t, TERM=sun, TERMCAP=.
 
-	* emacsstool.1: Update to document environment variables.
+	* emacstool.1: Update to document environment variables.
 
 1989-02-21  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
