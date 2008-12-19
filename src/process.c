@@ -7795,7 +7795,7 @@ See `system-process-attributes' for getting attributes of a process
 given its ID.  */)
     ()
 {
-  return list_system_processes ();
+  return Qnil;
 }
 
 DEFUN ("system-process-attributes", Fsystem_process_attributes,
@@ -7851,7 +7851,7 @@ integer or floating point values.
 
     Lisp_Object pid;
 {
-  return system_process_attributes (pid);
+  return Qnil;
 }
 
 void
