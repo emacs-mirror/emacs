@@ -6,8 +6,15 @@
  *
  * OBJECTIVE
  *
- * Show that MPS messages are correct regardless of when the client 
- * gets them.  (Note: "get" means "mps_message_get", throughout).
+ * Test MPS messages.  In particular:
+ *  - Check prompt finalization even when there are several segs 
+ *    of guardians.  This test replaces fin1658a.c.  See job001658.
+ *  - Check GC messages are correctly generated, posted, and queued,
+ *    regardless of when the client gets them.  (Note: "get" means 
+ *    "mps_message_get", throughout).  See job001989.
+ *
+ * Please add tests for other message behaviour into this file.  
+ * Expand the script language as necessary!  RHSK 2008-12-19.
  *
  *
  * DESIGN OVERVIEW
@@ -58,8 +65,9 @@
  *
  * main() has the list of testscripts.  
  *
- * testscriptA() and testscriptB() set up a new arena and objects for 
- * this test script.
+ * testscriptA() sets up a new arena and trampolines to testscriptB().
+ *
+ * testscriptB() creates pools and objects for this test script.
  *
  * testscriptC() actually runs the script.
  *
@@ -69,14 +77,24 @@
  * This test uses the dylan object format, but the reliance on this
  * particular format is not great and could be removed.
  *
- * NOTES
  *
- * This code was created by first copying <code/fin1658a.c>.
- * Future: actions could be expanded to include:
+ * BUGS, FUTURE IMPROVEMENTS, ETC
+ *
+ * There are a few special objects with refs to each other (see 
+ * .keep-alive).  For clarity and flexibility, there should be special 
+ * actions to drop the myroot ref to these, eg. '0', '1', '2', 'Y', 'Z'.
+ * Whereas (for clarity) 'F' should be an action that drops the myroot 
+ * ref to a plain (non-kept-alive) object, thereby simply provoking a 
+ * single finalization message.
+ *
+ * Actions could be expanded to include:
  *   - mps_arena_start_collect;
  *   - mps_arena_step;
  *   - automatic (not client-requested) collections.
  * etc.
+ * HISTORY
+ *
+ * This code was created by first copying <code/fin1658a.c>.
  */
 
 #include "testlib.h"
@@ -215,10 +233,10 @@ static void testscriptC(mps_arena_t arena, const char *script)
         break;
       }
       case '!': {
+        /* Like '.', but not discarding got messages; see .discard */
         *pmNext = '\0';
         printf("  Getting messages (expecting \"%s\")...\n", am);
-        /* FALSE: see .discard */
-        report(arena, am, FALSE);
+        report(arena, am, FALSE);  /* FALSE: see .discard */
         printf("  ...done.\n");
         printf("  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, "
                "TO SEE HOW MPS COPES.\n");  /* .discard */
@@ -231,6 +249,12 @@ static void testscriptC(mps_arena_t arena, const char *script)
         break;
       }
       case 'F': {
+        /* (perhaps) make an object Finalizable
+         *
+         * .alternate: We alternately pick objects from the low and 
+         * high ends of the myroot array.  This is used to test for 
+         * the defect described in job001658.
+         */
         Insist(loNext <= hiNext);
         i = isLoNext ? loNext++ : hiNext--;
         isLoNext = 1 - isLoNext;
@@ -243,15 +267,10 @@ static void testscriptC(mps_arena_t arena, const char *script)
         state[i] = finalizableSTATE;
         break;
       }
-      case 'b': {
-        *pmNext++ = *script;
-        break;
-      }
-      case 'e': {
-        *pmNext++ = *script;
-        break;
-      }
+      case 'b':
+      case 'e':
       case 'f': {
+        /* expect that MPS has posted a particular message */
         *pmNext++ = *script;
         break;
       }
