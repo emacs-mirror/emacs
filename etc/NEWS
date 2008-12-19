@@ -611,11 +611,12 @@ any invalid parts of your document.
 attribute name or data value by using information about what is
 allowed by the schema in that context.
 
-** proced.el provides a Dired-like interface for operating on processes.
-Proced makes an Emacs buffer containing a listing of the current
-processes (using ps(1)).  You can use the normal Emacs commands to
-move around in this buffer, and special Proced commands to operate on
-the processes listed.
+** proced.el provides a Dired-like interface for operating on
+processes.  Proced makes an Emacs buffer containing a listing of the
+current processes.  You can use the normal Emacs commands to move
+around in this buffer, and special Proced commands to operate on the
+processes listed.  It is currently only functional on GNU/Linux,
+MS-Windows and Solaris.
 
 ** Remember Mode is a mode for jotting down things to remember.
 Notes can be saved to a Diary file.  For details, see the Remember
