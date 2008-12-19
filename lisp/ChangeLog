@@ -1,6 +1,7 @@
 2008-12-19  Glenn Morris  <rgm@gnu.org>
 
-	* emacs-lisp/authors.el (authors-fixed-case): New constant.
+	* emacs-lisp/authors.el (authors-aliases): Add some more aliases.
+	(authors-fixed-case): New constant.
 	(authors-public-domain-files, authors-ignored-files):
 	(authors-valid-file-names, authors-renamed-files-alist): Update lists.
 	(authors-renamed-files-regexps): Add some new entries.

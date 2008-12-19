@@ -40,6 +40,7 @@ files.")
 
 (defconst authors-aliases
   '(
+    ("Aaron S. Hawley" "Aaron Hawley")
     ("Andrew Csillag" "Drew Csillag")
     ("Anna M. Bigatti" "Anna Bigatti")
     ("Barry A. Warsaw" "Barry A. Warsaw, Century Computing, Inc."
@@ -54,6 +55,7 @@ files.")
     ("David M. Koppelman" "David M. Koppelman, Koppel@Ee.Lsu.Edu"
      "David Koppelman")
     ("David M. Smith" "David Smith" "David M Smith")
+    ("Deepak Goel" "D. Goel")
     ("Ed L. Cashin" "Ed L Cashin")
     ("Edward M. Reingold" "Ed Reingold" "Edward M Reingold"
      "Reingold Edward M")
