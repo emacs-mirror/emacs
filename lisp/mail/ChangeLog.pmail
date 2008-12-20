@@ -10,6 +10,13 @@
 	pmail-expunge-and-save.
 	(pmail-next-undeleted-message): If no other message can be shown,
 	show the current one.
+	(pmail-attr-array): Doc fix.
+	(pmail-add-header): Function deleted.
+	(pmail-add-mbox-headers): Insert header directly instead of
+	calling pmail-add-header.
+	(pmail-display-labels): Add leading space to attribute string.
+	(pmail-set-attribute): Call pmail-swap-buffers-maybe.  Insert
+	header directly instead of calling pmail-add-header.
 
 2008-12-15  Juanma Barranquero  <lekktu@gmail.com>
 
