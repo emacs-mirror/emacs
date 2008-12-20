@@ -1,3 +1,7 @@
+2008-12-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (Fread_buffer): Doc fix.
+
 2008-12-20  Jason Rumney  <jasonr@gnu.org>
 
 	* coding.c (decode_coding): Clear chars_at_source flag when using
