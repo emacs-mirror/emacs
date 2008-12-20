@@ -5660,6 +5660,11 @@ Emacs is displaying the frame on a character-based terminal.
 @end table
 @end defvar
 
+@defvar initial-window-system
+This variable holds the value of @code{window-system} used for the
+first frame created by Emacs during startup.
+@end defvar
+
 @defun window-system &optional frame
 This function returns a symbol whose name tells what window system is
 used for displaying @var{frame} (which defaults to the currently
