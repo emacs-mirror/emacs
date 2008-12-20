@@ -1639,9 +1639,11 @@ entity, or font object.
 
 ** Changes related to multiple-terminal (multi-tty) support
 
+---
 *** $TERM is now set to `dumb' for subprocesses.  If you want to know the
 $TERM inherited by Emacs you will have to look inside initial-environment.
 
+---
 *** $DISPLAY is now dynamically inherited from the frame's `display'.
 
 *** The `window-system' variable is now frame-local.  The new
