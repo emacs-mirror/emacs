@@ -684,7 +684,7 @@ affects all frames on the same terminal device.  */)
     abort ();
 #else /* not MSDOS */
 
-#if 0                           /* This should work now! */
+#ifdef WINDOWSNT                           /* This should work now! */
   if (sf->output_method != output_termcap)
     error ("Not using an ASCII terminal now; cannot make a new ASCII frame");
 #endif
