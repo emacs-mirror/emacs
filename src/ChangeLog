@@ -8,6 +8,9 @@
 
 2008-12-20  Jason Rumney  <jasonr@gnu.org>
 
+	* fileio.c (Fexpand_file_name): Do not allow ../ to go beyond the
+	server name in UNC paths.
+
 	* coding.c (decode_coding): Clear chars_at_source flag when using
 	charbuf.
 
