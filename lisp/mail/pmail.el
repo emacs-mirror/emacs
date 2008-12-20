@@ -1409,19 +1409,22 @@ Create the buffer if necessary."
 (defun pmail-expunge-and-save ()
   "Expunge and save PMAIL file."
   (interactive)
-  (pmail-expunge t)
   (set-buffer pmail-buffer)
+  (pmail-expunge t)
+  (pmail-swap-buffers-maybe)
   (save-buffer)
   (if (pmail-summary-exists)
-      (pmail-select-summary (set-buffer-modified-p nil))))
+      (pmail-select-summary (set-buffer-modified-p nil))
+    (pmail-show-message)))
 
 (defun pmail-quit ()
   "Quit out of PMAIL.
 Hook `pmail-quit-hook' is run after expunging."
   (interactive)
-  ;; Determine if the buffers need to be swapped.
+  (set-buffer pmail-buffer)
+  (pmail-expunge t)
   (pmail-swap-buffers-maybe)
-  (pmail-expunge-and-save)
+  (save-buffer)
   (when (boundp 'pmail-quit-hook)
     (run-hooks 'pmail-quit-hook))
   ;; Don't switch to the summary buffer even if it was recently visible.
@@ -2696,6 +2699,7 @@ Returns t if a new message is being shown, nil otherwise."
 	  (message "No previous nondeleted message"))
       (if (> n 0)
 	  (message "No following nondeleted message"))
+      (pmail-show-message-maybe pmail-current-message)
       nil)))
 
 (defun pmail-previous-undeleted-message (n)
