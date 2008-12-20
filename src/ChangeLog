@@ -1,3 +1,8 @@
+2008-12-20  Jason Rumney  <jasonr@gnu.org>
+
+	* frame.c (Fmake_terminal_frame): Raise an error when called from
+	a graphical frame on Windows.
+
 2008-12-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.c (Fdelete_frame): Set f->menu_bar_vector to Qnil.
