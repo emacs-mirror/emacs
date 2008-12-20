@@ -4,11 +4,17 @@
 	(pmail-get-new-mail-1): Adjust restriction after calling
 	pmail-insert-inbox-text.
 	(pmail-add-mbox-headers): Use save-restriction.
+	(pmail-expunge-and-save): Call pmail-swap-buffers-maybe before
+	saving.
+	(pmail-quit): Handling expunging manually, instead of calling
+	pmail-expunge-and-save.
+	(pmail-next-undeleted-message): If no other message can be shown,
+	show the current one.
 
 2008-12-15  Juanma Barranquero  <lekktu@gmail.com>
 
-	* pmail.el (pmail-require-mime-maybe):
-	Fix arguments of `display-warning'.
+	* pmail.el (pmail-require-mime-maybe): Fix arguments of
+	`display-warning'.
 
 2008-12-15  Chong Yidong  <cyd@stupidchicken.com>
 
