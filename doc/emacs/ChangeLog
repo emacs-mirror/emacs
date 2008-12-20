@@ -1,3 +1,8 @@
+2008-12-20  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): General update based on AUTHORS,
+	including removal of some stuff no longer distributed.
+
 2008-12-19  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* fixit.texi: Mention hunspell
