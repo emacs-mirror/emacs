@@ -3219,6 +3219,7 @@ list_system_processes ()
   return proclist;
 }
 
+/* The WINDOWSNT implementation is on w32.c.  */
 #elif !defined (WINDOWSNT)
 
 Lisp_Object
@@ -3226,7 +3227,8 @@ list_system_processes ()
 {
   return Qnil;
 }
-#endif /* !defined (WINDOWSNT)*/
+
+#endif /* !defined (WINDOWSNT) */
 
 #ifdef GNU_LINUX
 static void
@@ -3607,6 +3609,7 @@ system_process_attributes (Lisp_Object pid)
   UNGCPRO;
   return attrs;
 }
+
 #elif defined (SOLARIS2) && defined (HAVE_PROCFS)
 
 /* The <procfs.h> header does not like to be included if _LP64 is defined and
@@ -3750,6 +3753,7 @@ system_process_attributes (Lisp_Object pid)
   return attrs;
 }
 
+/* The WINDOWSNT implementation is on w32.c.  */
 #elif !defined (WINDOWSNT)
 
 Lisp_Object
