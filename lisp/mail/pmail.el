@@ -875,6 +875,8 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
     (pmail-swap-buffers-maybe)
     (if (eq major-mode 'pmail-edit-mode)
 	(error "Exit Pmail Edit mode before getting new mail"))
+    (or (and existed (> (buffer-size) 0))
+	(setq run-mail-hook t))
     ;; Insure that the Rmail file is in mbox format, the buffer is in
     ;; Pmail mode and has been scanned to find all the messages
     ;; (setting the global message variables in the process).
