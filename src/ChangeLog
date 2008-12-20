@@ -1,3 +1,7 @@
+2008-12-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.c (Fdelete_frame): Set f->menu_bar_vector to Qnil.
+
 2008-12-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.c (Fread_buffer): Doc fix.
