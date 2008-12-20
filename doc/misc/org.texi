@@ -3,7 +3,7 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.15d
+@set VERSION 6.16
 @set DATE December 2008
 
 @dircategory Emacs
@@ -579,6 +579,15 @@ MY PROJECTS    -*- mode: org; -*-
 @noindent which will select Org mode for this buffer no matter what
 the file's name is.  See also the variable
 @code{org-insert-mode-line-in-empty-file}.
+
+Many commands in Org work on the region is the region is active.  To make use
+of this, you need to have @code{transient-mark-mode} (@code{zmacs-regions} in
+XEmacs) turned on.  In Emacs 23 this is the default, in Emacs 22 you need to
+do this yourself with
+
+@lisp
+(transient-mark-mode 1)
+@end lisp
 
 @node Feedback, Conventions, Activation, Introduction
 @section Feedback
@@ -1809,6 +1818,9 @@ Org's references with @emph{signed} numbers are floating
 references because the same reference operator can reference different
 fields depending on the field being calculated by the formula.
 
+As a special case references like @samp{$LR5} and @samp{$LR12} can be used to
+refer in a stable way to the 5th and 12th field in the last row of the table.
+
 Here are a few examples:
 
 @example
@@ -1991,6 +2003,8 @@ with the appropriate commands, @i{absolute references} (but not relative
 ones) in stored formulas are modified in order to still reference the
 same field.  Of cause this is not true if you edit the table structure
 with normal editing commands - then you must fix the equations yourself.
+The left hand side of a formula may also be a named field (@pxref{Advanced
+features}), or a last-row reference like @samp{$LR3}.
 
 Instead of typing an equation into the field, you may also use the
 following command
@@ -5973,6 +5987,8 @@ Previous line (same as @key{down} and @kbd{C-n}).
 @item mouse-3
 @itemx @key{SPC}
 Display the original location of the item in another window.
+With prefix arg, make sure that the entire entry is made visible in the
+outline, not only the heading.
 @c
 @kindex L
 @item L
@@ -7072,6 +7088,9 @@ deadlines or appointments into a desktop calendar program like iCal,
 Org mode can also produce extracts in the iCalendar format.  Currently
 Org mode only supports export, not import of these different formats.
 
+Org supports export of selected regions when @code{transient-mark-mode} is
+enabled (default in Emacs 23).
+
 @menu
 * Markup rules::                Which structures are recognized?
 * Selective export::            Using tags to select and exclude trees
@@ -7597,13 +7616,14 @@ file.
 
 @cindex region, active
 @cindex active region
-@cindex Transient mark mode
+@cindex transient-mark-mode
 @table @kbd
 @kindex C-c C-e a
 @item C-c C-e a
 Export as ASCII file.  For an org file @file{myfile.org}, the ASCII file
 will be @file{myfile.txt}.  The file will be overwritten without
-warning.  If there is an active region, only the region will be
+warning.  If there is an active region@footnote{this requires
+@code{transient-mark-mode} to be turned on}, only the region will be
 exported. If the selected region is a single tree@footnote{To select the
 current subtree, use @kbd{C-c @@}.}, the tree head will
 become the document title.  If the tree head entry has or inherits an
@@ -7638,7 +7658,7 @@ indentation than the first, these are left alone.
 @cindex HTML export
 
 Org mode contains an HTML (XHTML 1.0 strict) exporter with extensive
-HTML formatting, in ways similar to John Grubers @emph{markdown}
+HTML formatting, in ways similar to John Gruber's @emph{markdown}
 language, but with additional support for tables.
 
 @menu
@@ -7655,16 +7675,17 @@ language, but with additional support for tables.
 
 @cindex region, active
 @cindex active region
-@cindex Transient mark mode
+@cindex transient-mark-mode
 @table @kbd
 @kindex C-c C-e h
 @item C-c C-e h
 Export as HTML file @file{myfile.html}.  For an org file @file{myfile.org},
 the ASCII file will be @file{myfile.html}.  The file will be overwritten
-without warning.  If there is an active region, only the region will be
+without warning.  If there is an active region@footnote{this requires
+@code{transient-mark-mode} to be turned on}, only the region will be
 exported. If the selected region is a single tree@footnote{To select the
 current subtree, use @kbd{C-c @@}.}, the tree head will become the document
-title.  If the tree head entry has or inherits an @code{EXPORT_FILE_NAME}
+title.  If the tree head entry has, or inherits, an @code{EXPORT_FILE_NAME}
 property, that name will be used for the export.
 @kindex C-c C-e b
 @item C-c C-e b
@@ -7825,11 +7846,11 @@ referring to an external file.
 
 @emph{Sebastian Rose} has written a JavaScript program especially designed to
 enhance the web viewing experience of HTML files created with Org.  This
-program allows to view large files in two different ways.  The first one is
+program allows you to view large files in two different ways.  The first one is
 an @emph{Info}-like mode where each section is displayed separately and
 navigation can be done with the @kbd{n} and @kbd{p} keys (and some other keys
 as well, press @kbd{?} for an overview of the available keys).  The second
-view type is a @emph{folding} view much like Org provides it inside Emacs.
+view type is a @emph{folding} view much like Org provides inside Emacs.
 The script is available at @url{http://orgmode.org/org-info.js} and you can
 find the documentation for it at
 @url{http://orgmode.org/worg/code/org-info-js/org-info.js.html}.  We are
@@ -7838,10 +7859,10 @@ to be dependent on @url{orgmode.org} and prefer to install a local copy on
 your own web server.
 
 To use the script, you need to make sure that the @file{org-jsinfo.el} module
-gets loaded.  It should be loaded by default, try @kbd{M-x customize-variable
-@key{RET} org-modules @key{RET}} to convince yourself that this is indeed the
-case.  All it then takes to make use of the program is adding a single line
-to the Org file:
+gets loaded.  It should be loaded by default, but you can try @kbd{M-x
+customize-variable @key{RET} org-modules @key{RET}} to convince yourself that
+this is indeed the case.  All it then takes to make use of the program is
+adding a single line to the Org file:
 
 @example
 #+INFOJS_OPT: view:info toc:nil
@@ -7904,16 +7925,20 @@ references, the PDF output file will be fully linked.
 @node LaTeX/PDF export commands, Quoting LaTeX code, LaTeX and PDF export, LaTeX and PDF export
 @subsection LaTeX export commands
 
+@cindex region, active
+@cindex active region
+@cindex transient-mark-mode
 @table @kbd
 @kindex C-c C-e l
 @item C-c C-e l
 Export as La@TeX{} file @file{myfile.tex}.  For an org file
 @file{myfile.org}, the ASCII file will be @file{myfile.tex}.  The file will
-be overwritten without warning.  If there is an active region, only the
-region will be exported. If the selected region is a single tree@footnote{To
-select the current subtree, use @kbd{C-c @@}.}, the tree head will become the
-document title.  If the tree head entry has or inherits an
-@code{EXPORT_FILE_NAME} property, that name will be used for the export.
+be overwritten without warning.  If there is an active region@footnote{this
+requires @code{transient-mark-mode} to be turned on}, only the region will be
+exported. If the selected region is a single tree@footnote{To select the
+current subtree, use @kbd{C-c @@}.}, the tree head will become the document
+title.  If the tree head entry has or inherits an @code{EXPORT_FILE_NAME}
+property, that name will be used for the export.
 @kindex C-c C-e L
 @item C-c C-e L
 Export to a temporary buffer, do not create a file.
@@ -8332,7 +8357,7 @@ you publish them to HTML.
 You may also link to related files, such as images. Provided you are
 careful with relative pathnames, and provided you have also configured
 @code{org-publish} to upload the related files, these links will work
-too. @ref{Complex example} for an example of this usage.
+too. See @ref{Complex example} for an example of this usage.
 
 Sometime an Org file to be published may contain links that are
 only valid in your production environment, but not in the publishing
