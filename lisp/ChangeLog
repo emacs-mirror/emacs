@@ -1,3 +1,9 @@
+2008-12-20  Agustin Martin <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-check-minver): New function.
+	(ispell-check-version): Rewrite spellchecker and version checking.
+	Use (ispell-check-minver). Handle hunspell versions.
+
 2008-12-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ido.el (ido-read-internal): Handle `confirm' and
@@ -35,7 +41,7 @@
 	(authors-canonical-author-name): Doc fix.  Respect authors-fixed-case.
 	(authors): Ensure error buffer is writable.
 
-2008-12-18  Agustín Martín  <agustin.martin@hispalinux.es>
+2008-12-18  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	(ispell-really-hunspell): New variable to signal hunspell.
 	(ispell-check-version):
