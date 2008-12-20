@@ -1646,6 +1646,7 @@ $TERM inherited by Emacs you will have to look inside initial-environment.
 ---
 *** $DISPLAY is now dynamically inherited from the frame's `display'.
 
++++
 *** The `window-system' variable is now frame-local.  The new
 `initial-window-system' variable contains the `window-system' value
 for the first frame.  `window-system' is also now a function that
