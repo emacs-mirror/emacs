@@ -1,3 +1,8 @@
+2008-12-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ido.el (ido-read-internal): Handle `confirm' and
+	`confirm-after-completion' values for the require-match argument.
+
 2008-12-20  Jason Rumney  <jasonr@gnu.org>
 
 	* international/mule.el (auto-coding-regexp-alist): Use
