@@ -1600,7 +1600,7 @@ and the contents of `file-coding-system-alist'."
   '(("^BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion)
     ("\\`\xFE\xFF" . utf-16be-with-signature)
     ("\\`\xFF\xFE" . utf-16le-with-signature)
-    ("\\`\xEF\xBB\xBF" . utf-8)
+    ("\\`\xEF\xBB\xBF" . utf-8-with-signature)
     ("\\`;ELC\024\0\0\0" . emacs-mule))	; Emacs 20-compiled
   "Alist of patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
