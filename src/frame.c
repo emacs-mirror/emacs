@@ -1480,6 +1480,10 @@ But FORCE inhibits this too.  */)
   Vframe_list = Fdelq (frame, Vframe_list);
   FRAME_SET_VISIBLE (f, 0);
 
+  /* Allow the vector of menu bar contents to be freed in the next
+     garbage collection.  The frame object itself may not be garbage
+     collected until much later, because recent_keys and other data
+     structures can still refer to it.  */
   f->menu_bar_vector = Qnil;
 
   free_font_driver_list (f);
