@@ -27,11 +27,10 @@
 ;; system and process X-specific command line parameters before
 ;; creating the first X frame.
 
-;; Note that contrary to previous Emacs versions, the act of loading
-;; this file should not have the side effect of initializing the
-;; window system or processing command line arguments (this file is
-;; now loaded in loadup.el).  See the variables
-;; `handle-args-function-alist' and
+;; Beginning in Emacs 23, the act of loading this file should not have
+;; the side effect of initializing the window system or processing
+;; command line arguments (this file is now loaded in loadup.el).  See
+;; the variables `handle-args-function-alist' and
 ;; `window-system-initialization-alist' for more details.
 
 ;; startup.el will then examine startup files, and eventually call the hooks
