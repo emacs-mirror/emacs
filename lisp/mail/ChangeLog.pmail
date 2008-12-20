@@ -1,3 +1,10 @@
+2008-12-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail-get-new-mail): Call pmail-swap-buffers-maybe.
+	(pmail-get-new-mail-1): Adjust restriction after calling
+	pmail-insert-inbox-text.
+	(pmail-add-mbox-headers): Use save-restriction.
+
 2008-12-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* pmail.el (pmail-require-mime-maybe):
