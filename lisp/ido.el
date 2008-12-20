@@ -1803,6 +1803,10 @@ PROMPT is the prompt to give to the user.
 DEFAULT if given is the default item to start with.
 If REQUIRE-MATCH is non-nil, an existing file must be selected.
 If INITIAL is non-nil, it specifies the initial input string."
+  ;; Ido does not implement the `confirm' and
+  ;; `confirm-after-completion' values of REQUIRE-MATCH.
+  (if (memq require-match '(confirm confirm-after-completion))
+      (setq require-match nil))
   (let
       ((ido-cur-item item)
        (ido-entry-buffer (current-buffer))
