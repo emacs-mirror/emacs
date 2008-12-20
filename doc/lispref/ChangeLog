@@ -1,7 +1,11 @@
 2008-12-20  Eli Zaretskii  <eliz@gnu.org>
 
+	* os.texi (Startup Summary): Add xref to documentation of
+	`initial-window-system'.
+
 	* display.texi (Window Systems): Document `window-system' the
 	function.  The variable `window-system' is now frame-local.
+	Document `initial-window-system'.
 
 2008-12-19  Martin Rudalics  <rudalics@gmx.at>
 
