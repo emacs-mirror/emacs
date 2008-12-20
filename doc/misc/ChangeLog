@@ -1,3 +1,11 @@
+2008-12-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Activation, Exporting, ASCII export, HTML export)
+	(HTML Export commands, LaTeX/PDF export commands): Improve
+	documentation about transient-mark-mode.
+	(References): DOcuemtn the use of special names like $LR1 to reference
+	to fields in the last table row.
+
 2008-12-19  Juri Linkov  <juri@jurta.org>
 
 	* info.texi (Search Text): Remove mention of removed key binding M-s.
