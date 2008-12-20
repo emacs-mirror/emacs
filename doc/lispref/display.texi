@@ -5644,21 +5644,28 @@ differently.  An Emacs frame is a single window as far as X is
 concerned; the individual Emacs windows are not known to X at all.
 
 @defvar window-system
-This variable tells Lisp programs what window system Emacs is running
-under.  The possible values are
+This frame-local variable tells Lisp programs what window system Emacs is using
+for displaying the frame.  The possible values are
 
 @table @code
 @item x
 @cindex X Window System
-Emacs is displaying using X.
-@item pc
-Emacs is displaying using MS-DOS.
+Emacs is displaying the frame using X.
 @item w32
-Emacs is displaying using Windows.
+Emacs is displaying the frame using native MS-Windows GUI.
+@item pc
+Emacs is displaying the frame using MS-DOS direct screen writes.
 @item nil
-Emacs is using a character-based terminal.
+Emacs is displaying the frame on a character-based terminal.
 @end table
 @end defvar
+
+@defun window-system &optional frame
+This function returns a symbol whose name tells what window system is
+used for displaying @var{frame} (which defaults to the currently
+selected frame).  The list of possible symbols it returns is the same
+one documented for the variable @code{window-system} above.
+@end defun
 
 @defvar window-setup-hook
 This variable is a normal hook which Emacs runs after handling the
