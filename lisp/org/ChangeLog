@@ -1,3 +1,47 @@
+2008-12-20  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-get-refile-targets, org-refile-get-location): Use
+	expanded file name to improve comparison.
+
+2008-12-20  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-scan-tags): Rescan for tags, to get the correct
+	upcase/downcase stuff.  This slows things down for now, but it
+	works.
+	(org-mode): Make sure the tag-faces regexp is initialized.
+
+	* org-export-latex.el (org-export-latex-links): Fix bug with
+	undefined label.
+
+	* org-table.el (org-table-get-specials): Set
+	`org-table-current-last-data-line'.
+	(org-table-current-last-data-line): New variable.
+	(org-table-insert-column, org-table-delete-column)
+	(org-table-move-column, org-table-fix-formulas): Call
+	`org-table-fix-formulas' a second time to fix the $LR references.
+	(org-table-get-specials): Add the $LR references to the tables.
+	(org-table-get-formula): Do not offer last-row names as LHS of
+	formulas.
+
+	* org.el (org-store-link): Capture link description from
+	`org-id-store-link'.
+
+	* org-exp.el (org-export-html-format-image): Add the / to the end
+	of the <img> tag.
+	(org-export-format-source-code): Surround example by empty lines,
+	to make sure it will not be inside a paragraph.
+
+	* org.el (org-ido-switchb): New function.
+
+2008-12-20  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-show): New prefix argument
+	FULL-ENTRY.
+
+	* org.el (org-sort-entries-or-items): Add a COMPARE-FUNC
+	argument.
+
+
 2008-12-20  Glenn Morris  <rgm@gnu.org>
 
 	* org.el (org-org-menu): Fix some more menu entries.
