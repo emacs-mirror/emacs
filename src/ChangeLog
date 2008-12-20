@@ -1,3 +1,8 @@
+2008-12-20  Jason Rumney  <jasonr@gnu.org>
+
+	* coding.c (decode_coding): Clear chars_at_source flag when using
+	charbuf.
+
 2008-12-19  Daniel Engeler  <engeler@gmail.com>
 
 	* sysdep.c (serial_configure): Fix typo.
