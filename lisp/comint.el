@@ -1,7 +1,8 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
 ;; Copyright (C) 1988, 1990, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -555,7 +556,7 @@ This is to work around a bug in Emacs process signaling.")
   "Index of last matched history element.")
 (defvar comint-matching-input-from-input-string ""
   "Input previously used to match input history.")
-(defvar comint-save-input-ring-index
+(defvar comint-save-input-ring-index nil
   "Last input ring index which you copied.
 This is to support the command \\[comint-get-next-from-history].")
 

@@ -1,3 +1,7 @@
+2008-12-20  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (comint-save-input-ring-index): Add missing initial value.
+
 2008-12-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* proced.el (proced-grammar-alist): Doc fix.
