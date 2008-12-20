@@ -1581,6 +1581,7 @@ It returns t if it got any new messages."
   (or (verify-visited-file-modtime (current-buffer))
       (find-file (buffer-file-name)))
   (set-buffer pmail-buffer)
+  (pmail-swap-buffers-maybe)
   (pmail-maybe-set-message-counters)
   (widen)
   ;; Get rid of all undo records for this buffer.
@@ -1626,7 +1627,8 @@ It returns t if it got any new messages."
       (let ((new-messages 0)
 	    (spam-filter-p (and (featurep 'rmail-spam-filter)
 				pmail-use-spam-filter))
-	    blurb result success suffix)
+	    (blurb "")
+	    result success suffix)
 	(narrow-to-region (point) (point))
 	;; Read in the contents of the inbox files, renaming them as
 	;; necessary, and adding to the list of files to delete
@@ -1637,6 +1639,8 @@ It returns t if it got any new messages."
 	;; Scan the new text and convert each message to
 	;; Pmail/mbox format.
 	(goto-char (point-min))
+	(skip-chars-forward " \n")
+	(narrow-to-region (point) (point-max))
 	(unwind-protect
 	    (setq new-messages (pmail-add-mbox-headers)
 		  success t)
@@ -1953,30 +1957,31 @@ compliant.
 Unless an Rmail attribute header already exists, add it to the
 new messages.  Return the number of new messages."
   (save-excursion
-    (let ((count 0)
-	  (start (point))
-	  (value "------U")
-	  limit)
-      ;; Detect an empty inbox file.
-      (unless (= start (point-max))
-	;; Scan the new messages to establish a count and to insure that
-	;; an attribute header is present.
-	(while (looking-at "From ")
-	  ;; Determine if a new attribute header needs to be added to
-	  ;; the message.
-	  (if (search-forward "\n\n" nil t)
-	      (progn
-		(setq count (1+ count))
-		(narrow-to-region start (point))
-		(unless (mail-fetch-field pmail-attribute-header)
-		  (pmail-add-header pmail-attribute-header value))
-		(widen))
-	    (pmail-error-bad-format))
-	  ;; Move to the next message.
-	  (if (search-forward "\n\nFrom " nil 'move)
-	      (forward-char -5))
-	  (setq start (point))))
-      count)))
+    (save-restriction
+      (let ((count 0)
+	    (start (point))
+	    (value "------U")
+	    limit)
+	;; Detect an empty inbox file.
+	(unless (= start (point-max))
+	  ;; Scan the new messages to establish a count and to insure that
+	  ;; an attribute header is present.
+	  (while (looking-at "From ")
+	    ;; Determine if a new attribute header needs to be added to
+	    ;; the message.
+	    (if (search-forward "\n\n" nil t)
+		(progn
+		  (setq count (1+ count))
+		  (narrow-to-region start (point))
+		  (unless (mail-fetch-field pmail-attribute-header)
+		    (pmail-add-header pmail-attribute-header value))
+		  (widen))
+	      (pmail-error-bad-format))
+	    ;; Move to the next message.
+	    (if (search-forward "\n\nFrom " nil 'move)
+		(forward-char -5))
+	    (setq start (point))))
+	count))))
 
 ;;;; *** Pmail Message Formatting and Header Manipulation ***
 
@@ -2282,7 +2287,8 @@ change the invisible header text."
       (pmail-set-message-counters)))
 
 (defun pmail-count-new-messages (&optional nomsg)
-  "Count the number of new messages in the region.
+  "Count the number of new messages.
+The buffer should be narrowed to include only the new messages.
 Output a helpful message unless NOMSG is non-nil."
   (let* ((case-fold-search nil)
 	 (total-messages 0)
@@ -2376,10 +2382,10 @@ the message.  Point is at the beginning of the message."
     (while (search-backward "\n\nFrom " stop t)
       (forward-char 2)
       (pmail-collect-deleted start)
-      ;; Show progress after every 20 messages or so.
       (setq messages-head (cons (point-marker) messages-head)
 	    total-messages (1+ total-messages)
 	    start (point))
+      ;; Show progress after every 20 messages or so.
       (if (zerop (% total-messages 20))
 	  (message "Counting messages...%d" total-messages)))
     ;; Handle the first message, maybe.
