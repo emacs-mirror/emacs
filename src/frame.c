@@ -1480,6 +1480,8 @@ But FORCE inhibits this too.  */)
   Vframe_list = Fdelq (frame, Vframe_list);
   FRAME_SET_VISIBLE (f, 0);
 
+  f->menu_bar_vector = Qnil;
+
   free_font_driver_list (f);
   xfree (f->namebuf);
   xfree (f->decode_mode_spec_buffer);
