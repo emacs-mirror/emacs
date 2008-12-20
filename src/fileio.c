@@ -1323,8 +1323,18 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #endif
 		 && (IS_DIRECTORY_SEP (p[3]) || p[3] == 0))
 	  {
+#ifdef WINDOWSNT
+	    unsigned char *prev_o = o;
+#endif
 	    while (o != target && (--o) && !IS_DIRECTORY_SEP (*o))
 	      ;
+#ifdef WINDOWSNT
+	    /* Don't go below server level in UNC filenames.  */
+	    if (o == target + 1 && IS_DIRECTORY_SEP (*o)
+		&& IS_DIRECTORY_SEP (*target))
+	      o = prev_o;
+	    else
+#endif
 	    /* Keep initial / only if this is the whole name.  */
 	    if (o == target && IS_ANY_SEP (*o) && p[3] == 0)
 	      ++o;
