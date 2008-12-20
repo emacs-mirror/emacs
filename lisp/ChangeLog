@@ -1,3 +1,8 @@
+2008-12-20  Ami Fischman  <ami@fischman.org>
+
+	* bindings.el (mode-line-eol-desc): Use assoc to query
+	mode-line-eol-desc-cache.
+
 2008-12-20  Glenn Morris  <rgm@gnu.org>
 
 	* comint.el (comint-save-input-ring-index): Add missing initial value.
