@@ -6654,6 +6654,8 @@ decode_coding (coding)
 	     that the number of data is less than the size of
 	     coding->charbuf.  */
 	  coding->charbuf_used = 0;
+	  coding->chars_at_source = 0;
+
 	  while (nbytes-- > 0)
 	    {
 	      int c = *src++;
