@@ -79,7 +79,7 @@
     (?S "stored")
     (?U "unseen")]
   "An array that provides a mapping between an attribute index,
-it's character representation and it's display representation.")
+its character representation and its display representation.")
 
 (defvar deleted-head)
 (defvar font-lock-fontified)
@@ -1942,16 +1942,6 @@ is non-nil if the user has supplied the password interactively.
 	(setq last-coding-system-used
 	      (coding-system-change-eol-conversion coding 0))))
 
-(defun pmail-add-header (name value)
-  "Add a message header named NAME with value VALUE.
-The current buffer is narrowed to the headers for some
-message (including the blank line separator)."
-  ;; Position point at the end of the headers but before the blank
-  ;; line separating the headers from the body.
-  (goto-char (point-max))
-  (forward-char -1)
-  (insert name ": " value "\n"))
-
 (defun pmail-add-mbox-headers ()
   "Validate the RFC2822 format for the new messages.
 Point should be at the first new message.
@@ -1977,7 +1967,8 @@ new messages.  Return the number of new messages."
 		  (setq count (1+ count))
 		  (narrow-to-region start (point))
 		  (unless (mail-fetch-field pmail-attribute-header)
-		    (pmail-add-header pmail-attribute-header value))
+		    (backward-char 1)
+		    (insert pmail-attribute-header ": " value "\n"))
 		  (widen))
 	      (pmail-error-bad-format))
 	    ;; Move to the next message.
@@ -2114,9 +2105,9 @@ for the current message."
 	  keywords (pmail-get-keywords pmail-current-message))
     (setq blurb
 	  (cond
-	   ((and attr-names keywords) (concat attr-names ", " keywords))
-	   (attr-names attr-names)
-	   (keywords keywords)
+	   ((and attr-names keywords) (concat " " attr-names ", " keywords))
+	   (attr-names (concat " " attr-names))
+	   (keywords (concat " " keywords))
 	   (t "")))
     (setq mode-line-process
 	  (format " %d/%d%s"
@@ -2146,6 +2137,7 @@ with the state (nil represents off and non-nil represents on).
 ATTR is the index of the attribute.  MSGNUM is message number to
 change; nil means current message."
   (set-buffer pmail-buffer)
+  (pmail-swap-buffers-maybe)
   (let ((value (pmail-get-attr-value attr state))
 	(omax (point-max-marker))
 	(omin (point-min-marker))
@@ -2160,11 +2152,15 @@ change; nil means current message."
 	      (goto-char (pmail-msgbeg msgnum))
 	      (save-excursion
 		(setq limit (search-forward "\n\n" nil t)))
-	      (when (search-forward (concat pmail-attribute-header ": ") limit t)
-		(forward-char attr)
-		(when (/= value (char-after))
-		  (delete-char 1)
-		  (insert value)))
+	      (if (search-forward (concat pmail-attribute-header ": ") limit t)
+		  (progn (forward-char attr)
+			 (when (/= value (char-after))
+			   (delete-char 1)
+			   (insert value)))
+		(let ((header-value "-------"))
+		  (aset header-value attr value)
+		  (goto-char (if limit (- limit 1) (point-max)))
+		  (insert pmail-attribute-header ": " header-value "\n")))
 	      (if (= attr pmail-deleted-attr-index)
 		  (pmail-set-message-deleted-p msgnum state)))
 	  ;; Note: we don't use save-restriction because that does not work right
