@@ -13343,9 +13343,9 @@ See the individual commands for more information."
      ["Priority Down" org-shiftdown t])
     ("TAGS and Properties"
      ["Set Tags" org-set-tags-command t]
-     ["Change tag in region" 'org-change-tag-in-region (org-region-active-p)]
+     ["Change tag in region" org-change-tag-in-region (org-region-active-p)]
      "--"
-     ["Set property" 'org-set-property t]
+     ["Set property" org-set-property t]
      ["Column view of properties" org-columns t]
      ["Insert Column View DBlock" org-insert-columns-dblock t])
     ("Dates and Scheduling"

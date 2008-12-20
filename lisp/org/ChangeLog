@@ -1,3 +1,7 @@
+2008-12-20  Glenn Morris  <rgm@gnu.org>
+
+	* org.el (org-org-menu): Fix some more menu entries.
+
 2008-12-18  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-table.el (org-table-get-specials): Revert introduction of @0
