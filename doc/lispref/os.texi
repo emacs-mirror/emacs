@@ -80,7 +80,8 @@ that Emacs initialization is in progress.
 @vindex window-system-initialization-alist
 @item
 It loads the initialization library for the window system specified by
-the variable @code{initial-window-system}.  This library's name is
+the variable @code{initial-window-system} (@pxref{Window Systems,
+initial-window-system}).  This library's name is
 @file{term/@var{windowsystem}-win.el}, where @var{windowsystem} is the
 value of @code{initial-window-system}.  From that library, it calls
 the appropriate initialization function.  The initialization function
