@@ -17,6 +17,7 @@
 	(pmail-display-labels): Add leading space to attribute string.
 	(pmail-set-attribute): Call pmail-swap-buffers-maybe.  Insert
 	header directly instead of calling pmail-add-header.
+	(pmail): Ensure that pmail-mode-hook is run.
 
 2008-12-15  Juanma Barranquero  <lekktu@gmail.com>
 
