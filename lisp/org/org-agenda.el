@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15d
+;; Version: 6.16
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -4945,11 +4945,16 @@ If this information is not given, the function uses the tree at point."
   (mouse-set-point ev)
   (org-agenda-goto))
 
-(defun org-agenda-show ()
-  "Display the Org-mode file which contains the item at point."
-  (interactive)
+(defun org-agenda-show (&optional full-entry)
+  "Display the Org-mode file which contains the item at point.
+With prefix argument FULL-ENTRY, make the entire entry visible
+if it was hidden in the outline."
+  (interactive "P")
   (let ((win (selected-window)))
-    (org-agenda-goto t)
+    (if full-entry
+	(let ((org-show-entry-below t))
+	  (org-agenda-goto t))
+      (org-agenda-goto t))
     (select-window win)))
 
 (defun org-agenda-recenter (arg)
@@ -5079,12 +5084,10 @@ If JUST-THIS is non-nil, change just the current line, not all.
 If FORCE-TAGS is non nil, the car of it returns the new tags."
   (let* ((inhibit-read-only t)
 	 (line (org-current-line))
-	 (thetags
-	  (and hdmarker (markerp hdmarker)
-	       (with-current-buffer (marker-buffer hdmarker)
+	 (thetags (with-current-buffer (marker-buffer hdmarker)
 		    (save-excursion (save-restriction (widen)
 						      (goto-char hdmarker)
-						      (org-get-tags-at))))))
+						      (org-get-tags-at)))))
 	 props m pl undone-face done-face finish new dotime cat tags)
     (save-excursion
       (goto-char (point-max))

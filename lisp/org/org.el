@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15d
+;; Version: 6.16
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -92,7 +92,7 @@
 
 ;;; Version
 
-(defconst org-version "6.15d"
+(defconst org-version "6.16"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)
@@ -1340,10 +1340,11 @@ are matched against file names, and values."
 This is list of cons cells.  Each cell contains:
 - a specification of the files to be considered, either a list of files,
   or a symbol whose function or variable value will be used to retrieve
-  a file name or a list of file names.  Nil means, refile to a different
-  heading in the current buffer.
-- A specification of how to find candidate refile targets.  This may be
-  any of
+  a file name or a list of file names.  If you use `org-agenda-files' for
+  that, all agenda files will be scanned for targets.  Nil means, consider
+  headings in the current buffer.
+- A specification of how to select find candidate refile targets.  This
+  may be any of
   - a cons cell (:tag . \"TAG\") to identify refile targets by a tag.
     This tag has to be present in all target headlines, inheritance will
     not be considered.
@@ -3420,6 +3421,9 @@ The following commands are available:
 	       (if (stringp org-ellipsis) org-ellipsis "..."))))
     (setq buffer-display-table org-display-table))
   (org-set-regexps-and-options)
+  (when (and org-tag-faces (not org-tags-special-faces-re))
+    ;; tag faces set outside customize.... force initialization.
+    (org-set-tag-faces 'org-tag-faces org-tag-faces))
   ;; Calc embedded
   (org-set-local 'calc-embedded-open-mode "# ")
   (modify-syntax-entry ?# "<")
@@ -5434,7 +5438,8 @@ Optional argument WITH-CASE means sort case-sensitively."
 
 (defvar org-priority-regexp) ; defined later in the file
 
-(defun org-sort-entries-or-items (&optional with-case sorting-type getkey-func property)
+(defun org-sort-entries-or-items
+  (&optional with-case sorting-type getkey-func compare-func property)
   "Sort entries on a certain level of an outline tree.
 If there is an active region, the entries in the region are sorted.
 Else, if the cursor is before the first entry, sort the top-level items.
@@ -5614,6 +5619,7 @@ WITH-CASE, the sorting considers case as well."
          (cond
           ((= dcst ?a) 'string<)
           ((= dcst ?t) 'time-less-p)
+          ((= dcst ?f) compare-func)
           (t nil)))))
     (message "Sorting entries...done")))
 
@@ -6267,7 +6273,9 @@ For file links, arg negates `org-context-in-file-links'."
 			(error nil)))))
 	;; We can make a link using the ID.
 	(setq link (condition-case nil
-		       (org-id-store-link)
+		       (prog1 (org-id-store-link)
+			 (setq desc (plist-get org-store-link-plist
+					       :description)))
 		     (error
 		      ;; probably before first headline, link to file only
 		      (concat "file:"
@@ -7501,6 +7509,7 @@ on the system \"/user@host:\"."
 	  (save-excursion
 	    (set-buffer (if (bufferp f) f (org-get-agenda-file-buffer f)))
 	    (if (bufferp f) (setq f (buffer-file-name (buffer-base-buffer f))))
+	    (setq f (expand-file-name f))
 	    (save-excursion
 	      (save-restriction
 		(widen)
@@ -7664,7 +7673,8 @@ operation has put the subtree."
 		    'org-olpath-completing-read
 		  'org-ido-completing-read))
 	 (extra (if org-refile-use-outline-path "/" ""))
-	 (filename (buffer-file-name (buffer-base-buffer cbuf)))
+	 (filename (expand-file-name
+		    (buffer-file-name (buffer-base-buffer cbuf))))
 	 (tbl (mapcar
 	       (lambda (x)
 		 (if (not (equal filename (nth 1 x)))
@@ -9205,7 +9215,7 @@ only lines with a TODO keyword are included in the output."
 			  (if org-tags-match-list-sublevels
 			      (make-string (1- level) ?.) "")
 			  (org-get-heading))
-			 category tags-list)
+			 category (org-get-tags-at))
 		    priority (org-get-priority txt))
 	      (goto-char lspos)
 	      (setq marker (org-agenda-new-marker))
@@ -11862,6 +11872,20 @@ Due to some yet unresolved reason, the global function
 	  (iswitchb-read-buffer
 	   "Switch-to: " nil t))
 	 (or enabled (iswitchb-mode -1))))))
+
+;;;###autoload
+(defun org-ido-switchb (&optional arg)
+  "Use `org-ido-completing-read' to prompt for an Org buffer to switch to.
+With a prefix argument, restrict available to files.
+With two prefix arguments, restrict available buffers to agenda files."
+  (interactive "P")
+  (let ((blist (cond ((equal arg '(4))  (org-buffer-list 'files))
+                     ((equal arg '(16)) (org-buffer-list 'agenda))
+                     (t                 (org-buffer-list)))))
+    (switch-to-buffer
+     (org-ido-completing-read "Org buffer: "
+                              (mapcar 'buffer-name blist)
+                              nil t))))
 
 (defun org-buffer-list (&optional predicate exclude-tmp)
   "Return a list of Org buffers.

@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
-;; Version: 6.15d
+;; Version: 6.16
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org, wp, tex
@@ -1207,7 +1207,7 @@ If TIMESTAMPS, convert timestamps, otherwise delete them."
 			(expand-file-name raw-path))
 		(if floatp
 		    (format "\\caption{%s%s}\n"
-			    (if label (concat "\\label{" label "}"))
+			    (if label (concat "\\label{" label "}") "")
 			    (or caption "")))
 		(if floatp "\\end{figure}\n"))))
 	     (radiop (insert (format "\\hyperref[%s]{%s}"

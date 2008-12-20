@@ -5,7 +5,7 @@
 ;; Author: Andy Stewart <lazycat dot manatee at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15d
+;; Version: 6.16
 ;;
 ;; This file is part of GNU Emacs.
 ;;

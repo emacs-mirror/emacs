@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15d
+;; Version: 6.16
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1060,7 +1060,8 @@ However, when FORCE is non-nil, create new columns if necessary."
     (goto-line linepos)
     (org-table-goto-column colpos)
     (org-table-align)
-    (org-table-fix-formulas "$" nil (1- col) 1)))
+    (org-table-fix-formulas "$" nil (1- col) 1)
+    (org-table-fix-formulas "$LR" nil (1- col) 1)))
 
 (defun org-table-find-dataline ()
   "Find a dataline in the current table, which is needed for column commands."
@@ -1107,6 +1108,8 @@ However, when FORCE is non-nil, create new columns if necessary."
     (org-table-goto-column colpos)
     (org-table-align)
     (org-table-fix-formulas "$" (list (cons (number-to-string col) "INVALID"))
+			    col -1 col)
+    (org-table-fix-formulas "$LR" (list (cons (number-to-string col) "INVALID"))
 			    col -1 col)))
 
 (defun org-table-move-column-right ()
@@ -1150,7 +1153,10 @@ However, when FORCE is non-nil, create new columns if necessary."
     (org-table-align)
     (org-table-fix-formulas
      "$" (list (cons (number-to-string col) (number-to-string colpos))
-	       (cons (number-to-string colpos) (number-to-string col))))))
+	       (cons (number-to-string colpos) (number-to-string col))))
+    (org-table-fix-formulas
+     "$LR" (list (cons (number-to-string col) (number-to-string colpos))
+		 (cons (number-to-string colpos) (number-to-string col))))))
 
 (defun org-table-move-row-down ()
   "Move table row down."
@@ -1717,7 +1723,9 @@ When NAMED is non-nil, look for a named equation."
 		      (org-table-current-column)))
 	 (refass (assoc ref stored-list))
 	 (scol (if named
-		   (if name name ref)
+		   (if (and name (not (string-match "^LR[0-9]+$" name)))
+		       name
+		     ref)
 		 (int-to-string (org-table-current-column))))
 	 (dummy (and (or name refass) (not named)
 		     (not (y-or-n-p "Replace field formula with column formula? " ))
@@ -1826,8 +1834,9 @@ For all numbers larger than LIMIT, shift them by DELTA."
       (let ((re (concat key "\\([0-9]+\\)"))
 	    (re2
 	     (when remove
-	       (if (equal key "$")
-		   (format "\\(@[0-9]+\\)?\\$%d=.*?\\(::\\|$\\)" remove)
+	       (if (or (equal key "$") (equal key "$LR"))
+		   (format "\\(@[0-9]+\\)?%s%d=.*?\\(::\\|$\\)"
+			   (regexp-quote key) remove)
 		 (format "@%d\\$[0-9]+=.*?\\(::\\|$\\)" remove))))
 	    s n a)
 	(when remove
@@ -1846,7 +1855,7 @@ For all numbers larger than LIMIT, shift them by DELTA."
   (save-excursion
     (let ((beg (org-table-begin)) (end (org-table-end))
 	  names name fields fields1 field cnt
-	  c v l line col types dlines hlines)
+	  c v l line col types dlines hlines last-dline)
       (setq org-table-column-names nil
 	    org-table-local-parameters nil
 	    org-table-named-field-locations nil
@@ -1897,8 +1906,24 @@ For all numbers larger than LIMIT, shift them by DELTA."
 	(beginning-of-line 2)
 	(setq l (1+ l)))
       (setq org-table-current-line-types (apply 'vector (nreverse types))
+	    last-dline (car dlines)
 	    org-table-dlines (apply 'vector (cons nil (nreverse dlines)))
-	    org-table-hlines (apply 'vector (cons nil (nreverse hlines)))))))
+	    org-table-hlines (apply 'vector (cons nil (nreverse hlines))))
+      (goto-line last-dline)
+      (let* ((l last-dline)
+	     (fields (org-split-string
+		      (buffer-substring (point-at-bol) (point-at-eol))
+		      "|"))
+	     (nfields (length fields))
+	     al al2)
+	(loop for i from 1 to nfields do
+	      (push (list (format "LR%d" i) l i) al)
+	      (push (cons (format "LR%d" i) (nth (1- i) fields)) al2))
+	(setq org-table-named-field-locations
+	      (append org-table-named-field-locations al))
+	(setq org-table-local-parameters
+	      (append org-table-local-parameters al2))))))
+
 
 (defun org-table-maybe-eval-formula ()
   "Check if the current field starts with \"=\" or \":=\".

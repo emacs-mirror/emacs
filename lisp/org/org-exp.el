@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.15d
+;; Version: 6.16
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -2260,9 +2260,9 @@ backends, it converts the segment into an EXAMPLE segment."
 		   (point-min) (point-max)))))
 	  (if (string-match "<pre\\([^>]*\\)>\n?" htmltext)
 	      (setq htmltext (replace-match
-			      (format "<pre class=\"src src-%s\">" lang)
+			      (format "<pre class=\"src src-%s\">\n" lang)
 			      t t htmltext)))
-	  (concat "#+BEGIN_HTML\n" htmltext "\n#+END_HTML\n"))))
+	  (concat "\n#+BEGIN_HTML\n" htmltext "\n#+END_HTML\n\n"))))
      (t
       ;; This is not HTML, so just make it an example.
       (when (equal lang "org")
@@ -3716,7 +3716,7 @@ lang=\"%s\" xml:lang=\"%s\">
 	   (attr (org-find-text-property-in-string 'org-attributes src))
 	   (label (org-find-text-property-in-string 'org-label src)))
       (format "<div %sclass=\"figure\">
-<p><img src=\"%s\"%s></p>%s
+<p><img src=\"%s\"%s /></p>%s
 </div>"
 	      (if label (format "id=\"%s\" " label) "")
 	      src
