@@ -516,7 +516,10 @@ uniscribe_encode_char (font, c)
 
           if (SUCCEEDED (result) && nglyphs == 1)
             {
-              code = glyphs[0];
+	      /* Some fonts return .notdef glyphs instead of failing.
+	         (Truetype spec reserves glyph code 0 for .notdef)  */
+	      if (glyphs[0])
+		code = glyphs[0];
             }
           else if (SUCCEEDED (result) || result == E_OUTOFMEMORY)
             {
@@ -526,11 +529,8 @@ uniscribe_encode_char (font, c)
                  later.  */
               result = ScriptGetCMap (context, &(uniscribe_font->cache),
                                       ch, len, 0, glyphs);
-              if (SUCCEEDED (result))
+              if (SUCCEEDED (result) && glyphs[0])
                 code = glyphs[0];
-              else
-                code = 0; /* notdef - enough in some cases to get the script
-                             engine working, but not others... */
             }
 	}
     }
