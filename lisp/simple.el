@@ -3587,6 +3587,11 @@ after C-u \\[set-mark-command]."
   :type 'boolean
   :group 'editing-basics)
 
+(defcustom set-mark-default-inactive nil
+  "If non-nil, setting the mark does not activate it.
+This causes \\[set-mark-command] and \\[exchange-point-and-mark] to
+behave the same whether or not `transient-mark-mode' is enabled.")
+
 (defun set-mark-command (arg)
   "Set the mark where point is, or jump to the mark.
 Setting the mark also alters the region, which is the text
@@ -3648,7 +3653,8 @@ purposes.  See the documentation of `set-mark' for more information."
       (activate-mark)
       (message "Mark activated")))
    (t
-    (push-mark-command nil))))
+    (push-mark-command nil)
+    (if set-mark-default-inactive (deactivate-mark)))))
 
 (defun push-mark (&optional location nomsg activate)
   "Set mark at LOCATION (point, by default) and push old mark on mark ring.
@@ -3711,6 +3717,7 @@ mode temporarily."
     (deactivate-mark)
     (set-mark (point))
     (goto-char omark)
+    (if set-mark-default-inactive (deactivate-mark))
     (cond (temp-highlight
 	   (setq transient-mark-mode (cons 'only transient-mark-mode)))
 	  ((or (and arg (region-active-p)) ; (xor arg (not (region-active-p)))
@@ -5787,8 +5794,8 @@ Called from `temp-buffer-show-hook'."
         (set (make-local-variable 'completion-base-size) base-size))
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
       (unless completion-base-size
-        ;; This may be needed for old completion packages which don't use
-        ;; completion-all-completions-with-base-size yet.
+        ;; This shouldn't be needed any more, but further analysis is needed
+        ;; to make sure it's the case.
         (setq completion-base-size
               (cond
                (minibuffer-completing-file-name

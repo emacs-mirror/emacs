@@ -1,3 +1,16 @@
+2008-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-all-completions-with-base-size): Remove.
+	(completion-all-completions): Don't set it.
+	(completion-table-with-context, completion--file-name-table):
+	Don't add base-size in last cdr.
+	(completion-hilit-commonality): Add argument `base-size'.
+	(display-completion-list, completion-emacs21-all-completions)
+	(completion-emacs22-all-completions, completion-basic-all-completions):
+	Provide it.
+	(completion-pcm--all-completions): Don't need to remove the base-size
+	in last-cdr any more.
+
 2008-12-20  Agustin Martin <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-check-minver): New function.
@@ -11,8 +24,8 @@
 
 2008-12-20  Jason Rumney  <jasonr@gnu.org>
 
-	* international/mule.el (auto-coding-regexp-alist): Use
-	utf-8-with-signature for files starting with UTF-8 BOM.
+	* international/mule.el (auto-coding-regexp-alist):
+	Use utf-8-with-signature for files starting with UTF-8 BOM.
 
 2008-12-20  Ami Fischman  <ami@fischman.org>
 
