@@ -1,3 +1,8 @@
+2008-12-21  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-export-latex.el (org-export-latex-make-header): Double the
+	commenting % in the time stamp format.
+
 2008-12-20  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-get-refile-targets, org-refile-get-location): Use

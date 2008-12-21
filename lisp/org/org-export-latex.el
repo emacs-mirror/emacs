@@ -689,7 +689,7 @@ OPT-PLIST is the options plist for current buffer."
 	(author (plist-get opt-plist :author)))
     (concat
      (if (plist-get opt-plist :time-stamp-file)
-	 (format-time-string "% Created %Y-%m-%d %a %H:%M\n"))
+	 (format-time-string "%% Created %Y-%m-%d %a %H:%M\n"))
      ;; insert LaTeX custom header
      org-export-latex-header
      "\n"
