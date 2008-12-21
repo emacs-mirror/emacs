@@ -913,7 +913,8 @@ See the `org-export-latex.el' code for a complete conversion table."
 		       (replace-match (or (save-match-data
 					    (org-export-latex-treat-backslash-char
 					     (match-string 1)
-					     (match-string 3))) "") t t))
+					     (or (match-string 3) "")))
+					  "") t t))
 		      ((member (match-string 2) '("_" "^"))
 		       (replace-match (or (save-match-data
 					    (org-export-latex-treat-sub-super-char

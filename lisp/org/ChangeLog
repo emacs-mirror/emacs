@@ -2,6 +2,8 @@
 
 	* org-export-latex.el (org-export-latex-make-header): Double the
 	commenting % in the time stamp format.
+	(org-export-latex-special-chars): Handle case where there is no
+	match group 3.
 
 2008-12-20  Carsten Dominik  <carsten.dominik@gmail.com>
 
