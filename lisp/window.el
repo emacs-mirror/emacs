@@ -1210,7 +1210,7 @@ The selected window remains selected.  Return the new window."
 
 
 (defun set-window-text-height (window height)
-  "Sets the height in lines of the text display area of WINDOW to HEIGHT.
+  "Set the height in lines of the text display area of WINDOW to HEIGHT.
 HEIGHT doesn't include the mode line or header line, if any, or
 any partial-height lines in the text display area.
 
