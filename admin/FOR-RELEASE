@@ -38,6 +38,27 @@ be part of Gnus.  They should be moved to some other part of Emacs.
 rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
 minimized.  I don't know what is left to do here.
 
+** Check for modes which bind M-s that conflicts with a new global binding M-s
+and change key bindings where necessary.  The current list of modes:
+
+1. Gnus binds `M-s' to `gnus-summary-search-article-forward'.
+
+2. Minibuffer binds `M-s' to `next-matching-history-element'
+   (not useful any more since C-s can now search in the history).
+
+3. Shell mode binds `M-s' to `comint-next-matching-input'.
+   This key binding can be changed later when we will implement
+   incremental search through the shell history.
+
+4. `center-line' in Text mode was already moved to the text formatting
+   keymap as `M-o M-s' (thus this binding is not necessary any more
+   in `nroff-mode-map' too and can be removed now from the nroff mode
+   because it can now use the global key binding `M-o M-s' `center-line').
+
+5. PCL-CVS binds `M-s' to `cvs-status', and log-edit-mode binds it to
+   `log-edit-comment-search-forward'.  Perhaps search commands
+   on the global key binding `M-s' are useless in these modes.
+
 ** sdl.web@gmail.com, 30 Oct: ps-lpr-switches has no effect
 http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg02091.html
 
