@@ -206,7 +206,7 @@ Messages are allocated in the control pool using ControlAlloc.</p>
 <p><b>Final clearup</b> is performed at ArenaDestroy, as follows:</p>
 <dl>
 	<dt>Unused and unsent pre-allocated messages (one per trace id):</dt>
-	<dd>Freed with TRACE_SET_ITER calling TraceIdMessagesDestroy which calls ControlFree on anything left in <code>tsMessage[ti]</code> and <code>tMessage[ti]</code>.</dd>
+	<dd>Freed with TRACE_SET_ITER calling TraceIdMessagesDestroy which calls the message Delete functions (and thereby ControlFree) on anything left in <code>tsMessage[ti]</code> and <code>tMessage[ti]</code>.</dd>
 
 	<dt>Ungot messages:</dt>
 	<dd>Freed by emptying the arena message queue with MessageEmpty.</dd>

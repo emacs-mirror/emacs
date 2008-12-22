@@ -120,16 +120,22 @@
 
 <p>MessagePost() simply links the struct into the message queue (using a RingStruct inside the MessageStruct): no copying occurs.  The message is now <strong>queued</strong>, and MessageOnQueue() returns true.  The Originator must not free a queued message.</p>
 
-<p>When the client calls mps_message_get(), the Message-system simply unlinks the message from the queue.  The message is now <strong>received</strong>, and is in use by the client.  The Originator must not free or change a received message, because the Client would get a reference to freed memory, or would see inconsistent data.</p>
+<p>When the client calls mps_message_get(), the Message-system simply unlinks the message from the queue.  The message is now <strong>received</strong>, and is in use by the client.  The Originator must not free or change a received message, because the Client would then have a reference to freed memory, or would see inconsistent data.</p>
 
 <p>When the Client calls mps_message_discard(), the Message-system calls through to the Originator-supplied Delete method.  The Originator calls Finish and free.</p>
 
 <h3>Abnormal lifecycles</h3>
 
-<p>If the Client has not enabled messages of this type (with mps_message_type_enable), Posting the message immediately Discards it, which calls the Delete method.  Therefore the Originator's Delete method must be safe to call from wherever the Originator calls MessagePost():</p>
+<p>If the Client has not enabled messages of this type (with mps_message_type_enable), Posting the message immediately Discards it, which calls the Delete method:</p>
 
 <blockquote><p> (alloc Init)  <strong>unsent</strong>  (Post Discard Delete Finish free) -- client did not enable this message type</p></blockquote>
 
+<p>Therefore whenever an Originator calls MessagePost(), beware:</p>
+<ul>
+	<li>it must be safe to call the Originator's Delete method;</li>
+	<li>the delete may deallocate and unmap the message, so the Originator must not use its reference to the message any more.</li>
+</ul>
+	
 <p>If the client has enabled but never gets the message, it remains on the message queue until ArenaDestroy.  Theoretically these messages could accumulate forever until they exhaust memory.  This is intentional: the client should not enable a message type and then never get it!</p>
 
 <blockquote><p> (alloc Init)  <strong>unsent</strong>  (Post)  <strong>queued</strong>  (ArenaDestroy Discard Delete Finish free)  -- client never gets message</p></blockquote>
