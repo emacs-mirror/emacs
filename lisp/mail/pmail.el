@@ -1000,6 +1000,7 @@ The buffer is expected to be narrowed to just the header of the message."
 ;; I find I can't live without the default M-r command -- rms.
 ;;  (define-key pmail-mode-map "\er"  'pmail-search-backwards)
   (define-key pmail-mode-map "s"      'pmail-expunge-and-save)
+  (define-key pmail-mode-map "\C-x\C-s" 'pmail-save)
   (define-key pmail-mode-map "\es"    'pmail-search)
   (define-key pmail-mode-map "t"      'pmail-toggle-header)
   (define-key pmail-mode-map "u"      'pmail-undelete-previous-message)
@@ -1413,6 +1414,16 @@ Create the buffer if necessary."
   (interactive)
   (set-buffer pmail-buffer)
   (pmail-expunge t)
+  (pmail-swap-buffers-maybe)
+  (save-buffer)
+  (if (pmail-summary-exists)
+      (pmail-select-summary (set-buffer-modified-p nil))
+    (pmail-show-message)))
+
+(defun pmail-save ()
+  "Save the PMAIL file."
+  (interactive)
+  (set-buffer pmail-buffer)
   (pmail-swap-buffers-maybe)
   (save-buffer)
   (if (pmail-summary-exists)
