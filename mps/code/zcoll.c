@@ -120,7 +120,6 @@ static void get(mps_arena_t arena)
  */
 static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
 {
-  unsigned i;
   const char *scriptAll = script;
   int itemsread;
   int bytesread;
@@ -132,7 +131,7 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         unsigned objCount = 0;
         unsigned makeTotal = 0;
         unsigned wastefulness = 0;
-        itemsread = sscanf(script, "M(objs %u, wastefulness %u)%n",
+        itemsread = sscanf(script, "Make(objs %u, wastefulness %u)%n",
                            &makeTotal, &wastefulness, &bytesread);
         if(itemsread != 2) {
           printf("bad script command %s (full script %s).\n",
@@ -280,7 +279,7 @@ int main(int argc, char **argv)
   randomize(argc, argv);
 
   /* The most basic scripts */
-  testscriptA("M(objs 1500, wastefulness 50)");
+  testscriptA("Make(objs 1500, wastefulness 50)");
 
 
   fflush(stdout); /* synchronize */
