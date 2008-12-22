@@ -466,7 +466,7 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	(or from-gnus
 	    (save-excursion
 	      (save-restriction
-		(goto-char (if pmail-buffers-swapped-p
+		(goto-char (if (pmail-buffers-swapped-p)
 			       (point-min)
 			     (pmail-msgbeg pmail-current-message)))
 		(setq header-beginning (point))
