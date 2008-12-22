@@ -2126,6 +2126,7 @@ been set up by `rfn-eshadow-setup-minibuffer'."
 	   (1+ (or (string-match "/" (buffer-string) end) end)) (point-max))
 	  (let ((rfn-eshadow-overlay tramp-rfn-eshadow-overlay)
 		(rfn-eshadow-update-overlay-hook nil))
+	    (move-overlay rfn-eshadow-overlay (point-max) (point-max))
 	    (funcall (symbol-function 'rfn-eshadow-update-overlay))))))))
 
 (when (boundp 'rfn-eshadow-update-overlay-hook)
@@ -6654,7 +6655,9 @@ Return ATTR."
     (setcar (nthcdr 7 attr) (round (nth 7 attr))))
   ;; Convert file mode bits to string.
   (unless (stringp (nth 8 attr))
-    (setcar (nthcdr 8 attr) (tramp-file-mode-from-int (nth 8 attr))))
+    (setcar (nthcdr 8 attr) (tramp-file-mode-from-int (nth 8 attr)))
+    (when (stringp (car attr))
+      (aset (nth 8 attr) 0 ?l)))
   ;; Convert directory indication bit.
   (when (string-match "^d" (nth 8 attr))
     (setcar attr t))
@@ -6792,6 +6795,23 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
 (defun tramp-file-name-localname (vec)
   "Return localname component of VEC."
   (and (tramp-file-name-p vec) (aref vec 3)))
+
+;; The user part of a Tramp file name vector can be of kind
+;; "user%domain#port".  Sometimes, we must extract these parts.
+(defun tramp-file-name-real-user (vec)
+  "Return the user name of VEC without domain."
+  (let ((user (tramp-file-name-user vec)))
+    (if (and (stringp user)
+	     (string-match "\\(.+\\)%\\(.+\\)" user))
+	(match-string 1 user)
+      user)))
+
+(defun tramp-file-name-domain (vec)
+  "Return the domain name of VEC."
+  (let ((user (tramp-file-name-user vec)))
+    (and (stringp user)
+	 (string-match "\\(.+\\)%\\(.+\\)" user)
+	 (match-string 2 user))))
 
 ;; The host part of a Tramp file name vector can be of kind
 ;; "host#port".  Sometimes, we must extract these parts.
@@ -7470,8 +7490,8 @@ Only works for Bourne-like shells."
       (unload-feature 'tramp 'force)
     (error nil)))
 
-(when (and load-in-progress (string-match "Loading tramp..."
-					  (or (current-message) "")))
+(when (and load-in-progress
+	   (string-match "Loading tramp..." (or (current-message) "")))
   (message "Loading tramp...done"))
 
 (provide 'tramp)
@@ -7576,6 +7596,8 @@ Only works for Bourne-like shells."
 ;; * Add gvfs support.
 ;; * Set `tramp-copy-size-limit' to 0, when there is no remote
 ;;   encoding routine.
+;; * It makes me wonder if tramp couldn't fall back to ssh when scp
+;;   isn't on the remote host. (Mark A. Hershberger)
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
