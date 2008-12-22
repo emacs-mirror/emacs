@@ -5248,7 +5248,7 @@ Value is t if tooltip was open, nil otherwise.  */)
 
   if (FRAMEP (frame))
     {
-      Fdelete_frame (frame, Qnil);
+      delete_frame (frame, Qnil);
       deleted = Qt;
 
 #ifdef USE_LUCID

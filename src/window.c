@@ -2273,7 +2273,7 @@ window_loop (type, obj, mini, frames)
 		      windows = XCDR (windows);
 
 		    /* Now we can safely delete the frame.  */
-		    Fdelete_frame (w->frame, Qnil);
+		    delete_frame (w->frame, Qnil);
 		  }
 		else if (NILP (w->parent))
 		  {
@@ -2334,7 +2334,7 @@ window_loop (type, obj, mini, frames)
 		      windows = XCDR (windows);
 
 		    /* Now we can safely delete the frame.  */
-		    Fdelete_frame (w->frame, Qnil);
+		    delete_frame (w->frame, Qnil);
 		  }
 		else if (!NILP (w->dedicated) && !NILP (w->parent))
 		  {
@@ -6909,7 +6909,7 @@ foreach_window (f, fn, user_data)
      int (* fn) P_ ((struct window *, void *));
      void *user_data;
 {
-  /* Fdelete_frame may set FRAME_ROOT_WINDOW (f) to Qnil.  */
+  /* delete_frame may set FRAME_ROOT_WINDOW (f) to Qnil.  */
   if (WINDOWP (FRAME_ROOT_WINDOW (f)))
     foreach_window_1 (XWINDOW (FRAME_ROOT_WINDOW (f)), fn, user_data);
 }

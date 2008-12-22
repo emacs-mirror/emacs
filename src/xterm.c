@@ -4017,7 +4017,7 @@ x_window_to_scroll_bar (display, window_id)
 
       if (! FRAME_X_P (XFRAME (frame)))
         continue;
-      
+
       /* Scan this frame's scroll bar list for a scroll bar with the
          right window ID.  */
       condemned = FRAME_CONDEMNED_SCROLL_BARS (XFRAME (frame));
@@ -6467,7 +6467,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
  	      inev.ie.code = XFASTINT (c);
  	      goto done_keysym;
  	    }
- 
+
  	  /* Random non-modifier sorts of keysyms.  */
  	  if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
                         || keysym == XK_Delete
@@ -7172,7 +7172,7 @@ XTread_socket (terminal, expected, hold_quit)
       XTread_socket_fake_io_error = 0;
       x_io_error_quitter (terminal->display_info.x->display);
     }
-  
+
 #if 0 /* This loop is a noop now.  */
   /* Find the display we are supposed to read input for.
      It's the one communicating on descriptor SD.  */
@@ -7871,7 +7871,7 @@ x_connection_closed (dpy, error_message)
       dpyinfo->reference_count++;
       dpyinfo->terminal->reference_count++;
     }
-  
+
   /* First delete frames whose mini-buffers are on frames
      that are on the dead display.  */
   FOR_EACH_FRAME (tail, frame)
@@ -7883,7 +7883,7 @@ x_connection_closed (dpy, error_message)
 	  && FRAME_X_P (XFRAME (minibuf_frame))
 	  && ! EQ (frame, minibuf_frame)
 	  && FRAME_X_DISPLAY_INFO (XFRAME (minibuf_frame)) == dpyinfo)
-	Fdelete_frame (frame, Qnoelisp);
+	delete_frame (frame, Qnoelisp);
     }
 
   /* Now delete all remaining frames on the dead display.
@@ -7893,10 +7893,10 @@ x_connection_closed (dpy, error_message)
     if (FRAME_X_P (XFRAME (frame))
 	&& FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
       {
-	/* Set this to t so that Fdelete_frame won't get confused
+	/* Set this to t so that delete_frame won't get confused
 	   trying to find a replacement.  */
 	FRAME_KBOARD (XFRAME (frame))->Vdefault_minibuffer_frame = Qt;
-	Fdelete_frame (frame, Qnoelisp);
+	delete_frame (frame, Qnoelisp);
       }
 
   /* We have to close the display to inform Xt that it doesn't
@@ -10170,7 +10170,7 @@ x_term_init (display_name, xrm_option, resource_name)
   terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
   strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
   terminal->name[SBYTES (display_name)] = 0;
-  
+
 #if 0
   XSetAfterFunction (x_current_display, x_trace_wire);
 #endif /* ! 0 */
@@ -10622,7 +10622,7 @@ x_delete_terminal (struct terminal *terminal)
   struct x_display_info *dpyinfo = terminal->display_info.x;
   int i;
 
-  /* Protect against recursive calls.  Fdelete_frame in
+  /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
   if (!terminal->name)
     return;
@@ -10664,7 +10664,7 @@ static struct terminal *
 x_create_terminal (struct x_display_info *dpyinfo)
 {
   struct terminal *terminal;
-  
+
   terminal = create_terminal ();
 
   terminal->type = output_x_window;
@@ -10672,7 +10672,7 @@ x_create_terminal (struct x_display_info *dpyinfo)
   dpyinfo->terminal = terminal;
 
   /* kboard is initialized in x_term_init. */
-  
+
   terminal->clear_frame_hook = x_clear_frame;
   terminal->ins_del_lines_hook = x_ins_del_lines;
   terminal->delete_glyphs_hook = x_delete_glyphs;
@@ -10695,7 +10695,7 @@ x_create_terminal (struct x_display_info *dpyinfo)
 
   terminal->delete_frame_hook = x_destroy_window;
   terminal->delete_terminal_hook = x_delete_terminal;
-  
+
   terminal->rif = &x_redisplay_interface;
   terminal->scroll_region_ok = 1;    /* We'll scroll partial frames. */
   terminal->char_ins_del_ok = 1;

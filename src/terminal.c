@@ -256,7 +256,7 @@ delete_terminal (struct terminal *terminal)
   struct terminal **tp;
   Lisp_Object tail, frame;
 
-  /* Protect against recursive calls.  Fdelete_frame calls the
+  /* Protect against recursive calls.  delete_frame calls the
      delete_terminal_hook when we delete our last frame.  */
   if (!terminal->name)
     return;
@@ -269,8 +269,8 @@ delete_terminal (struct terminal *terminal)
       struct frame *f = XFRAME (frame);
       if (FRAME_LIVE_P (f) && f->terminal == terminal)
         {
-	  /* Maybe this should pass Qnoelisp rather than Qt?  */
-          Fdelete_frame (frame, Qt);
+	  /* Pass Qnoelisp rather than Qt.  */
+          delete_frame (frame, Qnoelisp);
         }
     }
 
@@ -283,7 +283,7 @@ delete_terminal (struct terminal *terminal)
   terminal->keyboard_coding = NULL;
   xfree (terminal->terminal_coding);
   terminal->terminal_coding = NULL;
-  
+
   if (terminal->kboard && --terminal->kboard->reference_count == 0)
     {
       delete_kboard (terminal->kboard);
@@ -315,7 +315,7 @@ but if the second argument FORCE is non-nil, you may do so. */)
       struct terminal *p = terminal_list;
       while (p && (p == t || !TERMINAL_ACTIVE_P (p)))
 	p = p->next_terminal;
-      
+
       if (!p)
 	error ("Attempt to delete the sole active display terminal");
     }
@@ -376,7 +376,7 @@ possible return values.  */)
      Lisp_Object object;
 {
   struct terminal *t;
-  
+
   t = get_terminal (object, 0);
 
   if (!t)

@@ -1,3 +1,18 @@
+2008-12-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (delete_frame): New function derived from
+	Fdelete_frame to handle Qnoelisp value for FORCE argument.
+	Delete last frame iff FORCE equals Qnoelisp.  (Bug#1450)
+	(Fdelete_frame): Call delete_frame.  Remove line from doc-string
+	saying that FORCE non-nil doesn't run `delete-frame-functions'.
+	* frame.h: Extern delete_frame.
+	* window.c (window_loop):
+	* terminal.c (delete_terminal):
+	* xterm.c (x_connection_closed):
+	* xfns.c (Fx_hide_tip):
+	* w32fns.c (Fx_hide_tip): Call delete_frame instead of
+	Fdelete_frame.
+
 2008-12-21  Jason Rumney  <jasonr@gnu.org>
 
 	* w32uniscribe.c (uniscribe_encode_char): Return FONT_INVALID_CHAR

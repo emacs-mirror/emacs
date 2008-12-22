@@ -1322,20 +1322,13 @@ delete_frame_handler (Lisp_Object arg)
 
 extern Lisp_Object Qrun_hook_with_args;
 
-DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
-       doc: /* Delete FRAME, permanently eliminating it from use.
-If omitted, FRAME defaults to the selected frame.
-A frame may not be deleted if its minibuffer is used by other frames.
-Normally, you may not delete a frame if all other frames are invisible,
-but if the second optional argument FORCE is non-nil, you may do so.
-
-This function runs `delete-frame-functions' before actually deleting the
-frame, unless the frame is a tooltip.
-The functions are run with one arg, the frame to be deleted.
-But FORCE inhibits this too.  */)
-/* FORCE is non-nil when handling a disconnected terminal.  */
-     (frame, force)
-     Lisp_Object frame, force;
+/* Delete FRAME.  When FORCE equals Qnoelisp, delete FRAME
+  unconditionally.  x_connection_closed and delete_terminal use
+  this.  Any other value of FORCE implements the semantics
+  described for Fdelete_frame.  */
+Lisp_Object
+delete_frame (frame, force)
+     register Lisp_Object frame, force;
 {
   struct frame *f;
   struct frame *sf = SELECTED_FRAME ();
@@ -1360,12 +1353,10 @@ But FORCE inhibits this too.  */)
   if (NILP (force) && !other_visible_frames (f))
     error ("Attempt to delete the sole visible or iconified frame");
 
-#if 0
-  /* This is a nice idea, but x_connection_closed needs to be able
+  /* x_connection_closed must have set FORCE to `noelisp' in order
      to delete the last frame, if it is gone.  */
-  if (NILP (XCDR (Vframe_list)))
+  if (NILP (XCDR (Vframe_list)) && !EQ (force, Qnoelisp))
     error ("Attempt to delete the only frame");
-#endif
 
   /* Does this frame have a minibuffer, and is it the surrogate
      minibuffer for any other frame?  */
@@ -1385,19 +1376,20 @@ But FORCE inhibits this too.  */)
 		     WINDOW_FRAME (XWINDOW
 				   (FRAME_MINIBUF_WINDOW (XFRAME (this))))))
 	    {
-	      /* If we MUST delete this frame, delete the other first.  */
-	      if (!NILP (force))
-		Fdelete_frame (this, force);
+	      /* If we MUST delete this frame, delete the other first.
+		 But do this only if FORCE equals `noelisp'.  */
+	      if (EQ (force, Qnoelisp))
+		delete_frame (this, Qnoelisp);
 	      else
 		error ("Attempt to delete a surrogate minibuffer frame");
 	    }
 	}
     }
 
-  /* Run `delete-frame-functions'
-     unless FORCE is `noelisp' or frame is a tooltip.
-     FORCE is set to `noelisp' when handling a disconnect from the terminal,
-     so we don't dare call Lisp code.  */
+  /* Run `delete-frame-functions' unless FORCE is `noelisp' or
+     frame is a tooltip.  FORCE is set to `noelisp' when handling
+     a disconnect from the terminal, so we don't dare call Lisp
+     code.  */
   if (NILP (Vrun_hooks) || !NILP (Fframe_parameter (frame, intern ("tooltip"))))
     ;
   if (EQ (force, Qnoelisp))
@@ -1641,6 +1633,24 @@ But FORCE inhibits this too.  */)
 
   return Qnil;
 }
+
+DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
+       doc: /* Delete FRAME, permanently eliminating it from use.
+FRAME defaults to the selected frame.
+
+A frame may not be deleted if its minibuffer is used by other frames.
+Normally, you may not delete a frame if all other frames are invisible,
+but if the second optional argument FORCE is non-nil, you may do so.
+
+This function runs `delete-frame-functions' before actually
+deleting the frame, unless the frame is a tooltip.
+The functions are run with one argument, the frame to be deleted.  */)
+     (frame, force)
+     Lisp_Object frame, force;
+{
+  return delete_frame (frame, !NILP (force) ? Qt : Qnil);
+}
+
 
 /* Return mouse position in character cell units.  */
 

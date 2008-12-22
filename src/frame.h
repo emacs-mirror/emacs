@@ -1115,6 +1115,7 @@ extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object component,
 					   Lisp_Object subclass);
 
+extern Lisp_Object delete_frame P_ ((Lisp_Object, Lisp_Object));
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
