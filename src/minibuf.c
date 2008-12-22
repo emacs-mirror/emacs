@@ -525,7 +525,11 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 		build_string ("Command attempted to use minibuffer while in minibuffer"));
     }
 
-  if (noninteractive && NILP (Vexecuting_kbd_macro))
+  if ((noninteractive
+       /* In case we are running as a daemon, only do this before
+	  detaching from the terminal.  */
+       || (IS_DAEMON && (daemon_pipe[1] >= 0)))
+      && NILP (Vexecuting_kbd_macro))
     {
       val = read_minibuf_noninteractive (map, initial, prompt,
 					 make_number (pos),

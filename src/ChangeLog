@@ -1,3 +1,8 @@
+2008-12-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* minibuf.c (read_minibuf): Follow the non-interactive case when
+	running as a daemon, before detaching.
+
 2008-12-22  Andreas Schwab  <schwab@suse.de>
 
 	* buffer.c (init_buffer): Use realloc instead of xrealloc.
