@@ -574,8 +574,14 @@ site."
     (when buffer
       (set-buffer buffer)
       (condition-case i
-          (progn
-            (write-region nil nil to)
+	  (progn
+	    (if buffer-swapped-with
+		(progn
+		  (buffer-swap-text buffer-swapped-with)
+		  (unwind-protect
+		      (write-region nil nil to)
+		    (buffer-swap-text buffer-swapped-with)))
+	      (write-region nil nil to))
             (shadow-remove-from-todo s))
         (error (message "Shadow %s not updated!" (cdr s)))))))
 
