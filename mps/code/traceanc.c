@@ -47,16 +47,20 @@
 
 #define TraceStartMessageSig ((Sig)0x51926535) /* SIG TRaceStartMeSsage */
 
-/* .whybuf.len: Length (in chars) of a char buffer used to store the 
+/* .whybuf:
+ * .whybuf.len: Length (in chars) of a char buffer used to store the 
  * reason why a collection started in the TraceStartMessageStruct 
  * (used by mps_message_type_gc_start).  If the reason is too long to 
  * fit, it must be truncated.
+ * .whybuf.nul: Check insists that the last char in the array is NUL 
+ * (even if there is another NUL earlier in the buffer); this makes 
+ * the NUL-termination check fast.
  */
 #define TRACE_START_MESSAGE_WHYBUF_LEN 128
 
 typedef struct TraceStartMessageStruct {
   Sig sig;
-  char why[TRACE_START_MESSAGE_WHYBUF_LEN];  /* .whybuf.len */
+  char why[TRACE_START_MESSAGE_WHYBUF_LEN];  /* .whybuf */
   MessageStruct messageStruct;
 } TraceStartMessageStruct;
 
@@ -65,24 +69,15 @@ typedef struct TraceStartMessageStruct {
 #define MessageTraceStartMessage(message) \
   (PARENT(TraceStartMessageStruct, messageStruct, message))
 
-static void traceStartMessageInit(Arena arena, TraceStartMessage tsMessage);
-
 Bool TraceStartMessageCheck(TraceStartMessage tsMessage)
 {
-  size_t i;
-
   CHECKS(TraceStartMessage, tsMessage);
   CHECKD(Message, TraceStartMessageMessage(tsMessage));
   CHECKL(MessageGetType(TraceStartMessageMessage(tsMessage)) ==
          MessageTypeGCSTART);
 
-  /* Check that why is NUL terminated. */
-  for(i=0; i<NELEMS(tsMessage->why); ++i) {
-    if(tsMessage->why[i] == 0) {
-       break;
-    }
-  }
-  CHECKL(i<NELEMS(tsMessage->why));
+  /* Check that why is NUL terminated.  See .whybuf.nul */
+  CHECKL(tsMessage->why[NELEMS(tsMessage->why)-1] == '\0');
 
   return TRUE;
 }
@@ -97,6 +92,9 @@ static void TraceStartMessageDelete(Message message)
   AVERT(TraceStartMessage, tsMessage);
 
   arena = MessageArena(message);
+  tsMessage->sig = SigInvalid;
+  MessageFinish(message);
+
   ControlFree(arena, (void *)tsMessage, sizeof(TraceStartMessageStruct));
 }
 
@@ -118,8 +116,8 @@ static MessageClassStruct TraceStartMessageClassStruct = {
   TraceStartMessageDelete,       /* Delete */
   MessageNoFinalizationRef,      /* FinalizationRef */
   MessageNoGCLiveSize,           /* GCLiveSize */
-  MessageNoGCCondemnedSize,        /* GCCondemnedSize */
-  MessageNoGCNotCondemnedSize,     /* GCNotCondemnedSize */
+  MessageNoGCCondemnedSize,      /* GCCondemnedSize */
+  MessageNoGCNotCondemnedSize,   /* GCNotCondemnedSize */
   TraceStartMessageWhy,          /* GCStartWhy */
   MessageClassSig                /* <design/message/#class.sig.double> */
 };
@@ -131,6 +129,7 @@ static void traceStartMessageInit(Arena arena, TraceStartMessage tsMessage)
   MessageInit(arena, TraceStartMessageMessage(tsMessage),
               &TraceStartMessageClassStruct, MessageTypeGCSTART);
   tsMessage->why[0] = '\0';
+  tsMessage->why[NELEMS(tsMessage->why)-1] = '\0';  /* .whybuf.nul */
 
   tsMessage->sig = TraceStartMessageSig;
   AVERT(TraceStartMessage, tsMessage);
@@ -187,7 +186,7 @@ const char *TraceStartWhyToString(int why)
  * started, and copies that into the text buffer the caller provides.
  * s specifies the beginning of the buffer to write the string
  * into, len specifies the length of the buffer.
- * The string written into will be NUL terminated, and truncated if
+ * The string written will be NUL terminated, and truncated if
  * necessary.
  */
 
@@ -208,7 +207,7 @@ static void traceStartWhyToTextBuffer(char *s, size_t len, int why)
     if(r[i] == '\0')
       break;
   }
-  s[len-1] = '\0';
+  s[len-1] = '\0';  /* .whybuf.nul */
 }
 
 /* TracePostStartMessage -- complete and post trace start message
@@ -290,8 +289,6 @@ typedef struct TraceMessageStruct  {
 #define MessageTraceMessage(message) \
   (PARENT(TraceMessageStruct, messageStruct, message))
 
-static void traceMessageInit(Arena arena, TraceMessage tMessage);
-
 Bool TraceMessageCheck(TraceMessage tMessage)
 {
   CHECKS(TraceMessage, tMessage);
@@ -314,6 +311,9 @@ static void TraceMessageDelete(Message message)
   AVERT(TraceMessage, tMessage);
 
   arena = MessageArena(message);
+  tMessage->sig = SigInvalid;
+  MessageFinish(message);
+
   ControlFree(arena, (void *)tMessage, sizeof(TraceMessageStruct));
 }
 
@@ -454,6 +454,11 @@ Bool TraceIdMessagesCheck(Arena arena, TraceId ti)
 /* TraceIdMessagesCreate -- pre-allocate all messages for this traceid
  *
  * See <design/message-gc/#lifecycle>.
+ *
+ * For remote control of ControlAlloc, to simulate low memory:
+ *  #define ControlAlloc !TIMCA_remote() ? ResFAIL : ControlAlloc
+ *  extern Bool TIMCA_remote(void);
+ * See TIMCA_remote() in zmess.c
  */
 
 Res TraceIdMessagesCreate(Arena arena, TraceId ti)
@@ -492,6 +497,7 @@ Res TraceIdMessagesCreate(Arena arena, TraceId ti)
 failTraceMessage:
   ControlFree(arena, tsMessage, sizeof(TraceStartMessageStruct));
 failTraceStartMessage:
+  AVER(TraceIdMessagesCheck(arena, ti));
   return res;
 }
 
@@ -512,15 +518,13 @@ void TraceIdMessagesDestroy(Arena arena, TraceId ti)
   tsMessage = arena->tsMessage[ti];
   if(tsMessage) {
     arena->tsMessage[ti] = NULL;
-    tsMessage->sig = SigInvalid;
-    ControlFree(arena, tsMessage, sizeof(TraceStartMessageStruct));
+    TraceStartMessageDelete(TraceStartMessageMessage(tsMessage));
   }
 
   tMessage = arena->tMessage[ti];
   if(tMessage) {
     arena->tMessage[ti] = NULL;
-    tMessage->sig = SigInvalid;
-    ControlFree(arena, tMessage, sizeof(TraceMessageStruct));
+    TraceMessageDelete(TraceMessageMessage(tMessage));
   }
 
   AVER(!arena->tsMessage[ti]);
