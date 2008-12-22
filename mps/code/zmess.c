@@ -125,15 +125,13 @@ static mps_gen_param_s testChain[genCOUNT] = {
 
 /* note: static, so auto-initialised to NULL */
 static void *myroot[myrootCOUNT];
-static int state[myrootCOUNT];
-
-
 enum {
   rootSTATE,
   deadSTATE,
   finalizableSTATE,
   finalizedSTATE
 };
+static int state[myrootCOUNT];
 
 
 /* report -- get and check messages
@@ -157,7 +155,6 @@ static void report(mps_arena_t arena, const char *pm, Bool discard)
   char mFound = '\0';
   mps_message_type_t type;
 
-  /* Test any finalized objects */
   while (mps_message_queue_type(&type, arena)) {
     mps_message_t message;
     mps_word_t *obj;
