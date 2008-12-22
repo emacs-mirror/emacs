@@ -59,10 +59,10 @@ the help text in the echo area, and does not make a pop-up window."
   (if tooltip-mode
       (progn
 	(add-hook 'pre-command-hook 'tooltip-hide)
-	(add-hook 'tooltip-hook 'tooltip-help-tips))
+	(add-hook 'tooltip-functions 'tooltip-help-tips))
     (unless (and (boundp 'gud-tooltip-mode) gud-tooltip-mode)
       (remove-hook 'pre-command-hook 'tooltip-hide))
-    (remove-hook 'tooltip-hook 'tooltip-help-tips))
+    (remove-hook 'tooltip-functions 'tooltip-help-tips))
   (setq show-help-function
 	(if tooltip-mode 'tooltip-show-help 'tooltip-show-help-non-mode)))
 
@@ -121,7 +121,10 @@ the value of `tooltip-y-offset' is ignored."
   "Frame parameters used for tooltips.
 
 If `left' or `top' parameters are included, they specify the absolute
-position to pop up the tooltip."
+position to pop up the tooltip.
+
+Note that font and color parameters are ignored, and the attributes
+of the `tooltip' face are used instead."
   :type 'sexp
   :group 'tooltip)
 
@@ -146,10 +149,14 @@ and enable `tooltip-mode'."
 
 ;;; Variables that are not customizable.
 
-(defvar tooltip-hook nil
+(defvar tooltip-functions nil
   "Functions to call to display tooltips.
-Each function is called with one argument EVENT which is a copy of
-the last mouse movement event that occurred.")
+Each function is called with one argument EVENT which is a copy
+of the last mouse movement event that occurred.  If one of these
+functions displays the tooltip, it should return non-nil and the
+rest are not called.")
+
+(define-obsolete-variable-alias 'tooltip-hook 'tooltip-functions "23.1")
 
 (defvar tooltip-timeout-id nil
   "The id of the timeout started when Emacs becomes idle.")
@@ -193,7 +200,7 @@ This might return nil if the event did not occur over a buffer."
 
 (defun tooltip-timeout (object)
   "Function called when timer with id `tooltip-timeout-id' fires."
-  (run-hook-with-args-until-success 'tooltip-hook
+  (run-hook-with-args-until-success 'tooltip-functions
 				    tooltip-last-mouse-motion-event))
 
 
@@ -337,7 +344,6 @@ the buffer of PROCESS."
         (setq tooltip-previous-message nil)))
      (t
       (message nil)))))
-      
 
 (defun tooltip-show-help (msg)
   "Function installed as `show-help-function'.
@@ -360,8 +366,8 @@ MSG is either a help string to display, or nil to cancel the display."
 
 (defun tooltip-help-tips (event)
   "Hook function to display a help tooltip.
-This is installed on the hook `tooltip-hook', which is run when
-the timer with id `tooltip-timeout-id' fires.
+This is installed on the hook `tooltip-functions', which
+is run when the timer with id `tooltip-timeout-id' fires.
 Value is non-nil if this function handled the tip."
   (when (stringp tooltip-help-message)
     (tooltip-show tooltip-help-message tooltip-use-echo-area)

@@ -317,8 +317,9 @@ which documentation to print.
 
 @item
 The major mode command should set the variable @code{mode-name} to the
-``pretty'' name of the mode, as a string.  This string appears in the
-mode line.
+``pretty'' name of the mode, usually a string (but see @ref{Mode Line
+Data}, for other possible forms).  The name of the mode appears
+in the mode line.
 
 @item
 @cindex functions in modes
@@ -1865,8 +1866,12 @@ effect.
 
 @defvar mode-name
 This buffer-local variable holds the ``pretty'' name of the current
-buffer's major mode.  Each major mode should set this variable so that the
-mode name will appear in the mode line.
+buffer's major mode.  Each major mode should set this variable so that
+the mode name will appear in the mode line.  The value does not have
+to be a string, but can use any of the data types valid in a mode-line
+construct (@pxref{Mode Line Data}).  To compute the string that will
+identify the mode name in the mode line, use @code{format-mode-line}
+(@pxref{Emulating Mode Line}).
 @end defvar
 
 @defvar mode-line-process

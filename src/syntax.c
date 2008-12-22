@@ -1248,7 +1248,7 @@ scan_words (from, count)
 	      if ((code != Sword
 		   && (! words_include_escapes
 		       || (code != Sescape && code != Scharquote)))
-		  || ! EQ (CHAR_TABLE_REF (Vchar_script_table, ch1), script))
+		  || word_boundary_p (ch0, ch1))
 		break;
 	      INC_BOTH (from, from_byte);
 	      ch0 = ch1;
@@ -1301,7 +1301,7 @@ scan_words (from, count)
 	      if ((code != Sword
 		   && (! words_include_escapes
 		       || (code != Sescape && code != Scharquote)))
-		  || ! EQ (CHAR_TABLE_REF (Vchar_script_table, ch0), script))
+		  || word_boundary_p (ch0, ch1))
 		{
 		  INC_BOTH (from, from_byte);
 		  break;

@@ -24,6 +24,7 @@
 ;;; Commentary:
 
 ;;; Code:
+
 (defvar custom-declare-variable-list nil
   "Record `defcustom' calls made before `custom.el' is loaded to handle them.
 Each element of this list holds the arguments to one call to `defcustom'.")
@@ -70,6 +71,7 @@ the end of FILE must be all on the same line.  For example:
 For more information, see Info node `elisp(Declaring Functions)'."
   ;; Does nothing - byte-compile-declare-function does the work.
   nil)
+
 
 ;;;; Basic Lisp macros.
 
@@ -2160,7 +2162,26 @@ On other systems, this variable is normally always nil.")
     "~/.emacs.d/")
   "Directory beneath which additional per-user Emacs-specific files are placed.
 Various programs in Emacs store information in this directory.
-Note that this should end with a directory separator.")
+Note that this should end with a directory separator.
+See also `locate-user-emacs-file'.")
+
+(defun locate-user-emacs-file (new-name &optional old-name)
+  "Return an absolute per-user Emacs-specific file name.
+If OLD-NAME is non-nil and ~/OLD-NAME exists, return ~/OLD-NAME.
+Else return NEW-NAME in `user-emacs-directory', creating the
+directory if it does not exist."
+  (convert-standard-filename
+   (let* ((home (concat "~" (or init-file-user "")))
+	  (at-home (and old-name (expand-file-name old-name home))))
+     (if (and at-home (file-readable-p at-home))
+	 at-home
+       ;; Make sure `user-emacs-directory' exists,
+       ;; unless we're in batch mode or dumping Emacs
+       (or noninteractive
+	   purify-flag
+	   (file-accessible-directory-p (directory-file-name user-emacs-directory))
+	   (make-directory user-emacs-directory))
+       (expand-file-name new-name user-emacs-directory)))))
 
 
 ;;;; Misc. useful functions.
@@ -2470,31 +2491,32 @@ Similar to `call-process-shell-command', but calls `process-file'."
 
 ;;;; Lisp macros to do various things temporarily.
 
-(defmacro with-current-buffer (buffer &rest body)
-  "Execute the forms in BODY with BUFFER temporarily current.
-BUFFER can be a buffer or a buffer name.
-The value returned is the value of the last form in BODY.
-See also `with-temp-buffer'."
+(defmacro with-current-buffer (buffer-or-name &rest body)
+  "Execute the forms in BODY with BUFFER-OR-NAME temporarily current.
+BUFFER-OR-NAME must be a buffer or the name of an existing buffer.
+The value returned is the value of the last form in BODY.  See
+also `with-temp-buffer'."
   (declare (indent 1) (debug t))
   `(save-current-buffer
-     (set-buffer ,buffer)
+     (set-buffer ,buffer-or-name)
      ,@body))
 
 (defmacro with-selected-window (window &rest body)
   "Execute the forms in BODY with WINDOW as the selected window.
 The value returned is the value of the last form in BODY.
 
-This macro saves and restores the current buffer, since otherwise
-its normal operation could potentially make a different
-buffer current.  It does not alter the buffer list ordering.
+This macro saves and restores the selected window, as well as the
+selected window of each frame.  It does not change the order of
+recently selected windows.  If the previously selected window of
+some frame is no longer live at the end of BODY, that frame's
+selected window is left alone.  If the selected window is no
+longer live, then whatever window is selected at the end of BODY
+remains selected.
 
-This macro saves and restores the selected window, as well as
-the selected window in each frame.  If the previously selected
-window of some frame is no longer live at the end of BODY, that
-frame's selected window is left alone.  If the selected window is
-no longer live, then whatever window is selected at the end of
-BODY remains selected.
-See also `with-temp-buffer'."
+This macro uses `save-current-buffer' to save and restore the
+current buffer, since otherwise its normal operation could
+potentially make a different buffer current.  It does not alter
+the buffer list ordering."
   (declare (indent 1) (debug t))
   ;; Most of this code is a copy of save-selected-window.
   `(let ((save-selected-window-window (selected-window))
@@ -2511,26 +2533,28 @@ See also `with-temp-buffer'."
 	 (dolist (elt save-selected-window-alist)
 	   (and (frame-live-p (car elt))
 		(window-live-p (cadr elt))
-		(set-frame-selected-window (car elt) (cadr elt))))
-	 (if (window-live-p save-selected-window-window)
-	     (select-window save-selected-window-window 'norecord))))))
+		(set-frame-selected-window (car elt) (cadr elt) 'norecord)))
+	 (when (window-live-p save-selected-window-window)
+	   (select-window save-selected-window-window 'norecord))))))
 
 (defmacro with-selected-frame (frame &rest body)
   "Execute the forms in BODY with FRAME as the selected frame.
 The value returned is the value of the last form in BODY.
-See also `with-temp-buffer'."
+
+This macro neither changes the order of recently selected windows
+nor the buffer list."
   (declare (indent 1) (debug t))
   (let ((old-frame (make-symbol "old-frame"))
 	(old-buffer (make-symbol "old-buffer")))
     `(let ((,old-frame (selected-frame))
 	   (,old-buffer (current-buffer)))
        (unwind-protect
-	   (progn (select-frame ,frame)
+	   (progn (select-frame ,frame 'norecord)
 		  ,@body)
-	 (if (frame-live-p ,old-frame)
-	     (select-frame ,old-frame))
-	 (if (buffer-live-p ,old-buffer)
-	     (set-buffer ,old-buffer))))))
+	 (when (frame-live-p ,old-frame)
+	   (select-frame ,old-frame 'norecord))
+	 (when (buffer-live-p ,old-buffer)
+	   (set-buffer ,old-buffer))))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
@@ -2913,7 +2937,7 @@ It understands Emacs Lisp quoting within STRING, such that
   (split-string-and-unquote (combine-and-quote-strings strs)) == strs
 The SEPARATOR regexp defaults to \"\\s-+\"."
   (let ((sep (or separator "\\s-+"))
-	(i (string-match "[\"]" string)))
+	(i (string-match "\"" string)))
     (if (null i)
 	(split-string string sep t)	; no quoting:  easy
       (append (unless (eq i 0) (split-string (substring string 0 i) sep t))
@@ -3559,8 +3583,6 @@ etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
 is greater than \"1pre\" which is greater than \"1beta\" which is greater than
 \"1alpha\"."
   (version-list-= (version-to-list v1) (version-to-list v2)))
-
-
 
 ;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

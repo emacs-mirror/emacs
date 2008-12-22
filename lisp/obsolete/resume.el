@@ -24,6 +24,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 23.1.
+
 ;; The purpose of this library is to handle command line arguments
 ;; when you resume an existing Emacs job.
 

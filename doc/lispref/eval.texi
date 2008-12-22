@@ -410,7 +410,8 @@ expansion.
 
 @node Special Forms
 @subsection Special Forms
-@cindex special form evaluation
+@cindex special forms
+@cindex evaluation of special forms
 
   A @dfn{special form} is a primitive function specially marked so that
 its arguments are not all evaluated.  Most special forms define control

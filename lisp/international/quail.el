@@ -231,7 +231,7 @@ Conversion keymap is a keymap used while conversion region is active
 ;;;###autoload
 (defun quail-use-package (package-name &rest libraries)
   "Start using Quail package PACKAGE-NAME.
-The remaining arguments are libraries to be loaded before using the package.
+The remaining arguments are LIBRARIES to be loaded before using the package.
 
 This activates input method defined by PACKAGE-NAME by running
 `quail-activate', which see."
@@ -545,7 +545,7 @@ This function runs the normal hook `quail-inactivate-hook'."
 
 (defun quail-activate (&optional arg)
   "Activate Quail input method.
-With arg, activate Quail input method if and only if arg is positive.
+With ARG, activate Quail input method if and only if arg is positive.
 
 This function runs `quail-activate-hook' if it activates the input
 method, `quail-inactivate-hook' if it deactivates it.
@@ -1974,7 +1974,7 @@ minibuffer and the selected frame has no other windows)."
 	     (not input-method-use-echo-area)
 	     (null unread-command-events)
 	     (null unread-post-input-method-events))
-    (if (eq (selected-window) (minibuffer-window))
+    (if (minibufferp)
 	(if (eq (minibuffer-window) (frame-root-window))
 	    ;; Use another frame.  It is sure that we are using some
 	    ;; window system.

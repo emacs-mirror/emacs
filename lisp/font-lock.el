@@ -490,7 +490,8 @@ This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-keywords-case-fold-search nil
   "*Non-nil means the patterns in `font-lock-keywords' are case-insensitive.
-This is normally set via `font-lock-defaults'.")
+This is set via the function `font-lock-set-defaults', based on
+the CASE-FOLD argument of `font-lock-defaults'.")
 (make-variable-buffer-local 'font-lock-keywords-case-fold-search)
 
 (defvar font-lock-syntactically-fontified 0
@@ -2257,9 +2258,9 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 	       '("cond" "if" "while" "while-no-input" "let" "let*"
 		 "prog" "progn" "progv" "prog1" "prog2" "prog*"
 		 "inline" "lambda" "save-restriction" "save-excursion"
-		 "save-window-excursion" "save-selected-window"
-		 "save-match-data" "save-current-buffer" "unwind-protect"
-		 "condition-case" "track-mouse"
+		 "save-selected-window" "save-selected-window-norecord"
+		 "save-window-excursion" "save-match-data" "save-current-buffer"
+		 "unwind-protect" "condition-case" "track-mouse"
 		 "eval-after-load" "eval-and-compile" "eval-when-compile"
 		 "eval-when" "eval-at-startup" "eval-next-after-load"
 		 "with-case-table" "with-category-table"

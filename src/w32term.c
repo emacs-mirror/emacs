@@ -4985,7 +4985,8 @@ x_draw_bar_cursor (w, row, width, kind)
 	  w32_fill_area (f, hdc, cursor_color, x,
 			 WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
 						  row->height - width),
-			 cursor_glyph->pixel_width, width);
+			 min (FRAME_COLUMN_WIDTH (f), cursor_glyph->pixel_width),
+			 width);
 	}
 
       w32_set_clip_rectangle (hdc, NULL);

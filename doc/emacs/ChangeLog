@@ -1,3 +1,262 @@
+2008-11-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* programs.texi (Program Modes): Link to Program Indent node.
+	(Left Margin Paren): Explain consequences of changing
+	open-paren-in-column-0-is-defun-start more concisely.
+	(Which Function, Program Indent, Info Lookup): Minor edits.
+	(Basic Indent): If region is active, TAB indents the region.
+	(Multi-line Indent): If region is active, TAB indents the region.  Note
+	that indent-region is useful when Transient Mark mode is off.
+	(Matching): The delimiter at the cursor is highlighted---the character
+	changes color.
+	(Symbol Completion): Link to Completion node.
+
+	* misc.texi (Invoking emacsclient): Describe how to use Emacs server in
+	a strictly text-only system.
+
+	* abbrevs.texi (Saving Abbrevs): Note that abbrev file is not loaded in
+	batch mode.
+
+2008-11-01  Richard M. Stallman  <rms@gnu.org>
+
+	* misc.texi (Document View): Major rewrite.
+
+	* maintaining.texi (Types of Log File): Change logs are older than
+	version control.
+	(VCS Concepts): Simplify and rearrange.
+	(Version Control Systems): Make it clear that Linux is only the kernel.
+	(VC Mode Line): Shorten reference to menu item.
+	(Basic VC Editing): Clarify VC fileset.  Shorten and simplify.
+	(VC Directory Mode): Minor cleanup.
+	Unchanged files are hidden, not omitted.
+	(VC Directory Commands): Shorten and simplify.
+	(Change Log Commands): New node, split from Change Logs.
+	(VC Directory Buffer): New node, split from VC Directory Mode.
+
+2008-10-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Document View): Renamed from Document Files, moved here
+	from files.texi.
+
+	* files.texi (Version Control): Moved to maintaining.texi.  Subnodes
+	moved as well.
+	(Document Files): Moved to misc.texi.
+
+	* maintaining.texi (Change Log): Document log-edit-insert-changelog and
+	vc-update-change-log.
+	(Version Control): Move here from files.texi.
+	(Format of ChangeLog): Make it a subnode of Change Log.
+
+	* emacs.texi (Top): Update node listing.
+
+2008-10-31  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* files.texi (Files): Add a section about document
+	files (doc-view-mode).
+
+2008-10-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* building.texi (Compilation Mode): Document
+	compilation-auto-jump-to-first-error.
+	(Debuggers): Lower GUD subsections to subsubsections.
+	(Starting GUD): Add cindex.
+	(Lisp Interaction): Note that scratch is no longer the initial buffer.
+
+2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.texi (Indentation): Link to Program Indent.
+
+	* misc.texi (Invoking emacsclient): If Emacs has no available frame, it
+	now uses emacsclient's terminal.
+
+2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mark.texi (Using Region): Document use-empty-active-region.
+
+	* emacs.texi (Top): Update node listings.
+
+	* misc.texi (Emacs Server): Rewrite.  Document daemon-mode.  Don't
+	mention obsolete emacs.bash script.
+	(Invoking emacsclient): Rewrite, moving optional arguments to
+	emacsclient Options.
+	(emacsclient Options): New node.  Document server-use-tcp and
+	server-host.
+
+2008-10-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.texi (Indentation): Replace list with paragraphed text,
+	putting description of syntax-driven indentation first.  Document new
+	effect of active regions on tab.
+	(Tab Stops): Note that editable tab stops affect indentation commands.
+
+2008-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cmdargs.texi (Initial Options): Document -daemon=SERVER_NAME.
+
+2008-10-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Function Keys): Note that modified keypad keys are not
+	translated.
+
+	* basic.texi (Arguments): Explain how to insert multiple digits.
+
+2008-10-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Remote Files): Precise selection of default method.
+	Rewrite paragraph about disabling remote file names.
+
+2008-10-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.texi (Special Isearch): Document M-TAB is isearch.
+
+	* files.texi (VC Mode Line): Use @kbd instead of @key for mouse
+	command.
+
+	* frames.texi: Use @kbd instead of @key for mouse commands throughout.
+
+2008-10-22  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* emacs.texi (Acknowledgments): Added myself to Acknowledgments
+	section.
+
+2008-10-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc1-xtra.texi: Move nodes VC Directory Mode and VC Directory Commands
+	to files.texi.  Move contents of vc2-xtra.texi here.
+
+	* vc2-xtra.texi: File removed.
+
+	* vc-xtra.texi (Advanced VC Usage): Remove VC Directory Mode and VC
+	Directory Commands from the submenu.  Don't include deleted file
+	vc2-xtra.texi.
+
+	* files.texi (Visiting): Document find-file-confirm-nonexistent-file.
+	(Version Control): Add VC Directory Mode and VC Directory Commands to
+	the submenu.
+	(Why Version Control?): Use table format.
+	(Version Control Systems): Note that Meta-CVS support is gone.
+	(VCS Concepts): Note precisely when VC started supporting filesets.
+	Remove bogus xref to CVS Options node.
+	(Types of Log File): Copyedits.
+	(VC Mode Line): Document tooltips and mouse-1 on VC indicator.
+	(Basic VC Editing): Content moved from Selecting A Fileset and Doing
+	The Right Thing.
+	(Selecting A Fileset, Doing The Right Thing): Nodes deleted.
+	(Log Buffer): Reorganize node, putting C-c C-c description first.
+	(Old Revisions): Use CVS for example, not RCS.
+	(Secondary VC Commands): Remove VC Directory Mode and VC Directory
+	Commands from the submenu, putting them under Version Control.
+	(VC Directory Mode): Move node contents here from vc1-xtra.texi; we
+	need to include it in the manual unconditionally, since it is now
+	crucial to using distributed version control systems.
+	(Comparing Files): Note that diff uses the minibuffer, and that the
+	output is shown using Diff mode.
+	(Diff Mode): Explain what "patch" and "hunk" mean.  Document
+	diff-update-on-the-fly, diff-refine-hunk, and
+	diff-show-trailing-whitespaces.
+	(File Archives): Add rar support.
+
+	* major.texi (Choosing Modes): Make mode selection sequence more
+	obvious by describing the steps in order of priority.  Note that
+	magic-mode-alist is nil by default.  Document
+	magic-fallback-mode-alist.
+
+2008-10-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Mouse References): Copyedits.
+
+2008-10-20  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* ack.texi (Acknowledgments): Add myself as doc-view author.
+
+2008-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Dialog Boxes): Add @cindex entries.
+
+2008-10-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Dialog Boxes): Clarify description of GTK+ file chooser.
+	(Text-Only Mouse): Copyedit.
+
+2008-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi: Use @key throughout for mouse clicks.
+	(Cut/Paste Other App): Document yank-pop-change-selection.
+	(Secondary Selection): Fix modified mouse click syntax.
+	(Clipboard): Describe Cut, Copy and Paste commands.
+	(Mouse References): Not all references are in read-only buffers.
+	Copyedits.
+	(Creating Frames): Add xref to Init File.
+	(Frame Commands): Add xref to Exiting.
+	(Scroll Bars): Document GTK vs toolkit behavior.
+
+2008-10-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (Version Control): Copyedits.  Add Bazaar.
+	(Version Control Systems): List different VCS's using an itemized list.
+	Add Bazaar.
+	(VCS Concepts): Copyedits.  Tweak description of file merging.
+
+	* frames.texi (Mouse Commands, Cut/Paste Other App): Rewrite.
+	(Cut/Paste Other App): Document select-active-regions and
+	x-select-enable-primary.
+
+2008-10-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mark.texi (Shift Selection): Correct case in node name.
+
+	* emacs.texi (Top): Update node order in Mark chapter.
+
+2008-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog-xtra.texi (MS-DOS): Fix bad pxref.
+
+	* mini.texi (Minibuffer File): Fix markup in last change.  Refer to
+	elsewhere in the manual instead of describing yet again the intricacies
+	of $HOME on MS-Windows and MS-DOS.
+
+2008-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mini.texi (Minibuffer File): Add xref to File Names.
+	(Minibuffer File): Add discussion of `~' in file names.  Add
+	insert-default-directory index reference.
+
+	* files.texi (File Names): Reorganize description.
+	(Visiting): Add xref to Mode Line.  Copyedits.
+	(Save Commands): Mention prefix behavior of C-x C-s.
+	(Numbered Backups): Node deleted.
+	(Backup Names): Contents of Numbered Backups moved here.  State default
+	of version-control variable.
+	(Reverting): Copyedits.
+	(Version Control): Add additional version control systems.
+
+	* emacs.texi (Top): Delete Numbered Backups node.
+
+	* cmdargs.texi (General Variables): Change Numbered Backups xref to
+	Backup Names.
+	(Initial Options): Document renamed variable inhibit-startup-screen.
+
+2008-10-11  Romain Francoise  <romain@orebokech.com>
+
+	* kmacro.texi (Edit Keyboard Macro): Lossage is now 300 keys.
+
+2008-10-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffers.texi (Buffers): Add xrefs to Mode Line and Lisp Interaction.
+	(Select Buffer): Mention use of minibuffer history.  Describe default
+	value of default-major-mode.  Mention that C-x 4 b selects the other
+	window.
+	(List Buffers): Document CRM indicators in the order they appear.
+	(Kill Buffer): Document new command kill-matching buffers.
+	(Several Buffers): Move explanation of the relationship between buffer
+	list and buffer menu to the top.
+	(Indirect Buffers): Document new variable clone-indirect-buffer-hook.
+
+2008-10-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* entering.texi (Exiting): Document change of C-x C-c to
+	save-buffers-kill-terminal.  Document kill-emacs.
+
 2008-09-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (Coding Systems): Don't mention codepage-setup.

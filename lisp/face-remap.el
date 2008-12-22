@@ -229,7 +229,7 @@ be used to interactively modify the variable
   (force-window-update (current-buffer)))
 
 ;;;###autoload
-(defun text-scale-increase (&optional inc)
+(defun text-scale-increase (inc)
   "Increase the height of the default face in the current buffer by INC steps.
 If the new height is other than the default, `text-scale-mode' is enabled.
 
@@ -243,7 +243,7 @@ will remove any scaling currently active."
   (text-scale-mode (if (zerop text-scale-mode-amount) -1 1)))
 
 ;;;###autoload
-(defun text-scale-decrease (&optional dec)
+(defun text-scale-decrease (dec)
   "Decrease the height of the default face in the current buffer by DEC steps.
 See `text-scale-increase' for more details."
   (interactive "p")
@@ -254,7 +254,7 @@ See `text-scale-increase' for more details."
 ;;;###autoload (define-key ctl-x-map [(control ?=)] 'text-scale-adjust)
 ;;;###autoload (define-key ctl-x-map [(control ?0)] 'text-scale-adjust)
 ;;;###autoload
-(defun text-scale-adjust (&optional inc)
+(defun text-scale-adjust (inc)
   "Increase or decrease the height of the default face in the current buffer.
 
 The actual adjustment made depends on the final component of the

@@ -1,3 +1,9 @@
+2008-10-31  Ulf Jasper  <ulf@web.de>
+
+	* icalendar-testsuite.el (icalendar-testsuite--run-function-tests):
+	Added `icalendar-testsuite--test-create-uid'.
+	(icalendar-testsuite--test-create-uid): New.
+
 2008-06-14  Ulf Jasper  <ulf.jasper@web.de>
 
 	* newsticker-testsuite.el: New file.

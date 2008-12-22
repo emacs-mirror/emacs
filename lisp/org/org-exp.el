@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.06b
+;; Version: 6.10c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -63,6 +63,24 @@ If this option is t, the double prefix can be used to exceptionally
 force an export command into the current process."
   :group 'org-export-general
   :type 'boolean)
+
+
+(defcustom org-export-select-tags '("export")
+  "Tags that select a tree for export.
+If any such tag is found in a buffer, all trees that do not carry one
+of these tags will be deleted before export.
+Inside trees that are selected like this, you can still deselect a
+subtree by tagging it with one of the `org-export-excude-tags'."
+  :group 'org-export-general
+  :type '(repeat (string :tag "Tag")))
+
+(defcustom org-export-exclude-tags '("noexport")
+  "Tags that exclude a tree from export.
+All trees carrying any of these tags will be excluded from export.
+This is without contition, so even subtrees inside that carry one of the
+`org-export-select-tags' will be removed."
+  :group 'org-export-general
+  :type '(repeat (string :tag "Tag")))
 
 (defcustom org-export-with-special-strings t
   "Non-nil means, interpret \"\-\", \"--\" and \"---\" for export.
@@ -494,6 +512,13 @@ Org-mode file."
   table { border-collapse: collapse; }
   td, th { vertical-align: top; }
   dt { font-weight: bold; }
+
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+
 </style>"
   "The default style specification for exported HTML files.
 Please use the variables `org-export-html-style' and
@@ -539,6 +564,7 @@ settings with <style>...</style> tags."
   :type 'string)
 ;;;###autoload
 (put 'org-export-html-style-extra 'safe-local-variable 'stringp)
+
 
 (defcustom org-export-html-title-format "<h1 class=\"title\">%s</h1>\n"
   "Format for typesetting the document title in HTML export."
@@ -687,6 +713,22 @@ todo-start          Scheduling time stamps in TODO entries become start date.
 	      (const :tag "SCHEDULED in TODO entries become start date"
 		     todo-start)))
 
+(defcustom org-icalendar-categories '(local-tags category)
+  "Items that should be entered into the categories field.
+This is a list of symbols, the following are valid:
+
+category    The Org-mode category of the current file or tree
+todo-state  The todo state, if any
+local-tags  The tags, defined in the current line
+all-tags    All tags, including inherited ones."
+  :group 'org-export-icalendar
+  :type '(repeat
+	  (choice
+	   (const :tag "The file or tree category" category)
+	   (const :tag "The TODO state" todo-state)
+	   (const :tag "Tags defined in current line" local-tags)
+	   (const :tag "All tags, including inherited ones" all-tags))))
+
 (defcustom org-icalendar-include-todo nil
   "Non-nil means, export to iCalendar files should also cover TODO items."
   :group 'org-export-icalendar
@@ -733,9 +775,9 @@ or if they are only using it locally."
 (defconst org-level-max 20)
 
 (defvar org-export-html-preamble nil
-  "Preamble, to be inserted just after <body>.  Set by publishing functions.")
+  "Preamble, to be inserted just before <body>.  Set by publishing functions.")
 (defvar org-export-html-postamble nil
-  "Preamble, to be inserted just before </body>.  Set by publishing functions.")
+  "Preamble, to be inserted just after </body>.  Set by publishing functions.")
 (defvar org-export-html-auto-preamble t
   "Should default preamble be inserted?  Set by publishing functions.")
 (defvar org-export-html-auto-postamble t
@@ -785,7 +827,9 @@ or if they are only using it locally."
     (:auto-preamble        . org-export-html-auto-preamble)
     (:auto-postamble       . org-export-html-auto-postamble)
     (:author               . user-full-name)
-    (:email                . user-mail-address)))
+    (:email                . user-mail-address)
+    (:select-tags          . org-export-select-tags)
+    (:exclude-tags         . org-export-exclude-tags)))
 
 (defun org-default-export-plist ()
   "Return the property list with default settings for the export variables."
@@ -812,6 +856,7 @@ in this hook gets a chance to modify this property list.  Each function
 must accept the property list as an argument, and must return the (possibly
 modified) list.")
 
+;; FIXME: should we fold case here?
 (defun org-infile-export-plist ()
   "Return the property list with file-local settings for export."
   (save-excursion
@@ -821,9 +866,11 @@ modified) list.")
       (let ((re (org-make-options-regexp
 		 (append
 		  '("TITLE" "AUTHOR" "DATE" "EMAIL" "TEXT" "OPTIONS" "LANGUAGE"
-		    "LINK_UP" "LINK_HOME" "SETUPFILE")
+		    "LINK_UP" "LINK_HOME" "SETUPFILE" "STYLE" "LATEX_HEADER"
+		    "EXPORT_SELECT_TAGS" "EXPORT_EXCLUDE_TAGS")
 		  (mapcar 'car org-export-inbuffer-options-extra))))
-	    p key val text options js-up js-main js-css js-opt a pr
+	    p key val text options js-up js-main js-css js-opt a pr style
+	    latex-header
 	    ext-setup-or-nil setup-contents (start 0))
 	(while (or (and ext-setup-or-nil
 			(string-match re ext-setup-or-nil start)
@@ -841,6 +888,10 @@ modified) list.")
 	   ((string-equal key "EMAIL") (setq p (plist-put p :email val)))
 	   ((string-equal key "DATE") (setq p (plist-put p :date val)))
 	   ((string-equal key "LANGUAGE") (setq p (plist-put p :language val)))
+	   ((string-equal key "STYLE")
+	    (setq style (concat style "\n" val)))
+	   ((string-equal key "LATEX_HEADER")
+	    (setq latex-header (concat latex-header "\n" val)))
 	   ((string-equal key "TEXT")
 	    (setq text (if text (concat text "\n" val) val)))
 	   ((string-equal key "OPTIONS")
@@ -849,6 +900,10 @@ modified) list.")
 	    (setq p (plist-put p :link-up val)))
 	   ((string-equal key "LINK_HOME")
 	    (setq p (plist-put p :link-home val)))
+	   ((string-equal key "EXPORT_SELECT_TAGS")
+	    (setq p (plist-put p :select-tags (org-split-string val))))
+	   ((string-equal key "EXPORT_EXCLUDE_TAGS")
+	    (setq p (plist-put p :exclude-tags (org-split-string val))))
 	   ((equal key "SETUPFILE")
 	    (setq setup-contents (org-file-contents
 				  (expand-file-name
@@ -862,6 +917,9 @@ modified) list.")
 			    "\n" setup-contents "\n"
 			    (substring ext-setup-or-nil start)))))))
 	(setq p (plist-put p :text text))
+	(when style (setq p (plist-put p :style-extra style)))
+	(when latex-header
+	  (setq p (plist-put p :latex-header-extra (substring latex-header 1))))
 	(when options
 	  (setq p (org-export-add-options-to-plist p options)))
 	p))))
@@ -951,6 +1009,8 @@ value of `org-export-run-in-background'."
 \[x] export as XOXO
 
 \[l] export as LaTeX
+\[p] export as LaTeX and process to PDF
+\[d] export as LaTeX, process to PDF, and open the resulting PDF document
 \[L] export as LaTeX to temporary buffer
 
 \[i] export current file as iCalendar file
@@ -971,6 +1031,8 @@ value of `org-export-run-in-background'."
 	    (?R org-export-region-as-html nil)
 	    (?x org-export-as-xoxo t)
 	    (?l org-export-as-latex t)
+	    (?p org-export-as-pdf t)
+	    (?d org-export-as-pdf-and-open t)
 	    (?L org-export-as-latex-to-buffer nil)
 	    (?i org-export-icalendar-this-file t)
 	    (?I org-export-icalendar-all-agenda-files t)
@@ -984,12 +1046,17 @@ value of `org-export-run-in-background'."
       (delete-other-windows)
       (with-output-to-temp-buffer "*Org Export/Publishing Help*"
 	(princ help))
+      (if (fboundp 'fit-window-to-buffer)
+	  (fit-window-to-buffer (get-buffer-window
+				 "*Org Export/Publishing Help*")))
       (message "Select command: ")
       (setq r1 (read-char-exclusive)))
     (setq r2 (if (< r1 27) (+ r1 96) r1))
     (unless (setq ass (assq r2 cmds))
       (error "No command associated with key %c" r1))
-    (if (and bg (nth 2 ass))
+    (if (and bg (nth 2 ass)
+	     (not (buffer-base-buffer))
+	     (not (org-region-active-p)))
 	;; execute in background
 	(let ((p (start-process
 		  (concat "Exporting " (file-name-nondirectory (buffer-file-name)))
@@ -1345,9 +1412,13 @@ on this string to produce the exported version."
       (setq case-fold-search t)
       (untabify (point-min) (point-max))
       
-      ;; Handle incude files
+      ;; Handle include files
       (org-export-handle-include-files)
       
+      ;; Get rid of excluded trees
+      (org-export-handle-export-tags (plist-get parameters :select-tags)
+				     (plist-get parameters :exclude-tags))
+
       ;; Handle source code snippets
       (org-export-replace-src-segments)
       
@@ -1377,7 +1448,7 @@ on this string to produce the exported version."
       (setq target-alist (org-export-handle-invisible-targets target-alist))
 
       ;; Protect examples
-      (org-export-protect-examples)
+      (org-export-protect-examples (if asciip 'indent nil))
 
       ;; Protect backend specific stuff, throw away the others.
       (org-export-select-backend-specific-text
@@ -1394,6 +1465,26 @@ on this string to produce the exported version."
 
       ;; Remove comment environment and comment subtrees
       (org-export-remove-comment-blocks-and-subtrees)
+
+
+      ;; Find matches for radio targets and turn them into internal links
+      (org-export-mark-radio-links)
+
+      ;; Find all links that contain a newline and put them into a single line
+      (org-export-concatenate-multiline-links)
+
+      ;; Normalize links: Convert angle and plain links into bracket links
+      ;; and expand link abbreviations
+      (org-export-normalize-links)
+
+      ;; Find all internal links.  If they have a fuzzy match (i.e. not
+      ;; a *dedicated* target match, let the link  point to the
+      ;; corresponding section.
+      (org-export-target-internal-links target-alist)
+
+      ;; Find multiline emphasis and put them into single line
+      (when (plist-get parameters :emph-multiline)
+	(org-export-concatenate-multiline-emphasis))
 
       ;; Remove special table lines
       (when org-export-table-remove-special-lines
@@ -1414,25 +1505,6 @@ on this string to produce the exported version."
 
       ;; Remove or replace comments
       (org-export-handle-comments (plist-get parameters :comments))
-
-      ;; Find matches for radio targets and turn them into internal links
-      (org-export-mark-radio-links)
-
-      ;; Find all links that contain a newline and put them into a single line
-      (org-export-concatenate-multiline-links)
-
-      ;; Normalize links: Convert angle and plain links into bracket links
-      ;; and expand link abbreviations
-      (org-export-normalize-links)
-
-      ;; Find all internal links.  If they have a fuzzy match (i.e. not
-      ;; a *dedicated* target match, let the link  point to the
-      ;; corresponding section.
-      (org-export-target-internal-links target-alist)
-
-      ;; Find multiline emphasis and put them into single line
-      (when (plist-get parameters :emph-multiline)
-	(org-export-concatenate-multiline-emphasis))
 
       (setq rtn (buffer-string)))
     (kill-buffer " org-mode-tmp")
@@ -1545,6 +1617,60 @@ whose content to keep."
       (while (re-search-forward re nil t)
 	(replace-match "")))))
 
+(defun org-export-handle-export-tags (select-tags exclude-tags)
+  "Modify the buffer, honoring SELECT-TAGS and EXCLUDE-TAGS.
+Both arguments are lists of tags.
+If any of SELECT-TAGS is found, all trees not marked by a SELECT-TAG
+will be removed.
+After that, all subtrees that are marked by EXCLUDE-TAGS will be
+removed as well."
+  (remove-text-properties (point-min) (point-max) '(:org-delete t))
+  (let* ((re-sel (concat ":\\(" (mapconcat 'regexp-quote
+					   select-tags "\\|")
+			 "\\):"))
+	 (re-excl (concat ":\\(" (mapconcat 'regexp-quote
+					   exclude-tags "\\|")
+			"\\):"))
+	 beg end cont)
+    (goto-char (point-min))
+    (when (and select-tags
+	       (re-search-forward
+		(concat "^\\*+[ \t].*" re-sel "[^ \t\n]*[ \t]*$") nil t))
+      ;; At least one tree is marked for export, this means
+      ;; all the unmarked stuff needs to go.
+      ;; Dig out the trees that should be exported
+      (goto-char (point-min))
+      (outline-next-heading)
+      (setq beg (point))
+      (put-text-property beg (point-max) :org-delete t)
+      (while (re-search-forward re-sel nil t)
+	(when (org-on-heading-p)
+	  (org-back-to-heading)
+	  (remove-text-properties
+	   (max (1- (point)) (point-min))
+	   (setq cont (save-excursion (org-end-of-subtree t t)))
+	   '(:org-delete t))
+	  (while (and (org-up-heading-safe)
+		      (get-text-property (point) :org-delete))
+	    (remove-text-properties (max (1- (point)) (point-min))
+				    (point-at-eol) '(:org-delete t)))
+	  (goto-char cont))))
+    ;; Remove the trees explicitly marked for noexport
+    (when exclude-tags
+      (goto-char (point-min))
+      (while (re-search-forward re-excl nil t)
+	(when (org-at-heading-p)
+	  (org-back-to-heading t)
+	  (setq beg (point))
+	  (org-end-of-subtree t)
+	  (delete-region beg (point)))))
+    ;; Remove everything that is now still marked for deletion
+    (goto-char (point-min))
+    (while (setq beg (text-property-any (point-min) (point-max) :org-delete t))
+      (setq end (or (next-single-property-change beg :org-delete)
+		    (point-max)))
+      (delete-region beg end))))
+
 (defun org-export-remove-archived-trees (export-archived-trees)
   "Remove archived trees.
 When EXPORT-ARCHIVED-TREES is `headline;, only the headline will be exported.
@@ -1582,13 +1708,13 @@ from the buffer."
 			 '(org-protected t))
     (goto-char (1+ (match-end 4)))))
 
-(defun org-export-protect-examples ()
+(defun org-export-protect-examples (&optional indent)
   "Protect code that should be exported as monospaced examples."
   (goto-char (point-min))
   (while (re-search-forward "^#\\+BEGIN_EXAMPLE[ \t]*\n" nil t)
     (goto-char (match-end 0))
     (while (and (not (looking-at "#\\+END_EXAMPLE")) (not (eobp)))
-      (insert ":  ")
+      (insert (if indent ":  " ":"))
       (beginning-of-line 2)))
   (goto-char (point-min))
   (while (re-search-forward "^[ \t]*:.*\\(\n[ \t]*:.*\\)*" nil t)
@@ -1763,7 +1889,9 @@ can work correctly."
   (let ((inhibit-read-only t))
     (save-excursion
       (goto-char (point-min))
-      (let ((end (save-excursion (outline-next-heading) (point))))
+      (let ((end (if (looking-at org-outline-regexp)
+		     (point)
+		   (save-excursion (outline-next-heading) (point)))))
 	(when (re-search-forward "^[ \t]*[^|# \t\r\n].*\n" end t)
 	  ;; Mark the line so that it will not be exported as normal text.
 	  (org-unmodified
@@ -2062,16 +2190,17 @@ underlined headlines.  The default is 3."
 	 (umax nil)
 	 (umax-toc nil)
 	 (case-fold-search nil)
+	 (bfname (buffer-file-name (or (buffer-base-buffer) (current-buffer))))
          (filename (concat (file-name-as-directory
 			    (org-export-directory :ascii opt-plist))
 			   (file-name-sans-extension
 			    (or (and subtree-p
 				     (org-entry-get (region-beginning)
 						    "EXPORT_FILE_NAME" t))
-				(file-name-nondirectory buffer-file-name)))
+				(file-name-nondirectory bfname)))
 			   ".txt"))
 	 (filename (if (equal (file-truename filename)
-			      (file-truename buffer-file-name))
+			      (file-truename bfname))
 		       (concat filename ".txt")
 		     filename))
 	 (buffer (find-file-noselect filename))
@@ -2085,7 +2214,7 @@ underlined headlines.  The default is 3."
 				(plist-get opt-plist :skip-before-1st-heading))
 			       (org-export-grab-title-from-buffer))
 			  (file-name-sans-extension
-			   (file-name-nondirectory buffer-file-name))))
+			   (file-name-nondirectory bfname))))
 	 (email       (plist-get opt-plist :email))
 	 (language    (plist-get opt-plist :language))
 	 (quote-re0   (concat "^[ \t]*" org-quote-string "\\>"))
@@ -2104,6 +2233,8 @@ underlined headlines.  The default is 3."
 		  (plist-get opt-plist :skip-before-1st-heading)
 		  :drawers (plist-get opt-plist :drawers)
 		  :verbatim-multiline t
+		  :select-tags (plist-get opt-plist :select-tags)
+		  :exclude-tags (plist-get opt-plist :exclude-tags)
 		  :archived-trees
 		  (plist-get opt-plist :archived-trees)
 		  :add-text (plist-get opt-plist :text))
@@ -2463,9 +2594,10 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
 #+EMAIL:     %s
 #+DATE:      %s
 #+LANGUAGE:  %s
-#+TEXT:      Some descriptive text to be emitted.  Several lines OK.
 #+OPTIONS:   H:%d num:%s toc:%s \\n:%s @:%s ::%s |:%s ^:%s -:%s f:%s *:%s TeX:%s LaTeX:%s skip:%s d:%s tags:%s
 %s
+#+EXPORT_SELECT_TAGS: %s
+#+EXPORT_EXCUDE_TAGS: %s
 #+LINK_UP:   %s
 #+LINK_HOME: %s
 #+CATEGORY:  %s
@@ -2480,7 +2612,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
 #+LINK:      %s
 "
    (buffer-name) (user-full-name) user-mail-address
-   (format-time-string (car org-time-stamp-formats))
+   (format-time-string (substring (car org-time-stamp-formats) 1 -1))
    org-export-default-language
    org-export-headline-levels
    org-export-with-section-numbers
@@ -2499,6 +2631,8 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
    org-export-with-drawers
    org-export-with-tags
    (if (featurep 'org-jsinfo) (org-infojs-options-inbuffer-template) "")
+   (mapconcat 'identity org-export-select-tags " ")
+   (mapconcat 'identity org-export-exclude-tags " ")
    org-export-html-link-up
    org-export-html-link-home
    (file-name-nondirectory buffer-file-name)
@@ -2769,6 +2903,8 @@ PUB-DIR is set, use this as the publishing directory."
 	    :drawers (plist-get opt-plist :drawers)
 	    :archived-trees
 	    (plist-get opt-plist :archived-trees)
+	    :select-tags (plist-get opt-plist :select-tags)
+	    :exclude-tags (plist-get opt-plist :exclude-tags)
 	    :add-text
 	    (plist-get opt-plist :text)
 	    :LaTeX-fragments
@@ -2930,6 +3066,8 @@ lang=\"%s\" xml:lang=\"%s\">
       (setq head-count 0)
       (org-init-section-numbers)
 
+      (org-open-par)
+
       (while (setq line (pop lines) origline line)
 	(catch 'nextline
 
@@ -2994,11 +3132,11 @@ lang=\"%s\" xml:lang=\"%s\">
 	    (throw 'nextline nil))
 	  (when inverse
 	    (let ((i (org-get-string-indentation line)))
-              (if (> i 0)
-                  (setq line (concat (mapconcat 'identity
-                                                (make-list (* 2 i) "\\nbsp") "")
-                                     " " (org-trim line))))
-              (setq line (concat line " \\\\"))))
+	      (if (> i 0)
+		  (setq line (concat (mapconcat 'identity
+						(make-list (* 2 i) "\\nbsp") "")
+				     " " (org-trim line))))
+	      (setq line (concat line " \\\\"))))
 
 	  ;; make targets to anchors
 	  (while (string-match "<<<?\\([^<>]*\\)>>>?\\((INVISIBLE)\\)?[ \t]*\n?" line)
@@ -3306,7 +3444,7 @@ lang=\"%s\" xml:lang=\"%s\">
       (org-html-level-start 1 nil umax
 			    (and org-export-with-toc (<= level umax))
 			    head-count)
-      ;; the </div> to lose the last text-... div.
+      ;; the </div> to close the last text-... div.
       (insert "</div>\n")
 
       (unless body-only
@@ -3329,7 +3467,7 @@ lang=\"%s\" xml:lang=\"%s\">
 		    (nth 2 lang-words) ": "
 		    date "</p>\n"))
 	  (when org-export-creator-info
-	    (insert (format "<p>HTML generated by org-mode %s in emacs %s<\p>\n"
+	    (insert (format "<p>HTML generated by org-mode %s in emacs %s</p>\n"
 			    org-version emacs-major-version)))
 	  (insert "</div>"))
 
@@ -3338,8 +3476,9 @@ lang=\"%s\" xml:lang=\"%s\">
 	(insert (or (plist-get opt-plist :postamble) ""))
 	(insert "</body>\n</html>\n"))
 
-      (normal-mode)
-      (if (eq major-mode default-major-mode) (html-mode))
+      (unless (plist-get opt-plist :buffer-will-be-killed)
+	(normal-mode)
+	(if (eq major-mode default-major-mode) (html-mode)))
 
       ;; insert the table of contents
       (goto-char (point-min))
@@ -3789,7 +3928,8 @@ If there are links in the string, don't modify these."
       (setq s (org-export-html-convert-sub-super s)))
   (if org-export-with-TeX-macros
       (let ((start 0) wd ass)
-	(while (setq start (string-match "\\\\\\([a-zA-Z]+\\)" s start))
+	(while (setq start (string-match "\\\\\\([a-zA-Z]+\\)\\({}\\)?"
+					 s start))
 	  (if (get-text-property (match-beginning 0) 'org-protected s)
 	      (setq start (match-end 0))
 	    (setq wd (match-string 1 s))
@@ -4074,7 +4214,7 @@ When COMBINE is non nil, add the category to each line."
 	      "DTSTART"))
 	hd ts ts2 state status (inc t) pos b sexp rrule
 	scheduledp deadlinep todo prefix due start
-	tmp pri category entry location summary desc uid
+	tmp pri categories entry location summary desc uid
 	(sexp-buffer (get-buffer-create "*ical-tmp*")))
     (org-refresh-category-properties)
     (save-excursion
@@ -4105,7 +4245,7 @@ When COMBINE is non nil, add the category to each line."
 		uid (if org-icalendar-store-UID
 			(org-id-get-create)
 		      (or (org-id-get) (org-id-new)))
-		category (org-get-category)
+		categories (org-export-get-categories)
 		deadlinep nil scheduledp nil)
 	  (if (looking-at re2)
 	      (progn
@@ -4177,7 +4317,7 @@ END:VEVENT\n"
 			       (concat "\nDESCRIPTION: " desc) "")
 			   (if (and location (string-match "\\S-" location))
 			       (concat "\nLOCATION: " location) "")
-			   category)))))
+			   categories)))))
       (when (and org-icalendar-include-sexps
 		 (condition-case nil (require 'icalendar) (error nil))
 		 (fboundp 'icalendar-export-region))
@@ -4228,6 +4368,7 @@ END:VEVENT\n"
 			     (org-entry-get nil "DEADLINE"))
 		    start (and (member 'todo-start org-icalendar-use-scheduled)
 			     (org-entry-get nil "SCHEDULED"))
+		    categories (org-export-get-categories)
 		    uid (if org-icalendar-store-UID
 			    (org-id-get-create)
 			  (or (org-id-get) (org-id-new))))
@@ -4263,8 +4404,23 @@ END:VTODO\n"
 			     (if (and desc (string-match "\\S-" desc))
 				 (concat "\nDESCRIPTION: " desc) "")
 			     (if due (concat "\n" due) "")
-			     category
+			     categories
 			     pri status)))))))))
+
+(defun org-export-get-categories ()
+  "Get categories according to `org-icalendar-categories'."
+  (let ((cs org-icalendar-categories) c rtn tmp)
+    (while (setq c (pop cs))
+      (cond
+       ((eq c 'category) (push (org-get-category) rtn))
+       ((eq c 'todo-state)
+	(setq tmp (org-get-todo-state))
+	(and tmp (push tmp rtn)))
+       ((eq c 'local-tags)
+	(setq rtn (append (nreverse (org-get-local-tags-at (point))) rtn)))
+       ((eq c 'all-tags)
+	(setq rtn (append (nreverse (org-get-tags-at (point))) rtn)))))
+    (mapconcat 'identity (nreverse rtn) ",")))
 
 (defun org-icalendar-cleanup-string (s &optional is-body maxlength)
   "Take out stuff and quote what needs to be quoted.

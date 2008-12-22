@@ -239,6 +239,11 @@ This only has an effect if `Info-hide-note-references' is non-nil."
   :type 'boolean
   :group 'info)
 
+(defcustom Info-breadcrumbs-depth 4
+  "Depth of breadcrumbs to display.
+0 means do not display breadcrumbs."
+  :type 'integer)
+
 (defcustom Info-search-whitespace-regexp "\\s-+"
   "*If non-nil, regular expression to match a sequence of whitespace chars.
 This applies to Info search for regular expressions.
@@ -306,6 +311,11 @@ Marker points nowhere if file has no tag table.")
 
 (defvar Info-file-supports-index-cookies nil
   "Non-nil if current Info file supports index cookies.")
+
+(defvar Info-file-supports-index-cookies-list nil
+  "List of Info files with information about index cookies support.
+Each element of the list is a list (FILENAME SUPPORTS-INDEX-COOKIES)
+where SUPPORTS-INDEX-COOKIES can be either t or nil.")
 
 (defvar Info-index-alternatives nil
   "List of possible matches for last `Info-index' command.")
@@ -458,6 +468,34 @@ Do the right thing if the file has been compressed or zipped."
 	    (apply 'call-process-region (point-min) (point-max)
 		   (car decoder) t t nil (cdr decoder))))
       (insert-file-contents fullname visit))))
+
+(defun Info-file-supports-index-cookies (&optional file)
+  "Return non-nil value if FILE supports Info index cookies.
+Info index cookies were first introduced in 4.7, and all later
+makeinfo versions output them in index nodes, so we can rely
+solely on the makeinfo version.  This function caches the information
+in `Info-file-supports-index-cookies-list'."
+  (or file (setq file Info-current-file))
+  (or (assoc file Info-file-supports-index-cookies-list)
+      ;; Skip virtual Info files
+      (and (or (not (stringp file))
+	       (member file '("dir" apropos history toc)))
+           (setq Info-file-supports-index-cookies-list
+		 (cons (cons file nil) Info-file-supports-index-cookies-list)))
+      (save-excursion
+	(let ((found nil))
+	  (goto-char (point-min))
+	  (condition-case ()
+	      (if (and (re-search-forward
+			"makeinfo[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
+			(line-beginning-position 3) t)
+		       (not (version< (match-string 1) "4.7")))
+		  (setq found t))
+	    (error nil))
+	  (setq Info-file-supports-index-cookies-list
+		(cons (cons file found) Info-file-supports-index-cookies-list)))))
+  (cdr (assoc file Info-file-supports-index-cookies-list)))
+
 
 (defun Info-default-dirs ()
   (let ((source (expand-file-name "info/" source-directory))
@@ -845,18 +883,8 @@ a case-insensitive match is tried."
                 (info-insert-file-contents filename nil)
                 (setq default-directory (file-name-directory filename))))
               (set-buffer-modified-p nil)
-
-	      ;; Check makeinfo version for index cookie support
-	      (let ((found nil))
-		(goto-char (point-min))
-		(condition-case ()
-		    (if (and (re-search-forward
-			      "makeinfo[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
-			      (line-beginning-position 3) t)
-			     (not (version< (match-string 1) "4.7")))
-			(setq found t))
-		  (error nil))
-		(set (make-local-variable 'Info-file-supports-index-cookies) found))
+	      (set (make-local-variable 'Info-file-supports-index-cookies)
+		   (Info-file-supports-index-cookies filename))
 
               ;; See whether file has a tag table.  Record the location if yes.
               (goto-char (point-max))
@@ -966,6 +994,10 @@ a case-insensitive match is tried."
 
 	    (Info-select-node)
 	    (goto-char (point-min))
+	    (forward-line 1)		       ; skip header line
+	    (when (> Info-breadcrumbs-depth 0) ; skip breadcrumbs line
+	      (forward-line 1))
+
 	    (cond (anchorpos
                    (let ((new-history (list Info-current-file
                                             (substring-no-properties nodename))))
@@ -2412,17 +2444,21 @@ new buffer."
 	(Info-extract-menu-node-name nil (Info-index-node))))))
 
 ;; If COUNT is nil, use the last item in the menu.
-(defun Info-extract-menu-counting (count)
+(defun Info-extract-menu-counting (count &optional no-detail)
   (let ((case-fold-search t))
     (save-excursion
-      (let ((case-fold-search t))
+      (let ((case-fold-search t)
+	    (bound (when (and no-detail
+			      (re-search-forward
+			       "^[ \t-]*The Detailed Node Listing" nil t))
+		     (match-beginning 0))))
 	(goto-char (point-min))
-	(or (search-forward "\n* menu:" nil t)
+	(or (search-forward "\n* menu:" bound t)
 	    (error "No menu in this node"))
 	(if count
-	    (or (search-forward "\n* " nil t count)
+	    (or (search-forward "\n* " bound t count)
 		(error "Too few items in menu"))
-	  (while (search-forward "\n* " nil t)
+	  (while (search-forward "\n* " bound t)
 	    nil))
 	(Info-extract-menu-node-name nil (Info-index-node))))))
 
@@ -2445,17 +2481,19 @@ N is the digit argument used to invoke this command."
   (Info-goto-node "Top")
   (let ((Info-history nil)
 	(case-fold-search t))
-    ;; Go to the last node in the menu of Top.
-    (Info-goto-node (Info-extract-menu-counting nil))
+    ;; Go to the last node in the menu of Top.  But don't delve into
+    ;; detailed node listings.
+    (Info-goto-node (Info-extract-menu-counting nil t))
     ;; If the last node in the menu is not last in pointer structure,
-    ;; move forward until we can't go any farther.
-    (while (Info-forward-node t t) nil)
+    ;; move forward (but not down- or upward - see bug#1116) until we
+    ;; can't go any farther.
+    (while (Info-forward-node t t t) nil)
     ;; Then keep moving down to last subnode, unless we reach an index.
     (while (and (not (Info-index-node))
 		(save-excursion (search-forward "\n* Menu:" nil t)))
       (Info-goto-node (Info-extract-menu-counting nil)))))
 
-(defun Info-forward-node (&optional not-down no-error)
+(defun Info-forward-node (&optional not-down not-up no-error)
   "Go forward one node, considering all nodes as forming one sequence."
   (interactive)
   (goto-char (point-min))
@@ -2473,7 +2511,8 @@ N is the digit argument used to invoke this command."
 	  ((save-excursion (search-backward "next:" nil t))
 	   (Info-next)
 	   t)
-	  ((and (save-excursion (search-backward "up:" nil t))
+	  ((and (not not-up)
+		(save-excursion (search-backward "up:" nil t))
 		;; Use string-equal, not equal, to ignore text props.
 		(not (string-equal (downcase (Info-extract-pointer "up"))
 				   "top")))
@@ -2481,7 +2520,7 @@ N is the digit argument used to invoke this command."
 	     (Info-up)
 	     (let (Info-history success)
 	       (unwind-protect
-		   (setq success (Info-forward-node t no-error))
+		   (setq success (Info-forward-node t nil no-error))
 		 (or success (Info-goto-node old-node))))))
 	  (no-error nil)
 	  (t (error "No pointer forward from this node")))))
@@ -2739,7 +2778,7 @@ following nodes whose names also contain the word \"Index\"."
       (and (or (not (stringp file))
 	       (member file '("dir" apropos history toc)))
            (setq Info-index-nodes (cons (cons file nil) Info-index-nodes)))
-      (if Info-file-supports-index-cookies
+      (if (Info-file-supports-index-cookies file)
 	  ;; Find nodes with index cookie
 	  (let* ((default-directory (or (and (stringp file)
 					     (file-name-directory
@@ -2776,7 +2815,7 @@ following nodes whose names also contain the word \"Index\"."
 	    nodes)
 	;; Else find nodes with the word "Index" in the node name
 	(let ((case-fold-search t)
-	      Info-history Info-history-list Info-fontify-maximum-menu-size
+	      Info-history Info-history-list Info-fontify-maximum-menu-size Info-point-loc
 	      nodes node)
 	  (condition-case nil
 	      (with-temp-buffer
@@ -2804,12 +2843,13 @@ following nodes whose names also contain the word \"Index\"."
   "Return non-nil value if NODE is an index node.
 If NODE is nil, check the current Info node.
 If FILE is nil, check the current Info file."
+  (or file (setq file Info-current-file))
   (if (or (and node (not (equal node Info-current-node)))
-          (assoc (or file Info-current-file) Info-index-nodes))
+          (assoc file Info-index-nodes))
       (member (or node Info-current-node) (Info-index-nodes file))
     ;; Don't search all index nodes if request is only for the current node
     ;; and file is not in the cache of index nodes
-    (if Info-file-supports-index-cookies
+    (if (Info-file-supports-index-cookies file)
 	(save-excursion
 	  (goto-char (+ (or (save-excursion
 			      (search-backward "\n\^_" nil t))
@@ -3277,23 +3317,22 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 
 
 (defvar info-tool-bar-map
-  (if (display-graphic-p)
-      (let ((map (make-sparse-keymap)))
-	(tool-bar-local-item-from-menu 'Info-history-back "left-arrow" map Info-mode-map
-				       :rtl "right-arrow")
-	(tool-bar-local-item-from-menu 'Info-history-forward "right-arrow" map Info-mode-map
-				       :rtl "left-arrow")
-	(tool-bar-local-item-from-menu 'Info-prev "prev-node" map Info-mode-map
-				       :rtl "next-node")
-	(tool-bar-local-item-from-menu 'Info-next "next-node" map Info-mode-map
-				       :rtl "prev-node")
-	(tool-bar-local-item-from-menu 'Info-up "up-node" map Info-mode-map)
-	(tool-bar-local-item-from-menu 'Info-top-node "home" map Info-mode-map)
-	(tool-bar-local-item-from-menu 'Info-goto-node "jump-to" map Info-mode-map)
-	(tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map)
-	(tool-bar-local-item-from-menu 'Info-search "search" map Info-mode-map)
-	(tool-bar-local-item-from-menu 'Info-exit "exit" map Info-mode-map)
-	map)))
+  (let ((map (make-sparse-keymap)))
+    (tool-bar-local-item-from-menu 'Info-history-back "left-arrow" map Info-mode-map
+				   :rtl "right-arrow")
+    (tool-bar-local-item-from-menu 'Info-history-forward "right-arrow" map Info-mode-map
+				   :rtl "left-arrow")
+    (tool-bar-local-item-from-menu 'Info-prev "prev-node" map Info-mode-map
+				   :rtl "next-node")
+    (tool-bar-local-item-from-menu 'Info-next "next-node" map Info-mode-map
+				   :rtl "prev-node")
+    (tool-bar-local-item-from-menu 'Info-up "up-node" map Info-mode-map)
+    (tool-bar-local-item-from-menu 'Info-top-node "home" map Info-mode-map)
+    (tool-bar-local-item-from-menu 'Info-goto-node "jump-to" map Info-mode-map)
+    (tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map)
+    (tool-bar-local-item-from-menu 'Info-search "search" map Info-mode-map)
+    (tool-bar-local-item-from-menu 'Info-exit "exit" map Info-mode-map)
+    map))
 
 (defvar Info-menu-last-node nil)
 ;; Last node the menu was created for.
@@ -3473,10 +3512,9 @@ Advanced commands:
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-history-forward)
   (make-local-variable 'Info-index-alternatives)
-  (setq header-line-format
-	(if Info-use-header-line
-	    '(:eval (get-text-property (point-min) 'header-line))
-	  nil)) ; so the header line isn't displayed
+  (if Info-use-header-line    ; do not override global header lines
+      (setq header-line-format
+ 	    '(:eval (get-text-property (point-min) 'header-line))))
   (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
   ;; This is for the sake of the invisible text we use handling titles.
   (make-local-variable 'line-move-ignore-invisible)
@@ -3750,11 +3788,6 @@ the variable `Info-file-list-for-emacs'."
     (define-key keymap [follow-link] 'mouse-face)
     keymap)
   "Keymap to put on the Up link in the text or the header line.")
-
-(defcustom Info-breadcrumbs-depth 4
-  "Depth of breadcrumbs to display.
-0 means do not display breadcrumbs."
-  :type 'integer)
 
 (defun Info-insert-breadcrumbs ()
   (let ((nodes (Info-toc-nodes Info-current-file))

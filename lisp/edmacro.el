@@ -37,7 +37,7 @@
 ;;  * `M-x' followed by a command name, to edit a named command
 ;;    whose definition is a keyboard macro.
 ;;
-;;  * `C-h l' (view-lossage), to edit the 100 most recent keystrokes
+;;  * `C-h l' (view-lossage), to edit the 300 most recent keystrokes
 ;;    and install them as the "current" macro.
 ;;
 ;;  * any key sequence whose definition is a keyboard macro.
@@ -78,7 +78,7 @@
 
 ;;;###autoload
 (defvar edmacro-eight-bits nil
-  "*Non-nil if edit-kbd-macro should leave 8-bit characters intact.
+  "*Non-nil if `edit-kbd-macro' should leave 8-bit characters intact.
 Default nil means to write characters above \\177 in octal notation.")
 
 (defvar edmacro-mode-map nil)
@@ -96,7 +96,7 @@ Default nil means to write characters above \\177 in octal notation.")
   "Edit a keyboard macro.
 At the prompt, type any key sequence which is bound to a keyboard macro.
 Or, type `C-x e' or RET to edit the last keyboard macro, `C-h l' to edit
-the last 100 keystrokes as a keyboard macro, or `M-x' to edit a macro by
+the last 300 keystrokes as a keyboard macro, or `M-x' to edit a macro by
 its command name.
 With a prefix argument, format the macro in a more concise way."
   (interactive "kKeyboard macro to edit (C-x e, M-x, C-h l, or keys): \nP")
@@ -349,7 +349,7 @@ or nil, use a compact 80-column format."
     (insert (edmacro-format-keys key) " ")))
 
 (defun edmacro-mode ()
-  "\\<edmacro-mode-map>Keyboard Macro Editing mode.  Press
+  "\\<edmacro-mode-map>Keyboard Macro Editing mode.  Press \
 \\[edmacro-finish-edit] to save and exit.
 To abort the edit, just kill this buffer with \\[kill-buffer] RET.
 
@@ -597,7 +597,8 @@ doubt, use whitespace."
 (defun edmacro-mismatch (cl-seq1 cl-seq2 cl-start1 cl-end1 cl-start2 cl-end2)
   "Compare SEQ1 with SEQ2, return index of first mismatching element.
 Return nil if the sequences match.  If one sequence is a prefix of the
-other, the return value indicates the end of the shorted sequence."
+other, the return value indicates the end of the shorted sequence.
+\n(fn SEQ1 SEQ2 START1 END1 START2 END2)"
   (let (cl-test cl-test-not cl-key cl-from-end)
     (or cl-end1 (setq cl-end1 (length cl-seq1)))
     (or cl-end2 (setq cl-end2 (length cl-seq2)))
@@ -647,7 +648,7 @@ If START or END is negative, it counts from the end."
 	       res))))))
 
 (defun edmacro-sanitize-for-string (seq)
-  "Convert a key sequence vector into a string.
+  "Convert a key sequence vector SEQ into a string.
 The string represents the same events; Meta is indicated by bit 7.
 This function assumes that the events can be stored in a string."
   (setq seq (copy-sequence seq))

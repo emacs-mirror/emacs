@@ -2341,6 +2341,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
     case HBAR_CURSOR:
       s = r;
       s.origin.y += lrint (0.75 * s.size.height);
+      s.size.width = min (FRAME_COLUMN_WIDTH (f), s.size.width);
       s.size.height = lrint (s.size.height * 0.25);
       NSRectFill (s);
       break;
@@ -6379,13 +6380,6 @@ baseline level.  The default value is nil.  */);
 
   /* Tell emacs about this window system. */
   Fprovide (intern ("ns"), Qnil);
-  /* TODO: try to move this back into lisp,  ns-win.el loaded too late
-           right now */
-  {
-    Lisp_Object args[3] = { intern ("ns-version-string"), build_string ("9.0"),
-                    build_string ("NS Window system port version number.") };
-    Fdefconst (Flist (3, args));
-  }
 }
 
 

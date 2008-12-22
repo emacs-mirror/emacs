@@ -30,7 +30,7 @@
 
 (defun asort (alist-symbol key)
   "Move a specified key-value pair to the head of an alist.
-The alist is referenced by ALIST-SYMBOL. Key-value pair to move to
+The alist is referenced by ALIST-SYMBOL.  Key-value pair to move to
 head is one matching KEY.  Returns the sorted list and doesn't affect
 the order of any other key-value pair.  Side effect sets alist to new
 sorted list."
@@ -40,7 +40,7 @@ sorted list."
 
 
 (defun aelement (key value)
-  "Makes a list of a cons cell containing car of KEY and cdr of VALUE.
+  "Make a list of a cons cell containing car of KEY and cdr of VALUE.
 The returned list is suitable as an element of an alist."
   (list (cons key value)))
 
@@ -61,14 +61,14 @@ pair is not at the head of alist.  ALIST is not altered."
 
 (defun aput (alist-symbol key &optional value)
   "Inserts a key-value pair into an alist.
-The alist is referenced by ALIST-SYMBOL. The key-value pair is made
-from KEY and optionally, VALUE. Returns the altered alist or nil if
+The alist is referenced by ALIST-SYMBOL.  The key-value pair is made
+from KEY and optionally, VALUE.  Returns the altered alist or nil if
 ALIST is nil.
 
 If the key-value pair referenced by KEY can be found in the alist, and
 VALUE is supplied non-nil, then the value of KEY will be set to VALUE.
 If VALUE is not supplied, or is nil, the key-value pair will not be
-modified, but will be moved to the head of the alist. If the key-value
+modified, but will be moved to the head of the alist.  If the key-value
 pair cannot be found in the alist, it will be inserted into the head
 of the alist (with value nil if VALUE is nil or not supplied)."
   (let ((elem (aelement key value))
@@ -93,14 +93,14 @@ is pair matching KEY.  Returns the altered alist."
 
 
 (defun aget (alist key &optional keynil-p)
-  "Returns the value in ALIST that is associated with KEY.
+  "Return the value in ALIST that is associated with KEY.
 Optional KEYNIL-P describes what to do if the value associated with
 KEY is nil.  If KEYNIL-P is not supplied or is nil, and the value is
 nil, then KEY is returned.  If KEYNIL-P is non-nil, then nil would be
 returned.
 
 If no key-value pair matching KEY could be found in ALIST, or ALIST is
-nil then nil is returned. ALIST is not altered."
+nil then nil is returned.  ALIST is not altered."
   (let ((copy (copy-alist alist)))
     (cond ((null alist) nil)
 	  ((progn (asort 'copy key)
@@ -114,8 +114,8 @@ nil then nil is returned. ALIST is not altered."
 (defun amake (alist-symbol keylist &optional valuelist)
   "Make an association list.
 The association list is attached to the alist referenced by
-ALIST-SYMBOL. Each element in the KEYLIST becomes a key and is
-associated with the value in VALUELIST with the same index. If
+ALIST-SYMBOL.  Each element in the KEYLIST becomes a key and is
+associated with the value in VALUELIST with the same index.  If
 VALUELIST is not supplied or is nil, then each key in KEYLIST is
 associated with nil.
 

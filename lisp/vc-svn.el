@@ -180,7 +180,8 @@ If you want to force an empty list of arguments, use t."
 CALLBACK is called as (CALLBACK RESULT BUFFER), where
 RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; FIXME should this rather be all the files in dir?
-  (let ((remote (not (vc-stay-local-p dir))))
+  (let* ((local (vc-stay-local-p dir))
+	 (remote (and local (not (eq local 'only-file)))))
     (vc-svn-command (current-buffer) 'async nil "status"
 		    (if remote "-u"))
   (vc-exec-after
@@ -191,7 +192,7 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-exec-after
    `(vc-svn-after-dir-status (quote ,callback))))
 
-(defun vc-svn-status-extra-headers (dir)
+(defun vc-svn-dir-extra-headers (dir)
   "Generate extra status headers for a Subversion working copy."
   (vc-svn-command "*vc*" 0 nil "info")
   (let ((repo
@@ -475,6 +476,7 @@ or svn+ssh://."
 (defun vc-svn-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SVN between two revisions of fileset FILES."
   (and oldvers
+       files
        (catch 'no
 	 (dolist (f files)
 	   (or (equal oldvers (vc-working-revision f))

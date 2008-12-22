@@ -1,3 +1,252 @@
+2008-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Text Representations): Rewrite to make consistent
+	with Emacs 23 internal representation of characters.  Document
+	`unibyte-string'.
+
+2008-10-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* processes.texi (Process Information): Note that process-status
+	does not accept buffer names.
+
+2008-10-27  Seweryn Kokot  <sewkokot@gmail.com>  (tiny change)
+
+	* positions.texi (Skipping Characters): Correct return value of
+	skip-chars-forward.
+
+2008-10-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Deleting Windows): Update documentation of
+	delete-windows-on.
+	(Buffers and Windows): Update documentations of
+	get-buffer-window and get-buffer-window-list.
+	(Displaying Buffers): Update documentation of
+	replace-buffer-in-windows.
+
+	* buffers.texi (Current Buffer): Reword set-buffer and
+	with-current-buffer documentations.
+	(Creating Buffers): Reword documentation of get-buffer-create.
+
+2008-10-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffers.texi (Current Buffer): Reword documentation of
+	set-buffer.
+	(Buffer Names): Reword documentation of buffer-name.
+	(The Buffer List): For bury-buffer explain what happens with the
+	buffer's window.
+	(Creating Buffers): Say that get-buffer-create's arg is called
+	buffer-or-name.
+
+2008-10-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* advice.texi (Computed Advice): Explain what DEFINITION is.
+
+	* nonascii.texi (Character Codes): Remove obsolete function
+	char-valid-p, and document characterp instead.
+
+2008-10-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Displaying Buffers): Reword documentation of
+	pop-to-buffer.
+	(Choosing Window): Rewrite documentation of display-buffer and
+	its options.
+
+	* buffers.texi (Killing Buffers): Update documentation of
+	kill-buffer.
+
+2008-10-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (Serial Ports): Fix wording and improve markup.
+
+	* searching.texi (Regexp Search): Document `string-match-p' and
+	`looking-at-p'.
+	(POSIX Regexps): Add an xref for "non-greedy".
+	(Regexp Special): Add @cindex entry for "non-greedy".
+
+	* display.texi (Attribute Functions): Document `face-all-attributes'.
+	(Image Cache) <image-refresh>: Minor wording fixes.
+
+	* frames.texi (Color Names): Add an xref to `read-color'.
+
+	* minibuf.texi (High-Level Completion): Document `read-color'.
+
+	* elisp.texi (Top): Add "Swapping Text" to @detailmenu.
+
+	* positions.texi (Narrowing): Add an xref to "Swapping Text".
+
+	* buffers.texi (Swapping Text): New section, documents
+	`buffer-swap-text'.
+
+2008-10-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows): Minor wording fix.
+
+2008-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (Shell Arguments): Document `split-string-and-unquote'
+	and `combine-and-quote-strings'.
+
+	* strings.texi (Creating Strings): Add xrefs for them.
+
+2008-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi (Top): Make descriptive text for "Reading File Names"
+	match the corresponding menu in minibuf.texi.
+
+	* minibuf.texi (Reading File Names): Document `read-shell-command'
+	and `minibuffer-local-shell-command-map'.
+
+2008-10-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows): Remove var{} around "window" in
+	documentation of enlarge-window.
+	Rewrite documentation of window-min-height and window-min-width.
+
+2008-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* functions.texi (Calling Functions): Document `apply-partially'.
+
+	* hooks.texi (Standard Hooks): Mention
+	`before-hack-local-variables-hook' and `hack-local-variables-hook'.
+
+	* variables.texi (File Local Variables): Document
+	`file-local-variables-alist', `before-hack-local-variables-hook'
+	and `hack-local-variables-hook'.
+
+	* processes.texi (Synchronous Processes): Document `process-lines'.
+
+	* customize.texi (Variable Definitions): Document
+	`custom-reevaluate-setting'.
+
+2008-10-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Choosing Window, Deleting Windows)
+	(Displaying Buffers): Expand documentation of dedicated windows.
+
+2008-10-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Changing Files): Document symbolic input of file
+	modes to `set-file-modes'.  Document `read-file-modes' and
+	`file-modes-symbolic-to-number'.
+
+	* maps.texi (Standard Keymaps): Document `multi-query-replace-map'
+	and `search-map'.
+
+	* searching.texi (Search and Replace): Document
+	`replace-search-function' and `replace-re-search-function'.
+	Document `multi-query-replace-map'.
+
+	* minibuf.texi (Text from Minibuffer): Document `read-regexp'.
+	(Completion Commands, Reading File Names): Rename
+	`minibuffer-local-must-match-filename-map' to
+	`minibuffer-local-filename-must-match-map'.
+	(Minibuffer Completion): The `require-match' argument to
+	`completing-read' can now have the value `confirm-only'.
+
+	* windows.texi (Displaying Buffers): Minor wording fix.
+	(Choosing Window): `split-height-threshold' can now be nil.
+	Document `split-width-threshold'.  `pop-up-frames' can have the
+	value `graphic-only'.
+
+2008-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* os.texi (Startup Summary): Document `before-init-time' and
+	`after-init-time'.  Document `initial-window-system' and
+	`window-system-initialization-alist'.  Document reading the
+	abbrevs file.  Document the call to `server-start' under --daemon.
+	Rearrange a bit to be consistent with the code flow.
+	(Processor Run Time): Document `emacs-uptime' and `emacs-init-time'.
+	(Time Parsing): Document `format-seconds'.
+
+2008-10-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Basic Windows, Splitting Windows): Fix whitespace
+	and reword.
+
+2008-10-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* markers.texi (The Mark): Document use-region-p.
+
+2008-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* internals.texi (Writing Emacs Primitives): The interactive spec
+	of a primitive can be a Lisp form.
+
+	* markers.texi (The Mark): Document the `lambda' and `(only . OLD)'
+	values of transient-mark-mode.  Document handle-shift-selection.
+
+	* commands.texi (Using Interactive, Interactive Codes): Document `^'.
+	(Interactive Examples): Show an example of `^'.
+	(Key Sequence Input): Document this-command-keys-shift-translated.
+	(Defining Commands, Using Interactive): The interactive-form of a
+	function can be added via its symbol's property.
+
+	* positions.texi (List Motion): beginning-of-defun-function can
+	now accept an argument.
+
+	* text.texi (Low-Level Kill Ring): interprogram-paste-function can
+	now return a list of strings.
+
+	* control.texi (Handling Errors): Document ignore-errors.
+
+	* frames.texi (Creating Frames): Document frame-inherited-parameters.
+	(Parameter Access): Document set-frame-parameter.
+
+	* variables.texi (Creating Buffer-Local): Add an xref to "Setting
+	Hooks" for the effect of kill-all-local-variables on local hook
+	functions.
+
+	* modes.texi (Major Mode Conventions, Mode Line Variables):
+	`mode-name' need not be a string.  xref to "Mode Line Data" for
+	details, and to "Emulating Mode Line" for computing a string
+	value.
+
+2008-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (System Processes): New section.
+	(Processes, Signals to Processes): Add xrefs to it.
+
+	* objects.texi (Editing Types): A `process' is a subprocess of
+	Emacs, not just any process running on the OS.
+
+	* elisp.texi (Top): Adjust the @detailmenu for the above two
+	changes.
+
+	* sequences.texi (Char-Tables): Remove documentation of
+	set-char-table-default, which has no effect since Emacs 23.
+	<char-table-range, set-char-table-range>: Don't mention generic
+	characters and charsets.  Add a cons cell as a possible argument.
+
+	* nonascii.texi (Splitting Characters)
+	(Translation of Characters): Don't mention generic characters.
+
+	* display.texi (Fontsets): Don't mention generic characters.
+
+	* sequences.texi (Char-Tables): `map-char-table' can now call its
+	argument FUNCTION with a cons cell as KEY. 
+
+2008-10-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* objects.texi (Primitive Function Type): Move "@cindex special
+	forms" from here...
+
+	* eval.texi (Special Forms): ...to here.
+
+	* functions.texi (What Is a Function): `functionp' returns nil for
+	special forms.  Add an xref.
+
+	* elisp.texi (Top): Add a @detailmenu entry for "Frame-Local
+	Variables".
+
+	* variables.texi (Frame-Local Variables): New section.
+	(Buffer-Local Variables): Add an xref to it.
+	(Intro to Buffer-Local, Creating Buffer-Local): A variable cannot
+	have both frame-local and buffer-local binding.
+
+	* frames.texi (Frames): Mention multiple tty frames.
+	(Frame Parameters, Parameter Access): Mention frame-local variable
+	bindings.
+
 2008-09-20  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Defining Faces): Recommend against face variables.

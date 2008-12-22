@@ -716,33 +716,84 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
                                 string nil action))
 (make-obsolete 'locate-file-completion 'locate-file-completion-table "23.1")
 
-(defun locate-dominating-file (file regexp)
-  "Look up the directory hierarchy from FILE for a file matching REGEXP."
-  (catch 'found
-    ;; `user' is not initialized yet because `file' may not exist, so we may
-    ;; have to walk up part of the hierarchy before we find the "initial UID".
-    (let ((user nil)
-          ;; Abbreviate, so as to stop when we cross ~/.
-          (dir (abbreviate-file-name (file-name-as-directory file)))
-          files)
-      (while (and dir
-                  ;; As a heuristic, we stop looking up the hierarchy of
-                  ;; directories as soon as we find a directory belonging to
-                  ;; another user.  This should save us from looking in
-                  ;; things like /net and /afs.  This assumes that all the
-                  ;; files inside a project belong to the same user.
-                  (let ((prev-user user))
-                    (setq user (nth 2 (file-attributes dir)))
-                    (or (null prev-user) (equal user prev-user))))
-        (if (setq files (condition-case nil
-			    (directory-files dir 'full regexp)
-			  (error nil)))
-            (throw 'found (car files))
-          (if (equal dir
-                     (setq dir (file-name-directory
-                                (directory-file-name dir))))
-              (setq dir nil))))
-      nil)))
+(defvar locate-dominating-stop-dir-regexp
+  "\\`\\(?:[\\/][\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'"
+  "Regexp of directory names which stop the search in `locate-dominating-file'.
+Any directory whose name matches this regexp will be treated like
+a kind of root directory by `locate-dominating-file' which will stop its search
+when it bumps into it.
+The default regexp prevents fruitless and time-consuming attempts to find
+special files in directories in which filenames are interpreted as hostnames.")
+
+;; (defun locate-dominating-files (file regexp)
+;;   "Look up the directory hierarchy from FILE for a file matching REGEXP.
+;; Stop at the first parent where a matching file is found and return the list
+;; of files that that match in this directory."
+;;   (catch 'found
+;;     ;; `user' is not initialized yet because `file' may not exist, so we may
+;;     ;; have to walk up part of the hierarchy before we find the "initial UID".
+;;     (let ((user nil)
+;;           ;; Abbreviate, so as to stop when we cross ~/.
+;;           (dir (abbreviate-file-name (file-name-as-directory file)))
+;;           files)
+;;       (while (and dir
+;;                   ;; As a heuristic, we stop looking up the hierarchy of
+;;                   ;; directories as soon as we find a directory belonging to
+;;                   ;; another user.  This should save us from looking in
+;;                   ;; things like /net and /afs.  This assumes that all the
+;;                   ;; files inside a project belong to the same user.
+;;                   (let ((prev-user user))
+;;                     (setq user (nth 2 (file-attributes dir)))
+;;                     (or (null prev-user) (equal user prev-user))))
+;;         (if (setq files (condition-case nil
+;; 			    (directory-files dir 'full regexp 'nosort)
+;; 			  (error nil)))
+;;             (throw 'found files)
+;;           (if (equal dir
+;;                      (setq dir (file-name-directory
+;;                                 (directory-file-name dir))))
+;;               (setq dir nil))))
+;;       nil)))
+
+(defun locate-dominating-file (file name)
+  "Look up the directory hierarchy from FILE for a file named NAME.
+Stop at the first parent directory containing a file NAME return the directory.
+Return nil if not found."
+  ;; We used to use the above locate-dominating-files code, but the
+  ;; directory-files call is very costly, so we're much better off doing
+  ;; multiple calls using the code in here.
+  ;; 
+  ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
+  ;; `name' in /home or in /.
+  (setq file (abbreviate-file-name file))
+  (let ((root nil)
+        (prev-file file)
+        ;; `user' is not initialized outside the loop because
+        ;; `file' may not exist, so we may have to walk up part of the
+        ;; hierarchy before we find the "initial UID".
+        (user nil)
+        try)
+    (while (not (or root
+                    (null file)
+                    ;; FIXME: Disabled this heuristic because it is sometimes
+                    ;; inappropriate.
+                    ;; As a heuristic, we stop looking up the hierarchy of
+                    ;; directories as soon as we find a directory belonging
+                    ;; to another user.  This should save us from looking in
+                    ;; things like /net and /afs.  This assumes that all the
+                    ;; files inside a project belong to the same user.
+                    ;; (let ((prev-user user))
+                    ;;   (setq user (nth 2 (file-attributes file)))
+                    ;;   (and prev-user (not (equal user prev-user))))
+                    (string-match locate-dominating-stop-dir-regexp file)))
+      (setq try (file-exists-p (expand-file-name name file)))
+      (cond (try (setq root file))
+            ((equal file (setq prev-file file
+                               file (file-name-directory
+                                     (directory-file-name file))))
+             (setq file nil))))
+    root))
+
 
 (defun executable-find (command)
   "Search for COMMAND in `exec-path' and return the absolute file name.
@@ -3159,10 +3210,10 @@ If the file is in a registered project, a cons from
 `project-directory-alist' is returned.
 Otherwise this returns nil."
   (setq file (expand-file-name file))
-  (let* ((settings (locate-dominating-file file "\\`\\.dir-settings\\.el\\'"))
+  (let* ((settings (locate-dominating-file file ".dir-settings.el"))
          (pda nil))
     ;; `locate-dominating-file' may have abbreviated the name.
-    (if settings (setq settings (expand-file-name settings)))
+    (if settings (setq settings (expand-file-name ".dir-settings.el" settings)))
     (dolist (x project-directory-alist)
       (when (and (eq t (compare-strings file nil (length (car x))
                                         (car x) nil nil))
@@ -5694,8 +5745,11 @@ only these files will be asked to be saved."
 ;; Symbolic modes and read-file-modes.
 
 (defun file-modes-char-to-who (char)
-  "Convert CHAR to a who-mask from a symbolic mode notation.
-CHAR is in [ugoa] and represents the users on which rights are applied."
+  "Convert CHAR to a numeric bit-mask for extracting mode bits.
+CHAR is in [ugoa] and represents the category of users (Owner, Group,
+Others, or All) for whom to produce the mask.
+The bit-mask that is returned extracts from mode bits the access rights
+for the specified category of users."
   (cond ((= char ?u) #o4700)
 	((= char ?g) #o2070)
 	((= char ?o) #o1007)
@@ -5703,9 +5757,9 @@ CHAR is in [ugoa] and represents the users on which rights are applied."
 	(t (error "%c: bad `who' character" char))))
 
 (defun file-modes-char-to-right (char &optional from)
-  "Convert CHAR to a right-mask from a symbolic mode notation.
-CHAR is in [rwxXstugo] and represents a right.
-If CHAR is in [Xugo], the value is extracted from FROM (or 0 if nil)."
+  "Convert CHAR to a numeric value of mode bits.
+CHAR is in [rwxXstugo] and represents symbolic access permissions.
+If CHAR is in [Xugo], the value is taken from FROM (or 0 if omitted)."
   (or from (setq from 0))
   (cond ((= char ?r) #o0444)
 	((= char ?w) #o0222)
@@ -5723,10 +5777,13 @@ If CHAR is in [Xugo], the value is extracted from FROM (or 0 if nil)."
 	(t (error "%c: bad right character" char))))
 
 (defun file-modes-rights-to-number (rights who-mask &optional from)
-  "Convert a right string to a right-mask from a symbolic modes notation.
-RIGHTS is the right string, it should match \"([+=-][rwxXstugo]+)+\".
-WHO-MASK is the mask number of the users on which the rights are to be applied.
-FROM (or 0 if nil) is the orginal modes of the file to be chmod'ed."
+  "Convert a symbolic mode string specification to an equivalent number.
+RIGHTS is the symbolic mode spec, it should match \"([+=-][rwxXstugo]+)+\".
+WHO-MASK is the bit-mask specifying the category of users to which to
+apply the access permissions.  See `file-modes-char-to-who'.
+FROM (or 0 if nil) gives the mode bits on which to base permissions if
+RIGHTS request to add, remove, or set permissions based on existing ones,
+as in \"og+rX-w\"."
   (let* ((num-rights (or from 0))
 	 (list-rights (string-to-list rights))
 	 (op (pop list-rights)))
@@ -5752,7 +5809,9 @@ MODES is the string to convert, it should match
 \"[ugoa]*([+-=][rwxXstugo]+)+,...\".
 See (info \"(coreutils)File permissions\") for more information on this
 notation.
-FROM (or 0 if nil) is the orginal modes of the file to be chmod'ed."
+FROM (or 0 if nil) gives the mode bits on which to base permissions if
+MODES request to add, remove, or set permissions based on existing ones,
+as in \"og+rX-w\"."
   (save-match-data
     (let ((case-fold-search nil)
 	  (num-modes (or from 0)))
@@ -5771,9 +5830,11 @@ FROM (or 0 if nil) is the orginal modes of the file to be chmod'ed."
       num-modes)))
 
 (defun read-file-modes (&optional prompt orig-file)
-  "Read file modes in octal or symbolic notation.
+  "Read file modes in octal or symbolic notation and return its numeric value.
 PROMPT is used as the prompt, default to `File modes (octal or symbolic): '.
-ORIG-FILE is the original file of which modes will be changed."
+ORIG-FILE is the name of a file on whose mode bits to base returned
+permissions if what user types requests to add, remove, or set permissions
+based on existing mode bits, as in \"og+rX-w\"."
   (let* ((modes (or (if orig-file (file-modes orig-file) 0)
 		    (error "File not found")))
 	 (modestr (and (stringp orig-file)
@@ -5795,8 +5856,8 @@ ORIG-FILE is the original file of which modes will be changed."
 	(file-modes-symbolic-to-number value modes)))))
 
 
-;; Trash can handling.
-(defcustom trash-directory "~/.Trash"
+;; Trashcan handling.
+(defcustom trash-directory (convert-standard-filename "~/.Trash")
   "Directory for `move-file-to-trash' to move files and directories to.
 This directory is only used when the function `system-move-file-to-trash' is
 not defined.  Relative paths are interpreted relative to `default-directory'.

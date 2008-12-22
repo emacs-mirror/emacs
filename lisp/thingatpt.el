@@ -169,7 +169,7 @@ a symbol as a valid THING."
       (nth 3 (parse-partial-sexp (point) orig)))))
 
 (defun end-of-sexp ()
-  (let ((char-syntax (char-syntax (char-after (point)))))
+  (let ((char-syntax (char-syntax (char-after))))
     (if (or (eq char-syntax ?\))
 	    (and (eq char-syntax ?\") (in-string-p)))
 	(forward-char 1)
@@ -178,7 +178,7 @@ a symbol as a valid THING."
 (put 'sexp 'end-op 'end-of-sexp)
 
 (defun beginning-of-sexp ()
-  (let ((char-syntax (char-syntax (char-before (point)))))
+  (let ((char-syntax (char-syntax (char-before))))
     (if (or (eq char-syntax ?\()
 	    (and (eq char-syntax ?\") (in-string-p)))
 	(forward-char -1)
@@ -405,10 +405,10 @@ with angle brackets.")
   (interactive "p")
   (while (< arg 0)
     (skip-syntax-backward
-     (char-to-string (char-syntax (char-after (1- (point))))))
+     (char-to-string (char-syntax (char-before))))
     (setq arg (1+ arg)))
   (while (> arg 0)
-    (skip-syntax-forward (char-to-string (char-syntax (char-after (point)))))
+    (skip-syntax-forward (char-to-string (char-syntax (char-after))))
     (setq arg (1- arg))))
 
 ;;  Aliases
@@ -437,15 +437,22 @@ Signal an error if the entire string was not used."
     (if (or (not pred) (funcall pred sexp)) sexp)))
 
 ;;;###autoload
-(defun sexp-at-point ()   (form-at-point 'sexp))
+(defun sexp-at-point ()
+  "Return the sexp at point, or nil if none is found."
+  (form-at-point 'sexp))
 ;;;###autoload
 (defun symbol-at-point ()
+  "Return the symbol at point, or nil if none is found."
   (let ((thing (thing-at-point 'symbol)))
     (if thing (intern thing))))
 ;;;###autoload
-(defun number-at-point () (form-at-point 'sexp 'numberp))
+(defun number-at-point ()
+  "Return the number at point, or nil if none is found."
+  (form-at-point 'sexp 'numberp))
 ;;;###autoload
-(defun list-at-point ()   (form-at-point 'list 'listp))
+(defun list-at-point ()
+  "Return the Lisp list at point, or nil if none is found."
+  (form-at-point 'list 'listp))
 
 ;; arch-tag: bb65a163-dae2-4055-aedc-fe11f497f698
 ;;; thingatpt.el ends here

@@ -57,7 +57,7 @@
 These rules were taken from the output of `rpm --help' on a RedHat 6.1
 system.  They follow my interpretation of what followed, but since I'm
 not a major rpm user/builder, please send me any corrections you find.
-You can use \\[eshell-report-bug] to do so."
+You can use \\[report-emacs-bug] to do so."
   (let (mode)
     (while (<= pcomplete-index pcomplete-last)
       (unless mode
@@ -135,7 +135,9 @@ You can use \\[eshell-report-bug] to do so."
 		 (pcmpl-rpm-all-query "--requires")))))
 	  (if (pcomplete-match "^-" 0)
 	      (pcomplete-opt "af.p(pcmpl-rpm-files)ilsdcvR")
-	    (pcomplete-here (pcmpl-rpm-packages)))))
+	    (if (pcomplete-test "-[^-]*p" 'first 1)
+		(pcomplete-here (pcmpl-rpm-files))	
+	      (pcomplete-here (pcmpl-rpm-packages))))))
        ((pcomplete-test "--pipe")
 	(pcomplete-here* (funcall pcomplete-command-completion-function)))
        ((pcomplete-test "--rmsource")

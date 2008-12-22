@@ -212,8 +212,8 @@ static void *my_heap_start;
 /* The gap between BSS end and heap start as far as we can tell.  */
 static unsigned long heap_bss_diff;
 
-/* If the gap between BSS end and heap start is larger than this we try to
-   work around it, and if that fails, output a warning in dump-emacs.  */
+/* If the gap between BSS end and heap start is larger than this
+   output a warning in dump-emacs.  */
 #define MAX_HEAP_BSS_DIFF (1024*1024)
 
 
@@ -235,8 +235,12 @@ int noninteractive;
 
 int noninteractive1;
 
-/* Nonzero means Emacs was started as a daemon.  */
-int is_daemon = 0;
+/* Name for the server started by the daemon.*/
+static char *daemon_name;
+
+/* Pipe used to send exit notification to the daemon parent at
+   startup.  */
+int daemon_pipe[2];
 
 /* Save argv and argc.  */
 char **initial_argv;
@@ -281,8 +285,8 @@ Initialization options:\n\
 Action options:\n\
 \n\
 FILE                    visit FILE using find-file\n\
-+LINE			go to line LINE in next FILE\n\
-+LINE:COLUMN		go to line LINE, column COLUMN, in next FILE\n\
++LINE                   go to line LINE in next FILE\n\
++LINE:COLUMN            go to line LINE, column COLUMN, in next FILE\n\
 --directory, -L DIR     add DIR to variable load-path\n\
 --eval EXPR             evaluate Emacs Lisp expression EXPR\n\
 --execute EXPR          evaluate Emacs Lisp expression EXPR\n\
@@ -792,6 +796,7 @@ main (int argc, char **argv)
 #endif
   int no_loadup = 0;
   char *junk = 0;
+  char *dname_arg = 0;
 
 #if GC_MARK_STACK
   extern Lisp_Object *stack_base;
@@ -861,29 +866,24 @@ main (int argc, char **argv)
     }
 
 #ifdef HAVE_PERSONALITY_LINUX32
-  /* See if there is a gap between the end of BSS and the heap.
-     In that case, set personality and exec ourself again.  */
   if (!initialized
       && (strcmp (argv[argc-1], "dump") == 0
           || strcmp (argv[argc-1], "bootstrap") == 0)
-      && heap_bss_diff > MAX_HEAP_BSS_DIFF)
+      && ! getenv ("EMACS_HEAP_EXEC"))
     {
-      if (! getenv ("EMACS_HEAP_EXEC"))
-        {
-          /* Set this so we only do this once.  */
-          putenv("EMACS_HEAP_EXEC=true");
+      /* Set this so we only do this once.  */
+      putenv("EMACS_HEAP_EXEC=true");
 
-	  /* A flag to turn off address randomization which is introduced
-	   in linux kernel shipped with fedora core 4 */
+      /* A flag to turn off address randomization which is introduced
+         in linux kernel shipped with fedora core 4 */
 #define ADD_NO_RANDOMIZE 0x0040000
-	  personality (PER_LINUX32 | ADD_NO_RANDOMIZE);
+      personality (PER_LINUX32 | ADD_NO_RANDOMIZE);
 #undef  ADD_NO_RANDOMIZE
 
-          execvp (argv[0], argv);
+      execvp (argv[0], argv);
 
-          /* If the exec fails, try to dump anyway.  */
-          perror ("execvp");
-        }
+      /* If the exec fails, try to dump anyway.  */
+      perror ("execvp");
     }
 #endif /* HAVE_PERSONALITY_LINUX32 */
 
@@ -1075,25 +1075,74 @@ main (int argc, char **argv)
       exit (0);
     }
 
-  if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args))
+  if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args)
+      || argmatch (argv, argc, "-daemon", "--daemon", 5, &dname_arg, &skip_args))
     {
 #ifndef DOS_NT
-      pid_t f = fork ();
-      int nfd;
+      pid_t f;
+
+      /* Start as a daemon: fork a new child process which will run the
+	 rest of the initialization code, then exit.
+
+	 Detaching a daemon requires the following steps:
+	 - fork
+	 - setsid
+	 - exit the parent
+	 - close the tty file-descriptors
+
+	 We only want to do the last 2 steps once the daemon is ready to
+	 serve requests, i.e. after loading .emacs (initialization).
+	 OTOH initialization may start subprocesses (e.g. ispell) and these
+	 should be run from the proper process (the one that will end up
+	 running as daemon) and with the proper "session id" in order for
+	 them to keep working after detaching, so fork and setsid need to be
+	 performed before initialization.
+
+	 We want to avoid exiting before the server socket is ready, so
+	 use a pipe for synchronization.  The parent waits for the child
+	 to close its end of the pipe (using `daemon-initialized')
+	 before exiting.  */
+      if (pipe (daemon_pipe) == -1)
+	{
+	  fprintf (stderr, "Cannot pipe!\n");
+	  exit (1);
+	}
+
+      f = fork ();
       if (f > 0)
-	exit (0);
+	{
+	  int retval;
+	  char buf[1];
+
+	  /* Close unused writing end of the pipe.  */
+	  close (daemon_pipe[1]);
+
+	  /* Just wait for the child to close its end of the pipe.  */
+	  do
+	    {
+	      retval = read (daemon_pipe[0], &buf, 1);
+	    }
+	  while (retval == -1 && errno == EINTR);
+
+	  if (retval < 0)
+	    {
+	      fprintf (stderr, "Error reading status from child\n");
+	      exit (1);
+	    }
+
+	  close (daemon_pipe[0]);
+	  exit (0);
+	}
       if (f < 0)
 	{
 	  fprintf (stderr, "Cannot fork!\n");
 	  exit (1);
 	}
 
-      nfd = open ("/dev/null", O_RDWR);
-      dup2 (nfd, 0);
-      dup2 (nfd, 1);
-      dup2 (nfd, 2);
-      close (nfd);
-      is_daemon = 1;
+      if (dname_arg)
+       	daemon_name = xstrdup (dname_arg);
+      /* Close unused reading end of the pipe.  */
+      close (daemon_pipe[0]);
 #ifdef HAVE_SETSID
       setsid();
 #endif
@@ -2387,10 +2436,55 @@ decode_env_path (evarname, defalt)
 }
 
 DEFUN ("daemonp", Fdaemonp, Sdaemonp, 0, 0, 0,
-       doc: /* Return t if the current emacs process is a daemon.  */)
+       doc: /* Return non-nil if the current emacs process is a daemon.
+If the daemon was given a name argument, return that name. */)
   ()
 {
-  return is_daemon ? Qt : Qnil;
+  if (IS_DAEMON)
+    if (daemon_name)
+      return build_string (daemon_name);
+    else
+      return Qt;
+  else
+    return Qnil;
+}
+
+DEFUN ("daemon-initialized", Fdaemon_initialized, Sdaemon_initialized, 0, 0, 0,
+       doc: /* Mark the Emacs daemon as being initialized.
+This finishes the daemonization process by doing the other half of detaching
+from the parent process and its tty file descriptors.  */)
+  ()
+{
+  int nfd;
+
+  if (!IS_DAEMON)
+    error ("This function can only be called if emacs is run as a daemon");
+
+  if (daemon_pipe[1] < 0)
+    error ("The daemon has already been initialized");
+
+  if (NILP (Vafter_init_time))
+    error ("This function can only be called after loading the init files");
+
+  /* Get rid of stdin, stdout and stderr.  */
+  nfd = open ("/dev/null", O_RDWR);
+  dup2 (nfd, 0);
+  dup2 (nfd, 1);
+  dup2 (nfd, 2);
+  close (nfd);
+
+  /* Closing the pipe will notify the parent that it can exit.
+     FIXME: In case some other process inherited the pipe, closing it here
+     won't notify the parent because it's still open elsewhere, so we
+     additionally send a byte, just to make sure the parent really exits.
+     Instead, we should probably close the pipe in start-process and
+     call-process to make sure the pipe is never inherited by
+     subprocesses.  */
+  write (daemon_pipe[1], "\n", 1);
+  close (daemon_pipe[1]);
+  /* Set it to an invalid value so we know we've already run this function.  */
+  daemon_pipe[1] = -1;
+  return Qt;
 }
 
 void
@@ -2412,6 +2506,7 @@ syms_of_emacs ()
   defsubr (&Sinvocation_name);
   defsubr (&Sinvocation_directory);
   defsubr (&Sdaemonp);
+  defsubr (&Sdaemon_initialized);
 
   DEFVAR_LISP ("command-line-args", &Vcommand_line_args,
 	       doc: /* Args passed by shell to Emacs, as a list of strings.
@@ -2509,6 +2604,9 @@ was found.  */);
 	       doc: /* Value of `current-time' after loading the init files.
 This is nil during initialization.  */);
   Vafter_init_time = Qnil;
+
+  /* Make sure IS_DAEMON starts up as false.  */
+  daemon_pipe[1] = 0;
 }
 
 /* arch-tag: 7bfd356a-c720-4612-8ab6-aa4222931c2e

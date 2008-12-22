@@ -109,6 +109,10 @@ char *w32_getenv ();
 #ifndef NO_RETURN
 #define NO_RETURN
 #endif
+
+/* Additional space when allocating buffers for filenames, etc.  */
+#define EXTRA_SPACE 100
+
 
 /* Name used to invoke this program.  */
 char *progname;
@@ -124,9 +128,6 @@ int eval = 0;
 
 /* Nonzero means don't open a new frame.  Inverse of --create-frame.  */
 int current_frame = 1;
-
-/* Nonzero means open a new graphical frame. */
-int window_system = 0;
 
 /* The display on which Emacs should work.  --display.  */
 char *display = NULL;
@@ -156,6 +157,7 @@ struct option longopts[] =
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
   { "tty",	no_argument,       NULL, 't' },
+  { "nw",	no_argument,       NULL, 't' },
   { "create-frame", no_argument,   NULL, 'c' },
   { "alternate-editor", required_argument, NULL, 'a' },
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
@@ -315,8 +317,8 @@ w32_get_resource (predefined, key, type)
 	{
 	  result = (char *) xmalloc (cbData);
 
-	  if ((RegQueryValueEx (hrootkey, key, NULL, type, result, &cbData) != ERROR_SUCCESS) ||
-	      (*result == 0))
+	  if ((RegQueryValueEx (hrootkey, key, NULL, type, result, &cbData) != ERROR_SUCCESS)
+	      || (*result == 0))
 	    {
 	      free (result);
 	      result = NULL;
@@ -348,8 +350,13 @@ w32_getenv (envvar)
 
   if (! (value = w32_get_resource (HKEY_CURRENT_USER, envvar, &dwType)) &&
       ! (value = w32_get_resource (HKEY_LOCAL_MACHINE, envvar, &dwType)))
-    /* Not found in the registry.  */
-    return NULL;
+    {
+      /* "w32console" is what Emacs on Windows uses for tty-type under -nw.  */
+      if (strcmp (envvar, "TERM") == 0)
+	return xstrdup ("w32console");
+      /* Found neither in the environment nor in the registry.  */
+      return NULL;
+    }
 
   if (dwType == REG_SZ)
     /* Registry; no need to expand.  */
@@ -430,6 +437,13 @@ w32_execvp (path, argv)
 #undef execvp
 #define execvp w32_execvp
 
+/* Emulation of ttyname for Windows.  */
+char *
+ttyname (int fd)
+{
+  return "CONOUT$";
+}
+
 #endif /* WINDOWSNT */
 
 /* Display a normal or error message.
@@ -474,7 +488,7 @@ decode_options (argc, argv)
 
   while (1)
     {
-      int opt = getopt_long (argc, argv,
+      int opt = getopt_long_only (argc, argv,
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 			     "VHnea:s:f:d:tc",
 #else
@@ -510,11 +524,9 @@ decode_options (argc, argv)
 	     to allow it, for the occasional case where the user is
 	     connecting with a w32 client to a server compiled with X11
 	     support.  */
-#if 1 /* !defined WINDOWS */
 	case 'd':
 	  display = optarg;
 	  break;
-#endif
 
 	case 'n':
 	  nowait = 1;
@@ -549,40 +561,27 @@ decode_options (argc, argv)
 	}
     }
 
-  /* We used to set `display' to $DISPLAY by default, but this changed the
-     default behavior and is sometimes inconvenient.  So instead of forcing
-     users to say "--display ''" when they want to use Emacs's existing tty
-     or display connection, we force them to use "--display $DISPLAY" if
-     they want Emacs to connect to their current display.
-     -c still implicitly passes --display $DISPLAY unless -t was specified
-     so as to try and mimick the behavior of `emacs' which either uses
-     the current tty or the current $DISPLAY.  */
+  /* If the -c option is used (without -t) and no --display argument
+     is provided, try $DISPLAY.
+     Without the -c option, we used to set `display' to $DISPLAY by
+     default, but this changed the default behavior and is sometimes
+     inconvenient.  So we force users to use "--display $DISPLAY" if
+     they want Emacs to connect to their current display.  */
   if (!current_frame && !tty && !display)
     display = egetenv ("DISPLAY");
 
+  /* A null-string display is invalid.  */
   if (display && strlen (display) == 0)
     display = NULL;
 
-  if (!tty && display)
-    window_system = 1;
-#if !defined (WINDOWSNT)
-  else if (!current_frame)
+  /* If no display is available, new frames are tty frames.  */
+  if (!current_frame && !display)
     tty = 1;
-#endif
 
   /* --no-wait implies --current-frame on ttys when there are file
-       arguments or expressions given.  */
+     arguments or expressions given.  */
   if (nowait && tty && argc - optind > 0)
     current_frame = 1;
-
-  if (current_frame)
-    {
-      tty = 0;
-      window_system = 0;
-    }
-
-  if (tty)
-    window_system = 0;
 }
 
 
@@ -601,7 +600,7 @@ Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
 The following OPTIONS are accepted:\n\
 -V, --version		Just print version info and return\n\
 -H, --help    		Print this usage information message\n\
--t, --tty    		Open a new Emacs frame on the current terminal\n\
+-nw, -t, --tty 		Open a new Emacs frame on the current terminal\n\
 -c, --create-frame    	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
@@ -892,14 +891,16 @@ get_server_config (server, authentication)
 
       if (home)
         {
-          char *path = alloca (32 + strlen (home) + strlen (server_file));
+          char *path = alloca (strlen (home) + strlen (server_file)
+			       + EXTRA_SPACE);
           sprintf (path, "%s/.emacs.d/server/%s", home, server_file);
           config = fopen (path, "rb");
         }
 #ifdef WINDOWSNT
       if (!config && (home = egetenv ("APPDATA")))
         {
-          char *path = alloca (32 + strlen (home) + strlen (server_file));
+          char *path = alloca (strlen (home) + strlen (server_file)
+			       + EXTRA_SPACE);
           sprintf (path, "%s/.emacs.d/server/%s", home, server_file);
           config = fopen (path, "rb");
         }
@@ -994,6 +995,57 @@ strprefix (char *prefix, char *string)
   return !strncmp (prefix, string, strlen (prefix));
 }
 
+/* Get tty name and type.  If successful, return the type in TTY_TYPE
+   and the name in TTY_NAME, and return 1.  Otherwise, fail if NOABORT
+   is zero, or return 0 if NOABORT is non-zero.  */
+
+int
+find_tty (char **tty_type, char **tty_name, int noabort)
+{
+  char *type = egetenv ("TERM");
+  char *name = ttyname (fileno (stdout));
+
+  if (!name)
+    {
+      if (noabort)
+	return 0;
+      else
+	{
+	  message (TRUE, "%s: could not get terminal name\n", progname);
+	  fail ();
+	}
+    }
+
+  if (!type)
+    {
+      if (noabort)
+	return 0;
+      else
+	{
+	  message (TRUE, "%s: please set the TERM variable to your terminal type\n",
+		   progname);
+	  fail ();
+	}
+    }
+
+  if (strcmp (type, "eterm") == 0)
+    {
+      if (noabort)
+	return 0;
+      else
+	{
+	  /* This causes nasty, MULTI_KBOARD-related input lockouts. */
+	  message (TRUE, "%s: opening a frame in an Emacs term buffer"
+		   " is not supported\n", progname);
+	  fail ();
+	}
+    }
+
+  *tty_name = name;
+  *tty_type = type;
+  return 1;
+}
+
 
 #if !defined (NO_SOCKETS_IN_FILE_SYSTEM)
 
@@ -1082,6 +1134,8 @@ handle_sigtstp (int signalnum)
 
   errno = old_errno;
 }
+
+
 /* Set up signal handlers before opening a frame on the current tty.  */
 
 void
@@ -1127,6 +1181,7 @@ set_local_socket ()
     int default_sock = !socket_name;
     int saved_errno = 0;
     char *server_name = "server";
+    char *tmpdir;
 
     if (socket_name && !index (socket_name, '/') && !index (socket_name, '\\'))
       { /* socket_name is a file name component.  */
@@ -1137,9 +1192,13 @@ set_local_socket ()
 
     if (default_sock)
       {
- 	socket_name = alloca (100 + strlen (server_name));
- 	sprintf (socket_name, "/tmp/emacs%d/%s",
- 		 (int) geteuid (), server_name);
+	tmpdir = egetenv ("TMPDIR");
+	if (!tmpdir)
+	  tmpdir = "/tmp";
+	socket_name = alloca (strlen (tmpdir) + strlen (server_name)
+			      + EXTRA_SPACE);
+	sprintf (socket_name, "%s/emacs%d/%s",
+		 tmpdir, (int) geteuid (), server_name);
       }
 
     if (strlen (socket_name) < sizeof (server.sun_path))
@@ -1173,9 +1232,10 @@ set_local_socket ()
 	    if (pw && (pw->pw_uid != geteuid ()))
 	      {
 		/* We're running under su, apparently. */
-		socket_name = alloca (100 + strlen (server_name));
-		sprintf (socket_name, "/tmp/emacs%d/%s",
-			 (int) pw->pw_uid, server_name);
+		socket_name = alloca (strlen (tmpdir) + strlen (server_name)
+				      + EXTRA_SPACE);
+		sprintf (socket_name, "%s/emacs%d/%s",
+			 tmpdir, (int) pw->pw_uid, server_name);
 
 		if (strlen (socket_name) < sizeof (server.sun_path))
 		  strcpy (server.sun_path, socket_name);
@@ -1361,7 +1421,7 @@ main (argc, argv)
   /* Process options.  */
   decode_options (argc, argv);
 
-  if ((argc - optind < 1) && !eval && !tty && !window_system)
+  if ((argc - optind < 1) && !eval && current_frame)
     {
       message (TRUE, "%s: file name or argument required\n"
 	       "Try `%s --help' for more information\n",
@@ -1386,7 +1446,7 @@ main (argc, argv)
   w32_give_focus ();
 #endif
 
-  /* Send over our environment. */
+  /* Send over our environment and current directory. */
   if (!current_frame)
     {
       extern char **environ;
@@ -1399,11 +1459,6 @@ main (argc, argv)
           quote_argument (emacs_socket, environ[i]);
           send_to_emacs (emacs_socket, " ");
         }
-    }
-
-  /* Send over our current directory. */
-  if (!current_frame)
-    {
       send_to_emacs (emacs_socket, "-dir ");
       quote_argument (emacs_socket, cwd);
       send_to_emacs (emacs_socket, "/");
@@ -1424,46 +1479,27 @@ main (argc, argv)
       send_to_emacs (emacs_socket, " ");
     }
 
-  if (tty)
+  /* If using the current frame, send tty information to Emacs anyway.
+     In daemon mode, Emacs may need to occupy this tty if no other
+     frame is available.  */
+  if (tty || (current_frame && !eval))
     {
-      char *type = egetenv ("TERM");
-      char *tty_name = NULL;
-#ifndef WINDOWSNT
-      tty_name = ttyname (fileno (stdout));
-#endif
+      char *tty_type, *tty_name;
 
-      if (! tty_name)
-        {
-          message (TRUE, "%s: could not get terminal name\n", progname);
-          fail ();
-        }
-
-      if (! type)
-        {
-          message (TRUE, "%s: please set the TERM variable to your terminal type\n",
-                   progname);
-          fail ();
-        }
-
-      if (! strcmp (type, "eterm"))
-        {
-          /* This causes nasty, MULTI_KBOARD-related input lockouts. */
-          message (TRUE, "%s: opening a frame in an Emacs term buffer"
-                   " is not supported\n", progname);
-          fail ();
-        }
+      if (find_tty (&tty_type, &tty_name, !tty))
+	{
 #if !defined (NO_SOCKETS_IN_FILE_SYSTEM)
-      init_signals ();
+	  init_signals ();
 #endif
-
-      send_to_emacs (emacs_socket, "-tty ");
-      quote_argument (emacs_socket, tty_name);
-      send_to_emacs (emacs_socket, " ");
-      quote_argument (emacs_socket, type);
-      send_to_emacs (emacs_socket, " ");
+	  send_to_emacs (emacs_socket, "-tty ");
+	  quote_argument (emacs_socket, tty_name);
+	  send_to_emacs (emacs_socket, " ");
+	  quote_argument (emacs_socket, tty_type);
+	  send_to_emacs (emacs_socket, " ");
+	}
     }
 
-  if (window_system)
+  if (!current_frame && !tty)
     send_to_emacs (emacs_socket, "-window-system ");
 
   if ((argc - optind > 0))
@@ -1530,20 +1566,15 @@ main (argc, argv)
           send_to_emacs (emacs_socket, " ");
         }
     }
-  else
+  else if (eval)
     {
-      if (!tty && !window_system)
-        {
-          while ((str = fgets (string, BUFSIZ, stdin)))
-            {
-              if (eval)
-                send_to_emacs (emacs_socket, "-eval ");
-              else
-                send_to_emacs (emacs_socket, "-file ");
-              quote_argument (emacs_socket, str);
-            }
-          send_to_emacs (emacs_socket, " ");
-        }
+      /* Read expressions interactively.  */
+      while ((str = fgets (string, BUFSIZ, stdin)))
+	{
+	  send_to_emacs (emacs_socket, "-eval ");
+	  quote_argument (emacs_socket, str);
+	}
+      send_to_emacs (emacs_socket, " ");
     }
 
   send_to_emacs (emacs_socket, "\n");
@@ -1576,7 +1607,6 @@ main (argc, argv)
         {
           /* -window-system-unsupported: Emacs was compiled without X
               support.  Try again on the terminal. */
-          window_system = 0;
           nowait = 0;
           tty = 1;
           goto retry;

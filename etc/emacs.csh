@@ -6,6 +6,8 @@
 
 ### Commentary:
 
+## This file is obsolete.  Use emacsclient -a instead.
+
 ## This defines a csh command named `edit' which resumes an
 ## existing Emacs or starts a new one if none exists.
 ## One way or another, any arguments are passed to Emacs to specify files

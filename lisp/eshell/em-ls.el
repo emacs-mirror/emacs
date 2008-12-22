@@ -27,7 +27,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'eshell))
+(eval-when-compile
+  (require 'cl)
+  (require 'eshell))
 (require 'esh-util)
 (require 'esh-opt)
 

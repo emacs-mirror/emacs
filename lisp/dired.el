@@ -489,11 +489,12 @@ Return value is the number of files marked, or nil if none were marked."
 				     distinguish-one-marked)
   "Eval BODY with point on each marked line.  Return a list of BODY's results.
 If no marked file could be found, execute BODY on the current line.
-  If ARG is an integer, use the next ARG (or previous -ARG, if ARG<0)
-  files instead of the marked files.
-  In that case point is dragged along.  This is so that commands on
-  the next ARG (instead of the marked) files can be chained easily.
-  If ARG is otherwise non-nil, use current file instead.
+ARG, if non-nil, specifies the files to use instead of the marked files.
+  If ARG is an integer, use the next ARG (or previous -ARG, if
+   ARG<0) files.  In that case, point is dragged along.  This is
+   so that commands on the next ARG (instead of the marked) files
+   can be chained easily.
+  For any other non-nil value of ARG, use the current file.
 If optional third arg SHOW-PROGRESS evaluates to non-nil,
   redisplay the dired buffer after each file is processed.
 No guarantee is made about the position on the marked line.
@@ -558,10 +559,11 @@ The list is in the same order as the buffer, that is, the car is the
   first marked file.
 Values returned are normally absolute file names.
 Optional arg LOCALP as in `dired-get-filename'.
-Optional second argument ARG specifies files near point
- instead of marked files.  If ARG is an integer, use the next ARG files.
-  If ARG is otherwise non-nil, use file.  Usually ARG comes from
-  the command's prefix arg.
+Optional second argument ARG, if non-nil, specifies files near
+ point instead of marked files.  It usually comes from the prefix
+ argument.
+  If ARG is an integer, use the next ARG files.
+  Any other non-nil value means to use the current file instead.
 Optional third argument FILTER, if non-nil, is a function to select
   some of the files--those for which (funcall FILTER FILENAME) is non-nil.
 

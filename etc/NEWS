@@ -115,7 +115,7 @@ The Emacs 22 icon is available as `emacs22.png' in the same location.
 * Changes in Emacs 23.1
 
 ** Improved X Window System support
-
++++
 *** Emacs now supports using both X displays and ttys in one session.
 With an Emacs server active (M-x server-start), `emacsclient -t'
 creates a tty frame connected to the running emacs server.  You can
@@ -124,12 +124,12 @@ frame on the current $DISPLAY (or a tty frame if $DISPLAY is not set).
 
 You can test for the presence of this feature in your Lisp code by
 testing for the `multi-tty' feature.
-
++++
 **** Emacsclient can now open new terminal frames.
 Now, the default behavior is to open a new Emacs frame by default.
 Use the -c option to get the old behavior of opening files in the
 currently selected Emacs frame.
-
++++
 *** Emacs can now start in background, as a daemon when using the
 --daemon command line argument.  It disconnects from the terminal and
 starts the server.  Clients can connect and create graphical or
@@ -237,15 +237,15 @@ mode menus have been improved to include more functionality.
 +++
 *** The mode-line displays a `@', instead of `-', if the
 default-directory for the current buffer is on a remote machine.
-
+---
 *** The mode-line displays a mode menu when mouse-1 is clicked on a
 minor mode, in the same way as it already did for major modes.
 
 *** The `mode-line-emphasis' face is used to highlight certain
 mode-line information (e.g. waiting for a VC command to finish).
-
+---
 *** The mode-line tooltips have been improved to provide more details.
-
++++
 *** The VC, line/colum number and minor mode indicators on the mode
 line are now interactive: mouse-1 can be used on them to pop up a menu.
 
@@ -254,6 +254,7 @@ Set `delete-by-moving-to-trash' non-nil to use this.  Deleted files
 and directories will then be sent to the Recyle Bin on Windows, and
 to `trash-directory' on other systems.
 
++++
 ** Directory-local variables can now be defined.
 By default, Emacs looks in .dir-settings.el for directory-local
 variables.  For more information, see `set-directory-project' and
@@ -285,7 +286,14 @@ This is a convenience alias, so that one can write `(pop argv)'
 inside of --eval command line arguments in order to access
 following arguments.
 
++++
 ** The abbrev file is no longer read at startup in batch mode.
+
+** Emacs now supports invocation by an X session manager.
+It can save a session and restore it later.  See the documentation of
+the functions `emacs-session-save' and `emacs-session-restore'.
+(Actually, this feature was introduced with Emacs 22, but it was not
+documented.)
 
 * Incompatible Editing Changes in Emacs 23.1
 
@@ -325,6 +333,7 @@ taking continued lines and variable-width characters into account.
 Setting `line-move-visual' to nil reverts this to the previous
 behavior (motion by logical lines based on buffer contents alone).
 
++++
 ** C-x C-c now invokes `save-buffers-kill-terminal', and C-z now
 invokes `suspend-frame'.  This change is for compatibility with the
 new multi-tty support (see `Improved X Window System support' above).
@@ -344,10 +353,10 @@ region is active.  Otherwise, it fills the current paragraph.
 *** When Transient Mark mode is on, M-$ now checks spelling of the
 region if the region is active.  Otherwise, it checks spelling of the
 word at point.
-
++++
 *** When Transient Mark mode is on, TAB now indents the region if the
 region is active.
-
++++
 *** `use-empty-active-region' controls whether an empty active region
 in Transient Mark mode should make commands operate on that empty
 region.
@@ -424,7 +433,7 @@ buffer only on the second attempt to complete.  This was already
 supported in `partial-completion-mode'.
 
 ** Face changes
-
++++
 *** S-down-mouse-1 now pops up a menu for changing the font and text
 size of the default face in the current buffer.  The face is changed
 via face remapping (see below).
@@ -432,12 +441,12 @@ via face remapping (see below).
 *** FIXME face-remap
 
 ** Primary selection changes
-
++++
 *** If `select-active-regions' is t, setting the mark automatically
 makes the new region into the primary selection (for interaction with
 other window applications).  If you enable this, you might want to
 bind `mouse-yank-primary' to Mouse-2.
-
++++
 *** You can disable kill ring commands from accessing the primary
 selection by setting `x-select-enable-primary' to nil.
 
@@ -459,19 +468,20 @@ lines are truncated.  The default has been changed to 50.
 *** The new command balance-windows-area balances windows both
 vertically and horizontally.
 
-** Miscellaneous changes:
+*** pop-to-buffer now always sets input focus when the popped-to window
+is on a different frame.
 
+** Miscellaneous changes:
 +++
 *** C-l is bound to the new command recenter-top-bottom, rather than recenter.
 This moves the current line to window center, top and bottom on
 successive invokations.
 
 *** scroll-preserve-screen-position also preserves the column position.
-
++++
 *** If `yank-pop-change-selection' is t, rotating the kill ring also
 updates the selection or clipboard to the current yank, just as M-w
 would do so with the text it copies to the kill ring.
-
 +++
 *** C-M-% now shows replacement as it would look in the buffer, with
 `\N' and `\&' substituted according to the match.  Old behavior can be
@@ -481,12 +491,23 @@ restored by customizing `query-replace-show-replacement'.
 called with a prefix and the default directory is a remote file name.
 This is because some file name handlers (like ange-ftp) are not able to
 run processes remotely.
-
++++
 *** The new command kill-matching-buffers kills buffers whose name
 matches a regexp.
 
 *** The new commands `pp-macroexpand-expression' and
 `pp-macroexpand-last-sexp' pretty-print macro expansions.
+
+*** The new command `set-file-modes' allows to set file's mode bits.
+The mode bits can be specified in symbolic notation, like with GNU
+Coreutils, in addition to an octal number.
++++
+*** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
+requires confirmation before opening a non-existent file.
+
+*** `next-error-recenter' specifies how next-error should recenter the
+visited source file.  Its value can be a number (for example, 0 for
+top line, -1 for bottom line), or nil for no recentering.
 
 
 * New Modes and Packages in Emacs 23.1
@@ -506,9 +527,14 @@ It uses `auto-composition-function' (default `auto-compose-chars').
 D-Bus is an inter-process communication mechanism for applications
 residing on the same host.  See the manual for details.
 
-** Doc View Mode allows viewing of PDF, PostScript and DVI documents.
+** Doc View mode allows viewing of PDF, PostScript and DVI documents.
 One can also search for a regular expression in the document.  For
 details, see the commentary in doc-view.el.
+
+PDF and DVI files are now opened in Doc View mode by default.
+
+In Postcript mode, C-c C-c launches Doc View minor mode for viewing
+the postscript file.
 
 ** EasyPG provides an interface to the GNU Privacy Guard (GnuPG).
 It includes a GnuPG keyring browser, cryptographic operations on
@@ -601,7 +627,10 @@ specifies what to do when a buffer is visited, killed, or written.
 *** `apropos-library' describes the elements defined in a given library.
 *** Set `apropos-compact-layout' is you want a more compact (but wider) layout.
 
++++
 ** Archive Mode has basic support to browse Rar archives.
+Note, however, that the free version of the unrar command only handles
+versions 1 and 2 of the Rar format.
 
 ** BibTeX mode
 
@@ -658,14 +687,14 @@ associated with the current log entry.
 source code associated with a log entry.
 
 ** Compile and grep modes
-
+---
 *** The mode-line entry for the *compilation* and *grep* buffer is color coded.
 It has different colors for to show that: (a) the command is still
 running, (b) successful completion, (c) error.
-
++++
 *** compilation-auto-jump-to-first-error tells `compile' to jump to
 the first error encountered during compilations.
-
+---
 *** The `cc' alias for C++ files in `grep-file-aliases' has been
 improved. `hh' can be used to match C++ header files and `cchh' both
 C++ sources and headers.
@@ -685,15 +714,15 @@ This is controlled by `copyright-at-end-flag' (used by, e.g., change-log-mode).
 set a variable's `safe-local-variable' and `risky-local-variable' property.
 
 ** Diff mode
-
++++
 *** diff-refine-hunk highlights word-level details of changes in a diff hunk.
 It's used automatically as you move through hunks, see
 diff-auto-refine-mode.  It is bound to `C-c C-b'.
-
++++
 *** diff-add-change-log-entries-other-window iterates through the diff
 buffer and tries to create ChangeLog entries for each change.
 It is bound to `C-x 4 A'.
-
++++
 *** The new function `diff-show-trailing-whitespaces' shows
 trailing whitespace problems in the modified lines of a diff buffer.
 
@@ -757,8 +786,10 @@ authentication respectively.
 ** Help mode
 *** New macro `with-help-window' should set up help windows better
 than `with-output-to-temp-buffer' with `print-help-return-message'.
+
 *** New option `help-window-select' permits to customize whether help
 window shall be automatically selected when invoking help.
+
 *** New variable `help-window-point-marker' permits to specify new
 position of point in help window (for example in `view-lossage').
 
@@ -828,7 +859,7 @@ permits to customize indentation of LaTeX environments delimited
 by escaped parens.
 
 ** T-mouse Mode
-
+---
 *** If the gpm mouse server is running and t-mouse-mode is enabled,
 Emacs uses a Unix socket in a GNU/Linux console to talk to server,
 rather than faking events using the client program mev.  This C level
@@ -869,51 +900,47 @@ Tramp uses the package `auth-source' to read passwords from a file, if
 necessary.
 
 ** VC and related modes
-
++++
 *** VC now supports applying VC operations to a set of files at a time.
 This enables VC to work much more effectively with changeset-oriented
 version-control systems such as Subversion, GNU Arch, Mercurial, Git
 and Bzr.  VC will now pass a multiple-file commit to these systems as
 a single changeset.
-
++++
 *** vc-dir is a new command that displays file names and their VC
 status.  It allows to apply various VC operations to a file, a
 directory or a set of files/directories.
-
++++
 *** Clicking on the VC mode-line entry now pops the VC menu.
-
++++
 *** The VC mode-line entry now has a tooltip that explains the VC file status.
-
++++
 *** In VC Annotate mode, for VC systems that support changesets, you can
 see the diff for the whole changeset (not only for the current file)
-by typing the D key.
-
+by typing the D key.  Using the "Show changeset diff of revision at
+line" menu entry does the same thing.
++++
 *** In VC Annotate mode, you can type v to toggle the annotation visibility.
-
++++
 *** In VC Annotate mode, you can type f to show the file revision on
 the current line.
-
-*** In VC Annotate mode, for VC systems that support changesets, you
-can see the diff for the whole changeset (not only for the current
-file) by typing the D key or using the "Show changeset diff of
-revision at line" menu entry.
-
+---
 *** Asynchronous VC commands display [Waiting...] in the mode-line
 of the corresponding buffer as long as the asynchronous process is
 active.
-
++++
 *** Log entries can be modified using the key "e" in log-view.
 For now only CVS, RCS, SCCS and SVN support this functionality.
 This is done by the `modify-change-comment' backend function.
-
++++
 *** In log-view-mode, for VC systems that support changesets, you can
 see the diff for the whole changeset (not only for the current file)
 by typing the D key or using the "Changeset Diff" menu entry.
-
++++
 *** In Log Edit mode,  C-c C-d now shows the diff for the files involved.
 
 *** vc-git supports the "git grep" command.
-
++++
 *** VC Support for Meta-CVS has been removed for lack of maintainer able
 to update it to the new VC.
 
@@ -925,11 +952,11 @@ on the corresponding remote system.
 
 *** Eldoc highlights the function argument under point
 with the face `eldoc-highlight-function-argument'.
-
++++
 *** In Etags, the --members option is now the default.
 Use --no-members if you want the old default behavior of not tagging
 struct members in C, members variables in C++ and variables in PHP.
-
++++
 *** The `gdb' command only works with the graphical interface now.
 Use `gud-gdb' if you want the (old) text command mode.
 
@@ -1031,11 +1058,14 @@ freetype library, giving access to a wider range of font formats.
 
 * Incompatible Lisp Changes in Emacs 23.1
 
++++
 ** Variables cannot be both buffer-local and frame-local any more.
 
++++
 ** `functionp' returns nil for special forms.
 I.e., it only returns t for objects that can be passed to `funcall'.
 
++++
 ** The behavior of map-char-table has changed.  It may call the
 specified function with a cons (FROM . TO) as a key if characters in
 that range have the same value.
@@ -1058,6 +1088,7 @@ checking/manipulating elements directly, use the new functions
 `byte-compile-warning-enabled-p', `byte-compile-disable-warning', and
 `byte-compile-enable-warning.'
 
++++
 ** `mode-name' is no longer guaranteed to be a string.
 Use `(format-mode-line mode-name)' to ensure a string value.
 
@@ -1091,6 +1122,9 @@ functions and variables (formerly used for Tamil script).
 
 * Lisp Changes in Emacs 23.1
 
+** New coding system alias `emacs-internal'.
+
++++
 ** New primitives `list-system-processes' and `system-process-attributes'
 let Lisp programs access the processes that are running on the local
 machine.  See the doc strings of these functions for more details.
@@ -1101,20 +1135,25 @@ don't, these primitives will return nil.
 ** New variable `user-emacs-directory'.
 Use this instead of "~/.emacs.d".
 
++++
 ** If a local hook function has a non-nil `permanent-local-hook'
 property, `kill-all-local-variables' does not remove it from the local
 value of the hook variable; it remains even if you change major modes.
 
++++
 ** `frame-inherited-parameters' lets new frames inherit parameters from
 the selected frame.
 
++++
 ** New keymap `input-decode-map' overrides like key-translation-map, but
 applies before function-key-map.  Also it is terminal-local contrary to
 key-translation-map.  Terminal-specific key-sequences are generally added to
 this map rather than to function-key-map now.
 
++++
 ** `ignore-errors' is now a standard macro (does not require the CL package).
 
++++
 ** `interprogram-paste-function' can now return one string or a list
 of strings.  In the latter case, Emacs puts the second and following
 strings on the kill ring.
@@ -1128,8 +1167,10 @@ like this:
 	(foo bar)
       ((debug error) nil))
 
++++
 ** clone-indirect-buffer now runs the clone-indirect-buffer-hook.
 
++++
 ** `beginning-of-defun-function' now takes one argument, the count
 given to `beginning-of-defun'.
 
@@ -1145,20 +1186,24 @@ undefined functions.
 
 ** Changes to interactive function handling
 
++++
 *** The new interactive spec code ^ says to first call
 handle-shift-selection if shift-select-mode is non-nil, before reading
 the command arguments.  This is used for shift-selection (see above).
 
++++
 *** Built-in functions can now have an interactive specification that
 is not a prompt string.  If the `intspec' parameter of a `DEFUN'
 starts with a `(', the string is evaluated as a Lisp form.
 
++++
 *** The interactive-form of a function can be added post-facto via the
 `interactive-form' symbol property.  Mostly useful to add complex
 interactive forms to subroutines.
 
 ** Region changes
 
++++
 *** Commands should use `use-region-p' to test whether there is
 an active region that they should operate on.
 
@@ -1167,6 +1212,7 @@ enabled and there is an active region.  This is NOT the best function
 to use to test whether a command should operate on the region instead
 of the usual behavior -- for that, use `use-region-p'.
 
++++
 *** If a command sets `transient-mark-mode' to (only . OLDVAL), that
 means to activate transient-mark-mode temporarily, until the next
 unshifted point motion command or mark deactivation.  Afterwards,
@@ -1175,25 +1221,50 @@ reset transient-mark-mode to the value OLDVAL.  The values `only' and
 
 ** Emacs session information
 
++++
 *** The new variables `before-init-time' and `after-init-time' record the
 value of `current-time' before and after Emacs loads the init files.
 
++++
 *** The new function `emacs-uptime' returns the uptime of an Emacs instance.
 
++++
 *** The new function `emacs-init-time' returns the duration of the
 Emacs initialization.
 
 ** Changes affecting display-buffer
 
++++
 *** New value nil for split-height-threshold inhibits vertical splitting
 unless there's no other window.
 
++++
 *** New option split-width-threshold controls horizontal splitting.
 
++++
 *** A window can be split horizontally even when it's not full-width.
 
++++
 *** New option split-window-preferred-function can be set to a function
 to override the default splitting mechanism of display-buffer.
+
++++
+*** If pop-up-frames has the value `graphic-only', display-buffer only
+makes a separate frame on graphic displays.
+
+** Ordering of recently selected windows and buffer list
+
+*** select-frame and set-frame-selected-window have new optional
+argument NORECORD.
+
+*** New macro save-selected-window-norecord
+
+** Window parameters can now be defined.
+These are analogous to frame parameters, but are associated with
+individual windows.
+
+*** The new functions window-parameters, window-parameter, and
+set-window-parameter are used to query and set window parameters.
 
 ** Minibuffer and completion changes
 +++
@@ -1203,18 +1274,22 @@ functions `read-from-minibuffer', `read-string', `read-command',
 are available for inserting into the minibuffer by typing `M-n'.
 For empty input these functions return the first element of this list.
 
++++
 *** New function `read-regexp' uses the regexp history and some useful
 regexp defaults (string at point, last Isearch/replacement regexp/string)
 via M-n when reading a regexp in the minibuffer.
 
++++
 *** minibuffer-local-must-match-filename-map is now named
 minibuffer-local-filename-must-match-map.
 
+---
 *** `all-completions' may now return the base size in the last cdr.
 Since this means the returned list is not properly nil-terminated, this
 is an incompatible change and is thus enabled by the new variable
 completion-all-completions-with-base-size.
 
++++
 *** The `require-match' argument to `completing-read' accepts a new value
 `confirm-only'.
 
@@ -1225,23 +1300,32 @@ completion-all-completions-with-base-size.
 *** New function `match-substitute-replacement' returns the result of
 `replace-match' without actually using it in the buffer.
 
++++
 *** The new variable `replace-search-function' determines the function
-to use for searching in query-replace and replace-string.
+to use for searching in query-replace and replace-string.  The
+function it specifies is called by `perform-replace' when its 4th
+argument is nil.
 
++++
 *** The new variable `replace-re-search-function' determines the
 function to use for searching in `query-replace-regexp',
 `replace-regexp', `query-replace-regexp-eval', and
-`map-query-replace-regexp'.
+`map-query-replace-regexp'.  The function it specifies is called by
+`perform-replace' when its 4th argument is non-nil.
 
++++
 *** New keymap `search-map' bound to `M-s' provides global bindings
 for search related commands.
 
++++
 *** New keymap `multi-query-replace-map' contains additonal keys bound
 to `automatic-all' and `exit-current' for multi-buffer interactive replacement.
 
+---
 *** The variable `inhibit-changing-match-data', if non-nil, prevents
 the search and match primitives from changing the match data.
 
+---
 *** New functions `word-search-forward-lax' and `word-search-backward-lax'.
 These are like `word-search-forward and `word-search-backward', except
 that the end of the search string need not match a word boundary,
@@ -1249,11 +1333,12 @@ unless it ends in whitespace.
 
 ** File handling changes
 
++++
 *** set-file-modes is now interactive and can take the mode value in
 symbolic notation thanks to auxiliary functions.
-
-*** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
-requires confirmation before opening a non-existent file.
++++
+*** file-local-variables-alist stores an alist of file-local
+variables defined in the current buffer.
 
 ** Process changes
 +++
@@ -1263,23 +1348,30 @@ but obeys file handlers.  The file handler is chosen based on
 and `process-file-shell-command' are also new; they call internally
 `start-file-process' and `process-file', respectively.
 
++++
 *** The new function `process-lines' executes an external program and
 returns its output as a list of lines.
 
 ** Character code, representation, and charset changes.
 
++++
 The character code space is now 0x0..0x3FFFFF with no gap.
 Characters of code 0x0..0x10FFFF are Unicode characters of the same code points.
 Characters of code 0x3FFF80..0x3FFFFF are raw 8-bit bytes.
 
++++
 Generic characters no longer exist.
 
++++
 In buffers and strings, characters are represented by UTF-8 byte
 sequences in a multibyte buffer/string.
 
 The concept of a charset has changed.  A single character may belong
 to multiple charsets (e.g. a-grave, U+00E0, belongs to charsets
 unicode, iso-8859-1, iso-8859-3, etc).
+
+*** The functions `split-char' and `make-char' now accept up to 4
+positional codes instead of just 2.
 
 *** The functions `encode-char' and `decode-char' now accept any character sets.
 
@@ -1324,9 +1416,6 @@ This replaces `char-valid-p', which is now obsolete.
 a character code property.
 
 *** New variables:
-
-**** file-local-variables-alist stores an alist of file-local
-variables defined in the current buffer.
 
 **** `find-word-boundary-function-table' is a char-table of functions to
 search for a word boundary.
@@ -1462,6 +1551,7 @@ which is not used directly any more.
 
 *** New hooks:
 
++++
 **** before-hack-local-variables-hook is called after setting new
 variable file-local-variables-alist, and before actually applying the
 file-local variables.
@@ -1498,6 +1588,7 @@ invisible-p to check whether it would cause the text to be invisible.
 Convenient when checking invisibility of text with no buffer position
 (e.g. in before/after-strings).
 
++++
 *** `clear-image-cache' can be told to flush only images of a specific file.
 
 *** `vertical-motion' can now be given a goal column.
@@ -1509,55 +1600,70 @@ times the default column width.
 
 ** Miscellaneous new functions
 
++++
 *** `format-seconds' converts a number of seconds into a readable
 string of days, hours, etc.
 
++++
 *** `apply-partially' performs a "curried" application of a function.
 
++++
 *** `read-shell-command' does what its name says, with completion.  It
 uses the minibuffer-local-shell-command-map for that.
 
++++
 *** `buffer-swap-text' swaps text between two buffers.  This can be
 useful for modes such as tar-mode, archive-mode, RMAIL.
 
++++
 *** `read-color' reads a color name using the minibuffer.
 
++++
 *** `face-all-attributes' returns an alist describing all the basic
 attributes of a given face.
 
-*** `window-full-width-p' returns t if a window is as wide as its
-frame.
++++
+*** `split-string-and-unquote' splits a string into a list of substrings
+on the boundaries of a given delimiter, and unquotes the substrings that
+are quoted.  Useful for taking apart shell commands.
 
-*** `split-string-and-unquote' does (what?)
++++
+*** `combine-and-quote-strings' produces a single string from a list of strings
+sticking a separator string in between each pair, and quoting those
+strings that include the separator as their substring.  Useful for
+consing shell command lines from the individual arguments.
 
-*** `combine-and-quote-strings' does (what?)
-
++++
 *** `image-refresh' refreshes all images associated with a given image
 specification.
 
++++
 *** The two new functions `looking-at-p' and `string-match-p' can do
 the same matching as `looking-at' and `string-match' without changing
 the match data.
 
++++
 *** The two new functions `make-serial-process' and
 `serial-process-configure' provide a Lisp interface to the new serial
 port support (see Emacs changes, above).
 
+*** `locate-user-emacs-file' helps packages to select the appropriate
+place to save user-specific files.  It defaults to `user-emacs-directory'
+unless the file already exists at $HOME.
+
 ** Miscellaneous new variables
 
++++
 *** `this-command-keys-shift-translated' is non-nil if the key
 sequence invoking the current command was found by shift-translation.
 
 *** `window-point-insertion-type' determines the insertion-type of the
 marker used for window-point.
 
+---
 *** bookmark provides `bookmark-make-record-function' so special major
 modes like Info can teach bookmark.el how to save and restore the
 relevant data.
-
-*** `next-error-recenter' specifies how next-error should recenter the
-visited source file.  Its value can be a number (for example, 0 for
-top line, -1 for bottom line), or nil for no recentering.
 
 *** `fill-forward-paragraph-function' specifies which function the
 filling code should use to find paragraph boundaries.

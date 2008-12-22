@@ -1340,7 +1340,7 @@ ftfont_otf_features (gsub_gpos)
      OTF_GSUB_GPOS *gsub_gpos;
 {
   Lisp_Object scripts, langsyses, features, sym;
-  int i, j, k;
+  int i, j, k, l;
 
   for (scripts = Qnil, i = gsub_gpos->ScriptList.ScriptCount - 1; i >= 0; i--)
     {
@@ -1359,7 +1359,10 @@ ftfont_otf_features (gsub_gpos)
 
 	  for (features = Qnil, k = otf_langsys->FeatureCount - 1; k >= 0; k--)
 	    {
-	      OTF_TAG_SYM (sym, gsub_gpos->FeatureList.Feature[k].FeatureTag);
+	      l = otf_langsys->FeatureIndex[k];
+	      if (l >= gsub_gpos->FeatureList.FeatureCount)
+		continue;
+	      OTF_TAG_SYM (sym, gsub_gpos->FeatureList.Feature[l].FeatureTag);
 	      features = Fcons (sym, features);
 	    }
 	  if (j >= 0)
@@ -1388,9 +1391,11 @@ ftfont_otf_capability (font)
   if (! otf)
     return Qnil;
   gsub_gpos = Fcons (Qnil, Qnil);
-  if (OTF_get_table (otf, "GSUB") == 0)
+  if (OTF_get_table (otf, "GSUB") == 0
+      && otf->gsub->FeatureList.FeatureCount > 0)
     XSETCAR (gsub_gpos, ftfont_otf_features (otf->gsub));
-  if (OTF_get_table (otf, "GPOS") == 0)
+  if (OTF_get_table (otf, "GPOS") == 0
+      && otf->gpos->FeatureList.FeatureCount > 0)
     XSETCDR (gsub_gpos, ftfont_otf_features (otf->gpos));
   return gsub_gpos;
 }
@@ -1803,7 +1808,7 @@ static int m17n_flt_initialized;
 
 extern Lisp_Object QCfamily;
 
-Lisp_Object
+static Lisp_Object
 ftfont_shape_by_flt (lgstring, font, ft_face, otf)
      Lisp_Object lgstring;
      struct font *font;

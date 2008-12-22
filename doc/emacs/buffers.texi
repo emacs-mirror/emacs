@@ -13,32 +13,31 @@ directory listing.  If you send a message with @kbd{C-x m}, a buffer named
 @samp{*mail*} is used to hold the text of the message.  When you ask for a
 command's documentation, that appears in a buffer called @samp{*Help*}.
 
+  Each buffer has a unique name, which can be of any length.  When a
+buffer is displayed in a window, its name is shown in the mode line
+(@pxref{Mode Line}).  The distinction between upper and lower case
+matters in buffer names.  Most buffers are made by visiting files, and
+their names are derived from the files' names; however, you can also
+create an empty buffer with any name you want.  A newly started Emacs
+has a buffer named @samp{*scratch*}, which is not associated with any
+file and can be used for evaluating Lisp expressions in Emacs
+(@pxref{Lisp Interaction}).
+
 @cindex selected buffer
 @cindex current buffer
-  At any time, one and only one buffer is @dfn{current}.  It is also
-called the @dfn{selected buffer}.  Often we say that a command operates on
-``the buffer'' as if there were only one; but really this means that the
-command operates on the current buffer (most commands do).
+  At any time, one and only one buffer is @dfn{current}.  This is also
+called the @dfn{selected buffer}.  We often say that a command
+operates on ``the buffer''; this really means that the command
+operates on the current buffer (most commands do).  When there is only
+one Emacs window, the buffer displayed in that window is current.
+When there are multiple windows present, the buffer displayed in the
+@dfn{selected window} is current.  @xref{Windows}.
 
-  When Emacs has multiple windows, each window has its own chosen
-buffer and displays it; at any time, only one of the windows is
-selected, and its chosen buffer is the current buffer.  Each window's
-mode line normally displays the name of the window's chosen buffer
-(@pxref{Windows}).
-
-  Each buffer has a name, which can be of any length, and you can select
-any buffer by giving its name.  Most buffers are made by visiting files,
-and their names are derived from the files' names.  But you can also create
-an empty buffer with any name you want.  A newly started Emacs has a buffer
-named @samp{*scratch*} which can be used for evaluating Lisp expressions in
-Emacs.  The distinction between upper and lower case matters in buffer
-names.
-
-  Each buffer records individually what file it is visiting, whether it is
-modified, and what major mode and minor modes are in effect in it
-(@pxref{Major Modes}).  Any Emacs variable can be made @dfn{local to} a
-particular buffer, meaning its value in that buffer can be different from
-the value in other buffers.  @xref{Locals}.
+  Each buffer records individually what file it is visiting (if any),
+whether it is modified, and what major mode and minor modes are in
+effect (@pxref{Major Modes}).  Any Emacs variable can be made
+@dfn{local to} a particular buffer, meaning its value in that buffer
+can be different from the value in other buffers.  @xref{Locals}.
 
 @cindex buffer size, maximum
   A buffer's size cannot be larger than some maximum, which is defined
@@ -85,12 +84,21 @@ selected buffer other than the current buffer.
 
 @kindex C-x b
 @findex switch-to-buffer
-  To select the buffer named @var{bufname}, type @kbd{C-x b @var{bufname}
-@key{RET}}.  This runs the command @code{switch-to-buffer} with argument
-@var{bufname}.  You can use completion to enter the buffer
-name (@pxref{Completion}).  An empty argument to @kbd{C-x b}
-specifies the buffer that was current most recently among those not
+  To select the buffer named @var{bufname}, type @kbd{C-x b
+@var{bufname} @key{RET}}.  This runs the command
+@code{switch-to-buffer} with argument @var{bufname}.  While entering
+the buffer name, you can use the usual minibuffer completion and
+history commands (@pxref{Minibuffer}).  An empty argument to @kbd{C-x
+b} specifies the buffer that was current most recently among those not
 now displayed in any window.
+
+  If you specify a buffer that does not exist, @kbd{C-x b} creates a
+new, empty buffer that is not visiting any file, and selects it for
+editing.  You can use such a buffer for making temporary notes.  If
+you try to save it, you are asked for the file name to use.  The new
+buffer's major mode is determined by the variable
+@code{default-major-mode}; the default value is Fundamental mode.
+@xref{Major Modes}.
 
 @kindex C-x @key{LEFT}
 @kindex C-x @key{RIGHT}
@@ -106,19 +114,23 @@ of most recent selection in the current frame), while @kbd{C-x @key{LEFT}}
 @findex switch-to-buffer-other-window
 @vindex even-window-heights
   To select a buffer in a window other than the current one, type
-@kbd{C-x 4 b @var{bufname} @key{RET}}.  This runs the command
-@code{switch-to-buffer-other-window} which displays the buffer
-@var{bufname} in another window.  By default, if displaying the buffer
-causes two vertically adjacent windows to be displayed, the heights of
-those windows are evened out; to countermand that and preserve the
-window configuration, set the variable @code{even-window-heights} to
-@code{nil}.
+@kbd{C-x 4 b} (@code{switch-to-buffer-other-window}).  This prompts
+for a buffer name using the minibuffer, displays that buffer in
+another window, and selects that window.  By default, if displaying
+the buffer causes two vertically adjacent windows to be displayed, the
+heights of those windows are evened out; to countermand that and
+preserve the window configuration, set the variable
+@code{even-window-heights} to @code{nil}.
 
 @kindex C-x 5 b
 @findex switch-to-buffer-other-frame
-  Similarly, @kbd{C-x 5 b @var{buffer} @key{RET}} runs the command
-@code{switch-to-buffer-other-frame} which selects a buffer in another
-frame.
+  Similarly, @kbd{C-x 5 b} (@code{switch-to-buffer-other-frame})
+prompts for a buffer name, displays that buffer in another frame, and
+selects that frame.
+
+  In addition, @kbd{C-x C-f}, and any other command for visiting a
+file, can also be used to switch to an existing file-visiting buffer.
+@xref{Visiting}.
 
 @vindex display-buffer-reuse-frames
   You can control how certain buffers are handled by these commands by
@@ -130,31 +142,18 @@ addition, if the value of @code{display-buffer-reuse-frames} is
 non-@code{nil}, and the buffer you want to switch to is already
 displayed in some frame, Emacs will just raise that frame.
 
-  Most buffers are created by visiting files, or by Emacs commands that
-want to display some text, but you can also create a buffer explicitly
-by typing @kbd{C-x b @var{bufname} @key{RET}}.  This makes a new, empty
-buffer that is not visiting any file, and selects it for editing.  Such
-buffers are used for making notes to yourself.  If you try to save one,
-you are asked for the file name to use.  The new buffer's major mode is
-determined by the value of @code{default-major-mode} (@pxref{Major
-Modes}).
-
-  Note that @kbd{C-x C-f}, and any other command for visiting a file,
-can also be used to switch to an existing file-visiting buffer.
-@xref{Visiting}.
-
-  @kbd{C-u M-g M-g}, that is @code{goto-line} with a prefix argument
-of just @kbd{C-u}, reads a number @var{n} using the minibuffer,
-selects the most recently selected buffer other than the current
-buffer in another window, and then moves point to the beginning of
-line number @var{n} in that buffer.  This is mainly useful in a buffer
-that refers to line numbers in another buffer: if point is on or just
-after a number, @code{goto-line} uses that number as the default for
-@var{n}.  Note that prefix arguments other than just @kbd{C-u} behave
-differently.  @kbd{C-u 4 M-g M-g} goes to line 4 in the @emph{current}
-buffer, without reading a number from the minibuffer.  (Remember that
-@kbd{M-g M-g} without prefix argument reads a number @var{n} and then
-moves to line number @var{n} in the current buffer.)
+  @kbd{C-u M-g M-g}, that is @code{goto-line} with a plain prefix
+argument, reads a number @var{n} using the minibuffer, selects the
+most recently selected buffer other than the current buffer in another
+window, and then moves point to the beginning of line number @var{n}
+in that buffer.  This is mainly useful in a buffer that refers to line
+numbers in another buffer: if point is on or just after a number,
+@code{goto-line} uses that number as the default for @var{n}.  Note
+that prefix arguments other than just @kbd{C-u} behave differently.
+@kbd{C-u 4 M-g M-g} goes to line 4 in the @emph{current} buffer,
+without reading a number from the minibuffer.  (Remember that @kbd{M-g
+M-g} without prefix argument reads a number @var{n} and then moves to
+line number @var{n} in the current buffer.  @xref{Moving Point}.)
 
   Emacs uses buffer names that start with a space for internal purposes.
 It treats these buffers specially in minor ways---for example, by
@@ -177,11 +176,11 @@ line in the list shows one buffer's name, major mode and visited file.
 The buffers are listed in the order that they were current; the
 buffers that were current most recently come first.
 
-  @samp{*} in the first field of a line indicates the buffer is
-``modified.''  If several buffers are modified, it may be time to save
-some with @kbd{C-x s} (@pxref{Save Commands}).  @samp{%} indicates a
-read-only buffer.  @samp{.} marks the current buffer.  Here is an
-example of a buffer list:@refill
+  @samp{.} in the first field of a line indicates that the buffer is
+current.  @samp{%} indicates a read-only buffer.  @samp{*} indicates
+that the buffer is ``modified.''  If several buffers are modified, it
+may be time to save some with @kbd{C-x s} (@pxref{Save Commands}).
+Here is an example of a buffer list:
 
 @smallexample
 CRM Buffer                Size  Mode              File
@@ -197,16 +196,15 @@ CRM Buffer                Size  Mode              File
 @end smallexample
 
 @noindent
-Note that the buffer @samp{*Help*} was made by a help request; it is
-not visiting any file.  The buffer @code{src} was made by Dired on the
-directory @file{~/cvs/emacs/src/}.  You can list only buffers that are
-visiting files by giving the command a prefix argument, as in
+The buffer @samp{*Help*} was made by a help request (@pxref{Help}); it
+is not visiting any file.  The buffer @code{src} was made by Dired on
+the directory @file{~/cvs/emacs/src/}.  You can list only buffers that
+are visiting files by giving the command a prefix argument, as in
 @kbd{C-u C-x C-b}.
 
   @code{list-buffers} omits buffers whose names begin with a space,
 unless they visit files: such buffers are used internally by Emacs.
 
-@need 2000
 @node Misc Buffer
 @section Miscellaneous Buffer Operations
 
@@ -291,28 +289,37 @@ programs can use it.  Here are some commands for killing buffers:
 Kill buffer @var{bufname} (@code{kill-buffer}).
 @item M-x kill-some-buffers
 Offer to kill each buffer, one by one.
+@item M-x kill-matching-buffers
+Offer to kill all buffers matching a regular expression.
 @end table
 
 @findex kill-buffer
-@findex kill-some-buffers
 @kindex C-x k
-
   @kbd{C-x k} (@code{kill-buffer}) kills one buffer, whose name you
 specify in the minibuffer.  The default, used if you type just
 @key{RET} in the minibuffer, is to kill the current buffer.  If you
 kill the current buffer, another buffer becomes current: one that was
 current in the recent past but is not displayed in any window now.  If
-you ask to kill a file-visiting buffer that is modified (has unsaved
-editing), then you must confirm with @kbd{yes} before the buffer is
-killed.
+you ask to kill a file-visiting buffer that is modified, then you must
+confirm with @kbd{yes} before the buffer is killed.
 
-  The command @kbd{M-x kill-some-buffers} asks about each buffer, one by
-one.  An answer of @kbd{y} means to kill the buffer.  Killing the current
-buffer or a buffer containing unsaved changes selects a new buffer or asks
-for confirmation just like @code{kill-buffer}.
+@findex kill-some-buffers
+  The command @kbd{M-x kill-some-buffers} asks about each buffer, one
+by one.  An answer of @kbd{y} means to kill the buffer, just like
+@code{kill-buffer}.  This command ignores buffers whose names begin
+with a space, which are used internally by Emacs.
 
-  The buffer menu feature (@pxref{Several Buffers}) is also convenient
-for killing various buffers.
+@findex kill-matching-buffers
+  The command @kbd{M-x kill-matching-buffers} prompts for a regular
+expression and kills all buffers whose names match that expression.
+@xref{Regexps}.  Like @code{kill-some-buffers}, it asks for
+confirmation before each kill.  This command normally ignores buffers
+whose names begin with a space, which are used internally by Emacs.
+To kill internal buffers as well, call @code{kill-matching-buffers}
+with a prefix argument.
+
+  The buffer menu feature is also convenient for killing various
+buffers.  @xref{Several Buffers}.
 
 @vindex kill-buffer-hook
   If you want to do something special every time a buffer is killed, you
@@ -332,23 +339,16 @@ for a mere hour.
 @vindex midnight-mode
 @vindex midnight-hook
   You can also have this buffer purging done for you, every day at
-midnight, by enabling Midnight mode.  Midnight mode operates each day at
-midnight; at that time, it runs @code{clean-buffer-list}, or whichever
-functions you have placed in the normal hook @code{midnight-hook}
-(@pxref{Hooks}).
-
-  To enable Midnight mode, use the Customization buffer to set the
-variable @code{midnight-mode} to @code{t}.  @xref{Easy Customization}.
+midnight, by enabling Midnight mode.  Midnight mode operates each day
+at midnight; at that time, it runs @code{clean-buffer-list}, or
+whichever functions you have placed in the normal hook
+@code{midnight-hook} (@pxref{Hooks}).  To enable Midnight mode, use
+the Customization buffer to set the variable @code{midnight-mode} to
+@code{t}.  @xref{Easy Customization}.
 
 @node Several Buffers
 @section Operating on Several Buffers
 @cindex buffer menu
-
-  The @dfn{buffer-menu} facility is like a ``Dired for buffers''; it allows
-you to request operations on various Emacs buffers by editing an Emacs
-buffer containing a list of them.  You can save buffers, kill them
-(here called @dfn{deleting} them, for consistency with Dired), or display
-them.
 
 @table @kbd
 @item M-x buffer-menu
@@ -357,19 +357,24 @@ Begin editing a buffer listing all Emacs buffers.
 Similar, but do it in another window.
 @end table
 
+  The @dfn{buffer menu} opened by @kbd{C-x C-b} (@pxref{List Buffers})
+does not merely list buffers.  It also allows you to perform various
+operations on buffers, through an interface similar to Dired
+(@pxref{Dired}).  You can save buffers, kill them (here called
+@dfn{deleting} them, for consistency with Dired), or display them.
+
 @findex buffer-menu
 @findex buffer-menu-other-window
-  The command @code{buffer-menu} writes a list of all Emacs
-buffers@footnote{Buffers which don't visit files and whose names begin
-with a space are omitted: these are used internally by Emacs.} into the
-buffer @samp{*Buffer List*}, and selects that buffer in Buffer Menu
-mode.
+  To use the buffer menu, type @kbd{C-x C-b} and switch to the window
+displaying the @samp{*Buffer List*} buffer.  You can also type
+@kbd{M-x buffer-menu} to open the buffer menu in the selected window.
+Alternatively, the command @kbd{M-x buffer-menu-other-window} opens
+the buffer menu in another window, and selects that window.
 
-  The buffer is read-only, and can be
-changed only through the special commands described in this section.
-The usual Emacs cursor motion commands can be used in the @samp{*Buffer
-List*} buffer.  The following commands apply to the buffer described on
-the current line.
+  The buffer menu is a read-only buffer, and can be changed only
+through the special commands described in this section.  The usual
+Emacs cursor motion commands can be used in this buffer.  The
+following commands apply to the buffer described on the current line:
 
 @table @kbd
 @item d
@@ -460,16 +465,6 @@ there.  You can reselect the @samp{*Buffer List*} buffer later, to
 perform the operations already requested, or you can kill it, or pay
 no further attention to it.
 
-  The list in the @samp{*Buffer List*} buffer looks exactly like the
-buffer list described in @ref{List Buffers}, because they really are
-the same.  The only difference between @code{buffer-menu} and
-@code{list-buffers} is that @code{buffer-menu} switches to the
-@samp{*Buffer List*} buffer in the selected window;
-@code{list-buffers} displays the same buffer in another window.  If
-you run @code{list-buffers} (that is, type @kbd{C-x C-b}) and select
-the buffer list manually, you can use all of the commands described
-here.
-
   Normally, the buffer @samp{*Buffer List*} is not updated
 automatically when buffers are created and killed; its contents are
 just text.  If you have created, deleted or renamed buffers, the way
@@ -485,11 +480,6 @@ Auto Revert mode applies to the @samp{*Buffer List*} buffer only if
 @ifnottex
 @xref{Autorevert, global-auto-revert-non-file-buffers}, for details.
 @end ifnottex
-
-
-  The command @code{buffer-menu-other-window} works the same as
-@code{buffer-menu}, except that it displays the buffers list in
-another window.
 
 @node Indirect Buffers
 @section Indirect Buffers
@@ -518,7 +508,7 @@ select it in another window (@code{clone-indirect-buffer-other-window}).
   The text of the indirect buffer is always identical to the text of its
 base buffer; changes made by editing either one are visible immediately
 in the other.  But in all other respects, the indirect buffer and its
-base buffer are completely separate.  They have different names,
+base buffer are completely separate.  They can have different names,
 different values of point, different narrowing, different markers,
 different major modes, and different local variables.
 
@@ -530,6 +520,7 @@ buffer, but killing an indirect buffer has no effect on its base buffer.
   One way to use indirect buffers is to display multiple views of an
 outline.  @xref{Outline Views}.
 
+@vindex clone-indirect-buffer-hook
   A quick and handy way to make an indirect buffer is with the command
 @kbd{M-x clone-indirect-buffer}.  It creates and selects an indirect
 buffer whose base buffer is the current buffer.  With a numeric
@@ -537,7 +528,8 @@ argument, it prompts for the name of the indirect buffer; otherwise it
 uses the name of the current buffer, with a @samp{<@var{n}>} suffix
 added.  @kbd{C-x 4 c} (@code{clone-indirect-buffer-other-window})
 works like @kbd{M-x clone-indirect-buffer}, but it selects the new
-buffer in another window.
+buffer in another window.  These functions run the hook
+@code{clone-indirect-buffer-hook} after creating the indirect buffer.
 
   The more general way to make an indirect buffer is with the command
 @kbd{M-x make-indirect-buffer}.  It creates an indirect buffer from

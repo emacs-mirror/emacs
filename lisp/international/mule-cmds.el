@@ -286,7 +286,10 @@ wrong, use this command again to toggle back to the right mode."
 		  (format "Command to execute with %s:" coding-system)))
 	 (cmd (key-binding keyseq))
 	 prefix)
-
+    ;; read-key-sequence ignores quit, so make an explicit check.
+    ;; Like many places, this assumes quit == C-g, but it need not be.
+    (if (char-equal last-input-char ?\C-g)
+	(keyboard-quit))
     (when (memq cmd '(universal-argument digit-argument))
       (call-interactively cmd)
 
@@ -2036,7 +2039,9 @@ Setting this variable directly does not take effect.  See
 	(condition-case nil
 	    (let ((str (eval (get-language-info language-name 'sample-text))))
 	      (if (stringp str)
-		  (insert "Sample text:\n  " str "\n\n")))
+		  (insert "Sample text:\n  "
+			  (replace-regexp-in-string "\n" "\n  " str)
+			  "\n\n")))
 	  (error nil))
 	(let ((input-method (get-language-info language-name 'input-method))
 	      (l (copy-sequence input-method-alist))

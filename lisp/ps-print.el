@@ -11,11 +11,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.3.2
+;; Version: 7.3.3
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "7.3.2"
-  "ps-print.el, v 7.3.2 <2008/01/09 vinicius>
+(defconst ps-print-version "7.3.3"
+  "ps-print.el, v 7.3.3 <2008/10/22 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1366,6 +1366,9 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgments
 ;; ---------------
 ;;
+;; Thanks to Friedrich Delgado Friedrichs <friedel@nomaden.org> for new label
+;; printer page sizes.
+;;
 ;; Thanks to Michael Piotrowski <mxp@dynalabs.de> for improving the DSC
 ;; compliance of the generated PostScript.
 ;;
@@ -1826,24 +1829,49 @@ If it's nil, automatic feeding takes place."
 
 ;;;###autoload
 (defcustom ps-page-dimensions-database
-  (list (list 'a4    (/ (* 72 21.0) 2.54) (/ (* 72 29.7) 2.54) "A4")
-	(list 'a3    (/ (* 72 29.7) 2.54) (/ (* 72 42.0) 2.54) "A3")
-	(list 'letter       (* 72  8.5)   (* 72 11.0)          "Letter")
-	(list 'legal        (* 72  8.5)   (* 72 14.0)          "Legal")
-	(list 'letter-small (* 72  7.68)  (* 72 10.16)         "LetterSmall")
-	(list 'tabloid      (* 72 11.0)   (* 72 17.0)          "Tabloid")
-	(list 'ledger       (* 72 17.0)   (* 72 11.0)          "Ledger")
-	(list 'statement    (* 72  5.5)   (* 72  8.5)          "Statement")
-	(list 'executive    (* 72  7.5)   (* 72 10.0)          "Executive")
-	(list 'a4small      (* 72  7.47)  (* 72 10.85)         "A4Small")
-	(list 'b4           (* 72 10.125) (* 72 14.33)         "B4")
-	(list 'b5           (* 72  7.16)  (* 72 10.125)        "B5"))
+  (list (list 'a4    (/ (* 72 21.0) 2.54)  (/ (* 72 29.7) 2.54) "A4")
+	(list 'a3    (/ (* 72 29.7) 2.54)  (/ (* 72 42.0) 2.54) "A3")
+	(list 'letter       (* 72  8.5)    (* 72 11.0)          "Letter")
+	(list 'legal        (* 72  8.5)    (* 72 14.0)          "Legal")
+	(list 'letter-small (* 72  7.68)   (* 72 10.16)         "LetterSmall")
+	(list 'tabloid      (* 72 11.0)    (* 72 17.0)          "Tabloid")
+	(list 'ledger       (* 72 17.0)    (* 72 11.0)          "Ledger")
+	(list 'statement    (* 72  5.5)    (* 72  8.5)          "Statement")
+	(list 'executive    (* 72  7.5)    (* 72 10.0)          "Executive")
+	(list 'a4small      (* 72  7.47)   (* 72 10.85)         "A4Small")
+	(list 'b4           (* 72 10.125)  (* 72 14.33)         "B4")
+	(list 'b5           (* 72  7.16)   (* 72 10.125)        "B5")
+	;; page sizes for label printer
+	;; NOTE: the page sizes below don't have n-up > 1.
+	'(addresslarge       236.0      99.0 "AddressLarge")
+	'(addresssmall       236.0      68.0 "AddressSmall")
+	'(cuthanging13        90.0     222.0 "CutHanging13")
+	'(cuthanging15        90.0     114.0 "CutHanging15")
+	'(diskette           181.0     136.0 "Diskette")
+	'(eurofilefolder     139.0     112.0 "EuropeanFilefolder")
+	'(eurofoldernarrow   526.0     107.0 "EuroFolderNarrow")
+	'(eurofolderwide     526.0     136.0 "EuroFolderWide")
+	'(euronamebadge      189.0     108.0 "EuroNameBadge")
+	'(euronamebadgelarge 223.0     136.0 "EuroNameBadgeLarge")
+	'(filefolder         230.0      37.0 "FileFolder")
+	'(jewelry             76.0     136.0 "Jewelry")
+	'(mediabadge         180.0     136.0 "MediaBadge")
+	'(multipurpose       126.0      68.0 "MultiPurpose")
+	'(retaillabel         90.0     104.0 "RetailLabel")
+	'(shipping           271.0     136.0 "Shipping")
+	'(slide35mm           26.0     104.0 "Slide35mm")
+	'(spine8mm           187.0      26.0 "Spine8mm")
+	'(topcoated          425.19685 136.0 "TopCoatedPaper")
+	'(topcoatedpaper     396.0     136.0 "TopcoatedPaper150")
+	'(vhsface            205.0     127.0 "VHSFace")
+	'(vhsspine           400.0      50.0 "VHSSpine")
+	'(zipdisk            156.0     136.0 "ZipDisk"))
   "*List associating a symbolic paper type to its width, height and doc media.
 See `ps-paper-type'."
   :type '(repeat (list :tag "Paper Type"
-		       (symbol :tag "Name")
-		       (number :tag "Width")
-		       (number :tag "Height")
+		       (symbol :tag "Symbol Name")
+		       (number :tag "Width in points")
+		       (number :tag "Height in points")
 		       (string :tag "Media")))
   :version "20"
   :group 'ps-print-page)
@@ -5256,7 +5284,8 @@ COL-MISSING is the number of columns missing to fill the sheet.")
     (and the-list
 	 (while (> ps-n-up-printing (caar the-list))
 	   (setq the-list (cdr the-list))))
-    (car the-list)))
+    (or (car the-list)
+	'(1 nil 1 1 0))))
 
 
 (defconst ps-n-up-filling-database

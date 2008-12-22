@@ -489,7 +489,7 @@ $(BLD)/sorted-doc.$(O) : \
 	$(SRC)/sorted-doc.c \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/src/config.h \
+	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/tcp.$(O) : \
 	$(SRC)/tcp.c

@@ -294,25 +294,18 @@
                 :value-type (list (regexp :tag "Opening formula delimiter")
                                   (regexp :tag "Closing formula delimiter"))))
 
-(defcustom calc-embedded-open-word
-  "^\\|[^-+0-9.eE]"
-  "*A regular expression for the opening delimiter of a formula used by calc-embedded-word."
+(defcustom calc-embedded-word-regexp
+  "[-+]?[0-9]+\\(\\.[0-9]+\\)?\\([eE][-+]?[0-9]+\\)?"
+  "A regular expression determining a word for calc-embedded-word."
   :group 'calc
   :type '(regexp))
 
-(defcustom calc-embedded-close-word
-  "$\\|[^-+0-9.eE]"
-  "*A regular expression for the closing delimiter of a formula used by calc-embedded-word."
-  :group 'calc
-  :type '(regexp))
-
-(defcustom calc-embedded-open-close-word-alist
+(defcustom calc-embedded-word-regexp-alist
   nil
-  "*Alist of major modes with pairs of word delimiters used by calc-embedded."
+  "*Alist of major modes with word regexps used by calc-embedded-word."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode")
-                :value-type (list (regexp :tag "Opening word delimiter")
-                                  (regexp :tag "Closing word delimiter"))))
+                :value-type (regexp :tag "Regexp for word")))
 
 (defcustom calc-embedded-open-plain
   "%%% "

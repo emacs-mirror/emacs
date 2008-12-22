@@ -29,9 +29,13 @@ signals, obtain status information, receive output from the process, or
 send input to it.
 
 @defun processp object
-This function returns @code{t} if @var{object} is a process,
-@code{nil} otherwise.
+This function returns @code{t} if @var{object} represents an Emacs
+subprocess, @code{nil} otherwise.
 @end defun
+
+  In addition to subprocesses of the current Emacs session, you can
+also access other processes running on your machine.  @xref{System
+Processes}.
 
 @menu
 * Subprocess Creation::      Functions that start subprocesses.
@@ -46,6 +50,7 @@ This function returns @code{t} if @var{object} is a process,
 * Output from Processes::    Collecting output from an asynchronous subprocess.
 * Sentinels::                Sentinels run when process run-status changes.
 * Query Before Exit::        Whether to query if exiting will kill a process.
+* System Processes::         Accessing other processes running on your system.
 * Transaction Queues::	     Transaction-based communication with subprocesses.
 * Network::                  Opening network connections.
 * Network Servers::          Network servers let Emacs accept net connections.
@@ -60,7 +65,7 @@ This function returns @code{t} if @var{object} is a process,
 @node Subprocess Creation
 @section Functions that Create Subprocesses
 
-  There are three functions that create a new subprocess in which to run
+  There are three primitives that create a new subprocess in which to run
 a program.  One of them, @code{start-process}, creates an asynchronous
 process and returns a process object (@pxref{Asynchronous Processes}).
 The other two, @code{call-process} and @code{call-process-region},
@@ -187,6 +192,43 @@ a shell command:
         " "
         (shell-quote-argument newfile))
 @end example
+@end defun
+
+@cindex quoting and unquoting shell command line
+  The following two functions help creating shell commands from
+individual argument strings and taking shell command lines apart into
+individual arguments.
+
+@defun split-string-and-unquote string &optional separators
+This function splits @var{string} into substrings at matches for the
+regular expression @var{separators}, like @code{split-string} does
+(@pxref{Creating Strings}), but it additionally removes quoting from
+the substrings.  It then makes a list of the substrings and returns
+it.
+
+If @var{separators} is omitted or nil, it defaults to @code{"\\s-+"},
+which is a regular expression that matches one or more characters with
+whitespace syntax (@pxref{Syntax Class Table}).
+
+The quoting this function supports is of 2 styles: by enclosing a
+whole string in double quotes @code{"@dots{}"}, or by quoting
+individual characters with a backslash escape @samp{\}.  The latter is
+also used in Lisp strings, so this function can handle those as well.
+@end defun
+
+@defun combine-and-quote-strings list-of-strings &optional separator
+This function concatenates @var{list-of-strings} into a single string,
+quoting each string in the list that needs quoting as it goes.  It
+also sticks the @var{separator} string in between each pair of strings
+in the result, and returns that result.  If @var{separator} is omitted
+or @code{nil}, it defaults to a blank @code{" "}.
+
+The strings in @var{list-of-strings} that need quoting are those that
+include @var{separator} as their substring.  Quoting a string encloses
+it in double quotes @code{"@dots{}"}.  In the simplest case, if you
+are consing a shell command from the individual command-line
+arguments, every argument that includes embedded blanks will be
+quoted.
 @end defun
 
 @node Synchronous Processes
@@ -442,6 +484,21 @@ This function is like @code{call-process-shell-command}, but uses
 @defun shell-command-to-string command
 This function executes @var{command} (a string) as a shell command,
 then returns the command's output as a string.
+@end defun
+
+@defun process-lines program &rest args
+This function runs @var{program} in a separate process, waits for it
+to finish, and returns its output as a list of strings.  Each string
+in the list holds a single line of text output by the program; the
+end-of-line characters are stripped from each line.  The arguments
+beyond @var{program}, @var{args}, are strings that specify
+command-line arguments with which to run the program.
+
+If @var{program} exits with a non-zero exit status, this function
+signals an error.
+
+This function works by calling @code{call-process}, so program output
+is decoded in the same way as for @code{call-process}.
 @end defun
 
 @node Asynchronous Processes
@@ -734,8 +791,8 @@ This function returns the name of @var{process}.
 
 @defun process-status process-name
 This function returns the status of @var{process-name} as a symbol.
-The argument @var{process-name} must be a process, a buffer, a
-process name (string) or a buffer name (string).
+The argument @var{process-name} must be a process, a buffer, or a
+process name (a string).
 
 The possible values for an actual subprocess are:
 
@@ -765,10 +822,6 @@ if @var{process-name} is not the name of an existing process.
 @end table
 
 @smallexample
-@group
-(process-status "shell")
-     @result{} run
-@end group
 @group
 (process-status (get-buffer "*shell*"))
      @result{} run
@@ -1028,7 +1081,7 @@ This function sends a signal to process @var{process}.  The argument
 
 The @var{process} argument can be a system process @acronym{ID}; that
 allows you to send signals to processes that are not children of
-Emacs.
+Emacs.  @xref{System Processes}.
 @end defun
 
 @node Output from Processes
@@ -1565,6 +1618,185 @@ is like this:
 @end group
 @end smallexample
 @end defun
+
+@node System Processes
+@section Accessing Other Processes
+@cindex system processes
+
+  In addition to accessing and manipulating processes that are
+subprocesses of the current Emacs session, Emacs Lisp programs can
+also access other processes running on the same machine.  We call
+these @dfn{system processes}, to distinguish between them and Emacs
+subprocesses.
+
+  Emacs provides several primitives for accessing system processes.
+Not all platforms support these primitives; on those which don't,
+these primitives return @code{nil}.
+
+@defun list-system-processes
+This function returns a list of all the processes running on the
+system.  Each process is identified by its @acronym{PID}, a numerical
+process ID that is assigned by the OS and distinguishes the process
+from all the other processes running on the same machine at the same
+time.
+@end defun
+
+@defun system-process-attributes pid
+This function returns an alist of attributes for the process specified
+by its process ID @var{pid}.  Each association in the alist is of the
+form @code{(@var{key} . @var{value})}, where @var{key} designates the
+attribute and @var{value} is the value of that attribute.  The various
+attribute @var{key}'s that this function can return are listed below.
+Not all platforms support all of these attributes; if an attribute is
+not supported, its association will not appear in the returned alist.
+Values that are numbers can be either integer or floating-point,
+depending on the magnitude of the value.
+
+@table @code
+@item euid
+The effective user ID of the user who invoked the process.  The
+corresponding @var{value} is a number.  If the process was invoked by
+the same user who runs the current Emacs session, the value is
+identical to what @code{user-uid} returns (@pxref{User
+Identification}).
+
+@item user
+User name corresponding to the process's effective user ID, a string.
+
+@item egid
+The group ID of the effective user ID, a number.
+
+@item group
+Group name corresponding to the effective user's group ID, a string.
+
+@item comm
+The name of the command that runs in the process.  This is a string
+that usually specifies the name of the executable file of the process,
+without the leading directories.  However, some special system
+processes can report strings that do not correspond to an executable
+file of a program.
+
+@item state
+The state code of the process.  This is a short string that encodes
+the scheduling state of the process.  Here's a list of the most
+frequently seen codes:
+
+@table @code
+@item "D"
+uninterruptible sleep (usually I/O)
+@item "R"
+running
+@item "S"
+interruptible sleep (waiting for some event)
+@item "T"
+stopped, e.g., by a job control signal
+@item "Z"
+``zombie'': a process that terminated, but was not reaped by its parent
+@end table
+
+@noindent
+For the full list of the possible states, see the manual page of the
+@command{ps} command.
+
+@item ppid
+The process ID of the parent process, a number.
+
+@item pgrp
+The process group ID of the process, a number.
+
+@item sess
+The session ID of the process.  This is a number that is the process
+ID of the process's @dfn{session leader}.
+
+@item ttname
+A string that is the name of the process's controlling terminal.  On
+Unix and GNU systems, this is normally the file name of the
+corresponding terminal device, such as @file{/dev/pts65}.
+
+@item tpgid
+The numerical process group ID of the foreground process group that
+uses the process's terminal.
+
+@item minflt
+The number of minor page faults caused by the process since its
+beginning.  (Minor page faults are those that don't involve reading
+from disk.)
+
+@item majflt
+The number of major page faults caused by the process since its
+beginning.  (Major page faults require a disk to be read, and are thus
+more expensive than minor page faults.)
+
+@item cminflt
+@itemx cmajflt
+Like @code{minflt} and @code{majflt}, but include the number of page
+faults for all the child processes of the given process.
+
+@item utime
+Time spent by the process in the user context, for running the
+application's code.  The corresponding @var{value} is in the
+@w{@code{(@var{high} @var{low} @var{microsec})}} format, the same
+format used by functions @code{current-time} (@pxref{Time of Day,
+current-time}) and @code{file-attributes} (@pxref{File Attributes}).
+
+@item stime
+Time spent by the process in the system (kernel) context, for
+processing system calls.  The corresponding @var{value} is in the same
+format as for @code{utime}.
+
+@item cutime
+@itemx cstime
+Like @code{utime} and @code{stime}, but includes the times of all the
+child processes of the given process.
+
+@item pri
+The numerical priority of the process.
+
+@item nice
+The @dfn{nice value} of the process, a number.  (Processes with smaller
+nice values get scheduled more favorably.)
+
+@item thcount
+The number of threads in the process.
+
+@item start
+The time the process was started, in the @w{@code{(@var{high}
+@var{low} @var{microsec})}} format used by @code{current-time} and
+@code{file-attributes}.
+
+@item etime
+The time elapsed since the process started, in the @w{@code{(@var{high}
+@var{low} @var{microsec})}} format.
+
+@item vsize
+The virtual memory size of the process, measured in kilobytes.
+
+@item rss
+The size of the process's @dfn{resident set}, the number of kilobytes
+occupied by the process in the machine's physical memory.
+
+@item pcpu
+The percentage of the CPU time used by the process since it started.
+The corresponding @var{value} is a floating-point number between 0 and
+100.
+
+@item pmem
+The percentage of the total physical memory installed on the machine
+used by the process's resident set.  The value is a floating-point
+number between 0 and 100.
+
+@item args
+The command-line with which the process was invoked.  This is a string
+in which individual command-line arguments are separated by blanks;
+whitespace characters that are embedded in the arguments are quoted as
+appropriate for the system's shell: escaped by backslash characters on
+GNU and Unix, and enclosed in double quote characters on Windows.
+Thus, this command-line string can be directly used in primitives such
+as @code{shell-command}.
+@end table
+
+@end defun
+
 
 @node Transaction Queues
 @section Transaction Queues
@@ -2120,6 +2352,7 @@ If the vector does not include the port number, @var{p}, or if
 @section Communicating with Serial Ports
 @cindex @file{/dev/tty}
 @cindex @file{COM1}
+@cindex serial connections
 
   Emacs can communicate with serial ports.  For interactive use,
 @kbd{M-x serial-term} opens a terminal window.  In a Lisp program,
@@ -2134,77 +2367,82 @@ mode line for configuration.
   A serial connection is represented by a process object which can be
 used similar to a subprocess or network process.  You can send and
 receive data and configure the serial port.  A serial process object
-has no process ID, and you can't send signals to it.
+has no process ID, you can't send signals to it, and the status codes
+are different from other types of processes.
 @code{delete-process} on the process object or @code{kill-buffer} on
 the process buffer close the connection, but this does not affect the
 device connected to the serial port.
 
   The function @code{process-type} returns the symbol @code{serial}
-for a process object representing a serial port.
+for a process object representing a serial port connection.
 
   Serial ports are available on GNU/Linux, Unix, and Windows systems.
 
-@defun serial-term port speed
+@deffn Command serial-term port speed
 Start a terminal-emulator for a serial port in a new buffer.
-@var{port} is the path or name of the serial port.  For example, this
-could be @file{/dev/ttyS0} on Unix.  On Windows, this could be
-@file{COM1}, or @file{\\.\COM10} (double the backslashes in strings).
+@var{port} is the name of the serial port to which to connect.  For
+example, this could be @file{/dev/ttyS0} on Unix.  On Windows, this
+could be @file{COM1}, or @file{\\.\COM10} (double the backslashes in
+Lisp strings).
 
 @var{speed} is the speed of the serial port in bits per second.  9600
-is a common value.  The buffer is in Term mode; see @code{term-mode}
-for the commands to use in that buffer.  You can change the speed and
-the configuration in the mode line menu.  @end defun
+is a common value.  The buffer is in Term mode; see @ref{Term Mode,,,
+emacs, The GNU Emacs Manual}, for the commands to use in that buffer.
+You can change the speed and the configuration in the mode line menu.
+@end deffn
 
 @defun make-serial-process &rest args
-@code{make-serial-process} creates a process and a buffer.  Arguments
-are specified as keyword/argument pairs.  The following arguments are
-defined:
+This function creates a process and a buffer.  Arguments are specified
+as keyword/argument pairs.  Here's the list of the meaningful keywords:
 
 @table @code
-@item :port port
-@var{port} (mandatory) is the path or name of the serial port.
-For example, this could be @file{/dev/ttyS0} on Unix.  On Windows,
-this could be @file{COM1}, or @file{\\.\COM10} for ports higher than
-@file{COM9} (double the backslashes in strings).
+@item :port @var{port}@r{ (mandatory)}
+This is the name of the serial port.  On Unix and GNU systems, this is
+a file name such as @file{/dev/ttyS0}.  On Windows, this could be
+@file{COM1}, or @file{\\.\COM10} for ports higher than @file{COM9}
+(double the backslashes in Lisp strings).
 
-@item :speed speed
-@var{speed} (mandatory) is handled by @code{serial-process-configure},
-which is called by @code{make-serial-process}.
+@item :speed @var{speed}@r{ (mandatory)}
+The speed of the serial port in bits per second.  This function calls
+@code{serial-process-configure} to handle the speed.
 
-@item :name name
-@var{name} is the name of the process.  If @var{name} is not given, the
-value of @var{port} is used.
+@item :name @var{name}
+The name of the process.  If @var{name} is not given, @var{port} will
+serve as the process name as well.
 
-@item :buffer buffer
-@var{buffer} is the buffer (or buffer-name) to associate with the
-process.  Process output goes at the end of that buffer, unless you
-specify an output stream or filter function to handle the output.  If
-@var{buffer} is not given, the value of @var{name} is used.
+@item :buffer @var{buffer}
+The buffer to associate with the process.  The value could be either a
+buffer or a string that names a buffer.  Process output goes at the
+end of that buffer, unless you specify an output stream or filter
+function to handle the output.  If @var{buffer} is not given, the
+process buffer's name is taken from the value of the @code{:name}
+keyword.
 
-@item :coding coding
+@item :coding @var{coding}
 If @var{coding} is a symbol, it specifies the coding system used for
 both reading and writing for this process.  If @var{coding} is a cons
 @code{(decoding . encoding)}, @var{decoding} is used for reading, and
-@var{encoding} is used for writing.
+@var{encoding} is used for writing.  If not specified, the default is
+to determine the coding systems from data itself.
 
-@item :noquery bool
-When exiting Emacs, query the user if @var{bool} is @code{nil} and the
-process is running.  If @var{bool} is not given, query before exiting.
+@item :noquery @var{query-flag}
+Initialize the process query flag to @var{query-flag}.  @xref{Query
+Before Exit}.  The flags defaults to @code{nil} if unspecified.
 
-@item :stop bool
+@item :stop @var{bool}
 Start process in the @code{stopped} state if @var{bool} is
 non-@code{nil}.  In the stopped state, a serial process does not
 accept incoming data, but you can send outgoing data.  The stopped
 state is cleared by @code{continue-process} and set by
 @code{stop-process}.
 
-@item :filter filter
+@item :filter @var{filter}
 Install @var{filter} as the process filter.
 
-@item :sentinel sentinel
+@item :sentinel @var{sentinel}
 Install @var{sentinel} as the process sentinel.
 
-@item :plist plist
+@item :plist @var{plist}
 Install @var{plist} as the initial plist of the process.
 
 @item :speed
@@ -2226,66 +2464,67 @@ Examples:
 
 (make-serial-process :port "COM1" :speed 115200 :stopbits 2)
 
-(make-serial-process :port "\\\\.\\COM13" :speed 1200 :bytesize 7 :parity 'odd)
+(make-serial-process :port "\\\\.\\COM13" :speed 1200
+                     :bytesize 7 :parity 'odd)
 
 (make-serial-process :port "/dev/tty.BlueConsole-SPP-1" :speed nil)
 @end example
 @end defun
 
 @defun serial-process-configure &rest args
-@cindex baud
-@cindex bytesize
-@cindex parity
-@cindex stopbits
-@cindex flowcontrol
+@cindex baud, in serial connections
+@cindex bytesize, in serial connections
+@cindex parity, in serial connections
+@cindex stopbits, in serial connections
+@cindex flowcontrol, in serial connections
 
-Configure a serial port.  Arguments are specified as keyword/argument
-pairs.  Attributes that are not given are re-initialized from the
-process's current configuration (available via the function
-@code{process-contact}) or set to reasonable default values.  The
-following arguments are defined:
+This functions configures a serial port connection.  Arguments are
+specified as keyword/argument pairs.  Attributes that are not given
+are re-initialized from the process's current configuration (available
+via the function @code{process-contact}) or set to reasonable default
+values.  The following arguments are defined:
 
 @table @code
-@item :process process
-@itemx :name name
-@itemx :buffer buffer
-@itemx :port port
+@item :process @var{process}
+@itemx :name @var{name}
+@itemx :buffer @var{buffer}
+@itemx :port @var{port}
 Any of these arguments can be given to identify the process that is to
 be configured.  If none of these arguments is given, the current
 buffer's process is used.
 
 @item :speed @var{speed}
-@var{speed} is the speed of the serial port in bits per second, also
-called baud rate.  Any value can be given for @var{speed}, but most
-serial ports work only at a few defined values between 1200 and
-115200, with 9600 being the most common value.  If @var{speed} is
-@code{nil}, the serial port is not configured any further, i.e., all
-other arguments are ignored.  This may be useful for special serial
-ports such as Bluetooth-to-serial converters which can only be
-configured through AT commands.  A value of @code{nil} for @var{speed}
-can be used only when passed through @code{make-serial-process} or
-@code{serial-term}.
+The speed of the serial port in bits per second, a.k.a.@: @dfn{baud
+rate}.  The value can be any number, but most serial ports work only
+at a few defined values between 1200 and 115200, with 9600 being the
+most common value.  If @var{speed} is @code{nil}, the function ignores
+all other arguments and does not configure the port.  This may be
+useful for special serial ports such as Bluetooth-to-serial converters
+which can only be configured through AT commands sent through the
+connection.  You can use the value of @code{nil} for @var{speed} only
+for connections that are already open by a previous call to
+@code{make-serial-process} or @code{serial-term}.
 
 @item :bytesize @var{bytesize}
-@var{bytesize} is the number of bits per byte, which can be 7 or 8.
-If @var{bytesize} is not given or @code{nil}, a value of 8 is used.
+The number of bits per byte, which can be 7 or 8.  If @var{bytesize}
+is not given or @code{nil}, it defaults to 8.
 
 @item :parity @var{parity}
-@var{parity} can be @code{nil} (don't use parity), the symbol
+The value can be @code{nil} (don't use parity), the symbol
 @code{odd} (use odd parity), or the symbol @code{even} (use even
-parity).  If @var{parity} is not given, no parity is used.
+parity).  If @var{parity} is not given, it defaults to no parity.
 
 @item :stopbits @var{stopbits}
-@var{stopbits} is the number of stopbits used to terminate a byte
-transmission.  @var{stopbits} can be 1 or 2.  If @var{stopbits} is not
-given or @code{nil}, 1 stopbit is used.
+The number of stopbits used to terminate a transmission
+of each byte.  @var{stopbits} can be 1 or 2.  If @var{stopbits} is not
+given or @code{nil}, it defaults to 1.
 
 @item :flowcontrol @var{flowcontrol}
-@var{flowcontrol} determines the type of flowcontrol to be used, which
-is either @code{nil} (don't use flowcontrol), the symbol @code{hw}
-(use RTS/CTS hardware flowcontrol), or the symbol @code{sw} (use
-XON/XOFF software flowcontrol).  If @var{flowcontrol} is not given, no
-flowcontrol is used.
+The type of flow control to use for this connection, which is either
+@code{nil} (don't use flow control), the symbol @code{hw} (use RTS/CTS
+hardware flow control), or the symbol @code{sw} (use XON/XOFF software
+flow control).  If @var{flowcontrol} is not given, it defaults to no
+flow control.
 @end table
 
 @code{serial-process-configure} is called by @code{make-serial-process} for the

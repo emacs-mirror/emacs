@@ -72,6 +72,9 @@ not exactly a hook, but does a similar job.
 @item before-change-functions
 @xref{Change Hooks}.
 
+@item before-hack-local-variables-hook
+@xref{File Local Variables}.
+
 @item before-init-hook
 @xref{Init File}.
 
@@ -180,6 +183,9 @@ for appointment notification.
 
 @item font-lock-unfontify-buffer-function
 @xref{Other Font Lock Variables}.
+
+@item hack-local-variables-hook
+@xref{File Local Variables}.
 
 @item font-lock-unfontify-region-function
 @xref{Other Font Lock Variables}.

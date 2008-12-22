@@ -136,7 +136,9 @@ call; @xref{Function Currying}.
 
 @defun functionp object
 This function returns @code{t} if @var{object} is any kind of
-function, i.e. can be passed to @code{funcall}.
+function, i.e.@: can be passed to @code{funcall}.  Note that
+@code{functionp} returns @code{nil} for special forms (@pxref{Special
+Forms}).
 @end defun
 
 Unlike @code{functionp}, the next three functions do @emph{not}
@@ -746,6 +748,46 @@ primitive function; special forms and macros do not make sense in
 
 For an interesting example of using @code{apply}, see @ref{Definition
 of mapcar}.
+@end defun
+
+@cindex partial application of functions
+@cindex currying
+  Sometimes it is useful to fix some of the function's arguments at
+certain values, and leave the rest of arguments for when the function
+is actually called.  The act of fixing some of the function's
+arguments is called @dfn{partial application} of the function@footnote{
+This is related to, but different from @dfn{currying}, which
+transforms a function that takes multiple arguments in such a way that
+it can be called as a chain of functions, each one with a single
+argument.}.
+The result is a new function that accepts the rest of
+arguments and calls the original function with all the arguments
+combined.
+
+  Here's how to do partial application in Emacs Lisp:
+
+@defun apply-partially func &rest args
+This function returns a new function which, when called, will call
+@var{func} with the list of arguments composed from @var{args} and
+additional arguments specified at the time of the call.  If @var{func}
+accepts @var{n} arguments, then a call to @code{apply-partially} with
+@w{@code{@var{m} < @var{n}}} arguments will produce a new function of
+@w{@code{@var{n} - @var{m}}} arguments.
+
+Here's how we could define the built-in function @code{1+}, if it
+didn't exist, using @code{apply-partially} and @code{+}, another
+built-in function:
+
+@example
+@group
+(defalias '1+ (apply-partially '+ 1)
+  "Increment argument by one.")
+@end group
+@group
+(1+ 10)
+     @result{} 11
+@end group
+@end example
 @end defun
 
 @cindex functionals

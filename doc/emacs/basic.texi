@@ -607,7 +607,7 @@ direction.
 @kindex M-@t{-}
 @findex digit-argument
 @findex negative-argument
-  The easiest way to specify a numeric argument is to type digits
+  The easiest way to specify a numeric argument is to type a digit
 and/or a minus sign while holding down the @key{META} key.  For
 example,
 
@@ -621,13 +621,32 @@ well as @kbd{M--}, are bound to commands (@code{digit-argument} and
 @code{negative-argument}) that set up an argument for the next
 command.  @kbd{Meta--} without digits normally means @minus{}1.
 
+If you enter more than one digit, you need not hold down the
+@key{META} key for the second and subsequent digits.  Thus, to move
+down fifty lines, type
+
+@example
+M-5 0 C-n
+@end example
+
+@noindent
+Note that this @emph{does not} insert five copies of @samp{0} and move
+down one line, as you might expect---the @samp{0} is treated as part
+of the prefix argument.
+
+(What if you do want to insert five copies of @samp{0}?  Type @kbd{M-5
+C-u 0}.  Here, @kbd{C-u} ``terminates'' the prefix argument, so that
+the next keystroke begins the command that you want to execute.  Note
+that this meaning of @kbd{C-u} applies only to this case.  For the
+usual role of @kbd{C-u}, see below.)
+
 @kindex C-u
 @findex universal-argument
-  You can also specify a numeric argument by typing @kbd{C-u}
-(@code{universal-argument}) followed by the digits.  The advantage of
-@kbd{C-u} is that you can type the digits without holding down the
-@key{META} key.  For a negative argument, type a minus sign after
-@kbd{C-u}.  A minus sign without digits normally means @minus{}1.
+  Instead of typing @kbd{M-1}, @kbd{M-2}, and so on, another way to
+specify a numeric argument is to type @kbd{C-u}
+(@code{universal-argument}) followed by some digits, or (for a
+negative argument) a minus sign followed by digits.  A minus sign
+without digits normally means @minus{}1.
 
   @kbd{C-u} alone has the special meaning of ``four times'': it
 multiplies the argument for the next command by four.  @kbd{C-u C-u}

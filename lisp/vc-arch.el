@@ -288,6 +288,43 @@ Return non-nil if FILE is unchanged."
 		    'up-to-date
 		  'edited)))))))))
 
+(defun vc-arch-dir-status (dir callback)
+  "Run 'tla inventory' for DIR and pass results to CALLBACK.
+CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
+`vc-dir-refresh'."
+  (let ((default-directory dir))
+    (vc-arch-command t 'async nil "changes"))
+  ;; The updating could be done asynchronously.
+  (vc-exec-after
+   `(vc-arch-after-dir-status ',callback)))
+
+(defun vc-arch-after-dir-status (callback)
+  (let* ((state-map '(("M " . edited)
+		      ("Mb" . edited)	;binary
+		      ("D " . removed)
+		      ("D/" . removed)	;directory
+		      ("A " . added)
+		      ("A/" . added)	;directory
+		      ("=>" . renamed)
+		      ("/>" . renamed)	;directory
+		      ("lf" . symlink-to-file)
+		      ("fl" . file-to-symlink)
+		      ("--" . permissions-changed)
+		      ("-/" . permissions-changed) ;directory
+		      ))
+	 (state-map-regexp (regexp-opt (mapcar 'car state-map) t))
+	 (entry-regexp (concat "^" state-map-regexp " \\(.*\\)$"))
+	 result)
+    (goto-char (point-min))
+    ;;(message "Got %s" (buffer-string))
+    (while (re-search-forward entry-regexp nil t)
+      (let* ((state-string (match-string 1))
+	     (state (cdr (assoc state-string state-map)))
+	     (filename (match-string 2)))
+	(push (list filename state) result)))
+
+    (funcall callback result nil)))
+
 (defun vc-arch-working-revision (file)
   (let* ((root (expand-file-name "{arch}" (vc-arch-root file)))
 	 (defbranch (vc-arch-default-version file)))

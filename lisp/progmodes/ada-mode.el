@@ -2840,12 +2840,15 @@ ORGPOINT is the limit position used in the calculation."
 	  (forward-word 1)
 	  (ada-goto-next-non-ws)
 	  (cond
-	   ((looking-at "\\<\\(loop\\|select\\|if\\|case\\)\\>")
+	   ;;
+	   ;; loop/select/if/case/return
+	   ;;
+	   ((looking-at "\\<\\(loop\\|select\\|if\\|case\\|return\\)\\>")
 	    (save-excursion (ada-check-matching-start (match-string 0)))
 	    (list (save-excursion (back-to-indentation) (point)) 0))
 
 	   ;;
-	   ;; loop/select/if/case/record/select
+	   ;; record
 	   ;;
 	   ((looking-at "\\<record\\>")
 	    (save-excursion
@@ -3897,13 +3900,12 @@ If GOTOTHEN is non-nil, point moves to the 'then' following 'if'."
 	      (goto-char (match-beginning 0)))
 
 	     ;;
-	     ;; found 'do' => skip back to 'accept'
+	     ;; found 'do' => skip back to 'accept' or 'return'
 	     ;;
 	     ((looking-at "do")
 	      (unless (ada-search-ignore-string-comment
-		       "accept" t nil nil
-		       'word-search-backward)
-		(error "Missing 'accept' in front of 'do'"))))
+		       "\\<accept\\|return\\>" t)
+		(error "Missing 'accept' or 'return' in front of 'do'"))))
 	    (point))
 
 	(if noerror

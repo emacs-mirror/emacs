@@ -51,7 +51,8 @@
   (icalendar-testsuite--test-first-weekday-of-year)
   (icalendar-testsuite--test-datestring-to-isodate)
   (icalendar-testsuite--test-datetime-to-diary-date)
-  (icalendar-testsuite--test-calendar-style))
+  (icalendar-testsuite--test-calendar-style)
+  (icalendar-testsuite--test-create-uid))
 
 (defun icalendar-testsuite--test-format-ical-event ()
   "Test `icalendar--format-ical-event'."
@@ -220,6 +221,19 @@ END:VEVENT
     (with-no-warnings (setq european-calendar-style nil)) ;still get warning!?! FIXME
     (assert (eq (icalendar--date-style) 'american))
     (setq calendar-date-style cds)))
+
+(defun icalendar-testsuite--test-create-uid ()
+  "Test method for `icalendar--create-uid'."
+  (let (t-ct
+        (icalendar--uid-count 77))
+    ;; FIXME! If a test fails 'current-time is screwed. FIXME!
+    (fset 't-ct (symbol-function 'current-time))
+    (fset 'current-time (lambda () '(1 2 3)))
+    (assert (= 77 icalendar--uid-count))
+    (assert (string=  "emacs12378" (icalendar--create-uid)))
+    (assert (= 78 icalendar--uid-count))
+    (fset 'current-time (symbol-function 't-ct))
+    ))
 
 ;; ======================================================================
 ;; Test methods for exporting from diary to icalendar

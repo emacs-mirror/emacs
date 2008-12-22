@@ -35,62 +35,84 @@
 
 ;; For each character set.
 
-(define-category ?a "ASCII graphic characters 32-126 (ISO646 IRV:1983[4/0])")
+(define-category ?a "ASCII
+ASCII graphic characters 32-126 (ISO646 IRV:1983[4/0])")
 (define-category ?l "Latin")
 (define-category ?t "Thai")
 (define-category ?g "Greek")
 (define-category ?b "Arabic")
 (define-category ?w "Hebrew")
 (define-category ?y "Cyrillic")
-(define-category ?k "Japanese katakana")
-(define-category ?r "Japanese roman")
+(define-category ?k "Katakana
+Japanese katakana")
+(define-category ?r "Roman
+Japanese roman")
 (define-category ?c "Chinese")
 (define-category ?j "Japanese")
 (define-category ?h "Korean")
-(define-category ?e "Ethiopic (Ge'ez)")
-(define-category ?v "Vietnamese")
+(define-category ?e "Ethiopic
+Ethiopic (Ge'ez)")
+(define-category ?v "Viet
+Vietnamese")
 (define-category ?i "Indian")
 (define-category ?o "Lao")
 (define-category ?q "Tibetan")
 
 ;; For each group (row) of 2-byte character sets.
 
-(define-category ?A "Alpha-numeric characters of 2-byte character sets")
-(define-category ?C "Chinese (Han) characters of 2-byte character sets")
-(define-category ?G "Greek characters of 2-byte character sets")
-(define-category ?H "Japanese Hiragana characters of 2-byte character sets")
-(define-category ?K "Japanese Katakana characters of 2-byte character sets")
-(define-category ?N "Korean Hangul characters of 2-byte character sets")
-(define-category ?Y "Cyrillic characters of 2-byte character sets")
+(define-category ?A "2-byte alnum
+Alpha-numeric characters of 2-byte character sets")
+(define-category ?C "2-byte han
+Chinese (Han) characters of 2-byte character sets")
+(define-category ?G "2-byte Greek
+Greek characters of 2-byte character sets")
+(define-category ?H "2-byte Hiragana
+Japanese Hiragana characters of 2-byte character sets")
+(define-category ?K "2-byte Katakana
+Japanese Katakana characters of 2-byte character sets")
+(define-category ?N "2-byte Korean
+Korean Hangul characters of 2-byte character sets")
+(define-category ?Y "2-byte Cyrillic
+Cyrillic characters of 2-byte character sets")
 (define-category ?I "Indian Glyphs")
 
 ;; For phonetic classifications.
 
 (define-category ?0 "consonant")
-(define-category ?1 "base (independent) vowel")
-(define-category ?2 "upper diacritical mark (including upper vowel)")
-(define-category ?3 "lower diacritical mark (including lower vowel)")
-(define-category ?4 "combining tone mark")
+(define-category ?1 "base vowel
+base (independent) vowel")
+(define-category ?2 "upper diacritic
+upper diacritical mark (including upper vowel)")
+(define-category ?3 "lower diacritic
+lower diacritical mark (including lower vowel)")
+(define-category ?4 "combining tone
+combining tone mark")
 (define-category ?5 "symbol")
 (define-category ?6 "digit")
-(define-category ?7 "vowel-modifying diacritical mark")
+(define-category ?7 "vowel diacritic
+vowel-modifying diacritical mark")
 (define-category ?8 "vowel-signs")
 (define-category ?9 "semivowel lower")
 
 ;; For filling.
-(define-category ?| "While filling, we can break a line at this character.")
+(define-category ?| "line breakable
+While filling, we can break a line at this character.")
 
 ;; For indentation calculation.
 (define-category ?\s
-  "This character counts as a space for indentation purposes.")
+  "space for indent
+This character counts as a space for indentation purposes.")
 
 ;; Keep the following for `kinsoku' processing.  See comments in
 ;; kinsoku.el.
-(define-category ?> "A character which can't be placed at beginning of line.")
-(define-category ?< "A character which can't be placed at end of line.")
+(define-category ?> "Not at bol
+A character which can't be placed at beginning of line.")
+(define-category ?< "Not at eol
+A character which can't be placed at end of line.")
 
 ;; Combining
-(define-category ?^ "Combining diacritic or mark")
+(define-category ?^ "Combining
+Combining diacritic or mark")
 
 ;;; Setting syntax and category.
 
@@ -1138,80 +1160,14 @@ Setup char-width-table appropriate for non-CJK language environment."
 
 ;;; Setting word boundary.
 
-(defun next-word-boundary-han (pos limit)
-  (if (<= pos limit)
-      (save-excursion
-	(goto-char pos)
-	(looking-at "\\cC+")
-	(goto-char (match-end 0))
-	(if (looking-at "\\cH+")
-	    (goto-char (match-end 0)))
-	(point))
-    (while (and (> pos limit)
-		(eq (aref char-script-table (char-after (1- pos))) 'han))
-      (setq pos (1- pos)))
-    pos))
-
-(defun next-word-boundary-kana (pos limit)
-  (if (<= pos limit)
-      (save-excursion
-	(goto-char pos)
-	(if (looking-at "\\cK+")
-	    (goto-char (match-end 0)))
-	(if (looking-at "\\cH+")
-	    (goto-char (match-end 0)))
-	(if (looking-at "\\ck+")
-	    (goto-char (match-end 0)))
-	(point))
-    (let ((category-set (char-category-set (char-after pos)))
-	  category)
-      (if (or (aref category-set ?K) (aref category-set ?k))
-	  (while (and (> pos limit)
-		      (setq category-set 
-			    (char-category-set (char-after (1- pos))))
-		      (or (aref category-set ?K) (aref category-set ?k)))
-	    (setq pos (1- pos)))
-	(while (and (> pos limit)
-		    (aref (setq category-set
-				(char-category-set (char-after (1- pos)))) ?H))
-	  (setq pos (1- pos)))
-	(setq category (cond ((aref category-set ?C) ?C)
-			     ((aref category-set ?K) ?K)
-			     ((aref category-set ?A) ?A)))
-	(when category
-	  (setq pos (1- pos))
-	  (while (and (> pos limit)
-		      (aref (char-category-set (char-after (1- pos)))
-			    category))
-	    (setq pos (1- pos)))))
-      pos)))
-
-(map-char-table
- #'(lambda (char script)
-     (cond ((eq script 'han)
-	    (set-char-table-range find-word-boundary-function-table
-				  char #'next-word-boundary-han))
-	   ((eq script 'kana)
-	    (set-char-table-range find-word-boundary-function-table
-				  char #'next-word-boundary-kana))))
- char-script-table)
-
 (setq word-combining-categories
-      '((?l . ?l)
-	(?C . ?C)
+      '((nil . ?^)
+	(?^ . nil)
 	(?C . ?H)
 	(?C . ?K)))
 
 (setq word-separating-categories	;  (2-byte character sets)
-      '((?A . ?K)			; Alpha numeric - Katakana
-	(?A . ?C)			; Alpha numeric - Chinese
-	(?H . ?A)			; Hiragana - Alpha numeric
-	(?H . ?K)			; Hiragana - Katakana
-	(?H . ?C)			; Hiragana - Chinese
-	(?K . ?A)			; Katakana - Alpha numeric
-	(?K . ?C)			; Katakana - Chinese
-	(?C . ?A)			; Chinese - Alpha numeric
-	(?C . ?K)			; Chinese - Katakana
+      '((?H . ?K)			; Hiragana - Katakana
 	))
 
 ;; Local Variables:

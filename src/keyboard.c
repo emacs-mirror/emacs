@@ -1601,7 +1601,7 @@ command_loop_1 ()
 	 Is this a good idea?  */
       if (FRAMEP (internal_last_event_frame)
 	  && !EQ (internal_last_event_frame, selected_frame))
-	Fselect_frame (internal_last_event_frame);
+	Fselect_frame (internal_last_event_frame, Qnil);
 #endif
       /* If it has changed current-menubar from previous value,
 	 really recompute the menubar from the value.  */
@@ -8558,7 +8558,20 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
   if (! menu_prompting)
     return Qnil;
 
+  /* Get the menu name from the first map that has one (a prompt string).  */
+  for (mapno = 0; mapno < nmaps; mapno++)
+    {
+      name = Fkeymap_prompt (maps[mapno]);
+      if (!NILP (name))
+	break;
+    }
+
+  /* If we don't have any menus, just read a character normally.  */
+  if (!STRINGP (name))
+    return Qnil;
+
   /* Make sure we have a big enough buffer for the menu text.  */
+  width = max (width, SBYTES (name));
   if (read_char_minibuf_menu_text == 0)
     {
       read_char_minibuf_menu_width = width + 4;
@@ -8571,18 +8584,6 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 	= (char *) xrealloc (read_char_minibuf_menu_text, width + 4);
     }
   menu = read_char_minibuf_menu_text;
-
-  /* Get the menu name from the first map that has one (a prompt string).  */
-  for (mapno = 0; mapno < nmaps; mapno++)
-    {
-      name = Fkeymap_prompt (maps[mapno]);
-      if (!NILP (name))
-	break;
-    }
-
-  /* If we don't have any menus, just read a character normally.  */
-  if (!STRINGP (name))
-    return Qnil;
 
   /* Prompt string always starts with map's prompt, and a space.  */
   strcpy (menu, SDATA (name));
@@ -11097,7 +11098,7 @@ quit_throw_to_read_char ()
   if (FRAMEP (internal_last_event_frame)
       && !EQ (internal_last_event_frame, selected_frame))
     do_switch_frame (make_lispy_switch_frame (internal_last_event_frame),
-		     0, 0);
+		     0, 0, Qnil);
 
   _longjmp (getcjmp, 1);
 }

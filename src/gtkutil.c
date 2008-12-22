@@ -53,12 +53,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_GTK_MULTIDISPLAY
 
-/* Gtk does not work well without any display open.  Emacs may close
-   all its displays.  In that case, keep a display around just for
-   the purpose of having one.  */
+/* Keep track of the default display, or NULL if there is none.  Emacs
+   may close all its displays.  */
 
 static GdkDisplay *gdpy_def;
-
 
 /* Return the GdkDisplay that corresponds to the X display DPY.  */
 
@@ -121,8 +119,11 @@ xg_display_open (display_name, dpy)
   GdkDisplay *gdpy;
 
   gdpy = gdk_display_open (display_name);
-  *dpy = gdpy ? GDK_DISPLAY_XDISPLAY (gdpy) : NULL;
+  if (!gdpy_def)
+    gdk_display_manager_set_default_display (gdk_display_manager_get (),
+					     gdpy);
 
+  *dpy = gdpy ? GDK_DISPLAY_XDISPLAY (gdpy) : NULL;
   return gdpy != NULL;
 
 #else /* not HAVE_GTK_MULTIDISPLAY */
@@ -140,40 +141,30 @@ xg_display_close (Display *dpy)
 #ifdef HAVE_GTK_MULTIDISPLAY
   GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpy);
 
-  /* If this is the default display, we must change it before calling
-     dispose, otherwise it will crash on some Gtk+ versions.  */
+  /* If this is the default display, try to change it before closing.
+     If there is no other display to use, gdpy_def is set to NULL, and
+     the next call to xg_display_open resets the default display.  */
   if (gdk_display_get_default () == gdpy)
     {
       struct x_display_info *dpyinfo;
-      Display *new_dpy = 0;
-      GdkDisplay *gdpy_new;
+      GdkDisplay *gdpy_new = NULL;
 
       /* Find another display.  */
       for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
         if (dpyinfo->display != dpy)
           {
-            new_dpy = dpyinfo->display;
+	    gdpy_new = gdk_x11_lookup_xdisplay (dpyinfo->display);
+	    gdk_display_manager_set_default_display (gdk_display_manager_get (),
+						     gdpy_new);
             break;
           }
-
-      if (new_dpy)
-        gdpy_new = gdk_x11_lookup_xdisplay (new_dpy);
-      else
-        {
-          if (!gdpy_def)
-            gdpy_def = gdk_display_open (gdk_display_get_name (gdpy));
-          gdpy_new = gdpy_def;
-        }
-
-      gdk_display_manager_set_default_display (gdk_display_manager_get (),
-                                               gdpy_new);
+      gdpy_def = gdpy_new;
     }
 
-  /* GTK 2.2-2.8 has a bug that makes gdk_display_close crash (bug
-     http://bugzilla.gnome.org/show_bug.cgi?id=85715).  This way
-     we can continue running, but there will be memory leaks.  */
-
 #if GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 10
+  /* GTK 2.2-2.8 has a bug that makes gdk_display_close crash (bug
+     http://bugzilla.gnome.org/show_bug.cgi?id=85715).  This way we
+     can continue running, but there will be memory leaks.  */
   g_object_run_dispose (G_OBJECT (gdpy));
 #else
   /* This seems to be fixed in GTK 2.10. */

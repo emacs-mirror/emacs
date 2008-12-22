@@ -223,20 +223,21 @@ only matches surrounded by word boundaries.
 Fourth and fifth arg START and END specify the region to operate on.
 
 To customize possible responses, change the \"bindings\" in `query-replace-map'."
-  (interactive (let ((common
-		      (query-replace-read-args
-		       (if (and transient-mark-mode mark-active)
-			 "Query replace in region"
-			 "Query replace")
-			 nil)))
-		 (list (nth 0 common) (nth 1 common) (nth 2 common)
-		       ;; These are done separately here
-		       ;; so that command-history will record these expressions
-		       ;; rather than the values they had this time.
-		       (if (and transient-mark-mode mark-active)
-			   (region-beginning))
-		       (if (and transient-mark-mode mark-active)
-			   (region-end)))))
+  (interactive
+   (let ((common
+	  (query-replace-read-args
+	   (concat "Query replace"
+		   (if current-prefix-arg " word" "")
+		   (if (and transient-mark-mode mark-active) " in region" ""))
+	   nil)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common)
+	   ;; These are done separately here
+	   ;; so that command-history will record these expressions
+	   ;; rather than the values they had this time.
+	   (if (and transient-mark-mode mark-active)
+	       (region-beginning))
+	   (if (and transient-mark-mode mark-active)
+	       (region-end)))))
   (perform-replace from-string to-string t nil delimited nil nil start end))
 
 (define-key esc-map "%" 'query-replace)
@@ -289,9 +290,10 @@ Use \\[repeat-complex-command] after this command for details."
   (interactive
    (let ((common
 	  (query-replace-read-args
-	   (if (and transient-mark-mode mark-active)
-	       "Query replace regexp in region"
-	     "Query replace regexp")
+	   (concat "Query replace"
+		   (if current-prefix-arg " word" "")
+		   " regexp"
+		   (if (and transient-mark-mode mark-active) " in region" ""))
 	   t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
 	   ;; These are done separately here
@@ -447,9 +449,10 @@ and TO-STRING is also null.)"
   (interactive
    (let ((common
 	  (query-replace-read-args
-	   (if (and transient-mark-mode mark-active)
-	       "Replace string in region"
-	     "Replace string")
+	   (concat "Replace"
+		   (if current-prefix-arg " word" "")
+		   " string"
+		   (if (and transient-mark-mode mark-active) " in region" ""))
 	   nil)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
 	   (if (and transient-mark-mode mark-active)
@@ -504,9 +507,10 @@ which will run faster and will not set the mark or print anything."
   (interactive
    (let ((common
 	  (query-replace-read-args
-	   (if (and transient-mark-mode mark-active)
-	       "Replace regexp in region"
-	     "Replace regexp")
+	   (concat "Replace"
+		   (if current-prefix-arg " word" "")
+		   " regexp"
+		   (if (and transient-mark-mode mark-active) " in region" ""))
 	   t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
 	   (if (and transient-mark-mode mark-active)
@@ -522,13 +526,14 @@ which will run faster and will not set the mark or print anything."
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
 
-(defun read-regexp (prompt &optional default)
+(defun read-regexp (prompt &optional default-value)
   "Read regexp as a string using the regexp history and some useful defaults.
 Prompt for a regular expression with PROMPT (without a colon and
-space) in the minibuffer.  The optional string argument DEFAULT
-provides the basic default value, that is returned on typing RET.
-Additional defaults are the string at point, the last isearch regexp,
-the last isearch string, and the last replacement regexp."
+space) in the minibuffer.  The optional argument DEFAULT-VALUE
+provides the value to display in the minibuffer prompt that is
+returned if the user just types RET.
+Values available via M-n are the string at point, the last isearch
+regexp, the last isearch string, and the last replacement regexp."
   (let* ((defaults
 	   (list (regexp-quote
 		  (or (funcall (or find-tag-default-function
@@ -544,12 +549,13 @@ the last isearch string, and the last replacement regexp."
 	 (history-add-new-input nil)
 	 (input
 	  (read-from-minibuffer
-	   (if default
-	       (format "%s (default %s): " prompt (query-replace-descr default))
+	   (if default-value
+	       (format "%s (default %s): " prompt
+		       (query-replace-descr default-value))
 	     (format "%s: " prompt))
 	   nil nil nil 'regexp-history defaults t)))
     (if (equal input "")
-	default
+	default-value
       (prog1 input
 	(add-to-history 'regexp-history input)))))
 
@@ -697,7 +703,7 @@ starting on the same line at which another match ended is ignored."
   "Print and return number of matches for REGEXP following point.
 When called from Lisp and INTERACTIVE is omitted or nil, just return
 the number, do not print it; if INTERACTIVE is t, the function behaves
-in all respects has if it had been called interactively.
+in all respects as if it had been called interactively.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\')
 and `search-upper-case' is non-nil, the matching is case-sensitive.
@@ -1714,6 +1720,7 @@ make, or the user didn't cancel the call."
 			 (with-output-to-temp-buffer "*Help*"
 			   (princ
 			    (concat "Query replacing "
+				    (if delimited-flag "word " "")
 				    (if regexp-flag "regexp " "")
 				    from-string " with "
 				    next-replacement ".\n\n"

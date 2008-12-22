@@ -52,7 +52,7 @@ BACKEND, use `vc-handled-backends'."
 
 (defcustom vc-ignore-dir-regexp
   ;; Stop SMB, automounter, AFS, and DFS host lookups.
-  "\\`\\(?:[\\/][\\/]\\|/\\(?:net\\|afs\\|\\.\\\.\\.\\)/\\)\\'"
+  locate-dominating-stop-dir-regexp
   "Regexp matching directory names that are not under VC's control.
 The default regexp prevents fruitless and time-consuming attempts
 to determine the VC status in directories in which filenames are
@@ -142,10 +142,14 @@ See also variable `vc-consult-headers'."
 	   (funcall vc-mistrust-permissions
 		    (vc-backend-subdirectory-name file)))))
 
-(defcustom vc-stay-local t
+(defcustom vc-stay-local 'only-file
   "Non-nil means use local operations when possible for remote repositories.
 This avoids slow queries over the network and instead uses heuristics
 and past information to determine the current status of a file.
+
+If value is the symbol `only-file' `vc-dir' will connect to the
+server, but heuristics will be used to determine the status for
+all other VC operations.
 
 The value can also be a regular expression or list of regular
 expressions to match against the host name of a repository; then VC
@@ -153,13 +157,15 @@ only stays local for hosts that match it.  Alternatively, the value
 can be a list of regular expressions where the first element is the
 symbol `except'; then VC always stays local except for hosts matched
 by these regular expressions."
-  :type '(choice (const :tag "Always stay local" t)
+  :type '(choice
+	  (const :tag "Always stay local" t)
+	  (const :tag "Only for file operations" only-file)
 	  (const :tag "Don't stay local" nil)
 	  (list :format "\nExamine hostname and %v" :tag "Examine hostname ..."
 		(set :format "%v" :inline t (const :format "%t" :tag "don't" except))
 		(regexp :format " stay local,\n%t: %v" :tag "if it matches")
 		(repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
-  :version "22.1"
+  :version "23.1"
   :group 'vc)
 
 (defun vc-stay-local-p (file)
@@ -325,34 +331,9 @@ non-nil if FILE exists and its contents were successfully inserted."
   "Find the root of a checked out project.
 The function walks up the directory tree from FILE looking for WITNESS.
 If WITNESS if not found, return nil, otherwise return the root."
-  ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
-  ;; witnesses in /home or in /.
-  (setq file (abbreviate-file-name file))
-  (let ((root nil)
-        (prev-file file)
-        ;; `user' is not initialized outside the loop because
-        ;; `file' may not exist, so we may have to walk up part of the
-        ;; hierarchy before we find the "initial UID".
-        (user nil)
-        try)
-    (while (not (or root
-                    (null file)
-                    ;; As a heuristic, we stop looking up the hierarchy of
-                    ;; directories as soon as we find a directory belonging
-                    ;; to another user.  This should save us from looking in
-                    ;; things like /net and /afs.  This assumes that all the
-                    ;; files inside a project belong to the same user.
-                    (let ((prev-user user))
-                      (setq user (nth 2 (file-attributes file)))
-                      (and prev-user (not (equal user prev-user))))
-                    (string-match vc-ignore-dir-regexp file)))
-      (setq try (file-exists-p (expand-file-name witness file)))
-      (cond (try (setq root file))
-            ((equal file (setq prev-file file
-                               file (file-name-directory
-                                     (directory-file-name file))))
-             (setq file nil))))
-    root))
+  (let ((locate-dominating-stop-dir-regexp
+         (or vc-ignore-dir-regexp locate-dominating-stop-dir-regexp)))
+    (locate-dominating-file file witness)))
 
 ;; Access functions to file properties
 ;; (Properties should be _set_ using vc-file-setprop, but
@@ -372,7 +353,8 @@ file was previously registered under a certain backend, then that
 backend is tried first."
   (let (handler)
     (cond
-     ((and (file-name-directory file) (string-match vc-ignore-dir-regexp (file-name-directory file)))
+     ((and (file-name-directory file)
+           (string-match vc-ignore-dir-regexp (file-name-directory file)))
       nil)
      ((and (boundp 'file-name-handler-alist)
           (setq handler (find-file-name-handler file 'vc-registered)))

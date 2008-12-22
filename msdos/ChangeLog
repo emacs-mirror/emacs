@@ -1,3 +1,9 @@
+2008-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlisp.inp (lisp): Set to absolute file name of current
+	directory, not to ".", to have it on EMACSLOADPATH when we descend
+	into subdirectories.
+
 2008-08-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed2v2.inp: Remove definition of USER_FULL_NAME (now defined on

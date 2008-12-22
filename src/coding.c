@@ -1345,12 +1345,12 @@ decode_coding_utf_8 (coding)
 	src = src_base;
       else
 	{
-	  ONE_MORE_BYTE (c2);      
+	  ONE_MORE_BYTE (c2);
 	  if (! UTF_8_EXTRA_OCTET_P (c2))
 	    src = src_base;
 	  else
 	    {
-	      ONE_MORE_BYTE (c3);      
+	      ONE_MORE_BYTE (c3);
 	      if (! UTF_8_EXTRA_OCTET_P (c3))
 		src = src_base;
 	      else
@@ -4975,16 +4975,20 @@ detect_coding_charset (coding, detect_info)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
-  Lisp_Object attrs, valids;
+  Lisp_Object attrs, valids, name;
   int found = 0;
   int head_ascii = coding->head_ascii;
+  int check_latin_extra = 0;
 
   detect_info->checked |= CATEGORY_MASK_CHARSET;
 
   coding = &coding_categories[coding_category_charset];
   attrs = CODING_ID_ATTRS (coding->id);
   valids = AREF (attrs, coding_attr_charset_valids);
-
+  name = CODING_ID_NAME (coding->id);
+  if (VECTORP (Vlatin_extra_code_table)
+      && strcmp ((char *) SDATA (SYMBOL_NAME (name)), "iso-8859-"))
+    check_latin_extra = 1;
   if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs)))
     src += head_ascii;
 
@@ -5003,7 +5007,13 @@ detect_coding_charset (coding, detect_info)
       if (NILP (val))
 	break;
       if (c >= 0x80)
-	found = CATEGORY_MASK_CHARSET;
+	{
+	  if (c < 0xA0
+	      && check_latin_extra
+	      && NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
+	    break;
+	  found = CATEGORY_MASK_CHARSET;
+	}
       if (INTEGERP (val))
 	{
 	  charset = CHARSET_FROM_ID (XFASTINT (val));
@@ -6972,7 +6982,7 @@ make_conversion_work_buffer (multibyte)
     }
   else
     {
-      if (NILP (Vcode_conversion_reused_workbuf))
+      if (NILP (Fbuffer_live_p (Vcode_conversion_reused_workbuf)))
 	Vcode_conversion_reused_workbuf
 	  = Fget_buffer_create (Vcode_conversion_workbuf_name);
       workbuf = Vcode_conversion_reused_workbuf;
@@ -8432,7 +8442,8 @@ START and END are buffer positions.
 
 Optional 4th arguments DESTINATION specifies where the decoded text goes.
 If nil, the region between START and END is replaced by the decoded text.
-If buffer, the decoded text is inserted in the buffer.
+If buffer, the decoded text is inserted in that buffer after point (point
+does not move).
 In those cases, the length of the decoded text is returned.
 If DESTINATION is t, the decoded text is returned.
 
@@ -8454,7 +8465,8 @@ START and END are buffer positions.
 
 Optional 4th arguments DESTINATION specifies where the encoded text goes.
 If nil, the region between START and END is replace by the encoded text.
-If buffer, the encoded text is inserted in the buffer.
+If buffer, the encoded text is inserted in that buffer after point (point
+does not move).
 In those cases, the length of the encoded text is returned.
 If DESTINATION is t, the encoded text is returned.
 
@@ -8534,8 +8546,8 @@ Optional third arg NOCOPY non-nil means it is OK to return STRING itself
 if the decoding operation is trivial.
 
 Optional fourth arg BUFFER non-nil means that the decoded text is
-inserted in BUFFER instead of returned as a string.  In this case,
-the return value is the length of the decoded text.
+inserted in that buffer after point (point does not move).  In this
+case, the return value is the length of the decoded text.
 
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
@@ -8555,8 +8567,8 @@ Optional third arg NOCOPY non-nil means it is OK to return STRING
 itself if the encoding operation is trivial.
 
 Optional fourth arg BUFFER non-nil means that the encoded text is
-inserted in BUFFER instead of returned as a string.  In this case,
-the return value is the length of the encoded text.
+inserted in that buffer after point (point does not move).  In this
+case, the return value is the length of the encoded text.
 
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is

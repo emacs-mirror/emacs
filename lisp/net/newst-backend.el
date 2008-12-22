@@ -7,7 +7,7 @@
 ;; Filename:    newst-backend.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "7. Juli 2008, 19:20:10 (ulf)"
+;; Time-stamp:  "31. Oktober 2008, 21:07:17 (ulf)"
 
 ;; ======================================================================
 
@@ -2105,14 +2105,15 @@ well."
   "Update newsticker cache file.
 If optional argument SAVE is not nil the cache file is saved to disk."
   (save-excursion
-    (let ((coding-system-for-write 'utf-8))
-      (with-temp-buffer
+    (let ((coding-system-for-write 'utf-8)
+          (buf (find-file-noselect newsticker-cache-filename)))
+      (when buf
+        (set-buffer buf)
         (setq buffer-undo-list t)
         (erase-buffer)
         (insert ";; -*- coding: utf-8 -*-\n")
         (insert (prin1-to-string newsticker--cache))
         (when save
-          (set-visited-file-name newsticker-cache-filename)
           (save-buffer))))))
 
 (defun newsticker--cache-get-feed (feed)

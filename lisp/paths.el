@@ -36,7 +36,7 @@
 ;; DOC file rather than in memory.
 
 (defun prune-directory-list (dirs &optional keep reject)
-  "Returns a copy of DIRS with all non-existent directories removed.
+  "Return a copy of DIRS with all non-existent directories removed.
 The optional argument KEEP is a list of directories to retain even if
 they don't exist, and REJECT is a list of directories to remove from
 DIRS, even if they exist; REJECT takes precedence over KEEP.
@@ -122,7 +122,7 @@ The name of the host running an NNTP server.
 The null string means use the local host as the server site.")
 
 (defvar gnus-nntp-service "nntp"
-  "NNTP service name, usually \"nntp\" or 119).
+  "NNTP service name, usually \"nntp\" or 119.
 Go to a local news spool if its value is nil, in which case `gnus-nntp-server'
 should be set to `(system-name)'.")
 
@@ -131,7 +131,7 @@ should be set to `(system-name)'.")
 The `ORGANIZATION' environment variable is used instead if defined.")
 
 (defcustom rmail-file-name "~/RMAIL"
-  "*Name of user's primary mail file."
+  "Name of user's primary mail file."
   :type 'string
   :group 'rmail
   :version "21.1")

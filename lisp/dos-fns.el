@@ -189,7 +189,7 @@ shell requires it (see `w32-shell-dos-semantics')."
 ;; See dos-vars.el for defcustom.
 (defvar msdos-shells)
 
-;;; Override setting chosen at startup.
+;; Override settings chosen at startup.
 (defun set-default-process-coding-system ()
   (setq default-process-coding-system
 	(if default-enable-multibyte-characters
@@ -197,6 +197,27 @@ shell requires it (see `w32-shell-dos-semantics')."
 	  '(raw-text-dos . raw-text-dos))))
 
 (add-hook 'before-init-hook 'set-default-process-coding-system)
+
+;; File names defined in preloaded packages can be incorrect or
+;; invalid if long file names were available during dumping, but not
+;; at runtime, or vice versa, and if the default file name begins with
+;; a period.  Their defcustom's need to be reevaluated at startup.  To
+;; see if the list of defcustom's below is up to date, run the command
+;; "M-x apropos-value RET ~/\. RET".
+(defun dos-reevaluate-defcustoms ()
+  ;; This was computed in paths.el, but that was at dump time.
+  (setq abbrev-file-name
+	(if (msdos-long-file-names)
+	    "~/.abbrev_defs"
+	  "~/_abbrev.defs"))
+  ;; This was computed in loaddefs.el, but that was at dump time.
+  (setq calc-settings-file
+	(if (msdos-long-file-names)
+	    "~/.calc.el"
+	  "~/_calc.el"))
+  (custom-reevaluate-setting 'trash-directory))
+
+(add-hook 'before-init-hook 'dos-reevaluate-defcustoms)
 
 (defvar register-name-alist
   '((ax . 0) (bx . 1) (cx . 2) (dx . 3) (si . 4) (di . 5)

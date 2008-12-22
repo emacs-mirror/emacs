@@ -737,7 +737,10 @@ The default is @code{t}.
 @defvar beginning-of-defun-function
 If non-@code{nil}, this variable holds a function for finding the
 beginning of a defun.  The function @code{beginning-of-defun}
-calls this function instead of using its normal method.
+calls this function instead of using its normal method, passing it its
+optional argument.  If the argument is non-@code{nil}, the function
+should move back by that many functions, like
+@code{beginning-of-defun} does.
 @end defvar
 
 @defvar end-of-defun-function
@@ -793,7 +796,7 @@ comes back" twice.
 
 @group
 (skip-chars-forward "a-zA-Z ")
-     @result{} nil
+     @result{} 18
 
 ---------- Buffer: foo ----------
 I read "The cat in the hat@point{}
@@ -908,6 +911,10 @@ which use them refuse to operate on text that is inaccessible.
 
   The commands for saving buffers are unaffected by narrowing; they save
 the entire buffer regardless of any narrowing.
+
+  If you need to display in a single buffer several very different
+types of text, consider using an alternative facility described in
+@ref{Swapping Text}.
 
 @deffn Command narrow-to-region start end
 This function sets the accessible portion of the current buffer to start

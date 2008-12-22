@@ -109,6 +109,7 @@
 (require 'esh-ext)
 
 (eval-when-compile
+  (require 'cl)
   (require 'pcomplete))
 
 

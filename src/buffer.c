@@ -266,17 +266,18 @@ assoc_ignore_text_properties (key, list)
 }
 
 DEFUN ("get-buffer", Fget_buffer, Sget_buffer, 1, 1, 0,
-       doc: /* Return the buffer named NAME (a string).
-If there is no live buffer named NAME, return nil.
-NAME may also be a buffer; if so, the value is that buffer.  */)
-     (name)
-     register Lisp_Object name;
+       doc: /* Return the buffer named BUFFER-OR-NAME.
+BUFFER-OR-NAME must be either a string or a buffer.  If BUFFER-OR-NAME
+is a string and there is no buffer with that name, return nil.  If
+BUFFER-OR-NAME is a buffer, return it as given.  */)
+     (buffer_or_name)
+     register Lisp_Object buffer_or_name;
 {
-  if (BUFFERP (name))
-    return name;
-  CHECK_STRING (name);
+  if (BUFFERP (buffer_or_name))
+    return buffer_or_name;
+  CHECK_STRING (buffer_or_name);
 
-  return Fcdr (assoc_ignore_text_properties (name, Vbuffer_alist));
+  return Fcdr (assoc_ignore_text_properties (buffer_or_name, Vbuffer_alist));
 }
 
 DEFUN ("get-file-buffer", Fget_file_buffer, Sget_file_buffer, 1, 1, 0,
@@ -333,22 +334,25 @@ get_truename_buffer (filename)
 int buffer_count;
 
 DEFUN ("get-buffer-create", Fget_buffer_create, Sget_buffer_create, 1, 1, 0,
-       doc: /* Return the buffer named NAME, or create such a buffer and return it.
-A new buffer is created if there is no live buffer named NAME.
-If NAME starts with a space, the new buffer does not keep undo information.
-If NAME is a buffer instead of a string, then it is the value returned.
-The value is never nil.  */)
-     (name)
-     register Lisp_Object name;
+       doc: /* Return the buffer specified by BUFFER-OR-NAME, creating a new one if needed.
+If BUFFER-OR-NAME is a string and a live buffer with that name exists,
+return that buffer.  If no such buffer exists, create a new buffer with
+that name and return it.  If BUFFER-OR-NAME starts with a space, the new
+buffer does not keep undo information.
+
+If BUFFER-OR-NAME is a buffer instead of a string, return it as given,
+even if it is dead.  The return value is never nil.  */)
+     (buffer_or_name)
+     register Lisp_Object buffer_or_name;
 {
-  register Lisp_Object buf;
+  register Lisp_Object buffer, name;
   register struct buffer *b;
 
-  buf = Fget_buffer (name);
-  if (!NILP (buf))
-    return buf;
+  buffer = Fget_buffer (buffer_or_name);
+  if (!NILP (buffer))
+    return buffer;
 
-  if (SCHARS (name) == 0)
+  if (SCHARS (buffer_or_name) == 0)
     error ("Empty string for buffer name is not allowed");
 
   b = allocate_buffer ();
@@ -402,7 +406,7 @@ The value is never nil.  */)
   b->begv_marker = Qnil;
   b->zv_marker = Qnil;
 
-  name = Fcopy_sequence (name);
+  name = Fcopy_sequence (buffer_or_name);
   STRING_SET_INTERVALS (name, NULL_INTERVAL);
   b->name = name;
 
@@ -416,17 +420,17 @@ The value is never nil.  */)
   b->name = name;
 
   /* Put this in the alist of all live buffers.  */
-  XSETBUFFER (buf, b);
-  Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
+  XSETBUFFER (buffer, b);
+  Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buffer), Qnil));
 
   /* An error in calling the function here (should someone redefine it)
      can lead to infinite regress until you run out of stack.  rms
      says that's not worth protecting against.  */
   if (!NILP (Ffboundp (Qucs_set_table_for_input)))
-    /* buf is on buffer-alist, so no gcpro.  */
-    call1 (Qucs_set_table_for_input, buf);
+    /* buffer is on buffer-alist, so no gcpro.  */
+    call1 (Qucs_set_table_for_input, buffer);
 
-  return buf;
+  return buffer;
 }
 
 
@@ -1382,38 +1386,39 @@ Hook to be run (by `run-hooks', which see) when a buffer is killed.\n\
 The buffer being killed will be current while the hook is running.\n\
 See `kill-buffer'."
  */
-DEFUN ("kill-buffer", Fkill_buffer, Skill_buffer, 1, 1, "bKill buffer: ",
-       doc: /* Kill the buffer BUFFER.
-The argument may be a buffer or the name of a buffer.
-With a nil argument, kill the current buffer.
+DEFUN ("kill-buffer", Fkill_buffer, Skill_buffer, 0, 1, "bKill buffer: ",
+       doc: /* Kill buffer BUFFER-OR-NAME.
+The argument may be a buffer or the name of an existing buffer.
+Argument nil or omitted means kill the current buffer.  Return t if the
+buffer is actually killed, nil otherwise.
 
-Value is t if the buffer is actually killed, nil otherwise.
-
-The functions in `kill-buffer-query-functions' are called with BUFFER as
-the current buffer.  If any of them returns nil, the buffer is not killed.
-
-The hook `kill-buffer-hook' is run before the buffer is actually killed.
-The buffer being killed will be current while the hook is running.
+This function calls `replace-buffer-in-windows' for cleaning up all
+windows currently displaying the buffer to be killed.  The functions in
+`kill-buffer-query-functions' are called with the buffer to be killed as
+the current buffer.  If any of them returns nil, the buffer is not
+killed.  The hook `kill-buffer-hook' is run before the buffer is
+actually killed.  The buffer being killed will be current while the hook
+is running.
 
 Any processes that have this buffer as the `process-buffer' are killed
 with SIGHUP.  */)
-     (buffer)
-     Lisp_Object buffer;
+     (buffer_or_name)
+     Lisp_Object buffer_or_name;
 {
-  Lisp_Object buf;
+  Lisp_Object buffer;
   register struct buffer *b;
   register Lisp_Object tem;
   register struct Lisp_Marker *m;
   struct gcpro gcpro1;
 
-  if (NILP (buffer))
-    buf = Fcurrent_buffer ();
+  if (NILP (buffer_or_name))
+    buffer = Fcurrent_buffer ();
   else
-    buf = Fget_buffer (buffer);
-  if (NILP (buf))
-    nsberror (buffer);
+    buffer = Fget_buffer (buffer_or_name);
+  if (NILP (buffer))
+    nsberror (buffer_or_name);
 
-  b = XBUFFER (buf);
+  b = XBUFFER (buffer);
 
   /* Avoid trouble for buffer already dead.  */
   if (NILP (b->name))
@@ -1423,7 +1428,7 @@ with SIGHUP.  */)
   if (INTERACTIVE && !NILP (b->filename)
       && BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
     {
-      GCPRO1 (buf);
+      GCPRO1 (buffer);
       tem = do_yes_or_no_p (format2 ("Buffer %s modified; kill anyway? ",
 				     b->name, make_number (0)));
       UNGCPRO;
@@ -1456,7 +1461,7 @@ with SIGHUP.  */)
      since anything can happen within do_yes_or_no_p.  */
 
   /* Don't kill the minibuffer now current.  */
-  if (EQ (buf, XWINDOW (minibuf_window)->buffer))
+  if (EQ (buffer, XWINDOW (minibuf_window)->buffer))
     return Qnil;
 
   if (NILP (b->name))
@@ -1469,16 +1474,16 @@ with SIGHUP.  */)
     {
       struct buffer *other;
 
-      GCPRO1 (buf);
+      GCPRO1 (buffer);
 
       for (other = all_buffers; other; other = other->next)
 	/* all_buffers contains dead buffers too;
 	   don't re-kill them.  */
 	if (other->base_buffer == b && !NILP (other->name))
 	  {
-	    Lisp_Object buf;
-	    XSETBUFFER (buf, other);
-	    Fkill_buffer (buf);
+	    Lisp_Object buffer;
+	    XSETBUFFER (buffer, other);
+	    Fkill_buffer (buffer);
 	  }
 
       UNGCPRO;
@@ -1489,7 +1494,7 @@ with SIGHUP.  */)
      and give up if so.  */
   if (b == current_buffer)
     {
-      tem = Fother_buffer (buf, Qnil, Qnil);
+      tem = Fother_buffer (buffer, Qnil, Qnil);
       Fset_buffer (tem);
       if (b == current_buffer)
 	return Qnil;
@@ -1500,8 +1505,8 @@ with SIGHUP.  */)
   XSETBUFFER (tem, current_buffer);
   if (EQ (tem, XWINDOW (minibuf_window)->buffer))
     {
-      tem = Fother_buffer (buf, Qnil, Qnil);
-      if (EQ (buf, tem))
+      tem = Fother_buffer (buffer, Qnil, Qnil);
+      if (EQ (buffer, tem))
 	return Qnil;
     }
 
@@ -1512,8 +1517,8 @@ with SIGHUP.  */)
   unlock_buffer (b);
 #endif /* CLASH_DETECTION */
 
-  GCPRO1 (buf);
-  kill_buffer_processes (buf);
+  GCPRO1 (buffer);
+  kill_buffer_processes (buffer);
   UNGCPRO;
 
   /* Killing buffer processes may run sentinels which may
@@ -1526,9 +1531,9 @@ with SIGHUP.  */)
 
   tem = Vinhibit_quit;
   Vinhibit_quit = Qt;
-  replace_buffer_in_all_windows (buf);
-  Vbuffer_alist = Fdelq (Frassq (buf, Vbuffer_alist), Vbuffer_alist);
-  frames_discard_buffer (buf);
+  replace_buffer_in_all_windows (buffer);
+  Vbuffer_alist = Fdelq (Frassq (buffer, Vbuffer_alist), Vbuffer_alist);
+  frames_discard_buffer (buffer);
   Vinhibit_quit = tem;
 
   /* Delete any auto-save file, if we saved it in this session.
@@ -1723,96 +1728,82 @@ the current buffer's major mode.  */)
   return unbind_to (count, Qnil);
 }
 
-/* If switching buffers in WINDOW would be an error, return
-   a C string saying what the error would be.  */
-
-char *
-no_switch_window (window)
-     Lisp_Object window;
-{
-  Lisp_Object tem;
-  if (EQ (minibuf_window, window))
-    return "Cannot switch buffers in minibuffer window";
-  tem = Fwindow_dedicated_p (window);
-  if (EQ (tem, Qt))
-    return "Cannot switch buffers in a dedicated window";
-  return NULL;
-}
-
 /* Switch to buffer BUFFER in the selected window.
    If NORECORD is non-nil, don't call record_buffer.  */
 
 Lisp_Object
-switch_to_buffer_1 (buffer, norecord)
-     Lisp_Object buffer, norecord;
+switch_to_buffer_1 (buffer_or_name, norecord)
+     Lisp_Object buffer_or_name, norecord;
 {
-  register Lisp_Object buf;
+  register Lisp_Object buffer;
 
-  if (NILP (buffer))
-    buf = Fother_buffer (Fcurrent_buffer (), Qnil, Qnil);
+  if (NILP (buffer_or_name))
+    buffer = Fother_buffer (Fcurrent_buffer (), Qnil, Qnil);
   else
     {
-      buf = Fget_buffer (buffer);
-      if (NILP (buf))
+      buffer = Fget_buffer (buffer_or_name);
+      if (NILP (buffer))
 	{
-	  buf = Fget_buffer_create (buffer);
-	  Fset_buffer_major_mode (buf);
+	  buffer = Fget_buffer_create (buffer_or_name);
+	  Fset_buffer_major_mode (buffer);
 	}
     }
-  Fset_buffer (buf);
+  Fset_buffer (buffer);
   if (NILP (norecord))
-    record_buffer (buf);
+    record_buffer (buffer);
 
   Fset_window_buffer (EQ (selected_window, minibuf_window)
 		      ? Fnext_window (minibuf_window, Qnil, Qnil)
 		      : selected_window,
-		      buf, Qnil);
+		      buffer, Qnil);
 
-  return buf;
+  return buffer;
 }
 
 DEFUN ("switch-to-buffer", Fswitch_to_buffer, Sswitch_to_buffer, 1, 2,
        "(list (read-buffer-to-switch \"Switch to buffer: \"))",
-       doc: /* Select buffer BUFFER in the current window.
-If BUFFER does not identify an existing buffer,
+       doc: /* Make BUFFER-OR-NAME current and display it in the selected window.
+BUFFER-OR-NAME may be a buffer, a string, or nil.  If BUFFER-OR-NAME is
+nil, then this function chooses a buffer using `other-buffer'.  If
+BUFFER-OR-NAME is a string and does not identify an existing buffer,
 then this function creates a buffer with that name.
 
-When called from Lisp, BUFFER may be a buffer, a string \(a buffer name),
-or nil.  If BUFFER is nil, then this function chooses a buffer
-using `other-buffer'.
-Optional second arg NORECORD non-nil means
-do not put this buffer at the front of the list of recently selected ones.
-This function returns the buffer it switched to.
+Optional second arg NORECORD non-nil means do not put this buffer at the
+front of the list of recently selected ones.  This function returns the
+buffer it switched to as a Lisp object.
+
+If the selected window is the minibuffer window or dedicated to its
+buffer, use `pop-to-buffer' for displaying the buffer.
 
 WARNING: This is NOT the way to work on another buffer temporarily
-within a Lisp program!  Use `set-buffer' instead.  That avoids messing with
-the window-buffer correspondences.  */)
-     (buffer, norecord)
-     Lisp_Object buffer, norecord;
+within a Lisp program!  Use `set-buffer' instead.  That avoids messing
+with the window-buffer correspondences.  */)
+     (buffer_or_name, norecord)
+     Lisp_Object buffer_or_name, norecord;
 {
   char *err;
 
-  if (EQ (buffer, Fwindow_buffer (selected_window)))
+  if (EQ (buffer_or_name, Fwindow_buffer (selected_window)))
     {
       /* Basically a NOP.  Avoid signalling an error in the case where
 	 the selected window is dedicated, or a minibuffer.  */
 
-      /* But do put this buffer at the front of the buffer list,
-	 unless that has been inhibited.  Note that even if
-	 BUFFER is at the front of the main buffer-list already,
-	 we still want to move it to the front of the frame's buffer list.  */
+      /* But do put this buffer at the front of the buffer list, unless
+	 that has been inhibited.  Note that even if BUFFER-OR-NAME is
+	 at the front of the main buffer-list already, we still want to
+	 move it to the front of the frame's buffer list.  */
       if (NILP (norecord))
-	record_buffer (buffer);
-      return Fset_buffer (buffer);
+	record_buffer (buffer_or_name);
+      return Fset_buffer (buffer_or_name);
     }
 
-  err = no_switch_window (selected_window);
-  if (err)
-    /* If can't display in current window, let pop-to-buffer
-       try some other window. */
-    return call3 (intern ("pop-to-buffer"), buffer, Qnil, norecord);
-
-  return switch_to_buffer_1 (buffer, norecord);
+  if (EQ (minibuf_window, selected_window)
+      || !NILP (Fwindow_dedicated_p (selected_window)))
+    /* We can't use the selected window so let `pop-to-buffer' try some
+       other window. */
+    return call3 (intern ("pop-to-buffer"), buffer_or_name, Qnil, norecord);
+  else
+    return switch_to_buffer_1 (buffer_or_name, norecord);
 }
 
 DEFUN ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
@@ -2010,23 +2001,23 @@ set_buffer_temp (b)
 }
 
 DEFUN ("set-buffer", Fset_buffer, Sset_buffer, 1, 1, 0,
-       doc: /* Make the buffer BUFFER current for editing operations.
-BUFFER may be a buffer or the name of an existing buffer.
-See also `save-excursion' when you want to make a buffer current temporarily.
-This function does not display the buffer, so its effect ends
-when the current command terminates.
-Use `switch-to-buffer' or `pop-to-buffer' to switch buffers permanently.  */)
-     (buffer)
-     register Lisp_Object buffer;
+       doc: /* Make buffer BUFFER-OR-NAME current for editing operations.
+BUFFER-OR-NAME may be a buffer or the name of an existing buffer.  See
+also `save-excursion' when you want to make a buffer current
+temporarily.  This function does not display the buffer, so its effect
+ends when the current command terminates.  Use `switch-to-buffer' or
+`pop-to-buffer' to switch buffers permanently.  */)
+     (buffer_or_name)
+     register Lisp_Object buffer_or_name;
 {
-  register Lisp_Object buf;
-  buf = Fget_buffer (buffer);
-  if (NILP (buf))
-    nsberror (buffer);
-  if (NILP (XBUFFER (buf)->name))
+  register Lisp_Object buffer;
+  buffer = Fget_buffer (buffer_or_name);
+  if (NILP (buffer))
+    nsberror (buffer_or_name);
+  if (NILP (XBUFFER (buffer)->name))
     error ("Selecting deleted buffer");
-  set_buffer_internal (XBUFFER (buf));
-  return buf;
+  set_buffer_internal (XBUFFER (buffer));
+  return buffer;
 }
 
 /* Set the current buffer to BUFFER provided it is alive.  */
@@ -2052,18 +2043,24 @@ DEFUN ("barf-if-buffer-read-only", Fbarf_if_buffer_read_only,
 }
 
 DEFUN ("bury-buffer", Fbury_buffer, Sbury_buffer, 0, 1, "",
-       doc: /* Put BUFFER at the end of the list of all buffers.
+       doc: /* Put BUFFER-OR-NAME at the end of the list of all buffers.
 There it is the least likely candidate for `other-buffer' to return;
-thus, the least likely buffer for \\[switch-to-buffer] to select by default.
-You can specify a buffer name as BUFFER, or an actual buffer object.
-If BUFFER is nil or omitted, bury the current buffer.
-Also, if BUFFER is nil or omitted, remove the current buffer from the
-selected window if it is displayed there.  */)
-     (buffer)
-     register Lisp_Object buffer;
+thus, the least likely buffer for \\[switch-to-buffer] to select by
+default.
+
+The argument may be a buffer name or an actual buffer object.  If
+BUFFER-OR-NAME is nil or omitted, bury the current buffer and remove it
+from the selected window if it is displayed there.  If the selected
+window is dedicated to its buffer, delete that window if there are other
+windows on the same frame.  If the selected window is the only window on
+its frame, iconify that frame.  */)
+     (buffer_or_name)
+     register Lisp_Object buffer_or_name;
 {
+  Lisp_Object buffer;
+
   /* Figure out what buffer we're going to bury.  */
-  if (NILP (buffer))
+  if (NILP (buffer_or_name))
     {
       Lisp_Object tem;
       XSETBUFFER (buffer, current_buffer);
@@ -2082,12 +2079,9 @@ selected window if it is displayed there.  */)
     }
   else
     {
-      Lisp_Object buf1;
-
-      buf1 = Fget_buffer (buffer);
-      if (NILP (buf1))
-	nsberror (buffer);
-      buffer = buf1;
+      buffer = Fget_buffer (buffer_or_name);
+      if (NILP (buffer))
+	nsberror (buffer_or_name);
     }
 
   /* Move buffer to the end of the buffer list.  Do nothing if the
@@ -5697,8 +5691,9 @@ its hooks should not expect certain variables such as
   DEFVAR_PER_BUFFER ("mode-name", &current_buffer->mode_name,
                      Qnil,
 		     doc: /* Pretty name of current buffer's major mode.
-Usually a string.  See `mode-line-format' for other possible forms.
-Use the function `format-mode-line' to get the value as a string.  */);
+Usually a string, but can use any of the constructs for `mode-line-format',
+which see.
+Format with `format-mode-line' to produce a string value.  */);
 
   DEFVAR_PER_BUFFER ("local-abbrev-table", &current_buffer->abbrev_table, Qnil,
 		     doc: /* Local (mode-specific) abbrev table of current buffer.  */);

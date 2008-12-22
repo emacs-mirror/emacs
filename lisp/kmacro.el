@@ -895,7 +895,7 @@ without repeating the prefix."
 
 
 (defun kmacro-edit-lossage ()
-  "Edit most recent 100 keystrokes as a keyboard macro."
+  "Edit most recent 300 keystrokes as a keyboard macro."
   (interactive)
   (kmacro-push-ring)
   (edit-kbd-macro "\C-hl"))

@@ -1,7 +1,865 @@
+2008-11-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eshell/em-hist.el (eshell-save-history-on-exit): Change default
+	to t.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode): Remove bogus change from
+	2000-12-08 (bug#1297).
+
+	* font-lock.el (font-lock-keywords-case-fold-search): Doc fix.
+
+2008-11-03  Vincent Belaïche  <vincent.b.1@hotmail.fr>
+
+	* calc/calc-alg.el (calcFunc-collect): Return constant polynomial
+	when appropriate.
+
+2008-11-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (save-selected-window-norecord): New macro
+	(walk-windows): Use save-selected-window-norecord and call
+	select-window with NORECORD set.  (Bug#1237)
+	(set-window-text-height, fit-window-to-buffer): Use
+	save-selected-window-norecord and call select-window with
+	NORECORD set.
+	* subr.el (with-selected-window): Call set-frame-selected-window
+	with new argument NORECORD set.  Update doc-string.
+	(with-selected-frame): Call select-frame with new argument
+	NORECORD set.  Update doc-string.
+	* emacs-lisp/lisp-mode.el (save-selected-window-norecord): Put
+	indent-function for save-selected-window-norecord.
+	* font-lock.el (lisp-font-lock-keywords-2): Add
+	save-selected-window-norecord.
+
+2008-11-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cus-edit.el (customize-apropos-options, custom-comment)
+	(custom-comment-tag, custom-face-edit-attribute-tag):
+	Fix typos in docstrings.
+	(custom-buffer-done-kill): Remove * from defcustom docstring.
+	(custom-file): Fix typo in doc of defcustom choice.
+
+	* frame.el (display-visual-class): Fix typo in docstring.
+	(initial-frame-alist, minibuffer-frame-alist, pop-up-frame-alist)
+	(special-display-frame-alist, show-trailing-whitespace)
+	(auto-hscroll-mode, blink-cursor-delay, blink-cursor-interval)
+	(display-hourglass, hourglass-delay, cursor-in-non-selected-windows):
+	Remove * from defcustom docstrings.
+
+	* md4.el (md4-buffer): Fix typo in docstring.
+	(md4, md4-64): Doc fixes.
+	(md4-pack-int32): Reflow docstring.
+
+	* paths.el (rmail-file-name): Remove * from defcustom docstring.
+	(prune-directory-list, gnus-nntp-service): Fix typos in docstrings.
+
+	* rect.el (open-rectangle): Reflow docstring.
+	(spaces-string): Fix docstring typo.  Use "?\s" instead of "? ".
+
+	* select.el (x-get-cut-buffer): Fix typo in docstring.
+
+	* timezone.el (timezone-zone-to-minute, timezone-time-from-absolute)
+	(timezone-time-zone-from-absolute, timezone-leap-year-p):
+	Fix typos in docstrings.
+
+	* emacs-lisp/assoc.el (asort, aelement, aput, aget, amake):
+	Fix typos in docstrings.
+
+2008-10-31  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-backend.el (newsticker--cache-update): Fix no-save case.
+
+	* net/newst-treeview.el (newsticker--treeview-list-update-faces)
+	(newsticker--treeview-list-update, newsticker--treeview-item-show)
+	(newsticker--treeview-tree-update)
+	(newsticker--treeview-tree-update-highlight)
+	(newsticker-treeview-update)
+	(newsticker-treeview-next-item, newsticker-treeview-prev-item)
+	(newsticker-treeview-next-new-or-immortal-item)
+	(newsticker-treeview-prev-new-or-immortal-item)
+	(newsticker-treeview-next-feed, newsticker-treeview-prev-feed)
+	(newsticker-treeview-tree-click): Watch for layout changes.
+	(newsticker--treeview-set-current-node): Cleanup.
+	(newsticker--treeview-restore-layout): Rename from
+	newsticker--treeview-restore-buffers.
+	(newsticker--treeview-mark-item): Update cache file.
+
+2008-10-31  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--uid-count): New.
+	(icalendar--create-uid): New.  Extracted from
+	`icalendar-export-region' and add uid counter.
+	(icalendar-export-region): Use `icalendar--create-uid'.
+
+2008-10-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tooltip.el (tooltip-frame-parameters): Doc fix.
+
+2008-10-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-body-height, window-current-scroll-bars)
+	(walk-windows, get-window-with-predicate, get-buffer-window-list)
+	(minibuffer-window-active-p, count-windows)
+	(window-safely-shrinkable-p, window--splittable-p)
+	(window--try-to-split-window, window--frame-usable-p)
+	(window--even-window-heights, window--display-buffer-1)
+	(window--display-buffer-2, set-window-text-height)
+	(fit-window-to-buffer, shrink-window-if-larger-than-buffer)
+	(truncated-partial-width-window-p): Rewrite doc-string.
+	(window-fixed-size-p): Simplify code.  Rewrite doc-string.
+	(split-window-vertically, split-window-horizontally):
+	Rename args, rewrite doc-string, and simplify code.
+	(split-window-save-restore-data): Rename args and use
+	when instead of if.
+
+2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.el (indent-for-tab-command): Use use-region-p.
+
+	* vc.el (vc-revert): Limit the length of the query string.
+
+2008-10-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (idle-update-delay, next-error-highlight)
+	(next-error-highlight-no-select, next-error-recenter, next-error-hook)
+	(minibuffer-history-case-insensitive-variables, kill-ring-max)
+	(kill-read-only-ok, backward-delete-char-untabify-method)
+	(kill-whole-line, mark-ring-max, global-mark-ring-max)
+	(set-mark-command-repeat-pop, next-line-add-newlines, track-eol)
+	(goal-column, line-move-ignore-invisible, fill-prefix)
+	(auto-fill-inhibit-regexp, blink-matching-paren)
+	(blink-matching-paren-on-screen, blink-matching-paren-distance)
+	(blink-matching-delay, blink-matching-paren-dont-ignore-comments)
+	(read-mail-command, mail-user-agent): Remove * in defcustom docstrings.
+	(minibuffer-history-isearch-wrap, transient-mark-mode)
+	(next-logical-line, auto-fill-mode, line-number-mode)
+	(column-number-mode, size-indication-mode, clone-indirect-buffer)
+	(normal-erase-is-backspace-mode): Doc fixes.
+	(current-kill, transient-mark-mode, toggle-truncate-lines)
+	(visible-mode): Reflow docstrings.
+	(minibuffer-local-shell-command-map, interprogram-paste-function):
+	Fix typos in docstrings.
+
+2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-process-filter): In daemon mode, default to
+	emacsclient's tty if not opening a new frame and only the
+	terminal-frame is available.
+
+2008-10-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (quit-window): Simplify code.  Say in doc-string
+	that it operates on the selected window's buffer.  (Bug#1259)
+
+2008-10-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc-svn.el (vc-svn-diff): If files is nil don't set oldvers to
+	nil so that log-view-diff-changeset works.
+
+2008-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (locate-dominating-stop-dir-regexp): Fix typo.
+
+	* resume.el: Move to obsolete/.
+	* Makefile.in (ELCFILES): Update.
+
+2008-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* electric.el (Electric-pop-up-window): Don't shrink the window if
+	it's already big enough.
+
+	* minibuffer.el (delete-minibuffer-contents): Delete all
+	minibuffer contents instead of just the current field.
+
+	* tmm.el (tmm-get-keymap): Handle case where keyseq cache is omitted.
+
+	* bookmark.el (bookmark-handle-bookmark): Rename from
+	bookmark-jump-noselect.
+	(bookmark--jump-via, bookmark-insert): Callers changed.
+	(bookmark-jump-noselect): Wrapper function for
+	bookmark-handle-bookmark.
+	(bookmark-get-bookmark-record): Signal error for invalid bookmark.
+
+	* textmodes/ispell.el (ispell-word): Use use-region-p.
+
+2008-10-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tooltip.el (tooltip-functions): Rename from `tooltip-hook',
+	to follow naming conventions for abnormal hooks.  Doc fix.
+	(tooltip-mode, tooltip-timeout): Use it.
+	(tooltip-hook): New obsolete alias.
+	(tooltip-help-tips): Doc fix.
+
+	* progmodes/gud.el (gud-tooltip-mode): Use `tooltip-functions'.
+
+2008-10-29  Ulrich Mueller  <ulm@gentoo.org>
+
+	* server.el (server-socket-dir): Use TMPDIR (default /tmp) instead
+	of hardcoded /tmp.
+
+2008-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* net/xesam.el (dbus-get-unique-name, dbus-debug): Declare.
+
+	* vc-hooks.el (vc-find-root): Remove bogus alias.
+
+2008-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/quail.el (quail-show-guidance): Don't create
+	a guidance-frame if current buffer is not a minibuffer, since even if
+	selected-window is mini-p, the buffer will never be displayed in it, so
+	it wil be usable for guidance.
+
+2008-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el: Require diff-mode at run-time as well.
+
+2008-10-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* vc-cvs.el (vc-cvs-stay-local): Fix typo in choice.
+	* vc-hooks.el (vc-stay-local): Likewise.
+
+2008-10-28  Phil Sung  <psung@mit.edu>
+
+	* follow.el (follow-scroll-down, follow-calc-win-end)
+	(follow-estimate-first-window-start): Reduce effective window
+	height when header line is present.  (Bug#925)
+
+2008-10-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (locate-user-emacs-file): Simplify.  Don't create
+	`user-emacs-directory' when Emacs is running in batch mode.
+
+	* startup.el (inhibit-startup-screen): Reflow docstring.
+	(user-mail-address, tool-bar-images-pixel-height): Fix docstring typos.
+
+2008-10-27  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Fix terminal case (where font is nil).
+
+2008-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* face-remap.el (text-scale-increase, text-scale-decrease)
+	(text-scale-adjust): Remove &optional keyword from the arg list;
+	the INC argument is not really optional, if the functions happen
+	to be called from elisp.
+
+2008-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Rename VC methods that were missed when vc-status was
+	renamed to vc-dir.
+	* vc-svn.el (vc-svn-dir-extra-headers): Rename from
+	vc-svn-status-extra-headers.
+	* vc-hg.el (vc-hg-dir-printer): Rename from vc-hg-status-printer.
+	(vc-hg-dir-extra-header): Rename from vc-hg-status-extra-headers.
+	* vc-git.el (vc-git-dir-printer): Rename from vc-dir-status-printer.
+	(vc-git-dir-extra-headers): Rename from vc-git-status-extra-headers.
+	* vc-dir.el (vc-dir-mode): Use vc-dir-printer instead of
+	vc-dir-status-printer.
+	(vc-dir-headers): Use `dir-extra-headers' instead of
+	`status-extra-headers'.
+	(vc-dir-printer): Rename from vc-dir-status-printer.
+	(vc-default-dir-extra-headers): Rename from
+	vc-default-status-extra-headers.
+	* vc-cvs.el (vc-cvs-dir-extra-headers): Rename from
+	vc-cvs-status-extra-headers.
+
+	* startup.el (server-name): Pacify byte compiler.
+	(command-line): If --daemon=SERVER_NAME was used, set server-name
+	before calling server-start.
+
+2008-10-26  Romain Francoise  <romain@orebokech.com>
+
+	* startup.el (command-line): Call daemon-initialized after
+	starting the server.
+
+2008-10-26  Kenichi Handa  <handa@m17n.org>
+
+	* help-fns.el (describe-categories): Display the terse legend at
+	the head.
+
+	* international/characters.el: Docstrings of categories improved.
+
+2008-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-mode): Don't impose ourselves on hippie.
+
+	* faces.el (face-font-family-alternatives): Add "CMU Typewriter Text"
+	to the courier family.
+	* textmodes/tex-mode.el (tex-verbatim): Don't use "monospace" which is
+	usually not serif'd and hence rather unlike verbatim's printed output.
+
+2008-10-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc-cvs.el (vc-cvs-status-extra-headers): Use full directory name
+	when reporting the module.
+
+	* vc-dir.el (vc-dir-mode-map): Add follow-link behavior.
+
+	* wid-edit.el (widget-color-complete): Sort completions alphabetically.
+
+2008-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (locate-dominating-stop-dir-regexp): New var.
+	(locate-dominating-file): Change arg from a regexp to a file name.
+	Rewrite using the vc-find-root code to avoid directory-files which is
+	too slow.  Obey locate-dominating-stop-dir-regexp.
+	Don't pay attention to changes in owner.
+	(project-find-settings-file): Adjust call to locate-dominating-file.
+
+	* progmodes/flymake.el (flymake-find-buildfile):
+	Adjust call to locate-dominating-file.
+
+	* vc-hooks.el (vc-find-root): Use locate-dominating-file.
+	(vc-ignore-dir-regexp): Use locate-dominating-stop-dir-regexp.
+
+2008-10-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* subr.el (with-current-buffer): Rename buffer argument to
+	buffer-or-name.
+	* window.el (get-buffer-window-list): Rename buffer argument to
+	buffer-or-name and make it optional.
+
+2008-10-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* completion.el (add-completion-to-head, add-completion): Doc fixes.
+	(completion-search-next, add-completions-from-file):
+	Fix typos in docstrings.
+
+	* filesets.el (filesets-menu-ensure-use-cached)
+	(filesets-ingroup-patterns, filesets-filetype-property):
+	* tutorial.el (get-lang-string):
+	* play/gamegrid.el (gamegrid-score-file-length, gamegrid-add-score):
+	Fix typos in docstrings.
+
+	* image-dired.el (image-dired-dired-after-readin-hook): Doc fix.
+	(image-dired-line-up-method, image-dired-thumb-size)
+	(image-dired-cmd-write-exif-data-options, image-dired-write-tags)
+	(image-dired-track-original-file, image-dired-track-thumbnail)
+	(image-dired-dired-next-line, image-dired-dired-previous-line)
+	(image-dired-write-comments): Reflow docstrings.
+	(image-dired-show-all-from-dir-max-files)
+	(image-dired-format-properties-string, image-dired-create-thumbs)
+	(image-dired-mark-tagged-files, image-dired-gallery-generate):
+	Fix typos in docstrings.
+
+	* savehist.el (savehist-save-minibuffer-history, savehist-file)
+	(savehist-additional-variables, savehist-ignored-variables)
+	(savehist-file-modes, savehist-autosave-interval):
+	* startup.el (inhibit-startup-echo-area-message, inhibit-default-init)
+	(inhibit-startup-buffer-menu, mail-host-address, user-mail-address)
+	(fancy-splash-image):
+	* thumbs.el (thumbs-thumbsdir, thumbs-geometry, thumbs-relief)
+	(thumbs-conversion-program, thumbs-margin):
+	Remove spurious * in docstrings.
+
+2008-10-25  Aaron S. Hawley  <aaronh@garden.org>
+
+	* thingatpt.el (end-of-sexp, beginning-of-sexp)
+	(forward-same-syntax): Omit default arguments to char-after and
+	char-before.
+
+2008-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (locate-user-emacs-file): New function.
+	(user-emacs-directory): Mention it in docstring.
+
+	* completion.el (save-completions-file-name):
+	* filesets.el (filesets-menu-cache-file):
+	* image-dired.el (image-dired-dir, image-dired-db-file)
+	(image-dired-temp-image-file, image-dired-gallery-dir)
+	(image-dired-temp-rotate-image-file):
+	* savehist.el (savehist-file):
+	* server.el (server-auth-dir):
+	* thumbs.el (thumbs-thumbsdir):
+	* tutorial.el (tutorial--saved-dir):
+	* play/gamegrid.el (gamegrid-user-score-file-directory): Use it.
+
+2008-10-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* edmacro.el (edmacro-eight-bits, edmacro-mode): Fix docstring typos.
+	(edmacro-mismatch, edmacro-sanitize-for-string): Doc fixes.
+
+2008-10-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* filesets.el: Update author email.
+	(filesets-data): Doc fix.
+
+2008-10-23  Jens Petersen  <petersen@redhat.com>  (tiny change)
+
+	* pcmpl-rpm.el (pcomplete/rpm): Make "rpm -qp" use file completion.
+
+2008-10-23  Ulrich Mueller  <ulm@kph.uni-mainz.de>
+
+	* international/mule-cmds.el (describe-language-environment):
+	Indent sample text.
+
+2008-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-rpm.el (pcomplete/rpm): Doc fix.
+
+	* emacs-lisp/cl-macs.el (flet): Throw an error when trying to
+	byte-compile a redefinition of a function with special byte-compile
+	handling.  (Bug#411)
+
+2008-10-22  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Deal with page sizes for label printes.  Suggested by
+	Friedrich Delgado Friedrichs <friedel@nomaden.org>.
+	(ps-print-version): New version 7.3.3.
+	(ps-page-dimensions-database): New page sizes for label printers.
+	(ps-n-up-printing): Fix code.
+
+2008-10-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (make-frame-command): Doc fix.  Use display-graphic-p.
+
+	* thingatpt.el (sexp-at-point, symbol-at-point, number-at-point)
+	(list-at-point): Add docstrings.
+
+	* dired.el (dired-get-marked-files, dired-map-over-marks): Doc fixes.
+
+	* dired-aux.el (dired-do-create-files): Doc fix.
+
+2008-10-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* version.el (emacs-version): Change '*Step' to 'NS' for consistency
+	with other documentation.
+
+2008-10-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* replace.el (how-many): Fix typo in docstring.
+	Reported by Leo <sdl.web@gmail.com>.
+
+2008-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule-cmds.el (universal-coding-system-argument):
+	Check for C-g.  (Bug#1205)
+
+2008-10-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Don't setup
+	find-word-boundary-function-table.
+	(next-word-boundary-han, next-word-boundary-kana): Delete them.
+	(word-combining-categories, word-separating-categories):
+	Adjust to the change of the docstrings.
+
+2008-10-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (region-active-p): Doc fix.
+
+2008-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (apply-partially): Move from here...
+
+	* simple.el (apply-partially): ...to here.
+
+2008-10-20  Andreas Schwab  <schwab@suse.de>
+
+	* subr.el (split-string-and-unquote): Simplify regexp.
+
+2008-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (top-level): Require `cl' when compiling.
+
+2008-10-20  David Reitter <david.reitter@gmail.com>
+
+	* info.el (Info-mode): Do not remove an existing header line if
+	`Info-use-header-line' is nil.
+
+2008-10-19  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-query-replace, isearch-query-replace-regexp):
+	Add arg `delimited' as in `query-replace' for the case when
+	isearch-allow-scroll=t and the user types C-u M-%.  Doc fix.
+	Add more indicators to the prompt ("word" and "in region").
+
+	* replace.el (query-replace, query-replace-regexp)
+	(replace-string, replace-regexp, perform-replace): Add "word"
+	indicatiors to the prompt for word delimited replacements.
+
+	* replace.el (read-regexp): Rename arg `default' to `default-value'.
+	Doc fix.
+
+2008-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (apply-partially): Move here from minibuffer.el.  Doc fix.
+
+	* simple.el (minibuffer-default-add-shell-commands): Doc fix.
+
+2008-10-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (enlarge-window-horizontally, shrink-window-horizontally):
+	Make argument names follow Elisp manual.
+
+2008-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/remember.el (remember-data-file):
+	* shadowfile.el (shadow-initialize)
+	<shadow-info-file, shadow-todo-file>:
+	* savehist.el (savehist-file):
+	* recentf.el (recentf-save-file):
+	* pcvs-defs.el (cvs-cvsrc-file):
+	* international/kkc.el (kkc-init-file-name):
+	* ido.el (ido-save-directory-list-file):
+	* calendar/todo-mode.el (todo-file-do, todo-file-done)
+	(todo-file-top): Run file names that begin with a period thru
+	`convert-standard-filename'.
+
+	* dos-fns.el (dos-reevaluate-defcustoms): New function.  Add it to
+	before-init-hook.
+
+	Fix Bug #1183:
+
+	* ediff-diff.el (ediff-exec-process): For buffer jobs, bind
+	coding-system-for-read to ediff-coding-system-for-write.
+
+	* ediff-util.el (ediff-make-temp-file): Unconditionally bind
+	coding-system-for-write to ediff-coding-system-for-write.
+
+	* ediff-init.el (ediff-coding-system-for-read): Doc fix.
+	(ediff-coding-system-for-write): Set to emacs-internal.
+
+2008-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-conf.el (emacs-internal): New coding system alias.
+
+2008-10-18  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-file-supports-index-cookies-list): New variable.
+	(Info-file-supports-index-cookies): New function.
+	(Info-find-node-2, Info-index-nodes, Info-index-node): Use it.
+	(Info-index-nodes): Let-bind Info-point-loc to nil for files
+	without an index cookie to ignore it when Info-index-nodes is
+	called during navigating from an index node with line numbers.
+	(Info-index-node): Set file to Info-current-file if nil.  (Bug#1118)
+
+	* info.el (Info-breadcrumbs-depth): Move defcustom higher to the
+	variable definition section.
+
+	* info.el (Info-find-node-2): Put initial point below the header line
+	and breadcrumbs line.
+
+2008-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* doc-view.el (doc-view-pdf->txt, doc-view-ps->pdf): Give an error if
+	the needed external programs were not found.
+
+2008-10-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (trash-directory): Run thru `convert-standard-filename'.
+	(file-modes-char-to-who, file-modes-char-to-right)
+	(file-modes-rights-to-number, file-modes-symbolic-to-number)
+	(read-file-modes): Doc fixes.
+
+2008-10-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* abbrev.el (define-abbrev): Doc fix.
+
+2008-10-17  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-defun-name): Make it work for "struct
+	foo bar [] = { ...".
+
+2008-10-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (face-spec-set-2): Don't pass invalid attributes to
+	set-face-attribute.
+
+2008-10-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-fns.el (w32-list-locales): Decode output of `w32-get-locale-info'
+	according to `locale-coding-system'.  (This fixes trivial bug reported
+	as part of bug#1179).
+	Sort list of valid locale ids (EnumSystemLocales does not guarantee any
+	particular order).  Use `when'.
+
+2008-10-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-fns.el (w32-check-shell-configuration): Doc fix.
+	(w32-add-charset-info): Fix typo in docstring.
+
+2008-10-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* international/mule-conf.el: Removed `utf8' and `UTF8' aliases
+	after discussion.
+
+2008-10-16  Magnus Henoch  <mange@freemail.hu>
+
+	* vc-arch.el (vc-arch-dir-status): New function.
+	(vc-arch-after-dir-status): New function.
+
+2008-10-16  Glenn Morris  <rgm@gnu.org>
+
+	* man.el (Man-getpage-in-background): Force recent `man's to output
+	escape sequences even when stdout is not a tty.  (Bug#1142)
+
+2008-10-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* international/mule-conf.el: Add `utf8' and `UTF8' as
+	aliases for the `utf-8' coding system.
+
+2008-10-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* find-file.el (ff-get-file): Doc fix.
+	(ff-get-file-name): Use `let', not `let*'.
+	(ff-search-directories): Fix typo in docstring.
+	(ff-pre-find-hook, ff-pre-load-hook, ff-post-load-hook)
+	(ff-not-found-hook, ff-file-created-hook, ff-case-fold-search)
+	(ff-always-in-other-window, ff-ignore-include, ff-always-try-to-create)
+	(ff-quiet-mode, ff-other-file-alist, cc-search-directories)
+	(cc-other-file-alist, modula2-other-file-alist):
+	Remove spurious * in docstrings.
+
+2008-10-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (set-face-attribute): Set family and foundry before
+	other attributes.
+	(face-spec-set-2): Pass unmodified args to set-face-attribute.
+
+2008-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hl-line.el (hl-line-unload-function): New function.
+	(hl-line-unhighlight, global-hl-line-unhighlight): Use `when'.
+	(hl-line-sticky-flag): Remove spurious * in docstring.
+
+2008-10-14  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+
+	* vc-git.el (vc-git-show-log-entry): Include the revision in the
+	search string.
+
+2008-10-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-process-one-action): Embed regexp in
+	parentheses, before adding end-of-buffer construct.  Suggested by
+	Markus Triska <markus.triska@gmx.at>.
+
+2008-10-13  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-plainview.el (w3m-toggle-inline-image):
+	Define 'declare-function if necessary, for compatibility.
+
+	* net/newst-treeview.el (w3m-toggle-inline-images):
+	Define 'declare-function if necessary, for compatibility.
+
+2008-10-13  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-indent-region): Fix previous patch
+	so that the function works on one-line macros.
+
+	* progmodes/cc-engine.el: Amend several doc strings and comments.
+
+2008-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-stay-local): Add a new choice and default to it.
+
+	* vc-cvs.el (vc-cvs-dir-stay-local): Remove.
+	(vc-cvs-stay-local): Add a new choice and default to it.
+	(vc-cvs-dir-status): Use the new vc-stay-local choice.
+
+	* vc-svn.el (vc-svn-dir-status): Use the new vc-stay-local choice.
+
+2008-10-12  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-mode.el (ada-get-indent-end, ada-goto-matching-start):
+	Add support for extended return statement.
+
+	* progmodes/ada-xref.el (ada-gnat-parse-gpr): Don't reverse src-dir
+	and obj-dir; keep user order.
+
+2008-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Update.
+
+	* simple.el (shell-delimiter-argument-list, shell-file-name-chars)
+	(shell-file-name-quote-list): Declare.
+
+2008-10-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-service-emacs, dbus-path-emacs): New defconst.
+
+2008-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): If toolbar is disabled but ought to
+	be initialized, call tool-bar-setup.
+
+	* tool-bar.el (tool-bar-setup): Variable deleted.
+	(tool-bar-setup): Set it up unconditionally.
+
+	* faces.el (x-create-frame-with-faces): Don't call tool-bar-setup.
+
+	* progmodes/grep.el (grep-mode-tool-bar-map): Check if
+	tool-bar-map has been initialized before setting it up.
+
+	* progmodes/compile.el (compilation-mode-tool-bar-map): Check if
+	tool-bar-map has been initialized before setting it up.
+
+2008-10-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/warnings.el (display-warning): Issue a message if
+	called during daemon initialization.
+
+	* tool-bar.el (tool-bar-local-item)
+	(tool-bar-local-item-from-menu): Put the check for number of
+	display colors into the image expression.
+	(tool-bar-setup): Don't be a no-op on ttys.
+
+	* info.el (info-tool-bar-map):
+	* progmodes/gud.el (gud-tool-bar-map):
+	* progmodes/grep.el (grep-mode-tool-bar-map):
+	* progmodes/compile.el (compilation-mode-tool-bar-map):
+	Initialize it unconditionally.
+
+2008-10-11  Romain Francoise  <romain@orebokech.com>
+
+	* help.el (view-lossage): Fix docstring, lossage is now 300 keys.
+	* kmacro.el (kmacro-edit-lossage): Ditto.
+	* edmacro.el (edit-kbd-macro): Ditto.
+
+2008-10-11  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-treeview.el (newsticker--treeview-list-sort-by-column):
+	Fix variable names.
+
+2008-10-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* startup.el (command-line): Revert 2008-09-26 change, not
+	necessary anymore.
+
+2008-10-10  Andreas Schwab  <schwab@suse.de>
+
+	* simple.el (minibuffer-complete-shell-command):
+	Bind comint-delimiter-argument-list, comint-file-name-chars and
+	comint-file-name-quote-list like shell-mode.
+
+2008-10-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (pop-to-buffer): Fix misplacement of arg norecord in
+	call of select-window.
+
+2008-10-10  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-embedded-word-regexp)
+	(calc-embedded-word-regexp-alist): New variables.
+	(calc-embedded-open-word, calc-embedded-close-word)
+	(calc-embedded-open-close-word-alist): Remove unused variables.
+
+	* calc/calc-embed.el (calc-embedded-make-info):
+	Use `calc-embedded-word-regexp' to find words.
+
+2008-10-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* info.el (Info-extract-menu-counting): New argment no-detail to
+	skip detailed node listings.
+	(Info-forward-node): New argument not-up to inhibit going up.
+	(Info-final-node): Call Info-extract-menu-counting and
+	Info-forward-node with the new arguments set to avoid infinite
+	looping.  (Bug#1116)
+
+2008-10-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (command-line): Don't invoke tool-bar-mode if it is
+	not fboundp.
+
+2008-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Enable tool-bar-mode as long as it is
+	not suppressed by X resources, regardless of the terminal.
+
+	* tool-bar.el (tool-bar-mode): Only change tool-bar-lines on
+	graphical terminals.
+	(tool-bar-setup): No-op if called on a tty.
+
+2008-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.el (make-frame-on-tty): Use "F" inside interactive.
+	Support `pc' ``window-system''.
+
+	* progmodes/compile.el (compilation-start): Resurrect the version
+	for systems that don't support asynchronous subprocesses.
+
+2008-10-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (pop-up-frames): Add choice graphic-only.
+	(display-buffer): When pop-up-frames equals graphic-only do
+	not pop up new frame on text-only terminals.  (Bug#1061)
+
+2008-10-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-cvs.el (vc-cvs-dir-stay-local): New variable.
+	(vc-cvs-dir-status): Use it.
+
+2008-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* json.el (json-skip-whitespace): Fix last change.
+
+2008-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-unload-function): New function.
+
+2008-10-08  Sven Joachim  <svenjoac@gmx.de>
+
+	* eshell/em-cmpl.el, eshell/em-hist.el, eshell/em-ls.el:
+	* eshell/esh-cmd.el, eshell/esh-ext.el, eshell/esh-io.el:
+	For clarity, explicitly require cl.
+
+2008-10-08  Michael Olson  <mwolson@gnu.org>
+
+	* ibuffer.el (ibuffer-shrink-to-fit): Force redisplay, so that we
+	can avoid a bad interaction with programs that add functions to
+	the window-scroll-functions hook.  This fixes Bug #858.
+
+2008-10-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Use display-warning to warn about an
+	init file error.
+	(command-line-1): Remove init file error delay.
+
+2008-10-07  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
+
+	* rx-new.el (rx-constituents): Change `anything' to call rx-anything.
+	Change `not-wordchar' assignment to "\\W" from "[^[:word:]]".
+	(rx-group-if): New function.
+	(rx-parent): New variable.
+	(rx-and, rx-or): Put shy groups only when necessary.
+	(rx-bracket): Remove.
+	(rx-anything): New function.
+	(rx-any-delete-from-range, rx-any-condense-range)
+	(rx-check-any-string): New functions.
+	(rx-check-any): Return result as a list.  Don't convert chars to
+	strings.  Don't prepend "\\" to "^".  Don't search for close bracket.
+	Check char category string.  Call rx-form instead of rx-to-string.
+	(rx-any): Rebuid to complete the function.
+	(rx-check-not): Fix char category regexp pattern string.
+	Call rx-form instead of rx-to-string.
+	(rx-not): Call rx-form instead of rx-to-string.  Convert "[^]" to
+	"[^^]".  Call regexp-quote for one char string when not called from
+	rx-not.  Add "\\w", and toggle to upcase.  Add the case of
+	"\\[SCBW]" to toggle.
+	(rx-=, rx->=, rx-**, rx-repeat, rx-submatch): Call rx-form
+	instead of rx-to-string.
+	(rx-kleene): Call rx-form instead of rx-to-string.
+	Call rx-group-if to adjust putting of shy groups.
+	(rx-atomic-p): Make check more precisely.
+	(rx-eval, rx-greedy): Call rx-form instead of rx-to-string.
+	(rx-regexp): Call rx-group-if.
+	(rx-form): New function.
+	(rx-to-string): Call rx-form, rx-group-if.
+	Refine definition of NO-GROUP.
+
+2008-10-07  T. V. Raman  <raman@users.sourceforge.net>  (tiny change)
+
+	* json.el (json-advance): Use forward-char.
+	(json-skip-whitespace): Use skip-syntax-forward.
+
+2008-10-07  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-indent-line-or-region): Fix so that
+	indenting a macro followed by blank lines doesn't backslash the
+	following non-blank line into the macro.
+
 2008-10-06  Chong Yidong  <cyd@stupidchicken.com>
 
-	* startup.el (before-init-time, after-init-time): Move into
-	emacs.c.
+	* startup.el (before-init-time, after-init-time): Move into emacs.c.
 	(command-line): Set after-init-time to nil before initialization.
 
 2008-10-06  Jay Belanger  <jay.p.belanger@gmail.com>
@@ -76,7 +934,7 @@
 2008-10-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/compile.el (compilation-start): Make sure to move to
-	point-max only when we are in the compilation buffer. (Bug#1073)
+	point-max only when we are in the compilation buffer.  (Bug#1073)
 
 2008-10-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -176,7 +1034,7 @@
 	* vc-hooks.el (vc-file-clearprops): Revert change from 2008-09-29.
 	(vc-file-not-found-hook): Check, that `buffer-file-name' is
 	non-nil.  It is not clear, whether this is only fixing symptoms on
-	an error. OTOH, in all other cases, the call of `vc-file-clearprops'
+	an error.  OTOH, in all other cases, the call of `vc-file-clearprops'
 	is embedded by that check.  So it might be TRT.  Suggested by Dan
 	Nicolaescu <dann@ics.uci.edu>.
 
@@ -2756,8 +3614,8 @@
 	frame-specific X resource settings.  Set faces using a list of
 	frame parameters explicitly passed to the calling
 	function (e.g. make-frame).
-	(x-create-frame-with-faces, tty-create-frame-with-faces): Supply
-	explicit frame parameter list to face-set-after-frame-default.
+	(x-create-frame-with-faces, tty-create-frame-with-faces):
+	Supply explicit frame parameter list to face-set-after-frame-default.
 
 2008-07-08  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
 

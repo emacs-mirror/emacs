@@ -106,8 +106,8 @@ ack.texi
 anti.texi
 arevert-xtra.texi
 basic.texi        -- cyd
-buffers.texi
-building.texi
+buffers.texi      -- cyd
+building.texi     -- cyd
 calendar.texi     -- rgm
 cal-xtra.texi     -- rgm
 cmdargs.texi
@@ -123,29 +123,29 @@ entering.texi     -- cyd
 files.texi
 fixit.texi        -- cyd
 fortran-xtra.texi -- rgm
-frames.texi
+frames.texi       -- cyd
 glossary.texi
 help.texi
-indent.texi
+indent.texi       -- cyd
 killing.texi      -- cyd
 kmacro.texi       -- cyd
 macos.texi     -- contents need to be evaluated and see what is still
  relevant after the NS merge.  (If this is here, why is ns-emacs.texi
  relegated to doc/misc?)
-maintaining.texi
-major.texi
+maintaining.texi  -- cyd
+major.texi        -- cyd
 mark.texi         -- cyd
 mini.texi         -- cyd
 misc.texi
 msdog.texi
 msdog-xtra.texi
 mule.texi
-m-x.texi
+m-x.texi          -- cyd
 programs.texi
 regs.texi         -- cyd
 rmail.texi
 screen.texi       -- cyd
-search.texi
+search.texi       -- cyd
 sending.texi
 text.texi
 trouble.texi

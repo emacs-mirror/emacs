@@ -1386,7 +1386,7 @@ See `whitespace-style' and `indent-tabs-mode' for documentation."
 
 It usually applies to the whole buffer, but in transient mark
 mode when the mark is active, it applies to the region.  It also
-applies to the region when it is not in transiente mark mode, the
+applies to the region when it is not in transient mark mode, the
 mark is active and \\[universal-argument] was pressed just before
 calling `whitespace-cleanup' interactively.
 

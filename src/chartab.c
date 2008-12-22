@@ -703,6 +703,9 @@ equivalent and can be merged.  It defaults to `equal'.  */)
 	XCHAR_TABLE (char_table)->contents[i]
 	  = optimize_sub_char_table (elt, test);
     }
+  /* Reset the `ascii' cache, in case it got optimized away.  */
+  XCHAR_TABLE (char_table)->ascii = char_table_ascii (char_table);
+
   return Qnil;
 }
 

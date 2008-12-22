@@ -69,24 +69,41 @@ adds the directory's subdirectories to the list, and these will be
 scanned in their turn.  The files @file{subdirs.el} are normally
 generated automatically by Emacs installation.
 
+@vindex before-init-time
+@item
+It records in the variable @code{before-init-time} the value of
+@code{current-time} (@pxref{Time of Day}).  It also sets
+@code{after-init-time} to @code{nil}, so as to signal Lisp programs
+that Emacs initialization is in progress.
+
+@vindex initial-window-system@r{, and startup}
+@vindex window-system-initialization-alist
+@item
+It loads the initialization library for the window system specified by
+the variable @code{initial-window-system}.  This library's name is
+@file{term/@var{windowsystem}-win.el}, where @var{windowsystem} is the
+value of @code{initial-window-system}.  From that library, it calls
+the appropriate initialization function.  The initialization function
+is specified by @code{window-system-initialization-alist}, for each
+supported window system.
+
 @item
 It sets the language environment and the terminal coding system,
 if requested by environment variables such as @code{LANG}.
-
-@item
-It loads the initialization library for the window system, if you are
-using a window system.  This library's name is
-@file{term/@var{windowsystem}-win.el}.
 
 @item
 It processes the initial options.  (Some of them are handled
 even earlier than this.)
 
 @item
-It initializes the window frame and faces, if appropriate.
+It runs the normal hook @code{before-init-hook}.
 
 @item
-It runs the normal hook @code{before-init-hook}.
+It initializes the window frame and faces, if appropriate, and turns
+on the menu bar and tool bar, if the initial frame needs them.
+
+@item
+It registers the default colors for text-only terminals.
 
 @item
 It loads the library @file{site-start} (if any), unless the option
@@ -108,6 +125,21 @@ command line.)  The library's file name is usually @file{default.el}.
 @cindex @file{default.el}
 
 @item
+It loads your abbrevs from the file specified by
+@code{abbrev-file-name} (@pxref{Abbrev Files, abbrev-file-name}), if
+that file exists and can be read.  (This is not done in @samp{-batch}
+mode.)
+
+@vindex after-init-time
+@item
+It records in the variable @code{after-init-time} the value of
+@code{current-time}.  This variable was set to @code{nil} at the
+beginning of the Emacs session initialization (see above), so setting
+it to the current time both signals that the initialization phase is
+over, and, together with @code{before-init-time}, provides the
+measurement of how long it took.
+
+@item
 It runs the normal hook @code{after-init-hook}.
 
 @item
@@ -116,8 +148,13 @@ the buffer @samp{*scratch*} is still current and still in Fundamental
 mode.
 
 @item
-It loads the terminal-specific Lisp file, if any, except when in batch
-mode or using a window system.
+It loads the terminal-specific Lisp library, if any, except when in
+batch mode or when the variable @code{initial-window-system} (see
+above) specifies a non-@code{nil} window system.  The name of this
+library is computed from the value of the variable
+@code{term-file-prefix}; for the details, see @ref{Terminal-Specific}.
+
+If the value of @code{term-file-prefix} is @code{nil}, this step is skipped.
 
 @item
 It displays the initial echo area message, unless you have suppressed
@@ -139,11 +176,21 @@ It runs @code{window-setup-hook}.  @xref{Window Systems}.
 
 @item
 It displays copyleft, nonwarranty, and basic use information, provided
-the value of @code{inhibit-startup-message} is @code{nil}, you didn't
+the value of @code{inhibit-startup-screen} is @code{nil}, you didn't
 specify @samp{--no-splash} or @samp{-Q}.
+
+@item
+If the command-line arguments specified @option{--daemon}, @c FIXME: xref
+it calls @code{server-start} (@pxref{Emacs Server,,, emacs, The GNU
+Emacs Manual}).
+
+@item
+If started by the X session manager, it calls
+@code{emacs-session-restore} passing it as argument the ID of the
+previous session.  @c FIXME: add an xref to the Emacs manual!
 @end enumerate
 
-@defopt inhibit-startup-message
+@defopt inhibit-startup-screen
 This variable inhibits the initial startup messages (the nonwarranty,
 etc.).  If it is non-@code{nil}, then the messages are not printed.
 
@@ -152,6 +199,9 @@ you are familiar with the contents of the startup message.  Do not set
 this variable in the init file of a new user, or in a way that affects
 more than one user, because that would prevent new users from receiving
 the information they are supposed to see.
+
+@code{inhibit-startup-message} is an alias for this variable, for
+back-compatibility.
 @end defopt
 
 @defopt inhibit-startup-echo-area-message
@@ -1280,9 +1330,72 @@ seconds since the epoch, to a time value and returns that.  To perform
 the inverse conversion, use @code{float-time}.
 @end defun
 
+@defun format-seconds format-string seconds
+This function converts its argument @var{seconds} into a string of
+years, days, hours, etc., according to @var{format-string}.  The
+argument @var{format-string} may contain @samp{%}-sequences which
+control the conversion.  Here is a table of what the
+@samp{%}-sequences mean:
+
+@table @samp
+@item %y
+@itemx %Y
+The integer number of 365-day years.
+@item %d
+@itemx %D
+The integer number of days.
+@item %h
+@itemx %H
+The integer number of hours.
+@item %m
+@itemx %M
+The integer number of minutes.
+@item %s
+@itemx %S
+The integer number of seconds.
+@item %z
+Non-printing control flag.  When it is used, other specifiers must be
+given in the order of decreasing size, i.e.@: years before days, hours
+before minutes, etc.  Nothing will be produced in the result string to
+the left of @samp{%z} until the first non-zero conversion is
+encountered.  For example, the default format used by
+@code{emacs-uptime} (@pxref{Processor Run Time, emacs-uptime})
+@w{@code{"%Y, %D, %H, %M, %z%S"}} means that the number of seconds
+will always be produced, but years, days, hours, and minutes will only
+be shown if they are non-zero.
+@item %%
+Produces a literal @samp{%}.
+@end table
+
+Upper-case format sequences produce the units in addition to the
+numbers, lower-case formats produce only the numbers.
+
+You can also specify the field width by following the @samp{%} with a
+number; shorter numbers will be padded with blanks.  An optional
+period before the width requests zero-padding instead.  For example,
+@code{"%.3Y"} might produce @code{"004 years"}.
+
+@emph{Warning:} This function works only with values of @var{seconds}
+that don't exceed @code{most-positive-fixnum} (@pxref{Integer Basics,
+most-positive-fixnum}).
+@end defun
+
 @node Processor Run Time
 @section Processor Run time
 @cindex processor run time
+@cindex Emacs process run time
+
+  Emacs provides several functions and primitives that return time,
+both elapsed and processor time, used by the Emacs process.
+
+@defun emacs-uptime &optional format
+This function returns a string representing the Emacs
+@dfn{uptime}---the elapsed wall-clock time this instance of Emacs is
+running.  The string is formatted by @code{format-seconds} according
+to the optional argument @var{format}.  For the available format
+descriptors, see @ref{Time Parsing, format-seconds}.  If @var{format}
+is nil or omitted, it defaults to @code{"%Y, %D, %H, %M, %z%S"}.
+@end defun
 
 @defun get-internal-run-time
 This function returns the processor run time used by Emacs as a list
@@ -1299,8 +1412,19 @@ $high*2^{16}+low$.
 The third element, @var{microsec}, gives the microseconds (or 0 for
 systems that return time with the resolution of only one second).
 
+Note that the time returned by this function excludes the time Emacs
+was not using the processor, and if the Emacs process has several
+threads, the returned value is the sum of the processor times used up
+by all Emacs threads.
+
 If the system doesn't provide a way to determine the processor run
-time, get-internal-run-time returns the same time as current-time.
+time, @code{get-internal-run-time} returns the same time as
+@code{current-time}.
+@end defun
+
+@defun emacs-init-time
+This function returns the duration of the Emacs initialization
+(@pxref{Startup Summary}) in seconds, as a string.
 @end defun
 
 @node Time Calculations

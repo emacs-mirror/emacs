@@ -52,12 +52,14 @@ conveniently adding tool bar items."
   :global t
   :group 'mouse
   :group 'frames
-  (and (display-images-p)
-       (modify-all-frames-parameters (list (cons 'tool-bar-lines
-						 (if tool-bar-mode 1 0))))
-       (if (and tool-bar-mode
-		(display-graphic-p))
-	   (tool-bar-setup))))
+  (if tool-bar-mode
+      (progn
+  	(dolist (frame (frame-list))
+  	  (if (display-graphic-p frame)
+  	      (set-frame-parameter frame 'tool-bar-lines 1)))
+	(if (= 1 (length (default-value 'tool-bar-map))) ; not yet setup
+	    (tool-bar-setup)))
+    (modify-all-frames-parameters (list (cons 'tool-bar-lines 0)))))
 
 ;;;###autoload
 ;; Used in the Show/Hide menu, to have the toggle reflect the current frame.
@@ -158,19 +160,19 @@ ICON.xbm, using `find-image'."
 	 (colors (nconc (if (eq fg 'unspecified) nil (list :foreground fg))
 			(if (eq bg 'unspecified) nil (list :background bg))))
 	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
-	 (xpm-lo-spec (if (> (display-color-cells) 256)
-			  nil
-			(list :type 'xpm :file
-                              (concat "low-color/" icon ".xpm"))))
+	 (xpm-lo-spec (list :type 'xpm :file
+			    (concat "low-color/" icon ".xpm")))
 	 (pbm-spec (append (list :type 'pbm :file
                                  (concat icon ".pbm")) colors))
 	 (xbm-spec (append (list :type 'xbm :file
                                  (concat icon ".xbm")) colors))
 	 (image-exp `(tool-bar-find-image
-                      (if (display-color-p)
-                          ',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec)
-                        ',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec)))))
-
+		      (cond ((not (display-color-p))
+			     ',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))
+			    ((< (display-color-cells) 256)
+			     ',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec))
+			    (t
+			     ',(list xpm-spec pbm-spec xbm-spec))))))
     (define-key-after map (vector key)
       `(menu-item ,(symbol-name key) ,def :image ,image-exp ,@props))))
 
@@ -210,18 +212,19 @@ holds a keymap."
 	 (colors (nconc (if (eq fg 'unspecified) nil (list :foreground fg))
 			(if (eq bg 'unspecified) nil (list :background bg))))
 	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
-	 (xpm-lo-spec (if (> (display-color-cells) 256)
-			  nil
-			(list :type 'xpm :file
-                              (concat "low-color/" icon ".xpm"))))
+	 (xpm-lo-spec (list :type 'xpm :file
+			    (concat "low-color/" icon ".xpm")))
 	 (pbm-spec (append (list :type 'pbm :file
                                  (concat icon ".pbm")) colors))
 	 (xbm-spec (append (list :type 'xbm :file
                                  (concat icon ".xbm")) colors))
 	 (image-exp `(tool-bar-find-image
-                      (if (display-color-p)
-                          ',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec)
-                        ',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))))
+		      (cond ((not (display-color-p))
+			     ',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))
+			    ((< (display-color-cells) 256)
+			     ',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec))
+			    (t
+			     ',(list xpm-spec pbm-spec xbm-spec)))))
 	 submap key)
     ;; We'll pick up the last valid entry in the list of keys if
     ;; there's more than one.
@@ -256,65 +259,59 @@ holds a keymap."
 
 ;;; Set up some global items.  Additions/deletions up for grabs.
 
-(defvar tool-bar-setup nil
-  "Set to t if the tool-bar has been set up by `tool-bar-setup'.")
+(defun tool-bar-setup ()
+  ;; People say it's bad to have EXIT on the tool bar, since users
+  ;; might inadvertently click that button.
+  ;;(tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
+  (tool-bar-add-item-from-menu 'find-file "new")
+  (tool-bar-add-item-from-menu 'menu-find-file-existing "open")
+  (tool-bar-add-item-from-menu 'dired "diropen")
+  (tool-bar-add-item-from-menu 'kill-this-buffer "close")
+  (tool-bar-add-item-from-menu 'save-buffer "save" nil
+			       :visible '(or buffer-file-name
+					     (not (eq 'special
+						      (get major-mode
+							   'mode-class)))))
+  (tool-bar-add-item-from-menu 'write-file "saveas" nil
+			       :visible '(or buffer-file-name
+					     (not (eq 'special
+						      (get major-mode
+							   'mode-class)))))
+  (tool-bar-add-item-from-menu 'undo "undo" nil
+			       :visible '(not (eq 'special (get major-mode
+								'mode-class))))
+  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [cut])
+			       "cut" nil
+			       :visible '(not (eq 'special (get major-mode
+								'mode-class))))
+  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [copy])
+			       "copy")
+  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [paste])
+			       "paste" nil
+			       :visible '(not (eq 'special (get major-mode
+								'mode-class))))
+  (tool-bar-add-item-from-menu 'nonincremental-search-forward "search")
+  ;;(tool-bar-add-item-from-menu 'ispell-buffer "spell")
 
-(defun tool-bar-setup (&optional frame)
-  (unless tool-bar-setup
-    (with-selected-frame (or frame (selected-frame))
-      ;; People say it's bad to have EXIT on the tool bar, since users
-      ;; might inadvertently click that button.
-      ;;(tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
-      (tool-bar-add-item-from-menu 'find-file "new")
-      (tool-bar-add-item-from-menu 'menu-find-file-existing "open")
-      (tool-bar-add-item-from-menu 'dired "diropen")
-      (tool-bar-add-item-from-menu 'kill-this-buffer "close")
-      (tool-bar-add-item-from-menu 'save-buffer "save" nil
-				   :visible '(or buffer-file-name
-						 (not (eq 'special
-							  (get major-mode
-							       'mode-class)))))
-      (tool-bar-add-item-from-menu 'write-file "saveas" nil
-				   :visible '(or buffer-file-name
-						 (not (eq 'special
-							  (get major-mode
-							       'mode-class)))))
-      (tool-bar-add-item-from-menu 'undo "undo" nil
-				   :visible '(not (eq 'special (get major-mode
-								    'mode-class))))
-      (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [cut])
-				   "cut" nil
-				   :visible '(not (eq 'special (get major-mode
-								    'mode-class))))
-      (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [copy])
-				   "copy")
-      (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [paste])
-				   "paste" nil
-				   :visible '(not (eq 'special (get major-mode
-								    'mode-class))))
-      (tool-bar-add-item-from-menu 'nonincremental-search-forward "search")
-      ;;(tool-bar-add-item-from-menu 'ispell-buffer "spell")
+  ;; There's no icon appropriate for News and we need a command rather
+  ;; than a lambda for Read Mail.
+  ;;(tool-bar-add-item-from-menu 'compose-mail "mail/compose")
 
-      ;; There's no icon appropriate for News and we need a command rather
-      ;; than a lambda for Read Mail.
-      ;;(tool-bar-add-item-from-menu 'compose-mail "mail/compose")
+  (tool-bar-add-item-from-menu 'print-buffer "print")
 
-      (tool-bar-add-item-from-menu 'print-buffer "print")
+  ;; tool-bar-add-item-from-menu itself operates on
+  ;; (default-value 'tool-bar-map), but when we don't use that function,
+  ;; we must explicitly operate on the default value.
 
-      ;; tool-bar-add-item-from-menu itself operates on
-      ;; (default-value 'tool-bar-map), but when we don't use that function,
-      ;; we must explicitly operate on the default value.
+  (let ((tool-bar-map (default-value 'tool-bar-map)))
+    (tool-bar-add-item "preferences" 'customize 'customize
+		       :help "Edit preferences (customize)")
 
-      (let ((tool-bar-map (default-value 'tool-bar-map)))
-        (tool-bar-add-item "preferences" 'customize 'customize
-                           :help "Edit preferences (customize)")
-
-        (tool-bar-add-item "help" (lambda ()
-                                    (interactive)
-                                    (popup-menu menu-bar-help-menu))
-                           'help
-                           :help "Pop up the Help menu"))
-      (setq tool-bar-setup t))))
+    (tool-bar-add-item "help" (lambda ()
+				(interactive)
+				(popup-menu menu-bar-help-menu))
+		       'help
+		       :help "Pop up the Help menu")))
 
 
 (provide 'tool-bar)

@@ -654,6 +654,8 @@ Start by converting PAGES, and then the rest."
 
 (defun doc-view-pdf->txt (pdf txt callback)
   "Convert PDF to TXT asynchronously and call CALLBACK when finished."
+  (or doc-view-pdftotext-program
+      (error "You need the `pdftotext' program to convert a PDF to text"))
   (doc-view-start-process "pdf->txt" doc-view-pdftotext-program
                           (list "-raw" pdf txt)
                           callback))
@@ -684,6 +686,8 @@ Start by converting PAGES, and then the rest."
 
 (defun doc-view-ps->pdf (ps pdf callback)
   "Convert PS to PDF asynchronously and call CALLBACK when finished."
+  (or doc-view-ps2pdf-program
+      (error "You need the `ps2pdf' program to convert PS to PDF"))
   (doc-view-start-process "ps->pdf" doc-view-ps2pdf-program
                           (list
                            ;; Avoid security problems when rendering files from

@@ -1732,6 +1732,11 @@ generated directly inside Emacs will not be caught since they make
 direct C-language calls to the message routines rather than going
 through the Lisp @code{message} function.
 
+@c Bug#411.
+Also note that many primitives (e.g. @code{+}) have special byte-compile
+handling.  Attempts to redefine such functions using @code{flet} will
+fail if byte-compiled.  In such cases, use @code{labels} instead.
+
 Functions defined by @code{flet} may use the full Common Lisp
 argument notation supported by @code{defun*}; also, the function
 body is enclosed in an implicit block as if by @code{defun*}.

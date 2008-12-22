@@ -112,7 +112,7 @@ That includes all Windows systems except for 9X/Me."
 (defvar w32-quote-process-args)  ;; defined in w32proc.c
 
 (defun w32-check-shell-configuration ()
-  "Check the configuration of shell variables on Windows NT/9X.
+  "Check the configuration of shell variables on Windows.
 This function is invoked after loading the init files and processing
 the command line arguments.  It issues a warning if the user or site
 has configured the shell with inappropriate settings."
@@ -217,18 +217,19 @@ You should set this to t when using a non-system shell.\n\n"))))
 (defun w32-list-locales ()
   "List the name and id of all locales supported by Windows."
   (interactive)
-  (if (null w32-valid-locales)
-      (setq w32-valid-locales (w32-get-valid-locale-ids)))
+  (when (null w32-valid-locales)
+    (setq w32-valid-locales (sort (w32-get-valid-locale-ids) #'<)))
   (switch-to-buffer-other-window (get-buffer-create "*Supported Locales*"))
   (erase-buffer)
   (insert "LCID\tAbbrev\tFull name\n\n")
-  (insert (mapconcat
-	   '(lambda (x)
-	      (format "%d\t%s\t%s"
-		      x
-		      (w32-get-locale-info x)
-		      (w32-get-locale-info x t)))
-	   w32-valid-locales "\n"))
+  (insert (decode-coding-string (mapconcat
+				 (lambda (x)
+				   (format "%d\t%s\t%s"
+					   x
+					   (w32-get-locale-info x)
+					   (w32-get-locale-info x t)))
+				 w32-valid-locales "\n")
+				locale-coding-system))
   (insert "\n")
   (goto-char (point-min)))
 
@@ -351,15 +352,14 @@ This function is provided for backward compatibility, since
   "Function to add character sets to display with Windows fonts.
 Creates entries in `w32-charset-info-alist'.
 XLFD-CHARSET is a string which will appear in the XLFD font name to
-identify the character set. WINDOWS-CHARSET is a symbol identifying
+identify the character set.  WINDOWS-CHARSET is a symbol identifying
 the Windows character set this maps to.  For the list of possible
 values, see the documentation for `w32-charset-info-alist'.  CODEPAGE
 can be a numeric codepage that Windows uses to display the character
 set, t for Unicode output with no codepage translation or nil for 8
 bit output with no translation."
   (add-to-list 'w32-charset-info-alist
-               (cons xlfd-charset (cons windows-charset codepage)))
-  )
+               (cons xlfd-charset (cons windows-charset codepage))))
 
 ;; The last charset we add becomes the "preferred" charset for the return
 ;; value from w32-select-font etc, so list the most important charsets last.

@@ -55,8 +55,8 @@ directory using `find-file'.  If t, open the `*scratch*' buffer."
 (defcustom inhibit-startup-screen nil
   "Non-nil inhibits the startup screen.
 
-This is for use in your personal init file (but NOT site-start.el), once
-you are familiar with the contents of the startup screen."
+This is for use in your personal init file (but NOT site-start.el),
+once you are familiar with the contents of the startup screen."
   :type 'boolean
   :group 'initialization)
 
@@ -66,7 +66,7 @@ you are familiar with the contents of the startup screen."
 (defvar startup-screen-inhibit-startup-screen nil)
 
 (defcustom inhibit-startup-echo-area-message nil
-  "*Non-nil inhibits the initial startup echo area message.
+  "Non-nil inhibits the initial startup echo area message.
 Setting this variable takes effect
 only if you do it with the customization buffer
 or if your `.emacs' file contains a line of this form:
@@ -80,12 +80,12 @@ the startup message unless he personally acts to inhibit it."
   :group 'initialization)
 
 (defcustom inhibit-default-init nil
-  "*Non-nil inhibits loading the `default' library."
+  "Non-nil inhibits loading the `default' library."
   :type 'boolean
   :group 'initialization)
 
 (defcustom inhibit-startup-buffer-menu nil
-  "*Non-nil inhibits display of buffer list when more than 2 files are loaded."
+  "Non-nil inhibits display of buffer list when more than 2 files are loaded."
   :type 'boolean
   :group 'initialization)
 
@@ -220,8 +220,8 @@ and VALUE is the value which is given to that frame parameter
     ("-cr" 1 ns-handle-switch cursor-color)
     ("-vb" 0 ns-handle-switch vertical-scroll-bars t)
     ("-hb" 0 ns-handle-switch horizontal-scroll-bars t)
-    ("-bd" 1 ns-handle-switch) 
-    ;; ("--border-width" 1 ns-handle-numeric-switch border-width) 
+    ("-bd" 1 ns-handle-switch)
+    ;; ("--border-width" 1 ns-handle-numeric-switch border-width)
     ;; ("--display" 1 ns-handle-display)
     ("--name" 1 ns-handle-name-switch)
     ("--title" 1 ns-handle-switch title)
@@ -329,7 +329,7 @@ this variable usefully is to set it while building and dumping Emacs."
 	  (error "Customizing `site-run-file' does not work")))
 
 (defcustom mail-host-address nil
-  "*Name of this machine, for purposes of naming users."
+  "Name of this machine, for purposes of naming users."
   :type '(choice (const nil) string)
   :group 'mail)
 
@@ -340,9 +340,9 @@ this variable usefully is to set it while building and dumping Emacs."
 						 (system-name))))
 			       ;; Empty string means "not set yet".
 			       "")
-  "*Full mailing address of this user.
+  "Full mailing address of this user.
 This is initialized with environment variable `EMAIL' or, as a
-fallback, using `mail-host-address'. This is done after your
+fallback, using `mail-host-address'.  This is done after your
 init file is read, in case it sets `mail-host-address'."
   :type 'string
   :group 'mail)
@@ -603,7 +603,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ("--color"		  . "-color")))
 
 (defconst tool-bar-images-pixel-height 24
-  "Height in pixels of images in the tool bar.")
+  "Height in pixels of images in the tool-bar.")
 
 (defvar tool-bar-originally-present nil
   "Non-nil if tool-bars are present before user and site init files are read.")
@@ -691,6 +691,9 @@ opening the first frame (e.g. open a connection to an X server).")
 (declare-function x-get-resource "frame.c"
 		  (attribute class &optional component subclass))
 (declare-function tool-bar-mode "tool-bar" (&optional arg))
+(declare-function tool-bar-setup "tool-bar")
+
+(defvar server-name)
 
 (defun command-line ()
   (setq before-init-time (current-time)
@@ -889,23 +892,24 @@ opening the first frame (e.g. open a connection to an X server).")
 				'("off" "false")))))
     (setq no-blinking-cursor t))
 
-  ;; If we run as a daemon, or frame was created with a menu bar, set
-  ;; menu-bar-mode on.
-  (when (or (daemonp)
-	    (not (or noninteractive
-		     emacs-basic-display
-		     (and (memq initial-window-system '(x w32))
-			  (<= (frame-parameter nil 'menu-bar-lines) 0)))))
+  ;; If frame was created with a menu bar, set menu-bar-mode on.
+  (unless (or noninteractive
+	      emacs-basic-display
+              (and (memq initial-window-system '(x w32))
+                   (<= (frame-parameter nil 'menu-bar-lines) 0)))
     (menu-bar-mode 1))
 
-  ;; If we run as a daemon or frame was created with a tool bar,
-  ;; switch tool-bar-mode on.
-  (when (or (daemonp)
-	   (not (or noninteractive
-		    emacs-basic-display
-		    (not (display-graphic-p))
-		    (<= (frame-parameter nil 'tool-bar-lines) 0))))
-	   (tool-bar-mode 1))
+  (unless (or noninteractive (not (fboundp 'tool-bar-mode)))
+    ;; Set up the tool-bar.  Do this even in tty frames, so that there
+    ;; is a tool-bar if Emacs later opens a graphical frame.
+    (if (or emacs-basic-display
+	    (and (numberp (frame-parameter nil 'tool-bar-lines))
+		 (<= (frame-parameter nil 'tool-bar-lines) 0)))
+	;; On a graphical display with the toolbar disabled via X
+	;; resources, set up the toolbar without enabling it.
+	(tool-bar-setup)
+      ;; Otherwise, enable tool-bar-mode.
+      (tool-bar-mode 1)))
 
   ;; Can't do this init in defcustom because the relevant variables
   ;; are not set.
@@ -1069,28 +1073,20 @@ opening the first frame (e.g. open a connection to an X server).")
 		(funcall inner)
 		(setq init-file-had-error nil))
 	    (error
-	     (let ((message-log-max nil))
-	       (with-current-buffer (get-buffer-create "*Messages*")
-		 (insert "\n\n"
-			 (format "An error has occurred while loading `%s':\n\n"
-				 user-init-file)
-			 (format "%s%s%s"
-				 (get (car error) 'error-message)
-				 (if (cdr error) ": " "")
-				 (mapconcat (lambda (s) (prin1-to-string s t)) (cdr error) ", "))
-			 "\n\n"
-			 "To ensure normal operation, you should investigate and remove the\n"
-			 "cause of the error in your initialization file.  Start Emacs with\n"
-			 "the `--debug-init' option to view a complete error backtrace.\n\n"))
-	       (message "Error in init file: %s%s%s"
-			(get (car error) 'error-message)
-			(if (cdr error) ": " "")
-			(mapconcat 'prin1-to-string (cdr error) ", "))
-	       (let ((pop-up-windows nil))
-		 (pop-to-buffer "*Messages*"))
-	       (setq init-file-had-error t)))))
+	     (display-warning
+	      'initialization
+	      (format "An error occurred while loading `%s':\n\n%s%s%s\n\n\
+To ensure normal operation, you should investigate and remove the
+cause of the error in your initialization file.  Start Emacs with
+the `--debug-init' option to view a complete error backtrace."
+		      user-init-file
+		      (get (car error) 'error-message)
+		      (if (cdr error) ": " "")
+		      (mapconcat (lambda (s) (prin1-to-string s t)) (cdr error) ", "))
+	      :warning)
+	     (setq init-file-had-error t))))
 
-	(if (and deactivate-mark transient-mark-mode)
+      (if (and deactivate-mark transient-mark-mode)
 	    (with-current-buffer (window-buffer)
 	      (deactivate-mark)))
 
@@ -1218,8 +1214,11 @@ opening the first frame (e.g. open a connection to an X server).")
   ;; This is done after loading the user's init file and after
   ;; processing all command line arguments to allow e.g. `server-name'
   ;; to be changed before the server starts.
-  (when (daemonp)
-    (server-start))
+  (let ((dn (daemonp)))
+    (when dn
+      (when (stringp dn) (setq server-name dn))
+      (server-start)
+      (daemon-initialized)))
 
   ;; Run emacs-session-restore (session management) if started by
   ;; the session manager and we have a session manager connection.
@@ -1389,7 +1388,7 @@ Each element in the list should be a list of strings or pairs
   :group 'initialization)
 
 (defcustom fancy-splash-image nil
-  "*The image to show in the splash screens, or nil for defaults."
+  "The image to show in the splash screens, or nil for defaults."
   :group 'fancy-splash-screen
   :type '(choice (const :tag "Default" nil)
 		 (file :tag "File")))
@@ -2051,17 +2050,12 @@ A fancy display is used on graphic displays, normal otherwise."
 
 (defun command-line-1 (command-line-args-left)
   (display-startup-echo-area-message)
-
-  ;; Delay 2 seconds after an init file error message
-  ;; was displayed, so user can read it.
-  (when init-file-had-error
-    (sit-for 2))
-
   (when (and pure-space-overflow
 	     (not noninteractive))
     (display-warning
      'initialization
-     "Building Emacs overflowed pure space.  (See the node Pure Storage in the Lisp manual for details.)"
+     "Building Emacs overflowed pure space.\
+  (See the node Pure Storage in the Lisp manual for details.)"
      :warning))
 
   (let ((file-count 0)

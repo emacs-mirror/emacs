@@ -819,7 +819,13 @@ note that these simplifications are done without checking the resulting
 file names in the file system.
 An initial `~/' expands to your home directory.
 An initial `~USER/' expands to USER's home directory.
-See also the function `substitute-in-file-name'.  */)
+See also the function `substitute-in-file-name'.
+
+For technical reasons, this function can return correct but
+non-intuitive results for the root directory; for instance,
+\(expand-file-name ".." "/") returns "/..".  For this reason, use
+(directory-file-name (file-name-directory dirname)) to traverse a
+filesystem tree, not (expand-file-name ".."  dirname).  */)
      (name, default_directory)
      Lisp_Object name, default_directory;
 {
@@ -2837,7 +2843,10 @@ DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2,
        "(let ((file (read-file-name \"File: \")))			\
 	  (list file (read-file-modes nil file)))",
        doc: /* Set mode bits of file named FILENAME to MODE (an integer).
-Only the 12 low bits of MODE are used.  */)
+Only the 12 low bits of MODE are used.
+
+Interactively, mode bits are read by `read-file-modes', which accepts
+symbolic notation, like the `chmod' command from GNU Coreutils.  */)
   (filename, mode)
      Lisp_Object filename, mode;
 {

@@ -810,7 +810,7 @@ fill_gstring_header (header, start, end, font_object, string)
   else
     {
       CHECK_STRING (string);
-      if (! STRING_MULTIBYTE (current_buffer->enable_multibyte_characters))
+      if (! STRING_MULTIBYTE (string))
 	error ("Attempt to shape unibyte text");
       /* FROM and TO are checked by the caller.  */
       from = XINT (start);

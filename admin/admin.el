@@ -92,6 +92,9 @@ Root must be the root of an Emacs source tree."
   (set-version-in-file root "doc/misc/faq.texi" version
 		       (rx (and "VER" (1+ space)
 				(submatch (1+ (in "0-9."))))))
+  (set-version-in-file root "doc/misc/ns-emacs.texi" version
+		       (rx (and "VER" (1+ space)
+				(submatch (1+ (in "0-9."))))))
   (set-version-in-file root "lib-src/makefile.w32-in" version
 		       (rx (and "VERSION" (0+ space) "=" (0+ space)
 				(submatch (1+ (in "0-9."))))))
@@ -145,8 +148,8 @@ Root must be the root of an Emacs source tree."
                     (submatch (1+ (in "0-9."))))))
   (set-version-in-file
    root "nextstep/Cocoa/Emacs.base/Contents/Info.plist"
-   version (rx (and "CFBundleShortVersionString" (1+ anything)
-                    "Version" (1+ space)
+   version (rx (and "CFBundleShortVersionString" (1+ not-newline) ?\n
+                    (0+ not-newline) "<string>" (0+ space)
                     (submatch (1+ (in "0-9."))))))
   (set-version-in-file
    root "nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings"
@@ -160,9 +163,16 @@ Root must be the root of an Emacs source tree."
                     (submatch (1+ (in "0-9."))))))
   (set-version-in-file
    root "nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist"
+   version (rx (and "ApplicationRelease" (0+ space) ?= (0+ space)
+                    ?\" (0+ space) (submatch (1+ (in "0-9."))))))
+  (set-version-in-file
+   root "nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist"
    version (rx (and "FullVersionID" (0+ space) ?= (0+ space)
                     ?\" (0+ space) "Emacs" (1+ space)
-                    (submatch (1+ (in "0-9.")))))))
+                    (submatch (1+ (in "0-9."))))))
+  (set-version-in-file
+   root "nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop"
+   version (rx (and "Version=" (submatch (1+ (in "0-9.")))))))
 
 ;; Note this makes some assumptions about form of short copyright.
 ;; FIXME add the \year in the refcards/*.tex files.

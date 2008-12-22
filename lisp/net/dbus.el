@@ -65,6 +65,12 @@
 (defconst dbus-interface-properties (concat dbus-interface-dbus ".Properties")
   "The interface for property objects.")
 
+(defconst dbus-service-emacs "org.gnu.Emacs"
+  "The well known service name of Emacs.")
+
+(defconst dbus-path-emacs "/org/gnu/Emacs"
+  "The object path head used by Emacs.")
+
 (defconst dbus-message-type-invalid 0
   "This value is never a valid message type.")
 

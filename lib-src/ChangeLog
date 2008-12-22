@@ -1,3 +1,45 @@
+2008-11-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacsclient.c (window_system): Delete redundant variable.
+	(decode_options): Don't use it.
+	(find_tty): New function.
+	(main): Use find_tty, and don't use window_system.
+
+2008-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacsclient.c (main) [WINDOWSNT]: Don't ifdef away the call to
+	`ttyname'.
+	(w32_getenv): Treat $TERM specially: if not found in the
+	environment and in the Registry, return "w32console".
+	(ttyname) [WINDOWSNT]: New function.
+
+2008-10-31  Andreas Schwab  <schwab@suse.de>
+
+	* emacsclient.c (main): Don't force sending tty when in eval mode.
+
+2008-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacsclient.c (main): If using the current frame, send tty
+	information to Emacs in case daemon mode needs to occupy this tty.
+
+2008-10-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (EXTRA_SPACE): New macro.
+	(get_server_config, set_local_socket): Use it.
+
+	* makefile.w32-in ($(BLD)/sorted-doc.$(O)): Remove spurious backslash.
+	Reported by Guillaume Conjat <gconjat.ext@orange-ftgroup.com>.
+
+2008-10-29  Ulrich Mueller  <ulm@gentoo.org>
+
+	* emacsclient.c (set_local_socket): Use TMPDIR (default /tmp)
+	instead of hardcoded /tmp.
+
+2008-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c (longopts, print_help_and_exit): Add -nw.
+	(decode_options): Use getopt_long_only.
+
 2008-09-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Remove ccl.elc and

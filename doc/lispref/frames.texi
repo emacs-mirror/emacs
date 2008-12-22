@@ -21,8 +21,12 @@ object that represents a frame on the screen.
 
 @cindex terminal frame
   When Emacs runs on a text-only terminal, it starts with one
-@dfn{terminal frame}.  If you create additional ones, Emacs displays
-one and only one at any given time---on the terminal screen, of course.
+@dfn{terminal frame}.  If you create additional frames on the same
+terminal, Emacs displays one and only one at any given time---on that
+terminal screen, of course.  You can create additional frames, either
+text-only or GUI, on other terminals from the same Emacs session.
+(This comes in handy when you connect to the same session from several
+remote locations.)  @c FIXME: Add an xref to multi-tty doc.
 
 @cindex window frame
   When Emacs communicates directly with a supported window system, such
@@ -94,6 +98,12 @@ variable @code{default-frame-alist}; parameters not specified even there
 default from the standard X resources or whatever is used instead on
 your system.
 
+After the frame is created, this function applies to it the
+parameters, if any, listed in the value of
+@code{frame-inherited-parameters} (see below) and not present in the
+argument, taking the values from the frame that was selected when
+@code{make-frame} was called.
+
 The set of possible parameters depends in principle on what kind of
 window system Emacs uses to display its frames.  @xref{Window Frame
 Parameters}, for documentation of individual parameters you can specify.
@@ -114,6 +124,15 @@ frame.
 An abnormal hook run by @code{make-frame} after it creates the frame.
 Each function in @code{after-make-frame-functions} receives one argument, the
 frame just created.
+@end defvar
+
+@defvar frame-inherited-parameters
+This variable specifies the list of frame parameters that a newly
+created frame inherits from the currently selected frame.  For each
+parameter (a symbol) that is an element in the list and is not present
+in the argument to @code{make-frame}, the function sets the value of
+that parameter in the created frame to its value in the selected
+frame.
 @end defvar
 
 @node Multiple Displays
@@ -212,6 +231,9 @@ parameters do something special.  If the terminal supports colors, the
 parameters @code{foreground-color}, @code{background-color},
 @code{background-mode} and @code{display-type} are also meaningful.
 
+  You can use frame parameters to define frame-local bindings for
+variables.  @xref{Frame-Local Variables}.
+
 @menu
 * Parameter Access::       How to change a frame's parameters.
 * Initial Parameters::	   Specifying frame parameters when you make a frame.
@@ -246,6 +268,15 @@ elements of @var{alist}.  Each element of @var{alist} has the form
 parameter.  If you don't mention a parameter in @var{alist}, its value
 doesn't change.  If @var{frame} is @code{nil}, it defaults to the selected
 frame.
+
+You can use this function to define frame-local bindings for
+variables, see @ref{Frame-Local Variables}.
+@end defun
+
+@defun set-frame-parameter frame parm value
+This function sets the frame parameter @var{parm} to the specified
+@var{value}.  If @var{frame} is @code{nil}, it defaults to the
+selected frame.
 @end defun
 
 @defun modify-all-frames-parameters alist
@@ -1787,6 +1818,9 @@ colors.)
 valid, and what they look like.  In some cases, the value depends on the
 @dfn{selected frame}, as described below; see @ref{Input Focus}, for the
 meaning of the term ``selected frame.''
+
+  To read user input of color names with completion, use
+@code{read-color} (@pxref{High-Level Completion, read-color}).
 
 @defun color-defined-p color &optional frame
 This function reports whether a color name is meaningful.  It returns

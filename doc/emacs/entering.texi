@@ -72,16 +72,16 @@ features exist mainly for advanced users.  @xref{Emacs Invocation}.
 
 @table @kbd
 @item C-x C-c
-Kill Emacs (@code{save-buffers-kill-emacs}).
+Kill Emacs (@code{save-buffers-kill-terminal}).
 @item C-z
 Suspend Emacs (@code{suspend-emacs}) or iconify a frame
 (@code{iconify-or-deiconify-frame}).
 @end table
 
 @kindex C-x C-c
-@findex save-buffers-kill-emacs
+@findex save-buffers-kill-terminal
   @dfn{Killing} Emacs means terminating the Emacs program.  To do
-this, type @kbd{C-x C-c} (@code{save-buffers-kill-emacs}).  A
+this, type @kbd{C-x C-c} (@code{save-buffers-kill-terminal}).  A
 two-character key is used to make it harder to type by accident.  If
 there are any modified file-visiting buffers when you type @kbd{C-x
 C-c}, Emacs first offers to save these buffers.  If you do not save
@@ -89,6 +89,10 @@ them all, it asks for confirmation again, since the unsaved changes
 will be lost.  Emacs also asks for confirmation if any subprocesses
 are still running, since killing Emacs will also kill the subprocesses
 (@pxref{Shell}).
+
+  @kbd{C-x C-c} behaves specially if you are using Emacs as a server.
+If you type it from a ``client frame'', it closes the client
+connection.  @xref{Emacs Server}.
 
   Emacs can, optionally, record certain session information when you
 kill it, such as the files you were visiting at the time.  This
@@ -103,6 +107,10 @@ is non-@code{nil}, the session is killed, otherwise Emacs continues to
 run.  One convenient function to use as the value of
 @code{confirm-kill-emacs} is the function @code{yes-or-no-p}.  The
 default value of @code{confirm-kill-emacs} is @code{nil}.
+
+@findex kill-emacs
+  To kill Emacs without being prompted about saving, type @kbd{M-x
+kill-emacs}.
 
 @cindex minimizing a frame
 @cindex iconifying

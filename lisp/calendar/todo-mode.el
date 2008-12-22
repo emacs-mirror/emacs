@@ -282,11 +282,11 @@ show and mark todo entries for today, but may slow down processing of
 the diary file somewhat."
   :type 'string
   :group 'todo)
-(defcustom todo-file-do    "~/.todo-do"
+(defcustom todo-file-do    (convert-standard-filename "~/.todo-do")
   "TODO mode list file."
   :type 'file
   :group 'todo)
-(defcustom todo-file-done  "~/.todo-done"
+(defcustom todo-file-done  (convert-standard-filename "~/.todo-done")
   "TODO mode archive file."
   :type 'file
   :group 'todo)
@@ -316,7 +316,7 @@ window."
   :group 'todo)
 (defvar todo-edit-buffer " *TODO Edit*"
   "TODO Edit buffer name.")
-(defcustom todo-file-top "~/.todo-top"
+(defcustom todo-file-top (convert-standard-filename "~/.todo-top")
   "TODO mode top priorities file.
 
 Not in TODO format, but diary compatible.

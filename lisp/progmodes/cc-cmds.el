@@ -1704,17 +1704,16 @@ with a brace block."
 
 	;; Pick out the defun name, according to the type of defun.
 	(cond
+	  ;; struct, union, enum, or similar:
 	 ((and (looking-at c-type-prefix-key)
 	       (progn (c-forward-token-2 2) ; over "struct foo "
-		      (eq (char-after) ?\{)))
-	  ;; struct, union, enum, or similar:
-	  (c-backward-syntactic-ws)
-	  (setq name-end (point))
-	  (buffer-substring-no-properties
-	   (progn
-	     (c-backward-token-2 2)
-	     (point))
-	   name-end))
+		      (or (eq (char-after) ?\{)
+			  (looking-at c-symbol-key)))) ; "struct foo bar ..."
+	  (save-match-data (c-forward-token-2))
+	  (when (eq (char-after) ?\{)
+	    (c-backward-token-2)
+	    (looking-at c-symbol-key))
+	  (match-string-no-properties 0))
 
 	 ((looking-at "DEFUN\\_>")
 	  ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
@@ -3096,46 +3095,46 @@ non-nil."
 		    (c-parsing-error nil)
 		    ;; shut up any echo msgs on indiv lines
 		    (c-echo-syntactic-information-p nil)
-		    (in-macro (and c-auto-align-backslashes
-				   (c-save-buffer-state ()
-				     (save-excursion (c-beginning-of-macro)))
-				   start))
+		    (ml-macro-start	; Start pos of multi-line macro.
+		     (and (c-save-buffer-state ()
+			    (save-excursion (c-beginning-of-macro)))
+			  (eq (char-before (c-point 'eol)) ?\\)
+			  start))
 		    (c-fix-backslashes nil)
 		    syntax)
 		(unwind-protect
 		    (progn
 		      (c-progress-init start end 'c-indent-region)
-		      (while (and (bolp)
+
+		      (while (and (bolp) ;; One line each time round the loop.
 				  (not (eobp))
 				  (< (point) endmark))
 			;; update progress
 			(c-progress-update)
 			;; skip empty lines
-			(skip-chars-forward " \t\n")
-			(beginning-of-line)
-			;; Get syntax and indent.
-			(c-save-buffer-state nil
-			  (setq syntax (c-guess-basic-syntax)))
-			(if (and c-auto-align-backslashes
-				 (assq 'cpp-macro syntax))
-			    ;; Record macro start.
-			    (setq in-macro (point)))
-			(if in-macro
-			    (if (looking-at "\\s *\\\\$")
-				(forward-line)
-			      (c-indent-line syntax t t)
-			      (if (progn (end-of-line)
-					 (not (eq (char-before) ?\\)))
-				  (progn
-				    ;; Fixup macro backslashes.
-				    (forward-line)
-				    (c-backslash-region in-macro (point) nil)
-				    (setq in-macro nil))
-				(forward-line)))
-			  (c-indent-line syntax t t)
-			  (forward-line)))
-		      (if in-macro
-			  (c-backslash-region in-macro (c-point 'bopl) nil t)))
+			(unless (or (looking-at "\\s *$")
+				    (and ml-macro-start (looking-at "\\s *\\\\$")))
+			  ;; Get syntax and indent.
+			  (c-save-buffer-state nil
+			    (setq syntax (c-guess-basic-syntax)))
+			  (c-indent-line syntax t t))
+
+			(if ml-macro-start
+			    ;; End of current multi-line macro?
+			    (when (and c-auto-align-backslashes
+				       (not (eq (char-before (c-point 'eol)) ?\\)))
+			      ;; Fixup macro backslashes.
+			      (c-backslash-region ml-macro-start (c-point 'bonl) nil)
+			      (setq ml-macro-start nil))
+			  ;; New multi-line macro?
+			  (if (and (assq 'cpp-macro syntax)
+				   (eq (char-before (c-point 'eol)) ?\\))
+			    (setq ml-macro-start (point))))
+
+			(forward-line))
+
+		      (if (and ml-macro-start c-auto-align-backslashes)
+			  (c-backslash-region ml-macro-start (c-point 'bopl) nil t)))
 		  (set-marker endmark nil)
 		  (c-progress-fini 'c-indent-region))
 		(c-echo-parsing-error quiet))

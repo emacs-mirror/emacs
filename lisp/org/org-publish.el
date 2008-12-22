@@ -4,7 +4,7 @@
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 6.06b
+;; Version: 6.10c
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -22,8 +22,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; Requires at least version 4.27 of org.el
 
 ;; This program allow configurable publishing of related sets of
 ;; Org-mode files as a complete website.
@@ -278,7 +276,8 @@ When nil, do no timestamp checking and always publish all files."
   :group 'org-publish
   :type 'boolean)
 
-(defcustom org-publish-timestamp-directory "~/.org-timestamps/"
+(defcustom org-publish-timestamp-directory (convert-standard-filename 
+					    "~/.org-timestamps/")
   "Name of directory in which to store publishing timestamps."
   :group 'org-publish
   :type 'directory)
@@ -408,25 +407,18 @@ If NO-EXCLUSION is non-nil, don't exclude files."
     all-files))
 
 (defun org-publish-expand-projects (projects-alist)
-  "Expand projects contained in PROJECTS-ALIST."
-  (let (without-component with-component)
-    (mapc (lambda(p)
-	    (add-to-list
-	     (if (plist-get (cdr p) :components)
-		 'with-component 'without-component) p))
-	  projects-alist)
-    (org-publish-delete-dups
-     (append without-component
-	     (car (mapcar (lambda(p) (org-publish-expand-components p))
-			  with-component))))))
-
-(defun org-publish-expand-components (project)
-  "Expand PROJECT into an alist of its components."
-  (let* ((components (plist-get (cdr project) :components)))
-    (org-publish-delete-dups
-     (delq nil (mapcar (lambda(c) (assoc c org-publish-project-alist))
-		       components)))))
-
+  "Expand projects in PROJECTS-ALIST.
+This splices all the components into the list."
+  (let ((rest projects-alist) rtn p components)
+    (while (setq p (pop rest))
+      (if (setq components (plist-get (cdr p) :components))
+	  (setq rest (append
+		      (mapcar (lambda (x) (assoc x org-publish-project-alist))
+			      components)
+		      rest))
+	(push p rtn)))
+    (nreverse (org-publish-delete-dups (delq nil rtn)))))
+	
 (defun org-publish-get-base-files-1 (base-dir &optional recurse match skip-file skip-dir)
   "Set `org-publish-temp-files' with files from BASE-DIR directory.
 If RECURSE is non-nil, check BASE-DIR recursively.  If MATCH is
@@ -487,36 +479,47 @@ PUB-DIR is the publishing directory."
   (require 'org)
   (unless (file-exists-p pub-dir)
     (make-directory pub-dir t))
-  (find-file filename)
-  (let ((init-buf (current-buffer))
-	(init-point (point))
-	(init-buf-string (buffer-string)) export-buf)
-    ;; run hooks before exporting
-    (run-hooks 'org-publish-before-export-hook)
-    ;; export the possibly modified buffer
-    (setq export-buf
-	  (funcall (intern (concat "org-export-as-" format))
-		   (plist-get plist :headline-levels)
-		   nil plist nil nil pub-dir))
-    (set-buffer export-buf)
-    ;; run hooks after export and save export
-    (and (run-hooks 'org-publish-after-export-hook)
-	 (if (buffer-modified-p) (save-buffer)))
-    (kill-buffer export-buf)
-    ;; maybe restore buffer's content
-    (set-buffer init-buf)
-    (when (buffer-modified-p init-buf)
-      (erase-buffer)
-      (insert init-buf-string)
-      (save-buffer)
-      (goto-char init-point))
-    (unless (eq init-buf org-publish-initial-buffer)
-      (kill-buffer init-buf))))
+  (let ((visiting (find-buffer-visiting filename)))
+    (save-excursion
+      (switch-to-buffer (or visiting (find-file filename)))
+      (let* ((plist (cons :buffer-will-be-killed (cons t plist)))
+	     (init-buf (current-buffer))
+	     (init-point (point))
+	     (init-buf-string (buffer-string))
+	     export-buf-or-file)
+	;; run hooks before exporting
+	(run-hooks 'org-publish-before-export-hook)
+	;; export the possibly modified buffer
+	(setq export-buf-or-file
+	      (funcall (intern (concat "org-export-as-" format))
+		       (plist-get plist :headline-levels)
+		       nil plist nil nil pub-dir))
+	(when (and (bufferp export-buf-or-file)
+		   (buffer-live-p export-buf-or-file))
+	  (set-buffer export-buf-or-file)
+	  ;; run hooks after export and save export
+	  (and (run-hooks 'org-publish-after-export-hook)
+	       (if (buffer-modified-p) (save-buffer)))
+	  (kill-buffer export-buf-or-file))
+	;; maybe restore buffer's content
+	(set-buffer init-buf)
+	(when (buffer-modified-p init-buf)
+	  (erase-buffer)
+	  (insert init-buf-string)
+	  (save-buffer)
+	  (goto-char init-point))
+	(unless visiting
+	  (kill-buffer init-buf))))))
 
 (defun org-publish-org-to-latex (plist filename pub-dir)
   "Publish an org file to LaTeX.
 See `org-publish-org-to' to the list of arguments."
   (org-publish-org-to "latex" plist filename pub-dir))
+
+(defun org-publish-org-to-pdf (plist filename pub-dir)
+  "Publish an org file to PDF (via LaTeX).
+See `org-publish-org-to' to the list of arguments."
+  (org-publish-org-to "pdf" plist filename pub-dir))
 
 (defun org-publish-org-to-html (plist filename pub-dir)
   "Publish an org file to HTML.
@@ -674,6 +677,7 @@ Default for INDEX-FILENAME is 'index.org'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Interactive publishing functions
 
+;;;###autoload
 (defalias 'org-publish-project 'org-publish)
 
 ;;;###autoload

@@ -719,17 +719,17 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
 
 (defcustom ediff-coding-system-for-read 'raw-text
   "*The coding system for read to use when running the diff program as a subprocess.
-In most cases, the default will do. However, under certain circumstances in
-Windows NT/98/95 you might need to use something like 'raw-text-dos here.
+In most cases, the default will do.  However, under certain circumstances in
+MS-Windows you might need to use something like 'raw-text-dos here.
 So, if the output that your diff program sends to Emacs contains extra ^M's,
 you might need to experiment here, if the default or 'raw-text-dos doesn't
 work."
   :type 'symbol
   :group 'ediff)
 
-(defcustom ediff-coding-system-for-write 'no-conversion
+(defcustom ediff-coding-system-for-write 'emacs-internal
   "*The coding system for write to use when writing out difference regions
-to temp files when Ediff needs to find fine differences."
+to temp files in buffer jobs and when Ediff needs to find fine differences."
   :type 'symbol
   :group 'ediff)
 

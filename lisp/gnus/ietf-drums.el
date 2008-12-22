@@ -123,9 +123,18 @@ backslash and doublequote.")
 	(setq c (char-after))
 	(cond
 	 ((eq c ?\")
-	  (forward-sexp 1))
+	  (condition-case err
+	      (forward-sexp 1)
+	    (error (goto-char (point-max)))))
 	 ((eq c ?\()
-	  (delete-region (point) (progn (forward-sexp 1) (point))))
+	  (delete-region
+	       (point)
+	       (condition-case nil
+		   (with-syntax-table (copy-syntax-table ietf-drums-syntax-table)
+		     (modify-syntax-entry ?\" "w")
+		     (forward-sexp 1)
+		     (point))
+		 (error (point-max)))))
 	 (t
 	  (forward-char 1))))
       (buffer-string))))

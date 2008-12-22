@@ -805,10 +805,11 @@ look for files that have been changed and need to be copied to other systems."
 	    (file-name-as-directory (shadow-expand-file-name "~"))))
   (if (null shadow-info-file)
       (setq shadow-info-file
-	    (shadow-expand-file-name "~/.shadows")))
+	    (shadow-expand-file-name (convert-standard-filename "~/.shadows"))))
   (if (null shadow-todo-file)
       (setq shadow-todo-file
-	    (shadow-expand-file-name "~/.shadow_todo")))
+	    (shadow-expand-file-name
+	     (convert-standard-filename "~/.shadow_todo"))))
   (if (not (shadow-read-files))
       (progn
 	(message "Shadowfile information files not found - aborting")

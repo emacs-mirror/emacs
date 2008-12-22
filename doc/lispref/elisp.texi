@@ -278,7 +278,7 @@ Editing Types
 * Frame Type::		    Windows subdivide frames.
 * Window Configuration Type::  Recording the way a frame is subdivided.
 * Frame Configuration Type::   Recording the status of all frames.
-* Process Type::            A process running on the underlying OS.
+* Process Type::            A subprocess of Emacs running on the underlying OS.
 * Stream Type::             Receive or send characters.
 * Keymap Type::             What function a keystroke invokes.
 * Overlay Type::            How an overlay is represented.
@@ -422,6 +422,7 @@ Variables
 * Buffer-Local Variables::  Variable values in effect only in one buffer.
 * Future Local Variables::  New kinds of local values we might add some day.
 * File Local Variables::    Handling local variable lists in files.
+* Frame-Local Variables::   Frame-local bindings for variables.
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
@@ -630,7 +631,8 @@ Completion
 * Completion Commands::     Minibuffer commands that do completion.
 * High-Level Completion::   Convenient special cases of completion
                               (reading buffer name, file name, etc.)
-* Reading File Names::      Using completion to read file names.
+* Reading File Names::      Using completion to read file names and
+                              shell commands.
 * Programmed Completion::   Finding the completions for a given file name.
 
 Command Loop
@@ -899,6 +901,7 @@ Buffers
 * Killing Buffers::         Buffers exist until explicitly killed.
 * Indirect Buffers::        An indirect buffer shares text with some
                               other buffer.
+* Swapping Text::           Swapping text between two buffers.
 * Buffer Gap::              The gap in the buffer.
 
 Windows
@@ -1188,6 +1191,7 @@ Processes
 * Output from Processes::   Collecting output from an asynchronous subprocess.
 * Sentinels::               Sentinels run when process run-status changes.
 * Query Before Exit::       Whether to query if exiting will kill a process.
+* System Processes::        Accessing other processes running on your system.
 * Transaction Queues::      Transaction-based communication with subprocesses.
 * Network::                 Opening network connections.
 * Network Servers::         Network servers let Emacs accept net connections.

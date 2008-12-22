@@ -1323,7 +1323,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
   int visible_p = 0;
   struct buffer *old_buffer = NULL;
 
-  if (noninteractive)
+  if (FRAME_INITIAL_P (XFRAME (WINDOW_FRAME (w))))
     return visible_p;
 
   if (XBUFFER (w->buffer) != current_buffer)
@@ -2999,25 +2999,6 @@ init_from_display_pos (it, w, pos)
       it->method = GET_FROM_STRING;
     }
 
-#if 0 /* This is bogus because POS not having an overlay string
-	 position does not mean it's after the string.  Example: A
-	 line starting with a before-string and initialization of IT
-	 to the previous row's end position.  */
-  else if (it->current.overlay_string_index >= 0)
-    {
-      /* If POS says we're already after an overlay string ending at
-	 POS, make sure to pop the iterator because it will be in
-	 front of that overlay string.  When POS is ZV, we've thereby
-	 also ``processed'' overlay strings at ZV.  */
-      while (it->sp)
-	pop_it (it);
-      xassert (it->current.overlay_string_index == -1);
-      xassert (it->method == GET_FROM_BUFFER);
-      if (CHARPOS (pos->pos) == ZV)
-	it->overlay_strings_at_end_processed_p = 1;
-    }
-#endif /* 0 */
-
   if (CHARPOS (pos->string_pos) >= 0)
     {
       /* Recorded position is not in an overlay string, but in another
@@ -3133,11 +3114,23 @@ handle_stop (it)
 		{
 		  if (it->ellipsis_p)
 		    setup_for_ellipsis (it, 0);
+		  /* When handling a display spec, we might load an
+		     empty string.  In that case, discard it here.  We
+		     used to discard it in handle_single_display_spec,
+		     but that causes get_overlay_strings_1, above, to
+		     ignore overlay strings that we must check.  */
+		  if (STRINGP (it->string) && !SCHARS (it->string))
+		    pop_it (it);
 		  return;
 		}
-	      it->ignore_overlay_strings_at_pos_p = 1;
-	      it->string_from_display_prop_p = 0;
-	      handle_overlay_change_p = 0;
+	      else if (STRINGP (it->string) && !SCHARS (it->string))
+		pop_it (it);
+	      else
+		{
+		  it->ignore_overlay_strings_at_pos_p = 1;
+		  it->string_from_display_prop_p = 0;
+		  handle_overlay_change_p = 0;
+		}
 	      handled = HANDLED_RECOMPUTE_PROPS;
 	      break;
 	    }
@@ -4002,11 +3995,8 @@ handle_display_prop (it)
     }
   else
     {
-      int ret = handle_single_display_spec (it, prop, object, overlay,
-					    position, 0);
-      if (ret < 0)  /* Replaced by "", i.e. nothing. */
-	return HANDLED_RECOMPUTE_PROPS;
-      if (ret)
+      if (handle_single_display_spec (it, prop, object, overlay,
+				      position, 0))
 	display_replaced_p = 1;
     }
 
@@ -4053,8 +4043,7 @@ display_prop_end (it, object, start_pos)
    property ends.
 
    Value is non-zero if something was found which replaces the display
-   of buffer or string text.  Specifically, the value is -1 if that
-   "something" is "nothing". */
+   of buffer or string text.  */
 
 static int
 handle_single_display_spec (it, spec, object, overlay, position,
@@ -4379,11 +4368,6 @@ handle_single_display_spec (it, spec, object, overlay, position,
 
       if (STRINGP (value))
 	{
-	  if (SCHARS (value) == 0)
-	    {
-	      pop_it (it);
-	      return -1;  /* Replaced by "", i.e. nothing.  */
-	    }
 	  it->string = value;
 	  it->multibyte_p = STRING_MULTIBYTE (it->string);
 	  it->current.overlay_string_index = -1;
@@ -5032,7 +5016,11 @@ get_overlay_strings_1 (it, charpos, compute_stop_p)
       /* Save IT's settings.  They are restored after all overlay
 	 strings have been processed.  */
       xassert (!compute_stop_p || it->sp == 0);
-      push_it (it);
+
+      /* When called from handle_stop, there might be an empty display
+         string loaded.  In that case, don't bother saving it.  */
+      if (!STRINGP (it->string) || SCHARS (it->string))
+	push_it (it);
 
       /* Set up IT to deliver display elements from the first overlay
 	 string.  */
@@ -6444,10 +6432,7 @@ next_element_from_buffer (it)
 {
   int success_p = 1;
 
-  /* Check this assumption, otherwise, we would never enter the
-     if-statement, below.  */
-  xassert (IT_CHARPOS (*it) >= BEGV
-	   && IT_CHARPOS (*it) <= it->stop_charpos);
+  xassert (IT_CHARPOS (*it) >= BEGV);
 
   if (IT_CHARPOS (*it) >= it->stop_charpos)
     {
@@ -6610,7 +6595,7 @@ next_element_from_composition (it)
       it->object = it->w->buffer;
       it->c = composition_update_it (&it->cmp_it, IT_CHARPOS (*it),
 				     IT_BYTEPOS (*it), Qnil);
-    }    
+    }
   return 1;
 }
 
@@ -7906,7 +7891,7 @@ message2_nolog (m, nbytes, multibyte)
   struct frame *sf = SELECTED_FRAME ();
   message_enable_multibyte = multibyte;
 
-  if (noninteractive)
+  if (FRAME_INITIAL_P (sf))
     {
       if (noninteractive_need_newline)
 	putc ('\n', stderr);
@@ -8005,7 +7990,7 @@ message3_nolog (m, nbytes, multibyte)
   struct frame *sf = SELECTED_FRAME ();
   message_enable_multibyte = multibyte;
 
-  if (noninteractive)
+  if (FRAME_INITIAL_P (sf))
     {
       if (noninteractive_need_newline)
 	putc ('\n', stderr);
@@ -8103,7 +8088,7 @@ message_with_string (m, string, log)
 	    putc ('\n', stderr);
 	  noninteractive_need_newline = 0;
 	  fprintf (stderr, m, SDATA (string));
-	  if (cursor_in_echo_area == 0)
+	  if (!cursor_in_echo_area)
 	    fprintf (stderr, "\n");
 	  fflush (stderr);
 	}
@@ -8274,7 +8259,7 @@ ensure_echo_area_buffers ()
 	sprintf (name, " *Echo Area %d*", i);
 	echo_buffer[i] = Fget_buffer_create (build_string (name));
 	XBUFFER (echo_buffer[i])->truncate_lines = Qnil;
-	/* to force word wrap in echo area - 
+	/* to force word wrap in echo area -
 	   it was decided to postpone this*/
 	/* XBUFFER (echo_buffer[i])->word_wrap = Qt; */
 
@@ -11315,7 +11300,7 @@ redisplay_internal (preserve_echo_area)
   /* No redisplay if running in batch mode or frame is not yet fully
      initialized, or redisplay is explicitly turned off by setting
      Vinhibit_redisplay.  */
-  if (noninteractive
+  if (FRAME_INITIAL_P (SELECTED_FRAME ())
       || !NILP (Vinhibit_redisplay))
     return;
 
@@ -12651,17 +12636,15 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   /* Compute scroll margin height in pixels.  We scroll when point is
      within this distance from the top or bottom of the window.  */
   if (scroll_margin > 0)
-    {
-      this_scroll_margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
-      this_scroll_margin *= FRAME_LINE_HEIGHT (f);
-    }
+    this_scroll_margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4)
+      * FRAME_LINE_HEIGHT (f);
   else
     this_scroll_margin = 0;
 
   /* Force scroll_conservatively to have a reasonable value, to avoid
-     overflow while computing how much to scroll.  Note that it's
-     fairly common for users to supply scroll-conservatively equal to
-     `most-positive-fixnum', which can be larger than INT_MAX.  */
+     overflow while computing how much to scroll.  Note that the user
+     can supply scroll-conservatively equal to `most-positive-fixnum',
+     which can be larger than INT_MAX.  */
   if (scroll_conservatively > scroll_limit)
     {
       scroll_conservatively = scroll_limit;
@@ -12683,7 +12666,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 
  too_near_end:
 
-  /* Decide whether we have to scroll down.  */
+  /* Decide whether to scroll down.  */
   if (PT > CHARPOS (startp))
     {
       int scroll_margin_y;
@@ -12698,17 +12681,17 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 
       if (PT > CHARPOS (it.current.pos))
 	{
-	  /* Point is in the scroll margin at the bottom of the
-	     window, or below.  Compute the distance from the scroll
-	     margin to PT, and give up if the distance is greater than
-	     scroll_max.  */
-	  move_it_to (&it, PT, -1, it.last_visible_y - 1, -1,
-		      MOVE_TO_POS | MOVE_TO_Y);
+	  int y0 = line_bottom_y (&it);
 
-	  /* To make point visible, we must move the window start down
-	     so that the cursor line is visible, which means we have
-	     to add in the height of the cursor line.  */
-	  dy = line_bottom_y (&it) - scroll_margin_y;
+	  /* Compute the distance from the scroll margin to PT
+	     (including the height of the cursor line).  Moving the
+	     iterator unconditionally to PT can be slow if PT is far
+	     away, so stop 10 lines past the window bottom (is there a
+	     way to do the right thing quickly?).  */
+	  move_it_to (&it, PT, -1,
+	  	      it.last_visible_y + 10 * FRAME_LINE_HEIGHT (f),
+	  	      -1, MOVE_TO_POS | MOVE_TO_Y);
+	  dy = line_bottom_y (&it) - y0;
 
 	  if (dy > scroll_max)
 	    return SCROLLING_FAILED;
@@ -12719,14 +12702,11 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 
   if (scroll_down_p)
     {
-      /* Move the window start down.  If scrolling conservatively,
-	 move it just enough down to make point visible.  If
-	 scroll_step is set, move it down by scroll_step.  */
-      start_display (&it, w, startp);
-
+      /* Point is in or below the bottom scroll margin, so move the
+	 window start down.  If scrolling conservatively, move it just
+	 enough down to make point visible.  If scroll_step is set,
+	 move it down by scroll_step.  */
       if (scroll_conservatively)
-	/* Set AMOUNT_TO_SCROLL to at least one line,
-	   and at most scroll_conservatively lines.  */
 	amount_to_scroll
 	  = min (max (dy, FRAME_LINE_HEIGHT (f)),
 		 FRAME_LINE_HEIGHT (f) * scroll_conservatively);
@@ -12748,10 +12728,10 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       if (amount_to_scroll <= 0)
 	return SCROLLING_FAILED;
 
-      /* If moving by amount_to_scroll leaves STARTP unchanged,
-	 move it down one screen line.  */
-
+      start_display (&it, w, startp);
       move_it_vertically (&it, amount_to_scroll);
+
+      /* If STARTP is unchanged, move it down another screen line.  */
       if (CHARPOS (it.current.pos) == CHARPOS (startp))
 	move_it_by_lines (&it, 1, 1);
       startp = it.current.pos;
@@ -19714,7 +19694,7 @@ fill_glyph_string (s, face_id, start, end, overlaps)
   xassert (s->nchars == 0);
   xassert (start >= 0 && end > start);
 
-  s->for_overlaps = overlaps,
+  s->for_overlaps = overlaps;
   glyph = s->row->glyphs[s->area] + start;
   last = s->row->glyphs[s->area] + end;
   voffset = glyph->voffset;
@@ -25079,9 +25059,10 @@ all the functions in the list are called, with the frame as argument.  */);
 
   DEFVAR_LISP ("window-scroll-functions", &Vwindow_scroll_functions,
     doc: /* List of functions to call before redisplaying a window with scrolling.
-Each function is called with two arguments, the window
-and its new display-start position.  Note that the value of `window-end'
-is not valid when these functions are called.  */);
+Each function is called with two arguments, the window and its new
+display-start position.  Note that these functions are also called by
+`set-window-buffer'.  Also note that the value of `window-end' is not
+valid when these functions are called.  */);
   Vwindow_scroll_functions = Qnil;
 
   DEFVAR_LISP ("window-text-change-functions",

@@ -187,9 +187,9 @@ the function is called."
 
 ;; this one is untouched --dv
 (defun spaces-string (n)
-  "Returns a string with N spaces."
+  "Return a string with N spaces."
   (if (<= n 8) (aref spaces-strings n)
-    (make-string n ? )))
+    (make-string n ?\s)))
 
 ;;;###autoload
 (defun delete-rectangle (start end &optional fill)
@@ -290,8 +290,8 @@ The text previously in the region is not overwritten by the blanks,
 but instead winds up to the right of the rectangle.
 
 When called from a program the rectangle's corners are START and END.
-With a prefix (or a FILL) argument, fill with blanks even if there is no text
-on the right side of the rectangle."
+With a prefix (or a FILL) argument, fill with blanks even if there is
+no text on the right side of the rectangle."
   (interactive "*r\nP")
   (apply-on-rectangle 'open-rectangle-line start end fill)
   (goto-char start))

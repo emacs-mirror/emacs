@@ -234,7 +234,7 @@ mv -f makefile.tmp Makefile
 cd ..
 :oldx1
 rem   ----------------------------------------------------------------------
-Echo Configuring the doc directory...
+Echo Configuring the doc directory, expect one "File not found" message...
 cd doc
 Rem The two variants for lispintro below is for when the shell
 Rem supports long file names but DJGPP does not

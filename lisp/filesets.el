@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
 
-;; Author: Thomas Link <t.link@gmx.at>
+;; Author: Thomas Link <sanobast-emacs@yahoo.de>
 ;; Maintainer: FSF
 ;; Keywords: filesets convenience
 
@@ -144,8 +144,8 @@ file -- before loading filesets.el.
 
 So, when should you think about setting this value to t? If filesets.el
 is loaded before user customizations.  Thus, if (require 'filesets)
-precedes the custom-set-variables command or, for XEmacs, if init.el is
-loaded before custom.el, set this variable to t.")
+precedes the `custom-set-variables' command or, for XEmacs, if init.el
+is loaded before custom.el, set this variable to t.")
 
 
 ;;; utils
@@ -354,9 +354,7 @@ See `add-submenu' for documentation."
 ;;  :group 'filesets)
 
 (defcustom filesets-menu-cache-file
-  (if (featurep 'xemacs)
-      "~/.xemacs/filesets-cache.el"
-    (concat user-emacs-directory "filesets-cache.el"))
+  (locate-user-emacs-file "filesets-cache.el")
   "File to be used for saving the filesets menu between sessions.
 Set this to \"\", to disable caching of menus.
 Don't forget to check out `filesets-menu-ensure-use-cached'."
@@ -851,10 +849,10 @@ subfile can't be found.
 in the pattern holding the subfile's name.  0 refers the whole
 match, 1 to the first group.
 
-:stubp FUNCTION ... if (FUNCTION MASTER INCLUDED-FILE) returns non-nil,
+:stubp FUNCTION ... If (FUNCTION MASTER INCLUDED-FILE) returns non-nil,
 INCLUDED-FILE is a stub -- see below.
 
-:stub-flag ... files of this type are stubs -- see below.
+:stub-flag ... Files of this type are stubs -- see below.
 
 :scan-depth INTEGER (default: 0) ... Whether included files should be
 rescanned.  Set this to 0 to disable re-scanning of included file.
@@ -976,9 +974,11 @@ being an association list with the fields:
 
 :tree ROOT-DIR PATTERN ... a base directory and a file pattern
 
-:pattern DIR PATTERN ... PATTERN is a regular expression comprising path
-and file pattern -- e.g. 'PATH/^REGEXP$'.  Note the `^' at the beginning
-of the file name pattern.
+:pattern DIR PATTERN ... a base directory and a regexp matching
+                         files in that directory.  Usually,
+                         PATTERN has the form '^REGEXP$'.  Unlike
+                         :tree, this form does not descend
+                         recursively into subdirectories.
 
 :filter-dirs-flag BOOLEAN ... is only used in conjunction with :tree.
 
@@ -1278,11 +1278,11 @@ the \"Grep <<selection>>\" command
 
 on-capture-output (:capture-output) ... Capture output of an external viewer
 
-on-ls ... not used
+on-ls ... Not used
 
-on-cmd ... not used
+on-cmd ... Not used
 
-on-close-all ... not used"
+on-close-all ... Not used"
   (let ((def (filesets-eviewer-get-props
 	      (or entry
 		  (filesets-get-external-viewer filename)))))

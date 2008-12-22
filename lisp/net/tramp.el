@@ -5641,7 +5641,7 @@ The terminal type can be configured with `tramp-terminal-type'."
       (setq todo actions)
       (while todo
 	(setq item (pop todo))
-	(setq pattern (concat (symbol-value (nth 0 item)) "\\'"))
+	(setq pattern (format "\\(%s\\)\\'" (symbol-value (nth 0 item))))
 	(setq action (nth 1 item))
 	(tramp-message
 	 vec 5 "Looking for regexp \"%s\" from remote shell" pattern)

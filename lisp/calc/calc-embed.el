@@ -30,6 +30,10 @@
 (require 'calc-ext)
 (require 'calc-macs)
 
+;; Declare functions which are defined elsewhere.
+(declare-function thing-at-point-looking-at "thingatpt" (regexp))
+
+
 (defun calc-show-plain (n)
   (interactive "P")
   (calc-wrapper
@@ -51,14 +55,13 @@
 (defvar calc-embedded-announce-formula)
 (defvar calc-embedded-open-formula)
 (defvar calc-embedded-close-formula)
-(defvar calc-embedded-open-word)
-(defvar calc-embedded-close-word)
 (defvar calc-embedded-open-plain)
 (defvar calc-embedded-close-plain)
 (defvar calc-embedded-open-new-formula)
 (defvar calc-embedded-close-new-formula)
 (defvar calc-embedded-open-mode)
 (defvar calc-embedded-close-mode)
+(defvar calc-embedded-word-regexp)
 
 (defconst calc-embedded-mode-vars '(("precision" . calc-internal-prec)
 				    ("word-size" . calc-word-size)
@@ -829,7 +832,7 @@ The command \\[yank] can retrieve it from there."
                calc-embedded-firsttime-buf t)
          (let ((newann (assoc major-mode calc-embedded-announce-formula-alist))
                (newform (assoc major-mode calc-embedded-open-close-formula-alist))
-               (newword (assoc major-mode calc-embedded-open-close-word-alist))
+               (newword (assoc major-mode calc-embedded-word-regexp-alist))
                (newplain (assoc major-mode calc-embedded-open-close-plain-alist))
                (newnewform 
                 (assoc major-mode calc-embedded-open-close-new-formula-alist))
@@ -843,10 +846,8 @@ The command \\[yank] can retrieve it from there."
              (setq calc-embedded-open-formula (nth 0 (cdr newform)))
              (setq calc-embedded-close-formula (nth 1 (cdr newform))))
            (when newword
-             (make-local-variable 'calc-embedded-open-word)
-             (make-local-variable 'calc-embedded-close-word)
-             (setq calc-embedded-open-word (nth 0 (cdr newword)))
-             (setq calc-embedded-close-word (nth 1 (cdr newword))))
+             (make-local-variable 'calc-embedded-word-regexp)
+             (setq calc-embedded-word-regexp (nth 1 newword)))
            (when newplain
              (make-local-variable 'calc-embedded-open-plain)
              (make-local-variable 'calc-embedded-close-plain)
@@ -902,9 +903,18 @@ The command \\[yank] can retrieve it from there."
 	  (setq calc-embed-top (aref info 2)
 		fixed calc-embed-top)
 	(if (consp calc-embed-top)
-	    (let ((calc-embedded-open-formula calc-embedded-open-word)
-		  (calc-embedded-close-formula calc-embedded-close-word))
-	      (calc-embedded-find-bounds 'plain))
+            (progn
+              (require 'thingatpt)
+              (if (thing-at-point-looking-at calc-embedded-word-regexp)
+                  (progn
+                    (setq calc-embed-top (copy-marker (match-beginning 0)))
+                    (setq calc-embed-bot (copy-marker (match-end 0)))
+                    (setq calc-embed-outer-top calc-embed-top)
+                    (setq calc-embed-outer-bot calc-embed-bot))
+                (setq calc-embed-top (point-marker))
+                (setq calc-embed-bot (point-marker))
+                (setq calc-embed-outer-top calc-embed-top)
+                (setq calc-embed-outer-bot calc-embed-bot)))
 	  (or calc-embed-top
 	      (calc-embedded-find-bounds 'plain)))
 	(aset info 2 (copy-marker (min calc-embed-top calc-embed-bot)))

@@ -118,7 +118,7 @@
     (|			. or)		; SRE
     (not-newline	. ".")
     (nonl		. not-newline)	; SRE
-    (anything		. "\\(?:.\\|\n\\)")
+    (anything		. (rx-anything 0 nil))
     (any		. (rx-any 1 nil rx-check-any)) ; inconsistent with SRE
     (in			. any)
     (char		. any)		; sregex
@@ -206,8 +206,7 @@
     (upper-case		. upper)	 ; SRE
     (word		. "[[:word:]]")	 ; inconsistent with SRE
     (wordchar		. word)		 ; sregex
-    (not-wordchar	. "[^[:word:]]") ; sregex (use \\W?)
-    )
+    (not-wordchar	. "\\W"))
   "Alist of sexp form regexp constituents.
 Each element of the alist has the form (SYMBOL . DEFN).
 SYMBOL is a valid constituent of sexp regular expressions.
@@ -332,82 +331,237 @@ See also `rx-constituents'."
 		 (car form) type-pred))))))
 
 
+(defun rx-group-if (regexp group)
+  "Put shy groups around REGEXP if seemingly necessary when GROUP
+is non-nil."
+  (cond
+   ;; for some repetition
+   ((eq group '*) (if (rx-atomic-p regexp) (setq group nil)))
+   ;; for concatenation
+   ((eq group ':)
+    (if (rx-atomic-p
+	 (if (string-match
+	      "\\(?:[?*+]\\??\\|\\\\{[0-9]*,?[0-9]*\\\\}\\)\\'" regexp)
+	     (substring regexp 0 (match-beginning 0))
+	   regexp))
+	(setq group nil)))
+   ;; for OR
+   ((eq group '|) (setq group nil))
+   ;; do anyway
+   ((eq group t))
+   ((rx-atomic-p regexp t) (setq group nil)))
+  (if group
+      (concat "\\(?:" regexp "\\)")
+    regexp))
+
+
+(defvar rx-parent)
+;; dynamically bound in some functions.
+
+
 (defun rx-and (form)
   "Parse and produce code from FORM.
 FORM is of the form `(and FORM1 ...)'."
   (rx-check form)
-  (concat "\\(?:"
-	  (mapconcat
-	   (function (lambda (x) (rx-to-string x 'no-group)))
-	   (cdr form) nil)
-	  "\\)"))
+  (rx-group-if
+   (mapconcat (lambda (x) (rx-form x ':)) (cdr form) nil)
+   (and (memq rx-parent '(* t)) rx-parent)))
 
 
 (defun rx-or (form)
   "Parse and produce code from FORM, which is `(or FORM1 ...)'."
   (rx-check form)
-  (let ((all-args-strings t))
-    (dolist (arg (cdr form))
-      (unless (stringp arg)
-	(setq all-args-strings nil)))
-    (concat "\\(?:"
-	    (if all-args-strings
-		(regexp-opt (cdr form))
-	      (mapconcat #'rx-to-string (cdr form) "\\|"))
-	    "\\)")))
+  (rx-group-if
+   (if (memq nil (mapcar 'stringp (cdr form)))
+       (mapconcat (lambda (x) (rx-form x '|)) (cdr form) "\\|")
+     (regexp-opt (cdr form)))
+   (and (memq rx-parent '(: * t)) rx-parent)))
 
 
-(defvar rx-bracket)		       ; dynamically bound in `rx-any'
+(defun rx-anything (form)
+  "Match any character."
+  (if (consp form)
+      (error "rx `anythng' syntax error: %s" form))
+  (rx-or (list 'or 'not-newline ?\n)))
+
+
+(defun rx-any-delete-from-range (char ranges)
+  "Delete by side effect character CHAR from RANGES.
+Only both edges of each range is checked."
+  (let (m)
+    (cond
+     ((memq char ranges) (setq ranges (delq char ranges)))
+     ((setq m (assq char ranges))
+      (if (eq (1+ char) (cdr m))
+	  (setcar (memq m ranges) (1+ char))
+	(setcar m (1+ char))))
+     ((setq m (rassq char ranges))
+      (if (eq (1- char) (car m))
+	  (setcar (memq m ranges) (1- char))
+	(setcdr m (1- char)))))
+    ranges))
+
+    
+(defun rx-any-condense-range (args)
+  "Condense by side effect ARGS as range for Rx `any'."
+  (let (str
+	l)
+    ;; set STR list of all strings
+    ;; set L list of all ranges
+    (mapc (lambda (e) (cond ((stringp e) (push e str))
+			    ((numberp e) (push (cons e e) l))
+			    (t (push e l))))
+	  args)
+    ;; condense overlapped ranges in L
+    (let ((tail (setq l (sort l #'car-less-than-car)))
+	  d)
+      (while (setq d (cdr tail))
+	(if (>= (cdar tail) (1- (caar d)))
+	    (progn
+	      (setcdr (car tail) (max (cdar tail) (cdar d)))
+	      (setcdr tail (cdr d)))
+	  (setq tail d))))
+    ;; Separate small ranges to single number, and delete dups.
+    (nconc
+     (apply #'nconc
+	    (mapcar (lambda (e)
+		      (cond
+		       ((= (car e) (cdr e)) (list (car e)))
+		       ;; ((= (1+ (car e)) (cdr e)) (list (car e) (cdr e)))
+		       ((list e))))
+		    l))
+     (delete-dups str))))
+
+
+(defun rx-check-any-string (str)
+  "Check string argument STR for Rx `any'."
+  (let ((i 0)
+	c1 c2 l)
+    (if (= 0 (length str))
+	(error "String arg for Rx `any' must not be empty"))
+    (while (string-match ".-." str i)
+      ;; string before range: convert it to characters
+      (if (< i (match-beginning 0))
+	  (setq l (nconc
+		   l
+		   (append (substring str i (match-beginning 0)) nil))))
+      ;; range
+      (setq i (match-end 0)
+	    c1 (aref str (match-beginning 0))
+	    c2 (aref str (1- i)))
+      (cond
+       ((< c1 c2) (setq l (nconc l (list (cons c1 c2)))))
+       ((= c1 c2) (setq l (nconc l (list c1))))))
+    ;; rest?
+    (if (< i (length str))
+	(setq l (nconc l (append (substring str i) nil))))
+    l))
+
 
 (defun rx-check-any (arg)
    "Check arg ARG for Rx `any'."
-   (if (integerp arg)
-       (setq arg (string arg)))
-   (when (stringp arg)
-     (if (zerop (length arg))
-	 (error "String arg for Rx `any' must not be empty"))
-     ;; Quote ^ at start; don't bother to check whether this is first arg.
-     (if (eq ?^ (aref arg 0))
-	 (setq arg (concat "\\" arg)))
-     ;; Remove ] and set flag for adding it to start of overall result.
-     (when (string-match "\\]" arg)
-       (setq arg (replace-regexp-in-string "\\]" "" arg)
-	     rx-bracket "]")))
-   (when (symbolp arg)
+   (cond
+    ((integerp arg) (list arg))
+    ((symbolp arg)
      (let ((translation (condition-case nil
-			    (rx-to-string arg 'no-group)
+			    (rx-form arg)
 			  (error nil))))
-       (unless translation (error "Invalid char class `%s' in Rx `any'" arg))
-       (setq arg (substring translation 1 -1)))) ; strip outer brackets
-   ;; sregex compatibility
-   (when (and (integerp (car-safe arg))
-	      (integerp (cdr-safe arg)))
-     (setq arg (string (car arg) ?- (cdr arg))))
-   (unless (stringp arg)
-     (error "rx `any' requires string, character, char pair or char class args"))
-   arg)
+       (if (or (null translation)
+	       (null (string-match "\\`\\[\\[:[-a-z]+:\\]\\]\\'" translation)))
+	   (error "Invalid char class `%s' in Rx `any'" arg))
+       (list (substring translation 1 -1)))) ; strip outer brackets
+    ((and (integerp (car-safe arg)) (integerp (cdr-safe arg)))
+     (list arg))
+    ((stringp arg) (rx-check-any-string arg))
+    ((error
+      "rx `any' requires string, character, char pair or char class args"))))
+
 
 (defun rx-any (form)
   "Parse and produce code from FORM, which is `(any ARG ...)'.
 ARG is optional."
   (rx-check form)
-  (let* ((rx-bracket nil)
-	 (args (mapcar #'rx-check-any (cdr form)))) ; side-effects `rx-bracket'
-    ;; If there was a ?- in the form, move it to the front to avoid
-    ;; accidental range.
-    (if (member "-" args)
-	(setq args (cons "-" (delete "-" args))))
-    (apply #'concat "[" rx-bracket (append args '("]")))))
+  (let* ((args (rx-any-condense-range
+		(apply
+		 #'nconc
+		 (mapcar #'rx-check-any (cdr form)))))
+	 m
+	 s)
+    (cond
+     ;; single close bracket
+     ;;	 => "[]...-]" or "[]...--.]"
+     ((memq ?\] args)
+      ;; set ] at the beginning
+      (setq args (cons ?\] (delq ?\] args)))
+      ;; set - at the end
+      (if (or (memq ?- args) (assq ?- args))
+	  (setq args (nconc (rx-any-delete-from-range ?- args)
+			    (list ?-)))))
+     ;; close bracket starts a range
+     ;;  => "[]-....-]" or "[]-.--....]"
+     ((setq m (assq ?\] args))
+      ;; bring it to the beginning
+      (setq args (cons m (delq m args)))
+      (cond ((memq ?- args)
+	     ;; to the end
+	     (setq args (nconc (delq ?- args) (list ?-))))
+	    ((setq m (assq ?- args))
+	     ;; next to the bracket's range, make the second range
+	     (setcdr args (cons m (delq m args))))))
+     ;; bracket in the end range
+     ;;	 => "[]...-]"
+     ((setq m (rassq ?\] args))
+      ;; set ] at the beginning
+      (setq args (cons ?\] (rx-any-delete-from-range ?\] args)))
+      ;; set - at the end
+      (if (or (memq ?- args) (assq ?- args))
+	  (setq args (nconc (rx-any-delete-from-range ?- args)
+			    (list ?-)))))
+     ;; {no close bracket appears}
+     ;;
+     ;; bring single bar to the beginning
+     ((memq ?- args)
+      (setq args (cons ?- (delq ?- args))))
+     ;; bar start a range, bring it to the beginning
+     ((setq m (assq ?- args))
+      (setq args (cons m (delq m args))))
+     ;;
+     ;; hat at the beginning?
+     ((or (eq (car args) ?^) (eq (car-safe (car args)) ?^))
+      (setq args (if (cdr args)
+		     `(,(cadr args) ,(car args) ,@(cddr args))
+		   (nconc (rx-any-delete-from-range ?^ args)
+			  (list ?^))))))
+    ;; some 1-char?
+    (if (and (null (cdr args)) (numberp (car args))
+	     (or (= 1 (length
+		       (setq s (regexp-quote (string (car args))))))
+		 (and (equal (car args) ?^) ;; unnecessary predicate?
+		      (null (eq rx-parent '!)))))
+	s
+      (concat "["
+	      (mapconcat
+	       (lambda (e) (cond
+			    ((numberp e) (string e))
+			    ((consp e)
+			     (if (and (= (1+ (car e)) (cdr e))
+				      (null (memq (car e) '(?\] ?-))))
+				 (string (car e) (cdr e))
+			       (string (car e) ?- (cdr e))))
+			    (e)))
+	       args
+	       nil)
+	      "]"))))
 
 
 (defun rx-check-not (arg)
   "Check arg ARG for Rx `not'."
   (unless (or (and (symbolp arg)
-		   (string-match "\\`\\[\\[:[-a-z]:\\]\\]\\'"
+		   (string-match "\\`\\[\\[:[-a-z]+:\\]\\]\\'"
 				 (condition-case nil
-				     (rx-to-string arg 'no-group)
+				     (rx-form arg)
 				   (error ""))))
-	      (eq arg 'word-boundary)
+	      (eq arg 'word-boundary) 
 	      (and (consp arg)
 		   (memq (car arg) '(not any in syntax category))))
     (error "rx `not' syntax error: %s" arg))
@@ -417,16 +571,22 @@ ARG is optional."
 (defun rx-not (form)
   "Parse and produce code from FORM.  FORM is `(not ...)'."
   (rx-check form)
-  (let ((result (rx-to-string (cadr form) 'no-group))
+  (let ((result (rx-form (cadr form) '!))
 	case-fold-search)
     (cond ((string-match "\\`\\[^" result)
-	   (if (= (length result) 4)
-	       (substring result 2 3)
-	     (concat "[" (substring result 2))))
+	   (cond
+	    ((equal result "[^]") "[^^]")
+	    ((and (= (length result) 4) (null (eq rx-parent '!)))
+	     (regexp-quote (substring result 2 3)))
+	    ((concat "[" (substring result 2)))))
 	  ((eq ?\[ (aref result 0))
 	   (concat "[^" (substring result 1)))
-	  ((string-match "\\`\\\\[scb]" result)
-	   (concat (capitalize (substring result 0 2)) (substring result 2)))
+	  ((string-match "\\`\\\\[scbw]" result)
+	   (concat (upcase (substring result 0 2))
+		   (substring result 2)))
+	  ((string-match "\\`\\\\[SCBW]" result)
+	   (concat (downcase (substring result 0 2))
+		   (substring result 2)))
 	  (t
 	   (concat "[^" result "]")))))
 
@@ -464,7 +624,7 @@ If SKIP is non-nil, allow that number of items after the head, i.e.
   (unless (and (integerp (nth 1 form))
 	       (> (nth 1 form) 0))
     (error "rx `=' requires positive integer first arg"))
-  (format "%s\\{%d\\}" (rx-to-string (nth 2 form)) (nth 1 form)))
+  (format "%s\\{%d\\}" (rx-form (nth 2 form) '*) (nth 1 form)))
 
 
 (defun rx->= (form)
@@ -474,14 +634,14 @@ If SKIP is non-nil, allow that number of items after the head, i.e.
   (unless (and (integerp (nth 1 form))
 	       (> (nth 1 form) 0))
     (error "rx `>=' requires positive integer first arg"))
-  (format "%s\\{%d,\\}" (rx-to-string (nth 2 form)) (nth 1 form)))
+  (format "%s\\{%d,\\}" (rx-form (nth 2 form) '*) (nth 1 form)))
 
 
 (defun rx-** (form)
   "Parse and produce code from FORM `(** N M ...)'."
   (rx-check form)
   (setq form (cons 'repeat (cdr (rx-trans-forms form 2))))
-  (rx-to-string form))
+  (rx-form form '*))
 
 
 (defun rx-repeat (form)
@@ -492,7 +652,7 @@ FORM is either `(repeat N FORM1)' or `(repeat N M FORM1)'."
 	 (unless (and (integerp (nth 1 form))
 		      (> (nth 1 form) 0))
 	   (error "rx `repeat' requires positive integer first arg"))
-	 (format "%s\\{%d\\}" (rx-to-string (nth 2 form)) (nth 1 form)))
+	 (format "%s\\{%d\\}" (rx-form (nth 2 form) '*) (nth 1 form)))
 	((or (not (integerp (nth 2 form)))
 	     (< (nth 2 form) 0)
 	     (not (integerp (nth 1 form)))
@@ -500,16 +660,14 @@ FORM is either `(repeat N FORM1)' or `(repeat N M FORM1)'."
 	     (< (nth 2 form) (nth 1 form)))
 	 (error "rx `repeat' range error"))
 	(t
-	 (format "%s\\{%d,%d\\}" (rx-to-string (nth 3 form))
+	 (format "%s\\{%d,%d\\}" (rx-form (nth 3 form) '*)
 		 (nth 1 form) (nth 2 form)))))
 
 
 (defun rx-submatch (form)
   "Parse and produce code from FORM, which is `(submatch ...)'."
-  (concat "\\("
-	  (mapconcat (function (lambda (x) (rx-to-string x 'no-group)))
-		     (cdr form) nil)
-	  "\\)"))
+  (concat "\\(" (mapconcat #'rx-form (cdr form) nil) "\\)"))
+
 
 (defun rx-backref (form)
   "Parse and produce code from FORM, which is `(backref N)'."
@@ -531,19 +689,19 @@ If OP is anything else, produce a greedy regexp if `rx-greedy-flag'
 is non-nil."
   (rx-check form)
   (setq form (rx-trans-forms form))
-  (let ((suffix (cond ((memq (car form) '(* + ? )) "")
+  (let ((suffix (cond ((memq (car form) '(* + ?\s)) "")
 		      ((memq (car form) '(*? +? ??)) "?")
 		      (rx-greedy-flag "")
 		      (t "?")))
 	(op (cond ((memq (car form) '(* *? 0+ zero-or-more)) "*")
 		  ((memq (car form) '(+ +? 1+ one-or-more))  "+")
-		  (t "?")))
-	(result (rx-to-string (cadr form) 'no-group)))
-    (if (not (rx-atomic-p result))
-	(setq result (concat "\\(?:" result "\\)")))
-    (concat result op suffix)))
+		  (t "?"))))
+    (rx-group-if
+     (concat (rx-form (cadr form) '*) op suffix)
+     (and (memq rx-parent '(t *)) rx-parent))))
 
-(defun rx-atomic-p (r)
+
+(defun rx-atomic-p (r &optional lax)
   "Return non-nil if regexp string R is atomic.
 An atomic regexp R is one such that a suffix operator
 appended to R will apply to all of R.  For example, \"a\"
@@ -568,13 +726,14 @@ be detected without much effort.  A guarantee of no false
 negatives would require a theoretic specification of the set
 of all atomic regexps."
   (let ((l (length r)))
-    (or (equal l 1)
-	(and (>= l 6)
-	     (equal (substring r 0 2) "\\(")
-	     (equal (substring r -2) "\\)"))
-	(and (>= l 2)
-	     (equal (substring r 0 1) "[")
-	     (equal (substring r -1) "]")))))
+    (cond
+     ((<= l 1))
+     ((= l 2) (= (aref r 0) ?\\))
+     ((= l 3) (string-match "\\`\\(?:\\\\[cCsS_]\\|\\[[^^]\\]\\)" r))
+     ((null lax)
+      (cond
+       ((string-match "\\`\\[^?\]?\\(?:\\[:[a-z]+:]\\|[^\]]\\)*\\]\\'" r))
+       ((string-match "\\`\\\\(\\(?:[^\\]\\|\\\\[^\)]\\)*\\\\)\\'" r)))))))
 
 
 (defun rx-syntax (form)
@@ -612,7 +771,7 @@ of all atomic regexps."
 (defun rx-eval (form)
   "Parse and produce code from FORM, which is `(eval FORM)'."
   (rx-check form)
-  (rx-to-string (eval (cadr form))))
+  (rx-form (eval (cadr form)) rx-parent))
 
 
 (defun rx-greedy (form)
@@ -622,13 +781,41 @@ If FORM is '(minimal-match FORM1)', non-greedy versions of `*',
 '(maximal-match FORM1)', greedy operators will be used."
   (rx-check form)
   (let ((rx-greedy-flag (eq (car form) 'maximal-match)))
-    (rx-to-string (cadr form))))
+    (rx-form (cadr form) rx-parent)))
 
 
 (defun rx-regexp (form)
   "Parse and produce code from FORM, which is `(regexp STRING)'."
   (rx-check form)
-  (concat "\\(?:" (cadr form) "\\)"))
+  (rx-group-if (cadr form) rx-parent))
+
+
+(defun rx-form (form &optional rx-parent)
+  "Parse and produce code for regular expression FORM.
+FORM is a regular expression in sexp form.
+RX-PARENT shows which type of expression calls and controls putting of
+shy groups around the result and some more in other functions."
+  (if (stringp form)
+      (rx-group-if (regexp-quote form)
+		   (if (and (eq rx-parent '*) (< 1 (length form)))
+		       rx-parent))
+    (cond ((integerp form)
+	   (regexp-quote (char-to-string form)))
+	  ((symbolp form)
+	   (let ((info (rx-info form)))
+	     (cond ((stringp info)
+		    info)
+		   ((null info)
+		    (error "Unknown rx form `%s'" form))
+		   (t
+		    (funcall (nth 0 info) form)))))
+	  ((consp form)
+	   (let ((info (rx-info (car form))))
+	     (unless (consp info)
+	       (error "Unknown rx form `%s'" (car form)))
+	     (funcall (nth 0 info) form)))
+	  (t
+	   (error "rx syntax error at `%s'" form)))))
 
 
 ;;;###autoload
@@ -636,28 +823,7 @@ If FORM is '(minimal-match FORM1)', non-greedy versions of `*',
   "Parse and produce code for regular expression FORM.
 FORM is a regular expression in sexp form.
 NO-GROUP non-nil means don't put shy groups around the result."
-  (cond ((stringp form)
-	 (regexp-quote form))
-	((integerp form)
-	 (regexp-quote (char-to-string form)))
-	((symbolp form)
-	 (let ((info (rx-info form)))
-	   (cond ((stringp info)
-		  info)
-		 ((null info)
-		  (error "Unknown rx form `%s'" form))
-		 (t
-		  (funcall (nth 0 info) form)))))
-	((consp form)
-	 (let ((info (rx-info (car form))))
-	   (unless (consp info)
-	     (error "Unknown rx form `%s'" (car form)))
-	   (let ((result (funcall (nth 0 info) form)))
-	     (if (or no-group (string-match "\\`\\\\[(]" result))
-		 result
-	       (concat "\\(?:" result "\\)")))))
-	(t
-	 (error "rx syntax error at `%s'" form))))
+  (rx-group-if (rx-form form) (null no-group)))
 
 
 ;;;###autoload
@@ -877,6 +1043,9 @@ CHAR
 `(group SEXP1 SEXP2 ...)'
      like `and', but makes the match accessible with `match-end',
      `match-beginning', and `match-string'.
+
+`(group SEXP1 SEXP2 ...)'
+     another name for `submatch'.
 
 `(or SEXP1 SEXP2 ...)'
 `(| SEXP1 SEXP2 ...)'

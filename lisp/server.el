@@ -111,7 +111,7 @@ If set, the server accepts remote connections; otherwise it is local."
   :version "22.1")
 (put 'server-host 'risky-local-variable t)
 
-(defcustom server-auth-dir (concat user-emacs-directory "server/")
+(defcustom server-auth-dir (locate-user-emacs-file "server/")
   "Directory for server authentication files."
   :group 'server
   :type 'directory
@@ -202,7 +202,8 @@ are done with it in the server.")
 
 (defvar server-name "server")
 
-(defvar server-socket-dir (format "/tmp/emacs%d" (user-uid))
+(defvar server-socket-dir
+  (format "%s/emacs%d" (or (getenv "TMPDIR") "/tmp") (user-uid))
   "The directory in which to place the server socket.")
 
 (defun server-clients-with (property value)
@@ -809,6 +810,7 @@ The following commands are accepted by the client:
 		dontkill       ; t if the client should not be killed.
                 (commands ())
 		dir
+		use-current-frame
                 (tty-name nil)       ;nil, `window-system', or the tty name.
                 tty-type             ;string.
 		(files nil)
@@ -829,7 +831,7 @@ The following commands are accepted by the client:
 		 ((equal "-nowait" arg) (setq nowait t))
 
 		 ;; -current-frame:  Don't create frames.
-		 ((equal "-current-frame" arg) (setq tty-name nil))
+		 ((equal "-current-frame" arg) (setq use-current-frame t))
 
 		 ;; -display DISPLAY:
 		 ;; Open X frames on the given display instead of the default.
@@ -873,7 +875,8 @@ The following commands are accepted by the client:
                        (cdr command-line-args-left))
                   (setq tty-name (pop command-line-args-left)
 			tty-type (pop command-line-args-left)
-			dontkill t))
+			dontkill (or dontkill
+				     (not use-current-frame))))
 
 		 ;; -position LINE[:COLUMN]:  Set point to the given
 		 ;;  position in the next file.
@@ -901,6 +904,8 @@ The following commands are accepted by the client:
 		 ;; -eval EXPR:  Evaluate a Lisp expression.
 		 ((and (equal "-eval" arg)
                        command-line-args-left)
+		  (if use-current-frame
+		      (setq use-current-frame 'always))
 		  (lexical-let ((expr (pop command-line-args-left)))
 		    (if coding-system
 			(setq expr (decode-coding-string expr coding-system)))
@@ -925,12 +930,20 @@ The following commands are accepted by the client:
 		 ;; Unknown command.
 		 (t (error "Unknown command: %s" arg))))
 
-            (setq frame
-                  (case tty-name
-                    ((nil) (if display (server-select-display display)))
-                    ((window-system)
-                     (server-create-window-system-frame display nowait proc))
-                    (t (server-create-tty-frame tty-name tty-type proc))))
+	    (setq frame
+		  (cond
+		   ((and use-current-frame
+			 (or (eq use-current-frame 'always)
+			     ;; We can't use the Emacs daemon's
+			     ;; terminal frame.
+			     (not (and (= (length (frame-list)) 1)
+				       (eq (selected-frame)
+					   terminal-frame)))))
+		    (setq tty-name nil)
+		    (if display (server-select-display display)))
+		   ((eq tty-name 'window-system)
+		    (server-create-window-system-frame display nowait proc))
+		   (t (server-create-tty-frame tty-name tty-type proc))))
 
             (process-put
              proc 'continuation

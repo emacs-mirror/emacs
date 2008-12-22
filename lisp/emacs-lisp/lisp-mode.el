@@ -468,8 +468,6 @@ if that value is non-nil."
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
-  (make-local-variable 'font-lock-keywords-case-fold-search)
-  (setq font-lock-keywords-case-fold-search t)
   (setq imenu-case-fold-search t)
   (set-syntax-table lisp-mode-syntax-table)
   (run-mode-hooks 'lisp-mode-hook))
@@ -1195,6 +1193,7 @@ This function also returns nil meaning don't specify the indentation."
 (put 'save-excursion 'lisp-indent-function 0)
 (put 'save-window-excursion 'lisp-indent-function 0)
 (put 'save-selected-window 'lisp-indent-function 0)
+(put 'save-selected-window-norecord 'lisp-indent-function 0)
 (put 'save-restriction 'lisp-indent-function 0)
 (put 'save-match-data 'lisp-indent-function 0)
 (put 'save-current-buffer 'lisp-indent-function 0)

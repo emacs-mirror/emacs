@@ -461,6 +461,9 @@ Anders Holst wrote @file{hippie-exp.el}, a versatile completion and
 expansion package.
 
 @item
+Tassilo Horn wrote DocView mode.
+
+@item
 Kurt Hornik co-wrote Octave mode.
 
 @item

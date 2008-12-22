@@ -625,7 +625,7 @@ with some explanatory links."
 
 (defun tutorial--saved-dir ()
   "Directory to which tutorials are saved."
-  (expand-file-name "tutorial" user-emacs-directory))
+  (locate-user-emacs-file "tutorial/"))
 
 (defun tutorial--saved-file ()
   "File name in which to save tutorials."
@@ -929,7 +929,7 @@ See `get-lang-string' for more information.")
 In certain places Emacs can replace a string shown to the user with
 a language specific string.  This function retrieves such strings.
 
-LANG is the language specification. It should be one of those
+LANG is the language specification.  It should be one of those
 strings that can be returned by `read-language-name'.  STRINGID
 is a symbol that specifies the string to retrieve.
 

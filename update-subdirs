@@ -27,9 +27,13 @@ for file in *; do
 	  ;;
 	*)
 	    if [ -d $file ]; then
-	      subdirs="\"$file\" $subdirs"
+		if [ "$file" = "obsolete" ]; then
+		    subdirs="$subdirs \"$file\""
+		else
+		    subdirs="\"$file\" $subdirs"
+		fi
 	    fi
-	  ;;
+	    ;;
     esac
 done
 

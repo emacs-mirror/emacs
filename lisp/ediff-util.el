@@ -3146,11 +3146,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 (defun ediff-make-temp-file (buff &optional prefix given-file start end)
   (let* ((p (ediff-convert-standard-filename (or prefix "ediff")))
 	 (short-p p)
-	 (coding-system-for-write
-	  (ediff-with-current-buffer buff
-	    (if (boundp 'buffer-file-coding-system)
-		buffer-file-coding-system
-	      ediff-coding-system-for-write)))
+	 (coding-system-for-write ediff-coding-system-for-write)
 	 f short-f)
     (if (and (fboundp 'msdos-long-file-names)
 	     (not (msdos-long-file-names))

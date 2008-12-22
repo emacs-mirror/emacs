@@ -1568,8 +1568,7 @@ nil           word is correct or spelling is accepted.
 quit          spell session exited."
   (interactive (list ispell-following-word ispell-quietly current-prefix-arg t))
   (cond
-   ((and region transient-mark-mode mark-active
-	 (not (eq (region-beginning) (region-end))))
+   ((and region (use-region-p))
     (ispell-region (region-beginning) (region-end)))
    (continue (ispell-continue))
    (t

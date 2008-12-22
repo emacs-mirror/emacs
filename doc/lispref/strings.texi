@@ -272,7 +272,9 @@ printed form is with @code{format} (@pxref{Formatting Strings}) or
 For information about other concatenation functions, see the
 description of @code{mapconcat} in @ref{Mapping Functions},
 @code{vconcat} in @ref{Vector Functions}, and @code{append} in @ref{Building
-Lists}.
+Lists}.  For concatenating individual command-line arguments into a
+string to be used as a shell command, see @ref{Shell Arguments,
+combine-and-quote-strings}.
 @end defun
 
 @defun split-string string &optional separators omit-nulls
@@ -357,6 +359,10 @@ practice:
 (split-string "ooo" "\\|o+" t)
      @result{} ("o" "o" "o")
 @end example
+
+If you need to split a string that is a shell command, where
+individual arguments could be quoted, see @ref{Shell Arguments,
+split-string-and-unquote}.
 @end defun
 
 @defvar split-string-default-separators

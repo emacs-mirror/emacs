@@ -1,3 +1,37 @@
+2008-10-03  Michael Olson  <mwolson@gnu.org>
+
+	* erc-dcc.el (english): Increase size heading by two places.
+	(erc-dcc-byte-count): Move higher.
+	(erc-dcc-do-LIST-command): Use erc-dcc-byte-count to get accurate
+	count.  Coerce byte total to floating point before performing
+	computation, otherwise division will truncate to 0.
+	(erc-dcc-append-contents): Update erc-dcc-byte-count.
+	(erc-dcc-get-filter): Don't update erc-dcc-byte-count, because
+	that will give incorrect size totals.  Instead, figure out how
+	much we have by summing byte count and current buffer size.
+	(erc-dcc-get-sentinel): Don't update erc-dcc-byte-count.
+
+2008-10-01  Michael Olson  <mwolson@gnu.org>
+
+	* erc-dcc.el (erc-pack-int): Make sure returned string is within 4
+	bytes.  Always return a 4-byte string, so that we conform to the
+	CTCP spec.
+	(erc-most-positive-int-bytes): New constant representing the
+	number of bytes that most-positive-fixnum can be stored in.
+	(erc-most-positive-int-msb): New constant representing the
+	contents of the most significant byte of most-positive-fixnum.
+	(erc-unpack-int): Make sure that the integer we get back can be
+	represented in Emacs.
+	(erc-dcc-do-CLOSE-command): Update docstring.  Don't use the line
+	variable.  Try to disambiguate between type and nick when only one
+	is provided.  Validate both type and nick arguments.  Allow
+	matching by just nick.
+	(erc-dcc-append-contents): Set inhibit-read-only to t.  Prevent
+	auto-compression from triggering when we write the contents to a
+	file.
+	(erc-dcc-get-file): Prevent auto-compression from triggering when
+	we truncate a file.
+
 2008-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* erc.el: Remove code for Carbon.

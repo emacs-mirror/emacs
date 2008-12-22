@@ -57,7 +57,9 @@
 
 (provide 'esh-io)
 
-(eval-when-compile (require 'eshell))
+(eval-when-compile
+  (require 'cl)
+  (require 'eshell))
 
 (defgroup eshell-io nil
   "Eshell's I/O management code provides a scheme for treating many

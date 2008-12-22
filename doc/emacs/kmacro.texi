@@ -472,7 +472,7 @@ Edit the last defined keyboard macro (@code{kmacro-edit-macro}).
 @item C-x C-k e @var{name} @key{RET}
 Edit a previously defined keyboard macro @var{name} (@code{edit-kbd-macro}).
 @item C-x C-k l
-Edit the last 100 keystrokes as a keyboard macro
+Edit the last 300 keystrokes as a keyboard macro
 (@code{kmacro-edit-lossage}).
 @end table
 
@@ -494,7 +494,7 @@ keyboard input that you would use to invoke the macro---@kbd{C-x e} or
 
 @findex kmacro-edit-lossage
 @kindex C-x C-k l
-  You can edit the last 100 keystrokes as a macro by typing
+  You can edit the last 300 keystrokes as a macro by typing
 @kbd{C-x C-k l} (@code{kmacro-edit-lossage}).
 
 @node Keyboard Macro Step-Edit

@@ -23,9 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#ifdef HAVE_M17N_FLT
-#include <m17n-flt.h>
-#endif
 
 #include "lisp.h"
 #include "buffer.h"
@@ -2477,11 +2474,36 @@ font_match_p (spec, font)
       else if (EQ (key, QCscript))
 	{
 	  val2 = assq_no_quit (val, Vscript_representative_chars);
-	  if (! NILP (val2))
-	    for (val2 = XCDR (val2); CONSP (val2); val2 = XCDR (val2))
-	      if (font_encode_char (font, XINT (XCAR (val2)))
-		  == FONT_INVALID_CODE)
-		return 0;
+	  if (CONSP (val2))
+	    {
+	      val2 = XCDR (val2);
+	      if (CONSP (val2))
+		{
+		  /* All characters in the list must be supported.  */
+		  for (; CONSP (val2); val2 = XCDR (val2))
+		    {
+		      if (! NATNUMP (XCAR (val2)))
+			continue;
+		      if (font_encode_char (font, XFASTINT (XCAR (val2)))
+			  == FONT_INVALID_CODE)
+			return 0;
+		    }
+		}
+	      else if (VECTORP (val2))
+		{
+		  /* At most one character in the vector must be supported.  */
+		  for (i = 0; i < ASIZE (val2); i++)
+		    {
+		      if (! NATNUMP (AREF (val2, i)))
+			continue;
+		      if (font_encode_char (font, XFASTINT (AREF (val2, i)))
+			  != FONT_INVALID_CODE)
+			break;
+		    }
+		  if (i == ASIZE (val2))
+		    return 0;
+		}
+	    }
 	}
       else if (EQ (key, QCotf))
 	{
@@ -2665,11 +2687,13 @@ font_delete_unmatched (list, spec, size)
       if (prop < FONT_SPEC_MAX
 	  && INTEGERP (AREF (spec, FONT_DPI_INDEX))
 	  && INTEGERP (AREF (entity, FONT_DPI_INDEX))
+	  && XINT (AREF (entity, FONT_DPI_INDEX)) != 0
 	  && ! EQ (AREF (spec, FONT_DPI_INDEX), AREF (entity, FONT_DPI_INDEX)))
 	prop = FONT_SPEC_MAX;
       if (prop < FONT_SPEC_MAX
 	  && INTEGERP (AREF (spec, FONT_AVGWIDTH_INDEX))
 	  && INTEGERP (AREF (entity, FONT_AVGWIDTH_INDEX))
+	  && XINT (AREF (entity, FONT_AVGWIDTH_INDEX)) != 0
 	  && ! EQ (AREF (spec, FONT_AVGWIDTH_INDEX),
 		   AREF (entity, FONT_AVGWIDTH_INDEX)))
 	prop = FONT_SPEC_MAX;
@@ -2997,7 +3021,9 @@ font_clear_prop (attrs, prop)
   if (! FONTP (font))
     return;
   if (NILP (AREF (font, prop))
-      && prop != FONT_FAMILY_INDEX && prop != FONT_FOUNDRY_INDEX
+      && prop != FONT_FAMILY_INDEX
+      && prop != FONT_FOUNDRY_INDEX
+      && prop != FONT_WIDTH_INDEX
       && prop != FONT_SIZE_INDEX)
     return;
   font = Fcopy_font_spec (font);
@@ -3019,6 +3045,8 @@ font_clear_prop (attrs, prop)
       ASET (font, FONT_SPACING_INDEX, Qnil);
       ASET (font, FONT_AVGWIDTH_INDEX, Qnil);
     }
+  else if (prop == FONT_WIDTH_INDEX)
+    ASET (font, FONT_AVGWIDTH_INDEX, Qnil);
   attrs[LFACE_FONT_INDEX] = font;
 }
 
@@ -3805,7 +3833,12 @@ specifying the font size.  It specifies the font size in pixels
 `:name'
 
 VALUE must be a string of XLFD-style or fontconfig-style font name.
-usage: (font-spec ARGS ...)  */)
+usage: (font-spec ARGS ...)
+
+`:script'
+
+VALUE must be a symbol representing a script that the font must
+support.  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -3901,7 +3934,13 @@ properties in TO.  */)
 
 DEFUN ("font-get", Ffont_get, Sfont_get, 2, 2, 0,
        doc: /* Return the value of FONT's property KEY.
-FONT is a font-spec, a font-entity, or a font-object.  */)
+FONT is a font-spec, a font-entity, or a font-object.
+KEY must be one of these symbols:
+  :family, :weight, :slant, :width, :foundry, :adstyle, :registry,
+  :size, :name, :script
+See the documentation of `font-spec' for their meanings.
+If FONT is a font-entity or font-object, the value of :script may be
+a list of scripts that are supported by the font.  */)
      (font, key)
      Lisp_Object font, key;
 {
@@ -4807,13 +4846,16 @@ font_add_log (action, arg, result)
 	   tail = XCDR (tail))
 	{
 	  elt = XCAR (tail);
-	  if (EQ (XCAR (elt), QCscript))
+	  if (EQ (XCAR (elt), QCscript)
+	      && SYMBOLP (XCDR (elt)))
 	    val = concat3 (val, SYMBOL_NAME (QCscript),
 			   concat2 (equalstr, SYMBOL_NAME (XCDR (elt))));
-	  else if (EQ (XCAR (elt), QClang))
+	  else if (EQ (XCAR (elt), QClang)
+		   && SYMBOLP (XCDR (elt)))
 	    val = concat3 (val, SYMBOL_NAME (QClang),
 			   concat2 (equalstr, SYMBOL_NAME (XCDR (elt))));
-	  else if (EQ (XCAR (elt), QCotf) && CONSP (XCDR (elt)))
+	  else if (EQ (XCAR (elt), QCotf)
+		   && CONSP (XCDR (elt)) && SYMBOLP (XCAR (XCDR (elt))))
 	    val = concat3 (val, SYMBOL_NAME (QCotf),
 			   concat2 (equalstr,
 				    SYMBOL_NAME (XCAR (XCDR (elt)))));

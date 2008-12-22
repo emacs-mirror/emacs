@@ -6,24 +6,22 @@
 @chapter Frames and Graphical Displays
 @cindex frames
 
-  When using a graphical display, you can create multiple windows at
-the system in a single Emacs session.  Each system-level window that
-belongs to Emacs displays a @dfn{frame} which can contain one or
-several Emacs windows.  A frame initially contains a single
-general-purpose Emacs window which you can subdivide vertically or
-horizontally into smaller windows.  A frame normally contains its own
-echo area and minibuffer, but you can make frames that don't have
-these---they use the echo area and minibuffer of another frame.
+  When using a graphical display, you can create multiple system-level
+``windows'' in a single Emacs session.  We refer to these system-level
+windows as @dfn{frames}.  A frame initially contains a single Emacs
+window; however, you can subdivide this Emacs window into smaller
+windows, all fitting into the same frame.  Each frame normally
+contains its own echo area and minibuffer.
 
   To avoid confusion, we reserve the word ``window'' for the
 subdivisions that Emacs implements, and never use it to refer to a
 frame.
 
-  Editing you do in one frame affects the other frames.  For
-instance, if you put text in the kill ring in one frame, you can yank it
-in another frame.  If you exit Emacs through @kbd{C-x C-c} in one frame,
-it terminates all the frames.  To delete just one frame, use @kbd{C-x 5
-0} (that is zero, not @kbd{o}).
+  Any editing you do in one frame affects the other frames.  For
+instance, if you put text in the kill ring in one frame, you can yank
+it in another frame.  If you exit Emacs through @kbd{C-x C-c} in one
+frame, it terminates all the frames.  To delete just one frame, use
+@kbd{C-x 5 0} (that is zero, not @kbd{o}).
 
   Emacs compiled for MS-DOS emulates some windowing functionality,
 so that you can use many of the features described in this chapter.
@@ -60,13 +58,13 @@ so that you can use many of the features described in this chapter.
 @node Cut and Paste
 @section Killing and Yanking on Graphical Displays
 
-  This section describes facilities for selecting a region, killing,
-and yanking using the mouse.
+  This section describes commands for selecting a region, killing, and
+yanking using the mouse.
 
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
-* Cut/Paste Other App:: Transfering text between Emacs and other apps.
 * Word and Line Mouse:: Mouse commands for selecting whole words or lines.
+* Cut/Paste Other App:: Transfering text between Emacs and other apps.
 * Secondary Selection:: Cutting without altering point and mark.
 * Clipboard::           Using the clipboard for selections.
 @end menu
@@ -75,196 +73,231 @@ and yanking using the mouse.
 @subsection Mouse Commands for Editing
 @cindex mouse buttons (what they do)
 
-  The mouse commands for selecting and copying a region are mostly
-compatible with the @code{xterm} program.  You can use the same mouse
-commands for copying between Emacs and other window-based programs.
-Most of these commands also work in Emacs when you run it under an
-@code{xterm} terminal.
-
-@kindex DELETE @r{(and mouse selection)}
-  If you select a region with any of these mouse commands, and then
-immediately afterward type the @key{DELETE} function key, it deletes the
-region that you selected.  The @key{BACKSPACE} function key and the
-@acronym{ASCII} character @key{DEL} do not do this; if you type any other key
-in between the mouse command and @key{DELETE}, it does not do this.
-
-@findex mouse-set-region
-@findex mouse-set-point
-@findex mouse-yank-at-click
-@findex mouse-save-then-click
 @kindex Mouse-1
 @kindex Mouse-2
 @kindex Mouse-3
 @table @kbd
 @item Mouse-1
 Move point to where you click (@code{mouse-set-point}).
-This is normally the left button.
-
-@vindex x-mouse-click-focus-ignore-position
-Normally, Emacs does not distinguish between ordinary mouse clicks and
-clicks that select a frame.  When you click on a frame to select it,
-that also changes the selected window and cursor position according to
-the mouse click position.  On the X window system, you can change this
-behavior by setting the variable
-@code{x-mouse-click-focus-ignore-position} to @code{t}.  Then the
-first click selects the frame, but does not affect the selected window
-or cursor position.  If you click again in the same place, since that
-click will be in the selected frame, it will change the window or
-cursor position.
 
 @item Drag-Mouse-1
-Set the region to the text you select by dragging, and copy it to the
-kill ring (@code{mouse-set-region}).  You can specify both ends of the
-region with this single command.
+Activate the region around the text selected by dragging, and copy it
+to the kill ring (@code{mouse-set-region}).
+
+@item Mouse-2
+Yank the last killed text at the click position
+(@code{mouse-yank-at-click}).
+
+@item Mouse-3
+If the region is active, move the nearer end of the region to the
+click position; otherwise, set mark at the current value of point and
+point at the click position.  Save the resulting region in the kill
+ring; on a second click, kill it (@code{mouse-save-then-kill}).
+@end table
+
+@findex mouse-set-point
+  The most basic mouse command is @code{mouse-set-point}, which is
+called by clicking with the left mouse button, @kbd{Mouse-1}, in the
+text area of a window.  This moves point to the position where you
+clicked.
+
+@vindex x-mouse-click-focus-ignore-position
+  Normally, Emacs does not distinguish between ordinary mouse clicks
+and clicks that select a frame.  When you click on a frame to select
+it, that also changes the selected window and cursor position
+according to the mouse click position.  On the X window system, you
+can change this behavior by setting the variable
+@code{x-mouse-click-focus-ignore-position} to @code{t}.  Then the
+first click selects the frame, but does not affect the selected window
+or cursor position.  If you click again in the same place, that click
+will be in the selected frame, so it will change the window or cursor
+position.
+
+@findex mouse-set-region
+@vindex mouse-drag-copy-region
+  Holding down @kbd{Mouse-1} and ``dragging'' the mouse over a stretch
+of text activates the region around that text
+(@code{mouse-set-region}).  @xref{Mark}.  Emacs places the mark where
+you started holding down the mouse button, and point where you release
+it.  In addition, the region is copied into the kill ring (@pxref{Kill
+Ring}).  If you don't want Emacs to copy the region, change the
+variable @code{mouse-drag-copy-region} to @code{nil}.
 
 @vindex mouse-scroll-min-lines
-If you move the mouse off the top or bottom of the window while
+  If you move the mouse off the top or bottom of the window while
 dragging, the window scrolls at a steady rate until you move the mouse
 back into the window.  This way, you can select regions that don't fit
 entirely on the screen.  The number of lines scrolled per step depends
 on how far away from the window edge the mouse has gone; the variable
 @code{mouse-scroll-min-lines} specifies a minimum step size.
 
-@vindex mouse-drag-copy-region
-If the variable @code{mouse-drag-copy-region} is @code{nil}, this
-mouse command does not copy the selected region into the kill ring.
-
-@item Mouse-2
-Yank the last killed text, where you click (@code{mouse-yank-at-click}).
-This is normally the middle button.
-
-@item Mouse-3
-This command, @code{mouse-save-then-kill}, has several functions
-depending on where you click and the status of the region.
-
-The most basic case is when you click @kbd{Mouse-1} in one place and
-then @kbd{Mouse-3} in another.  This selects the text between those two
-positions as the region.  It also copies the new region to the kill
-ring, so that you can copy it to someplace else.
-
-If you click @kbd{Mouse-1} in the text, scroll with the scroll bar, and
-then click @kbd{Mouse-3}, it remembers where point was before scrolling
-(where you put it with @kbd{Mouse-1}), and uses that position as the
-other end of the region.  This is so that you can select a region that
-doesn't fit entirely on the screen.
-
-More generally, if you do not have a highlighted region, @kbd{Mouse-3}
-selects the text between point and the click position as the region.  It
-does this by setting the mark where point was, and moving point to where
-you click.
-
-If you have a highlighted region, or if the region was set just before
-by dragging button 1, @kbd{Mouse-3} adjusts the nearer end of the region
-by moving it to where you click.  The adjusted region's text also
-replaces the old region's text in the kill ring.
-
-If you originally specified the region using a double or triple
-@kbd{Mouse-1}, so that the region is defined to consist of entire words
-or lines, then adjusting the region with @kbd{Mouse-3} also proceeds by
-entire words or lines.
-
-If you use @kbd{Mouse-3} a second time consecutively, at the same place,
-that kills the region already selected.
-@end table
-
-  The simplest way to kill text with the mouse is to press @kbd{Mouse-1}
-at one end, then press @kbd{Mouse-3} twice at the other end.
-@xref{Killing}.  To copy the text into the kill ring without deleting it
-from the buffer, press @kbd{Mouse-3} just once---or just drag across the
-text with @kbd{Mouse-1}.  Then you can copy it elsewhere by yanking it.
-
+@findex mouse-yank-at-click
 @vindex mouse-yank-at-point
-  To yank the killed or copied text somewhere else, move the mouse there
-and press @kbd{Mouse-2}.  @xref{Yanking}.  However, if
-@code{mouse-yank-at-point} is non-@code{nil}, @kbd{Mouse-2} yanks at
-point.  Then it does not matter where you click, or even which of the
-frame's windows you click on.  The default value is @code{nil}.  This
-variable also affects yanking the secondary selection.
+  Clicking with the middle mouse button, @kbd{Mouse-2}, moves point to
+the position where you clicked and performs a yank
+(@code{mouse-yank-at-click}).  @xref{Yanking}.  If you change the
+variable @code{mouse-yank-at-point} to a non-@code{nil} value,
+@kbd{Mouse-2} does not move point.  Then it does not matter where you
+click, or even which of the frame's windows you click on; the yank
+occurs at the existing point.  This variable also affects yanking the
+primary and secondary selections (@pxref{Cut/Paste Other App}).
+
+@findex mouse-save-then-kill
+  Clicking with the right mouse button, @kbd{Mouse-3}, runs the
+command @code{mouse-save-then-kill}.  This performs several actions
+depending on where you click and the status of the region:
+
+@itemize @bullet
+@item
+If no region is active, clicking @kbd{Mouse-3} activates the region,
+placing the mark where point was and point at the clicked position.
+In addition, the text in the region is copied to the kill ring.
+
+@item
+If a region is active, clicking @kbd{Mouse-3} adjusts the nearer end
+of the region by moving it to the clicked position.  The adjusted
+region's text is copied to the kill ring; if the text in the original
+region was already on the kill ring, it replaces it there.
+
+@item
+If you originally specified the region using a double or triple
+@kbd{Mouse-1}, so that the region is defined to consist of entire
+words or lines, then adjusting the region with @kbd{Mouse-3} also
+proceeds by entire words or lines.
+
+@item
+If you use @kbd{Mouse-3} a second time consecutively, at the same
+place, that kills the region already selected.  Thus, the simplest way
+to kill text with the mouse is to click @kbd{Mouse-1} at one end, then
+click @kbd{Mouse-3} twice at the other end.  To copy the text into the
+kill ring without deleting it from the buffer, press @kbd{Mouse-3}
+just once---or just drag across the text with @kbd{Mouse-1}.  Then you
+can copy it elsewhere by yanking it.
+@end itemize
+
+  Whenever you set the region using any of the mouse commands
+described above, the mark will be deactivated by any subsequent
+unshifted cursor motion command, in addition to the usual ways of
+deactivating the mark.  @xref{Shift Selection}.  While the region
+remains active, typing @key{Backspace} or @key{Delete} deletes the
+text in that region and deactivates the mark; this behavior follows a
+convention established by other graphical programs, and it does
+@emph{not} apply when you set the region any other way, including
+shift-selection (@pxref{Shift Selection}).
 
 @cindex Delete Selection mode
 @cindex mode, Delete Selection
 @findex delete-selection-mode
-  Many graphical applications follow the convention that insertion
-while text is selected deletes the selected text.  You can make Emacs
-behave this way by enabling Delete Selection mode---with @kbd{M-x
-delete-selection-mode} or using Custom.  Another effect of this mode
-is that some keys, such as @key{DEL} and @kbd{C-d}, kill the region if
-one exists.
-
-@node Cut/Paste Other App
-@subsection Cut and Paste with Other Window Applications
-
-@cindex cutting
-@cindex pasting
-@cindex X cutting and pasting
-  To copy text to another windowing application, kill it or save it in
-the kill ring.  Then use the ``paste'' or ``yank'' command of the
-other application to insert the text.
-
-  To copy text from another windowing application, use its ``cut'' or
-``copy'' command to select the text you want.  Then yank it in Emacs
-with @kbd{C-y} or @kbd{Mouse-2}.
-
-@cindex primary selection
-@cindex cut buffer
-@cindex selection, primary
-@vindex x-cut-buffer-max
-  When Emacs puts text into the kill ring, or rotates text to the
-front of the kill ring, it sets the @dfn{primary selection} in the
-window system.  This is how other windowing applications can access
-the text.  On the X Window System, emacs also stores the text in the
-cut buffer, but only if the text is short enough (the value of
-@code{x-cut-buffer-max} specifies the maximum number of characters);
-putting long strings in the cut buffer can be slow.
-
-  The commands to yank the first entry in the kill ring actually check
-first for a primary selection in another program; after that, they check
-for text in the cut buffer.  If neither of those sources provides text
-to yank, the kill ring contents are used.
-
-  The standard coding system for X Window System selections is
-@code{compound-text-with-extensions}.  You may find that the pasted
-text is not what you expected.  In such a case, you can specify
-another coding system for selections by @kbd{C-x @key{RET} x} or
-@kbd{C-x @key{RET} X}, or can request the different data type by
-modifying the variable @code{x-select-request-type}.
-@xref{Communication Coding}.
+  Many graphical applications also follow the convention that
+insertion while text is selected deletes the selected text.  You can
+make Emacs behave this way by typing @kbd{M-x delete-selection-mode}.
+This enables a minor mode named Delete Selection mode.  Another effect
+of this mode is that some keys, such as @key{DEL} and @kbd{C-d},
+always kill the region if one exists.
 
 @node Word and Line Mouse
 @subsection Mouse Commands for Words and Lines
 
-  These variants of @kbd{Mouse-1} select entire words or lines at a time.
+  These variants of @kbd{Mouse-1} select entire words or lines at a
+time.  Emacs activates the region around the selected text, which is
+also copied to the kill ring.
 
 @table @kbd
 @item Double-Mouse-1
-This key sets the region around the word which you click on.  If you
-click on a character with ``symbol'' syntax (such as underscore, in C
-mode), it sets the region around the symbol surrounding that character.
+Select the text around the word which you click on.
 
-If you click on a character with open-parenthesis or close-parenthesis
-syntax, it sets the region around the parenthetical grouping
-which that character starts or ends.  If you click on a character with
-string-delimiter syntax (such as a singlequote or doublequote in C), it
-sets the region around the string constant (using heuristics to figure
-out whether that character is the beginning or the end of it).
+Double-clicking on a character with ``symbol'' syntax (such as
+underscore, in C mode) selects the symbol surrounding that character.
+Double-clicking on a character with open- or close-parenthesis syntax
+selects the parenthetical grouping which that character starts or
+ends.  Double-clicking on a character with string-delimiter syntax
+(such as a singlequote or doublequote in C) selects the string
+constant (Emacs uses heuristics to figure out whether that character
+is the beginning or the end of it).
 
 @item Double-Drag-Mouse-1
-This key selects a region made up of the words you drag across.
+Select the text you drag across, in the form of whole words.
 
 @item Triple-Mouse-1
-This key sets the region around the line you click on.
+Select the line you click on.
 
 @item Triple-Drag-Mouse-1
-This key selects a region made up of the lines you drag across.
+Select the text you drag across, in the form of whole lines.
 @end table
+
+@node Cut/Paste Other App
+@subsection Cut and Paste with Other Window Applications
+
+@cindex X cutting and pasting
+@cindex X selection
+@cindex primary selection
+@cindex selection, primary
+  When running Emacs under the X window system, you can easily
+transfer text between Emacs and other X applications using the
+@dfn{primary selection} (also called the @dfn{X selection}).  This is
+@emph{not} the same thing as the @dfn{clipboard}, which is a separate
+facility used on desktop environments such as Gnome, and on operating
+systems such as Microsoft Windows (@pxref{Clipboard}).
+
+  Under X, whenever you select some text in Emacs by dragging or
+clicking the mouse (@pxref{Mouse Commands}), it is also saved in the
+primary selection.  You can then @dfn{paste} that text into any other
+X application, usually by clicking @kbd{Mouse-2} in that application.
+Unlike the Emacs kill ring (@pxref{Kill Ring}), the primary selection
+has no ``memory'': each time you save something in the primary
+selection, either in Emacs or in another X application, the previous
+contents of the primary selection are lost.
+
+  Whenever you kill some text using a command such as @kbd{C-w}
+(@code{kill-region}), or copy it into the kill ring using a command
+such as @kbd{M-w} (@code{kill-ring-save}), that text is also saved in
+the primary selection.  @xref{Killing}.
+
+@vindex select-active-regions
+@vindex yank-pop-change-selection
+  If you set the region using the keyboard, the text within the region
+is not normally saved to the primary selection.  However, if you
+change the variable @code{select-active-regions} to @code{t}, the
+region is saved to the primary selection each time you activate the
+mark (the primary selection is @emph{not} updated if you subsequently
+change the region by moving point).  If you change the variable
+@code{yank-pop-change-selection} to @code{t}, rotating the kill ring
+with @kbd{M-y} (@code{yank-pop}) also saves the new yank to the
+primary selection (@pxref{Yanking}).
+
+@cindex cut buffer
+@vindex x-cut-buffer-max
+  Whenever Emacs saves some text to the primary selection, it may also
+save it to the @dfn{cut buffer}.  The cut buffer is an obsolete
+predecessor to the primary selection; most modern applications do not
+make use of it.  Because saving text to the cut buffer is slow and
+inefficient, Emacs only does it if the text is shorter than the value
+of @code{x-cut-buffer-max} (the default is 20000 characters).
+
+  You can yank the primary selection into Emacs using the usual yank
+commands, such as @kbd{C-y} (@code{yank}) and @kbd{Mouse-2}
+(@code{mouse-yank-at-click}).  These commands actually check the
+primary selection before referring to the kill ring; if no primary
+selection is available, the kill ring contents are used.  To prevent
+yank commands from accessing the primary selection, set the variable
+@code{x-select-enable-primary} to @code{nil}.
+
+  The standard coding system for the primary selection is
+@code{compound-text-with-extensions}.  You may find that the pasted
+text is not what you expected.  In such a case, you can specify
+another coding system for the selection by typing @kbd{C-x @key{RET}
+x} or @kbd{C-x @key{RET} X}.  Alternatively, you can request a
+different data type by modifying the variable
+@code{x-select-request-type}.  @xref{Communication Coding}.
 
 @node Secondary Selection
 @subsection Secondary Selection
 @cindex secondary selection
 
-  The @dfn{secondary selection} is another way of selecting text using
-the X Window System.  It does not use point or the mark, so you can
-use it to kill text without setting point or the mark.
+  In addition to the primary selection, the X Window System provides a
+second similar facility known as the @dfn{secondary selection}.
+Nowadays, few X applications make use of the secondary selection, but
+you can access it using the following Emacs commands:
 
 @table @kbd
 @findex mouse-set-secondary
@@ -272,17 +305,12 @@ use it to kill text without setting point or the mark.
 @item M-Drag-Mouse-1
 Set the secondary selection, with one end at the place where you press
 down the button, and the other end at the place where you release it
-(@code{mouse-set-secondary}).  The highlighting appears and changes as
-you drag.  You can control the appearance of the highlighting by
-customizing the @code{secondary-selection} face (@pxref{Face
-Customization}).
+(@code{mouse-set-secondary}).  The selected text is highlighted, using
+the @code{secondary-selection} face, as you drag.  The window scrolls
+automatically if you drag the mouse off the top or bottom of the
+window, just like @code{mouse-set-region} (@pxref{Mouse Commands}).
 
-If you move the mouse off the top or bottom of the window while
-dragging, the window scrolls at a steady rate until you move the mouse
-back into the window.  This way, you can mark regions that don't fit
-entirely on the screen.
-
-This way of setting the secondary selection does not alter the kill ring.
+This command does not alter the kill ring.
 
 @findex mouse-start-secondary
 @kindex M-Mouse-1
@@ -293,17 +321,17 @@ Set one endpoint for the @dfn{secondary selection}
 @findex mouse-secondary-save-then-kill
 @kindex M-Mouse-3
 @item M-Mouse-3
-Make a secondary selection, using the place specified with @kbd{M-Mouse-1}
-as the other end (@code{mouse-secondary-save-then-kill}).  This also
-puts the selected text in the kill ring.  A second click at the same
-place kills the secondary selection just made.
+Set the secondary selection, with one end at the position clicked and
+the other at the position specified with @kbd{M-Mouse-1}
+(@code{mouse-secondary-save-then-kill}).  This also puts the selected
+text in the kill ring.  A second @kbd{M-Mouse-3} at the same place
+kills the secondary selection just made.
 
 @findex mouse-yank-secondary
 @kindex M-Mouse-2
 @item M-Mouse-2
-Insert the secondary selection where you click
-(@code{mouse-yank-secondary}).  This places point at the end of the
-yanked text.
+Insert the secondary selection where you click, placing point at the
+end of the yanked text (@code{mouse-yank-secondary}).
 @end table
 
 Double or triple clicking of @kbd{M-Mouse-1} operates on words and
@@ -316,75 +344,83 @@ which of the frame's windows you click on.  @xref{Mouse Commands}.
 @node Clipboard
 @subsection Using the Clipboard
 @cindex clipboard
+
+  In desktop environments such as Gnome, and operating systems such as
+Microsoft Windows and Mac OS X, you can transfer data (usually text)
+between different applications using the @dfn{clipboard}.  The
+clipboard is distinct from the primary selection and secondary
+selection discussed earlier.  You can access the clipboard through the
+@samp{Edit} menu of the menu bar (@pxref{Menu Bar}).
+
+@cindex cut
+@findex clipboard-kill-region
+  The command @code{clipboard-kill-region}, which is bound to the
+@code{Cut} menu item, kills the region and saves it in the clipboard.
+
+@cindex copy
+@findex clipboard-kill-ring-save
+  The command @code{clipboard-kill-ring-save}, which is bound to the
+@code{Copy} menu item, copies the region to the kill ring and saves it
+in the clipboard.
+
+@cindex paste
+  The @code{Paste} menu item in the Edit menu yanks the contents of
+the clipboard at point.
+
 @vindex x-select-enable-clipboard
-@findex menu-bar-enable-clipboard
-@cindex OpenWindows
-@cindex Gnome
-
-  Apart from the primary and secondary selection types, Emacs can
-handle the @dfn{clipboard} selection type which is used by some
-applications, particularly under OpenWindows and Gnome.
-
-  The command @kbd{M-x menu-bar-enable-clipboard} makes the @code{Cut},
-@code{Paste} and @code{Copy} menu items, as well as the keys of the same
-names, all use the clipboard.
-
-  You can customize the variable @code{x-select-enable-clipboard} to make
-the Emacs yank functions consult the clipboard before the primary
+  You can customize the variable @code{x-select-enable-clipboard} to
+make the Emacs yank functions consult the clipboard before the primary
 selection, and to make the kill functions to store in the clipboard as
-well as the primary selection.  Otherwise they do not access the
-clipboard at all.  Using the clipboard is the default on MS-Windows and Mac,
-but not on other systems.
+well as the primary selection.  Otherwise, these commands do not
+access the clipboard at all.  Using the clipboard is the default on
+MS-Windows and Mac OS, but not on other systems.
 
 @node Mouse References
 @section Following References with the Mouse
 @kindex Mouse-1 @r{(selection)}
 @kindex Mouse-2 @r{(selection)}
 
-  Some read-only Emacs buffers include references you can follow, or
-commands you can activate.  These include names of files, of buffers,
-of possible completions, of matches for a pattern, as well as the
-buttons in Help buffers and customization buffers.  You can follow the
-reference or activate the command by moving point to it and typing
-@key{RET}.  You can also do this with the mouse, using either
-@kbd{Mouse-1} or @kbd{Mouse-2}.
+@vindex mouse-highlight
+  Some Emacs buffers include @dfn{buttons}.  A button is a piece of
+text that performs some action when you activate it, such as following
+a reference.  Usually, a button's text is visually highlighted: it is
+underlined, or a box is drawn around it.  If you move the mouse over a
+button, the shape of the mouse cursor changes and the button lights up
+(if you change the variable @code{mouse-highlight} to @code{nil},
+Emacs disables this highlighting).
 
-  Since yanking text into a read-only buffer is not allowed, these
-buffers generally define @kbd{Mouse-2} to follow a reference or
-activate a command.  For example, if you click @kbd{Mouse-2} on a file
-name in a Dired buffer, you visit that file.  If you click
-@kbd{Mouse-2} on an error message in the @samp{*Compilation*} buffer,
-you go to the source code for that error message.  If you click
-@kbd{Mouse-2} on a completion in the @samp{*Completions*} buffer, you
-choose that completion.
+  You can activate a button by moving point to it and typing
+@key{RET}, or by clicking either @kbd{Mouse-1} or @kbd{Mouse-2} on the
+button.  For example, typing @key{RET} or clicking on a file name in a
+Dired buffer visits that file (@pxref{Dired}).  Doing it on an error
+message in the @samp{*Compilation*} buffer goes to the source code for
+that error message (@pxref{Compilation}).  Doing it on a completion in
+the @samp{*Completions*} buffer chooses that completion
+(@pxref{Completion}).
 
-  However, most applications use @kbd{Mouse-1} to do this sort of
-thing, so Emacs implements this too.  If you click @kbd{Mouse-1}
-quickly on a reference or button, it follows or activates.  If you
-click slowly, it moves point as usual.  Dragging, meaning moving the
-mouse while it is held down, also has its usual behavior of setting
-the region.
+  Although clicking @kbd{Mouse-1} on a button usually activates that
+button, if you hold the mouse button down for a short period of time
+before releasing it (specifically, for more than 450 milliseconds),
+then Emacs moves point where you clicked instead.  This behavior
+allows you to use the mouse to move point over a button without
+following it.  Dragging---moving the mouse while it is held down---has
+its usual behavior of setting the region, even if you drag from or
+onto a button.
 
 @vindex mouse-1-click-in-non-selected-windows
-  Normally, the @kbd{Mouse-1} click behavior is performed on links in
-any window.  The variable @code{mouse-1-click-in-non-selected-windows}
-controls whether @kbd{Mouse-1} has this behavior even in non-selected
-windows, or only in the selected window.
-
-@vindex mouse-highlight
-  You can usually tell when @kbd{Mouse-1} and @kbd{Mouse-2} have this
-special sort of meaning because the sensitive text highlights when you
-move the mouse over it.  The variable @code{mouse-highlight} controls
-whether to do this highlighting always (even when such text appears
-where the mouse already is), never, or only immediately after you move
-the mouse.
+  Normally, clicking @kbd{Mouse-1} on a button activates the button
+even if it is in a nonselected window.  If you change the variable
+@code{mouse-1-click-in-non-selected-windows} to @code{nil}, clicking
+@kbd{Mouse-1} on a button in an un-selected window moves point to the
+clicked position and selects that window, without activating the
+button.
 
 @vindex mouse-1-click-follows-link
-  In Emacs versions before 22, only @kbd{Mouse-2} follows links and
-@kbd{Mouse-1} always sets point.  If you prefer this older behavior,
-set the variable @code{mouse-1-click-follows-link} to @code{nil}.
-This variable also lets you choose various other alternatives for
-following links with the mouse.  Type @kbd{C-h v
+  In Emacs versions before 22, only @kbd{Mouse-2} activates buttons
+and @kbd{Mouse-1} always sets point.  If you prefer this older
+behavior, set the variable @code{mouse-1-click-follows-link} to
+@code{nil}.  This variable also lets you choose various other
+alternatives for following links with the mouse.  Type @kbd{C-h v
 mouse-1-click-follows-link @key{RET}} for more details.
 
 @node Menu Mouse Clicks
@@ -421,7 +457,8 @@ present in the menu bar---not just the mode-specific ones---so that
 you can access them without having to display the menu bar.
 
 @item S-Mouse-1
-This menu is for specifying the frame's default font.
+This menu is for changing the default face within the window's buffer.
+@xref{Temporary Face Changes}.
 @end table
 
 @node Mode Line Mouse
@@ -517,8 +554,8 @@ frame.  This runs @code{find-file-read-only-other-frame}.
 
 @cindex default-frame-alist
 @cindex initial-frame-alist
-@cindex face customization, in @file{~/.emacs}
-@cindex color customization, in @file{~/.emacs}
+@cindex face customization, in init file
+@cindex color customization, in init file
   You can control the appearance of new frames you create by setting the
 frame parameters in @code{default-frame-alist}.  You can use the
 variable @code{initial-frame-alist} to specify parameters that affect
@@ -526,10 +563,9 @@ only the initial frame.  @xref{Initial Parameters,,, elisp, The Emacs
 Lisp Reference Manual}, for more information.
 
 @cindex font (default)
-  The easiest way to specify the principal font for all your Emacs
-frames is with an X resource (@pxref{Font X}), but you can also do it by
-modifying @code{default-frame-alist} to specify the @code{font}
-parameter, as shown here:
+  For instance, one way to specify the principal font for all your
+Emacs frames is to modify @code{default-frame-alist} to specify the
+@code{font} parameter (@pxref{Font X}):
 
 @example
 (add-to-list 'default-frame-alist '(font . "10x20"))
@@ -543,9 +579,9 @@ Here's a similar example for specifying a foreground color:
 @end example
 
 @noindent
-By putting such customizations in your @file{~/.emacs} init file, you
-can control the appearance of all the frames Emacs creates, including
-the initial one.
+By putting such customizations in your init file, you can control the
+appearance of all the frames Emacs creates, including the initial one.
+@xref{Init File}.
 
 @node Frame Commands
 @section Frame Commands
@@ -558,24 +594,20 @@ the initial one.
 @findex iconify-or-deiconify-frame
 Iconify the selected Emacs frame (@code{iconify-or-deiconify-frame}).
 When typed on an Emacs frame's icon, deiconify instead.
-
-The normal meaning of @kbd{C-z}, to suspend Emacs, is not useful under
-a graphical display that allows multiple applications to operate
-simultaneously in their own windows, so Emacs gives @kbd{C-z} a
-different binding in that case.
+@xref{Exiting}.
 
 @item C-x 5 0
 @kindex C-x 5 0
 @findex delete-frame
-Delete the selected frame (@code{delete-frame}).  This is not allowed if
-there is only one frame.
+Delete the selected frame (@code{delete-frame}).  This is not allowed
+if there is only one frame.
 
 @item C-x 5 o
 @kindex C-x 5 o
 @findex other-frame
-Select another frame, raise it, and warp the mouse to it so that it
-stays selected.  If you repeat this command, it cycles through all the
-frames on your terminal.
+Select another frame, raise it, and warp the mouse to it.  If you
+repeat this command, it cycles through all the frames on your
+terminal.
 
 @item C-x 5 1
 @kindex C-x 5 1
@@ -584,21 +616,20 @@ Delete all frames except the selected one.
 @end table
 
 @vindex focus-follows-mouse
-  To make the command @kbd{C-x 5 o} work properly, you must tell Emacs
-how the system (or the window manager) generally handles
-focus-switching between windows.  There are two possibilities: either
-simply moving the mouse onto a window selects it (gives it focus), or
-you have to click on it in a suitable way to do so.  On X, this focus
-policy also affects whether the focus is given to a frame that Emacs
-raises.  Unfortunately there is no way Emacs can find out
-automatically which way the system handles this, so you have to
-explicitly say, by setting the variable @code{focus-follows-mouse}.
-If just moving the mouse onto a window selects it, that variable
-should be @code{t}; if a click is necessary, the variable should be
-@code{nil}.
+  To make the command @kbd{C-x 5 o} work properly, you should tell
+Emacs how the system (or the window manager) handles focus-switching
+between windows.  There are two possibilities: either simply moving
+the mouse onto a window selects it (gives it focus), or you have to
+click on it to do so.  On X, this focus policy also affects whether
+the focus is given to a frame that Emacs raises.  Unfortunately there
+is no way Emacs can find out automatically which way the system
+handles this, so you have to explicitly say, by setting the variable
+@code{focus-follows-mouse}.  If just moving the mouse onto a window
+selects it, that variable should be @code{t}; if a click is necessary,
+the variable should be @code{nil}.  The default is @code{t}.
 
-The window manager that is part of MS-Windows always gives focus to a
-frame that raises, so this variable has no effect in the native
+  The window manager that is part of MS-Windows always gives focus to
+a frame that raises, so this variable has no effect in the native
 MS-Windows build of Emacs.
 
 @node Speedbar
@@ -681,15 +712,14 @@ single keyboard, and it treats all the commands arriving from these
 screens as a single stream of input.
 
   When you open frames on different X servers, Emacs makes a separate
-input stream for each server.  This way, two users can type
-simultaneously on the two displays, and Emacs will not garble their
-input.  Each server also has its own selected frame.  The commands you
-enter with a particular X server apply to that server's selected frame.
+input stream for each server.  Each server also has its own selected
+frame.  The commands you enter with a particular X server apply to
+that server's selected frame.
 
-  Despite these features, people using the same Emacs job from different
-displays can still interfere with each other if they are not careful.
-For example, if any one types @kbd{C-x C-c}, that exits the Emacs job
-for all of them!
+  It is even possible to use this feature to let two or more users
+type simultaneously on the two displays, within the same Emacs job.
+In practice, however, the different users can easily interfere with
+each others' edits if they are not careful.
 
 @node Special Buffer Frames
 @section Special Buffer Frames
@@ -764,16 +794,8 @@ whether that feature is also in use for the same buffer name.
 @cindex Auto-Raise mode
 @cindex Auto-Lower mode
 
-@kindex S-Mouse-1
-  You can specify the font and colors used for text display, and the
-colors for the frame borders, the cursor, and the mouse cursor, by
-customizing the faces @code{default}, @code{border}, @code{cursor} and
-@code{mouse}.  @xref{Face Customization}.  You can also set a frame's
-default font through a pop-up menu.  Press @kbd{S-Mouse-1} to activate
-this menu.
-
   These commands are available for controlling the window management
-behavior of the selected frame.
+behavior of the selected frame:
 
 @table @kbd
 @findex auto-raise-mode
@@ -817,43 +839,45 @@ Parameters,,, elisp, The Emacs Lisp Reference Manual}.
 @cindex mode, Scroll Bar
 
   On graphical displays, Emacs normally makes a @dfn{scroll bar} at
-the left of each Emacs window.@footnote{Placing it at the left is
-usually more useful with overlapping frames with text starting at the
-left margin.}  The scroll bar runs the height of the window, and shows
-a moving rectangular inner box which represents the portion of the
-buffer currently displayed.  The entire height of the scroll bar
-represents the entire length of the buffer.
+the left of each Emacs window, running the height of the
+window.@footnote{Placing it at the left is usually more useful with
+overlapping frames with text starting at the left margin.}
 
-  You can use @kbd{Mouse-2} (normally, the middle button) in the scroll
-bar to move or drag the inner box up and down.  If you move it to the
-top of the scroll bar, you see the top of the buffer.  If you move it to
-the bottom of the scroll bar, you see the bottom of the buffer.
+  When Emacs is compiled with GTK+ support on the X window system, or
+in operating systems such as Microsoft Windows or Mac OS, you can use
+the scroll bar as you do in other graphical applications.  If you
+click @kbd{Mouse-1} on the scroll bar's up and down buttons, that
+scrolls the window by one line at a time.  Clicking @kbd{Mouse-1}
+above or below the scroll bar's inner box scrolls the window by nearly
+the entire height of the window, like @kbd{M-v} and @kbd{C-v}
+respectively (@pxref{Moving Point}).  Dragging the inner box with
+@kbd{Mouse-1} scrolls the window continuously.
 
-  The left and right buttons in the scroll bar scroll by controlled
-increments.  @kbd{Mouse-1} (normally, the left button) moves the line at
-the level where you click up to the top of the window.  @kbd{Mouse-3}
-(normally, the right button) moves the line at the top of the window
-down to the level where you click.  By clicking repeatedly in the same
-place, you can scroll by the same distance over and over.
+  If Emacs is compiled without GTK+ support on the X window system,
+the scroll bar behaves differently.  The scroll bar's inner box is
+drawn to represent the portion of the buffer currently displayed, with
+the entire height of the scroll bar representing the entire length of
+the buffer.  @kbd{Mouse-1} anywhere on the scroll bar scrolls forward
+like @kbd{C-v}, and @kbd{Mouse-3} scrolls backward like @kbd{M-v}.
+Clicking @kbd{Mouse-2} in the scroll bar lets you move or drag the
+inner box up and down.
 
   You can also click @kbd{C-Mouse-2} in the scroll bar to split a
 window vertically.  The split occurs on the line where you click.
 
 @findex scroll-bar-mode
 @vindex scroll-bar-mode
-  You can enable or disable Scroll Bar mode with the command @kbd{M-x
-scroll-bar-mode}.  With no argument, it toggles the use of scroll
-bars.  With an argument, it turns use of scroll bars on if and only if
-the argument is positive.  This command applies to all frames,
-including frames yet to be created.  Customize the variable
-@code{scroll-bar-mode} to control the use of scroll bars at startup.
-You can use it to specify that they are placed at the right of windows
-if you prefer that.  You have to set this variable through the
-@samp{Customize} interface (@pxref{Easy Customization}), or it will
-not work properly.
-
-  You can also use the X resource @samp{verticalScrollBars} to control
-the initial setting of Scroll Bar mode.  @xref{Resources}.
+  You can toggle the use of the scroll bar with the command @kbd{M-x
+scroll-bar-mode}.  With a prefix argument, this command turns use of
+scroll bars on if and only if the argument is positive.  This command
+applies to all frames, including frames yet to be created.  Customize
+the variable @code{scroll-bar-mode} to control the use of scroll bars
+at startup.  You can use it to specify that they are placed at the
+right of windows if you prefer that.  You have to set this variable
+through the @samp{Customize} interface (@pxref{Easy Customization}),
+or it will not work properly.  You can also use the X resource
+@samp{verticalScrollBars} to control the initial setting of Scroll Bar
+mode.  @xref{Resources}.
 
 @findex toggle-scroll-bar
   To enable or disable scroll bars for just the selected frame, use the
@@ -966,13 +990,16 @@ tool-bar-mode} or by customizing the option @code{tool-bar-mode}.
   A dialog box is a special kind of menu for asking you a yes-or-no
 question or some other special question.  Many Emacs commands use a
 dialog box to ask a yes-or-no question, if you used the mouse to
-invoke the command to begin with.
+invoke the command that led to the question.
 
-  You can customize the variable @code{use-dialog-box} to suppress the
-use of dialog boxes.  This also controls whether to use file selection
-windows (but those are not supported on all platforms).
+  To disable the use of dialog boxes, change the variable
+@code{use-dialog-box} to @code{nil}.  In that case, Emacs always
+performs yes-or-no prompts using the echo area and keyboard input.
+This variable also controls whether to use file selection windows (but
+those are not supported on all platforms).
 
 @vindex use-file-dialog
+@cindex file selection dialog, how to disable
   A file selection window is a special kind of dialog box for asking
 for file names.  You can customize the variable @code{use-file-dialog}
 to suppress the use of file selection windows, even if you still want
@@ -980,24 +1007,24 @@ other kinds of dialogs.  This variable has no effect if you have
 suppressed all dialog boxes with the variable @code{use-dialog-box}.
 
 @vindex x-gtk-show-hidden-files
-  For Gtk+ version 2.4 and newer, Emacs use the Gtk+ file chooser
-dialog.  Emacs adds a toggle button that enables and disables showing
-of hidden files (files starting with a dot) in that dialog.  The
-variable @code{x-gtk-show-hidden-files} controls whether to show
-hidden files by default.
+@vindex x-gtk-file-dialog-help-text
+@cindex hidden files, in GTK+ file chooser
+@cindex help text, in GTK+ file chooser
+  When Emacs is compiled with GTK+ support, it uses the GTK+ ``file
+chooser'' dialog.  Emacs adds an additional toggle button to this
+dialog, which you can use to enable or disable the display of hidden
+files (files starting with a dot) in that dialog.  If you want this
+toggle to be activated by default, change the variable
+@code{x-gtk-show-hidden-files} to @code{t}.  In addition, Emacs adds
+help text to the GTK+ file chooser dialog; to disable this help text,
+change the variable @code{x-gtk-file-dialog-help-text} to @code{nil}.
 
 @vindex x-gtk-use-old-file-dialog
-  For Gtk+ versions 2.4 through 2.10, you can select the old file
-dialog (@code{gtk-file-selector}) by setting the variable
-@code{x-gtk-use-old-file-dialog} to a non-@code{nil} value.  If it is
-@code{nil}, Emacs uses @code{gtk-file-chooser}.  If Emacs is built
-with a Gtk+ version that has only one file dialog, this variable has
-no effect.
-
-@vindex x-gtk-file-dialog-help-text
-  Emacs adds help text to the Gtk+ file chooser dialog.  The variable
-@code{x-gtk-file-dialog-help-text} specifies the text to add; if it is
-@code{nil}, that disables the added text.
+  In GTK+ versions 2.4 through 2.10, you can choose to use an older
+version of the GTK+ file dialog by setting the variable
+@code{x-gtk-use-old-file-dialog} to a non-@code{nil} value.  If Emacs
+is built with a GTK+ version that has only one file dialog, this
+variable has no effect.
 
 @node Tooltips
 @section Tooltips
@@ -1094,7 +1121,7 @@ in the mode line when the frame is selected.
 @cindex mouse support
 @cindex terminal emulators, mouse support
 
-Some terminal emulators support mouse clicks in the terminal window.
+Some text-only terminals support mouse clicks in the terminal window.
 
 @cindex xterm
 In a terminal emulator which is compatible with @code{xterm},
@@ -1106,9 +1133,9 @@ press the mouse button.  Xterm Mouse mode is a global minor mode
 (@pxref{Minor Modes}).  Repeating the command turns the mode off
 again.
 
-In the console on GNU/Linux, you can use @kbd{M-x t-mouse-mode}.  You
-need to have the gpm package installed and running on your system in
-order for this to work.
+In the console on GNU/Linux, you can use @kbd{M-x t-mouse-mode} to
+enable terminal mouse support.  You must have the gpm package
+installed and running on your system in order for this to work.
 
 @ignore
    arch-tag: 7dcf3a31-a43b-45d4-a900-445b10d77e49

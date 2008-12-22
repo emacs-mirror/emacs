@@ -1600,7 +1600,7 @@
     (if (cdr p)
 	(math-normalize   ; fix selection bug
 	 (math-build-polynomial-expr p base))
-      expr)))
+      (car p))))
 
 ;;; If expr is of the form "a + bx + cx^2 + ...", return the list (a b c ...),
 ;;; else return nil if not in polynomial form.  If "loose" (math-is-poly-loose), 

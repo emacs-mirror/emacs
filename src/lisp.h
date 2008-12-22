@@ -2869,7 +2869,6 @@ extern void set_time_zone_rule P_ ((char *));
 /* defined in buffer.c */
 extern int mouse_face_overlay_overlaps P_ ((Lisp_Object));
 extern void nsberror P_ ((Lisp_Object)) NO_RETURN;
-extern char *no_switch_window P_ ((Lisp_Object window));
 EXFUN (Fset_buffer_multibyte, 1);
 EXFUN (Foverlay_start, 1);
 EXFUN (Foverlay_end, 1);
@@ -3092,11 +3091,11 @@ extern Lisp_Object Vx_resource_class;
 extern Lisp_Object Qvisible;
 extern void store_frame_param P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void store_in_alist P_ ((Lisp_Object *, Lisp_Object, Lisp_Object));
-extern Lisp_Object do_switch_frame P_ ((Lisp_Object, int, int));
+extern Lisp_Object do_switch_frame P_ ((Lisp_Object, int, int, Lisp_Object));
 extern Lisp_Object get_frame_param P_ ((struct frame *, Lisp_Object));
 extern Lisp_Object frame_buffer_predicate P_ ((Lisp_Object));
 EXFUN (Fframep, 1);
-EXFUN (Fselect_frame, 1);
+EXFUN (Fselect_frame, 2);
 EXFUN (Fselected_frame, 0);
 EXFUN (Fwindow_frame, 1);
 EXFUN (Fframe_root_window, 1);
@@ -3120,7 +3119,7 @@ EXFUN (Fset_frame_size, 3);
 EXFUN (Fset_frame_position, 3);
 EXFUN (Fraise_frame, 1);
 EXFUN (Fredirect_frame_focus, 2);
-EXFUN (Fset_frame_selected_window, 2);
+EXFUN (Fset_frame_selected_window, 3);
 extern Lisp_Object frame_buffer_list P_ ((Lisp_Object));
 extern void frames_discard_buffer P_ ((Lisp_Object));
 extern void set_frame_buffer_list P_ ((Lisp_Object, Lisp_Object));
@@ -3147,8 +3146,12 @@ void synchronize_system_time_locale P_ ((void));
 void shut_down_emacs P_ ((int, int, Lisp_Object));
 /* Nonzero means don't do interactive redisplay and don't change tty modes */
 extern int noninteractive;
-/* Nonzero means Emacs was started as a daemon.  */
-extern int is_daemon;
+
+/* Pipe used to send exit notification to the daemon parent at
+   startup.  */
+extern int daemon_pipe[2];
+#define IS_DAEMON (daemon_pipe[1] != 0)
+
 /* Nonzero means don't do use window-system-specific display code */
 extern int inhibit_window_system;
 /* Nonzero means that a filter or a sentinel is running.  */
