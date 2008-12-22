@@ -6,59 +6,17 @@
  *
  * OBJECTIVE
  *
- * Test MPS messages.  In particular:
- *  - Check prompt finalization even when there are several segs 
- *    of guardians.  This test replaces fin1658a.c.  See job001658.
- *  - Check GC messages are correctly generated, posted, and queued,
- *    regardless of when the client gets them.  (Note: "get" means 
- *    "mps_message_get", throughout).  See job001989.
+ * Test MPS collections.  In particular, reporting of how collections 
+ * progress.
  *
- * Please add tests for other message behaviour into this file.  
- * Expand the script language as necessary!  RHSK 2008-12-19.
+ * Please add tests for other collection behaviour into this file.  
+ * Expand the script language as necessary!  RHSK 2008-12-22.
  *
  *
  * DESIGN OVERVIEW
  *
- * Client (this test) does various actions that are known to provoke 
- * MPS messages.  Client (this test) gets these messages at variable 
- * times.
- *
- * Verification is:
- *   - client gets all the expected messages, and no others, at the 
- *     expected time;
- *   - no asserts or failures.
- *
- * Additionally: client checks the message order.  MPS specification 
- * does not currently guarantee that messages are queued in order of 
- * posting, but in fact they should be, and it is a useful check.
- * (But finalization messages from a single collection may be posted 
- * in any order).
- *
- * The actions, messages to check for, and get times, are scripted 
- * using a simple text code:
- *   C - action: request garbage-collection;
- *   F - action: make a (registered)finalized object unreachable
- *        (note: this drops the myroot ref, but some objects are 
- *         deliberately kept alive by additional references; see 
- *         .keep-alive)
- *   b - message produced: collection begin (mps_message_type_gc_start);
- *   e - message produced: collection end (mps_message_type_gc);
- *   f - message produced: finalization (mps_message_type_finalization);
- *   . - get messages.
- *   ! - get messages without discarding (see .discard).
- *
- * Example:
- *  script "Cbe.FFCbffe.Cbe"
- *  means:
- *    Request a collection and check for _gc_start and _gc messages
- *    (in that order, and no other messages).  Then drop refs to two 
- *    objects, request another collection, and check for _gc_start, 
- *    the two finalization messages (in either order), and _gc.  Then 
- *    request a third collection and end the test WITHOUT GETTING 
- *    the last two messages (note: no "."), to test that 
- *    mps_arena_destroy copes with ungot messages.
- *
  * Each script runs in a newly created arena.
+ * [incomplete]
  *
  *
  * CODE OVERVIEW
@@ -80,22 +38,9 @@
  *
  * BUGS, FUTURE IMPROVEMENTS, ETC
  *
- * There are a few special objects with refs to each other (see 
- * .keep-alive).  For clarity and flexibility, there should be special 
- * actions to drop the myroot ref to these, eg. '0', '1', '2', 'Y', 'Z'.
- * Whereas (for clarity) 'F' should be an action that drops the myroot 
- * ref to a plain (non-kept-alive) object, thereby simply provoking a 
- * single finalization message.
- *
- * Actions could be expanded to include:
- *   - mps_arena_start_collect;
- *   - mps_arena_step;
- *   - automatic (not client-requested) collections.
- * etc.
- *
  * HISTORY
  *
- * This code was created by first copying <code/fin1658a.c>.
+ * This code was created by first copying <code/zmess.c>.
  */
 
 #include "testlib.h"
@@ -125,39 +70,15 @@ static mps_gen_param_s testChain[genCOUNT] = {
 
 /* note: static, so auto-initialised to NULL */
 static void *myroot[myrootCOUNT];
-static int state[myrootCOUNT];
 
 
-enum {
-  rootSTATE,
-  deadSTATE,
-  finalizableSTATE,
-  finalizedSTATE
-};
-
-
-/* report -- get and check messages
+/* get -- get messages
  *
- * Get messages, report what was got, check they are the expected 
- * messages, and (for finalization messages) check that these objects 
- * should have been finalized (because we made them unreachable).
- *
- * .discard: The client should always call mps_message_discard when 
- * it has finished with the message.  But calling with the "discard" 
- * parameter set to false lets us check how the MPS handles naughty 
- * clients.  The undiscarded messages should be cleared up by 
- * ArenaDestroy.  In a diagnostic variety (eg .variety.di) the 
- * ArenaDestroy diag shows the contents of the control pool, and you 
- * can clearly see the undiscarded messages (just before the control 
- * pool is destroyed).
  */
-static void report(mps_arena_t arena, const char *pm, Bool discard)
+static void get(mps_arena_t arena)
 {
-  int found = 0;
-  char mFound = '\0';
   mps_message_type_t type;
 
-  /* Test any finalized objects */
   while (mps_message_queue_type(&type, arena)) {
     mps_message_t message;
     mps_word_t *obj;
@@ -166,17 +87,14 @@ static void report(mps_arena_t arena, const char *pm, Bool discard)
 
     cdie(mps_message_get(&message, arena, type),
          "get");
-    found += 1;
     
     switch(type) {
       case mps_message_type_gc_start(): {
         printf("    Begin Collection\n");
-        mFound = 'b';
         break;
       }
       case mps_message_type_gc(): {
         printf("    End Collection\n");
-        mFound = 'e';
         break;
       }
       case mps_message_type_finalization(): {
@@ -184,10 +102,6 @@ static void report(mps_arena_t arena, const char *pm, Bool discard)
         obj = objaddr;
         objind = DYLAN_INT_INT(DYLAN_VECTOR_SLOT(obj, 0));
         printf("    Finalization for object %lu at %p\n", objind, objaddr);
-        cdie(myroot[objind] == NULL, "finalized live");
-        cdie(state[objind] == finalizableSTATE, "not finalizable");
-        state[objind] = finalizedSTATE;
-        mFound = 'f';
         break;
       }
       default: {
@@ -196,83 +110,51 @@ static void report(mps_arena_t arena, const char *pm, Bool discard)
       }
     }
     
-    if(discard) {
-      mps_message_discard(arena, message);  /* .discard */
-    }
-
-    cdie('\0' != *pm, "Found message, but did not expect any");
-    cdie(mFound == *pm, "Found message type != Expected message type");
-    pm++;
+    mps_message_discard(arena, message);
   }
-  
-  mFound = '\0';
-  cdie(mFound == *pm, "No message found, but expected one");
 }
 
 
 /* testscriptC -- actually runs a test script
  *
  */
-static void testscriptC(mps_arena_t arena, const char *script)
+static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
 {
-  unsigned isLoNext = 1;
-  unsigned loNext = 0;
-  unsigned hiNext = myrootCOUNT - 1;
   unsigned i;
   const char *scriptAll = script;
-  char am[100];  /* Array of Messages (expected but not yet got) */
-  char *pmNext = am;  /* Pointer to where Next Message will be stored */
+  int itemsread;
+  int bytesread;
 
   while(*script != '\0') {
     switch(*script) {
-      case '.': {
-        *pmNext = '\0';
-        printf("  Getting messages (expecting \"%s\")...\n", am);
-        report(arena, am, TRUE);
-        printf("  ...done.\n");
-        pmNext = am;
-        break;
-      }
-      case '!': {
-        /* Like '.', but not discarding got messages; see .discard */
-        *pmNext = '\0';
-        printf("  Getting messages (expecting \"%s\")...\n", am);
-        report(arena, am, FALSE);  /* FALSE: see .discard */
-        printf("  ...done.\n");
-        printf("  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, "
-               "TO SEE HOW MPS COPES.\n");  /* .discard */
-        pmNext = am;
-        break;
-      }
-      case 'C': {
-        printf("  Collect\n");
-        mps_arena_collect(arena);
-        break;
-      }
-      case 'F': {
-        /* (perhaps) make an object Finalizable
-         *
-         * .alternate: We alternately pick objects from the low and 
-         * high ends of the myroot array.  This is used to test for 
-         * the defect described in job001658.
-         */
-        Insist(loNext <= hiNext);
-        i = isLoNext ? loNext++ : hiNext--;
-        isLoNext = 1 - isLoNext;
+      case 'M': {
+        unsigned makeCount = 0;
+        unsigned objCount = 0;
+        unsigned makeTotal = 0;
+        unsigned wastefulness = 0;
+        itemsread = sscanf(script, "M(objs %u, wastefulness %u)%n",
+                           &makeTotal, &wastefulness, &bytesread);
+        if(itemsread != 2) {
+          printf("bad script command %s (full script %s).\n",
+                 script, scriptAll);
+          cdie(FALSE, "unknown script command");
+        }
+        printf("makeTotal: %d, wastefulness: %d.\n",
+               makeTotal, wastefulness);
+        script += bytesread;
         
-        printf("  Drop myroot ref to object %u -- "
-               "this might make it Finalizable\n", i);
-        /* drop myroot ref, to perhaps make i finalizable */
-        /* (but see .keep-alive) */
-        myroot[i] = NULL;
-        state[i] = finalizableSTATE;
-        break;
-      }
-      case 'b':
-      case 'e':
-      case 'f': {
-        /* expect that MPS has posted a particular message */
-        *pmNext++ = *script;
+        while(makeCount < makeTotal) {
+          mps_word_t v;
+          die(make_dylan_vector(&v, ap, 2), "make_dylan_vector");
+          DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(objCount);
+          DYLAN_VECTOR_SLOT(v, 1) = (mps_word_t)NULL;
+          if(rnd() % wastefulness == 0) {
+            /* keep this one */
+            myroot[makeCount % myrootCOUNT] = (void*)v;
+            makeCount++;
+          }
+        }
+        
         break;
       }
       default: {
@@ -282,9 +164,10 @@ static void testscriptC(mps_arena_t arena, const char *script)
         return;
       }
     }
-    Insist(pmNext - am < NELEMS(am));
     script++;
   }
+
+  get(arena);
 }
 
 
@@ -312,8 +195,6 @@ static void *testscriptB(void *arg, size_t s)
   mps_root_t root_table;
   mps_ap_t ap;
   mps_root_t root_stackreg;
-  int i;
-  int N = myrootCOUNT - 1;
   void *stack_starts_here;  /* stack scanning starts here */
 
   Insist(s == sizeof(trampDataStruct));
@@ -337,50 +218,14 @@ static void *testscriptB(void *arg, size_t s)
                           mps_stack_scan_ambig, &stack_starts_here, 0),
       "root_stackreg");
 
-  /* Make myrootCOUNT registered-for-finalization objects. */
-  /* Each is a dylan vector with 2 slots, inited to: (index, NULL) */
-  for(i = 0; i < myrootCOUNT; ++i) {
-    mps_word_t v;
-    die(make_dylan_vector(&v, ap, 2), "make_dylan_vector");
-    DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(i);
-    DYLAN_VECTOR_SLOT(v, 1) = (mps_word_t)NULL;
-    die(mps_finalize(arena, (mps_addr_t*)&v), "finalize");
-    myroot[i] = (void*)v;
-    state[i] = rootSTATE;
-  }
-  
-  /* .keep-alive: Create some additional inter-object references.
-   *
-   * 1 and N-1 don't die until myroot refs to both have been nulled.
-   *
-   * 2 and 3 don't die until myroot refs to both have been nulled.
-   *
-   * We do this to check that reachability via non-root refs prevents 
-   * finalization.
-   */
-
-  /* Leave 0 and N containing NULL refs */
-  
-  /* Make 1 and N-1 refer to each other */
-  DYLAN_VECTOR_SLOT(myroot[1]  , 1) = (mps_word_t)myroot[N-1];
-  DYLAN_VECTOR_SLOT(myroot[N-1], 1) = (mps_word_t)myroot[1];
-
-  /* Make 2 and 3 refer to each other */
-  DYLAN_VECTOR_SLOT(myroot[2], 1) = (mps_word_t)myroot[3];
-  DYLAN_VECTOR_SLOT(myroot[3], 1) = (mps_word_t)myroot[2];
-
-  /* Stop stack scanning, otherwise stack or register dross from */
-  /* these setup functions can cause unwanted object retention, */
-  /* which would mean we don't get the finalization messages we */
-  /* expect. */
-  mps_root_destroy(root_stackreg);
 
   mps_message_type_enable(arena, mps_message_type_gc_start());
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_finalization());
 
-  testscriptC(arena, script);
+  testscriptC(arena, ap, script);
 
+  mps_root_destroy(root_stackreg);
   mps_ap_destroy(ap);
   mps_root_destroy(root_table);
   mps_pool_destroy(amc);
@@ -425,59 +270,6 @@ static void testscriptA(const char *script)
 
 }
 
-/* TIMCA_remote -- TraceIdMessagesCreate Alloc remote control
- *
- * In low memory situations, ControlAlloc may be unable to allocate 
- * memory for GC messages.  This needs to work flawlessly, but is 
- * hard to test.
- *
- * To simulate it for testing purposes, add the following lines to 
- * traceanc.c, before the definition of TraceIdMessagesCreate:
- *    #define ControlAlloc !TIMCA_remote() ? ResFAIL : ControlAlloc
- *    extern Bool TIMCA_remote(void);
- * (See changelist 166959).
- *
- * TIMCA_remote returns a Bool, true for let "ControlAlloc succeed".
- */
-static const char *TIMCA_str = "";
-static int TIMCA_done = 0;
-static void TIMCA_setup(const char *string)
-{
-  /* TIMCA_setup -- TraceIdMessagesCreate Alloc remote control
-   *
-   * 1..9 -- succeed this many times
-   * 0    -- fail once
-   * NUL  -- succeed from now on
-   *
-   * Eg: "1400" succeeds 5 times, fails 2 times, then succeeds forever.
-   */
-  TIMCA_str = string;
-  TIMCA_done = 0;
-}
-
-extern Bool TIMCA_remote(void);
-Bool TIMCA_remote(void)
-{
-  Bool succeed;
-  
-  if(*TIMCA_str == '\0') {
-    succeed = TRUE;
-  } else if(*TIMCA_str == '0') {
-    succeed = FALSE;
-    TIMCA_str++;
-  } else {
-    Insist(*TIMCA_str >= '1' && *TIMCA_str <= '9');
-    succeed = TRUE;
-    TIMCA_done++;
-    if(TIMCA_done == *TIMCA_str - '0') {
-      TIMCA_done = 0;
-      TIMCA_str++;
-    }
-  }
-  
-  return succeed;
-}
-
 
 /* main -- runs various test scripts
  *
@@ -487,79 +279,9 @@ int main(int argc, char **argv)
 
   randomize(argc, argv);
 
-  /* Scripts that should fail (uncomment to show failure is detected) */
-  /*testscriptA("C.");*/
-  /*testscriptA("b.");*/
-
   /* The most basic scripts */
-  testscriptA(".");
-  testscriptA("Cbe.");
-  testscriptA("Cbe.Cbe.");
+  testscriptA("M(objs 1500, wastefulness 50)");
 
-  /* Get messages, but not promptly */
-  testscriptA(".Cbe.CbeCbeCbe.");
-
-  /* Ungot messages at ArenaDestroy */
-  testscriptA("Cbe");
-  testscriptA("Cbe.CbeCbeCbe");
-
-  /* Fail to call mps_message_discard */
-  testscriptA("Cbe!");
-  testscriptA("Cbe!CbeCbeCbe!");
-
-  /* Simple finalization
-   *
-   * These tests rely on the particular order in which the "F" command 
-   * nulls-out references.  Not every "F" makes an object finalizable.
-   * See .keep-alive.
-   */
-  testscriptA("FFCbffe.");
-  testscriptA("FFCbffe.FFCbffe.");
-  testscriptA("FFCbffe.FCbe.F.Cbffe.FFCbfe.FF.Cbfffe.");
-  
-  /* Various other scripts */
-  testscriptA("Cbe.FFCbffe.Cbe");
-
-  /* Simulate low memory situations
-   *
-   * These scripts only work with a manually edited traceanc.c --
-   * see TIMCA_remote() above.
-   *
-   * When TraceIdMessagesCreate is trying to pre-allocate GC messages, 
-   * either "0" or "10" makes it fail -- "0" fails the trace start 
-   * message alloc, whereas "10" fails the trace end message alloc. 
-   * In either case TraceIdMessagesCreate promptly gives up, and 
-   * neither start nor end message will be sent for the next trace.
-   *
-   * See <design/message-gc#lifecycle>.
-   */
-  if(0) {
-    /* ArenaCreate unable to pre-allocate: THESE SHOULD FAIL */
-    /* manually edit if(0) -> if(1) to test these */
-    if(0) {
-      TIMCA_setup("0"); testscriptA("Fail at create 1");
-    }
-    if(0) {
-      TIMCA_setup("10"); testscriptA("Fail at create 2");
-    }
-
-    /* ArenaDestroy with no pre-allocated messages */
-    TIMCA_setup("20"); testscriptA("Cbe.");
-    TIMCA_setup("210"); testscriptA("Cbe.");
-
-    /* Collect with no pre-allocated messages: drops messages, */
-    /* hence "C." instead of "Cbe.".  Also, in diagnostic varieties, */
-    /* these should produce a "droppedMessages" diagnostic at */
-    /* ArenaDestroy. */
-    TIMCA_setup("2022"); testscriptA("Cbe.C.Cbe.");
-    TIMCA_setup("21022"); testscriptA("Cbe.C.Cbe.");
-
-    /* 2 Collects and ArenaDestroy with no pre-allocated messages */
-    TIMCA_setup("2000"); testscriptA("Cbe.C.C.");
-    TIMCA_setup("201010"); testscriptA("Cbe.C.C.");
-    
-    TIMCA_setup("");  /* must reset it! */
-  }
 
   fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
@@ -569,7 +291,7 @@ int main(int argc, char **argv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
