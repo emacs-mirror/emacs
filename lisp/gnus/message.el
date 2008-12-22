@@ -4325,9 +4325,8 @@ This function could be useful in `message-setup-hook'."
 	      (end-of-line)
 	      (insert (format " (%d/%d)" n total))
 	      (widen)
-	      (mm-with-unibyte-current-buffer
-		(funcall (or message-send-mail-real-function
-			     message-send-mail-function))))
+              (funcall (or message-send-mail-real-function
+                           message-send-mail-function)))
 	    (setq n (+ n 1))
 	    (setq p (pop plist))
 	    (erase-buffer)))
@@ -4429,6 +4428,11 @@ This function could be useful in `message-setup-hook'."
 				  (message-fetch-field
 				   "content-transfer-encoding")))))))
 	    (message-insert-courtesy-copy))
+          ;; Let's make sure we encoded all the body.
+          (assert (save-excursion
+                    (goto-char (point-min))
+                    (not (re-search-forward "[^\000-\377]" nil t))))
+          (mm-disable-multibyte)
 	  (if (or (not message-send-mail-partially-limit)
 		  (< (buffer-size) message-send-mail-partially-limit)
 		  (not (message-y-or-n-p
@@ -4453,7 +4457,7 @@ The size limit is controlled by `message-send-mail-partially-limit'.
 If you always want Gnus to send messages in one piece, set
 `message-send-mail-partially-limit' to nil.
 ")))
-	      (mm-with-unibyte-current-buffer
+	      (progn
 		(message "Sending via mail...")
 		(funcall (or message-send-mail-real-function
 			     message-send-mail-function)))
@@ -5635,7 +5639,9 @@ subscribed address (and not the additional To and Cc header contents)."
 				(mapcar
 				 'cadr
 				 (mail-extract-address-components field t))))))
-	(setq ace (if (string-match "\\`[[:ascii:]]+\\'" rhs)
+	;; Note that `rhs' will be "" if the address does not have
+	;; the domain part, i.e., if it is a local user's address.
+	(setq ace (if (string-match "\\`[[:ascii:]]*\\'" rhs)
 		      rhs
 		    (downcase (idna-to-ascii rhs))))
 	(when (and (not (equal rhs ace))
@@ -5657,7 +5663,13 @@ See `message-idna-encode'."
   (when message-use-idna
     (save-excursion
       (save-restriction
-	(message-narrow-to-head)
+	;; `message-narrow-to-head' that recognizes only the first empty
+	;; line as the message header separator used to be used here.
+	;; However, since there is the "--text follows this line--" line
+	;; normally, it failed in narrowing to the headers and potentially
+	;; caused the IDNA encoding on lines that look like headers in
+	;; the message body.
+	(message-narrow-to-headers-or-head)
 	(message-idna-to-ascii-rhs-1 "From")
 	(message-idna-to-ascii-rhs-1 "To")
 	(message-idna-to-ascii-rhs-1 "Reply-To")

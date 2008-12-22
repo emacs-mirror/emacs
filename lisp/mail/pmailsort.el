@@ -31,6 +31,8 @@
   (require 'sort)
   (require 'pmail))
 
+(require 'pmailhdr)
+
 (autoload 'timezone-make-date-sortable "timezone")
 
 (declare-function pmail-update-summary "pmailsum" (&rest ignore))
@@ -121,8 +123,8 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
   (pmail-sort-messages reverse
 		       (function
 			(lambda (msg)
-			  (count-lines (pmail-desc-get-start msg)
-				       (pmail-desc-get-end msg))))))
+			  (count-lines (pmail-msgbeg msg)
+				       (pmail-msgend msg))))))
 
 ;;;###autoload
 (defun pmail-sort-by-labels (reverse labels)
@@ -158,24 +160,21 @@ KEYWORDS is a comma-separated list of labels."
   "Sort messages of current Pmail file.
 If 1st argument REVERSE is non-nil, sort them in reverse order.
 2nd argument KEYFUN is called with a message number, and should return a key."
-  (save-current-buffer
-    ;; If we are in a summary buffer, operate on the Pmail buffer.
-    (if (eq major-mode 'pmail-summary-mode)
-	(set-buffer pmail-buffer))
+  (pmail-swap-buffers-maybe)
+  (with-current-buffer pmail-buffer
     (let ((buffer-read-only nil)
 	  (point-offset (- (point) (point-min)))
 	  (predicate nil)			;< or string-lessp
 	  (sort-lists nil))
       (message "Finding sort keys...")
-      (pmail-header-show-headers)
       (widen)
       (let ((msgnum 1))
 	(while (>= pmail-total-messages msgnum)
 	  (setq sort-lists
 		(cons (list (funcall keyfun msgnum) ;Make sorting key
 			    (eq pmail-current-message msgnum) ;True if current
-			    (pmail-desc-get-start msgnum)
-			    (pmail-desc-get-end msgnum))
+			    (aref pmail-message-vector msgnum)
+			    (aref pmail-message-vector (1+ msgnum)))
 		      sort-lists))
 	  (if (zerop (% msgnum 10))
 	      (message "Finding sort keys...%d" msgnum))
@@ -199,21 +198,22 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	    (msginfo nil))
 	;; There's little hope that we can easily undo after that.
 	(buffer-disable-undo (current-buffer))
-	(goto-char (pmail-desc-get-start 1))
+	(goto-char (pmail-msgbeg 1))
 	;; To force update of all markers.
 	(insert-before-markers ?Z)
 	(backward-char 1)
 	;; Now reorder messages.
-	(while sort-lists
-	  (setq msginfo (car sort-lists))
+	(dolist (msginfo sort-lists)
 	  ;; Swap two messages.
 	  (insert-buffer-substring
 	   (current-buffer) (nth 2 msginfo) (nth 3 msginfo))
-	  (delete-region  (nth 2 msginfo) (nth 3 msginfo))
+	  ;; The last message may not have \n\n after it.
+	  (unless (eq (char-before) ?\n)
+	    (insert "\n\n"))
+	  (delete-region (nth 2 msginfo) (nth 3 msginfo))
 	  ;; Is current message?
 	  (if (nth 1 msginfo)
 	      (setq current-message msgnum))
-	  (setq sort-lists (cdr sort-lists))
 	  (if (zerop (% msgnum 10))
 	      (message "Reordering messages...%d" msgnum))
 	  (setq msgnum (1+ msgnum)))
@@ -221,22 +221,18 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	(delete-char 1)
 	(setq quit-flag nil)
 	(buffer-enable-undo)
-        (goto-char (point-min))
-	(pmail-initialize-messages)
+	(pmail-set-message-counters)
 	(pmail-show-message current-message)
+	(goto-char (+ point-offset (point-min)))
 	(if (pmail-summary-exists)
-	    (pmail-select-summary
-	     (pmail-update-summary)))))))
+	    (pmail-select-summary (pmail-update-summary)))))))
 
-;; mbox: ready
 (defun pmail-fetch-field (msg field)
   "Return the value of the header FIELD of MSG.
 Arguments are MSG and FIELD."
   (save-restriction
     (widen)
-    (narrow-to-region
-     (pmail-desc-get-start msg)
-     (pmail-desc-get-end msg))
+    (narrow-to-region (pmail-msgbeg msg) (pmail-msgend msg))
     (pmail-header-get-header field)))
 
 (defun pmail-make-date-sortable (date)

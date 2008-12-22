@@ -687,7 +687,7 @@ init file.)
    ;; @r{File name (within directory) starts with a dot.}
    '(("/\\.[^/]*\\'" . fundamental-mode)
      ;; @r{File name has no dot.}
-     ("[^\\./]*\\'" . fundamental-mode)
+     ("/[^\\./]*\\'" . fundamental-mode)
      ;; @r{File name ends in @samp{.C}.}
      ("\\.C\\'" . c++-mode))
    auto-mode-alist))
@@ -2429,8 +2429,11 @@ The first element, @var{keywords}, indirectly specifies the value of
 It can be a symbol, a variable or a function whose value is the list
 to use for @code{font-lock-keywords}.  It can also be a list of
 several such symbols, one for each possible level of fontification.
-The first symbol specifies how to do level 1 fontification, the second
-symbol how to do level 2, and so on.  @xref{Levels of Font Lock}.
+The first symbol specifies the @samp{mode default} level of
+fontification, the next symbol level 1 fontification, the next level 2,
+and so on.  The @samp{mode default} level is normally the same as level
+1.  It is used when @code{font-lock-maximum-decoration} has a @code{nil}
+value.  @xref{Levels of Font Lock}.
 
 The second element, @var{keywords-only}, specifies the value of the
 variable @code{font-lock-keywords-only}.  If this is omitted or
@@ -2830,13 +2833,23 @@ arguments, the beginning and end of the region.  The default value is
 @code{font-lock-default-unfontify-region}.
 @end defvar
 
-@ignore
-@defvar font-lock-inhibit-thing-lock
-List of Font Lock mode related modes that should not be turned on.
-Currently, valid mode names are @code{fast-lock-mode},
-@code{jit-lock-mode} and @code{lazy-lock-mode}.
-@end defvar
-@end ignore
+@defun jit-lock-register function &optional contextual
+This function tells Font Lock mode to run the Lisp function
+@var{function} any time it has to fontify or refontify part of the
+current buffer.  It calls @var{function} before calling the default
+fontification functions, and gives it two arguments, @var{start} and
+@var{end}, which specify the region to be fontified or refontified.
+
+The optional argument @var{contextual}, if non-@code{nil}, forces Font
+Lock mode to always refontify a syntactically relevant part of the
+buffer, and not just the modified lines.  This argument can usually be
+omitted.
+@end defun
+
+@defun jit-lock-unregister function
+If @var{function} was previously registered as a fontification
+function using @code{jit-lock-register}, this function unregisters it.
+@end defun
 
 @node Levels of Font Lock
 @subsection Levels of Font Lock
@@ -2844,9 +2857,10 @@ Currently, valid mode names are @code{fast-lock-mode},
   Many major modes offer three different levels of fontification.  You
 can define multiple levels by using a list of symbols for @var{keywords}
 in @code{font-lock-defaults}.  Each symbol specifies one level of
-fontification; it is up to the user to choose one of these levels.  The
-chosen level's symbol value is used to initialize
-@code{font-lock-keywords}.
+fontification; it is up to the user to choose one of these levels,
+normally by setting @code{font-lock-maximum-decoration} (@pxref{Font
+Lock,,, emacs, the GNU Emacs Manual}).  The chosen level's symbol
+value is used to initialize @code{font-lock-keywords}.
 
   Here are the conventions for how to define the levels of
 fontification:

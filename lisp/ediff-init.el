@@ -387,82 +387,82 @@ It needs to be killed when we quit the session.")
 ;; Hook variables
 
 (defcustom ediff-before-setup-hook nil
-  "*Hooks to run before Ediff begins to set up windows and buffers.
+  "Hooks to run before Ediff begins to set up windows and buffers.
 This hook can be used to save the previous window config, which can be restored
 on ediff-quit or ediff-suspend."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-before-setup-windows-hook nil
-  "*Hooks to run before Ediff sets its window configuration.
+  "Hooks to run before Ediff sets its window configuration.
 This hook is run every time when Ediff arranges its windows.
 This happens each time Ediff detects that the windows were messed up by the
 user."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-after-setup-windows-hook nil
-  "*Hooks to run after Ediff sets its window configuration.
+  "Hooks to run after Ediff sets its window configuration.
 This can be used to set up control window or icon in a desired place."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-before-setup-control-frame-hook nil
-  "*Hooks run before setting up the frame to display Ediff Control Panel.
+  "Hooks run before setting up the frame to display Ediff Control Panel.
 Can be used to change control frame parameters to position it where it
 is desirable."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-after-setup-control-frame-hook nil
-  "*Hooks run after setting up the frame to display Ediff Control Panel.
+  "Hooks run after setting up the frame to display Ediff Control Panel.
 Can be used to move the frame where it is desired."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-startup-hook nil
-  "*Hooks to run in the control buffer after Ediff has been set up and is ready for the job."
+  "Hooks to run in the control buffer after Ediff has been set up and is ready for the job."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-select-hook nil
-  "*Hooks to run after a difference has been selected."
+  "Hooks to run after a difference has been selected."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-unselect-hook nil
-  "*Hooks to run after a difference has been unselected."
+  "Hooks to run after a difference has been unselected."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-prepare-buffer-hook  nil
-  "*Hooks run after buffers A, B, and C are set up.
+  "Hooks run after buffers A, B, and C are set up.
 For each buffer, the hooks are run with that buffer made current."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-load-hook nil
-  "*Hook run after Ediff is loaded.  Can be used to change defaults."
+  "Hook run after Ediff is loaded.  Can be used to change defaults."
   :type 'hook
   :group 'ediff-hook)
 
 (defcustom ediff-mode-hook nil
-  "*Hook run just after ediff-mode is set up in the control buffer.
+  "Hook run just after ediff-mode is set up in the control buffer.
 This is done before any windows or frames are created.  One can use it to
 set local variables that determine how the display looks like."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-keymap-setup-hook nil
-  "*Hook run just after the default bindings in Ediff keymap are set up."
+  "Hook run just after the default bindings in Ediff keymap are set up."
   :type 'hook
   :group 'ediff-hook)
 
 (defcustom ediff-display-help-hook nil
-  "*Hooks run after preparing the help message."
+  "Hooks run after preparing the help message."
   :type 'hook
   :group 'ediff-hook)
 
 (defcustom ediff-suspend-hook nil
-  "*Hooks to run in the Ediff control buffer when Ediff is suspended."
+  "Hooks to run in the Ediff control buffer when Ediff is suspended."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-quit-hook nil
-  "*Hooks to run in the Ediff control buffer after finishing Ediff."
+  "Hooks to run in the Ediff control buffer after finishing Ediff."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-cleanup-hook nil
-  "*Hooks to run on exiting Ediff but before killing the control and variant buffers."
+  "Hooks to run on exiting Ediff but before killing the control and variant buffers."
   :type 'hook
   :group 'ediff-hook)
 
@@ -537,24 +537,24 @@ See the documentation string of `ediff-focus-on-regexp-matches' for details.")
 
 ;; Highlighting
 (defcustom ediff-before-flag-bol (if (featurep 'xemacs) (make-glyph "->>") "->>")
-  "*Flag placed before a highlighted block of differences, if block starts at beginning of a line."
+  "Flag placed before a highlighted block of differences, if block starts at beginning of a line."
   :type 'string
   :tag  "Region before-flag at beginning of line"
   :group 'ediff)
 
 (defcustom ediff-after-flag-eol  (if (featurep 'xemacs) (make-glyph "<<-") "<<-")
-  "*Flag placed after a highlighted block of differences, if block ends at end of a line."
+  "Flag placed after a highlighted block of differences, if block ends at end of a line."
   :type 'string
   :tag  "Region after-flag at end of line"
   :group 'ediff)
 
 (defcustom ediff-before-flag-mol (if (featurep 'xemacs) (make-glyph "->>") "->>")
-  "*Flag placed before a highlighted block of differences, if block starts in mid-line."
+  "Flag placed before a highlighted block of differences, if block starts in mid-line."
   :type 'string
   :tag  "Region before-flag in the middle of line"
   :group 'ediff)
 (defcustom ediff-after-flag-mol  (if (featurep 'xemacs) (make-glyph "<<-") "<<-")
-  "*Flag placed after a highlighted block of differences, if block ends in mid-line."
+  "Flag placed after a highlighted block of differences, if block ends in mid-line."
   :type 'string
   :tag  "Region after-flag in the middle of line"
   :group 'ediff)
@@ -598,7 +598,7 @@ highlighted using ASCII flags."
 Actually, Ediff restores the scope of visibility that existed at startup.")
 
 (defcustom ediff-keep-variants t
-  "*nil means prompt to remove unmodified buffers A/B/C at session end.
+  "nil means prompt to remove unmodified buffers A/B/C at session end.
 Supplying a prefix argument to the quit command `q' temporarily reverses the
 meaning of this variable."
   :type 'boolean
@@ -718,7 +718,7 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   :group 'ediff)
 
 (defcustom ediff-coding-system-for-read 'raw-text
-  "*The coding system for read to use when running the diff program as a subprocess.
+  "The coding system for read to use when running the diff program as a subprocess.
 In most cases, the default will do.  However, under certain circumstances in
 MS-Windows you might need to use something like 'raw-text-dos here.
 So, if the output that your diff program sends to Emacs contains extra ^M's,
@@ -728,7 +728,7 @@ work."
   :group 'ediff)
 
 (defcustom ediff-coding-system-for-write 'emacs-internal
-  "*The coding system for write to use when writing out difference regions
+  "The coding system for write to use when writing out difference regions
 to temp files in buffer jobs and when Ediff needs to find fine differences."
   :type 'symbol
   :group 'ediff)
@@ -1355,7 +1355,7 @@ Normally, this is the `toggle-read-only' function, but, if version
 control is used, it could be `vc-toggle-read-only' or `rcs-toggle-read-only'.")
 
 (defcustom ediff-make-buffers-readonly-at-startup nil
-  "*Make all variant buffers read-only when Ediff starts up.
+  "Make all variant buffers read-only when Ediff starts up.
 This property can be toggled interactively."
   :type 'boolean
   :group 'ediff)
@@ -1367,7 +1367,7 @@ This property can be toggled interactively."
 (defvar ediff-verbose-p t)
 
 (defcustom ediff-autostore-merges  'group-jobs-only
-  "*Save the results of merge jobs automatically.
+  "Save the results of merge jobs automatically.
 With value nil, don't save automatically.  With value t, always
 save.  Anything else means save automatically only if the merge
 job is part of a group of jobs, such as `ediff-merge-directory'
@@ -1380,12 +1380,12 @@ or `ediff-merge-directory-revisions'."
 (ediff-defvar-local ediff-merge-store-file nil "")
 
 (defcustom ediff-merge-filename-prefix "merge_"
-  "*Prefix to be attached to saved merge buffers."
+  "Prefix to be attached to saved merge buffers."
   :type 'string
   :group 'ediff-merge)
 
 (defcustom ediff-no-emacs-help-in-control-buffer nil
-  "*Non-nil means C-h should not invoke Emacs help in control buffer.
+  "Non-nil means C-h should not invoke Emacs help in control buffer.
 Instead, C-h would jump to previous difference."
   :type 'boolean
   :group 'ediff)
@@ -1402,13 +1402,13 @@ Instead, C-h would jump to previous difference."
 ;;;	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
 ;;;	 (t
 ;;;	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
-  "*Prefix to put on Ediff temporary file names.
+  "Prefix to put on Ediff temporary file names.
 Do not start with `~/' or `~USERNAME/'."
   :type 'string
   :group 'ediff)
 
 (defcustom ediff-temp-file-mode 384	; u=rw only
-  "*Mode for Ediff temporary files."
+  "Mode for Ediff temporary files."
   :type 'integer
   :group 'ediff)
 

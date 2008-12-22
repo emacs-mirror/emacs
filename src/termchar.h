@@ -98,6 +98,15 @@ struct tty_display_info
   int mouse_face_hidden;
 #endif	/* !MSDOS */
 
+  /* Buffer used internally by termcap (see tgetent in the Termcap
+     manual).  Only init_tty and delete_tty should change this.  */
+  char *termcap_term_buffer;
+
+  /* Buffer storing terminal description strings (see tgetstr in the
+     Termcap manual).  Only init_tty and delete_tty should change
+     this.  */
+  char *termcap_strings_buffer;
+
   /* Strings, numbers and flags taken from the termcap entry.  */
 
   char *TS_ins_line;		/* "al" */

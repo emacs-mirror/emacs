@@ -1542,7 +1542,7 @@
 
 	* dabbrev.el (dabbrev-filter-elements): Use the new backquote syntax.
 
-1999-02-22  Sam Steingold  <sds@goems.com>
+1999-11-15  Sam Steingold  <sds@goems.com>
 
 	* goto-addr.el (goto-address-at-mouse,
 	goto-address-find-address-at-point): Use compose-mail.
@@ -1550,7 +1550,7 @@
 	(goto-address-send-using-mh-e, goto-address-send-using-mhe,
 	goto-address-send-using-mail): Removed functions.
 
-1998-11-03  Sam Steingold  <sds@goems.com>
+1998-11-15  Sam Steingold  <sds@goems.com>
 
 	* simple.el (backward-delete-char-untabify):
 	backward-delete-char-untabify-method can be `all' now - to delete
@@ -1572,7 +1572,7 @@
 	* mail/rmail.el, iswitchb.el, hippie-exp.el,
 	progmodes/cperl-mode.el: Use new backquote syntax.
 
-1998-09-14  Michael Ernst  <mernst@alum.mit.edu>
+1998-11-14  Michael Ernst  <mernst@alum.mit.edu>
 
 	* uniquify.el: Use new backquote syntax.
 
@@ -8004,7 +8004,7 @@
 	(ispell-kill-ispell): Ensures ispell process has terminated before
 	starting new process.  This can otherwise confuse process filters
 	and hang the ispell process.
-	(ispell-begin-skip-region-regexp): (ispell-skip-region): Improved
+	(ispell-begin-skip-region-regexp, ispell-skip-region): Improved
 	skipping support for sgml.
 	(ispell-minor-check): Support sgml labels.  Fix mapping ^M to \r
 	which could cause `ispell-complete-word' to hang.
@@ -9715,7 +9715,7 @@
 	(ps-mule-generate-font): Give CHARSET arg to FONT-FUNC function
 	registerd in FONT-SPEC.
 	(ps-mule-bitmap-prologue): Fix PostScript code to realize correct
-	charcter width of bitmap fonts.
+	character width of bitmap fonts.
 	(ps-mule-generate-bitmap-font): Give COLUMNS arg to PostScript
 	procedure NF.
 	(ps-begin-file): Output PostScript code for setting

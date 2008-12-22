@@ -1,3 +1,832 @@
+2008-12-21  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-export-latex.el (org-export-latex-make-header): Double the
+	commenting % in the time stamp format.
+	(org-export-latex-special-chars): Handle case where there is no
+	match group 3.
+
+2008-12-20  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-get-refile-targets, org-refile-get-location): Use
+	expanded file name to improve comparison.
+
+2008-12-20  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-scan-tags): Rescan for tags, to get the correct
+	upcase/downcase stuff.  This slows things down for now, but it
+	works.
+	(org-mode): Make sure the tag-faces regexp is initialized.
+
+	* org-export-latex.el (org-export-latex-links): Fix bug with
+	undefined label.
+
+	* org-table.el (org-table-get-specials): Set
+	`org-table-current-last-data-line'.
+	(org-table-current-last-data-line): New variable.
+	(org-table-insert-column, org-table-delete-column)
+	(org-table-move-column, org-table-fix-formulas): Call
+	`org-table-fix-formulas' a second time to fix the $LR references.
+	(org-table-get-specials): Add the $LR references to the tables.
+	(org-table-get-formula): Do not offer last-row names as LHS of
+	formulas.
+
+	* org.el (org-store-link): Capture link description from
+	`org-id-store-link'.
+
+	* org-exp.el (org-export-html-format-image): Add the / to the end
+	of the <img> tag.
+	(org-export-format-source-code): Surround example by empty lines,
+	to make sure it will not be inside a paragraph.
+
+	* org.el (org-ido-switchb): New function.
+
+2008-12-20  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-show): New prefix argument
+	FULL-ENTRY.
+
+	* org.el (org-sort-entries-or-items): Add a COMPARE-FUNC
+	argument.
+
+
+2008-12-20  Glenn Morris  <rgm@gnu.org>
+
+	* org.el (org-org-menu): Fix some more menu entries.
+
+2008-12-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-table.el (org-table-get-specials): Revert introduction of @0
+	as reference of the last table row, because of conflicts.
+
+	* org-agenda.el (org-agenda-change-all-lines): Remove FORCE-TAGS
+	argument, get the current tags directly.
+	(org-agenda-set-tags): Leave getting current tags to
+	`org-agenda-change-all-lines'.
+
+2008-12-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-org-menu): Do not quote the set-tags command.
+
+2008-12-17  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* Fix typos in comments and docstrings throughout Org-mode.
+
+	* org.el (org-get-outline-path): Fix bug if level is not given.
+
+	* org-agenda.el (org-finalize-agenda): Fix typo with variable name.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-refile): Avoid refiling to within the region to be
+	refiled.
+
+	* org-export-latex.el (org-export-latex-special-chars): Replace
+	special characters also in tables.
+
+	* org-agenda.el (org-agenda-change-all-lines): New argument
+	FORCE-TAGS.
+	(org-agenda-set-tags): Get the new tags and pass them to
+	`org-format-agenda-item'.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-export-latex.el (org-export-latex-classes): Add longable as
+	a default package to all classes.
+	(org-export-latex-tables): Handle the longtable attribute and the
+	align attribute.
+
+	* org-table.el (orgtbl-to-generic): Handle tables that start with
+	a hline.
+
+	* org-export-latex.el (org-export-latex-emphasis-alist): Switch to
+	\verb for colde-like snippets.
+	(org-export-as-latex): Fix issues with region export.
+
+	* org.el (org-up-heading-safe): Speed up function by using a
+	direct regexp search.
+	(org-olpa): New variable.
+	(org-get-outline-path): Speed-up path constructions in cases where
+	this is possible because the entire hierarchy is scanned anyway.
+	(org-refile-get-location): Don't compare the truenames of files,
+	this is too slow.
+	(org-goto-max-level): New option.
+	(org-goto): Use `org-goto-max-level'.
+
+2008-12-16  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* org-gnus.el (org-gnus-article-link, org-gnus-article-link):
+	Strip angle brackets from message-ids in the former and don't do
+	it in the latter.
+	(org-gnus-follow-link): Open summary reliable, even if the last
+	messages were deleted, and handle empty groups, too.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-export-latex.el (org-export-latex-emphasis-alist): Use \verb
+	instead of \texttt for the =...= and ~===~ emphasis environments.
+	(org-export-as-latex): Remove any old :org-license-to-kill text
+	properties.
+	(org-export-as-latex): Pass RBEG to `org-export-latex-first-lines'.
+	(org-export-latex-make-header): Add some hard space after the
+	table of contents.
+	(org-export-latex-first-lines): Accept RBEG argument.  Mark
+	exported text so that it will be excuded in further steps.
+
+	* org-table.el (org-table-get-specials): Make @0 reference the
+	last line in a table.
+	(org-table-recalculate): Improve docstring.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-log-done): Fix docstring.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-html-format-image): Fix bugs.
+
+	* org-export-latex.el (org-export-latex-tables)
+	(org-export-latex-links): Implement attribute, label, and caption
+	handling.
+
+	* org-exp.el (org-export-html-style-default): Add style
+	definitions for the figure div.
+	(org-export-preprocess-string, org-export-as-html): Implement
+	attribute, label, and caption handling.
+	(org-export-attach-captions-and-attributes): New function.
+	(org-export-html-format-image): New function.
+	(org-format-org-table-html): Implement attribute, label, and
+	caption handling.
+
+	* org.el (org-find-text-property-in-string): New function.
+	(org-extract-attributes): Use the property org-attr instead of
+	org-attrobutes, because this property is now set with the #+ATTR
+	lines.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-compat.el (org-substring-no-properties): Fix for XEmacs, for
+	the case that FROM is nil.
+
+	* org.el (org-before-first-heading-p): New function.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-as-html): Do not add a space before
+	enforces line breaks.
+	(org-export-as-html): Close paragraph before blockquote and verse
+	tags.
+
+2008-12-16  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-id.el (org-id-locations-file): Wrap file name with
+	`convert-standard-filename'.
+	(org-id-files): New variable.
+	(org-id-use-hash): New option.
+	(org-id-update-id-locations): Also search in all files current
+	listed in `org-id-files'.  Convert the resulting alist to a hash
+	if the user customation says so.
+	(org-id-locations-save): Handle he case if `org-id-locations' is a
+	hash.
+	(org-id-locations-load): Convert the alist to a hash.
+	(org-id-add-location): Handle the hast case.
+	(kill-emacs-hook): Make sure id locations are saved when Emacs is
+	exited.
+	(org-id-hash-to-alist, org-id-alist-to-hash)
+	(org-id-paste-tracker): New functions.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-goto-calendar): Remove duplicate let
+	bindings of calendar variables.
+
+	* org-table.el (org-table-find-row-type): Renamed from
+	`org-find-row-type'.
+	(org-table-rewrite-old-row-references): Renamed from
+	`org-rewrite-old-row-references'.
+	(org-table-shift-refpart): Renamed from `org-shift-refpart'.
+	(org-table-cleanup-narrow-column-properties): Renamed from
+	`org-cleanup-narrow-column-properties'.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el (org-find-row-type): New arguments DESC and CLINE,
+	for better error messages.
+	(org-table-get-descriptor-line): Supply the new arguments to
+	`org-find-row-type'.
+	(org-table-error-on-row-ref-crossing-hline): New option.
+
+	* org.el (org-target-link-regexp): Make buffer-local.
+	(org-move-subtree-down): Fix bug with trees at beginning of
+	buffer.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-faces.el (org-set-tag-faces): New function.
+	(org-tags-special-faces-re): New variable.
+
+	* org.el (org-font-lock-add-tag-faces, org-get-tag-face): New functions.
+
+	* org-faces.el (org-tag-faces): New option.
+	(org-tag): Mention `org-tag-faces' in the docstring.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-html-style-default): Implement new
+	quoting.
+
+	* org-jsinfo.el (org-infojs-template): Implement new quoting.
+
+	* org-w3m.el (w3m-minor-mode-hook): Also add the special copy
+	command to the `w3m-minor-mode-map'.
+
+	* org-archive.el (org-archive-to-archive-sibling): Protect
+	`this-command' to avoid appending kills during archiving.
+
+	* org-exp.el (org-export-with-priority): New variable.
+	(org-export-add-options-to-plist): Use `org-export-plist-vars'
+	instead of internal list of strings and properties.
+	(org-print-icalendar-entries): Retrieve the location property with
+	inheritance.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-with-todo-keywords): New option.
+	(org-export-plist-vars): Include also the keys for the #+OPTIONS
+	line.
+	(org-default-export-plist, org-export-add-options-to-plist)
+	(org-export-as-ascii, org-export-as-html): Use the new structure
+	of `org-export-plist-vars'.
+
+	* org.el (org-map-entries): Return all values.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-matcher-time): Recognize more special values.
+
+	* org-gnus.el (fboundp): Fix defvaralias for XEmacs.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-tags-exclude-from-inheritance): New option.
+	(org-tag-inherit-p, org-remove-uniherited-tags): Respect
+	`org-tags-exclude-from-inheritance'.
+
+	* org-agenda.el (org-agenda-show-inherited-tags): New option.
+	(org-format-agenda-item): Add inherited tags to the agenda line
+	string, and make sure that properties are kept when downcasing the
+	tags list.
+	(org-agenda-add-inherited-tags): New function.
+	(org-downcase-keep-props): New function.
+
+	* org.el (org-scan-tags): Mark inherited tags with a text
+	property.
+	(org-get-tags-at): Mark inherited tags with a text property.
+	(org-add-prop-inherited): New function.
+
+	* org-agenda.el (org-agenda-add-inherited-tags): New function.
+	(org-agenda-show-inherited-tags): New option.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-modules): Add org-w3m to the default modules.
+
+	* org-table.el (orgtbl-self-insert-command): Make S-SPC work in
+	orgtbl-mode.
+	(orgtabl-create-or-convert-from-region): New command.
+
+	* org-exp.el (org-export-as-ascii): Remove the handling of
+	targets.
+	(org-export-ascii-preprocess): Handle targets already in this
+	function.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-timer.el (org-timer-start-time): Define this variable.
+	(org-timer-item): Make argument optional.
+
+	* org-list.el (org-insert-item): Automatically insert a timer item
+	if the current list is a timer list.
+
+	* org-timer.el: New file.
+
+	* org-publish.el (org-publish-org-index): Only exclude the index
+	file in the main directory from being added to the site-map.
+	(org-publish-get-project-from-filename): If the current project is
+	a component, start publishing from the parent project.
+
+2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el (orgtbl-ret): Fix RET at beginning-of-buffer.
+
+	* org-publish.el (org-publish-org-index): Improve removal of
+	temporary buffers.
+
+2008-11-24  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-get-closed): Re-apply changes
+	accidentially overwritten by last commit to Emacs.
+
+	* org.el (org-outline-path-complete-in-steps): New option.
+	(org-refile-get-location): Honor
+	`org-outline-path-complete-in-steps'.
+	(org-agenda-change-all-lines, org-tags-sparse-tree)
+	(org-time-string-to-absolute, org-small-year-to-year)
+	(org-link-escape): Re-apply changes accidentially overwritten
+	by last commit to Emacs.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-clock.el (org-dblock-write:clocktable): Make sure the
+	clocktable sees the first line.
+	(org-clock-in): Warn if the clock cannot be resumed.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-open-at-point): Fix mixup about interactive and
+	non-interactive elisp links.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-preprocess-string): Allow one comment
+	line before the first headline to always be included.  This is
+	to not miss a commented target.
+
+	* org-mouse.el (org-mouse-insert-item): Call
+	`org-indent-to-column' instead of `indent-to', for XEmacs
+	compatibility.
+
+	* org.el (org-refile-targets): Fix customize definition so
+	that it works also in XEmacs.
+	(org-fixup-indentation): Call `org-indent-to-column' instead
+	of `indent-to', for XEmacs compatibility.
+
+2008-11-23  Tokuya Kameshima  <kames@fa2.so-net.ne.jp>
+
+	* org-mew.el (org-mew-store-link): Get the correct case folder
+	for refiled messages.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-as-ascii): Remove the "\\" forced
+	line break indicators.
+
+	* org.el (org-ido-completing-read): Remove the "i:" prefix for
+	ido-completion propts.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-remember.el (org-remember-apply-template): Use
+	`org-substring-no-properties'.
+
+	* org-compat.el (org-substring-no-properties): New function.
+
+	* org-remember.el (org-remember-apply-template): Use
+	`org-substring-no-properties' for compatibility.
+
+	* org-list.el (org-list-two-spaces-after-bullet-regexp): New
+	option.
+	(org-fix-bullet-type): respect
+	`org-list-two-spaces-after-bullet-regexp'.
+
+	* org-clock.el (org-clock-load): Clean up the code.
+
+	* org.el (org-adaptive-fill-function): Allow two spaces after
+	"1." as a list bullet.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-clock.el (org-clock-save, org-clock-load): Check for
+	live buffers, existing files, and buffer file names to ensure
+	consistent information.
+	(org-clock-persist): Make `clock' a special value of this
+	variable, and improve docstring.
+
+	* org-list.el (org-cycle-list-bullet, org-fix-bullet-type)
+	(org-get-string-indentation): Adapt indentation when the bullet
+	width changes.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-remember.el (org-remember-finalize): Make interactive.
+	(org-remember-kill): New command.
+	(org-remember-finish-immediately): Call `org-remember-finalize'
+	directly.
+	(org-remember-finalize): Make `org-remember-finalize' an interactive
+	function.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-remember.el (org-remember-apply-template): No ido completion
+	for free prompts in remember templates.
+	(org-remember-before-finalize-hook): New hook.
+	(org-remember-mode): New minor mode.
+	(org-remember-apply-template): Turn on `org-remember-mode'.
+
+	* org-remember.el (org-remember-apply-template): Fix the way how
+	the list of allowed properties is retrieved from the target file.
+
+	* org.el (org-insert-link): Improve file link matching.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-colview.el (org-columns-display-here): New argument
+	DATELINE, to trigger using the new face.
+	(org-agenda-colview-summarize): Call `org-columns-display-here'
+	with the new argument.
+
+	* org-faces.el (org-agenda-column-dateline): New face.
+
+	* org-publish.el (org-publish-org-index): Use index-title at page
+	title, not as section.
+
+	* org-exp.el (org-export-html-format-desc): Respect the
+	org-protect property.
+	(org-export-as-html): Protect image specifiers that are in the
+	description part of a link.
+
+	* org.el (org-sort-entries-or-items, org-completing-read)
+	(org-refile-get-location, org-olpath-completing-read, org-todo)
+	(org-show-todo-tree, org-sparse-tree, org-make-tags-matcher)
+	(org-set-tags, org-change-tag-in-region, org-fast-tag-selection)
+	(org-set-property, org-delete-property)
+	(org-delete-property-globally): Use `org-ido-completing-read'.
+
+	* org-remember.el (org-remember-apply-template): Use
+	`org-ido-completing-read'.
+
+	* org-publish.el (org-publish): Use `org-ido-completing-read'.
+
+	* org-colview.el (org-columns-edit-value, org-columns-new)
+	(org-insert-columns-dblock): Use `org-ido-completing-read'.
+
+	* org-colview-xemacs.el (org-columns-edit-value)
+	(org-columns-new, org-insert-columns-dblock): Use
+	`org-ido-completing-read'.
+
+	* org-attach.el (org-attach-delete-one, org-attach-open): Use
+	`org-ido-completing-read'.
+
+	* org-agenda.el (org-todo-list, org-agenda-filter-by-tag): Use
+	`org-ido-completing-read'.
+
+	* org.el (org-time-today): New function.
+	(org-matcher-time): Use `org-time-today'.  Add special treatment
+	for "<tomorrow>" and "<yesterday>".
+	(org-ido-completing-read): New function.
+	(org-completion-use-ido): New option.
+
+	* org-exp.el (org-export-format-source-code): Fix bug in require
+	htmlize code.
+	(org-export-target-internal-links): Fix bug in search for text
+	property.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-export-latex.el (org-export-latex-subcontent): Interprete
+	target aliases as additonal labels.
+
+	* org-exp.el (org-export-target-aliases): New variable.
+	(org-export-preprocess-string)
+	(org-export-handle-invisible-targets): Fill the alias alist.
+	(org-export-as-html): Remove the &nbsp; from the anchor, and also
+	assign an id.
+	(org-html-level-start): Insert the target aliases as additonal
+	anchors.
+
+	* org.el (org-edit-fixed-width-region): Fix bug when starting a new
+	picture area.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-open-at-mouse): Ensure correct link abbreviations
+	when following a link with the mouse from the agenda.
+
+	* org-exp.el (org-export-as-html): Avoid lone </div> when no
+	headlines are created.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-link-translation-function): New option.
+	(org-open-at-point): Call `org-link-translation-function' if
+	non-nil.
+	(org-translate-link): New function.
+	(org-translate-link-from-planner): New function.
+	(org-open-at-point): Allow interactive commands in elisp links.
+
+	* org-exp.el (org-icalendar-cleanup-string): Restore the old
+	iCalendar quoting.  The new one seems to caus problems with
+	applications.
+
+	* org.el (org-yank): Set `this-command' to `yank', so that
+	`yank-pop' will work.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-icalendar-cleanup-string): Improve RFC2455
+	compliance as far as quoting is concerned.
+
+	* org.el (org-link-expand-abbrev): Implement %h as an escape for a
+	hexified version of the tag.
+
+	* org-vm.el (org-vm-follow-link): Require `vm-search'.
+
+	* org.el (org-up-heading-safe, org-forward-same-level): Always
+	call `org-back-to-heading' instead of `outline-back-to-heading'.
+	(org-back-to-heading): New wrapper around outline-back-to-heading,
+	with a useful error message telling where the error happened.
+
+	* org-list.el (org-update-checkbox-count): Always call
+	`org-back-to-heading' instead of `outline-back-to-heading'.
+
+	* org-exp.el (org-export-as-html): Make sure that each <img> tag
+	has an `alt' attribute, to ensure XHTML validation.
+
+2008-11-23  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-publish.el (org-publish-attachment): Allow publishing to
+	overwrite attachment files.
+
+	* org-agenda.el (org-agenda-timerange-leaders): New option.
+	(org-agenda-get-blocks): Use `org-agenda-timerange-leaders'.
+
+	* org.el (org-edit-src-exit): Untabify ASCII image before
+	returning.
+
+2008-11-19  Glenn Morris  <rgm@gnu.org>
+
+	* org.el, org-mouse.el (org-agenda-change-all-lines):
+	Fix declaration.
+
+2008-11-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el ("speedbar"): Only show context if the file really is an
+	org-mode buffer.
+
+2008-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.el (org-time-string-to-absolute, org-small-year-to-year)
+	(org-tags-sparse-tree): Fix typos in docstrings.
+
+2008-11-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-publish.el (org-publish-attachment): Allow copy-file to
+	overwrite files.
+
+2008-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* org-agenda.el (org-get-closed): Fix alias.
+
+2008-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.el (org-link-escape): Fix typo in docstring.
+
+2008-11-12  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-yank): Make any prefix force normal yanking.
+	Suppress folding if text would be swallowed into a folded
+	subtree.
+	(org-yank-folded-subtrees, org-yank): Docstring updates.
+
+	* org-agenda.el (org-agenda-compare-effort): Treat no effort
+	defined as 0.
+
+	* org-exp.el (org-export-language-setup): Add Catalan and
+	Esperanto language entries.
+
+2008-11-12  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-refile): Allow refiling of entire regions.
+
+	* org-clock.el (org-clock-time%): New function.
+
+	* org.el (org-entry-get, org-entry-delete): Use safer regexps to
+	retrieve property values.
+
+2008-11-12  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-list): Handle the value `only' of
+	org-agenda-show-log'.
+	(org-agenda-log-mode): Interpret a double prefix arg.
+
+2008-11-12  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-html-footnotes-section): New variable.
+	(org-export-as-html): Use `org-export-html-footnotes-section' to
+	insert the footnotes.
+	(org-export-language-setup): Add "Footnotes" to language words.
+
+2008-11-12  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-yank): Fix bug when not inserting a subtree.
+
+2008-11-12  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-vm.el (org-vm-follow-link): Call `vm-preview-current-message'
+	instead of `vm-beginning-of-message'.
+
+	* org.el (org-make-link-regexps): Make sure that links to gnus can
+	contain brackets.
+
+2008-11-12  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-attach.el (org-attach-dir): Remove duplicate ID creation
+	code.
+
+	* org-id.el (org-id-new): Use `org-trim' to extract the uuid from
+	shell output.
+
+	* org.el (org-link-abbrev-alist): Improve customization type.
+
+	* org-attach.el (org-attach-expand-link, org-attach-expand): New
+	functions.
+
+	* org-agenda.el (org-agenda-get-progress): Renamed from
+	`org-get-closed'.  Implement searching for state changes as well.
+	(org-agenda-log-mode-items): New option.
+	(org-agenda-log-mode): New option prefix argument, interpreted as
+	request to show all possible progress info.
+	(org-agenda-get-day-entries): Call `org-get-progress' instead of
+	`org-get-closed'.
+	(org-agenda-set-mode-name): Handle the more complex log mode
+	settings.
+	(org-get-closed): New alias, pointing to `org-get-progress'.
+
+2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-file-apps-defaults-gnu)
+	(org-file-apps-defaults-macosx)
+	(org-file-apps-defaults-windowsnt): Add an entry defining the
+	system command.
+	(org-file-apps): Allow `system' as key and value.
+	(org-open-at-point): Explain the effect of a double prefix arg.
+	(org-open-file): If the argument `in-emacs' is (16),
+	i.e. corresponding to a double prefix argument, try to open the
+	file externally.
+
+2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-insert-link): Abbreviate absolute files names in
+	links.  Also, fix a bug in which the double C-u prefix would not
+	be honored.
+
+2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-insert-heading): If buffer does not end with a
+	newline, add one if necessary to insert headline correctly.
+
+	* org-exp.el (org-export-as-html): Make sure that <hr/> is between
+	paragraphs, not inside.
+
+	* org.el (org-todo): Quote
+	`org-agenda-headline-snapshot-before-repeat'.
+
+	* org-exp.el (org-export-as-html): Fully process link descriptions.
+	(org-export-html-format-desc): New function.
+	(org-export-as-html): Collect footnotes into the correct basket.
+	(org-html-protect): No longer protect quotations marks here, this
+	goes wrong.
+
+	* org-agenda.el (org-agenda-remove-marked-text): Bind variable
+	BEG.
+
+	* org-compat.el (org-fit-window-to-buffer): New function (not
+	really, a preliminary and incomplete version was present earlier,
+	but not used).
+
+	* org.el (org-fast-todo-selection, org-fast-tag-selection): Use
+	`org-fit-window-to-buffer'.
+
+	* org-exp.el (org-export): Use `org-fit-window-to-buffer'.
+
+	* org-agenda.el (org-agenda-get-restriction-and-command)
+	(org-fit-agenda-window, org-agenda-convert-date): Use
+	`org-fit-window-to-buffer'.
+
+	* org-exp.el (org-export-as-html): Process href links through
+	`org-export-html-format-href'.
+	(org-export-html-format-href): New function.
+
+	* org-agenda.el (org-agenda-todo): Update only the current
+	headline if this is a repeated TODO, marked done for today.
+	(org-agenda-change-all-lines): New argument JUST-THIS, to change
+	only the current line.
+
+	* org.el (org-todo): Take a snapshot of the headline if the
+	repeater might change it.
+
+2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-publish.el (org-publish-find-title): Remove buffers visited
+	only for extracting the title.
+
+	* org-exp.el (org-export-html-style)
+	(org-export-html-style-default): Mark style definitions as
+	unparsed CDATA.
+
+	* org-publish.el (org-publish-validate-link): Function
+	re-introduced.
+
+2008-11-12  Charles Sebold  <csebold@gmail.com>
+
+	* org-plot.el (org-plot/add-options-to-plist): Supports timefmt
+	property.
+	(org-plot-quote-timestamp-field): New function.
+	(org-plot-quote-tsv-field): Call timestamp field function when
+	necessary rather than just quoting as a string.
+	(org-plot/gnuplot-to-data): Pass in timefmt property.
+	(org-plot/gnuplot-script): Supports timefmt property.
+	(org-plot/gnuplot): Checks for timestamp column before checking
+	for text index column.
+
+2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-insert-heading): Improve behavior with hidden subtrees.
+
+	* org-publish.el (org-publish-org-index): Create a section in the
+	index file.
+	(org-publish-org-index): Stop linking to directories.
+
+	* org.el (org-emphasis-alist): Use span instead of <u> to
+	underline text.
+
+	* org-exp.el (org-export-as-html): Make sure <p> is closed before
+	<pre> sections.
+
+2008-11-12  Sebastian Rose  <sebastian_rose@gmx.de>
+
+	* org-jsinfo.el (org-infojs-template): Remove language attribute
+	from script tag.
+
+2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-agenda.el (org-agenda-remove-marked-text): New function.
+	(org-agenda-mark-filtered-text)
+	(org-agenda-unmark-filtered-text): New functions.
+	(org-write-agenda): Remove fltered text.
+
+	* org.el (org-make-tags-matcher): Give access to TODO "property"
+	without speed penalty.
+
+2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-link-frame-setup): Add `org-gnus-no-new-news' as an
+	option.
+	(org-store-link-props): Make sure adding to the plist works
+	correctly.
+
+	* org-gnus.el (org-gnus-no-new-news): New function.
+	(org-gnus-follow-link): Allow the article ID to be a message-id,
+	in addition to allowing article numbers.  Message IDs make much
+	more roubust links.
+	(org-gnus-store-link): Use message-id to create link.
+
+2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-emphasize): Reverse the selection array.
+	(org-emphasis-alist): Set <code> tags for the verbatim
+	environment.
+
+	* org-remember.el (org-remember-handler): Fix bug with
+	prefix-related changing of the note storage target.
+
+	* org-exp.el (org-print-icalendar-entries): Make the exported
+	priorities compatible with RFC 2445.
+
+	* org-clock.el (org-clock-save): Insert time stamp without
+	dependence on time-stamp.el.
+
+2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el ("saveplace"): If saveplace puts point into an invisible
+	location, make it visible.
+	(org-make-tags-matcher): Allow inactive time stamps in time
+	comparisons.
+	(org-yank-adjusted-subtrees): New option.
+	(org-yank): Incorporate adjusting trees.
+	(org-paste-subtree): New argument FOR-YANK which will cause
+	insertion at point without backing up over white lines, and leave
+	point at the end of the inserted text.  Also if the cursor is
+	at the beginning of a headline, use the same level or the inserted
+	tree.
+
+	* org-publish.el (org-publish-get-base-files-1): Deal correctly
+	with broken symlinks
+
+2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-exp.el (org-export-select-tags, org-get-current-options):
+	Fix typo.
+
+2008-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* org-publish.el (org-publish-attachment): Use copy-file rather than
+	eshell/cp.
+
+2008-11-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.el (org-columns-modify-value-for-display-function):
+	* org-table.el (org-table-convert-region): Fix typos in docstrings.
+
 2008-10-28  Glenn Morris  <rgm@gnu.org>
 
 	* org-agenda.el (org-agenda-align-tags): Replace use of cl `adjoin'.
@@ -192,7 +1021,7 @@
 	* org-clock.el (org-clock-heading-for-remember): New variable.
 	(org-clock-in): Set `org-clock-heading-for-remember'.
 
-2008-10-12 James TD Smith  <ahktenzero@mohorovi.cc>
+2008-10-12  James TD Smith  <ahktenzero@mohorovi.cc>
 
 	* org-remember.el (org-remember-apply-template): Add new
 	expansions: %k, %K for currently clocked task and a link to the
@@ -291,7 +1120,7 @@
 
 	* org-export-latex.el (org-export-latex-keywords-maybe): Bug fix.
 
-2008-10-12  James TA Smith  <ahktenzero@mohorovi.cc>
+2008-10-12  James TD Smith  <ahktenzero@mohorovi.cc>
 
 	* org-plot.el (org-plot/gnuplot): Make tables starting with a
 	hline work correctly.
@@ -1094,7 +1923,7 @@
 	(org-structure-template-alist): New, experimental option.
 	(org-complete): Call `org-complete-expand-structure-template'.
 
-2008-06-17 Bastien Guerry  <bzg@altern.org>
+2008-06-17  Bastien Guerry  <bzg@altern.org>
 
 	* org-export-latex.el (org-export-latex-preprocess): Added
 	support for blockquotes.
@@ -1112,7 +1941,7 @@
 	* org-exp.el (org-export-as-html, org-close-li): Implement
 	description lists.
 
-2008-06-17 Jason Riedy  <jason@acm.org>
+2008-06-17  Jason Riedy  <jason@acm.org>
 
 	* org-table.el (*orgtbl-default-fmt*): New variable.
 	(orgtbl-format-line): Use the value of *orgtbl-default-fmt*

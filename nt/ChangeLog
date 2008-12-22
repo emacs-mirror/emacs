@@ -1,3 +1,7 @@
+2008-12-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (LISTPROC, PROCATTR): Remove.
+
 2008-08-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (LISTPROC, PROCATTR): New macros.
@@ -72,7 +76,7 @@
 2008-04-21  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat (success): Print "make" rather than "gmake", as that
-	is what MingW uses.
+	is what MinGW uses.
 
 2008-04-11  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1418,7 +1422,7 @@
 
 1997-06-19  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* makefil.def, emacs.bat: Use windows95 and windowsnt instead
+	* makefile.def, emacs.bat: Use windows95 and windowsnt instead
 	of win95 and winnt, respectively.
 
 1997-01-04  Geoff Voelker  <voelker@cs.washington.edu>

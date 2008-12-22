@@ -1,17 +1,15 @@
 /* XPM */
 static char * down_pushed_xpm[] = {
-"10 10 4 1",
+"8 8 4 1",
 " 	c none",
 ".	c gray45",
 "X	c gray90",
-"O	c gray75",
-"..........",
-"........XX",
-" ..OOOOXX ",
-" ..OOOOXX ",
-"  ..OOXX  ",
-"  ..OOXX  ",
-"   ..XX   ",
-"   ..XX   ",
-"    .X    ",
-"    .X    "};
+"O	c gray60",
+"........",
+".OOOOOOX",
+" .OOOOX ",
+" .OOOOX ",
+"  .OOX  ",
+"  .OOX  ",
+"   OX   ",
+"   OX   "};

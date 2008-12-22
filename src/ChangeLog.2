@@ -360,7 +360,7 @@
 
 1988-05-28  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* s-iris3-{5,6}.h: Undo Jan 11 change.
+	* s-iris3-5.h, s-iris3-6.h: Undo Jan 11 change.
 
 1988-05-23  Richard Stallman  (rms@frosted-flakes.ai.mit.edu)
 
@@ -920,7 +920,7 @@
 	* alloca.s: Change some as-style comments to C-style comments
 	so cccp won't be confused by stray singlequotes.
 
-	* s-iris3-{5,6}.h: Move the #defines of long-named functions
+	* s-iris3-5.h, s-iris3-6.h: Move the #defines of long-named functions
 	into m-irist.h.
 
 	* lread.c (init_read): Warn if dirs in PATH_LOADSEARCH don't exist.
@@ -961,7 +961,7 @@
 
 1988-01-11  Richard Stallman  (rms@frosted-flakes)
 
-	* s-iris3-{5,6}.h: Don't #undef SIGIO.  BROKEN_FIONREAD makes it unnec.
+	* s-iris3-5.h, s-iris3-6.h: Don't #undef SIGIO.  BROKEN_FIONREAD makes it unnec.
 	* process.c [IRIS]: Find sysmacros.h in sys/.
 
 1988-01-09  Richard Stallman  (rms@frosted-flakes)
@@ -2107,8 +2107,8 @@
 	* dispnew.c (Fsit_for): 2nd arg non-nil means don't redisplay.
 
 	* s-vms.h: Don't define VMS4_0, VMS4_2 or VMS4_4.
-	* s-vms4-[024].h: New files that include s-vms.h and also
-	define VMS4_0 or VMS4_2 or VMS4_4.
+	* s-vms4-0.h, s-vms4-2.h, s-vms4-4.h: New files that include s-vms.h
+	and also define VMS4_0 or VMS4_2 or VMS4_4.
 
 	* vmspaths.h: Remove `/emacs' from all paths, to go with a change
 	in emacs.com that includes that path segment in emacs_library.

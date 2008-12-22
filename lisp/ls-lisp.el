@@ -76,7 +76,7 @@
 	       '(hpux usg-unix-v unisoft-unix irix berkeley-unix))
 	 'UNIX))			; very similar to GNU
   ;; Anything else defaults to nil, meaning GNU.
-  "*Platform to emulate: GNU (default), MacOS, MS-Windows, UNIX.
+  "Platform to emulate: GNU (default), MacOS, MS-Windows, UNIX.
 Corresponding value is one of the atoms: nil, MacOS, MS-Windows, UNIX.
 Sets default values for: `ls-lisp-ignore-case', `ls-lisp-dirs-first',
 `ls-lisp-verbosity'.  Need not match actual platform.  Changing this
@@ -91,12 +91,12 @@ option will have no effect until you restart Emacs."
   ;; Name change for consistency with other option names.
   (or (memq ls-lisp-emulation '(MS-Windows MacOS))
       (and (boundp 'ls-lisp-dired-ignore-case) ls-lisp-dired-ignore-case))
-  "*Non-nil causes ls-lisp alphabetic sorting to ignore case."
+  "Non-nil causes ls-lisp alphabetic sorting to ignore case."
   :type 'boolean
   :group 'ls-lisp)
 
 (defcustom ls-lisp-dirs-first (eq ls-lisp-emulation 'MS-Windows)
-  "*Non-nil causes ls-lisp to sort directories first in any ordering.
+  "Non-nil causes ls-lisp to sort directories first in any ordering.
 \(Or last if it is reversed.)  Follows Microsoft Windows Explorer."
   ;; Functionality suggested by Chris McMahan <cmcmahan@one.net>
   :type 'boolean
@@ -109,7 +109,7 @@ option will have no effect until you restart Emacs."
 	     '(links)))			; distinguish NT/2K from 9x
 	((eq ls-lisp-emulation 'UNIX) '(links uid)) ; UNIX ls
 	(t '(links uid gid)))		; GNU ls
-  "*A list of optional file attributes that ls-lisp should display.
+  "A list of optional file attributes that ls-lisp should display.
 It should contain none or more of the symbols: links, uid, gid.
 A value of nil (or an empty list) means display none of them.
 
@@ -130,7 +130,7 @@ if emulation is GNU then default is `(links uid gid)'."
 
 (defcustom ls-lisp-use-insert-directory-program
   (not (memq system-type '(macos ms-dos windows-nt)))
-  "*Non-nil causes ls-lisp to revert back to using `insert-directory-program'.
+  "Non-nil causes ls-lisp to revert back to using `insert-directory-program'.
 This is useful on platforms where ls-lisp is dumped into Emacs, such as
 Microsoft Windows, but you would still like to use a program to list
 the contents of a directory."
@@ -140,7 +140,7 @@ the contents of a directory."
 ;;; Autoloaded because it is let-bound in `recover-session', `mail-recover-1'.
 ;;;###autoload
 (defcustom ls-lisp-support-shell-wildcards t
-  "*Non-nil means ls-lisp treats file patterns as shell wildcards.
+  "Non-nil means ls-lisp treats file patterns as shell wildcards.
 Otherwise they are treated as Emacs regexps (for backward compatibility)."
   :type 'boolean
   :group 'ls-lisp)
@@ -148,7 +148,7 @@ Otherwise they are treated as Emacs regexps (for backward compatibility)."
 (defcustom ls-lisp-format-time-list
   '("%b %e %H:%M"
     "%b %e  %Y")
-  "*List of `format-time-string' specs to display file time stamps.
+  "List of `format-time-string' specs to display file time stamps.
 These specs are used ONLY if a valid locale can not be determined.
 
 If `ls-lisp-use-localized-time-format' is non-nil, these specs are used
@@ -168,7 +168,7 @@ current year. The OLD-TIME-FORMAT is used for older files.  To use ISO
   :group 'ls-lisp)
 
 (defcustom ls-lisp-use-localized-time-format nil
-  "*Non-nil causes ls-lisp to use `ls-lisp-format-time-list' even if
+  "Non-nil causes ls-lisp to use `ls-lisp-format-time-list' even if
 a valid locale is specified.
 
 WARNING: Using localized date/time format might cause Dired columns

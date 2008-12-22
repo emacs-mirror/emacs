@@ -574,26 +574,18 @@ extern char unibyte_has_multibyte_table[256];
 /* If C is a character to be unified with a Unicode character, return
    the unified Unicode character.  */
 
-#define MAYBE_UNIFY_CHAR(c)					\
-  if (c > MAX_UNICODE_CHAR					\
-      && CHAR_TABLE_P (Vchar_unify_table))			\
-    {								\
-      Lisp_Object val;						\
-      int unified;						\
-								\
-      val = CHAR_TABLE_REF (Vchar_unify_table, c);		\
-      if (! NILP (val))						\
-	{							\
-	  if (SYMBOLP (val))					\
-	    {							\
-	      Funify_charset (val, Qnil, Qnil);			\
-	      val = CHAR_TABLE_REF (Vchar_unify_table, c);	\
-	    }							\
-	  if ((unified = XINT (val)) >= 0)			\
-	    c = unified;					\
-	}							\
-    }								\
-  else
+#define MAYBE_UNIFY_CHAR(c)				\
+  do {							\
+    if (c > MAX_UNICODE_CHAR && c <= MAX_5_BYTE_CHAR)	\
+      {							\
+	Lisp_Object val;				\
+	val = CHAR_TABLE_REF (Vchar_unify_table, c);	\
+	if (INTEGERP (val))				\
+	  c = XINT (val);				\
+	else if (! NILP (val))				\
+	  c = maybe_unify_char (c, val);		\
+      }							\
+  } while (0)
 
 
 /* Return the width of ASCII character C.  The width is measured by

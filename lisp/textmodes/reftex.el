@@ -431,7 +431,7 @@
 ;;; Index support
 
 (autoload 'reftex-index "reftex-index"
- "Query for an index macro and insert it along with its argments." t)
+ "Query for an index macro and insert it along with its arguments." t)
 (autoload 'reftex-index-selection-or-word "reftex-index"
  "Put selection or the word near point into the default index macro." t)
 (autoload 'reftex-index-phrase-selection-or-word "reftex-index"

@@ -135,14 +135,14 @@
   :group 'archive)
 
 (defcustom archive-remote-regexp "^/[^/:]*[^/:.]:"
-  "*Regexp recognizing archive files names that are not local.
+  "Regexp recognizing archive files names that are not local.
 A non-local file is one whose file name is not proper outside Emacs.
 A local copy of the archive will be used when updating."
   :type 'regexp
   :group 'archive)
 
 (defcustom archive-extract-hooks nil
-  "*Hooks to run when an archive member has been extracted."
+  "Hooks to run when an archive member has been extracted."
   :type 'hook
   :group 'archive)
 ;; ------------------------------
@@ -152,7 +152,7 @@ A local copy of the archive will be used when updating."
 ;; to extract to stdout without junk getting added.
 (defcustom archive-arc-extract
   '("arc" "x")
-  "*Program and its options to run in order to extract an arc file member.
+  "Program and its options to run in order to extract an arc file member.
 Extraction should happen to the current directory.  Archive and member
 name will be added."
   :type '(list (string :tag "Program")
@@ -163,7 +163,7 @@ name will be added."
 
 (defcustom archive-arc-expunge
   '("arc" "d")
-  "*Program and its options to run in order to delete arc file members.
+  "Program and its options to run in order to delete arc file members.
 Archive and member names will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
@@ -173,7 +173,7 @@ Archive and member names will be added."
 
 (defcustom archive-arc-write-file-member
   '("arc" "u")
-  "*Program and its options to run in order to update an arc file member.
+  "Program and its options to run in order to update an arc file member.
 Archive and member name will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
@@ -185,7 +185,7 @@ Archive and member name will be added."
 
 (defcustom archive-lzh-extract
   '("lha" "pq")
-  "*Program and its options to run in order to extract an lzh file member.
+  "Program and its options to run in order to extract an lzh file member.
 Extraction should happen to standard output.  Archive and member name will
 be added."
   :type '(list (string :tag "Program")
@@ -196,7 +196,7 @@ be added."
 
 (defcustom archive-lzh-expunge
   '("lha" "d")
-  "*Program and its options to run in order to delete lzh file members.
+  "Program and its options to run in order to delete lzh file members.
 Archive and member names will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
@@ -206,7 +206,7 @@ Archive and member names will be added."
 
 (defcustom archive-lzh-write-file-member
   '("lha" "a")
-  "*Program and its options to run in order to update an lzh file member.
+  "Program and its options to run in order to update an lzh file member.
 Archive and member name will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
@@ -221,7 +221,7 @@ Archive and member name will be added."
            (executable-find "pkunzip"))
       '("pkunzip" "-e" "-o-")
     '("unzip" "-qq" "-c"))
-  "*Program and its options to run in order to extract a zip file member.
+  "Program and its options to run in order to extract a zip file member.
 Extraction should happen to standard output.  Archive and member name will
 be added."
   :type '(list (string :tag "Program")
@@ -240,7 +240,7 @@ be added."
            (executable-find "pkzip"))
       '("pkzip" "-d")
     '("zip" "-d" "-q"))
-  "*Program and its options to run in order to delete zip file members.
+  "Program and its options to run in order to delete zip file members.
 Archive and member names will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
@@ -253,7 +253,7 @@ Archive and member names will be added."
            (executable-find "pkzip"))
       '("pkzip" "-u" "-P")
     '("zip" "-q"))
-  "*Program and its options to run in order to update a zip file member.
+  "Program and its options to run in order to update a zip file member.
 Options should ensure that specified directory will be put into the zip
 file.  Archive and member name will be added."
   :type '(list (string :tag "Program")
@@ -267,7 +267,7 @@ file.  Archive and member name will be added."
            (executable-find "pkzip"))
       '("pkzip" "-u" "-P")
     '("zip" "-q" "-k"))
-  "*Program and its options to run in order to update a case fiddled zip member.
+  "Program and its options to run in order to update a case fiddled zip member.
 Options should ensure that specified directory will be put into the zip file.
 Archive and member name will be added."
   :type '(list (string :tag "Program")
@@ -277,7 +277,7 @@ Archive and member name will be added."
   :group 'archive-zip)
 
 (defcustom archive-zip-case-fiddle t
-  "*If non-nil then zip file members may be down-cased.
+  "If non-nil then zip file members may be down-cased.
 This case fiddling will only happen for members created by a system
 that uses caseless file names."
   :type 'boolean
@@ -287,7 +287,7 @@ that uses caseless file names."
 
 (defcustom archive-zoo-extract
   '("zoo" "xpq")
-  "*Program and its options to run in order to extract a zoo file member.
+  "Program and its options to run in order to extract a zoo file member.
 Extraction should happen to standard output.  Archive and member name will
 be added."
   :type '(list (string :tag "Program")
@@ -298,7 +298,7 @@ be added."
 
 (defcustom archive-zoo-expunge
   '("zoo" "DqPP")
-  "*Program and its options to run in order to delete zoo file members.
+  "Program and its options to run in order to delete zoo file members.
 Archive and member names will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
@@ -308,7 +308,7 @@ Archive and member names will be added."
 
 (defcustom archive-zoo-write-file-member
   '("zoo" "a")
-  "*Program and its options to run in order to update a zoo file member.
+  "Program and its options to run in order to update a zoo file member.
 Archive and member name will be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"

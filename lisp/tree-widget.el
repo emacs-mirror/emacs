@@ -149,7 +149,7 @@ Emacs, and what `(locate-data-directory \"tree-widget\")' returns on
 XEmacs.")
 
 (defcustom tree-widget-themes-directory "tree-widget"
-  "*Name of the directory in which to look for an image theme.
+  "Name of the directory in which to look for an image theme.
 When nil use the directory where the tree-widget library is located.
 When it is a relative name, search in all occurrences of that sub
 directory in the path specified by `tree-widget-themes-load-path'.
@@ -160,7 +160,7 @@ The default is to use the \"tree-widget\" relative name."
   :group 'tree-widget)
 
 (defcustom tree-widget-theme nil
-  "*Name of the theme in which to look for images.
+  "Name of the theme in which to look for images.
 This is a sub directory of the themes directory specified by the
 `tree-widget-themes-directory' option.
 The default theme is \"default\".  When an image is not found in a
@@ -197,13 +197,13 @@ icon widgets used to draw the tree.  By default these images are used:
 
 (defcustom tree-widget-image-properties-emacs
   '(:ascent center :mask (heuristic t))
-  "*Default properties of Emacs images."
+  "Default properties of Emacs images."
   :type 'plist
   :group 'tree-widget)
 
 (defcustom tree-widget-image-properties-xemacs
   nil
-  "*Default properties of XEmacs images."
+  "Default properties of XEmacs images."
   :type 'plist
   :group 'tree-widget)
 

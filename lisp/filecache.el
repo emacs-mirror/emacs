@@ -157,7 +157,7 @@
 (defcustom file-cache-filter-regexps
   (list "~$" "\\.o$" "\\.exe$" "\\.a$" "\\.elc$" ",v$" "\\.output$"
 	"\\.$" "#$" "\\.class$")
-  "*List of regular expressions used as filters by the file cache.
+  "List of regular expressions used as filters by the file cache.
 File names which match these expressions will not be added to the cache.
 Note that the functions `file-cache-add-file' and `file-cache-add-file-list'
 do not use this variable."
@@ -165,12 +165,12 @@ do not use this variable."
   :group 'file-cache)
 
 (defcustom file-cache-find-command "find"
-  "*External program used by `file-cache-add-directory-using-find'."
+  "External program used by `file-cache-add-directory-using-find'."
   :type 'string
   :group 'file-cache)
 
 (defcustom file-cache-find-command-posix-flag 'not-defined
-  "*Set to t, if `file-cache-find-command' handles wildcards POSIX style.
+  "Set to t, if `file-cache-find-command' handles wildcards POSIX style.
 This variable is automatically set to nil or non-nil
 if it has the initial value `not-defined' whenever you first
 call the `file-cache-add-directory-using-find'.
@@ -183,7 +183,7 @@ should be t."
   :group 'file-cache)
 
 (defcustom file-cache-locate-command "locate"
-  "*External program used by `file-cache-add-directory-using-locate'."
+  "External program used by `file-cache-add-directory-using-locate'."
   :type 'string
   :group 'file-cache)
 

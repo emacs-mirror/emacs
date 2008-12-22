@@ -1,3 +1,126 @@
+2008-12-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Activation, Exporting, ASCII export, HTML export)
+	(HTML Export commands, LaTeX/PDF export commands): Improve
+	documentation about transient-mark-mode.
+	(References): DOcuemtn the use of special names like $LR1 to reference
+	to fields in the last table row.
+
+2008-12-19  Juri Linkov  <juri@jurta.org>
+
+	* info.texi (Search Text): Remove mention of removed key binding M-s.
+
+2008-12-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (References): Remove mentioning of @0 as reference for the
+	last line, this has been reverted in the Lisp sources.
+
+2008-12-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (INFO_TARGETS, clean): Add sasl.
+	(DVI_TARGETS): Remove duplicates.  Add sasl.
+	($(infodir)/sasl, sasl.dvi): New targets.
+
+2008-12-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version number pushed to 6.15d.
+
+2008-12-16  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Tables in LaTeX export): New section.
+	(Images in LaTeX export): New section.
+	(Inlined images, Images in HTML export): Sections renamed.
+
+2008-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi (Insertion Variables): Don't advertise sc-cite-original.
+
+2008-12-04  David Engster  <dengste@eml.cc>
+
+	* gnus.texi (nnmairix): Mention mairix.el.  Point out the importance
+	  of nnml-get-new-mail.  Change URL for mairix patch.
+
+2008-12-02  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Using the mapping API): Fix bug in mapping example.
+	(Publishing options): Make the list of properties complete again, in
+	correspondence to the variable `org-export-plist-vars'.
+	(Property searches): Document new special values for time comparisons.
+	(Tag inheritance): Refine the description of tag inheritance.
+	(Project alist): Add info about the publishing sequence of components.
+	(Effort estimates): Document the new relative timer.
+
+2008-12-01  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (About This Manual): Clarify behavior of `C-x * t'.
+	(Using Calc): Clarify use of `C-x * o'.
+	(Embedded Mode (Overview)): Clarify use of `C-x * e'.
+
+2008-11-28  Richard M Stallman  <rms@gnu.org>
+
+	* dbus.texi (Receiving Method Calls): Clean up previous change.
+
+2008-11-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Type Conversion): New defuns `dbus-string-to-byte-array',
+	`dbus-escape-as-identifier', `dbus-byte-array-to-string' and
+	`dbus-unescape-from-identifier'.
+	(Receiving Method Calls): New constants `dbus-service-emacs' and
+	`dbus-path-emacs'.  Precise return values of `dbus-register-method'.
+	(Signals): Use the constants in the example.
+
+2008-11-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Re-apply change to FDL 1.3.
+
+2008-11-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Setting up Remember): Document `org-remember-mode'.
+	(External links): Document that bbdb links can use a regular
+	expression.
+	(External links): Document that elisp links can contain interactive
+	commands.
+
+2008-11-22  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper.texi (viper-translate-all-ESC-keysequences):
+	Description removed.
+
+2008-11-19  Glenn Morris  <rgm@gnu.org>
+
+	* doclicense.texi: Change to FDL 1.3.
+	Relicense all texi files under FDL 1.3 or later.
+
+2008-11-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Tutorial): Clarify how to set up the on-line tutorial.
+
+2008-11-16  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper.texi (viper-ESC-keyseq-timeout, viper-ESC-key): Removed.
+
+	* ediff.texi: Version/date change.
+
+2008-11-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ns-emacs.texi: Moved into macos.texi in the main Emacs manual.
+
+2008-11-14  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (About This Manual): Comment out a mention of
+	marginal notes.
+
+2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Clocking work time): Document the :formula property of
+	clock tables.
+	(Structure editing, Refiling notes): Document refiling regions.
+	(Agenda commands): Document the double-prefix version
+	of the `l' command in the agenda.
+	(Handling links): Explain the effect of a double prefix
+	arg to `C-c C-o'.
+	(TODO basics): Add documentation for tag triggers.
+
 2008-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Function Bindings): Mention `flet' fails to deal with
@@ -51,8 +174,8 @@
 2008-09-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Top, Setup, Fancy splitting to parent)
-	(Store custom flags and keywords, Store arbitrary data): Clean up
-	markup.
+	(Store custom flags and keywords, Store arbitrary data):
+	Clean up markup.
 
 2008-09-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -60,8 +183,8 @@
 
 2008-09-08  David Engster  <dengste@eml.cc>
 
-	* gnus.texi (nnmairix): Point out that nnml uses MH format.  Clarify
-	section about choosing back end servers.
+	* gnus.texi (nnmairix): Point out that nnml uses MH format.
+	Clarify section about choosing back end servers.
 
 2008-08-23  Glenn Morris  <rgm@gnu.org>
 
@@ -92,8 +215,8 @@
 
 2008-08-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus.texi (Sorting the Summary Buffer, Summary Sorting): Add
-	gnus-summary-sort-by-most-recent-number and
+	* gnus.texi (Sorting the Summary Buffer, Summary Sorting):
+	Add gnus-summary-sort-by-most-recent-number and
 	gnus-summary-sort-by-most-recent-date.
 	(Summary Sorting): Explain prefix argument.
 
@@ -110,7 +233,7 @@
 2008-08-01  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Reading Mail)
-	(Viewing Attachments):  Describe new function
+	(Viewing Attachments): Describe new function
 	mh-show-preferred-alternative.
 	(Sending Mail, Redistributing, Sending Message): Describe new hook
 	mh-annotate-msg-hook.
@@ -120,8 +243,8 @@
 	* dbus.texi (Arguments and Signatures): Fix example.
 	(Synchronous Methods): New defun `dbus-call-method-non-blocking'.
 	(Asynchronous Methods): New node.
-	(Errors and Events): Describe extended layout of `dbus-event'.  New
-	defun `dbus-event-message-type'.
+	(Errors and Events): Describe extended layout of `dbus-event'.
+	New defun `dbus-event-message-type'.
 
 2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -338,10 +461,6 @@
 
 	* Makefile.in (gnus-faq-clean): Don't remove gnus-faq.texi.
 	(gnus-faq.xml): Update repository host.
-
-	* xml2texi.scm (boilerplate): Update copyright years.
-	(format-q-level): Change node names to "FAQ N-M", since period in
-	"[N.M]" is invalid, see "(texinfo)Node Line Requirements".
 
 	* gnus-faq.texi: Generate from gnus-faq.xml (sourceforge.net).
 
@@ -1554,7 +1673,7 @@
 
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
-	* Move manual sources from man/ to subdirectories of doc/.
+	Move manual sources from man/ to subdirectories of doc/.
 	Split into the Emacs manual in emacs/, and other manuals in misc/.
 	Change all setfilename commands to use ../../info.
 	* Makefile.in: Move the parts of the old man/Makefile.in that do not
@@ -5270,7 +5389,7 @@
 
 	* Makefile (realclean): Don't delete the Info files.
 
-1993-10-25  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+1993-10-25  Brian J. Fox  (bfox@albert.gnu.ai.mit.edu)
 
 	* forms.texi: Fix forms.texi so that it will format correctly.
 	Add missing `@end iftex', fix bad reference.
@@ -5278,7 +5397,7 @@
 	* info.texi, info-stn.texi: New files implement texinfo version of
 	`info' file.
 
-1993-10-20  Brian Fox  (bfox@ai.mit.edu)
+1993-10-20  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* Makefile: Fix targets for texindex, new info.texi files.
 	* info-stnd.texi: New file implements info for standalone info

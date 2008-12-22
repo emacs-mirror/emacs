@@ -35,7 +35,7 @@
 
 (defcustom pcmpl-gnu-makefile-regexps
   '("\\`GNUmakefile" "\\`Makefile" "\\.mak\\'")
-  "*A list of regexps that will match Makefile names."
+  "A list of regexps that will match Makefile names."
   :type '(repeat regexp)
   :group 'pcmpl-gnu)
 
@@ -128,7 +128,7 @@
 
 (defcustom pcmpl-gnu-tarfile-regexp
   "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|Z\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
-  "*A regexp which matches any tar archive."
+  "A regexp which matches any tar archive."
   :type 'regexp
   :group 'pcmpl-gnu)
 

@@ -23,7 +23,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;; 
+;;
 
 (require 'vc-hooks)
 (require 'vc)
@@ -100,7 +100,7 @@ all other colors between (excluding black and white)."
   :group 'vc)
 
 (defcustom vc-annotate-very-old-color "#3F3FFF"
-  "Color for lines older than the current color range in \\[vc-annotate]]."
+  "Color for lines older than the current color range in \\[vc-annotate]."
   :type 'string
   :group 'vc)
 
@@ -512,12 +512,11 @@ revisions after."
 (defun vc-annotate-warp-revision (revspec)
   "Annotate the revision described by REVSPEC.
 
-If REVSPEC is a positive integer, warp that many revisions
-forward, if possible, otherwise echo a warning message.  If
-REVSPEC is a negative integer, warp that many revisions backward,
+If REVSPEC is a positive integer, warp that many revisions forward,
 if possible, otherwise echo a warning message.  If REVSPEC is a
-string, then it describes a revision number, so warp to that
-revision."
+negative integer, warp that many revisions backward, if possible,
+otherwise echo a warning message.  If REVSPEC is a string, then it
+describes a revision number, so warp to that revision."
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
     (let* ((buf (current-buffer))
@@ -591,7 +590,7 @@ or OFFSET if present."
 
 (defun vc-annotate-display (ratio &optional offset)
   "Highlight `vc-annotate' output in the current buffer.
-RATIO, is the expansion that should be applied to `vc-annotate-color-map'.
+RATIO is the expansion that should be applied to `vc-annotate-color-map'.
 The annotations are relative to the current time, unless overridden by OFFSET."
   (when (/= ratio 1.0)
     (set (make-local-variable 'vc-annotate-color-map)

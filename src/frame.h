@@ -482,7 +482,8 @@ struct frame
 
   /* frame opacity
      alpha[0]: alpha transparency of the active frame
-     alpha[1]: alpha transparency of inactive frames   */
+     alpha[1]: alpha transparency of inactive frames
+     Negative values mean not to change alpha.  */
   double alpha[2];
 
   /* Exponent for gamma correction of colors.  1/(VIEWING_GAMMA *

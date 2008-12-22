@@ -48,7 +48,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 DEFUN ("int86", Fint86, Sint86, 2, 2, 0,
-       doc: /* Call specific MSDOS interrupt number INTERRUPT with REGISTERS.
+       doc: /* Call specific MS-DOS interrupt number INTERRUPT with REGISTERS.
 Return the updated REGISTER vector.
 
 INTERRUPT should be an integer in the range 0 to 255.

@@ -185,8 +185,8 @@ If non-nil, kill a buffer unless it already existed before editing
 it with the Emacs server.  If nil, kill only buffers as specified by
 `server-temp-file-regexp'.
 Please note that only buffers that still have a client are killed,
-i.e. buffers visited with \"emacsclient --no-wait\" are never killed in
-this way."
+i.e. buffers visited with \"emacsclient --no-wait\" are never killed
+in this way."
   :group 'server
   :type 'boolean
   :version "21.1")
@@ -203,8 +203,10 @@ are done with it in the server.")
 (defvar server-name "server")
 
 (defvar server-socket-dir
-  (format "%s/emacs%d" (or (getenv "TMPDIR") "/tmp") (user-uid))
-  "The directory in which to place the server socket.")
+  (and (featurep 'make-network-process '(:family local))
+       (format "%s/emacs%d" (or (getenv "TMPDIR") "/tmp") (user-uid)))
+  "The directory in which to place the server socket.
+If local sockets are not supported, this is nil.")
 
 (defun server-clients-with (property value)
   "Return a list of clients with PROPERTY set to VALUE."
@@ -238,8 +240,8 @@ ENV should be in the same format as `process-environment'."
 
 (defun server-delete-client (proc &optional noframe)
   "Delete PROC, including its buffers, terminals and frames.
-If NOFRAME is non-nil, let the frames live.  (To be used from
-`delete-frame-functions'.)"
+If NOFRAME is non-nil, let the frames live.
+Updates `server-clients'."
   (server-log (concat "server-delete-client" (if noframe " noframe")) proc)
   ;; Force a new lookup of client (prevents infinite recursion).
   (when (memq proc server-clients)
@@ -323,17 +325,18 @@ If CLIENT is non-nil, add a description of it to the logged message."
 	     (process-query-on-exit-flag proc))
     (set-process-query-on-exit-flag proc nil))
   ;; Delete the associated connection file, if applicable.
-  ;; This is actually problematic: the file may have been overwritten by
-  ;; another Emacs server in the mean time, so it's not ours any more.
-  ;; (and (process-contact proc :server)
-  ;;      (eq (process-status proc) 'closed)
-  ;;      (ignore-errors (delete-file (process-get proc :server-file))))
+  ;; Although there's no 100% guarantee that the file is owned by the
+  ;; running Emacs instance, server-start uses server-running-p to check
+  ;; for possible servers before doing anything, so it *should* be ours.
+  (and (process-contact proc :server)
+       (eq (process-status proc) 'closed)
+       (ignore-errors (delete-file (process-get proc :server-file))))
   (server-log (format "Status changed to %s: %s" (process-status proc) msg) proc)
   (server-delete-client proc))
 
 (defun server-select-display (display)
   ;; If the current frame is on `display' we're all set.
-  ;; Similarly if we are unable to open a frames on other displays, there's
+  ;; Similarly if we are unable to open frames on other displays, there's
   ;; nothing more we can do.
   (unless (or (not (fboundp 'make-frame-on-display))
               (equal (frame-parameter (selected-frame) 'display) display))
@@ -375,7 +378,8 @@ If CLIENT is non-nil, add a description of it to the logged message."
     (set-frame-parameter frame 'server-dummy-buffer nil)))
 
 (defun server-handle-delete-frame (frame)
-  "Delete the client connection when the emacsclient frame is deleted."
+  "Delete the client connection when the emacsclient frame is deleted.
+\(To be used from `delete-frame-functions'.)"
   (let ((proc (frame-parameter frame 'client)))
     (when (and (frame-live-p frame)
 	       proc
@@ -425,7 +429,7 @@ See `server-unquote-arg' and `server-process-filter'."
    arg t t))
 
 (defun server-send-string (proc string)
-  "A wrapper around `proc-send-string' for logging."
+  "A wrapper around `process-send-string' for logging."
   (server-log (concat "Sent " string) proc)
   (process-send-string proc string))
 
@@ -455,33 +459,40 @@ job.  To use the server, set up the program `emacsclient' in the
 Emacs distribution as your standard \"editor\".
 
 Optional argument LEAVE-DEAD (interactively, a prefix arg) means just
-kill any existing server communications subprocess."
+kill any existing server communications subprocess.
+
+If a server is already running, the server is not started.
+To force-start a server, do \\[server-force-delete] and then
+\\[server-start]."
   (interactive "P")
   (when (or
 	 (not server-clients)
 	 (yes-or-no-p
 	  "The current server still has clients; delete them? "))
-    (when server-process
-      ;; kill it dead!
-      (ignore-errors (delete-process server-process)))
-    ;; Delete the socket files made by previous server invocations.
-    (condition-case ()
-	(delete-file (expand-file-name server-name server-socket-dir))
-      (error nil))
-    ;; If this Emacs already had a server, clear out associated status.
-    (while server-clients
-      (server-delete-client (car server-clients)))
-    ;; Now any previous server is properly stopped.
-    (if leave-dead
-	(progn
-	  (server-log (message "Server stopped"))
-	  (setq server-process nil))
-      (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
-	     (server-file (expand-file-name server-name server-dir)))
+    (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
+	   (server-file (expand-file-name server-name server-dir)))
+      (when server-process
+	;; kill it dead!
+	(ignore-errors (delete-process server-process)))
+      ;; Delete the socket files made by previous server invocations.
+      (if (not (eq t (server-running-p server-name)))
+	  ;; Remove any leftover socket or authentication file
+	  (ignore-errors (delete-file server-file))
+	(setq server-mode nil) ;; already set by the minor mode code
+	(display-warning 'server
+			 (format "Emacs server named %S already running" server-name)
+			 :warning)
+	(setq leave-dead t))
+      ;; If this Emacs already had a server, clear out associated status.
+      (while server-clients
+	(server-delete-client (car server-clients)))
+      ;; Now any previous server is properly stopped.
+      (if leave-dead
+	  (progn
+	    (unless (eq t leave-dead) (server-log (message "Server stopped")))
+	    (setq server-process nil))
 	;; Make sure there is a safe directory in which to place the socket.
 	(server-ensure-safe-dir server-dir)
-	;; Remove any leftover socket or authentication file.
-	(ignore-errors (delete-file server-file))
 	(when server-process
 	  (server-log (message "Restarting server")))
 	(letf (((default-file-modes) ?\700))
@@ -512,6 +523,7 @@ kill any existing server communications subprocess."
 			       :service server-file
 			       :plist '(:authenticated t)))))
 	  (unless server-process (error "Could not start server process"))
+	  (process-put server-process :server-file server-file)
 	  (when server-use-tcp
 	    (let ((auth-key
 		   (loop
@@ -529,14 +541,48 @@ kill any existing server communications subprocess."
 			" " (int-to-string (emacs-pid))
 			"\n" auth-key)))))))))
 
+;;;###autoload
+(defun server-force-delete (&optional name)
+  "Unconditionally delete connection file for server NAME.
+If server is running, it is first stopped.
+NAME defaults to `server-name'.  With argument, ask for NAME."
+  (interactive
+   (list (if current-prefix-arg
+	     (read-string "Server name: " nil nil server-name))))
+  (when server-mode (with-temp-message nil (server-mode -1)))
+  (let ((file (expand-file-name (or name server-name)
+				(if server-use-tcp
+				    server-auth-dir
+				  server-socket-dir))))
+    (condition-case nil
+	(progn
+	  (delete-file file)
+	  (message "Connection file %S deleted" file))
+      (file-error
+       (message "No connection file %S" file)))))
+
 (defun server-running-p (&optional name)
-  "Test whether server NAME is running."
+  "Test whether server NAME is running.
+
+Return values:
+  nil              the server is definitely not running.
+  t                the server seems to be running.
+  something else   we cannot determine whether it's running without using
+                   commands which may have to wait for a long time."
   (interactive
    (list (if current-prefix-arg
 	     (read-string "Server name: " nil nil server-name))))
   (unless name (setq name server-name))
   (condition-case nil
-      (progn
+      (if server-use-tcp
+	  (with-temp-buffer
+	    (insert-file-contents-literally (expand-file-name name server-auth-dir))
+	    (or (and (looking-at "127\.0\.0\.1:[0-9]+ \\([0-9]+\\)")
+		     (assq 'comm
+			   (system-process-attributes
+			    (string-to-number (match-string 1))))
+		     t)
+		:other))
 	(delete-process
 	 (make-network-process
 	  :name "server-client-test" :family 'local :server nil :noquery t
@@ -645,7 +691,6 @@ Server mode runs a process that accepts commands from the
       (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
       frame)))
 
-
 (defun server-goto-toplevel (proc)
   (condition-case nil
       ;; If we're running isearch, we must abort it to allow Emacs to
@@ -681,16 +726,16 @@ Server mode runs a process that accepts commands from the
 (defun* server-process-filter (proc string)
   "Process a request from the server to edit some files.
 PROC is the server process.  STRING consists of a sequence of
-commands prefixed by a dash.  Some commands have arguments; these
-are &-quoted and need to be decoded by `server-unquote-arg'.  The
-filter parses and executes these commands.
+commands prefixed by a dash.  Some commands have arguments;
+these are &-quoted and need to be decoded by `server-unquote-arg'.
+The filter parses and executes these commands.
 
 To illustrate the protocol, here is an example command that
 emacsclient sends to create a new X frame (note that the whole
 sequence is sent on a single line):
 
-	-env HOME /home/lorentey
-	-env DISPLAY :0.0
+	-env HOME=/home/lorentey
+	-env DISPLAY=:0.0
 	... lots of other -env commands
 	-display :0.0
 	-window-system
@@ -745,8 +790,8 @@ The following commands are accepted by the server:
   controlling tty.
 
 `-ignore COMMENT'
-  Do nothing, but put the comment in the server
-  log.  Useful for debugging.
+  Do nothing, but put the comment in the server log.
+  Useful for debugging.
 
 
 The following commands are accepted by the client:
@@ -808,13 +853,13 @@ The following commands are accepted by the client:
 		frame ; The frame that was opened for the client (if any).
 		display		     ; Open the frame on this display.
 		dontkill       ; t if the client should not be killed.
-                (commands ())
+		commands
 		dir
 		use-current-frame
-                (tty-name nil)       ;nil, `window-system', or the tty name.
-                tty-type             ;string.
-		(files nil)
-                (filepos nil)
+		tty-name       ;nil, `window-system', or the tty name.
+		tty-type             ;string.
+		files
+		filepos
 		command-line-args-left
 		arg)
 	    ;; Remove this line from STRING.
@@ -936,14 +981,17 @@ The following commands are accepted by the client:
 			 (or (eq use-current-frame 'always)
 			     ;; We can't use the Emacs daemon's
 			     ;; terminal frame.
-			     (not (and (= (length (frame-list)) 1)
+			     (not (and (daemonp)
+				       (= (length (frame-list)) 1)
 				       (eq (selected-frame)
 					   terminal-frame)))))
-		    (setq tty-name nil)
+		    (setq tty-name nil tty-type nil)
 		    (if display (server-select-display display)))
 		   ((eq tty-name 'window-system)
 		    (server-create-window-system-frame display nowait proc))
-		   (t (server-create-tty-frame tty-name tty-type proc))))
+		   ;; When resuming on a tty, tty-name is nil.
+		   (tty-name
+		    (server-create-tty-frame tty-name tty-type proc))))
 
             (process-put
              proc 'continuation
@@ -1141,7 +1189,7 @@ reused to pass information to another program.
 The variable `server-temp-file-regexp' controls which filenames
 are considered temporary."
   (and (buffer-file-name buffer)
-       (string-match server-temp-file-regexp (buffer-file-name buffer))))
+       (string-match-p server-temp-file-regexp (buffer-file-name buffer))))
 
 (defun server-done ()
   "Offer to save current buffer, mark it as \"done\" for clients.
@@ -1300,7 +1348,7 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
   ;; Called from save-buffers-kill-terminal in files.el.
   "Offer to save each buffer, then kill PROC.
 
-With prefix arg, silently save all file-visiting buffers, then kill.
+With ARG non-nil, silently save all file-visiting buffers, then kill.
 
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."

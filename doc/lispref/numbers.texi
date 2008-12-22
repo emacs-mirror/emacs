@@ -155,6 +155,9 @@ The value of this variable is the smallest integer that Emacs Lisp can
 handle.  It is negative.
 @end defvar
 
+  @xref{Character Codes, max-char}, for the maximum value of a valid
+character codepoint.
+
 @node Float Basics
 @section Floating Point Basics
 

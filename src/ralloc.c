@@ -177,9 +177,9 @@ static heap_ptr first_heap, last_heap;
    b->data + b->size == b->next->data.
 
    An element with variable==NIL denotes a freed block, which has not yet
-   been collected.  They may only appear while r_alloc_freeze > 0, and will be
-   freed when the arena is thawed.  Currently, these blocs are not reusable,
-   while the arena is frozen.  Very inefficient.  */
+   been collected.  They may only appear while r_alloc_freeze_level > 0,
+   and will be freed when the arena is thawed.  Currently, these blocs are
+   not reusable, while the arena is frozen.  Very inefficient.  */
 
 typedef struct bp
 {
@@ -939,8 +939,8 @@ r_alloc_sbrk (size)
    which will use the data area.
 
    The allocation of 0 bytes is valid.
-   In case r_alloc_freeze is set, a best fit of unused blocs could be done
-   before allocating a new area.  Not yet done.
+   In case r_alloc_freeze_level is set, a best fit of unused blocs could be
+   done before allocating a new area.  Not yet done.
 
    If we can't allocate the necessary memory, set *PTR to zero, and
    return zero.  */
@@ -996,7 +996,7 @@ r_alloc_free (ptr)
    SIZE is less than or equal to the current bloc size, in which case
    do nothing.
 
-   In case r_alloc_freeze is set, a new bloc is allocated, and the
+   In case r_alloc_freeze_level is set, a new bloc is allocated, and the
    memory copied to it.  Not very efficient.  We could traverse the
    bloc_list for a best fit of free blocs first.
 

@@ -1,3 +1,22 @@
+2008-12-02  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-prop-alist): Docstring for
+	`decomposition' property adjusted.
+	(unidata-split-decomposition): Don't include surrounding "<" and
+	">" in a symbol name.
+
+2008-12-01  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-prop-alist): Set `numeric-value'
+	property generator to unidata-gen-table-numeric.  Docstring adjusted.
+	(unidata-get-numeric, unidata-put-numeric)
+	(unidata-gen-table-numeric): New functions.
+	(unidata-encode-val): Use assoc to get a slot in VAL-LIST.
+
+2008-11-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* notes/documentation: Add notes about Antinews.
+
 2008-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-version): Add doc/misc/ns-emacs.texi.
@@ -14,7 +33,7 @@
 
 2008-08-16  Jason Rumney  <jasonr@gnu.org>
 
-	* admin.el (set-version): Set version in nt/emacsclient.rc
+	* admin.el (set-version): Set version in nt/emacsclient.rc.
 
 2008-08-06  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -22,7 +41,7 @@
 
 2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* CPP_DEFINES: Add DARWIN_OS.  Move USE_LISP_UNION_TYPE away from OS's.
+	* CPP-DEFINES: Add DARWIN_OS.  Move USE_LISP_UNION_TYPE away from OS's.
 
 2008-08-02  Eli Zaretskii  <eliz@gnu.org>
 
@@ -41,7 +60,7 @@
 
 2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* CPP_DEFINES: Add NS port related defines.
+	* CPP-DEFINES: Add NS port related defines.
 
 2008-06-16  Glenn Morris  <rgm@gnu.org>
 
@@ -226,7 +245,7 @@
 	files in ../etc/charsets/.
 
 	* charsets/Makefile, charsets/mapconv, charsets/compact.awk:
-	* charsets/big5.awk, charsets/gb18030-2.awk, charsets/gb18030-4.awk:
+	* charsets/big5.awk, charsets/gb180302.awk, charsets/gb180304.awk:
 	* charsets/kuten.awk: New files.
 
 2008-01-08  Glenn Morris  <rgm@gnu.org>

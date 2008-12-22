@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.10c
+;; Version: 6.16
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -25,7 +25,7 @@
 ;;
 ;;; Commentary:
 
-;; This file contains the face definitons for Org.
+;; This file contains the face definitions for Org.
 
 ;;; Code:
 
@@ -160,7 +160,7 @@ heading be marked DONE, and the current time will be added.
 
 When called with prefix argument FIND-DONE, find whole trees without any
 open TODO items and archive them (after getting confirmation from the user).
-If the cursor is not at a headline when this comand is called, try all level
+If the cursor is not at a headline when this command is called, try all level
 1 trees.  If the cursor is on a headline, only try the direct children of
 this heading."
   (interactive "P")
@@ -345,7 +345,7 @@ sibling does not exist, it will be created at the end of the subtree."
       (org-end-of-subtree t t)
       (save-excursion
 	(goto-char pos)
-	(org-cut-subtree))
+	(let ((this-command this-command)) (org-cut-subtree)))
       (org-paste-subtree (org-get-valid-level level 1))
       (org-set-property
        "ARCHIVE_TIME"

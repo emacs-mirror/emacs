@@ -92,6 +92,17 @@
   :group 'compilation)
 
 ;;;###autoload
+(defcustom compilation-start-hook nil
+  "List of hook functions run by `compilation-start' on the compilation process.
+\(See `run-hook-with-args').
+If you use \"omake -P\" and do not want \\[save-buffers-kill-terminal] to ask whether you want
+the compilation to be killed, you can use this hook:
+  (add-hook 'compilation-start-hook
+    (lambda (process) (set-process-query-on-exit-flag process nil)) nil t)"
+  :type 'hook
+  :group 'compilation)
+
+;;;###autoload
 (defcustom compilation-window-height nil
   "Number of lines in a compilation window.  If nil, use Emacs default."
   :type '(choice (const :tag "Default" nil)
@@ -691,7 +702,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 (defvar compilation-old-error-list nil)
 
 (defcustom compilation-auto-jump-to-first-error nil
-  "If non-nil, automatically jump to the first error after `compile'."
+  "If non-nil, automatically jump to the first error during compilation."
   :type 'boolean
   :group 'compilation
   :version "23.1")
@@ -1008,6 +1019,12 @@ FMTS is a list of format specs for transforming the file name.
 
      compilation-mode-font-lock-keywords)))
 
+(defun compilation-read-command (command)
+  (read-shell-command "Compile command: " command
+                      (if (equal (car compile-history) command)
+                          '(compile-history . 1)
+                        'compile-history)))
+
 
 ;;;###autoload
 (defun compile (command &optional comint)
@@ -1041,10 +1058,7 @@ to a function that generates a unique name."
    (list
     (let ((command (eval compile-command)))
       (if (or compilation-read-command current-prefix-arg)
-	  (read-shell-command "Compile command: " command
-                              (if (equal (car compile-history) command)
-                                  '(compile-history . 1)
-                                'compile-history))
+	  (compilation-read-command command)
 	command))
     (consp current-prefix-arg)))
   (unless (equal command (eval compile-command))
@@ -1054,13 +1068,17 @@ to a function that generates a unique name."
   (compilation-start command comint))
 
 ;; run compile with the default command line
-(defun recompile ()
+(defun recompile (&optional edit-command)
   "Re-compile the program including the current buffer.
 If this is run in a Compilation mode buffer, re-use the arguments from the
-original use.  Otherwise, recompile using `compile-command'."
-  (interactive)
+original use.  Otherwise, recompile using `compile-command'.
+If the optional argument `edit-command' is non-nil, the command can be edited."
+  (interactive "P")
   (save-some-buffers (not compilation-ask-about-save) nil)
   (let ((default-directory (or compilation-directory default-directory)))
+    (when edit-command
+      (setcar compilation-arguments
+              (compilation-read-command (car compilation-arguments))))
     (apply 'compilation-start (or compilation-arguments
 				  `(,(eval compile-command))))))
 
@@ -1277,7 +1295,8 @@ Returns the compilation buffer created."
 		    (process-send-eof proc)
 		  ;; The process may have exited already.
 		  (error nil)))
-	      (setq compilation-in-progress
+	      (run-hook-with-args 'compilation-start-hook proc)
+              (setq compilation-in-progress
 		    (cons proc compilation-in-progress)))
 	  ;; No asynchronous processes available.
 	  (message "Executing `%s'..." command)

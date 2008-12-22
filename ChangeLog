@@ -1,3 +1,69 @@
+2008-12-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat (--with-system-malloc): New option; see msdos/INSTALL
+	for rationale.
+
+2008-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Add new man-pages.
+	(manext): Remove variable.
+	(MAN_PAGES): New variable.
+	(install-arch-indep, uninstall): Use MAN_PAGES for list of files to add
+	and remove.
+	(uninstall): Remove desktop file and icons, game scores if empty.
+
+2008-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.guess, config.sub: Updated from master source.
+
+2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (install-arch-indep): Install ebrowse.1.
+
+2008-12-09  Ali Bahrami  <ali_gnu@emvision.com>  (tiny change)
+
+	* configure.in: Add Solaris on x86_64.
+
+2008-12-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.guess, config.sub: Updated from master source.
+
+2008-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* info/dir: Fix last change.
+
+2008-12-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* info/dir: Untabify.
+
+2008-11-28  Ulrich Mueller  <ulm@gentoo.org>
+
+	* configure.in: Fix last change.
+
+2008-11-28  Richard M Stallman  <rms@gnu.org>
+
+	* configure.in (mips64-*-linux-gnu*, mips64el-*-linux-gnu*):
+	New configurations.
+
+2008-11-20  Josh Elsasser  <josh@elsasser.org>  (tiny change)
+
+	* configure.in: Add hppa-*-openbsd* with machine hp800; mistakenly
+	removed while misclassified as now unsupported hp9000s300.  (Bug#1365)
+
+2008-11-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (INFO_FILES): Remove ns-emacs.
+
+	* info/dir (NS-Emacs): Remove entry.
+
+2008-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Move MS-DOS specific instructions to msdos/INSTALL.
+
+2008-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_LIB64_DIR): Check for crtn.o.  (Bug#1287)
+
 2008-10-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Tell user to expect one "File not found" message
@@ -28,9 +94,9 @@
 	Exit with an error if `--with-ns' was specified but <AppKit/AppKit.h>
 	is not found.  (Bug#1230)
 
-2008-10-23  Ali Bahrami <ali_gnu@emvision.com>  (tiny change)
+2008-10-23  Ali Bahrami  <ali_gnu@emvision.com>  (tiny change)
 
-	* configure (*-sunos5*, *-solaris* ): Use the new file sol2-10.h.
+	* configure (*-sunos5*, *-solaris*): Use the new file sol2-10.h.
 	Use sol2-6.h for Solaris 7-9.
 
 2008-10-18  Ulrich Mueller  <ulm@gentoo.org>
@@ -1254,7 +1320,7 @@
 
 2006-04-20  Ramprasad B  <ramprasad_i82@yahoo.com>
 
-	* Copyright (sources/emacs): Update copyright year(s).
+	Update copyright year(s) in many files.
 
 2006-04-01  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
 
@@ -3945,7 +4011,7 @@
 
 	* Version 19.33 released.
 
-1996-08-10  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-08-10  Marcus G. Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* configure.in (i[3456]86-sequent-ptx4*, i[3456]86-sequent-sysv4*):
 	Fix previous change.
@@ -5689,7 +5755,7 @@
 	before moving it.
 	* Makefile.in (VPATH): Define to @srcdir@.
 
-1993-09-28  Brian Fox  (bfox@cubit)
+1993-09-28  Brian J. Fox  (bfox@cubit)
 
 	* configure.in: Don't copy ${srcdir}/src/Makefile.in; that file
 	doesn't exist.  Just copy src/Makefile.in instead.  Touch
@@ -5698,7 +5764,7 @@
 	* INSTALL: Update documentation to match new configuration
 	mechanism.
 
-1993-09-27  Brian Fox  (bfox@ai.mit.edu)
+1993-09-27  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* configure.in: Allow any of the path or directory Makefile
 	variables to be set with flags to configure.  Create all Makefiles
@@ -5709,14 +5775,14 @@
 	  If these files are out of date, simply have config.status
 	  rebuild them; don't rebuild them explicitly.
 
-1993-09-25  Brian Fox  (bfox@ai.mit.edu)
+1993-09-25  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* build-install.in: Change src/xemacs to src/emacs.  We no longer
 	create src/xemacs, so the file wouldn't be found.
 
 	* make-dist: Remove `src/ymakefile', add `src/Makefile.in.in'.
 
-1993-09-24  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+1993-09-24  Brian J. Fox  (bfox@albert.gnu.ai.mit.edu)
 
 	* configure.in: Avoid forcing the search of /usr/include before
 	fixed include files by resetting C_SWITCH_X_SITE if it is
@@ -5733,19 +5799,19 @@
 	Use AC_QUOTE_SQUOTE twice to properly quote vpath_sed value.
 	Remove ${extra_output} from AC_OUTPUT call.
 
-1993-09-17  Brian Fox  (bfox@inferno)
+1993-09-17  Brian J. Fox  (bfox@inferno)
 
 	* make-dist: Quote backquotes found in strings to be echoed.
 
 	* configure.in: Use "sh -c pwd" when we want to avoid having the
 	shell fix up the value of $PWD.
 
-1993-09-13  Brian Fox  (bfox@inferno)
+1993-09-13  Brian J. Fox  (bfox@inferno)
 
 	* Makefile.in (do-install): Don't abort if ln or chmod at the end
 	of the installation fail.  Suggested by Karl Berry.
 
-1993-08-30  Brian Fox  (bfox@inferno)
+1993-08-30  Brian J. Fox  (bfox@inferno)
 
 	* Makefile.in (*clean): Use "$(MAKE) $(MAKEFLAGS)" wherever "make"
 	was used.  Set MAKEFLAGS from MFLAGS.

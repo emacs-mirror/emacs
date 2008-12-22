@@ -20,6 +20,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 */
 
+/* This should be the first include, as it may set up #defines affecting
+   interpretation of even the system includes. */
 #include "config.h"
 
 #include "lisp.h"

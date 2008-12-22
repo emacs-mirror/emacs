@@ -79,8 +79,7 @@ May either be a string or a list of strings.")
   (if (and buffer-file-name
 	   (string-match epa-file-name-regexp buffer-file-name)
 	   epa-file-inhibit-auto-save)
-      (auto-save-mode 0))
-  (set-buffer-modified-p nil))
+      (auto-save-mode 0)))
 
 (define-minor-mode auto-encryption-mode
   "Toggle automatic file encryption and decryption.

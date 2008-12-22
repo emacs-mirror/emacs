@@ -741,8 +741,7 @@ groups after non-groups, if nil do not order groups at all."
 ;;; Custom Mode Commands.
 
 ;; This variable is used by `custom-tool-bar-map', or directly by
-;; `custom-buffer-create-internal' if the toolbar is not present and
-;; `custom-buffer-verbose-help' is non-nil.
+;; `custom-buffer-create-internal' if `custom-buffer-verbose-help' is non-nil.
 
 (defvar custom-commands
   '(("Set for current session" Custom-set t
@@ -1582,37 +1581,41 @@ possibly because you started Emacs with `-q'.")
 		     :help-echo "Read the Emacs manual."
 		     "(emacs)Top")
       (widget-insert "."))
-    ;; Insert custom command buttons if the toolbar is not in use.
-
     (widget-insert "\n")
-    ;; tool-bar is not dumped in builds without x.
-    (when (not (and (bound-and-true-p tool-bar-mode) (display-graphic-p)))
-      (if custom-buffer-verbose-help
-	  (widget-insert "\n
+    ;; The custom command buttons are also in the toolbar, so for a
+    ;; time they were not inserted in the buffer if the toolbar was in use.
+    ;; But it can be a little confusing for the buffer layout to
+    ;; change according to whether or nor the toolbar is on, not to
+    ;; mention that a custom buffer can in theory be created in a
+    ;; frame with a toolbar, then later viewed in one without.
+    ;; So now the buttons are always inserted in the buffer.  (Bug#1326)
+;;;    (when (not (and (bound-and-true-p tool-bar-mode) (display-graphic-p)))
+    (if custom-buffer-verbose-help
+	(widget-insert "\n
  Operate on all settings in this buffer that are not marked HIDDEN:\n"))
-      (let ((button (lambda (tag action active help icon)
-		      (widget-insert " ")
-		      (if (eval active)
-			  (widget-create 'push-button :tag tag
-					 :help-echo help :action action))))
-	    (commands custom-commands))
-	(apply button (pop commands)) ; Set for current session
-	(apply button (pop commands)) ; Save for future sessions
-	(if custom-reset-button-menu
-	    (progn
-	      (widget-insert " ")
-	      (widget-create 'push-button
-			     :tag "Reset buffer"
-			     :help-echo "Show a menu with reset operations."
-			     :mouse-down-action 'ignore
-			     :action 'custom-reset))
-	  (widget-insert "\n")
-	  (apply button (pop commands)) ; Undo edits
-	  (apply button (pop commands)) ; Reset to saved
-	  (apply button (pop commands)) ; Erase customization
-	  (widget-insert "  ")
-	  (pop commands) ; Help (omitted)
-	  (apply button (pop commands))))) ; Exit
+    (let ((button (lambda (tag action active help icon)
+		    (widget-insert " ")
+		    (if (eval active)
+			(widget-create 'push-button :tag tag
+				       :help-echo help :action action))))
+	  (commands custom-commands))
+      (apply button (pop commands)) ; Set for current session
+      (apply button (pop commands)) ; Save for future sessions
+      (if custom-reset-button-menu
+	  (progn
+	    (widget-insert " ")
+	    (widget-create 'push-button
+			   :tag "Reset buffer"
+			   :help-echo "Show a menu with reset operations."
+			   :mouse-down-action 'ignore
+			   :action 'custom-reset))
+	(widget-insert "\n")
+	(apply button (pop commands)) ; Undo edits
+	(apply button (pop commands)) ; Reset to saved
+	(apply button (pop commands)) ; Erase customization
+	(widget-insert "  ")
+	(pop commands) ; Help (omitted)
+	(apply button (pop commands)))) ; Exit
     (widget-insert "\n\n"))
 
   ;; Now populate the custom buffer.
@@ -2378,7 +2381,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
     (((class grayscale) (background dark))
      (:foreground "LightGray" :weight bold :slant italic))
     (t (:weight bold)))
-  "Face used for variables or faces comment tags."
+  "Face used for the comment tag on variables or faces."
   :group 'custom-faces)
 ;; backward-compatibility alias
 (put 'custom-comment-tag-face 'face-alias 'custom-comment-tag)
@@ -2387,8 +2390,8 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   "User comment."
   :tag "Comment"
   :help-echo "Edit a comment here."
-  :sample-face 'custom-comment-tag-face
-  :value-face 'custom-comment-face
+  :sample-face 'custom-comment-tag
+  :value-face 'custom-comment
   :shown nil
   :create 'custom-comment-create)
 
@@ -2544,7 +2547,7 @@ try matching its doc string against `custom-guess-doc-alist'."
 	   (push (widget-create-child-and-convert
 		  widget 'item
 		  :format "%{%t%}: "
-		  :sample-face 'custom-variable-tag-face
+		  :sample-face 'custom-variable-tag
 		  :tag tag
 		  :parent widget)
 		 buttons)
@@ -2597,8 +2600,8 @@ try matching its doc string against `custom-guess-doc-alist'."
 		    :action 'custom-tag-action
 		    :help-echo "Change value of this option."
 		    :mouse-down-action 'custom-tag-mouse-down-action
-		    :button-face 'custom-variable-button-face
-		    :sample-face 'custom-variable-tag-face
+		    :button-face 'custom-variable-button
+		    :sample-face 'custom-variable-tag
 		    tag)
 		   buttons)
 	     (insert " ")
@@ -3226,7 +3229,7 @@ Only match frames that support the specified face attributes.")
 
 (define-widget 'custom-face 'custom
   "Customize face."
-  :sample-face 'custom-face-tag-face
+  :sample-face 'custom-face-tag
   :help-echo "Set or reset this face."
   :documentation-property #'face-doc-string
   :value-create 'custom-face-value-create
@@ -4002,7 +4005,8 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   (let ((start (point)))
 	     (insert tag " group: ")
 	     (widget-specify-sample widget start (point)))
-	   (insert (widget-docstring widget))
+	   (if (< (length (widget-docstring widget)) 50)
+	       (insert (widget-docstring widget)))
 	   ;; Create visibility indicator.
 	   (unless (eq custom-buffer-style 'links)
 	     (insert "--------")
@@ -4029,8 +4033,9 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   ;; Update buttons.
 	   (widget-put widget :buttons buttons)
 	   ;; Insert documentation.
-	   (widget-add-documentation-string-button
-	    widget :visibility-widget 'custom-visibility)
+	   (if (>= (length (widget-docstring widget)) 50)
+	       (widget-add-documentation-string-button
+		widget :visibility-widget 'custom-visibility))
 
 	   ;; Parent groups.
 	   (if nil  ;;; This should test that the buffer
@@ -4655,17 +4660,16 @@ Entry to this mode calls the value of `Custom-mode-hook'
 if that value is non-nil."
   (use-local-map custom-mode-map)
   (easy-menu-add Custom-mode-menu)
-  (when (display-graphic-p)
-    (set (make-local-variable 'tool-bar-map)
-	 (or custom-tool-bar-map
-	     ;; Set up `custom-tool-bar-map'.
-	     (let ((map (make-sparse-keymap)))
-	       (mapc
-		(lambda (arg)
-		  (tool-bar-local-item-from-menu
-		   (nth 1 arg) (nth 4 arg) map custom-mode-map))
-		custom-commands)
-	       (setq custom-tool-bar-map map)))))
+  (set (make-local-variable 'tool-bar-map)
+       (or custom-tool-bar-map
+	   ;; Set up `custom-tool-bar-map'.
+	   (let ((map (make-sparse-keymap)))
+	     (mapc
+	      (lambda (arg)
+		(tool-bar-local-item-from-menu
+		 (nth 1 arg) (nth 4 arg) map custom-mode-map))
+	      custom-commands)
+	     (setq custom-tool-bar-map map))))
   (make-local-variable 'custom-options)
   (make-local-variable 'custom-local-buffer)
   (make-local-variable 'widget-documentation-face)

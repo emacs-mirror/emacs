@@ -25,9 +25,13 @@ MacOSX/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
 GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 */
 
+/* This should be the first include, as it may set up #defines affecting
+   interpretation of even the system includes. */
+#include "config.h"
+
 #include <signal.h>
 #include <math.h>
-#include "config.h"
+
 #include "lisp.h"
 #include "blockinput.h"
 #include "nsterm.h"
@@ -36,7 +40,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "keyboard.h"
 #include "termhooks.h"
 #include "fontset.h"
-
 #include "character.h"
 #include "font.h"
 
@@ -385,14 +388,6 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     {
       [[view window] setBackgroundColor: col];
       alpha = [col alphaComponent];
-
-#ifdef NS_IMPL_COCOA
-      /* the alpha code below only works on 10.4, so we need to do something
-         else (albeit less good) otherwise.
-         Check NSApplication.h for useful NSAppKitVersionNumber values. */
-      if (NSAppKitVersionNumber < 744.0)
-          [[view window] setAlphaValue: alpha];
-#endif
 
       if (alpha != 1.0)
           [[view window] setOpaque: NO];
@@ -1037,7 +1032,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
   0, /* x_set_wait_for_wm, will ignore */
   0,  /* x_set_fullscreen will ignore */
   x_set_font_backend, /* generic OK */
-  0
+  x_set_alpha
 };
 
 

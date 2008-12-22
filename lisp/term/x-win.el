@@ -27,11 +27,10 @@
 ;; system and process X-specific command line parameters before
 ;; creating the first X frame.
 
-;; Note that contrary to previous Emacs versions, the act of loading
-;; this file should not have the side effect of initializing the
-;; window system or processing command line arguments (this file is
-;; now loaded in loadup.el).  See the variables
-;; `handle-args-function-alist' and
+;; Beginning in Emacs 23, the act of loading this file should not have
+;; the side effect of initializing the window system or processing
+;; command line arguments (this file is now loaded in loadup.el).  See
+;; the variables `handle-args-function-alist' and
 ;; `window-system-initialization-alist' for more details.
 
 ;; startup.el will then examine startup files, and eventually call the hooks
@@ -1540,6 +1539,12 @@ The value nil is the same as this list:
   ;; Don't let Emacs suspend under X.
   (add-hook 'suspend-hook 'x-win-suspend-error)
 
+  ;; During initialization, we defer sending size hints to the window
+  ;; manager, because that can induce a race condition:
+  ;; http://lists.gnu.org/archive/html/emacs-devel/2008-10/msg00033.html
+  ;; Send the size hints once initialization is done.
+  (add-hook 'after-init-hook 'x-wm-set-size-hint)
+
   ;; Turn off window-splitting optimization; X is usually fast enough
   ;; that this is only annoying.
   (setq split-window-keep-point t)
@@ -1668,21 +1673,31 @@ If you don't want stock icons, set the variable to nil."
 				       (string :tag "Stock/named")))))
   :group 'x)
 
+(defconst x-gtk-stock-cache (make-hash-table :weakness t :test 'equal))
+
 (defun x-gtk-map-stock (file)
-  "Map icon with file name FILE to a Gtk+ stock name, using `x-gtk-stock-map'."
-  (if (stringp file)
-      (save-match-data
-	(let* ((file-sans (file-name-sans-extension file))
-	       (key (and (string-match "/\\([^/]+/[^/]+/[^/]+$\\)" file-sans)
-			 (match-string 1 file-sans)))
-	       (value))
-	  (mapc (lambda (elem)
-		  (let ((assoc (if (symbolp elem) (symbol-value elem) elem)))
-		    (or value (setq value (assoc-string (or key file-sans)
-							assoc)))))
-		icon-map-list)
-	  (and value (cdr value))))
-    nil))
+  "Map icon with file name FILE to a Gtk+ stock name.
+This uses `icon-map-list' to map icon file names to stock icon names."
+  (when (stringp file)
+    (or (gethash file x-gtk-stock-cache)
+	(puthash
+	 file
+	 (save-match-data
+	   (let* ((file-sans (file-name-sans-extension file))
+		  (key (and (string-match "/\\([^/]+/[^/]+/[^/]+$\\)"
+					  file-sans)
+			    (match-string 1 file-sans)))
+		  (icon-map icon-map-list)
+		  elem value)
+	     (while (and (null value) icon-map)
+	       (setq elem (car icon-map)
+		     value (assoc-string (or key file-sans)
+					 (if (symbolp elem)
+					     (symbol-value elem)
+					   elem))
+		     icon-map (cdr icon-map)))
+	     (and value (cdr value))))
+	 x-gtk-stock-cache))))
 
 (provide 'x-win)
 

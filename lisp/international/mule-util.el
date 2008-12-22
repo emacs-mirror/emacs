@@ -233,8 +233,8 @@ can be a string, a vector, or a list."
 (defun set-nested-alist (keyseq entry alist &optional len branches)
   "Set ENTRY for KEYSEQ in a nested alist ALIST.
 Optional 4th arg LEN non-nil means the first LEN elements in KEYSEQ
- is considered.
-Optional argument BRANCHES if non-nil is branches for a keyseq
+ are considered.
+Optional 5th argument BRANCHES if non-nil is branches for a keyseq
 longer than KEYSEQ.
 See the documentation of `nested-alist-p' for more detail."
   (or (nested-alist-p alist)
@@ -248,10 +248,9 @@ See the documentation of `nested-alist-p' for more detail."
 	  (error "Keyseq %s is too long for this nested alist" keyseq))
       (setq key-elt (if islist (nth i keyseq) (aref keyseq i)))
       (setq slot (assoc key-elt (cdr alist)))
-      (if (null slot)
-	  (progn
-	    (setq slot (cons key-elt (list t)))
-	    (setcdr alist (cons slot (cdr alist)))))
+      (unless slot
+	(setq slot (cons key-elt (list t)))
+	(setcdr alist (cons slot (cdr alist))))
       (setq alist (cdr slot))
       (setq i (1+ i)))
     (setcar alist entry)
@@ -261,14 +260,14 @@ See the documentation of `nested-alist-p' for more detail."
 ;;;###autoload
 (defun lookup-nested-alist (keyseq alist &optional len start nil-for-too-long)
   "Look up key sequence KEYSEQ in nested alist ALIST.  Return the definition.
-Optional 1st argument LEN specifies the length of KEYSEQ.
-Optional 2nd argument START specifies index of the starting key.
+Optional 3rd argument LEN specifies the length of KEYSEQ.
+Optional 4th argument START specifies index of the starting key.
 The returned value is normally a nested alist of which
 car part is the entry for KEYSEQ.
 If ALIST is not deep enough for KEYSEQ, return number which is
  how many key elements at the front of KEYSEQ it takes
  to reach a leaf in ALIST.
-Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
+Optional 5th argument NIL-FOR-TOO-LONG non-nil means return nil
  even if ALIST is not deep enough."
   (or (nested-alist-p alist)
       (error "Invalid argument %s" alist))
@@ -315,9 +314,9 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 ;;;###autoload
 (defmacro with-coding-priority (coding-systems &rest body)
   "Execute BODY like `progn' with CODING-SYSTEMS at the front of priority list.
-CODING-SYSTEMS is a list of coding systems.  See
-`set-coding-priority'.  This affects the implicit sorting of lists of
-coding sysems returned by operations such as `find-coding-systems-region'."
+CODING-SYSTEMS is a list of coding systems.  See `set-coding-priority'.
+This affects the implicit sorting of lists of coding sysems returned by
+operations such as `find-coding-systems-region'."
   (let ((current (make-symbol "current")))
   `(let ((,current (coding-system-priority-list)))
      (apply #'set-coding-system-priority ,coding-systems)
@@ -335,7 +334,7 @@ coding systems ordered by priority."
   `(with-coding-priority (mapcar #'cdr ,priority-list)
      (detect-coding-region ,from ,to)))
 (make-obsolete 'detect-coding-with-priority
-	       "Use with-coding-priority and detect-coding-region" "23.1")
+	       "use `with-coding-priority' and `detect-coding-region'." "23.1")
 
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)
@@ -353,9 +352,9 @@ language environment LANG-ENV."
 (defun char-displayable-p (char)
   "Return non-nil if we should be able to display CHAR.
 On a multi-font display, the test is only whether there is an
-appropriate font from the selected frame's fontset to display CHAR's
-charset in general.  Since fonts may be specified on a per-character
-basis, this may not be accurate."
+appropriate font from the selected frame's fontset to display
+CHAR's charset in general.  Since fonts may be specified on a
+per-character basis, this may not be accurate."
   (cond ((< char 128)
 	 ;; ASCII characters are always displayable.
 	 t)
@@ -371,34 +370,34 @@ basis, this may not be accurate."
 	 ;; On a terminal, a character is displayable if the coding
 	 ;; system for the terminal can encode it.
 	 (let ((coding (terminal-coding-system)))
-	   (if coding
-	       (let ((cs-list (coding-system-get coding :charset-list)))
-		 (cond
-		  ((listp cs-list)
-		   (catch 'tag
-		     (mapc #'(lambda (charset)
-			       (if (encode-char char charset)
-				   (throw 'tag charset)))
-			   cs-list)
-		     nil))
-		  ((eq cs-list 'iso-2022)
-		   (catch 'tag2
-		     (mapc #'(lambda (charset)
-			       (if (and (plist-get (charset-plist charset)
-						   :iso-final-char)
-					(encode-char char charset))
-				   (throw 'tag2 charset)))
-			   charset-list)
-		     nil))
-		  ((eq cs-list 'emacs-mule)
-		   (catch 'tag3
-		     (mapc #'(lambda (charset)
-			       (if (and (plist-get (charset-plist charset) 
-						   :emacs-mule-id)
-					(encode-char char charset))
-				   (throw 'tag3 charset)))
-			   charset-list)
-		     nil)))))))))
+	   (when coding
+	     (let ((cs-list (coding-system-get coding :charset-list)))
+	       (cond
+		 ((listp cs-list)
+		  (catch 'tag
+		    (mapc #'(lambda (charset)
+			      (if (encode-char char charset)
+				  (throw 'tag charset)))
+			  cs-list)
+		    nil))
+		 ((eq cs-list 'iso-2022)
+		  (catch 'tag2
+		    (mapc #'(lambda (charset)
+			      (if (and (plist-get (charset-plist charset)
+						  :iso-final-char)
+				       (encode-char char charset))
+				  (throw 'tag2 charset)))
+			  charset-list)
+		    nil))
+		 ((eq cs-list 'emacs-mule)
+		  (catch 'tag3
+		    (mapc #'(lambda (charset)
+			      (if (and (plist-get (charset-plist charset)
+						  :emacs-mule-id)
+				       (encode-char char charset))
+				  (throw 'tag3 charset)))
+			  charset-list)
+		    nil)))))))))
 
 (provide 'mule-util)
 

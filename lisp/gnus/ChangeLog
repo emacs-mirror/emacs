@@ -1,3 +1,126 @@
+2008-12-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-substring-no-properties): New function.
+	(mm-read-charset, mm-subst-char-in-string, mm-replace-in-string)
+	(mm-special-display-p): Enable those lambda forms to be byte compiled.
+	(mm-string-to-multibyte): Doc fix.
+
+	* mml.el (mml-attach-file): Use mm-substring-no-properties.
+
+2008-12-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml.el (mml-attach-file): Strip text properties from file name.
+
+2008-12-16  Glenn Morris  <rgm@gnu.org>
+
+	* mm-util.el (mm-charset-override-alist): Declare for compiler.
+
+2008-12-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-generate-mime-1): Prefer the MIME charset that Emacs
+	knows since the charset specified might be a bogus alias that
+	mm-charset-synonym-alist provides.
+
+2008-12-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-util.el (mm-charset-synonym-alist): Add bogus names "UTF8" and
+	"ISO_8859-1".
+
+	* gnus-start.el (gnus-backup-startup-file): Improve doc string.
+
+2008-12-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-charset-eval-alist):
+	Define it before mm-charset-to-coding-system.
+	(mm-charset-to-coding-system): Add optional argument `silent';
+	define it before mm-charset-override-alist.
+	(mm-charset-override-alist): Add `(gb2312 . gbk)' to the
+	default value if it can be used in Emacs currently running;
+	silence mm-charset-to-coding-system.
+
+2008-12-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-charset-to-coding-system): Add new argument
+	`allow-override' which says whether to use `mm-charset-override-alist'.
+	(rfc2047-decode-encoded-words): Use it.
+
+	* mm-util.el (mm-charset-override-alist): Fix custom type;
+	add `(gb2312 . gbk)' to choices.
+
+2008-12-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-inline-text-html-render-with-w3m): Make it simple and
+	fast.
+
+	* gnus-art.el (gnus-article-wash-html-with-w3m): Ditto.
+
+2008-12-04  Naohiro Aota  <nao.aota@gmail.com>
+
+	* mm-view.el (mm-inline-text-html-render-with-w3m): Put special keymap
+	on links.
+
+	* gnus-art.el (gnus-article-wash-html-with-w3m): Ditto.
+
+2008-12-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-idna-to-ascii-rhs-1): Protect against local
+	users' addresses that don't have domain parts.
+	(message-idna-to-ascii-rhs): Use message-narrow-to-headers-or-head
+	rather than message-narrow-to-head since there will be the message
+	header separator.
+
+2008-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnimap.el (nnimap-retrieve-headers-progress): Don't use nnimap-demule
+	since the result is inserted in a unibyte buffer anyway.
+	(nnimap-demule-use-string-to-multibyte): Remove.
+	(nnimap-demule): Alias it to mm-string-to-multibyte.
+
+2008-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnimap.el (nnimap-demule-use-string-to-multibyte): New temporary
+	variable for debugging bug#464 and bug#1174.
+	(nnimap-demule): Use it.
+
+2008-11-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-score.el (gnus-score-find-trace): Handle default score in total
+	score calculation correctly.
+
+2008-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-send-mail): Just set the buffer to unibyte
+	rather than use mm-with-unibyte-current-buffer which does a lot more.
+	(message-send-mail-partially): Don't bother with
+	mm-with-unibyte-current-buffer since it's already been made unibyte by
+	message-send-mail.
+
+2008-11-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnrss.el (nnrss-make-hash-index): Debug message of full item.
+
+2008-11-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* netrc.el (netrc-parse): If a list is passed in as FILE, return it.
+
+2008-11-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* starttls.el (starttls-any-program-available): Rewritten so it doesn't
+	require itself and to remove `with-no-warnings'.
+
+2008-11-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* starttls.el (starttls-any-program-available): Get the name of the
+	available TLS layer program.
+	(starttls-open-steam-gnutls, starttls-open-stream): Put port number as
+	well as the host name in the "opening" message.
+
+	* auth-source.el (auth-source-cache, auth-source-do-cache)
+	(auth-source-user-or-password): Cache passwords and logins by default,
+	allow override with `auth-source-do-cache'.
+	(auth-source-forget-user-or-password): Allow users to remove cache
+	entries if needed.
+
 2008-10-31  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* ietf-drums.el (ietf-drums-remove-comments): Localize second
@@ -721,7 +844,7 @@
 	gnus-group-read-ephemeral-gmane-group.
 	(gnus-read-ephemeral-gmane-group-url): Rename from
 	gnus-group-read-ephemeral-gmane-group-url.
-	(gnus-bug-group-download-format-alist):  New variable.
+	(gnus-bug-group-download-format-alist): New variable.
 	(gnus-read-ephemeral-bug-group, gnus-read-ephemeral-debian-bug-group)
 	(gnus-read-ephemeral-emacs-bug-group): New commands.
 
@@ -1469,7 +1592,7 @@
 	* gnus-uu.el (gnus-uu-yenc-article): Use insert-buffer-substring.
 
 	* gnus-art.el, gnus-spec.el, gnus-sum.el, gnus-util.el:
-	* message.el, mm-view.el, sieve-manage, smime.el:
+	* message.el, mm-view.el, sieve-manage.el, smime.el:
 	Add declare-function compatibility definition.
 
 	* gnus-art.el (w3-region, w3m-region, Info-menu):
@@ -1509,7 +1632,7 @@
 	group names with backslashes.  Reported by Tassilo Horn
 	<tassilo@member.fsf.org>.
 
-2007-12-06  D. Goel  <deego3@gmail.com>
+2007-12-06  Deepak Goel  <deego3@gmail.com>
 
 	* gnus-art.el (article-make-date-line):
 	* gnus-start.el (gnus-load):
@@ -1841,7 +1964,7 @@
 	(latin-unity-ucs-list):
 	* mm-bodies.el (mm-uu-yenc-decode-function, mm-uu-decode-function)
 	(mm-uu-binhex-decode-function):
-	* message.el (gnus-message-group-art, gnus-list-identifiers, )
+	* message.el (gnus-message-group-art, gnus-list-identifiers)
 	(rmail-enable-mime-composing, gnus-local-organization)
 	(gnus-post-method, gnus-select-method, gnus-active-hashtb)
 	(gnus-read-active-file, facemenu-add-face-function)
@@ -2185,7 +2308,7 @@
 	* mm-util.el (mm-charset-synonym-alist): Alias gbk to cp936.
 	Fix comment about "iso8859-1".
 
-2007-10-08   Daiki Ueno  <ueno@unixuser.org>
+2007-10-08  Daiki Ueno  <ueno@unixuser.org>
 
 	* mm-decode.el (mm-possibly-verify-or-decrypt): Replace PARTS with the
 	ones returned from the verify-function.
@@ -2454,7 +2577,7 @@
 	* gnus-sum.el (gnus-select-newsgroup): Decode group name in error msg.
 	(gnus-read-move-group-name): Decode group name for completion.
 
-2007-07-31  Ted Zlatanov  <tzz@lifelogs.com>
+2007-07-31  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-srvr.el (gnus-server-close-all-servers): Close servers not only
 	in gnus-inserted-opened-servers but also in gnus-server-alist (Katsumi
@@ -8042,7 +8165,7 @@
 
 	* gnus-art.el (gnus-article-read-summary-keys): Fix misplaced parens.
 
-2005-04-06  D Goel  <deego@gnufans.org>
+2005-04-06  Deepak Goel  <deego@gnufans.org>
 
 	* spam-stat.el (spam-stat-score-buffer): Add a call to a
 	user-function allow user modifications of the scores.
@@ -9172,7 +9295,7 @@
 	(gnus-summary-display-while-building): Add :version.
 
 	* gnus-start.el (gnus-subscribe-newsgroup-hooks)
-	(gnus-get-top-new-news-hook):Add :version.
+	(gnus-get-top-new-news-hook): Add :version.
 
 	* gnus-srvr.el (gnus-server-agent-face, gnus-server-opened-face)
 	(gnus-server-closed-face, gnus-server-denied-face): Add :version.
@@ -9330,7 +9453,7 @@
 
 	* spam.el (spam-backend-article-list-property)
 	(spam-backend-get-article-todo-list)
-	(spam-backend-put-article-todo-list, )
+	(spam-backend-put-article-todo-list)
 	(spam-summary-prepare-exit, spam-resolve-registrations-routine):
 	Resolve registrations separately.
 	(spam-register-routine): Format comments.

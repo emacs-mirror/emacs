@@ -48,7 +48,7 @@ Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.2 or
+under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with the
 Invariant Sections being ``GNU General Public License,'' with the
 Front-Cover texts being ``A GNU Manual,'' and with the Back-Cover
@@ -915,9 +915,11 @@ Windows
 * Displaying Buffers::      Higher-level functions for displaying a buffer
                               and choosing a window for it.
 * Choosing Window::	    How to choose a window for displaying a buffer.
+* Dedicated Windows::	    How to avoid displaying another buffer in
+                              a specific window.          
 * Window Point::            Each window has its own location of point.
-* Window Start::            The display-start position controls which text
-                              is on-screen in the window.
+* Window Start and End::    Buffer positions indicating which text is
+                              on-screen in a window.
 * Textual Scrolling::       Moving text up and down through the window.
 * Vertical Scrolling::      Moving the contents up and down on the window.
 * Horizontal Scrolling::    Moving the contents sideways on the window.
@@ -926,6 +928,7 @@ Windows
 * Coordinates and Windows:: Converting coordinates to windows.
 * Window Tree::             The layout and sizes of all windows in a frame.
 * Window Configurations::   Saving and restoring the state of the screen.
+* Window Parameters::       Associating additional information with windows.
 * Window Hooks::            Hooks for scrolling, window size changes,
                               redisplay going past a certain point,
                               or window configuration changes.
@@ -1085,10 +1088,10 @@ Non-ASCII Characters
 * Selecting a Representation::  Treating a byte sequence as unibyte or multi.
 * Character Codes::         How unibyte and multibyte relate to
                                 codes of individual characters.
+* Character Properties::    Character attributes that define their
+                                behavior and handling.
 * Character Sets::          The space of possible character codes
                                 is divided into various character sets.
-* Chars and Bytes::         More information about multibyte encodings.
-* Splitting Characters::    Converting a character to its byte sequence.
 * Scanning Charsets::       Which character sets are used in a buffer?
 * Translation of Characters::   Translation tables are used for conversion.
 * Coding Systems::          Coding systems are conversions for saving files.

@@ -150,7 +150,7 @@
   :group 'mouse)
 
 (defcustom mouse-sel-leave-point-near-mouse t
-  "*Leave point near last mouse position.
+  "Leave point near last mouse position.
 If non-nil, \\[mouse-select] and \\[mouse-extend] will leave point at the end
 of the region nearest to where the mouse last was.
 If nil, point will always be placed at the beginning of the region."
@@ -158,12 +158,12 @@ If nil, point will always be placed at the beginning of the region."
   :group 'mouse-sel)
 
 (defcustom mouse-sel-cycle-clicks t
-  "*If non-nil, \\[mouse-select] cycles the click-counts after 4 clicks."
+  "If non-nil, \\[mouse-select] cycles the click-counts after 4 clicks."
   :type 'boolean
   :group 'mouse-sel)
 
 (defcustom mouse-sel-default-bindings t
-  "*Control mouse bindings."
+  "Control mouse bindings."
   :type '(choice (const :tag "none" nil)
 		 (const :tag "cut and paste" interprogram-cut-paste)
 		 (other :tag "default bindings" t))

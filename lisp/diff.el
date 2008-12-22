@@ -35,13 +35,13 @@
 
 ;;;###autoload
 (defcustom diff-switches "-c"
-  "*A string or list of strings specifying switches to be passed to diff."
+  "A string or list of strings specifying switches to be passed to diff."
   :type '(choice string (repeat string))
   :group 'diff)
 
 ;;;###autoload
 (defcustom diff-command "diff"
-  "*The command to use to run diff."
+  "The command to use to run diff."
   :type 'string
   :group 'diff)
 
@@ -68,7 +68,9 @@ were found."
     (goto-char (point-max))
     (let ((inhibit-read-only t))
       (insert (format "\nDiff finished%s.  %s\n"
-		      (if (equal 0 code) " (no differences)" "")
+		      (cond ((equal 0 code) " (no differences)")
+			    ((equal 2 code) " (diff error)")
+			    (t ""))
 		      (current-time-string))))))
 
 (defvar diff-old-file nil)

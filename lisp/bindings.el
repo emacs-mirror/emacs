@@ -146,7 +146,7 @@ corresponding to the mode line clicked."
 (defun mode-line-eol-desc ()
   (let* ((eol (coding-system-eol-type buffer-file-coding-system))
 	 (mnemonic (coding-system-eol-type-mnemonic buffer-file-coding-system))
-	 (desc (assq eol mode-line-eol-desc-cache)))
+	 (desc (assoc eol mode-line-eol-desc-cache)))
     (if (and desc (eq (cadr desc) mnemonic))
 	(cddr desc)
       (if desc (setq mode-line-eol-desc-cache nil)) ;Flush the cache if stale.

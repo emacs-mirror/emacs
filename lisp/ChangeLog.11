@@ -64,7 +64,7 @@
 
 2004-12-31  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el	(buffer-file-coding-system-explicit):
+	* international/mule.el (buffer-file-coding-system-explicit):
 	Rename for explicit-buffer-file-coding-system.
 	(after-insert-file-set-coding): Adjust for the above change.
 
@@ -1259,7 +1259,7 @@
 	(math-exp-old-pos): Declare them.
 
 	* calc/calc-vec.el (math-exp-pos, math-exp-str, math-exp-old-pos)
-	(math-exp-token, math-exp-keep-spaces, math-expr-data):	Declare them.
+	(math-exp-token, math-exp-keep-spaces, math-expr-data): Declare them.
 
 2004-11-27  Kim F. Storm  <storm@cua.dk>
 
@@ -1479,7 +1479,7 @@
 2004-11-25  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/flymake.el: Reindent.
-	(flymake-split-string):	Turn into defalias.
+	(flymake-split-string): Turn into defalias.
 	(flymake-fix-file-name): Rename from flymake-fix-path-name.
 	(flymake-ensure-ends-with-slash): Rename arg to FILENAME.
 	(flymake-get-common-file-prefix): Rename from ...path...  Doc fix.
@@ -1710,7 +1710,7 @@
 	declared variables.
 	(math-comp-simplify, math-comp-simplify-term)
 	(math-comp-add-string, math-comp-add-string-sel):
-	Replace	variables comp-highlight, comp-buf, comp-base,
+	Replace variables comp-highlight, comp-buf, comp-base,
 	comp-height, comp-tag, comp-hpos and comp-vpos by declared variables.
 
 2004-11-23  Jan Djärv  <jan.h.d@swipnet.se>
@@ -4906,7 +4906,7 @@
 	(tex-start-shell): Use `set-process-query-on-exit-flag'.
 
 	* ielm.el (ielm-tab, ielm-complete-symbol): Doc fix.
-	(inferior-emacs-lisp-mode): Use	`set-process-query-on-exit-flag'.
+	(inferior-emacs-lisp-mode): Use `set-process-query-on-exit-flag'.
 
 2004-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -4984,7 +4984,7 @@
 2004-08-21  John Paul Wallington  <jpw@gnu.org>
 
 	* subr.el (process-kill-without-query): Made obsolete in
-	version	21.4, not 21.5.
+	version 21.4, not 21.5.
 
 	* log-edit.el (vc-comment-ring, vc-comment-ring-index)
 	(vc-previous-comment, vc-next-comment)
@@ -8076,7 +8076,7 @@
 	* dired.el (dired-mode): Rename desktop-buffer-misc-data-function
 	to desktop-save-buffer.
 
-	* info.el (Info-mode): Rename desktop-buffer-misc-data-function	to
+	* info.el (Info-mode): Rename desktop-buffer-misc-data-function to
 	desktop-save-buffer.
 
 	* mail/rmail.el (rmail-variables): Bind desktop-save-buffer to t.
@@ -10455,7 +10455,7 @@
 2004-02-16  Eli Tziperman  <eli@deas.harvard.edu>
 
 	* rmail-spam-filter.el (vm-use-spam-filter)
-	(rsf-min-region-length-added-to-spam-list): New	variables.
+	(rsf-min-region-length-added-to-spam-list): New variables.
 	(rsf-bbdb-auto-delete-spam-bbdb-entries): Rename from
 	rmail-bbdb-auto-delete-spam-entries.  Add cc: to recipients for
 	spam testing.  Don't delete spam message if automatic deletion
@@ -11197,7 +11197,7 @@
 	(appt-activate): New autoloaded function to toggle package
 	functionality.
 
-	* calendar/cal-x.el: (calendar-one-frame-setup)
+	* calendar/cal-x.el (calendar-one-frame-setup)
 	(calendar-only-one-frame-setup, calendar-two-frame-setup): Doc change.
 
 	* calendar/calendar.el: Update copyright.
@@ -11325,7 +11325,7 @@
 2004-01-03  Jesper Harder  <harder@ifa.au.dk>
 
 	* progmodes/idlwave.el (idlwave-make-tags):
-	* textmodes/flyspell.el (flyspell-large-region):.
+	* textmodes/flyspell.el (flyspell-large-region):
 	* progmodes/make-mode.el (makefile-query-by-make-minus-q):
 	* emulation/viper-util.el (viper-glob-unix-files):
 	* emacs-lisp/shadow.el (shadow-same-file-or-nonexistent):
@@ -12334,7 +12334,7 @@
 2003-10-20  John Paul Wallington  <jpw@gnu.org>
 
 	* emacs-lisp/elint.el (elint-check-defcustom-form): Don't use
-	`evenp'	so we don't implicitly require cl library at runtime.
+	`evenp' so we don't implicitly require cl library at runtime.
 
 2003-10-18  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -12898,7 +12898,7 @@
 
 2003-09-15  David Ponce  <david@dponce.com>
 
-	* recentf.el: (recentf-exclude): Accept predicates too.
+	* recentf.el (recentf-exclude): Accept predicates too.
 	(recentf-file-readable-p): New function.
 	(recentf-include-p): Handle predicates in recentf-exclude.
 	(recentf-add-file): Doc fix.  Use recentf-file-readable-p.

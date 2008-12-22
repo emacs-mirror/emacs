@@ -45,37 +45,36 @@
 ;;   :group 'vc)
 
 (defcustom vc-sccs-register-switches nil
-  "*Extra switches for registering a file in SCCS.
+  "Switches for registering a file in SCCS.
 A string or list of strings passed to the checkin program by
-\\[vc-sccs-register]."
-  :type '(choice (const :tag "None" nil)
+\\[vc-register].  If nil, use the value of `vc-register-switches'.
+If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
   :group 'vc)
 
 (defcustom vc-sccs-diff-switches nil
-  "*A string or list of strings specifying extra switches for `vcdiff',
-the diff utility used for SCCS under VC."
-    :type '(choice (const :tag "None" nil)
+  "String or list of strings specifying switches for SCCS diff under VC.
+If nil, use the value of `vc-diff-switches'.  If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
   :group 'vc)
 
 (defcustom vc-sccs-header (or (cdr (assoc 'SCCS vc-header-alist)) '("%W%"))
-  "*Header keywords to be inserted by `vc-insert-headers'."
+  "Header keywords to be inserted by `vc-insert-headers'."
   :type '(repeat string)
   :group 'vc)
 
 ;;;###autoload
 (defcustom vc-sccs-master-templates
   '("%sSCCS/s.%s" "%ss.%s" vc-sccs-search-project-dir)
-  "*Where to look for SCCS master files.
+  "Where to look for SCCS master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard SCCS file names"
 			("%sSCCS/s.%s" "%ss.%s" vc-sccs-search-project-dir))
@@ -203,9 +202,8 @@ For a description of possible values, see `vc-check-master-templates'."
   "Register FILES into the SCCS version-control system.
 REV is the optional revision number for the file.  COMMENT can be used
 to provide an initial description of FILES.
-
-`vc-register-switches' and `vc-sccs-register-switches' are passed to
-the SCCS command (in that order).
+Passes either `vc-sccs-register-switches' or `vc-register-switches'
+to the SCCS command.
 
 Automatically retrieve a read-only version of the files with keywords
 expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."

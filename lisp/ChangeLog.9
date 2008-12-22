@@ -1173,8 +1173,7 @@
 	that reads a character and uses the current input method or
 	iso-accents when appropriate.
 
-	* viper.el and all others: Corrections to the comment blocks at
-	the top.
+	* viper*.el: Corrections to the comment blocks at the top.
 
 2001-09-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -4872,7 +4871,7 @@
 
 	* ediff.el: Date of last update, copyright years.
 
-	* ediff-wind (ediff-setup-control-frame): Nill->nil.
+	* ediff-wind.el (ediff-setup-control-frame): Nill->nil.
 
 	* viper-ex.el (ex-token-list,ex-cmd-execute): Revamped, courtesy
 	of Scott Bronson.
@@ -5815,7 +5814,7 @@
 	(vc-version-diff): Use it.
 	(vc-diff-switches-list): New macro.
 
-	* vc-{rcs,cvs,sccs}.el: (vc-BACKEND-diff-switches):
+	* vc-rcs.el, vc-cvs.el, vc-sccs.el (vc-BACKEND-diff-switches):
 	New customization options.
 	(vc-BACKEND-diff): Use new options via vc-diff-switches-list.
 
@@ -8577,7 +8576,7 @@
 	* vc.el: Updated backend documentation.
 	(vc-default-check-headers): New function.
 
-	* vc-{cvs,rcs,sccs}.el: Functions reordered.
+	* vc-cvs.el, vc-rcs.el, vc-sccs.el: Functions reordered.
 
 	* vc.el (vc-revert-buffer): Ask for confirmation if file seems
 	up-to-date.
@@ -12749,7 +12748,7 @@
 	(vc-retrieve-snapshot): Allow the command to operate on any
 	directory.
 
-	* vc-{rcs,sccs,cvs}.el: Update calls to vc-do-command by either
+	* vc-rcs.el, vc-sccs.el, vc-cvs.el: Update calls to vc-do-command by either
 	just removing the 'WORKFILE argument or by removing the 'MASTER
 	argument and replacing `file' with (vc-name file).
 
@@ -12999,7 +12998,7 @@
 	`vc-locking-user' semantics.
 	(vc-backend-merge): Remove.
 
-	* vc-{sc,r}cs.el (vc-{sc,r}cs-check{in,out}): Update 'vc-state
+	* vc-rcs.el, vc-scc.el: (vc-{sc,r}cs-check{in,out}): Update 'vc-state
 	rather than 'vc-locking-user.
 
 	* vc-rcs-hooks.el (vc-rcs-consult-headers): Adapt to new `vc-state'.

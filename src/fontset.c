@@ -352,9 +352,8 @@ fontset_add (fontset, range, elt, add)
       int from1, to1;
 
       do {
+	from1 = from, to1 = to;
 	args[idx] = char_table_ref_and_range (fontset, from, &from1, &to1);
-	if (to < to1)
-	  to1 = to;
 	char_table_set_range (fontset, from, to1,
 			      NILP (args[idx]) ? args[1 - idx]
 			      : Fvconcat (2, args));
@@ -460,7 +459,7 @@ fontset_get_font_group (Lisp_Object fontset, int c)
 {
   Lisp_Object font_group;
   Lisp_Object base_fontset;
-  int from, to, i;
+  int from = 0, to = MAX_CHAR, i;
 
   xassert (! BASE_FONTSET_P (fontset));
   if (c >= 0)
@@ -895,9 +894,7 @@ face_for_char (f, face, c, pos, object)
   else
     {
       charset = Fget_char_property (make_number (pos), Qcharset, object);
-      if (NILP (charset))
-	id = -1;
-      else if (CHARSETP (charset))
+      if (CHARSETP (charset))
 	{
 	  Lisp_Object val;
 
@@ -906,6 +903,8 @@ face_for_char (f, face, c, pos, object)
 	    charset = XCDR (val);
 	  id = XINT (CHARSET_SYMBOL_ID (charset));
 	}
+      else
+	id = -1;
     }
 
   font_deferred_log ("font for", Fcons (make_number (c), charset), Qnil);
@@ -967,9 +966,7 @@ font_for_char (face, c, pos, object)
   else
     {
       charset = Fget_char_property (make_number (pos), Qcharset, object);
-      if (NILP (charset))
-	id = -1;
-      else if (CHARSETP (charset))
+      if (CHARSETP (charset))
 	{
 	  Lisp_Object val;
 
@@ -978,6 +975,8 @@ font_for_char (face, c, pos, object)
 	    charset = XCDR (val);
 	  id = XINT (CHARSET_SYMBOL_ID (charset));
 	}
+      else
+	id = -1;
     }
 
   font_deferred_log ("font for", Fcons (make_number (c), charset), Qnil);
@@ -1857,13 +1856,11 @@ fontset.  The format is the same as above.  */)
     {
       for (c = 0; c <= MAX_CHAR; )
 	{
-	  int from, to;
+	  int from = c, to = MAX_5_BYTE_CHAR;
 
 	  if (c <= MAX_5_BYTE_CHAR)
 	    {
 	      val = char_table_ref_and_range (fontsets[k], c, &from, &to);
-	      if (to > MAX_5_BYTE_CHAR)
-		to = MAX_5_BYTE_CHAR;
 	    }
 	  else
 	    {

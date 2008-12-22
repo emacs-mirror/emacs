@@ -33,6 +33,19 @@
 ;;
 ;; Wishlist
 ;; - tree view like pstree(1)
+;;
+;; Thoughts and Ideas
+;; - Currently, `system-process-attributes' returns the list of
+;;   command-line arguments of a process as one concatenated string.
+;;   This format is compatible with `shell-command'.  Also, under
+;;   MS-Windows, the command-line arguments are actually stored as a
+;;   single string, so that it is impossible to reverse-engineer it back
+;;   into separate arguments.  Alternatively, `system-process-attributes'
+;;   could (try to) return a list of strings that correspond to individual
+;;   command-line arguments.  Then one could feed such a list of
+;;   command-line arguments into `call-process' or `start-process'.
+;;   Are there real-world applications when such a feature would be useful?
+;;   What about something like `proced-restart-pid'?
 
 ;;; Code:
 
@@ -91,7 +104,9 @@ the external command (usually \"kill\")."
     (group   "GROUP"   nil left proced-string-lessp nil (group user pid) (nil t nil))
     (comm    "COMMAND" nil left proced-string-lessp nil (comm pid) (nil t nil))
     (state   "STAT"    nil left proced-string-lessp nil (state pid) (nil t nil))
-    (ppid    "PPID"    "%d" right proced-< nil (ppid pid) (nil t nil))
+    (ppid    "PPID"    "%d" right proced-< nil (ppid pid)
+             ((lambda (ppid) (proced-filter-parents proced-process-alist ppid)) .
+              "refine to process parents"))
     (pgrp    "PGRP"    "%d" right proced-< nil (pgrp euid pid) (nil t nil))
     (sess    "SESS"    "%d" right proced-< nil (sess pid) (nil t nil))
     (ttname  "TTY"     proced-format-ttname left proced-string-lessp nil (ttname pid) (nil t nil))
@@ -116,7 +131,9 @@ the external command (usually \"kill\")."
     (args    "ARGS"    proced-format-args left proced-string-lessp nil (args pid) (nil t nil))
     ;;
     ;; attributes defined by proced (see `proced-process-attributes')
-    (pid     "PID"     "%d" right proced-< nil (pid) (t t nil))
+    (pid     "PID"     "%d" right proced-< nil (pid)
+             ((lambda (ppid) (proced-filter-children proced-process-alist ppid)) .
+              "refine to process children"))
     ;; time: sum of utime and stime
     (time    "TIME"   proced-format-time right proced-time-lessp t (time pid) (nil t t))
     ;; ctime: sum of cutime and cstime
@@ -125,15 +142,15 @@ the external command (usually \"kill\")."
 
 Each element has the form
 
-  (KEY NAME FORMAT JUSTIFY PREDICATE REVERSE SORT-SCHEME REFINE-FLAGS).
+  (KEY NAME FORMAT JUSTIFY PREDICATE REVERSE SORT-SCHEME REFINER).
 
 Symbol KEY is the car of a process attribute.
 
 String NAME appears in the header line.
 
-FORMAT specifies the format for displaying the attribute values.
-It can be a string passed to `format'.  It can be a function called
-with one argument, the value of the attribute.  Nil means take as is.
+FORMAT specifies the format for displaying the attribute values.  It can
+be a string passed to `format'.  It can be a function called with one
+argument, the value of the attribute.  The value nil means take as is.
 
 If JUSTIFY is an integer, its modulus gives the width of the attribute
 values formatted with FORMAT.  If JUSTIFY is positive, NAME appears
@@ -148,8 +165,8 @@ the corresponding attribute values of two processes.  PREDICATE should
 return 'equal if P1 has same rank like P2.  Any other non-nil value says
 that P1 is \"less than\" P2, or nil if not.
 
-REVERSE is non-nil if the sort order is opposite to the order defined
-by PREDICATE.
+PREDICATE defines an ascending sort order.  REVERSE is non-nil if the sort
+order is descending.
 
 SORT-SCHEME is a list (KEY1 KEY2 ...) defining a hierarchy of rules
 for sorting the process listing.  KEY1, KEY2, ... are KEYs appearing as cars
@@ -157,14 +174,21 @@ of `proced-grammar-alist'.  First the PREDICATE of KEY1 is evaluated.
 If it yields non-equal, it defines the sort order for the corresponding
 processes.  If it evaluates to 'equal the PREDICATE of KEY2 is evaluated, etc.
 
-REFINE-FLAGS is a list (LESS-B EQUAL-B LARGER-B) used by the command
+REFINER can be a list of flags (LESS-B EQUAL-B LARGER-B) used by the command
 `proced-refine' (see there) to refine the listing based on attribute KEY.
 This command compares the value of attribute KEY of every process with
 the value of attribute KEY of the process at the position of point
 using PREDICATE.
 If PREDICATE yields non-nil, the process is accepted if LESS-B is non-nil.
 If PREDICATE yields 'equal, the process is accepted if EQUAL-B is non-nil.
-If PREDICATE yields nil, the process is accepted if LARGER-B is non-nil."
+If PREDICATE yields nil, the process is accepted if LARGER-B is non-nil.
+
+REFINER can also be a cons pair (FUNCTION . HELP-ECHO).
+FUNCTION is called with one argument, the PID of the process at the position
+of point.  The function must return a list of PIDs that is used for the refined
+listing.  HELP-ECHO is a string that is shown when mouse is over this field.
+
+If REFINER is nil no refinement is done."
   :group 'proced
   :type '(repeat (list :tag "Attribute"
                        (symbol :tag "Key")
@@ -178,12 +202,16 @@ If PREDICATE yields nil, the process is accepted if LARGER-B is non-nil."
                                (const :tag "right" right)
                                (integer :tag "width"))
                        (function :tag "Predicate")
-                       (boolean :tag "Reverse Sort Order")
+                       (boolean :tag "Descending Sort Order")
                        (repeat :tag "Sort Scheme" (symbol :tag "Key"))
-                       (list :tag "Refine Flags"
-                             (boolean :tag "Less")
-                             (boolean :tag "Equal")
-                             (boolean :tag "Larger")))))
+                       (choice :tag "Refiner"
+                               (list :tag "Refine Flags"
+                                     (boolean :tag "Less")
+                                     (boolean :tag "Equal")
+                                     (boolean :tag "Larger"))
+                               (cons (function :tag "Refinement Function")
+                                     (string :tag "Help echo"))
+                               (const :tag "None" nil)))))
 
 (defcustom proced-custom-attributes nil
   "List of functions defining custom attributes.
@@ -204,19 +232,25 @@ If the function returns nil, the value is ignored."
 ;; Sorting can also be based on attributes that are invisible in the listing.
 
 (defcustom proced-format-alist
-  '((short user pid pcpu pmem start time args)
-    (medium user pid pcpu pmem vsize rss ttname state start time args)
+  '((short user pid pcpu pmem start time (args comm))
+    (medium user pid pcpu pmem vsize rss ttname state start time (args comm))
     (long user euid group pid pri nice pcpu pmem vsize rss ttname state
-          start time args)
-    (verbose user euid group egid pid ppid pgrp sess comm pri nice pcpu pmem
+          start time (args comm))
+    (verbose user euid group egid pid ppid pgrp sess pri nice pcpu pmem
              state thcount vsize rss ttname tpgid minflt majflt cminflt cmajflt
-             start time utime stime ctime cutime cstime etime args))
+             start time utime stime ctime cutime cstime etime (args comm)))
   "Alist of formats of listing.
 The car of each element is a symbol, the name of the format.
-The cdr is a list of keys appearing in `proced-grammar-alist'."
+The cdr is a list of attribute keys appearing in `proced-grammar-alist'.
+An element of this list may also be a list of attribute keys that specifies
+alternatives.  If the first attribute is absent for a process, use the second
+one, etc."
   :group 'proced
   :type '(alist :key-type (symbol :tag "Format Name")
-                :value-type (repeat :tag "Keys" (symbol :tag ""))))
+                :value-type (repeat :tag "Keys"
+                                    (choice (symbol :tag "")
+                                            (repeat :tag "Alternative Keys"
+                                                    (symbol :tag ""))))))
 
 (defcustom proced-format 'short
   "Current format of Proced listing.
@@ -285,25 +319,34 @@ of `proced-grammar-alist'."
                  (repeat :tag "Key List" (symbol :tag "Key"))))
 (make-variable-buffer-local 'proced-format)
 
+(defcustom proced-descend t
+  "Non-nil if proced listing is sorted in descending order."
+  :group 'proced
+  :type '(boolean :tag "Descending Sort Order"))
+(make-variable-buffer-local 'proced-descend)
+
 (defcustom proced-goal-attribute 'args
   "If non-nil, key of the attribute that defines the `goal-column'."
   :group 'proced
   :type '(choice (const :tag "none" nil)
                  (symbol :tag "key")))
 
-(defcustom proced-timer-interval 5
+(defcustom proced-auto-update-interval 5
   "Time interval in seconds for auto updating Proced buffers."
   :group 'proced
   :type 'integer)
 
-(defcustom proced-timer-flag nil
+(defcustom proced-auto-update-flag nil
   "Non-nil for auto update of a Proced buffer.
-Can be changed interactively via `proced-toggle-timer-flag'."
+Can be changed interactively via `proced-toggle-auto-update'."
   :group 'proced
   :type 'boolean)
-(make-variable-buffer-local 'proced-timer-flag)
+(make-variable-buffer-local 'proced-auto-update-flag)
 
 ;; Internal variables
+
+(defvar proced-available (not (null (list-system-processes)))
+  "Non-nil means Proced is known to work on this system.")
 
 (defvar proced-process-alist nil
   "Alist of processes displayed by Proced.
@@ -312,10 +355,11 @@ cons pairs, see `proced-process-attributes'.")
 (make-variable-buffer-local 'proced-process-alist)
 
 (defvar proced-sort-internal nil
-  "Sort scheme for listing (internal format).")
+  "Sort scheme for listing (internal format).
+It is a list of lists (KEY PREDICATE REVERSE).")
 
 (defvar proced-marker-char ?*		; the answer is 42
-  "In proced, the current mark character.")
+  "In Proced, the current mark character.")
 
 ;; Faces and font-lock code taken from dired,
 ;; but face variables are deprecated for new code.
@@ -326,7 +370,7 @@ cons pairs, see `proced-process-attributes'.")
 
 (defface proced-mark
   '((t (:inherit font-lock-constant-face)))
-  "Face used for proced marks."
+  "Face used for Proced marks."
   :group 'proced-faces)
 
 (defface proced-marked
@@ -350,15 +394,15 @@ Important: the match ends just after the marker.")
 (defvar proced-process-tree nil
   "Process tree of listing (internal variable).")
 
-(defvar proced-timer nil
-  "Stores if Proced timer is already installed.")
+(defvar proced-auto-update-timer nil
+  "Stores if Proced auto update timer is already installed.")
 
 (defvar proced-log-buffer "*Proced log*"
   "Name of Proced Log buffer.")
 
 (defconst proced-help-string
   "(n)ext, (p)revious, (m)ark, (u)nmark, (k)ill, (q)uit (type ? for more help)"
-  "Help string for proced.")
+  "Help string for Proced.")
 
 (defconst proced-header-help-echo
   "mouse-1, mouse-2: sort by attribute %s%s (%s)"
@@ -426,7 +470,7 @@ Important: the match ends just after the marker.")
     (define-key km [remap undo] 'proced-undo)
     (define-key km [remap advertised-undo] 'proced-undo)
     km)
-  "Keymap for proced commands.")
+  "Keymap for Proced commands.")
 
 (easy-menu-define
   proced-menu proced-mode-map "Proced Menu"
@@ -481,9 +525,9 @@ Important: the match ends just after the marker.")
     "--"
     ["Revert" revert-buffer
      :help "Revert Process Listing"]
-    ["Auto Update" proced-toggle-timer-flag
-     :style radio
-     :selected (eval proced-timer-flag)
+    ["Auto Update" proced-toggle-auto-update
+     :style toggle
+     :selected (eval proced-auto-update-flag)
      :help "Auto Update of Proced Buffer"]
     ["Send signal" proced-send-signal
      :help "Send Signal to Marked Processes"]))
@@ -551,10 +595,7 @@ Type \\[proced-sort-interactive] or click on a header in the header line
 to change the sort scheme.  The current sort scheme is indicated in the
 mode line, using \"+\" or \"-\" for ascending or descending sort order.
 
-An existing Proced listing can be refined by typing \\[proced-refine]
-with point on the attribute of a process.  If point is on the attribute ATTR,
-this compares the value of ATTR of every process with the value of ATTR
-of the process at the position of point.  See `proced-refine' for details.
+An existing Proced listing can be refined by typing \\[proced-refine].
 Refining an existing listing does not update the variable `proced-filter'.
 
 The attribute-specific rules for formatting, filtering, sorting, and refining
@@ -570,9 +611,10 @@ are defined in `proced-grammar-alist'.
   (set (make-local-variable 'revert-buffer-function) 'proced-revert)
   (set (make-local-variable 'font-lock-defaults)
        '(proced-font-lock-keywords t nil nil beginning-of-line))
-  (if (and (not proced-timer) proced-timer-interval)
-      (setq proced-timer
-            (run-at-time t proced-timer-interval 'proced-timer))))
+  (if (and (not proced-auto-update-timer) proced-auto-update-interval)
+      (setq proced-auto-update-timer
+            (run-at-time t proced-auto-update-interval
+                         'proced-auto-update-timer))))
 
 ;; Proced mode is suitable only for specially formatted data.
 (put 'proced-mode 'mode-class 'special)
@@ -583,8 +625,10 @@ are defined in `proced-grammar-alist'.
 If invoked with optional ARG the window displaying the process
 information will be displayed but not selected.
 
-See `proced-mode' for a descreption of features available in Proced buffers."
+See `proced-mode' for a description of features available in Proced buffers."
   (interactive "P")
+  (unless proced-available
+    (error "Proced is not available on this system"))
   (let ((buffer (get-buffer-create "*Proced*")) new)
     (set-buffer buffer)
     (setq new (zerop (buffer-size)))
@@ -598,25 +642,26 @@ See `proced-mode' for a descreption of features available in Proced buffers."
        (substitute-command-keys
         "Type \\<proced-mode-map>\\[quit-window] to quit, \\[proced-help] for help")))))
 
-(defun proced-timer ()
+(defun proced-auto-update-timer ()
   "Auto-update Proced buffers using `run-at-time'."
   (dolist (buf (buffer-list))
     (with-current-buffer buf
       (if (and (eq major-mode 'proced-mode)
-               proced-timer-flag)
+               proced-auto-update-flag)
           (proced-update t t)))))
 
-(defun proced-toggle-timer-flag (arg)
+(defun proced-toggle-auto-update (arg)
   "Change whether this Proced buffer is updated automatically.
 With prefix ARG, update this buffer automatically if ARG is positive,
-otherwise do not update.  Sets the variable `proced-timer-flag'.
-The time interval for updates is specified via `proced-timer-interval'."
+otherwise do not update.  Sets the variable `proced-auto-update-flag'.
+The time interval for updates is specified via `proced-auto-update-interval'."
   (interactive (list (or current-prefix-arg 'toggle)))
-  (setq proced-timer-flag
-        (cond ((eq arg 'toggle) (not proced-timer-flag))
+  (setq proced-auto-update-flag
+        (cond ((eq arg 'toggle) (not proced-auto-update-flag))
               (arg (> (prefix-numeric-value arg) 0))
-              (t (not proced-timer-flag))))
-  (message "`proced-timer-flag' set to %s" proced-timer-flag))
+              (t (not proced-auto-update-flag))))
+  (message "Proced auto update %s"
+           (if proced-auto-update-flag "enabled" "disabled")))
 
 (defun proced-mark (&optional count)
   "Mark the current (or next COUNT) processes."
@@ -868,7 +913,7 @@ This list includes PPID unless OMIT-PPID is non-nil."
 
 (defun proced-filter-parents (process-alist pid &optional omit-pid)
   "For PROCESS-ALIST return list of parent processes of PID.
-This list includes CPID unless OMIT-CPID is non-nil."
+This list includes PID unless OMIT-PID is non-nil."
   (let ((parent-list (unless omit-pid (list (assq pid process-alist)))))
     (while (setq pid (cdr (assq 'ppid (cdr (assq pid process-alist)))))
       (push (assq pid process-alist) parent-list))
@@ -884,42 +929,53 @@ This list includes CPID unless OMIT-CPID is non-nil."
   "Refine Proced listing by comparing with the attribute value at point.
 Optional EVENT is the location of the Proced field.
 
-If point is on the attribute ATTR, this command compares the value of ATTR
-of every process with the value of ATTR of the process at the position
-of point.  One can select processes for which the value of ATTR is
-\"less than\", \"equal\", and / or \"larger\" than ATTR of the process
-point is on.
+Refinement is controlled by the REFINER defined for each attribute ATTR
+in `proced-grammar-alist'.
+
+If REFINER is a list of flags and point is on a process's value of ATTR,
+this command compares the value of ATTR of every process with the value
+of ATTR of the process at the position of point.
 
 The predicate for the comparison of two ATTR values is defined
 in `proced-grammar-alist'.  For each return value of the predicate
-a refine flag is defined in `proced-grammar-alist'.  A process is included
-in the new listing if the refine flag for the return value of the predicate
-is non-nil.
+a refine flag is defined in `proced-grammar-alist'.  One can select
+processes for which the value of ATTR is \"less than\", \"equal\",
+and / or \"larger\" than ATTR of the process point is on.  A process
+is included in the new listing if the refine flag for the corresponding
+return value of the predicate is non-nil.
 The help-echo string for `proced-refine' uses \"+\" or \"-\" to indicate
-the current values of the refine flags.
+the current values of these refine flags.
 
-This command refines an already existing process listing based initially
-on the variable `proced-filter'.  It does not change this variable.
-It does not revert the listing.  If you frequently need a certain refinement,
-consider defining a new filter in `proced-filter-alist'."
+If REFINER is a cons pair (FUNCTION . HELP-ECHO), FUNCTION is called
+with one argument, the PID of the process at the position of point.
+The function must return a list of PIDs that is used for the refined
+listing.  HELP-ECHO is a string that is shown when mouse is over this field.
+
+This command refines an already existing process listing generated initially
+based on the value of the variable `proced-filter'.  It does not change
+this variable.  It does not revert the listing.  If you frequently need
+a certain refinement, consider defining a new filter in `proced-filter-alist'."
   (interactive (list last-input-event))
   (if event (posn-set-point (event-end event)))
   (let ((key (get-text-property (point) 'proced-key))
         (pid (get-text-property (point) 'proced-pid)))
     (if (and key pid)
         (let* ((grammar (assq key proced-grammar-alist))
-               (predicate (nth 4 grammar))
-               (refiner (nth 7 grammar))
-               (ref (cdr (assq key (cdr (assq pid proced-process-alist)))))
-               val new-alist)
-          (when ref
-            (dolist (process proced-process-alist)
-              (setq val (funcall predicate (cdr (assq key (cdr process))) ref))
-              (if (cond ((not val) (nth 2 refiner))
-                        ((eq val 'equal) (nth 1 refiner))
-                        (val (car refiner)))
-                  (push process new-alist)))
-            (setq proced-process-alist new-alist)
+               (refiner (nth 7 grammar)))
+          (when refiner
+            (cond ((functionp (car refiner))
+                   (setq proced-process-alist (funcall (car refiner) pid)))
+                  ((consp refiner)
+                   (let ((predicate (nth 4 grammar))
+                         (ref (cdr (assq key (cdr (assq pid proced-process-alist)))))
+                         val new-alist)
+                     (dolist (process proced-process-alist)
+                       (setq val (funcall predicate (cdr (assq key (cdr process))) ref))
+                       (if (cond ((not val) (nth 2 refiner))
+                                 ((eq val 'equal) (nth 1 refiner))
+                                 (val (car refiner)))
+                           (push process new-alist)))
+                     (setq proced-process-alist new-alist))))
             ;; Do not revert listing.
             (proced-update)))
       (message "No refiner defined here."))))
@@ -989,8 +1045,11 @@ Return `equal' if T1 equals T2.  Return nil otherwise."
               (throw 'done (proced-xor predicate (nth 2 sorter)))))
         (eq t predicate)))))
 
-(defun proced-sort (process-alist sorter)
+(defun proced-sort (process-alist sorter descend)
   "Sort PROCESS-ALIST using scheme SORTER.
+SORTER is a scheme like `proced-sort'.
+DESCEND is non-nil if the first element of SORTER is sorted
+in descending order.
 Return the sorted process list."
   ;; translate SORTER into a list of lists (KEY PREDICATE REVERSE)
   (setq proced-sort-internal
@@ -1003,13 +1062,24 @@ Return the sorted process list."
                       ((symbolp sorter) (list sorter))
                       (t (error "Sorter undefined %s" sorter)))))
   (if proced-sort-internal
-      (sort process-alist 'proced-sort-p)
+      (progn
+        ;; splice DESCEND into the list
+        (setcar proced-sort-internal
+                (list (caar proced-sort-internal)
+                      (nth 1 (car proced-sort-internal)) descend))
+        (sort process-alist 'proced-sort-p))
     process-alist))
 
-(defun proced-sort-interactive (scheme &optional revert)
+(defun proced-sort-interactive (scheme &optional arg)
   "Sort Proced buffer using SCHEME.
 When called interactively, an empty string means nil, i.e., no sorting.
-With prefix REVERT non-nil revert listing.
+
+Prefix ARG controls sort order:
+- If prefix ARG is positive (negative), sort in ascending (descending) order.
+- If ARG is nil or 'no-arg and SCHEME is equal to the previous sorting scheme,
+  reverse the sorting order.
+- If ARG is nil or 'no-arg and SCHEME differs from the previous sorting scheme,
+  adopt the sorting order defined for SCHEME in `proced-grammar-alist'.
 
 Set variable `proced-sort' to SCHEME.  The current sort scheme is displayed
 in the mode line, using \"+\" or \"-\" for ascending or descending order."
@@ -1017,48 +1087,68 @@ in the mode line, using \"+\" or \"-\" for ascending or descending order."
    (let ((scheme (completing-read "Sort attribute: "
                                   proced-grammar-alist nil t)))
      (list (if (string= "" scheme) nil (intern scheme))
-           current-prefix-arg)))
-  ;; only update if necessary
-  (when (or (not (eq proced-sort scheme)) revert)
-    (setq proced-sort scheme)
-    (proced-update revert)))
+           ;; like 'toggle in `define-derived-mode'
+           (or current-prefix-arg 'no-arg))))
 
-(defun proced-sort-pcpu (&optional revert)
-  "Sort Proced buffer by percentage CPU time (%CPU)."
-  (interactive "P")
-  (proced-sort-interactive 'pcpu revert))
+  (setq proced-descend
+        ;; If `proced-sort-interactive' is called repeatedly for the same
+        ;; sort key, the sort order is reversed.
+        (cond ((and (eq arg 'no-arg) (equal proced-sort scheme))
+               (not proced-descend))
+              ((eq arg 'no-arg)
+               (nth 5 (assq (if (consp scheme) (car scheme) scheme)
+                            proced-grammar-alist)))
+              (arg (< (prefix-numeric-value arg) 0))
+              ((equal proced-sort scheme)
+               (not proced-descend))
+              (t (nth 5 (assq (if (consp scheme) (car scheme) scheme)
+                                   proced-grammar-alist))))
+        proced-sort scheme)
+  (proced-update))
 
-(defun proced-sort-pmem (&optional revert)
-  "Sort Proced buffer by percentage memory usage (%MEM)."
-  (interactive "P")
-  (proced-sort-interactive 'pmem))
+(defun proced-sort-pcpu (&optional arg)
+  "Sort Proced buffer by percentage CPU time (%CPU).
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list (or current-prefix-arg 'no-arg)))
+  (proced-sort-interactive 'pcpu arg))
 
-(defun proced-sort-pid (&optional revert)
-  "Sort Proced buffer by PID."
-  (interactive "P")
-  (proced-sort-interactive 'pid revert))
+(defun proced-sort-pmem (&optional arg)
+  "Sort Proced buffer by percentage memory usage (%MEM).
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list (or current-prefix-arg 'no-arg)))
+  (proced-sort-interactive 'pmem arg))
 
-(defun proced-sort-start (&optional revert)
-  "Sort Proced buffer by time the command started (START)."
-  (interactive "P")
-  (proced-sort-interactive 'start revert))
+(defun proced-sort-pid (&optional arg)
+  "Sort Proced buffer by PID.
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list (or current-prefix-arg 'no-arg)))
+  (proced-sort-interactive 'pid arg))
 
-(defun proced-sort-time (&optional revert)
-  "Sort Proced buffer by CPU time (TIME)."
-  (interactive "P")
-  (proced-sort-interactive 'time revert))
+(defun proced-sort-start (&optional arg)
+  "Sort Proced buffer by time the command started (START).
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list (or current-prefix-arg 'no-arg)))
+  (proced-sort-interactive 'start arg))
 
-(defun proced-sort-user (&optional revert)
-  "Sort Proced buffer by USER."
-  (interactive "P")
-  (proced-sort-interactive 'user revert))
+(defun proced-sort-time (&optional arg)
+  "Sort Proced buffer by CPU time (TIME).
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list (or current-prefix-arg 'no-arg)))
+  (proced-sort-interactive 'time arg))
 
-(defun proced-sort-header (event &optional revert)
+(defun proced-sort-user (&optional arg)
+  "Sort Proced buffer by USER.
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list (or current-prefix-arg 'no-arg)))
+  (proced-sort-interactive 'user arg))
+
+(defun proced-sort-header (event &optional arg)
   "Sort Proced listing based on an attribute.
 EVENT is a mouse event with starting position in the header line.
-It is converted in the corresponding attribute key.
-This command updates the variable `proced-sort'."
-  (interactive "e\nP")
+It is converted to the corresponding attribute key.
+This command updates the variable `proced-sort'.
+Prefix ARG controls sort order, see `proced-sort-interactive'."
+  (interactive (list last-input-event (or last-prefix-arg 'no-arg)))
   (let ((start (event-start event))
         col key)
     (save-selected-window
@@ -1068,13 +1158,13 @@ This command updates the variable `proced-sort'."
       (when (and (<= 0 col) (< col (length proced-header-line)))
         (setq key (get-text-property col 'proced-key proced-header-line))
         (if key
-            (proced-sort-interactive key revert)
+            (proced-sort-interactive key arg)
           (message "No sorter defined here."))))))
 
 ;;; Formating
 
 (defun proced-format-time (time)
-  "Format time intervall TIME."
+  "Format time interval TIME."
   (let* ((ftime (float-time time))
          (days (truncate ftime 86400))
          (ftime (mod ftime 86400))
@@ -1110,6 +1200,7 @@ The return string is always 6 characters wide."
   (substring ttname (if (string-match "\\`/dev/" ttname)
                         (match-end 0) 0)))
 
+;; Proced assumes that every process occupies only one line in the listing.
 (defun proced-format-args (args)
   "Format attribute ARGS.
 Replace newline characters by \"^J\" (two characters)."
@@ -1119,12 +1210,31 @@ Replace newline characters by \"^J\" (two characters)."
   "Display PROCESS-ALIST using FORMAT."
   (if (symbolp format)
       (setq format (cdr (assq format proced-format-alist))))
+
+  ;; Not all systems give us all attributes.  We take `emacs-pid' as a
+  ;; representative process PID.  If FORMAT contains a list of alternative
+  ;; attributes, we take the first attribute that is non-nil for `emacs-pid'.
+  ;; If none of the alternatives is non-nil, the attribute is ignored
+  ;; in the listing.
+  (let ((standard-attributes
+         (car (proced-process-attributes (list (emacs-pid)))))
+        new-format fmi)
+    (dolist (fmt format)
+      (if (symbolp fmt)
+          (if (assq fmt standard-attributes)
+              (push fmt new-format))
+        (while (setq fmi (pop fmt))
+          (when (assq fmi standard-attributes)
+            (push fmi new-format)
+            (setq fmt nil)))))
+    (setq format (nreverse new-format)))
+
   (insert (make-string (length process-alist) ?\n))
-  (let ((whitespace " ") header-list grammar)
+  (let ((whitespace " ") (unknown "?")
+        (sort-key (if (consp proced-sort) (car proced-sort) proced-sort))
+        header-list grammar)
     ;; Loop over all attributes
-    (while (setq grammar (pop format))
-      (if (symbolp grammar)
-          (setq grammar (assq grammar proced-grammar-alist)))
+    (while (setq grammar (assq (pop format) proced-grammar-alist))
       (let* ((key (car grammar))
              (fun (cond ((stringp (nth 2 grammar))
                          `(lambda (arg) (format ,(nth 2 grammar) arg)))
@@ -1136,21 +1246,29 @@ Replace newline characters by \"^J\" (two characters)."
              ;; field the corresponding key.
              ;; Of course, the sort predicate appearing in help-echo
              ;; is only part of the story.  But it gives the main idea.
-             (hprops `(proced-key ,key mouse-face highlight
-                                  help-echo ,(format proced-header-help-echo
-                                                     (if (nth 5 grammar) "-" "+")
-                                                     (nth 1 grammar)
-                                                     (if (nth 5 grammar) "descending" "ascending"))))
-             (fprops `(proced-key ,key mouse-face highlight
-                                  help-echo ,(format proced-field-help-echo
+             (hprops (let ((descend (if (eq key sort-key) proced-descend (nth 5 grammar))))
+                       `(proced-key ,key mouse-face highlight
+                                    help-echo ,(format proced-header-help-echo
+                                                       (if descend "-" "+")
+                                                       (nth 1 grammar)
+                                                       (if descend "descending" "ascending")))))
+             (refiner (nth 7 grammar))
+             (fprops
+              (cond ((functionp (car refiner))
+                     `(proced-key ,key mouse-face highlight
+                                  help-echo ,(format "mouse-2, RET: %s"
+                                                     (cdr refiner))))
+                    ((consp refiner)
+                     `(proced-key ,key mouse-face highlight
+                                  help-echo ,(format "mouse-2, RET: refine by attribute %s %s"
                                                      (nth 1 grammar)
                                                      (mapconcat (lambda (s)
                                                                   (if s "+" "-"))
-                                                                (nth 7 grammar) ""))))
+                                                                refiner ""))))))
              value)
 
         ;; highlight the header of the sort column
-        (if (eq key proced-sort)
+        (if (eq key sort-key)
             (setq hprops (append '(face proced-sort-header) hprops)))
         (goto-char (point-min))
         (cond ( ;; fixed width of output field
@@ -1160,7 +1278,8 @@ Replace newline characters by \"^J\" (two characters)."
                  (setq value (cdr (assq key (cdr process))))
                  (insert (if value
                              (apply 'propertize (funcall fun value) fprops)
-                           (make-string (abs (nth 3 grammar)) ?\s))
+                           (format (concat "%" (number-to-string (nth 3 grammar)) "s")
+                                   unknown))
                          whitespace)
                  (forward-line))
                (push (format (concat "%" (number-to-string (nth 3 grammar)) "s")
@@ -1172,7 +1291,8 @@ Replace newline characters by \"^J\" (two characters)."
                (dolist (process process-alist)
                  (end-of-line)
                  (setq value (cdr (assq key (cdr process))))
-                 (if value (insert (apply 'propertize (funcall fun value) fprops)))
+                 (insert (if value (apply 'propertize (funcall fun value) fprops)
+                           unknown))
                  (forward-line))
                (push (apply 'propertize (nth 1 grammar) hprops) header-list))
 
@@ -1185,7 +1305,8 @@ Replace newline characters by \"^J\" (two characters)."
                        (setq value (apply 'propertize (funcall fun value) fprops)
                              width (max width (length value))
                              field-list (cons value field-list))
-                     (push "" field-list)))
+                     (push unknown field-list)
+                     (setq width (max width (length unknown)))))
                  (let ((afmt (concat "%" (if (eq 'left (nth 3 grammar)) "-" "")
                                      (number-to-string width) "s")))
                    (push (format afmt (apply 'propertize (nth 1 grammar) hprops))
@@ -1230,31 +1351,36 @@ With prefix REVERT non-nil revert listing."
 
 ;; generate listing
 
-(defun proced-process-attributes ()
+(defun proced-process-attributes (&optional pid-list)
   "Return alist of attributes for each system process.
-This alist can be customized via `proced-custom-attributes'."
-  (mapcar (lambda (pid)
-            (let* ((attributes (system-process-attributes pid))
-                   (utime (cdr (assq 'utime attributes)))
-                   (stime (cdr (assq 'stime attributes)))
-                   (cutime (cdr (assq 'cutime attributes)))
-                   (cstime (cdr (assq 'cstime attributes)))
-                   attr)
-              (setq attributes
-                    (append (list (cons 'pid pid))
-                            (if (and utime stime)
-                                (list (cons 'time (time-add utime stime))))
-                            (if (and cutime cstime)
-                                (list (cons 'ctime (time-add cutime cstime))))
-                            attributes))
-              (dolist (fun proced-custom-attributes)
-                (if (setq attr (funcall fun attributes))
-                    (push attr attributes)))
-              (cons pid attributes)))
-          (list-system-processes)))
+This alist can be customized via `proced-custom-attributes'.
+Optional arg PID-LIST is a list of PIDs of system process that are analyzed.
+If no attributes are known for a process (possibly because it already died)
+the process is ignored."
+  ;; Should we make it customizable whether processes with empty attribute
+  ;; lists are ignored?  When would such processes be of interest?
+  (let (process-alist attributes)
+    (dolist (pid (or pid-list (list-system-processes)) process-alist)
+      (when (setq attributes (system-process-attributes pid))
+        (let ((utime (cdr (assq 'utime attributes)))
+              (stime (cdr (assq 'stime attributes)))
+              (cutime (cdr (assq 'cutime attributes)))
+              (cstime (cdr (assq 'cstime attributes)))
+              attr)
+          (setq attributes
+                (append (list (cons 'pid pid))
+                        (if (and utime stime)
+                            (list (cons 'time (time-add utime stime))))
+                        (if (and cutime cstime)
+                            (list (cons 'ctime (time-add cutime cstime))))
+                        attributes))
+          (dolist (fun proced-custom-attributes)
+            (if (setq attr (funcall fun attributes))
+                (push attr attributes)))
+          (push (cons pid attributes) process-alist))))))
 
 (defun proced-update (&optional revert quiet)
-  "Update the `proced' process information.  Preserves point and marks.
+  "Update the Proced process information.  Preserves point and marks.
 With prefix REVERT non-nil, revert listing.
 Suppress status information if QUIET is nil."
   ;; This is the main function that generates and updates the process listing.
@@ -1266,8 +1392,8 @@ Suppress status information if QUIET is nil."
       (setq proced-process-alist (proced-process-attributes)))
   ;; filtering and sorting
   (setq proced-process-alist
-        (proced-sort (proced-filter proced-process-alist
-                                    proced-filter) proced-sort))
+        (proced-sort (proced-filter proced-process-alist proced-filter)
+                     proced-sort proced-descend))
 
   ;; It is useless to keep undo information if we revert, filter, or
   ;; refine the listing so that `proced-process-alist' has changed.
@@ -1361,10 +1487,10 @@ Suppress status information if QUIET is nil."
                       (concat ": " (symbol-name proced-filter))
                     "")
                   (if proced-sort
-                      (let* ((key (if (listp proced-sort) (car proced-sort)
+                      (let* ((key (if (consp proced-sort) (car proced-sort)
                                     proced-sort))
                              (grammar (assq key proced-grammar-alist)))
-                        (concat " by " (if (nth 5 grammar) "-" "+")
+                        (concat " by " (if proced-descend "-" "+")
                                 (nth 1 grammar)))
                     "")))
     (force-mode-line-update)
@@ -1374,7 +1500,8 @@ Suppress status information if QUIET is nil."
                    "Updating process display...done.")))))
 
 (defun proced-revert (&rest args)
-  "Analog of `revert-buffer'."
+  "Reevaluate the process listing based on the currently running processes.
+Preserves point and marks."
   (proced-update t))
 
 ;; I do not want to reinvent the wheel.  Should we rename `dired-pop-to-buffer'
@@ -1543,7 +1670,7 @@ STRING is an overall summary of the failures."
   (proced-log t signal))
 
 (defun proced-help ()
-  "Provide help for the `proced' user."
+  "Provide help for the Proced user."
   (interactive)
   (proced-why)
   (if (eq last-command 'proced-help)
@@ -1551,8 +1678,8 @@ STRING is an overall summary of the failures."
     (message proced-help-string)))
 
 (defun proced-undo ()
-  "Undo in a proced buffer.
-This doesn't recover killed processes, it just undoes changes in the proced
+  "Undo in a Proced buffer.
+This doesn't recover killed processes, it just undoes changes in the Proced
 buffer.  You can use it to recover marks."
   (interactive)
   (let (buffer-read-only)

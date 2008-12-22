@@ -619,14 +619,21 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
 
     (easy-menu-define fortran-menu map "Menu for Fortran mode."
       `("Fortran"
-        ["Manual" (info "(emacs)Fortran")]
+        ["Manual" (info "(emacs)Fortran") :active t
+         :help "Read the Emacs manual chapter on Fortran mode"]
         ("Customization"
          ,(custom-menu-create 'fortran)
-         ["Set"  Custom-set t]
-         ["Save" Custom-save t]
-         ["Reset to Current" Custom-reset-current t]
-         ["Reset to Saved"   Custom-reset-saved t]
-         ["Reset to Standard Settings" Custom-reset-standard t]
+         ;; FIXME useless?
+         ["Set"  Custom-set :active t
+          :help "Set current value of all edited settings in the buffer"]
+         ["Save" Custom-save :active t
+          :help "Set and save all edited settings"]
+         ["Reset to Current" Custom-reset-current :active t
+          :help "Reset all edited settings to current"]
+         ["Reset to Saved" Custom-reset-saved :active t
+          :help "Reset all edited or set settings to saved"]
+         ["Reset to Standard Settings" Custom-reset-standard :active t
+          :help "Erase all cusomizations in buffer"]
          )
         "--"
         ["Comment Region" fortran-comment-region mark-active]
@@ -636,9 +643,12 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
         ["Indent Region"     indent-region mark-active]
         ["Indent Subprogram" fortran-indent-subprogram t]
         "--"
-        ["Beginning of Subprogram" fortran-beginning-of-subprogram t]
-        ["End of Subprogram"       fortran-end-of-subprogram       t]
+        ["Beginning of Subprogram" fortran-beginning-of-subprogram :active t
+         :help "Move point to the start of the current subprogram"]
+        ["End of Subprogram" fortran-end-of-subprogram :active t
+         :help "Move point to the end of the current subprogram"]
         ("Mark"
+         :help "Mark a region of code"
          ["Subprogram" mark-defun      t]
          ["IF Block"   fortran-mark-if t]
          ["DO Block"   fortran-mark-do t]
@@ -646,26 +656,34 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
         ["Narrow to Subprogram" narrow-to-defun t]
         ["Widen" widen t]
         "--"
-        ["Temporary column ruler" fortran-column-ruler  t]
+        ["Temporary Column Ruler" fortran-column-ruler :active t
+         :help "Briefly display Fortran column numbers"]
         ;; May not be '72', depending on fortran-line-length, but this
         ;; seems ok for a menu item.
-        ["72-column window"       fortran-window-create t]
+        ["72-column Window" fortran-window-create :active t
+         :help "Set window width to Fortran line length"]
         ["Full Width Window"
          (enlarge-window-horizontally (- (frame-width) (window-width)))
-         (not (window-full-width-p))]
-        ["Momentary 72-column window" fortran-window-create-momentarily t]
+         :active (not (window-full-width-p))
+         :help "Make window full width"]
+        ["Momentary 72-Column Window" fortran-window-create-momentarily
+         :active t :help "Briefly set window width to Fortran line length"]
         "--"
-        ["Break Line at Point"    fortran-split-line t]
-        ["Join Line"              fortran-join-line  t]
-        ["Fill Statement/Comment" fill-paragraph     t]
+        ["Break Line at Point" fortran-split-line :active t
+         :help "Break the current line at point"]
+        ["Join Line" fortran-join-line :active t
+         :help "Join the current line to the previous one"]
+        ["Fill Statement/Comment" fill-paragraph t]
         "--"
-        ["Toggle auto-fill"   auto-fill-mode :selected auto-fill-function
-         :style toggle]
-        ["Toggle abbrev-mode" abbrev-mode    :selected abbrev-mode
-         :style toggle]
-        ["Add imenu Menu" imenu-add-menubar-index
+        ["Toggle Auto Fill" auto-fill-mode :selected auto-fill-function
+         :style toggle
+         :help "Automatically fill text while typing in this buffer"]
+        ["Toggle Abbrev Mode" abbrev-mode :selected abbrev-mode
+         :style toggle :help "Expand abbreviations while typing in this buffer"]
+        ["Add Imenu Menu" imenu-add-menubar-index
          :active   (not (lookup-key (current-local-map) [menu-bar index]))
-         :included (fboundp 'imenu-add-to-menubar)]))
+         :included (fboundp 'imenu-add-to-menubar)
+         :help "Add an index menu to the menu-bar"]))
     map)
   "Keymap used in Fortran mode.")
 

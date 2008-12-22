@@ -1333,6 +1333,8 @@ go back to their previous definitions, or lack thereof).
 		 (and (get (car x) 'byte-compile)
 		      (error "Byte-compiling a redefinition of `%s' \
 will not work - use `labels' instead" (symbol-name (car x))))
+		 ;; FIXME This affects the rest of the file, when it
+		 ;; should be restricted to the flet body.
 		 (and (boundp 'byte-compile-function-environment)
 		      (push (cons (car x) (eval func))
 			    byte-compile-function-environment)))

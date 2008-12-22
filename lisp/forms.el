@@ -319,7 +319,7 @@
 ;;; Optional variables with default values.
 
 (defcustom forms-check-number-of-fields t
-  "*If non-nil, warn about records with wrong number of fields."
+  "If non-nil, warn about records with wrong number of fields."
   :group 'forms
   :type 'boolean)
 
@@ -334,13 +334,13 @@ This is set automatically if the file permissions don't let you write it.")
 If not nil: use this character to separate multi-line fields (default C-k).")
 
 (defcustom forms-forms-scroll nil
-  "*Non-nil means replace scroll-up/down commands in Forms mode.
+  "Non-nil means replace scroll-up/down commands in Forms mode.
 The replacement commands performs forms-next/prev-record."
   :group 'forms
   :type 'boolean)
 
 (defcustom forms-forms-jump nil
-  "*Non-nil means redefine beginning/end-of-buffer in Forms mode.
+  "Non-nil means redefine beginning/end-of-buffer in Forms mode.
 The replacement commands performs forms-first/last-record."
   :group 'forms
   :type 'boolean)
@@ -366,13 +366,13 @@ This variable is for use by the filter routines only.
 The contents may NOT be modified.")
 
 (defcustom forms-use-text-properties t
-  "*Non-nil means: use text properties.
+  "Non-nil means: use text properties.
 Defaults to t if this Emacs is capable of handling text properties."
   :group 'forms
   :type 'boolean)
 
 (defcustom forms-insert-after nil
-  "*Non-nil means: inserts of new records go after current record.
+  "Non-nil means: inserts of new records go after current record.
 Also, initial position is at last record."
   :group 'forms
   :type 'boolean)

@@ -60,7 +60,7 @@ every line in the region.
 
 @vindex tab-width
   Indentation is often performed with the help of @dfn{tab characters}
-(ASCII code 9), which are displayed as a stretch of empty space
+(@acronym{ASCII} code 9), which are displayed as a stretch of empty space
 extending to the next @dfn{display tab stop}.  By default, there is
 one display tab stop every eight columns; the number of columns is
 determined by the variable @code{tab-width}.  You can insert a single

@@ -140,7 +140,9 @@
 	      (epa-file-decode-and-insert string file visit beg end replace)
 	      (setq length (- (point-max) (point-min))))
 	    (if replace
-		(delete-region (point) (point-max)))))
+		(delete-region (point) (point-max)))
+	    (if visit
+		(set-visited-file-modtime))))
       (if (and local-copy
 	       (file-exists-p local-copy))
 	  (delete-file local-copy)))

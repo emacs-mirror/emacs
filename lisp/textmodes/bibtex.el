@@ -948,7 +948,8 @@ Case is significant.
 Used by `bibtex-search-crossref' and for font-locking."
   :group 'bibtex
   :type '(repeat (cons (regexp :tag "Regexp")
-                       (integer :tag "Number"))))
+                       (integer :tag "Number")))
+  :version "23.1")
 
 (defcustom bibtex-expand-strings nil
   "If non-nil, expand strings when extracting the content of a BibTeX field."

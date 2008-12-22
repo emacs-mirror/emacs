@@ -40,7 +40,7 @@
 (defcustom find-ls-option
   (if (eq system-type 'berkeley-unix) '("-ls" . "-gilsb")
     '("-exec ls -ld {} \\;" . "-ld"))
-  "*Description of the option to `find' to produce an `ls -l'-type listing.
+  "Description of the option to `find' to produce an `ls -l'-type listing.
 This is a cons of two strings (FIND-OPTION . LS-SWITCHES).  FIND-OPTION
 gives the option (or options) to `find' that produce the desired output.
 LS-SWITCHES is a list of `ls' switches to tell dired how to parse the output."
@@ -64,7 +64,7 @@ them for `find-ls-option'."
 	  (string-match "solaris2" system-configuration)
 	  (string-match "irix" system-configuration))
       "-s" "-q")
-  "*Option to grep to be as silent as possible.
+  "Option to grep to be as silent as possible.
 On Berkeley systems, this is `-s'; on Posix, and with GNU grep, `-q' does it.
 On other systems, the closest you can come is to use `-l'."
   :type 'string
@@ -75,7 +75,7 @@ On other systems, the closest you can come is to use `-l'."
   (if read-file-name-completion-ignore-case
       "-iname"
     "-name")
-  "*Argument used to specify file name pattern.
+  "Argument used to specify file name pattern.
 If `read-file-name-completion-ignore-case' is non-nil, -iname is used so that
 find also ignores case. Otherwise, -name is used."
   :type 'string

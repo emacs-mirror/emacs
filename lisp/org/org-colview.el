@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.10c
+;; Version: 6.16
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -25,7 +25,7 @@
 ;;
 ;;; Commentary:
 
-;; This file contains the face definitons for Org.
+;; This file contains the column view for Org.
 
 ;;; Code:
 
@@ -130,7 +130,7 @@ This is the compiled version of the format.")
     (push ov org-columns-overlays)
     ov))
 
-(defun org-columns-display-here (&optional props)
+(defun org-columns-display-here (&optional props dateline)
   "Overlay the current line with column display."
   (interactive)
   (let* ((fmt org-columns-current-fmt-compiled)
@@ -145,6 +145,7 @@ This is the compiled version of the format.")
 		       'default))
 	 (color (list :foreground (face-attribute ref-face :foreground)))
 	 (face (list color 'org-column ref-face))
+	 (face1 (list color 'org-agenda-column-dateline ref-face))
 	 (pl (or (get-text-property (point-at-bol) 'prefix-length) 0))
 	 (cphr (get-text-property (point-at-bol) 'org-complex-heading-regexp))
 	 pom property ass width f string ov column val modval s1 s2 title)
@@ -189,7 +190,7 @@ This is the compiled version of the format.")
       ;; Create the overlay
       (org-unmodified
        (setq ov (org-columns-new-overlay
-		 beg (setq beg (1+ beg)) string face))
+		 beg (setq beg (1+ beg)) string (if dateline face1 face)))
        (org-overlay-put ov 'keymap org-columns-map)
        (org-overlay-put ov 'org-columns-key property)
        (org-overlay-put ov 'org-columns-value (cdr ass))
@@ -219,7 +220,7 @@ This is the compiled version of the format.")
 
 (defun org-columns-add-ellipses (string width)
   "Truncate STRING with WIDTH characters, with ellipses."
-  (cond 
+  (cond
    ((<= (length string) width) string)
    ((<= width (length org-columns-ellipses))
     (substring org-columns-ellipses 0 width))
@@ -227,7 +228,7 @@ This is the compiled version of the format.")
 	      org-columns-ellipses))))
 
 (defvar org-columns-full-header-line-format nil
-  "Fthe full header line format, will be shifted by horizontal scrolling." )
+  "The full header line format, will be shifted by horizontal scrolling." )
 (defvar org-previous-header-line-format nil
   "The header line format before column view was turned on.")
 (defvar org-columns-inhibit-recalculation nil
@@ -325,7 +326,7 @@ for the duration of the command.")
 
 (defvar org-agenda-columns-remove-prefix-from-item)
 (defun org-agenda-columns-cleanup-item (item pl cphr fmt)
-  "Cleanup the tiem property for agenda column view.
+  "Cleanup the time property for agenda column view.
 See also the variable `org-agenda-columns-remove-prefix-from-item'."
   (let* ((org-complex-heading-regexp cphr)
 	 (prefix (substring item 0 pl))
@@ -425,7 +426,7 @@ Where possible, use the standard interface for changing this line."
      (t
       (setq allowed (org-property-get-allowed-values pom key 'table))
       (if allowed
-	  (setq nval (completing-read "Value: " allowed nil t))
+	  (setq nval (org-ido-completing-read "Value: " allowed nil t))
 	(setq nval (read-string "Edit: " value)))
       (setq nval (org-trim nval))
       (when (not (equal nval value))
@@ -675,7 +676,7 @@ around it."
   (interactive)
   (let ((editp (and prop (assoc prop org-columns-current-fmt-compiled)))
 	cell)
-    (setq prop (completing-read
+    (setq prop (org-ido-completing-read
 		"Property: " (mapcar 'list (org-buffer-property-keys t nil t))
 		nil nil prop))
     (setq title (read-string (concat "Column title [" prop "]: ") (or title prop)))
@@ -683,7 +684,7 @@ around it."
     (if (string-match "\\S-" width)
 	(setq width (string-to-number width))
       (setq width nil))
-    (setq fmt (completing-read "Summary [none]: "
+    (setq fmt (org-ido-completing-read "Summary [none]: "
 			       '(("none") ("add_numbers") ("currency") ("add_times") ("checkbox") ("checkbox-n-of-m") ("checkbox-percent"))
 			       nil t))
     (if (string-match "\\S-" fmt)
@@ -736,7 +737,7 @@ around it."
     (org-columns-redo)))
 
 (defun org-columns-narrow (arg)
-  "Make the column nrrower by ARG characters."
+  "Make the column narrower by ARG characters."
   (interactive "p")
   (org-columns-widen (- arg)))
 
@@ -1136,7 +1137,7 @@ PARAMS is a property list of parameters:
 
 (defun org-listtable-to-string (tbl)
   "Convert a listtable TBL to a string that contains the Org-mode table.
-The table still need to be alligned.  The resulting string has no leading
+The table still need to be aligned.  The resulting string has no leading
 and tailing newline characters."
   (mapconcat
    (lambda (x)
@@ -1151,7 +1152,7 @@ and tailing newline characters."
   "Create a dynamic block capturing a column view table."
   (interactive)
   (let ((defaults '(:name "columnview" :hlines 1))
-	(id (completing-read
+	(id (org-ido-completing-read
 	     "Capture columns (local, global, entry with :ID: property) [local]: "
 	     (append '(("global") ("local"))
 		     (mapcar 'list (org-property-values "ID"))))))
@@ -1282,7 +1283,7 @@ This will add overlays to the date lines, to show the summary for each day."
 			  0 (length lsum) 'face 'bold lsum)
 			 (cons prop lsum))))
 		     fmt))
-	      (org-columns-display-here props)
+	      (org-columns-display-here props 'dateline)
 	      (org-set-local 'org-agenda-columns-active t)))
 	  (if (bobp) (throw 'exit t))
 	  (beginning-of-line 0))))))

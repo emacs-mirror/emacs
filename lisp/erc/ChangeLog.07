@@ -43,7 +43,7 @@
 	(erc-nickserv-identification-autodetect): New functions.
 	(erc-nickserv-identified-hook): New hook.
 
-2007-12-06  D. Goel  <deego3@gmail.com>
+2007-12-06  Deepak Goel  <deego3@gmail.com>
 
 	* erc-match.el (erc-add-entry-to-list): Fix buggy call to `error'.
 

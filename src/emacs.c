@@ -1129,6 +1129,11 @@ main (int argc, char **argv)
 	      fprintf (stderr, "Error reading status from child\n");
 	      exit (1);
 	    }
+	  else if (retval == 0)
+	    {
+	      fprintf (stderr, "Error: server did not start correctly\n");
+	      exit (1);
+	    }
 
 	  close (daemon_pipe[0]);
 	  exit (0);
@@ -1143,6 +1148,10 @@ main (int argc, char **argv)
        	daemon_name = xstrdup (dname_arg);
       /* Close unused reading end of the pipe.  */
       close (daemon_pipe[0]);
+      /* Make sure that the used end of the pipe is closed on exec, so
+	 that it is not accessible to programs started from .emacs.  */
+      fcntl (daemon_pipe[1], F_SETFD, FD_CLOEXEC);
+
 #ifdef HAVE_SETSID
       setsid();
 #endif

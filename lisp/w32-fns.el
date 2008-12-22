@@ -103,7 +103,7 @@ That includes all Windows systems except for 9X/Me."
 	       w32-system-shells)))
 
 (defun w32-shell-dos-semantics ()
-  "Return non-nil if the interactive shell being used expects MSDOS shell semantics."
+  "Return non-nil if the interactive shell being used expects MS-DOS shell semantics."
   (or (w32-system-shell-p (w32-shell-name))
       (and (member (downcase (file-name-nondirectory (w32-shell-name)))
 		   '("cmdproxy" "cmdproxy.exe"))
@@ -219,20 +219,13 @@ You should set this to t when using a non-system shell.\n\n"))))
   (interactive)
   (when (null w32-valid-locales)
     (setq w32-valid-locales (sort (w32-get-valid-locale-ids) #'<)))
-  (switch-to-buffer-other-window (get-buffer-create "*Supported Locales*"))
-  (erase-buffer)
-  (insert "LCID\tAbbrev\tFull name\n\n")
-  (insert (decode-coding-string (mapconcat
-				 (lambda (x)
-				   (format "%d\t%s\t%s"
-					   x
-					   (w32-get-locale-info x)
-					   (w32-get-locale-info x t)))
-				 w32-valid-locales "\n")
-				locale-coding-system))
-  (insert "\n")
-  (goto-char (point-min)))
-
+  (with-output-to-temp-buffer "*Supported Locales*"
+    (princ "LCID\tAbbrev\tFull name\n\n")
+    (dolist (locale w32-valid-locales)
+      (princ (format "%d\t%s\t%s\n"
+		     locale
+		     (w32-get-locale-info locale)
+		     (w32-get-locale-info locale t))))))
 
 ;;; Setup Info-default-directory-list to include the info directory
 ;;; near where Emacs executable was installed.  We used to set INFOPATH,

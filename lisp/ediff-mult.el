@@ -202,47 +202,47 @@ Should be a sexp.  For instance (car ediff-filtering-regexp-history) or nil."
 (defvar ediff-session-registry nil)
 
 (defcustom ediff-meta-truncate-filenames t
-  "*If non-nil, truncate long file names in the session group buffers.
+  "If non-nil, truncate long file names in the session group buffers.
 This can be toggled with `ediff-toggle-filename-truncation'."
   :type 'boolean
   :group 'ediff-mult)
 
 (defcustom ediff-meta-mode-hook nil
-  "*Hooks run just after setting up meta mode."
+  "Hooks run just after setting up meta mode."
   :type 'hook
   :group 'ediff-mult)
 
 (defcustom ediff-registry-setup-hook nil
-  "*Hooks run just after the registry control panel is set up."
+  "Hooks run just after the registry control panel is set up."
   :type 'hook
   :group 'ediff-mult)
 
 (defcustom ediff-before-session-group-setup-hooks nil
-  "*Hooks to run before Ediff arranges the window for group-level operations.
+  "Hooks to run before Ediff arranges the window for group-level operations.
 It is used by commands such as `ediff-directories'.
 This hook can be used to save the previous window config, which can be restored
 on `ediff-quit', `ediff-suspend', or `ediff-quit-session-group-hook'."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-after-session-group-setup-hook nil
-  "*Hooks run just after a meta-buffer controlling a session group, such as
+  "Hooks run just after a meta-buffer controlling a session group, such as
 ediff-directories, is run."
   :type 'hook
   :group 'ediff-mult)
 (defcustom ediff-quit-session-group-hook nil
-  "*Hooks run just before exiting a session group."
+  "Hooks run just before exiting a session group."
   :type 'hook
   :group 'ediff-mult)
 (defcustom ediff-show-registry-hook nil
-  "*Hooks run just after the registry buffer is shown."
+  "Hooks run just after the registry buffer is shown."
   :type 'hook
   :group 'ediff-mult)
 (defcustom ediff-show-session-group-hook '(delete-other-windows)
-  "*Hooks run just after a session group buffer is shown."
+  "Hooks run just after a session group buffer is shown."
   :type 'hook
   :group 'ediff-mult)
 (defcustom ediff-meta-buffer-keymap-setup-hook nil
-  "*Hooks run just after setting up the `ediff-meta-buffer-map'.
+  "Hooks run just after setting up the `ediff-meta-buffer-map'.
 This keymap controls key bindings in the meta buffer and is a local variable.
 This means that you can set different bindings for different kinds of meta
 buffers."

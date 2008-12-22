@@ -1,6 +1,7 @@
 ;;; vc-mcvs.el --- VC backend for the Meta-CVS version-control system
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  None
@@ -21,6 +22,17 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; ********** READ THIS! **********
+;;
+;; This file apparently does not work with the new (as of Emacs 23)
+;; VC code.  Use at your own risk.  Please contact emacs-devel if you
+;; can maintain this file and update it to work correctly.
+;;
+;; ********** READ THIS! **********
+
+;; This file has been obsolete and unsupported since Emacs 23.1.
+
 
 ;; The home page of the Meta-CVS version control system is at
 ;;
@@ -61,46 +73,44 @@
 ;;;
 
 (defcustom vc-mcvs-global-switches nil
-  "*Global switches to pass to any Meta-CVS command."
+  "Global switches to pass to any Meta-CVS command."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "22.1"
   :group 'vc)
 
 (defcustom vc-mcvs-register-switches nil
-  "*Extra switches for registering a file into Meta-CVS.
+  "Switches for registering a file into Meta-CVS.
 A string or list of strings passed to the checkin program by
-\\[vc-register]."
-  :type '(choice (const :tag "None" nil)
+\\[vc-register].  If nil, use the value of `vc-register-switches'.
+If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "22.1"
   :group 'vc)
 
 (defcustom vc-mcvs-diff-switches nil
-  "*A string or list of strings specifying extra switches for cvs diff under VC."
-    :type '(choice (const :tag "None" nil)
+  "String or list of strings specifying switches for Meta-CVS diff under VC.
+If nil, use the value of `vc-diff-switches'.  If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "22.1"
   :group 'vc)
 
 (defcustom vc-mcvs-header (or (cdr (assoc 'MCVS vc-header-alist))
 			      vc-cvs-header)
-  "*Header keywords to be inserted by `vc-insert-headers'."
+  "Header keywords to be inserted by `vc-insert-headers'."
   :version "22.1"
   :type '(repeat string)
   :group 'vc)
 
 (defcustom vc-mcvs-use-edit vc-cvs-use-edit
-  "*Non-nil means to use `cvs edit' to \"check out\" a file.
+  "Non-nil means to use `cvs edit' to \"check out\" a file.
 This is only meaningful if you don't use the implicit checkout model
 \(i.e. if you have $CVSREAD set)."
   :type 'boolean
@@ -187,10 +197,9 @@ This is only meaningful if you don't use the implicit checkout model
 (defun vc-mcvs-register (files &optional rev comment)
   "Register FILES into the Meta-CVS version-control system.
 COMMENT can be used to provide an initial description of FILE.
-
-`vc-register-switches' and `vc-mcvs-register-switches' are passed to
-the Meta-CVS command (in that order)."
-  ;; FIXME: multiple-file case should be made to work
+Passes either `vc-mcvs-register-switches' or `vc-register-switches'
+to the Meta-CVS command."
+  ;; FIXME: multiple-file case should be made to work.
   (if (> (length files) 1) (error "Registering filesets is not yet supported."))
   (let* ((file (car files))
 	 (filename (file-name-nondirectory file))
@@ -410,7 +419,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
       (message "Merging changes into %s...done" file))))
 
 (defun vc-mcvs-modify-change-comment (files rev comment)
-  "Modify the change comments for FILES on a specified REV. 
+  "Modify the change comments for FILES on a specified REV.
 Will fail unless you have administrative privileges on the repo."
   (vc-mcvs-command nil 0 files "rcs" (concat "-m" comment ":" rev)))
 
@@ -568,6 +577,14 @@ and that it passes `vc-mcvs-global-switches' to it before FLAGS."
 (defalias 'vc-mcvs-valid-revision-number-p 'vc-cvs-valid-revision-number-p)
 
 (provide 'vc-mcvs)
+
+;; ********** READ THIS! **********
+;;
+;; This file apparently does not work with the new (as of Emacs 23)
+;; VC code.  Use at your own risk.  Please contact emacs-devel if you
+;; can maintain this file and update it to work correctly.
+;;
+;; ********** READ THIS! **********
 
 ;; arch-tag: a39c7c1c-5247-429d-88df-dd7187d2e704
 ;;; vc-mcvs.el ends here

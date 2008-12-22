@@ -43,7 +43,7 @@
 ;; end pacifier
 
 (defcustom ediff-keep-tmp-versions nil
-  "*If t, do not delete temporary previous versions for the files on which
+  "If t, do not delete temporary previous versions for the files on which
 comparison or merge operations are being performed."
   :type 'boolean
   :group 'ediff-vers

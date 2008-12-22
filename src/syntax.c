@@ -968,7 +968,7 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
 The syntax is changed only for table SYNTAX-TABLE, which defaults to
  the current buffer's syntax table.
 CHAR may be a cons (MIN . MAX), in which case, syntaxes of all characters
-in the range MIN and MAX are changed.
+in the range MIN to MAX are changed.
 The first character of NEWENTRY should be one of the following:
   Space or -  whitespace syntax.    w   word constituent.
   _           symbol constituent.   .   punctuation.
@@ -1001,7 +1001,7 @@ this flag:
  p means CHAR is a prefix character for `backward-prefix-chars';
    such characters are treated as whitespace when they occur
    between expressions.
-usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE) */)
+usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE)  */)
      (c, newentry, syntax_table)
      Lisp_Object c, newentry, syntax_table;
 {

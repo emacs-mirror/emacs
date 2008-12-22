@@ -849,8 +849,10 @@ init_frame_faces (f)
   /* Make the image cache.  */
   if (FRAME_WINDOW_P (f))
     {
+      /* We initialize the image cache when creating the first frame
+	 on a terminal, and not during terminal creation.  This way,
+	 `x-open-connection' on a tty won't create an image cache.  */
       if (FRAME_IMAGE_CACHE (f) == NULL)
-	/* Is that ever possible??  --Stef  */
 	FRAME_IMAGE_CACHE (f) = make_image_cache ();
       ++FRAME_IMAGE_CACHE (f)->refcount;
     }
@@ -1688,24 +1690,6 @@ static int font_sort_order[4];
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Return a rescaling ratio of a font of NAME.  */
-
-static double
-font_rescale_ratio (name)
-     char *name;
-{
-  Lisp_Object tail, elt;
-
-  for (tail = Vface_font_rescale_alist; CONSP (tail); tail = XCDR (tail))
-    {
-      elt = XCAR (tail);
-      if (STRINGP (XCAR (elt)) && FLOATP (XCDR (elt))
-	  && fast_c_string_match_ignore_case (XCAR (elt), name) >= 0)
-	return XFLOAT_DATA (XCDR (elt));
-    }
-  return 1.0;
-}
-
 static enum font_property_index font_props_for_sorting[FONT_SIZE_INDEX];
 
 static int
@@ -1828,21 +1812,6 @@ the face font sort order.  */)
   return result;
 }
 
-
-DEFUN ("x-font-family-list", Fx_font_family_list, Sx_font_family_list,
-       0, 1, 0,
-       doc: /* Return a list of available font families on FRAME.
-If FRAME is omitted or nil, use the selected frame.
-Value is a list of conses (FAMILY . FIXED-P) where FAMILY
-is a font family, and FIXED-P is non-nil if fonts of that family
-are fixed-pitch.  */)
-     (frame)
-     Lisp_Object frame;
-{
-  return Ffont_family_list (frame);
-}
-
-
 DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 5, 0,
        doc: /* Return a list of the names of available fonts matching PATTERN.
 If optional arguments FACE and FRAME are specified, return only fonts
@@ -1941,6 +1910,26 @@ the WIDTH times as wide as FACE on FRAME.  */)
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
+#if defined(HAVE_WINDOW_SYSTEM) || defined(__MSDOS__)
+
+DEFUN ("x-font-family-list", Fx_font_family_list, Sx_font_family_list,
+       0, 1, 0,
+       doc: /* Return a list of available font families on FRAME.
+If FRAME is omitted or nil, use the selected frame.
+Value is a list of conses (FAMILY . FIXED-P) where FAMILY
+is a font family, and FIXED-P is non-nil if fonts of that family
+are fixed-pitch.  */)
+     (frame)
+     Lisp_Object frame;
+{
+#ifdef __MSDOS__
+  return Fcons (Fcons (build_string ("default"), Qt), Qnil);
+#else
+  return Ffont_family_list (frame);
+#endif
+}
+
+#endif	/* HAVE_WINDOW_SYSTEM || __MSDOS__ */
 
 
 /***********************************************************************
@@ -5881,9 +5870,12 @@ realize_x_face (cache, attrs)
 	 realizing the default face, thus the default face should have
 	 already been realized.  */
       if (fontset == -1)
-	fontset = default_face->fontset;
-      if (fontset == -1)
-	abort ();
+	{
+	  if (default_face)
+	    fontset = default_face->fontset;
+	  if (fontset == -1)
+	    abort ();
+	}
       if (! FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
 	attrs[LFACE_FONT_INDEX]
 	  = font_load_for_lface (f, attrs, attrs[LFACE_FONT_INDEX]);
@@ -7007,8 +6999,8 @@ face definitions.  For instance, the mode my-mode could define a face
 
   DEFVAR_LISP ("face-font-rescale-alist", &Vface_font_rescale_alist,
 	       doc: /* Alist of fonts vs the rescaling factors.
-Each element is a cons (FONT-NAME-PATTERN . RESCALE-RATIO), where
-FONT-NAME-PATTERN is a regular expression matching a font name, and
+Each element is a cons (FONT-PATTERN . RESCALE-RATIO), where
+FONT-PATTERN is a font-spec or a regular expression matching a font name, and
 RESCALE-RATIO is a floating point number to specify how much larger
 \(or smaller) font we should use.  For instance, if a face requests
 a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
@@ -7019,8 +7011,10 @@ a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
   defsubr (&Sx_list_fonts);
   defsubr (&Sinternal_face_x_get_resource);
   defsubr (&Sx_family_fonts);
+#endif
+#if defined(HAVE_WINDOW_SYSTEM) || defined(__MSDOS__)
   defsubr (&Sx_font_family_list);
-#endif /* HAVE_WINDOW_SYSTEM */
+#endif /* HAVE_WINDOW_SYSTEM || __MSDOS__ */
 }
 
 /* arch-tag: 8a0f7598-5517-408d-9ab3-1da6fcd4c749

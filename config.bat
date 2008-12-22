@@ -26,8 +26,9 @@ rem   + msdos version 3 or better.
 rem   + DJGPP version 1.12maint1 or later (version 2.03 or later recommended).
 rem   + make utility that allows breaking of the 128 chars limit on
 rem     command lines.  ndmake (as of version 4.5) won't work due to a
-rem     line length limit.  The make that comes with DJGPP does work.
-rem   + rm and mv (from GNU file utilities).
+rem     line length limit.  The make that comes with DJGPP does work (and is
+rem     recommended).
+rem   + rm, mv, and cp (from GNU file utilities).
 rem   + sed (you can use the port that comes with DJGPP).
 rem
 rem   You should be able to get all the above utilities from the DJGPP FTP
@@ -36,6 +37,7 @@ rem   ----------------------------------------------------------------------
 set X11=
 set nodebug=
 set djgpp_ver=
+set sys_malloc=
 if "%1" == "" goto usage
 rem   ----------------------------------------------------------------------
 rem   See if their environment is large enough.  We need 28 bytes.
@@ -47,8 +49,9 @@ if "%1" == "" goto usage
 if "%1" == "--with-x" goto withx
 if "%1" == "--no-debug" goto nodebug
 if "%1" == "msdos" goto msdos
+if "%1" == "--with-system-malloc" goto sysmalloc
 :usage
-echo Usage: config [--with-x] [--no-debug] msdos
+echo Usage: config [--no-debug] [--with-system-malloc] [--with-x] msdos
 echo [Read the script before you run it.]
 goto end
 rem   ----------------------------------------------------------------------
@@ -59,6 +62,11 @@ goto again
 rem   ----------------------------------------------------------------------
 :nodebug
 set nodebug=Y
+shift
+goto again
+rem   ----------------------------------------------------------------------
+:sysmalloc
+set sys_malloc=Y
 shift
 goto again
 rem   ----------------------------------------------------------------------
@@ -173,6 +181,13 @@ rem The following line disables DECL_ALIGN which in turn disables USE_LSB_TAG
 rem For details see lisp.h where it defines USE_LSB_TAG
 echo #define NO_DECL_ALIGN >>config.h2
 :alignOk
+Rem See if they requested a SYSTEM_MALLOC build
+if "%sys_malloc%" == "" Goto cfgDone
+rm -f config.tmp
+ren config.h2 config.tmp
+sed -f ../msdos/sedalloc.inp <config.tmp >config.h2
+
+:cfgDone
 rm -f junk.c junk junk.exe
 update config.h2 config.h >nul
 rm -f config.tmp config.h2
@@ -281,6 +296,7 @@ set $foo$=
 set X11=
 set nodebug=
 set djgpp_ver=
+set sys_malloc=
 
 goto skipArchTag
    arch-tag: 2d2fed23-4dc6-4006-a2e4-49daf0031f33

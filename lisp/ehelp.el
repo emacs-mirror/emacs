@@ -38,8 +38,6 @@
 ;;; Code:
 
 (require 'electric)
-(defvar electric-help-map ()
-  "Keymap defining commands available in `electric-help-mode'.")
 
 (defvar electric-help-form-to-execute nil)
 
@@ -59,8 +57,8 @@
   :group 'electric-help)
 
 (put 'electric-help-undefined 'suppress-keymap t)
-(if electric-help-map
-    ()
+
+(defvar electric-help-map
   (let ((map (make-keymap)))
     ;; allow all non-self-inserting keys - search, scroll, etc, but
     ;; let M-x and C-x exit ehelp mode and retain buffer:
@@ -91,8 +89,8 @@
     (define-key map "r" 'electric-help-retain)
     (define-key map "\ex" 'electric-help-execute-extended)
     (define-key map "\C-x" 'electric-help-ctrl-x-prefix)
-
-    (setq electric-help-map map)))
+    map)
+  "Keymap defining commands available in `electric-help-mode'.")
 
 (defun electric-help-mode ()
   "`with-electric-help' temporarily places its buffer in this mode.
@@ -117,13 +115,13 @@ erased before THUNK is called unless NOERASE is non-nil.  THUNK will
 be called while BUFFER is current and with `standard-output' bound to
 the buffer specified by BUFFER.
 
-If THUNK returns nil, we display BUFFER starting at the top, and
-shrink the window to fit.  If THUNK returns non-nil, we don't do those things.
+If THUNK returns nil, we display BUFFER starting at the top, and shrink
+the window to fit.  If THUNK returns non-nil, we don't do those things.
 
-After THUNK has been called, this function \"electrically\" pops up a window
-in which BUFFER is displayed and allows the user to scroll through that buffer
-in `electric-help-mode'. The window's height will be at least MINHEIGHT if
-this value is non-nil.
+After THUNK has been called, this function \"electrically\" pops up a
+window in which BUFFER is displayed and allows the user to scroll
+through that buffer in `electric-help-mode'.  The window's height will
+be at least MINHEIGHT if this value is non-nil.
 
 If THUNK returns nil, we display BUFFER starting at the top, and
 shrink the window to fit if `electric-help-shrink-window' is non-nil.
@@ -402,9 +400,7 @@ will select it.)"
 
 ;;;; ehelp-map
 
-(defvar ehelp-map ())
-(if ehelp-map
-    nil
+(defvar ehelp-map
   (let ((map (copy-keymap help-map)))
     (substitute-key-definition 'apropos 'electric-apropos map)
     (substitute-key-definition 'command-apropos 'electric-command-apropos map)
@@ -415,8 +411,7 @@ will select it.)"
     (substitute-key-definition 'describe-variable 'electric-describe-variable map)
     (substitute-key-definition 'describe-bindings 'electric-describe-bindings map)
     (substitute-key-definition 'describe-syntax 'electric-describe-syntax map)
-
-    (setq ehelp-map map)))
+    map))
 
 ;;;###(autoload 'ehelp-command "ehelp" "Prefix command for ehelp." t 'keymap)
 (defalias 'ehelp-command ehelp-map)

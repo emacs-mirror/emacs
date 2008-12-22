@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data task
-;; Version: 6.10c
+;; Version: 6.16
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -53,7 +53,7 @@
 If this is a relative path, it will be interpreted relative to the directory
 where the Org file lives."
   :group 'org-attach
-  :type 'direcory)
+  :type 'directory)
 
 (defcustom org-attach-auto-tag "ATTACH"
   "Tag that will be triggered automatically when an entry has an attachment."
@@ -125,7 +125,7 @@ F       Like \"f\", but force using dired in Emacs.
 d       Delete one attachment, you will be prompted for a file name.
 D       Delete all of a task's attachments.  A safer way is
         to open the directory in dired and delete from there.")))
-	  (shrink-window-if-larger-than-buffer (get-buffer-window "*Org Attach*"))
+	  (org-fit-window-to-buffer (get-buffer-window "*Org Attach*"))
 	  (message "Select command: [acmlzoOfFdD]")
 	  (setq c (read-char-exclusive))
 	  (and (get-buffer "*Org Attach*") (kill-buffer "*Org Attach*"))))
@@ -153,14 +153,13 @@ D       Delete all of a task's attachments.  A safer way is
   "Return the directory associated with the current entry.
 If the directory does not exist and CREATE-IF-NOT-EXISTS-P is non-nil,
 the directory and the corresponding ID will be created."
+  (when (and (not (buffer-file-name (buffer-base-buffer)))
+	     (not (file-name-absolute-p org-attach-directory)))
+    (error "Need absolute `org-attach-directory' to attach in buffers without filename."))
   (let ((uuid (org-id-get (point) create-if-not-exists-p)))
     (when (or uuid create-if-not-exists-p)
       (unless uuid
-	(let ((uuid-string (shell-command-to-string "uuidgen")))
-	  (setf uuid-string
-		(substring uuid-string 0 (1- (length uuid-string))))
-	  (org-entry-put (point) "ID" uuid-string)
-	  (setf uuid uuid-string)))
+	(error "ID retrieval/creation failed"))
       (let ((attach-dir (expand-file-name
 			 (format "%s/%s"
 				 (substring uuid 0 2)
@@ -182,7 +181,7 @@ This checks for the existence of a \".git\" directory in that directory."
 		 " git add .; "
 		 " git ls-files --deleted -z | xargs -0 git rm; "
 		 " git commit -m 'Synchronized attachments')")))))
-  
+
 (defun org-attach-tag (&optional off)
   "Turn the autotag on or (if OFF is set) off."
   (when org-attach-auto-tag
@@ -249,7 +248,7 @@ The attachment is created as an Emacs buffer."
   (let* ((attach-dir (org-attach-dir t))
 	 (files (org-attach-file-list attach-dir))
 	 (file (or file
-		   (completing-read
+		   (org-ido-completing-read
 		    "Delete attachment: "
 		    (mapcar (lambda (f)
 			      (list (file-name-nondirectory f)))
@@ -267,7 +266,7 @@ A safer way is to open the directory in dired and delete from there."
   (when org-attach-file-list-property
     (org-entry-delete (point) org-attach-file-list-property))
   (let ((attach-dir (org-attach-dir)))
-    (when 
+    (when
 	(and attach-dir
 	     (or force
 		 (y-or-n-p "Are you sure you want to remove all attachments of this entry? ")))
@@ -324,7 +323,7 @@ If IN-EMACS is non-nil, force opening in Emacs."
 	 (files (org-attach-file-list attach-dir))
 	 (file (if (= (length files) 1)
 		   (car files)
-		 (completing-read "Open attachment: "
+		 (org-ido-completing-read "Open attachment: "
 				  (mapcar 'list files) nil t))))
     (org-open-file (expand-file-name file attach-dir) in-emacs)))
 
@@ -333,6 +332,17 @@ If IN-EMACS is non-nil, force opening in Emacs."
 See `org-attach-open'."
   (interactive)
   (org-attach-open 'in-emacs))
+
+(defun org-attach-expand (file)
+  "Return the full path to the current entry's attachment file FILE.
+Basically, this adds the path to the attachment directory."
+  (expand-file-name file (org-attach-dir)))
+
+(defun org-attach-expand-link (file)
+  "Return a file link pointing to the current entry's attachment file FILE.
+Basically, this adds the path to the attachment directory, and a \"file:\"
+prefix."
+  (concat "file:" (org-attach-expand file)))
 
 (provide 'org-attach)
 

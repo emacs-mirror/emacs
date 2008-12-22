@@ -1029,14 +1029,12 @@ Returns nil if line starts inside a string, t if in a comment."
 (defvar inferior-tcl-delete-prompt-marker nil)
 
 (defun tcl-filter (proc string)
-  (let ((inhibit-quit t))
+  (let ((inhibit-quit t))               ;FIXME: Isn't that redundant?
     (with-current-buffer (process-buffer proc)
-      (goto-char (process-mark proc))
       ;; Delete prompt if requested.
-      (if (marker-buffer inferior-tcl-delete-prompt-marker)
-	  (progn
-	    (delete-region (point) inferior-tcl-delete-prompt-marker)
-	    (set-marker inferior-tcl-delete-prompt-marker nil)))))
+      (when (marker-buffer inferior-tcl-delete-prompt-marker)
+        (delete-region (process-mark proc) inferior-tcl-delete-prompt-marker)
+        (set-marker inferior-tcl-delete-prompt-marker nil))))
   (comint-output-filter proc string))
 
 (defun tcl-send-string (proc string)

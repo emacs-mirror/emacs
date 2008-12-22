@@ -38,11 +38,11 @@
   :group 'ediff)
 
 (defcustom ediff-diff-program "diff"
-  "*Program to use for generating the differential of the two files."
+  "Program to use for generating the differential of the two files."
   :type 'string
   :group 'ediff-diff)
 (defcustom ediff-diff3-program "diff3"
-  "*Program to be used for three-way comparison.
+  "Program to be used for three-way comparison.
 Must produce output compatible with Unix's diff3 program."
   :type 'string
   :group 'ediff-diff)
@@ -57,7 +57,7 @@ Must produce output compatible with Unix's diff3 program."
 	((memq system-type '(ms-dos windows-nt windows-95))
 	 shell-file-name) ; no standard name on MS-DOS
 	(t  "sh")) ; UNIX
-  "*The shell used to run diff and patch.
+  "The shell used to run diff and patch.
 If user's .profile or .cshrc files are set up correctly, any shell
 will do.  However, some people set $prompt or other things
 incorrectly, which leads to undesirable output messages.  These may
@@ -67,13 +67,13 @@ you are not using or, better, fix your shell's startup file."
   :group 'ediff-diff)
 
 (defcustom ediff-cmp-program "cmp"
-  "*Utility to use to determine if two files are identical.
+  "Utility to use to determine if two files are identical.
 It must return code 0, if its arguments are identical files."
   :type 'string
   :group 'ediff-diff)
 
 (defcustom ediff-cmp-options nil
-  "*Options to pass to `ediff-cmp-program'.
+  "Options to pass to `ediff-cmp-program'.
 If GNU diff is used as `ediff-cmp-program', then the most useful options
 are `-I REGEXP', to ignore changes whose lines match the REGEXP."
   :type '(repeat string)
@@ -85,7 +85,7 @@ are `-I REGEXP', to ignore changes whose lines match the REGEXP."
 
 (defcustom ediff-diff-options
   (if (memq system-type '(ms-dos windows-nt windows-95)) "--binary" "")
-  "*Options to pass to `ediff-diff-program'.
+  "Options to pass to `ediff-diff-program'.
 If Unix diff is used as `ediff-diff-program',
 then a useful option is `-w', to ignore space.
 Options `-c', `-u', and `-i' are not allowed. Case sensitivity can be
@@ -107,12 +107,12 @@ This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
 (defcustom ediff-ignore-case-option "-i"
-  "*Option that causes the diff program to ignore case of letters."
+  "Option that causes the diff program to ignore case of letters."
   :type 'string
   :group 'ediff-diff)
 
 (defcustom ediff-ignore-case-option3 ""
-  "*Option that causes the diff3 program to ignore case of letters.
+  "Option that causes the diff3 program to ignore case of letters.
 GNU diff3 doesn't have such an option."
   :type 'string
   :group 'ediff-diff)
@@ -121,12 +121,12 @@ GNU diff3 doesn't have such an option."
 (ediff-defvar-local ediff-actual-diff-options ediff-diff-options "")
 
 (defcustom ediff-custom-diff-program ediff-diff-program
-  "*Program to use for generating custom diff output for saving it in a file.
+  "Program to use for generating custom diff output for saving it in a file.
 This output is not used by Ediff internally."
   :type 'string
   :group 'ediff-diff)
 (defcustom ediff-custom-diff-options "-c"
-  "*Options to pass to `ediff-custom-diff-program'."
+  "Options to pass to `ediff-custom-diff-program'."
   :type 'string
   :group 'ediff-diff)
 
@@ -135,7 +135,7 @@ This output is not used by Ediff internally."
 (defvar ediff-match-diff3-line "^====\\(.?\\)\C-m?$"
   "Pattern to match lines produced by diff3 that describe differences.")
 (defcustom ediff-diff3-options ""
-  "*Options to pass to `ediff-diff3-program'."
+  "Options to pass to `ediff-diff3-program'."
   :set 'ediff-set-diff-options
   :type 'string
   :group 'ediff-diff)
@@ -145,7 +145,7 @@ This output is not used by Ediff internally."
 
 (defcustom ediff-diff3-ok-lines-regexp
   "^\\([1-3]:\\|====\\|  \\|.*Warning *:\\|.*No newline\\|.*missing newline\\|^\C-m$\\)"
-  "*Regexp that matches normal output lines from `ediff-diff3-program'.
+  "Regexp that matches normal output lines from `ediff-diff3-program'.
 Lines that do not match are assumed to be error messages."
   :type 'regexp
   :group 'ediff-diff)

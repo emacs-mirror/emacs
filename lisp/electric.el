@@ -155,7 +155,7 @@
 	     (switch-to-buffer buf)))
       ;; Don't shrink the window, but expand it if necessary.
       (goto-char (point-min))
-      (unless (= (point-max) (window-end win))
+      (unless (= (point-max) (window-end win t))
 	(fit-window-to-buffer win max-height))
       win)))
 

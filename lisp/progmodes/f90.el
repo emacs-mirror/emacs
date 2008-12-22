@@ -675,29 +675,44 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
       `("F90"
         ("Customization"
          ,(custom-menu-create 'f90)
-         ["Set"  Custom-set t]
-         ["Save" Custom-save t]
-         ["Reset to Current" Custom-reset-current t]
-         ["Reset to Saved"   Custom-reset-saved t]
-         ["Reset to Standard Settings" Custom-reset-standard t]
+         ;; FIXME useless?
+         ["Set"  Custom-set :active t
+          :help "Set current value of all edited settings in the buffer"]
+         ["Save" Custom-save :active t
+          :help "Set and save all edited settings"]
+         ["Reset to Current" Custom-reset-current :active t
+          :help "Reset all edited settings to current"]
+         ["Reset to Saved" Custom-reset-saved :active t
+          :help "Reset all edited or set settings to saved"]
+         ["Reset to Standard Settings" Custom-reset-standard :active t
+          :help "Erase all cusomizations in buffer"]
          )
         "--"
-        ["Indent Subprogram"       f90-indent-subprogram       t]
-        ["Mark Subprogram"         f90-mark-subprogram         t]
-        ["Beginning of Subprogram" f90-beginning-of-subprogram t]
-        ["End of Subprogram"       f90-end-of-subprogram       t]
+        ["Indent Subprogram" f90-indent-subprogram t]
+        ["Mark Subprogram" f90-mark-subprogram :active t :help
+         "Mark the end of the current subprogram, move point to the start"]
+        ["Beginning of Subprogram" f90-beginning-of-subprogram :active t
+         :help "Move point to the start of the current subprogram"]
+        ["End of Subprogram" f90-end-of-subprogram :active t
+         :help "Move point to the end of the current subprogram"]
         "--"
-        ["(Un)Comment Region" f90-comment-region mark-active]
-        ["Indent Region"      f90-indent-region  mark-active]
-        ["Fill Region"        f90-fill-region    mark-active]
+        ["(Un)Comment Region" f90-comment-region :active mark-active
+         :help "Comment or uncomment the region"]
+        ["Indent Region" f90-indent-region :active mark-active]
+        ["Fill Region" f90-fill-region :active mark-active
+         :help "Fill long lines in the region"]
         "--"
-        ["Break Line at Point"     f90-break-line t]
-        ["Join with Previous Line" f90-join-lines t]
-        ["Insert Block End"        f90-insert-end t]
+        ["Break Line at Point" f90-break-line :active t
+         :help "Break the current line at point"]
+        ["Join with Previous Line" f90-join-lines :active t
+         :help "Join the current line to the previous one"]
+        ["Insert Block End" f90-insert-end :active t
+         :help "Insert an end statement for the current code block"]
         "--"
         ("Highlighting"
+         :help "Fontify this buffer to varying degrees"
          ["Toggle font-lock-mode" font-lock-mode :selected font-lock-mode
-          :style toggle]
+          :style toggle :help "Fontify text in this buffer"]
          "--"
          ["Light highlighting (level 1)"    f90-font-lock-1 t]
          ["Moderate highlighting (level 2)" f90-font-lock-2 t]
@@ -705,6 +720,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
          ["Maximum highlighting (level 4)"  f90-font-lock-4 t]
          )
         ("Change Keyword Case"
+         :help "Change the case of keywords in the buffer or region"
          ["Upcase Keywords (buffer)"     f90-upcase-keywords     t]
          ["Capitalize Keywords (buffer)" f90-capitalize-keywords t]
          ["Downcase Keywords (buffer)"   f90-downcase-keywords   t]
@@ -717,13 +733,16 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
           mark-active]
          )
         "--"
-        ["Toggle auto-fill"   auto-fill-mode :selected auto-fill-function
-         :style toggle]
-        ["Toggle abbrev-mode" abbrev-mode    :selected abbrev-mode
-         :style toggle]
-        ["Add imenu Menu" f90-add-imenu-menu
+        ["Toggle Auto Fill" auto-fill-mode :selected auto-fill-function
+         :style toggle
+         :help "Automatically fill text while typing in this buffer"]
+        ["Toggle Abbrev Mode" abbrev-mode :selected abbrev-mode
+         :style toggle :help "Expand abbreviations while typing in this buffer"]
+        ["Add Imenu Menu" f90-add-imenu-menu
          :active   (not (lookup-key (current-local-map) [menu-bar index]))
-         :included (fboundp 'imenu-add-to-menubar)]))
+         :included (fboundp 'imenu-add-to-menubar)
+         :help "Add an index menu to the menu-bar"
+         ]))
     map)
   "Keymap used in F90 mode.")
 

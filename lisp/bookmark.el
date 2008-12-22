@@ -79,6 +79,7 @@
 ;;; Code:
 
 (require 'pp)
+(eval-when-compile (require 'cl))
 
 ;;; Misc comments:
 ;;
@@ -125,7 +126,7 @@ To specify the file in which to save them, modify the variable
 
 
 (defconst bookmark-old-default-file "~/.emacs-bkmrks"
-  "*The `.emacs.bmk' file used to be called this name.")
+  "The `.emacs.bmk' file used to be called this name.")
 
 
 ;; defvarred to avoid a compilation warning:
@@ -317,21 +318,21 @@ through a file easier.")
   (mapcar 'bookmark-name-from-full-record bookmark-alist))
 
 
-(defun bookmark-get-bookmark (bookmark)
+(defun bookmark-get-bookmark (bookmark &optional noerror)
   "Return the bookmark record corresponding to BOOKMARK.
 If BOOKMARK is already a bookmark record, just return it,
 Otherwise look for the corresponding bookmark in `bookmark-alist'."
   (cond
    ((consp bookmark) bookmark)
    ((stringp bookmark)
-    (assoc-string bookmark bookmark-alist bookmark-completion-ignore-case))))
+    (or (assoc-string bookmark bookmark-alist bookmark-completion-ignore-case)
+        (unless noerror (error "Invalid bookmark %s" bookmark))))))
 
 
 (defun bookmark-get-bookmark-record (bookmark)
   "Return the guts of the entry for BOOKMARK in `bookmark-alist'.
 That is, all information but the name."
-  (let ((alist (cdr (or (bookmark-get-bookmark bookmark)
-			(error "Invalid bookmark %s" bookmark)))))
+  (let ((alist (cdr (bookmark-get-bookmark bookmark))))
     ;; The bookmark objects can either look like (NAME ALIST) or
     ;; (NAME . ALIST), so we have to distinguish the two here.
     (if (and (null (cdr alist)) (consp (caar alist)))
@@ -487,7 +488,8 @@ old one."
         ;; XEmacs's `set-text-properties' doesn't work on
         ;; free-standing strings, apparently.
         (set-text-properties 0 (length stripped-name) nil stripped-name))
-    (if (and (bookmark-get-bookmark stripped-name) (not no-overwrite))
+    (if (and (not no-overwrite)
+             (bookmark-get-bookmark stripped-name 'noerror))
         ;; already existing bookmark under that name and
         ;; no prefix arg means just overwrite old bookmark
         ;; Use the new (NAME . ALIST) format.
@@ -750,7 +752,7 @@ the list of bookmarks.\)"
                 nil nil default))))
       (and (string-equal str "") (setq str default))
       (bookmark-store str (cdr record) parg)
-      
+
       ;; Ask for an annotation buffer for this bookmark
       (if bookmark-use-annotations
           (bookmark-edit-annotation str)
@@ -888,17 +890,17 @@ Default to file name if it's nil."
 
 (defun bookmark-buffer-file-name ()
   "Return the current buffer's file in a way useful for bookmarks."
-  (cond
-   (buffer-file-name
-    ;; Abbreviate the path, both so it's shorter and so it's more
-    ;; portable.  E.g., the user's home dir might be a different
-    ;; path on different machines, but "~/" will still reach it.
-    (abbreviate-file-name buffer-file-name))
-   ((and (boundp 'dired-directory) dired-directory)
-    (if (stringp dired-directory)
-        dired-directory
-      (car dired-directory)))
-   (t (error "Buffer not visiting a file or directory"))))
+  ;; Abbreviate the path, both so it's shorter and so it's more
+  ;; portable.  E.g., the user's home dir might be a different
+  ;; path on different machines, but "~/" will still reach it.
+  (abbreviate-file-name
+   (cond
+    (buffer-file-name buffer-file-name)
+    ((and (boundp 'dired-directory) dired-directory)
+     (if (stringp dired-directory)
+         dired-directory
+       (car dired-directory)))
+    (t (error "Buffer not visiting a file or directory")))))
 
 
 (defun bookmark-maybe-load-default-file ()
@@ -947,7 +949,7 @@ Useful for example to unhide text in `outline-mode'.")
       ;; if there is an annotation for this bookmark,
       ;; show it in a buffer.
       (bookmark-show-annotation bookmark)))
-  
+
 
 ;;;###autoload
 (defun bookmark-jump (bookmark)
@@ -1004,13 +1006,17 @@ be retrieved from a VC backend, else return nil."
      ;; Last possibility: try VC
      (if (vc-backend file) file))))
 
-;; This function is present for Emacs 22 compatibility only.
 (defun bookmark-jump-noselect (bookmark)
   "Return the location pointed to by the bookmark BOOKMARK.
-The return value has the form (BUFFER . POINT)."
+The return value has the form (BUFFER . POINT).
+
+Note: this function is deprecated and is present for Emacs 22
+compatibility only."
   (save-excursion
     (bookmark-handle-bookmark bookmark)
     (cons (current-buffer) (point))))
+
+(make-obsolete 'bookmark-jump-noselect 'bookmark-handle-bookmark "23.1")
 
 (defun bookmark-handle-bookmark (bookmark)
   "Call BOOKMARK's handler or `bookmark-default-handler' if it has none.
@@ -1207,11 +1213,11 @@ probably because we were called from there."
 				   bookmark-current-bookmark)))
   (bookmark-maybe-historicize-string bookmark)
   (bookmark-maybe-load-default-file)
-  (let ((will-go (bookmark-get-bookmark bookmark)))
+  (let ((will-go (bookmark-get-bookmark bookmark 'noerror)))
     (setq bookmark-alist (delq will-go bookmark-alist))
     ;; Added by db, nil bookmark-current-bookmark if the last
     ;; occurrence has been deleted
-    (or (bookmark-get-bookmark bookmark-current-bookmark)
+    (or (bookmark-get-bookmark bookmark-current-bookmark 'noerror)
         (setq bookmark-current-bookmark nil)))
   ;; Don't rebuild the list
   (if batch

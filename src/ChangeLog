@@ -1,3 +1,687 @@
+2008-12-21  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (uniscribe_encode_char): Return FONT_INVALID_CHAR
+	when character maps to .notdef character.
+
+2008-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (cmd_error_internal): Don't exit in daemon mode, bug#1310.
+
+2008-12-20  Jason Rumney  <jasonr@gnu.org>
+
+	* frame.c (Fmake_terminal_frame): Raise an error when called from
+	a graphical frame on Windows.
+
+2008-12-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.c (Fdelete_frame): Set f->menu_bar_vector to Qnil.
+
+2008-12-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (Fread_buffer): Doc fix.
+
+2008-12-20  Jason Rumney  <jasonr@gnu.org>
+
+	* fileio.c (Fexpand_file_name): Do not allow ../ to go beyond the
+	server name in UNC paths.
+
+	* coding.c (decode_coding): Clear chars_at_source flag when using
+	charbuf.
+
+2008-12-19  Daniel Engeler  <engeler@gmail.com>
+
+	* sysdep.c (serial_configure): Fix typo.
+
+2008-12-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sysdep.c: Include alloca.h.
+	(system_process_attributes): Add implementation for Solaris.
+
+	* s/sol2-10.h (HAVE_PROCFS, _STRUCTURED_PROC): New defines.
+
+2008-12-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Reorganize implementation of Flist_system_processes and
+	Fsystem_process_attributes.  No functional changes.
+	* process.c: Don't #include pwd.h, grp.h and limits.h.
+	(Flist_system_processes): Just call list_system_processes.
+	(Fsystem_process_attributes): Just call system_process_attributes.
+	(procfs_list_system_processes, time_from_jiffies)
+	(ltime_from_jiffies, get_up_time, procfs_ttyname, MAJOR, MINOR)
+	(procfs_get_total_memory, procfs_system_process_attributes): Move ...
+
+	* sysdep.c: ... here.  Include pwd.h, grp.h and limits.h.
+	(list_system_processes): Rename from
+	procfs_list_system_processes.  Enclose in #ifdef HAVE_PROCFS.
+	Provide a do nothing implementation.
+	(system_process_attributes): Rename from
+	procfs_list_system_processes.
+	(ltime_from_jiffies, get_up_time, procfs_ttyname, MAJOR, MINOR)
+	(procfs_get_total_memory):  Enclose in #ifdef GNU_LINUX.
+
+	* w32.c (list_system_processes): Rename from
+	w32_list_system_processes.
+	(system_process_attributes): Rename from
+	w32_system_process_attributes.
+
+	* s/gnu-linux.h (LISTPROC, PROCATTR): Remove.
+
+	* process.h (w32_list_system_processes)
+	(w32_system_process_attributes): Remove.
+	(list_system_processes, system_process_attributes): New
+	prototypes.
+
+2008-12-19  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_decode_coding_xlfd): New function.
+	(xfont_encode_coding_xlfd): New function.
+	(xfont_list_pattern): Decode XLFD by iso-8859-1.
+	(xfont_list): Decode and encode XLFD by iso-8859-1.
+	(xfont_match): Likewise.
+	(xfont_list_family): Likewise.
+	(xfont_open): Likewise.
+
+	* ftfont.c (ftfont_open): Genarate a multibyte string if given
+	names are utf-8.
+
+	* xftfont.c (xftfont_open): Genarate a multibyte string if given
+	names are utf-8.
+
+2008-12-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_frame_resized): Remove check if rows/columns have
+	changed.
+	(xg_tool_bar_proxy_callback): Put focus on the frame after we have
+	clicked on a detached tool bar button.
+
+2008-12-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c (main): Print and error and exit when no data is read
+	from the pipe.
+
+2008-12-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_has_char): Always return -1.
+
+2008-12-16  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_open_entity): Fix previous change.
+
+2008-12-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* process.c: Include <limits.h>.
+
+2008-12-16  Chetan Pandya  <pandyacus@sbcglobal.net>  (tiny change)
+
+	* font.c (font_update_drivers): Fix mistake in reconstructing the
+	driver list.
+
+2008-12-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_clear_cache): Fix format of font cache data.
+
+2008-12-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xftfont.c (xftfont_open): Free Xft font pattern if
+	XftFontOpenPattern fails.
+
+	* xterm.c (x_free_frame_resources): Remove extraneous call to
+	free_frame_faces.
+
+2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_delete_display): Move xim_close_dpy call to
+	x_delete_terminal.
+	(x_delete_terminal): Call xim_close_dpy.
+
+2008-12-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (intern_font_name): New function.
+	(add_font_name_to_list, w32_enumfont_pattern_entity): Use it.
+	(w32font_open_internal, Fx_select_font): Decode font name.
+	(fill_in_logfont, list_all_matching_fonts): Encode font name.
+
+	* w32font.h (intern_font_name): Declare new function.
+
+	* w32uniscribe.c (add_opentype_font_name_to_list):
+	Use intern_font_name.
+
+2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Fdelete_frame): Call free_font_driver_list.
+
+	* font.c (free_font_driver_list): Implement missing function.
+
+	* w32term.c (w32_term_init): Don't initialize the image cache
+	here; it will be done in init_frame_faces.
+
+	* xterm.h (struct xim_inst_t): Definition moved from xterm.c.
+	(struct x_display_info): Remove unused member null_pixel.  New
+	member xim_callback_data.
+
+	* xterm.c (struct xim_inst_t): Definition moved to xterm.h.
+	(xim_initialize): Save pointer to callback function data.
+	(xim_close_dpy): Free callback function data.  Call XCloseIM,
+	reverting 2008-11-04 change by David Smith.
+	(x_term_init): Don't initialize the image cache here; it will be
+	done in init_frame_faces.  Remove ancient "null_pixel" cruft.
+	(x_delete_display): Free x_dnd_atoms member.
+
+2008-12-13  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_rescale_ratio): Moved from xfaces.c.  Argument
+	type changed.  Handle a font-spec too.
+	(font_score): Check Vface_font_rescale_alist.
+	(font_open_entity): Likewise.
+
+	* xfaces.c (font_rescale_ratio): Moved to font.c.
+
+2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_wm_set_size_hint): Check if the frame is an X frame.
+
+2008-12-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (x_display_info_for_name, Fx_open_connection): Set
+	Vwindow_system_version to the real w32 major version.
+
+2008-12-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (init_tty): Move setting the terminal name before the
+	potential user: maybe_fatal.
+
+2008-12-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term.c (tty_free_frame_resources): Renamed from delete_tty_output;
+	all callers changed.  Call free_frame_faces to free the face cache.
+
+2008-12-11  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (fill_in_logfont): Don't assume symbol script means
+	SYMBOL_CHARSET.
+
+	* w32uniscribe.c (uniscribe_encode_char): Increase glyph buffer
+	size for surrogates.
+
+2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32proc.c (Fw32_get_locale_info): Decode long form of locale name.
+
+2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* process.c (Fsystem_process_attributes, syms_of_process):
+	Fix typo in name of Ssystem_process_attributes.
+	Reported by Ulrich Mueller <ulm@kph.uni-mainz.de>.
+
+2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* syntax.c (Fmodify_syntax_entry): Doc fix.
+
+2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Ffont_spec): Move usage to end of docstring.
+
+2008-12-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (Qcham): New symbol.
+	(font_supported_scripts): Add cham, and comments for other new
+	scripts in bitfield from OpenType spec.
+	(add_font_entity_to_list): Limit unicode-sip fonts to those that
+	contain characters beyond the bmp.
+
+2008-12-10  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (fc_charset_table): Add "unicode-sip".
+	(ftfont_spec_pattern): Lookup fc_charset_table for the registry
+	Qunicode_sip.
+
+2008-12-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (QCdefault_char): Rename from QCdefalut_char.
+	(Fcoding_system_put): Use QCdefault_char.
+	(syms_of_coding): Set QCdefault_char, not QCdefalut_char.
+
+2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xftfont.c (syms_of_xftfont): Fix typo.
+
+	* buffer.c (Fbuffer_swap_text): Signal error if swapping a dead buffer.
+
+2008-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c (main): Close daemon_pipe on exec.
+
+2008-12-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* termchar.h (struct tty): New members termcap_term_buffer and
+	termcap_strings_buffer.
+
+	* term.c (encode_terminal_code): Free any previous memory blocks
+	before calling xmalloc for encode_terminal_src or encode_terminal_dst.
+	(maybe_fatal): Buffer argument deleted.  Don't free buffer here.
+	All callers changed.
+	(init_tty): Store termcap data and string buffers in new struct
+	tty members termcap_term_buffer and termcap_strings_buffer.
+	(delete_tty): Free them.
+	(syms_of_term): Initialize encode_terminal_src and encode_terminal_dst.
+
+2008-12-07  Seiji Zenitani  <zenitani@mac.com>
+
+	* nsfns.m (ns_set_background_color): Remove code duplication.
+	It was a substitute for face-transparency on OS X 10.3.
+
+2008-12-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* coding.c (make_conversion_work_buffer): Disable buffer
+	modification hooks in the work buffer.
+
+2008-12-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (procfs_system_process_attributes): If `nread' has a
+	negative value, assign zero to it.
+
+2008-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eval.c (Vdebug_on_error): Doc fix.
+
+2008-12-05  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_shape_by_flt): Use "combining" flt if the
+	second character is a combining character.
+
+2008-12-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (procfs_system_process_attributes): Don't use cmd,
+	cmdsize, and q without initializing them first.
+
+2008-12-04  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_draw): Initialize orig_clip before getting
+	it, and delete it when finished.
+
+2008-12-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* keyboard.c (kbd_buffer_get_event): Follow the non-interactive
+	case when running as a daemon before detaching.
+
+2008-12-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (init_environment): Don't unload library shell32.dll.
+
+2008-12-03  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_at): Set `multibyte' at first.
+
+	* coding.c (decode_coding_charset): Check type of an element of
+	vector VALIDS.
+	(encode_coding_emacs_mule): Be sure to set `code'.
+
+	* fontset.c (face_for_char): Handle invalid charset property correctly.
+	(font_for_char): Likewise.
+
+2008-12-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (Fopen_font): Compute pixel size correctly.
+	(font_update_lface): Handle fonts with corrupted size specs,
+	i.e. non-int and non-float.
+
+	* ftfont.c (ftfont_match): Initialize entity variable.
+	(ftfont_resolve_generic_family): Avoid using uninitialized var.
+	(ftfont_list_family): Initialize list var earlier.
+
+	* xselect.c (Fx_get_cut_buffer_internal): Fix memory leak.
+
+	* xterm.c (x_draw_glyph_string): Fall back on
+	underline_minimum_offset for underline position.
+
+2008-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* keyboard.c (read_char_help_form_unwind): Specify the type for ARG.
+
+	* character.c (c_string_width): Specify the type for LEN.
+
+2008-12-03  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_utf_16): Initialize consumed_chars_base to 0.
+	(decode_coding_utf_8): Likewise.
+	(detect_coding_system): Initialize utf_16_le_eol to -1, val to Qnil.
+	(produce_chars): Initialize consumed_chars to 0.
+
+2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (make_lispy_position): Only use PT if the selected
+	window is current.
+
+2008-12-02  Andreas Schwab  <schwab@suse.de>
+
+	* font.c (font_unparse_fcname): Fix use of uninitialized variable.
+
+	* doprnt.c (doprnt1): Fix size of charbuf.
+
+2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (timer_check): Revert last change.
+
+2008-12-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/w32console.$(O)): Fix silly, silly typo.
+
+2008-12-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+	(CONFIG_H): Add $(EMACS_ROOT)/nt/inc/sys/time.h.
+
+2008-12-01  Andreas Schwab  <schwab@suse.de>
+
+	* font.c (register_font_driver): Use xmalloc.
+	(font_put_frame_data): Likewise.
+
+2008-12-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (realize_x_face): Make abort condition clearer.
+
+	* gtkutil.c (update_frame_tool_bar): Initialize variable.
+
+2008-11-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (timer_check): After a timer runs, ensure that the
+	selected window's buffer is current.
+
+2008-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/abbrev.$(O)): Remove.
+	It was accidentally restored by the Unicode merge.
+
+	* w32proc.c (Fw32_get_locale_info): Fix typo in docstring.
+
+2008-11-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32proc.c: Include "coding.h".
+	(Fw32_short_file_name): Encode filename passed to Windows API.
+	(Fw32_long_file_name): Encode filename passed to Windows API and
+	decode back the result.  (Bug#1433)
+
+2008-11-29  Kenichi Handa  <handa@m17n.org>
+
+	* charset.h (CHAR_CHARSET_P): Check if the encoder is loaded or
+	not before accessing it.
+
+	* charset.c (Fdefine_charset_internal): After calculating
+	min_char, max_char, and fastmap, copy the charset structure again.
+	(encode_char): Fix the previous change.
+
+2008-11-28  Seiji Zenitani  <zenitani@mac.com>
+
+	* frame.c (x_set_alpha) [NS_IMPL_COCOA]: Call x_set_frame_alpha.
+
+	* nsfns.m (ns_frame_parm_handlers): Set alpha handler.
+
+	* nsterm.m (x_set_frame_alpha): New function.
+
+2008-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (Fx_font_family_list, syms_of_xfaces): Fix last change.
+
+2008-11-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32font.c (add_font_entity_to_list): Pass the right LOGFONT
+	pointer to check_face_name.
+
+2008-11-27  Kenichi Handa  <handa@m17n.org>
+
+	* category.h (SET_CATEGORY_SET): Call set_category_set.
+	(set_category_set): Extern it.
+
+	* category.c (hash_get_category_set): New function.
+	(Fmodify_category_entry): Adjusted for the change of
+	char_table_ref_and_range.  Call hash_get_category_set to get a
+	category set to store in the table.
+
+	* character.h (MAYBE_UNIFY_CHAR): Call maybe_unify_char instead of
+	Funify_charset.
+
+	* charset.h (enum charset_method): Delete CHARSET_METHOD_MAP_DEFERRED.
+	(DECODE_CHAR): Check if the decoder vector is ready.
+	(ENCODE_CHAR): Check if the encoder char-table is ready.
+	(maybe_unify_char): Extern it.
+
+	* charset.c (Vchar_unified_charset_table): Delete it.
+	(inhibit_load_charset_map): New variable.
+	(temp_charset_work): New variable.
+	(SET_TEMP_CHARSET_WORK_ENCODER, GET_TEMP_CHARSET_WORK_ENCODER)
+	(SET_TEMP_CHARSET_WORK_DECODER, GET_TEMP_CHARSET_WORK_DECODER):
+	New macros.
+	(load_charset_map): Meaning of control_flag changed.  If
+	inhibit_load_charset_map is nonzero, setup a table in
+	temp_charset_work.
+	(load_charset): New argument control_flag.
+	(map_charset_for_dump): New function.
+	(map_charset_chars): If inhibit_load_charset_map is nonzero, use
+	map_charset_for_dump.
+	(Fdefine_charset_internal): If the charset method is MAP, load
+	mapping tables by calling load_charset.
+	(Funify_charset): Don't load a mapping table but directly set
+	Vchar_unify_table.
+	(maybe_unify_char): New function.
+	(decode_char): Don't handle the deleted method MAP_DEFERRED.
+	Handle the case of inhibit_load_charset_map being nonzero.
+	(encode_char): Don't handle the deleted method MAP_DEFERRED.
+	Handle the case of inhibit_load_charset_map being nonzero.
+	(Fclear_charset_maps): Just free temp_charset_work.
+	(syms_of_charset): Make `inhibit-load-charset-map' a Lisp
+	variable.
+
+	* chartab.c (sub_char_table_ref_and_range): Adjusted for the
+	change of char_table_ref_and_range.
+	(char_table_ref_and_range): Change the meaning of argument FROM
+	and TO.  Now the caller must provide initial values for *FROM
+	and *TO.
+
+	* fontset.c (fontset_add): Adjusted for the change of
+	char_table_ref_and_range.
+	(fontset_get_font_group): Likewise.
+	(Ffontset_info): Likewise.
+
+	* keymap.c (describe_vector): Adjusted for the change of
+	char_table_ref_and_range.  For char-table, put boundary between
+	non-ASCII and 8-bit characters.
+
+	* print.c (print_object): For bool-vector, delete unnecessary
+	check of ASCII_BYTE_P.
+
+2008-11-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_open_internal): Don't include external
+	leading in font height.
+
+2008-11-26  Glenn Morris  <rgm@gnu.org>
+
+	* xfaces.c (Fx_font_family_list): Replace lisp/term/pc-win.el
+	redefinition with ifdef.  (Bug#1383)
+
+2008-11-24  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_get_color): Handle long hex strings (fixes bug #1044).
+
+2008-11-24  Wolfgang Lux  <wolfgang.lux@gmail.com>  (tiny change)
+
+	* nsterm.m (-otherMouseDown:, -otherMouseUp:, -otherMouseDragged):
+	New EmacsView methods.
+	(EV_UDMODIFIERS, EV_BUTTON): Add OtherMouse constants.
+	Fixes bug #1048,1357,1414.
+
+2008-11-24  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	Fix bug #1362.
+	* image.c (x_clear_image_1): Do not free background under HAVE_NS, it
+	is not an indexed color.
+	* nsterm.m (free_indexed_color): Add argument checking.
+	* nsfns.m: Move config.h to before system includes (advised by Dan N.).
+
+2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (Fcompleting_read, Vminibuffer_completion_confirm):
+	Document confirm-after-completion value for
+	minibuffer-completion-confirm.
+
+2008-11-24  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (check_face_name): Use xstrcasecmp.  Avoid compiler
+	warning.
+
+2008-11-23  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (uniscribe_encode_char): Ensure context is
+	restored before returning.
+
+	* w32font.c (check_face_name): New function.
+	(add_font_entity_to_list): Use it to filter out common substituted
+	fonts.
+
+2008-11-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fswitch_to_buffer): Reword and mention new option
+	confirm-nonexistent-file-or-buffer in doc-string.
+
+2008-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fbuffer_swap_text): Remove redundant marker manipulation.
+	Fix copy/paste typo.  Add checks.
+
+2008-11-21  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_iso_2022): Reject invalid composition
+	sequence.
+	(DECODE_COMPOSITION_START): If the current source is the last
+	block, and the current composition doesn't end, regard this
+	sequence as invalid.
+	(decode_coding_iso_2022): Handle invalid composition sequence.
+
+2008-11-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (coordinates_in_window): Don't return
+	ON_VERTICAL_BORDER for the rightmost position of a mode/header
+	line when the window is not the rightmost one.  (Bug#1372)
+
+2008-11-16  Ben North  <ben@redfrontdoor.org>  (tiny change)
+
+	* buffer.c (syms_of_buffer): Fix doc-string of cursor-type.
+
+2008-11-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (run_msdos_command): Don't call dos_ttcooked, dos_ttraw,
+	and bright_bg if noninteractive is non-zero.
+
+2008-11-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_draw_glyph_string): For stretch glyphs, don't call
+	x_draw_glyph_string_background.
+
+	* w32term.c (x_draw_glyph_string): Likewise.
+
+2008-11-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_draw_glyph_string): Stop drawing the background of
+	the next glyph string once past the overhang width.
+
+	* nsterm.m (ns_draw_glyph_string): Likewise.
+
+	* w32term.c (x_draw_glyph_string): Likewise.
+
+2008-11-14  Fabrice Popineau  <fabrice.popineau@supelec.fr>  (tiny change)
+
+	* fileio.c (Finsert_file_contents): Decrement specpdl_ptr to avoid
+	double file close.
+
+2008-11-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (window_loop): In DELETE_BUFFER_WINDOWS case, reset
+	dedicated status of window before attempting to display another
+	buffer in it.
+
+2008-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* msdos.c (Fmsdos_long_file_names):
+	(syms_of_msdos) <dos-unsupported-char-glyph>:
+	* dosfns.c (Fint86): Fix typos in docstrings.
+
+2008-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (OBJ1, WIN32OBJ): Fix whitespace.
+
+2008-11-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1260000.
+
+2008-11-12  Michal Nazarewicz  <mina86@tlen.pl>  (tiny change)
+
+	* frame.c (x_set_alpha): Set alpha to -1 if nil given.
+
+	* frame.h: Negative alpha means "don't touch".
+
+	* w32term.c (x_set_frame_alpha): Do nothing if alpha is negative.
+
+	* xterm.c (x_set_frame_alpha): Do nothing if alpha is negative.
+
+2008-11-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* hftctl.c:
+	* chpdef.h:
+	* acldef.h: Remove files used only for systems no longer supported.
+
+	* Makefile.in: Fix .o alphabetical ordering.
+	(hftctl.o): Remove dependency, file removed.
+	(keymap.o, print.o): Depend on charset.h.
+
+2008-11-10  Kenichi Handa  <handa@m17n.org>
+
+	* character.c (Fget_byte): Fix and make it faster for unibyte target.
+
+2008-11-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.c (file_name_completion): If completion_ignore_case is
+	enabled, ignore case when checking completion-regexp-list.
+
+2008-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* vm-limit.c (get_lim_data): Fix last change.
+
+2008-11-08  Kenichi Handa  <handa@m17n.org>
+
+	* character.c (Fget_byte): New function.
+	(syms_of_character): Defsubr Fget_byte.
+
+2008-11-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_window_reusing_current_matrix): Ensure that window
+	cursor position is valid after scrolling.
+
+2008-11-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c (Frandom): Rename arg N to LIMIT to match the docs; doc fix.
+
+2008-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* xterm.c (handle_one_xevent): Don't let popup menus cause
+	mouse-autoselect-window related window switching.  (Bug#1261)
+
+2008-11-04  David Smith  <davidsmith@acm.org>  (tiny change)
+
+	* xterm.c (xim_close_dpy): Avoid double-free on X11R6 XIM.
+
+2008-11-04  Andreas Schwab  <schwab@suse.de>
+
+	* xfns.c (Fx_wm_set_size_hint): Add missing return value.
+
+2008-11-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_wm_set_size_hint): New function.
+
+2008-11-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* textprop.c (Fprevious_single_char_property_change): Return 0
+	when there's no change in a string.  (Bug#1301)
+
 2008-11-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (do_switch_frame): New argument NORECORD passed to
@@ -254,7 +938,7 @@
 2008-10-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacs.c (main): Unconditionally set PER_LINUX32 and exec
-	temacs when dumping if HAVE_PERSONALITY_LINUX32 is defined
+	temacs when dumping if HAVE_PERSONALITY_LINUX32 is defined.
 
 2008-10-21  Kenichi Handa  <handa@m17n.org>
 
@@ -437,8 +1121,7 @@
 	(EmacsPrefsController-setPanelFromValues,-setValuesFromPanel):
 	Use core Emacs cursor types.
 
-	* xdisp.c (draw_glyphs): Don't call notice_overwritten_cursor() under
-	NS.
+	* xdisp.c (draw_glyphs): Don't call notice_overwritten_cursor under NS.
 
 2008-10-02  Martin Rudalics  <rudalics@gmx.at>
 
@@ -608,34 +1291,29 @@
 	* w32term.h (w32_display_info): Remove `height', `width',
 	`height_in', and `width_in' members.
 
-	* xterm.c (x_display_pixel_height, x_display_pixel_width): New
-	functions.
+	* xterm.c (x_display_pixel_height, x_display_pixel_width):
+	New functions.
 	(x_calc_absolute_position): Use them.
 	(x_term_init): Omit removed `height' and `width' members.
 
-	* w32term.c (x_display_pixel_height, x_display_pixel_width): New
-	functions.
+	* w32term.c (x_display_pixel_height, x_display_pixel_width):
+	New functions.
 	(w32_read_socket, x_calc_absolute_position): Use them.
 	(w32_initialize_display_info, w32_term_init): Omit removed members
 	of w32_display_info.
 
-	* nsterm.m (x_display_pixel_height, x_display_pixel_width): New
-	functions.
-	(ns_initialize_display_info): Omit removed members of
-	ns_display_info.
+	* nsterm.m (x_display_pixel_height, x_display_pixel_width):
+	New functions.
+	(ns_initialize_display_info): Omit removed members of ns_display_info.
 
-	* xterm.c (x_display_pixel_height, x_display_pixel_width): New
-	functions.
+	* xterm.c (x_display_pixel_height, x_display_pixel_width):
+	New functions.
 	(x_calc_absolute_position): Use them.
 	(x_term_init): Omit removed `height' and `width' members.
 
 	* xfns.c (Fx_display_pixel_width, Fx_display_pixel_height)
-	(compute_tip_xy): Use x_display_pixel_height and
-	x_display_pixel_width.
-
-	* frame.c (x_fullscreen_adjust): Use x_display_pixel_height and
-	x_display_pixel_width.
-
+	(compute_tip_xy):
+	* frame.c (x_fullscreen_adjust):
 	* xmenu.c (menu_position_func): Use x_display_pixel_height and
 	x_display_pixel_width.
 
@@ -830,8 +1508,8 @@
 
 2008-09-02  Jason Rumney  <jasonr@gnu.org>
 
-	* w32menu.c (Fx_popup_menu, Fx_popup_dialog, w32_menu_show): Ensure
-	mouse is not grabbed after menu is finished.
+	* w32menu.c (Fx_popup_menu, Fx_popup_dialog, w32_menu_show):
+	Ensure mouse is not grabbed after menu is finished.
 
 2008-09-01  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -891,8 +1569,7 @@
 	passing random values to xfree.
 
 	* dispnew.c (init_display): Set `tty's association in frame's
-	parameters alist to the name of the terminal device, if that is
-	known.
+	parameters alist to the name of the terminal device, if that is known.
 
 2008-08-29  Jason Rumney  <jasonr@gnu.org>
 
@@ -905,7 +1582,7 @@
 	* font.c (font_fill_lglyph_metrics): Use EMACS_INT in
 	LGLYPH_SET_CODE to avoid compiler warnings.
 
-	* makefile.w32-in ($(BLD)/w32uniscribe.$(O)): Depend on composite.h
+	* makefile.w32-in ($(BLD)/w32uniscribe.$(O)): Depend on composite.h.
 
 	* composite.h (LGLYPH_SET_CODE): Cast `val' to EMACS_INT.
 
@@ -933,8 +1610,8 @@
 	* chartab.c (optimize_sub_char_table): Perform more greedy
 	optimization.
 
-	* composite.h (enum composition_method): Delete
-	COMPOSITION_WITH_GLYPH_STRING.
+	* composite.h (enum composition_method):
+	Delete COMPOSITION_WITH_GLYPH_STRING.
 	(COMPOSITION_METHOD): Don't check COMPOSITION_WITH_GLYPH_STRING.
 	(Vcomposition_function_table): Extern it.
 	(LGSTRING_XXX, LGLYPH_XXX): Macros moved from font.h.
@@ -947,15 +1624,14 @@
 	* composite.c: Include window.h, frame.h, dispextern.h font.h.
 	(Vcomposition_function_table)
 	(get_composition_id): Don't handle COMPOSITION_WITH_GLYPH_STRING.
-	(gstring_hash_table, gstring_work, gstring_work_headers): New
-	variables.
+	(gstring_hash_table, gstring_work, gstring_work_headers):
+	New variables.
 	(gstring_lookup_cache, composition_gstring_put_cache)
 	(composition_gstring_from_id, composition_gstring_p)
 	(composition_gstring_width, fill_gstring_header)
 	(fill_gstring_body, autocmp_chars, composition_compute_stop_pos)
 	(composition_reseat_it, composition_update_it)
-	(composition_adjust_point, Fcomposition_get_gstring): New
-	functions.
+	(composition_adjust_point, Fcomposition_get_gstring): New functions.
 	(syms_of_composite): Initialize gstring_hash_table, gstrint_work,
 	and gstring_work_headers.  DEFVAR_LISP composition-function-table.
 	Defsubr compostion_get_gstring.
@@ -970,9 +1646,9 @@
 	Delete c, len, cmp_id, cmp_len in u.comp.
 
 	* font.h (enum lgstring_indices): Delete it.
-	(LGSTRING_XXX, LGLYPH_XXX): These macros moved to composite.h.
+	(LGSTRING_XXX, LGLYPH_XXX): Move these macros to composite.h.
 	(enum lglyph_indices): Likewise.
-	(font_range): Extern adjusted.
+	(font_range): Adjust extern.
 	(font_fill_lglyph_metrics): Extern it.
 
 	* font.c (QCf): New variable.
@@ -981,11 +1657,10 @@
 	(font_range): Type and arguments changed.
 	(Ffont_make_gstring, Ffont_fill_gstring): Delete them.
 	(font_fill_lglyph_metrics): New function.
-	(Ffont_shape_text): Renamed to Ffont_shape_gstring and arguments
-	changed.
+	(Ffont_shape_text): Rename to Ffont_shape_gstring and change arguments.
 	(syms_of_font): DEFSYM QCf.  Delete defsubr for
-	Sfont_make_gstring, Sfont_fill_gstring, Sfont_shape_text.  Defsubr
-	Sfont_shape_gstring.
+	Sfont_make_gstring, Sfont_fill_gstring, Sfont_shape_text.
+	Defsubr Sfont_shape_gstring.
 
 	* fontset.h (font_for_char): Extern it.
 
@@ -993,8 +1668,7 @@
 
 	* ftfont.c: Include composite.h.
 	(ftfont_resolve_generic_family): Add langset "en" to pattern.
-	(ftfont_shape_by_flt): Use LGSTRING_GLYPH_LEN, not
-	LGSTRING_LENGTH.
+	(ftfont_shape_by_flt): Use LGSTRING_GLYPH_LEN, not LGSTRING_LENGTH.
 
 	* indent.c: Include composite.h and dispextern.h.
 	(check_composition): Delete this function.
@@ -1007,17 +1681,16 @@
 	* keyboard.c (adjust_point_for_property): Check composition by
 	composition_adjust_point.
 
-	* nsterm.m (ns_draw_glyph_string): Adjusted for the change of
+	* nsterm.m (ns_draw_glyph_string): Adjust for the change of
 	struct glyph_string.
 
-	* term.c (encode_terminal_code): Adjusted for the change of struct
-	glyph.
-	(append_composite_glyph): Adjusted for the change of struct it and
+	* term.c (encode_terminal_code): Adjust for the change of struct glyph.
+	(append_composite_glyph): Adjust for the change of struct it and
 	struct glyph.
 	(produce_composite_glyph): Likewise.
 
-	* w32term.c (x_draw_composite_glyph_string_foreground): Adjusted
-	for the change of struct glyph_string.
+	* w32term.c (x_draw_composite_glyph_string_foreground):
+	Adjust for the change of struct glyph_string.
 	(x_draw_glyph_string): Likewise.
 
 	* w32uniscribe.c (struct uniscribe_font_info): Include composite.h.
@@ -1027,41 +1700,38 @@
 	(it_props): Delete the entry for Qauto_composed.
 	(init_iterator): Initialize it->cmp_it.id to -1.
 	(compute_stop_pos): Call composition_compute_stop_pos.
-	(face_before_or_after_it_pos): Adjusted for the change of struct
-	it.
+	(face_before_or_after_it_pos): Adjust for the change of struct it.
 	(handle_auto_composed_prop): Delete it.
 	(handle_composition_prop): Handle only static composition.
 	(next_overlay_string): Remove it->method == GET_FROM_COMPOSITION
 	from xassert.  Initialize it->cmp_it.stop_pos.
-	(push_it): Adjusted for the change of struct it.
+	(push_it): Adjust for the change of struct it.
 	(pop_it): Likewise.
 	(get_next_element): Delete next_element_from_composition.
 	(CHAR_COMPOSED_P): New macro.
 	(get_next_display_element): For automatic composition, get a face
 	from the font in the glyph-string.
 	(set_iterator_to_next): For GET_FROM_BUFFER and GET_FROM_STRING,
-	check composition by it->cmp_it.id.  Delete GET_FROM_COMPOSITION
-	case.
+	check composition by it->cmp_it.id.  Delete GET_FROM_COMPOSITION case.
 	(next_element_from_string): Check if the character at the current
 	position is composed by CHAR_COMPOSED_P.
 	(next_element_from_buffer): Likewise.
-	(next_element_from_composition): Adjusted for the change of struct
+	(next_element_from_composition): Adjust for the change of struct
 	it.  Update it->cmp_it.
-	(dump_glyph): Adjusted for the change of struct glyph.
-	(fill_composite_glyph_string): Adjusted for the change of struct
+	(dump_glyph): Adjust for the change of struct glyph.
+	(fill_composite_glyph_string): Adjust for the change of struct
 	it and struct glyph.  Don't handle automatic composition here.
 	(fill_gstring_glyph_string): New function.
 	(x_get_glyph_overhangs): Handle automatic composition.
-	(BUILD_COMPOSITE_GLYPH_STRING): Adjusted for the change of struct
-	glyph.
+	(BUILD_COMPOSITE_GLYPH_STRING): Adjust for the change of struct glyph.
 	(BUILD_GSTRING_GLYPH_STRING): New macro.
 	(BUILD_GLYPH_STRINGS): Call BUILD_GSTRING_GLYPH_STRING for
 	automatic composition.
-	(append_composite_glyph): Adjusted for the change of struct it and
+	(append_composite_glyph): Adjust for the change of struct it and
 	struct glyph.
-	(x_produce_glyphs): Adjusted for the change of struct it.
+	(x_produce_glyphs): Adjust for the change of struct it.
 
-	* xterm.c (x_draw_composite_glyph_string_foreground): Adjusted for
+	* xterm.c (x_draw_composite_glyph_string_foreground): Adjust for
 	the change of struct glyph_string.
 	(x_draw_glyph_string): Likewise.
 
@@ -1117,8 +1787,7 @@
 
 2008-08-27  Kenichi Handa  <handa@m17n.org>
 
-	* fileio.c (report_file_error): Fix handling of multibyte error
-	string.
+	* fileio.c (report_file_error): Fix handling of multibyte error string.
 
 2008-08-27  Andreas Seltenreich  <seltenreich@gmx.de>
 
@@ -1147,8 +1816,7 @@
 2008-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* indent.c (Fvertical_motion): If moving forward starting from a
-	multi-line string, move the iterator to the last line of that
-	string.
+	multi-line string, move the iterator to the last line of that string.
 
 2008-08-25  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1165,7 +1833,7 @@
 	* vm-limit.c (get_lim_data) [MSDOS]: Use alternative methods of
 	estimating available memory.
 
-2008-08-23  David Reitter <david.reitter@gmail.com>
+2008-08-23  David Reitter  <david.reitter@gmail.com>
 
 	* nsterm.m (ns_draw_window_cursor): Don't call
 	NSDisableScreenUpdates and NSEnableScreenUpdates on
@@ -1183,8 +1851,8 @@
 	* dispnew.c (init_display): Remove MS-DOS specific conditions for
 	calling tty-set-up-initial-frame-faces.
 
-	* xmenu.c (Fx_popup_dialog, Fx_popup_menu, xmenu_show): Allow
-	MSDOS frames along with X frames.
+	* xmenu.c (Fx_popup_dialog, Fx_popup_menu, xmenu_show):
+	Allow MSDOS frames along with X frames.
 
 	* termhooks.h (TERMINAL_ACTIVE_P): Handle output_msdos_raw in
 	addition to output_termcap.
@@ -1199,12 +1867,11 @@
 	(syms_of_process): Intern and staticpro it.
 
 	* w16select.c (Fw16_set_clipboard_data, Fw16_get_clipboard_data):
-	Adjust for changes in encoding/decoding routines.  Use
-	encode_coding_object and decode_coding_object instead of
+	Adjust for changes in encoding/decoding routines.
+	Use encode_coding_object and decode_coding_object instead of
 	encode_coding and decode_coding.
 
-	* sysdep.c (init_sys_modes): Call dos_ttraw with tty_out as
-	argument.
+	* sysdep.c (init_sys_modes): Call dos_ttraw with tty_out as argument.
 
 	* dosfns.c: Include frame.h before termhooks.h.
 	(dos_cleanup): Use CURTTY ()->termscript instead of a global
@@ -1237,8 +1904,8 @@
 	Don't use TTY_CHAR_INS_DEL_OK.  Set Vinitial_window_system.
 	Announce date and time of session start, if termscript is open.
 	Don't zero out the_only_display_info (it is done in
-	term.c:init_tty).  Open termscript only of not already open.  Log
-	"SCREEN SAVED" here, instead of IT_set_terminal_modes.  Init mouse
+	term.c:init_tty).  Open termscript only of not already open.
+	Log "SCREEN SAVED" here, instead of IT_set_terminal_modes.  Init mouse
 	here instead of dos_ttraw.  Don't initialize display if this is an
 	initial tty.  Don't set FRAME_FONT.
 	(Vwindow_system_version): Bump to 23.
@@ -1257,8 +1924,7 @@
 	(IT_clear_end_of_line, IT_insert_glyphs, IT_write_glyphs)
 	(IT_delete_glyphs, IT_ring_bell, IT_reset_terminal_modes)
 	(IT_set_terminal_modes, IT_set_terminal_window, IT_update_begin):
-	Accept additional argument: a pointer to a frame.  All callers
-	changed.
+	Accept additional argument: a pointer to a frame.  Update all callers.
 	(request_sigio, unrequest_sigio): Don't define, now defined on
 	sysdep.c.
 	(IT_write_glyphs): Rewrite to use encode_terminal_code.
@@ -1271,28 +1937,27 @@
 	dimensions.  Call init_baud_rate to set bad_rate.
 	(dissociate_if_controlling_tty) [MSDOS]: Ifdef away function body.
 	(Fsuspend_tty) [MSDOS]: Don't close input and output.
-	(Fresume_tty) [MSDOS]: Don't reopen the TTY; instead, use
-	stdin/stdout.
+	(Fresume_tty) [MSDOS]: Don't reopen the TTY; instead, use stdin/stdout.
 	(get_tty_terminal, get_named_tty, Ftty_type)
 	(Fcontrolling_tty_p): Handle output_msdos_raw in addition to
 	output_termcap.
-	(Fresume_tty, Fsuspend_tty, init_tty, delete_tty): Call
-	add_keyboard_wait_descriptor and delete_keyboard_wait_descriptor
-	only when subprocesses are supported
+	(Fresume_tty, Fsuspend_tty, init_tty, delete_tty):
+	Call add_keyboard_wait_descriptor and delete_keyboard_wait_descriptor
+	only when subprocesses are supported.
 
 	* frame.c (make_terminal_frame) [MSDOS]: Adjust initialization of
 	f->output_data.x.
 	(Fmake_terminal_frame) [MSDOS]: Don't allow creation of new
 	terminal devices.
 
-	* msdos.h Remove definition of struct x_display_info and struct
+	* msdos.h: Remove definition of struct x_display_info and struct
 	x_output.
 	(FRAME_FONT): Use output_data.tty.
 	(FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL): Don't define.
-	(struct x_display_info): Renamed from display_info.  All users in
-	msdos.c changed.
+	(struct x_display_info): Rename from display_info.  Update all users in
+	msdos.c.
 	(struct x_output): Remove background_pixel and foreground_pixel.
-	(the_only_display_info): Renamed from the_only_x_display.
+	(the_only_display_info): Rename from the_only_x_display.
 	(dos_ttraw): Update prototype.
 
 	* Makefile.in (MSDOS_OBJ): Add xmenu.o.
@@ -1919,7 +2584,7 @@
 	Set Vx_resource_name to a fallback.  Replace read of 'buffered'
 	parameter with read of 'alpha' one.
 	(Qns_frame_parameter): Remove.
-	* nsselection.m (selection-coding-system)
+	* nsselect.m (selection-coding-system)
 	(next-selection-coding-system, Vselection_coding_system)
 	(Vnext_selection_coding_system): Drop.
 
@@ -1969,9 +2634,9 @@
 	* dispextern.h:
 	* config.in:
 	* atimer.c:
-	* Makefile.in: Remove code for Carbon
+	* Makefile.in: Remove code for Carbon.
 
-2008-07-26 YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-07-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (XDrawLine) [USE_MAC_IMAGE_IO]: Remove spurious return.
 
@@ -3130,7 +3795,7 @@
 2008-07-02  Jason Rumney  <jasonr@gnu.org>
 
 	* xfns.c (syms_of_xfns): Only define x-select-font when both
-	HAVE_FREETYPE and USE_GTK
+	HAVE_FREETYPE and USE_GTK.
 
 	* xdisp.c (next_element_from_display_vector): Move assignment out
 	of if statement.
@@ -3177,7 +3842,7 @@
 
 	* ftfont.c (fc_charset_table): New member lang.
 	(ftfont_resolve_generic_family): New arg pattern.
-	(ftfont_spec_pattern): Check fc_cahrset_table[]->lang.
+	(ftfont_spec_pattern): Check fc_charset_table[]->lang.
 	(ftfont_list): Call ftfont_resolve_generic_family with `pattern'.
 	(ftfont_open): Fix args to ftfont_font_format.
 	(ftfont_font_format): New arg filename.
@@ -6472,7 +7137,7 @@
 
 	* w32font.c (w32font_full_name): Use floor to round.
 
-2008-03-10  dhruva  <dhruvakm@gmail.com>  (tiny change)
+2008-03-10  Dhruva Krishnamurthy  <dhruvakm@gmail.com>  (tiny change)
 
 	* sound.c (alsa_configure): Declare vol at beginning of block.
 
@@ -10593,7 +11258,7 @@
 
 	* ccl.c (CCL_DECODE_CHAR, CCL_ENCODE_CHAR): New macros.
 	(ccl_driver): New arg CHARSET_LIST.  Use the above macros instead
-	of DECODE_CAHR, ENCODE_CHAR, CHAR_CHARSET.
+	of DECODE_CHAR, ENCODE_CHAR, CHAR_CHARSET.
 	(Fccl_execute, Fccl_execute_on_string): Call ccl_driver with the
 	last arg Qnil.
 
@@ -12925,7 +13590,7 @@
 	(Qdbus_event): New Lisp symbol.
 	(kbd_buffer_get_event, make_lispy_event): Handle DBUS_EVENT.
 	(gobble_input): Call xd_read_queued_messages, reading D-Bus messages.
-	(keys_of_keyboard ): Define dbus-event.
+	(keys_of_keyboard): Define dbus-event.
 
 	* termhooks.h (event_kind): Add DBUS_EVENT when HAVE_DBUS is defined.
 
@@ -14650,7 +15315,7 @@
 	(mouse_position_for_popup, Fx_popup_menu)
 	(Fx_popup_dialog, x_activate_menubar, update_frame_menubar)
 	(set_frame_menubar, free_frame_menubar)
-	(create_and_show_popup_menu, xmenu_show, )
+	(create_and_show_popup_menu, xmenu_show)
 	(create_and_show_dialog, xdialog_show, xmenu_show): Abort if not
 	an X frame.
 

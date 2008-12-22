@@ -2249,11 +2249,11 @@ that @code{lookup-key} does not perform case conversion in this way.
 @vindex this-command-keys-shift-translated
 When reading input results in such a @dfn{shift-translation}, Emacs
 sets the variable @code{this-command-keys-shift-translated} to a
-non-nil value.  Lisp programs can examine this variable if they need
-to modify their behavior when invoked by shift-translated keys.  For
-example, the function @code{handle-shift-selection} examines the value
-of this variable to determine how to activate or deactivate the region
-(@pxref{The Mark, handle-shift-selection}).
+non-@code{nil} value.  Lisp programs can examine this variable if they
+need to modify their behavior when invoked by shift-translated keys.
+For example, the function @code{handle-shift-selection} examines the
+value of this variable to determine how to activate or deactivate the
+region (@pxref{The Mark, handle-shift-selection}).
 
 The function @code{read-key-sequence} also transforms some mouse events.
 It converts unbound drag events into click events, and discards unbound

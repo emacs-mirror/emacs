@@ -25,8 +25,6 @@
 ;; internal use only.
 
 ;; Functional completion tables have an extended calling conventions:
-;; - If completion-all-completions-with-base-size is set, then all-completions
-;;   should return the base-size in the last cdr.
 ;; - The `action' can be (additionally to nil, t, and lambda) of the form
 ;;   (boundaries . SUFFIX) in which case it should return
 ;;   (boundaries START . END).  See `completion-boundaries'.
@@ -57,11 +55,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-
-(defvar completion-all-completions-with-base-size nil
-  "If non-nil, `all-completions' may return the base-size in the last cdr.
-The base-size is the length of the prefix that is elided from each
-element in the returned list of completions.  See `completion-base-size'.")
 
 ;;; Completion table manipulation
 
@@ -176,13 +169,6 @@ You should give VAR a non-nil `risky-local-variable' property."
       (cond
        ;; In case of try-completion, add the prefix.
        ((stringp comp) (concat prefix comp))
-       ;; In case of non-empty all-completions,
-       ;; add the prefix size to the base-size.
-       ((consp comp)
-        (let ((last (last comp)))
-          (when completion-all-completions-with-base-size
-            (setcdr last (+ (or (cdr last) 0) (length prefix))))
-          comp))
        (t comp)))))
 
 (defun completion-table-with-terminator (terminator table string pred action)
@@ -200,12 +186,8 @@ You should give VAR a non-nil `risky-local-variable' property."
     ;; consistent so pcm can merge the `all' output to get the `try' output,
     ;; but that sometimes clashes with the need for `all' output to look
     ;; good in *Completions*.
-    ;; (let* ((all (all-completions string table pred))
-    ;;        (last (last all))
-    ;;        (base-size (cdr last)))
-    ;;   (when all
-    ;;     (setcdr all nil)
-    ;;     (nconc (mapcar (lambda (s) (concat s terminator)) all) base-size)))
+    ;; (mapcar (lambda (s) (concat s terminator))
+    ;;         (all-completions string table pred))))
     (all-completions string table pred))
    ;; completion-table-with-terminator is always used for
    ;; "sub-completions" so it's only called if the terminator is missing,
@@ -360,20 +342,19 @@ Only the elements of table that satisfy predicate PRED are considered.
 POINT is the position of point within STRING.
 The return value is a list of completions and may contain the base-size
 in the last `cdr'."
-  (let ((completion-all-completions-with-base-size t))
-    ;; The property `completion-styles' indicates that this functional
-    ;; completion-table claims to take care of completion styles itself.
-    ;; [I.e. It will most likely call us back at some point. ]
-    (if (and (symbolp table) (get table 'completion-styles))
-        ;; Extended semantics for functional completion-tables:
-        ;; They accept a 4th argument `point' and when called with action=t
-        ;; and this 4th argument (a position inside `string'), they may
-        ;; return BASE-SIZE in the last `cdr'.
-        (funcall table string pred t point)
-      (completion--some (lambda (style)
-                          (funcall (nth 2 (assq style completion-styles-alist))
-                                   string table pred point))
-                        completion-styles))))
+  ;; The property `completion-styles' indicates that this functional
+  ;; completion-table claims to take care of completion styles itself.
+  ;; [I.e. It will most likely call us back at some point. ]
+  (if (and (symbolp table) (get table 'completion-styles))
+      ;; Extended semantics for functional completion-tables:
+      ;; They accept a 4th argument `point' and when called with action=t
+      ;; and this 4th argument (a position inside `string'), they may
+      ;; return BASE-SIZE in the last `cdr'.
+      (funcall table string pred t point)
+    (completion--some (lambda (style)
+                        (funcall (nth 2 (assq style completion-styles-alist))
+                                 string table pred point))
+                      completion-styles)))
 
 (defun minibuffer--bitset (modified completions exact)
   (logior (if modified    4 0)
@@ -542,13 +523,24 @@ Repeated uses step through the possible completions."
       ;; through the previous possible completions.
       (setq completion-all-sorted-completions (cdr all)))))
 
+(defvar minibuffer-confirm-exit-commands
+  '(minibuffer-complete minibuffer-complete-word PC-complete PC-complete-word)
+  "A list of commands which cause an immediately following
+`minibuffer-complete-and-exit' to ask for extra confirmation.")
+
 (defun minibuffer-complete-and-exit ()
-  "If the minibuffer contents is a valid completion then exit.
-Otherwise try to complete it.  If completion leads to a valid completion,
-a repetition of this command will exit.
-If `minibuffer-completion-confirm' is equal to `confirm', then do not
-try to complete, but simply ask for confirmation and accept any
-input if confirmed."
+  "Exit if the minibuffer contains a valid completion.
+Otherwise, try to complete the minibuffer contents.  If
+completion leads to a valid completion, a repetition of this
+command will exit.
+
+If `minibuffer-completion-confirm' is `confirm', do not try to
+ complete; instead, ask for confirmation and accept any input if
+ confirmed.
+If `minibuffer-completion-confirm' is `confirm-after-completion',
+ do not try to complete; instead, ask for confirmation if the
+ preceding minibuffer command was `minibuffer-complete', and
+ accept the input otherwise."
   (interactive)
   (let ((beg (field-beginning))
         (end (field-end)))
@@ -578,13 +570,21 @@ input if confirmed."
             (delete-region beg end))))
       (exit-minibuffer))
 
-     ((eq minibuffer-completion-confirm 'confirm-only)
+     ((eq minibuffer-completion-confirm 'confirm)
       ;; The user is permitted to exit with an input that's rejected
-      ;; by test-completion, but at the condition to confirm her choice.
+      ;; by test-completion, after confirming her choice.
       (if (eq last-command this-command)
           (exit-minibuffer)
         (minibuffer-message "Confirm")
         nil))
+
+     ((eq minibuffer-completion-confirm 'confirm-after-completion)
+      ;; Similar to the above, but only if trying to exit immediately
+      ;; after typing TAB (this catches most minibuffer typos).
+      (if (memq last-command minibuffer-confirm-exit-commands)
+	  (progn (minibuffer-message "Confirm")
+		 nil)
+	(exit-minibuffer)))
 
      (t
       ;; Call do-completion, but ignore errors.
@@ -611,7 +611,8 @@ input if confirmed."
               (after (substring string point))
 	      ;; Disable partial-completion for this.
 	      (completion-styles
-	       (remove 'partial-completion completion-styles))
+	       (or (remove 'partial-completion completion-styles)
+		   completion-styles))
 	      tem)
 	  (while (and exts (not (consp tem)))
             (setq tem (completion-try-completion
@@ -773,13 +774,9 @@ make the common parts less visible than normal, so that the rest
 of the differing parts is, by contrast, slightly highlighted."
   :group 'completion)
 
-(defun completion-hilit-commonality (completions prefix-len)
+(defun completion-hilit-commonality (completions prefix-len base-size)
   (when completions
-    (let* ((last (last completions))
-           (base-size (cdr last))
-           (com-str-len (- prefix-len (or base-size 0))))
-      ;; Remove base-size during mapcar, and add it back later.
-      (setcdr last nil)
+    (let ((com-str-len (- prefix-len (or base-size 0))))
       (nconc
        (mapcar
         (lambda (elem)
@@ -821,7 +818,9 @@ specifying a common substring for adding the faces
 the completions buffer."
   (if common-substring
       (setq completions (completion-hilit-commonality
-                         completions (length common-substring))))
+                         completions (length common-substring)
+                         ;; We don't know the base-size.
+                         nil)))
   (if (not (bufferp standard-output))
       ;; This *never* (ever) happens, so there's no point trying to be clever.
       (with-temp-buffer
@@ -1015,10 +1014,7 @@ the completions buffer."
               str))))
 
        ((eq action t)
-        (let ((all (file-name-all-completions name realdir))
-              ;; FIXME: Actually, this is not always right in the presence
-              ;; of envvars, but there's not much we can do, I think.
-              (base-size (length (file-name-directory string))))
+        (let ((all (file-name-all-completions name realdir)))
 
           ;; Check the predicate, if necessary.
           (unless (memq read-file-name-predicate '(nil file-exists-p))
@@ -1037,10 +1033,7 @@ the completions buffer."
                   (if (funcall pred tem) (push tem comp))))
               (setq all (nreverse comp))))
 
-          (if (and completion-all-completions-with-base-size (consp all))
-              ;; Add base-size, but only if the list is non-empty.
-              (nconc all base-size)
-            all)))
+          all))
 
        (t
         ;; Only other case actually used is ACTION = lambda.
@@ -1231,7 +1224,8 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
 (defun completion-emacs21-all-completions (string table pred point)
   (completion-hilit-commonality
    (all-completions string table pred)
-   (length string)))
+   (length string)
+   (car (completion-boundaries string table pred ""))))
 
 (defun completion-emacs22-try-completion (string table pred point)
   (let ((suffix (substring string point))
@@ -1254,9 +1248,11 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
       (cons (concat completion suffix) (length completion)))))
 
 (defun completion-emacs22-all-completions (string table pred point)
-  (completion-hilit-commonality
-   (all-completions (substring string 0 point) table pred)
-   point))
+  (let ((beforepoint (substring string 0 point)))
+    (completion-hilit-commonality
+     (all-completions beforepoint table pred)
+     point
+     (car (completion-boundaries beforepoint table pred "")))))
 
 ;;; Basic completion.
 
@@ -1311,9 +1307,7 @@ Return the new suffix."
                             'point
                             (substring afterpoint 0 (cdr bounds)))))
          (all (completion-pcm--all-completions prefix pattern table pred)))
-    (completion-hilit-commonality
-     (if (consp all) (nconc all (car bounds)) all)
-     point)))
+    (completion-hilit-commonality all point (car bounds))))
 
 ;;; Partial-completion-mode style completion.
 
@@ -1389,14 +1383,13 @@ or a symbol chosen among `any', `star', `point'."
 (defun completion-pcm--all-completions (prefix pattern table pred)
   "Find all completions for PATTERN in TABLE obeying PRED.
 PATTERN is as returned by `completion-pcm--string->pattern'."
+  ;; (assert (= (car (completion-boundaries prefix table pred ""))
+  ;;            (length prefix)))
   ;; Find an initial list of possible completions.
   (if (completion-pcm--pattern-trivial-p pattern)
 
       ;; Minibuffer contains no delimiters -- simple case!
-      (let* ((all (all-completions (concat prefix (car pattern)) table pred))
-             (last (last all)))
-        (if last (setcdr last nil))
-        all)
+      (all-completions (concat prefix (car pattern)) table pred)
 
     ;; Use all-completions to do an initial cull.  This is a big win,
     ;; since all-completions is written in C!
@@ -1406,13 +1399,7 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
            (completion-regexp-list (cons regex completion-regexp-list))
 	   (compl (all-completions
                    (concat prefix (if (stringp (car pattern)) (car pattern) ""))
-		   table pred))
-           (last (last compl)))
-      (when last
-        (if (and (numberp (cdr last)) (/= (cdr last) (length prefix)))
-            (message "Inconsistent base-size returned by completion table %s"
-                     table))
-        (setcdr last nil))
+		   table pred)))
       (if (not (functionp table))
 	  ;; The internal functions already obeyed completion-regexp-list.
 	  compl

@@ -1,12 +1,11 @@
 ;;; vc-rcs.el --- support for RCS version-control
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
-
-;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +37,7 @@
   (require 'vc))
 
 (defcustom vc-rcs-release nil
-  "*The release number of your RCS installation, as a string.
+  "The release number of your RCS installation, as a string.
 If nil, VC itself computes this value when it is first needed."
   :type '(choice (const :tag "Auto" nil)
 		 (string :tag "Specified")
@@ -46,35 +45,35 @@ If nil, VC itself computes this value when it is first needed."
   :group 'vc)
 
 (defcustom vc-rcs-register-switches nil
-  "*Extra switches for registering a file in RCS.
-A string or list of strings.  These are passed to the checkin program
-by \\[vc-rcs-register]."
-  :type '(choice (const :tag "None" nil)
+  "Switches for registering a file in RCS.
+A string or list of strings passed to the checkin program by
+\\[vc-register].  If nil, use the value of `vc-register-switches'.
+If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
   :group 'vc)
 
 (defcustom vc-rcs-diff-switches nil
-  "*A string or list of strings specifying extra switches for rcsdiff under VC."
-  :type '(choice (const :tag "None" nil)
+  "String or list of strings specifying switches for RCS diff under VC.
+If nil, use the value of `vc-diff-switches'.  If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+                 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
   :group 'vc)
 
 (defcustom vc-rcs-header (or (cdr (assoc 'RCS vc-header-alist)) '("\$Id\$"))
-  "*Header keywords to be inserted by `vc-insert-headers'."
+  "Header keywords to be inserted by `vc-insert-headers'."
   :type '(repeat string)
   :version "21.1"
   :group 'vc)
 
 (defcustom vc-rcsdiff-knows-brief nil
-  "*Indicates whether rcsdiff understands the --brief option.
+  "Indicates whether rcsdiff understands the --brief option.
 The value is either `yes', `no', or nil.  If it is nil, VC tries
 to use --brief and sets this variable to remember whether it worked."
   :type '(choice (const :tag "Work out" nil) (const yes) (const no))
@@ -83,7 +82,7 @@ to use --brief and sets this variable to remember whether it worked."
 ;;;###autoload
 (defcustom vc-rcs-master-templates
   '("%sRCS/%s,v" "%s%s,v" "%sRCS/%s")
-  "*Where to look for RCS master files.
+  "Where to look for RCS master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard RCS file names"
 			'("%sRCS/%s,v" "%s%s,v" "%sRCS/%s"))
@@ -263,16 +262,15 @@ When VERSION is given, perform check for that version."
 
 (defun vc-rcs-create-repo ()
   "Create a new RCS repository."
-  ;; RCS is totally file-oriented, so all we have to do is make the directory
+  ;; RCS is totally file-oriented, so all we have to do is make the directory.
   (make-directory "RCS"))
 
 (defun vc-rcs-register (files &optional rev comment)
   "Register FILES into the RCS version-control system.
 REV is the optional revision number for the files.  COMMENT can be used
 to provide an initial description for each FILES.
-
-`vc-register-switches' and `vc-rcs-register-switches' are passed to
-the RCS command (in that order).
+Passes either `vc-rcs-register-switches' or `vc-register-switches'
+to the RCS command.
 
 Automatically retrieve a read-only version of the file with keywords
 expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."

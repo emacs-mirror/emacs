@@ -4280,7 +4280,7 @@ int _rename(const char *old, const char *new)
 
 DEFUN ("msdos-long-file-names", Fmsdos_long_file_names, Smsdos_long_file_names,
        0, 0, 0,
-       doc: /* Return non-nil if long file names are supported on MSDOS.  */)
+       doc: /* Return non-nil if long file names are supported on MS-DOS.  */)
      ()
 {
   return (_USE_LFN ? Qt : Qnil);
@@ -4749,7 +4749,8 @@ run_msdos_command (argv, working_dir, tempin, tempout, temperr, envv)
   if (have_mouse > 0)
     mouse_get_xy (&x, &y);
 
-  dos_ttcooked ();	/* do it here while 0 = stdin */
+  if (!noninteractive)
+    dos_ttcooked ();	/* do it here while 0 = stdin */
 
   dup2 (tempin, 0);
   dup2 (tempout, 1);
@@ -4809,7 +4810,8 @@ run_msdos_command (argv, working_dir, tempin, tempout, temperr, envv)
   emacs_close (outbak);
   emacs_close (errbak);
 
-  dos_ttraw (CURTTY ());
+  if (!noninteractive)
+    dos_ttraw (CURTTY ());
   if (have_mouse > 0)
     {
       mouse_init ();
@@ -4819,7 +4821,8 @@ run_msdos_command (argv, working_dir, tempin, tempout, temperr, envv)
   /* Some programs might change the meaning of the highest bit of the
      text attribute byte, so we get blinking characters instead of the
      bright background colors.  Restore that.  */
-  bright_bg ();
+  if (!noninteractive)
+    bright_bg ();
 
  done:
   chdir (oldwd);
@@ -5247,7 +5250,7 @@ syms_of_msdos ()
 
   DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
 	       doc: /* *Glyph to display instead of chars not supported by current codepage.
-This variable is used only by MSDOS terminals.  */);
+This variable is used only by MS-DOS terminals.  */);
   Vdos_unsupported_char_glyph = make_number ('\177');
 
 #endif

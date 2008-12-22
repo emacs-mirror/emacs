@@ -72,8 +72,13 @@ s/bootstrap-temacs/b-temacs/
 s/bootstrap-doc/b-doc/
 /rm -f bootstrap-emacs/s/b-emacs/b-emacs b-emacs.exe/
 s/echo.*buildobj.lst/dj&/
+/ --load loadup bootstrap/i\
+	stubedit temacs.exe minstack=1024k
+/ --load loadup bootstrap/a\
+	stubify emacs
 /^	mv -f emacs/a\
-	stubedit b-emacs.exe minstack=3072k
+	stubedit b-emacs.exe minstack=3072k\
+	djecho bootlisp > bootlisp
 /^	-\{0,1\}rm -f/s/\\#/#/
 /^	@\{0,1\}cd ..\/lisp; /s|$|\; cd ../src|
 

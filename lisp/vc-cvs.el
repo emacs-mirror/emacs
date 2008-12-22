@@ -1,7 +1,7 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control
 
-;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
@@ -60,7 +60,7 @@
 ;;;
 
 (defcustom vc-cvs-global-switches nil
-  "*Global switches to pass to any CVS command."
+  "Global switches to pass to any CVS command."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
@@ -70,35 +70,35 @@
   :group 'vc)
 
 (defcustom vc-cvs-register-switches nil
-  "*Extra switches for registering a file into CVS.
+  "Switches for registering a file into CVS.
 A string or list of strings passed to the checkin program by
-\\[vc-register]."
-  :type '(choice (const :tag "None" nil)
+\\[vc-register].  If nil, use the value of `vc-register-switches'.
+If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
   :group 'vc)
 
 (defcustom vc-cvs-diff-switches nil
-  "*A string or list of strings specifying extra switches for cvs diff under VC."
-    :type '(choice (const :tag "None" nil)
-		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+  "String or list of strings specifying switches for CVS diff under VC.
+If nil, use the value of `vc-diff-switches'.  If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+                 (const :tag "None" t)
+                 (string :tag "Argument String")
+                 (repeat :tag "Argument List" :value ("") string))
   :version "21.1"
   :group 'vc)
 
 (defcustom vc-cvs-header (or (cdr (assoc 'CVS vc-header-alist)) '("\$Id\$"))
-  "*Header keywords to be inserted by `vc-insert-headers'."
+  "Header keywords to be inserted by `vc-insert-headers'."
   :version "21.1"
   :type '(repeat string)
   :group 'vc)
 
 (defcustom vc-cvs-use-edit t
-  "*Non-nil means to use `cvs edit' to \"check out\" a file.
+  "Non-nil means to use `cvs edit' to \"check out\" a file.
 This is only meaningful if you don't use the implicit checkout model
 \(i.e. if you have $CVSREAD set)."
   :type 'boolean
@@ -106,7 +106,7 @@ This is only meaningful if you don't use the implicit checkout model
   :group 'vc)
 
 (defcustom vc-cvs-stay-local 'only-file
-  "*Non-nil means use local operations when possible for remote repositories.
+  "Non-nil means use local operations when possible for remote repositories.
 This avoids slow queries over the network and instead uses heuristics
 and past information to determine the current status of a file.
 
@@ -123,15 +123,18 @@ by these regular expressions."
   :type '(choice (const :tag "Always stay local" t)
 		 (const :tag "Only for file operations" only-file)
 		 (const :tag "Don't stay local" nil)
-                 (list :format "\nExamine hostname and %v" :tag "Examine hostname ..."
-                       (set :format "%v" :inline t (const :format "%t" :tag "don't" except))
-                       (regexp :format " stay local,\n%t: %v" :tag "if it matches")
+                 (list :format "\nExamine hostname and %v"
+                       :tag "Examine hostname ..."
+                       (set :format "%v" :inline t
+                            (const :format "%t" :tag "don't" except))
+                       (regexp :format " stay local,\n%t: %v"
+                               :tag "if it matches")
                        (repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
   :version "23.1"
   :group 'vc)
 
 (defcustom vc-cvs-sticky-date-format-string "%c"
-  "*Format string for mode-line display of sticky date.
+  "Format string for mode-line display of sticky date.
 Format is according to `format-time-string'.  Only used if
 `vc-cvs-sticky-tag-display' is t."
   :type '(string)
@@ -139,7 +142,7 @@ Format is according to `format-time-string'.  Only used if
   :group 'vc)
 
 (defcustom vc-cvs-sticky-tag-display t
-  "*Specify the mode-line display of sticky tags.
+  "Specify the mode-line display of sticky tags.
 Value t means default display, nil means no display at all.  If the
 value is a function or macro, it is called with the sticky tag and
 its' type as parameters, in that order.  TYPE can have three different
@@ -273,9 +276,8 @@ committed and support display of sticky tags."
 (defun vc-cvs-register (files &optional rev comment)
   "Register FILES into the CVS version-control system.
 COMMENT can be used to provide an initial description of FILES.
-
-`vc-register-switches' and `vc-cvs-register-switches' are passed to
-the CVS command (in that order)."
+Passes either `vc-cvs-register-switches' or `vc-register-switches'
+to the CVS command."
   ;; Register the directories if needed.
   (let (dirs)
     (dolist (file files)
@@ -304,9 +306,10 @@ its parents."
     (while (and (stringp dir)
                 (not (equal dir (setq dir (file-name-directory dir))))
                 dir)
-      (setq dir (if (file-directory-p
+      (setq dir (if (file-exists-p
                      (expand-file-name "CVS/Entries" dir))
-                    t (directory-file-name dir))))
+                    t
+                  (directory-file-name dir))))
     (eq dir t)))
 
 (defun vc-cvs-checkin (files rev comment)
@@ -522,13 +525,12 @@ Will fail unless you have administrative privileges on the repo."
 	      (coding-system-for-read (vc-coding-system-for-diff file)))
 	  (if (and file-oldvers file-newvers)
 	      (progn
+		;; This used to append diff-switches and vc-diff-switches,
+		;; which was consistent with the vc-diff-switches doc at that
+		;; time, but not with the actual behavior of any other VC diff.
 		(apply 'vc-do-command (or buffer "*vc-diff*") 1 "diff" nil
-		       (append (if (listp diff-switches)
-				   diff-switches
-				 (list diff-switches))
-			       (if (listp vc-diff-switches)
-				   vc-diff-switches
-				 (list vc-diff-switches))
+		       ;; Not a CVS diff, does not use vc-cvs-diff-switches.
+		       (append (vc-switches nil 'diff)
 			       (list (file-relative-name file-oldvers)
 				     (file-relative-name file-newvers))))
 		(setq status 0))
@@ -720,10 +722,16 @@ and that it passes `vc-cvs-global-switches' to it before FLAGS."
 		(buffer-substring (point)
 				  (line-end-position))))))))
 
+(defun vc-cvs-parse-uhp (path)
+  "parse user@host/path into (user@host /path)"
+  (if (string-match "\\([^/]+\\)\\(/.*\\)" path)
+      (list (match-string 1 path) (match-string 2 path))
+      (list nil path)))
+
 (defun vc-cvs-parse-root (root)
   "Split CVS ROOT specification string into a list of fields.
 A CVS root specification of the form
-  [:METHOD:][[USER@]HOSTNAME:]/path/to/repository
+  [:METHOD:][[USER@]HOSTNAME]:?/path/to/repository
 is converted to a normalized record with the following structure:
   \(METHOD USER HOSTNAME CVS-ROOT).
 The default METHOD for a CVS root of the form
@@ -745,17 +753,16 @@ For an empty string, nil is returned (invalid CVS root)."
             ;; Invalid CVS root
             nil)
            ((= len 1)
-            ;; Simple PATH => method `local'
-            (cons "local"
-                  (cons nil root-list)))
+            (let ((uhp (vc-cvs-parse-uhp (car root-list))))
+              (cons (if (car uhp) "ext" "local") uhp)))
            ((= len 2)
             ;; [USER@]HOST:PATH => method `ext'
             (and (not (equal (car root-list) ""))
                  (cons "ext" root-list)))
            ((= len 3)
-            ;; :METHOD:PATH
+            ;; :METHOD:PATH or :METHOD:USER@HOSTNAME/PATH
             (cons (cadr root-list)
-                  (cons nil (cddr root-list))))
+                  (vc-cvs-parse-uhp (caddr root-list))))
            (t
             ;; :METHOD:[USER@]HOST:PATH
             (cdr root-list)))))
@@ -993,7 +1000,7 @@ state."
 	       (insert-file-contents "CVS/Root")
 	       (goto-char (point-min))
 	       (and (looking-at ":ext:") (delete-char 5))
-	       (buffer-substring (point) (1- (point-max))))
+	       (concat (buffer-substring (point) (1- (point-max))) "\n"))
 	   (file-error nil)))
 	(module
 	 (condition-case nil
@@ -1004,14 +1011,27 @@ state."
 	       (concat (buffer-substring (point-min) (point)) "\n"))
 	   (file-error nil))))
     (concat
-     (cond (module
-	    (concat (propertize "Module     : " 'face 'font-lock-type-face)
-                    (propertize module 'face 'font-lock-variable-name-face)))
-	   (t ""))
      (cond (repo
 	    (concat (propertize "Repository : " 'face 'font-lock-type-face)
                     (propertize repo 'face 'font-lock-variable-name-face)))
 	   (t ""))
+     (cond (module
+	    (concat (propertize "Module     : " 'face 'font-lock-type-face)
+                    (propertize module 'face 'font-lock-variable-name-face)))
+	   (t ""))
+     (if (file-readable-p "CVS/Tag")
+	 (let ((tag (vc-cvs-file-to-string "CVS/Tag")))
+	   (cond
+	    ((string-match "\\`T" tag)
+	     (concat (propertize "Tag        : " 'face 'font-lock-type-face)
+		     (propertize (substring tag 1)
+				 'face 'font-lock-variable-name-face)))
+	    ((string-match "\\`D" tag)
+	     (concat (propertize "Date       : " 'face 'font-lock-type-face)
+		     (propertize (substring tag 1)
+				 'face 'font-lock-variable-name-face)))
+	    (t ""))))
+
      ;; In CVS, branch is a per-file property, not a per-directory property.
      ;; We can't really do this here without making dangerous assumptions.
      ;;(propertize "Branch:     " 'face 'font-lock-type-face)

@@ -94,7 +94,7 @@ This is nil while loading `scroll-bar.el', and t afterward.")
 					      scroll-bar-mode)))))
 
 (defcustom scroll-bar-mode default-frame-scroll-bars
-  "*Specify whether to have vertical scroll bars, and on which side.
+  "Specify whether to have vertical scroll bars, and on which side.
 Possible values are nil (no scroll bars), `left' (scroll bars on left)
 and `right' (scroll bars on right).
 To set this variable in a Lisp program, use `set-scroll-bar-mode'
@@ -122,7 +122,7 @@ turn off scroll bars; otherwise, turn on scroll bars."
   (interactive "P")
 
   ;; Tweedle the variable according to the argument.
-  (set-scroll-bar-mode (if (if (null flag) 
+  (set-scroll-bar-mode (if (if (null flag)
 			       (not scroll-bar-mode)
 			     (setq flag (prefix-numeric-value flag))
 			     (or (not (numberp flag)) (>= flag 0)))

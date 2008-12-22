@@ -1055,7 +1055,7 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
 }
 
 /* Check if the character at CHARPOS (and BYTEPOS) is composed
-   (possibly with the following charaters) on window W.  ENDPOS limits
+   (possibly with the following characters) on window W.  ENDPOS limits
    characters to be composed.  FACE, in non-NULL, is a base face of
    the character.  If STRING is not nil, it is a string containing the
    character to check, and CHARPOS and BYTEPOS are indices in the

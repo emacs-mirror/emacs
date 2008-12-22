@@ -209,7 +209,7 @@ the number of colors, see `bubbles-colors'."
 (defcustom bubbles-shift-mode
   'default
   "Shift mode.
-Available modes are `shift-default' and`shift-always'."
+Available modes are `shift-default' and `shift-always'."
   :type '(radio (const :tag "Default" default)
                 (const :tag "Shifter" always)
                 ;;(const :tag "Mega Shifter" 'mega)
@@ -782,7 +782,7 @@ static char * dot3d_xpm[] = {
 
 (defsubst bubbles--empty-char ()
   "The character used for removed bubbles (empty grid cells)."
-  ? )
+  ?\s)
 
 (defun bubbles-set-graphics-theme-ascii ()
   "Set graphics theme to `ascii'."
@@ -918,20 +918,14 @@ static char * dot3d_xpm[] = {
     map)
   "Mode map for bubbles.")
 
-(defun bubbles-mode ()
+(define-derived-mode bubbles-mode nil "Bubbles"
   "Major mode for playing bubbles.
 \\{bubbles-mode-map}"
-  (kill-all-local-variables)
-  (use-local-map bubbles-mode-map)
-  (setq major-mode 'bubbles-mode)
-  (setq mode-name "Bubbles")
   (setq buffer-read-only t)
   (buffer-disable-undo)
-  (setq buffer-undo-list t)
   (force-mode-line-update)
   (redisplay)
-  (add-hook 'post-command-hook 'bubbles--mark-neighbourhood t t)
-  (run-hooks 'bubbles-mode-hook))
+  (add-hook 'post-command-hook 'bubbles--mark-neighbourhood t t))
 
 ;;;###autoload
 (defun bubbles ()
@@ -1154,7 +1148,7 @@ Use optional parameter POS instead of point if given."
   (bubbles--update-score))
 
 (defun bubbles--update-score ()
-  "Calculate and display new bubble score."
+  "Calculate and display new bubbles score."
   (setq bubbles--score (+ bubbles--score bubbles--neighbourhood-score))
   (bubbles--show-scores))
 

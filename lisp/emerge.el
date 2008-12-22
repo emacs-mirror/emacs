@@ -137,55 +137,55 @@ When called interactively, displays the version."
 ;; finicky details of their output, including the somewhat strange
 ;; way they number lines of a file.
 (defcustom emerge-diff-program "diff"
-  "*Name of the program which compares two files."
+  "Name of the program which compares two files."
   :type 'string
   :group 'emerge)
 (defcustom emerge-diff3-program "diff3"
-  "*Name of the program which compares three files.
+  "Name of the program which compares three files.
 Its arguments are the ancestor file and the two variant files."
   :type 'string
   :group 'emerge)
 (defcustom emerge-diff-options ""
-  "*Options to pass to `emerge-diff-program' and `emerge-diff3-program'."
+  "Options to pass to `emerge-diff-program' and `emerge-diff3-program'."
   :type 'string
   :group 'emerge)
 (defcustom emerge-match-diff-line
   (let ((x "\\([0-9]+\\)\\(\\|,\\([0-9]+\\)\\)"))
     (concat "^" x "\\([acd]\\)" x "$"))
-  "*Pattern to match lines produced by diff that describe differences.
+  "Pattern to match lines produced by diff that describe differences.
 This is as opposed to lines from the source files."
   :type 'regexp
   :group 'emerge)
 (defcustom emerge-diff-ok-lines-regexp
   "^\\([0-9,]+[acd][0-9,]+$\\|[<>] \\|---\\)"
-  "*Regexp that matches normal output lines from `emerge-diff-program'.
+  "Regexp that matches normal output lines from `emerge-diff-program'.
 Lines that do not match are assumed to be error messages."
   :type 'regexp
   :group 'emerge)
 (defcustom emerge-diff3-ok-lines-regexp
   "^\\([1-3]:\\|====\\|  \\)"
-  "*Regexp that matches normal output lines from `emerge-diff3-program'.
+  "Regexp that matches normal output lines from `emerge-diff3-program'.
 Lines that do not match are assumed to be error messages."
   :type 'regexp
   :group 'emerge)
 
 (defcustom emerge-rcs-ci-program "ci"
-  "*Name of the program that checks in RCS revisions."
+  "Name of the program that checks in RCS revisions."
   :type 'string
   :group 'emerge)
 (defcustom emerge-rcs-co-program "co"
-  "*Name of the program that checks out RCS revisions."
+  "Name of the program that checks out RCS revisions."
   :type 'string
   :group 'emerge)
 
 (defcustom emerge-process-local-variables nil
-  "*Non-nil if Emerge should process local-variables lists in merge buffers.
+  "Non-nil if Emerge should process local-variables lists in merge buffers.
 \(You can explicitly request processing the local-variables
 by executing `(hack-local-variables)'.)"
   :type 'boolean
   :group 'emerge)
 (defcustom emerge-execute-line-deletions nil
-  "*If non-nil: `emerge-execute-line' makes no output if an input was deleted.
+  "If non-nil: `emerge-execute-line' makes no output if an input was deleted.
 It concludes that an input version has been deleted when an ancestor entry
 is present, only one A or B entry is present, and an output entry is present.
 If nil: In such circumstances, the A or B file that is present will be
@@ -194,13 +194,13 @@ copied to the designated output file."
   :group 'emerge)
 
 (defcustom emerge-before-flag "vvvvvvvvvvvvvvvvvvvv\n"
-  "*Flag placed above the highlighted block of code.  Must end with newline.
+  "Flag placed above the highlighted block of code.  Must end with newline.
 Must be set before Emerge is loaded, or  emerge-new-flags  must be run
 after setting."
   :type 'string
   :group 'emerge)
 (defcustom emerge-after-flag "^^^^^^^^^^^^^^^^^^^^\n"
-  "*Flag placed below the highlighted block of code.  Must end with newline.
+  "Flag placed below the highlighted block of code.  Must end with newline.
 Must be set before Emerge is loaded, or  emerge-new-flags  must be run
 after setting."
   :type 'string
@@ -209,16 +209,16 @@ after setting."
 ;; Hook variables
 
 (defcustom emerge-startup-hook nil
-  "*Hook to run in the merge buffer after the merge has been set up."
+  "Hook to run in the merge buffer after the merge has been set up."
   :type 'hook
   :group 'emerge)
 (defcustom emerge-select-hook nil
-  "*Hook to run after a difference has been selected.
+  "Hook to run after a difference has been selected.
 The variable `n' holds the (internal) number of the difference."
   :type 'hook
   :group 'emerge)
 (defcustom emerge-unselect-hook nil
-  "*Hook to run after a difference has been unselected.
+  "Hook to run after a difference has been unselected.
 The variable `n' holds the (internal) number of the difference."
   :type 'hook
   :group 'emerge)
@@ -227,7 +227,7 @@ The variable `n' holds the (internal) number of the difference."
 ;; Emerge commands.
 
 (defcustom emerge-default-last-directories nil
-  "*If nil, default dir for filenames in emerge is `default-directory'.
+  "If nil, default dir for filenames in emerge is `default-directory'.
 If non-nil, filenames complete in the directory of the last argument of the
 same type to an `emerge-files...' command."
   :type 'boolean
@@ -292,26 +292,26 @@ depend on the flags."
 (emerge-new-flags)
 
 (defcustom emerge-min-visible-lines 3
-  "*Number of lines that we want to show above and below the flags when we are
+  "Number of lines that we want to show above and below the flags when we are
 displaying a difference."
   :type 'integer
   :group 'emerge)
 
 (defcustom emerge-temp-file-prefix
   (expand-file-name "emerge" temporary-file-directory)
-  "*Prefix to put on Emerge temporary file names.
+  "Prefix to put on Emerge temporary file names.
 Do not start with `~/' or `~USERNAME/'."
   :type 'string
   :group 'emerge)
 
 (defcustom emerge-temp-file-mode 384	; u=rw only
-  "*Mode for Emerge temporary files."
+  "Mode for Emerge temporary files."
   :type 'integer
   :group 'emerge)
 
 (defcustom emerge-combine-versions-template
   "#ifdef NEW\n%b#else /* not NEW */\n%a#endif /* not NEW */\n"
-  "*Template for `emerge-combine-versions' to combine the two versions.
+  "Template for `emerge-combine-versions' to combine the two versions.
 The template is inserted as a string, with the following interpolations:
 	%a	the A version of the difference
 	%b	the B version of the difference
@@ -343,7 +343,7 @@ Makes Emerge commands directly available.")
   (make-sparse-keymap "Move"))
 
 (defcustom emerge-command-prefix "\C-c\C-c"
-  "*Command prefix for Emerge commands in `edit' mode.
+  "Command prefix for Emerge commands in `edit' mode.
 Must be set before Emerge is loaded."
   :type 'string
   :group 'emerge)

@@ -93,7 +93,7 @@
 (require 'jka-cmpr-hook)
 
 (defcustom jka-compr-shell "sh"
-  "*Shell to be used for calling compression programs.
+  "Shell to be used for calling compression programs.
 NOTE: Not used in MS-DOS and Windows systems."
   :type 'string
   :group 'jka-compr)

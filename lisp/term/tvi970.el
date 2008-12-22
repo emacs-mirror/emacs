@@ -3,8 +3,9 @@
 ;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008 Free Software Foundation, Inc.
 
-;; Author: Jim Blandy <jimb@occs.cs.oberlin.edu>, January 1992
+;; Author: Jim Blandy <jimb@occs.cs.oberlin.edu>
 ;; Keywords: terminals
+;; Created: January 1992
 
 ;; This file is part of GNU Emacs.
 

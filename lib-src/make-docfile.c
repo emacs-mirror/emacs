@@ -909,7 +909,7 @@ scan_lisp_file (filename, mode)
 	      /* Read in the contents.  */
 	      if (saved_string != 0)
 		free (saved_string);
-	      saved_string = (char *) malloc (length);
+	      saved_string = (char *) xmalloc (length);
 	      for (i = 0; i < length; i++)
 		saved_string[i] = getc (infile);
 	      /* The last character is a ^_.

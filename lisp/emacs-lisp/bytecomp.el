@@ -209,7 +209,7 @@
   :group 'lisp)
 
 (defcustom emacs-lisp-file-regexp "\\.el$"
-  "*Regexp which matches Emacs Lisp source files.
+  "Regexp which matches Emacs Lisp source files.
 You may want to redefine the function `byte-compile-dest-file'
 if you change this variable."
   :group 'bytecomp
@@ -255,12 +255,12 @@ with the extension `.el'), add `c' to it; otherwise add `.elc'."
 
 (defcustom byte-compile-verbose
   (and (not noninteractive) (> baud-rate search-slow-speed))
-  "*Non-nil means print messages describing progress of byte-compiler."
+  "Non-nil means print messages describing progress of byte-compiler."
   :group 'bytecomp
   :type 'boolean)
 
 (defcustom byte-compile-compatibility nil
-  "*Non-nil means generate output that can run in Emacs 18.
+  "Non-nil means generate output that can run in Emacs 18.
 This only means that it can run in principle, if it doesn't require
 facilities that have been added more recently."
   :group 'bytecomp
@@ -274,7 +274,7 @@ facilities that have been added more recently."
 ;; this way can never be run in Emacs 18, and may even cause it to crash.")
 
 (defcustom byte-optimize t
-  "*Enable optimization in the byte compiler.
+  "Enable optimization in the byte compiler.
 Possible values are:
   nil      - no optimization
   t        - all optimizations
@@ -287,7 +287,7 @@ Possible values are:
 		 (const :tag "byte-level" byte)))
 
 (defcustom byte-compile-delete-errors nil
-  "*If non-nil, the optimizer may delete forms that may signal an error.
+  "If non-nil, the optimizer may delete forms that may signal an error.
 This includes variable references and calls to functions such as `car'."
   :group 'bytecomp
   :type 'boolean)
@@ -311,10 +311,9 @@ the functions you loaded will not be able to run.")
 ;;;###autoload(put 'byte-compile-disable-print-circle 'safe-local-variable 'booleanp)
 
 (defcustom byte-compile-dynamic-docstrings t
-  "*If non-nil, compile doc strings for lazy access.
-We bury the doc strings of functions and variables
-inside comments in the file, and bring them into core only when they
-are actually needed.
+  "If non-nil, compile doc strings for lazy access.
+We bury the doc strings of functions and variables inside comments in
+the file, and bring them into core only when they are actually needed.
 
 When this option is true, if you load the compiled file and then move it,
 you won't be able to find the documentation of anything in that file.
@@ -330,7 +329,7 @@ This option is enabled by default because it reduces Emacs memory usage."
 ;;;###autoload(put 'byte-compile-dynamic-docstrings 'safe-local-variable 'booleanp)
 
 (defcustom byte-optimize-log nil
-  "*If true, the byte-compiler will log its optimizations into *Compile-Log*.
+  "If true, the byte-compiler will log its optimizations into *Compile-Log*.
 If this is 'source, then only source-level optimizations will be logged.
 If it is 'byte, then only byte-level optimizations will be logged."
   :group 'bytecomp
@@ -340,7 +339,7 @@ If it is 'byte, then only byte-level optimizations will be logged."
 		 (const :tag "byte-level" byte)))
 
 (defcustom byte-compile-error-on-warn nil
-  "*If true, the byte-compiler reports warnings with `error'."
+  "If true, the byte-compiler reports warnings with `error'."
   :group 'bytecomp
   :type 'boolean)
 
@@ -350,7 +349,7 @@ If it is 'byte, then only byte-level optimizations will be logged."
 	     make-local mapcar)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
-  "*List of warnings that the byte-compiler should issue (t for all).
+  "List of warnings that the byte-compiler should issue (t for all).
 
 Elements of the list may be:
 
@@ -444,7 +443,7 @@ else the global value will be modified."
   "If non-nil, this is a variable that shouldn't be reported as obsolete.")
 
 (defcustom byte-compile-generate-call-tree nil
-  "*Non-nil means collect call-graph information when compiling.
+  "Non-nil means collect call-graph information when compiling.
 This records which functions were called and from where.
 If the value is t, compilation displays the call graph when it finishes.
 If the value is neither t nor nil, compilation asks you whether to display
@@ -461,7 +460,8 @@ invoked interactively are excluded from this list."
   :type '(choice (const :tag "Yes" t) (const :tag "No" nil)
 		 (other :tag "Ask" lambda)))
 
-(defvar byte-compile-call-tree nil "Alist of functions and their call tree.
+(defvar byte-compile-call-tree nil
+  "Alist of functions and their call tree.
 Each element looks like
 
   \(FUNCTION CALLERS CALLS\)
@@ -471,7 +471,7 @@ is a list of functions for which calls were generated while compiling
 FUNCTION.")
 
 (defcustom byte-compile-call-tree-sort 'name
-  "*If non-nil, sort the call tree.
+  "If non-nil, sort the call tree.
 The values `name', `callers', `calls', `calls+callers'
 specify different fields to sort on."
   :group 'bytecomp
@@ -1666,7 +1666,7 @@ Files in subdirectories of DIRECTORY are processed also."
 (defun byte-recompile-directory (bytecomp-directory &optional bytecomp-arg
                                                     bytecomp-force)
   "Recompile every `.el' file in BYTECOMP-DIRECTORY that needs recompilation.
-This is if a `.elc' file exists but is older than the `.el' file.
+This happens when a `.elc' file exists but is older than the `.el' file.
 Files in subdirectories of BYTECOMP-DIRECTORY are processed also.
 
 If the `.elc' file does not exist, normally this function *does not*
@@ -1757,7 +1757,7 @@ that already has a `.elc' file."
                    (format " in %d directories" dir-count) "")))))
 
 (defvar no-byte-compile nil
-  "Non-nil to prevent byte-compiling of emacs-lisp code.
+  "Non-nil to prevent byte-compiling of Emacs Lisp code.
 This is normally set in local file variables at the end of the elisp file:
 
 ;; Local Variables:\n;; no-byte-compile: t\n;; End: ")
@@ -1922,7 +1922,7 @@ The value is non-nil if there were no errors, nil if errors."
 (defun compile-defun (&optional arg)
   "Compile and evaluate the current top-level form.
 Print the result in the echo area.
-With argument, insert value in current buffer after the form."
+With argument ARG, insert value in current buffer after the form."
   (interactive "P")
   (save-excursion
     (end-of-defun)
@@ -2176,8 +2176,8 @@ If PREFACE and NAME are non-nil, print them too,
 before INFO and the FORM but after the doc string itself.
 If SPECINDEX is non-nil, it is the index in FORM
 of the function bytecode string.  In that case,
-we output that argument and the following argument (the constants vector)
-together, for lazy loading.
+we output that argument and the following argument
+\(the constants vector) together, for lazy loading.
 QUOTED says that we have to put a quote before the
 list that represents a doc string reference.
 `autoload' and `custom-declare-variable' need that."
@@ -3486,14 +3486,21 @@ discarding."
 (defun byte-compile-associative (form)
   (if (cdr form)
       (let ((opcode (get (car form) 'byte-opcode))
-	    (args (copy-sequence (cdr form))))
-	(byte-compile-form (car args))
-	(setq args (cdr args))
-	(or args (setq args '(0)
-		       opcode (get '+ 'byte-opcode)))
-	(dolist (arg args)
-	  (byte-compile-form arg)
-	  (byte-compile-out opcode 0)))
+	    args)
+	(if (and (< 3 (length form))
+		 (memq opcode (list (get '+ 'byte-opcode)
+				    (get '* 'byte-opcode))))
+	    ;; Don't use binary operations for > 2 operands, as that
+	    ;; may cause overflow/truncation in float operations.
+	    (byte-compile-normal-call form)
+	  (setq args (copy-sequence (cdr form)))
+	  (byte-compile-form (car args))
+	  (setq args (cdr args))
+	  (or args (setq args '(0)
+			 opcode (get '+ 'byte-opcode)))
+	  (dolist (arg args)
+	    (byte-compile-form arg)
+	    (byte-compile-out opcode 0))))
     (byte-compile-constant (eval form))))
 
 
@@ -3572,24 +3579,30 @@ discarding."
 	  ((byte-compile-normal-call form)))))
 
 (defun byte-compile-minus (form)
-  (if (null (setq form (cdr form)))
-      (byte-compile-constant 0)
-    (byte-compile-form (car form))
-    (if (cdr form)
-	(while (setq form (cdr form))
-	  (byte-compile-form (car form))
-	  (byte-compile-out 'byte-diff 0))
-      (byte-compile-out 'byte-negate 0))))
+  (let ((len (length form)))
+    (cond
+     ((= 1 len) (byte-compile-constant 0))
+     ((= 2 len)
+      (byte-compile-form (cadr form))
+      (byte-compile-out 'byte-negate 0))
+     ((= 3 len)
+      (byte-compile-form (nth 1 form))
+      (byte-compile-form (nth 2 form))
+      (byte-compile-out 'byte-diff 0))
+     ;; Don't use binary operations for > 2 operands, as that may
+     ;; cause overflow/truncation in float operations.
+     (t (byte-compile-normal-call form)))))
 
 (defun byte-compile-quo (form)
   (let ((len (length form)))
     (cond ((<= len 2)
 	   (byte-compile-subr-wrong-args form "2 or more"))
+	  ((= len 3)
+	   (byte-compile-two-args form))
 	  (t
-	   (byte-compile-form (car (setq form (cdr form))))
-	   (while (setq form (cdr form))
-	     (byte-compile-form (car form))
-	     (byte-compile-out 'byte-quo 0))))))
+	   ;; Don't use binary operations for > 2 operands, as that
+	   ;; may cause overflow/truncation in float operations.
+	   (byte-compile-normal-call form)))))
 
 (defun byte-compile-nconc (form)
   (let ((len (length form)))

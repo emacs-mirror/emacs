@@ -139,31 +139,10 @@ Applied to any files that `auto-mode-alist' says should be handled by
       (setq set-auto-coding-function nxml-non-xml-set-auto-coding-function)
       (setq nxml-non-xml-set-auto-coding-function nil))))
 
-(unless (coding-system-p 'us-ascii)
-  (make-coding-system
-   ;; Unicode Emacs uses ?- last time I looked
-   'us-ascii 2 ?-
-   "ISO 2022 based 7-bit encoding for ASCII (MIME:US-ASCII)"
-   '(ascii)
-   '((safe-charsets ascii)
-     (mime-charset . us-ascii))))
-
-;; Emacs 21.3.50 makes us-ascii an alias for iso-safe without
+;; Emacs 22 makes us-ascii an alias for iso-safe without
 ;; giving it a mime-charset property.
 (unless (coding-system-get 'us-ascii 'mime-charset)
   (coding-system-put 'us-ascii 'mime-charset 'us-ascii))
-
-;; Work around bug in Emacs 21.3
-
-(when (and (coding-system-p 'utf-16-le)
-	   (eq (coding-system-get 'utf-16-le 'pre-write-conversion)
-	       'utf-16-le-pre-write-conversion))
-  (coding-system-put 'utf-16-le 'pre-write-conversion nil))
-
-(when (and (coding-system-p 'utf-16-le)
-	   (eq (coding-system-get 'utf-16-be 'pre-write-conversion)
-	       'utf-16-be-pre-write-conversion))
-  (coding-system-put 'utf-16-be 'pre-write-conversion nil))
 
 (provide 'nxml-enc)
 

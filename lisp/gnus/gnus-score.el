@@ -2469,7 +2469,11 @@ score in `gnus-newsgroup-scored' by SCORE."
 		   (abbreviate-file-name file))))
 	(insert
 	 (format "\nTotal score: %d"
-		 (apply '+ (mapcar 'caddr trace))))
+		 (apply '+ (mapcar
+			    (lambda (s)
+			      (or (caddr s)
+				  gnus-score-interactive-default-score))
+			    trace))))
 	(insert
 	 "\n\nQuick help:
 

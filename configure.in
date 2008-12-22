@@ -356,6 +356,7 @@ dnl see the `changequote' comment above.
       sparc*-*-openbsd*)       machine=sparc ;;
       vax-*-openbsd*)          machine=vax ;;
       x86_64-*-openbsd*)       machine=amdx86-64 ;;
+      hppa-*-openbsd*)         machine=hp800 ;;
     esac
   ;;
 
@@ -449,8 +450,9 @@ dnl see the `changequote' comment above.
   ;;
 
   *-sun-solaris* \
-    | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* | powerpc*-*-solaris2* \
-    | rs6000-*-solaris2*)
+    | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* \
+    | x86_64-*-solaris2*    | x86_64-*-sunos5*    \
+    | powerpc*-*-solaris2*  | rs6000-*-solaris2*)
     case "${canonical}" in
       i[3456]86-*-* )     machine=intel386 ;;
       amd64-*-*|x86_64-*-*)	machine=amdx86-64 ;;
@@ -538,7 +540,8 @@ dnl see the `changequote' comment above.
   ;;
 
   ## Mips Linux-based GNU system
-  mips-*-linux-gnu* | mipsel-*-linux-gnu* )
+  mips-*-linux-gnu* | mipsel-*-linux-gnu* \
+    | mips64-*-linux-gnu* | mips64el-*-linux-gnu* )
     machine=mips opsys=gnu-linux
   ;;
 
@@ -907,9 +910,11 @@ AC_SYS_LARGEFILE
 
 ### The standard library on x86-64 and s390x GNU/Linux distributions can
 ### be located in either /usr/lib64 or /usr/lib.
+### In some rare cases, /usr/lib64 exists but does not contain the
+### relevant files (bug#1287).  Hence test for crtn.o.
 case "${canonical}" in
   x86_64-*-linux-gnu* | s390x-*-linux-gnu* )
-    if test -d /usr/lib64; then
+    if test -e /usr/lib64/crtn.o; then
       AC_DEFINE(HAVE_LIB64_DIR, 1,
         [Define to 1 if the directory /usr/lib64 exists.])
 fi

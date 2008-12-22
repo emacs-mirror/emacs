@@ -1,6 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining, Abbrevs, Building, Top
 @chapter Maintaining Large Programs
@@ -707,14 +708,17 @@ current directory and its subdirectories.
 @vindex vc-diff-switches
 @vindex vc-rcs-diff-switches
   @kbd{C-x v =} works by running a variant of the @code{diff} utility
-designed to work with the version control system in use.  When you
-invoke @code{diff} this way, in addition to the options specified by
-@code{diff-switches} (@pxref{Comparing Files}), it receives those
-specified by @code{vc-diff-switches}, plus those specified for the
-specific back end by @code{vc-@var{backend}-diff-switches}.  For
-instance, when the version control back end is CVS, @code{diff} uses
-the options in @code{vc-cvs-diff-switches}.  The
-@samp{vc@dots{}diff-switches} variables are @code{nil} by default.
+designed to work with the version control system in use.  The options
+to pass to the @code{diff} command are taken from the first non-@code{nil}
+value of @code{vc-@var{backend}-diff-switches}, @code{vc-diff-switches},
+and @code{diff-switches} (@pxref{Comparing Files}), in that order.
+Since @code{nil} means to check the next variable in the sequence,
+either of the first two may use the value @code{t} to mean no switches at all.
+Most of the @samp{vc@dots{}diff-switches} variables default to
+@code{nil}, but some default to @code{t}.  These are for those version
+control systems (e.g. SVN) whose @code{diff} implementations do not
+accept common options (e.g. @samp{-c}) likely to be in
+@code{diff-switches}.
 
   The buffer produced by @kbd{C-x v =} supports the commands of
 Compilation mode (@pxref{Compilation Mode}), such as @kbd{C-x `} and

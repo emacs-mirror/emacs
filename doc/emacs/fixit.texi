@@ -229,9 +229,9 @@ case-convert it and go on typing.  @xref{Case}.@refill
 
   This section describes the commands to check the spelling of a
 single word or of a portion of a buffer.  These commands only work if
-the spelling checker program Aspell or Ispell is installed.  Neither
-Aspell nor Ispell are part of Emacs, but one or the other is usually
-installed in GNU/Linux and other free operating systems.
+the spelling checker program Aspell, Ispell or Hunspell is installed.
+Aspell, Ispell or Hunspell are not part of Emacs, but one or the other
+is usually installed in GNU/Linux and other free operating systems.
 @ifnottex
 @xref{Top, Aspell,, aspell, The Aspell Manual}.
 @end ifnottex
@@ -250,9 +250,9 @@ Check and correct spelling in the region.
 Check and correct spelling in a draft mail message, excluding cited
 material.
 @item M-x ispell-change-dictionary @key{RET} @var{dict} @key{RET}
-Restart the Aspell or Ispell process, using @var{dict} as the dictionary.
+Restart the Aspell/Ispell/Hunspell process, using @var{dict} as the dictionary.
 @item M-x ispell-kill-ispell
-Kill the Aspell or Ispell subprocess.
+Kill the Aspell/Ispell/Hunspell subprocess.
 @item M-@key{TAB}
 @itemx @key{ESC} @key{TAB}
 Complete the word before point based on the spelling dictionary
@@ -319,8 +319,8 @@ Accept the incorrect word---treat it as correct, but only in this
 editing session and for this buffer.
 
 @item i
-Insert this word in your private dictionary file so that Aspell or Ispell will
-consider it correct from now on, even in future sessions.
+Insert this word in your private dictionary file so that Aspell or Ispell
+or Hunspell will consider it correct from now on, even in future sessions.
 
 @item m
 Like @kbd{i}, but you can also specify dictionary completion
@@ -347,7 +347,8 @@ Quit interactive spell checking and move point back to where it was
 when you started spell checking.
 
 @item q
-Quit interactive spell checking and kill the Ispell subprocess.
+Quit interactive spell checking and kill the Aspell/Ispell/Hunspell
+subprocess.
 
 @item ?
 Show the list of options.
@@ -365,8 +366,8 @@ there in the completions window and type @key{RET}.  @xref{Text Mode}.
 
 @cindex @code{ispell} program
 @findex ispell-kill-ispell
-  Once started, the Aspell or Ispell subprocess continues to run,
-waiting for something to do, so that subsequent spell checking
+  Once started, the Aspell or Ispell or Hunspell subprocess continues
+to run, waiting for something to do, so that subsequent spell checking
 commands complete more quickly.  If you want to get rid of the
 process, use @kbd{M-x ispell-kill-ispell}.  This is not usually
 necessary, since the process uses no time except when you do spelling
@@ -374,7 +375,7 @@ correction.
 
 @vindex ispell-dictionary
 @vindex ispell-complete-word-dict
-  Ispell and Aspell use two dictionaries together for spell checking:
+  Ispell, Aspell and Hunspell use two dictionaries together for spell checking:
 the standard dictionary and your private dictionary.  The variable
 @code{ispell-dictionary} specifies the file name to use for the
 standard dictionary; a value of @code{nil} selects the default

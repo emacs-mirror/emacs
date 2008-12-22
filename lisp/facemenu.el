@@ -120,7 +120,7 @@ If you change this variable after loading facemenu.el, you will need to call
   :group 'facemenu)
 
 (defcustom facemenu-new-faces-at-end t
-  "*Where in the menu to insert newly-created faces.
+  "Where in the menu to insert newly-created faces.
 This should be nil to put them at the top of the menu, or t to put them
 just before \"Other\" at the end."
   :type 'boolean
@@ -136,7 +136,7 @@ just before \"Other\" at the end."
 			"22.1,\n  and has no effect on the Face menu")
 
 (defcustom facemenu-listed-faces nil
-  "*List of faces to include in the Face menu.
+  "List of faces to include in the Face menu.
 Each element should be a symbol, the name of a face.
 The \"basic \" faces in `facemenu-keybindings' are automatically
 added to the Face menu, and need not be in this list.

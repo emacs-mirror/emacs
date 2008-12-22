@@ -50,7 +50,7 @@
 
 ;;;###autoload
 (defcustom dired-listing-switches "-al"
-  "*Switches passed to `ls' for Dired.  MUST contain the `l' option.
+  "Switches passed to `ls' for Dired.  MUST contain the `l' option.
 May contain all other options that don't contradict `-l';
 may contain even `F', `b', `i' and `s'.  See also the variable
 `dired-ls-F-marks-symlinks' concerning the `F' switch.
@@ -88,7 +88,7 @@ If nil, `dired-listing-switches' is used.")
 
 ;;;###autoload
 (defcustom dired-ls-F-marks-symlinks nil
-  "*Informs Dired about how `ls -lF' marks symbolic links.
+  "Informs Dired about how `ls -lF' marks symbolic links.
 Set this to t if `ls' (or whatever program is specified by
 `insert-directory-program') with `-lF' marks the symbolic link
 itself with a trailing @ (usually the case under Ultrix).
@@ -105,7 +105,7 @@ always set this variable to t."
 
 ;;;###autoload
 (defcustom dired-trivial-filenames "^\\.\\.?$\\|^#"
-  "*Regexp of files to skip when finding first file of a directory.
+  "Regexp of files to skip when finding first file of a directory.
 A value of nil means move to the subdir line.
 A value of t means move to first file."
   :type '(choice (const :tag "Move to subdir" nil)
@@ -116,7 +116,7 @@ A value of t means move to first file."
 ;;;###autoload
 (defcustom dired-keep-marker-rename t
   ;; Use t as default so that moved files "take their markers with them".
-  "*Controls marking of renamed files.
+  "Controls marking of renamed files.
 If t, files keep their previous marks when they are renamed.
 If a character, renamed files (whether previously marked or not)
 are afterward marked with that character."
@@ -126,7 +126,7 @@ are afterward marked with that character."
 
 ;;;###autoload
 (defcustom dired-keep-marker-copy ?C
-  "*Controls marking of copied files.
+  "Controls marking of copied files.
 If t, copied files are marked if and as the corresponding original files were.
 If a character, copied files are unconditionally marked with that character."
   :type '(choice (const :tag "Keep" t)
@@ -135,7 +135,7 @@ If a character, copied files are unconditionally marked with that character."
 
 ;;;###autoload
 (defcustom dired-keep-marker-hardlink ?H
-  "*Controls marking of newly made hard links.
+  "Controls marking of newly made hard links.
 If t, they are marked if and as the files linked to were marked.
 If a character, new links are unconditionally marked with that character."
   :type '(choice (const :tag "Keep" t)
@@ -144,7 +144,7 @@ If a character, new links are unconditionally marked with that character."
 
 ;;;###autoload
 (defcustom dired-keep-marker-symlink ?Y
-  "*Controls marking of newly made symbolic links.
+  "Controls marking of newly made symbolic links.
 If t, they are marked if and as the files linked to were marked.
 If a character, new links are unconditionally marked with that character."
   :type '(choice (const :tag "Keep" t)
@@ -153,7 +153,7 @@ If a character, new links are unconditionally marked with that character."
 
 ;;;###autoload
 (defcustom dired-dwim-target nil
-  "*If non-nil, Dired tries to guess a default target directory.
+  "If non-nil, Dired tries to guess a default target directory.
 This means: if there is a dired buffer displayed in the next window,
 use its current subdir, instead of the current subdir of this dired buffer.
 
@@ -163,7 +163,7 @@ The target is used in the prompt for file copy, rename etc."
 
 ;;;###autoload
 (defcustom dired-copy-preserve-time t
-  "*If non-nil, Dired preserves the last-modified time in a file copy.
+  "If non-nil, Dired preserves the last-modified time in a file copy.
 \(This works on only some systems.)"
   :type 'boolean
   :group 'dired)
@@ -382,9 +382,6 @@ Subexpression 2 must end right before the \\n or \\r.")
 (defvar dired-font-lock-keywords
   (list
    ;;
-   ;; Directory headers.
-   (list dired-subdir-regexp '(1 dired-header-face))
-   ;;
    ;; Dired marks.
    (list dired-re-mark '(0 dired-mark-face))
    ;;
@@ -451,6 +448,14 @@ Subexpression 2 must end right before the \\n or \\r.")
 		    (unless (get-text-property (1- (point)) 'mouse-face)
 		      (dired-move-to-filename)))
 	     nil (0 dired-ignored-face))))
+   ;;
+   ;; Explicitly put the default face on file names ending in a colon to
+   ;; avoid fontifying them as directory header.
+   (list (concat dired-re-maybe-mark dired-re-inode-size dired-re-perms ".*:$")
+	 '(".+" (dired-move-to-filename) nil (0 'default)))
+   ;;
+   ;; Directory headers.
+   (list dired-subdir-regexp '(1 dired-header-face))
 )
   "Additional expressions to highlight in Dired mode.")
 
@@ -589,52 +594,75 @@ Don't use that together with FILTER."
 
 (defun dired-read-dir-and-switches (str)
   ;; For use in interactive.
-  (reverse
-   (list
-    (if current-prefix-arg
-        (read-string "Dired listing switches: "
-                     dired-listing-switches))
-    ;; If a dialog is about to be used, call read-directory-name so
-    ;; the dialog code knows we want directories.  Some dialogs can
-    ;; only select directories or files when popped up, not both.
-    (if (next-read-file-uses-dialog-p)
-        (read-directory-name (format "Dired %s(directory): " str)
-                             nil default-directory nil)
-      (let ((cie ()))
-        (dolist (ext completion-ignored-extensions)
-          (if (eq ?/ (aref ext (1- (length ext)))) (push ext cie)))
-        (setq cie (concat (regexp-opt cie "\\(?:") "\\'"))
-        (lexical-let* ((default (and buffer-file-name
-                                     (abbreviate-file-name buffer-file-name)))
-                       (cie cie)
-                       (completion-table
-                        ;; We need a mix of read-file-name and
-                        ;; read-directory-name so that completion to directories
-                        ;; is preferred, but if the user wants to enter a global
-                        ;; pattern, he can still use completion on filenames to
-                        ;; help him write the pattern.
-                        ;; Essentially, we want to use
-                        ;; (completion-table-with-predicate
-                        ;;  'read-file-name-internal 'file-directory-p nil)
-                        ;; but that doesn't work because read-file-name-internal
-                        ;; does not obey its `predicate' argument.
-                        (completion-table-in-turn
-                         (lambda (str pred action)
-                           (let ((read-file-name-predicate
-                                  (lambda (f)
-                                    (and (not (member f '("./" "../")))
-                                         ;; Hack! Faster than file-directory-p!
-                                         (eq (aref f (1- (length f))) ?/)
-                                         (not (string-match cie f))))))
-                             (complete-with-action
-                              action 'read-file-name-internal str nil)))
-                         'read-file-name-internal)))
-          (minibuffer-with-setup-hook
-              (lambda ()
-                (setq minibuffer-default default)
-                (setq minibuffer-completion-table completion-table))
-            (read-file-name (format "Dired %s(directory): " str)
-                            nil default-directory nil))))))))
+  (reverse (list
+	    (if current-prefix-arg
+		(read-string "Dired listing switches: "
+			     dired-listing-switches))
+	    ;; If a dialog is about to be used, call read-directory-name so
+	    ;; the dialog code knows we want directories.  Some dialogs can
+	    ;; only select directories or files when popped up, not both.
+	    (if (next-read-file-uses-dialog-p)
+		(read-directory-name (format "Dired %s(directory): " str)
+				     nil default-directory nil)
+	      (let ((default (and buffer-file-name
+				  (abbreviate-file-name buffer-file-name))))
+		(minibuffer-with-setup-hook
+		    (lambda () (setq minibuffer-default default))
+		  (read-file-name (format "Dired %s(directory): " str)
+				  nil default-directory nil)))))))
+
+;; We want to switch to a more sophisticated version of
+;; dired-read-dir-and-switches like the following, if there is a way
+;; to make it more intuitive.  See bug#1285.
+
+;; (defun dired-read-dir-and-switches (str)
+;;   ;; For use in interactive.
+;;   (reverse
+;;    (list
+;;     (if current-prefix-arg
+;;         (read-string "Dired listing switches: "
+;;                      dired-listing-switches))
+;;     ;; If a dialog is about to be used, call read-directory-name so
+;;     ;; the dialog code knows we want directories.  Some dialogs can
+;;     ;; only select directories or files when popped up, not both.
+;;     (if (next-read-file-uses-dialog-p)
+;;         (read-directory-name (format "Dired %s(directory): " str)
+;;                              nil default-directory nil)
+;;       (let ((cie ()))
+;;         (dolist (ext completion-ignored-extensions)
+;;           (if (eq ?/ (aref ext (1- (length ext)))) (push ext cie)))
+;;         (setq cie (concat (regexp-opt cie "\\(?:") "\\'"))
+;;         (lexical-let* ((default (and buffer-file-name
+;;                                      (abbreviate-file-name buffer-file-name)))
+;;                        (cie cie)
+;;                        (completion-table
+;;                         ;; We need a mix of read-file-name and
+;;                         ;; read-directory-name so that completion to directories
+;;                         ;; is preferred, but if the user wants to enter a global
+;;                         ;; pattern, he can still use completion on filenames to
+;;                         ;; help him write the pattern.
+;;                         ;; Essentially, we want to use
+;;                         ;; (completion-table-with-predicate
+;;                         ;;  'read-file-name-internal 'file-directory-p nil)
+;;                         ;; but that doesn't work because read-file-name-internal
+;;                         ;; does not obey its `predicate' argument.
+;;                         (completion-table-in-turn
+;;                          (lambda (str pred action)
+;;                            (let ((read-file-name-predicate
+;;                                   (lambda (f)
+;;                                     (and (not (member f '("./" "../")))
+;;                                          ;; Hack! Faster than file-directory-p!
+;;                                          (eq (aref f (1- (length f))) ?/)
+;;                                          (not (string-match cie f))))))
+;;                              (complete-with-action
+;;                               action 'read-file-name-internal str nil)))
+;;                          'read-file-name-internal)))
+;;           (minibuffer-with-setup-hook
+;;               (lambda ()
+;;                 (setq minibuffer-default default)
+;;                 (setq minibuffer-completion-table completion-table))
+;;             (read-file-name (format "Dired %s(directory): " str)
+;;                             nil default-directory nil))))))))
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload
@@ -2469,7 +2497,7 @@ Optional argument means return a file name relative to `default-directory'."
 ;; Deleting files
 
 (defcustom dired-recursive-deletes 'top
-  "*Decide whether recursive deletes are allowed.
+  "Decide whether recursive deletes are allowed.
 A value of nil means no recursive deletes.
 `always' means delete recursively without asking.  This is DANGEROUS!
 `top' means ask for each directory at top level, but delete its subdirectories
@@ -2650,44 +2678,12 @@ name, or the marker and a count of marked files."
 
 (defun dired-pop-to-buffer (buf)
   ;; Pop up buffer BUF.
+  (pop-to-buffer (get-buffer-create buf))
   ;; If dired-shrink-to-fit is t, make its window fit its contents.
-  (if (not dired-shrink-to-fit)
-      (pop-to-buffer (get-buffer-create buf))
-    ;; let window shrink to fit:
-    (let ((window (selected-window))
-	  target-lines w2)
-      (cond ;; if split-height-threshold is enabled, use the largest window
-            ((and (> (window-height (setq w2 (get-largest-window)))
-		     split-height-threshold)
-		  (window-full-width-p w2))
-	     (setq window w2))
-	    ;; if the least-recently-used window is big enough, use it
-	    ((and (> (window-height (setq w2 (get-lru-window)))
-		     (* 2 window-min-height))
-		  (window-full-width-p w2))
-	     (setq window w2)))
-      (save-excursion
-	(set-buffer buf)
-	(goto-char (point-max))
-	(skip-chars-backward "\n\r\t ")
-	(setq target-lines (count-lines (point-min) (point)))
-	;; Don't forget to count the last line.
-	(if (not (bolp))
-	    (setq target-lines (1+ target-lines))))
-      (if (<= (window-height window) (* 2 window-min-height))
-	  ;; At this point, every window on the frame is too small to split.
-	  (setq w2 (display-buffer buf))
-	(setq w2 (split-window window
-		  (max window-min-height
-		       (- (window-height window)
-			  (1+ (max window-min-height target-lines)))))))
-      (set-window-buffer w2 buf)
-      (if (< (1- (window-height w2)) target-lines)
-	  (progn
-	    (select-window w2)
-	    (enlarge-window (- target-lines (1- (window-height w2))))))
-      (set-window-start w2 1)
-      )))
+  (when dired-shrink-to-fit
+    ;; Try to not delete window when we want to display less than
+    ;; `window-min-height' lines.
+    (fit-window-to-buffer (get-buffer-window buf) nil 1)))
 
 (defcustom dired-no-confirm nil
   "A list of symbols for commands Dired should not confirm.
@@ -3297,7 +3293,7 @@ To be called first in body of `dired-sort-other', etc."
 ;;;;  Drag and drop support
 
 (defcustom dired-recursive-copies 'top
-  "*Decide whether recursive copies are allowed.
+  "Decide whether recursive copies are allowed.
 A value of nil means no recursive copies.
 `always' means copy recursively without asking.
 `top' means ask for each directory at top level.

@@ -236,6 +236,26 @@ The prompt will be set to PROMPT."
   "A marker that tracks the beginning of output of the last subprocess.
 Used only on systems which do not support async subprocesses.")
 
+(defvar eshell-needs-pipe '("bc")
+  "List of commands which need `process-connection-type' to be nil.
+Currently only affects commands in pipelines, and not those at
+the front.  If an element contains a directory part it must match
+the full name of a command, otherwise just the nondirectory part must match.")
+
+(defun eshell-needs-pipe-p (command)
+  "Return non-nil if COMMAND needs `process-connection-type' to be nil.
+See `eshell-needs-pipe'."
+  (and eshell-in-pipeline-p
+       (not (eq eshell-in-pipeline-p 'first))
+       ;; FIXME should this return non-nil for anything that is
+       ;; neither 'first nor 'last?  See bug#1388 discussion.
+       (catch 'found
+	 (dolist (exe eshell-needs-pipe)
+	   (if (string-equal exe (if (string-match "/" exe)
+				     command
+				   (file-name-nondirectory command)))
+	       (throw 'found t))))))
+
 (defun eshell-gather-process-output (command args)
   "Gather the output from COMMAND + ARGS."
   (unless (and (file-executable-p command)
@@ -250,11 +270,13 @@ Used only on systems which do not support async subprocesses.")
     (cond
      ((fboundp 'start-process)
       (setq proc
-	    (apply 'start-process
-		   (file-name-nondirectory command) nil
-		   ;; `start-process' can't deal with relative
-		   ;; filenames
-		   (append (list (expand-file-name command)) args)))
+	    (let ((process-connection-type
+		   (unless (eshell-needs-pipe-p command)
+		     process-connection-type)))
+	      (apply 'start-process
+		     (file-name-nondirectory command) nil
+		     ;; `start-process' can't deal with relative filenames.
+		     (append (list (expand-file-name command)) args))))
       (eshell-record-process-object proc)
       (set-process-buffer proc (current-buffer))
       (if (eshell-interactive-output-p)

@@ -1021,6 +1021,7 @@ stamp-oldxmenu:
    it is so often changed in ways that do not require any recompilation
    and so rarely changed in ways that do require any.  */
 
+atimer.o: atimer.c atimer.h syssignal.h systime.h $(config_h)
 abbrev.o: abbrev.c buffer.h window.h dispextern.h commands.h character.h \
 	syntax.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
@@ -1051,6 +1052,7 @@ cmds.o: cmds.c syntax.h buffer.h character.h commands.h window.h $(config_h) \
 pre-crt0.o: pre-crt0.c
 ecrt0.o: ecrt0.c $(config_h)
 	CRT0_COMPILE ${srcdir}/ecrt0.c
+dbusbind.o: dbusbind.c termhooks.h frame.h keyboard.h $(config_h)
 dired.o: dired.c commands.h buffer.h $(config_h) character.h charset.h \
    coding.h regex.h systime.h blockinput.h atimer.h
 dispnew.o: dispnew.c systime.h commands.h process.h frame.h \
@@ -1085,6 +1087,9 @@ ftfont.o: dispextern.h frame.h character.h charset.h composite.h font.h \
 fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h character.h \
    charset.h frame.h keyboard.h termhooks.h font.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
+gtkutil.o: gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
+  blockinput.h window.h atimer.h systime.h termhooks.h keyboard.h \
+  charset.h coding.h syssignal.h
 image.o: image.c frame.h window.h dispextern.h blockinput.h atimer.h \
    systime.h xterm.h w32term.h w32gui.h font.h \
    nsterm.h nsgui.h $(config_h)
@@ -1099,7 +1104,7 @@ keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h character.h \
    xterm.h puresize.h msdos.h keymap.h w32term.h nsterm.h \
    $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
-   atimer.h systime.h puresize.h character.h intervals.h keymap.h window.h \
+   atimer.h systime.h puresize.h character.h charset.h intervals.h keymap.h window.h \
    $(config_h)
 lastfile.o: lastfile.c  $(config_h)
 macros.o: macros.c window.h buffer.h commands.h macros.h keyboard.h \
@@ -1143,6 +1148,7 @@ search.o: search.c regex.h commands.h buffer.h region-cache.h syntax.h \
    blockinput.h atimer.h systime.h category.h character.h charset.h \
    composite.h $(INTERVAL_SRC) \
    $(config_h)
+sound.o: sound.c dispextern.h syssignal.h $(config_h)
 strftime.o: strftime.c $(config_h)
 syntax.o: syntax.c syntax.h buffer.h commands.h category.h character.h \
    composite.h keymap.h regex.h $(INTERVAL_SRC) $(config_h)
@@ -1212,14 +1218,6 @@ xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
 xrdb.o: xrdb.c $(config_h) epaths.h
 xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h xterm.h \
   lisp.h termopts.h
-gtkutil.o: gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
-  blockinput.h window.h atimer.h systime.h termhooks.h keyboard.h \
-  charset.h coding.h syssignal.h
-dbusbind.o: dbusbind.c termhooks.h $(config_h)
-
-hftctl.o: hftctl.c $(config_h)
-sound.o: sound.c dispextern.h syssignal.h $(config_h)
-atimer.o: atimer.c atimer.h syssignal.h systime.h $(config_h)
 
 /* The files of Lisp proper */
 
@@ -1238,17 +1236,17 @@ fns.o: fns.c commands.h $(config_h) frame.h buffer.h character.h keyboard.h \
  blockinput.h atimer.h systime.h xterm.h termhooks.h
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h character.h \
    $(config_h) dispextern.h termchar.h $(INTERVAL_SRC) msdos.h composite.h \
-   blockinput.h atimer.h systime.h font.h
+   blockinput.h atimer.h systime.h font.h charset.h
 lread.o: lread.c commands.h keyboard.h buffer.h epaths.h character.h \
  charset.h $(config_h) $(INTERVAL_SRC) termhooks.h coding.h msdos.h
 
 /* Text properties support */
-textprop.o: textprop.c buffer.h window.h dispextern.h $(INTERVAL_SRC) \
-	$(config_h)
-intervals.o: intervals.c buffer.h $(INTERVAL_SRC) keyboard.h puresize.h \
-	keymap.h $(config_h)
 composite.o: composite.c buffer.h character.h dispextern.h font.h frame.h \
 	$(INTERVAL_SRC) window.h $(config_h)
+intervals.o: intervals.c buffer.h $(INTERVAL_SRC) keyboard.h puresize.h \
+	keymap.h $(config_h)
+textprop.o: textprop.c buffer.h window.h dispextern.h $(INTERVAL_SRC) \
+	$(config_h)
 
 /* System-specific programs to be made.
    OTHER_FILES and OBJECTS_MACHINE

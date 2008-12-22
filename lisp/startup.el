@@ -47,7 +47,7 @@ directory using `find-file'.  If t, open the `*scratch*' buffer."
   :type '(choice
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
-	  (file      :tag "File" :value "~/file.txt")
+	  (file      :tag "File" :value "~/.emacs")
 	  (const     :tag "Lisp scratch buffer" t))
   :version "23.1"
   :group 'initialization)
@@ -694,6 +694,7 @@ opening the first frame (e.g. open a connection to an X server).")
 (declare-function tool-bar-setup "tool-bar")
 
 (defvar server-name)
+(defvar server-process)
 
 (defun command-line ()
   (setq before-init-time (current-time)
@@ -977,13 +978,15 @@ opening the first frame (e.g. open a connection to an X server).")
 				   init-file-user)
 			   :error)
 	(if (file-directory-p (expand-file-name
-			       ;; We don't support ~USER on MS-Windows except
-			       ;; for the current user, and always load .emacs
-			       ;; from the current user's home directory (see
-			       ;; below).  So always check "~", even if invoked
-			       ;; with "-u USER", or if $USER or $LOGNAME are
-			       ;; set to something different.
-			       (if (eq system-type 'windows-nt)
+			       ;; We don't support ~USER on MS-Windows
+			       ;; and MS-DOS except for the current
+			       ;; user, and always load .emacs from
+			       ;; the current user's home directory
+			       ;; (see below).  So always check "~",
+			       ;; even if invoked with "-u USER", or
+			       ;; if $USER or $LOGNAME are set to
+			       ;; something different.
+			       (if (memq system-type '(windows-nt ms-dos))
 				   "~"
 				 (concat "~" init-file-user))))
 	    nil
@@ -1218,7 +1221,14 @@ the `--debug-init' option to view a complete error backtrace."
     (when dn
       (when (stringp dn) (setq server-name dn))
       (server-start)
-      (daemon-initialized)))
+      (if server-process
+	  (daemon-initialized)
+	(if (stringp dn)
+	    (message
+	     "Unable to start daemon: Emacs server named %S already running"
+	     server-name)
+	  (message "Unable to start the daemon.\nAnother instance of Emacs is running the server, either as daemon or interactively.\nYou can use emacsclient to connect to that Emacs process."))
+	(kill-emacs 1))))
 
   ;; Run emacs-session-restore (session management) if started by
   ;; the session manager and we have a session manager connection.
@@ -1260,6 +1270,7 @@ If this is nil, no message will be displayed."
 	 '("GNU" (lambda (button) (describe-gnu-project))
 	   "Display info on the GNU project")))
      " operating system.\n\n"
+     :face variable-pitch
      :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
      "\tLearn basic keystroke commands"
      (lambda ()
@@ -1279,7 +1290,6 @@ If this is nil, no message will be displayed."
 	     ""
 	   (concat " (" title ")"))))
      "\n"
-     :face variable-pitch
      :link ("Emacs Guided Tour"
 	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
 	    "Browse http://www.gnu.org/software/emacs/tour/")
@@ -1985,12 +1995,14 @@ Type \\[describe-distribution] for information on "))
   (insert "\tBuying printed manuals from the FSF\n"))
 
 (defun startup-echo-area-message ()
-  (if (eq (key-binding "\C-h\C-a") 'about-emacs)
-      "For information about GNU Emacs and the GNU system, type C-h C-a."
-    (substitute-command-keys
-     "For information about GNU Emacs and the GNU system, type \
-\\[about-emacs].")))
-
+  (cond ((daemonp)
+	 "Starting Emacs daemon.")
+	((eq (key-binding "\C-h\C-a") 'about-emacs)
+	 "For information about GNU Emacs and the GNU system, type C-h C-a.")
+	(t
+	 (substitute-command-keys
+	  "For information about GNU Emacs and the GNU system, type \
+\\[about-emacs]."))))
 
 (defun display-startup-echo-area-message ()
   (let ((resize-mini-windows t))

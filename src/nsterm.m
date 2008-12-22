@@ -25,12 +25,15 @@ MacOSX/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
 GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 */
 
+/* This should be the first include, as it may set up #defines affecting
+   interpretation of even the system includes. */
+#include "config.h"
+
 #include <math.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
-#include "config.h"
 #include "lisp.h"
 #include "blockinput.h"
 #include "sysselect.h"
@@ -260,14 +263,18 @@ static BOOL inNsSelect = 0;
 #define EV_UDMODIFIERS(e)                                      \
     ((([e type] == NSLeftMouseDown) ? down_modifier : 0)       \
      | (([e type] == NSRightMouseDown) ? down_modifier : 0)    \
+     | (([e type] == NSOtherMouseDown) ? down_modifier : 0)    \
      | (([e type] == NSLeftMouseDragged) ? down_modifier : 0)  \
      | (([e type] == NSRightMouseDragged) ? down_modifier : 0) \
+     | (([e type] == NSOtherMouseDragged) ? down_modifier : 0) \
      | (([e type] == NSLeftMouseUp)   ? up_modifier   : 0)     \
-     | (([e type] == NSRightMouseUp)   ? up_modifier   : 0))
+     | (([e type] == NSRightMouseUp)   ? up_modifier   : 0)    \
+     | (([e type] == NSOtherMouseUp)   ? up_modifier   : 0))
 
 #define EV_BUTTON(e)                                                         \
     ((([e type] == NSLeftMouseDown) || ([e type] == NSLeftMouseUp)) ? 0 :    \
-      (([e type] == NSRightMouseDown) || ([e type] == NSRightMouseUp)) ? 2 : 1)
+      (([e type] == NSRightMouseDown) || ([e type] == NSRightMouseUp)) ? 2 : \
+     [e buttonNumber] - 1)
 
 /* Convert the time field to a timestamp in milliseconds. */
 #ifdef NS_IMPL_GNUSTEP
@@ -957,9 +964,15 @@ ns_frame_rehighlight (struct frame *frame)
          dpyinfo->x_highlight_frame != old_highlight)
     {
       if (old_highlight)
+	{
           x_update_cursor (old_highlight, 1);
+	  x_set_frame_alpha (old_highlight);
+	}
       if (dpyinfo->x_highlight_frame)
+	{
           x_update_cursor (dpyinfo->x_highlight_frame, 1);
+          x_set_frame_alpha (dpyinfo->x_highlight_frame);
+	}
     }
 }
 
@@ -1280,7 +1293,6 @@ ns_index_color (NSColor *color, struct frame *f)
 				    color_table->size * sizeof (NSColor *));
         }
       idx = color_table->avail++;
-      index = [NSNumber numberWithUnsignedInt: idx];
     }
 
   color_table->colors[idx] = color;
@@ -1293,10 +1305,26 @@ ns_index_color (NSColor *color, struct frame *f)
 void
 ns_free_indexed_color (unsigned long idx, struct frame *f)
 {
-  struct ns_color_table *color_table = FRAME_NS_DISPLAY_INFO (f)->color_table;
+  struct ns_color_table *color_table;
   NSColor *color;
-  if (!idx)
+  NSNumber *index;
+
+  if (!f)
     return;
+
+  color_table = FRAME_NS_DISPLAY_INFO (f)->color_table;
+
+  if (idx <= 0 || idx >= color_table->size) {
+    message1("ns_free_indexed_color: Color index out of range.\n");
+    return;
+  }
+
+  index = [NSNumber numberWithUnsignedInt: idx];
+  if ([color_table->empty_indices containsObject: index]) {
+    message1("ns_free_indexed_color: attempt to free already freed color.\n");
+    return;
+  }
+
   color = color_table->colors[idx];
   [color release];
   color_table->colors[idx] = nil;
@@ -1389,13 +1417,22 @@ ns_get_color (const char *name, NSColor **col)
   /* Direct colors (hex values) */
   if (hex)
     {
-      unsigned int color = 0;
+      unsigned long color = 0;
       if (sscanf (hex, "%x", &color))
         {
-          float f1 = ((color >> 24) & 0xff) / 255.0;
-          float f2 = ((color >> 16) & 0xff) / 255.0;
-          float f3 = ((color >>  8) & 0xff) / 255.0;
-          float f4 = ((color      ) & 0xff) / 255.0;
+          float f1, f2, f3, f4;
+          /* Assume it's either 1 byte or 2 per channel... */
+          if (strlen(hex) > 8) {
+            f1 = ((color >> 48) & 0xffff) / 65535.0;
+            f2 = ((color >> 32) & 0xffff) / 65535.0;
+            f3 = ((color >> 16) & 0xffff) / 65535.0;
+            f4 = ((color      ) & 0xffff) / 65535.0;
+          } else {
+            f1 = ((color >> 24) & 0xff) / 255.0;
+            f2 = ((color >> 16) & 0xff) / 255.0;
+            f3 = ((color >>  8) & 0xff) / 255.0;
+            f4 = ((color      ) & 0xff) / 255.0;
+          }
 
           switch (color_space)
             {
@@ -1602,6 +1639,39 @@ ns_get_rgb_color (struct frame *f, float r, float g, float b, float a)
     [NSColor colorWithCalibratedRed: r green: g blue: b alpha: a], f);
 }
 
+
+void
+x_set_frame_alpha (struct frame *f)
+/* --------------------------------------------------------------------------
+     change the entire-frame transparency
+   -------------------------------------------------------------------------- */
+{
+  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+  EmacsView *view = FRAME_NS_VIEW (f);
+  double alpha = 1.0;
+  double alpha_min = 1.0;
+
+  if (dpyinfo->x_highlight_frame == f)
+    alpha = f->alpha[0];
+  else
+    alpha = f->alpha[1];
+
+  if (FLOATP (Vframe_alpha_lower_limit))
+    alpha_min = XFLOAT_DATA (Vframe_alpha_lower_limit);
+  else if (INTEGERP (Vframe_alpha_lower_limit))
+    alpha_min = (XINT (Vframe_alpha_lower_limit)) / 100.0;
+
+  if (alpha < 0.0)
+    return;
+  else if (1.0 < alpha)
+    alpha = 1.0;
+  else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
+    alpha = alpha_min;
+  
+#ifdef NS_IMPL_COCOA
+  [[view window] setAlphaValue: alpha];
+#endif
+}
 
 
 /* ==========================================================================
@@ -2829,7 +2899,8 @@ ns_draw_glyph_string (struct glyph_string *s)
       int width;
       struct glyph_string *next;
 
-      for (width = 0, next = s->next; next;
+      for (width = 0, next = s->next;
+	   next && width < s->right_overhang;
 	   width += next->width, next = next->next)
 	if (next->first_glyph->type != IMAGE_GLYPH)
           {
@@ -4710,13 +4781,6 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 }
 
 
-- (void)mouseUp: (NSEvent *)theEvent
-{
-  NSTRACE (mouseUp);
-  [self mouseDown: theEvent];
-}
-
-
 - (void)rightMouseDown: (NSEvent *)theEvent
 {
   NSTRACE (rightMouseDown);
@@ -4724,9 +4788,30 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 }
 
 
+- (void)otherMouseDown: (NSEvent *)theEvent
+{
+  NSTRACE (otherMouseDown);
+  [self mouseDown: theEvent];
+}
+
+
+- (void)mouseUp: (NSEvent *)theEvent
+{
+  NSTRACE (mouseUp);
+  [self mouseDown: theEvent];
+}
+
+
 - (void)rightMouseUp: (NSEvent *)theEvent
 {
   NSTRACE (rightMouseUp);
+  [self mouseDown: theEvent];
+}
+
+
+- (void)otherMouseUp: (NSEvent *)theEvent
+{
+  NSTRACE (otherMouseUp);
   [self mouseDown: theEvent];
 }
 
@@ -4795,6 +4880,13 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 - (void)rightMouseDragged: (NSEvent *)e
 {
   NSTRACE (rightMouseDragged);
+  [self mouseMoved: e];
+}
+
+
+- (void)otherMouseDragged: (NSEvent *)e
+{
+  NSTRACE (otherMouseDragged);
   [self mouseMoved: e];
 }
 
@@ -4956,7 +5048,10 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
   /* FIXME: for some reason needed on second and subsequent clicks away
             from sole-frame Emacs to get hollow box to show */
   if (!windowClosing && [[self window] isVisible] == YES)
-    x_update_cursor (emacsframe, 1);
+    {
+      x_update_cursor (emacsframe, 1);
+      x_set_frame_alpha (emacsframe);
+    }
 
   if (emacs_event)
     {

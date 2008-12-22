@@ -668,6 +668,7 @@ column specified by the function `current-left-margin'."
 (defun quoted-insert (arg)
   "Read next input character and insert it.
 This is useful for inserting control characters.
+With argument, insert ARG copies of the character.
 
 If the first character you type after this command is an octal digit,
 you should type a sequence of octal digits which specify a character code.
@@ -836,15 +837,16 @@ that uses or sets the mark."
 
 ;; Counting lines, one way or another.
 
-(defun goto-line (arg &optional buffer)
-  "Goto line ARG, counting from line 1 at beginning of buffer.
-Normally, move point in the current buffer, and leave mark at previous
-position.  With just \\[universal-argument] as argument, move point
-in the most recently displayed other buffer, and switch to it.
-When called from Lisp code, the optional argument BUFFER specifies
-a buffer to switch to.
+(defun goto-line (line &optional buffer)
+  "Goto LINE, counting from line 1 at beginning of buffer.
+Normally, move point in the current buffer, and leave mark at the
+previous position.  With just \\[universal-argument] as argument,
+move point in the most recently selected other buffer, and switch
+to it.  When called from Lisp code, the optional argument BUFFER
+specifies a buffer to switch to.
 
-If there's a number in the buffer at point, it is the default for ARG."
+If there's a number in the buffer at point, it is the default for
+LINE."
   (interactive
    (if (and current-prefix-arg (not (consp current-prefix-arg)))
        (list (prefix-numeric-value current-prefix-arg))
@@ -886,8 +888,8 @@ If there's a number in the buffer at point, it is the default for ARG."
     (widen)
     (goto-char 1)
     (if (eq selective-display t)
-	(re-search-forward "[\n\C-m]" nil 'end (1- arg))
-      (forward-line (1- arg)))))
+	(re-search-forward "[\n\C-m]" nil 'end (1- line))
+      (forward-line (1- line)))))
 
 (defun count-lines-region (start end)
   "Print number of lines and characters in the region."
@@ -1151,9 +1153,10 @@ the minibuffer, then read and evaluate the result."
 A complex command is one which used the minibuffer.
 The command is placed in the minibuffer as a Lisp form for editing.
 The result is executed, repeating the command as changed.
-If the command has been changed or is not the most recent previous command
-it is added to the front of the command history.
-You can use the minibuffer history commands \\<minibuffer-local-map>\\[next-history-element] and \\[previous-history-element]
+If the command has been changed or is not the most recent previous
+command it is added to the front of the command history.
+You can use the minibuffer history commands \
+\\<minibuffer-local-map>\\[next-history-element] and \\[previous-history-element]
 to get different commands to edit and resubmit."
   (interactive "p")
   (let ((elt (nth (1- arg) command-history))
@@ -1323,8 +1326,8 @@ makes the search case-sensitive."
 (defvar minibuffer-temporary-goal-position nil)
 
 (defvar minibuffer-default-add-function 'minibuffer-default-add-completions
-  "Function run by `goto-history-element' before consuming `minibuffer-default'.
-This is useful to dynamically add more elements to the list `minibuffer-default'
+  "Function run by `goto-history-element' before consuming default values.
+This is useful to dynamically add more elements to the list of default values
 when `goto-history-element' reaches the end of this list.
 Before calling this function `goto-history-element' sets the variable
 `minibuffer-default-add-done' to t, so it will call this function only
@@ -1581,7 +1584,7 @@ in the search status stack."
 
 (defun minibuffer-history-isearch-pop-state (cmd hist-pos)
   "Restore the minibuffer history search state.
-Go to the history element by the absolute history position `hist-pos'."
+Go to the history element by the absolute history position HIST-POS."
   (goto-history-element hist-pos))
 
 
@@ -1606,7 +1609,7 @@ If t, we undid all the way to the end of it.")
 (defun undo (&optional arg)
   "Undo some previous changes.
 Repeat this command to undo more changes.
-A numeric argument serves as a repeat count.
+A numeric ARG serves as a repeat count.
 
 In Transient Mark mode when the mark is active, only undo changes within
 the current region.  Similarly, when not in Transient Mark mode, just \\[universal-argument]
@@ -1708,7 +1711,7 @@ No argument or nil as argument means do this for the current buffer."
 (defun undo-only (&optional arg)
   "Undo some previous changes.
 Repeat this command to undo more changes.
-A numeric argument serves as a repeat count.
+A numeric ARG serves as a repeat count.
 Contrary to `undo', this will not redo a previous undo."
   (interactive "*p")
   (let ((undo-no-redo t)) (undo arg)))
@@ -2051,7 +2054,7 @@ there, but it is nonetheless available in buffer `*Shell Command
 Output*' even though that buffer is not automatically displayed.
 
 To specify a coding system for converting non-ASCII characters
-in the shell command output, use \\[universal-coding-system-argument]
+in the shell command output, use \\[universal-coding-system-argument] \
 before this command.
 
 Noninteractive callers can specify coding systems by binding
@@ -2069,8 +2072,8 @@ and you did not specify \"insert it in the current buffer\",
 the output can be displayed in the echo area or in its buffer.
 If the output is short enough to display in the echo area
 \(determined by the variable `max-mini-window-height' if
-`resize-mini-windows' is non-nil), it is shown there.  Otherwise,
-the buffer containing the output is displayed.
+`resize-mini-windows' is non-nil), it is shown there.
+Otherwise,the buffer containing the output is displayed.
 
 If there is output and an error, and you did not specify \"insert it
 in the current buffer\", a message about the error goes at the end
@@ -3073,7 +3076,7 @@ See also the command `yank-pop' (\\[yank-pop])."
 
 (defun rotate-yank-pointer (arg)
   "Rotate the yanking point in the kill ring.
-With argument, rotate that many kills forward (or backward, if negative)."
+With ARG, rotate that many kills forward (or backward, if negative)."
   (interactive "p")
   (current-kill arg))
 
@@ -3132,7 +3135,7 @@ and KILLP is t if a prefix arg was specified."
    killp))
 
 (defun zap-to-char (arg char)
-  "Kill up to and including ARG'th occurrence of CHAR.
+  "Kill up to and including ARGth occurrence of CHAR.
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found."
   (interactive "p\ncZap to char: ")
@@ -3152,7 +3155,7 @@ Goes backward if ARG is negative; error if CHAR not found."
 
 (defun kill-line (&optional arg)
   "Kill the rest of the current line; if no nonblanks there, kill thru newline.
-With prefix argument, kill that many lines from point.
+With prefix argument ARG, kill that many lines from point.
 Negative arguments kill lines backward.
 With zero argument, kills the text before point on the current line.
 
@@ -3203,10 +3206,10 @@ even beep.)"
 
 (defun kill-whole-line (&optional arg)
   "Kill current line.
-With prefix arg, kill that many lines starting from the current line.
-If arg is negative, kill backward.  Also kill the preceding newline.
+With prefix ARG, kill that many lines starting from the current line.
+If ARG is negative, kill backward.  Also kill the preceding newline.
 \(This is meant to make \\[repeat] work well with negative arguments.\)
-If arg is zero, kill current line but exclude the trailing newline."
+If ARG is zero, kill current line but exclude the trailing newline."
   (interactive "p")
   (if (and (> arg 0) (eobp) (save-excursion (forward-visible-line 0) (eobp)))
       (signal 'end-of-buffer nil))
@@ -3495,32 +3498,38 @@ store it in a Lisp variable.  Example:
     (set-marker (mark-marker) nil)))
 
 (defcustom use-empty-active-region nil
-  "If non-nil, an active region takes control even if empty.
-This applies to certain commands which, in Transient Mark mode,
-apply to the active region if there is one.  If the setting is t,
-these commands apply to an empty active region if there is one.
-If the setting is nil, these commands treat an empty active
-region as if it were not active."
+  "Whether \"region-aware\" commands should act on empty regions.
+If nil, region-aware commands treat empty regions as inactive.
+If non-nil, region-aware commands treat the region as active as
+long as the mark is active, even if the region is empty.
+
+Region-aware commands are those that act on the region if it is
+active and Transient Mark mode is enabled, and on the text near
+point otherwise."
   :type 'boolean
   :version "23.1"
   :group 'editing-basics)
 
 (defun use-region-p ()
-  "Return t if certain commands should apply to the region.
-Certain commands normally apply to text near point,
-but in Transient Mark mode when the mark is active they apply
-to the region instead.  Such commands should use this subroutine to
-test whether to do that.
+  "Return t if the region is active and it is appropriate to act on it.
+This is used by commands that act specially on the region under
+Transient Mark mode.  It returns t if and only if Transient Mark
+mode is enabled, the mark is active, and the region is non-empty.
+If `use-empty-active-region' is non-nil, it returns t even if the
+region is empty.
 
-This function also obeys `use-empty-active-region'."
+For some commands, it may be appropriate to disregard the value
+of `use-empty-active-region'; in that case, use `region-active-p'."
   (and (region-active-p)
        (or use-empty-active-region (> (region-end) (region-beginning)))))
 
 (defun region-active-p ()
   "Return t if Transient Mark mode is enabled and the mark is active.
-To test whether a command should operate on the region instead of
-the usual behavior, use `use-region-p' instead.  That returns nil
-for empty regions when `use-empty-active-region' is nil."
+
+Most commands that act on the region if it is active and
+Transient Mark mode is enabled, and on the text near point
+otherwise, should use `use-region-p' instead.  That function
+checks the value of `use-empty-active-region' as well."
   (and transient-mark-mode mark-active))
 
 (defvar mark-ring nil
@@ -3543,8 +3552,8 @@ Start discarding off end if gets this big."
   :group 'editing-basics)
 
 (defun pop-to-mark-command ()
-  "Jump to mark, and pop a new position for mark off the ring
-\(does not affect global mark ring\)."
+  "Jump to mark, and pop a new position for mark off the ring.
+\(Does not affect global mark ring\)."
   (interactive)
   (if (null (mark t))
       (error "No mark set in this buffer")
@@ -3555,7 +3564,7 @@ Start discarding off end if gets this big."
 
 (defun push-mark-command (arg &optional nomsg)
   "Set mark at where point is.
-If no prefix arg and mark is already set there, just activate it.
+If no prefix ARG and mark is already set there, just activate it.
 Display `Mark set' unless the optional second arg NOMSG is non-nil."
   (interactive "P")
   (let ((mark (marker-position (mark-marker))))
@@ -3577,6 +3586,11 @@ A value of nil means \\[set-mark-command]'s behavior does not change
 after C-u \\[set-mark-command]."
   :type 'boolean
   :group 'editing-basics)
+
+(defcustom set-mark-default-inactive nil
+  "If non-nil, setting the mark does not activate it.
+This causes \\[set-mark-command] and \\[exchange-point-and-mark] to
+behave the same whether or not `transient-mark-mode' is enabled.")
 
 (defun set-mark-command (arg)
   "Set the mark where point is, or jump to the mark.
@@ -3639,7 +3653,8 @@ purposes.  See the documentation of `set-mark' for more information."
       (activate-mark)
       (message "Mark activated")))
    (t
-    (push-mark-command nil))))
+    (push-mark-command nil)
+    (if set-mark-default-inactive (deactivate-mark)))))
 
 (defun push-mark (&optional location nomsg activate)
   "Set mark at LOCATION (point, by default) and push old mark on mark ring.
@@ -3690,9 +3705,9 @@ Does not set point.  Does nothing if mark ring is empty."
 This command works even when the mark is not active,
 and it reactivates the mark.
 
-If Transient Mark mode is on, a prefix arg deactivates the mark
+If Transient Mark mode is on, a prefix ARG deactivates the mark
 if it is active, and otherwise avoids reactivating it.  If
-Transient Mark mode is off, a prefix arg enables Transient Mark
+Transient Mark mode is off, a prefix ARG enables Transient Mark
 mode temporarily."
   (interactive "P")
   (let ((omark (mark t))
@@ -3702,6 +3717,7 @@ mode temporarily."
     (deactivate-mark)
     (set-mark (point))
     (goto-char omark)
+    (if set-mark-default-inactive (deactivate-mark))
     (cond (temp-highlight
 	   (setq transient-mark-mode (cons 'only transient-mark-mode)))
 	  ((or (and arg (region-active-p)) ; (xor arg (not (region-active-p)))
@@ -4358,7 +4374,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   "Set the current horizontal position as a goal for \\[next-line] and \\[previous-line].
 Those commands will move to this position in the line moved to
 rather than trying to keep the same horizontal position.
-With a non-nil argument, clears out the goal column
+With a non-nil argument ARG, clears out the goal column
 so that \\[next-line] and \\[previous-line] resume vertical motion.
 The goal column is stored in the variable `goal-column'."
   (interactive "P")
@@ -4412,7 +4428,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 If there are only whitespace characters there, kill through the
 newline as well.
 
-With prefix argument, kill that many lines from point.
+With prefix argument ARG, kill that many lines from point.
 Negative arguments kill lines backward.
 With zero argument, kill the text before point on the current line.
 
@@ -4724,7 +4740,7 @@ With argument 0, interchanges line point is in with line mark is in."
 
 (defun backward-word (&optional arg)
   "Move backward until encountering the beginning of a word.
-With argument, do this that many times."
+With argument ARG, do this that many times."
   (interactive "^p")
   (forward-word (- (or arg 1))))
 
@@ -4755,13 +4771,13 @@ it marks the next ARG words after the ones already marked."
 
 (defun kill-word (arg)
   "Kill characters forward until encountering the end of a word.
-With argument, do this that many times."
+With argument ARG, do this that many times."
   (interactive "p")
   (kill-region (point) (progn (forward-word arg) (point))))
 
 (defun backward-kill-word (arg)
   "Kill characters backward until encountering the beginning of a word.
-With argument, do this that many times."
+With argument ARG, do this that many times."
   (interactive "p")
   (kill-word (- arg)))
 
@@ -5778,8 +5794,8 @@ Called from `temp-buffer-show-hook'."
         (set (make-local-variable 'completion-base-size) base-size))
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
       (unless completion-base-size
-        ;; This may be needed for old completion packages which don't use
-        ;; completion-all-completions-with-base-size yet.
+        ;; This shouldn't be needed any more, but further analysis is needed
+        ;; to make sure it's the case.
         (setq completion-base-size
               (cond
                (minibuffer-completing-file-name
@@ -6326,8 +6342,8 @@ warning using STRING as the message.")
              (boundp symbol)
              (or (eq symbol t)
                  (and (stringp (setq symbol (eval symbol)))
-                      (string-match (nth 2 list) symbol)))
-             (display-warning :warning (nth 3 list))))
+                      (string-match-p (nth 2 list) symbol)))
+             (display-warning package (nth 3 list) :warning)))
     (error nil)))
 
 (mapc (lambda (elem)

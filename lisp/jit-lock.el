@@ -65,7 +65,7 @@ Preserves the `buffer-modified-p' state of the current buffer."
   :group 'font-lock)
 
 (defcustom jit-lock-chunk-size 500
-  "*Jit-lock fontifies chunks of at most this many characters at a time.
+  "Jit-lock fontifies chunks of at most this many characters at a time.
 
 This variable controls both display-time and stealth fontification."
   :type 'integer
@@ -73,7 +73,7 @@ This variable controls both display-time and stealth fontification."
 
 
 (defcustom jit-lock-stealth-time nil
-  "*Time in seconds to wait before beginning stealth fontification.
+  "Time in seconds to wait before beginning stealth fontification.
 Stealth fontification occurs if there is no input within this time.
 If nil, stealth fontification is never performed.
 
@@ -84,7 +84,7 @@ The value of this variable is used when JIT Lock mode is turned on."
 
 
 (defcustom jit-lock-stealth-nice 0.5
-  "*Time in seconds to pause between chunks of stealth fontification.
+  "Time in seconds to pause between chunks of stealth fontification.
 Each iteration of stealth fontification is separated by this amount of time,
 thus reducing the demand that stealth fontification makes on the system.
 If nil, means stealth fontification is never paused.
@@ -98,7 +98,7 @@ See also `jit-lock-stealth-load'."
 
 (defcustom jit-lock-stealth-load
   (if (condition-case nil (load-average) (error)) 200)
-  "*Load in percentage above which stealth fontification is suspended.
+  "Load in percentage above which stealth fontification is suspended.
 Stealth fontification pauses when the system short-term load average (as
 returned by the function `load-average' if supported) goes above this level,
 thus reducing the demand that stealth fontification makes on the system.
@@ -114,14 +114,14 @@ See also `jit-lock-stealth-nice'."
 
 
 (defcustom jit-lock-stealth-verbose nil
-  "*If non-nil, means stealth fontification should show status messages."
+  "If non-nil, means stealth fontification should show status messages."
   :type 'boolean
   :group 'jit-lock)
 
 
 (defvaralias 'jit-lock-defer-contextually 'jit-lock-contextually)
 (defcustom jit-lock-contextually 'syntax-driven
-  "*If non-nil, means fontification should be syntactically true.
+  "If non-nil, means fontification should be syntactically true.
 If nil, means fontification occurs only on those lines modified.  This
 means where modification on a line causes syntactic change on subsequent lines,
 those subsequent lines are not refontified to reflect their new context.

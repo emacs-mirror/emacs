@@ -13,7 +13,7 @@
 ;; of the bug report be sent to the maintainer's email address.
 
 (defconst ediff-version "2.81.2" "The current version of Ediff")
-(defconst ediff-date "April 06, 2008" "Date of last update")
+(defconst ediff-date "November 22, 2008" "Date of last update")
 
 
 ;; This file is part of GNU Emacs.
@@ -133,7 +133,7 @@
 
 
 (defcustom ediff-use-last-dir nil
-  "*If t, Ediff will use previous directory as default when reading file name."
+  "If t, Ediff will use previous directory as default when reading file name."
   :type 'boolean
   :group 'ediff)
 

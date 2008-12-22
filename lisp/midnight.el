@@ -53,7 +53,7 @@ Use `cancel-timer' to stop it and `midnight-delay-set' to change
 the time when it is run.")
 
 (defcustom midnight-mode nil
-  "*Non-nil means run `midnight-hook' at midnight.
+  "Non-nil means run `midnight-hook' at midnight.
 Setting this variable outside customize has no effect;
 call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
   :type 'boolean
@@ -81,7 +81,7 @@ call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
 ;;; clean-buffer-list stuff
 
 (defcustom clean-buffer-list-delay-general 3
-  "*The number of days before any buffer becomes eligible for autokilling.
+  "The number of days before any buffer becomes eligible for autokilling.
 The autokilling is done by `clean-buffer-list' when is it in `midnight-hook'.
 Currently displayed and/or modified (unsaved) buffers, as well as buffers
 matching `clean-buffer-list-kill-never-buffer-names' and
@@ -90,7 +90,7 @@ matching `clean-buffer-list-kill-never-buffer-names' and
   :group 'midnight)
 
 (defcustom clean-buffer-list-delay-special 3600
-  "*The number of seconds before some buffers become eligible for autokilling.
+  "The number of seconds before some buffers become eligible for autokilling.
 Buffers matched by `clean-buffer-list-kill-regexps' and
 `clean-buffer-list-kill-buffer-names' are killed if they were last
 displayed more than this many seconds ago."
@@ -98,7 +98,7 @@ displayed more than this many seconds ago."
   :group 'midnight)
 
 (defcustom clean-buffer-list-kill-regexps nil
-  "*List of regexps saying which buffers will be killed at midnight.
+  "List of regexps saying which buffers will be killed at midnight.
 If buffer name matches a regexp in the list and the buffer was not displayed
 in the last `clean-buffer-list-delay-special' seconds, it is killed by
 `clean-buffer-list' when is it in `midnight-hook'.
@@ -113,7 +113,7 @@ See also `clean-buffer-list-kill-buffer-names',
 (defcustom clean-buffer-list-kill-buffer-names
     '("*Help*" "*Apropos*" "*Man " "*Buffer List*" "*Compile-Log*" "*info*"
       "*vc*" "*vc-diff*" "*diff*")
-  "*List of strings saying which buffers will be killed at midnight.
+  "List of strings saying which buffers will be killed at midnight.
 Buffers with names in this list, which were not displayed in the last
 `clean-buffer-list-delay-special' seconds, are killed by `clean-buffer-list'
 when is it in `midnight-hook'.
@@ -127,7 +127,7 @@ See also `clean-buffer-list-kill-regexps',
 
 (defcustom clean-buffer-list-kill-never-buffer-names
     '("*scratch*" "*Messages*" "*server*")
-  "*List of buffer names which will never be killed by `clean-buffer-list'.
+  "List of buffer names which will never be killed by `clean-buffer-list'.
 See also `clean-buffer-list-kill-never-regexps'.
 Note that this does override `clean-buffer-list-kill-regexps' and
 `clean-buffer-list-kill-buffer-names' so a buffer matching any of these
@@ -136,7 +136,7 @@ two lists will NOT be killed if it is also present in this list."
   :group 'midnight)
 
 (defcustom clean-buffer-list-kill-never-regexps '("^ \\*Minibuf-.*\\*$")
-  "*List of regexp saying which buffers will never be killed at midnight.
+  "List of regexp saying which buffers will never be killed at midnight.
 See also `clean-buffer-list-kill-never-buffer-names'.
 Killing is done by `clean-buffer-list'.
 Note that this does override `clean-buffer-list-kill-regexps' and
@@ -222,7 +222,7 @@ to its second argument TM."
                      midnight-period 'run-hooks 'midnight-hook)))
 
 (defcustom midnight-delay 3600
-  "*The number of seconds after the midnight when the `midnight-timer' is run.
+  "The number of seconds after the midnight when the `midnight-timer' is run.
 You should set this variable before loading midnight.el, or
 set it by calling `midnight-delay-set', or use `custom'.
 If you wish, you can use a string instead, it will be passed as the

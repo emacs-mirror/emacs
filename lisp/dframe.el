@@ -173,7 +173,7 @@ Valid clicks are mouse 2, our double mouse 1.")
 (make-variable-buffer-local 'dframe-mouse-click-function)
 
 (defvar dframe-mouse-position-function nil
-  "*A function to called to position the cursor for a mouse click.")
+  "*A function to call to position the cursor for a mouse click.")
 (make-variable-buffer-local 'dframe-mouse-position-function)
 
 (defvar dframe-power-click nil
@@ -424,7 +424,7 @@ LOCATION can be one of 'random, 'left, 'right, 'left-right, or 'top-bottom."
 (defun dframe-reposition-frame-emacs (new-frame parent-frame location)
   "Move NEW-FRAME to be relative to PARENT-FRAME.
 LOCATION can be one of 'random, 'left-right, 'top-bottom, or
-a cons cell indicationg a position of the form (LEFT . TOP)."
+a cons cell indicating a position of the form (LEFT . TOP)."
   ;; Position dframe.
   ;; Do no positioning if not on a windowing system,
   (unless (or (not window-system) (eq window-system 'pc))
@@ -766,7 +766,7 @@ Evaluates all cached timer functions in sequence."
          (fboundp 'function-max-args)
          (setq max-args (function-max-args 'popup-mode-menu))
          (not (zerop max-args))))
-  "The EVENT arg to 'popup-mode-menu' was introduced in XEmacs 21.4.0.")
+  "The EVENT arg to `popup-mode-menu' was introduced in XEmacs 21.4.0.")
 
 ;; In XEmacs, we make popup menus work on the item over mouse (as
 ;; opposed to where the point happens to be.)  We attain this by
@@ -852,7 +852,7 @@ BUFFER and POSITION are optional because XEmacs doesn't use them."
 	  (funcall dframe-help-echo-function))))))
 
 (defun dframe-mouse-set-point (e)
-  "Set POINT based on event E.
+  "Set point based on event E.
 Handles clicking on images in XEmacs."
   (if (and (featurep 'xemacs)
            (save-excursion

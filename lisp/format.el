@@ -96,7 +96,8 @@
 	   nil
 	   iso-spanish iso-cvt-read-only t nil))
   "List of information about understood file formats.
-Elements are of the form \(NAME DOC-STR REGEXP FROM-FN TO-FN MODIFY MODE-FN).
+Elements are of the form
+\(NAME DOC-STR REGEXP FROM-FN TO-FN MODIFY MODE-FN PRESERVE).
 
 NAME    is a symbol, which is stored in `buffer-file-format'.
 
@@ -358,13 +359,19 @@ one of the formats defined in `format-alist', or a list of such symbols."
 	  (setq format (cdr format)))))))
 
 (defun format-write-file (filename format &optional confirm)
-  "Write current buffer into file FILENAME using some FORMAT.
-Make buffer visit that file and set the format as the default for future
-saves.  If the buffer is already visiting a file, you can specify a directory
-name as FILENAME, to write a file of the same old name in that directory.
+  "Write current buffer into FILENAME, using a format based on FORMAT.
+Constructs the actual format starting from FORMAT, then appending
+any elements from the value of `buffer-file-format' with a non-nil
+`preserve' flag (see the documentation of `format-alist'), if they
+are not already present in FORMAT.  It then updates `buffer-file-format'
+with this format, making it the default for future saves.
 
-If optional third arg CONFIRM is non-nil, ask for confirmation before
-overwriting an existing file.  Interactively, confirmation is required
+If the buffer is already visiting a file, you can specify a
+directory name as FILENAME, to write a file of the same old name
+in that directory.
+
+If optional third arg CONFIRM is non-nil, asks for confirmation before
+overwriting an existing file.  Interactively, requires confirmation
 unless you supply a prefix argument."
   (interactive
    ;; Same interactive spec as write-file, plus format question.

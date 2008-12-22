@@ -767,9 +767,10 @@ being set it is automatically widened."
 (defun footnote-mode (&optional arg)
   "Toggle footnote minor mode.
 \\<message-mode-map>
+This minor mode provides footnote support for `message-mode'.  To get
+started, play around with the following keys:
 key		binding
 ---		-------
-
 \\[Footnote-add-footnote]		Footnote-add-footnote
 \\[Footnote-back-to-message]		Footnote-back-to-message
 \\[Footnote-delete-footnote]		Footnote-delete-footnote

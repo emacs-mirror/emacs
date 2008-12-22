@@ -6,7 +6,7 @@
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-reader.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "25. August 2008, 19:35:45 (ulf)"
+;; Time-stamp:  "18. November 2008, 20:06:13 (ulf)"
 
 ;; ======================================================================
 
@@ -262,7 +262,7 @@ KEYMAP is applied."
 If DISABLED is non-nil the image will be converted to a disabled look
 \(unless `newsticker-enable-logo-manipulations' is not t\).
 Return the image."
-  (let ((image-name (concat newsticker-imagecache-dirname "/"
+  (let ((image-name (concat (newsticker--images-dir)
                             (symbol-name feed-name-symbol)))
         (img nil))
     (when (file-exists-p image-name)

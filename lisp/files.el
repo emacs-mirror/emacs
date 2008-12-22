@@ -154,7 +154,7 @@ under another name, you get the existing buffer instead of a new buffer."
   :group 'find-file)
 
 (defcustom find-file-visit-truename nil
-  "*Non-nil means visit a file under its truename.
+  "Non-nil means visit a file under its truename.
 The truename of a file is found by chasing all links
 both at the file level and at the levels of the containing directories."
   :type 'boolean
@@ -239,9 +239,33 @@ and there is never any instant where the file is nonexistent.
 
 Note that this feature forces backups to be made by copying.
 Yet, at the same time, saving a precious file
-breaks any hard links between it and other files."
+breaks any hard links between it and other files.
+
+This feature is advisory: for example, if the directory in which the
+file is being saved is not writable, Emacs may ignore a non-nil value
+of `file-precious-flag' and write directly into the file.
+
+See also: `break-hardlink-on-save'."
   :type 'boolean
   :group 'backup)
+
+(defcustom break-hardlink-on-save nil
+  "Non-nil means when saving a file that exists under several names
+\(i.e., has multiple hardlinks), break the hardlink associated with
+`buffer-file-name' and write to a new file, so that the other
+instances of the file are not affected by the save.
+
+If `buffer-file-name' refers to a symlink, do not break the symlink.
+
+Unlike `file-precious-flag', `break-hardlink-on-save' is not advisory.
+For example, if the directory in which a file is being saved is not
+itself writable, then error instead of saving in some
+hardlink-nonbreaking way.
+
+See also `backup-by-copying' and `backup-by-copying-when-linked'."
+  :type 'boolean
+  :group 'files
+  :version "23.1")
 
 (defcustom version-control nil
   "Control use of version numbers for backup files.
@@ -487,7 +511,7 @@ specified in a -*- line.")
 (defcustom enable-local-eval 'maybe
   "Control processing of the \"variable\" `eval' in a file's local variables.
 The value can be t, nil or something else.
-A value of t means obey `eval' variables;
+A value of t means obey `eval' variables.
 A value of nil means ignore them; anything else means query."
   :type '(choice (const :tag "Obey" t)
 		 (const :tag "Ignore" nil)
@@ -757,12 +781,12 @@ special files in directories in which filenames are interpreted as hostnames.")
 
 (defun locate-dominating-file (file name)
   "Look up the directory hierarchy from FILE for a file named NAME.
-Stop at the first parent directory containing a file NAME return the directory.
-Return nil if not found."
+Stop at the first parent directory containing a file NAME,
+and return the directory.  Return nil if not found."
   ;; We used to use the above locate-dominating-files code, but the
   ;; directory-files call is very costly, so we're much better off doing
   ;; multiple calls using the code in here.
-  ;; 
+  ;;
   ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
   ;; `name' in /home or in /.
   (setq file (abbreviate-file-name file))
@@ -1098,6 +1122,32 @@ use with M-x."
     (rename-file encoded new-encoded ok-if-already-exists)
     newname))
 
+(defcustom confirm-nonexistent-file-or-buffer 'after-completion
+  "Whether confirmation is requested before visiting a new file or buffer.
+If nil, confirmation is not requested.
+If the value is `after-completion', confirmation is only
+ requested if the user called `minibuffer-complete' right before
+ `minibuffer-complete-and-exit'.
+Any other non-nil value means to request confirmation.
+
+This affects commands like `switch-to-buffer' and `find-file'."
+  :group 'find-file
+  :version "23.1"
+  :type '(choice (other :tag "Always" t)
+		 (const :tag "After completion" after-completion)
+		 (const :tag "Never" nil)))
+
+(defun confirm-nonexistent-file-or-buffer ()
+  "Whether to request confirmation before visiting a new file or buffer.
+The variable `confirm-nonexistent-file-or-buffer' determines the
+return value, which may be passed as the REQUIRE-MATCH arg to
+`read-buffer' or `find-file-read-args'."
+  (cond ((eq confirm-nonexistent-file-or-buffer 'after-completion)
+	 'confirm-after-completion)
+	(confirm-nonexistent-file-or-buffer
+	 'confirm)
+	(t nil)))
+
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to and return as a string.
 It is intended for `switch-to-buffer' family of commands since they
@@ -1106,42 +1156,58 @@ and default values."
   (let ((rbts-completion-table (internal-complete-buffer-except)))
     (minibuffer-with-setup-hook
         (lambda () (setq minibuffer-completion-table rbts-completion-table))
-      (read-buffer prompt (other-buffer (current-buffer))))))
+      (read-buffer prompt (other-buffer (current-buffer))
+                   (confirm-nonexistent-file-or-buffer)))))
 
-(defun switch-to-buffer-other-window (buffer &optional norecord)
-  "Select buffer BUFFER in another window.
-If BUFFER does not identify an existing buffer, then this function
-creates a buffer with that name.
+(defun switch-to-buffer-other-window (buffer-or-name &optional norecord)
+  "Select the buffer specified by BUFFER-OR-NAME in another window.
+BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
+nil.  Return the buffer switched to.
 
-When called from Lisp, BUFFER can be a buffer, a string \(a buffer name),
-or nil.  If BUFFER is nil, then this function chooses a buffer
-using `other-buffer'.
-Optional second arg NORECORD non-nil means
-do not put this buffer at the front of the list of recently selected ones.
-This function returns the buffer it switched to.
+If called interactively, prompt for the buffer name using the
+minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
+determines whether to request confirmation before creating a new
+buffer.
+
+If BUFFER-OR-NAME is a string and does not identify an existing
+buffer, create a new buffer with that name.  If BUFFER-OR-NAME is
+nil, switch to the buffer returned by `other-buffer'.
+
+Optional second argument NORECORD non-nil means do not put this
+buffer at the front of the list of recently selected ones.
 
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other window: ")))
   (let ((pop-up-windows t)
-	;; Don't let these interfere.
 	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer t norecord)))
+    (pop-to-buffer buffer-or-name t norecord)))
 
-(defun switch-to-buffer-other-frame (buffer &optional norecord)
-  "Switch to buffer BUFFER in another frame.
+(defun switch-to-buffer-other-frame (buffer-or-name &optional norecord)
+  "Switch to buffer BUFFER-OR-NAME in another frame.
+BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
+nil.  Return the buffer switched to.
+
+If called interactively, prompt for the buffer name using the
+minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
+determines whether to request confirmation before creating a new
+buffer.
+
+If BUFFER-OR-NAME is a string and does not identify an existing
+buffer, create a new buffer with that name.  If BUFFER-OR-NAME is
+nil, switch to the buffer returned by `other-buffer'.
+
 Optional second arg NORECORD non-nil means do not put this
 buffer at the front of the list of recently selected ones.
-This function returns the buffer it switched to.
 
-This uses the function `display-buffer' as a subroutine; see
-its documentation for additional customization information."
+This uses the function `display-buffer' as a subroutine; see its
+documentation for additional customization information."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
   (let ((pop-up-frames t)
 	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer t norecord)))
+    (pop-to-buffer buffer-or-name t norecord)))
 
 (defun display-buffer-other-frame (buffer)
   "Display buffer BUFFER in another frame.
@@ -1188,12 +1254,6 @@ Recursive uses of the minibuffer will not be affected."
 	     ,@body)
 	 (remove-hook 'minibuffer-setup-hook ,hook)))))
 
-(defcustom find-file-confirm-nonexistent-file nil
-  "If non-nil, `find-file' requires confirmation before visiting a new file."
-  :group 'find-file
-  :version "23.1"
-  :type 'boolean)
-
 (defun find-file-read-args (prompt mustmatch)
   (list (let ((find-file-default
 	       (and buffer-file-name
@@ -1226,7 +1286,7 @@ To visit a file without any kind of conversion and without
 automatically choosing a major mode, use \\[find-file-literally]."
   (interactive
    (find-file-read-args "Find file: "
-                        (if find-file-confirm-nonexistent-file 'confirm-only)))
+                        (confirm-nonexistent-file-or-buffer)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(mapcar 'switch-to-buffer (nreverse value))
@@ -1246,7 +1306,7 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
   (interactive
    (find-file-read-args "Find file in other window: "
-                        (if find-file-confirm-nonexistent-file 'confirm-only)))
+                        (confirm-nonexistent-file-or-buffer)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -1269,7 +1329,7 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
   (interactive
    (find-file-read-args "Find file in other frame: "
-                        (if find-file-confirm-nonexistent-file 'confirm-only)))
+                        (confirm-nonexistent-file-or-buffer)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -1294,7 +1354,7 @@ Like \\[find-file], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only: "
-                        (if find-file-confirm-nonexistent-file 'confirm-only)))
+                        (confirm-nonexistent-file-or-buffer)))
   (unless (or (and wildcards find-file-wildcards
 		   (not (string-match "\\`/:" filename))
 		   (string-match "[[*?]" filename))
@@ -1311,7 +1371,7 @@ Like \\[find-file-other-window], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other window: "
-                        (if find-file-confirm-nonexistent-file 'confirm-only)))
+                        (confirm-nonexistent-file-or-buffer)))
   (unless (or (and wildcards find-file-wildcards
 		   (not (string-match "\\`/:" filename))
 		   (string-match "[[*?]" filename))
@@ -1328,7 +1388,7 @@ Like \\[find-file-other-frame], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other frame: "
-                        (if find-file-confirm-nonexistent-file 'confirm-only)))
+                        (confirm-nonexistent-file-or-buffer)))
   (unless (or (and wildcards find-file-wildcards
 		   (not (string-match "\\`/:" filename))
 		   (string-match "[[*?]" filename))
@@ -2130,7 +2190,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.\\(\
 arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|\
 ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
-     ("\\.\\(sx[dmicw]\\|odt\\)\\'" . archive-mode)	; OpenOffice.org
+     ("\\.\\(sx[dmicw]\\|od[fgpst]\\)\\'" . archive-mode) ; OpenOffice.org
      ("\\.\\(deb\\)\\'" . archive-mode)                 ; Debian packages.
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
@@ -2693,18 +2753,19 @@ function is allowed to change the contents of this alist.
 This hook is called only if there is at least one file-local
 variable to set.")
 
-(defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars project)
+(defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars dir-name)
   "Get confirmation before setting up local variable values.
 ALL-VARS is the list of all variables to be set up.
 UNSAFE-VARS is the list of those that aren't marked as safe or risky.
 RISKY-VARS is the list of those that are marked as risky.
-PROJECT is a directory name if these settings come from directory-local
-settings, or nil otherwise."
+DIR-NAME is a directory name if these settings come from
+directory-local variables, or nil otherwise."
   (if noninteractive
       nil
-    (let ((name (if buffer-file-name
-		    (file-name-nondirectory buffer-file-name)
-		  (concat "buffer " (buffer-name))))
+    (let ((name (or dir-name
+		    (if buffer-file-name
+			(file-name-nondirectory buffer-file-name)
+		      (concat "buffer " (buffer-name)))))
 	  (offer-save (and (eq enable-local-variables t) unsafe-vars))
 	  prompt char)
       (save-window-excursion
@@ -2713,16 +2774,15 @@ settings, or nil otherwise."
 	  (set (make-local-variable 'cursor-type) nil)
 	  (erase-buffer)
 	  (if unsafe-vars
-	      (insert "The local variables list in " (or project name)
+	      (insert "The local variables list in " name
 		      "\ncontains values that may not be safe (*)"
 		      (if risky-vars
 			  ", and variables that are risky (**)."
 			"."))
 	    (if risky-vars
-		(insert "The local variables list in " (or project name)
+		(insert "The local variables list in " name
 			"\ncontains variables that are risky (**).")
-	      (insert "A local variables list is specified in "
-		      (or project name) ".")))
+	      (insert "A local variables list is specified in " name ".")))
 	  (insert "\n\nDo you want to apply it?  You can type
 y  -- to apply the local variables list.
 n  -- to ignore the local variables list.")
@@ -2844,15 +2904,15 @@ and VAL is the specified value."
 	  mode-specified
 	result))))
 
-(defun hack-local-variables-filter (variables project)
+(defun hack-local-variables-filter (variables dir-name)
   "Filter local variable settings, querying the user if necessary.
 VARIABLES is the alist of variable-value settings.  This alist is
  filtered based on the values of `ignored-local-variables',
  `enable-local-eval', `enable-local-variables', and (if necessary)
  user interaction.  The results are added to
  `file-local-variables-alist', without applying them.
-PROJECT is a directory name if these settings come from
- directory-local settings, or nil otherwise."
+DIR-NAME is a directory name if these settings come from
+ directory-local variables, or nil otherwise."
   ;; Strip any variables that are in `ignored-local-variables'.
   (dolist (ignored ignored-local-variables)
     (setq variables (assq-delete-all ignored variables)))
@@ -2890,7 +2950,7 @@ PROJECT is a directory name if these settings come from
 		     (null risky-vars))
 		(eq enable-local-variables :all)
 		(hack-local-variables-confirm
-		 variables unsafe-vars risky-vars project))
+		 variables unsafe-vars risky-vars dir-name))
 	    (dolist (elt variables)
 	      (push elt file-local-variables-alist)))))))
 
@@ -2903,8 +2963,8 @@ is specified, returning t if it is specified."
 	result)
     (unless mode-only
       (setq file-local-variables-alist nil)
-      (report-errors "Project local-variables error: %s"
-	(hack-project-variables)))
+      (report-errors "Directory-local variables error: %s"
+	(hack-dir-local-variables)))
     (when (or mode-only enable-local-variables)
       (setq result (hack-local-variables-prop-line mode-only))
       ;; Look for "Local variables:" line in last page.
@@ -3106,39 +3166,39 @@ already the major mode."
              (set-text-properties 0 (length val) nil val))
          (set (make-local-variable var) val))))
 
-;;; Handling directory local variables, aka project settings.
+;;; Handling directory-local variables, aka project settings.
 
-(defvar project-class-alist '()
-  "Alist mapping project class names (symbols) to project variable lists.")
+(defvar dir-locals-class-alist '()
+  "Alist mapping class names (symbols) to variable lists.")
 
-(defvar project-directory-alist '()
-  "Alist mapping project directory roots to project classes.")
+(defvar dir-locals-directory-alist '()
+  "Alist mapping directory roots to variable classes.")
 
-(defsubst project-get-alist (class)
-  "Return the project variable list for project CLASS."
-  (cdr (assq class project-class-alist)))
+(defsubst dir-locals-get-class-variables (class)
+  "Return the variable list for CLASS."
+  (cdr (assq class dir-locals-class-alist)))
 
-(defun project-collect-bindings-from-alist (mode-alist settings)
-  "Collect local variable settings from MODE-ALIST.
-SETTINGS is the initial list of bindings.
+(defun dir-locals-collect-mode-variables (mode-variables variables)
+  "Collect directory-local variables from MODE-VARIABLES.
+VARIABLES is the initial list of variables.
 Returns the new list."
-  (dolist (pair mode-alist settings)
+  (dolist (pair mode-variables variables)
     (let* ((variable (car pair))
 	   (value (cdr pair))
-	   (slot (assq variable settings)))
+	   (slot (assq variable variables)))
       (if slot
 	  (setcdr slot value)
 	;; Need a new cons in case we setcdr later.
-	(push (cons variable value) settings)))))
+	(push (cons variable value) variables)))))
 
-(defun project-collect-binding-list (binding-list root settings)
-  "Collect entries from BINDING-LIST into SETTINGS.
+(defun dir-locals-collect-variables (class-variables root variables)
+  "Collect entries from CLASS-VARIABLES into VARIABLES.
 ROOT is the root directory of the project.
-Return the new settings list."
+Return the new variables list."
   (let* ((file-name (buffer-file-name))
 	 (sub-file-name (if file-name
 			    (substring file-name (length root)))))
-    (dolist (entry binding-list settings)
+    (dolist (entry class-variables variables)
       (let ((key (car entry)))
 	(cond
 	 ((stringp key)
@@ -3147,31 +3207,31 @@ Return the new settings list."
 	  (when (and sub-file-name
 		     (>= (length sub-file-name) (length key))
 		     (string= key (substring sub-file-name 0 (length key))))
-	    (setq settings (project-collect-binding-list (cdr entry)
-							 root settings))))
+	    (setq variables (dir-locals-collect-variables
+			     (cdr entry) root variables))))
 	 ((or (not key)
 	      (derived-mode-p key))
-	  (setq settings (project-collect-bindings-from-alist (cdr entry)
-							      settings))))))))
+	  (setq variables (dir-locals-collect-mode-variables
+			   (cdr entry) variables))))))))
 
-(defun set-directory-project (directory class)
-  "Declare that the project rooted at DIRECTORY is an instance of CLASS.
+(defun dir-locals-set-directory-class (directory class)
+  "Declare that the DIRECTORY root is an instance of CLASS.
 DIRECTORY is the name of a directory, a string.
 CLASS is the name of a project class, a symbol.
 
 When a file beneath DIRECTORY is visited, the mode-specific
-settings from CLASS will be applied to the buffer.  The settings
-for a class are defined using `define-project-bindings'."
+variables from CLASS will be applied to the buffer.  The variables
+for a class are defined using `dir-locals-set-class-variables'."
   (setq directory (file-name-as-directory (expand-file-name directory)))
-  (unless (assq class project-class-alist)
-    (error "No such project class `%s'" (symbol-name class)))
-  (push (cons directory class) project-directory-alist))
+  (unless (assq class dir-locals-class-alist)
+    (error "No such class `%s'" (symbol-name class)))
+  (push (cons directory class) dir-locals-directory-alist))
 
-(defun define-project-bindings (class list)
-  "Map the project type CLASS to a list of variable settings.
-CLASS is the project class, a symbol.
-LIST is a list that declares variable settings for the class.
-An element in LIST is either of the form:
+(defun dir-locals-set-class-variables (class variables)
+  "Map the type CLASS to a list of variable settings.
+CLASS is the project class, a symbol.  VARIABLES is a list
+that declares directory-local variables for the class.
+An element in VARIABLES is either of the form:
     (MAJOR-MODE . ALIST)
 or
     (DIRECTORY . LIST)
@@ -3183,13 +3243,13 @@ In the second form, DIRECTORY is a directory name (a string), and
 LIST is a list of the form accepted by the function.
 
 When a file is visited, the file's class is found.  A directory
-may be assigned a class using `set-directory-project'.  Then
-variables are set in the file's buffer according to the class'
-LIST.  The list is processed in order.
+may be assigned a class using `dir-locals-set-directory-class'.
+Then variables are set in the file's buffer according to the
+class' LIST.  The list is processed in order.
 
 * If the element is of the form (MAJOR-MODE . ALIST), and the
   buffer's major mode is derived from MAJOR-MODE (as determined
-  by `derived-mode-p'), then all the settings in ALIST are
+  by `derived-mode-p'), then all the variables in ALIST are
   applied.  A MAJOR-MODE of nil may be used to match any buffer.
   `make-local-variable' is called for each variable before it is
   set.
@@ -3197,76 +3257,83 @@ LIST.  The list is processed in order.
 * If the element is of the form (DIRECTORY . LIST), and DIRECTORY
   is an initial substring of the file's directory, then LIST is
   applied by recursively following these rules."
-  (let ((elt (assq class project-class-alist)))
+  (let ((elt (assq class dir-locals-class-alist)))
     (if elt
-	(setcdr elt list)
-      (push (cons class list) project-class-alist))))
+	(setcdr elt variables)
+      (push (cons class variables) dir-locals-class-alist))))
 
-(defun project-find-settings-file (file)
-  "Find the settings file for FILE.
+(defconst dir-locals-file ".dir-locals.el"
+  "File that contains directory-local variables.
+It has to be constant to enforce uniform values
+across different environments and users.")
+
+(defun dir-locals-find-file (file)
+  "Find the directory-local variables FILE.
 This searches upward in the directory tree.
-If a settings file is found, the file name is returned.
-If the file is in a registered project, a cons from
-`project-directory-alist' is returned.
+If a local variables file is found, the file name is returned.
+If the file is already registered, a cons from
+`dir-locals-directory-alist' is returned.
 Otherwise this returns nil."
   (setq file (expand-file-name file))
-  (let* ((settings (locate-dominating-file file ".dir-settings.el"))
-         (pda nil))
+  (let ((locals-file (locate-dominating-file file dir-locals-file))
+	(dir-elt nil))
     ;; `locate-dominating-file' may have abbreviated the name.
-    (if settings (setq settings (expand-file-name ".dir-settings.el" settings)))
-    (dolist (x project-directory-alist)
-      (when (and (eq t (compare-strings file nil (length (car x))
-                                        (car x) nil nil))
-                 (> (length (car x)) (length (car pda))))
-        (setq pda x)))
-    (if (and settings pda)
-        (if (> (length (file-name-directory settings))
-               (length (car pda)))
-            settings pda)
-      (or settings pda))))
+    (when locals-file
+      (setq locals-file (expand-file-name dir-locals-file locals-file)))
+    (dolist (elt dir-locals-directory-alist)
+      (when (and (eq t (compare-strings file nil (length (car elt))
+					(car elt) nil nil))
+		 (> (length (car elt)) (length (car dir-elt))))
+	(setq dir-elt elt)))
+    (if (and locals-file dir-elt)
+	(if (> (length (file-name-directory locals-file))
+	       (length (car dir-elt)))
+	    locals-file
+	  dir-elt)
+      (or locals-file dir-elt))))
 
-(defun project-define-from-project-file (settings-file)
-  "Load a settings file and register a new project class and instance.
-SETTINGS-FILE is the name of the file holding the settings to apply.
-The new class name is the same as the directory in which SETTINGS-FILE
+(defun dir-locals-read-from-file (file)
+  "Load a variables FILE and register a new class and instance.
+FILE is the name of the file holding the variables to apply.
+The new class name is the same as the directory in which FILE
 is found.  Returns the new class name."
   (with-temp-buffer
-    ;; We should probably store the modtime of SETTINGS-FILE and then
+    ;; We should probably store the modtime of FILE and then
     ;; reload it whenever it changes.
-    (insert-file-contents settings-file)
-    (let* ((dir-name (file-name-directory settings-file))
+    (insert-file-contents file)
+    (let* ((dir-name (file-name-directory file))
 	   (class-name (intern dir-name))
-	   (list (read (current-buffer))))
-      (define-project-bindings class-name list)
-      (set-directory-project dir-name class-name)
+	   (variables (read (current-buffer))))
+      (dir-locals-set-class-variables class-name variables)
+      (dir-locals-set-directory-class dir-name class-name)
       class-name)))
 
 (declare-function c-postprocess-file-styles "cc-mode" ())
 
-(defun hack-project-variables ()
-  "Read local variables for the current buffer based on project settings.
-Store the project variables in `file-local-variables-alist',
+(defun hack-dir-local-variables ()
+  "Read per-directory local variables for the current buffer.
+Store the directory-local variables in `file-local-variables-alist',
 without applying them."
   (when (and enable-local-variables
 	     (buffer-file-name)
 	     (not (file-remote-p (buffer-file-name))))
-    ;; Find the settings file.
-    (let ((settings (project-find-settings-file (buffer-file-name)))
+    ;; Find the variables file.
+    (let ((variables-file (dir-locals-find-file (buffer-file-name)))
 	  (class nil)
-	  (root-dir nil))
+	  (dir-name nil))
       (cond
-       ((stringp settings)
-	(setq root-dir (file-name-directory (buffer-file-name)))
-	(setq class (project-define-from-project-file settings)))
-       ((consp settings)
-	(setq root-dir (car settings))
-	(setq class (cdr settings))))
+       ((stringp variables-file)
+	(setq dir-name (file-name-directory (buffer-file-name)))
+	(setq class (dir-locals-read-from-file variables-file)))
+       ((consp variables-file)
+	(setq dir-name (car variables-file))
+	(setq class (cdr variables-file))))
       (when class
-	(let ((bindings
-	       (project-collect-binding-list (project-get-alist class)
-					     root-dir nil)))
-	  (when bindings
-	    (hack-local-variables-filter bindings root-dir)))))))
+	(let ((variables
+	       (dir-locals-collect-variables
+		(dir-locals-get-class-variables class) dir-name nil)))
+	  (when variables
+	    (hack-local-variables-filter variables dir-name)))))))
 
 
 (defcustom change-major-mode-with-file-name t
@@ -4117,10 +4184,16 @@ Before and after saving the buffer, this function runs
 		(error "Attempt to save to a file which you aren't allowed to write"))))))
     (or buffer-backed-up
 	(setq setmodes (backup-buffer)))
-    (let ((dir (file-name-directory buffer-file-name)))
-      (if (and file-precious-flag
-	       (file-writable-p dir))
-	  ;; If file is precious, write temp name, then rename it.
+    (let* ((dir (file-name-directory buffer-file-name))
+           (dir-writable (file-writable-p dir)))
+      (if (or (and file-precious-flag dir-writable)
+              (and break-hardlink-on-save
+                   (> (file-nlinks buffer-file-name) 1)
+                   (or dir-writable
+                       (error (concat (format
+                                       "Directory %s write-protected; " dir)
+                                      "cannot break hardlink when saving")))))
+	  ;; Write temp name, then rename it.
 	  ;; This requires write access to the containing dir,
 	  ;; which is why we don't try it if we don't have that access.
 	  (let ((realname buffer-file-name)
@@ -4278,7 +4351,10 @@ change the additional actions you can take on files."
       (setq files-done
 	    (map-y-or-n-p
              (lambda (buffer)
-               (and (buffer-modified-p buffer)
+	       ;; Note that killing some buffers may kill others via
+	       ;; hooks (e.g. Rmail and its viewing buffer).
+	       (and (buffer-live-p buffer)
+		    (buffer-modified-p buffer)
                     (not (buffer-base-buffer buffer))
                     (or
                      (buffer-file-name buffer)
@@ -4321,7 +4397,7 @@ change the additional actions you can take on files."
 
 (defun not-modified (&optional arg)
   "Mark current buffer as unmodified, not needing to be saved.
-With prefix arg, mark buffer as modified, so \\[save-buffer] will save.
+With prefix ARG, mark buffer as modified, so \\[save-buffer] will save.
 
 It is not a good idea to use this function in Lisp programs, because it
 prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
@@ -4331,9 +4407,9 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
   (set-buffer-modified-p arg))
 
 (defun toggle-read-only (&optional arg)
-  "Change whether this buffer is visiting its file read-only.
+  "Change whether this buffer is read-only.
 With prefix argument ARG, make the buffer read-only if ARG is
-positive, otherwise make it writable.  If visiting file read-only
+positive, otherwise make it writable.  If buffer is read-only
 and `view-read-only' is non-nil, enter view mode."
   (interactive "P")
   (if (and arg
@@ -4504,9 +4580,9 @@ that is more recent than the visited file.
 This command also implements an interface for special buffers
 that contain text which doesn't come from a file, but reflects
 some other data instead (e.g. Dired buffers, `buffer-list'
-buffers).  This is done via the variable
-`revert-buffer-function'.  In these cases, it should reconstruct
-the buffer contents from the appropriate data.
+buffers).  This is done via the variable `revert-buffer-function'.
+In these cases, it should reconstruct the buffer contents from the
+appropriate data.
 
 When called from Lisp, the first argument is IGNORE-AUTO; only offer
 to revert from the auto-save file when this is nil.  Note that the
@@ -4514,8 +4590,8 @@ sense of this argument is the reverse of the prefix argument, for the
 sake of backward compatibility.  IGNORE-AUTO is optional, defaulting
 to nil.
 
-Optional second argument NOCONFIRM means don't ask for confirmation at
-all.  \(The variable `revert-without-query' offers another way to
+Optional second argument NOCONFIRM means don't ask for confirmation
+at all.  \(The variable `revert-without-query' offers another way to
 revert buffers without querying for confirmation.)
 
 Optional third argument PRESERVE-MODES non-nil means don't alter
@@ -4794,7 +4870,7 @@ This command is used in the special Dired buffer created by
       (kill-buffer buffer))))
 
 (defun kill-buffer-ask (buffer)
-  "Kill buffer if confirmed."
+  "Kill BUFFER if confirmed."
   (when (yes-or-no-p
          (format "Buffer %s %s.  Kill? " (buffer-name buffer)
                  (if (buffer-modified-p buffer)
@@ -4819,7 +4895,7 @@ specifies the list of buffers to kill, asking for approval for each one."
     (setq list (cdr list))))
 
 (defun kill-matching-buffers (regexp &optional internal-too)
-  "Kill buffers whose name matches the specified regexp.
+  "Kill buffers whose name matches the specified REGEXP.
 The optional second argument indicates whether to kill internal buffers too."
   (interactive "sKill buffers matching this regular expression: \nP")
   (dolist (buffer (buffer-list))
@@ -5613,7 +5689,7 @@ be a predicate function such as `yes-or-no-p'."
 
 (defun save-buffers-kill-emacs (&optional arg)
   "Offer to save each buffer, then kill this Emacs process.
-With prefix arg, silently save all file-visiting buffers, then kill."
+With prefix ARG, silently save all file-visiting buffers, then kill."
   (interactive "P")
   (save-some-buffers arg t)
   (and (or (not (memq t (mapcar (function
@@ -5643,7 +5719,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
   "Offer to save each buffer, then kill the current connection.
 If the current frame has no client, kill Emacs itself.
 
-With prefix arg, silently save all file-visiting buffers, then kill.
+With prefix ARG, silently save all file-visiting buffers, then kill.
 
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."

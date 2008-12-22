@@ -1141,7 +1141,7 @@ toggle between displaying the document or editing it as text.
               (remove-overlays (point-min) (point-max) 'doc-view t))
 	    nil t)
   (add-hook 'clone-indirect-buffer-hook 'doc-view-clone-buffer-hook nil t)
-  (add-hook 'kill-buffer 'doc-view-kill-proc nil t)
+  (add-hook 'kill-buffer-hook 'doc-view-kill-proc nil t)
 
   (remove-overlays (point-min) (point-max) 'doc-view t) ;Just in case.
   ;; Keep track of display info ([vh]scroll, page number, overlay, ...)

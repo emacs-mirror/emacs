@@ -63,6 +63,7 @@ extern BOOL WINAPI IsValidLocale(LCID, DWORD);
 #include "syssignal.h"
 #include "w32term.h"
 #include "dispextern.h"		/* for xstrcasecmp */
+#include "coding.h"
 
 #define RVA_TO_PTR(var,section,filedata) \
   ((void *)((section)->PointerToRawData					\
@@ -702,7 +703,7 @@ w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app, int
                 {
                   char * dllname = RVA_TO_PTR (imports->Name, section,
                                                executable);
-                  
+
                   /* The exact name of the cygwin dll has changed with
                      various releases, but hopefully this will be reasonably
                      future proof.  */
@@ -1781,7 +1782,7 @@ All path elements in FILENAME are converted to their short names.  */)
   filename = Fexpand_file_name (filename, Qnil);
 
   /* luckily, this returns the short version of each element in the path.  */
-  if (GetShortPathName (SDATA (filename), shortname, MAX_PATH) == 0)
+  if (GetShortPathName (SDATA (ENCODE_FILE (filename)), shortname, MAX_PATH) == 0)
     return Qnil;
 
   CORRECT_DIR_SEPS (shortname);
@@ -1810,7 +1811,7 @@ All path elements in FILENAME are converted to their long names.  */)
   /* first expand it.  */
   filename = Fexpand_file_name (filename, Qnil);
 
-  if (!w32_get_long_filename (SDATA (filename), longname, MAX_PATH))
+  if (!w32_get_long_filename (SDATA (ENCODE_FILE (filename)), longname, MAX_PATH))
     return Qnil;
 
   CORRECT_DIR_SEPS (longname);
@@ -1821,7 +1822,7 @@ All path elements in FILENAME are converted to their long names.  */)
   if (drive_only && longname[1] == ':' && longname[2] == '/' && !longname[3])
     longname[2] = '\0';
 
-  return build_string (longname);
+  return DECODE_FILE (build_string (longname));
 }
 
 DEFUN ("w32-set-process-priority", Fw32_set_process_priority,
@@ -1945,7 +1946,7 @@ DEFUN ("w32-get-locale-info", Fw32_get_locale_info,
        Sw32_get_locale_info, 1, 2, 0,
        doc: /* Return information about the Windows locale LCID.
 By default, return a three letter locale code which encodes the default
-language as the first two characters, and the country or regionial variant
+language as the first two characters, and the country or regional variant
 as the third letter.  For example, ENU refers to `English (United States)',
 while ENC means `English (Canadian)'.
 
@@ -1982,7 +1983,7 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
 				LOCALE_SLANGUAGE | LOCALE_USE_CP_ACP,
 				full_name, sizeof (full_name));
       if (got_full)
-	return build_string (full_name);
+	return DECODE_SYSTEM (build_string (full_name));
     }
   else if (NUMBERP (longform))
     {

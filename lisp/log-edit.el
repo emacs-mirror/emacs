@@ -95,14 +95,14 @@
      :help "Search backwards through comment history for substring match of str"]))
 
 (defcustom log-edit-confirm 'changed
-  "*If non-nil, `log-edit-done' will request confirmation.
+  "If non-nil, `log-edit-done' will request confirmation.
 If 'changed, only request confirmation if the list of files has
   changed since the beginning of the log-edit session."
   :group 'log-edit
   :type '(choice (const changed) (const t) (const nil)))
 
 (defcustom log-edit-keep-buffer nil
-  "*If non-nil, don't hide the buffer after `log-edit-done'."
+  "If non-nil, don't hide the buffer after `log-edit-done'."
   :group 'log-edit
   :type 'boolean)
 
@@ -113,20 +113,20 @@ If 'changed, only request confirmation if the list of files has
 
 (defcustom log-edit-require-final-newline
   cvs-commit-buffer-require-final-newline
-  "*Enforce a newline at the end of commit log messages.
+  "Enforce a newline at the end of commit log messages.
 Enforce it silently if t, query if non-nil and don't do anything if nil."
   :group 'log-edit
   :type '(choice (const ask) (const t) (const nil)))
 
 (defcustom log-edit-setup-invert nil
-  "*Non-nil means `log-edit' should invert the meaning of its SETUP arg.
+  "Non-nil means `log-edit' should invert the meaning of its SETUP arg.
 If SETUP is 'force, this variable has no effect."
   :group 'log-edit
   :type 'boolean)
 
 (defcustom log-edit-hook '(log-edit-insert-cvs-template
 			   log-edit-insert-changelog)
-  "*Hook run at the end of `log-edit'."
+  "Hook run at the end of `log-edit'."
   :group 'log-edit
   :type '(hook :options (log-edit-insert-changelog
                          log-edit-insert-cvs-rcstemplate
@@ -134,12 +134,12 @@ If SETUP is 'force, this variable has no effect."
 			 log-edit-insert-filenames)))
 
 (defcustom log-edit-mode-hook (if (boundp 'vc-log-mode-hook) vc-log-mode-hook)
-  "*Hook run when entering `log-edit-mode'."
+  "Hook run when entering `log-edit-mode'."
   :group 'log-edit
   :type 'hook)
 
 (defcustom log-edit-done-hook nil
-  "*Hook run before doing the actual commit.
+  "Hook run before doing the actual commit.
 This hook can be used to cleanup the message, enforce various
 conventions, or to allow recording the message in some other database,
 such as a bug-tracking system.  The list of files about to be committed

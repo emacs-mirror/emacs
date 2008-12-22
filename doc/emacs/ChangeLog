@@ -1,3 +1,300 @@
+2008-12-20  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): General update based on AUTHORS,
+	including removal of some stuff no longer distributed.
+
+2008-12-19  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* fixit.texi: Mention hunspell
+
+2008-12-19  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Small grammar fix.
+	Consolidate explanatory text at start.
+
+	* display.texi (Text Display):
+	* indent.texi (Indentation): Use @acronym with ASCII.
+
+2008-12-18  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi: Various small updates and fixes.
+
+2008-12-18  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Word Search): Replace `C-s RET C-w' with `M-s w RET'
+	as a key binding to start a forward nonincremental word search.
+	Replace `C-r RET C-w' with `M-s w C-r RET' as a key binding to start
+	a backward nonincremental word search.  Add index for `M-s w'
+	`isearch-forward-word'.
+	(Regexp Search): Add a short summary of regexp key commands like
+	in the node "Basic Isearch".
+	(Other Repeating Search): Fix typo.
+
+2008-12-14  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* misc.texi (PostScript Variables): Fix doc.
+
+2008-12-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* programs.texi (Program Modes): Mention Ruby mode.
+
+2008-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* misc.texi (emacsclient Options): Describe what an empty string
+	argument does for --alternate-editor.
+
+2008-12-09  Frank Schmitt  <ich@frank-schmitt.net>
+
+	* cmdargs.texi (Font X): Distinguish between client-side and
+	server-side fonts.  List valid Fontconfig properties.  Add reference to
+	Fontconfig manual.  List valid GTK font properties.  Explain use of
+	fc-list.
+
+2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cmdargs.texi (Font X): Move discussion of quoting to top.
+
+2008-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (Old Revisions): Improve previous change.
+
+2008-12-05  Richard M Stallman  <rms@gnu.org>
+
+	* anti.texi (Antinews): Minor fixes.
+
+2008-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (Old Revisions): Fix diff-switches description.
+
+2008-12-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs.texi (Top): Fix typo.
+
+2008-11-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Document View): Explain dependence on gs at the top.
+	Copyedits.
+
+	* emacs.texi (Top): Add DocView nodes to detailed node listing.
+
+	* programs.texi (Other C Commands): Document hide-ifdef-shadow.
+	(Comment Commands): Discuss region-active behavior of M-; first.
+
+2008-11-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* display.texi (Line Truncation): Add reference to Continuation
+	Lines.
+
+	* windows.texi (Pop Up Window): Mention split-height-threshold
+	and split-width-threshold.
+	(Split Window): Add reference to Continuation Lines.
+
+2008-11-28  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* macos.texi: Change references to "Mac" to "Mac / GNUstep".
+	(GNUstep Support): New node.
+	* anti.texi:
+	* emacs.texi:
+	* msdog.texi: Change reference to Mac OS node to Mac OS / GNUstep.
+
+
+2008-11-28  Richard M Stallman  <rms@gnu.org>
+
+	* misc.texi (Dissociated Press): Minor cleanups.
+
+	* dired.texi (Image-Dired): Avoid passive.
+
+2008-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* anti.texi (Antinews): Add stuff about Unicode vs emacs-mule
+	representation.
+
+2008-11-26  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Visiting): Rewrite paragraph for clarity.
+
+	* buffers.texi (Select Buffer): Rewrite paragraphs using active voice.
+
+2008-11-25  Alan Mackenzie  <acm@muc.de>
+
+	* programs.texi (Moving by Parens): Clarify that parens inside strings
+	and comments are ignored, and that the commands assume the starting
+	point isn't in a string or comment.
+
+2008-11-26  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* macos.texi: Add Prev/Next/Top pointers to all nodes.
+	(Mac Basics): Merge in Grabbing Environment Variables from earlier
+	version.
+	(Mac Customization): Rewrite Preferences Panel section and merge in to
+	this node, add Open files by dragging to an Emacs window.
+
+	* emacs.texi: Remove TOC reference to Mac Preferences Panel section.
+
+2008-11-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (Misc File Ops): Document set-file-modes.
+
+	* windows.texi (Split Window): Document integer values of
+	truncate-partial-width-windows.
+
+	* text.texi (Text): Simplify description of markup languages.
+	(TeX Mode): Simplify introduction.  Mention BibTeX mode.
+	(TeX Editing): Note that `""' inserts one `"' character.
+	(HTML Mode): Note in the introduction that XML mode is an alias for
+	SGML mode.  Mention nXML mode.
+
+2008-11-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* building.texi (Watch Expressions): Fix typo.
+
+2008-11-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (Visiting): Document new behavior of
+	confirm-nonexistent-file-or-buffer.
+
+	* buffers.texi (Select Buffer): Document
+	confirm-nonexistent-file-or-buffer.
+
+	* picture-xtra.texi (Picture Mode): Use picture-mode instead of
+	edit-picture.
+
+	* text.texi (Text): Simplify introduction.  Discard mention of `M-x
+	edit-picture', since that is just an alias for picture-mode.
+	(Sentences): Note that repeated M-@ extends the region.
+	(Pages): Make terminology more consistent.  Link to Regexps node.
+	(Longlines): Discuss relationship with Visual Line mode.
+	(Text Mode): Remove extraneous discussion of other modes, since they
+	were already introduced in the parent node.
+
+2008-11-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* anti.texi (Antinews): Rewrite.
+
+	* entering.texi (Exiting): Mention "minimize" terminology.
+
+	* frames.texi (Frame Commands): Mention "minimize" terminology.
+
+	* cmdargs.texi (Font X): Document Fontconfig and GTK font specification
+	formats.
+	(Icons X): Mention "minimize" terminology and use of icons in taskbar.
+	(Misc X): Don't document useless -hb option.
+
+2008-11-22  Juri Linkov  <juri@jurta.org>
+
+	* dired.texi (Dired Navigation): Change normal file name search option
+	from `non-nil' to `t'.  Add `dwim' option.
+
+2008-11-22  Juri Linkov  <juri@jurta.org>
+
+	* custom.texi (Directory Variables): Rename ".dir-settings.el" to
+	".dir-locals.el".  Rename `define-project-bindings' to
+	`dir-locals-set-class-variables'.  Rename `set-directory-project' to
+	`dir-locals-set-directory-class'.
+
+2008-11-22  Lute Kamstra  <lute@gnu.org>
+
+	* buffers.texi (Select Buffer): Index goto-line.
+	* basic.texi (Moving Point): Mention the use of a numeric prefix
+	argument with goto-line and refer to Select Buffer for the use of a
+	plain prefix argument.
+
+2008-11-19  Glenn Morris  <rgm@gnu.org>
+
+	* doclicense.texi: Update to FDL 1.3.
+	* emacs.texi, emacs-xtra.texi: Relicense under FDL 1.3 or later.
+
+2008-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Minor Modes): Define mode commands and mode variables
+	more precisely.  Recommend using mode commands instead of setting
+	variables directly.  Put minor modes in a list, and add more modes.
+	(Easy Customization): Use "init file" instead of .emacs.
+	(Customization Groups): Update to new Custom buffer appearance.
+	(Saving Customizations): Copyedits.  Update example.
+	(Variables): Give example of variable type-sensitivity.
+	(Examining): Update example.
+	(Hooks): Copyedits.
+	(Specifying File Variables): Use C comments instead of an artificial
+	Lisp for the example.
+	(Keymaps): Move internals discussion to Prefix Keymaps.
+	(Rebinding): Remove redundant paragraph (stated in Key Binding).
+	(Init Rebinding): Document kbd macro.
+	(Init File): Link to Find Init.
+
+	* mark.texi (Using Region): Document Delete Selection Mode more
+	thoroughly.
+
+	* frames.texi (Mouse Commands): Move most of the description of Delete
+	Selection Mode to Using Region, and link to it.
+	(Clipboard): Note that paste is bound to clipboard-yank.
+
+	* building.texi (Compilation): Document first-error value of
+	compilation-scroll-output.
+	(Compilation Mode): Note that compilation-auto-jump-to-first-error
+	works as soon as an error is available.  Suggested by Juri Linkov.
+
+	* mini.texi (Passwords): New node.
+
+	* files.texi (Remote Files): Link to Passwords node.
+
+	* emacs.texi (Top): Update node listings.
+
+2008-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ack.texi (Acknowledgments): Some updating of credits.
+
+	* emacs.texi (Acknowledgments): Add a couple more names.
+
+	* dired.texi (Dired Deletion): Document delete-by-moving-to-trash.
+
+	* files.texi (Directories): Describe delete-directory in text.
+	(Misc File Ops): Document use of trash.
+
+2008-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* macos.texi (Mac Customization): Fix typos.
+
+2008-11-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* macos.texi (Mac OS): Move Cocoa manual from ns-emacs.texi to here,
+	replacing previous contents.  Numerous copyedits to adapt ns-emacs to
+	the conventions of the main Emacs manual.
+
+	* emacs.texi (Top): Update node listings.
+
+2008-11-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cmdargs.texi (Emacs Invocation): Link to Emacs Server.  Note that
+	command-line-args is processed during startup.
+	(Action Arguments): Correctly describe how file arguments interact with
+	the startup screen.  Link to Lisp Interaction for scratch buffer.
+	(Initial Options): Link to Command Example for -batch option.
+	(Environment): Document initial-environment.
+
+	* entering.texi (Entering Emacs): Note that inhibit-startup-screen
+	can't be changed in the site-start file.
+
+2008-11-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.texi (Dired): Mention C-x C-d too.
+	(Dired Enter): Document M-n in the Dired minibuffer.
+	(Dired Navigation): Explain dired-goto-file more clearly.  Document
+	dired-isearch-filenames.
+	(Dired Deletion): Remove unnecessary "expunged" terminology.
+	(Flagging Many Files): & is now rebound to `% &'.
+	(Shell Commands in Dired): Document dired-do-async-shell-command.
+	Clarify how multi-file arguments are passed.
+	(Misc Dired Features): Document dired-do-isearch.
+
+2008-11-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* entering.texi (Entering Emacs): Document inhibit-startup-screen.
+
+2008-11-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.texi (Other Repeating Search): Remove obsolete findex entries.
+
 2008-11-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* programs.texi (Program Modes): Link to Program Indent node.
@@ -296,7 +593,7 @@
 	* kmacro.texi (Basic Keyboard Macro): Make F3 and F4 the preferred
 	interface for defining macros.  Simplify examples.  Note that C-g quits
 	macro definitions.
-	(Keyboard Macro Counter): Document using F3 to insert counter. Give
+	(Keyboard Macro Counter): Document using F3 to insert counter.  Give
 	usage example.
 	(Keyboard Macro Query): Organize query responses in a table.
 
@@ -1083,7 +1380,7 @@
 
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
-	* Move manual sources from man/ to subdirectories of doc/.
+	Move manual sources from man/ to subdirectories of doc/.
 	Split into the Emacs manual in emacs/, and other manuals in misc/.
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Reduce to just the Emacs
 	manual.
@@ -1996,7 +2293,7 @@
 
 	* custom.texi (Safe File Variables): Texinfo usage fix.
 
-2006-07-03  Ted Zlatanov  <tzz@lifelogs.com>
+2006-07-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* help.texi, m-x.texi: Lots of cleanups.
 
@@ -2078,7 +2375,7 @@
 	(Commands of GUD): Add gud-print.  Remove gud-run.
 	Restate availability more generally.
 
-2006-06-03  Ted Zlatanov  <tzz@lifelogs.com>
+2006-06-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* mini.texi: Lots of cleanups.
 
@@ -2099,7 +2396,7 @@
 
 	* screen.texi (Menu Bar): F10 for Gtk+/Lesstif/Lucid menus.
 
-2006-05-28  Ted Zlatanov  <tzz@lifelogs.com>
+2006-05-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* basic.texi: Many simplifications and improvements in wording.
 
@@ -5817,12 +6114,12 @@
 
 	* Makefile (realclean): Don't delete the Info files.
 
-1993-10-25  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+1993-10-25  Brian J. Fox  (bfox@albert.gnu.ai.mit.edu)
 
 	* frames.texi (Creating Frames): Mention `C-x 5' instead of `C-x
 	4' where appropriate.
 
-1993-10-20  Brian Fox  (bfox@ai.mit.edu)
+1993-10-20  Brian J. Fox  (bfox@ai.mit.edu)
 
 	* Makefile: Fix targets for texindex.
 

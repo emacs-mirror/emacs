@@ -4,7 +4,7 @@
 ;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
 
-;; Author: jwz, then rms, then sm
+;; Author: Jamie Zawinski, Richard Stallman, Stefan Monnier
 ;; Maintainer: FSF
 ;; Keywords: languages, faces
 
@@ -227,7 +227,7 @@
 ;; User variables.
 
 (defcustom font-lock-maximum-size 256000
-  "*Maximum size of a buffer for buffer fontification.
+  "Maximum size of a buffer for buffer fontification.
 Only buffers less than this can be fontified when Font Lock mode is turned on.
 If nil, means size is irrelevant.
 If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
@@ -249,7 +249,7 @@ for buffers in Rmail mode, and size is irrelevant otherwise."
   :group 'font-lock)
 
 (defcustom font-lock-maximum-decoration t
-  "*Maximum decoration level for fontification.
+  "Maximum decoration level for fontification.
 If nil, use the default decoration (typically the minimum available).
 If t, use the maximum decoration available.
 If a number, use that level of decoration (or if not available the maximum).
@@ -274,7 +274,7 @@ decoration for buffers in C++ mode, and level 1 decoration otherwise."
   :group 'font-lock)
 
 (defcustom font-lock-verbose 0
-  "*If non-nil, means show status messages for buffer fontification.
+  "If non-nil, means show status messages for buffer fontification.
 If a number, only buffers greater than this size have fontification messages."
   :type '(choice (const :tag "never" nil)
 		 (other :tag "always" t)
@@ -851,7 +851,7 @@ happens, so the major mode can be corrected."
 ;; themselves.
 
 (defcustom font-lock-support-mode 'jit-lock-mode
-  "*Support mode for Font Lock mode.
+  "Support mode for Font Lock mode.
 Support modes speed up Font Lock mode by being choosy about when fontification
 occurs.  The default support mode, Just-in-time Lock mode (symbol
 `jit-lock-mode'), is recommended.
@@ -2258,8 +2258,8 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 	       '("cond" "if" "while" "while-no-input" "let" "let*"
 		 "prog" "progn" "progv" "prog1" "prog2" "prog*"
 		 "inline" "lambda" "save-restriction" "save-excursion"
-		 "save-selected-window" "save-selected-window-norecord"
-		 "save-window-excursion" "save-match-data" "save-current-buffer"
+		 "save-selected-window" "save-window-excursion"
+		 "save-match-data" "save-current-buffer"
 		 "unwind-protect" "condition-case" "track-mouse"
 		 "eval-after-load" "eval-and-compile" "eval-when-compile"
 		 "eval-when" "eval-at-startup" "eval-next-after-load"

@@ -95,18 +95,19 @@ DEFUN ("random", Frandom, Srandom, 0, 1, 0,
        doc: /* Return a pseudo-random number.
 All integers representable in Lisp are equally likely.
   On most systems, this is 29 bits' worth.
-With positive integer argument N, return random number in interval [0,N).
-With argument t, set the random number seed from the current time and pid.  */)
-     (n)
-     Lisp_Object n;
+With positive integer LIMIT, return random number in interval [0,LIMIT).
+With argument t, set the random number seed from the current time and pid.
+Other values of LIMIT are ignored.  */)
+     (limit)
+     Lisp_Object limit;
 {
   EMACS_INT val;
   Lisp_Object lispy_val;
   unsigned long denominator;
 
-  if (EQ (n, Qt))
+  if (EQ (limit, Qt))
     seed_random (getpid () + time (NULL));
-  if (NATNUMP (n) && XFASTINT (n) != 0)
+  if (NATNUMP (limit) && XFASTINT (limit) != 0)
     {
       /* Try to take our random number from the higher bits of VAL,
 	 not the lower, since (says Gentzel) the low bits of `random'
@@ -115,10 +116,10 @@ With argument t, set the random number seed from the current time and pid.  */)
 	 it's possible to get a quotient larger than n; discarding
 	 these values eliminates the bias that would otherwise appear
 	 when using a large n.  */
-      denominator = ((unsigned long)1 << VALBITS) / XFASTINT (n);
+      denominator = ((unsigned long)1 << VALBITS) / XFASTINT (limit);
       do
 	val = get_random () / denominator;
-      while (val >= XFASTINT (n));
+      while (val >= XFASTINT (limit));
     }
   else
     val = get_random ();

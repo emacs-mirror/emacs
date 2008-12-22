@@ -30,7 +30,7 @@ Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.2 or
+under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
 and with the Back-Cover Texts as in (a) below.  A copy of the license
@@ -50,9 +50,9 @@ developing GNU and promoting software freedom.''
 @titlepage
 @title Ediff User's Manual
 @sp 4
-@subtitle Ediff version 2.81.1
+@subtitle Ediff version 2.81.2
 @sp 1
-@subtitle April 2007
+@subtitle November 2008
 @sp 5
 @author Michael Kifer
 @page
@@ -2501,6 +2501,7 @@ Andy Scott (ascott@@pcocd2.intel.com),
 Axel Seibert (axel@@tumbolia.ppp.informatik.uni-muenchen.de),
 Vin Shelton (acs@@xemacs.org),
 Scott O. Sherman (Scott.Sherman@@mci.com),
+Nikolaj Schumacher (n_schumacher@@web.de),
 Richard Stallman (rms@@gnu.org),
 Richard Stanton (stanton@@haas.berkeley.edu),
 Sam Steingold (sds@@goems.com),

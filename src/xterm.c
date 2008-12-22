@@ -487,7 +487,9 @@ x_set_frame_alpha (f)
   else if (INTEGERP (Vframe_alpha_lower_limit))
     alpha_min = (XINT (Vframe_alpha_lower_limit)) / 100.0;
 
-  if (alpha < 0.0 || 1.0 < alpha)
+  if (alpha < 0.0)
+    return;
+  else if (alpha > 1.0)
     alpha = 1.0;
   else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
     alpha = alpha_min;
@@ -2651,13 +2653,17 @@ x_draw_glyph_string (s)
       int width;
       struct glyph_string *next;
 
-      for (width = 0, next = s->next; next;
+      for (width = 0, next = s->next;
+	   next && width < s->right_overhang;
 	   width += next->width, next = next->next)
 	if (next->first_glyph->type != IMAGE_GLYPH)
 	  {
 	    x_set_glyph_string_gc (next);
 	    x_set_glyph_string_clipping (next);
-	    x_draw_glyph_string_background (next, 1);
+	    if (next->first_glyph->type == STRETCH_GLYPH)
+	      x_draw_stretch_glyph_string (next);
+	    else
+	      x_draw_glyph_string_background (next, 1);
 	    next->num_clips = 0;
 	  }
     }
@@ -2759,6 +2765,8 @@ x_draw_glyph_string (s)
 		    position = s->font->underline_position;
 		  else if (s->font)
 		    position = (s->font->descent + 1) / 2;
+		  else
+		    position = underline_minimum_offset;
 		}
 	      position = max (position, underline_minimum_offset);
 	    }
@@ -6722,8 +6730,9 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         if (f)
           {
 
-            /* Generate SELECT_WINDOW_EVENTs when needed.  */
-            if (!NILP (Vmouse_autoselect_window))
+            /* Generate SELECT_WINDOW_EVENTs when needed.
+               Don't let popup menus influence things (bug#1261).  */
+            if (!NILP (Vmouse_autoselect_window) && !popup_activated ())
               {
                 Lisp_Object window;
 
@@ -8175,6 +8184,8 @@ xim_open_dpy (dpyinfo, resource_name)
 #ifdef HAVE_XIM
   if (use_xim)
     {
+      if (dpyinfo->xim)
+	XCloseIM (dpyinfo->xim);
       xim = XOpenIM (dpyinfo->display, dpyinfo->xrdb, resource_name,
 		     EMACS_CLASS);
       dpyinfo->xim = xim;
@@ -8203,12 +8214,6 @@ xim_open_dpy (dpyinfo, resource_name)
 
 
 #ifdef HAVE_X11R6_XIM
-
-struct xim_inst_t
-{
-  struct x_display_info *dpyinfo;
-  char *resource_name;
-};
 
 /* XIM instantiate callback function, which is called whenever an XIM
    server is available.  DISPLAY is the display of the XIM.
@@ -8273,6 +8278,7 @@ xim_initialize (dpyinfo, resource_name)
      struct x_display_info *dpyinfo;
      char *resource_name;
 {
+  dpyinfo->xim = NULL;
 #ifdef HAVE_XIM
   if (use_xim)
     {
@@ -8280,8 +8286,8 @@ xim_initialize (dpyinfo, resource_name)
       struct xim_inst_t *xim_inst;
       int len;
 
-      dpyinfo->xim = NULL;
       xim_inst = (struct xim_inst_t *) xmalloc (sizeof (struct xim_inst_t));
+      dpyinfo->xim_callback_data = xim_inst;
       xim_inst->dpyinfo = dpyinfo;
       len = strlen (resource_name);
       xim_inst->resource_name = (char *) xmalloc (len + 1);
@@ -8294,14 +8300,10 @@ xim_initialize (dpyinfo, resource_name)
 					 least, hence the configure test.  */
 				      (XRegisterIMInstantiateCallback_arg6) xim_inst);
 #else /* not HAVE_X11R6_XIM */
-      dpyinfo->xim = NULL;
       xim_open_dpy (dpyinfo, resource_name);
 #endif /* not HAVE_X11R6_XIM */
-
     }
-  else
 #endif /* HAVE_XIM */
-    dpyinfo->xim = NULL;
 }
 
 
@@ -8319,7 +8321,9 @@ xim_close_dpy (dpyinfo)
 	XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
 					  NULL, EMACS_CLASS,
 					  xim_instantiate_callback, NULL);
-#endif /* not HAVE_X11R6_XIM */
+      xfree (dpyinfo->xim_callback_data->resource_name);
+      xfree (dpyinfo->xim_callback_data);
+#endif /* HAVE_X11R6_XIM */
       if (dpyinfo->display)
 	XCloseIM (dpyinfo->xim);
       dpyinfo->xim = NULL;
@@ -9524,9 +9528,6 @@ x_free_frame_resources (f)
       if (f->output_data.x->black_relief.allocated_p)
 	unload_color (f, f->output_data.x->black_relief.pixel);
 
-      if (FRAME_FACE_CACHE (f))
-	free_frame_faces (f);
-
       x_free_gcs (f);
       XFlush (FRAME_X_DISPLAY (f));
     }
@@ -10231,7 +10232,6 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->x_focus_frame = 0;
   dpyinfo->x_focus_event_frame = 0;
   dpyinfo->x_highlight_frame = 0;
-  dpyinfo->terminal->image_cache = make_image_cache ();
   dpyinfo->wm_type = X_WMTYPE_UNKNOWN;
 
   /* See if we can construct pixel values from RGB values.  */
@@ -10357,17 +10357,6 @@ x_term_init (display_name, xrm_option, resource_name)
 
   connection = ConnectionNumber (dpyinfo->display);
   dpyinfo->connection = connection;
-
-  {
-    char null_bits[1];
-
-    null_bits[0] = 0x00;
-
-    dpyinfo->null_pixel
-      = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
-				     null_bits, 1, 1, (long) 0, (long) 0,
-				     1);
-  }
 
   {
     extern int gray_bitmap_width, gray_bitmap_height;
@@ -10532,12 +10521,9 @@ x_delete_display (dpyinfo)
   XrmDestroyDatabase (dpyinfo->xrdb);
 #endif
 #endif
-#ifdef HAVE_X_I18N
-  if (dpyinfo->xim)
-    xim_close_dpy (dpyinfo);
-#endif
 
   xfree (dpyinfo->x_id_name);
+  xfree (dpyinfo->x_dnd_atoms);
   xfree (dpyinfo->color_cells);
   xfree (dpyinfo);
 }
@@ -10642,6 +10628,13 @@ x_delete_terminal (struct terminal *terminal)
     return;
 
   BLOCK_INPUT;
+#ifdef HAVE_X_I18N
+  /* We must close our connection to the XIM server before closing the
+     X display.  */
+  if (dpyinfo->xim)
+    xim_close_dpy (dpyinfo);
+#endif
+
   /* If called from x_connection_closed, the display may already be closed
      and dpyinfo->display was set to 0 to indicate that.  */
   if (dpyinfo->display)

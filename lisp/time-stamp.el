@@ -44,7 +44,7 @@
   :group 'extensions)
 
 (defcustom time-stamp-format "%:y-%02m-%02d %02H:%02M:%02S %u"
-  "*Format of the string inserted by \\[time-stamp].
+  "Format of the string inserted by \\[time-stamp].
 The value may be a string or a list.  Lists are supported only for
 backward compatibility; see variable `time-stamp-old-format-warn'.
 
@@ -94,7 +94,7 @@ historical default."
 ;;;###autoload(put 'time-stamp-format 'safe-local-variable 'stringp)
 
 (defcustom time-stamp-active t
-  "*Non-nil to enable time-stamping of buffers by \\[time-stamp].
+  "Non-nil to enable time-stamping of buffers by \\[time-stamp].
 Can be toggled by \\[time-stamp-toggle-active].
 See also the variable `time-stamp-warn-inactive'."
   :type 'boolean
@@ -267,7 +267,7 @@ The time stamp is updated only if the variable `time-stamp-active' is non-nil.
 The format of the time stamp is set by the variable `time-stamp-pattern' or
 `time-stamp-format'.  The variables `time-stamp-pattern',
 `time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
-`time-stamp-count', and `time-stamp-inserts-lines' control finding 
+`time-stamp-count', and `time-stamp-inserts-lines' control finding
 the template."
   (interactive)
   (let ((line-limit time-stamp-line-limit)

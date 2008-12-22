@@ -43,7 +43,7 @@
 ;; parse vars
 
 (defcustom cvs-update-prog-output-skip-regexp "$"
-  "*A regexp that matches the end of the output from all cvs update programs.
+  "A regexp that matches the end of the output from all cvs update programs.
 That is, output from any programs that are run by CVS (by the flag -u
 in the `modules' file - see cvs(5)) when `cvs update' is performed should
 terminate with a line that this regexp matches.  It is enough that
@@ -56,7 +56,7 @@ The default (a single $) fits programs without output."
 (defcustom cvs-parse-ignored-messages
   '("Executing ssh-askpass to query the password.*$"
     ".*Remote host denied X11 forwarding.*$")
-  "*A list of regexps matching messages that should be ignored by the parser.
+  "A list of regexps matching messages that should be ignored by the parser.
 Each regexp should match a whole set of lines and should hence be terminated
 by `$'."
   :group 'pcl-cvs

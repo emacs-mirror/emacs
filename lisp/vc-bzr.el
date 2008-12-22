@@ -70,14 +70,16 @@
   :type 'string)
 
 (defcustom vc-bzr-diff-switches nil
-  "String/list of strings specifying extra switches for bzr diff under VC."
-  :type '(choice (const :tag "None" nil)
+  "String or list of strings specifying switches for bzr diff under VC.
+If nil, use the value of `vc-diff-switches'.  If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+                 (const :tag "None" t)
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
   :group 'vc-bzr)
 
 (defcustom vc-bzr-log-switches nil
-  "String/list of strings specifying extra switches for `bzr log' under VC."
+  "String or list of strings specifying switches for bzr log under VC."
   :type '(choice (const :tag "None" nil)
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
@@ -585,10 +587,10 @@ stream.  Standard error output is discarded."
             (:conc-name vc-bzr-extra-fileinfo->))
   extra-name)         ;; original name for rename targets, new name for
 
-(defun vc-bzr-status-printer (info)
+(defun vc-bzr-dir-printer (info)
   "Pretty-printer for the vc-dir-fileinfo structure."
   (let ((extra (vc-dir-fileinfo->extra info)))
-    (vc-default-status-printer 'Bzr info)
+    (vc-default-dir-printer 'Bzr info)
     (when extra
       (insert (propertize
 	       (format "   (renamed from %s)"
@@ -664,6 +666,19 @@ stream.  Standard error output is discarded."
   (apply 'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
   (vc-exec-after
    `(vc-bzr-after-dir-status (quote ,update-function))))
+
+(defun vc-bzr-dir-extra-headers (dir)
+  (let ((str (with-temp-buffer
+	       (vc-bzr-command "info" t 0 dir)
+	       (buffer-string))))
+    (concat
+     (propertize "Parent branch: " 'face 'font-lock-type-face)
+     (propertize 
+      (if (string-match "parent branch: \\(.+\\)$" str)
+	  (match-string 1 str)
+	"None")
+       'face 'font-lock-variable-name-face))))
+
 ;;; Revision completion
 
 (defun vc-bzr-revision-completion-table (files)

@@ -11,21 +11,19 @@
 @cindex startup (command line arguments)
 @cindex invocation (command line arguments)
 
-  GNU Emacs supports command line arguments to request various actions
-when invoking Emacs.  These are for compatibility with other editors and
-for sophisticated activities.  We don't recommend using them for
-ordinary editing.
+  Emacs supports command line arguments to request various actions
+when invoking Emacs.  These are for compatibility with other editors
+and for sophisticated activities.  We don't recommend using them for
+ordinary editing (@xref{Emacs Server}, for a way to access an existing
+Emacs job from the command line).
 
   Arguments starting with @samp{-} are @dfn{options}, and so is
 @samp{+@var{linenum}}.  All other arguments specify files to visit.
 Emacs visits the specified files while it starts up.  The last file
-name on your command line becomes the current buffer; the other files
-are also visited in other buffers.  If there are two files, they are
-both displayed; otherwise the last file is displayed along with a
-buffer list that shows what other buffers there are.  As with most
-programs, the special argument @samp{--} says that all subsequent
-arguments are file names, not options, even if they start with
-@samp{-}.
+specified on the command line becomes the current buffer; the other
+files are also visited in other buffers.  As with most programs, the
+special argument @samp{--} says that all subsequent arguments are file
+names, not options, even if they start with @samp{-}.
 
   Emacs command options can specify many things, such as the size and
 position of the X window Emacs uses, its colors, and so on.  A few
@@ -52,14 +50,15 @@ and the tables below always show an equal sign.
 @vindex command-line-args
   Most options specify how to initialize Emacs, or set parameters for
 the Emacs session.  We call them @dfn{initial options}.  A few options
-specify things to do: for example, load libraries, call functions, or
-terminate Emacs.  These are called @dfn{action options}.  These and file
-names together are called @dfn{action arguments}.  Emacs processes all
-the action arguments in the order they are written.  The @file{.emacs} file
-can access the values of the action arguments as the elements of a list in
-the variable @code{command-line-args}.
-
-
+specify things to do, such as loading libraries or calling Lisp
+functions.  These are called @dfn{action options}.  These and file
+names together are called @dfn{action arguments}.  The action
+arguments are stored as a list of strings in the variable
+@code{command-line-args}.  (Actually, when Emacs starts up,
+@code{command-line-args} contains all the arguments passed from the
+command line; during initialization, the initial arguments are removed
+from this list when they are processed, leaving only the action
+arguments.)
 
 @menu
 * Action Arguments::    Arguments to visit files, load libraries,
@@ -81,7 +80,7 @@ the variable @code{command-line-args}.
 @node Action Arguments
 @appendixsec Action Arguments
 
-  Here is a table of the action arguments and options:
+  Here is a table of action arguments:
 
 @table @samp
 @item @var{file}
@@ -94,9 +93,21 @@ the variable @code{command-line-args}.
 @cindex visiting files, command-line argument
 @vindex inhibit-startup-buffer-menu
 Visit @var{file} using @code{find-file}.  @xref{Visiting}.
-If you visit several files at startup in this way, Emacs
-also displays a Buffer Menu buffer to show you what files it
-has visited.  You can inhibit that by setting @code{inhibit-startup-buffer-menu} to @code{t}.
+
+When Emacs starts up, it displays the startup buffer in one window,
+and the buffer visiting @var{file} in another window
+(@pxref{Windows}).  If you supply more than one file argument, the
+displayed file is the last one specified on the command line; the
+other files are visited but their buffers are not shown.
+
+If the startup buffer is disabled (@pxref{Entering Emacs}), then
+@var{file} is visited in a single window if one file argument was
+supplied; with two file arguments, Emacs displays the files in two
+different windows; with more than two file argument, Emacs displays
+the last file specified in one window, plus a Buffer Menu in a
+different window (@pxref{Several Buffers}).  To inhibit using the
+Buffer Menu for this, change the variable
+@code{inhibit-startup-buffer-menu} to @code{t}.
 
 @item +@var{linenum} @var{file}
 @opindex +@var{linenum}
@@ -107,7 +118,6 @@ Visit @var{file} using @code{find-file}, then go to line number
 Visit @var{file} using @code{find-file}, then go to line number
 @var{linenum} and put point at column number @var{columnnum}.
 
-@need 3000
 @item -l @var{file}
 @opindex -l
 @itemx --load=@var{file}
@@ -149,8 +159,9 @@ Evaluate Lisp expression @var{expression}.
 @item --insert=@var{file}
 @opindex --insert
 @cindex insert file contents, command-line argument
-Insert the contents of @var{file} into the current buffer.  This is like
-what @kbd{M-x insert-file} does.  @xref{Misc File Ops}.
+Insert the contents of @var{file} into the @samp{*scratch*} buffer
+(@pxref{Lisp Interaction}).  This is like what @kbd{M-x insert-file}
+does (@pxref{Misc File Ops}).
 
 @item --kill
 @opindex --kill
@@ -174,12 +185,12 @@ section describes the more general initial options; some other options
 specifically related to the X Window System appear in the following
 sections.
 
-  Some initial options affect the loading of init files.  The normal
-actions of Emacs are to first load @file{site-start.el} if it exists,
-then your own init file @file{~/.emacs} if it exists, and finally
-@file{default.el} if it exists.  @xref{Init File}.  Certain options
-prevent loading of some of these files or substitute other files for
-them.
+  Some initial options affect the loading of the initialization file.
+The normal actions of Emacs are to first load @file{site-start.el} if
+it exists, then your own initialization file @file{~/.emacs} if it
+exists, and finally @file{default.el} if it exists.  @xref{Init File}.
+Certain options prevent loading of some of these files or substitute
+other files for them.
 
 @table @samp
 @item -t @var{device}
@@ -208,27 +219,30 @@ Don't communicate directly with the window system, disregarding the
 Emacs uses the terminal from which it was launched for all its display
 and input.
 
-@need 3000
 @cindex batch mode
 @item -batch
 @opindex --batch
 @itemx --batch
 Run Emacs in @dfn{batch mode}.  Batch mode is used for running
 programs written in Emacs Lisp from shell scripts, makefiles, and so
-on.  You should also use the @samp{-l}, @samp{-f} or @samp{--eval}
-option, to invoke a Lisp program to do batch processing.
+on.  To invoke a Lisp program, use the @samp{-batch} option in
+conjunction with one or more of @samp{-l}, @samp{-f} or @samp{--eval}
+(@pxref{Action Arguments}).  @xref{Command Example}, for an example.
 
 In batch mode, Emacs does not display the text being edited, and the
 standard terminal interrupt characters such as @kbd{C-z} and @kbd{C-c}
-continue to have their normal effect.  The functions @code{prin1},
-@code{princ} and @code{print} output to @code{stdout} instead of the
-echo area, while @code{message} and error messages output to
-@code{stderr}.  Functions that would normally read from the minibuffer
-take their input from @code{stdin} instead.
+have their usual effect.  Emacs functions that normally print a
+message in the echo area will print to either the standard output
+stream (@code{stdout}) or the standard error stream (@code{stderr})
+instead.  (To be precise, functions like @code{prin1}, @code{princ}
+and @code{print} print to @code{stdout}, while @code{message} and
+@code{error} print to @code{stderr}.)  Functions that normally read
+keyboard input from the minibuffer take their input from the
+terminal's standard input stream (@code{stdin}) instead.
 
-@samp{--batch} implies @samp{-q} (do not load an init file), but
-@file{site-start.el} is loaded nonetheless.  It also causes Emacs to
-exit after processing all the command options.  In addition, it
+@samp{--batch} implies @samp{-q} (do not load an initialization file),
+but @file{site-start.el} is loaded nonetheless.  It also causes Emacs
+to exit after processing all the command options.  In addition, it
 disables auto-saving except in buffers for which it has been
 explicitly requested.
 
@@ -257,11 +271,11 @@ comment delimiter.
 @cindex bypassing init and @file{default.el} file
 @cindex init file, not loading
 @cindex @file{default.el} file, not loading
-Do not load your Emacs init file @file{~/.emacs}, or @file{default.el}
-either.  Regardless of this switch, @file{site-start.el} is still loaded.
-When invoked like this, Emacs does not allow saving options
-changed with the @kbd{M-x customize} command and its variants.
-@xref{Easy Customization}.
+Do not load your Emacs initialization file, and do not load the file
+@file{default.el} either (@pxref{Init File}).  Regardless of this
+switch, @file{site-start.el} is still loaded.  When Emacs is invoked
+like this, the Customize facility does not allow options to be saved
+(@pxref{Easy Customization}).
 
 @item --no-site-file
 @opindex --no-site-file
@@ -270,37 +284,35 @@ Do not load @file{site-start.el}.  The options @samp{-q}, @samp{-u}
 and @samp{--batch} have no effect on the loading of this file---this
 option and @samp{-Q} are the only options that block it.
 
-@item -Q
-@opindex -Q
-@itemx --quick
-@opindex --quick
-Start emacs with minimum customizations.  This is like using @samp{-q}
-and @samp{--no-site-file}, but also disables the startup screen.
-
-@item -daemon
-@opindex -daemon
-@itemx --daemon
-@opindex --daemon
-Start emacs in background as a daemon (i.e. it will disconnect from the
-terminal), do not open any frames and start the server.  Clients can
-connect and create graphical or terminal frames using
-@code{emacsclient}.
-
-@item -daemon=@var{SERVER-NAME}
-Start emacs in background as a daemon, and start the server with the
-name set to @var{SERVER-NAME}.
-
 @item --no-splash
 @opindex --no-splash
 @vindex inhibit-startup-screen
 @cindex splash screen
 @cindex startup message
-Do not display a splash screen on startup.  You can also achieve this
-effect by setting the variable @code{inhibit-startup-screen} to
-non-@code{nil} in you personal init file (but @emph{not} in
-@file{site-start.el}).  (This variable was called
-@code{inhibit-splash-screen} or @code{inhibit-startup-message} in
-previous Emacs versions.)
+Do not display a startup screen.  You can also achieve this effect by
+setting the variable @code{inhibit-startup-screen} to non-@code{nil}
+in your initialization file (@pxref{Entering Emacs}).
+
+@item -Q
+@opindex -Q
+@itemx --quick
+@opindex --quick
+Start emacs with minimum customizations.  This is like using
+@samp{-q}, @samp{--no-site-file}, and @samp{--no-splash} together.
+
+@item -daemon
+@opindex -daemon
+@itemx --daemon
+@opindex --daemon
+Start Emacs as a daemon---after Emacs starts up, it starts the Emacs
+server and disconnects from the terminal without opening any frames.
+You can then use the @command{emacsclient} command to connect to Emacs
+for editing.  @xref{Emacs Server}, for information about using Emacs
+as a daemon.
+
+@item -daemon=@var{SERVER-NAME}
+Start emacs in background as a daemon, and use @var{SERVER-NAME} as
+the server name.
 
 @item --no-desktop
 @opindex --no-desktop
@@ -311,9 +323,8 @@ Do not reload any saved desktop.  @xref{Saving Emacs Sessions}.
 @itemx --user=@var{user}
 @opindex --user
 @cindex load init file of another user
-Load @var{user}'s Emacs init file @file{~@var{user}/.emacs} instead of
-your own@footnote{
-This option has no effect on MS-Windows.}.
+Load @var{user}'s initialization file instead of your
+own@footnote{This option has no effect on MS-Windows.}.
 
 @item --debug-init
 @opindex --debug-init
@@ -422,10 +433,13 @@ software) inherit the environment from Emacs, too.
 
 @findex setenv
 @findex getenv
+@vindex initial-environment
   Inside Emacs, the command @kbd{M-x getenv} gets the value of an
 environment variable.  @kbd{M-x setenv} sets a variable in the Emacs
 environment.  (Environment variable substitutions with @samp{$} work
-in the value just as in file names; see @ref{File Names with $}.)
+in the value just as in file names; see @ref{File Names with $}.)  The
+variable @code{initial-environment} stores the initial environment
+inherited by Emacs.
 
   The way to set environment variables outside of Emacs depends on the
 operating system, and especially the shell that you are using.  For
@@ -456,11 +470,10 @@ documentation for more information.
 @node General Variables
 @appendixsubsec General Variables
 
-  Here is an alphabetical list of specific environment variables that
-have special meanings in Emacs, giving the name of each variable and
-its meaning.  Most of these variables are also used by some other
-programs.  Emacs does not require any of these environment variables
-to be set, but it uses their values if they are set.
+  Here is an alphabetical list of environment variables that have
+special meanings in Emacs.  Most of these variables are also used by
+some other programs.  Emacs does not require any of these environment
+variables to be set, but it uses their values if they are set.
 
 @table @env
 @item CDPATH
@@ -766,119 +779,249 @@ remote machine.
 @appendixsec Font Specification Options
 @cindex font name (X Window System)
 
-  By default, Emacs displays text in a twelve point Courier font (when
-using X).  You can specify a different font on your command line
-through the option @samp{-fn @var{name}} (or @samp{--font}, which is
-an alias for @samp{-fn}).
+  By default, Emacs displays text in X using a twelve point monospace
+font.  You can specify a different font using the command line option
+@samp{-fn @var{font}} (or @samp{--font}, which is an alias for
+@samp{-fn}).
 
 @table @samp
-@item -fn @var{name}
+@item -fn @var{font}
 @opindex -fn
-@itemx --font=@var{name}
+@itemx --font=@var{font}
 @opindex --font
 @cindex specify default font from the command line
-Use font @var{name} as the default font.
+Use @var{font} as the default font.
 @end table
 
-  Under X, each font has a long name which consists of fourteen words
-or numbers, separated by dashes.  Some fonts also have shorter
-nicknames.  For instance, @samp{9x15} is such a nickname.  This font
-makes each character nine pixels wide and fifteen pixels high.  You
-can use either kind of name.  Case is insignificant in both kinds.
-You can use wildcard patterns for the font name; then Emacs lets X
-choose one of the fonts that match the pattern.  The wildcard
-character @samp{*} matches any sequence of characters (including none)
-and @samp{?} matches any single character.  However, matching is
-implementation-dependent, and can be inaccurate when wildcards match
-dashes in a long name.  For reliable results, supply all 14 dashes and
-use wildcards only within a field.  Here is an example, which happens
-to specify the font whose nickname is @samp{6x13}:
+When passing a font specification to Emacs on the command line, you
+may need to ``quote'' it, by enclosing it in quotation marks, if it
+contains characters that the shell treats specially (e.g. spaces).
+Here is an example:
 
 @smallexample
-emacs -fn \
-  "-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1" &
+emacs -fn "DejaVu Sans Mono-12"
+@end smallexample
+
+@cindex X defaults file
+@cindex X resources file
+  You can also specify the font using your X resources file (usually a
+file named @file{.Xdefaults} or @file{.Xresources} in your home
+directory), by adding a line like this:
+
+@smallexample
+emacs.font: @var{font}
 @end smallexample
 
 @noindent
-You can also specify the font in your @file{.Xdefaults} file:
+You must restart X, or use the @command{xrdb} command, for the X
+resources file to take effect.  @xref{Resources}.  When specifying a
+font in your X resources file, you should not quote it.
+
+@cindex fontconfig
+  Emacs recognizes two types of fonts: @dfn{client-side} fonts, which
+are provided by the Xft and Fontconfig libraries, and
+@dfn{server-side} fonts, which are provided by the X server itself.
+Most client-side fonts support advanced font features such as
+antialiasing and subpixel hinting, while server-side fonts do not.
+
+  There are four different ways to express a ``font name''.  The first
+format consists of @dfn{Fontconfig patterns}.  Fontconfig patterns
+match only client-side fonts provided by Xft and Fontconfig, and have
+the following form:
 
 @smallexample
-emacs.font: -misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
+@var{fontname}[-@var{fontsize}][:@var{name1}=@var{values1}][:@var{name2}=@var{values2}]...
 @end smallexample
 
-  Note that if you use a wildcard pattern on the command line, you
-need to enclose it in single or double quotes, to prevent the shell
-from accidentally expanding it into a list of file names.  On the
-other hand, you should not quote the name in the @file{.Xdefaults}
-file.
+@noindent
+Within this format, any of the elements in braces may be omitted.
+Here, @var{fontname} is the ``family name'' of the font, such as
+@samp{Monospace} or @samp{DejaVu Serif}; @var{fontsize} is the ``point
+size'' of the font (one ``printer's point'' is about 1/72 of an inch);
+and the @samp{@var{name}=@var{values}} entries specify settings such
+as the slant and weight of the font.  Each @var{values} may be a
+single value, or a list of values separated by commas.  In addition,
+some property values are valid with only one kind of property name, in
+which case the @samp{@var{name}=} part may be omitted.
 
-The default font used by Emacs (under X) is:
+Here is a list of common font properties:
+
+@table @samp
+@item slant
+One of @samp{italic}, @samp{oblique} or @samp{roman}.
+
+@item weight
+One of @samp{light}, @samp{medium}, @samp{demibold}, @samp{bold} or
+@samp{black}.
+
+@item style
+Some fonts define special styles which are a combination of slant and
+weight.  For instance, the font @samp{Dejavu Sans} defines the style
+@samp{book}.  This property, if specified, overrides the slant and
+weight properties.
+
+@item width
+One of @samp{condensed}, @samp{normal}, or @samp{expanded}.
+
+@item spacing
+One of @samp{monospace}, @samp{proportional}, @samp{dual-width}, or
+@samp{charcell}.
+@end table
+
+@noindent
+Here are some examples of Fontconfig patterns:
 
 @smallexample
--adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1
+Monospace
+Monospace-12
+Monospace-12:bold
+DejaVu Sans Mono:bold:italic
+Monospace-12:weight=bold:slant=italic
 @end smallexample
 
-  A long font name has the following form:
+See the Fontconfig manual for a more detailed description of
+Fontconfig patterns.  This manual is located in the file
+@file{fontconfig-user.html}, which is distributed with Fontconfig.  It
+is also available online at
+@url{http://fontconfig.org/fontconfig-user.html}.  In particular, the
+manual describes additional font properties that influence how the
+font is hinted, antialiased, or scaled.
+
+  The second way to specify a font is to use a @dfn{GTK font
+description}.  Like Fontconfig patterns, GTK font descriptions match
+only client-side fonts provided by Xft and Fontconfig.  They have the
+syntax
+
+@smallexample
+@var{fontname} [@var{properties}] [@var{fontsize}]
+@end smallexample
+
+@noindent
+where @var{fontname} is the family name, @var{properties} is a list of
+property values separated by spaces, and @var{fontsize} is the point
+size.  The properties that you may specify are as follows:
+
+@table @samp
+@item style
+One of @samp{roman}, @samp{italic} or @samp{oblique}.  If omitted, the
+@samp{roman} style is used.
+@item weight
+One of @samp{medium}, @samp{ultra-light}, @samp{light},
+@samp{semi-bold}, or @samp{bold}.  If omitted, @samp{medium} weight is
+used.
+@end table
+
+@noindent
+Here are some examples of GTK font descriptions:
+
+@smallexample
+Monospace 12
+Monospace Bold Italic 12
+@end smallexample
+
+@cindex XLFD
+@cindex X Logical Font Description
+  The third way to specify a font is to use an @dfn{XLFD} (@dfn{X
+Logical Font Description}), which is the traditional method for
+specifying fonts under X.  Each XLFD consists of fourteen words or
+numbers, separated by dashes, like this:
+
+@smallexample
+-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
+@end smallexample
+
+@noindent
+A wildcard character (@samp{*}) in an XLFD matches any sequence of
+characters (including none), and @samp{?} matches any single
+character.  However, matching is implementation-dependent, and can be
+inaccurate when wildcards match dashes in a long name.  For reliable
+results, supply all 14 dashes and use wildcards only within a field.
+Case is insignificant in an XLFD.  The syntax for an XLFD is as
+follows:
 
 @smallexample
 -@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}
 @dots{}-@var{pixels}-@var{height}-@var{horiz}-@var{vert}-@var{spacing}-@var{width}-@var{registry}-@var{encoding}
 @end smallexample
 
+@noindent
+The entries have the following meanings:
+
 @table @var
 @item maker
-This is the name of the font manufacturer.
+The name of the font manufacturer.
 @item family
-This is the name of the font family---for example, @samp{courier}.
+The name of the font family (e.g. @samp{courier}).
 @item weight
-This is normally @samp{bold}, @samp{medium} or @samp{light}.  Other
-words may appear here in some font names.
+The font weight---normally either @samp{bold}, @samp{medium} or
+@samp{light}.  Some font names support other values.
 @item slant
-This is @samp{r} (roman), @samp{i} (italic), @samp{o} (oblique),
-@samp{ri} (reverse italic), or @samp{ot} (other).
+The font slant---normally @samp{r} (roman), @samp{i} (italic),
+@samp{o} (oblique), @samp{ri} (reverse italic), or @samp{ot} (other).
+Some font names support other values.
 @item widthtype
-This is normally @samp{condensed}, @samp{extended}, @samp{semicondensed}
-or @samp{normal}.  Other words may appear here in some font names.
+The font width---normally @samp{condensed}, @samp{extended},
+@samp{semicondensed} or @samp{normal} (some font names support other
+values).
 @item style
-This is an optional additional style name.  Usually it is empty---most
-long font names have two hyphens in a row at this point.
+An optional additional style name.  Usually it is empty---most long
+font names have two hyphens in a row at this point.
 @item pixels
-This is the font height, in pixels.
+The font height, in pixels.
 @item height
-This is the font height on the screen, measured in tenths of a printer's
-point---approximately 1/720 of an inch.  In other words, it is the point
-size of the font, times ten.  For a given vertical resolution,
-@var{height} and @var{pixels} are proportional; therefore, it is common
-to specify just one of them and use @samp{*} for the other.
+The font height on the screen, measured in tenths of a printer's
+point.  This is the point size of the font, times ten.  For a given
+vertical resolution, @var{height} and @var{pixels} are proportional;
+therefore, it is common to specify just one of them and use @samp{*}
+for the other.
 @item horiz
-This is the horizontal resolution, in pixels per inch, of the screen for
-which the font is intended.
+The horizontal resolution, in pixels per inch, of the screen for which
+the font is intended.
 @item vert
-This is the vertical resolution, in pixels per inch, of the screen for
-which the font is intended.  Normally the resolution of the fonts on
-your system is the right value for your screen; therefore, you normally
+The vertical resolution, in pixels per inch, of the screen for which
+the font is intended.  Normally the resolution of the fonts on your
+system is the right value for your screen; therefore, you normally
 specify @samp{*} for this and @var{horiz}.
 @item spacing
 This is @samp{m} (monospace), @samp{p} (proportional) or @samp{c}
 (character cell).
 @item width
-This is the average character width, in pixels, multiplied by ten.
+The average character width, in pixels, multiplied by ten.
 @item registry
 @itemx encoding
-These together make up the X font character set that the font depicts.
-(X font character sets are not the same as Emacs charsets, but they
-are solutions for the same problem.)  You can use the
-@command{xfontsel} program to check which choices you have.  However,
-normally you should use @samp{iso8859} for @var{registry} and @samp{1}
-for @var{encoding}.
+The X font character set that the font depicts.  (X font character
+sets are not the same as Emacs character sets, but they are similar.)
+You can use the @command{xfontsel} program to check which choices you
+have.  Normally you should use @samp{iso8859} for @var{registry} and
+@samp{1} for @var{encoding}.
 @end table
+
+  Some fonts have shorter nicknames, which you can use instead of a
+normal font specification.  For instance,
+
+@smallexample
+-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
+@end smallexample
+
+@noindent
+is equivalent to @samp{6x13}.  This is the fourth and final method of
+specifying a font.
 
 @cindex listing system fonts
   You will probably want to use a fixed-width default font---that is,
-a font in which all characters have the same width.  Any font with
-@samp{m} or @samp{c} in the @var{spacing} field of the long name is a
-fixed-width font.  Here's how to use the @command{xlsfonts} program to
-list all the fixed-width fonts available on your system:
+a font in which all characters have the same width.  Here's how to use
+the @command{fc-list} command to list all fixed-width Xft and
+Fontconfig fonts available on your system:
+
+@example
+fc-list :spacing=mono
+fc-list :spacing=charcell
+@end example
+
+  For server-side X fonts, any font with @samp{m} or @samp{c} in the
+@var{spacing} field of the XLFD is a fixed-width font.  Here's how to
+use the @command{xlsfonts} program to list all the fixed-width fonts
+available on your system:
 
 @example
 xlsfonts -fn '*x*' | egrep "^[0-9]+x[0-9]+"
@@ -897,9 +1040,8 @@ xfd -fn 6x13
 @noindent
 displays the entire font @samp{6x13}.
 
-  While running Emacs, you can set the font of the current frame
-(@pxref{Frame Parameters}) or for a specific kind of text
-(@pxref{Faces}).
+  While running Emacs, you can set the font of a specific kind of text
+(@pxref{Faces}), or of a particular frame (@pxref{Frame Parameters}).
 
 @node Colors
 @appendixsec Window Color Options
@@ -1059,7 +1201,6 @@ Specify that the height shall be the height of the screen.
 Specify that the width shall be the width of the screen.
 @end table
 
-
 @noindent
 In the @samp{--geometry} option, @code{@r{@{}+-@r{@}}} means either a plus
  sign or a minus sign.  A plus
@@ -1083,12 +1224,12 @@ letting you place it with the mouse.  For example, @samp{164x55}
 specifies a window 164 columns wide, enough for two ordinary width
 windows side by side, and 55 lines tall.
 
-  The default width for Emacs is 80 characters and the default height is
+  The default frame width is 80 characters and the default height is
 40 lines.  You can omit either the width or the height or both.  If
 you start the geometry with an integer, Emacs interprets it as the
 width.  If you start with an @samp{x} followed by an integer, Emacs
-interprets it as the height.  Thus, @samp{81} specifies just the width;
-@samp{x45} specifies just the height.
+interprets it as the height.  Thus, @samp{81} specifies just the
+width; @samp{x45} specifies just the height.
 
   If you start with @samp{+} or @samp{-}, that introduces an offset,
 which means both sizes are omitted.  Thus, @samp{-3} specifies the
@@ -1096,9 +1237,9 @@ which means both sizes are omitted.  Thus, @samp{-3} specifies the
 @var{xoffset}.)  @samp{+3-3} specifies both the @var{xoffset} and the
 @var{yoffset}, placing the frame near the bottom left of the screen.
 
-  You can specify a default for any or all of the fields in
-@file{.Xdefaults} file, and then override selected fields with a
-@samp{--geometry} option.
+  You can specify a default for any or all of the fields in your X
+resource file (@pxref{Resources}), and then override selected fields
+with a @samp{--geometry} option.
 
   Since the mode line and the echo area occupy the last 2 lines of the
 frame, the height of the initial text window is 2 less than the height
@@ -1111,7 +1252,7 @@ the specified height.  The tool bar, if present, is also additional.
 space available for ordinary text.  Therefore, if Emacs starts up with
 a tool bar (which is the default), and handles the geometry
 specification assuming there is a tool bar, and then your
-@file{~/.emacs} file disables the tool bar, you will end up with a
+initialization file disables the tool bar, you will end up with a
 frame geometry different from what you asked for.  To get the intended
 size with no tool bar, use an X resource to specify ``no tool bar''
 (@pxref{Table of Resources}); then Emacs will already know there's no
@@ -1123,8 +1264,8 @@ anyway.  That is because Emacs rounds the sizes so they are an
 even number of character heights and widths.
 
  Some window managers have options that can make them ignore both
-program-specified and user-specified positions (sawfish is one).
-If these are set, Emacs fails to position the window correctly.
+program-specified and user-specified positions.  If these are set,
+Emacs fails to position the window correctly.
 
 @node Borders X
 @appendixsec Internal and External Borders
@@ -1192,49 +1333,48 @@ for the initial Emacs frame.
 @node Icons X
 @appendixsec Icons
 @cindex icons (X Window System)
-
-  Most window managers allow you to ``iconify'' a frame, removing
-it from sight, and leaving a small, distinctive ``icon'' window in its
-place.  Clicking on the icon window makes the frame itself appear again.
-If you have many clients running at once, you can avoid cluttering up
-the screen by iconifying most of the clients.
+@cindex minimizing a frame at startup
 
 @table @samp
+@item -iconic
+@opindex --iconic
+@itemx --iconic
+@cindex start iconified, command-line argument
+Start Emacs in an iconified (``minimized'') state.
+
 @item -nbi
 @opindex -nbi
 @itemx --no-bitmap-icon
 @opindex --no-bitmap-icon
 @cindex Emacs icon, a gnu
 Do not use a picture of a gnu as the Emacs icon.
-
-@item -iconic
-@opindex --iconic
-@itemx --iconic
-@cindex start iconified, command-line argument
-Start Emacs in iconified state.
 @end table
 
-  By default Emacs uses an icon window containing a picture of the GNU gnu.
-The @samp{-nbi} or @samp{--no-bitmap-icon} option tells Emacs to let the
-window manager choose what sort of icon to use---usually just a small
-rectangle containing the frame's title.
+  Most window managers allow you to ``iconify'' (or ``minimize'') an
+Emacs frame, hiding it from sight.  Some window managers replace
+iconified windows with tiny ``icons'', while others remove them
+entirely from sight.  The @samp{-iconic} option tells Emacs to begin
+running in an iconified state, rather than showing a frame right away.
+The text frame doesn't appear until you deiconify (or ``un-minimize'')
+it.
 
-  The @samp{-iconic} option tells Emacs to begin running as an icon,
-rather than showing a frame right away.  In this situation, the icon
-is the only indication that Emacs has started; the text frame doesn't
-appear until you deiconify it.
+  By default, Emacs uses an icon containing the Emacs logo.  On
+desktop environments such as Gnome, this icon is also displayed on the
+``taskbar''.  The @samp{-nbi} or @samp{--no-bitmap-icon} option tells
+Emacs to let the window manager choose what sort of icon to
+use---usually just a small rectangle containing the frame's title.
 
 @node Misc X
 @appendixsec Other Display Options
 
 @table @samp
-@item -hb
-@opindex -hb
-@itemx --horizontal-scroll-bars
-@opindex --horizontal-scroll-bars
-@c @cindex horizontal scroll bars, command-line argument
-Enable horizontal scroll bars.  Since horizontal scroll bars
-are not yet implemented, this actually does nothing.
+@c @item -hb
+@c @opindex -hb
+@c @itemx --horizontal-scroll-bars
+@c @opindex --horizontal-scroll-bars
+@c @c @cindex horizontal scroll bars, command-line argument
+@c Enable horizontal scroll bars.  Since horizontal scroll bars
+@c are not yet implemented, this actually does nothing.
 
 @item -vb
 @opindex -vb

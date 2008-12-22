@@ -74,3 +74,41 @@ documentation or comments, please see if it is possible to make the
 text shorter and clearer using the active voice.  Usually that does
 make an improvement.  The explicit subject required by the active voice
 often provides important information which makes the text clearer, too.
+
+
+** Antinews nodes
+
+*** Why Antinews is useful
+
+http://lists.gnu.org/archive/html/emacs-devel/2008-11/msg00893.html
+
+The usefulness of Antinews is to help people who buy the printed
+manual and are still using the previous Emacs version.  That's why we
+focus on the (eliminated) behavior of the old version rather than on
+the new features.
+
+Of course, we try to make it amusing as well.
+
+*** Don't mention in Antinews too many features absent in old versions
+
+http://lists.gnu.org/archive/html/emacs-devel/2008-11/msg01054.html
+
+Since the purpose of Antinews is to help people use the previous Emacs
+version, there is usually no need to mention features that are simply
+absent in that version.  That situation will be clear enough to users
+without help from the manual.
+
+For instance, this
+
+    @item
+    Emacs can no longer be started as a daemon.  We decided that having an
+    Emacs sitting silently in the background with no visual manifestation
+    anywhere in sight is too confusing.
+
+may not need mentioning, because --daemon will give an error message
+saying it's not implemented, and other cases aren't affected.
+
+The kind of change for which the user really needs help from Antinews
+is where a feature works _differently_ in the previous version.
+In those cases, the user might have trouble figuring out how to use
+the old version without some sort of help.

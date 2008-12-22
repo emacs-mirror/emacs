@@ -1370,7 +1370,8 @@ of the inserted start-tag or nil if none was inserted."
   "Indent current line as XML."
   (let ((indent (nxml-compute-indent))
 	(from-end (- (point-max) (point))))
-    (when indent
+    (when (and indent
+	       (/= indent (current-indentation)))
       (beginning-of-line)
       (let ((bol (point)))
 	(skip-chars-forward " \t")

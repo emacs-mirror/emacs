@@ -26,8 +26,8 @@
 2001-12-10  Mario Lang  <mlang@delysid.org>
 
 	* erc.el: * erc-message-english: New QUIT and s004 entries.
-	* erc-save-buffer-on-part: New variable.
-	* erc-kill-buffer-on-part: New variable.
+	* (erc-save-buffer-on-part): New variable.
+	* (erc-kill-buffer-on-part): New variable.
 	* (erc-server-PART): Use above variables.
 	* (erc-join-channel): Use DEF argument instead of initial input for completing-read.
 
@@ -121,7 +121,7 @@
 	* Fixage related to erc-track-modified-channels-minor-mode rewrite
 
 	* erc.el:
-	* erc-track-modified-channels-minor-mode: Use buffer objects instead of erc-default-target return value for internal state keeping.
+	* (erc-track-modified-channels-minor-mode): Use buffer objects instead of erc-default-target return value for internal state keeping.
 
 	* erc.el: * Made reconnect behave nicer (erc-process-sentinel)
 	* Rewrote erc-modified-channels-tracking completely.
@@ -189,7 +189,7 @@
 	Doc fix.
 	* (erc-generate-log-file-name-old): Renamed to -long
 	Doc fix.
-	* erc-generate-log-file-name-function: Set default to ...-long
+	* (erc-generate-log-file-name-function): Set default to ...-long
 	Doc fixes
 
 	* erc-speedbar.el: *** empty log message ***

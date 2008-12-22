@@ -46,9 +46,6 @@
   :type 'boolean
   :group 'pmail-summary)
 
-(defconst pmail-summary-header "X-BABYL-V6-SUMMARY"
-  "The header that stores the Pmail summary line.")
-
 (defvar pmail-summary-font-lock-keywords
   '(("^.....D.*" . font-lock-string-face)			; Deleted.
     ("^.....-.*" . font-lock-type-face)				; Unread.
@@ -77,7 +74,9 @@
 (defun pmail-summary ()
   "Display a summary of all messages, one line per message."
   (interactive)
-  (pmail-new-summary "All" '(pmail-summary) nil))
+  (pmail-new-summary "All" '(pmail-summary) nil)
+  (unless (get-buffer-window pmail-buffer)
+    (pmail-summary-beginning-of-message)))
 
 ;;;###autoload
 (defun pmail-summary-by-labels (labels)
@@ -193,32 +192,35 @@ For each message, FUNC is applied to the message number and ARGS...
 and if the result is non-nil, that message is included.
 nil for FUNCTION means all messages."
   (message "Computing summary lines...")
+  (unless pmail-buffer
+    (error "No PMAIL buffer found"))
   (let (mesg was-in-summary)
+    (if (eq major-mode 'pmail-summary-mode)
+	(setq was-in-summary t))
     (with-current-buffer pmail-buffer
-      (if (eq major-mode 'pmail-summary-mode)
-	  (setq was-in-summary t))
       (setq mesg pmail-current-message
 	    pmail-summary-buffer (pmail-new-summary-1 desc redo func args)))
     ;; Now display the summary buffer and go to the right place in it.
-    (or was-in-summary
-	(progn
-	  (if (and (one-window-p)
-		   pop-up-windows (not pop-up-frames))
-	      ;; If there is just one window, put the summary on the top.
-	      (progn
-		(split-window (selected-window) pmail-summary-window-size)
-		(select-window (next-window (frame-first-window)))
-		(pop-to-buffer pmail-summary-buffer)
-		;; If pop-to-buffer did not use that window, delete that
-		;; window.  (This can happen if it uses another frame.)
-		(if (not (eq pmail-summary-buffer (window-buffer (frame-first-window))))
-		    (delete-other-windows)))
-	    (pop-to-buffer pmail-summary-buffer))
-	  (set-buffer pmail-buffer)
-	  ;; This is how pmail makes the summary buffer reappear.
-	  ;; We do this here to make the window the proper size.
-	  (pmail-select-summary nil)
-	  (set-buffer pmail-summary-buffer)))
+    (unless was-in-summary
+      (if (and (one-window-p)
+	       pop-up-windows
+	       (not pop-up-frames))
+	  ;; If there is just one window, put the summary on the top.
+	  (progn
+	    (split-window (selected-window) pmail-summary-window-size)
+	    (select-window (next-window (frame-first-window)))
+	    (pop-to-buffer pmail-summary-buffer)
+	    ;; If pop-to-buffer did not use that window, delete that
+	    ;; window.  (This can happen if it uses another frame.)
+	    (if (not (eq pmail-summary-buffer
+			 (window-buffer (frame-first-window))))
+		(delete-other-windows)))
+	(pop-to-buffer pmail-summary-buffer))
+      (set-buffer pmail-buffer)
+      ;; This is how pmail makes the summary buffer reappear.
+      ;; We do this here to make the window the proper size.
+      (pmail-select-summary nil)
+      (set-buffer pmail-summary-buffer))
     (pmail-summary-goto-msg mesg t t)
     (pmail-summary-construct-io-menu)
     (message "Computing summary lines...done")))
@@ -336,20 +338,15 @@ otherwise create it and store it in the message header.
 
 The current buffer contains the unrestricted message collection."
   (let ((beg (pmail-msgbeg msgnum))
-	(end (pmail-msgend msgnum))
-	result)
+	(end (pmail-msgend msgnum)))
     (goto-char beg)
     (if (search-forward "\n\n" end t)
 	(save-restriction
 	  (narrow-to-region beg (point))
 	  ;; Generate a status line from the message and put it in the
 	  ;; message.
-	  (setq result (mail-fetch-field pmail-summary-header))
-	  (unless result
-	    (setq result (pmail-create-summary msgnum))
-	    (pmail-add-header pmail-summary-header result)))
-      (pmail-error-bad-format msgnum))
-    result))
+	  (pmail-create-summary msgnum))
+      (pmail-error-bad-format msgnum))))
 
 (defun pmail-get-summary-labels ()
   "Return a coded string wrapped in curly braces denoting the status labels.
@@ -362,7 +359,10 @@ the message being processed."
 	char)
     ;; Strip off the read/unread and the deleted attribute which are
     ;; handled separately.
-    (setq status (concat (substring status 0 1) (substring status 2 6)))
+    (setq status
+	  (if status
+	      (concat (substring status 0 1) (substring status 2 6))
+	    ""))
     (while (< index (length status))
       (unless (string= "-" (setq char (substring status index (1+ index))))
 	(setq result (concat result char)))
@@ -912,7 +912,7 @@ Search, the `unseen' attribute is restored.")
   (define-key pmail-summary-mode-map "n"      'pmail-summary-next-msg)
   (define-key pmail-summary-mode-map "\en"    'pmail-summary-next-all)
   (define-key pmail-summary-mode-map "\e\C-n" 'pmail-summary-next-labeled-message)
-  (define-key pmail-summary-mode-map "o"      'pmail-summary-output-to-pmail-file)
+  (define-key pmail-summary-mode-map "o"      'pmail-summary-output-to-babyl-file)
   (define-key pmail-summary-mode-map "\C-o"   'pmail-summary-output)
   (define-key pmail-summary-mode-map "p"      'pmail-summary-previous-msg)
   (define-key pmail-summary-mode-map "\ep"    'pmail-summary-previous-all)
@@ -979,7 +979,7 @@ Search, the `unseen' attribute is restored.")
   '("Output (inbox)..." . pmail-summary-output))
 
 (define-key pmail-summary-mode-map [menu-bar classify output]
-  '("Output (Pmail)..." . pmail-summary-output-to-pmail-file))
+  '("Output (Pmail)..." . pmail-summary-output-to-babyl-file))
 
 (define-key pmail-summary-mode-map [menu-bar classify kill-label]
   '("Kill Label..." . pmail-summary-kill-label))
@@ -1136,7 +1136,7 @@ If SKIP-PMAIL, don't do anything to the Pmail buffer."
       (let ((selwin (selected-window)))
 	(unwind-protect
 	    (progn (pop-to-buffer buf)
-		   (pmail-show-message n))
+		   (pmail-show-message-maybe n))
 	  (select-window selwin)
 	  ;; The actions above can alter the current buffer.  Preserve it.
 	  (set-buffer obuf))))))
@@ -1561,7 +1561,7 @@ see the documentation of `pmail-resend'."
 
 ;; Summary output commands.
 
-(defun pmail-summary-output-to-pmail-file (&optional file-name n)
+(defun pmail-summary-output-to-babyl-file (&optional file-name n)
   "Append the current message to an Pmail file named FILE-NAME.
 If the file does not exist, ask if it should be created.
 If file is being visited, the message is appended to the Emacs
@@ -1584,11 +1584,14 @@ starting with the current one.  Deleted messages are skipped and don't count."
       (setq i (1+ i))
       (with-current-buffer pmail-buffer
 	(let ((pmail-delete-after-output nil))
-	  (pmail-output-to-pmail-file file-name 1)))
+	  (pmail-output-to-babyl-file file-name 1)))
       (if pmail-delete-after-output
 	  (pmail-summary-delete-forward nil)
 	(if (< i n)
 	    (pmail-summary-next-msg 1))))))
+
+(defalias 'pmail-summary-output-to-pmail-file
+  'pmail-summary-output-to-babyl-file)
 
 (defun pmail-summary-output (&optional file-name n)
   "Append this message to Unix mail file named FILE-NAME.
@@ -1618,7 +1621,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 
 (defun pmail-summary-output-menu ()
   "Output current message to another Pmail file, chosen with a menu.
-Also set the default for subsequent \\[pmail-output-to-pmail-file] commands.
+Also set the default for subsequent \\[pmail-output-to-babyl-file] commands.
 The variables `pmail-secondary-file-directory' and
 `pmail-secondary-file-regexp' control which files are offered in the menu."
   (interactive)
@@ -1642,7 +1645,7 @@ The variables `pmail-secondary-file-directory' and
 	    (cons "Output Pmail File"
 		  (pmail-list-to-menu "Output Pmail File"
 				      files
-				      'pmail-summary-output-to-pmail-file))))
+				      'pmail-summary-output-to-babyl-file))))
       (define-key pmail-summary-mode-map [menu-bar classify input-menu]
 	'("Input Pmail File" . pmail-disable-menu))
       (define-key pmail-summary-mode-map [menu-bar classify output-menu]

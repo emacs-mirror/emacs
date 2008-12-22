@@ -198,7 +198,7 @@ For a larger number of items, the minibuffer is used."
   :type 'integer)
 
 (defcustom widget-menu-minibuffer-flag nil
-  "*Control how to ask for a choice from the keyboard.
+  "Control how to ask for a choice from the keyboard.
 Non-nil means use the minibuffer;
 nil means read a single character."
   :group 'widgets
@@ -662,11 +662,7 @@ button is pressed or inactive, respectively.  These are currently ignored."
   (if (and (display-graphic-p)
 	   (setq image (widget-image-find image)))
       (progn (widget-put widget :suppress-face t)
-	     (insert-image image
-			   (propertize
-                            ;; Use a `list' so it's unique and won't get
-                            ;; accidentally merged with neighbouring images.
-			    tag 'mouse-face (list widget-button-pressed-face))))
+	     (insert-image image tag))
     (insert tag)))
 
 (defun widget-move-and-invoke (event)
@@ -860,7 +856,9 @@ button end points."
 
 ;;; Keymap and Commands.
 
-;;;###autoload
+;; This alias exists only so that one can choose in doc-strings (e.g.
+;; Custom-mode) which key-binding of widget-keymap one wants to refer to.
+;; http://lists.gnu.org/archive/html/emacs-devel/2008-11/msg00480.html
 (defalias 'advertised-widget-backward 'widget-backward)
 
 ;;;###autoload
@@ -3047,7 +3045,7 @@ widget.  If that isn't a list, it's evalled and expected to yield a list."
 	   (message "Only match"))
 	  ((null completion)
 	   (error "No match"))
-	  ((not (eq t (compare-strings prefix nil nil completion nil nil 
+	  ((not (eq t (compare-strings prefix nil nil completion nil nil
 				       completion-ignore-case)))
 	   (when completion-ignore-case
 	     ;; Replace field with completion in case its case is different.

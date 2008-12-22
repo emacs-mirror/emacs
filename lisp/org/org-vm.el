@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.10c
+;; Version: 6.16
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -33,7 +33,7 @@
 (require 'org)
 
 ;; Declare external functions and variables
-(declare-function vm-beginning-of-message "ext:vm-page" ())
+(declare-function vm-preview-current-message "ext:vm-page" ())
 (declare-function vm-follow-summary-cursor "ext:vm-motion" ())
 (declare-function vm-get-header-contents "ext:vm-summary"
 		  (message header-name-regexp &optional clump-sep))
@@ -111,6 +111,7 @@
     (funcall (cdr (assq 'vm org-link-frame-setup)) folder readonly)
     (sit-for 0.1)
     (when article
+      (require 'vm-search)
       (vm-select-folder-buffer)
       (widen)
       (let ((case-fold-search t))
@@ -120,7 +121,7 @@
 	    (error "Could not find the specified message in this folder"))
 	(vm-isearch-update)
 	(vm-isearch-narrow)
-	(vm-beginning-of-message)
+	(vm-preview-current-message)
 	(vm-summarize)))))
 
 (provide 'org-vm)

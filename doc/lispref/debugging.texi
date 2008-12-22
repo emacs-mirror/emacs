@@ -89,7 +89,8 @@ This variable determines whether the debugger is called when an error is
 signaled and not handled.  If @code{debug-on-error} is @code{t}, all
 kinds of errors call the debugger (except those listed in
 @code{debug-ignored-errors}).  If it is @code{nil}, none call the
-debugger.
+debugger.  (Note that @code{eval-expression-debug-on-error} affects the
+setting of this variable in some cases; see below.)
 
 The value can also be a list of error conditions that should call the
 debugger.  For example, if you set it to the list

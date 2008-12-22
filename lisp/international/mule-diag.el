@@ -38,12 +38,7 @@
 
 (defun print-list (&rest args)
   "Print all arguments with single space separator in one line."
-  (while (cdr args)
-    (when (car args)
-      (princ (car args))
-      (princ " "))
-    (setq args (cdr args)))
-  (princ (car args))
+  (princ (mapconcat #'identity args " "))
   (princ "\n"))
 
 ;;; CHARSET
@@ -68,7 +63,7 @@ column contains the number of characters in a block of this character
 set.  The FINAL-CHAR column contains an ISO-2022 <final-char> to use
 for designating this character set in ISO-2022-based coding systems.
 
-With prefix arg, the output format gets more cryptic,
+With prefix ARG, the output format gets more cryptic,
 but still shows the full information."
   (interactive "P")
   (help-setup-xref (list #'list-character-sets arg) (interactive-p))
@@ -180,25 +175,22 @@ SORT-KEY should be `name' or `iso-spec' (default `name')."
 ## The following attributes are listed in this order
 ## separated by a colon `:' in one line.
 ##	CHARSET-SYMBOL-NAME,
-##	DIMENSION (1 or 2)
-##	CHARS (94 or 96)
+##	DIMENSION (1-4)
+##	CHARS (number of characters in first dimension of charset)
 ##	ISO-FINAL-CHAR (character code of ISO-2022's final character)
 ##		-1 means that no final character is assigned.
 ##	DESCRIPTION (describing string of the charset)
 ")
-  (let ((l charset-list)
-	charset)
-    (while l
-      (setq charset (car l) l (cdr l))
-      (princ (format "%s:%d:%d:%d:%s\n"
-		     charset
-		     (charset-dimension charset)
-		     (charset-chars charset)
-;;;		     (char-width (make-char charset))
-;;; 		     (charset-direction charset)
-		     (charset-iso-final-char charset)
-;;;		     (charset-iso-graphic-plane charset)
-		     (charset-description charset))))))
+  (dolist (charset charset-list)
+    (princ (format "%s:%d:%d:%d:%s\n"
+		   charset
+		   (charset-dimension charset)
+		   (charset-chars charset)
+;;;		   (char-width (make-char charset))
+;;; 		   (charset-direction charset)
+		   (charset-iso-final-char charset)
+;;;		   (charset-iso-graphic-plane charset)
+		   (charset-description charset)))))
 
 (defvar non-iso-charset-alist nil
   "Obsolete.")
@@ -223,8 +215,8 @@ It must be an Emacs character set listed in the variable `charset-list'.
 Optional arguments are DEFAULT-VALUE and INITIAL-INPUT.
 DEFAULT-VALUE, if non-nil, is the default value.
 INITIAL-INPUT, if non-nil, is a string inserted in the minibuffer initially.
-See the documentation of the function `completing-read' for the
-detailed meanings of these arguments."
+See the documentation of the function `completing-read' for the detailed
+meanings of these arguments."
   (let* ((table (mapcar (lambda (x) (list (symbol-name x))) charset-list))
 	 (charset (completing-read prompt table
 				   nil t initial-input 'charset-history
@@ -695,11 +687,9 @@ Priority order for recognizing coding systems when reading files:\n")
     (if (not (eq (car aliases) coding-system))
 	(princ (format "%s (alias of %s)\n" coding-system (car aliases)))
       (princ coding-system)
-      (setq aliases (cdr aliases))
-      (while aliases
+      (dolist (alias (cdr aliases))
 	(princ ",")
-	(princ (car aliases))
-	(setq aliases (cdr aliases)))
+	(princ alias))
       (princ (format ":%s:%c:%d:"
 		     type
 		     (coding-system-mnemonic coding-system)
@@ -756,7 +746,7 @@ Priority order for recognizing coding systems when reading files:\n")
   "Display a list of all coding systems.
 This shows the mnemonic letter, name, and description of each coding system.
 
-With prefix arg, the output format gets more cryptic,
+With prefix ARG, the output format gets more cryptic,
 but still contains full information about each coding system."
   (interactive "P")
   (with-output-to-temp-buffer "*Help*"
@@ -1002,19 +992,17 @@ see the function `describe-fontset' for the format of the list."
 
 (defun list-input-methods-1 ()
   (if (not input-method-alist)
-      (progn
-	(princ "
+      (princ "
 No input method is available, perhaps because you have not
-installed LEIM (Libraries of Emacs Input Methods)."))
+installed LEIM (Libraries of Emacs Input Methods).")
     (princ "LANGUAGE\n  NAME (`TITLE' in mode line)\n")
     (princ "    SHORT-DESCRIPTION\n------------------------------\n")
     (setq input-method-alist
 	  (sort input-method-alist
 		(lambda (x y) (string< (nth 1 x) (nth 1 y)))))
-    (let ((l input-method-alist)
-	  language elt)
-      (while l
-	(setq elt (car l) l (cdr l))
+
+    (let (language)
+      (dolist (elt input-method-alist)
 	(when (not (equal language (nth 1 elt)))
 	  (setq language (nth 1 elt))
 	  (princ language)
@@ -1025,9 +1013,7 @@ installed LEIM (Libraries of Emacs Input Methods)."))
 			 (if (and (consp title) (stringp (car title)))
 			     (car title)
 			   title))
-		       (let ((description (nth 4 elt)))
-			 (string-match ".*" description)
-			 (match-string 0 description))))))))
+		       (nth 4 elt)))))))
 
 ;;; DIAGNOSIS
 
@@ -1071,13 +1057,12 @@ system which uses fontsets)."
 
       (insert-section 2 "Display")
       (if window-system
-	  (insert "Window-system: "
-		  (symbol-name window-system)
-		  (format "%s" window-system-version))
+	  (insert (format "Window-system: %s, version %s"
+			  window-system window-system-version))
 	(insert "Terminal: " (getenv "TERM")))
       (insert "\n\n")
 
-      (if (eq window-system 'x)
+      (if window-system
 	  (let ((font (cdr (assq 'font (frame-parameters)))))
 	    (insert "The selected frame is using the "
 		    (if (query-fontset font) "fontset" "font")
@@ -1106,197 +1091,9 @@ system which uses fontsets)."
 	(insert-section 6 "Fontsets")
 	(insert "Fontset-Name\t\t\t\t\t\t  WDxHT Style\n")
 	(insert "------------\t\t\t\t\t\t  ----- -----\n")
-	(let ((fontsets (fontset-list)))
-	  (while fontsets
-	    (print-fontset (car fontsets) t)
-	    (setq fontsets (cdr fontsets)))))
+	(dolist (fontset (fontset-list))
+	  (print-fontset fontset t)))
       (print-help-return-message))))
-
-;;;###autoload
-(defcustom unicodedata-file nil
-  "Location of UnicodeData file.
-This is the UnicodeData.txt file from the Unicode consortium, used for
-diagnostics.  If it is non-nil `describe-char-after' will print data
-looked up from it."
-  :group 'mule
-  :type '(choice (const :tag "None" nil)
-		 file))
-
-;; We could convert the unidata file into a Lispy form once-for-all
-;; and distribute it for loading on demand.  It might be made more
-;; space-efficient by splitting strings word-wise and replacing them
-;; with lists of symbols interned in a private obarray, e.g.
-;; "LATIN SMALL LETTER A" => '(LATIN SMALL LETTER A).
-
-;;;###autoload
-(defun unicode-data (char)
-  "Return a list of Unicode data for unicode CHAR.
-Each element is a list of a property description and the property value.
-The list is null if CHAR isn't found in `unicodedata-file'."
-  (when unicodedata-file
-    (unless (file-exists-p unicodedata-file)
-      (error "`unicodedata-file' %s not found" unicodedata-file))
-    (save-excursion
-      (set-buffer (find-file-noselect unicodedata-file t t))
-      (goto-char (point-min))
-      (let ((hex (format "%04X" char))
-	    found first last)
-	(if (re-search-forward (concat "^" hex) nil t)
-	    (setq found t)
-	  ;; It's not listed explicitly.  Look for ranges, e.g. CJK
-	  ;; ideographs, and check whether it's in one of them.
-	  (while (and (re-search-forward "^\\([^;]+\\);[^;]+First>;" nil t)
-		      (>= char (setq first
-				     (string-to-number (match-string 1) 16)))
-		      (progn
-			(forward-line 1)
-			(looking-at "^\\([^;]+\\);[^;]+Last>;")
-			(> char
-			   (setq last
-				 (string-to-number (match-string 1) 16))))))
-	  (if (and (>= char first)
-		   (<= char last))
-	      (setq found t)))
-	(if found
-	    (let ((fields (mapcar (lambda (elt)
-				    (if (> (length elt) 0)
-					elt))
-				  (cdr (split-string
-					(buffer-substring
-					 (line-beginning-position)
-					 (line-end-position))
-					";")))))
-	      ;; The length depends on whether the last field was empty.
-	      (unless (or (= 13 (length fields))
-			  (= 14 (length fields)))
-		(error "Invalid contents in %s" unicodedata-file))
-	      ;; The field names and values lists are slightly
-	      ;; modified from Mule-UCS unidata.el.
-	      (list
-	       (list "Name" (let ((name (nth 0 fields)))
-			      ;; Check for <..., First>, <..., Last>
-			      (if (string-match "\\`\\(<[^,]+\\)," name)
-				  (concat (match-string 1 name) ">")
-				name)))
-	       (list "Category"
-		     (cdr (assoc
-			   (nth 1 fields)
-			   '(("Lu" . "uppercase letter")
-			     ("Ll" . "lowercase letter")
-			     ("Lt" . "titlecase letter")
-			     ("Mn" . "non-spacing mark")
-			     ("Mc" . "spacing-combining mark")
-			     ("Me" . "enclosing mark")
-			     ("Nd" . "decimal digit")
-			     ("Nl" . "letter number")
-			     ("No" . "other number")
-			     ("Zs" . "space separator")
-			     ("Zl" . "line separator")
-			     ("Zp" . "paragraph separator")
-			     ("Cc" . "other control")
-			     ("Cf" . "other format")
-			     ("Cs" . "surrogate")
-			     ("Co" . "private use")
-			     ("Cn" . "not assigned")
-			     ("Lm" . "modifier letter")
-			     ("Lo" . "other letter")
-			     ("Pc" . "connector punctuation")
-			     ("Pd" . "dash punctuation")
-			     ("Ps" . "open punctuation")
-			     ("Pe" . "close punctuation")
-			     ("Pi" . "initial-quotation punctuation")
-			     ("Pf" . "final-quotation punctuation")
-			     ("Po" . "other punctuation")
-			     ("Sm" . "math symbol")
-			     ("Sc" . "currency symbol")
-			     ("Sk" . "modifier symbol")
-			     ("So" . "other symbol")))))
-	       (list "Combining class"
-		     (cdr (assoc
-			   (string-to-number (nth 2 fields))
-			   '((0 . "Spacing")
-			     (1 . "Overlays and interior")
-			     (7 . "Nuktas")
-			     (8 . "Hiragana/Katakana voicing marks")
-			     (9 . "Viramas")
-			     (10 . "Start of fixed position classes")
-			     (199 . "End of fixed position classes")
-			     (200 . "Below left attached")
-			     (202 . "Below attached")
-			     (204 . "Below right attached")
-			     (208 . "Left attached (reordrant around \
-single base character)")
-			     (210 . "Right attached")
-			     (212 . "Above left attached")
-			     (214 . "Above attached")
-			     (216 . "Above right attached")
-			     (218 . "Below left")
-			     (220 . "Below")
-			     (222 . "Below right")
-			     (224 . "Left (reordrant around single base \
-character)")
-			     (226 . "Right")
-			     (228 . "Above left")
-			     (230 . "Above")
-			     (232 . "Above right")
-			     (233 . "Double below")
-			     (234 . "Double above")
-			     (240 . "Below (iota subscript)")))))
-	       (list "Bidi category"
-		     (cdr (assoc
-			   (nth 3 fields)
-			   '(("L" . "Left-to-Right")
-			     ("LRE" . "Left-to-Right Embedding")
-			     ("LRO" . "Left-to-Right Override")
-			     ("R" . "Right-to-Left")
-			     ("AL" . "Right-to-Left Arabic")
-			     ("RLE" . "Right-to-Left Embedding")
-			     ("RLO" . "Right-to-Left Override")
-			     ("PDF" . "Pop Directional Format")
-			     ("EN" . "European Number")
-			     ("ES" . "European Number Separator")
-			     ("ET" . "European Number Terminator")
-			     ("AN" . "Arabic Number")
-			     ("CS" . "Common Number Separator")
-			     ("NSM" . "Non-Spacing Mark")
-			     ("BN" . "Boundary Neutral")
-			     ("B" . "Paragraph Separator")
-			     ("S" . "Segment Separator")
-			     ("WS" . "Whitespace")
-			     ("ON" . "Other Neutrals")))))
-	       (list "Decomposition"
-		     (if (nth 4 fields)
-			 (let* ((parts (split-string (nth 4 fields)))
-				(info (car parts)))
-			   (if (string-match "\\`<\\(.+\\)>\\'" info)
-			       (setq info (match-string 1 info))
-			     (setq info nil))
-			   (if info (setq parts (cdr parts)))
-			   (setq parts (mapconcat
-					(lambda (arg)
-					  (string (string-to-number arg 16)))
-					parts " "))
-			   (concat info parts))))
-	       (list "Decimal digit value"
-		     (nth 5 fields))
-	       (list "Digit value"
-		     (nth 6 fields))
-	       (list "Numeric value"
-		     (nth 7 fields))
-	       (list "Mirrored"
-		     (if (equal "Y" (nth 8 fields))
-			 "yes"))
-	       (list "Old name" (nth 9 fields))
-	       (list "ISO 10646 comment" (nth 10 fields))
-	       (list "Uppercase" (and (nth 11 fields)
-				      (string (string-to-number
-					       (nth 11 fields) 16))))
-	       (list "Lowercase" (and (nth 12 fields)
-				      (string (string-to-number
-					       (nth 12 fields) 16))))
-	       (list "Titlecase" (and (nth 13 fields)
-				      (string (string-to-number
-					       (nth 13 fields) 16)))))))))))
 
 ;;;###autoload
 (defun font-show-log (&optional limit)

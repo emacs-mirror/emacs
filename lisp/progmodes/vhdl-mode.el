@@ -933,7 +933,7 @@ if the header needs to be version controlled.
 The following keywords for template generation are supported:
   <filename>    : replaced by the name of the buffer
   <author>      : replaced by the user name and email address
-                  \(`user-full-name',`mail-host-address', `user-mail-address')
+                  \(`user-full-name', `mail-host-address', `user-mail-address')
   <login>       : replaced by user login name (`user-login-name')
   <company>     : replaced by contents of option `vhdl-company-name'
   <date>        : replaced by the current date

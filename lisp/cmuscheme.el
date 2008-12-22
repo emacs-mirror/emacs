@@ -104,7 +104,7 @@
 ;;;============================================================================
 
 (defcustom inferior-scheme-mode-hook nil
-  "*Hook for customizing inferior-scheme mode."
+  "Hook for customizing inferior-scheme mode."
   :type 'hook
   :group 'cmuscheme)
 
@@ -207,7 +207,7 @@ to continue it."
   (setq comint-get-old-input (function scheme-get-old-input)))
 
 (defcustom inferior-scheme-filter-regexp "\\`\\s *\\S ?\\S ?\\s *\\'"
-  "*Input matching this regexp are not saved on the history list.
+  "Input matching this regexp are not saved on the history list.
 Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters."
   :type 'regexp
   :group 'cmuscheme)
@@ -295,7 +295,7 @@ order.  Return nil if no start file found."
   (scheme-send-region (save-excursion (backward-sexp) (point)) (point)))
 
 (defcustom scheme-compile-exp-command "(compile '%s)"
-  "*Template for issuing commands to compile arbitrary Scheme expressions."
+  "Template for issuing commands to compile arbitrary Scheme expressions."
   :type 'string
   :group 'cmuscheme)
 
@@ -318,7 +318,7 @@ order.  Return nil if no start file found."
      (scheme-compile-region (point) end))))
 
 (defcustom scheme-trace-command "(trace %s)"
-  "*Template for issuing commands to trace a Scheme procedure.
+  "Template for issuing commands to trace a Scheme procedure.
 Some Scheme implementations might require more elaborate commands here.
 For PLT-Scheme, e.g., one should use
 
@@ -329,7 +329,7 @@ For Scheme 48 and Scsh use \",trace %s\"."
   :group 'cmuscheme)
 
 (defcustom scheme-untrace-command "(untrace %s)"
-  "*Template for switching off tracing of a Scheme procedure.
+  "Template for switching off tracing of a Scheme procedure.
 Scheme 48 and Scsh users should set this variable to \",untrace %s\"."
 
   :type 'string
@@ -354,7 +354,7 @@ With a prefix argument switch off tracing of procedure PROC."
   (comint-send-string (scheme-proc) "\n"))
 
 (defcustom scheme-macro-expand-command "(expand %s)"
-  "*Template for macro-expanding a Scheme form.
+  "Template for macro-expanding a Scheme form.
 For Scheme 48 and Scsh use \",expand %s\"."
   :type 'string
   :group 'cmuscheme)
@@ -421,7 +421,7 @@ Then switch to the process buffer."
   (switch-to-scheme t))
 
 (defcustom scheme-source-modes '(scheme-mode)
-  "*Used to determine if a buffer contains Scheme source code.
+  "Used to determine if a buffer contains Scheme source code.
 If it's loaded into a buffer that is in one of these major modes, it's
 considered a scheme source file by `scheme-load-file' and `scheme-compile-file'.
 Used by these commands to determine defaults."

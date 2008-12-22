@@ -117,13 +117,21 @@
 ;;; Customization options
 
 (defcustom vc-hg-global-switches nil
-  "*Global switches to pass to any Hg command."
+  "Global switches to pass to any Hg command."
   :type '(choice (const :tag "None" nil)
          (string :tag "Argument String")
-         (repeat :tag "Argument List"
-             :value ("")
-             string))
+         (repeat :tag "Argument List" :value ("") string))
   :version "22.2"
+  :group 'vc)
+
+(defcustom vc-hg-diff-switches t ; Hg doesn't support common args like -u
+  "String or list of strings specifying switches for Hg diff under VC.
+If nil, use the value of `vc-diff-switches'.  If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List" :value ("") string))
+  :version "23.1"
   :group 'vc)
 
 
@@ -262,6 +270,7 @@
 		       (expand-file-name default-directory))
 	   "diff"
 	   (append
+	    (vc-switches 'hg 'diff)
 	    (when oldvers
 	      (if newvers
 		  (list "-r" oldvers "-r" newvers)

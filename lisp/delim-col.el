@@ -129,37 +129,37 @@
   :group 'internal)
 
 (defcustom delimit-columns-str-before ""
-  "*Specify a string to be inserted before all columns."
+  "Specify a string to be inserted before all columns."
   :type '(string :tag "Before All Columns")
   :group 'columns)
 
 (defcustom delimit-columns-str-separator ", "
-  "*Specify a string to be inserted between each column."
+  "Specify a string to be inserted between each column."
   :type '(string :tag "Between Each Column")
   :group 'columns)
 
 (defcustom delimit-columns-str-after ""
-  "*Specify a string to be inserted after all columns."
+  "Specify a string to be inserted after all columns."
   :type '(string :tag "After All Columns")
   :group 'columns)
 
 (defcustom delimit-columns-before ""
-  "*Specify a string to be inserted before each column."
+  "Specify a string to be inserted before each column."
   :type '(string :tag "Before Each Column")
   :group 'columns)
 
 (defcustom delimit-columns-after ""
-  "*Specify a string to be inserted after each column."
+  "Specify a string to be inserted after each column."
   :type '(string :tag "After Each Column")
   :group 'columns)
 
 (defcustom delimit-columns-separator "\t"
-  "*Specify a regexp which separates each column."
+  "Specify a regexp which separates each column."
   :type '(regexp :tag "Column Separator")
   :group 'columns)
 
 (defcustom delimit-columns-format t
-  "*Specify how to format columns.
+  "Specify how to format columns.
 
 For examples below, consider:
 
@@ -200,14 +200,14 @@ Any other value is treated as t."
   :group 'columns)
 
 (defcustom delimit-columns-extra t
-  "*Non-nil means that lines will have the same number of columns.
+  "Non-nil means that lines will have the same number of columns.
 
 This has effect only when there are lines with different number of columns."
   :type '(boolean :tag "Lines With Same Number Of Column")
   :group 'columns)
 
 (defcustom delimit-columns-start 0
-  "*Specify column number to start prettifing.
+  "Specify column number to start prettifing.
 
 See also `delimit-columns-end' for documentation.
 
@@ -222,7 +222,7 @@ column (column 0) is located at left corner."
   :group 'columns)
 
 (defcustom delimit-columns-end 1000000
-  "*Specify column number to end prettifing.
+  "Specify column number to end prettifing.
 
 See also `delimit-columns-start' for documentation.
 

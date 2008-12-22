@@ -35,8 +35,14 @@
 ;;; Customization options
 ;;;
 
+;; FIXME there is also svnadmin.
+(defcustom vc-svn-program "svn"
+  "Name of the SVN executable."
+  :type 'string
+  :group 'vc)
+
 (defcustom vc-svn-global-switches nil
-  "*Global switches to pass to any SVN command."
+  "Global switches to pass to any SVN command."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
@@ -46,22 +52,24 @@
   :group 'vc)
 
 (defcustom vc-svn-register-switches nil
-  "*Extra switches for registering a file into SVN.
+  "Switches for registering a file into SVN.
 A string or list of strings passed to the checkin program by
-\\[vc-register]."
-  :type '(choice (const :tag "None" nil)
+\\[vc-register].  If nil, use the value of `vc-register-switches'.
+If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List"
-			 :value ("")
-			 string))
+		 (repeat :tag "Argument List" :value ("") string))
   :version "22.1"
   :group 'vc)
 
 (defcustom vc-svn-diff-switches
   t			   ;`svn' doesn't support common args like -c or -b.
   "String or list of strings specifying extra switches for svn diff under VC.
-If nil, use the value of `vc-diff-switches'.
-If you want to force an empty list of arguments, use t."
+If nil, use the value of `vc-diff-switches' (or `diff-switches'),
+together with \"-x --diff-cmd=diff\" (since svn diff does not
+support the default \"-c\" value of `diff-switches').  If you
+want to force an empty list of arguments, use t."
   :type '(choice (const :tag "Unspecified" nil)
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
@@ -72,7 +80,7 @@ If you want to force an empty list of arguments, use t."
   :group 'vc)
 
 (defcustom vc-svn-header (or (cdr (assoc 'SVN vc-header-alist)) '("\$Id\$"))
-  "*Header keywords to be inserted by `vc-insert-headers'."
+  "Header keywords to be inserted by `vc-insert-headers'."
   :version "22.1"
   :type '(repeat string)
   :group 'vc)
@@ -245,15 +253,14 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 (defun vc-svn-create-repo ()
   "Create a new SVN repository."
   (vc-do-command "*vc*" 0 "svnadmin" '("create" "SVN"))
-  (vc-do-command "*vc*" 0 "svn" '(".")
+  (vc-do-command "*vc*" 0 vc-svn-program '(".")
 		 "checkout" (concat "file://" default-directory "SVN")))
 
 (defun vc-svn-register (files &optional rev comment)
   "Register FILES into the SVN version-control system.
 The COMMENT argument is ignored  This does an add but not a commit.
-
-`vc-register-switches' and `vc-svn-register-switches' are passed to
-the SVN command (in that order)."
+Passes either `vc-svn-register-switches' or `vc-register-switches'
+to the SVN command."
   (apply 'vc-svn-command nil 0 files "add" (vc-switches 'SVN 'register)))
 
 (defun vc-svn-responsible-p (file)
@@ -403,12 +410,12 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-svn-modify-change-comment (files rev comment)
   "Modify the change comments for a specified REV.
 You must have ssh access to the repository host, and the directory Emacs
-uses locally for temp files must also be writeable by you on that host.
+uses locally for temp files must also be writable by you on that host.
 This is only supported if the repository access method is either file://
 or svn+ssh://."
   (let (tempfile host remotefile directory fileurl-p)
     (with-temp-buffer
-      (vc-do-command (current-buffer) 0 "svn" nil "info")
+      (vc-do-command (current-buffer) 0 vc-svn-program nil "info")
       (goto-char (point-min))
       (unless (re-search-forward "Repository Root: \\(file://\\(/.*\\)\\)\\|\\(svn\\+ssh://\\([^/]+\\)\\(/.*\\)\\)" nil t)
 	(error "Repository information is unavailable"))
@@ -490,7 +497,8 @@ or svn+ssh://."
   (let* ((switches
 	    (if vc-svn-diff-switches
 		(vc-switches 'SVN 'diff)
-	      (list "-x" (mapconcat 'identity (vc-switches nil 'diff) " "))))
+	      (list "--diff-cmd=diff" "-x"
+		    (mapconcat 'identity (vc-switches nil 'diff) " "))))
 	   (async (and (not vc-disable-async-diff)
                        (vc-stay-local-p files)
 		       (or oldvers newvers)))) ; Svn diffs those locally.
@@ -547,11 +555,6 @@ NAME is assumed to be a URL."
 ;;;
 ;;; Internal functions
 ;;;
-
-(defcustom vc-svn-program "svn"
-  "Name of the SVN executable."
-  :type 'string
-  :group 'vc)
 
 (defun vc-svn-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-svn.el.

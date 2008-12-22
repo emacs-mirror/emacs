@@ -201,7 +201,7 @@ The default chooses the largest window in the current frame."
 (defvar mairix-widget-fields-list
   '(("from" "f" "From") ("to" "t" "To") ("cc" "c" "Cc")
     ("subject" "s" "Subject")  ("to" "tc" "To or Cc")
-    ("from" "a" "Address") (nil "Body" "b") (nil "n" "Attachment")
+    ("from" "a" "Address") (nil "b" "Body") (nil "n" "Attachment")
     ("Message-ID" "m" "Message ID") (nil "s" "Size") (nil "d" "Date"))
   "Fields that should be editable during interactive query customization.
 Header, corresponding mairix command and description for editable

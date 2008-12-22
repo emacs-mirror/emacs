@@ -1968,12 +1968,7 @@ print_object (obj, printcharfun, escapeflag)
 	    {
 	      QUIT;
 	      c = XBOOL_VECTOR (obj)->data[i];
-	      if (! ASCII_BYTE_P (c))
-		{
-		  sprintf (buf, "\\%03o", c);
-		  strout (buf, -1, -1, printcharfun, 0);
-		}
-	      else if (c == '\n' && print_escape_newlines)
+	      if (c == '\n' && print_escape_newlines)
 		{
 		  PRINTCHAR ('\\');
 		  PRINTCHAR ('n');

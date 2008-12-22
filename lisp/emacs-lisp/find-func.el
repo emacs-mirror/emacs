@@ -165,6 +165,17 @@ See the functions `find-function' and `find-variable'."
 If nil, do not try to find the source code of functions and variables
 defined in C.")
 
+(declare-function ad-get-advice-info "advice" (function))
+
+(defun find-function-advised-original (func)
+  "Return the original function symbol of an advised function FUNC.
+If FUNC is not the symbol of an advised function, just returns FUNC."
+  (or (and (symbolp func)
+	   (featurep 'advice)
+	   (let ((ofunc (cdr (assq 'origname (ad-get-advice-info func)))))
+	     (and (fboundp ofunc) ofunc)))
+      func))
+
 (defun find-function-C-source (fun-or-var file type)
   "Find the source location where FUN-OR-VAR is defined in FILE.
 TYPE should be nil to find a function, or `defvar' to find a variable."
@@ -176,7 +187,10 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
     (error "The C source file %s is not available"
 	   (file-name-nondirectory file)))
   (unless type
-    (setq fun-or-var (indirect-function fun-or-var)))
+    ;; Either or both an alias and its target might be advised.
+    (setq fun-or-var (find-function-advised-original
+		      (indirect-function
+		       (find-function-advised-original fun-or-var)))))
   (with-current-buffer (find-file-noselect file)
     (goto-char (point-min))
     (unless (re-search-forward
@@ -292,19 +306,21 @@ If the file where FUNCTION is defined is not known, then it is
 searched for in `find-function-source-path' if non-nil, otherwise
 in `load-path'."
   (if (not function)
-      (error "You didn't specify a function"))
-  (let ((def (symbol-function function))
+    (error "You didn't specify a function"))
+  (let ((def (symbol-function (find-function-advised-original function)))
 	aliases)
+    ;; FIXME for completeness, it might be nice to print something like:
+    ;; foo (which is advised), which is an alias for bar (which is advised).
     (while (symbolp def)
       (or (eq def function)
 	  (if aliases
 	      (setq aliases (concat aliases
 				    (format ", which is an alias for `%s'"
 					    (symbol-name def))))
-	    (setq aliases (format "`%s' an alias for `%s'"
+	    (setq aliases (format "`%s' is an alias for `%s'"
 				  function (symbol-name def)))))
-      (setq function (symbol-function function)
-	    def (symbol-function function)))
+      (setq function (symbol-function (find-function-advised-original function))
+	    def (symbol-function (find-function-advised-original function))))
     (if aliases
 	(message "%s" aliases))
     (let ((library

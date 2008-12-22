@@ -38,7 +38,7 @@
 ;; User Variables:
 
 (defcustom pcmpl-cvs-binary (or (executable-find "cvs") "cvs")
-  "*The full path of the 'cvs' binary."
+  "The full path of the 'cvs' binary."
   :type 'file
   :group 'pcmpl-cvs)
 

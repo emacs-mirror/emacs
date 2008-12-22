@@ -248,7 +248,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
     (define-key menu-map [rt]
       '(menu-item "Case sensitive" reb-toggle-case
 		  :button (:toggle . case-fold-search)
-		  :help "Toggle case sensitivity of searches for RE Builder target buffer."))
+		  :help "Toggle case sensitivity of searches for RE Builder target buffer"))
     (define-key menu-map [rb]
       '(menu-item "Change target buffer..." reb-change-target-buffer
 		  :help "Change the target buffer and display it in the target window"))
@@ -273,17 +273,10 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
     map)
   "Keymap used by the RE Builder.")
 
-(defun reb-mode ()
-  "Major mode for interactively building Regular Expressions.
-\\{reb-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'reb-mode
-        mode-name "RE Builder")
+(define-derived-mode reb-mode nil "RE Builder"
+  "Major mode for interactively building Regular Expressions."
   (set (make-local-variable 'blink-matching-paren) nil)
-  (use-local-map reb-mode-map)
-  (reb-mode-common)
-  (run-mode-hooks 'reb-mode-hook))
+  (reb-mode-common))
 
 (define-derived-mode reb-lisp-mode
   emacs-lisp-mode "RE Builder Lisp"
@@ -349,7 +342,8 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (goto-char (+ 2 (point-min)))
   (cond ((reb-lisp-syntax-p)
          (reb-lisp-mode))
-        (t (reb-mode))))
+        (t (reb-mode)))
+  (reb-do-update))
 
 (defun reb-mode-buffer-p ()
   "Return non-nil if the current buffer is a RE Builder buffer."
@@ -370,9 +364,11 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
     (when reb-target-buffer
       (reb-delete-overlays))
     (setq reb-target-buffer (current-buffer)
-          reb-target-window (selected-window)
-          reb-window-config (current-window-configuration))
-    (select-window (split-window (selected-window) (- (window-height) 4)))
+          reb-target-window (selected-window))
+    (select-window (or (get-buffer-window reb-buffer)
+		       (progn
+			 (setq reb-window-config (current-window-configuration))
+			 (split-window (selected-window) (- (window-height) 4)))))
     (switch-to-buffer (get-buffer-create reb-buffer))
     (reb-initialize-buffer)))
 
@@ -524,7 +520,6 @@ optional fourth argument FORCE is non-nil."
 	 (condition-case nil
 	     (progn
 	       (when (or (reb-update-regexp) force)
-		 (reb-assert-buffer-in-window)
 		 (reb-do-update))
 	       "")
 	   (error " *invalid*"))))

@@ -490,13 +490,16 @@ uniscribe_encode_char (font, c)
       if (SUCCEEDED (ScriptItemize (ch, len, 2, NULL, NULL, items, &nitems)))
 	{
 	  HRESULT result;
-          /* Some Indic characters result in more than 1 glyph.  */
-          WORD glyphs[1], clusters[1];
-          SCRIPT_VISATTR attrs[1];
+          /* Surrogates seem to need 2 here, even though only one glyph is
+	     returned.  Indic characters can also produce 2 or more glyphs for
+	     a single code point, but they need to use uniscribe_shape
+	     above for correct display.  */
+          WORD glyphs[2], clusters[2];
+          SCRIPT_VISATTR attrs[2];
           int nglyphs;
 
           result = ScriptShape (context, &(uniscribe_font->cache),
-                                ch, len, 1, &(items[0].a),
+                                ch, len, 2, &(items[0].a),
                                 glyphs, clusters, attrs, &nglyphs);
 
           if (result == E_PENDING)
@@ -513,7 +516,10 @@ uniscribe_encode_char (font, c)
 
           if (SUCCEEDED (result) && nglyphs == 1)
             {
-              code = glyphs[0];
+	      /* Some fonts return .notdef glyphs instead of failing.
+	         (Truetype spec reserves glyph code 0 for .notdef)  */
+	      if (glyphs[0])
+		code = glyphs[0];
             }
           else if (SUCCEEDED (result) || result == E_OUTOFMEMORY)
             {
@@ -523,11 +529,8 @@ uniscribe_encode_char (font, c)
                  later.  */
               result = ScriptGetCMap (context, &(uniscribe_font->cache),
                                       ch, len, 0, glyphs);
-              if (SUCCEEDED (result))
-                return glyphs[0];
-              else
-                return 0; /* notdef - enough in some cases to get the script
-                             engine working, but not others... */
+              if (SUCCEEDED (result) && glyphs[0])
+                code = glyphs[0];
             }
 	}
     }
@@ -598,8 +601,7 @@ add_opentype_font_name_to_list (logical_font, physical_font, font_type,
       && !(physical_font->ntmFontSig.fsUsb[0] & 0x3fffffff))
     return 1;
 
-  family = font_intern_prop (logical_font->elfLogFont.lfFaceName,
-			     strlen (logical_font->elfLogFont.lfFaceName), 1);
+  family = intern_font_name (logical_font->elfLogFont.lfFaceName);
   if (! memq_no_quit (family, *list))
     *list = Fcons (family, *list);
 

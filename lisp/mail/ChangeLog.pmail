@@ -1,3 +1,140 @@
+2008-12-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail-save): New function.
+
+2008-12-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail-get-new-mail): Call pmail-swap-buffers-maybe.
+	(pmail-get-new-mail-1): Adjust restriction after calling
+	pmail-insert-inbox-text.
+	(pmail-add-mbox-headers): Use save-restriction.
+	(pmail-expunge-and-save): Call pmail-swap-buffers-maybe before
+	saving.
+	(pmail-quit): Handling expunging manually, instead of calling
+	pmail-expunge-and-save.
+	(pmail-next-undeleted-message): If no other message can be shown,
+	show the current one.
+	(pmail-attr-array): Doc fix.
+	(pmail-add-header): Function deleted.
+	(pmail-add-mbox-headers): Insert header directly instead of
+	calling pmail-add-header.
+	(pmail-display-labels): Add leading space to attribute string.
+	(pmail-set-attribute): Call pmail-swap-buffers-maybe.  Insert
+	header directly instead of calling pmail-add-header.
+	(pmail): Ensure that pmail-mode-hook is run.
+
+2008-12-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* pmail.el (pmail-require-mime-maybe): Fix arguments of
+	`display-warning'.
+
+2008-12-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail): Call pmail-swap-buffers-maybe.
+	(pmail-search): Call pmail-swap-buffers-maybe.
+	(pmail-expunge): Save point if no expunging was done.
+
+2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmailout.el (pmail-output-to-babyl-file): Rewrite, assuming mbox
+	internal format.
+	(pmail-convert-to-babyl-format, pmail-nuke-pinhead-header): New
+	functions, moved from pmail.el.
+
+2008-12-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmailout.el (pmail-output): Rewrite to handle mbox format.
+	(pmail-output-to-babyl-file): Renamed from
+	pmail-output-to-pmail-file.
+
+	* pmail.el: All callers to pmail-output-to-pmail-file changed to
+	pmail-output-to-babyl-file.
+
+	* pmail.el: All callers to pmail-output-to-pmail-file changed to
+	pmail-output-to-babyl-file.
+
+2008-12-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmailout.el (pmail-output-to-pmail-file): Don't call
+	pmail-insert-pmail-file-header.
+
+	* pmail.el (pmail-insert-pmail-file-header): Function deleted.
+	(pmail-decode-babyl-format): Function deleted.
+	(pmail-perm-variables): Don't call pmail-parse-file-inboxes.
+	(pmail-parse-file-inboxes): Function deleted.
+	(pmail-get-new-mail-1): Function merged into pmail-get-new-mail.
+	(pmail-get-new-mail-2): Renamed to pmail-get-new-mail-1.
+	(pmail-get-new-mail-filter-spam): Call rmail-spam-filter, not
+	pmail-spam-filter.
+	(pmail-convert-to-babyl-format): Function deleted.
+	(pmail-nuke-pinhead-header): Function deleted.
+	(pmail-reply): Parsing headers in mbox format.  Call
+	rmail-dont-reply-to instead of pmail-dont-reply-to.
+
+2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail-only-expunge): Swap buffers at the beginning.
+	(pmail-expunge): Pass new optional arg to pmail-only-expunge.
+	(pmail-expunge-and-save): Don't reset view buffer.
+
+	* pmailsum.el (pmail-summary-header): Deleted.
+	(pmail-get-create-summary-line): Don't insert a summary line into
+	the file.
+
+2008-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail-convert-babyl-to-mbox): Reinitialize pmail-mode
+	variables after conversion.
+
+2008-12-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmailsort.el: Sync with pmailsort.el.
+	(pmail-sort-messages): Insert two newlines at the end of the
+	message if they do not exist.
+	(pmailhdr): Require pmailhdr.
+
+	* pmailmm.el: Require mail-parse.
+	(pmail-mime-show): Don't use removed function
+	pmail-header-hide-headers.
+	(pmail-mime): Use pmail-msgbeg and pmail-msgend instead of removed
+	pmail-desc-* functions.
+
+	* pmailkwd.el: Sync with rmailkwd.el.
+
+	* pmailout.el: Sync with rmailout.el.
+
+	* pmailedit.el: Sync with rmailedit.el.
+	(pmail-edit-current-message): Remove deleted function
+	pmail-msg-is-pruned.
+
+	* pmaildesc.el: File deleted.
+
+	* pmail.el (pmail-get-header): Call pmail-swap-buffers-maybe.
+	(pmail-retry-failure): Remove call to non-existent function
+	pmail-clear-headers.
+	(pmail-message-labels-p): New function.
+
+2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmailsort.el (pmail-sort-messages): Don't call removed function
+	pmail-header-show-headers.
+
+2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail-only-expunge): Pass correct arg to
+	pmail-show-message-maybe.
+
+	* pmailsum.el (pmail-get-summary-labels): If no attribute headers
+	are found, use the empty string.
+	(pmail-summary): Call pmail-summary-beginning-of-message
+	(pmail-new-summary): Check for pmail-summary-mode in the current
+	buffer, not in the pmail buffer.
+	(pmail-summary-goto-msg): Use pmail-show-message-maybe.
+
+2008-11-13  Paul Reilly  <pmr@pajato.com>
+
+	* pmail.el: Add support for save-buffer.
+
 2008-10-17  Paul Reilly  <pmr@pajato.com>
 
 	* pmail.el (pmail):

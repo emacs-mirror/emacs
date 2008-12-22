@@ -314,7 +314,7 @@ Lisp_Object Qcharset, Qiso_2022, Qutf_8, Qutf_16, Qshift_jis, Qbig5;
 Lisp_Object Qbig, Qlittle;
 Lisp_Object Qcoding_system_history;
 Lisp_Object Qvalid_codes;
-Lisp_Object QCcategory, QCmnemonic, QCdefalut_char;
+Lisp_Object QCcategory, QCmnemonic, QCdefault_char;
 Lisp_Object QCdecode_translation_table, QCencode_translation_table;
 Lisp_Object QCpost_read_conversion, QCpre_write_conversion;
 Lisp_Object QCascii_compatible_p;
@@ -1326,7 +1326,7 @@ decode_coding_utf_8 (coding)
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
   int *charbuf_end = coding->charbuf + coding->charbuf_size;
-  int consumed_chars = 0, consumed_chars_base;
+  int consumed_chars = 0, consumed_chars_base = 0;
   int multibytep = coding->src_multibyte;
   enum utf_bom_type bom = CODING_UTF_8_BOM (coding);
   Lisp_Object attr, charset_list;
@@ -1637,7 +1637,7 @@ decode_coding_utf_16 (coding)
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
   int *charbuf_end = coding->charbuf + coding->charbuf_size;
-  int consumed_chars = 0, consumed_chars_base;
+  int consumed_chars = 0, consumed_chars_base = 0;
   int multibytep = coding->src_multibyte;
   enum utf_bom_type bom = CODING_UTF_16_BOM (coding);
   enum utf_16_endian_type endian = CODING_UTF_16_ENDIAN (coding);
@@ -2449,8 +2449,10 @@ encode_coding_emacs_mule (coding)
 	  if (preferred_charset_id >= 0)
 	    {
 	      charset = CHARSET_FROM_ID (preferred_charset_id);
-	      if (! CHAR_CHARSET_P (c, charset))
-		charset = char_charset (c, charset_list, NULL);
+	      if (CHAR_CHARSET_P (c, charset))
+		code = ENCODE_CHAR (charset, c);
+	      else
+		charset = char_charset (c, charset_list, &code);
 	    }
 	  else
 	    charset = char_charset (c, charset_list, &code);
@@ -2758,6 +2760,7 @@ detect_coding_iso_2022 (coding, detect_info)
   int i;
   int rejected = 0;
   int found = 0;
+  int composition_count = -1;
 
   detect_info->checked |= CATEGORY_MASK_ISO;
 
@@ -2826,10 +2829,20 @@ detect_coding_iso_2022 (coding, detect_info)
 	      rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_8BIT;
 	      break;
 	    }
+	  else if (c == '1')
+	    {
+	      /* End of composition.  */
+	      if (composition_count < 0
+		  || composition_count > MAX_COMPOSITION_COMPONENTS)
+		/* Invalid */
+		break;
+	      composition_count = -1;
+	      found |= CATEGORY_MASK_ISO;
+	    }
 	  else if (c >= '0' && c <= '4')
 	    {
 	      /* ESC <Fp> for start/end composition.  */
-	      found |= CATEGORY_MASK_ISO;
+	      composition_count = 0;
 	      break;
 	    }
 	  else
@@ -2900,6 +2913,8 @@ detect_coding_iso_2022 (coding, detect_info)
 	    continue;
 	  if (c < 0x80)
 	    {
+	      if (composition_count >= 0)
+		composition_count++;
 	      single_shifting = 0;
 	      break;
 	    }
@@ -2924,9 +2939,17 @@ detect_coding_iso_2022 (coding, detect_info)
 		    }
 
 		  if (i & 1 && src < src_end)
-		    rejected |= CATEGORY_MASK_ISO_8_2;
+		    {
+		      rejected |= CATEGORY_MASK_ISO_8_2;
+		      if (composition_count >= 0)
+			composition_count += i;
+		    }
 		  else
-		    found |= CATEGORY_MASK_ISO_8_2;
+		    {
+		      found |= CATEGORY_MASK_ISO_8_2;
+		      if (composition_count >= 0)
+			composition_count += i / 2;
+		    }
 		}
 	      break;
 	    }
@@ -3043,6 +3066,8 @@ detect_coding_iso_2022 (coding, detect_info)
 	    break;							\
 	if (p == src_end - 1)						\
 	  {								\
+	    if (coding->mode & CODING_MODE_LAST_BLOCK)			\
+	      goto invalid_code;					\
 	    /* The current composition doesn't end in the current	\
 	       source.  */						\
 	    record_conversion_result					\
@@ -3190,10 +3215,15 @@ decode_coding_iso_2022 (coding)
 	      if (composition_state == COMPOSING_RULE
 		  || composition_state == COMPOSING_COMPONENT_RULE)
 		{
-		  DECODE_COMPOSITION_RULE (c1);
-		  components[component_idx++] = c1;
-		  composition_state--;
-		  continue;
+		  if (component_idx < MAX_COMPOSITION_COMPONENTS * 2 + 1)
+		    {
+		      DECODE_COMPOSITION_RULE (c1);
+		      components[component_idx++] = c1;
+		      composition_state--;
+		      continue;
+		    }
+		  /* Too long composition.  */
+		  MAYBE_FINISH_COMPOSITION ();
 		}
 	    }
 	  if (charset_id_0 < 0
@@ -3210,10 +3240,14 @@ decode_coding_iso_2022 (coding)
 	      if (composition_state == COMPOSING_RULE
 		  || composition_state == COMPOSING_COMPONENT_RULE)
 		{
-		  DECODE_COMPOSITION_RULE (c1);
-		  components[component_idx++] = c1;
-		  composition_state--;
-		  continue;
+		  if (component_idx < MAX_COMPOSITION_COMPONENTS * 2 + 1)
+		    {
+		      DECODE_COMPOSITION_RULE (c1);
+		      components[component_idx++] = c1;
+		      composition_state--;
+		      continue;
+		    }
+		  MAYBE_FINISH_COMPOSITION ();
 		}
 	    }
 	  if (charset_id_0 < 0)
@@ -3571,11 +3605,20 @@ decode_coding_iso_2022 (coding)
 	}
       else
 	{
-	  components[component_idx++] = c;
-	  if (method == COMPOSITION_WITH_RULE
-	      || (method == COMPOSITION_WITH_RULE_ALTCHARS
-		  && composition_state == COMPOSING_COMPONENT_CHAR))
-	    composition_state++;
+	  if (component_idx < MAX_COMPOSITION_COMPONENTS * 2 + 1)
+	    {
+	      components[component_idx++] = c;
+	      if (method == COMPOSITION_WITH_RULE
+		  || (method == COMPOSITION_WITH_RULE_ALTCHARS
+		      && composition_state == COMPOSING_COMPONENT_CHAR))
+		composition_state++;
+	    }
+	  else
+	    {
+	      MAYBE_FINISH_COMPOSITION ();
+	      *charbuf++ = c;
+	      char_offset++;
+	    }
 	}
       continue;
 
@@ -5119,7 +5162,7 @@ decode_coding_charset (coding)
       code = c;
 
       val = AREF (valids, c);
-      if (NILP (val))
+      if (! INTEGERP (val) && ! CONSP (val))
 	goto invalid_code;
       if (INTEGERP (val))
 	{
@@ -6289,7 +6332,7 @@ produce_chars (coding, translation_table, last_block)
 	  if (coding->src_multibyte)
 	    {
 	      int multibytep = 1;
-	      EMACS_INT consumed_chars;
+	      EMACS_INT consumed_chars = 0;
 
 	      while (1)
 		{
@@ -6611,6 +6654,8 @@ decode_coding (coding)
 	     that the number of data is less than the size of
 	     coding->charbuf.  */
 	  coding->charbuf_used = 0;
+	  coding->chars_at_source = 0;
+
 	  while (nbytes-- > 0)
 	    {
 	      int c = *src++;
@@ -6989,6 +7034,10 @@ make_conversion_work_buffer (multibyte)
     }
   current = current_buffer;
   set_buffer_internal (XBUFFER (workbuf));
+  /* We can't allow modification hooks to run in the work buffer.  For
+     instance, directory_files_internal assumes that file decoding
+     doesn't compile new regexps.  */
+  Fset (Fmake_local_variable (Qinhibit_modification_hooks), Qt);
   Ferase_buffer ();
   current_buffer->undo_list = Qt;
   current_buffer->enable_multibyte_characters = multibyte ? Qt : Qnil;
@@ -7649,7 +7698,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 {
   const unsigned char *src_end = src + src_bytes;
   Lisp_Object attrs, eol_type;
-  Lisp_Object val;
+  Lisp_Object val = Qnil;
   struct coding_system coding;
   int id;
   struct coding_detection_info detect_info;
@@ -7814,7 +7863,6 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 	{
 	  int mask = detect_info.rejected | detect_info.found;
 	  int found = 0;
-	  val = Qnil;
 
 	  for (i = coding_category_raw_text - 1; i >= 0; i--)
 	    {
@@ -7877,7 +7925,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 
   /* Then, detect eol-format if necessary.  */
   {
-    int normal_eol = -1, utf_16_be_eol = -1, utf_16_le_eol;
+    int normal_eol = -1, utf_16_be_eol = -1, utf_16_le_eol = -1;
     Lisp_Object tail;
 
     if (VECTORP (eol_type))
@@ -7943,7 +7991,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
       }
   }
 
-  return (highest ? XCAR (val) : val);
+  return (highest ? (CONSP (val) ? XCAR (val) : Qnil) : val);
 }
 
 
@@ -9575,7 +9623,7 @@ DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
 	CHECK_CHARACTER (val);
       CODING_ATTR_MNEMONIC (attrs) = val;
     }
-  else if (EQ (prop, QCdefalut_char))
+  else if (EQ (prop, QCdefault_char))
     {
       if (NILP (val))
 	val = make_number (' ');
@@ -9881,7 +9929,7 @@ syms_of_coding ()
 
   DEFSYM (QCcategory, ":category");
   DEFSYM (QCmnemonic, ":mnemonic");
-  DEFSYM (QCdefalut_char, ":default-char");
+  DEFSYM (QCdefault_char, ":default-char");
   DEFSYM (QCdecode_translation_table, ":decode-translation-table");
   DEFSYM (QCencode_translation_table, ":encode-translation-table");
   DEFSYM (QCpost_read_conversion, ":post-read-conversion");

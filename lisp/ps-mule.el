@@ -94,7 +94,7 @@
 
 ;;;###autoload
 (defcustom ps-multibyte-buffer nil
-  "*Specifies the multi-byte buffer handling.
+  "Specifies the multi-byte buffer handling.
 
 Valid values are:
 
@@ -188,7 +188,7 @@ See also the variable `ps-font-info-database'.")
 
 (defcustom ps-mule-font-info-database-default
   ps-mule-font-info-database-latin
-  "*The default setting to use when `ps-multibyte-buffer' is nil."
+  "The default setting to use when `ps-multibyte-buffer' is nil."
   :type '(symbol :tag "Multi-Byte Buffer Database Font Default")
   :group 'ps-print-font)
 

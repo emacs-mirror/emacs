@@ -682,7 +682,8 @@ With prefix argument or inside @code or @example, inserts a plain \"."
     (if (or arg
 	    (= (preceding-char) ?\\)
 	    (save-excursion
-	      (backward-char (length texinfo-open-quote))
+              ;; Might be near the start of a (narrowed) buffer.
+              (ignore-errors (backward-char (length texinfo-open-quote)))
 	      (when (or (looking-at texinfo-open-quote)
 			(looking-at texinfo-close-quote))
 		(delete-char (length texinfo-open-quote))
@@ -694,7 +695,8 @@ With prefix argument or inside @code or @example, inserts a plain \"."
 		    (setq in-env t)))))
 	(self-insert-command (prefix-numeric-value arg))
       (insert
-       (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\s))
+       (if (or (bobp)
+               (memq (char-syntax (preceding-char)) '(?\( ?> ?\s)))
 	   texinfo-open-quote
 	 texinfo-close-quote)))))
 

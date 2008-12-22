@@ -40,10 +40,6 @@
 ;; and higher.  For XEmacs 21, you need the package `fsf-compat' for
 ;; the `with-timeout' macro.)
 ;;
-;; This version might not work with pre-Emacs 21 VC unless VC is
-;; loaded before tramp.el.  Could you please test this and tell me about
-;; the result?  Thanks.
-;;
 ;; Also see the todo list at the bottom of this file.
 ;;
 ;; The current version of Tramp can be retrieved from the following URL:
@@ -62,6 +58,13 @@
 ;; Don't forget to put on your asbestos longjohns, first!
 
 ;;; Code:
+
+;; Since Emacs 23.1, loading messages have been disabled during
+;; autoload.  However, loading Tramp takes a while, and it could
+;; happen while typing a filename in the minibuffer.  Therefore, Tramp
+;; shall inform about.
+(when (and load-in-progress (null (current-message)))
+  (message "Loading tramp..."))
 
 ;; The Tramp version number and bug report address, as prepared by configure.
 (require 'trampver)
@@ -1726,11 +1729,12 @@ This string is passed to `format', so percent characters need to be doubled.")
 This is used to map a mode number to a permission string.")
 
 ;; New handlers should be added here.  The following operations can be
-;; handled using the normal primitives: file-name-as-directory,
-;; file-name-sans-versions, get-file-buffer.
+;; handled using the normal primitives: file-name-sans-versions,
+;; get-file-buffer.
 (defconst tramp-file-name-handler-alist
   '((load . tramp-handle-load)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
+    (file-name-as-directory . tramp-handle-file-name-as-directory)
     (file-name-directory . tramp-handle-file-name-directory)
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     (file-truename . tramp-handle-file-truename)
@@ -2029,7 +2033,7 @@ FUNCTION-LIST is a list of entries of the form (FUNCTION FILE).
 The FUNCTION is intended to parse FILE according its syntax.
 It might be a predefined FUNCTION, or a user defined FUNCTION.
 Predefined FUNCTIONs are `tramp-parse-rhosts', `tramp-parse-shosts',
-`tramp-parse-sconfig',`tramp-parse-hosts', `tramp-parse-passwd',
+`tramp-parse-sconfig', `tramp-parse-hosts', `tramp-parse-passwd',
 and `tramp-parse-netrc'.
 
 Example:
@@ -2207,6 +2211,19 @@ target of the symlink differ."
       t)))
 
 ;; Localname manipulation functions that grok Tramp localnames...
+(defun tramp-handle-file-name-as-directory (file)
+  "Like `file-name-as-directory' but aware of Tramp files."
+  ;; `file-name-as-directory' would be sufficient except localname is
+  ;; the empty string.
+  (let ((v (tramp-dissect-file-name file t)))
+    ;; Run the command on the localname portion only.
+    (tramp-make-tramp-file-name
+     (tramp-file-name-method v)
+     (tramp-file-name-user v)
+     (tramp-file-name-host v)
+     (tramp-run-real-handler
+      'file-name-as-directory (list (or (tramp-file-name-localname v) ""))))))
+
 (defun tramp-handle-file-name-directory (file)
   "Like `file-name-directory' but aware of Tramp files."
   ;; Everything except the last filename thing is the directory.  We
@@ -4283,13 +4300,13 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	   ;; `rename-file' handles direct copy and out-of-band methods.
 	   ((or (tramp-local-host-p v)
 		(and (tramp-method-out-of-band-p v)
-		     (integerp start)
-		     (> (- end start) tramp-copy-size-limit)))
+		     (> (- (or end (point-max)) (or start (point-min)))
+			tramp-copy-size-limit)))
 	    (rename-file tmpfile filename t))
 
-	   ;; Use inline file transfer
+	   ;; Use inline file transfer.
 	   (rem-dec
-	    ;; Encode tmpfile
+	    ;; Encode tmpfile.
 	    (tramp-message v 5 "Encoding region...")
 	    (unwind-protect
 		(with-temp-buffer
@@ -6094,11 +6111,9 @@ Goes through the list `tramp-local-coding-commands' and
 		  (setq rem-dec (nth 2 ritem))
 		  (setq found t)))))))
 
-      ;; Did we find something?  If not, issue an error.
+      ;; Did we find something?
       (unless found
-	(kill-process (tramp-get-connection-process vec))
-	(tramp-error
-	 vec 'file-error "Couldn't find an inline transfer encoding"))
+	(tramp-message vec 2 "Couldn't find an inline transfer encoding"))
 
       ;; Set connection properties.
       (tramp-message vec 5 "Using local encoding `%s'" loc-enc)
@@ -7138,7 +7153,7 @@ necessary only.  This function will be used in file name completion."
   (let ((ret (tramp-get-local-coding vec prop)))
     ;; The connection property might have been cached.  So we must send
     ;; the script - maybe.
-    (when (not (stringp ret))
+    (when (and ret (symbolp ret))
       (let ((name (symbol-name ret)))
 	(while (string-match (regexp-quote "-") name)
 	  (setq name (replace-match "_" nil t name)))
@@ -7455,6 +7470,10 @@ Only works for Bourne-like shells."
       (unload-feature 'tramp 'force)
     (error nil)))
 
+(when (and load-in-progress (string-match "Loading tramp..."
+					  (or (current-message) "")))
+  (message "Loading tramp...done"))
+
 (provide 'tramp)
 
 ;;; TODO:
@@ -7552,11 +7571,15 @@ Only works for Bourne-like shells."
 ;;   SSH instance, would correctly be propagated to the remote process
 ;;   automatically; possibly SSH would have to be started with
 ;;   "-t". (Markus Triska)
+;; * Support IPv6 hostnames.  Use "/[some:ip:v6:address:for:tramp]:/",
+;;   which is the syntax used on web browsers. (Óscar Fuentes)
+;; * Add gvfs support.
+;; * Set `tramp-copy-size-limit' to 0, when there is no remote
+;;   encoding routine.
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
 ;; dired-uncache -- this will be needed when we do insert-directory caching
-;; file-name-as-directory -- use primitive?
 ;; file-name-sans-versions -- use primitive?
 ;; get-file-buffer -- use primitive
 ;; vc-registered

@@ -119,7 +119,7 @@
   :group 'convenience)
 
 (defcustom ruler-mode-show-tab-stops nil
-  "*If non-nil the ruler shows tab stop positions.
+  "If non-nil the ruler shows tab stop positions.
 Also allowing to visually change `tab-stop-list' setting using
 <C-down-mouse-1> and <C-down-mouse-3> on the ruler to respectively add
 or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
@@ -141,7 +141,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
 (defcustom ruler-mode-fill-column-char (if (char-displayable-p ?¶)
                                            ?\¶
                                          ?\|)
-  "*Character used at the `fill-column' location."
+  "Character used at the `fill-column' location."
   :group 'ruler-mode
   :type '(choice
           (character :tag "Character")
@@ -149,7 +149,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                    :validate ruler-mode-character-validate)))
 
 (defcustom ruler-mode-comment-column-char ?\#
-  "*Character used at the `comment-column' location."
+  "Character used at the `comment-column' location."
   :group 'ruler-mode
   :type '(choice
           (character :tag "Character")
@@ -157,7 +157,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                    :validate ruler-mode-character-validate)))
 
 (defcustom ruler-mode-goal-column-char ?G
-  "*Character used at the `goal-column' location."
+  "Character used at the `goal-column' location."
   :group 'ruler-mode
   :type '(choice
           (character :tag "Character")
@@ -167,7 +167,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
 (defcustom ruler-mode-current-column-char (if (char-displayable-p ?¦)
                                               ?\¦
                                             ?\@)
-  "*Character used at the `current-column' location."
+  "Character used at the `current-column' location."
   :group 'ruler-mode
   :type '(choice
           (character :tag "Character")
@@ -175,7 +175,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                    :validate ruler-mode-character-validate)))
 
 (defcustom ruler-mode-tab-stop-char ?\T
-  "*Character used at `tab-stop-list' locations."
+  "Character used at `tab-stop-list' locations."
   :group 'ruler-mode
   :type '(choice
           (character :tag "Character")
@@ -183,7 +183,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                    :validate ruler-mode-character-validate)))
 
 (defcustom ruler-mode-basic-graduation-char ?\.
-  "*Character used for basic graduations."
+  "Character used for basic graduations."
   :group 'ruler-mode
   :type '(choice
           (character :tag "Character")
@@ -191,7 +191,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                    :validate ruler-mode-character-validate)))
 
 (defcustom ruler-mode-inter-graduation-char ?\!
-  "*Character used for intermediate graduations."
+  "Character used for intermediate graduations."
   :group 'ruler-mode
   :type '(choice
           (character :tag "Character")
@@ -199,7 +199,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                    :validate ruler-mode-character-validate)))
 
 (defcustom ruler-mode-set-goal-column-ding-flag t
-  "*Non-nil means do `ding' when `goal-column' is set."
+  "Non-nil means do `ding' when `goal-column' is set."
   :group 'ruler-mode
   :type 'boolean)
 
@@ -664,7 +664,7 @@ Optional argument PROPS specifies other text properties to apply."
          ;; Create an "clean" ruler.
          (ruler
           (propertize
-           (string-to-multibyte 
+           (string-to-multibyte
 	    (make-string w ruler-mode-basic-graduation-char))
            'face 'ruler-mode-default
            'local-map ruler-mode-map

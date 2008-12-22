@@ -128,6 +128,7 @@ static struct
     { "windows-1251", { 0x0401, 0x0490 }, "ru"},
     { "koi8-r", { 0x0401, 0x2219 }, "ru"},
     { "mulelao-1", { 0x0E81 }, "lo"},
+    { "unicode-sip", { 0x20000 }},
     { NULL }
   };
 
@@ -247,8 +248,8 @@ ftfont_resolve_generic_family (family, pattern)
   else
     family = Qnil;
   XSETCDR (slot, family);
- err:
   if (match) FcPatternDestroy (match);
+ err:
   if (pattern) FcPatternDestroy (pattern);
   return family;
 }
@@ -607,8 +608,7 @@ ftfont_spec_pattern (spec, otlayout, otspec)
   if (NILP (registry)
       || EQ (registry, Qascii_0)
       || EQ (registry, Qiso10646_1)
-      || EQ (registry, Qunicode_bmp)
-      || EQ (registry, Qunicode_sip))
+      || EQ (registry, Qunicode_bmp))
     fc_charset_idx = -1;
   else
     {
@@ -920,7 +920,7 @@ static Lisp_Object
 ftfont_match (frame, spec)
      Lisp_Object frame, spec;
 {
-  Lisp_Object entity;
+  Lisp_Object entity = Qnil;
   FcPattern *pattern, *match = NULL;
   FcResult result;
   char otlayout[15];		/* For "otlayout:XXXX" */
@@ -970,7 +970,7 @@ static Lisp_Object
 ftfont_list_family (frame)
      Lisp_Object frame;
 {
-  Lisp_Object list;
+  Lisp_Object list = Qnil;
   FcPattern *pattern = NULL;
   FcFontSet *fontset = NULL;
   FcObjectSet *objset = NULL;
@@ -992,7 +992,6 @@ ftfont_list_family (frame)
   if (! fontset)
     goto finish;
 
-  list = Qnil;
   for (i = 0; i < fontset->nfont; i++)
     {
       FcPattern *pat = fontset->fonts[i];
@@ -1068,10 +1067,10 @@ ftfont_open (f, entity, pixel_size)
   ASET (font_object, FONT_TYPE_INDEX, Qfreetype);
   len = font_unparse_xlfd (entity, size, name, 256);
   if (len > 0)
-    ASET (font_object, FONT_NAME_INDEX, make_unibyte_string (name, len));
+    ASET (font_object, FONT_NAME_INDEX, make_string (name, len));
   len = font_unparse_fcname (entity, size, name, 256);
   if (len > 0)
-    ASET (font_object, FONT_FULLNAME_INDEX, make_unibyte_string (name, len));
+    ASET (font_object, FONT_FULLNAME_INDEX, make_string (name, len));
   else
     ASET (font_object, FONT_FULLNAME_INDEX,
 	  AREF (font_object, FONT_NAME_INDEX));
@@ -1867,7 +1866,8 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
   flt_font_ft.font = font;
   flt_font_ft.ft_face = ft_face;
   flt_font_ft.otf = otf;
-  if (ASCII_CHAR_P (gstring.glyphs[0].c))
+  if (len > 1
+      && gstring.glyphs[1].c >= 0x300 && gstring.glyphs[1].c <= 0x36F)
     /* A little bit ad hoc.  Perhaps, shaper must get script and
        language information, and select a proper flt for them
        here.  */

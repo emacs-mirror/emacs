@@ -196,7 +196,7 @@ Otherwise return the normal value."
 	       color)))))))
 
 
-(defsubst viper-get-saved-cursor-color-in-replace-mode ()
+(defun viper-get-saved-cursor-color-in-replace-mode ()
   (or
    (funcall
     (if (featurep 'emacs) 'frame-parameter 'frame-property)
@@ -206,7 +206,7 @@ Otherwise return the normal value."
 	    (viper-frame-value viper-emacs-state-cursor-color))
        (viper-frame-value viper-vi-state-cursor-color))))
 
-(defsubst viper-get-saved-cursor-color-in-insert-mode ()
+(defun viper-get-saved-cursor-color-in-insert-mode ()
   (or
    (funcall
     (if (featurep 'emacs) 'frame-parameter 'frame-property)
@@ -216,7 +216,7 @@ Otherwise return the normal value."
 	    (viper-frame-value viper-emacs-state-cursor-color))
        (viper-frame-value viper-vi-state-cursor-color))))
 
-(defsubst viper-get-saved-cursor-color-in-emacs-mode ()
+(defun viper-get-saved-cursor-color-in-emacs-mode ()
   (or
    (funcall
     (if (featurep 'emacs) 'frame-parameter 'frame-property)
@@ -939,10 +939,10 @@ Otherwise return the normal value."
     event))
 
 ;; Uses different timeouts for ESC-sequences and others
-(defsubst viper-fast-keysequence-p ()
+(defun viper-fast-keysequence-p ()
   (not (viper-sit-for-short
 	(if (viper-ESC-event-p last-input-event)
-	    viper-ESC-keyseq-timeout
+	    (viper-ESC-keyseq-timeout)
 	  viper-fast-keyseq-timeout)
 	t)))
 

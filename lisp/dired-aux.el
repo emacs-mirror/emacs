@@ -1166,7 +1166,7 @@ See Info node `(emacs)Subdir switches' for more details."
 ;;; Copy, move/rename, making hard and symbolic links
 
 (defcustom dired-backup-overwrite nil
-  "*Non-nil if Dired should ask about making backups before overwriting files.
+  "Non-nil if Dired should ask about making backups before overwriting files.
 Special value `always' suppresses confirmation."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "suppress" always)
@@ -2304,25 +2304,28 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 ;; Search only in file names in the Dired buffer.
 
 (defcustom dired-isearch-filenames nil
-  "*If non-nil, Isearch in Dired matches only file names."
+  "Non-nil to Isearch in file names only.
+If t, Isearch in Dired always matches only file names.
+If `dwim', Isearch matches file names when initial point position is on
+a file name.  Otherwise, it searches the whole buffer without restrictions."
   :type '(choice (const :tag "No restrictions" nil)
-		 (const :tag "Isearch only in file names" dired-filename))
+		 (const :tag "When point is on a file name initially, search file names" dwim)
+		 (const :tag "Always search in file names" t))
   :group 'dired
   :version "23.1")
 
-(defvar dired-isearch-orig-success-function nil)
+(defvar dired-isearch-filter-predicate-orig nil)
 
 (defun dired-isearch-filenames-toggle ()
   "Toggle file names searching on or off.
-When on, Isearch checks the success of the current matching point
-using the function `dired-isearch-success-function' that matches only
-at file names.  When off, it uses the default function
-`isearch-success-function-default'."
+When on, Isearch skips matches outside file names using the predicate
+`dired-isearch-filter-filenames' that matches only at file names.
+When off, it uses the default predicate `isearch-filter-invisible'."
   (interactive)
-  (setq isearch-success-function
-	(if (eq isearch-success-function 'dired-isearch-success-function)
-	    'isearch-success-function-default
-	  'dired-isearch-success-function))
+  (setq isearch-filter-predicate
+	(if (eq isearch-filter-predicate 'dired-isearch-filter-filenames)
+	    'isearch-filter-invisible
+	  'dired-isearch-filter-filenames))
   (setq isearch-success t isearch-adjusted t)
   (isearch-update))
 
@@ -2330,22 +2333,26 @@ at file names.  When off, it uses the default function
 (defun dired-isearch-filenames-setup ()
   "Set up isearch to search in Dired file names.
 Intended to be added to `isearch-mode-hook'."
-  (when dired-isearch-filenames
+  (when (or (eq dired-isearch-filenames t)
+	    (and (eq dired-isearch-filenames 'dwim)
+		 (get-text-property (point) 'dired-filename)))
+    (setq isearch-message-prefix-add "filename ")
     (define-key isearch-mode-map "\M-sf" 'dired-isearch-filenames-toggle)
-    (setq dired-isearch-orig-success-function
-	  (default-value 'isearch-success-function))
-    (setq-default isearch-success-function 'dired-isearch-success-function)
+    (setq dired-isearch-filter-predicate-orig
+	  (default-value 'isearch-filter-predicate))
+    (setq-default isearch-filter-predicate 'dired-isearch-filter-filenames)
     (add-hook 'isearch-mode-end-hook 'dired-isearch-filenames-end nil t)))
 
 (defun dired-isearch-filenames-end ()
   "Clean up the Dired file name search after terminating isearch."
+  (setq isearch-message-prefix-add nil)
   (define-key isearch-mode-map "\M-sf" nil)
-  (setq-default isearch-success-function dired-isearch-orig-success-function)
+  (setq-default isearch-filter-predicate dired-isearch-filter-predicate-orig)
   (remove-hook 'isearch-mode-end-hook 'dired-isearch-filenames-end t))
 
-(defun dired-isearch-success-function (beg end)
+(defun dired-isearch-filter-filenames (beg end)
   "Match only at visible regions with the text property `dired-filename'."
-  (and (isearch-success-function-default beg end)
+  (and (isearch-filter-invisible beg end)
        (if dired-isearch-filenames
 	   (text-property-not-all (min beg end) (max beg end)
 				  'dired-filename nil)

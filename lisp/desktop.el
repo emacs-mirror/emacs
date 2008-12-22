@@ -165,7 +165,7 @@ and function `desktop-read' for details."
   (desktop-save-mode 0))
 
 (defcustom desktop-save 'ask-if-new
-  "*Specifies whether the desktop should be saved when it is killed.
+  "Specifies whether the desktop should be saved when it is killed.
 A desktop is killed when the user changes desktop or quits Emacs.
 Possible values are:
    t             -- always save.
@@ -302,7 +302,7 @@ to the value obtained by evaluating FORM."
 
 (defcustom desktop-clear-preserve-buffers
   '("\\*scratch\\*" "\\*Messages\\*" "\\*server\\*" "\\*tramp/.+\\*")
-  "*List of buffers that `desktop-clear' should not delete.
+  "List of buffers that `desktop-clear' should not delete.
 Each element is a regular expression.  Buffers with a name matched by any of
 these won't be deleted."
   :type '(repeat string)
@@ -355,7 +355,7 @@ modes are restored automatically; they should not be listed here."
   :group 'desktop)
 
 (defcustom desktop-file-name-format 'absolute
-  "*Format in which desktop file names should be saved.
+  "Format in which desktop file names should be saved.
 Possible values are:
    absolute -- Absolute file name.
    tilde    -- Relative to ~.

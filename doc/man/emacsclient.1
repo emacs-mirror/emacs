@@ -1,3 +1,4 @@
+.\" See section COPYING for conditions for redistribution.
 .TH EMACSCLIENT 1
 .\" NAME should be all caps, SECTION should be 1-8, maybe w/ subsection
 .\" other parms are allowed: see man(7), man(1)
@@ -48,13 +49,19 @@ If you set the variable `server-window' to a window or a frame, `C-x
 The programs follow the usual GNU command line syntax, with long
 options starting with two dashes (`-').
 .TP
-.B \-n, \-\-no-wait
-returns
-immediately without waiting for you to "finish" the buffer in Emacs.
+.B \-nw, \-t, \-\-tty
+open a new Emacs frame on the current terminal
+.TP
+.B -c, \-\-create-frame
+create a new frame instead of trying to use the current Emacs frame
 .TP
 .B \-e, \-\-eval
 do not visit files but instead evaluate the arguments as Emacs
 Lisp expressions.
+.TP
+.B \-n, \-\-no-wait
+returns
+immediately without waiting for you to "finish" the buffer in Emacs.
 .TP
 .B \-s, \-\-socket-name=FILENAME
 use socket named FILENAME for communication.
@@ -66,6 +73,8 @@ This can also be specified via the `EMACS_SERVER_FILE' environment variable.
 .B \-a, \-\-alternate-editor=EDITOR
 if the Emacs server is not running, run the specified editor instead.
 This can also be specified via the `ALTERNATE_EDITOR' environment variable.
+If the value of EDITOR is the empty string, then Emacs is started in
+daemon mode and emacsclient will try to connect to it.
 .TP
 .B \-d, \-\-display=DISPLAY
 tell the server to display the files on the given display.
@@ -73,7 +82,7 @@ tell the server to display the files on the given display.
 .B \-V, \-\-version
 print version information and exit
 .TP
-.B \-h, \-\-help
+.B \-H, \-\-help
 print this usage information message and exit
 .SH "SEE ALSO"
 The program is documented fully in

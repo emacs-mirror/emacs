@@ -1443,12 +1443,10 @@ init_environment (char ** argv)
       HRESULT profile_result;
       /* Dynamically load ShGetFolderPath, as it won't exist on versions
 	 of Windows 95 and NT4 that have not been updated to include
-	 MSIE 5.  Also we don't link with shell32.dll by default.  */
-      HMODULE shell32_dll;
+	 MSIE 5.  */
       ShGetFolderPath_fn get_folder_path;
-      shell32_dll = GetModuleHandle ("shell32.dll");
       get_folder_path = (ShGetFolderPath_fn)
-	GetProcAddress (shell32_dll, "SHGetFolderPathA");
+	GetProcAddress (GetModuleHandle ("shell32.dll"), "SHGetFolderPathA");
 
       if (get_folder_path != NULL)
 	{
@@ -1459,9 +1457,6 @@ init_environment (char ** argv)
 	  if (profile_result == S_OK)
 	    env_vars[0].def_value = default_home;
 	}
-
-      /* Unload shell32.dll, it is not needed anymore.  */
-      FreeLibrary (shell32_dll);
     }
 
   /* Get default locale info and use it for LANG.  */
@@ -3676,7 +3671,7 @@ BOOL WINAPI global_memory_status_ex (
 }
 
 Lisp_Object
-w32_list_system_processes ()
+list_system_processes ()
 {
   struct gcpro gcpro1;
   Lisp_Object proclist = Qnil;
@@ -3828,7 +3823,7 @@ process_times (h_proc, ctime, etime, stime, utime, pcpu)
 }
 
 Lisp_Object
-w32_system_process_attributes (pid)
+system_process_attributes (pid)
      Lisp_Object pid;
 {
   struct gcpro gcpro1, gcpro2, gcpro3;

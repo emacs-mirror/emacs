@@ -44,14 +44,14 @@
     'cvs-display-full-name "22.1")
 
 (defcustom cvs-display-full-name t
-  "*Specifies how the filenames should be displayed in the listing.
+  "Specifies how the filenames should be displayed in the listing.
 If non-nil, their full filename name will be displayed, else only the
 non-directory part."
   :group 'pcl-cvs
   :type '(boolean))
 
 (defcustom cvs-allow-dir-commit nil
-  "*Allow `cvs-mode-commit' on directories.
+  "Allow `cvs-mode-commit' on directories.
 If you commit without any marked file and with the cursor positioned
 on a directory entry, cvs would commit the whole directory.  This seems
 to confuse some users sometimes."

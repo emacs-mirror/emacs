@@ -312,12 +312,15 @@ backup-compiled-files:
 
 compile-after-backup: backup-compiled-files compile-always
 
+compile-first: 	$(lisp)/emacs-lisp/bytecomp.elc $(lisp)/emacs-lisp/byte-opt.elc \
+	$(lisp)/emacs-lisp/autoload.elc
+
 # Recompile all Lisp files which are newer than their .elc files.
 # Note that this doesn't create .elc files.  It only recompiles if an
 # .elc is present.
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
-recompile: mh-autoloads doit $(lisp)/progmodes/cc-mode.elc
+recompile: compile-first autoloads doit $(lisp)/progmodes/cc-mode.elc
 	$(emacs) --eval $(ARGQUOTE)(batch-byte-recompile-directory 0)$(ARGQUOTE) $(lisp)
 
 $(lisp)/calendar/cal-loaddefs.el:

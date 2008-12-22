@@ -245,7 +245,7 @@ function `dirtrack-debug-mode' to turn on debugging output."
         ;; No match
         (if (not (string-match dirtrack-regexp input))
             (dirtrack-debug-message
-             (format "Input `%s' failed to match `dirtrack-regexp'" input))
+             (format "Input `%s' failed to match `dirtrack-list'" input))
           (setq prompt-path (match-string match-num input))
           ;; Empty string
           (if (not (> (length prompt-path) 0))

@@ -763,7 +763,6 @@ ELCFILES = \
 	$(lisp)/mail/metamail.elc \
 	$(lisp)/mail/mspools.elc \
 	$(lisp)/mail/pmail.elc \
-	$(lisp)/mail/pmaildesc.elc \
 	$(lisp)/mail/pmailedit.elc \
 	$(lisp)/mail/pmailhdr.elc \
 	$(lisp)/mail/pmailkwd.elc \
@@ -923,6 +922,7 @@ ELCFILES = \
 	$(lisp)/obsolete/sc.elc \
 	$(lisp)/obsolete/scribe.elc \
 	$(lisp)/obsolete/swedish.elc \
+	$(lisp)/obsolete/vc-mcvs.elc \
 	$(lisp)/obsolete/x-menu.elc \
 	$(lisp)/org/org-agenda.elc \
 	$(lisp)/org/org-archive.elc \
@@ -952,7 +952,9 @@ ELCFILES = \
 	$(lisp)/org/org-remember.elc \
 	$(lisp)/org/org-rmail.elc \
 	$(lisp)/org/org-table.elc \
+	$(lisp)/org/org-timer.elc \
 	$(lisp)/org/org-vm.elc \
+	$(lisp)/org/org-w3m.elc \
 	$(lisp)/org/org-wl.elc \
 	$(lisp)/org/org.elc \
 	$(lisp)/outline.elc \
@@ -1077,6 +1079,7 @@ ELCFILES = \
 	$(lisp)/progmodes/prolog.elc \
 	$(lisp)/progmodes/ps-mode.elc \
 	$(lisp)/progmodes/python.elc \
+	$(lisp)/progmodes/ruby-mode.elc \
 	$(lisp)/progmodes/scheme.elc \
 	$(lisp)/progmodes/sh-script.elc \
 	$(lisp)/progmodes/simula.elc \
@@ -1243,7 +1246,6 @@ ELCFILES = \
 	$(lisp)/vc-git.elc \
 	$(lisp)/vc-hg.elc \
 	$(lisp)/vc-hooks.elc \
-	$(lisp)/vc-mcvs.elc \
 	$(lisp)/vc-mtn.elc \
 	$(lisp)/vc-rcs.elc \
 	$(lisp)/vc-sccs.elc \
@@ -1370,7 +1372,7 @@ compile-after-backup: backup-compiled-files compile-always
 # ii) Compiling multiple files in the same instance of Emacs is wrong,
 # since the environment of later files is affected by definitions in
 # earlier ones.
-recompile: doit $(LOADDEFS) $(lisp)/progmodes/cc-mode.elc
+recompile: doit $(LOADDEFS) compile-first $(lisp)/progmodes/cc-mode.elc
 	$(emacs) --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
 # Update MH-E internal autoloads. These are not to be confused with

@@ -406,7 +406,7 @@ properties to be changed, even in a read-only buffer.
 
 This macro should be placed around all calculations which set
 \"insignificant\" text properties in a buffer, even when the buffer is
-known to be writeable.  That way, these text properties remain set
+known to be writable.  That way, these text properties remain set
 even if the user undoes the command which set them.
 
 This macro should ALWAYS be placed around \"temporary\" internal buffer
@@ -932,7 +932,9 @@ MODE is either a mode symbol or a list of mode symbols."
 		(or (memq property prop)
 		    (put-text-property pos (1+ pos)
 				       'rear-nonsticky
-				       (cons property prop))))))))))
+				       (cons property prop)))))))
+	  ;; This won't be used for anything.
+	  (t 'ignore))))
 (cc-bytecomp-defun c-put-char-property-fun) ; Make it known below.
 
 (defmacro c-put-char-property (pos property value)
@@ -1684,6 +1686,9 @@ itself is evaluated."
   ;; Evaluate at macro expansion time, i.e. in the
   ;; `cl-macroexpand-all' inside `c-lang-defconst'.
   (eval form))
+
+;; Only used at compile time - suppress "might not be defined at runtime".
+(declare-function cl-macroexpand-all "cl-extra" (form &optional env))
 
 (defmacro c-lang-defconst (name &rest args)
   "Set the language specific values of the language constant NAME.

@@ -193,9 +193,11 @@
               font-lock-string-face))))
     font-lock-comment-face))
 
-;; The LISP-SYNTAX argument is used by code in inf-lisp.el and is
-;; (uselessly) passed from pp.el, chistory.el, gnus-kill.el and score-mode.el
-(defun lisp-mode-variables (&optional lisp-syntax)
+(defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive)
+  "Common initialization routine for lisp modes.
+The LISP-SYNTAX argument is used by code in inf-lisp.el and is
+(uselessly) passed from pp.el, chistory.el, gnus-kill.el and score-mode.el
+KEYWORDS-CASE-SENSITIVE means that for font-lock keywords will not be case sensitive."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
   (setq local-abbrev-table lisp-mode-abbrev-table)
@@ -241,9 +243,9 @@
   (setq multibyte-syntax-as-symbol t)
   (set (make-local-variable 'syntax-begin-function) 'beginning-of-defun)
   (setq font-lock-defaults
-	'((lisp-font-lock-keywords
+	`((lisp-font-lock-keywords
 	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
-	  nil nil (("+-*/.<>=!?$%_&~^:@" . "w")) nil
+	  nil ,keywords-case-insensitive (("+-*/.<>=!?$%_&~^:@" . "w")) nil
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
 	   . lisp-font-lock-syntactic-face-function))))
@@ -289,17 +291,17 @@
     (define-key menu-map [tracing] (cons "Tracing" tracing-map))
     (define-key tracing-map [tr-a]
       '(menu-item "Untrace all" untrace-all
-		  :help "Untraces all currently traced functions"))
+		  :help "Untrace all currently traced functions"))
     (define-key tracing-map [tr-uf]
       '(menu-item "Untrace function..." untrace-function
-		  :help "Untraces FUNCTION and possibly activates all remaining advice"))
+		  :help "Untrace function, and possibly activate all remaining advice"))
     (define-key tracing-map [tr-sep] '("--"))
     (define-key tracing-map [tr-q]
       '(menu-item "Trace function quietly..." trace-function-background
 		  :help "Trace the function with trace output going quietly to a buffer"))
     (define-key tracing-map [tr-f]
       '(menu-item "Trace function..." trace-function
-		  :help "Trace the function given as a argument"))
+		  :help "Trace the function given as an argument"))
     (define-key menu-map [profiling] (cons "Profiling" prof-map))
     (define-key prof-map [prof-restall]
       '(menu-item "Remove Instrumentation for All Functions" elp-restore-all
@@ -464,7 +466,7 @@ if that value is non-nil."
   (use-local-map lisp-mode-map)
   (setq major-mode 'lisp-mode)
   (setq mode-name "Lisp")
-  (lisp-mode-variables)
+  (lisp-mode-variables nil t)
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
@@ -1193,7 +1195,6 @@ This function also returns nil meaning don't specify the indentation."
 (put 'save-excursion 'lisp-indent-function 0)
 (put 'save-window-excursion 'lisp-indent-function 0)
 (put 'save-selected-window 'lisp-indent-function 0)
-(put 'save-selected-window-norecord 'lisp-indent-function 0)
 (put 'save-restriction 'lisp-indent-function 0)
 (put 'save-match-data 'lisp-indent-function 0)
 (put 'save-current-buffer 'lisp-indent-function 0)

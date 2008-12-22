@@ -68,7 +68,7 @@
   :group 'convenience)
 
 (defcustom Buffer-menu-use-header-line t
-  "*Non-nil means to use an immovable header-line."
+  "Non-nil means to use an immovable header-line."
   :type 'boolean
   :group 'Buffer-menu)
 
@@ -79,12 +79,12 @@
 (put 'Buffer-menu-buffer 'face-alias 'buffer-menu-buffer)
 
 (defcustom Buffer-menu-buffer+size-width 26
-  "*How wide to jointly make the buffer name and size columns."
+  "How wide to jointly make the buffer name and size columns."
   :type 'number
   :group 'Buffer-menu)
 
 (defcustom Buffer-menu-mode-width 16
-  "*How wide to make the mode name column."
+  "How wide to make the mode name column."
   :type 'number
   :group 'Buffer-menu)
 
@@ -596,31 +596,36 @@ For more information, see the function `buffer-menu'."
   (interactive "P")
   (display-buffer (list-buffers-noselect files-only)))
 
+(defconst Buffer-menu-short-ellipsis
+  ;; This file is preloaded, so we can't use char-displayable-p here
+  ;; because we don't know yet what display we're going to connect to.
+  ":" ;; (if (char-displayable-p ?…) "…" ":")
+  )
+
 (defun Buffer-menu-buffer+size (name size &optional name-props size-props)
-  (if (> (+ (length name) (length size) 2) Buffer-menu-buffer+size-width)
+  (if (> (+ (string-width name) (string-width size) 2)
+         Buffer-menu-buffer+size-width)
       (setq name
-	    (if (string-match "<[0-9]+>$" name)
-		(concat (substring name 0
-				   (- Buffer-menu-buffer+size-width
-				      (max (length size) 3)
-				      (match-end 0)
-				      (- (match-beginning 0))
-				      2))
-			":"		; narrow ellipsis
-			(match-string 0 name))
-	      (concat (substring name 0
-				 (- Buffer-menu-buffer+size-width
-				    (max (length size) 3)
-				    2))
-		      ":")))		; narrow ellipsis
+            (let ((tail
+                   (if (string-match "<[0-9]+>$" name)
+                       (match-string 0 name)
+                     "")))
+              (concat (truncate-string-to-width
+                       name
+                       (- Buffer-menu-buffer+size-width
+                          (max (string-width size) 3)
+                          (string-width tail)
+                          2))
+                      Buffer-menu-short-ellipsis
+                      tail)))
     ;; Don't put properties on (buffer-name).
     (setq name (copy-sequence name)))
   (add-text-properties 0 (length name) name-props name)
   (add-text-properties 0 (length size) size-props size)
   (concat name
 	  (make-string (- Buffer-menu-buffer+size-width
-			  (length name)
-			  (length size))
+			  (string-width name)
+			  (string-width size))
 		       ?\s)
 	  size))
 
@@ -833,16 +838,17 @@ For more information, see the function `buffer-menu'."
 				       buffer ,(car buffer)
 				       font-lock-face buffer-menu-buffer
 				       mouse-face highlight
-				       help-echo 
+				       help-echo
 				       ,(if (>= (length name)
 						(- Buffer-menu-buffer+size-width
 						   (max (length size) 3)
 						   2))
 					    name
 					  "mouse-2: select this buffer"))))
-		  "  "
-		(if (> (length (nth 4 buffer)) Buffer-menu-mode-width)
-		    (substring (nth 4 buffer) 0 Buffer-menu-mode-width)
+		"  "
+		(if (> (string-width (nth 4 buffer)) Buffer-menu-mode-width)
+		    (truncate-string-to-width (nth 4 buffer)
+					      Buffer-menu-mode-width)
 		  (nth 4 buffer)))
 	(when (nth 5 buffer)
 	  (indent-to (+ Buffer-menu-buffer-column Buffer-menu-buffer+size-width

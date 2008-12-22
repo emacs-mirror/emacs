@@ -275,21 +275,22 @@ See `run-hooks'."
     map)
   "Keymap for directory buffer.")
 
-(defmacro vc-at-event (event &rest body)
+(defmacro vc-dir-at-event (event &rest body)
   "Evaluate `body' with point located at event-start of `event'.
 If `body' uses `event', it should be a variable,
  otherwise it will be evaluated twice."
-  (let ((posn (make-symbol "vc-at-event-posn")))
-    `(let ((,posn (event-start ,event)))
-       (save-excursion
-         (set-buffer (window-buffer (posn-window ,posn)))
-         (goto-char (posn-point ,posn))
-         ,@body))))
+  (let ((posn (make-symbol "vc-dir-at-event-posn")))
+    `(save-excursion
+       (unless (equal ,event '(tool-bar))
+         (let ((,posn (event-start ,event)))
+           (set-buffer (window-buffer (posn-window ,posn)))
+           (goto-char (posn-point ,posn))))
+       ,@body)))
 
 (defun vc-dir-menu (e)
   "Popup the VC dir menu."
   (interactive "e")
-  (vc-at-event e (popup-menu vc-dir-menu-map e)))
+  (vc-dir-at-event e (popup-menu vc-dir-menu-map e)))
 
 (defvar vc-dir-tool-bar-map
   (let ((map (make-sparse-keymap)))
@@ -675,7 +676,7 @@ that share the same state."
 
 (defun vc-dir-toggle-mark (e)
   (interactive "e")
-  (vc-at-event e (vc-dir-mark-unmark 'vc-dir-toggle-mark-file)))
+  (vc-dir-at-event e (vc-dir-mark-unmark 'vc-dir-toggle-mark-file)))
 
 (defun vc-dir-delete-file ()
   "Delete the marked files, or the current file if no marks."
@@ -929,10 +930,12 @@ commands act on the files in those directories displayed in the
 It calls the `dir-extra-headers' backend method to display backend
 specific headers."
   (concat
+   ;; First layout the common headers.
    (propertize "VC backend : " 'face 'font-lock-type-face)
    (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
    (propertize "Working dir: " 'face 'font-lock-type-face)
    (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
+   ;; Then the backend specific ones.
    (vc-call-backend backend 'dir-extra-headers dir)
    "\n"))
 

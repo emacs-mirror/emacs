@@ -86,13 +86,13 @@ use either \\[customize] or the function `type-break-mode'."
 
 ;;;###autoload
 (defcustom type-break-interval (* 60 60)
-  "*Number of seconds between scheduled typing breaks."
+  "Number of seconds between scheduled typing breaks."
   :type 'integer
   :group 'type-break)
 
 ;;;###autoload
 (defcustom type-break-good-rest-interval (/ type-break-interval 6)
-  "*Number of seconds of idle time considered to be an adequate typing rest.
+  "Number of seconds of idle time considered to be an adequate typing rest.
 
 When this variable is non-nil, Emacs checks the idle time between
 keystrokes.  If this idle time is long enough to be considered a \"good\"
@@ -105,7 +105,7 @@ asked whether or not really to interrupt the break."
 
 ;;;###autoload
 (defcustom type-break-good-break-interval nil
-  "*Number of seconds considered to be an adequate explicit typing rest.
+  "Number of seconds considered to be an adequate explicit typing rest.
 
 When this variable is non-nil, its value is considered to be a \"good\"
 length (in seconds) for a break initiated by the command `type-break',
@@ -129,7 +129,7 @@ break interruptions when `type-break-good-rest-interval' is nil."
          (upper (* wpm avg-word-length (/ type-break-interval 60)))
          (lower (/ upper 5)))
     (cons lower upper))
-  "*Upper and lower bound on number of keystrokes for considering typing break.
+  "Upper and lower bound on number of keystrokes for considering typing break.
 This structure is a pair of numbers (MIN . MAX).
 
 The first number is the minimum number of keystrokes that must have been
@@ -153,14 +153,14 @@ guess a reasonably good pair of values for this variable."
   :group 'type-break)
 
 (defcustom type-break-query-mode t
-  "*Non-nil means ask whether or not to prompt user for breaks.
+  "Non-nil means ask whether or not to prompt user for breaks.
 If so, call the function specified in the value of the variable
 `type-break-query-function' to do the asking."
   :type 'boolean
   :group 'type-break)
 
 (defcustom type-break-query-function 'yes-or-no-p
-  "*Function to use for making query for a typing break.
+  "Function to use for making query for a typing break.
 It should take a string as an argument, the prompt.
 Usually this should be set to `yes-or-no-p' or `y-or-n-p'.
 
@@ -171,21 +171,21 @@ To avoid being queried at all, set `type-break-query-mode' to nil."
   :group 'type-break)
 
 (defcustom type-break-query-interval 60
-  "*Number of seconds between queries to take a break, if put off.
+  "Number of seconds between queries to take a break, if put off.
 The user will continue to be prompted at this interval until he or she
 finally submits to taking a typing break."
   :type 'integer
   :group 'type-break)
 
 (defcustom type-break-time-warning-intervals '(300 120 60 30)
-  "*List of time intervals for warnings about upcoming typing break.
+  "List of time intervals for warnings about upcoming typing break.
 At each of the intervals (specified in seconds) away from a scheduled
 typing break, print a warning in the echo area."
   :type '(repeat integer)
   :group 'type-break)
 
 (defcustom type-break-keystroke-warning-intervals '(300 200 100 50)
-  "*List of keystroke measurements for warnings about upcoming typing break.
+  "List of keystroke measurements for warnings about upcoming typing break.
 At each of the intervals (specified in keystrokes) away from the upper
 keystroke threshold, print a warning in the echo area.
 If either this variable or the upper threshold is set, then no warnings
@@ -194,21 +194,21 @@ will occur."
   :group 'type-break)
 
 (defcustom type-break-warning-repeat 40
-  "*Number of keystrokes for which warnings should be repeated.
+  "Number of keystrokes for which warnings should be repeated.
 That is, for each of this many keystrokes the warning is redisplayed
 in the echo area to make sure it's really seen."
   :type 'integer
   :group 'type-break)
 
 (defcustom type-break-time-stamp-format "[%H:%M] "
-  "*Timestamp format used to prefix messages.
+  "Timestamp format used to prefix messages.
 Format specifiers are as used by `format-time-string'."
   :type 'string
   :group 'type-break)
 
 (defcustom type-break-demo-functions
   '(type-break-demo-boring type-break-demo-life type-break-demo-hanoi)
-  "*List of functions to consider running as demos during typing breaks.
+  "List of functions to consider running as demos during typing breaks.
 When a typing break begins, one of these functions is selected randomly
 to have Emacs do something interesting.
 
@@ -218,17 +218,17 @@ key is pressed."
   :group 'type-break)
 
 (defcustom type-break-demo-boring-stats nil
-  "*Show word per minute and keystroke figures in the Boring demo."
+  "Show word per minute and keystroke figures in the Boring demo."
   :type 'boolean
   :group 'type-break)
 
 (defcustom type-break-terse-messages nil
-  "*Use slightly terser messages."
+  "Use slightly terser messages."
   :type 'boolean
   :group 'type-break)
 
 (defcustom type-break-file-name (convert-standard-filename "~/.type-break")
-  "*Name of file used to save state across sessions.
+  "Name of file used to save state across sessions.
 If this is nil, no data will be saved across sessions."
   :type 'file
   :group 'type-break)
@@ -246,7 +246,7 @@ remove themselves after running.")
 ;; Mode line frobs
 
 (defcustom type-break-mode-line-message-mode nil
-  "*Non-nil means put type-break related messages in the mode line.
+  "Non-nil means put type-break related messages in the mode line.
 Otherwise, messages typically go in the echo area.
 
 See also `type-break-mode-line-format' and its members."

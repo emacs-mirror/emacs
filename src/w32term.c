@@ -439,7 +439,9 @@ x_set_frame_alpha (f)
   else if (INTEGERP (Vframe_alpha_lower_limit))
     alpha_min = (XINT (Vframe_alpha_lower_limit)) / 100.0;
 
-  if (alpha < 0.0 || 1.0 < alpha)
+  if (alpha < 0.0)
+    return;
+  else if (alpha > 1.0)
     alpha = 1.0;
   else if (alpha < alpha_min && alpha_min <= 1.0)
     alpha = alpha_min;
@@ -2239,13 +2241,17 @@ x_draw_glyph_string (s)
     {
       int width;
       struct glyph_string *next;
-      for (width = 0, next = s->next; next;
+      for (width = 0, next = s->next;
+	   next && width < s->right_overhang;
            width += next->width, next = next->next)
         if (next->first_glyph->type != IMAGE_GLYPH)
           {
             x_set_glyph_string_gc (next);
             x_set_glyph_string_clipping (next);
-            x_draw_glyph_string_background (next, 1);
+	    if (next->first_glyph->type == STRETCH_GLYPH)
+	      x_draw_stretch_glyph_string (next);
+	    else
+	      x_draw_glyph_string_background (next, 1);
             next->num_clips = 0;
           }
     }
@@ -6198,7 +6204,6 @@ w32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->resx = GetDeviceCaps (hdc, LOGPIXELSX);
   dpyinfo->resy = GetDeviceCaps (hdc, LOGPIXELSY);
   dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
-  dpyinfo->terminal->image_cache = make_image_cache ();
   ReleaseDC (GetDesktopWindow (), hdc);
 
   /* initialise palette with white and black */

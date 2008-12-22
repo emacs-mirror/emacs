@@ -1265,7 +1265,18 @@ cmd_error_internal (data, context)
   /* If the window system or terminal frame hasn't been initialized
      yet, or we're not interactive, write the message to stderr and exit.  */
   else if (!sf->glyphs_initialized_p
-	   || FRAME_INITIAL_P (sf)
+	   /* We used to check if "This is the case of the frame dumped with
+              Emacs, when we're running under a window system" with
+	        || (!NILP (Vwindow_system) && !inhibit_window_system
+	            && FRAME_TERMCAP_P (sf))
+	      then the multi-tty code generalized this check to
+	        || FRAME_INITIAL_P (sf)
+	      but this leads to undesirable behavior in daemon mode where
+	      we don't want to exit just because we got an error without
+	      having a frame (bug#1310).
+	      So I just removed the check, and rely instead on the `message_*'
+	      functions properly using FRAME_INITIAL_P.  In the worst case
+	      this should just make Emacs not exit when it should.  */
 	   || noninteractive)
     {
       print_error_message (data, Qexternal_debugging_output,
@@ -2429,7 +2440,7 @@ static void record_char ();
 
 static Lisp_Object help_form_saved_window_configs;
 static Lisp_Object
-read_char_help_form_unwind (arg)
+read_char_help_form_unwind (Lisp_Object arg)
 {
   Lisp_Object window_config = XCAR (help_form_saved_window_configs);
   help_form_saved_window_configs = XCDR (help_form_saved_window_configs);
@@ -3978,7 +3989,10 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
   register int c;
   Lisp_Object obj;
 
-  if (noninteractive)
+  if (noninteractive
+      /* In case we are running as a daemon, only do this before
+	 detaching from the terminal.  */
+      || (IS_DAEMON && daemon_pipe[1] >= 0))
     {
       c = getchar ();
       XSETINT (obj, c);
@@ -4585,11 +4599,6 @@ timer_check (do_it_now)
 	      int count = SPECPDL_INDEX ();
 	      Lisp_Object old_deactivate_mark = Vdeactivate_mark;
 
-#if 0 /* This shouldn't be necessary anymore.  --lorentey  */
-	      /* On unbind_to, resume allowing input from any kboard, if that
-                 was true before.  */
-              record_single_kboard_state ();
-#endif
 	      /* Mark the timer as triggered to prevent problems if the lisp
 		 code fails to reschedule it right.  */
 	      vector[0] = Qt;
@@ -5309,7 +5318,8 @@ make_lispy_position (f, x, y, time)
 				     &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
 	    string_info = Fcons (string, make_number (charpos));
-	  if (w == XWINDOW (selected_window))
+	  if (w == XWINDOW (selected_window)
+	      && current_buffer == XBUFFER (w->buffer))
 	    textpos = PT;
 	  else
 	    textpos = XMARKER (w->pointm)->charpos;

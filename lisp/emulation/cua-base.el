@@ -1495,6 +1495,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
    next-line previous-line
    forward-word backward-word
    end-of-line beginning-of-line
+   end-of-visual-line beginning-of-visual-line
    move-end-of-line move-beginning-of-line
    end-of-buffer beginning-of-buffer
    scroll-up scroll-down

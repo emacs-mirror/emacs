@@ -240,14 +240,29 @@ moves or copies the file into the displayed directory.  For details,
 see @ref{Drag and Drop}, and @ref{Misc Dired Features}.
 
 @cindex creating files
-@vindex find-file-confirm-nonexistent-file
   What if you want to create a new file?  Just visit it.  Emacs
 displays @samp{(New file)} in the echo area, but in other respects
 behaves as if you had visited an existing empty file.  If you make
-changes and save them, the file is created.  If you change the
-variable @code{find-file-confirm-nonexistent-file} to @code{t}, then
-Emacs prompts you for confirmation before visiting a non-existent
-file.
+changes and save them, the file is created.
+
+@cindex minibuffer confirmation
+@cindex confirming in the minibuffer
+  When @key{TAB} completion results in a nonexistent file name and you
+type @key{RET} immediately to visit it, Emacs asks for confirmation
+because it is quite possible that you expected completion to go
+further and give you an existing file's name.  Type @key{RET} to
+confirm and visit the nonexistent file.  The string @samp{[Confirm]}
+appears for a short time after the file name to indicate the need to
+confirm in this way.
+
+@vindex confirm-nonexistent-file-or-buffer
+  The variable @code{confirm-nonexistent-file-or-buffer} controls
+whether Emacs asks for confirmation before visiting a new file.  The
+default value, @code{after-completion}, gives the behavior we have
+just described.  If the value is @code{nil}, Emacs never asks for
+confirmation; for any other non-@code{nil} value, Emacs always asks
+for confirmation.  This variable also affects the
+@code{switch-to-buffer} command (@pxref{Select Buffer}).
 
 @kindex C-x C-v
 @findex find-alternate-file
@@ -1228,6 +1243,15 @@ this, it runs the program specified by
 @code{directory-free-space-program} with arguments
 @code{directory-free-space-args}.
 
+  The command @kbd{M-x delete-directory} prompts for a directory name
+using the minibuffer, and deletes the directory if it is empty.  If
+the directory is not empty, this signals an error.  On systems that
+have a ``Trash'' or ``Recycle Bin'' feature, you can make this command
+move the specified directory to the Trash or Recycle Bin, instead of
+deleting it outright, by changing the variable
+@code{delete-by-moving-to-trash} to @code{t}.  @xref{Misc File Ops},
+for more information about using the Trash.
+
 @node Comparing Files
 @section Comparing Files
 @cindex comparing files
@@ -1491,9 +1515,25 @@ as saving files; see @ref{Customize Save}.
 
 @findex delete-file
 @cindex deletion (of files)
+@vindex delete-by-moving-to-trash
   @kbd{M-x delete-file} deletes the specified file, like the @code{rm}
-command in the shell.  If you are deleting many files in one directory, it
-may be more convenient to use Dired (@pxref{Dired}).
+command in the shell.  If you are deleting many files in one
+directory, it may be more convenient to use Dired rather than
+@code{delete-file}.  @xref{Dired}.
+
+@cindex trash
+@cindex recycle bin
+  On some systems, there is a facility called the ``Trash'' (or
+``Recycle Bin''); ``deleting'' a file normally means moving it into
+the Trash, and you can bring the file back from the Trash if you later
+change your mind.  By default, Emacs does @emph{not} use the Trash for
+file deletion---when Emacs deletes a file, it is gone forever.  You
+can tell Emacs to use the Trash by changing the variable
+@code{delete-by-moving-to-trash} to @code{t}.  This applies to file
+deletion via @kbd{M-x delete-file}, as well as @kbd{M-x
+delete-directory} (@pxref{Directories}) and file deletion in Dired
+(@pxref{Dired Deletion}).  In addition, you can explicitly move a file
+into the Trash with the command @kbd{M-x move-file-to-trash}.
 
 @findex rename-file
   @kbd{M-x rename-file} reads two file names @var{old} and @var{new} using
@@ -1537,6 +1577,18 @@ a relative name as the target of the link.
 
   Not all systems support symbolic links; on systems that don't
 support them, this command is not defined.
+
+@findex set-file-modes
+@cindex file modes
+@cindex file permissions
+  @kbd{M-x set-file-modes} reads a file name followed by a @dfn{file
+mode}, and applies that file mode to the specified file.  File modes,
+also called @dfn{file permissions}, determine whether a file can be
+read, written to, or executed, and by whom.  This command reads file
+modes using the same symbolic or octal format accepted by the
+@command{chmod} command; for instance, @samp{u+x} means to add
+execution permission for the user who owns the file.  It has no effect
+on operating systems that do not support file modes.
 
 @node Compressed Files
 @section Accessing Compressed Files
@@ -1698,11 +1750,11 @@ is documented in the following.  Remote file access through the other
 methods is handled by the Tramp package, which has its own manual.
 @xref{Top, The Tramp Manual,, tramp, The Tramp Manual}.
 
-When the Ange-FTP package is used, Emacs logs in through FTP using your
-user name or the name @var{user}.  It may ask you for a password from
-time to time; this is used for logging in on @var{host}.  The form using
-@var{port} allows you to access servers running on a non-default TCP
-port.
+When the Ange-FTP package is used, Emacs logs in through FTP using
+your user name or the name @var{user}.  It may ask you for a password
+from time to time (@pxref{Passwords}); this is used for logging in on
+@var{host}.  The form using @var{port} allows you to access servers
+running on a non-default TCP port.
 
 @cindex backups for remote files
 @vindex ange-ftp-make-backup-files
@@ -1729,7 +1781,7 @@ are handled specially.  The variable
 the value of this variable is a string, then that string is used as
 the password; if non-@code{nil} (the default), then the value of
 @code{user-mail-address} is used; if @code{nil}, then Emacs prompts
-you for a password as usual.
+you for a password as usual (@pxref{Passwords}).
 
 @cindex firewall, and accessing remote files
 @cindex gateway, and remote file access with @code{ange-ftp}

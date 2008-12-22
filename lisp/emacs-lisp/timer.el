@@ -487,7 +487,7 @@ The argument should be a value previously returned by `with-timeout-suspend'."
   (dolist (elt timer-spec-list)
     (let ((timer (car elt))
 	  (delay (cadr elt)))
-      (timer-set-time timer (time-add (current-time) delay)) 
+      (timer-set-time timer (time-add (current-time) delay))
       (timer-activate timer))))
 
 (defun y-or-n-p-with-timeout (prompt seconds default-value)
@@ -512,7 +512,7 @@ If the user does not answer after SECONDS seconds, return DEFAULT-VALUE."
 	(cons "month" (* 30 24 60 60))	  ; Approximation
 	(cons "year" (* 365.25 24 60 60)) ; Approximation
 	)
-  "Alist mapping temporal words to durations in seconds")
+  "Alist mapping temporal words to durations in seconds.")
 
 (defun timer-duration (string)
   "Return number of seconds specified by STRING, or nil if parsing fails."
@@ -534,7 +534,7 @@ If the user does not answer after SECONDS seconds, return DEFAULT-VALUE."
 		start (length string)))))
     (if (= start (length string))
 	secs
-      (if (string-match "\\`[0-9.]+\\'" string)
+      (if (string-match-p "\\`[0-9.]+\\'" string)
 	  (string-to-number string)))))
 
 (provide 'timer)

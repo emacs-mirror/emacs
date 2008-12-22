@@ -50,7 +50,7 @@
 
 
 (defcustom terminal-escape-char ?\C-^
-  "*All characters except for this are passed verbatim through the
+  "All characters except for this are passed verbatim through the
 terminal-emulator.  This character acts as a prefix for commands
 to the emulator program itself.  Type this character twice to send
 it through the emulator.  Type ? after typing it for a list of
@@ -60,7 +60,7 @@ This variable is local to each terminal-emulator buffer."
   :group 'terminal)
 
 (defcustom terminal-scrolling t ;;>> Setting this to t sort-of defeats my whole aim in writing this package...
-  "*If non-nil, the terminal-emulator will losingly `scroll' when output occurs
+  "If non-nil, the terminal-emulator will losingly `scroll' when output occurs
 past the bottom of the screen.  If nil, output will win and `wrap' to the top
 of the screen.
 This variable is local to each terminal-emulator buffer."
@@ -68,7 +68,7 @@ This variable is local to each terminal-emulator buffer."
   :group 'terminal)
 
 (defcustom terminal-more-processing t
-  "*If non-nil, do more-processing.
+  "If non-nil, do more-processing.
 This variable is local to each terminal-emulator buffer."
   :type 'boolean
   :group 'terminal)
@@ -77,7 +77,7 @@ This variable is local to each terminal-emulator buffer."
 ;; and expects to actually see anything, you should probably set this to
 ;; around 400
 (defcustom terminal-redisplay-interval 5000
-  "*Maximum number of characters which will be processed by the
+  "Maximum number of characters which will be processed by the
 terminal-emulator before a screen redisplay is forced.
 Set this to a large value for greater throughput,
 set it smaller for more frequent updates but overall slower
@@ -1062,7 +1062,7 @@ move to start of new line, clear to end of line."
 ;; and it's apparently not needed in BSD.
 
 (defcustom explicit-shell-file-name nil
-  "*If non-nil, is file name to use for explicitly requested inferior shell."
+  "If non-nil, is file name to use for explicitly requested inferior shell."
   :type '(choice (const :tag "None" nil)
 		 file)
   :group 'terminal)

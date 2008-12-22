@@ -206,7 +206,7 @@
       (msb-menu-bar-update-buffers t)))
 
 (defcustom msb-menu-cond msb--very-many-menus
-  "*List of criteria for splitting the mouse buffer menu.
+  "List of criteria for splitting the mouse buffer menu.
 The elements in the list should be of this type:
  (CONDITION MENU-SORT-KEY MENU-TITLE ITEM-HANDLING-FN ITEM-SORT-FN).
 
@@ -264,7 +264,7 @@ error every time you do \\[msb]."
   :version "20.3")
 
 (defcustom msb-separator-diff 100
-  "*Non-nil means use separators.
+  "Non-nil means use separators.
 The separators will appear between all menus that have a sorting key
 that differs by this value or more."
   :type '(choice integer (const nil))
@@ -275,7 +275,7 @@ that differs by this value or more."
   "*The sort key for files sorted by directory.")
 
 (defcustom msb-max-menu-items 15
-  "*The maximum number of items in a menu.
+  "The maximum number of items in a menu.
 If this variable is set to 15 for instance, then the submenu will be
 split up in minor parts, 15 items each.  A value of nil means no limit."
   :type '(choice integer (const nil))
@@ -283,7 +283,7 @@ split up in minor parts, 15 items each.  A value of nil means no limit."
   :group 'msb)
 
 (defcustom msb-max-file-menu-items 10
-  "*The maximum number of items from different directories.
+  "The maximum number of items from different directories.
 
 When the menu is of type `file by directory', this is the maximum
 number of buffers that are clumped together from different
@@ -298,20 +298,20 @@ If the value is not a number, then the value 10 is used."
   :group 'msb)
 
 (defcustom msb-most-recently-used-sort-key -1010
-  "*Where should the menu with the most recently used buffers be placed?"
+  "Where should the menu with the most recently used buffers be placed?"
   :type 'integer
   :set 'msb-custom-set
   :group 'msb)
 
 (defcustom msb-display-most-recently-used 15
-  "*How many buffers should be in the most-recently-used menu.
+  "How many buffers should be in the most-recently-used menu.
 No buffers at all if less than 1 or nil (or any non-number)."
   :type 'integer
   :set 'msb-custom-set
   :group 'msb)
 
 (defcustom msb-most-recently-used-title "Most recently used (%d)"
-  "*The title for the most-recently-used menu."
+  "The title for the most-recently-used menu."
   :type 'string
   :set 'msb-custom-set
   :group 'msb)
@@ -320,7 +320,7 @@ No buffers at all if less than 1 or nil (or any non-number)."
   "*Function that specifies how many pixels to shift the top menu leftwards.")
 
 (defcustom msb-display-invisible-buffers-p nil
-  "*Show invisible buffers or not.
+  "Show invisible buffers or not.
 Non-nil means that the buffer menu should include buffers that have
 names that starts with a space character."
   :type 'boolean
@@ -342,7 +342,7 @@ nil as ITEM-HANDLING-FUNCTION.  See `msb-menu-cond' for more
 information.")
 
 (defcustom msb-item-sort-function 'msb-sort-by-name
-  "*The order of items in a buffer menu.
+  "The order of items in a buffer menu.
 
 The default function to call for handling the order of items in a menu
 item.  This function is called like a sort function.  The items look
@@ -359,7 +359,7 @@ Set this to nil or t if you don't want any sorting (faster)."
   :group 'msb)
 
 (defcustom msb-files-by-directory nil
-  "*Non-nil means that files should be sorted by directory.
+  "Non-nil means that files should be sorted by directory.
 This is instead of the groups in `msb-menu-cond'."
   :type 'boolean
   :set 'msb-custom-set

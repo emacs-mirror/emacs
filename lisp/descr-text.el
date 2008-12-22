@@ -180,13 +180,14 @@ otherwise."
 	(describe-property-list properties)))))
 
 (defcustom describe-char-unidata-list
-  '(name general-category decomposition old-name)
+  '(name old-name general-category decomposition)
   "List of Unicode-based character property names shown by `describe-char'."
   :group 'mule
   :version "23.1"
   :type '(choice (const :tag "All properties" t)
           (set
            (const :tag "Unicode Name" name)
+           (const :tag "Unicode old name" old-name)
            (const :tag "Unicode general category " general-category)
            (const :tag "Unicode canonical combining class"
                   canonical-combining-class)
@@ -196,7 +197,6 @@ otherwise."
            (const :tag "Unicode digit value" digit-value)
            (const :tag "Unicode numeric value" numeric-value)
            (const :tag "Unicode mirrored" mirrored)
-           (const :tag "Unicode old name" old-name)
            (const :tag "Unicode ISO 10646 comment" iso-10646-comment)
            (const :tag "Unicode simple uppercase mapping" uppercase)
            (const :tag "Unicode simple lowercase mapping" lowercase)

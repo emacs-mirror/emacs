@@ -39,40 +39,20 @@ unless you explicitly change the size, or Emacs has no other choice.")
 (make-variable-buffer-local 'window-size-fixed)
 
 (defmacro save-selected-window (&rest body)
-  "Execute BODY, then select the window that was selected before BODY.
+  "Execute BODY, then select the previously selected window.
 The value returned is the value of the last form in BODY.
 
+This macro saves and restores the selected window, as well as the
+selected window in each frame.  If the previously selected window
+is no longer live, then whatever window is selected at the end of
+BODY remains selected.  If the previously selected window of some
+frame is no longer live at the end of BODY, that frame's selected
+window is left alone.
+
 This macro saves and restores the current buffer, since otherwise
-its normal operation could potentially make a different
-buffer current.  It does not alter the buffer list ordering.
-
-This macro saves and restores the selected window, as well as
-the selected window in each frame.  If the previously selected
-window of some frame is no longer live at the end of BODY, that
-frame's selected window is left alone.  If the selected window is
-no longer live, then whatever window is selected at the end of
-BODY remains selected."
-  `(let ((save-selected-window-window (selected-window))
-	 ;; It is necessary to save all of these, because calling
-	 ;; select-window changes frame-selected-window for whatever
-	 ;; frame that window is in.
-	 (save-selected-window-alist
-	  (mapcar (lambda (frame) (cons frame (frame-selected-window frame)))
-		  (frame-list))))
-     (save-current-buffer
-       (unwind-protect
-	   (progn ,@body)
-	 (dolist (elt save-selected-window-alist)
-	   (and (frame-live-p (car elt))
-		(window-live-p (cdr elt))
-		(set-frame-selected-window (car elt) (cdr elt))))
-	 (if (window-live-p save-selected-window-window)
-	     (select-window save-selected-window-window))))))
-
-(defmacro save-selected-window-norecord (&rest body)
-  "Execute BODY, then select, but do not record previously selected window.
-This macro is like `save-selected-window' but changes neither the
-order of recently selected windows nor the buffer list."
+its normal operation could make a different buffer current.  The
+order of recently selected windows and the buffer list ordering
+are not altered by this macro (unless they are altered in BODY)."
   `(let ((save-selected-window-window (selected-window))
 	 ;; It is necessary to save all of these, because calling
 	 ;; select-window changes frame-selected-window for whatever
@@ -192,9 +172,9 @@ windows nor the buffer list."
   (when (window-minibuffer-p (selected-window))
     (setq minibuf t))
   ;; Make sure to not mess up the order of recently selected
-  ;; windows.  Use `save-selected-window-norecord' and `select-window'
+  ;; windows.  Use `save-selected-window' and `select-window'
   ;; with second argument non-nil for this purpose.
-  (save-selected-window-norecord
+  (save-selected-window
     (when (framep all-frames)
       (select-window (frame-first-window all-frames) 'norecord))
     (let* (walk-windows-already-seen
@@ -261,15 +241,6 @@ meaning of this argument."
      (walk-windows (lambda (w) (setq count (+ count 1)))
 		   minibuf)
      count))
-
-(defun window-safely-shrinkable-p (&optional window)
-  "Return t if WINDOW can be shrunk without shrinking other windows.
-WINDOW defaults to the selected window."
-  (with-selected-window (or window (selected-window))
-    (let ((edges (window-edges)))
-      (or (= (nth 2 edges) (nth 2 (window-edges (previous-window))))
-	  (= (nth 0 edges) (nth 0 (window-edges (next-window))))))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; `balance-windows' subroutines using `window-tree'
@@ -898,9 +869,15 @@ by `split-window' (or `split-window-preferred-function')."
       ;; `frame-root-window' may be an internal window which is considered
       ;; "dead" by `window-live-p'.  Hence if `window' is not live we
       ;; implicitly know that `frame' has a visible window we can use.
-      (when (or (not (window-live-p window))
-		(and (not (window-minibuffer-p window))
-		     (not (window-dedicated-p window))))
+      (unless (and (window-live-p window)
+                   (or (window-minibuffer-p window)
+                       ;; If the window is soft-dedicated, the frame is usable.
+                       ;; Actually, even if the window is really dedicated,
+                       ;; the frame is still usable by splitting it.
+                       ;; At least Emacs-22 allowed it, and it is desirable
+                       ;; when displaying same-frame windows.
+                       nil ; (eq t (window-dedicated-p window))
+                       ))
 	frame))))
 
 (defcustom even-window-heights t
@@ -1061,14 +1038,31 @@ consider all visible or iconified frames."
 		     (window--try-to-split-window
 		      (get-lru-window frame-to-use t))))
 	   (window--display-buffer-2 buffer window-to-use)))
-     ((setq window-to-use
-	    ;; Reuse an existing window.
-	    (or (get-lru-window frame-to-use)
-		(get-buffer-window buffer 'visible)
-		(get-largest-window 'visible nil)
-		(get-buffer-window buffer 0)
-		(get-largest-window 0 nil)
-		(frame-selected-window (funcall pop-up-frame-function))))
+     ((let ((window-to-undedicate
+	     ;; When NOT-THIS-WINDOW is non-nil, temporarily dedicate
+	     ;; the selected window to its buffer, to avoid that some of
+	     ;; the `get-' routines below choose it.  (Bug#1415)
+	     (and not-this-window (not (window-dedicated-p))
+		  (set-window-dedicated-p (selected-window) t)
+		  (selected-window))))
+	(unwind-protect
+	    (setq window-to-use
+		  ;; Reuse an existing window.
+		  (or (get-lru-window frame-to-use)
+		      (let ((window (get-buffer-window buffer 'visible)))
+			(unless (and not-this-window
+				     (eq window (selected-window)))
+			  window))
+		      (get-largest-window 'visible)
+		      (let ((window (get-buffer-window buffer 0)))
+			(unless (and not-this-window
+				     (eq window (selected-window)))
+			  window))
+		      (get-largest-window 0)
+		      (frame-selected-window (funcall pop-up-frame-function))))
+	  (when (window-live-p window-to-undedicate)
+	    ;; Restore dedicated status of selected window.
+	    (set-window-dedicated-p window-to-undedicate nil))))
       (window--even-window-heights window-to-use)
       (window--display-buffer-2 buffer window-to-use)))))
 
@@ -1216,7 +1210,7 @@ The selected window remains selected.  Return the new window."
 
 
 (defun set-window-text-height (window height)
-  "Sets the height in lines of the text display area of WINDOW to HEIGHT.
+  "Set the height in lines of the text display area of WINDOW to HEIGHT.
 HEIGHT doesn't include the mode line or header line, if any, or
 any partial-height lines in the text display area.
 
@@ -1232,7 +1226,7 @@ where some error may be present."
       ;; the modeline.
       (let ((window-min-height (min 2 height))) ; One text line plus a modeline.
 	(if (and window (not (eq window (selected-window))))
-	    (save-selected-window-norecord
+	    (save-selected-window
 	      (select-window window 'norecord)
 	      (enlarge-window delta))
 	  (enlarge-window delta))))))
@@ -1302,84 +1296,112 @@ in some window."
   "Adjust height of WINDOW to display its buffer's contents exactly.
 WINDOW defaults to the selected window.
 Optional argument MAX-HEIGHT specifies the maximum height of the
-window and defaults to the height of WINDOW's frame.
+window and defaults to the maximum permissible height of a window
+on WINDOW's frame.
 Optional argument MIN-HEIGHT specifies the minimum height of the
 window and defaults to `window-min-height'.
 Both, MAX-HEIGHT and MIN-HEIGHT are specified in lines and
 include the mode line and header line, if any.
-Always return nil."
+
+Return non-nil if height was orderly adjusted, nil otherwise.
+
+Caution: This function can delete WINDOW and/or other windows
+when their height shrinks to less than MIN-HEIGHT."
   (interactive)
+  ;; Do all the work in WINDOW and its buffer and restore the selected
+  ;; window and the current buffer when we're done.
+  (let ((old-buffer (current-buffer))
+	value)
+    (with-selected-window (or window (setq window (selected-window)))
+      (set-buffer (window-buffer))
+      ;; Use `condition-case' to handle any fixed-size windows and other
+      ;; pitfalls nearby.
+      (condition-case nil
+	  (let* (;; MIN-HEIGHT must not be less than 1 and defaults to
+		 ;; `window-min-height'.
+		 (min-height (max (or min-height window-min-height) 1))
+		 (max-window-height
+		  ;; Maximum height of any window on this frame.
+		  (min (window-height (frame-root-window)) (frame-height)))
+		 ;; MAX-HEIGHT must not be larger than max-window-height and
+		 ;; defaults to max-window-height.
+		 (max-height
+		  (min (or max-height max-window-height) max-window-height))
+		 (desired-height
+		  ;; The height necessary to show all of WINDOW's buffer,
+		  ;; constrained by MIN-HEIGHT and MAX-HEIGHT.
+		  (max
+		   (min
+		    ;; For an empty buffer `count-screen-lines' returns zero.
+		    ;; Even in that case we need one line for the cursor.
+		    (+ (max (count-screen-lines) 1)
+		       ;; For non-minibuffers count the mode line, if any.
+		       (if (and (not (window-minibuffer-p)) mode-line-format)
+			   1 0)
+		       ;; Count the header line, if any.
+		       (if header-line-format 1 0))
+		    max-height)
+		   min-height))
+		 (delta
+		  ;; How much the window height has to change.
+		  (if (= (window-height) (window-height (frame-root-window)))
+		      ;; Don't try to resize a full-height window.
+		      0
+		    (- desired-height (window-height))))
+		 ;; Do something reasonable so `enlarge-window' can make
+		 ;; windows as small as MIN-HEIGHT.
+		 (window-min-height (min min-height window-min-height)))
+	    ;; Don't try to redisplay with the cursor at the end on its
+	    ;; own line--that would force a scroll and spoil things.
+	    (when (and (eobp) (bolp) (not (bobp)))
+	      (set-window-point window (1- (window-point))))
+	    ;; Adjust WINDOW's height to the nominally correct one
+	    ;; (which may actually be slightly off because of variable
+	    ;; height text, etc).
+	    (unless (zerop delta)
+	      (enlarge-window delta))
+	    ;; `enlarge-window' might have deleted WINDOW, so make sure
+	    ;; WINDOW's still alive for the remainder of this.
+	    ;; Note: Deleting WINDOW is clearly counter-intuitive in
+	    ;; this context, but we can't do much about it given the
+	    ;; current semantics of `enlarge-window'.
+	    (when (window-live-p window)
+	      ;; Check if the last line is surely fully visible.  If
+	      ;; not, enlarge the window.
+	      (let ((end (save-excursion
+			   (goto-char (point-max))
+			   (when (and (bolp) (not (bobp)))
+			     ;; Don't include final newline.
+			     (backward-char 1))
+			   (when truncate-lines
+			     ;; If line-wrapping is turned off, test the
+			     ;; beginning of the last line for
+			     ;; visibility instead of the end, as the
+			     ;; end of the line could be invisible by
+			     ;; virtue of extending past the edge of the
+			     ;; window.
+			     (forward-line 0))
+			   (point))))
+		(set-window-vscroll window 0)
+		(while (and (< desired-height max-height)
+			    (= desired-height (window-height))
+			    (not (pos-visible-in-window-p end)))
+		  (enlarge-window 1)
+		  (setq desired-height (1+ desired-height))))
+	      ;; Return non-nil only if nothing "bad" happened.
+	      (setq value t)))
+	(error nil)))
+    (when (buffer-live-p old-buffer)
+      (set-buffer old-buffer))
+    value))
 
-  (when (null window)
-    (setq window (selected-window)))
-  (when (null max-height)
-    (setq max-height (frame-height (window-frame window))))
-
-  (let* ((buf
-	  ;; Buffer that is displayed in WINDOW
-	  (window-buffer window))
-	 (window-height
-	  ;; The current height of WINDOW
-	  (window-height window))
-	 (desired-height
-	  ;; The height necessary to show the buffer displayed by WINDOW
-	  ;; (`count-screen-lines' always works on the current buffer).
-	  (with-current-buffer buf
-	    (+ (count-screen-lines)
-	       ;; If the buffer is empty, (count-screen-lines) is
-	       ;; zero.  But, even in that case, we need one text line
-	       ;; for cursor.
-	       (if (= (point-min) (point-max))
-		   1 0)
-	       ;; For non-minibuffers, count the mode-line, if any
-	       (if (and (not (window-minibuffer-p window))
-			mode-line-format)
-		   1 0)
-	       ;; Count the header-line, if any
-	       (if header-line-format 1 0))))
-	 (delta
-	  ;; Calculate how much the window height has to change to show
-	  ;; desired-height lines, constrained by MIN-HEIGHT and MAX-HEIGHT.
-	  (- (max (min desired-height max-height)
-		  (or min-height window-min-height))
-	     window-height)))
-
-    ;; Don't try to redisplay with the cursor at the end
-    ;; on its own line--that would force a scroll and spoil things.
-    (when (with-current-buffer buf
-	    (and (eobp) (bolp) (not (bobp))))
-      (set-window-point window (1- (window-point window))))
-
-    (save-selected-window-norecord
-      (select-window window 'norecord)
-
-      ;; Adjust WINDOW to the nominally correct size (which may actually
-      ;; be slightly off because of variable height text, etc).
-      (unless (zerop delta)
-	(enlarge-window delta))
-
-      ;; Check if the last line is surely fully visible.  If not,
-      ;; enlarge the window.
-      (let ((end (with-current-buffer buf
-		   (save-excursion
-		     (goto-char (point-max))
-		     (when (and (bolp) (not (bobp)))
-		       ;; Don't include final newline
-		       (backward-char 1))
-		     (when truncate-lines
-		       ;; If line-wrapping is turned off, test the
-		       ;; beginning of the last line for visibility
-		       ;; instead of the end, as the end of the line
-		       ;; could be invisible by virtue of extending past
-		       ;; the edge of the window.
-		       (forward-line 0))
-		     (point)))))
-	(set-window-vscroll window 0)
-	(while (and (< desired-height max-height)
-		    (= desired-height (window-height window))
-		    (not (pos-visible-in-window-p end window)))
-	  (enlarge-window 1)
-	  (setq desired-height (1+ desired-height)))))))
+(defun window-safely-shrinkable-p (&optional window)
+  "Return t if WINDOW can be shrunk without shrinking other windows.
+WINDOW defaults to the selected window."
+  (with-selected-window (or window (selected-window))
+    (let ((edges (window-edges)))
+      (or (= (nth 2 edges) (nth 2 (window-edges (previous-window))))
+	  (= (nth 0 edges) (nth 0 (window-edges (next-window))))))))
 
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink height of WINDOW if its buffer doesn't need so many lines.
@@ -1439,29 +1461,35 @@ Return non-nil if the window was shrunk, nil otherwise."
 	(error nil)))))
 
 (defun quit-window (&optional kill window)
-  "Bury or kill (with KILL non-nil) the buffer displayed in WINDOW.
-KILL defaults to nil, WINDOW to the selected window.  If WINDOW
-is dedicated or a minibuffer window, delete it and, if it's the
-only window on its frame, delete its frame as well provided there
-are other frames left.  Otherwise, display some other buffer in
-the window."
-  (interactive)
-  (let* ((window (or window (selected-window)))
-	 (buffer (window-buffer window)))
-    (if (or (window-minibuffer-p window) (window-dedicated-p window))
-	(if (eq window (frame-root-window (window-frame window)))
-	    ;; If this is the only window on its frame, try to delete the
-	    ;; frame (`delete-windows-on' knows how to do that).
-	    (delete-windows-on buffer (selected-frame))
-	  ;; Other windows are left, delete this window.  But don't
-	  ;; throw an error if that fails for some reason.
-	  (condition-case nil
-	      (delete-window window)
-	    (error nil)))
-      ;; The window is neither dedicated nor a minibuffer window,
-      ;; display another buffer in it.
-      (with-selected-window window
-	(switch-to-buffer (other-buffer))))
+  "Quit WINDOW and bury its buffer.
+With a prefix argument, kill the buffer instead.  WINDOW defaults
+to the selected window.
+
+If WINDOW is non-nil, dedicated, or a minibuffer window, delete
+it and, if it's alone on its frame, its frame too.  Otherwise, or
+if deleting WINDOW fails in any of the preceding cases, display
+another buffer in WINDOW using `switch-to-buffer'.
+
+Optional argument KILL non-nil means kill WINDOW's buffer.
+Otherwise, bury WINDOW's buffer, see `bury-buffer'."
+  (interactive "P")
+  (let ((buffer (window-buffer window)))
+    (if (or window
+	    (window-minibuffer-p window)
+	    (window-dedicated-p window))
+	;; WINDOW is either non-nil, a minibuffer window, or dedicated;
+	;; try to delete it.
+	(let* ((window (or window (selected-window)))
+	       (frame (window-frame window)))
+	  (if (eq window (frame-root-window frame))
+	      ;; WINDOW is alone on its frame.  `delete-windows-on'
+	      ;; knows how to handle that case.
+	      (delete-windows-on buffer frame)
+	    ;; There are other windows on its frame, delete WINDOW.
+	    (delete-window window)))
+      ;; Otherwise, switch to another buffer in the selected window.
+      (switch-to-buffer nil))
+
     ;; Deal with the buffer.
     (if kill
 	(kill-buffer buffer)

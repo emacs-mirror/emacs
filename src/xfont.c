@@ -210,6 +210,52 @@ compare_font_names (const void *name1, const void *name2)
 		      *(const unsigned char **) name2);
 }
 
+/* Decode XLFD as iso-8859-1 into OUTPUT, and return the byte length
+   of the decoding result.  LEN is the byte length of XLFD, or -1 if
+   XLFD is NULL terminated.  The caller must assure that OUTPUT is at
+   least twice (plus 1) as large as XLFD.  */
+
+static int
+xfont_decode_coding_xlfd (char *xlfd, int len, char *output)
+{
+  char *p0 = xlfd, *p1 = output;
+  int c;
+  
+  while (*p0)
+    {
+      c = *(unsigned char *) p0++;
+      p1 += CHAR_STRING (c, p1);
+      if (--len == 0)
+	break;
+    }
+  *p1 = 0;
+  return (p1 - output);
+}
+
+/* Encode XLFD from UTF-8 to iso-8859-1 destructively, and return the
+   resulting byte length.  If XLFD contains unencodable character,
+   return -1.  */
+
+static int
+xfont_encode_coding_xlfd (char *xlfd)
+{
+  const unsigned char *p0 = (unsigned char *) xlfd;
+  unsigned char *p1 = (unsigned char *) xlfd;
+  int len = 0;
+  
+  while (*p0)
+    {
+      int c = STRING_CHAR_ADVANCE (p0);
+
+      if (c >= 0x100)
+	return -1;
+      *p1++ = c;
+      len++;
+    }
+  *p1 = 0;
+  return len;
+}
+
 static Lisp_Object xfont_list_pattern P_ ((Lisp_Object, Display *, char *));
 
 static Lisp_Object
@@ -221,6 +267,8 @@ xfont_list_pattern (frame, display, pattern)
   Lisp_Object list = Qnil;
   int i, limit, num_fonts;
   char **names;
+  /* Large enough to decode the longest XLFD (255 bytes). */
+  char buf[512];
 
   BLOCK_INPUT;
   x_catch_errors (display);
@@ -253,14 +301,15 @@ xfont_list_pattern (frame, display, pattern)
 	{
 	  Lisp_Object entity;
 	  int result;
+	  char *p;
 
 	  if (i > 0 && xstrcasecmp (indices[i - 1], indices[i]) == 0)
 	    continue;
 
 	  entity = font_make_entity ();
 	  ASET (entity, FONT_TYPE_INDEX, Qx);
-
-	  result = font_parse_xlfd (indices[i], entity);
+	  xfont_decode_coding_xlfd (indices[i], -1, buf);
+	  result = font_parse_xlfd (buf, entity);
 	  if (result < 0)
 	    {
 	      /* This may be an alias name.  Try to get the full XLFD name
@@ -279,7 +328,10 @@ xfont_list_pattern (frame, display, pattern)
 		     Ver.3.7 is running, XGetAtomName will return null
 		     string.  We must avoid such a name.  */
 		  if (len > 0)
-		    result = font_parse_xlfd (name, entity);
+		    {
+		      xfont_decode_coding_xlfd (indices[i], -1, buf);
+		      result = font_parse_xlfd (buf, entity);
+		    }
 		  XFree (name);
 		}
 	      XFreeFont (display, font);
@@ -309,7 +361,8 @@ xfont_list (frame, spec)
   Display *display = FRAME_X_DISPLAY_INFO (f)->display;
   Lisp_Object registry, list, val, extra;
   int len;
-  char name[256];
+  /* Large enough to contain the longest XLFD (255 bytes) in UTF-8.  */
+  char name[512];
   
   extra = AREF (spec, FONT_EXTRA_INDEX);
   if (CONSP (extra))
@@ -326,10 +379,10 @@ xfont_list (frame, spec)
     }
 
   registry = AREF (spec, FONT_REGISTRY_INDEX);
-  len = font_unparse_xlfd (spec, 0, name, 256);
-  ASET (spec, FONT_REGISTRY_INDEX, registry);
-  if (len < 0)
+  len = font_unparse_xlfd (spec, 0, name, 512);
+  if (len < 0 || (len = xfont_encode_coding_xlfd (name)) < 0)
     return Qnil;
+  ASET (spec, FONT_REGISTRY_INDEX, registry);
   list = xfont_list_pattern (frame, display, name);
   if (NILP (list) && NILP (registry))
     {
@@ -369,8 +422,13 @@ xfont_list (frame, spec)
     {
       /* Try alias.  */
       val = assq_no_quit (QCname, AREF (spec, FONT_EXTRA_INDEX));
-      if (CONSP (val) && STRINGP (XCDR (val)))
-	list = xfont_list_pattern (frame, display, (char *) SDATA (XCDR (val)));
+      if (CONSP (val) && STRINGP (XCDR (val)) && SBYTES (XCDR (val)) < 512)
+	{
+	  bcopy (SDATA (XCDR (val)), name, SBYTES (XCDR (val)) + 1);
+	  if (xfont_encode_coding_xlfd (name) < 0)
+	    return Qnil;
+	  list = xfont_list_pattern (frame, display, name);
+	}
     }
 
   return list;
@@ -383,7 +441,7 @@ xfont_match (frame, spec)
   FRAME_PTR f = XFRAME (frame);
   Display *display = FRAME_X_DISPLAY_INFO (f)->display;
   Lisp_Object extra, val, entity;
-  char buf[256], *name;
+  char name[512];
   XFontStruct *xfont;
   unsigned long value;
 
@@ -391,12 +449,15 @@ xfont_match (frame, spec)
   val = assq_no_quit (QCname, extra);
   if (! CONSP (val) || ! STRINGP (XCDR (val)))
     {
-      if (font_unparse_xlfd (spec, 0, buf, 256) < 0)
+      if (font_unparse_xlfd (spec, 0, name, 512) < 0)
 	return Qnil;
-      name = buf;
     }
+  else if (SBYTES (XCDR (val)) < 512)
+    bcopy (SDATA (XCDR (val)), name, SBYTES (XCDR (val)) + 1);
   else
-    name = (char *) SDATA (XCDR (val));
+    return Qnil;
+  if (xfont_encode_coding_xlfd (name) < 0)
+    return Qnil;
 
   BLOCK_INPUT;
   entity = Qnil;
@@ -406,9 +467,10 @@ xfont_match (frame, spec)
       if (XGetFontProperty (xfont, XA_FONT, &value))
 	{
 	  int len;
+	  char *s;
 
-	  name = (char *) XGetAtomName (display, (Atom) value);
-	  len = strlen (name);
+	  s = (char *) XGetAtomName (display, (Atom) value);
+	  len = strlen (s);
 
 	  /* If DXPC (a Differential X Protocol Compressor)
 	     Ver.3.7 is running, XGetAtomName will return null
@@ -417,10 +479,11 @@ xfont_match (frame, spec)
 	    {
 	      entity = font_make_entity ();
 	      ASET (entity, FONT_TYPE_INDEX, Qx);
+	      xfont_decode_coding_xlfd (s, -1, name);
 	      if (font_parse_xlfd (name, entity) < 0)
 		entity = Qnil;
 	    }
-	  XFree (name);
+	  XFree (s);
 	}
       XFreeFont (display, xfont);
     }
@@ -457,8 +520,9 @@ xfont_list_family (frame)
   list = Qnil;
   for (i = 0, last_len = 0; i < num_fonts; i++)
     {
-      char *p0 = names[i], *p1;
+      char *p0 = names[i], *p1, buf[512];
       Lisp_Object family;
+      int decoded_len;
 
       p0++;			/* skip the leading '-' */
       while (*p0 && *p0 != '-') p0++; /* skip foundry */
@@ -473,7 +537,9 @@ xfont_list_family (frame)
 	continue;
       last_len = p1 - p0;
       last_family = p0;
-      family = font_intern_prop (p0, last_len, 1);
+
+      decoded_len = xfont_decode_coding_xlfd (p0, last_len, buf);
+      family = font_intern_prop (p0, decoded_len, 1);
       if (NILP (assq_no_quit (family, list)))
 	list = Fcons (family, list);
     }
@@ -495,7 +561,7 @@ xfont_open (f, entity, pixel_size)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Display *display = dpyinfo->display;
-  char name[256];
+  char name[512];
   int len;
   unsigned long value;
   Lisp_Object registry;
@@ -523,8 +589,8 @@ xfont_open (f, entity, pixel_size)
       else
 	pixel_size = 14;
     }
-  len = font_unparse_xlfd (entity, pixel_size, name, 256);
-  if (len <= 0)
+  len = font_unparse_xlfd (entity, pixel_size, name, 512);
+  if (len <= 0 || (len = xfont_encode_coding_xlfd (name)) < 0)
     {
       font_add_log ("  x:unparse failed", entity, Qnil);
       return Qnil;
@@ -554,8 +620,8 @@ xfont_open (f, entity, pixel_size)
 
       temp = Fcopy_font_spec (entity);
       ASET (temp, FONT_DPI_INDEX, Qnil);
-      len = font_unparse_xlfd (temp, pixel_size, name, 256);
-      if (len <= 0)
+      len = font_unparse_xlfd (temp, pixel_size, name, 512);
+      if (len <= 0 || (len = xfont_encode_coding_xlfd (name)) < 0)
 	{
 	  font_add_log ("  x:unparse failed", temp, Qnil);
 	  return Qnil;
@@ -590,7 +656,10 @@ xfont_open (f, entity, pixel_size)
 	}
 
       if (dashes >= 13)
-	fullname = Fdowncase (make_unibyte_string (p0, p - p0));
+	{
+	  len = xfont_decode_coding_xlfd (p0, -1, name);
+	  fullname = Fdowncase (make_string (name, len));
+	}
       XFree (p0);
     }
   x_uncatch_errors ();
@@ -606,11 +675,17 @@ xfont_open (f, entity, pixel_size)
 				  entity, pixel_size);
   ASET (font_object, FONT_TYPE_INDEX, Qx);
   if (STRINGP (fullname))
-    font_parse_xlfd ((char *) SDATA (fullname), font_object);
-  if (STRINGP (fullname))
-    ASET (font_object, FONT_NAME_INDEX, fullname);
+    {
+      font_parse_xlfd ((char *) SDATA (fullname), font_object);
+      ASET (font_object, FONT_NAME_INDEX, fullname);
+    }
   else
-    ASET (font_object, FONT_NAME_INDEX, make_unibyte_string (name, len));
+    {
+      char buf[512];
+
+      len = xfont_decode_coding_xlfd (name, -1, buf);
+      ASET (font_object, FONT_NAME_INDEX, make_string (buf, len));
+    }
   ASET (font_object, FONT_FULLNAME_INDEX, fullname);
   ASET (font_object, FONT_FILE_INDEX, Qnil);
   ASET (font_object, FONT_FORMAT_INDEX, Qx);

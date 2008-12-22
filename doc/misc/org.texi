@@ -3,8 +3,8 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.10c
-@set DATE October 2008
+@set VERSION 6.16
+@set DATE December 2008
 
 @dircategory Emacs
 @direntry
@@ -39,7 +39,7 @@ Copyright @copyright{} 2004, 2005, 2006, 2007, 2008 Free Software Foundation
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.2 or
+under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
 and with the Back-Cover Texts as in (a) below.  A copy of the license
@@ -219,6 +219,7 @@ Dates and Times
 * Deadlines and scheduling::    Planning your work
 * Clocking work time::          Tracking how long you spend on a task
 * Effort estimates::            Planning work effort in advance
+* Relative timer::              Notes with a running timer
 
 Creating timestamps
 
@@ -306,6 +307,7 @@ Markup rules
 * Literal examples::            Source code and other examples
 * Include files::               Include the contents of a file during export
 * Tables exported::             Tables are exported richly
+* Inlined images::              How to inline images during export
 * Footnotes::                   Numbers like [1]
 * Emphasis and monospace::      To bold or not to bold
 * TeX macros and LaTeX fragments::  Create special, rich export.
@@ -317,15 +319,17 @@ HTML export
 * HTML Export commands::        How to invoke HTML export
 * Quoting HTML tags::           Using direct HTML in Org mode
 * Links::                       Transformation of links for HTML
-* Images::                      How to include images
+* Images in HTML export::       
 * CSS support::                 Changing the appearance of the output
 * Javascript support::          Info and Folding in a web browser
 
 LaTeX and PDF export
 
-* LaTeX/PDF export commands::   
+* LaTeX/PDF export commands::   Which key invode which commands
 * Quoting LaTeX code::          Incorporating literal LaTeX code
 * Sectioning structure::        Changing sectioning in LaTeX output
+* Tables in LaTeX export::      Options for exporting tables to LaTeX
+* Images in LaTeX export::      How to insert figures into LaTeX output
 
 Publishing
 
@@ -575,6 +579,15 @@ MY PROJECTS    -*- mode: org; -*-
 @noindent which will select Org mode for this buffer no matter what
 the file's name is.  See also the variable
 @code{org-insert-mode-line-in-empty-file}.
+
+Many commands in Org work on the region is the region is active.  To make use
+of this, you need to have @code{transient-mark-mode} (@code{zmacs-regions} in
+XEmacs) turned on.  In Emacs 23 this is the default, in Emacs 22 you need to
+do this yourself with
+
+@lisp
+(transient-mark-mode 1)
+@end lisp
 
 @node Feedback, Conventions, Activation, Introduction
 @section Feedback
@@ -868,6 +881,7 @@ u            @r{One level up.}
 0-9          @r{Digit argument.}
 q            @r{Quit}
 @end example
+See also the variable@code{org-goto-interface}.
 @end table
 
 @node Structure editing, Archiving, Motion, Document Structure
@@ -944,9 +958,20 @@ Yank subtree from kill ring.  This does modify the level of the subtree to
 make sure the tree fits in nicely at the yank position.  The yank level can
 also be specified with a numeric prefix argument, or by yanking after a
 headline marker like @samp{****}.
+@kindex C-y
+@item C-y
+Depending on the variables @code{org-yank-adjusted-subtrees} and
+@code{org-yank-folded-subtrees}, Org's internal @code{yank} command will
+paste subtrees folded and in a clever way, using the same command as @kbd{C-c
+C-x C-y}.  With the default settings, level adjustment will take place and
+yanked trees will be folded unless doing so would swallow text previously
+visible.  Any prefix argument to this command will force a normal @code{yank}
+to be executed, with the prefix passed along.  A good way to force a normal
+yank is @kbd{C-u C-y}.  If you use @code{yank-pop} after a yank, it will yank
+previous kill items plainly, without adjustment and folding.
 @kindex C-c C-w
 @item C-c C-w
-Refile entry to a different location.  @xref{Refiling notes}.
+Refile entry or region to a different location.  @xref{Refiling notes}.
 @kindex C-c ^
 @item C-c ^
 Sort same-level entries.  When there is an active region, all entries in the
@@ -1305,6 +1330,10 @@ region when calling this, all lines will be converted to list items.  If the
 first line already was a list item, any item markers will be removed from the
 list.  Finally, even without an active region, a normal line will be
 converted into a list item.
+@kindex S-@key{left}
+@kindex S-@key{right}
+@item S-@key{left}/@key{right}
+Also cycle bullet styles when in the first line of an item.
 @end table
 
 @node Drawers, Orgstruct mode, Plain lists, Document Structure
@@ -1789,6 +1818,9 @@ Org's references with @emph{signed} numbers are floating
 references because the same reference operator can reference different
 fields depending on the field being calculated by the formula.
 
+As a special case references like @samp{$LR5} and @samp{$LR12} can be used to
+refer in a stable way to the 5th and 12th field in the last row of the table.
+
 Here are a few examples:
 
 @example
@@ -1971,6 +2003,8 @@ with the appropriate commands, @i{absolute references} (but not relative
 ones) in stored formulas are modified in order to still reference the
 same field.  Of cause this is not true if you edit the table structure
 with normal editing commands - then you must fix the equations yourself.
+The left hand side of a formula may also be a named field (@pxref{Advanced
+features}), or a last-row reference like @samp{$LR3}.
 
 Instead of typing an equation into the field, you may also use the
 following command
@@ -2339,6 +2373,10 @@ Specify an entire line to be inserted in the gnuplot script.
 When plotting @code{3d} or @code{grid} types, set this to @code{t} to graph a
 flat mapping rather than a @code{3d} slope.
 
+@item timefmt
+Specify format of org-mode timestamps as they will be parsed by gnuplot.
+Defaults to '%Y-%m-%d-%H:%M:%S'.
+
 @item script
 If you want total control you can specify a script file (place the file name
 between double quotes) which will be used to plot.  Before plotting, every
@@ -2416,9 +2454,10 @@ convenient to put them into a comment line. For example
 @end example
 
 @noindent In HTML export (@pxref{HTML export}), such targets will become
-named anchors for direct access through @samp{http} links@footnote{Note
-that text before the first headline is usually not exported, so the
-first such target should be after the first headline.}.
+named anchors for direct access through @samp{http} links@footnote{Note that
+text before the first headline is usually not exported, so the first such
+target should be after the first headline, or in the line directly before the
+first headline.}.
 
 If no dedicated target exists, Org will search for the words in the
 link.  In the above example the search would be for @samp{my target}.
@@ -2508,10 +2547,11 @@ rmail:folder                              @r{RMAIL folder link}
 rmail:folder#id                           @r{RMAIL message link}
 gnus:group                                @r{Gnus group link}
 gnus:group#id                             @r{Gnus article link}
-bbdb:Richard Stallman                     @r{BBDB link}
+bbdb:R.*Stallman                          @r{BBDB link (with regexp)}
 irc:/irc.com/#emacs/bob                   @r{IRC link}
 shell:ls *.org                            @r{A shell command}
-elisp:(find-file-other-frame "Elisp.org") @r{An elisp form to evaluate}
+elisp:org-agenda                          @r{Interactive elisp command}
+elisp:(find-file-other-frame "Elisp.org") @r{Elisp form to evaluate}
 @end example
 
 A link should be enclosed in double brackets and may contain a
@@ -2547,26 +2587,25 @@ insert it into an Org file, and to follow the link.
 @kindex C-c l
 @cindex storing links
 @item C-c l
-Store a link to the current location.  This is a @emph{global} command
-which can be used in any buffer to create a link.  The link will be
-stored for later insertion into an Org buffer (see below).  For
-Org files, if there is a @samp{<<target>>} at the cursor, the
-link points to the target.  Otherwise it points to the current
-headline.  For VM, Rmail, Wanderlust, MH-E, Gnus and BBDB buffers, the
-link will indicate the current article/entry.  For W3 and W3M buffers,
-the link goes to the current URL.  For IRC links, if you set the
-variable @code{org-irc-link-to-logs} to non-nil then @kbd{C-c l} will
-store a @samp{file:/} style link to the relevant point in the logs for
-the current conversation. Otherwise an @samp{irc:/} style link to the
-user/channel/server under the point will be stored.  For any other
-files, the link will point to the file, with a search string
-(@pxref{Search options}) pointing to the contents of the current line.
-If there is an active region, the selected words will form the basis
-of the search string.  If the automatically created link is not
-working correctly or accurately enough, you can write custom functions
-to select the search string and to do the search for particular file
-types - see @ref{Custom searches}.  The key binding @kbd{C-c l} is
-only a suggestion - see @ref{Installation}.
+Store a link to the current location.  This is a @emph{global} command which
+can be used in any buffer to create a link.  The link will be stored for
+later insertion into an Org buffer (see below).  For Org files, if there is a
+@samp{<<target>>} at the cursor, the link points to the target.  Otherwise it
+points to the current headline, either by text, or, if @file{org-id.el} is
+loaded, by ID property.  For VM, Rmail, Wanderlust, MH-E, Gnus and BBDB
+buffers, the link will indicate the current article/entry.  For W3 and W3M
+buffers, the link goes to the current URL.  For IRC links, if you set the
+variable @code{org-irc-link-to-logs} to non-nil then @kbd{C-c l} will store a
+@samp{file:/} style link to the relevant point in the logs for the current
+conversation. Otherwise an @samp{irc:/} style link to the user/channel/server
+under the point will be stored.  For any other files, the link will point to
+the file, with a search string (@pxref{Search options}) pointing to the
+contents of the current line.  If there is an active region, the selected
+words will form the basis of the search string.  If the automatically created
+link is not working correctly or accurately enough, you can write custom
+functions to select the search string and to do the search for particular
+file types - see @ref{Custom searches}.  The key binding @kbd{C-c l} is only
+a suggestion - see @ref{Installation}.
 @c
 @kindex C-c C-l
 @cindex link completion
@@ -2627,7 +2666,8 @@ date.  Furthermore, it will visit text and remote files in @samp{file:} links
 with Emacs and select a suitable application for local non-text files.
 Classification of files is based on file extension only.  See option
 @code{org-file-apps}.  If you want to override the default application and
-visit the file with Emacs, use a @kbd{C-u} prefix.
+visit the file with Emacs, use a @kbd{C-u} prefix.  If you want to avoid
+opening in Emacs, use a @kbd{C-u C-u} prefix.
 @c
 @kindex mouse-2
 @kindex mouse-1
@@ -3109,10 +3149,12 @@ special faces for some of them.  This can be done using the variable
 @code{org-todo-keyword-faces}.  For example:
 
 @lisp
+@group
 (setq org-todo-keyword-faces
       '(("TODO"      . org-warning)
         ("DEFERRED"  . shadow)
         ("CANCELED"  . (:foreground "blue" :weight bold))))
+@end group
 @end lisp
 
 While using a list with face properties as shown for CANCELED
@@ -3416,10 +3458,13 @@ information is to assign @i{tags} to headlines.  Org mode has extensive
 support for tags.
 
 Every headline can contain a list of tags; they occur at the end of the
-headline.  Tags are normal words containing letters, numbers, @samp{_},
-and @samp{@@}.  Tags must be preceded and followed by a single colon,
-e.g., @samp{:work:}.  Several tags can be specified, as in
-@samp{:work:urgent:}.
+headline.  Tags are normal words containing letters, numbers, @samp{_}, and
+@samp{@@}.  Tags must be preceded and followed by a single colon, e.g.,
+@samp{:work:}.  Several tags can be specified, as in @samp{:work:urgent:}.
+Tags will by default get a bold face with the same color as the headline.
+You may specify special faces for specific tags using the variable
+@code{org-tag-faces}, much in the same way as you can do for TODO keywords
+(@pxref{Faces for TODO keywords}).
 
 @menu
 * Tag inheritance::             Tags use the tree structure of the outline
@@ -3456,14 +3501,16 @@ level zero that surounds the entire file.
 
 @noindent
 To limit tag inheritance to specific tags, or to turn it off entirely, use
-the variable @code{org-use-tag-inheritance}.
+the variables @code{org-use-tag-inheritance} and
+@code{org-tags-exclude-from-inheritance}.
 
 When a headline matches during a tags search while tag inheritance is turned
-on, all the sublevels in the same tree will match as well@footnote{This is
-only true if the the search does not involve more complex tests including
-properties (@pxref{Property searches}).}.  The list of matches may then
-become very long.  If you only want to see the first tags match in a subtree,
-configure the variable @code{org-tags-match-list-sublevels}.
+on, all the sublevels in the same tree will (for a simple match form) match
+as well@footnote{This is only true if the the search does not involve more
+complex tests including properties (@pxref{Property searches}).}.  The list
+of matches may then become very long.  If you only want to see the first tags
+match in a subtree, configure the variable
+@code{org-tags-match-list-sublevels} (not recommended).
 
 @node Setting tags, Tag searches, Tag inheritance, Tags
 @section Setting tags
@@ -3661,25 +3708,34 @@ Like before, but require the @samp{:laptop:} lines to be tagged also
 @end table
 
 @cindex TODO keyword matching, with tags search
-If you are using multi-state TODO keywords (@pxref{TODO extensions}), it
-can be useful to also match on the TODO keyword.  This can be done by
-adding a condition after a slash to a tags match.  The syntax is similar
-to the tag matches, but should be applied with consideration: For
-example, a positive selection on several TODO keywords can not
-meaningfully be combined with boolean AND.  However, @emph{negative
-selection} combined with AND can be meaningful.  To make sure that only
-lines are checked that actually have any TODO keyword, use @kbd{C-c a
-M}, or equivalently start the TODO part after the slash with @samp{!}.
-Examples:
+You may also test for TODO keywords (@pxref{TODO extensions}) and properties
+(@pxref{Properties and Columns}) at the same time as matching tags.  For a
+guide on how to match properties, see @ref{Property searches}.  To match a
+specific TODO keyword, include an expression like @samp{+TODO="NEXT"} as one
+of the terms in a tags search.
+
+There is also the possibility to end the tags part of the match (which may
+include several terms connected with @samp{|}) with a @samp{/} and then
+specify a Boolean expression just for TODO keywords.  The syntax is then
+similar to the tag matches, but should be applied with consideration: For
+example, a positive selection on several TODO keywords can not meaningfully
+be combined with boolean AND.  However, @emph{negative selection} combined
+with AND can be meaningful.  To make sure that only lines are checked that
+actually have any TODO keyword (resulting in a speed-up), use @kbd{C-c a M},
+or equivalently start the TODO part after the slash with @samp{!}.  Examples:
 
 @table @samp
-@item work/WAITING
+@item work+TODO="WAITING"
 Select @samp{:work:}-tagged TODO lines with the specific TODO
 keyword @samp{WAITING}.
+@item work+TODO="WAITING"|home+TODO="WAITING"
+Waiting tasks both at work and at home.
+@item work/WAITING
+Same as the first example.
 @item work/!-WAITING-NEXT
 Select @samp{:work:}-tagged TODO lines that are neither @samp{WAITING}
 nor @samp{NEXT}
-@item work/+WAITING|+NEXT
+@item work/!+WAITING|+NEXT
 Select @samp{:work:}-tagged TODO lines that are either @samp{WAITING} or
 @samp{NEXT}.
 @end table
@@ -3688,7 +3744,9 @@ Select @samp{:work:}-tagged TODO lines that are either @samp{WAITING} or
 Any element of the tag/todo match can be a regular expression - in this
 case it must be enclosed in curly braces.  For example,
 @samp{work+@{^boss.*@}} matches headlines that contain the tag
-@samp{:work:} and any tag @i{starting} with @samp{boss}.
+@samp{:work:} and any tag @i{starting} with @samp{boss}.  You may also use a
+regular expression in @samp{TODO=@{^W@}} which would match TODO keywords
+starting with the letter @samp{W}.
 
 @cindex level, require for tags/property match
 @cindex category, require for tags/property match
@@ -3697,6 +3755,9 @@ writing instead of any TAG an expression like @samp{LEVEL=3} or
 @samp{CATEGORY="work"}, respectively.  For example, a search
 @samp{+LEVEL=3+boss/-DONE} lists all level three headlines that have the
 tag @samp{boss} and are @emph{not} marked with the TODO keyword DONE.
+
+Accessing TODO, LEVEL, and CATEGORY during a search is fast.  Accessing any
+other properties will slow down the search.
 
 @node Properties and Columns, Dates and Times, Tags, Top
 @chapter Properties and Columns
@@ -3762,7 +3823,7 @@ publishers and the number of disks in a box like this:
 * CD collection
   :PROPERTIES:
   :NDisks_ALL:  1 2 3 4
-  :Publisher_ALL: "Deutsche Grammophon" Phillips EMI
+  :Publisher_ALL: "Deutsche Grammophon" Philips EMI
   :END:
 @end example
 
@@ -3859,19 +3920,22 @@ and the allowed operators are @samp{<}, @samp{=}, @samp{>}, @samp{<=},
 @samp{>=}, and @samp{<>}.
 @item
 If the comparison value is enclosed in double
-quotes, a string comparison is done, and the same operators are allowed.  
+quotes, a string comparison is done, and the same operators are allowed.
 @item
 If the comparison value is enclosed in double quotes @emph{and} angular
 brackets (like @samp{DEADLINE<="<2008-12-24 18:30>"}), both values are
-assumed to be date/time specifications in the standard Org way@footnote{The
-only special values that will be recognized are @samp{"<now>"} for now, and
-@samp{"<today>"} today at 0:00 hours, i.e. without a time specification.}, and
-the comparison will be done accordingly.
+assumed to be date/time specifications in the standard Org way, and the
+comparison will be done accordingly.  Special values that will be recognized
+are @code{"<now>"} for now (including time), and @code{"<today>"}, and
+@code{"<tomorrow>"} for these days at 0:00 hours, i.e. without a time
+specification.  Also strings like @code{"<+5d>"} or @code{"<-2m>"} with units
+@code{d}, @code{w}, @code{m}, and @code{y} for day, week, month, and year,
+respectively, can be used.
 @item
 If the comparison value is enclosed
 in curly braces, a regexp match is performed, with @samp{=} meaning that the
 regexp matches the property value, and @samp{<>} meaning that it does not
-match.  
+match.
 @end itemize
 
 So the search string in the example finds entries tagged @samp{:work:} but
@@ -4224,6 +4288,7 @@ is used in a much wider sense.
 * Deadlines and scheduling::    Planning your work
 * Clocking work time::          Tracking how long you spend on a task
 * Effort estimates::            Planning work effort in advance
+* Relative timer::              Notes with a running timer
 @end menu
 
 
@@ -4805,6 +4870,10 @@ new table.  The @samp{BEGIN} line can specify options:
 :step        @r{@code{week} or @code{day}, to split the table into chunks.}
              @r{To use this, @code{:block} or @code{:tstart}, @code{:tend} are needed.}
 :link        @r{Link the item headlines in the table to their origins}
+:formula     @r{Content of a @code{#+TBLFM} line to be added and evaluated.}
+             @r{As a special case, @samp{:formula %} adds column with % time.}
+             @r{If you do not specify a formula here, any existing formula}
+             @r{below the clock table will survive updates and be evaluated.}
 @end example
 So to get a clock summary of the current level 1 tree, for the current
 day, you could write
@@ -4818,6 +4887,11 @@ only to fit it onto the manual.}
 @example
 #+BEGIN: clocktable :tstart "<2006-08-10 Thu 10:00>"
                     :tend "<2006-08-10 Thu 12:00>"
+#+END: clocktable
+@end example
+A summary of the current subtree with % times would be
+@example
+#+BEGIN: clocktable :scope subtree :link t :formula %
 #+END: clocktable
 @end example
 @kindex C-c C-c
@@ -4843,9 +4917,9 @@ The @kbd{l} key may be used in the timeline (@pxref{Timeline}) and in
 the agenda (@pxref{Weekly/daily agenda}) to show which tasks have been
 worked on or closed during a day.
 
-@node Effort estimates,  , Clocking work time, Dates and Times
+@node Effort estimates, Relative timer, Clocking work time, Dates and Times
 @section Effort estimates
-@cindex Effort estimates
+@cindex effort estimates
 
 If you want to plan your work in a very detailed way, or if you need to
 produce offers with quotations of the estimated work effort, you may want to
@@ -4888,6 +4962,40 @@ Effort estimates can be used in secondary agenda filtering that is triggered
 with the @kbd{/} key in the agenda (@pxref{Agenda commands}).  If you have
 these estimates defined consistently, two or three key presses will narrow
 down the list to stuff that fits into an available time slot.
+
+@node Relative timer,  , Effort estimates, Dates and Times
+@section Taking notes with a relative timer
+@cindex relative timer
+
+When taking notes during, for example, a meeting or a video viewing, it can
+be useful to have access to times relative to a starting time.  Org provides
+such a relative timer and make it easy to create timed notes.
+
+@table @kbd
+@kindex C-c C-x .
+@item C-c C-x .
+Insert a relative time into the buffer.  The first time you use this, the
+timer will be started.  When called with a prefix argument, the timer is
+restarted.
+@kindex C-c C-x -
+@item C-c C-x -
+Insert a description list item with the current relative time.  With a prefix
+argument, first reset the timer to 0.
+@kindex M-@key{RET}
+@item M-@key{RET}
+One the timer list is started, you can also use @kbd{M-@key{RET}} to insert
+new timer items.
+@kindex C-c C-x 0
+@item C-c C-x 0
+Reset the timer without inserting anything into the buffer.  By default, the
+timer is reset to 0.  When called with a @kbd{C-u} prefix, reset the timer to
+specific starting offset.  The user is prompted for the offset, with a
+default taken from a timer string at point, if any, So this can be used to
+restart taking notes after a break in the process.  When called with a double
+prefix argument @kbd{C-c C-u}, change all timer strings in the active region
+by a certain amount.  This can be used to fix timer strings if the timer was
+not started at exactly the right moment.
+@end table
 
 @node Capture, Agenda Views, Dates and Times, Top
 @chapter Capture
@@ -4946,6 +5054,12 @@ to jump to the buffer and location where remember notes are being
 stored: Just call @code{org-remember} with a prefix argument.  If you
 use two prefix arguments, Org jumps to the location where the last
 remember note was stored.
+
+The remember buffer will actually use @code{org-mode} as its major mode, so
+that all editing features of Org-mode are available.  In addition to this, a
+minor mode @code{org-remember-mode} is turned on, for the single purpose that
+you can use its keymap @code{org-remember-mode-map} to overwrite some of
+Org-mode's key bindings.
 
 You can also call @code{org-remember} in a special way from the agenda,
 using the @kbd{k r} key combination.  With this access, any time stamps
@@ -5151,16 +5265,17 @@ special command:
 @table @kbd
 @kindex C-c C-w
 @item C-c C-w
-Refile the entry at point.  This command offers possible locations for
-refiling the entry and lets you select one with completion.  The item is
-filed below the target heading as a subitem.  Depending on
-@code{org-reverse-note-order}, it will be either the first of last
-subitem.@* By default, all level 1 headlines in the current buffer are
-considered to be targets, but you can have more complex definitions
-across a number of files.  See the variable @code{org-refile-targets}
-for details.  If you would like to select a location via a file-pathlike
-completion along the outline path, see the variable
-@code{org-refile-use-outline-path}.
+Refile the entry or region at point.  This command offers possible locations
+for refiling the entry and lets you select one with completion.  The item (or
+all items in the region) is filed below the target heading as a subitem.
+Depending on @code{org-reverse-note-order}, it will be either the first or
+last subitem.@*
+By default, all level 1 headlines in the current buffer are considered to be
+targets, but you can have more complex definitions across a number of files.
+See the variable @code{org-refile-targets} for details.  If you would like to
+select a location via a file-path-like completion along the outline path, see
+the variables @code{org-refile-use-outline-path} and
+@code{org-outline-path-complete-in-steps}.
 @kindex C-u C-c C-w
 @item C-u C-c C-w
 Use the refile interface to jump to a heading.
@@ -5198,15 +5313,15 @@ keys, a list of commands is displayed and you need to press an additional key
 to select a command:
 
 @table @kbd
-@kindex C-c C-a a 
-@item a 
+@kindex C-c C-a a
+@item a
 Select a file and move it into the task's attachment directory.  The file
 will be copied, moved, or linked, depending on @code{org-attach-method}.
 Note that hard links are not supported on all systems.
 
 @kindex C-c C-a c
-@kindex C-c C-a m 
-@kindex C-c C-a l 
+@kindex C-c C-a m
+@kindex C-c C-a l
 @item c/m/l
 Attach a file using the copy/move/link method.
 Note that hard links are not supported on all systems.
@@ -5369,8 +5484,8 @@ the agenda scope is set to the entire file.  This restriction remains in
 effect until removed with @kbd{C-c C-x >}, or by typing either @kbd{<}
 or @kbd{>} in the agenda dispatcher.  If there is a window displaying an
 agenda view, the new restriction takes effect immediately.
-@kindex C-c C-x <
-@item C-c C-x <
+@kindex C-c C-x >
+@item C-c C-x >
 Remove the permanent restriction created by @kbd{C-c C-x <}.
 @end table
 
@@ -5384,7 +5499,7 @@ Permanently restrict the agenda to the item at the cursor in the
 Speedbar frame, either an Org file or a subtree in such a file.
 If there is a window displaying an agenda view, the new restriction takes
 effect immediately.
-@kindex <
+@kindex >
 @item > @r{in the speedbar frame}
 Lift the restriction again.
 @end table
@@ -5872,6 +5987,8 @@ Previous line (same as @key{down} and @kbd{C-n}).
 @item mouse-3
 @itemx @key{SPC}
 Display the original location of the item in another window.
+With prefix arg, make sure that the entire entry is made visible in the
+outline, not only the heading.
 @c
 @kindex L
 @item L
@@ -5908,8 +6025,12 @@ previously used indirect buffer.
 @kindex l
 @item l
 Toggle Logbook mode.  In Logbook mode, entries that where marked DONE while
-logging was on (variable @code{org-log-done}) are shown in the agenda,
-as are entries that have been clocked on that day.
+logging was on (variable @code{org-log-done}) are shown in the agenda, as are
+entries that have been clocked on that day.  You can configure the entry
+types that should be included in log mode using the variable
+@code{org-agenda-log-mode-items}.  When called with a @kbd{C-u} prefix, show
+all possible logbook entries, including state changes.  When called with two
+prefix args @kbd{C-u C-u}, show only logging information, nothing else.
 @c
 @kindex v
 @item v
@@ -6018,7 +6139,8 @@ entries that @emph{do} have the tag.  A second @kbd{/} at the prompt will
 turn off the filter and unhide any hidden entries.  If the first key you
 press is either @kbd{+} or @kbd{-}, the previous filter will be narrowed by
 requiring or forbidding the selected additional tag.  Instead of pressing
-@kbd{+} or @kbd{-}, you can also use the @kbd{\} command.
+@kbd{+} or @kbd{-} after @kbd{/}, you can also immediately use the @kbd{\}
+command.
 
 In order to filter for effort estimates, you should set-up allowed
 efforts globally, for example
@@ -6097,8 +6219,9 @@ different file.
 @c
 @kindex T
 @item T
-Show all tags associated with the current item.  Because of
-inheritance, this may be more than the tags listed in the line itself.
+Show all tags associated with the current item.  This is useful if you have
+turned off @code{org-agenda-show-inherited-tags}, but still want to see all
+tags of a headline occasionally.
 @c
 @kindex :
 @item :
@@ -6965,6 +7088,9 @@ deadlines or appointments into a desktop calendar program like iCal,
 Org mode can also produce extracts in the iCalendar format.  Currently
 Org mode only supports export, not import of these different formats.
 
+Org supports export of selected regions when @code{transient-mark-mode} is
+enabled (default in Emacs 23).
+
 @menu
 * Markup rules::                Which structures are recognized?
 * Selective export::            Using tags to select and exclude trees
@@ -6996,6 +7122,7 @@ markup rule used in an Org mode buffer.
 * Literal examples::            Source code and other examples
 * Include files::               Include the contents of a file during export
 * Tables exported::             Tables are exported richly
+* Inlined images::              How to inline images during export
 * Footnotes::                   Numbers like [1]
 * Emphasis and monospace::      To bold or not to bold
 * TeX macros and LaTeX fragments::  Create special, rich export.
@@ -7107,7 +7234,7 @@ can use this construct, which can also be used to format poetry.
  Great clouds overhead
  Tiny black birds rise and fall
  Snow covers Emacs
- 
+
      -- AlexSchroeder
 #+END_VERSE
 @end example
@@ -7213,16 +7340,41 @@ item, use
 Visit the include file at point.
 @end table
 
-@node Tables exported, Footnotes, Include files, Markup rules
+@node Tables exported, Inlined images, Include files, Markup rules
 @subheading Tables
 @cindex tables, markup rules
 
 Both the native Org mode tables (@pxref{Tables}) and tables formatted with
 the @file{table.el} package will be exported properly.  For Org mode tables,
 the lines before the first horizontal separator line will become table header
-lines.
+lines.  You can use the following lines somewhere before the table to asssign
+a caption and a label for cross references:
 
-@node Footnotes, Emphasis and monospace, Tables exported, Markup rules
+@example
+#+CAPTION: This is the caption for the next table (or link)
+#+LABEL:   tbl:basic-data
+@end example
+
+@node Inlined images, Footnotes, Tables exported, Markup rules
+@subheading Inlined Images
+@cindex inlined images, markup rules
+
+Some backends (HTML and LaTeX) allow to directly include images into the
+exported document.  Org does this, if a link to an image files does not have
+a description part, for example @code{[[./img/a.jpg]]}.  If you wish to
+define a caption for the image and maybe a label for internal cross
+references, you can use (before, but close to the link)
+
+@example
+#+CAPTION: This is the caption for the next figure link (or table)
+#+LABEL:   fig:SED-HR4049
+@end example
+
+You may also define additional attributes for the figure.  As this is
+backend-specific, see the sections about the individual backends for more
+information.
+
+@node Footnotes, Emphasis and monospace, Inlined images, Markup rules
 @subheading Footnotes
 @cindex footnotes, markup rules
 @cindex @file{footnote.el}
@@ -7402,6 +7554,10 @@ toc:       @r{turn on/off table of contents, or set level limit (integer)}
            @r{the simple @code{a_b} will be left as it is.}
 -:         @r{turn on/off conversion of special strings.}
 f:         @r{turn on/off footnotes like this[1].}
+todo:      @r{turn on/off inclusion of TODO keywords into exported text}
+pri:       @r{turn on/off priority cookies}
+tags:      @r{turn on/off inclusion of tags, may also be @code{not-in-toc}}
+<:         @r{turn on/off inclusion of any time/date stamps like DEADLINES}
 *:         @r{turn on/off emphasized text (bold, italic, underlined)}
 TeX:       @r{turn on/off simple @TeX{} macros in plain text}
 LaTeX:     @r{turn on/off La@TeX{} fragments}
@@ -7436,10 +7592,10 @@ the subtrees are exported.
 @item C-c C-e
 Dispatcher for export and publishing commands.  Displays a help-window
 listing the additional key(s) needed to launch an export or publishing
-command.  The prefix arg is passed through to the exporter.  If the option
-@code{org-export-run-in-background} is set, Org will run the command in the
-background if that seems useful for the specific command (i.e. commands that
-write to a file).
+command.  The prefix arg is passed through to the exporter.  A double prefix
+@kbd{C-u C-u} causes most commands to be executed in the background, in a
+separate emacs process@footnote{To make this behavior the default, customize
+the variable @code{org-export-run-in-background}.}.
 @kindex C-c C-e v
 @item C-c C-e v
 Like @kbd{C-c C-e}, but only export the text that is currently visible
@@ -7460,13 +7616,14 @@ file.
 
 @cindex region, active
 @cindex active region
-@cindex Transient mark mode
+@cindex transient-mark-mode
 @table @kbd
 @kindex C-c C-e a
 @item C-c C-e a
 Export as ASCII file.  For an org file @file{myfile.org}, the ASCII file
 will be @file{myfile.txt}.  The file will be overwritten without
-warning.  If there is an active region, only the region will be
+warning.  If there is an active region@footnote{this requires
+@code{transient-mark-mode} to be turned on}, only the region will be
 exported. If the selected region is a single tree@footnote{To select the
 current subtree, use @kbd{C-c @@}.}, the tree head will
 become the document title.  If the tree head entry has or inherits an
@@ -7501,14 +7658,14 @@ indentation than the first, these are left alone.
 @cindex HTML export
 
 Org mode contains an HTML (XHTML 1.0 strict) exporter with extensive
-HTML formatting, in ways similar to John Grubers @emph{markdown}
+HTML formatting, in ways similar to John Gruber's @emph{markdown}
 language, but with additional support for tables.
 
 @menu
 * HTML Export commands::        How to invoke HTML export
 * Quoting HTML tags::           Using direct HTML in Org mode
 * Links::                       Transformation of links for HTML
-* Images::                      How to include images
+* Images in HTML export::       
 * CSS support::                 Changing the appearance of the output
 * Javascript support::          Info and Folding in a web browser
 @end menu
@@ -7518,16 +7675,17 @@ language, but with additional support for tables.
 
 @cindex region, active
 @cindex active region
-@cindex Transient mark mode
+@cindex transient-mark-mode
 @table @kbd
 @kindex C-c C-e h
 @item C-c C-e h
 Export as HTML file @file{myfile.html}.  For an org file @file{myfile.org},
 the ASCII file will be @file{myfile.html}.  The file will be overwritten
-without warning.  If there is an active region, only the region will be
+without warning.  If there is an active region@footnote{this requires
+@code{transient-mark-mode} to be turned on}, only the region will be
 exported. If the selected region is a single tree@footnote{To select the
 current subtree, use @kbd{C-c @@}.}, the tree head will become the document
-title.  If the tree head entry has or inherits an @code{EXPORT_FILE_NAME}
+title.  If the tree head entry has, or inherits, an @code{EXPORT_FILE_NAME}
 property, that name will be used for the export.
 @kindex C-c C-e b
 @item C-c C-e b
@@ -7595,31 +7753,32 @@ All lines between these markers are exported literally
 @end example
 
 
-@node Links, Images, Quoting HTML tags, HTML export
+@node Links, Images in HTML export, Quoting HTML tags, HTML export
 @subsection Links
 
 @cindex links, in HTML export
 @cindex internal links, in HTML export
 @cindex external links, in HTML export
-Internal links (@pxref{Internal links}) will continue to work in HTML
-files only if they match a dedicated @samp{<<target>>}.  Automatic links
-created by radio targets (@pxref{Radio targets}) will also work in the
-HTML file.  Links to external files will still work if the HTML file is
-in the same directory as the Org file.  Links to other @file{.org}
-files will be translated into HTML links under the assumption that an
-HTML version also exists of the linked file.  For information related to
-linking files while publishing them to a publishing directory see
-@ref{Publishing links}.
+Internal links (@pxref{Internal links}) will continue to work in HTML.
+Automatic links created by radio targets (@pxref{Radio targets}) will also
+work in the HTML file.  Links to external files will still work if the HTML
+file is in the same directory as the Org file.  Links to other @file{.org}
+files will be translated into HTML links under the assumption that an HTML
+version also exists of the linked file.  For information related to linking
+files while publishing them to a publishing directory see @ref{Publishing
+links}.
 
 If you want to specify attributes for links, you can do so using a special
-syntax.  Here is an example that sets @code{alt} and @code{title} attributes
-for an inlined image:
+@code{#+ATTR_HTML} line to define attributes that wil be added to the
+@code{<a>} or @code{<img>} tags.  Here is an example that sets @code{alt} and
+@code{title} attributes for an inlined image:
 
 @example
-[[./img/a.jpg@{@{alt="This is image A" title="Image with no action"@}@}]]
+#+ATTR_HTML: alt="This is image A" title="Image with no action"
+[[./img/a.jpg]]
 @end example
 
-@node Images, CSS support, Links, HTML export
+@node Images in HTML export, CSS support, Links, HTML export
 @subsection Images
 
 @cindex images, inline in HTML
@@ -7643,7 +7802,7 @@ will link to a high resolution version of the image, you could use:
 @noindent
 and you could use @code{http} addresses just as well.
 
-@node CSS support, Javascript support, Images, HTML export
+@node CSS support, Javascript support, Images in HTML export, HTML export
 @subsection CSS support
 @cindex CSS, for HTML export
 @cindex HTML export, CSS
@@ -7661,18 +7820,23 @@ document - your style specifications may change these:
 @end example
 
 Each exported files contains a compact default style that defines these
-classes in a basic way.  You may overwrite these settings, or add to them by
-using the variables @code{org-export-html-style} (for Org-wide settings) and
-@code{org-export-html-style-extra} (for more granular settings, like
-file-local settings).  To set the latter variable individually for each
-file, you can use
+classes in a basic way@footnote{This style is defined in the constant
+@code{org-export-html-style-default}, which you should not modify.  To turn
+inclusion of these defaults off, customize
+@code{org-export-html-style-include-default}}.  You may overwrite these
+settings, or add to them by using the variables @code{org-export-html-style}
+(for Org-wide settings) and @code{org-export-html-style-extra} (for more
+granular settings, like file-local settings).  To set the latter variable
+individually for each file, you can use
 
 @example
 #+STYLE: <link rel="stylesheet" type="text/css" href="stylesheet.css" />
 @end example
 
 @noindent
-For longer style definitions, you can use several such lines.
+For longer style definitions, you can use several such lines.  You could also
+directly write a @code{<style>} @code{</style>} section in this way, without
+referring to an external file.
 
 @c FIXME: More about header and footer styles
 @c FIXME: Talk about links and targets.
@@ -7682,11 +7846,11 @@ For longer style definitions, you can use several such lines.
 
 @emph{Sebastian Rose} has written a JavaScript program especially designed to
 enhance the web viewing experience of HTML files created with Org.  This
-program allows to view large files in two different ways.  The first one is
+program allows you to view large files in two different ways.  The first one is
 an @emph{Info}-like mode where each section is displayed separately and
 navigation can be done with the @kbd{n} and @kbd{p} keys (and some other keys
 as well, press @kbd{?} for an overview of the available keys).  The second
-view type is a @emph{folding} view much like Org provides it inside Emacs.
+view type is a @emph{folding} view much like Org provides inside Emacs.
 The script is available at @url{http://orgmode.org/org-info.js} and you can
 find the documentation for it at
 @url{http://orgmode.org/worg/code/org-info-js/org-info.js.html}.  We are
@@ -7695,10 +7859,10 @@ to be dependent on @url{orgmode.org} and prefer to install a local copy on
 your own web server.
 
 To use the script, you need to make sure that the @file{org-jsinfo.el} module
-gets loaded.  It should be loaded by default, try @kbd{M-x customize-variable
-@key{RET} org-modules @key{RET}} to convince yourself that this is indeed the
-case.  All it then takes to make use of the program is adding a single line
-to the Org file:
+gets loaded.  It should be loaded by default, but you can try @kbd{M-x
+customize-variable @key{RET} org-modules @key{RET}} to convince yourself that
+this is indeed the case.  All it then takes to make use of the program is
+adding a single line to the Org file:
 
 @example
 #+INFOJS_OPT: view:info toc:nil
@@ -7751,24 +7915,30 @@ the LaTeX output uses @file{hyperref} to implement links and cross
 references, the PDF output file will be fully linked.
 
 @menu
-* LaTeX/PDF export commands::   
+* LaTeX/PDF export commands::   Which key invode which commands
 * Quoting LaTeX code::          Incorporating literal LaTeX code
 * Sectioning structure::        Changing sectioning in LaTeX output
+* Tables in LaTeX export::      Options for exporting tables to LaTeX
+* Images in LaTeX export::      How to insert figures into LaTeX output
 @end menu
 
 @node LaTeX/PDF export commands, Quoting LaTeX code, LaTeX and PDF export, LaTeX and PDF export
 @subsection LaTeX export commands
 
+@cindex region, active
+@cindex active region
+@cindex transient-mark-mode
 @table @kbd
 @kindex C-c C-e l
 @item C-c C-e l
 Export as La@TeX{} file @file{myfile.tex}.  For an org file
 @file{myfile.org}, the ASCII file will be @file{myfile.tex}.  The file will
-be overwritten without warning.  If there is an active region, only the
-region will be exported. If the selected region is a single tree@footnote{To
-select the current subtree, use @kbd{C-c @@}.}, the tree head will become the
-document title.  If the tree head entry has or inherits an
-@code{EXPORT_FILE_NAME} property, that name will be used for the export.
+be overwritten without warning.  If there is an active region@footnote{this
+requires @code{transient-mark-mode} to be turned on}, only the region will be
+exported. If the selected region is a single tree@footnote{To select the
+current subtree, use @kbd{C-c @@}.}, the tree head will become the document
+title.  If the tree head entry has or inherits an @code{EXPORT_FILE_NAME}
+property, that name will be used for the export.
 @kindex C-c C-e L
 @item C-c C-e L
 Export to a temporary buffer, do not create a file.
@@ -7830,7 +8000,7 @@ All lines between these markers are exported literally
 #+END_LaTeX
 @end example
 
-@node   Sectioning structure,  , Quoting LaTeX code, LaTeX and PDF export
+@node   Sectioning structure, Tables in LaTeX export, Quoting LaTeX code, LaTeX and PDF export
 @subsection Sectioning structure
 @cindex LaTeX class
 @cindex LaTeX sectioning structure
@@ -7842,6 +8012,47 @@ You can change this globally by setting a different value for
 @code{#+LaTeX_CLASS: myclass} in your file.  The class should be listed in
 @code{org-export-latex-classes}, where you can also define the sectioning
 structure for each class, as well as defining additonal classes.
+
+
+@node Tables in LaTeX export, Images in LaTeX export, Sectioning structure, LaTeX and PDF export
+@subsection Tables in LaTeX export
+@cindex tables, in LaTeX export
+
+For LaTeX export of a table, you can specify a label and a caption
+(@pxref{Tables exported}).  You can also use the @code{ATTR_LaTeX} line to
+request a longtable environment for the table, so that it may span several
+pages:
+
+@example
+#+CAPTION: A long table
+#+LABEL: tbl:long
+#+ATTR_LaTeX: longtable
+| ..... | ..... |
+| ..... | ..... |
+@end example
+
+
+@node Images in LaTeX export,  , Tables in LaTeX export, LaTeX and PDF export
+@subsection Images in LaTeX export
+@cindex images, inline in LaTeX
+@cindex inlining images in LaTeX
+
+Images that are linked to without a description part in the link, like
+@samp{[[file:img.jpg]]} or @samp{[[./img.jpg]]} will be inserted into the PDF
+output files resulting from LaTeX output.  Org will use an
+@code{\includegraphics} macro to insert the image.  If you have specified a
+caption and/or a label as described in @ref{Markup rules}, the figure will
+be wrappend into a @code{figure} environment and thus become a floating
+element.  Finally, you can use an @code{#+ATTR_LaTeX:} line to specify the
+options that can be used in the optional argument of the
+@code{\includegraphics} macro.
+
+@example
+#+CAPTION:    The black-body emission of the disk around HR 4049
+#+LABEL:      fig:SED-HR4049
+#+ATTR_LaTeX: width=5cm,angle=90
+[[./img/sed-hr4049.pdf]]
+@end example
 
 
 @node XOXO export, iCalendar export, LaTeX and PDF export, Exporting
@@ -7879,7 +8090,7 @@ entry@footnote{See the variables @code{org-icalendar-use-deadline} and
 @code{org-icalendar-use-scheduled}.}.  As categories, it will use the tags
 locally defined in the heading, and the file/tree category@footnote{To add
 inherited tags or the TODO state, configure the variable
-@code{org-icalendar-categories}.}. 
+@code{org-icalendar-categories}.}.
 
 The iCalendar standard requires each entry to have a globally unique
 identifier (UID).  Org creates these identifiers during export.  If you set
@@ -7908,9 +8119,11 @@ Create a single large iCalendar file from all files in
 @code{org-combined-agenda-icalendar-file}.
 @end table
 
-The export will honor SUMMARY, DESCRIPTION and LOCATION properties if
-the selected entries have them.  If not, the summary will be derived
-from the headline, and the description from the body (limited to
+The export will honor SUMMARY, DESCRIPTION and LOCATION@footnote{The LOCATION
+property can be inherited from higher in the hierarchy if you configure
+@code{org-use-property-inheritance} accordingly.} properties if the selected
+entries have them.  If not, the summary will be derived from the headline,
+and the description from the body (limited to
 @code{org-icalendar-include-body} characters).
 
 How this calendar is best read and updated, that depends on the application
@@ -7985,7 +8198,8 @@ a project takes the second form listed above, the individual members
 of the ``components'' property are taken to be components of the
 project, which group together files requiring different publishing
 options. When you publish such a ``meta-project'' all the components
-will also publish.
+will also publish.  The @code{:components} are published in the sequence
+provided.
 
 @node Sources and destinations, Selecting files, Project alist, Configuration
 @subsection Sources and destinations for files
@@ -8069,28 +8283,41 @@ variables in Org.  The table below lists these properties along
 with the variable they belong to.  See the documentation string for the
 respective variable for details.
 
-@multitable @columnfractions 0.3 0.7
+@multitable @columnfractions 0.32 0.68
+@item @code{:link-up}               @tab @code{org-export-html-link-up}
+@item @code{:link-home}             @tab @code{org-export-html-link-home}
 @item @code{:language}              @tab @code{org-export-default-language}
+@item @code{:customtime}            @tab @code{org-display-custom-times}
 @item @code{:headline-levels}       @tab @code{org-export-headline-levels}
 @item @code{:section-numbers}       @tab @code{org-export-with-section-numbers}
+@item @code{:section-number-format} @tab @code{org-export-section-number-format}
 @item @code{:table-of-contents}     @tab @code{org-export-with-toc}
+@item @code{:preserve-breaks}       @tab @code{org-export-preserve-breaks}
 @item @code{:archived-trees}        @tab @code{org-export-with-archived-trees}
 @item @code{:emphasize}             @tab @code{org-export-with-emphasize}
 @item @code{:sub-superscript}       @tab @code{org-export-with-sub-superscripts}
 @item @code{:special-strings}       @tab @code{org-export-with-special-strings}
+@item @code{:footnotes}             @tab @code{org-export-with-footnotes}
+@item @code{:drawers}               @tab @code{org-export-with-drawers}
+@item @code{:tags}                  @tab @code{org-export-with-tags}
+@item @code{:todo-keywords}         @tab @code{org-export-with-todo-keywords}
+@item @code{:priority}              @tab @code{org-export-with-priority}
 @item @code{:TeX-macros}            @tab @code{org-export-with-TeX-macros}
 @item @code{:LaTeX-fragments}       @tab @code{org-export-with-LaTeX-fragments}
+@item @code{:skip-before-1st-heading} @tab @code{org-export-skip-text-before-1st-heading}
 @item @code{:fixed-width}           @tab @code{org-export-with-fixed-width}
 @item @code{:timestamps}            @tab @code{org-export-with-timestamps}
 @item @code{:author-info}           @tab @code{org-export-author-info}
 @item @code{:creator-info}          @tab @code{org-export-creator-info}
-@item @code{:tags}                  @tab @code{org-export-with-tags}
 @item @code{:tables}                @tab @code{org-export-with-tables}
 @item @code{:table-auto-headline}   @tab @code{org-export-highlight-first-table-line}
+@item @code{:style-include-default} @tab @code{org-export-html-style-include-default}
 @item @code{:style}                 @tab @code{org-export-html-style}
 @item @code{:style-extra}           @tab @code{org-export-html-style-extra}
 @item @code{:convert-org-links}     @tab @code{org-export-html-link-org-files-as-html}
 @item @code{:inline-images}         @tab @code{org-export-html-inline-images}
+@item @code{:html-extension}        @tab @code{org-export-html-extension}
+@item @code{:html-table-tag}        @tab @code{org-export-html-table-tag}
 @item @code{:expand-quoted-html}    @tab @code{org-export-html-expand}
 @item @code{:timestamp}             @tab @code{org-export-html-with-timestamp}
 @item @code{:publishing-directory}  @tab @code{org-export-publishing-directory}
@@ -8130,7 +8357,7 @@ you publish them to HTML.
 You may also link to related files, such as images. Provided you are
 careful with relative pathnames, and provided you have also configured
 @code{org-publish} to upload the related files, these links will work
-too. @ref{Complex example} for an example of this usage.
+too. See @ref{Complex example} for an example of this usage.
 
 Sometime an Org file to be published may contain links that are
 only valid in your production environment, but not in the publishing
@@ -8200,7 +8427,7 @@ directory on the local machine.
          :publishing-directory "~/public_html"
          :section-numbers nil
          :table-of-contents nil
-         :style "<link rel=stylesheet
+         :style "<link rel=\"stylesheet\"
                 href=\"../other/mystyle.css\"
                 type=\"text/css\">")))
 @end lisp
@@ -8237,7 +8464,7 @@ right place on the web server, and publishing images to it.
           :headline-levels 3
           :section-numbers nil
           :table-of-contents nil
-          :style "<link rel=stylesheet
+          :style "<link rel=\"stylesheet\"
                   href=\"../other/mystyle.css\" type=\"text/css\">"
           :auto-preamble t
           :auto-postamble nil)
@@ -8574,7 +8801,7 @@ is not indented.  This is not really a problem when you are writing a book
 where the outline headings are really section headlines.  However, in a more
 list-oriented outline, it is clear that an indented structure is a lot
 cleaner, as can be seen by comparing the two columns in the following
-example: 
+example:
 
 @example
 @group
@@ -8593,7 +8820,7 @@ It is non-trivial to make such a look work in Emacs, but Org contains three
 separate features that, combined, achieve just that.
 
 @enumerate
-@item 
+@item
 @emph{Indentation of text below headlines}@*
 You may indent text below each headline to make the left boundary line up
 with the headline, like
@@ -8900,11 +9127,16 @@ distribution, others are available somewhere on the web.
 @node Extensions in the contrib directory, Other extensions, Extensions, Extensions
 @section Extensions in the @file{contrib} directory
 
+A number of extension are distributed with Org when you download it from its
+homepage.  Please note that these extensions are @emph{not} distributed as
+part of Emacs, so if you use Org as delivered with Emacs, you still need to
+go to @url{http://orgmode.org} to get access to these modules.
+
 @table @asis
 @item @file{org-annotate-file.el} by @i{Philip Jackson}
       Annotate a file with org syntax, in a separate file, with links back to
       the annotated file.
-@item @file{org-annotation-helper.el} by @i{Bastien Guerry and Daniel E. German} 
+@item @file{org-annotation-helper.el} by @i{Bastien Guerry and Daniel E. German}
       Call @i{remember} directly from Firefox/Opera, or from Adobe Reader.
       When activating a special link or bookmark, Emacs receives a trigger to
       create a note with a link back to the website.  Requires some setup, a
@@ -8922,9 +9154,13 @@ distribution, others are available somewhere on the web.
       exactly point to the definition location of a variable of function.
 @item @file{org-eval.el} by @i{Carsten Dominik}
       The @code{<lisp>} tag, adapted from Emacs Wiki and Emacs Muse, allows
-      to include text in a document that is the result of evaluating some
+      text to be included in a document that is the result of evaluating some
       code.  Other scripting languages like @code{perl} can be supported with
       this package as well.
+@item @file{org-eval-light.el} by @i{Eric Schulte}
+      User-controlled evaluation of code in an Org buffer.
+@item @file{org-exp-blocks.el} by @i{Eric Schulte}
+      Preprocess user-defined blocks for export.
 @item @file{org-expiry.el} by @i{Bastien Guerry}
       Expiry mechanism for Org entries.
 @item @file{org-indent.el} by @i{Carsten Dominik}
@@ -8946,8 +9182,6 @@ distribution, others are available somewhere on the web.
       to publish the same file using either org-publish or Muse.
 @item @file{org-panel.el} by @i{Lennard Borgman}
       Simplified and display-aided access to some Org commands.
-@c @item @file{org-plot.el} by @i{Eric Schulte}
-@c      Plotting Org tables with Gnuplot.
 @item @file{org-registry.el} by @i{Bastien Guerry}
       A registry for Org links, to find out from where links point to a given
       file or location.
@@ -8962,7 +9196,6 @@ distribution, others are available somewhere on the web.
       Convert Org-mode tables to SQL insertions.  Documentation for this can
       be found on the Worg pages.
 @end table
-
 
 @node Other extensions,  , Extensions in the contrib directory, Extensions
 @section Other extensions
@@ -9509,7 +9742,7 @@ like this:
 @lisp
 (org-add-agenda-custom-command
  '("b" todo "PROJECT"
-   ((org-agenda-skip-function 'my-org-waiting-projects)
+   ((org-agenda-skip-function 'my-skip-unless-waiting)
     (org-agenda-overriding-header "Projects waiting for something: "))))
 @end lisp
 
@@ -9631,7 +9864,7 @@ Org has sophisticated mapping capabilities to find all entries satisfying
 certain criteria.  Internally, this functionality is used to produce agenda
 views, but there is also an API that can be used to execute arbitrary
 functions for each or selected entries.  The main entry point for this API
-is: 
+is:
 
 @defun org-map-entries func &optional match scope &rest skip
 Call FUNC at each headline selected by MATCH in SCOPE.
@@ -9679,7 +9912,7 @@ The function given to that mapping routine can really do anything you like.
 It can uce the property API (@pxref{Using the property API}) to gather more
 information about the entry, or in order to change metadate in the entry.
 Here are a couple of functions that might be handy:
- 
+
 @defun org-todo &optional arg
 Change the TODO state of the entry, see the docstring of the functions for
 the many possible values for the argument ARG.
@@ -9717,7 +9950,7 @@ The following example counts the number of entries with TODO keyword
 @code{WAITING}, in all agenda files.
 
 @lisp
-(length (org-map-entries t "/+WAITING" nil 'agenda))
+(length (org-map-entries t "/+WAITING" 'agenda))
 @end lisp
 
 @node History and Acknowledgments, Main Index, Hacking, Top
@@ -9885,6 +10118,9 @@ Linking to VM/BBDB/Gnus was first inspired by @i{Tom Shannon}'s
 @item
 @i{Ilya Shlyakhter} proposed the Archive Sibling.
 @item
+@i{Stathis Sideris} wrote the @file{ditaa.jar} ASCII to PNG converter that is
+now packaged into Org's @file{contrib} directory.
+@item
 @i{Daniel Sinder} came up with the idea of internal archiving by locking
 subtrees.
 @item
@@ -9895,6 +10131,9 @@ tweaks and features.
 @item
 @i{Adam Spiers} asked for global linking commands, inspired the link
 extension system, added support for mairix, and proposed the mapping API.
+@item
+@i{Andy Stewart} contributed code to @file{org-w3m.el}, to copy HTML content
+with links transformation to Org syntax.
 @item
 @i{David O'Toole} wrote @file{org-publish.el} and drafted the manual
 chapter about publishing.

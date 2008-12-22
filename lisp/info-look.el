@@ -335,22 +335,23 @@ If optional argument QUERY is non-nil, query for the help mode."
 	      (cons (list Info-current-file Info-current-node (point))
 		    Info-history))))
          found doc-spec node prefix suffix doc-found)
-    (if (not (eq major-mode 'Info-mode))
-	(if (not info-lookup-other-window-flag)
-	    (info)
-	  (progn
-	    (save-window-excursion (info))
-	    ;; Determine whether or not the Info buffer is visible in
-	    ;; another frame on the same display.  If it is, simply raise
-	    ;; that frame.  Otherwise, display it in another window.
-	    (let* ((window (get-buffer-window "*info*" t))
-		   (info-frame (and window (window-frame window))))
-	      (if (and info-frame
-		       (display-multi-frame-p)
-		       (memq info-frame (frames-on-display-list))
-		       (not (eq info-frame (selected-frame))))
-		  (select-frame info-frame)
-		(switch-to-buffer-other-window "*info*"))))))
+    (unless (eq major-mode 'Info-mode)
+      (if (not info-lookup-other-window-flag)
+	  (info)
+	(save-window-excursion (info))
+	(let* ((info-window (get-buffer-window "*info*" t))
+	       (info-frame (and info-window (window-frame info-window))))
+	  (if (and info-frame
+		   (not (eq info-frame (selected-frame)))
+		   (display-multi-frame-p)
+		   (memq info-frame (frames-on-display-list)))
+	      ;; *info* is visible in another frame on same display.
+	      ;; Raise that frame and select the window.
+	      (progn
+		(select-window info-window)
+		(raise-frame info-frame))
+	    ;; In any other case, switch to *info* in another window.
+	    (switch-to-buffer-other-window "*info*")))))
     (while (and (not found) modes)
       (setq doc-spec (info-lookup->doc-spec topic (car modes)))
       (while (and (not found) doc-spec)

@@ -37,6 +37,9 @@ Do NOT send a separate copy to the bug list, since this may generate a
 new report. The only time to send mail to the bug list is to create a
 new report.
 
+Gnus users can add "\\(emacs-pretest-bug\\|bug-gnu-emacs\\)@gnu\\.org"
+to message-dont-reply-to-names.
+
 ** When reporting a bug, to send a Cc to another address
 (e.g. bug-cc-mode@gnu.org), do NOT just use a Cc: header.
 Instead, use "X-Debbugs-CC:".  This ensures the Cc address will get a
@@ -144,6 +147,8 @@ Like `merge', but bugs need not be in the same state.  The packages
 must still match though.  The first one listed is the master.  E.g.:
 
 forcemerge 123 124 125 ...
+
+Note: you cannot merge with an archived bug - you must unarchive it first.
 
 *** To unmerge bugs:
 To disconnect a bug from all bugs it is merged with:

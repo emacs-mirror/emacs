@@ -196,6 +196,42 @@
 ;; Improved message reference matching in `ispell-message'.
 ;; Fixed bug in returning to nroff mode from tex mode.
 
+;;; Compatibility code for xemacs and (not too) older emacsen:
+
+(if (fboundp 'version<=)
+    (defalias 'ispell-check-minver 'version<=)
+  (defun ispell-check-minver (minver version)
+    "Check if string VERSION is at least string MINVER.
+Both must be in [0-9]+.[0-9]+... format. This is a fallback
+compatibility function in case version<= is not available."
+    (let ((pending t)
+	  (return t)
+	  start-ver start-mver)
+      ;; Loop until an absolute greater or smaller condition is reached
+      ;; or until no elements are left in any of version and minver. In
+      ;; this case version is exactly the minimal, so return OK.
+      (while pending
+	(let (ver mver)
+	  (if (string-match "[0-9]+" version start-ver)
+	      (setq start-ver (match-end 0)
+		    ver (string-to-int (substring version (match-beginning 0) (match-end 0)))))
+	  (if (string-match "[0-9]+" minver start-mver)
+	      (setq start-mver (match-end 0)
+		    mver (string-to-int (substring minver (match-beginning 0) (match-end 0)))))
+
+	  (if (or ver mver)
+	      (progn
+		(or ver  (setq ver 0))
+		(or mver (setq mver 0))
+		;; If none of below conditions match, this element is the
+		;; same. Go checking next element.
+		(if (> ver mver)
+		    (setq pending nil)
+		  (if (< ver mver)
+		      (setq pending nil
+			    return nil))))
+	    (setq pending nil))))
+      return)))
 
 ;;; Code:
 
@@ -506,8 +542,12 @@ re-start Emacs."
 
 
 (defvar ispell-dictionary-base-alist
-  '((nil                                ; default (English.aff)
-     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
+  '((nil
+     ;; The default dictionary.  It may be English.aff, or any other
+     ;; dictionary depending on locale and such things.  We should probably
+     ;; ask ispell what dictionary it's using, but until we do that, let's
+     ;; just use an approximate regexp.
+     "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-B") nil iso-8859-1)
     ("american"				; Yankee English
      "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
     ("brasileiro"			; Brazilian mode
@@ -664,7 +704,8 @@ Note that the CASECHARS and OTHERCHARS slots of the alist should
 contain the same character set as casechars and otherchars in the
 LANGUAGE.aff file \(e.g., english.aff\).")
 
-(defvar ispell-really-aspell nil) ; Non-nil if aspell extensions should be used
+(defvar ispell-really-aspell nil)   ; Non-nil if aspell extensions should be used
+(defvar ispell-really-hunspell nil) ; Non-nil if hunspell extensions should be used
 
 (defvar ispell-aspell-supports-utf8 nil
   "Non-nil means to try to automatically find aspell dictionaries.
@@ -709,7 +750,7 @@ Otherwise returns the library directory name, if that is defined."
 	(default-directory (or (and (boundp 'temporary-file-directory)
 				    temporary-file-directory)
 			       default-directory))
-	result status)
+	result status ispell-program-version)
     (save-excursion
       (let ((buf (get-buffer " *ispell-tmp*")))
 	(if buf (kill-buffer buf)))
@@ -741,36 +782,51 @@ Otherwise returns the library directory name, if that is defined."
       (if (not (memq status '(0 nil)))
 	  (error "%s exited with %s %s" ispell-program-name
 		 (if (stringp status) "signal" "code") status))
-      (setq case-fold-search t
-	    status (re-search-forward
-		    (concat "\\<\\("
-			    (format "%d" (car ispell-required-version))
-			    "\\)\\.\\([0-9]*\\)\\.\\([0-9]*\\)\\>")
-		    nil t)
-	    case-fold-search case-fold-search-val)
-      (if (or (not status)	; major version mismatch
-	      (< (car (read-from-string (match-string-no-properties 2)))
-		 (car (cdr ispell-required-version)))) ; minor version mismatch
-	  (error "%s version 3 release %d.%d.%d or greater is required"
-		 ispell-program-name (car ispell-required-version)
-		 (car (cdr ispell-required-version))
-		 (car (cdr (cdr ispell-required-version))))
-	;; check that it is the correct version.
-	(if (and (= (car (read-from-string (match-string-no-properties 2)))
-		    (car (cdr ispell-required-version)))
-		 (< (car (read-from-string (match-string-no-properties 3)))
-		    (car (cdr (cdr ispell-required-version)))))
-          (setq ispell-offset 0))
-        ;; Check to see if it's really aspell.
-        (goto-char (point-min))
-        (let (case-fold-search)
-          (setq ispell-really-aspell
-		(and (search-forward-regexp
-		      "(but really Aspell \\(.*?\\)\\(-[0-9]+\\)?)" nil t)
-		     (progn
-		       (setq ispell-aspell-supports-utf8
-			     (not (version< (match-string 1) "0.60")))
-		       t)))))
+
+      ;; Get relevant version strings. Only xx.yy.... format works well
+      (let (case-fold-search)
+	(setq ispell-program-version
+	      (and (search-forward-regexp "\\([0-9]+\\.[0-9\\.]+\\)" nil t)
+		   (match-string 1)))
+
+	;; Make sure these variables are (re-)initialized to the default value
+	(setq ispell-really-aspell nil
+	      ispell-aspell-supports-utf8 nil
+	      ispell-really-hunspell nil)
+
+	(goto-char (point-min))
+	(or (setq ispell-really-aspell
+		  (and (search-forward-regexp
+			"(but really Aspell \\([0-9]+\\.[0-9\\.]+\\)?)" nil t)
+		       (match-string 1)))
+	    (setq ispell-really-hunspell
+		  (and (search-forward-regexp
+			"(but really Hunspell \\([0-9]+\\.[0-9\\.]+\\)?)" nil t)
+		       (match-string 1)))))
+
+      (let ((aspell-minver    "0.50")
+	    (aspell8-minver   "0.60")
+	    (ispell0-minver   "3.1.0")
+	    (ispell-minver    "3.1.12")
+	    (hunspell8-minver "1.1.6"))
+
+	(if (ispell-check-minver ispell0-minver ispell-program-version)
+	    (or (ispell-check-minver ispell-minver ispell-program-version)
+		(setq ispell-offset 0))
+	  (error "%s release %s or greater is required"
+		 ispell-program-name
+		 ispell-minver))
+
+	(cond
+	 (ispell-really-aspell
+	  (if (ispell-check-minver aspell-minver ispell-really-aspell)
+	      (if (ispell-check-minver aspell8-minver ispell-really-aspell)
+		  (setq ispell-aspell-supports-utf8 t))
+	    (setq ispell-really-aspell nil)))
+	 (ispell-really-hunspell
+	  (or (ispell-check-minver hunspell8-minver ispell-really-hunspell)
+	      (setq ispell-really-hunspell nil)))))
+
       (kill-buffer (current-buffer)))
     result))
 
@@ -1489,7 +1545,10 @@ This allows it to improve the suggestion list based on actual mispellings."
 			   (point-min) (point-max)
 			   ispell-program-name nil
 			   output-buf nil
-			   "-a" "-m" ispell-args))
+			   "-a"
+			   ;; hunspell -m option means something different
+			   (if ispell-really-hunspell "" "-m")
+			   ispell-args))
 	      (set-buffer output-buf)
 	      (goto-char (point-min))
 	      (save-match-data
@@ -2469,6 +2528,7 @@ When asynchronous processes are not supported, `run' is always returned."
   "Start the ispell process, with support for no asynchronous processes.
 Keeps argument list for future ispell invocations for no async support."
   (let ((default-directory default-directory)
+	encoding-command
 	args)
     (unless (and (file-directory-p default-directory)
 		 (file-readable-p default-directory))
@@ -2489,12 +2549,18 @@ Keeps argument list for future ispell invocations for no async support."
 	      (append args
 		      (list "-p"
 			    (expand-file-name ispell-current-personal-dictionary)))))
-    (if (and ispell-really-aspell
-	     ispell-aspell-supports-utf8)
+
+    ;; If we are using recent aspell or hunspell, make sure we use the right encoding
+    ;; for communication. ispell or older aspell/hunspell does not support this
+    (if (or (and ispell-really-aspell
+		 ispell-aspell-supports-utf8
+		 (setq encoding-command "--encoding="))
+	    (and ispell-really-hunspell
+		 (setq encoding-command "-i ")))
 	(setq args
 	      (append args
 		      (list
-		       (concat "--encoding="
+		       (concat encoding-command
 			       (symbol-name (ispell-get-coding-system)))))))
     (setq args (append args ispell-extra-args))
 
@@ -2505,9 +2571,9 @@ Keeps argument list for future ispell invocations for no async support."
 	(let ((process-connection-type ispell-use-ptys-p))
 	  (apply 'start-process
 		 "ispell" nil ispell-program-name
-		 "-a"			; accept single input lines
-		 "-m"			; make root/affix combos not in dict
-		 args))
+		 "-a"			             ; accept single input lines
+		 (if ispell-really-hunspell "" "-m") ; make root/affix combos not in dict
+		 args))                              ; hunspell -m option means different
       (setq ispell-cmd-args args
 	    ispell-output-buffer (generate-new-buffer " *ispell-output*")
 	    ispell-session-buffer (generate-new-buffer " *ispell-session*"))

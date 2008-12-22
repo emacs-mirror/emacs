@@ -41,16 +41,22 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #else /* !WINDOWSNT */
 
-# include <sys/types.h>
+# include "syswait.h"
 
 # ifdef HAVE_INET_SOCKETS
 #  include <netinet/in.h>
 # endif
 
+# include <arpa/inet.h>
+
 # define INVALID_SOCKET -1
 # define HSOCKET int
 # define CLOSE_SOCKET close
 # define INITIALIZE()
+
+# ifndef WCONTINUED
+#  define WCONTINUED 8
+# endif
 
 #endif /* !WINDOWSNT */
 
@@ -582,6 +588,15 @@ decode_options (argc, argv)
      arguments or expressions given.  */
   if (nowait && tty && argc - optind > 0)
     current_frame = 1;
+
+#ifdef WINDOWSNT
+  if (alternate_editor && alternate_editor[0] == '\0')
+    {
+      message (TRUE, "--alternate-editor argument or ALTERNATE_EDITOR variable cannot be\n\
+an empty string");
+      exit (EXIT_FAILURE);
+    }
+#endif /* WINDOWSNT */
 }
 
 
@@ -613,8 +628,12 @@ The following OPTIONS are accepted:\n\
 "-f, --server-file=FILENAME\n\
 			Set filename of the TCP authentication file\n\
 -a, --alternate-editor=EDITOR\n\
-			Editor to fallback to if the server is not running\n\
-\n\
+			Editor to fallback to if the server is not running\n"
+#ifdef WINDOWSNT
+"			If EDITOR is the empty string, start Emacs in daemon\n\
+			mode and try connecting again\n"
+#endif /* WINDOWSNT */
+"\n\
 Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (EXIT_SUCCESS);
 }
@@ -1292,7 +1311,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 #endif /* ! NO_SOCKETS_IN_FILE_SYSTEM */
 
 HSOCKET
-set_socket ()
+set_socket (int no_exit_if_error)
 {
   HSOCKET s;
 
@@ -1303,7 +1322,7 @@ set_socket ()
   if (socket_name)
     {
       s = set_local_socket ();
-      if ((s != INVALID_SOCKET) || alternate_editor)
+      if ((s != INVALID_SOCKET) || no_exit_if_error)
 	return s;
       message (TRUE, "%s: error accessing socket \"%s\"\n",
 	       progname, socket_name);
@@ -1318,7 +1337,7 @@ set_socket ()
   if (server_file)
     {
       s = set_tcp_socket ();
-      if ((s != INVALID_SOCKET) || alternate_editor)
+      if ((s != INVALID_SOCKET) || no_exit_if_error)
 	return s;
 
       message (TRUE, "%s: error accessing server file \"%s\"\n",
@@ -1336,7 +1355,7 @@ set_socket ()
   /* Implicit server file.  */
   server_file = "server";
   s = set_tcp_socket ();
-  if ((s != INVALID_SOCKET) || alternate_editor)
+  if ((s != INVALID_SOCKET) || no_exit_if_error)
     return s;
 
   /* No implicit or explicit socket, and no alternate editor.  */
@@ -1406,6 +1425,60 @@ w32_give_focus ()
 }
 #endif
 
+/* Start the emacs daemon and try to connect to it.  */
+
+void
+start_daemon_and_retry_set_socket (void)
+{
+#ifndef WINDOWSNT
+  pid_t dpid;
+  int status;
+
+  dpid = fork ();
+
+  if (dpid > 0)
+    {
+      pid_t w;
+      w = waitpid (dpid, &status, WUNTRACED | WCONTINUED);
+
+      if ((w == -1) || !WIFEXITED (status) || WEXITSTATUS(status))
+	{
+	  message (TRUE, "Error: Could not start the Emacs daemon\n");
+	  exit (EXIT_FAILURE);
+	}
+
+      /* Try connecting, the daemon should have started by now.  */
+      message (TRUE, "Emacs daemon should have started, trying to connect again\n");
+      if ((emacs_socket = set_socket (1)) == INVALID_SOCKET)
+	{
+	  message (TRUE, "Error: Cannot connect even after starting the Emacs daemon\n");
+	  exit (EXIT_FAILURE);
+	}
+    }
+  else if (dpid < 0)
+    {
+      fprintf (stderr, "Error: Cannot fork!\n");
+      exit (1);
+    }
+  else
+    {
+      char *d_argv[] = {"emacs", "--daemon", 0 };
+      if (socket_name != NULL)
+	{
+	  /* Pass  --daemon=socket_name as argument.  */
+	  char *deq = "--daemon=";
+	  char *daemon_arg = alloca (strlen (deq)
+				     + strlen (socket_name) + 1);
+	  strcpy (daemon_arg, deq);
+	  strcat (daemon_arg, socket_name);
+	  d_argv[1] = daemon_arg;
+	}
+      execvp ("emacs", d_argv);
+      message (TRUE, "%s: error starting emacs daemon\n", progname);
+    }
+#endif /* WINDOWSNT */
+}
+
 int
 main (argc, argv)
      int argc;
@@ -1414,6 +1487,7 @@ main (argc, argv)
   int i, rl, needlf = 0;
   char *cwd, *str;
   char string[BUFSIZ+1];
+  int null_socket_name, null_server_file, start_daemon_if_needed;
 
   main_argv = argv;
   progname = argv[0];
@@ -1429,9 +1503,34 @@ main (argc, argv)
       exit (EXIT_FAILURE);
     }
 
-  if ((emacs_socket = set_socket ()) == INVALID_SOCKET)
-    fail ();
+  /* If alternate_editor is the empty string, start the emacs daemon
+     in case of failure to connect.  */
+  start_daemon_if_needed = (alternate_editor
+			    && (alternate_editor[0] == '\0'));
+  if (start_daemon_if_needed)
+    {
+      /* set_socket changes the values for socket_name and
+	 server_file, we need to reset them, if they were NULL before
+	 for the second call to set_socket.  */
+      null_socket_name = (socket_name == NULL);
+      null_server_file = (server_file == NULL);
+    }
 
+  if ((emacs_socket = set_socket (alternate_editor
+				  || start_daemon_if_needed)) == INVALID_SOCKET)
+    if (start_daemon_if_needed)
+      {
+	/* Reset socket_name and server_file if they were NULL
+	   before the set_socket call.  */
+	if (null_socket_name)
+	  socket_name = NULL;
+	if (null_server_file)
+	  server_file = NULL;
+
+	start_daemon_and_retry_set_socket ();
+      }
+    else
+      fail ();
 
   cwd = get_current_dir_name ();
   if (cwd == 0)

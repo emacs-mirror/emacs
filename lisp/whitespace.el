@@ -381,7 +381,7 @@
   '(tabs spaces trailing lines space-before-tab newline
 	 indentation empty space-after-tab
 	 space-mark tab-mark newline-mark)
-  "*Specify which kind of blank is visualized.
+  "Specify which kind of blank is visualized.
 
 It's a list containing some or all of the following values:
 
@@ -508,7 +508,7 @@ See also `whitespace-display-mappings' for documentation."
 
 
 (defcustom whitespace-space 'whitespace-space
-  "*Symbol face used to visualize SPACE.
+  "Symbol face used to visualize SPACE.
 
 Used when `whitespace-style' includes the value `spaces'."
   :type 'face
@@ -526,7 +526,7 @@ Used when `whitespace-style' includes the value `spaces'."
 
 
 (defcustom whitespace-hspace 'whitespace-hspace
-  "*Symbol face used to visualize HARD SPACE.
+  "Symbol face used to visualize HARD SPACE.
 
 Used when `whitespace-style' includes the value `spaces'."
   :type 'face
@@ -544,7 +544,7 @@ Used when `whitespace-style' includes the value `spaces'."
 
 
 (defcustom whitespace-tab 'whitespace-tab
-  "*Symbol face used to visualize TAB.
+  "Symbol face used to visualize TAB.
 
 Used when `whitespace-style' includes the value `tabs'."
   :type 'face
@@ -562,7 +562,7 @@ Used when `whitespace-style' includes the value `tabs'."
 
 
 (defcustom whitespace-newline 'whitespace-newline
-  "*Symbol face used to visualize NEWLINE char mapping.
+  "Symbol face used to visualize NEWLINE char mapping.
 
 See `whitespace-display-mappings'.
 
@@ -585,7 +585,7 @@ See `whitespace-display-mappings'."
 
 
 (defcustom whitespace-trailing 'whitespace-trailing
-  "*Symbol face used to visualize trailing blanks.
+  "Symbol face used to visualize trailing blanks.
 
 Used when `whitespace-style' includes the value `trailing'."
   :type 'face
@@ -600,7 +600,7 @@ Used when `whitespace-style' includes the value `trailing'."
 
 
 (defcustom whitespace-line 'whitespace-line
-  "*Symbol face used to visualize \"long\" lines.
+  "Symbol face used to visualize \"long\" lines.
 
 See `whitespace-line-column'.
 
@@ -619,7 +619,7 @@ See `whitespace-line-column'."
 
 
 (defcustom whitespace-space-before-tab 'whitespace-space-before-tab
-  "*Symbol face used to visualize SPACEs before TAB.
+  "Symbol face used to visualize SPACEs before TAB.
 
 Used when `whitespace-style' includes the value `space-before-tab'."
   :type 'face
@@ -634,7 +634,7 @@ Used when `whitespace-style' includes the value `space-before-tab'."
 
 
 (defcustom whitespace-indentation 'whitespace-indentation
-  "*Symbol face used to visualize 8 or more SPACEs at beginning of line.
+  "Symbol face used to visualize 8 or more SPACEs at beginning of line.
 
 Used when `whitespace-style' includes the value `indentation'."
   :type 'face
@@ -649,7 +649,7 @@ Used when `whitespace-style' includes the value `indentation'."
 
 
 (defcustom whitespace-empty 'whitespace-empty
-  "*Symbol face used to visualize empty lines at beginning and/or end of buffer.
+  "Symbol face used to visualize empty lines at beginning and/or end of buffer.
 
 Used when `whitespace-style' includes the value `empty'."
   :type 'face
@@ -664,7 +664,7 @@ Used when `whitespace-style' includes the value `empty'."
 
 
 (defcustom whitespace-space-after-tab 'whitespace-space-after-tab
-  "*Symbol face used to visualize 8 or more SPACEs after TAB.
+  "Symbol face used to visualize 8 or more SPACEs after TAB.
 
 Used when `whitespace-style' includes the value `space-after-tab'."
   :type 'face
@@ -680,7 +680,7 @@ Used when `whitespace-style' includes the value `space-after-tab'."
 
 (defcustom whitespace-hspace-regexp
   "\\(\\(\xA0\\|\x8A0\\|\x920\\|\xE20\\|\xF20\\)+\\)"
-  "*Specify HARD SPACE characters regexp.
+  "Specify HARD SPACE characters regexp.
 
 If you're using `mule' package, there may be other characters besides:
 
@@ -708,7 +708,7 @@ Used when `whitespace-style' includes `spaces'."
 
 
 (defcustom whitespace-space-regexp "\\( +\\)"
-  "*Specify SPACE characters regexp.
+  "Specify SPACE characters regexp.
 
 If you're using `mule' package, there may be other characters
 besides \" \" that should be considered SPACE.
@@ -730,7 +730,7 @@ Used when `whitespace-style' includes `spaces'."
 
 
 (defcustom whitespace-tab-regexp "\\(\t+\\)"
-  "*Specify TAB characters regexp.
+  "Specify TAB characters regexp.
 
 If you're using `mule' package, there may be other characters
 besides \"\\t\" that should be considered TAB.
@@ -753,7 +753,7 @@ Used when `whitespace-style' includes `tabs'."
 
 (defcustom whitespace-trailing-regexp
   "\\(\\(\t\\| \\|\xA0\\|\x8A0\\|\x920\\|\xE20\\|\xF20\\)+\\)$"
-  "*Specify trailing characters regexp.
+  "Specify trailing characters regexp.
 
 If you're using `mule' package, there may be other characters besides:
 
@@ -771,7 +771,7 @@ Used when `whitespace-style' includes `trailing'."
 
 
 (defcustom whitespace-space-before-tab-regexp "\\( +\\)\\(\t+\\)"
-  "*Specify SPACEs before TAB regexp.
+  "Specify SPACEs before TAB regexp.
 
 If you're using `mule' package, there may be other characters besides:
 
@@ -789,7 +789,7 @@ Used when `whitespace-style' includes `space-before-tab',
 (defcustom whitespace-indentation-regexp
   '("^\t*\\(\\( \\{%d\\}\\)+\\)[^\n\t]"
     . "^ *\\(\t+\\)[^\n]")
-  "*Specify regexp for 8 or more SPACEs at beginning of line.
+  "Specify regexp for 8 or more SPACEs at beginning of line.
 
 It is a cons where the cons car is used for SPACEs visualization
 and the cons cdr is used for TABs visualization.
@@ -809,7 +809,7 @@ Used when `whitespace-style' includes `indentation',
 
 
 (defcustom whitespace-empty-at-bob-regexp "\\`\\(\\([ \t]*\n\\)+\\)"
-  "*Specify regexp for empty lines at beginning of buffer.
+  "Specify regexp for empty lines at beginning of buffer.
 
 If you're using `mule' package, there may be other characters besides:
 
@@ -824,7 +824,7 @@ Used when `whitespace-style' includes `empty'."
 
 
 (defcustom whitespace-empty-at-eob-regexp "^\\([ \t\n]+\\)\\'"
-  "*Specify regexp for empty lines at end of buffer.
+  "Specify regexp for empty lines at end of buffer.
 
 If you're using `mule' package, there may be other characters besides:
 
@@ -841,7 +841,7 @@ Used when `whitespace-style' includes `empty'."
 (defcustom whitespace-space-after-tab-regexp
   '("\t+\\(\\( \\{%d\\}\\)+\\)"
     . "\\(\t+\\) +")
-  "*Specify regexp for 8 or more SPACEs after TAB.
+  "Specify regexp for 8 or more SPACEs after TAB.
 
 It is a cons where the cons car is used for SPACEs visualization
 and the cons cdr is used for TABs visualization.
@@ -860,7 +860,7 @@ Used when `whitespace-style' includes `space-after-tab',
 
 
 (defcustom whitespace-line-column 80
-  "*Specify column beyond which the line is highlighted.
+  "Specify column beyond which the line is highlighted.
 
 Used when `whitespace-style' includes `lines' or `lines-tail'."
   :type '(integer :tag "Line Length")
@@ -891,7 +891,7 @@ Used when `whitespace-style' includes `lines' or `lines-tail'."
     ;; If this is a problem for you, please, comment the line below.
     (tab-mark     ?\t    [?\xBB ?\t]   [?\\ ?\t])	; tab - left quote mark
     )
-  "*Specify an alist of mappings for displaying characters.
+  "Specify an alist of mappings for displaying characters.
 
 Each element has the following form:
 
@@ -936,7 +936,7 @@ Used when `whitespace-style' includes `tab-mark', `space-mark' or
 
 
 (defcustom whitespace-global-modes t
-  "*Modes for which global `whitespace-mode' is automagically turned on.
+  "Modes for which global `whitespace-mode' is automagically turned on.
 
 Global `whitespace-mode' is controlled by the command
 `global-whitespace-mode'.
@@ -967,7 +967,7 @@ C++ modes only."
 
 
 (defcustom whitespace-action nil
-  "*Specify which action is taken when a buffer is visited or written.
+  "Specify which action is taken when a buffer is visited or written.
 
 It's a list containing some or all of the following values:
 

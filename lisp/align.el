@@ -3,7 +3,7 @@
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
-;; Author: John Wiegley <johnw@gnu.org> 
+;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: convenience languages lisp
 
@@ -127,17 +127,17 @@
 ;;; User Variables:
 
 (defcustom align-load-hook nil
-  "*Hook that gets run after the aligner has been loaded."
+  "Hook that gets run after the aligner has been loaded."
   :type 'hook
   :group 'align)
 
 (defcustom align-indent-before-aligning nil
-  "*If non-nil, indent the marked region before aligning it."
+  "If non-nil, indent the marked region before aligning it."
   :type 'boolean
   :group 'align)
 
 (defcustom align-default-spacing 1
-  "*An integer that represents the default amount of padding to use.
+  "An integer that represents the default amount of padding to use.
 If `align-to-tab-stop' is non-nil, this will represent the number of
 tab stops to use for alignment, rather than the number of spaces.
 Each alignment rule can optionally override both this variable.  See
@@ -146,13 +146,13 @@ Each alignment rule can optionally override both this variable.  See
   :group 'align)
 
 (defcustom align-to-tab-stop 'indent-tabs-mode
-  "*If non-nil, alignments will always fall on a tab boundary.
+  "If non-nil, alignments will always fall on a tab boundary.
 It may also be a symbol, whose value will be taken."
   :type '(choice (const nil) symbol)
   :group 'align)
 
 (defcustom align-region-heuristic 500
-  "*If non-nil, used as a heuristic by `align-current'.
+  "If non-nil, used as a heuristic by `align-current'.
 Since each alignment rule can possibly have its own set of alignment
 sections (whenever `align-region-separate' is non-nil, and not a
 string), this heuristic is used to determine how far before and after
@@ -163,72 +163,72 @@ may cause unexpected behavior at times."
   :group 'align)
 
 (defcustom align-highlight-change-face 'highlight
-  "*The face to highlight with if changes are necessary."
+  "The face to highlight with if changes are necessary."
   :type 'face
   :group 'align)
 
 (defcustom align-highlight-nochange-face 'secondary-selection
-  "*The face to highlight with if no changes are necessary."
+  "The face to highlight with if no changes are necessary."
   :type 'face
   :group 'align)
 
 (defcustom align-large-region 10000
-  "*If an integer, defines what constitutes a \"large\" region.
+  "If an integer, defines what constitutes a \"large\" region.
 If nil,then no messages will ever be printed to the minibuffer."
   :type 'integer
   :group 'align)
 
 (defcustom align-c++-modes '(c++-mode c-mode java-mode)
-  "*A list of modes whose syntax resembles C/C++."
+  "A list of modes whose syntax resembles C/C++."
   :type '(repeat symbol)
   :group 'align)
 
 (defcustom align-perl-modes '(perl-mode cperl-mode)
-  "*A list of modes where perl syntax is to be seen."
+  "A list of modes where perl syntax is to be seen."
   :type '(repeat symbol)
   :group 'align)
 
 (defcustom align-lisp-modes
   '(emacs-lisp-mode lisp-interaction-mode lisp-mode scheme-mode)
-  "*A list of modes whose syntax resembles Lisp."
+  "A list of modes whose syntax resembles Lisp."
   :type '(repeat symbol)
   :group 'align)
 
 (defcustom align-tex-modes
   '(tex-mode plain-tex-mode latex-mode slitex-mode)
-  "*A list of modes whose syntax resembles TeX (and family)."
+  "A list of modes whose syntax resembles TeX (and family)."
   :type '(repeat symbol)
   :group 'align)
 
 (defcustom align-text-modes '(text-mode outline-mode)
-  "*A list of modes whose content is plain text."
+  "A list of modes whose content is plain text."
   :type '(repeat symbol)
   :group 'align)
 
 (defcustom align-dq-string-modes
   (append align-lisp-modes align-c++-modes align-perl-modes
 	  '(python-mode))
-  "*A list of modes where double quoted strings should be excluded."
+  "A list of modes where double quoted strings should be excluded."
   :type '(repeat symbol)
   :group 'align)
 
 (defcustom align-sq-string-modes
   (append align-perl-modes '(python-mode))
-  "*A list of modes where single quoted strings should be excluded."
+  "A list of modes where single quoted strings should be excluded."
   :type '(repeat symbol)
   :group 'align)
 
 (defcustom align-open-comment-modes
   (append align-lisp-modes align-c++-modes align-perl-modes
 	  '(python-mode makefile-mode))
-  "*A list of modes with a single-line comment syntax.
+  "A list of modes with a single-line comment syntax.
 These are comments as in Lisp, which have a beginning but, end with
 the line (i.e., `comment-end' is an empty string)."
   :type '(repeat symbol)
   :group 'align)
 
 (defcustom align-region-separate "^\\s-*[{}]?\\s-*$"
-  "*Select the method by which alignment sections will be separated.
+  "Select the method by which alignment sections will be separated.
 If this is a symbol, that symbol's value will be used.
 
 For the sake of clarification, consider the following example, which
@@ -581,7 +581,7 @@ The possible settings for `align-region-separate' are:
      (regexp . "^\\s-*\\w+:\\(\\s-*\\).*;")
      (group . (1))
      (modes . '(css-mode html-mode))))
-  "*A list describing all of the available alignment rules.
+  "A list describing all of the available alignment rules.
 The format is:
 
    ((TITLE
@@ -779,7 +779,7 @@ The following attributes are meaningful:
      (regexp . "^\\s-*#\\s-*\\(if\\w*\\|endif\\)\\(.*\\)$")
      (group  . 2)
      (modes  . align-c++-modes)))
-  "*A list describing text that should be excluded from alignment.
+  "A list describing text that should be excluded from alignment.
 See the documentation for `align-rules-list' for more info."
   :type align-exclude-rules-list-type
   :group 'align)
@@ -837,7 +837,7 @@ See the variable `align-exclude-rules-list' for more details.")
 
     (use-entity
      (regexp   . "\\(\\s-+\\)use\\s-+entity")))
-  "*Alignment rules for `vhdl-mode'.  See `align-rules-list' for more info."
+  "Alignment rules for `vhdl-mode'.  See `align-rules-list' for more info."
   :type align-rules-list-type
   :group 'align)
 

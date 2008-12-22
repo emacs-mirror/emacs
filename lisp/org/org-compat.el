@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.10c
+;; Version: 6.16
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -150,6 +150,22 @@ that will be added to PLIST.  Returns the string that was modified."
   string)
 (put 'org-add-props 'lisp-indent-function 2)
 
+(defun org-fit-window-to-buffer (&optional window max-height min-height
+					   shrink-only)
+  "Fit WINDOW to the buffer, but only if it is not a side-by-side window.
+WINDOW defaults to the selected window.  MAX-HEIGHT and MIN-HEIGHT are
+passed through to `fit-window-to-buffer'.  If SHRINK-ONLY is set, call
+`shrink-window-if-larger-than-buffer' instead, the hight limit are
+ignored in this case."
+  (cond ((> (frame-width) (window-width window))
+	 ;; do nothing if another window would suffer
+	 )
+	((and (fboundp 'fit-window-to-buffer) (not shrink-only))
+	 (fit-window-to-buffer window max-height min-height))
+	((fboundp 'shrink-window-if-larger-than-buffer)
+	 (shrink-window-if-larger-than-buffer window)))
+  (or window (selected-window)))
+
 ;; Region compatibility
 
 (defvar org-ignore-region nil
@@ -261,8 +277,15 @@ that can be added."
 
 (defun org-propertize (string &rest properties)
   (if (featurep 'xemacs)
-      (add-text-properties 0 (length string) properties string)
+      (progn
+	(add-text-properties 0 (length string) properties string)
+	string)
     (apply 'propertize string properties)))
+
+(defun org-substring-no-properties (string &optional from to)
+  (if (featurep 'xemacs)
+      (org-no-properties (substring string (or from 0) to))
+    (substring-no-properties string from to)))
 
 (provide 'org-compat)
 

@@ -221,9 +221,12 @@ Position 1 is the beginning of the buffer.
 @item M-g M-g
 @itemx M-g g
 Read a number @var{n} and move point to the beginning of line number
-@var{n} (@code{goto-line}).  Line 1 is the beginning of the buffer.
-If point is on or just after a number in the buffer, and you type
-@key{RET} with the minibuffer empty, that number is used for @var{n}.
+@var{n} (@code{goto-line}).  Line 1 is the beginning of the buffer.  If
+point is on or just after a number in the buffer, that is the default
+for @var{n}.  Just type @key{RET} in the minibuffer to use it.  You can
+also specify @var{n} by giving @kbd{M-g M-g} a numeric prefix argument.
+@xref{Select Buffer}, for the behavior of @kbd{M-g M-g} when you give it
+a plain prefix argument.
 @item C-x C-n
 @findex set-goal-column
 @kindex C-x C-n

@@ -1,7 +1,7 @@
-2008-08-18  Bill Wohler	 <wohler@newt.com>
+2008-08-18  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.1.
-  
+
 	* mh-e.el (Version, mh-version): Update for release 8.1.
 
 2008-08-11  Bill Wohler  <wohler@newt.com>
@@ -46,7 +46,7 @@
 
 	* mh-folder.el (mh-folder-mode):
 	* mh-letter.el (mh-letter-mode):
-	* mh-show.el (mh-show-mode):  Check tool-bar-map is bound.
+	* mh-show.el (mh-show-mode): Check tool-bar-map is bound.
 
 2008-06-08  John Paul Wallington  <jpw@pobox.com>
 
@@ -80,7 +80,7 @@
 	* mh-e.el (mh-invisible-header-fields-internal): Remove
 	DKIM-Signature as it is covered by DKIM-. Fully qualify X-EID.
 
-2008-05-19  Sergey Poznyakoff <gray@gnu.org.ua>
+2008-05-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* mh-mime.el (mh-mh-to-mime, mh-mh-to-mime-undo): Preserve modes
 	when converting to or from MIME (closes SF #1966722).
@@ -91,12 +91,12 @@
 	case-insensitive way and add comment about it. Add many header
 	fields (closes SF #1916032).
 
-2008-05-19  Xavier Maillard <xma@gnu.org>  (tiny change)
+2008-05-19  Xavier Maillard  <xma@gnu.org>  (tiny change)
 
 	* mh-utils.el (mh-find-path): Don't throw error if MH environment
 	variable is being used (closes SF #1946861).
 
-2008-05-19  Nick Dokos <nicholas.dokos@hp.com>  (tiny change)
+2008-05-19  Nick Dokos  <nicholas.dokos@hp.com>  (tiny change)
 
 	* mh-search.el (mh-mairix-regexp-builder): Add additional items to
 	search string to support org-mode (closes SF #1965704).
@@ -104,7 +104,7 @@
 2008-03-18  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Add Accreditor,
-	Seal-Send-Time. 
+	Seal-Send-Time.
 	(mh-invisible-header-fields, mh-invisible-header-fields-default):
 	Update URL to bug report for users to report ignored fields.
 
@@ -1786,7 +1786,7 @@
 	* mh-seq.el (mh-translate-range, mh-narrow-to-header-field)
 	(mh-thread-generate): Ditto.
 
-2006-01-16  Katsumi Yamaoka <yamaoka@jpl.org>
+2006-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mh-mime.el (mh-mime-display, mh-mm-inline-message): Fix use of
 	mm- functions for proper text=flowed handling (addresses SF

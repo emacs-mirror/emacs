@@ -36,9 +36,11 @@
     ("\\`P[1-6][[:space:]]+\\(?:#.*[[:space:]]+\\)*[0-9]+[[:space:]]+[0-9]+" . pbm)
     ("\\`GIF8[79]a" . gif)
     ("\\`\x89PNG\r\n\x1a\n" . png)
-    ("\\`[\t\n\r ]*#define \\([a-z0-9]+\\)_width [0-9]+\n\
-#define \\1_height [0-9]+\n\
-static char \\1_bits" . xbm)
+    ("\\`[\t\n\r ]*#define \\([a-z0-9_]+\\)_width [0-9]+\n\
+#define \\1_height [0-9]+\n\\(\
+#define \\1_x_hot [0-9]+\n\
+#define \\1_y_hot [0-9]+\n\\)?\
+static \\(unsigned \\)?char \\1_bits" . xbm)
     ("\\`\\(?:MM\0\\*\\|II\\*\0\\)" . tiff)
     ("\\`[\t\n\r ]*%!PS" . postscript)
     ("\\`\xff\xd8" . (image-jpeg-p . jpeg))

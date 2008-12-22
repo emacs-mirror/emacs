@@ -89,6 +89,9 @@
   :group 'tramp
   :type 'file)
 
+(defvar tramp-cache-data-changed nil
+  "Whether persistent cache data have been changed.")
+
 (defun tramp-get-file-property (vec file property default)
   "Get the PROPERTY of FILE from the cache context of VEC.
 Returns DEFAULT if not set."
@@ -195,6 +198,7 @@ PROPERTY is set persistent when KEY is a vector."
 		  (puthash key (make-hash-table :test 'equal)
 			    tramp-cache-data))))
     (puthash property value hash)
+    (setq tramp-cache-data-changed t)
     ;; This function is called also during initialization of
     ;; tramp-cache.el.  `tramp-message´ is not defined yet at this
     ;; time, so we ignore the corresponding error.
@@ -211,6 +215,7 @@ KEY identifies the connection, it is either a process or a vector."
   (when (vectorp key)
     (setq key (copy-sequence key))
     (aset key 3 nil))
+  (setq tramp-cache-data-changed t)
   (remhash key tramp-cache-data))
 
 (defun tramp-cache-print (table)
@@ -249,6 +254,7 @@ KEY identifies the connection, it is either a process or a vector."
   (condition-case nil
       (when (and (hash-table-p tramp-cache-data)
 		 (not (zerop (hash-table-count tramp-cache-data)))
+		 tramp-cache-data-changed
 		 (stringp tramp-persistency-file-name))
 	(let ((cache (copy-hash-table tramp-cache-data)))
 	  ;; Remove temporary data.
@@ -313,7 +319,8 @@ for all methods.  Resulting data are derived from connection history."
 	  (while (setq element (pop list))
 	    (setq key (pop element))
 	    (while (setq item (pop element))
-	      (tramp-set-connection-property key (pop item) (car item))))))
+	      (tramp-set-connection-property key (pop item) (car item)))))
+	(setq tramp-cache-data-changed nil))
     (file-error
      ;; Most likely because the file doesn't exist yet.  No message.
      (clrhash tramp-cache-data))

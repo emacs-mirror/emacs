@@ -32,7 +32,7 @@
   :group 'editing)
 
 (defcustom standard-indent 4
-  "*Default number of columns for margin-changing functions to indent."
+  "Default number of columns for margin-changing functions to indent."
   :group 'indent
   :type 'integer)
 
@@ -45,7 +45,7 @@ Setting this function is all you need to make TAB indent appropriately.
 Don't rebind TAB unless you really need to.")
 
 (defcustom tab-always-indent t
-  "*Controls the operation of the TAB key.
+  "Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.
 If nil, hitting TAB indents the current line if point is at the left margin
 or in the line's indentation, otherwise it inserts a \"real\" TAB character.
@@ -467,7 +467,7 @@ See also `indent-relative-maybe'."
 
 (defcustom tab-stop-list
   '(8 16 24 32 40 48 56 64 72 80 88 96 104 112 120)
-  "*List of tab stop positions used by `tab-to-tab-stop'.
+  "List of tab stop positions used by `tab-to-tab-stop'.
 This should be a list of integers, ordered from smallest to largest."
   :group 'indent
   :type '(repeat integer))

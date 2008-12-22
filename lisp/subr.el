@@ -68,7 +68,7 @@ the end of FILE must be all on the same line.  For example:
 \(declare-function c-end-of-defun \"progmodes/cc-cmds.el\"
                   \(&optional arg))
 
-For more information, see Info node `elisp(Declaring Functions)'."
+For more information, see Info node `(elisp)Declaring Functions'."
   ;; Does nothing - byte-compile-declare-function does the work.
   nil)
 
@@ -1787,7 +1787,9 @@ If optional CONFIRM is non-nil, read the password twice to make sure.
 Optional DEFAULT is a default password to use instead of empty input.
 
 This function echoes `.' for each character that the user types.
-The user ends with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
+
+The user ends with RET, LFD, or ESC.  DEL or C-h rubs out.
+C-y yanks the current kill.  C-u kills line.
 C-g quits; if `inhibit-quit' was non-nil around this function,
 then it returns nil if the user types C-g, but quit-flag remains set.
 
@@ -1815,30 +1817,48 @@ by doing (clear-string STRING)."
 	    (c 0)
 	    (echo-keystrokes 0)
 	    (cursor-in-echo-area t)
-	    (message-log-max nil))
+	    (message-log-max nil)
+	    (stop-keys (list 'return ?\r ?\n ?\e))
+	    (rubout-keys (list 'backspace ?\b ?\177)))
 	(add-text-properties 0 (length prompt)
 			     minibuffer-prompt-properties prompt)
 	(while (progn (message "%s%s"
 			       prompt
 			       (make-string (length pass) ?.))
-		      (setq c (read-char-exclusive nil t))
-		      (and (/= c ?\r) (/= c ?\n) (/= c ?\e)))
+		      ;; We used to use read-char-exclusive, but that
+		      ;; gives funny behavior when the user presses,
+		      ;; e.g., the arrow keys.
+		      (setq c (read-event nil t))
+		      (not (memq c stop-keys)))
 	  (clear-this-command-keys)
-	  (if (= c ?\C-u)
-	      (progn
-		(and (arrayp pass) (clear-string pass))
-		(setq pass ""))
-	    (if (and (/= c ?\b) (/= c ?\177))
-		(let* ((new-char (char-to-string c))
-		       (new-pass (concat pass new-char)))
-		  (and (arrayp pass) (clear-string pass))
-		  (clear-string new-char)
-		  (setq c ?\0)
-		  (setq pass new-pass))
-	      (if (> (length pass) 0)
-		  (let ((new-pass (substring pass 0 -1)))
-		    (and (arrayp pass) (clear-string pass))
-		    (setq pass new-pass))))))
+	  (cond ((memq c rubout-keys) ; rubout
+		 (when (> (length pass) 0)
+		   (let ((new-pass (substring pass 0 -1)))
+		     (and (arrayp pass) (clear-string pass))
+		     (setq pass new-pass))))
+		((not (numberp c)))
+		((= c ?\C-u) ; kill line
+		 (and (arrayp pass) (clear-string pass))
+		 (setq pass ""))
+		((= c ?\C-y) ; yank
+		 (let* ((str (condition-case nil
+				 (current-kill 0)
+			       (error nil)))
+			new-pass)
+		   (when str
+		     (setq new-pass
+			   (concat pass
+				   (substring-no-properties str)))
+		     (and (arrayp pass) (clear-string pass))
+		     (setq c ?\0)
+		     (setq pass new-pass))))
+		((characterp c) ; insert char
+		 (let* ((new-char (char-to-string c))
+			(new-pass (concat pass new-char)))
+		   (and (arrayp pass) (clear-string pass))
+		   (clear-string new-char)
+		   (setq c ?\0)
+		   (setq pass new-pass)))))
 	(message nil)
 	(or pass default "")))))
 
@@ -2781,9 +2801,11 @@ LIMIT if non-nil speeds up the search by specifying a minimum
 starting position, to avoid checking matches that would start
 before LIMIT.
 
-If GREEDY is non-nil, extend the match backwards as far as possible,
-stopping when a single additional previous character cannot be part
-of a match for REGEXP."
+If GREEDY is non-nil, extend the match backwards as far as
+possible, stopping when a single additional previous character
+cannot be part of a match for REGEXP.  When the match is
+extended, its starting position is allowed to occur before
+LIMIT."
   (let ((start (point))
 	(pos
 	 (save-excursion

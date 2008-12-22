@@ -34,7 +34,7 @@
   :group 'data)
 
 (defcustom sort-fold-case nil
-  "*Non-nil if the buffer sort functions should ignore case."
+  "Non-nil if the buffer sort functions should ignore case."
   :group 'sort
   :type 'boolean)
 ;;;###autoload(put 'sort-fold-case 'safe-local-variable 'booleanp)
@@ -256,7 +256,7 @@ the sort order."
     (setq sort-fields-syntax-table table)))
 
 (defcustom sort-numeric-base 10
-  "*The default base used by `sort-numeric-fields'."
+  "The default base used by `sort-numeric-fields'."
   :group 'sort
   :type 'integer)
 ;;;###autoload(put 'sort-numeric-base 'safe-local-variable 'integerp)

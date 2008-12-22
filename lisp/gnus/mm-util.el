@@ -47,38 +47,38 @@
        (if (fboundp (car elem))
 	   (defalias nfunc (car elem))
 	 (defalias nfunc (cdr elem)))))
-   '((coding-system-list . ignore)
+   `((coding-system-list . ignore)
      (char-int . identity)
      (coding-system-equal . equal)
      (annotationp . ignore)
      (set-buffer-file-coding-system . ignore)
      (read-charset
-      . (lambda (prompt)
-	  "Return a charset."
-	  (intern
-	   (completing-read
-	    prompt
-	    (mapcar (lambda (e) (list (symbol-name (car e))))
-		    mm-mime-mule-charset-alist)
-	    nil t))))
+      . ,(lambda (prompt)
+	   "Return a charset."
+	   (intern
+	    (completing-read
+	     prompt
+	     (mapcar (lambda (e) (list (symbol-name (car e))))
+		     mm-mime-mule-charset-alist)
+	     nil t))))
      (subst-char-in-string
-      . (lambda (from to string &optional inplace)
-	  ;; stolen (and renamed) from nnheader.el
-	  "Replace characters in STRING from FROM to TO.
+      . ,(lambda (from to string &optional inplace)
+	   ;; stolen (and renamed) from nnheader.el
+	   "Replace characters in STRING from FROM to TO.
 	  Unless optional argument INPLACE is non-nil, return a new string."
-	  (let ((string (if inplace string (copy-sequence string)))
-		(len (length string))
-		(idx 0))
-	    ;; Replace all occurrences of FROM with TO.
-	    (while (< idx len)
-	      (when (= (aref string idx) from)
-		(aset string idx to))
-	      (setq idx (1+ idx)))
-	    string)))
+	   (let ((string (if inplace string (copy-sequence string)))
+		 (len (length string))
+		 (idx 0))
+	     ;; Replace all occurrences of FROM with TO.
+	     (while (< idx len)
+	       (when (= (aref string idx) from)
+		 (aset string idx to))
+	       (setq idx (1+ idx)))
+	     string)))
      (replace-in-string
-      . (lambda (string regexp rep &optional literal)
-	  "See `replace-regexp-in-string', only the order of args differs."
-	  (replace-regexp-in-string regexp rep string nil literal)))
+      . ,(lambda (string regexp rep &optional literal)
+	   "See `replace-regexp-in-string', only the order of args differs."
+	   (replace-regexp-in-string regexp rep string nil literal)))
      (string-as-unibyte . identity)
      (string-make-unibyte . identity)
      ;; string-as-multibyte often doesn't really do what you think it does.
@@ -105,20 +105,32 @@
      (multibyte-char-to-unibyte . identity)
      (set-buffer-multibyte . ignore)
      (special-display-p
-      . (lambda (buffer-name)
-	  "Returns non-nil if a buffer named BUFFER-NAME gets a special frame."
-	  (and special-display-function
-	       (or (and (member buffer-name special-display-buffer-names) t)
-		   (cdr (assoc buffer-name special-display-buffer-names))
-		   (catch 'return
-		     (dolist (elem special-display-regexps)
-		       (and (stringp elem)
-			    (string-match elem buffer-name)
-			    (throw 'return t))
-		       (and (consp elem)
-			    (stringp (car elem))
-			    (string-match (car elem) buffer-name)
-			    (throw 'return (cdr elem))))))))))))
+      . ,(lambda (buffer-name)
+	   "Returns non-nil if a buffer named BUFFER-NAME gets a special frame."
+	   (and special-display-function
+		(or (and (member buffer-name special-display-buffer-names) t)
+		    (cdr (assoc buffer-name special-display-buffer-names))
+		    (catch 'return
+		      (dolist (elem special-display-regexps)
+			(and (stringp elem)
+			     (string-match elem buffer-name)
+			     (throw 'return t))
+			(and (consp elem)
+			     (stringp (car elem))
+			     (string-match (car elem) buffer-name)
+			     (throw 'return (cdr elem)))))))))
+     (substring-no-properties
+      . ,(lambda (string &optional from to)
+	   "Return a substring of STRING, without text properties.
+It starts at index FROM and ending before TO.
+TO may be nil or omitted; then the substring runs to the end of STRING.
+If FROM is nil or omitted, the substring starts at the beginning of STRING.
+If FROM or TO is negative, it counts from the end.
+
+With one argument, just copy STRING without its properties."
+	   (setq string (substring string (or from 0) to))
+	   (set-text-properties 0 (length string) nil string)
+	   string)))))
 
 (eval-and-compile
   (if (featurep 'xemacs)
@@ -156,7 +168,7 @@
     'string-to-multibyte)
    (t
     (lambda (string)
-      "Return a multibyte string with the same individual chars as string."
+      "Return a multibyte string with the same individual chars as STRING."
       (mapconcat
        (lambda (ch) (mm-string-as-multibyte (char-to-string ch)))
        string "")))))
@@ -269,10 +281,18 @@ the alias.  Else windows-NUMBER is used."
     ,@(when (and (not (mm-coding-system-p 'gbk))
 		 (mm-coding-system-p 'cp936))
 	'((gbk . cp936)))
+    ;; UTF8 is a bogus name for UTF-8
+    ,@(when (and (not (mm-coding-system-p 'utf8))
+		 (mm-coding-system-p 'utf-8))
+	'((utf8 . utf-8)))
     ;; ISO8859-1 is a bogus name for ISO-8859-1
     ,@(when (and (not (mm-coding-system-p 'iso8859-1))
 		 (mm-coding-system-p 'iso-8859-1))
 	'((iso8859-1 . iso-8859-1)))
+    ;; ISO_8859-1 is a bogus name for ISO-8859-1
+    ,@(when (and (not (mm-coding-system-p 'iso_8859-1))
+		 (mm-coding-system-p 'iso-8859-1))
+	'((iso_8859-1 . iso-8859-1)))
     )
   "A mapping from unknown or invalid charset names to the real charset names.
 
@@ -388,27 +408,7 @@ Unless LIST is given, `mm-codepage-ibm-list' is used."
 (mm-setup-codepage-iso-8859)
 (mm-setup-codepage-ibm)
 
-(defcustom mm-charset-override-alist
-  '((iso-8859-1 . windows-1252)
-    (iso-8859-8 . windows-1255)
-    (iso-8859-9 . windows-1254))
-  "A mapping from undesired charset names to their replacement.
-
-You may add pairs like (iso-8859-1 . windows-1252) here,
-i.e. treat iso-8859-1 as windows-1252.  windows-1252 is a
-superset of iso-8859-1."
-  :type '(list (set :inline t
-		    (const (iso-8859-1 . windows-1252))
-		    (const (iso-8859-8 . windows-1255))
-		    (const (iso-8859-9 . windows-1254))
-		    (const (undecided  . windows-1252)))
-	       (repeat :inline t
-		       :tag "Other options"
-		       (cons (symbol :tag "From charset")
-			     (symbol :tag "To charset"))))
-  :version "22.1" ;; Gnus 5.10.9
-  :group 'mime)
-
+;; Note: this has to be defined before `mm-charset-to-coding-system'.
 (defcustom mm-charset-eval-alist
   (if (featurep 'xemacs)
       nil ;; I don't know what would be useful for XEmacs.
@@ -436,6 +436,156 @@ could use `autoload-coding-system' here."
 			     (symbol :tag "form"))))
   :group 'mime)
 (put 'mm-charset-eval-alist 'risky-local-variable t)
+
+(defvar mm-charset-override-alist)
+
+;; Note: this function has to be defined before `mm-charset-override-alist'
+;; since it will use this function in order to determine its default value
+;; when loading mm-util.elc.
+(defun mm-charset-to-coding-system (charset &optional lbt
+					    allow-override silent)
+  "Return coding-system corresponding to CHARSET.
+CHARSET is a symbol naming a MIME charset.
+If optional argument LBT (`unix', `dos' or `mac') is specified, it is
+used as the line break code type of the coding system.
+
+If ALLOW-OVERRIDE is given, use `mm-charset-override-alist' to
+map undesired charset names to their replacement.  This should
+only be used for decoding, not for encoding.
+
+A non-nil value of SILENT means don't issue a warning even if CHARSET
+is not available."
+  ;; OVERRIDE is used (only) in `mm-decode-body' and `mm-decode-string'.
+  (when (stringp charset)
+    (setq charset (intern (downcase charset))))
+  (when lbt
+    (setq charset (intern (format "%s-%s" charset lbt))))
+  (cond
+   ((null charset)
+    charset)
+   ;; Running in a non-MULE environment.
+   ((or (null (mm-get-coding-system-list))
+	(not (fboundp 'coding-system-get)))
+    charset)
+   ;; Check override list quite early.  Should only used for decoding, not for
+   ;; encoding!
+   ((and allow-override
+	 (let ((cs (cdr (assq charset mm-charset-override-alist))))
+	   (and cs (mm-coding-system-p cs) cs))))
+   ;; ascii
+   ((eq charset 'us-ascii)
+    'ascii)
+   ;; Check to see whether we can handle this charset.  (This depends
+   ;; on there being some coding system matching each `mime-charset'
+   ;; property defined, as there should be.)
+   ((and (mm-coding-system-p charset)
+;;; Doing this would potentially weed out incorrect charsets.
+;;; 	 charset
+;;; 	 (eq charset (coding-system-get charset 'mime-charset))
+	 )
+    charset)
+   ;; Eval expressions from `mm-charset-eval-alist'
+   ((let* ((el (assq charset mm-charset-eval-alist))
+	   (cs (car el))
+	   (form (cdr el)))
+      (and cs
+	   form
+	   (prog2
+	       ;; Avoid errors...
+	       (condition-case nil (eval form) (error nil))
+	       ;; (message "Failed to eval `%s'" form))
+	       (mm-coding-system-p cs)
+	     (message "Added charset `%s' via `mm-charset-eval-alist'" cs))
+	   cs)))
+   ;; Translate invalid charsets.
+   ((let ((cs (cdr (assq charset mm-charset-synonym-alist))))
+      (and cs
+	   (mm-coding-system-p cs)
+	   ;; (message
+	   ;;  "Using synonym `%s' from `mm-charset-synonym-alist' for `%s'"
+	   ;;  cs charset)
+	   cs)))
+   ;; Last resort: search the coding system list for entries which
+   ;; have the right mime-charset in case the canonical name isn't
+   ;; defined (though it should be).
+   ((let (cs)
+      ;; mm-get-coding-system-list returns a list of cs without lbt.
+      ;; Do we need -lbt?
+      (dolist (c (mm-get-coding-system-list))
+	(if (and (null cs)
+		 (eq charset (or (coding-system-get c :mime-charset)
+				 (coding-system-get c 'mime-charset))))
+	    (setq cs c)))
+      (unless (or silent cs)
+	;; Warn the user about unknown charset:
+	(if (fboundp 'gnus-message)
+	    (gnus-message 7 "Unknown charset: %s" charset)
+	  (message "Unknown charset: %s" charset)))
+      cs))))
+
+;; Note: `mm-charset-to-coding-system' has to be defined before this.
+(defcustom mm-charset-override-alist
+  ;; Note: pairs that cannot be used in the Emacs version currently running
+  ;; will be removed.
+  '((gb2312 . gbk)
+    (iso-8859-1 . windows-1252)
+    (iso-8859-8 . windows-1255)
+    (iso-8859-9 . windows-1254))
+  "A mapping from undesired charset names to their replacement.
+
+You may add pairs like (iso-8859-1 . windows-1252) here,
+i.e. treat iso-8859-1 as windows-1252.  windows-1252 is a
+superset of iso-8859-1."
+  :type
+  '(list
+    :convert-widget
+    (lambda (widget)
+      (let ((defaults
+	      (delq nil
+		    (mapcar (lambda (pair)
+			      (if (mm-charset-to-coding-system (cdr pair)
+							       nil nil t)
+				  pair))
+			    '((gb2312 . gbk)
+			      (iso-8859-1 . windows-1252)
+			      (iso-8859-8 . windows-1255)
+			      (iso-8859-9 . windows-1254)
+			      (undecided  . windows-1252)))))
+	    (val (copy-sequence (default-value 'mm-charset-override-alist)))
+	    pair rest)
+	(while val
+	  (push (if (and (prog1
+			     (setq pair (assq (caar val) defaults))
+			   (setq defaults (delq pair defaults)))
+			 (equal (car val) pair))
+		    `(const ,pair)
+		  `(cons :format "%v"
+			 (const :format "(%v" ,(caar val))
+			 (symbol :size 3 :format " . %v)\n" ,(cdar val))))
+		rest)
+	  (setq val (cdr val)))
+	(while defaults
+	  (push `(const ,(pop defaults)) rest))
+	(widget-convert
+	 'list
+	 `(set :inline t :format "%v" ,@(nreverse rest))
+	 `(repeat :inline t :tag "Other options"
+		  (cons :format "%v"
+			(symbol :size 3 :format "(%v")
+			(symbol :size 3 :format " . %v)\n")))))))
+  ;; Remove pairs that cannot be used in the Emacs version currently
+  ;; running.  Note that this section will be evaluated when loading
+  ;; mm-util.elc.
+  :set (lambda (symbol value)
+	 (custom-set-default
+	  symbol (delq nil
+		       (mapcar (lambda (pair)
+				 (if (mm-charset-to-coding-system (cdr pair)
+								  nil nil t)
+				     pair))
+			       value))))
+  :version "22.1" ;; Gnus 5.10.9
+  :group 'mime)
 
 (defvar mm-binary-coding-system
   (cond
@@ -662,84 +812,6 @@ mail with multiple parts is preferred to sending a Unicode one.")
 		alist nil))
 	(pop alist))
       out)))
-
-(defun mm-charset-to-coding-system (charset &optional lbt
-					    allow-override)
-  "Return coding-system corresponding to CHARSET.
-CHARSET is a symbol naming a MIME charset.
-If optional argument LBT (`unix', `dos' or `mac') is specified, it is
-used as the line break code type of the coding system.
-
-If ALLOW-OVERRIDE is given, use `mm-charset-override-alist' to
-map undesired charset names to their replacement.  This should
-only be used for decoding, not for encoding."
-  ;; OVERRIDE is used (only) in `mm-decode-body' and `mm-decode-string'.
-  (when (stringp charset)
-    (setq charset (intern (downcase charset))))
-  (when lbt
-    (setq charset (intern (format "%s-%s" charset lbt))))
-  (cond
-   ((null charset)
-    charset)
-   ;; Running in a non-MULE environment.
-   ((or (null (mm-get-coding-system-list))
-	(not (fboundp 'coding-system-get)))
-    charset)
-   ;; Check override list quite early.  Should only used for decoding, not for
-   ;; encoding!
-   ((and allow-override
-	 (let ((cs (cdr (assq charset mm-charset-override-alist))))
-	   (and cs (mm-coding-system-p cs) cs))))
-   ;; ascii
-   ((eq charset 'us-ascii)
-    'ascii)
-   ;; Check to see whether we can handle this charset.  (This depends
-   ;; on there being some coding system matching each `mime-charset'
-   ;; property defined, as there should be.)
-   ((and (mm-coding-system-p charset)
-;;; Doing this would potentially weed out incorrect charsets.
-;;; 	 charset
-;;; 	 (eq charset (coding-system-get charset 'mime-charset))
-	 )
-    charset)
-   ;; Eval expressions from `mm-charset-eval-alist'
-   ((let* ((el (assq charset mm-charset-eval-alist))
-	   (cs (car el))
-	   (form (cdr el)))
-      (and cs
-	   form
-	   (prog2
-	       ;; Avoid errors...
-	       (condition-case nil (eval form) (error nil))
-	       ;; (message "Failed to eval `%s'" form))
-	       (mm-coding-system-p cs)
-	     (message "Added charset `%s' via `mm-charset-eval-alist'" cs))
-	   cs)))
-   ;; Translate invalid charsets.
-   ((let ((cs (cdr (assq charset mm-charset-synonym-alist))))
-      (and cs
-	   (mm-coding-system-p cs)
-	   ;; (message
-	   ;;  "Using synonym `%s' from `mm-charset-synonym-alist' for `%s'"
-	   ;;  cs charset)
-	   cs)))
-   ;; Last resort: search the coding system list for entries which
-   ;; have the right mime-charset in case the canonical name isn't
-   ;; defined (though it should be).
-   ((let (cs)
-      ;; mm-get-coding-system-list returns a list of cs without lbt.
-      ;; Do we need -lbt?
-      (dolist (c (mm-get-coding-system-list))
-	(if (and (null cs)
-		 (eq charset (or (coding-system-get c :mime-charset)
-				 (coding-system-get c 'mime-charset))))
-	    (setq cs c)))
-      (unless cs
-	;; Warn the user about unknown charset:
-	(if (fboundp 'gnus-message)
-	    (gnus-message 7 "Unknown charset: %s" charset)
-	  (message "Unknown charset: %s" charset)))
-      cs))))
 
 (eval-and-compile
   (defvar mm-emacs-mule (and (not (featurep 'xemacs))

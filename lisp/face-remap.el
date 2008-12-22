@@ -188,7 +188,8 @@ not inherit from the global definition of FACE."
   "Scale factor used by `text-scale-mode'.
 Each positive or negative step scales the default face height by this amount."
   :group 'display
-  :type 'number)
+  :type 'number
+  :version "23.1")
 
 ;; current remapping cookie for text-scale-mode
 (defvar text-scale-mode-remapping nil)
@@ -310,7 +311,8 @@ a top-level keymap, `text-scale-increase' or
 It may contain any value suitable for a `face' text property,
 including a face name, a list of face names, a face-attribute
 plist, etc."
-  :group 'display)
+  :group 'display
+  :version "23.1")
 
 ;; current remapping cookie for  buffer-face-mode
 (defvar buffer-face-mode-remapping nil)

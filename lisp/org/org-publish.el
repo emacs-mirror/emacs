@@ -4,7 +4,7 @@
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 6.10c
+;; Version: 6.16
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -70,12 +70,12 @@
 ;; (setq org-publish-project-alist
 ;;       (list
 ;;        '("org" . (:base-directory "~/org/"
-;; 		     :base-extension "org"
-;; 		     :publishing-directory "~/public_html"
-;;                   :with-section-numbers nil
-;; 		     :table-of-contents nil
-;;                   :recursive t
-;; 		     :style "<link rel=stylesheet href=\"../other/mystyle.css\" type=\"text/css\">")))
+;;		     :base-extension "org"
+;;		     :publishing-directory "~/public_html"
+;;		     :with-section-numbers nil
+;;		     :table-of-contents nil
+;;		     :recursive t
+;;		     :style "<link rel="stylesheet" href=\"../other/mystyle.css\" type=\"text/css\">")))
 
 ;;;; More complex example configuration:
 
@@ -96,24 +96,24 @@
 ;; (setq org-publish-project-alist
 ;;       (list
 ;;        '("orgfiles" :base-directory "~/org/"
-;; 		       :base-extension "org"
-;; 		       :publishing-directory "/ssh:user@host:~/html/notebook/"
-;; 		       :publishing-function org-publish-org-to-html
-;; 		       :exclude "PrivatePage.org"   ;; regexp
-;; 		       :headline-levels 3
-;;                     :with-section-numbers nil
-;; 		       :table-of-contents nil
-;; 		       :style "<link rel=stylesheet href=\"../other/mystyle.css\" type=\"text/css\">"
-;; 		       :auto-preamble t
-;; 		       :auto-postamble nil)
-;;         ("images" :base-directory "~/images/"
-;; 	             :base-extension "jpg\\|gif\\|png"
-;; 		     :publishing-directory "/ssh:user@host:~/html/images/"
-;; 		     :publishing-function org-publish-attachment)
-;;         ("other"  :base-directory "~/other/"
-;; 	   	     :base-extension "css"
-;; 		     :publishing-directory "/ssh:user@host:~/html/other/"
-;; 		     :publishing-function org-publish-attachment)
+;;		       :base-extension "org"
+;;		       :publishing-directory "/ssh:user@host:~/html/notebook/"
+;;		       :publishing-function org-publish-org-to-html
+;;		       :exclude "PrivatePage.org"   ;; regexp
+;;		       :headline-levels 3
+;;		       :with-section-numbers nil
+;;		       :table-of-contents nil
+;;		       :style "<link rel="stylesheet" href=\"../other/mystyle.css\" type=\"text/css\">"
+;;		       :auto-preamble t
+;;		       :auto-postamble nil)
+;;	   ("images" :base-directory "~/images/"
+;;		     :base-extension "jpg\\|gif\\|png"
+;;		     :publishing-directory "/ssh:user@host:~/html/images/"
+;;		     :publishing-function org-publish-attachment)
+;;	   ("other"  :base-directory "~/other/"
+;;		     :base-extension "css"
+;;		     :publishing-directory "/ssh:user@host:~/html/other/"
+;;		     :publishing-function org-publish-attachment)
 ;;         ("website" :components ("orgfiles" "images" "other"))))
 
 ;; For more information, see the documentation for the variable
@@ -263,7 +263,7 @@ index of files or summary page for a given project.
                          generates a plain list of links to all files
                          in the project.
   :index-style           Can be `list' (index is just an itemized list
-                         of the titles of the files involved) or 
+                         of the titles of the files involved) or
                          `tree' (the directory structure of the source
                          files is reflected in the index).  Defaults to
                          `tree'."
@@ -276,7 +276,7 @@ When nil, do no timestamp checking and always publish all files."
   :group 'org-publish
   :type 'boolean)
 
-(defcustom org-publish-timestamp-directory (convert-standard-filename 
+(defcustom org-publish-timestamp-directory (convert-standard-filename
 					    "~/.org-timestamps/")
   "Name of directory in which to store publishing timestamps."
   :group 'org-publish
@@ -302,7 +302,7 @@ If functions in this hook modify the buffer, it will be saved."
 (defun org-publish-timestamp-filename (filename)
   "Return path to timestamp file for filename FILENAME."
   (concat (file-name-as-directory org-publish-timestamp-directory)
-         "X" (if (fboundp 'sha1) (sha1 filename) (md5 filename))))
+	  "X" (if (fboundp 'sha1) (sha1 filename) (md5 filename))))
 
 (defun org-publish-needed-p (filename)
   "Return `t' if FILENAME should be published."
@@ -339,7 +339,7 @@ If there is no timestamp, create one."
     ;; Emacs 21 doesn't have `set-file-times'
     (if (and (fboundp 'set-file-times)
 	     (not newly-created-timestamp))
-        (set-file-times timestamp-file)
+	(set-file-times timestamp-file)
       (call-process "touch" nil 0 nil timestamp-file))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -363,6 +363,10 @@ Also set it if the optional argument REFRESH is non-nil."
   (when (or refresh (not org-publish-files-alist))
     (setq org-publish-files-alist
 	  (org-publish-get-files org-publish-project-alist))))
+
+(defun org-publish-validate-link (link &optional directory)
+  "Check if LINK points to a file in the current project."
+  (assoc (expand-file-name link directory) org-publish-files-alist))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Compatibility aliases
@@ -418,16 +422,16 @@ This splices all the components into the list."
 		      rest))
 	(push p rtn)))
     (nreverse (org-publish-delete-dups (delq nil rtn)))))
-	
+
 (defun org-publish-get-base-files-1 (base-dir &optional recurse match skip-file skip-dir)
   "Set `org-publish-temp-files' with files from BASE-DIR directory.
 If RECURSE is non-nil, check BASE-DIR recursively.  If MATCH is
 non-nil, restrict this list to the files matching the regexp
 MATCH.  If SKIP-FILE is non-nil, skip file matching the regexp
 SKIP-FILE.  If SKIP-DIR is non-nil, don't check directories
-matching the regexp SKIP-DIR when recursiing through BASE-DIR."
+matching the regexp SKIP-DIR when recursing through BASE-DIR."
   (mapc (lambda (f)
-	  (let ((fd-p (car (file-attributes f)))
+	  (let ((fd-p (file-directory-p f))
 		(fnd (file-name-nondirectory f)))
 	    (if (and fd-p recurse
 		     (not (string-match "^\\.+$" fnd))
@@ -435,6 +439,7 @@ matching the regexp SKIP-DIR when recursiing through BASE-DIR."
 		(org-publish-get-base-files-1 f recurse match skip-file skip-dir)
 	      (unless (or fd-p ;; this is a directory
 			  (and skip-file (string-match skip-file fnd))
+			  (not (file-exists-p (file-truename f)))
 			  (not (string-match match fnd)))
 		(pushnew f org-publish-temp-files)))))
 	(directory-files base-dir t (unless recurse match))))
@@ -446,17 +451,17 @@ matching filenames."
   (let* ((project-plist (cdr project))
 	 (base-dir (file-name-as-directory
 		    (plist-get project-plist :base-directory)))
- 	 (include-list (plist-get project-plist :include))
- 	 (recurse (plist-get project-plist :recursive))
- 	 (extension (or (plist-get project-plist :base-extension) "org"))
- 	 (match (concat "^[^\\.].*\\.\\(" extension "\\)$")))
+	 (include-list (plist-get project-plist :include))
+	 (recurse (plist-get project-plist :recursive))
+	 (extension (or (plist-get project-plist :base-extension) "org"))
+	 (match (concat "^[^\\.].*\\.\\(" extension "\\)$")))
     (setq org-publish-temp-files nil)
     (org-publish-get-base-files-1 base-dir recurse match
 				  ;; FIXME distinguish exclude regexp
 				  ;; for skip-file and skip-dir?
 				  exclude-regexp exclude-regexp)
     (mapc (lambda (f)
-	    (pushnew 
+	    (pushnew
 	     (expand-file-name (concat base-dir f))
 	     org-publish-temp-files))
 	  include-list)
@@ -466,6 +471,9 @@ matching filenames."
   "Return the project FILENAME belongs."
   (let* ((project-name (cdr (assoc (expand-file-name filename)
 				   org-publish-files-alist))))
+    (dolist (prj org-publish-project-alist)
+      (if (member project-name (plist-get (cdr prj) :components))
+	  (setq project-name (car prj))))
     (assoc project-name org-publish-project-alist)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -530,13 +538,9 @@ See `org-publish-org-to' to the list of arguments."
   "Publish a file with no transformation of any kind.
 See `org-publish-org-to' to the list of arguments."
   ;; make sure eshell/cp code is loaded
-  (eval-and-compile
-    (require 'eshell)
-    (require 'esh-maint)
-    (require 'em-unix))
   (unless (file-directory-p pub-dir)
     (make-directory pub-dir t))
-  (eshell/cp filename pub-dir))
+  (copy-file filename pub-dir t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Publishing files, sets of files, and indices
@@ -618,20 +622,20 @@ Default for INDEX-FILENAME is 'index.org'."
 			  (concat "Index for project " (car project))))
 	 (index-style (or (plist-get project-plist :index-style)
 			  'tree))
-	 (index-buffer (find-buffer-visiting index-filename))
+	 (visiting (find-buffer-visiting index-filename))
 	 (ifn (file-name-nondirectory index-filename))
-	 file)
-    ;; if buffer is already open, kill it to prevent error message
-    (if index-buffer
-	(kill-buffer index-buffer))
-    (with-temp-buffer
-      (insert (concat index-title "\n\n"))
+	 file index-buffer)
+    (with-current-buffer (setq index-buffer
+			       (or visiting (find-file index-filename)))
+      (erase-buffer)
+      (insert (concat "#+TITLE: " index-title "\n\n"))
       (while (setq file (pop files))
 	(let ((fn (file-name-nondirectory file))
 	      (link (file-relative-name file dir))
 	      (oldlocal localdir))
 	  ;; index shouldn't index itself
-	  (unless (string= fn ifn)
+	  (unless (equal (file-truename index-filename)
+			 (file-truename file))
 	    (if (eq index-style 'list)
 		(message "Generating list-style index for %s" index-title)
 	      (message "Generating tree-style index for %s" index-title)
@@ -645,34 +649,44 @@ Default for INDEX-FILENAME is 'index.org'."
 			  (directory-file-name
 			   (file-name-directory
 			    (file-relative-name localdir dir))) "/"))
-			(subdir ""))
+			(subdir "")
+			(old-subdirs (split-string
+				      (file-relative-name oldlocal dir) "/")))
 		    (setq indent-str (make-string 2 ?\ ))
+		    (while (string= (car old-subdirs) (car subdirs))
+		      (setq indent-str (concat indent-str (make-string 2 ?\ )))
+		      (pop old-subdirs)
+		      (pop subdirs))
 		    (dolist (d subdirs)
 		      (setq subdir (concat subdir d "/"))
-		      (insert (concat indent-str " + [[file:" 
-				      subdir "][" d "/]]\n"))
-		      (setq indent-str (make-string 
+		      (insert (concat indent-str " + " d "\n"))
+		      (setq indent-str (make-string
 					(+ (length indent-str) 2) ?\ )))))))
 	    ;; This is common to 'flat and 'tree
 	    (insert (concat indent-str " + [[file:" link "]["
 			    (org-publish-find-title file)
-			    "]]\n"))
-	    )))
-      (write-file index-filename)
-      (kill-buffer (current-buffer)))))
+			    "]]\n")))))
+      (save-buffer))
+    (or visiting (kill-buffer index-buffer))))
 
 (defun org-publish-find-title (file)
   "Find the title of file in project."
-  (save-excursion
-    (set-buffer (find-file-noselect file))
-    (let* ((opt-plist (org-combine-plists (org-default-export-plist)
- 					  (org-infile-export-plist))))
-      (or (plist-get opt-plist :title)
- 	  (and (not
- 		(plist-get opt-plist :skip-before-1st-heading))
- 	       (org-export-grab-title-from-buffer))
-	  (file-name-nondirectory (file-name-sans-extension file))))))
-
+  (let* ((visiting (find-buffer-visiting file))
+	 (buffer (or visiting (find-file-noselect file)))
+	 title)
+    (save-excursion
+      (set-buffer buffer)
+      (let* ((opt-plist (org-combine-plists (org-default-export-plist)
+					    (org-infile-export-plist))))
+	(setq title
+	      (or (plist-get opt-plist :title)
+		  (and (not
+			(plist-get opt-plist :skip-before-1st-heading))
+		       (org-export-grab-title-from-buffer))
+		  (file-name-nondirectory (file-name-sans-extension file))))))
+    (unless visiting
+      (kill-buffer buffer))
+    title))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Interactive publishing functions
@@ -691,7 +705,7 @@ Default for INDEX-FILENAME is 'index.org'."
 	    (if force nil org-publish-use-timestamps-flag)))
       (org-publish-projects
        (list (or project
-		 (assoc (completing-read
+		 (assoc (org-ido-completing-read
 			 "Publish project: "
 			 org-publish-project-alist nil t)
 			org-publish-project-alist)))))))

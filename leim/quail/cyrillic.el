@@ -174,7 +174,7 @@
  ",L9FC:5=(B Russian computer layout"
  nil t t t t nil nil nil nil nil t)
 
-;;  1! 2" 3,Lp(B 4; 5% 6: 7? 8* 9( 0) -_ =+ ,Lq!(B
+;;  1! 2" 3,Lp(B 4; 5% 6: 7? 8* 9( 0) -_ =+ \/ ,Lq!(B
 ;;   ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,LI(B  ,L7(B  ,LE(B  ,LJ(B
 ;;    ,LD(B  ,LK(B  ,L2(B  ,L0(B  ,L?(B  ,L@(B  ,L>(B  ,L;(B  ,L4(B  ,L6(B  ,LM(B
 ;;     ,LO(B  ,LG(B  ,LA(B  ,L<(B  ,L8(B  ,LB(B  ,LL(B  ,L1(B  ,LN(B  .,
@@ -192,6 +192,7 @@
  ("0" ?0)
  ("-" ?-)
  ("=" ?=)
+ ("|" ?/)
  ("`" ?,Lq(B)
  ("q" ?,LY(B)
  ("w" ?,Lf(B)

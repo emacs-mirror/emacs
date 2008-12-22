@@ -28,7 +28,7 @@
 ;;; Code:
 
 (defcustom case-replace t
-  "*Non-nil means `query-replace' should preserve case in replacements."
+  "Non-nil means `query-replace' should preserve case in replacements."
   :type 'boolean
   :group 'matching)
 
@@ -62,24 +62,24 @@ strings or patterns."
   :version "20.3")
 
 (defcustom query-replace-skip-read-only nil
-  "*Non-nil means `query-replace' and friends ignore read-only matches."
+  "Non-nil means `query-replace' and friends ignore read-only matches."
   :type 'boolean
   :group 'matching
   :version "22.1")
 
 (defcustom query-replace-show-replacement t
-  "*Non-nil means to show what actual replacement text will be."
+  "Non-nil means to show what actual replacement text will be."
   :type 'boolean
   :group 'matching
   :version "23.1")
 
 (defcustom query-replace-highlight t
-  "*Non-nil means to highlight matches during query replacement."
+  "Non-nil means to highlight matches during query replacement."
   :type 'boolean
   :group 'matching)
 
 (defcustom query-replace-lazy-highlight t
-  "*Controls the lazy-highlighting during query replacements.
+  "Controls the lazy-highlighting during query replacements.
 When non-nil, all text in the buffer matching the current match
 is highlighted lazily using isearch lazy highlighting (see
 `lazy-highlight-initial-delay' and `lazy-highlight-interval')."
@@ -773,19 +773,19 @@ a previously found match."
 			       "Auto Occurrence Display"
 			       "Display another occurrence when moving the cursor"))
     (define-key map [separator-1] '("--"))
-    (define-key map [kill-this-buffer] 
+    (define-key map [kill-this-buffer]
       '(menu-item "Kill occur buffer" kill-this-buffer
 		  :help "Kill the current *Occur* buffer"))
-    (define-key map [quit-window] 
+    (define-key map [quit-window]
       '(menu-item "Quit occur window" quit-window
 		  :help "Quit the current *Occur* buffer.  Bury it, and maybe delete the selected frame"))
-    (define-key map [revert-buffer] 
+    (define-key map [revert-buffer]
       '(menu-item "Revert occur buffer" revert-buffer
 		  :help "Replace the text in the *Occur* buffer with the results of rerunning occur"))
-    (define-key map [clone-buffer] 
+    (define-key map [clone-buffer]
       '(menu-item "Clone occur buffer" clone-buffer
 		  :help "Create and return a twin copy of the current *Occur* buffer"))
-    (define-key map [occur-rename-buffer] 
+    (define-key map [occur-rename-buffer]
       '(menu-item "Rename occur buffer" occur-rename-buffer
 		  :help "Rename the current *Occur* buffer to *Occur: original-buffer-name*."))
     (define-key map [separator-2] '("--"))
@@ -798,10 +798,10 @@ a previously found match."
     (define-key map [occur-mode-display-occurrence]
       '(menu-item "Display Occurrence" occur-mode-display-occurrence
 		  :help "Display in another window the occurrence the current line describes"))
-    (define-key map [occur-next] 
+    (define-key map [occur-next]
       '(menu-item "Move to next match" occur-next
 		  :help "Move to the Nth (default 1) next match in an Occur mode buffer"))
-    (define-key map [occur-prev] 
+    (define-key map [occur-prev]
       '(menu-item "Move to previous match" occur-prev
 		  :help "Move to the Nth (default 1) previous match in an Occur mode buffer"))
     map)
@@ -970,7 +970,7 @@ Compatibility function for \\[next-error] invocations."
   :version "22.1")
 
 (defcustom list-matching-lines-default-context-lines 0
-  "*Default number of context lines included around `list-matching-lines' matches.
+  "Default number of context lines included around `list-matching-lines' matches.
 A negative number means to include that many lines before the match.
 A positive number means to include that many lines both before and after."
   :type 'integer
@@ -979,13 +979,13 @@ A positive number means to include that many lines both before and after."
 (defalias 'list-matching-lines 'occur)
 
 (defcustom list-matching-lines-face 'match
-  "*Face used by \\[list-matching-lines] to show the text that matches.
+  "Face used by \\[list-matching-lines] to show the text that matches.
 If the value is nil, don't highlight the matching portions specially."
   :type 'face
   :group 'matching)
 
 (defcustom list-matching-lines-buffer-name-face 'underline
-  "*Face used by \\[list-matching-lines] to show the names of buffers.
+  "Face used by \\[list-matching-lines] to show the names of buffers.
 If the value is nil, don't highlight the buffer names specially."
   :type 'face
   :group 'matching)
@@ -993,7 +993,7 @@ If the value is nil, don't highlight the buffer names specially."
 (defcustom occur-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
     yank-handler follow-link)
-  "*Text properties to discard when copying lines to the *Occur* buffer.
+  "Text properties to discard when copying lines to the *Occur* buffer.
 The value should be a list of text properties to discard or t,
 which means to discard all text properties."
   :type '(choice (const :tag "All" t) (repeat symbol))

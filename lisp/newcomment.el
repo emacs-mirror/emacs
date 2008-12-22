@@ -207,13 +207,14 @@ If INDENT is `multi-char', that means indent multi-character
   comment starters, but not one-character comment starters.")
 
 ;;;###autoload
-(defcustom comment-style 'indent-or-triple
+(defcustom comment-style 'indent
   "Style to be used for `comment-region'.
 See `comment-styles' for a list of available styles."
   :type (if (boundp 'comment-styles)
 	    `(choice ,@(mapcar (lambda (s) `(const ,(car s)))
 			       comment-styles))
 	  'symbol)
+  :version "23.1"
   :group 'comment)
 
 ;;;###autoload

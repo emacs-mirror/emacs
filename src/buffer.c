@@ -1762,22 +1762,26 @@ switch_to_buffer_1 (buffer_or_name, norecord)
 
 DEFUN ("switch-to-buffer", Fswitch_to_buffer, Sswitch_to_buffer, 1, 2,
        "(list (read-buffer-to-switch \"Switch to buffer: \"))",
-       doc: /* Make BUFFER-OR-NAME current and display it in the selected window.
-BUFFER-OR-NAME may be a buffer, a string, or nil.  If BUFFER-OR-NAME is
-nil, then this function chooses a buffer using `other-buffer'.  If
-BUFFER-OR-NAME is a string and does not identify an existing buffer,
-then this function creates a buffer with that name.
+       doc: /* Make BUFFER-OR-NAME current and display it in selected window.
+BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
+nil.  Return the buffer switched to.
 
-Optional second arg NORECORD non-nil means do not put this buffer at the
-front of the list of recently selected ones.  This function returns the
-buffer it switched to as a Lisp object.
+If BUFFER-OR-NAME is a string and does not identify an existing
+buffer, create a new buffer with that name.  Interactively, if
+`confirm-nonexistent-file-or-buffer' is non-nil, request
+confirmation before creating a new buffer.  If BUFFER-OR-NAME is
+nil, switch to buffer returned by `other-buffer'.
 
-If the selected window is the minibuffer window or dedicated to its
-buffer, use `pop-to-buffer' for displaying the buffer.
+Optional second arg NORECORD non-nil means do not put this buffer
+at the front of the list of recently selected ones.  This
+function returns the buffer it switched to as a Lisp object.
+
+If the selected window is the minibuffer window or dedicated to
+its buffer, use `pop-to-buffer' for displaying the buffer.
 
 WARNING: This is NOT the way to work on another buffer temporarily
-within a Lisp program!  Use `set-buffer' instead.  That avoids messing
-with the window-buffer correspondences.  */)
+within a Lisp program!  Use `set-buffer' instead.  That avoids
+messing with the window-buffer correspondences.  */)
      (buffer_or_name, norecord)
      Lisp_Object buffer_or_name, norecord;
 {
@@ -2188,6 +2192,9 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   CHECK_BUFFER (buffer);
   other_buffer = XBUFFER (buffer);
 
+  if (NILP (other_buffer->name))
+    error ("Cannot swap a dead buffer's text");    
+
   /* Actually, it probably works just fine.
    * if (other_buffer == current_buffer)
    *   error ("Cannot swap a buffer's text with itself"); */
@@ -2234,10 +2241,6 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   swapfield (overlay_center, EMACS_INT);
   swapfield (undo_list, Lisp_Object);
   swapfield (mark, Lisp_Object);
-  if (MARKERP (current_buffer->mark) && XMARKER (current_buffer->mark)->buffer)
-    XMARKER (current_buffer->mark)->buffer = current_buffer;
-  if (MARKERP (other_buffer->mark) && XMARKER (other_buffer->mark)->buffer)
-    XMARKER (other_buffer->mark)->buffer = other_buffer;
   swapfield (enable_multibyte_characters, Lisp_Object);
   /* FIXME: Not sure what we should do with these *_marker fields.
      Hopefully they're just nil anyway.  */
@@ -2252,16 +2255,24 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   current_buffer->text->overlay_modiff++; other_buffer->text->overlay_modiff++;
   current_buffer->text->beg_unchanged = current_buffer->text->gpt;
   current_buffer->text->end_unchanged = current_buffer->text->gpt;
-  other_buffer->text->beg_unchanged = current_buffer->text->gpt;
-  other_buffer->text->end_unchanged = current_buffer->text->gpt;
+  other_buffer->text->beg_unchanged = other_buffer->text->gpt;
+  other_buffer->text->end_unchanged = other_buffer->text->gpt;
   {
     struct Lisp_Marker *m;
     for (m = BUF_MARKERS (current_buffer); m; m = m->next)
       if (m->buffer == other_buffer)
 	m->buffer = current_buffer;
+      else
+	/* Since there's no indirect buffer in sight, markers on
+	   BUF_MARKERS(buf) should either be for `buf' or dead.  */
+	eassert (!m->buffer);
     for (m = BUF_MARKERS (other_buffer); m; m = m->next)
       if (m->buffer == current_buffer)
 	m->buffer = other_buffer;
+      else
+	/* Since there's no indirect buffer in sight, markers on
+	   BUF_MARKERS(buf) should either be for `buf' or dead.  */
+	eassert (!m->buffer);
   }
   { /* Some of the C code expects that w->buffer == w->pointm->buffer.
        So since we just swapped the markers between the two buffers, we need
@@ -6214,8 +6225,9 @@ Values are interpreted as follows:
   (hbar . HEIGHT) display a horizontal bar cursor with height HEIGHT
   ANYTHING ELSE	  display a hollow box cursor
 
-When the buffer is displayed in a nonselected window,
-this variable has no effect; the cursor appears as a hollow box.  */);
+When the buffer is displayed in a non-selected window, the
+cursor's appearance is instead controlled by the variable
+`cursor-in-non-selected-windows'.  */);
 
   DEFVAR_PER_BUFFER ("line-spacing",
 		     &current_buffer->extra_line_spacing, Qnil,

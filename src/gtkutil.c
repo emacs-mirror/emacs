@@ -646,14 +646,9 @@ xg_frame_resized (f, pixelwidth, pixelheight)
       FRAME_PIXEL_WIDTH (f) = pixelwidth;
       FRAME_PIXEL_HEIGHT (f) = pixelheight;
 
-      if (rows != FRAME_LINES (f) || columns != FRAME_COLS (f)
-          || (f->new_text_lines != 0 && f->new_text_lines != rows)
-          || (f->new_text_cols != 0 && f->new_text_cols != columns))
-        {
-          change_frame_size (f, rows, columns, 0, 1, 0);
-          SET_FRAME_GARBAGED (f);
-          cancel_mouse_face (f);
-        }
+      change_frame_size (f, rows, columns, 0, 1, 0);
+      SET_FRAME_GARBAGED (f);
+      cancel_mouse_face (f);
     }
 }
 
@@ -3483,6 +3478,13 @@ xg_tool_bar_proxy_callback (w, client_data)
   GtkWidget *wbutton = GTK_WIDGET (g_object_get_data (G_OBJECT (w),
                                                       XG_TOOL_BAR_PROXY_BUTTON));
   xg_tool_bar_callback (wbutton, client_data);
+  FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (wbutton),
+                                               XG_FRAME_DATA);
+  /* Put focus back to the frame after we have clicked on a detached
+     tool bar button. */
+  Lisp_Object frame;
+  XSETFRAME (frame, f);
+  Fx_focus_frame (frame);
 }
 
 /* This callback is called when a tool item should create a proxy item,
@@ -3862,7 +3864,7 @@ update_frame_tool_bar (f)
       int icon_size = 0;
       struct image *img = NULL;
       Lisp_Object image;
-      Lisp_Object stock;
+      Lisp_Object stock = Qnil;
       GtkStockItem stock_item;
       char *stock_name = NULL;
       char *icon_name = NULL;
