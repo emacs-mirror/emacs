@@ -92,6 +92,7 @@
  *   - mps_arena_step;
  *   - automatic (not client-requested) collections.
  * etc.
+ *
  * HISTORY
  *
  * This code was created by first copying <code/fin1658a.c>.
