@@ -7,7 +7,7 @@
 ;; Filename:    newst-backend.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "28. November 2008, 19:55:34 (ulf)"
+;; Time-stamp:  "22. Dezember 2008, 19:58:01 (ulf)"
 
 ;; ======================================================================
 
@@ -2371,8 +2371,4 @@ This function is suited for adding it to `newsticker-new-item-functions'."
 (provide 'newsticker-backend)
 
 ;; arch-tag: 0e37b658-56e9-49ab-90f9-f2df57e1a659
-;;; newsticker-backend.el ends here
-
-(provide 'newst-backend)
-
 ;;; newst-backend.el ends here
