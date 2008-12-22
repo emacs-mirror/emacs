@@ -1,3 +1,8 @@
+2008-12-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-table.el (org-table-get-formula): Only ask to overwrite
+	field formula if there really is one.
+
 2008-12-21  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-export-latex.el (org-export-latex-make-header): Double the
