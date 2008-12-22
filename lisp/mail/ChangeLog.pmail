@@ -1,3 +1,7 @@
+2008-12-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail-save): New function.
+
 2008-12-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmail.el (pmail-get-new-mail): Call pmail-swap-buffers-maybe.
