@@ -5343,7 +5343,9 @@ init_buffer ()
   if (!(IS_DIRECTORY_SEP (pwd[len - 1])))
     {
       /* Grow buffer to add directory separator and '\0'.  */
-      pwd = (char *) xrealloc (pwd, len + 2);
+      pwd = (char *) realloc (pwd, len + 2);
+      if (!pwd)
+	fatal ("`get_current_dir_name' failed: %s\n", strerror (errno));
       pwd[len] = DIRECTORY_SEP;
       pwd[len + 1] = '\0';
     }

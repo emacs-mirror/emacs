@@ -224,7 +224,7 @@ free_widget_value (wv)
     {
       /* When the number of already allocated cells is too big,
 	 We free it.  */
-      free (wv);
+      xfree (wv);
       malloc_cpt--;
     }
   else

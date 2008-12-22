@@ -1,3 +1,8 @@
+2008-12-22  Andreas Schwab  <schwab@suse.de>
+
+	* buffer.c (init_buffer): Use realloc instead of xrealloc.
+	* gtkutil.c (free_widget_value): Use xfree instead of free.
+
 2008-12-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (delete_frame): New function derived from
