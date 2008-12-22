@@ -4065,6 +4065,13 @@ in such cases.")
 (make-variable-buffer-local 'save-buffer-coding-system)
 (put 'save-buffer-coding-system 'permanent-local t)
 
+(defvar buffer-swapped-with nil
+  "Buffer that this buffer's contents are temporarily swapped with.
+You should only set this variable in file-visiting buffers,
+because it only affects how to save the buffer in its file.")
+
+(make-variable-buffer-local 'buffer-swapped-with)
+
 (defun basic-save-buffer ()
   "Save the current buffer in its visited file, if it has been modified.
 The hooks `write-contents-functions' and `write-file-functions' get a chance
@@ -4073,6 +4080,17 @@ the visited file in the usual way.
 Before and after saving the buffer, this function runs
 `before-save-hook' and `after-save-hook', respectively."
   (interactive)
+  (if (not buffer-swapped-with)
+      (basic-save-buffer-0)
+    ;; If this buffer's real contents are "swapped" with some other buffer,
+    ;; temporarily unswap in order to save the real contents.
+    (unwind-protect
+	(progn
+	  (buffer-swap-text buffer-swapped-with)
+	  (basic-save-buffer-0))
+      (buffer-swap-text buffer-swapped-with))))
+
+(defun basic-save-buffer-0 ()
   (save-current-buffer
     ;; In an indirect buffer, save its base buffer instead.
     (if (buffer-base-buffer)
