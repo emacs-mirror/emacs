@@ -1,3 +1,10 @@
+2008-12-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-rfn-eshadow-update-overlay): Move overlay to
+	end, before updating.
+	(tramp-convert-file-attributes): Add "l" indicator to file modes.
+	(tramp-file-name-real-user, tramp-file-name-domain): New defuns.
+
 2008-12-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (set-window-text-height): Fix doc-string.
