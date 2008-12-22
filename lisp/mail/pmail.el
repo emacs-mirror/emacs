@@ -61,10 +61,10 @@
 (defconst pmail-filed-attr-index 3
   "The index for the `filed' attribute.")
 
-(defconst pmail-resent-attr-index 4
-  "The index for the `resent' attribute.")
+(defconst pmail-retried-attr-index 4
+  "The index for the `retried' attribute.")
 
-(defconst pmail-stored-attr-index 5
+(defconst pmail-forwarded-attr-index 5
   "The index for the `stored' attribute.")
 
 (defconst pmail-unseen-attr-index 6
@@ -75,8 +75,8 @@
     (?D "deleted")
     (?E "edited")
     (?F "filed")
-    (?R "replied")
-    (?S "stored")
+    (?R "retried")
+    (?S "forwarded")
     (?U "unseen")]
   "An array that provides a mapping between an attribute index,
 its character representation and its display representation.")
@@ -2037,30 +2037,33 @@ otherwise, show it in full."
 
 ;;;; *** Pmail Attributes and Keywords ***
 
-(defun pmail-get-header (name &optional msg)
-  "Return the value of message header NAME, nil if no such header
-exists.  MSG, if set identifies the message number to use.  The
-current mail message will be used otherwise."
-  (pmail-swap-buffers-maybe)
-  (save-excursion
-    (save-restriction
-      (with-current-buffer pmail-buffer
-	(widen)
-	(let* ((n (or msg pmail-current-message))
-	       (beg (pmail-msgbeg n))
-	       end)
-	  (goto-char beg)
-	  (setq end (search-forward "\n\n" nil t))
-	  (if end
-	      (progn
-		(narrow-to-region beg end)
-		(mail-fetch-field name))
-	    (pmail-error-bad-format msg)))))))
+(defun pmail-get-header (name &optional msgnum)
+  "Return the value of message header NAME, nil if it has none.
+MSGNUM specifies the message number to get it from.
+If MSGNUM is nil, use the current message."
+  (with-current-buffer pmail-buffer
+    (or msgnum (setq msgnum pmail-current-message))
+    (when (> msgnum 0)
+      (let (msgbeg end)
+	(setq msgbeg (pmail-msgbeg msgnum))
+	(save-excursion
+	  (if (pmail-buffers-swapped-p) (set-buffer pmail-view-buffer))
+	  (save-restriction
+	    (widen)
+	    (save-excursion
+	      (goto-char msgbeg)
+	      (setq end (search-forward "\n\n" nil t))
+	      (if end
+		  (progn
+		    (narrow-to-region msgbeg end)
+		    (mail-fetch-field name))
+		(pmail-error-bad-format msgnum)))))))))
+
 
 (defun pmail-get-attr-names (&optional msg)
   "Return the message attributes in a comma separated string.
-MSG, if set identifies the message number to use.  The current
-mail message will be used otherwise."
+MSG specifies the message number to get it from.
+If MSG is nil, use the current message."
   (let ((value (pmail-get-header pmail-attribute-header msg))
 	result temp)
     (dotimes (index (length value))
@@ -2120,41 +2123,40 @@ STATE is either nil or the character (numeric) value associated
 with the state (nil represents off and non-nil represents on).
 ATTR is the index of the attribute.  MSGNUM is message number to
 change; nil means current message."
-  (set-buffer pmail-buffer)
-  (pmail-swap-buffers-maybe)
-  (let ((value (pmail-get-attr-value attr state))
-	(omax (point-max-marker))
-	(omin (point-min-marker))
-	(buffer-read-only nil)
-	limit)
-    (or msgnum (setq msgnum pmail-current-message))
-    (if (> msgnum 0)
+  (with-current-buffer pmail-buffer
+    (let ((value (pmail-get-attr-value attr state))
+	  (omax (point-max-marker))
+	  (omin (point-min-marker))
+	  (buffer-read-only nil)
+	  limit
+	  msgbeg)
+      (or msgnum (setq msgnum pmail-current-message))
+      (when (> msgnum 0)
+	(if (= attr pmail-deleted-attr-index)
+	    (pmail-set-message-deleted-p msgnum state))
+	(setq msgbeg (pmail-msgbeg msgnum))
+
 	(unwind-protect
 	    (save-excursion
-	      ;; Determine if the current state is the desired state.
-	      (widen)
-	      (goto-char (pmail-msgbeg msgnum))
-	      (save-excursion
-		(setq limit (search-forward "\n\n" nil t)))
-	      (if (search-forward (concat pmail-attribute-header ": ") limit t)
-		  (progn (forward-char attr)
-			 (when (/= value (char-after))
-			   (delete-char 1)
-			   (insert value)))
-		(let ((header-value "-------"))
-		  (aset header-value attr value)
-		  (goto-char (if limit (- limit 1) (point-max)))
-		  (insert pmail-attribute-header ": " header-value "\n")))
-	      (if (= attr pmail-deleted-attr-index)
-		  (pmail-set-message-deleted-p msgnum state)))
-	  ;; Note: we don't use save-restriction because that does not work right
-	  ;; if changes are made outside the saved restriction
-	  ;; before that restriction is restored.
-	  (narrow-to-region omin omax)
-	  (set-marker omin nil)
-	  (set-marker omax nil)
+	      (if (pmail-buffers-swapped-p) (set-buffer pmail-view-buffer))
+	      (save-restriction
+		(widen)
+		(save-excursion
+		  ;; Determine if the current state is the desired state.
+		  (goto-char msgbeg)
+		  (save-excursion
+		    (setq limit (search-forward "\n\n" nil t)))
+		  (if (search-forward (concat pmail-attribute-header ": ") limit t)
+		      (progn (forward-char attr)
+			     (when (/= value (char-after))
+			       (delete-char 1)
+			       (insert value)))
+		    (let ((header-value "-------"))
+		      (aset header-value attr value)
+		      (goto-char (if limit (- limit 1) (point-max)))
+		      (insert pmail-attribute-header ": " header-value "\n"))))))
 	  (if (= msgnum pmail-current-message)
-	      (pmail-display-labels))))))
+	      (pmail-display-labels)))))))
 
 (defun pmail-message-attr-p (msg attrs)
   "Return t if the attributes header for message MSG contains a
@@ -2472,8 +2474,7 @@ If summary buffer is currently displayed, update current message there also."
 	(message blurb))))
 
 (defun pmail-is-text-p ()
-  "Return t if the region contains a text message, nil
-otherwise."
+  "Return t if the region contains a text message, nil otherwise."
   (save-excursion
     (let ((text-regexp "\\(text\\|message\\)/")
 	  (content-type-header (mail-fetch-field "content-type")))
@@ -2506,6 +2507,7 @@ The current mail message becomes the message displayed."
       ;; Mark the message as seen, bracket the message in the mail
       ;; buffer and determine the coding system the transfer encoding.
       (pmail-set-attribute pmail-unseen-attr-index nil)
+      (pmail-swap-buffers-maybe)
       (setq beg (pmail-msgbeg msg)
 	    end (pmail-msgend msg))
       (widen)
@@ -3259,7 +3261,7 @@ use \\[mail-yank-original] to yank the original message into it."
 		 pmail-buffer
 		 (with-current-buffer pmail-buffer
 		   (aref pmail-msgref-vector msgnum))
-		 "answered"))
+		 pmail-answered-attr-index))
      nil
      (list (cons "References" (concat (mapconcat 'identity references " ")
 				      " " message-id))))))
@@ -3356,7 +3358,7 @@ see the documentation of `pmail-resend'."
 		       forward-buffer
 		       (with-current-buffer pmail-buffer
 			 (aref pmail-msgref-vector msgnum))
-		       "forwarded"))
+		       pmail-forwarded-attr-index))
 	   ;; If only one window, use it for the mail buffer.
 	   ;; Otherwise, use another window for the mail buffer
 	   ;; so that the Pmail buffer remains visible
@@ -3584,7 +3586,7 @@ specifying headers which should not be copied into the new message."
 			    (list (list 'pmail-mark-message
 					pmail-this-buffer
 					(aref pmail-msgref-vector msgnum)
-					"retried")))
+					pmail-retried-attr-index)))
 	  ;; Insert original text as initial text of new draft message.
 	  ;; Bind inhibit-read-only since the header delimiter
 	  ;; of the previous message was probably read-only.
