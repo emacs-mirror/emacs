@@ -4085,10 +4085,12 @@ Before and after saving the buffer, this function runs
     ;; If this buffer's real contents are "swapped" with some other buffer,
     ;; temporarily unswap in order to save the real contents.
     (unwind-protect
-	(progn
+	(let ((modp (buffer-modified-p)))
 	  (buffer-swap-text buffer-swapped-with)
+	  (set-buffer-modified-p modp)
 	  (basic-save-buffer-0))
-      (buffer-swap-text buffer-swapped-with))))
+      (buffer-swap-text buffer-swapped-with)
+      (set-buffer-modified-p nil))))
 
 (defun basic-save-buffer-0 ()
   (save-current-buffer
