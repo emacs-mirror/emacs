@@ -1,3 +1,22 @@
+2008-12-22  Richard M Stallman  <rms@gnu.org>
+
+	* pmailout.el (pmail-output): Use pmail-buffers-swapped-p as function.
+
+	* pmail.el (pmail-swap-buffers-maybe): Variable deleted.
+	All uses call the function instead.
+
+	* pmail.el (pmail-save): Function deleted.
+	(pmail-mode-map): Don't bind C-x C-s.
+	(pmail-mode-1): Don't set up write-region-annotate-functions.
+	(pmail-write-region-annotate): Function deleted.
+	(pmail-change-major-mode-hook): Set buffer-swapped-with.
+	(pmail-use-collection-buffer): Likewise.
+	(pmail-show-message): Likewise.
+
+	* pmail.el (pmail-swap-buffers-maybe): Go to pmail-buffer before
+	testing anything.
+	(pmail): Call pmail-swap-buffers-maybe only if already in Pmail mode.
+
 2008-12-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmail.el (pmail-save): New function.
