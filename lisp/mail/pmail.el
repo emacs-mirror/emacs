@@ -92,11 +92,6 @@ its character representation and its display representation.")
 (defvar total-messages)
 (defvar tool-bar-map)
 
-(defvar pmail-buffers-swapped-p nil
-  "A flag that is non-nil when the message view buffer and the
- message collection buffer are swapped, i.e. the Pmail buffer
- contains a single decoded message.")
-
 (defvar pmail-header-style 'normal
   "The current header display style choice, one of
 'normal (selected headers) or 'full (all headers).")
@@ -872,7 +867,8 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
 	 (find-file-noselect file-name))))
     ;; Insure that the collection and view buffers are in sync and
     ;; insure that a message is not being edited.
-    (pmail-swap-buffers-maybe)
+    (if (eq major-mode 'pmail-mode)
+	(pmail-swap-buffers-maybe))
     (if (eq major-mode 'pmail-edit-mode)
 	(error "Exit Pmail Edit mode before getting new mail"))
     (or (and existed (> (buffer-size) 0))
@@ -1000,7 +996,6 @@ The buffer is expected to be narrowed to just the header of the message."
 ;; I find I can't live without the default M-r command -- rms.
 ;;  (define-key pmail-mode-map "\er"  'pmail-search-backwards)
   (define-key pmail-mode-map "s"      'pmail-expunge-and-save)
-  (define-key pmail-mode-map "\C-x\C-s" 'pmail-save)
   (define-key pmail-mode-map "\es"    'pmail-search)
   (define-key pmail-mode-map "t"      'pmail-toggle-header)
   (define-key pmail-mode-map "u"      'pmail-undelete-previous-message)
@@ -1267,7 +1262,6 @@ Instead, these commands are available:
   (set-syntax-table text-mode-syntax-table)
   (setq local-abbrev-table text-mode-abbrev-table)
   ;; First attempt at adding hook functions to support buffer swapping...
-  (add-hook 'write-region-annotate-functions 'pmail-write-region-annotate nil t)
   (add-hook 'kill-buffer-hook 'pmail-mode-kill-buffer-hook nil t)
   (add-hook 'change-major-mode-hook 'pmail-change-major-mode-hook nil t))
 
@@ -1280,22 +1274,10 @@ Create the buffer if necessary."
     (unless buf
       (generate-new-buffer name))))
 
-;; Used in write-region-annotate-functions to write Pmail files out
-;; correctly.
-(defun pmail-write-region-annotate (start end)
-  ;; When called from write-file (and auto-save), `start' is nil.
-  ;; When called from M-x write-region, we assume the user wants to save
-  ;; (part of) the inbox, not the message display data.
-  (unless (or start (not pmail-buffers-swapped-p))
-    ;;(tar-clear-modification-flags)
-    (set-buffer pmail-view-buffer)
-    (widen)
-    nil))
-
 (defun pmail-change-major-mode-hook ()
   ;; Bring the actual Pmail messages back into the main buffer.
   (when (pmail-buffers-swapped-p)
-    (current-buffer)
+    (setq buffer-swapped-with nil)
     (buffer-swap-text pmail-view-buffer)))
   ;; Throw away the summary.
   ;;(when (buffer-live-p pmail-view-buffer) (kill-buffer pmail-view-buffer)))
@@ -1347,7 +1329,6 @@ Create the buffer if necessary."
 				   (user-login-name)))))))
   (make-local-variable 'pmail-keywords)
   (set (make-local-variable 'tool-bar-map) pmail-tool-bar-map)
-  (make-local-variable 'pmail-buffers-swapped-p)
   ;; this gets generated as needed
   (setq pmail-keywords nil))
 
@@ -1414,16 +1395,6 @@ Create the buffer if necessary."
   (interactive)
   (set-buffer pmail-buffer)
   (pmail-expunge t)
-  (pmail-swap-buffers-maybe)
-  (save-buffer)
-  (if (pmail-summary-exists)
-      (pmail-select-summary (set-buffer-modified-p nil))
-    (pmail-show-message)))
-
-(defun pmail-save ()
-  "Save the PMAIL file."
-  (interactive)
-  (set-buffer pmail-buffer)
   (pmail-swap-buffers-maybe)
   (save-buffer)
   (if (pmail-summary-exists)
@@ -2231,9 +2202,9 @@ Return the current message number if the Pmail buffer is in a
 swapped state, i.e. it currently contains a single decoded
 message rather than an entire message collection, nil otherwise."
   (let (result)
-    (when pmail-buffers-swapped-p
+    (when (pmail-buffers-swapped-p)
       (buffer-swap-text pmail-view-buffer)
-      (setq pmail-buffers-swapped-p nil
+      (setq buffer-swapped-with nil
 	    result pmail-current-message))
     result))
 
@@ -2243,7 +2214,7 @@ If message MSGNUM is non-nil make it the current message and
 display it.  Return nil."
   (let (result)
     (cond
-     ((not pmail-buffers-swapped-p)
+     ((not (pmail-buffers-swapped-p))
       (let ((message (or msgnum pmail-current-message)))
 	(pmail-show-message message)))
      ((and msgnum (/= msgnum pmail-current-message))
@@ -2461,10 +2432,10 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
 (defun pmail-swap-buffers-maybe ()
   "Determine if the Pmail buffer is showing a message.
 If so restore the actual mbox message collection."
-  (when pmail-buffers-swapped-p
-    (with-current-buffer pmail-buffer
+  (with-current-buffer pmail-buffer
+    (when (pmail-buffers-swapped-p)
       (buffer-swap-text pmail-view-buffer)
-      (setq pmail-buffers-swapped-p nil))))
+      (setq buffer-swapped-with nil))))
 
 (defun pmail-show-message-maybe (&optional n no-summary)
   "Show message number N (prefix argument), counting from start of file.
@@ -2583,7 +2554,7 @@ The current mail message becomes the message displayed."
       ;; the view buffer/mail buffer contents.
       (pmail-display-labels)
       (buffer-swap-text pmail-view-buffer)
-      (setq pmail-buffers-swapped-p t)
+      (setq buffer-swapped-with pmail-view-buffer)
       (run-hooks 'pmail-show-message-hook))
     blurb))
 
@@ -2818,7 +2789,7 @@ Interactively, empty argument means use same regexp used last time."
   (let ((orig-message pmail-current-message)
 	(msg pmail-current-message)
 	(reversep (< n 0))
-	(opoint (if pmail-buffers-swapped-p (point)))
+	(opoint (if (pmail-buffers-swapped-p) (point)))
 	found)
     (pmail-swap-buffers-maybe)
     (pmail-maybe-set-message-counters)
@@ -3150,7 +3121,7 @@ See also user-option `pmail-confirm-expunge'."
   (when (pmail-expunge-confirmed)
     (let ((old-total pmail-total-messages)
 	  (opoint (with-current-buffer pmail-buffer
-		    (when pmail-buffers-swapped-p
+		    (when (pmail-buffers-swapped-p)
 		      (point)))))
       (pmail-only-expunge dont-show)
       (if (pmail-summary-exists)
@@ -3209,7 +3180,7 @@ use \\[mail-yank-original] to yank the original message into it."
     (save-excursion
       (save-restriction
 	(widen)
-	(if pmail-buffers-swapped-p
+	(if (pmail-buffers-swapped-p)
 	    (narrow-to-region
 	     (goto-char (point-min))
 	     (search-forward "\n\n" nil 'move))
