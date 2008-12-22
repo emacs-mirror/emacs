@@ -1,5 +1,19 @@
 2008-12-22  Richard M Stallman  <rms@gnu.org>
 
+	* pmail.el (pmail-retried-attr-index, pmail-forwarded-attr-index):
+	Renamed from pmail-resent-attr-index and pmail-stored-attr-index.
+	(pmail-attr-array): Change names to `retried' and `forwarded'
+	(pmail-reply): Use pmail-answered-attr-index.
+	(pmail-forward): Use pmail-forwarded-attr-index.
+	(pmail-retry-failure): Use pmail-retried-attr-index.
+
+	* pmail.el (pmail-get-header): Don't unswap, just see data where it is.
+	(pmail-set-attribute): Don't unswap, just set the data where it is.
+	(pmail-show-message): Call pmail-swap-buffers-maybe before reswapping.
+
+	* pmail.el (pmail-get-attr-names): Doc fix.
+	(pmail-is-text-p): Doc fix.
+
 	* pmailout.el (pmail-output): Use pmail-buffers-swapped-p as function.
 
 	* pmail.el (pmail-swap-buffers-maybe): Variable deleted.
