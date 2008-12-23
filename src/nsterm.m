@@ -1152,7 +1152,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
 
   pixelwidth =  FRAME_TEXT_COLS_TO_PIXEL_WIDTH   (f, cols);
   pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
-  
+
   /* If we have a change in toolbar display, calculate height */
   if (tb)
     /* XXX: GNUstep has not yet implemented the first method below, added
@@ -1667,7 +1667,7 @@ x_set_frame_alpha (struct frame *f)
     alpha = 1.0;
   else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
     alpha = alpha_min;
-  
+
 #ifdef NS_IMPL_COCOA
   [[view window] setAlphaValue: alpha];
 #endif
@@ -1732,7 +1732,7 @@ note_mouse_movement (struct frame *frame, float x, float y)
 //  NSTRACE (note_mouse_movement);
 
   XSETFRAME (last_mouse_motion_frame, frame);
-  
+
   /* Note, this doesn't get called for enter/leave, since we don't have a
      position.  Those are taken care of in the corresponding NSView methods. */
 
@@ -3662,7 +3662,7 @@ ns_delete_terminal (struct terminal *terminal)
   struct ns_display_info *dpyinfo = terminal->display_info.ns;
   int i;
 
-  /* Protect against recursive calls.  Fdelete_frame in
+  /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
   if (!terminal->name)
     return;
@@ -4118,7 +4118,7 @@ ns_term_shutdown (int sig)
   [NSApp setServicesProvider: NSApp];
   ns_send_appdefined (-2);
 }
- 
+
 
 - (void) terminate: (id)sender
 {
@@ -6313,7 +6313,7 @@ ns_xlfd_to_fontname (const char *xlfd)
   char *name = xmalloc (180);
   int i, len;
   const char *ret;
-  
+
   if (!strncmp (xlfd, "--", 2))
     sscanf (xlfd, "--%*[^-]-%[^-]179-", name);
   else

@@ -874,7 +874,7 @@ init_frame_faces (f)
 }
 
 
-/* Free face cache of frame F.  Called from Fdelete_frame.  */
+/* Free face cache of frame F.  Called from delete_frame.  */
 
 void
 free_frame_faces (f)

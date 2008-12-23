@@ -7040,7 +7040,7 @@ read_avail_input (expected)
                    alone in its group.  */
                 kill (getpid (), SIGHUP);
 
-              /* XXX Is calling delete_terminal safe here?  It calls Fdelete_frame. */
+              /* XXX Is calling delete_terminal safe here?  It calls delete_frame. */
 	      {
 		Lisp_Object tmp;
 		XSETTERMINAL (tmp, t);

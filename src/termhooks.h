@@ -591,7 +591,7 @@ struct terminal
      instead.  Otherwise the hook must call delete_terminal itself.
 
      The hook must check for and close any live frames that are still
-     on the terminal.  Fdelete_frame ensures that there are no live
+     on the terminal.  delete_frame ensures that there are no live
      frames on the terminal when it calls this hook, so infinite
      recursion is prevented.  */
   void (*delete_terminal_hook) P_ ((struct terminal *));

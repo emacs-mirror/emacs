@@ -6151,7 +6151,7 @@ x_delete_terminal (struct terminal *terminal)
   struct w32_display_info *dpyinfo = terminal->display_info.w32;
   int i;
 
-  /* Protect against recursive calls.  Fdelete_frame in
+  /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
   if (!terminal->name)
     return;
