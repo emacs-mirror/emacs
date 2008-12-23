@@ -77,9 +77,6 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
 (defvar pmail-old-pruned nil)
 (put 'pmail-old-pruned 'permanent-local t)
 
-(defvar pmail-edit-saved-coding-system nil)
-(put 'pmail-edit-saved-coding-system 'permanent-local t)
-
 ;;;###autoload
 (defun pmail-edit-current-message ()
   "Edit the contents of this message."
@@ -88,13 +85,7 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
       (error "No messages in this file"))
   (make-local-variable 'pmail-old-pruned)
   (setq pmail-old-pruned (eq pmail-header-style 'normal))
-  (make-local-variable 'pmail-edit-saved-coding-system)
-  (setq pmail-edit-saved-coding-system save-buffer-coding-system)
   (pmail-edit-mode)
-  ;; As the local value of save-buffer-coding-system is deleted by
-  ;; pmail-edit-mode, we restore the original value.
-  (make-local-variable 'save-buffer-coding-system)
-  (setq save-buffer-coding-system pmail-edit-saved-coding-system)
   (make-local-variable 'pmail-old-text)
   (setq pmail-old-text (buffer-substring (point-min) (point-max)))
   (setq buffer-read-only nil)
@@ -129,9 +120,6 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
     (if (boundp 'tool-bar-map)
 	(set (make-local-variable 'tool-bar-map) pmail-tool-bar-map))
     (pmail-variables)
-    ;; As the local value of save-buffer-coding-system is changed by
-    ;; pmail-variables, we restore the original value.
-    (setq save-buffer-coding-system pmail-edit-saved-coding-system)
     (unless (and (= (length old) (- (point-max) (point-min)))
 		 (string= old (buffer-substring (point-min) (point-max))))
       (setq old nil)
