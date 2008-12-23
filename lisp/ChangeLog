@@ -1,3 +1,7 @@
+2008-12-23  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg.el: Add obsolescence info.
+
 2008-12-22  Richard M Stallman  <rms@gnu.org>
 
 	* shadowfile.el (shadow-copy-file): Handle buffer-swapped-with.

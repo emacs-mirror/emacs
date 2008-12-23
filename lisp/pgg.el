@@ -25,6 +25,9 @@
 
 ;;; Commentary:
 
+;; This file is on its way to obsolescence, waiting for allout.el to
+;; switch to EPG.
+
 ;;; Code:
 
 (require 'pgg-def)
