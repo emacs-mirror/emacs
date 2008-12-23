@@ -1,3 +1,22 @@
+2008-12-23  Richard M Stallman  <rms@gnu.org>
+
+	* pmailsum.el (pmail-message-subject-p): Mark as broken.
+	(pmail-message-senders-p): Likewise.
+	(pmail-new-summary-1): Don't unswap -- search messages where they are.
+
+	* pmail.el (pmail-display-labels): Doc fix.
+	(pmail-set-attribute): Deleted unused vars.
+	Bind inhibit-read-only, not buffer-read-only.
+	(pmail-message-attr-p): Doc fix.
+	(pmail-message-labels-p, pmail-message-recipients-p)
+	(pmail-message-regexp-p): Mark as broken.
+
+	* pmailedit.el (pmailhdr): Don't require it.
+	(pmail-edit-current-message): Don't call pmail-header-show-headers.
+	(pmail-cease-edit): Force a blank line at end of edited message.
+	Call pmail-set-attribute properly.
+	Don't set buffer-read-only.
+
 2008-12-22  Richard M Stallman  <rms@gnu.org>
 
 	* pmail.el (pmail-retried-attr-index, pmail-forwarded-attr-index):
