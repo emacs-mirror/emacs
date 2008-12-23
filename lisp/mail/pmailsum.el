@@ -148,6 +148,8 @@ SUBJECT is a string of regexps separated by commas."
    (mail-comma-list-regexp subject) whole-message))
 
 (defun pmail-message-subject-p (msg subject &optional whole-message)
+  ;;;??? BROKEN
+  (error "pmail-message-subject-p has not been updated for Pmail")
   (save-restriction
     (goto-char (pmail-msgbeg msg))
     (search-forward "\n*** EOOH ***\n" (pmail-msgend msg) 'move)
@@ -173,6 +175,8 @@ SENDERS is a string of names separated by commas."
    (mail-comma-list-regexp senders)))
 
 (defun pmail-message-senders-p (msg senders)
+  ;;;??? BROKEN
+  (error "pmail-message-senders-p has not been updated for Pmail")
   (save-restriction
     (goto-char (pmail-msgbeg msg))
     (search-forward "\n*** EOOH ***\n")
@@ -240,29 +244,39 @@ message."
   (let ((summary-msgs ())
 	(pmail-new-summary-line-count 0)
 	(sumbuf (pmail-get-create-summary-buffer)))
-    (let ((swap (pmail-use-collection-buffer))
-	  (msgnum 1)
-	  (buffer-read-only nil)
-	  (old-min (point-min-marker))
-	  (old-max (point-max-marker)))
-      ;; Can't use save-restriction here; that doesn't work if we
-      ;; plan to modify text outside the original restriction.
+    ;; Scan the messages, getting their summary strings
+    ;; and putting the list of them in SUMMARY-MSGS.
+    (let ((msgnum 1)
+	  (total pmail-total-messages)
+	  (inhibit-read-only t))
       (save-excursion
-	(widen)
-	(goto-char (point-min))
-	(while (>= pmail-total-messages msgnum)
-	  (if (or (null function)
-		  (apply function (cons msgnum args)))
-	      (setq summary-msgs
-		    (cons (cons msgnum (pmail-get-summary msgnum))
-			  summary-msgs)))
-	  (setq msgnum (1+ msgnum))
-	  ;; Provide a periodic User progress message.
-	  (if (zerop (% pmail-new-summary-line-count 10))
-	      (message "Computing summary lines...%d"
-		       pmail-new-summary-line-count)))
-	(setq summary-msgs (nreverse summary-msgs)))
-      (narrow-to-region old-min old-max))
+	(if (pmail-buffers-swapped-p)
+	    (set-buffer pmail-view-buffer))
+	(let ((old-min (point-min-marker))
+	      (old-max (point-max-marker)))
+	  (unwind-protect
+	      ;; Can't use save-restriction here; that doesn't work if we
+	      ;; plan to modify text outside the original restriction.
+	      (save-excursion
+		(widen)
+		(goto-char (point-min))
+		(while (>= total msgnum)
+		  ;; First test whether to include this message.
+		  (if (or (null function)
+			  (apply function (cons msgnum args)))
+		      (setq summary-msgs
+			    ;; Go back to the Pmail buffer so
+			    ;; so pmail-get-summary can see its local vars.
+			    (with-current-buffer pmail-buffer
+			      (cons (cons msgnum (pmail-get-summary msgnum))
+				    summary-msgs))))
+		  (setq msgnum (1+ msgnum))
+		  ;; Provide a periodic User progress message.
+		  (if (zerop (% pmail-new-summary-line-count 10))
+		      (message "Computing summary lines...%d"
+			       pmail-new-summary-line-count)))
+		(setq summary-msgs (nreverse summary-msgs)))
+	    (narrow-to-region old-min old-max)))))
 
     ;; Temporarily, while summary buffer is unfinished,
     ;; we "don't have" a summary.
@@ -1722,6 +1736,10 @@ KEYWORDS is a comma-separated list of labels."
       (select-window selwin))))
 
 (provide 'pmailsum)
+
+;; Local Variables:
+;; change-log-default-name: "ChangeLog.pmail"
+;; End:
 
 ;; arch-tag: 80b0a27a-a50d-4f37-9466-83d32d1e0ca8
 ;;; pmailsum.el ends here
