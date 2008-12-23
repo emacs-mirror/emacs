@@ -7668,13 +7668,13 @@ operation has put the subtree."
   (unless org-refile-target-table
     (error "No refile targets"))
   (let* ((cbuf (current-buffer))
+	 (cfn (buffer-file-name (buffer-base-buffer cbuf)))
 	 (cfunc (if (and org-refile-use-outline-path
 			 org-outline-path-complete-in-steps)
 		    'org-olpath-completing-read
 		  'org-ido-completing-read))
 	 (extra (if org-refile-use-outline-path "/" ""))
-	 (filename (expand-file-name
-		    (buffer-file-name (buffer-base-buffer cbuf))))
+	 (filename (and cfn (expand-file-name cfn)))
 	 (tbl (mapcar
 	       (lambda (x)
 		 (if (not (equal filename (nth 1 x)))

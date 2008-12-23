@@ -1,3 +1,11 @@
+2008-12-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-remember.el (org-remember-handler): Safer way to get a new
+	buffer accessing the target file.
+
+	* org.el (org-refile-get-location): Handle case of current buffer
+	not having a file associated with it.
+
 2008-12-22  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-table.el (org-table-get-formula): Only ask to overwrite

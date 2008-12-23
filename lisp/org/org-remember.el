@@ -809,8 +809,7 @@ See also the variable `org-reverse-note-order'."
 	  (move-marker org-remember-last-stored-marker (point)))
 	(throw 'quit t))
       ;; Find the file
-      (if (not visiting) (find-file-noselect file))
-      (with-current-buffer (or visiting (get-file-buffer file))
+      (with-current-buffer (or visiting (find-file-noselect file))
 	(unless (org-mode-p)
 	  (error "Target files for remember notes must be in Org-mode"))
 	(save-excursion
