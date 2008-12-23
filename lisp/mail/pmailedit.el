@@ -107,6 +107,12 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
       (save-excursion
 	(set-buffer pmail-summary-buffer)
 	(pmail-summary-enable)))
+  ;; Disguise any "From " lines so they don't start a new message.
+  (save-excursion
+    (goto-char (point-min))
+    (while (search-forward "\nFrom " nil t)
+      (beginning-of-line)
+      (insert ">")))
   ;; Make sure buffer ends with a blank line
   ;; so as not to run this message together with the following one.
   (save-excursion
