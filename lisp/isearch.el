@@ -176,7 +176,7 @@ or to the end of the buffer for a backward search.")
   "Function to save a function restoring the mode-specific Isearch state
 to the search status stack.")
 
-(defvar isearch-filter-predicate 'isearch-filter-invisible
+(defvar isearch-filter-predicate 'isearch-filter-visible
   "Predicate that filters the search hits that would normally be available.
 Search hits that dissatisfy the predicate are skipped.  The function
 has two arguments: the positions of start and end of text matched by
@@ -2254,7 +2254,7 @@ update the match data, and return point."
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
   (condition-case lossage
       (let ((inhibit-point-motion-hooks
-	     (and (eq isearch-filter-predicate 'isearch-filter-invisible)
+	     (and (eq isearch-filter-predicate 'isearch-filter-visible)
 		  search-invisible))
 	    (inhibit-quit nil)
 	    (case-fold-search isearch-case-fold-search)
@@ -2448,10 +2448,11 @@ update the match data, and return point."
 		  nil)
 	      (setq isearch-hidden t)))))))
 
-(defun isearch-filter-invisible (beg end)
-  "Default predicate to filter out invisible text.
-It filters search hits to those that are visible (at least partially),
-unless invisible text too can be searched."
+(defun isearch-filter-visible (beg end)
+  "Test whether the current search hit is visible at least partially.
+Return non-nil if the text from BEG to END is visible to Isearch as
+determined by `isearch-range-invisible' unless invisible text can be
+searched too when `search-invisible' is t."
   (or (eq search-invisible t)
       (not (isearch-range-invisible beg end))))
 
