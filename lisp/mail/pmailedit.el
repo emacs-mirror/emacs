@@ -29,8 +29,6 @@
   (require 'pmail)
   (require 'pmailsum))
 
-(require 'pmailhdr)
-
 (defcustom pmail-edit-mode-hook nil
   "List of functions to call when editing an PMAIL message."
   :type 'hook
@@ -92,7 +90,6 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
   (setq pmail-old-pruned (eq pmail-header-style 'normal))
   (make-local-variable 'pmail-edit-saved-coding-system)
   (setq pmail-edit-saved-coding-system save-buffer-coding-system)
-  (pmail-header-show-headers)
   (pmail-edit-mode)
   ;; As the local value of save-buffer-coding-system is deleted by
   ;; pmail-edit-mode, we restore the original value.
@@ -115,11 +112,13 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
       (save-excursion
 	(set-buffer pmail-summary-buffer)
 	(pmail-summary-enable)))
-  ;; Make sure buffer ends with a newline.
+  ;; Make sure buffer ends with a blank line.
   (save-excursion
     (goto-char (point-max))
     (if (/= (preceding-char) ?\n)
 	(insert "\n"))
+    (unless (looking-back "\n\n")
+      (insert "\n"))
     ;; Adjust the marker that points to the end of this message.
     (set-marker (aref pmail-message-vector (1+ pmail-current-message))
 		(point)))
@@ -133,11 +132,10 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
     ;; As the local value of save-buffer-coding-system is changed by
     ;; pmail-variables, we restore the original value.
     (setq save-buffer-coding-system pmail-edit-saved-coding-system)
-    (if (and (= (length old) (- (point-max) (point-min)))
-	     (string= old (buffer-substring (point-min) (point-max))))
-	()
+    (unless (and (= (length old) (- (point-max) (point-min)))
+		 (string= old (buffer-substring (point-min) (point-max))))
       (setq old nil)
-      (pmail-set-attribute "edited" t)
+      (pmail-set-attribute pmail-edited-attr-index t)
       (if (boundp 'pmail-summary-vector)
 	  (progn
 	    (aset pmail-summary-vector (1- pmail-current-message) nil)
@@ -153,8 +151,7 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
     (save-excursion
       (pmail-show-message)
       (pmail-toggle-header (if pmail-old-pruned 1 0))))
-  (run-hooks 'pmail-mode-hook)
-  (setq buffer-read-only t))
+  (run-hooks 'pmail-mode-hook))
 
 (defun pmail-abort-edit ()
   "Abort edit of current message; restore original contents."
