@@ -2320,11 +2320,11 @@ a file name.  Otherwise, it searches the whole buffer without restrictions."
   "Toggle file names searching on or off.
 When on, Isearch skips matches outside file names using the predicate
 `dired-isearch-filter-filenames' that matches only at file names.
-When off, it uses the default predicate `isearch-filter-invisible'."
+When off, it uses the original predicate."
   (interactive)
   (setq isearch-filter-predicate
 	(if (eq isearch-filter-predicate 'dired-isearch-filter-filenames)
-	    'isearch-filter-invisible
+	    dired-isearch-filter-predicate-orig
 	  'dired-isearch-filter-filenames))
   (setq isearch-success t isearch-adjusted t)
   (isearch-update))
@@ -2351,8 +2351,10 @@ Intended to be added to `isearch-mode-hook'."
   (remove-hook 'isearch-mode-end-hook 'dired-isearch-filenames-end t))
 
 (defun dired-isearch-filter-filenames (beg end)
-  "Match only at visible regions with the text property `dired-filename'."
-  (and (isearch-filter-invisible beg end)
+  "Test whether the current search hit is a visible file name.
+Return non-nil if the text from BEG to END is part of a file
+name (has the text property `dired-filename') and is visible."
+  (and (isearch-filter-visible beg end)
        (if dired-isearch-filenames
 	   (text-property-not-all (min beg end) (max beg end)
 				  'dired-filename nil)
