@@ -61,6 +61,8 @@ to return to regular PMAIL:
   *  \\[pmail-cease-edit] makes them permanent.
 This functions runs the normal hook `pmail-edit-mode-hook'.
 \\{pmail-edit-map}"
+  ;; Changing the major mode unswaps the Pmail buffer
+  ;; via change-major-mode-hook.
   (delay-mode-hooks (text-mode))
   (use-local-map pmail-edit-map)
   (setq major-mode 'pmail-edit-mode)
@@ -82,9 +84,11 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
   "Edit the contents of this message."
   (interactive)
   (if (= pmail-total-messages 0)
-      (error "No messages in this file"))
+      (error "No messages in this buffer"))
   (make-local-variable 'pmail-old-pruned)
   (setq pmail-old-pruned (eq pmail-header-style 'normal))
+  ;; Changing the major mode unswaps the Pmail buffer
+  ;; via change-major-mode-hook.
   (pmail-edit-mode)
   (make-local-variable 'pmail-old-text)
   (setq pmail-old-text (buffer-substring (point-min) (point-max)))
@@ -114,16 +118,20 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
     (set-marker (aref pmail-message-vector (1+ pmail-current-message))
 		(point)))
   (let ((old pmail-old-text))
+    ;; Go back to Pmail mode, but carefully.
     (force-mode-line-update)
     (kill-all-local-variables)
     (pmail-mode-1)
     (if (boundp 'tool-bar-map)
 	(set (make-local-variable 'tool-bar-map) pmail-tool-bar-map))
     (pmail-variables)
+    ;; If text has really changed, mark message as edited.
     (unless (and (= (length old) (- (point-max) (point-min)))
 		 (string= old (buffer-substring (point-min) (point-max))))
       (setq old nil)
       (pmail-set-attribute pmail-edited-attr-index t)
+      ;;;??? BROKEN perhaps.
+      ;; I think that the Summary-Line header may not be kept there any more.
       (if (boundp 'pmail-summary-vector)
 	  (progn
 	    (aset pmail-summary-vector (1- pmail-current-message) nil)
