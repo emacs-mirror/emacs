@@ -1,3 +1,23 @@
+2008-12-23  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-filter-predicate, isearch-search): Replace
+	`isearch-filter-invisible' with `isearch-filter-visible'.
+	(isearch-filter-visible): Renamed from
+	`isearch-filter-invisible'.  Doc fix.
+
+	* dired-aux.el (dired-isearch-filenames-toggle): Use the original
+	value from `dired-isearch-filter-predicate-orig' instead of the
+	symbol `isearch-filter-invisible'.  Doc fix.
+	(dired-isearch-filter-filenames): Replace
+	`isearch-filter-invisible' with `isearch-filter-visible'.  Doc fix.
+
+	* info.el (Info-find-node-2): Use negative offset 2 instead of 1
+	for Info-point-loc since it is more correct in all cases.
+	(Info-isearch-filter): Rename from
+	`Info-isearch-filter-predicate'.  Doc fix.
+	(Info-mode): Replace `Info-isearch-filter-predicate' with
+	`Info-isearch-filter'.
+
 2008-12-23  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg.el: Add obsolescence info.
