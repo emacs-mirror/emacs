@@ -4,6 +4,7 @@
 	(pmail-edit-current-message, pmail-cease-edit):
 	Don't set it, or save-buffer-coding-system.
 	(pmail-edit-current-message): Change error message.
+	(pmail-cease-edit): Put `>' before `From ' lines in message.
 
 	* pmail.el (pmail-variables): Don't set save-buffer-coding-system.
 
