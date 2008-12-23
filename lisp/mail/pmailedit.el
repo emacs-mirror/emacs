@@ -107,7 +107,8 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
       (save-excursion
 	(set-buffer pmail-summary-buffer)
 	(pmail-summary-enable)))
-  ;; Make sure buffer ends with a blank line.
+  ;; Make sure buffer ends with a blank line
+  ;; so as not to run this message together with the following one.
   (save-excursion
     (goto-char (point-max))
     (if (/= (preceding-char) ?\n)
