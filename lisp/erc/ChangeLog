@@ -1,3 +1,9 @@
+2008-11-19  Andy Stewart  <lazycat.manatee@gmail.com>
+
+	* erc.el (erc-header-line-uses-tabbar-p): New option that makes
+	tabbar mode usable with ERC if set to non-nil.
+	(erc-update-mode-line-buffer): Use it.
+
 2008-11-19  Glenn Morris  <rgm@gnu.org>
 
 	* erc-compat.el (help-function-arglist): Autoload it.
