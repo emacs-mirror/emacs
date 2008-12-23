@@ -2046,7 +2046,9 @@ If MSGNUM is nil, use the current message."
     (when (> msgnum 0)
       (let (msgbeg end)
 	(setq msgbeg (pmail-msgbeg msgnum))
+	;; All access to the buffer's local variables is now finished...
 	(save-excursion
+	  ;; ... so it is ok to go to a different buffer.
 	  (if (pmail-buffers-swapped-p) (set-buffer pmail-view-buffer))
 	  (save-restriction
 	    (widen)
@@ -2083,11 +2085,10 @@ mail message will be used otherwise."
   (pmail-get-header pmail-keyword-header msg))
 
 (defun pmail-display-labels ()
-  "Update the mode line with the (set) attributes and keywords
-for the current message."
+  "Update the current messages's attributes and keywords in mode line."
   (let (blurb attr-names keywords)
-    ;; Combine the message attributes and keywords into a comma
-    ;; separated list.
+    ;; Combine the message attributes and keywords 
+    ;; into a comma-separated list.
     (setq attr-names (pmail-get-attr-names pmail-current-message)
 	  keywords (pmail-get-keywords pmail-current-message))
     (setq blurb
@@ -2125,19 +2126,21 @@ ATTR is the index of the attribute.  MSGNUM is message number to
 change; nil means current message."
   (with-current-buffer pmail-buffer
     (let ((value (pmail-get-attr-value attr state))
-	  (omax (point-max-marker))
-	  (omin (point-min-marker))
-	  (buffer-read-only nil)
+	  (inhibit-read-only t)
 	  limit
 	  msgbeg)
       (or msgnum (setq msgnum pmail-current-message))
       (when (> msgnum 0)
+	;; The "deleted" attribute is also stored in a special vector
+	;; so update that too.
 	(if (= attr pmail-deleted-attr-index)
 	    (pmail-set-message-deleted-p msgnum state))
 	(setq msgbeg (pmail-msgbeg msgnum))
 
+	;; All access to the buffer's local variables is now finished...
 	(unwind-protect
 	    (save-excursion
+	      ;; ... so it is ok to go to a different buffer.
 	      (if (pmail-buffers-swapped-p) (set-buffer pmail-view-buffer))
 	      (save-restriction
 		(widen)
@@ -2147,10 +2150,14 @@ change; nil means current message."
 		  (save-excursion
 		    (setq limit (search-forward "\n\n" nil t)))
 		  (if (search-forward (concat pmail-attribute-header ": ") limit t)
+		      ;; If this message already records attributes,
+		      ;; just change the value for this one.
 		      (progn (forward-char attr)
 			     (when (/= value (char-after))
 			       (delete-char 1)
 			       (insert value)))
+		    ;; Otherwise add a header line to record the attributes
+		    ;; and set all but this one to nil.
 		    (let ((header-value "-------"))
 		      (aset header-value attr value)
 		      (goto-char (if limit (- limit 1) (point-max)))
@@ -2159,8 +2166,8 @@ change; nil means current message."
 	      (pmail-display-labels)))))))
 
 (defun pmail-message-attr-p (msg attrs)
-  "Return t if the attributes header for message MSG contains a
-match for the regexp ATTRS."
+  "Return t if the attributes header for message MSG matches regexp ATTRS.
+This function assumes the Pmail buffer is unswapped."
   (save-excursion
     (save-restriction
       (let ((start (pmail-msgbeg msg))
@@ -2181,6 +2188,8 @@ Return non-nil if the unseen attribute is set, nil otherwise."
 ;; Return t if the attributes/keywords line of msg number MSG
 ;; contains a match for the regexp LABELS.
 (defun pmail-message-labels-p (msg labels)
+  ;;;??? BROKEN
+  (error "pmail-message-labels-p has not been updated for Pmail")
   (save-excursion
     (save-restriction
       (widen)
@@ -2716,6 +2725,8 @@ or forward if N is negative."
     (if (>= where (pmail-msgbeg high)) high low)))
 
 (defun pmail-message-recipients-p (msg recipients &optional primary-only)
+  ;;;??? BROKEN
+  (error "pmail-message-recipients-p has not been updated for Pmail")
   (save-restriction
     (goto-char (pmail-msgbeg msg))
     (search-forward "\n*** EOOH ***\n")
@@ -2727,6 +2738,8 @@ or forward if N is negative."
 
 (defun pmail-message-regexp-p (n regexp)
   "Return t, if for message number N, regexp REGEXP matches in the header."
+  ;;;??? BROKEN
+  (error "pmail-message-regexp-p has not been updated for Pmail")
   (let ((beg (pmail-msgbeg n))
 	(end (pmail-msgend n)))
     (goto-char beg)
