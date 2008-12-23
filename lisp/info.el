@@ -1007,7 +1007,7 @@ a case-insensitive match is tried."
                                  (delete new-history Info-history-list))))
                    (goto-char anchorpos))
                   ((numberp Info-point-loc)
-                   (forward-line (1- Info-point-loc))
+                   (forward-line (- Info-point-loc 2))
                    (setq Info-point-loc nil))
 		  ((stringp Info-point-loc)
 		   (Info-find-index-name Info-point-loc)
@@ -1855,8 +1855,10 @@ If DIRECTION is `backward', search in the reverse direction."
 	;; Otherwise this variable is set after first search failure.
 	(and isearch-nonincremental Info-current-node)))
 
-(defun Info-isearch-filter-predicate (beg-found found)
-  "Skip invisible text, node header line and Tag Table node."
+(defun Info-isearch-filter (beg-found found)
+  "Test whether the current search hit is a visible useful text.
+Return non-nil if the text from BEG-FOUND to FOUND is visible
+and is not in the header line or a tag table."
   (save-match-data
     (let ((backward (< found beg-found)))
       (not
@@ -3540,7 +3542,7 @@ Advanced commands:
   (set (make-local-variable 'isearch-push-state-function)
        'Info-isearch-push-state)
   (set (make-local-variable 'isearch-filter-predicate)
-       'Info-isearch-filter-predicate)
+       'Info-isearch-filter)
   (set (make-local-variable 'search-whitespace-regexp)
        Info-search-whitespace-regexp)
   (set (make-local-variable 'revert-buffer-function)
