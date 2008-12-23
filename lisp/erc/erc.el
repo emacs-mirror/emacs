@@ -5914,6 +5914,11 @@ See `erc-mode-line-format' for which characters are can be used."
   :type '(choice (const :tag "Disabled" nil)
 		 string))
 
+(defcustom erc-header-line-uses-tabbar-p t
+  "Use tabbar mode instead of the header line to display the header."
+  :group 'erc-mode-line-and-header
+  :type 'boolean)
+
 (defcustom erc-header-line-uses-help-echo-p t
   "Show the contents of the header line in the echo area or as a tooltip
 when you move point into the header line."
@@ -6085,7 +6090,11 @@ if `erc-away' is non-nil."
 	(let ((header (if erc-header-line-format
 			  (format-spec erc-header-line-format spec)
 			nil)))
-	  (cond ((null header)
+	  (cond (erc-header-line-uses-tabbar-p
+		 (set (make-local-variable 'tabbar--local-hlf)
+		      header-line-format)
+		 (kill-local-variable 'header-line-format))
+		((null header)
 		 (setq header-line-format nil))
 		(erc-header-line-uses-help-echo-p
 		 (let ((help-echo (with-temp-buffer
