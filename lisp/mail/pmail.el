@@ -1334,13 +1334,6 @@ Create the buffer if necessary."
 
 ;; Set up the non-permanent locals associated with Pmail mode.
 (defun pmail-variables ()
-  (make-local-variable 'save-buffer-coding-system)
-  ;; If we don't already have a value for save-buffer-coding-system,
-  ;; get it from buffer-file-coding-system, and clear that
-  ;; because it should be determined in pmail-show-message.
-  (unless save-buffer-coding-system
-    (setq save-buffer-coding-system (or buffer-file-coding-system 'undecided))
-    (setq buffer-file-coding-system nil))
   ;; Don't let a local variables list in a message cause confusion.
   (make-local-variable 'local-enable-local-variables)
   (setq local-enable-local-variables nil)
