@@ -1,5 +1,12 @@
 2008-12-23  Richard M Stallman  <rms@gnu.org>
 
+	* pmailedit.el (pmail-edit-saved-coding-system): Var deleted.
+	(pmail-edit-current-message, pmail-cease-edit):
+	Don't set it, or save-buffer-coding-system.
+	(pmail-edit-current-message): Change error message.
+
+	* pmail.el (pmail-variables): Don't set save-buffer-coding-system.
+
 	* pmailsum.el (pmail-message-subject-p): Mark as broken.
 	(pmail-message-senders-p): Likewise.
 	(pmail-new-summary-1): Don't unswap -- search messages where they are.
