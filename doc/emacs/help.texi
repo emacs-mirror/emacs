@@ -14,7 +14,7 @@
   Emacs provides extensive help features, all accessible through the
 @dfn{help character}, @kbd{C-h}.  This is a prefix key that is used
 for commands that display documentation; the next character you type
-should be a @dfn{help options}, to ask for a particular kind of help.
+should be a @dfn{help option}, to ask for a particular kind of help.
 You can cancel the @kbd{C-h} command with @kbd{C-g}.  The function key
 @key{F1} is equivalent to @kbd{C-h}.
 
@@ -28,7 +28,7 @@ a list of help options, with a brief description of each one
 
   @kbd{C-h} or @key{F1} means ``help'' in various other contexts as
 well.  For instance, you can type them after a prefix key to display
-list of the keys that can follow the prefix key.  (A few prefix keys
+a list of the keys that can follow the prefix key.  (A few prefix keys
 don't support @kbd{C-h} in this way, because they define other
 meanings for it, but they all support @key{F1} for help.)
 
@@ -48,8 +48,7 @@ FAQ and the package keywords.
 @item C-h a @var{topics} @key{RET}
 This searches for commands whose names match the argument
 @var{topics}.  The argument can be a keyword, a list of keywords, or a
-regular expression (@pxref{Regexps}).  This command displays all the
-matches in a new buffer.  @xref{Apropos}.
+regular expression (@pxref{Regexps}).  @xref{Apropos}.
 
 @item C-h i d m emacs @key{RET} i @var{topic} @key{RET}
 This searches for @var{topic} in the indices of the on-line Emacs
@@ -91,9 +90,9 @@ This displays the available Emacs packages based on keywords.
 @end ifnottex
 
   Here is a summary of the Emacs interactive help commands.  (The
-character that follows @kbd{C-h} is the ``help option.'')  @xref{Help
-Files}, for other help commands that display fixed files of
-information.
+character that follows @kbd{C-h} is the ``help option.'')  See
+@ref{Help Files}, for other help commands that display fixed files
+of information.
 
 @table @kbd
 @item C-h a @var{topics} @key{RET}
@@ -127,12 +126,16 @@ The complete Emacs manual is available on-line in Info.
 Display the name and documentation of the command that @var{key} runs
 (@code{describe-key}).
 @item C-h l
-Display a description of the last 100 characters you typed
+Display a description of your last 300 keystrokes 
 (@code{view-lossage}).
 @item C-h m
 Display documentation of the current major mode (@code{describe-mode}).
+@item C-h n
+Display news of recent Emacs changes (@code{view-emacs-news}).
 @item C-h p
 Find packages by topic keyword (@code{finder-by-keyword}).
+@item C-h r
+Display the Emacs manual in Info (@code{info-emacs-manual}).
 @item C-h s
 Display the current contents of the syntax table, with an explanation of
 what they mean (@code{describe-syntax}).  @xref{Syntax}.
@@ -148,18 +151,18 @@ Describe the coding system @var{coding}
 (@code{describe-coding-system}).
 @item C-h C @key{RET}
 Describe the coding systems currently in use.
+@item C-h F @var{command} @key{RET}
+Enter Info and go to the node that documents the Emacs command
+@var{command} (@code{Info-goto-emacs-command-node}).
 @item C-h I @var{method} @key{RET}
 Describe the input method @var{method} (@code{describe-input-method}).
+@item C-h K @var{key}
+Enter Info and go to the node that documents the key sequence
+@var{key} (@code{Info-goto-emacs-key-command-node}).
 @item C-h L @var{language-env} @key{RET}
 Display information on the character sets, coding systems, and input
 methods used in language environment @var{language-env}
 (@code{describe-language-environment}).
-@item C-h F @var{function} @key{RET}
-Enter Info and go to the node that documents the Emacs function
-@var{function} (@code{Info-goto-emacs-command-node}).
-@item C-h K @var{key}
-Enter Info and go to the node that documents the key sequence
-@var{key} (@code{Info-goto-emacs-key-command-node}).
 @item C-h S @var{symbol} @key{RET}
 Display the Info documentation on symbol @var{symbol} according to the
 programming language you are editing (@code{info-lookup-symbol}).
@@ -270,7 +273,7 @@ read the Emacs source code.
 
 @kindex C-h F
 @findex Info-goto-emacs-command-node
-  To find a function's documentation in a manual, use @kbd{C-h F}
+  To find a command's documentation in a manual, use @kbd{C-h F}
 (@code{Info-goto-emacs-command-node}).  This knows about various
 manuals, not just the Emacs manual, and finds the right one.
 
@@ -551,10 +554,10 @@ command works depend on the major mode.
 
 @kindex C-h l
 @findex view-lossage
-  If something surprising happens, and you are not sure what you
-typed, use @kbd{C-h l} (@code{view-lossage}).  @kbd{C-h l} displays
-the last 100 characters you typed in Emacs.  If you see commands that
-you don't know, you can use @kbd{C-h c} to find out what they do.
+  If something surprising happens, and you are not sure what you typed,
+use @kbd{C-h l} (@code{view-lossage}).  @kbd{C-h l} displays your last
+300 input keystrokes.  If you see commands that you don't know, you can
+use @kbd{C-h c} to find out what they do.
 
 @kindex C-h e
 @findex view-echo-area-messages

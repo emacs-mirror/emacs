@@ -1,3 +1,11 @@
+2008-12-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.texi (Help): Fix typos and reword.
+	(Help Summary): Add entries for C-h n and C-h r, reorder
+	entries, and do some minor fixes.
+	(Name Help): Say that C-h F works for commands only.
+	(Misc Help): Say that view-lossage displays 300 keystrokes.
+
 2008-12-20  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): General update based on AUTHORS,
