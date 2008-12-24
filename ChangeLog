@@ -1,3 +1,9 @@
+2008-12-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* make-dist (tempdir): Distribute .dir-locals.el.
+
+	* .dir-locals.el: New file.
+
 2008-12-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat (--with-system-malloc): New option; see msdos/INSTALL

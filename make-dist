@@ -305,7 +305,7 @@ mkdir ${tempdir}
 echo "Making links to top-level files"
 ln INSTALL README BUGS move-if-change ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
-ln config.bat make-dist update-subdirs vpath.sed ${tempdir}
+ln config.bat make-dist update-subdirs vpath.sed .dir-locals.el ${tempdir}
 ### Copy these files; they're cross-filesystem symlinks.
 cp mkinstalldirs ${tempdir}
 cp config.sub ${tempdir}
