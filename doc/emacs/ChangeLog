@@ -1,3 +1,8 @@
+2008-12-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* files.texi (Misc File Ops): Mention chmod as an alias for
+	set-file-modes.
+
 2008-12-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* help.texi (Help): Fix typos and reword.

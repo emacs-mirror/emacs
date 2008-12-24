@@ -1588,7 +1588,8 @@ read, written to, or executed, and by whom.  This command reads file
 modes using the same symbolic or octal format accepted by the
 @command{chmod} command; for instance, @samp{u+x} means to add
 execution permission for the user who owns the file.  It has no effect
-on operating systems that do not support file modes.
+on operating systems that do not support file modes.  @code{chmod} is a
+convenience alias for this function.
 
 @node Compressed Files
 @section Accessing Compressed Files

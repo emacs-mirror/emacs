@@ -542,7 +542,8 @@ matches a regexp.
 +++
 *** The new command `set-file-modes' allows to set file's mode bits.
 The mode bits can be specified in symbolic notation, like with GNU
-Coreutils, in addition to an octal number.
+Coreutils, in addition to an octal number.  `chmod' is a new
+convenience alias for this function.
 
 *** `next-error-recenter' specifies how next-error should recenter the
 visited source file.  Its value can be a number (for example, 0 for
