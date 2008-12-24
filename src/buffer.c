@@ -2182,6 +2182,10 @@ advance_to_char_boundary (byte_pos)
   return byte_pos;
 }
 
+#ifdef REL_ALLOC
+extern void r_alloc_reset_variable P_ ((PTR *, PTR *));
+#endif /* REL_ALLOC */
+
 DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
        1, 1, 0,
        doc: /* Swap the text between current buffer and BUFFER.  */)
@@ -2223,6 +2227,13 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   swapfield (own_text, struct buffer_text);
   eassert (current_buffer->text == &current_buffer->own_text);
   eassert (other_buffer->text == &other_buffer->own_text);
+#ifdef REL_ALLOC
+  r_alloc_reset_variable ((PTR *) &current_buffer->own_text.beg,
+			  (PTR *) &other_buffer->own_text.beg);
+  r_alloc_reset_variable ((PTR *) &other_buffer->own_text.beg,
+			  (PTR *) &current_buffer->own_text.beg);
+#endif /* REL_ALLOC */
+
   swapfield (pt, EMACS_INT);
   swapfield (pt_byte, EMACS_INT);
   swapfield (begv, EMACS_INT);

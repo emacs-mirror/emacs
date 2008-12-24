@@ -1223,6 +1223,34 @@ r_alloc_check ()
 
 #endif /* DEBUG */
 
+/* Update the internal record of which variable points to some data to NEW.
+   Used by buffer-swap-text in Emacs to restore consistency after it
+   swaps the buffer text between two buffer objects.  The OLD pointer
+   is checked to ensure that memory corruption does not occur due to
+   misuse.  */
+void
+r_alloc_reset_variable (old, new)
+     POINTER *old, *new;
+{
+  bloc_ptr bloc = first_bloc;
+
+  /* Find the bloc that corresponds to the data pointed to by pointer.
+     find_bloc cannot be used, as it has internal consistency checks
+     which fail when the variable needs reseting.  */
+  while (bloc != NIL_BLOC)
+    {
+      if (bloc->data == *new)
+	break;
+
+      bloc = bloc->next;
+    }
+
+  if (bloc == NIL_BLOC || bloc->variable != old)
+    abort ();
+
+  /* Update variable to point to the new location.  */
+  bloc->variable = new;
+}
 
 
 /***********************************************************************

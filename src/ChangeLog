@@ -1,3 +1,10 @@
+2008-12-24  Jason Rumney  <jasonr@gnu.org>
+
+	* ralloc.c (r_alloc_reset_variable): New function.
+
+	* buffer.c (Fbuffer_swap_text) [REL_ALLOC]: Reset ralloc's internal
+	record of what points where.
+
 2008-12-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* minibuf.c (read_minibuf): Follow the non-interactive case when
