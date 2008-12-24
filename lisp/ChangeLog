@@ -1,19 +1,23 @@
+2008-12-24  Francois Fleuret  <francois.fleuret@idiap.ch>  (tiny change)
+
+	* textmodes/tex-mode.el (tex-bibtex-file): Use tex-main-file.
+
 2008-12-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* subr.el (chmod): New defalias for set-file-modes.
 
 2008-12-23  Juri Linkov  <juri@jurta.org>
 
-	* isearch.el (isearch-filter-predicate, isearch-search): Replace
-	`isearch-filter-invisible' with `isearch-filter-visible'.
-	(isearch-filter-visible): Renamed from
+	* isearch.el (isearch-filter-predicate, isearch-search):
+	Replace `isearch-filter-invisible' with `isearch-filter-visible'.
+	(isearch-filter-visible): Rename from
 	`isearch-filter-invisible'.  Doc fix.
 
 	* dired-aux.el (dired-isearch-filenames-toggle): Use the original
 	value from `dired-isearch-filter-predicate-orig' instead of the
 	symbol `isearch-filter-invisible'.  Doc fix.
-	(dired-isearch-filter-filenames): Replace
-	`isearch-filter-invisible' with `isearch-filter-visible'.  Doc fix.
+	(dired-isearch-filter-filenames): Doc fix.
+	Replace `isearch-filter-invisible' with `isearch-filter-visible'.
 
 	* info.el (Info-find-node-2): Use negative offset 2 instead of 1
 	for Info-point-loc since it is more correct in all cases.
@@ -38,7 +42,8 @@
 
 2008-12-22  Ulf Jasper  <ulf.jasper@web.de>
 
-	* net/newst-backend.el (newst-backend): Removed wrong duplicate provide statement.
+	* net/newst-backend.el (newst-backend):
+	Remove wrong duplicate provide statement.
 
 2008-12-22  Michael Albinus  <michael.albinus@gmx.de>
 

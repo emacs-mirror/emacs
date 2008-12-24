@@ -2536,10 +2536,11 @@ Runs the shell command defined by `tex-show-queue-command'."
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
-  (let (shell-dirtrack-verbose
-	(tex-out-file
-         (tex-append (file-name-nondirectory (buffer-file-name)) ""))
-	(file-dir (file-name-directory (buffer-file-name))))
+  (let* (shell-dirtrack-verbose
+         (source-file (tex-main-file))
+         (tex-out-file
+          (tex-append (file-name-nondirectory source-file) ""))
+         (file-dir (file-name-directory source-file)))
     (tex-send-command tex-shell-cd-command file-dir)
     (tex-send-command tex-bibtex-command tex-out-file))
   (tex-display-shell))
