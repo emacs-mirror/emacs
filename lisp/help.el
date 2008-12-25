@@ -221,7 +221,7 @@ i           Start the Info documentation reader: read on-line manuals.
 I METHOD    Describe a specific input method, or RET for current.
 k KEYS      Display the full documentation for the key sequence.
 K KEYS      Show the on-line manual's section for the command bound to KEYS.
-l           Show last 100 characters you typed (lossage).
+l           Show last 300 input keystrokes (lossage).
 L LANG-ENV  Describes a specific language environment, or RET for current.
 m           Display documentation of current minor modes and current major mode,
               including their special commands.
