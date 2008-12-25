@@ -2183,7 +2183,7 @@ advance_to_char_boundary (byte_pos)
 }
 
 #ifdef REL_ALLOC
-extern void r_alloc_reset_variable P_ ((PTR *, PTR *));
+extern void r_alloc_reset_variable P_ ((POINTER_TYPE *, POINTER_TYPE *));
 #endif /* REL_ALLOC */
 
 DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
@@ -2228,10 +2228,10 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   eassert (current_buffer->text == &current_buffer->own_text);
   eassert (other_buffer->text == &other_buffer->own_text);
 #ifdef REL_ALLOC
-  r_alloc_reset_variable ((PTR *) &current_buffer->own_text.beg,
-			  (PTR *) &other_buffer->own_text.beg);
-  r_alloc_reset_variable ((PTR *) &other_buffer->own_text.beg,
-			  (PTR *) &current_buffer->own_text.beg);
+  r_alloc_reset_variable ((POINTER_TYPE **) &current_buffer->own_text.beg,
+			  (POINTER_TYPE **) &other_buffer->own_text.beg);
+  r_alloc_reset_variable ((POINTER_TYPE **) &other_buffer->own_text.beg,
+			  (POINTER_TYPE **) &current_buffer->own_text.beg);
 #endif /* REL_ALLOC */
 
   swapfield (pt, EMACS_INT);
