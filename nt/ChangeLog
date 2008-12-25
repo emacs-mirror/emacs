@@ -1,3 +1,7 @@
+2008-12-25  Jason Rumney  <jasonr@gnu.org>
+
+	* config.nt: (PTR): Remove.
+
 2008-12-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.nt (LISTPROC, PROCATTR): Remove.
