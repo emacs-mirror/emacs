@@ -419,10 +419,6 @@ extern char *getenv ();
 #define POINTER_TYPE void
 #endif
 
-#ifndef PTR
-#define PTR POINTER_TYPE *
-#endif
-
 #ifndef PROTOTYPES
 #define PROTOTYPES 1
 #endif
