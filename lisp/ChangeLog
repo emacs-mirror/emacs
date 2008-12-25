@@ -83,7 +83,7 @@
 2008-12-20  Jason Rumney  <jasonr@gnu.org>
 
 	* international/mule.el (auto-coding-regexp-alist):
-	Use utf-8-with-signature for files starting with UTF-8 BOM.
+	Use utf-8-with-signature for files starting with UTF-8 BOM. (Bug#269)
 
 2008-12-20  Ami Fischman  <ami@fischman.org>
 
