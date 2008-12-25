@@ -1,3 +1,7 @@
+2008-12-25  Jason Rumney  <jasonr@gnu.org>
+
+	* buffer.c (Fbuffer_swap_text): Use POINTER_TYPE.
+
 2008-12-24  Jason Rumney  <jasonr@gnu.org>
 
 	* ralloc.c (r_alloc_reset_variable): New function.
