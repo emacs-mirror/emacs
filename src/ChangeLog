@@ -3,7 +3,7 @@
 	* ralloc.c (r_alloc_reset_variable): New function.
 
 	* buffer.c (Fbuffer_swap_text) [REL_ALLOC]: Reset ralloc's internal
-	record of what points where.
+	record of what points where. (Bug#716)
 
 2008-12-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -42,7 +42,7 @@
 2008-12-20  Jason Rumney  <jasonr@gnu.org>
 
 	* frame.c (Fmake_terminal_frame): Raise an error when called from
-	a graphical frame on Windows.
+	a graphical frame on Windows. (Bug#1325)
 
 2008-12-20  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -55,10 +55,10 @@
 2008-12-20  Jason Rumney  <jasonr@gnu.org>
 
 	* fileio.c (Fexpand_file_name): Do not allow ../ to go beyond the
-	server name in UNC paths.
+	server name in UNC paths. (Bug#719)
 
 	* coding.c (decode_coding): Clear chars_at_source flag when using
-	charbuf.
+	charbuf. (Bug#1035)
 
 2008-12-19  Daniel Engeler  <engeler@gmail.com>
 
@@ -230,10 +230,10 @@
 2008-12-11  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (fill_in_logfont): Don't assume symbol script means
-	SYMBOL_CHARSET.
+	SYMBOL_CHARSET. (Bug#547)
 
 	* w32uniscribe.c (uniscribe_encode_char): Increase glyph buffer
-	size for surrogates.
+	size for surrogates. (Bug#1096)
 
 2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -524,7 +524,7 @@
 2008-11-26  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_open_internal): Don't include external
-	leading in font height.
+	leading in font height. (Bug#879)
 
 2008-11-26  Glenn Morris  <rgm@gnu.org>
 
@@ -568,7 +568,7 @@
 
 	* w32font.c (check_face_name): New function.
 	(add_font_entity_to_list): Use it to filter out common substituted
-	fonts.
+	fonts. (Bug#642)
 
 2008-11-22  Martin Rudalics  <rudalics@gmx.at>
 
