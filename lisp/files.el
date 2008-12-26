@@ -3275,14 +3275,20 @@ If the file is already registered, a cons from
 `dir-locals-directory-alist' is returned.
 Otherwise this returns nil."
   (setq file (expand-file-name file))
-  (let ((locals-file (locate-dominating-file file dir-locals-file))
-	(dir-elt nil))
+  (let* ((dir-locals-file-name
+	  (if (eq system-type 'ms-dos)
+	      (dosified-file-name dir-locals-file)
+	    dir-locals-file))
+	 (locals-file (locate-dominating-file file dir-locals-file-name))
+	 (dir-elt nil))
     ;; `locate-dominating-file' may have abbreviated the name.
     (when locals-file
-      (setq locals-file (expand-file-name dir-locals-file locals-file)))
+      (setq locals-file (expand-file-name dir-locals-file-name locals-file)))
     (dolist (elt dir-locals-directory-alist)
       (when (and (eq t (compare-strings file nil (length (car elt))
-					(car elt) nil nil))
+					(car elt) nil nil
+					(memq system-type
+					      '(windows-nt cygwin ms-dos))))
 		 (> (length (car elt)) (length (car dir-elt))))
 	(setq dir-elt elt)))
     (if (and locals-file dir-elt)
