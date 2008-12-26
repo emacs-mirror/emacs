@@ -186,6 +186,25 @@ shell requires it (see `w32-shell-dos-semantics')."
 		    (dos-8+3-filename dir))
 		  string))))))
 
+;; This is for the sake of standard file names elsewhere in Emacs that
+;; are defined as constant strings or via defconst, and whose
+;; conversion via `convert-standard-filename' does not give good
+;; enough results.
+(defun dosified-file-name (file-name)
+  "Return a variant of FILE-NAME that is valid on MS-DOS filesystems.
+
+This function is for those rare cases where `convert-standard-filename'
+does not do a job that is good enough, e.g. if you need to preserve the
+file-name extension.  It recognizes only certain specific file names
+that are used in Emacs Lisp sources; any other file name will be
+returned unaltered."
+  (cond
+   ;; See files.el:dir-locals-file.
+   ((string= file-name ".dir-locals.el")
+    "_dir-locals.el")
+   (t
+    file-name)))
+
 ;; See dos-vars.el for defcustom.
 (defvar msdos-shells)
 
