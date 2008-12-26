@@ -1,3 +1,10 @@
+2008-12-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* textprop.c (Qminibuffer_prompt): New variable.
+	(syms_of_textprop): Initialize it.
+	* callint.c (Fcall_interactively): For `c', `k', and `K' prompt
+	in minibuffer-prompt face.  (Bug#1662)
+
 2008-12-25  Jason Rumney  <jasonr@gnu.org>
 
 	* buffer.c (Fbuffer_swap_text): Use POINTER_TYPE.

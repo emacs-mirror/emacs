@@ -45,6 +45,7 @@ extern Lisp_Object Vthis_original_command, real_this_command;
 
 Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
+extern Lisp_Object Qface, Qminibuffer_prompt;
 
 /* Non-nil means treat the mark as active
    even if mark_active is 0.  */
@@ -541,6 +542,10 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  break;
 
         case 'c':		/* Character */
+	  /* Prompt in `minibuffer-prompt' face.  */
+	  Fput_text_property (make_number (0),
+			      make_number (SCHARS (callint_message)),
+			      Qface, Qminibuffer_prompt, callint_message);
 	  args[i] = Fread_char (callint_message, Qnil, Qnil);
 	  message1_nolog ((char *) 0);
 	  /* Passing args[i] directly stimulates compiler bug */
@@ -594,6 +599,10 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  {
 	    int speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
+	    /* Prompt in `minibuffer-prompt' face.  */
+	    Fput_text_property (make_number (0),
+				make_number (SCHARS (callint_message)),
+				Qface, Qminibuffer_prompt, callint_message);
 	    args[i] = Fread_key_sequence (callint_message,
 					  Qnil, Qnil, Qnil, Qnil);
 	    unbind_to (speccount1, Qnil);
@@ -622,6 +631,10 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  {
 	    int speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
+	    /* Prompt in `minibuffer-prompt' face.  */
+	    Fput_text_property (make_number (0),
+				make_number (SCHARS (callint_message)),
+				Qface, Qminibuffer_prompt, callint_message);
 	    args[i] = Fread_key_sequence (callint_message,
 					  Qnil, Qt, Qnil, Qnil);
 	    teml = args[i];
