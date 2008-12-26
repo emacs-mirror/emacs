@@ -558,7 +558,8 @@ Don't call this function; it is for internal use only."
 (defun keymap-canonicalize (map)
   "Return an equivalent keymap, without inheritance."
   (let ((bindings ())
-        (ranges ()))
+        (ranges ())
+	(prompt (keymap-prompt map)))
     (while (keymapp map)
       (setq map (map-keymap-internal
                  (lambda (key item)
@@ -567,8 +568,7 @@ Don't call this function; it is for internal use only."
                        (push (cons key item) ranges)
                      (push (cons key item) bindings)))
                  map)))
-    (setq map (funcall (if ranges 'make-keymap 'make-sparse-keymap)
-                       (keymap-prompt map)))
+    (setq map (funcall (if ranges 'make-keymap 'make-sparse-keymap) prompt))
     (dolist (binding ranges)
       ;; Treat char-ranges specially.
       (define-key map (vector (car binding)) (cdr binding)))
