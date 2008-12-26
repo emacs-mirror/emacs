@@ -1262,26 +1262,42 @@ variable.
 
 @node Directory Variables
 @subsection Per-Directory Local Variables
-@cindex local variables in directories
+@cindex local variables, for all files in a directory
 @cindex directory local variables
+@cindex per-directory local variables
 
-  Emacs provides a mechanism to specify local variable values per-directory.
-This can be done one of two ways.
-
-  The first approach is to put a special file, named
-@file{.dir-locals.el}, in a directory.  When opening a file, Emacs
-searches for @file{.dir-locals.el} starting in the file's directory
-and then moving up the directory hierarchy.  If
-@file{.dir-locals.el} is found, Emacs applies variable settings from
-the file to the new buffer.  If the file is remote, Emacs skips this
-search, because it would be too slow.
-
-  The file should hold a specially-constructed list.  This list maps
-Emacs mode names (symbols) to alists; each alist maps variable names
-to values.  The special mode name @samp{nil} means that the alist
-should be applied to all buffers.  Finally, a string key can be used
-to specify an alist which applies to a relative subdirectory in the
+  A software @dfn{project} is a collection of files on which you work
+together as part of the project.  Usually, the project's files are
+kept in one or more directories.  Occasionally, you may wish to define
+Emacs settings that are common to all the files that belong to the
 project.
+
+  Emacs provides two ways to specify settings that are applicable to
+files in a specific directory: you can put a special file in that
+directory, or you can define a @dfn{project class} for that directory.
+
+@cindex @file{.dir-locals.el} file
+  If you put a file with a special name @file{.dir-locals.el}@footnote{
+On MS-DOS, the name of this file should be @file{_dir-locals.el}, due
+to limitations of the DOS filesystems.  If the filesystem is limited
+to 8+3 file names, the name of the file will be truncated by the OS to
+@file{_dir-loc.el}.
+} in a directory, Emacs will read it when it visits any file in that
+directory or any of its subdirectories, and apply the settings it
+specifies to the file's buffer.  Emacs searches for
+@file{.dir-locals.el} starting in the directory of the visited file,
+and moving up the directory tree.  (To avoid slowdown, this search is
+skipped for remote files.)
+
+  The @file{.dir-locals.el} file should hold a specially-constructed
+list.  This list maps Emacs mode names (symbols) to alists; each alist
+specifies values for variables to use when the respective mode is
+turned on.  The special mode name @samp{nil} means that its alist
+applies to any mode.  Instead of a mode name, you can specify a string
+that is a name of a subdirectory of the project's directory; then the
+corresponding alist applies to all the files in that subdirectory.
+
+  Here's an example of a @file{.dir-locals.el} file:
 
 @example
 ((nil . ((indent-tabs-mode . t)
@@ -1293,21 +1309,26 @@ project.
   . ((nil . ((change-log-default-name . "ChangeLog.local"))))))
 @end example
 
-  This example shows some settings for a hypothetical project.  This
-sets @samp{indent-tabs-mode} to @samp{t} for any file in the source
-tree, and it sets the indentation style for any C or Java source file
-to @samp{BSD}.  Finally, it specifies a different @file{ChangeLog}
-file name for any file in the project that appears beneath the
-directory @file{src/imported}.
+@noindent
+This example shows some settings for a hypothetical project.  It sets
+@samp{indent-tabs-mode}, @code{tab-width}, and @code{fill-column} for
+any file in the project's directory tree, and it sets the indentation
+style for any C or Java source file.  Finally, it specifies a different
+@file{ChangeLog} file name for any file in the @file{src/imported}
+subdirectory of the directory where you put the @file{.dir-locals.el}
+file.
 
-  The second approach to directory-local variables is to explicitly
-define a project class using @code{dir-locals-set-class-variables}, and then
-to tell Emacs which directory roots correspond to that class, using
-@code{dir-locals-set-directory-class}.  You can put calls to these functions in
-your @file{.emacs}; this can be useful when you can't put
-@file{.dir-locals.el} in the directory for some reason.  For
-example, you could apply settings to an unwritable directory this
-way:
+@findex dir-locals-set-class-variables
+@findex dir-locals-set-directory-class
+  Another method of specifying directory-local variables is to explicitly
+define a project class using @code{dir-locals-set-class-variables}, and
+then tell Emacs which directories correspond to that class, using
+@code{dir-locals-set-directory-class}.  You can put calls to these functions
+in your @file{~/.emacs} init file; this can be useful when you can't put
+@file{.dir-locals.el} in the directory for some reason, or if you want
+to keep in a single place settings for several directories that don't
+have a common parent.  For example, you could apply settings to an
+unwritable directory this way:
 
 @example
 (dir-locals-set-class-variables 'unwritable-directory
