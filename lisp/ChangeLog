@@ -1,3 +1,7 @@
+2008-12-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (dosified-file-name): Declare.
+
 2008-12-26  Andreas Schwab  <schwab@suse.de>
 
 	* subr.el (keymap-canonicalize): Properly preserve keymap prompt.
