@@ -1,3 +1,9 @@
+2008-12-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* custom.texi (Directory Variables): Explain what is a "project".
+	Add indexing.  Improve wording.  Add a footnote about using
+	_dir-locals.el on MS-DOS.
+
 2008-12-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* files.texi (Misc File Ops): Mention chmod as an alias for
