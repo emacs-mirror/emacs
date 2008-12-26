@@ -1,3 +1,11 @@
+2008-12-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* dos-fns.el (dosified-file-name): New function.
+
+	* files.el (dir-locals-find-file): Run dir-locals-file through
+	dosified-file-name.  Compare files case-insensitively on systems
+	whose filesystems are case-insensitive.
+
 2008-12-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* help.el (help-for-help-internal): Fix entry for "l".
