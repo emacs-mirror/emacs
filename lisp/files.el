@@ -214,6 +214,7 @@ have fast storage with limited space, such as a RAM disk."
 (declare-function dired-do-flagged-delete "dired" (&optional nomessage))
 (declare-function dos-8+3-filename "dos-fns" (filename))
 (declare-function view-mode-disable "view" ())
+(declare-function dosified-file-name "dos-fns" (file-name))
 
 (defvar file-name-invalid-regexp
   (cond ((and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
