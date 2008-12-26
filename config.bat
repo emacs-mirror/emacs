@@ -269,6 +269,7 @@ cd ..
 rem   ----------------------------------------------------------------------
 :maindir
 Echo Configuring the main directory...
+If Exist .dir-locals.el update .dir-locals.el _dir-locals.el
 If "%DJGPP_VER%" == "1" goto mainv1
 Echo Looking for the GDB init file...
 If Exist src\.gdbinit update src/.gdbinit src/_gdbinit
