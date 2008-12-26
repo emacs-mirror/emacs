@@ -1,3 +1,15 @@
+2008-12-26  Andreas Schwab  <schwab@suse.de>
+
+	* tar-mode.el (tar-swap-data): New function.
+	(tar-change-major-mode-hook): Use it instead of buffer-swap-text.
+	(tar-mode-revert): Likewise.
+	(tar-mode): Likewise.  Don't set write-region-annotate-functions.
+	(tar-data-swapped-p): Test buffer-swapped-with.
+	(tar-write-region-annotate): Remove.
+	(tar-header-block-tokenize): Add argument `coding' and use it
+	instead of tar-file-name-coding-system.
+	(tar-summarize-buffer): Pass tar-file-name-coding-system here.
+
 2008-12-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* dos-fns.el (dosified-file-name): New function.
