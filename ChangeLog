@@ -1,3 +1,7 @@
+2008-12-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Produce _dir-locals.el from .dir-locals.el.
+
 2008-12-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* make-dist (tempdir): Distribute .dir-locals.el.
