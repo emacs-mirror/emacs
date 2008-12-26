@@ -1,3 +1,8 @@
+2008-12-26  Andreas Schwab  <schwab@suse.de>
+
+	* keymap.c (map_keymap_char_table_item): Make a copy of KEY if it is a
+	cons.
+
 2008-12-26  Martin Rudalics  <rudalics@gmx.at>
 
 	* textprop.c (Qminibuffer_prompt): New variable.

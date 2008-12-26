@@ -650,6 +650,10 @@ map_keymap_char_table_item (args, key, val)
     {
       map_keymap_function_t fun = XSAVE_VALUE (XCAR (args))->pointer;
       args = XCDR (args);
+      /* If the key is a range, make a copy since map_char_table modifies
+	 it in place.  */
+      if (CONSP (key))
+	key = Fcons (XCAR (key), XCDR (key));
       map_keymap_item (fun, XCDR (args), key, val,
 		       XSAVE_VALUE (XCAR (args))->pointer);
     }
