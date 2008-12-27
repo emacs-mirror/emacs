@@ -1,5 +1,7 @@
 2008-12-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* variables.texi (Directory Local Variables): New node.
+
 	* loading.texi (Autoload): Document `generate-autoload-cookie' and
 	`generated-autoload-file'.
 
