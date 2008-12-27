@@ -295,7 +295,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		  (t 'font-lock-variable-name-face))
       'mouse-face 'highlight)
      "  " (vc-git-permissions-as-string old-perm new-perm)
-     "     "
+     "    "
      (propertize (vc-git-escape-file-name (vc-dir-fileinfo->name info))
                  'face (if isdir 'font-lock-comment-delimiter-face 'font-lock-function-name-face)
 		 'help-echo

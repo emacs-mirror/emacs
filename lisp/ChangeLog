@@ -1,3 +1,7 @@
+2008-12-27  Andreas Schwab  <schwab@suse.de>
+
+	* vc-git.el (vc-git-dir-printer): Fix filename column.
+
 2008-12-27  Nicholas Maniscalco <nicholas@maniscalco.com>  (tiny change)
 
 	* term.el (term-emulate-terminal): Decode substring just prior to
