@@ -1189,6 +1189,14 @@ functions and variables (formerly used for Tamil script).
 ** New coding system alias `emacs-internal'.
 
 +++
+** The new variable `generate-autoload-cookie' controls the magic comment
+string used by `update-file-autoloads' to find autoloaded forms.  The
+variable `generated-autoload-file' similarly controls the name of the
+file where `update-file-autoloads' writes the calls to `autoload'.
+The default values are ";;;###autoload" and `loaddefs.el',
+respectively.
+
++++
 ** New primitives `list-system-processes' and `system-process-attributes'
 let Lisp programs access the processes that are running on the local
 machine.  See the doc strings of these functions for more details.
