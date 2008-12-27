@@ -1,6 +1,10 @@
 2008-12-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* elisp.texi (Top): Add a @detailmenu item for "Directory Local
+	Variables".
+
 	* variables.texi (Directory Local Variables): New node.
+	(Variables): Add a menu item for it.
 
 	* loading.texi (Autoload): Document `generate-autoload-cookie' and
 	`generated-autoload-file'.
