@@ -1266,11 +1266,10 @@ variable.
 @cindex directory local variables
 @cindex per-directory local variables
 
-  A software @dfn{project} is a collection of files on which you work
-together as part of the project.  Usually, the project's files are
-kept in one or more directories.  Occasionally, you may wish to define
-Emacs settings that are common to all the files that belong to the
-project.
+  A @dfn{project} is a collection of files on which you work together.
+Usually, the project's files are kept in one or more directories.
+Occasionally, you may wish to define Emacs settings that are common to
+all the files that belong to the project.
 
   Emacs provides two ways to specify settings that are applicable to
 files in a specific directory: you can put a special file in that
