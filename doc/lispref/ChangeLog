@@ -1,5 +1,12 @@
 2008-12-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* elisp.texi (Top): Add @detailmenu items for "Multiple Terminals"
+	and its subsections.
+
+	* frames.texi (Multiple Terminals, Low-level Terminal)
+	(Terminal Parameters, Frames on Other TTY devices): New sections.
+	(Frames): Add an xref to "Multiple Terminals".
+
 	* elisp.texi (Top): Add @detailmenu item for "Terminal Type".
 
 	* objects.texi (Terminal Type): New node.
