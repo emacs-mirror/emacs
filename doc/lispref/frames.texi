@@ -26,7 +26,7 @@ terminal, Emacs displays one and only one at any given time---on that
 terminal screen, of course.  You can create additional frames, either
 text-only or GUI, on other terminals from the same Emacs session.
 (This comes in handy when you connect to the same session from several
-remote locations.)  @c FIXME: Add an xref to multi-tty doc.
+remote locations.)  @xref{Multiple Terminals}.
 
 @cindex window frame
   When Emacs communicates directly with a supported window system, such
@@ -52,9 +52,9 @@ The frame is displayed on an MS-DOS terminal.
 @end defun
 
 @menu
-* Creating Frames::		Creating additional frames.
+* Creating Frames::             Creating additional frames.
 * Multiple Displays::           Creating frames on other displays.
-* Frame Parameters::		Controlling frame size, position, font, etc.
+* Frame Parameters::            Controlling frame size, position, font, etc.
 * Frame Titles::                Automatic updating of frame titles.
 * Deleting Frames::		Frames last until explicitly deleted.
 * Finding All Frames::		How to examine all existing frames.
@@ -77,6 +77,7 @@ The frame is displayed on an MS-DOS terminal.
 * Text Terminal Colors::        Defining colors for text-only terminals.
 * Resources::		        Getting resource values from the server.
 * Display Feature Testing::     Determining the features of a terminal.
+* Multiple Terminals::          Displaying on several different devices.
 @end menu
 
   @xref{Display}, for information about the related topic of
@@ -2240,6 +2241,109 @@ This variable's value is @code{t} if no X window manager is in use.
 The functions @code{x-pixel-width} and @code{x-pixel-height} return the
 width and height of an X Window frame, measured in pixels.
 @end ignore
+
+@node Multiple Terminals
+@section Multiple Terminals
+@cindex multiple terminals
+@cindex multi-tty
+
+  A @dfn{terminal} is a display device capable of displaying one or
+more Emacs frames.  On GNU and Unix systems, Emacs supports any number
+of different terminals in one session, and can mix GUI and text-only
+frames in the same session.
+
+  Emacs represents each terminal on which it displays frames as a
+special @dfn{terminal object} data type, see @ref{Terminal Type}.  The
+terminal object has a unique integer identifier and the following
+attributes:
+
+@itemize @bullet
+@item
+The name of the device used by the terminal (e.g., @file{/dev/tty}).
+
+@item
+The terminal and keyboard coding systems (@pxref{Terminal I/O
+Encoding}) used on the terminal.
+
+@item
+The type of frames (@pxref{Frames}) the terminal is displaying.
+
+@item
+A list of the terminal parameters (@pxref{Terminal Parameters}).
+@end itemize
+
+@c This is still under construction.
+
+@defun frame-terminal
+@end defun
+
+@defun get-device-terminal device
+@end defun
+
+@defun terminal-list
+@end defun
+
+@menu
+* Low-level Terminal::          Low-level manipulation of terminal objects.
+* Terminal Parameters::         Parameters common for all frames on terminal.
+* Frames on Other TTY devices:: Creating frames on other terminal devices.
+@end menu
+
+@node Low-level Terminal
+@subsection Low-level Access to Terminals
+
+  This subsection describes low-level primitives for accessing and
+manipulating Emacs terminal objects.  There's no primitive for
+creating terminal objects; Emacs creates them as needed when you call
+one of the primitives, such as @code{make-frame-on-tty} (@pxref{Frames
+on Other TTY devices}), that start displaying on a new terminal.
+
+@defun suspend-tty &optional tty
+@end defun
+
+@defun resume-tty &optional tty
+@end defun
+
+@defun terminal-live-p object
+@end defun
+
+@defun terminal-name &optional terminal
+@end defun
+
+@defun delete-terminal &optional terminal force
+@end defun
+
+@node Terminal Parameters
+@subsection Terminal Parameters
+@cindex terminal parameters
+
+  This subsection describes how to read and change the parameter
+values of a terminal.
+
+@defun terminal-parameters &optional terminal
+@end defun
+
+@defun terminal-parameter terminal parameter
+@end defun
+
+@defun set-terminal-parameter terminal parameter value
+@end defun
+
+@defun environment &optional frame
+@end defun
+
+@defvar initial-environment
+@end defvar
+
+@node Frames on Other TTY devices
+@subsection Frames on Other TTY devices
+
+  This subsection documents functions related to displaying Emacs
+frames on a terminal device other than the current one.
+
+@defun make-frame-on-tty tty type &optional parameters
+@end defun
+
 
 @ignore
    arch-tag: 94977df6-3dca-4730-b57b-c6329e9282ba
