@@ -1,3 +1,8 @@
+2008-12-27  Nicholas Maniscalco <nicholas@maniscalco.com>  (tiny change)
+
+	* term.el (term-emulate-terminal): Decode substring just prior to
+	inserting it, i.e. revert part of the 2008-09-24 change. (Bug#1469)
+
 2008-12-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (MH_E_DIR): New variable.

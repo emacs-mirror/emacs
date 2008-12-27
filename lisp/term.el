@@ -2834,7 +2834,7 @@ See `term-prompt-regexp'."
 			  ;; following point if not eob nor insert-mode.
 			  (let ((old-column (current-column))
 				columns pos)
-			    (insert decoded-substring)
+			    (insert (decode-coding-string (substring str i funny) locale-coding-system))
 			    (setq term-current-column (current-column)
 				  columns (- term-current-column old-column))
 			    (when (not (or (eobp) term-insert-mode))
