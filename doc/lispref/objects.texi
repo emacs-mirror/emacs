@@ -1347,7 +1347,8 @@ editing.
 * Buffer Type::         The basic object of editing.
 * Marker Type::         A position in a buffer.
 * Window Type::         Buffers are displayed in windows.
-* Frame Type::		Windows subdivide frames.
+* Frame Type::          Windows subdivide frames.
+* Terminal Type::       A terminal device displays frames.
 * Window Configuration Type::   Recording the way a frame is subdivided.
 * Frame Configuration Type::    Recording the status of all frames.
 * Process Type::        A subprocess of Emacs running on the underlying OS.
@@ -1491,6 +1492,25 @@ uniquely).
 @end example
 
   @xref{Frames}, for a description of the functions that work on frames.
+
+@node Terminal Type
+@subsection Terminal Type
+@cindex terminal type
+
+  A @dfn{terminal} is a device capable of displaying one or more
+Emacs frames (@pxref{Frame Type}).
+
+  Terminals have no read syntax.  They print in hash notation giving
+the terminal's ordinal number and its TTY device file name.
+
+@example
+@group
+(get-device-terminal nil)
+     @result{} #<terminal 1 on /dev/tty>
+@end group
+@end example
+
+@c FIXME: add an xref to where terminal-related primitives are described.
 
 @node Window Configuration Type
 @subsection Window Configuration Type
