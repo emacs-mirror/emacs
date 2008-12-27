@@ -1,3 +1,8 @@
+2008-12-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* loading.texi (Autoload): Document `generate-autoload-cookie' and
+	`generated-autoload-file'.
+
 2008-12-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* os.texi (Startup Summary): Add xref to documentation of
