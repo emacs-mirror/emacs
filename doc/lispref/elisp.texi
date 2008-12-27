@@ -275,7 +275,8 @@ Editing Types
 * Buffer Type::             The basic object of editing.
 * Marker Type::             A position in a buffer.
 * Window Type::             What makes buffers visible.
-* Frame Type::		    Windows subdivide frames.
+* Frame Type::              Windows subdivide frames.
+* Terminal Type::           A terminal device displays frames.
 * Window Configuration Type::  Recording the way a frame is subdivided.
 * Frame Configuration Type::   Recording the status of all frames.
 * Process Type::            A subprocess of Emacs running on the underlying OS.
