@@ -961,6 +961,7 @@ Frames
 * Text Terminal Colors::    Defining colors for text-only terminals.
 * Resources::		    Getting resource values from the server.
 * Display Feature Testing:: Determining the features of a terminal.
+* Multiple Terminals::          Displaying on several different devices.
 
 Frame Parameters
 
@@ -981,6 +982,12 @@ Window Frame Parameters
 * Management Parameters::   Communicating with the window manager.
 * Cursor Parameters::       Controlling the cursor appearance.
 * Color Parameters::        Colors of various parts of the frame.
+
+Multiple Terminals
+
+* Low-level Terminal::      Low-level manipulation of terminal objects.
+* Terminal Parameters::     Parameters common for all frames on terminal.
+* Frames on Other TTY devices:: Creating frames on other terminal devices.
 
 Positions
 
