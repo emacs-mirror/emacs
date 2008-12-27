@@ -1666,7 +1666,7 @@ session, and `make-frame-on-tty' works during a graphical session.
 
 *** A new `terminal' data type.
 The functions `get-device-terminal', `terminal-parameters',
-`terminal-parameter', `set-terminal-parameter' return this data type.
+`terminal-parameter', `set-terminal-parameter' use this data type.
 
 *** Function key sequences are now mapped using `local-function-key-map',
 a new variable.  This inherits from the global variable function-key-map,
