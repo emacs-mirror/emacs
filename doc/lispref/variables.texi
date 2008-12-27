@@ -39,9 +39,10 @@ variable.
 * Setting Variables::     Storing new values in variables.
 * Variable Scoping::      How Lisp chooses among local and global values.
 * Buffer-Local Variables::  Variable values in effect only in one buffer.
-* Future Local Variables::  New kinds of local values we might add some day.
 * File Local Variables::  Handling local variable lists in files.
+* Directory Local Variables:: Local variables common to all files in a directory.
 * Frame-Local Variables:: Frame-local bindings for variables.
+* Future Local Variables::  New kinds of local values we might add some day.
 * Variable Aliases::      Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
@@ -1521,25 +1522,6 @@ an ordinary evaluated argument.
 @end example
 @end defun
 
-@node Future Local Variables
-@section Possible Future Local Variables
-
-  We have considered the idea of bindings that are local to a category
-of frames---for example, all color frames, or all frames with dark
-backgrounds.  We have not implemented them because it is not clear that
-this feature is really useful.  You can get more or less the same
-results by adding a function to @code{after-make-frame-functions}, set up to
-define a particular frame parameter according to the appropriate
-conditions for each frame.
-
-  It would also be possible to implement window-local bindings.  We
-don't know of many situations where they would be useful, and it seems
-that indirect buffers (@pxref{Indirect Buffers}) with buffer-local
-bindings offer a way to handle these situations more robustly.
-
-  If sufficient application is found for either of these two kinds of
-local bindings, we will provide it in a subsequent Emacs version.
-
 @node File Local Variables
 @section File Local Variables
 @cindex file local variables
@@ -1700,6 +1682,84 @@ such predicates (it's safe if any predicate succeeds), or @code{t}
 could include functions to call.  So Emacs discards all text
 properties from string values specified for file local variables.
 
+@node Directory Local Variables
+@section Directory Local Variables
+@cindex directory local variables
+
+  A directory can specify local variable values common to all files in
+that directory; Emacs uses these to create buffer-local bindings for
+those variables in buffers visiting any file in that directory.  This
+is useful when the files in the directory belong to some @dfn{project}
+and therefore share the same local variables.
+
+  There are two different methods for specifying directory local
+variables: by putting them in a special file, or by defining a
+@dfn{project class} for that directory.
+
+@defvr Constant dir-locals-file
+This constant is the name of the file where Emacs expects to find the
+directory-local variables.  The name of the file is
+@file{.dir-locals.el}@footnote{
+The MS-DOS version of Emacs uses @file{_dir-locals.el} instead, due to
+limitations of the DOS filesystems.
+}.  A file by that name in a directory causes Emacs to apply its
+settings to any file in that directory or any of its subdirectories.
+If some of the subdirectories have their own @file{.dir-locals.el}
+files, Emacs uses the settings from the deepest file it finds starting
+from the file's directory and moving up the directory tree.  The file
+specifies local variables as a specially formatted list; see
+@ref{Directory Variables, , Per-directory Local Variables, emacs, The
+GNU Emacs Manual}, for more details.
+@end defvr
+
+@defun hack-dir-local-variables
+This function reads the @code{.dir-locals.el} file and stores the
+directory-local variables in @code{file-local-variables-alist} that is
+local to the buffer visiting any file in the directory, without
+applying them.  It also stores the directory-local settings in
+@code{dir-locals-class-alist}, where it defines a special class for
+the directory in which @file{.dir-locals.el} file was found.  This
+function works by calling @code{dir-locals-set-class-variables} and
+@code{dir-locals-set-directory-class}, described below.
+@end defun
+
+@defun dir-locals-set-class-variables class variables
+This function defines a set of variable settings for the named
+@var{class}, which is a symbol.  You can later assign the class to one
+or more directories, and Emacs will apply those variable settings to
+all files in those directories.  The list in @var{variables} can be of
+one of the two forms: @code{(@var{major-mode} . @var{alist})} or
+@code{(@var{directory} . @var{list})}.  With the first form, if the
+file's buffer turns on a mode that is derived from @var{major-mode},
+then the all the variables in the associated @var{alist} are applied;
+@var{alist} should be of the form @code{(@var{name} . @var{value})}.
+A special value @code{nil} for @var{major-mode} means the settings are
+applicable to any mode.
+
+With the second form of @var{variables}, if @var{directory} is the
+initial substring of the file's directory, then @var{list} is applied
+recursively by following the above rules; @var{list} should be of one
+of the two forms accepted by this function in @var{variables}.
+@end defun
+
+@defun dir-locals-set-directory-class directory class
+This function assigns @var{class} to all the files in @code{directory}
+and its subdirectories.  Thereafter, all the variable settings
+specified for @var{class} will be applied to any visited file in
+@var{directory} and its children.  @var{class} must have been already
+defined by @code{dir-locals-set-class-variables}
+@end defun
+
+@defvar dir-locals-class-alist
+This alist holds the class symbols and the associated variable
+settings.  It is updated by @code{dir-locals-set-class-variables}.
+@end defvar
+
+@defvar dir-locals-directory-alist
+This alist holds directory names and their assigned class names.  It
+is updated by @code{dir-locals-set-directory-class}.
+@end defvar
+
 @node Frame-Local Variables
 @section Frame-Local Values for Variables
 @cindex frame-local variables
@@ -1728,6 +1788,25 @@ bindings is deprecated since Emacs 22.2.
 
   To check the frame-specific values of such variables, use
 @code{frame-parameter} (@pxref{Parameter Access, frame-parameter}).
+
+@node Future Local Variables
+@section Possible Future Local Variables
+
+  We have considered the idea of bindings that are local to a category
+of frames---for example, all color frames, or all frames with dark
+backgrounds.  We have not implemented them because it is not clear that
+this feature is really useful.  You can get more or less the same
+results by adding a function to @code{after-make-frame-functions}, set up to
+define a particular frame parameter according to the appropriate
+conditions for each frame.
+
+  It would also be possible to implement window-local bindings.  We
+don't know of many situations where they would be useful, and it seems
+that indirect buffers (@pxref{Indirect Buffers}) with buffer-local
+bindings offer a way to handle these situations more robustly.
+
+  If sufficient application is found for either of these two kinds of
+local bindings, we will provide it in a subsequent Emacs version.
 
 @node Variable Aliases
 @section Variable Aliases
