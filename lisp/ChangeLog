@@ -1,5 +1,18 @@
 2008-12-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in (MH_E_DIR): New variable.
+	($(MH_E_DIR)/mh-alias.elc $(MH_E_DIR)/mh-comp.elc)
+	($(MH_E_DIR)/mh-folder.elc $(MH_E_DIR)/mh-funcs.elc)
+	($(MH_E_DIR)/mh-identity.elc $(MH_E_DIR)/mh-inc.elc)
+	($(MH_E_DIR)/mh-junk.elc $(MH_E_DIR)/mh-letter.elc)
+	($(MH_E_DIR)/mh-limit.elc $(MH_E_DIR)/mh-mime.elc)
+	($(MH_E_DIR)/mh-print.elc $(MH_E_DIR)/mh-scan.elc)
+	($(MH_E_DIR)/mh-search.elc $(MH_E_DIR)/mh-seq.elc)
+	($(MH_E_DIR)/mh-show.elc $(MH_E_DIR)/mh-speed.elc)
+	($(MH_E_DIR)/mh-thread.elc $(MH_E_DIR)/mh-tool-bar.elc)
+	($(MH_E_DIR)/mh-utils.elc $(MH_E_DIR)/mh-xface.elc)
+	($(MH_E_DIR)/mh-e.elc $(MH_E_DIR)/mh-limit.elc): New dependencies.
+
 	* Makefile.in ($(MH_E_DIR)/mh-alias.elc $(MH_E_DIR)/mh-comp.elc)
 	($(MH_E_DIR)/mh-folder.elc $(MH_E_DIR)/mh-funcs.elc)
 	($(MH_E_DIR)/mh-identity.elc $(MH_E_DIR)/mh-inc.elc)
