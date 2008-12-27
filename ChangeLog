@@ -1,3 +1,9 @@
+2008-12-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* .dir-locals.el: Remove non-working entry for pmail.
+	(fill-column): Fix typo.
+	(change-log-mode): Add fill column.
+
 2008-12-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Produce _dir-locals.el from .dir-locals.el.
