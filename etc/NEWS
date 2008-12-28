@@ -562,6 +562,9 @@ automatically when they are displayed.  It is globally on by default.
 It uses `auto-composition-function' (default `auto-compose-chars').
 
 ** Bubbles, a new game, is similar to SameGame.
+---
+** butterfly flips the desired bit on the drive platter.
+See http://xkcd.com/378/
 
 ** bug-reference.el provides clickable links to bug reports.
 
