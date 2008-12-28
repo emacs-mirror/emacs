@@ -836,7 +836,10 @@ NO-GROUP non-nil means don't put shy groups around the result."
 (defmacro rx (&rest regexps)
   "Translate regular expressions REGEXPS in sexp form to a regexp string.
 REGEXPS is a non-empty sequence of forms of the sort listed below.
-See also `rx-to-string' for how to do such a translation at run-time.
+
+Note that `rx' is a Lisp macro; when used in a Lisp program being
+ compiled, the translation is performed by the compiler.
+See `rx-to-string' for how to do such a translation at run-time.
 
 The following are valid subforms of regular expressions in sexp
 notation.
