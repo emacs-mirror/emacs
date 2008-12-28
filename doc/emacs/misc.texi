@@ -2551,7 +2551,7 @@ fashion.
 
 @menu
 * Browse-URL::                  Following URLs.
-* Goto-address::                Activating URLs.
+* Goto Address mode::           Activating URLs.
 * FFAP::                        Finding files etc. at point.
 @end menu
 
@@ -2592,31 +2592,31 @@ Packages with facilities for following URLs should always go through
 Browse-URL, so that the customization options for Browse-URL will
 affect all browsing in Emacs.
 
-@node Goto-address
+@node Goto Address mode
 @subsection Activating URLs
-@findex goto-address
-@cindex Goto-address
+@findex goto-address-mode
+@cindex Goto Address mode
 @cindex URLs, activating
 
 @table @kbd
-@item M-x goto-address
+@item M-x goto-address-mode
 Activate URLs and e-mail addresses in the current buffer.
 @end table
 
   You can make URLs in the current buffer active with @kbd{M-x
-goto-address}.  This finds all the URLs in the buffer, and establishes
-bindings for @kbd{Mouse-2} and @kbd{C-c @key{RET}} on them.  After
-activation, if you click on a URL with @kbd{Mouse-2}, or move to a URL
-and type @kbd{C-c @key{RET}}, that will display the web page that the URL
-specifies.  For a @samp{mailto} URL, it sends mail instead, using your
-selected mail-composition method (@pxref{Mail Methods}).
+goto-address-mode}.  This minor mode finds all the URLs in the buffer,
+highlights them, and turns them into @dfn{buttons}: if you click on a
+URL with @kbd{Mouse-1} or @kbd{Mouse-2} (@pxref{Mouse References}), or
+move to the URL and type @kbd{C-c @key{RET}}, that displays the web
+page that the URL specifies.  For a @samp{mailto} URL, it sends mail
+instead, using your selected mail-composition method (@pxref{Mail
+Methods}).
 
-  It can be useful to add @code{goto-address} to mode hooks and the
-hooks used to display an incoming message.
-@code{rmail-show-message-hook} is the appropriate hook for Rmail, and
-@code{mh-show-mode-hook} for MH-E.  This is not needed for Gnus,
-which has a similar feature of its own.
-
+  It can be useful to add @code{goto-address-mode} to mode hooks and
+the hooks used to display an incoming message (e.g.,
+@code{rmail-show-message-hook} for Rmail, and @code{mh-show-mode-hook}
+for MH-E).  This is not needed for Gnus, which has a similar feature
+of its own.
 
 @node FFAP
 @subsection Finding Files and URLs at Point
