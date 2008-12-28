@@ -66,14 +66,19 @@ at a failing search, the search goes
 to the next buffer in the series and continues searching for the
 next occurrence.
 
+This function should return the next buffer (it doesn't need to switch
+to it), or nil if it can't find the next buffer (when it reaches the
+end of the search space).
+
 The first argument of this function is the current buffer where the
 search is currently searching.  It defines the base buffer relative to
 which this function should find the next buffer.  When the isearch
 direction is backward (when `isearch-forward' is nil), this function
-should return the previous buffer to search.  If the second argument of
-this function WRAP is non-nil, then it should return the first buffer
-in the series; and for the backward search, it should return the last
-buffer in the series.")
+should return the previous buffer to search.
+
+If the second argument of this function WRAP is non-nil, then it
+should return the first buffer in the series; and for the backward
+search, it should return the last buffer in the series.")
 
 ;;;###autoload
 (defvar multi-isearch-next-buffer-current-function nil
@@ -153,7 +158,7 @@ Intended to be added to `isearch-mode-hook'."
 		   (while (not found)
 		     ;; Find the next buffer to search
 		     (setq buffer (funcall multi-isearch-next-buffer-current-function
-					   buffer))
+					   buffer nil))
 		     (with-current-buffer buffer
 		       (goto-char (if isearch-forward (point-min) (point-max)))
 		       (setq isearch-barrier (point) isearch-opoint (point))
@@ -167,6 +172,7 @@ Intended to be added to `isearch-mode-hook'."
 		   ;; Return point of the new search result
 		   found)
 	       ;; Return nil when multi-isearch-next-buffer-current-function fails
+	       ;; (`with-current-buffer' raises an error for nil returned from it).
 	       (error nil))
 	   (signal 'search-failed (list string "Repeat for next buffer"))))))))
 
