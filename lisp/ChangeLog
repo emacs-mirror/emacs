@@ -1,3 +1,22 @@
+2008-12-28  Juri Linkov  <juri@jurta.org>
+
+	* misearch.el (multi-isearch-next-buffer-function): Doc fix.
+	(multi-isearch-search-fun): Set the second arg WRAP to nil explicitly.
+
+	* textmodes/reftex-global.el (reftex-isearch-switch-to-next-file):
+	Use `find-file-noselect' instead of `find-file' (for Emacs 22 and 23).
+	(reftex-isearch-minor-mode): If `multi-isearch-next-buffer-function'
+	is bound set it to `reftex-isearch-switch-to-next-file'.  Otherwise,
+	set 4 obsolete variables for backward-compatibility with Emacs 22.
+
+2008-12-28  Juri Linkov  <juri@jurta.org>
+
+	* misc.el (butterfly): Doc fix.  Add `animate-string' and `browse-url'.
+
+2008-12-28  Raffael Mancini  <raffael.mancini@hcl-club.lu>  (tiny change)
+
+	* misc.el (butterfly): New command.
+
 2008-12-28  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-grammar-alist): Allow predicate nil.  New
