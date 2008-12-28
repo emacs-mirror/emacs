@@ -1,3 +1,8 @@
+2008-12-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (move-file-to-trash): Bind backup-directory-alist to nil
+	before uniquifying backup trash file name.
+
 2008-12-27  Andreas Schwab  <schwab@suse.de>
 
 	* vc-git.el (vc-git-dir-printer): Fix filename column.
