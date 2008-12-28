@@ -886,7 +886,7 @@ Printing Hard Copies
 Hyperlinking and Navigation Features
 
 * Browse-URL::          Following URLs.
-* Goto-address::        Activating URLs.
+* Goto Address mode::   Activating URLs.
 * FFAP::                Finding files etc. at point.
 
 Customization
