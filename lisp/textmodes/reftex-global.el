@@ -343,6 +343,14 @@ Also checks if buffers visiting the files are in read-only mode."
                               (buffer-name buf)))
             (error "Abort"))))))
 
+;;; Multi-file RefTeX Isearch
+
+;;; `reftex-isearch-wrap-function', `reftex-isearch-push-state-function',
+;;; `reftex-isearch-pop-state-function', `reftex-isearch-isearch-search'
+;;; functions remain here only for backward-compatibility with Emacs 22
+;;; and are obsolete since Emacs 23 that supports a single function
+;;; variable `multi-isearch-next-buffer-function'.
+
 (defun reftex-isearch-wrap-function ()
   (if (not isearch-word)
       (switch-to-buffer 
@@ -416,7 +424,7 @@ Also checks if buffers visiting the files are in read-only mode."
 	  (setq flist (cdr flist)))
 	(setq flist (cdr flist)))
       (when flist
-	(find-file (car flist))))))
+	(find-file-noselect (car flist))))))
 
 ;;;###autoload
 (defun reftex-isearch-minor-mode (&optional arg)
@@ -438,23 +446,28 @@ With no argument, this command toggles
 	    (dolist (crt-buf (buffer-list))
 	      (with-current-buffer crt-buf
 		(when reftex-mode
-		  (set (make-local-variable 'isearch-wrap-function)
-		       'reftex-isearch-wrap-function)
-		  (set (make-local-variable 'isearch-search-fun-function)
-		       (lambda () 'reftex-isearch-isearch-search))
-		  (set (make-local-variable 'isearch-push-state-function)
-		       'reftex-isearch-push-state-function)
-		  (set (make-local-variable 'isearch-next-buffer-function)
-		       'reftex-isearch-switch-to-next-file)
+		  (if (boundp 'multi-isearch-next-buffer-function)
+		      (set (make-local-variable 'multi-isearch-next-buffer-function)
+			   'reftex-isearch-switch-to-next-file)
+		    (set (make-local-variable 'isearch-wrap-function)
+			 'reftex-isearch-wrap-function)
+		    (set (make-local-variable 'isearch-search-fun-function)
+			 (lambda () 'reftex-isearch-isearch-search))
+		    (set (make-local-variable 'isearch-push-state-function)
+			 'reftex-isearch-push-state-function)
+		    (set (make-local-variable 'isearch-next-buffer-function)
+			 'reftex-isearch-switch-to-next-file))
 		  (setq reftex-isearch-minor-mode t))))
 	    (add-hook 'reftex-mode-hook 'reftex-isearch-minor-mode))
 	(dolist (crt-buf (buffer-list))
 	  (with-current-buffer crt-buf
 	    (when reftex-mode
-	      (kill-local-variable 'isearch-wrap-function)
-	      (kill-local-variable 'isearch-search-fun-function)
-	      (kill-local-variable 'isearch-push-state-function)
-	      (kill-local-variable 'isearch-next-buffer-function)
+	      (if (boundp 'multi-isearch-next-buffer-function)
+		  (kill-local-variable 'multi-isearch-next-buffer-function)
+		(kill-local-variable 'isearch-wrap-function)
+		(kill-local-variable 'isearch-search-fun-function)
+		(kill-local-variable 'isearch-push-state-function)
+		(kill-local-variable 'isearch-next-buffer-function))
 	      (setq reftex-isearch-minor-mode nil))))
 	(remove-hook 'reftex-mode-hook 'reftex-isearch-minor-mode)))
     ;; Force modeline redisplay.
