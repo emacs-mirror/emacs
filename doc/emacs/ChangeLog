@@ -1,3 +1,10 @@
+2008-12-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Goto Address mode): Rename from Goto-address.  Refer to
+	goto-address-mode instead of goto-address.
+
+	* emacs.texi (Top): Update node listing.
+
 2008-12-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* custom.texi (Directory Variables): Explain what is a "project".
