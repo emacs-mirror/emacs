@@ -1064,11 +1064,11 @@ highlighting entirely in Rmail, set @code{rmail-highlighted-headers}
 to @code{nil}.
 
   You can highlight and activate URLs in incoming messages by adding
-the function @code{goto-address} to the hook
+the function @code{goto-address-mode} to the hook
 @code{rmail-show-message-hook}.  Then you can browse these URLs by
 clicking on them with @kbd{Mouse-2} (or @kbd{Mouse-1} quickly) or by
-moving to one and typing @kbd{C-c @key{RET}}.  @xref{Goto-address,
-Activating URLs, Activating URLs}.
+moving to one and typing @kbd{C-c @key{RET}}.  @xref{Goto Address
+mode, Activating URLs, Activating URLs}.
 
 @node Rmail Coding
 @section Rmail and Coding Systems
