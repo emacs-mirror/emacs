@@ -106,6 +106,20 @@ With argument, do this that many times."
   (interactive "p")
   (forward-to-word (- arg)))
 
+;;;###autoload
+(defun butterfly ()
+  "This function is designed to be used only be the most
+proficient hackers on earth. If equipped with a butterfly key,
+it should be bound to C-x M-c M-butterfly (for further
+information please refer to http://xkcd.com/378/)."
+  (interactive)
+  (if (yes-or-no-p "Do you really want to unleash the powers of the butterfly? ")
+      (progn
+	(message "Amazing physics going on...")
+	(sit-for (* 5 (/ (abs (random)) (float most-positive-fixnum))))
+	(message "Successfully flipped one bit!"))
+    (message "Well, then go to www.xkcd.com!")))
+
 (provide 'misc)
 
 ;; arch-tag: 908f7884-c19e-4388-920c-9cfa425e449b
