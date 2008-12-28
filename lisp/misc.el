@@ -108,17 +108,27 @@ With argument, do this that many times."
 
 ;;;###autoload
 (defun butterfly ()
-  "This function is designed to be used only be the most
-proficient hackers on earth. If equipped with a butterfly key,
-it should be bound to C-x M-c M-butterfly (for further
-information please refer to http://xkcd.com/378/)."
+  "Use butterflies to flip the desired bit on the drive platter.
+Open hands and let the delicate wings flap once.  The disturbance
+ripples outward, changing the flow of the eddy currents in the
+upper atmosphere.  These cause momentary pockets of higher-pressure
+air to form, which act as lenses that deflect incoming cosmic rays,
+focusing them to strike the drive platter and flip the desired bit.
+You can type `M-x butterfly C-M-c' to run it.  This is a permuted
+variation of `C-x M-c M-butterfly' from url `http://xkcd.com/378/'."
   (interactive)
   (if (yes-or-no-p "Do you really want to unleash the powers of the butterfly? ")
       (progn
-	(message "Amazing physics going on...")
+	(switch-to-buffer (get-buffer-create "*butterfly*"))
+	(erase-buffer)
+	(sit-for 0)
+	(setq indent-tabs-mode nil)
+	(animate-string "Amazing physics going on..."
+			(/ (window-height) 2) (- (/ (window-width) 2) 12))
 	(sit-for (* 5 (/ (abs (random)) (float most-positive-fixnum))))
 	(message "Successfully flipped one bit!"))
-    (message "Well, then go to www.xkcd.com!")))
+    (message "Well, then go to xkcd.com!")
+    (browse-url "http://xkcd.com/378/")))
 
 (provide 'misc)
 
