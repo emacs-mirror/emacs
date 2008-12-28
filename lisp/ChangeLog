@@ -1,5 +1,7 @@
 2008-12-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* diff.el (diff): Doc fix.
+
 	* emacs-lisp/rx.el (rx): Doc fix.
 
 	* files.el (move-file-to-trash): Bind backup-directory-alist to nil
