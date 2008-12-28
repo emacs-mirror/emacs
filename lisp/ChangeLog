@@ -1,3 +1,27 @@
+2008-12-28  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-grammar-alist): Allow predicate nil.  New
+	attribute tree.
+	(proced-format-alist): Use attribute tree.
+	(proced-tree-flag, proced-tree-indent): New variables.
+	(proced-children-alist): Renamed from proced-process-tree.  PPID
+	must refer to a process in process-alist.  Ignore PPIDs that equal
+	PID.  Children alist inherits sorting order from process-alist.
+	(proced-process-tree): New variable.  New function.
+	(proced-process-tree-internal, proced-toggle-tree)
+	(proced-tree, proced-tree-insert, proced-format-tree): New
+	functions.
+	(proced-mark-process-alist): Add docstring.
+	(proced-filter-parents): PPID must refer to a process in
+	process-alist.  Ignore PPIDs that equal PID.
+	(proced-sort): Throw error if attribute is not sortable.
+	(proced-sort-interactive): Restrict completion to sortable
+	attributes.
+	(proced-format): Include tree in standard attributes if
+	proced-tree-flag is non-nil.  Make header clickable only if
+	corresponding predicate is non-nil.
+	(proced-update): Use proced-tree.
+
 2008-12-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* diff.el (diff): Doc fix.
