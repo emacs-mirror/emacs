@@ -5992,7 +5992,8 @@ Returns nil on success."
       (and (file-exists-p new-fn)
            ;; make new-fn unique.
            ;; example: "~/.Trash/abc.txt" -> "~/.Trash/abc.txt.~1~"
-           (let ((version-control t))
+           (let ((version-control t)
+		 (backup-directory-alist nil))
              (setq new-fn (car (find-backup-file-name new-fn)))))
       ;; stop processing if fn is same or parent directory of trash-dir.
       (and (string-match fn trash-dir)
