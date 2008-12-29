@@ -475,7 +475,7 @@ Set the fill column (@code{set-fill-column}).
 Fill each paragraph in the region (@code{fill-region}).
 @item M-x fill-region-as-paragraph
 Fill the region, considering it as one paragraph.
-@item M-s
+@item M-o M-s
 Center a line.
 @end table
 
@@ -509,10 +509,10 @@ the extra spaces, use @kbd{M-q} with no argument.  (Likewise for
 other styles of filling, is with the @code{justification} text
 property; see @ref{Format Justification}.
 
-@kindex M-s @r{(Text mode)}
+@kindex M-o M-s @r{(Text mode)}
 @cindex centering
 @findex center-line
-  The command @kbd{M-s} (@code{center-line}) centers the current line
+  The command @kbd{M-o M-s} (@code{center-line}) centers the current line
 within the current fill column.  With an argument @var{n}, it centers
 @var{n} lines individually and moves past them.  This binding is
 made by Text mode and is available only in that and related modes
