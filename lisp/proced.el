@@ -31,9 +31,6 @@
 ;; - interactive temporary customizability of flags in `proced-grammar-alist'
 ;; - allow "sudo kill PID", "renice PID"
 ;;
-;; Wishlist
-;; - tree view like pstree(1)
-;;
 ;; Thoughts and Ideas
 ;; - Currently, `system-process-attributes' returns the list of
 ;;   command-line arguments of a process as one concatenated string.
@@ -402,8 +399,8 @@ Important: the match ends just after the marker.")
   "Headers in Proced buffer as a string.")
 (make-variable-buffer-local 'proced-header-line)
 
-(defvar proced-children-alist nil
-  "Children alist of process listing (internal variable).")
+(defvar proced-temp-alist nil
+  "Temporary alist (internal variable).")
 
 (defvar proced-process-tree nil
   "Proced process tree (internal variable).")
@@ -903,11 +900,39 @@ Set variable `proced-filter' to SCHEME.  Revert listing."
     (setq proced-filter scheme)
     (proced-update t)))
 
+(defun proced-filter-parents (process-alist pid &optional omit-pid)
+  "For PROCESS-ALIST return list of parent processes of PID.
+This list includes PID unless OMIT-PID is non-nil."
+  (let ((parent-list (unless omit-pid (list (assq pid process-alist))))
+        (process (assq pid process-alist))
+        ppid)
+    (while (and (setq ppid (cdr (assq 'ppid (cdr process))))
+                ;; Ignore a PPID that equals PID.
+                (/= ppid pid)
+                ;; Accept only PPIDs that correspond to members in PROCESS-ALIST.
+                (setq process (assq ppid process-alist)))
+      (setq pid ppid)
+      (push process parent-list))
+    parent-list))
+
+(defun proced-filter-children (process-alist ppid &optional omit-ppid)
+  "For PROCESS-ALIST return list of child processes of PPID.
+This list includes PPID unless OMIT-PPID is non-nil."
+  (let ((proced-temp-alist (proced-children-alist process-alist))
+        new-alist)
+    (dolist (pid (proced-children-pids ppid))
+      (push (assq pid process-alist) new-alist))
+    (if omit-ppid
+        (assq-delete-all ppid new-alist)
+      new-alist)))
+
+;;; Process tree
+
 (defun proced-children-alist (process-alist)
   "Return children alist for PROCESS-ALIST.
 The children alist has elements (PPID PID1 PID2 ...).
 PPID is a parent PID.  PID1, PID2, ... are the child processes of PPID.
-The children alist inherits the sorting order from PROCESS-ALIST.
+The children alist inherits the sorting order of PROCESS-ALIST.
 The list of children does not include grandchildren."
   ;; The PPIDs inherit the sorting order of PROCESS-ALIST.
   (let ((process-tree (mapcar (lambda (a) (list (car a))) process-alist))
@@ -929,11 +954,22 @@ The list of children does not include grandchildren."
           (mapcar (lambda (a) (cons (car a) (nreverse (cdr a))))
                   process-tree))))
 
+(defun proced-children-pids (ppid)
+  "Return list of children PIDs of PPID (including PPID)."
+  (let ((cpids (cdr (assq ppid proced-temp-alist))))
+    (if cpids
+        (cons ppid (apply 'append (mapcar 'proced-children-pids cpids)))
+      (list ppid))))
+
 (defun proced-process-tree (process-alist)
-  "Return process tree for PROCESS-ALIST."
-  (let ((proced-children-alist (proced-children-alist process-alist))
+  "Return process tree for PROCESS-ALIST.
+It is an alist of alists where the car of each alist is a parent process
+and the cdr is a list of child processes according to the ppid attribute
+of these processes.
+The process tree inherits the sorting order of PROCESS-ALIST."
+  (let ((proced-temp-alist (proced-children-alist process-alist))
         pid-alist proced-process-tree)
-    (while (setq pid-alist (pop proced-children-alist))
+    (while (setq pid-alist (pop proced-temp-alist))
       (push (proced-process-tree-internal pid-alist) proced-process-tree))
     (nreverse proced-process-tree)))
 
@@ -941,12 +977,12 @@ The list of children does not include grandchildren."
   "Helper function for `proced-process-tree'."
   (let ((cpid-list (cdr pid-alist)) cpid-alist cpid)
     (while (setq cpid (car cpid-list))
-      (if (setq cpid-alist (assq cpid proced-children-alist))
+      (if (setq cpid-alist (assq cpid proced-temp-alist))
           ;; Unprocessed part of process tree that needs to be
           ;; analyzed recursively.
           (progn
-            (setq proced-children-alist
-                  (assq-delete-all cpid proced-children-alist))
+            (setq proced-temp-alist
+                  (assq-delete-all cpid proced-temp-alist))
             (setcar cpid-list (proced-process-tree-internal cpid-alist)))
         ;; We already processed this subtree and take it "as is".
         (setcar cpid-list (assq cpid proced-process-tree))
@@ -956,9 +992,18 @@ The list of children does not include grandchildren."
   pid-alist)
 
 (defun proced-toggle-tree (arg)
-  "Change whether this Proced buffer is displayed as process tree.
+  "Toggle the display of the process listing as process tree.
 With prefix ARG, display as process tree if ARG is positive, otherwise
-do not display as process tree.  Sets the variable `proced-tree-flag'."
+do not display as process tree.  Sets the variable `proced-tree-flag'.
+
+The process tree is generated from the selected processes in the
+Proced buffer (that is, the processes in `proced-process-alist').
+All processes that do not have a parent process in this list
+according to their ppid attribute become the root of a process tree.
+Each parent process is followed by its child processes.
+The process tree inherits the chosen sorting order of the process listing,
+that is, child processes of the same parent process are sorted using
+the selected sorting order."
   (interactive (list (or current-prefix-arg 'toggle)))
   (setq proced-tree-flag
         (cond ((eq arg 'toggle) (not proced-tree-flag))
@@ -969,26 +1014,35 @@ do not display as process tree.  Sets the variable `proced-tree-flag'."
            (if proced-tree-flag "enabled" "disabled")))
 
 (defun proced-tree (process-alist)
-  "Display Proced buffer as process tree if `proced-tree-flag' is non-nil.
-If `proced-tree-flag' is non-nil, convert PROCESS-ALIST into a linear
-process tree with a time attribute.  Otherwise, remove the tree attribute."
+  "Rearrange PROCESS-ALIST as process tree.
+If `proced-tree-flag' is non-nil, rearrange PROCESS-ALIST such that
+every processes is followed by its child processes.  Each process
+gets a tree attribute that specifies the depth of the process in the tree.
+A root process is a process with no parent within PROCESS-ALIST according
+to its value of the ppid attribute.  It has depth 0.
+
+If `proced-tree-flag' is nil, remove the tree attribute.
+Return the rearranged process list."
   (if proced-tree-flag
       ;; add tree attribute
       (let ((process-tree (proced-process-tree process-alist))
             (proced-tree-indent 0)
+            (proced-temp-alist process-alist)
             proced-process-tree pt)
         (while (setq pt (pop process-tree))
           (proced-tree-insert pt))
         (nreverse proced-process-tree))
-    (let (new-alist)
-      ;; remove tree attribute
-      (dolist (process process-alist)
-        (push (assq-delete-all 'tree process) new-alist))
-      (nreverse new-alist))))
+    ;; remove tree attribute
+    (let ((process-alist process-alist))
+      (while process-alist
+        (setcar process-alist
+                (assq-delete-all 'tree (car process-alist)))
+        (pop process-alist)))
+    process-alist))
 
 (defun proced-tree-insert (process-tree)
   "Helper function for `proced-tree'."
-  (let ((pprocess (assq (car process-tree) proced-process-alist)))
+  (let ((pprocess (assq (car process-tree) proced-temp-alist)))
     (push (append (list (car pprocess))
                   (list (cons 'tree proced-tree-indent))
                   (cdr pprocess))
@@ -996,39 +1050,6 @@ process tree with a time attribute.  Otherwise, remove the tree attribute."
     (if (cdr process-tree)
         (let ((proced-tree-indent (1+ proced-tree-indent)))
           (mapc 'proced-tree-insert (cdr process-tree))))))
-
-(defun proced-filter-children (process-alist ppid &optional omit-ppid)
-  "For PROCESS-ALIST return list of child processes of PPID.
-This list includes PPID unless OMIT-PPID is non-nil."
-  (let ((proced-children-alist (proced-children-alist process-alist))
-        new-alist)
-    (dolist (pid (proced-children-pids ppid))
-      (push (assq pid process-alist) new-alist))
-    (if omit-ppid
-        (assq-delete-all ppid new-alist)
-      new-alist)))
-
-(defun proced-children-pids (ppid)
-  "Return list of children PIDs of PPID (including PPID)."
-  (let ((cpids (cdr (assq ppid proced-children-alist))))
-    (if cpids
-        (cons ppid (apply 'append (mapcar 'proced-children-pids cpids)))
-      (list ppid))))
-
-(defun proced-filter-parents (process-alist pid &optional omit-pid)
-  "For PROCESS-ALIST return list of parent processes of PID.
-This list includes PID unless OMIT-PID is non-nil."
-  (let ((parent-list (unless omit-pid (list (assq pid process-alist))))
-        (process (assq pid process-alist))
-        ppid)
-    (while (and (setq ppid (cdr (assq 'ppid (cdr process))))
-                ;; Ignore a PPID that equals PID.
-                (/= ppid pid)
-                ;; Accept only PPIDs that correspond to members in PROCESS-ALIST.
-                (setq process (assq ppid process-alist)))
-      (setq pid ppid)
-      (push process parent-list))
-    parent-list))
 
 ;; Refining
 
