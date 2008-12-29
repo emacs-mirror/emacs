@@ -1524,13 +1524,6 @@ struct face
      drawing shadows.  */
   unsigned use_box_color_for_shadows_p : 1;
 
-  /* The Lisp face attributes this face realizes.  All attributes
-     in this vector are non-nil.  */
-  Lisp_Object lface[LFACE_VECTOR_SIZE];
-
-  /* The hash value of this face.  */
-  unsigned hash;
-
   /* Non-zero if text in this face should be underlined, overlined,
      strike-through or have a box drawn around it.  */
   unsigned underline_p : 1;
@@ -1579,6 +1572,13 @@ struct face
   /* If non-zero, use geometric rotation (to simulate italic).  */
   unsigned synth_ital : 1;
 #endif
+
+  /* The Lisp face attributes this face realizes.  All attributes
+     in this vector are non-nil.  */
+  Lisp_Object lface[LFACE_VECTOR_SIZE];
+
+  /* The hash value of this face.  */
+  unsigned hash;
 
   /* Next and previous face in hash collision list of face cache.  */
   struct face *next, *prev;

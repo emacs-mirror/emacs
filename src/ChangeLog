@@ -1,5 +1,8 @@
 2008-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* dispextern.h (struct face): Move lface and hash from the middle
+	of bitfields.
+
 	* Makefile.in (INTERVALS_H): Rename from INTERVAL_SRC, update all users.
 
 2008-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
