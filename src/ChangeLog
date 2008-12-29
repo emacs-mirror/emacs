@@ -1,5 +1,9 @@
 2008-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* Makefile.in (INTERVALS_H): Rename from INTERVAL_SRC, update all users.
+
+2008-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	* Makefile.in (INTERVAL_SRC): Also depend on dispextern.h.
 	(coding.o, dispnew.o, keymap.o, msdos.o): Depend on INTERVAL_SRC
 	instead of intervals.h.
