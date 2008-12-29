@@ -1,3 +1,7 @@
+2008-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* subr.el (mkdir): New defalias.
+
 2008-12-29  Juri Linkov  <juri@jurta.org>
 
 	* proced.el (proced-mode-map): Bind " " to next-line instead of the

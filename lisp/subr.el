@@ -1077,6 +1077,7 @@ to reread, so it now uses nil to mean `no event', instead of -1."
 (defalias 'int-to-string 'number-to-string)
 (defalias 'store-match-data 'set-match-data)
 (defalias 'chmod 'set-file-modes)
+(defalias 'mkdir 'make-directory)
 ;; These are the XEmacs names:
 (defalias 'point-at-eol 'line-end-position)
 (defalias 'point-at-bol 'line-beginning-position)

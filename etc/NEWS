@@ -551,6 +551,8 @@ top line, -1 for bottom line), or nil for no recentering.
 +++
 *** When typing in a password in the echo area, C-y yanks the current
 kill into the password.
+
+*** `mkdir' is a new convenience alias for `make-directory'.
 
 * New Modes and Packages in Emacs 23.1
 
