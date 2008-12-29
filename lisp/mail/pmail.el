@@ -65,10 +65,13 @@
   "The index for the `retried' attribute.")
 
 (defconst pmail-forwarded-attr-index 5
-  "The index for the `stored' attribute.")
+  "The index for the `forwarded' attribute.")
 
 (defconst pmail-unseen-attr-index 6
   "The index for the `unseen' attribute.")
+
+(defconst pmail-resent-attr-index 6
+  "The index for the `resent' attribute.")
 
 (defconst pmail-attr-array
   '[(?A "answered")
@@ -77,7 +80,8 @@
     (?F "filed")
     (?R "retried")
     (?S "forwarded")
-    (?U "unseen")]
+    (?U "unseen")
+    (?r "resent")]
   "An array that provides a mapping between an attribute index,
 its character representation and its display representation.")
 
@@ -986,8 +990,8 @@ The buffer is expected to be narrowed to just the header of the message."
   (define-key pmail-mode-map "n"      'pmail-next-undeleted-message)
   (define-key pmail-mode-map "\en"    'pmail-next-message)
   (define-key pmail-mode-map "\e\C-n" 'pmail-next-labeled-message)
-  (define-key pmail-mode-map "o"      'pmail-output-to-babyl-file)
-  (define-key pmail-mode-map "\C-o"   'pmail-output)
+  (define-key pmail-mode-map "o"      'pmail-output)
+  (define-key pmail-mode-map "\C-o"   'pmail-output-as-seen)
   (define-key pmail-mode-map "p"      'pmail-previous-undeleted-message)
   (define-key pmail-mode-map "\ep"    'pmail-previous-message)
   (define-key pmail-mode-map "\e\C-p" 'pmail-previous-labeled-message)
@@ -1000,6 +1004,7 @@ The buffer is expected to be narrowed to just the header of the message."
   (define-key pmail-mode-map "t"      'pmail-toggle-header)
   (define-key pmail-mode-map "u"      'pmail-undelete-previous-message)
   (define-key pmail-mode-map "w"      'pmail-output-body-to-file)
+  (define-key pmail-mode-map "C-w"    'pmail-widen)
   (define-key pmail-mode-map "x"      'pmail-expunge)
   (define-key pmail-mode-map "."      'pmail-beginning-of-message)
   (define-key pmail-mode-map "/"      'pmail-end-of-message)
@@ -1276,9 +1281,10 @@ Create the buffer if necessary."
 
 (defun pmail-change-major-mode-hook ()
   ;; Bring the actual Pmail messages back into the main buffer.
-  (when (pmail-buffers-swapped-p)
-    (setq buffer-swapped-with nil)
-    (buffer-swap-text pmail-view-buffer)))
+  (if buffer-swapped-with
+      (when (pmail-buffers-swapped-p)
+	(setq buffer-swapped-with nil)
+	(buffer-swap-text pmail-view-buffer))))
   ;; Throw away the summary.
   ;;(when (buffer-live-p pmail-view-buffer) (kill-buffer pmail-view-buffer)))
 
@@ -1930,7 +1936,7 @@ new messages.  Return the number of new messages."
     (save-restriction
       (let ((count 0)
 	    (start (point))
-	    (value "------U")
+	    (value "------U-")
 	    limit)
 	;; Detect an empty inbox file.
 	(unless (= start (point-max))
@@ -2145,13 +2151,22 @@ change; nil means current message."
 		  (if (search-forward (concat pmail-attribute-header ": ") limit t)
 		      ;; If this message already records attributes,
 		      ;; just change the value for this one.
-		      (progn (forward-char attr)
-			     (when (/= value (char-after))
-			       (delete-char 1)
-			       (insert value)))
+		      (let ((missing (- (+ (point) attr) (line-end-position))))
+			;; Position point at this  attribute,
+			;; adding attributes if necessary.
+			(if (> missing 0)
+			    (progn
+			      (end-of-line)
+			      (insert-char ?- missing)
+			      (backward-char 1))
+			  (forward-char attr))
+			;; Change this attribute.
+			(when (/= value (char-after))
+			  (delete-char 1)
+			  (insert value)))
 		    ;; Otherwise add a header line to record the attributes
-		    ;; and set all but this one to nil.
-		    (let ((header-value "-------"))
+		    ;; and set all but this one to no.
+		    (let ((header-value "--------"))
 		      (aset header-value attr value)
 		      (goto-char (if limit (- limit 1) (point-max)))
 		      (insert pmail-attribute-header ": " header-value "\n"))))))
@@ -2441,6 +2456,12 @@ If so restore the actual mbox message collection."
       (buffer-swap-text pmail-view-buffer)
       (setq buffer-swapped-with nil))))
 
+(defun pmail-widen ()
+  "Display the entire mailbox file."
+  (interactive)
+  (pmail-swap-buffers-maybe)
+  (widen))
+
 (defun pmail-show-message-maybe (&optional n no-summary)
   "Show message number N (prefix argument), counting from start of file.
 If summary buffer is currently displayed, update current message there also."
@@ -2521,6 +2542,8 @@ The current mail message becomes the message displayed."
       (setq character-coding (mail-fetch-field "content-transfer-encoding")
 	    is-text-message (pmail-is-text-p)
 	    coding-system (pmail-get-coding-system))
+      (if character-coding
+	  (setq character-coding (downcase character-coding)))
       (widen)
       (narrow-to-region beg end)
       ;; Decode the message body into an empty view buffer using a
