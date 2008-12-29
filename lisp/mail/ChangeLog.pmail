@@ -1,3 +1,37 @@
+2008-12-29  Richard M Stallman  <rms@gnu.org>
+
+	* pmailedit.el (pmail-edit-mode): Bind buffer-swwapped-with to nil.
+	(pmail-edit-current-message): Save all of buffer as old text.
+	Clear undo list.
+	(pmail-cease-edit): Widen first.
+	Operate in the view buffer; copy edited text back to mbox buffer
+	and re-encode what was decoded to display the message.
+	(pmail-abort-edit): Widen first.
+
+	* pmail.el (pmail-forwarded-attr-index): Doc fix.
+	(pmail-resent-attr-index): New variable.
+	(pmail-attr-array): Add r for resent.
+	(pmail-add-mbox-headers): Make 8 attributes.
+	(pmail-set-attribute): Extend attribute line if necessary.
+
+	* pmail.el (pmail-widen): New command.
+	(pmail-mode-map): o is pmail-output, C-o is pmail-output-as-seen,
+	(pmail-mode-map): c-w is pmail-widen.
+	(pmail-change-major-mode-hook): Do nothing unless buffer-swapped-with.
+	(pmail-show-message): Downcase character-coding.
+
+	* pmailout.el (pmail-output-decode-coding): New variable.
+	(pmail-delete-unwanted-fields): Greatly simplified.
+	(pmail-output-as-babyl): New function.
+	(pmail-convert-to-babyl-format): Considerably simplified:
+	assume just one message and don't worry about Content-Type.
+	(pmail-output-as-mbox): New function.
+	(pmail-output): Total rewrite.
+	(pmail-output-as-seen): New command.
+	(pmail-output-read-pmail-file-name): Function deleted.
+	(pmail-output-to-babyl-file): Function deleted.
+	(pmail-output-body-to-file): Don't set an attribute.
+
 2008-12-23  Richard M Stallman  <rms@gnu.org>
 
 	* pmailedit.el (pmail-edit-saved-coding-system): Var deleted.
