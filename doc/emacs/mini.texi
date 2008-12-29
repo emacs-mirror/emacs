@@ -503,7 +503,9 @@ searches older elements in the history, while @kbd{M-s}
 commands are unusual: they use the minibuffer to read the regular
 expression even though they are invoked from the minibuffer.  As with
 incremental searching, an upper-case letter in the regular expression
-makes the search case-sensitive (@pxref{Search Case}).
+makes the search case-sensitive (@pxref{Search Case}).  You can also
+search through the history using an incremental search (@pxref{Isearch
+Minibuffer}).
 
   All uses of the minibuffer record your input on a history list, but
 there are separate history lists for different kinds of arguments.
