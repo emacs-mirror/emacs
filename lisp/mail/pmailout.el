@@ -29,6 +29,13 @@
 (provide 'pmailout)
 
 ;;;###autoload
+(defcustom pmail-output-decode-coding nil
+  "*If non-nil, do coding system decoding when outputting message as Babyl."
+  :type '(choice (const :tag "on" t)
+		 (const :tag "off" nil))
+  :group 'pmail)
+
+;;;###autoload
 (defcustom pmail-output-file-alist nil
   "*Alist matching regexps to suggested output Pmail files.
 This is a list of elements of the form (REGEXP . NAME-EXP).
@@ -41,39 +48,6 @@ a file name as a string."
 			       (string :tag "File Name")
 			       sexp)))
   :group 'pmail-output)
-
-(defun pmail-output-read-pmail-file-name ()
-  "Read the file name to use for `pmail-output-to-babyl-file'.
-Set `pmail-default-pmail-file' to this name as well as returning it."
-  (let ((default-file
-	  (let (answer tail)
-	    (setq tail pmail-output-file-alist)
-	    ;; Suggest a file based on a pattern match.
-	    (while (and tail (not answer))
-	      (save-excursion
-		(set-buffer pmail-buffer)
-		(goto-char (point-min))
-		(if (re-search-forward (car (car tail)) nil t)
-		    (setq answer (eval (cdr (car tail)))))
-		(setq tail (cdr tail))))
-	    ;; If no suggestions, use same file as last time.
-	    (expand-file-name (or answer pmail-default-pmail-file)))))
-    (let ((read-file
-	   (expand-file-name
-	    (read-file-name
-	     (concat "Output message to Pmail file (default "
-		     (file-name-nondirectory default-file)
-		     "): ")
-	     (file-name-directory default-file)
-	     (abbreviate-file-name default-file))
-	    (file-name-directory default-file))))
-      ;; If the user enters just a directory,
-      ;; use the name within that directory chosen by the default.
-      (setq pmail-default-pmail-file
-	    (if (file-directory-p read-file)
-		(expand-file-name (file-name-nondirectory default-file)
-				  read-file)
-	      read-file)))))
 
 (defun pmail-output-read-file-name ()
   "Read the file name to use for `pmail-output'.
@@ -93,7 +67,7 @@ Set `pmail-default-file' to this name as well as returning it."
     (let ((read-file
 	   (expand-file-name
 	    (read-file-name
-	     (concat "Output message to Unix mail file (default "
+	     (concat "Output message to mail file (default "
 		     (file-name-nondirectory default-file)
 		     "): ")
 	     (file-name-directory default-file)
@@ -107,244 +81,137 @@ Set `pmail-default-file' to this name as well as returning it."
 	       (or read-file (file-name-nondirectory default-file))
 	       (file-name-directory default-file)))))))
 
-(declare-function pmail-update-summary "pmailsum" (&rest ignore))
-
-;;; There are functions elsewhere in Emacs that use this function;
-;;; look at them before you change the calling method.
 ;;;###autoload
-(defun pmail-output-to-babyl-file (file-name &optional count stay)
-  "Append the current message to a Babyl file named FILE-NAME.
-If the file does not exist, ask if it should be created.
-If file is being visited, the message is appended to the Emacs
-buffer visiting that file.
-If the file exists and is not a Babyl file, the message is
-appended in inbox format, the same way `pmail-output' does it.
+(defcustom pmail-fields-not-to-output nil
+  "*Regexp describing fields to exclude when outputting a message to a file."
+  :type '(choice (const :tag "None" nil)
+		 regexp)
+  :group 'pmail-output)
 
-The default file name comes from `pmail-default-pmail-file',
-which is updated to the name you use in this command.
+;; Delete from the buffer header fields we don't want output.
+;; Buffer should be pre-narrowed to the header.
+;; PRESERVE is a regexp for fields NEVER to delete.
+(defun pmail-delete-unwanted-fields (preserve)
+  (if pmail-fields-not-to-output
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward pmail-fields-not-to-output nil t)
+	  (beginning-of-line)
+	  (unless (looking-at preserve)
+	    (delete-region (point)
+			   (progn (forward-line 1) (point))))))))
+
+(defun pmail-output-as-babyl (file-name nomsg)
+  "Convert the current buffer's text to Babyl and output to FILE-NAME.
+It alters the current buffer's text, so it should be a temp buffer."
+  (let ((coding-system-for-write
+	 'emacs-mule-unix))
+    (save-restriction
+      (goto-char (point-min))
+      (search-forward "\n\n" nil 'move)
+      (narrow-to-region (point-min) (point))
+      (if pmail-fields-not-to-output
+	  (pmail-delete-unwanted-fields nil)))
 
-A prefix argument COUNT says to output that many consecutive messages,
-starting with the current one.  Deleted messages are skipped and don't count.
-
-If the optional argument STAY is non-nil, then leave the last filed
-message up instead of moving forward to the next non-deleted message."
-  (interactive
-   (list (pmail-output-read-pmail-file-name)
-	 (prefix-numeric-value current-prefix-arg)))
-  (or count (setq count 1))
-  (setq file-name
-	(expand-file-name file-name
-			  (file-name-directory pmail-default-pmail-file)))
-  (if (and (file-readable-p file-name) (not (mail-file-babyl-p file-name)))
-      (pmail-output file-name count)
-    (pmail-maybe-set-message-counters)
-    (setq file-name (abbreviate-file-name file-name))
-    (or (find-buffer-visiting file-name)
-	(file-exists-p file-name)
-	(if (yes-or-no-p
-	     (concat "\"" file-name "\" does not exist, create it? "))
-	    (let ((file-buffer (create-file-buffer file-name)))
-	      (save-excursion
-		(set-buffer file-buffer)
-		(let ((buffer-read-only nil))
-		  (insert "BABYL OPTIONS: -*- pmail -*-
-Version: 5
-Labels:
-Note:   This is the header of an pmail file.
-Note:   If you are seeing it in pmail,
-Note:    it means the file has no messages in it.\n\^_"))
-		(let ((require-final-newline nil)
-		      (coding-system-for-write
-		       (or pmail-file-coding-system
-			   'emacs-mule-unix)))
-		  (write-region (point-min) (point-max) file-name t 1)))
-	      (kill-buffer file-buffer))
-	  (error "Output file does not exist")))
-    (while (> count 0)
-      (let (redelete)
-	(unwind-protect
-	    (progn
-	      (set-buffer pmail-buffer)
-	      ;; Temporarily turn off Deleted attribute.
-	      ;; Do this outside the save-restriction, since it would
-	      ;; shift the place in the buffer where the visible text starts.
-	      (if (pmail-message-deleted-p pmail-current-message)
-		  (progn (setq redelete t)
-			 (pmail-set-attribute pmail-deleted-attr-index nil)))
-	      (let ((coding-system-for-write
-		     (or pmail-file-coding-system
-			 'emacs-mule-unix))
-		    cur beg end)
-		(pmail-swap-buffers-maybe)
-		(setq cur (current-buffer))
-		(save-restriction
-		  (save-excursion
-		    (widen)
-		    (setq beg (pmail-msgbeg pmail-current-message)
-			  end (pmail-msgend pmail-current-message))
-		    ;; Output to a file.
-		    (set-buffer (get-buffer-create " pmail-out-temp"))
-		    (insert-buffer-substring cur beg end)
-		    (if pmail-fields-not-to-output
-			(pmail-delete-unwanted-fields))
-		    ;; Convert to Babyl format.
-		    (pmail-convert-to-babyl-format)
-		    (append-to-file (point-min) (point-max) file-name)
-		    (set-buffer cur)
-		    (kill-buffer (get-buffer " pmail-out-temp")))))
-	      (pmail-set-attribute pmail-filed-attr-index t))
-	  (if redelete (pmail-set-attribute pmail-deleted-attr-index t))))
-      (setq count (1- count))
-      (if pmail-delete-after-output
-	  (unless (if (and (= count 0) stay)
-		      (pmail-delete-message)
-		    (pmail-delete-forward))
-	    (setq count 0))
-	(if (> count 0)
-	    (unless (if (not stay)
-			(pmail-next-undeleted-message 1))
-	      (setq count 0))))))
-  (pmail-show-message))
-
-(defalias 'pmail-output-to-pmail-file 'pmail-output-to-babyl-file)
+    ;; Convert to Babyl format.
+    (pmail-convert-to-babyl-format)
+    ;; Write it into the file.
+    (write-region (point-min) (point-max) file-name t nomsg)))
 
 (defun pmail-convert-to-babyl-format ()
-  (let ((count 0) start
+  (let ((count 0) (start (point-min))
 	(case-fold-search nil)
 	(buffer-undo-list t))
     (goto-char (point-min))
     (save-restriction
-      (while (not (eobp))
-	(setq start (point))
-	(unless (looking-at "^From ")
-	  (error "Invalid mbox message"))
-	(insert "\^L\n0, unseen,,\n*** EOOH ***\n")
-	(pmail-nuke-pinhead-header)
-	;; If this message has a Content-Length field,
-	;; skip to the end of the contents.
-	(let* ((header-end (save-excursion
-			     (and (re-search-forward "\n\n" nil t)
-				  (1- (point)))))
-	       (case-fold-search t)
-	       (quoted-printable-header-field-end
-		(save-excursion
-		  (re-search-forward
-		   "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
-		   header-end t)))
-	       (base64-header-field-end
-		(and
-		 ;; Don't decode non-text data.
-		 (save-excursion
-		   (re-search-forward
-		    "^content-type:\\(\n?[\t ]\\)\\(text\\|message\\)/"
-		    header-end t))
-		 (save-excursion
-		   (re-search-forward
-		    "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
-		    header-end t))))
-	       (size
-		;; Get the numeric value from the Content-Length field.
-		(save-excursion
-		  ;; Back up to end of prev line,
-		  ;; in case the Content-Length field comes first.
-		  (forward-char -1)
-		  (and (search-forward "\ncontent-length: "
-				       header-end t)
-		       (let ((beg (point))
-			     (eol (progn (end-of-line) (point))))
-				(string-to-number (buffer-substring beg eol)))))))
-	  (and size
-	       (if (and (natnump size)
-			(<= (+ header-end size) (point-max))
-			;; Make sure this would put us at a position
-			;; that we could continue from.
-			(save-excursion
-			  (goto-char (+ header-end size))
-			  (skip-chars-forward "\n")
-			  (or (eobp)
-			      (and (looking-at "BABYL OPTIONS:")
-				   (search-forward "\n\^_" nil t))
-			      (and (looking-at "\^L")
-				   (search-forward "\n\^_" nil t))
-			      (let ((case-fold-search t))
-				(looking-at pmail-mmdf-delim1))
-			      (looking-at "From "))))
-		   (goto-char (+ header-end size))
-		 (message "Ignoring invalid Content-Length field")
-		 (sit-for 1 0 t)))
-	  (if (let ((case-fold-search nil))
+      (unless (looking-at "^From ")
+	(error "Invalid mbox message"))
+      (insert "\^L\n0, unseen,,\n*** EOOH ***\n")
+      (pmail-nuke-pinhead-header)
+      ;; Decode base64 or quoted printable contents, Rmail style.
+      (let* ((header-end (save-excursion
+			   (and (re-search-forward "\n\n" nil t)
+				(1- (point)))))
+	     (case-fold-search t)
+	     (quoted-printable-header-field-end
+	      (save-excursion
 		(re-search-forward
-			(concat "^[\^_]?\\("
-				pmail-unix-mail-delimiter
-				"\\|"
-				pmail-mmdf-delim1 "\\|"
-				"^BABYL OPTIONS:\\|"
-				"\^L\n[01],\\)") nil t))
-	      (goto-char (match-beginning 1))
-	    (goto-char (point-max)))
-	  (setq count (1+ count))
-	  (if quoted-printable-header-field-end
-	      (save-excursion
-		(unless (mail-unquote-printable-region
-			 header-end (point) nil t t)
-		  (message "Malformed MIME quoted-printable message"))
-		;; Change "quoted-printable" to "8bit",
-		;; to reflect the decoding we just did.
-		(goto-char quoted-printable-header-field-end)
+		 "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
+		 header-end t)))
+	     (base64-header-field-end
+	      (and
+	       ;; Don't decode non-text data.
+	       (save-excursion
+		 (re-search-forward
+		  "^content-type:\\(\n?[\t ]\\)\\(text\\|message\\)/"
+		  header-end t))
+	       (save-excursion
+		 (re-search-forward
+		  "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
+		  header-end t)))))
+
+	(goto-char (point-max))
+	(if quoted-printable-header-field-end
+	    (save-excursion
+	      (unless (mail-unquote-printable-region
+		       header-end (point) nil t t)
+		(message "Malformed MIME quoted-printable message"))
+	      ;; Change "quoted-printable" to "8bit",
+	      ;; to reflect the decoding we just did.
+	      (goto-char quoted-printable-header-field-end)
+	      (delete-region (point) (search-backward ":"))
+	      (insert ": 8bit")))
+	(if base64-header-field-end
+	    (save-excursion
+	      (when (condition-case nil
+			(progn
+			  (base64-decode-region
+			   (1+ header-end)
+			   (save-excursion
+			     ;; Prevent base64-decode-region
+			     ;; from removing newline characters.
+			     (skip-chars-backward "\n\t ")
+			     (point)))
+			  t)
+		      (error nil))
+		;; Change "base64" to "8bit", to reflect the
+		;; decoding we just did.
+		(goto-char base64-header-field-end)
 		(delete-region (point) (search-backward ":"))
-		(insert ": 8bit")))
-	  (if base64-header-field-end
-	      (save-excursion
-		(when (condition-case nil
-			  (progn
-			    (base64-decode-region
-			     (1+ header-end)
-			     (save-excursion
-			       ;; Prevent base64-decode-region
-			       ;; from removing newline characters.
-			       (skip-chars-backward "\n\t ")
-			       (point)))
-			    t)
-			(error nil))
-		  ;; Change "base64" to "8bit", to reflect the
-		  ;; decoding we just did.
-		  (goto-char base64-header-field-end)
-		  (delete-region (point) (search-backward ":"))
-		  (insert ": 8bit")))))
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region start (point))
-	    (goto-char (point-min))
-	    (while (search-forward "\n\^_" nil t) ; single char
-	      (replace-match "\n^_"))))	; 2 chars: "^" and "_"
-	;; This is for malformed messages that don't end in newline.
-	;; There shouldn't be any, but some users say occasionally
-	;; there are some.
-	(or (bolp) (newline))
-	(insert ?\^_)
-	(setq last-coding-system-used nil)
-	(or pmail-enable-mime
-	    (not pmail-enable-multibyte)
-	    (let ((mime-charset
-		   (if (and pmail-decode-mime-charset
-			    (save-excursion
-			      (goto-char start)
-			      (search-forward "\n\n" nil t)
-			      (let ((case-fold-search t))
-				(re-search-backward
-				 pmail-mime-charset-pattern
-				 start t))))
-		       (intern (downcase (match-string 1))))))
-	      (pmail-decode-region start (point) mime-charset)))
-	(save-excursion
-	  (goto-char start)
-	  (forward-line 3)
-	  (insert "X-Coding-System: "
-		  (symbol-name last-coding-system-used)
-		  "\n"))
-	(narrow-to-region (point) (point-max))
-	(and (= 0 (% count 10))
-	     (message "Converting to Babyl format...%d" count))))))
+		(insert ": 8bit")))))
+      ;; Transform anything within the message text
+      ;; that might appear to be the end of a Babyl-format message.
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region start (point))
+	  (goto-char (point-min))
+	  (while (search-forward "\n\^_" nil t) ; single char
+	    (replace-match "\n^_"))))		; 2 chars: "^" and "_"
+      ;; This is for malformed messages that don't end in newline.
+      ;; There shouldn't be any, but some users say occasionally
+      ;; there are some.
+      (or (bolp) (newline))
+      (insert ?\^_)
+      (setq last-coding-system-used nil)
+      ;; Decode coding system, following specs in the message header,
+      ;; and record what coding system was decoded.
+      (if pmail-output-decode-coding
+	  (let ((mime-charset
+		 (if (save-excursion
+		       (goto-char start)
+		       (search-forward "\n\n" nil t)
+		       (let ((case-fold-search t))
+			 (re-search-backward
+			  pmail-mime-charset-pattern
+			  start t)))
+		     (intern (downcase (match-string 1))))))
+	    (pmail-decode-region start (point) mime-charset)))
+      (save-excursion
+	(goto-char start)
+	(forward-line 3)
+	(insert "X-Coding-System: "
+		(symbol-name last-coding-system-used)
+		"\n")))))
 
 ;; Delete the "From ..." line, creating various other headers with
 ;; information from it if they don't already exist.  Now puts the
@@ -398,31 +265,54 @@ Note:    it means the file has no messages in it.\n\^_"))
 		      ""
 		    "From: \\1\n"))
 		t)))))))
+
+(defun pmail-output-as-mbox (file-name nomsg)
+  "Convert the current buffer's text to mbox Babyl and output to FILE-NAME.
+It alters the current buffer's text, so it should be a temp buffer."
+  (let ((case-fold-search t)
+	mail-from mime-version content-type)
 
-;;;###autoload
-(defcustom pmail-fields-not-to-output nil
-  "*Regexp describing fields to exclude when outputting a message to a file."
-  :type '(choice (const :tag "None" nil)
-		 regexp)
-  :group 'pmail-output)
+    ;; Preserve the Mail-From and MIME-Version fields
+    ;; even if they have been pruned.
+    (search-forward "\n\n" nil 'move)
+    (narrow-to-region (point-min) (point))
 
-;; Delete from the buffer header fields we don't want output.
-;; NOT-PMAIL if t means this buffer does not have the full header
-;; and *** EOOH *** that a message in an Pmail file has.
-(defun pmail-delete-unwanted-fields (&optional not-pmail)
-  (if pmail-fields-not-to-output
-      (save-excursion
-	(goto-char (point-min))
-	;; Find the end of the header.
-	(if (and (or not-pmail (search-forward "\n*** EOOH ***\n" nil t))
-		 (search-forward "\n\n" nil t))
-	    (let ((end (point-marker)))
-	      (goto-char (point-min))
-	      (while (re-search-forward pmail-fields-not-to-output end t)
-		(beginning-of-line)
-		(delete-region (point)
-			       (progn (forward-line 1) (point)))))))))
+    (pmail-delete-unwanted-fields
+     (if pmail-enable-mime "Mail-From"
+       "Mail-From\\|MIME-Version\\|Content-type"))
 
+    (widen)
+
+    ;; Make sure message ends with blank line.
+    (goto-char (point-max))
+    (unless (bolp)
+       (insert "\n"))
+    (unless (looking-back "\n\n")
+      (insert "\n"))
+
+    ;; Generate a From line from other header fields
+    ;; if necessary.
+    (goto-char (point-min))
+    (unless (looking-at "From ")
+      (insert "From "
+	      (mail-strip-quoted-names
+	       (save-excursion
+		 (save-restriction
+		   (goto-char (point-min))
+		   (narrow-to-region
+		    (point)
+		    (or (search-forward "\n\n" nil)
+			(point-max)))
+		   (or (mail-fetch-field "from")
+		       (mail-fetch-field "really-from")
+		       (mail-fetch-field "sender")
+		       "unknown"))))
+	      " " (current-time-string) "\n"))
+
+    (let ((coding-system-for-write
+	   'raw-text-unix))
+      (write-region (point-min) (point-max) file-name t nomsg))))
+
 ;;; There are functions elsewhere in Emacs that use this function;
 ;;; look at them before you change the calling method.
 ;;;###autoload
@@ -430,11 +320,9 @@ Note:    it means the file has no messages in it.\n\^_"))
   "Append this message to system-inbox-format mail file named FILE-NAME.
 A prefix argument COUNT says to output that many consecutive messages,
 starting with the current one.  Deleted messages are skipped and don't count.
-When called from lisp code, COUNT may be omitted and defaults to 1.
+When called from Lisp code, COUNT may be omitted and defaults to 1.
 
-If the pruned message header is shown on the current message, then
-messages will be appended with pruned headers; otherwise, messages
-will be appended with their original headers.
+This outputs the complete message header even the display is pruned.
 
 The default file name comes from `pmail-default-file',
 which is updated to the name you use in this command.
@@ -451,104 +339,141 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	(expand-file-name file-name
 			  (and pmail-default-file
 			       (file-name-directory pmail-default-file))))
-  (if (and (file-readable-p file-name) (mail-file-babyl-p file-name))
-      (pmail-output-to-babyl-file file-name count)
-    (set-buffer pmail-buffer)
-    (let ((orig-count count)
-	  (pmailbuf pmail-buffer)
-	  (case-fold-search t)
-	  (tembuf (get-buffer-create " pmail-output"))
-	  header-beginning
-	  mail-from mime-version content-type)
-      (while (> count 0)
-	;; Preserve the Mail-From and MIME-Version fields
-	;; even if they have been pruned.
-	(or from-gnus
-	    (save-excursion
-	      (save-restriction
-		(goto-char (if (pmail-buffers-swapped-p)
-			       (point-min)
-			     (pmail-msgbeg pmail-current-message)))
-		(setq header-beginning (point))
-		(search-forward "\n\n" nil 'move)
-		(narrow-to-region header-beginning (point))
-		(setq mail-from (mail-fetch-field "Mail-From"))
-		(unless pmail-enable-mime
-		  (setq mime-version (mail-fetch-field "MIME-Version")
-			content-type (mail-fetch-field "Content-type"))))))
-	(save-excursion
-	  (set-buffer tembuf)
-	  (erase-buffer)
-	  (insert-buffer-substring pmailbuf)
-	  (save-excursion
-	    (goto-char (min (point-min) (- (point-max) 2)))
-	    (unless (looking-at "\n\n")
-	      (goto-char (point-max))
-	      (insert "\n\n")))
-	  (when pmail-enable-mime
-	    (goto-char (point-min))
-	    (forward-line 2)
-	    (delete-region (point-min) (point))
-	    (search-forward "\n\n")
-	    (delete-region (match-beginning 0)
-			   (if (search-forward "\n\n")
-			       (1- (match-end 0))))
-	    (setq buffer-file-coding-system (or pmail-file-coding-system
-						'raw-text)))
-	  (pmail-delete-unwanted-fields t)
-	  (or (bolp) (insert "\n"))
-	  (goto-char (point-min))
-	  (if mail-from
-	      (insert mail-from "\n")
-	    (insert "From "
-		    (mail-strip-quoted-names
-		     (save-excursion
-		       (save-restriction
-			 (goto-char (point-min))
-			 (narrow-to-region
-			  (point)
-			  (or (search-forward "\n\n" nil)
-			      (point-max)))
-			 (or (mail-fetch-field "from")
-			     (mail-fetch-field "really-from")
-			     (mail-fetch-field "sender")
-			     "unknown"))))
-		    " " (current-time-string) "\n"))
-	  (when mime-version
-	    (insert "MIME-Version: " mime-version)
-	    ;; Some malformed MIME messages set content-type to nil.
-	    (when content-type
-	      (insert "\nContent-type: " content-type "\n")))
-	  ;; ``Quote'' "\nFrom " as "\n>From "
-	  ;;  (note that this isn't really quoting, as there is no requirement
-	  ;;   that "\n[>]+From " be quoted in the same transparent way.)
-	  (let ((case-fold-search nil))
-	    (while (search-forward "\nFrom " nil t)
-	      (forward-char -5)
-	      (insert ?>)))
-	  (write-region (point-min) (point-max) file-name t
-			(if noattribute 'nomsg)))
-	(or noattribute
-	    (if (equal major-mode 'pmail-mode)
-		(pmail-set-attribute pmail-filed-attr-index t)))
-	(setq count (1- count))
-	(or from-gnus
-	    (let ((next-message-p
-		   (if pmail-delete-after-output
-		       (pmail-delete-forward)
-		     (if (> count 0)
-			 (pmail-next-undeleted-message 1))))
-		  (num-appended (- orig-count count)))
-	      (if (and (> count 0) (not next-message-p))
-		  (progn
-		    (error "%s"
-		     (save-excursion
-		       (set-buffer pmailbuf)
-		       (format "Only %d message%s appended" num-appended
-			       (if (= num-appended 1) "" "s"))))
-		    (setq count 0))))))
+  (set-buffer pmail-buffer)
+
+  ;; Warn about creating new file.
+  (or (find-buffer-visiting file-name)
+      (file-exists-p file-name)
+      (yes-or-no-p
+       (concat "\"" file-name "\" does not exist, create it? "))
+      (error "Output file does not exist"))
+
+  (let ((orig-count count)
+	(case-fold-search t)
+	(tembuf (get-buffer-create " pmail-output"))
+	(babyl-format
+	 (and (file-readable-p file-name) (mail-file-babyl-p file-name))))
+
+    (unwind-protect
+	(while (> count 0)
+	  (with-current-buffer pmail-buffer
+	    (let (cur beg end)
+	      (setq beg (pmail-msgbeg pmail-current-message)
+		    end (pmail-msgend pmail-current-message))
+	      ;; All access to the buffer's local variables is now finished...
+	      (save-excursion
+		;; ... so it is ok to go to a different buffer.
+		(if (pmail-buffers-swapped-p) (set-buffer pmail-view-buffer))
+		(setq cur (current-buffer))
+		(save-restriction
+		  (widen)
+		  (with-current-buffer tembuf
+		    (insert-buffer-substring cur beg end)
+		    ;; Convert the text to one format or another and output.
+		    (if babyl-format
+			(pmail-output-as-babyl file-name (if noattribute 'nomsg))
+		      (pmail-output-as-mbox file-name 
+					    (if noattribute 'nomsg))))))))
+
+	  ;; Mark message as "filed".
+	  (unless noattribute
+	    (pmail-set-attribute pmail-filed-attr-index t))
+
+	  (setq count (1- count))
+
+	  (or from-gnus
+	      (let ((next-message-p
+		     (if pmail-delete-after-output
+			 (pmail-delete-forward)
+		       (if (> count 0)
+			   (pmail-next-undeleted-message 1))))
+		    (num-appended (- orig-count count)))
+		(if (and (> count 0) (not next-message-p))
+		    (error "Only %d message%s appended" num-appended
+			   (if (= num-appended 1) "" "s"))))))
       (kill-buffer tembuf))))
 
+(defun pmail-output-as-seen (file-name &optional count noattribute from-gnus)
+  "Append this message to system-inbox-format mail file named FILE-NAME.
+A prefix argument COUNT says to output that many consecutive messages,
+starting with the current one.  Deleted messages are skipped and don't count.
+When called from Lisp code, COUNT may be omitted and defaults to 1.
+
+This outputs the message header as you see it.
+
+The default file name comes from `pmail-default-file',
+which is updated to the name you use in this command.
+
+The optional third argument NOATTRIBUTE, if non-nil, says not
+to set the `filed' attribute, and not to display a message.
+
+The optional fourth argument FROM-GNUS is set when called from GNUS."
+  (interactive
+   (list (pmail-output-read-file-name)
+	 (prefix-numeric-value current-prefix-arg)))
+  (or count (setq count 1))
+  (setq file-name
+	(expand-file-name file-name
+			  (and pmail-default-file
+			       (file-name-directory pmail-default-file))))
+  (set-buffer pmail-buffer)
+
+  ;; Warn about creating new file.
+  (or (find-buffer-visiting file-name)
+      (file-exists-p file-name)
+      (yes-or-no-p
+       (concat "\"" file-name "\" does not exist, create it? "))
+      (error "Output file does not exist"))
+
+    (if (and (file-readable-p file-name) (mail-file-babyl-p file-name))
+	(error "Cannot output `as seen' to a Babyl file"))
+
+  (let ((orig-count count)
+	(case-fold-search t)
+	(tembuf (get-buffer-create " pmail-output")))
+
+    (unwind-protect
+	(while (> count 0)
+	  (let (cur beg end)
+	    ;; If operating from whole-mbox buffer, get message bounds.
+	    (if (not (pmail-buffers-swapped-p))
+		(setq beg (pmail-msgbeg pmail-current-message)
+		      end (pmail-msgend pmail-current-message)))
+	    ;; All access to the buffer's local variables is now finished...
+	    (save-excursion
+	      (setq cur (current-buffer))
+	      (save-restriction
+		(widen)
+		;; If operating from the view buffer, get the bounds.
+		(unless beg
+		  (setq beg (point-min)
+			end (point-max)))
+
+		(with-current-buffer tembuf
+		  (insert-buffer-substring cur beg end)
+		  ;; Convert the text to one format or another and output.
+		  (pmail-output-as-mbox file-name 
+					(if noattribute 'nomsg))))))
+
+	  ;; Mark message as "filed".
+	  (unless noattribute
+	    (pmail-set-attribute pmail-filed-attr-index t))
+
+	  (setq count (1- count))
+
+	  (or from-gnus
+	      (let ((next-message-p
+		     (if pmail-delete-after-output
+			 (pmail-delete-forward)
+		       (if (> count 0)
+			   (pmail-next-undeleted-message 1))))
+		    (num-appended (- orig-count count)))
+		(if (and (> count 0) (not next-message-p))
+		    (error "Only %d message%s appended" num-appended
+			   (if (= num-appended 1) "" "s"))))))
+      (kill-buffer tembuf))))
+
+
 ;;;###autoload
 (defun pmail-output-body-to-file (file-name)
   "Write this message body to the file FILE-NAME.
@@ -573,9 +498,7 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
     (and (file-exists-p file-name)
 	 (not (y-or-n-p (format "File %s exists; overwrite? " file-name)))
 	 (error "Operation aborted"))
-    (write-region (point) (point-max) file-name)
-    (if (equal major-mode 'pmail-mode)
-	(pmail-set-attribute pmail-stored-attr-index t)))
+    (write-region (point) (point-max) file-name))
   (if pmail-delete-after-output
       (pmail-delete-forward)))
 
