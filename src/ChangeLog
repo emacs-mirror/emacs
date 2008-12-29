@@ -262,7 +262,7 @@
 	SYMBOL_CHARSET. (Bug#547)
 
 	* w32uniscribe.c (uniscribe_encode_char): Increase glyph buffer
-	size for surrogates. (Bug#1096)
+	size for surrogates. (Bug#1096, bug#872)
 
 2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
