@@ -1,3 +1,8 @@
+2008-12-29  Juri Linkov  <juri@jurta.org>
+
+	* proced.el (proced-mode-map): Bind " " to next-line instead of the
+	command `proced-next-line' removed on 2008-09-06.
+
 2008-12-28  Juri Linkov  <juri@jurta.org>
 
 	* misearch.el (multi-isearch-next-buffer-function): Doc fix.
