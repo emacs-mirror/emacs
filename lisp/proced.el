@@ -440,7 +440,7 @@ Important: the match ends just after the marker.")
 (defvar proced-mode-map
   (let ((km (make-sparse-keymap)))
     ;; moving
-    (define-key km " " 'proced-next-line)
+    (define-key km " " 'next-line)
     (define-key km "n" 'next-line)
     (define-key km "p" 'previous-line)
     (define-key km "\C-n" 'next-line)
