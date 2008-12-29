@@ -1,3 +1,11 @@
+2008-12-29  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-temp-alist): Renamed from variable
+	proced-children-alist.
+	(proced-process-tree, proced-toggle-tree): Fix docstring.
+	(proced-tree): Fix docstring.  Simplify.  Use proced-temp-alist.
+	(proced-temp-internal): Use proced-temp-alist.
+
 2008-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* subr.el (mkdir): New defalias.
