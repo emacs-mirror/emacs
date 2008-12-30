@@ -1,3 +1,8 @@
+2008-12-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (install): Remove old directories in ns_appresdir before
+	moving new directories there.
+
 2008-11-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* quail/hangul.el (hangul-im-keymap, hangul-insert-character)
