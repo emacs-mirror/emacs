@@ -193,7 +193,6 @@ set_menu_bar_lines (f, value, oldval)
     }
 }
 
-Lisp_Object Vemacs_iconified;
 Lisp_Object Vframe_list;
 
 extern Lisp_Object Vminibuffer_list;
@@ -4535,10 +4534,6 @@ Setting this variable does not affect existing frames, only new ones.  */);
 
   DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
                doc: /* The initial frame-object, which represents Emacs's stdout.  */);
-
-  DEFVAR_LISP ("emacs-iconified", &Vemacs_iconified,
-	       doc: /* Non-nil if all of Emacs is iconified and frame updates are not needed.  */);
-  Vemacs_iconified = Qnil;
 
   DEFVAR_LISP ("mouse-position-function", &Vmouse_position_function,
 	       doc: /* If non-nil, function to transform normal value of `mouse-position'.
