@@ -393,6 +393,8 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 install: all install-arch-indep install-arch-dep install-leim blessmail
 	@true
 
+MV_DIRS = for i in $$dir; do rm -fr $$(basename "$$i") ; mv "$$i" . ; done
+
 ### Install the executables that were compiled specifically for this machine.
 ### It would be nice to do something for a parallel make
 ### to ensure that install-arch-indep finishes before this starts.
@@ -414,10 +416,11 @@ install-arch-dep: mkdir
 	done
 	if test "${ns_appdir}" != ""; then \
 	  ( cd ${ns_appresdir} ; \
-	    if test -d share/emacs ; then mv -f share/emacs/*/* . ; fi ; \
-	    if test -d share/info ; then mv -f share/info . ; fi ; \
+	    if test -d share/emacs ; then dir=share/emacs/*/*; $(MV_DIRS); fi;\
+	    if test -d share/info ; then dir=share/info; $(MV_DIRS) ; fi ; \
 	    rm -fr share ) ; \
-	  ( cd ${ns_appbindir}/libexec ; mv -f emacs/*/*/* . ; rm -fr emacs ) ; \
+	  ( cd ${ns_appbindir}/libexec ; dir=emacs/*/*/* ; $(MV_DIRS); \
+	    rm -fr emacs ) ; \
 	  ( cd ${ns_appbindir}/bin ; rm -f emacs emacs-23* ; \
 	    ln -sf ../libexec/* .) ; \
 	else true ; fi
