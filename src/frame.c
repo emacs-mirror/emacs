@@ -2295,7 +2295,6 @@ store_frame_param (f, prop, val)
  	swap_in_global_binding (prop);
     }
 
-#ifndef WINDOWSNT
   /* The tty color needed to be set before the frame's parameter
      alist was updated with the new value.  This is not true any more,
      but we still do this test early on.  */
@@ -2303,7 +2302,6 @@ store_frame_param (f, prop, val)
       && f == FRAME_TTY (f)->previous_frame)
     /* Force redisplay of this tty.  */
     FRAME_TTY (f)->previous_frame = NULL;
-#endif
 
   /* Update the frame parameter alist.  */
   old_alist_elt = Fassq (prop, f->param_alist);
@@ -3933,7 +3931,6 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
     {
       /* If we find this parm in ALIST, clear it out
 	 so that it won't be "left over" at the end.  */
-#ifndef WINDOWSNT /* w32fns.c has not yet been changed to cope with this.  */
       Lisp_Object tail;
       XSETCAR (tem, Qnil);
       /* In case the parameter appears more than once in the alist,
@@ -3942,7 +3939,6 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
 	if (CONSP (XCAR (tail))
 	    && EQ (XCAR (XCAR (tail)), param))
 	  XSETCAR (XCAR (tail), Qnil);
-#endif
     }
   else
     tem = Fassq (param, Vdefault_frame_alist);
