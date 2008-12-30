@@ -880,28 +880,23 @@ Returns (end-pos end-of-buffer-p)"
     ;; This code works on both XEmacs and Emacs, but now
     ;; that XEmacs has got custom-written code, this could
     ;; be optimized for Emacs.
-    (let ((orig-win (and win (selected-window)))
-	  height
-	  buffer-end-p)
-      (if win (select-window win))
-      (prog1
-	  (save-excursion
-	    (goto-char (window-start))
-	    (setq height
-		  (- (window-height)
-		     (if header-line-format 2 1)))
-	    (setq buffer-end-p
-		  (if (bolp)
-		      (not (= height (vertical-motion height)))
-		    (save-restriction
-		      ;; Fix a mis-feature in `vertical-motion':
-		      ;; The start of the window is assumed to
-		      ;; coinside with the start of a line.
-		      (narrow-to-region (point) (point-max))
-		      (not (= height (vertical-motion height))))))
-	    (list (point) buffer-end-p))
-	(if orig-win
-	    (select-window orig-win))))))
+    (let (height buffer-end-p)
+      (with-selected-window (or win (selected-window))
+	(save-excursion
+	  (goto-char (window-start))
+	  (setq height
+		(- (window-height)
+		   (if header-line-format 2 1)))
+	  (setq buffer-end-p
+		(if (bolp)
+		    (not (= height (vertical-motion height)))
+		  (save-restriction
+		    ;; Fix a mis-feature in `vertical-motion':
+		    ;; The start of the window is assumed to
+		    ;; coinside with the start of a line.
+		    (narrow-to-region (point) (point-max))
+		    (not (= height (vertical-motion height))))))
+	  (list (point) buffer-end-p))))))
 
 
 ;; Can't use `save-window-excursion' since it triggers a redraw.
@@ -955,30 +950,25 @@ Note that this handles the case when the cache has been set to nil."
   "Builds a list of (WIN START END BUFFER-END-P) for every window in WINDOWS."
   (if (follow-cache-valid-p windows)
       follow-windows-start-end-cache
-    (let ((win-start-end '())
-	  (orig-win (selected-window)))
-      (while windows
-	(select-window (car windows))
-	(setq win-start-end
-	      (cons (cons (car windows)
-			  (cons (window-start)
-				(follow-calc-win-end)))
-		    win-start-end))
-	(setq windows (cdr windows)))
+    (let ((orig-win (selected-window))
+	  win-start-end)
+      (dolist (w windows)
+	(select-window w)
+	(push (cons w (cons (window-start) (follow-calc-win-end)))
+	      win-start-end))
       (select-window orig-win)
-      (setq follow-windows-start-end-cache (nreverse win-start-end))
-      follow-windows-start-end-cache)))
+      (setq follow-windows-start-end-cache (nreverse win-start-end)))))
 
 
 (defsubst follow-pos-visible (pos win win-start-end)
   "Non-nil when POS is visible in WIN."
   (let ((wstart-wend-bend (cdr (assq win win-start-end))))
     (and (>= pos (car wstart-wend-bend))
-	 (or (< pos (car (cdr wstart-wend-bend)))
+	 (or (< pos (cadr wstart-wend-bend))
 	     (nth 2 wstart-wend-bend)))))
 
 
-;; By `aligned' we mean that for all adjecent windows, the end of the
+;; By `aligned' we mean that for all adjacent windows, the end of the
 ;; first is equal with the start of the successor.  The first window
 ;; should start at a full screen line.
 
@@ -986,11 +976,10 @@ Note that this handles the case when the cache has been set to nil."
   "Non-nil if the follower windows are aligned."
   (let ((res t))
     (save-excursion
-       (goto-char (window-start (car (car win-start-end))))
-       (if (bolp)
-	   nil
-	 (vertical-motion 0 (car (car win-start-end)))
-	 (setq res (eq (point) (window-start (car (car win-start-end)))))))
+      (goto-char (window-start (caar win-start-end)))
+      (unless (bolp)
+	(vertical-motion 0 (caar win-start-end))
+	(setq res (eq (point) (window-start (caar win-start-end))))))
     (while (and res (cdr win-start-end))
       ;; At least two followers left
       (setq res (eq (car (cdr (cdr (car win-start-end))))
@@ -1053,6 +1042,14 @@ Return the selected window."
 	(setq win (caar win-start-end))
 	(select-window win))
       (setq win-start-end (cdr win-start-end)))
+    ;; The last line of the window may be partially visible; if so,
+    ;; and if point is visible in the next window, select the next
+    ;; window instead.
+    (and (/= dest (point-max))
+    	 win-start-end
+    	 (follow-pos-visible dest (caar win-start-end) win-start-end)
+    	 (setq win (caar win-start-end))
+    	 (select-window win))
     win))
 
 
@@ -1090,31 +1087,34 @@ Return the selected window."
 ;; as the point is not visible in any window.
 
 (defun follow-select-if-visible-from-first (dest windows)
-  "Select and return a window with DEST, if WINDOWS are redrawn from top."
-  (let ((win nil)
-	end-pos-end-p)
+  "Try to select one of WINDOWS without repositioning the topmost window.
+If one of the windows in WINDOWS contains DEST, select it, call
+`follow-redisplay', move point to DEST, and return that window.
+Otherwise, return nil."
+  (let (win end-pos-end-p)
     (save-excursion
       (goto-char (window-start (car windows)))
       ;; Make sure the line start in the beginning of a real screen
       ;; line.
       (vertical-motion 0 (car windows))
-      (if (< dest (point))
-	  ;; Above the start, not visible.
-	  nil
+      (when (>= dest (point))
 	;; At or below the start. Check the windows.
 	(save-window-excursion
-	  (while (and (not win) windows)
-	    (set-window-start (car windows) (point) 'noforce)
-	    (setq end-pos-end-p (follow-calc-win-end (car windows)))
-	    (goto-char (car end-pos-end-p))
-	    ;; Visible, if dest above end, or if eob is visible inside
-	    ;; the window.
-	    (if (or (car (cdr end-pos-end-p))
-		    (< dest (point)))
+	  (let ((windows windows))
+	    (while (and (not win) windows)
+	      (set-window-start (car windows) (point) 'noforce)
+	      (setq end-pos-end-p (follow-calc-win-end (car windows)))
+	      (goto-char (car end-pos-end-p))
+	      ;; Visible, if dest above end, or if eob is visible inside
+	      ;; the window.
+	      (if (or (car (cdr end-pos-end-p))
+		      (< dest (point)))
 		  (setq win (car windows))
-		(setq windows (cdr windows)))))))
-    (if win
-	(select-window win))
+		(setq windows (cdr windows))))))))
+    (when win
+      (select-window win)
+      (follow-redisplay windows (car windows))
+      (goto-char dest))
     win))
 
 
@@ -1126,14 +1126,16 @@ Return the selected window."
 ;; is nil.  Start every window directly after the end of the previous
 ;; window, to make sure long lines are displayed correctly.
 
-(defun follow-redisplay (&optional windows win)
+(defun follow-redisplay (&optional windows win preserve-win)
   "Reposition the WINDOWS around WIN.
 Should the point be too close to the roof we redisplay everything
 from the top.  WINDOWS should contain a list of windows to
 redisplay, it is assumed that WIN is a member of the list.
 Should WINDOWS be nil, the windows displaying the
 same buffer as WIN, in the current frame, are used.
-Should WIN be nil, the selected window is used."
+Should WIN be nil, the selected window is used.
+If PRESERVE-WIN is non-nil, keep WIN itself unchanged while
+repositioning the other windows."
   (or win (setq win (selected-window)))
   (or windows (setq windows (follow-all-followers win)))
   ;; Calculate the start of the first window.
@@ -1154,7 +1156,8 @@ Should WIN be nil, the selected window is used."
 		       (follow-calculate-first-window-start-from-below
 			windows try-first-start win old-win-start)))))
     (dolist (w windows)
-      (set-window-start w start)
+      (unless (and preserve-win (eq w win))
+	(set-window-start w start))
       (setq start (car (follow-calc-win-end w))))))
 
 
@@ -1310,15 +1313,15 @@ non-first windows in Follow mode."
 	(when (and follow-mode
 		   (not (window-minibuffer-p win)))
 	  ;; The buffer shown in the selected window is in follow
-	  ;; mode.  Find the current state of the display and cache
-	  ;; the result for speed (i.e. `aligned' and `visible'.)
+	  ;; mode.  Find the current state of the display.
 	  (let* ((windows (follow-all-followers win))
 		 (dest (point))
 		 (win-start-end (progn
 				  (follow-update-window-start (car windows))
 				  (follow-windows-start-end windows)))
 		 (aligned (follow-windows-aligned-p win-start-end))
-		 (visible (follow-pos-visible dest win win-start-end)))
+		 (visible (follow-pos-visible dest win win-start-end))
+		 selected-window-up-to-date)
 	    (unless (and aligned visible)
 	      (follow-invalidate-cache))
 	    (follow-avoid-tail-recenter)
@@ -1392,9 +1395,7 @@ non-first windows in Follow mode."
 		 ;; at the bottom of a window.
 		 ((follow-select-if-visible-from-first dest windows)
 		  (follow-debug-message "Below first")
-		  (setq visible t aligned t)
-		  (follow-redisplay windows (car windows))
-		  (goto-char dest))
+		  (setq visible t aligned t))
 		 ;; None of the above. For simplicity, we stick to the
 		 ;; selected window.
 		 (t
@@ -1403,27 +1404,34 @@ non-first windows in Follow mode."
 	      ;; If a new window has been selected, make sure that the
 	      ;; old is not scrolled when the point is outside the
 	      ;; window.
-	      (or (eq win (selected-window))
-		  (let ((p (window-point win)))
-		    (set-window-start win (window-start win) nil)
-		    (set-window-point win p))))
-	    ;; Make sure the point is visible in the selected window.
-	    ;; (This could lead to a scroll.)
+	      (unless (eq win (selected-window))
+		(let ((p (window-point win)))
+		  (set-window-start win (window-start win) nil)
+		  (set-window-point win p))))
 	    (unless (or visible
-			(follow-pos-visible dest win win-start-end))
+			;; Use the UPDATE argument of window-end
+			;; instead of calling follow-pos-visible
+			;; (which may be inaccurate for partially
+			;; visible lines).
+			(and (>= dest (window-start))
+			     (< dest (window-end nil t))))
+	      ;; If point is not visible in the selected window,
+	      ;; perform a redisplay; this causes scrolling.
 	      (sit-for 0)
+	      (setq selected-window-up-to-date t)
 	      (follow-avoid-tail-recenter)
 	      (setq win-start-end (follow-windows-start-end windows))
 	      (follow-invalidate-cache)
 	      (setq aligned nil))
-	    ;; Redraw the windows whenever needed.
+	    ;; Now redraw the windows around the selected window.
 	    (unless (and (not follow-internal-force-redisplay)
 			 (or aligned
 			     (follow-windows-aligned-p win-start-end))
 			 (follow-point-visible-all-windows-p
 			  win-start-end))
 	      (setq follow-internal-force-redisplay nil)
-	      (follow-redisplay windows (selected-window))
+	      (follow-redisplay windows (selected-window)
+				selected-window-up-to-date)
 	      (setq win-start-end (follow-windows-start-end windows))
 	      (follow-invalidate-cache)
 	      ;; When the point ends up in another window. This
@@ -1833,8 +1841,6 @@ report this using the `report-emacs-bug' function."
 		   ((follow-select-if-visible-from-first
 		     new-window-point windows)
 		    (follow-debug-message "filter: Seen from first")
-		    (follow-redisplay windows (car windows))
-		    (goto-char new-window-point)
 		    (setq win-start-end
 			  (follow-windows-start-end windows)))
 		   ;; None of the above. We stick to the current window.
