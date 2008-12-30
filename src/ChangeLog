@@ -1,3 +1,22 @@
+2008-12-30  Kenichi Handa  <handa@m17n.org>
+
+	* character.h (CHAR_VARIATION_SELECTOR_P): New macro.
+	(CHAR_SURROGATE_PAIR_P): New macro.
+
+	* font.h (struct font_driver): New member get_variation_glyphs.
+
+	* font.c (font_range): Don't require a font for a variation
+	selector.
+	(Ffont_variation_glyphs): New function.
+	(syms_of_font): Defsubr it.
+
+	* ftfont.c (ftfont_driver): Set the member get_variation_glyphs to
+	ftfont_variation_glyphs.
+	(setup_otf_gstring): New function.
+	(ftfont_drive_otf): Use it.
+	(ftfont_shape_by_flt): Handle variation selector.
+	(ftfont_variation_glyphs): New function.
+
 2008-12-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (Vemacs_iconified): Remove.
