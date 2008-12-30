@@ -11,7 +11,8 @@
 	visibility, use window-start and window-end instead of the less
 	accurate follow-pos-visible.  If the selected window is redrawn,
 	tell follow-redisplay to preserve it.
-
+	(follow-calculate-first-window-start-from-below): Avoid looping
+	forever if vertical-motion returns an unexpected value.
 
 2008-12-30  Andreas Schwab  <schwab@suse.de>
 
