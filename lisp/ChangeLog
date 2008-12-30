@@ -1,3 +1,11 @@
+2008-12-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-data-swapped): New var.
+	(tar-data-swapped-p, tar-swap-data):
+	Use it instead of buffer-swapped-with.
+	(tar-write-region-annotate): Re-add (partial undo of last change).
+	(tar-mode): Use it again (partial undo as well).
+
 2008-12-30  Ed Swarthout  <Ed.Swarthout@hwdebug.com>  (tiny change)
 
 	* textmodes/table.el (table-capture): Fix symbol quoting typo.
@@ -7,8 +15,7 @@
 	* follow.el (follow-select-if-visible): Improve the check for the
 	last line of the window.
 	(follow-post-command-hook): Perform redisplay in more
-	circumstances, to avoid getting point stuck on partially visible
-	lines.
+	circumstances, to avoid getting point stuck on partially visible lines.
 
 2008-12-30  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -28,8 +35,8 @@
 
 2008-12-30  Andreas Schwab  <schwab@suse.de>
 
-	* server.el (server-running-p): Remove interactive spec.  Fix
-	regexp.
+	* server.el (server-running-p): Remove interactive spec.
+	Fix regexp.
 
 2008-12-30  Chong Yidong  <cyd@stupidchicken.com>
 

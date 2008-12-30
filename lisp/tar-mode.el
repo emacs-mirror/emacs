@@ -159,9 +159,20 @@ This information is useful, but it takes screen space away from file names."
 (defvar tar-data-buffer nil "Buffer that holds the actual raw tar bytes.")
 (make-variable-buffer-local 'tar-data-buffer)
 
+(defvar tar-data-swapped nil
+  "If non-nil, `tar-data-buffer' indeed holds raw tar bytes.")
+(make-variable-buffer-local 'tar-data-swapped)
+
 (defun tar-data-swapped-p ()
   "Return non-nil if the tar-data is in `tar-data-buffer'."
-  (buffer-live-p buffer-swapped-with))
+  (and (buffer-live-p tar-data-buffer)
+       ;; Sanity check to try and make sure tar-data-swapped tracks the swap
+       ;; state correctly: the raw data is expected to be always larger than
+       ;; the summary.
+       (progn
+	 (assert (eq tar-data-swapped
+		     (> (buffer-size tar-data-buffer) (buffer-size))))
+	 tar-data-swapped)))
 
 (defun tar-swap-data ()
   "Swap buffer contents between current buffer and `tar-data-buffer'.
@@ -169,11 +180,10 @@ Preserve the modified states of the buffers and set `buffer-swapped-with'."
   (let ((data-buffer-modified-p (buffer-modified-p tar-data-buffer))
 	(current-buffer-modified-p (buffer-modified-p)))
     (buffer-swap-text tar-data-buffer)
-    (setq buffer-swapped-with
-	  (if buffer-swapped-with nil tar-data-buffer))
-    (set-buffer-modified-p data-buffer-modified-p)
+    (setq tar-data-swapped (not tar-data-swapped))
+    (restore-buffer-modified-p data-buffer-modified-p)
     (with-current-buffer tar-data-buffer
-      (set-buffer-modified-p current-buffer-modified-p))))
+      (restore-buffer-modified-p current-buffer-modified-p))))
 
 ;;; down to business.
 
@@ -268,7 +278,8 @@ write-date, checksum, link-type, and link-name."
                    ;; -1 so as to strip the terminating 0 byte.
                    (name (buffer-substring pos (+ pos size -1)))
                    (descriptor (tar-header-block-tokenize
-                                (+ pos (tar-roundup-512 size)) coding)))
+                                (+ pos (tar-roundup-512 size))
+				coding)))
               (cond
                ((eq link-p (- ?L ?0))      ;GNUTYPE_LONGNAME.
                 (setf (tar-header-name descriptor) name))
@@ -626,6 +637,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   ;; buffer for the summary.
   (assert (not (tar-data-swapped-p)))
   (set (make-local-variable 'revert-buffer-function) 'tar-mode-revert)
+  (add-hook 'write-region-annotate-functions 'tar-write-region-annotate nil t)
   (add-hook 'kill-buffer-hook 'tar-mode-kill-buffer-hook nil t)
   (add-hook 'change-major-mode-hook 'tar-change-major-mode-hook nil t)
   ;; Tar data is made of bytes, not chars.
@@ -1199,7 +1211,18 @@ Leaves the region wide."
               (delete-region goal-end (point-max))
             (goto-char (point-max))
             (insert (make-string (- goal-end (point-max)) ?\0))))))))
-
+
+
+;; Used in write-region-annotate-functions to write tar-files out correctly.
+(defun tar-write-region-annotate (start end)
+  ;; When called from write-file (and auto-save), `start' is nil.
+  ;; When called from M-x write-region, we assume the user wants to save
+  ;; (part of) the summary, not the tar data.
+  (unless (or start (not (tar-data-swapped-p)))
+    (tar-clear-modification-flags)
+    (set-buffer tar-data-buffer)
+    nil))
+
 (provide 'tar-mode)
 
 ;; arch-tag: 8a585a4a-340e-42c2-89e7-d3b1013a4b78
