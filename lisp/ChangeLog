@@ -1,3 +1,14 @@
+2008-12-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* follow.el (follow-calc-win-start): Don't use `inline'.
+	(follow-update-window-start, follow-select-if-visible)
+	(follow-calculate-first-window-start-from-below)
+	(follow-post-command-hook): Code cleanup.
+	(follow-downward, follow-calculate-first-window-start): Function
+	deleted and merged into follow-redisplay.
+	(follow-redisplay): Merge code from follow-downward and
+	follow-calculate-first-window-start.
+
 2008-12-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* proced.el (proced-tree-flag): Fix typo in docstring.
