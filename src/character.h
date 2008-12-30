@@ -610,6 +610,26 @@ extern char unibyte_has_multibyte_table[256];
    ? ASCII_CHAR_WIDTH (c)	\
    : XINT (CHAR_TABLE_REF (Vchar_width_table, c)))
 
+/* If C is a variation selector, return the index numnber of the
+   variation selector (1..256).  Otherwise, return 0.  */
+
+#define CHAR_VARIATION_SELECTOR_P(c)		\
+  ((c) < 0xFE00 ? 0				\
+   : (c) <= 0xFE0F ? (c) - 0xFE00 + 1		\
+   : (c) < 0xE0100 ? 0				\
+   : (c) <= 0xE01EF ? (c) - 0xE0100 + 17	\
+   : 0)
+
+/* If C is a high surrogate, return 1.  If C is a low surrogate,
+   return 0. Otherwise, return 0.  */
+
+#define CHAR_SURROGATE_PAIR_P(c)	\
+  ((c) < 0xD800 ? 0			\
+   : (c) <= 0xDBFF ? 1			\
+   : (c) <= 0xDFFF ? 2			\
+   : 0)
+
+
 extern int char_resolve_modifier_mask P_ ((int));
 extern int char_string P_ ((unsigned, unsigned char *));
 extern int string_char P_ ((const unsigned char *,
