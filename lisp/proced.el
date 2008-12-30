@@ -346,7 +346,7 @@ Can be changed interactively via `proced-toggle-auto-update'."
 (make-variable-buffer-local 'proced-auto-update-flag)
 
 (defcustom proced-tree-flag nil
-  "Non-nil for display of Proced-buffer as process tree."
+  "Non-nil for display of Proced buffer as process tree."
   :group 'proced
   :type 'boolean)
 (make-variable-buffer-local 'proced-tree-flag)
