@@ -5790,8 +5790,8 @@ DEFUN ("window-text-height", Fwindow_text_height, Swindow_text_height,
        doc: /* Return the height in lines of the text display area of WINDOW.
 WINDOW defaults to the selected window.
 
-The return value does neither include the mode line or header line, if
-any, nor any partial-height lines in the text display area.  */)
+The return value does not include the mode line, any header line, nor
+any partial-height lines in the text display area.  */)
      (window)
      Lisp_Object window;
 {
