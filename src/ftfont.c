@@ -380,6 +380,8 @@ static int ftfont_anchor_point P_ ((struct font *, unsigned, int,
 				    int *, int *));
 static Lisp_Object ftfont_otf_capability P_ ((struct font *));
 static Lisp_Object ftfont_shape P_ ((Lisp_Object));
+static int ftfont_variation_glyphs P_ ((struct font *, int c,
+					unsigned variations[256]));
 
 struct font_driver ftfont_driver =
   {
@@ -389,35 +391,41 @@ struct font_driver ftfont_driver =
     ftfont_list,
     ftfont_match,
     ftfont_list_family,
-    NULL,
+    NULL,			/* free_entity */
     ftfont_open,
     ftfont_close,
     /* We can't draw a text without device dependent functions.  */
-    NULL,
-    NULL,
+    NULL,			/* prepare_face */
+    NULL,			/* done_face */
     ftfont_has_char,
     ftfont_encode_char,
     ftfont_text_extents,
     /* We can't draw a text without device dependent functions.  */
-    NULL,
+    NULL,			/* draw */
     ftfont_get_bitmap,
-    NULL,
-    NULL,
-    NULL,
+    NULL,			/* get_bitmap */
+    NULL,			/* free_bitmap */
+    NULL,			/* get_outline */
     ftfont_anchor_point,
 #ifdef HAVE_LIBOTF
     ftfont_otf_capability,
 #else  /* not HAVE_LIBOTF */
     NULL,
 #endif	/* not HAVE_LIBOTF */
-    NULL,
-    NULL,
-    NULL,
+    NULL,			/* otf_drive */
+    NULL,			/* start_for_frame */
+    NULL,			/* end_for_frame */
 #if defined (HAVE_M17N_FLT) && defined (HAVE_LIBOTF)
-    ftfont_shape
+    ftfont_shape,
 #else  /* not (HAVE_M17N_FLT && HAVE_LIBOTF) */
-    NULL
+    NULL,
 #endif	/* not (HAVE_M17N_FLT && HAVE_LIBOTF) */
+    NULL,			/* check */
+#ifdef HAVE_OTF_GET_VARIATION_GLYPHS
+    ftfont_variation_glyphs
+#else
+    NULL
+#endif
   };
 
 extern Lisp_Object QCname;
@@ -1536,6 +1544,25 @@ adjust_anchor (FT_Face ft_face, OTF_Anchor *anchor,
 
 static OTF_GlyphString otf_gstring;
 
+static void
+setup_otf_gstring (int size)
+{
+  if (otf_gstring.size == 0)
+    {
+      otf_gstring.glyphs = (OTF_Glyph *) malloc (sizeof (OTF_Glyph) * size);
+      otf_gstring.size = size;
+    }
+  else if (otf_gstring.size < size)
+    {
+      otf_gstring.glyphs = (OTF_Glyph *) realloc (otf_gstring.glyphs,
+						  sizeof (OTF_Glyph) * size);
+      otf_gstring.size = size;
+    }
+  otf_gstring.used = size;
+  memset (otf_gstring.glyphs, 0, sizeof (OTF_Glyph) * size);
+}
+
+
 static int
 ftfont_drive_otf (font, spec, in, from, to, out, adjustment)
      MFLTFont *font;
@@ -1588,19 +1615,7 @@ ftfont_drive_otf (font, spec, in, from, to, out, adjustment)
 	}
     }
 
-  if (otf_gstring.size == 0)
-    {
-      otf_gstring.glyphs = (OTF_Glyph *) malloc (sizeof (OTF_Glyph) * len);
-      otf_gstring.size = len;
-    }
-  else if (otf_gstring.size < len)
-    {
-      otf_gstring.glyphs = (OTF_Glyph *) realloc (otf_gstring.glyphs,
-						  sizeof (OTF_Glyph) * len);
-      otf_gstring.size = len;
-    }
-  otf_gstring.used = len;
-  memset (otf_gstring.glyphs, 0, sizeof (OTF_Glyph) * len);
+  setup_otf_gstring (len);
   for (i = 0; i < len; i++)
     {
       otf_gstring.glyphs[i].c = in->glyphs[from + i].c;
@@ -1818,6 +1833,7 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
   EMACS_UINT i;
   struct MFLTFontFT flt_font_ft;
   MFLT *flt = NULL;
+  int with_variation_selector = 0;
 
   if (! m17n_flt_initialized)
     {
@@ -1826,9 +1842,45 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
     }
 
   for (i = 0; i < len; i++)
-    if (NILP (LGSTRING_GLYPH (lgstring, i)))
-      break;
+    {
+      Lisp_Object g = LGSTRING_GLYPH (lgstring, i);
+      int c;
+
+      if (NILP (g))
+	break;
+      c = LGLYPH_CHAR (g);
+      if (CHAR_VARIATION_SELECTOR_P (c))
+	with_variation_selector++;
+    }
   len = i;
+  if (with_variation_selector)
+    {
+      setup_otf_gstring (len);
+      for (i = 0; i < len; i++)
+	{
+	  Lisp_Object g = LGSTRING_GLYPH (lgstring, i);
+
+	  otf_gstring.glyphs[i].c = LGLYPH_CHAR (g);
+	  otf_gstring.glyphs[i].f.index.from = LGLYPH_FROM (g);
+	  otf_gstring.glyphs[i].f.index.to = LGLYPH_TO (g);
+	}
+      OTF_drive_cmap (otf, &otf_gstring);
+      for (i = 0; i < otf_gstring.used; i++)
+	{
+	  OTF_Glyph *otfg = otf_gstring.glyphs + i;
+	  Lisp_Object g0 = LGSTRING_GLYPH (lgstring, otfg->f.index.from);
+	  Lisp_Object g1 = LGSTRING_GLYPH (lgstring, otfg->f.index.to);
+
+	  LGLYPH_SET_CODE (g0, otfg->glyph_id);
+	  LGLYPH_SET_TO (g0, LGLYPH_TO (g1));
+	  LGSTRING_SET_GLYPH (lgstring, i, g0);
+	}
+      if (len > otf_gstring.used)
+	{
+	  len = otf_gstring.used;
+	  LGSTRING_SET_GLYPH (lgstring, len, Qnil);
+	}
+    }
 
   if (gstring.allocated == 0)
     {
@@ -1842,8 +1894,19 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
       gstring.glyphs = realloc (gstring.glyphs,
 				sizeof (MFLTGlyph) * gstring.allocated);
     }
+  memset (gstring.glyphs, 0, sizeof (MFLTGlyph) * len);
   for (i = 0; i < len; i++)
-    gstring.glyphs[i].c = LGLYPH_CHAR (LGSTRING_GLYPH (lgstring, i));
+    {
+      Lisp_Object g = LGSTRING_GLYPH (lgstring, i);
+
+      gstring.glyphs[i].c = LGLYPH_CHAR (g);
+      if (with_variation_selector)
+	{
+	  gstring.glyphs[i].code = LGLYPH_CODE (g);
+	  gstring.glyphs[i].encoded = 1;
+	}
+    }
+
   gstring.used = len;
   gstring.r2l = 0;
 
@@ -1940,6 +2003,23 @@ ftfont_shape (lgstring)
   return ftfont_shape_by_flt (lgstring, font, ftfont_info->ft_size->face, otf);
 }
 
+#ifdef HAVE_OTF_GET_VARIATION_GLYPHS
+
+static int
+ftfont_variation_glyphs (font, c, variations)
+     struct font *font;
+     int c;
+     unsigned variations[256];
+{
+  struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
+  OTF *otf = ftfont_get_otf (ftfont_info);
+
+  if (! otf)
+    return 0;
+  return OTF_get_variation_glyphs (otf, c, variations);
+}
+
+#endif	/* HAVE_OTF_GET_VARIATION_GLYPHS */
 #endif	/* HAVE_M17N_FLT */
 #endif	/* HAVE_LIBOTF */
 
