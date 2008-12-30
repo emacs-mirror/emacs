@@ -2063,7 +2063,7 @@ whether or not it is currently displayed in some window.  */)
     }
   else
     {
-      int it_start, oselective, first_x, it_overshoot_expected;
+      int it_start, first_x, it_overshoot_expected;
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
@@ -2093,11 +2093,15 @@ whether or not it is currently displayed in some window.  */)
 	 really at some x > 0.  */
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = 0;
-      /* Temporarily disable selective display so we don't move too far */
-      oselective = it.selective;
-      it.selective = 0;
-      move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
-      it.selective = oselective;
+      if (IT_CHARPOS (it) != PT)
+	{
+	  int oselective = it.selective;
+	  /* Temporarily disable selective display so we don't move
+	     too far */
+	  it.selective = 0;
+	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+	  it.selective = oselective;
+	}
 
       if (XINT (lines) <= 0)
 	{
