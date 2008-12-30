@@ -1,3 +1,10 @@
+2008-12-30  Kenichi Handa  <handa@m17n.org>
+
+	* language/japanese.el (compose-gstring-for-variation-glyph): New
+	function.  Register it in composition-function-table.
+
+	* composite.el (lglyph-set-code): New function.
+
 2008-12-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tar-mode.el (tar-data-swapped): New var.
