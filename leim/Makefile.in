@@ -220,6 +220,8 @@ leim-list.el: ${SUBDIRS} ${TIT-MISC} changed.tit changed.misc ${srcdir}/leim-ext
 	fi
 	sed -n '/^[^;]/ p' < ${srcdir}/leim-ext.el >> $@
 
+MV_DIRS = for i in $$dir; do rm -fr $$(basename "$$i") ; mv "$$i" . ; done
+
 install: all
 	if [ ! -d ${INSTALLDIR} ] ; then \
           ${srcdir}/${dot}${dot}/mkinstalldirs ${INSTALLDIR}; \
@@ -262,7 +264,7 @@ install: all
 	find ${INSTALLDIR} -exec chown $${installuser} '{}' ';'
 	if [ "${ns_appresdir}" != "" ]; then \
 	  ( cd ${ns_appresdir} ; \
-	    if test -d share/emacs ; then mv -f share/emacs/*/* . ; fi ; \
+	    if test -d share/emacs ; then dir=share/emacs/*/*; $(MV_DIRS); fi;\
 	    rm -fr share ) ; \
 	else true ; fi
 
