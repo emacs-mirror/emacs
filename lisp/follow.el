@@ -1033,21 +1033,27 @@ Note that this handles the case when the cache has been set to nil."
 (defun follow-select-if-visible (dest win-start-end)
   "Select and return a window, if DEST is visible in it.
 Return the selected window."
-  (let (win)
+  (let (win win-end)
     (while (and (not win) win-start-end)
       ;; Don't select a window that was just moved. This makes it
       ;; possible to later select the last window after a `end-of-buffer'
       ;; command.
       (when (follow-pos-visible dest (caar win-start-end) win-start-end)
-	(setq win (caar win-start-end))
+	(setq win (caar win-start-end)
+	      win-end (car (cddr (car win-start-end))))
 	(select-window win))
       (setq win-start-end (cdr win-start-end)))
     ;; The last line of the window may be partially visible; if so,
     ;; and if point is visible in the next window, select the next
     ;; window instead.
-    (and (/= dest (point-max))
+    (and win
+	 (/= dest (point-max))
     	 win-start-end
     	 (follow-pos-visible dest (caar win-start-end) win-start-end)
+	 (save-excursion
+	   (goto-char dest)
+	   (vertical-motion 1 win)
+	   (>= (point) win-end))
     	 (setq win (caar win-start-end))
     	 (select-window win))
     win))
@@ -1373,13 +1379,13 @@ non-first windows in Follow mode."
 		 ((and visible aligned)
 		  (follow-debug-message "same"))
 		 ;; Pick a position in any window.  If the display is
-		 ;; ok, this will pick the `correct' window.  If the
-		 ;; display is wierd (e.g., after a delete at the
-		 ;; beginning of the window) do this anyway.
+		 ;; ok, this will pick the `correct' window.
 		 ((follow-select-if-visible dest win-start-end)
 		  (follow-debug-message "visible")
-		  (setq visible t)
-		  (goto-char dest))
+		  (goto-char dest)
+		  ;; We have to perform redisplay, since scrolling is
+		  ;; needed in case the line is partially visible.
+		  (setq visible nil))
 		 ;; Not visible anywhere else, lets pick this one.
 		 ;; (Is this case used?)
 		 (visible
@@ -1411,16 +1417,10 @@ non-first windows in Follow mode."
 		(let ((p (window-point win)))
 		  (set-window-start win (window-start win) nil)
 		  (set-window-point win p))))
-	    (unless (or visible
-			;; Use the UPDATE argument of window-end
-			;; instead of calling follow-pos-visible
-			;; (which may be inaccurate for partially
-			;; visible lines).
-			(and (>= dest (window-start))
-			     (< dest (window-end nil t))))
-	      ;; If point is not visible in the selected window,
-	      ;; perform a redisplay; this causes scrolling.
-	      (sit-for 0)
+	    (unless visible
+	      ;; If point may not be visible in the selected window,
+	      ;; perform a redisplay; this ensures scrolling.
+	      (redisplay)
 	      (setq selected-window-up-to-date t)
 	      (follow-avoid-tail-recenter)
 	      (setq win-start-end (follow-windows-start-end windows))
