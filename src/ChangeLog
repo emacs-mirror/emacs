@@ -1,3 +1,11 @@
+2008-12-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Don't advance iterator if we have
+	reseated to the desired position.
+
+	* xdisp.c (move_it_to): Handle GET_FROM_STRETCH method when
+	checking for pos match.
+
 2008-12-30  Kenichi Handa  <handa@m17n.org>
 
 	* insdel.c (copy_text): To convert a non-ASCII char to unibyte,
