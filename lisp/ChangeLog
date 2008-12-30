@@ -1,5 +1,13 @@
 2008-12-30  Chong Yidong  <cyd@stupidchicken.com>
 
+	* follow.el (follow-select-if-visible): Improve the check for the
+	last line of the window.
+	(follow-post-command-hook): Perform redisplay in more
+	circumstances, to avoid getting point stuck on partially visible
+	lines.
+
+2008-12-30  Chong Yidong  <cyd@stupidchicken.com>
+
 	* follow.el (follow-calc-win-end): Use with-selected-window.
 	(follow-windows-start-end, follow-pos-visible)
 	(follow-windows-aligned-p): Code cleanup.
