@@ -3811,6 +3811,7 @@ font_range (pos, limit, w, face, string)
 
       category = CHAR_TABLE_REF (Vunicode_category_table, c);
       if (! EQ (category, QCf)
+	  && ! CHAR_VARIATION_SELECTOR_P (c)
 	  && font_encode_char (font_object, c) == FONT_INVALID_CODE)
 	{
 	  Lisp_Object f = font_for_char (face, c, pos - 1, string);
@@ -3832,6 +3833,7 @@ font_range (pos, limit, w, face, string)
 		FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string, i, i_byte);
 	      category = CHAR_TABLE_REF (Vunicode_category_table, c);
 	      if (! EQ (category, QCf)
+		  && ! CHAR_VARIATION_SELECTOR_P (c)
 		  && font_encode_char (f, c) == FONT_INVALID_CODE)
 		{
 		  *limit = pos - 1;
@@ -4405,6 +4407,47 @@ created glyph-string.  Otherwise, the value is nil.  */)
 	LGLYPH_SET_TO (glyph, to);
       }
   return composition_gstring_put_cache (gstring, XINT (n));
+}
+
+DEFUN ("font-variation-glyphs", Ffont_variation_glyphs, Sfont_variation_glyphs,
+       2, 2, 0,
+       doc: /* Return a list of variation glyphs for CHAR in FONT-OBJECT.
+Each element of the value is a cons (VARIATION-SELECTOR . GLYPH-ID),
+where
+  VARIATION-SELECTOR is a chracter code of variation selection
+    (#xFE00..#xFE0F or #xE0100..#xE01EF)
+  GLYPH-ID is a glyph code of the corresponding variation glyph.  */)
+     (font_object, character)
+     Lisp_Object font_object, character;
+{
+  unsigned variations[256];
+  struct font *font;
+  int i, n;
+  Lisp_Object val;
+
+  CHECK_FONT_OBJECT (font_object);
+  CHECK_CHARACTER (character);
+  font = XFONT_OBJECT (font_object);
+  if (! font->driver->get_variation_glyphs)
+    return Qnil;
+  n = font->driver->get_variation_glyphs (font, XINT (character), variations);
+  if (! n)
+    return Qnil;
+  val = Qnil;
+  for (i = 0; i < 255; i++)
+    if (variations[i])
+      {
+	Lisp_Object code;
+	int vs = (i < 16 ? 0xFE00 + i : 0xE0100 + (i - 16));
+
+	if (variations[i] > MOST_POSITIVE_FIXNUM)
+	  code = Fcons (make_number ((variations[i]) >> 16),
+			make_number ((variations[i]) & 0xFFFF));
+	else
+	  code = make_number (variations[i]);
+	val = Fcons (Fcons (make_number (vs), code), val);
+      }
+  return val;
 }
 
 #if 0
@@ -5065,6 +5108,7 @@ syms_of_font ()
   defsubr (&Sfont_xlfd_name);
   defsubr (&Sclear_font_cache);
   defsubr (&Sfont_shape_gstring);
+  defsubr (&Sfont_variation_glyphs);
 #if 0
   defsubr (&Sfont_drive_otf);
   defsubr (&Sfont_otf_alternates);
