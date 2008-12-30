@@ -655,8 +655,8 @@ copy_text (from_addr, to_addr, nbytes,
 	{
 	  int thislen, c;
 	  c = STRING_CHAR_AND_LENGTH (from_addr, bytes_left, thislen);
-	  if (!ASCII_CHAR_P (c))
-	    c = multibyte_char_to_unibyte (c, tbl);
+	  if (! ASCII_CHAR_P (c))
+	    c &= 0xFF;
 	  *to_addr++ = c;
 	  from_addr += thislen;
 	  bytes_left -= thislen;
