@@ -1208,22 +1208,25 @@ should be a member of WINDOWS, starts at position START."
   (setq win (or win (selected-window)))
   (setq start (or start (window-start win)))
   (save-excursion
-    (let ((done nil)
-	  win-start
-	  res)
+    (let (done win-start res opoint)
       ;; Always calculate what happens when no line is displayed in the first
       ;; window. (The `previous' res is needed below!)
       (goto-char guess)
       (vertical-motion 0 (car windows))
       (setq res (point))
       (while (not done)
+	(setq opoint (point))
 	(if (not (= (vertical-motion -1 (car windows)) -1))
 	    ;; Hit roof!
 	    (setq done t res (point-min))
 	  (setq win-start (follow-calc-win-start windows (point) win))
-	  (cond ((= win-start start)	; Perfect match, use this value
-		 (setq done t)
-		 (setq res (point)))
+	  (cond ((>= (point) opoint)
+		 ;; In some pathological cases, vertical-motion may
+		 ;; return -1 even though point has not decreased.  In
+		 ;; that case, avoid looping forever.
+		 (setq done t res (point)))
+		((= win-start start)	; Perfect match, use this value
+		 (setq done t res (point)))
 		((< win-start start)	; Walked to far, use preious result
 		 (setq done t))
 		(t			; Store result for next iteration
