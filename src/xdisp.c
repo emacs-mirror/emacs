@@ -7206,7 +7206,8 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	    break;
 	}
       else if (BUFFERP (it->object)
-	       && it->method == GET_FROM_BUFFER
+	       && (it->method == GET_FROM_BUFFER
+		   || it->method == GET_FROM_STRETCH)
 	       && IT_CHARPOS (*it) >= to_charpos)
 	skip = MOVE_POS_MATCH_OR_ZV;
       else
