@@ -1,3 +1,8 @@
+2008-12-30  Jason Rumney  <jasonr@gnu.org>
+
+	* frame.c (store_frame_param, x_get_arg): Enable newer code on
+	WINDOWSNT too, as related changes have already been synced.
+
 2008-12-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* indent.c (Fvertical_motion): Don't advance iterator if we have
