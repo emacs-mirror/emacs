@@ -445,6 +445,7 @@ after a sequence of character events."
 (defsubst lglyph-set-from-to (glyph from to)
   (progn (aset glyph 0 from) (aset glyph 1 to)))
 (defsubst lglyph-set-char (glyph char) (aset glyph 2 char))
+(defsubst lglyph-set-code (glyph code) (aset glyph 3 code))
 (defsubst lglyph-set-width (glyph width) (aset glyph 4 width))
 (defsubst lglyph-set-adjustment (glyph &optional xoff yoff wadjust)
   (aset glyph 9 (vector (or xoff 0) (or yoff 0) (or wadjust 0))))
