@@ -1891,6 +1891,13 @@ if test "${HAVE_FREETYPE}" = "yes"; then
                       HAVE_LIBOTF=no)
     if test "$HAVE_LIBOTF" = "yes"; then
       AC_DEFINE(HAVE_LIBOTF, 1, [Define to 1 if using libotf.])
+      AC_CHECK_LIB(otf, OTF_get_variation_glyphs,
+      		   HAVE_OTF_GET_VARIATION_GLYPHS=yes,
+      		   HAVE_OTF_GET_VARIATION_GLYPHS=no)
+      if test "${HAVE_OTF_GET_VARIATION_GLYPHS}" = "yes"; then
+        AC_DEFINE(HAVE_OTF_GET_VARIATION_GLYPHS, 1,
+	          [Define to 1 if libotf has OTF_get_variation_glyphs.])
+      fi
     fi
   fi
 dnl FIXME should there be an error if HAVE_FREETYPE != yes?
