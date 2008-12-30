@@ -1,3 +1,8 @@
+2008-12-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (install-arch-dep): Remove old directories in
+	ns_app* before moving new directories there.
+
 2008-12-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* .dir-locals.el: Remove non-working entry for pmail.
