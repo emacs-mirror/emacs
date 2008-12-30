@@ -254,6 +254,7 @@ font_intern_prop (str, len, force_symbol)
   int i;
   Lisp_Object tem;
   Lisp_Object obarray;
+  int nbytes, nchars;
 
   if (len == 1 && *str == '*')
     return Qnil;
@@ -266,14 +267,25 @@ font_intern_prop (str, len, force_symbol)
 	return make_number (atoi (str));
     }
 
-  /* The following code is copied from the function intern (in lread.c).  */
+  /* The following code is copied from the function intern (in
+     lread.c), and modified to suite our purpose.  */
   obarray = Vobarray;
   if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
     obarray = check_obarray (obarray);
-  tem = oblookup (obarray, str, len, len);
+  parse_str_as_multibyte (str, len, &nchars, &nbytes);
+  if (len == nchars || len != nbytes)
+    /* CONTENTS contains no multibyte sequences or contains an invalid
+       multibyte sequence.  We'll make a unibyte string.  */
+    tem = oblookup (obarray, str, len, len);
+  else
+    tem = oblookup (obarray, str, nchars, len);
   if (SYMBOLP (tem))
     return tem;
-  return Fintern (make_unibyte_string (str, len), obarray);
+  if (len == nchars || len != nbytes)
+    tem = make_unibyte_string (str, len);
+  else
+    tem = make_multibyte_string (str, nchars, len);
+  return Fintern (tem, obarray);
 }
 
 /* Return a pixel size of font-spec SPEC on frame F.  */
