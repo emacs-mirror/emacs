@@ -1,3 +1,8 @@
+2008-12-30  Andreas Schwab  <schwab@suse.de>
+
+	* server.el (server-running-p): Remove interactive spec.  Fix
+	regexp.
+
 2008-12-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* follow.el (follow-calc-win-start): Don't use `inline'.

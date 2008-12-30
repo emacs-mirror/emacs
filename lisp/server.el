@@ -569,15 +569,12 @@ Return values:
   t                the server seems to be running.
   something else   we cannot determine whether it's running without using
                    commands which may have to wait for a long time."
-  (interactive
-   (list (if current-prefix-arg
-	     (read-string "Server name: " nil nil server-name))))
   (unless name (setq name server-name))
   (condition-case nil
       (if server-use-tcp
 	  (with-temp-buffer
 	    (insert-file-contents-literally (expand-file-name name server-auth-dir))
-	    (or (and (looking-at "127\.0\.0\.1:[0-9]+ \\([0-9]+\\)")
+	    (or (and (looking-at "127\\.0\\.0\\.1:[0-9]+ \\([0-9]+\\)")
 		     (assq 'comm
 			   (system-process-attributes
 			    (string-to-number (match-string 1))))
