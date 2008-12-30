@@ -1,3 +1,7 @@
+2008-12-30  Ed Swarthout  <Ed.Swarthout@hwdebug.com>  (tiny change)
+
+	* textmodes/table.el (table-capture): Fix symbol quoting typo.
+
 2008-12-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* follow.el (follow-select-if-visible): Improve the check for the
