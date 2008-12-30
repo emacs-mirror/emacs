@@ -46,14 +46,15 @@
 	(proced-tree-flag, proced-tree-indent): New variables.
 	(proced-children-alist): Renamed from proced-process-tree.  PPID
 	must refer to a process in process-alist.  Ignore PPIDs that equal
-	PID.  Children alist inherits sorting order from process-alist.
+	PID (Bug#1718).  Children alist inherits sorting order from
+	process-alist.
 	(proced-process-tree): New variable.  New function.
 	(proced-process-tree-internal, proced-toggle-tree)
 	(proced-tree, proced-tree-insert, proced-format-tree): New
 	functions.
 	(proced-mark-process-alist): Add docstring.
 	(proced-filter-parents): PPID must refer to a process in
-	process-alist.  Ignore PPIDs that equal PID.
+	process-alist.  Ignore PPIDs that equal PID (Bug#1718).
 	(proced-sort): Throw error if attribute is not sortable.
 	(proced-sort-interactive): Restrict completion to sortable
 	attributes.
