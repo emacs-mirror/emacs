@@ -1,3 +1,18 @@
+2008-12-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* follow.el (follow-calc-win-end): Use with-selected-window.
+	(follow-windows-start-end, follow-pos-visible)
+	(follow-windows-aligned-p): Code cleanup.
+	(follow-select-if-visible): Try to avoid partially-visible lines.
+	(follow-select-if-visible-from-first): Call follow-redisplay and
+	move point to destination.
+	(follow-redisplay): New arg, to keep selected window unchanged.
+	(follow-post-command-hook): In final check for destination
+	visibility, use window-start and window-end instead of the less
+	accurate follow-pos-visible.  If the selected window is redrawn,
+	tell follow-redisplay to preserve it.
+
+
 2008-12-30  Andreas Schwab  <schwab@suse.de>
 
 	* server.el (server-running-p): Remove interactive spec.  Fix
