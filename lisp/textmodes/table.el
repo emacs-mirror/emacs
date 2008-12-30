@@ -3738,7 +3738,7 @@ companion command to `table-capture' this way.
 	(table--read-from-minibuffer '("Minimum cell width" . table-capture-min-cell-width-history)))
       (if (and (not (string= col-delim-regexp "")) (string= row-delim-regexp ""))
 	  (string-to-number
-	   (table--read-from-minibuffer '("Number of columns" . 'table-capture-columns-history)))
+	   (table--read-from-minibuffer '("Number of columns" . table-capture-columns-history)))
 	nil)
       )))
   (if (> beg end) (let ((tmp beg)) (setq beg end) (setq end tmp)))
