@@ -1,5 +1,8 @@
 2008-12-30  Kenichi Handa  <handa@m17n.org>
 
+	* insdel.c (copy_text): To convert a non-ASCII char to unibyte,
+	just get the low 8-bit of the code.
+
 	* font.c (font_intern_prop): Validate str as multibyte.
 
 2008-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
