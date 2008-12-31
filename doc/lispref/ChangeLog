@@ -1,3 +1,9 @@
+2008-12-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffers.texi (The Buffer List): Clarify what moves a buffer to
+	the front of the buffer list.  Add entries for `last-buffer' and
+	`unbury-buffer'.
+
 2008-12-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* elisp.texi (Top): Add @detailmenu items for "Multiple Terminals"

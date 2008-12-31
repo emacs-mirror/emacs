@@ -771,36 +771,37 @@ signal an error if the current buffer is read-only.
 @section The Buffer List
 @cindex buffer list
 
-  The @dfn{buffer list} is a list of all live buffers.  The order of
-the buffers in the list is based primarily on how recently each buffer
-has been displayed in a window.  Several functions, notably
-@code{other-buffer}, use this ordering.  A buffer list displayed for
-the user also follows this order.
+  The @dfn{buffer list} is a list of all live buffers.  The order of the
+buffers in this list is based primarily on how recently each buffer has
+been displayed in a window.  Several functions, notably
+@code{other-buffer}, use this ordering.  A buffer list displayed for the
+user also follows this order.
 
-  Creating a buffer adds it to the end of the buffer list, and killing
-a buffer removes it.  Buffers move to the front of the list when they
-are selected for display in a window (@pxref{Displaying Buffers}), and
-to the end when they are buried (see @code{bury-buffer}, below).
-There are no functions available to the Lisp programmer which directly
-manipulate the buffer list.
+  Creating a buffer adds it to the end of the buffer list, and killing a
+buffer removes it from that list.  A buffer moves to the front of this
+list whenever it is chosen for display in a window (@pxref{Displaying
+Buffers}) or a window displaying it is selected (@pxref{Selecting
+Windows}).  A buffer moves to the end of the list when it is buried (see
+@code{bury-buffer}, below).  There are no functions available to the
+Lisp programmer which directly manipulate the buffer list.
 
-  In addition to the fundamental Emacs buffer list, each frame has its
-own version of the buffer list, in which the buffers that have been
-selected in that frame come first, starting with the buffers most
-recently selected @emph{in that frame}.  (This order is recorded in
-@var{frame}'s @code{buffer-list} frame parameter; see @ref{Buffer
-Parameters}.)  The buffers that were never selected in @var{frame} come
-afterward, ordered according to the fundamental Emacs buffer list.
+  In addition to the fundamental buffer list just described, Emacs
+maintains a local buffer list for each frame, in which the buffers that
+have been displayed (or had their windows selected) in that frame come
+first.  (This order is recorded in the frame's @code{buffer-list} frame
+parameter; see @ref{Buffer Parameters}.)  Buffers never displayed in
+that frame come afterward, ordered according to the fundamental buffer
+list.
 
 @defun buffer-list &optional frame
 This function returns the buffer list, including all buffers, even those
 whose names begin with a space.  The elements are actual buffers, not
 their names.
 
-If @var{frame} is a frame, this returns @var{frame}'s buffer list.  If
-@var{frame} is @code{nil}, the fundamental Emacs buffer list is used:
-all the buffers appear in order of most recent selection, regardless of
-which frames they were selected in.
+If @var{frame} is a frame, this returns @var{frame}'s local buffer list.
+If @var{frame} is @code{nil} or omitted, the fundamental buffer list is
+used: the buffers appear in order of most recent display or selection,
+regardless of which frames they were displayed on.
 
 @example
 @group
@@ -820,11 +821,10 @@ which frames they were selected in.
 @end example
 @end defun
 
-  The list that @code{buffer-list} returns is constructed specifically
-by @code{buffer-list}; it is not an internal Emacs data structure, and
-modifying it has no effect on the order of buffers.  If you want to
-change the order of buffers in the frame-independent buffer list, here
-is an easy way:
+  The list returned by @code{buffer-list} is constructed specifically;
+it is not an internal Emacs data structure, and modifying it has no
+effect on the order of buffers.  If you want to change the order of
+buffers in the fundamental buffer list, here is an easy way:
 
 @example
 (defun reorder-buffer-list (new-list)
@@ -837,20 +837,21 @@ is an easy way:
 no danger of losing a buffer or adding something that is not a valid
 live buffer.
 
-  To change the order or value of a frame's buffer list, set the frame's
-@code{buffer-list} frame parameter with @code{modify-frame-parameters}
-(@pxref{Parameter Access}).
+  To change the order or value of a specific frame's buffer list, set
+that frame's @code{buffer-list} parameter with
+@code{modify-frame-parameters} (@pxref{Parameter Access}).
 
 @defun other-buffer &optional buffer visible-ok frame
 This function returns the first buffer in the buffer list other than
-@var{buffer}.  Usually this is the buffer selected most recently (in
-frame @var{frame} or else the currently selected frame, @pxref{Input
-Focus}), aside from @var{buffer}.  Buffers whose names start with a
-space are not considered at all.
+@var{buffer}.  Usually, this is the buffer appearing in the most
+recently selected window (in frame @var{frame} or else the selected
+frame, @pxref{Input Focus}), aside from @var{buffer}.  Buffers whose
+names start with a space are not considered at all.
 
-If @var{buffer} is not supplied (or if it is not a buffer), then
+If @var{buffer} is not supplied (or if it is not a live buffer), then
 @code{other-buffer} returns the first buffer in the selected frame's
-buffer list that is not now visible in any window in a visible frame.
+local buffer list. (If @var{frame} is non-@code{nil}, it returns the
+first buffer in @var{frame}'s local buffer list instead.)
 
 If @var{frame} has a non-@code{nil} @code{buffer-predicate} parameter,
 then @code{other-buffer} uses that predicate to decide which buffers to
@@ -860,38 +861,57 @@ is @code{nil}, that buffer is ignored.  @xref{Buffer Parameters}.
 @c Emacs 19 feature
 If @var{visible-ok} is @code{nil}, @code{other-buffer} avoids returning
 a buffer visible in any window on any visible frame, except as a last
-resort.   If @var{visible-ok} is non-@code{nil}, then it does not matter
+resort.  If @var{visible-ok} is non-@code{nil}, then it does not matter
 whether a buffer is displayed somewhere or not.
 
 If no suitable buffer exists, the buffer @samp{*scratch*} is returned
 (and created, if necessary).
 @end defun
 
+@defun last-buffer &optional buffer visible-ok frame
+This function returns the last buffer in @var{frame}'s buffer list other
+than @var{BUFFER}.  If @var{frame} is omitted or @code{nil}, it uses the
+selected frame's buffer list.
+
+The argument @var{visible-ok} is handled as with @code{other-buffer},
+see above.  If no suitable buffer can be found, the buffer
+@samp{*scratch*} is returned.
+@end defun
+
 @deffn Command bury-buffer &optional buffer-or-name
-This function puts @var{buffer-or-name} at the end of the buffer list,
+This command puts @var{buffer-or-name} at the end of the buffer list,
 without changing the order of any of the other buffers on the list.
 This buffer therefore becomes the least desirable candidate for
 @code{other-buffer} to return.  The argument can be either a buffer
 itself or the name of one.
 
 @code{bury-buffer} operates on each frame's @code{buffer-list} parameter
-as well as the frame-independent Emacs buffer list; therefore, the
-buffer that you bury will come last in the value of @code{(buffer-list
-@var{frame})} and in the value of @code{(buffer-list nil)}.
+as well as the fundamental buffer list; therefore, the buffer that you
+bury will come last in the value of @code{(buffer-list @var{frame})} and
+in the value of @code{(buffer-list)}.
 
 If @var{buffer-or-name} is @code{nil} or omitted, this means to bury the
 current buffer.  In addition, if the buffer is displayed in the selected
 window, this switches to some other buffer (obtained using
-@code{other-buffer}) in the selected window.  But if the selected window
-is dedicated to its buffer, it deletes that window if there are other
-windows left on its frame.  Otherwise, if the selected window is the
-only window on its frame, it iconifies that frame.  If
-@var{buffer-or-name} is displayed in some other window, it remains
-displayed there.
+@code{other-buffer}) in the selected window.  @xref{Displaying Buffers}.
+But if the selected window is dedicated to its buffer, it deletes that
+window if there are other windows left on its frame.  Otherwise, if the
+selected window is the only window on its frame, it iconifies that
+frame.  If @var{buffer-or-name} is displayed in some other window, it
+remains displayed there.
 
 To replace a buffer in all the windows that display it, use
 @code{replace-buffer-in-windows}.  @xref{Buffers and Windows}.
 @end deffn
+
+@deffn Command unbury-buffer
+This command switches to the last buffer in the local buffer list of the
+selected frame.  More precisely, it calls the function
+@code{switch-to-buffer} (@pxref{Displaying Buffers}), to display the
+buffer returned by @code{last-buffer}, see above, in the selected
+window.
+@end deffn
+
 
 @node Creating Buffers
 @section Creating Buffers
