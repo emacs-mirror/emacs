@@ -41,6 +41,34 @@
 (require 'mail-utils)
 (eval-when-compile (require 'mule-util)) ; for detect-coding-with-priority
 
+
+;; The buffer-swapped-with feature has been moved here temporarily.
+;; When pmail is merged, this advice must be eliminated and the
+;; functionality somehow reimplemented.
+
+(defvar buffer-swapped-with nil
+  "Buffer that this buffer's contents are temporarily swapped with.
+You should only set this variable in file-visiting buffers,
+because it only affects how to save the buffer in its file.")
+
+(make-variable-buffer-local 'buffer-swapped-with)
+
+(defadvice basic-save-buffer
+  (around check-swap activate)
+  "If this buffer's real contents are swapped with some other buffer,
+temporarily unswap in order to save the real contents.  This
+advice is temporarily used by pmail until a satisfactory solution
+can be written."
+  (if (not buffer-swapped-with)
+      ad-do-it
+    (unwind-protect
+	(let ((modp (buffer-modified-p)))
+	  (buffer-swap-text buffer-swapped-with)
+	  (set-buffer-modified-p modp)
+	  ad-do-it)
+      (buffer-swap-text buffer-swapped-with)
+      (set-buffer-modified-p nil))))
+
 (defconst pmail-attribute-header "X-RMAIL-ATTRIBUTES"
   "The header that stores the Pmail attribute data.")
 
