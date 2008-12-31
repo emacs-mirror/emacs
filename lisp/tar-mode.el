@@ -637,7 +637,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   ;; buffer for the summary.
   (assert (not (tar-data-swapped-p)))
   (set (make-local-variable 'revert-buffer-function) 'tar-mode-revert)
-  (add-hook 'write-region-annotate-functions 'tar-write-region-annotate nil t)
+  (add-hook 'write-contents-functions 'tar-mode-write-contents nil t)
   (add-hook 'kill-buffer-hook 'tar-mode-kill-buffer-hook nil t)
   (add-hook 'change-major-mode-hook 'tar-change-major-mode-hook nil t)
   ;; Tar data is made of bytes, not chars.
@@ -1213,15 +1213,18 @@ Leaves the region wide."
             (insert (make-string (- goal-end (point-max)) ?\0))))))))
 
 
-;; Used in write-region-annotate-functions to write tar-files out correctly.
-(defun tar-write-region-annotate (start end)
-  ;; When called from write-file (and auto-save), `start' is nil.
-  ;; When called from M-x write-region, we assume the user wants to save
-  ;; (part of) the summary, not the tar data.
-  (unless (or start (not (tar-data-swapped-p)))
-    (tar-clear-modification-flags)
-    (set-buffer tar-data-buffer)
-    nil))
+;; Used in write-contents-functions to write tar-files out correctly.
+(defun tar-mode-write-contents ()
+  (save-excursion
+    (unwind-protect
+	(progn
+	  (when (tar-data-swapped-p) (tar-swap-data))
+	  (write-region nil nil buffer-file-name nil t))
+      (unless (tar-data-swapped-p) (tar-swap-data))))
+  (tar-clear-modification-flags)
+  (set-buffer-modified-p nil)
+  ;; Return t because we've written the file.
+  t)
 
 (provide 'tar-mode)
 
