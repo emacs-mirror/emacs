@@ -1,3 +1,8 @@
+2008-12-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* simple.el (last-buffer): Don't set major mode of *scratch* if
+	that buffer exists already.  Rewrite doc-string.
+
 2008-12-31  Andreas Schwab  <schwab@suse.de>
 
 	* tar-mode.el (tar-mode): Set write-contents-functions instead of

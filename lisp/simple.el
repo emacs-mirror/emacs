@@ -78,19 +78,22 @@ If BUFFER is non-nil, ignore occurrences of that buffer in LIST."
     (car list)))
 
 (defun last-buffer (&optional buffer visible-ok frame)
-  "Return the last non-hidden displayable buffer in the buffer list.
-If BUFFER is non-nil, last-buffer will ignore that buffer.
+  "Return the last buffer in FRAME's buffer list.
+If BUFFER is the last buffer, return the preceding buffer instead.
 Buffers not visible in windows are preferred to visible buffers,
 unless optional argument VISIBLE-OK is non-nil.
-If the optional third argument FRAME is non-nil, use that frame's
-buffer list instead of the selected frame's buffer list.
-If no other buffer exists, the buffer `*scratch*' is returned."
+Optional third argument FRAME nil or omitted means use the
+selected frame's buffer list.
+If no such buffer exists, return the buffer `*scratch*', creating
+it if necessary."
   (setq frame (or frame (selected-frame)))
   (or (get-next-valid-buffer (nreverse (buffer-list frame))
  			     buffer visible-ok frame)
-      (progn
-	(set-buffer-major-mode (get-buffer-create "*scratch*"))
-	(get-buffer "*scratch*"))))
+      (get-buffer "*scratch*")
+      (let ((scratch (get-buffer-create "*scratch*")))
+	(set-buffer-major-mode scratch)
+	scratch)))
+
 (defun next-buffer ()
   "Switch to the next buffer in cyclic order."
   (interactive)
