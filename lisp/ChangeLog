@@ -1,3 +1,8 @@
+2008-12-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (basic-save-buffer): Revert 2008-12-22 change.
+	(buffer-swapped-with): Var removed.
+
 2008-12-30  Kenichi Handa  <handa@m17n.org>
 
 	* language/japanese.el (compose-gstring-for-variation-glyph): New
