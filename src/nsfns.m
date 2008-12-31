@@ -952,7 +952,7 @@ ns_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 #define Xstr(x) Str(x)
 
 static Lisp_Object
-ns_appkit_version ()
+ns_appkit_version_str ()
 {
   char tmp[80];
 
@@ -964,6 +964,21 @@ ns_appkit_version ()
   tmp = "ns-unknown";
 #endif
   return build_string (tmp);
+}
+
+
+/* This is for use by x-server-version and collapses all version info we
+   have into a single int.  For a better picture of the implementation
+   running, use ns_appkit_version_str.*/
+static int
+ns_appkit_version_int ()
+{
+#ifdef NS_IMPL_GNUSTEP
+  return GNUSTEP_GUI_MAJOR_VERSION * 100 + GNUSTEP_GNU_MINOR_VERSION;
+#elif defined(NS_IMPL_COCOA)
+  return (int)NSAppKitVersionNumber;
+#endif
+  return 0;
 }
 
 
@@ -1602,14 +1617,26 @@ If omitted or nil, the selected frame's display is used.  */)
 
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
-       doc: /* Return the version number of Nextstep display server DISPLAY.
+       doc: /* Return the version numbers of the server of DISPLAY.
+The value is a list of three integers: the major and minor
+version numbers of the X Protocol in use, and the distributor-specific
+release number.  See also the function `x-server-vendor'.
+
+The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
-If omitted or nil, the selected frame's display is used.
-See also the function `ns-server-vendor'.  */)
+If omitted or nil, that stands for the selected frame's display.  */)
      (display)
      Lisp_Object display;
 {
-  return ns_appkit_version ();
+  /*NOTE: it is unclear what would best correspond with "protocol";
+          we return 10.3, meaning Panther, since this is roughly the
+          level that GNUstep's APIs correspond to.
+          The last number is where we distinguish between the Apple
+          and GNUstep implementations ("distributor-specific release
+          number") and give int'ized versions of major.minor. */
+  return Fcons (make_number (10),
+		Fcons (make_number (3),
+		       Fcons (make_number (ns_appkit_version_int()), Qnil)));
 }
 
 
@@ -2658,7 +2685,7 @@ be used as the image of the icon representing the frame.  */);
 
   DEFVAR_LISP ("ns-version-string", &Vns_version_string,
                doc: /* Toolkit version for NS Windowing.  */);
-  Vns_version_string = ns_appkit_version ();
+  Vns_version_string = ns_appkit_version_str ();
 
   defsubr (&Sns_read_file_name);
   defsubr (&Sns_get_resource);

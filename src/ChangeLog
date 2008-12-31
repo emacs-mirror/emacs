@@ -1,3 +1,10 @@
+2008-12-31  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (ns_appkit_version_str): Rename from ns_appkit_version.
+	(ns_appkit_version_int): New function.
+	(x-server-version): Use ns_appkit_version_int and follow 21+
+	convention of returning 3 integers.
+
 2008-12-30  Kenichi Handa  <handa@m17n.org>
 
 	* character.h (CHAR_VARIATION_SELECTOR_P): New macro.
