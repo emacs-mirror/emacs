@@ -1,3 +1,8 @@
+2008-12-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (buffer-swapped-with): New var, moved from files.el.
+	Add advice to basic-save-buffer to use it.
+
 2008-12-29  Richard M Stallman  <rms@gnu.org>
 
 	* pmailedit.el (pmail-edit-mode): Bind buffer-swwapped-with to nil.
