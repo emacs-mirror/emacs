@@ -4850,7 +4850,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 		       /* x, y, width, height */
 		       0, 0, 1, 1,
 		       /* Border.  */
-		       1,
+		       f->border_width,
 		       CopyFromParent, InputOutput, CopyFromParent,
 		       mask, &attrs);
     UNBLOCK_INPUT;
