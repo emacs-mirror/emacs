@@ -1,5 +1,12 @@
 2009-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
+	* language/cham.el: Fix setting of composition-function-table.
+
+	* language/khmer.el: Fix setting of composition-function-table.
+
+	* language/tibet-util.el (tibetan-composition-function): Remove
+	unused function, obsoleted by 2008-09-05 change to tibetan.el.
+
 	* simple.el (minibuffer-default): Add defvar.
 
 	* hippie-exp.el: Require comint.
