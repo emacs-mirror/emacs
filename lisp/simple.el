@@ -1047,6 +1047,11 @@ in *Help* buffer.  See also the command `describe-char'."
 (defvar minibuffer-completing-symbol nil
   "Non-nil means completing a Lisp symbol in the minibuffer.")
 
+(defvar minibuffer-default nil
+  "The current default value or list of default values in the minibuffer.
+The functions `read-from-minibuffer' and `completing-read' bind
+this variable locally.")
+
 (defcustom eval-expression-print-level 4
   "Value for `print-level' while printing value in `eval-expression'.
 A value of nil means no limit."
