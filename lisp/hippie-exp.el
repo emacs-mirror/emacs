@@ -167,7 +167,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'comint))
+(require 'comint)
 
 (defgroup hippie-expand nil
   "Expand text trying various ways to find its expansion."
