@@ -1,3 +1,8 @@
+2009-01-01  Andreas Schwab  <schwab@suse.de>
+
+	* process.c (conv_sockaddr_to_lisp): Add workaround for
+	getsockname bug on BSD.
+
 2009-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (x_create_tip_frame): Set border width of the X window.

@@ -1,7 +1,7 @@
 /* Asynchronous subprocess control for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
-                 1996, 1998, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+		 1996, 1998, 1999, 2001, 2002, 2003, 2004,
+		 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -40,6 +40,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/stat.h>
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
+#endif
+#ifdef STDC_HEADERS
+#include <stdlib.h>
 #endif
 
 #ifdef HAVE_UNISTD_H
@@ -554,7 +557,7 @@ allocate_pty ()
 #ifdef PTY_TTY_NAME_SPRINTF
 	    PTY_TTY_NAME_SPRINTF
 #else
-            sprintf (pty_name, "/dev/tty%c%x", c, i);
+	    sprintf (pty_name, "/dev/tty%c%x", c, i);
 #endif /* no PTY_TTY_NAME_SPRINTF */
 	    if (access (pty_name, 6) != 0)
 	      {
@@ -1477,7 +1480,7 @@ list_processes_1 (query_only)
 	  insert_string (tembuf);
 	}
       else if (NETCONN1_P (p))
-        {
+	{
 	  /* For a local socket, there is no host name,
 	     so display service instead.  */
 	  Lisp_Object host = Fplist_get (p->childp, QChost);
@@ -1493,7 +1496,7 @@ list_processes_1 (query_only)
 		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
 		   (STRINGP (host) ? (char *)SDATA (host) : "?"));
 	  insert_string (tembuf);
-        }
+	}
       else if (SERIALCONN1_P (p))
 	{
 	  Lisp_Object port = Fplist_get (p->childp, QCport);
@@ -2264,6 +2267,12 @@ conv_sockaddr_to_lisp (sa, len)
   unsigned char *cp;
   register struct Lisp_Vector *p;
 
+  /* Workaround for a bug in getsockname on BSD: Names bound to
+     sockets in the UNIX domain are inaccessible; getsockname returns
+     a zero length name.  */
+  if (len < OFFSETOF (struct sockaddr, sa_family) + sizeof (sa->sa_family))
+    return build_string ("");
+
   switch (sa->sa_family)
     {
     case AF_INET:
@@ -2273,14 +2282,14 @@ conv_sockaddr_to_lisp (sa, len)
 	address = Fmake_vector (make_number (len), Qnil);
 	p = XVECTOR (address);
 	p->contents[--len] = make_number (ntohs (sin->sin_port));
-	cp = (unsigned char *)&sin->sin_addr;
+	cp = (unsigned char *) &sin->sin_addr;
 	break;
       }
 #ifdef AF_INET6
     case AF_INET6:
       {
 	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) sa;
-	uint16_t *ip6 = (uint16_t *)&sin6->sin6_addr;
+	uint16_t *ip6 = (uint16_t *) &sin6->sin6_addr;
 	len = sizeof (sin6->sin6_addr)/2 + 1;
 	address = Fmake_vector (make_number (len), Qnil);
 	p = XVECTOR (address);
@@ -2301,11 +2310,11 @@ conv_sockaddr_to_lisp (sa, len)
       }
 #endif
     default:
-      len -= sizeof (sa->sa_family);
+      len -= OFFSETOF (struct sockaddr, sa_family) + sizeof (sa->sa_family);
       address = Fcons (make_number (sa->sa_family),
 		       Fmake_vector (make_number (len), Qnil));
       p = XVECTOR (XCDR (address));
-      cp = (unsigned char *) sa + sizeof (sa->sa_family);
+      cp = (unsigned char *) &sa->sa_family + sizeof (sa->sa_family);
       break;
     }
 
@@ -3334,7 +3343,7 @@ usage: (make-network-process &rest ARGS)  */)
 #ifdef HAVE_GAI_STRERROR
 	error ("%s/%s %s", SDATA (host), portstring, gai_strerror(ret));
 #else
-        error ("%s/%s getaddrinfo error %d", SDATA (host), portstring, ret);
+	error ("%s/%s getaddrinfo error %d", SDATA (host), portstring, ret);
 #endif
       immediate_quit = 0;
 
@@ -3455,7 +3464,7 @@ usage: (make-network-process &rest ARGS)  */)
 
       /* Parse network options in the arg list.
 	 We simply ignore anything which isn't a known option (including other keywords).
-         An error is signaled if setting a known option fails.  */
+	 An error is signaled if setting a known option fails.  */
       for (optn = optbits = 0; optn < nargs-1; optn += 2)
 	optbits |= set_socket_option (s, args[optn], args[optn+1]);
 
@@ -4537,12 +4546,12 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	QUIT;
 #ifdef SYNC_INPUT
       else
-        {
-          if (interrupt_input_pending)
-            handle_async_input ();
-          if (pending_atimers)
-            do_pending_atimers ();
-        }
+	{
+	  if (interrupt_input_pending)
+	    handle_async_input ();
+	  if (pending_atimers)
+	    do_pending_atimers ();
+	}
 #endif
 
       /* Exit now if the cell we're waiting for became non-nil.  */
@@ -4674,7 +4683,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	}
 
       /* Don't wait for output from a non-running process.  Just
-         read whatever data has already been received.  */
+	 read whatever data has already been received.  */
       if (wait_proc && wait_proc->raw_status_new)
 	update_status (wait_proc);
       if (wait_proc
@@ -4694,22 +4703,22 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	      if (nread == 0)
 		break;
 
-              if (0 < nread)
-                {
+	      if (0 < nread)
+		{
 		  total_nread += nread;
 		  got_some_input = 1;
 		}
 #ifdef EIO
 	      else if (nread == -1 && EIO == errno)
-                break;
+		break;
 #endif
 #ifdef EAGAIN
 	      else if (nread == -1 && EAGAIN == errno)
-                break;
+		break;
 #endif
 #ifdef EWOULDBLOCK
 	      else if (nread == -1 && EWOULDBLOCK == errno)
-                break;
+		break;
 #endif
 	    }
 	  if (total_nread > 0 && do_display)
@@ -4804,11 +4813,11 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	    }
 #endif
 #ifdef HAVE_NS
-          nfds = ns_select
+	  nfds = ns_select
 #else
-          nfds = select
+	  nfds = select
 #endif
-                        (max (max (max_process_desc, max_keyboard_desc),
+			(max (max (max_process_desc, max_keyboard_desc),
 			      max_gpm_desc) + 1,
 			 &Available,
 #ifdef NON_BLOCKING_CONNECT
@@ -5074,7 +5083,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 
 #ifdef GNU_LINUX
 	      /* getsockopt(,,SO_ERROR,,) is said to hang on some systems.
-	         So only use it on systems where it is known to work.  */
+		 So only use it on systems where it is known to work.  */
 	      {
 		int xlen = sizeof(xerrno);
 		if (getsockopt(channel, SOL_SOCKET, SO_ERROR, &xerrno, &xlen))
@@ -5641,7 +5650,7 @@ send_process (proc, buf, len, object)
 	  if (p->pty_flag)
 	    {
 	      /* Starting this at zero is always correct when not the first
-                 iteration because the previous iteration ended by sending C-d.
+		 iteration because the previous iteration ended by sending C-d.
 		 It may not be correct for the first iteration
 		 if a partial line was sent in a separate send_process call.
 		 If that proves worth handling, we need to save linepos
@@ -5945,7 +5954,7 @@ process_send_signal (process, signo, current_group, nomsg)
 	 by sending an input character to it.  */
 
       /* TERMIOS is the latest and bestest, and seems most likely to
-         work.  If the system has it, use it.  */
+	 work.  If the system has it, use it.  */
 #ifdef HAVE_TERMIOS
       struct termios t;
       cc_t *sig_char = NULL;
@@ -6548,7 +6557,7 @@ sigchld_handler (signo)
 #endif /* no WUNTRACED */
       /* Keep trying to get a status until we get a definitive result.  */
       do
-        {
+	{
 	  errno = 0;
 	  pid = wait3 (&w, WNOHANG | WUNTRACED, 0);
 	}
@@ -6645,7 +6654,7 @@ sigchld_handler (signo)
 	  if (WIFEXITED (w))
 	    synch_process_retcode = WRETCODE (w);
 	  else if (WIFSIGNALED (w))
-            synch_process_termsig = WTERMSIG (w);
+	    synch_process_termsig = WTERMSIG (w);
 
 	  /* Tell wait_reading_process_output that it needs to wake up and
 	     look around.  */
@@ -6663,7 +6672,7 @@ sigchld_handler (signo)
 	 to use up all the processes that have something to tell us.  */
 #if (defined WINDOWSNT \
      || (defined USG && !defined GNU_LINUX \
-         && !(defined HPUX && defined WNOHANG)))
+	 && !(defined HPUX && defined WNOHANG)))
 #if defined (USG) && ! defined (POSIX_SIGNALS)
       signal (signo, sigchld_handler);
 #endif
