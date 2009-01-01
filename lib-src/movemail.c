@@ -341,6 +341,13 @@ main (argc, argv)
 	  close (desc);
 
 	  tem = link (tempname, lockname);
+
+#ifdef EPERM
+	  if (tem < 0 && errno == EPERM)
+	    fatal ("Unable to create hard link between %s and %s",
+		   tempname, lockname);
+#endif
+
 	  unlink (tempname);
 	  if (tem >= 0)
 	    break;
