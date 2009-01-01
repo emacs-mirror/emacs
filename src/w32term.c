@@ -5229,9 +5229,7 @@ x_new_font (f, font_object, fontset)
   if (FRAME_FONT (f) == font)
     /* This font is already set in frame F.  There's nothing more to
        do.  */
-    return fontset_name (fontset);
-
-  BLOCK_INPUT;
+    return font_object;
 
   FRAME_FONT (f) = font;
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
@@ -5264,15 +5262,9 @@ x_new_font (f, font_object, fontset)
 	x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
     }
 
-#ifdef HAVE_X_I18N
-  if (FRAME_XIC (f)
-      && (FRAME_XIC_STYLE (f) & (XIMPreeditPosition | XIMStatusArea)))
-    xic_set_xfontset (f, SDATA (fontset_ascii (fontset)));
-#endif
+  /* X version sets font of input methods here also.  */
 
-  UNBLOCK_INPUT;
-
-  return fontset_name (fontset);
+  return font_object;
 }
 
 
