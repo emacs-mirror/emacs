@@ -1,3 +1,8 @@
+2009-01-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.c (make_terminal_frame): Remove redundant code and useless
+	block.
+
 2009-01-01  Andreas Schwab  <schwab@suse.de>
 
 	* process.c (conv_sockaddr_to_lisp): Add workaround for
