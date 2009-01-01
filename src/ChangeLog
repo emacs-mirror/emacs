@@ -1,3 +1,8 @@
+2009-01-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_new_font): Return font object, not fontset. (Bug#119)
+	Don't block input, as per earlier xterm.c changes.
+
 2008-12-31  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfns.m (ns_appkit_version_str): Rename from ns_appkit_version.
@@ -31,7 +36,7 @@
 2008-12-30  Jason Rumney  <jasonr@gnu.org>
 
 	* frame.c (store_frame_param, x_get_arg): Enable newer code on
-	WINDOWSNT too, as related changes have already been synced.
+	WINDOWSNT too, as related changes have already been synced. (Bug#117)
 
 2008-12-30  Chong Yidong  <cyd@stupidchicken.com>
 
