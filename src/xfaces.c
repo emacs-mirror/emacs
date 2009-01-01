@@ -2389,9 +2389,7 @@ set_lface_from_font (f, lface, font_object, force_p)
    merged height.  If FROM is an invalid height, then INVALID is
    returned instead.  FROM and TO may be either absolute face heights or
    `relative' heights; the returned value is always an absolute height
-   unless both FROM and TO are relative.  GCPRO is a lisp value that
-   will be protected from garbage-collection if this function makes a
-   call into lisp.  */
+   unless both FROM and TO are relative.  */
 
 Lisp_Object
 merge_face_heights (from, to, invalid)
