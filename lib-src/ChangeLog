@@ -1,3 +1,7 @@
+2009-01-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* movemail.c (main): Fatal if hard links cannot be created.
+
 2008-12-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacsclient.c (start_daemon_and_retry_set_socket): Improve error
