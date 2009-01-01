@@ -311,14 +311,6 @@ are decomposed into normal Tibetan character sequences."
 	    idx (1+ idx)))
     new))
 
-;;;###autoload
-(defun tibetan-composition-function (from to font-object string)
-  (or (and font-object
-	   (font-shape-text from to font-object string))
-      (if string
-	  (tibetan-compose-string string)
-	(tibetan-compose-region from to))))
-
 ;;;
 ;;; This variable is used to avoid repeated decomposition.
 ;;;
