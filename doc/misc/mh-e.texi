@@ -12,8 +12,8 @@
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2008-08-18
-@set UPDATE-MONTH August, 2008
+@set UPDATED 2009-01-02
+@set UPDATE-MONTH January, 2009
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -24,7 +24,7 @@
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001, 2002, 2003, 2005, 2006, 2007, 2008
+Copyright @copyright{} 1995, 2001, 2002, 2003, 2005, 2006, 2007, 2008, 2009
 Free Software Foundation, Inc.
 
 @c This dual license has been agreed upon by the FSF.
@@ -8040,9 +8040,11 @@ Program used to scan messages (default: @code{"scan"}).
 There are a couple of caveats when creating your own scan format file.
 First, MH-E will not work if your scan lines do not include message
 numbers. It will work poorly if you don't dedicate a column for
-showing the current message and notations. You won't be able to use
-the option @code{mh-adaptive-cmd-note-flag} or the threading features
-(@pxref{Threading}).
+showing the current message and notations. It is also best to keep the
+first column empty so that text isn't obscured by the current
+message's overlay arrow when running in a terminal. You won't be able
+to use the option @code{mh-adaptive-cmd-note-flag} or the threading
+features (@pxref{Threading}).
 
 @cindex message numbers
 @findex mh-set-cmd-note
