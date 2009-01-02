@@ -149,7 +149,7 @@ extern Lisp_Object QCfilter;
 Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
 Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
 Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
-Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem;
+Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
 
 #ifdef HAVE_SOCKETS
 #define NETCONN_P(p) (EQ (XPROCESS (p)->type, Qnetwork))
@@ -7119,8 +7119,10 @@ integer or floating point values.
  cmajflt -- cumulative number of major page faults (number)
  utime   -- user time used by the process, in the (HIGH LOW USEC) format
  stime   -- system time used by the process, in the (HIGH LOW USEC) format
+ time    -- sum of utime and stime, in the (HIGH LOW USEC) format
  cutime  -- user time used by the process and its children, (HIGH LOW USEC)
  cstime  -- system time used by the process and its children, (HIGH LOW USEC)
+ ctime   -- sum of cutime and cstime, in the (HIGH LOW USEC) format
  pri     -- priority of the process (number)
  nice    -- nice value of the process (number)
  thcount -- process thread count (number)
@@ -7386,10 +7388,14 @@ syms_of_process ()
   staticpro (&Qutime);
   Qstime = intern ("stime");
   staticpro (&Qstime);
+  Qtime = intern ("time");
+  staticpro (&Qtime);
   Qcutime = intern ("cutime");
   staticpro (&Qcutime);
   Qcstime = intern ("cstime");
   staticpro (&Qcstime);
+  Qctime = intern ("ctime");
+  staticpro (&Qctime);
   Qpri = intern ("pri");
   staticpro (&Qpri);
   Qnice = intern ("nice");
@@ -7843,8 +7849,10 @@ integer or floating point values.
  cmajflt -- cumulative number of major page faults (number)
  utime   -- user time used by the process, in the (HIGH LOW USEC) format
  stime   -- system time used by the process, in the (HIGH LOW USEC) format
+ time    -- sum of utime and stime, in the (HIGH LOW USEC) format
  cutime  -- user time used by the process and its children, (HIGH LOW USEC)
  cstime  -- system time used by the process and its children, (HIGH LOW USEC)
+ ctime   -- sum of cutime and cstime, in the (HIGH LOW USEC) format
  pri     -- priority of the process (number)
  nice    -- nice value of the process (number)
  thcount -- process thread count (number)
