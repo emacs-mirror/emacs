@@ -1,3 +1,7 @@
+2009-01-02  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (image-library-alist): Add gobject library.
+
 2009-01-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.el (window-system-default-frame-alist)
