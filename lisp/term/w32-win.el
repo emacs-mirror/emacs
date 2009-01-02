@@ -210,7 +210,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
         (gif "giflib4.dll" "libungif4.dll" "libungif.dll")
         (svg "librsvg-2-2.dll")
         (gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
-        (glib "libglib-2.0-0.dll")))
+        (glib "libglib-2.0-0.dll")
+	(gobject "libgobject-2.0-0.dll")))
 
 ;;; multi-tty support
 (defvar w32-initialized nil
