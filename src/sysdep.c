@@ -3493,11 +3493,17 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qstime,
 				ltime_from_jiffies (stime, clocks_per_sec)),
 			 attrs);
+	  attrs = Fcons (Fcons (Qtime,
+				ltime_from_jiffies (stime+utime, clocks_per_sec)),
+			 attrs);
 	  attrs = Fcons (Fcons (Qcutime,
 				ltime_from_jiffies (cutime, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qcstime,
 				ltime_from_jiffies (cstime, clocks_per_sec)),
+			 attrs);
+	  attrs = Fcons (Fcons (Qctime,
+				ltime_from_jiffies (cstime+cutime, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qpri, make_number (priority)), attrs);
 	  attrs = Fcons (Fcons (Qnice, make_number (nice)), attrs);
