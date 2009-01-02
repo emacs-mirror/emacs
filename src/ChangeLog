@@ -1,3 +1,9 @@
+2009-01-02  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c: (Qgobject): New symbol.
+	(syms_of_image): Initialize it.
+	(init_svg_functions): Load some functions from gobject library.
+
 2009-01-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frame.c (make_terminal_frame): Remove redundant code and useless

@@ -7898,14 +7898,15 @@ DEF_IMGLIB_FN (g_type_init);
 DEF_IMGLIB_FN (g_object_unref);
 DEF_IMGLIB_FN (g_error_free);
 
-Lisp_Object Qgdk_pixbuf, Qglib;
+Lisp_Object Qgdk_pixbuf, Qglib, Qgobject;
 
 static int
 init_svg_functions (Lisp_Object libraries)
 {
-  HMODULE library, gdklib, glib;
+  HMODULE library, gdklib, glib, gobject;
 
   if (!(glib = w32_delayed_load (libraries, Qglib))
+      || !(gobject = w32_delayed_load (libraries, Qgobject))
       || !(gdklib = w32_delayed_load (libraries, Qgdk_pixbuf))
       || !(library = w32_delayed_load (libraries, Qsvg)))
     return 0;
@@ -7926,9 +7927,10 @@ init_svg_functions (Lisp_Object libraries)
   LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_has_alpha);
   LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_bits_per_sample);
 
-  LOAD_IMGLIB_FN (glib, g_type_init);
-  LOAD_IMGLIB_FN (glib, g_object_unref);
+  LOAD_IMGLIB_FN (gobject, g_type_init);
+  LOAD_IMGLIB_FN (gobject, g_object_unref);
   LOAD_IMGLIB_FN (glib, g_error_free);
+
   return 1;
 }
 
@@ -8742,10 +8744,13 @@ non-numeric, there is no explicit limit on the size of images.  */);
   staticpro (&Qsvg);
   ADD_IMAGE_TYPE (Qsvg);
 #ifdef HAVE_NTGUI
+  /* Other libraries used directly by svg code.  */
   Qgdk_pixbuf = intern ("gdk-pixbuf");
   staticpro (&Qgdk_pixbuf);
   Qglib = intern ("glib");
   staticpro (&Qglib);
+  Qgobject = intern ("gobject");
+  staticpro (&Qgobject);
 #endif /* HAVE_NTGUI  */
 #endif /* HAVE_RSVG  */
 
