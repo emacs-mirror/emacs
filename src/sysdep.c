@@ -3708,17 +3708,19 @@ system_process_attributes (Lisp_Object pid)
 		Qcminflt
 		Qcmajflt
 
+		Qutime
+		Qcutime
 		Qstime
 		Qcstime
 		Are they available? */
 
-	  attrs = Fcons (Fcons (Qutime,
+	  attrs = Fcons (Fcons (Qtime,
 	  			list3 (make_number (pinfo.pr_time.tv_sec >> 16),
 	  			       make_number (pinfo.pr_time.tv_sec & 0xffff),
 	  			       make_number (pinfo.pr_time.tv_nsec))),
 	  		 attrs);
 
-	  attrs = Fcons (Fcons (Qcutime,
+	  attrs = Fcons (Fcons (Qctime,
 	  			list3 (make_number (pinfo.pr_ctime.tv_sec >> 16),
 	  			       make_number (pinfo.pr_ctime.tv_sec & 0xffff),
 	  			       make_number (pinfo.pr_ctime.tv_nsec))),

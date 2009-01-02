@@ -1,3 +1,8 @@
+2009-01-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sysdep.c (system_process_attributes): Provide Qtime and Qctime
+	for Solaris instead of incorrectly providing Qutime and Qcutime.
+
 2009-01-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (process_times): Compute sum of utime and stime.
