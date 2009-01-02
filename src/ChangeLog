@@ -1,3 +1,18 @@
+2009-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (process_times): Compute sum of utime and stime.
+	(system_process_attributes): Add Qtime to the alist.
+
+	* sysdep.c (system_process_attributes): Compute Qtime and Qctime
+	and add them to the alist.
+
+	* process.c (top level) <Qtime, Qctime>: New variables.
+	(syms_of_process): staticpro them.
+	(Fsystem_process_attributes): Add their documentation to the doc
+	string.
+
+	* process.h: Declare Qtime and Qctime.
+
 2009-01-02  Jason Rumney  <jasonr@gnu.org>
 
 	* image.c: (Qgobject): New symbol.
