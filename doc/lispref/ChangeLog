@@ -1,3 +1,8 @@
+2009-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (System Processes): Document the `time' and
+	`ctime' attributes of `system-process-attributes'.
+
 2009-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Face Attributes): Clarify :height attribute.
