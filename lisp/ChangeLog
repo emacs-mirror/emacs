@@ -1,3 +1,10 @@
+2009-01-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (window-system-default-frame-alist)
+	(initial-frame-alist, minibuffer-frame-alist)
+	(pop-up-frame-alist, pop-up-frame-function)
+	(special-display-frame-alist): Rewrite and reformat doc-strings.
+
 2009-01-01  Martin Rudalics  <rudalics@gmx.at>
 
 	* simple.el (minibuffer-default-add-shell-commands): Fix

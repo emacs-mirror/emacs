@@ -38,33 +38,39 @@ as its argument.")
 
 (defvar window-system-default-frame-alist nil
   "Alist of window-system dependent default frame parameters.
-You can set this in your `.emacs' file; for example,
+You can set this in your init file; for example,
 
-    ;; Disable menubar and toolbar on the console, but enable them under X.
-    (setq window-system-default-frame-alist
-          '((x (menu-bar-lines . 1) (tool-bar-lines . 1))
-            (nil (menu-bar-lines . 0) (tool-bar-lines . 0))))
+ ;; Disable menubar and toolbar on the console, but enable them under X.
+ (setq window-system-default-frame-alist
+       '((x (menu-bar-lines . 1) (tool-bar-lines . 1))
+         (nil (menu-bar-lines . 0) (tool-bar-lines . 0))))
 
-Parameters specified here supersede the values given in `default-frame-alist'.")
+Parameters specified here supersede the values given in
+`default-frame-alist'.")
 
 ;; The initial value given here used to ask for a minibuffer.
 ;; But that's not necessary, because the default is to have one.
 ;; By not specifying it here, we let an X resource specify it.
 (defcustom initial-frame-alist nil
-  "Alist of frame parameters for creating the initial X window frame.
-You can set this in your `.emacs' file; for example,
- (setq initial-frame-alist '((top . 1) (left . 1) (width . 80) (height . 55)))
-Parameters specified here supersede the values given in `default-frame-alist'.
+  "Alist of parameters for the initial X window frame.
+You can set this in your init file; for example,
 
-If the value calls for a frame without a minibuffer, and you have not created
-a minibuffer frame on your own, one is created according to
-`minibuffer-frame-alist'.
+ (setq initial-frame-alist
+       '((top . 1) (left . 1) (width . 80) (height . 55)))
 
-You can specify geometry-related options for just the initial frame
-by setting this variable in your `.emacs' file; however, they won't
-take effect until Emacs reads `.emacs', which happens after first creating
-the frame.  If you want the frame to have the proper geometry as soon
-as it appears, you need to use this three-step process:
+Parameters specified here supersede the values given in
+`default-frame-alist'.
+
+If the value calls for a frame without a minibuffer, and you have
+not created a minibuffer frame on your own, a minibuffer frame is
+created according to `minibuffer-frame-alist'.
+
+You can specify geometry-related options for just the initial
+frame by setting this variable in your init file; however, they
+won't take effect until Emacs reads your init file, which happens
+after creating the initial frame.  If you want the initial frame
+to have the proper geometry as soon as it appears, you need to
+use this three-step process:
 * Specify X resources to give the geometry you want.
 * Set `default-frame-alist' to override these options so that they
   don't affect subsequent frames.
@@ -76,10 +82,12 @@ as it appears, you need to use this three-step process:
   :group 'frames)
 
 (defcustom minibuffer-frame-alist '((width . 80) (height . 2))
-  "Alist of frame parameters for initially creating a minibuffer frame.
-You can set this in your `.emacs' file; for example,
+  "Alist of parameters for initial minibuffer frame.
+You can set this in your init file; for example,
+
  (setq minibuffer-frame-alist
-   '((top . 1) (left . 1) (width . 80) (height . 2)))
+       '((top . 1) (left . 1) (width . 80) (height . 2)))
+
 Parameters specified here supersede the values given in
 `default-frame-alist', for a minibuffer frame."
   :type '(repeat (cons :format "%v"
@@ -88,12 +96,19 @@ Parameters specified here supersede the values given in
   :group 'frames)
 
 (defcustom pop-up-frame-alist nil
-  "Alist of frame parameters used when creating pop-up frames.
-Pop-up frames are used for completions, help, and the like.
-This variable can be set in your init file, like this:
+  "Alist of parameters for automatically generated new frames.
+You can set this in your init file; for example,
+
   (setq pop-up-frame-alist '((width . 80) (height . 20)))
-These supersede the values given in `default-frame-alist',
-for pop-up frames."
+
+If non-nil, the value you specify here is used by the default
+`pop-up-frame-function' for the creation of new frames.
+
+Since `pop-up-frame-function' is used by `display-buffer' for
+making new frames, any value specified here, by default affects
+the automatic generation of new frames via `display-buffer' and
+all functions based on it.  The behavior of `make-frame' is not
+affected by this variable."
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value")))
@@ -101,19 +116,24 @@ for pop-up frames."
 
 (defcustom pop-up-frame-function
   (lambda () (make-frame pop-up-frame-alist))
-  "Function to call to handle automatic new frame creation.
-It is called with no arguments and should return a newly created frame."
+  "Function used by `display-buffer' for creating a new frame.
+This function is called with no arguments and should return a new
+frame.  The default value calls `make-frame' with the argument
+`pop-up-frame-alist'."
   :type '(choice (const nil) (function :tag "function"))
   :group 'frames)
 
 (defcustom special-display-frame-alist
   '((height . 14) (width . 80) (unsplittable . t))
-  "Alist of frame parameters used when creating special frames.
+  "Alist of parameters for special frames.
 Special frames are used for buffers whose names are in
 `special-display-buffer-names' and for buffers whose names match
 one of the regular expressions in `special-display-regexps'.
+
 This variable can be set in your init file, like this:
+
   (setq special-display-frame-alist '((width . 80) (height . 20)))
+
 These supersede the values given in `default-frame-alist'."
   :type '(repeat (cons :format "%v"
 			 (symbol :tag "Parameter")
