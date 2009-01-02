@@ -1,5 +1,14 @@
 2009-01-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* nsfns.m (x_set_foreground_color, x_set_background_color)
+	(x_set_cursor_color, x_set_icon_name, x_explicitly_set_name)
+	(x_set_title, x_set_icon_type, x_set_cursor_type): Rename to use
+	x_ prefix instead of ns_.  Update references.
+	(syms_of_nsfns): Add a FIXME comment.
+
+	* nsterm.m (x_set_cursor_type): New prototype.
+	(setValuesFromPanel): Use it instead of the old ns_ prefixed name.
+
 	* sysdep.c (system_process_attributes): Provide Qtime and Qctime
 	for Solaris instead of incorrectly providing Qutime and Qcutime.
 

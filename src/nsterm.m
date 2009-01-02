@@ -297,9 +297,11 @@ static BOOL inNsSelect = 0;
   ns_send_appdefined (-1);                                    \
   }
 
+void x_set_cursor_type (struct frame *, Lisp_Object, Lisp_Object);
+
 /* TODO: get rid of need for these forward declarations */
-static void ns_condemn_scroll_bars (struct frame *f),
-            ns_judge_scroll_bars (struct frame *f);
+static void ns_condemn_scroll_bars (struct frame *f);
+static void ns_judge_scroll_bars (struct frame *f);
 
 /* unused variables needed for compatibility reasons */
 int x_use_underline_position_properties, x_underline_at_descent_line;
@@ -6100,7 +6102,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
     }
 
   store_frame_param (frame, Qcursor_type, cursor_type);
-  ns_set_cursor_type(frame, cursor_type, Qnil);  /* FIXME: do only if changed */
+  x_set_cursor_type (frame, cursor_type, Qnil);  /* FIXME: do only if changed */
 
   ns_alternate_modifier = ns_mod_to_lisp (altTag);
   ns_command_modifier = ns_mod_to_lisp (cmdTag);
