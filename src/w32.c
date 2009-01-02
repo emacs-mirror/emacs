@@ -3771,14 +3771,14 @@ ltime (time_sec, time_usec)
 }
 
 static int
-process_times (h_proc, ctime, etime, stime, utime, pcpu)
+process_times (h_proc, ctime, etime, stime, utime, ttime, pcpu)
      HANDLE h_proc;
-     Lisp_Object *ctime, *etime, *stime, *utime;
+     Lisp_Object *ctime, *etime, *stime, *utime, *ttime;
      double *pcpu;
 {
   FILETIME ft_creation, ft_exit, ft_kernel, ft_user, ft_current;
   long ctime_sec, ctime_usec, stime_sec, stime_usec, utime_sec, utime_usec;
-  long etime_sec, etime_usec;
+  long etime_sec, etime_usec, ttime_sec, ttime_usec;
   long double tem1, tem2, tem;
 
   if (!h_proc
@@ -3797,6 +3797,9 @@ process_times (h_proc, ctime, etime, stime, utime, pcpu)
   utime_usec = fmodl (tem2, 1000000.0L);
   utime_sec = tem2 * 0.000001L;
   *utime = ltime (utime_sec, utime_usec);
+  ttime_usec = fmodl (tem1 + tem2, 1000000.0L);
+  ttime_sec = (tem1 + tem2) * 0.000001L;
+  *ttime = ltime (ttime_sec, ttime_usec);
   tem = convert_time_raw (ft_creation);
   /* Process no 4 (System) returns zero creation time.  */
   if (tem)
@@ -3850,7 +3853,7 @@ system_process_attributes (pid)
   MEMORYSTATUS memst;
   MEMORY_STATUS_EX memstex;
   double totphys = 0.0;
-  Lisp_Object ctime, stime, utime, etime;
+  Lisp_Object ctime, stime, utime, etime, ttime;
   double pcpu;
   BOOL result = FALSE;
 
@@ -4109,10 +4112,11 @@ system_process_attributes (pid)
 	attrs = Fcons (Fcons (Qpmem, make_float (100. * rss / totphys)), attrs);
     }
 
-  if (process_times (h_proc, &ctime, &etime, &stime, &utime, &pcpu))
+  if (process_times (h_proc, &ctime, &etime, &stime, &utime, &ttime, &pcpu))
     {
       attrs = Fcons (Fcons (Qutime, utime), attrs);
       attrs = Fcons (Fcons (Qstime, stime), attrs);
+      attrs = Fcons (Fcons (Qtime,  ttime), attrs);
       attrs = Fcons (Fcons (Qstart, ctime), attrs);
       attrs = Fcons (Fcons (Qetime, etime), attrs);
       attrs = Fcons (Fcons (Qpcpu, make_float (pcpu)), attrs);
