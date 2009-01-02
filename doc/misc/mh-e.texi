@@ -8041,10 +8041,11 @@ There are a couple of caveats when creating your own scan format file.
 First, MH-E will not work if your scan lines do not include message
 numbers. It will work poorly if you don't dedicate a column for
 showing the current message and notations. It is also best to keep the
-first column empty so that text isn't obscured by the current
-message's overlay arrow when running in a terminal. You won't be able
-to use the option @code{mh-adaptive-cmd-note-flag} or the threading
-features (@pxref{Threading}).
+first column empty to make room for the cursor and so that text isn't
+obscured by the current message's overlay arrow when running in a
+terminal. You won't be able to use the option
+@code{mh-adaptive-cmd-note-flag} or the threading features
+(@pxref{Threading}).
 
 @cindex message numbers
 @findex mh-set-cmd-note
