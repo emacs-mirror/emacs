@@ -1,3 +1,8 @@
+2009-01-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bindings.el (mode-line-eol-desc): Fix typo in help message.
+	(mode-line-client): Fix typo in help message and docstring.
+
 2009-01-02  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (image-library-alist): Add gobject library.
