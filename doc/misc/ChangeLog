@@ -1,3 +1,8 @@
+2009-01-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Scan Line Formats): Indicate that first column should be
+	kept empty.
+
 2008-12-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Activation, Exporting, ASCII export, HTML export)
