@@ -1744,10 +1744,15 @@ Time spent by the process in the system (kernel) context, for
 processing system calls.  The corresponding @var{value} is in the same
 format as for @code{utime}.
 
+@item time
+The sum of @code{utime} and @code{stime}.  The corresponding
+@var{value} is in the same format as for @code{utime}.
+
 @item cutime
 @itemx cstime
-Like @code{utime} and @code{stime}, but includes the times of all the
-child processes of the given process.
+@itemx ctime
+Like @code{utime}, @code{stime}, and @code{time}, but include the
+times of all the child processes of the given process.
 
 @item pri
 The numerical priority of the process.
