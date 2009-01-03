@@ -1,7 +1,7 @@
 /* Asynchronous subprocess control for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
 		 1996, 1998, 1999, 2001, 2002, 2003, 2004,
-		 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+		 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7541,6 +7541,11 @@ extern int timers_run;
 
 Lisp_Object QCtype, QCname;
 
+Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
+Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
+Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
+Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
+
 /* As described above, except assuming that there are no subprocesses:
 
    Wait for timeout to elapse and/or keyboard input to be available.
@@ -7810,7 +7815,7 @@ See `system-process-attributes' for getting attributes of a process
 given its ID.  */)
     ()
 {
-  return Qnil;
+  return list_system_processes ();
 }
 
 DEFUN ("system-process-attributes", Fsystem_process_attributes,
@@ -7868,7 +7873,7 @@ integer or floating point values.
 
     Lisp_Object pid;
 {
-  return Qnil;
+  return system_process_attributes (pid);
 }
 
 void
@@ -7883,6 +7888,72 @@ syms_of_process ()
   staticpro (&QCtype);
   QCname = intern (":name");
   staticpro (&QCname);
+  QCtype = intern (":type");
+  staticpro (&QCtype);
+  QCname = intern (":name");
+  staticpro (&QCname);
+  Qeuid = intern ("euid");
+  staticpro (&Qeuid);
+  Qegid = intern ("egid");
+  staticpro (&Qegid);
+  Quser = intern ("user");
+  staticpro (&Quser);
+  Qgroup = intern ("group");
+  staticpro (&Qgroup);
+  Qcomm = intern ("comm");
+  staticpro (&Qcomm);
+  Qstate = intern ("state");
+  staticpro (&Qstate);
+  Qppid = intern ("ppid");
+  staticpro (&Qppid);
+  Qpgrp = intern ("pgrp");
+  staticpro (&Qpgrp);
+  Qsess = intern ("sess");
+  staticpro (&Qsess);
+  Qttname = intern ("ttname");
+  staticpro (&Qttname);
+  Qtpgid = intern ("tpgid");
+  staticpro (&Qtpgid);
+  Qminflt = intern ("minflt");
+  staticpro (&Qminflt);
+  Qmajflt = intern ("majflt");
+  staticpro (&Qmajflt);
+  Qcminflt = intern ("cminflt");
+  staticpro (&Qcminflt);
+  Qcmajflt = intern ("cmajflt");
+  staticpro (&Qcmajflt);
+  Qutime = intern ("utime");
+  staticpro (&Qutime);
+  Qstime = intern ("stime");
+  staticpro (&Qstime);
+  Qtime = intern ("time");
+  staticpro (&Qtime);
+  Qcutime = intern ("cutime");
+  staticpro (&Qcutime);
+  Qcstime = intern ("cstime");
+  staticpro (&Qcstime);
+  Qctime = intern ("ctime");
+  staticpro (&Qctime);
+  Qpri = intern ("pri");
+  staticpro (&Qpri);
+  Qnice = intern ("nice");
+  staticpro (&Qnice);
+  Qthcount = intern ("thcount");
+  staticpro (&Qthcount);
+  Qstart = intern ("start");
+  staticpro (&Qstart);
+  Qvsize = intern ("vsize");
+  staticpro (&Qvsize);
+  Qrss = intern ("rss");
+  staticpro (&Qrss);
+  Qetime = intern ("etime");
+  staticpro (&Qetime);
+  Qpcpu = intern ("pcpu");
+  staticpro (&Qpcpu);
+  Qpmem = intern ("pmem");
+  staticpro (&Qpmem);
+  Qargs = intern ("args");
+  staticpro (&Qargs);
 
   defsubr (&Sget_buffer_process);
   defsubr (&Sprocess_inherit_coding_system_flag);
