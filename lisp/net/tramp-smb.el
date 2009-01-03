@@ -1,7 +1,7 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -44,7 +44,7 @@
 ;; Add a default for `tramp-default-method-alist'. Rule: If there is
 ;; a domain in USER, it must be the SMB method.
 (add-to-list 'tramp-default-method-alist
-	     `(nil "%" ,tramp-smb-method))
+	     `(nil ,tramp-prefix-domain-regexp ,tramp-smb-method))
 
 ;; Add a default for `tramp-default-user-alist'. Rule: For the SMB method,
 ;; the anonymous user is chosen.
@@ -905,20 +905,13 @@ connection if a previous connection has died for some reason."
 		  (executable-find tramp-smb-program))
 	  (error "Cannot find command %s in %s" tramp-smb-program exec-path))
 
-	(let* ((user (tramp-file-name-user vec))
-	       (host (tramp-file-name-host vec))
-	       (real-user user)
-	       (real-host host)
-	       domain port args)
-
-	  ;; Check for domain ("user%domain") and port ("host#port").
-	  (when (and user (string-match "\\(.+\\)%\\(.+\\)" user))
-	    (setq real-user (or (match-string 1 user) user)
-		  domain (match-string 2 user)))
-
-	  (when (and host (string-match "\\(.+\\)#\\(.+\\)" host))
-	    (setq real-host (or (match-string 1 host) host)
-		  port (match-string 2 host)))
+	(let* ((user      (tramp-file-name-user vec))
+	       (host      (tramp-file-name-host vec))
+	       (real-user (tramp-file-name-real-user vec))
+	       (real-host (tramp-file-name-real-host vec))
+	       (domain    (tramp-file-name-domain vec))
+	       (port      (tramp-file-name-port vec))
+	       args)
 
 	  (if share
 	      (setq args (list (concat "//" real-host "/" share)))
