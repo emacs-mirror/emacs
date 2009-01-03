@@ -935,6 +935,10 @@ The new methods "plinkx", "plink2", "psftp", "sftp" and "fish" have
 been introduced.  There are also new so-called gateway methods
 "tunnel" and "socks".
 
+*** IPv6 addresses.
+IPv6 addresses are supported now as host names.  They must be embedded
+in square brackets, like in "/ssh:[::1]:".
+
 *** Multihop syntax has been removed.
 The pseudo-method "multi" has been removed.  Instead of, multi hops
 can be specified by the new variable `tramp-default-proxies-alist'.
