@@ -1,5 +1,8 @@
 2009-01-03  Jason Rumney  <jasonr@gnu.org>
 
+	* keyboard.c (parse_modifiers_uncached): Wheel events are
+	clicks (bug#687).
+
 	* w32term.c (x_query_colors, x_query_color): New functions.
 
 	* image.c (x_to_xcolors, png_load): Eliminate W32 specific code.
