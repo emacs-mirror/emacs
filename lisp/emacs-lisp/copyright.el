@@ -1,7 +1,7 @@
 ;;; copyright.el --- update the copyright notice in current buffer
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1998, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: maint, tools
@@ -282,10 +282,12 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
        (message "Copyright extends beyond `copyright-limit' and won't be updated automatically."))
   comment-end \n)
 
+;;;###autoload
 (defun copyright-update-directory (directory match)
   "Update copyright notice for all files in DIRECTORY matching MATCH."
-  (interactive "DDirectory: \nMFilenames matching: ")
+  (interactive "DDirectory: \nMFilenames matching (regexp): ")
   (dolist (file (directory-files directory t match nil))
+    (message "Updating file `%s'" file)
     (find-file file)
     (let ((copyright-query nil))
       (copyright-update))

@@ -1,3 +1,8 @@
+2009-01-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* emacs-lisp/copyright.el (copyright-update-directory): Autoload.
+	Clarify MATCH argument.  Print filenames.
+
 2009-01-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-string-to-byte-array): Handle empty string.
