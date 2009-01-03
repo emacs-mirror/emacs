@@ -2493,7 +2493,9 @@ Return nil if no complete line has arrived."
   (when (eq (char-after) ?\()
     (let (uid flags envelope internaldate rfc822 rfc822header rfc822text
 	      rfc822size body bodydetail bodystructure flags-empty)
-      (while (not (eq (char-after) ?\)))
+      (while (let ((moved (skip-chars-forward " \t")))
+	       (prog1 (not (eq (char-after) ?\)))
+		 (unless (= moved 0) (backward-char))))
 	(imap-forward)
 	(let ((token (read (current-buffer))))
 	  (imap-forward)

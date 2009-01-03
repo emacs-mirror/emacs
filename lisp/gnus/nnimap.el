@@ -620,7 +620,7 @@ If EXAMINE is non-nil the group is selected read-only."
        ;; to make it more clear.
        (mm-with-unibyte-buffer
 	 (buffer-disable-undo)
-	 (insert headers)
+	 (when headers (insert headers))
 	 (let ((head (nnheader-parse-naked-head uid)))
 	   (mail-header-set-number head uid)
 	   (mail-header-set-chars head chars)
@@ -950,9 +950,10 @@ function is generally only called when Gnus is shutting down."
 	      (erase-buffer)
 	      (let ((data (imap-fetch article part prop nil
 				      nnimap-server-buffer)))
-		(insert (nnimap-demule (if detail
-					   (nth 2 (car data))
-					 data))))
+		(when data
+		  (insert (nnimap-demule (if detail
+					     (nth 2 (car data))
+					   data)))))
 	      (nnheader-ms-strip-cr)
 	      (gnus-message
 	       10 "nnimap: Fetching (part of) article %d from %s...done"
