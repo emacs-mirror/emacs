@@ -128,7 +128,7 @@ echo.   --without-jpeg          do not use JPEG library even if it is installed
 echo.   --without-gif           do not use GIF library even if it is installed
 echo.   --without-tiff          do not use TIFF library even if it is installed
 echo.   --without-xpm           do not use XPM library even if it is installed
-echo.   --with-svg		use the RSVG library (experimental)
+echo.   --with-svg              use the RSVG library (experimental)
 goto end
 rem ----------------------------------------------------------------------
 :setprefix

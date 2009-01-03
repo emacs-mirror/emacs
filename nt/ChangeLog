@@ -1,3 +1,7 @@
+2009-01-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Untabify help message.
+
 2009-01-03  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat: New option --with-svg.
