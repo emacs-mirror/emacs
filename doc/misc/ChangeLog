@@ -1,3 +1,10 @@
+2009-01-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trampver.texi.in (top): Declare ipv6prefix and ipv6postfix.
+
+	* tramp.texi (Filename Syntax, Filename completion): Handle IPv6
+	addresses.
+
 2009-01-03  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Scan Line Formats): Indicate that first column should be
