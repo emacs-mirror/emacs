@@ -1,3 +1,8 @@
+2009-01-03  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-user-input): Do not include text properties when
+	returning user input.
+
 2008-11-19  Andy Stewart  <lazycat.manatee@gmail.com>
 
 	* erc.el (erc-header-line-uses-tabbar-p): New option that makes
