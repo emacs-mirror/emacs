@@ -147,6 +147,13 @@ get_lim_data ()
   if (lim_data > 512U * 1024U * 1024U)
     lim_data = 512U * 1024U * 1024U;
 }
+
+unsigned long
+ret_lim_data ()
+{
+  get_lim_data ();
+  return lim_data;
+}
 #else /* not MSDOS */
 static void
 get_lim_data ()
