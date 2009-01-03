@@ -1,7 +1,7 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff
@@ -1889,7 +1889,7 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
   "Show trailing whitespaces in modified lines for diff-mode."
   (interactive)
   (let ((whitespace-style '(trailing))
-        (whitespace-trailing-regexp "^[-\+!<>].*?\\([\t ]+\\)$"))
+        (whitespace-trailing-regexp "^[-+!<>].*?\\([\t ]+\\)$"))
     (whitespace-mode 1)))     ; display trailing whitespace in diff buffer
 
 ;; provide the package
