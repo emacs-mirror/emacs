@@ -1,7 +1,7 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; (copyright statements below in code to be updated with the above notice)
 
@@ -758,6 +758,11 @@ matching HOST or USER, respectively."
 		       (regexp :tag "User regexp")
 		       (string :tag "Proxy remote name"))))
 
+(defconst tramp-local-host-regexp
+  (concat
+   "^" (regexp-opt (list "localhost" (system-name) "127\.0\.0\.1" "::1") t) "$")
+  "*Host names which are regarded as local host.")
+
 (defconst tramp-completion-function-alist-rsh
   '((tramp-parse-rhosts "/etc/hosts.equiv")
     (tramp-parse-rhosts "~/.rhosts"))
@@ -1163,6 +1168,24 @@ Derived from `tramp-postfix-method-format'.")
   "[^:/ \t]+"
   "*Regexp matching user names.")
 
+(defconst tramp-prefix-domain-format "%"
+  "*String matching delimeter between user and domain names.")
+
+(defconst tramp-prefix-domain-regexp
+  (regexp-quote tramp-prefix-domain-format)
+  "*Regexp matching delimeter between user and domain names.
+Derived from `tramp-prefix-domain-format'.")
+
+(defconst tramp-domain-regexp
+  "[a-zA-Z0-9]+"
+  "*Regexp matching domain names.")
+
+(defconst tramp-user-with-domain-regexp
+  (concat "\\(" tramp-user-regexp "\\)"
+	        tramp-prefix-domain-regexp
+	  "\\(" tramp-domain-regexp "\\)")
+  "*Regexp matching user names with domain names.")
+
 (defconst tramp-postfix-user-format
   "@"
   "*String matching delimeter between user and host names.
@@ -1176,6 +1199,37 @@ Derived from `tramp-postfix-user-format'.")
 (defconst tramp-host-regexp
   "[a-zA-Z0-9_.-]+"
   "*Regexp matching host names.")
+
+(defconst tramp-prefix-ipv6-format
+  (cond ((equal tramp-syntax 'ftp) "[")
+	((equal tramp-syntax 'sep) "")
+	((equal tramp-syntax 'url) "[")
+	(t (error "Wrong `tramp-syntax' defined")))
+  "*String matching left hand side of IPv6 addresses.
+Used in `tramp-make-tramp-file-name'.")
+
+(defconst tramp-prefix-ipv6-regexp
+  (regexp-quote tramp-prefix-ipv6-format)
+  "*Regexp matching left hand side of IPv6 addresses.
+Derived from `tramp-prefix-ipv6-format'.")
+
+;; The following regexp is a bit sloppy.  But it shall serve our purposes.
+(defconst tramp-ipv6-regexp
+  "\\(?:\\(?:[a-zA-Z0-9]+\\)?:\\)+[a-zA-Z0-9]+"
+  "*Regexp matching IPv6 addresses.")
+
+(defconst tramp-postfix-ipv6-format
+  (cond ((equal tramp-syntax 'ftp) "]")
+	((equal tramp-syntax 'sep) "")
+	((equal tramp-syntax 'url) "]")
+	(t (error "Wrong `tramp-syntax' defined")))
+  "*String matching right hand side of IPv6 addresses.
+Used in `tramp-make-tramp-file-name'.")
+
+(defconst tramp-postfix-ipv6-regexp
+  (regexp-quote tramp-postfix-ipv6-format)
+  "*Regexp matching right hand side of IPv6 addresses.
+Derived from `tramp-postfix-ipv6-format'.")
 
 (defconst tramp-prefix-port-format
   (cond ((equal tramp-syntax 'ftp) "#")
@@ -1224,11 +1278,14 @@ Derived from `tramp-postfix-host-format'.")
     tramp-prefix-regexp
     "\\(" "\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp "\\)?"
     "\\(" "\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp   "\\)?"
-    "\\(" tramp-host-regexp
-          "\\(" tramp-prefix-port-regexp  tramp-port-regexp "\\)?" "\\)?"
+    "\\(" "\\(" tramp-host-regexp
+		"\\|"
+		tramp-prefix-ipv6-regexp  tramp-ipv6-regexp
+					  tramp-postfix-ipv6-regexp "\\)"
+	  "\\(" tramp-prefix-port-regexp  tramp-port-regexp "\\)?" "\\)?"
     tramp-postfix-host-regexp
     "\\(" tramp-localname-regexp "\\)")
-   2 4 5 7)
+   2 4 5 8)
 
   "*List of five elements (REGEXP METHOD USER HOST FILE), detailing \
 the Tramp file name structure.
@@ -1248,7 +1305,7 @@ See also `tramp-file-name-regexp'.")
 
 ;;;###autoload
 (defconst tramp-file-name-regexp-unified
-  "\\`/[^/:]+:"
+  "\\`/\\([^[/:]+\\|[^/]+]\\):"
   "Value for `tramp-file-name-regexp' for unified remoting.
 Emacs (not XEmacs) uses a unified filename syntax for Ange-FTP and
 Tramp.  See `tramp-file-name-structure' for more explanations.")
@@ -4093,7 +4150,7 @@ coding system might not be determined.  This function repairs it."
 	      (set 'last-coding-system-used coding-system-used))))
 
 	(when visit
-	  (setq buffer-read-only (file-writable-p filename))
+	  (setq buffer-read-only (not (file-writable-p filename)))
 	  (setq buffer-file-name filename)
 	  (set-visited-file-modtime)
 	  (set-buffer-modified-p nil))
@@ -4874,6 +4931,12 @@ They are collected by `tramp-completion-dissect-file-name1'."
 
   (let* ((result)
 	 (x-nil "\\|\\(\\)")
+	 (tramp-completion-ipv6-regexp
+	  (format
+	   "[^%s]*"
+	   (if (zerop (length tramp-postfix-ipv6-format))
+	       tramp-postfix-host-format
+	     tramp-postfix-ipv6-format)))
 	 ;; "/method" "/[method"
 	 (tramp-completion-file-name-structure1
 	  (list (concat tramp-prefix-regexp "\\(" tramp-method-regexp x-nil "\\)$")
@@ -4886,33 +4949,61 @@ They are collected by `tramp-completion-dissect-file-name1'."
 	 (tramp-completion-file-name-structure3
 	  (list (concat tramp-prefix-regexp "\\(" tramp-host-regexp x-nil   "\\)$")
 		nil nil 1 nil))
-	 ;; "/user@host" "/[user@host"
+	 ;; "/[ipv6" "/[ipv6"
 	 (tramp-completion-file-name-structure4
+	  (list (concat tramp-prefix-regexp
+			tramp-prefix-ipv6-regexp
+			"\\(" tramp-completion-ipv6-regexp x-nil   "\\)$")
+		nil nil 1 nil))
+	 ;; "/user@host" "/[user@host"
+	 (tramp-completion-file-name-structure5
 	  (list (concat tramp-prefix-regexp
 			"\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp
 			"\\(" tramp-host-regexp x-nil   "\\)$")
 		nil 1 2 nil))
+	 ;; "/user@[ipv6" "/[user@ipv6"
+	 (tramp-completion-file-name-structure6
+	  (list (concat tramp-prefix-regexp
+			"\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp
+			tramp-prefix-ipv6-regexp
+			"\\(" tramp-completion-ipv6-regexp x-nil   "\\)$")
+		nil 1 2 nil))
 	 ;; "/method:user" "/[method/user" "/method://user"
-	 (tramp-completion-file-name-structure5
+	 (tramp-completion-file-name-structure7
 	  (list (concat tramp-prefix-regexp
 			"\\(" tramp-method-regexp "\\)"	tramp-postfix-method-regexp
 			"\\(" tramp-user-regexp x-nil   "\\)$")
 		1 2 nil nil))
 	 ;; "/method:host" "/[method/host" "/method://host"
-	 (tramp-completion-file-name-structure6
+	 (tramp-completion-file-name-structure8
 	  (list (concat tramp-prefix-regexp
 			"\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
 			"\\(" tramp-host-regexp x-nil   "\\)$")
 		1 nil 2 nil))
+	 ;; "/method:[ipv6" "/[method/ipv6" "/method://[ipv6"
+	 (tramp-completion-file-name-structure9
+	  (list (concat tramp-prefix-regexp
+			"\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
+			tramp-prefix-ipv6-regexp
+			"\\(" tramp-completion-ipv6-regexp x-nil   "\\)$")
+		1 nil 2 nil))
 	 ;; "/method:user@host" "/[method/user@host" "/method://user@host"
-	 (tramp-completion-file-name-structure7
+	 (tramp-completion-file-name-structure10
 	  (list (concat tramp-prefix-regexp
 			"\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
 			"\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp
 			"\\(" tramp-host-regexp x-nil   "\\)$")
 		1 2 3 nil))
+	 ;; "/method:user@[ipv6" "/[method/user@ipv6" "/method://user@[ipv6"
+	 (tramp-completion-file-name-structure11
+	  (list (concat tramp-prefix-regexp
+			"\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
+			"\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp
+			tramp-prefix-ipv6-regexp
+			"\\(" tramp-completion-ipv6-regexp x-nil   "\\)$")
+		1 2 3 nil))
 	 ;; "/method: "/method:/"
-	 (tramp-completion-file-name-structure8
+	 (tramp-completion-file-name-structure12
 	  (list
 	   (if (equal tramp-syntax 'url)
 	       (concat tramp-prefix-regexp
@@ -4924,7 +5015,7 @@ They are collected by `tramp-completion-dissect-file-name1'."
 	     (concat tramp-prefix-regexp "/$"))
 	   1 3 nil nil))
 	 ;; "/method: "/method:/"
-	 (tramp-completion-file-name-structure9
+	 (tramp-completion-file-name-structure13
 	  (list
 	   (if (equal tramp-syntax 'url)
 	       (concat tramp-prefix-regexp
@@ -4949,6 +5040,10 @@ They are collected by `tramp-completion-dissect-file-name1'."
        tramp-completion-file-name-structure7
        tramp-completion-file-name-structure8
        tramp-completion-file-name-structure9
+       tramp-completion-file-name-structure10
+       tramp-completion-file-name-structure11
+       tramp-completion-file-name-structure12
+       tramp-completion-file-name-structure13
        tramp-file-name-structure))
 
     (delq nil result)))
@@ -5151,11 +5246,11 @@ User is always nil."
    "Return a (user host) tuple allowed to access.
 User is always nil."
    (let ((result)
-	 (regexp (concat "^\\(" tramp-host-regexp "\\)")))
+	 (regexp
+	  (concat "^\\(" tramp-ipv6-regexp "\\|" tramp-host-regexp "\\)")))
      (narrow-to-region (point) (tramp-compat-line-end-position))
      (when (re-search-forward regexp nil t)
-       (unless (char-equal (or (char-after) ?\n) ?:) ; no IPv6
-	 (setq result (list nil (match-string 1)))))
+       (setq result (list nil (match-string 1))))
      (widen)
      (or
       (> (skip-chars-forward " \t") 0)
@@ -6247,9 +6342,7 @@ Gateway hops are already opened."
 	    '("%h") (tramp-get-method-parameter method 'tramp-login-args))
 	   ;; The host is local.  We cannot use `tramp-local-host-p'
 	   ;; here, because it opens a connection as well.
-	   (string-match
-	    (concat "^" (regexp-opt (list "localhost" (system-name)) t) "$")
-	    host))
+	   (string-match tramp-local-host-regexp host))
 	(tramp-error
 	 v 'file-error
 	 "Host `%s' looks like a remote host, `%s' can only use the local host"
@@ -6797,12 +6890,12 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
   (and (tramp-file-name-p vec) (aref vec 3)))
 
 ;; The user part of a Tramp file name vector can be of kind
-;; "user%domain#port".  Sometimes, we must extract these parts.
+;; "user%domain".  Sometimes, we must extract these parts.
 (defun tramp-file-name-real-user (vec)
   "Return the user name of VEC without domain."
   (let ((user (tramp-file-name-user vec)))
     (if (and (stringp user)
-	     (string-match "\\(.+\\)%\\(.+\\)" user))
+	     (string-match tramp-user-with-domain-regexp user))
 	(match-string 1 user)
       user)))
 
@@ -6810,7 +6903,7 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
   "Return the domain name of VEC."
   (let ((user (tramp-file-name-user vec)))
     (and (stringp user)
-	 (string-match "\\(.+\\)%\\(.+\\)" user)
+	 (string-match tramp-user-with-domain-regexp user)
 	 (match-string 2 user))))
 
 ;; The host part of a Tramp file name vector can be of kind
@@ -6890,6 +6983,11 @@ values."
 	  (error
 	   "`%s' method is no longer supported, see (info \"(tramp)Multi-hops\")"
 	   method))
+	(when host
+	  (when (string-match tramp-prefix-ipv6-regexp host)
+	    (setq host (replace-match "" nil t host)))
+	  (when (string-match tramp-postfix-ipv6-regexp host)
+	    (setq host (replace-match "" nil t host))))
 	(if nodefault
 	    (vector method user host localname)
 	  (vector
@@ -6923,7 +7021,11 @@ would yield `t'.  On the other hand, the following check results in nil:
 	    (concat method tramp-postfix-method-format))
 	  (when (not (zerop (length user)))
 	    (concat user tramp-postfix-user-format))
-	  (when host host) tramp-postfix-host-format
+	  (when host
+	    (if (string-match tramp-ipv6-regexp host)
+		(concat tramp-prefix-ipv6-format host tramp-postfix-ipv6-format)
+	      host))
+	  tramp-postfix-host-format
 	  (when localname localname)))
 
 (defun tramp-completion-make-tramp-file-name (method user host localname)
@@ -6936,7 +7038,11 @@ necessary only.  This function will be used in file name completion."
 	  (when (not (zerop (length user)))
 	    (concat user tramp-postfix-user-format))
 	  (when (not (zerop (length host)))
-	    (concat host tramp-postfix-host-format))
+	    (concat
+	     (if (string-match tramp-ipv6-regexp host)
+		 (concat tramp-prefix-ipv6-format host tramp-postfix-ipv6-format)
+	       host)
+	     tramp-postfix-host-format))
 	  (when localname localname)))
 
 (defun tramp-make-copy-program-file-name (vec)
@@ -6960,8 +7066,7 @@ necessary only.  This function will be used in file name completion."
   (let ((host (tramp-file-name-host vec)))
     (and
      (stringp host)
-     (string-match
-      (concat "^" (regexp-opt (list "localhost" (system-name)) t) "$") host)
+     (string-match tramp-local-host-regexp host)
      ;; The local temp directory must be writable for the other user.
      (file-writable-p
       (tramp-make-tramp-file-name
@@ -7591,8 +7696,6 @@ Only works for Bourne-like shells."
 ;;   SSH instance, would correctly be propagated to the remote process
 ;;   automatically; possibly SSH would have to be started with
 ;;   "-t". (Markus Triska)
-;; * Support IPv6 hostnames.  Use "/[some:ip:v6:address:for:tramp]:/",
-;;   which is the syntax used on web browsers. (Óscar Fuentes)
 ;; * Add gvfs support.
 ;; * Set `tramp-copy-size-limit' to 0, when there is no remote
 ;;   encoding routine.
