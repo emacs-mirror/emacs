@@ -1,5 +1,8 @@
 2009-01-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* emacs-lisp/authors.el (authors-aliases): Addition.
+	(authors): Allow to use it for other projects.
+
 	* emacs-lisp/copyright.el (copyright-update-directory): Autoload.
 	Clarify MATCH argument.  Print filenames.
 
