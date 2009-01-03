@@ -1,3 +1,29 @@
+2009-01-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-string-to-byte-array): Handle empty string.
+
+	* net/tramp.el (tramp-local-host-regexp)
+	(tramp-prefix-domain-format)
+	(tramp-prefix-domain-regexp, tramp-domain-regexp)
+	(tramp-user-with-domain-regexp, tramp-prefix-ipv6-format)
+	(tramp-prefix-ipv6-regexp, tramp-ipv6-regexp)
+	(tramp-postfix-ipv6-format, tramp-postfix-ipv6-regexp): New
+	defconst.
+	(tramp-file-name-structure, tramp-file-name-regexp-unified)
+	(tramp-completion-dissect-file-name, tramp-parse-hosts-group)
+	(tramp-dissect-file-name, tramp-make-tramp-file-name)
+	(tramp-completion-make-tramp-file-name): Handle IPv6 addresses.
+	(tramp-handle-insert-file-contents): Fix setting of
+	`buffer-read-only'.
+	(tramp-compute-multi-hops, tramp-local-host-p): Use
+	`tramp-local-host-regexp'.
+	(tramp-file-name-real-user, tramp-file-name-domain): Use
+	`tramp-user-with-domain-regexp'.
+
+	* net/tramp-smb.el (top): Use `tramp-prefix-domain-regexp'.
+	(tramp-smb-maybe-open-connection): Use `tramp-file-name-*'
+	methods.
+
 2009-01-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-grammar-alist): Refiner can be a
