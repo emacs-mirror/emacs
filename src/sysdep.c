@@ -1,6 +1,6 @@
 /* Interfaces to system-dependent kernel and library entries.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3219,8 +3219,9 @@ list_system_processes ()
   return proclist;
 }
 
-/* The WINDOWSNT implementation is on w32.c.  */
-#elif !defined (WINDOWSNT)
+/* The WINDOWSNT implementation is on w32.c.
+   The MSDOS implementation is on dosfns.c.  */
+#elif !defined (WINDOWSNT) && !defined (MSDOS)
 
 Lisp_Object
 list_system_processes ()
@@ -3761,8 +3762,9 @@ system_process_attributes (Lisp_Object pid)
   return attrs;
 }
 
-/* The WINDOWSNT implementation is on w32.c.  */
-#elif !defined (WINDOWSNT)
+/* The WINDOWSNT implementation is on w32.c.
+   The MSDOS implementation is on dosfns.c.  */
+#elif !defined (WINDOWSNT) && !defined (MSDOS)
 
 Lisp_Object
 system_process_attributes (Lisp_Object pid)
