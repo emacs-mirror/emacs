@@ -39,7 +39,7 @@
 
 @copying
 Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-  2006, 2007, 2008 Free Software Foundation, Inc.
+2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -2142,6 +2142,14 @@ This edits the file @file{/etc/squid.conf} on the machine
 
 @end table
 
+@var{machine} can also be an IPv4 or IPv6 address, like in
+@file{@trampfn{, , 127.0.0.1, .emacs}} or @file{@trampfn{, ,
+@value{ipv6prefix}::1@value{ipv6postfix}, .emacs}}.
+@ifset emacs
+For syntactical reasons, IPv6 addresses must be embedded in square
+brackets @file{@value{ipv6prefix}} and @file{@value{ipv6postfix}}.
+@end ifset
+
 Unless you specify a different name to use, @value{tramp} will use the
 current local user name as the remote user name to log in with.  If you
 need to log in as a different user, you can specify the user name as
@@ -2232,13 +2240,15 @@ If you, for example, type @kbd{C-x C-f @value{prefix}t
 @key{TAB}}, @value{tramp} might give you as result the choice for
 
 @example
+@multitable {@trampfn{telnet, , melancholia.danann.net,}} {@trampfn{telnet, , 192.168.0.1,}}
 @ifset emacs
-@value{prefixhop}telnet@value{postfixhop}                        tmp/
-@value{prefixhop}toto@value{postfix}
+@item @value{prefixhop}telnet@value{postfixhop} @tab tmp/
+@item @value{prefixhop}toto@value{postfix} @tab
 @end ifset
 @ifset xemacs
-@value{prefixhop}telnet@value{postfixhop}                        @value{prefixhop}toto@value{postfix}
+@item @value{prefixhop}telnet@value{postfixhop} @tab @value{prefixhop}toto@value{postfix}
 @end ifset
+@end multitable
 @end example
 
 @samp{@value{prefixhop}telnet@value{postfixhop}}
@@ -2257,9 +2267,11 @@ Next @kbd{@key{TAB}} brings you all machine names @value{tramp} detects in
 your @file{/etc/hosts} file, let's say
 
 @example
-@trampfn{telnet, , 127.0.0.1,}             @trampfn{telnet, , 192.168.0.1,}
-@trampfn{telnet, , localhost,}             @trampfn{telnet, , melancholia.danann.net,}
-@trampfn{telnet, , melancholia,}
+@multitable {@trampfn{telnet, , melancholia.danann.net,}} {@trampfn{telnet, , 192.168.0.1,}}
+@item @trampfn{telnet, , 127.0.0.1,} @tab @trampfn{telnet, , 192.168.0.1,}
+@item @trampfn{telnet, , @value{ipv6prefix}::1@value{ipv6postfix},} @tab @trampfn{telnet, , localhost,}
+@item @trampfn{telnet, , melancholia.danann.net,} @tab @trampfn{telnet, , melancholia,}
+@end multitable
 @end example
 
 Now you can choose the desired machine, and you can continue to
