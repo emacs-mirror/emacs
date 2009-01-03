@@ -102,7 +102,7 @@ the external command (usually \"kill\")."
     (comm    "COMMAND" nil left proced-string-lessp nil (comm pid) (nil t nil))
     (state   "STAT"    nil left proced-string-lessp nil (state pid) (nil t nil))
     (ppid    "PPID"    "%d" right proced-< nil (ppid pid)
-             ((lambda (ppid) (proced-filter-parents proced-process-alist ppid)) .
+             ((lambda (ppid) (proced-filter-parents proced-process-alist ppid))
               "refine to process parents"))
     (pgrp    "PGRP"    "%d" right proced-< nil (pgrp euid pid) (nil t nil))
     (sess    "SESS"    "%d" right proced-< nil (sess pid) (nil t nil))
@@ -114,8 +114,10 @@ the external command (usually \"kill\")."
     (cmajflt "CMAJFLT" "%d" right proced-< nil (cmajflt pid) (nil t t))
     (utime   "UTIME"   proced-format-time right proced-time-lessp t (utime pid) (nil t t))
     (stime   "STIME"   proced-format-time right proced-time-lessp t (stime pid) (nil t t))
+    (time    "TIME"   proced-format-time right proced-time-lessp t (time pid) (nil t t))
     (cutime  "CUTIME"  proced-format-time right proced-time-lessp t (cutime pid) (nil t t))
     (cstime  "CSTIME"  proced-format-time right proced-time-lessp t (cstime pid) (nil t t))
+    (ctime   "CTIME"  proced-format-time right proced-time-lessp t (ctime pid) (nil t t))
     (pri     "PR"      "%d" right proced-< t (pri pid) (nil t t))
     (nice    "NI"      "%3d" 3 proced-< t (nice pid) (t t nil))
     (thcount "THCOUNT" "%d" right proced-< t (thcount pid) (nil t t))
@@ -129,12 +131,8 @@ the external command (usually \"kill\")."
     ;;
     ;; attributes defined by proced (see `proced-process-attributes')
     (pid     "PID"     "%d" right proced-< nil (pid)
-             ((lambda (ppid) (proced-filter-children proced-process-alist ppid)) .
+             ((lambda (ppid) (proced-filter-children proced-process-alist ppid))
               "refine to process children"))
-    ;; time: sum of utime and stime
-    (time    "TIME"   proced-format-time right proced-time-lessp t (time pid) (nil t t))
-    ;; ctime: sum of cutime and cstime
-    (ctime   "CTIME"  proced-format-time right proced-time-lessp t (ctime pid) (nil t t))
     ;; process tree
     (tree    "TREE"   proced-format-tree left nil nil nil nil))
   "Alist of rules for handling Proced attributes.
@@ -183,7 +181,7 @@ If PREDICATE yields non-nil, the process is accepted if LESS-B is non-nil.
 If PREDICATE yields 'equal, the process is accepted if EQUAL-B is non-nil.
 If PREDICATE yields nil, the process is accepted if LARGER-B is non-nil.
 
-REFINER can also be a cons pair (FUNCTION . HELP-ECHO).
+REFINER can also be a list (FUNCTION HELP-ECHO).
 FUNCTION is called with one argument, the PID of the process at the position
 of point.  The function must return a list of PIDs that is used for the refined
 listing.  HELP-ECHO is a string that is shown when mouse is over this field.
@@ -208,12 +206,12 @@ If REFINER is nil no refinement is done."
                        (repeat :tag "Sort Scheme" (symbol :tag "Key"))
                        (choice :tag "Refiner"
                                (const :tag "None" nil)
+                               (list (function :tag "Refinement Function")
+                                     (string :tag "Help echo"))
                                (list :tag "Refine Flags"
                                      (boolean :tag "Less")
                                      (boolean :tag "Equal")
-                                     (boolean :tag "Larger"))
-                               (cons (function :tag "Refinement Function")
-                                     (string :tag "Help echo"))))))
+                                     (boolean :tag "Larger"))))))
 
 (defcustom proced-custom-attributes nil
   "List of functions defining custom attributes.
@@ -351,6 +349,13 @@ Can be changed interactively via `proced-toggle-auto-update'."
   :type 'boolean)
 (make-variable-buffer-local 'proced-tree-flag)
 
+(defcustom proced-post-display-hook nil
+  "Normal hook run after displaying or updating a Proced buffer.
+May be used to adapt the window size via `fit-window-to-buffer'."
+  :type 'hook
+  :options '(fit-window-to-buffer)
+  :group 'proced)
+
 ;; Internal variables
 
 (defvar proced-available (not (null (list-system-processes)))
@@ -405,8 +410,8 @@ Important: the match ends just after the marker.")
 (defvar proced-process-tree nil
   "Proced process tree (internal variable).")
 
-(defvar proced-tree-indent nil
-  "Internal variable for indentation of Proced process tree.")
+(defvar proced-tree-depth nil
+  "Internal variable for depth of Proced process tree.")
 
 (defvar proced-auto-update-timer nil
   "Stores if Proced auto update timer is already installed.")
@@ -478,12 +483,11 @@ Important: the match ends just after the marker.")
     (define-key km "x" 'proced-send-signal) ; Dired compatibility
     (define-key km "k" 'proced-send-signal) ; kill processes
     ;; misc
-    (define-key km "g" 'revert-buffer)  ; Dired compatibility
     (define-key km "h" 'describe-mode)
     (define-key km "?" 'proced-help)
-    (define-key km "q" 'quit-window)
     (define-key km [remap undo] 'proced-undo)
     (define-key km [remap advertised-undo] 'proced-undo)
+    ;; Additional keybindings are inherited from `special-mode-map'
     km)
   "Keymap for Proced commands.")
 
@@ -594,7 +598,7 @@ Return nil if point is not on a process line."
 
 ;; proced mode
 
-(define-derived-mode proced-mode nil "Proced"
+(define-derived-mode proced-mode special-mode "Proced"
   "Mode for displaying UNIX system processes and sending signals to them.
 Type \\[proced] to start a Proced session.  In a Proced buffer
 type \\<proced-mode-map>\\[proced-mark] to mark a process for later commands.
@@ -623,6 +627,9 @@ Refining an existing listing does not update the variable `proced-filter'.
 The attribute-specific rules for formatting, filtering, sorting, and refining
 are defined in `proced-grammar-alist'.
 
+After displaying or updating a Proced buffer, Proced runs the normal hook
+`proced-post-display-hook'.
+
 \\{proced-mode-map}"
   (abbrev-mode 0)
   (auto-fill-mode 0)
@@ -638,14 +645,12 @@ are defined in `proced-grammar-alist'.
             (run-at-time t proced-auto-update-interval
                          'proced-auto-update-timer))))
 
-;; Proced mode is suitable only for specially formatted data.
-(put 'proced-mode 'mode-class 'special)
-
 ;;;###autoload
 (defun proced (&optional arg)
   "Generate a listing of UNIX system processes.
 If invoked with optional ARG the window displaying the process
 information will be displayed but not selected.
+Runs the normal hook `proced-post-display-hook'.
 
 See `proced-mode' for a description of features available in Proced buffers."
   (interactive "P")
@@ -654,12 +659,21 @@ See `proced-mode' for a description of features available in Proced buffers."
   (let ((buffer (get-buffer-create "*Proced*")) new)
     (set-buffer buffer)
     (setq new (zerop (buffer-size)))
-    (if new (proced-mode))
-    (if (or new arg)
-        (proced-update t))
+    (when new
+      (proced-mode)
+      ;; `proced-update' runs `proced-post-display-hook' only if the
+      ;; Proced buffer has been selected.  Yet the following call of
+      ;; `proced-update' is for an empty Proced buffer that has not
+      ;; yet been selected.  Therefore we need to call
+      ;; `proced-post-display-hook' below.
+      (proced-update t))
     (if arg
-	(display-buffer buffer)
+        (progn
+          (display-buffer buffer)
+          (with-current-buffer buffer
+            (run-hooks 'proced-post-display-hook)))
       (pop-to-buffer buffer)
+      (run-hooks 'proced-post-display-hook)
       (message
        (substitute-command-keys
         "Type \\<proced-mode-map>\\[quit-window] to quit, \\[proced-help] for help")))))
@@ -684,6 +698,8 @@ The time interval for updates is specified via `proced-auto-update-interval'."
               (t (not proced-auto-update-flag))))
   (message "Proced auto update %s"
            (if proced-auto-update-flag "enabled" "disabled")))
+
+;;; Mark
 
 (defun proced-mark (&optional count)
   "Mark the current (or next COUNT) processes."
@@ -714,43 +730,6 @@ The time interval for updates is specified via `proced-auto-update-interval'."
       (proced-insert-mark mark backward))
     (proced-move-to-goal-column)))
 
-(defun proced-mark-all ()
-  "Mark all processes.
-If `transient-mark-mode' is turned on and the region is active,
-mark the region."
-  (interactive)
-  (proced-do-mark-all t))
-
-(defun proced-unmark-all ()
-  "Unmark all processes.
-If `transient-mark-mode' is turned on and the region is active,
-unmark the region."
-  (interactive)
-  (proced-do-mark-all nil))
-
-(defun proced-do-mark-all (mark)
-  "Mark all processes using MARK.
-If `transient-mark-mode' is turned on and the region is active,
-mark the region."
-  (let ((count 0) end buffer-read-only)
-    (save-excursion
-      (if (use-region-p)
-          ;; Operate even on those lines that are only partially a part
-          ;; of region.  This appears most consistent with
-          ;; `proced-move-to-goal-column'.
-          (progn (setq end (save-excursion
-                             (goto-char (region-end))
-                             (unless (looking-at "^") (forward-line))
-                             (point)))
-                 (goto-char (region-beginning))
-                 (unless (looking-at "^") (beginning-of-line)))
-        (goto-char (point-min))
-        (setq end (point-max)))
-      (while (< (point) end)
-        (setq count (1+ count))
-        (proced-insert-mark mark))
-      (proced-success-message "Marked" count))))
-
 (defun proced-toggle-marks ()
   "Toggle marks: marked processes become unmarked, and vice versa."
   (interactive)
@@ -774,6 +753,49 @@ Otherwise move one line forward after inserting the mark."
   (insert (if mark proced-marker-char ?\s))
   (delete-char 1)
   (unless backward (forward-line)))
+
+(defun proced-mark-all ()
+  "Mark all processes.
+If `transient-mark-mode' is turned on and the region is active,
+mark the region."
+  (interactive)
+  (proced-do-mark-all t))
+
+(defun proced-unmark-all ()
+  "Unmark all processes.
+If `transient-mark-mode' is turned on and the region is active,
+unmark the region."
+  (interactive)
+  (proced-do-mark-all nil))
+
+(defun proced-do-mark-all (mark)
+  "Mark all processes using MARK.
+If `transient-mark-mode' is turned on and the region is active,
+mark the region."
+  (let* ((count 0)
+         (proced-marker-char (if mark proced-marker-char ?\s))
+         (marker-re (proced-marker-regexp))
+         end buffer-read-only)
+    (save-excursion
+      (if (use-region-p)
+          ;; Operate even on those lines that are only partially a part
+          ;; of region.  This appears most consistent with
+          ;; `proced-move-to-goal-column'.
+          (progn (setq end (save-excursion
+                             (goto-char (region-end))
+                             (unless (looking-at "^") (forward-line))
+                             (point)))
+                 (goto-char (region-beginning))
+                 (unless (looking-at "^") (beginning-of-line)))
+        (goto-char (point-min))
+        (setq end (point-max)))
+      (while (< (point) end)
+        (unless (looking-at marker-re)
+          (setq count (1+ count))
+          (insert proced-marker-char)
+          (delete-char 1))
+        (forward-line))
+      (proced-success-message (if mark "Marked" "Unmarked") count))))
 
 (defun proced-mark-children (ppid &optional omit-ppid)
   "Mark child processes of process PPID.
@@ -1026,7 +1048,7 @@ Return the rearranged process list."
   (if proced-tree-flag
       ;; add tree attribute
       (let ((process-tree (proced-process-tree process-alist))
-            (proced-tree-indent 0)
+            (proced-tree-depth 0)
             (proced-temp-alist process-alist)
             proced-process-tree pt)
         (while (setq pt (pop process-tree))
@@ -1044,11 +1066,11 @@ Return the rearranged process list."
   "Helper function for `proced-tree'."
   (let ((pprocess (assq (car process-tree) proced-temp-alist)))
     (push (append (list (car pprocess))
-                  (list (cons 'tree proced-tree-indent))
+                  (list (cons 'tree proced-tree-depth))
                   (cdr pprocess))
           proced-process-tree)
     (if (cdr process-tree)
-        (let ((proced-tree-indent (1+ proced-tree-indent)))
+        (let ((proced-tree-depth (1+ proced-tree-depth)))
           (mapc 'proced-tree-insert (cdr process-tree))))))
 
 ;; Refining
@@ -1361,7 +1383,9 @@ Replace newline characters by \"^J\" (two characters)."
   (let ((standard-attributes
          (car (proced-process-attributes (list (emacs-pid)))))
         new-format fmi)
-    (if proced-tree-flag (push (cons 'tree 0) standard-attributes))
+    (if (and proced-tree-flag
+             (assq 'ppid standard-attributes))
+        (push (cons 'tree 0) standard-attributes))
     (dolist (fmt format)
       (if (symbolp fmt)
           (if (assq fmt standard-attributes)
@@ -1402,7 +1426,7 @@ Replace newline characters by \"^J\" (two characters)."
               (cond ((functionp (car refiner))
                      `(proced-key ,key mouse-face highlight
                                   help-echo ,(format "mouse-2, RET: %s"
-                                                     (cdr refiner))))
+                                                     (nth 1 refiner))))
                     ((consp refiner)
                      `(proced-key ,key mouse-face highlight
                                   help-echo ,(format "mouse-2, RET: refine by attribute %s %s"
@@ -1504,30 +1528,21 @@ If no attributes are known for a process (possibly because it already died)
 the process is ignored."
   ;; Should we make it customizable whether processes with empty attribute
   ;; lists are ignored?  When would such processes be of interest?
-  (let (process-alist attributes)
+  (let (process-alist attributes attr)
     (dolist (pid (or pid-list (list-system-processes)) process-alist)
       (when (setq attributes (system-process-attributes pid))
-        (let ((utime (cdr (assq 'utime attributes)))
-              (stime (cdr (assq 'stime attributes)))
-              (cutime (cdr (assq 'cutime attributes)))
-              (cstime (cdr (assq 'cstime attributes)))
-              attr)
-          (setq attributes
-                (append (list (cons 'pid pid))
-                        (if (and utime stime)
-                            (list (cons 'time (time-add utime stime))))
-                        (if (and cutime cstime)
-                            (list (cons 'ctime (time-add cutime cstime))))
-                        attributes))
-          (dolist (fun proced-custom-attributes)
-            (if (setq attr (funcall fun attributes))
-                (push attr attributes)))
-          (push (cons pid attributes) process-alist))))))
+        (setq attributes (cons (cons 'pid pid) attributes))
+        (dolist (fun proced-custom-attributes)
+          (if (setq attr (funcall fun attributes))
+              (push attr attributes)))
+        (push (cons pid attributes) process-alist)))))
 
 (defun proced-update (&optional revert quiet)
   "Update the Proced process information.  Preserves point and marks.
 With prefix REVERT non-nil, revert listing.
-Suppress status information if QUIET is nil."
+Suppress status information if QUIET is nil.
+After updating a displayed Proced buffer run the normal hook
+`proced-post-display-hook'."
   ;; This is the main function that generates and updates the process listing.
   (interactive "P")
   (setq revert (or revert (not proced-process-alist)))
@@ -1643,6 +1658,8 @@ Suppress status information if QUIET is nil."
                                 (nth 1 grammar)))
                     "")))
     (force-mode-line-update)
+    ;; run `proced-post-display-hook' only for a displayed buffer.
+    (if (get-buffer-window) (run-hooks 'proced-post-display-hook))
     ;; done
     (or quiet (input-pending-p)
         (message (if revert "Updating process information...done."
@@ -1653,17 +1670,13 @@ Suppress status information if QUIET is nil."
 Preserves point and marks."
   (proced-update t))
 
-;; I do not want to reinvent the wheel.  Should we rename `dired-pop-to-buffer'
-;; and move it to window.el so that proced and ibuffer can easily use it, too?
-;; What about functions like `appt-disp-window' that use
-;; `shrink-window-if-larger-than-buffer'?
-(autoload 'dired-pop-to-buffer "dired")
-
 (defun proced-send-signal (&optional signal)
   "Send a SIGNAL to the marked processes.
 If no process is marked, operate on current process.
 SIGNAL may be a string (HUP, INT, TERM, etc.) or a number.
-If SIGNAL is nil display marked processes and query interactively for SIGNAL."
+If SIGNAL is nil display marked processes and query interactively for SIGNAL.
+After sending the signal, this command runs the normal hook
+`proced-after-send-signal-hook'."
   (interactive)
   (let ((regexp (proced-marker-regexp))
         process-alist)
@@ -1673,7 +1686,9 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
       (while (re-search-forward regexp nil t)
         (push (cons (proced-pid-at-point)
                     ;; How much info should we collect here?
-                    (substring (match-string-no-properties 0) 2))
+                    (buffer-substring-no-properties
+                     (+ 2 (line-beginning-position))
+                     (line-end-position)))
               process-alist)))
     (setq process-alist
           (if process-alist
@@ -1696,7 +1711,8 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
           (dolist (process process-alist)
             (insert "  " (cdr process) "\n"))
           (save-window-excursion
-            (dired-pop-to-buffer bufname) ; all we need
+            (pop-to-buffer (current-buffer))
+            (fit-window-to-buffer (get-buffer-window) nil 1)
             (let* ((completion-ignore-case t)
                    (pnum (if (= 1 (length process-alist))
                              "1 process"
@@ -1729,7 +1745,7 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
                         (setq count (1+ count))
                       (proced-log "%s\n" (cdr process))
                       (push (cdr process) failures))
-                  (error ;; catch errors from failed signals
+                  (error ; catch errors from failed signals
                    (proced-log "%s\n" err)
                    (proced-log "%s\n" (cdr process))
                    (push (cdr process) failures)))))
@@ -1746,7 +1762,7 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
                       (proced-log (current-buffer))
                       (proced-log "%s\n" (cdr process))
                       (push (cdr process) failures))
-                  (error ;; catch errors from failed signals
+                  (error ; catch errors from failed signals
                    (proced-log (current-buffer))
                    (proced-log "%s\n" (cdr process))
                    (push (cdr process) failures)))))))
