@@ -1,3 +1,21 @@
+2009-01-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-grammar-alist): Refiner can be a
+	list (function help-echo) instead of a cons pair.
+	(proced-post-display-hook): New variable.
+	(proced-tree-depth): Renamed from proced-tree-indent.
+	(proced-mode): Derive mode from special-mode.
+	(proced-mode-map): Changed accordingly.
+	(proced, proced-update): Run proced-post-display-hook.
+	(proced-do-mark-all): Count processes for which mark has been
+	updated.
+	(proced-format): Check for ppid attribute.
+	(proced-process-attributes): Take time and ctime attribute from
+	system-process-attributes.
+	(proced-send-signal): Doc fix.  Collect properly the info on
+	marked processes.  Use fit-window-to-buffer instead of
+	dired-pop-to-buffer.
+
 2009-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/vhdl-mode.el (vhdl-current-line): Don't hardcode
