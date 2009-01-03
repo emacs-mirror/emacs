@@ -1053,9 +1053,9 @@ variable is a function that creates a frame using parameters from
 @end defopt
 
 @defopt pop-up-frame-alist
-This variable holds an alist specifying frame parameters used when
-@code{display-buffer} makes a new frame.  @xref{Frame Parameters}, for
-more information about frame parameters.
+This variable holds an alist specifying frame parameters used by the
+default value of @code{pop-up-frame-function} for making new frames.
+@xref{Frame Parameters}, for more information about frame parameters.
 @end defopt
 
 @defopt special-display-buffer-names

@@ -1,3 +1,8 @@
+2009-01-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Choosing Window): Say that pop-up-frame-alist
+	works via the default value of pop-up-frame-function.
+
 2009-01-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* processes.texi (System Processes): Document the `time' and
