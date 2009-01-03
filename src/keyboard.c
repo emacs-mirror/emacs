@@ -6313,6 +6313,11 @@ parse_modifiers_uncached (symbol, modifier_end)
       && ('0' <= SREF (name, i + 6) && SREF (name, i + 6) <= '9'))
     modifiers |= click_modifier;
 
+  if (! (modifiers & (double_modifier | triple_modifier))
+      && i + 6 < SBYTES (name)
+      && strncmp (SDATA (name) + i, "wheel-", 6) == 0)
+    modifiers |= click_modifier;
+
   if (modifier_end)
     *modifier_end = i;
 
