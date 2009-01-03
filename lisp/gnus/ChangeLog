@@ -1,3 +1,11 @@
+2009-01-03  Michael Olson  <mwolson@gnu.org>
+
+	* nnimap.el (nnimap-retrieve-headers-progress): Handle edge case where
+	`headers' is nil.  This can occur if the IMAP server does not have
+	permissions to read messages from a folder, but can write new messages
+	to the folder.
+	(nnimap-request-article-part): Do not insert `data' if it is nil.
+
 2008-12-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-util.el (mm-substring-no-properties): New function.
