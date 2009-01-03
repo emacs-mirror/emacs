@@ -1,3 +1,9 @@
+2009-01-03  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: New option --with-svg.
+
+	* INSTALL: Document experimental SVG support.
+
 2008-12-25  Jason Rumney  <jasonr@gnu.org>
 
 	* config.nt: (PTR): Remove.

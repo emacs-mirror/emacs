@@ -109,6 +109,7 @@ if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "--without-gif" goto withoutgif
 if "%1" == "--without-tiff" goto withouttiff
 if "%1" == "--without-xpm" goto withoutxpm
+if "%1" == "--with-svg" goto withsvg
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -127,6 +128,7 @@ echo.   --without-jpeg          do not use JPEG library even if it is installed
 echo.   --without-gif           do not use GIF library even if it is installed
 echo.   --without-tiff          do not use TIFF library even if it is installed
 echo.   --without-xpm           do not use XPM library even if it is installed
+echo.   --with-svg		use the RSVG library (experimental)
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -216,6 +218,11 @@ rem ----------------------------------------------------------------------
 set xpmsupport=N
 set HAVE_XPM=
 shift
+goto again
+
+:withsvg
+shift
+set svgsupport=Y
 goto again
 
 rem ----------------------------------------------------------------------
@@ -482,6 +489,28 @@ echo ...XPM header available, building with XPM support.
 set HAVE_XPM=1
 
 :xpmDone
+rm -f junk.c junk.obj
+
+if not (%svgsupport%) == (Y) goto :svgDone
+echo Checking for librsvg...
+echo #include "librsvg/rsvg.h" >junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>>config.log
+if exist junk.obj goto haveSvg
+
+echo ...librsvg/rsvg.h or dependencies not found, building without SVG support.
+echo The failed program was: >>config.log
+type junk.c >>config.log
+set HAVE_RSVG=
+goto :svgDone
+
+:haveSvg
+echo ...librsvg header available, building with SVG support (EXPERIMENTAL).
+set HAVE_RSVG=1
+
+:svgDone
 rm -f junk.c junk.obj junk.err junk.out
 
 rem ----------------------------------------------------------------------
@@ -522,6 +551,8 @@ if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>config.tmp
 if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>config.tmp
 if not "(%HAVE_TIFF%)" == "()" echo #define HAVE_TIFF 1 >>config.tmp
 if not "(%HAVE_XPM%)" == "()" echo #define HAVE_XPM 1 >>config.tmp
+if "(%HAVE_RSVG%)" == "(1)" echo #define HAVE_RSVG 1 >>config.tmp
+
 echo /* End of settings from configure.bat.  */ >>config.tmp
 
 Rem See if fc.exe returns a meaningful exit status.  If it does, we

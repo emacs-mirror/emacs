@@ -256,17 +256,18 @@
 * Optional image library support
 
   In addition to its "native" image formats (pbm and xbm), Emacs can
-  handle other image types: xpm, tiff, gif, png and jpeg (postscript is
-  currently unsupported on Windows).  To build Emacs with support for
-  them, the corresponding headers must be in the include path when the
-  configure script is run.  This can be setup using environment
-  variables, or by specifying --cflags -I... options on the command-line
-  to configure.bat.  The configure script will report whether it was
-  able to detect the headers.  If the results of this testing appear to be
-  incorrect, please look for details in the file config.log: it will show
-  the failed test programs and compiler error messages that should explain
-  what is wrong.  (Usually, any such failures happen because some headers
-  are missing due to bad packaging of the image support libraries.)
+  handle other image types: xpm, tiff, gif, png, jpeg and experimental
+  support for svg (postscript is currently unsupported on Windows).
+  To build Emacs with support for them, the corresponding headers must
+  be in the include path when the configure script is run.  This can
+  be setup using environment variables, or by specifying --cflags
+  -I... options on the command-line to configure.bat.  The configure
+  script will report whether it was able to detect the headers.  If
+  the results of this testing appear to be incorrect, please look for
+  details in the file config.log: it will show the failed test
+  programs and compiler error messages that should explain what is
+  wrong.  (Usually, any such failures happen because some headers are
+  missing due to bad packaging of the image support libraries.)
 
   To use the external image support, the DLLs implementing the
   functionality must be found when Emacs first needs them, either on the
@@ -297,6 +298,41 @@
 
   If GTK 2.0 is installed, addpm will arrange for its image libraries
   to be on the DLL search path for Emacs.
+
+* Experimental SVG support
+
+  SVG support is currently experimental, and not built by default.
+  Specify --with-svg and ensure you have all the dependencies in your
+  include path. Unless you have built a minimalist librsvg yourself
+  (untested), librsvg depends on a significant chunk of GTK+ to build,
+  plus a few Gnome libraries, libxml2, libbz2 and zlib at runtime. The
+  easiest way to obtain the dependencies required for building is to
+  download a pre-bundled GTK+ development environment for Windows.
+  GTK puts its header files all over the place, so you will need to
+  run pkgconfig to list the include path you will need (either passed
+  to configure.bat as --cflags options, or set in the environment).
+
+  To use librsvg at runtime, ensure that librsvg and its dependencies
+  are on your PATH.  If you didn't build librsvg yourself, you will
+  need to check with where you downloaded it from for the
+  dependencies, as there are different build options.  If it is a
+  short list, then it most likely only lists the immediate
+  dependencies of librsvg, but the dependencies themselves have
+  dependencies - so don't download individual libraries from GTK+,
+  download and install the whole thing. If you think you've got all
+  the dependencies and SVG support is still not working, check your
+  PATH for other libraries that shadow the ones you downloaded.
+  Libraries of the same name from different sources may not be
+  compatible, this problem was encountered with libbzip2 from GnuWin32
+  with libcroco from gnome.org.
+
+  If you can see etc/images/splash.svg, then you have managed to get
+  SVG support working.  Congratulations for making it through DLL hell
+  to this point. You'll probably find that some SVG images crash
+  Emacs.  Problems have been observed in some images that contain
+  text, they seem to be a problem in the Windows port of Pango, or
+  maybe a problem with the way Cairo or librsvg is using it that
+  doesn't show up on other platforms.
 
 * Building
 
