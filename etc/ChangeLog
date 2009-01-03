@@ -1,3 +1,7 @@
+2009-01-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Tramp supports IPv6 addresses.
+
 2008-12-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* refcards/orgcard.tex: Version number change.
