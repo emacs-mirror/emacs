@@ -1526,6 +1526,35 @@ w32_alloc_lighter_color (f, color, factor, delta)
   return 1;
 }
 
+/* On frame F, translate pixel colors to RGB values for the NCOLORS
+   colors in COLORS.  On W32, we no longer try to map colors to
+   a palette.  */
+void
+x_query_colors (f, colors, ncolors)
+     struct frame *f;
+     XColor *colors;
+     int ncolors;
+{
+  int i;
+
+  for (i = 0; i < ncolors; i++)
+    {
+      DWORD pixel = colors[i].pixel;
+      /* Convert to a 16 bit value in range 0 - 0xffff. */
+      colors[i].red = GetRValue (pixel) * 257;
+      colors[i].green = GetGValue (pixel) * 257;
+      colors[i].blue = GetBValue (pixel) * 257;
+    }
+}
+
+void
+x_query_color (f, color)
+     struct frame *f;
+     XColor *color;
+{
+  x_query_colors (f, color, 1);
+}
+
 
 /* Set up the foreground color for drawing relief lines of glyph
    string S.  RELIEF is a pointer to a struct relief containing the GC

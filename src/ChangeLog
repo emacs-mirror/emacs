@@ -1,3 +1,11 @@
+2009-01-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_query_colors, x_query_color): New functions.
+
+	* image.c (x_to_xcolors, png_load): Eliminate W32 specific code.
+	(svg_load_image): Cast returned pointers from dynamically loaded
+	functions.  Eliminate W32 specific code.
+
 2009-01-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* nsfns.m (x_set_foreground_color, x_set_background_color)

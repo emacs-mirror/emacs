@@ -79,6 +79,11 @@ typedef struct w32_bitmap_record Bitmap_Record;
 #define FRAME_X_VISUAL(f) FRAME_X_DISPLAY_INFO (f)->visual
 #define x_defined_color w32_defined_color
 #define DefaultDepthOfScreen(screen) (one_w32_display_info.n_cbits)
+
+/* Functions from w32term.c that depend on XColor (so can't go in w32term.h
+   without modifying lots of files).  */
+extern void x_query_colors (struct frame *f, XColor *colors, int ncolors);
+extern void x_query_color (struct frame *f, XColor *color);
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
@@ -4783,9 +4788,9 @@ x_to_xcolors (f, img, rgb_p)
     {
       XColor *row = p;
 
-#ifdef HAVE_X_WINDOWS
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
       for (x = 0; x < img->width; ++x, ++p)
-	p->pixel = XGetPixel (ximg, x, y);
+	p->pixel = GET_PIXEL (ximg, x, y);
       if (rgb_p)
 	x_query_colors (f, row, img->width);
 
@@ -4797,16 +4802,9 @@ x_to_xcolors (f, img, rgb_p)
 	  p->pixel = GET_PIXEL (ximg, x, y);
 	  if (rgb_p)
 	    {
-#if defined (HAVE_NS)
 	      p->red = RED16_FROM_ULONG (p->pixel);
 	      p->green = GREEN16_FROM_ULONG (p->pixel);
 	      p->blue = BLUE16_FROM_ULONG (p->pixel);
-#endif  /* HAVE_NS */
-#ifdef HAVE_NTGUI
-	      p->red = 256 * GetRValue (p->pixel);
-	      p->green = 256 * GetGValue (p->pixel);
-	      p->blue = 256 * GetBValue (p->pixel);
-#endif /* HAVE_NTGUI */
 	    }
 	}
 #endif /* HAVE_X_WINDOWS */
@@ -6120,7 +6118,6 @@ png_load (f, img)
       if (STRINGP (specified_bg))
 	/* The user specified `:background', use that.  */
 	{
-	  /* W32 version incorrectly used COLORREF here!!  ++kfs */
 	  XColor color;
 	  if (x_defined_color (f, SDATA (specified_bg), &color, 0))
 	    {
@@ -6139,7 +6136,7 @@ png_load (f, img)
 	{
 	  /* We use the current frame background, ignoring any default
 	     background color set by the image.  */
-#ifdef HAVE_X_WINDOWS
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
 	  XColor color;
 	  png_color_16 frame_background;
 
@@ -6151,19 +6148,6 @@ png_load (f, img)
 	  frame_background.green = color.green >> shift;
 	  frame_background.blue = color.blue >> shift;
 #endif /* HAVE_X_WINDOWS */
-
-#ifdef HAVE_NTGUI
-	  COLORREF color;
-	  png_color_16 frame_background;
-	  color = FRAME_BACKGROUND_PIXEL (f);
-#if 0 /* W32 TODO : Colormap support.  */
-	  x_query_color (f, &color);
-#endif
-	  bzero (&frame_background, sizeof frame_background);
-	  frame_background.red = GetRValue (color);
-	  frame_background.green = GetGValue (color);
-	  frame_background.blue = GetBValue (color);
-#endif /* HAVE_NTGUI */
 
 	  fn_png_set_background (png_ptr, &frame_background,
 				 PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
@@ -8050,7 +8034,7 @@ svg_load_image (f, img, contents, size)
      gnome type library functions.  */
   fn_g_type_init ();
   /* Make a handle to a new rsvg object.  */
-  rsvg_handle = fn_rsvg_handle_new ();
+  rsvg_handle = (RsvgHandle *) fn_rsvg_handle_new ();
 
   /* Parse the contents argument and fill in the rsvg_handle.  */
   fn_rsvg_handle_write (rsvg_handle, contents, size, &error);
@@ -8067,14 +8051,14 @@ svg_load_image (f, img, contents, size)
 
   /* We can now get a valid pixel buffer from the svg file, if all
      went ok.  */
-  pixbuf = fn_rsvg_handle_get_pixbuf (rsvg_handle);
+  pixbuf = (GdkPixbuf *) fn_rsvg_handle_get_pixbuf (rsvg_handle);
   if (!pixbuf) goto rsvg_error;
   fn_g_object_unref (rsvg_handle);
 
   /* Extract some meta data from the svg handle.  */
   width     = fn_gdk_pixbuf_get_width (pixbuf);
   height    = fn_gdk_pixbuf_get_height (pixbuf);
-  pixels    = fn_gdk_pixbuf_get_pixels (pixbuf);
+  pixels    = (const guint8 *) fn_gdk_pixbuf_get_pixels (pixbuf);
   rowstride = fn_gdk_pixbuf_get_rowstride (pixbuf);
 
   /* Validate the svg meta data.  */
@@ -8104,7 +8088,6 @@ svg_load_image (f, img, contents, size)
     }
   else
     {
-#ifdef HAVE_X_WINDOWS
       background.pixel = FRAME_BACKGROUND_PIXEL (f);
       x_query_color (f, &background);
 
@@ -8114,21 +8097,6 @@ svg_load_image (f, img, contents, size)
       background.red   >>= 8;
       background.green >>= 8;
       background.blue  >>= 8;
-#elif defined (HAVE_NTGUI)
-      background.pixel = FRAME_BACKGROUND_PIXEL (f);
-#if 0 /* W32 TODO : Colormap support.  */
-      x_query_color (f, &background);
-#endif
-
-      /* SVG pixmaps specify transparency in the last byte, so right
-	 shift 8 bits to get rid of it, since emacs doesn't support
-	 transparency.  */
-      background.red   >>= 8;
-      background.green >>= 8;
-      background.blue  >>= 8;
-#else /* not HAVE_X_WINDOWS*/
-#error FIXME
-#endif
     }
 
   /* This loop handles opacity values, since Emacs assumes
