@@ -1,3 +1,23 @@
+2009-01-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c: (Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess)
+	(Qttname, Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime)
+	(Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs)
+	(Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtpgid, Qcstime)
+	[!subprocesses]: Define.
+	(syms_of_process) [!subprocesses]: Intern and staticpro them.
+	(Flist_system_processes, Fsystem_process_attributes)
+	[!subprocesses]: Call list_system_processes and
+	system_process_attributes instead of returning Qnil.
+
+	* dosfns.c (system_process_attributes, list_system_processes): New
+	functions.
+
+	* vm-limit.c (ret_lim_data) [MSDOS]: New function.
+
+	* sysdep.c (list_system_processes, system_process_attributes) [MSDOS]:
+	Don't use the default (no-op) implementation.
+
 2009-01-03  Jason Rumney  <jasonr@gnu.org>
 
 	* keyboard.c (parse_modifiers_uncached): Wheel events are
