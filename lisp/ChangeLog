@@ -1,3 +1,8 @@
+2009-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/vhdl-mode.el (vhdl-current-line): Don't hardcode
+	point-min==1.
+
 2009-01-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bindings.el (mode-line-eol-desc): Fix typo in help message.
@@ -16,8 +21,8 @@
 
 2009-01-01  Martin Rudalics  <rudalics@gmx.at>
 
-	* simple.el (minibuffer-default-add-shell-commands): Fix
-	doc-string typo.
+	* simple.el (minibuffer-default-add-shell-commands):
+	Fix doc-string typo.
 
 2009-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -25,8 +30,8 @@
 
 	* language/khmer.el: Fix setting of composition-function-table.
 
-	* language/tibet-util.el (tibetan-composition-function): Remove
-	unused function, obsoleted by 2008-09-05 change to tibetan.el.
+	* language/tibet-util.el (tibetan-composition-function):
+	Remove unused function, obsoleted by 2008-09-05 change to tibetan.el.
 
 	* simple.el (minibuffer-default): Add defvar.
 
@@ -51,8 +56,8 @@
 
 2008-12-30  Kenichi Handa  <handa@m17n.org>
 
-	* language/japanese.el (compose-gstring-for-variation-glyph): New
-	function.  Register it in composition-function-table.
+	* language/japanese.el (compose-gstring-for-variation-glyph):
+	New function.  Register it in composition-function-table.
 
 	* composite.el (lglyph-set-code): New function.
 
@@ -16754,7 +16759,7 @@ See ChangeLog.13 for earlier changes.
 ;; bug-reference-url-format: "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s"
 ;; End:
 
-    Copyright (C) 2008  Free Software Foundation, Inc.
+    Copyright (C) 2008, 2009  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

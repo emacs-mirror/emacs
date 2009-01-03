@@ -12164,7 +12164,7 @@ options vhdl-upper-case-{keywords,types,attributes,enum-values}."
     (widen)
     (save-excursion
       (beginning-of-line)
-      (1+ (count-lines 1 (point))))))
+      (1+ (count-lines (point-min) (point))))))
 
 (defun vhdl-line-kill-entire (&optional arg)
   "Delete entire line."
