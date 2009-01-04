@@ -1,3 +1,7 @@
+2009-01-04  Eduard Wiebe  <usenet@pusto.de>  (tiny patch)
+
+	* objects.texi (General Escape Syntax): Fix typo.
+
 2009-01-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Choosing Window): Say that pop-up-frame-alist

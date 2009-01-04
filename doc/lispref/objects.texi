@@ -345,7 +345,7 @@ following text.)
 @node General Escape Syntax
 @subsubsection General Escape Syntax
 
-  In addition to the specific excape sequences for special important
+  In addition to the specific escape sequences for special important
 control characters, Emacs provides general categories of escape syntax
 that you can use to specify non-ASCII text characters.
 
