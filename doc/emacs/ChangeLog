@@ -1,3 +1,8 @@
+2009-01-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Visual Line Mode): M-] and M-[ no longer move by
+	logical lines.
+
 2008-12-29  Juri Linkov  <juri@jurta.org>
 
 	* mini.texi (Minibuffer History): Add a link to `Isearch Minibuffer'.
