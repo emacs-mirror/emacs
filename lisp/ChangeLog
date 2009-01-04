@@ -1,3 +1,9 @@
+2009-01-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (make-frame-on-tty): Function deleted.
+
+	* server.el (server-create-tty-frame): Call make-frame directly.
+
 2009-01-04  Ulrich Mueller  <ulm@kph.uni-mainz.de>
 
 	* progmodes/sh-script.el (sh-ancestor-alist): Doc fix.
