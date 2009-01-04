@@ -1,7 +1,7 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
 ;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;               2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+;;               2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
@@ -1106,48 +1106,7 @@ the file name."
 
 ;;;###autoload
 (defun ada-mode ()
-  "Ada mode is the major mode for editing Ada code.
-
-Bindings are as follows: (Note: 'LFD' is control-j.)
-\\{ada-mode-map}
-
- Indent line                                          '\\[ada-tab]'
- Indent line, insert newline and indent the new line. '\\[newline-and-indent]'
-
- Re-format the parameter-list point is in             '\\[ada-format-paramlist]'
- Indent all lines in region                           '\\[ada-indent-region]'
-
- Adjust case of identifiers and keywords in region    '\\[ada-adjust-case-region]'
- Adjust case of identifiers and keywords in buffer    '\\[ada-adjust-case-buffer]'
-
- Fill comment paragraph, justify and append postfix   '\\[fill-paragraph]'
-
- Next func/proc/task '\\[ada-next-procedure]'  Previous func/proc/task '\\[ada-previous-procedure]'
- Next package        '\\[ada-next-package]'  Previous package        '\\[ada-previous-package]'
-
- Goto matching start of current 'end ...;'            '\\[ada-move-to-start]'
- Goto end of current block                            '\\[ada-move-to-end]'
-
-Comments are handled using standard GNU Emacs conventions, including:
- Start a comment                                      '\\[indent-for-comment]'
- Comment region                                       '\\[comment-region]'
- Uncomment region                                     '\\[ada-uncomment-region]'
- Continue comment on next line                        '\\[indent-new-comment-line]'
-
-If you use imenu.el:
- Display index-menu of functions and procedures       '\\[imenu]'
-
-If you use find-file.el:
- Switch to other file (Body <-> Spec)                 '\\[ff-find-other-file]'
-						   or '\\[ff-mouse-find-other-file]
- Switch to other file in other window                 '\\[ada-ff-other-window]'
-						   or '\\[ff-mouse-find-other-file-other-window]
- If you use this function in a spec and no body is available, it gets created with body stubs.
-
-If you use ada-xref.el:
- Goto declaration:          '\\[ada-point-and-xref]' on the identifier
-			 or '\\[ada-goto-declaration]' with point on the identifier
- Complete identifier:       '\\[ada-complete-identifier]'."
+  "Ada mode is the major mode for editing Ada code."
 
   (interactive)
   (kill-all-local-variables)
@@ -2822,7 +2781,7 @@ if INITIAL-POS is non-nil, moves point to INITIAL-POS before calculation."
      (t
       (goto-char (cdr (ada-search-ignore-string-comment "(\\|;" t nil t)))
       (ada-goto-next-non-ws)
-      (list (point) 0)))))
+      (list (point) 'ada-broken-indent)))))
 
 (defun ada-get-indent-end (orgpoint)
   "Calculate the indentation when point is just before an end statement.
@@ -3191,7 +3150,7 @@ ORGPOINT is the limit position used in the calculation."
       (setq pos (ada-get-indent-block-start orgpoint))
       (if (equal label 0)
 	  pos
-	(list (+ (car pos) label) (cdr pos))))
+	(list (+ (car pos) label) (cadr pos))))
 
      ;;
      ;; 'for'- loop (or also a for ... use statement)

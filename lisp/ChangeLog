@@ -1,3 +1,10 @@
+2009-01-04  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-mode.el (ada-mode): Simplify doc string.
+	(ada-get-indent-paramlist): Use ada-broken-indent instead of
+	hard-coded 0.
+	(ada-get-indent-loop): Fix list access bug.
+
 2009-01-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode, lisp-mode)
