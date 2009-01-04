@@ -4298,12 +4298,14 @@ and `current-column' to be able to ignore invisible text."
 
 (defun move-end-of-line (arg)
   "Move point to end of current line as displayed.
-\(If there's an image in the line, this disregards newlines
-which are part of the text that the image rests on.)
-
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
+
+To ignore the effects of the `intangible' text or overlay
+property, bind `inhibit-point-motion-hooks' to t.
+If there is an image in the current line, this function
+disregards newlines that are part of the text on which the image
+rests."
   (interactive "^p")
   (or arg (setq arg 1))
   (let (done)
