@@ -1222,10 +1222,14 @@ instead of logical lines: @kbd{C-a} (@code{beginning-of-visual-line})
 moves to the beginning of the screen line, @kbd{C-e}
 (@code{end-of-visual-line}) moves to the end of the screen line, and
 @kbd{C-k} (@code{kill-visual-line}) kills text to the end of the
-screen line.  Furthermore, the commands @kbd{M-]}
-(@code{next-logical-line}) and @kbd{M-[}
-(@code{previous-logical-line}) move point to the next logical line and
-previous logical line respectively.
+screen line.
+
+  To move by logical lines, use the commands @kbd{M-x
+next-logical-line} and @kbd{M-x previous-logical-line}.  These move
+point to the next logical line and the previous logical line
+respectively, regardless of whether Visual Line mode is enabled.  If
+you use these commands frequently, it may be convenient to assign key
+bindings to them.  @xref{Init Rebinding}.
 
   By default, word-wrapped lines do not display fringe indicators.
 Visual Line mode is often used to edit files that contain many long
