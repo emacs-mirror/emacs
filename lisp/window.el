@@ -1006,10 +1006,16 @@ consider all visible or iconified frames."
 				 (not (last-nonminibuffer-frame)))
 			     0)
 			(last-nonminibuffer-frame))))
-	(and (setq window-to-use (get-buffer-window buffer frames))
-	     (or can-use-selected-window
-		 (not (eq (selected-window) window-to-use)))))
-      ;; If the buffer is already displayed in some window use that.
+	(setq window-to-use
+	      (catch 'found
+		;; Search all visible and iconified frames for a window
+		;; displaying BUFFER.  Return the selected window only
+		;; if can-use-selected-window says we may do so.
+		(dolist (window (get-buffer-window-list buffer 'nomini 0))
+		  (when (or can-use-selected-window
+			    (not (eq (selected-window) window)))
+		    (throw 'found window))))))
+      ;; The buffer is already displayed in some window; use that.
       (window--display-buffer-1 window-to-use))
      ((and special-display-function
 	   ;; `special-display-p' returns either t or a list of frame

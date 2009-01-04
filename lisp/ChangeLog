@@ -1,3 +1,10 @@
+2009-01-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer): When a buffer is displayed in the
+	selected and some other window, and not-this-window is non-nil,
+	try to return that other window instead of popping up a new
+	frame.  (Bug#30)
+
 2009-01-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (visual-line-mode-map): Remove M-[ and M-] bindings.
