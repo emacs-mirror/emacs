@@ -416,6 +416,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
+
 \\{emacs-lisp-mode-map}
 Entry to this mode calls the value of `emacs-lisp-mode-hook'
 if that value is non-nil."
@@ -455,6 +456,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
+
 \\{lisp-mode-map}
 Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one.
@@ -532,6 +534,7 @@ Commands:
 Delete converts tabs to spaces as it moves back.
 Paragraphs are separated only by blank lines.
 Semicolons start comments.
+
 \\{lisp-interaction-mode-map}
 Entry to this mode calls the value of `lisp-interaction-mode-hook'
 if that value is non-nil.")

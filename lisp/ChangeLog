@@ -1,3 +1,9 @@
+2009-01-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode, lisp-mode)
+	(lisp-interaction-mode): Add a blank line in the docstring
+	before the keymap listing.
+
 2009-01-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer): When a buffer is displayed in the
