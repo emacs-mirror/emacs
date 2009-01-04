@@ -4514,8 +4514,10 @@ the variable `line-move-visual'."
     (define-key map [remap kill-line] 'kill-visual-line)
     (define-key map [remap move-beginning-of-line] 'beginning-of-visual-line)
     (define-key map [remap move-end-of-line]  'end-of-visual-line)
-    (define-key map "\M-[" 'previous-logical-line)
-    (define-key map "\M-]" 'next-logical-line)
+    ;; These keybindings interfere with xterm function keys.  Are
+    ;; there any other suitable bindings?
+    ;; (define-key map "\M-[" 'previous-logical-line)
+    ;; (define-key map "\M-]" 'next-logical-line)
     map))
 
 (defcustom visual-line-fringe-indicators '(nil nil)
