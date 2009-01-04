@@ -1,3 +1,8 @@
+2008-12-30  Kenichi Handa  <handa@m17n.org>
+
+	* configure.in: Define HAVE_OTF_GET_VARIATION_GLYPHS if libotf has
+	the function OTF_get_variation_glyphs.
+
 2008-12-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (install-arch-dep): Remove old directories in
