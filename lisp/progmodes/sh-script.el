@@ -244,8 +244,8 @@ By default we have the following three hierarchies:
 
 csh		C Shell
   jcsh		C Shell with Job Control
-  tcsh		Turbo C Shell
-    itcsh	? Turbo C Shell
+  tcsh		TENEX C Shell
+    itcsh	Ian's TENEX C Shell
 rc		Plan 9 Shell
   es		Extensible Shell
 sh		Bourne Shell
