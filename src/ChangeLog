@@ -1,3 +1,15 @@
+2009-01-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c: Use 64-bit arithmetic to do FILETIME conversions.  (Bug#1766)
+	(utc_base): Declare as ULONGLONG, not long double.
+	(convert_time_raw): Delete.
+	(FILETIME_TO_U64, U64_TO_LISP_TIME): New macros.
+	(initialize_utc_base): New function.
+	(convert_time): Use FILETIME_TO_U64, initialize_utc_base.
+	(convert_from_time_t): Use initialize_utc_base; compute result with
+	64-bit arithmetic.
+	(process_times): Use FILETIME_TO_U64, U64_TO_LISP_TIME.
+
 2009-01-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* process.c (Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess)
