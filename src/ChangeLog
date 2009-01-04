@@ -290,10 +290,10 @@
 	(xfont_list_family): Likewise.
 	(xfont_open): Likewise.
 
-	* ftfont.c (ftfont_open): Genarate a multibyte string if given
+	* ftfont.c (ftfont_open): Generate a multibyte string if given
 	names are utf-8.
 
-	* xftfont.c (xftfont_open): Genarate a multibyte string if given
+	* xftfont.c (xftfont_open): Generate a multibyte string if given
 	names are utf-8.
 
 2008-12-18  Jan Djärv  <jan.h.d@swipnet.se>
@@ -1728,10 +1728,10 @@
 
 2008-09-01  Kenichi Handa  <handa@m17n.org>
 
-	* ftfont.c (ftfont_spec_pattern): Don't create a charset of the
+	* ftfont.c (ftfont_spec_pattern): Don't create a charset if the
 	representative chars of the script is a vector.
-	(ftfont_list): Handle the case the representative chars of the
-	script is a vector.
+	(ftfont_list): Handle the case where the representative chars of
+	the script is a vector.
 
 	* character.c (syms_of_character): Docstring of
 	script-representative-chars fixed.
@@ -1830,7 +1830,7 @@
 	(composition_update_it, composition_adjust_point): Extern them.
 	(Fcomposition_get_gstring): EXFUN it.
 
-	* composite.c: Include window.h, frame.h, dispextern.h font.h.
+	* composite.c: Include window.h, frame.h, dispextern.h, font.h.
 	(Vcomposition_function_table)
 	(get_composition_id): Don't handle COMPOSITION_WITH_GLYPH_STRING.
 	(gstring_hash_table, gstring_work, gstring_work_headers):
@@ -1925,8 +1925,8 @@
 	(next_element_from_string): Check if the character at the current
 	position is composed by CHAR_COMPOSED_P.
 	(next_element_from_buffer): Likewise.
-	(next_element_from_composition): Adjust for the change of struct
-	it.  Update it->cmp_it.
+	(next_element_from_composition): Adjust for the change of struct it.
+	Update it->cmp_it.
 	(dump_glyph): Adjust for the change of struct glyph.
 	(fill_composite_glyph_string): Adjust for the change of struct
 	it and struct glyph.  Don't handle automatic composition here.
