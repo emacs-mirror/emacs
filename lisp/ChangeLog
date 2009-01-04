@@ -1,3 +1,7 @@
+2009-01-04  Ulrich Mueller  <ulm@kph.uni-mainz.de>
+
+	* progmodes/sh-script.el (sh-ancestor-alist): Doc fix.
+
 2009-01-03  Michael Olson  <mwolson@gnu.org>
 
 	* net/imap.el (imap-parse-fetch): Courier can insert spurious
