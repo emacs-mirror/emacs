@@ -4,7 +4,7 @@
 
 @copying
 Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -827,8 +827,7 @@ Invoke @key{Ada | Set main and Build}, which sets @code{main} to
 the current file.
 
 @item
-Invoke @key{Ada | Project | Edit}, edit @code{main} and
-@code{main}, and click @key{[save]}
+Invoke @key{Ada | Project | Edit}, edit @code{main}, and click @key{[save]}
 
 @item
 Invoke @key{Ada | Project | Load}, and load a project file that specifies @code{main}

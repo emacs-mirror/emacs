@@ -1,3 +1,7 @@
+2009-01-03  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* ada-mode.texi (Examples): Delete redundant text.
+
 2009-01-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi.in (top): Declare ipv6prefix and ipv6postfix.
