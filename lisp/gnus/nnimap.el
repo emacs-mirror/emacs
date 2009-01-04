@@ -620,6 +620,7 @@ If EXAMINE is non-nil the group is selected read-only."
        ;; to make it more clear.
        (mm-with-unibyte-buffer
 	 (buffer-disable-undo)
+	 ;; headers can be nil if article is write-only
 	 (when headers (insert headers))
 	 (let ((head (nnheader-parse-naked-head uid)))
 	   (mail-header-set-number head uid)
@@ -950,6 +951,7 @@ function is generally only called when Gnus is shutting down."
 	      (erase-buffer)
 	      (let ((data (imap-fetch article part prop nil
 				      nnimap-server-buffer)))
+		;; data can be nil if article is write-only
 		(when data
 		  (insert (nnimap-demule (if detail
 					     (nth 2 (car data))

@@ -2493,6 +2493,8 @@ Return nil if no complete line has arrived."
   (when (eq (char-after) ?\()
     (let (uid flags envelope internaldate rfc822 rfc822header rfc822text
 	      rfc822size body bodydetail bodystructure flags-empty)
+      ;; Courier can insert spurious blank characters which will
+      ;; confuse `read', so skip past them.
       (while (let ((moved (skip-chars-forward " \t")))
 	       (prog1 (not (eq (char-after) ?\)))
 		 (unless (= moved 0) (backward-char))))
