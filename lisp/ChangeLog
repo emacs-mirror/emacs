@@ -1,3 +1,7 @@
+2009-01-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (visual-line-mode-map): Remove M-[ and M-] bindings.
+
 2009-01-04  Ulrich Mueller  <ulm@kph.uni-mainz.de>
 
 	* progmodes/sh-script.el (sh-ancestor-alist): Doc fix.
