@@ -1,3 +1,10 @@
+2009-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* Cocoa/Emacs.base/Contents/Info.plist:
+	* Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:
+	* GNUstep/Emacs.base/Resources/Info-gnustep.plist:
+	Update copyright for 2009.
+
 2008-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* Cocoa/Emacs.base/Contents/Info.plist:
