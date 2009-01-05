@@ -1419,10 +1419,10 @@ A symbol on the list @code{safe-functions}, so the user says it's safe.
 @item
 A symbol with a non-@code{nil} @code{side-effect-free} property.
 @item
-A symbol with a non-@code{nil} @code{safe-function} property.  Value t
-indicates a function that is safe but has innocuous side effects.
-Other values will someday indicate functions with classes of side
-effects that are not always safe.
+A symbol with a non-@code{nil} @code{safe-function} property.  The
+value @code{t} indicates a function that is safe but has innocuous
+side effects.  Other values will someday indicate functions with
+classes of side effects that are not always safe.
 @end itemize
 
 The @code{side-effect-free} and @code{safe-function} properties are
