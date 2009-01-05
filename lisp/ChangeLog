@@ -1,3 +1,13 @@
+2009-01-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-load)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-handle-file-local-copy, tramp-handle-insert-file-contents)
+	(tramp-handle-write-region)
+	* net/tramp-smb.el (tramp-smb-handle-copy-file)
+	(tramp-smb-handle-rename-file, tramp-smb-handle-write-region):
+	Delete temporary file in case of error.
+
 2009-01-05  Agustín Martín <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-check-version): Use (with-temp-buffer)
