@@ -2263,8 +2263,9 @@ target of the symlink differ."
       (unless nomessage (tramp-message v 0 "Loading %s..." file))
       (let ((local-copy (file-local-copy file)))
 	;; MUST-SUFFIX doesn't exist on XEmacs, so let it default to nil.
-	(load local-copy noerror t t)
-	(delete-file local-copy))
+	(unwind-protect
+	    (load local-copy noerror t t)
+	  (delete-file local-copy)))
       (unless nomessage (tramp-message v 0 "Loading %s...done" file))
       t)))
 
@@ -3258,45 +3259,51 @@ the uid and gid from FILENAME."
 
 	   ;; We need a temporary file in between.
 	   (t
-	    ;; Create the temporary file.
-	    (let ((tmpfile (tramp-compat-make-temp-file localname1)))
-	      (cond
-	       (t1
-		(tramp-send-command
-		 v (format
-		    "%s %s %s" cmd
-		    (tramp-shell-quote-argument localname1)
-		    (tramp-shell-quote-argument tmpfile)))
-		;; We must change the ownership as remote user.
-		(tramp-set-file-uid-gid
-		 (concat prefix tmpfile)
-		 (tramp-get-local-uid 'integer)
-		 (tramp-get-local-gid 'integer)))
-	       (t2
-		(if (eq op 'copy)
-		    (tramp-compat-copy-file
-		     localname1 tmpfile ok-if-already-exists
-		     keep-date preserve-uid-gid)
-		  (tramp-run-real-handler
-		   'rename-file (list localname1 tmpfile ok-if-already-exists)))
-		;; We must change the ownership as local user.
-		(tramp-set-file-uid-gid
-		 tmpfile
-		 (tramp-get-remote-uid v 'integer)
-		 (tramp-get-remote-gid v 'integer))))
+	    (condition-case err
+		;; Create the temporary file.
+		(let ((tmpfile (tramp-compat-make-temp-file localname1)))
+		  (cond
+		   (t1
+		    (tramp-send-command
+		     v (format
+			"%s %s %s" cmd
+			(tramp-shell-quote-argument localname1)
+			(tramp-shell-quote-argument tmpfile)))
+		    ;; We must change the ownership as remote user.
+		    (tramp-set-file-uid-gid
+		     (concat prefix tmpfile)
+		     (tramp-get-local-uid 'integer)
+		     (tramp-get-local-gid 'integer)))
+		   (t2
+		    (if (eq op 'copy)
+			(tramp-compat-copy-file
+			 localname1 tmpfile ok-if-already-exists
+			 keep-date preserve-uid-gid)
+		      (tramp-run-real-handler
+		       'rename-file
+		       (list localname1 tmpfile ok-if-already-exists)))
+		    ;; We must change the ownership as local user.
+		    (tramp-set-file-uid-gid
+		     tmpfile
+		     (tramp-get-remote-uid v 'integer)
+		     (tramp-get-remote-gid v 'integer))))
 
-	      ;; Move the temporary file to its destination.
-	      (cond
-	       (t2
-		(tramp-send-command
-		 v (format
-		    "mv -f %s %s"
-		    (tramp-shell-quote-argument tmpfile)
-		    (tramp-shell-quote-argument localname2))))
-	       (t1
-		(tramp-run-real-handler
-		 'rename-file
-		 (list tmpfile localname2 ok-if-already-exists))))))))))
+		  ;; Move the temporary file to its destination.
+		  (cond
+		   (t2
+		    (tramp-send-command
+		     v (format
+			"mv -f %s %s"
+			(tramp-shell-quote-argument tmpfile)
+			(tramp-shell-quote-argument localname2))))
+		   (t1
+		    (tramp-run-real-handler
+		     'rename-file
+		     (list tmpfile localname2 ok-if-already-exists)))))
+
+	      ;; Error handling.
+	      (error (delete-file tmpfile)
+		     (signal (car err) (cdr err)))))))))
 
       ;; Set the time and mode. Mask possible errors.
       ;; Won't be applied for 'rename.
@@ -4051,8 +4058,9 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	      (tramp-message
 	       v 5 "Decoding remote file %s with command %s..."
 	       filename loc-dec)
-	      (tramp-call-local-coding-command loc-dec tmpfile2 tmpfile)
-	      (delete-file tmpfile2)))
+	      (unwind-protect
+		  (tramp-call-local-coding-command loc-dec tmpfile2 tmpfile)
+		(delete-file tmpfile2))))
 	  (tramp-message v 5 "Decoding remote file %s...done" filename)
 	  ;; Set proper permissions.
 	  (set-file-modes tmpfile (file-modes filename))
@@ -4134,18 +4142,19 @@ coding system might not be determined.  This function repairs it."
 	    (tramp-message v 4 "Inserting local temp file `%s'..." local-copy)
 	    ;; We must ensure that `file-coding-system-alist' matches
 	    ;; `local-copy'.
-	    (let ((file-coding-system-alist
-		   (tramp-find-file-name-coding-system-alist
-		    filename local-copy)))
-	      (setq result
-		    (insert-file-contents local-copy nil beg end replace))
-	      ;; Now `last-coding-system-used' has right value.  Remember it.
-	      (when (boundp 'last-coding-system-used)
-		(setq coding-system-used
-		      (symbol-value 'last-coding-system-used))))
+	    (unwind-protect
+		(let ((file-coding-system-alist
+		       (tramp-find-file-name-coding-system-alist
+			filename local-copy)))
+		  (setq result
+			(insert-file-contents local-copy nil beg end replace))
+		  ;; Now `last-coding-system-used' has right value.  Remember it.
+		  (when (boundp 'last-coding-system-used)
+		    (setq coding-system-used
+			  (symbol-value 'last-coding-system-used))))
+	      (delete-file local-copy))
 	    (tramp-message
 	     v 4 "Inserting local temp file `%s'...done" local-copy)
-	    (delete-file local-copy)
 	    (when (boundp 'last-coding-system-used)
 	      (set 'last-coding-system-used coding-system-used))))
 
@@ -4333,9 +4342,13 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	  ;; matches `tmpfile'.
 	  (let ((file-coding-system-alist
 		 (tramp-find-file-name-coding-system-alist filename tmpfile)))
-	    (tramp-run-real-handler
-	     'write-region
-	     (list start end tmpfile append 'no-message lockname confirm))
+	    (condition-case err
+		(tramp-run-real-handler
+		 'write-region
+		 (list start end tmpfile append 'no-message lockname confirm))
+	      (error (delete-file tmpfile)
+		     (signal (car err) (cdr err))))
+
 	    ;; Now, `last-coding-system-used' has the right value.  Remember it.
 	    (when (boundp 'last-coding-system-used)
 	      (setq coding-system-used
@@ -4360,7 +4373,10 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		(and (tramp-method-out-of-band-p v)
 		     (> (- (or end (point-max)) (or start (point-min)))
 			tramp-copy-size-limit)))
-	    (rename-file tmpfile filename t))
+	    (condition-case err
+		(rename-file tmpfile filename t)
+	      (error (delete-file tmpfile)
+		     (signal (car err) (cdr err)))))
 
 	   ;; Use inline file transfer.
 	   (rem-dec
