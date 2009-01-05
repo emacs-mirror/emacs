@@ -1,6 +1,8 @@
 2009-01-05  Glenn Morris  <rgm@gnu.org>
 
-	* version.el (emacs-copyright): Update for 2009.
+	* version.el (emacs-copyright):
+	* net/tramp.el (tramp-perl-encode, tramp-perl-decode):
+	Update copyrights for 2009.
 
 2009-01-04  Stephen Leake  <stephen_leake@member.fsf.org>
 
