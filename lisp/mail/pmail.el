@@ -60,9 +60,18 @@ temporarily unswap in order to save the real contents.  This
 advice is temporarily used by pmail until a satisfactory solution
 can be written."
   (if (not buffer-swapped-with)
-      ad-do-it
+      (progn
+;;	(if (and (string= "PMAIL" (buffer-name))
+;;		 (< (buffer-size) 1000000))
+;;	    (debug))
+	ad-do-it)
     (unwind-protect
 	(let ((modp (buffer-modified-p)))
+;;	  (save-match-data
+;;	    (let ((case-fold-search nil))
+;;	      (unless (or (string-match "PMAIL" (buffer-name))
+;;			  (string-match "xmail" (buffer-name)))
+;;		(debug))))
 	  (buffer-swap-text buffer-swapped-with)
 	  (set-buffer-modified-p modp)
 	  ad-do-it)
@@ -567,9 +576,6 @@ examples:
 (defvar pmail-inbox-list nil)
 (put 'pmail-inbox-list 'permanent-local t)
 
-(defvar pmail-keywords nil)
-(put 'pmail-keywords 'permanent-local t)
-
 (defvar pmail-buffer nil
   "The PMAIL buffer related to the current buffer.
 In an PMAIL buffer, this holds the PMAIL buffer itself.
@@ -612,22 +618,11 @@ by substituting the new message number into the existing list.")
 
 ;; `Sticky' default variables.
 
-;; Last individual label specified to a or k.
-(defvar pmail-last-label nil)
-(put 'pmail-last-label 'permanent-local t)
-
-;; Last set of values specified to C-M-n, C-M-p, C-M-s or C-M-l.
-(defvar pmail-last-multi-labels nil)
-
 (defvar pmail-last-regexp nil)
 (put 'pmail-last-regexp 'permanent-local t)
 
 (defcustom pmail-default-file "~/xmail"
   "*Default file name for \\[pmail-output]."
-  :type 'file
-  :group 'pmail-files)
-(defcustom pmail-default-pmail-file "~/XMAIL"
-  "*Default file name for \\[pmail-output-to-babyl-file]."
   :type 'file
   :group 'pmail-files)
 (defcustom pmail-default-body-file "~/mailout"
@@ -946,14 +941,14 @@ If `pmail-display-summary' is non-nil, make a summary for this PMAIL file."
 	((equal (point-min) (point-max))
 	 (message "Empty Pmail file."))
 	((looking-at "From "))
-	(t (pmail-error-bad-format))))
+	(t (error "Invalid mbox file"))))
 
 (defun pmail-error-bad-format (&optional msgnum)
   "Report that the buffer is not in the mbox file format.
 MSGNUM, if present, indicates the malformed message."
   (if msgnum
-      (error "Message %s is not a valid RFC2822 message." msgnum)
-    (error "Invalid mbox format mail file.")))
+      (error "Message %d is not a valid RFC2822 message" msgnum)
+    (error "Message is not a valid RFC2822 message")))
 
 (defun pmail-convert-babyl-to-mbox ()
   "Convert the mail file from Babyl version 5 to mbox.
@@ -989,6 +984,8 @@ The buffer is expected to be narrowed to just the header of the message."
 	     (string-match pmail-mime-charset-pattern content-type-header))
 	(substring content-type-header (match-beginning 1) (match-end 1))
       'undecided)))
+
+;;; Set up Pmail mode keymaps
 
 (defvar pmail-mode-map nil)
 (if pmail-mode-map
@@ -1032,7 +1029,7 @@ The buffer is expected to be narrowed to just the header of the message."
   (define-key pmail-mode-map "t"      'pmail-toggle-header)
   (define-key pmail-mode-map "u"      'pmail-undelete-previous-message)
   (define-key pmail-mode-map "w"      'pmail-output-body-to-file)
-  (define-key pmail-mode-map "C-w"    'pmail-widen)
+  (define-key pmail-mode-map "\C-c\C-w"    'pmail-widen)
   (define-key pmail-mode-map "x"      'pmail-expunge)
   (define-key pmail-mode-map "."      'pmail-beginning-of-message)
   (define-key pmail-mode-map "/"      'pmail-end-of-message)
@@ -1067,10 +1064,10 @@ The buffer is expected to be narrowed to just the header of the message."
   '("Output body to file..." . pmail-output-body-to-file))
 
 (define-key pmail-mode-map [menu-bar classify output-inbox]
-  '("Output (inbox)..." . pmail-output))
+  '("Output..." . pmail-output))
 
 (define-key pmail-mode-map [menu-bar classify output]
-  '("Output (Pmail)..." . pmail-output-to-babyl-file))
+  '("Output as seen..." . pmail-output-as-seen))
 
 (define-key pmail-mode-map [menu-bar classify kill-label]
   '("Kill Label..." . pmail-kill-label))
@@ -1238,8 +1235,8 @@ Instead, these commands are available:
 \\[pmail-reply]	Reply to this message.  Like \\[pmail-mail] but initializes some fields.
 \\[pmail-retry-failure]	Send this message again.  Used on a mailer failure message.
 \\[pmail-forward]	Forward this message to another user.
-\\[pmail-output-to-babyl-file]       Output this message to an Pmail file (append it).
-\\[pmail-output]	Output this message to a Unix-format mail file (append it).
+\\[pmail-output]	Output (append) this message to another mail file.
+\\[pmail-output-as-seen]	Output (append) this message to file as it's displayed.
 \\[pmail-output-body-to-file]	Save message body to a file.  Default filename comes from Subject line.
 \\[pmail-input]	Input Pmail file.  Run Pmail on that file.
 \\[pmail-add-label]	Add label to message.  It will be displayed in the mode line.
@@ -1287,10 +1284,9 @@ Instead, these commands are available:
   ;; No need to auto save PMAIL files in normal circumstances
   ;; because they contain no info except attribute changes
   ;; and deletion of messages.
-  ;; The one exception is when messages are copied into an Pmail mode buffer.
-  ;; pmail-output-to-babyl-file enables auto save when you do that.
+  ;; The one exception is when messages are copied into another mbox buffer.
+  ;; pmail-output enables auto save when you do that.
   (setq buffer-auto-save-file-name nil)
-  (setq mode-line-modified "--")
   (use-local-map pmail-mode-map)
   (set-syntax-table text-mode-syntax-table)
   (setq local-abbrev-table text-mode-abbrev-table)
@@ -1312,7 +1308,9 @@ Create the buffer if necessary."
   (if buffer-swapped-with
       (when (pmail-buffers-swapped-p)
 	(setq buffer-swapped-with nil)
-	(buffer-swap-text pmail-view-buffer))))
+	(let ((modp (buffer-modified-p)))
+	  (buffer-swap-text pmail-view-buffer)
+	  (set-buffer-modified-p modp)))))
   ;; Throw away the summary.
   ;;(when (buffer-live-p pmail-view-buffer) (kill-buffer pmail-view-buffer)))
 
@@ -1330,7 +1328,6 @@ Create the buffer if necessary."
 
 ;; Set up the permanent locals associated with an Pmail file.
 (defun pmail-perm-variables ()
-  (make-local-variable 'pmail-last-label)
   (make-local-variable 'pmail-last-regexp)
   (make-local-variable 'pmail-deleted-vector)
   (make-local-variable 'pmail-buffer)
@@ -1340,6 +1337,7 @@ Create the buffer if necessary."
   (save-excursion
     (setq pmail-view-buffer (pmail-generate-viewer-buffer))
     (set-buffer pmail-view-buffer)
+    (setq buffer-undo-list t)
     (set-buffer-multibyte t))
   (make-local-variable 'pmail-summary-buffer)
   (make-local-variable 'pmail-summary-vector)
@@ -1361,13 +1359,12 @@ Create the buffer if necessary."
 		 (list (or (getenv "MAIL")
 			   (concat rmail-spool-directory
 				   (user-login-name)))))))
-  (make-local-variable 'pmail-keywords)
-  (set (make-local-variable 'tool-bar-map) pmail-tool-bar-map)
-  ;; this gets generated as needed
-  (setq pmail-keywords nil))
+  (set (make-local-variable 'tool-bar-map) pmail-tool-bar-map))
 
 ;; Set up the non-permanent locals associated with Pmail mode.
 (defun pmail-variables ()
+  ;; Turn off undo.  We turn it back on in pmail-edit.
+  (setq buffer-undo-list t)
   ;; Don't let a local variables list in a message cause confusion.
   (make-local-variable 'local-enable-local-variables)
   (setq local-enable-local-variables nil)
@@ -1391,7 +1388,7 @@ Create the buffer if necessary."
   (setq file-precious-flag t)
   (make-local-variable 'desktop-save-buffer)
   (setq desktop-save-buffer t))
-
+
 ;; Handle M-x revert-buffer done in an pmail-mode buffer.
 (defun pmail-revert (arg noconfirm)
   (set-buffer pmail-buffer)
@@ -1466,7 +1463,7 @@ Hook `pmail-quit-hook' is run after expunging."
 	    (quit-window nil window))
 	  (bury-buffer pmail-summary-buffer)))
     (quit-window)))
-
+
 (defun pmail-duplicate-message ()
   "Create a duplicated copy of the current message.
 The duplicate copy goes into the Pmail file just after the
@@ -1547,7 +1544,7 @@ original copy."
 	    (cons "Output Pmail File"
 		  (pmail-list-to-menu "Output Pmail File"
 				      files
-				      'pmail-output-to-babyl-file))))
+				      'pmail-output))))
 
       (define-key pmail-mode-map [menu-bar classify input-menu]
 	'("Input Pmail File" . pmail-disable-menu))
@@ -1993,7 +1990,7 @@ new messages.  Return the number of new messages."
 (defun pmail-copy-headers (beg end &optional ignored-headers)
   "Copy displayed header fields to the message viewer buffer.
 BEG and END marks the start and end positions of the message in
-the mail buffer.  If the optional argument IGNORED-HEADERS is
+the mbox buffer.  If the optional argument IGNORED-HEADERS is
 non-nil, ignore all header fields whose names match that regexp.
 Otherwise, if `rmail-displayed-headers' is non-nil, copy only
 those header fields whose names match that regexp.  Otherwise,
@@ -2062,8 +2059,6 @@ otherwise, show it in full."
       (goto-char (point-min))
       (vertical-motion (- (point-max) (point-min))))))
 
-;;;; *** Pmail Attributes and Keywords ***
-
 (defun pmail-get-header (name &optional msgnum)
   "Return the value of message header NAME, nil if it has none.
 MSGNUM specifies the message number to get it from.
@@ -2088,6 +2083,41 @@ If MSGNUM is nil, use the current message."
 		    (mail-fetch-field name))
 		(pmail-error-bad-format msgnum)))))))))
 
+(defun pmail-set-header (name &optional msgnum value)
+  "Store VALUE in message header NAME, nil if it has none.
+MSGNUM specifies the message number to operate on.
+If MSGNUM is nil, use the current message."
+  (with-current-buffer pmail-buffer
+    (or msgnum (setq msgnum pmail-current-message))
+    (when (> msgnum 0)
+      (let (msgbeg end)
+	(setq msgbeg (pmail-msgbeg msgnum))
+	;; All access to the buffer's local variables is now finished...
+	(save-excursion
+	  ;; ... so it is ok to go to a different buffer.
+	  (if (pmail-buffers-swapped-p) (set-buffer pmail-view-buffer))
+	  (save-restriction
+	    (widen)
+	    (save-excursion
+	      (goto-char msgbeg)
+	      (setq end (search-forward "\n\n" nil t))
+	      (if end (setq end (1- end)))
+	      (if end
+		  (progn
+		    (narrow-to-region msgbeg end)
+		    (goto-char msgbeg)
+		    (if (re-search-forward (concat "^"
+						   (regexp-quote name)
+						   ":")
+					   nil t)
+			(progn
+			  (delete-region (point) (line-end-position))
+			  (insert " " value))
+		      (goto-char end)
+		      (insert name ": " value "\n")))
+		(pmail-error-bad-format msgnum)))))))))
+
+;;;; *** Pmail Attributes and Keywords ***
 
 (defun pmail-get-attr-names (&optional msg)
   "Return the message attributes in a comma separated string.
@@ -2107,23 +2137,31 @@ If MSG is nil, use the current message."
 
 (defun pmail-get-keywords (&optional msg)
   "Return the message keywords in a comma separated string.
-MSG, if set identifies the message number to use.  The current
-mail message will be used otherwise."
+MSG, if non-nil, identifies the message number to use.
+If nil, that means the current message."
   (pmail-get-header pmail-keyword-header msg))
 
-(defun pmail-display-labels ()
-  "Update the current messages's attributes and keywords in mode line."
+(defun pmail-get-labels (&optional msg)
+  "Return a string with the labels (attributes and keywords) of msg MSG.
+It is put in comma-separated form.
+MSG, if non-nil, identifies the message number to use.
+If nil, that means the current message."
   (let (blurb attr-names keywords)
     ;; Combine the message attributes and keywords 
     ;; into a comma-separated list.
     (setq attr-names (pmail-get-attr-names pmail-current-message)
 	  keywords (pmail-get-keywords pmail-current-message))
-    (setq blurb
-	  (cond
-	   ((and attr-names keywords) (concat " " attr-names ", " keywords))
-	   (attr-names (concat " " attr-names))
-	   (keywords (concat " " keywords))
-	   (t "")))
+    (if (string= keywords "")
+	(setq keywords nil))
+    (cond
+     ((and attr-names keywords) (concat " " attr-names ", " keywords))
+     (attr-names (concat " " attr-names))
+     (keywords (concat " " keywords))
+     (t ""))))
+
+(defun pmail-display-labels ()
+  "Update the current messages's attributes and keywords in mode line."
+  (let ((blurb (pmail-get-labels)))
     (setq mode-line-process
 	  (format " %d/%d%s"
 		  pmail-current-message pmail-total-messages blurb))
@@ -2155,6 +2193,7 @@ change; nil means current message."
     (let ((value (pmail-get-attr-value attr state))
 	  (inhibit-read-only t)
 	  limit
+	  altered
 	  msgbeg)
       (or msgnum (setq msgnum pmail-current-message))
       (when (> msgnum 0)
@@ -2190,6 +2229,7 @@ change; nil means current message."
 			  (forward-char attr))
 			;; Change this attribute.
 			(when (/= value (char-after))
+			  (setq altered t)
 			  (delete-char 1)
 			  (insert value)))
 		    ;; Otherwise add a header line to record the attributes
@@ -2197,9 +2237,15 @@ change; nil means current message."
 		    (let ((header-value "--------"))
 		      (aset header-value attr value)
 		      (goto-char (if limit (- limit 1) (point-max)))
+		      (setq altered (/= value ?-))
 		      (insert pmail-attribute-header ": " header-value "\n"))))))
 	  (if (= msgnum pmail-current-message)
-	      (pmail-display-labels)))))))
+	      (pmail-display-labels))))
+      ;; If we made a significant change in an attribute,
+      ;; mark pmail-buffer modified, so it will be (1) saved 
+      ;; and (2) displayed in the mode line.
+      (if altered
+	  (set-buffer-modified-p t)))))
 
 (defun pmail-message-attr-p (msg attrs)
   "Return t if the attributes header for message MSG matches regexp ATTRS.
@@ -2220,18 +2266,6 @@ This function assumes the Pmail buffer is unswapped."
   "Test the unseen attribute for message MSGNUM.
 Return non-nil if the unseen attribute is set, nil otherwise."
   (pmail-message-attr-p msgnum "......U"))
-
-;; Return t if the attributes/keywords line of msg number MSG
-;; contains a match for the regexp LABELS.
-(defun pmail-message-labels-p (msg labels)
-  ;;;??? BROKEN
-  (error "pmail-message-labels-p has not been updated for Pmail")
-  (save-excursion
-    (save-restriction
-      (widen)
-      (goto-char (pmail-msgbeg msg))
-      (forward-char 3)
-      (re-search-backward labels (prog1 (point) (end-of-line)) t))))
 
 ;;;; *** Pmail Message Selection And Support ***
 
@@ -2250,7 +2284,9 @@ swapped state, i.e. it currently contains a single decoded
 message rather than an entire message collection, nil otherwise."
   (let (result)
     (when (pmail-buffers-swapped-p)
-      (buffer-swap-text pmail-view-buffer)
+      (let ((modp (buffer-modified-p)))
+	(buffer-swap-text pmail-view-buffer)
+	(set-buffer-modified-p modp))
       (setq buffer-swapped-with nil
 	    result pmail-current-message))
     result))
@@ -2274,6 +2310,29 @@ display it.  Return nil."
 
 (defun pmail-msgbeg (n)
   (marker-position (aref pmail-message-vector n)))
+
+(defun pmail-apply-in-message (msgnum function &rest args)
+  "Call FUNCTION on ARGS while narrowed to message MSGNUM.
+Point is at the start of the message.
+This returns what the call to FUNCTION returns.
+If MSGNUM is nil, use the current message."
+  (with-current-buffer pmail-buffer
+    (or msgnum (setq msgnum pmail-current-message))
+    (when (> msgnum 0)
+      (let (msgbeg msgend)
+	(setq msgbeg (pmail-msgbeg msgnum))
+	(setq msgend (pmail-msgend msgnum))
+	;; All access to the pmail-buffer's local variables is now finished...
+	(save-excursion
+	  ;; ... so it is ok to go to a different buffer.
+	  (if (pmail-buffers-swapped-p) (set-buffer pmail-view-buffer))
+	  (save-restriction
+	    (widen)
+	    (save-excursion
+	      (goto-char msgbeg)
+	      (save-restriction
+		(narrow-to-region msgbeg msgend)
+		(apply function args)))))))))
 
 (defun pmail-widen-to-current-msgbeg (function)
   "Call FUNCTION with point at start of internal data of current message.
@@ -2481,7 +2540,9 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
 If so restore the actual mbox message collection."
   (with-current-buffer pmail-buffer
     (when (pmail-buffers-swapped-p)
-      (buffer-swap-text pmail-view-buffer)
+      (let ((modp (buffer-modified-p)))
+	(buffer-swap-text pmail-view-buffer)
+	(set-buffer-modified-p modp))
       (setq buffer-swapped-with nil))))
 
 (defun pmail-widen ()
@@ -2561,7 +2622,6 @@ The current mail message becomes the message displayed."
       (pmail-swap-buffers-maybe)
       (setq beg (pmail-msgbeg msg)
 	    end (pmail-msgend msg))
-      (widen)
       (narrow-to-region beg end)
       (goto-char beg)
       (setq body-start (search-forward "\n\n" nil t))
@@ -2572,25 +2632,29 @@ The current mail message becomes the message displayed."
 	    coding-system (pmail-get-coding-system))
       (if character-coding
 	  (setq character-coding (downcase character-coding)))
-      (widen)
       (narrow-to-region beg end)
       ;; Decode the message body into an empty view buffer using a
       ;; unibyte temporary buffer where the character decoding takes
       ;; place.
       (with-current-buffer pmail-view-buffer
 	(erase-buffer))
-      (with-temp-buffer
-	(set-buffer-multibyte nil)
-	(insert-buffer-substring mbox-buf body-start end)
-	(cond
-	 ((string= character-coding "quoted-printable")
-	  (mail-unquote-printable-region (point-min) (point-max)))
-	 ((and (string= character-coding "base64") is-text-message)
-	  (base64-decode-region (point-min) (point-max)))
-	 ((eq character-coding 'uuencode)
-	  (error "Not supported yet."))
-	 (t))
-	(pmail-decode-region (point-min) (point-max) coding-system view-buf))
+      (if (null character-coding)
+	  ;; Do it directly since that is fast.
+	  (pmail-decode-region body-start end coding-system view-buf)
+	;; Can this be done directly, skipping the temp buffer?
+	(with-temp-buffer
+	  (set-buffer-multibyte nil)
+	  (insert-buffer-substring mbox-buf body-start end)
+	  (cond
+	   ((string= character-coding "quoted-printable")
+	    (mail-unquote-printable-region (point-min) (point-max)))
+	   ((and (string= character-coding "base64") is-text-message)
+	    (base64-decode-region (point-min) (point-max)))
+	   ((eq character-coding 'uuencode)
+	    (error "Not supported yet"))
+	   (t))
+	  (pmail-decode-region (point-min) (point-max)
+			       coding-system view-buf)))
       ;; Copy the headers to the front of the message view buffer.
       (with-current-buffer pmail-view-buffer
 	(goto-char (point-min)))
@@ -2608,7 +2672,9 @@ The current mail message becomes the message displayed."
       ;; Update the mode-line with message status information and swap
       ;; the view buffer/mail buffer contents.
       (pmail-display-labels)
-      (buffer-swap-text pmail-view-buffer)
+      (let ((modp (buffer-modified-p)))
+	(buffer-swap-text pmail-view-buffer)
+	(set-buffer-modified-p modp))
       (setq buffer-swapped-with pmail-view-buffer)
       (run-hooks 'pmail-show-message-hook))
     blurb))
@@ -2690,7 +2756,7 @@ Called when a new message is displayed."
 		(pmail-delete-forward)
 	      (if (string= "/dev/null" folder)
 		  (pmail-delete-message)
-		(pmail-output-to-babyl-file folder 1 t)
+		(pmail-output folder 1 t)
 		(setq d nil))))
 	(setq d (cdr d))))))
 
@@ -2767,50 +2833,11 @@ or forward if N is negative."
 	(setq high mid))
       (setq mid (+ low (/ (- high low) 2))))
     (if (>= where (pmail-msgbeg high)) high low)))
-
-(defun pmail-message-recipients-p (msg recipients &optional primary-only)
-  ;;;??? BROKEN
-  (error "pmail-message-recipients-p has not been updated for Pmail")
-  (save-restriction
-    (goto-char (pmail-msgbeg msg))
-    (search-forward "\n*** EOOH ***\n")
-    (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
-    (or (string-match recipients (or (mail-fetch-field "To") ""))
-	(string-match recipients (or (mail-fetch-field "From") ""))
-	(if (not primary-only)
-	    (string-match recipients (or (mail-fetch-field "Cc") ""))))))
-
-(defun pmail-message-regexp-p (n regexp)
-  "Return t, if for message number N, regexp REGEXP matches in the header."
-  ;;;??? BROKEN
-  (error "pmail-message-regexp-p has not been updated for Pmail")
-  (let ((beg (pmail-msgbeg n))
-	(end (pmail-msgend n)))
-    (goto-char beg)
-    (forward-line 1)
-    (save-excursion
-      (save-restriction
-	(if (prog1 (= (following-char) ?0)
-	      (forward-line 2)
-	      ;; If there's a Summary-line in the (otherwise empty)
-	      ;; header, we didn't yet get past the EOOH line.
-	      (when (looking-at "^\\*\\*\\* EOOH \\*\\*\\*\n")
-		(forward-line 1))
-	      (setq beg (point))
-	      (narrow-to-region (point) end))
-	    (progn
-	      (rfc822-goto-eoh)
-	      (setq end (point)))
-	  (setq beg (point))
-	  (search-forward "\n*** EOOH ***\n" end t)
-	  (setq end (1+ (match-beginning 0)))))
-	(goto-char beg)
-	(if pmail-enable-mime
-	    (funcall pmail-search-mime-header-function n regexp end)
-	  (re-search-forward regexp end t)))))
-
+
 (defun pmail-search-message (msg regexp)
   "Return non-nil, if for message number MSG, regexp REGEXP matches."
+  ;; This is adequate because its only caller, pmail-search,
+  ;; unswaps the buffers.
   (goto-char (pmail-msgbeg msg))
   (if pmail-enable-mime
       (funcall pmail-search-mime-message-function msg regexp)
@@ -2928,11 +2955,11 @@ Interactively, empty argument means use same regexp used last time."
 	(setq current (1+ current))))
     found))
 
-(defun pmail-current-subject ()
-  "Return the current subject.
-The subject is stripped of leading and trailing whitespace, and
-of typical reply prefixes such as Re:."
-  (let ((subject (or (mail-fetch-field "Subject") "")))
+(defun pmail-simplified-subject (&optional msgnum)
+  "Return the simplified subject of message MSGNUM (or current message).
+Simplifying the subject means stripping leading and trailing whitespace,
+and typical reply prefixes such as Re:."
+  (let ((subject (or (pmail-get-header "Subject" msgnum) "")))
     (if (string-match "\\`[ \t]+" subject)
 	(setq subject (substring subject (match-end 0))))
     (if (string-match pmail-reply-regexp subject)
@@ -2941,63 +2968,39 @@ of typical reply prefixes such as Re:."
 	(setq subject (substring subject 0 (match-beginning 0))))
     subject))
 
-(defun pmail-current-subject-regexp ()
-  "Return a regular expression matching the current subject.
-The regular expression matches the subject header line of
-messages about the same subject.  The subject itself is stripped
-of leading and trailing whitespace, of typical reply prefixes
-such as Re: and whitespace within the subject is replaced by a
-regular expression matching whitespace in general in order to
-take into account that subject header lines may include newlines
-and more whitespace.  The returned regular expressions contains
-`pmail-reply-regexp' and ends with a newline."
-  (let ((subject (pmail-current-subject)))
-    ;; If Subject is long, mailers will break it into several lines at
-    ;; arbitrary places, so replace whitespace with a regexp that will
-    ;; match any sequence of spaces, TABs, and newlines.
+(defun pmail-simplified-subject-regexp ()
+  "Return a regular expression matching the current simplified subject.
+The idea is to match it against simplified subjects of other messages."
+  (let ((subject (pmail-simplified-subject)))
     (setq subject (regexp-quote subject))
+    ;; Hide commas so it will work ok if parsed as a comma-separated list
+    ;; of regexps.
     (setq subject
-	  (replace-regexp-in-string "[ \t\n]+" "[ \t\n]+" subject t t))
-    ;; Some mailers insert extra spaces after "Subject:", so allow any
-    ;; amount of them.
-    (concat "^Subject:[ \t]+"
-	    (if (string= "\\`" (substring pmail-reply-regexp 0 2))
-		(substring pmail-reply-regexp 2)
-	      pmail-reply-regexp)
-	    subject "[ \t]*\n")))
+	  (replace-regexp-in-string "," "\054" subject t t))
+    (concat "\\`" subject "\\'")))
 
 (defun pmail-next-same-subject (n)
   "Go to the next mail message having the same subject header.
 With prefix argument N, do this N times.
 If N is negative, go backwards instead."
   (interactive "p")
-  (let ((search-regexp (pmail-current-subject-regexp))
+  (let ((subject (pmail-simplified-subject))
 	(forward (> n 0))
 	(i pmail-current-message)
-	(case-fold-search t)
 	found)
-    (save-excursion
-      (save-restriction
-	(widen)
-	(while (and (/= n 0)
+    (while (and (/= n 0)
+		(if forward
+		    (< i pmail-total-messages)
+		  (> i 1)))
+      (let (done)
+	(while (and (not done)
 		    (if forward
 			(< i pmail-total-messages)
 		      (> i 1)))
-	  (let (done)
-	    (while (and (not done)
-			(if forward
-			    (< i pmail-total-messages)
-			  (> i 1)))
-	      (setq i (if forward (1+ i) (1- i)))
-	      (goto-char (pmail-msgbeg i))
-	      (search-forward "\n*** EOOH ***\n")
-	      (let ((beg (point)) end)
-		(search-forward "\n\n")
-		(setq end (point))
-		(goto-char beg)
-		(setq done (re-search-forward search-regexp end t))))
-	    (if done (setq found i)))
-	  (setq n (if forward (1- n) (1+ n))))))
+	  (setq i (if forward (1+ i) (1- i)))
+	  (setq done (string-equal subject (pmail-simplified-subject i))))
+	(if done (setq found i)))
+      (setq n (if forward (1- n) (1+ n))))
     (if found
 	(pmail-show-message-maybe found)
       (error "No %s message with same subject"
@@ -3855,7 +3858,7 @@ TOKEN and INDENT are not used."
 TEXT and INDENT are not used."
   (speedbar-with-attached-buffer
    (message "Moving message to %s" token)
-   (pmail-output-to-babyl-file token)))
+   (pmail-output token)))
 
 ; Functions for setting, getting and encoding the POP password.
 ; The password is encoded to prevent it from being easily accessible
