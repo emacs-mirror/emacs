@@ -1,6 +1,10 @@
+2009-01-05  Agustín Martín <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-check-version): Use (with-temp-buffer)
+
 2009-01-05  Richard M Stallman  <rms@gnu.org>
 
-	* mail/sendmail.el (mail-bury): Treat pmail-mode like rmail-mode. 
+	* mail/sendmail.el (mail-bury): Treat pmail-mode like rmail-mode.
 
 2009-01-05  Martin Rudalics  <rudalics@gmx.at>
 

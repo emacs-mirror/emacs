@@ -744,18 +744,14 @@ Otherwise returns the library directory name, if that is defined."
   ;; all versions, since versions earlier than 3.0.09 didn't identify
   ;; themselves on startup.
   (interactive "p")
-  (let ((case-fold-search-val case-fold-search)
-	;; avoid bugs when syntax of `.' changes in various default modes
+  (let (;; avoid bugs when syntax of `.' changes in various default modes
 	(default-major-mode 'fundamental-mode)
 	(default-directory (or (and (boundp 'temporary-file-directory)
 				    temporary-file-directory)
 			       default-directory))
 	result status ispell-program-version)
-    (save-excursion
-      (let ((buf (get-buffer " *ispell-tmp*")))
-	(if buf (kill-buffer buf)))
-      (set-buffer (get-buffer-create " *ispell-tmp*"))
-      (erase-buffer)
+
+    (with-temp-buffer
       (setq status (ispell-call-process
 		    ispell-program-name nil t nil
 		    ;; aspell doesn't accept the -vv switch.
@@ -825,9 +821,7 @@ Otherwise returns the library directory name, if that is defined."
 	    (setq ispell-really-aspell nil)))
 	 (ispell-really-hunspell
 	  (or (ispell-check-minver hunspell8-minver ispell-really-hunspell)
-	      (setq ispell-really-hunspell nil)))))
-
-      (kill-buffer (current-buffer)))
+	      (setq ispell-really-hunspell nil))))))
     result))
 
 (defun ispell-call-process (&rest args)
