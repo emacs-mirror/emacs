@@ -1,7 +1,7 @@
 ;;; elp.el --- Emacs Lisp Profiler
 
 ;; Copyright (C) 1994, 1995, 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw
 ;; Maintainer: FSF

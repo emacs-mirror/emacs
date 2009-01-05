@@ -1,6 +1,6 @@
 ;;; erc-identd.el --- RFC1413 (identd authentication protocol) server
 
-;; Copyright (C) 2003, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: comm, processes

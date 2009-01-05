@@ -1,7 +1,7 @@
 ;;; dired-x.el --- extra Dired functionality -*-byte-compile-dynamic: t;-*-
 
 ;; Copyright (C) 1993, 1994, 1997, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008 Free Software Foundation, Inc.
+;;   2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>

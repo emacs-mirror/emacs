@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer completion functions
 
-;; Copyright (C) 2008  Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 

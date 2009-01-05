@@ -1,6 +1,6 @@
 ;;; romanian.el --- support for Romanian -*- coding: iso-latin-2; no-byte-compile: t -*-
 
-;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation.
 
 ;; Author:    Dan Nicolaescu <done@ece.arizona.edu>

@@ -1,7 +1,7 @@
 ;;; mailalias.el --- expand and complete mailing address aliases
 
 ;; Copyright (C) 1985, 1987, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
