@@ -102,7 +102,7 @@ otherwise.
 
 @defun string-or-null-p object
 This function returns @code{t} if @var{object} is a string or
-@code{nil}, @code{nil} otherwise.
+@code{nil}.  It returns @code{nil} otherwise.
 @end defun
 
 @defun char-or-string-p object
