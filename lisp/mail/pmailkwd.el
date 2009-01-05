@@ -25,12 +25,7 @@
 
 ;;; Code:
 
-(defvar pmail-buffer)
-(defvar pmail-current-message)
-(defvar pmail-last-label)
-(defvar pmail-last-multi-labels)
-(defvar pmail-summary-vector)
-(defvar pmail-total-messages)
+(require 'pmail)
 
 ;; Global to all PMAIL buffers.  It exists primarily for the sake of
 ;; completion.  It is better to use strings with the label functions
@@ -38,156 +33,91 @@
 
 (defvar pmail-label-obarray (make-vector 47 0))
 
-;; Named list of symbols representing valid message attributes in PMAIL.
+(mapc (function (lambda (s) (intern s pmail-label-obarray)))
+      '("deleted" "answered" "filed" "forwarded" "unseen" "edited"
+	"resent"))
 
-(defconst pmail-attributes
-  (cons 'pmail-keywords
-	(mapcar (function (lambda (s) (intern s pmail-label-obarray)))
-		'("deleted" "answered" "filed" "forwarded" "unseen" "edited"
-		  "resent"))))
-
-(defconst pmail-deleted-label (intern "deleted" pmail-label-obarray))
-
-;; Named list of symbols representing valid message keywords in PMAIL.
-
-(defvar pmail-keywords)
+(defun pmail-make-label (s)
+  (intern (downcase s) pmail-label-obarray))
 
 ;;;###autoload
 (defun pmail-add-label (string)
   "Add LABEL to labels associated with current PMAIL message.
-Completion is performed over known labels when reading."
+Performs completion over known labels when reading."
   (interactive (list (pmail-read-label "Add label")))
   (pmail-set-label string t))
 
 ;;;###autoload
 (defun pmail-kill-label (string)
   "Remove LABEL from labels associated with current PMAIL message.
-Completion is performed over known labels when reading."
+Performs completion over known labels when reading."
   (interactive (list (pmail-read-label "Remove label")))
   (pmail-set-label string nil))
 
+;; Last individual label specified to a or k.
+(defvar pmail-last-label nil)
+
+;; Last set of values specified to C-M-n, C-M-p, C-M-s or C-M-l.
+(defvar pmail-last-multi-labels nil)
+
 ;;;###autoload
 (defun pmail-read-label (prompt)
-  (with-current-buffer pmail-buffer
-    (if (not pmail-keywords) (pmail-parse-file-keywords))
-    (let ((result
-	   (completing-read (concat prompt
-				    (if pmail-last-label
-					(concat " (default "
-						(symbol-name pmail-last-label)
-						"): ")
-				      ": "))
-			    pmail-label-obarray
-			    nil
-			    nil)))
-      (if (string= result "")
-	  pmail-last-label
-	(setq pmail-last-label (pmail-make-label result t))))))
+  (let ((result
+	 (completing-read (concat prompt
+				  (if pmail-last-label
+				      (concat " (default "
+					      (symbol-name pmail-last-label)
+					      "): ")
+				    ": "))
+			  pmail-label-obarray
+			  nil
+			  nil)))
+    (if (string= result "")
+	pmail-last-label
+      (setq pmail-last-label (pmail-make-label result)))))
 
-(declare-function pmail-maybe-set-message-counters "pmail" ())
-(declare-function pmail-display-labels "pmail" ())
-(declare-function pmail-msgbeg "pmail" (n))
-(declare-function pmail-set-message-deleted-p "pmail" (n state))
-(declare-function pmail-message-labels-p "pmail" (msg labels))
-(declare-function pmail-show-message "pmail" (&optional n no-summary))
-(declare-function mail-comma-list-regexp "mail-utils" (labels))
-(declare-function mail-parse-comma-list "mail-utils.el" ())
-
-(defun pmail-set-label (l state &optional n)
+(defun pmail-set-label (label state &optional msg)
+  "Set LABEL as present or absent according to STATE in message MSG."
   (with-current-buffer pmail-buffer
     (pmail-maybe-set-message-counters)
-    (if (not n) (setq n pmail-current-message))
-    (aset pmail-summary-vector (1- n) nil)
-    (let* ((attribute (pmail-attribute-p l))
-	   (keyword (and (not attribute)
-			 (or (pmail-keyword-p l)
-			     (pmail-install-keyword l))))
-	   (label (or attribute keyword)))
-      (if label
-	  (let ((omax (- (buffer-size) (point-max)))
-		(omin (- (buffer-size) (point-min)))
-		(buffer-read-only nil)
-		(case-fold-search t))
-	    (unwind-protect
-		(save-excursion
-		  (widen)
-		  (goto-char (pmail-msgbeg n))
-		  (forward-line 1)
-		  (if (not (looking-at "[01],"))
-		      nil
-		    (let ((start (1+ (point)))
-			  (bound))
-		      (narrow-to-region (point) (progn (end-of-line) (point)))
-		      (setq bound (point-max))
-		      (search-backward ",," nil t)
-		      (if attribute
-			  (setq bound (1+ (point)))
-			(setq start (1+ (point))))
-		      (goto-char start)
-;		      (while (re-search-forward "[ \t]*,[ \t]*" nil t)
-;			(replace-match ","))
-;		      (goto-char start)
-		      (if (re-search-forward
-			   (concat ", " (pmail-quote-label-name label) ",")
-			   bound
-			   'move)
-			  (if (not state) (replace-match ","))
-			(if state (insert " " (symbol-name label) ",")))
-		      (if (eq label pmail-deleted-label)
-			  (pmail-set-message-deleted-p n state)))))
-	      (narrow-to-region (- (buffer-size) omin) (- (buffer-size) omax))
-	      (if (= n pmail-current-message) (pmail-display-labels))))))))
-
-;; Commented functions aren't used by PMAIL but might be nice for user
-;; packages that do stuff with PMAIL.  Note that pmail-message-labels-p
-;; is in pmail.el now.
-
-;(defun pmail-message-label-p (label &optional n)
-;  "Returns symbol if LABEL (attribute or keyword) on NTH or current message."
-;  (pmail-message-labels-p (or n pmail-current-message) (regexp-quote label)))
-
-;(defun pmail-parse-message-labels (&optional n)
-;  "Returns labels associated with NTH or current PMAIL message.
-;The result is a list of two lists of strings.  The first is the
-;message attributes and the second is the message keywords."
-;  (let (atts keys)
-;    (save-restriction
-;      (widen)
-;      (goto-char (pmail-msgbeg (or n pmail-current-message)))
-;      (forward-line 1)
-;      (or (looking-at "[01],") (error "Malformed label line"))
-;      (forward-char 2)
-;      (while (looking-at "[ \t]*\\([^ \t\n,]+\\),")
-;	(setq atts (cons (buffer-substring (match-beginning 1) (match-end 1))
-;			  atts))
-;	(goto-char (match-end 0)))
-;      (or (looking-at ",") (error "Malformed label line"))
-;      (forward-char 1)
-;      (while (looking-at "[ \t]*\\([^ \t\n,]+\\),")
-;	(setq keys (cons (buffer-substring (match-beginning 1) (match-end 1))
-;			 keys))
-;	(goto-char (match-end 0)))
-;      (or (looking-at "[ \t]*$") (error "Malformed label line"))
-;      (list (nreverse atts) (nreverse keys)))))
-
-(defun pmail-attribute-p (s)
-  (let ((symbol (pmail-make-label s)))
-    (if (memq symbol (cdr pmail-attributes)) symbol)))
-
-(defun pmail-keyword-p (s)
-  (let ((symbol (pmail-make-label s)))
-    (if (memq symbol (cdr (pmail-keywords))) symbol)))
-
-(defun pmail-make-label (s &optional forcep)
-  (cond ((symbolp s) s)
-	(forcep (intern (downcase s) pmail-label-obarray))
-	(t  (intern-soft (downcase s) pmail-label-obarray))))
-
-(defun pmail-force-make-label (s)
-  (intern (downcase s) pmail-label-obarray))
-
-(defun pmail-quote-label-name (label)
-  (regexp-quote (symbol-name (pmail-make-label label t))))
+    (if (not msg) (setq msg pmail-current-message))
+    ;; Force recalculation of summary for this message.
+    (aset pmail-summary-vector (1- msg) nil)
+    (let (attr-index)
+      ;; Is this label an attribute?
+      (dotimes (i (length pmail-attr-array))
+	(if (string= (cadr (aref pmail-attr-array i)) label)
+	    (setq attr-index i)))
+      (if attr-index
+	  ;; If so, set it as an attribute.
+	  (pmail-set-attribute attr-index state msg)
+	;; Is this keyword already present in msg's keyword list?
+	(let* ((header (pmail-get-header pmail-keyword-header msg))
+	       (regexp (concat ", " (regexp-quote (symbol-name label)) ","))
+	       (present (string-match regexp (concat ", " header ","))))
+	  ;; If current state is not correct,
+	  (unless (eq present state)
+	    ;; either add it or delete it.
+	    (pmail-set-header
+	     pmail-keyword-header msg
+	     (if state
+		 ;; Add this keyword at the end.
+		 (if (and header (not (string= header "")))
+		     (concat header ", " (symbol-name label))
+		   (symbol-name label))
+	       ;; Delete this keyword.
+	       (let ((before (substring header 0
+					(max 0 (- (match-beginning 0) 2))))
+		     (after (substring header
+				       (min (length header)
+					    (- (match-end 0) 1)))))
+		 (cond ((string= before "")
+			after)
+		       ((string= after "")
+			before)
+		       (t (concat before ", " after)))))))))
+      (if (= msg pmail-current-message)
+	  (pmail-display-labels)))))
 
 ;; Motion on messages with keywords.
 
@@ -199,6 +129,8 @@ If LABELS is empty, the last set of labels specified is used.
 With prefix argument N moves backward N messages with these labels."
   (interactive "p\nsMove to previous msg with labels: ")
   (pmail-next-labeled-message (- n) labels))
+
+(declare-function mail-comma-list-regexp "mail-utils" (labels))
 
 ;;;###autoload
 (defun pmail-next-labeled-message (n labels)
@@ -219,72 +151,19 @@ With prefix argument N moves forward N messages with these labels."
 	(regexp (concat ", ?\\("
 			(mail-comma-list-regexp labels)
 			"\\),")))
-    (save-restriction
-      (widen)
-      (while (and (> n 0) (< current pmail-total-messages))
-	(setq current (1+ current))
-	(if (pmail-message-labels-p current regexp)
-	    (setq lastwin current n (1- n))))
-      (while (and (< n 0) (> current 1))
-	(setq current (1- current))
-	(if (pmail-message-labels-p current regexp)
-	    (setq lastwin current n (1+ n)))))
-    (pmail-show-message lastwin)
+    (while (and (> n 0) (< current pmail-total-messages))
+      (setq current (1+ current))
+      (if (string-match regexp (pmail-get-labels current))
+	  (setq lastwin current n (1- n))))
+    (while (and (< n 0) (> current 1))
+      (setq current (1- current))
+      (if (string-match regexp (pmail-get-labels current))
+	  (setq lastwin current n (1+ n))))
     (if (< n 0)
-	(message "No previous message with labels %s" labels))
-    (if (> n 0)
-	(message "No following message with labels %s" labels))))
-
-;;; Manipulate the file's Labels option.
-
-;; Return a list of symbols for all
-;; the keywords (labels) recorded in this file's Labels option.
-(defun pmail-keywords ()
-  (or pmail-keywords (pmail-parse-file-keywords)))
-
-;; Set pmail-keywords to a list of symbols for all
-;; the keywords (labels) recorded in this file's Labels option.
-(defun pmail-parse-file-keywords ()
-  (save-restriction
-    (save-excursion
-      (widen)
-      (goto-char 1)
-      (setq pmail-keywords
-	    (if (search-forward "\nLabels:" (pmail-msgbeg 1) t)
-		(progn
-		  (narrow-to-region (point) (progn (end-of-line) (point)))
-		  (goto-char (point-min))
-		  (cons 'pmail-keywords
-			(mapcar 'pmail-force-make-label
-				(mail-parse-comma-list)))))))))
-
-;; Add WORD to the list in the file's Labels option.
-;; Any keyword used for the first time needs this done.
-(defun pmail-install-keyword (word)
-  (let ((keyword (pmail-make-label word t))
-	(keywords (pmail-keywords)))
-    (if (not (or (pmail-attribute-p keyword)
-		 (pmail-keyword-p keyword)))
-	(let ((omin (- (buffer-size) (point-min)))
-	      (omax (- (buffer-size) (point-max))))
-	  (unwind-protect
-	      (save-excursion
-		(widen)
-		(goto-char 1)
-		(let ((case-fold-search t)
-		      (buffer-read-only nil))
-		  (or (search-forward "\nLabels:" nil t)
-		      (progn
-			(end-of-line)
-			(insert "\nLabels:")))
-		  (delete-region (point) (progn (end-of-line) (point)))
-		  (setcdr keywords (cons keyword (cdr keywords)))
-		  (while (setq keywords (cdr keywords))
-		    (insert (symbol-name (car keywords)) ","))
-		  (delete-char -1)))
-	    (narrow-to-region (- (buffer-size) omin)
-			      (- (buffer-size) omax)))))
-    keyword))
+	(error "No previous message with labels %s" labels)
+      (if (> n 0)
+	  (error "No following message with labels %s" labels)
+	(pmail-show-message lastwin)))))
 
 (provide 'pmailkwd)
 
