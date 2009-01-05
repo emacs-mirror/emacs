@@ -1,3 +1,7 @@
+2009-01-05  Richard M Stallman  <rms@gnu.org>
+
+	* mail/sendmail.el (mail-bury): Treat pmail-mode like rmail-mode. 
+
 2009-01-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer): Fix last fix.
