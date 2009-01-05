@@ -1,3 +1,9 @@
+2009-01-05  Richard M Stallman  <rms@gnu.org>
+
+	* strings.texi (Predicates for Strings): Minor clarification.
+
+	* functions.texi (Function Safety): Texinfo usage fix.
+
 2009-01-04  Eduard Wiebe  <usenet@pusto.de>  (tiny patch)
 
 	* objects.texi (General Escape Syntax): Fix typo.
