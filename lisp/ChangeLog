@@ -1,3 +1,8 @@
+2009-01-05  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-styles.el (c-setup-paragraph-variables): Ensure
+	paragraph-\(start\|separate\) match blank lines.  For AWK Mode.
+
 2009-01-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-load)
