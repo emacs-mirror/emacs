@@ -216,7 +216,10 @@ PRESERVE-UID-GID is completely ignored."
 
     (if tmpfile
 	;; Remote filename.
-	(rename-file tmpfile newname ok-if-already-exists)
+	(condition-case err
+	    (rename-file tmpfile newname ok-if-already-exists)
+	  (error (delete-file tmpfile)
+		 (signal (car err) (cdr err))))
 
       ;; Remote newname.
       (when (file-directory-p newname)
@@ -548,10 +551,13 @@ PRESERVE-UID-GID is completely ignored."
   (let ((tmpfile (file-local-copy filename)))
 
     (if tmpfile
-	;; remote filename
-	(rename-file tmpfile newname ok-if-already-exists)
+	;; Remote filename.
+	(condition-case err
+	    (rename-file tmpfile newname ok-if-already-exists)
+	  (error (delete-file tmpfile)
+		 (signal (car err) (cdr err))))
 
-      ;; remote newname
+      ;; Remote newname.
       (when (file-directory-p newname)
 	(setq newname (expand-file-name
 		      (file-name-nondirectory filename) newname)))
@@ -618,12 +624,13 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 	 (list start end tmpfile append 'no-message lockname)))
 
       (tramp-message v 5 "Writing tmp file %s to file %s..." tmpfile filename)
-      (if (tramp-smb-send-command v (format "put %s \"%s\"" tmpfile file))
-	  (tramp-message
-	   v 5 "Writing tmp file %s to file %s...done" tmpfile filename)
-	(tramp-error v 'file-error "Cannot write `%s'" filename))
+      (unwind-protect
+	  (if (tramp-smb-send-command v (format "put %s \"%s\"" tmpfile file))
+	      (tramp-message
+	       v 5 "Writing tmp file %s to file %s...done" tmpfile filename)
+	    (tramp-error v 'file-error "Cannot write `%s'" filename))
+	(delete-file tmpfile))
 
-      (delete-file tmpfile)
       (unless (equal curbuf (current-buffer))
 	(tramp-error
 	 v 'file-error
