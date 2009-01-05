@@ -1,3 +1,8 @@
+2009-01-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-save-in-desktop-dir): Use `abbreviate-file-name'
+	to shorten the desktop file directory shown in message.
+
 2009-01-05  Glenn Morris  <rgm@gnu.org>
 
 	* version.el (emacs-copyright):

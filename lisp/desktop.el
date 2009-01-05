@@ -1047,7 +1047,7 @@ directory DIRNAME."
   (if desktop-dirname
       (desktop-save desktop-dirname)
     (call-interactively 'desktop-save))
-  (message "Desktop saved in %s" desktop-dirname))
+  (message "Desktop saved in %s" (abbreviate-file-name desktop-dirname)))
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
