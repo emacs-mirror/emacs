@@ -1,3 +1,7 @@
+2009-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-copyright): Update for 2009.
+
 2009-01-04  Stephen Leake  <stephen_leake@member.fsf.org>
 
 	* progmodes/ada-mode.el (ada-mode): Simplify doc string.

@@ -1,7 +1,8 @@
 ;;; version.el --- record version number of Emacs -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1985, 1992, 1994, 1995, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009
+;    Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -25,7 +26,7 @@
 
 ;;; Code:
 
-(defconst emacs-copyright "Copyright (C) 2008 Free Software Foundation, Inc."
+(defconst emacs-copyright "Copyright (C) 2009 Free Software Foundation, Inc."
   "Short copyright string for this version of Emacs.")
 
 (defconst emacs-version "23.0.60" "\
