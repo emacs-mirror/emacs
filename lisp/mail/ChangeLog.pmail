@@ -1,3 +1,85 @@
+2009-01-05  Richard M Stallman  <rms@gnu.org>
+
+	* pmailkwd.el: Require pmail; delete compiler defvars.
+	Delete most declare-function calls.
+	(pmail-keywords, pmail-deleted-label, pmail-attributes): Vars deleted.
+	(pmail-attribute-p, pmail-keyword-p): Fns deleted.
+	(pmail-keywords, pmail-parse-file-keywords, pmail-install-keyword):
+	(pmail-force-make-label, pmail-quote-label-name): Fns deleted.
+	(pmail-last-label, pmail-last-multi-labels): Vars moved from pmail.el.
+	(pmail-read-label): Don't switch buffers, don't parse file keywords.
+	(pmail-set-label): Major rewrite.
+	(pmail-next-labeled-message): Call pmail-get-labels and match it.
+
+	* pmailsum.el (pmail-message-labels-p): Function moved from
+	pmail.el and rewritten.
+	(pmail-message-recipients-p): Likewise.
+	(pmail-message-regexp-p): Likewise.
+	(pmail-message-recipients-p-1): New subroutine.
+	(pmail-message-regexp-p-1): Likewise.
+	(pmail-summary-by-topic): Use pmail-simplified-subject.
+	Delete subject-re variable.
+	(pmail-message-subject-p): Total rewrite.
+	(pmail-message-senders-p): Total rewrite.
+	(pmail-new-summary-1): Call FUNCTION in the main Pmail buffer.
+	(pmail-get-summary): Doc fix.
+	(pmail-create-summary-line): Renamed from
+	pmail-get-create-summary-line, and major rewrite.
+	(pmail-get-summary-labels): Doc fix.
+	(pmail-create-summary): Major rewrite.  Construct line counts here.
+	(pmail-header-summary): Renamed from pmail-make-basic-summary-line.
+	Return list of two strings.
+	(pmail-summary-next-same-subject): Extract subjects and compare.
+	(pmail-summary-output): Renamed from pmail-summary-output-to-babyl-file.
+	Use pmail-output.
+	(pmail-summary-output-as-seen): Renamed from pmail-summary-output.
+	Use pmail-output-as-seen.
+	(pmail-summary-construct-io-menu): Use pmail-summary-output.
+
+	* pmail.el (basic-save-buffer): Protect buffer-modified flag
+	around first swap.
+	(pmail-show-message): Protect buffer-modified flag around swap.
+	(pmail-change-major-mode-hook): Likewise.
+	(pmail-use-collection-buffer, pmail-swap-buffers-maybe): Likewise.
+
+	* pmail.el (pmail-error-bad-format): Always phrase the error as
+	about an invalid message.
+	(pmail-convert-file-maybe): Don't use pmail-error-bad-format.
+	(pmail-mode-map): Move pmail-widen to C-c C-w.
+	(pmail-mode-1): Don't alter mode-line-modified.
+	(pmail-perm-variables): Turn off undo in view buffer.
+	(pmail-variables): Turn off undo.
+	(pmail-show-message): Delete useless calls to `widen'.
+	Avoid passing thru temp buffer if we don't need
+	base64 or quoted printable decoding for whole message.
+
+	* pmail.el (pmail-keywords): Variable deleted.
+	(pmail-last-label, pmail-last-multi-labels): Moved to pmailkwd.el.
+	(pmail-perm-variables): Don't mess with pmail-last-label.
+	Don't mess with pmail-keywords.
+	(pmail-copy-headers): Doc fix.
+	(pmail-set-header): New function.
+	(pmail-get-keywords): Doc fix.
+	(pmail-get-labels): New function.
+	(pmail-display-labels): Use pmail-get-labels.
+	(pmail-set-attribute): Mark pmail-buffer modified
+	if we change an attribute.
+
+	* pmail.el (pmail-apply-in-message): New function.
+	(pmail-message-labels-p): Function moved to pmailsum.el.
+	(pmail-message-recipients-p, pmail-message-regexp-p): Likewise.
+	(pmail-current-subject, pmail-current-subject-regexp): Fns deleted.
+	(pmail-simplified-subject, pmail-simplified-subject-regexp): New fns.
+	(pmail-next-same-subject): Fetch each msg's subject and compare.
+
+	* pmail.el (pmail-speedbar-move-message): Use pmail-output.
+	(pmail-construct-io-menu): Use pmail-output.
+	(pmail-default-pmail-file): Variable deleted.
+	(pmail-auto-file): Use pmail-output.
+	(pmail-mode-map): Remove pmail-output-to-babyl-file.
+	Add pmail-output-as-seen.
+	(pmail-mode): Update output commands in doc string.
+
 2008-12-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmail.el (buffer-swapped-with): New var, moved from files.el.
