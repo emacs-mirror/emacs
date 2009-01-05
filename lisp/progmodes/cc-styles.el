@@ -510,14 +510,21 @@ variables."
 			  (assoc 'other c-comment-prefix-regexp)))
 	  c-comment-prefix-regexp))
 
-  (let ((comment-line-prefix
-	 (concat "[ \t]*\\(" c-current-comment-prefix "\\)[ \t]*")))
+  (let* ((empty-is-prefix (string-match c-current-comment-prefix ""))
+	 (nonws-comment-line-prefix
+	  (concat "\\(" c-current-comment-prefix "\\)[ \t]*"))
+	 (comment-line-prefix (concat "[ \t]*" nonws-comment-line-prefix))
+	 (blank-or-comment-line-prefix
+	  (concat "[ \t]*"
+		  (if empty-is-prefix "" "\\(")
+		  nonws-comment-line-prefix
+		  (if empty-is-prefix "" "\\)?"))))
 
-    (setq paragraph-start (concat comment-line-prefix
+    (setq paragraph-start (concat blank-or-comment-line-prefix
 				  c-paragraph-start
 				  "\\|"
 				  page-delimiter)
-	  paragraph-separate (concat comment-line-prefix
+	  paragraph-separate (concat blank-or-comment-line-prefix
 				     c-paragraph-separate
 				     "\\|"
 				     page-delimiter)
