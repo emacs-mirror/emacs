@@ -1,5 +1,5 @@
 <!--
-Copyright (C) 2008  Free Software Foundation, Inc.
+Copyright (C) 2008, 2009  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -540,7 +540,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 	<key>CFBundleExecutable</key>
 	<string>Emacs</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Emacs 23.0.60 Copyright (C) Free Software Foundation, Inc.</string>
+	<string>Emacs 23.0.60 Copyright (C) 2009 Free Software Foundation, Inc.</string>
 	<key>CFBundleIconFile</key>
 	<string>Emacs.icns</string>
 	<key>CFBundleIdentifier</key>
