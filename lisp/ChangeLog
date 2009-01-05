@@ -286,10 +286,10 @@
 
 	* vc-git.el (vc-git-dir-printer): Fix filename column.
 
-2008-12-27  Nicholas Maniscalco <nicholas@maniscalco.com>  (tiny change)
+2008-12-27  Nicholas Maniscalco  <nicholas@maniscalco.com>  (tiny change)
 
 	* term.el (term-emulate-terminal): Decode substring just prior to
-	inserting it, i.e. revert part of the 2008-09-24 change. (Bug#1469)
+	inserting it, i.e. revert part of the 2008-09-24 change.  (Bug#1469)
 
 2008-12-27  Eli Zaretskii  <eliz@gnu.org>
 
@@ -424,11 +424,11 @@
 	(completion-pcm--all-completions): Don't need to remove the base-size
 	in last-cdr any more.
 
-2008-12-20  Agustin Martin <agustin.martin@hispalinux.es>
+2008-12-20  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-check-minver): New function.
 	(ispell-check-version): Rewrite spellchecker and version checking.
-	Use (ispell-check-minver). Handle hunspell versions.
+	Use (ispell-check-minver).  Handle hunspell versions.
 
 2008-12-20  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -438,7 +438,7 @@
 2008-12-20  Jason Rumney  <jasonr@gnu.org>
 
 	* international/mule.el (auto-coding-regexp-alist):
-	Use utf-8-with-signature for files starting with UTF-8 BOM. (Bug#269)
+	Use utf-8-with-signature for files starting with UTF-8 BOM.  (Bug#269)
 
 2008-12-20  Ami Fischman  <ami@fischman.org>
 
@@ -1219,7 +1219,7 @@
 	(newsticker--treeview-tree-update-tag): Remove dead code.
 	(newsticker-treeview-update): Don't update cache.
 	(newsticker-treeview-quit): Don't save cache.
-	(newsticker-treeview-save): Don't save cache. Use `newsticker-dir'.
+	(newsticker-treeview-save): Don't save cache.  Use `newsticker-dir'.
 	(newsticker-treeview-save): Use `newsticker-dir'.
 	(newsticker--treeview-load): Use `newsticker-dir'.
 	(newsticker--treeview-mark-item): Call `newsticker--cache-save-feed'.
@@ -1239,7 +1239,7 @@
 	(newsticker--cache-dir): New.
 	(newsticker--cache-save): Save feeds separately in `newsticker-dir'.
 	(newsticker--cache-save-feed): New.
-	(newsticker--cache-read-version1): New. Backuped version for reading
+	(newsticker--cache-read-version1): New.  Backuped version for reading
 	cache data..
 	(newsticker--cache-read, newsticker--cache-do-read): New.
 
@@ -1905,7 +1905,7 @@
 	New aliases, to satisfy `define-derived-mode' expectations.
 
 2008-11-15  Glenn Morris  <rgm@gnu.org>
-            Martin Rudalics  <rudalics@gmx.at>
+	    Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/find-func.el (find-function-advised-original): New.
 	(find-function-C-source, find-function-noselect):
@@ -10066,7 +10066,7 @@
 	New functions.
 	(completion-styles-alist): Use them.
 
-2008-04-23  Agustín Martín  <agustin.martin@hispalinux.es>
+2008-04-23  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-set-spellchecker-params):
 	New function to make sure right params and dictionary alists are used
