@@ -92,6 +92,11 @@ LABELS should be a string containing the desired labels, separated by commas."
 		     'pmail-message-labels-p
 		     (concat ", \\(" (mail-comma-list-regexp labels) "\\),")))
 
+;; Return t if the attributes/keywords line of msg number MSG
+;; contains a match for the regexp LABELS.
+(defun pmail-message-labels-p (msg labels)
+  (string-match labels (pmail-get-labels msg)))
+
 ;;;###autoload
 (defun pmail-summary-by-recipients (recipients &optional primary-only)
   "Display a summary of all messages with the given RECIPIENTS.
@@ -105,6 +110,17 @@ RECIPIENTS is a string of regexps separated by commas."
    (list 'pmail-summary-by-recipients recipients primary-only)
    'pmail-message-recipients-p
    (mail-comma-list-regexp recipients) primary-only))
+
+(defun pmail-message-recipients-p (msg recipients &optional primary-only)
+  (pmail-apply-in-message msg 'pmail-message-recipients-p-1
+			  recipients primary-only))
+
+(defun pmail-message-recipients-p-1 (recipients &optional primary-only)
+  (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
+  (or (string-match recipients (or (mail-fetch-field "To") ""))
+      (string-match recipients (or (mail-fetch-field "From") ""))
+      (if (not primary-only)
+	  (string-match recipients (or (mail-fetch-field "Cc") "")))))
 
 ;;;###autoload
 (defun pmail-summary-by-regexp (regexp)
@@ -122,8 +138,15 @@ Emacs will list the header line in the PMAIL-summary."
 		     'pmail-message-regexp-p
                      regexp))
 
-;; pmail-summary-by-topic
-;; 1989 R.A. Schnitzler
+(defun pmail-message-regexp-p (msg regexp)
+  "Return t, if for message number MSG, regexp REGEXP matches in the header."
+  (pmail-apply-in-message msg 'pmail-message-regexp-p-1 msg regexp))
+
+(defun pmail-message-regexp-p-1 (msg regexp)
+  (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
+  (if pmail-enable-mime
+      (funcall pmail-search-mime-header-function msg regexp (point))
+    (re-search-forward regexp nil t)))
 
 ;;;###autoload
 (defun pmail-summary-by-topic (subject &optional whole-message)
@@ -133,10 +156,7 @@ but if WHOLE-MESSAGE is non-nil (prefix arg given),
  look in the whole message.
 SUBJECT is a string of regexps separated by commas."
   (interactive
-   (let* ((subject (with-current-buffer pmail-buffer
-		     (pmail-current-subject)))
-	  (subject-re (with-current-buffer pmail-buffer
-			(pmail-current-subject-regexp)))
+   (let* ((subject (pmail-simplified-subject))
 	  (prompt (concat "Topics to summarize by (regexp"
 			  (if subject ", default current subject" "")
 			  "): ")))
@@ -148,20 +168,9 @@ SUBJECT is a string of regexps separated by commas."
    (mail-comma-list-regexp subject) whole-message))
 
 (defun pmail-message-subject-p (msg subject &optional whole-message)
-  ;;;??? BROKEN
-  (error "pmail-message-subject-p has not been updated for Pmail")
-  (save-restriction
-    (goto-char (pmail-msgbeg msg))
-    (search-forward "\n*** EOOH ***\n" (pmail-msgend msg) 'move)
-    (narrow-to-region
-     (point)
-     (progn (search-forward (if whole-message "\^_" "\n\n")) (point)))
-    (goto-char (point-min))
-    (if whole-message (re-search-forward subject nil t)
-      (string-match subject (let ((subj (mail-fetch-field "Subject")))
-			      (if subj
-				  (funcall pmail-summary-line-decoder subj)
-				""))))))
+  (if whole-message
+      (pmail-apply-in-message msg 're-search-forward subject nil t)
+    (string-match subject (pmail-simplified-subject msg))))
 
 ;;;###autoload
 (defun pmail-summary-by-senders (senders)
@@ -175,13 +184,7 @@ SENDERS is a string of names separated by commas."
    (mail-comma-list-regexp senders)))
 
 (defun pmail-message-senders-p (msg senders)
-  ;;;??? BROKEN
-  (error "pmail-message-senders-p has not been updated for Pmail")
-  (save-restriction
-    (goto-char (pmail-msgbeg msg))
-    (search-forward "\n*** EOOH ***\n")
-    (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
-    (string-match senders (or (mail-fetch-field "From") ""))))
+  (string-match senders (or (pmail-get-header "From" msg) "")))
 
 ;; General making of a summary buffer.
 
@@ -229,7 +232,7 @@ nil for FUNCTION means all messages."
     (pmail-summary-construct-io-menu)
     (message "Computing summary lines...done")))
 
-(defun pmail-new-summary-1 (description form function &rest args)
+(defun pmail-new-summary-1 (description form function args)
   "Filter messages to obtain summary lines.
 DESCRIPTION is added to the mode line.
 
@@ -247,9 +250,11 @@ message."
     ;; Scan the messages, getting their summary strings
     ;; and putting the list of them in SUMMARY-MSGS.
     (let ((msgnum 1)
+	  (main-buffer (current-buffer))
 	  (total pmail-total-messages)
 	  (inhibit-read-only t))
       (save-excursion
+	;; Go where the mbox text is.
 	(if (pmail-buffers-swapped-p)
 	    (set-buffer pmail-view-buffer))
 	(let ((old-min (point-min-marker))
@@ -261,13 +266,13 @@ message."
 		(widen)
 		(goto-char (point-min))
 		(while (>= total msgnum)
-		  ;; First test whether to include this message.
-		  (if (or (null function)
-			  (apply function (cons msgnum args)))
-		      (setq summary-msgs
-			    ;; Go back to the Pmail buffer so
-			    ;; so pmail-get-summary can see its local vars.
-			    (with-current-buffer pmail-buffer
+		  ;; Go back to the Pmail buffer so
+		  ;; so FUNCTION and pmail-get-summary can see its local vars.
+		  (with-current-buffer main-buffer
+		    ;; First test whether to include this message.
+		    (if (or (null function)
+			    (apply function msgnum args))
+			(setq summary-msgs
 			      (cons (cons msgnum (pmail-get-summary msgnum))
 				    summary-msgs))))
 		  (setq msgnum (1+ msgnum))
@@ -322,6 +327,9 @@ buffer, or by creating a new summary buffer."
 
 (defun pmail-get-summary (msgnum)
   "Return the summary line for message MSGNUM.
+The mbox buffer must be current when you call this function
+even if its text is swapped.
+
 If the message has a summary line already, it will be stored in
 the message as a header and simply returned, otherwise the
 summary line is created, saved in the message header, cached and
@@ -332,40 +340,55 @@ The current buffer contains the unrestricted message collection."
     (unless line
       ;; Register a summary line for MSGNUM.
       (setq pmail-new-summary-line-count (1+ pmail-new-summary-line-count)
-	    line (pmail-get-create-summary-line msgnum))
+	    line (pmail-create-summary-line msgnum))
       ;; Cache the summary line for use during this Pmail session.
       (aset pmail-summary-vector (1- msgnum) line))
     line))
 
 ;;;###autoload
 (defcustom pmail-summary-line-decoder (function identity)
-  "*Function to decode summary-line.
+  "*Function to decode a Pmail summary line.
+It receives the summary line for one message as a string
+and should return the decoded string.
 
-By default, `identity' is set."
+By default, it is `identity', which returns the string unaltered."
   :type 'function
   :group 'pmail-summary)
 
-(defun pmail-get-create-summary-line (msgnum)
+(defun pmail-create-summary-line (msgnum)
   "Return the summary line for message MSGNUM.
 Obtain the message summary from the header if it is available
 otherwise create it and store it in the message header.
 
-The current buffer contains the unrestricted message collection."
+The mbox buffer must be current when you call this function
+even if its text is swapped."
   (let ((beg (pmail-msgbeg msgnum))
-	(end (pmail-msgend msgnum)))
-    (goto-char beg)
-    (if (search-forward "\n\n" end t)
-	(save-restriction
-	  (narrow-to-region beg (point))
-	  ;; Generate a status line from the message and put it in the
-	  ;; message.
-	  (pmail-create-summary msgnum))
-      (pmail-error-bad-format msgnum))))
+	(end (pmail-msgend msgnum))
+	(deleted (pmail-message-deleted-p msgnum))
+	(unseen (pmail-message-unseen-p msgnum))
+	lines)
+    (save-excursion
+      ;; Switch to the buffer that has the whole mbox text.
+      (if (pmail-buffers-swapped-p)
+	  (set-buffer pmail-view-buffer))
+      ;; Now we can compute the line count.
+      (if pmail-summary-line-count-flag
+	  (setq lines (count-lines beg end)))
+
+      ;; Narrow to the message header.
+      (save-excursion
+	(goto-char beg)
+	(if (search-forward "\n\n" end t)
+	    (save-restriction
+	      (narrow-to-region beg (point))
+	      ;; Generate a status line from the message.
+	      (pmail-create-summary msgnum deleted unseen lines))
+	  (pmail-error-bad-format msgnum))))))
 
 (defun pmail-get-summary-labels ()
   "Return a coded string wrapped in curly braces denoting the status labels.
 
-The current buffer is narrowed to the message headers for
+The current buffer must already be narrowed to the message headers for
 the message being processed."
   (let ((status (mail-fetch-field pmail-attribute-header))
 	(index 0)
@@ -385,21 +408,39 @@ the message being processed."
       (setq result (concat "{" result "}")))
     result))
 
-(defun pmail-create-summary (msgnum)
+(defun pmail-create-summary (msgnum deleted unseen lines)
   "Return the summary line for message MSGNUM.
-The current buffer is narrowed to the header for message MSGNUM."
+The current buffer should already be narrowed to the header for that message.
+It could be either buffer, so don't access Pmail local variables.
+DELETED is t if this message is marked deleted.
+UNSEEN is t if it is marked unseen.
+LINES is the number of lines in the message (if we should display that)
+ or else nil."
   (goto-char (point-min))
-  (let ((line (pmail-make-basic-summary-line))
+  (let ((line (pmail-header-summary))
 	(labels (pmail-get-summary-labels))
-	pos prefix status suffix)
-    (setq pos (string-match "#" line)
-	  status (cond
-		  ((pmail-message-deleted-p msgnum) ?D)
-		  ((pmail-message-unseen-p msgnum) ?-)
+	pos status prefix basic-start basic-end linecount-string)
+
+    (setq linecount-string
+	  (cond
+	   ((not lines)       " ")
+	   ((<= lines      9) (format "   [%d]" lines))
+	   ((<= lines     99) (format "  [%d]" lines))
+	   ((<= lines    999) (format " [%d]" lines))
+	   ((<= lines   9999) (format "  [%dk]" (/ lines 1000)))
+	   ((<= lines  99999) (format " [%dk]" (/ lines 1000)))
+	   (t                 (format "[%dk]" (/ lines 1000)))))
+
+    (setq status (cond
+		  (deleted ?D)
+		  (unseen ?-)
 		  (t ? ))
-	  prefix (format "%5d%c %s" msgnum status (substring line 0 pos))
-	  suffix (substring line (1+ pos)))
-    (funcall pmail-summary-line-decoder (concat prefix labels suffix))))
+	  prefix (format "%5d%c" msgnum status)
+	  basic-start (car line)
+	  basic-end (cadr line))
+    (funcall pmail-summary-line-decoder
+	     (concat prefix basic-start linecount-string " "
+		     labels basic-end))))
 
 ;;;###autoload
 (defcustom pmail-user-mail-address-regexp nil
@@ -419,125 +460,110 @@ Setting this variable has an effect only before reading a mail."
   :group 'pmail-retrieve
   :version "21.1")
 
-(defun pmail-make-basic-summary-line ()
+(defun pmail-header-summary ()
+  "Return a message summary based on the message headers.
+The value is a list of two strings, the first and second parts of the summary.
+
+The current buffer must already be narrowed to the message headers for
+the message being processed."
   (goto-char (point-min))
-  (concat (save-excursion
-	    (if (not (re-search-forward "^Date:" nil t))
-		"      "
-	      (cond ((re-search-forward "\\([^0-9:]\\)\\([0-3]?[0-9]\\)\\([- \t_]+\\)\\([adfjmnos][aceopu][bcglnprtvy]\\)"
-		      (save-excursion (end-of-line) (point)) t)
-		     (format "%2d-%3s"
-			     (string-to-number (buffer-substring
-                                                (match-beginning 2)
-                                                (match-end 2)))
-			     (buffer-substring
-			      (match-beginning 4) (match-end 4))))
-		    ((re-search-forward "\\([^a-z]\\)\\([adfjmnos][acepou][bcglnprtvy]\\)\\([-a-z \t_]*\\)\\([0-9][0-9]?\\)"
-		      (save-excursion (end-of-line) (point)) t)
-		     (format "%2d-%3s"
-			     (string-to-number (buffer-substring
-                                                (match-beginning 4)
-                                                (match-end 4)))
-			     (buffer-substring
-			      (match-beginning 2) (match-end 2))))
-		    ((re-search-forward "\\(19\\|20\\)\\([0-9][0-9]\\)-\\([01][0-9]\\)-\\([0-3][0-9]\\)"
-		      (save-excursion (end-of-line) (point)) t)
-		     (format "%2s%2s%2s"
-			     (buffer-substring
-			      (match-beginning 2) (match-end 2))
-			     (buffer-substring
-			      (match-beginning 3) (match-end 3))
-			     (buffer-substring
-			      (match-beginning 4) (match-end 4))))
-		    (t "??????"))))
-	  "  "
-	  (save-excursion
-	    (let* ((from (and (re-search-forward "^From:[ \t]*" nil t)
-			      (mail-strip-quoted-names
-			       (buffer-substring
-				(1- (point))
-				;; Get all the lines of the From field
-				;; so that we get a whole comment if there is one,
-				;; so that mail-strip-quoted-names can discard it.
-				(let ((opoint (point)))
-				  (while (progn (forward-line 1)
-						(looking-at "[ \t]")))
-				  ;; Back up over newline, then trailing spaces or tabs
-				  (forward-char -1)
-				  (skip-chars-backward " \t")
-				  (point))))))
-		   len mch lo)
-	      (if (or (null from)
-		      (string-match
-		       (or pmail-user-mail-address-regexp
-			   (concat "^\\("
-				   (regexp-quote (user-login-name))
-				   "\\($\\|@\\)\\|"
-				   (regexp-quote
-				    ;; Don't lose if run from init file
-				    ;; where user-mail-address is not
-				    ;; set yet.
-				    (or user-mail-address
-					(concat (user-login-name) "@"
-						(or mail-host-address
-						    (system-name)))))
-				   "\\>\\)"))
-		       from))
-		  ;; No From field, or it's this user.
-		  (save-excursion
-		    (goto-char (point-min))
-		    (if (not (re-search-forward "^To:[ \t]*" nil t))
-			nil
-		      (setq from
-			    (concat "to: "
-				    (mail-strip-quoted-names
-				     (buffer-substring
-				      (point)
-				      (progn (end-of-line)
-					     (skip-chars-backward " \t")
-					     (point)))))))))
-	      (if (null from)
-		  "                         "
-		(setq len (length from))
-		(setq mch (string-match "[@%]" from))
-		(format "%25s"
-			(if (or (not mch) (<= len 25))
-			    (substring from (max 0 (- len 25)))
-			  (substring from
-				     (setq lo (cond ((< (- mch 14) 0) 0)
-						    ((< len (+ mch 11))
-						     (- len 25))
-						    (t (- mch 14))))
-				     (min len (+ lo 25))))))))
-          (if pmail-summary-line-count-flag
-	      (save-excursion
-		(save-restriction
-		  (widen)
-		  (let ((beg (pmail-msgbeg msgnum))
-			(end (pmail-msgend msgnum))
-			lines)
-		    (save-excursion
-		      (goto-char beg)
-		      ;; Count only lines in the reformatted header,
-		      ;; if we have reformatted it.
-		      (search-forward "\n*** EOOH ***\n" end t)
-		      (setq lines (count-lines (point) end)))
-		    (format (cond
-			     ((<= lines     9) "   [%d]")
-			     ((<= lines    99) "  [%d]")
-			     ((<= lines   999) " [%3d]")
-			     (t		    "[%d]"))
-			    lines))))
-            " ")
-	  " #"				;The # is part of the format.
-	  (if (re-search-forward "^Subject:" nil t)
-	      (progn (skip-chars-forward " \t")
-		     (buffer-substring (point)
+  (list
+   (concat (save-excursion
+	     (if (not (re-search-forward "^Date:" nil t))
+		 "      "
+	       (cond ((re-search-forward "\\([^0-9:]\\)\\([0-3]?[0-9]\\)\\([- \t_]+\\)\\([adfjmnos][aceopu][bcglnprtvy]\\)"
+		       (save-excursion (end-of-line) (point)) t)
+		      (format "%2d-%3s"
+			      (string-to-number (buffer-substring
+						 (match-beginning 2)
+						 (match-end 2)))
+			      (buffer-substring
+			       (match-beginning 4) (match-end 4))))
+		     ((re-search-forward "\\([^a-z]\\)\\([adfjmnos][acepou][bcglnprtvy]\\)\\([-a-z \t_]*\\)\\([0-9][0-9]?\\)"
+		       (save-excursion (end-of-line) (point)) t)
+		      (format "%2d-%3s"
+			      (string-to-number (buffer-substring
+						 (match-beginning 4)
+						 (match-end 4)))
+			      (buffer-substring
+			       (match-beginning 2) (match-end 2))))
+		     ((re-search-forward "\\(19\\|20\\)\\([0-9][0-9]\\)-\\([01][0-9]\\)-\\([0-3][0-9]\\)"
+		       (save-excursion (end-of-line) (point)) t)
+		      (format "%2s%2s%2s"
+			      (buffer-substring
+			       (match-beginning 2) (match-end 2))
+			      (buffer-substring
+			       (match-beginning 3) (match-end 3))
+			      (buffer-substring
+			       (match-beginning 4) (match-end 4))))
+		     (t "??????"))))
+	   "  "
+	   (save-excursion
+	     (let* ((from (and (re-search-forward "^From:[ \t]*" nil t)
+			       (mail-strip-quoted-names
+				(buffer-substring
+				 (1- (point))
+				 ;; Get all the lines of the From field
+				 ;; so that we get a whole comment if there is one,
+				 ;; so that mail-strip-quoted-names can discard it.
+				 (let ((opoint (point)))
+				   (while (progn (forward-line 1)
+						 (looking-at "[ \t]")))
+				   ;; Back up over newline, then trailing spaces or tabs
+				   (forward-char -1)
+				   (skip-chars-backward " \t")
+				   (point))))))
+		    len mch lo)
+	       (if (or (null from)
+		       (string-match
+			(or pmail-user-mail-address-regexp
+			    (concat "^\\("
+				    (regexp-quote (user-login-name))
+				    "\\($\\|@\\)\\|"
+				    (regexp-quote
+				     ;; Don't lose if run from init file
+				     ;; where user-mail-address is not
+				     ;; set yet.
+				     (or user-mail-address
+					 (concat (user-login-name) "@"
+						 (or mail-host-address
+						     (system-name)))))
+				    "\\>\\)"))
+			from))
+		   ;; No From field, or it's this user.
+		   (save-excursion
+		     (goto-char (point-min))
+		     (if (not (re-search-forward "^To:[ \t]*" nil t))
+			 nil
+		       (setq from
+			     (concat "to: "
+				     (mail-strip-quoted-names
+				      (buffer-substring
+				       (point)
 				       (progn (end-of-line)
-					      (point))))
-	    (re-search-forward "[\n][\n]+" nil t)
-	    (buffer-substring (point) (progn (end-of-line) (point))))
-	  "\n"))
+					      (skip-chars-backward " \t")
+					      (point)))))))))
+	       (if (null from)
+		   "                         "
+		 (setq len (length from))
+		 (setq mch (string-match "[@%]" from))
+		 (format "%25s"
+			 (if (or (not mch) (<= len 25))
+			     (substring from (max 0 (- len 25)))
+			   (substring from
+				      (setq lo (cond ((< (- mch 14) 0) 0)
+						     ((< len (+ mch 11))
+						      (- len 25))
+						     (t (- mch 14))))
+				      (min len (+ lo 25)))))))))
+   (concat (if (re-search-forward "^Subject:" nil t)
+	       (progn (skip-chars-forward " \t")
+		      (buffer-substring (point)
+					(progn (end-of-line)
+					       (point))))
+	     (re-search-forward "[\n][\n]+" nil t)
+	     (buffer-substring (point) (progn (end-of-line) (point))))
+	   "\n")))
 
 ;; Simple motion in a summary buffer.
 
@@ -609,9 +635,9 @@ With prefix argument N, do this N times.
 If N is negative, go backwards."
   (interactive "p")
   (let ((forward (> n 0))
-	search-regexp i found)
+	subject i found)
     (with-current-buffer pmail-buffer
-      (setq search-regexp (pmail-current-subject-regexp)
+      (setq subject (pmail-simplified-subject)
 	    i pmail-current-message))
     (save-excursion
       (while (and (/= n 0)
@@ -629,18 +655,7 @@ If N is negative, go backwards."
 	    (setq i (string-to-number
 		     (buffer-substring (point)
 				       (min (point-max) (+ 6 (point))))))
-	    ;; See if that msg has desired subject.
-	    (save-excursion
-	      (set-buffer pmail-buffer)
-	      (save-restriction
-		(widen)
-		(goto-char (pmail-msgbeg i))
-		(search-forward "\n*** EOOH ***\n")
-		(let ((beg (point)) end)
-		  (search-forward "\n\n")
-		  (setq end (point))
-		  (goto-char beg)
-		  (setq done (re-search-forward search-regexp end t))))))
+	    (setq done (string-equal subject (pmail-simplified-subject i))))
 	  (if done (setq found i)))
 	(setq n (if forward (1- n) (1+ n)))))
     (if found
@@ -1575,43 +1590,20 @@ see the documentation of `pmail-resend'."
 
 ;; Summary output commands.
 
-(defun pmail-summary-output-to-babyl-file (&optional file-name n)
-  "Append the current message to an Pmail file named FILE-NAME.
-If the file does not exist, ask if it should be created.
-If file is being visited, the message is appended to the Emacs
-buffer visiting that file.
-
-A prefix argument N says to output N consecutive messages
-starting with the current one.  Deleted messages are skipped and don't count."
-  (interactive
-   (progn (require 'pmailout)
-	  (list (pmail-output-read-pmail-file-name)
-		(prefix-numeric-value current-prefix-arg))))
-  (let ((i 0) prev-msg)
-    (while
-	(and (< i n)
-	     (progn (pmail-summary-goto-msg)
-		    (not (eq prev-msg
-			     (setq prev-msg
-				   (with-current-buffer pmail-buffer
-				     pmail-current-message))))))
-      (setq i (1+ i))
-      (with-current-buffer pmail-buffer
-	(let ((pmail-delete-after-output nil))
-	  (pmail-output-to-babyl-file file-name 1)))
-      (if pmail-delete-after-output
-	  (pmail-summary-delete-forward nil)
-	(if (< i n)
-	    (pmail-summary-next-msg 1))))))
-
-(defalias 'pmail-summary-output-to-pmail-file
-  'pmail-summary-output-to-babyl-file)
-
 (defun pmail-summary-output (&optional file-name n)
-  "Append this message to Unix mail file named FILE-NAME.
+  "Append this message to mail file FILE-NAME.
+This works with both mbox format and Babyl format files,
+outputting in the appropriate format for each.
+The default file name comes from `pmail-default-file',
+which is updated to the name you use in this command.
 
-A prefix argument N says to output N consecutive messages
-starting with the current one.  Deleted messages are skipped and don't count."
+A prefix argument N says to output that many consecutive messages
+from those in the summary, starting with the current one.
+Deleted messages are skipped and don't count.
+When called from Lisp code, N may be omitted and defaults to 1.
+
+This command always outputs the complete message header,
+even the header display is currently pruned."
   (interactive
    (progn (require 'pmailout)
 	  (list (pmail-output-read-file-name)
@@ -1628,6 +1620,42 @@ starting with the current one.  Deleted messages are skipped and don't count."
       (with-current-buffer pmail-buffer
 	(let ((pmail-delete-after-output nil))
 	  (pmail-output file-name 1)))
+      (if pmail-delete-after-output
+	  (pmail-summary-delete-forward nil)
+	(if (< i n)
+	    (pmail-summary-next-msg 1))))))
+
+(defalias 'pmail-summary-output-to-pmail-file
+  'pmail-summary-output-to-babyl-file)
+
+(defun pmail-summary-output-as-seen (&optional file-name n)
+  "Append this message to system-inbox-format mail file named FILE-NAME.
+A prefix argument N says to output that many consecutive messages,
+from the summary, starting with the current one.
+Deleted messages are skipped and don't count.
+When called from Lisp code, N may be omitted and defaults to 1.
+
+This outputs the message header as you see it (or would see it)
+displayed in Pmail.
+
+The default file name comes from `pmail-default-file',
+which is updated to the name you use in this command."
+  (interactive
+   (progn (require 'pmailout)
+	  (list (pmail-output-read-file-name)
+		(prefix-numeric-value current-prefix-arg))))
+  (let ((i 0) prev-msg)
+    (while
+	(and (< i n)
+	     (progn (pmail-summary-goto-msg)
+		    (not (eq prev-msg
+			     (setq prev-msg
+				   (with-current-buffer pmail-buffer
+				     pmail-current-message))))))
+      (setq i (1+ i))
+      (with-current-buffer pmail-buffer
+	(let ((pmail-delete-after-output nil))
+	  (pmail-output-as-seen file-name 1)))
       (if pmail-delete-after-output
 	  (pmail-summary-delete-forward nil)
 	(if (< i n)
@@ -1659,7 +1687,7 @@ The variables `pmail-secondary-file-directory' and
 	    (cons "Output Pmail File"
 		  (pmail-list-to-menu "Output Pmail File"
 				      files
-				      'pmail-summary-output-to-babyl-file))))
+				      'pmail-summary-output))))
       (define-key pmail-summary-mode-map [menu-bar classify input-menu]
 	'("Input Pmail File" . pmail-disable-menu))
       (define-key pmail-summary-mode-map [menu-bar classify output-menu]
