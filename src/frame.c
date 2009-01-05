@@ -2925,6 +2925,8 @@ x_set_frame_parameters (f, alist)
   int left_no_change = 0, top_no_change = 0;
   int icon_left_no_change = 0, icon_top_no_change = 0;
   int fullscreen_is_being_set = 0;
+  int height_for_full_width = 0;
+  int width_for_full_height = 0;
 
   struct gcpro gcpro1, gcpro2;
 
@@ -3006,9 +3008,9 @@ x_set_frame_parameters (f, alist)
       val = values[i];
 
       if (EQ (prop, Qwidth) && NATNUMP (val))
-	width = XFASTINT (val);
+	width_for_full_height = width = XFASTINT (val);
       else if (EQ (prop, Qheight) && NATNUMP (val))
-	height = XFASTINT (val);
+	height_for_full_width = height = XFASTINT (val);
       else if (EQ (prop, Qtop))
 	top = val;
       else if (EQ (prop, Qleft))
@@ -3088,6 +3090,15 @@ x_set_frame_parameters (f, alist)
       x_fullscreen_adjust (f, &width, &height, &new_top, &new_left);
       if (new_top != f->top_pos || new_left != f->left_pos)
         x_set_offset (f, new_left, new_top, 1);
+
+      /* When height was set and we want fullwidth make sure
+	 height gets applied.  */
+      if (height_for_full_width && (f->want_fullscreen & FULLSCREEN_WIDTH))
+	height = height_for_full_width;
+      /* When width was set and we want fullheight make sure
+	 width gets applied.  */
+      if (width_for_full_height && (f->want_fullscreen & FULLSCREEN_HEIGHT))
+	width = width_for_full_height;
     }
 
   /* Don't set these parameters unless they've been explicitly

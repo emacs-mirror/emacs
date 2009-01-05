@@ -1,3 +1,8 @@
+2009-01-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (x_set_frame_parameters): Make sure height (width) get
+	applied when fullwidth (fullheight) is set.  (Bug#1522)
+
 2009-01-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c: Use 64-bit arithmetic to do FILETIME conversions.  (Bug#1766)
