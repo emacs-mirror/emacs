@@ -123,14 +123,13 @@ from others, without recording the true authorship.
 rms, 2007/1, "Copyright years".]
 
 
+lisp/version.el           # emacs-copyright
+lib-src/ebrowse.c         # version
 lib-src/etags.c           # print_version
 lib-src/rcs2log           # Copyright
-lisp/calc/calc-help.el    # calc-full-help
-lisp/startup.el           # fancy-splash-tail
-mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings
-mac/src/Emacs.r           # resource 'vers'
-src/emacs.c
-  - remember to change the latest copyright year in the --version output.
+Cocoa/Emacs.base/Contents/Info.plist
+Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings
+GNUstep/Emacs.base/Resources/Info-gnustep.plist
    `set-copyright' in admin.el will do all the above.
 
 <top-level>/install-sh
