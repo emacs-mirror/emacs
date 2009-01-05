@@ -1008,10 +1008,9 @@ consider all visible or iconified frames."
 			(last-nonminibuffer-frame))))
 	(setq window-to-use
 	      (catch 'found
-		;; Search all visible and iconified frames for a window
-		;; displaying BUFFER.  Return the selected window only
-		;; if can-use-selected-window says we may do so.
-		(dolist (window (get-buffer-window-list buffer 'nomini 0))
+		;; Search frames for a window displaying BUFFER.  Return
+		;; the selected window only if we are allowed to do so.
+		(dolist (window (get-buffer-window-list buffer 'nomini frames))
 		  (when (or can-use-selected-window
 			    (not (eq (selected-window) window)))
 		    (throw 'found window))))))
