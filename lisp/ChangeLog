@@ -1,11 +1,20 @@
+2009-01-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-hilit-commonality): Don't presume
+	all-completions always include the input as prefix.
+	(completion-pcm--pattern-trivial-p): Accept a few more patterns
+	as trivial.
+	(completion-pcm--hilit-commonality): Remove leftover code that used to
+	deal with the now removed cdr-in-last-cons.
+
 2009-01-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule.el (define-coding-system): Fix typos in docstring.
 
 2009-01-05  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-styles.el (c-setup-paragraph-variables): Ensure
-	paragraph-\(start\|separate\) match blank lines.  For AWK Mode.
+	* progmodes/cc-styles.el (c-setup-paragraph-variables):
+	Ensure paragraph-\(start\|separate\) match blank lines.  For AWK Mode.
 
 2009-01-05  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -90,34 +99,31 @@
 	(tramp-prefix-domain-regexp, tramp-domain-regexp)
 	(tramp-user-with-domain-regexp, tramp-prefix-ipv6-format)
 	(tramp-prefix-ipv6-regexp, tramp-ipv6-regexp)
-	(tramp-postfix-ipv6-format, tramp-postfix-ipv6-regexp): New
-	defconst.
+	(tramp-postfix-ipv6-format, tramp-postfix-ipv6-regexp): New defconst.
 	(tramp-file-name-structure, tramp-file-name-regexp-unified)
 	(tramp-completion-dissect-file-name, tramp-parse-hosts-group)
 	(tramp-dissect-file-name, tramp-make-tramp-file-name)
 	(tramp-completion-make-tramp-file-name): Handle IPv6 addresses.
 	(tramp-handle-insert-file-contents): Fix setting of
 	`buffer-read-only'.
-	(tramp-compute-multi-hops, tramp-local-host-p): Use
-	`tramp-local-host-regexp'.
-	(tramp-file-name-real-user, tramp-file-name-domain): Use
-	`tramp-user-with-domain-regexp'.
+	(tramp-compute-multi-hops, tramp-local-host-p):
+	Use `tramp-local-host-regexp'.
+	(tramp-file-name-real-user, tramp-file-name-domain):
+	Use `tramp-user-with-domain-regexp'.
 
 	* net/tramp-smb.el (top): Use `tramp-prefix-domain-regexp'.
-	(tramp-smb-maybe-open-connection): Use `tramp-file-name-*'
-	methods.
+	(tramp-smb-maybe-open-connection): Use `tramp-file-name-*' methods.
 
 2009-01-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-grammar-alist): Refiner can be a
 	list (function help-echo) instead of a cons pair.
 	(proced-post-display-hook): New variable.
-	(proced-tree-depth): Renamed from proced-tree-indent.
+	(proced-tree-depth): Rename from proced-tree-indent.
 	(proced-mode): Derive mode from special-mode.
-	(proced-mode-map): Changed accordingly.
+	(proced-mode-map): Change accordingly.
 	(proced, proced-update): Run proced-post-display-hook.
-	(proced-do-mark-all): Count processes for which mark has been
-	updated.
+	(proced-do-mark-all): Count processes for which mark has been updated.
 	(proced-format): Check for ppid attribute.
 	(proced-process-attributes): Take time and ctime attribute from
 	system-process-attributes.

@@ -789,7 +789,11 @@ of the differing parts is, by contrast, slightly highlighted."
                      (car (setq elem (cons (copy-sequence (car elem))
                                            (cdr elem))))
                    (setq elem (copy-sequence elem)))))
-            (put-text-property 0 com-str-len
+            (put-text-property 0
+			       ;; If completion-boundaries returns incorrect
+			       ;; values, all-completions may return strings
+			       ;; that don't contain the prefix.
+			       (min com-str-len (length str))
                                'font-lock-face 'completions-common-part
                                str)
             (if (> (length str) com-str-len)
@@ -1333,7 +1337,13 @@ expression (not containing character ranges like `a-z')."
   :type 'string)
 
 (defun completion-pcm--pattern-trivial-p (pattern)
-  (and (stringp (car pattern)) (null (cdr pattern))))
+  (and (stringp (car pattern))
+       ;; It can be followed by `point' and "" and still be trivial.
+       (let ((trivial t))
+	 (dolist (elem (cdr pattern))
+	   (unless (member elem '(point ""))
+	     (setq trivial nil)))
+	 trivial)))
 
 (defun completion-pcm--string->pattern (string &optional point)
   "Split STRING into a pattern.
@@ -1411,29 +1421,24 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 (defun completion-pcm--hilit-commonality (pattern completions)
   (when completions
     (let* ((re (completion-pcm--pattern->regex pattern '(point)))
-           (case-fold-search completion-ignore-case)
-           (last (last completions))
-           (base-size (cdr last)))
+           (case-fold-search completion-ignore-case))
       ;; Remove base-size during mapcar, and add it back later.
-      (setcdr last nil)
-      (nconc
-       (mapcar
-        (lambda (str)
-          ;; Don't modify the string itself.
-          (setq str (copy-sequence str))
-          (unless (string-match re str)
-            (error "Internal error: %s does not match %s" re str))
-          (let ((pos (or (match-beginning 1) (match-end 0))))
-            (put-text-property 0 pos
-                               'font-lock-face 'completions-common-part
-                               str)
-            (if (> (length str) pos)
-                (put-text-property pos (1+ pos)
-                                   'font-lock-face 'completions-first-difference
-                                   str)))
-          str)
-        completions)
-       base-size))))
+      (mapcar
+       (lambda (str)
+	 ;; Don't modify the string itself.
+         (setq str (copy-sequence str))
+         (unless (string-match re str)
+           (error "Internal error: %s does not match %s" re str))
+         (let ((pos (or (match-beginning 1) (match-end 0))))
+           (put-text-property 0 pos
+                              'font-lock-face 'completions-common-part
+                              str)
+           (if (> (length str) pos)
+               (put-text-property pos (1+ pos)
+				  'font-lock-face 'completions-first-difference
+				  str)))
+	 str)
+       completions))))
 
 (defun completion-pcm--find-all-completions (string table pred point
                                                     &optional filter)
