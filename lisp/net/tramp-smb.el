@@ -218,8 +218,9 @@ PRESERVE-UID-GID is completely ignored."
 	;; Remote filename.
 	(condition-case err
 	    (rename-file tmpfile newname ok-if-already-exists)
-	  (error (delete-file tmpfile)
-		 (signal (car err) (cdr err))))
+	  ((error quit)
+	   (delete-file tmpfile)
+	   (signal (car err) (cdr err))))
 
       ;; Remote newname.
       (when (file-directory-p newname)
@@ -554,8 +555,9 @@ PRESERVE-UID-GID is completely ignored."
 	;; Remote filename.
 	(condition-case err
 	    (rename-file tmpfile newname ok-if-already-exists)
-	  (error (delete-file tmpfile)
-		 (signal (car err) (cdr err))))
+	  ((error quit)
+	   (delete-file tmpfile)
+	   (signal (car err) (cdr err))))
 
       ;; Remote newname.
       (when (file-directory-p newname)
