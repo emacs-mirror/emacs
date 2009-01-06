@@ -3259,52 +3259,53 @@ the uid and gid from FILENAME."
 
 	   ;; We need a temporary file in between.
 	   (t
-	    (condition-case err
-		;; Create the temporary file.
-		(let ((tmpfile (tramp-compat-make-temp-file localname1)))
-		  (cond
-		   (t1
-		    (tramp-send-command
-		     v (format
-			"%s %s %s" cmd
-			(tramp-shell-quote-argument localname1)
-			(tramp-shell-quote-argument tmpfile)))
-		    ;; We must change the ownership as remote user.
-		    (tramp-set-file-uid-gid
-		     (concat prefix tmpfile)
-		     (tramp-get-local-uid 'integer)
-		     (tramp-get-local-gid 'integer)))
-		   (t2
-		    (if (eq op 'copy)
-			(tramp-compat-copy-file
-			 localname1 tmpfile ok-if-already-exists
-			 keep-date preserve-uid-gid)
+	    ;; Create the temporary file.
+	    (let ((tmpfile (tramp-compat-make-temp-file localname1)))
+	      (condition-case err
+		  (progn
+		    (cond
+		     (t1
+		      (tramp-send-command
+		       v (format
+			  "%s %s %s" cmd
+			  (tramp-shell-quote-argument localname1)
+			  (tramp-shell-quote-argument tmpfile)))
+		      ;; We must change the ownership as remote user.
+		      (tramp-set-file-uid-gid
+		       (concat prefix tmpfile)
+		       (tramp-get-local-uid 'integer)
+		       (tramp-get-local-gid 'integer)))
+		     (t2
+		      (if (eq op 'copy)
+			  (tramp-compat-copy-file
+			   localname1 tmpfile ok-if-already-exists
+			   keep-date preserve-uid-gid)
+			(tramp-run-real-handler
+			 'rename-file
+			 (list localname1 tmpfile ok-if-already-exists)))
+		      ;; We must change the ownership as local user.
+		      (tramp-set-file-uid-gid
+		       tmpfile
+		       (tramp-get-remote-uid v 'integer)
+		       (tramp-get-remote-gid v 'integer))))
+
+		    ;; Move the temporary file to its destination.
+		    (cond
+		     (t2
+		      (tramp-send-command
+		       v (format
+			  "mv -f %s %s"
+			  (tramp-shell-quote-argument tmpfile)
+			  (tramp-shell-quote-argument localname2))))
+		     (t1
 		      (tramp-run-real-handler
 		       'rename-file
-		       (list localname1 tmpfile ok-if-already-exists)))
-		    ;; We must change the ownership as local user.
-		    (tramp-set-file-uid-gid
-		     tmpfile
-		     (tramp-get-remote-uid v 'integer)
-		     (tramp-get-remote-gid v 'integer))))
+		       (list tmpfile localname2 ok-if-already-exists)))))
 
-		  ;; Move the temporary file to its destination.
-		  (cond
-		   (t2
-		    (tramp-send-command
-		     v (format
-			"mv -f %s %s"
-			(tramp-shell-quote-argument tmpfile)
-			(tramp-shell-quote-argument localname2))))
-		   (t1
-		    (tramp-run-real-handler
-		     'rename-file
-		     (list tmpfile localname2 ok-if-already-exists)))))
-
-	      ;; Error handling.
-	      ((error quit)
-	       (delete-file tmpfile)
-	       (signal (car err) (cdr err)))))))))
+		;; Error handling.
+		((error quit)
+		 (delete-file tmpfile)
+		 (signal (car err) (cdr err))))))))))
 
       ;; Set the time and mode. Mask possible errors.
       ;; Won't be applied for 'rename.
