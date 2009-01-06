@@ -3302,8 +3302,9 @@ the uid and gid from FILENAME."
 		     (list tmpfile localname2 ok-if-already-exists)))))
 
 	      ;; Error handling.
-	      (error (delete-file tmpfile)
-		     (signal (car err) (cdr err)))))))))
+	      ((error quit)
+	       (delete-file tmpfile)
+	       (signal (car err) (cdr err)))))))))
 
       ;; Set the time and mode. Mask possible errors.
       ;; Won't be applied for 'rename.
@@ -4011,36 +4012,39 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
   "Like `file-local-copy' for Tramp files."
 
   (with-parsed-tramp-file-name filename nil
+    (unless (file-exists-p filename)
+      (tramp-error
+       v 'file-error
+       "Cannot make local copy of non-existing file `%s'" filename))
+
     (let ((rem-enc (tramp-get-remote-coding v "remote-encoding"))
 	  (loc-dec (tramp-get-local-coding v "local-decoding"))
 	  (tmpfile (tramp-compat-make-temp-file filename)))
-      (unless (file-exists-p filename)
-	(tramp-error
-	 v 'file-error
-	 "Cannot make local copy of non-existing file `%s'" filename))
 
-      (cond
-       ;; `copy-file' handles direct copy and out-of-band methods.
-       ((or (tramp-local-host-p v)
-	    (and (tramp-method-out-of-band-p v)
-		 (> (nth 7 (file-attributes filename)) tramp-copy-size-limit)))
-	(copy-file filename tmpfile t t))
+      (condition-case err
+	  (cond
+	   ;; `copy-file' handles direct copy and out-of-band methods.
+	   ((or (tramp-local-host-p v)
+		(and (tramp-method-out-of-band-p v)
+		     (> (nth 7 (file-attributes filename))
+			tramp-copy-size-limit)))
+	    (copy-file filename tmpfile t t))
 
-       ;; Use inline encoding for file transfer.
-       (rem-enc
-	(save-excursion
-	  (tramp-message v 5 "Encoding remote file %s..." filename)
-	  (tramp-barf-unless-okay
-	   v (format "%s < %s" rem-enc (tramp-shell-quote-argument localname))
-	   "Encoding remote file failed")
-	  (tramp-message v 5 "Encoding remote file %s...done" filename)
+	   ;; Use inline encoding for file transfer.
+	   (rem-enc
+	    (save-excursion
+	      (tramp-message v 5 "Encoding remote file %s..." filename)
+	      (tramp-barf-unless-okay
+	       v
+	       (format "%s < %s" rem-enc (tramp-shell-quote-argument localname))
+	       "Encoding remote file failed")
+	      (tramp-message v 5 "Encoding remote file %s...done" filename)
 
-	  (tramp-message v 5 "Decoding remote file %s..." filename)
-	  (if (and (symbolp loc-dec) (fboundp loc-dec))
-	      ;; If local decoding is a function, we call it.  We must
-	      ;; disable multibyte, because `uudecode-decode-region'
-	      ;; doesn't handle it correctly.
-	      (unwind-protect
+	      (if (and (symbolp loc-dec) (fboundp loc-dec))
+		  ;; If local decoding is a function, we call it.  We
+		  ;; must disable multibyte, because
+		  ;; `uudecode-decode-region' doesn't handle it
+		  ;; correctly.
 		  (with-temp-buffer
 		    (set-buffer-multibyte nil)
 		    (insert-buffer-substring (tramp-get-buffer v))
@@ -4049,27 +4053,34 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 		     filename loc-dec)
 		    (funcall loc-dec (point-min) (point-max))
 		    (let ((coding-system-for-write 'binary))
-		      (write-region (point-min) (point-max) tmpfile))))
-	    ;; If tramp-decoding-function is not defined for this
-	    ;; method, we invoke tramp-decoding-command instead.
-	    (let ((tmpfile2 (tramp-compat-make-temp-file filename)))
-	      (let ((coding-system-for-write 'binary))
-		(write-region (point-min) (point-max) tmpfile2))
-	      (tramp-message
-	       v 5 "Decoding remote file %s with command %s..."
-	       filename loc-dec)
-	      (unwind-protect
-		  (tramp-call-local-coding-command loc-dec tmpfile2 tmpfile)
-		(delete-file tmpfile2))))
-	  (tramp-message v 5 "Decoding remote file %s...done" filename)
-	  ;; Set proper permissions.
-	  (set-file-modes tmpfile (file-modes filename))
-	  ;; Set local user ownership.
-	  (tramp-set-file-uid-gid tmpfile)))
+		      (write-region (point-min) (point-max) tmpfile)))
 
-       ;; Oops, I don't know what to do.
-       (t (tramp-error
-	   v 'file-error "Wrong method specification for `%s'" method)))
+		;; If tramp-decoding-function is not defined for this
+		;; method, we invoke tramp-decoding-command instead.
+		(let ((tmpfile2 (tramp-compat-make-temp-file filename)))
+		  (let ((coding-system-for-write 'binary))
+		    (write-region (point-min) (point-max) tmpfile2))
+		  (tramp-message
+		   v 5 "Decoding remote file %s with command %s..."
+		   filename loc-dec)
+		  (unwind-protect
+		      (tramp-call-local-coding-command loc-dec tmpfile2 tmpfile)
+		    (delete-file tmpfile2))))
+
+	      (tramp-message v 5 "Decoding remote file %s...done" filename)
+	      ;; Set proper permissions.
+	      (set-file-modes tmpfile (file-modes filename))
+	      ;; Set local user ownership.
+	      (tramp-set-file-uid-gid tmpfile)))
+
+	   ;; Oops, I don't know what to do.
+	   (t (tramp-error
+	       v 'file-error "Wrong method specification for `%s'" method)))
+
+	;; Error handling.
+	((error quit)
+	 (delete-file tmpfile)
+	 (signal (car err) (cdr err))))
 
       (run-hooks 'tramp-handle-file-local-copy-hook)
       tmpfile)))
@@ -4346,8 +4357,9 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		(tramp-run-real-handler
 		 'write-region
 		 (list start end tmpfile append 'no-message lockname confirm))
-	      (error (delete-file tmpfile)
-		     (signal (car err) (cdr err))))
+	      ((error quit)
+	       (delete-file tmpfile)
+	       (signal (car err) (cdr err))))
 
 	    ;; Now, `last-coding-system-used' has the right value.  Remember it.
 	    (when (boundp 'last-coding-system-used)
@@ -4375,8 +4387,9 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 			tramp-copy-size-limit)))
 	    (condition-case err
 		(rename-file tmpfile filename t)
-	      (error (delete-file tmpfile)
-		     (signal (car err) (cdr err)))))
+	      ((error quit)
+	       (delete-file tmpfile)
+	       (signal (car err) (cdr err)))))
 
 	   ;; Use inline file transfer.
 	   (rem-dec
