@@ -1,3 +1,8 @@
+2009-01-06  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* gnus-art.el (gnus-treat-display-face): Fix docstring link to point to
+	`(gnus)Face', not `(gnus)X-Face'.
+
 2009-01-03  Michael Olson  <mwolson@gnu.org>
 
 	* nnimap.el (nnimap-retrieve-headers-progress): Handle edge case where

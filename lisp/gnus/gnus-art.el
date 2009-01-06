@@ -1453,7 +1453,7 @@ See Info node `(gnus)Customizing Articles' and Info node
   "Display Face headers.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles' and Info
-node `(gnus)X-Face' for details."
+node `(gnus)Face' for details."
   :group 'gnus-article-treat
   :version "22.1"
   :link '(custom-manual "(gnus)Customizing Articles")
