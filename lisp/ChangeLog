@@ -1,3 +1,7 @@
+2009-01-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule.el (define-coding-system): Fix typos in docstring.
+
 2009-01-05  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-styles.el (c-setup-paragraph-variables): Ensure

@@ -50,7 +50,7 @@ Distribution date of this version of MULE (multilingual environment).")
 (defvar emacs-mule-charset-table (make-vector 256 nil))
 (aset emacs-mule-charset-table 0 'ascii)
 
-;; Convert the argument of old-style calll of define-charset to a
+;; Convert the argument of old-style call of define-charset to a
 ;; property list used by the new-style.
 ;; INFO-VECTOR is a vector of the format:
 ;;   [DIMENSION CHARS WIDTH DIRECTION ISO-FINAL-CHAR ISO-GRAPHIC-PLANE
@@ -719,9 +719,9 @@ BOM, and on encoding, don't produce BOM bytes.
 If the value is t, on decoding, skip the first two-byte as BOM, and on
 encoding, produce BOM bytes accoding to the value of `:endian'.
 
-If the value is cons, on decoding, check the first two-byte.  If theyq
+If the value is cons, on decoding, check the first two-byte.  If they
 are 0xFE 0xFF, use the car part coding system of the value.  If they
-are 0xFF 0xFE, use the car part coding system of the value.
+are 0xFF 0xFE, use the cdr part coding system of the value.
 Otherwise, treat them as bytes for a normal character.  On encoding,
 produce BOM bytes accoding to the value of `:endian'.
 
