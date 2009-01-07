@@ -1,3 +1,8 @@
+2009-01-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (define-coding-system): Fix docstring
+	about :bom usage.
+
 2009-01-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* dired.el (dired-pop-to-buffer): Don't split windows
