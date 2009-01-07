@@ -592,7 +592,7 @@ The remaining arguments must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE
 may be any symbol.
 
 The following attributes have special meanings.  Those labeled as
-\"(required)\", should not be omitted.
+\"(required)\" should not be omitted.
 
 `:mnemonic' (required)
 
@@ -608,7 +608,7 @@ VALUE must be one of `charset', `utf-8', `utf-16', `iso-2022',
 VALUE is the EOL (end-of-line) format of the coding system.  It must be
 one of `unix', `dos', `mac'.  The symbol `unix' means Unix-like EOL
 \(i.e. single LF), `dos' means DOS-like EOL \(i.e. sequence of CR LF),
-and `mac' means MAC-like EOL \(i.e. single CR).  If omitted, on
+and `mac' means Mac-like EOL \(i.e. single CR).  If omitted, on
 decoding by the coding system, Emacs automatically detects the EOL
 format of the source text.
 
@@ -667,7 +667,7 @@ results in a unibyte buffer.
 `:eol-type'
 
 VALUE must be `unix', `dos', `mac'.  The symbol `unix' means Unix-like
-EOL (LF), `dos' means DOS-like EOL (CRLF), and `mac' means MAC-like
+EOL (LF), `dos' means DOS-like EOL (CRLF), and `mac' means Mac-like
 EOL (CR).  If omitted, on decoding, the coding system detects EOL
 format automatically, and on encoding, uses Unix-like EOL.
 
@@ -710,7 +710,7 @@ This attribute has a meaning only when `:coding-type' is `iso-2022'.
 `:bom'
 
 This attributes specifies whether the coding system uses a `byte order
-mark'.  VALUE must nil, t, or cons of coding systems whose
+mark'.  VALUE must be nil, t, or cons of coding systems whose
 `:coding-type' is `utf-16' or `utf-8'.
 
 If the value is nil, on decoding, don't treat the first two-byte as
@@ -725,7 +725,8 @@ are 0xFF 0xFE, use the cdr part coding system of the value.
 Otherwise, treat them as bytes for a normal character.  On encoding,
 produce BOM bytes accoding to the value of `:endian'.
 
-This attribute has a meaning only when `:coding-type' is `utf-16'.
+This attribute has a meaning only when `:coding-type' is `utf-16' or
+`utf-8'.
 
 `:endian'
 

@@ -1,3 +1,7 @@
+2009-01-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule.el (define-coding-system): Doc fix.
+
 2009-01-07  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (define-coding-system): Fix docstring
