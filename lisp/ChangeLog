@@ -1,5 +1,8 @@
 2009-01-07  Juanma Barranquero  <lekktu@gmail.com>
 
+	* add-log.el (change-log-search-tag-name): Reflow docstring.
+	(change-log-mode): Fix typo in docstring.
+
 	* international/mule.el (define-coding-system): Doc fix.
 
 2009-01-07  Kenichi Handa  <handa@m17n.org>

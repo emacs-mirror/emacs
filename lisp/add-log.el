@@ -162,7 +162,7 @@ use the file's name relative to the directory of the change log file."
   :group 'change-log)
 
 (defcustom change-log-version-number-regexp-list
-  (let ((re    "\\([0-9]+\.[0-9.]+\\)"))
+  (let ((re "\\([0-9]+\.[0-9.]+\\)"))
     (list
      ;;  (defconst ad-version "2.15"
      (concat "^(def[^ \t\n]+[ \t]+[^ \t\n][ \t]\"" re)
@@ -305,7 +305,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 	  (match-string-no-properties 2)
 	;; Look backwards for either a file name or the log entry start.
 	(if (re-search-backward
-	     (concat "\\(" change-log-start-entry-re 
+	     (concat "\\(" change-log-start-entry-re
 		     "\\)\\|\\("
 		     change-log-file-names-re "\\)") nil t)
 	    (if (match-beginning 1)
@@ -351,8 +351,8 @@ the tag was found."
 
 (defun change-log-search-tag-name (&optional at)
   "Search for a tag name near `point'.
-Optional argument AT non-nil means search near buffer position
-AT.  Return value is a cons whose car is the string representing
+Optional argument AT non-nil means search near buffer position AT.
+Return value is a cons whose car is the string representing
 the tag and whose cdr is the position where the tag was found."
   (save-excursion
     (goto-char (setq at (or at (point))))
@@ -1007,12 +1007,12 @@ the change log file in another window."
 
 ;;;###autoload
 (define-derived-mode change-log-mode text-mode "Change Log"
-  "Major mode for editing change logs; like Indented Text Mode.
+  "Major mode for editing change logs; like Indented Text mode.
 Prevents numeric backups and sets `left-margin' to 8 and `fill-column' to 74.
 New log entries are usually made with \\[add-change-log-entry] or \\[add-change-log-entry-other-window].
 Each entry behaves as a paragraph, and the entries for one day as a page.
 Runs `change-log-mode-hook'.
-\\{change-log-mode-map}"
+\n\\{change-log-mode-map}"
   (setq left-margin 8
 	fill-column 74
 	indent-tabs-mode t
@@ -1045,9 +1045,9 @@ Runs `change-log-mode-hook'.
        '(change-log-font-lock-keywords t nil nil backward-paragraph))
   (set (make-local-variable 'multi-isearch-next-buffer-function)
        'change-log-next-buffer)
-  (set (make-local-variable 'beginning-of-defun-function) 
+  (set (make-local-variable 'beginning-of-defun-function)
        'change-log-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function) 
+  (set (make-local-variable 'end-of-defun-function)
        'change-log-end-of-defun)
   ;; next-error function glue
   (setq next-error-function 'change-log-next-error)
