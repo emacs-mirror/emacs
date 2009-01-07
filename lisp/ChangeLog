@@ -1,3 +1,8 @@
+2009-01-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-mode, tar-mode-write-contents)
+	(tar-write-region-annotate): Undo Andreas's last change.
+
 2009-01-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file-directly)
