@@ -18,8 +18,7 @@
 	* net/tramp.el (tramp-do-copy-or-rename-file-directly)
 	(tramp-handle-file-local-copy, tramp-handle-write-region)
 	* net/tramp-smb.el (tramp-smb-handle-copy-file)
-	(tramp-smb-handle-rename-file): Delete temporary file in case of
-	quit.
+	(tramp-smb-handle-rename-file): Delete temporary file in case of quit.
 
 2009-01-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -49,9 +48,9 @@
 	(tramp-smb-handle-rename-file, tramp-smb-handle-write-region):
 	Delete temporary file in case of error.
 
-2009-01-05  Agustín Martín <agustin.martin@hispalinux.es>
+2009-01-05  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* textmodes/ispell.el (ispell-check-version): Use (with-temp-buffer)
+	* textmodes/ispell.el (ispell-check-version): Use with-temp-buffer.
 
 2009-01-05  Richard M Stallman  <rms@gnu.org>
 
@@ -10126,7 +10125,7 @@
 	New functions.
 	(completion-styles-alist): Use them.
 
-2008-04-23  Agustin Martin  <agustin.martin@hispalinux.es>
+2008-04-23  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-set-spellchecker-params):
 	New function to make sure right params and dictionary alists are used
