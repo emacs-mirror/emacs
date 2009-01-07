@@ -711,7 +711,7 @@ This attribute has a meaning only when `:coding-type' is `iso-2022'.
 
 This attributes specifies whether the coding system uses a `byte order
 mark'.  VALUE must nil, t, or cons of coding systems whose
-`:coding-type' is `utf-16'.
+`:coding-type' is `utf-16' or `utf-8'.
 
 If the value is nil, on decoding, don't treat the first two-byte as
 BOM, and on encoding, don't produce BOM bytes.
