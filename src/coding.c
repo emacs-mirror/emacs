@@ -1376,7 +1376,11 @@ decode_coding_utf_8 (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr >= 0)
+	    src_base--;
+	  break;
+	}
 
       if (byte_after_cr >= 0)
 	c1 = byte_after_cr, byte_after_cr = -1;
@@ -1682,7 +1686,11 @@ decode_coding_utf_16 (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf + 2 >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr1 >= 0)
+	    src_base -= 2;
+	  break;
+	}
 
       if (byte_after_cr1 >= 0)
 	c1 = byte_after_cr1, byte_after_cr1 = -1;
@@ -2286,7 +2294,11 @@ decode_coding_emacs_mule (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr >= 0)
+	    src_base--;
+	  break;
+	}
 
       if (byte_after_cr >= 0)
 	c = byte_after_cr, byte_after_cr = -1;
@@ -3197,7 +3209,11 @@ decode_coding_iso_2022 (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr >= 0)
+	    src_base--;
+	  break;
+	}
 
       if (byte_after_cr >= 0)
 	c1 = byte_after_cr, byte_after_cr = -1;
@@ -4371,7 +4387,11 @@ decode_coding_sjis (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr >= 0)
+	    src_base--;
+	  break;
+	}
 
       if (byte_after_cr >= 0)
 	c = byte_after_cr, byte_after_cr = -1;
@@ -4479,7 +4499,11 @@ decode_coding_big5 (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr >= 0)
+	    src_base--;
+	  break;
+	}
 
       if (byte_after_cr >= 0)
 	c = byte_after_cr, byte_after_cr = -1;
@@ -5144,7 +5168,11 @@ decode_coding_charset (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr >= 0)
+	    src_base--;
+	  break;
+	}
 
       if (byte_after_cr >= 0)
 	{
