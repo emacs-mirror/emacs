@@ -3687,6 +3687,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  coding.mode &= ~CODING_MODE_LAST_BLOCK;
 	}
 
+      coding_system = CODING_ID_NAME (coding.id);
       decoded = BUF_BEG_ADDR (XBUFFER (conversion_buffer));
       inserted = (BUF_Z_BYTE (XBUFFER (conversion_buffer))
 		  - BUF_BEG_BYTE (XBUFFER (conversion_buffer)));
