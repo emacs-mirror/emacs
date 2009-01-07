@@ -1,5 +1,8 @@
 2009-01-07  Kenichi Handa  <handa@m17n.org>
 
+	* fileio.c (Finsert_file_contents): In the case of replace,
+	remeber the coding system used for decoding in coding_system.
+
 	* coding.c (decode_coding_utf_8): Check byte_after_cr before
 	breaking the loop.  (Bug#870)
 	(decode_coding_utf_16, decode_coding_emacs_mule)
