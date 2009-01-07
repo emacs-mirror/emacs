@@ -2681,8 +2681,10 @@ name, or the marker and a count of marked files."
 	(format "%c [%d files]" dired-marker-char count)))))
 
 (defun dired-pop-to-buffer (buf)
-  ;; Pop up buffer BUF.
-  (pop-to-buffer (get-buffer-create buf))
+  "Pop up buffer BUF in a way suitable for Dired."
+  ;; Don't split window horizontally.  (Bug#1806)
+  (let (split-width-threshold)
+    (pop-to-buffer (get-buffer-create buf)))
   ;; If dired-shrink-to-fit is t, make its window fit its contents.
   (when dired-shrink-to-fit
     ;; Try to not delete window when we want to display less than

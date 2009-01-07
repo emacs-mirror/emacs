@@ -1,3 +1,8 @@
+2009-01-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-pop-to-buffer): Don't split windows
+	horizontally.  (Bug#1806)
+
 2009-01-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tar-mode.el (tar-mode, tar-mode-write-contents)
