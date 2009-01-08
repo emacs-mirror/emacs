@@ -1,3 +1,8 @@
+2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_open_for_lface): Handle unspecified height
+	attribute.
+
 2009-01-08  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Vx_pointer_shape, Vx_nontext_pointer_shape)
