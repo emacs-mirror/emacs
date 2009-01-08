@@ -1627,26 +1627,26 @@ second argument, and has an optional 5th argument to control how to
 set the font.
 
 *** New functions:
-
++++
 **** `fontp' checks if the argument is a font-spec or font-entity.
-
++++
 **** `font-spec' creates a new font-spec object.
-
++++
 **** `font-get' returns a font property value.
-
++++
 **** `font-put' sets a font property value.
-
++++
 **** `font-face-attributes' returns a plist of face attributes set by a font.
-
++++
 **** `list-fonts' returns a list of font-entities matching a font spec.
-
-**** `font-font' returns the font-entity best matching the given font spec.
-
++++
+**** `find-font' returns the font-entity best matching the given font spec.
++++
 **** `font-family-list' returns a list of family names of available fonts.
-
++++
 **** `font-xlfd-name' returns an XLFD name of a given font spec, font
 entity, or font object.
-
+---
 **** `clear-font-cache' clears all font caches.
 
 ** Changes related to multiple-terminal (multi-tty) support
