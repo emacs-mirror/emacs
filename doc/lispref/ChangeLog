@@ -1,3 +1,12 @@
+2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* elisp.texi: Update node listing.
+
+	* display.texi (Faces): Put Font Selection node after Auto Faces.
+	(Face Attributes): Don't link to Font Lookup.  Document
+	font-family-list.
+	(Fonts): New node.
+
 2009-01-08  Jason Rumney  <jasonr@gnu.org>
 
 	* frames.texi (Pointer Shape): Clarify that only X supports
