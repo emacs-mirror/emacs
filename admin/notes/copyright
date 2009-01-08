@@ -618,8 +618,7 @@ alone (may import them from Gnulib again). These are:
     Others:
     config.guess
     config.sub
-    lispintro/missing
-    man/texinfo.tex
+    doc/man/texinfo.tex
 
 Note _not_ included in the above are src/regex.{c,h} (rms: "That
 forked version is only in Emacs, so definitely relicense that."), and
