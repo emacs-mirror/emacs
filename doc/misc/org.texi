@@ -35,7 +35,7 @@
 @copying
 This manual is for Org (version @value{VERSION}).
 
-Copyright @copyright{} 2004, 2005, 2006, 2007, 2008 Free Software Foundation
+Copyright @copyright{} 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
