@@ -156,22 +156,22 @@ Lisp_Object Vx_no_window_manager;
 static unsigned hourglass_timer = 0;
 static HWND hourglass_hwnd = NULL;
 
+#if 0 /* TODO: Mouse cursor customization.  */
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
-
 Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
 Lisp_Object Vx_hourglass_pointer_shape, Vx_window_horizontal_drag_shape;
 
 /* The shape when over mouse-sensitive text.  */
 
 Lisp_Object Vx_sensitive_text_pointer_shape;
+#endif
 
 #ifndef IDC_HAND
 #define IDC_HAND MAKEINTRESOURCE(32649)
 #endif
 
 /* Color of chars displayed in cursor box.  */
-
 Lisp_Object Vx_cursor_fore_pixel;
 
 /* Nonzero if using Windows.  */
@@ -1389,7 +1389,7 @@ x_set_mouse_color (f, arg, oldval)
 	&& mask_color == FRAME_BACKGROUND_PIXEL (f))
     f->output_data.w32->mouse_pixel = FRAME_FOREGROUND_PIXEL (f);
 
-#if 0 /* TODO : cursor changes */
+#if 0 /* TODO : Mouse cursor customization.  */
   BLOCK_INPUT;
 
   /* It's not okay to crash if the user selects a screwy cursor.  */
@@ -5411,7 +5411,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   FRAME_FONTSET (f)  = -1;
   f->icon_name = Qnil;
 
-#if 0 /* GLYPH_DEBUG TODO: image support.  */
+#if GLYPH_DEBUG
   image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
@@ -7079,6 +7079,7 @@ mic-volume-mute, mic-volume-down, mic-volume-up, mic-toggle,
 bass-down, bass-boost, bass-up, treble-down, treble-up  */);
   w32_pass_multimedia_buttons_to_system = 1;
 
+#if 0 /* TODO: Mouse cursor customization.  */
   DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
 	       doc: /* The shape of the pointer when over text.
 Changing the value does not affect existing frames
@@ -7108,6 +7109,7 @@ or when you set the mouse color.  */);
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_window_horizontal_drag_shape = Qnil;
+#endif
 
   DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
 	       doc: /* A string indicating the foreground color of the cursor box.  */);
