@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep / MacOSX communication module.
-   Copyright (C) 1989, 1993, 1994, 2005, 2006, 2008
+   Copyright (C) 1989, 1993, 1994, 2005, 2006, 2008, 2009
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

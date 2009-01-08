@@ -1,5 +1,5 @@
 /* ftfont.h -- Interface definition for Freetype font backend.
-   Copyright (C) 2007, 2008
+   Copyright (C) 2007, 2008, 2009
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 

@@ -16970,7 +16970,7 @@ See ChangeLog.10 for earlier changes.
 ;; bug-reference-url-format: "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s"
 ;; End:
 
-    Copyright (C) 2007, 2008  Free Software Foundation, Inc.
+    Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
