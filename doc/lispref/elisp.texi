@@ -1288,9 +1288,11 @@ Faces
 * Attribute Functions::     Functions to examine and set face attributes.
 * Displaying Faces::        How Emacs combines the faces specified for
                               a character.
-* Font Selection::          Finding the best available font for a face.
+* Face Remapping::         Remapping faces to alternative definitions.
 * Face Functions::          How to define and examine faces.
 * Auto Faces::              Hook for automatic face assignment.
+* Fonts::                   Lisp representation of character display fonts.
+* Font Selection::          Finding the best available font for a face.
 * Font Lookup::             Looking up the names of available fonts
                               and information about them.
 * Fontsets::                A fontset is a collection of fonts
