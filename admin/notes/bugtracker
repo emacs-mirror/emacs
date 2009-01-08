@@ -197,3 +197,13 @@ submitter 123 none@example.com
 
 Note that it does not seem to work to specify "Submitter:" in the
 pseudo-header when first reporting a bug.
+
+** How does archiving work?
+You can still send mail to a bug after it is closed.  After 28 days with
+no activity, the bug is archived, at which point no more changes can
+be made.  If you try to send mail to the bug after that (or merge with
+it), it will be rejected.  To make any changes, you must unarchive it first:
+
+unarchive 123
+
+The bug will be re-archived after the next 28 day period of no activity.
