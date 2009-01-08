@@ -1642,7 +1642,7 @@ set the font.
 
 **** `font-font' returns the font-entity best matching the given font spec.
 
-**** `list-families' returns a list of family names of available fonts.
+**** `font-family-list' returns a list of family names of available fonts.
 
 **** `font-xlfd-name' returns an XLFD name of a given font spec, font
 entity, or font object.
