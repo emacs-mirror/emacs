@@ -1787,9 +1787,10 @@ particular face name a special meaning in one frame if you wish.
 * Attribute Functions::  Functions to examine and set face attributes.
 * Displaying Faces::     How Emacs combines the faces specified for a character.
 * Face Remapping::     Remapping faces to alternative definitions.
-* Font Selection::      Finding the best available font for a face.
 * Face Functions::      How to define and examine faces.
 * Auto Faces::          Hook for automatic face assignment.
+* Fonts::               Lisp representation for character display fonts.
+* Font Selection::      Finding the best available font for a face.
 * Font Lookup::         Looking up the names of available fonts
                           and information about them.
 * Fontsets::            A fontset is a collection of fonts
@@ -1961,14 +1962,16 @@ attribute is ignored.
 
 @table @code
 @item :family
-Font family name (@pxref{Font Lookup}), or fontset name
-(@pxref{Fontsets}).  If you specify a font family name, the wild-card
-characters @samp{*} and @samp{?} are allowed.  @xref{Font Lookup}.
+Font family name or fontset name (a string).  If you specify a font
+family name, the wild-card characters @samp{*} and @samp{?} are
+allowed.  The function @code{font-family-list}, described below,
+returns a list of available family names.  @xref{Fontsets}, for
+information about fontsets.
 
 @item :foundry
-The @dfn{font foundry} in which the font family specified by the
-@code{:family} attribute is located.  The wild-card characters
-@samp{*} and @samp{?} are allowed.  @xref{Font Lookup}.
+The name of the @dfn{font foundry} in which the font family specified
+by the @code{:family} attribute is located (a string).  The wild-card
+characters @samp{*} and @samp{?} are allowed.
 
 @item :width
 Relative proportionate character width, also known as the character
@@ -2082,19 +2085,20 @@ Normally you do not need to set the stipple attribute, because it is
 used automatically to handle certain shades of gray.
 
 @item :font
-The font used to display the face.  Its value should be a font object
-(@pxref{Font Lookup}).
+The font used to display the face.  Its value should be a font object.
+@xref{Font Selection}, for information about font objects.
 
 When specifying this attribute using @code{set-face-attribute}
-(@pxref{Attribute Functions}), you may supply a font spec, a font
+(@pxref{Attribute Functions}), you may also supply a font spec, a font
 entity, or a string.  Emacs converts such values to an appropriate
-font object, and stores that font object internally.  If you specify a
-string, the contents of the string should be an XLFD font name
-(@pxref{Font X,, Font Specification Options, emacs, The GNU Emacs
-Manual}); if the XLFD contains wildcards, Emacs chooses the first font
-matching those wildcards.  Specifying this attribute also changes the
-values of the @code{:family}, @code{:foundry}, @code{:width},
-@code{:height}, @code{:weight}, and @code{:slant} attributes.
+font object, and stores that font object as the actual attribute
+value.  If you specify a string, the contents of the string should be
+a font name (@pxref{Font X,, Font Specification Options, emacs, The
+GNU Emacs Manual}); if the font name is an XLFD containing wildcards,
+Emacs chooses the first font matching those wildcards.  Specifying
+this attribute also changes the values of the @code{:family},
+@code{:foundry}, @code{:width}, @code{:height}, @code{:weight}, and
+@code{:slant} attributes.
 
 @item :inherit
 The name of a face from which to inherit attributes, or a list of face
@@ -2113,6 +2117,12 @@ and setting it to @code{nil} is equivalent to setting @code{:weight}
 to @code{normal}.  Setting @code{:italic} to @code{t} is equivalent to
 setting the @code{:slant} attribute to @code{italic}, and setting it
 to @code{nil} is equivalent to setting @code{:slant} to @code{normal}.
+
+@defun font-family-list &optional frame
+This function returns a list of available font family names.  The
+optional argument @var{frame} specifies the frame on which the text is
+to be displayed; if it is @code{nil}, the selected frame is used.
+@end defun
 
 @defvar x-bitmap-file-path
 This variable specifies a list of directories for searching
@@ -2512,27 +2522,273 @@ This function sets the ``base remapping'' of @var{face} to its default
 value, which inherits from @var{face}'s global definition.
 @end defun
 
+@node Face Functions
+@subsection Functions for Working with Faces
+
+  Here are additional functions for creating and working with faces.
+
+@defun make-face name
+This function defines a new face named @var{name}, initially with all
+attributes @code{nil}.  It does nothing if there is already a face named
+@var{name}.
+@end defun
+
+@defun face-list
+This function returns a list of all defined face names.
+@end defun
+
+@defun copy-face old-face new-name &optional frame new-frame
+This function defines a face named @var{new-name} as a copy of the existing
+face named @var{old-face}.  It creates the face @var{new-name} if that
+doesn't already exist.
+
+If the optional argument @var{frame} is given, this function applies
+only to that frame.  Otherwise it applies to each frame individually,
+copying attributes from @var{old-face} in each frame to @var{new-face}
+in the same frame.
+
+If the optional argument @var{new-frame} is given, then @code{copy-face}
+copies the attributes of @var{old-face} in @var{frame} to @var{new-name}
+in @var{new-frame}.
+@end defun
+
+@defun face-id face
+This function returns the @dfn{face number} of face @var{face}.  This
+is a number that uniquely identifies a face at low levels within
+Emacs.  It is seldom necessary to refer to a face by its face number.
+@end defun
+
+@defun face-documentation face
+This function returns the documentation string of face @var{face}, or
+@code{nil} if none was specified for it.
+@end defun
+
+@defun face-equal face1 face2 &optional frame
+This returns @code{t} if the faces @var{face1} and @var{face2} have the
+same attributes for display.
+@end defun
+
+@defun face-differs-from-default-p face &optional frame
+This returns non-@code{nil} if the face @var{face} displays
+differently from the default face.
+@end defun
+
+@cindex face alias
+A @dfn{face alias} provides an equivalent name for a face.  You can
+define a face alias by giving the alias symbol the @code{face-alias}
+property, with a value of the target face name.  The following example
+makes @code{modeline} an alias for the @code{mode-line} face.
+
+@example
+(put 'modeline 'face-alias 'mode-line)
+@end example
+
+@node Auto Faces
+@subsection Automatic Face Assignment
+@cindex automatic face assignment
+@cindex faces, automatic choice
+
+  This hook is used for automatically assigning faces to text in the
+buffer.  It is part of the implementation of Jit-Lock mode, used by
+Font-Lock.
+
+@defvar fontification-functions
+This variable holds a list of functions that are called by Emacs
+redisplay as needed to assign faces automatically to text in the buffer.
+
+The functions are called in the order listed, with one argument, a
+buffer position @var{pos}.  Each function should attempt to assign faces
+to the text in the current buffer starting at @var{pos}.
+
+Each function should record the faces they assign by setting the
+@code{face} property.  It should also add a non-@code{nil}
+@code{fontified} property for all the text it has assigned faces to.
+That property tells redisplay that faces have been assigned to that text
+already.
+
+It is probably a good idea for each function to do nothing if the
+character after @var{pos} already has a non-@code{nil} @code{fontified}
+property, but this is not required.  If one function overrides the
+assignments made by a previous one, the properties as they are
+after the last function finishes are the ones that really matter.
+
+For efficiency, we recommend writing these functions so that they
+usually assign faces to around 400 to 600 characters at each call.
+@end defvar
+
+@node Fonts
+@subsection Fonts
+
+  Before Emacs can draw a character on a particular display, it must
+select a @dfn{font} for that character@footnote{In this context, the
+term @dfn{font} has nothing to do with Font Lock (@pxref{Font Lock
+Mode}).}.  Normally, Emacs automatically chooses a font for displaying
+a character based on the faces assigned to that
+character---specifically, the face attributes @code{:family},
+@code{:weight}, @code{:slant}, and @code{:width}.  The choice of font
+also depends on the character to be displayed; some fonts can only
+display a limited set of characters.  Normally, it is not necessary to
+manipulate fonts directly.  In case you need to do so, this section
+explains how.
+
+  In Emacs Lisp, fonts are represented using three different Lisp
+object types: @dfn{font objects}, @dfn{font specs}, and @dfn{font
+entities}.
+
+@defun fontp object &optional type
+Return @code{t} if @var{object} is a font object, font spec, or font
+entity.  Otherwise, return @code{nil}.
+
+The optional argument @var{type}, if non-@code{nil}, determines the
+exact type of Lisp object to check for.  In that case, @var{type}
+should be one of @code{font-object}, @code{font-spec}, or
+@code{font-entity}.
+@end defun
+
+  A font object is a Lisp object that represents a font that Emacs has
+@dfn{opened}.  Font objects cannot be modified in Lisp, but they can
+be inspected.  For instance, if you call @code{set-face-attribute} and
+pass a font spec, font entity, or font name string as the value of the
+@code{:font} attribute, Emacs opens the best ``matching'' font that is
+available for display.  It then stores the corresponding font object
+as the actual value of the @code{:font} attribute for that face.
+
+@defun font-at position &optional window string
+Return the font object that is being used to display the character at
+position @var{position} in the window @var{window}.  If @var{window}
+is @code{nil}, it defaults to the selected window.  If @var{string} is
+@code{nil}, @var{position} specifies a position in the current buffer;
+otherwise, @var{string} should be a string, and @var{position}
+specifies a position in that string.
+@end defun
+
+  A font spec is a Lisp object that contains a set of specifications
+that can be used to find a font.  More than one font may match the
+specifications in a font spec.
+
+@defun font-spec &rest arguments
+Return a new font spec using the specifications in @var{arguments},
+which should come in @code{property}-@code{value} pairs.  The possible
+specifications are as follows:
+
+@table @code
+@item :name
+The font name string, in either XLFD, Fontconfig, or GTK format.
+@xref{Font X,, Font Specification Options, emacs, The GNU Emacs
+Manual}.
+
+@item :family
+@itemx :foundry
+@itemx :weight
+@itemx :slant
+@itemx :width
+These have the same meanings as the face attributes of the same name.
+@xref{Face Attributes}.
+
+@item :size
+The font size---either a non-negative integer that specifies the pixel
+size, or a floating point number that specifies the point size.
+
+@item :adstyle
+Additional typographic style information for the font, such as
+@samp{sans}.  The value should be a string or a symbol.
+
+@item :registry
+The charset registry and encoding of the font, such as
+@samp{iso8859-1}.  The value should be a string or a symbol.
+
+@item :script
+The script that the font must support (a symbol).
+@end table
+@end defun
+
+@defun font-put font-spec property value
+Set the font property @var{property} in the font-spec @var{font-spec}
+to @var{value}.
+@end defun
+
+  A font entity is a reference to a font that need not have been
+opened.  Its properties are intermediate between a font object and a
+font spec: like a font object, and unlike a font spec, it refers to a
+single, specific font.  Unlike a font object, it can be modified in
+Lisp, and creating a font entity does not load the contents of that
+font into computer memory.
+
+@defun find-font font-spec &optional frame
+Return a font entity that best matches the font spec @var{font-spec}
+on frame @var{frame}.  If @var{frame} is @code{nil}, it defaults to
+the selected frame.
+@end defun
+
+@defun list-fonts font-spec &optional frame num prefer
+This function returns a list of all font entities that match the font
+spec @var{font-spec}.
+
+The optional argument @var{frame}, if non-@code{nil}, specifies the
+frame on which the fonts are to be displayed.  The optional argument
+@var{num}, if non-@code{nil}, should be an integer; in that case, the
+function returns a list of at most @var{num} font entities.  The
+optional argument @var{prefer}, if non-@code{nil}, should be another
+font spec, which is used to control the order of the returned list;
+the returned font entities are sorted in order of decreasing
+``closeness'' to that font spec.
+@end defun
+
+  The following functions can be used to obtain information about font
+objects, font entities, and font specs alike:
+
+@defun font-get font property
+This function returns the value of the font property @var{property}
+for @var{font}, which should be either a font object, font spec, or
+font entity.
+
+If @var{font} is a font spec and the font spec does not specify
+@var{property}, the return value is @code{nil}.  If @var{font} is a
+font object or font entity, the value for the @var{:script} property
+may be a list of scripts supported by the font.
+@end defun
+
+@defun font-face-attributes font &optional frame
+This function returns a list of face attributes corresponding to
+@var{font} , which should be either a font name, a font object, a font
+spec, or a font entity.  The optional argument @var{frame} specifies
+the frame on which the font is to be displayed.  If it is @code{nil},
+the selected frame is used.  The return value has the form
+
+@smallexample
+(:family @var{family} :height @var{height} :weight @var{weight}
+   :slant @var{slant} :width @var{width})
+@end smallexample
+
+where the values of @var{family}, @var{height}, @var{weight},
+@var{slant}, and @var{width} are face attribute values.  Some of these
+key-attribute pairs may be omitted from the list if they are not
+specified by @var{font}.
+@end defun
+
+@defun font-xlfd-name font &optional fold-wildcards
+This function returns the XLFD (X Logical Font Descriptor), a string,
+matching @var{font}.  @xref{Font X,, Font Specification Options,
+emacs, The GNU Emacs Manual}, for information about XLFDs.  @var{font}
+should be a font spec, font entity, or font object.  If the name is
+too long for an XLFD (which can contain at most 255 characters), the
+function returns @code{nil}.
+
+If the optional argument @var{fold-wildcards} is non-@code{nil},
+consecutive wildcards in the XLFD are folded into one.
+@end defun
+
 @node Font Selection
 @subsection Font Selection
 
-  @dfn{Selecting a font} means mapping the specified face attributes for
-a character to a font that is available on a particular display.  The
-face attributes, as determined by face merging, specify most of the
-font choice, but not all.  Part of the choice depends on what character
-it is.
-
-  If the face specifies a fontset name, that fontset determines a
-pattern for fonts of the given charset.  If the face specifies a font
-family, a font pattern is constructed.
-
-  Emacs tries to find an available font for the given face attributes
-and character's registry and encoding.  If there is a font that matches
-exactly, it is used, of course.  The hard case is when no available font
-exactly fits the specification.  Then Emacs looks for one that is
-``close''---one attribute at a time.  You can specify the order to
-consider the attributes.  In the case where a specified font family is
-not available, you can specify a set of mappings for alternatives to
-try.
+  Emacs tries to find an available font to display each character
+based on the face attributes and the character's registry and
+encoding.  If there is a font that matches exactly, it is used, of
+course.  The hard case is when no available font exactly fits the
+specification.  Then Emacs looks for one that is ``close''---one
+attribute at a time.  You can specify the order to consider the
+attributes.  In the case where a specified font family is not
+available, you can specify a set of mappings for alternatives to try.
 
 @defvar face-font-selection-order
 This variable specifies the order of importance of the face attributes
@@ -2625,101 +2881,6 @@ used, this says to choose a larger similar font according to the
 factor @var{scale-factor}.  You would use this feature to normalize
 the font size if certain fonts are bigger or smaller than their
 nominal heights and widths would suggest.
-@end defvar
-
-@node Face Functions
-@subsection Functions for Working with Faces
-
-  Here are additional functions for creating and working with faces.
-
-@defun make-face name
-This function defines a new face named @var{name}, initially with all
-attributes @code{nil}.  It does nothing if there is already a face named
-@var{name}.
-@end defun
-
-@defun face-list
-This function returns a list of all defined face names.
-@end defun
-
-@defun copy-face old-face new-name &optional frame new-frame
-This function defines a face named @var{new-name} as a copy of the existing
-face named @var{old-face}.  It creates the face @var{new-name} if that
-doesn't already exist.
-
-If the optional argument @var{frame} is given, this function applies
-only to that frame.  Otherwise it applies to each frame individually,
-copying attributes from @var{old-face} in each frame to @var{new-face}
-in the same frame.
-
-If the optional argument @var{new-frame} is given, then @code{copy-face}
-copies the attributes of @var{old-face} in @var{frame} to @var{new-name}
-in @var{new-frame}.
-@end defun
-
-@defun face-id face
-This function returns the @dfn{face number} of face @var{face}.  This
-is a number that uniquely identifies a face at low levels within
-Emacs.  It is seldom necessary to refer to a face by its face number.
-@end defun
-
-@defun face-documentation face
-This function returns the documentation string of face @var{face}, or
-@code{nil} if none was specified for it.
-@end defun
-
-@defun face-equal face1 face2 &optional frame
-This returns @code{t} if the faces @var{face1} and @var{face2} have the
-same attributes for display.
-@end defun
-
-@defun face-differs-from-default-p face &optional frame
-This returns non-@code{nil} if the face @var{face} displays
-differently from the default face.
-@end defun
-
-@cindex face alias
-A @dfn{face alias} provides an equivalent name for a face.  You can
-define a face alias by giving the alias symbol the @code{face-alias}
-property, with a value of the target face name.  The following example
-makes @code{modeline} an alias for the @code{mode-line} face.
-
-@example
-(put 'modeline 'face-alias 'mode-line)
-@end example
-
-
-@node Auto Faces
-@subsection Automatic Face Assignment
-@cindex automatic face assignment
-@cindex faces, automatic choice
-
-  This hook is used for automatically assigning faces to text in the
-buffer.  It is part of the implementation of Jit-Lock mode, used by
-Font-Lock.
-
-@defvar fontification-functions
-This variable holds a list of functions that are called by Emacs
-redisplay as needed to assign faces automatically to text in the buffer.
-
-The functions are called in the order listed, with one argument, a
-buffer position @var{pos}.  Each function should attempt to assign faces
-to the text in the current buffer starting at @var{pos}.
-
-Each function should record the faces they assign by setting the
-@code{face} property.  It should also add a non-@code{nil}
-@code{fontified} property for all the text it has assigned faces to.
-That property tells redisplay that faces have been assigned to that text
-already.
-
-It is probably a good idea for each function to do nothing if the
-character after @var{pos} already has a non-@code{nil} @code{fontified}
-property, but this is not required.  If one function overrides the
-assignments made by a previous one, the properties as they are
-after the last function finishes are the ones that really matter.
-
-For efficiency, we recommend writing these functions so that they
-usually assign faces to around 400 to 600 characters at each call.
 @end defvar
 
 @node Font Lookup
