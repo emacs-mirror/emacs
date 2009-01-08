@@ -1415,7 +1415,7 @@ symbolic notation thanks to auxiliary functions.
 variables defined in the current buffer.
 
 ** Face-remapping
-
++++
 *** Each face can be remapped to a different face definition using the
 variable `face-remapping-alist'.  This is an alist that maps faces to
 replacement definitions (which can be face names, lists of face names,
@@ -1428,15 +1428,15 @@ menu and the new `C-x C-+', `C-x C--', and `C-x C-0' commands (see
 Editing Changes, above).
 
 *** New functions:
-
++++
 **** `face-remap-add-relative' adds a face remapping entry to the
 current buffer.
-
++++
 **** ``face-remap-remove-relative' removes a face remapping entry from
 the current buffer.
-
++++
 **** `face-remap-reset-base' restores a face to its global definition.
-
++++
 **** `face-remap-set-base' sets the base remapping of a face.
 
 ** Process changes
@@ -1671,7 +1671,7 @@ keyboard coding systems are now terminal-local.
 type (`tty-type' parameter) to `make-terminal-frame'.
 
 *** The function `make-frame-on-display' now works during a tty
-session, and `make-frame-on-tty' works during a graphical session.
+session.
 
 *** A new `terminal' data type.
 The functions `get-device-terminal', `terminal-parameters',
@@ -1699,8 +1699,6 @@ deleting a terminal.
 *** New functions:
 
 **** `environment'
-
-**** `make-frame-on-tty' creates a new frame on another tty device.
 
 **** `delete-tty'
 
