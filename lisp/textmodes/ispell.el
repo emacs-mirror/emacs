@@ -198,6 +198,8 @@
 
 ;;; Compatibility code for xemacs and (not too) older emacsen:
 
+(declare-function ispell-check-minver "ispell" (v1 v2))
+
 (if (fboundp 'version<=)
     (defalias 'ispell-check-minver 'version<=)
   (defun ispell-check-minver (minver version)
@@ -214,10 +216,10 @@ compatibility function in case version<= is not available."
 	(let (ver mver)
 	  (if (string-match "[0-9]+" version start-ver)
 	      (setq start-ver (match-end 0)
-		    ver (string-to-int (substring version (match-beginning 0) (match-end 0)))))
+		    ver (string-to-number (substring version (match-beginning 0) (match-end 0)))))
 	  (if (string-match "[0-9]+" minver start-mver)
 	      (setq start-mver (match-end 0)
-		    mver (string-to-int (substring minver (match-beginning 0) (match-end 0)))))
+		    mver (string-to-number (substring minver (match-beginning 0) (match-end 0)))))
 
 	  (if (or ver mver)
 	      (progn
