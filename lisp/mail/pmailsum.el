@@ -1372,7 +1372,6 @@ argument says to read a file name and use that file as the inbox."
 (declare-function pmail-cease-edit "pmailedit"())
 (declare-function pmail-set-label "pmailkwd" (l state &optional n))
 (declare-function pmail-output-read-file-name "pmailout" ())
-(declare-function pmail-output-read-pmail-file-name  "pmailout" ())
 (declare-function mail-send-and-exit "sendmail" (&optional arg))
 
 (defvar pmail-summary-edit-map nil)
