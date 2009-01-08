@@ -1,3 +1,15 @@
+2009-01-08  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-encoding8-command): New variable
+	(ispell-aspell-supports-utf8): Mark as obsoleted by
+	ispell-encoding8-command
+	(ispell-check-version): Set ispell-encoding8-command
+	(ispell-check-spellchecker-params, ispell-start-process): Use
+	ispell-encoding8-command
+
+	* textmodes/flyspell.el (flyspell-large-region): Use
+	ispell-encoding8-command
+
 2009-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-menu.el (cal-menu-scroll-menu): Remove entries that don't

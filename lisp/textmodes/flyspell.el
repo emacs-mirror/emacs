@@ -1526,7 +1526,6 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 	  (or ispell-local-pdict ispell-personal-dictionary))
     (let ((args (ispell-get-ispell-args))
 	  (encoding (ispell-get-coding-system))
-	  encoding-command
 	  c)
       (if (and ispell-current-dictionary  ; use specified dictionary
 	       (not (member "-d" args)))  ; only define if not overridden
@@ -1542,15 +1541,11 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 
       ;; If we are using recent aspell or hunspell, make sure we use the right encoding
       ;; for communication. ispell or older aspell/hunspell does not support this
-      (if (or (and ispell-really-aspell
-		   ispell-aspell-supports-utf8
-		   (setq encoding-command "--encoding="))
-	      (and ispell-really-hunspell
-		   (setq encoding-command "-i ")))
+      (if ispell-encoding8-command
 	  (setq args
 		(append args
 			(list
-			 (concat encoding-command
+			 (concat ispell-encoding8-command
 				 (symbol-name
 				  encoding))))))
 

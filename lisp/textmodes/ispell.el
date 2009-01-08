@@ -708,14 +708,25 @@ LANGUAGE.aff file \(e.g., english.aff\).")
 
 (defvar ispell-really-aspell nil)   ; Non-nil if aspell extensions should be used
 (defvar ispell-really-hunspell nil) ; Non-nil if hunspell extensions should be used
+(defvar ispell-encoding8-command nil
+  "Command line option prefix to select UTF-8 if supported, nil otherwise.
+If UTF-8 if supported by spellchecker and is selectable from the command line
+this variable will contain \"--encoding=\" for aspell and \"-i \" for hunspell,
+so UTF-8 or other mime charsets can be selected. That will be set for hunspell
+>=1.1.6 or aspell >= 0.60 in `ispell-check-version'.
 
-(defvar ispell-aspell-supports-utf8 nil
-  "Non-nil means to try to automatically find aspell dictionaries.
-This is set to t in `ispell-check-version' for aspell >= 0.60.
-
+For aspell non-nil means to try to automatically find aspell dictionaries.
 Earlier aspell versions do not consistently support UTF-8.  Handling
 this would require some extra guessing in `ispell-aspell-find-dictionary'.")
 
+(defvar ispell-aspell-supports-utf8 nil
+  "Non nil if aspell has consistent command line UTF-8 support. Obsolete.
+ispell.el and flyspell.el will use for this purpose the more generic
+variable `ispell-encoding8-command' for both aspell and hunspell. Is left
+here just for backwards compatibility.")
+
+(make-obsolete-variable 'ispell-aspell-supports-utf8
+                        'ispell-encoding8-command "23.1")
 
 
 ;;; **********************************************************************
@@ -790,7 +801,8 @@ Otherwise returns the library directory name, if that is defined."
 	;; Make sure these variables are (re-)initialized to the default value
 	(setq ispell-really-aspell nil
 	      ispell-aspell-supports-utf8 nil
-	      ispell-really-hunspell nil)
+	      ispell-really-hunspell nil
+	      ispell-encoding8-command nil)
 
 	(goto-char (point-min))
 	(or (setq ispell-really-aspell
@@ -819,11 +831,14 @@ Otherwise returns the library directory name, if that is defined."
 	 (ispell-really-aspell
 	  (if (ispell-check-minver aspell-minver ispell-really-aspell)
 	      (if (ispell-check-minver aspell8-minver ispell-really-aspell)
-		  (setq ispell-aspell-supports-utf8 t))
+		  (progn
+		    (setq ispell-aspell-supports-utf8 t)
+		    (setq ispell-encoding8-command "--encoding=")))
 	    (setq ispell-really-aspell nil)))
 	 (ispell-really-hunspell
-	  (or (ispell-check-minver hunspell8-minver ispell-really-hunspell)
-	      (setq ispell-really-hunspell nil))))))
+	  (if (ispell-check-minver hunspell8-minver ispell-really-hunspell)
+	      (setq ispell-encoding8-command "-i ")
+	    (setq ispell-really-hunspell nil))))))
     result))
 
 (defun ispell-call-process (&rest args)
@@ -1029,7 +1044,7 @@ aspell is used along with Emacs).")
 		   t)
 	       (error nil))
 	     ispell-really-aspell
-	     ispell-aspell-supports-utf8
+	     ispell-encoding8-command
 	     ;; XEmacs does not like [:alpha:] regexps.
 	     (string-match "^[[:alpha:]]+$" "abcde"))
 	(unless ispell-aspell-dictionary-alist
@@ -1041,7 +1056,7 @@ aspell is used along with Emacs).")
     ;; of the original list that are not present there. Allow distro info.
     (let ((found-dicts-alist
 	   (if (and ispell-really-aspell
-		    ispell-aspell-supports-utf8)
+		    ispell-encoding8-command)
 	       ispell-aspell-dictionary-alist
 	     nil))
 	  ispell-base-dicts-override-alist ; Override only base-dicts-alist
@@ -2524,7 +2539,6 @@ When asynchronous processes are not supported, `run' is always returned."
   "Start the ispell process, with support for no asynchronous processes.
 Keeps argument list for future ispell invocations for no async support."
   (let ((default-directory default-directory)
-	encoding-command
 	args)
     (unless (and (file-directory-p default-directory)
 		 (file-readable-p default-directory))
@@ -2548,15 +2562,11 @@ Keeps argument list for future ispell invocations for no async support."
 
     ;; If we are using recent aspell or hunspell, make sure we use the right encoding
     ;; for communication. ispell or older aspell/hunspell does not support this
-    (if (or (and ispell-really-aspell
-		 ispell-aspell-supports-utf8
-		 (setq encoding-command "--encoding="))
-	    (and ispell-really-hunspell
-		 (setq encoding-command "-i ")))
+    (if ispell-encoding8-command
 	(setq args
 	      (append args
 		      (list
-		       (concat encoding-command
+		       (concat ispell-encoding8-command
 			       (symbol-name (ispell-get-coding-system)))))))
     (setq args (append args ispell-extra-args))
 
