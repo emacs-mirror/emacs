@@ -1,3 +1,14 @@
+2009-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-menu.el (cal-menu-scroll-menu): Remove entries that don't
+	scroll the calendar.
+
+	* international/mule-cmds.el (universal-coding-system-argument):
+	last-input-char need not be a char.
+
+	* textmodes/ispell.el (ispell-check-minver): Declare.
+	Use string-to-number rather than string-to-int.
+
 2009-01-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* add-log.el (change-log-search-tag-name): Reflow docstring.
