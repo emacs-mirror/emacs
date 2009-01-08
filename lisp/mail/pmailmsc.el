@@ -1,7 +1,7 @@
 ;;; pmailmsc.el --- miscellaneous support functions for the PMAIL mail reader
 
-;; Copyright (C) 1985, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -32,7 +32,7 @@
 (defvar pmail-inbox-list)
 
 (declare-function mail-parse-comma-list "mail-utils" ())
-(declare-function pmail-show-message "pmail" (&optional n no-summary))
+(declare-function pmail-show-message "pmail" (&optional msg))
 
 ;;;###autoload
 (defun set-pmail-inbox-list (file-name)

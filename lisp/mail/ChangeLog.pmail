@@ -1,3 +1,9 @@
+2009-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* pmailmsc.el (pmail-show-message): Fix declaration.
+
+	* pmailsum.el (pmail-output-read-pmail-file-name): Remove declaration.
+
 2009-01-05  Richard M Stallman  <rms@gnu.org>
 
 	* pmailkwd.el: Require pmail; delete compiler defvars.
