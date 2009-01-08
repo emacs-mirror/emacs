@@ -1,3 +1,8 @@
+2009-01-08  Jason Rumney  <jasonr@gnu.org>
+
+	* frames.texi (Pointer Shape): Clarify that only X supports
+	changing the standard pointer shapes. (Bug#1485)
+
 2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Attribute Functions): Note that a function value
