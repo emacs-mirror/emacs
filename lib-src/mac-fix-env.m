@@ -1,7 +1,7 @@
 /* mac-fix-env: A small utility to pick up the shell environment on MacOS X
                 and insert it into the file ~/.MacOSX/environment.plist
                 creating if necessary.
-   Copyright (C) 1989, 1993, 2005, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 2005, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
