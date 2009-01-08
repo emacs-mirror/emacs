@@ -1,5 +1,15 @@
 2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* display.texi (Attribute Functions): Note that a function value
+	:height is relative, and that compatibility functions work by
+	calling set-face-attribute.
+	(Displaying Faces): Reorder list in order of increasing priority.
+	(Face Remapping): New node.  Content moved here from Displaying
+	Faces.
+	(Glyphs): Link to Face Functions.
+
+2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
 	* display.texi (Faces): Don't discuss face id here.  facep does
 	not return t.
 	(Defining Faces): Minor clarification.
