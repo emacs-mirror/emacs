@@ -25,7 +25,7 @@ BEGIN
 	    VALUE "FileDescription", "GNU EmacsClient for Windows NT/95/98/2000/ME/XP\0"
 	    VALUE "FileVersion", "23, 0, 60, 0\0"
 	    VALUE "InternalName", "EmacsClient\0"
-	    VALUE "LegalCopyright", "Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008\0"
+	    VALUE "LegalCopyright", "Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009\0"
 	    VALUE "OriginalFilename", "emacsclientw.exe"
 	    VALUE "ProductName", "EmacsClient: Client for the extensible self-documenting text editor\0"
 	    VALUE "ProductVersion", "23, 0, 60, 0\0"
