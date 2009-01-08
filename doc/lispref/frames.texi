@@ -1675,8 +1675,8 @@ in the buffer.  The default is to use the @code{arrow} (non-text)
 pointer style.
 @end defvar
 
-  You can specify what the @code{text} pointer style really looks like
-by setting the variable @code{x-pointer-shape}.
+  When using X, you can specify what the @code{text} pointer style
+really looks like by setting the variable @code{x-pointer-shape}.
 
 @defvar x-pointer-shape
 This variable specifies the pointer shape to use ordinarily in the
