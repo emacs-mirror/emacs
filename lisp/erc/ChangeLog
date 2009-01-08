@@ -1,3 +1,7 @@
+2009-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (tabbar--local-hlf): Silence compiler.
+
 2009-01-03  Michael Olson  <mwolson@gnu.org>
 
 	* erc.el (erc-user-input): Do not include text properties when

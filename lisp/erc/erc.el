@@ -6051,6 +6051,8 @@ if `erc-away' is non-nil."
 ;; erc-goodies is required at end of this file.
 (declare-function erc-controls-strip "erc-goodies" (str))
 
+(defvar tabbar--local-hlf)
+
 (defun erc-update-mode-line-buffer (buffer)
   "Update the mode line in a single ERC buffer BUFFER."
   (with-current-buffer buffer
