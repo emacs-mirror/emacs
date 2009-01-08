@@ -3382,7 +3382,18 @@ font_open_for_lface (f, entity, attrs, spec)
     size = font_pixel_size (f, spec);
   else
     {
-      double pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
+      double pt;
+      if (INTEGERP (attrs[LFACE_HEIGHT_INDEX]))
+	pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
+      else
+	{
+	  struct face *def = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+	  Lisp_Object height = def->lface[LFACE_HEIGHT_INDEX];
+	  if (INTEGERP (height))
+	    pt = XINT (height);
+	  else
+	    abort(); /* We should never end up here.  */
+	}
 
       pt /= 10;
       size = POINT_TO_PIXEL (pt, f->resy);
