@@ -1,6 +1,6 @@
 @echo off
 
-rem Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+rem Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 rem   Free Software Foundation, Inc.
 
 rem Cannot use brackets in andrewi's email below because
