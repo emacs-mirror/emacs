@@ -63,7 +63,7 @@ It can be helpful to put a reminder comment at the start of a trivial
 file, eg: "add a license notice if this grows to > 10 lines of code".
 
 The years in the copyright notice should be updated every year (see
-file "years" in this directory). The PS versions of refcards etc
+file "years" in this directory). The PDF versions of refcards etc
 should display copyright notices (an exception to the rule about
 "generated" files), but these can just display the latest year. The
 full list of years should be kept in comments in the source file. If
@@ -138,6 +138,9 @@ lispintro/install-sh
 
 src/m/news-r6.h
   public domain, leave alone.
+
+etc/refcards/*.tex
+  also update the \def\year macro for the latest year.
 
 etc/BABYL, ms-kermit
   no notices (see below).
