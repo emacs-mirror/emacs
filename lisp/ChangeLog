@@ -32,7 +32,7 @@
 
 2009-01-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* net/dns.el (dns-set-servers): Renamed from dns-parse-resolv-conf.
+	* net/dns.el (dns-set-servers): Rename from dns-parse-resolv-conf.
 	Call nslookup if resolv.conf isn't available.
 	(dns-query): Rename from query-dns.
 	(dns-query-cached): Rename from query-dns-cached.
@@ -54,15 +54,15 @@
 
 2009-01-08  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* textmodes/ispell.el (ispell-encoding8-command): New variable
+	* textmodes/ispell.el (ispell-encoding8-command): New variable.
 	(ispell-aspell-supports-utf8): Mark as obsoleted by
-	ispell-encoding8-command
-	(ispell-check-version): Set ispell-encoding8-command
-	(ispell-check-spellchecker-params, ispell-start-process): Use
-	ispell-encoding8-command
+	ispell-encoding8-command.
+	(ispell-check-version): Set ispell-encoding8-command.
+	(ispell-check-spellchecker-params, ispell-start-process):
+	Use ispell-encoding8-command.
 
-	* textmodes/flyspell.el (flyspell-large-region): Use
-	ispell-encoding8-command
+	* textmodes/flyspell.el (flyspell-large-region):
+	Use ispell-encoding8-command.
 
 2009-01-08  Glenn Morris  <rgm@gnu.org>
 
