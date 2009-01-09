@@ -1439,19 +1439,17 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
 	  /* unicode-sip fonts must contain characters beyond the BMP,
 	     so look for bit 57 (surrogates) in the Unicode subranges.  */
 	  else if (EQ (spec_charset, Qunicode_sip)
-		   && !(physical_font->ntmFontSig.fsUsb[1] & 0x02000000))
+		   && (!(physical_font->ntmFontSig.fsUsb[1] & 0x02000000)
+		       || !(physical_font->ntmFontSig.fsUsb[1] & 0x28000000)))
 	    return 1;
           /* If registry was specified, but did not map to a windows
-             charset, only report fonts that have unknown charsets.
-             This will still report fonts that don't match, but at
-             least it eliminates known definite mismatches.  */
+             charset, don't report any fonts.  */
           else if (!NILP (spec_charset)
                    && !EQ (spec_charset, Qiso10646_1)
                    && !EQ (spec_charset, Qunicode_bmp)
                    && !EQ (spec_charset, Qunicode_sip)
-                   && match_data->pattern.lfCharSet == DEFAULT_CHARSET
-                   && logical_font->elfLogFont.lfCharSet != DEFAULT_CHARSET)
-            return 1;
+                   && match_data->pattern.lfCharSet == DEFAULT_CHARSET)
+            return 0;
 
           /* If registry was specified, ensure it is reported as the same.  */
           if (!NILP (spec_charset))
@@ -1488,7 +1486,7 @@ add_one_font_entity_to_list (logical_font, physical_font, font_type, lParam)
   add_font_entity_to_list (logical_font, physical_font, font_type, lParam);
 
   /* If we have a font in the list, terminate the search.  */
-  return !NILP (match_data->list);
+  return NILP (match_data->list);
 }
 
 /* Old function to convert from x to w32 charset, from w32fns.c.  */
