@@ -1,3 +1,8 @@
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sum.el (gnus-summary-next-article): Replace last-command-char
+	with last-command-event.
+
 2009-01-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-fix-before-sending): Amend comment.

@@ -7625,7 +7625,7 @@ If BACKWARD, the previous article is selected instead of the next."
    (t
     (unless (gnus-ephemeral-group-p gnus-newsgroup-name)
       (gnus-summary-jump-to-group gnus-newsgroup-name))
-    (let ((cmd last-command-char)
+    (let ((cmd last-command-event)
 	  (point
 	   (with-current-buffer gnus-group-buffer
 	     (point)))
