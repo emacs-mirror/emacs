@@ -1789,12 +1789,12 @@ particular face name a special meaning in one frame if you wish.
 * Face Remapping::     Remapping faces to alternative definitions.
 * Face Functions::      How to define and examine faces.
 * Auto Faces::          Hook for automatic face assignment.
-* Fonts::               Lisp representation for character display fonts.
 * Font Selection::      Finding the best available font for a face.
 * Font Lookup::         Looking up the names of available fonts
                           and information about them.
 * Fontsets::            A fontset is a collection of fonts
                           that handle a range of character sets.
+* Low-Level Font::      Lisp representation for character display fonts.
 @end menu
 
 @node Defining Faces
@@ -2616,212 +2616,24 @@ For efficiency, we recommend writing these functions so that they
 usually assign faces to around 400 to 600 characters at each call.
 @end defvar
 
-@node Fonts
-@subsection Fonts
+@node Font Selection
+@subsection Font Selection
 
   Before Emacs can draw a character on a particular display, it must
 select a @dfn{font} for that character@footnote{In this context, the
 term @dfn{font} has nothing to do with Font Lock (@pxref{Font Lock
-Mode}).}.  Normally, Emacs automatically chooses a font for displaying
-a character based on the faces assigned to that
-character---specifically, the face attributes @code{:family},
-@code{:weight}, @code{:slant}, and @code{:width}.  The choice of font
-also depends on the character to be displayed; some fonts can only
-display a limited set of characters.  Normally, it is not necessary to
-manipulate fonts directly.  In case you need to do so, this section
-explains how.
-
-  In Emacs Lisp, fonts are represented using three different Lisp
-object types: @dfn{font objects}, @dfn{font specs}, and @dfn{font
-entities}.
-
-@defun fontp object &optional type
-Return @code{t} if @var{object} is a font object, font spec, or font
-entity.  Otherwise, return @code{nil}.
-
-The optional argument @var{type}, if non-@code{nil}, determines the
-exact type of Lisp object to check for.  In that case, @var{type}
-should be one of @code{font-object}, @code{font-spec}, or
-@code{font-entity}.
-@end defun
-
-  A font object is a Lisp object that represents a font that Emacs has
-@dfn{opened}.  Font objects cannot be modified in Lisp, but they can
-be inspected.  For instance, if you call @code{set-face-attribute} and
-pass a font spec, font entity, or font name string as the value of the
-@code{:font} attribute, Emacs opens the best ``matching'' font that is
-available for display.  It then stores the corresponding font object
-as the actual value of the @code{:font} attribute for that face.
-
-@defun font-at position &optional window string
-Return the font object that is being used to display the character at
-position @var{position} in the window @var{window}.  If @var{window}
-is @code{nil}, it defaults to the selected window.  If @var{string} is
-@code{nil}, @var{position} specifies a position in the current buffer;
-otherwise, @var{string} should be a string, and @var{position}
-specifies a position in that string.
-@end defun
-
-  A font spec is a Lisp object that contains a set of specifications
-that can be used to find a font.  More than one font may match the
-specifications in a font spec.
-
-@defun font-spec &rest arguments
-Return a new font spec using the specifications in @var{arguments},
-which should come in @code{property}-@code{value} pairs.  The possible
-specifications are as follows:
-
-@table @code
-@item :name
-The font name string, in either XLFD, Fontconfig, or GTK format.
-@xref{Font X,, Font Specification Options, emacs, The GNU Emacs
-Manual}.
-
-@item :family
-@itemx :foundry
-@itemx :weight
-@itemx :slant
-@itemx :width
-These have the same meanings as the face attributes of the same name.
-@xref{Face Attributes}.
-
-@item :size
-The font size---either a non-negative integer that specifies the pixel
-size, or a floating point number that specifies the point size.
-
-@item :adstyle
-Additional typographic style information for the font, such as
-@samp{sans}.  The value should be a string or a symbol.
-
-@item :registry
-The charset registry and encoding of the font, such as
-@samp{iso8859-1}.  The value should be a string or a symbol.
-
-@item :script
-The script that the font must support (a symbol).
-@end table
-@end defun
-
-@defun font-put font-spec property value
-Set the font property @var{property} in the font-spec @var{font-spec}
-to @var{value}.
-@end defun
-
-  A font entity is a reference to a font that need not have been
-opened.  Its properties are intermediate between a font object and a
-font spec: like a font object, and unlike a font spec, it refers to a
-single, specific font.  Unlike a font object, it can be modified in
-Lisp, and creating a font entity does not load the contents of that
-font into computer memory.
-
-@defun find-font font-spec &optional frame
-Return a font entity that best matches the font spec @var{font-spec}
-on frame @var{frame}.  If @var{frame} is @code{nil}, it defaults to
-the selected frame.
-@end defun
-
-@defun list-fonts font-spec &optional frame num prefer
-This function returns a list of all font entities that match the font
-spec @var{font-spec}.
-
-The optional argument @var{frame}, if non-@code{nil}, specifies the
-frame on which the fonts are to be displayed.  The optional argument
-@var{num}, if non-@code{nil}, should be an integer; in that case, the
-function returns a list of at most @var{num} font entities.  The
-optional argument @var{prefer}, if non-@code{nil}, should be another
-font spec, which is used to control the order of the returned list;
-the returned font entities are sorted in order of decreasing
-``closeness'' to that font spec.
-@end defun
-
-  The following functions can be used to obtain information about font
-objects, font entities, and font specs alike:
-
-@defun font-get font property
-This function returns the value of the font property @var{property}
-for @var{font}, which should be either a font object, font spec, or
-font entity.
-
-If @var{font} is a font spec and the font spec does not specify
-@var{property}, the return value is @code{nil}.  If @var{font} is a
-font object or font entity, the value for the @var{:script} property
-may be a list of scripts supported by the font.
-@end defun
-
-@defun font-face-attributes font &optional frame
-This function returns a list of face attributes corresponding to
-@var{font} , which should be either a font name, a font object, a font
-spec, or a font entity.  The optional argument @var{frame} specifies
-the frame on which the font is to be displayed.  If it is @code{nil},
-the selected frame is used.  The return value has the form
-
-@smallexample
-(:family @var{family} :height @var{height} :weight @var{weight}
-   :slant @var{slant} :width @var{width})
-@end smallexample
-
-where the values of @var{family}, @var{height}, @var{weight},
-@var{slant}, and @var{width} are face attribute values.  Some of these
-key-attribute pairs may be omitted from the list if they are not
-specified by @var{font}.
-@end defun
-
-@defun font-xlfd-name font &optional fold-wildcards
-This function returns the XLFD (X Logical Font Descriptor), a string,
-matching @var{font}.  @xref{Font X,, Font Specification Options,
-emacs, The GNU Emacs Manual}, for information about XLFDs.  @var{font}
-should be a font spec, font entity, or font object.  If the name is
-too long for an XLFD (which can contain at most 255 characters), the
-function returns @code{nil}.
-
-If the optional argument @var{fold-wildcards} is non-@code{nil},
-consecutive wildcards in the XLFD are folded into one.
-@end defun
-
-@node Font Selection
-@subsection Font Selection
-
-  Emacs tries to find an available font to display each character
-based on the face attributes and the character's registry and
-encoding.  If there is a font that matches exactly, it is used, of
-course.  The hard case is when no available font exactly fits the
-specification.  Then Emacs looks for one that is ``close''---one
-attribute at a time.  You can specify the order to consider the
-attributes.  In the case where a specified font family is not
-available, you can specify a set of mappings for alternatives to try.
-
-@defvar face-font-selection-order
-This variable specifies the order of importance of the face attributes
-@code{:width}, @code{:height}, @code{:weight}, and @code{:slant}.  The
-value should be a list containing those four symbols, in order of
-decreasing importance.
-
-Font selection first finds the best available matches for the first
-attribute listed; then, among the fonts which are best in that way, it
-searches for the best matches in the second attribute, and so on.
-
-The attributes @code{:weight} and @code{:width} have symbolic values in
-a range centered around @code{normal}.  Matches that are more extreme
-(farther from @code{normal}) are somewhat preferred to matches that are
-less extreme (closer to @code{normal}); this is designed to ensure that
-non-normal faces contrast with normal ones, whenever possible.
-
-The default is @code{(:width :height :weight :slant)}, which means first
-find the fonts closest to the specified @code{:width}, then---among the
-fonts with that width---find a best match for the specified font height,
-and so on.
-
-One example of a case where this variable makes a difference is when the
-default font has no italic equivalent.  With the default ordering, the
-@code{italic} face will use a non-italic font that is similar to the
-default one.  But if you put @code{:slant} before @code{:height}, the
-@code{italic} face will use an italic font, even if its height is not
-quite right.
-@end defvar
+Mode}).}.  Normally, Emacs automatically chooses a font based on the
+faces assigned to that character---specifically, the face attributes
+@code{:family}, @code{:weight}, @code{:slant}, and @code{:width}
+(@pxref{Face Attributes}).  The choice of font also depends on the
+character to be displayed; some fonts can only display a limited set
+of characters.  If no available font exactly fits the requirements,
+Emacs looks for the @dfn{closest matching font}.  The variables in
+this section control how Emacs makes this selection.
 
 @defvar face-font-family-alternatives
-This variable lets you specify alternative font families to try, if a
-given family is specified and doesn't exist.  Each element should have
+If a given family is specified but does not exist, this variable
+specifies alternative font families to try.  Each element should have
 this form:
 
 @example
@@ -2831,6 +2643,34 @@ this form:
 If @var{family} is specified but not available, Emacs will try the other
 families given in @var{alternate-families}, one by one, until it finds a
 family that does exist.
+@end defvar
+
+@defvar face-font-selection-order
+If there is no font that exactly matches all desired face attributes
+(@code{:width}, @code{:height}, @code{:weight}, and @code{:slant}),
+this variable specifies the order in which these attributes should be
+considered when selecting the closest matching font.  The value should
+be a list containing those four attribute symbols, in order of
+decreasing importance.  The default is @code{(:width :height :weight
+:slant)}.
+
+Font selection first finds the best available matches for the first
+attribute in the list; then, among the fonts which are best in that
+way, it searches for the best matches in the second attribute, and so
+on.
+
+The attributes @code{:weight} and @code{:width} have symbolic values in
+a range centered around @code{normal}.  Matches that are more extreme
+(farther from @code{normal}) are somewhat preferred to matches that are
+less extreme (closer to @code{normal}); this is designed to ensure that
+non-normal faces contrast with normal ones, whenever possible.
+
+One example of a case where this variable makes a difference is when the
+default font has no italic equivalent.  With the default ordering, the
+@code{italic} face will use a non-italic font that is similar to the
+default one.  But if you put @code{:slant} before @code{:height}, the
+@code{italic} face will use an italic font, even if its height is not
+quite right.
 @end defvar
 
 @defvar face-font-registry-alternatives
@@ -2848,8 +2688,7 @@ until it finds a registry that does exist.
 @end defvar
 
   Emacs can make use of scalable fonts, but by default it does not use
-them, since the use of too many or too big scalable fonts can crash
-XFree86 servers.
+them.
 
 @defvar scalable-fonts-allowed
 This variable controls which scalable fonts to use.  A value of
@@ -2886,25 +2725,25 @@ nominal heights and widths would suggest.
 @node Font Lookup
 @subsection Looking Up Fonts
 
-@defun x-list-fonts pattern &optional face frame maximum
+@defun x-list-fonts name &optional reference-face frame maximum
 This function returns a list of available font names that match
-@var{pattern}.  If the optional arguments @var{face} and @var{frame} are
-specified, then the list is limited to fonts that are the same size as
-@var{face} currently is on @var{frame}.
+@var{name}.  @var{name} should be a string containing a font name in
+either the Fontconfig, GTK, or XLFD format (@pxref{Font X,, Font
+Specification Options, emacs, The GNU Emacs Manual}).  Within an XLFD
+string, wildcard characters may be used: the @samp{*} character
+matches any substring, and the @samp{?} character matches any single
+character.  Case is ignored when matching font names.
 
-The argument @var{pattern} should be a string, perhaps with wildcard
-characters: the @samp{*} character matches any substring, and the
-@samp{?} character matches any single character.  Pattern matching
-of font names ignores case.
-
-If you specify @var{face} and @var{frame}, @var{face} should be a face name
-(a symbol) and @var{frame} should be a frame.
+If the optional arguments @var{reference-face} and @var{frame} are
+specified, the returned list includes only fonts that are the same
+size as @var{reference-face} (a face name) currently is on the frame
+@var{frame}.
 
 The optional argument @var{maximum} sets a limit on how many fonts to
-return.  If this is non-@code{nil}, then the return value is truncated
-after the first @var{maximum} matching fonts.  Specifying a small value
-for @var{maximum} can make this function much faster, in cases where
-many fonts match the pattern.
+return.  If it is non-@code{nil}, then the return value is truncated
+after the first @var{maximum} matching fonts.  Specifying a small
+value for @var{maximum} can make this function much faster, in cases
+where many fonts match the pattern.
 @end defun
 
 @defun x-family-fonts &optional family frame
@@ -2918,7 +2757,7 @@ The list describes the display that @var{frame} is on; if @var{frame} is
 omitted or @code{nil}, it applies to the selected frame's display
 (@pxref{Input Focus}).
 
-The list contains a vector of the following form for each font:
+Each element in the list is a vector of the following form:
 
 @example
 [@var{family} @var{width} @var{point-size} @var{weight} @var{slant}
@@ -2933,24 +2772,6 @@ The last three elements give additional information about the font.
 @var{full} is the full name of the font, and
 @var{registry-and-encoding} is a string giving the registry and
 encoding of the font.
-
-The result list is sorted according to the current face font sort order.
-@end defun
-
-@defun x-font-family-list &optional frame
-This function returns a list of the font families available for
-@var{frame}'s display.  If @var{frame} is omitted or @code{nil}, it
-describes the selected frame's display (@pxref{Input Focus}).
-
-The value is a list of elements of this form:
-
-@example
-(@var{family} . @var{fixed-p})
-@end example
-
-@noindent
-Here @var{family} is a font family, and @var{fixed-p} is
-non-@code{nil} if fonts of that family are fixed-pitch.
 @end defun
 
 @defvar font-list-limit
@@ -3093,6 +2914,156 @@ font to display the character set that @var{char} belongs to.
 
 Fontsets can specify a font on a per-character basis; when the fontset
 does that, this function's value may not be accurate.
+@end defun
+
+@node Low-Level Font
+@subsection Low-Level Font Representation
+
+  Normally, it is not necessary to manipulate fonts directly.  In case
+you need to do so, this section explains how.
+
+  In Emacs Lisp, fonts are represented using three different Lisp
+qobject types: @dfn{font objects}, @dfn{font specs}, and @dfn{font
+entities}.
+
+@defun fontp object &optional type
+Return @code{t} if @var{object} is a font object, font spec, or font
+entity.  Otherwise, return @code{nil}.
+
+The optional argument @var{type}, if non-@code{nil}, determines the
+exact type of Lisp object to check for.  In that case, @var{type}
+should be one of @code{font-object}, @code{font-spec}, or
+@code{font-entity}.
+@end defun
+
+  A font object is a Lisp object that represents a font that Emacs has
+@dfn{opened}.  Font objects cannot be modified in Lisp, but they can
+be inspected.  If you call @code{set-face-attribute} and pass a font
+spec, font entity, or font name string as the value of the
+@code{:font} attribute, Emacs opens the best ``matching'' font that is
+available for display.  It then stores the corresponding font object
+as the actual value of the @code{:font} attribute for that face.
+
+@defun font-at position &optional window string
+Return the font object that is being used to display the character at
+position @var{position} in the window @var{window}.  If @var{window}
+is @code{nil}, it defaults to the selected window.  If @var{string} is
+@code{nil}, @var{position} specifies a position in the current buffer;
+otherwise, @var{string} should be a string, and @var{position}
+specifies a position in that string.
+@end defun
+
+  A font spec is a Lisp object that contains a set of specifications
+that can be used to find a font.  More than one font may match the
+specifications in a font spec.
+
+@defun font-spec &rest arguments
+Return a new font spec using the specifications in @var{arguments},
+which should come in @code{property}-@code{value} pairs.  The possible
+specifications are as follows:
+
+@table @code
+@item :name
+The font name (a string), in either XLFD, Fontconfig, or GTK format.
+@xref{Font X,, Font Specification Options, emacs, The GNU Emacs
+Manual}.
+
+@item :family
+@itemx :foundry
+@itemx :weight
+@itemx :slant
+@itemx :width
+These have the same meanings as the face attributes of the same name.
+@xref{Face Attributes}.
+
+@item :size
+The font size---either a non-negative integer that specifies the pixel
+size, or a floating point number that specifies the point size.
+
+@item :adstyle
+Additional typographic style information for the font, such as
+@samp{sans}.  The value should be a string or a symbol.
+
+@item :registry
+The charset registry and encoding of the font, such as
+@samp{iso8859-1}.  The value should be a string or a symbol.
+
+@item :script
+The script that the font must support (a symbol).
+@end table
+@end defun
+
+@defun font-put font-spec property value
+Set the font property @var{property} in the font-spec @var{font-spec}
+to @var{value}.
+@end defun
+
+  A font entity is a reference to a font that need not be open.  Its
+properties are intermediate between a font object and a font spec:
+like a font object, and unlike a font spec, it refers to a single,
+specific font.  Unlike a font object, creating a font entity does not
+load the contents of that font into computer memory.
+
+@defun find-font font-spec &optional frame
+This function returns a font entity that best matches the font spec
+@var{font-spec} on frame @var{frame}.  If @var{frame} is @code{nil},
+it defaults to the selected frame.
+@end defun
+
+@defun list-fonts font-spec &optional frame num prefer
+This function returns a list of all font entities that match the font
+spec @var{font-spec}.
+
+The optional argument @var{frame}, if non-@code{nil}, specifies the
+frame on which the fonts are to be displayed.  The optional argument
+@var{num}, if non-@code{nil}, should be an integer that specifies the
+maximum length of the returned list.  The optional argument
+@var{prefer}, if non-@code{nil}, should be another font spec, which is
+used to control the order of the returned list; the returned font
+entities are sorted in order of decreasing ``closeness'' to that font
+spec.
+@end defun
+
+  The following functions can be used to obtain information about a
+font.  For these functions, the @var{font} argument can be a font
+object, a font entity, or a font spec.
+
+@defun font-get font property
+This function returns the value of the font property @var{property}
+for @var{font}.
+
+If @var{font} is a font spec and the font spec does not specify
+@var{property}, the return value is @code{nil}.  If @var{font} is a
+font object or font entity, the value for the @var{:script} property
+may be a list of scripts supported by the font.
+@end defun
+
+@defun font-face-attributes font &optional frame
+This function returns a list of face attributes corresponding to
+@var{font}.  The optional argument @var{frame} specifies the frame on
+which the font is to be displayed.  If it is @code{nil}, the selected
+frame is used.  The return value has the form
+
+@smallexample
+(:family @var{family} :height @var{height} :weight @var{weight}
+   :slant @var{slant} :width @var{width})
+@end smallexample
+
+where the values of @var{family}, @var{height}, @var{weight},
+@var{slant}, and @var{width} are face attribute values.  Some of these
+key-attribute pairs may be omitted from the list if they are not
+specified by @var{font}.
+@end defun
+
+@defun font-xlfd-name font &optional fold-wildcards
+This function returns the XLFD (X Logical Font Descriptor), a string,
+matching @var{font}.  @xref{Font X,, Font Specification Options,
+emacs, The GNU Emacs Manual}, for information about XLFDs.  If the
+name is too long for an XLFD (which can contain at most 255
+characters), the function returns @code{nil}.
+
+If the optional argument @var{fold-wildcards} is non-@code{nil},
+consecutive wildcards in the XLFD are folded into one.
 @end defun
 
 @node Fringes
