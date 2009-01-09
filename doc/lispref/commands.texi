@@ -898,8 +898,7 @@ last-command-event
 @noindent
 The value is 5 because that is the @acronym{ASCII} code for @kbd{C-e}.
 
-The alias @code{last-command-char} exists for compatibility with
-Emacs version 18.
+The alias @code{last-command-char} is obsolete.
 @end defvar
 
 @c Emacs 19 feature
@@ -2658,8 +2657,7 @@ this expression) remains the value of @code{last-command-event}.
 @end group
 @end example
 
-The alias @code{last-input-char} exists for compatibility with
-Emacs version 18.
+The alias @code{last-input-char} is obsolete.
 @end defvar
 
 @defmac while-no-input body@dots{}

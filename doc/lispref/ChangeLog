@@ -1,3 +1,15 @@
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* commands.texi (Command Loop Info): Say that last-command-char and
+	last-input-char are obsolete aliases.
+
+	* edebug.texi (Edebug Recursive Edit): Remove separate references to
+	last-input-char and last-command-char, since they are just aliases for
+	last-input-event and last-command-event.
+
+	* minibuf.texi (Minibuffer Commands): Use last-command-event rather than
+	last-command-char.
+
 2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* elisp.texi: Update node listing.
