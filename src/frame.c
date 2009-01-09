@@ -2927,6 +2927,7 @@ x_set_frame_parameters (f, alist)
   int fullscreen_is_being_set = 0;
   int height_for_full_width = 0;
   int width_for_full_height = 0;
+  enum fullscreen_type fullscreen_wanted = FULLSCREEN_NONE;
 
   struct gcpro gcpro1, gcpro2;
 
@@ -2969,7 +2970,7 @@ x_set_frame_parameters (f, alist)
      They are independent of other properties, but other properties (e.g.,
      cursor_color) are dependent upon them.  */
   /* Process default font as well, since fringe widths depends on it.  */
-  /* Also, process fullscreen, width and height depend upon that */
+  /* Also, process fullscreen, width and height depend upon that.  */
   for (p = 0; p < i; p++)
     {
       Lisp_Object prop, val;
@@ -2982,6 +2983,19 @@ x_set_frame_parameters (f, alist)
           || EQ (prop, Qfullscreen))
 	{
 	  register Lisp_Object param_index, old_value;
+
+	  if (EQ (prop, Qfullscreen))
+	    {
+	      /* The parameter handler can reset f->want_fullscreen to
+	         FULLSCREEN_NONE.  But we need the requested value later
+	         to decide whether a height or width parameter shall be
+	         applied.  Therefore, we remember the requested value in
+	         fullscreen_wanted for the following two cases.  */ 
+	      if (EQ (val, Qfullheight))
+		fullscreen_wanted = FULLSCREEN_HEIGHT;
+	      else if (EQ (val, Qfullwidth))
+		fullscreen_wanted = FULLSCREEN_WIDTH;
+	    }
 
 	  old_value = get_frame_param (f, prop);
  	  fullscreen_is_being_set |= EQ (prop, Qfullscreen);
@@ -3091,13 +3105,13 @@ x_set_frame_parameters (f, alist)
       if (new_top != f->top_pos || new_left != f->left_pos)
         x_set_offset (f, new_left, new_top, 1);
 
-      /* When height was set and we want fullwidth make sure
-	 height gets applied.  */
-      if (height_for_full_width && (f->want_fullscreen & FULLSCREEN_WIDTH))
+      /* When both height and fullwidth were requested, make sure the
+	 requested value for height gets applied.  */
+      if (height_for_full_width && fullscreen_wanted == FULLSCREEN_WIDTH)
 	height = height_for_full_width;
-      /* When width was set and we want fullheight make sure
-	 width gets applied.  */
-      if (width_for_full_height && (f->want_fullscreen & FULLSCREEN_HEIGHT))
+      /* When both width and fullheight were requested, make sure the
+	 requested value for width gets applied.  */
+      if (width_for_full_height && fullscreen_wanted == FULLSCREEN_HEIGHT)
 	width = width_for_full_height;
     }
 

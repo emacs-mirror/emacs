@@ -1,3 +1,8 @@
+2009-01-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (x_set_frame_parameters): Remember requested value for
+	fullscreen before it's reset by the parameter handler.
+
 2009-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* keyboard.c (last_command_char): For clarity, rename to...
