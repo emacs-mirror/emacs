@@ -4213,17 +4213,12 @@ Optional argument FRAME, if non-nil, specifies the target frame.  */)
     if (driver_list->driver->list_family)
       {
 	Lisp_Object val = driver_list->driver->list_family (frame);
+	Lisp_Object tail = list;
 
-	if (NILP (list))
-	  list = val;
-	else
-	  {
-	    Lisp_Object tail = list;
-
-	    for (; CONSP (val); val = XCDR (val))
-	      if (NILP (Fmemq (XCAR (val), tail)))
-		list = Fcons (XCAR (val), list);
-	  }
+	for (; CONSP (val); val = XCDR (val))
+	  if (NILP (Fmemq (XCAR (val), tail))
+	      && SYMBOLP (XCAR (val)))
+	    list = Fcons (SYMBOL_NAME (XCAR (val)), list);
       }
   return list;
 }
