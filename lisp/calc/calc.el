@@ -2199,8 +2199,8 @@ See calc-keypad for details."
     (or (memq last-command-event '(32 13))
 	(progn (setq prefix-arg current-prefix-arg)
 	       (calc-unread-command (if (and (eq last-command-event 27)
-					     (>= last-input-char 128))
-					last-input-char
+					     (>= last-input-event 128))
+					last-input-event
 				      nil))))
     (exit-minibuffer)))
 

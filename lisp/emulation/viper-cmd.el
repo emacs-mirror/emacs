@@ -2546,7 +2546,7 @@ These keys are ESC, RET, and LineFeed"
   (let (com)
     (if (eq this-command 'viper-intercept-ESC-key)
 	(setq com 'viper-exit-insert-state)
-      (viper-set-unread-command-events last-input-char)
+      (viper-set-unread-command-events last-input-event)
       (setq com (key-binding (viper-read-key-sequence nil))))
 
     (condition-case conds
@@ -2567,7 +2567,7 @@ These keys are ESC, RET, and LineFeed"
   (if (or (< (point) (viper-replace-start))
 	  (> (point) (viper-replace-end)))
       (let (viper-replace-minor-mode com)
-	(viper-set-unread-command-events last-input-char)
+	(viper-set-unread-command-events last-input-event)
 	(setq com (key-binding (read-key-sequence nil)))
 	(condition-case conds
 	    (command-execute com)

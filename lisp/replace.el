@@ -1,7 +1,8 @@
 ;;; replace.el --- replace commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1996, 1997, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -1571,7 +1572,7 @@ make, or the user didn't cancel the call."
 
     ;; If last typed key in previous call of multi-buffer perform-replace
     ;; was `automatic-all', don't ask more questions in next files
-    (when (eq (lookup-key map (vector last-input-char)) 'automatic-all)
+    (when (eq (lookup-key map (vector last-input-event)) 'automatic-all)
       (setq query-flag nil multi-buffer t))
 
     ;; REPLACEMENTS is either a string, a list of strings, or a cons cell

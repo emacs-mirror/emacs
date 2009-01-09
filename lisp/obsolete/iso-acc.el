@@ -287,9 +287,9 @@ the language you choose)."
   "Modify the following character by adding an accent to it."
   ;; Pick up the accent character.
   (if (and iso-accents-mode
-	   (memq last-input-char iso-accents-enable))
+	   (memq last-input-event iso-accents-enable))
       (iso-accents-compose prompt)
-    (vector last-input-char)))
+    (vector last-input-event)))
 
 
 ;; The iso-accents-compose function is called deep inside Emacs' read
@@ -302,7 +302,7 @@ the language you choose)."
 ;; window's display matrix.
 
 (defun iso-accents-compose (prompt)
-  (let* ((first-char last-input-char)
+  (let* ((first-char last-input-event)
 	 (list (assq first-char iso-accents-list))
 	 ;; Wait for the second key and look up the combination.
 	 (second-char (if (or prompt

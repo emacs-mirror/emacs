@@ -71,7 +71,7 @@
       ;; This makes universal-argument-other-key work.
       (setq universal-argument-num-events 0)
       (if (or (prog1 quit-flag (setq quit-flag nil))
-	      (eq last-input-char ?\C-g))
+	      (eq last-input-event ?\C-g))
 	  (progn (setq unread-command-events nil
 		       prefix-arg nil)
 		 ;; If it wasn't cancelling a prefix character, then quit.
@@ -87,7 +87,7 @@
 	      (progn (command-execute cmd)
 		     (setq last-command this-command)
 		     (if (or (prog1 quit-flag (setq quit-flag nil))
-			     (eq last-input-char ?\C-g))
+			     (eq last-input-event ?\C-g))
 			 (progn (setq unread-command-events nil)
 				(if (not inhibit-quit)
 				    (progn (ding)

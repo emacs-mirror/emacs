@@ -28,6 +28,13 @@
 	* textmodes/sgml-mode.el, textmodes/table.el, textmodes/two-column.el:
 	Replace last-command-char with last-command-event.
 
+	* double.el, electric.el, replace.el, term.el, terminal.el:
+	* calc/calc.el:
+	* emulation/viper-cmd.el:
+	* international/mule-cmds.el:
+	* obsolete/iso-acc.el:
+	* progmodes/vhdl-mode.el: Replace last-input-char with last-input-event.
+
 2009-01-09  Dave Love  <fx@gnu.org>
 
 	* calendar/time-date.el: Require cl for `declare'.

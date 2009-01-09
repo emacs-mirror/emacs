@@ -1182,15 +1182,15 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 without any interpretation."
   (interactive)
  ;; Convert `return' to C-m, etc.
-  (when (and (symbolp last-input-char)
-	     (get last-input-char 'ascii-character))
-    (setq last-input-char (get last-input-char 'ascii-character)))
-  (term-send-raw-string (make-string 1 last-input-char)))
+  (when (and (symbolp last-input-event)
+	     (get last-input-event 'ascii-character))
+    (setq last-input-event (get last-input-event 'ascii-character)))
+  (term-send-raw-string (make-string 1 last-input-event)))
 
 (defun term-send-raw-meta ()
   (interactive)
-  (let ((char last-input-char))
-    (when (symbolp last-input-char)
+  (let ((char last-input-event))
+    (when (symbolp last-input-event)
       ;; Convert `return' to C-m, etc.
       (let ((tmp (get char 'event-symbol-elements)))
 	(when tmp

@@ -396,10 +396,10 @@ set it smaller for more frequent updates (but overall slower performance."
 (put 'te-more-break-unread 'suppress-keymap t)
 (defun te-more-break-unread ()
   (interactive)
-  (if (eq last-input-char terminal-escape-char)
+  (if (eq last-input-event terminal-escape-char)
       (call-interactively 'te-escape)
     (message "Continuing from more break (\"%s\" typed, %d chars output pending...)"
-	     (single-key-description last-input-char)
+	     (single-key-description last-input-event)
 	     (te-pending-output-length))
     (setq te-more-count 259259)
     (te-more-break-unwind)
@@ -469,29 +469,29 @@ One characters is treated specially:
 the terminal escape character (normally C-^)
 lets you type a terminal emulator command."
   (interactive)
-  (cond ((eq last-input-char terminal-escape-char)
+  (cond ((eq last-input-event terminal-escape-char)
 	 (call-interactively 'te-escape))
 	(t
 	 ;; Convert `return' to C-m, etc.
-	 (if (and (symbolp last-input-char)
-		  (get last-input-char 'ascii-character))
-	     (setq last-input-char (get last-input-char 'ascii-character)))
+	 (if (and (symbolp last-input-event)
+		  (get last-input-event 'ascii-character))
+	     (setq last-input-event (get last-input-event 'ascii-character)))
 	 ;; Convert meta characters to 8-bit form for transmission.
-	 (if (and (integerp last-input-char)
-		  (not (zerop (logand last-input-char ?\M-\^@))))
-	     (setq last-input-char (+ 128 (logand last-input-char 127))))
+	 (if (and (integerp last-input-event)
+		  (not (zerop (logand last-input-event ?\M-\^@))))
+	     (setq last-input-event (+ 128 (logand last-input-event 127))))
 	 ;; Now ignore all but actual characters.
 	 ;; (It ought to be possible to send through function
 	 ;; keys as character sequences if we add a description
 	 ;; to our termcap entry of what they should look like.)
-	 (if (integerp last-input-char)
+	 (if (integerp last-input-event)
 	     (progn
 	       (and terminal-more-processing (null (cdr te-pending-output))
 		    (te-set-more-count nil))
-	       (process-send-string te-process (make-string 1 last-input-char))
+	       (process-send-string te-process (make-string 1 last-input-event))
 	       (te-process-output t))
 	   (message "Function key `%s' ignored"
-		    (single-key-description last-input-char))))))
+		    (single-key-description last-input-event))))))
 
 
 (defun te-set-window-start ()

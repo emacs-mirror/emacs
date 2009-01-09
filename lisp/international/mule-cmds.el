@@ -288,7 +288,7 @@ wrong, use this command again to toggle back to the right mode."
 	 prefix)
     ;; read-key-sequence ignores quit, so make an explicit check.
     ;; Like many places, this assumes quit == C-g, but it need not be.
-    (if (equal last-input-char ?\C-g)
+    (if (equal last-input-event ?\C-g)
 	(keyboard-quit))
     (when (memq cmd '(universal-argument digit-argument))
       (call-interactively cmd)

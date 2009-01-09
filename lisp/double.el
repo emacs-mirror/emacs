@@ -103,7 +103,7 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 
 (defun double-translate-key (prompt)
   ;; Translate input events using double map.
-  (let ((key last-input-char))
+  (let ((key last-input-event))
     (cond (unread-command-events
 	   ;; Artificial event, ignore it.
 	   (vector key))

@@ -8158,7 +8158,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 (defun vhdl-electric-quote (count) "'' --> \""
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
-      (if (= (preceding-char) last-input-char)
+      (if (= (preceding-char) last-input-event)
 	  (progn (delete-backward-char 1) (insert-char ?\" 1))
 	(insert-char ?\' 1))
     (self-insert-command count)))
@@ -8166,7 +8166,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 (defun vhdl-electric-semicolon (count) "';;' --> ' : ', ': ;' --> ' := '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
-      (cond ((= (preceding-char) last-input-char)
+      (cond ((= (preceding-char) last-input-event)
 	     (progn (delete-char -1)
 		    (unless (eq (preceding-char) ? ) (insert " "))
 		    (insert ": ")
@@ -8180,7 +8180,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 (defun vhdl-electric-comma (count) "',,' --> ' <= '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
-      (cond ((= (preceding-char) last-input-char)
+      (cond ((= (preceding-char) last-input-event)
 	     (progn (delete-char -1)
 		    (unless (eq (preceding-char) ? ) (insert " "))
 		    (insert "<= ")))
@@ -8190,7 +8190,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 (defun vhdl-electric-period (count) "'..' --> ' => '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
-      (cond ((= (preceding-char) last-input-char)
+      (cond ((= (preceding-char) last-input-event)
 	     (progn (delete-char -1)
 		    (unless (eq (preceding-char) ? ) (insert " "))
 		    (insert "=> ")))
@@ -8200,7 +8200,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 (defun vhdl-electric-equal (count) "'==' --> ' == '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
-      (cond ((= (preceding-char) last-input-char)
+      (cond ((= (preceding-char) last-input-event)
 	     (progn (delete-char -1)
 		    (unless (eq (preceding-char) ? ) (insert " "))
 		    (insert "== ")))
