@@ -1291,12 +1291,12 @@ Faces
 * Face Remapping::         Remapping faces to alternative definitions.
 * Face Functions::          How to define and examine faces.
 * Auto Faces::              Hook for automatic face assignment.
-* Fonts::                   Lisp representation of character display fonts.
 * Font Selection::          Finding the best available font for a face.
 * Font Lookup::             Looking up the names of available fonts
                               and information about them.
 * Fontsets::                A fontset is a collection of fonts
                               that handle a range of character sets.
+* Low-Level Font::          Lisp representation of character display fonts.
 
 Fringes
 
