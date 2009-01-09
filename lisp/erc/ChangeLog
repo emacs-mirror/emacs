@@ -1,3 +1,8 @@
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-input-message): Replace last-command-char with
+	last-command-event.
+
 2009-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* erc.el (tabbar--local-hlf): Silence compiler.

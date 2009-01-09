@@ -3708,7 +3708,7 @@ If FACE is non-nil, it will be used to propertize the prompt.  If it is nil,
   (let ((minibuffer-allow-text-properties t)
 	(read-map minibuffer-local-map))
     (insert (read-from-minibuffer "Message: "
-				  (string last-command-char) read-map))
+				  (string last-command-event) read-map))
     (erc-send-current-line)))
 
 (defvar erc-action-history-list ()
