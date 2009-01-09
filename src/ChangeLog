@@ -1,3 +1,11 @@
+2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Fx_font_family_list): Function deleted.  Compatibility
+	version moved to faces.el.
+
+	* font.c (Ffont_family_list): Return a list of strings, not
+	symbols.
+
 2009-01-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (x_set_frame_parameters): Remember requested value for
