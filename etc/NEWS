@@ -1625,7 +1625,7 @@ currently `x' and `xft'.
 *** The function `set-fontset-font' now accepts a script name as the
 second argument, and has an optional 5th argument to control how to
 set the font.
-
++++
 *** The function x-font-family-list is now obsolete.
 Instead, use the new function font-family-list, below.
 
