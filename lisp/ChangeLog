@@ -1,3 +1,8 @@
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (last-input-char, last-command-char):
+	Move here from src/keyboard.c.
+
 2009-01-09  Dave Love  <fx@gnu.org>
 
 	* calendar/time-date.el: Require cl for `declare'.
