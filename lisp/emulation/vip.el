@@ -606,7 +606,7 @@ obtained so far, and COM is the command part obtained so far."
 (defun vip-digit-argument (arg)
   "Begin numeric argument for the next command."
   (interactive "P")
-  (vip-prefix-arg-value last-command-char nil
+  (vip-prefix-arg-value last-command-event nil
 			(if (consp arg) (cdr arg) nil)))
 
 (defun vip-command-argument (arg)
@@ -614,7 +614,7 @@ obtained so far, and COM is the command part obtained so far."
   (interactive "P")
   (condition-case conditions
       (vip-prefix-arg-com
-       last-command-char
+       last-command-event
        (cond ((null arg) nil)
 	     ((consp arg) (car arg))
 	     ((numberp arg) arg)

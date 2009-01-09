@@ -288,7 +288,7 @@
 ;;    convoluted.  Instead of viper-command-argument, keymaps should bind the
 ;;    actual commands.  E.g., "dw" should be bound to a generic command
 ;;    viper-delete that will delete things based on the value of
-;;    last-command-char.  This would greatly simplify the logic and the code.
+;;    last-command-event.  This would greatly simplify the logic and the code.
 ;;
 ;; 2. Somebody should venture to write a customization package a la
 ;;    options.el that would allow the user to change values of variables

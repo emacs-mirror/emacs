@@ -8,8 +8,10 @@
 	* calc/calc-sel.el, calc/calc-store.el, calc/calc-stuff.el:
 	* calc/calc-units.el, calc/calc-yank.el, calc/calc.el:
 	* emacs-lisp/lisp.el, emacs-lisp/re-builder.el:
+	* emulation/vi.el, emulation/vip.el, emulation/viper-cmd.el:
 	* eshell/em-smart.el, eshell/esh-mode.el:
 	* international/mule-cmds.el:
+	* mail/mailabbrev.el:
 	* net/tramp.el:
 	* play/mpuz.el:
 	* progmodes/ada-mode.el, progmodes/antlr-mode.el, progmodes/cc-align.el:

@@ -719,7 +719,7 @@
 ARG is used as the prefix value for the executed command.  If
 EVENTS is a list of events, which become the beginning of the command."
   (interactive "P")
-  (if (viper= last-command-char ?\\)
+  (if (viper= last-command-event ?\\)
       (message "Switched to EMACS state for the next command..."))
   (viper-escape-to-state arg events 'emacs-state))
 
@@ -773,8 +773,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 		    last-command-char (event-to-character last-command-event))
 	    ;; Emacs represents them as sequences (str or vec)
 	    (setq last-command-event
-		  (viper-copy-event (viper-seq-last-elt key))
-		  last-command-char last-command-event))
+		  (viper-copy-event (viper-seq-last-elt key))))
 
 	  (if (commandp com)
 	      ;; pretend that current state is the state we excaped to
@@ -1170,7 +1169,7 @@ as a Meta key and any number of multiple escapes is allowed."
 	;; then execute it with funcall and clear prefix-arg in order to not
 	;; confuse subsequent commands
 	(progn
-	  ;; last-command-char is the char we want emacs to think was typed
+	  ;; last-command-event is the char we want emacs to think was typed
 	  ;; last.  If com is not nil, the viper-digit-argument command was
 	  ;; called from within viper-prefix-arg command, such as `d', `w',
 	  ;; etc., i.e., the user typed, say, d2.  In this case, `com' would be
@@ -1178,13 +1177,13 @@ as a Meta key and any number of multiple escapes is allowed."
 	  ;; viper-escape-to-vi (which is indicated by the fact that the
 	  ;; current state is not vi-state), then `event-char' represents the
 	  ;; vi command to be executed (e.g., `d', `w', etc).  Again,
-	  ;; last-command-char must make emacs believe that this is the command
+	  ;; last-command-event must make emacs believe that this is the command
 	  ;; we typed.
 	  (cond ((eq event-char 'return) (setq event-char ?\C-m))
 		((eq event-char 'delete) (setq event-char ?\C-?))
 		((eq event-char 'backspace) (setq event-char ?\C-h))
 		((eq event-char 'space) (setq event-char ?\ )))
-	  (setq last-command-char (or com event-char))
+	  (setq last-command-event (or com event-char))
 	  (setq func (viper-exec-form-in-vi
 		      `(key-binding (char-to-string ,event-char))))
 	  (funcall func prefix-arg)
@@ -1288,7 +1287,6 @@ as a Meta key and any number of multiple escapes is allowed."
     
     (if cmd-to-exec-at-end
 	(progn
-	  (setq last-command-char char)
 	  (setq last-command-event
 		(viper-copy-event
 		 (if (featurep 'xemacs) (character-to-event char) char)))
@@ -1315,7 +1313,7 @@ as a Meta key and any number of multiple escapes is allowed."
   (interactive "P")
   (viper-leave-region-active)
   (viper-prefix-arg-value
-   last-command-char (if (consp arg) (cdr arg) nil)))
+   last-command-event (if (consp arg) (cdr arg) nil)))
 
 (defun viper-command-argument (arg)
   "Accept a motion command as an argument."
@@ -1323,7 +1321,7 @@ as a Meta key and any number of multiple escapes is allowed."
   (let ((viper-intermediate-command 'viper-command-argument))
     (condition-case nil
 	(viper-prefix-arg-com
-	 last-command-char
+	 last-command-event
 	 (cond ((null arg) nil)
 	       ((consp arg) (car arg))
 	       ((integerp arg) arg)
@@ -2100,7 +2098,7 @@ Undo previous insertion and inserts new."
   "Exit minibuffer Viper way."
   (interactive)
   (let (command)
-    (setq command (local-key-binding (char-to-string last-command-char)))
+    (setq command (local-key-binding (char-to-string last-command-event)))
     (run-hooks 'viper-minibuffer-exit-hook)
     (if command
 	(command-execute command)

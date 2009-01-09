@@ -1,7 +1,8 @@
 ;;; mailabbrev.el --- abbrev-expansion of mail aliases
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1996, 1997, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com; now jwz@jwz.org>
 ;; Maintainer: FSF
@@ -500,12 +501,12 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
             ;; when the user types -.)  Check the character's syntax in
             ;; the usual syntax table.
 
-            (or (and (integerp last-command-char)
+            (or (and (integerp last-command-event)
                      ;; Some commands such as M-> may want to expand first.
                      (equal this-command 'self-insert-command)
-                     (or (eq (char-syntax last-command-char) ?_)
+                     (or (eq (char-syntax last-command-event) ?_)
                          ;; Don't expand on @.
-                         (memq last-command-char '(?@ ?. ?% ?! ?_ ?-))))
+                         (memq last-command-event '(?@ ?. ?% ?! ?_ ?-))))
                 ;; Use this table so that abbrevs can have hyphens in them.
                 (with-syntax-table mail-abbrev-syntax-table
                   (funcall expand))))
