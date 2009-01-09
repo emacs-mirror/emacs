@@ -31,7 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <ctype.h>
 #include <errno.h>
-#include <setjmp.h>
 #include <sys/stat.h>
 
 #include "charset.h"
