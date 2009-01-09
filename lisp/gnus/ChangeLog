@@ -122,10 +122,6 @@
 
 	* mm-util.el (mm-charset-override-alist): Declare for compiler.
 
-2008-12-16  Glenn Morris  <rgm@gnu.org>
-
-	* mm-util.el (mm-charset-override-alist): Declare for compiler.
-
 2008-12-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mml.el (mml-generate-mime-1): Prefer the MIME charset that Emacs
