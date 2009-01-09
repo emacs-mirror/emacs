@@ -1,7 +1,7 @@
 2009-01-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el: Revert previous patch.  `last-command-char' is
-	used in code used only for XEmacs, where it is different from
+	used in code intended only for XEmacs, where it is different from
 	`last-command-event'.
 
 2009-01-09  Glenn Morris  <rgm@gnu.org>
