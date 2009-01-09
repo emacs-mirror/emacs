@@ -1,3 +1,11 @@
+2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (face-valid-attribute-values): Use string as value for
+	:family attribute.  Now, font-family-list returns a list of
+	strings.
+	(x-font-family-list): Obsolete compatibility version of function
+	from xfaces.c.
+
 2009-01-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (special-display-buffer-names)
