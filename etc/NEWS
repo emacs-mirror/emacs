@@ -1626,6 +1626,9 @@ currently `x' and `xft'.
 second argument, and has an optional 5th argument to control how to
 set the font.
 
+*** The function x-font-family-list is now obsolete.
+Instead, use the new function font-family-list, below.
+
 *** New functions:
 +++
 **** `fontp' checks if the argument is a font-spec or font-entity.
