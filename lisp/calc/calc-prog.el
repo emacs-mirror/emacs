@@ -1285,7 +1285,7 @@ Redefine the corresponding command."
   (let* ((count 0)
 	 (parts nil)
 	 (body "")
-	 (open last-command-char)
+	 (open last-command-event)
 	 (counter initial)
 	 ch)
     (or executing-kbd-macro

@@ -3,6 +3,12 @@
 	* subr.el (last-input-char, last-command-char):
 	Move here from src/keyboard.c.
 
+	* calc/calc-aent.el, calc/calc-ext.el, calc/calc-incom.el:
+	* calc/calc-keypd.el, calc/calc-misc.el, calc/calc-prog.el:
+	* calc/calc-sel.el, calc/calc-store.el, calc/calc-stuff.el:
+	* calc/calc-units.el, calc/calc-yank.el, calc/calc.el:
+	Replace last-command-char with last-command-event.
+
 2009-01-09  Dave Love  <fx@gnu.org>
 
 	* calendar/time-date.el: Require cl for `declare'.

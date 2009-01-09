@@ -109,7 +109,7 @@
 		    (setq buf long))))
 	  (calc-handle-whys)
 	  (message "Result: %s" buf)))
-      (if (eq last-command-char 10)
+      (if (eq last-command-event 10)
 	  (insert shortbuf)
         (kill-new shortbuf)))))
 
@@ -279,7 +279,7 @@ The value t means abort and give an error message.")
   (calc-wrapper
    (let ((calc-language (if prefix nil calc-language))
 	 (math-expr-opers (if prefix (math-standard-ops) (math-expr-ops))))
-     (calc-alg-entry (and auto (char-to-string last-command-char))))))
+     (calc-alg-entry (and auto (char-to-string last-command-event))))))
 
 (defvar calc-alg-entry-history nil
   "History for algebraic entry.")
@@ -296,7 +296,7 @@ The value t means abort and give an error message.")
 	(progn
 	  (require 'calc-ext)
 	  (calc-alg-edit alg-exp))
-      (let* ((calc-simplify-mode (if (eq last-command-char ?\C-j)
+      (let* ((calc-simplify-mode (if (eq last-command-event ?\C-j)
 				     'none
 				   calc-simplify-mode))
 	     (nvals (mapcar 'calc-normalize alg-exp)))
@@ -468,12 +468,12 @@ The value t means abort and give an error message.")
 ;;;###autoload
 (defun calc-alg-digit-entry ()
   (calc-alg-entry
-   (cond ((eq last-command-char ?e)
+   (cond ((eq last-command-event ?e)
 	  (if (> calc-number-radix 14) (format "%d.^" calc-number-radix) "1e"))
-	 ((eq last-command-char ?#) (format "%d#" calc-number-radix))
-	 ((eq last-command-char ?_) "-")
-	 ((eq last-command-char ?@) "0@ ")
-	 (t (char-to-string last-command-char)))))
+	 ((eq last-command-event ?#) (format "%d#" calc-number-radix))
+	 ((eq last-command-event ?_) "-")
+	 ((eq last-command-event ?@) "0@ ")
+	 (t (char-to-string last-command-event)))))
 
 ;; The variable calc-digit-value is initially declared in calc.el,
 ;; but can be set by calcDigit-algebraic and calcDigit-edit.

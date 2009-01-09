@@ -210,9 +210,9 @@ With a prefix, push that prefix as a number onto the stack."
   (interactive "P")
   (calc-clean (- (if num
 		     (prefix-numeric-value num)
-		   (if (and (>= last-command-char ?0)
-			    (<= last-command-char ?9))
-		       (- last-command-char ?0)
+		   (if (and (>= last-command-event ?0)
+			    (<= last-command-event ?9))
+		       (- last-command-event ?0)
 		     (error "Number required"))))))
 
 

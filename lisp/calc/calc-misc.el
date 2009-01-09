@@ -472,8 +472,8 @@ When this key is used, calc-ext (the Calculator extensions module) will be
 loaded and the keystroke automatically re-typed."
   (interactive "P")
   (require 'calc-ext)
-  (if (keymapp (key-binding (char-to-string last-command-char)))
-      (message "%s%c-" (calc-num-prefix-name n) last-command-char))
+  (if (keymapp (key-binding (char-to-string last-command-event)))
+      (message "%s%c-" (calc-num-prefix-name n) last-command-event))
   (calc-unread-command)
   (setq prefix-arg n))
 
@@ -491,7 +491,7 @@ loaded and the keystroke automatically re-typed."
   (interactive)
   (if (calc-minibuffer-contains "[-+]?\\(1[1-9]\\|[2-9][0-9]\\)#.*")
       (progn
-	(setq last-command-char (upcase last-command-char))
+	(setq last-command-event (upcase last-command-event))
 	(calcDigit-key))
     (calcDigit-nondigit)))
 

@@ -349,7 +349,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 (defun calc-quick-units ()
   (interactive)
   (calc-slow-wrapper
-   (let* ((num (- last-command-char ?0))
+   (let* ((num (- last-command-event ?0))
 	  (pos (if (= num 0) 10 num))
 	  (units (calc-var-value 'var-Units))
 	  (expr (calc-top-n 1)))

@@ -180,7 +180,7 @@
 	(if (calc-minibuffer-contains ".*\\.\\'")
 	    (delete-backward-char 1))
 	(setq calc-prev-char 'dots
-	      last-command-char 32)
+	      last-command-event 32)
 	(if calc-prev-prev-char
 	    (calcDigit-nondigit)
 	  (setq calc-digit-value nil)

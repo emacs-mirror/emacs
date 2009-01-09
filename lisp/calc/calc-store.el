@@ -381,15 +381,15 @@
 
 (defun calc-store-quick ()
   (interactive)
-  (calc-store (intern (format "var-q%c" last-command-char))))
+  (calc-store (intern (format "var-q%c" last-command-event))))
 
 (defun calc-store-into-quick ()
   (interactive)
-  (calc-store-into (intern (format "var-q%c" last-command-char))))
+  (calc-store-into (intern (format "var-q%c" last-command-event))))
 
 (defun calc-recall-quick ()
   (interactive)
-  (calc-recall (intern (format "var-q%c" last-command-char))))
+  (calc-recall (intern (format "var-q%c" last-command-event))))
 
 (defun calc-copy-special-constant (&optional sconst var)
   (interactive)

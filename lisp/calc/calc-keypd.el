@@ -608,7 +608,7 @@
 				   negative-argument))
 		       (and prefix (string-match "\\`\e?[-0-9]\\'" keys)))
 		   (progn
-		     (setq last-command-char (aref keys (1- (length keys))))
+		     (setq last-command-event (aref keys (1- (length keys))))
 		     (command-execute cmd)
 		     (setq flush 'not-any-more
 			   prefix t

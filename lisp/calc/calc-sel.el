@@ -132,7 +132,7 @@
 
 (defun calc-select-part (num)
   (interactive "P")
-  (or num (setq num (- last-command-char ?0)))
+  (or num (setq num (- last-command-event ?0)))
   (calc-wrapper
    (calc-prepare-selection)
    (let ((sel (calc-find-nth-part (or (nth 2 calc-selection-cache-entry)

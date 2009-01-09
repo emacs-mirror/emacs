@@ -489,7 +489,7 @@ With prefix arg, also delete the region."
 	(insert str))
     (let ((i 0))
       (while (< i (length str))
-	(if (= (setq last-command-char (aref str i)) ?\n)
+	(if (= (setq last-command-event (aref str i)) ?\n)
 	    (or (= i (1- (length str)))
 		(let ((pt (point)))
 		  (end-of-line)
@@ -702,7 +702,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	 (if calc-edit-disp-trail
 	     (calc-trail-display 1 t))
 	 (and vals
-	      (let ((calc-simplify-mode (if (eq last-command-char ?\C-j)
+	      (let ((calc-simplify-mode (if (eq last-command-event ?\C-j)
 					    'none
 					  calc-simplify-mode)))
 		(if (>= num 0)
