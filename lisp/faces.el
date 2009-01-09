@@ -988,7 +988,7 @@ an integer value."
          (case attribute
            (:family
             (if (window-system frame)
-                (mapcar #'(lambda (x) (cons (symbol-name x) x))
+                (mapcar (lambda (x) (cons x x))
                         (font-family-list))
 	      ;; Only one font on TTYs.
 	      (list (cons "default" "default"))))
@@ -2680,6 +2680,18 @@ If that can't be done, return nil."
   (and (setq font (internal-frob-font-weight font "bold"))
        (internal-frob-font-slant font "i")))
 (make-obsolete 'x-make-font-bold-italic 'make-face-bold-italic "21.1")
+
+(defun x-font-family-list (&optional frame)
+  "Return a list of available font families on FRAME.
+If FRAME is omitted or nil, use the selected frame.
+Value is a list of conses (FAMILY . FIXED-P) where FAMILY
+is a font family, and FIXED-P is non-nil if fonts of that family
+are fixed-pitch."
+  (if (fboundp 'font-family-list)
+      (mapcar (lambda (family) (cons family nil))
+	      (font-family-list))
+    '(("default" . t))))
+(make-obsolete 'x-font-family-list 'font-family-list "23.1")
 
 (provide 'faces)
 
