@@ -1,3 +1,9 @@
+2009-01-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (add_font_entity_to_list): Don't report unknown
+	Windows charset as any unrecognized registry. (Bug#1548)
+	Only report Unicode Plane 2 fonts as unicode-sip.
+
 2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (Fx_font_family_list): Function deleted.  Compatibility
