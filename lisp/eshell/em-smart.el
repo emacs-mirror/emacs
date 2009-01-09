@@ -291,7 +291,7 @@ and the end of the buffer are still visible."
 	(setq clear t)
       (cond
        ((eq this-command 'self-insert-command)
-	(if (eq last-command-char ? )
+	(if (eq last-command-event ? )
 	    (if (and eshell-smart-space-goes-to-end
 		     eshell-current-command)
 		(if (not (pos-visible-in-window-p (point-max)))

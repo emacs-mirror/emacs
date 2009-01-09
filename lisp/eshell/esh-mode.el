@@ -1,7 +1,7 @@
 ;;; esh-mode.el --- user interface
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -484,9 +484,9 @@ This is used by `eshell-watch-for-password-prompt'."
   (interactive "i")
   (process-send-string
    (eshell-interactive-process)
-   (char-to-string (if (symbolp last-command-char)
-		       (get last-command-char 'ascii-character)
-		     last-command-char))))
+   (char-to-string (if (symbolp last-command-event)
+		       (get last-command-event 'ascii-character)
+		     last-command-event))))
 
 (defun eshell-intercept-commands ()
   (when (and (eshell-interactive-process)
