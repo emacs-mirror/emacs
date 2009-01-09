@@ -204,8 +204,8 @@
     (defalias 'ispell-check-minver 'version<=)
   (defun ispell-check-minver (minver version)
     "Check if string VERSION is at least string MINVER.
-Both must be in [0-9]+.[0-9]+... format. This is a fallback
-compatibility function in case version<= is not available."
+Both must be in [0-9]+.[0-9]+... format.  This is a fallback
+compatibility function in case `version<=' is not available."
     (let ((pending t)
 	  (return t)
 	  start-ver start-mver)
@@ -1021,7 +1021,7 @@ Return the new dictionary alist."
 ;; Set params according to the selected spellchecker
 
 (defvar ispell-last-program-name nil
-  "Last value of ispell-program name. Internal use.")
+  "Last value of `ispell-program-name'. Internal use.")
 
 (defvar ispell-initialize-spellchecker-hook nil
   "Normal hook run on spellchecker initialization.
@@ -1443,7 +1443,7 @@ for skipping in latex mode.")
     ("<[^ \t\n>]"			  ">")
     ("&[^ \t\n;]"			  "[; \t\n]"))
   "*Lists of start and end keys to skip in HTML buffers.
-Same format as `ispell-skip-region-alist'
+Same format as `ispell-skip-region-alist'.
 Note - substrings of other matches must come last
  (e.g. \"<[tT][tT]/\" and \"<[^ \\t\\n>]\").")
 (put 'ispell-html-skip-alists 'risky-local-variable t)
@@ -1513,7 +1513,7 @@ pass it the output of the last ispell invocation."
 
 (defun ispell-send-replacement (misspelled replacement)
   "Notify aspell that MISSPELLED should be spelled REPLACEMENT.
-This allows it to improve the suggestion list based on actual mispellings."
+This allows it to improve the suggestion list based on actual misspellings."
   (and ispell-really-aspell
        (ispell-send-string (concat "$$ra " misspelled "," replacement "\n"))))
 
@@ -1835,8 +1835,8 @@ Returns list for new replacement word (will be rechecked).
   Automatic query-replace when second element is `query-replace'.
 Highlights the word, which is assumed to run from START to END.
 Global `ispell-pdict-modified-p' becomes a list where the only value
-indicates whether the dictionary has been modified when option `a' or `i' is
-used.
+indicates whether the dictionary has been modified when option `a'
+or `i' is used.
 Global `ispell-quit' set to start location to continue spell session."
   (let ((count ?0)
 	(line ispell-choices-win-default-height)
@@ -2117,7 +2117,7 @@ Global `ispell-quit' set to start location to continue spell session."
 
 
 (defun ispell-show-choices (line end)
-  "Shows the choices in another buffer or frame."
+  "Show the choices in another buffer or frame."
   (if (and ispell-use-framepop-p (fboundp 'framepop-display-buffer))
       (progn
 	(framepop-display-buffer (get-buffer ispell-choices-buffer))
@@ -2854,7 +2854,7 @@ Return nil if spell session is quit,
 
 
 (defun ispell-begin-skip-region-regexp ()
-  "Returns a regexp of the search keys for region skipping.
+  "Return a regexp of the search keys for region skipping.
 Includes `ispell-skip-region-alist' plus tex, tib, html, and comment keys.
 Must call after `ispell-buffer-local-parsing' due to dependence on mode."
   ;; start with regions generic to all buffers
@@ -2923,7 +2923,7 @@ Generated from `ispell-tex-skip-alists'."
 
 
 (defun ispell-skip-region-list ()
-  "Returns a list describing key and body regions to skip for this buffer.
+  "Return a list describing key and body regions to skip for this buffer.
 Includes regions defined by `ispell-skip-region-alist', tex mode,
 `ispell-html-skip-alists', and `ispell-checking-message'.
 Manual checking must include comments and tib references.
@@ -2957,7 +2957,7 @@ Must call after `ispell-buffer-local-parsing' due to dependence on mode."
 
 
 (defun ispell-ignore-fcc (start end)
-  "Deletes the Fcc: message header when large attachments are included.
+  "Delete the Fcc: message header when large attachments are included.
 Return value `nil' if file with large attachments are saved.
 This can be used to avoid multiple questions for multiple large attachments.
 Returns point to starting location afterwards."
@@ -2984,7 +2984,7 @@ Returns point to starting location afterwards."
 
 
 (defun ispell-skip-region (key)
-  "Skips across KEY and then to end of region.
+  "Skip across KEY and then to end of region.
 Key lookup determines region to skip.
 Point is placed at end of skipped region."
   ;; move over key to begin checking.
@@ -3069,7 +3069,7 @@ Point is placed at end of skipped region."
 (defvar end)
 
 (defun ispell-process-line (string shift)
-  "Sends STRING, a line of text, to ispell and processes the result.
+  "Send STRING, a line of text, to ispell and processes the result.
 This will modify the buffer for spelling errors.
 Requires variables START and END to be defined in its lexical scope.
 Returns the sum SHIFT due to changes in word replacements."
@@ -3264,7 +3264,7 @@ Returns the sum SHIFT due to changes in word replacements."
 
 ;;; Horizontal scrolling
 (defun ispell-horiz-scroll ()
-  "Places point within the horizontal visibility of its window area."
+  "Place point within the horizontal visibility of its window area."
   (if truncate-lines			; display truncating lines?
       ;; See if display needs to be scrolled.
       (let ((column (- (current-column) (max (window-hscroll) 1))))
@@ -3474,7 +3474,7 @@ Otherwise, it must be a function which is called to get the limit.")
 
 
 (defun ispell-mime-skip-part (boundary)
-  "Moves point across header, or entire MIME part if message is encoded.
+  "Move point across header, or entire MIME part if message is encoded.
 All specified types except `7bit' `8bit' and `quoted-printable' are considered
 encoded and therefore skipped.  See rfc 1521, 2183, ...
 If no boundary is given, then entire message is skipped.
@@ -3796,7 +3796,7 @@ Both should not be used to define a buffer-local dictionary."
 
 
 (defun ispell-buffer-local-words ()
-  "Loads the buffer-local dictionary in the current buffer."
+  "Load the buffer-local dictionary in the current buffer."
   ;; If there's an existing ispell process that's wrong for this use,
   ;; kill it.
   (if (and ispell-buffer-local-name

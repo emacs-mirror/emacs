@@ -1,3 +1,13 @@
+2009-01-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/ispell.el (ispell-check-minver, ispell-last-program-name)
+	(ispell-html-skip-alists, ispell-send-replacement, ispell-show-choices)
+	(ispell-begin-skip-region-regexp, ispell-skip-region-list)
+	(ispell-ignore-fcc, ispell-skip-region, ispell-process-line)
+	(ispell-horiz-scroll, ispell-mime-skip-part, ispell-buffer-local-words):
+	Fix typos in docstrings.
+	(ispell-command-loop): Reflow docstring.
+
 2009-01-08  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-encoding8-command): New variable
