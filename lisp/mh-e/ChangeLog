@@ -1,3 +1,7 @@
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* mh-letter.el: Replace last-input-char with last-input-event.
+
 2008-08-18  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.1.
