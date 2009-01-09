@@ -1851,7 +1851,7 @@ keys in minibuffer local keymaps.
 
 @deffn Command self-insert-and-exit
 This command exits the active minibuffer after inserting the last
-character typed on the keyboard (found in @code{last-command-char};
+character typed on the keyboard (found in @code{last-command-event};
 @pxref{Command Loop Info}).
 @end deffn
 
