@@ -86,7 +86,14 @@ Integer values will in effect be rounded up to the nearest multiple of
       ;; what's possible.  Perhaps better, maybe the Windows/DOS primitive
       ;; could round up non-zero timeouts to a minimum of 1.0?
       1.0
+    ;; 2008-05-19 change by Larsi:
+    ;; Change the default timeout from 0.1 seconds to 0.01 seconds.  This will
+    ;; make nntp and pop3 article retrieval faster in some cases, but might
+    ;; make CPU usage larger.  If this has any bad side effects, we might
+    ;; revert this change.
     0.01)
+  ;; When changing this variable, consider changing `pop3-read-timeout' as
+  ;; well.
   "How long nntp should wait between checking for the end of output.
 Shorter values mean quicker response, but are more CPU intensive.")
 
@@ -1057,6 +1064,8 @@ See `find-file-noselect' for the arguments."
 (defalias 'nnheader-cancel-timer 'cancel-timer)
 (defalias 'nnheader-cancel-function-timers 'cancel-function-timers)
 
+;; When changing this function, consider changing `pop3-accept-process-output'
+;; as well.
 (defun nnheader-accept-process-output (process)
   (accept-process-output
    process

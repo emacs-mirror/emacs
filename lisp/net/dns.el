@@ -29,8 +29,8 @@
   "How many seconds to wait when doing DNS queries.")
 
 (defvar dns-servers nil
-  "Which DNS servers to query.
-If nil, /etc/resolv.conf will be consulted.")
+  "List of DNS servers to query.
+If nil, /etc/resolv.conf and nslookup will be consulted.")
 
 ;;; Internal code:
 
@@ -298,14 +298,24 @@ If TCP-P, the first two bytes of the package with be the length field."
            (t string)))
       (goto-char point))))
 
-(defun dns-parse-resolv-conf ()
-  (when (file-exists-p "/etc/resolv.conf")
-    (with-temp-buffer
-      (insert-file-contents "/etc/resolv.conf")
-      (goto-char (point-min))
-      (while (re-search-forward "^nameserver[\t ]+\\([^ \t\n]+\\)" nil t)
-	(push (match-string 1) dns-servers))
-      (setq dns-servers (nreverse dns-servers)))))
+(defun dns-set-servers ()
+  "Set `dns-servers' to a list of DNS servers or nil if none are found.
+Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
+  (or (when (file-exists-p "/etc/resolv.conf")
+	(setq dns-servers nil)
+	(with-temp-buffer
+	  (insert-file-contents "/etc/resolv.conf")
+	  (goto-char (point-min))
+	  (while (re-search-forward "^nameserver[\t ]+\\([^ \t\n]+\\)" nil t)
+	    (push (match-string 1) dns-servers))
+	  (setq dns-servers (nreverse dns-servers))))
+      (when (executable-find "nslookup")
+	(with-temp-buffer
+	  (call-process "nslookup" nil t nil "localhost")
+	  (goto-char (point-min))
+	  (re-search-forward
+	   "^Address:[ \t]*\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\)" nil t)
+	  (setq dns-servers (list (match-string 1)))))))
 
 (defun dns-read-txt (string)
   (if (> (length string) 1)
@@ -351,23 +361,26 @@ If TCP-P, the first two bytes of the package with be the length field."
 
 (defvar dns-cache (make-vector 4096 0))
 
-(defun query-dns-cached (name &optional type fullp reversep)
+(defun dns-query-cached (name &optional type fullp reversep)
   (let* ((key (format "%s:%s:%s:%s" name type fullp reversep))
 	 (sym (intern-soft key dns-cache)))
     (if (and sym
 	     (boundp sym))
 	(symbol-value sym)
-      (let ((result (query-dns name type fullp reversep)))
+      (let ((result (dns-query name type fullp reversep)))
 	(set (intern key dns-cache) result)
 	result))))
 
-(defun query-dns (name &optional type fullp reversep)
+;; The old names `query-dns' and `query-dns-cached' weren't used in Emacs 23
+;; yet, so no alias are provided.  --rsteib
+
+(defun dns-query (name &optional type fullp reversep)
   "Query a DNS server for NAME of TYPE.
 If FULLP, return the entire record returned.
 If REVERSEP, look up an IP address."
   (setq type (or type 'A))
   (unless dns-servers
-    (dns-parse-resolv-conf))
+    (dns-set-servers))
 
   (when reversep
     (setq name (concat

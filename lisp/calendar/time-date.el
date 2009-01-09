@@ -39,6 +39,9 @@
 
 ;;; Code:
 
+;; Only necessary for `declare' when compiling Gnus with Emacs 21.
+(eval-when-compile (require 'cl))
+
 (defmacro with-decoded-time-value (varlist &rest body)
   "Decode a time value and bind it according to VARLIST, then eval BODY.
 
@@ -290,6 +293,10 @@ This function does not work for SECONDS greater than `most-positive-fixnum'."
       (setq start (match-end 0)
             spec (match-string 1 string))
       (unless (string-equal spec "%")
+	;; `assoc-string' is not available in Emacs 21.  So when compiling
+	;; Gnus (`time-date.el' is part of Gnus) with Emacs 21, we get a
+	;; warning here.  But `format-seconds' is not used anywhere in Gnus so
+	;; it's not a real problem. --rsteib
         (or (setq match (assoc-string spec units t))
             (error "Bad format specifier: `%s'" spec))
         (if (assoc-string spec usedunits t)

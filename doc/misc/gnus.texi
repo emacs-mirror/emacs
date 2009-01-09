@@ -9,8 +9,8 @@
 @documentencoding ISO-8859-1
 
 @copying
-Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1623,7 +1623,7 @@ times you start Gnus.
 
 @item gnus-before-startup-hook
 @vindex gnus-before-startup-hook
-A hook run after starting up Gnus successfully.
+A hook called as the first thing when Gnus is started.
 
 @item gnus-startup-hook
 @vindex gnus-startup-hook
@@ -3156,7 +3156,12 @@ that group.  @code{gnus-show-threads} will be made into a local variable
 in the summary buffer you enter, and the form @code{nil} will be
 @code{eval}ed there.
 
-Note that this feature sets the variable locally to the summary buffer.
+Note that this feature sets the variable locally to the summary buffer
+if and only if @var{variable} has been bound as a variable.  Otherwise,
+only evaluating the form will take place.  So, you may want to bind the
+variable in advance using @code{defvar} or other if the result of the
+form needs to be set to it.
+
 But some variables are evaluated in the article buffer, or in the
 message buffer (of a reply or followup or otherwise newly created
 message).  As a workaround, it might help to add the variable in
@@ -3184,9 +3189,9 @@ into the group parameters for the group.
 
 This can also be used as a group-specific hook function.  If you want to
 hear a beep when you enter a group, you could put something like
-@code{(dummy-variable (ding))} in the parameters of that group.
-@code{dummy-variable} will be set to the (meaningless) result of the
-@code{(ding)} form.
+@code{(dummy-variable (ding))} in the parameters of that group.  If
+@code{dummy-variable} has been bound (see above), it will be set to the
+(meaningless) result of the @code{(ding)} form.
 
 Alternatively, since the VARIABLE becomes local to the group, this
 pattern can be used to temporarily change a hook.  For example, if the
@@ -6233,6 +6238,7 @@ given a prefix, fetch the current article, but don't run any of the
 article treatment functions.  This will give you a ``raw'' article, just
 the way it came from the server.
 
+@cindex charset, view article with different charset
 If given a numerical prefix, you can do semi-manual charset stuff.
 @kbd{C-u 0 g cn-gb-2312 RET} will decode the message as if it were
 encoded in the @code{cn-gb-2312} charset.  If you have
@@ -22464,9 +22470,10 @@ score files.  If they are ``regular'', you can use
 the @file{gnus-kill-to-score.el} package; if not, you'll have to do it
 by hand.
 
-The kill to score conversion package isn't included in Gnus by default.
-You can fetch it from
-@uref{http://www.stud.ifi.uio.no/~larsi/ding-various/gnus-kill-to-score.el}.
+The kill to score conversion package isn't included in Emacs by default.
+You can fetch it from the contrib directory of the Gnus distribution or
+from
+@uref{http://heim.ifi.uio.no/~larsi/ding-various/gnus-kill-to-score.el}.
 
 If your old kill files are very complex---if they contain more
 non-@code{gnus-kill} forms than not, you'll have to convert them by

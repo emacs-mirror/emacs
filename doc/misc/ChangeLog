@@ -1,3 +1,18 @@
+2009-01-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Group Parameters): Add note for local variables.
+
+2009-01-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Converting Kill Files): Fix URL.  Include
+	gnus-kill-to-score.el in contrib directory.
+
+2009-01-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Startup Variables): Fix gnus-before-startup-hook.
+	Reported by Leo <sdl.web@gmail.com>.  (Bug#1660)
+	(Paging the Article): Add index entry.
+
 2009-01-03  Stephen Leake  <stephen_leake@member.fsf.org>
 
 	* ada-mode.texi (Examples): Delete redundant text.

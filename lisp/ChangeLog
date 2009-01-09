@@ -1,3 +1,47 @@
+2009-01-09  Dave Love  <fx@gnu.org>
+
+	* calendar/time-date.el: Require cl for `declare'.
+
+2009-01-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* calendar/time-date.el (format-seconds): Explain `assoc-string'.
+	Suggested by Dave Love.
+
+2009-01-09  Dave Love  <fx@gnu.org>
+
+	* net/imap.el (imap-string-to-integer): Fix typo.
+	(imap-fetch-safe): New function.
+	(imap-message-copyuid-1, imap-message-appenduid-1): Use it.
+
+	* net/imap.el (imap-process-connection-type, imap-debug, imap-open):
+	(imap-parse-greeting): Fix doc strings.
+	(imap-tls-open, imap-search, imap-message-appenduid-1): Add FIXMEs.
+	(imap-parse-flag-list): Make messages unique.
+	(imap-parse-body): Fix comments.  Add comment on Exchange 2007.
+
+	* net/imap.el (imap-message-appenduid-1): Fix typo in imap-fetch-safe
+	call.
+
+	* net/imap.el: Fix author email.  Doc fixes.
+	(imap-parse-body): Work around assertion failure in bogus Exchange 2007
+	reply.
+
+2009-01-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* net/dns.el (dns-set-servers): Check "Address".  Fix typo.
+
+2009-01-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* net/dns.el (dns-set-servers): Renamed from dns-parse-resolv-conf.
+	Call nslookup if resolv.conf isn't available.
+	(dns-query): Rename from query-dns.
+	(dns-query-cached): Rename from query-dns-cached.
+
+2009-01-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* net/imap.el (imap-enable-exchange-bug-workaround): Explain
+	auto-detection in the doc string.
+
 2009-01-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/ispell.el (ispell-check-minver, ispell-last-program-name)

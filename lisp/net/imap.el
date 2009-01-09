@@ -3,7 +3,7 @@
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
-;; Author: Simon Josefsson <jas@pdc.kth.se>
+;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; imap.el is a elisp library providing an interface for talking to
+;; imap.el is an elisp library providing an interface for talking to
 ;; IMAP servers.
 ;;
 ;; imap.el is roughly divided in two parts, one that parses IMAP
@@ -72,25 +72,25 @@
 ;; explanatory for someone that know IMAP.  All functions have
 ;; additional documentation on how to invoke them.
 ;;
-;; imap.el support RFC1730/2060/RFC3501 (IMAP4/IMAP4rev1), implemented
+;; imap.el supports RFC1730/2060/RFC3501 (IMAP4/IMAP4rev1).  The implemented
 ;; IMAP extensions are RFC2195 (CRAM-MD5), RFC2086 (ACL), RFC2342
 ;; (NAMESPACE), RFC2359 (UIDPLUS), the IMAP-part of RFC2595 (STARTTLS,
 ;; LOGINDISABLED) (with use of external library starttls.el and
-;; program starttls), and the GSSAPI / kerberos V4 sections of RFC1731
-;; (with use of external program `imtest'), RFC2971 (ID).  It also
+;; program starttls), and the GSSAPI / Kerberos V4 sections of RFC1731
+;; (with use of external program `imtest'), and RFC2971 (ID).  It also
 ;; takes advantage of the UNSELECT extension in Cyrus IMAPD.
 ;;
 ;; Without the work of John McClary Prevost and Jim Radford this library
 ;; would not have seen the light of day.  Many thanks.
 ;;
-;; This is a transcript of short interactive session for demonstration
+;; This is a transcript of a short interactive session for demonstration
 ;; purposes.
 ;;
 ;; (imap-open "my.mail.server")
 ;; => " *imap* my.mail.server:0"
 ;;
 ;; The rest are invoked with current buffer as the buffer returned by
-;; `imap-open'.  It is possible to do all without this, but it would
+;; `imap-open'.  It is possible to do it all without this, but it would
 ;; look ugly here since `buffer' is always the last argument for all
 ;; imap.el API functions.
 ;;
@@ -121,6 +121,7 @@
 ;; Todo:
 ;;
 ;; o Parse UIDs as strings? We need to overcome the 28 bit limit somehow.
+;;   Use IEEE floats (which are effectively exact)?  -- fx
 ;; o Don't use `read' at all (important places already fixed)
 ;; o Accept list of articles instead of message set string in most
 ;;   imap-message-* functions.
@@ -131,7 +132,7 @@
 ;;  - 19991218 added starttls/digest-md5 patch,
 ;;             by Daiki Ueno <ueno@ueda.info.waseda.ac.jp>
 ;;             NB! you need SLIM for starttls.el and digest-md5.el
-;;  - 19991023 commited to pgnus
+;;  - 19991023 committed to pgnus
 ;;
 
 ;;; Code:
@@ -204,19 +205,19 @@ until a successful connection is made."
 Within a string, %s is replaced with the server address, %p with port
 number on server, %g with `imap-shell-host', and %l with
 `imap-default-user'.  The program should read IMAP commands from stdin
-and write IMAP response to stdout. Each entry in the list is tried
+and write IMAP response to stdout.  Each entry in the list is tried
 until a successful connection is made."
   :group 'imap
   :type '(repeat string))
 
 (defcustom imap-process-connection-type nil
   "*Value for `process-connection-type' to use for Kerberos4, GSSAPI and SSL.
-The `process-connection-type' variable control type of device
+The `process-connection-type' variable controls the type of device
 used to communicate with subprocesses.  Values are nil to use a
 pipe, or t or `pty' to use a pty.  The value has no effect if the
 system has no ptys or if all ptys are busy: then a pipe is used
-in any case.  The value takes effect when a IMAP server is
-opened, changing it after that has no effect."
+in any case.  The value takes effect when an IMAP server is
+opened; changing it after that has no effect."
   :version "22.1"
   :group 'imap
   :type 'boolean)
@@ -230,20 +231,28 @@ encoded mailboxes which doesn't translate into ISO-8859-1."
   :type 'boolean)
 
 (defcustom imap-log nil
-  "If non-nil, a imap session trace is placed in *imap-log* buffer.
+  "If non-nil, an imap session trace is placed in `imap-log-buffer'.
 Note that username, passwords and other privacy sensitive
-information (such as e-mail) may be stored in the *imap-log*
-buffer.  It is not written to disk, however.  Do not enable this
-variable unless you are comfortable with that."
+information (such as e-mail) may be stored in the buffer.
+It is not written to disk, however.  Do not enable this
+variable unless you are comfortable with that.
+
+See also `imap-debug'."
   :group 'imap
   :type 'boolean)
 
 (defcustom imap-debug nil
-  "If non-nil, random debug spews are placed in *imap-debug* buffer.
+  "If non-nil, trace imap- functions into `imap-debug-buffer'.
+Uses `trace-function-background', so you can turn it off with,
+say, `untrace-all'.
+
 Note that username, passwords and other privacy sensitive
-information (such as e-mail) may be stored in the *imap-debug*
-buffer.  It is not written to disk, however.  Do not enable this
-variable unless you are comfortable with that."
+information (such as e-mail) may be stored in the buffer.
+It is not written to disk, however.  Do not enable this
+variable unless you are comfortable with that.
+
+This variable only takes effect when loading the `imap' library.
+See also `imap-log'."
   :group 'imap
   :type 'boolean)
 
@@ -268,7 +277,7 @@ Shorter values mean quicker response, but is more CPU intensive."
   :group 'imap)
 
 (defcustom imap-store-password nil
-  "If non-nil, store session password without promting."
+  "If non-nil, store session password without prompting."
   :group 'imap
   :type 'boolean)
 
@@ -393,7 +402,7 @@ and `examine'.")
   "Obarray with mailbox data.")
 
 (defvar imap-mailbox-prime 997
-  "Length of imap-mailbox-data.")
+  "Length of `imap-mailbox-data'.")
 
 (defvar imap-current-message nil
   "Current message number.")
@@ -402,7 +411,7 @@ and `examine'.")
   "Obarray with message data.")
 
 (defvar imap-message-prime 997
-  "Length of imap-message-data.")
+  "Length of `imap-message-data'.")
 
 (defvar imap-capability nil
   "Capability for server.")
@@ -440,17 +449,23 @@ second the status (OK, NO, BAD etc) of the command.")
 
 (defvar imap-enable-exchange-bug-workaround nil
   "Send FETCH UID commands as *:* instead of *.
-Enabling this appears to be required for some servers (e.g.,
-Microsoft Exchange) which otherwise would trigger a response 'BAD
-The specified message set is invalid.'.")
+
+When non-nil, use an alternative UIDS form.  Enabling appears to
+be required for some servers (e.g., Microsoft Exchange 2007)
+which otherwise would trigger a response 'BAD The specified
+message set is invalid.'.  We don't unconditionally use this
+form, since this is said to be significantly inefficient.
+
+This variable is set to t automatically per server if the
+canonical form fails.")
 
 
 ;; Utility functions:
 
 (defun imap-remassoc (key alist)
-  "Delete by side effect any elements of LIST whose car is `equal' to KEY.
-The modified LIST is returned.  If the first member
-of LIST has a car that is `equal' to KEY, there is no way to remove it
+  "Delete by side effect any elements of ALIST whose car is `equal' to KEY.
+The modified ALIST is returned.  If the first member
+of ALIST has a car that is `equal' to KEY, there is no way to remove it
 by side effect; therefore, write `(setq foo (remassoc key foo))' to be
 sure of changing the value of `foo'."
   (when alist
@@ -650,7 +665,7 @@ sure of changing the value of `foo'."
   nil)
 
 (defun imap-ssl-open (name buffer server port)
-  "Open a SSL connection to server."
+  "Open an SSL connection to SERVER."
   (let ((cmds (if (listp imap-ssl-program) imap-ssl-program
 		(list imap-ssl-program)))
 	cmd done)
@@ -711,6 +726,13 @@ sure of changing the value of `foo'."
 	 (process (open-tls-stream name buffer server port)))
     (when process
       (while (and (memq (process-status process) '(open run))
+		  ;; FIXME: Per the "blue moon" comment, the process/buffer
+		  ;; handling here, and elsewhere in functions which open
+		  ;; streams, looks confused.  Obviously we can change buffers
+		  ;; if a different process handler kicks in from
+		  ;; `accept-process-output' or `sit-for' below, and TRT seems
+		  ;; to be to `save-buffer' around those calls.  (I wonder why
+		  ;; `sit-for' is used with a non-zero wait.)  -- fx
 		  (set-buffer buffer) ;; XXX "blue moon" nntp.el bug
 		  (goto-char (point-max))
 		  (forward-line -1)
@@ -1081,7 +1103,7 @@ Returns t if login was successful, nil otherwise."
 	   imap-process))))
 
 (defun imap-open (server &optional port stream auth buffer)
-  "Open a IMAP connection to host SERVER at PORT returning a buffer.
+  "Open an IMAP connection to host SERVER at PORT returning a buffer.
 If PORT is unspecified, a default value is used (143 except
 for SSL which use 993).
 STREAM indicates the stream to use, see `imap-streams' for available
@@ -1402,7 +1424,7 @@ If EXAMINE is non-nil, do a read-only select."
 
 (defun imap-mailbox-expunge (&optional asynch buffer)
   "Expunge articles in current folder in BUFFER.
-If ASYNCH, do not wait for succesful completion of the command.
+If ASYNCH, do not wait for successful completion of the command.
 If BUFFER is nil the current buffer is assumed."
   (with-current-buffer (or buffer (current-buffer))
     (when (and imap-current-mailbox (not (eq imap-state 'examine)))
@@ -1412,7 +1434,7 @@ If BUFFER is nil the current buffer is assumed."
 
 (defun imap-mailbox-close (&optional asynch buffer)
   "Expunge articles and close current folder in BUFFER.
-If ASYNCH, do not wait for succesful completion of the command.
+If ASYNCH, do not wait for successful completion of the command.
 If BUFFER is nil the current buffer is assumed."
   (with-current-buffer (or buffer (current-buffer))
     (when imap-current-mailbox
@@ -1510,7 +1532,7 @@ passed to list command."
 	(nreverse out)))))
 
 (defun imap-mailbox-subscribe (mailbox &optional buffer)
-  "Send the SUBSCRIBE command on the mailbox to server in BUFFER.
+  "Send the SUBSCRIBE command on the MAILBOX to server in BUFFER.
 Returns non-nil if successful."
   (with-current-buffer (or buffer (current-buffer))
     (imap-ok-p (imap-send-command-wait (concat "SUBSCRIBE \""
@@ -1518,7 +1540,7 @@ Returns non-nil if successful."
 					       "\"")))))
 
 (defun imap-mailbox-unsubscribe (mailbox &optional buffer)
-  "Send the SUBSCRIBE command on the mailbox to server in BUFFER.
+  "Send the SUBSCRIBE command on the MAILBOX to server in BUFFER.
 Returns non-nil if successful."
   (with-current-buffer (or buffer (current-buffer))
     (imap-ok-p (imap-send-command-wait (concat "UNSUBSCRIBE "
@@ -1528,8 +1550,8 @@ Returns non-nil if successful."
 (defun imap-mailbox-status (mailbox items &optional buffer)
   "Get status items ITEM in MAILBOX from server in BUFFER.
 ITEMS can be a symbol or a list of symbols, valid symbols are one of
-the STATUS data items -- ie 'messages, 'recent, 'uidnext, 'uidvalidity
-or 'unseen.  If ITEMS is a list of symbols, a list of values is
+the STATUS data items -- i.e. `messages', `recent', `uidnext', `uidvalidity',
+or `unseen'.  If ITEMS is a list of symbols, a list of values is
 returned, if ITEMS is a symbol only its value is returned."
   (with-current-buffer (or buffer (current-buffer))
     (when (imap-ok-p
@@ -1550,7 +1572,7 @@ returned, if ITEMS is a symbol only its value is returned."
 (defun imap-mailbox-status-asynch (mailbox items &optional buffer)
   "Send status item request ITEM on MAILBOX to server in BUFFER.
 ITEMS can be a symbol or a list of symbols, valid symbols are one of
-the STATUS data items -- ie 'messages, 'recent, 'uidnext, 'uidvalidity
+the STATUS data items -- i.e. 'messages, 'recent, 'uidnext, 'uidvalidity
 or 'unseen.  The IMAP command tag is returned."
   (with-current-buffer (or buffer (current-buffer))
     (imap-send-command (list "STATUS \""
@@ -1563,7 +1585,7 @@ or 'unseen.  The IMAP command tag is returned."
 					(list items))))))))
 
 (defun imap-mailbox-acl-get (&optional mailbox buffer)
-  "Get ACL on mailbox from server in BUFFER."
+  "Get ACL on MAILBOX from server in BUFFER."
   (let ((mailbox (imap-utf7-encode mailbox)))
     (with-current-buffer (or buffer (current-buffer))
       (when (imap-ok-p
@@ -1585,7 +1607,7 @@ or 'unseen.  The IMAP command tag is returned."
 				     rights))))))
 
 (defun imap-mailbox-acl-delete (identifier &optional mailbox buffer)
-  "Removes any <identifier,rights> pair for IDENTIFIER in MAILBOX from server in BUFFER."
+  "Remove any <identifier,rights> pair for IDENTIFIER in MAILBOX from server in BUFFER."
   (let ((mailbox (imap-utf7-encode mailbox)))
     (with-current-buffer (or buffer (current-buffer))
       (imap-ok-p
@@ -1720,6 +1742,7 @@ is non-nil return these properties."
   `(with-current-buffer (or ,buffer (current-buffer))
      (imap-message-get ,uid 'BODY)))
 
+;; FIXME: Should this try to use CHARSET?  -- fx
 (defun imap-search (predicate &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
     (imap-mailbox-put 'search 'dummy)
@@ -1766,8 +1789,37 @@ is non-nil return these properties."
   (let ((number (string-to-number string base)))
     (if (> number most-positive-fixnum)
 	(error
-	 (format "String %s cannot be converted to a lisp integer" number))
+	 (format "String %s cannot be converted to a Lisp integer" number))
       number)))
+
+(defun imap-fetch-safe (uids props &optional receive nouidfetch buffer)
+  "Like `imap-fetch', but DTRT with Exchange 2007 bug.
+However, UIDS here is a cons, where the car is the canonical form
+of the UIDS specification, and the cdr is the one which works with
+Exchange 2007 or, potentially, other buggy servers.
+See `imap-enable-exchange-bug-workaround'."
+  ;; We don't unconditionally use the alternative (valid) form, since
+  ;; this is said to be significantly inefficient.  The first time we
+  ;; get here for a given, we'll try the canonical form.  If we get
+  ;; the known error from the buggy server, set the flag
+  ;; buffer-locally (to account for connections to multiple servers),
+  ;; then re-try with the alternative UIDS spec.
+  (condition-case data
+      (imap-fetch (if imap-enable-exchange-bug-workaround
+		      (cdr uids)
+		    (car uids))
+		  props receive nouidfetch buffer)
+    (error
+     (if (and (not imap-enable-exchange-bug-workaround)
+	      (string-match
+	       "The specified message set is invalid"
+	       (cadr data)))
+	 (with-current-buffer (or buffer (current-buffer))
+	   (set (make-local-variable
+		 'imap-enable-exchange-bug-workaround)
+		t)
+	   (imap-fetch (cdr uids) props receive nouidfetch))
+       (signal (car data) (cdr data))))))
 
 (defun imap-message-copyuid-1 (mailbox)
   (if (imap-capability 'UIDPLUS)
@@ -1778,8 +1830,7 @@ is non-nil return these properties."
 	  (imap-message-data (make-vector 2 0)))
       (when (imap-mailbox-examine-1 mailbox)
 	(prog1
-	    (and (imap-fetch
-		  (if imap-enable-exchange-bug-workaround "*:*" "*") "UID")
+	    (and (imap-fetch-safe '("*" . "*:*") "UID")
 		 (list (imap-mailbox-get-1 'uidvalidity mailbox)
 		       (apply 'max (imap-message-map
 				    (lambda (uid prop) uid) 'UID))))
@@ -1793,11 +1844,11 @@ is non-nil return these properties."
 
 (defun imap-message-copy (articles mailbox
 				   &optional dont-create no-copyuid buffer)
-  "Copy ARTICLES (a string message set) to MAILBOX on server in
-BUFFER, creating mailbox if it doesn't exist.  If dont-create is
-non-nil, it will not create a mailbox.  On success, return a list with
+  "Copy ARTICLES to MAILBOX on server in BUFFER.
+ARTICLES is a string message set.  Create mailbox if it doesn't exist,
+unless DONT-CREATE is non-nil.  On success, return a list with
 the UIDVALIDITY of the mailbox the article(s) was copied to as the
-first element, rest of list contain the saved articles' UIDs."
+first element.  The rest of list contains the saved articles' UIDs."
   (when articles
     (with-current-buffer (or buffer (current-buffer))
       (let ((mailbox (imap-utf7-encode mailbox)))
@@ -1815,6 +1866,8 @@ first element, rest of list contain the saved articles' UIDs."
 	    (or no-copyuid
 		(imap-message-copyuid-1 mailbox)))))))
 
+;; FIXME: Amalgamate with imap-message-copyuid-1, using an extra arg, since it
+;; shares most of the code?  -- fx
 (defun imap-message-appenduid-1 (mailbox)
   (if (imap-capability 'UIDPLUS)
       (imap-mailbox-get-1 'appenduid mailbox)
@@ -1823,8 +1876,7 @@ first element, rest of list contain the saved articles' UIDs."
 	  (imap-message-data (make-vector 2 0)))
       (when (imap-mailbox-examine-1 mailbox)
 	(prog1
-	    (and (imap-fetch
-		  (if imap-enable-exchange-bug-workaround "*:*" "*") "UID")
+	    (and (imap-fetch-safe '("*" . "*:*") "UID")
 		 (list (imap-mailbox-get-1 'uidvalidity mailbox)
 		       (apply 'max (imap-message-map
 				    (lambda (uid prop) uid) 'UID))))
@@ -2201,7 +2253,7 @@ Return nil if no complete line has arrived."
 ;;   resp-cond-bye   = "BYE" SP resp-text
 
 (defun imap-parse-greeting ()
-  "Parse a IMAP greeting."
+  "Parse an IMAP greeting."
   (cond ((looking-at "\\* OK ")
 	 (setq imap-state 'nonauth))
 	((looking-at "\\* PREAUTH ")
@@ -2623,7 +2675,7 @@ Return nil if no complete line has arrived."
 
 (defun imap-parse-flag-list ()
   (let (flag-list start)
-    (assert (eq (char-after) ?\() nil "In imap-parse-flag-list")
+    (assert (eq (char-after) ?\() nil "In imap-parse-flag-list 1")
     (while (and (not (eq (char-after) ?\)))
 		(setq start (progn
 			      (imap-forward)
@@ -2632,7 +2684,7 @@ Return nil if no complete line has arrived."
 			      (point)))
 		(> (skip-chars-forward "^ )" (point-at-eol)) 0))
       (push (buffer-substring start (point)) flag-list))
-    (assert (eq (char-after) ?\)) nil "In imap-parse-flag-list")
+    (assert (eq (char-after) ?\)) nil "In imap-parse-flag-list 2")
     (imap-forward)
     (nreverse flag-list)))
 
@@ -2828,7 +2880,7 @@ Return nil if no complete line has arrived."
 	  (let (subbody)
 	    (while (and (eq (char-after) ?\()
 			(setq subbody (imap-parse-body)))
-	     ;; buggy stalker communigate pro 3.0 insert a SPC between
+	      ;; buggy stalker communigate pro 3.0 inserts a SPC between
 	      ;; parts in multiparts
 	      (when (and (eq (char-after) ?\ )
 			 (eq (char-after (1+ (point))) ?\())
@@ -2861,22 +2913,28 @@ Return nil if no complete line has arrived."
 	(imap-forward)
 	(push (imap-parse-nstring) body) ;; body-fld-desc
 	(imap-forward)
-	;; next `or' for Sun SIMS bug, it regard body-fld-enc as a
-	;; nstring and return nil instead of defaulting back to 7BIT
+	;; Next `or' for Sun SIMS bug.  It regards body-fld-enc as a
+	;; nstring and returns nil instead of defaulting back to 7BIT
 	;; as the standard says.
+	;; Exchange (2007, at least) does this as well.
 	(push (or (imap-parse-nstring) "7BIT") body) ;; body-fld-enc
 	(imap-forward)
-	(push (imap-parse-number) body)	;; body-fld-octets
+	;; Exchange 2007 can return -1, contrary to the spec...
+	(if (eq (char-after) ?-)
+	    (progn
+	      (skip-chars-forward "-0-9")
+	      (push nil body))
+	  (push (imap-parse-number) body)) ;; body-fld-octets
 
-   ;; ok, we're done parsing the required parts, what comes now is one
-	;; of three things:
+	;; Ok, we're done parsing the required parts, what comes now is one of
+	;; three things:
 	;;
 	;; envelope       (then we're parsing body-type-msg)
 	;; body-fld-lines (then we're parsing body-type-text)
 	;; body-ext-1part (then we're parsing body-type-basic)
 	;;
-  ;; the problem is that the two first are in turn optionally followed
-;; by the third.  So we parse the first two here (if there are any)...
+	;; The problem is that the two first are in turn optionally followed
+	;; by the third.  So we parse the first two here (if there are any)...
 
 	(when (eq (char-after) ?\ )
 	  (imap-forward)

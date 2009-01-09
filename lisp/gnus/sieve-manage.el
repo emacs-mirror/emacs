@@ -304,15 +304,14 @@ Returns t if login was successful, nil otherwise."
       (when (memq (process-status process) '(open run))
 	process))))
 
-(defun imap-starttls-p (buffer)
-  ;;  (and (imap-capability 'STARTTLS buffer)
+(defun sieve-manage-starttls-p (buffer)
   (condition-case ()
       (progn
 	(require 'starttls)
 	(call-process "starttls"))
     (error nil)))
 
-(defun imap-starttls-open (name buffer server port)
+(defun sieve-manage-starttls-open (name buffer server port)
   (let* ((port (or port sieve-manage-default-port))
 	 (coding-system-for-read sieve-manage-coding-system-for-read)
 	 (coding-system-for-write sieve-manage-coding-system-for-write)

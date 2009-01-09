@@ -3455,9 +3455,9 @@ display only a single character."
 
 (defun gnus-summary-set-article-display-arrow (pos)
   "Update the overlay arrow to point to line at position POS."
-  (when (and gnus-summary-display-arrow
-	     (boundp 'overlay-arrow-position)
-	     (boundp 'overlay-arrow-string))
+  (when gnus-summary-display-arrow
+    (make-local-variable 'overlay-arrow-position)
+    (make-local-variable 'overlay-arrow-string)
     (save-excursion
       (goto-char pos)
       (beginning-of-line)
@@ -3832,10 +3832,15 @@ This function is intended to be used in
 	   (consp (cdr elem))		; The cdr has to be a list.
 	   (symbolp (car elem))		; Has to be a symbol in there.
 	   (not (memq (car elem) vars))
-	   (ignore-errors		; So we set it.
+	   (ignore-errors
 	     (push (car elem) vars)
-	     (make-local-variable (car elem))
-	     (set (car elem) (eval (nth 1 elem))))))))
+	     ;; Variables like `gnus-show-threads' that are globally
+	     ;; bound, if used as group parameters, need to get to be
+	     ;; buffer-local, whereas just parameters like `gcc-self',
+	     ;; `timestamp', etc. should not be bound as variables.
+	     (if (boundp (car elem))
+		 (set (make-local-variable (car elem)) (eval (nth 1 elem)))
+	       (eval (nth 1 elem))))))))
 
 (defun gnus-summary-read-group (group &optional show-all no-article
 				      kill-buffer no-display backward

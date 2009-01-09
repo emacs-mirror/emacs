@@ -186,7 +186,7 @@ converted to the compressed format."
                                                                (when (eq 0 (string-match
                                                                             (caar days)
                                                                             group))
-                                                                 (throw 'found (cadar days)))
+                                                                 (throw 'found (cadr (car days))))
                                                                (setq days (cdr days)))
                                                              nil)))
                                                  (when day

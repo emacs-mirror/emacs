@@ -117,17 +117,33 @@ Reports is as ham when HAM is set."
   "Report an article as ham by resending via email."
   (spam-report-resend articles t))
 
+(defconst spam-report-gmane-max-requests 4
+  "Number of reports to send before waiting for a response.")
+
+(defvar spam-report-gmane-wait nil
+  "When non-nil, wait until we get a server response.
+This makes sure we don't DOS the host, if many reports are
+submitted at once.  Internal variable.")
+
 (defun spam-report-gmane-ham (&rest articles)
   "Report ARTICLES as ham (unregister) through Gmane."
   (interactive (gnus-summary-work-articles current-prefix-arg))
-  (dolist (article articles)
-    (spam-report-gmane-internal t article)))
+  (let ((count 0))
+    (dolist (article articles)
+      (setq count (1+ count))
+      (let ((spam-report-gmane-wait
+	     (zerop (% count spam-report-gmane-max-requests))))
+	(spam-report-gmane-internal t article)))))
 
 (defun spam-report-gmane-spam (&rest articles)
   "Report ARTICLES as spam through Gmane."
   (interactive (gnus-summary-work-articles current-prefix-arg))
-  (dolist (article articles)
-    (spam-report-gmane-internal nil article)))
+  (let ((count 0))
+    (dolist (article articles)
+      (setq count (1+ count))
+      (let ((spam-report-gmane-wait
+	     (zerop (% count spam-report-gmane-max-requests))))
+	(spam-report-gmane-internal nil article)))))
 
 ;; `spam-report-gmane' was an interactive entry point, so we should provide an
 ;; alias.
@@ -245,10 +261,14 @@ This is initialized based on `user-mail-address'."
        tcp-connection
        (format "GET %s HTTP/1.1\nUser-Agent: %s\nHost: %s\n\n"
 	       report spam-report-user-agent host))
-      ;; Wait until we get something so we don't DOS the host. 
-      (while (and (memq (process-status tcp-connection) '(open run))
-		  (zerop (buffer-size)))
-	(accept-process-output tcp-connection)))))
+      ;; Wait until we get something so we don't DOS the host, if
+      ;; `spam-report-gmane-wait' is let-bound to t.
+      (when spam-report-gmane-wait
+	(gnus-message 7 "Waiting for response from %s..." host)
+	(while (and (memq (process-status tcp-connection) '(open run))
+		    (zerop (buffer-size)))
+	  (accept-process-output tcp-connection))
+	(gnus-message 7 "Waiting for response from %s... done" host)))))
 
 ;;;###autoload
 (defun spam-report-process-queue (&optional file keep)
@@ -278,7 +298,13 @@ symbol `ask', query before flushing the queue file."
     (while (and (not (eobp))
 		(re-search-forward
 		 "http://\\([^/]+\\)\\(/.*\\) *$" (point-at-eol) t))
-      (funcall spam-report-url-ping-function (match-string 1) (match-string 2))
+      (let ((spam-report-gmane-wait
+	     (zerop (% (mm-line-number-at-pos)
+		       spam-report-gmane-max-requests))))
+	(gnus-message 6 "Reporting %s%s..."
+		      (match-string 1) (match-string 2))
+	(funcall spam-report-url-ping-function
+		 (match-string 1) (match-string 2)))
       (forward-line 1))
     (if (or (eq keep nil)
 	    (and (eq keep 'ask)

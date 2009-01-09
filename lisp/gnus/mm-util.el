@@ -40,6 +40,10 @@
 
 (defvar mm-mime-mule-charset-alist )
 
+;; Emulate functions that are not available in every (X)Emacs version.
+;; The name of a function is prefixed with mm-, like `mm-char-int' for
+;; `char-int' that is a native XEmacs function, not available in Emacs.
+;; Gnus programs all should use mm- functions, not the original ones.
 (eval-and-compile
   (mapc
    (lambda (elem)
@@ -47,11 +51,19 @@
        (if (fboundp (car elem))
 	   (defalias nfunc (car elem))
 	 (defalias nfunc (cdr elem)))))
-   `((coding-system-list . ignore)
+   `(;; `coding-system-list' is not available in XEmacs 21.4 built
+     ;; without the `file-coding' feature.
+     (coding-system-list . ignore)
+     ;; `char-int' is an XEmacs function, not available in Emacs.
      (char-int . identity)
+     ;; `coding-system-equal' is an Emacs function, not available in XEmacs.
      (coding-system-equal . equal)
+     ;; `annotationp' is an XEmacs function, not available in Emacs.
      (annotationp . ignore)
+     ;; `set-buffer-file-coding-system' is not available in XEmacs 21.4
+     ;; built without the `file-coding' feature.
      (set-buffer-file-coding-system . ignore)
+     ;; `read-charset' is an Emacs function, not available in XEmacs.
      (read-charset
       . ,(lambda (prompt)
 	   "Return a charset."
@@ -61,6 +73,7 @@
 	     (mapcar (lambda (e) (list (symbol-name (car e))))
 		     mm-mime-mule-charset-alist)
 	     nil t))))
+     ;; `subst-char-in-string' is not available in XEmacs 21.4.
      (subst-char-in-string
       . ,(lambda (from to string &optional inplace)
 	   ;; stolen (and renamed) from nnheader.el
@@ -75,11 +88,14 @@
 		 (aset string idx to))
 	       (setq idx (1+ idx)))
 	     string)))
+     ;; `replace-in-string' is an XEmacs function, not available in Emacs.
      (replace-in-string
       . ,(lambda (string regexp rep &optional literal)
 	   "See `replace-regexp-in-string', only the order of args differs."
 	   (replace-regexp-in-string regexp rep string nil literal)))
+     ;; `string-as-unibyte' is an Emacs function, not available in XEmacs.
      (string-as-unibyte . identity)
+     ;; `string-make-unibyte' is an Emacs function, not available in XEmacs.
      (string-make-unibyte . identity)
      ;; string-as-multibyte often doesn't really do what you think it does.
      ;; Example:
@@ -99,11 +115,18 @@
      ;; (string-as-multibyte s)   ~= (decode-coding-string s 'emacs-mule)
      ;; (string-to-multibyte s)   ~= (decode-coding-string s 'binary)
      ;; (string-make-multibyte s) ~= (decode-coding-string s locale-coding-system)
+     ;; `string-as-multibyte' is an Emacs function, not available in XEmacs.
      (string-as-multibyte . identity)
+     ;; `multibyte-string-p' is an Emacs function, not available in XEmacs.
      (multibyte-string-p . ignore)
+     ;; `insert-byte' is available only in Emacs 23.1 or greater.
      (insert-byte . insert-char)
+     ;; `multibyte-char-to-unibyte' is an Emacs function, not available
+     ;; in XEmacs.
      (multibyte-char-to-unibyte . identity)
+     ;; `set-buffer-multibyte' is an Emacs function, not available in XEmacs.
      (set-buffer-multibyte . ignore)
+     ;; `special-display-p' is an Emacs function, not available in XEmacs.
      (special-display-p
       . ,(lambda (buffer-name)
 	   "Returns non-nil if a buffer named BUFFER-NAME gets a special frame."
@@ -119,6 +142,7 @@
 			     (stringp (car elem))
 			     (string-match (car elem) buffer-name)
 			     (throw 'return (cdr elem)))))))))
+     ;; `substring-no-properties' is available only in Emacs 22.1 or greater.
      (substring-no-properties
       . ,(lambda (string &optional from to)
 	   "Return a substring of STRING, without text properties.
@@ -130,12 +154,30 @@ If FROM or TO is negative, it counts from the end.
 With one argument, just copy STRING without its properties."
 	   (setq string (substring string (or from 0) to))
 	   (set-text-properties 0 (length string) nil string)
-	   string)))))
+	   string))
+     ;; `line-number-at-pos' is available only in Emacs 22.1 or greater
+     ;; and XEmacs 21.5.
+     (line-number-at-pos
+      . ,(lambda (&optional pos)
+	   "Return (narrowed) buffer line number at position POS.
+If POS is nil, use current buffer location.
+Counting starts at (point-min), so the value refers
+to the contents of the accessible portion of the buffer."
+	   (let ((opoint (or pos (point))) start)
+	     (save-excursion
+	       (goto-char (point-min))
+	       (setq start (point))
+	       (goto-char opoint)
+	       (forward-line 0)
+	       (1+ (count-lines start (point))))))))))
 
+;; `decode-coding-string', `encode-coding-string', `decode-coding-region'
+;; and `encode-coding-region' are available in Emacs and XEmacs built with
+;; the `file-coding' feature, but the XEmacs versions treat nil, that is
+;; given as the `coding-system' argument, as the `binary' coding system.
 (eval-and-compile
   (if (featurep 'xemacs)
       (if (featurep 'file-coding)
-	  ;; Don't modify string if CODING-SYSTEM is nil.
 	  (progn
 	    (defun mm-decode-coding-string (str coding-system)
 	      (if coding-system
@@ -160,6 +202,7 @@ With one argument, just copy STRING without its properties."
     (defalias 'mm-decode-coding-region 'decode-coding-region)
     (defalias 'mm-encode-coding-region 'encode-coding-region)))
 
+;; `string-to-multibyte' is available only in Emacs 22.1 or greater.
 (defalias 'mm-string-to-multibyte
   (cond
    ((featurep 'xemacs)
@@ -173,12 +216,51 @@ With one argument, just copy STRING without its properties."
        (lambda (ch) (mm-string-as-multibyte (char-to-string ch)))
        string "")))))
 
+;; `char-or-char-int-p' is an XEmacs function, not available in Emacs.
 (eval-and-compile
   (defalias 'mm-char-or-char-int-p
     (cond
      ((fboundp 'char-or-char-int-p) 'char-or-char-int-p)
      ((fboundp 'char-valid-p) 'char-valid-p)
      (t 'identity))))
+
+;; `ucs-to-char' is a function that Mule-UCS provides.
+(if (featurep 'xemacs)
+    (cond ((and (fboundp 'unicode-to-char) ;; XEmacs 21.5.
+		(subrp (symbol-function 'unicode-to-char)))
+	   (if (featurep 'mule)
+	       (defalias 'mm-ucs-to-char 'unicode-to-char)
+	     (defun mm-ucs-to-char (codepoint)
+	       "Convert Unicode codepoint to character."
+	       (or (unicode-to-char codepoint) ?#))))
+	  ((featurep 'mule)
+	   (defun mm-ucs-to-char (codepoint)
+	     "Convert Unicode codepoint to character."
+	     (if (fboundp 'ucs-to-char) ;; Mule-UCS is loaded.
+		 (progn
+		   (defalias 'mm-ucs-to-char
+		     (lambda (codepoint)
+		       "Convert Unicode codepoint to character."
+		       (condition-case nil
+			   (or (ucs-to-char codepoint) ?#)
+			 (error ?#))))
+		   (mm-ucs-to-char codepoint))
+	       (condition-case nil
+		   (or (int-to-char codepoint) ?#)
+		 (error ?#)))))
+	  (t
+	   (defun mm-ucs-to-char (codepoint)
+	     "Convert Unicode codepoint to character."
+	     (condition-case nil
+		 (or (int-to-char codepoint) ?#)
+	       (error ?#)))))
+  (if (let ((char (make-char 'japanese-jisx0208 36 34)))
+	(eq char (decode-char 'ucs char)))
+      ;; Emacs 23.
+      (defalias 'mm-ucs-to-char 'identity)
+    (defun mm-ucs-to-char (codepoint)
+      "Convert Unicode codepoint to character."
+      (or (decode-char 'ucs codepoint) ?#))))
 
 ;; Fixme:  This seems always to be used to read a MIME charset, so it
 ;; should be re-named and fixed (in Emacs) to offer completion only on

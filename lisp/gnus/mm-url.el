@@ -1,6 +1,7 @@
 ;;; mm-url.el --- a wrapper of url functions/commands for Gnus
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 
@@ -366,10 +367,10 @@ If FOLLOW-REFRESH is non-nil, redirect refresh url in META."
   (goto-char (point-min))
   (while (re-search-forward "&\\(#[0-9]+\\|[a-z]+[0-9]*\\);" nil t)
     (let ((elem (if (eq (aref (match-string 1) 0) ?\#)
-			(let ((c
-			       (string-to-number (substring
-						  (match-string 1) 1))))
-			  (if (mm-char-or-char-int-p c) c 32))
+			(let ((c (mm-ucs-to-char
+				  (string-to-number
+				   (substring (match-string 1) 1)))))
+			  (if (mm-char-or-char-int-p c) c ?#))
 		      (or (cdr (assq (intern (match-string 1))
 				     mm-url-html-entities))
 			  ?#))))

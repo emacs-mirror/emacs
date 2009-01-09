@@ -392,7 +392,7 @@ This hook is called after Gnus is connected to the NNTP server."
   :type 'hook)
 
 (defcustom gnus-before-startup-hook nil
-  "A hook called at before startup.
+  "A hook called before startup.
 This hook is called as the first thing when Gnus is started."
   :group 'gnus-start
   :type 'hook)

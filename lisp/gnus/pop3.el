@@ -105,33 +105,28 @@ Used for APOP authentication.")
 (defvar pop3-read-point nil)
 (defvar pop3-debug nil)
 
-;; Borrowed from nnheader-accept-process-output in nnheader.el.
-(defvar pop3-read-timeout
-  (if (string-match "windows-nt\\|os/2\\|emx\\|cygwin"
-		    (symbol-name system-type))
-      ;; http://thread.gmane.org/v9655t3pjo.fsf@marauder.physik.uni-ulm.de
-      ;;
-      ;; IIRC, values lower than 1.0 didn't/don't work on Windows/DOS.
-      ;;
-      ;; There should probably be a runtime test to determine the timing
-      ;; resolution, or a primitive to report it.  I don't know off-hand
-      ;; what's possible.  Perhaps better, maybe the Windows/DOS primitive
-      ;; could round up non-zero timeouts to a minimum of 1.0?
-      1.0
-    0.1)
-  "How long pop3 should wait between checking for the end of output.
+;; Borrowed from nnheader-accept-process-output in nnheader.el.  See the
+;; comments there for explanations about the values.
+
+(eval-and-compile
+  (if (and (fboundp 'nnheader-accept-process-output)
+	   (boundp 'nnheader-read-timeout))
+      (defalias 'pop3-accept-process-output 'nnheader-accept-process-output)
+    ;; Borrowed from `nnheader.el':
+    (defvar pop3-read-timeout
+      (if (string-match "windows-nt\\|os/2\\|emx\\|cygwin"
+			(symbol-name system-type))
+	  1.0
+	0.01)
+      "How long pop3 should wait between checking for the end of output.
 Shorter values mean quicker response, but are more CPU intensive.")
-
-;; Borrowed from nnheader-accept-process-output in nnheader.el.
-(defun pop3-accept-process-output (process)
-  (accept-process-output
-   process
-   (truncate pop3-read-timeout)
-   (truncate (* (- pop3-read-timeout
-		   (truncate pop3-read-timeout))
-		1000))))
-
-(autoload 'nnheader-accept-process-output "nnheader")
+    (defun pop3-accept-process-output (process)
+      (accept-process-output
+       process
+       (truncate pop3-read-timeout)
+       (truncate (* (- pop3-read-timeout
+		       (truncate pop3-read-timeout))
+		    1000))))))
 
 (defun pop3-movemail (&optional crashbox)
   "Transfer contents of a maildrop to the specified CRASHBOX."
@@ -171,7 +166,7 @@ Shorter values mean quicker response, but are more CPU intensive.")
           (unless pop3-leave-mail-on-server
             (pop3-dele process n))
 	  (setq n (+ 1 n))
-	  (nnheader-accept-process-output process))
+	  (pop3-accept-process-output process))
       (when (and pop3-leave-mail-on-server
 		 (> n 1))
 	(message "pop3.el doesn't support UIDL.  Setting `pop3-leave-mail-on-server'
