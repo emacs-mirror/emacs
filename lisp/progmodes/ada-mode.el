@@ -1628,7 +1628,7 @@ ARG is the prefix the user entered with \\[universal-argument]."
   (interactive "P")
 
   (if ada-auto-case
-      (let ((lastk last-command-char)
+      (let ((lastk last-command-event)
 	    (previous-syntax-table (syntax-table)))
 
 	(unwind-protect
@@ -1662,9 +1662,9 @@ ARG is the prefix the user entered with \\[universal-argument]."
 
     ;; Else, no auto-casing
     (cond
-     ((eq last-command-char ?\n)
+     ((eq last-command-event ?\n)
       (funcall ada-lfd-binding))
-     ((eq last-command-char ?\r)
+     ((eq last-command-event ?\r)
       (funcall ada-ret-binding))
      (t
       (self-insert-command (prefix-numeric-value arg))))

@@ -7,6 +7,13 @@
 	* calc/calc-keypd.el, calc/calc-misc.el, calc/calc-prog.el:
 	* calc/calc-sel.el, calc/calc-store.el, calc/calc-stuff.el:
 	* calc/calc-units.el, calc/calc-yank.el, calc/calc.el:
+	* progmodes/ada-mode.el, progmodes/antlr-mode.el, progmodes/cc-align.el:
+	* progmodes/cc-cmds.el, progmodes/cperl-mode.el, progmodes/f90.el:
+	* progmodes/fortran.el, progmodes/icon.el, progmodes/idlwave.el:
+	* progmodes/octave-mod.el, progmodes/pascal.el, progmodes/perl-mode.el:
+	* progmodes/prolog.el, progmodes/sh-script.el, progmodes/simula.el:
+	* progmodes/tcl.el, progmodes/vera-mode.el, progmodes/verilog-mode.el:
+	* progmodes/vhdl-mode.el, progmodes/xscheme.el:
 	Replace last-command-char with last-command-event.
 
 2009-01-09  Dave Love  <fx@gnu.org>

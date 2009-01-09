@@ -634,7 +634,7 @@ Commands:
   ;; Indent line first; this looks better if parens blink.
   (tcl-indent-line)
   (self-insert-command arg)
-  (if (and tcl-auto-newline (= last-command-char ?\;))
+  (if (and tcl-auto-newline (= last-command-event ?\;))
       (progn
 	(newline)
 	(tcl-indent-line))))
@@ -658,7 +658,7 @@ Commands:
 	;; In auto-newline case, must insert a newline after each
 	;; brace.  So an explicit loop is needed.
 	(while (> arg 0)
-	  (insert last-command-char)
+	  (insert last-command-event)
 	  (tcl-indent-line)
 	  (newline)
 	  (setq arg (1- arg))))

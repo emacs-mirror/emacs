@@ -1,7 +1,7 @@
 ;; idlwave.el --- IDL editing mode for GNU Emacs
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
@@ -2119,7 +2119,7 @@ Returns point if comment found and nil otherwise."
   "Insert quote and show matching quote if this is end of a string."
   (interactive)
   (let ((bq (idlwave-in-quote))
-        (inq last-command-char))
+        (inq last-command-event))
     (if (and bq (not (idlwave-in-comment)))
         (let ((delim (char-after bq)))
           (insert inq)

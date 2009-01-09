@@ -1340,7 +1340,7 @@ If `vera-intelligent-tab' is nil, always indent line."
   (interactive "*P")
   (let* ((ch (char-before))
 	 (indentp (and (not arg)
-		       (eq last-command-char ?/)
+		       (eq last-command-event ?/)
 		       (or (and (eq ch ?/)
 				(not (vera-in-literal)))
 			   (and (eq ch ?*)

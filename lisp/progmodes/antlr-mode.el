@@ -2512,7 +2512,7 @@ ANTLR's syntax and influences the auto indentation, see
 	    (let ((context (antlr-syntactic-context)))
 	      (not (and (numberp context)
 			(or (zerop context)
-			    (memq last-command-char '(?\{ ?\}))))))))
+			    (memq last-command-event '(?\{ ?\}))))))))
       (self-insert-command (prefix-numeric-value arg))
     (self-insert-command (prefix-numeric-value arg))
     (antlr-indent-line)))

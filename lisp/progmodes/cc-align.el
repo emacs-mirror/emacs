@@ -1245,7 +1245,7 @@ newline is added.  In either case, checking is stopped.  This supports
 exactly the old newline insertion behavior."
   ;; newline only after semicolon, but only if that semicolon is not
   ;; inside a parenthesis list (e.g. a for loop statement)
-  (if (not (eq last-command-char ?\;))
+  (if (not (eq last-command-event ?\;))
       nil				; continue checking
     (if (condition-case nil
 	    (save-excursion
@@ -1262,7 +1262,7 @@ If a comma was inserted, no determination is made.  If a semicolon was
 inserted, and the following line is not blank, no newline is inserted.
 Otherwise, no determination is made."
   (save-excursion
-    (if (and (= last-command-char ?\;)
+    (if (and (= last-command-event ?\;)
 	     ;;(/= (point-max)
 	     ;;    (save-excursion (skip-syntax-forward " ") (point))
 	     (zerop (forward-line 1))
@@ -1282,7 +1282,7 @@ For other semicolon contexts, no determination is made."
                (if (c-safe (up-list -1) t)
                    (c-point 'bol)
                  -1))))
-    (if (and (eq last-command-char ?\;)
+    (if (and (eq last-command-event ?\;)
              (eq (car (car syntax)) 'inclass)
              (eq (car (car (cdr syntax))) 'topmost-intro)
              (= (c-point 'bol) bol))

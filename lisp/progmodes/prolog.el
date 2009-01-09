@@ -1,7 +1,7 @@
 ;;; prolog.el --- major mode for editing and running Prolog under Emacs
 
-;; Copyright (C) 1986, 1987, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
 ;; Keywords: languages
@@ -357,7 +357,7 @@ With prefix argument \\[universal-prefix], prompt for the program to use."
              (save-excursion
                (goto-char (- pmark 3))
                (looking-at " \\? ")))
-        (comint-send-string proc (string last-command-char))
+        (comint-send-string proc (string last-command-event))
       (call-interactively 'self-insert-command))))
 
 (defun prolog-consult-region (compile beg end)

@@ -515,7 +515,7 @@ Commands:
 (defun scheme-debugger-self-insert ()
   "Transmit this character to the Scheme process."
   (interactive)
-  (xscheme-send-char last-command-char))
+  (xscheme-send-char last-command-event))
 
 (defun xscheme-enter-debugger-mode (prompt-string)
   (save-excursion

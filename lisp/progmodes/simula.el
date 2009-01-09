@@ -1197,7 +1197,7 @@ If COUNT is negative, move backward instead."
     ;; to have the line inserted after the begin-end match.
     (if show-char
 	(progn
-	  (insert-char last-command-char 1)
+	  (insert-char last-command-event 1)
 	  (sit-for 0)
 	  (backward-char 1)))
     (if (let ((where (simula-context))

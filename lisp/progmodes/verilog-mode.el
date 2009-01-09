@@ -2661,7 +2661,7 @@ With optional ARG, remove existing end of line comments."
 (defun electric-verilog-semi ()
   "Insert `;' character and reindent the line."
   (interactive)
-  (insert last-command-char)
+  (insert last-command-event)
 
   (if (or (verilog-in-comment-or-string-p)
 	  (verilog-in-escaped-name-p))
@@ -2686,7 +2686,7 @@ With optional ARG, remove existing end of line comments."
 (defun electric-verilog-colon ()
   "Insert `:' and do all indentations except line indent on this line."
   (interactive)
-  (insert last-command-char)
+  (insert last-command-event)
   ;; Do nothing if within string.
   (if (or
        (verilog-within-string)
@@ -2705,7 +2705,7 @@ With optional ARG, remove existing end of line comments."
 ;;(defun electric-verilog-equal ()
 ;;  "Insert `=', and do indentation if within block."
 ;;  (interactive)
-;;  (insert last-command-char)
+;;  (insert last-command-event)
 ;; Could auto line up expressions, but not yet
 ;;  (if (eq (car (verilog-calculate-indent)) 'block)
 ;;      (let ((verilog-tab-always-indent nil))
@@ -2715,7 +2715,7 @@ With optional ARG, remove existing end of line comments."
 (defun electric-verilog-tick ()
   "Insert back-tick, and indent to column 0 if this is a CPP directive."
   (interactive)
-  (insert last-command-char)
+  (insert last-command-event)
   (save-excursion
     (if (progn
 	  (beginning-of-line)

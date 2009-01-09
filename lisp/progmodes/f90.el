@@ -2093,7 +2093,7 @@ Leave point at the end of line."
   "Typing `\\[help-command] or `? lists all the F90 abbrevs.
 Any other key combination is executed normally."
   (interactive "*")
-  (insert last-command-char)
+  (insert last-command-event)
   (let (char event)
     (if (fboundp 'next-command-event) ; XEmacs
         (setq event (next-command-event)

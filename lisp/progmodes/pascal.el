@@ -1,7 +1,8 @@
 ;;; pascal.el --- major mode for editing pascal source in Emacs
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002
-;;               2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+;;               2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;               Free Software Foundation, Inc.
 
 ;; Author: Espen Skoglund <esk@gnu.org>
 ;; Keywords: languages
@@ -429,7 +430,7 @@ no args, if that value is non-nil."
 (defun electric-pascal-semi-or-dot ()
   "Insert `;' or `.' character and reindent the line."
   (interactive)
-  (insert last-command-char)
+  (insert last-command-event)
   (save-excursion
     (beginning-of-line)
     (pascal-indent-line))
@@ -439,7 +440,7 @@ no args, if that value is non-nil."
 (defun electric-pascal-colon ()
   "Insert `:' and do all indentions except line indent on this line."
   (interactive)
-  (insert last-command-char)
+  (insert last-command-event)
   ;; Do nothing if within string.
   (if (pascal-within-string)
       ()
@@ -452,7 +453,7 @@ no args, if that value is non-nil."
 (defun electric-pascal-equal ()
   "Insert `=', and do indention if within type declaration."
   (interactive)
-  (insert last-command-char)
+  (insert last-command-event)
   (if (eq (car (pascal-calculate-indent)) 'declaration)
       (let ((pascal-tab-always-indent nil))
 	(pascal-indent-command))))
@@ -460,7 +461,7 @@ no args, if that value is non-nil."
 (defun electric-pascal-hash ()
   "Insert `#', and indent to column 0 if this is a CPP directive."
   (interactive)
-  (insert last-command-char)
+  (insert last-command-event)
   (if (save-excursion (beginning-of-line) (looking-at "^[ \t]*#"))
       (save-excursion (beginning-of-line)
 		      (delete-horizontal-space))))

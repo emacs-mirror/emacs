@@ -1006,7 +1006,7 @@ With non-nil ARG, uncomments the region."
   "Typing ;\\[help-command] or ;? lists all the Fortran abbrevs.
 Any other key combination is executed normally."
   (interactive "*")
-  (insert last-command-char)
+  (insert last-command-event)
   (let* ((event (if (fboundp 'next-command-event) ; XEmacs
                     (next-command-event)
                   (read-event)))
@@ -1167,7 +1167,7 @@ Auto-indent does not happen if a numeric ARG is used."
             (looking-at "[0-9]"))       ; within a line number
         (self-insert-command (prefix-numeric-value arg))
       (skip-chars-backward " \t")
-      (insert last-command-char)
+      (insert last-command-event)
       (fortran-indent-line))))
 
 

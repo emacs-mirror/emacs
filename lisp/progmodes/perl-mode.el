@@ -1,7 +1,7 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs
 
-;; Copyright (C) 1990, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: FSF
@@ -606,14 +606,14 @@ If at end-of-line, and not in a comment or a quote, correct the's indentation."
 	   (and (not			; eliminate comments quickly
 		 (and comment-start-skip
 		      (re-search-forward comment-start-skip insertpos t)) )
-		(or (/= last-command-char ?:)
+		(or (/= last-command-event ?:)
 		    ;; Colon is special only after a label ....
 		    (looking-at "\\s-*\\(\\w\\|\\s_\\)+$"))
 		(let ((pps (parse-partial-sexp
 			    (perl-beginning-of-function) insertpos)))
 		  (not (or (nth 3 pps) (nth 4 pps) (nth 5 pps))))))
 	 (progn				; must insert, indent, delete
-	   (insert-char last-command-char 1)
+	   (insert-char last-command-event 1)
 	   (perl-indent-line)
 	   (delete-char -1))))
   (self-insert-command (prefix-numeric-value arg)))

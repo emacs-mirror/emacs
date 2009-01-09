@@ -10612,7 +10612,7 @@ but not if inside a comment or quote."
 	  (backward-word 1)
 	  (vhdl-case-word 1)
 	  (delete-char 1))
-      (let ((invoke-char last-command-char)
+      (let ((invoke-char last-command-event)
 	    (abbrev-mode -1)
 	    (vhdl-template-invoked-by-hook t))
 	(let ((caught (catch 'abort

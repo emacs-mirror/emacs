@@ -2037,11 +2037,11 @@ char is \"{\", insert extra newline before only if
 	  (save-excursion
 	    (setq insertpos (point-marker))
 	    (goto-char other-end)
-	    (setq last-command-char ?\{)
+	    (setq last-command-event ?\{)
 	    (cperl-electric-lbrace arg insertpos))
 	  (forward-char 1))
       ;; Check whether we close something "usual" with `}'
-      (if (and (eq last-command-char ?\})
+      (if (and (eq last-command-event ?\})
 	       (not
 		(condition-case nil
 		    (save-excursion
@@ -2059,7 +2059,7 @@ char is \"{\", insert extra newline before only if
 			  (save-excursion
 			    (skip-chars-backward " \t")
 			    (bolp)))
-		     (and (eq last-command-char ?\{) ; Do not insert newline
+		     (and (eq last-command-event ?\{) ; Do not insert newline
 			  ;; if after ")" and `cperl-extra-newline-before-brace'
 			  ;; is nil, do not insert extra newline.
 			  (not cperl-extra-newline-before-brace)
@@ -2080,7 +2080,7 @@ char is \"{\", insert extra newline before only if
 	      (save-excursion
 		(if insertpos (progn (goto-char insertpos)
 				     (search-forward (make-string
-						      1 last-command-char))
+						      1 last-command-event))
 				     (setq insertpos (1- (point)))))
 		(delete-char -1))))
 	(if insertpos
@@ -2119,12 +2119,12 @@ char is \"{\", insert extra newline before only if
       (setq cperl-auto-newline nil))
     (cperl-electric-brace arg)
     (and (cperl-val 'cperl-electric-parens)
-	 (eq last-command-char ?{)
-	 (memq last-command-char
+	 (eq last-command-event ?{)
+	 (memq last-command-event
 	       (append cperl-electric-parens-string nil))
 	 (or (if other-end (goto-char (marker-position other-end)))
 	     t)
-	 (setq last-command-char ?} pos (point))
+	 (setq last-command-event ?} pos (point))
 	 (progn (cperl-electric-brace arg t)
 		(goto-char pos)))))
 
@@ -2141,11 +2141,11 @@ See `cperl-electric-parens'."
 			 (point-marker))
 		     nil)))
     (if (and (cperl-val 'cperl-electric-parens)
-	     (memq last-command-char
+	     (memq last-command-event
 		   (append cperl-electric-parens-string nil))
 	     (>= (save-excursion (cperl-to-comment-or-eol) (point)) (point))
 	     ;;(not (save-excursion (search-backward "#" beg t)))
-	     (if (eq last-command-char ?<)
+	     (if (eq last-command-event ?<)
 		 (progn
 		   (and abbrev-mode ; later it is too late, may be after `for'
 			(expand-abbrev))
@@ -2156,7 +2156,7 @@ See `cperl-electric-parens'."
 	  (if other-end (goto-char (marker-position other-end)))
 	  (insert (make-string
 		   (prefix-numeric-value arg)
-		   (cdr (assoc last-command-char '((?{ .?})
+		   (cdr (assoc last-command-event '((?{ .?})
 						   (?[ . ?])
 						   (?( . ?))
 						   (?< . ?>))))))
@@ -2171,7 +2171,7 @@ Affected by `cperl-electric-parens'."
   (let ((beg (save-excursion (beginning-of-line) (point)))
 	(other-end (if (and cperl-electric-parens-mark
 			    (cperl-val 'cperl-electric-parens)
-			    (memq last-command-char
+			    (memq last-command-event
 				  (append cperl-electric-parens-string nil))
 			    (cperl-mark-active)
 			    (< (mark) (point)))
@@ -2180,7 +2180,7 @@ Affected by `cperl-electric-parens'."
 	p)
     (if (and other-end
 	     (cperl-val 'cperl-electric-parens)
-	     (memq last-command-char '( ?\) ?\] ?\} ?\> ))
+	     (memq last-command-event '( ?\) ?\] ?\} ?\> ))
 	     (>= (save-excursion (cperl-to-comment-or-eol) (point)) (point))
 	     ;;(not (save-excursion (search-backward "#" beg t)))
 	     )
@@ -2190,7 +2190,7 @@ Affected by `cperl-electric-parens'."
 	  (if other-end (goto-char other-end))
 	  (insert (make-string
 		   (prefix-numeric-value arg)
-		   (cdr (assoc last-command-char '((?\} . ?\{)
+		   (cdr (assoc last-command-event '((?\} . ?\{)
 						   (?\] . ?\[)
 						   (?\) . ?\()
 						   (?\> . ?\<))))))
@@ -2202,9 +2202,9 @@ Affected by `cperl-electric-parens'."
 Help message may be switched off by setting `cperl-message-electric-keyword'
 to nil."
   (let ((beg (save-excursion (beginning-of-line) (point)))
-	(dollar (and (eq last-command-char ?$)
+	(dollar (and (eq last-command-event ?$)
 		     (eq this-command 'self-insert-command)))
-	(delete (and (memq last-command-char '(?\s ?\n ?\t ?\f))
+	(delete (and (memq last-command-event '(?\s ?\n ?\t ?\f))
 		     (memq this-command '(self-insert-command newline))))
 	my do)
     (and (save-excursion
@@ -2258,7 +2258,7 @@ to nil."
 				 (forward-char 1)
 			       (delete-char 1)))
 	     (search-backward ")")
-	     (if (eq last-command-char ?\()
+	     (if (eq last-command-event ?\()
 		 (progn			; Avoid "if (())"
 		   (delete-backward-char 1)
 		   (delete-backward-char -1))))
@@ -2279,7 +2279,7 @@ to nil."
 
 (defun cperl-electric-pod ()
   "Insert a POD chunk appropriate after a =POD directive."
-  (let ((delete (and (memq last-command-char '(?\s ?\n ?\t ?\f))
+  (let ((delete (and (memq last-command-event '(?\s ?\n ?\t ?\f))
 		     (memq this-command '(self-insert-command newline))))
 	head1 notlast name p really-delete over)
     (and (save-excursion
@@ -2499,7 +2499,7 @@ If in POD, insert appropriate lines."
   (interactive "P")
   (let ((end (point))
 	(auto (and cperl-auto-newline
-		   (or (not (eq last-command-char ?:))
+		   (or (not (eq last-command-event ?:))
 		       cperl-auto-newline-after-colon)))
 	insertpos)
     (if (and ;;(not arg)
@@ -2513,7 +2513,7 @@ If in POD, insert appropriate lines."
 		     ;; Colon is special only after a label
 		     ;; So quickly rule out most other uses of colon
 		     ;; and do no indentation for them.
-		     (and (eq last-command-char ?:)
+		     (and (eq last-command-event ?:)
 			  (save-excursion
 			    (forward-word 1)
 			    (skip-chars-forward " \t")
