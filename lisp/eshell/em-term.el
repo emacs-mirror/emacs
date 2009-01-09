@@ -159,27 +159,27 @@ allowed."
 ; without any interpretation."
 ;   (interactive)
 ;   ;; Convert `return' to C-m, etc.
-;   (if (and (symbolp last-input-char)
-;	   (get last-input-char 'ascii-character))
-;       (setq last-input-char (get last-input-char 'ascii-character)))
-;   (eshell-term-send-raw-string (make-string 1 last-input-char)))
+;   (if (and (symbolp last-input-event)
+;	   (get last-input-event 'ascii-character))
+;       (setq last-input-event (get last-input-event 'ascii-character)))
+;   (eshell-term-send-raw-string (make-string 1 last-input-event)))
 
 ; (defun eshell-term-send-raw-meta ()
 ;   (interactive)
-;   (if (symbolp last-input-char)
+;   (if (symbolp last-input-event)
 ;       ;; Convert `return' to C-m, etc.
-;       (let ((tmp (get last-input-char 'event-symbol-elements)))
+;       (let ((tmp (get last-input-event 'event-symbol-elements)))
 ;	(if tmp
-;	    (setq last-input-char (car tmp)))
-;	(if (symbolp last-input-char)
+;	    (setq last-input-event (car tmp)))
+;	(if (symbolp last-input-event)
 ;	    (progn
-;	      (setq tmp (get last-input-char 'ascii-character))
-;	      (if tmp (setq last-input-char tmp))))))
-;   (eshell-term-send-raw-string (if (and (numberp last-input-char)
-;					(> last-input-char 127)
-;					(< last-input-char 256))
-;				   (make-string 1 last-input-char)
-;				 (format "\e%c" last-input-char))))
+;	      (setq tmp (get last-input-event 'ascii-character))
+;	      (if tmp (setq last-input-event tmp))))))
+;   (eshell-term-send-raw-string (if (and (numberp last-input-event)
+;					(> last-input-event 127)
+;					(< last-input-event 256))
+;				   (make-string 1 last-input-event)
+;				 (format "\e%c" last-input-event))))
 
 ; (defun eshell-term-mouse-paste (click arg)
 ;   "Insert the last stretch of killed text at the position clicked on."
