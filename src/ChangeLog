@@ -1,3 +1,12 @@
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* keyboard.c (last_command_char): For clarity, rename to...
+	(last_command-event): ... and update all users.
+	(last_input_char): For clarity, rename to...
+	(last_input_event): ... and update all users.
+	(last-command-char, last-input-char): Move to subr.el as aliases.
+	* cmds.c, commands.h: Update for last_command_char rename.
+
 2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_open_for_lface): Handle unspecified height

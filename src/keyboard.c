@@ -259,15 +259,15 @@ int command_loop_level;
 /* Total number of times command_loop has read a key sequence.  */
 EMACS_INT num_input_keys;
 
-/* Last input character read as a command.  */
-Lisp_Object last_command_char;
+/* Last input event read as a command.  */
+Lisp_Object last_command_event;
 
 /* Last input character read as a command, not counting menus
    reached by the mouse.  */
 Lisp_Object last_nonmenu_event;
 
-/* Last input character read for any purpose.  */
-Lisp_Object last_input_char;
+/* Last input event read for any purpose.  */
+Lisp_Object last_input_event;
 
 /* If not Qnil, a list of objects to be read as subsequent command input.  */
 Lisp_Object Vunread_command_events;
@@ -1556,7 +1556,7 @@ command_loop_1 ()
   /* Do this after running Vpost_command_hook, for consistency.  */
   current_kboard->Vlast_command = Vthis_command;
   current_kboard->Vreal_last_command = real_this_command;
-  if (!CONSP (last_command_char))
+  if (!CONSP (last_command_event))
     current_kboard->Vlast_repeatable_command = real_this_command;
 
   while (1)
@@ -1656,7 +1656,7 @@ command_loop_1 ()
 	  goto finalize;
 	}
 
-      last_command_char = keybuf[i - 1];
+      last_command_event = keybuf[i - 1];
 
       /* If the previous command tried to force a specific window-start,
 	 forget about that, in case this command moves point far away
@@ -1821,12 +1821,12 @@ command_loop_1 ()
 		}
 	      else if (EQ (Vthis_command, Qself_insert_command)
 		       /* Try this optimization only on char keystrokes.  */
-		       && NATNUMP (last_command_char)
-		       && CHAR_VALID_P (XFASTINT (last_command_char), 0))
+		       && NATNUMP (last_command_event)
+		       && CHAR_VALID_P (XFASTINT (last_command_event), 0))
 		{
 		  unsigned int c
 		    = translate_char (Vtranslation_table_for_input,
-				      XFASTINT (last_command_char));
+				      XFASTINT (last_command_event));
 		  int value;
 		  if (NILP (Vexecuting_kbd_macro)
 		      && !EQ (minibuf_window, selected_window))
@@ -1930,11 +1930,11 @@ command_loop_1 ()
 	 If the command didn't actually create a prefix arg,
 	 but is merely a frame event that is transparent to prefix args,
 	 then the above doesn't apply.  */
-      if (NILP (current_kboard->Vprefix_arg) || CONSP (last_command_char))
+      if (NILP (current_kboard->Vprefix_arg) || CONSP (last_command_event))
 	{
 	  current_kboard->Vlast_command = Vthis_command;
 	  current_kboard->Vreal_last_command = real_this_command;
-	  if (!CONSP (last_command_char))
+	  if (!CONSP (last_command_event))
 	    current_kboard->Vlast_repeatable_command = real_this_command;
 	  cancel_echoing ();
 	  this_command_key_count = 0;
@@ -3094,8 +3094,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       record_single_kboard_state ();
 #endif
 
-      last_input_char = c;
-      Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char), Qt);
+      last_input_event = c;
+      Fcommand_execute (tem, Qnil, Fvector (1, &last_input_event), Qt);
 
       if (CONSP (c) && EQ (XCAR (c), Qselect_window) && !end_time)
 	/* We stopped being idle for this event; undo that.  This
@@ -3336,7 +3336,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	add_command_key (also_record);
     }
 
-  last_input_char = c;
+  last_input_event = c;
   num_input_events++;
 
   /* Process the help character specially if enabled */
@@ -3413,7 +3413,7 @@ record_menu_key (c)
   add_command_key (c);
 
   /* Re-reading in the middle of a command */
-  last_input_char = c;
+  last_input_event = c;
   num_input_events++;
 }
 
@@ -11870,10 +11870,7 @@ syms_of_keyboard ()
   defsubr (&Sposn_at_point);
   defsubr (&Sposn_at_x_y);
 
-  DEFVAR_LISP ("last-command-char", &last_command_char,
-	       doc: /* Last input event that was part of a command.  */);
-
-  DEFVAR_LISP_NOPRO ("last-command-event", &last_command_char,
+  DEFVAR_LISP ("last-command-event", &last_command_event,
 		     doc: /* Last input event that was part of a command.  */);
 
   DEFVAR_LISP ("last-nonmenu-event", &last_nonmenu_event,
@@ -11882,11 +11879,8 @@ Mouse menus give back keys that don't look like mouse events;
 this variable holds the actual mouse event that led to the menu,
 so that you can determine whether the command was run by mouse or not.  */);
 
-  DEFVAR_LISP ("last-input-char", &last_input_char,
+  DEFVAR_LISP ("last-input-event", &last_input_event,
 	       doc: /* Last input event.  */);
-
-  DEFVAR_LISP_NOPRO ("last-input-event", &last_input_char,
-		     doc: /* Last input event.  */);
 
   DEFVAR_LISP ("unread-command-events", &Vunread_command_events,
 	       doc: /* List of events to be read as the command input.
