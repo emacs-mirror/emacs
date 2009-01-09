@@ -1,3 +1,7 @@
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* url-cid.el (url-cid-gnus): Fix typo in header name.
+
 2008-11-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-util.el (url-basepath): Add url-basepath as an alias for
