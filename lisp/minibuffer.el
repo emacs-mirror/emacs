@@ -905,7 +905,7 @@ the completions buffer."
 (defun self-insert-and-exit ()
   "Terminate minibuffer input."
   (interactive)
-  (if (characterp last-command-char)
+  (if (characterp last-command-event)
       (call-interactively 'self-insert-command)
     (ding))
   (exit-minibuffer))

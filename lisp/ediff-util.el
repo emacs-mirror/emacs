@@ -1012,7 +1012,7 @@ of the current buffer."
   (interactive)
   (ediff-barf-if-not-control-buffer)
   (let ((ctl-buf (if (null buf) (current-buffer)))
-	(buf-type (ediff-char-to-buftype last-command-char)))
+	(buf-type (ediff-char-to-buftype last-command-event)))
     (or buf (ediff-recenter))
     (or buf
 	(setq buf (ediff-get-buffer buf-type)))
@@ -1514,7 +1514,7 @@ the one half of the height of window-A."
       (error ediff-KILLED-VITAL-BUFFER))
 
   (ediff-operate-on-windows
-   (if (memq last-command-char '(?v ?\C-v))
+   (if (memq last-command-event '(?v ?\C-v))
        'scroll-up
      'scroll-down)
    ;; calculate argument to scroll-up/down
@@ -1562,7 +1562,7 @@ the width of the A/B/C windows."
    ;; interactively so that they set the window's min_hscroll.
    ;; Otherwise, automatic hscrolling will undo the effect of
    ;; hscrolling.
-   (if (= last-command-char ?<)
+   (if (= last-command-event ?<)
        (lambda (arg)
 	 (let ((prefix-arg arg))
 	   (call-interactively 'scroll-left)))
@@ -1826,7 +1826,7 @@ With a prefix argument, synchronize all files around the current point position
 in the specified buffer."
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
-  (let* ((buf-type (ediff-char-to-buftype last-command-char))
+  (let* ((buf-type (ediff-char-to-buftype last-command-event))
 	 (buffer (ediff-get-buffer buf-type))
 	 (pt (ediff-with-current-buffer buffer (point)))
 	 (diff-no (ediff-diff-at-point buf-type nil (if arg 'after)))
@@ -2162,13 +2162,13 @@ ARG is a prefix argument.  If nil, copy the current difference region."
   "Restore ARGth diff from `ediff-killed-diffs-alist'.
 ARG is a prefix argument.  If ARG is nil, restore the current-difference.
 If the second optional argument, a character, is given, use it to
-determine the target buffer instead of last-command-char"
+determine the target buffer instead of last-command-event"
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
   (if (numberp arg)
       (ediff-jump-to-difference arg))
   (ediff-pop-diff ediff-current-difference
-		  (ediff-char-to-buftype (or key last-command-char)))
+		  (ediff-char-to-buftype (or key last-command-event)))
   ;; recenter with rehighlighting, but no messages
   (let (ediff-verbose-p)
     (ediff-recenter)))
@@ -2192,13 +2192,13 @@ a regular expression typed in by the user."
     (cond
      ((or (and (eq ediff-skip-diff-region-function
 		   ediff-focus-on-regexp-matches-function)
-	       (eq last-command-char ?f))
+	       (eq last-command-event ?f))
 	  (and (eq ediff-skip-diff-region-function
 		   ediff-hide-regexp-matches-function)
-	       (eq last-command-char ?h)))
+	       (eq last-command-event ?h)))
       (message "Selective browsing by regexp turned off")
       (setq ediff-skip-diff-region-function 'ediff-show-all-diffs))
-     ((eq last-command-char ?h)
+     ((eq last-command-event ?h)
       (setq ediff-skip-diff-region-function ediff-hide-regexp-matches-function
 	    regexp-A
 	    (read-string
@@ -2236,7 +2236,7 @@ a regular expression typed in by the user."
       (or (string= regexp-B "") (setq ediff-regexp-hide-B regexp-B))
       (or (string= regexp-C "") (setq ediff-regexp-hide-C regexp-C)))
 
-     ((eq last-command-char ?f)
+     ((eq last-command-event ?f)
       (setq ediff-skip-diff-region-function
 	    ediff-focus-on-regexp-matches-function
 	    regexp-A
@@ -3302,10 +3302,10 @@ Without an argument, it saves customized diff argument, if available
   (ediff-barf-if-not-control-buffer)
   (ediff-compute-custom-diffs-maybe)
   (ediff-with-current-buffer
-      (cond ((memq last-command-char '(?a ?b ?c))
+      (cond ((memq last-command-event '(?a ?b ?c))
 	     (ediff-get-buffer
-	      (ediff-char-to-buftype last-command-char)))
-	    ((eq last-command-char ?d)
+	      (ediff-char-to-buftype last-command-event)))
+	    ((eq last-command-event ?d)
 	     (message "Saving diff output ...")
 	     (sit-for 1) ; let the user see the message
 	     (cond ((and arg (ediff-buffer-live-p ediff-diff-buffer))

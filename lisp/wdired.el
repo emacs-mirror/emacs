@@ -1,6 +1,7 @@
 ;;; wdired.el --- Rename files editing their names in dired buffers
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Filename: wdired.el
 ;; Author: Juan León Lahoz García <juanleon1@gmail.com>
@@ -741,9 +742,9 @@ Like original function but it skips read-only words."
 (defun wdired-set-bit ()
   "Set a permission bit character."
   (interactive)
-  (if (wdired-perm-allowed-in-pos last-command-char
+  (if (wdired-perm-allowed-in-pos last-command-event
                                   (- (current-column) wdired-col-perm))
-      (let ((new-bit (char-to-string last-command-char))
+      (let ((new-bit (char-to-string last-command-event))
             (inhibit-read-only t)
 	    (pos-prop (- (point) (- (current-column) wdired-col-perm))))
         (put-text-property 0 1 'keymap wdired-perm-mode-map new-bit)

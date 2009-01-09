@@ -3,6 +3,10 @@
 	* subr.el (last-input-char, last-command-char):
 	Move here from src/keyboard.c.
 
+	* allout.el, autoarg.el, complete.el, ediff-mult.el, ediff-util.el:
+	* electric.el, hexl.el, isearch.el, isearchb.el, kmacro.el:
+	* minibuffer.el, repeat.el, simple.el, skeleton.el, terminal.el, tmm.el:
+	* wdired.el:
 	* calc/calc-aent.el, calc/calc-ext.el, calc/calc-incom.el:
 	* calc/calc-keypd.el, calc/calc-misc.el, calc/calc-prog.el:
 	* calc/calc-sel.el, calc/calc-store.el, calc/calc-stuff.el:

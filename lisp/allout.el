@@ -3392,13 +3392,13 @@ this-command accordingly.
 
 Returns the qualifying command, if any, else nil."
   (interactive)
-  (let* ((key-string (if (numberp last-command-char)
-                         (char-to-string last-command-char)))
-         (key-num (cond ((numberp last-command-char) last-command-char)
+  (let* ((key-string (if (numberp last-command-event)
+                         (char-to-string last-command-event)))
+         (key-num (cond ((numberp last-command-event) last-command-event)
                         ;; for XEmacs character type:
                         ((and (fboundp 'characterp)
-                              (apply 'characterp (list last-command-char)))
-                         (apply 'char-to-int (list last-command-char)))
+                              (apply 'characterp (list last-command-event)))
+                         (apply 'char-to-int (list last-command-event)))
                         (t 0)))
          mapped-binding)
 

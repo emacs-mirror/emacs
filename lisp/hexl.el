@@ -835,7 +835,7 @@ Interactively, with a numeric argument, insert this character that many times.
 Non-ASCII characters are first encoded with `buffer-file-coding-system',
 and their encoded form is inserted byte by byte."
   (interactive "p")
-  (hexl-insert-multibyte-char last-command-char arg))
+  (hexl-insert-multibyte-char last-command-event arg))
 
 (defun hexl-insert-char (ch num)
   "Insert the character CH NUM times in a hexl buffer.

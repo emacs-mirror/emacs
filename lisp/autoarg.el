@@ -67,7 +67,7 @@
 (defun autoarg-kp-digit-argument (arg)
   "Part of the numeric argument for the next command, like `digit-argument'."
   (interactive "P")
-  (let ((digit (cdr (assq last-command-char autoarg-kp-digits))))
+  (let ((digit (cdr (assq last-command-event autoarg-kp-digits))))
     (cond ((integerp arg)
 	   (setq prefix-arg (+ (* arg 10)
 			       (if (< arg 0) (- digit) digit))))

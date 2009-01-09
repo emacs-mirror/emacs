@@ -1,7 +1,8 @@
 ;;; isearch.el --- incremental search minor mode
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -954,7 +955,7 @@ REGEXP if non-nil says use the regexp search ring."
 ;;   ;; First terminate isearch-mode.
 ;;   (isearch-done)
 ;;   (isearch-clean-overlays)
-;;   (handle-switch-frame (car (cdr last-command-char))))
+;;   (handle-switch-frame (car (cdr last-command-event))))
 
 
 ;; The search status structure and stack.
@@ -1984,7 +1985,7 @@ Isearch mode."
 (defun isearch-printing-char ()
   "Add this ordinary printing character to the search string and search."
   (interactive)
-  (let ((char last-command-char))
+  (let ((char last-command-event))
     (if (= char ?\S-\ )
 	(setq char ?\s))
     (if current-input-method

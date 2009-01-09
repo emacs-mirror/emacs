@@ -1196,7 +1196,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	(setq this-command 'ignore)
       (setq this-command cmd)
       (if (memq this-command '(self-insert-command digit-argument))
-	  (setq last-command-char (aref keys (1- (length keys)))))
+	  (setq last-command-event (aref keys (1- (length keys)))))
       (if keys
 	  (setq kmacro-step-edit-new-macro (vconcat kmacro-step-edit-new-macro keys))))
     (setq kmacro-step-edit-key-index next-index)))

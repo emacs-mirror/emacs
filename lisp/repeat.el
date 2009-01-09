@@ -100,9 +100,9 @@
   :type '(repeat function))
 
 ;; If the last command was self-insert-command, the char to be inserted was
-;; obtained by that command from last-command-char, which has now been
+;; obtained by that command from last-command-event, which has now been
 ;; clobbered by the command sequence that invoked `repeat'.  We could get it
-;; from (recent-keys) & set last-command-char to that, "unclobbering" it, but
+;; from (recent-keys) & set last-command-event to that, "unclobbering" it, but
 ;; this has the disadvantage that if the user types a sequence of different
 ;; chars then invokes repeat, only the final char will be inserted.  In vi,
 ;; the dot command can reinsert the entire most-recently-inserted sequence.
@@ -247,14 +247,14 @@ recently executed command not bound to an input event\"."
     (setq repeat-arg last-prefix-arg))
   ;; Now determine whether to loop on repeated taps of the final character
   ;; of the key sequence that invoked repeat.  The Emacs global
-  ;; last-command-char contains the final character now, but may not still
+  ;; last-command-event contains the final character now, but may not still
   ;; contain it after the previous command is repeated, so the character
   ;; needs to be saved.
   (let ((repeat-repeat-char
          (if (eq repeat-on-final-keystroke t)
-	     last-command-char
+	     last-command-event
            ;; allow only specified final keystrokes
-           (car (memq last-command-char
+           (car (memq last-command-event
                       (listify-key-sequence
                        repeat-on-final-keystroke))))))
     (if (memq last-repeatable-command '(exit-minibuffer
@@ -344,7 +344,7 @@ recently executed command not bound to an input event\"."
 (defun repeat-self-insert (string)
   (let ((i 0))
     (while (< i (length string))
-      (let ((last-command-char (aref string i)))
+      (let ((last-command-event (aref string i)))
 	(self-insert-command 1))
       (setq i (1+ i)))))
 

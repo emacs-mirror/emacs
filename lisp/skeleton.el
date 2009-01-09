@@ -470,7 +470,7 @@ This allows for context-sensitive checking whether pairing is appropriate.")
 
 
 (defvar skeleton-pair-alist ()
-  "An override alist of pairing partners matched against `last-command-char'.
+  "An override alist of pairing partners matched against `last-command-event'.
 Each alist element, which looks like (ELEMENT ...), is passed to
 `skeleton-insert' with no interactor.  Variable `str' does nothing.
 
@@ -504,7 +504,7 @@ symmetrical ones, and the same character twice for the others."
 		      (or (eq last-command 'mouse-drag-region)
 			  (and transient-mark-mode mark-active))))
 	   (skeleton-end-hook)
-	   (char last-command-char)
+	   (char last-command-event)
 	   (skeleton (or (assq char skeleton-pair-alist)
 			 (assq char skeleton-pair-default-alist)
 			 `(,char _ ,char))))

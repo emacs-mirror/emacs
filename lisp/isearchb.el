@@ -1,6 +1,7 @@
 ;;; isearchb --- a marriage between iswitchb and isearch
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: FSF
@@ -136,10 +137,10 @@ Its purpose is to pass different call arguments to
   (unless iswitchb-text
     (setq iswitchb-text "")
     (iswitchb-make-buflist nil))
-  (if last-command-char
+  (if last-command-event
       (setq iswitchb-rescan t
 	    iswitchb-text (concat iswitchb-text
-				  (char-to-string last-command-char))))
+				  (char-to-string last-command-event))))
   (iswitchb-set-matches)
   (let* ((match (car iswitchb-matches))
 	 (buf (and match (get-buffer match))))
@@ -176,17 +177,17 @@ Its purpose is to pass different call arguments to
 	      (substring iswitchb-text 0 (1- (length iswitchb-text))))
 	(if (= 0 (length iswitchb-text))
 	    (isearchb-stop t t)
-	  (setq last-command-char nil)
+	  (setq last-command-event nil)
 	  (setq this-command 'isearchb)))
        ((or (equal keys "\C-i") (equal keys [tab]))
 	(setq this-command 'isearchb-iswitchb))
        ((equal keys "\C-s")
 	(iswitchb-next-match)
-	(setq last-command-char nil)
+	(setq last-command-event nil)
 	(setq this-command 'isearchb))
        ((equal keys "\C-r")
 	(iswitchb-prev-match)
-	(setq last-command-char nil)
+	(setq last-command-event nil)
 	(setq this-command 'isearchb))
        ((equal keys "\C-g")
 	(ding)

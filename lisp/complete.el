@@ -290,7 +290,7 @@ See `PC-complete' for details.
 This can be bound to other keys, like `-' and `.', if you wish."
   (interactive)
   (if (eq (PC-was-meta-key) PC-meta-flag)
-      (if (eq last-command-char ? )
+      (if (eq last-command-event ? )
 	  (minibuffer-complete-word)
 	(self-insert-command 1))
     (self-insert-command 1)

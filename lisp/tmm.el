@@ -402,7 +402,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 (defun tmm-shortcut ()
   "Choose the shortcut that the user typed."
   (interactive)
-  (let ((c last-command-char) s)
+  (let ((c last-command-event) s)
     (if (symbolp tmm-shortcut-style)
         (setq c (funcall tmm-shortcut-style c)))
     (if (memq c tmm-short-cuts)

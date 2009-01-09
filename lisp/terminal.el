@@ -225,7 +225,7 @@ performance."
      ;;  you hit esc key...
      ((and (stringp s)
 	   (string= s (make-string 1 terminal-escape-char)))
-      (setq last-command-char terminal-escape-char)
+      (setq last-command-event terminal-escape-char)
       (let ((terminal-escape-char -259))
 	(te-pass-through)))
 

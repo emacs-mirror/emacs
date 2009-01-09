@@ -463,8 +463,8 @@ than the value of `fill-column' and ARG is nil."
 	(beforepos (point)))
     (if flag (backward-char 1))
     ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
-    ;; Set last-command-char to tell self-insert what to insert.
-    (let ((last-command-char ?\n)
+    ;; Set last-command-event to tell self-insert what to insert.
+    (let ((last-command-event ?\n)
 	  ;; Don't auto-fill if we have a numeric argument.
 	  ;; Also not if flag is true (it would fill wrong line);
 	  ;; there is no need to since we're at BOL.
@@ -2596,9 +2596,9 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   "Part of the numeric argument for the next command.
 \\[universal-argument] following digits or minus sign ends the argument."
   (interactive "P")
-  (let* ((char (if (integerp last-command-char)
-		   last-command-char
-		 (get last-command-char 'ascii-character)))
+  (let* ((char (if (integerp last-command-event)
+		   last-command-event
+		 (get last-command-event 'ascii-character)))
 	 (digit (- (logand char ?\177) ?0)))
     (cond ((integerp arg)
 	   (setq prefix-arg (+ (* arg 10)

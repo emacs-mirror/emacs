@@ -65,7 +65,7 @@
               (setq prompt-string nil)
             (setq prompt-string "->")))
       (setq cmd (read-key-sequence prompt-string))
-      (setq last-command-char (aref cmd (1- (length cmd)))
+      (setq last-command-event (aref cmd (1- (length cmd)))
 	    this-command (key-binding cmd t)
 	    cmd this-command)
       ;; This makes universal-argument-other-key work.
