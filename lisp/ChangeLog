@@ -1,3 +1,9 @@
+2009-01-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (special-display-buffer-names)
+	(special-display-regexps, special-display-function): In
+	doc-strings say "same-window" instead of "same-buffer".
+
 2009-01-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el: Revert previous patch.  `last-command-char' is

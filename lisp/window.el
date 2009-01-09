@@ -590,10 +590,10 @@ the first argument, followed by the OTHER-ARGS--it can display
 BUFFER in any way it likes.  All this is done by the function
 found in `special-display-function'.
 
-If the specified frame parameters include (same-buffer . t), the
-buffer is displayed in the currently selected window.  Otherwise, if
-they include (same-frame . t), the buffer is displayed in a new window
-in the currently selected frame.
+If the specified frame parameters include (same-window . t), the
+buffer is displayed in the currently selected window.  Otherwise,
+if they include (same-frame . t), the buffer is displayed in a
+new window in the currently selected frame.
 
 If this variable appears \"not to work\", because you add a name to it
 but that buffer still appears in the selected window, look at the
@@ -629,7 +629,7 @@ the first argument, followed by the OTHER-ARGS--it can display
 the buffer in any way it likes.  All this is done by the function
 found in `special-display-function'.
 
-If the specified frame parameters include (same-buffer . t), the
+If the specified frame parameters include (same-window . t), the
 buffer is displayed in the currently selected window.  Otherwise,
 if they include (same-frame . t), the buffer is displayed in a
 new window in the currently selected frame.
@@ -660,9 +660,9 @@ The default value normally makes a separate frame for the buffer,
 using `special-display-frame-alist' to specify the frame
 parameters.
 
-But if the buffer specific data includes (same-buffer . t) then
-the buffer is displayed in the current selected window.
-Otherwise if it includes (same-frame . t) then the buffer is
+But if the buffer specific data includes (same-window . t) then
+the buffer is displayed in the currently selected window.
+Otherwise, if it includes (same-frame . t) then the buffer is
 displayed in a new window in the currently selected frame.
 
 A buffer is special if it is listed in
