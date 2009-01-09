@@ -1,7 +1,7 @@
 ;;; mpuz.el --- multiplication puzzle for GNU Emacs
 
-;; Copyright (C) 1990, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Overhauled: Daniel Pfeiffer <occitan@esperanto.org>
@@ -424,7 +424,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   (interactive)
   (if mpuz-in-progress
       (let (letter-char digit digit-char message)
-	(setq letter-char (upcase last-command-char)
+	(setq letter-char (upcase last-command-event)
 	      digit (mpuz-to-digit (- letter-char ?A)))
 	(cond ((mpuz-digit-solved-p digit)
 	       (message "%c already solved." letter-char)
