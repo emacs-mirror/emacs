@@ -1031,7 +1031,6 @@ The current match data.  @xref{Match Data}.
 
 @item
 The variables @code{last-command}, @code{this-command},
-@code{last-command-char}, @code{last-input-char},
 @code{last-input-event}, @code{last-command-event},
 @code{last-event-frame}, @code{last-nonmenu-event}, and
 @code{track-mouse}.  Commands used within Edebug do not affect these
