@@ -1,3 +1,13 @@
+2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Font Lookup): Remove obsolete function
+	x-font-family-list.  x-list-fonts accepts Fontconfig/GTK syntax.
+	(Low-Level Font): Rename from Fonts, move to end of Faces section.
+	(Font Selection): Reorder order of variable descriptions.  Minor
+	clarifications.
+
+	* elisp.texi (Top): Update node listing.
+
 2009-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* commands.texi (Command Loop Info): Say that last-command-char and
