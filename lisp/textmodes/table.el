@@ -6,7 +6,7 @@
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
-;; Revised: Wed Jan 03 2007 13:23:46 (PST)
+;; Revised: Thu Jan 08 2009 20:17:04 (PST)
 
 ;; This file is part of GNU Emacs.
 
@@ -3943,7 +3943,7 @@ converts a table into plain text without frames.  It is a companion to
 (defun *table--cell-self-insert-command ()
   "Table cell version of `self-insert-command'."
   (interactive "*")
-  (let ((char (table--unibyte-char-to-multibyte last-command-char)))
+  (let ((char (table--unibyte-char-to-multibyte last-command-event)))
     (if (eq buffer-undo-list t) nil
       (if (not (eq last-command this-command))
 	  (setq table-cell-self-insert-command-count 0)

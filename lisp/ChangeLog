@@ -14,6 +14,7 @@
 	* progmodes/prolog.el, progmodes/sh-script.el, progmodes/simula.el:
 	* progmodes/tcl.el, progmodes/vera-mode.el, progmodes/verilog-mode.el:
 	* progmodes/vhdl-mode.el, progmodes/xscheme.el:
+	* textmodes/sgml-mode.el, textmodes/table.el, textmodes/two-column.el:
 	Replace last-command-char with last-command-event.
 
 2009-01-09  Dave Love  <fx@gnu.org>

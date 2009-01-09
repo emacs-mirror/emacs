@@ -595,16 +595,16 @@ Uses `sgml-char-names'."
 (defun sgml-name-self ()
   "Insert a symbolic character name according to `sgml-char-names'."
   (interactive "*")
-  (sgml-name-char last-command-char))
+  (sgml-name-char last-command-event))
 
 (defun sgml-maybe-name-self ()
   "Insert a symbolic character name according to `sgml-char-names'."
   (interactive "*")
   (if sgml-name-8bit-mode
-      (let ((mc last-command-char))
+      (let ((mc last-command-event))
 	(if (< mc 256)
 	    (setq mc (unibyte-char-to-multibyte mc)))
-	(or mc (setq mc last-command-char))
+	(or mc (setq mc last-command-event))
 	(sgml-name-char mc))
     (self-insert-command 1)))
 
@@ -714,7 +714,7 @@ With prefix argument, only self insert."
 	    (eq (aref tag 0) ?/))
 	(self-insert-command (prefix-numeric-value arg))
       (sgml-attributes tag)
-      (setq last-command-char ?\s)
+      (setq last-command-event ?\s)
       (or (> (point) point)
 	  (self-insert-command 1)))))
 
