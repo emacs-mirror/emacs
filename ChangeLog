@@ -1,3 +1,7 @@
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* .dir-locals.el: Don't set indent-tabs-mode.
+
 2008-12-30  Kenichi Handa  <handa@m17n.org>
 
 	* configure.in: Define HAVE_OTF_GET_VARIATION_GLYPHS if libotf has

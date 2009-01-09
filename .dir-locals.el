@@ -1,5 +1,4 @@
-((nil . ((indent-tabs-mode . t)
-         (tab-width . 8)
+((nil . ((tab-width . 8)
          (fill-column . 70)))
  (c-mode . ((c-file-style . "GNU")))
  (change-log-mode . ((add-log-time-zone-rule . t)
