@@ -7,7 +7,10 @@
 	* calc/calc-keypd.el, calc/calc-misc.el, calc/calc-prog.el:
 	* calc/calc-sel.el, calc/calc-store.el, calc/calc-stuff.el:
 	* calc/calc-units.el, calc/calc-yank.el, calc/calc.el:
+	* emacs-lisp/lisp.el, emacs-lisp/re-builder.el:
 	* eshell/em-smart.el, eshell/esh-mode.el:
+	* international/mule-cmds.el:
+	* net/tramp.el:
 	* play/mpuz.el:
 	* progmodes/ada-mode.el, progmodes/antlr-mode.el, progmodes/cc-align.el:
 	* progmodes/cc-cmds.el, progmodes/cperl-mode.el, progmodes/f90.el:

@@ -3738,10 +3738,10 @@ beginning of local filename are not substituted."
 	      ;; We don't need to handle `last-input-event', because
 	      ;; due to the key map we know it must be ?/ or ?~.
 	      (let ((s (concat (buffer-substring (point-min) (point))
-			       (string last-command-char))))
+			       (string last-command-event))))
 		(delete-region (point-min) (point))
 		(insert (substitute-in-file-name s))
-		(setq ad-return-value last-command-char))
+		(setq ad-return-value last-command-event))
 	    ad-do-it))))
 
    '(minibuffer-electric-separator

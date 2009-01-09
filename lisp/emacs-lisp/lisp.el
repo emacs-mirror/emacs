@@ -474,7 +474,7 @@ character is inserted ARG times.
 This command assumes point is not in a string or comment."
   (interactive "P")
   (if (not (and open close))
-      (let ((pair (or (assq last-command-char insert-pair-alist)
+      (let ((pair (or (assq last-command-event insert-pair-alist)
                       (assq (event-basic-type last-command-event)
                             insert-pair-alist))))
         (if pair

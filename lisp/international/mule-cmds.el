@@ -299,10 +299,10 @@ wrong, use this command again to toggle back to the right mode."
 		     cmd (key-binding keyseq t))
 	       (not (eq cmd 'universal-argument-other-key)))
 	(let ((current-prefix-arg prefix-arg)
-	      ;; Have to bind `last-command-char' here so that
+	      ;; Have to bind `last-command-event' here so that
 	      ;; `digit-argument', for instance, can compute the
 	      ;; prefix arg.
-	      (last-command-char (aref keyseq 0)))
+	      (last-command-event (aref keyseq 0)))
 	  (call-interactively cmd)))
 
       ;; This is the final call to `universal-argument-other-key', which

@@ -564,7 +564,7 @@ optional fourth argument FORCE is non-nil."
   (interactive)
 
   (setq reb-subexp-displayed
-	(or subexp (string-to-number (format "%c" last-command-char))))
+	(or subexp (string-to-number (format "%c" last-command-event))))
   (reb-update-modestring)
   (reb-do-update reb-subexp-displayed))
 
