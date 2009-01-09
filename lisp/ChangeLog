@@ -35,6 +35,12 @@
 	* obsolete/iso-acc.el:
 	* progmodes/vhdl-mode.el: Replace last-input-char with last-input-event.
 
+	* emacs-lisp/edebug.el: Remove references to last-command-char and
+	last-input-char, since these have been identical to last-command-event
+	and last-input-event since at least Emacs 19.
+	(edebug-outside-last-command-char, edebug-outside-last-input-char):
+	Remove.
+
 2009-01-09  Dave Love  <fx@gnu.org>
 
 	* calendar/time-date.el: Require cl for `declare'.

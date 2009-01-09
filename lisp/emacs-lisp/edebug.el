@@ -1,7 +1,8 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
 ;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Maintainer: FSF
@@ -2813,10 +2814,8 @@ MSG is printed after `::::} '."
 (defvar edebug-outside-standard-output)
 (defvar edebug-outside-standard-input)
 (defvar edebug-outside-current-prefix-arg)
-(defvar edebug-outside-last-command-char)
 (defvar edebug-outside-last-command)
 (defvar edebug-outside-this-command)
-(defvar edebug-outside-last-input-char)
 
 ;; Note: here we have defvars for variables that are
 ;; built-in in certain versions.
@@ -2869,10 +2868,8 @@ MSG is printed after `::::} '."
 	(edebug-outside-standard-input standard-input)
 	(edebug-outside-defining-kbd-macro defining-kbd-macro)
 
-	(edebug-outside-last-command-char last-command-char)
 	(edebug-outside-last-command last-command)
 	(edebug-outside-this-command this-command)
-	(edebug-outside-last-input-char last-input-char)
 
 	(edebug-outside-unread-command-char unread-command-char)
 	(edebug-outside-current-prefix-arg current-prefix-arg)
@@ -2888,10 +2885,8 @@ MSG is printed after `::::} '."
 	(let (
 	      ;; Declare global values local but using the same global value.
 	      ;; We could set these to the values for previous edebug call.
-	      (last-command-char last-command-char)
 	      (last-command last-command)
 	      (this-command this-command)
-	      (last-input-char last-input-char)
 
 	      ;; Assume no edebug command sets unread-command-char.
 	      (unread-command-char -1)
@@ -2955,13 +2950,11 @@ MSG is printed after `::::} '."
 
       ;; Reset global vars to outside values, in case they have been changed.
       (setq
-       last-command-char edebug-outside-last-command-char
        last-command-event edebug-outside-last-command-event
        last-command edebug-outside-last-command
        this-command edebug-outside-this-command
        unread-command-char edebug-outside-unread-command-char
        current-prefix-arg edebug-outside-current-prefix-arg
-       last-input-char edebug-outside-last-input-char
        last-input-event edebug-outside-last-input-event
        last-event-frame edebug-outside-last-event-frame
        last-nonmenu-event edebug-outside-last-nonmenu-event
@@ -3580,14 +3573,12 @@ Return the result of the last expression."
      (set-match-data edebug-outside-match-data)
      ;; Restore outside context.
      (let (;; (edebug-inside-map (current-local-map)) ;; restore map??
-	   (last-command-char edebug-outside-last-command-char)
 	   (last-command-event edebug-outside-last-command-event)
 	   (last-command edebug-outside-last-command)
 	   (this-command edebug-outside-this-command)
 	   (unread-command-char edebug-outside-unread-command-char)
 	   (unread-command-events edebug-outside-unread-command-events)
 	   (current-prefix-arg edebug-outside-current-prefix-arg)
-	   (last-input-char edebug-outside-last-input-char)
 	   (last-input-event edebug-outside-last-input-event)
 	   (last-event-frame edebug-outside-last-event-frame)
 	   (last-nonmenu-event edebug-outside-last-nonmenu-event)
@@ -3623,14 +3614,12 @@ Return the result of the last expression."
 
 	 ;; Save values that may have been changed.
 	 (setq
-	  edebug-outside-last-command-char last-command-char
 	  edebug-outside-last-command-event last-command-event
 	  edebug-outside-last-command last-command
 	  edebug-outside-this-command this-command
 	  edebug-outside-unread-command-char unread-command-char
 	  edebug-outside-unread-command-events unread-command-events
 	  edebug-outside-current-prefix-arg current-prefix-arg
-	  edebug-outside-last-input-char last-input-char
 	  edebug-outside-last-input-event last-input-event
 	  edebug-outside-last-event-frame last-event-frame
 	  edebug-outside-last-nonmenu-event last-nonmenu-event
