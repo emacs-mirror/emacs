@@ -1165,6 +1165,10 @@ checking/manipulating elements directly, use the new functions
 ** `mode-name' is no longer guaranteed to be a string.
 Use `(format-mode-line mode-name)' to ensure a string value.
 
++++
+** The function x-font-family-list has been removed.
+Use the new function font-family-list (see Lisp Changes, below).
+
 ** Internationalization changes
 
 *** The value of the function `charset-id' is now always 0.
@@ -1631,9 +1635,6 @@ currently `x' and `xft'.
 *** The function `set-fontset-font' now accepts a script name as the
 second argument, and has an optional 5th argument to control how to
 set the font.
-+++
-*** The function x-font-family-list is now obsolete.
-Instead, use the new function font-family-list, below.
 
 *** New functions:
 +++
