@@ -1,3 +1,19 @@
+2009-01-10  Richard M Stallman  <rms@gnu.org>
+
+	* pmailsort.el (pmailhdr): Don't require it.
+	(pmail-fetch-field): Function deleted.
+	Callers use pmail-get-header.
+	(pmail-sort-messages): Replace point-offset with
+	return-to-point, which can be nil.
+	Call pmail-swap-buffers-maybe after that.
+	Don't bind buffer-read-only.  Bind inhibit-read-only.
+	Be more careful in making blank line at end of msg.
+	Don't enable undo at end.
+
+	* pmail.el (pmail-ignored-headers): Hide more fields.
+	(pmail-next-undeleted-message): If we stay on same message,
+	don't change anything.
+
 2009-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* pmailmsc.el (pmail-show-message): Fix declaration.
