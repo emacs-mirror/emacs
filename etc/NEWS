@@ -139,7 +139,7 @@ terminal frames using emacsclient.
 emacs server.
 
 *** The new command close-display-connection closes a connection to a
-remote display.
+remote display.  There are some bugs for Gtk+.  See etc/PROBLEMS.
 
 *** Emacs now supports the XEmbed specification.
 You can embed Emacs in another application on X11.  The new command line
