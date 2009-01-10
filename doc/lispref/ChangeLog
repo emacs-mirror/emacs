@@ -1,5 +1,11 @@
 2009-01-10  Eli Zaretskii  <eliz@gnu.org>
 
+	* processes.texi (Decoding Output): Document that null bytes force
+	no-conversion for reading process output.
+
+	* files.texi (Reading from Files): Document that null bytes force
+	no-conversion when visiting files.
+
 	* processes.texi (Serial Ports): Improve wording, suggested by
 	RMS.
 
