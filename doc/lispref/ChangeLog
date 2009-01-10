@@ -2,6 +2,7 @@
 
 	* nonascii.texi (Lisp and Coding Systems): Document
 	inhibit-null-byte-detection and inhibit-iso-escape-detection.
+	(Character Properties): Improve wording.
 
 2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
