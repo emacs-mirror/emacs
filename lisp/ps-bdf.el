@@ -12,8 +12,9 @@
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
+;; Author: Kenichi Handa <handa@m17n.org>
+;; (according to ack.texi)
 ;; Keywords: wp, BDF, font, PostScript
-;; Maintainer: Kenichi Handa <handa@m17n.org>
 
 ;; This file is part of GNU Emacs.
 
