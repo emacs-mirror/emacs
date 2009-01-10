@@ -1,3 +1,9 @@
+2009-01-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* elisp.texi (Top): Update node listing.
+
+	* display.texi (PostScript Images): Node deleted.
+
 2009-01-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* processes.texi (Decoding Output): Document that null bytes force
