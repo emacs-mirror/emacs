@@ -1562,6 +1562,12 @@ conversion should go.
 have an optional 4th argument specifying a buffer to store the result
 of conversion.
 
++++
+*** The new variable `inhibit-null-byte-detection' controls whether to
+consider text with null bytes as binary data.  By default, it is
+`nil', and Emacs uses `no-conversion' for any text containing null
+bytes.
+
 ---
 *** The functions `set-coding-priority' and `make-coding-system' are obsolete.
 
