@@ -1,5 +1,8 @@
 2009-01-10  Eli Zaretskii  <eliz@gnu.org>
 
+	* processes.texi (Serial Ports): Improve wording, suggested by
+	RMS.
+
 	* nonascii.texi (Lisp and Coding Systems): Document
 	inhibit-null-byte-detection and inhibit-iso-escape-detection.
 	(Character Properties): Improve wording.
