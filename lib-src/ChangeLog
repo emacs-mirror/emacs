@@ -1796,6 +1796,11 @@
 	* pop.c (socket_connection): Move the code to resolve the POP
 	host right before trying to connect with it.
 
+2002-05-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* tcp.c: Delete file since the TCP emulation is no longer in use on any
+	platform.
+
 2002-04-28  Colin Walters  <walters@verbum.org>
 
 	* Makefile.in (${archlibdir}): Don't conditionalize on
