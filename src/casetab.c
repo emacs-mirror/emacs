@@ -1,6 +1,8 @@
 /* GNU Emacs routines to deal with case tables.
-   Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+                 2008, 2009  Free Software Foundation, Inc.
+
+Author: Howard Gayle
 
 This file is part of GNU Emacs.
 
@@ -16,8 +18,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
-
-/* Written by Howard Gayle.  */
 
 #include <config.h>
 #include "lisp.h"
