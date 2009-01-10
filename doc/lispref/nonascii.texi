@@ -1098,12 +1098,31 @@ If the region contains only @acronym{ASCII} characters except for such
 ISO-2022 control characters ISO-2022 as @code{ESC}, the value is
 @code{undecided} or @code{(undecided)}, or a variant specifying
 end-of-line conversion, if that can be deduced from the text.
+
+If the region contains null bytes, the value is @code{no-conversion},
+even if the region contains text encoded in some coding system.
 @end defun
 
 @defun detect-coding-string string &optional highest
 This function is like @code{detect-coding-region} except that it
 operates on the contents of @var{string} instead of bytes in the buffer.
 @end defun
+
+@defvar inhibit-null-byte-detection
+If this variable has a non-@code{nil} value, null bytes are ignored
+when detecting the encoding of a region or a string.  This allows to
+correctly detect the encoding of text that contains null bytes, such
+as Info files with Index nodes.
+@end defvar
+
+@defvar inhibit-iso-escape-detection
+If this variable has a non-@code{nil} value, ISO-2022 escape sequences
+are ignored when detecting the encoding of a region or a string.  The
+result is that no text is ever detected as encoded in some ISO-2022
+encoding, and all escape sequences become visible in a buffer.
+@strong{Warning:} @emph{Use this variable with extreme caution,
+because many files in the Emacs distribution use ISO-2022 encoding.}
+@end defvar
 
 @defun coding-system-charset-list coding-system
 This function returns the list of character sets (@pxref{Character
