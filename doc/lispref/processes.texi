@@ -1388,7 +1388,10 @@ converts the unibyte output to multibyte using
 system to use (@pxref{Process Information}).  Otherwise, the coding
 system comes from @code{coding-system-for-read}, if that is
 non-@code{nil}; or else from the defaulting mechanism (@pxref{Default
-Coding Systems}).
+Coding Systems}).  If the text output by a process contains null
+bytes, Emacs by default uses @code{no-conversion} for it; see
+@ref{Lisp and Coding Systems, inhibit-null-byte-detection}, for how to
+control this behavior.
 
   @strong{Warning:} Coding systems such as @code{undecided} which
 determine the coding system from the data do not work entirely
