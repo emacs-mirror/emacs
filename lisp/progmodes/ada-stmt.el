@@ -1,9 +1,12 @@
 ;;; ada-stmt.el --- an extension to Ada mode for inserting statement templates
 
 ;; Copyright (C) 1987, 1993, 1994, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
-;; Authors: Daniel Pfeiffer, Markus Heritsch, Rolf Ebert <ebert@waporo.muc.de>
+;; Authors: Daniel Pfeiffer
+;;	Markus Heritsch
+;;	Rolf Ebert <ebert@waporo.muc.de>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages, ada
 

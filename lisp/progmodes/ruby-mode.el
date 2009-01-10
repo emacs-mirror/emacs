@@ -4,7 +4,8 @@
 ;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
-;; Authors: Yukihiro Matsumoto, Nobuyoshi Nakada
+;; Authors: Yukihiro Matsumoto
+;;	Nobuyoshi Nakada
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/RubyMode
 ;; Created: Fri Feb  4 14:49:13 JST 1994
 ;; Keywords: languages ruby
