@@ -1,3 +1,7 @@
+2009-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Some more updates based on AUTHORS.
+
 2009-01-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Visual Line Mode): M-] and M-[ no longer move by

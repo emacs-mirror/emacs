@@ -941,11 +941,12 @@ which each lisp function loaded into Emacs came.
 
 @item
 Edward M.@: Reingold wrote the extensive calendar and diary support,
-with contributions from Stewart Clamen, Nachum Dershowitz, Paul Eggert,
-Steve Fisk, Michael Kifer, and Lara Rios.  Andy Oram contributed to its
-documentation.  Reingold has also contributed to @file{tex-mode.el}, a
-mode for editing @TeX{} files, as have William F.@: Schelter, Dick King,
-Stephen Gildea, Michael Prange, and Jacob Gore.
+with contributions from Stewart Clamen (@file{cal-mayan.el}), Nachum
+Dershowitz, Paul Eggert, Steve Fisk (@file{cal-tex.el}), Michael Kifer,
+and Lara Rios.  Andy Oram contributed to its documentation.  Reingold
+also contributed to @file{tex-mode.el}, a mode for editing @TeX{} files,
+as did William F.@: Schelter, Dick King, Stephen Gildea, Michael Prange,
+and Jacob Gore.
 
 @item
 David Reitter wrote @file{mailclient.el} which can send mail via the
