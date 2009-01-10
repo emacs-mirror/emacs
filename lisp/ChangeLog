@@ -1,3 +1,8 @@
+2009-01-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* tool-bar.el (tool-bar-mode): Modify all frame parameters when
+	toggling tool bars on.  (Bug#1754)
+
 2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (face-valid-attribute-values): Use string as value for
