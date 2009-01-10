@@ -1,5 +1,9 @@
 2009-01-10  Richard M Stallman  <rms@gnu.org>
 
+	* pmail.el (pmail-count-screen-lines, pmail-use-collection-buffer)
+	(pmail-use-viewer-buffer): Fns deleted.
+	Other functions reordered but not changed.
+
 	* pmailsort.el (pmailhdr): Don't require it.
 	(pmail-fetch-field): Function deleted.
 	Callers use pmail-get-header.
