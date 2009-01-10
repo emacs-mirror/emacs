@@ -1,3 +1,10 @@
+2009-01-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-show-trailing-whitespaces): Remove function.
+	Move setting up whitepace-mode ...
+	(diff-mode): ... here.
+	(diff-mode-menu): Add a menu entry for showing trailing whitespace.
+
 2009-01-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (x-font-family-list): Remove entirely.

@@ -781,8 +781,8 @@ diff-auto-refine-mode.  It is bound to `C-c C-b'.
 buffer and tries to create ChangeLog entries for each change.
 It is bound to `C-x 4 A'.
 +++
-*** The new function `diff-show-trailing-whitespaces' shows
-trailing whitespace problems in the modified lines of a diff buffer.
+*** Turning on `whitespace-mode' in a diff buffer will show trailing
+whitespace problems in the modified lines.
 
 ** Dired
 +++

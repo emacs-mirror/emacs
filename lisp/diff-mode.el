@@ -183,6 +183,9 @@ when editing big diffs)."
     ["Unified -> Context"	diff-unified->context
      :help "Convert unified diffs to context diffs"]
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
+    ["Show trailing whitespace" whitespace-mode
+     :style toggle :selected whitespace-mode
+     :help "Show trailing whitespace in modified lines"]
     "-----"
     ["Split hunk"		diff-split-hunk
      :active (diff-splittable-p)
@@ -1264,6 +1267,12 @@ a diff with \\[diff-reverse-direction].
   (set (make-local-variable 'end-of-defun-function)
        'diff-end-of-file)
 
+  ;; Set up `whitespace-mode' so that turning it on will show trailing
+  ;; whitespace problems on the modified lines of the diff.
+  (set (make-local-variable 'whitespace-style) '(trailing))
+  (set (make-local-variable 'whitespace-trailing-regexp)
+       "^[-\+!<>].*?\\([\t ]+\\)$")
+
   (setq buffer-read-only diff-default-read-only)
   ;; setup change hooks
   (if (not diff-update-on-the-fly)
@@ -1884,13 +1893,6 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
               (add-change-log-entry nil nil t nil t)))
         ;; When there's no more hunks, diff-hunk-next signals an error.
 	(error nil)))))
-
-(defun diff-show-trailing-whitespaces ()
-  "Show trailing whitespaces in modified lines for diff-mode."
-  (interactive)
-  (let ((whitespace-style '(trailing))
-        (whitespace-trailing-regexp "^[-+!<>].*?\\([\t ]+\\)$"))
-    (whitespace-mode 1)))     ; display trailing whitespace in diff buffer
 
 ;; provide the package
 (provide 'diff-mode)
