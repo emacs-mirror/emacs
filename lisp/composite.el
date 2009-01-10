@@ -5,6 +5,8 @@
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
+;; Author: Kenichi HANDA <handa@etl.go.jp>
+;; (according to ack.texi)
 ;; Keywords: mule, multilingual, character composition
 
 ;; This file is part of GNU Emacs.
