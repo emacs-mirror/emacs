@@ -190,23 +190,27 @@ EVENT is an event like `last-nonmenu-event'."
   'scroll-calendar-right 'calendar-scroll-right "23.1")
 
 ;;;###cal-autoload
-(defun calendar-scroll-left-three-months (arg)
+(defun calendar-scroll-left-three-months (arg &optional event)
   "Scroll the displayed calendar window left by 3*ARG months.
 If ARG is negative the calendar is scrolled right.  Maintains the relative
-position of the cursor with respect to the calendar as well as possible."
-  (interactive "p")
-  (calendar-scroll-left (* 3 arg)))
+position of the cursor with respect to the calendar as well as possible.
+EVENT is an event like `last-nonmenu-event'."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (calendar-scroll-left (* 3 arg) event))
 
 (define-obsolete-function-alias 'scroll-calendar-left-three-months
   'calendar-scroll-left-three-months "23.1")
 
 ;;;###cal-autoload
-(defun calendar-scroll-right-three-months (arg)
+(defun calendar-scroll-right-three-months (arg &optional event)
   "Scroll the displayed calendar window right by 3*ARG months.
 If ARG is negative the calendar is scrolled left.  Maintains the relative
-position of the cursor with respect to the calendar as well as possible."
-  (interactive "p")
-  (calendar-scroll-left (* -3 arg)))
+position of the cursor with respect to the calendar as well as possible.
+EVENT is an event like `last-nonmenu-event'."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (calendar-scroll-left (* -3 arg) event))
 
 (define-obsolete-function-alias 'scroll-calendar-right-three-months
   'calendar-scroll-right-three-months "23.1")

@@ -1,3 +1,13 @@
+2009-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-move.el (calendar-scroll-left-three-months)
+	(calendar-scroll-right-three-months):
+	* calendar/holidays.el (calendar-list-holidays)
+	(calendar-mark-holidays):
+	* calendar/lunar.el (calendar-lunar-phases):
+	Add event handling, for when called from menus with the calendar buffer
+	not current.
+
 2009-01-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* diff-mode.el (diff-show-trailing-whitespaces): Remove function.
