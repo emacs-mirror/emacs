@@ -1,3 +1,14 @@
+2009-01-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix Bug #876:
+
+	* coding.c (inhibit_null_byte_detection): New variable.
+	(detect_coding, detect_coding_system): Don't pay attention to null
+	bytes if inhibit_null_byte_detection is non-zero.
+	(syms_of_coding) <inhibit-null-byte-detection>: Declare and
+	document.
+	<inhibit-iso-escape-detection>: Doc fix.
+
 2009-01-09  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (add_font_entity_to_list): Don't report unknown
