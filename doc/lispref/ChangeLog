@@ -1,3 +1,8 @@
+2009-01-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Lisp and Coding Systems): Document
+	inhibit-null-byte-detection and inhibit-iso-escape-detection.
+
 2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Font Lookup): Remove obsolete function
