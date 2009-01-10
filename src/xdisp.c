@@ -1349,21 +1349,27 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
   move_it_to (&it, charpos, -1, it.last_visible_y-1, -1,
 	      (charpos >= 0 ? MOVE_TO_POS : 0) | MOVE_TO_Y);
 
-  /* Note that we may overshoot because of invisible text.  */
   if (charpos >= 0 && IT_CHARPOS (it) >= charpos)
     {
+      /* We have reached CHARPOS, or passed it.  How the call to
+	 move_it_to can overshoot: (i) If CHARPOS is on invisible
+	 text, move_it_to stops at the end of the invisible text,
+	 after CHARPOS.  (ii) If CHARPOS is in a display vector,
+	 move_it_to stops on its last glyph.  */
       int top_x = it.current_x;
       int top_y = it.current_y;
+      enum it_method it_method = it.method;
+      /* Calling line_bottom_y may change it.method.  */
       int bottom_y = (last_height = 0, line_bottom_y (&it));
       int window_top_y = WINDOW_HEADER_LINE_HEIGHT (w);
 
       if (top_y < window_top_y)
 	visible_p = bottom_y > window_top_y;
       else if (top_y < it.last_visible_y)
-	  visible_p = 1;
+	visible_p = 1;
       if (visible_p)
 	{
-	  if (it.method == GET_FROM_BUFFER)
+	  if (it_method == GET_FROM_BUFFER)
 	    {
 	      Lisp_Object window, prop;
 
@@ -1381,10 +1387,35 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 		  struct glyph *end = glyph + row->used[TEXT_AREA];
 		  int x = row->x;
 
-		  for (; glyph < end && glyph->charpos < charpos; glyph++)
+		  for (; glyph < end
+			 && (!BUFFERP (glyph->object)
+			     || glyph->charpos < charpos);
+		       glyph++)
 		    x += glyph->pixel_width;
-
 		  top_x = x;
+		}
+	    }
+	  else if (it_method == GET_FROM_DISPLAY_VECTOR)
+	    {
+	      /* We stopped on the last glyph of a display vector.
+		 Try and recompute.  Hack alert!  */
+	      if (charpos < 2 || top.charpos >= charpos)
+		top_x = it.glyph_row->x;
+	      else
+		{
+		  struct it it2;
+		  start_display (&it2, w, top);
+		  move_it_to (&it2, charpos - 1, -1, -1, -1, MOVE_TO_POS);
+		  get_next_display_element (&it2);
+		  PRODUCE_GLYPHS (&it2);
+		  if (ITERATOR_AT_END_OF_LINE_P (&it2)
+		      || it2.current_x > it2.last_visible_x)
+		    top_x = it.glyph_row->x;
+		  else
+		    {
+		      top_x = it2.current_x;
+		      top_y = it2.current_y;
+		    }
 		}
 	    }
 
@@ -14468,11 +14499,15 @@ try_window_reusing_current_matrix (w)
 	  if (row < bottom_row)
 	    {
 	      struct glyph *glyph = row->glyphs[TEXT_AREA] + w->cursor.hpos;
-	      while (glyph->charpos < PT)
+	      struct glyph *end = glyph + row->used[TEXT_AREA];
+
+	      for (; glyph < end
+		     && (!BUFFERP (glyph->object)
+			 || glyph->charpos < PT);
+		   glyph++)
 		{
 		  w->cursor.hpos++;
 		  w->cursor.x += glyph->pixel_width;
-		  glyph++;
 		}
 	    }
 	}
