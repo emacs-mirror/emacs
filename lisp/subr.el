@@ -1062,7 +1062,7 @@ to reread, so it now uses nil to mean `no event', instead of -1."
 
 ;; These aliases exist in Emacs 19.34, and probably before, but were
 ;; only marked as obsolete in 23.1.
-;; The lisp manual (since at least Emacs 21) descrribes them as
+;; The lisp manual (since at least Emacs 21) describes them as
 ;; existing "for compatibility with Emacs version 18".
 (define-obsolete-variable-alias 'last-input-char 'last-input-event
   "at least 19.34")
