@@ -31,8 +31,6 @@
   (require 'sort)
   (require 'pmail))
 
-(require 'pmailhdr)
-
 (autoload 'timezone-make-date-sortable "timezone")
 
 (declare-function pmail-update-summary "pmailsum" (&rest ignore))
@@ -48,7 +46,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 		       (function
 			(lambda (msg)
 			  (pmail-make-date-sortable
-			   (pmail-fetch-field msg "Date"))))))
+			   (pmail-get-header "Date" msg))))))
 
 ;;;###autoload
 (defun pmail-sort-by-subject (reverse)
@@ -58,7 +56,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
   (pmail-sort-messages reverse
 		       (function
 			(lambda (msg)
-			  (let ((key (or (pmail-fetch-field msg "Subject") ""))
+			  (let ((key (or (pmail-get-header "Subject" msg) ""))
 				(case-fold-search t))
 			    ;; Remove `Re:'
 			    (if (string-match "^\\(re:[ \t]*\\)*" key)
@@ -75,8 +73,8 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 			(lambda (msg)
 			  (downcase	;Canonical name
 			   (mail-strip-quoted-names
-			    (or (pmail-fetch-field msg "From")
-				(pmail-fetch-field msg "Sender") "")))))))
+			    (or (pmail-get-header "From" msg)
+				(pmail-get-header "Sender" msg) "")))))))
 
 ;;;###autoload
 (defun pmail-sort-by-recipient (reverse)
@@ -88,8 +86,8 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 			(lambda (msg)
 			  (downcase	;Canonical name
 			   (mail-strip-quoted-names
-			    (or (pmail-fetch-field msg "To")
-				(pmail-fetch-field msg "Apparently-To") "")
+			    (or (pmail-get-header "To" msg)
+				(pmail-get-header "Apparently-To" msg) "")
 			    ))))))
 
 ;;;###autoload
@@ -111,7 +109,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 	    ;; NB despite the name, this lives in mail-utils.el.
 	    (rmail-dont-reply-to
 	     (mail-strip-quoted-names
-	      (or (pmail-fetch-field msg (car fields)) ""))))
+	      (or (pmail-get-header (car fields) msg) ""))))
       (setq fields (cdr fields)))
     ans))
 
@@ -160,12 +158,13 @@ KEYWORDS is a comma-separated list of labels."
   "Sort messages of current Pmail file.
 If 1st argument REVERSE is non-nil, sort them in reverse order.
 2nd argument KEYFUN is called with a message number, and should return a key."
-  (pmail-swap-buffers-maybe)
   (with-current-buffer pmail-buffer
-    (let ((buffer-read-only nil)
-	  (point-offset (- (point) (point-min)))
+    (let ((return-to-point
+	   (if (pmail-buffers-swapped-p)
+	       (point)))
 	  (predicate nil)			;< or string-lessp
 	  (sort-lists nil))
+      (pmail-swap-buffers-maybe)
       (message "Finding sort keys...")
       (widen)
       (let ((msgnum 1))
@@ -193,13 +192,15 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
       ;; Now we enter critical region.  So, keyboard quit is disabled.
       (message "Reordering messages...")
       (let ((inhibit-quit t)		;Inhibit quit
+	    (inhibit-read-only t)
 	    (current-message nil)
 	    (msgnum 1)
 	    (msginfo nil))
 	;; There's little hope that we can easily undo after that.
 	(buffer-disable-undo (current-buffer))
 	(goto-char (pmail-msgbeg 1))
-	;; To force update of all markers.
+	;; To force update of all markers,
+	;; keep the new copies separated from the remaining old messages.
 	(insert-before-markers ?Z)
 	(backward-char 1)
 	;; Now reorder messages.
@@ -208,8 +209,10 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	  (insert-buffer-substring
 	   (current-buffer) (nth 2 msginfo) (nth 3 msginfo))
 	  ;; The last message may not have \n\n after it.
-	  (unless (eq (char-before) ?\n)
-	    (insert "\n\n"))
+	  (unless (bobp)
+	    (insert "\n"))
+	  (unless (looking-back "\n\n")
+	    (insert "\n"))
 	  (delete-region (nth 2 msginfo) (nth 3 msginfo))
 	  ;; Is current message?
 	  (if (nth 1 msginfo)
@@ -217,23 +220,15 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	  (if (zerop (% msgnum 10))
 	      (message "Reordering messages...%d" msgnum))
 	  (setq msgnum (1+ msgnum)))
-	;; Delete the garbage inserted before.
+	;; Delete the dummy separator Z inserted before.
 	(delete-char 1)
 	(setq quit-flag nil)
-	(buffer-enable-undo)
 	(pmail-set-message-counters)
 	(pmail-show-message current-message)
-	(goto-char (+ point-offset (point-min)))
+	(if return-to-point
+	    (goto-char return-to-point))
 	(if (pmail-summary-exists)
 	    (pmail-select-summary (pmail-update-summary)))))))
-
-(defun pmail-fetch-field (msg field)
-  "Return the value of the header FIELD of MSG.
-Arguments are MSG and FIELD."
-  (save-restriction
-    (widen)
-    (narrow-to-region (pmail-msgbeg msg) (pmail-msgend msg))
-    (pmail-header-get-header field)))
 
 (defun pmail-make-date-sortable (date)
   "Make DATE sortable using the function string-lessp."
