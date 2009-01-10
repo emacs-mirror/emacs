@@ -1,5 +1,12 @@
 2009-01-10  Richard M Stallman  <rms@gnu.org>
 
+	* pmailout.el (pmail-output-to-r-mail-buffer): New function.
+	(pmail-output-as-babyl): Use it.
+	(pmail-output-to-pmail-buffer): New function.
+	(pmail-output-as-mbox): Use it.
+	(pmail-output-as-seen): Pass t to pmail-output-as-mbox.
+	(pmail-output): Call set-buffer later.
+
 	* pmail.el (pmail-count-screen-lines, pmail-use-collection-buffer)
 	(pmail-use-viewer-buffer): Fns deleted.
 	Other functions reordered but not changed.
