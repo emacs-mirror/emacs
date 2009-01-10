@@ -2681,18 +2681,6 @@ If that can't be done, return nil."
        (internal-frob-font-slant font "i")))
 (make-obsolete 'x-make-font-bold-italic 'make-face-bold-italic "21.1")
 
-(defun x-font-family-list (&optional frame)
-  "Return a list of available font families on FRAME.
-If FRAME is omitted or nil, use the selected frame.
-Value is a list of conses (FAMILY . FIXED-P) where FAMILY
-is a font family, and FIXED-P is non-nil if fonts of that family
-are fixed-pitch."
-  (if (fboundp 'font-family-list)
-      (mapcar (lambda (family) (cons family nil))
-	      (font-family-list))
-    '(("default" . t))))
-(make-obsolete 'x-font-family-list 'font-family-list "23.1")
-
 (provide 'faces)
 
 ;; arch-tag: 19a4759f-2963-445f-b004-425b9aadd7d6
