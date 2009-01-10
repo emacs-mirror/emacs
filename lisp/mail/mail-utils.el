@@ -77,6 +77,26 @@ we add the wrapper characters =?ISO-8859-1?Q?....?=."
 		  "?=")
 	(concat result (substring string i))))))
 
+;;;###autoload
+(defun mail-quote-printable-region (beg end &optional wrapper)
+  "Convert the region to the \"quoted printable\" Q encoding.
+If the optional argument WRAPPER is non-nil,
+we add the wrapper characters =?ISO-8859-1?Q?....?=."
+  (interactive "r\nP")
+  (save-match-data
+    (save-excursion
+      (goto-char beg)
+      (save-restriction
+	(narrow-to-region beg end)
+	(while (re-search-forward "[?=\"\200-\377]" nil t)
+	  (replace-match (upcase (format "=%02x" (preceding-char)))
+			 t t))
+	(when wrapper
+	  (goto-char beg)
+	  (insert "=?ISO-8859-1?Q?")
+	  (goto-char end)
+	  (insert "?="))))))
+
 (defun mail-unquote-printable-hexdigit (char)
   (setq char (upcase char))
   (if (>= char ?A)
