@@ -1,3 +1,7 @@
+2009-01-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (x-font-family-list): Remove entirely.
+
 2009-01-10  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix Bug #876:
