@@ -3949,7 +3949,6 @@ displayed (@pxref{Display Feature Testing}).
 * XPM Images::          Special features for XPM format.
 * GIF Images::          Special features for GIF format.
 * TIFF Images::         Special features for TIFF format.
-* PostScript Images::   Special features for PostScript format.
 * Other Image Types::   Various other formats are supported.
 * Defining Images::     Convenient ways to define an image for later use.
 * Showing Images::      Convenient ways to display an image once it is defined.
@@ -4347,37 +4346,6 @@ contains more than one image.  This property specifies use of image
 number @var{index} from the file.  If the TIFF file doesn't contain an
 image with index @var{index}, the image displays as a hollow box.
 @end table
-
-@node PostScript Images
-@subsection PostScript Images
-@cindex postscript images
-
-  To use PostScript for an image, specify image type @code{postscript}.
-This works only if you have Ghostscript installed.  You must always use
-these three properties:
-
-@table @code
-@item :pt-width @var{width}
-The value, @var{width}, specifies the width of the image measured in
-points (1/72 inch).  @var{width} must be an integer.
-
-@item :pt-height @var{height}
-The value, @var{height}, specifies the height of the image in points
-(1/72 inch).  @var{height} must be an integer.
-
-@item :bounding-box @var{box}
-The value, @var{box}, must be a list or vector of four integers, which
-specifying the bounding box of the PostScript image, analogous to the
-@samp{BoundingBox} comment found in PostScript files.
-
-@example
-%%BoundingBox: 22 171 567 738
-@end example
-@end table
-
-  Displaying PostScript images from Lisp data is not currently
-implemented, but it may be implemented by the time you read this.
-See the @file{etc/NEWS} file to make sure.
 
 @node Other Image Types
 @subsection Other Image Types
