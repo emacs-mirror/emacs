@@ -257,7 +257,7 @@
 
   In addition to its "native" image formats (pbm and xbm), Emacs can
   handle other image types: xpm, tiff, gif, png, jpeg and experimental
-  support for svg (postscript is currently unsupported on Windows).
+  support for svg.
   To build Emacs with support for them, the corresponding headers must
   be in the include path when the configure script is run.  This can
   be setup using environment variables, or by specifying --cflags
