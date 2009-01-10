@@ -2506,8 +2506,8 @@ most common value.  If @var{speed} is @code{nil}, the function ignores
 all other arguments and does not configure the port.  This may be
 useful for special serial ports such as Bluetooth-to-serial converters
 which can only be configured through AT commands sent through the
-connection.  You can use the value of @code{nil} for @var{speed} only
-for connections that are already open by a previous call to
+connection.  The value of @code{nil} for @var{speed} is valid only for
+connections that were already opened by a previous call to
 @code{make-serial-process} or @code{serial-term}.
 
 @item :bytesize @var{bytesize}
