@@ -370,9 +370,16 @@ retrieving properties of characters.
 
   In Emacs, each property has a name, which is a symbol, and a set of
 possible values, whose types depend on the property; if a character
-does not have a certain property, the value is @code{nil}.  Here's the
-full list of value types for all the character properties that Emacs
-knows about:
+does not have a certain property, the value is @code{nil}.  As a
+general rule, the names of character properties in Emacs are produced
+from the corresponding Unicode properties by downcasing them and
+replacing each @samp{_} character with a dash @samp{-}.  For example,
+@code{Canonical_Combining_Class} becomes
+@code{canonical-combining-class}.  However, sometimes we shorten the
+names to make their use easier.
+
+  Here's the full list of value types for all the character properties
+that Emacs knows about:
 
 @table @code
 @item name
@@ -399,8 +406,9 @@ Corresponds to the Unicode @code{Decomposition_Type} and
 @code{Decomposition_Value} properties.  The value is a list, whose
 first element may be a symbol representing a compatibility formatting
 tag, such as @code{small}@footnote{
-Note that Emacs strips the @samp{<..>} brackets from the corresponding
-Unicode tags; e.g., Unicode specifies @samp{<small>} where Emacs uses
+Note that the Unicode spec writes these tag names inside
+@samp{<..>} brackets.  The tag names in Emacs do not include the
+brackets; e.g., Unicode specifies @samp{<small>} where Emacs uses
 @samp{small}.
 }; the other elements are characters that give the compatibility
 decomposition sequence of this character.
@@ -428,7 +436,7 @@ numbers.  For example, the value of this property for the character
 
 @item mirrored
 Corresponds to the Unicode @code{Bidi_Mirrored} property.  The value
-of this property is a symbol, either @samp{Y} or @samp{N}.
+of this property is a symbol, either @code{Y} or @code{N}.
 
 @item old-name
 Corresponds to the Unicode @code{Unicode_1_Name} property.  The value
