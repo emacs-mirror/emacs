@@ -649,6 +649,7 @@ ELCFILES = \
 	$(lisp)/gnus/utf7.elc \
 	$(lisp)/gnus/webmail.elc \
 	$(lisp)/gnus/yenc.elc \
+	$(lisp)/gs.elc \
 	$(lisp)/help-at-pt.elc \
 	$(lisp)/help-fns.elc \
 	$(lisp)/help-macro.elc \
