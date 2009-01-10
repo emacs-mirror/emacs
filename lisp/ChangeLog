@@ -1,7 +1,5 @@
 2009-01-10  Chong Yidong  <cyd@stupidchicken.com>
 
-	* gs.el: File removed.
-
 	* faces.el (x-font-family-list): Remove entirely.
 
 2009-01-10  Eli Zaretskii  <eliz@gnu.org>
