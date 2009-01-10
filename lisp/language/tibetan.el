@@ -1,7 +1,7 @@
 ;;; tibetan.el --- support for Tibetan language -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -10,6 +10,8 @@
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
+;; Author: Toru TOMABECHI <Toru.Tomabechi@orient.unil.ch>
+;; Created: Feb. 17. 1997
 ;; Keywords: multilingual, Tibetan, i18n
 
 ;; This file is part of GNU Emacs.
@@ -27,11 +29,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;; Author: Toru TOMABECHI, <Toru.Tomabechi@orient.unil.ch>
+;;; History:
 
-;; Created: Feb. 17. 1997
-
-;; History:
 ;; 1997.03.13 Modification for special signs and punctuations.
 
 ;;; Commentary:

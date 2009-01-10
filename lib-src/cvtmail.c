@@ -1,5 +1,10 @@
-/* Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+/* cvtmail.c --- convert Gosling Emacs mail directories into RMAIL format
+
+Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+  2008, 2009  Free Software Foundation, Inc.
+
+Author: Larry Kolodney
+Created: 1985
 
 This file is part of GNU Emacs.
 
@@ -17,21 +22,19 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* cvtmail:
- * Program to convert oldstyle goslings emacs mail directories into
- * gnu-rmail format.  Program expects a directory called Messages to
- * exist in your home directory, containing individual mail messages in
- * separate files in the standard gosling emacs mail reader format.
- *
- * Program takes one argument: an output file.  This file will contain
- * all the messages in Messages directory, in berkeley mail format.
- * If no output file is mentioned, messages are put in ~/OMAIL.
- *
- * In order to get rmail to read the messages, the resulting file must
- * be mv'ed to ~/mbox, and then have rmail invoked on them.
- *
- * Author: Larry Kolodney, 1985
- */
+/* Commentary:
+
+Program to convert oldstyle goslings emacs mail directories into
+gnu-rmail format.  Program expects a directory called Messages to
+exist in your home directory, containing individual mail messages in
+separate files in the standard gosling emacs mail reader format.
+
+Program takes one argument: an output file.  This file will contain
+all the messages in Messages directory, in berkeley mail format.
+If no output file is mentioned, messages are put in ~/OMAIL.
+
+In order to get rmail to read the messages, the resulting file must
+be mv'ed to ~/mbox, and then have rmail invoked on them.  */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
