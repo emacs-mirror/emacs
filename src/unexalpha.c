@@ -1,7 +1,9 @@
-/* Unexec for DEC alpha.  schoepf@sc.ZIB-Berlin.DE (Rainer Schoepf).
+/* Unexec for DEC alpha.
 
    Copyright (C) 1994, 2000, 2001, 2002, 2003, 2004,
                  2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+
+Author: Rainer Schoepf <schoepf@sc.ZIB-Berlin.DE>
 
 This file is part of GNU Emacs.
 
