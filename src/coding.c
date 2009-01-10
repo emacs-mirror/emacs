@@ -380,6 +380,9 @@ int inhibit_eol_conversion;
 /* Flag to inhibit ISO2022 escape sequence detection.  */
 int inhibit_iso_escape_detection;
 
+/* Flag to inhibit detection of binary files through null bytes.  */
+int inhibit_null_byte_detection;
+
 /* Flag to make buffer-file-coding-system inherit from process-coding.  */
 int inherit_process_coding_system;
 
@@ -5906,7 +5909,7 @@ detect_coding (coding)
 		      break;
 		    }
 		}
-	      else if (! c)
+	      else if (! c && !inhibit_null_byte_detection)
 		{
 		  null_byte_found = 1;
 		  if (eight_bit_found)
@@ -7790,7 +7793,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 		      break;
 		    }
 		}
-	      else if (! c)
+	      else if (! c && !inhibit_null_byte_detection)
 		{
 		  null_byte_found = 1;
 		  if (eight_bit_found)
@@ -10295,18 +10298,18 @@ called even if `coding-system-for-write' is non-nil.  The command
   DEFVAR_BOOL ("inhibit-iso-escape-detection",
 	       &inhibit_iso_escape_detection,
 	       doc: /*
-If non-nil, Emacs ignores ISO2022's escape sequence on code detection.
+If non-nil, Emacs ignores ISO-2022 escape sequences during code detection.
 
-By default, on reading a file, Emacs tries to detect how the text is
-encoded.  This code detection is sensitive to escape sequences.  If
-the sequence is valid as ISO2022, the code is determined as one of
-the ISO2022 encodings, and the file is decoded by the corresponding
-coding system (e.g. `iso-2022-7bit').
+When Emacs reads text, it tries to detect how the text is encoded.
+This code detection is sensitive to escape sequences.  If Emacs sees
+a valid ISO-2022 escape sequence, it assumes the text is encoded in one
+of the ISO2022 encodings, and decodes text by the corresponding coding
+system (e.g. `iso-2022-7bit').
 
 However, there may be a case that you want to read escape sequences in
 a file as is.  In such a case, you can set this variable to non-nil.
-Then, as the code detection ignores any escape sequences, no file is
-detected as encoded in some ISO2022 encoding.  The result is that all
+Then the code detection will ignore any escape sequences, and no text is
+detected as encoded in some ISO-2022 encoding.  The result is that all
 escape sequences become visible in a buffer.
 
 The default value is nil, and it is strongly recommended not to change
@@ -10316,9 +10319,22 @@ in Emacs's distribution, and they won't be decoded correctly on
 reading if you suppress escape sequence detection.
 
 The other way to read escape sequences in a file without decoding is
-to explicitly specify some coding system that doesn't use ISO2022's
+to explicitly specify some coding system that doesn't use ISO-2022
 escape sequence (e.g `latin-1') on reading by \\[universal-coding-system-argument].  */);
   inhibit_iso_escape_detection = 0;
+
+  DEFVAR_BOOL ("inhibit-null-byte-detection",
+	       &inhibit_null_byte_detection,
+	       doc: /* If non-nil, Emacs ignores null bytes on code detection.
+By default, Emacs treats it as binary data, and does not attempt to
+decode it.  The effect is as if you specified `no-conversion' for
+reading that text.
+
+Set this to non-nil when a regular text happens to include null bytes.
+Examples are Index nodes of Info files and null-byte delimited output
+from GNU Find and GNU Grep.  Emacs will then ignore the null bytes and
+decode text as usual.  */);
+  inhibit_null_byte_detection = 0;
 
   DEFVAR_LISP ("translation-table-for-input", &Vtranslation_table_for_input,
 	       doc: /* Char table for translating self-inserting characters.
