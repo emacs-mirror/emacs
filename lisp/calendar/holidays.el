@@ -463,35 +463,41 @@ The holidays are those in the list `calendar-holidays'."
 
 ;; FIXME name that makes sense
 ;;;###cal-autoload
-(defun calendar-list-holidays ()
+(defun calendar-list-holidays (&optional event)
   "Create a buffer containing the holidays for the current calendar window.
 The holidays are those in the list `calendar-notable-days'.
-Returns non-nil if any holidays are found."
-  (interactive)
-  (message "Looking up holidays...")
-  (let ((holiday-list (calendar-holiday-list))
-        (m1 displayed-month)
-        (y1 displayed-year)
-        (m2 displayed-month)
-        (y2 displayed-year))
-    (if (not holiday-list)
-        (message "Looking up holidays...none found")
-      (calendar-in-read-only-buffer holiday-buffer
-        (calendar-increment-month m1 y1 -1)
-        (calendar-increment-month m2 y2 1)
-        (calendar-set-mode-line
-         (if (= y1 y2)
-             (format "Notable Dates from %s to %s, %d%%-"
-                     (calendar-month-name m1) (calendar-month-name m2) y2)
-           (format "Notable Dates from %s, %d to %s, %d%%-"
-                   (calendar-month-name m1) y1 (calendar-month-name m2) y2)))
-        (insert
-         (mapconcat
-          (lambda (x) (concat (calendar-date-string (car x))
-                              ": " (cadr x)))
-          holiday-list "\n")))
-      (message "Looking up holidays...done"))
-    holiday-list))
+Returns non-nil if any holidays are found.
+If EVENT is non-nil, it's an event indicating the buffer position to
+use instead of point."
+  (interactive (list last-nonmenu-event))
+  ;; If called from a menu, with the calendar window not selected.
+  (with-current-buffer
+      (if event (window-buffer (posn-window (event-start event)))
+        (current-buffer))
+    (message "Looking up holidays...")
+    (let ((holiday-list (calendar-holiday-list))
+          (m1 displayed-month)
+          (y1 displayed-year)
+          (m2 displayed-month)
+          (y2 displayed-year))
+      (if (not holiday-list)
+          (message "Looking up holidays...none found")
+        (calendar-in-read-only-buffer holiday-buffer
+          (calendar-increment-month m1 y1 -1)
+          (calendar-increment-month m2 y2 1)
+          (calendar-set-mode-line
+           (if (= y1 y2)
+               (format "Notable Dates from %s to %s, %d%%-"
+                       (calendar-month-name m1) (calendar-month-name m2) y2)
+             (format "Notable Dates from %s, %d to %s, %d%%-"
+                     (calendar-month-name m1) y1 (calendar-month-name m2) y2)))
+          (insert
+           (mapconcat
+            (lambda (x) (concat (calendar-date-string (car x))
+                                ": " (cadr x)))
+            holiday-list "\n")))
+        (message "Looking up holidays...done"))
+      holiday-list)))
 
 (define-obsolete-function-alias
   'list-calendar-holidays 'calendar-list-holidays "23.1")
@@ -658,14 +664,20 @@ cursor position.  EVENT specifies a buffer position to use for a date."
 
 ;; FIXME move to calendar?
 ;;;###cal-autoload
-(defun calendar-mark-holidays ()
-  "Mark notable days in the calendar window."
-  (interactive)
-  (setq calendar-mark-holidays-flag t)
-  (message "Marking holidays...")
-  (dolist (holiday (calendar-holiday-list))
-    (calendar-mark-visible-date (car holiday) calendar-holiday-marker))
-  (message "Marking holidays...done"))
+(defun calendar-mark-holidays (&optional event)
+  "Mark notable days in the calendar window.
+If EVENT is non-nil, it's an event indicating the buffer position to
+use instead of point."
+  (interactive (list last-nonmenu-event))
+  ;; If called from a menu, with the calendar window not selected.
+  (with-current-buffer
+      (if event (window-buffer (posn-window (event-start event)))
+        (current-buffer))
+    (setq calendar-mark-holidays-flag t)
+    (message "Marking holidays...")
+    (dolist (holiday (calendar-holiday-list))
+      (calendar-mark-visible-date (car holiday) calendar-holiday-marker))
+    (message "Marking holidays...done")))
 
 (define-obsolete-function-alias
   'mark-calendar-holidays 'calendar-mark-holidays "23.1")
