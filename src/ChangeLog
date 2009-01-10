@@ -4298,7 +4298,7 @@
 	* s/uxpds.h:
 	* s/uxpv.h: Remove support for obsolete systems.
 	* s/hpux.h, s/hpux10.h, s/hpux8.h, s/hpux9.h, s/hpux9shr.h:
-	Remove, insert contents in s/hpux-10.20.h.
+	Remove, insert contents in s/hpux10-20.h.
 	* s/aix3-1.h, s/aix3-2-5.h, s/aix3-2.h, s/aix4-1.h, s/aix4.h:
 	Remove, insert contents in s/aix4-2.h.
 	* s/usg5-3.h: Remove, insert contents in s/usg5-4.h.
