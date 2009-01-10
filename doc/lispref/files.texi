@@ -500,7 +500,10 @@ the list @code{after-insert-file-functions}.  @xref{Format Conversion}.
 Normally, one of the functions in the
 @code{after-insert-file-functions} list determines the coding system
 (@pxref{Coding Systems}) used for decoding the file's contents,
-including end-of-line conversion.
+including end-of-line conversion.  However, if the file contains null
+bytes, it is by default visited without any code conversions; see
+@ref{Lisp and Coding Systems, inhibit-null-byte-detection}, for how to
+control this behavior.
 
 If @var{visit} is non-@code{nil}, this function additionally marks the
 buffer as unmodified and sets up various fields in the buffer so that it
