@@ -178,36 +178,42 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
 (defvar displayed-year)
 
 ;;;###cal-autoload
-(defun calendar-lunar-phases ()
-  "Create a buffer with the lunar phases for the current calendar window."
-  (interactive)
-  (message "Computing phases of the moon...")
-  (let ((m1 displayed-month)
-        (y1 displayed-year)
-        (m2 displayed-month)
-        (y2 displayed-year))
-    (calendar-increment-month m1 y1 -1)
-    (calendar-increment-month m2 y2 1)
-    (calendar-in-read-only-buffer lunar-phases-buffer
-      (calendar-set-mode-line
-       (if (= y1 y2)
-           (format "Phases of the Moon from %s to %s, %d%%-"
-                   (calendar-month-name m1) (calendar-month-name m2) y2)
-         (format "Phases of the Moon from %s, %d to %s, %d%%-"
-                 (calendar-month-name m1) y1 (calendar-month-name m2) y2)))
-      (insert
-       (mapconcat
-        (lambda (x)
-          (let ((date (car x))
-                (time (cadr x))
-                (phase (nth 2 x)))
-            (concat (calendar-date-string date)
-                    ": "
-                    (lunar-phase-name phase)
-                    " "
-                    time)))
-        (lunar-phase-list m1 y1) "\n")))
-    (message "Computing phases of the moon...done")))
+(defun calendar-lunar-phases (&optional event)
+  "Create a buffer with the lunar phases for the current calendar window.
+If EVENT is non-nil, it's an event indicating the buffer position to
+use instead of point."
+  (interactive (list last-nonmenu-event))
+  ;; If called from a menu, with the calendar window not selected.
+  (with-current-buffer
+      (if event (window-buffer (posn-window (event-start event)))
+        (current-buffer))
+    (message "Computing phases of the moon...")
+    (let ((m1 displayed-month)
+          (y1 displayed-year)
+          (m2 displayed-month)
+          (y2 displayed-year))
+      (calendar-increment-month m1 y1 -1)
+      (calendar-increment-month m2 y2 1)
+      (calendar-in-read-only-buffer lunar-phases-buffer
+        (calendar-set-mode-line
+         (if (= y1 y2)
+             (format "Phases of the Moon from %s to %s, %d%%-"
+                     (calendar-month-name m1) (calendar-month-name m2) y2)
+           (format "Phases of the Moon from %s, %d to %s, %d%%-"
+                   (calendar-month-name m1) y1 (calendar-month-name m2) y2)))
+        (insert
+         (mapconcat
+          (lambda (x)
+            (let ((date (car x))
+                  (time (cadr x))
+                  (phase (nth 2 x)))
+              (concat (calendar-date-string date)
+                      ": "
+                      (lunar-phase-name phase)
+                      " "
+                      time)))
+          (lunar-phase-list m1 y1) "\n")))
+      (message "Computing phases of the moon...done"))))
 
 ;;;###cal-autoload
 (define-obsolete-function-alias 'calendar-phases-of-moon
