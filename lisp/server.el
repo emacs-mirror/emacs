@@ -615,6 +615,8 @@ Server mode runs a process that accepts commands from the
 
 (defun server-create-tty-frame (tty type proc)
   (add-to-list 'frame-inherited-parameters 'client)
+  (unless tty  (error "Invalid terminal device"))
+  (unless type (error "Invalid terminal type"))
   (let ((frame
          (server-with-environment (process-get proc 'env)
              '("LANG" "LC_CTYPE" "LC_ALL"
@@ -625,22 +627,24 @@ Server mode runs a process that accepts commands from the
                "TERMINFO_DIRS" "TERMPATH"
                ;; rxvt wants these
                "COLORFGBG" "COLORTERM")
-           (make-frame-on-tty tty type
-                              ;; Ignore nowait here; we always need to
-                              ;; clean up opened ttys when the client dies.
-                              `((client . ,proc)
-                                ;; This is a leftover from an earlier
-                                ;; attempt at making it possible for process
-                                ;; run in the server process to use the
-                                ;; environment of the client process.
-                                ;; It has no effect now and to make it work
-                                ;; we'd need to decide how to make
-                                ;; process-environment interact with client
-                                ;; envvars, and then to change the
-                                ;; C functions `child_setup' and
-                                ;; `getenv_internal' accordingly.
-                                (environment . ,(process-get proc 'env)))))))
-
+	   (let ((ws (if (eq window-system 'pc) 'pc nil))
+		 ;; Ignore nowait here; we always need to clean up
+		 ;; opened ttys when the client dies.
+		 (parameters `((client . ,proc)
+			       ;; This is left over from an earlier
+			       ;; attempt at causing a process run in
+			       ;; the server process to use the
+			       ;; environment of the client process.
+			       ;; It has no effect now and to make it
+			       ;; work we'd need to decide how to make
+			       ;; process-environment interact with
+			       ;; client envvars, and then to change
+			       ;; the C functions `child_setup' and
+			       ;; `getenv_internal' accordingly.
+			       (environment . ,(process-get proc 'env)))))
+	     (make-frame `((window-system . ,ws)
+			   (tty . ,tty)
+			   (tty-type . ,type) . ,parameters))))))
     ;; ttys don't use the `display' parameter, but callproc.c does to set
     ;; the DISPLAY environment on subprocesses.
     (set-frame-parameter frame 'display
