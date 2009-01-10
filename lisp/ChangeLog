@@ -1,3 +1,7 @@
+2009-01-10  Richard M Stallman  <rms@gnu.org>
+
+	* mail/mail-utils.el (mail-quote-printable-region): New function.
+
 2009-01-10  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-move.el (calendar-scroll-left-three-months)
