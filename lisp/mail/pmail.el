@@ -61,17 +61,17 @@ advice is temporarily used by pmail until a satisfactory solution
 can be written."
   (if (not buffer-swapped-with)
       (progn
-;;	(if (and (string= "PMAIL" (buffer-name))
-;;		 (< (buffer-size) 1000000))
-;;	    (debug))
+;;;	(if (and (string= "PMAIL" (buffer-name))
+;;;		 (< (buffer-size) 1000000))
+;;;	    (debug))
 	ad-do-it)
     (unwind-protect
 	(let ((modp (buffer-modified-p)))
-;;	  (save-match-data
-;;	    (let ((case-fold-search nil))
-;;	      (unless (or (string-match "PMAIL" (buffer-name))
-;;			  (string-match "xmail" (buffer-name)))
-;;		(debug))))
+;;;	  (save-match-data
+;;;	    (let ((case-fold-search nil))
+;;;	      (unless (or (string-match "PMAIL" (buffer-name))
+;;;			  (string-match "xmail" (buffer-name)))
+;;;		(debug))))
 	  (buffer-swap-text buffer-swapped-with)
 	  (set-buffer-modified-p modp)
 	  ad-do-it)
@@ -375,11 +375,13 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^x-mailer:\\|^delivered-to:\\|^lines:"
 	  "\\|^content-transfer-encoding:\\|^x-coding-system:"
 	  "\\|^return-path:\\|^errors-to:\\|^return-receipt-to:"
-	  "\\|^precedence:\\|^list-help:\\|^list-post:\\|^list-subscribe:"
+	  "\\|^precedence:\\|^mime-version:"
+	  "\\|^list-owner:\\|^list-help:\\|^list-post:\\|^list-subscribe:"
 	  "\\|^list-id:\\|^list-unsubscribe:\\|^list-archive:"
 	  "\\|^content-length:\\|^nntp-posting-date:\\|^user-agent"
 	  "\\|^importance:\\|^envelope-to:\\|^delivery-date\\|^openpgp:"
-	  "\\|^mbox-line:\\|^cancel-lock:\\|^DomainKey-Signature:"
+	  "\\|^mbox-line:\\|^cancel-lock:"
+	  "\\|^DomainKey-Signature:\\|^dkim-signature:"
 	  "\\|^resent-face:\\|^resent-x.*:\\|^resent-organization:\\|^resent-openpgp:"
 	  "\\|^x-.*:")
   "*Regexp to match header fields that Pmail should normally hide.
@@ -2800,7 +2802,6 @@ Returns t if a new message is being shown, nil otherwise."
 	  (message "No previous nondeleted message"))
       (if (> n 0)
 	  (message "No following nondeleted message"))
-      (pmail-show-message-maybe pmail-current-message)
       nil)))
 
 (defun pmail-previous-undeleted-message (n)
