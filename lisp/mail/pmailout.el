@@ -115,9 +115,54 @@ It alters the current buffer's text, so it should be a temp buffer."
 
     ;; Convert to Babyl format.
     (pmail-convert-to-babyl-format)
-    ;; Write it into the file.
-    (write-region (point-min) (point-max) file-name t nomsg)))
+    ;; Write it into the file, or its buffer.
+    (let ((buf (find-buffer-visiting file-name))
+	  (tembuf (current-buffer)))
+      (if (null buf)
+	  (write-region (point-min) (point-max) file-name t nomsg)
+	(if (eq buf (current-buffer))
+	    (error "Can't output message to same file it's already in"))
+	;; File has been visited, in buffer BUF.
+	(set-buffer buf)
+	(let ((inhibit-read-only t)
+	      (msg (with-no-warnings
+		     (and (boundp 'rmail-current-message)
+			  rmail-current-message))))
+	  ;; If MSG is non-nil, buffer is in RMAIL mode.
+	  (if msg
+	      (pmail-output-to-r-mail-buffer tembuf msg)
+	    ;; Output file not in rmail mode => just insert at the end.
+	    (narrow-to-region (point-min) (1+ (buffer-size)))
+	    (goto-char (point-max))
+	    (insert-buffer-substring tembuf)))))))
 
+;; When Pmail is really installed, if we delete or rename the old Rmail
+;; we should do likewise with this function.
+
+(defun pmail-output-to-r-mail-buffer (tembuf msg)
+  "Copy msg in TEMBUF from BEG to END into this old R-mail BABYL buffer.
+Do what is necessary to make babyl R-mail know about the new message.
+Then display message number MSG."
+  (with-no-warnings
+    ;; Turn on Auto Save mode, if it's off in this
+    ;; buffer but enabled by default.
+    (and (not buffer-auto-save-file-name)
+	 auto-save-default
+	 (auto-save-mode t))
+    (rmail-maybe-set-message-counters)
+    (widen)
+    (narrow-to-region (point-max) (point-max))
+    (insert-buffer-substring tembuf)
+    (goto-char (point-min))
+    (widen)
+    (search-backward "\n\^_")
+    (narrow-to-region (point) (point-max))
+    (rmail-count-new-messages t)
+    (if (rmail-summary-exists)
+	(rmail-select-summary
+	 (rmail-update-summary)))
+    (rmail-show-message msg)))
+
 (defun pmail-convert-to-babyl-format ()
   (let ((count 0) (start (point-min))
 	(case-fold-search nil)
@@ -266,9 +311,11 @@ It alters the current buffer's text, so it should be a temp buffer."
 		    "From: \\1\n"))
 		t)))))))
 
-(defun pmail-output-as-mbox (file-name nomsg)
+(defun pmail-output-as-mbox (file-name nomsg &optional as-seen)
   "Convert the current buffer's text to mbox Babyl and output to FILE-NAME.
-It alters the current buffer's text, so it should be a temp buffer."
+It alters the current buffer's text, so call with a temp buffer current.
+If FILE-NAME is visited, output into its buffer instead.
+AS-SEEN is non-nil if we are copying the message \"as seen\"."
   (let ((case-fold-search t)
 	mail-from mime-version content-type)
 
@@ -309,23 +356,63 @@ It alters the current buffer's text, so it should be a temp buffer."
 		       "unknown"))))
 	      " " (current-time-string) "\n"))
 
-    (let ((coding-system-for-write
-	   'raw-text-unix))
-      (write-region (point-min) (point-max) file-name t nomsg))))
+    (let ((buf (find-buffer-visiting file-name))
+	  (tembuf (current-buffer)))
+      (if (null buf)
+	  (let ((coding-system-for-write 'raw-text-unix))
+	    (write-region (point-min) (point-max) file-name t nomsg))
+	(if (eq buf (current-buffer))
+	    (error "Can't output message to same file it's already in"))
+	;; File has been visited, in buffer BUF.
+	(set-buffer buf)
+ 	(let ((inhibit-read-only t)
+	      (msg (and (boundp 'pmail-current-message)
+			pmail-current-message)))
+	  (and msg as-seen
+	       (error "Can't output \"as seen\" to a visited Pmail file"))
+	  (if msg
+	      (pmail-output-to-pmail-buffer tembuf msg)
+	    ;; Output file not in Pmail mode => just insert at the end.
+	    (narrow-to-region (point-min) (1+ (buffer-size)))
+	    (goto-char (point-max))
+	    (insert-buffer-substring tembuf)))))))
+
+(defun pmail-output-to-pmail-buffer (tembuf msg)
+  "Copy msg in TEMBUF from BEG to END into this Pmail buffer.
+Do what is necessary to make Pmail know about the new message.
+Then display message number MSG."
+  (save-excursion
+    (pmail-swap-buffers-maybe)
+    ;; Turn on Auto Save mode, if it's off in this
+    ;; buffer but enabled by default.
+    (and (not buffer-auto-save-file-name)
+	 auto-save-default
+	 (auto-save-mode t))
+    (pmail-maybe-set-message-counters)
+    (narrow-to-region (point-max) (point-max))
+    (insert-buffer-substring tembuf)
+    (pmail-count-new-messages t)
+    (if (pmail-summary-exists)
+	(pmail-select-summary
+	 (pmail-update-summary)))
+    (pmail-show-message msg)))
 
 ;;; There are functions elsewhere in Emacs that use this function;
 ;;; look at them before you change the calling method.
 ;;;###autoload
 (defun pmail-output (file-name &optional count noattribute from-gnus)
-  "Append this message to system-inbox-format mail file named FILE-NAME.
+  "Append this message to mail file FILE-NAME.
+This works with both mbox format and Babyl format files,
+outputting in the appropriate format for each.
+The default file name comes from `pmail-default-file',
+which is updated to the name you use in this command.
+
 A prefix argument COUNT says to output that many consecutive messages,
 starting with the current one.  Deleted messages are skipped and don't count.
 When called from Lisp code, COUNT may be omitted and defaults to 1.
 
-This outputs the complete message header even the display is pruned.
-
-The default file name comes from `pmail-default-file',
-which is updated to the name you use in this command.
+This command always outputs the complete message header,
+even the header display is currently pruned.
 
 The optional third argument NOATTRIBUTE, if non-nil, says not
 to set the `filed' attribute, and not to display a message.
@@ -339,7 +426,6 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	(expand-file-name file-name
 			  (and pmail-default-file
 			       (file-name-directory pmail-default-file))))
-  (set-buffer pmail-buffer)
 
   ;; Warn about creating new file.
   (or (find-buffer-visiting file-name)
@@ -347,6 +433,8 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
       (yes-or-no-p
        (concat "\"" file-name "\" does not exist, create it? "))
       (error "Output file does not exist"))
+
+  (set-buffer pmail-buffer)
 
   (let ((orig-count count)
 	(case-fold-search t)
@@ -453,7 +541,8 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 		  (insert-buffer-substring cur beg end)
 		  ;; Convert the text to one format or another and output.
 		  (pmail-output-as-mbox file-name 
-					(if noattribute 'nomsg))))))
+					(if noattribute 'nomsg)
+					t)))))
 
 	  ;; Mark message as "filed".
 	  (unless noattribute
