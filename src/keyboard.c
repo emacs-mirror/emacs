@@ -1265,18 +1265,17 @@ cmd_error_internal (data, context)
   /* If the window system or terminal frame hasn't been initialized
      yet, or we're not interactive, write the message to stderr and exit.  */
   else if (!sf->glyphs_initialized_p
-	   /* We used to check if "This is the case of the frame dumped with
-              Emacs, when we're running under a window system" with
-	        || (!NILP (Vwindow_system) && !inhibit_window_system
-	            && FRAME_TERMCAP_P (sf))
-	      then the multi-tty code generalized this check to
-	        || FRAME_INITIAL_P (sf)
-	      but this leads to undesirable behavior in daemon mode where
-	      we don't want to exit just because we got an error without
-	      having a frame (bug#1310).
-	      So I just removed the check, and rely instead on the `message_*'
-	      functions properly using FRAME_INITIAL_P.  In the worst case
-	      this should just make Emacs not exit when it should.  */
+	   /* The initial frame is a special non-displaying frame. It
+	      will be current in daemon mode when there are no frames
+	      to display, and in non-daemon mode before the real frame
+	      has finished initializing.  If an error is thrown in the
+	      latter case while creating the frame, then the frame
+	      will never be displayed, so the safest thing to do is
+	      write to stderr and quit.  In daemon mode, there are
+	      many other potential errors that do not prevent frames
+	      from being created, so continuing as normal is better in
+	      that case.  */
+	   || (!IS_DAEMON && FRAME_INITIAL_P (sf))
 	   || noninteractive)
     {
       print_error_message (data, Qexternal_debugging_output,
