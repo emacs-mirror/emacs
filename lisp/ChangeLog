@@ -11,6 +11,8 @@
 	(authors-scan-el, authors-add-to-author-list, authors):
 	Handle multiple authors in a file, via a new :cowrote category.
 
+	* emacs-lisp/copyright.el (copyright-update): Add doc-string.
+
 2009-01-10  Richard M Stallman  <rms@gnu.org>
 
 	* mail/mail-utils.el (mail-quote-printable-region): New function.

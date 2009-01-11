@@ -86,7 +86,8 @@ When this is `function', only ask when called non-interactively."
 (defconst copyright-current-gpl-version "3"
   "String representing the current version of the GPL or nil.")
 
-(defvar copyright-update t)
+(defvar copyright-update t
+  "The function `copyright-update' sets this to nil after updating a buffer.")
 
 ;; This is a defvar rather than a defconst, because the year can
 ;; change during the Emacs session.
@@ -231,6 +232,7 @@ version \\([0-9]+\\), or (at"
     nil))
 
 
+;; FIXME should be within 50 years of present (cf calendar).
 ;;;###autoload
 (defun copyright-fix-years ()
   "Convert 2 digit years to 4 digit years.
