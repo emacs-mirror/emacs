@@ -468,7 +468,7 @@ Emacs: @file{dns.el} for Domain Name Service lookups;
 @file{netrc.el} for parsing of @file{.netrc} files; and
 @file{time-date.el} for general date and time handling.  Components of
 Gnus have also been written by: Nagy Andras, Kevin Greiner, Kai
-Gro@ss{}johann, Paul Jarc, Sascha Ldecke, David Moore, Raymond Scholz,
+Gro@ss{}johann, Paul Jarc, Sascha L@"{u}decke, David Moore, Raymond Scholz,
 Reiner Steib, Didier Verna, Ilja Weis, Katsumi Yamaoka, Teodor Zlatanov,
 and others.
 
