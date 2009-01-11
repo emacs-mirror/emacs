@@ -5731,12 +5731,9 @@ With prefix ARG, silently save all file-visiting buffers, then kill.
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
   (interactive "P")
-  (let ((proc (frame-parameter (selected-frame) 'client))
-	(frame (selected-frame)))
-    (if (null proc)
-	(save-buffers-kill-emacs)
-      (server-save-buffers-kill-terminal proc arg))))
-
+  (if (frame-parameter (selected-frame) 'client)
+      (server-save-buffers-kill-terminal arg)
+    (save-buffers-kill-emacs arg)))
 
 ;; We use /: as a prefix to "quote" a file name
 ;; so that magic file name handlers will not apply to it.
