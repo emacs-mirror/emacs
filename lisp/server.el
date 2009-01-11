@@ -1349,8 +1349,6 @@ With ARG non-nil, silently save all file-visiting buffers, then kill.
 
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
-  ;; save-buffers-kill-terminal occasionally calls us with proc set
-  ;; to `nowait' (comes from the value of the `client' frame parameter).
   (when (processp proc)
     (let ((buffers (process-get proc 'buffers)))
       ;; If client is bufferless, emulate a normal Emacs session
