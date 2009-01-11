@@ -1,3 +1,16 @@
+2009-01-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases): Add, remove, and adjust
+	some entries.
+	(authors-fixed-case, authors-ignored-files, authors-valid-file-names):
+	(authors-renamed-files-alist): Add entries.
+	(authors-fixed-entries): Update for renamed and removed files.
+	(authors-canonical-file-name): Add entries to
+	authors-checked-files-alist based on their full names, expanded relative
+	to each log-file directory.
+	(authors-scan-el, authors-add-to-author-list, authors):
+	Handle multiple authors in a file, via a new :cowrote category.
+
 2009-01-10  Richard M Stallman  <rms@gnu.org>
 
 	* mail/mail-utils.el (mail-quote-printable-region): New function.
