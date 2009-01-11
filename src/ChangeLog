@@ -1,3 +1,8 @@
+2009-01-11  Jason Rumney  <jasonr@gnu.org>
+
+	* keyboard.c (cmd_error_internal): Exit when errors occur before
+	frame creation and not in daemon mode.  (Bug#1836)
+
 2009-01-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (pos_visible_p): When iterator stops on the last glyph
