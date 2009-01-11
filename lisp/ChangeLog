@@ -1,3 +1,7 @@
+2009-01-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/fontset.el (create-fontset-from-fontset-spec): Doc fix.
+
 2009-01-11  Glenn Morris  <rgm@gnu.org>
 
 	* diff-mode.el (whitespace-style, whitespace-trailing-regexp):

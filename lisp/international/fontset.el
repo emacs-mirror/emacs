@@ -499,7 +499,7 @@
 		    symbol
 		    braille
 		    yi
-		    aegean-number 
+		    aegean-number
 		    ancient-greek-number
 		    ancient-symbol
 		    phaistos-disc
@@ -912,7 +912,7 @@ to map charsets to scripts.")
 					 &optional style-variant noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
 FONTSET-SPEC is a string of the format:
-	FONTSET-NAME,SCRIPT0:FONT0,SCRIPT1:FONT1, ...
+	FONTSET-NAME,SCRIPT-NAME0:FONT-NAME0,SCRIPT-NAME1:FONT-NAME1, ...
 Any number of SPACE, TAB, and NEWLINE can be put before and after commas.
 
 When a frame uses the fontset as the `font' parameter, the frame's
@@ -938,7 +938,7 @@ which case, the corresponding script is decided by the variable
 	(error "Fontset name \"%s\" not conforming to XLFD" name))
     (setq default-spec (font-spec :name name))
     ;; At first, extract pairs of charset and fontname from FONTSET-SPEC.
-    (while (string-match "[, \t\n]*\\([^:]+\\):[ \t]*\\([^,]+\\)" 
+    (while (string-match "[, \t\n]*\\([^:]+\\):[ \t]*\\([^,]+\\)"
 			 fontset-spec idx)
       (setq idx (match-end 0))
       (setq target (intern (match-string 1 fontset-spec)))
