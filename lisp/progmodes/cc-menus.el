@@ -130,7 +130,7 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
                    "[ \t]*([^)]*)[ \t]*)[ \t]*[^ \t;]" ; see above
                    ) 1)))
     ;; Class definitions
-    ("Class" 
+    ("Class"
      ,(concat
          "^"                                  ; beginning of line is required
          "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a `template <...>'
@@ -142,7 +142,7 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
          "\\([ \t\n]\\|\\\\\n\\)*[:{]"
          ) 3))
   "Imenu generic expression for C++ mode.  See `imenu-generic-expression'.")
- 
+
 (defvar cc-imenu-c-generic-expression
   cc-imenu-c++-generic-expression
   "Imenu generic expression for C mode.  See `imenu-generic-expression'.")
@@ -167,7 +167,7 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
        ) 1))
   "Imenu generic expression for Java mode.  See `imenu-generic-expression'.")
 
-;;                        *Warning for cc-mode developers* 
+;;                        *Warning for cc-mode developers*
 ;;
 ;; `cc-imenu-objc-generic-expression' elements depend on
 ;; `cc-imenu-c++-generic-expression'. So if you change this
@@ -177,8 +177,8 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
 ;; order to know where the each regexp *group \\(foobar\\)* elements
 ;; are started.
 ;;
-;; *-index variables are initialized during `cc-imenu-objc-generic-expression' 
-;; being initialized. 
+;; *-index variables are initialized during `cc-imenu-objc-generic-expression'
+;; being initialized.
 ;;
 
 ;; Internal variables
@@ -187,10 +187,10 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
 (defvar cc-imenu-objc-generic-expression-proto-index nil)
 (defvar cc-imenu-objc-generic-expression-objc-base-index nil)
 
-(defvar cc-imenu-objc-generic-expression 
-  (concat 
+(defvar cc-imenu-objc-generic-expression
+  (concat
    ;;
-   ;; For C 
+   ;; For C
    ;;
    ;; > Special case to match a line like `main() {}'
    ;; > e.g. no return type, not even on the previous line.
@@ -206,7 +206,7 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
    ;; > `int main _PROTO( (int argc,char *argv[]) )'.
    ;; Pick a token by  (match-string 8)
    (if cc-imenu-c-prototype-macro-regexp
-       (concat    
+       (concat
 	"\\|"
 	(car (cdr (nth 3 cc-imenu-c++-generic-expression))) ; -> index += 1
 	(prog2 (setq cc-imenu-objc-generic-expression-objc-base-index 9) "")
@@ -218,20 +218,20 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
    ;; For Objective-C
    ;; Pick a token by (match-string 8 or 9)
    ;;
-   "\\|\\("					     
+   "\\|\\("
    "^[-+][:" c-alnum "()*_<>\n\t ]*[;{]"        ; Methods
-   "\\|" 
+   "\\|"
    "^@interface[\t ]+[" c-alnum "_]+[\t ]*:"
-   "\\|" 
+   "\\|"
    "^@interface[\t ]+[" c-alnum "_]+[\t ]*([" c-alnum "_]+)"
-   "\\|" 
+   "\\|"
    ;; For NSObject, NSProxy and Object... They don't have super class.
    "^@interface[\t ]+[" c-alnum "_]+[\t ]*.*$"
-   "\\|" 
+   "\\|"
    "^@implementation[\t ]+[" c-alnum "_]+[\t ]*([" c-alnum "_]+)"
-   "\\|" 
+   "\\|"
    "^@implementation[\t ]+[" c-alnum "_]+"
-   "\\|" 
+   "\\|"
    "^@protocol[\t ]+[" c-alnum "_]+" "\\)")
   "Imenu generic expression for ObjC mode.  See `imenu-generic-expression'.")
 
@@ -239,13 +239,13 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
 ;; Imenu support for objective-c uses functions.
 (defsubst cc-imenu-objc-method-to-selector (method)
   "Return the objc selector style string of METHOD.
-Example: 
+Example:
 - perform: (SEL)aSelector withObject: object1 withObject: object2; /* METHOD */
 =>
 -perform:withObject:withObject:withObject: /* selector */"
   (let ((return "")			; String to be returned
-	(p 0)				; Current scanning position in METHOD  
-	(pmax (length method))		; 
+	(p 0)				; Current scanning position in METHOD
+	(pmax (length method))		;
 	char				; Current scanning target
 	(betweenparen 0)		; CHAR is in parentheses.
 	argreq				; An argument is required.
@@ -266,12 +266,12 @@ Example:
 		  argreq nil)
 	  (setq return (concat return (char-to-string char)))))
        ;; Or a white space?
-       ((and inargvar (or (eq ?\  char) (eq ?\n char)) 
+       ((and inargvar (or (eq ?\  char) (eq ?\n char))
 	     (setq inargvar nil)))
        ;; Or a method separator?
        ;; If a method separator, the next token will be an argument variable.
-       ((eq ?: char)			
-	(setq argreq t			
+       ((eq ?: char)
+	(setq argreq t
 	      return (concat return (char-to-string char))))
        ;; Or an open parentheses?
        ((eq ?\( char)
@@ -285,7 +285,7 @@ Example:
   "Remove all spaces and tabs from STR."
   (let ((return "")
 	(p 0)
-	(max (length str)) 
+	(max (length str))
 	char)
     (while (< p max)
       (setq char (aref str p))
@@ -302,7 +302,7 @@ Example:
 	;;
 	;; OBJC, Cnoreturn, Cgeneralfunc, Cproto are constants.
 	;;
-	;;                  *Warning for developers* 
+	;;                  *Warning for developers*
 	;; These constants depend on `cc-imenu-c++-generic-expression'.
 	;;
 	(OBJC cc-imenu-objc-generic-expression-objc-base-index)
@@ -318,13 +318,13 @@ Example:
 	toplist
 	stupid
 	str
-	str2 
+	str2
 	(intflen (length "@interface"))
 	(implen  (length "@implementation"))
 	(prtlen  (length "@protocol"))
 	(func
 	 ;;
-	 ;; Does this emacs has buffer-substring-no-properties? 
+	 ;; Does this emacs have buffer-substring-no-properties?
 	 ;;
 	 (if (fboundp 'buffer-substring-no-properties)
 	     'buffer-substring-no-properties
@@ -334,7 +334,7 @@ Example:
     ;;
     (while (re-search-backward cc-imenu-objc-generic-expression nil t)
       (imenu-progress-message stupid)
-      (setq langnum (if (match-beginning OBJC) 
+      (setq langnum (if (match-beginning OBJC)
 			OBJC
 		      (cond
 		       ((match-beginning Cproto) Cproto)
@@ -342,7 +342,7 @@ Example:
 		       ((match-beginning Cnoreturn) Cnoreturn))))
       (setq str (funcall func (match-beginning langnum) (match-end langnum)))
       ;;
-      (cond 
+      (cond
        ;;
        ;; C
        ;;
@@ -350,7 +350,7 @@ Example:
 	(setq clist (cons (cons str (match-beginning langnum)) clist)))
        ;;
        ;; ObjC
-       ;; 
+       ;;
        ;; An instance Method
        ((eq (aref str 0) ?-)
 	(setq str (concat "-" (cc-imenu-objc-method-to-selector str)))
@@ -363,10 +363,10 @@ Example:
 	(setq methodlist (cons (cons str
 			      (match-beginning langnum))
 			methodlist)))
-       ;; Interface or implementation or protocol 
+       ;; Interface or implementation or protocol
        ((eq (aref str 0) ?@)
 	(setq classcount (1+ classcount))
-	(cond 
+	(cond
 	 ((and (> (length str) implen)
 	       (string= (substring  str 0 implen) "@implementation"))
 	  (setq str (substring str implen)
@@ -384,7 +384,7 @@ Example:
 	(setq toplist (cons nil (cons (cons str
 					  methodlist) toplist))
 	      methodlist nil))))
-    ;; 
+    ;;
     (imenu-progress-message stupid 100)
     (if (eq (car toplist) nil)
 	(setq toplist (cdr toplist)))
