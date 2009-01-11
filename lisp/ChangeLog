@@ -1,5 +1,7 @@
 2009-01-11  Chong Yidong  <cyd@stupidchicken.com>
 
+	* faces.el (describe-face): Ignore anonymous faces.
+
 	* server.el (server-save-buffers-kill-terminal): Args changed.
 	Handle nowait client frames.
 
