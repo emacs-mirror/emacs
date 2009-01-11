@@ -494,6 +494,7 @@
 (put 'tex 'math-special-function-table
      '((calcFunc-sum . (math-compose-tex-sum "\\sum"))
        (calcFunc-prod . (math-compose-tex-sum "\\prod"))
+       (calcFunc-sqrt . math-compose-tex-sqrt)
        (intv . math-compose-tex-intv)))
 
 (put 'tex 'math-variable-table
@@ -673,11 +674,11 @@
 		      (substring str (1- (match-end 0))))))
   str)
 
-;(defun math-tex-print-sqrt (a)
-;  (list 'horiz
-;        "\\sqrt{"
-;        (math-compose-expr (nth 1 a) 0)
-;        "}"))
+(defun math-compose-tex-sqrt (a)
+  (list 'horiz
+        "\\sqrt{"
+        (math-compose-expr (nth 1 a) 0)
+        "}"))
 
 (defun math-compose-tex-intv (a)
   (list 'horiz
@@ -782,6 +783,7 @@
        (calcFunc-choose . (math-compose-latex-frac "\\binom"))
        (calcFunc-sum . (math-compose-tex-sum "\\sum"))
        (calcFunc-prod . (math-compose-tex-sum "\\prod"))
+       (calcFunc-sqrt . math-compose-tex-sqrt)
        (intv          . math-compose-tex-intv)))
 
 (put 'latex 'math-variable-table
