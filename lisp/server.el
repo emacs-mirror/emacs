@@ -1341,24 +1341,32 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
       (select-frame-set-input-focus (window-frame (selected-window))))))
 
 ;;;###autoload
-(defun server-save-buffers-kill-terminal (proc &optional arg)
+(defun server-save-buffers-kill-terminal (arg)
   ;; Called from save-buffers-kill-terminal in files.el.
-  "Offer to save each buffer, then kill PROC.
-
+  "Offer to save each buffer, then kill the current client.
 With ARG non-nil, silently save all file-visiting buffers, then kill.
 
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
-  (when (processp proc)
-    (let ((buffers (process-get proc 'buffers)))
-      ;; If client is bufferless, emulate a normal Emacs session
-      ;; exit and offer to save all buffers.  Otherwise, offer to
-      ;; save only the buffers belonging to the client.
-      (save-some-buffers arg
-                         (if buffers
-                             (lambda () (memq (current-buffer) buffers))
-                           t))
-      (server-delete-client proc))))
+  (let ((proc (frame-parameter (selected-frame) 'client)))
+    (cond ((eq proc 'nowait)
+	   ;; Nowait frames have no client buffer list.
+	   (if (cdr (frame-list))
+	       (progn (save-some-buffers arg)
+		      (delete-frame))
+	     ;; If we're the last frame standing, kill Emacs.
+	     (save-buffers-kill-emacs arg)))
+	  ((processp proc)
+	   (let ((buffers (process-get proc 'buffers)))
+	     ;; If client is bufferless, emulate a normal Emacs exit
+	     ;; and offer to save all buffers.  Otherwise, offer to
+	     ;; save only the buffers belonging to the client.
+	     (save-some-buffers
+	      arg (if buffers
+		      (lambda () (memq (current-buffer) buffers))
+		    t))
+	     (server-delete-client proc)))
+	  (t (error "Invalid client frame")))))
 
 (define-key ctl-x-map "#" 'server-edit)
 
