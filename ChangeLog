@@ -1,3 +1,7 @@
+2009-01-11  Juri Linkov  <juri@jurta.org>
+
+	* INSTALL.CVS: Move configuration explicitly to the first step.
+
 2009-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* .dir-locals.el: Don't set indent-tabs-mode.
