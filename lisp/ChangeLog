@@ -1,3 +1,11 @@
+2009-01-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-save-buffers-kill-terminal): Args changed.
+	Handle nowait client frames.
+
+	* files.el (save-buffers-kill-terminal): Args for
+	server-save-buffers-kill-terminal changed.
+
 2009-01-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/fontset.el (create-fontset-from-fontset-spec): Doc fix.
