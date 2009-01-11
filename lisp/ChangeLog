@@ -1,5 +1,8 @@
 2009-01-11  Glenn Morris  <rgm@gnu.org>
 
+	* diff-mode.el (whitespace-style, whitespace-trailing-regexp):
+	Silence compiler.
+
 	* emacs-lisp/authors.el (authors-aliases): Add, remove, and adjust
 	some entries.
 	(authors-fixed-case, authors-ignored-files, authors-valid-file-names):

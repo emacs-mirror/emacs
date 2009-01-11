@@ -1230,6 +1230,9 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
   (diff-hunk-next arg)
   (diff-goto-source))
 
+(defvar whitespace-style)
+(defvar whitespace-trailing-regexp)
+
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"
   "Major mode for viewing/editing context diffs.
