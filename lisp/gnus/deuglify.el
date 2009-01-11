@@ -4,8 +4,8 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Raymond Scholz <rscholz@zonix.de>
-;;         Thomas Steffen (unwrapping algorithm,
-;;                         based on an idea of Stefan Monnier)
+;;         Thomas Steffen
+;; (unwrapping algorithm, based on an idea of Stefan Monnier)
 ;; Keywords: mail, news
 
 ;; This file is part of GNU Emacs.
