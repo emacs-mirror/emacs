@@ -1,3 +1,8 @@
+2009-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (play-sound): Doc fix.  (Bug#250)
+	(shell-quote-argument, field-at-pos): Fix typos in docstrings.
+
 2009-01-12  Alan Mackenzie  <acm@muc.de>
 
 	* textmodes/paragraphs.el (forward-sentence): Change limit of

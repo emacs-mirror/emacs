@@ -2255,7 +2255,9 @@ range 0..100 or a float in the range 0..1.0.  If not specified,
 don't change the volume setting of the sound device.
 
   :device DEVICE - play sound on DEVICE.  If not specified,
-a system-dependent default device name is used."
+a system-dependent default device name is used.
+
+Note: :data and :device are currently not supported on Windows."
   (if (fboundp 'play-sound-internal)
       (play-sound-internal sound)
     (error "This Emacs binary lacks sound support")))
@@ -2263,7 +2265,7 @@ a system-dependent default device name is used."
 (declare-function w32-shell-dos-semantics "w32-fns" nil)
 
 (defun shell-quote-argument (argument)
-  "Quote an argument for passing as argument to an inferior shell."
+  "Quote ARGUMENT for passing as argument to an inferior shell."
   (if (or (eq system-type 'ms-dos)
           (and (eq system-type 'windows-nt) (w32-shell-dos-semantics)))
       ;; Quote using double quotes, but escape any existing quotes in
@@ -2301,7 +2303,7 @@ Otherwise, return nil."
   (memq object '(nil t)))
 
 (defun field-at-pos (pos)
-  "Return the field at position POS, taking stickiness etc into account"
+  "Return the field at position POS, taking stickiness etc into account."
   (let ((raw-field (get-char-property (field-beginning pos) 'field)))
     (if (eq raw-field 'boundary)
 	(get-char-property (1- (field-end pos)) 'field)
