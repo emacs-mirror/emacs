@@ -2547,6 +2547,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 
   if (CONSP (Vunread_command_events))
     {
+      int was_disabled = 0;
+
       c = XCAR (Vunread_command_events);
       Vunread_command_events = XCDR (Vunread_command_events);
 
@@ -2567,12 +2569,17 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       if (CONSP (c)
 	  && EQ (XCDR (c), Qdisabled)
 	  && (SYMBOLP (XCAR (c)) || INTEGERP (XCAR (c))))
-	c = XCAR (c);
+	{
+	  was_disabled = 1;
+	  c = XCAR (c);
+	}
 
       /* If the queued event is something that used the mouse,
          set used_mouse_menu accordingly.  */
       if (used_mouse_menu
-	  && (EQ (c, Qtool_bar) || EQ (c, Qmenu_bar)))
+	  /* Also check was_disabled so last-nonmenu-event won't return
+	     a bad value when submenus are involved.  (Bug#447)  */
+	  && (EQ (c, Qtool_bar) || EQ (c, Qmenu_bar) || was_disabled))
 	*used_mouse_menu = 1;
 
       goto reread_for_input_method;

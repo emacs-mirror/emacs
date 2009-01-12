@@ -1,3 +1,8 @@
+2009-01-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* keyboard.c (read_char): Fix case where last_nonmenu_event
+	returned a bad value with submenus.  (Bug#447)
+
 2009-01-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute): If setting the
