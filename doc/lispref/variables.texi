@@ -622,7 +622,7 @@ arguments.
 @item @dots{}-flag
 The value is significant only as to whether it is @code{nil} or not.
 Since such variables often end up acquiring more values over time,
-this convetion is not strongly recommended.
+this convention is not strongly recommended.
 
 @item @dots{}-program
 The value is a program name.
