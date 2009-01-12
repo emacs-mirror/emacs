@@ -1,3 +1,9 @@
+2009-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sound.c [WINDOWSNT] (SOUND_WARNING): New macro.
+	(do_play_sound): Use it.  Don't pass a hardcoded buffer size to mci
+	functions, use sizeof.
+
 2009-01-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* keyboard.c (read_char): Fix case where last_nonmenu_event
