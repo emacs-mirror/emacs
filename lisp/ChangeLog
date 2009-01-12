@@ -1,3 +1,8 @@
+2009-01-12  Alan Mackenzie  <acm@muc.de>
+
+	* textmodes/paragraphs.el (forward-sentence): Change limit of
+	re-search-backward to allow values of `sentence-end' anchored at BOL.
+
 2009-01-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tar-mode.el (tar-header-block-tokenize): Properly ignore the version

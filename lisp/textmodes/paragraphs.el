@@ -449,7 +449,10 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
         (sentence-end (sentence-end)))
     (while (< arg 0)
       (let ((pos (point))
-	    (par-beg (save-excursion (start-of-paragraph-text) (point))))
+	    ;; We used to use (start-of-paragraph-text), but this can
+	    ;; prevent sentence-end from matching if it is anchored at
+	    ;; BOL and the paragraph starts indented.
+	    (par-beg (save-excursion (backward-paragraph) (point))))
        (if (and (re-search-backward sentence-end par-beg t)
 		(or (< (match-end 0) pos)
 		    (re-search-backward sentence-end par-beg t)))
