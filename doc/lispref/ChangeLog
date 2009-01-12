@@ -1,3 +1,7 @@
+2009-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Low-Level Font): Fix typo.
+
 2009-01-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* elisp.texi (Top): Update node listing.

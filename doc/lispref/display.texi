@@ -2923,7 +2923,7 @@ does that, this function's value may not be accurate.
 you need to do so, this section explains how.
 
   In Emacs Lisp, fonts are represented using three different Lisp
-qobject types: @dfn{font objects}, @dfn{font specs}, and @dfn{font
+object types: @dfn{font objects}, @dfn{font specs}, and @dfn{font
 entities}.
 
 @defun fontp object &optional type
