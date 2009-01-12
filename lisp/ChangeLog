@@ -1,3 +1,8 @@
+2009-01-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-header-block-tokenize): Properly ignore the version
+	subfield of the magic string.
+
 2009-01-11  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-lang.el (math-compose-tex-sqrt): New function.
@@ -484,8 +489,8 @@
 	(follow-update-window-start, follow-select-if-visible)
 	(follow-calculate-first-window-start-from-below)
 	(follow-post-command-hook): Code cleanup.
-	(follow-downward, follow-calculate-first-window-start): Function
-	deleted and merged into follow-redisplay.
+	(follow-downward, follow-calculate-first-window-start):
+	Delete function and merge into follow-redisplay.
 	(follow-redisplay): Merge code from follow-downward and
 	follow-calculate-first-window-start.
 
@@ -495,7 +500,7 @@
 
 2008-12-29  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
-	* proced.el (proced-temp-alist): Renamed from variable
+	* proced.el (proced-temp-alist): Rename from variable
 	proced-children-alist.
 	(proced-process-tree, proced-toggle-tree): Fix docstring.
 	(proced-tree): Fix docstring.  Simplify.  Use proced-temp-alist.
@@ -531,24 +536,22 @@
 
 2008-12-28  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
-	* proced.el (proced-grammar-alist): Allow predicate nil.  New
-	attribute tree.
+	* proced.el (proced-grammar-alist): Allow predicate nil.
+	New attribute tree.
 	(proced-format-alist): Use attribute tree.
 	(proced-tree-flag, proced-tree-indent): New variables.
-	(proced-children-alist): Renamed from proced-process-tree.  PPID
-	must refer to a process in process-alist.  Ignore PPIDs that equal
-	PID (Bug#1718).  Children alist inherits sorting order from
-	process-alist.
+	(proced-children-alist): Rename from proced-process-tree.
+	PPID must refer to a process in process-alist.
+	Ignore PPIDs that equal PID (Bug#1718).
+	Children alist inherits sorting order from process-alist.
 	(proced-process-tree): New variable.  New function.
 	(proced-process-tree-internal, proced-toggle-tree)
-	(proced-tree, proced-tree-insert, proced-format-tree): New
-	functions.
+	(proced-tree, proced-tree-insert, proced-format-tree): New functions.
 	(proced-mark-process-alist): Add docstring.
 	(proced-filter-parents): PPID must refer to a process in
 	process-alist.  Ignore PPIDs that equal PID (Bug#1718).
 	(proced-sort): Throw error if attribute is not sortable.
-	(proced-sort-interactive): Restrict completion to sortable
-	attributes.
+	(proced-sort-interactive): Restrict completion to sortable attributes.
 	(proced-format): Include tree in standard attributes if
 	proced-tree-flag is non-nil.  Make header clickable only if
 	corresponding predicate is non-nil.
@@ -800,8 +803,8 @@
 	* startup.el (command-line): Do not mention the server name in
 	case the user has not mentioned it, print a more explicit message.
 
-	* vc-dir.el (vc-dir-at-event): Rename from vc-at-event.  Change
-	all callers.
+	* vc-dir.el (vc-dir-at-event): Rename from vc-at-event.
+	Change all callers.
 
 2008-12-18  Sam Steingold  <sds@gnu.org>
 
@@ -819,8 +822,8 @@
 
 2008-12-17  Daiki Ueno  <ueno@unixuser.org>
 
-	* epa-file.el (epa-file-insert-file-contents): Set
-	buffer-file-name before decrypting a file.
+	* epa-file.el (epa-file-insert-file-contents):
+	Set buffer-file-name before decrypting a file.
 
 2008-12-16  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -877,12 +880,11 @@
 
 2008-12-14  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
-	* proced.el (proced-auto-update-interval): Renamed from
+	* proced.el (proced-auto-update-interval): Rename from
 	proced-timer-interval.
-	(proced-auto-update-flag): Renamed from proced-timer-flag.
-	(proced-auto-update-timer): Renamed from proced-timer.
-	(proced-toggle-auto-update): Renamed from
-	proced-toggle-timer-flag.
+	(proced-auto-update-flag): Rename from proced-timer-flag.
+	(proced-auto-update-timer): Rename from proced-timer.
+	(proced-toggle-auto-update): Rename from proced-toggle-timer-flag.
 	(proced-available): Initialize appropriately.
 
 2008-12-13  Glenn Morris  <rgm@gnu.org>

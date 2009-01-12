@@ -239,8 +239,13 @@ write-date, checksum, link-type, and link-name."
              (gname-end (1- tar-dmaj-offset))
              (link-p (aref string tar-linkp-offset))
              (magic-str (substring string tar-magic-offset
-                                   (1- tar-uname-offset)))
-             (uname-valid-p (car (member magic-str '("ustar  " "ustar\0\0"))))
+				   ;; The magic string is actually 6bytes
+				   ;; of magic string plus 2bytes of version
+				   ;; which we here ignore.
+                                   (- tar-uname-offset 2)))
+	     ;; The magic string is "ustar\0" for POSIX format, and
+	     ;; "ustar " for GNU Tar's format.
+             (uname-valid-p (car (member magic-str '("ustar " "ustar\0"))))
              name linkname
              (nulsexp   "[^\000]*\000"))
         (when (string-match nulsexp string tar-name-offset)
@@ -256,7 +261,7 @@ write-date, checksum, link-type, and link-name."
                          nil
                        (- link-p ?0)))
         (setq linkname (substring string tar-link-offset link-end))
-        (when (and (equal uname-valid-p "ustar\0\0")
+        (when (and (equal uname-valid-p "ustar\0")
                    (string-match nulsexp string tar-prefix-offset)
                    (> (match-end 0) (1+ tar-prefix-offset)))
           (setq name (concat (substring string tar-prefix-offset
@@ -271,7 +276,7 @@ write-date, checksum, link-type, and link-name."
             (setq link-p 5))            ; directory
 
         (if (and (equal name "././@LongLink")
-                 (equal magic-str "ustar  ")) ;OLDGNU_MAGIC.
+                 (equal magic-str "ustar ")) ;OLDGNU_MAGIC.
             ;; This is a GNU Tar long-file-name header.
             (let* ((size (tar-parse-octal-integer
                           string tar-size-offset tar-time-offset))
