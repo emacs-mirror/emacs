@@ -1,7 +1,7 @@
 HOW TO MAINTAIN COPYRIGHT YEARS FOR GNU EMACS
 
 Maintaining copyright years is now very simple: every time a new year
-rolls around, add that year to every copyright notice.
+rolls around, add that year to every FSF (and AIST) copyright notice.
 
 There's no need to worry about whether an individual file has changed
 in a given year - it's sufficient that Emacs as a whole has changed.
