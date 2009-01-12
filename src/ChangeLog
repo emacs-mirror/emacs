@@ -1,3 +1,8 @@
+2009-01-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): If setting the
+	family, clear the font width index too.
+
 2009-01-11  Jason Rumney  <jasonr@gnu.org>
 
 	* keyboard.c (cmd_error_internal): Exit when errors occur before
