@@ -1,72 +1,30 @@
-How to Maintain Copyright Years for GNU Emacs
-  (see also file "copyright" in this directory)
+HOW TO MAINTAIN COPYRIGHT YEARS FOR GNU EMACS
+
+Maintaining copyright years is now very simple: every time a new year
+rolls around, add that year to every copyright notice.
+
+There's no need to worry about whether an individual file has changed
+in a given year - it's sufficient that Emacs as a whole has changed.
+
+For more detailed information on maintaining copyright, see the file
+"copyright" in this directory.
+
+The previous policy was more complex, but is now only of historical
+interest (see versions of this file from before 2009).
+
+The refcards in etc/refcards can print only the latest copyright year,
+but should keep the full list in a comment in the source.
+
 
 "Our lawyer says it is ok if we add, to each file that has been in Emacs
  since Emacs 21 came out in 2001, all the subsequent years[1].  We don't
  need to check whether *that file* was changed in those years.
  It's sufficient that *Emacs* was changed in those years (and it was!).
-
+  
  For those files that have been added since then, we should add
  the year it was added to Emacs, and all subsequent years."
-
+  
  --RMS, 2005-07-13
 
 [1] Note that this includes 2001 - see
 <http://lists.gnu.org/archive/html/emacs-pretest-bug/2006-12/msg00119.html>
-
-
-For the refcards under etc/, it's ok to simply use the latest year
-(typically in a `\def\year{YEAR}' expression) for the rendered copyright
-notice, while maintaining the full list of years in the copyright notice
-in the comments.
-
-------------------------------------------------------------------------------
-
-
-Following is the policy that we tried to write down one time (mid 2005).
-Although it is incorrect, we keep it around to remind us how complicated
-things used to be (and may become in the future).
-
-
-Principle: Individual files need to have the year of the release
-           in the copyright notice if there is significant change.
-
-
-Practice:
-
-- individual files
-  - each must be examined, along w/ its history, by a human
-  - automated tools facilitate but can never replace this process
-
-- year of the release
-  - may be different from year of file introduction,
-    or year of last significant change
-  - sometimes the release year slips, leaving a file w/ prematurely
-    marked release year => need update (e.g., s/2004/2005/ for Emacs 22)
-  - intervening years (between releases) are not valid and may cause
-    embarrassment later in case of dispute => remove (however, see next)
-  - years for new files (merged, contributed) that have been separately
-    published are valid even if between releases => leave alone
-
-- significant change
-  - insignificant
-    - whitespace
-    - copyright notice
-    - version control tags
-    - simple var/func renaming
-    - in-file reorganization/reordering
-    - typos
-    - small bugfixes
-    - small docfixes
-    - filename renaming
-  - most everything else is significant
-    - change to interface
-    - change in functionality
-    - new file
-  - many small changes may be significant in aggregate
-
-- when in doubt, ask (and update these guidelines -- thanks!)
-
-- sometimes people make mistakes
-  - if they have not read these guidelines, point them here
-  - if the guidelines are not helpful, improve the guidelines
