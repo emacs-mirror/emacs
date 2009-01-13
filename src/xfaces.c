@@ -2469,11 +2469,6 @@ merge_face_vectors (f, from, to, named_merge_points)
 	  }
       }
 
-  /* If `font' attribute is specified, reflect the font properties in
-     it to the other attributes.  */
-  if (0 && !UNSPECIFIEDP (to[LFACE_FONT_INDEX]))
-    font_update_lface (f, to);
-
   /* TO is always an absolute face, which should inherit from nothing.
      We blindly copy the :inherit attribute above and fix it up here.  */
   to[LFACE_INHERIT_INDEX] = Qnil;
@@ -3341,12 +3336,6 @@ FRAME 0 means change the face on all frames, and change the default
 	 the attribute is mandatory.  Also, clear the average
 	 width.  */
       font_clear_prop (XVECTOR (lface)->contents, prop_index);
-
-      /* If we are setting QCfamily, clear out FONT_WIDTH_INDEX as
-	 well.  This avoids rejecting valid families that lack support
-	 for a particular width.  */
-      if (prop_index == FONT_FAMILY_INDEX)
-	font_clear_prop (XVECTOR (lface)->contents, FONT_WIDTH_INDEX);
     }
 
   /* Changing a named face means that all realized faces depending on
