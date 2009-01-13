@@ -1253,7 +1253,7 @@ Here is an example:
    But in the end, no individual scenes matter but the film as a whole.
    Important actors in this film are:
    - @b{Elijah Wood} :: He plays Frodo
-   - @b{Sean Austin} :: He plays Sam, Frodos friend.  I still remember
+   - @b{Sean Austin} :: He plays Sam, Frodo's friend.  I still remember
      him very well from his role as Mikey Walsh in the Goonies.
 @end group
 @end example
