@@ -141,19 +141,24 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         printf("makeTotal: %d, wastefulness: %d.\n",
                makeTotal, wastefulness);
         script += bytesread;
-        
+
+        objCount = 0;
         while(makeCount < makeTotal) {
           mps_word_t v;
           die(make_dylan_vector(&v, ap, 2), "make_dylan_vector");
           DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(objCount);
           DYLAN_VECTOR_SLOT(v, 1) = (mps_word_t)NULL;
+          objCount++;
           if(rnd() % wastefulness == 0) {
             /* keep this one */
             myroot[makeCount % myrootCOUNT] = (void*)v;
             makeCount++;
           }
         }
-        
+        printf("Made and kept: %d objects (actually created %d objects,"
+               " in accord with wastefulness of %d).\n",
+               makeCount, objCount, wastefulness);
+
         break;
       }
       default: {
@@ -269,17 +274,77 @@ static void testscriptA(const char *script)
 
 }
 
+#include <math.h>  /* fmod */
+
+static unsigned long rndA(void)
+{
+  static unsigned long seed = 1;
+  double s;
+
+  s = seed;
+  s *= 16807.0;
+  s = fmod(s, 2147483647.0);  /* 2^31 - 1 */
+  seed = (unsigned long)s;
+  return seed;
+}
+
+static unsigned long rndB(void)
+{
+  static unsigned long seed = 1;
+  double s;
+
+  s = seed;
+  s *= 16807.0;
+  s = fmod(s, 2147483647.0);  /* 2^31 - 1 */
+  seed = (unsigned long)s;
+  return seed;
+}
+
+
 
 /* main -- runs various test scripts
  *
  */
 int main(int argc, char **argv)
 {
+  
+  {
+    /* ..... All this is very interesting, but the answer is in the 
+     * literature: *= 16807 mod (2^31-1) is a full-period generator.
+     *
+     * (For itnerest, at about 3.5 seconds per million iterations on 
+     * my old Mac this will wrap in about 2 hours, and take 4 hours 
+     * for fast to catch up with slow).  
+     *
+     * The way randomize does its seeding is plain wrong.
+     */
+    
+    unsigned long slow, fast;
+    double count;
+    for(count = 0,  slow = rndA(), fast = rndB(), fast = rndB();
+        fast != slow;
+        count += 1, slow = rndA(), fast = rndB(), fast = rndB()) {
+      if(fmod(count, 100000) == 0) {
+        printf(".");
+        fflush(stdout);
+      }
+      if(fmod(count, 1000000) == 0) {
+        printf(" %9.f.\n", count);
+        printf("%lu %lu.\n", slow, fast);
+        fflush(stdout);
+      }
+    }
+    
+    printf("coincidence at count=%.f.\n", count);
+    exit(0);
+  }
+    
 
   randomize(argc, argv);
 
   /* The most basic scripts */
   testscriptA("Make(objs 1500, wastefulness 50)");
+  testscriptA("Make(objs 10000, wastefulness 5)");
 
 
   fflush(stdout); /* synchronize */
