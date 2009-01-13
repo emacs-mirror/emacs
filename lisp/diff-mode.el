@@ -184,7 +184,7 @@ when editing big diffs)."
      :help "Convert unified diffs to context diffs"]
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
     ["Show trailing whitespace" whitespace-mode
-     :style toggle :selected (and (boundp 'whitespace-mode) whitespace-mode)
+     :style toggle :selected (bound-and-true-p whitespace-mode)
      :help "Show trailing whitespace in modified lines"]
     "-----"
     ["Split hunk"		diff-split-hunk
