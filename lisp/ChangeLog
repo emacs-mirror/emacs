@@ -1,3 +1,7 @@
+2009-01-13  Jason Rumney  <jasonr@gnu.org>
+
+	* faces.el (face-valid-attribute-values): No stipple on w32. (Bug#884)
+
 2009-01-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (play-sound): Doc fix.  (Bug#250)
