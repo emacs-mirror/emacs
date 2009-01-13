@@ -94,7 +94,7 @@ license to the document, as described in section 6 of the license.
 * Publishing::                  Create a web site of linked Org files
 * Miscellaneous::               All the rest which did not fit elsewhere
 * Extensions::                  Add-ons for Org mode
-* Hacking::                     How hack your way around
+* Hacking::                     How to hack your way around
 * History and Acknowledgments::  How Org came into being
 * Main Index::                  An index of Org's concepts and features
 * Key Index::                   Key bindings and where they are described
@@ -325,7 +325,7 @@ HTML export
 
 LaTeX and PDF export
 
-* LaTeX/PDF export commands::   Which key invode which commands
+* LaTeX/PDF export commands::   Which key invokes which commands
 * Quoting LaTeX code::          Incorporating literal LaTeX code
 * Sectioning structure::        Changing sectioning in LaTeX output
 * Tables in LaTeX export::      Options for exporting tables to LaTeX
@@ -829,7 +829,7 @@ buffer:
 @end example
 
 @noindent
-Forthermore, any entries with a @samp{VISIBILITY} property (@pxref{Properties
+Furthermore, any entries with a @samp{VISIBILITY} property (@pxref{Properties
 and Columns}) will get their visibility adapted accordingly.  Allowed values
 for this property are @code{folded}, @code{children}, @code{content}, and
 @code{all}.
@@ -1226,7 +1226,7 @@ a right parenthesis, such as @samp{1.} or @samp{1)}.
 @item
 @emph{Description} list items are like unordered list items, but contain the
 separator @samp{ :: } to separate the description @emph{term} from the
-desciption.
+description.
 @end itemize
 
 Items belonging to the same list must have the same indentation on the first
@@ -1244,17 +1244,17 @@ Here is an example:
 ** Lord of the Rings
    My favorite scenes are (in this order)
    1. The attack of the Rohirrim
-   2. Eowyns fight with the witch king
+   2. Eowyn's fight with the witch king
       + this was already my favorite scene in the book
       + I really like Miranda Otto.
    3. Peter Jackson being shot by Legolas
        - on DVD only
       He makes a really funny face when it happens.
-   But in the end, not individual scenes matter but the film as a whole.
+   But in the end, no individual scenes matter but the film as a whole.
    Important actors in this film are:
-   - @b{Elijah Wood} :: He plays the Frodo
-   - @b{Sean Austin} :: He plays the Sam, Frodos friend.  I still remember
-     him very well from his role as Mikey Walsh a in the Goonies.
+   - @b{Elijah Wood} :: He plays Frodo
+   - @b{Sean Austin} :: He plays Sam, Frodos friend.  I still remember
+     him very well from his role as Mikey Walsh in the Goonies.
 @end group
 @end example
 
@@ -1588,7 +1588,7 @@ When current field is empty, copy from first non-empty field above.  When not
 empty, copy current field down to next row and move cursor along with it.
 Depending on the variable @code{org-table-copy-increment}, integer field
 values will be incremented during copy.  Integers that are too large will not
-be incremented.  Also, a @code{0} prefix argument temporarily dispables the
+be incremented.  Also, a @code{0} prefix argument temporarily disables the
 increment.  This key is also used by CUA mode (@pxref{Cooperation}).
 
 @tsubheading{Miscellaneous}
@@ -1957,7 +1957,7 @@ if($1<20,teen,string(""))  @r{``teen'' if age $1 less than 20, else empty}
 @cindex Lisp forms, as table formulas
 
 It is also possible to write a formula in Emacs Lisp; this can be useful
-for string manipulation and control structures, if the Calc's
+for string manipulation and control structures, if Calc's
 functionality is not enough.  If a formula starts with a single quote
 followed by an opening parenthesis, then it is evaluated as a lisp form.
 The evaluation should return either a string or a number.  Just as with
@@ -2852,7 +2852,7 @@ an implementation example.  See the file @file{org-bibtex.el}.
 @cindex TODO items
 
 Org mode does not maintain TODO lists as separate documents@footnote{Of
-course, you can make a document that contains inly long lists of TODO items,
+course, you can make a document that contains only long lists of TODO items,
 but this is not required.}.  Instead, TODO items are an integral part of the
 notes file, because TODO items usually come up while taking notes!  With Org
 mode, simply mark any entry in a tree as being a TODO item.  In this way,
@@ -3348,7 +3348,7 @@ be updates each time the todo status of a child changes.  For example:
 @end example
 
 If you would like a TODO entry to automatically change to DONE when all
-chilrden are done, you can use the following setup:
+children are done, you can use the following setup:
 
 @example
 (defun org-summary-todo (n-done n-not-done)
@@ -3443,7 +3443,7 @@ called with a @kbd{C-u} prefix, update the entire file.  Checkbox
 statistic cookies are updated automatically if you toggle checkboxes
 with @kbd{C-c C-c} and make new ones with @kbd{M-S-@key{RET}}.  If you
 delete boxes or add/change them by hand, use this command to get things
-back into synch.  Or simply toggle any checkbox twice with @kbd{C-c C-c}.
+back into sync.  Or simply toggle any checkbox twice with @kbd{C-c C-c}.
 @end table
 
 @node Tags, Properties and Columns, TODO Items, Top
@@ -3493,7 +3493,7 @@ the final heading will have the tags @samp{:work:}, @samp{:boss:},
 @samp{:notes:}, and @samp{:action:} even though the final heading is not
 explicitly marked with those tags.  You can also set tags that all entries in
 a file should inherit as if these tags would be defined in a hypothetical
-level zero that surounds the entire file.
+level zero that surrounds the entire file.
 
 @example
 #+FILETAGS: :Peter:Boss:Secret:
@@ -3772,7 +3772,7 @@ you document bugs and plan releases of a piece of software.  Instead of
 using tags like @code{:release_1:}, @code{:release_2:}, one can use a
 property, say @code{:Release:}, that in different subtrees has different
 values, such as @code{1.0} or @code{2.0}.  For an example of the second
-application of properties, imagine keeping track of your music CD's,
+application of properties, imagine keeping track of your music CDs,
 where properties could be things such as the album artist, date of
 release, number of tracks, and so on.
 
@@ -4736,7 +4736,7 @@ actually switch the date like this:
 A timestamp@footnote{You can change this using the option
 @code{org-log-repeat}, or the @code{#+STARTUP} options @code{logrepeat},
 @code{lognoterepeat}, and @code{nologrepeat}.  With @code{lognoterepeat}, you
-will aslo be prompted for a note.} will be added under the deadline, to keep
+will also be prompted for a note.} will be added under the deadline, to keep
 a record that you actually acted on the previous instance of this deadline.
 
 As a consequence of shifting the base date, this entry will no longer be
@@ -5097,7 +5097,7 @@ entries to the beginning or end of the file, respectively.
 An optional sixth element specifies the contexts in which the user can select
 the template.  This element can be a list of major modes or a function.
 @code{org-remember} will first check whether the function returns @code{t} or
-if we are in any of the listed major mode, and exclude templates fo which
+if we are in any of the listed major mode, and exclude templates for which
 this condition is not fulfilled.  Templates that do not specify this element
 at all, or that use @code{nil} or @code{t} as a value will always be
 selectable.
@@ -5339,7 +5339,7 @@ attachments yourself.
 @item o
 Open current task's attachment.  If there are more than one, prompt for a
 file name first.  Opening will follow the rules set by @code{org-file-apps}.
-For more details, see the information on following hyperlings
+For more details, see the information on following hyperlinks
 (@pxref{Handling links}).
 
 @kindex C-c C-a O
@@ -5903,7 +5903,7 @@ the previous paragraphs would end up in the agenda like this:
     8:30-13:00 Arthur Dent lies in front of the bulldozer
    12:45...... Ford Prefect arrives and takes Arthur to the pub
    19:00...... The Vogon reads his poem
-   20:30-22:15 Marwin escorts the Hitchhikers to the bridge
+   20:30-22:15 Marvin escorts the Hitchhikers to the bridge
 @end example
 
 @cindex time grid
@@ -5921,7 +5921,7 @@ timed entries are embedded in a time grid, like
    18:00...... ------------------
    19:00...... The Vogon reads his poem
    20:00...... ------------------
-   20:30-22:15 Marwin escorts the Hitchhikers to the bridge
+   20:30-22:15 Marvin escorts the Hitchhikers to the bridge
 @end example
 
 The time grid can be turned on and off with the variable
@@ -6268,7 +6268,7 @@ Set a deadline for this item.
 @item k
 Agenda actions, to set dates for selected items to the cursor date.
 This command also works in the calendar!  The command prompts for an
-additonal key:
+additional key:
 @example
 m   @r{Mark the entry at point for action.  You can also make entries}
     @r{in Org files with @kbd{C-c C-x C-k}.}
@@ -6276,7 +6276,7 @@ d   @r{Set the deadline of the marked entry to the date at point.}
 s   @r{Schedule the marked entry at the date at point.}
 r   @r{Call @code{org-remember} with the cursor date as default date.}
 @end example
-Press @kbd{r} afterwards to refresh the agenda and see the effect of the
+Press @kbd{r} afterward to refresh the agenda and see the effect of the
 command.
 @c
 @kindex S-@key{right}
@@ -6577,7 +6577,7 @@ yourself.
 If you are away from your computer, it can be very useful to have a
 printed version of some agenda views to carry around.  Org mode can
 export custom agenda views as plain text, HTML@footnote{You need to
-install Hrvoje Niksic' @file{htmlize.el}.} postscript, and iCalendar
+install Hrvoje Niksic's @file{htmlize.el}.}, postscript, and iCalendar
 files.  If you want to do this only occasionally, use the command
 
 @table @kbd
@@ -6799,7 +6799,7 @@ foreach $line (split(/\n/,$agenda)) @{
   ($category,$head,$type,$todo,$tags,$date,$time,$extra,
    $priority_l,$priority_n) = split(/,/,$line);
 
-  # proccess and print
+  # process and print
   print "[ ] $head\n";
 @}
 @end group
@@ -7347,7 +7347,7 @@ Visit the include file at point.
 Both the native Org mode tables (@pxref{Tables}) and tables formatted with
 the @file{table.el} package will be exported properly.  For Org mode tables,
 the lines before the first horizontal separator line will become table header
-lines.  You can use the following lines somewhere before the table to asssign
+lines.  You can use the following lines somewhere before the table to assign
 a caption and a label for cross references:
 
 @example
@@ -7769,7 +7769,7 @@ files while publishing them to a publishing directory see @ref{Publishing
 links}.
 
 If you want to specify attributes for links, you can do so using a special
-@code{#+ATTR_HTML} line to define attributes that wil be added to the
+@code{#+ATTR_HTML} line to define attributes that will be added to the
 @code{<a>} or @code{<img>} tags.  Here is an example that sets @code{alt} and
 @code{title} attributes for an inlined image:
 
@@ -7915,7 +7915,7 @@ the LaTeX output uses @file{hyperref} to implement links and cross
 references, the PDF output file will be fully linked.
 
 @menu
-* LaTeX/PDF export commands::   Which key invode which commands
+* LaTeX/PDF export commands::   Which key invokes which commands
 * Quoting LaTeX code::          Incorporating literal LaTeX code
 * Sectioning structure::        Changing sectioning in LaTeX output
 * Tables in LaTeX export::      Options for exporting tables to LaTeX
@@ -8011,7 +8011,7 @@ You can change this globally by setting a different value for
 @code{org-export-latex-default-class} or locally by adding an option like
 @code{#+LaTeX_CLASS: myclass} in your file.  The class should be listed in
 @code{org-export-latex-classes}, where you can also define the sectioning
-structure for each class, as well as defining additonal classes.
+structure for each class, as well as defining additional classes.
 
 
 @node Tables in LaTeX export, Images in LaTeX export, Sectioning structure, LaTeX and PDF export
@@ -8042,7 +8042,7 @@ Images that are linked to without a description part in the link, like
 output files resulting from LaTeX output.  Org will use an
 @code{\includegraphics} macro to insert the image.  If you have specified a
 caption and/or a label as described in @ref{Markup rules}, the figure will
-be wrappend into a @code{figure} environment and thus become a floating
+be wrapped into a @code{figure} environment and thus become a floating
 element.  Finally, you can use an @code{#+ATTR_LaTeX:} line to specify the
 options that can be used in the optional argument of the
 @code{\includegraphics} macro.
@@ -8644,7 +8644,7 @@ This line defines a file that holds more in-buffer setup.  Normally this is
 entirely ignored.  Only when the buffer is parsed for option-setting lines
 (i.e. when starting Org mode for a file, when pressing @kbd{C-c C-c} in a
 settings line, or when exporting), then the contents of this file are parsed
-as if they had been included in the buffer.  In particlar, the file can be
+as if they had been included in the buffer.  In particular, the file can be
 any other Org mode file with internal setup.  You can visit the file the
 cursor is in the line with @kbd{C-c '}.
 @item #+STARTUP:
@@ -9140,7 +9140,7 @@ go to @url{http://orgmode.org} to get access to these modules.
       Call @i{remember} directly from Firefox/Opera, or from Adobe Reader.
       When activating a special link or bookmark, Emacs receives a trigger to
       create a note with a link back to the website.  Requires some setup, a
-      detailes description is in
+      detailed description is in
       @file{contrib/packages/org-annotation-helper}.
 @item @file{org-bookmark.el} by @i{Tokuya Kameshima}
       Support for links to Emacs bookmarks.
@@ -9180,7 +9180,7 @@ go to @url{http://orgmode.org} to get access to these modules.
       to write @code{<example>} and @code{<src>} and other syntax copied from
       Emacs Muse, right inside an Org file.  The goal here is to make it easy
       to publish the same file using either org-publish or Muse.
-@item @file{org-panel.el} by @i{Lennard Borgman}
+@item @file{org-panel.el} by @i{Lennart Borgman}
       Simplified and display-aided access to some Org commands.
 @item @file{org-registry.el} by @i{Bastien Guerry}
       A registry for Org links, to find out from where links point to a given
@@ -9194,7 +9194,7 @@ go to @url{http://orgmode.org} to get access to these modules.
       and easy visibility cycling.
 @item @file{orgtbl-sqlinsert.el} by @i{Jason Riedy}
       Convert Org-mode tables to SQL insertions.  Documentation for this can
-      be found on the Worg pages.
+      be found on the Org pages.
 @end table
 
 @node Other extensions,  , Extensions in the contrib directory, Extensions
@@ -9909,8 +9909,8 @@ function or Lisp form
 @end defun
 
 The function given to that mapping routine can really do anything you like.
-It can uce the property API (@pxref{Using the property API}) to gather more
-information about the entry, or in order to change metadate in the entry.
+It can use the property API (@pxref{Using the property API}) to gather more
+information about the entry, or in order to change metadata in the entry.
 Here are a couple of functions that might be handy:
 
 @defun org-todo &optional arg
@@ -9976,7 +9976,7 @@ goals that Org still has today: To create a new, outline-based,
 plain text mode with innovative and intuitive editing features, and to
 incorporate project planning functionality directly into a notes file.
 
-A special thanks goes to @i{Bastien Guerry} who has not only writen a large
+A special thanks goes to @i{Bastien Guerry} who has not only written a large
 number of extensions to Org (most of them integrated into the core by now),
 but has also helped the development and maintenance of Org so much that he
 should be considered co-author of this package.
@@ -10014,7 +10014,7 @@ calculations and improved XEmacs compatibility, in particular by porting
 @item
 @i{Sacha Chua} suggested to copy some linking code from Planner.
 @item
-@i{Eddward DeVilla} proposed and tested checkbox statistics.  He also
+@i{Edward DeVilla} proposed and tested checkbox statistics.  He also
 came up with the idea of properties, and that there should be an API for
 them.
 @item
@@ -10150,7 +10150,7 @@ system.
 @i{John Wiegley} wrote @file{emacs-wiki.el}, @file{planner.el}, and
 @file{muse.el}, which have similar goals as Org.  Initially the
 development of Org was fully independent because I was not aware of the
-existence of these packages.  But with time I have accasionally looked
+existence of these packages.  But with time I have occasionally looked
 at John's code and learned a lot from it.  John has also contributed a
 number of great ideas and patches directly to Org, including the attachment
 system (@file{org-attach.el}) and integration with Apple Mail
