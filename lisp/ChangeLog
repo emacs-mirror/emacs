@@ -1,3 +1,11 @@
+2009-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-file-menu): Do not hardbind key display
+	for exit-emacs item.  Bind it to save-buffers-kill-terminal.
+
+	* diff-mode.el (diff-mode-menu): Do not assume whitespace-mode is
+	loaded.
+
 2009-01-13  Jason Rumney  <jasonr@gnu.org>
 
 	* faces.el (face-valid-attribute-values): No stipple on w32. (Bug#884)
