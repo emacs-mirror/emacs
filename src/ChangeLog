@@ -1,3 +1,11 @@
+2009-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_clear_prop): If clearing the family, clear the font
+	width index too.
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): Revert last
+	change.
+
 2009-01-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* sound.c [WINDOWSNT] (SOUND_WARNING): New macro.
