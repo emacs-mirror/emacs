@@ -1,3 +1,7 @@
+2009-01-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-util.el (url-truncate-url-for-viewing): Doc fix.
+
 2009-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* url-cid.el (url-cid-gnus): Fix typo in header name.

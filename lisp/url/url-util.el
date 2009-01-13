@@ -387,7 +387,7 @@ of the file with the extension stripped off."
 
 ;;;###autoload
 (defun url-truncate-url-for-viewing (url &optional width)
-  "Return a shortened version of URL that is WIDTH characters or less wide.
+  "Return a shortened version of URL that is WIDTH characters wide or less.
 WIDTH defaults to the current frame width."
   (let* ((fr-width (or width (frame-width)))
 	 (str-width (length url))
