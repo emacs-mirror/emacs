@@ -64,8 +64,7 @@
 
 ;; The "File" menu items
 (define-key menu-bar-file-menu [exit-emacs]
-  '(menu-item "Exit Emacs" save-buffers-kill-emacs
-	      :keys "C-x C-c"
+  '(menu-item "Quit" save-buffers-kill-terminal
 	      :help "Save unsaved buffers, then exit"))
 
 (define-key menu-bar-file-menu [separator-exit]
