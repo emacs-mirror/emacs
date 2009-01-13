@@ -3083,7 +3083,13 @@ font_clear_prop (attrs, prop)
   if (prop == FONT_FAMILY_INDEX || prop == FONT_FOUNDRY_INDEX)
     {
       if (prop == FONT_FAMILY_INDEX)
-	ASET (font, FONT_FOUNDRY_INDEX, Qnil);
+	{
+	  ASET (font, FONT_FOUNDRY_INDEX, Qnil);
+	  /* If we are setting the font family, we must also clear
+	     FONT_WIDTH_INDEX to avoid rejecting families that lack
+	     support for some widths.  */
+	  ASET (font, FONT_WIDTH_INDEX, Qnil);
+	}
       ASET (font, FONT_ADSTYLE_INDEX, Qnil);
       ASET (font, FONT_REGISTRY_INDEX, Qnil);
       ASET (font, FONT_SIZE_INDEX, Qnil);
