@@ -1,3 +1,7 @@
+2009-01-13  Peter Tury  <tury.peter@gmail.com>  (tiny change)
+
+	* org.texi: Fix some typos.
+
 2009-01-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Group Parameters): Add note for local variables.

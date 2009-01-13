@@ -3506,7 +3506,7 @@ the variables @code{org-use-tag-inheritance} and
 
 When a headline matches during a tags search while tag inheritance is turned
 on, all the sublevels in the same tree will (for a simple match form) match
-as well@footnote{This is only true if the the search does not involve more
+as well@footnote{This is only true if the search does not involve more
 complex tests including properties (@pxref{Property searches}).}.  The list
 of matches may then become very long.  If you only want to see the first tags
 match in a subtree, configure the variable
@@ -4463,7 +4463,7 @@ the given day/month is @i{before} today, it will assume that you mean a
 future date@footnote{See the variable
 @code{org-read-date-prefer-future}.}.
 
-For example, lets assume that today is @b{June 13, 2006}.  Here is how
+For example, let's assume that today is @b{June 13, 2006}.  Here is how
 various inputs will be interpreted, the items filled in by Org mode are
 in @b{bold}.
 
@@ -4472,7 +4472,7 @@ in @b{bold}.
 14            --> @b{2006}-@b{06}-14
 12            --> @b{2006}-@b{07}-12
 Fri           --> nearest Friday (defaultdate or later)
-sep 15        --> @b{2006}-11-15
+sep 15        --> @b{2006}-09-15
 feb 15        --> @b{2007}-02-15
 sep 12 9      --> 2009-09-12
 12:45         --> @b{2006}-@b{06}-@b{13} 12:45
