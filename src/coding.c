@@ -744,44 +744,42 @@ static struct coding_system coding_categories[coding_category_max];
   } while (0)
 
 /* Safely get two bytes from the source text pointed by SRC which ends
-   at SRC_END, and set C1 and C2 to those bytes.  If there are not
-   enough bytes in the source for C1, it jumps to `no_more_source'.
-   If there are not enough bytes in the source for C2, set C2 to -1.
-   If multibytep is nonzero and a multibyte character is found at SRC,
-   set C1 and/or C2 to the negative value of the character code.  The
-   caller should declare and set these variables appropriately in
-   advance:
+   at SRC_END, and set C1 and C2 to those bytes while skipping the
+   heading multibyte characters.  If there are not enough bytes in the
+   source, it jumps to `no_more_source'.  If multibytep is nonzero and
+   a multibyte character is found for C2, set C2 to the negative value
+   of the character code.  The caller should declare and set these
+   variables appropriately in advance:
 	src, src_end, multibytep
    It is intended that this macro is used in detect_coding_utf_16.  */
 
-#define TWO_MORE_BYTES(c1, c2)			\
-  do {						\
-    if (src == src_end)				\
-      goto no_more_source;			\
-    c1 = *src++;				\
-    if (multibytep && (c1 & 0x80))		\
-      {						\
-	if ((c1 & 0xFE) == 0xC0)		\
-	  c1 = ((c1 & 1) << 6) | *src++;	\
-	else					\
-	  {					\
-	    c1 = c2 = -1;			\
-	    break;				\
-	  }					\
-      }						\
-    if (src == src_end)				\
-      c2 = -1;					\
-    else					\
-      {						\
-	c2 = *src++;				\
-	if (multibytep && (c2 & 0x80))		\
-	  {					\
-	    if ((c2 & 0xFE) == 0xC0)		\
-	      c2 = ((c2 & 1) << 6) | *src++;	\
-	    else				\
-	      c2 = -1;				\
-	  }					\
-      }						\
+#define TWO_MORE_BYTES(c1, c2)				\
+  do {							\
+    do {						\
+      if (src == src_end)				\
+	goto no_more_source;				\
+      c1 = *src++;					\
+      if (multibytep && (c1 & 0x80))			\
+	{						\
+	  if ((c1 & 0xFE) == 0xC0)			\
+	    c1 = ((c1 & 1) << 6) | *src++;		\
+	  else						\
+	    {						\
+	      src += BYTES_BY_CHAR_HEAD (c1) - 1;	\
+	      c1 = -1;					\
+	    }						\
+	}						\
+    } while (c1 < 0);					\
+    if (src == src_end)					\
+      goto no_more_source;				\
+    c2 = *src++;					\
+    if (multibytep && (c2 & 0x80))			\
+      {							\
+	if ((c2 & 0xFE) == 0xC0)			\
+	  c2 = ((c2 & 1) << 6) | *src++;		\
+	else						\
+	  c2 = -1;					\
+      }							\
   } while (0)
 
 
@@ -1633,7 +1631,7 @@ detect_coding_utf_16 (coding, detect_info)
 				| CATEGORY_MASK_UTF_16_BE_NOSIG
 				| CATEGORY_MASK_UTF_16_LE_NOSIG);
     }
-  else if (c1 < 0 || c2 < 0)
+  else if (c2 < 0)
     {
       detect_info->rejected |= CATEGORY_MASK_UTF_16;
       return 0;
@@ -1656,7 +1654,7 @@ detect_coding_utf_16 (coding, detect_info)
       while (1)
 	{
 	  TWO_MORE_BYTES (c1, c2);
-	  if (c1 < 0 || c2 < 0)
+	  if (c2 < 0)
 	    break;
 	  if (! e[c1])
 	    {
