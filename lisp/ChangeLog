@@ -1,3 +1,18 @@
+2009-01-14  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-isearch-filter): Don't filter out invisible text
+	when search-invisible is t.  (Bug#1848)
+
+	* simple.el (blink-matching-open): Use `minibuffer-message' to
+	display messages in the minibuffer.
+
+	* help.el (view-help-file):
+	* menu-bar.el (menu-bar-help-extra-packages):
+	Use goto-address-mode instead of goto-address.
+
+	* net/goto-addr.el (goto-address-url-face): Change default value
+	from `bold' to `link'.
+
 2009-01-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-diag.el (print-list): Fix 2008-12-03 change.
