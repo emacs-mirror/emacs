@@ -1,3 +1,7 @@
+2009-01-14  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-copy-field-as-kill): Doc fix.
+
 2009-01-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuffer.el (minibuffer-message): Fix regexp so it doesn't exclude

@@ -4070,7 +4070,7 @@ but do not actually kill it.  Optional arg COMMA is as in
   (setq bibtex-last-kill-command 'field))
 
 (defun bibtex-copy-field-as-kill (&optional comma)
-  "Copy the BibTeX field at point to the kill ring.
+  "Copy the BibTeX field at point to `bibtex-field-kill-ring'.
 Optional arg COMMA is as in `bibtex-enclosing-field'.  It is t for
 interactive calls."
   (interactive (list t))
