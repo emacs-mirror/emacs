@@ -10014,7 +10014,7 @@ calculations and improved XEmacs compatibility, in particular by porting
 @item
 @i{Sacha Chua} suggested to copy some linking code from Planner.
 @item
-@i{Edward DeVilla} proposed and tested checkbox statistics.  He also
+@i{Eddward DeVilla} proposed and tested checkbox statistics.  He also
 came up with the idea of properties, and that there should be an API for
 them.
 @item
