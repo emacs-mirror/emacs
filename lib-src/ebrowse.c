@@ -2033,7 +2033,7 @@ matching_regexp ()
       while (in - p < min_regexp && p > inbuffer)
         {
           /* Line probably not significant enough */
-          for (--p; p >= inbuffer && *p != '\n'; --p)
+          for (--p; p > inbuffer && *p != '\n'; --p)
             ;
         }
       if (*p == '\n')
