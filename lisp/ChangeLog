@@ -1,3 +1,11 @@
+2009-01-14  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/bug-reference.el (bug-reference-fontify): Check for
+	non-nil `bug-reference-url-format' before putting an overlay
+	property `bug-reference-url'.
+	(bug-reference-mode, bug-reference-prog-mode): Don't check for
+	`bug-reference-url-format'.  Doc fix.  (Bug#1744)
+
 2009-01-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* menu-bar.el (menu-bar-file-menu): Do not hardbind key display
@@ -939,6 +947,7 @@
 	condition-case.  Do not delete more windows than necessary in
 	the shrinking (delta < 0) case.  Do not raise an error when the
 	containing frame is too small to show all of buffer.  (Bug#1488)
+
 	* dired.el (dired-pop-to-buffer): Call fit-window-to-buffer with
 	min-height arg 1 to make sure that small buffers are shown.
 
@@ -17156,8 +17165,6 @@ See ChangeLog.13 for earlier changes.
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
-;; bug-reference-url-format: "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s"
 ;; End:
 
     Copyright (C) 2008, 2009  Free Software Foundation, Inc.
