@@ -1,3 +1,7 @@
+2009-01-14  Lars Rasmusson  <lars.rasmusson@gmail.com>  (tiny change)
+
+	* ebrowse.c (matching_regexp): Fix OB1 error.
+
 2009-01-05  Glenn Morris  <rgm@gnu.org>
 
 	* ebrowse.c (version):
