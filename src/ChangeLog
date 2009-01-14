@@ -1,3 +1,8 @@
+2009-01-14  Jason Rumney  <jasonr@gnu.org>
+
+	* frame.c (x_set_font): Always store a font to the font parameter,
+	never a fontset. (Bug#1562)
+
 2009-01-14  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (TWO_MORE_BYTES): New macro.
