@@ -3391,7 +3391,7 @@ x_set_font (f, arg, oldval)
 	  font_object = font_open_by_name (f, SDATA (ascii_font));
 	  if (NILP (font_object))
 	    error ("Font `%s' is not defined", SDATA (arg));
-	  arg = fontset_name (fontset);
+	  arg = AREF (font_object, FONT_NAME_INDEX);
 	}
       else
 	error ("The default fontset can't be used for a frame font");
