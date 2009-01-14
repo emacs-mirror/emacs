@@ -270,7 +270,7 @@ Several are for Debian GNU/Linux in particular.
 Local Variables:
 mode: text
 mode: view
-eval: (goto-address)
+mode: goto-address
 End:
 
 This file is part of GNU Emacs.
