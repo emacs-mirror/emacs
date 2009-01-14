@@ -1,3 +1,9 @@
+2009-01-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (TWO_MORE_BYTES): New macro.
+	(detect_coding_utf_16): Use TWO_MORE_BYTES instead of
+	ONE_MORE_BYTE.
+
 2009-01-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_clear_prop): If clearing the family, clear the font
@@ -90,7 +96,7 @@
 2009-01-07  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): In the case of replace,
-	remeber the coding system used for decoding in
+	remember the coding system used for decoding in
 	coding_system (Bug#1039).
 
 	* coding.c (decode_coding_utf_8): Check byte_after_cr before
