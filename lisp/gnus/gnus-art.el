@@ -3404,9 +3404,15 @@ should replace the \"Date:\" one, or should be added below it."
 				    (point) 'original-date))
 		     (setq date (get-text-property pos 'original-date))
 		     t))
-	  (narrow-to-region pos (or (text-property-any pos (point-max)
-						       'original-date nil)
-				    (point-max)))
+	  (narrow-to-region
+	   pos (if (setq pos (text-property-any pos (point-max)
+						'original-date nil))
+		   (progn
+		     (goto-char pos)
+		     (if (or (bolp) (eobp))
+			 (point)
+		       (1+ (point))))
+		 (point-max)))
 	  (goto-char (point-min))
 	  (when (re-search-forward tdate-regexp nil t)
 	    (setq bface (get-text-property (point-at-bol) 'face)

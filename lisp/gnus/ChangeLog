@@ -1,7 +1,33 @@
+2009-01-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-coding-system-priorities): Protect against nil value
+	of current-language-environment.
+
+2009-01-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnfolder.el (nnfolder-read-folder): Check if most-positive-fixnum is
+	available at runtime.
+
+2009-01-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-date-ut): Fix end point of narrowing.
+
+2009-01-11  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* nnfolder.el (nnfolder-read-folder): The (lsh -1 -1) trick to generate
+	the greatest positive fixnum value doesn't work under an XEmacs with
+	bignum support; use the most-positive-fixnum constant instead,
+	available since Emacs 21.1 with cl and XEmacs 21.1.
+
 2009-01-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-next-article): Revert last change by which
 	XEmacs gets not to work.
+
+2009-01-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-coding-system-priorities): Allow the value like
+	"Japanese (UTF-8)" of current-language-environment.
 
 2009-01-09  Glenn Morris  <rgm@gnu.org>
 
