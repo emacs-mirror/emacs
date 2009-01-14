@@ -129,7 +129,7 @@ A value of t means there is no limit--fontify regardless of the size."
     m)
   "Keymap to hold goto-addr's mouse key defs under highlighted URLs.")
 
-(defcustom goto-address-url-face 'bold
+(defcustom goto-address-url-face 'link
   "Face to use for URLs."
   :type 'face
   :group 'goto-address)
