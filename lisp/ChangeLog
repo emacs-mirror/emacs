@@ -1,3 +1,13 @@
+2009-01-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (special-display-buffer-names)
+	(special-display-regexps): Add customization support for
+	function/other-args elements.  Rewrite doc-strings.
+	(special-display-function): Rewrite doc-strings
+	(same-window-buffer-names, same-window-regexps): Minor
+	doc-string fixes.
+	(special-display-p): Minor rewrite.
+
 2009-01-14  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/bibtex.el (bibtex-copy-field-as-kill): Doc fix.

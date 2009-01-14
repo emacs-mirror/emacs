@@ -548,22 +548,148 @@ Commands such as `switch-to-buffer-other-window' and
 	  (function :tag "function"))
   :group 'windows)
 
+(defcustom special-display-buffer-names nil
+  "List of names of buffers that should be displayed specially.
+Displaying a buffer with `display-buffer' or `pop-to-buffer', if
+its name is in this list, displays the buffer in a way specified
+by `special-display-function'.  `special-display-popup-frame'
+\(the default for `special-display-function') usually displays
+the buffer in a separate frame made with the parameters specified
+by `special-display-frame-alist'.  If `special-display-function'
+has been set to some other function, that function is called with
+the buffer as first, and nil as second argument.
+
+Alternatively, an element of this list can be specified as
+\(BUFFER-NAME FRAME-PARAMETERS), where BUFFER-NAME is a buffer
+name and FRAME-PARAMETERS an alist of \(PARAMETER . VALUE) pairs.
+`special-display-popup-frame' will interpret such pairs as frame
+parameters when it creates a special frame, overriding the
+corresponding values from `special-display-frame-alist'.
+
+As a special case, if FRAME-PARAMETERS contains (same-window . t)
+`special-display-popup-frame' displays that buffer in the
+selected window.  If FRAME-PARAMETERS contains (same-frame . t),
+it displays that buffer in a window on the selected frame.
+
+If `special-display-function' specifies some other function than
+`special-display-popup-frame', that function is called with the
+buffer named BUFFER-NAME as first, and FRAME-PARAMETERS as second
+argument.
+
+Finally, an element of this list can be also specified as
+\(BUFFER-NAME FUNCTION OTHER-ARGS).  In that case,
+`special-display-popup-frame' will call FUNCTION with the buffer
+named BUFFER-NAME as first argument, and OTHER-ARGS as the
+second.  If `special-display-function' specifies some other
+function, that function is called with the buffer named
+BUFFER-NAME as first, and the element's cdr as second argument.
+
+If this variable appears \"not to work\", because you added a
+name to it but the corresponding buffer is displayed in the
+selected window, look at the values of `same-window-buffer-names'
+and `same-window-regexps'.  Those variables take precedence over
+this one.
+
+See also `special-display-regexps'."
+  :type '(repeat
+	  (choice :tag "Buffer"
+		  :value ""
+		  (string :format "%v")
+		  (cons :tag "With parameters"
+			:format "%v"
+			:value ("" . nil)
+			(string :format "%v")
+			(repeat :tag "Parameters"
+				(cons :format "%v"
+				      (symbol :tag "Parameter")
+				      (sexp :tag "Value"))))
+		  (list :tag "With function"
+			:format "%v"
+			:value ("" . nil)
+			(string :format "%v")
+			(function :tag "Function")
+			(repeat :tag "Arguments" (sexp)))))
+  :group 'windows
+  :group 'frames)
+
+(defcustom special-display-regexps nil
+  "List of regexps saying which buffers should be displayed specially.
+Displaying a buffer with `display-buffer' or `pop-to-buffer', if
+any regexp in this list matches its name, displays it specially
+using `special-display-function'.  `special-display-popup-frame'
+\(the default for `special-display-function') usually displays
+the buffer in a separate frame made with the parameters specified
+by `special-display-frame-alist'.  If `special-display-function'
+has been set to some other function, that function is called with
+the buffer as first, and nil as second argument.
+
+Alternatively, an element of this list can be specified as
+\(REGEXP FRAME-PARAMETERS), where REGEXP is a regexp as above and
+FRAME-PARAMETERS an alist of (PARAMETER . VALUE) pairs.
+`special-display-popup-frame' will then interpret these pairs as
+frame parameters when creating a special frame for a buffer whose
+name matches REGEXP, overriding the corresponding values from
+`special-display-frame-alist'.
+
+As a special case, if FRAME-PARAMETERS contains (same-window . t)
+`special-display-popup-frame' displays buffers matching REGEXP in
+the selected window.  \(same-frame . t) in FRAME-PARAMETERS means
+to display such buffers in a window on the selected frame.
+
+If `special-display-function' specifies some other function than
+`special-display-popup-frame', that function is called with the
+buffer whose name matched REGEXP as first, and FRAME-PARAMETERS
+as second argument.
+
+Finally, an element of this list can be also specified as
+\(REGEXP FUNCTION OTHER-ARGS).  `special-display-popup-frame'
+will then call FUNCTION with the buffer whose name matched
+REGEXP as first, and OTHER-ARGS as second argument.  If
+`special-display-function' specifies some other function, that
+function is called with the buffer whose name matched REGEXP
+as first, and the element's cdr as second argument.
+
+If this variable appears \"not to work\", because you added a
+name to it but the corresponding buffer is displayed in the
+selected window, look at the values of `same-window-buffer-names'
+and `same-window-regexps'.  Those variables take precedence over
+this one.
+
+See also `special-display-buffer-names'."
+  :type '(repeat
+	  (choice :tag "Buffer"
+		  :value ""
+		  (regexp :format "%v")
+		  (cons :tag "With parameters"
+			:format "%v"
+			:value ("" . nil)
+			(regexp :format "%v")
+			(repeat :tag "Parameters"
+				(cons :format "%v"
+				      (symbol :tag "Parameter")
+				      (sexp :tag "Value"))))
+		  (list :tag "With function"
+			:format "%v"
+			:value ("" . nil)
+			(regexp :format "%v")
+			(function :tag "Function")
+			(repeat :tag "Arguments" (sexp)))))
+  :group 'windows
+  :group 'frames)
+
 (defun special-display-p (buffer-name)
   "Return non-nil if a buffer named BUFFER-NAME gets a special frame.
-If the value is t, `display-buffer' or `pop-to-buffer' would
-create a special frame for that buffer using the default frame
-parameters.
-
-If the value is a list, it is a list of frame parameters that
-would be used to make a frame for that buffer.  The variables
-`special-display-buffer-names' and `special-display-regexps'
-control this."
-  (let (tmp)
+More precisely, return t if `special-display-buffer-names' or
+`special-display-regexps' contain a string entry equaling or
+matching BUFFER-NAME.  If `special-display-buffer-names' or
+`special-display-regexps' contain a list entry whose car equals
+or matches BUFFER-NAME, the return value is the cdr of that
+entry."
   (cond
    ((not (stringp buffer-name)))
-   ;; Make sure to return t in the following two cases.
    ((member buffer-name special-display-buffer-names) t)
-     ((setq tmp (assoc buffer-name special-display-buffer-names)) (cdr tmp))
+   ((let ((temp (assoc buffer-name special-display-buffer-names)))
+      (cdr temp)))
    ((catch 'found
       (dolist (regexp special-display-regexps)
 	(cond
@@ -572,104 +698,52 @@ control this."
 	    (throw 'found t)))
 	 ((and (consp regexp) (stringp (car regexp))
 	       (string-match-p (car regexp) buffer-name))
-            (throw 'found (cdr regexp))))))))))
-
-(defcustom special-display-buffer-names nil
-  "List of buffer names that should have their own special frames.
-Displaying a buffer with `display-buffer' or `pop-to-buffer', if
-its name is in this list, makes a special frame for it using
-`special-display-function'.  See also `special-display-regexps'.
-
-An element of the list can be a list instead of just a string.
-There are two ways to use a list as an element:
-  (BUFFER FRAME-PARAMETERS...)  (BUFFER FUNCTION OTHER-ARGS...)
-In the first case, the FRAME-PARAMETERS are pairs of the form
-\(PARAMETER . VALUE); these parameter values are used to create
-the frame.  In the second case, FUNCTION is called with BUFFER as
-the first argument, followed by the OTHER-ARGS--it can display
-BUFFER in any way it likes.  All this is done by the function
-found in `special-display-function'.
-
-If the specified frame parameters include (same-window . t), the
-buffer is displayed in the currently selected window.  Otherwise,
-if they include (same-frame . t), the buffer is displayed in a
-new window in the currently selected frame.
-
-If this variable appears \"not to work\", because you add a name to it
-but that buffer still appears in the selected window, look at the
-values of `same-window-buffer-names' and `same-window-regexps'.
-Those variables take precedence over this one."
-  :type '(repeat (choice :tag "Buffer"
-			 :value ""
-			 (string :format "%v")
-			 (cons :tag "With attributes"
-			       :format "%v"
-			       :value ("" . nil)
-			       (string :format "%v")
-			       (repeat :tag "Attributes"
-				       (cons :format "%v"
-					     (symbol :tag "Parameter")
-					     (sexp :tag "Value"))))))
-  :group 'frames)
-
-(defcustom special-display-regexps nil
-  "List of regexps saying which buffers should have their own special frames.
-When displaying a buffer with `display-buffer' or
-`pop-to-buffer', if any regexp in this list matches the buffer
-name, it makes a special frame for the buffer by calling
-`special-display-function'.
-
-An element of the list can be a list instead of just a string.
-There are two ways to use a list as an element:
-  (REGEXP FRAME-PARAMETERS...)  (REGEXP FUNCTION OTHER-ARGS...)
-In the first case, the FRAME-PARAMETERS are pairs of the form
-\(PARAMETER . VALUE); these parameter values are used to create
-the frame.  In the second case, FUNCTION is called with BUFFER as
-the first argument, followed by the OTHER-ARGS--it can display
-the buffer in any way it likes.  All this is done by the function
-found in `special-display-function'.
-
-If the specified frame parameters include (same-window . t), the
-buffer is displayed in the currently selected window.  Otherwise,
-if they include (same-frame . t), the buffer is displayed in a
-new window in the currently selected frame.
-
-If this variable appears \"not to work\", because you add a
-regexp to it but the matching buffers still appear in the
-selected window, look at the values of `same-window-buffer-names'
-and `same-window-regexps'.  Those variables take precedence over
-this one."
-  :type '(repeat (choice :tag "Buffer"
-			 :value ""
-			 (regexp :format "%v")
-			 (cons :tag "With attributes"
-			       :format "%v"
-			       :value ("" . nil)
-			       (regexp :format "%v")
-			       (repeat :tag "Attributes"
-				       (cons :format "%v"
-					     (symbol :tag "Parameter")
-					     (sexp :tag "Value"))))))
-  :group 'frames)
+	  (throw 'found (cdr regexp)))))))))
 
 (defcustom special-display-function 'special-display-popup-frame
-  "Function to call to make a new frame for a special buffer.
-It is called with two arguments, the buffer and optional buffer
-specific data, and should return a window displaying that buffer.
-The default value normally makes a separate frame for the buffer,
-using `special-display-frame-alist' to specify the frame
-parameters.
+  "Function to call for displaying special buffers.
+This function is called with two arguments - the buffer and,
+optionally, a list - and should return a window displaying that
+buffer.  The default value usually makes a separate frame for the
+buffer using `special-display-frame-alist' to specify the frame
+parameters.  See the definition of `special-display-popup-frame'
+for how to specify such a function.
 
-But if the buffer specific data includes (same-window . t) then
-the buffer is displayed in the currently selected window.
-Otherwise, if it includes (same-frame . t) then the buffer is
-displayed in a new window in the currently selected frame.
-
-A buffer is special if it is listed in
+A buffer is special when its name is either listed in
 `special-display-buffer-names' or matches a regexp in
 `special-display-regexps'."
   :type 'function
   :group 'frames)
+
+(defcustom same-window-buffer-names nil
+  "List of names of buffers that should appear in the \"same\" window.
+`display-buffer' and `pop-to-buffer' show a buffer whose name is
+on this list in the selected rather than some other window.
+
+An element of this list can be a cons cell instead of just a
+string.  In that case, the cell's car must be a string specifying
+the buffer name.  This is for compatibility with
+`special-display-buffer-names'; the cdr of the cons cell is
+ignored.
+
+See also `same-window-regexps'."
+ :type '(repeat (string :format "%v"))
+ :group 'windows)
+
+(defcustom same-window-regexps nil
+  "List of regexps saying which buffers should appear in the \"same\" window.
+`display-buffer' and `pop-to-buffer' show a buffer whose name
+matches a regexp on this list in the selected rather than some
+other window.
+
+An element of this list can be a cons cell instead of just a
+string.  In that case, the cell's car must be a regexp matching
+the buffer name.  This is for compatibility with
+`special-display-regexps'; the cdr of the cons cell is ignored.
+
+See also `same-window-buffer-names'."
+  :type '(repeat (regexp :format "%v"))
+  :group 'windows)
 
 (defun same-window-p (buffer-name)
   "Return non-nil if a buffer named BUFFER-NAME would be shown in the \"same\" window.
@@ -692,37 +766,6 @@ selected rather than \(as usual\) some other window.  See
 		  (and (consp regexp) (stringp (car regexp))
 		       (string-match-p (car regexp) buffer-name)))
 	  (throw 'found t)))))))
-
-(defcustom same-window-buffer-names nil
-  "List of names of buffers that should appear in the \"same\" window.
-`display-buffer' and `pop-to-buffer' show a buffer whose name is
-on this list in the selected rather than some other window.
-
-An element of this list can be a cons cell instead of just a
-string.  In that case the car must be a string specifying the
-buffer name.  This is for compatibility with
-`special-display-buffer-names'; the cdr of the cons cell is
-ignored.
-
-See also `same-window-regexps'."
- :type '(repeat (string :format "%v"))
- :group 'windows)
-
-(defcustom same-window-regexps nil
-  "List of regexps saying which buffers should appear in the \"same\" window.
-`display-buffer' and `pop-to-buffer' show a buffer whose name
-matches a regexp on this list in the selected rather than some
-other window.
-
-An element of this list can be a cons cell instead of just a
-string.  In that case the car must be a string, which specifies
-the buffer name.  This is for compatibility with
-`special-display-buffer-names'; the cdr of the cons cell is
-ignored.
-
-See also `same-window-buffer-names'."
-  :type '(repeat (regexp :format "%v"))
-  :group 'windows)
 
 (defcustom pop-up-frames nil
   "Whether `display-buffer' should make a separate frame.
