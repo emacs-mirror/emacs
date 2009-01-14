@@ -1868,11 +1868,12 @@ and is not in the header line or a tag table."
     (let ((backward (< found beg-found)))
       (not
        (or
-	(if backward
-	    (or (text-property-not-all found beg-found 'invisible nil)
-		(text-property-not-all found beg-found 'display nil))
-	  (or (text-property-not-all beg-found found 'invisible nil)
-	      (text-property-not-all beg-found found 'display nil)))
+	(and (not (eq search-invisible t))
+	     (if backward
+		 (or (text-property-not-all found beg-found 'invisible nil)
+		     (text-property-not-all found beg-found 'display nil))
+	       (or (text-property-not-all beg-found found 'invisible nil)
+		   (text-property-not-all beg-found found 'display nil))))
 	;; Skip node header line
 	(and (save-excursion (forward-line -1)
 			     (looking-at "\^_"))
