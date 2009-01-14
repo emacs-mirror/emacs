@@ -5229,13 +5229,17 @@ it skips the contents of comments that end before point."
                  ;; a matching-char info, in which case the two CDRs
                  ;; should match.
                  (eq matching-paren (cdr (syntax-after (1- oldpos))))))
-        (message "Mismatched parentheses"))
+	(if (minibufferp)
+	    (minibuffer-message " [Mismatched parentheses]")
+	  (message "Mismatched parentheses")))
        ((not blinkpos)
         (or blink-matching-paren-distance
             ;; Don't complain when `$' with no blinkpos, because it
             ;; could just be the first one typed in the buffer.
             atdollar
-            (message "Unmatched parenthesis")))
+            (if (minibufferp)
+		(minibuffer-message " [Unmatched parenthesis]")
+	      (message "Unmatched parenthesis"))))
        ((pos-visible-in-window-p blinkpos)
         ;; Matching open within window, temporarily move to blinkpos but only
         ;; if `blink-matching-paren-on-screen' is non-nil.
