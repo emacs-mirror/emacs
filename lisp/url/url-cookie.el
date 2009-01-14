@@ -223,7 +223,7 @@ telling Microsoft that."
 			  (*   1 (string-to-number (aref exp-time 0))))))
 	(> (- cur-norm exp-norm) 1))))))
 
-(defun url-cookie-retrieve (host localpart &optional secure)
+(defun url-cookie-retrieve (host &optional localpart secure)
   "Retrieve all the netscape-style cookies for a specified HOST and LOCALPART."
   (let ((storage (if secure
 		     (append url-cookie-secure-storage url-cookie-storage)
@@ -232,7 +232,7 @@ telling Microsoft that."
 	(cookies nil)
 	(cur nil)
 	(retval nil)
-	(localpart-regexp nil))
+	(localpart-match nil))
     (while storage
       (setq cur (car storage)
 	    storage (cdr storage)
@@ -251,9 +251,10 @@ telling Microsoft that."
 	  (while cookies
 	    (setq cur (car cookies)
 		  cookies (cdr cookies)
-		  localpart-regexp (concat "^" (regexp-quote
-						(url-cookie-localpart cur))))
-	    (if (and (string-match localpart-regexp localpart)
+		  localpart-match (let ((lp (url-cookie-localpart cur)))
+				    (when lp
+				      (concat "^" (regexp-quote lp)))))
+	    (if (and (equal localpart localpart-match)
 		     (not (url-cookie-expired-p cur)))
 		(setq retval (cons cur retval))))))
     retval))
