@@ -294,7 +294,7 @@ If that doesn't give a function, return nil."
 
 (defun view-help-file (file &optional dir)
   (view-file (expand-file-name file (or dir data-directory)))
-  (goto-address)
+  (goto-address-mode 1)
   (goto-char (point-min)))
 
 (defun describe-distribution ()
