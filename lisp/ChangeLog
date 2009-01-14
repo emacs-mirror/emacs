@@ -1,3 +1,7 @@
+2009-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-diag.el (print-list): Fix 2008-12-03 change.
+
 2009-01-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.el (special-display-popup-frame): Rewrite doc-string and

@@ -38,7 +38,7 @@
 
 (defun print-list (&rest args)
   "Print all arguments with single space separator in one line."
-  (princ (mapconcat #'identity args " "))
+  (princ (mapconcat (lambda (arg) (prin1-to-string arg t)) args " "))
   (princ "\n"))
 
 ;;; CHARSET
