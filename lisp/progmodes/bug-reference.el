@@ -85,9 +85,11 @@ There is no default setting for this, it must be set per file.")
 	  (let ((overlay (make-overlay (match-beginning 0) (match-end 0)
 				       nil t nil)))
 	    (overlay-put overlay 'category 'bug-reference)
-	    (overlay-put overlay 'bug-reference-url
-			 (format bug-reference-url-format
-				 (match-string-no-properties 1)))))))))
+	    ;; Don't put a link if format is undefined
+	    (when bug-reference-url-format
+	      (overlay-put overlay 'bug-reference-url
+			   (format bug-reference-url-format
+				   (match-string-no-properties 1))))))))))
 
 ;; Taken from button.el.
 (defun bug-reference-push-button (&optional pos use-mouse-action)
@@ -108,14 +110,12 @@ There is no default setting for this, it must be set per file.")
 
 ;;;###autoload
 (define-minor-mode bug-reference-mode
-  "Minor mode to buttonize bugzilla references in the current buffer.
-Requires `bug-reference-url-format' to be set in the buffer."
+  "Minor mode to buttonize bugzilla references in the current buffer."
   nil
   ""
   nil
   (if bug-reference-mode
-      (when bug-reference-url-format
-	(jit-lock-register #'bug-reference-fontify))
+      (jit-lock-register #'bug-reference-fontify)
     (jit-lock-unregister #'bug-reference-fontify)
     (save-restriction
       (widen)
@@ -128,8 +128,7 @@ Requires `bug-reference-url-format' to be set in the buffer."
   ""
   nil
   (if bug-reference-prog-mode
-      (when bug-reference-url-format
-	(jit-lock-register #'bug-reference-fontify))
+      (jit-lock-register #'bug-reference-fontify)
     (jit-lock-unregister #'bug-reference-fontify)
     (save-restriction
       (widen)
