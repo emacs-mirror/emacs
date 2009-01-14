@@ -1492,7 +1492,7 @@ key, a click, or a menu-item"))
   (let (enable-local-variables)
     (view-file (expand-file-name "MORE.STUFF"
 				 data-directory))
-    (goto-address)))
+    (goto-address-mode 1)))
 (define-key menu-bar-help-menu [sep2]
   '("--"))
 (define-key menu-bar-help-menu [external-packages]
