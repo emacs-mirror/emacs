@@ -105,7 +105,7 @@ If non-nil, the value you specify here is used by the default
 `pop-up-frame-function' for the creation of new frames.
 
 Since `pop-up-frame-function' is used by `display-buffer' for
-making new frames, any value specified here, by default affects
+making new frames, any value specified here by default affects
 the automatic generation of new frames via `display-buffer' and
 all functions based on it.  The behavior of `make-frame' is not
 affected by this variable."
@@ -126,7 +126,7 @@ frame.  The default value calls `make-frame' with the argument
 (defcustom special-display-frame-alist
   '((height . 14) (width . 80) (unsplittable . t))
   "Alist of parameters for special frames.
-Special frames are used for buffers whose names are in
+Special frames are used for buffers whose names are listed in
 `special-display-buffer-names' and for buffers whose names match
 one of the regular expressions in `special-display-regexps'.
 
@@ -141,13 +141,21 @@ These supersede the values given in `default-frame-alist'."
   :group 'frames)
 
 (defun special-display-popup-frame (buffer &optional args)
-  "Display BUFFER in its own frame, reusing an existing window if any.
-Return the window chosen.
-Currently we do not insist on selecting the window within its frame.
-If ARGS is an alist, use it as a list of frame parameter specs.
-If ARGS is a list whose car is a symbol,
-use (car ARGS) as a function to do the work.
-Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
+  "Display BUFFER and return the window chosen.
+If BUFFER is already displayed in a visible or iconified frame,
+raise that frame.  Otherwise, display BUFFER in a new frame.
+
+Optional argument ARGS is a list specifying additional
+information.
+
+If ARGS is an alist, use it as a list of frame parameters.  If
+these parameters contain \(same-window . t), display BUFFER in
+the selected window.  If they contain \(same-frame . t), display
+BUFFER in a window of the selected frame.
+
+If ARGS is a list whose car is a symbol, use (car ARGS) as a
+function to do the work.  Pass it BUFFER as first argument,
+and (cdr ARGS) as second."
   (if (and args (symbolp (car args)))
       (apply (car args) buffer (cdr args))
     (let ((window (get-buffer-window buffer 0)))
@@ -165,12 +173,10 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	   (error nil)))
        ;; Stay on the same frame if requested.
        (when (or (cdr (assq 'same-frame args)) (cdr (assq 'same-window args)))
-	 (let* ((pop-up-frames nil) (pop-up-windows t)
-		special-display-regexps special-display-buffer-names
-		(window (display-buffer buffer)))
-	   ;; Only do it if this is a new window:
-	   ;; (set-window-dedicated-p window t)
-	   window))
+	 (let* ((pop-up-windows t)
+		pop-up-frames
+		special-display-buffer-names special-display-regexps)
+	   (display-buffer buffer)))
        ;; If no window yet, make one in a new frame.
        (let ((frame
 	      (with-current-buffer buffer
