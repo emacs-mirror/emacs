@@ -743,6 +743,47 @@ static struct coding_system coding_categories[coding_category_max];
     consumed_chars++;					\
   } while (0)
 
+/* Safely get two bytes from the source text pointed by SRC which ends
+   at SRC_END, and set C1 and C2 to those bytes.  If there are not
+   enough bytes in the source for C1, it jumps to `no_more_source'.
+   If there are not enough bytes in the source for C2, set C2 to -1.
+   If multibytep is nonzero and a multibyte character is found at SRC,
+   set C1 and/or C2 to the negative value of the character code.  The
+   caller should declare and set these variables appropriately in
+   advance:
+	src, src_end, multibytep
+   It is intended that this macro is used in detect_coding_utf_16.  */
+
+#define TWO_MORE_BYTES(c1, c2)			\
+  do {						\
+    if (src == src_end)				\
+      goto no_more_source;			\
+    c1 = *src++;				\
+    if (multibytep && (c1 & 0x80))		\
+      {						\
+	if ((c1 & 0xFE) == 0xC0)		\
+	  c1 = ((c1 & 1) << 6) | *src++;	\
+	else					\
+	  {					\
+	    c1 = c2 = -1;			\
+	    break;				\
+	  }					\
+      }						\
+    if (src == src_end)				\
+      c2 = -1;					\
+    else					\
+      {						\
+	c2 = *src++;				\
+	if (multibytep && (c2 & 0x80))		\
+	  {					\
+	    if ((c2 & 0xFE) == 0xC0)		\
+	      c2 = ((c2 & 1) << 6) | *src++;	\
+	    else				\
+	      c2 = -1;				\
+	  }					\
+      }						\
+  } while (0)
+
 
 #define ONE_MORE_BYTE_NO_CHECK(c)			\
   do {							\
@@ -1575,8 +1616,7 @@ detect_coding_utf_16 (coding, detect_info)
       return 0;
     }
 
-  ONE_MORE_BYTE (c1);
-  ONE_MORE_BYTE (c2);
+  TWO_MORE_BYTES (c1, c2);
   if ((c1 == 0xFF) && (c2 == 0xFE))
     {
       detect_info->found |= (CATEGORY_MASK_UTF_16_LE
@@ -1592,6 +1632,11 @@ detect_coding_utf_16 (coding, detect_info)
       detect_info->rejected |= (CATEGORY_MASK_UTF_16_LE
 				| CATEGORY_MASK_UTF_16_BE_NOSIG
 				| CATEGORY_MASK_UTF_16_LE_NOSIG);
+    }
+  else if (c1 < 0 || c2 < 0)
+    {
+      detect_info->rejected |= CATEGORY_MASK_UTF_16;
+      return 0;
     }
   else
     {
@@ -1610,8 +1655,9 @@ detect_coding_utf_16 (coding, detect_info)
 
       while (1)
 	{
-	  ONE_MORE_BYTE (c1);
-	  ONE_MORE_BYTE (c2);
+	  TWO_MORE_BYTES (c1, c2);
+	  if (c1 < 0 || c2 < 0)
+	    break;
 	  if (! e[c1])
 	    {
 	      e[c1] = 1;
