@@ -1,3 +1,7 @@
+2009-01-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-cookie.el (url-cookie-retrieve): Handle null localpart.
+
 2009-01-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-util.el (url-truncate-url-for-viewing): Doc fix.
