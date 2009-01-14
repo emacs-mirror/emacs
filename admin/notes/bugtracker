@@ -38,7 +38,8 @@ new report. The only time to send mail to the bug list is to create a
 new report.
 
 Gnus users can add "\\(emacs-pretest-bug\\|bug-gnu-emacs\\)@gnu\\.org"
-to message-dont-reply-to-names.
+to message-dont-reply-to-names.  RMAIL users can investigate
+rmail-dont-reply-to-names.
 
 ** When reporting a bug, to send a Cc to another address
 (e.g. bug-cc-mode@gnu.org), do NOT just use a Cc: header.
