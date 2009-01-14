@@ -1,3 +1,12 @@
+2009-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuffer.el (minibuffer-message): Fix regexp so it doesn't exclude
+	MESSAGEs with internal square brackets (i.e., " this [test] message").
+	Use `string-match-p'.
+	(completion--make-envvar-table, completion--file-name-table)
+	(completion-pcm--string->pattern, completion-pcm--all-completions)
+	(completion-pcm--filename-try-filter): Use `string-match-p'.
+
 2009-01-14  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/bug-reference.el (bug-reference-fontify): Check for
@@ -16,7 +25,7 @@
 
 2009-01-13  Jason Rumney  <jasonr@gnu.org>
 
-	* faces.el (face-valid-attribute-values): No stipple on w32. (Bug#884)
+	* faces.el (face-valid-attribute-values): No stipple on w32.  (Bug#884)
 
 2009-01-12  Juanma Barranquero  <lekktu@gmail.com>
 

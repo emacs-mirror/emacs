@@ -250,7 +250,7 @@ Enclose MESSAGE in [...] if this is not yet the case.
 If ARGS are provided, then pass MESSAGE through `format'."
   ;; Clear out any old echo-area message to make way for our new thing.
   (message nil)
-  (setq message (if (and (null args) (string-match "\\[.+\\]" message))
+  (setq message (if (and (null args) (string-match-p "\\` *\\[.+\\]\\'" message))
                     ;; Make sure we can put-text-property.
                     (copy-sequence message)
                   (concat " [" message "]")))
@@ -949,7 +949,7 @@ the completions buffer."
 
 (defun completion--make-envvar-table ()
   (mapcar (lambda (enventry)
-            (substring enventry 0 (string-match "=" enventry)))
+            (substring enventry 0 (string-match-p "=" enventry)))
           process-environment))
 
 (defconst completion--embedded-envvar-re
@@ -985,7 +985,7 @@ the completions buffer."
     ;; FIXME: Actually, this is not always right in the presence of
     ;; envvars, but there's not much we can do, I think.
     (let ((start (length (file-name-directory string)))
-          (end (string-match "/" (cdr action))))
+          (end (string-match-p "/" (cdr action))))
       (list* 'boundaries start end)))
 
    (t
@@ -1359,7 +1359,7 @@ or a symbol chosen among `any', `star', `point'."
           (p 0)
           (p0 0))
 
-      (while (setq p (string-match completion-pcm--delim-wild-regex string p))
+      (while (setq p (string-match-p completion-pcm--delim-wild-regex string p))
         (push (substring string p0 p) pattern)
         (if (eq (aref string p) ?*)
             (progn
@@ -1415,7 +1415,7 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 	  compl
 	(let ((poss ()))
 	  (dolist (c compl)
-	    (when (string-match regex c) (push c poss)))
+	    (when (string-match-p regex c) (push c poss)))
 	  poss)))))
 
 (defun completion-pcm--hilit-commonality (pattern completions)
@@ -1614,9 +1614,9 @@ filter out additional entries (because TABLE migth not obey PRED)."
                       (regexp-opt completion-ignored-extensions)
                       "\\)\\'")))
       (dolist (f all)
-        (unless (string-match re f) (push f try)))
+        (unless (string-match-p re f) (push f try)))
       (or try all))))
-      
+
 
 (defun completion-pcm--merge-try (pattern all prefix suffix)
   (cond
