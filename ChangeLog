@@ -1,3 +1,8 @@
+2009-01-14  Juri Linkov  <juri@jurta.org>
+
+	* .dir-locals.el (change-log-mode): Add bug-reference-url-format
+	and bug-reference-mode.
+
 2009-01-11  Juri Linkov  <juri@jurta.org>
 
 	* INSTALL.CVS: Move configuration explicitly to the first step.
