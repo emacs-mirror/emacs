@@ -191,6 +191,7 @@ WINMM		= -lwinmm
 WINSPOOL	= -lwinspool
 OLE32		= -lole32
 UNISCRIBE	= -lusp10
+UUID		= -luuid
 
 ifdef NOOPT
 DEBUG_CFLAGS	= -DEMACSDEBUG
