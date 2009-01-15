@@ -36,7 +36,8 @@ ALL		= addpm ddeclient runemacs cmdproxy addsection preprep
 addpm:		  stamp_BLD $(BLD)/addpm.exe
 $(BLD)/addpm.exe: $(BLD)/addpm.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
-		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(ADVAPI32) $(USER32)
+		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(ADVAPI32) \
+		  $(USER32) $(OLE32) $(UUID) $(SHELL32)
 
 ddeclient:	  stamp_BLD $(BLD)/ddeclient.exe
 $(BLD)/ddeclient.exe: $(BLD)/ddeclient.$(O)
