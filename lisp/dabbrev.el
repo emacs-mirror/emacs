@@ -1,9 +1,12 @@
 ;;; dabbrev.el --- dynamic abbreviation package
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1996, 1997, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Don Morrison
+;;	Lars Lindberg
+;; (according to ack.texi)
 ;; Maintainer: Lars Lindberg <Lars.Lindberg@sypro.cap.se>
 ;; Created: 16 Mars 1992
 ;; Lindberg's last update version: 5.7
