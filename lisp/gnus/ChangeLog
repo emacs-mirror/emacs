@@ -11670,6 +11670,7 @@
 	* gnus-start.el (gnus-get-unread-articles): Fix last commit.
 
 2004-04-07  Kevin Greiner  <kgreiner@xpediantsolutions.com>
+
 	* gnus-agent.el (gnus-agent-total-fetched-hashtb): New variable.
 	(gnus-agent-with-refreshed-group): New macro.
 	(gnus-agent-rename-group): New function.
