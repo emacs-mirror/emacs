@@ -1,3 +1,7 @@
+2009-01-15  Stephen Eglen  <stephen@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Doc fix.
+
 2009-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-diff): Pass relative file names.  (Bug#1903)
