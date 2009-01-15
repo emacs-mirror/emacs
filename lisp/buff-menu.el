@@ -639,7 +639,7 @@ For more information, see the function `buffer-menu'."
 	  (if (or m1 m2)
 	      (push (list buf m1 m2) l)))
 	(forward-line)))
-    (Buffer-menu-revert)
+    (revert-buffer)
     (save-excursion
       (Buffer-menu-beginning)
       (while (not (eobp))

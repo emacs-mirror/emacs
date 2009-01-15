@@ -2,6 +2,7 @@
 
 	* buff-menu.el (Buffer-menu-mode): Derive from special-mode.
 	Refer to revert-buffer, not Buffer-menu-revert.
+	(Buffer-menu-sort): Use revert-buffer, not Buffer-menu-revert.
 	(Buffer-menu-revert): Remove function, unused.
 	(Buffer-menu-mode-map): Don't bind keys already
 	bound by special-mode.
