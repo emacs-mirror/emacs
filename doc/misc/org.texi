@@ -319,7 +319,7 @@ HTML export
 * HTML Export commands::        How to invoke HTML export
 * Quoting HTML tags::           Using direct HTML in Org mode
 * Links::                       Transformation of links for HTML
-* Images in HTML export::       
+* Images in HTML export::
 * CSS support::                 Changing the appearance of the output
 * Javascript support::          Info and Folding in a web browser
 
@@ -4792,7 +4792,7 @@ The default task will always be available when selecting a clocking task,
 with letter @kbd{d}.
 @kindex C-c C-x C-o
 @item C-c C-x C-o
-Stop the clock (clock-out).  The inserts another timestamp at the same
+Stop the clock (clock-out).  This inserts another timestamp at the same
 location where the clock was last started.  It also directly computes
 the resulting time in inserts it after the time range as @samp{=>
 HH:MM}.  See the variable @code{org-log-note-clock-out} for the
@@ -7665,7 +7665,7 @@ language, but with additional support for tables.
 * HTML Export commands::        How to invoke HTML export
 * Quoting HTML tags::           Using direct HTML in Org mode
 * Links::                       Transformation of links for HTML
-* Images in HTML export::       
+* Images in HTML export::
 * CSS support::                 Changing the appearance of the output
 * Javascript support::          Info and Folding in a web browser
 @end menu
