@@ -1,3 +1,7 @@
+2009-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-diff): Pass relative file names.  (Bug#1903)
+
 2009-01-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (special-display-p): Revert 2009-01-14 change.

@@ -44,8 +44,8 @@
 ;; - state-heuristic (file)                    NOT NEEDED
 ;; - dir-status (dir update-function)          OK
 ;; - dir-status-files (dir files ds uf)        OK
-;; - dir-extra-headers (dir)                OK
-;; - dir-printer (fileinfo)                 OK
+;; - dir-extra-headers (dir)                   OK
+;; - dir-printer (fileinfo)                    OK
 ;; * working-revision (file)                   OK
 ;; - latest-on-branch-p (file)                 ??
 ;; * checkout-model (files)                    OK
@@ -80,8 +80,8 @@
 ;; - annotate-current-time ()                  NOT NEEDED
 ;; - annotate-extract-revision-at-line ()      OK
 ;; TAG SYSTEM
-;; - create-tag (dir name branchp)       NEEDED
-;; - retrieve-tag (dir name update)       NEEDED
+;; - create-tag (dir name branchp)             NEEDED
+;; - retrieve-tag (dir name update)            NEEDED
 ;; MISCELLANEOUS
 ;; - make-version-backups-p (file)             ??
 ;; - repository-hostname (dirname)             ??
@@ -259,15 +259,16 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
   (let* ((firstfile (car files))
+	 (cwd (if firstfile (file-name-directory firstfile)
+		(expand-file-name default-directory)))
 	 (working (and firstfile (vc-working-revision firstfile))))
     (when (and (equal oldvers working) (not newvers))
       (setq oldvers nil))
     (when (and (not oldvers) newvers)
       (setq oldvers working))
     (apply #'vc-hg-command (or buffer "*vc-diff*") nil
-	   (mapcar (lambda (file) (file-name-nondirectory file)) files)
-	   "--cwd" (or (when firstfile (file-name-directory firstfile))
-		       (expand-file-name default-directory))
+	   (mapcar (lambda (file) (file-relative-name file cwd)) files)
+	   "--cwd" cwd
 	   "diff"
 	   (append
 	    (vc-switches 'hg 'diff)
