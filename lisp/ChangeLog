@@ -1,3 +1,7 @@
+2009-01-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (special-display-p): Revert 2009-01-14 change.
+
 2009-01-15  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases, authors-fixed-case):
