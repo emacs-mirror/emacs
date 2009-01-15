@@ -6383,7 +6383,7 @@
 	New interactive functions which jumps to search results of next
 	and previous folders respectively.
 
-	* mh-loadddefs.el: Regenerated.
+	* mh-loaddefs.el: Regenerated.
 
 	* mh-index.el (mh-index-delete-folder-headers): Arrange for
 	mh-goto-cur-msg to just go to the current message.
@@ -9919,10 +9919,9 @@
 
 2002-05-25  Satyaki Das  <satyaki@theforce.stanford.edu>
 
-	* compilation: Reduce use of eval-when-compile so that load-path
-	is not changed if lisp files are loaded without compilation. Small
-	changes were made to Makefile, mh-comp.el mh-e.el, mh-funcs.el,
-	mh-seq.el, mh-utils.el
+	* Makefile, mh-comp.el, mh-e.el, mh-funcs.el, mh-seq.el, mh-utils.el:
+	Reduce use of eval-when-compile so that load-path is
+	not changed if lisp files are loaded without compilation.
 
 	* mh-e.el (mh-next-button, mh-folder-mode-map): New interactive
 	function to advance point to next MIME button. It is bound to TAB.
