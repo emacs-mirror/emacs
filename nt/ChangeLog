@@ -1,3 +1,9 @@
+2009-01-15  Jason Rumney  <jasonr@gnu.org>
+
+	* addpm.c (main): Try using COM to create start menu shortcuts
+	before resorting to DDE (Bug#202)
+	Remove second command-line argument.
+
 2009-01-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* configure.bat: Untabify help message.
