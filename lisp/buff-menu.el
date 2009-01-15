@@ -120,7 +120,6 @@ Auto Revert Mode.")
 (defvar Buffer-menu-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)
-    (define-key map "q" 'quit-window)
     (define-key map "v" 'Buffer-menu-select)
     (define-key map "2" 'Buffer-menu-2-window)
     (define-key map "1" 'Buffer-menu-1-window)
@@ -140,13 +139,11 @@ Auto Revert Mode.")
     (define-key map "p" 'previous-line)
     (define-key map "\177" 'Buffer-menu-backup-unmark)
     (define-key map "~" 'Buffer-menu-not-modified)
-    (define-key map "?" 'describe-mode)
     (define-key map "u" 'Buffer-menu-unmark)
     (define-key map "m" 'Buffer-menu-mark)
     (define-key map "t" 'Buffer-menu-visit-tags-table)
     (define-key map "%" 'Buffer-menu-toggle-read-only)
     (define-key map "b" 'Buffer-menu-bury)
-    (define-key map "g" 'Buffer-menu-revert)
     (define-key map "V" 'Buffer-menu-view)
     (define-key map "T" 'Buffer-menu-toggle-files-only)
     (define-key map [mouse-2] 'Buffer-menu-mouse-select)
@@ -159,7 +156,7 @@ Auto Revert Mode.")
 ;; Buffer Menu mode is suitable only for specially formatted data.
 (put 'Buffer-menu-mode 'mode-class 'special)
 
-(define-derived-mode Buffer-menu-mode nil "Buffer Menu"
+(define-derived-mode Buffer-menu-mode special-mode "Buffer Menu"
   "Major mode for editing a list of buffers.
 Each line describes one of the buffers in Emacs.
 Letters do not insert themselves; instead, they are commands.
@@ -190,7 +187,7 @@ Letters do not insert themselves; instead, they are commands.
   With prefix argument, also move up one line.
 \\[Buffer-menu-backup-unmark] -- back up a line and remove marks.
 \\[Buffer-menu-toggle-read-only] -- toggle read-only status of buffer on this line.
-\\[Buffer-menu-revert] -- update the list of buffers.
+\\[revert-buffer] -- update the list of buffers.
 \\[Buffer-menu-toggle-files-only] -- toggle whether the menu displays only file buffers.
 \\[Buffer-menu-bury] -- bury the buffer listed on this line."
   (set (make-local-variable 'revert-buffer-function)
@@ -202,13 +199,6 @@ Letters do not insert themselves; instead, they are commands.
 
 (define-obsolete-variable-alias 'buffer-menu-mode-hook
   'Buffer-menu-mode-hook "23.1")
-
-;; This function exists so we can make the doc string of Buffer-menu-mode
-;; look nice.
-(defun Buffer-menu-revert ()
-  "Update the list of buffers."
-  (interactive)
-  (revert-buffer))
 
 (defun Buffer-menu-revert-function (ignore1 ignore2)
   (or (eq buffer-undo-list t)
