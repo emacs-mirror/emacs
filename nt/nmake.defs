@@ -129,6 +129,7 @@ WINMM		= winmm.lib
 WINSPOOL	= winspool.lib
 OLE32		= ole32.lib
 UNISCRIBE	= usp10.lib
+UUID		= uuid.lib
 
 !ifdef NOOPT
 DEBUG_CFLAGS	= -DEMACSDEBUG
