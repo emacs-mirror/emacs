@@ -1,7 +1,6 @@
 2009-01-15  Chong Yidong  <cyd@stupidchicken.com>
 
-	* url-cookie.el (url-cookie-retrieve): If localpart is not a
-	string, use it literally.
+	* url-cookie.el (url-cookie-retrieve): Fix last change.
 
 2009-01-14  Chong Yidong  <cyd@stupidchicken.com>
 
