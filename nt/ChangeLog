@@ -1,5 +1,9 @@
 2009-01-15  Jason Rumney  <jasonr@gnu.org>
 
+	* nmake.defs, gmake.defs (UUID): New library for COM/OLE lookups.
+
+	* makefile.w32-in ($(BLD)/addpm.exe): Link with SHELL and OLE libs.
+
 	* addpm.c (main): Try using COM to create start menu shortcuts
 	before resorting to DDE (Bug#202)
 	Remove second command-line argument.
