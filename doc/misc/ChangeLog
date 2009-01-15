@@ -1,7 +1,7 @@
 2009-01-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.texi (Clocking work time): Fix typo.
-	Reported by Peter Tury <tury.peter@gmail.com>.
+	Reported by Peter Tury <tury.peter@gmail.com>.  (Bug#1925)
 
 2009-01-13  Glenn Morris  <rgm@gnu.org>
 
