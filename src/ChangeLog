@@ -1,3 +1,8 @@
+2009-01-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sound.c (SOUND_WARNING): Use _snprintf, for MSVC compatibility.
+	Reported by David Robinow <drobinow@gmail.com>.
+
 2009-01-15  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_system): Fix handling of

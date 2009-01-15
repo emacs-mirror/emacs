@@ -1301,14 +1301,14 @@ alsa_init (sd)
 
 /* BEGIN: Windows specific functions */
 
-#define SOUND_WARNING(fun, error, text)		   \
-  {						   \
-    char buf[1024];				   \
-    char err_string[MAXERRORLENGTH];		   \
+#define SOUND_WARNING(fun, error, text)            \
+  {                                                \
+    char buf[1024];                                \
+    char err_string[MAXERRORLENGTH];               \
     fun (error, err_string, sizeof (err_string));  \
-    snprintf (buf, sizeof (buf), "%s\nError: %s",  \
-	      text, err_string);		   \
-    sound_warning (buf);			   \
+    _snprintf (buf, sizeof (buf), "%s\nError: %s", \
+	       text, err_string);		   \
+    sound_warning (buf);                           \
   }
 
 static int
