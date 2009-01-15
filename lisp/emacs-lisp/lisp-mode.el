@@ -197,7 +197,8 @@
   "Common initialization routine for lisp modes.
 The LISP-SYNTAX argument is used by code in inf-lisp.el and is
 (uselessly) passed from pp.el, chistory.el, gnus-kill.el and score-mode.el
-KEYWORDS-CASE-SENSITIVE means that for font-lock keywords will not be case sensitive."
+KEYWORDS-CASE-INSENSITIVE means that for font-lock keywords will not 
+be case sensitive."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
   (setq local-abbrev-table lisp-mode-abbrev-table)
