@@ -1,3 +1,12 @@
+2009-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases, authors-fixed-case):
+	(authors-obsolete-files-regexps, authors-ignored-files):
+	(authors-renamed-files-alist): Add some entries.
+	(authors-fixed-entries): Change some entries.
+	(authors-canonical-file-name): Doc fix.
+	(authors-scan-change-log): Handle joint authorship in ChangeLogs.
+
 2009-01-14  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-isearch-filter): Don't filter out invisible text
@@ -9660,6 +9669,7 @@
 	hollow if not in innermost frame.
 
 2008-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	Make `checkout-model' apply to filesets.
 	* vc-hooks.el (vc-checkout-model): Rewrite.
 	(vc-before-save, vc-after-save): Adjust callers accordingly.

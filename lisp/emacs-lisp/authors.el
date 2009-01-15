@@ -45,11 +45,14 @@ files.")
     ("Anna M. Bigatti" "Anna Bigatti")
     ("Barry A. Warsaw" "Barry A. Warsaw, Century Computing, Inc."
      "Barry A. Warsaw, ITB" "Barry Warsaw")
+    ("Bill Mann" "William F. Mann")
+    ("Bill Rozas" "Guillermo J. Rozas")
     ("Björn Torkelsson" "Bjorn Torkelsson")
     ("Brian Fox" "Brian J. Fox")
     ("Christoph Wedler" "Christoph.Wedler@sap.com")
     ("Daniel Pfeiffer" "<Daniel.Pfeiffer@Informatik.START.db.de>"
      "<Daniel.Pfeiffer@Informatik.START.dbp.de>")
+    ("David De La Harpe Golden" "David Golden")
     ("David Gillespie" "Dave Gillespie")
     ("David Kågedal" "David K..edal")
     ("David M. Koppelman" "David M. Koppelman, Koppel@Ec?e.Lsu.Edu"
@@ -71,7 +74,7 @@ files.")
     ("Frederic Pierresteguy" "Fred Pierresteguy")
     ("Geoff Voelker" "voelker")
     ("Gerd Möllmann" "Gerd Moellmann")
-    ("Hallvard B. Furuseth" "Hallvard B Furuseth")
+    ("Hallvard B. Furuseth" "Hallvard B Furuseth" "Hallvard Furuseth")
     ("Hrvoje Nikšić" "Hrvoje Niksic")
     (nil "(afs@hplb.hpl.hp.com)")
     (nil "<Use-Author-Address-Header@\\[127.1\\]>")
@@ -88,6 +91,7 @@ files.")
     ("John W. Eaton" "John Eaton")
     ("Jonathan I. Kamens" "Jonathan Kamens")
     ("Joseph Arceneaux" "Joe Arceneaux")
+    ("Joseph M. Kelsey" "Joe Kelsey")	; FIXME ?
     ("Juan León Lahoz García" "Juan-Leon Lahoz Garcia")
     ("K. Shane Hartman" "Shane Hartman")
     ("Kai Großjohann" "Kai Grossjohann" "Kai Großjohann"
@@ -103,14 +107,19 @@ files.")
     ("Kyle Jones" "Kyle E. Jones")
     ("Marcus G. Daniels" "Marcus Daniels")
     ("Mark D. Baushke" "Mark D Baushke")
+    ("Marko Kohtala" "Kohtala Marko")
     ("Agustín Martín" "Agustin Martin")
     ("Martin Lorentzon" "Martin Lorentzson")
     ("Matt Swift" "Matthew Swift")
+    ("Maxime Edouard Robert Froumentin" "Max Froumentin")
     ("Michael R. Mauger" "Michael Mauger")
     ("Michael D. Ernst" "Michael Ernst")
     ("Michaël Cadilhac" "Michael Cadilhac")
     ("Michael I. Bushnell" "Michael I Bushnell" "Michael I. Bushnell, P/Bsg")
+    ("Michael R. Cook" "Michael Cook")
+    ("Michael Sperber" "Michael Sperber \\[Mr. Preprocessor\\]")
     ("Mikio Nakajima" "Nakajima Mikio")
+    ("Nelson Jose dos Santos Ferreira" "Nelson Ferreira")
     ("Paul Eggert" "eggert")
     ("Paul Reilly" "(pmr@legacy.pajato.com)")
     ("Pavel Janík" "Pavel Janík Ml." "Pavel Janik Ml." "Pavel Janik" "Pavel Janík" "Pavel@Janik.Cz")
@@ -118,6 +127,9 @@ files.")
     ("Peter S. Galbraith" "Peter Galbraith")
     ("Peter Runestig" "Peter 'luna' Runestig")
     ("Peter S. Galbraith" "Peter S Galbraith")
+    ("Raja R. Harinath" "Raja R Harinath")
+    ("Richard G. Bielawski" "Richard G Bielawski" "Richard Bielawski")
+    ("Richard King" "Dick King")
     ("Richard M. Stallman" "Richard M. Stallman,,," "Richard Stallman"
      "rms" "rms@gnu.org")
     ("Robert J. Chassell" "Bob Chassell")
@@ -131,16 +143,23 @@ files.")
     ("Stephen A. Wood" "(saw@cebaf.gov)")
     ("Steven L. Baur" "SL Baur" "Steven L Baur")
     ("Stewart M. Clamen" "Stewart Clamen")
+    ("Stuart D. Herring" "Stuart Herring" "Davis Herring")
     ("Taichi Kawabata" "KAWABATA,? Taichi")
     ("Takaaki Ota" "Tak Ota")
     ("Takahashi Naoto" "Naoto Takahashi")
     ("Teodor Zlatanov" "Ted Zlatanov")
+    ("Thomas Horsley" "Tom Horsley")	; FIXME ?
+    ("Thomas Wurgler" "Tom Wurgler")
+    ("Tomohiko Morioka" "MORIOKA Tomohiko")
     ("Torbjörn Axelsson" "Torbjvrn Axelsson")
     ("Torbjörn Einarsson" "Torbj.*rn Einarsson")
     ("Toru Tomabechi" "Toru Tomabechi,")
+    ("Tsugutomo Enami" "enami tsugutomo")
     ("Vincent Del Vecchio" "Vince Del Vecchio")
     ("William M. Perry" "Bill Perry")
     ("Wlodzimierz Bzyl" "W.*dek Bzyl")
+    ("Yoni Rabkin" "Yoni Rabkin Katzenell")
+    ("Yoshinori Koseki" "KOSEKI Yoshinori" "小関 吉則")
     ("Yutaka NIIBE" "NIIBE Yutaka")
     )
   "Alist of author aliases.
@@ -165,6 +184,7 @@ If REALNAME is nil, ignore that author.")
     "James TD Smith"
     "Michael McNamara"
     "Mike McEwan"
+    "Nelson Jose dos Santos Ferreira"
     "Peter von der Ahe"
     "Peter O'Gorman"
     "Roland McGrath"
@@ -192,6 +212,7 @@ If REALNAME is nil, ignore that author.")
 (defvar authors-obsolete-files-regexps
   '("vc-\\*\\.el$"
     "spec.txt$"
+    ".*loaddefs.el$"			; not obsolete, but auto-generated
     "vc-\\(rcs\\|cvs\\|sccs\\)-hooks\\.el$")
   "List of regexps matching obsolete files.
 Changes to files matching one of the regexps in this list are not
@@ -207,6 +228,7 @@ listed.")
     "NEWS.unicode" "COPYING.DJ" "Makefile.old" "Makefile.am"
     "NEWS.1" "OOOOONEWS...OONEWS" "OOOONEWS" "etc/NEWS"
     "NEWS.1-17" "NEWS.18" "NEWS.19" "NEWS.20" "NEWS.21" "NEWS.22"
+    "MAINTAINERS" "MH-E-NEWS"
     "install-sh" "missing" "mkinstalldirs"
     "termcap.dat" "termcap.src" "termcap.ucb" "termcap"
     "ChangeLog.nextstep" "Emacs.clr" "spec.txt"
@@ -214,6 +236,8 @@ listed.")
     "texi/Makefile.in"
     "Imakefile" "icons/sink.ico" "aixcc.lex"
     "nxml/char-name/unicode"
+    ;; Autogen:
+    "cus-load.el" "finder-inf.el" "ldefs-boot.el"
     ;; Never had any meaningful changes logged, now deleted:
     "split-man" "Xkeymap.txt" "ms-7bkermit" "ulimit.hack"
     "gnu-hp300" "refcard.bit" "ledit.l" "forms.README" "forms-d2.dat"
@@ -254,16 +278,22 @@ listed.")
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
 
+;; FIXME :cowrote entries here can be overwritten by :wrote entries
+;; derived from a file's Author: header (eg mh-e).  This really means
+;; the Author: header is erroneous.
 (defconst authors-fixed-entries
   '(("Richard M. Stallman" :wrote "[The original GNU Emacs and numerous files]")
     ("Joseph Arceneaux" :wrote "xrdb.c")
-    ("Blitz Product Development Corporation" :wrote "ispell.el")
+    ;; This refers to the obsolete Willisson (qv) version.
+;;;    ("Blitz Product Development Corporation" :wrote "ispell.el")
     ("Frank Bresz" :wrote "diff.el")
     ("David M. Brown" :wrote "array.el")
     ;; No longer distributed.
 ;;;    ("Gary Byers" :changed "xenix.h")
     ("Shawn M. Carey" :wrote "freebsd.h")
     ;; hp800.h renamed from hp9000s800.h, hpux.h merged into hpux10-20.h.
+    ;; FIXME overwritten by Author:.
+    ("Satyaki Das" :cowrote "mh-search.el")
     ("Eric Decker" :changed "hp800.h" "hpux10-20.h" "sysdep.c")
     ("Lawrence R. Dodd" :cowrote "dired-x.el")
     ;; No longer distributed.
@@ -279,9 +309,9 @@ Changes to files in this list are not listed.")
     ;; latin-1.el, since deleted.
     ("Howard Gayle" :wrote "casetab.c")
     ;; :wrote mh-pick.el, since merged into mh-search.el.
-    ;; FIXME current mh-funcs.el says it was written by Bill Wohler.
-    ("Stephen Gildea" :wrote "refcard.tex" "mh-funcs.el"
-     :cowrote "mh-search.el")
+    ;; Originally wrote mh-funcs.el, but it has been rewritten since.
+    ("Stephen Gildea" :wrote "refcard.tex"
+     :cowrote "mh-funcs.el" "mh-search.el")
     ;; cl.texinfo renamed to cl.texi.
     ("David Gillespie" :wrote "cl.texi")
     ;; No longer distributed: emacsserver.c.
@@ -311,20 +341,20 @@ Changes to files in this list are not listed.")
     ("Sebastian Kremer" :changed "add-log.el")
     ("Mark Lambert" :changed "process.c" "process.h")
     ("Aaron Larson" :changed "bibtex.el")
-    ;; FIXME current mh-e.el says author Bill Wohler.
-    ("James R. Larus" :wrote "mh-e.el")
+    ;; It was :wrote, but it has been rewritten since.
+    ("James R. Larus" :cowrote "mh-e.el")
     ("Lars Lindberg" :changed "dabbrev.el" :cowrote "imenu.el")
     ;; No longer distributed: lselect.el.
     ("Lucid, Inc." :changed "bytecode.c" "byte-opt.el" "byte-run.el"
      "bytecomp.el" "delsel.el" "disass.el" "faces.el" "font-lock.el"
      "lmenu.el" "mailabbrev.el" "select.el" "xfaces.c" "xselect.c")
-    ;; No longer distributed: emacsserver.c.
-    ("MCC" :changed "etags.c" "emacsclient.c" "movemail.c"
+    ;; MCC.  No longer distributed: emacsserver.c.
+    ("Microelectronics and Computer Technology Corporation"
+     :changed "etags.c" "emacsclient.c" "movemail.c"
      "rmail.el" "rmailedit.el" "rmailkwd.el"
      "rmailmsc.el" "rmailout.el" "rmailsum.el" "scribe.el"
-     ;; FIXME current xmenu.c says authors: Jon Arnold, Roman Budzianowski,
-     ;; Robert Krawitz, RMS.
-     "server.el" "lisp.h" "sysdep.c" "unexec.c" :wrote "xmenu.c")
+     ;; It was :wrote for xmenu.c, but it has been rewritten since.
+     "server.el" "lisp.h" "sysdep.c" "unexec.c" "xmenu.c")
     ("Niall Mansfield" :changed "etags.c")
     ("Brian Marick" :cowrote "hideif.el")
     ("Marko Kohtala" :changed "info.el")
@@ -392,6 +422,8 @@ Changes to files in this list are not listed.")
     ("Morten Welinder" :wrote "dosfns.c" "[many MS-DOS files]" "msdos.h")
     ;; Not using this version any more.
 ;;;    ("Pace Willisson" :wrote "ispell.el")
+    ;; FIXME overwritten by Author:.
+    ("Bill Wohler" :cowrote "mh-e.el")
     ("Garrett Wollman" :changed "sendmail.el")
     ("Dale R. Worley" :changed "mail-extr.el")
     ("Jamie Zawinski" :changed "bytecode.c" :wrote "tar-mode.el"
@@ -462,6 +494,9 @@ found) in the repository.")
     ("leim-Makefile.in" . "leim/Makefile.in")
     ("emacs-lisp/testcover-ses.el" . "tcover-ses.el")
     ("emacs-lisp/testcover-unsafep.el" . "tcover-unsafep.el")
+    ;; index and pick merged into search.
+    ("mh-index.el" . "mh-search.el")
+    ("mh-pick.el" . "mh-search.el")
     ("INSTALL-CVS" . "INSTALL.CVS")
     ("refcards/fr-drdref.pdf" . "refcards/fr-dired-ref.pdf")
     ("gnus-logo.eps" . "refcards/gnus-logo.eps")
@@ -530,10 +565,11 @@ Otherwise, the file name is accepted as is.")
 (defvar authors-invalid-file-names)
 
 (defun authors-canonical-file-name (file log-file pos author)
-  "Return canonical file name for FILE found in LOG-FILE at POS for AUTHOR.
+  "Return canonical file name for FILE found in LOG-FILE.
 Checks whether FILE is a valid (existing) file name, has been renamed,
 or is on the list of removed files.  Returns the non-diretory part of
-the file name."
+the file name.  Only uses the LOG-FILE position POS and associated AUTHOR
+to print a message if FILE is not found."
   ;; FILE should be re-checked in every different directory associated
   ;; with a LOG-FILE.  Eg configure.in from src/ChangeLog is not the
   ;; same as that from top-level/ChangeLog.
@@ -661,7 +697,7 @@ with the file and the number of each action.
 	 (enable-local-eval nil)
 	 (existing-buffer (get-file-buffer log-file))
 	 (buffer (find-file-noselect log-file))
-	 author file pos)
+	 authors file pos)
     (save-excursion
       (set-buffer buffer)
       (save-restriction
@@ -670,13 +706,18 @@ with the file and the number of each action.
 	(while (re-search-forward "^[0-9]\\|^[ \t]+\\* " nil t)
 	  (beginning-of-line)
 	  (setq pos (point))
-	  ;; FIXME handle joint authorship.
 	  (cond ((looking-at "^[0-9]+-[0-9]+-[0-9]+")
-		 (skip-chars-forward " \t+:0-9-")
-		 (setq author (buffer-substring-no-properties
-			       (point) (line-end-position)))
-		 (setq author (authors-canonical-author-name author))
-		 (forward-line 1))
+		 ;; Handle joint authorship of changes.
+		 ;; This can be a bit fragile, and is not too common.
+		 (setq authors nil)
+		 (while (progn
+			  (skip-chars-forward " \t+:0-9-")
+			  (not (looking-at "\\($\\|\\*\\|\
+Suggested\\|Trivial\\|Version\\|Originally\\|From:\\|Patch[ \t]+[Bb]y\\)")))
+		   (push (authors-canonical-author-name
+			  (buffer-substring-no-properties
+			   (point) (line-end-position))) authors)
+		   (forward-line 1)))
 		((looking-at "^[ \t]+\\*")
 		 (let ((line (buffer-substring-no-properties
 			      (match-end 0) (line-end-position))))
@@ -692,9 +733,10 @@ with the file and the number of each action.
 		     (setq line (replace-regexp-in-string "[[(<{].*$" "" line))
 		     (setq line (replace-regexp-in-string "," "" line))
 		     (dolist (file (split-string line))
-		       (when (setq file (authors-canonical-file-name file log-file pos author))
-			 ;;(message "%s changed %s" author file)
-			 (authors-add author file :changed table))))
+		       (when (setq file (authors-canonical-file-name file log-file pos (car authors)))
+			 (dolist (author authors)
+			   ;;(message "%s changed %s" author file)
+			   (authors-add author file :changed table)))))
 		   (forward-line 1)))))))
     (unless existing-buffer
       (kill-buffer buffer))))
