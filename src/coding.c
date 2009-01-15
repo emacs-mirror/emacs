@@ -7905,10 +7905,11 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 	    }
 	}
 
-      if ((detect_info.rejected & CATEGORY_MASK_ANY) == CATEGORY_MASK_ANY)
+      if ((detect_info.rejected & CATEGORY_MASK_ANY) == CATEGORY_MASK_ANY
+	  || null_byte_found)
 	{
 	  detect_info.found = CATEGORY_MASK_RAW_TEXT;
-	  id = coding_categories[coding_category_raw_text].id;
+	  id = CODING_SYSTEM_ID (Qno_conversion);
 	  val = Fcons (make_number (id), Qnil);
 	}
       else if (! detect_info.rejected && ! detect_info.found)
