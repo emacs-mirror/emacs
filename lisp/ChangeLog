@@ -6,6 +6,7 @@
 	(Buffer-menu-revert): Remove function, unused.
 	(Buffer-menu-mode-map): Don't bind keys already
 	bound by special-mode.
+	(Buffer-menu-mode-map): Add a menu.
 
 2009-01-15  Stephen Eglen  <stephen@gnu.org>
 

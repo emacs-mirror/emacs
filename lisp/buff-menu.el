@@ -118,7 +118,8 @@ Auto Revert Mode.")
 (defvar Info-current-node) ;; from info.el
 
 (defvar Buffer-menu-mode-map
-  (let ((map (make-keymap)))
+  (let ((map (make-keymap))
+	(menu-map (make-sparse-keymap)))
     (suppress-keymap map t)
     (define-key map "v" 'Buffer-menu-select)
     (define-key map "2" 'Buffer-menu-2-window)
@@ -150,6 +151,69 @@ Auto Revert Mode.")
     (define-key map [follow-link] 'mouse-face)
     (define-key map (kbd "M-s a C-s")   'Buffer-menu-isearch-buffers)
     (define-key map (kbd "M-s a M-C-s") 'Buffer-menu-isearch-buffers-regexp)
+    (define-key map [menu-bar Buffer-menu-mode] (cons "Buffer Menu" menu-map))
+    (define-key menu-map [quit]
+      '(menu-item "Quit" quit-window
+		 :help "Mark buffer on this line to be deleted by x command"))
+    (define-key menu-map [rev]
+      '(menu-item "Refresh" revert-buffer
+		 :help "Refresh the *Buffer List* buffer contents"))
+    (define-key menu-map [s0] '("--"))
+    (define-key menu-map [tf]
+      '(menu-item "Show only file buffers" Buffer-menu-toggle-files-only
+		  :button (:toggle . Buffer-menu-files-only)
+		  :help "Toggle whether the current buffer-menu displays only file buffers"))
+    (define-key menu-map [s1] '("--"))
+    ;; FIXME: The "Select" entries could use better names...
+    (define-key menu-map [sel]
+      '(menu-item "Select marked" Buffer-menu-select
+		 :help "Select this line's buffer; also display buffers marked with `>'"))
+    (define-key menu-map [bm2]
+      '(menu-item "Select two" Buffer-menu-2-window
+		 :help "Select this line's buffer, with previous buffer in second window"))
+    (define-key menu-map [bm1]
+      '(menu-item "Select current" Buffer-menu-1-window
+		 :help "Select this line's buffer, alone, in full frame"))
+    (define-key menu-map [ow]
+      '(menu-item "Select in other window" Buffer-menu-other-window
+		 :help "Select this line's buffer in other window, leaving buffer menu visible"))
+    (define-key menu-map [tw]
+      '(menu-item "Select in current window" Buffer-menu-this-window
+		 :help "Select this line's buffer in this window"))
+    (define-key menu-map [s2] '("--"))
+    (define-key menu-map [is]
+      '(menu-item "Regexp Isearch marked buffers" Buffer-menu-isearch-buffers-regexp
+		 :help "Search for a regexp through all marked buffers using Isearch"))
+    (define-key menu-map [ir]
+      '(menu-item "Isearch marked buffers" Buffer-menu-isearch-buffers
+		 :help "Search for a string through all marked buffers using Isearch"))
+    (define-key menu-map [s3] '("--"))
+    (define-key menu-map [by]
+      '(menu-item "Bury" Buffer-menu-bury
+		 :help "Bury the buffer listed on this line"))
+    (define-key menu-map [vt]
+      '(menu-item "Set unmodified" Buffer-menu-not-modified
+		 :help "Mark buffer on this line as unmodified (no changes to save)"))
+    (define-key menu-map [ex]
+      '(menu-item "Execute" Buffer-menu-execute
+		 :help "Save and/or delete buffers marked with s or k commands"))
+    (define-key menu-map [s4] '("--"))
+    (define-key menu-map [delb]
+      '(menu-item "Mark for delete and move backwards" Buffer-menu-delete-backwards
+		 :help "Mark buffer on this line to be deleted by x command and move up one line"))
+    (define-key menu-map [del]
+      '(menu-item "Mark for delete" Buffer-menu-delete
+		 :help "Mark buffer on this line to be deleted by x command"))
+
+    (define-key menu-map [sv]
+      '(menu-item "Mark for save" Buffer-menu-save
+		 :help "Mark buffer on this line to be saved by x command"))
+    (define-key menu-map [umk]
+      '(menu-item "Unmark" Buffer-menu-unmark
+		 :help "Cancel all requested operations on buffer on this line and move down"))
+    (define-key menu-map [mk]
+      '(menu-item "Mark" Buffer-menu-mark
+		 :help "Mark buffer on this line for being displayed by v command"))
     map)
   "Local keymap for `Buffer-menu-mode' buffers.")
 
